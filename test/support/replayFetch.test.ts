@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { createReplayFetch, ReplayMissError, requestKey, type Har, type HarEntry } from "./replayFetch";
+import {
+  createReplayFetch,
+  normalizeNumbers,
+  ReplayMissError,
+  requestKey,
+  type Har,
+  type HarEntry,
+} from "./replayFetch";
 
 function entry(
   method: string,
@@ -90,6 +97,40 @@ describe("replayFetch", () => {
     const f = createReplayFetch(har);
     await f("https://example.test/q?b=2&a=1");
     expect(f.requests).toEqual([requestKey("GET", "https://example.test/q?a=1&b=2")]);
+  });
+
+  it("matches computed coordinates that differ only in the last bits (engine rounding)", async () => {
+    // Recorded in Chromium vs computed in Node: the real Macks Mountain 3DEP bbox case.
+    const f = createReplayFetch({
+      log: {
+        entries: [
+          entry("GET", "https://example.test/exportImage?bbox=534076.5656902977,4088137.543646043&f=image", {
+            text: "dem",
+          }),
+          entry("GET", "https://example.test/route/v1/driving/-80.62427424845224,36.9272195786777", {
+            text: "osrm",
+          }),
+        ],
+      },
+    });
+    expect(
+      await (
+        await f("https://example.test/exportImage?bbox=534076.5656902977,4088137.5436460427&f=image")
+      ).text(),
+    ).toBe("dem");
+    expect(
+      await (await f("https://example.test/route/v1/driving/-80.62427424845223,36.92721957867771")).text(),
+    ).toBe("osrm");
+    // …but a genuinely different request still misses.
+    await expect(
+      f("https://example.test/exportImage?bbox=534076.5656902977,4088137.5436&f=image"),
+    ).rejects.toBeInstanceOf(ReplayMissError);
+  });
+
+  it("normalizes only long decimals", () => {
+    expect(normalizeNumbers("id=52-47A&x=36.8874&y=4088137.5436460427")).toBe(
+      "id=52-47A&x=36.8874&y=4088137.54365",
+    );
   });
 
   it("leaves the real network blocked (test/setup.ts)", async () => {
