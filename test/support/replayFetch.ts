@@ -44,8 +44,21 @@ export function loadHar(path: string): Har {
   return JSON.parse(readFileSync(path, "utf8")) as Har;
 }
 
+/**
+ * Long decimals (≥ 6 fraction digits — computed coordinates, never IDs) compared at 12 significant digits.
+ * The prototype was recorded in Chromium's V8, and the tests run in Node's; ECMAScript doesn't require
+ * Math.sin/atan2/… to be correctly rounded, and the two engines differ in the last bit on ~1 in 5 inputs.
+ * That reaches request URLs: the Macks Mountain 3DEP bbox computed in Node ends …4088137.5436460427, the
+ * recorded one …4088137.543646043. 12 digits is ~1 µm on a UTM northing, far below any real difference
+ * between two requests. See docs/plans/phase-0.md §5.
+ */
+export function normalizeNumbers(s: string): string {
+  return s.replace(/-?\d+\.\d{6,}(?:e[-+]?\d+)?/gi, (m) => String(Number(Number(m).toPrecision(12))));
+}
+
 function sortedParams(p: URLSearchParams): string {
   return [...p.entries()]
+    .map(([k, v]) => [k, normalizeNumbers(v)] as const)
     .sort(([a, av], [b, bv]) => (a === b ? av.localeCompare(bv) : a.localeCompare(b)))
     .map(([k, v]) => `${k}=${v}`)
     .join("&");
@@ -63,9 +76,13 @@ export function requestKey(
   let b = "";
   if (body) {
     const formish = !contentType || contentType.includes("application/x-www-form-urlencoded");
-    b = formish && !body.trimStart().startsWith("{") ? sortedParams(new URLSearchParams(body)) : body;
+    b =
+      formish && !body.trimStart().startsWith("{")
+        ? sortedParams(new URLSearchParams(body))
+        : normalizeNumbers(body);
   }
-  return `${method.toUpperCase()} ${u.origin}${u.pathname}${query ? "?" + query : ""}${b ? " BODY " + b : ""}`;
+  const path = normalizeNumbers(decodeURIComponent(u.pathname)); // OSRM puts coordinates in the path
+  return `${method.toUpperCase()} ${u.origin}${path}${query ? "?" + query : ""}${b ? " BODY " + b : ""}`;
 }
 
 // Hop-by-hop or encoding headers that no longer describe the decoded body we hand back.
