@@ -15,48 +15,77 @@ that can be promoted to parcels. Never screens on its own until Phase 5.
 
 ## 2. The pipeline contract (`lib/screen`)
 
+The authoritative definitions are the Zod schemas in `lib/screen/types.ts`. This section summarizes them.
+The additions over the original contract were approved in docs/plans/phase-0.md §9.7.
+
 ```ts
-export async function screen(input: ScreenInput, onProgress?: (e: ProgressEvent) => void): Promise<ScreenResult>
+export async function screen(
+  input: ScreenInput,
+  onProgress?: (e: ProgressEvent) => void,
+  deps?: { http?: HttpClient; signal?: AbortSignal; demCache?: DemCache },
+): Promise<ScreenOutput>
+
+interface ScreenOutput {
+  result: ScreenResult;      // JSON-safe, versioned: what screens.result stores
+  session: ScreenSession;    // rasters and raw features; in memory only, never persisted
+}
+
+// Re-evaluate on an existing run (the prototype's tap-a-pin and mark-a-house). Return a new result.
+export function evaluateAt(out: ScreenOutput, ll: [lat, lon], label: string, deps?): Promise<ScreenResult>
+export function setHouse(out: ScreenOutput, ll: [lat, lon] | null, deps?): Promise<ScreenResult>
 
 interface ScreenInput {
   polygon: GeoJSON.Polygon;           // WGS84
-  config: UserConfig;                 // thresholds, weights, anchors, endpoints
+  config: UserConfig;                 // thresholds, driveway unit costs, anchors, endpoints, timeZone
   house?: [lat, lon];                 // optional existing house
   evaluateAt?: [lat, lon];            // optional explicit evaluation point
 }
 
-type Step = 'dem' | 'terrain' | 'soils' | 'sun' | 'sky' | 'flood' | 'padus' | 'near' | 'drive' | 'rank';
-interface ProgressEvent { step: Step; status: 'run' | 'done' | 'fail' | 'skip'; message?: string }
+type Step = 'dem' | 'terrain' | 'soils' | 'sun' | 'sky' | 'flood' | 'padus' | 'near' | 'drive' | 'rank' | 'driveway';
+interface ProgressEvent {
+  step: Step; status: 'run' | 'done' | 'fail' | 'skip'; message?: string;
+  link?: string;                       // "test the query" when the places lookup fails
+  partial?: PartialScreenResult;       // snapshot after the step (no verdict yet)
+}
 ```
 
-`ScreenResult` (store as JSON in `screens.result`; stable, versioned by `schemaVersion`):
+`ScreenResult` (store as JSON in `screens.result`; stable, versioned by `schemaVersion`, currently 1).
+It is the prototype's result object without the session-only parts, and every object is strict.
+Sections whose step failed or was skipped are absent. Values the prototype can leave as NaN are `null`.
 
 ```
 schemaVersion, runAt, acres, demSource, demResM
 terrain      { elevMinFt, elevMaxFt, elevMeanFt, reliefFt, valleyFloorFt, heightAboveValleyFt,
                slopeMedDeg, slopeP90Deg, acresUnder15, acresOver25, diag:{houseAc, shelfAc, gardenAc, totalAc} }
-sites[]      { rank, ll, acres, elevFt, aspectDeg, slopeDeg, compact?, quality, qGrade, q:{sun,aspect,frost,slope,sky},
-               costIdx, costTier, c:{septic,foundation,rock,pad,driveway}, sunH, driveFt?, roadGrade?, roadName?, soil?, why[] }
+houseMinUsed the house-site threshold actually used (relaxed when nothing qualified)
+benches[]    { ll, acres, elevFt, slopeDeg, aspectDeg, score, veto? }       (house sites before ranking)
+sites[]      { rank, ll, acres, elevFt, aspectDeg, slopeDeg, compact?, cell:{score,slope,aspect,thermal},
+               quality, qGrade, q:{sun,aspect,frost,slope,sky}, costIdx, costTier, c:{septic,foundation,rock,pad,driveway},
+               score (overall), grade, sunH, daylightH, driveFt?, roadGrade?, roadRunFt?, roadName?, soil, flood?, why[] }
 excluded[]   { ll, acres, why }
 shelves[]    { ll, acres, elevFt, aspectDeg, slopeDeg, score, distFt?, dropFt? }
-gardens[]    { ll, acres, elevFt, aboveFt, aspectDeg, slopeDeg, score, finalScore, soil?, soilNote? }
+gardens[]    { ll, acres, elevFt, aboveFt, aspectDeg, slopeDeg, score, finalScore?, adj?, soil?, soilNote? }
 focus        { ll, label }
 point        { ll, elevFt, aboveFloorFt, slopeDeg, aspectDeg }
 sun          { decDirectH, decDaylightH, noonAlt, noonClearance, worstAz, worstAngle, junDirectH, junDaylightH, profile[[az,deg]] }
-sky          { mag, ratio, zone, zoneWord, year, coreAlt, ridgeS, coreClear, dome?, domes[{az,w,km,ratio}], score, notes[] }
-soils[]      NRCS component rows (mukey, muname, farmlndcl, compname, comppct_r, drainagecl, hydricrating, slope_h,
+sky          { mag, ratio, zone, zoneWord, year, coreAlt, ridgeS, coreClear, dome, domes[{az,w,km,ratio}], score, notes[] }
+soils[]      NRCS component rows (mukey, muname, farmlndcl, cokey, compname, comppct_r, drainagecl, hydricrating, slope_l, slope_h,
                brockdepmin, drclassdcd, hydgrpdcd, wtdepannmin, flodfreqdcd, engdwbdcd, engdwobdcd, engstafdcd, englrsdcd, septic)
-soilUnits[]  { mukey, muname, acres, geometry (clipped), color }
+soilUnits[]  { mukey, muname, acres, color, geometries[] (clipped pieces) }   or null if the polygon query failed
 flood        { zones[], sfha, sfhaAcres, mapped }
 protected[]  { name, manager, type, access, gap, adjoins, distFt }
-near         { hospitals[], grocers[], trailheads[], trailheadCount }
+near         { hospitals[], grocers[], trailheads[], trailheadCount }   nearNote? (Overpass fallback used)
 drives[]     { label, name, min, mi }
-road?        { name, riseFt, runFt, gradePct }
-house?       (same shape as a site, plus inside, onBench, veto, inSFHA)
+road?        { name, riseFt, runFt, gradePct }                          roadNote? (no road within 1,500 m)
+house?       same shape as a site (minus rank/acres/compact) plus inside, onBench, benchAcres, veto, inSFHA;
+             or { ll, outside: true } when the bulls-eye is off the DEM
+driveway?    { toLabel, entrances[], routes[] (line, profile, metrics, cost, culverts, needsEasement, maxGrade, label,
+               entranceIndex, track?), direct?, note, roadsNearestFt }     (the prototype's router; §2a in Phase 2.5)
 flags[]      { lvl: 'fatal'|'warn'|'good', t }
 verdict      'fatal' | 'marginal' | 'ok'
-failed[]     step labels that failed
-raster refs  NOT stored. Overlays are regenerated from `surfaces` only in-session.
+failed[]     step ids that failed
+cancelled    whether the run was cancelled
+raster refs  NOT stored. DEMs, slope/aspect, suitability surfaces and the horizon's ridge cells live in ScreenSession.
 ```
 
 Scoring (do not change without updating fixtures):
