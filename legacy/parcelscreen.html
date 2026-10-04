@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Parcel Screen</title>
-<meta name="parcelscreen-build" content="build 2026-10-01 20:46 UTC">
+<meta name="parcelscreen-build" content="build 2026-10-04 20:36 UTC">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" onerror="this.onerror=null;this.href='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css'">
@@ -200,7 +200,7 @@ dialog p,dialog ul{font-size:14px}
   <aside id="panel">
     <div id="sheet-handle" title="Drag or tap to resize"></div>
     <header>
-      <div><h1>Parcel Screen</h1><div class="sub">Kill parcels from your desk, before you drive. <span class="tiny muted" id="buildstamp">build 2026-10-01 20:46 UTC</span></div></div>
+      <div><h1>Parcel Screen</h1><div class="sub">Kill parcels from your desk, before you drive. <span class="tiny muted" id="buildstamp">build 2026-10-04 20:36 UTC</span></div></div>
       <span class="row" style="gap:6px"><button class="btn secondary small" id="btn-help">How to read this</button><button class="btn secondary small" id="btn-settings">Settings</button><button class="btn small" id="btn-mapmode" style="display:none">Map</button></span>
     </header>
     <div id="scroll">
@@ -269,7 +269,7 @@ dialog p,dialog ul{font-size:14px}
 
 <div id="view3d" style="display:none" role="dialog" aria-label="3D walkthrough">
   <div id="card3d">
-    <div id="head3d"><b id="title3d">The land</b><span id="count3d" class="tiny">1 / 6</span><span class="tiny" style="color:#9aa59d">build 2026-10-01 20:46 UTC</span><button class="btn small" id="x3d">Close</button></div>
+    <div id="head3d"><b id="title3d">The land</b><span id="count3d" class="tiny">1 / 6</span><span class="tiny" style="color:#9aa59d">build 2026-10-04 20:36 UTC</span><button class="btn small" id="x3d">Close</button></div>
     <div id="stage3d"><canvas id="c3d"></canvas>
       <div id="topleft3d"><div id="sites3d"></div><div id="night3d" style="display:none"><label>Month <select id="mon3d"></select></label><label>Time <select id="hr3d"></select></label></div><div id="msg3d"></div></div>
       <div id="compass3d" aria-label="Compass"><svg viewBox="0 0 100 100" width="64" height="64"><g id="rose3d"><circle cx="50" cy="50" r="46" fill="rgba(11,20,16,.7)" stroke="#4a5650"/><polygon points="50,8 56,50 50,46 44,50" fill="#e0553f"/><polygon points="50,92 56,50 50,54 44,50" fill="#c3c9bf"/><text x="50" y="22" font-size="13" fill="#fff" text-anchor="middle" font-weight="700">N</text><text x="50" y="88" font-size="11" fill="#c3c9bf" text-anchor="middle">S</text><text x="86" y="54" font-size="11" fill="#c3c9bf" text-anchor="middle">E</text><text x="14" y="54" font-size="11" fill="#c3c9bf" text-anchor="middle">W</text></g></svg></div>
@@ -301,7 +301,7 @@ dialog p,dialog ul{font-size:14px}
       <li><b>Aspect</b> — which way the ground faces. South-southeast is best for winter sun and warmth; north-facing is not disqualified, it just scores lower. Nearly flat ground faces every way and gets full credit.</li>
       <li><b>Frost position</b> — height above the lowest ground nearby. On still clear nights cold air drains downhill and pools in the low spots, which get fog and frost the slope above them doesn't. The score bottoms at 40 in the pocket and reaches 100 about 80 ft up — the "thermal belt."</li>
     </ul>
-    <p>A <b>house site</b> is a connected patch of at least 0.3 acres scoring 60+. A <b>shelf</b> is smaller or lower-scoring ground (45+, 0.1 ac) that's fine for a shop, barn or garage; a shelf of 0.15 ac or more is also ranked as a <b>compact site</b> — a house is possible there with a cut pad and retaining walls, and it takes a 10-point penalty for that earthwork. If a house already stands on one, the earthwork is done. A <b>garden patch</b> uses its own score, weighted hard toward frost position, gentle slope, and a southern face, then adjusted by the soil under it. The overlay button on the map cycles between the house map, the garden map, and plain slope. Red is bad, green is good; solid dark green is a house site, blue is a shelf, teal is a garden.</p>
+    <p>A <b>house site</b> is a connected patch of at least 0.3 acres scoring 60+. A <b>shelf</b> is smaller or lower-scoring ground (45+, 0.1 ac) that's fine for a shop, barn or garage; a shelf of 0.15 ac or more is also ranked as a <b>compact site</b> — a house is possible there with a cut pad and retaining walls, and it carries 15 pad-cost points for that earthwork. If a house already stands on one, the earthwork is done. A <b>garden patch</b> uses its own score, weighted hard toward frost position, gentle slope, and a southern face, then adjusted by the soil under it. The overlay button on the map cycles between the house map, the garden map, and plain slope. Red is bad, green is good; solid dark green is a house site, blue is a shelf, teal is a garden.</p>
     <p>None of this is a veto. Bottomland soil is — see Soils.</p>
 
     <h3 id="h-sun">December sun</h3>
@@ -1162,18 +1162,14 @@ async function runScreen(){
     if(!sites.length&&!R.excluded.length) st.rank_msg=R.shelves&&R.shelves.length?"no house site; shelves listed below":"nothing to rank — see the terrain diagnostics";
     if(house) await assessHouse(R);
     sites.sort((a,b)=>b.score-a.score); sites.forEach((s,i)=>{ s.rank=i+1; s.grade=grade(s.score); }); R.sites=sites;
-    // shelves: distance and drop from site #1
-    if(R.shelves&&sites[0]) for(const sh of R.shelves){ sh.distFt=turf.distance([sites[0].ll[1],sites[0].ll[0]],[sh.ll[1],sh.ll[0]],{units:"feet"}); sh.dropFt=sh.elevFt-sites[0].elevFt; }
-    (R.shelves||[]).forEach((sh,i)=>L.marker(sh.ll,{icon:L.divIcon({className:"",html:`<div class="sitepin shelf">S${i+1}</div>`,iconSize:[26,26],iconAnchor:[13,13]})}).bindTooltip(`Shelf S${i+1} — ${sh.acres.toFixed(2)} ac, cell score ${Math.round(sh.score)}. Tap to evaluate here.`).on("click",()=>setFocus(R,sh.ll,`shelf S${i+1}`)).addTo(overlays));
-    (R.gardens||[]).slice(0,3).forEach((g,i)=>L.marker(g.ll,{icon:L.divIcon({className:"",html:`<div class="sitepin garden">G${i+1}</div>`,iconSize:[26,26],iconAnchor:[13,13]})}).bindTooltip(`Garden G${i+1} — ${g.acres.toFixed(2)} ac, ${g.soilNote||""}`).addTo(overlays));
-    R.excluded.forEach(x=>L.marker(x.ll,{icon:L.divIcon({className:"",html:`<div class="sitepin veto">✕</div>`,iconSize:[26,26],iconAnchor:[13,13]})}).bindTooltip(`Excluded — ${x.why}. Tap to evaluate here anyway.`).on("click",()=>setFocus(R,x.ll,"the excluded bench")).addTo(overlays));
-    sites.forEach(s=>L.marker(s.ll,{icon:L.divIcon({className:"",html:`<div class="sitepin${s.rank===1?" top":""}">${s.rank}</div>`,iconSize:[26,26],iconAnchor:[13,13]})}).bindTooltip(`#${s.rank} — score ${s.score}. Tap to evaluate here.`).on("click",()=>setFocus(R,s.ll,`site #${s.rank}`)).addTo(overlays));
+    finalizeRanking(R);
   });
   await step("driveway",async()=>{
     if(!dFine) throw new Error("needs elevation");
     const to=house?{ll:house,label:"the existing house"}:(R.sites&&R.sites[0])?{ll:R.sites[0].ll,label:"site #1"}:null; if(!to) throw new Error("no site to route to");
     await buildDriveway(R,R._ctx,to.ll,to.label); drawDriveway(R);
-    const rt=R.driveway.routes[0]; if(rt&&R.sites&&R.sites[0]&&!house){ const s=R.sites[0]; s.driveFt=rt.metrics.lengthFt; s.c.driveway=Math.min(30,rt.metrics.lengthFt/100)+(rt.needsEasement?10:0); s.costIdx=Math.round(Math.min(100,s.c.septic+s.c.foundation+s.c.rock+s.c.pad+s.c.driveway)); s.costTier=s.costIdx<20?"$":s.costIdx<40?"$$":s.costIdx<65?"$$$":"$$$$"; s.score=Math.round(0.7*s.quality+0.3*(100-s.costIdx)); s.grade=grade(s.score); s.why=s.why.filter(x=>!/ft to .* at .*straight-line/.test(x)); s.why.push(`routed driveway: ${Math.round(rt.metrics.lengthFt)} ft at ≤${(rt.maxGrade*100).toFixed(0)}%, ${rt.metrics.switchbacks} switchback${rt.metrics.switchbacks===1?"":"s"}, ~$${fmt(rt.cost.low/1000)}–${fmt(rt.cost.high/1000)}k`); }
+    const rt=R.driveway.routes[0]; if(rt&&R.sites&&R.sites[0]&&!house){ const s=R.sites[0]; s.driveFt=rt.metrics.lengthFt; s.c.driveway=Math.min(30,rt.metrics.lengthFt/100)+(rt.needsEasement?10:0); s.costIdx=Math.round(Math.min(100,s.c.septic+s.c.foundation+s.c.rock+s.c.pad+s.c.driveway)); s.costTier=s.costIdx<20?"$":s.costIdx<40?"$$":s.costIdx<65?"$$$":"$$$$"; s.score=Math.round(0.7*s.quality+0.3*(100-s.costIdx)); s.grade=grade(s.score); s.why=s.why.filter(x=>!/ft to .* at .*straight-line/.test(x)); s.why.push(`routed driveway: ${Math.round(rt.metrics.lengthFt)} ft at ≤${(rt.maxGrade*100).toFixed(0)}%, ${rt.metrics.switchbacks} switchback${rt.metrics.switchbacks===1?"":"s"}, ~$${fmt(rt.cost.low/1000)}–${fmt(rt.cost.high/1000)}k`);
+      R.sites.sort((a,b)=>b.score-a.score); R.sites.forEach((x,i)=>{ x.rank=i+1; x.grade=grade(x.score); }); finalizeRanking(R); }
     if(R.driveway.note) st.driveway_msg=R.driveway.note;
   });
   R.failed=STEPS.filter(([k])=>st[k]==="fail").map(([,l])=>l); R.cancelled=runAbort.signal.aborted;
@@ -1185,6 +1181,16 @@ async function runScreen(){
 }
 let lastResult=null;
 const grade=s=>s>=80?"A":s>=65?"B":s>=50?"C":s>=35?"D":"F";
+const pinLayer=L.layerGroup();
+function finalizeRanking(R){ // shelf distances and map pins from the *current* ranking; called after rank and again after the driveway re-sort
+  const sites=R.sites||[];
+  if(R.shelves&&sites[0]) for(const sh of R.shelves){ sh.distFt=turf.distance([sites[0].ll[1],sites[0].ll[0]],[sh.ll[1],sh.ll[0]],{units:"feet"}); sh.dropFt=sh.elevFt-sites[0].elevFt; }
+  if(!overlays.hasLayer(pinLayer)) pinLayer.addTo(overlays); pinLayer.clearLayers();
+  (R.shelves||[]).forEach((sh,i)=>L.marker(sh.ll,{icon:L.divIcon({className:"",html:`<div class="sitepin shelf">S${i+1}</div>`,iconSize:[26,26],iconAnchor:[13,13]})}).bindTooltip(`Shelf S${i+1} — ${sh.acres.toFixed(2)} ac, cell score ${Math.round(sh.score)}. Tap to evaluate here.`).on("click",()=>setFocus(R,sh.ll,`shelf S${i+1}`)).addTo(pinLayer));
+  (R.gardens||[]).slice(0,3).forEach((g,i)=>L.marker(g.ll,{icon:L.divIcon({className:"",html:`<div class="sitepin garden">G${i+1}</div>`,iconSize:[26,26],iconAnchor:[13,13]})}).bindTooltip(`Garden G${i+1} — ${g.acres.toFixed(2)} ac, ${g.soilNote||""}`).addTo(pinLayer));
+  (R.excluded||[]).forEach(x=>L.marker(x.ll,{icon:L.divIcon({className:"",html:`<div class="sitepin veto">✕</div>`,iconSize:[26,26],iconAnchor:[13,13]})}).bindTooltip(`Excluded — ${x.why}. Tap to evaluate here anyway.`).on("click",()=>setFocus(R,x.ll,"the excluded bench")).addTo(pinLayer));
+  sites.forEach(s=>L.marker(s.ll,{icon:L.divIcon({className:"",html:`<div class="sitepin${s.rank===1?" top":""}">${s.rank}</div>`,iconSize:[26,26],iconAnchor:[13,13]})}).bindTooltip(`#${s.rank} — score ${s.score}. Tap to evaluate here.`).on("click",()=>setFocus(R,s.ll,`site #${s.rank}`)).addTo(pinLayer));
+}
 const OPEN_DEFAULT={verdict:true,terrain:true,"december-sun":true,"dark-skies":true,"where-to-build":true,"where-to-garden":true,"the-existing-house":true,"driveway":true};
 function openState(key){ try{ const s=JSON.parse(localStorage.getItem("ps.open")||"{}"); if(key in s) return !!s[key]; }catch{} return !!OPEN_DEFAULT[key]; }
 function setOpenState(key,v){ try{ const s=JSON.parse(localStorage.getItem("ps.open")||"{}"); s[key]=v; localStorage.setItem("ps.open",JSON.stringify(s)); }catch{} }
@@ -1394,7 +1400,7 @@ async function buildDriveway(R,ctx,toLL,toLabel){
   const direct=routeDriveway(R,ctx,rec.entrance.ll,toLL,{maxGrade:0.15,wGrade:0.5,label:"direct track at 15%"}); if(direct){ direct.entrance=rec.entrance; direct.track=trackCost(direct); R.driveway.direct=direct; }
 }
 const dwLayer=L.layerGroup();
-function drawDriveway(R){ if(!overlays.hasLayer(dwLayer)) dwLayer.addTo(dwLayer); dwLayer.clearLayers(); if(!R.driveway||!R.driveway.routes.length) return;
+function drawDriveway(R){ if(!overlays.hasLayer(dwLayer)) dwLayer.addTo(overlays); dwLayer.clearLayers(); if(!R.driveway||!R.driveway.routes.length) return;
   R.driveway.entrances.forEach((e,i)=>L.marker(e.ll,{icon:L.divIcon({className:"",html:`<div class="sitepin" style="background:#e0c43c;color:#1c2620;border-color:#1c2620;font-size:12px">E${i+1}</div>`,iconSize:[26,26],iconAnchor:[13,13]})}).bindTooltip(`Entrance ${i+1} on ${e.name}: road grade ${e.roadGrade.toFixed(0)}%, bend ${e.bend.toFixed(0)}°, bank ${e.bankFt.toFixed(0)} ft`).addTo(dwLayer));
   R.driveway.routes.forEach((rt,i)=>{ const pts=rt.line.geometry.coordinates.map(p=>[p[1],p[0]]); L.polyline(pts,{color:"#0b1410",weight:i?3:5,opacity:.6}).addTo(dwLayer); L.polyline(pts,{color:i?"#9aa59d":"#e0c43c",weight:i?1.5:3,dashArray:i?"6 4":null}).bindTooltip(`${rt.label}: ${fmt(rt.metrics.lengthFt)} ft, max ${rt.metrics.maxGradePct.toFixed(0)}%, ~$${fmt(rt.cost.mid/1000)}k`).addTo(dwLayer);
     rt.culverts.forEach(c=>L.circleMarker(c,{radius:4,color:"#fff",weight:1,fillColor:"#2b6f8f",fillOpacity:1}).bindTooltip("drainage crossing — culvert").addTo(dwLayer)); });
