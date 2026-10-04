@@ -136,7 +136,7 @@ The prototype calls every service straight from the browser, and that works, so 
 | `lib/http.ts` | §2c; replaces `xfetch` | L711–717 | R |
 | `lib/format.ts` | `fmt`, `compass` | L1445–1446 | V |
 | `lib/screen/config.ts` | `DEFAULT_USER_CONFIG` (same values as `DEFAULTS`, plus `timeZone: 'America/New_York'` for the 3D night sky; `aspectFrom`/`aspectTo` kept in the schema but hidden from Settings), `DEFAULT_ENDPOINTS` (`_v: 10`), `migrateEndpoints` (the `_v` rule), and **`SCREEN_CONSTANTS`**: every hard-coded curve, weight, cost table, tier, grade cut-off, sky constant, radius, top-N limit and search radius in the pipeline, named and frozen | L407–467 + inline constants | R (values V) |
-| `lib/screen/types.ts` | Zod: `UserConfig`, `Endpoints`, `ScreenInput`, `ScreenResult` + sub-schemas; TS: `Dem`, `ScreenSession`, `Step`, `ProgressEvent` | — | R |
+| `lib/screen/types.ts` | Zod: `UserConfig`, `Endpoints`, `ScreenInput`, `ScreenResult` + sub-schemas; TS: `Dem`, `Step`, `ProgressEvent`. `ScreenSession` is added with the orchestrator in step 10, once its contents are known. | — | R |
 | `lib/screen/util.ts` | `lerp`, `clamp`, `quantile`, `M2FT`, `M2_PER_ACRE` | L469, L912, L1025 | V |
 | `lib/screen/arcgis.ts` | `arcQuery` (POST, geojson, error text extraction) | L855–860 | V |
 | `lib/screen/dem.ts` | `fetchDEM` (3DEP `exportImage`, 3 tries, 2.4 M-cell cap), `fetchTerrarium` (**PNG decoded with `fast-png`, not canvas**), DEM helpers `at/rcToUTM/utmToRC/rcToLL/llToRC/bounds/bilinear`, `DemCache` LRU | L718–770, L1657 | V (math) / R (decode, cache) |
