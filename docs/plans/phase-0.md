@@ -238,7 +238,7 @@ Node: `.nvmrc` = **22** (LTS). Node 20, which PLAN mentions, reached end of life
 
 The acceptance test compares against **the prototype's own output on the same inputs**, so the prototype has to be run. The plan is to capture the inputs and the expected outputs together, in one pass, by driving the unmodified prototype:
 
-1. `scripts/record-fixtures.ts` (Playwright, run locally by me or the owner, never in CI):
+1. `scripts/record-fixtures.mts` (Playwright, run locally by me or the owner, never in CI):
    - Copies `legacy/parcelscreen.html` to a gitignored temp dir. It injects one line before `} // main` that exposes `window.__ps = { pickParcel, setParcel, setHouse, runScreen, setFocus, get last(){ return lastResult } }`. The legacy file itself is not touched.
    - Opens it with **empty localStorage** (default config) and HAR recording on (`content: embed`). Basemap and imagery tile hosts are excluded to keep size down.
    - For each reference parcel it calls `pickParcel(point)`, then `runScreen()`, then serializes `__ps.last`. Typed arrays and `_ctx` are dropped; `_horizon`, `_roads` and `_sfha` are kept. For Macks Mountain it also calls `setFocus` on site #2 and captures that result. For Ferney Creek it then makes a **house-marked run**: the bulls-eye goes at a point inside the polygon about 60 m southwest of site #2 (bearing 225°, chosen by the script and written to `input.json`), followed by `setHouse` → `runScreen()`. No real house is needed, because `assessHouse` is deterministic.
@@ -252,7 +252,7 @@ The acceptance test compares against **the prototype's own output on the same in
    ```
    Estimate: 3–8 MB per parcel (two DEM TIFFs, 1–4 atlas tiles, JSON). That goes in plain git unless the total passes 20 MB (§9.9).
 3. `test/support/replayFetch.ts` builds a `fetch` from the HAR, matching on method + URL + body. For ArcGIS form posts the parameters are compared order-insensitively. An unmatched request **throws** with the full URL. That makes the tests provably offline and shows any drift in the requests the port makes. `test/setup.ts` also replaces global `fetch` with a function that throws.
-4. `test/support/fromPrototype.ts` maps the prototype's `R` onto `ScreenResult` so the comparison is field-by-field. Field renames happen in this one reviewed file.
+4. `test/support/fromPrototype.ts` maps the prototype's `R` onto `ScreenResult` so the comparison is field-by-field. Field renames happen in this one reviewed file. It lands in **step 4**, together with the `ScreenResult` schema it maps onto. Step 2 ships a loosely typed `loadFixture()` instead.
 
 The same HAR drives the browser e2e test via Playwright `routeFromHAR`. One recording therefore covers the Node parity test, the Worker parity test, and the UI.
 
@@ -265,9 +265,9 @@ Branches are named `phase-0/NN-slug`. Each PR lists its deviations from the prot
 | # | PR | Contents | Checks in the PR |
 |---|---|---|---|
 | 1 | **Scaffold + CI** | Next.js App Router, TS strict, Tailwind, ESLint (+ restricted imports/globals for pure paths), Prettier, Vitest (node + jsdom projects), `tsconfig.pure.json`, `.env.example` (the four variables, unused until Phase 1), `.nvmrc`, GitHub Actions `ci.yml` with jobs `typecheck`, `lint`, `test` (and `e2e` from step 17), placeholder `/explore`. | CI green; Vercel preview deploys; a deliberate `document` in `lib/screen` fails `typecheck:pure` (shown in the PR, then removed). |
-| 2 | **Fixtures + golden** | Commits the 2026-10-04 20:36 UTC `legacy/parcelscreen.html` (the build the goldens come from), `scripts/record-fixtures.ts`, `test/fixtures/*` for both parcels plus the Ferney Creek house run, `replayFetch`, `fromPrototype`, and a fixtures README recording the date and the prototype build stamp. | Fixtures load; replay throws on an unknown URL (test). |
+| 2 | **Fixtures + golden** | Commits the 2026-10-04 20:36 UTC `legacy/parcelscreen.html` (the build the goldens come from), `scripts/record-fixtures.mts`, `test/fixtures/*` for both parcels plus the Ferney Creek house run, `replayFetch`, `loadFixture`, and a fixtures README recording the date and the prototype build stamp. | Fixtures load; replay throws on an unknown URL (test). |
 | 3 | **Geo + http + format** | `lib/geo/{utm,wkt,split,parcels}.ts`, `lib/http.ts`, `lib/format.ts` | UTM round-trip < 1 mm over the three states, plus known control points; WKT cases (multi, collection, holes); split bisection hits target ±0.01 ac on a synthetic parcel; http: per-host concurrency, minInterval, 429 with `Retry-After`, timeout, cancel. |
-| 4 | **Config + types** | `config.ts`, `types.ts`, `util.ts` | `config.test.ts` inline snapshot of `DEFAULT_USER_CONFIG` + `SCREEN_CONSTANTS`, so any number change shows in a diff; Zod round-trip of the golden result. |
+| 4 | **Config + types** | `config.ts`, `types.ts`, `util.ts`, `test/support/fromPrototype.ts` | `config.test.ts` inline snapshot of `DEFAULT_USER_CONFIG` + `SCREEN_CONSTANTS`, so any number change shows in a diff; Zod round-trip of the golden result. |
 | 5 | **DEM + terrain** | `dem.ts`, `terrain.ts`, `arcgis.ts` | Synthetic planes: a south-facing 10% plane gives slope 5.71°, aspect 180°; an east-facing plane gives 90°. Fixture: DEM grid size/origin and `terrain.*` equal golden. Terrarium decode on one recorded tile. |
 | 6 | **Sites** | `sites.ts` | Synthetic labeling (4-connectivity, min cells, exclusion); fixture: `benchDiag`, benches/shelves/gardens (acres, centroid row/col, scores) equal golden. |
 | 7 | **Soils, flood, PAD-US** | `soils.ts`, `flood.ts`, `padus.ts` | `bottomland`/`soilRead` table tests over every distinct row in both fixtures; SQL builder emits only numeric coordinates; fixture: soils, soilUnits (acres, colors), vetoes, garden adjustments, flood, protected, related flags equal golden. |

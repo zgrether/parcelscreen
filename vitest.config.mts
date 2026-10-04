@@ -8,5 +8,6 @@ export default defineConfig({
     // A jsdom project for component tests is added in step 14.
     environment: "node",
     include: ["lib/**/*.test.ts", "test/**/*.test.ts"],
+    setupFiles: ["test/setup.ts"],
   },
 });
