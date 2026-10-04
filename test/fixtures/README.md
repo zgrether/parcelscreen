@@ -81,6 +81,14 @@ add special cases to keep this outcome.
   `driveway._entrancesRoadsNearestFt`.
 - `parcel`, `when` and `soilUnits[].geos` are kept as the prototype holds them. `when` is ignored when comparing.
 
+## Terrarium tile (DEM fallback)
+
+`terrarium/14/4530/6383.png` (103,098 bytes) is the one AWS terrain tile covering Ferney Creek's fine-DEM
+bbox at the fallback's zoom 14. The prototype never needed it, because 3DEP answered, so it isn't in the
+HAR. It was fetched once, separately, on 2026-10-04T22:05:35Z from
+`https://s3.amazonaws.com/elevation-tiles-prod/terrarium/14/4530/6383.png`, to test the fallback against
+real data (`lib/screen/dem.test.ts`: the decoded fallback DEM agrees with the lidar DEM to a median 3 m).
+
 ## Size
 
 | File | Bytes |
