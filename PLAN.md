@@ -45,7 +45,9 @@ needs the keys).
 
 ### 1. GitHub
 - [ ] Create a **private** repo `parcelscreen` under your account. Default branch `main`.
-- [ ] Add branch protection on `main`: require a PR, require status checks (CI will be added in Phase 0).
+- [ ] Guard `main` against direct pushes. GitHub branch protection isn't available on this plan, so
+      install the local pre-push hook in [`docs/plans/README.md`](docs/plans/README.md#local-guard-against-direct-pushes-to-main-free-plan-repos)
+      and merge only through PRs with green CI.
 - [ ] Clone it locally.
 - [ ] Copy these files into the repo root: `CLAUDE.md`, `PLAN.md`, `docs/REQUIREMENTS.md`,
       and the current prototype as `legacy/parcelscreen.html` (the source of truth for the port).
