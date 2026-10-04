@@ -18,13 +18,23 @@ own network traffic and results for one reference parcel. The port is tested aga
 
 | Fixture | Recording started | Screen run | Finished |
 |---|---|---|---|
-| Ferney Creek | 2026-10-04T21:12:08.719Z | 2026-10-04T21:12:09.937Z | 2026-10-04T21:12:22.533Z |
-| Macks Mountain | 2026-10-04T21:11:04.299Z | 2026-10-04T21:11:05.475Z | 2026-10-04T21:11:27.837Z |
+| Ferney Creek | 2026-10-04T21:21:26.496Z | 2026-10-04T21:21:27.602Z | 2026-10-04T21:21:38.950Z |
+| Macks Mountain | 2026-10-04T21:21:39.247Z | 2026-10-04T21:21:40.231Z | 2026-10-04T21:21:47.492Z |
 
-Ferney Creek was recorded twice. The first attempt (2026-10-04T21:10:39Z) got a transient error from
-FEMA NFHL on an otherwise identical request ("The provided output spatial reference is not supported
-with geoJSON format", returned with HTTP 200). That failed the floodplain step, so the first attempt was
-discarded. The same request succeeded six seconds later, and on the second attempt.
+### Recording history
+
+1. **2026-10-04T21:10:39Z, Ferney Creek, discarded.** It got a transient error from FEMA NFHL on an
+   otherwise identical request ("The provided output spatial reference is not supported with geoJSON
+   format", returned with HTTP 200), which failed the floodplain step. The same request succeeded six
+   seconds later.
+2. **2026-10-04T21:11Z (Macks Mountain) and 21:12Z (Ferney Creek), merged in #3, superseded.** The goldens
+   were complete, but the HARs had **no NRCS SDA traffic**. The recorder's URL filter matched
+   `SDMDataAccess` case-sensitively, while Playwright records the host lowercased. Soils could not have
+   been replayed offline.
+3. **2026-10-04T21:21Z, both parcels, current** (table above). The filter is now case-insensitive, the
+   recorder fails if any data request the page made is missing from the HAR, and `fixtures.test.ts`
+   requires every service's traffic once per screen run. The goldens are field-for-field identical to
+   recording 2 apart from the run timestamp (`when`), so live data did not drift between them.
 
 ## Files
 
@@ -54,6 +64,14 @@ inside the polygon. No real house is needed, because `assessHouse` is determinis
 - Macks Mountain `evaluateSite2`: a single legal route to site #2.
 - Both: every step `done`, places from Photon (the Overpass fallback was not needed), FEMA zone X only.
 
+### Known limitation, not a permanent parity target
+
+The Ferney Creek **"no route reaches the existing house at 10% or less"** outcome (`setHouse`, `houseRun`) is
+a known limitation of the prototype's driveway router. It will be addressed in **Phase 2.5**, when the router
+is brought to REQUIREMENTS §2a. Phase 0 reproduces it exactly, because Phase 0 is a faithful port. When
+Phase 2.5 changes the router, these goldens are expected to change: update them in that PR and say so. Don't
+add special cases to keep this outcome.
+
 ### Serialization notes
 
 - `_ctx` (DEM rasters, slope/aspect/surfaces as typed arrays) is dropped. DEM rasters are never persisted;
@@ -67,13 +85,13 @@ inside the polygon. No real house is needed, because `assessHouse` is determinis
 
 | File | Bytes |
 |---|---:|
-| `ferney-creek-52-47A/network.har` | 6,986,624 |
+| `ferney-creek-52-47A/network.har` | 7,029,147 |
 | `ferney-creek-52-47A/golden.json` | 557,571 |
 | `ferney-creek-52-47A/input.json` | 4,139 |
-| `macks-mountain-35-3/network.har` | 6,460,170 |
+| `macks-mountain-35-3/network.har` | 6,511,343 |
 | `macks-mountain-35-3/golden.json` | 361,412 |
 | `macks-mountain-35-3/input.json` | 11,621 |
-| **Total** | **14,381,537 (13.7 MiB)** |
+| **Total** | **14,475,233 (13.8 MiB)** |
 
 ## Using them
 
@@ -88,7 +106,7 @@ const fetch = fx.replayFetch(); // offline; throws ReplayMissError on any reques
 ## Re-recording
 
 Only re-record deliberately: when the prototype build changes, or when a golden is wrong. It hits the live
-public services (about 25–45 requests per parcel) and replaces the goldens every parity test compares against.
+public services (about 27–46 requests per parcel) and replaces the goldens every parity test compares against.
 
 ```bash
 corepack pnpm exec playwright install chromium

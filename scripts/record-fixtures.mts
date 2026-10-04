@@ -45,8 +45,10 @@ const PARCELS: ParcelSpec[] = [
 ];
 
 // Only the data services go into the HAR; CDNs (Leaflet/turf/geotiff/three) and fonts stay out.
+// Case-insensitive: Playwright records hosts lowercased (sdmdataaccess.sc.egov.usda.gov), and a
+// case-sensitive "SDMDataAccess" silently dropped every soils request from the first recording.
 const HAR_URL_FILTER =
-  /elevation\.nationalmap\.gov|elevation-tiles-prod|SDMDataAccess|services\.arcgis\.com|hazards\.fema\.gov|overpass|photon\.komoot\.io|tigerweb\.geo\.census\.gov|djlorenz\.github\.io\/astronomy\/binary_tiles|router\.project-osrm\.org|NC1Map_Parcels|VA_Parcels|Parcels_View/;
+  /elevation\.nationalmap\.gov|elevation-tiles-prod|SDMDataAccess|services\.arcgis\.com|hazards\.fema\.gov|overpass|photon\.komoot\.io|tigerweb\.geo\.census\.gov|djlorenz\.github\.io\/astronomy\/binary_tiles|router\.project-osrm\.org|NC1Map_Parcels|VA_Parcels|Parcels_View/i;
 // Basemap and imagery tiles are irrelevant to the screen; don't fetch them at all.
 const BLOCKED =
   /USGSImageryOnly|USGSTopo|World_Imagery|World_Street_Map|VBMP_Imagery|Orthoimagery_Latest|image_tiles/;
@@ -126,6 +128,14 @@ async function recordParcel(spec: ParcelSpec, harnessUrl: string, buildStamp: st
   });
   const page = await context.newPage();
   page.on("pageerror", (e) => console.error(`[${spec.slug}] page error:`, e.message));
+  // Every request to a data service must land in the HAR (guards the filter above; see the SDA miss).
+  const dataRequests = new Set<string>();
+  const NOT_DATA =
+    /^http:\/\/127\.0\.0\.1|cdnjs\.cloudflare\.com|cdn\.jsdelivr\.net|unpkg\.com|fonts\.(googleapis|gstatic)\.com/;
+  page.on("request", (req) => {
+    const u = req.url();
+    if (!NOT_DATA.test(u) && !BLOCKED.test(u) && !u.startsWith("data:")) dataRequests.add(u);
+  });
 
   const startedAt = new Date().toISOString();
   console.log(`[${spec.slug}] ${startedAt} loading harness`);
@@ -267,6 +277,19 @@ async function recordParcel(spec: ParcelSpec, harnessUrl: string, buildStamp: st
       (failed.length ? `\n  FAILED STEPS: ${failed.join("; ")}` : ""),
   );
   if (failed.length) process.exitCode = 1;
+
+  const harUrls = new Set(
+    (
+      JSON.parse(readFileSync(join(dir, "network.har"), "utf8")) as {
+        log: { entries: { request: { url: string } }[] };
+      }
+    ).log.entries.map((e) => e.request.url),
+  );
+  const missing = [...dataRequests].filter((u) => !harUrls.has(u));
+  if (missing.length) {
+    console.error(`[${spec.slug}] NOT IN HAR (${missing.length}):\n  ${missing.join("\n  ")}`);
+    process.exitCode = 1;
+  } else console.log(`[${spec.slug}] all ${dataRequests.size} data requests are in the HAR`);
 }
 
 const only = process.argv[2];

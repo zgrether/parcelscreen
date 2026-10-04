@@ -47,6 +47,28 @@ describe.each(FIXTURE_SLUGS)("fixture %s", (slug) => {
       [77, 77, 0, 42],
     ]).toContainEqual(head);
   });
+
+  // Every service a screen run calls must be in the HAR, once per run that calls it. The first recording
+  // silently lost all NRCS SDA traffic to a case-sensitive URL filter; this is the guard.
+  it("contains every service's traffic for each recorded screen run", () => {
+    const runs = Object.keys(fx.input.steps).length; // full screen runs (run, houseRun)
+    const count = (re: RegExp) => fx.har.log.entries.filter((e) => re.test(e.request.url)).length;
+    const perRun: [string, RegExp, number][] = [
+      ["3DEP exportImage (fine + wide)", /3DEPElevation\/ImageServer\/exportImage/, 2],
+      ["NRCS SDA (components + map-unit polygons)", /sdmdataaccess\.sc\.egov\.usda\.gov/i, 2],
+      ["FEMA NFHL", /hazards\.fema\.gov\/.*NFHL\/MapServer\/28\/query/, 1],
+      ["PAD-US", /Fee_Managers_PADUS\/FeatureServer\/0\/query/, 1],
+      ["Photon or Overpass", /photon\.komoot\.io|overpass/, 1],
+      ["TIGERweb local roads (layer 8)", /Transportation\/MapServer\/8\/query/, 1],
+      ["TIGERweb secondary roads (layer 6)", /Transportation\/MapServer\/6\/query/, 1],
+      ["TIGERweb primary roads (layer 2)", /Transportation\/MapServer\/2\/query/, 1],
+      ["OSRM", /router\.project-osrm\.org/, 1],
+    ];
+    for (const [name, re, n] of perRun) expect(count(re), name).toBeGreaterThanOrEqual(n * runs);
+    // Once per fixture: the parcel lookup, and the atlas tiles (memoized across runs in the page).
+    expect(count(/VA_Parcels\/FeatureServer\/0\/query/), "VGIN parcel lookup").toBeGreaterThanOrEqual(1);
+    expect(count(/binary_tiles\/\d+\/binary_tile_/), "Lorenz atlas tiles").toBeGreaterThanOrEqual(1);
+  });
 });
 
 describe("golden coverage", () => {
