@@ -134,7 +134,7 @@ describe("terrarium fallback", () => {
     expect(el[1]).toBe(-0.5);
   });
 
-  it("falls back after three 3DEP failures and agrees with the lidar DEM to a few metres", async () => {
+  it("falls back after three 3DEP failures and agrees with the lidar DEM to ~1 m (median)", async () => {
     const fx = loadFixture("ferney-creek-52-47A");
     const tile = readFileSync(new URL("../../test/fixtures/terrarium/14/4530/6383.png", import.meta.url));
     const replay = fx.replayFetch();
@@ -176,6 +176,6 @@ describe("terrarium fallback", () => {
       }
     diffs.sort((a, b) => a - b);
     expect(diffs.length).toBeGreaterThan(1000);
-    expect(diffs[Math.floor(diffs.length / 2)]).toBeLessThan(3); // median |Δz|, metres
+    expect(diffs[Math.floor(diffs.length / 2)]).toBeLessThan(2); // median |Δz|, metres (measured 1.22; fixtures README)
   });
 });

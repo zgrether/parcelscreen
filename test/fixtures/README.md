@@ -87,7 +87,16 @@ add special cases to keep this outcome.
 bbox at the fallback's zoom 14. The prototype never needed it, because 3DEP answered, so it isn't in the
 HAR. It was fetched once, separately, on 2026-10-04T22:05:35Z from
 `https://s3.amazonaws.com/elevation-tiles-prod/terrarium/14/4530/6383.png`, to test the fallback against
-real data (`lib/screen/dem.test.ts`: the decoded fallback DEM agrees with the lidar DEM to a median 3 m).
+real data (`lib/screen/dem.test.ts`).
+
+Measured on 2026-10-04 over the 11,811 fallback cells (7.99 m) that fall inside the 3 m lidar DEM, comparing
+the terrarium elevation with the lidar sampled bilinearly at each cell centre:
+
+| |Δz| median | 90th percentile | worst | signed median (terrarium − lidar) |
+|---:|---:|---:|---:|
+| 1.22 m | 2.86 m | 7.94 m | +0.74 m |
+
+The test asserts a median under 2 m.
 
 ## Size
 
