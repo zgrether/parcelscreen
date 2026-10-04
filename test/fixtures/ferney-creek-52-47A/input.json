@@ -171,9 +171,9 @@
  "prototypeBuild": "build 2026-10-04 20:36 UTC",
  "config": "prototype DEFAULTS (empty localStorage)",
  "recorded": {
-  "startedAt": "2026-10-04T21:12:08.719Z",
-  "runAt": "2026-10-04T21:12:09.937Z",
-  "finishedAt": "2026-10-04T21:12:22.533Z"
+  "startedAt": "2026-10-04T21:21:26.496Z",
+  "runAt": "2026-10-04T21:21:27.602Z",
+  "finishedAt": "2026-10-04T21:21:38.950Z"
  },
  "steps": {
   "run": [
