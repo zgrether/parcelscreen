@@ -1,0 +1,206 @@
+{
+ "name": "Ferney Creek, Floyd County VA, parcel 52-47A",
+ "point": {
+  "lat": 36.8874,
+  "lon": -80.45455
+ },
+ "polygon": {
+  "type": "Feature",
+  "properties": {},
+  "geometry": {
+   "type": "Polygon",
+   "coordinates": [
+    [
+     [
+      -80.45357701493515,
+      36.88989766339458
+     ],
+     [
+      -80.45408076409535,
+      36.88972462760045
+     ],
+     [
+      -80.45767283676071,
+      36.88799673547205
+     ],
+     [
+      -80.4586777443398,
+      36.88751331127763
+     ],
+     [
+      -80.45860643607256,
+      36.88743579301338
+     ],
+     [
+      -80.45799391710113,
+      36.88675268752407
+     ],
+     [
+      -80.45690542218314,
+      36.88724698080752
+     ],
+     [
+      -80.45654766362968,
+      36.8867988622223
+     ],
+     [
+      -80.45547198587418,
+      36.887258524769216
+     ],
+     [
+      -80.45332396311288,
+      36.885954031684
+     ],
+     [
+      -80.45323787576255,
+      36.88599135134334
+     ],
+     [
+      -80.45300297260397,
+      36.88612353094771
+     ],
+     [
+      -80.45289164439082,
+      36.88618850914621
+     ],
+     [
+      -80.4528679809696,
+      36.886202319413236
+     ],
+     [
+      -80.45271630851872,
+      36.88629084560129
+     ],
+     [
+      -80.45258051828205,
+      36.88638229884402
+     ],
+     [
+      -80.45254583792219,
+      36.88640565430798
+     ],
+     [
+      -80.45247709704005,
+      36.88645194920494
+     ],
+     [
+      -80.45240936676255,
+      36.88649756293968
+     ],
+     [
+      -80.45233733535149,
+      36.88654265142681
+     ],
+     [
+      -80.4523162662648,
+      36.886555840131145
+     ],
+     [
+      -80.45228079089594,
+      36.88657267160469
+     ],
+     [
+      -80.45222632424363,
+      36.886598514440436
+     ],
+     [
+      -80.45211420820796,
+      36.88662980633216
+     ],
+     [
+      -80.45186669539774,
+      36.88666637483452
+     ],
+     [
+      -80.4516840984432,
+      36.886693558348725
+     ],
+     [
+      -80.45151958098205,
+      36.88673093871852
+     ],
+     [
+      -80.45139257357391,
+      36.88677429046926
+     ],
+     [
+      -80.45068343270887,
+      36.889529352692634
+     ],
+     [
+      -80.45061352132187,
+      36.889800950170354
+     ],
+     [
+      -80.45239322313857,
+      36.889771304145334
+     ],
+     [
+      -80.45357701493515,
+      36.88989766339458
+     ]
+    ]
+   ]
+  }
+ },
+ "props": {
+  "Shape__Area": 278225.697371065,
+  "Shape__Length": 2447.288134883034,
+  "OBJECTID": 2891372,
+  "VGIN_QPID": 5106300009017,
+  "FIPS": "51063",
+  "LOCALITY": "Floyd County",
+  "PARCELID": "52-47A",
+  "PTM_ID": "52-47A",
+  "LASTUPDATE": 1778025600000
+ },
+ "source": "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Parcels/FeatureServer/0",
+ "house": {
+  "ll": [
+   36.888925,
+   -80.452895
+  ],
+  "distanceM": 60,
+  "site2": [
+   36.88930690897446,
+   -80.45241839939978
+  ],
+  "bearingDeg": 225,
+  "note": "synthetic house for assessHouse coverage"
+ },
+ "prototypeBuild": "build 2026-10-04 20:36 UTC",
+ "config": "prototype DEFAULTS (empty localStorage)",
+ "recorded": {
+  "startedAt": "2026-10-04T21:12:08.719Z",
+  "runAt": "2026-10-04T21:12:09.937Z",
+  "finishedAt": "2026-10-04T21:12:22.533Z"
+ },
+ "steps": {
+  "run": [
+   "done: Pull elevation",
+   "done: Find benches and slopes",
+   "done: Query soils",
+   "done: Trace the December horizon",
+   "done: Measure the night sky",
+   "done: Check FEMA floodplain",
+   "done: Check public land adjacency",
+   "done: Find hospitals, groceries, trailheads",
+   "done: Route drive times",
+   "done: Rank the homesites",
+   "done: Route the driveway"
+  ],
+  "houseRun": [
+   "done: Pull elevation",
+   "done: Find benches and slopes",
+   "done: Query soils",
+   "done: Trace the December horizon",
+   "done: Measure the night sky",
+   "done: Check FEMA floodplain",
+   "done: Check public land adjacency",
+   "done: Find hospitals, groceries, trailheads",
+   "done: Route drive times",
+   "done: Rank the homesites",
+   "done: Route the driveway — Entrance found on road, but no route reaches the existing house at 10% or less, even with switchbacks. Raise the grade limit in Settings or pick a different site."
+  ]
+ }
+}
