@@ -9,8 +9,9 @@ pipeline tests run offline.
 
 References to the prototype are given as `proto L<n>`, meaning line numbers in `legacy/parcelscreen.html`
 build `2026-10-01 20:46 UTC`, which this plan was written against. The port and the fixtures target
-build **`2026-10-04 20:24 UTC`**. That build fixes B1, B8 and C4 in the prototype itself, and adds one
-line at L1177, so references after L1176 are one higher there.
+build **`2026-10-04 20:36 UTC`**. That build fixes B1, B8, B10 and C4 in the prototype itself. It also
+moves the shelf distances and map pins out of the `rank` step into a new `finalizeRanking(R)`, so
+line numbers after about L1166 differ from the references here.
 
 ---
 
@@ -42,7 +43,7 @@ unless the fix doesn't change any number.
 | B6 | 3D sun-path latitude comes from the parcel's first vertex, not the selected site. | Use the selected site's latitude. The difference is under 0.01°, invisible. |
 | B7 | MultiPolygon parcels keep only the first polygon. Soil WKT ignores holes. | Port as-is, and show a "multi-part parcel: only the first part screened" note. §9.8. |
 | B8 | After the driveway step changed site #1's score, the sites were **not re-sorted**, so #1 could end up scoring below #2. | **Fixed in the 2026-10-04 prototype** (re-sort and re-rank after routing). Ported verbatim. |
-| B10 | A side effect of the B8 fix: shelf `distFt`/`dropFt` are still measured from the *pre-routing* site #1, and the map pins are drawn in the `rank` step with pre-routing numbers. After a re-sort, a pin's number can disagree with the panel. | Shelf distances: port verbatim, because the golden contains them. Pins: the port draws them from the final result, so pin and panel numbers always agree. That is a rendering-only deviation and will be listed in the step-15 PR. |
+| B10 | A side effect of the B8 fix in the 20:24 build: shelf `distFt`/`dropFt` and the map pins came from the *pre-routing* ranking. | **Fixed in the 2026-10-04 20:36 prototype** (`finalizeRanking` after rank and again after the driveway re-sort, which also re-grades every site). Ported verbatim, with no deviation. |
 | B9 | `routeDriveway` multiplies row offsets by `res` (x) and column offsets by `resY`. That's harmless because the two are equal on 3DEP output. | Port verbatim, with a comment. |
 
 ### 1c. "Things the prototype got wrong" (CLAUDE.md), and how each is handled
@@ -213,7 +214,7 @@ The stack is fixed by PLAN. Additions get a one-line justification each.
 
 | Package | Why |
 |---|---|
-| `next`, `react`, `react-dom`, `typescript`, `tailwindcss` | Fixed stack. Pinned at scaffold to current stable (Next 16 / React 19 / Tailwind 4 expected). |
+| `next`, `react`, `react-dom`, `typescript`, `tailwindcss` | Fixed stack. Pinned at scaffold: Next 16.3.8, React 19.3.0, Tailwind 4.3.3. TypeScript is **6.0.3**, not 7.x (latest): typescript-eslint, which eslint-config-next uses, supports only `<6.1`. |
 | `maplibre-gl` | Fixed stack (map). |
 | `three`, `@react-three/fiber` | Fixed stack (3D). |
 | `@react-three/drei` | Its `<Html>` component is the standard way to put DOM labels in an r3f scene, which CLAUDE.md asks for. |
@@ -223,13 +224,13 @@ The stack is fixed by PLAN. Additions get a one-line justification each.
 | `fast-png` | Pure-TS PNG decoder, so the terrarium fallback decodes in the Worker *and* Node without a canvas. |
 | `@types/geojson` | GeoJSON types for the pipeline contract. |
 | dev: `vitest` | Fixed stack. |
-| dev: `eslint` + `eslint-config-next`, `prettier` | Standard lint/format. |
+| dev: `eslint` + `eslint-config-next`, `eslint-config-prettier`, `prettier` | Standard lint/format. ESLint is **9.x**, not 10: eslint-plugin-react (pulled in by eslint-config-next) breaks on ESLint 10. |
 | dev: `@playwright/test` | Records fixtures and golden results by driving the unmodified prototype, and replays them in the e2e test (`routeFromHAR`). |
 | dev: `@testing-library/react`, `jsdom` | Render each results section from the golden result in a smoke test. |
 
 Not added: `pako` (`DecompressionStream` is native in Node 18+ and workers), Comlink, any state library (`useReducer` is enough), `@supabase/*` (no accounts until Phase 1).
 
-Node: `.nvmrc` = **22** (LTS). Node 20, which PLAN mentions, reached end of life in April 2026. Vercel is set to 22 to match. pnpm is pinned through the `packageManager` field.
+Node: `.nvmrc` = **22** (LTS). Node 20, which PLAN mentions, reached end of life in April 2026. Vercel is set to 22 to match. pnpm is pinned through the `packageManager` field to **11.28.2**. pnpm 12 does not run through the corepack that ships with current Node.
 
 ---
 
@@ -264,7 +265,7 @@ Branches are named `phase-0/NN-slug`. Each PR lists its deviations from the prot
 | # | PR | Contents | Checks in the PR |
 |---|---|---|---|
 | 1 | **Scaffold + CI** | Next.js App Router, TS strict, Tailwind, ESLint (+ restricted imports/globals for pure paths), Prettier, Vitest (node + jsdom projects), `tsconfig.pure.json`, `.env.example` (the four variables, unused until Phase 1), `.nvmrc`, GitHub Actions `ci.yml` with jobs `typecheck`, `lint`, `test` (and `e2e` from step 17), placeholder `/explore`. | CI green; Vercel preview deploys; a deliberate `document` in `lib/screen` fails `typecheck:pure` (shown in the PR, then removed). |
-| 2 | **Fixtures + golden** | Commits the 2026-10-04 20:24 UTC `legacy/parcelscreen.html` (the build the goldens come from), `scripts/record-fixtures.ts`, `test/fixtures/*` for both parcels plus the Ferney Creek house run, `replayFetch`, `fromPrototype`, and a fixtures README recording the date and the prototype build stamp. | Fixtures load; replay throws on an unknown URL (test). |
+| 2 | **Fixtures + golden** | Commits the 2026-10-04 20:36 UTC `legacy/parcelscreen.html` (the build the goldens come from), `scripts/record-fixtures.ts`, `test/fixtures/*` for both parcels plus the Ferney Creek house run, `replayFetch`, `fromPrototype`, and a fixtures README recording the date and the prototype build stamp. | Fixtures load; replay throws on an unknown URL (test). |
 | 3 | **Geo + http + format** | `lib/geo/{utm,wkt,split,parcels}.ts`, `lib/http.ts`, `lib/format.ts` | UTM round-trip < 1 mm over the three states, plus known control points; WKT cases (multi, collection, holes); split bisection hits target ±0.01 ac on a synthetic parcel; http: per-host concurrency, minInterval, 429 with `Retry-After`, timeout, cancel. |
 | 4 | **Config + types** | `config.ts`, `types.ts`, `util.ts` | `config.test.ts` inline snapshot of `DEFAULT_USER_CONFIG` + `SCREEN_CONSTANTS`, so any number change shows in a diff; Zod round-trip of the golden result. |
 | 5 | **DEM + terrain** | `dem.ts`, `terrain.ts`, `arcgis.ts` | Synthetic planes: a south-facing 10% plane gives slope 5.71°, aspect 180°; an east-facing plane gives 90°. Fixture: DEM grid size/origin and `terrain.*` equal golden. Terrarium decode on one recorded tile. |

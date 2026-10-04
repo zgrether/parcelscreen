@@ -1,0 +1,24 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# next.js
+.next/
+out/
+next-env.d.ts
+
+# build / test output
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+# env — real values live in Vercel and .env.local only
+.env
+.env*.local
+
+# local tooling
+.claude/settings.local.json
+.vercel
+.DS_Store
+tmp/
