@@ -9,5 +9,7 @@ export default defineConfig({
     environment: "node",
     include: ["lib/**/*.test.ts", "test/**/*.test.ts"],
     setupFiles: ["test/setup.ts"],
+    // Parity tests run the pipeline over real recorded DEMs; CI runners are slower than a laptop.
+    testTimeout: 30_000,
   },
 });

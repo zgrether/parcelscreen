@@ -1,7 +1,7 @@
 import * as turf from "@turf/turf";
 import { describe, expect, it } from "vitest";
 import { differences } from "../../test/support/compare";
-import { FIXTURE_SLUGS } from "../../test/support/fixtures";
+import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
 import { fromPrototype } from "../../test/support/fromPrototype";
 import { instantClock, throughSoils } from "../../test/support/pipeline";
 import { prototypeFn } from "../../test/support/prototypeFns";
@@ -75,13 +75,15 @@ describe.each(FIXTURE_SLUGS)("near, roads and drive times on %s vs the prototype
 
 describe("nearestRoad vs the prototype's function (exact)", () => {
   const proto = prototypeFn<typeof nearestRoad>("nearestRoad", { turf });
-  it.each(FIXTURE_SLUGS)("on the recorded roads at 300 points around %s", async (slug) => {
-    const t = await throughSoils(slug);
-    const roads = t.fx.goldens.run._roads as RoadFeature[];
+  it.each(FIXTURE_SLUGS)("on the recorded roads at 300 points around %s", (slug) => {
+    const fx = loadFixture(slug);
+    const roads = fx.goldens.run._roads as RoadFeature[];
+    const [lon, lat] = turf.centroid(fx.input.polygon).geometry.coordinates as [number, number];
+    const centre: LatLon = [lat, lon];
     let seed = 3;
     const rand = () => (seed = (seed * 1103515245 + 12345) % 2 ** 31) / 2 ** 31;
     for (let i = 0; i < 300; i++) {
-      const ll: LatLon = [t.centre[0] + (rand() - 0.5) * 0.03, t.centre[1] + (rand() - 0.5) * 0.03];
+      const ll: LatLon = [centre[0] + (rand() - 0.5) * 0.03, centre[1] + (rand() - 0.5) * 0.03];
       expect(nearestRoad(roads, ll)).toEqual(proto(roads, ll));
     }
   });
