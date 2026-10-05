@@ -11,9 +11,12 @@
  * accounted for every prototype field. Values the prototype can leave as NaN (no slope under a point outside
  * the fine DEM) are `null`, so a result survives JSON unchanged.
  */
+import type { Feature, Geometry, LineString, MultiPolygon, Polygon } from "geojson";
 import { z } from "zod";
 import type { STEPS } from "./config";
-import { SCREEN_SCHEMA_VERSION } from "./index";
+
+/** Bumped when ScreenResult changes shape; stored with every result. */
+export const SCREEN_SCHEMA_VERSION = 1 as const;
 
 // ---------- shared ----------
 
@@ -21,11 +24,20 @@ export const LatLonSchema = z.tuple([z.number(), z.number()]);
 const num = z.number();
 const maybeNum = z.number().nullable();
 
-/** GeoJSON features are passed through untouched (turf output); only their outline is checked. */
-const FeatureSchema = z.looseObject({
-  type: z.literal("Feature"),
-  geometry: z.looseObject({ type: z.string(), coordinates: z.array(z.unknown()) }),
-});
+/**
+ * GeoJSON features are passed through untouched (turf output); only their outline is checked. Typed as the
+ * GeoJSON interfaces themselves so pipeline code can hand turf results straight in.
+ */
+const featureOf = <G extends Geometry>(...types: G["type"][]) =>
+  z.custom<Feature<G>>(
+    (v) =>
+      typeof v === "object" &&
+      v !== null &&
+      (v as { type?: unknown }).type === "Feature" &&
+      types.includes((v as { geometry?: { type?: G["type"] } }).geometry?.type as G["type"]) &&
+      Array.isArray((v as { geometry: { coordinates?: unknown } }).geometry.coordinates),
+    { message: `expected a GeoJSON Feature of ${types.join(" or ")}` },
+  );
 
 export const PolygonGeometrySchema = z.strictObject({
   type: z.literal("Polygon"),
@@ -214,7 +226,7 @@ const SoilUnitSchema = z.strictObject({
   acres: num,
   color: z.string(),
   /** The map unit's pieces inside the boundary (Polygon or MultiPolygon features). */
-  geometries: z.array(FeatureSchema),
+  geometries: z.array(featureOf<Polygon | MultiPolygon>("Polygon", "MultiPolygon")),
 });
 
 const ScoreFields = {
@@ -262,7 +274,8 @@ const HouseSchema = z.union([
     benchAcres: maybeNum,
     veto: z.string().nullable(),
     inSFHA: z.boolean(),
-    cell: CellSchema.nullable(),
+    /** score is null when the house is outside the parcel (no suitability there). */
+    cell: CellSchema.extend({ score: maybeNum }).nullable(),
     ...ScoreFields,
   }),
   /** The bulls-eye is outside the fine DEM window. */
@@ -282,7 +295,7 @@ const EntranceSchema = z.strictObject({
 });
 
 const RouteSchema = z.strictObject({
-  line: FeatureSchema,
+  line: featureOf<LineString>("LineString"),
   profile: z.array(z.tuple([num, num])), // [distance m, elevation m] every 3 m
   metrics: z.strictObject({
     lengthFt: num,
