@@ -136,5 +136,14 @@ export function combinedRecord(
   if (owner) props.OWNER_NAME = owner;
   if (address) props.SITE_ADDRESS = address;
   if (county) props.COUNTY_NAME = county;
-  return { geo: r.geo, props, source: "combined", multiPart: members.some((m) => m.multiPart) };
+  return {
+    geo: r.geo,
+    props,
+    source: "combined",
+    multiPart: members.some((m) => m.multiPart),
+    // A member that was itself a combination contributes its own parts, so the list stays flat.
+    members: members
+      .flatMap((m) => m.members ?? [m])
+      .map((m) => ({ geo: m.geo, props: m.props, source: m.source, multiPart: m.multiPart })),
+  };
 }

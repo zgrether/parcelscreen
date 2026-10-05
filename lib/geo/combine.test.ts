@@ -102,6 +102,16 @@ describe("the combined parcel record", () => {
     expect(f.acres).toBe(r.acres); // not the bridged boundary's area
     expect(ac(c.geo)).toBeGreaterThan(f.acres);
     expect(f.parcelId).toBe("52-47A + 52-42");
+    // The members are kept, so the combination can be edited later; combining a combination stays flat.
+    expect(c.members!.map((m) => m.props.PARCELID)).toEqual(["52-47A", "52-42"]);
+    const d = rec(440, { PARCELID: "52-61" });
+    const r2 = combineParcels([c.geo, d.geo], LIMITS);
+    if (!r2.ok) throw new Error("expected a combination");
+    expect(combinedRecord([c, d], r2).members!.map((m) => m.props.PARCELID)).toEqual([
+      "52-47A",
+      "52-42",
+      "52-61",
+    ]);
     expect(boundarySourceLabel(c.source, c.props)).toBe(
       "combined from 52-47A + 52-42 — bridged a 20 m gap (road right-of-way?); the acres leave the strip out",
     );

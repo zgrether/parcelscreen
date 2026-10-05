@@ -4,8 +4,9 @@
  * hints, lookups and timers each action brings. Exposed through ExploreContext.
  */
 import type { Map as MlMap } from "maplibre-gl";
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { browserHttp } from "@/lib/client/http";
+import { getPref, setPref } from "@/lib/client/prefs";
 import { CancelledError } from "@/lib/http";
 import { combinedRecord, combineParcels, type CombineResult } from "@/lib/geo/combine";
 import { parseLatLon } from "@/lib/geo/coords";
@@ -66,10 +67,15 @@ function flash(hint: SetHint, text: string, ms: number): void {
 }
 
 export function useExploreController(parcelServices: readonly string[], hint: SetHint): ExploreController {
-  const [state, setState] = useState<ExploreState>(INITIAL);
+  // The parcel and house from before a refresh (step 13d). The explorer renders client-side only.
+  const [restored] = useState<ExploreState>(() => {
+    const saved = getPref("ps.current");
+    return saved ? { ...INITIAL, parcel: saved.parcel, house: saved.house } : INITIAL;
+  });
+  const [state, setState] = useState<ExploreState>(restored);
   // The latest state, updated as each action is dispatched: a double-click delivers both clicks and the
   // dblclick before React re-renders, and each must see the one before it.
-  const latest = useRef<ExploreState>(INITIAL);
+  const latest = useRef<ExploreState>(restored);
   const dispatch = useCallback((a: ExploreAction) => {
     latest.current = exploreReducer(latest.current, a);
     setState(latest.current);
@@ -81,6 +87,9 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     const { parcel, split } = state;
     return parcel && split?.b ? splitPieces(parcel.geo, split.a, split.b) : null;
   }, [state]);
+
+  const { parcel, house } = state;
+  useEffect(() => setPref("ps.current", parcel || house ? { parcel, house } : null), [parcel, house]);
 
   const combined = useMemo(
     () =>
