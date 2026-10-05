@@ -46,7 +46,7 @@ interface BuiltParcel {
   key: string;
   recipe: ParcelRecipe;
   house: LatLon | null;
-  notes: string;            // shown in the Notes panel (§4)
+  notes: string;            // the Info panel's Notes tab (§4)
   notesAt: string | null;
   /** Layers the user hid (by layer id); results the user removed from the analysis. */
   hidden: string[];
