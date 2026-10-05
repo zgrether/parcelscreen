@@ -6,7 +6,7 @@ import prettier from "eslint-config-prettier/flat";
 const PURE = ["lib/screen/**", "lib/geo/**", "lib/http.ts", "lib/format.ts", "lib/render/**"];
 
 const config = [
-  { ignores: [".next/**", "node_modules/**", "legacy/**", "coverage/**", "tmp/**", "next-env.d.ts"] },
+  { ignores: [".next/**", "node_modules/**", "legacy/**", "coverage/**", "tmp/**", "public/maplibre/**", "next-env.d.ts"] },
   ...nextVitals,
   ...nextTs,
   prettier,
