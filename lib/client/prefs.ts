@@ -4,6 +4,7 @@
  * best-effort.
  */
 import { readCurrentParcel, writeCurrentParcel, type CurrentParcel } from "./currentParcel";
+import { readParcelStore, writeParcelStore, type ParcelStore } from "./parcelStore";
 
 export interface MapView {
   lat: number;
@@ -21,6 +22,8 @@ export interface Prefs {
   "ps.open": Record<string, boolean>;
   /** New in the port (step 13d): the parcel being worked on and the house, kept across a refresh. */
   "ps.current": CurrentParcel | null;
+  /** Step 13e: the open parcel and History. Replaces ps.current, which converts on first read. */
+  "ps.parcels": ParcelStore | null;
 }
 
 const DEFAULTS: Prefs = {
@@ -32,6 +35,7 @@ const DEFAULTS: Prefs = {
   "ps.sheet": null,
   "ps.open": {},
   "ps.current": null,
+  "ps.parcels": null,
 };
 
 /** How each key is stored: the prototype kept flags as "1"/"0" and the rest as plain strings or JSON. */
@@ -44,6 +48,7 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
   "ps.sheet": { read: (r) => +r || null, write: (v) => String(Math.round(v ?? 0)) },
   "ps.open": { read: (r) => JSON.parse(r) as Record<string, boolean>, write: (v) => JSON.stringify(v) },
   "ps.current": { read: readCurrentParcel, write: writeCurrentParcel },
+  "ps.parcels": { read: readParcelStore, write: (v) => (v ? writeParcelStore(v) : "null") },
 };
 
 export interface KeyValueStore {

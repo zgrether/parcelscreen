@@ -12,20 +12,20 @@ export interface CurrentParcel {
   house: LatLon | null;
 }
 
-const LatLonSchema = z.tuple([z.number().min(-90).max(90), z.number().min(-180).max(180)]);
+export const LatLonSchema = z.tuple([z.number().min(-90).max(90), z.number().min(-180).max(180)]);
 const Ring = z.array(z.tuple([z.number(), z.number()]).rest(z.number())).min(4);
 const PolygonFeature = z.object({
   type: z.literal("Feature"),
   properties: z.record(z.string(), z.unknown()).nullable().optional(),
   geometry: z.object({ type: z.literal("Polygon"), coordinates: z.array(Ring).min(1) }),
 });
-const Record_ = z.object({
+export const RecordSchema = z.object({
   geo: PolygonFeature,
   props: z.record(z.string(), z.unknown()),
   source: z.string(),
   multiPart: z.boolean(),
 });
-const ParcelSchema = Record_.extend({ members: z.array(Record_).optional() });
+const ParcelSchema = RecordSchema.extend({ members: z.array(RecordSchema).optional() });
 const CurrentSchema = z.object({
   v: z.literal(1),
   parcel: ParcelSchema.nullable(),
