@@ -119,6 +119,8 @@ export function setHouse(out: ScreenOutput, ll: LatLon | null, deps?): Promise<S
 
 The prototype calls every service straight from the browser, and that works, so Phase 0 adds **no API routes** (§9.6). DEM responses can reach about 9 MB, over Vercel's 4.5 MB function response limit, so they must stay direct in any case. Step 13 includes a CORS check from the deployed Vercel origin. If any service fails it, a thin pass-through route is added for that service only. The route takes a polygon, never SQL (this matters for SDA).
 
+**Result (step 13, 2026-10-05, from the Vercel preview origin):** every endpoint passes except the four Overpass mirrors. overpass-api.de answers browser User-Agents with 406 and openstreetmap.fr with 403 ("white-listed usages only"); kumi.systems and private.coffee time out. Hence one route, `GET /api/places/overpass?lat&lon`: it takes a point, never Overpass QL, runs the prototype's three queries on the default mirrors with an identifying User-Agent, and returns `{ elements }` or a 502 with the usual "Overpass unreachable (…)" text. TN parcels pass (any Origin is echoed); the failures seen in step 12 were TN's firewall rejecting the `HeadlessChrome` User-Agent of the test harness, not a CORS policy. The full table is in the step 13 PR.
+
 ---
 
 ## 3. Files, and where each piece of the prototype goes
