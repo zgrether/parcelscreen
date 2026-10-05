@@ -1,7 +1,7 @@
 # Step 13e: parcel tools on the map (plan)
 
-Status: **proposal v3.1, for the owner's approval before any code.** Revised after the owner's review of
-mockups v2–v4 on 2026-10-05. Clickable mockup (v5): https://claude.ai/artifact/LB3hFM9oJVPaCzK17GS23u (source:
+Status: **proposal v3.2, for the owner's approval before any code.** Revised after the owner's review of
+mockups v2–v5 on 2026-10-05. Clickable mockup (v6): https://claude.ai/artifact/LB3hFM9oJVPaCzK17GS23u (source:
 `phase-0-13e-mockup.html`, beside this file). It uses made-up parcels and made-up results with simplified
 geometry, so it shows the interaction, not the real data.
 
@@ -26,8 +26,8 @@ together (owner's review, 2026-10-05):
   starts a new parcel). The trash appears only on a built parcel.
 - **The acres link opens a Layers + Info panel,** like Figma's or Photoshop's. Everything on the parcel is a
   layer you can select, hide or delete: the parts, the road strip, the split, the house, and the screen's
-  results. Info shows what you selected and holds the things that had nowhere else to go: the facts and
-  your notes.
+  results. Info shows what you selected and holds the things that had nowhere else to go, such as the facts.
+  The panel is a dark, see-through scrim over the map.
 - **Built parcels are kept.** A parcel you change becomes a built parcel. It's saved automatically, stays
   on the map, and is listed in History.
 
@@ -44,7 +44,7 @@ interface BuiltParcel {
   key: string;
   recipe: ParcelRecipe;
   house: LatLon | null;
-  notes: string;
+  notes: string;            // where it shows is still open (§7)
   /** Layers the user hid (by layer id); results the user removed from the analysis. */
   hidden: string[];
   excluded: string[];
@@ -87,8 +87,9 @@ interface BuiltParcel {
   finishes.
   - **Add** adds or removes county parcels, so it also uncombines. Parts show amber, and a road gap shows as
     bridged. Parcels too far apart turn the status red, with the distance.
-  - **Split:** tap two points, drag the ends, then tap the piece to keep (each piece is labelled on the map
-    with its acres and side), or Fit to an acreage. The cut goes across everything.
+  - **Split:** tap two points, drag the ends while each piece's acres update on the map, then tap the piece
+    to keep. The toolbar only says what to do, plus Cancel. The prototype's fit-to-acres controls are dropped
+    (owner: dragging is enough). The cut goes across everything.
   - **Draw:** with nothing selected it makes a new parcel; with one selected it **adds** the drawn shape as
     another part. Where it overlaps the parcel it's counted once (the union).
   - **House:** tap to place it.
@@ -100,12 +101,14 @@ interface BuiltParcel {
 
 ```
 LAYERS                                        ×
-▾ 👁 52-47A + 52-42A + 52-61          92.95 ac
-      52-47A                          36.77 ac  ×
-      52-42A                          13.18 ac  ×
-      52-61                           43.00 ac  ×
-      Road strip (not in acres)        1.14 ac
-      Split · kept W                            ×
+▾ 👁 52-47A + 52-61                   34.97 ac
+   ▾ MADE FROM
+        52-47A                        36.77 ac  ×
+        52-61                         43.00 ac  ×
+        Road strip (not in acres)      0.79 ac
+   ▾ Split into 2 pieces                         ×
+      ● W piece · kept                34.97 ac
+      ○ E piece                       44.80 ac
    👁 Existing house                             ×
 ▾ 👁 Analysis                                    ×
   ▾ 👁 House sites                           2
@@ -118,6 +121,8 @@ INFO  (the selected layer)
   [Take out of this parcel]  [Edit parcels]
 ```
 
+- **Look:** a dark, slightly see-through scrim, like the toolbar, with blur where the browser supports it.
+  Light text, and selected rows tinted amber.
 - **Where it sits:** docked on the map's right edge on desktop, and above the toolbar on phones, where the
   sheet drops to its peek height. The basemap button becomes **Map ▾** so it doesn't clash with Layers.
 - **Rows:** a disclosure arrow, an eye (hide or show on the map), the name and size, and **×** (delete).
@@ -131,13 +136,18 @@ INFO  (the selected layer)
   | Layer | Delete |
   | --- | --- |
   | a part | takes it out of the parcel (uncombine) |
-  | the split | removes the cut |
+  | the split group | removes the cut |
   | the house | removes it (owner's request) |
   | an analysis item | **Remove from analysis**: it's struck through, the other sites re-rank without it, and Restore brings it back |
   | the Analysis group | clears the results |
 
-- **Info for the parcel itself:** the facts, then a **Notes** box (saved with the parcel; it's "the place
-  for other info"), then Close and Remove (with an inline confirm).
+- **A split parcel turns into its result.** Before a split, the parcel's parts are listed directly under
+  it. After one, the parcel shows **Made from** (its parts and the road strip) and **Split into 2 pieces**,
+  with each piece's acres. The kept piece is marked ●; tapping ○ keeps the other. Selecting the group or a
+  piece shows the left-out piece faint and dashed on the map. Info offers **Adjust the line** (back into
+  the split tool, with the line where it was) and **Remove split**.
+- **Info for the parcel itself:** the facts, then Close and Remove (with an inline confirm). *No notes here*
+  (owner); see §7.
 - **Info for an analysis item:** its numbers (score, slope, sun, cost, soil), plus Hide and Remove from
   analysis.
 
@@ -152,10 +162,11 @@ last changed, plus Open and Remove (with a "Remove it? Yes · No" confirm).
   - the "Tap a parcel" mode and button;
   - the no-parcel report and square fallback (replaced by Draw);
   - the panel's tool row, split block and combine block;
-  - hover-only split tooltips.
+  - hover-only split tooltips;
+  - the split's fit-to-acres controls (`fitSplit` stays in `lib/geo`, tested, but unused).
 - **New:**
   - the one-line toolbar;
-  - the Layers + Info panel (select, hide, delete; notes);
+  - the Layers + Info panel (select, hide, delete; the split shown as its pieces);
   - built parcels kept forever in History and on the map;
   - Draw adding to a parcel;
   - tap to unselect;
@@ -201,8 +212,13 @@ last changed, plus Open and Remove (with a "Remove it? Yes · No" confirm).
 10. **Tap to unselect** a selected parcel.
 11. **Toolbar grouping:** Add · Draw │ Split · House. "+ Parcels" is renamed **Add**.
 12. **Delete a built parcel from the toolbar** without opening Layers.
+13. **The Layers panel** is a dark scrim the map shows through.
+14. **A split shows as its result** in Layers: Made from, plus the two pieces, kept ● or other ○.
+15. **No fit-to-acres** in the split tool. Drag the line, then tap the piece to keep.
+16. **Notes don't belong in the Layers panel.**
 
 Still to confirm:
-- **Notes** live in Info on the parcel layer. Is that the right home?
+- **Where should notes live,** if anywhere in Phase 0? Proposed: a short Notes box in the side panel under
+  Screen it, saved with the parcel and shown in History. Or leave them for Phase 1's library.
 - **Should unselecting a built parcel** also close the Layers panel (as in the mockup), or keep it open,
   empty, until you select another?

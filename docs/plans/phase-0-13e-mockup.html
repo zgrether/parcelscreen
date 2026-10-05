@@ -11,6 +11,9 @@
   --sans: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
   --cond: "Barlow Condensed", "Barlow", system-ui, sans-serif;
   --sheet-h: 44vh;
+  /* The Layers panel: a dark scrim the map shows through. */
+  --lp-bg: rgba(18, 26, 21, .78); --lp-ink: #eef1ea; --lp-ink-2: #a9b4aa; --lp-rule: rgba(238, 241, 234, .14);
+  --lp-hover: rgba(238, 241, 234, .07); --lp-sel: rgba(240, 160, 48, .26);
   color-scheme: light;
 }
 html, body { height: 100%; }
@@ -87,35 +90,43 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 
 /* Layers + Info, docked on the map (right edge on desktop, above the toolbar on phones). */
 .lp { position: absolute; z-index: 4; top: 52px; right: 10px; bottom: 80px; width: 300px; display: flex; flex-direction: column;
-  background: var(--paper); color: var(--ink); border-radius: 8px; box-shadow: 0 6px 22px rgba(0,0,0,.35); overflow: hidden; font-size: 13.5px; }
-.lp-head { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px 6px 12px; border-bottom: 1px solid var(--rule); }
-.lp-head b { font: 600 15px/1 var(--cond); letter-spacing: .02em; }
-.lp-head button { background: none; border: 0; color: var(--ink-2); font-size: 18px; line-height: 1; padding: 2px 6px; }
-.layers { overflow: auto; padding: 4px 0; flex: 1 1 50%; min-height: 80px; border-bottom: 1px solid var(--rule); }
+  background: var(--lp-bg); color: var(--lp-ink); -webkit-backdrop-filter: blur(8px) saturate(1.1); backdrop-filter: blur(8px) saturate(1.1);
+  border: 1px solid var(--lp-rule); border-radius: 10px; box-shadow: 0 8px 26px rgba(0,0,0,.4); overflow: hidden; font-size: 13.5px; }
+.lp .muted { color: var(--lp-ink-2); }
+.lp-head { display: flex; justify-content: space-between; align-items: center; padding: 9px 10px 7px 14px; border-bottom: 1px solid var(--lp-rule); }
+.lp-head b { font: 600 12px/1 var(--sans); letter-spacing: .14em; color: var(--lp-ink-2); }
+.lp-head button { background: none; border: 0; color: var(--lp-ink-2); font-size: 18px; line-height: 1; padding: 2px 6px; }
+.lp-head button:hover { color: var(--lp-ink); }
+.layers { overflow: auto; padding: 4px 0; flex: 1 1 55%; min-height: 80px; border-bottom: 1px solid var(--lp-rule); }
 .lrow { display: grid; grid-template-columns: 20px 18px 1fr auto 22px; align-items: center; gap: 4px; padding: 3px 8px 3px calc(8px + var(--d, 0) * 16px); cursor: default; }
-.lrow:hover { background: var(--paper-2); }
-.lrow.sel { background: var(--sel); }
-.lrow .tw, .lrow .eye, .lrow .del { background: none; border: 0; padding: 0; width: 20px; height: 22px; color: var(--ink-2); display: grid; place-items: center; }
+.lrow:hover { background: var(--lp-hover); }
+.lrow.sel { background: var(--lp-sel); }
+.lrow .tw, .lrow .eye, .lrow .del { background: none; border: 0; padding: 0; width: 20px; height: 22px; color: var(--lp-ink-2); display: grid; place-items: center; }
+.lrow .eye:hover, .lrow .tw:hover { color: var(--lp-ink); }
+.lrow .del:hover { color: var(--bar-bad); }
 .lrow .tw svg { transition: transform .12s; }
 .lrow .tw[aria-expanded="false"] svg { transform: rotate(-90deg); }
 .lrow .del { visibility: hidden; }
 .lrow:hover .del, .lrow.sel .del { visibility: visible; }
 .lrow .eye.off { opacity: .45; }
+.lrow .eye.radio { color: var(--amber); font-size: 13px; }
 .lrow .nm { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.lrow.off .nm { color: var(--ink-2); text-decoration: line-through; }
-.lrow .mt { color: var(--ink-2); font-variant-numeric: tabular-nums; font-size: 12.5px; }
+.lrow.off .nm { color: var(--lp-ink-2); text-decoration: line-through; }
+.lrow.dim .nm { color: var(--lp-ink-2); }
+.lrow .mt { color: var(--lp-ink-2); font-variant-numeric: tabular-nums; font-size: 12.5px; }
 .lrow.group .nm { font-weight: 600; }
-.info { overflow: auto; padding: 10px 12px 12px; flex: 1 1 50%; display: grid; gap: 8px; align-content: start; }
-.info h3 { font: 600 15px/1.2 var(--cond); margin: 0; }
+.lrow.sub .nm { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--lp-ink-2); font-weight: 600; }
+.info { overflow: auto; padding: 10px 14px 12px; flex: 1 1 45%; display: grid; gap: 8px; align-content: start; }
+.info h3 { font: 600 16px/1.2 var(--cond); margin: 0; letter-spacing: .01em; }
 .info table { width: 100%; border-collapse: collapse; }
-.info td { padding: 3px 0; vertical-align: top; border-bottom: 1px dotted var(--rule); }
-.info td:first-child { color: var(--ink-2); width: 40%; padding-right: 8px; }
-.info .note { color: var(--ink-2); font-size: 12.5px; margin: 0; }
-.info textarea { width: 100%; min-height: 64px; resize: vertical; background: var(--white); border: 1px solid var(--rule); border-radius: 4px; padding: 6px 8px; font: inherit; font-size: 13.5px; }
-.info .acts { display: flex; flex-wrap: wrap; gap: 8px; }
-.sm { background: var(--ink); color: var(--paper); border: 0; border-radius: 4px; padding: 6px 10px; font-size: 13px; font-weight: 500; }
-.sm.sec { background: transparent; color: var(--ink); border: 1px solid var(--ink-2); }
-.sm.danger { background: transparent; color: var(--bad); border: 1px solid var(--bad); }
+.info td { padding: 3px 0; vertical-align: top; border-bottom: 1px solid var(--lp-rule); }
+.info td:first-child { color: var(--lp-ink-2); width: 40%; padding-right: 8px; }
+.info .note { color: var(--lp-ink-2); font-size: 12.5px; margin: 0; }
+.info .acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.sm { background: var(--lp-ink); color: #18201b; border: 0; border-radius: 6px; padding: 6px 10px; font-size: 13px; font-weight: 500; }
+.sm.sec { background: transparent; color: var(--lp-ink); border: 1px solid rgba(238,241,234,.35); }
+.sm.sec:hover { border-color: var(--lp-ink); }
+.sm.danger { background: transparent; color: var(--bar-bad); border: 1px solid rgba(255,180,166,.55); }
 .handle { cursor: grab; }
 
 @media (max-width: 860px) and (orientation: portrait) {
@@ -142,7 +153,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   <aside class="panel">
     <header>
       <div><h1>Parcel Screen</h1><div class="sub">Kill parcels from your desk, before you drive.</div></div>
-      <span class="badge">Mockup · 13e v5</span>
+      <span class="badge">Mockup · 13e v6</span>
     </header>
     <div class="scroll">
       <div class="try" id="try">
@@ -151,7 +162,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
         <ol class="tiny">
           <li>Tap <b>52-47A</b> to select it; tap it again to unselect. Select it and tap the <b>acres</b> on the toolbar: the <b>Layers</b> panel opens.</li>
           <li><b>Add</b>: tap <b>52-42A</b> and <b>52-61</b> (across the road), <b>Done</b>. Or <b>Draw</b> a custom area onto it. Each part is a layer; the road strip too.</li>
-          <li>Select a layer to see its <b>Info</b> and highlight it. <b>×</b> takes a parcel back out. Add a <b>note</b> on the parcel.</li>
+          <li>Select a layer to see its <b>Info</b> and highlight it. <b>×</b> takes a parcel back out.</li>
+          <li><b>Split</b>: tap two points, drag the ends, tap the piece to keep. In Layers the parcel then shows what it's <b>made from</b> and its <b>2 pieces</b>; tap ○ to keep the other.</li>
           <li><b>House</b>, tap to place. Tap the bulls-eye: its layer is selected; hide it or delete it.</li>
           <li><b>Run screen (example)</b> below: results arrive as layers. Hide the horizon, remove site #2 from the analysis.</li>
           <li>Tap the built parcel (or empty map) to close it: it stays on the map (amber) and in <b>History</b>. Tap it to reopen. The <b>trash</b> on the toolbar deletes it.</li>
@@ -260,7 +272,7 @@ function combine(ids) {
 let cur = null, saved = [], tool = null, lpOpen = false, sel = null, confirming = null, confirmDelete = false;
 const collapsed = {};
 const clone = (o) => JSON.parse(JSON.stringify(o));
-const isBuilt = (c) => !!c && (!!c.key || c.recipe.parts.length > 1 || !!c.recipe.split || c.recipe.parts.some((p) => !p.id) || !!c.house || !!c.notes || !!c.analysis);
+const isBuilt = (c) => !!c && (!!c.key || c.recipe.parts.length > 1 || !!c.recipe.split || c.recipe.parts.some((p) => !p.id) || !!c.house || !!c.analysis);
 function commit(next) {
   cur = next;
   if (cur && isBuilt(cur)) {
@@ -338,9 +350,16 @@ function tree() {
   if (!cur) return [];
   const r = cur.recipe, dv = derive(r), ids = countyIds(r), c = combine(ids);
   const parcel = { id: "parcel", name: title(r), meta: fmt(dv.acres) + " ac", eye: true, children: [] };
-  r.parts.forEach((p, i) => parcel.children.push({ id: "part:" + i, name: p.id || "Drawn area", meta: fmt(ac(partPts(p))) + " ac", del: r.parts.length > 1 }));
-  if (c.ok && c.bridges.length) parcel.children.push({ id: "strip", name: "Road strip (not in acres)", meta: fmt(c.bridges.reduce((t, b) => t + ac(b), 0)) + " ac" });
-  if (r.split) parcel.children.push({ id: "split", name: `Split · kept ${sideName(r.split.a, r.split.b, r.split.keep)}`, del: true });
+  const made = [];
+  r.parts.forEach((p, i) => made.push({ id: "part:" + i, name: p.id || "Drawn area", meta: fmt(ac(partPts(p))) + " ac", del: r.parts.length > 1 }));
+  if (c.ok && c.bridges.length) made.push({ id: "strip", name: "Road strip (not in acres)", meta: fmt(c.bridges.reduce((t, b) => t + ac(b), 0)) + " ac" });
+  if (r.split) {
+    // A split parcel reads as a result: what it was made from, and its two pieces (the kept one marked).
+    const sd = splitSides(r, r.split.a, r.split.b);
+    parcel.children.push({ id: "made", name: "Made from", sub: true, children: made });
+    parcel.children.push({ id: "split", name: "Split into 2 pieces", del: true, children: [-1, 1].map((k) => ({
+      id: "piece:" + k, name: `${sideName(r.split.a, r.split.b, k)} piece`, meta: fmt(k < 0 ? sd.left.acres : sd.right.acres) + " ac", radio: true, kept: r.split.keep === k })) });
+  } else parcel.children.push(...made);
   if (cur.house) parcel.children.push({ id: "house", name: "Existing house", eye: true, del: true });
   const out = [parcel];
   if (cur.analysis) {
@@ -370,13 +389,14 @@ function renderLayers() {
   const L = $("layers"); L.replaceChildren();
   const h = hiddenSet();
   const add = (n, depth) => {
-    const row = document.createElement("div"); row.className = "lrow" + (sel === n.id ? " sel" : "") + (n.children ? " group" : "") + (n.removed || h.has(n.id) ? " off" : "");
+    const row = document.createElement("div"); row.className = "lrow" + (sel === n.id ? " sel" : "") + (n.children && !n.sub ? " group" : "") + (n.sub ? " sub" : "") + (n.removed || h.has(n.id) ? " off" : "") + (n.radio && !n.kept ? " dim" : "");
     row.style.setProperty("--d", depth); row.setAttribute("role", "treeitem");
     const tw = document.createElement("button"); tw.className = "tw";
     if (n.children) { tw.innerHTML = ICON.tw; tw.setAttribute("aria-expanded", String(!collapsed[n.id])); tw.setAttribute("aria-label", collapsed[n.id] ? "Expand" : "Collapse"); tw.onclick = (e) => { e.stopPropagation(); collapsed[n.id] = !collapsed[n.id]; renderLayers(); }; } else tw.tabIndex = -1;
     const eye = document.createElement("button"); eye.className = "eye" + (h.has(n.id) ? " off" : "");
-    if (n.eye) { eye.innerHTML = h.has(n.id) ? ICON.eyeOff : ICON.eye; eye.setAttribute("aria-label", h.has(n.id) ? "Show" : "Hide"); eye.onclick = (e) => { e.stopPropagation(); toggleHidden(n.id); }; } else eye.tabIndex = -1;
-    const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = n.name + (n.removed ? " (removed)" : "");
+    if (n.radio) { eye.className = "eye radio"; eye.textContent = n.kept ? "●" : "○"; eye.setAttribute("aria-label", n.kept ? "Kept" : "Keep this piece"); eye.onclick = (e) => { e.stopPropagation(); keepPiece(+n.id.slice(6)); }; }
+    else if (n.eye) { eye.innerHTML = h.has(n.id) ? ICON.eyeOff : ICON.eye; eye.setAttribute("aria-label", h.has(n.id) ? "Show" : "Hide"); eye.onclick = (e) => { e.stopPropagation(); toggleHidden(n.id); }; } else eye.tabIndex = -1;
+    const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = n.name + (n.removed ? " (removed)" : "") + (n.radio && n.kept ? " · kept" : "");
     const mt = document.createElement("span"); mt.className = "mt"; mt.textContent = n.meta || "";
     const del = document.createElement("button"); del.className = "del";
     if (n.del) { del.innerHTML = ICON.del; del.setAttribute("aria-label", "Delete " + n.name); del.onclick = (e) => { e.stopPropagation(); deleteLayer(n.id); }; } else del.tabIndex = -1;
@@ -386,6 +406,10 @@ function renderLayers() {
     if (n.children && !collapsed[n.id]) for (const c of n.children) add(c, depth + 1);
   };
   for (const n of tree()) add(n, 0);
+}
+function keepPiece(k) {
+  if (!cur.recipe.split || cur.recipe.split.keep === k) return;
+  const n = clone(cur); n.recipe.split.keep = k; sel = "piece:" + k; commit(n);
 }
 function toggleHidden(id) {
   const h = hiddenSet(); h.has(id) ? h.delete(id) : h.add(id);
@@ -418,9 +442,6 @@ function renderInfo() {
     I.append(html(`<h3>${title(r)}${built ? ' <span class="muted" style="font:400 13px var(--sans)">· saved</span>' : ""}</h3>`));
     I.append(html(table([["Acres", fmt(dv.acres)], ids.length && ["Owner of record", owners(ids)], ids.length && ["Parcel ID", ids.join(" + ")], ids.length && ["County", COUNTY],
       ["Boundary source", (ids.length > 1 ? `combined from ${ids.join(" + ")}${c.gapM ? `, bridged a ${c.gapM} m gap` : ""}` : ids.length ? "county record" : "drawn by hand") + (drawnCount(r) && ids.length ? ", plus a drawn area" : "") + (r.split ? ", split" : "")]])));
-    const ta = document.createElement("textarea"); ta.id = "notes"; ta.placeholder = "Notes: what the listing says, what to check on the drive…"; ta.value = cur.notes || "";
-    ta.oninput = () => { cur.notes = ta.value; save(); }; ta.onchange = () => commit({ ...clone(cur), notes: ta.value });
-    I.append(ta);
     if (built && confirming === cur.key) I.append(acts(document.createTextNode("Remove it from History and the map?"), b("Remove", "danger", () => removeSaved(cur.key)), b("Keep", "sec", () => { confirming = null; renderInfo(); })));
     else I.append(acts(b(built ? "Close" : "Deselect", "sec", closeParcel), ...(built ? [b("Remove…", "danger", () => { confirming = cur.key; renderInfo(); })] : [])));
     return;
@@ -433,7 +454,17 @@ function renderInfo() {
     return;
   }
   if (id === "strip") { I.append(html(`<h3>Road strip</h3><p class="note">The road right-of-way between parcels on either side. It's inside the screened boundary so the land reads as one piece, but it isn't part of the listing, so the acres leave it out.</p>` + table([["Acres", fmt(dv.bridgeAcres)], ["Gap", c.gapM + " m"]]))); return; }
-  if (id === "split") { const sd = splitSides(r, r.split.a, r.split.b); I.append(html(`<h3>Split</h3>` + table([["Kept", `${sideName(r.split.a, r.split.b, r.split.keep)} piece, ${fmt(r.split.keep < 0 ? sd.left.acres : sd.right.acres)} ac`], ["Other piece", `${fmt(r.split.keep < 0 ? sd.right.acres : sd.left.acres)} ac`]]) + `<p class="note">Verify against the recorded plat.</p>`)); I.append(acts(b("Edit", "sec", () => startTool("split", true)), b("Remove split", "sec", () => deleteLayer("split")))); return; }
+  if (id === "made") { I.append(html(`<h3>Made from</h3><p class="note">The parcels and drawn areas combined before the split. Select one to see it or take it out.</p>`)); return; }
+  if (id === "split") {
+    I.append(html(`<h3>Split into 2 pieces</h3><p class="note">The parcel is cut in two and the screen uses the kept piece (●). Tap ○ to keep the other one, or adjust the line. Verify against the recorded plat.</p>`));
+    I.append(acts(b("Adjust the line", "sec", () => startTool("split", true)), b("Remove split", "danger", () => deleteLayer("split")))); return;
+  }
+  if (id.startsWith("piece:")) {
+    const k = +id.slice(6), sd = splitSides(r, r.split.a, r.split.b), kept = r.split.keep === k;
+    I.append(html(`<h3>${sideName(r.split.a, r.split.b, k)} piece${kept ? ' <span class="muted" style="font:400 13px var(--sans)">· kept</span>' : ""}</h3>` + table([["Acres", fmt(k < 0 ? sd.left.acres : sd.right.acres)], ["Other piece", fmt(k < 0 ? sd.right.acres : sd.left.acres) + " ac"]])));
+    I.append(acts(...(kept ? [] : [b("Keep this piece", "", () => keepPiece(k))]), b("Adjust the line", "sec", () => startTool("split", true))));
+    return;
+  }
   if (id === "house") { I.append(html(`<h3>Existing house</h3><p class="note">Drag the bulls-eye on the map to move it. The screen assesses the house where it stands.</p>`)); I.append(acts(b(hiddenSet().has("house") ? "Show" : "Hide", "sec", () => toggleHidden("house")), b("Delete house", "danger", () => deleteLayer("house")))); return; }
   if (id === "analysis") { I.append(html(`<h3>Analysis (example)</h3><p class="note">In the app these come from the screen. Hide a layer to declutter the map; remove an item to leave it out of the analysis.</p>`)); I.append(acts(b("Clear results", "danger", () => deleteLayer("analysis")))); return; }
   if (id.startsWith("g:")) { const g = AN_GROUPS.find(([gid]) => gid === id); I.append(html(`<h3>${g[1]}</h3><p class="note">Tap one on the map or in the list to see it.</p>`)); return; }
@@ -515,7 +546,13 @@ function render() {
     // The selected layer, highlighted.
     if (sel?.startsWith("part:")) { const p = r.parts[+sel.slice(5)]; if (p) el("path", { d: d(partPts(p)), fill: "#f0a030", "fill-opacity": .18, stroke: "#f0a030", "stroke-width": 3 * s }, gs); }
     if (sel === "strip") for (const b of combine(countyIds(r)).bridges) el("path", { d: d(b), fill: "#f0a030", "fill-opacity": .6, stroke: "#f0a030", "stroke-width": 2 * s }, gs);
-    if (sel === "split" && r.split) el("line", { x1: r.split.a[0], y1: r.split.a[1], x2: r.split.b[0], y2: r.split.b[1], stroke: "#f0a030", "stroke-width": 3 * s, "stroke-dasharray": `${6 * s} ${4 * s}` }, gs);
+    if (r.split && (sel === "split" || sel?.startsWith("piece:"))) {
+      // The piece left out, faint and dashed; a selected piece, amber; the cut line.
+      const sd = splitSides(r, r.split.a, r.split.b), other = r.split.keep < 0 ? sd.right : sd.left;
+      for (const p of other.polys) el("path", { d: d(p), fill: "#ffffff", "fill-opacity": .06, stroke: "#ffffff", "stroke-opacity": .7, "stroke-width": 1.5 * s, "stroke-dasharray": `${5 * s} ${4 * s}` }, gs);
+      if (sel?.startsWith("piece:")) { const k = +sel.slice(6); for (const p of (k < 0 ? sd.left : sd.right).polys) el("path", { d: d(p), fill: "#f0a030", "fill-opacity": .2, stroke: "#f0a030", "stroke-width": 3 * s }, gs); }
+      el("line", { x1: r.split.a[0], y1: r.split.a[1], x2: r.split.b[0], y2: r.split.b[1], stroke: "#f0a030", "stroke-width": 2.5 * s, "stroke-dasharray": `${6 * s} ${4 * s}` }, gs);
+    }
     if (cur.analysis && visible("analysis")) drawAnalysis(ga, s);
   }
   if (tool?.kind === "split" && tool.a) {
@@ -557,10 +594,7 @@ function renderBar() {
   }
   if (tool?.kind === "split") {
     if (!tool.b) return bar(tool.a ? "Tap the other end of the cut" : "Tap two points to draw the cut", [cancel]);
-    const tgt = document.createElement("input"); tgt.type = "number"; tgt.step = "0.1"; tgt.placeholder = "acres"; tgt.setAttribute("aria-label", "Target acres");
-    const sl = document.createElement("select"); sl.setAttribute("aria-label", "Side to fit");
-    for (const s1 of [-1, 1]) { const o = document.createElement("option"); o.value = s1; o.textContent = `${sideName(tool.a, tool.b, s1)} side`; sl.appendChild(o); }
-    return bar(`<b>Tap the piece to keep</b>`, [tgt, sl, button("Fit", "tool", () => fitSplit(+tgt.value, +sl.value)), cancel]);
+    return bar(`<b>Tap the piece to keep</b> <span class="sub2">· drag the ends to adjust</span>`, [cancel]);
   }
   if (tool?.kind === "draw") {
     const n = tool.pts.length, a = n >= 3 ? ` · ${fmt(ac(tool.pts))} ac` : "";
@@ -596,7 +630,7 @@ function renderPanel() {
   $("run-note").textContent = !cur ? "Open a parcel first." : cur.analysis ? "Results are in the Layers panel (example values)." : "Runs the screen on the open boundary. Here it adds example results as layers.";
   $("run").textContent = cur?.analysis ? "Run again (example)" : "Run screen (example)";
   const S = $("history"); S.innerHTML = "<h2>History</h2>";
-  if (!saved.length) { S.insertAdjacentHTML("beforeend", '<p class="tiny muted">Parcels you build (combine, split, draw onto, mark the house on, add notes to, or screen) are kept here and on the map.</p>'); return; }
+  if (!saved.length) { S.insertAdjacentHTML("beforeend", '<p class="tiny muted">Parcels you build (combine, split, draw onto, mark the house on, or screen) are kept here and on the map.</p>'); return; }
   const ul = document.createElement("ul"); ul.className = "history";
   for (const b of [...saved].sort((x, y) => (y.at || 0) - (x.at || 0))) {
     const li = document.createElement("li"); if (cur?.key === b.key) li.className = "on";
@@ -636,15 +670,6 @@ function finishDraw() {
   const pts = tool.pts; tool = null;
   if (cur) { const n = clone(cur); n.recipe.parts.push({ drawn: pts }); return commit(n); }
   commit({ recipe: { parts: [{ drawn: pts }] }, house: null });
-}
-function fitSplit(target, s1) {
-  if (!(target > 0)) return;
-  const { a, b } = tool, dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy), n = [-dy / L, dx / L];
-  const at = (t) => { const a2 = [a[0] + n[0] * t, a[1] + n[1] * t], b2 = [b[0] + n[0] * t, b[1] + n[1] * t]; const sd = splitSides(cur.recipe, a2, b2); return { a2, b2, v: (s1 < 0 ? sd.left : sd.right).acres }; };
-  let lo = -1500, hi = 1500; const fl = at(lo).v - target, fh = at(hi).v - target;
-  if (fl * fh > 0) return toast("Can't reach that acreage by sliding this line. Rotate it or pick the other side.");
-  for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2; if ((at(m).v - target) * fl > 0) lo = m; else hi = m; }
-  const f = at((lo + hi) / 2); tool.a = f.a2; tool.b = f.b2; render();
 }
 
 /* ---------- Map input ---------- */
