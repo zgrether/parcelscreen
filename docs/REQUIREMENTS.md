@@ -152,7 +152,7 @@ Least-cost path over the fine DEM from a road entrance to a site, with a hard gr
 households      id, name, created_at
 memberships     household_id, user_id, role ('owner'|'member'), primary key (household_id, user_id)
 regions         id, name, state, counties text[], scores jsonb   -- from the Mountain Town Assessment
-parcels         id, household_id, region_id?, name, geometry geography(Polygon,4326), source ('county'|'drawn'|'split'|'listing'),
+parcels         id, household_id, region_id?, name, geometry geography(Polygon,4326), source ('county'|'drawn'|'split'|'combined'|'listing'),
                 parent_parcel_id?, state, county, parcel_number?, acres, status ('watching'|'contender'|'walked'|'offered'|'passed'|'ignored'),
                 my_verdict text, notes text, dedupe_key text, created_by, created_at, updated_at
 screens         id, parcel_id, version int, schema_version int, run_at, config jsonb, result jsonb,

@@ -122,3 +122,51 @@ describe("explore state", () => {
     expect(run([{ type: "house", ll: [36.6, -81.3] }, { type: "clear" }], s)).toEqual(INITIAL);
   });
 });
+
+describe("combining (step 13b)", () => {
+  const other: ParcelRecord = {
+    geo: polygon([
+      [
+        [-81.353, 36.628],
+        [-81.351, 36.628],
+        [-81.351, 36.63],
+        [-81.353, 36.63],
+        [-81.353, 36.628],
+      ],
+    ]),
+    props: { PARCELID: "52-42" },
+    source: "https://vginmaps.vdem.virginia.gov/x",
+    multiPart: false,
+  };
+
+  it("starts with the loaded parcel; a second tap on a parcel takes it out", () => {
+    const s = run([{ type: "parcel", parcel: county }, { type: "startCombine" }]);
+    expect(s.mode).toBe("combine");
+    expect(s.combine).toEqual([county]);
+    const two = exploreReducer(s, { type: "combineToggle", parcel: other });
+    expect(two.combine).toEqual([county, other]);
+    // The same parcel again (a fresh record from a new lookup): out.
+    const back = exploreReducer(two, {
+      type: "combineToggle",
+      parcel: { ...other, props: { ...other.props } },
+    });
+    expect(back.combine).toEqual([county]);
+    expect(exploreReducer(two, { type: "combineRemove", index: 0 }).combine).toEqual([other]);
+  });
+
+  it("starts empty with no parcel loaded; taps are ignored when not combining", () => {
+    expect(run([{ type: "startCombine" }]).combine).toEqual([]);
+    expect(run([{ type: "combineToggle", parcel: other }]).combine).toBeNull();
+  });
+
+  it("ends when cancelled, when a parcel is loaded, or when another tool starts", () => {
+    const s = run([{ type: "startCombine" }, { type: "combineToggle", parcel: other }]);
+    expect(exploreReducer(s, { type: "combineCancel" })).toMatchObject({ combine: null, mode: null });
+    expect(exploreReducer(s, { type: "parcel", parcel: county }).combine).toBeNull();
+    expect(exploreReducer(s, { type: "startDraw" }).combine).toBeNull();
+    expect(exploreReducer(s, { type: "startSplit" }).combine).toBeNull();
+    expect(exploreReducer(s, { type: "mode", mode: "pick" }).combine).toBeNull();
+    // Marking the house doesn't end it.
+    expect(exploreReducer(s, { type: "mode", mode: "house" }).combine).toEqual([other]);
+  });
+});

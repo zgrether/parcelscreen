@@ -7,10 +7,12 @@ import type { Map as MlMap } from "maplibre-gl";
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 import { browserHttp } from "@/lib/client/http";
 import { CancelledError } from "@/lib/http";
+import { combinedRecord, combineParcels, type CombineResult } from "@/lib/geo/combine";
 import { parseLatLon } from "@/lib/geo/coords";
 import { parcelFromLine, pickParcelAt, squareAround, type ParcelLine } from "@/lib/geo/parcels";
 import { fitSplit as fitSplitLine, splitPieces, type Side, type SplitPieces } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
+import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import {
   exploreReducer,
   INITIAL,
@@ -28,6 +30,8 @@ export interface ExploreController {
   current(): ExploreState;
   /** Both pieces of the current split, once the line has two ends. */
   pieces: SplitPieces | null;
+  /** The combination of the picked parcels, once there are two. */
+  combined: CombineResult | null;
   map: MlMap | null;
   setMap(map: MlMap | null): void;
   setMode(mode: Mode): void;
@@ -46,6 +50,12 @@ export interface ExploreController {
   fitSplit(targetAc: number, side: Side): void;
   choosePiece(side: Side): void;
   cancelSplit(): void;
+  startCombine(): void;
+  /** A tap while combining: the outline under it, else the parcel the services find there. */
+  combineAt(ll: LatLon, line: ParcelLine | null): Promise<void>;
+  combineRemove(index: number): void;
+  applyCombination(): void;
+  cancelCombine(): void;
   clear(): void;
 }
 
@@ -71,6 +81,17 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     const { parcel, split } = state;
     return parcel && split?.b ? splitPieces(parcel.geo, split.a, split.b) : null;
   }, [state]);
+
+  const combined = useMemo(
+    () =>
+      state.combine && state.combine.length >= 2
+        ? combineParcels(
+            state.combine.map((m) => m.geo),
+            SCREEN_CONSTANTS.combine,
+          )
+        : null,
+    [state.combine],
+  );
 
   const setMode = useCallback(
     (mode: Mode) => {
@@ -106,6 +127,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     state,
     current: () => latest.current,
     pieces,
+    combined,
     map,
     setMap,
     setMode,
@@ -183,6 +205,44 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     cancelSplit() {
       dispatch({ type: "splitCancel" });
+      hint("");
+    },
+    startCombine() {
+      dispatch({ type: "startCombine" });
+      hint(MODE_HINT.combine);
+    },
+    async combineAt(ll, line) {
+      if (line) return dispatch({ type: "combineToggle", parcel: parcelFromLine(line) });
+      lookup.current?.abort();
+      const ctl = new AbortController();
+      lookup.current = ctl;
+      hint("Looking up parcel…");
+      try {
+        const { parcel } = await pickParcelAt(browserHttp, parcelServices, ll, ctl.signal);
+        if (parcel) {
+          dispatch({ type: "combineToggle", parcel });
+          hint(MODE_HINT.combine);
+        } else hint("No parcel record here.");
+      } catch (e) {
+        if (!(e instanceof CancelledError)) throw e;
+      }
+    },
+    combineRemove(index) {
+      dispatch({ type: "combineRemove", index });
+    },
+    applyCombination() {
+      const members = latest.current.combine;
+      if (!members || members.length < 2) return;
+      const r = combineParcels(
+        members.map((m) => m.geo),
+        SCREEN_CONSTANTS.combine,
+      );
+      if (!r.ok) return;
+      dispatch({ type: "parcel", parcel: combinedRecord(members, r), mode: null });
+      hint("");
+    },
+    cancelCombine() {
+      dispatch({ type: "combineCancel" });
       hint("");
     },
     clear() {

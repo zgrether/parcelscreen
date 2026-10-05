@@ -8,7 +8,7 @@ import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { CancelledError, type HttpClient } from "../http";
 import { M2_PER_ACRE, type LatLon } from "./types";
 
-export type ParcelSource = "county" | "drawn" | "square" | "split" | "saved";
+export type ParcelSource = "county" | "drawn" | "square" | "split" | "saved" | "combined";
 
 export interface ParcelRecord {
   geo: Feature<Polygon>;
@@ -170,7 +170,8 @@ export function parcelFacts(geo: Feature<Polygon>, props: Record<string, unknown
     return null;
   };
   return {
-    acres: area(geo) / M2_PER_ACRE,
+    // A combined boundary may include a bridged strip that isn't part of the listing (lib/geo/combine.ts).
+    acres: typeof props.combined_acres === "number" ? props.combined_acres : area(geo) / M2_PER_ACRE,
     owner: pick("ownname", "owner", "ownername", "owner1", "OWNER_NAME"),
     parcelId: pick("parno", "parcelid", "pin", "gispin", "PARCEL_ID", "parid"),
     address: pick("siteadd", "situs", "address", "SITE_ADDRESS"),
@@ -185,6 +186,15 @@ export function boundarySourceLabel(source: string, props: Record<string, unknow
   if (source === "saved") return "saved parcel";
   if (source === "split")
     return `split from ${String(props.split_from || "parent")} — verify against the recorded plat`;
+  if (source === "combined") {
+    const gap = typeof props.combined_gap_m === "number" ? props.combined_gap_m : 0;
+    return (
+      `combined from ${String(props.parno || "several parcels")}` +
+      (gap > 0
+        ? ` — bridged a ${Math.round(gap)} m gap (road right-of-way?); the acres leave the strip out`
+        : "")
+    );
+  }
   return "county record";
 }
 

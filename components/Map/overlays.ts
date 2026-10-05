@@ -3,6 +3,7 @@
  * pieces. Pure, so the shapes are testable; the layers that draw them are in style.ts.
  */
 import type { Feature, FeatureCollection, Polygon } from "geojson";
+import type { CombineResult } from "@/lib/geo/combine";
 import { sideName, type SplitPieces } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
 
@@ -49,6 +50,17 @@ export function splitData(pieces: SplitPieces, a: LatLon, b: LatLon): FeatureCol
       ...piece(pieces.left, pieces.leftAc, -1),
       ...piece(pieces.right, pieces.rightAc, 1),
       { type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: [xy(a), xy(b)] } },
+    ],
+  };
+}
+
+/** The picked parcels (`kind: member`) and, when they combine, the combined outline (`kind: result`). */
+export function combineData(members: Feature<Polygon>[], result: CombineResult | null): FeatureCollection {
+  return {
+    type: "FeatureCollection",
+    features: [
+      ...members.map((m) => ({ ...m, properties: { kind: "member" } })),
+      ...(result?.ok ? [{ ...result.geo, properties: { kind: "result" } }] : []),
     ],
   };
 }

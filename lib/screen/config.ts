@@ -223,6 +223,9 @@ export const SCREEN_CONSTANTS = deepFreeze({
     searchM: 1600, // L1101
     adjoinsBufferKm: 0.02, // L1103
   },
+  // Combining parcels (step 13b, new in the port): the widest gap bridged (a road right-of-way between
+  // tracts sold together), and the gap below which parcels count as touching (digitizing slivers).
+  combine: { maxGapM: 30, touchM: 1 },
   near: {
     hospitalKm: 60, // L1114
     groceryKm: 40,

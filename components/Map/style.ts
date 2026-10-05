@@ -90,6 +90,9 @@ export const LAYER = {
   splitFill: "split-fill",
   splitLine: "split-line",
   splitCut: "split-cut",
+  combineFill: "combine-fill",
+  combineLine: "combine-line",
+  combineResult: "combine-result",
   draftLine: "draft-line",
   draftPoints: "draft-points",
 } as const;
@@ -98,10 +101,14 @@ export const SOURCE = {
   parcelLines: "parcel-lines",
   parcel: "parcel",
   split: "split",
+  combine: "combine",
   draft: "draft",
 } as const;
 
 const EMPTY_FC = { type: "FeatureCollection" as const, features: [] };
+
+/** The picked parcels while combining. */
+export const COMBINE_COLOR = "#f0a030";
 
 /** The whole style. Basemaps other than `base` start hidden; overlays start hidden. */
 export function buildStyle(opts: {
@@ -226,6 +233,32 @@ export function buildStyle(opts: {
       filter: isLine,
       // Dashes are in line widths: Leaflet's "6 4" at weight 3.
       paint: { "line-color": "#ffffff", "line-width": 3, "line-dasharray": [2, 4 / 3] },
+    },
+  );
+  // Combining (step 13b): the picked parcels in amber, and the combined outline dashed white.
+  sources[SOURCE.combine] = { type: "geojson", data: EMPTY_FC };
+  const kind = (k: string): FilterSpecification => ["==", ["get", "kind"], k];
+  layers.push(
+    {
+      id: LAYER.combineFill,
+      type: "fill",
+      source: SOURCE.combine,
+      filter: kind("member"),
+      paint: { "fill-color": COMBINE_COLOR, "fill-opacity": 0.2 },
+    },
+    {
+      id: LAYER.combineLine,
+      type: "line",
+      source: SOURCE.combine,
+      filter: kind("member"),
+      paint: { "line-color": COMBINE_COLOR, "line-width": 2 },
+    },
+    {
+      id: LAYER.combineResult,
+      type: "line",
+      source: SOURCE.combine,
+      filter: kind("result"),
+      paint: { "line-color": "#ffffff", "line-width": 2, "line-dasharray": [2, 2] },
     },
   );
   // The boundary being drawn (proto L582–587).
