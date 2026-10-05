@@ -231,6 +231,9 @@ export const SCREEN_CONSTANTS = deepFreeze({
     photonTimeoutMs: 15_000,
     overpassTimeoutMs: 20_000,
     overpass429WaitMs: 5000, // L867
+    // Step 13: the browser's wait for /api/places/overpass (three queries, each trying the mirrors in turn on
+    // the server). The route's maxDuration matches.
+    overpassRouteTimeoutMs: 120_000,
     excludeHospital: /urgent|veterinar|animal|behavioral|psychiatric/i, // L1125
     bigGrocer:
       /walmart|ingles|food lion|publix|harris teeter|kroger|lowes foods|food city|trader joe|whole foods|sprouts|aldi/i, // L1126

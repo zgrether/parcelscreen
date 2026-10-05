@@ -210,6 +210,7 @@ describe("config", () => {
           "maxHospitals": 4,
           "maxTrailheads": 25,
           "overpass429WaitMs": 5000,
+          "overpassRouteTimeoutMs": 120000,
           "overpassTimeoutMs": 20000,
           "photonLimit": 40,
           "photonTimeoutMs": 15000,

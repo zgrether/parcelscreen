@@ -125,3 +125,112 @@ body {
     grid-template-columns: clamp(280px, 40vw, 440px) 1fr;
   }
 }
+
+/* ---------- Panel components (proto L44–70, L89–90) ---------- */
+@layer components {
+  .block {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--color-rule);
+  }
+  .block h2 {
+    font: 600 17px/1.15 var(--font-cond);
+    margin: 0 0 8px;
+  }
+  .muted {
+    color: var(--color-ink-2);
+  }
+  .tiny {
+    font-size: 12.5px;
+  }
+  .row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .btn {
+    background: var(--color-ink);
+    color: var(--color-paper);
+    border: 0;
+    border-radius: 4px;
+    padding: 8px 14px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .btn.secondary {
+    background: transparent;
+    color: var(--color-ink);
+    border: 1px solid var(--color-ink-2);
+  }
+  .btn.small {
+    padding: 5px 10px;
+    font-size: 13px;
+  }
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+  .btn:focus-visible,
+  .field:focus-visible {
+    outline: 2px solid var(--color-water);
+    outline-offset: 2px;
+  }
+  .field {
+    background: #fff;
+    border: 1px solid var(--color-rule);
+    border-radius: 4px;
+    padding: 7px 9px;
+    width: 100%;
+  }
+  table.facts {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0;
+  }
+  table.facts td {
+    padding: 4px 0;
+    vertical-align: top;
+    border-bottom: 1px dotted var(--color-rule);
+  }
+  table.facts td:first-child {
+    color: var(--color-ink-2);
+    width: 46%;
+    padding-right: 10px;
+  }
+  table.facts td.num {
+    font-variant-numeric: tabular-nums;
+  }
+  ul.plain {
+    padding-left: 18px;
+    margin: 4px 0;
+  }
+  ul.plain li {
+    margin: 2px 0;
+  }
+}
+
+/* ---------- Map markers (proto L108, L124) ---------- */
+.pin {
+  width: 14px;
+  height: 14px;
+  background: var(--color-steep);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--color-ink);
+}
+.bullseye {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  background: radial-gradient(
+    circle,
+    #fff 0 3px,
+    var(--color-water) 3px 7px,
+    #fff 7px 9px,
+    var(--color-water) 9px 12px,
+    #fff 12px
+  );
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  cursor: grab;
+}

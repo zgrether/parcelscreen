@@ -24,12 +24,15 @@ export function MapView({
   lpAtlasTiles,
   lpYear,
   bottomInset = 0,
+  onMap,
   children,
 }: {
   lpAtlasTiles: string;
   lpYear: number;
   /** Pixels of the map hidden under the bottom sheet: the view's centre stays in the visible part. */
   bottomInset?: number;
+  /** Called with the map once its style has loaded, and with null when it goes away. */
+  onMap?: (map: MlMap | null) => void;
   children?: ReactNode;
 }) {
   const container = useRef<HTMLDivElement>(null);
@@ -68,6 +71,8 @@ export function MapView({
     else map.jumpTo({ padding });
     padded.current = true;
   }, [map, bottomInset]);
+
+  useEffect(() => onMap?.(map), [map, onMap]);
 
   return (
     <div className="absolute inset-0 bg-[#cfd6cb]">

@@ -111,7 +111,9 @@ Scoring (do not change without updating fixtures):
 Data sources (endpoints in `config.endpoints`, editable, versioned):
 3DEP ImageServer (UTM 17N, 3 m default; terrarium fallback at ≥8 m), NRCS SDA (`post.rest`, form-encoded),
 FEMA NFHL layer 28, PAD-US `Fee_Managers_PADUS/FeatureServer/0`, TIGERweb Transportation layers 8/6/2,
-Photon (komoot) with Overpass mirrors as fallback, OSRM public router (replace before any commercial use),
+Photon (komoot) with Overpass mirrors as fallback (from the browser through `GET /api/places/overpass?lat&lon`,
+which runs the three place queries server-side with an identifying User-Agent: no mirror answers a browser),
+OSRM public router (replace before any commercial use),
 Lorenz atlas binary tiles (GitHub Pages), parcel services: NC OneMap `NC1Map_Parcels/FeatureServer/1`,
 VGIN `VA_Parcels/FeatureServer/0`, TN Comptroller `GeoViewer/Parcels_View/MapServer/0`.
 

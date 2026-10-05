@@ -16,7 +16,7 @@ import { buildDriveway, flowAccum, soilMask, type RouteContext } from "./drivewa
 import { floodStep, type FloodFeature } from "./flood";
 import { nearStep } from "./near";
 import { padusStep } from "./padus";
-import { OverpassMirrors, PlacesError } from "./places";
+import { OverpassMirrors, PlacesError, type OverpassFallback } from "./places";
 import type { RoadFeature } from "./roads";
 import {
   applyRoutedDriveway,
@@ -65,6 +65,8 @@ export interface ScreenDeps {
   /** Waits inside connectors (3DEP retries, the Overpass 429 pause); injectable for tests. */
   sleep?: (ms: number) => Promise<void>;
   now?: () => Date;
+  /** The browser's Overpass fallback (through /api/places/overpass); Node calls the mirrors directly. */
+  overpass?: OverpassFallback;
 }
 
 /** Everything a run computed that isn't stored: rasters, raw features, caches. In memory only. */
@@ -281,6 +283,7 @@ export async function screen(
       {
         ...io,
         ...(s.deps.sleep ? { sleep: s.deps.sleep } : {}),
+        ...(deps.overpass ? { overpass: deps.overpass } : {}),
       },
       new OverpassMirrors(),
     );
