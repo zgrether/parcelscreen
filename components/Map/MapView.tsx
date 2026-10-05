@@ -14,7 +14,7 @@ setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
 
 const MapContext = createContext<MlMap | null>(null);
 
-/** The map, once its style has loaded (null before). */
+/** The map, once its style has loaded (null before); tiles may still be arriving. */
 export const useMap = (): MlMap | null => useContext(MapContext);
 
 /** The prototype's opening view: southwest Virginia, zoom 9. */
@@ -55,7 +55,9 @@ export function MapView({
       const c = m.getCenter();
       setPref("ps.view", { lat: c.lat, lon: c.lng, z: m.getZoom() });
     });
-    m.on("load", () => setMap(m));
+    // Ready once the style's sources and layers exist. Not "load": that also waits for the first basemap
+    // tiles, so one slow or dead tile host (the VA ortho, during an outage) kept every tool switched off.
+    m.once("style.load", () => setMap(m));
     return () => {
       setMap(null);
       padded.current = false;
