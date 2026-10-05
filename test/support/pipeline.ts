@@ -8,6 +8,7 @@ import { createHttpClient } from "@/lib/http";
 import { DEFAULT_ENDPOINTS, DEFAULT_USER_CONFIG } from "@/lib/screen/config";
 import { DemCache, fetchParcelDems } from "@/lib/screen/dem";
 import { findSites, siteResults } from "@/lib/screen/sites";
+import { fetchSoilPolygons, fetchSoils, screenableRows, vetBenches, vetGardens } from "@/lib/screen/soils";
 import { insideMask, slopeAspect, valleyFloor } from "@/lib/screen/terrain";
 import { M2_PER_ACRE, type LatLon } from "@/lib/screen/util";
 import { loadFixture, type FixtureSlug } from "./fixtures";
@@ -45,4 +46,13 @@ export async function throughSites(slug: FixtureSlug) {
     search,
     sites: siteResults(dFine, vf, search),
   };
+}
+
+/** …then the soils step: rows, map units, vetted benches (with the re-picked best) and gardens. */
+export async function throughSoils(slug: FixtureSlug) {
+  const t = await throughSites(slug);
+  const rows = screenableRows(await fetchSoils(t.parcel, t.deps));
+  const units = await fetchSoilPolygons(t.parcel, t.deps);
+  const vet = vetBenches(t.search.benches, t.dFine, units, rows);
+  return { ...t, rows, units, vet, gardens: vetGardens(t.sites.gardens, units, rows) };
 }
