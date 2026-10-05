@@ -1,0 +1,512 @@
+<title>Parcel Tools Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600&display=swap">
+<style>
+/* Layout: the app's explorer (panel left, map right; on phones a bottom sheet over a full map),
+   with the step 13e map bars. Single light theme, matching the app. */
+:root {
+  --paper: #e7eae3; --paper-2: #dfe3da; --ink: #1c2620; --ink-2: #4a5650; --rule: #c3c9bf;
+  --water: #2b6f8f; --warn: #9a6a12; --bad: #a63a2c; --amber: #f0a030; --left: #e0c43c; --right: #2b6f8f;
+  --bar: rgba(28, 38, 32, .92); --bar-ink: #f1f3ee; --bar-ink-2: #b9c3ba; --white: #ffffff;
+  --sans: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --cond: "Barlow Condensed", "Barlow", system-ui, sans-serif;
+  --sheet-h: 44vh;
+  color-scheme: light;
+}
+html, body { height: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.45 var(--sans); }
+* { box-sizing: border-box; }
+button { font: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--water); outline-offset: 2px; }
+.app { display: grid; grid-template-columns: 400px 1fr; height: 100%; }
+.panel { display: flex; flex-direction: column; min-height: 0; border-right: 1px solid var(--rule); background: var(--paper); }
+.panel header { padding: 14px 18px 10px; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.panel h1 { font: 600 22px/1 var(--cond); margin: 0; letter-spacing: .01em; }
+.sub { color: var(--ink-2); font-size: 12.5px; }
+.badge { font: 600 11px/1 var(--sans); letter-spacing: .06em; text-transform: uppercase; color: var(--warn); border: 1px solid var(--warn); border-radius: 3px; padding: 3px 6px; white-space: nowrap; }
+.scroll { overflow: auto; flex: 1; padding: 0 18px 24px; }
+.block { padding: 14px 0; border-bottom: 1px solid var(--rule); }
+.block h2 { font: 600 17px/1.15 var(--cond); margin: 0 0 8px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.block h2 .num { font: 500 14px var(--sans); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.muted { color: var(--ink-2); }
+.tiny { font-size: 12.5px; }
+.try { background: var(--paper-2); border-radius: 6px; padding: 10px 12px; margin-top: 14px; }
+.try ol { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 3px; }
+.try .x { float: right; background: none; border: 0; color: var(--ink-2); font-size: 16px; line-height: 1; padding: 2px 4px; }
+.recipe { display: grid; grid-template-columns: auto 1fr auto; gap: 6px 10px; align-items: baseline; }
+.recipe .k { color: var(--ink-2); font-size: 13px; }
+.recipe .v { min-width: 0; }
+.recipe .acts { display: flex; gap: 8px; }
+.link { background: none; border: 0; padding: 0; color: var(--water); font-weight: 500; text-decoration: underline; text-underline-offset: 2px; }
+table.facts { width: 100%; border-collapse: collapse; }
+table.facts td { padding: 4px 0; vertical-align: top; border-bottom: 1px dotted var(--rule); }
+table.facts td:first-child { color: var(--ink-2); width: 42%; padding-right: 10px; }
+.num { font-variant-numeric: tabular-nums; }
+.btn { background: var(--ink); color: var(--paper); border: 0; border-radius: 4px; padding: 8px 14px; font-weight: 500; }
+.btn:disabled { opacity: .45; cursor: default; }
+
+/* The map */
+.map { position: relative; min-height: 0; overflow: hidden; background: #2e3a24; touch-action: none; }
+.map svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; user-select: none; }
+.map.crosshair svg { cursor: crosshair; }
+.search { position: absolute; top: 10px; left: 10px; z-index: 3; display: flex; gap: 6px; }
+.search input { width: 230px; background: var(--white); border: 1px solid var(--rule); border-radius: 4px; padding: 7px 9px; font: inherit; font-size: 13.5px; color: var(--ink); }
+.search button { background: var(--ink); color: var(--paper); border: 0; border-radius: 4px; padding: 0 12px; font-weight: 500; font-size: 13px; }
+.layers { position: absolute; top: 10px; right: 10px; z-index: 3; background: var(--ink); color: var(--paper); border: 0; border-radius: 4px; padding: 6px 10px; font-size: 13px; font-weight: 500; }
+
+.bar { position: absolute; left: 12px; right: 12px; margin-inline: auto; width: fit-content; bottom: 18px; z-index: 4;
+  background: var(--bar); color: var(--bar-ink); border-radius: 10px; box-shadow: 0 6px 22px rgba(0,0,0,.35);
+  padding: 8px 8px 8px 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.bar .status { font-size: 14px; min-width: 0; }
+.bar .status b { font-weight: 600; }
+.bar .status .sub2 { color: var(--bar-ink-2); }
+.bar .status.bad { color: #ffb4a6; }
+.bar .acts { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.bar button { border-radius: 6px; padding: 7px 11px; font-size: 13.5px; font-weight: 500; border: 1px solid transparent; min-height: 36px; }
+.bar .go { background: var(--paper); color: var(--ink); }
+.bar .tool { background: transparent; color: var(--bar-ink); border-color: rgba(241,243,238,.35); }
+.bar .tool:hover { border-color: var(--bar-ink); }
+.bar .quiet { background: transparent; color: var(--bar-ink-2); }
+.bar .icon { background: transparent; color: var(--bar-ink); padding: 7px 9px; min-width: 36px; }
+.bar button:disabled { opacity: .4; cursor: default; }
+.bar .sep { width: 1px; align-self: stretch; background: rgba(241,243,238,.2); }
+.bar input, .bar select { background: var(--white); color: var(--ink); border: 0; border-radius: 5px; padding: 6px 8px; font: inherit; font-size: 13.5px; min-height: 34px; }
+.bar input { width: 84px; }
+.toast { position: absolute; left: 12px; right: 12px; margin-inline: auto; width: fit-content; bottom: 84px; z-index: 5; background: var(--paper); color: var(--ink);
+  border-radius: 8px; padding: 8px 12px; box-shadow: 0 4px 16px rgba(0,0,0,.3); font-size: 14px; display: flex; gap: 12px; align-items: center; }
+.pop { position: absolute; z-index: 5; width: 260px; background: var(--paper); color: var(--ink); border-radius: 8px; box-shadow: 0 6px 22px rgba(0,0,0,.35); padding: 10px 12px; font-size: 14px; }
+.pop p { margin: 0 0 8px; }
+.pop .row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.pop .row input { width: 56px; padding: 5px 6px; border: 1px solid var(--rule); border-radius: 4px; font: inherit; }
+.pop .sm { background: var(--ink); color: var(--paper); border: 0; border-radius: 4px; padding: 6px 10px; font-size: 13px; font-weight: 500; }
+.pop .sm.sec { background: transparent; color: var(--ink); border: 1px solid var(--ink-2); }
+.pop ul { margin: 6px 0 0; padding-left: 16px; color: var(--ink-2); font-size: 12.5px; }
+.handle { cursor: grab; }
+
+@media (max-width: 860px) and (orientation: portrait) {
+  .app { display: block; position: relative; }
+  .map { position: absolute; inset: 0; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: var(--sheet-h); z-index: 6; border-right: 0;
+    border-top: 1px solid var(--rule); border-radius: 14px 14px 0 0; box-shadow: 0 -6px 20px rgba(0,0,0,.18); transition: height .18s; }
+  .app.tool-active { --sheet-h: 76px; }
+  .app.tool-active .panel .scroll { visibility: hidden; }
+  .bar { bottom: calc(var(--sheet-h) + 10px); transition: bottom .18s; }
+  .toast { bottom: calc(var(--sheet-h) + 76px); }
+  .search input { width: 170px; }
+}
+@media (prefers-reduced-motion: reduce) { .panel, .bar { transition: none !important; } }
+</style>
+
+<div class="app" id="app">
+  <aside class="panel">
+    <header>
+      <div><h1>Parcel Screen</h1><div class="sub">Kill parcels from your desk, before you drive.</div></div>
+      <span class="badge">Mockup · 13e</span>
+    </header>
+    <div class="scroll">
+      <div class="try" id="try">
+        <button class="x" id="try-x" aria-label="Hide">×</button>
+        <b>Try it</b> <span class="tiny muted">(example parcels; the geometry is simplified)</span>
+        <ol class="tiny">
+          <li>Tap <b>52-47A</b> in the middle of the map to load it.</li>
+          <li><b>+ Parcels</b>, tap <b>52-42A</b> (next door) and <b>52-61</b> (across the road), then <b>Done</b>.</li>
+          <li><b>Split</b>: tap two points across it, drag an end, tap the piece to keep.</li>
+          <li>In <b>Boundary</b> below, <b>Edit</b> the parcels and tap 52-61 to take it back out.</li>
+          <li><b>Undo</b> / <b>Redo</b> on the bar. Refresh: your parcel stays.</li>
+          <li>Tap the bare field east of 52-61 for the no-record popover. Try <b>52-70</b> with 52-61: too far apart.</li>
+        </ol>
+      </div>
+      <section class="block" id="boundary"></section>
+      <section class="block" id="facts"></section>
+      <section class="block">
+        <h2>Screen it</h2>
+        <p class="tiny muted">Run the screen on this boundary. (Step 14; not part of this mockup.)</p>
+        <button class="btn" disabled>Run screen</button>
+      </section>
+    </div>
+  </aside>
+  <div class="map" id="map">
+    <svg id="svg" viewBox="0 0 1200 840" preserveAspectRatio="xMidYMid slice" aria-label="Map with example parcels">
+      <defs><pattern id="imgpat" patternUnits="userSpaceOnUse" width="1200" height="840"><image id="patimg" width="1200" height="840"/></pattern></defs>
+      <image id="bg" width="1200" height="840"/>
+      <g id="g-lines"></g>
+      <g id="g-sel"></g>
+      <g id="g-labels"></g>
+      <g id="g-tool"></g>
+      <g id="g-house"></g>
+    </svg>
+    <div class="search"><input id="q" placeholder="Paste lat, lon" aria-label="Latitude, longitude"><button id="q-go">Go</button></div>
+    <button class="layers" tabindex="-1">Layers ▾</button>
+    <div class="bar" id="bar" role="toolbar" aria-label="Parcel tools"></div>
+    <div class="toast" id="toast" hidden></div>
+    <div class="pop" id="pop" hidden></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ---------- Example parcels (metres; y grows south). A road runs WSW→ENE with a 10 m right-of-way. ---------- */
+const N = (x) => 535 - 0.1 * x, S = (x) => 545 - 0.1 * x, M2_PER_AC = 4046.86, MAX_GAP = 30;
+const P = [
+  { id: "52-44",  side: "n", x0: 0,    x1: 260,  owner: "Dalton Farm LLC", pts: [[0,130],[260,100],[260,N(260)],[0,N(0)]] },
+  { id: "52-47A", side: "n", x0: 260,  x1: 620,  owner: "R. & J. Hale",    pts: [[260,100],[450,60],[620,90],[620,N(620)],[260,N(260)]] },
+  { id: "52-42A", side: "n", x0: 620,  x1: 760,  owner: "R. & J. Hale",    pts: [[620,90],[760,80],[760,N(760)],[620,N(620)]] },
+  { id: "52-43",  side: "n", x0: 760,  x1: 1200, owner: "C. Whitt",        pts: [[760,80],[1200,40],[1200,N(1200)],[760,N(760)]] },
+  { id: "51-162", side: "s", x0: 0,    x1: 300,  owner: "M. Ayers",        pts: [[0,S(0)],[300,S(300)],[300,780],[0,800]] },
+  { id: "52-61",  side: "s", x0: 300,  x1: 900,  owner: "R. & J. Hale",    pts: [[300,S(300)],[900,S(900)],[900,770],[300,780]] },
+  { id: "52-70",  side: "s", x0: 1010, x1: 1200, owner: "Floyd Land Trust", pts: [[1010,S(1010)],[1200,S(1200)],[1200,800],[1010,790]] },
+];
+const byId = Object.fromEntries(P.map((p) => [p.id, p]));
+const COUNTY = "Floyd";
+
+/* ---------- Geometry ---------- */
+const area = (pts) => { let a = 0; for (let i = 0; i < pts.length; i++) { const [x1, y1] = pts[i], [x2, y2] = pts[(i + 1) % pts.length]; a += x1 * y2 - x2 * y1; } return Math.abs(a) / 2; };
+const ac = (pts) => area(pts) / M2_PER_AC;
+function centroid(pts) { let a = 0, cx = 0, cy = 0; for (let i = 0; i < pts.length; i++) { const [x1, y1] = pts[i], [x2, y2] = pts[(i + 1) % pts.length]; const f = x1 * y2 - x2 * y1; a += f; cx += (x1 + x2) * f; cy += (y1 + y2) * f; } return a ? [cx / (3 * a), cy / (3 * a)] : pts[0]; }
+function inside(pt, pts) { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > pt[1]) !== (yj > pt[1]) && pt[0] < ((xj - xi) * (pt[1] - yi)) / (yj - yi) + xi) c = !c; } return c; }
+const cross = (a, b, p) => (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]);
+/** Sutherland–Hodgman against the half-plane on side s (+1 right of a→b, −1 left). */
+function clip(pts, a, b, s) {
+  const out = [], inS = (p) => cross(a, b, p) * s >= 0;
+  for (let i = 0; i < pts.length; i++) {
+    const p = pts[i], q = pts[(i + 1) % pts.length], pi = inS(p), qi = inS(q);
+    if (pi) out.push(p);
+    if (pi !== qi) { const cp = cross(a, b, p), cq = cross(a, b, q), t = cp / (cp - cq); out.push([p[0] + t * (q[0] - p[0]), p[1] + t * (q[1] - p[1])]); }
+  }
+  return out.length >= 3 ? out : null;
+}
+const COMPASS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+function sideName(a, b, s) { const dx = b[0] - a[0], dy = b[1] - a[1]; const nx = -dy * s, ny = dx * s; const deg = (Math.atan2(nx, -ny) * 180 / Math.PI + 360) % 360; return COMPASS[Math.round(deg / 45) % 8]; }
+
+/** Gap between two example parcels, metres (the layout makes this simple). */
+function gap(p, q) {
+  const xgap = Math.max(0, Math.max(p.x0, q.x0) - Math.min(p.x1, q.x1));
+  return p.side === q.side ? xgap : Math.hypot(xgap, 10);
+}
+/** Combine county parts: the widest link of a minimum spanning tree, and the road strips that bridge it. */
+function combine(ids) {
+  const ps = ids.map((i) => byId[i]);
+  if (ps.length < 2) return { ok: true, gapM: 0, bridges: [] };
+  const inT = [0]; let widest = 0, worst = null;
+  while (inT.length < ps.length) {
+    let best = { g: Infinity, j: -1, i: -1 };
+    for (const i of inT) for (let j = 0; j < ps.length; j++) if (!inT.includes(j)) { const g = gap(ps[i], ps[j]); if (g < best.g) best = { g, j, i }; }
+    inT.push(best.j);
+    if (best.g > widest) { widest = best.g; worst = ps[best.j]; }
+  }
+  if (widest > MAX_GAP) return { ok: false, gapM: widest, far: worst };
+  const bridges = [];
+  for (const n of ps.filter((p) => p.side === "n")) for (const s of ps.filter((p) => p.side === "s")) {
+    const x0 = Math.max(n.x0, s.x0), x1 = Math.min(n.x1, s.x1);
+    if (x1 > x0) bridges.push([[x0, N(x0)], [x1, N(x1)], [x1, S(x1)], [x0, S(x0)]]);
+  }
+  return { ok: true, gapM: bridges.length ? 10 : 0, bridges };
+}
+
+/* ---------- State: a recipe (parts + optional split), the house, undo/redo, the current tool ---------- */
+let doc = { recipe: null, house: null };   // recipe: { parts: [{id}|{drawn:[pts]}|{square:[pts]}], split?: {a,b,keep} }
+let undo = [], redo = [];
+let tool = null;   // { kind: "parcels"|"split"|"draw"|"house", ... }
+const clone = (o) => JSON.parse(JSON.stringify(o));
+function commit(next) { undo.push(clone(doc)); if (undo.length > 50) undo.shift(); redo = []; doc = next; save(); render(); }
+function save() { try { localStorage.setItem("mock13e", JSON.stringify(doc)); } catch {} }
+try { const d = JSON.parse(localStorage.getItem("mock13e") || "null"); if (d && "recipe" in d) doc = d; } catch {}
+
+const partPts = (part) => part.id ? byId[part.id].pts : part.drawn || part.square;
+const countyIds = (r) => r.parts.filter((p) => p.id).map((p) => p.id);
+/** Everything the boundary is made of: parts, then bridge strips (flagged), before any split. */
+function pieces(r) {
+  const c = combine(countyIds(r));
+  return [...r.parts.map((p) => ({ pts: partPts(p), own: true })), ...(c.ok ? c.bridges : []).map((b) => ({ pts: b, own: false }))];
+}
+/** The boundary after the split: polygons, the parcels' own acres, bridge acres. */
+function derive(r) {
+  let ps = pieces(r);
+  if (r.split) ps = ps.map((p) => ({ ...p, pts: clip(p.pts, r.split.a, r.split.b, r.split.keep) })).filter((p) => p.pts);
+  const own = ps.filter((p) => p.own).reduce((s, p) => s + ac(p.pts), 0), bridge = ps.filter((p) => !p.own).reduce((s, p) => s + ac(p.pts), 0);
+  return { polys: ps.map((p) => p.pts), acres: own, bridgeAcres: bridge };
+}
+function splitSides(r, a, b) {
+  const base = pieces({ ...r, split: undefined });
+  const side = (s) => { const ps = base.map((p) => ({ ...p, pts: clip(p.pts, a, b, s) })).filter((p) => p.pts); return { polys: ps.map((p) => p.pts), acres: ps.filter((p) => p.own).reduce((t, p) => t + ac(p.pts), 0) }; };
+  return { left: side(-1), right: side(1) };
+}
+function label(r) {
+  if (!r) return "";
+  const ids = countyIds(r);
+  return ids.length ? ids.join(" + ") : r.parts[0].drawn ? "Drawn boundary" : "Square";
+}
+
+/* ---------- Rendering ---------- */
+const svg = document.getElementById("svg"), NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (parent) parent.appendChild(e); return e; };
+const d = (pts) => "M" + pts.map((p) => p.map((n) => n.toFixed(1)).join(",")).join("L") + "Z";
+const $ = (id) => document.getElementById(id);
+const fmt = (n) => n.toFixed(2);
+const pxPerM = () => svg.getScreenCTM().a;
+
+/** An outline of several touching polygons with no inner edges: wide strokes, then the imagery over them. */
+function outline(g, polys, { halo = "#0b1410", line = "#ffffff", tint = "#ffffff", tintOp = 0.06, width = 2.5 } = {}) {
+  const w = width / pxPerM();
+  // Only the outer half of each stroke shows (the imagery covers the inner half): a 2.5 px halo outside the line.
+  for (const p of polys) el("path", { d: d(p), fill: "none", stroke: halo, "stroke-opacity": .6, "stroke-width": (w + 2.5 / pxPerM()) * 2, "stroke-linejoin": "round" }, g);
+  for (const p of polys) el("path", { d: d(p), fill: "none", stroke: line, "stroke-width": w * 2, "stroke-linejoin": "round" }, g);
+  for (const p of polys) el("path", { d: d(p), fill: "url(#imgpat)", stroke: "url(#imgpat)", "stroke-width": .6 }, g);
+  for (const p of polys) el("path", { d: d(p), fill: tint, "fill-opacity": tintOp, stroke: "none" }, g);
+}
+function textAt(g, [x, y], txt, big) {
+  const s = 1 / pxPerM(), t = el("text", { x, y, "text-anchor": "middle", "dominant-baseline": "middle", "font-family": "Barlow, sans-serif", "font-weight": 600,
+    "font-size": (big ? 15 : 13) * s, fill: "#fff", stroke: "#0b1410", "stroke-width": 3.5 * s, "paint-order": "stroke", "pointer-events": "none" }, g);
+  t.textContent = txt;
+}
+
+function render() {
+  const gl = $("g-lines"), gs = $("g-sel"), gt = $("g-tool"), gh = $("g-house"), gL = $("g-labels");
+  for (const g of [gl, gs, gt, gh, gL]) g.replaceChildren();
+  const s = 1 / pxPerM();
+  for (const p of P) { el("path", { d: d(p.pts), fill: "transparent", stroke: "#f6e7a1", "stroke-opacity": .85, "stroke-width": 1.2 * s }, gl); textAt(gL, centroid(p.pts), p.id); }
+  const r = doc.recipe;
+
+  if (tool?.kind === "parcels") {
+    const ids = tool.ids, c = combine(ids);
+    for (const id of ids) { el("path", { d: d(byId[id].pts), fill: "var(--amber)", "fill-opacity": .28, stroke: "var(--amber)", "stroke-width": 2.5 * s }, gt); }
+    if (c.ok) for (const b of c.bridges) el("path", { d: d(b), fill: "var(--amber)", "fill-opacity": .55, stroke: "var(--amber)", "stroke-width": 1 * s, "stroke-dasharray": `${4 * s} ${3 * s}` }, gt);
+  } else if (tool?.kind === "split" && tool.b) {
+    const sides = splitSides(r, tool.a, tool.b);
+    outline(gt, sides.left.polys, { line: "#e0c43c", tint: "#e0c43c", tintOp: .22 });
+    outline(gt, sides.right.polys, { line: "#2b6f8f", tint: "#2b6f8f", tintOp: .22 });
+    for (const [sd, s1] of [[sides.left, -1], [sides.right, 1]]) {
+      if (!sd.polys.length) continue;
+      const big = sd.polys.reduce((m, p) => (area(p) > area(m) ? p : m));
+      textAt(gt, centroid(big), `${sideName(tool.a, tool.b, s1)} · ${fmt(sd.acres)} ac`, true);
+    }
+  } else if (r) {
+    outline(gs, derive(r).polys);
+  }
+
+  if (tool?.kind === "split") {
+    if (tool.a) {
+      if (tool.b) el("line", { x1: tool.a[0], y1: tool.a[1], x2: tool.b[0], y2: tool.b[1], stroke: "#fff", "stroke-width": 3 * s, "stroke-dasharray": `${6 * s} ${4 * s}` }, gt);
+      for (const k of ["a", "b"]) if (tool[k]) { const h = el("circle", { cx: tool[k][0], cy: tool[k][1], r: 9 * s, fill: "#e0c43c", stroke: "#fff", "stroke-width": 2.5 * s, class: "handle" }, gt); h.dataset.handle = k; }
+    }
+  }
+  if (tool?.kind === "draw") {
+    const pts = tool.pts;
+    if (pts.length) el("path", { d: "M" + pts.map((p) => p.join(",")).join("L"), fill: pts.length >= 3 ? "rgba(255,255,255,.12)" : "none", stroke: "#fff", "stroke-width": 2 * s, "stroke-dasharray": `${4 * s} ${4 * s}` }, gt);
+    pts.forEach((p, i) => el("circle", { cx: p[0], cy: p[1], r: (i ? 4 : 7) * s, fill: i ? "#1c2620" : "#9a6a12", stroke: "#fff", "stroke-width": 2 * s }, gt));
+  }
+  if (doc.house) {
+    const [x, y] = doc.house;
+    const b = el("g", { class: "handle" }, gh); b.dataset.handle = "house";
+    for (const [rr, f] of [[14, "#fff"], [11, "var(--water)"], [8, "#fff"], [5, "var(--water)"], [2, "#fff"]]) el("circle", { cx: x, cy: y, r: rr * s, fill: f }, b);
+  }
+  $("map").classList.toggle("crosshair", !!tool && tool.kind !== "parcels");
+  $("app").classList.toggle("tool-active", !!tool);
+  renderBar(); renderPanel();
+}
+
+/* ---------- The bar ---------- */
+function button(txt, cls, fn, opts = {}) { const b = document.createElement("button"); b.className = cls; b.textContent = txt; b.onclick = fn; if (opts.disabled) b.disabled = true; if (opts.title) { b.title = opts.title; b.setAttribute("aria-label", opts.title); } return b; }
+function bar(status, actions, bad) {
+  const b = $("bar"); b.replaceChildren();
+  const st = document.createElement("div"); st.className = "status" + (bad ? " bad" : ""); st.innerHTML = status; b.appendChild(st);
+  const a = document.createElement("div"); a.className = "acts"; for (const x of actions) a.appendChild(x); b.appendChild(a);
+}
+const sep = () => { const s = document.createElement("span"); s.className = "sep"; return s; };
+function renderBar() {
+  const r = doc.recipe;
+  if (!tool && !r) return bar(`Tap a parcel to load it`, [button("Draw boundary", "tool", () => startTool("draw"))]);
+  if (!tool) {
+    const dv = derive(r), ids = countyIds(r);
+    return bar(`<b>${label(r)}</b> <span class="sub2">· ${fmt(dv.acres)} ac</span>`, [
+      button("+ Parcels", "tool", () => startTool("parcels"), { disabled: !ids.length, title: ids.length ? "" : "Combining works on county parcels" }),
+      button("Split", "tool", () => startTool("split")),
+      button(doc.house ? "House ✓" : "House", "tool", () => startTool("house")),
+      sep(),
+      button("↶", "icon", doUndo, { disabled: !undo.length, title: "Undo" }),
+      button("↷", "icon", doRedo, { disabled: !redo.length, title: "Redo" }),
+      button("✕", "icon", () => commit({ recipe: null, house: null }), { title: "Clear the parcel" }),
+    ]);
+  }
+  const cancel = button("Cancel", "quiet", endTool);
+  if (tool.kind === "parcels") {
+    const c = combine(tool.ids), tot = tool.ids.reduce((t, i) => t + ac(byId[i].pts), 0), n = tool.ids.length;
+    if (!c.ok) return bar(`${c.far.id} is ${Math.round(c.gapM)} m from the rest, more than the ${MAX_GAP} m a road would explain`, [button("Done", "go", () => {}, { disabled: true }), cancel], true);
+    const st = n === 0 ? "Tap parcels to add them" : `<b>${n} parcel${n > 1 ? "s" : ""}</b> · ${fmt(tot)} ac` + (c.gapM ? ` <span class="sub2">· bridges a ${c.gapM} m road gap</span>` : "") + `<span class="sub2"> · tap one to take it out</span>`;
+    return bar(st, [button("Done", "go", finishParcels, { disabled: n === 0 }), cancel]);
+  }
+  if (tool.kind === "split") {
+    if (!tool.b) return bar(tool.a ? "Tap the other end of the cut" : "Tap two points to draw the cut across the boundary", [cancel]);
+    const tgt = document.createElement("input"); tgt.type = "number"; tgt.step = "0.1"; tgt.placeholder = "acres"; tgt.id = "fit-ac"; tgt.setAttribute("aria-label", "Target acres");
+    const sel = document.createElement("select"); sel.id = "fit-side"; sel.setAttribute("aria-label", "Side to fit");
+    for (const s1 of [-1, 1]) { const o = document.createElement("option"); o.value = s1; o.textContent = `${sideName(tool.a, tool.b, s1)} side`; sel.appendChild(o); }
+    return bar(`<b>Tap the piece to keep</b> <span class="sub2">· or fit</span>`, [tgt, sel, button("Fit", "tool", () => fitSplit(+tgt.value, +sel.value)), cancel]);
+  }
+  if (tool.kind === "draw") {
+    const n = tool.pts.length, a = n >= 3 ? ` · ${fmt(ac(tool.pts))} ac` : "";
+    return bar(n ? `<b>${n} corner${n > 1 ? "s" : ""}</b><span class="sub2">${a} · tap the first corner to close</span>` : "Tap each corner of the boundary",
+      [button("Undo corner", "quiet", () => { tool.pts.pop(); render(); }, { disabled: !n }), button("Finish", "go", finishDraw, { disabled: n < 3 }), cancel]);
+  }
+  if (tool.kind === "house") return bar("Tap where the house stands", [cancel]);
+}
+
+/* ---------- The panel ---------- */
+function renderPanel() {
+  const r = doc.recipe, B = $("boundary"), F = $("facts");
+  if (!r) { B.innerHTML = `<h2>Boundary</h2><p class="tiny muted">No parcel loaded. Tap one on the map, or draw it.</p>`; F.innerHTML = ""; F.hidden = true; return; }
+  F.hidden = false;
+  const dv = derive(r), ids = countyIds(r), c = combine(ids);
+  const rows = [];
+  if (ids.length) rows.push(["Parcels", `${ids.join(" + ")}${c.gapM ? ` · bridged ${c.gapM} m` : ""}`, [["Edit", () => startTool("parcels")]]]);
+  else rows.push([r.parts[0].drawn ? "Drawn" : "Square", `${r.parts[0].drawn ? r.parts[0].drawn.length + " corners" : "around a point"}`, [["Redraw", () => startTool("draw")]]]);
+  if (r.split) rows.push(["Split", `kept the ${sideName(r.split.a, r.split.b, r.split.keep)} piece`, [["Edit", () => startTool("split", true)], ["Remove", () => { const n = clone(doc); delete n.recipe.split; commit(n); }]]]);
+  if (doc.house) rows.push(["House", "marked", [["Remove", () => commit({ ...clone(doc), house: null })]]]);
+  B.innerHTML = `<h2>Boundary <span class="num">${fmt(dv.acres)} ac</span></h2><div class="recipe"></div>` +
+    (dv.bridgeAcres > 0.005 ? `<p class="tiny muted" style="margin:8px 0 0">The boundary also spans ${fmt(dv.bridgeAcres)} ac of road right-of-way; the acres leave it out.</p>` : "");
+  const g = B.querySelector(".recipe");
+  for (const [k, v, acts] of rows) {
+    const a = document.createElement("span"); a.className = "k"; a.textContent = k;
+    const b = document.createElement("span"); b.className = "v"; b.textContent = v;
+    const cEl = document.createElement("span"); cEl.className = "acts"; for (const [t, fn] of acts) cEl.appendChild(button(t, "link", fn));
+    g.append(a, b, cEl);
+  }
+  const owners = [...new Set(ids.map((i) => byId[i].owner))].join("; ");
+  const src = (ids.length > 1 ? `combined from ${ids.join(" + ")}${c.gapM ? ` — bridged a ${c.gapM} m gap (road right-of-way?)` : ""}` : ids.length ? "county record" : r.parts[0].drawn ? "drawn by hand" : "square around a point (not a real boundary)") + (r.split ? `, split — verify against the recorded plat` : "");
+  F.innerHTML = `<h2>Parcel</h2><table class="facts"><tbody>
+    <tr><td>Acres</td><td class="num">${fmt(dv.acres)}</td></tr>
+    ${ids.length ? `<tr><td>Owner of record</td><td>${owners}</td></tr><tr><td>Parcel ID</td><td>${ids.join(" + ")}</td></tr><tr><td>County</td><td>${COUNTY}</td></tr>` : ""}
+    <tr><td>Boundary source</td><td>${src}</td></tr></tbody></table>`;
+}
+
+/* ---------- Tools ---------- */
+function startTool(kind, editSplit) {
+  hidePop();
+  if (kind === "parcels") tool = { kind, ids: doc.recipe ? countyIds(doc.recipe) : [] };
+  else if (kind === "split") tool = editSplit && doc.recipe.split ? { kind, a: [...doc.recipe.split.a], b: [...doc.recipe.split.b] } : { kind, a: null, b: null };
+  else if (kind === "draw") tool = { kind, pts: [] };
+  else tool = { kind };
+  render();
+}
+function endTool() { tool = null; render(); }
+function finishParcels() {
+  const ids = tool.ids; tool = null;
+  const keep = doc.recipe?.split && doc.recipe.parts.every((p) => p.id) ? doc.recipe.split : undefined;
+  commit({ ...clone(doc), recipe: { parts: ids.map((id) => ({ id })), ...(keep ? { split: keep } : {}) } });
+}
+function finishDraw() { const pts = tool.pts; tool = null; commit({ ...clone(doc), recipe: { parts: [{ drawn: pts }] } }); }
+function fitSplit(target, s1) {
+  if (!(target > 0)) return;
+  const { a, b } = tool, dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy), n = [-dy / L, dx / L];
+  const at = (t) => { const a2 = [a[0] + n[0] * t, a[1] + n[1] * t], b2 = [b[0] + n[0] * t, b[1] + n[1] * t]; const sd = splitSides(doc.recipe, a2, b2); return { a2, b2, v: (s1 < 0 ? sd.left : sd.right).acres }; };
+  let lo = -1500, hi = 1500; const fl = at(lo).v - target, fh = at(hi).v - target;
+  if (fl * fh > 0) return toast("Can't reach that acreage by sliding this line. Rotate it or pick the other side.");
+  for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2; if ((at(m).v - target) * fl > 0) lo = m; else hi = m; }
+  const f = at((lo + hi) / 2); tool.a = f.a2; tool.b = f.b2; render();
+}
+
+/* ---------- Map input ---------- */
+const toMap = (e) => { const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM().inverse()); return [p.x, p.y]; };
+const parcelAt = (pt) => P.find((p) => inside(pt, p.pts));
+let drag = null, downAt = null, beforeDrag = null;
+svg.addEventListener("pointerdown", (e) => {
+  const h = e.target.closest("[data-handle]");
+  if (h) { drag = h.dataset.handle; beforeDrag = clone(doc); svg.setPointerCapture(e.pointerId); e.preventDefault(); return; }
+  downAt = [e.clientX, e.clientY];
+});
+svg.addEventListener("pointermove", (e) => {
+  if (!drag) return;
+  const pt = toMap(e);
+  if (drag === "house") doc.house = pt; else tool[drag] = pt;
+  render();
+});
+svg.addEventListener("pointerup", (e) => {
+  if (drag) {
+    // A house drag is one undoable step, from where it started.
+    if (drag === "house") { const h = doc.house; doc = beforeDrag; commit({ ...clone(doc), house: h }); }
+    drag = null; return;
+  }
+  if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 6) { downAt = null; return; }
+  downAt = null; tap(toMap(e), e);
+});
+function tap(pt, e) {
+  hidePop();
+  if (!tool) {
+    const p = parcelAt(pt);
+    if (!p) return showPop(pt, e);
+    const prev = doc.recipe;
+    if (prev && countyIds(prev).length === 1 && countyIds(prev)[0] === p.id && !prev.split) return;
+    commit({ ...clone(doc), recipe: { parts: [{ id: p.id }] } });
+    if (prev) toast(`Loaded ${p.id}`, true);
+    return;
+  }
+  if (tool.kind === "parcels") { const p = parcelAt(pt); if (!p) return; tool.ids = tool.ids.includes(p.id) ? tool.ids.filter((i) => i !== p.id) : [...tool.ids, p.id]; return render(); }
+  if (tool.kind === "house") { tool = null; return commit({ ...clone(doc), house: pt }); }
+  if (tool.kind === "draw") {
+    const t = tool.pts;
+    if (t.length >= 3 && Math.hypot(t[0][0] - pt[0], t[0][1] - pt[1]) * pxPerM() < 16) return finishDraw();
+    t.push(pt); return render();
+  }
+  if (tool.kind === "split") {
+    if (!tool.a) { tool.a = pt; return render(); }
+    if (!tool.b) { tool.b = pt; return render(); }
+    const sides = splitSides(doc.recipe, tool.a, tool.b);
+    const hit = [[-1, sides.left], [1, sides.right]].find(([, sd]) => sd.polys.some((p) => inside(pt, p)));
+    if (hit) { const split = { a: tool.a, b: tool.b, keep: hit[0] }; tool = null; commit({ ...clone(doc), recipe: { ...clone(doc.recipe), split } }); }
+  }
+}
+function doUndo() { if (!undo.length) return; redo.push(clone(doc)); doc = undo.pop(); tool = null; save(); render(); }
+function doRedo() { if (!redo.length) return; undo.push(clone(doc)); doc = redo.pop(); tool = null; save(); render(); }
+document.addEventListener("keydown", (e) => {
+  if (e.target.closest("input,select")) return;
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { e.preventDefault(); return e.shiftKey ? doRedo() : doUndo(); }
+  if (e.key === "Escape") { hidePop(); if (tool) endTool(); }
+  if (e.key === "Enter" && tool) { if (tool.kind === "parcels" && combine(tool.ids).ok && tool.ids.length) finishParcels(); else if (tool.kind === "draw" && tool.pts.length >= 3) finishDraw(); }
+});
+
+/* ---------- Popover and toast ---------- */
+function showPop(pt, e) {
+  const box = $("map").getBoundingClientRect(), pop = $("pop");
+  pop.innerHTML = `<p><b>No parcel record here.</b></p>
+    <div class="row"><button class="sm" id="pop-draw">Draw the boundary</button></div>
+    <div class="row" style="margin-top:6px"><span>or a</span><input id="pop-ac" type="number" value="5" min="0.25" step="0.25" aria-label="Square size in acres"><span>ac</span><button class="sm sec" id="pop-sq">square here</button></div>
+    <div style="margin-top:6px"><button class="link tiny" id="pop-why">Why?</button><ul id="pop-list" hidden><li>NC OneMap: no parcel at this point</li><li>VGIN: no parcel at this point</li><li>TN Comptroller: no parcel at this point</li></ul></div>`;
+  pop.hidden = false;
+  const x = Math.min(Math.max(8, e.clientX - box.left - 130), box.width - 268), y = Math.max(8, e.clientY - box.top - pop.offsetHeight - 14);
+  pop.style.left = x + "px"; pop.style.top = y + "px";
+  $("pop-draw").onclick = () => startTool("draw");
+  $("pop-why").onclick = () => { $("pop-list").hidden = !$("pop-list").hidden; };
+  $("pop-sq").onclick = () => {
+    const half = Math.sqrt(Math.max(0.25, +$("pop-ac").value || 5) * M2_PER_AC) / 2, [x0, y0] = pt;
+    hidePop(); commit({ ...clone(doc), recipe: { parts: [{ square: [[x0 - half, y0 - half], [x0 + half, y0 - half], [x0 + half, y0 + half], [x0 - half, y0 + half]] }] } });
+  };
+}
+function hidePop() { $("pop").hidden = true; }
+let toastT;
+function toast(msg, withUndo) {
+  const t = $("toast"); t.replaceChildren(document.createTextNode(msg));
+  if (withUndo) t.appendChild(button("Undo", "link", () => { doUndo(); t.hidden = true; }));
+  t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => (t.hidden = true), 4000);
+}
+$("q-go").onclick = () => toast("In the app this flies the map to the coordinates.");
+$("try-x").onclick = () => { $("try").hidden = true; try { localStorage.setItem("mock13e-try", "0"); } catch {} };
+try { if (localStorage.getItem("mock13e-try") === "0") $("try").hidden = true; } catch {}
+
+/* ---------- Example imagery: fields, woods, the road (drawn once, also used to hide inner edges) ---------- */
+function imagery() {
+  const c = document.createElement("canvas"); c.width = 1200; c.height = 840; const g = c.getContext("2d");
+  let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  g.fillStyle = "#3a4a2a"; g.fillRect(0, 0, 1200, 840);
+  const tones = ["#6d7a45", "#7e8550", "#5d6e3b", "#8a8457", "#4f6236", "#93905e", "#677c46"];
+  for (const p of P) { g.fillStyle = tones[Math.floor(rnd() * tones.length)]; g.beginPath(); p.pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.fill(); }
+  for (let i = 0; i < 260; i++) { const x = rnd() * 1200, y = rnd() * 840, r = 8 + rnd() * 26; g.fillStyle = `rgba(${30 + rnd() * 20},${50 + rnd() * 25},${25 + rnd() * 15},${.5 + rnd() * .4})`; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); }
+  for (let i = 0; i < 9000; i++) { g.fillStyle = `rgba(${rnd() < .5 ? "255,255,240" : "0,0,0"},${rnd() * .06})`; g.fillRect(rnd() * 1200, rnd() * 840, 2, 2); }
+  g.strokeStyle = "#c9c2b0"; g.lineWidth = 7; g.beginPath(); g.moveTo(0, 540); g.lineTo(1200, 420); g.stroke();
+  g.strokeStyle = "rgba(60,55,45,.5)"; g.lineWidth = 1; for (const off of [-4.5, 4.5]) { g.beginPath(); g.moveTo(0, 540 + off); g.lineTo(1200, 420 + off); g.stroke(); }
+  g.strokeStyle = "rgba(70,120,150,.7)"; g.lineWidth = 2.5; g.beginPath(); g.moveTo(940, 840); g.bezierCurveTo(960, 700, 920, 600, 980, 470); g.stroke();
+  const url = c.toDataURL("image/jpeg", .82);
+  $("bg").setAttribute("href", url); $("patimg").setAttribute("href", url);
+}
+imagery();
+render();
+window.addEventListener("resize", () => render());
+</script>
