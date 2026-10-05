@@ -60,16 +60,29 @@ body {
 .mapmode-toggle {
   display: none;
 }
-@media (max-width: 860px) {
+/* The map's hint: above the bottom sheet when there is one. */
+.map-hint {
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Narrow portrait screens: the panel is a bottom sheet laid over a full-height map, so dragging the sheet
+   never resizes the map (step 12b). useBottomSheet.ts uses the same media query. */
+@media (max-width: 860px) and (orientation: portrait) {
   .explore {
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr auto;
+    display: block;
+    position: relative;
+    --sheet-h: 46vh;
   }
   .explore-map {
-    order: 1;
+    position: absolute;
+    inset: 0;
   }
   .explore-panel {
-    order: 2;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
     height: 46vh;
     border-right: 0;
     border-top: 1px solid var(--color-rule);
@@ -78,6 +91,13 @@ body {
   }
   .explore-panel.mapmode .explore-scroll {
     visibility: hidden;
+  }
+  .map-hint {
+    bottom: calc(var(--sheet-h) + 10px);
+  }
+  .explore-map .maplibregl-ctrl-bottom-left,
+  .explore-map .maplibregl-ctrl-bottom-right {
+    bottom: var(--sheet-h);
   }
   .sheet-handle {
     display: block;
@@ -96,6 +116,13 @@ body {
   }
   .mapmode-toggle {
     display: inline-block;
+  }
+}
+
+/* Narrow landscape screens (a phone on its side): the side panel, narrower (step 12b). */
+@media (max-width: 860px) and (orientation: landscape) {
+  .explore {
+    grid-template-columns: clamp(280px, 40vw, 440px) 1fr;
   }
 }
 

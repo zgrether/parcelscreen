@@ -116,7 +116,7 @@ export function MapTools({ parcelServices, hint }: { parcelServices: readonly st
 export function Hint({ text }: { text: string }) {
   if (!text) return null;
   return (
-    <div className="absolute bottom-[calc(10px+env(safe-area-inset-bottom,0px))] left-2.5 z-10 max-w-[70%] rounded bg-[rgba(28,38,32,.86)] px-2.5 py-1.5 text-[13px] text-white">
+    <div className="map-hint absolute left-2.5 z-10 max-w-[70%] rounded bg-[rgba(28,38,32,.86)] px-2.5 py-1.5 text-[13px] text-white">
       {text}
     </div>
   );

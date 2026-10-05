@@ -6,12 +6,23 @@ import type { UserConfig } from "@/lib/screen/types";
 import { useExplore, type SetHint } from "./useExploreController";
 
 /** The map with its tools and hint. Loaded client-side only (MapLibre needs the browser). */
-export function MapArea({ config, hint, setHint }: { config: UserConfig; hint: string; setHint: SetHint }) {
+export function MapArea({
+  config,
+  hint,
+  setHint,
+  bottomInset,
+}: {
+  config: UserConfig;
+  hint: string;
+  setHint: SetHint;
+  bottomInset: number;
+}) {
   const { setMap } = useExplore();
   return (
     <MapView
       lpAtlasTiles={config.endpoints.lpAtlasTiles}
       lpYear={config.endpoints.lpAtlasYear}
+      bottomInset={bottomInset}
       onMap={setMap}
     >
       <MapTools parcelServices={config.endpoints.parcels} hint={setHint} />
