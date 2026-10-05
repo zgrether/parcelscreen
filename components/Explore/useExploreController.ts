@@ -1,35 +1,55 @@
 "use client";
 /**
- * The explorer's tools, shared by the panel and the map (proto L566–707): state from exploreReducer, plus the
- * hints, lookups and timers each action brings. Exposed through ExploreContext.
+ * The explorer's tools, shared by the panel and the map: state from exploreReducer, plus the hints, lookups
+ * and timers each action brings, and the parcel derived from its recipe. Exposed through ExploreContext.
+ * The open parcel and History are saved to `ps.parcels` as they change (13e); 13d's `ps.current` is read once
+ * and converted.
  */
+import type { Feature, Polygon } from "geojson";
 import type { Map as MlMap } from "maplibre-gl";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { browserHttp } from "@/lib/client/http";
+import { loadParcelStore, recipeOf, type WorkingParcel } from "@/lib/client/parcelStore";
 import { getPref, setPref } from "@/lib/client/prefs";
 import { CancelledError } from "@/lib/http";
-import { combinedRecord, combineParcels, type CombineResult } from "@/lib/geo/combine";
+import { combineParcels, type CombineResult } from "@/lib/geo/combine";
 import { parseLatLon } from "@/lib/geo/coords";
-import { parcelFromLine, pickParcelAt, squareAround, type ParcelLine } from "@/lib/geo/parcels";
+import { parcelFromLine, pickParcelAt, type ParcelLine, type ParcelRecord } from "@/lib/geo/parcels";
+import { deriveParcel, type DerivedParcel } from "@/lib/geo/recipe";
 import { fitSplit as fitSplitLine, splitPieces, type Side, type SplitPieces } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import {
+  decideTap,
   exploreReducer,
   INITIAL,
   MODE_HINT,
   type ExploreAction,
   type ExploreState,
   type Mode,
+  type Stamp,
+  type TapHit,
 } from "./exploreState";
 
 export type SetHint = (text: string | ((prev: string) => string)) => void;
+
+/** A saved (built) parcel drawn on the map. */
+export interface SavedShape {
+  key: string;
+  geo: Feature<Polygon>;
+}
 
 export interface ExploreController {
   state: ExploreState;
   /** The state as of the last action, for event handlers that run before React re-renders. */
   current(): ExploreState;
-  /** Both pieces of the current split, once the line has two ends. */
+  /** The open parcel's boundary and facts, derived from its recipe (null when nothing is open). */
+  derived: DerivedParcel | null;
+  /** The open parcel as one record (the boundary to screen), when it makes one. */
+  parcel: ParcelRecord | null;
+  /** Saved parcels other than the open one, for the map. */
+  saved: SavedShape[];
+  /** Both pieces of the split being placed, once the line has two ends. */
   pieces: SplitPieces | null;
   /** The combination of the picked parcels, once there are two. */
   combined: CombineResult | null;
@@ -37,9 +57,11 @@ export interface ExploreController {
   setMap(map: MlMap | null): void;
   setMode(mode: Mode): void;
   goTo(text: string): void;
-  pickAt(ll: LatLon): Promise<void>;
-  selectOutline(line: ParcelLine): void;
-  squareHere(acres: number): void;
+  /** A tap on the map with no tool waiting: select, swap, unselect, or a nudge (decideTap). */
+  tap(hit: TapHit): void;
+  close(): void;
+  openSaved(key: string): void;
+  removeSaved(key: string): void;
   setHouse(ll: LatLon | null): void;
   startDraw(): void;
   addCorner(ll: LatLon): void;
@@ -48,6 +70,7 @@ export interface ExploreController {
   startSplit(): void;
   splitTap(ll: LatLon): void;
   moveSplit(a: LatLon, b: LatLon | null): void;
+  /** Slide the split line until one side has `targetAc` acres (the panel's Fit; 13e-3 drops it). */
   fitSplit(targetAc: number, side: Side): void;
   choosePiece(side: Side): void;
   cancelSplit(): void;
@@ -57,7 +80,6 @@ export interface ExploreController {
   combineRemove(index: number): void;
   applyCombination(): void;
   cancelCombine(): void;
-  clear(): void;
 }
 
 /** Shows a hint for a while, unless something else replaced it meanwhile. */
@@ -66,11 +88,18 @@ function flash(hint: SetHint, text: string, ms: number): void {
   setTimeout(() => hint((h) => (h === text ? "" : h)), ms);
 }
 
+const LIMITS = SCREEN_CONSTANTS.combine;
+const stamp = (): Stamp => ({ now: new Date().toISOString(), key: crypto.randomUUID() });
+const derive = (p: WorkingParcel) => deriveParcel(recipeOf(p), LIMITS);
+
 export function useExploreController(parcelServices: readonly string[], hint: SetHint): ExploreController {
-  // The parcel and house from before a refresh (step 13d). The explorer renders client-side only.
+  // The open parcel and History from before a refresh. The explorer renders client-side only.
   const [restored] = useState<ExploreState>(() => {
-    const saved = getPref("ps.current");
-    return saved ? { ...INITIAL, parcel: saved.parcel, house: saved.house } : INITIAL;
+    const s = stamp();
+    return {
+      ...INITIAL,
+      store: loadParcelStore(getPref("ps.parcels"), getPref("ps.current"), s.now, () => s.key),
+    };
   });
   const [state, setState] = useState<ExploreState>(restored);
   // The latest state, updated as each action is dispatched: a double-click delivers both clicks and the
@@ -83,20 +112,38 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
   const [map, setMap] = useState<MlMap | null>(null);
   const lookup = useRef<AbortController | null>(null);
 
-  const pieces = useMemo(() => {
-    const { parcel, split } = state;
-    return parcel && split?.b ? splitPieces(parcel.geo, split.a, split.b) : null;
-  }, [state]);
+  const { store } = state;
+  useEffect(() => setPref("ps.parcels", store), [store]);
 
-  const { parcel, house } = state;
-  useEffect(() => setPref("ps.current", parcel || house ? { parcel, house } : null), [parcel, house]);
+  const open = store.open;
+  const derived = useMemo(() => (open ? derive(open) : null), [open]);
+  const parcel = derived?.ok ? derived.record : null;
+
+  const saved = useMemo(
+    () =>
+      store.built
+        .filter((b) => b.key !== open?.key)
+        .flatMap((b) => {
+          const d = derive(b);
+          return d.ok ? [{ key: b.key!, geo: d.record.geo }] : [];
+        }),
+    [store.built, open?.key],
+  );
+
+  // The split tool works on the whole combined boundary, before any split.
+  const pieces = useMemo(() => {
+    const line = state.split;
+    if (!open || !line?.b) return null;
+    const base = deriveParcel({ parts: open.pieces }, LIMITS);
+    return base.ok ? splitPieces(base.record.geo, line.a, line.b) : null;
+  }, [open, state.split]);
 
   const combined = useMemo(
     () =>
       state.combine && state.combine.length >= 2
         ? combineParcels(
             state.combine.map((m) => m.geo),
-            SCREEN_CONSTANTS.combine,
+            LIMITS,
           )
         : null,
     [state.combine],
@@ -110,61 +157,46 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     [dispatch, hint],
   );
 
-  const pickAt = useCallback(
-    async (ll: LatLon) => {
-      lookup.current?.abort(); // a newer tap supersedes an unfinished lookup
-      const ctl = new AbortController();
-      lookup.current = ctl;
-      hint("Looking up parcel…");
-      try {
-        const { parcel, report } = await pickParcelAt(browserHttp, parcelServices, ll, ctl.signal);
-        if (parcel) {
-          dispatch({ type: "parcel", parcel });
-          hint("");
-        } else {
-          dispatch({ type: "noParcel", ll, report });
-          hint("No parcel record here.");
-        }
-      } catch (e) {
-        if (!(e instanceof CancelledError)) throw e;
-      }
-    },
-    [dispatch, hint, parcelServices],
-  );
-
   return {
     state,
     current: () => latest.current,
+    derived,
+    parcel,
+    saved,
     pieces,
     combined,
     map,
     setMap,
     setMode,
-    pickAt,
     goTo(text) {
       const ll = parseLatLon(text);
       if (!ll) return hint("Need two numbers: lat, lon");
       map?.jumpTo({ center: [ll[1], ll[0]], zoom: 16 });
       hint("");
     },
-    selectOutline(line) {
-      dispatch({ type: "parcel", parcel: parcelFromLine(line), mode: null });
+    tap(hit) {
+      const o = decideTap(latest.current, hit);
+      if (o.kind === "close") dispatch({ type: "close" });
+      else if (o.kind === "select") dispatch({ type: "select", record: o.record, stamp: stamp() });
+      else if (o.kind === "openSaved") dispatch({ type: "openSaved", key: o.key });
+      // A built parcel stays open until it's closed: say so, briefly.
+      else if (o.kind === "nudge") return flash(hint, "Tap it again to close it", 1600);
+      if (o.kind !== "none") hint("");
+    },
+    close() {
+      lookup.current?.abort();
+      dispatch({ type: "close" });
       hint("");
     },
-    squareHere(acres) {
-      const ll = latest.current.noParcel?.ll;
-      if (!ll) return;
-      const geo = squareAround(ll, acres);
-      dispatch({
-        type: "parcel",
-        parcel: { geo, props: {}, source: "square", multiPart: false },
-        mode: null,
-      });
-      hint("");
+    openSaved(key) {
+      dispatch({ type: "openSaved", key });
+    },
+    removeSaved(key) {
+      dispatch({ type: "removeSaved", key });
     },
     setHouse(ll) {
       if (latest.current.mode === "house") hint("");
-      dispatch({ type: "house", ll });
+      dispatch({ type: "house", ll, stamp: stamp() });
     },
     startDraw() {
       dispatch({ type: "startDraw" });
@@ -175,7 +207,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     finishDraw() {
       if (latest.current.draft.length < 3) return hint("Need at least three corners");
-      dispatch({ type: "finishDraw" });
+      dispatch({ type: "finishDraw", stamp: stamp() });
       hint("");
     },
     cancelDraw() {
@@ -184,7 +216,11 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     startSplit() {
       dispatch({ type: "startSplit" });
-      hint(MODE_HINT.split);
+      hint(
+        latest.current.split
+          ? "Drag the end markers to move the line, then pick the piece to keep"
+          : MODE_HINT.split,
+      );
     },
     splitTap(ll) {
       const split = latest.current.split;
@@ -195,9 +231,11 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       dispatch({ type: "splitMove", a, b });
     },
     fitSplit(targetAc, side) {
-      const { parcel, split } = latest.current;
-      if (!(targetAc > 0) || !parcel || !split?.b) return;
-      const moved = fitSplitLine(parcel.geo, split.a, split.b, targetAc, side);
+      const { store, split } = latest.current;
+      if (!(targetAc > 0) || !store.open || !split?.b) return;
+      const base = deriveParcel({ parts: store.open.pieces }, LIMITS);
+      if (!base.ok) return;
+      const moved = fitSplitLine(base.record.geo, split.a, split.b, targetAc, side);
       if (!moved)
         return flash(
           hint,
@@ -207,9 +245,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       dispatch({ type: "splitMove", ...moved });
     },
     choosePiece(side) {
-      const { parcel, split } = latest.current;
-      if (!parcel || !split?.b) return;
-      dispatch({ type: "usePiece", pieces: splitPieces(parcel.geo, split.a, split.b), side });
+      dispatch({ type: "keepPiece", side, stamp: stamp() });
       hint("");
     },
     cancelSplit() {
@@ -244,19 +280,14 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       if (!members || members.length < 2) return;
       const r = combineParcels(
         members.map((m) => m.geo),
-        SCREEN_CONSTANTS.combine,
+        LIMITS,
       );
       if (!r.ok) return;
-      dispatch({ type: "parcel", parcel: combinedRecord(members, r), mode: null });
+      dispatch({ type: "applyCombine", stamp: stamp() });
       hint("");
     },
     cancelCombine() {
       dispatch({ type: "combineCancel" });
-      hint("");
-    },
-    clear() {
-      lookup.current?.abort();
-      dispatch({ type: "clear" });
       hint("");
     },
   };

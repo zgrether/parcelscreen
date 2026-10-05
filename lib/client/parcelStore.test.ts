@@ -47,22 +47,19 @@ describe("built parcels", () => {
     expect(isBuilt(null)).toBe(false);
     expect(isBuilt(plain)).toBe(false);
     const changed: [string, WorkingParcel][] = [
-      ["two parts", { ...plain, recipe: { parts: [county(-81.355, "a"), county(-81.353, "b")] } }],
-      ["a drawn part", { ...plain, recipe: { parts: [drawnPart(sq(-81.355))] } }],
-      [
-        "a split piece from 13d",
-        { ...plain, recipe: { parts: [{ ...county(-81.355, "a"), source: "split" }] } },
-      ],
+      ["two parts", { ...plain, pieces: [county(-81.355, "a"), county(-81.353, "b")] }],
+      ["a drawn part", { ...plain, pieces: [drawnPart(sq(-81.355))] }],
+      ["a split piece from 13d", { ...plain, pieces: [{ ...county(-81.355, "a"), source: "split" }] }],
       [
         "a split",
         {
           ...plain,
-          recipe: { ...plain.recipe, split: { a: [36.62, -81.354], b: [36.64, -81.354], keep: 1 } },
+          split: { a: [36.62, -81.354], b: [36.64, -81.354], keep: 1 },
         },
       ],
       ["a house", { ...plain, house: [36.629, -81.354] }],
       ["notes", { ...plain, notes: "Ask about the spring." }],
-      ["results", { ...plain, screenedAt: T1 }],
+      ["results", { ...plain, screenIds: ["screen-1"] }],
       ["a key (it was built before)", { ...plain, key: "k9" }],
     ];
     for (const [why, p] of changed) expect(isBuilt(p), why).toBe(true);
@@ -94,6 +91,27 @@ describe("built parcels", () => {
   });
 });
 
+describe("History keeps everything until it's removed", () => {
+  it("nothing expires or is trimmed: 200 built parcels, opened, closed and edited, are all still there", () => {
+    const next = keys();
+    let s = EMPTY_STORE;
+    for (let i = 0; i < 200; i++) {
+      s = commitOpen(
+        s,
+        { ...plainParcel(county(-81.355 + i * 0.003, "p" + i), T0), house: [36.629, -81.354] },
+        T0,
+        next,
+      );
+      s = closeOpen(s);
+    }
+    s = commitOpen(openBuilt(s, "k1"), { ...openBuilt(s, "k1").open!, notes: "Still here." }, T1, next);
+    s = closeOpen(s);
+    expect(s.built).toHaveLength(200);
+    expect(readParcelStore(writeParcelStore(s))?.built).toHaveLength(200);
+    expect(removeBuilt(s, "k7").built).toHaveLength(199);
+  });
+});
+
 describe("13d's v1 record converts", () => {
   it("a combination becomes its members, built, with the house", () => {
     const a = county(-81.355, "52-47A"),
@@ -103,7 +121,7 @@ describe("13d's v1 record converts", () => {
       house: [36.629, -81.354] as [number, number],
     };
     const s = fromV1(v1, T0, keys());
-    expect(s.open?.recipe.parts.map((p) => p.props.PARCELID)).toEqual(["52-47A", "52-42A"]);
+    expect(s.open?.pieces.map((p) => p.props.PARCELID)).toEqual(["52-47A", "52-42A"]);
     expect(s.open?.house).toEqual([36.629, -81.354]);
     expect(s.built.map((x) => x.key)).toEqual(["k1"]);
   });
@@ -145,7 +163,7 @@ describe("storage (ps.parcels)", () => {
     for (const bad of [
       { ...good, v: 3 },
       { ...good, built: [{ ...good.built[0], key: null }] }, // a History entry without a key
-      { ...good, open: { ...good.open, recipe: { parts: [] } } },
+      { ...good, open: { ...good.open, pieces: [] } },
       { ...good, open: { ...good.open, house: [123, 456] } },
       null,
     ])

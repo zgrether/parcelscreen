@@ -3,7 +3,7 @@ import type { Feature, Polygon } from "geojson";
 import { describe, expect, it } from "vitest";
 import { boundarySourceLabel, parcelFacts, type ParcelRecord } from "./parcels";
 import { memberKey } from "./combine";
-import { deriveParcel, drawnPart, isCountyRecord, recipeDedupeKey } from "./recipe";
+import { deriveParcel, drawnPart, isCountyRecord, pieceDedupeKey, recipeDedupeKey } from "./recipe";
 import { M2_PER_ACRE, type LatLon } from "./types";
 
 const LIMITS = { maxGapM: 30, touchM: 1 };
@@ -149,6 +149,19 @@ describe("drawn pieces never supply facts or identity", () => {
       county: null,
       address: null,
     });
+  });
+
+  it("piece keys follow REQUIREMENTS §3: state:county:parcel_number, else state:county:centroid:acres", () => {
+    expect(pieceDedupeKey(county(0, "52-47A"))).toBe("VA:floyd:52-47A");
+    const unnumbered = { ...county(0, "x"), props: { COUNTY: "Floyd" } };
+    expect(pieceDedupeKey(unnumbered)).toMatch(/^VA:floyd:36\.\d{4},-81\.\d{4}:10$/);
+    expect(
+      pieceDedupeKey({ ...county(0, "1234"), source: "https://services.nconemap.gov/x/FeatureServer/1" }),
+    ).toBe("NC:floyd:1234");
+    expect(pieceDedupeKey(stray)).toBeNull();
+    expect(recipeDedupeKey({ parts: [county(200, "52-42A"), county(0, "52-47A")] })).toBe(
+      "VA:floyd:52-42A & VA:floyd:52-47A",
+    );
   });
 
   it("never take part in the dedupe key, which is order-independent", () => {

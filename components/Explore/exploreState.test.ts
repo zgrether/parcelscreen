@@ -1,192 +1,194 @@
-import { area, polygon } from "@turf/turf";
+import { polygon } from "@turf/turf";
 import { describe, expect, it } from "vitest";
 import type { ParcelRecord } from "@/lib/geo/parcels";
-import { splitPieces } from "@/lib/geo/split";
-import { M2_PER_ACRE, type LatLon } from "@/lib/geo/types";
-import { exploreReducer, INITIAL, type ExploreAction, type ExploreState } from "./exploreState";
+import type { LatLon } from "@/lib/geo/types";
+import {
+  decideTap,
+  exploreReducer,
+  INITIAL,
+  type ExploreAction,
+  type ExploreState,
+  type Stamp,
+} from "./exploreState";
 
 const run = (actions: ExploreAction[], from: ExploreState = INITIAL) => actions.reduce(exploreReducer, from);
+let n = 0;
+const at = (): Stamp => ({ now: `2026-10-05T12:00:${String(n % 60).padStart(2, "0")}.000Z`, key: `k${++n}` });
 
-// A ~200 m square near Galax.
-const square = polygon([
-  [
-    [-81.355, 36.628],
-    [-81.353, 36.628],
-    [-81.353, 36.63],
-    [-81.355, 36.63],
-    [-81.355, 36.628],
-  ],
-]);
-const county: ParcelRecord = {
-  geo: square,
-  props: { PARCELID: "52-47A", OWNER: "Someone" },
+const sq = (x0: number) =>
+  polygon([
+    [
+      [x0, 36.628],
+      [x0 + 0.002, 36.628],
+      [x0 + 0.002, 36.63],
+      [x0, 36.63],
+      [x0, 36.628],
+    ],
+  ]);
+const record = (x0: number, id: string): ParcelRecord => ({
+  geo: sq(x0),
+  props: { PARCELID: id, OWNER: "R. & J. Hale" },
   source: "https://vginmaps.vdem.virginia.gov/x",
   multiPart: false,
-};
+});
+const a = record(-81.355, "52-47A"),
+  b = record(-81.353, "52-42A");
+const selectA = (): ExploreAction => ({ type: "select", record: a, stamp: at() });
+const house = (ll: LatLon | null = [36.629, -81.354]): ExploreAction => ({ type: "house", ll, stamp: at() });
 
-describe("explore state", () => {
-  it("a tap lookup that finds a parcel stays in tap mode; a report is replaced by the parcel", () => {
-    const s = run([
-      { type: "mode", mode: "pick" },
-      {
-        type: "noParcel",
-        ll: [36.6, -81.3],
-        report: ["vginmaps.vdem.virginia.gov: no parcel at this point"],
-      },
-      { type: "parcel", parcel: county },
-    ]);
-    expect(s.mode).toBe("pick");
-    expect(s.noParcel).toBeNull();
-    expect(s.parcel).toBe(county);
+describe("the open parcel and History", () => {
+  it("a tapped parcel opens plain: not in History", () => {
+    const s = run([selectA()]);
+    expect(s.store.open?.pieces).toEqual([a]);
+    expect(s.store.open?.key).toBeNull();
+    expect(s.store.built).toEqual([]);
   });
 
-  it("a failed lookup keeps the loaded parcel and shows the report", () => {
-    const s = run([
-      { type: "parcel", parcel: county },
-      { type: "noParcel", ll: [36.6, -81.3], report: ["x: HTTP 500"] },
-    ]);
-    expect(s.parcel).toBe(county);
-    expect(s.noParcel?.report).toEqual(["x: HTTP 500"]);
+  it("marking the house builds it: saved to History, house kept to 6 decimals, house mode ends", () => {
+    const s = run([selectA(), { type: "mode", mode: "house" }, house([36.62912345678, -81.35421987654])]);
+    expect(s.store.open?.house).toEqual([36.629123, -81.35422]);
+    expect(s.store.open?.key).not.toBeNull();
+    expect(s.store.built.map((x) => x.key)).toEqual([s.store.open?.key]);
+    expect(s.mode).toBeNull();
   });
 
-  it("draws a boundary: needs three corners, closes the ring, ends draw mode", () => {
+  it("closing keeps a built parcel in History; it reopens; removing it takes it out (and closes it)", () => {
+    const built = run([selectA(), house()]);
+    const key = built.store.open!.key!;
+    const closed = exploreReducer(built, { type: "close" });
+    expect(closed.store.open).toBeNull();
+    expect(closed.store.built).toHaveLength(1);
+    const reopened = exploreReducer(closed, { type: "openSaved", key });
+    expect(reopened.store.open?.house).toEqual([36.629, -81.354]);
+    expect(exploreReducer(reopened, { type: "removeSaved", key }).store).toEqual({
+      v: 2,
+      open: null,
+      built: [],
+    });
+  });
+
+  it("drawing with nothing open makes a new (built) parcel; with one open, adds a drawn piece", () => {
     const corners: LatLon[] = [
-      [36.628, -81.355],
-      [36.628, -81.353],
-      [36.63, -81.353],
+      [36.63, -81.351],
+      [36.63, -81.35],
+      [36.631, -81.35],
     ];
-    const two = run([
+    const draw = (): ExploreAction[] => [
       { type: "startDraw" },
-      ...corners.slice(0, 2).map((ll) => ({ type: "draftAdd" as const, ll })),
+      ...corners.map((ll) => ({ type: "draftAdd" as const, ll })),
+      { type: "finishDraw", stamp: at() },
+    ];
+    const alone = run(draw());
+    expect(alone.store.open?.pieces.map((p) => p.source)).toEqual(["drawn"]);
+    expect(alone.store.built).toHaveLength(1);
+    const added = run([selectA(), ...draw()]);
+    expect(added.store.open?.pieces.map((p) => p.source)).toEqual([a.source, "drawn"]);
+    expect(added.mode).toBeNull();
+    // Fewer than three corners: nothing changes.
+    const two = run([
+      selectA(),
+      { type: "startDraw" },
+      { type: "draftAdd", ll: corners[0]! },
+      { type: "draftAdd", ll: corners[1]! },
     ]);
-    expect(exploreReducer(two, { type: "finishDraw" })).toBe(two); // not enough corners: unchanged
-    const s = run([{ type: "draftAdd", ll: corners[2]! }, { type: "finishDraw" }], two);
-    expect(s.mode).toBeNull();
-    expect(s.draft).toEqual([]);
-    expect(s.parcel?.source).toBe("drawn");
-    expect(s.parcel?.geo.geometry.coordinates[0]).toEqual([
-      [-81.355, 36.628],
-      [-81.353, 36.628],
-      [-81.353, 36.63],
-      [-81.355, 36.628],
-    ]);
+    expect(exploreReducer(two, { type: "finishDraw", stamp: at() })).toBe(two);
   });
 
-  it("Esc drops the draft; starting a new drawing starts from no corners", () => {
-    const s = run([{ type: "startDraw" }, { type: "draftAdd", ll: [36.6, -81.3] }, { type: "draftCancel" }]);
-    expect(s).toMatchObject({ mode: null, draft: [] });
-    expect(run([{ type: "draftAdd", ll: [36.6, -81.3] }, { type: "startDraw" }]).draft).toEqual([]);
-  });
-
-  it("marks the house to 6 decimals and leaves house mode", () => {
+  it("a split saves the line and the side kept, so it can be edited later from where it was", () => {
+    const line = { a: [36.627, -81.354] as LatLon, b: [36.631, -81.354] as LatLon };
     const s = run([
-      { type: "mode", mode: "house" },
-      { type: "house", ll: [36.62912345678, -81.35421987654] },
+      selectA(),
+      { type: "startSplit" },
+      { type: "splitTap", ll: line.a },
+      { type: "splitTap", ll: line.b },
+      { type: "keepPiece", side: -1, stamp: at() },
     ]);
-    expect(s.house).toEqual([36.629123, -81.35422]);
-    expect(s.mode).toBeNull();
-    // Dragging the bulls-eye later doesn't change the mode.
-    expect(
-      run([
-        { type: "mode", mode: "pick" },
-        { type: "house", ll: [36.6, -81.3] },
-      ]).mode,
-    ).toBe("pick");
+    expect(s.store.open?.split).toEqual({ ...line, keep: -1 });
+    expect(s.store.open?.pieces).toEqual([a]); // the pieces stay whole: the split is applied when derived
+    expect(s.store.built).toHaveLength(1);
+    // Editing starts from the saved line.
+    expect(exploreReducer(s, { type: "startSplit" }).split).toEqual(line);
   });
 
-  it("splits: two taps set the line and end split mode; using a piece records where it came from", () => {
-    const a: LatLon = [36.627, -81.354],
-      b: LatLon = [36.631, -81.354];
-    const s = run([{ type: "parcel", parcel: county }, { type: "startSplit" }, { type: "splitTap", ll: a }]);
-    expect(s).toMatchObject({ mode: "split", split: { a, b: null } });
-    const t = exploreReducer(s, { type: "splitTap", ll: b });
-    expect(t).toMatchObject({ mode: null, split: { a, b } });
-    expect(exploreReducer(t, { type: "splitTap", ll: [0, 0] })).toBe(t); // a third tap does nothing
-
-    const pieces = splitPieces(county.geo, a, b);
-    const used = exploreReducer(t, { type: "usePiece", pieces, side: 1 });
-    expect(used.split).toBeNull();
-    expect(used.parcel?.source).toBe("split");
-    expect(used.parcel?.props).toEqual({ PARCELID: "52-47A", OWNER: "Someone", split_from: "52-47A" });
-    expect(area(used.parcel!.geo) / M2_PER_ACRE).toBeCloseTo(pieces.rightAc, 6);
-  });
-
-  it("a new parcel ends a split of the old one; Clear resets everything", () => {
-    const s = run([
-      { type: "parcel", parcel: county },
+  it("combining starts from the open parcel's pieces and saves the new pieces, keeping the split", () => {
+    const split = run([
+      selectA(),
       { type: "startSplit" },
       { type: "splitTap", ll: [36.627, -81.354] },
-      { type: "parcel", parcel: { ...county, source: "square" } },
+      { type: "splitTap", ll: [36.631, -81.354] },
+      { type: "keepPiece", side: 1, stamp: at() },
     ]);
-    expect(s.split).toBeNull();
-    expect(run([{ type: "house", ll: [36.6, -81.3] }, { type: "clear" }], s)).toEqual(INITIAL);
-  });
-});
-
-describe("combining (step 13b)", () => {
-  const other: ParcelRecord = {
-    geo: polygon([
+    const s0 = exploreReducer(split, { type: "startCombine" });
+    expect(s0.combine).toEqual([a]);
+    const s = run(
       [
-        [-81.353, 36.628],
-        [-81.351, 36.628],
-        [-81.351, 36.63],
-        [-81.353, 36.63],
-        [-81.353, 36.628],
+        { type: "combineToggle", parcel: b },
+        { type: "applyCombine", stamp: at() },
       ],
-    ]),
-    props: { PARCELID: "52-42" },
-    source: "https://vginmaps.vdem.virginia.gov/x",
-    multiPart: false,
-  };
-
-  it("starts with the loaded parcel; a second tap on a parcel takes it out", () => {
-    const s = run([{ type: "parcel", parcel: county }, { type: "startCombine" }]);
-    expect(s.mode).toBe("combine");
-    expect(s.combine).toEqual([county]);
-    const two = exploreReducer(s, { type: "combineToggle", parcel: other });
-    expect(two.combine).toEqual([county, other]);
-    // The same parcel again (a fresh record from a new lookup): out.
-    const back = exploreReducer(two, {
-      type: "combineToggle",
-      parcel: { ...other, props: { ...other.props } },
-    });
-    expect(back.combine).toEqual([county]);
-    expect(exploreReducer(two, { type: "combineRemove", index: 0 }).combine).toEqual([other]);
+      s0,
+    );
+    expect(s.store.open?.pieces).toEqual([a, b]);
+    expect(s.store.open?.split?.keep).toBe(1);
+    expect(s.store.built).toHaveLength(1); // the same History entry, updated
   });
 
   it("a drawn piece is never matched: adding the same drawn shape twice keeps both, and parcels still toggle", () => {
     const drawn: ParcelRecord = {
-      geo: other.geo,
+      geo: b.geo,
       props: { PARCELID: "52-42A" },
       source: "drawn",
       multiPart: false,
     };
     const s = run([
       { type: "startCombine" },
-      { type: "combineToggle", parcel: other },
+      { type: "combineToggle", parcel: b },
       { type: "combineToggle", parcel: drawn },
       { type: "combineToggle", parcel: drawn },
     ]);
-    expect(s.combine?.map((m) => m.source)).toEqual([other.source, "drawn", "drawn"]);
-    // Same shape and the same stray ID as "other", but drawn: tapping "other" takes out only "other".
-    expect(exploreReducer(s, { type: "combineToggle", parcel: other }).combine?.map((m) => m.source)).toEqual(
-      ["drawn", "drawn"],
-    );
+    expect(s.combine?.map((m) => m.source)).toEqual([b.source, "drawn", "drawn"]);
+    expect(exploreReducer(s, { type: "combineToggle", parcel: b }).combine?.map((m) => m.source)).toEqual([
+      "drawn",
+      "drawn",
+    ]);
   });
 
-  it("starts empty with no parcel loaded; taps are ignored when not combining", () => {
-    expect(run([{ type: "startCombine" }]).combine).toEqual([]);
-    expect(run([{ type: "combineToggle", parcel: other }]).combine).toBeNull();
+  it("a different parcel, closing, or reopening ends any tool in progress", () => {
+    const busy = run([selectA(), { type: "startDraw" }, { type: "draftAdd", ll: [36.63, -81.35] }]);
+    for (const act of [{ type: "select", record: b, stamp: at() }, { type: "close" }] as ExploreAction[])
+      expect(exploreReducer(busy, act)).toMatchObject({ mode: null, draft: [], split: null, combine: null });
+  });
+});
+
+describe("tap rules (decideTap)", () => {
+  const none = { insideOpen: false, outline: null, savedKey: null };
+  const plain = run([selectA()]);
+  const built = run([selectA(), house()]);
+  const builtKey = built.store.open!.key!;
+  const withSaved = exploreReducer(built, { type: "close" });
+
+  it("nothing open: an outline selects; a saved parcel opens (over the outline beneath it); empty map does nothing", () => {
+    expect(decideTap(INITIAL, { ...none, outline: b })).toEqual({ kind: "select", record: b });
+    expect(decideTap(withSaved, { ...none, outline: a, savedKey: builtKey })).toEqual({
+      kind: "openSaved",
+      key: builtKey,
+    });
+    expect(decideTap(INITIAL, none)).toEqual({ kind: "none" });
   });
 
-  it("ends when cancelled, when a parcel is loaded, or when another tool starts", () => {
-    const s = run([{ type: "startCombine" }, { type: "combineToggle", parcel: other }]);
-    expect(exploreReducer(s, { type: "combineCancel" })).toMatchObject({ combine: null, mode: null });
-    expect(exploreReducer(s, { type: "parcel", parcel: county }).combine).toBeNull();
-    expect(exploreReducer(s, { type: "startDraw" }).combine).toBeNull();
-    expect(exploreReducer(s, { type: "startSplit" }).combine).toBeNull();
-    expect(exploreReducer(s, { type: "mode", mode: "pick" }).combine).toBeNull();
-    // Marking the house doesn't end it.
-    expect(exploreReducer(s, { type: "mode", mode: "house" }).combine).toEqual([other]);
+  it("tapping the open parcel again, or empty map, unselects it (plain or built)", () => {
+    for (const s of [plain, built]) {
+      expect(decideTap(s, { ...none, insideOpen: true, outline: a })).toEqual({ kind: "close" });
+      expect(decideTap(s, none)).toEqual({ kind: "close" });
+    }
+  });
+
+  it("another parcel: a plain one swaps; a built one stays and nudges", () => {
+    expect(decideTap(plain, { ...none, outline: b })).toEqual({ kind: "select", record: b });
+    expect(decideTap(built, { ...none, outline: b })).toEqual({ kind: "nudge" });
+    const plainWithSaved = run([selectA()], withSaved);
+    expect(decideTap(plainWithSaved, { ...none, outline: b, savedKey: builtKey })).toEqual({
+      kind: "openSaved",
+      key: builtKey,
+    });
   });
 });

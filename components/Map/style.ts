@@ -84,6 +84,8 @@ export const LAYER = {
   scrim: "scrim",
   parcelLinesFill: "parcel-lines-fill",
   parcelLines: "parcel-lines",
+  savedFill: "saved-fill",
+  savedLine: "saved-line",
   parcelHalo: "parcel-halo",
   parcelFill: "parcel-fill",
   parcelLine: "parcel-line",
@@ -99,6 +101,7 @@ export const LAYER = {
 
 export const SOURCE = {
   parcelLines: "parcel-lines",
+  saved: "saved",
   parcel: "parcel",
   split: "split",
   combine: "combine",
@@ -109,6 +112,8 @@ const EMPTY_FC = { type: "FeatureCollection" as const, features: [] };
 
 /** The picked parcels while combining. */
 export const COMBINE_COLOR = "#f0a030";
+/** The selected parcel, and saved parcels (thinner, unfilled). */
+export const SELECTED_COLOR = "#f0a030";
 
 /** The whole style. Basemaps other than `base` start hidden; overlays start hidden. */
 export function buildStyle(opts: {
@@ -185,26 +190,44 @@ export function buildStyle(opts: {
       paint: { "line-color": "#f6e7a1", "line-width": 1.2, "line-opacity": 0.85 },
     },
   );
-  // The loaded parcel: a dark halo under a white outline (proto L690).
+  // Saved (built) parcels that aren't open: a thin amber outline, no fill (13e). The nearly transparent fill
+  // only catches taps; each feature carries its History key.
+  sources[SOURCE.saved] = { type: "geojson", data: EMPTY_FC };
+  layers.push(
+    {
+      id: LAYER.savedFill,
+      type: "fill",
+      source: SOURCE.saved,
+      paint: { "fill-color": SELECTED_COLOR, "fill-opacity": 0.001 },
+    },
+    {
+      id: LAYER.savedLine,
+      type: "line",
+      source: SOURCE.saved,
+      paint: { "line-color": SELECTED_COLOR, "line-width": 1.5 },
+    },
+  );
+  // The selected parcel, the strongest thing on the map (13e): bold amber over a dark halo, soft amber fill.
+  // (The prototype drew it white over the halo, proto L690.)
   sources[SOURCE.parcel] = { type: "geojson", data: EMPTY_FC };
   layers.push(
     {
       id: LAYER.parcelHalo,
       type: "line",
       source: SOURCE.parcel,
-      paint: { "line-color": "#0b1410", "line-width": 5, "line-opacity": 0.6 },
+      paint: { "line-color": "#0b1410", "line-width": 6, "line-opacity": 0.6 },
     },
     {
       id: LAYER.parcelFill,
       type: "fill",
       source: SOURCE.parcel,
-      paint: { "fill-color": "#ffffff", "fill-opacity": 0.05 },
+      paint: { "fill-color": SELECTED_COLOR, "fill-opacity": 0.16 },
     },
     {
       id: LAYER.parcelLine,
       type: "line",
       source: SOURCE.parcel,
-      paint: { "line-color": "#ffffff", "line-width": 2.5 },
+      paint: { "line-color": SELECTED_COLOR, "line-width": 3 },
     },
   );
   // The split pieces, coloured per piece, and the dashed cut line (proto L612–615).
