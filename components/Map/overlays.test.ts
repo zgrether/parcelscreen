@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import { parseLatLon } from "@/lib/geo/coords";
 import { splitPieces } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
-import { draftData, splitData } from "./overlays";
+import { combineParcels } from "@/lib/geo/combine";
+import { combineData, draftData, splitData } from "./overlays";
 
 describe("map overlays", () => {
   it("draft: a line through the corners and a dot each, the first one larger and amber", () => {
@@ -42,6 +43,36 @@ describe("map overlays", () => {
       color: "#2b6f8f",
       label: `${P.rightAc.toFixed(2)} ac (E side)`,
     });
+  });
+});
+
+describe("combine overlay", () => {
+  it("marks the picked parcels as members, and adds the combined outline only when they combine", () => {
+    const a = polygon([
+      [
+        [-81.355, 36.628],
+        [-81.354, 36.628],
+        [-81.354, 36.629],
+        [-81.355, 36.629],
+        [-81.355, 36.628],
+      ],
+    ]);
+    const b = polygon([
+      [
+        [-81.354, 36.628],
+        [-81.353, 36.628],
+        [-81.353, 36.629],
+        [-81.354, 36.629],
+        [-81.354, 36.628],
+      ],
+    ]);
+    expect(combineData([a], null).features.map((f) => f.properties)).toEqual([{ kind: "member" }]);
+    const r = combineParcels([a, b], { maxGapM: 30, touchM: 1 });
+    expect(combineData([a, b], r).features.map((f) => f.properties!.kind)).toEqual([
+      "member",
+      "member",
+      "result",
+    ]);
   });
 });
 

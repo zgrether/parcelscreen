@@ -4,11 +4,12 @@
  * Pure: the map and panel components dispatch actions and render from this.
  */
 import { polygon } from "@turf/turf";
+import { memberKey } from "@/lib/geo/combine";
 import type { ParcelRecord } from "@/lib/geo/parcels";
 import { splitFromLabel, type SplitPieces } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
 
-export type Mode = "pick" | "draw" | "house" | "split" | null;
+export type Mode = "pick" | "draw" | "house" | "split" | "combine" | null;
 
 /** What the hint says while each tool waits for taps (proto L578). */
 export const MODE_HINT: Record<NonNullable<Mode>, string> = {
@@ -16,6 +17,8 @@ export const MODE_HINT: Record<NonNullable<Mode>, string> = {
   draw: "Tap each corner. Then tap the first corner again, or press Finish.",
   house: "Tap where the house stands (drag the bulls-eye later to adjust)",
   split: "Tap two points to draw the dividing line across the parcel",
+  // New in the port (step 13b).
+  combine: "Tap each parcel to add it; tap one again to take it out",
 };
 
 export interface SplitLine {
@@ -33,6 +36,8 @@ export interface ExploreState {
   split: SplitLine | null;
   /** The last tap found no parcel: what each service said, and where (for the square fallback). */
   noParcel: { ll: LatLon; report: string[] } | null;
+  /** Parcels picked to combine (step 13b); null when not combining. */
+  combine: ParcelRecord[] | null;
 }
 
 export const INITIAL: ExploreState = {
@@ -42,6 +47,7 @@ export const INITIAL: ExploreState = {
   draft: [],
   split: null,
   noParcel: null,
+  combine: null,
 };
 
 export type ExploreAction =
@@ -60,6 +66,12 @@ export type ExploreAction =
   | { type: "splitMove"; a: LatLon; b: LatLon | null }
   | { type: "splitCancel" }
   | { type: "usePiece"; pieces: SplitPieces; side: 1 | -1 }
+  /** Starts combining, with the loaded parcel (if any) as the first one. */
+  | { type: "startCombine" }
+  /** Adds a parcel to the combination, or takes it out if it is already in. */
+  | { type: "combineToggle"; parcel: ParcelRecord }
+  | { type: "combineRemove"; index: number }
+  | { type: "combineCancel" }
   | { type: "clear" };
 
 /** The house is kept to 6 decimals, as in the prototype (proto L636). */
@@ -68,16 +80,17 @@ const roundLL = (ll: LatLon): LatLon => [+ll[0].toFixed(6), +ll[1].toFixed(6)];
 export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState {
   switch (a.type) {
     case "mode":
-      return { ...s, mode: a.mode };
+      // Tapping a parcel to load it ends a combination in progress.
+      return { ...s, mode: a.mode, combine: a.mode === "pick" ? null : s.combine };
     case "parcel":
-      // A different parcel ends any split of the old one.
-      return { ...s, parcel: a.parcel, noParcel: null, split: null, mode: a.mode ?? s.mode };
+      // A different parcel ends any split of the old one, and any combination.
+      return { ...s, parcel: a.parcel, noParcel: null, split: null, combine: null, mode: a.mode ?? s.mode };
     case "noParcel":
       return { ...s, noParcel: { ll: a.ll, report: a.report } };
     case "house":
       return { ...s, house: a.ll ? roundLL(a.ll) : null, mode: s.mode === "house" ? null : s.mode };
     case "startDraw":
-      return { ...s, draft: [], mode: "draw" };
+      return { ...s, draft: [], mode: "draw", combine: null };
     case "draftAdd":
       return { ...s, draft: [...s.draft, a.ll] };
     case "draftCancel":
@@ -90,7 +103,7 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       return { ...s, parcel, noParcel: null, split: null, draft: [], mode: null };
     }
     case "startSplit":
-      return { ...s, split: null, mode: "split" };
+      return { ...s, split: null, combine: null, mode: "split" };
     case "splitTap":
       if (!s.split) return { ...s, split: { a: a.ll, b: null } };
       if (!s.split.b) return { ...s, split: { a: s.split.a, b: a.ll }, mode: null };
@@ -111,6 +124,18 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
         mode: null,
       };
     }
+    case "startCombine":
+      return { ...s, combine: s.parcel ? [s.parcel] : [], split: null, noParcel: null, mode: "combine" };
+    case "combineToggle": {
+      if (!s.combine) return s;
+      const k = memberKey(a.parcel);
+      const without = s.combine.filter((m) => memberKey(m) !== k);
+      return { ...s, combine: without.length < s.combine.length ? without : [...s.combine, a.parcel] };
+    }
+    case "combineRemove":
+      return s.combine ? { ...s, combine: s.combine.filter((_, i) => i !== a.index) } : s;
+    case "combineCancel":
+      return { ...s, combine: null, mode: s.mode === "combine" ? null : s.mode };
     case "clear":
       return INITIAL;
   }

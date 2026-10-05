@@ -96,6 +96,10 @@ describe("config", () => {
   it("screen constants are unchanged", () => {
     expect(SCREEN_CONSTANTS).toMatchInlineSnapshot(`
       {
+        "combine": {
+          "maxGapM": 30,
+          "touchM": 1,
+        },
         "dem": {
           "attempts": 3,
           "fineBufferKm": 0.15,

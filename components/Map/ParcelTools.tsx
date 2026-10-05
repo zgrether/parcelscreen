@@ -17,7 +17,7 @@ import { useEffect, useRef } from "react";
 import type { LatLon } from "@/lib/geo/types";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { useMap } from "./MapView";
-import { draftData, splitData } from "./overlays";
+import { combineData, draftData, splitData } from "./overlays";
 import { LAYER, SOURCE } from "./style";
 import { outlineAt } from "./useParcelLines";
 
@@ -49,6 +49,8 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
     const onClick = (e: MapMouseEvent) => {
       const c = ref.current;
       const { mode, draft } = c.current();
+      // Combining: each tap adds or removes the parcel under it (step 13b).
+      if (mode === "combine") return void c.combineAt(toLL(e), outlineAt(map, e.point));
       // With no tool waiting for taps (or the tap lookup), tapping an outline loads it (proto L545).
       if (mode !== "draw" && mode !== "house" && mode !== "split") {
         const line = outlineAt(map, e.point);
@@ -93,8 +95,8 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
 }
 
 function useOverlays(map: MlMap | null, ctl: ExploreController) {
-  const { parcel, draft, split } = ctl.state;
-  const { pieces } = ctl;
+  const { parcel, draft, split, combine } = ctl.state;
+  const { pieces, combined } = ctl;
 
   useEffect(() => {
     if (!map) return;
@@ -122,6 +124,17 @@ function useOverlays(map: MlMap | null, ctl: ExploreController) {
       ?.getSource<GeoJSONSource>(SOURCE.split)
       ?.setData(pieces && split?.b ? splitData(pieces, split.a, split.b) : EMPTY);
   }, [map, pieces, split]);
+
+  useEffect(() => {
+    map?.getSource<GeoJSONSource>(SOURCE.combine)?.setData(
+      combine
+        ? combineData(
+            combine.map((m) => m.geo),
+            combined,
+          )
+        : EMPTY,
+    );
+  }, [map, combine, combined]);
 
   // Each piece's acreage on hover (the prototype's tooltips).
   useEffect(() => {

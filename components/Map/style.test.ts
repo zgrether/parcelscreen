@@ -17,7 +17,7 @@ describe("map style", () => {
     expect(at(LAYER.scrim)).toBeLessThan(at(LAYER.parcelLines));
   });
 
-  it("draws the loaded parcel above the outlines, then the split, then the boundary being drawn", () => {
+  it("draws the loaded parcel above the outlines, then the split, the combination, and the boundary being drawn", () => {
     expect(layerIds.slice(layerIds.indexOf(LAYER.parcelLines) + 1)).toEqual([
       LAYER.parcelHalo,
       LAYER.parcelFill,
@@ -25,6 +25,9 @@ describe("map style", () => {
       LAYER.splitFill,
       LAYER.splitLine,
       LAYER.splitCut,
+      LAYER.combineFill,
+      LAYER.combineLine,
+      LAYER.combineResult,
       LAYER.draftLine,
       LAYER.draftPoints,
     ]);
