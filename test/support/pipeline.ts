@@ -4,7 +4,7 @@
  * (step 10) replaces it.
  */
 import { area, centroid, polygon } from "@turf/turf";
-import { createHttpClient } from "@/lib/http";
+import { createHttpClient, type Clock } from "@/lib/http";
 import { DEFAULT_ENDPOINTS, DEFAULT_USER_CONFIG } from "@/lib/screen/config";
 import { DemCache, fetchParcelDems } from "@/lib/screen/dem";
 import { findSites, siteResults } from "@/lib/screen/sites";
@@ -13,11 +13,17 @@ import { insideMask, slopeAspect, valleyFloor } from "@/lib/screen/terrain";
 import { M2_PER_ACRE, type LatLon } from "@/lib/screen/util";
 import { loadFixture, type FixtureSlug } from "./fixtures";
 
+/** Virtual time: the per-host throttle (1 req/s to OSRM and Photon) advances it instead of waiting. */
+export function instantClock(): Clock {
+  let t = 0;
+  return { now: () => t, sleep: async (ms) => void (t += ms) };
+}
+
 export async function throughSites(slug: FixtureSlug) {
   const fx = loadFixture(slug);
   const fetch = fx.replayFetch();
   const deps = {
-    http: createHttpClient({ env: "node", fetchImpl: fetch }),
+    http: createHttpClient({ env: "node", fetchImpl: fetch, clock: instantClock() }),
     endpoints: DEFAULT_ENDPOINTS,
     cache: new DemCache(),
   };

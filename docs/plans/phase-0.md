@@ -260,6 +260,7 @@ The same HAR drives the browser e2e test via Playwright `routeFromHAR`. One reco
 - **Replay:** `replayFetch` compares long decimals (6+ fraction digits) in request keys at 12 significant digits. Example: the Macks Mountain 3DEP bbox computed in Node ends `…4088137.5436460427`, while the recorded one ends `…4088137.543646043`.
 - **Parity:** computed floats are compared with a relative tolerance (§7a); discrete outputs (verdicts, ranks, counts, grades, flag and "why" text) must match exactly. A last-bit difference could in principle push a cell across a threshold. If a parity test shows that, it gets investigated and explained in the PR, not loosened away.
 - **The browser e2e test (step 18)** runs the port in the same Chromium family as the recording, so it is the closest to bit-exact.
+- **Amplification (found in step 9).** Some turf algorithms magnify the last-bit differences. `nearestPointOnLine` turned them into ~1.3e-6 relative on Macks Mountain's nearest-road distance: the prototype's own `nearestRoad` on identical inputs gives 69.79016070998650 m in Chromium and 69.79025171847941 m in Node. Where a test widens a tolerance for this, it cites the measurement in a comment. Downstream rounding (site cost index, `Math.round`) is where a flip could appear, and step 10 checks for it.
 
 ---
 
