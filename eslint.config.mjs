@@ -11,6 +11,11 @@ const config = [
   ...nextTs,
   prettier,
   {
+    // Omitting fields with a rest spread ({ veto: _v, ...bench }) is how the parity tests drop fields
+    // a later step adds; the omitted names are intentionally unused.
+    rules: { "@typescript-eslint/no-unused-vars": ["warn", { ignoreRestSiblings: true }] },
+  },
+  {
     files: PURE,
     rules: {
       "no-restricted-imports": [
