@@ -152,7 +152,7 @@ Least-cost path over the fine DEM from a road entrance to a site, with a hard gr
 households      id, name, created_at
 memberships     household_id, user_id, role ('owner'|'member'), primary key (household_id, user_id)
 regions         id, name, state, counties text[], scores jsonb   -- from the Mountain Town Assessment
-parcels         id, household_id, region_id?, name, geometry geography(Polygon,4326), source ('county'|'drawn'|'split'|'combined'|'listing'),
+parcels         id, household_id, region_id?, name, recipe jsonb, geometry geography(Polygon,4326), source ('county'|'drawn'|'split'|'combined'|'listing'),
                 parent_parcel_id?, state, county, parcel_number?, acres, status ('watching'|'contender'|'walked'|'offered'|'passed'|'ignored'),
                 my_verdict text, notes text, dedupe_key text, created_by, created_at, updated_at
 screens         id, parcel_id, version int, schema_version int, run_at, config jsonb, result jsonb,
@@ -172,6 +172,14 @@ listings        id, source_id, external_id, url, title, description, address, pa
 
 RLS pattern: a row is visible if its `household_id` (directly or via `parcels`) is in the
 caller's memberships. `share_links` are read by token via a server route using the service role.
+
+**`parcels.recipe` is the source of truth for a parcel's boundary.** It's the recipe from §3a: `pieces`
+(county records and drawn shapes), `split`, `house`, `hidden` and `excluded`. `geometry`, `acres`, `source`,
+`dedupe_key`, and `state`, `county` and `parcel_number` are **cached values derived from it**
+(`lib/geo/recipe.ts` `deriveParcel`, `recipeDedupeKey`). Every edit to the recipe recomputes them in the same
+write. They're kept as columns for indexing, spatial queries and listing matches, and are never edited on
+their own. A `listing` parcel with no county match has a recipe of one drawn piece. `parent_parcel_id` is
+set when a parcel was made from another by splitting it off.
 
 Dedupe key for parcels/listings: `state:county:parcel_number` when present; else
 `state:county:round(centroid, 4 decimals):round(acres)`. A parcel built from several recorded parcels takes
@@ -219,16 +227,12 @@ already converts 13d's `ps.current`, which had no `v` field at the parcel level)
 - **Drawn pieces** carry no facts and no identity: owners, IDs and counties come from the county records
   only.
 - **Import (Phase 1), one `parcels` row per built parcel:**
-  - `geometry` = the derived boundary;
-  - `source` = `county`, `combined`, `split` or `drawn`, from the recipe;
-  - `acres` = the derived own acres;
+  - `recipe` = `{ pieces, split, house, hidden, excluded }`, as stored;
   - `notes` = `notes`;
-  - `dedupe_key` = `recipeDedupeKey`;
-  - `state` and `county` = those of the recorded pieces.
+  - the cached columns (`geometry`, `acres`, `source`, `dedupe_key`, `state`, `county`, `parcel_number`)
+    derived from the recipe, as for any edit (§3).
 
-  The recipe itself (`pieces`, `split`, `house`, `hidden`, `excluded`) has no column yet. The Phase 1 plan
-  needs to add one (proposed: `parcels.recipe jsonb`) so imported parcels stay editable. `screenIds` link
-  to `screens` rows once results are stored there.
+  `screenIds` link to `screens` rows once results are stored there.
 
 ## 4. The parcel page (the export)
 
