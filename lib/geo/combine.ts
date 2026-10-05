@@ -106,8 +106,9 @@ export function combineParcels(parcels: Feature<Polygon>[], limits: CombineLimit
   };
 }
 
-/** How a parcel is named in the combine list: its parcel ID, else its place in the list. */
+/** How a parcel is named in the combine list: its parcel ID, "drawn" for a drawn shape (13e), else its place. */
 export function memberLabel(m: ParcelRecord, i: number): string {
+  if (m.source === "drawn") return "drawn";
   return parcelFacts(m.geo, m.props).parcelId ?? `parcel ${i + 1}`;
 }
 

@@ -117,9 +117,9 @@ describe("the combined parcel record", () => {
     );
   });
 
-  it("labels unnumbered parcels by position, and says nothing about a gap when they touch", () => {
-    const drawn = { ...rec(0, {}), source: "drawn" };
-    expect(memberLabel(drawn, 1)).toBe("parcel 2");
+  it('labels drawn shapes "drawn" and other unnumbered parcels by position; no gap text when they touch', () => {
+    expect(memberLabel({ ...rec(0, {}), source: "drawn" }, 1)).toBe("drawn");
+    expect(memberLabel({ ...rec(0, {}), source: "square" }, 1)).toBe("parcel 2");
     expect(boundarySourceLabel("combined", { parno: "52-47A + parcel 2", combined_gap_m: 0 })).toBe(
       "combined from 52-47A + parcel 2",
     );
