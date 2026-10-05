@@ -1,7 +1,7 @@
 # Step 13e: parcel tools on the map (plan)
 
-Status: **proposal v3.7, for the owner's approval before any code.** Revised after the owner's review of
-mockups v2–v10 on 2026-10-05. Clickable mockup (v11): https://claude.ai/artifact/LB3hFM9oJVPaCzK17GS23u (source:
+Status: **proposal v3.8, for the owner's approval before any code.** Revised after the owner's review of
+mockups v2–v11 on 2026-10-05. Clickable mockup (v12): https://claude.ai/artifact/LB3hFM9oJVPaCzK17GS23u (source:
 `phase-0-13e-mockup.html`, beside this file). It uses made-up parcels and made-up results with simplified
 geometry, so it shows the interaction, not the real data.
 
@@ -29,7 +29,8 @@ together (owner's review, 2026-10-05):
   - **Layers**, like Figma's or Photoshop's. Everything on the parcel is a layer you can select, hide or
     delete: the parts, the road strip, the split, the house, and the screen's results. The selected layer's
     details (the facts and the things that had nowhere else to go) show under the tree.
-  - **Notes** for the parcel.
+  - **Notes**, which belong to whatever is selected: the parcel itself, one of its parts, a house site, and
+    so on.
 - **Built parcels are kept.** A parcel you change becomes a built parcel. It's saved automatically, stays
   on the map, and is listed in History.
 
@@ -46,8 +47,9 @@ interface BuiltParcel {
   key: string;
   recipe: ParcelRecipe;
   house: LatLon | null;
-  notes: string;            // the Info panel's Notes tab (§4)
-  notesAt: string | null;
+  /** Notes by layer id ("parcel" for the parcel itself); shown in the Info panel's Notes tab (§4). */
+  notes: Record<string, string>;
+  notesAt: Record<string, string>;
   /** Layers the user hid (by layer id); results the user removed from the analysis. */
   hidden: string[];
   excluded: string[];
@@ -74,6 +76,10 @@ interface BuiltParcel {
 - **Tap the selected parcel again, or empty map,** to unselect it. If a layer is selected, the first tap
   clears that layer and the next one unselects the parcel. A built parcel stays on the map, saved; tap it to
   reopen it.
+- **The Info panel on unselect** (owner): a parcel with nothing saved closes the panel. A built (saved)
+  parcel leaves it open, showing "Nothing selected. Tap a parcel, or a saved one (amber)…", so it picks up
+  the next parcel you tap. *(Proposed; confirm.)* On phones the open panel covers the map, so you close it
+  (×) before tapping the map.
 - **A plain parcel is selected** (straight from a tap, unchanged): tapping another parcel swaps to it.
 - **A built parcel is selected:** tapping another parcel doesn't swap. A small, brief note above the
   toolbar says "Tap it again to close it" (owner: "show something but don't be intrusive").
@@ -147,7 +153,8 @@ LAYERS   NOTES•                               ×
 - **Look:** a dark, slightly see-through scrim, like the toolbar, with blur where the browser supports it.
   Light text, and selected rows tinted amber.
 - **Tabs:** a small segmented control in the panel's header, **Layers | Notes**, in sentence case (12.5 px).
-  The active tab is filled. The Notes tab shows an amber dot when the parcel has notes. The panel reopens on the last tab used. Selecting
+  The active tab is filled. The Notes tab shows an amber dot when the parcel has any notes. **Both tabs keep
+  the same layout** (owner): the tree stays where it is, and only the lower pane and footer change. The panel reopens on the last tab used. Selecting
   a layer on the map (house, pins) switches to Layers. There's no separate Notes button on the map: the
   acres link is the single way in.
 - **Where it sits:** docked on the map's right edge on desktop, and above the toolbar on phones, where the
@@ -187,13 +194,17 @@ LAYERS   NOTES•                               ×
 
 ### The Notes tab
 
-The parcel's name, a free-text box, and "Saved …" with the time. Notes save as you type (debounced) and
-belong to the parcel. Typing a note makes a plain parcel built, so it's kept in History.
-
-**While typing, nothing else redraws.** A save updates only the "Saved" time and the tab's dot, and a
-window resize (the phone keyboard opening) doesn't re-render. On phones the bottom sheet and the toolbar
-step aside while the note has focus, and the panel takes the screen above the keyboard. The owner saw the
-keyboard drop in the v8 mockup when a save redrew the page.
+- **Same layout as Layers:** the tree on top, unchanged; the note in the lower pane (the details' place and
+  height); the footer pinned at the bottom with "Saved …" and **Clear note**. The footer is the same height
+  in both tabs, so switching tabs never moves the tree.
+- **Notes belong to the selected layer:** the parcel (when nothing inside it is selected), a part such as
+  52-42A, a split piece, the house, a house site, and so on. The pane's header names it ("Notes · 52-42A").
+  Selecting another row switches to that layer's note. Rows with a note get a small amber dot in the tree.
+- **Saving:** notes save as you type (debounced). Typing a note makes a plain parcel built, so it's kept in
+  History.
+- **While typing, nothing redraws:** a save updates only the footer, the tab's dot and the tree's dots. The
+  phone keyboard's resize doesn't re-render, and leaving the box doesn't redraw the tree (a redraw there
+  would swallow a click on a row). On phones the sheet and the toolbar step aside while a note has focus.
 
 ### Side panel
 
@@ -275,7 +286,9 @@ last changed, plus Open and Remove (with a "Remove it? Yes · No" confirm).
     parcel to select it │ or Draw a custom parcel", two separate paths.
 23. **House is an icon.** The Info panel's actions are pinned to its bottom edge, and the tree and the
     details scroll independently (the details pane has a defined height).
+24. **Notes follow the selected layer, in the same layout as Layers.** Unselecting a parcel with nothing
+    saved closes the Info panel.
 
 Still to confirm:
-- **Should unselecting a built parcel** also close the Info panel (as in the mockup), or keep it open,
-  empty, until you select another?
+- **Unselecting a built (saved) parcel:** leave the Info panel open with "Nothing selected…" (as in mockup
+  v12), or close it as well?

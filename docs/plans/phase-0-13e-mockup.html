@@ -100,12 +100,16 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .tab:hover { color: var(--lp-ink); }
 .tab[aria-selected="true"] { color: var(--lp-ink); background: rgba(238,241,234,.16); }
 .tab .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); }
-.np-body { padding: 10px 12px 12px; display: grid; grid-template-rows: auto 1fr auto; gap: 8px; flex: 1; min-height: 0; }
+/* The Notes tab uses the details pane's place and size: the tree above stays put. */
+.info.notes { grid-template-rows: auto 1fr; }
 .np-for { font: 600 15px/1.2 var(--cond); }
-.np-body textarea { width: 100%; height: 100%; min-height: 120px; resize: none; background: rgba(238,241,234,.08); color: var(--lp-ink); border: 1px solid var(--lp-rule);
+.np-for span { font: 400 13px var(--sans); color: var(--lp-ink-2); }
+.notes textarea { width: 100%; height: 100%; min-height: 60px; resize: none; background: rgba(238,241,234,.08); color: var(--lp-ink); border: 1px solid var(--lp-rule);
   border-radius: 6px; padding: 8px 10px; font: inherit; font-size: 13.5px; line-height: 1.45; }
-.np-body textarea::placeholder { color: var(--lp-ink-2); }
-.np-foot { color: var(--lp-ink-2); font-size: 12px; }
+.notes textarea::placeholder { color: var(--lp-ink-2); }
+.lrow .ndot { display: inline-block; width: 5px; height: 5px; margin-left: 6px; border-radius: 50%; background: var(--amber); vertical-align: middle; }
+.lp-empty { padding: 12px 14px; color: var(--lp-ink-2); font-size: 13px; }
+.np-foot { color: var(--lp-ink-2); font-size: 12px; flex: 1; }
 .bar .tool.icon { display: inline-flex; align-items: center; padding: 6px 9px; }
 .bar .hdot { display: inline-block; width: 6px; height: 6px; margin-left: 5px; border-radius: 50%; background: var(--amber); vertical-align: middle; }
 .bar .lbl { flex: none; color: var(--bar-ink-2); font-size: 13px; padding: 0 2px 0 6px; }
@@ -135,7 +139,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .lrow.group .nm { font-weight: 600; }
 .lrow.sub .nm { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--lp-ink-2); font-weight: 600; }
 .info { overflow: auto; overscroll-behavior: contain; padding: 10px 14px 12px; flex: 0 0 40%; min-height: 0; display: grid; gap: 8px; align-content: start; }
-.lp-acts { flex: none; border-top: 1px solid var(--lp-rule); padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.lp-acts { flex: none; min-height: 50px; border-top: 1px solid var(--lp-rule); padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .lp-acts .acts { display: contents; }
 .info h3 { font: 600 16px/1.2 var(--cond); margin: 0; letter-spacing: .01em; }
 .info table { width: 100%; border-collapse: collapse; }
@@ -181,7 +185,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   <aside class="panel">
     <header>
       <div><h1>Parcel Screen</h1><div class="sub">Kill parcels from your desk, before you drive.</div></div>
-      <span class="badge">Mockup · 13e v11</span>
+      <span class="badge">Mockup · 13e v12</span>
     </header>
     <div class="scroll">
       <div class="try" id="try">
@@ -191,7 +195,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
           <li>Tap <b>52-47A</b> to select it; tap it again to unselect. Select it and tap the <b>acres</b> on the toolbar: the <b>Info</b> panel opens, with <b>Layers</b> and <b>Notes</b> tabs.</li>
           <li><b>Add: Parcel</b>, tap <b>52-42A</b> and <b>52-61</b> (across the road), <b>Done</b>. Each part is a layer; the road strip too.</li>
           <li><b>Add: Custom</b>: draw a corner the county has no record of, right onto the parcel. Its corners snap to the parcel's corners and edges.</li>
-          <li><b>Notes</b> tab: saved with the parcel as you type; the tab shows a dot when there are notes.</li>
+          <li><b>Notes</b> tab: the tree stays; the lower pane holds the notes for whatever's selected (the parcel, a part, a site). Rows with a note get a dot.</li>
           <li>Select a layer to see its <b>Info</b> and highlight it. <b>×</b> takes a parcel back out.</li>
           <li><b>Split</b>: tap two points, drag the ends, tap the piece to keep. In the Layers tab the parcel then shows what it's <b>made from</b> and its <b>2 pieces</b>; tap ○ to keep the other.</li>
           <li><b>Add: House</b>, tap to place. Tap the bulls-eye: its layer is selected; hide it or delete it.</li>
@@ -228,10 +232,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
       </div>
       <div class="layers" id="layers" role="tree"></div>
       <div class="info" id="info"></div>
+      <div class="info notes" id="notes-pane" hidden><div class="np-for" id="np-for"></div>
+        <textarea id="np-text" placeholder="What the listing says, what to check on the drive, questions for the agent…"></textarea></div>
       <div class="lp-acts" id="lp-acts" hidden></div>
-      <div class="np-body" id="notes-tab" hidden><div class="np-for" id="np-for"></div>
-        <textarea id="np-text" placeholder="What the listing says, what to check on the drive, questions for the agent…"></textarea>
-        <div class="np-foot" id="np-foot"></div></div>
     </section>
     <div class="bar" id="bar" role="toolbar" aria-label="Parcel tools"></div>
     <div class="toast" id="toast" hidden></div>
@@ -311,7 +314,10 @@ let lpTab = "layers";
 try { if (localStorage.getItem("mock13e-tab") === "notes") lpTab = "notes"; } catch {}
 const collapsed = {};
 const clone = (o) => JSON.parse(JSON.stringify(o));
-const isBuilt = (c) => !!c && (!!c.key || c.recipe.parts.length > 1 || !!c.recipe.split || c.recipe.parts.some((p) => !p.id) || !!c.house || !!c.notes || !!c.analysis);
+/** Notes by layer id ("parcel" for the parcel itself). An older single string reads as the parcel's note. */
+const notesOf = (c) => (!c?.notes ? {} : typeof c.notes === "string" ? { parcel: c.notes } : c.notes);
+const hasNotes = (c) => Object.values(notesOf(c)).some((t) => t && t.trim());
+const isBuilt = (c) => !!c && (!!c.key || c.recipe.parts.length > 1 || !!c.recipe.split || c.recipe.parts.some((p) => !p.id) || !!c.house || hasNotes(c) || !!c.analysis);
 function commit(next) {
   cur = next;
   if (cur && isBuilt(cur)) {
@@ -439,6 +445,7 @@ function renderLayers() {
     const mt = document.createElement("span"); mt.className = "mt"; mt.textContent = n.meta || "";
     const del = document.createElement("button"); del.className = "del";
     if (n.del) { del.innerHTML = ICON.del; del.setAttribute("aria-label", "Delete " + n.name); del.onclick = (e) => { e.stopPropagation(); deleteLayer(n.id); }; } else del.tabIndex = -1;
+    if (notesOf(cur)[n.id]?.trim()) nm.insertAdjacentHTML("beforeend", '<span class="ndot" aria-label="has a note"></span>');
     row.append(tw, eye, nm, mt, del);
     row.onclick = () => { sel = sel === n.id ? null : n.id; render(); };
     L.appendChild(row);
@@ -616,47 +623,73 @@ function render() {
   }
   $("map").classList.toggle("crosshair", !!tool && tool.kind !== "parcels");
   $("app").classList.toggle("tool-active", !!tool);
-  const showLp = lpOpen && !!cur && !tool;
+  const showLp = lpOpen && !tool;
   $("lp").hidden = !showLp; $("app").classList.toggle("lp-open", showLp);
   if (showLp) renderPanelTabs();
   renderBar(); renderPanel();
 }
 
 /* ---------- The Info panel: Layers | Notes ---------- */
+function nodeName(id) {
+  if (id === "parcel") return title(cur.recipe);
+  const walk = (ns) => { for (const n of ns) { if (n.id === id) return n.name; const r = n.children && walk(n.children); if (r) return r; } return null; };
+  return walk(tree()) || "";
+}
+const savedAt_ = (t) => "Saved " + new Date(t).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 function renderPanelTabs() {
   const layers = lpTab === "layers";
   $("tab-layers").setAttribute("aria-selected", String(layers));
   $("tab-notes").setAttribute("aria-selected", String(!layers));
-  $("tab-notes").innerHTML = "Notes" + (cur?.notes ? '<span class="dot" aria-label="has notes"></span>' : "");
-  $("layers").hidden = !layers; $("info").hidden = !layers; $("notes-tab").hidden = layers;
-  if (!layers) $("lp-acts").hidden = true;
-  if (layers) { renderLayers(); renderInfo(); return; }
-  $("np-for").textContent = title(cur.recipe);
-  const ta = $("np-text");
-  if (document.activeElement !== ta) ta.value = cur.notes || "";
-  $("np-foot").textContent = cur.notesAt ? "Saved " + new Date(cur.notesAt).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "Saved with the parcel as you type.";
+  $("tab-notes").innerHTML = "Notes" + (hasNotes(cur) ? '<span class="dot" aria-label="has notes"></span>' : "");
+  if (!cur) {
+    // A saved parcel was unselected: the panel stays, with nothing in it until you pick another.
+    $("layers").innerHTML = '<p class="lp-empty">Nothing selected. Tap a parcel, or a saved one (amber), to see its layers and notes.</p>';
+    $("info").hidden = true; $("notes-pane").hidden = true; $("lp-acts").hidden = true;
+    return;
+  }
+  renderLayers();
+  $("info").hidden = !layers; $("notes-pane").hidden = layers;
+  if (layers) return renderInfo();
+  const k = sel || "parcel", ta = $("np-text");
+  $("np-for").innerHTML = "Notes <span>· " + nodeName(k) + "</span>";
+  // A different layer: always load its note. The same one while typing: leave the text alone.
+  if (ta.dataset.k !== k || document.activeElement !== ta) { ta.value = notesOf(cur)[k] || ""; ta.dataset.k = k; }
+  renderNotesFoot(k);
+}
+function renderNotesFoot(k) {
+  const F = $("lp-acts"), t = notesOf(cur)[k], at = (cur.notesAt || {})[k];
+  const f = document.createElement("span"); f.className = "np-foot"; f.textContent = at ? savedAt_(at) : "Saved with the parcel as you type.";
+  F.replaceChildren(f);
+  if (t) { const c = document.createElement("button"); c.className = "sm sec"; c.textContent = "Clear note"; c.onclick = () => { setNote(k, ""); $("np-text").value = ""; renderPanelTabs(); }; F.appendChild(c); }
+  F.hidden = false;
+}
+/** Saves a note without redrawing the page (a redraw mid-typing can steal focus and drop the keyboard). */
+function setNote(k, v) {
+  cur.notes = { ...notesOf(cur), [k]: v };
+  cur.notesAt = { ...(typeof cur.notesAt === "object" && cur.notesAt ? cur.notesAt : {}), [k]: Date.now() };
+  if (!cur.key && hasNotes(cur)) cur.key = "b" + Date.now().toString(36);
+  if (cur.key) { const i = saved.findIndex((x) => x.key === cur.key), rec = { ...clone(cur), at: Date.now() }; if (i >= 0) saved[i] = rec; else saved.push(rec); }
+  save();
 }
 function setTab(t) { lpTab = t; try { localStorage.setItem("mock13e-tab", t); } catch {} render(); if (t === "notes") setTimeout(() => $("np-text").focus(), 0); }
 $("tab-layers").onclick = () => setTab("layers");
 $("tab-notes").onclick = () => setTab("notes");
 let notesT;
-// Typing saves without redrawing the page (a redraw mid-typing can steal focus and drop the keyboard).
 $("np-text").oninput = (e) => {
-  const v = e.target.value; clearTimeout(notesT);
+  const v = e.target.value, k = sel || "parcel"; clearTimeout(notesT);
   notesT = setTimeout(() => {
-    cur.notes = v; cur.notesAt = Date.now();
-    if (!cur.key) cur.key = "b" + Date.now().toString(36);
-    const i = saved.findIndex((x) => x.key === cur.key), rec = { ...clone(cur), at: Date.now() };
-    if (i >= 0) saved[i] = rec; else saved.push(rec);
-    save();
-    $("np-foot").textContent = "Saved " + new Date(cur.notesAt).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
-    $("tab-notes").innerHTML = "Notes" + (v ? '<span class="dot" aria-label="has notes"></span>' : "");
+    setNote(k, v);
+    renderNotesFoot(k);
+    $("tab-notes").innerHTML = "Notes" + (hasNotes(cur) ? '<span class="dot" aria-label="has notes"></span>' : "");
+    renderLayers(); // the row's dot (the tree is separate from the note, so focus stays)
   }, 400);
 };
 $("np-text").onfocus = () => $("app").classList.add("typing");
-$("np-text").onblur = () => { $("app").classList.remove("typing"); render(); };
+// Leaving the note must not redraw the tree: a click on a row blurs the note first, and a redraw would
+// swap the row out from under that click.
+$("np-text").onblur = () => { $("app").classList.remove("typing"); renderPanel(); renderBar(); };
 
-/* ---------- The toolbar (one line) ---------- *//* ---------- The toolbar (one line) ---------- */
+/* ---------- The toolbar (one line) ---------- */
 function button(txt, cls, fn, opts = {}) { const b = document.createElement("button"); b.className = cls; b.textContent = txt; b.onclick = fn; if (opts.disabled) b.disabled = true; if (opts.title) b.title = opts.title; if (opts.expanded != null) b.setAttribute("aria-expanded", opts.expanded); return b; }
 function bar(titleHtml, items, bad) {
   const b = $("bar"); b.replaceChildren();
@@ -716,7 +749,10 @@ function renderBar() {
     acres,
   ]);
 }
-function closeParcel() { cur = null; sel = null; lpOpen = false; confirming = null; confirmDelete = false; save(); render(); }
+function closeParcel() {
+  const keepPanel = isBuilt(cur);
+  cur = null; sel = null; lpOpen = keepPanel && lpOpen; confirming = null; confirmDelete = false; save(); render();
+}
 
 /* ---------- The side panel: run, history ---------- */
 function renderPanel() {
@@ -740,6 +776,7 @@ function renderPanel() {
 function removeSaved(key) {
   saved = saved.filter((x) => x.key !== key); confirming = null;
   if (cur?.key === key) { cur = null; sel = null; lpOpen = false; tool = null; }
+  if (!cur) lpOpen = false;
   save(); render();
 }
 function openSaved(b) { tool = null; sel = null; cur = clone(b); delete cur.at; save(); render(); }
