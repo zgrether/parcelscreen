@@ -189,7 +189,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   <aside class="panel">
     <header>
       <div><h1>Parcel Screen</h1><div class="sub">Kill parcels from your desk, before you drive.</div></div>
-      <span class="badge">Mockup · 13e v13</span>
+      <span class="badge">Mockup · 13e v14</span>
     </header>
     <div class="scroll">
       <div class="try" id="try">
@@ -759,10 +759,8 @@ function renderBar() {
     acres,
   ]);
 }
-function closeParcel() {
-  const keepPanel = isBuilt(cur);
-  cur = null; sel = null; lpOpen = keepPanel && lpOpen; confirming = null; confirmDelete = false; save(); render();
-}
+// Unselecting always closes the Info panel (owner).
+function closeParcel() { cur = null; sel = null; lpOpen = false; confirming = null; confirmDelete = false; save(); render(); }
 
 /* ---------- The side panel: run, history ---------- */
 function renderPanel() {

@@ -1,7 +1,7 @@
 # Step 13e: parcel tools on the map (plan)
 
-Status: **proposal v3.9, for the owner's approval before any code.** Revised after the owner's review of
-mockups v2–v12 on 2026-10-05. Clickable mockup (v13): https://claude.ai/artifact/LB3hFM9oJVPaCzK17GS23u (source:
+Status: **proposal v4, complete; for the owner's approval before any code.** Revised after the owner's review
+of mockups v2–v13 on 2026-10-05. Clickable mockup (v14): https://claude.ai/artifact/LB3hFM9oJVPaCzK17GS23u (source:
 `phase-0-13e-mockup.html`, beside this file). It uses made-up parcels and made-up results with simplified
 geometry, so it shows the interaction, not the real data.
 
@@ -74,10 +74,8 @@ interface BuiltParcel {
 - **Tap the selected parcel again, or empty map,** to unselect it. If a layer is selected, the first tap
   clears that layer and the next one unselects the parcel. A built parcel stays on the map, saved; tap it to
   reopen it.
-- **The Info panel on unselect** (owner): a parcel with nothing saved closes the panel. A built (saved)
-  parcel leaves it open, showing "Nothing selected. Tap a parcel, or a saved one (amber)…", so it picks up
-  the next parcel you tap. *(Proposed; confirm.)* On phones the open panel covers the map, so you close it
-  (×) before tapping the map.
+- **Unselecting always closes the Info panel** (owner), whether or not the parcel is saved. A saved parcel
+  stays on the map and in History. On phones the open panel covers the map, so you close it (×) first.
 - **A plain parcel is selected** (straight from a tap, unchanged): tapping another parcel swaps to it.
 - **A built parcel is selected:** tapping another parcel doesn't swap. A small, brief note above the
   toolbar says "Tap it again to close it" (owner: "show something but don't be intrusive").
@@ -285,8 +283,4 @@ last changed, plus Open and Remove (with a "Remove it? Yes · No" confirm).
 23. **House is an icon.** The Info panel's actions are pinned to its bottom edge, and the tree and the
     details scroll independently (the details pane has a defined height).
 24. **Notes are the parcel's,** and the Notes tab takes the panel's top region in place of the tree; details
-    and actions below stay. Unselecting a parcel with nothing saved closes the Info panel.
-
-Still to confirm:
-- **Unselecting a built (saved) parcel:** leave the Info panel open with "Nothing selected…" (as in mockup
-  v12), or close it as well?
+    and actions below stay. Unselecting a parcel always closes the Info panel.
