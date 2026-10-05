@@ -289,6 +289,7 @@ Branches are named `phase-0/NN-slug`. Each PR lists its deviations from the prot
 | 17 | **3D walkthrough** | split into 17a (geometry, walls, textures, pins, camera, scenes 1, 2, 6), 17b (sun, time bar, hour labels, scenes 3, 4), 17c (night sky, scene 5) | Manual §7b, with side-by-side screenshots against the prototype for each scene. |
 | 18 | **e2e + acceptance** | Playwright e2e on `next build && next start` with `routeFromHAR`: load /explore → select the fixture parcel → Run → the posted result passes the same comparator → each section visible → 3D opens. README. Production deploy. | §7 in full; the acceptance checklist filled in the PR description. |
 | 19 | **Follow-up: unify aspect targets** (immediately after Phase 0) | Changes site-quality aspect from 160° to 165°, updates the `config.test.ts` snapshot and the goldens, and the PR explains the change and which numbers moved. | Parity test updated deliberately; the diff shows only aspect-driven changes. |
+| 20 | **Follow-up: garden soil adjustments without house sites** (after Phase 0, with 19) | The prototype only applies the soil adjustment and re-sort to garden patches inside its bench-vetting block, so a parcel with no house site gets unadjusted gardens. Gardens should be adjusted regardless (owner, step 10 review). The PR moves the garden step out of that block and says which goldens move (neither recorded parcel lacks a house site, so likely none; a synthetic test covers it). | Synthetic parcel with gardens and no house site gets soil notes and adjusted scores. |
 
 ---
 
