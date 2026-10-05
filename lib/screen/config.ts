@@ -13,7 +13,7 @@ import type { Curve } from "./util";
 
 /** Service endpoints. `_v` bumps when a default moves, so stale stored copies are replaced. */
 export const DEFAULT_ENDPOINTS: Endpoints = {
-  _v: 10,
+  _v: 11,
   dem: "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
   terrarium: "https://s3.amazonaws.com/elevation-tiles-prod/terrarium",
   sda: "https://SDMDataAccess.sc.egov.usda.gov/Tabular/post.rest",
@@ -21,11 +21,12 @@ export const DEFAULT_ENDPOINTS: Endpoints = {
     "https://services.arcgis.com/v01gqwM5QqNysAAi/ArcGIS/rest/services/Fee_Managers_PADUS/FeatureServer/0",
   ],
   nfhl: "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28",
+  // Owner's order (_v 11, after the step 13 CORS check): the main server first; private.coffee dropped (it
+  // never answered). The first entry is the "main server" whose Retry-After is honoured (places.ts).
   overpass: [
-    "https://overpass.kumi.systems/api/interpreter",
-    "https://overpass.openstreetmap.fr/api/interpreter",
-    "https://overpass.private.coffee/api/interpreter",
     "https://overpass-api.de/api/interpreter",
+    "https://overpass.openstreetmap.fr/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
   ],
   photon: "https://photon.komoot.io/api/",
   tiger: "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer",
@@ -229,11 +230,14 @@ export const SCREEN_CONSTANTS = deepFreeze({
     trailheadKm: 20,
     photonLimit: 40, // L876
     photonTimeoutMs: 15_000,
-    overpassTimeoutMs: 20_000,
-    overpass429WaitMs: 5000, // L867
-    // Step 13: the browser's wait for /api/places/overpass (three queries, each trying the mirrors in turn on
-    // the server). The route's maxDuration matches.
-    overpassRouteTimeoutMs: 120_000,
+    overpassTimeoutMs: 25_000, // per mirror (was 20 s)
+    // A 429/503 from the main (first) mirror: wait its Retry-After, or this when it sends none (L867), then
+    // retry once; a Retry-After over the cap moves on at once. Other mirrors: no wait.
+    overpass429WaitMs: 5000,
+    overpassRetryAfterCapMs: 30_000,
+    // The browser's wait for /api/places/overpass (three queries, each trying the mirrors in turn on the
+    // server). The route's maxDuration matches. Was 120 s.
+    overpassRouteTimeoutMs: 180_000,
     excludeHospital: /urgent|veterinar|animal|behavioral|psychiatric/i, // L1125
     bigGrocer:
       /walmart|ingles|food lion|publix|harris teeter|kroger|lowes foods|food city|trader joe|whole foods|sprouts|aldi/i, // L1126

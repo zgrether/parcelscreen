@@ -117,6 +117,23 @@ describe("429 / 503 backoff", () => {
     expect(clock.sleeps).toEqual([2000, 5000]);
   });
 
+  it("a request's own retries replace the client's: 0 returns the first 429 at once", async () => {
+    const clock = fakeClock();
+    let calls = 0;
+    const http = createHttpClient({
+      env: "node",
+      clock,
+      fetchImpl: async () => {
+        calls++;
+        return new Response("", { status: 429, headers: { "Retry-After": "3" } });
+      },
+    });
+    const r = await http.fetch("https://overpass-api.de/api/interpreter", { retries: 0 });
+    expect(r.status).toBe(429);
+    expect(calls).toBe(1);
+    expect(clock.sleeps).toEqual([]);
+  });
+
   it("returns other error statuses untouched, for the connector to report", async () => {
     const http = createHttpClient({
       env: "browser",

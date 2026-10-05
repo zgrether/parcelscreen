@@ -54,7 +54,6 @@ export const DEFAULT_HOST_POLICIES: Readonly<Record<string, HostPolicy>> = {
   "photon.komoot.io": VOLUNTEER,
   "overpass.kumi.systems": VOLUNTEER,
   "overpass.openstreetmap.fr": VOLUNTEER,
-  "overpass.private.coffee": VOLUNTEER,
   "overpass-api.de": VOLUNTEER,
 };
 
@@ -98,6 +97,11 @@ export interface RequestOptions {
   body?: URLSearchParams | string;
   /** Per attempt. Default 30 s, as in the prototype. */
   timeoutMs?: number;
+  /**
+   * Retries after a 429/503 for this request, in place of the client's `maxRetries`. 0 returns the first
+   * answer, for callers with their own rule (the Overpass mirrors).
+   */
+  retries?: number;
   signal?: AbortSignal;
 }
 
@@ -156,15 +160,18 @@ class HostGate {
   }
 }
 
-function retryAfterMs(res: Response, attempt: number, clock: Clock): number {
+/** A response's Retry-After (seconds or an HTTP date) in ms from `now`; null when absent or unreadable. */
+export function retryAfterHeaderMs(res: Response, now: number): number | null {
   const h = res.headers.get("retry-after");
-  if (h) {
-    const secs = Number(h);
-    if (Number.isFinite(secs)) return Math.max(0, secs * 1000);
-    const at = Date.parse(h);
-    if (Number.isFinite(at)) return Math.max(0, at - clock.now());
-  }
-  return BACKOFF_MS[Math.min(attempt, BACKOFF_MS.length - 1)]!;
+  if (!h) return null;
+  const secs = Number(h);
+  if (Number.isFinite(secs)) return Math.max(0, secs * 1000);
+  const at = Date.parse(h);
+  return Number.isFinite(at) ? Math.max(0, at - now) : null;
+}
+
+function retryAfterMs(res: Response, attempt: number, clock: Clock): number {
+  return retryAfterHeaderMs(res, clock.now()) ?? BACKOFF_MS[Math.min(attempt, BACKOFF_MS.length - 1)]!;
 }
 
 interface Cached {
@@ -269,7 +276,7 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
         } finally {
           gate.release();
         }
-        if ((res.status !== 429 && res.status !== 503) || n >= maxRetries) return res;
+        if ((res.status !== 429 && res.status !== 503) || n >= (opts.retries ?? maxRetries)) return res;
         const wait = retryAfterMs(res, n, clock);
         await res.body?.cancel(); // discard the throttled response before waiting
         await clock.sleep(wait, opts.signal);

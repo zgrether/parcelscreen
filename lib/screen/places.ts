@@ -8,7 +8,7 @@
  * an identifying User-Agent. In Node the mirrors are called directly, as before.
  */
 import { distance } from "@turf/turf";
-import { CancelledError, type HttpClient } from "../http";
+import { CancelledError, retryAfterHeaderMs, type HttpClient } from "../http";
 import { SCREEN_CONSTANTS } from "./config";
 import type { Endpoints, ScreenResult } from "./types";
 import type { LatLon } from "./util";
@@ -75,24 +75,36 @@ export async function photon(
 /**
  * Overpass mirrors, tried in order; whichever answers moves to the front for the rest of the run
  * (proto L861–874). One instance per screen run.
+ *
+ * Deviation (owner's rule, step 13c): only the main mirror (the first configured) is waited on. A 429/503
+ * from it waits its Retry-After (5 s without one, as the prototype waited) and is retried once; a Retry-After
+ * over the cap moves on at once. Any other mirror's failure moves straight on. The prototype waited 5 s on
+ * a 429 from any mirror. The HTTP client's own 429/503 retries are off for these requests, so nothing stacks.
  */
 export class OverpassMirrors {
   private order: string[] | null = null;
 
   async query(ql: string, deps: PlacesDeps): Promise<OsmElement[]> {
     if (!this.order) this.order = [...deps.endpoints.overpass];
+    const main = deps.endpoints.overpass[0];
     const errs: string[] = [];
     for (let i = 0; i < this.order.length; i++) {
       const u = this.order[i]!,
         host = u.split("/")[2];
       try {
-        const opts = { timeoutMs: K.overpassTimeoutMs, ...(deps.signal ? { signal: deps.signal } : {}) };
+        const opts = {
+          timeoutMs: K.overpassTimeoutMs,
+          retries: 0,
+          ...(deps.signal ? { signal: deps.signal } : {}),
+        };
         let r = await deps.http.fetch(`${u}?data=${encodeURIComponent(ql)}`, opts);
-        if (r.status === 429) {
-          await (deps.sleep ?? ((ms: number) => new Promise<void>((s) => setTimeout(s, ms))))(
-            K.overpass429WaitMs,
-          );
-          r = await deps.http.fetch(`${u}?data=${encodeURIComponent(ql)}`, opts);
+        if (u === main && (r.status === 429 || r.status === 503)) {
+          const wait = retryAfterHeaderMs(r, Date.now()) ?? K.overpass429WaitMs;
+          if (wait <= K.overpassRetryAfterCapMs) {
+            await r.body?.cancel();
+            await (deps.sleep ?? ((ms: number) => new Promise<void>((s) => setTimeout(s, ms))))(wait);
+            r = await deps.http.fetch(`${u}?data=${encodeURIComponent(ql)}`, opts);
+          }
         }
         if (!r.ok) {
           errs.push(`${host} ${r.status}`);
