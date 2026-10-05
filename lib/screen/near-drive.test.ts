@@ -129,40 +129,94 @@ describe("places fallbacks (synthetic)", () => {
     const http = route((u) => {
       asked.push(u.split("/")[2]!);
       if (u.includes("photon")) return new Response("down", { status: 503 });
-      if (u.includes("kumi")) return new Response("busy", { status: 504 });
+      if (u.includes("overpass-api.de")) return new Response("busy", { status: 504 });
       return new Response(JSON.stringify({ elements: [hospital] }));
     });
     const mirrors = new OverpassMirrors();
     const r = await findPlaces(centre, { http, endpoints: DEFAULT_ENDPOINTS }, mirrors);
     expect(r.nearNote).toBe("Places came from Overpass (Photon was unavailable).");
     expect(r.near.hospitals[0]!.name).toBe("Carilion");
-    // 3 Photon, then kumi (fails) → openstreetmap.fr (answers, moves to front) for the 2nd and 3rd queries.
+    // 3 Photon, then the main server (504: not a wait status) → openstreetmap.fr (answers, moves to front).
     expect(asked.slice(3)).toEqual([
-      "overpass.kumi.systems",
+      "overpass-api.de",
       "overpass.openstreetmap.fr",
       "overpass.openstreetmap.fr",
       "overpass.openstreetmap.fr",
     ]);
   });
 
-  it("treats an empty Photon answer as a failure, and waits 5 s then retries once on Overpass 429", async () => {
-    const waits: number[] = [];
-    let first = true;
-    const http = route((u) => {
-      if (u.includes("photon")) return new Response(JSON.stringify({ features: [] }));
-      if (first) {
-        first = false;
-        return new Response("slow down", { status: 429 });
-      }
-      return new Response(JSON.stringify({ elements: [] }));
+  // Step 13c: only the main (first) mirror is waited on, once.
+  describe("the main mirror's Retry-After", () => {
+    /** Photon empty (so Overpass runs); each Overpass request answered by `overpass(host, n)`. */
+    async function run(overpass: (host: string, n: number) => Response) {
+      const asked: string[] = [],
+        waits: number[] = [];
+      const http = route((u) => {
+        if (u.includes("photon")) return new Response(JSON.stringify({ features: [] }));
+        const host = u.split("/")[2]!;
+        asked.push(host);
+        return overpass(host, asked.length);
+      });
+      const r = await findPlaces(
+        centre,
+        { http, endpoints: DEFAULT_ENDPOINTS, sleep: async (ms) => void waits.push(ms) },
+        new OverpassMirrors(),
+      );
+      return { asked, waits, r };
+    }
+    const elements = () => new Response(JSON.stringify({ elements: [] }));
+
+    it("waits the Retry-After from the main server, then retries it once", async () => {
+      const { asked, waits } = await run((_, n) =>
+        n === 1 ? new Response("", { status: 429, headers: { "Retry-After": "12" } }) : elements(),
+      );
+      expect(waits).toEqual([12_000]);
+      expect(asked.slice(0, 2)).toEqual(["overpass-api.de", "overpass-api.de"]);
     });
-    const r = await findPlaces(
-      centre,
-      { http, endpoints: DEFAULT_ENDPOINTS, sleep: async (ms) => void waits.push(ms) },
-      new OverpassMirrors(),
-    );
-    expect(waits).toEqual([5000]);
-    expect(r.nearNote).toBeDefined();
+
+    it("waits 5 s when the main server sends no Retry-After (the prototype's wait), on a 503 too", async () => {
+      const { waits } = await run((_, n) => (n === 1 ? new Response("", { status: 503 }) : elements()));
+      expect(waits).toEqual([5000]);
+    });
+
+    it("moves on at once when the Retry-After is over the 30 s cap", async () => {
+      const { asked, waits } = await run((h) =>
+        h === "overpass-api.de"
+          ? new Response("", { status: 429, headers: { "Retry-After": "60" } })
+          : elements(),
+      );
+      expect(waits).toEqual([]);
+      expect(asked.slice(0, 2)).toEqual(["overpass-api.de", "overpass.openstreetmap.fr"]);
+    });
+
+    it("retries the main server only once, and never waits on the other mirrors", async () => {
+      const { asked, waits, r } = await run((h) =>
+        h === "overpass.kumi.systems"
+          ? elements()
+          : new Response("", { status: 429, headers: { "Retry-After": "2" } }),
+      );
+      expect(waits).toEqual([2000]); // the main server once; openstreetmap.fr's 429 is not waited on
+      expect(asked.slice(0, 4)).toEqual([
+        "overpass-api.de",
+        "overpass-api.de",
+        "overpass.openstreetmap.fr",
+        "overpass.kumi.systems",
+      ]);
+      expect(r.nearNote).toBeDefined();
+    });
+  });
+
+  it("asks the HTTP client not to retry Overpass requests itself", async () => {
+    const retries: (number | undefined)[] = [];
+    const http: HttpClient = {
+      fetch: async (u, opts) => {
+        if (u.includes("photon")) return new Response(JSON.stringify({ features: [] }));
+        retries.push(opts?.retries);
+        return new Response(JSON.stringify({ elements: [] }));
+      },
+    };
+    await findPlaces(centre, { http, endpoints: DEFAULT_ENDPOINTS }, new OverpassMirrors());
+    expect(retries).toEqual([0, 0, 0]);
   });
 
   it("when both fail: one error naming both, with the 'test the query' link", async () => {
@@ -174,7 +228,7 @@ describe("places fallbacks (synthetic)", () => {
     const out = await nearStep(centre, null, null, 10, { http, endpoints: DEFAULT_ENDPOINTS });
     expect(out.placesError).toBeInstanceOf(PlacesError);
     expect(out.placesError!.message).toBe(
-      "Photon: Photon 502; Overpass: Overpass unreachable (overpass.kumi.systems 502; overpass.openstreetmap.fr 502; overpass.private.coffee 502; overpass-api.de 502)",
+      "Photon: Photon 502; Overpass: Overpass unreachable (overpass-api.de 502; overpass.openstreetmap.fr 502; overpass.kumi.systems 502)",
     );
     expect(out.placesError!.link).toBe(
       "https://photon.komoot.io/api/?q=hospital&osm_tag=amenity:hospital&lat=36.9&lon=-80.5&limit=5",

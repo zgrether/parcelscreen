@@ -37,7 +37,7 @@ describe("GET /api/places/overpass", () => {
     expect(r.status).toBe(200);
     expect(r.headers.get("cache-control")).toBe("public, s-maxage=86400");
     expect(((await r.json()) as { elements: unknown[] }).elements).toHaveLength(3);
-    expect(seen.map((s) => s.url.split("/")[2])).toEqual(Array(3).fill("overpass.kumi.systems"));
+    expect(seen.map((s) => s.url.split("/")[2])).toEqual(Array(3).fill("overpass-api.de"));
     expect(seen.every((s) => s.ua === SERVER_USER_AGENT)).toBe(true);
     expect(SERVER_USER_AGENT).toMatch(
       /^ParcelScreen\/\S+ \(\+https:\/\/github\.com\/zgrether\/parcelscreen\)$/,
@@ -51,7 +51,7 @@ describe("GET /api/places/overpass", () => {
     expect(r.status).toBe(502);
     expect(await r.json()).toEqual({
       error:
-        "Overpass unreachable (overpass.kumi.systems 403; overpass.openstreetmap.fr 403; overpass.private.coffee 403; overpass-api.de 403)",
+        "Overpass unreachable (overpass-api.de 403; overpass.openstreetmap.fr 403; overpass.kumi.systems 403)",
     });
   });
 });

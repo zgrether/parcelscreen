@@ -54,7 +54,7 @@ describe("config", () => {
           "woodedPct": 100,
         },
         "endpoints": {
-          "_v": 10,
+          "_v": 11,
           "dem": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
           "lpAtlasBinary": "https://djlorenz.github.io/astronomy/binary_tiles",
           "lpAtlasTiles": "https://djlorenz.github.io/astronomy/image_tiles",
@@ -62,10 +62,9 @@ describe("config", () => {
           "nfhl": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28",
           "osrm": "https://router.project-osrm.org/route/v1/driving",
           "overpass": [
-            "https://overpass.kumi.systems/api/interpreter",
-            "https://overpass.openstreetmap.fr/api/interpreter",
-            "https://overpass.private.coffee/api/interpreter",
             "https://overpass-api.de/api/interpreter",
+            "https://overpass.openstreetmap.fr/api/interpreter",
+            "https://overpass.kumi.systems/api/interpreter",
           ],
           "padus": [
             "https://services.arcgis.com/v01gqwM5QqNysAAi/ArcGIS/rest/services/Fee_Managers_PADUS/FeatureServer/0",
@@ -210,8 +209,9 @@ describe("config", () => {
           "maxHospitals": 4,
           "maxTrailheads": 25,
           "overpass429WaitMs": 5000,
-          "overpassRouteTimeoutMs": 120000,
-          "overpassTimeoutMs": 20000,
+          "overpassRetryAfterCapMs": 30000,
+          "overpassRouteTimeoutMs": 180000,
+          "overpassTimeoutMs": 25000,
           "photonLimit": 40,
           "photonTimeoutMs": 15000,
           "trailheadKm": 20,
@@ -540,5 +540,23 @@ describe("migrateEndpoints (the prototype's _v rule)", () => {
     expect(migrateEndpoints({ ...DEFAULT_ENDPOINTS, _v: 9 })).toBe(DEFAULT_ENDPOINTS);
     expect(migrateEndpoints({ dem: "x" })).toBe(DEFAULT_ENDPOINTS);
     expect(migrateEndpoints(null)).toBe(DEFAULT_ENDPOINTS);
+  });
+
+  it("_v 11: settings saved at _v 10 pick up the new Overpass order", () => {
+    const savedAtV10 = {
+      ...DEFAULT_ENDPOINTS,
+      _v: 10,
+      overpass: [
+        "https://overpass.kumi.systems/api/interpreter",
+        "https://overpass.openstreetmap.fr/api/interpreter",
+        "https://overpass.private.coffee/api/interpreter",
+        "https://overpass-api.de/api/interpreter",
+      ],
+    };
+    expect(migrateEndpoints(savedAtV10).overpass).toEqual([
+      "https://overpass-api.de/api/interpreter",
+      "https://overpass.openstreetmap.fr/api/interpreter",
+      "https://overpass.kumi.systems/api/interpreter",
+    ]);
   });
 });
