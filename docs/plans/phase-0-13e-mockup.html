@@ -64,6 +64,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .bar .tool { background: transparent; color: var(--bar-ink); border-color: rgba(241,243,238,.35); }
 .bar .tool:hover { border-color: var(--bar-ink); }
 .bar .quiet { background: transparent; color: var(--bar-ink-2); }
+.bar .sep { flex: none; width: 1px; align-self: stretch; margin: 4px 2px; background: rgba(241,243,238,.22); }
+.bar .trash { background: transparent; color: var(--bar-ink-2); padding: 6px 8px; display: grid; place-items: center; }
+.bar .trash:hover { color: var(--bar-bad); }
+.bar .danger { background: var(--bar-bad); color: #2a0f0a; }
 .bar button:disabled { opacity: .4; cursor: default; }
 .bar input, .bar select { flex: none; background: var(--white); color: var(--ink); border: 0; border-radius: 5px; padding: 6px 8px; font: inherit; font-size: 13.5px; min-height: 34px; }
 .bar input { width: 80px; }
@@ -121,8 +125,11 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
     border-top: 1px solid var(--rule); border-radius: 14px 14px 0 0; box-shadow: 0 -6px 20px rgba(0,0,0,.18); transition: height .18s; }
   .app.tool-active, .app.lp-open { --sheet-h: 76px; }
   .app.tool-active .panel .scroll, .app.lp-open .panel .scroll { visibility: hidden; }
-  .bar { bottom: calc(var(--sheet-h) + 10px); padding: 6px; transition: bottom .18s; }
-  .bar button { padding: 6px 9px; font-size: 13px; }
+  .bar { bottom: calc(var(--sheet-h) + 10px); padding: 5px; gap: 4px; transition: bottom .18s; }
+  .bar button { padding: 6px 8px; font-size: 13px; }
+  .bar .sep { margin: 4px 0; }
+  .bar .acres { padding-left: 4px; margin-left: 0; }
+  .bar .title .long { display: none; }
   .nudge { bottom: calc(var(--sheet-h) + 62px); }
   .lp { top: 52px; left: 8px; right: 8px; width: auto; bottom: calc(var(--sheet-h) + 64px); }
   .search input { width: 170px; }
@@ -135,7 +142,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   <aside class="panel">
     <header>
       <div><h1>Parcel Screen</h1><div class="sub">Kill parcels from your desk, before you drive.</div></div>
-      <span class="badge">Mockup · 13e v4</span>
+      <span class="badge">Mockup · 13e v5</span>
     </header>
     <div class="scroll">
       <div class="try" id="try">
@@ -143,11 +150,11 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
         <b>Try it</b> <span class="tiny muted">(example parcels and results; simplified geometry)</span>
         <ol class="tiny">
           <li>Tap <b>52-47A</b> to select it; tap it again to unselect. Select it and tap the <b>acres</b> on the toolbar: the <b>Layers</b> panel opens.</li>
-          <li><b>+ Parcels</b>: add <b>52-42A</b> and <b>52-61</b> (across the road), <b>Done</b>. Each is a layer; the road strip too.</li>
+          <li><b>Add</b>: tap <b>52-42A</b> and <b>52-61</b> (across the road), <b>Done</b>. Or <b>Draw</b> a custom area onto it. Each part is a layer; the road strip too.</li>
           <li>Select a layer to see its <b>Info</b> and highlight it. <b>×</b> takes a parcel back out. Add a <b>note</b> on the parcel.</li>
           <li><b>House</b>, tap to place. Tap the bulls-eye: its layer is selected; hide it or delete it.</li>
           <li><b>Run screen (example)</b> below: results arrive as layers. Hide the horizon, remove site #2 from the analysis.</li>
-          <li>Tap the built parcel (or empty map) to close it: it stays on the map (amber) and in <b>History</b>. Tap it to reopen.</li>
+          <li>Tap the built parcel (or empty map) to close it: it stays on the map (amber) and in <b>History</b>. Tap it to reopen. The <b>trash</b> on the toolbar deletes it.</li>
         </ol>
       </div>
       <section class="block">
@@ -250,7 +257,7 @@ function combine(ids) {
    saved: built parcels (anything changed: more parts, drawn, split, house, notes or results). They stay
           on the map and in History; a built parcel stays open until it's closed.
    sel:   the selected layer id ("parcel", "part:0", "strip", "split", "house", "analysis", "g:sites", "an:site1"…). */
-let cur = null, saved = [], tool = null, lpOpen = false, sel = null, confirming = null;
+let cur = null, saved = [], tool = null, lpOpen = false, sel = null, confirming = null, confirmDelete = false;
 const collapsed = {};
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const isBuilt = (c) => !!c && (!!c.key || c.recipe.parts.length > 1 || !!c.recipe.split || c.recipe.parts.some((p) => !p.id) || !!c.house || !!c.notes || !!c.analysis);
@@ -275,14 +282,27 @@ function pieces(r) {
   const c = combine(countyIds(r));
   return [...r.parts.map((p) => ({ pts: partPts(p), own: true })), ...(c.ok ? c.bridges : []).map((b) => ({ pts: b, own: false }))];
 }
+/** Acres covered by polygons that may overlap (a drawn area over a parcel counts once). County parcels
+ *  don't overlap, so they're summed; with a drawn part the area is sampled on a 4 m grid. */
+const unionCache = new Map();
+function unionAc(polys, overlapping) {
+  if (!overlapping) return polys.reduce((t, p) => t + ac(p), 0);
+  const key = JSON.stringify(polys); if (unionCache.has(key)) return unionCache.get(key);
+  const xs = polys.flat().map((q) => q[0]), ys = polys.flat().map((q) => q[1]), G = 4;
+  let n = 0;
+  for (let x = Math.min(...xs) + G / 2; x < Math.max(...xs); x += G) for (let y = Math.min(...ys) + G / 2; y < Math.max(...ys); y += G) if (polys.some((p) => inside([x, y], p))) n++;
+  const v = (n * G * G) / M2_PER_AC; unionCache.set(key, v); return v;
+}
 function derive(r) {
   let ps = pieces(r);
   if (r.split) ps = ps.map((p) => ({ ...p, pts: clip(p.pts, r.split.a, r.split.b, r.split.keep) })).filter((p) => p.pts);
-  return { polys: ps.map((p) => p.pts), acres: ps.filter((p) => p.own).reduce((s, p) => s + ac(p.pts), 0), bridgeAcres: ps.filter((p) => !p.own).reduce((s, p) => s + ac(p.pts), 0) };
+  const drawn = r.parts.some((p) => p.drawn);
+  return { polys: ps.map((p) => p.pts), acres: unionAc(ps.filter((p) => p.own).map((p) => p.pts), drawn), bridgeAcres: ps.filter((p) => !p.own).reduce((s, p) => s + ac(p.pts), 0) };
 }
 function splitSides(r, a, b) {
   const base = pieces({ ...r, split: undefined });
-  const side = (s) => { const ps = base.map((p) => ({ ...p, pts: clip(p.pts, a, b, s) })).filter((p) => p.pts); return { polys: ps.map((p) => p.pts), acres: ps.filter((p) => p.own).reduce((t, p) => t + ac(p.pts), 0) }; };
+  const drawn = r.parts.some((p) => p.drawn);
+  const side = (s) => { const ps = base.map((p) => ({ ...p, pts: clip(p.pts, a, b, s) })).filter((p) => p.pts); return { polys: ps.map((p) => p.pts), acres: unionAc(ps.filter((p) => p.own).map((p) => p.pts), drawn) }; };
   return { left: side(-1), right: side(1) };
 }
 function title(r) { const ids = countyIds(r); return ids.length ? ids.join(" + ") + (drawnCount(r) ? " + drawn" : "") : "Drawn parcel"; }
@@ -533,7 +553,7 @@ function renderBar() {
   if (tool?.kind === "parcels") {
     const c = combine(tool.ids), tot = tool.ids.reduce((t, i) => t + ac(byId[i].pts), 0), n = tool.ids.length;
     if (!c.ok) return bar(`${c.far.id} is ${Math.round(c.gapM)} m from the rest, more than ${MAX_GAP} m`, [button("Done", "go", () => {}, { disabled: true }), cancel], true);
-    return bar(n === 0 ? "Tap parcels to add them" : `<b>${n} parcel${n > 1 ? "s" : ""}</b> · ${fmt(tot)} ac` + (c.gapM ? ` <span class="sub2">· bridges a ${c.gapM} m road gap</span>` : ""), [button("Done", "go", finishParcels, { disabled: n === 0 }), cancel]);
+    return bar(n === 0 ? "Tap parcels to add them; tap one again to take it out" : `<b>${n} parcel${n > 1 ? "s" : ""}</b> · ${fmt(tot)} ac` + (c.gapM ? ` <span class="sub2">· bridges a ${c.gapM} m road gap</span>` : ""), [button("Done", "go", finishParcels, { disabled: n === 0 }), cancel]);
   }
   if (tool?.kind === "split") {
     if (!tool.b) return bar(tool.a ? "Tap the other end of the cut" : "Tap two points to draw the cut", [cancel]);
@@ -544,21 +564,31 @@ function renderBar() {
   }
   if (tool?.kind === "draw") {
     const n = tool.pts.length, a = n >= 3 ? ` · ${fmt(ac(tool.pts))} ac` : "";
-    return bar(n ? `<b>${n} corner${n > 1 ? "s" : ""}</b><span class="sub2">${a}</span>` : `Tap each corner`, [button("Undo corner", "quiet", () => { tool.pts.pop(); render(); }, { disabled: !n }), button("Finish", "go", finishDraw, { disabled: n < 3 }), cancel]);
+    return bar(n ? `<b>${n} corner${n > 1 ? "s" : ""}</b><span class="sub2">${a}</span>` : cur ? `Tap each corner of the area to add` : `Tap each corner of the parcel`, [button("Undo corner", "quiet", () => { tool.pts.pop(); render(); }, { disabled: !n }), button("Finish", "go", finishDraw, { disabled: n < 3 }), cancel]);
   }
   if (tool?.kind === "house") return bar("Tap where the house stands", [cancel]);
+  const built = isBuilt(cur);
+  if (confirmDelete && built) return bar('Delete this parcel? <span class="sub2 long">It leaves History and the map.</span>', [
+    button("Delete", "danger", () => { confirmDelete = false; removeSaved(cur.key); }), button("Keep", "quiet", () => { confirmDelete = false; renderBar(); })]);
   const dv = derive(cur.recipe);
   const acres = button("", "acres", () => { lpOpen = !lpOpen; render(); }, { expanded: lpOpen, title: lpOpen ? "Hide layers" : "Layers and info" });
   acres.innerHTML = `${fmt(dv.acres)} ac<span class="caret" aria-hidden="true">▾</span>`;
+  const sep = () => { const x = document.createElement("span"); x.className = "sep"; return x; };
+  const trash = button("", "trash", () => { confirmDelete = true; renderBar(); }, { title: "Delete this parcel" });
+  trash.setAttribute("aria-label", "Delete this parcel");
+  trash.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.7 8.5h5.6l.7-8.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>';
+  // Adding together (pick existing parcels, draw a custom area), then changing it (split, house).
   bar("", [
-    button("+ Parcels", "tool", () => startTool("parcels")),
-    button("Split", "tool", () => startTool("split")),
+    button("Add", "tool", () => startTool("parcels"), { title: "Add or take out county parcels" }),
     button("Draw", "tool", () => startTool("draw"), { title: "Draw an area to add to this parcel" }),
+    sep(),
+    button("Split", "tool", () => startTool("split")),
     button(cur.house ? "House ✓" : "House", "tool", () => startTool("house")),
+    ...(built ? [sep(), trash] : []),
     acres,
   ]);
 }
-function closeParcel() { cur = null; sel = null; lpOpen = false; confirming = null; save(); render(); }
+function closeParcel() { cur = null; sel = null; lpOpen = false; confirming = null; confirmDelete = false; save(); render(); }
 
 /* ---------- The side panel: run, history ---------- */
 function renderPanel() {
@@ -589,6 +619,7 @@ $("run").onclick = () => { if (!cur) return; lpOpen = true; sel = "analysis"; co
 
 /* ---------- Tools ---------- */
 function startTool(kind, editSplit) {
+  confirmDelete = false;
   if (kind === "parcels") tool = { kind, ids: cur ? countyIds(cur.recipe) : [] };
   else if (kind === "split") tool = editSplit && cur.recipe.split ? { kind, a: [...cur.recipe.split.a], b: [...cur.recipe.split.b] } : { kind, a: null, b: null };
   else if (kind === "draw") tool = { kind, pts: [] };

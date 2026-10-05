@@ -1,7 +1,7 @@
 # Step 13e: parcel tools on the map (plan)
 
-Status: **proposal v3, for the owner's approval before any code.** Revised after the owner's review of mockup
-v2 and v3 on 2026-10-05. Clickable mockup (v4): https://claude.ai/artifact/LB3hFM9oJVPaCzK17GS23u (source:
+Status: **proposal v3.1, for the owner's approval before any code.** Revised after the owner's review of
+mockups v2–v4 on 2026-10-05. Clickable mockup (v5): https://claude.ai/artifact/LB3hFM9oJVPaCzK17GS23u (source:
 `phase-0-13e-mockup.html`, beside this file). It uses made-up parcels and made-up results with simplified
 geometry, so it shows the interaction, not the real data.
 
@@ -21,8 +21,9 @@ together (owner's review, 2026-10-05):
 ## 2. The idea
 
 - **Select by tapping.** Tap a parcel to select it, and tap it again (or empty map) to unselect it.
-- **A one-line toolbar** on the map: **+ Parcels · Split · Draw · House** and the total acres, a quiet link
-  with a caret.
+- **A one-line toolbar** on the map: **Add · Draw │ Split · House │ 🗑**, then the total acres as a quiet link
+  with a caret. The ways of adding sit together: Add picks existing parcels, Draw adds a custom shape (or
+  starts a new parcel). The trash appears only on a built parcel.
 - **The acres link opens a Layers + Info panel,** like Figma's or Photoshop's. Everything on the parcel is a
   layer you can select, hide or delete: the parts, the road strip, the split, the house, and the screen's
   results. Info shows what you selected and holds the things that had nowhere else to go: the facts and
@@ -78,18 +79,22 @@ interface BuiltParcel {
 ### The toolbar: one line, always
 
 ```
-[+ Parcels] [Split] [Draw] [House]   167.18 ac ▾
+[Add] [Draw] │ [Split] [House] │ 🗑   167.18 ac ▾
 ```
 
 - **Nothing selected:** "Tap a parcel to select it · Draw a parcel".
 - **A tool in use:** one line of status plus its controls (Done, Cancel, Fit and so on). Esc cancels; Enter
   finishes.
-  - **+ Parcels** adds or removes parcels, so it also uncombines. Parts show amber, and a road gap shows as
+  - **Add** adds or removes county parcels, so it also uncombines. Parts show amber, and a road gap shows as
     bridged. Parcels too far apart turn the status red, with the distance.
   - **Split:** tap two points, drag the ends, then tap the piece to keep (each piece is labelled on the map
     with its acres and side), or Fit to an acreage. The cut goes across everything.
-  - **Draw:** with nothing selected it makes a new parcel; with one selected it **adds** the drawn area.
+  - **Draw:** with nothing selected it makes a new parcel; with one selected it **adds** the drawn shape as
+    another part. Where it overlaps the parcel it's counted once (the union).
   - **House:** tap to place it.
+- **🗑 Delete** (built parcels only) turns the toolbar into an inline confirm: "Delete this parcel? It leaves
+  History and the map. [Delete] [Keep]". No modal, and no need to open Layers. A plain parcel has nothing
+  to delete; you tap to unselect it.
 
 ### Layers + Info (opened by the acres link)
 
@@ -194,6 +199,8 @@ last changed, plus Open and Remove (with a "Remove it? Yes · No" confirm).
 8. **Built parcels stay on the map forever,** removable from History.
 9. **A Layers + Info panel** for selecting, hiding and deleting what's on the parcel, and for other info.
 10. **Tap to unselect** a selected parcel.
+11. **Toolbar grouping:** Add · Draw │ Split · House. "+ Parcels" is renamed **Add**.
+12. **Delete a built parcel from the toolbar** without opening Layers.
 
 Still to confirm:
 - **Notes** live in Info on the parcel layer. Is that the right home?
