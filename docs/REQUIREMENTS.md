@@ -174,7 +174,61 @@ RLS pattern: a row is visible if its `household_id` (directly or via `parcels`) 
 caller's memberships. `share_links` are read by token via a server route using the service role.
 
 Dedupe key for parcels/listings: `state:county:parcel_number` when present; else
-`state:county:round(centroid, 4 decimals):round(acres)`.
+`state:county:round(centroid, 4 decimals):round(acres)`. A parcel built from several recorded parcels takes
+their keys sorted and joined with ` & `. Drawn pieces never contribute; a parcel of drawn pieces only has
+no key (`lib/geo/recipe.ts` `pieceDedupeKey` / `recipeDedupeKey`).
+
+### 3a. The local parcel store (Phase 0) and its Phase 1 import
+
+Before accounts exist, the explorer keeps the open parcel and History in the browser, under localStorage
+`ps.parcels` (`lib/client/parcelStore.ts`). Phase 1's importer reads this JSON when a user first signs in,
+so its shape is a contract. It's versioned by `v`: any change takes a new `v` and a converter (the store
+already converts 13d's `ps.current`, which had no `v` field at the parcel level).
+
+```jsonc
+{
+  "v": 2,
+  "open": { /* the parcel on screen: a built parcel (a copy of its History entry), a plain one, or null */ },
+  "built": [                         // History, oldest first: every built parcel, each with a key
+    {
+      "key": "6f1c…",                // stable id (crypto.randomUUID); never reused
+      "pieces": [                    // county records and drawn shapes, combined by the 13b rules
+        { "geo": { /* GeoJSON Feature<Polygon> */ }, "props": { /* the county service's attributes */ },
+          "source": "https://vginmaps…/FeatureServer/0", "multiPart": false },
+        { "geo": { … }, "props": {}, "source": "drawn", "multiPart": false }
+      ],
+      "split": { "a": [36.63, -81.35], "b": [36.62, -81.34], "keep": -1 },   // or null
+      "house": [36.629, -81.354],    // [lat, lon] or null
+      "notes": "Ask whether the spring is shared.",
+      "notesAt": "2026-10-05T15:47:00.000Z",                                  // or null
+      "hidden": ["an:horizon"],      // layer ids hidden on the map
+      "excluded": ["an:site2"],      // results removed from the analysis
+      "screenIds": [],               // screens run on it (step 14 fills this in; `screens.id` in Phase 1)
+      "updatedAt": "2026-10-05T15:47:00.000Z"
+    }
+  ]
+}
+```
+
+- **Built** means changed: more than one piece, a drawn or derived piece, a split, a house, notes, or a
+  screen. Built parcels are saved as they change, and stay in History until the user removes them. **Nothing
+  expires and nothing is trimmed:** Remove is the only way out.
+- **Derived, never stored:** the boundary, the facts and the acres (`lib/geo/recipe.ts` `deriveParcel`).
+  The boundary is the pieces combined, then the split. The acres are the pieces' own, leaving any bridged
+  road strip out.
+- **Drawn pieces** carry no facts and no identity: owners, IDs and counties come from the county records
+  only.
+- **Import (Phase 1), one `parcels` row per built parcel:**
+  - `geometry` = the derived boundary;
+  - `source` = `county`, `combined`, `split` or `drawn`, from the recipe;
+  - `acres` = the derived own acres;
+  - `notes` = `notes`;
+  - `dedupe_key` = `recipeDedupeKey`;
+  - `state` and `county` = those of the recorded pieces.
+
+  The recipe itself (`pieces`, `split`, `house`, `hidden`, `excluded`) has no column yet. The Phase 1 plan
+  needs to add one (proposed: `parcels.recipe jsonb`) so imported parcels stay editable. `screenIds` link
+  to `screens` rows once results are stored there.
 
 ## 4. The parcel page (the export)
 

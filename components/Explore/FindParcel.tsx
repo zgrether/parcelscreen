@@ -1,5 +1,8 @@
 "use client";
-/** The panel's "Find the parcel" section (proto L209–225): coordinates, the tool buttons, and what was found. */
+/**
+ * The panel's "Find the parcel" section (proto L209–225): coordinates, the tool buttons, and the open parcel's
+ * facts. (13e-2b moves the coordinates and tools onto the map.)
+ */
 import { useState } from "react";
 import { memberLabel } from "@/lib/geo/combine";
 import { boundarySourceLabel, parcelFacts, type ParcelRecord } from "@/lib/geo/parcels";
@@ -9,15 +12,17 @@ import { useExplore } from "./useExploreController";
 
 export function FindParcel() {
   const ctl = useExplore();
-  const { mode, parcel, noParcel } = ctl.state;
+  const { mode, store } = ctl.state;
+  const { parcel, derived } = ctl;
+  const open = store.open;
   const [coords, setCoords] = useState("");
 
   return (
     <section className="block">
       <h2>Find the parcel</h2>
       <p className="tiny muted">
-        Pan the imagery to the spot you recognized in Google Earth, then tap the lot to load its recorded
-        boundary. If parcel lines aren&apos;t available there, draw it.
+        Pan the imagery to the spot you recognized in Google Earth, then tap the lot (zoom in until its
+        outline shows) to select it. Tap it again to unselect. If there&apos;s no outline there, draw it.
       </p>
       <div className="row">
         <input
@@ -33,13 +38,10 @@ export function FindParcel() {
         </button>
       </div>
       <div className="row mt-2">
-        <button className="btn secondary small" onClick={() => ctl.setMode("pick")}>
-          Tap a parcel
-        </button>
         <button className="btn secondary small" onClick={ctl.startDraw}>
           Draw boundary
         </button>
-        <button className="btn secondary small" onClick={() => ctl.setMode("house")}>
+        <button className="btn secondary small" disabled={!open} onClick={() => ctl.setMode("house")}>
           Mark existing house
         </button>
         <button className="btn secondary small" disabled={!parcel} onClick={ctl.startSplit}>
@@ -53,50 +55,25 @@ export function FindParcel() {
             Finish boundary
           </button>
         )}
-        <button className="btn secondary small" onClick={ctl.clear}>
-          Clear
+        <button className="btn secondary small" disabled={!open} onClick={ctl.close}>
+          Close
         </button>
       </div>
       <div className="mt-2">
-        {noParcel ? <NoParcel report={noParcel.report} /> : parcel ? <ParcelFacts parcel={parcel} /> : null}
+        {parcel && <ParcelFacts parcel={parcel} />}
+        {derived?.ok && derived.splitDropped && (
+          <p className="tiny muted">The split no longer crosses the boundary, so it&apos;s left off.</p>
+        )}
+        {derived && !derived.ok && (
+          <p className="tiny muted">
+            These pieces don&apos;t make one boundary ({Math.round(derived.gapM)} m apart). Combine them again
+            or close the parcel.
+          </p>
+        )}
       </div>
       <SplitPanel />
       <CombinePanel />
     </section>
-  );
-}
-
-/** What each parcel service said, and the square fallback (proto L675–683). */
-function NoParcel({ report }: { report: string[] }) {
-  const ctl = useExplore();
-  const [acres, setAcres] = useState("5");
-  return (
-    <div>
-      <p className="tiny muted">
-        Parcel services cover North Carolina, Virginia and Tennessee. What each one said:
-      </p>
-      <ul className="plain tiny muted">
-        {report.map((r, i) => (
-          <li key={i}>{r}</li>
-        ))}
-      </ul>
-      <p className="tiny">No boundary? Screen a square centered where you tapped instead:</p>
-      <div className="row">
-        <input
-          type="number"
-          className="field w-[90px]"
-          aria-label="Square size in acres"
-          min={0.25}
-          step={0.25}
-          value={acres}
-          onChange={(e) => setAcres(e.target.value)}
-        />
-        acres
-        <button className="btn small" onClick={() => ctl.squareHere(Math.max(0.25, +acres || 5))}>
-          Use a square here
-        </button>
-      </div>
-    </div>
   );
 }
 

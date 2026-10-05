@@ -8,6 +8,7 @@
 import { useCallback, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { loadUserConfig } from "@/lib/client/userConfig";
 import { FindParcel } from "./FindParcel";
+import { History } from "./History";
 import { MapArea } from "./MapArea";
 import { useBottomSheet } from "./useBottomSheet";
 import { ExploreContext, useExploreController } from "./useExploreController";
@@ -55,6 +56,7 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
           <div className="explore-scroll">
             <FindParcel />
             {children}
+            <History />
           </div>
         </aside>
         <div className="explore-map">

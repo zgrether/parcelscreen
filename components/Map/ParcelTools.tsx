@@ -1,10 +1,10 @@
 "use client";
 /**
- * The parcel-finding tools on the map (proto L561–707): taps per tool mode, tapping an outline, the draw
- * keys, and the overlays: the loaded parcel, the draft, the split pieces, and the house and split-end
- * markers (DOM markers, as CLAUDE.md asks, not canvas sprites).
+ * The parcel tools on the map (proto L561–707, 13e): taps per tool mode, selecting and unselecting parcels,
+ * the draw keys, and the overlays: the selected parcel, saved parcels, the draft, the split pieces, and the
+ * house and split-end markers (DOM markers, as CLAUDE.md asks, not canvas sprites).
  */
-import { bbox } from "@turf/turf";
+import { bbox, booleanPointInPolygon, point } from "@turf/turf";
 import {
   Marker,
   Popup,
@@ -15,11 +15,19 @@ import {
 } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
 import type { LatLon } from "@/lib/geo/types";
+import { parcelFromLine } from "@/lib/geo/parcels";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { useMap } from "./MapView";
 import { combineData, draftData, splitData } from "./overlays";
 import { LAYER, SOURCE } from "./style";
 import { outlineAt } from "./useParcelLines";
+
+/** The saved parcel under a screen point, by its History key. */
+function savedAt(map: MlMap, p: { x: number; y: number }): string | null {
+  if (!map.getLayer(LAYER.savedFill)) return null;
+  const key = map.queryRenderedFeatures([p.x, p.y], { layers: [LAYER.savedFill] })[0]?.properties?.key;
+  return typeof key === "string" ? key : null;
+}
 
 const EMPTY = { type: "FeatureCollection" as const, features: [] };
 const toLL = (e: MapMouseEvent): LatLon => [e.lngLat.lat, e.lngLat.lng];
@@ -51,13 +59,17 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
       const { mode, draft } = c.current();
       // Combining: each tap adds or removes the parcel under it (step 13b).
       if (mode === "combine") return void c.combineAt(toLL(e), outlineAt(map, e.point));
-      // With no tool waiting for taps (or the tap lookup), tapping an outline loads it (proto L545).
-      if (mode !== "draw" && mode !== "house" && mode !== "split") {
+      // No tool waiting: select, swap or unselect (13e rules, exploreState.decideTap).
+      if (!mode) {
+        const geo = c.parcel?.geo;
         const line = outlineAt(map, e.point);
-        if (line) return c.selectOutline(line);
+        return c.tap({
+          insideOpen: !!geo && booleanPointInPolygon(point([e.lngLat.lng, e.lngLat.lat]), geo),
+          outline: line ? parcelFromLine(line) : null,
+          savedKey: savedAt(map, e.point),
+        });
       }
-      if (mode === "pick") void c.pickAt(toLL(e));
-      else if (mode === "house") c.setHouse(toLL(e));
+      if (mode === "house") c.setHouse(toLL(e));
       else if (mode === "split") c.splitTap(toLL(e));
       else if (mode === "draw") {
         if (draft.length >= 3) {
@@ -95,8 +107,8 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
 }
 
 function useOverlays(map: MlMap | null, ctl: ExploreController) {
-  const { parcel, draft, split, combine } = ctl.state;
-  const { pieces, combined } = ctl;
+  const { draft, split, combine } = ctl.state;
+  const { parcel, pieces, combined, saved } = ctl;
   // A parcel restored after a refresh keeps the saved map view instead of fitting to it.
   const [restored] = useState(parcel);
 
@@ -116,6 +128,13 @@ function useOverlays(map: MlMap | null, ctl: ExploreController) {
       { padding: 0 },
     );
   }, [map, parcel, restored]);
+
+  useEffect(() => {
+    map?.getSource<GeoJSONSource>(SOURCE.saved)?.setData({
+      type: "FeatureCollection",
+      features: saved.map((b) => ({ ...b.geo, properties: { key: b.key } })),
+    });
+  }, [map, saved]);
 
   useEffect(() => {
     map?.getSource<GeoJSONSource>(SOURCE.draft)?.setData(draftData(draft));
@@ -173,7 +192,7 @@ function useHouseMarker(map: MlMap | null, ctl: ExploreController) {
     ref.current = ctl;
   });
   const marker = useRef<Marker | null>(null);
-  const house = ctl.state.house;
+  const house = ctl.state.store.open?.house ?? null;
 
   useEffect(() => {
     if (!map) return;

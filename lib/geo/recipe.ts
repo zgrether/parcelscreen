@@ -6,7 +6,7 @@
  * A part is a ParcelRecord: a county record, or a drawn shape (source "drawn"). Several parts are combined
  * with the 13b rules (lib/geo/combine.ts), drawn ones included; overlaps count once.
  */
-import { area, featureCollection, intersect, union } from "@turf/turf";
+import { area, centroid, featureCollection, intersect, union } from "@turf/turf";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { combinedRecord, combineParcels, memberKey, type CombineLimits } from "./combine";
 import { parcelFacts, type ParcelRecord } from "./parcels";
@@ -44,12 +44,35 @@ export type DerivedParcel =
 /** True for a parcel from a county service (its source is the service URL). */
 export const isCountyRecord = (r: ParcelRecord): boolean => /^https?:\/\//.test(r.source);
 
+/** The state a county record comes from, by its parcel service's host. */
+const STATE_BY_HOST: Record<string, string> = {
+  "services.nconemap.gov": "NC",
+  "vginmaps.vdem.virginia.gov": "VA",
+  "geoviewer.cot.tn.gov": "TN",
+};
+
 /**
- * What makes two parcels the same for de-duplication (Phase 1's `dedupe_key`): the recorded parcels they
- * include, order-independent. Drawn pieces never take part; a parcel of drawn pieces only has no key (null).
+ * One recorded parcel's dedupe key, as REQUIREMENTS §3 defines it: `state:county:parcel_number` when the
+ * record has a number, else `state:county:centroid (4 decimals):acres (rounded)`. Null for a drawn piece.
+ */
+export function pieceDedupeKey(r: ParcelRecord): string | null {
+  if (memberKey(r) === null) return null; // drawn: no identity
+  const host = /^https?:\/\/([^/]+)/.exec(r.source)?.[1] ?? "";
+  const state = STATE_BY_HOST[host] ?? "??";
+  const f = parcelFacts(r.geo, r.props);
+  const county = (f.county ?? "").trim().toLowerCase();
+  if (f.parcelId) return `${state}:${county}:${f.parcelId.trim()}`;
+  const [lon, lat] = centroid(r.geo).geometry.coordinates as [number, number];
+  return `${state}:${county}:${lat.toFixed(4)},${lon.toFixed(4)}:${Math.round(f.acres)}`;
+}
+
+/**
+ * What makes two parcels the same for de-duplication (Phase 1's `dedupe_key`): the keys of the recorded
+ * parcels they include, sorted and joined with " & ". Drawn pieces never take part; a parcel of drawn
+ * pieces only has no key (null).
  */
 export function recipeDedupeKey(recipe: ParcelRecipe): string | null {
-  const keys = recipe.parts.map(memberKey).filter((k): k is string => k !== null);
+  const keys = recipe.parts.map(pieceDedupeKey).filter((k): k is string => k !== null);
   return keys.length ? [...new Set(keys)].sort().join(" & ") : null;
 }
 
