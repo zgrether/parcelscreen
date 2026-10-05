@@ -94,11 +94,11 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   border: 1px solid var(--lp-rule); border-radius: 10px; box-shadow: 0 8px 26px rgba(0,0,0,.4); overflow: hidden; font-size: 13.5px; }
 .lp .muted { color: var(--lp-ink-2); }
 /* Tabs in the panel's header: Layers | Notes. */
-.tabs { display: flex; gap: 2px; }
-.tab { background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; color: var(--lp-ink-2); font: 600 11.5px/1 var(--sans);
-  letter-spacing: .1em; text-transform: uppercase; padding: 9px 8px 8px; display: flex; gap: 6px; align-items: center; }
+.tabs { display: flex; gap: 2px; padding: 2px; border-radius: 7px; background: rgba(238,241,234,.08); }
+.tab { background: none; border: 0; border-radius: 5px; color: var(--lp-ink-2); font: 500 12.5px/1 var(--sans); padding: 5px 10px;
+  display: flex; gap: 6px; align-items: center; }
 .tab:hover { color: var(--lp-ink); }
-.tab[aria-selected="true"] { color: var(--lp-ink); border-bottom-color: var(--amber); }
+.tab[aria-selected="true"] { color: var(--lp-ink); background: rgba(238,241,234,.16); }
 .tab .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); }
 .np-body { padding: 10px 12px 12px; display: grid; grid-template-rows: auto 1fr auto; gap: 8px; flex: 1; min-height: 0; }
 .np-for { font: 600 15px/1.2 var(--cond); }
@@ -107,10 +107,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .np-body textarea::placeholder { color: var(--lp-ink-2); }
 .np-foot { color: var(--lp-ink-2); font-size: 12px; }
 .bar .lbl { flex: none; color: var(--bar-ink-2); font-size: 13px; padding: 0 2px 0 6px; }
-.lp-head { display: flex; justify-content: space-between; align-items: flex-end; padding: 6px 8px 0 8px; border-bottom: 1px solid var(--lp-rule); }
+.lp-head { display: flex; justify-content: space-between; align-items: center; padding: 8px 8px 8px 10px; border-bottom: 1px solid var(--lp-rule); }
 .lp-head b { font: 600 12px/1 var(--sans); letter-spacing: .14em; color: var(--lp-ink-2); }
-.lp-head button { background: none; border: 0; color: var(--lp-ink-2); font-size: 18px; line-height: 1; padding: 2px 6px; }
-.lp-head button:hover { color: var(--lp-ink); }
+#lp-x { background: none; border: 0; color: var(--lp-ink-2); font-size: 18px; line-height: 1; padding: 2px 6px; }
+#lp-x:hover { color: var(--lp-ink); }
 .layers { overflow: auto; padding: 4px 0; flex: 1 1 55%; min-height: 80px; border-bottom: 1px solid var(--lp-rule); }
 .lrow { display: grid; grid-template-columns: 20px 18px 1fr auto 22px; align-items: center; gap: 4px; padding: 3px 8px 3px calc(8px + var(--d, 0) * 16px); cursor: default; }
 .lrow:hover { background: var(--lp-hover); }
@@ -157,6 +157,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   .bar .title .long { display: none; }
   .nudge { bottom: calc(var(--sheet-h) + 62px); }
   .lp { top: 52px; left: 8px; right: 8px; width: auto; bottom: calc(var(--sheet-h) + 64px); }
+  /* Typing a note: the sheet and toolbar step aside so the keyboard and the note have the screen. */
+  .app.typing .panel, .app.typing .bar { display: none; }
+  .app.typing .lp { bottom: 8px; }
   .bar .lbl { padding-left: 2px; font-size: 12px; }
   .bar { gap: 3px; }
   .bar button { padding: 6px 7px; }
@@ -171,7 +174,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   <aside class="panel">
     <header>
       <div><h1>Parcel Screen</h1><div class="sub">Kill parcels from your desk, before you drive.</div></div>
-      <span class="badge">Mockup · 13e v8</span>
+      <span class="badge">Mockup · 13e v9</span>
     </header>
     <div class="scroll">
       <div class="try" id="try">
@@ -534,7 +537,7 @@ function drawAnalysis(g, s) {
     if (it.kind === "drive") { el("path", { d: "M" + it.line.map((p) => p.join(",")).join("L"), fill: "none", stroke: "#0b1410", "stroke-opacity": .5, "stroke-width": 6 * s }, grp); el("path", { d: "M" + it.line.map((p) => p.join(",")).join("L"), fill: "none", stroke: on ? "#f0a030" : "#f6e7a1", "stroke-width": 3 * s, "stroke-dasharray": `${7 * s} ${4 * s}` }, grp); }
     if (it.kind === "site" || it.kind === "shelf") {
       const [x, y] = it.pt, R = 11 * s;
-      if (on) el("circle", { cx: x, cy: y, r: R + 5 * s, fill: "none", stroke: "#f0a030", "stroke-width": 2.5 * s }, grp);
+      if (on) el("circle", { cx: x, cy: y, r: R + 5 * s, fill: "none", stroke: "#ffffff", "stroke-width": 2.5 * s }, grp);
       if (it.kind === "site") el("circle", { cx: x, cy: y, r: R, fill: "#a63a2c", stroke: "#fff", "stroke-width": 2 * s }, grp);
       else el("rect", { x: x - R, y: y - R, width: 2 * R, height: 2 * R, rx: 3 * s, fill: "#9a6a12", stroke: "#fff", "stroke-width": 2 * s }, grp);
       const t = el("text", { x, y: y + .5 * s, "text-anchor": "middle", "dominant-baseline": "middle", fill: "#fff", "font-family": "Barlow, sans-serif", "font-weight": 600, "font-size": 12 * s, "pointer-events": "none" }, grp);
@@ -550,7 +553,7 @@ function render() {
   for (const b of saved) {
     if (cur && cur.key === b.key) continue;
     const dv = derive(b.recipe);
-    outline(gS, dv.polys, { line: "#f0a030", tint: "#f0a030", tintOp: .14, width: 2 });
+    outline(gS, dv.polys, { line: "#f0a030", tint: "#f0a030", tintOp: 0, width: 1.5, halo: "rgba(11,20,16,.5)" });
     const big = dv.polys.reduce((m, p) => (area(p) > area(m) ? p : m)), c = centroid(big);
     textAt(gL, [c[0], c[1] + 18], `saved · ${fmt(dv.acres)} ac`);
   }
@@ -570,16 +573,16 @@ function render() {
       textAt(gt, centroid(big), `${sideName(tool.a, tool.b, s1)} · ${fmt(sd.acres)} ac`, true);
     }
   } else if (r) {
-    if (visible("parcel")) outline(gs, derive(r).polys);
+    if (visible("parcel")) outline(gs, derive(r).polys, { line: "#f0a030", tint: "#f0a030", tintOp: .16, width: 3 });
     // The selected layer, highlighted.
-    if (sel?.startsWith("part:")) { const p = r.parts[+sel.slice(5)]; if (p) el("path", { d: d(partPts(p)), fill: "#f0a030", "fill-opacity": .18, stroke: "#f0a030", "stroke-width": 3 * s }, gs); }
-    if (sel === "strip") for (const b of combine(countyIds(r)).bridges) el("path", { d: d(b), fill: "#f0a030", "fill-opacity": .6, stroke: "#f0a030", "stroke-width": 2 * s }, gs);
+    if (sel?.startsWith("part:")) { const p = r.parts[+sel.slice(5)]; if (p) el("path", { d: d(partPts(p)), fill: "#ffffff", "fill-opacity": .16, stroke: "#ffffff", "stroke-width": 2.5 * s }, gs); }
+    if (sel === "strip") for (const b of combine(countyIds(r)).bridges) el("path", { d: d(b), fill: "#ffffff", "fill-opacity": .6, stroke: "#ffffff", "stroke-width": 2 * s }, gs);
     if (r.split && (sel === "split" || sel?.startsWith("piece:"))) {
       // The piece left out, faint and dashed; a selected piece, amber; the cut line.
       const sd = splitSides(r, r.split.a, r.split.b), other = r.split.keep < 0 ? sd.right : sd.left;
       for (const p of other.polys) el("path", { d: d(p), fill: "#ffffff", "fill-opacity": .06, stroke: "#ffffff", "stroke-opacity": .7, "stroke-width": 1.5 * s, "stroke-dasharray": `${5 * s} ${4 * s}` }, gs);
-      if (sel?.startsWith("piece:")) { const k = +sel.slice(6); for (const p of (k < 0 ? sd.left : sd.right).polys) el("path", { d: d(p), fill: "#f0a030", "fill-opacity": .2, stroke: "#f0a030", "stroke-width": 3 * s }, gs); }
-      el("line", { x1: r.split.a[0], y1: r.split.a[1], x2: r.split.b[0], y2: r.split.b[1], stroke: "#f0a030", "stroke-width": 2.5 * s, "stroke-dasharray": `${6 * s} ${4 * s}` }, gs);
+      if (sel?.startsWith("piece:")) { const k = +sel.slice(6); for (const p of (k < 0 ? sd.left : sd.right).polys) el("path", { d: d(p), fill: "#ffffff", "fill-opacity": .16, stroke: "#ffffff", "stroke-width": 2.5 * s }, gs); }
+      el("line", { x1: r.split.a[0], y1: r.split.a[1], x2: r.split.b[0], y2: r.split.b[1], stroke: "#ffffff", "stroke-width": 2.5 * s, "stroke-dasharray": `${6 * s} ${4 * s}` }, gs);
     }
     if (cur.analysis && visible("analysis")) drawAnalysis(ga, s);
   }
@@ -594,7 +597,7 @@ function render() {
   }
   if (cur?.house && visible("house")) {
     const [x, y] = cur.house, b = el("g", { class: "handle" }, gh); b.dataset.handle = "house";
-    if (sel === "house") el("circle", { cx: x, cy: y, r: 19 * s, fill: "none", stroke: "#f0a030", "stroke-width": 2.5 * s }, b);
+    if (sel === "house") el("circle", { cx: x, cy: y, r: 19 * s, fill: "none", stroke: "#ffffff", "stroke-width": 2.5 * s }, b);
     for (const [rr, f] of [[14, "#fff"], [11, "#2b6f8f"], [8, "#fff"], [5, "#2b6f8f"], [2, "#fff"]]) el("circle", { cx: x, cy: y, r: rr * s, fill: f }, b);
   }
   $("map").classList.toggle("crosshair", !!tool && tool.kind !== "parcels");
@@ -622,10 +625,21 @@ function setTab(t) { lpTab = t; try { localStorage.setItem("mock13e-tab", t); } 
 $("tab-layers").onclick = () => setTab("layers");
 $("tab-notes").onclick = () => setTab("notes");
 let notesT;
+// Typing saves without redrawing the page (a redraw mid-typing can steal focus and drop the keyboard).
 $("np-text").oninput = (e) => {
   const v = e.target.value; clearTimeout(notesT);
-  notesT = setTimeout(() => { commit({ ...clone(cur), notes: v, notesAt: Date.now() }); }, 400);
+  notesT = setTimeout(() => {
+    cur.notes = v; cur.notesAt = Date.now();
+    if (!cur.key) cur.key = "b" + Date.now().toString(36);
+    const i = saved.findIndex((x) => x.key === cur.key), rec = { ...clone(cur), at: Date.now() };
+    if (i >= 0) saved[i] = rec; else saved.push(rec);
+    save();
+    $("np-foot").textContent = "Saved " + new Date(cur.notesAt).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+    $("tab-notes").innerHTML = "Notes" + (v ? '<span class="dot" aria-label="has notes"></span>' : "");
+  }, 400);
 };
+$("np-text").onfocus = () => $("app").classList.add("typing");
+$("np-text").onblur = () => { $("app").classList.remove("typing"); render(); };
 
 /* ---------- The toolbar (one line) ---------- *//* ---------- The toolbar (one line) ---------- */
 function button(txt, cls, fn, opts = {}) { const b = document.createElement("button"); b.className = cls; b.textContent = txt; b.onclick = fn; if (opts.disabled) b.disabled = true; if (opts.title) b.title = opts.title; if (opts.expanded != null) b.setAttribute("aria-expanded", opts.expanded); return b; }
@@ -833,5 +847,6 @@ function imagery() {
 }
 imagery();
 render();
-window.addEventListener("resize", () => render());
+// The phone keyboard resizes the window: don't redraw while a note is being typed.
+window.addEventListener("resize", () => { if (document.activeElement?.id !== "np-text") render(); });
 </script>

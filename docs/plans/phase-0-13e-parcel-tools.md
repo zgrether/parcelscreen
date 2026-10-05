@@ -1,7 +1,7 @@
 # Step 13e: parcel tools on the map (plan)
 
-Status: **proposal v3.4, for the owner's approval before any code.** Revised after the owner's review of
-mockups v2–v7 on 2026-10-05. Clickable mockup (v8): https://claude.ai/artifact/LB3hFM9oJVPaCzK17GS23u (source:
+Status: **proposal v3.5, for the owner's approval before any code.** Revised after the owner's review of
+mockups v2–v8 on 2026-10-05. Clickable mockup (v9): https://claude.ai/artifact/LB3hFM9oJVPaCzK17GS23u (source:
 `phase-0-13e-mockup.html`, beside this file). It uses made-up parcels and made-up results with simplified
 geometry, so it shows the interaction, not the real data.
 
@@ -79,6 +79,19 @@ interface BuiltParcel {
   toolbar says "Tap it again to close it" (owner: "show something but don't be intrusive").
 - **Tapping a saved built parcel** (amber) opens it. So does Open in History.
 
+### How parcels look on the map
+
+| State | Outline | Fill |
+| --- | --- | --- |
+| County parcel lines | thin pale yellow | none |
+| A saved (built) parcel, not selected | thin amber (1.5 px), with its "saved · N ac" label | none |
+| **The selected parcel** | **bold amber (3 px) over a dark halo** | **soft amber** |
+| A layer selected inside it (a part, a piece, the road strip, the house, a pin) | white (2.5 px) | soft white |
+| The piece a split leaves out | white, dashed | faint |
+
+The selected parcel is always the strongest thing on the map. In the v1–v8 mockups, saved parcels had the
+fill and the selected one didn't, which was backwards (owner).
+
 ### The toolbar: one line, always
 
 ```
@@ -128,8 +141,8 @@ LAYERS   NOTES•                               ×
 
 - **Look:** a dark, slightly see-through scrim, like the toolbar, with blur where the browser supports it.
   Light text, and selected rows tinted amber.
-- **Tabs:** **Layers** and **Notes** in the panel's header, with an amber underline on the active tab. The
-  Notes tab shows an amber dot when the parcel has notes. The panel reopens on the last tab used. Selecting
+- **Tabs:** a small segmented control in the panel's header, **Layers | Notes**, in sentence case (12.5 px).
+  The active tab is filled. The Notes tab shows an amber dot when the parcel has notes. The panel reopens on the last tab used. Selecting
   a layer on the map (house, pins) switches to Layers. There's no separate Notes button on the map: the
   acres link is the single way in.
 - **Where it sits:** docked on the map's right edge on desktop, and above the toolbar on phones, where the
@@ -164,6 +177,11 @@ LAYERS   NOTES•                               ×
 
 The parcel's name, a free-text box, and "Saved …" with the time. Notes save as you type (debounced) and
 belong to the parcel. Typing a note makes a plain parcel built, so it's kept in History.
+
+**While typing, nothing else redraws.** A save updates only the "Saved" time and the tab's dot, and a
+window resize (the phone keyboard opening) doesn't re-render. On phones the bottom sheet and the toolbar
+step aside while the note has focus, and the panel takes the screen above the keyboard. The owner saw the
+keyboard drop in the v8 mockup when a save redrew the page.
 
 ### Side panel
 
@@ -239,6 +257,9 @@ last changed, plus Open and Remove (with a "Remove it? Yes · No" confirm).
 18. **Add: Select · Draw.** "Add:" is a label over Select (county parcels) and Draw (a custom shape, such
     as an unrecorded corner). *Used "Select" for the owner's "selection"; confirm.*
 19. **Drawn corners snap** to the selected parcel's corners and edges.
+20. **Selected is the strongest state:** bold amber with a fill. Saved, unselected parcels are a thin amber
+    outline with no fill.
+21. **Tabs are small and plain.** Typing a note never loses focus or the keyboard.
 
 Still to confirm:
 - **Should unselecting a built parcel** also close the Info panel (as in the mockup), or keep it open,
