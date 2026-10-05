@@ -1,7 +1,7 @@
 # Step 13e: parcel tools on the map (plan)
 
-Status: **proposal v3.8, for the owner's approval before any code.** Revised after the owner's review of
-mockups v2–v11 on 2026-10-05. Clickable mockup (v12): https://claude.ai/artifact/LB3hFM9oJVPaCzK17GS23u (source:
+Status: **proposal v3.9, for the owner's approval before any code.** Revised after the owner's review of
+mockups v2–v12 on 2026-10-05. Clickable mockup (v13): https://claude.ai/artifact/LB3hFM9oJVPaCzK17GS23u (source:
 `phase-0-13e-mockup.html`, beside this file). It uses made-up parcels and made-up results with simplified
 geometry, so it shows the interaction, not the real data.
 
@@ -29,8 +29,7 @@ together (owner's review, 2026-10-05):
   - **Layers**, like Figma's or Photoshop's. Everything on the parcel is a layer you can select, hide or
     delete: the parts, the road strip, the split, the house, and the screen's results. The selected layer's
     details (the facts and the things that had nowhere else to go) show under the tree.
-  - **Notes**, which belong to whatever is selected: the parcel itself, one of its parts, a house site, and
-    so on.
+  - **Notes** for the parcel.
 - **Built parcels are kept.** A parcel you change becomes a built parcel. It's saved automatically, stays
   on the map, and is listed in History.
 
@@ -47,9 +46,8 @@ interface BuiltParcel {
   key: string;
   recipe: ParcelRecipe;
   house: LatLon | null;
-  /** Notes by layer id ("parcel" for the parcel itself); shown in the Info panel's Notes tab (§4). */
-  notes: Record<string, string>;
-  notesAt: Record<string, string>;
+  notes: string;            // the Info panel's Notes tab (§4)
+  notesAt: string | null;
   /** Layers the user hid (by layer id); results the user removed from the analysis. */
   hidden: string[];
   excluded: string[];
@@ -153,8 +151,9 @@ LAYERS   NOTES•                               ×
 - **Look:** a dark, slightly see-through scrim, like the toolbar, with blur where the browser supports it.
   Light text, and selected rows tinted amber.
 - **Tabs:** a small segmented control in the panel's header, **Layers | Notes**, in sentence case (12.5 px).
-  The active tab is filled. The Notes tab shows an amber dot when the parcel has any notes. **Both tabs keep
-  the same layout** (owner): the tree stays where it is, and only the lower pane and footer change. The panel reopens on the last tab used. Selecting
+  The active tab is filled. The Notes tab shows an amber dot when the parcel has notes. **The tabs switch
+  the top region only** (owner): Layers shows the tree there, Notes shows the parcel's notes there. The
+  selected layer's details and the pinned actions below stay the same in both. The panel reopens on the last tab used. Selecting
   a layer on the map (house, pins) switches to Layers. There's no separate Notes button on the map: the
   acres link is the single way in.
 - **Where it sits:** docked on the map's right edge on desktop, and above the toolbar on phones, where the
@@ -194,17 +193,16 @@ LAYERS   NOTES•                               ×
 
 ### The Notes tab
 
-- **Same layout as Layers:** the tree on top, unchanged; the note in the lower pane (the details' place and
-  height); the footer pinned at the bottom with "Saved …" and **Clear note**. The footer is the same height
-  in both tabs, so switching tabs never moves the tree.
-- **Notes belong to the selected layer:** the parcel (when nothing inside it is selected), a part such as
-  52-42A, a split piece, the house, a house site, and so on. The pane's header names it ("Notes · 52-42A").
-  Selecting another row switches to that layer's note. Rows with a note get a small amber dot in the tree.
-- **Saving:** notes save as you type (debounced). Typing a note makes a plain parcel built, so it's kept in
-  History.
-- **While typing, nothing redraws:** a save updates only the footer, the tab's dot and the tree's dots. The
-  phone keyboard's resize doesn't re-render, and leaving the box doesn't redraw the tree (a redraw there
-  would swallow a click on a row). On phones the sheet and the toolbar step aside while a note has focus.
+- **Where:** the notes take the **top region**, the tree's place and size. The selected layer's details and
+  the pinned actions below don't change. The panel keeps one layout; only the top region swaps.
+- **What:** "Notes · <parcel>", a free-text box, then "Saved …" with the time and a small Clear link. Notes
+  belong to the parcel.
+- **Saving:** notes save as you type (debounced). The first note makes a plain parcel built (kept in
+  History), and its actions change to Close · Remove.
+- **While typing, nothing near the box redraws:** a save updates only the "Saved" line and the tab's dot
+  (plus the details and History the first time, which don't hold the box). The phone keyboard's resize
+  doesn't re-render, and leaving the box doesn't redraw the tree (a redraw there would swallow a click on a
+  row). On phones the sheet and the toolbar step aside while the note has focus.
 
 ### Side panel
 
@@ -286,8 +284,8 @@ last changed, plus Open and Remove (with a "Remove it? Yes · No" confirm).
     parcel to select it │ or Draw a custom parcel", two separate paths.
 23. **House is an icon.** The Info panel's actions are pinned to its bottom edge, and the tree and the
     details scroll independently (the details pane has a defined height).
-24. **Notes follow the selected layer, in the same layout as Layers.** Unselecting a parcel with nothing
-    saved closes the Info panel.
+24. **Notes are the parcel's,** and the Notes tab takes the panel's top region in place of the tree; details
+    and actions below stay. Unselecting a parcel with nothing saved closes the Info panel.
 
 Still to confirm:
 - **Unselecting a built (saved) parcel:** leave the Info panel open with "Nothing selected…" (as in mockup
