@@ -2,6 +2,8 @@
 import { MapView } from "@/components/Map/MapView";
 import { Hint, MapTools } from "@/components/Map/MapTools";
 import { ParcelTools } from "@/components/Map/ParcelTools";
+import { Search } from "@/components/Map/Search";
+import { Toolbar } from "@/components/Map/Toolbar";
 import type { UserConfig } from "@/lib/screen/types";
 import { useExplore, type SetHint } from "./useExploreController";
 
@@ -27,7 +29,9 @@ export function MapArea({
     >
       <MapTools parcelServices={config.endpoints.parcels} hint={setHint} />
       <ParcelTools />
+      <Search />
       <Hint text={hint} />
+      <Toolbar />
     </MapView>
   );
 }

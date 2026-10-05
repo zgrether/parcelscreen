@@ -84,6 +84,15 @@ describe("the open parcel and History", () => {
     const added = run([selectA(), ...draw()]);
     expect(added.store.open?.pieces.map((p) => p.source)).toEqual([a.source, "drawn"]);
     expect(added.mode).toBeNull();
+    // Undo takes the last corner back.
+    expect(
+      run([
+        { type: "startDraw" },
+        { type: "draftAdd", ll: corners[0]! },
+        { type: "draftAdd", ll: corners[1]! },
+        { type: "draftUndo" },
+      ]).draft,
+    ).toEqual([corners[0]]);
     // Fewer than three corners: nothing changes.
     const two = run([
       selectA(),

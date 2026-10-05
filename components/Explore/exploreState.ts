@@ -76,6 +76,7 @@ export type ExploreAction =
   | { type: "house"; ll: LatLon | null; stamp: Stamp }
   | { type: "startDraw" }
   | { type: "draftAdd"; ll: LatLon }
+  | { type: "draftUndo" }
   | { type: "draftCancel" }
   /** Closes the drawn shape: a new parcel, or a piece added to the open one. */
   | { type: "finishDraw"; stamp: Stamp }
@@ -130,6 +131,8 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       return { ...s, draft: [], mode: "draw", combine: null, split: null };
     case "draftAdd":
       return { ...s, draft: [...s.draft, a.ll] };
+    case "draftUndo":
+      return { ...s, draft: s.draft.slice(0, -1) };
     case "draftCancel":
       return { ...s, draft: [], mode: null };
     case "finishDraw": {

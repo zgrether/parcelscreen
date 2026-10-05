@@ -61,8 +61,13 @@ body {
   display: none;
 }
 /* The map's hint: above the bottom sheet when there is one. */
+/* The map's status hint (zoom in, looking up…): centred just above the parcel toolbar (13e). */
 .map-hint {
-  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  left: 12px;
+  right: 12px;
+  margin-inline: auto;
+  width: fit-content;
 }
 
 /* Narrow portrait screens: the panel is a bottom sheet laid over a full-height map, so dragging the sheet
@@ -93,11 +98,11 @@ body {
     visibility: hidden;
   }
   .map-hint {
-    bottom: calc(var(--sheet-h) + 10px);
+    bottom: calc(var(--sheet-h) + 72px);
   }
   .explore-map .maplibregl-ctrl-bottom-left,
   .explore-map .maplibregl-ctrl-bottom-right {
-    bottom: var(--sheet-h);
+    bottom: calc(var(--sheet-h) + 70px);
   }
   .sheet-handle {
     display: block;
@@ -233,4 +238,228 @@ body {
   );
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
   cursor: grab;
+}
+
+/* ---------- The parcel toolbar and search on the map (13e) ---------- */
+:root {
+  --tb-bg: rgba(28, 38, 32, 0.93);
+  --tb-ink: #f1f3ee;
+  --tb-ink-2: #b9c3ba;
+  --tb-rule: rgba(241, 243, 238, 0.22);
+  --tb-bad: #ffb4a6;
+}
+.toolbar {
+  position: absolute;
+  z-index: 15;
+  left: 12px;
+  right: 12px;
+  bottom: calc(var(--sheet-h, 0px) + 18px);
+  margin-inline: auto;
+  width: fit-content;
+  max-width: calc(100% - 24px);
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--tb-bg);
+  color: var(--tb-ink);
+  border-radius: 10px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+  font-size: 14px;
+}
+.tb-status {
+  padding-left: 6px;
+  min-width: 0;
+  flex: 0 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tb-status b {
+  font-weight: 600;
+}
+.tb-status .sub {
+  color: var(--tb-ink-2);
+}
+.tb-status.bad {
+  color: var(--tb-bad);
+}
+.tb-btn {
+  flex: none;
+  border-radius: 6px;
+  padding: 7px 11px;
+  min-height: 36px;
+  font-size: 13.5px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--tb-ink);
+  cursor: pointer;
+}
+.tb-btn.tool {
+  border-color: rgba(241, 243, 238, 0.35);
+}
+.tb-btn.tool:hover {
+  border-color: var(--tb-ink);
+}
+.tb-btn.go {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+.tb-btn.quiet {
+  color: var(--tb-ink-2);
+}
+.tb-btn.danger {
+  background: var(--tb-bad);
+  color: #2a0f0a;
+}
+.tb-btn.icon {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 9px;
+  border-color: rgba(241, 243, 238, 0.35);
+}
+.tb-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.tb-btn:focus-visible {
+  outline: 2px solid var(--color-water);
+  outline-offset: 2px;
+}
+.tb-sep {
+  flex: none;
+  width: 1px;
+  align-self: stretch;
+  margin: 4px 2px;
+  background: var(--tb-rule);
+}
+.tb-lbl {
+  flex: none;
+  color: var(--tb-ink-2);
+  font-size: 13px;
+  padding: 0 2px 0 6px;
+}
+.tb-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 5px;
+  border-radius: 50%;
+  background: #f0a030;
+}
+.tb-acres {
+  flex: none;
+  margin-left: 4px;
+  padding: 0 4px 0 8px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* A refused tap: a ring that fades out, and a short note above the bar. */
+.tb-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  pointer-events: none;
+  animation: tb-pulse 0.6s ease-out forwards;
+}
+@keyframes tb-pulse {
+  from {
+    box-shadow: 0 0 0 0 rgba(240, 160, 48, 0.9);
+  }
+  to {
+    box-shadow: 0 0 0 10px rgba(240, 160, 48, 0);
+  }
+}
+.tb-nudge {
+  position: absolute;
+  z-index: 15;
+  left: 12px;
+  right: 12px;
+  bottom: calc(var(--sheet-h, 0px) + 74px);
+  margin-inline: auto;
+  width: fit-content;
+  padding: 3px 9px;
+  border-radius: 5px;
+  font-size: 12.5px;
+  color: var(--tb-ink);
+  background: rgba(28, 38, 32, 0.78);
+  pointer-events: none;
+  animation: tb-nudge 1.6s ease-in forwards;
+}
+@keyframes tb-nudge {
+  0%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+/* The map's bottom corner controls (attribution) sit above the parcel toolbar. */
+.explore-map .maplibregl-ctrl-bottom-left,
+.explore-map .maplibregl-ctrl-bottom-right {
+  bottom: 78px;
+}
+.map-search {
+  position: absolute;
+  z-index: 10;
+  top: 10px;
+  left: 52px;
+  display: flex;
+  gap: 6px;
+}
+.map-search .field {
+  width: 220px;
+  padding: 6px 9px;
+  font-size: 13.5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  .toolbar {
+    bottom: calc(var(--sheet-h) + 10px);
+    padding: 5px;
+    gap: 3px;
+  }
+  .tb-btn {
+    padding: 6px 7px;
+    font-size: 13px;
+  }
+  .tb-btn.icon {
+    padding: 6px 5px;
+  }
+  .tb-sep {
+    margin: 4px 1px;
+  }
+  .tb-lbl {
+    font-size: 12px;
+    padding-left: 2px;
+  }
+  .tb-acres {
+    padding-left: 4px;
+    margin-left: 0;
+  }
+  .tb-status .long {
+    display: none;
+  }
+  .tb-nudge {
+    bottom: calc(var(--sheet-h) + 62px);
+  }
+  .map-search .field {
+    width: 150px;
+  }
+  .explore-map .maplibregl-ctrl-bottom-left,
+  .explore-map .maplibregl-ctrl-bottom-right {
+    bottom: calc(var(--sheet-h) + 70px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tb-pulse,
+  .tb-nudge {
+    animation-duration: 0.01s;
+  }
 }

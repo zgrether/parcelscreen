@@ -23,7 +23,6 @@ import {
   decideTap,
   exploreReducer,
   INITIAL,
-  MODE_HINT,
   type ExploreAction,
   type ExploreState,
   type Mode,
@@ -53,6 +52,8 @@ export interface ExploreController {
   pieces: SplitPieces | null;
   /** The combination of the picked parcels, once there are two. */
   combined: CombineResult | null;
+  /** Bumped each time a tap is refused because a built parcel is open; the toolbar shows a brief note. */
+  nudge: number;
   map: MlMap | null;
   setMap(map: MlMap | null): void;
   setMode(mode: Mode): void;
@@ -65,6 +66,9 @@ export interface ExploreController {
   setHouse(ll: LatLon | null): void;
   startDraw(): void;
   addCorner(ll: LatLon): void;
+  undoCorner(): void;
+  /** Esc or Cancel: whatever tool is in progress stops, nothing changes. */
+  cancelTool(): void;
   finishDraw(): void;
   cancelDraw(): void;
   startSplit(): void;
@@ -110,6 +114,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     setState(latest.current);
   }, []);
   const [map, setMap] = useState<MlMap | null>(null);
+  const [nudge, setNudge] = useState(0);
   const lookup = useRef<AbortController | null>(null);
 
   const { store } = state;
@@ -152,7 +157,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
   const setMode = useCallback(
     (mode: Mode) => {
       dispatch({ type: "mode", mode });
-      hint(mode ? MODE_HINT[mode] : "");
+      hint("");
     },
     [dispatch, hint],
   );
@@ -165,6 +170,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     saved,
     pieces,
     combined,
+    nudge,
     map,
     setMap,
     setMode,
@@ -179,8 +185,8 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       if (o.kind === "close") dispatch({ type: "close" });
       else if (o.kind === "select") dispatch({ type: "select", record: o.record, stamp: stamp() });
       else if (o.kind === "openSaved") dispatch({ type: "openSaved", key: o.key });
-      // A built parcel stays open until it's closed: say so, briefly.
-      else if (o.kind === "nudge") return flash(hint, "Tap it again to close it", 1600);
+      // A built parcel stays open until it's closed: the toolbar says so, briefly.
+      else if (o.kind === "nudge") return setNudge((n) => n + 1);
       if (o.kind !== "none") hint("");
     },
     close() {
@@ -200,10 +206,21 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     startDraw() {
       dispatch({ type: "startDraw" });
-      hint(MODE_HINT.draw);
+      hint("");
     },
     addCorner(ll) {
       dispatch({ type: "draftAdd", ll });
+    },
+    undoCorner() {
+      dispatch({ type: "draftUndo" });
+    },
+    cancelTool() {
+      const m = latest.current.mode;
+      if (m === "draw") dispatch({ type: "draftCancel" });
+      else if (m === "split" || (!m && latest.current.split)) dispatch({ type: "splitCancel" });
+      else if (m === "combine") dispatch({ type: "combineCancel" });
+      else if (m) dispatch({ type: "mode", mode: null });
+      hint("");
     },
     finishDraw() {
       if (latest.current.draft.length < 3) return hint("Need at least three corners");
@@ -216,16 +233,10 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     startSplit() {
       dispatch({ type: "startSplit" });
-      hint(
-        latest.current.split
-          ? "Drag the end markers to move the line, then pick the piece to keep"
-          : MODE_HINT.split,
-      );
+      hint("");
     },
     splitTap(ll) {
-      const split = latest.current.split;
       dispatch({ type: "splitTap", ll });
-      if (split && !split.b) flash(hint, "Drag the end markers to adjust; use Fit to hit an acreage", 3000);
     },
     moveSplit(a, b) {
       dispatch({ type: "splitMove", a, b });
@@ -254,7 +265,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     startCombine() {
       dispatch({ type: "startCombine" });
-      hint(MODE_HINT.combine);
+      hint("");
     },
     async combineAt(ll, line) {
       if (line) return dispatch({ type: "combineToggle", parcel: parcelFromLine(line) });
@@ -266,8 +277,8 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
         const { parcel } = await pickParcelAt(browserHttp, parcelServices, ll, ctl.signal);
         if (parcel) {
           dispatch({ type: "combineToggle", parcel });
-          hint(MODE_HINT.combine);
-        } else hint("No parcel record here.");
+          hint("");
+        } else flash(hint, "No parcel record here.", 2000);
       } catch (e) {
         if (!(e instanceof CancelledError)) throw e;
       }

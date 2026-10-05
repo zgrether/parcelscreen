@@ -85,10 +85,13 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
       ref.current.finishDraw();
     };
     const onKey = (e: KeyboardEvent) => {
-      if (ref.current.current().mode !== "draw") return;
+      const c = ref.current,
+        { mode, split } = c.current();
+      if (!mode && !split) return;
       if ((e.target as HTMLElement | null)?.closest("input,select,textarea")) return;
-      if (e.key === "Enter") ref.current.finishDraw();
-      if (e.key === "Escape") ref.current.cancelDraw();
+      if (e.key === "Escape") c.cancelTool();
+      if (e.key === "Enter" && mode === "draw") c.finishDraw();
+      if (e.key === "Enter" && mode === "combine" && c.combined?.ok) c.applyCombination();
     };
     map.on("click", onClick);
     map.on("dblclick", onDblClick);
