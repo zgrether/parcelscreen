@@ -106,6 +106,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   border-radius: 6px; padding: 8px 10px; font: inherit; font-size: 13.5px; line-height: 1.45; }
 .np-body textarea::placeholder { color: var(--lp-ink-2); }
 .np-foot { color: var(--lp-ink-2); font-size: 12px; }
+.bar .hdot { display: inline-block; width: 6px; height: 6px; margin-left: 5px; border-radius: 50%; background: var(--amber); vertical-align: middle; }
 .bar .lbl { flex: none; color: var(--bar-ink-2); font-size: 13px; padding: 0 2px 0 6px; }
 .lp-head { display: flex; justify-content: space-between; align-items: center; padding: 8px 8px 8px 10px; border-bottom: 1px solid var(--lp-rule); }
 .lp-head b { font: 600 12px/1 var(--sans); letter-spacing: .14em; color: var(--lp-ink-2); }
@@ -161,8 +162,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   .app.typing .panel, .app.typing .bar { display: none; }
   .app.typing .lp { bottom: 8px; }
   .bar .lbl { padding-left: 2px; font-size: 12px; }
-  .bar { gap: 3px; }
-  .bar button { padding: 6px 7px; }
+  .bar { gap: 2px; }
+  .bar button { padding: 6px 6px; }
+  .bar .sep { margin: 4px 1px; }
   .bar .trash { padding: 6px 4px; }
   .search input { width: 170px; }
   .lrow .del { visibility: visible; }
@@ -174,7 +176,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   <aside class="panel">
     <header>
       <div><h1>Parcel Screen</h1><div class="sub">Kill parcels from your desk, before you drive.</div></div>
-      <span class="badge">Mockup · 13e v9</span>
+      <span class="badge">Mockup · 13e v10</span>
     </header>
     <div class="scroll">
       <div class="try" id="try">
@@ -182,12 +184,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
         <b>Try it</b> <span class="tiny muted">(example parcels and results; simplified geometry)</span>
         <ol class="tiny">
           <li>Tap <b>52-47A</b> to select it; tap it again to unselect. Select it and tap the <b>acres</b> on the toolbar: the <b>Info</b> panel opens, with <b>Layers</b> and <b>Notes</b> tabs.</li>
-          <li><b>Add: Select</b>, tap <b>52-42A</b> and <b>52-61</b> (across the road), <b>Done</b>. Each part is a layer; the road strip too.</li>
-          <li><b>Add: Draw</b> a corner the county has no record of, right onto the parcel: its corners snap to the parcel's corners and edges.</li>
+          <li><b>Add: Parcel</b>, tap <b>52-42A</b> and <b>52-61</b> (across the road), <b>Done</b>. Each part is a layer; the road strip too.</li>
+          <li><b>Add: Custom</b>: draw a corner the county has no record of, right onto the parcel. Its corners snap to the parcel's corners and edges.</li>
           <li><b>Notes</b> tab: saved with the parcel as you type; the tab shows a dot when there are notes.</li>
           <li>Select a layer to see its <b>Info</b> and highlight it. <b>×</b> takes a parcel back out.</li>
           <li><b>Split</b>: tap two points, drag the ends, tap the piece to keep. In the Layers tab the parcel then shows what it's <b>made from</b> and its <b>2 pieces</b>; tap ○ to keep the other.</li>
-          <li><b>House</b>, tap to place. Tap the bulls-eye: its layer is selected; hide it or delete it.</li>
+          <li><b>Add: House</b>, tap to place. Tap the bulls-eye: its layer is selected; hide it or delete it.</li>
           <li><b>Run screen (example)</b> below: results arrive as layers. Hide the horizon, remove site #2 from the analysis.</li>
           <li>Tap the built parcel (or empty map) to close it: it stays on the map (amber) and in <b>History</b>. Tap it to reopen. The <b>trash</b> on the toolbar deletes it.</li>
         </ol>
@@ -649,7 +651,12 @@ function bar(titleHtml, items, bad) {
   for (const x of items) b.appendChild(x);
 }
 function renderBar() {
-  if (!cur && !tool) return bar(`Tap a parcel to select it`, [button("Draw a parcel", "tool", () => startTool("draw"))]);
+  if (!cur && !tool) {
+    // Two separate ways in: pick a county parcel on the map, or draw one.
+    const sp = document.createElement("span"); sp.className = "sep";
+    const or = document.createElement("span"); or.className = "lbl"; or.textContent = "or";
+    return bar(`Tap a parcel to select it`, [sp, or, button("Draw a custom parcel", "tool", () => startTool("draw"))]);
+  }
   const cancel = button("Cancel", "quiet", endTool);
   if (tool?.kind === "parcels") {
     const c = combine(tool.ids), tot = tool.ids.reduce((t, i) => t + ac(byId[i].pts), 0), n = tool.ids.length;
@@ -662,7 +669,7 @@ function renderBar() {
   }
   if (tool?.kind === "draw") {
     const n = tool.pts.length, a = n >= 3 ? ` · ${fmt(ac(tool.pts))} ac` : "";
-    return bar(n ? `<b>${n} corner${n > 1 ? "s" : ""}</b><span class="sub2">${a}</span>` : cur ? `Tap each corner of the shape to add <span class="sub2">· corners snap to the parcel</span>` : `Tap each corner of the parcel`, [button("Undo corner", "quiet", () => { tool.pts.pop(); render(); }, { disabled: !n }), button("Finish", "go", finishDraw, { disabled: n < 3 }), cancel]);
+    return bar(n ? `<b>${n} corner${n > 1 ? "s" : ""}</b><span class="sub2">${a}</span>` : cur ? `Tap each corner of the custom shape <span class="sub2">· corners snap to the parcel</span>` : `Tap each corner of the custom parcel`, [button("Undo corner", "quiet", () => { tool.pts.pop(); render(); }, { disabled: !n }), button("Finish", "go", finishDraw, { disabled: n < 3 }), cancel]);
   }
   if (tool?.kind === "house") return bar("Tap where the house stands", [cancel]);
   const built = isBuilt(cur);
@@ -672,6 +679,8 @@ function renderBar() {
   const acres = button("", "acres", () => { lpOpen = !lpOpen; render(); }, { expanded: lpOpen, title: lpOpen ? "Hide the Info panel" : "Info: layers and notes" });
   acres.innerHTML = `${fmt(dv.acres)} ac<span class="caret" aria-hidden="true">▾</span>`;
   const sep = () => { const x = document.createElement("span"); x.className = "sep"; return x; };
+  // House shows an amber dot once it is marked (the same marker as the Notes tab).
+  const houseBtn = () => { const b = button("House", "tool", () => startTool("house"), { title: cur.house ? "House marked; tap to move it" : "Mark the existing house" }); if (cur.house) b.insertAdjacentHTML("beforeend", '<span class="hdot" aria-label="marked"></span>'); return b; };
   const lbl = (t) => { const x = document.createElement("span"); x.className = "lbl"; x.textContent = t; return x; };
   const trash = button("", "trash", () => { confirmDelete = true; renderBar(); }, { title: "Delete this parcel" });
   trash.setAttribute("aria-label", "Delete this parcel");
@@ -679,11 +688,11 @@ function renderBar() {
   // Adding together (pick existing parcels, draw a custom area), then changing it (split, house).
   bar("", [
     lbl("Add:"),
-    button("Select", "tool", () => startTool("parcels"), { title: "Select county parcels to add (or take out)" }),
-    button("Draw", "tool", () => startTool("draw"), { title: "Draw a shape to add, like a corner with no county record" }),
+    button("Parcel", "tool", () => startTool("parcels"), { title: "Add county parcels (or take one out)" }),
+    button("Custom", "tool", () => startTool("draw"), { title: "Draw a custom shape to add, like a corner with no county record" }),
+    houseBtn(),
     sep(),
     button("Split", "tool", () => startTool("split")),
-    button(cur.house ? "House ✓" : "House", "tool", () => startTool("house")),
     ...(built ? [sep(), trash] : []),
     acres,
   ]);

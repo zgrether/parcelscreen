@@ -1,7 +1,7 @@
 # Step 13e: parcel tools on the map (plan)
 
-Status: **proposal v3.5, for the owner's approval before any code.** Revised after the owner's review of
-mockups v2–v8 on 2026-10-05. Clickable mockup (v9): https://claude.ai/artifact/LB3hFM9oJVPaCzK17GS23u (source:
+Status: **proposal v3.6, for the owner's approval before any code.** Revised after the owner's review of
+mockups v2–v9 on 2026-10-05. Clickable mockup (v10): https://claude.ai/artifact/LB3hFM9oJVPaCzK17GS23u (source:
 `phase-0-13e-mockup.html`, beside this file). It uses made-up parcels and made-up results with simplified
 geometry, so it shows the interaction, not the real data.
 
@@ -21,10 +21,10 @@ together (owner's review, 2026-10-05):
 ## 2. The idea
 
 - **Select by tapping.** Tap a parcel to select it, and tap it again (or empty map) to unselect it.
-- **A one-line toolbar** on the map: **Add: Select · Draw │ Split · House │ 🗑**, then the total acres as a
-  quiet link with a caret. "Add:" is a label over the two ways of adding: **Select** county parcels, or
-  **Draw** a custom shape (a corner the county has no record of; with nothing selected, a new parcel). The
-  trash appears only on a built parcel.
+- **A one-line toolbar** on the map: **Add: Parcel · Custom · House │ Split │ 🗑**, then the total acres as a
+  quiet link with a caret. "Add:" is a label over what you can add: county **Parcel**s, a **Custom** shape
+  (a corner the county has no record of), and the **House**. The trash appears only on a built parcel.
+- **Nothing selected:** two separate paths: "Tap a parcel to select it │ or **Draw a custom parcel**".
 - **The acres link opens the Info panel,** a dark, see-through scrim over the map, with two tabs:
   - **Layers**, like Figma's or Photoshop's. Everything on the parcel is a layer you can select, hide or
     delete: the parts, the road strip, the split, the house, and the screen's results. The selected layer's
@@ -95,22 +95,27 @@ fill and the selected one didn't, which was backwards (owner).
 ### The toolbar: one line, always
 
 ```
-Add: [Select] [Draw] │ [Split] [House] │ 🗑   167.18 ac ▾
+Add: [Parcel] [Custom] [House•] │ [Split] │ 🗑   167.18 ac ▾
 ```
 
-- **Nothing selected:** "Tap a parcel to select it · Draw a parcel".
+The amber dot on House means a house is marked. It's narrower than a ✓, so the toolbar keeps to one line
+on a 390 px phone (365 px with every button showing).
+
+- **Nothing selected:** "Tap a parcel to select it", then a divider and "or **Draw a custom parcel**", so
+  the two ways in read as separate paths.
 - **A tool in use:** one line of status plus its controls (Done, Cancel, Fit and so on). Esc cancels; Enter
   finishes.
-  - **Add: Select** adds or removes county parcels, so it also uncombines. Parts show amber, and a road gap shows as
+  - **Add: Parcel** adds or removes county parcels, so it also uncombines. Parts show amber, and a road gap shows as
     bridged. Parcels too far apart turn the status red, with the distance.
   - **Split:** tap two points, drag the ends while each piece's acres update on the map, then tap the piece
     to keep. The toolbar only says what to do, plus Cancel. The prototype's fit-to-acres controls are dropped
     (owner: dragging is enough). The cut goes across everything.
-  - **Add: Draw:** with nothing selected it makes a new parcel. With one selected it **adds** the drawn shape
+  - **Add: Custom** (and "Draw a custom parcel" when nothing is selected): with nothing selected it makes a
+    new parcel. With one selected it **adds** the drawn shape
     as another part, for example a corner that's being sold but has no county parcel. Corners **snap** to the
     parcel's corners and edges (within 14 px), so the shapes join with no sliver. An overlap is counted once
     (the union). The prompt reads "Tap each corner of the shape to add · corners snap to the parcel".
-  - **House:** tap to place it.
+  - **Add: House:** tap to place it.
 - **🗑 Delete** (built parcels only) turns the toolbar into an inline confirm: "Delete this parcel? It leaves
   History and the map. [Delete] [Keep]". No modal, and no need to open Layers. A plain parcel has nothing
   to delete; you tap to unselect it.
@@ -254,12 +259,13 @@ last changed, plus Open and Remove (with a "Remove it? Yes · No" confirm).
 16. **Notes don't belong in the Layers panel.**
 17. **Notes and Layers are tabs in one panel, the Info panel,** opened only from the toolbar's acres link
     (no Notes button on the map). Notes come in 13e-5.
-18. **Add: Select · Draw.** "Add:" is a label over Select (county parcels) and Draw (a custom shape, such
-    as an unrecorded corner). *Used "Select" for the owner's "selection"; confirm.*
+18. **Add: is a label over the ways of adding** (now Parcel · Custom · House, see 22).
 19. **Drawn corners snap** to the selected parcel's corners and edges.
 20. **Selected is the strongest state:** bold amber with a fill. Saved, unselected parcels are a thin amber
     outline with no fill.
 21. **Tabs are small and plain.** Typing a note never loses focus or the keyboard.
+22. **Toolbar names and order:** Add: **Parcel · Custom · House** │ Split. With nothing selected: "Tap a
+    parcel to select it │ or Draw a custom parcel", two separate paths.
 
 Still to confirm:
 - **Should unselecting a built parcel** also close the Info panel (as in the mockup), or keep it open,
