@@ -1,7 +1,7 @@
 # Step 13e: parcel tools on the map (plan)
 
-Status: **proposal v3.2, for the owner's approval before any code.** Revised after the owner's review of
-mockups v2–v5 on 2026-10-05. Clickable mockup (v6): https://claude.ai/artifact/LB3hFM9oJVPaCzK17GS23u (source:
+Status: **proposal v3.3, for the owner's approval before any code.** Revised after the owner's review of
+mockups v2–v6 on 2026-10-05. Clickable mockup (v7): https://claude.ai/artifact/LB3hFM9oJVPaCzK17GS23u (source:
 `phase-0-13e-mockup.html`, beside this file). It uses made-up parcels and made-up results with simplified
 geometry, so it shows the interaction, not the real data.
 
@@ -21,9 +21,11 @@ together (owner's review, 2026-10-05):
 ## 2. The idea
 
 - **Select by tapping.** Tap a parcel to select it, and tap it again (or empty map) to unselect it.
-- **A one-line toolbar** on the map: **Add · Draw │ Split · House │ 🗑**, then the total acres as a quiet link
-  with a caret. The ways of adding sit together: Add picks existing parcels, Draw adds a custom shape (or
-  starts a new parcel). The trash appears only on a built parcel.
+- **A one-line toolbar** on the map: **Add: Select · Draw │ Split · House │ 🗑**, then the total acres as a
+  quiet link with a caret. "Add:" is a label over the two ways of adding: **Select** county parcels, or
+  **Draw** a custom shape (a corner the county has no record of; with nothing selected, a new parcel). The
+  trash appears only on a built parcel.
+- **Notes** get their own see-through panel on the map, which looks and behaves like Layers.
 - **The acres link opens a Layers + Info panel,** like Figma's or Photoshop's. Everything on the parcel is a
   layer you can select, hide or delete: the parts, the road strip, the split, the house, and the screen's
   results. Info shows what you selected and holds the things that had nowhere else to go, such as the facts.
@@ -44,7 +46,8 @@ interface BuiltParcel {
   key: string;
   recipe: ParcelRecipe;
   house: LatLon | null;
-  notes: string;            // where it shows is still open (§7)
+  notes: string;            // shown in the Notes panel (§4)
+  notesAt: string | null;
   /** Layers the user hid (by layer id); results the user removed from the analysis. */
   hidden: string[];
   excluded: string[];
@@ -79,19 +82,21 @@ interface BuiltParcel {
 ### The toolbar: one line, always
 
 ```
-[Add] [Draw] │ [Split] [House] │ 🗑   167.18 ac ▾
+Add: [Select] [Draw] │ [Split] [House] │ 🗑   167.18 ac ▾
 ```
 
 - **Nothing selected:** "Tap a parcel to select it · Draw a parcel".
 - **A tool in use:** one line of status plus its controls (Done, Cancel, Fit and so on). Esc cancels; Enter
   finishes.
-  - **Add** adds or removes county parcels, so it also uncombines. Parts show amber, and a road gap shows as
+  - **Add: Select** adds or removes county parcels, so it also uncombines. Parts show amber, and a road gap shows as
     bridged. Parcels too far apart turn the status red, with the distance.
   - **Split:** tap two points, drag the ends while each piece's acres update on the map, then tap the piece
     to keep. The toolbar only says what to do, plus Cancel. The prototype's fit-to-acres controls are dropped
     (owner: dragging is enough). The cut goes across everything.
-  - **Draw:** with nothing selected it makes a new parcel; with one selected it **adds** the drawn shape as
-    another part. Where it overlaps the parcel it's counted once (the union).
+  - **Add: Draw:** with nothing selected it makes a new parcel. With one selected it **adds** the drawn shape
+    as another part, for example a corner that's being sold but has no county parcel. Corners **snap** to the
+    parcel's corners and edges (within 14 px), so the shapes join with no sliver. An overlap is counted once
+    (the union). The prompt reads "Tap each corner of the shape to add · corners snap to the parcel".
   - **House:** tap to place it.
 - **🗑 Delete** (built parcels only) turns the toolbar into an inline confirm: "Delete this parcel? It leaves
   History and the map. [Delete] [Keep]". No modal, and no need to open Layers. A plain parcel has nothing
@@ -151,6 +156,17 @@ INFO  (the selected layer)
 - **Info for an analysis item:** its numbers (score, slope, sun, cost, soil), plus Hide and Remove from
   analysis.
 
+### Notes (its own panel)
+
+- **Look and behavior:** the same dark, see-through scrim and header as Layers, with × to close.
+- **Where it sits:** on desktop, the map's left, under the search box (Layers is on the right, so both can
+  be open). On phones, the same slot above the toolbar as Layers; opening one closes the other, and the
+  sheet drops to peek.
+- **Opening it:** a small **Notes** button on the map (top left), with an amber dot once the parcel has
+  notes.
+- **Contents:** the parcel's name, a free-text box, and "Saved …" with the time. Notes save as you type
+  (debounced) and belong to the parcel. Typing a note makes a plain parcel built, so it's kept in History.
+
 ### Side panel
 
 **Screen it** (step 14) and **History**: every built parcel, newest first, with its acres and when it was
@@ -167,6 +183,8 @@ last changed, plus Open and Remove (with a "Remove it? Yes · No" confirm).
 - **New:**
   - the one-line toolbar;
   - the Layers + Info panel (select, hide, delete; the split shown as its pieces);
+  - the Notes panel;
+  - snapping when drawing onto a parcel;
   - built parcels kept forever in History and on the map;
   - Draw adding to a parcel;
   - tap to unselect;
@@ -193,10 +211,14 @@ last changed, plus Open and Remove (with a "Remove it? Yes · No" confirm).
    saved parcels on the map, the History list and the search field. Remove the panel's tool row and the
    pick mode.
 3. **13e-3 Tools:** + Parcels, Split (on-map labels, tap a piece to keep it), Draw (new or added), House.
-4. **13e-4 Layers + Info:** the tree, hide and delete, map ↔ list selection, Info per layer type, and Notes.
-   Analysis layers arrive with steps 14–15; this PR builds the slots for them.
-5. **13e-5 Phone polish:** the sheet dropping to peek while a tool or the panel is open, the panel above the
-   toolbar, and touch targets.
+4. **13e-4 Layers + Info:** the scrim panel component, the tree, hide and delete, map ↔ list selection,
+   Info per layer type, and the split shown as its pieces. Analysis layers arrive with steps 14–15; this PR
+   builds the slots for them.
+5. **13e-5 Notes:** the Notes panel on the same scrim component, its button and dot, and saving with the
+   parcel. It comes right after Layers because it reuses that component (owner: "whenever it makes
+   sense").
+6. **13e-6 Phone polish:** the sheet dropping to peek while a tool or panel is open, one panel at a time
+   above the toolbar, and the one-line toolbar at 390 px (measured 364 px with every button).
 
 ## 7. Decisions (owner, 2026-10-05)
 
@@ -216,9 +238,12 @@ last changed, plus Open and Remove (with a "Remove it? Yes · No" confirm).
 14. **A split shows as its result** in Layers: Made from, plus the two pieces, kept ● or other ○.
 15. **No fit-to-acres** in the split tool. Drag the line, then tap the piece to keep.
 16. **Notes don't belong in the Layers panel.**
+17. **A separate Notes panel** on the map, looking and behaving like Layers, scheduled where it fits
+    (13e-5).
+18. **Add: Select · Draw.** "Add:" is a label over Select (county parcels) and Draw (a custom shape, such
+    as an unrecorded corner). *Used "Select" for the owner's "selection"; confirm.*
+19. **Drawn corners snap** to the selected parcel's corners and edges.
 
 Still to confirm:
-- **Where should notes live,** if anywhere in Phase 0? Proposed: a short Notes box in the side panel under
-  Screen it, saved with the parcel and shown in History. Or leave them for Phase 1's library.
 - **Should unselecting a built parcel** also close the Layers panel (as in the mockup), or keep it open,
   empty, until you select another?
