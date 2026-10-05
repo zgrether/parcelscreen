@@ -10,6 +10,7 @@ import type { Feature, Polygon } from "geojson";
 import { createHttpClient, type HttpClient } from "../http";
 import { DemCache } from "./dem";
 import { evaluateAt, screen, setHouse, type ScreenOutput, type ScreenSession } from "./index";
+import type { OverpassFallback } from "./places";
 import type { Surfaces } from "./sites";
 import { AtlasCache } from "./sky";
 import type { SoilUnit } from "./soils";
@@ -75,6 +76,8 @@ export interface WorkerCoreOptions {
   /** Defaults to a browser-mode client (no custom headers). */
   http?: HttpClient;
   sleep?: (ms: number) => Promise<void>;
+  /** The browser entry passes the server route (see places.ts); tests leave it unset. */
+  overpass?: OverpassFallback;
 }
 
 /** The worker's state machine. One instance per worker; caches live for the worker's lifetime (the session). */
@@ -120,6 +123,7 @@ export class ScreenWorkerCore {
         demCache: this.demCache,
         atlas: this.atlas,
         ...(this.opts.sleep ? { sleep: this.opts.sleep } : {}),
+        ...(this.opts.overpass ? { overpass: this.opts.overpass } : {}),
       });
       if (!live()) return;
       this.outputs.clear(); // only the latest run can be re-evaluated

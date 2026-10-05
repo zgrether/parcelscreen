@@ -23,10 +23,13 @@ const START = { lat: 36.62, lon: -81.35, z: 9 };
 export function MapView({
   lpAtlasTiles,
   lpYear,
+  onMap,
   children,
 }: {
   lpAtlasTiles: string;
   lpYear: number;
+  /** Called with the map once its style has loaded, and with null when it goes away. */
+  onMap?: (map: MlMap | null) => void;
   children?: ReactNode;
 }) {
   const container = useRef<HTMLDivElement>(null);
@@ -54,6 +57,8 @@ export function MapView({
       m.remove();
     };
   }, [lpAtlasTiles, lpYear]);
+
+  useEffect(() => onMap?.(map), [map, onMap]);
 
   return (
     <div className="absolute inset-0 bg-[#cfd6cb]">

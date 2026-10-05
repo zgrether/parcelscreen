@@ -4,14 +4,27 @@
  * uses (proto refreshLines, L549–560): refreshed 350 ms after the map stops moving; a newer view cancels an
  * older request so only the latest one draws.
  */
-import type { GeoJSONSource, Map as MlMap } from "maplibre-gl";
+import type { GeoJSONSource, Map as MlMap, PointLike } from "maplibre-gl";
 import { useEffect } from "react";
 import { browserHttp } from "@/lib/client/http";
-import { parcelsInBounds } from "@/lib/geo/parcels";
+import { parcelsInBounds, type ParcelLine } from "@/lib/geo/parcels";
 import { LAYER, SOURCE } from "./style";
 
-const EMPTY = { type: "FeatureCollection" as const, features: [] };
 export const ZOOM_HINT = "Zoom in to 15+ to see parcel lines";
+
+/** The outlines currently drawn on each map, as the services returned them. */
+const drawn = new WeakMap<MlMap, ParcelLine[]>();
+
+/**
+ * The outline under a screen point, as the service returned it. (The map's rendered features are clipped to
+ * tiles, so they can't stand in for the boundary; each drawn feature carries its index here instead.)
+ */
+export function outlineAt(map: MlMap, point: PointLike): ParcelLine | null {
+  if (!map.getLayer(LAYER.parcelLinesFill)) return null;
+  const hit = map.queryRenderedFeatures(point, { layers: [LAYER.parcelLinesFill] })[0];
+  const i = hit?.properties?._i;
+  return typeof i === "number" ? (drawn.get(map)?.[i] ?? null) : null;
+}
 
 export function useParcelLines(
   map: MlMap | null,
@@ -25,8 +38,15 @@ export function useParcelLines(
     const visibility = enabled ? "visible" : "none";
     map.setLayoutProperty(LAYER.parcelLines, "visibility", visibility);
     map.setLayoutProperty(LAYER.parcelLinesFill, "visibility", visibility);
+    const show = (lines: ParcelLine[]) => {
+      drawn.set(map, lines);
+      source()?.setData({
+        type: "FeatureCollection",
+        features: lines.map((l, i) => ({ ...l.feature, properties: { ...l.feature.properties, _i: i } })),
+      });
+    };
     if (!enabled) {
-      source()?.setData(EMPTY);
+      show([]);
       hint((h) => (h === ZOOM_HINT ? "" : h));
       return;
     }
@@ -34,7 +54,7 @@ export function useParcelLines(
     let inflight: AbortController | null = null;
     const refresh = async () => {
       if (map.getZoom() < 15) {
-        source()?.setData(EMPTY);
+        show([]);
         hint((h) => (map.getZoom() >= 13 ? ZOOM_HINT : h === ZOOM_HINT ? "" : h));
         return;
       }
@@ -51,13 +71,7 @@ export function useParcelLines(
           ctl.signal,
         );
         if (inflight !== ctl) return;
-        source()?.setData({
-          type: "FeatureCollection",
-          features: lines.map((l) => ({
-            ...l.feature,
-            properties: { ...l.feature.properties, _src: l.source },
-          })),
-        });
+        show(lines);
       } catch {
         /* cancelled by a newer view, or every service failed: leave the last outlines */
       }

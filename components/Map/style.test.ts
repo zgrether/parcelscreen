@@ -17,6 +17,19 @@ describe("map style", () => {
     expect(at(LAYER.scrim)).toBeLessThan(at(LAYER.parcelLines));
   });
 
+  it("draws the loaded parcel above the outlines, then the split, then the boundary being drawn", () => {
+    expect(layerIds.slice(layerIds.indexOf(LAYER.parcelLines) + 1)).toEqual([
+      LAYER.parcelHalo,
+      LAYER.parcelFill,
+      LAYER.parcelLine,
+      LAYER.splitFill,
+      LAYER.splitLine,
+      LAYER.splitCut,
+      LAYER.draftLine,
+      LAYER.draftPoints,
+    ]);
+  });
+
   it("shows only the chosen basemap", () => {
     const visible = style.layers
       .filter((l) => l.id.startsWith("base-") && l.layout?.visibility === "visible")

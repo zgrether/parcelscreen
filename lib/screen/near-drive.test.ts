@@ -12,7 +12,7 @@ import { driveTimes, drive } from "./drive";
 import { floodStep } from "./flood";
 import { nearStep } from "./near";
 import { padusStep } from "./padus";
-import { findPlaces, OverpassMirrors, PlacesError } from "./places";
+import { findPlaces, OverpassMirrors, overpassViaRoute, PlacesError } from "./places";
 import { nearestRoad, roadToSite, type RoadFeature } from "./roads";
 import { siteFlags } from "./sites";
 import { AtlasCache, computeSky, skyFlags } from "./sky";
@@ -180,6 +180,48 @@ describe("places fallbacks (synthetic)", () => {
       "https://photon.komoot.io/api/?q=hospital&osm_tag=amenity:hospital&lat=36.9&lon=-80.5&limit=5",
     );
     expect(out.near).toBeUndefined();
+  });
+
+  // Step 13: in the browser the Overpass fallback goes through the server route instead of the mirrors.
+  it("uses the injected Overpass fallback instead of the mirrors, with the same note and error text", async () => {
+    const asked: string[] = [];
+    const http = route((u) => {
+      asked.push(u);
+      return new Response("down", { status: 503 });
+    });
+    const calls: LatLon[] = [];
+    const ok = await findPlaces(
+      centre,
+      {
+        http,
+        endpoints: DEFAULT_ENDPOINTS,
+        overpass: async (c) => (calls.push(c), [hospital]),
+      },
+      new OverpassMirrors(),
+    );
+    expect(calls).toEqual([centre]);
+    expect(asked.every((u) => u.includes("photon"))).toBe(true);
+    expect(ok.nearNote).toBe("Places came from Overpass (Photon was unavailable).");
+    expect(ok.near.hospitals[0]!.name).toBe("Carilion");
+
+    const failed = await nearStep(centre, null, null, 10, {
+      http: route((u) =>
+        u.includes("tigerweb")
+          ? new Response(JSON.stringify({ features: [] }))
+          : new Response("", { status: 502 }),
+      ),
+      endpoints: DEFAULT_ENDPOINTS,
+      overpass: overpassViaRoute(
+        "https://parcelscreen.test/api/places/overpass",
+        route((u) => {
+          expect(u).toBe("https://parcelscreen.test/api/places/overpass?lat=36.9&lon=-80.5");
+          return Response.json({ error: "Overpass unreachable (overpass-api.de 406)" }, { status: 502 });
+        }),
+      ),
+    });
+    expect(failed.placesError!.message).toBe(
+      "Photon: Photon 502; Overpass: Overpass unreachable (overpass-api.de 406)",
+    );
   });
 
   // Deviation from the prototype (step 9 review): a places outage no longer takes the roads down with it.

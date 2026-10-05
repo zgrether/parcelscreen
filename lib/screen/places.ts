@@ -1,6 +1,11 @@
 /**
  * Hospitals, groceries and trailheads near the parcel, from OpenStreetMap via Photon (komoot), with the
  * Overpass mirrors as a fallback. Ported verbatim (proto L861–882, L1111–1128).
+ *
+ * Deviation (step 13 CORS check): no Overpass mirror answers a browser any more (overpass-api.de sends 406
+ * to browser User-Agents, openstreetmap.fr 403 "white-listed usages only", the other two time out), so in
+ * the browser the fallback goes through /api/places/overpass, which runs `overpassPlaces` server-side with
+ * an identifying User-Agent. In Node the mirrors are called directly, as before.
  */
 import { distance } from "@turf/turf";
 import { CancelledError, type HttpClient } from "../http";
@@ -10,16 +15,21 @@ import type { LatLon } from "./util";
 
 const K = SCREEN_CONSTANTS.near;
 
+/** Runs the three Overpass queries for a centre some other way (the browser: through the server route). */
+export type OverpassFallback = (centre: LatLon, signal?: AbortSignal) => Promise<OsmElement[]>;
+
 export interface PlacesDeps {
   http: HttpClient;
   endpoints: Endpoints;
   signal?: AbortSignal;
   /** The Overpass 429 wait; injectable so tests don't wait. */
   sleep?: (ms: number) => Promise<void>;
+  /** When set, replaces calling the Overpass mirrors directly. */
+  overpass?: OverpassFallback;
 }
 
 /** An OSM element as Overpass returns it; Photon results are reshaped into the same form. */
-interface OsmElement {
+export interface OsmElement {
   type: string;
   lat?: number;
   lon?: number;
@@ -100,6 +110,49 @@ export class OverpassMirrors {
   }
 }
 
+/** The Overpass fallback: hospitals, supermarkets and trailheads around a centre (proto L1117–1124). */
+export async function overpassPlaces(
+  centre: LatLon,
+  deps: PlacesDeps,
+  mirrors: OverpassMirrors,
+): Promise<OsmElement[]> {
+  const [lat, lon] = centre;
+  const box = (km: number) => {
+    const d = km / 111,
+      dx = d / Math.cos((lat * Math.PI) / 180);
+    return `${(lat - d).toFixed(4)},${(lon - dx).toFixed(4)},${(lat + d).toFixed(4)},${(lon + dx).toFixed(4)}`;
+  };
+  const e1s = await mirrors.query(
+    `[out:json][timeout:30][bbox:${box(K.hospitalKm)}];(node["amenity"="hospital"];way["amenity"="hospital"];);out center;`,
+    deps,
+  );
+  const e2s = await mirrors.query(
+    `[out:json][timeout:30][bbox:${box(K.groceryKm)}];(node["shop"="supermarket"];way["shop"="supermarket"];);out center;`,
+    deps,
+  );
+  const e3s = await mirrors.query(
+    `[out:json][timeout:30][bbox:${box(K.trailheadKm)}];(node["highway"="trailhead"];node["information"="trailhead"];);out;`,
+    deps,
+  );
+  return [...e1s, ...e2s, ...e3s];
+}
+
+/**
+ * The browser's Overpass fallback: GET `routeUrl?lat=…&lon=…`, which answers `{ elements }` or, when every
+ * mirror failed, a 502 with `{ error: "Overpass unreachable (…)" }`, the same message as calling them directly.
+ */
+export function overpassViaRoute(routeUrl: string, http: HttpClient): OverpassFallback {
+  return async (centre, signal) => {
+    const r = await http.fetch(`${routeUrl}?lat=${centre[0]}&lon=${centre[1]}`, {
+      timeoutMs: K.overpassRouteTimeoutMs,
+      ...(signal ? { signal } : {}),
+    });
+    const j = (await r.json().catch(() => ({}))) as { elements?: OsmElement[]; error?: string };
+    if (!r.ok) throw new Error(j.error || `Overpass route ${r.status}`);
+    return j.elements || [];
+  };
+}
+
 /** Both place sources failed; `link` is the "test the query" URL the step list shows. */
 export class PlacesError extends Error {
   constructor(
@@ -130,25 +183,10 @@ export async function findPlaces(
     if (!els.length) throw new Error("returned nothing");
   } catch (e1) {
     if (e1 instanceof CancelledError) throw e1;
-    const box = (km: number) => {
-      const d = km / 111,
-        dx = d / Math.cos((lat * Math.PI) / 180);
-      return `${(lat - d).toFixed(4)},${(lon - dx).toFixed(4)},${(lat + d).toFixed(4)},${(lon + dx).toFixed(4)}`;
-    };
     try {
-      const e1s = await mirrors.query(
-        `[out:json][timeout:30][bbox:${box(K.hospitalKm)}];(node["amenity"="hospital"];way["amenity"="hospital"];);out center;`,
-        deps,
-      );
-      const e2s = await mirrors.query(
-        `[out:json][timeout:30][bbox:${box(K.groceryKm)}];(node["shop"="supermarket"];way["shop"="supermarket"];);out center;`,
-        deps,
-      );
-      const e3s = await mirrors.query(
-        `[out:json][timeout:30][bbox:${box(K.trailheadKm)}];(node["highway"="trailhead"];node["information"="trailhead"];);out;`,
-        deps,
-      );
-      els = [...e1s, ...e2s, ...e3s];
+      els = deps.overpass
+        ? await deps.overpass(centre, deps.signal)
+        : await overpassPlaces(centre, deps, mirrors);
       nearNote = "Places came from Overpass (Photon was unavailable).";
     } catch (e2) {
       if (e2 instanceof CancelledError) throw e2;

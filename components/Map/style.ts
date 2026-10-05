@@ -8,6 +8,7 @@
  * with `bounds` and `maxzoom`, so MapLibre overzooms each one correctly.
  */
 import type {
+  FilterSpecification,
   LayerSpecification,
   RasterSourceSpecification,
   SourceSpecification,
@@ -83,9 +84,24 @@ export const LAYER = {
   scrim: "scrim",
   parcelLinesFill: "parcel-lines-fill",
   parcelLines: "parcel-lines",
+  parcelHalo: "parcel-halo",
+  parcelFill: "parcel-fill",
+  parcelLine: "parcel-line",
+  splitFill: "split-fill",
+  splitLine: "split-line",
+  splitCut: "split-cut",
+  draftLine: "draft-line",
+  draftPoints: "draft-points",
 } as const;
 
-export const SOURCE = { parcelLines: "parcel-lines" } as const;
+export const SOURCE = {
+  parcelLines: "parcel-lines",
+  parcel: "parcel",
+  split: "split",
+  draft: "draft",
+} as const;
+
+const EMPTY_FC = { type: "FeatureCollection" as const, features: [] };
 
 /** The whole style. Basemaps other than `base` start hidden; overlays start hidden. */
 export function buildStyle(opts: {
@@ -146,7 +162,7 @@ export function buildStyle(opts: {
     layout: { visibility: "none" },
     paint: { "fill-color": "#0b1410", "fill-opacity": 0.38 },
   });
-  sources[SOURCE.parcelLines] = { type: "geojson", data: { type: "FeatureCollection", features: [] } };
+  sources[SOURCE.parcelLines] = { type: "geojson", data: EMPTY_FC };
   layers.push(
     // Nearly transparent fill so a tap anywhere inside an outline hits it (step 13 selects on tap).
     {
@@ -160,6 +176,79 @@ export function buildStyle(opts: {
       type: "line",
       source: SOURCE.parcelLines,
       paint: { "line-color": "#f6e7a1", "line-width": 1.2, "line-opacity": 0.85 },
+    },
+  );
+  // The loaded parcel: a dark halo under a white outline (proto L690).
+  sources[SOURCE.parcel] = { type: "geojson", data: EMPTY_FC };
+  layers.push(
+    {
+      id: LAYER.parcelHalo,
+      type: "line",
+      source: SOURCE.parcel,
+      paint: { "line-color": "#0b1410", "line-width": 5, "line-opacity": 0.6 },
+    },
+    {
+      id: LAYER.parcelFill,
+      type: "fill",
+      source: SOURCE.parcel,
+      paint: { "fill-color": "#ffffff", "fill-opacity": 0.05 },
+    },
+    {
+      id: LAYER.parcelLine,
+      type: "line",
+      source: SOURCE.parcel,
+      paint: { "line-color": "#ffffff", "line-width": 2.5 },
+    },
+  );
+  // The split pieces, coloured per piece, and the dashed cut line (proto L612–615).
+  sources[SOURCE.split] = { type: "geojson", data: EMPTY_FC };
+  const isPolygon: FilterSpecification = ["==", ["geometry-type"], "Polygon"];
+  const isLine: FilterSpecification = ["==", ["geometry-type"], "LineString"];
+  layers.push(
+    {
+      id: LAYER.splitFill,
+      type: "fill",
+      source: SOURCE.split,
+      filter: isPolygon,
+      paint: { "fill-color": ["get", "color"], "fill-opacity": 0.12 },
+    },
+    {
+      id: LAYER.splitLine,
+      type: "line",
+      source: SOURCE.split,
+      filter: isPolygon,
+      paint: { "line-color": ["get", "color"], "line-width": 2 },
+    },
+    {
+      id: LAYER.splitCut,
+      type: "line",
+      source: SOURCE.split,
+      filter: isLine,
+      // Dashes are in line widths: Leaflet's "6 4" at weight 3.
+      paint: { "line-color": "#ffffff", "line-width": 3, "line-dasharray": [2, 4 / 3] },
+    },
+  );
+  // The boundary being drawn (proto L582–587).
+  sources[SOURCE.draft] = { type: "geojson", data: EMPTY_FC };
+  layers.push(
+    {
+      id: LAYER.draftLine,
+      type: "line",
+      source: SOURCE.draft,
+      filter: isLine,
+      paint: { "line-color": "#ffffff", "line-width": 2, "line-dasharray": [2, 2] },
+    },
+    {
+      id: LAYER.draftPoints,
+      type: "circle",
+      source: SOURCE.draft,
+      filter: ["==", ["geometry-type"], "Point"],
+      paint: {
+        "circle-radius": ["get", "r"],
+        "circle-color": ["get", "fill"],
+        "circle-stroke-color": "#ffffff",
+        "circle-stroke-width": 2,
+      },
     },
   );
   return { version: 8, sources, layers };

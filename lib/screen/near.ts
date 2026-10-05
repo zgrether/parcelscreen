@@ -8,7 +8,7 @@
  * regardless; only the places half is lost. The step still reports failure, via `placesError`.
  */
 import type { HttpClient } from "../http";
-import { findPlaces, OverpassMirrors, PlacesError } from "./places";
+import { findPlaces, OverpassMirrors, PlacesError, type OverpassFallback } from "./places";
 import { fetchRoads, roadToSite, type RoadFeature } from "./roads";
 import type { Dem, Endpoints, ScreenResult } from "./types";
 import type { LatLon } from "./util";
@@ -18,6 +18,7 @@ export interface NearDeps {
   endpoints: Endpoints;
   signal?: AbortSignal;
   sleep?: (ms: number) => Promise<void>;
+  overpass?: OverpassFallback;
 }
 
 export interface NearOutcome extends Pick<ScreenResult, "near" | "nearNote" | "road" | "roadNote"> {
