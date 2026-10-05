@@ -339,5 +339,6 @@ Supabase (auth, tables, Storage, atlas tile caching), API proxies (unless the CO
 8. **MultiPolygon parcels:** keep "first polygon only", with a visible note.
 9. **Fixtures:** plain git.
 10. **C4:** already fixed in the 2026-10-04 prototype; the port matches it.
+11. **Places outage (step 9 review, 2026-10-05):** when Photon and every Overpass mirror fail, keep the roads, the road grade and its flag, and fail only the 'near' step. The prototype lost all three, and with them the site driveway term and the driveway router's entrances. Done in PR 09b; step 10 asserts the driveway still routes during an outage.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.
