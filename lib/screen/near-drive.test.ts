@@ -165,26 +165,72 @@ describe("places fallbacks (synthetic)", () => {
     expect(r.nearNote).toBeDefined();
   });
 
-  it("when both fail: one error naming both, the 'test the query' link, and no roads (as before)", async () => {
-    let tigerAsked = 0;
-    const http = route((u) => {
-      if (u.includes("tigerweb")) {
-        tigerAsked++;
-        return new Response(JSON.stringify({ features: [] }));
-      }
-      return new Response("down", { status: 502 });
-    });
-    const err = await nearStep(centre, null, null, 10, { http, endpoints: DEFAULT_ENDPOINTS }).catch(
-      (e) => e,
+  it("when both fail: one error naming both, with the 'test the query' link", async () => {
+    const http = route((u) =>
+      u.includes("tigerweb")
+        ? new Response(JSON.stringify({ features: [] }))
+        : new Response("down", { status: 502 }),
     );
-    expect(err).toBeInstanceOf(PlacesError);
-    expect(err.message).toBe(
+    const out = await nearStep(centre, null, null, 10, { http, endpoints: DEFAULT_ENDPOINTS });
+    expect(out.placesError).toBeInstanceOf(PlacesError);
+    expect(out.placesError!.message).toBe(
       "Photon: Photon 502; Overpass: Overpass unreachable (overpass.kumi.systems 502; overpass.openstreetmap.fr 502; overpass.private.coffee 502; overpass-api.de 502)",
     );
-    expect(err.link).toBe(
+    expect(out.placesError!.link).toBe(
       "https://photon.komoot.io/api/?q=hospital&osm_tag=amenity:hospital&lat=36.9&lon=-80.5&limit=5",
     );
-    expect(tigerAsked).toBe(3); // fetched in parallel, then discarded
+    expect(out.near).toBeUndefined();
+  });
+
+  // Deviation from the prototype (step 9 review): a places outage no longer takes the roads down with it.
+  it("a places outage keeps the roads, the road grade and its flag", async () => {
+    // A 20% slope rising to the north; the site in the middle, a road ~100 m south of it.
+    const dWide: Dem = {
+      z: new Float32Array(100 * 100),
+      w: 100,
+      h: 100,
+      x0: 520000,
+      y0: 4090000,
+      res: 30,
+      resY: 30,
+      source: "USGS 3DEP",
+    };
+    for (let r = 0; r < 100; r++) for (let c = 0; c < 100; c++) dWide.z[r * 100 + c] = 0.2 * (100 - r) * 30;
+    const site = rcToLL(dWide, 50, 50);
+    const road = {
+      type: "Feature",
+      properties: { NAME: "Rock Castle Rd", MTFCC: "S1400" },
+      geometry: {
+        type: "LineString",
+        coordinates: [
+          [site[1] - 0.01, site[0] - 0.0009],
+          [site[1] + 0.01, site[0] - 0.0009],
+        ],
+      },
+    };
+    const http = route((u) =>
+      u.includes("/8/query")
+        ? new Response(JSON.stringify({ features: [road] }))
+        : u.includes("tigerweb")
+          ? new Response(JSON.stringify({ features: [] }))
+          : new Response("down", { status: 503 }),
+    );
+    const out = await nearStep(site, site, dWide, 10, {
+      http,
+      endpoints: DEFAULT_ENDPOINTS,
+      sleep: async () => {},
+    });
+    expect(out.placesError).toBeInstanceOf(PlacesError); // the step still fails…
+    expect(out.near).toBeUndefined();
+    expect(out.roads).toEqual([road]); // …but the roads come through,
+    expect(out.road!.name).toBe("Rock Castle Rd"); // with the straight-line grade,
+    // ~20%, quantized by sampling the rise at 30 m cell centres
+    expect(out.road!.gradePct).toBeGreaterThan(15);
+    expect(out.road!.gradePct).toBeLessThan(25);
+    expect(out.flags).toHaveLength(1); // and its warning.
+    expect(out.flags[0]!.t).toMatch(
+      /^Straight-line grade from Rock Castle Rd to the bench is \d+% over \d+ ft\./,
+    );
   });
 });
 
