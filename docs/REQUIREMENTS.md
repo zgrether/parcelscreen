@@ -30,9 +30,11 @@ interface ScreenOutput {
   session: ScreenSession;    // rasters and raw features; in memory only, never persisted
 }
 
-// Re-evaluate on an existing run (the prototype's tap-a-pin and mark-a-house). Return a new result.
-export function evaluateAt(out: ScreenOutput, ll: [lat, lon], label: string, deps?): Promise<ScreenResult>
-export function setHouse(out: ScreenOutput, ll: [lat, lon] | null, deps?): Promise<ScreenResult>
+// Re-evaluate on an existing run (the prototype's tap-a-pin and mark-a-house). Return a new output:
+// the result plus the session (the new skyline is session data the map and 3D fans draw from).
+export function evaluateAt(out: ScreenOutput, ll: [lat, lon], label: string): Promise<ScreenOutput>
+export function setHouse(out: ScreenOutput, ll: [lat, lon] | null): Promise<ScreenOutput>
+// input.evaluateAt is applied after the run, as evaluateAt(out, ll, "the evaluation point").
 
 interface ScreenInput {
   polygon: GeoJSON.Polygon;           // WGS84
