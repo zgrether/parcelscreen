@@ -1,7 +1,7 @@
 # Step 13e: parcel tools on the map (plan)
 
-Status: **proposal v3.6, for the owner's approval before any code.** Revised after the owner's review of
-mockups v2–v9 on 2026-10-05. Clickable mockup (v10): https://claude.ai/artifact/LB3hFM9oJVPaCzK17GS23u (source:
+Status: **proposal v3.7, for the owner's approval before any code.** Revised after the owner's review of
+mockups v2–v10 on 2026-10-05. Clickable mockup (v11): https://claude.ai/artifact/LB3hFM9oJVPaCzK17GS23u (source:
 `phase-0-13e-mockup.html`, beside this file). It uses made-up parcels and made-up results with simplified
 geometry, so it shows the interaction, not the real data.
 
@@ -95,11 +95,11 @@ fill and the selected one didn't, which was backwards (owner).
 ### The toolbar: one line, always
 
 ```
-Add: [Parcel] [Custom] [House•] │ [Split] │ 🗑   167.18 ac ▾
+Add: [Parcel] [Custom] [⌂•] │ [Split] │ 🗑   167.18 ac ▾
 ```
 
-The amber dot on House means a house is marked. It's narrower than a ✓, so the toolbar keeps to one line
-on a 390 px phone (365 px with every button showing).
+House is a house icon (labelled "House" for screen readers), and an amber dot means a house is marked. The
+toolbar keeps to one line on a 390 px phone (354 px with every button showing).
 
 - **Nothing selected:** "Tap a parcel to select it", then a divider and "or **Draw a custom parcel**", so
   the two ways in read as separate paths.
@@ -152,6 +152,13 @@ LAYERS   NOTES•                               ×
   acres link is the single way in.
 - **Where it sits:** docked on the map's right edge on desktop, and above the toolbar on phones, where the
   sheet drops to its peek height. The basemap button becomes **Map ▾** so it doesn't clash.
+- **Three regions in the Layers tab:**
+  - The **tree** takes the remaining height.
+  - The selected layer's **details** have a defined height, 40% of the panel.
+  - Each of those two scrolls on its own: scrolling the tree never moves the details, and the reverse.
+  - The selected layer's **actions** (Take out of this parcel, Edit parcels, Close, Remove, Keep this piece,
+    Remove from analysis and so on) sit in a footer **pinned to the panel's bottom edge**, outside both
+    scroll areas.
 - **Rows:** a disclosure arrow, an eye (hide or show on the map), the name and size, and **×** (delete).
   Clicking a row selects it, highlights it on the map and shows its details. Delete and Backspace delete the
   selected layer; Esc clears the selection.
@@ -266,6 +273,8 @@ last changed, plus Open and Remove (with a "Remove it? Yes · No" confirm).
 21. **Tabs are small and plain.** Typing a note never loses focus or the keyboard.
 22. **Toolbar names and order:** Add: **Parcel · Custom · House** │ Split. With nothing selected: "Tap a
     parcel to select it │ or Draw a custom parcel", two separate paths.
+23. **House is an icon.** The Info panel's actions are pinned to its bottom edge, and the tree and the
+    details scroll independently (the details pane has a defined height).
 
 Still to confirm:
 - **Should unselecting a built parcel** also close the Info panel (as in the mockup), or keep it open,
