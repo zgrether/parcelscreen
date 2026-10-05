@@ -1,31 +1,35 @@
 "use client";
 /**
  * The explorer's layout (proto L26–33, L129–148): the panel on the left and the map on the right; on narrow
- * screens the map fills the screen and the panel is a bottom sheet. Panel content arrives in steps 13–14.
+ * portrait screens the map fills the screen and the panel is a bottom sheet over it. Panel content arrives in
+ * steps 13–14.
  * Rendered client-side only (see ExploreClient): the map and the persisted sheet height need the browser.
  */
-import { useCallback, useRef, useState, type ReactNode } from "react";
+import { useCallback, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { loadUserConfig } from "@/lib/client/userConfig";
 import { useBottomSheet } from "./useBottomSheet";
 
 import { MapArea } from "./MapArea";
 
 export function ExploreShell({ children }: { children?: ReactNode }) {
+  const root = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLElement>(null);
-  const sheet = useBottomSheet(panel);
+  const sheet = useBottomSheet(root, panel);
   const [config] = useState(loadUserConfig);
   const [hint, setHintState] = useState("");
   const setHint = useCallback((t: string | ((prev: string) => string)) => setHintState(t), []);
 
   return (
-    <div className="explore">
+    <div
+      ref={root}
+      className="explore"
+      // The sheet's height, for what sits on the map above it (hint, attribution).
+      style={sheet.height != null ? ({ "--sheet-h": `${sheet.height}px` } as CSSProperties) : undefined}
+    >
       <aside
         ref={panel}
         className={`explore-panel${sheet.mapMode ? " mapmode" : ""}`}
-        style={{
-          ...(sheet.height != null ? { height: sheet.height } : {}),
-          ...(sheet.animating ? { transition: "height .18s" } : {}),
-        }}
+        style={sheet.height != null ? { height: sheet.height } : undefined}
       >
         <div className="sheet-handle" title="Drag or tap to resize" {...sheet.handlers} />
         <header className="explore-header" {...sheet.handlers}>
@@ -48,7 +52,7 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
         <div className="explore-scroll">{children}</div>
       </aside>
       <div className="explore-map">
-        <MapArea config={config} hint={hint} setHint={setHint} />
+        <MapArea config={config} hint={hint} setHint={setHint} bottomInset={sheet.inset} />
       </div>
     </div>
   );

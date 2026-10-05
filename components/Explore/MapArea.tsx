@@ -8,13 +8,19 @@ export function MapArea({
   config,
   hint,
   setHint,
+  bottomInset,
 }: {
   config: UserConfig;
   hint: string;
   setHint: (t: string | ((prev: string) => string)) => void;
+  bottomInset: number;
 }) {
   return (
-    <MapView lpAtlasTiles={config.endpoints.lpAtlasTiles} lpYear={config.endpoints.lpAtlasYear}>
+    <MapView
+      lpAtlasTiles={config.endpoints.lpAtlasTiles}
+      lpYear={config.endpoints.lpAtlasYear}
+      bottomInset={bottomInset}
+    >
       <MapTools parcelServices={config.endpoints.parcels} hint={setHint} />
       <Hint text={hint} />
     </MapView>

@@ -23,14 +23,18 @@ const START = { lat: 36.62, lon: -81.35, z: 9 };
 export function MapView({
   lpAtlasTiles,
   lpYear,
+  bottomInset = 0,
   children,
 }: {
   lpAtlasTiles: string;
   lpYear: number;
+  /** Pixels of the map hidden under the bottom sheet: the view's centre stays in the visible part. */
+  bottomInset?: number;
   children?: ReactNode;
 }) {
   const container = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<MlMap | null>(null);
+  const padded = useRef(false);
 
   useEffect(() => {
     const view = getPref("ps.view") ?? START;
@@ -51,9 +55,19 @@ export function MapView({
     m.on("load", () => setMap(m));
     return () => {
       setMap(null);
+      padded.current = false;
       m.remove();
     };
   }, [lpAtlasTiles, lpYear]);
+
+  // When the sheet settles, ease the centre into the visible part with the sheet's snap; at load, at once.
+  useEffect(() => {
+    if (!map) return;
+    const padding = { top: 0, left: 0, right: 0, bottom: bottomInset };
+    if (padded.current) map.easeTo({ padding, duration: 180 });
+    else map.jumpTo({ padding });
+    padded.current = true;
+  }, [map, bottomInset]);
 
   return (
     <div className="absolute inset-0 bg-[#cfd6cb]">
