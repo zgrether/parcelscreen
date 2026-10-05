@@ -154,6 +154,26 @@ describe("combining (step 13b)", () => {
     expect(exploreReducer(two, { type: "combineRemove", index: 0 }).combine).toEqual([other]);
   });
 
+  it("a drawn piece is never matched: adding the same drawn shape twice keeps both, and parcels still toggle", () => {
+    const drawn: ParcelRecord = {
+      geo: other.geo,
+      props: { PARCELID: "52-42A" },
+      source: "drawn",
+      multiPart: false,
+    };
+    const s = run([
+      { type: "startCombine" },
+      { type: "combineToggle", parcel: other },
+      { type: "combineToggle", parcel: drawn },
+      { type: "combineToggle", parcel: drawn },
+    ]);
+    expect(s.combine?.map((m) => m.source)).toEqual([other.source, "drawn", "drawn"]);
+    // Same shape and the same stray ID as "other", but drawn: tapping "other" takes out only "other".
+    expect(exploreReducer(s, { type: "combineToggle", parcel: other }).combine?.map((m) => m.source)).toEqual(
+      ["drawn", "drawn"],
+    );
+  });
+
   it("starts empty with no parcel loaded; taps are ignored when not combining", () => {
     expect(run([{ type: "startCombine" }]).combine).toEqual([]);
     expect(run([{ type: "combineToggle", parcel: other }]).combine).toBeNull();

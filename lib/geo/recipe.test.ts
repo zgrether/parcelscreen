@@ -2,7 +2,8 @@ import { area, destination, polygon } from "@turf/turf";
 import type { Feature, Polygon } from "geojson";
 import { describe, expect, it } from "vitest";
 import { boundarySourceLabel, parcelFacts, type ParcelRecord } from "./parcels";
-import { deriveParcel, drawnPart, isCountyRecord } from "./recipe";
+import { memberKey } from "./combine";
+import { deriveParcel, drawnPart, isCountyRecord, recipeDedupeKey } from "./recipe";
 import { M2_PER_ACRE, type LatLon } from "./types";
 
 const LIMITS = { maxGapM: 30, touchM: 1 };
@@ -118,5 +119,45 @@ describe("deriveParcel", () => {
     expect(isCountyRecord(county(0, "x"))).toBe(true);
     expect(isCountyRecord(drawnPart(rect(0)))).toBe(false);
     expect(isCountyRecord({ ...county(0, "x"), source: "split" })).toBe(false);
+  });
+});
+
+describe("drawn pieces never supply facts or identity", () => {
+  // A drawn piece with stray properties, as if copied from somewhere: none of them may surface.
+  const stray: ParcelRecord = {
+    ...drawnPart(rect(150, 100)),
+    props: { OWNER: "Not the seller", PARCELID: "FAKE-1", COUNTY: "Nowhere", SITE_ADDRESS: "1 Fake Rd" },
+  };
+
+  it("in a combination: owners, IDs, county and address come from the recorded parcels only", () => {
+    const d = ok(deriveParcel({ parts: [county(0, "52-47A"), stray] }, LIMITS));
+    const f = parcelFacts(d.record.geo, d.record.props);
+    expect(f).toMatchObject({
+      owner: "R. & J. Hale",
+      parcelId: "52-47A + drawn",
+      county: "Floyd",
+      address: null,
+    });
+    expect(JSON.stringify(d.record.props)).not.toMatch(/FAKE-1|Not the seller|Nowhere|Fake Rd/);
+  });
+
+  it("on its own: a drawn parcel has no owner, ID, county or address", () => {
+    const d = ok(deriveParcel({ parts: [stray] }, LIMITS));
+    expect(parcelFacts(d.record.geo, d.record.props)).toMatchObject({
+      owner: null,
+      parcelId: null,
+      county: null,
+      address: null,
+    });
+  });
+
+  it("never take part in the dedupe key, which is order-independent", () => {
+    const a = county(0, "52-47A"),
+      b = county(200, "52-42A");
+    expect(memberKey(stray)).toBeNull();
+    expect(recipeDedupeKey({ parts: [a, stray] })).toBe(recipeDedupeKey({ parts: [a] }));
+    expect(recipeDedupeKey({ parts: [b, a] })).toBe(recipeDedupeKey({ parts: [a, b] }));
+    expect(recipeDedupeKey({ parts: [a, b] })).not.toBe(recipeDedupeKey({ parts: [a] }));
+    expect(recipeDedupeKey({ parts: [stray, drawnPart(rect(0))] })).toBeNull();
   });
 });

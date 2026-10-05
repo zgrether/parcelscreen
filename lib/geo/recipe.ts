@@ -8,7 +8,7 @@
  */
 import { area, featureCollection, intersect, union } from "@turf/turf";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
-import { combinedRecord, combineParcels, type CombineLimits } from "./combine";
+import { combinedRecord, combineParcels, memberKey, type CombineLimits } from "./combine";
 import { parcelFacts, type ParcelRecord } from "./parcels";
 import { halfPlane, splitFromLabel, splitPieces, type Side } from "./split";
 import { M2_PER_ACRE, type LatLon } from "./types";
@@ -44,6 +44,15 @@ export type DerivedParcel =
 /** True for a parcel from a county service (its source is the service URL). */
 export const isCountyRecord = (r: ParcelRecord): boolean => /^https?:\/\//.test(r.source);
 
+/**
+ * What makes two parcels the same for de-duplication (Phase 1's `dedupe_key`): the recorded parcels they
+ * include, order-independent. Drawn pieces never take part; a parcel of drawn pieces only has no key (null).
+ */
+export function recipeDedupeKey(recipe: ParcelRecipe): string | null {
+  const keys = recipe.parts.map(memberKey).filter((k): k is string => k !== null);
+  return keys.length ? [...new Set(keys)].sort().join(" & ") : null;
+}
+
 /** A drawn shape as a part. */
 export function drawnPart(geo: Feature<Polygon>): ParcelRecord {
   return { geo, props: {}, source: "drawn", multiPart: false };
@@ -67,7 +76,8 @@ export function deriveParcel(recipe: ParcelRecipe, limits: CombineLimits): Deriv
     bridgeAcres = 0,
     gapM = 0;
   if (parts.length === 1) {
-    base = parts[0]!;
+    // A drawn piece never supplies facts, even if it carries stray properties.
+    base = parts[0]!.source === "drawn" ? { ...parts[0]!, props: {} } : parts[0]!;
     acres = parcelFacts(base.geo, base.props).acres;
   } else {
     const c = combineParcels(

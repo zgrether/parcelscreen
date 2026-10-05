@@ -112,18 +112,25 @@ export function memberLabel(m: ParcelRecord, i: number): string {
   return parcelFacts(m.geo, m.props).parcelId ?? `parcel ${i + 1}`;
 }
 
-/** Identifies a parcel across taps (outline or lookup), so a second tap takes it out. */
-export function memberKey(m: ParcelRecord): string {
+/**
+ * Identifies a parcel across taps (outline or lookup), so a second tap takes it out. A drawn piece has no
+ * identity (null): it's never matched against another piece, and never part of a dedupe key.
+ */
+export function memberKey(m: ParcelRecord): string | null {
+  if (m.source === "drawn") return null;
   const ring = m.geo.geometry.coordinates[0]!;
   return `${m.source}|${parcelFacts(m.geo, m.props).parcelId ?? ""}|${ring.length}|${ring[0]!.join(",")}`;
 }
 
-/** The parcel record for a combination: every ID, owner, address and county, and the parcels' own acres. */
+/**
+ * The parcel record for a combination: every ID, owner, address and county, and the parcels' own acres.
+ * Facts come from the recorded parcels only: a drawn piece never supplies an owner, ID, address or county.
+ */
 export function combinedRecord(
   members: ParcelRecord[],
   r: Extract<CombineResult, { ok: true }>,
 ): ParcelRecord {
-  const facts = members.map((m) => parcelFacts(m.geo, m.props));
+  const facts = members.filter((m) => m.source !== "drawn").map((m) => parcelFacts(m.geo, m.props));
   const all = (xs: (string | null)[]) => [...new Set(xs.filter((x): x is string => !!x))].join("; ");
   const props: Record<string, unknown> = {
     parno: members.map(memberLabel).join(" + "),

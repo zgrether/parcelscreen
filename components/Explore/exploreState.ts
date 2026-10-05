@@ -129,6 +129,7 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
     case "combineToggle": {
       if (!s.combine) return s;
       const k = memberKey(a.parcel);
+      if (k === null) return { ...s, combine: [...s.combine, a.parcel] }; // a drawn piece is never "the same" as another
       const without = s.combine.filter((m) => memberKey(m) !== k);
       return { ...s, combine: without.length < s.combine.length ? without : [...s.combine, a.parcel] };
     }
