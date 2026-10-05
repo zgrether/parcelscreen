@@ -20,6 +20,8 @@ export interface ParcelRecord {
    * the UI shows a "multi-part parcel: only the first part screened" note.
    */
   multiPart: boolean;
+  /** For a combination: the parcels it was made from, so it can be edited later. */
+  members?: ParcelRecord[];
 }
 
 export interface PickResult {

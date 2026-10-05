@@ -13,7 +13,7 @@ import {
   type MapLayerMouseEvent,
   type MapMouseEvent,
 } from "maplibre-gl";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { LatLon } from "@/lib/geo/types";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { useMap } from "./MapView";
@@ -97,11 +97,13 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
 function useOverlays(map: MlMap | null, ctl: ExploreController) {
   const { parcel, draft, split, combine } = ctl.state;
   const { pieces, combined } = ctl;
+  // A parcel restored after a refresh keeps the saved map view instead of fitting to it.
+  const [restored] = useState(parcel);
 
   useEffect(() => {
     if (!map) return;
     map.getSource<GeoJSONSource>(SOURCE.parcel)?.setData(parcel ? parcel.geo : EMPTY);
-    if (!parcel) return;
+    if (!parcel || parcel === restored) return;
     // Leaflet's bounds.pad(0.4): 40% of the parcel's size added on every side.
     const [w, s, e, n] = bbox(parcel.geo);
     const dx = (e - w) * 0.4,
@@ -113,7 +115,7 @@ function useOverlays(map: MlMap | null, ctl: ExploreController) {
       ],
       { padding: 0 },
     );
-  }, [map, parcel]);
+  }, [map, parcel, restored]);
 
   useEffect(() => {
     map?.getSource<GeoJSONSource>(SOURCE.draft)?.setData(draftData(draft));

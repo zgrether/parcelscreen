@@ -3,6 +3,7 @@
  * (private windows, blocked site data), so every read falls back to the default and every write is
  * best-effort.
  */
+import { readCurrentParcel, writeCurrentParcel, type CurrentParcel } from "./currentParcel";
 
 export interface MapView {
   lat: number;
@@ -18,6 +19,8 @@ export interface Prefs {
   "ps.omode": "house" | "garden" | "slope" | "off";
   "ps.sheet": number | null;
   "ps.open": Record<string, boolean>;
+  /** New in the port (step 13d): the parcel being worked on and the house, kept across a refresh. */
+  "ps.current": CurrentParcel | null;
 }
 
 const DEFAULTS: Prefs = {
@@ -28,6 +31,7 @@ const DEFAULTS: Prefs = {
   "ps.omode": "house",
   "ps.sheet": null,
   "ps.open": {},
+  "ps.current": null,
 };
 
 /** How each key is stored: the prototype kept flags as "1"/"0" and the rest as plain strings or JSON. */
@@ -39,6 +43,7 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
   "ps.omode": { read: (r) => r as Prefs["ps.omode"], write: (v) => v },
   "ps.sheet": { read: (r) => +r || null, write: (v) => String(Math.round(v ?? 0)) },
   "ps.open": { read: (r) => JSON.parse(r) as Record<string, boolean>, write: (v) => JSON.stringify(v) },
+  "ps.current": { read: readCurrentParcel, write: writeCurrentParcel },
 };
 
 export interface KeyValueStore {
