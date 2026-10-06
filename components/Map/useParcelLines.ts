@@ -1,8 +1,11 @@
 "use client";
 /**
- * Parcel outlines for the current view, at zoom 15 and above, from the same state services the tap lookup
+ * Parcel outlines for the current view, at zoom 14.5 and above, from the same state services the tap lookup
  * uses (proto refreshLines, L549–560): refreshed 350 ms after the map stops moving; a newer view cancels an
  * older request so only the latest one draws.
+ *
+ * Deviation: the prototype drew them from zoom 15. With the Info panel docked (13e-5), a parcel's fit lands
+ * about half a zoom level wider, which put a 44-acre parcel's neighbours below 15 (owner, #29 review).
  */
 import type { GeoJSONSource, Map as MlMap, PointLike } from "maplibre-gl";
 import { useEffect } from "react";
@@ -10,7 +13,9 @@ import { browserHttp } from "@/lib/client/http";
 import { parcelsInBounds, type ParcelLine } from "@/lib/geo/parcels";
 import { LAYER, SOURCE } from "./style";
 
-export const ZOOM_HINT = "Zoom in to 15+ to see parcel lines";
+/** Parcel outlines are fetched and drawn from this zoom up. */
+export const LINES_MIN_ZOOM = 14.5;
+export const ZOOM_HINT = "Zoom in to see parcel lines";
 
 /** The outlines currently drawn on each map, as the services returned them. */
 const drawn = new WeakMap<MlMap, ParcelLine[]>();
@@ -53,7 +58,7 @@ export function useParcelLines(
     let timer: ReturnType<typeof setTimeout> | undefined;
     let inflight: AbortController | null = null;
     const refresh = async () => {
-      if (map.getZoom() < 15) {
+      if (map.getZoom() < LINES_MIN_ZOOM) {
         show([]);
         hint((h) => (map.getZoom() >= 13 ? ZOOM_HINT : h === ZOOM_HINT ? "" : h));
         return;

@@ -11,11 +11,14 @@ const memory = (): KeyValueStore & { data: Map<string, string> } => {
 describe("prefs", () => {
   it("falls back to the defaults, and reads back what was written in the prototype's formats", () => {
     const s = memory();
-    expect(getPref("ps.dim", s)).toBe(true);
+    expect(getPref("ps.dim", s)).toBe(false); // off by default since the 13e-5 review
     expect(getPref("ps.base", s)).toBe("state");
-    setPref("ps.dim", false, s);
+    setPref("ps.dim", true, s);
     setPref("ps.view", { lat: 36.9, lon: -80.4, z: 15 }, s);
-    expect(s.data.get("ps.dim")).toBe("0");
+    expect(s.data.get("ps.dim")).toBe("1");
+    expect(getPref("ps.dim", s)).toBe(true);
+    // A choice saved earlier stands.
+    s.data.set("ps.dim", "0");
     expect(getPref("ps.dim", s)).toBe(false);
     expect(getPref("ps.view", s)).toEqual({ lat: 36.9, lon: -80.4, z: 15 });
   });

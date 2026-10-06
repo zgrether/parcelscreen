@@ -31,7 +31,8 @@ export interface Prefs {
 const DEFAULTS: Prefs = {
   "ps.base": "state",
   "ps.view": null,
-  "ps.dim": true,
+  // Off by default (owner, 13e-5 review); the prototype started dimmed.
+  "ps.dim": false,
   "ps.lines": true,
   "ps.omode": "house",
   "ps.sheet": null,
