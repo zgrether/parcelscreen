@@ -16,11 +16,13 @@ import { ExploreContext, useExploreController } from "./useExploreController";
 export function ExploreShell({ children }: { children?: ReactNode }) {
   const root = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLElement>(null);
-  const sheet = useBottomSheet(root, panel);
   const [config] = useState(loadUserConfig);
   const [hint, setHintState] = useState("");
   const setHint = useCallback((t: string | ((prev: string) => string)) => setHintState(t), []);
   const explore = useExploreController(config.endpoints.parcels, setHint);
+  // On phones the sheet steps aside to its peek while a map tool or the Info panel has the screen (13e-6).
+  const { mode, split, info, store } = explore.state;
+  const sheet = useBottomSheet(root, panel, mode !== null || split !== null || (info && store.open !== null));
 
   return (
     <ExploreContext.Provider value={explore}>
@@ -45,6 +47,7 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
             </div>
             <button
               className="mapmode-toggle bg-ink text-paper rounded px-2.5 py-1 text-[13px] font-medium"
+              hidden={sheet.aside}
               onClick={(e) => {
                 e.stopPropagation();
                 sheet.toggleMapMode();

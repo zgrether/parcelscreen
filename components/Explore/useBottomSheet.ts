@@ -9,6 +9,10 @@
  * moves only the sheet, written straight to the DOM. Resizing the map on every pointer move made it redraw
  * and jump; the prototype's Leaflet map only re-measured after the snap. Once the sheet settles, `inset`
  * reports its height so the map can keep its centre in the part that is still visible.
+ *
+ * Stepping aside (13e-6): while a map tool is in use or the Info panel is open, the sheet shows at its peek
+ * height with its content hidden, so the map and the panel have the room. Nothing is saved and the inset
+ * doesn't change (the map doesn't move under a tool); afterwards the sheet is back where it was.
  */
 import { useCallback, useEffect, useRef, useState, type PointerEvent, type RefObject } from "react";
 import { getPref, setPref } from "@/lib/client/prefs";
@@ -21,7 +25,11 @@ const clamp = (px: number) => Math.round(Math.max(72, Math.min(window.innerHeigh
 const MAP_MODE_BELOW = 110;
 const SNAP_MS = 180;
 
-export function useBottomSheet(root: RefObject<HTMLElement | null>, panel: RefObject<HTMLElement | null>) {
+export function useBottomSheet(
+  root: RefObject<HTMLElement | null>,
+  panel: RefObject<HTMLElement | null>,
+  stepAside = false,
+) {
   // The settled height: restored from the last visit, else the middle snap. The explorer renders
   // client-side only, so this runs in the browser.
   const [height, setHeight] = useState<number | null>(() =>
@@ -65,9 +73,21 @@ export function useBottomSheet(root: RefObject<HTMLElement | null>, panel: RefOb
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
+  // Stepping aside and back animates like a snap.
+  const aside = stepAside && height != null;
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) return void (first.current = false);
+    const p = panel.current;
+    p?.style.setProperty("transition", `height ${SNAP_MS}ms`);
+    const t = setTimeout(() => p?.style.removeProperty("transition"), SNAP_MS + 20);
+    return () => clearTimeout(t);
+  }, [aside, panel]);
+
   const handlers = {
     onPointerDown: (e: PointerEvent<HTMLElement>) => {
-      if (!isSheet() || (e.target as HTMLElement).closest("button,select,input")) return;
+      // While it's stepped aside the sheet stays put: the tool or the panel has the screen.
+      if (!isSheet() || aside || (e.target as HTMLElement).closest("button,select,input")) return;
       const h = panel.current?.getBoundingClientRect().height ?? 0;
       drag.current = { startY: e.clientY, startH: h, moved: false, h };
       e.currentTarget.setPointerCapture(e.pointerId);
@@ -91,7 +111,8 @@ export function useBottomSheet(root: RefObject<HTMLElement | null>, panel: RefOb
     },
   };
 
-  const mapMode = dragMapMode ?? (height != null && height < MAP_MODE_BELOW);
+  const shown = aside ? Math.min(height, snaps()[0]!) : height;
+  const mapMode = dragMapMode ?? (shown != null && shown < MAP_MODE_BELOW);
   /** The header's Map / Panel button. */
   const toggleMapMode = () => {
     const s = snaps();
@@ -99,11 +120,13 @@ export function useBottomSheet(root: RefObject<HTMLElement | null>, panel: RefOb
   };
 
   return {
-    /** The settled sheet height (null when the panel is at the side). */
-    height,
-    /** How much of the map's bottom the settled sheet covers, in px. */
+    /** The sheet's height as shown (null when the panel is at the side): its peek while it steps aside. */
+    height: shown,
+    /** How much of the map's bottom the settled sheet covers, in px; stepping aside doesn't change it. */
     inset: height ?? 0,
     mapMode,
+    /** Stepped aside for a tool or the Info panel. */
+    aside,
     handlers: { ...handlers, onPointerCancel: handlers.onPointerUp },
     toggleMapMode,
   };
