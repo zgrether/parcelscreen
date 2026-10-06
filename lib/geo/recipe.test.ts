@@ -32,7 +32,8 @@ function rect(eastM: number, w = 200): Feature<Polygon> {
 }
 const county = (eastM: number, id: string, w = 200): ParcelRecord => ({
   geo: rect(eastM, w),
-  props: { PARCELID: id, OWNER: "R. & J. Hale", COUNTY: "Floyd" },
+  // VGIN's fields: the county as FIPS and LOCALITY (OWNER stands in for an owner, which VGIN doesn't publish).
+  props: { PARCELID: id, OWNER: "R. & J. Hale", FIPS: "51063", LOCALITY: "Floyd County" },
   source: "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Parcels/FeatureServer/0",
   multiPart: false,
 });
@@ -157,7 +158,7 @@ describe("drawn pieces never supply facts or identity", () => {
     expect(f).toMatchObject({
       owner: "R. & J. Hale",
       parcelId: "52-47A + drawn",
-      county: "Floyd",
+      county: "Floyd County",
       address: null,
     });
     expect(JSON.stringify(d.record.props)).not.toMatch(/FAKE-1|Not the seller|Nowhere|Fake Rd/);
@@ -174,16 +175,37 @@ describe("drawn pieces never supply facts or identity", () => {
   });
 
   it("piece keys follow REQUIREMENTS §3: state:county:parcel_number, else state:county:centroid:acres", () => {
-    expect(pieceDedupeKey(county(0, "52-47A"))).toBe("VA:floyd:52-47A");
-    const unnumbered = { ...county(0, "x"), props: { COUNTY: "Floyd" } };
-    expect(pieceDedupeKey(unnumbered)).toMatch(/^VA:floyd:36\.\d{4},-81\.\d{4}:10$/);
-    expect(
-      pieceDedupeKey({ ...county(0, "1234"), source: "https://services.nconemap.gov/x/FeatureServer/1" }),
-    ).toBe("NC:floyd:1234");
+    expect(pieceDedupeKey(county(0, "52-47A"))).toBe("VA:51063:52-47A");
+    const unnumbered = { ...county(0, "x"), props: { FIPS: "51063" } };
+    expect(pieceDedupeKey(unnumbered)).toMatch(/^VA:51063:36\.\d{4},-81\.\d{4}:10$/);
     expect(pieceDedupeKey(stray)).toBeNull();
     expect(recipeDedupeKey({ parts: [county(200, "52-42A"), county(0, "52-47A")] })).toBe(
-      "VA:floyd:52-42A & VA:floyd:52-47A",
+      "VA:51063:52-42A & VA:51063:52-47A",
     );
+  });
+
+  it("the county is the 5-digit county FIPS where the record has one (VA, NC), else its name (TN)", () => {
+    const nc: ParcelRecord = {
+      ...county(0, "x"),
+      source: "https://services.nconemap.gov/secure/rest/services/NC1Map_Parcels/FeatureServer/1",
+      props: { parno: "1234", stcntyfips: "37005", cntyname: "ALLEGHANY" },
+    };
+    const tn: ParcelRecord = {
+      ...county(0, "x"),
+      source: "https://geoviewer.cot.tn.gov/arcgis/rest/services/GeoViewer/Parcels_View/MapServer/0",
+      props: { PARCELID: "045 012.00", COUNTY: "Johnson" },
+    };
+    expect(pieceDedupeKey(nc)).toBe("NC:37005:1234");
+    expect(pieceDedupeKey(tn)).toBe("TN:johnson:045 012.00");
+  });
+
+  it("the same parcel number in two counties makes two keys (VA's 52-44 is in Floyd, Wythe and more)", () => {
+    const wythe: ParcelRecord = {
+      ...county(0, "52-44"),
+      props: { PARCELID: "52-44", FIPS: "51197", LOCALITY: "Wythe County" },
+    };
+    expect(pieceDedupeKey(county(0, "52-44"))).toBe("VA:51063:52-44");
+    expect(pieceDedupeKey(wythe)).toBe("VA:51197:52-44");
   });
 
   it("never take part in the dedupe key, which is order-independent", () => {

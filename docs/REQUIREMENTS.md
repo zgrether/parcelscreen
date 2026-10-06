@@ -186,6 +186,12 @@ Dedupe key for parcels/listings: `state:county:parcel_number` when present; else
 their keys sorted and joined with ` & `. Drawn pieces never contribute; a parcel of drawn pieces only has
 no key (`lib/geo/recipe.ts` `pieceDedupeKey` / `recipeDedupeKey`).
 
+`county` in the key is the record's **5-digit county FIPS code** where the service provides one (VA `FIPS`,
+e.g. `51063`; NC `stcntyfips`), else the county name in lower case (TN `COUNTY`; `countyKey`). Parcel
+numbers repeat across counties: VA's `52-44` exists in Dinwiddie, Floyd, Wythe and King William, and before
+this rule VA records, which carry no county name field the key read, all keyed as `VA::52-44`. Examples:
+`VA:51063:52-47A`, `NC:37005:1234`, `TN:johnson:045 012.00`.
+
 ### 3a. The local parcel store (Phase 0) and its Phase 1 import
 
 Before accounts exist, the explorer keeps the open parcel and History in the browser, under localStorage
@@ -230,7 +236,9 @@ already converts 13d's `ps.current`, which had no `v` field at the parcel level)
   - `recipe` = `{ pieces, split, house, hidden, excluded }`, as stored;
   - `notes` = `notes`;
   - the cached columns (`geometry`, `acres`, `source`, `dedupe_key`, `state`, `county`, `parcel_number`)
-    derived from the recipe, as for any edit (§3).
+    derived from the recipe, as for any edit (§3). The dedupe key uses the county FIPS rule in §3; it's
+    computed from the stored pieces' attributes at import, never stored locally, so that rule needed no
+    new `v`.
 
   `screenIds` link to `screens` rows once results are stored there.
 

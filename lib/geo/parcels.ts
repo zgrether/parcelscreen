@@ -3,7 +3,7 @@
  * order given by `endpoints.parcels`. Ported from the prototype's pickParcel / refreshLines / setParcel
  * (proto L549–558, L657–705) with the map and DOM removed: callers get data back and render it.
  */
-import { area, destination, polygon } from "@turf/turf";
+import { area, booleanPointInPolygon, destination, point, polygon } from "@turf/turf";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { CancelledError, type HttpClient } from "../http";
 import { M2_PER_ACRE, type LatLon } from "./types";
@@ -103,6 +103,22 @@ export interface ParcelLine {
   source: string;
 }
 
+/**
+ * Which outline a tap means, of those drawn under it: the ones containing the point, the smallest first;
+ * null when none contains it. Neighbours share their boundary lines, so a tap right on a line is inside
+ * both, and which one the map happened to draw on top made the choice before.
+ */
+export function pickOutline(lines: readonly ParcelLine[], ll: LatLon): ParcelLine | null {
+  const pt = point([ll[1], ll[0]]);
+  let best: { line: ParcelLine; m2: number } | null = null;
+  for (const line of lines) {
+    if (!booleanPointInPolygon(pt, line.feature)) continue;
+    const m2 = area(line.feature);
+    if (!best || m2 < best.m2) best = { line, m2 };
+  }
+  return best?.line ?? null;
+}
+
 /** Every parcel outline in a map view (z ≥ 14.5), from all services in parallel; failures yield nothing. */
 export async function parcelsInBounds(
   http: HttpClient,
@@ -177,7 +193,8 @@ export function parcelFacts(geo: Feature<Polygon>, props: Record<string, unknown
     owner: pick("ownname", "owner", "ownername", "owner1", "OWNER_NAME"),
     parcelId: pick("parno", "parcelid", "pin", "gispin", "PARCEL_ID", "parid"),
     address: pick("siteadd", "situs", "address", "SITE_ADDRESS"),
-    county: pick("county", "cntyname", "COUNTY_NAME"),
+    // LOCALITY is VA's (e.g. "Floyd County"); the prototype left the county blank for VA parcels.
+    county: pick("county", "cntyname", "COUNTY_NAME", "LOCALITY"),
   };
 }
 
