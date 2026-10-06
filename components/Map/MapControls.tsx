@@ -2,13 +2,14 @@
 /**
  * The map's right-hand column (step 13f plan §2–3): the GPS button and a vertical zoom slider, under the Map
  * menu. The slider replaces MapLibre's + / − buttons; its track is amber where parcel lines show. While the
- * Info panel is docked on the right, the column moves left of it (the map itself doesn't move).
+ * Info panel is docked on the right, the column moves left of it (the map itself doesn't move). The track is
+ * light amber from zoom 14 (parcel lines, but dense places wait) and amber from 15 (all of them).
  */
 import { GeolocateControl, type Map as MlMap } from "maplibre-gl";
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { useExplore } from "@/components/Explore/useExploreController";
 import { useMap } from "./MapView";
-import { LINES_MIN_ZOOM } from "./useParcelLines";
+import { DENSE_BELOW_ZOOM, LINES_MIN_ZOOM } from "@/lib/geo/parcelTiles";
 
 type Hint = (text: string | ((prev: string) => string)) => void;
 
@@ -21,7 +22,8 @@ export function MapControls({ hint }: { hint: Hint }) {
   const map = useMap();
   const { panelInset } = useExplore();
   return (
-    <div className="map-col" style={{ right: panelInset ? panelInset + 10 : 10 }}>
+    // 24 px in from the edge, clear of the phone's back-swipe zone; beside the Info panel when it's docked.
+    <div className="map-col" style={{ right: panelInset ? panelInset + 10 : 24 }}>
       {map && <LocateButton map={map} hint={hint} />}
       {map && <ZoomSlider map={map} />}
     </div>
@@ -100,8 +102,8 @@ function ZoomSlider({ map }: { map: MlMap }) {
     const now = map.getZoom();
     zoomTo(step > 0 ? Math.floor(now) + 1 : Math.ceil(now) - 1);
   };
-  // Where the amber band starts along the track, from the bottom.
-  const band = ((LINES_MIN_ZOOM - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM)) * 100;
+  // Where the track's shading changes, from the bottom: lines from 14 (dense tiles wait), all lines from 15.
+  const at = (z: number) => `${((z - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM)) * 100}%`;
   return (
     <div className="zoom-box" title={`Zoom ${zoom.toFixed(1)}`}>
       <input
@@ -114,7 +116,7 @@ function ZoomSlider({ map }: { map: MlMap }) {
         aria-label="Zoom"
         aria-orientation="vertical"
         aria-valuetext={`Zoom ${zoom.toFixed(1)}`}
-        style={{ "--band": `${band}%` } as CSSProperties}
+        style={{ "--b14": at(LINES_MIN_ZOOM), "--b15": at(DENSE_BELOW_ZOOM) } as CSSProperties}
         onChange={(e) => zoomTo(Number(e.target.value))}
         onKeyDown={onKey}
       />

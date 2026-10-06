@@ -2,7 +2,10 @@ import { polygon } from "@turf/turf";
 import { describe, expect, it } from "vitest";
 import type { HttpClient } from "../http";
 import {
+  countTile,
+  DENSE_TILE,
   detailFor,
+  drawsAt,
   fetchTile,
   fullRecord,
   lineKey,
@@ -152,5 +155,24 @@ describe("TileCache", () => {
     c.set("c", t);
     expect([c.get("a"), c.get("b"), c.get("c")].map(Boolean)).toEqual([true, false, true]);
     expect(c.size).toBe(2);
+  });
+});
+
+describe("the density guard", () => {
+  const tile = tilesFor(FLOYD_DESKTOP)[0]!;
+
+  it("asks a tile's parcel count only (a few bytes); null when the service doesn't answer", async () => {
+    const { http, asked } = stub([{ count: 1834 }]);
+    expect(await countTile(http, VA, tile)).toBe(1834);
+    expect(asked[0]!.get("returnCountOnly")).toBe("true");
+    expect(await countTile(stub([500]).http, VA, tile)).toBeNull();
+  });
+
+  it("holds a tile with more than 1,500 parcels until zoom 15, and never holds one it can't count", () => {
+    expect(DENSE_TILE).toBe(1500);
+    expect(drawsAt(14.5, 1501)).toBe(false);
+    expect(drawsAt(14.5, 1500)).toBe(true);
+    expect(drawsAt(15, 11419)).toBe(true);
+    expect(drawsAt(14, null)).toBe(true);
   });
 });
