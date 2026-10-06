@@ -4,7 +4,7 @@ import { parseLatLon } from "@/lib/geo/coords";
 import { splitPieces } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
 import { combineParcels } from "@/lib/geo/combine";
-import { combineData, draftData, pieceLabels, splitData } from "./overlays";
+import { combineData, draftData, pieceLabels, selectionData, splitData } from "./overlays";
 
 describe("map overlays", () => {
   it("draft: a line through the corners and a dot each, the first one larger and amber", () => {
@@ -62,6 +62,46 @@ describe("map overlays", () => {
     ]);
     const [l] = pieceLabels({ left: L, right: null, leftAc: 1, rightAc: 0 }, [-1, 0.001], [1, 0.001]);
     expect(booleanPointInPolygon(point([l!.at[1], l!.at[0]]), L)).toBe(true);
+  });
+});
+
+describe("selection overlay (13e-4)", () => {
+  const sq = polygon([
+    [
+      [-81.355, 36.628],
+      [-81.353, 36.628],
+      [-81.353, 36.63],
+      [-81.355, 36.63],
+      [-81.355, 36.628],
+    ],
+  ]);
+  const part = { geo: sq, props: {}, source: "drawn", multiPart: false };
+  const a: LatLon = [36.627, -81.354],
+    b: LatLon = [36.631, -81.354];
+  const P = splitPieces(sq, a, b);
+  const shapes = { strip: null, stripAcres: 0, gapM: 0, pieces: P };
+  const kinds = (layer: Parameters<typeof selectionData>[0], keep: 1 | -1 | null = -1) =>
+    selectionData(layer, [part], shapes, keep).features.map((f) => [
+      f.properties!.kind,
+      f.geometry === P.left?.geometry
+        ? "left piece"
+        : f.geometry === P.right?.geometry
+          ? "right piece"
+          : "part",
+    ]);
+
+  it("a part is drawn white; the parcel, the house and nothing selected add nothing", () => {
+    expect(kinds("part:0")).toEqual([["sel", "part"]]);
+    for (const l of ["parcel", "house", null] as const) expect(kinds(l)).toEqual([]);
+  });
+
+  it("the split, or the kept piece, shows the piece left out dashed; the other piece shows as selected", () => {
+    expect(kinds("split")).toEqual([["left", "right piece"]]);
+    expect(kinds("piece:-1")).toEqual([
+      ["sel", "left piece"],
+      ["left", "right piece"],
+    ]);
+    expect(kinds("piece:1")).toEqual([["sel", "right piece"]]);
   });
 });
 

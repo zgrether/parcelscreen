@@ -2,7 +2,7 @@
 /**
  * The parcel toolbar on the map (13e): always one line.
  *   nothing open:  "Tap a parcel to select it │ or Draw a custom parcel"
- *   a parcel open: "Add: Parcel · Custom · ⌂ │ Split │ 🗑   12.34 ac"
+ *   a parcel open: "Add: Parcel · Custom · ⌂ │ Split │ 🗑   12.34 ac ▾" (the acres open the Info panel)
  *   a tool in use: what to do next, and its controls (Finish, Done, Keep…, Cancel)
  * The trash (built parcels only) asks inline before deleting. A tap refused because a built parcel is open
  * shows a brief note above the bar.
@@ -294,7 +294,17 @@ function barBody(
           </Btn>
         </>
       )}
-      {acres !== null && <span className="tb-acres">{ac(acres)} ac</span>}
+      {acres !== null && (
+        <button
+          className="tb-acres"
+          aria-label={`${ac(acres)} acres: parcel info`}
+          aria-expanded={ctl.state.info}
+          title="Layers and details"
+          onClick={() => ctl.setInfo(!ctl.state.info)}
+        >
+          {ac(acres)} ac <span aria-hidden="true">{ctl.state.info ? "▴" : "▾"}</span>
+        </button>
+      )}
     </>
   );
 }

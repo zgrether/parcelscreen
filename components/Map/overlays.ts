@@ -4,7 +4,9 @@
  * style.ts, the labels are DOM markers (ParcelTools).
  */
 import { booleanPointInPolygon, centerOfMass, pointOnFeature } from "@turf/turf";
-import type { Feature, FeatureCollection, Polygon } from "geojson";
+import type { Feature, FeatureCollection, MultiPolygon, Polygon } from "geojson";
+import type { LayerId, ParcelShapes } from "@/components/Explore/layers";
+import type { ParcelRecord } from "@/lib/geo/parcels";
 import type { CombineResult } from "@/lib/geo/combine";
 import { sideName, type Side, type SplitPieces } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
@@ -46,6 +48,14 @@ export function splitData(pieces: SplitPieces, a: LatLon, b: LatLon): FeatureCol
   };
 }
 
+/** Where a shape's label sits: its centre of mass, or a point inside it when that falls outside. */
+export function labelPoint(geo: Feature<Polygon>): LatLon {
+  let c = centerOfMass(geo);
+  if (!booleanPointInPolygon(c, geo)) c = pointOnFeature(geo);
+  const [lon, lat] = c.geometry.coordinates as [number, number];
+  return [lat, lon];
+}
+
 export interface PieceLabel {
   side: Side;
   /** Where the label sits: the piece's centre of mass, or a point inside it when that falls outside. */
@@ -56,13 +66,8 @@ export interface PieceLabel {
 
 /** A label per piece while a split is placed: its compass side and the acres keeping it gives. */
 export function pieceLabels(pieces: SplitPieces, a: LatLon, b: LatLon): PieceLabel[] {
-  const label = (geo: Feature<Polygon> | null, ac: number, side: Side): PieceLabel[] => {
-    if (!geo) return [];
-    let c = centerOfMass(geo);
-    if (!booleanPointInPolygon(c, geo)) c = pointOnFeature(geo);
-    const [lon, lat] = c.geometry.coordinates as [number, number];
-    return [{ side, at: [lat, lon], text: `${sideName(a, b, side)} · ${ac.toFixed(2)} ac` }];
-  };
+  const label = (geo: Feature<Polygon> | null, ac: number, side: Side): PieceLabel[] =>
+    geo ? [{ side, at: labelPoint(geo), text: `${sideName(a, b, side)} · ${ac.toFixed(2)} ac` }] : [];
   return [...label(pieces.left, pieces.leftAc, -1), ...label(pieces.right, pieces.rightAc, 1)];
 }
 
@@ -75,4 +80,34 @@ export function combineData(members: Feature<Polygon>[], result: CombineResult |
       ...(result?.ok ? [{ ...result.geo, properties: { kind: "result" } }] : []),
     ],
   };
+}
+
+/**
+ * The selected layer on the map (13e-4): `kind: sel` for the layer itself (a part, the road strip, a split
+ * piece), `kind: left` for the piece a split leaves out, shown whenever the split or one of its pieces is
+ * selected. The parcel, the house and nothing selected add nothing: the parcel is already drawn, the house is
+ * a marker.
+ */
+export function selectionData(
+  layer: LayerId | null,
+  parts: ParcelRecord[],
+  shapes: ParcelShapes | null,
+  keep: Side | null,
+): FeatureCollection {
+  const f = (geo: Feature<Polygon | MultiPolygon> | null | undefined, kind: "sel" | "left"): Feature[] =>
+    geo ? [{ ...geo, properties: { kind } }] : [];
+  const P = shapes?.pieces ?? null;
+  const piece = (s: Side) => (P ? (s < 0 ? P.left : P.right) : null);
+  const features: Feature[] = [];
+  if (layer?.startsWith("part:")) features.push(...f(parts[Number(layer.slice(5))]?.geo, "sel"));
+  else if (layer === "strip") features.push(...f(shapes?.strip, "sel"));
+  else if ((layer === "split" || layer?.startsWith("piece:")) && keep) {
+    const other: Side = keep === 1 ? -1 : 1;
+    if (layer === `piece:${other}`) features.push(...f(piece(other), "sel"));
+    else {
+      if (layer === `piece:${keep}`) features.push(...f(piece(keep), "sel"));
+      features.push(...f(piece(other), "left"));
+    }
+  }
+  return { type: "FeatureCollection", features };
 }

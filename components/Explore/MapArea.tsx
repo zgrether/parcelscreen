@@ -1,5 +1,6 @@
 "use client";
 import { MapView } from "@/components/Map/MapView";
+import { InfoPanel } from "@/components/Map/InfoPanel";
 import { Hint, MapTools } from "@/components/Map/MapTools";
 import { ParcelTools } from "@/components/Map/ParcelTools";
 import { Search } from "@/components/Map/Search";
@@ -32,6 +33,7 @@ export function MapArea({
       <Search />
       <Hint text={hint} />
       <Toolbar />
+      <InfoPanel />
     </MapView>
   );
 }

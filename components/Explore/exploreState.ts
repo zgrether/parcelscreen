@@ -21,6 +21,7 @@ import type { ParcelRecord } from "@/lib/geo/parcels";
 import { drawnPart } from "@/lib/geo/recipe";
 import type { Side } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
+import type { LayerId } from "./layers";
 
 export type Mode = "draw" | "house" | "split" | "combine" | null;
 
@@ -40,6 +41,10 @@ export interface ExploreState {
   split: SplitLine | null;
   /** Pieces picked to combine; null when not combining. */
   combine: ParcelRecord[] | null;
+  /** The Info panel is open (13e-4). */
+  info: boolean;
+  /** The layer selected in the panel or on the map. */
+  layer: LayerId | null;
 }
 
 export const INITIAL: ExploreState = {
@@ -48,6 +53,8 @@ export const INITIAL: ExploreState = {
   draft: [],
   split: null,
   combine: null,
+  info: false,
+  layer: null,
 };
 
 /** The time and a fresh key for a change that may save a parcel (the reducer stays pure). */
@@ -83,10 +90,23 @@ export type ExploreAction =
   | { type: "combineToggle"; parcel: ParcelRecord }
   | { type: "combineCancel" }
   /** Use the picked pieces; the caller has checked that they make one boundary. */
-  | { type: "applyCombine"; stamp: Stamp };
+  | { type: "applyCombine"; stamp: Stamp }
+  /** Open or close the Info panel; closing it clears the selected layer. */
+  | { type: "info"; open: boolean }
+  /** Select a layer (opening the panel), or clear the selection. */
+  | { type: "layer"; id: LayerId | null }
+  /** Take a part out of the parcel; the caller has checked that the rest make one boundary. */
+  | { type: "removePart"; index: number; stamp: Stamp }
+  | { type: "removeSplit"; stamp: Stamp }
+  /** Keep the other side of the saved split. */
+  | { type: "keepSide"; side: Side; stamp: Stamp }
+  | { type: "toggleHidden"; id: LayerId; stamp: Stamp };
 
 /** The house is kept to 6 decimals, as in the prototype (proto L636). */
 const roundLL = (ll: LatLon): LatLon => [+ll[0].toFixed(6), +ll[1].toFixed(6)];
+
+/** Unselecting (or opening another parcel) always closes the Info panel (owner, plan 13e §4). */
+const PANEL_CLOSED: Pick<ExploreState, "info" | "layer"> = { info: false, layer: null };
 
 /** Tools in progress end when the parcel changes underneath them. */
 const NO_TOOL: Pick<ExploreState, "mode" | "draft" | "split" | "combine"> = {
@@ -103,19 +123,24 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
     case "mode":
       return { ...s, mode: a.mode };
     case "select":
-      return { ...s, ...NO_TOOL, store: save(plainParcel(a.record, a.stamp.now), a.stamp) };
+      return { ...s, ...NO_TOOL, ...PANEL_CLOSED, store: save(plainParcel(a.record, a.stamp.now), a.stamp) };
     case "close":
-      return { ...s, ...NO_TOOL, store: closeOpen(s.store) };
+      return { ...s, ...NO_TOOL, ...PANEL_CLOSED, store: closeOpen(s.store) };
     case "openSaved":
-      return { ...s, ...NO_TOOL, store: openBuilt(s.store, a.key) };
+      return { ...s, ...NO_TOOL, ...PANEL_CLOSED, store: openBuilt(s.store, a.key) };
     case "removeSaved":
-      return { ...s, ...(open?.key === a.key ? NO_TOOL : {}), store: removeBuilt(s.store, a.key) };
+      return {
+        ...s,
+        ...(open?.key === a.key ? { ...NO_TOOL, ...PANEL_CLOSED } : {}),
+        store: removeBuilt(s.store, a.key),
+      };
     case "house":
       if (!open) return s;
       return {
         ...s,
         store: save({ ...open, house: a.ll ? roundLL(a.ll) : null }, a.stamp),
         mode: s.mode === "house" ? null : s.mode,
+        layer: !a.ll && s.layer === "house" ? null : s.layer,
       };
     case "startDraw":
       return { ...s, draft: [], mode: "draw", combine: null, split: null };
@@ -131,7 +156,8 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       ring.push(ring[0]!);
       const piece = drawnPart(polygon([ring]));
       const next = open ? { ...open, pieces: [...open.pieces, piece] } : plainParcel(piece, a.stamp.now);
-      return { ...s, ...NO_TOOL, store: save(next, a.stamp) };
+      // The parts are renumbered, so a selected part no longer names the same one.
+      return { ...s, ...NO_TOOL, layer: null, store: save(next, a.stamp) };
     }
     case "startSplit":
       // An existing split is edited where it is.
@@ -173,7 +199,32 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       if (!pieces?.length) return s;
       // The split stays: if it no longer cuts the new boundary, deriving the parcel leaves it off and says so.
       const next = open ? { ...open, pieces } : { ...plainParcel(pieces[0]!, a.stamp.now), pieces };
-      return { ...s, ...NO_TOOL, store: save(next, a.stamp) };
+      return { ...s, ...NO_TOOL, layer: null, store: save(next, a.stamp) };
+    }
+    case "info":
+      return a.open ? { ...s, info: true } : { ...s, ...PANEL_CLOSED };
+    case "layer":
+      return { ...s, layer: a.id, info: a.id ? true : s.info };
+    case "removePart":
+      if (!open || open.pieces.length < 2) return s;
+      // A split that no longer cuts what's left is left off when the parcel is derived, and says so.
+      return {
+        ...s,
+        layer: null,
+        store: save({ ...open, pieces: open.pieces.filter((_, i) => i !== a.index) }, a.stamp),
+      };
+    case "removeSplit":
+      if (!open?.split) return s;
+      return { ...s, layer: null, store: save({ ...open, split: null }, a.stamp) };
+    case "keepSide":
+      if (!open?.split) return s;
+      return { ...s, store: save({ ...open, split: { ...open.split, keep: a.side } }, a.stamp) };
+    case "toggleHidden": {
+      if (!open) return s;
+      const hidden = open.hidden.includes(a.id)
+        ? open.hidden.filter((h) => h !== a.id)
+        : [...open.hidden, a.id];
+      return { ...s, store: save({ ...open, hidden }, a.stamp) };
     }
   }
 }
@@ -189,6 +240,7 @@ export interface TapHit {
 }
 
 export type TapOutcome =
+  | { kind: "clearLayer" }
   | { kind: "close" }
   | { kind: "nudge" }
   | { kind: "select"; record: ParcelRecord }
@@ -198,10 +250,12 @@ export type TapOutcome =
 /**
  * The selection rules (plan 13e §4): tap a visible outline to select it; tap the open parcel again, or empty
  * map, to unselect. A plain parcel swaps when you tap another; a built one stays until you close it (a small
- * nudge says so). A saved parcel under the tap wins over the county outline beneath it.
+ * nudge says so). A saved parcel under the tap wins over the county outline beneath it. With a layer
+ * selected, the first tap only clears it.
  */
 export function decideTap(s: ExploreState, hit: TapHit): TapOutcome {
   const open = s.store.open;
+  if (open && s.layer) return { kind: "clearLayer" };
   const other = hit.savedKey && hit.savedKey !== open?.key ? hit.savedKey : null;
   if (open) {
     if (hit.insideOpen) return { kind: "close" };

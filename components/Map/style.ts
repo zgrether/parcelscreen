@@ -89,6 +89,10 @@ export const LAYER = {
   parcelHalo: "parcel-halo",
   parcelFill: "parcel-fill",
   parcelLine: "parcel-line",
+  selFill: "sel-fill",
+  selLine: "sel-line",
+  leftFill: "left-fill",
+  leftLine: "left-line",
   splitFill: "split-fill",
   splitLine: "split-line",
   splitCut: "split-cut",
@@ -103,6 +107,7 @@ export const SOURCE = {
   parcelLines: "parcel-lines",
   saved: "saved",
   parcel: "parcel",
+  sel: "sel",
   split: "split",
   combine: "combine",
   draft: "draft",
@@ -228,6 +233,40 @@ export function buildStyle(opts: {
       type: "line",
       source: SOURCE.parcel,
       paint: { "line-color": SELECTED_COLOR, "line-width": 3 },
+    },
+  );
+  // The layer selected in the Info panel (13e-4): white over the amber parcel; the piece a split leaves out,
+  // faint and dashed (plan 13e §4, "How parcels look on the map").
+  sources[SOURCE.sel] = { type: "geojson", data: EMPTY_FC };
+  const selKind = (k: string): FilterSpecification => ["==", ["get", "kind"], k];
+  layers.push(
+    {
+      id: LAYER.selFill,
+      type: "fill",
+      source: SOURCE.sel,
+      filter: selKind("sel"),
+      paint: { "fill-color": "#ffffff", "fill-opacity": 0.16 },
+    },
+    {
+      id: LAYER.selLine,
+      type: "line",
+      source: SOURCE.sel,
+      filter: selKind("sel"),
+      paint: { "line-color": "#ffffff", "line-width": 2.5 },
+    },
+    {
+      id: LAYER.leftFill,
+      type: "fill",
+      source: SOURCE.sel,
+      filter: selKind("left"),
+      paint: { "fill-color": "#ffffff", "fill-opacity": 0.05 },
+    },
+    {
+      id: LAYER.leftLine,
+      type: "line",
+      source: SOURCE.sel,
+      filter: selKind("left"),
+      paint: { "line-color": "#ffffff", "line-width": 1.5, "line-dasharray": [3, 2] },
     },
   );
   // The split pieces, coloured per piece, and the dashed cut line (proto L612–615).

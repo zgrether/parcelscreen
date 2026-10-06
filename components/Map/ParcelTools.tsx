@@ -2,19 +2,19 @@
 /**
  * The parcel tools on the map (proto L561–707, 13e): taps per tool mode, selecting and unselecting parcels,
  * the draw keys, snapping drawn corners to the open parcel, and the overlays: the selected parcel, saved
- * parcels, the draft, the split pieces and their labels, and the house and split-end markers (DOM markers,
- * as CLAUDE.md asks, not canvas sprites).
+ * parcels and their labels, the layer selected in the Info panel, the draft, the split pieces and their
+ * labels, and the house and split-end markers (DOM markers, as CLAUDE.md asks, not canvas sprites).
  */
 import { bbox, booleanPointInPolygon, point } from "@turf/turf";
 import { Marker, type GeoJSONSource, type Map as MlMap, type MapMouseEvent } from "maplibre-gl";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { snapCorner, type SnapRing } from "@/lib/geo/snap";
 import type { Side } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
 import { parcelFromLine } from "@/lib/geo/parcels";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { useMap } from "./MapView";
-import { combineData, draftData, pieceLabels, splitData } from "./overlays";
+import { combineData, draftData, labelPoint, pieceLabels, selectionData, splitData } from "./overlays";
 import { LAYER, SOURCE } from "./style";
 import { outlineAt } from "./useParcelLines";
 
@@ -61,6 +61,7 @@ export function ParcelTools() {
   useSplitMarkers(map, ctl);
   usePieceLabels(map, ctl);
   useSnapIndicator(map, ctl);
+  useSavedLabels(map, ctl);
   return null;
 }
 
@@ -109,7 +110,11 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
         { mode, split } = c.current();
       if (!mode && !split) return;
       if ((e.target as HTMLElement | null)?.closest("input,select,textarea")) return;
-      if (e.key === "Escape") c.cancelTool();
+      // Handled keys are marked, so the Info panel doesn't act on the same press (Esc closes it otherwise).
+      if (e.key === "Escape") {
+        e.preventDefault();
+        c.cancelTool();
+      }
       if (e.key === "Enter" && mode === "draw") c.finishDraw();
       if (e.key === "Enter" && mode === "combine" && c.combined?.ok) c.applyCombination();
     };
@@ -132,17 +137,28 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
 }
 
 function useOverlays(map: MlMap | null, ctl: ExploreController) {
-  const { draft, split, combine } = ctl.state;
-  const { parcel, pieces, combined, saved } = ctl;
-  // A parcel restored after a refresh keeps the saved map view instead of fitting to it.
-  const [restored] = useState(parcel);
+  const { draft, split, combine, layer } = ctl.state;
+  const { parcel, pieces, combined, saved, shapes } = ctl;
+  const open = ctl.state.store.open;
+  const parcelHidden = !!open?.hidden.includes("parcel");
+  // The map fits to the parcel when its boundary changes, not on every edit that re-derives it (a house, a
+  // hidden layer). A parcel restored after a refresh keeps the saved map view instead.
+  const boundary = useMemo(() => (parcel ? JSON.stringify(parcel.geo.geometry) : null), [parcel]);
+  const restored = useRef(boundary);
 
   useEffect(() => {
     if (!map) return;
-    map.getSource<GeoJSONSource>(SOURCE.parcel)?.setData(parcel ? parcel.geo : EMPTY);
-    if (!parcel || parcel === restored) return;
+    map.getSource<GeoJSONSource>(SOURCE.parcel)?.setData(parcel && !parcelHidden ? parcel.geo : EMPTY);
+  }, [map, parcel, parcelHidden]);
+
+  useEffect(() => {
+    if (!map) return;
+    // The restored parcel is skipped once, on the first run with the map; reopened later, it fits.
+    const skip = boundary !== null && boundary === restored.current;
+    restored.current = null;
+    if (!boundary || skip) return;
     // Leaflet's bounds.pad(0.4): 40% of the parcel's size added on every side.
-    const [w, s, e, n] = bbox(parcel.geo);
+    const [w, s, e, n] = bbox(JSON.parse(boundary));
     const dx = (e - w) * 0.4,
       dy = (n - s) * 0.4;
     map.fitBounds(
@@ -152,7 +168,7 @@ function useOverlays(map: MlMap | null, ctl: ExploreController) {
       ],
       { padding: 0 },
     );
-  }, [map, parcel, restored]);
+  }, [map, boundary]);
 
   useEffect(() => {
     map?.getSource<GeoJSONSource>(SOURCE.saved)?.setData({
@@ -160,6 +176,12 @@ function useOverlays(map: MlMap | null, ctl: ExploreController) {
       features: saved.map((b) => ({ ...b.geo, properties: { key: b.key } })),
     });
   }, [map, saved]);
+
+  useEffect(() => {
+    map
+      ?.getSource<GeoJSONSource>(SOURCE.sel)
+      ?.setData(open ? selectionData(layer, open.pieces, shapes, open.split?.keep ?? null) : EMPTY);
+  }, [map, layer, open, shapes]);
 
   useEffect(() => {
     map?.getSource<GeoJSONSource>(SOURCE.draft)?.setData(draftData(draft));
@@ -199,7 +221,9 @@ function useHouseMarker(map: MlMap | null, ctl: ExploreController) {
     ref.current = ctl;
   });
   const marker = useRef<Marker | null>(null);
-  const house = ctl.state.store.open?.house ?? null;
+  const open = ctl.state.store.open;
+  const house = open && !open.hidden.includes("house") ? open.house : null;
+  const selected = ctl.state.layer === "house";
 
   useEffect(() => {
     if (!map) return;
@@ -209,14 +233,25 @@ function useHouseMarker(map: MlMap | null, ctl: ExploreController) {
       return;
     }
     if (!marker.current) {
-      const m = domMarker("bullseye", "Existing house — drag to adjust");
+      const m = domMarker("bullseye", "Existing house — tap for its layer, drag to adjust");
+      // A tap selects its layer (and opens the Info panel); the click that ends a drag doesn't.
+      let dragged = false;
+      m.on("dragstart", () => (dragged = true));
       m.on("dragend", () => {
         const p = m.getLngLat();
         ref.current.setHouse([p.lat, p.lng]);
       });
+      m.getElement().addEventListener("click", () => {
+        if (!dragged) ref.current.selectLayer("house");
+        dragged = false;
+      });
       marker.current = m.setLngLat([house[1], house[0]]).addTo(map);
     } else marker.current.setLngLat([house[1], house[0]]);
   }, [map, house]);
+
+  useEffect(() => {
+    marker.current?.getElement().classList.toggle("selected", selected);
+  }, [house, selected]);
 
   useEffect(
     () => () => {
@@ -354,4 +389,62 @@ function useSnapIndicator(map: MlMap | null, ctl: ExploreController) {
       marker.remove();
     };
   }, [map, drawing]);
+}
+
+/** Zoomed out past this, saved parcels' labels hide so they don't crowd the map. */
+const SAVED_LABEL_MIN_ZOOM = 13;
+
+/** A "saved · N ac" label on each saved parcel (plan 13e §4); tapping one is a tap on that parcel. */
+function useSavedLabels(map: MlMap | null, ctl: ExploreController) {
+  const ref = useRef(ctl);
+  useEffect(() => {
+    ref.current = ctl;
+  });
+  const markers = useRef(new Map<string, Marker>());
+  const { saved } = ctl;
+
+  useEffect(() => {
+    if (!map) return;
+    const m = markers.current;
+    for (const [key, mk] of m)
+      if (!saved.some((b) => b.key === key)) {
+        mk.remove();
+        m.delete(key);
+      }
+    for (const b of saved) {
+      const at = labelPoint(b.geo);
+      let mk = m.get(b.key);
+      if (!mk) {
+        const el = document.createElement("button");
+        el.type = "button";
+        el.className = "saved-label";
+        el.addEventListener("click", (e) => {
+          e.stopPropagation();
+          ref.current.tap({ insideOpen: false, outline: null, savedKey: b.key });
+        });
+        mk = new Marker({ element: el });
+        m.set(b.key, mk.setLngLat([at[1], at[0]]).addTo(map));
+      } else mk.setLngLat([at[1], at[0]]);
+      mk.getElement().textContent = `saved · ${b.acres.toFixed(2)} ac`;
+    }
+  }, [map, saved]);
+
+  useEffect(() => {
+    if (!map) return;
+    const onZoom = () =>
+      map.getContainer().classList.toggle("saved-labels-off", map.getZoom() < SAVED_LABEL_MIN_ZOOM);
+    onZoom();
+    map.on("zoomend", onZoom);
+    return () => {
+      map.off("zoomend", onZoom);
+    };
+  }, [map]);
+
+  useEffect(
+    () => () => {
+      for (const mk of markers.current.values()) mk.remove();
+      markers.current.clear();
+    },
+    [map],
+  );
 }

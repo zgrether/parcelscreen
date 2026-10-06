@@ -174,6 +174,71 @@ describe("the open parcel and History", () => {
   });
 });
 
+describe("the Info panel and its layers (13e-4)", () => {
+  const combined = () =>
+    run([
+      selectA(),
+      { type: "startCombine" },
+      { type: "combineToggle", parcel: b },
+      { type: "applyCombine", stamp: at() },
+    ]);
+
+  it("selecting a layer opens the panel; closing the panel clears the layer", () => {
+    const s = run([selectA(), { type: "layer", id: "part:0" }]);
+    expect(s).toMatchObject({ info: true, layer: "part:0" });
+    expect(exploreReducer(s, { type: "layer", id: null })).toMatchObject({ info: true, layer: null });
+    expect(exploreReducer(s, { type: "info", open: false })).toMatchObject({ info: false, layer: null });
+  });
+
+  it("unselecting the parcel, or opening another, always closes the panel", () => {
+    const s = run([selectA(), house(), { type: "layer", id: "house" }]);
+    for (const act of [
+      { type: "close" },
+      { type: "select", record: b, stamp: at() },
+      { type: "removeSaved", key: s.store.open!.key! },
+    ] as ExploreAction[])
+      expect(exploreReducer(s, act)).toMatchObject({ info: false, layer: null });
+  });
+
+  it("taking a part out keeps the parcel built, with the rest; the last part can't be taken out", () => {
+    const s = run(
+      [
+        { type: "layer", id: "part:1" },
+        { type: "removePart", index: 1, stamp: at() },
+      ],
+      combined(),
+    );
+    expect(s.store.open?.pieces).toEqual([a]);
+    expect(s.store.open?.key).not.toBeNull();
+    expect(s.layer).toBeNull();
+    expect(exploreReducer(s, { type: "removePart", index: 0, stamp: at() })).toBe(s);
+  });
+
+  it("the split can be switched to its other side, or removed", () => {
+    const s = run([
+      selectA(),
+      { type: "startSplit" },
+      { type: "splitTap", ll: [36.627, -81.354] },
+      { type: "splitTap", ll: [36.631, -81.354] },
+      { type: "keepPiece", side: -1, stamp: at() },
+      { type: "keepSide", side: 1, stamp: at() },
+    ]);
+    expect(s.store.open?.split?.keep).toBe(1);
+    expect(exploreReducer(s, { type: "removeSplit", stamp: at() }).store.open?.split).toBeNull();
+  });
+
+  it("removing the house clears its selection; hiding toggles and is saved with the parcel", () => {
+    const s = run([selectA(), house(), { type: "layer", id: "house" }]);
+    expect(exploreReducer(s, house(null))).toMatchObject({ layer: null });
+    const hid = exploreReducer(s, { type: "toggleHidden", id: "house", stamp: at() });
+    expect(hid.store.open?.hidden).toEqual(["house"]);
+    expect(hid.store.built[0]?.hidden).toEqual(["house"]);
+    expect(
+      exploreReducer(hid, { type: "toggleHidden", id: "house", stamp: at() }).store.open?.hidden,
+    ).toEqual([]);
+  });
+});
+
 describe("tap rules (decideTap)", () => {
   const none = { insideOpen: false, outline: null, savedKey: null };
   const plain = run([selectA()]);
@@ -195,6 +260,12 @@ describe("tap rules (decideTap)", () => {
       expect(decideTap(s, { ...none, insideOpen: true, outline: a })).toEqual({ kind: "close" });
       expect(decideTap(s, none)).toEqual({ kind: "close" });
     }
+  });
+
+  it("with a layer selected, the first tap only clears it", () => {
+    const s = exploreReducer(built, { type: "layer", id: "house" });
+    for (const hit of [none, { ...none, insideOpen: true }, { ...none, outline: b }])
+      expect(decideTap(s, hit)).toEqual({ kind: "clearLayer" });
   });
 
   it("another parcel: a plain one swaps; a built one stays and nudges", () => {
