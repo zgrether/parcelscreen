@@ -1,7 +1,8 @@
 "use client";
 /**
- * The panel's "Find the parcel" section (proto L209–225): coordinates, the tool buttons, and the open parcel's
- * facts. (13e-2b moves the coordinates and tools onto the map.)
+ * The panel's "Find the parcel" section (proto L209–225): how to find a parcel, and the open parcel's facts.
+ * The coordinates search and the tools are on the map (13e-2b); the split and combine details below move into
+ * the toolbar in 13e-3.
  */
 import { useState } from "react";
 import { memberLabel } from "@/lib/geo/combine";
@@ -12,53 +13,16 @@ import { useExplore } from "./useExploreController";
 
 export function FindParcel() {
   const ctl = useExplore();
-  const { mode, store } = ctl.state;
   const { parcel, derived } = ctl;
-  const open = store.open;
-  const [coords, setCoords] = useState("");
 
   return (
     <section className="block">
       <h2>Find the parcel</h2>
       <p className="tiny muted">
-        Pan the imagery to the spot you recognized in Google Earth, then tap the lot (zoom in until its
-        outline shows) to select it. Tap it again to unselect. If there&apos;s no outline there, draw it.
+        Pan the imagery to the spot you recognized in Google Earth (or paste its coordinates at the top of the
+        map), then tap the lot to select it: zoom in until its outline shows. Tap it again to unselect. With
+        no outline there, draw it from the toolbar.
       </p>
-      <div className="row">
-        <input
-          type="text"
-          className="field min-w-[200px] flex-1"
-          placeholder="Paste lat, lon (e.g. 36.6293, -81.3542)"
-          aria-label="Latitude, longitude"
-          value={coords}
-          onChange={(e) => setCoords(e.target.value)}
-        />
-        <button className="btn small" onClick={() => ctl.goTo(coords)}>
-          Go
-        </button>
-      </div>
-      <div className="row mt-2">
-        <button className="btn secondary small" onClick={ctl.startDraw}>
-          Draw boundary
-        </button>
-        <button className="btn secondary small" disabled={!open} onClick={() => ctl.setMode("house")}>
-          Mark existing house
-        </button>
-        <button className="btn secondary small" disabled={!parcel} onClick={ctl.startSplit}>
-          Split parcel
-        </button>
-        <button className="btn secondary small" onClick={ctl.startCombine}>
-          Combine parcels
-        </button>
-        {mode === "draw" && (
-          <button className="btn small" onClick={ctl.finishDraw}>
-            Finish boundary
-          </button>
-        )}
-        <button className="btn secondary small" disabled={!open} onClick={ctl.close}>
-          Close
-        </button>
-      </div>
       <div className="mt-2">
         {parcel && <ParcelFacts parcel={parcel} />}
         {derived?.ok && derived.splitDropped && (
