@@ -3,7 +3,16 @@
  * target acreage. Ported from the prototype (proto L602–633) with the map/DOM state removed: every
  * function takes the parcel and the line explicitly.
  */
-import { area, bearing, destination, featureCollection, intersect, polygon } from "@turf/turf";
+import {
+  area,
+  bearing,
+  booleanPointInPolygon,
+  destination,
+  featureCollection,
+  intersect,
+  point,
+  polygon,
+} from "@turf/turf";
 import type { Feature, MultiPolygon, Polygon, Position } from "geojson";
 import { compass } from "../format";
 import { M2_PER_ACRE, type LatLon } from "./types";
@@ -65,6 +74,14 @@ export function splitPieces(parcel: Feature<Polygon>, a: LatLon, b: LatLon): Spl
     leftAc: left ? area(left) / M2_PER_ACRE : 0,
     rightAc: right ? area(right) / M2_PER_ACRE : 0,
   };
+}
+
+/** The piece a tap landed in (the split tool keeps it, 13e), or null outside both. */
+export function pieceAt(P: SplitPieces, ll: LatLon): Side | null {
+  const pt = point([ll[1], ll[0]]);
+  if (P.left && booleanPointInPolygon(pt, P.left)) return -1;
+  if (P.right && booleanPointInPolygon(pt, P.right)) return 1;
+  return null;
 }
 
 /** Compass name of the side, e.g. "NW", used in the split panel labels. */

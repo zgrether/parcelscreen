@@ -3,7 +3,15 @@ import type { Feature, Polygon } from "geojson";
 import { describe, expect, it } from "vitest";
 import { boundarySourceLabel, parcelFacts, type ParcelRecord } from "./parcels";
 import { memberKey } from "./combine";
-import { deriveParcel, drawnPart, isCountyRecord, pieceDedupeKey, recipeDedupeKey } from "./recipe";
+import {
+  deriveParcel,
+  drawnPart,
+  isCountyRecord,
+  ownLand,
+  pieceDedupeKey,
+  recipeDedupeKey,
+  splitPreview,
+} from "./recipe";
 import { M2_PER_ACRE, type LatLon } from "./types";
 
 const LIMITS = { maxGapM: 30, touchM: 1 };
@@ -105,6 +113,20 @@ describe("deriveParcel", () => {
     expect(d.bridgeAcres).toBeGreaterThan(0.9);
     expect(d.record.props.split_from).toBe("52-47A + 52-61");
     expect(d.record.members?.map((m) => m.props.PARCELID)).toEqual(["52-47A", "52-61"]);
+  });
+
+  it("the split tool's preview shows, for each side, the acres keeping it gives", () => {
+    const parts = [county(0, "52-47A"), county(220, "52-61")];
+    const line = { a: ll(300, -50), b: ll(300, 250) };
+    const base = ok(deriveParcel({ parts }, LIMITS));
+    const P = splitPreview(base.record.geo, ownLand(parts), line.a, line.b);
+    for (const keep of [-1, 1] as const) {
+      const kept = ok(deriveParcel({ parts, split: { ...line, keep } }, LIMITS));
+      expect(keep < 0 ? P.leftAc : P.rightAc).toBeCloseTo(kept.acres, 9);
+      expect((keep < 0 ? P.left : P.right)!.geometry).toEqual(kept.record.geo.geometry);
+    }
+    // The two sides add up to the parcels' own acres: the road strip is in neither.
+    expect(P.leftAc + P.rightAc).toBeCloseTo(base.acres, 6);
   });
 
   it("a split that no longer cuts the boundary is left off, and says so", () => {

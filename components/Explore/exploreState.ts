@@ -24,15 +24,6 @@ import type { LatLon } from "@/lib/geo/types";
 
 export type Mode = "draw" | "house" | "split" | "combine" | null;
 
-/** What the hint says while each tool waits for taps (proto L578). */
-export const MODE_HINT: Record<NonNullable<Mode>, string> = {
-  draw: "Tap each corner. Then tap the first corner again, or press Finish.",
-  house: "Tap where the house stands (drag the bulls-eye later to adjust)",
-  split: "Tap two points to draw the dividing line across the parcel",
-  // New in the port (step 13b).
-  combine: "Tap each parcel to add it; tap one again to take it out",
-};
-
 export interface SplitLine {
   a: LatLon;
   /** Null until the second tap. */
@@ -90,7 +81,6 @@ export type ExploreAction =
   | { type: "startCombine" }
   /** Adds a parcel to the combination, or takes it out if it's already in. */
   | { type: "combineToggle"; parcel: ParcelRecord }
-  | { type: "combineRemove"; index: number }
   | { type: "combineCancel" }
   /** Use the picked pieces; the caller has checked that they make one boundary. */
   | { type: "applyCombine"; stamp: Stamp };
@@ -153,7 +143,8 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       };
     case "splitTap":
       if (!s.split) return { ...s, split: { a: a.ll, b: null } };
-      if (!s.split.b) return { ...s, split: { a: s.split.a, b: a.ll }, mode: null };
+      // The tool stays on: the next tap, on a piece, keeps it (keepPiece).
+      if (!s.split.b) return { ...s, split: { a: s.split.a, b: a.ll } };
       return s;
     case "splitMove":
       return { ...s, split: { a: a.a, b: a.b } };
@@ -175,8 +166,6 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       const without = s.combine.filter((m) => memberKey(m) !== k);
       return { ...s, combine: without.length < s.combine.length ? without : [...s.combine, a.parcel] };
     }
-    case "combineRemove":
-      return s.combine ? { ...s, combine: s.combine.filter((_, i) => i !== a.index) } : s;
     case "combineCancel":
       return { ...s, combine: null, mode: s.mode === "combine" ? null : s.mode };
     case "applyCombine": {

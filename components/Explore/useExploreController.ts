@@ -15,8 +15,8 @@ import { CancelledError } from "@/lib/http";
 import { combineParcels, type CombineResult } from "@/lib/geo/combine";
 import { parseLatLon } from "@/lib/geo/coords";
 import { parcelFromLine, pickParcelAt, type ParcelLine, type ParcelRecord } from "@/lib/geo/parcels";
-import { deriveParcel, type DerivedParcel } from "@/lib/geo/recipe";
-import { fitSplit as fitSplitLine, splitPieces, type Side, type SplitPieces } from "@/lib/geo/split";
+import { deriveParcel, ownLand, splitPreview, type DerivedParcel } from "@/lib/geo/recipe";
+import { pieceAt, type Side, type SplitPieces } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import {
@@ -48,7 +48,7 @@ export interface ExploreController {
   parcel: ParcelRecord | null;
   /** Saved parcels other than the open one, for the map. */
   saved: SavedShape[];
-  /** Both pieces of the split being placed, once the line has two ends. */
+  /** Both pieces of the split being placed, once the line has two ends, each with the acres keeping it gives. */
   pieces: SplitPieces | null;
   /** The combination of the picked parcels, once there are two. */
   combined: CombineResult | null;
@@ -70,20 +70,15 @@ export interface ExploreController {
   /** Esc or Cancel: whatever tool is in progress stops, nothing changes. */
   cancelTool(): void;
   finishDraw(): void;
-  cancelDraw(): void;
   startSplit(): void;
+  /** A tap while splitting: the line's two ends, then the piece to keep. */
   splitTap(ll: LatLon): void;
   moveSplit(a: LatLon, b: LatLon | null): void;
-  /** Slide the split line until one side has `targetAc` acres (the panel's Fit; 13e-3 drops it). */
-  fitSplit(targetAc: number, side: Side): void;
   choosePiece(side: Side): void;
-  cancelSplit(): void;
   startCombine(): void;
   /** A tap while combining: the outline under it, else the parcel the services find there. */
   combineAt(ll: LatLon, line: ParcelLine | null): Promise<void>;
-  combineRemove(index: number): void;
   applyCombination(): void;
-  cancelCombine(): void;
 }
 
 /** Shows a hint for a while, unless something else replaced it meanwhile. */
@@ -135,13 +130,20 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     [store.built, open?.key],
   );
 
-  // The split tool works on the whole combined boundary, before any split.
+  // The split tool cuts the whole combined boundary, before any split. The boundary and the parts' own land
+  // are worked out once per parcel, so dragging the line only cuts.
+  const parts = open?.pieces,
+    placing = state.split !== null;
+  const unsplit = useMemo(() => {
+    if (!parts || !placing) return null;
+    const base = deriveParcel({ parts }, LIMITS);
+    return base.ok ? { boundary: base.record.geo, own: ownLand(parts) } : null;
+  }, [parts, placing]);
   const pieces = useMemo(() => {
     const line = state.split;
-    if (!open || !line?.b) return null;
-    const base = deriveParcel({ parts: open.pieces }, LIMITS);
-    return base.ok ? splitPieces(base.record.geo, line.a, line.b) : null;
-  }, [open, state.split]);
+    if (!unsplit || !line?.b) return null;
+    return splitPreview(unsplit.boundary, unsplit.own, line.a, line.b);
+  }, [unsplit, state.split]);
 
   const combined = useMemo(
     () =>
@@ -227,40 +229,20 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       dispatch({ type: "finishDraw", stamp: stamp() });
       hint("");
     },
-    cancelDraw() {
-      dispatch({ type: "draftCancel" });
-      hint("");
-    },
     startSplit() {
       dispatch({ type: "startSplit" });
       hint("");
     },
     splitTap(ll) {
-      dispatch({ type: "splitTap", ll });
+      if (!latest.current.split?.b) return dispatch({ type: "splitTap", ll });
+      const side = pieces && pieceAt(pieces, ll);
+      if (side) dispatch({ type: "keepPiece", side, stamp: stamp() });
     },
     moveSplit(a, b) {
       dispatch({ type: "splitMove", a, b });
     },
-    fitSplit(targetAc, side) {
-      const { store, split } = latest.current;
-      if (!(targetAc > 0) || !store.open || !split?.b) return;
-      const base = deriveParcel({ parts: store.open.pieces }, LIMITS);
-      if (!base.ok) return;
-      const moved = fitSplitLine(base.record.geo, split.a, split.b, targetAc, side);
-      if (!moved)
-        return flash(
-          hint,
-          "Can't reach that acreage by sliding this line — rotate it or pick the other side",
-          2500,
-        );
-      dispatch({ type: "splitMove", ...moved });
-    },
     choosePiece(side) {
       dispatch({ type: "keepPiece", side, stamp: stamp() });
-      hint("");
-    },
-    cancelSplit() {
-      dispatch({ type: "splitCancel" });
       hint("");
     },
     startCombine() {
@@ -283,9 +265,6 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
         if (!(e instanceof CancelledError)) throw e;
       }
     },
-    combineRemove(index) {
-      dispatch({ type: "combineRemove", index });
-    },
     applyCombination() {
       const members = latest.current.combine;
       if (!members || members.length < 2) return;
@@ -295,10 +274,6 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       );
       if (!r.ok) return;
       dispatch({ type: "applyCombine", stamp: stamp() });
-      hint("");
-    },
-    cancelCombine() {
-      dispatch({ type: "combineCancel" });
       hint("");
     },
   };

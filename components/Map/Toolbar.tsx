@@ -10,7 +10,6 @@
 import { area, polygon } from "@turf/turf";
 import { useState, type ReactNode } from "react";
 import { isBuilt } from "@/lib/client/parcelStore";
-import { sideName } from "@/lib/geo/split";
 import { M2_PER_ACRE } from "@/lib/geo/types";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
@@ -133,7 +132,10 @@ function barBody(
         <Status>
           {n === 0 ? (
             open ? (
-              "Tap each corner of the custom shape"
+              <>
+                Tap each corner of the shape to add
+                <span className="sub long"> · corners snap to the parcel</span>
+              </>
             ) : (
               "Tap each corner of the custom parcel"
             )
@@ -171,19 +173,18 @@ function barBody(
           {cancel}
         </>
       );
-    // 13e-3 makes this "tap the piece to keep" on the map.
+    // Each piece's acres are on the map, on the piece; tapping the piece keeps it.
+    const cuts = !!ctl.pieces?.left && !!ctl.pieces.right;
     return (
       <>
-        <Status>
-          <b>Keep a piece</b>
-          <span className="sub"> · drag the ends to adjust</span>
-        </Status>
-        <Btn kind="tool" onClick={() => ctl.choosePiece(-1)}>
-          Keep {sideName(split.a, split.b, -1)}
-        </Btn>
-        <Btn kind="tool" onClick={() => ctl.choosePiece(1)}>
-          Keep {sideName(split.a, split.b, 1)}
-        </Btn>
+        {cuts ? (
+          <Status>
+            <b>Tap the piece to keep</b>
+            <span className="sub"> · drag the ends to adjust</span>
+          </Status>
+        ) : (
+          <Status bad>The cut misses the parcel · drag its ends across it</Status>
+        )}
         {cancel}
       </>
     );
@@ -205,7 +206,13 @@ function barBody(
             {n} parcel{n > 1 ? "s" : ""}
           </b>
           {r?.ok && <> · {ac(r.acres)} ac</>}
-          {r?.ok && r.gapM > 0 && <span className="sub"> · bridges a {Math.round(r.gapM)} m gap</span>}
+          {r?.ok && r.gapM > 0 && (
+            <span className="sub">
+              {" "}
+              · bridges a {Math.round(r.gapM)} m gap
+              <span className="long"> (the strip isn&apos;t counted)</span>
+            </span>
+          )}
         </Status>
       );
     return (

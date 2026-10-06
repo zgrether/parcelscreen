@@ -1,24 +1,20 @@
 "use client";
 /**
  * The parcel tools on the map (proto L561–707, 13e): taps per tool mode, selecting and unselecting parcels,
- * the draw keys, and the overlays: the selected parcel, saved parcels, the draft, the split pieces, and the
- * house and split-end markers (DOM markers, as CLAUDE.md asks, not canvas sprites).
+ * the draw keys, snapping drawn corners to the open parcel, and the overlays: the selected parcel, saved
+ * parcels, the draft, the split pieces and their labels, and the house and split-end markers (DOM markers,
+ * as CLAUDE.md asks, not canvas sprites).
  */
 import { bbox, booleanPointInPolygon, point } from "@turf/turf";
-import {
-  Marker,
-  Popup,
-  type GeoJSONSource,
-  type Map as MlMap,
-  type MapLayerMouseEvent,
-  type MapMouseEvent,
-} from "maplibre-gl";
+import { Marker, type GeoJSONSource, type Map as MlMap, type MapMouseEvent } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
+import { snapCorner, type SnapRing } from "@/lib/geo/snap";
+import type { Side } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
 import { parcelFromLine } from "@/lib/geo/parcels";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { useMap } from "./MapView";
-import { combineData, draftData, splitData } from "./overlays";
+import { combineData, draftData, pieceLabels, splitData } from "./overlays";
 import { LAYER, SOURCE } from "./style";
 import { outlineAt } from "./useParcelLines";
 
@@ -33,6 +29,28 @@ const EMPTY = { type: "FeatureCollection" as const, features: [] };
 const toLL = (e: MapMouseEvent): LatLon => [e.lngLat.lat, e.lngLat.lng];
 /** A tap this close (px) to the first corner closes the drawn boundary (proto L651). */
 const CLOSE_PX = 14;
+/** A corner drawn onto a parcel snaps to its corners and edges within this many px (plan 13e §4). */
+const SNAP_PX = 14;
+
+/** The open parcel's rings on screen, for snapping: each part, and the parcel itself (a split's cut edge). */
+function snapRings(map: MlMap, c: ExploreController): SnapRing[] {
+  const open = c.current().store.open;
+  if (!open) return [];
+  const shapes = [...open.pieces.map((p) => p.geo), ...(c.parcel ? [c.parcel.geo] : [])];
+  return shapes.flatMap((f) =>
+    f.geometry.coordinates.map((ring) => ({
+      ll: ring.map(([lon, lat]): LatLon => [lat!, lon!]),
+      xy: ring.map(([lon, lat]) => {
+        const p = map.project([lon!, lat!]);
+        return [p.x, p.y] as const;
+      }),
+    })),
+  );
+}
+
+/** Where a drawn corner lands: on the open parcel's corner or edge when one is within reach, else the tap. */
+const cornerAt = (map: MlMap, c: ExploreController, e: MapMouseEvent): LatLon =>
+  snapCorner([e.point.x, e.point.y], snapRings(map, c), SNAP_PX)?.ll ?? toLL(e);
 
 export function ParcelTools() {
   const map = useMap();
@@ -41,6 +59,8 @@ export function ParcelTools() {
   useOverlays(map, ctl);
   useHouseMarker(map, ctl);
   useSplitMarkers(map, ctl);
+  usePieceLabels(map, ctl);
+  useSnapIndicator(map, ctl);
   return null;
 }
 
@@ -76,7 +96,7 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
           const p0 = map.project([draft[0]![1], draft[0]![0]]);
           if (Math.hypot(p0.x - e.point.x, p0.y - e.point.y) < CLOSE_PX) return c.finishDraw();
         }
-        c.addCorner(toLL(e));
+        c.addCorner(cornerAt(map, c, e));
       }
     };
     const onDblClick = (e: MapMouseEvent) => {
@@ -104,9 +124,11 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
   }, [map]);
 
   const mode = ctl.state.mode;
+  // Once the cut is placed, a tap picks a piece.
+  const picking = mode === "split" && !!ctl.state.split?.b;
   useEffect(() => {
-    if (map) map.getCanvas().style.cursor = mode ? "crosshair" : "";
-  }, [map, mode]);
+    if (map) map.getCanvas().style.cursor = picking ? "pointer" : mode ? "crosshair" : "";
+  }, [map, mode, picking]);
 }
 
 function useOverlays(map: MlMap | null, ctl: ExploreController) {
@@ -159,24 +181,6 @@ function useOverlays(map: MlMap | null, ctl: ExploreController) {
         : EMPTY,
     );
   }, [map, combine, combined]);
-
-  // Each piece's acreage on hover (the prototype's tooltips).
-  useEffect(() => {
-    if (!map) return;
-    const tip = new Popup({ closeButton: false, closeOnClick: false });
-    const onMove = (e: MapLayerMouseEvent) => {
-      const label = e.features?.[0]?.properties?.label;
-      if (typeof label === "string") tip.setLngLat(e.lngLat).setText(label).addTo(map);
-    };
-    const onLeave = () => tip.remove();
-    map.on("mousemove", LAYER.splitFill, onMove);
-    map.on("mouseleave", LAYER.splitFill, onLeave);
-    return () => {
-      map.off("mousemove", LAYER.splitFill, onMove);
-      map.off("mouseleave", LAYER.splitFill, onLeave);
-      tip.remove();
-    };
-  }, [map]);
 }
 
 /** A draggable DOM marker; taps on it don't reach the map. */
@@ -266,4 +270,88 @@ function useSplitMarkers(map: MlMap | null, ctl: ExploreController) {
     },
     [map],
   );
+}
+
+/**
+ * A label on each piece while a split is placed: its side and the acres keeping it gives. Tapping a label
+ * (or anywhere in its piece) keeps that piece. When the parcel already has a split, ● marks the piece kept.
+ */
+function usePieceLabels(map: MlMap | null, ctl: ExploreController) {
+  const ref = useRef(ctl);
+  useEffect(() => {
+    ref.current = ctl;
+  });
+  const markers = useRef(new Map<Side, Marker>());
+  const { split } = ctl.state;
+  const { pieces } = ctl;
+  const kept = ctl.state.store.open?.split?.keep ?? null;
+
+  useEffect(() => {
+    if (!map) return;
+    const labels = pieces && split?.b ? pieceLabels(pieces, split.a, split.b) : [];
+    const m = markers.current;
+    for (const [side, mk] of m)
+      if (!labels.some((l) => l.side === side)) {
+        mk.remove();
+        m.delete(side);
+      }
+    for (const l of labels) {
+      let mk = m.get(l.side);
+      if (!mk) {
+        const el = document.createElement("button");
+        el.type = "button";
+        el.className = "piece-label";
+        el.addEventListener("click", (e) => {
+          e.stopPropagation();
+          ref.current.choosePiece(l.side);
+        });
+        mk = new Marker({ element: el });
+        m.set(l.side, mk.setLngLat([l.at[1], l.at[0]]).addTo(map));
+      } else mk.setLngLat([l.at[1], l.at[0]]);
+      const el = mk.getElement();
+      el.textContent = (l.side === kept ? "● " : "") + l.text;
+      el.title = `Keep the ${l.text.split(" ·")[0]} piece`;
+    }
+  }, [map, pieces, split, kept]);
+
+  useEffect(
+    () => () => {
+      for (const mk of markers.current.values()) mk.remove();
+      markers.current.clear();
+    },
+    [map],
+  );
+}
+
+/** While drawing onto a parcel, a ring where the next corner would snap (mouse only; a tap snaps the same). */
+function useSnapIndicator(map: MlMap | null, ctl: ExploreController) {
+  const ref = useRef(ctl);
+  useEffect(() => {
+    ref.current = ctl;
+  });
+  const drawing = ctl.state.mode === "draw" && !!ctl.state.store.open;
+
+  useEffect(() => {
+    if (!map || !drawing) return;
+    const el = document.createElement("div");
+    el.className = "snap-ring";
+    const marker = new Marker({ element: el });
+    let shown = false;
+    const onMove = (e: MapMouseEvent) => {
+      const s = snapCorner([e.point.x, e.point.y], snapRings(map, ref.current), SNAP_PX);
+      if (s) {
+        marker.setLngLat([s.ll[1], s.ll[0]]);
+        if (!shown) marker.addTo(map);
+        shown = true;
+      } else if (shown) {
+        marker.remove();
+        shown = false;
+      }
+    };
+    map.on("mousemove", onMove);
+    return () => {
+      map.off("mousemove", onMove);
+      marker.remove();
+    };
+  }, [map, drawing]);
 }

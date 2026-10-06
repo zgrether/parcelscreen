@@ -10,7 +10,7 @@ import { area, centroid, featureCollection, intersect, union } from "@turf/turf"
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { combinedRecord, combineParcels, memberKey, type CombineLimits } from "./combine";
 import { parcelFacts, type ParcelRecord } from "./parcels";
-import { halfPlane, splitFromLabel, splitPieces, type Side } from "./split";
+import { halfPlane, splitFromLabel, splitPieces, type Side, type SplitPieces } from "./split";
 import { M2_PER_ACRE, type LatLon } from "./types";
 
 /** A cut through the whole combined boundary (bridged strip included), and the side kept. */
@@ -81,13 +81,41 @@ export function drawnPart(geo: Feature<Polygon>): ParcelRecord {
   return { geo, props: {}, source: "drawn", multiPart: false };
 }
 
-/** The parts' own land (no bridge strip) on one side of a cut, in acres. */
-function ownAcresOnSide(parts: ParcelRecord[], a: LatLon, b: LatLon, keep: Side): number {
-  const own: Feature<Polygon | MultiPolygon> | null =
-    parts.length === 1 ? parts[0]!.geo : union(featureCollection(parts.map((p) => p.geo)));
+/** The parts' own land: their union, without any bridged strip. */
+export function ownLand(parts: ParcelRecord[]): Feature<Polygon | MultiPolygon> | null {
+  return parts.length === 1 ? parts[0]!.geo : union(featureCollection(parts.map((p) => p.geo)));
+}
+
+/** The parts' own land on one side of a cut, in acres. */
+function ownAcresOnSide(
+  own: Feature<Polygon | MultiPolygon> | null,
+  a: LatLon,
+  b: LatLon,
+  keep: Side,
+): number {
   if (!own) return 0;
   const kept = intersect(featureCollection([own, halfPlane(a, b, keep)]));
   return kept ? area(kept) / M2_PER_ACRE : 0;
+}
+
+/**
+ * The split tool's preview: both pieces of the boundary cut by a→b, each with the acres keeping it gives
+ * (the parts' own land on that side, as deriveParcel reports them; a bridged strip isn't counted).
+ * `boundary` is the unsplit boundary and `own` the parts' own land (ownLand), both computed once per parcel
+ * so dragging the line only cuts.
+ */
+export function splitPreview(
+  boundary: Feature<Polygon>,
+  own: Feature<Polygon | MultiPolygon> | null,
+  a: LatLon,
+  b: LatLon,
+): SplitPieces {
+  const P = splitPieces(boundary, a, b);
+  return {
+    ...P,
+    leftAc: P.left ? ownAcresOnSide(own, a, b, -1) : 0,
+    rightAc: P.right ? ownAcresOnSide(own, a, b, 1) : 0,
+  };
 }
 
 export function deriveParcel(recipe: ParcelRecipe, limits: CombineLimits): DerivedParcel {
@@ -122,7 +150,7 @@ export function deriveParcel(recipe: ParcelRecipe, limits: CombineLimits): Deriv
     other = keep < 0 ? P.right : P.left;
   if (!piece || !other) return { ok: true, record: base, acres, bridgeAcres, gapM, splitDropped: true };
 
-  const own = ownAcresOnSide(parts, a, b, keep);
+  const own = ownAcresOnSide(ownLand(parts), a, b, keep);
   const record: ParcelRecord = {
     geo: piece,
     props: { ...base.props, split_from: splitFromLabel(base.props), combined_acres: own },
