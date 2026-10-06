@@ -4,12 +4,14 @@
  * (right edge on desktop, above the toolbar on phones). Its Layers tab lists everything on the open parcel:
  * select a row to highlight it on the map and see its details; the eye hides it, × deletes it. Three regions:
  * the tree and the details each scroll on their own, and the selected layer's actions sit in a footer pinned
- * to the bottom. 13e-5 adds the Notes tab, which takes the tree's place.
+ * to the bottom. The Notes tab (13e-5) takes the tree's place; the details and the actions below stay.
+ * The panel reopens on the last tab used.
  *
  * Keys: Delete or Backspace deletes the selected layer; Esc clears the selection, then closes the panel.
  */
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { isBuilt } from "@/lib/client/parcelStore";
+import { getPref, setPref } from "@/lib/client/prefs";
 import type { ParcelRecord } from "@/lib/geo/parcels";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { findLayer, type LayerId, type LayerNode } from "@/components/Explore/layers";
@@ -23,15 +25,29 @@ export function InfoPanel() {
   const { info } = ctl.state;
   const open = ctl.state.store.open;
   if (!info || !open || !ctl.layers) return null;
-  // Keyed by the parcel, so a pending confirmation or an error never carries over to another.
-  return <Panel key={open.key ?? "plain"} ctl={ctl} root={ctl.layers} />;
+  // Keyed by which parcel is open, so a pending confirmation or an error never carries over to another (and a
+  // first note, which gives the parcel its key, doesn't remount the box being typed in).
+  return <Panel key={ctl.state.serial} ctl={ctl} root={ctl.layers} />;
 }
 
 function Panel({ ctl, root }: { ctl: ExploreController; root: LayerNode }) {
   const { layer, mode } = ctl.state;
   const [collapsed, setCollapsed] = useState<ReadonlySet<LayerId>>(new Set());
   const [error, setError] = useState<string | null>(null);
+  const [tab, setTab] = useState<"layers" | "notes">(() => getPref("ps.infoTab"));
   const selected = (layer && findLayer(root, layer)) || root;
+  const showTab = (t: "layers" | "notes") => {
+    setTab(t);
+    setPref("ps.infoTab", t);
+  };
+  // Selecting a layer on the map (the house) shows it in the Layers tab. (Adjusted while rendering, as React
+  // recommends for state that follows a prop, rather than in an effect.)
+  const [shownLayer, setShownLayer] = useState(layer);
+  if (layer !== shownLayer) {
+    setShownLayer(layer);
+    if (layer) setTab("layers");
+  }
+  const hasNotes = (ctl.state.store.open?.notes ?? "").trim() !== "";
 
   const remove = (id: LayerId) => setError(ctl.deleteLayer(id));
   const select = (id: LayerId | null) => {
@@ -67,33 +83,51 @@ function Panel({ ctl, root }: { ctl: ExploreController; root: LayerNode }) {
     <section className="info-panel" aria-label="Parcel info" data-tool={mode ? "" : undefined}>
       <header className="ip-head">
         <div className="ip-tabs" role="tablist" aria-label="Info panel">
-          <button className="ip-tab" role="tab" aria-selected="true">
+          <button
+            className="ip-tab"
+            role="tab"
+            aria-selected={tab === "layers"}
+            onClick={() => showTab("layers")}
+          >
             Layers
+          </button>
+          <button
+            className="ip-tab"
+            role="tab"
+            aria-selected={tab === "notes"}
+            onClick={() => showTab("notes")}
+          >
+            Notes
+            {hasNotes && <span className="ip-dot" aria-label="(has notes)" />}
           </button>
         </div>
         <button className="ip-x" aria-label="Close the Info panel" onClick={() => ctl.setInfo(false)}>
           ×
         </button>
       </header>
-      <div className="ip-tree" role="tree" aria-label="Layers">
-        <Rows
-          nodes={[root]}
-          depth={0}
-          ctl={ctl}
-          layer={layer}
-          collapsed={collapsed}
-          toggle={(id) =>
-            setCollapsed((c) => {
-              const n = new Set(c);
-              if (!n.delete(id)) n.add(id);
-              return n;
-            })
-          }
-          select={select}
-          remove={remove}
-        />
-        {/* Steps 14–15 add the Analysis group here, under the parcel. */}
-      </div>
+      {tab === "notes" ? (
+        <Notes ctl={ctl} name={root.name} />
+      ) : (
+        <div className="ip-tree" role="tree" aria-label="Layers">
+          <Rows
+            nodes={[root]}
+            depth={0}
+            ctl={ctl}
+            layer={layer}
+            collapsed={collapsed}
+            toggle={(id) =>
+              setCollapsed((c) => {
+                const n = new Set(c);
+                if (!n.delete(id)) n.add(id);
+                return n;
+              })
+            }
+            select={select}
+            remove={remove}
+          />
+          {/* Steps 14–15 add the Analysis group here, under the parcel. */}
+        </div>
+      )}
       <div className="ip-details" aria-live="polite">
         {body}
         {error && <p className="ip-error">{error}</p>}
@@ -383,6 +417,84 @@ function ParcelActions({ ctl }: { ctl: ExploreController }) {
         </Btn>
       )}
     </>
+  );
+}
+
+/** Notes save this long after the last keystroke (and at once when the box loses focus). */
+const NOTES_DEBOUNCE_MS = 600;
+
+const savedAt = (iso: string) =>
+  new Date(iso).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+
+/**
+ * The Notes tab: the parcel's notes, saved as you type. The box keeps its own text; a save changes only the
+ * "Saved" line and the tab's dot (and, the first time, makes the parcel built), so nothing around the box
+ * redraws under the cursor. On phones the sheet and the toolbar step aside while it has focus.
+ */
+function Notes({ ctl, name }: { ctl: ExploreController; name: string }) {
+  const open = ctl.state.store.open!;
+  const [text, setText] = useState(open.notes);
+  const save = useRef({ ctl, serial: ctl.state.serial, text, timer: null as number | null });
+  useEffect(() => {
+    save.current.ctl = ctl;
+  });
+  const flush = () => {
+    const s = save.current;
+    if (s.timer === null) return;
+    window.clearTimeout(s.timer);
+    s.timer = null;
+    s.ctl.saveNotes(s.text, s.serial);
+  };
+  const change = (v: string) => {
+    setText(v);
+    const s = save.current;
+    s.text = v;
+    if (s.timer !== null) window.clearTimeout(s.timer);
+    s.timer = window.setTimeout(flush, NOTES_DEBOUNCE_MS);
+  };
+  // Leaving the tab or the panel saves what's pending; so does leaving the box (onBlur).
+  useEffect(
+    () => () => {
+      flush();
+      document.documentElement.classList.remove("note-typing");
+    },
+    [],
+  );
+
+  const pending = text !== open.notes;
+  return (
+    <div className="ip-notes">
+      <div className="ip-notes-for">
+        Notes <span>· {name}</span>
+      </div>
+      <textarea
+        aria-label={`Notes for ${name}`}
+        placeholder="What you learned: the listing, a call with the agent, what to check on the visit…"
+        value={text}
+        onChange={(e) => change(e.target.value)}
+        onFocus={() => document.documentElement.classList.add("note-typing")}
+        onBlur={() => {
+          flush();
+          document.documentElement.classList.remove("note-typing");
+        }}
+      />
+      <div className="ip-notes-foot">
+        <span>
+          {pending ? "Saving…" : open.notesAt ? `Saved ${savedAt(open.notesAt)}` : "Notes save as you type."}
+        </span>
+        {text !== "" && (
+          <button
+            className="ip-link"
+            onClick={() => {
+              change("");
+              flush();
+            }}
+          >
+            Clear
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
 

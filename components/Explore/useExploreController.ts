@@ -104,6 +104,8 @@ export interface ExploreController {
   toggleHidden(id: LayerId): void;
   /** Keep the other piece of the saved split. */
   keepSide(side: Side): void;
+  /** The Notes tab's text, for the parcel open when it was typed (state.serial then). */
+  saveNotes(text: string, serial: number): void;
 }
 
 /** Shows a hint for a while, unless something else replaced it meanwhile. */
@@ -357,6 +359,9 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     keepSide(side) {
       dispatch({ type: "keepSide", side, stamp: stamp() });
+    },
+    saveNotes(text, serial) {
+      dispatch({ type: "notes", text, serial, stamp: stamp() });
     },
   };
 }

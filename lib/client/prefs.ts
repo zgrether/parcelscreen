@@ -24,6 +24,8 @@ export interface Prefs {
   "ps.current": CurrentParcel | null;
   /** Step 13e: the open parcel and History. Replaces ps.current, which converts on first read. */
   "ps.parcels": ParcelStore | null;
+  /** Step 13e-5: the Info panel's tab, so it reopens on the last one used. */
+  "ps.infoTab": "layers" | "notes";
 }
 
 const DEFAULTS: Prefs = {
@@ -36,6 +38,7 @@ const DEFAULTS: Prefs = {
   "ps.open": {},
   "ps.current": null,
   "ps.parcels": null,
+  "ps.infoTab": "layers",
 };
 
 /** How each key is stored: the prototype kept flags as "1"/"0" and the rest as plain strings or JSON. */
@@ -49,6 +52,7 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
   "ps.open": { read: (r) => JSON.parse(r) as Record<string, boolean>, write: (v) => JSON.stringify(v) },
   "ps.current": { read: readCurrentParcel, write: writeCurrentParcel },
   "ps.parcels": { read: readParcelStore, write: (v) => (v ? writeParcelStore(v) : "null") },
+  "ps.infoTab": { read: (r) => (r === "notes" ? "notes" : "layers"), write: (v) => v },
 };
 
 export interface KeyValueStore {

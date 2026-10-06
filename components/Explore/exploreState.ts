@@ -45,6 +45,12 @@ export interface ExploreState {
   info: boolean;
   /** The layer selected in the panel or on the map. */
   layer: LayerId | null;
+  /**
+   * Which parcel is open: bumped when another one opens (or none), not when the open one is edited, nor when
+   * a first change makes it built and gives it a key. The Info panel is keyed by it, so typing a first note
+   * doesn't remount the box being typed in.
+   */
+  serial: number;
 }
 
 export const INITIAL: ExploreState = {
@@ -55,6 +61,7 @@ export const INITIAL: ExploreState = {
   combine: null,
   info: false,
   layer: null,
+  serial: 0,
 };
 
 /** The time and a fresh key for a change that may save a parcel (the reducer stays pure). */
@@ -103,7 +110,9 @@ export type ExploreAction =
   | { type: "removeSplit"; stamp: Stamp }
   /** Keep the other side of the saved split. */
   | { type: "keepSide"; side: Side; stamp: Stamp }
-  | { type: "toggleHidden"; id: LayerId; stamp: Stamp };
+  | { type: "toggleHidden"; id: LayerId; stamp: Stamp }
+  /** The Notes tab's text, for the parcel that was open when it was typed (`serial`). */
+  | { type: "notes"; text: string; serial: number; stamp: Stamp };
 
 /** The house is kept to 6 decimals, as in the prototype (proto L636). */
 const roundLL = (ll: LatLon): LatLon => [+ll[0].toFixed(6), +ll[1].toFixed(6)];
@@ -111,9 +120,10 @@ const roundLL = (ll: LatLon): LatLon => [+ll[0].toFixed(6), +ll[1].toFixed(6)];
 /** Unselecting always closes the Info panel (owner, plan 13e §4); so does switching parcels, unless the panel
  * is docked beside the map (owner, 13e-4 review). A selected layer belonged to the old parcel either way. */
 const PANEL_CLOSED: Pick<ExploreState, "info" | "layer"> = { info: false, layer: null };
-const switched = (s: ExploreState, keepPanel?: boolean): Pick<ExploreState, "info" | "layer"> => ({
+const switched = (s: ExploreState, keepPanel?: boolean): Pick<ExploreState, "info" | "layer" | "serial"> => ({
   info: !!keepPanel && s.info && !!s.store.open,
   layer: null,
+  serial: s.serial + 1,
 });
 
 /** Tools in progress end when the parcel changes underneath them. */
@@ -138,13 +148,13 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
         store: save(plainParcel(a.record, a.stamp.now), a.stamp),
       };
     case "close":
-      return { ...s, ...NO_TOOL, ...PANEL_CLOSED, store: closeOpen(s.store) };
+      return { ...s, ...NO_TOOL, ...PANEL_CLOSED, serial: s.serial + 1, store: closeOpen(s.store) };
     case "openSaved":
       return { ...s, ...NO_TOOL, ...switched(s, a.keepPanel), store: openBuilt(s.store, a.key) };
     case "removeSaved":
       return {
         ...s,
-        ...(open?.key === a.key ? { ...NO_TOOL, ...PANEL_CLOSED } : {}),
+        ...(open?.key === a.key ? { ...NO_TOOL, ...PANEL_CLOSED, serial: s.serial + 1 } : {}),
         store: removeBuilt(s.store, a.key),
       };
     case "house":
@@ -170,7 +180,13 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       const piece = drawnPart(polygon([ring]));
       const next = open ? { ...open, pieces: [...open.pieces, piece] } : plainParcel(piece, a.stamp.now);
       // The parts are renumbered, so a selected part no longer names the same one.
-      return { ...s, ...NO_TOOL, layer: null, store: save(next, a.stamp) };
+      return {
+        ...s,
+        ...NO_TOOL,
+        layer: null,
+        serial: open ? s.serial : s.serial + 1,
+        store: save(next, a.stamp),
+      };
     }
     case "startSplit":
       // An existing split is edited where it is.
@@ -212,7 +228,13 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       if (!pieces?.length) return s;
       // The split stays: if it no longer cuts the new boundary, deriving the parcel leaves it off and says so.
       const next = open ? { ...open, pieces } : { ...plainParcel(pieces[0]!, a.stamp.now), pieces };
-      return { ...s, ...NO_TOOL, layer: null, store: save(next, a.stamp) };
+      return {
+        ...s,
+        ...NO_TOOL,
+        layer: null,
+        serial: open ? s.serial : s.serial + 1,
+        store: save(next, a.stamp),
+      };
     }
     case "info":
       return a.open ? { ...s, info: true } : { ...s, ...PANEL_CLOSED };
@@ -232,6 +254,13 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
     case "keepSide":
       if (!open?.split) return s;
       return { ...s, store: save({ ...open, split: { ...open.split, keep: a.side } }, a.stamp) };
+    case "notes":
+      // A save that lands after another parcel opened (a debounce, a blur) is dropped, not misfiled.
+      if (!open || a.serial !== s.serial || a.text === open.notes) return s;
+      return {
+        ...s,
+        store: save({ ...open, notes: a.text, notesAt: a.text.trim() ? a.stamp.now : null }, a.stamp),
+      };
     case "toggleHidden": {
       if (!open) return s;
       const hidden = open.hidden.includes(a.id)

@@ -259,6 +259,46 @@ describe("the Info panel and its layers (13e-4)", () => {
   });
 });
 
+describe("notes (13e-5)", () => {
+  it("a first note builds a plain parcel without changing which parcel is open (serial)", () => {
+    const plain = run([selectA()]);
+    const s = exploreReducer(plain, {
+      type: "notes",
+      text: "Creek on the north line",
+      serial: plain.serial,
+      stamp: at(),
+    });
+    expect(s.store.open).toMatchObject({ notes: "Creek on the north line" });
+    expect(s.store.open?.notesAt).not.toBeNull();
+    expect(s.store.open?.key).not.toBeNull();
+    expect(s.store.built).toHaveLength(1);
+    expect(s.serial).toBe(plain.serial);
+  });
+
+  it("a save for a parcel that's no longer open is dropped", () => {
+    const first = run([selectA()]);
+    const other = exploreReducer(first, { type: "select", record: b, stamp: at() });
+    expect(other.serial).not.toBe(first.serial);
+    expect(exploreReducer(other, { type: "notes", text: "late", serial: first.serial, stamp: at() })).toBe(
+      other,
+    );
+  });
+
+  it("clearing the notes keeps the parcel built, with no saved time", () => {
+    const s = run([selectA()]);
+    const noted = exploreReducer(s, { type: "notes", text: "x", serial: s.serial, stamp: at() });
+    const cleared = exploreReducer(noted, { type: "notes", text: "", serial: s.serial, stamp: at() });
+    expect(cleared.store.open).toMatchObject({ notes: "", notesAt: null });
+    expect(cleared.store.built).toHaveLength(1);
+  });
+
+  it("serial: opening, closing or switching parcels bumps it; editing the open one doesn't", () => {
+    const s = run([selectA()]);
+    expect(run([house(), { type: "toggleHidden", id: "house", stamp: at() }], s).serial).toBe(s.serial);
+    expect(exploreReducer(s, { type: "close" }).serial).toBe(s.serial + 1);
+  });
+});
+
 describe("tap rules (decideTap)", () => {
   const none = { insideOpen: false, outline: null, savedKey: null };
   const plain = run([selectA()]);
