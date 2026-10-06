@@ -47,8 +47,15 @@ body {
   justify-content: space-between;
   gap: 12px;
 }
+/* No pull-to-refresh in the explorer: a swipe that runs past the top of the panel's scroll (or a drag on
+   the sheet) reloaded the page on phones (owner, 14d). The panel's scroll keeps its swipes to itself. */
+html:has(.explore),
+html:has(.explore) body {
+  overscroll-behavior-y: none;
+}
 .explore-scroll {
   overflow: auto;
+  overscroll-behavior: contain;
   flex: 1;
   padding: 0 18px calc(24px + env(safe-area-inset-bottom, 0px));
 }
