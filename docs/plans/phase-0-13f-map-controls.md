@@ -1,6 +1,6 @@
 # Step 13f: map controls (plan)
 
-Status: **proposal, for the owner's approval before any code.** Queued by the owner on 2026-10-06, to start after 14a.
+Status: **approved (owner, 2026-10-06)**, with the answers in §7. It runs after 14b and before 14c–e.
 
 ## 1. Parcel lines from zoom 13.5, fetched by tile
 
@@ -120,7 +120,15 @@ The basemap stays a select.
 2. **13f-2, controls:** the zoom slider, the right-hand column, the GPS button, and the menu toggles.
 3. **13f-3, search.**
 
-## 7. Questions
+## 7. Decisions (owner, 2026-10-06)
+
+1. **Order:** 14b, then 13f-1…3, then 14c–e.
+2. **Slider range:** zoom 5–20.
+3. **Parcel numbers:** a prefix match after normalizing separators, so "52-47A", "52 47A" and "5247A" are
+   the same query.
+4. **Fine detail:** 0.5 m display geometry from zoom 15.
+
+The questions, as asked:
 
 1. **Order:** 14b is approved to start now that 14a has merged. Proposed: **14b, then 13f-1…3, then
    14c–e**, so the map work lands before the results panel moves into the explorer (14d). Or 13f first?
