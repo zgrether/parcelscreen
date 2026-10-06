@@ -57,7 +57,8 @@ Sections whose step failed or was skipped are absent. Values the prototype can l
 
 ```
 schemaVersion, runAt, acres, demSource, demResM
-params       { houseMin, shelfMin, gardenMin, canopyDeg }: the settings the report shows with this run (v2)
+params       { houseMin, shelfMin, gardenMin, canopyDeg, shallowBedrockCm }: the settings the report shows
+             with this run (v2; open until step 18 freezes it)
 terrain      { elevMinFt, elevMaxFt, elevMeanFt, reliefFt, valleyFloorFt, heightAboveValleyFt,
                slopeMedDeg, slopeP90Deg, acresUnder15, acresOver25, diag:{houseAc, shelfAc, gardenAc, totalAc} }
 houseMinUsed the house-site threshold actually used (relaxed when nothing qualified)

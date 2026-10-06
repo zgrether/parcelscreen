@@ -10,6 +10,11 @@ import { DarkSkies } from "@/components/Results/blocks/DarkSkies";
 import { DecemberSun } from "@/components/Results/blocks/DecemberSun";
 import { Driveway } from "@/components/Results/blocks/Driveway";
 import { ExistingHouse } from "@/components/Results/blocks/ExistingHouse";
+import { Floodplain } from "@/components/Results/blocks/Floodplain";
+import { GettingThere } from "@/components/Results/blocks/GettingThere";
+import { PublicLand } from "@/components/Results/blocks/PublicLand";
+import { Soils } from "@/components/Results/blocks/Soils";
+import { StillUnknown } from "@/components/Results/blocks/StillUnknown";
 import { Terrain } from "@/components/Results/blocks/Terrain";
 import { evaluationPoint, type BlockProps } from "@/components/Results/blocks/types";
 import { Verdict } from "@/components/Results/blocks/Verdict";
@@ -19,6 +24,9 @@ import { buildHeading } from "@/lib/report/build";
 import { drivewayHeading } from "@/lib/report/driveway";
 import { gardenHeading } from "@/lib/report/garden";
 import { houseHeading } from "@/lib/report/house";
+import { soilsHeading } from "@/lib/report/soils";
+import { floodHeading, gettingThereHeading, publicLandHeading } from "@/lib/report/surroundings";
+import { unknownHeading } from "@/lib/report/unknown";
 import type { Heading } from "@/lib/report/parts";
 import { skyHeading } from "@/lib/report/sky";
 import { sunHeading } from "@/lib/report/sun";
@@ -50,6 +58,11 @@ const SECTIONS: [
   [WhereToBuild, () => buildHeading],
   [Driveway, drivewayHeading],
   [WhereToGarden, () => gardenHeading],
+  [Soils, () => soilsHeading],
+  [Floodplain, () => floodHeading],
+  [PublicLand, () => publicLandHeading],
+  [GettingThere, () => gettingThereHeading],
+  [StillUnknown, () => unknownHeading],
 ];
 
 export default async function DevResultsPage({

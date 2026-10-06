@@ -367,7 +367,14 @@ const PlaceSchema = z.strictObject({ name: z.string(), ll: LatLonSchema, km: num
  * The settings a run used that its report shows (schema v2, step 14 plan Q1): the report renders from the
  * result alone, and a stored run keeps the thresholds it was screened with after Settings change.
  */
-const RunParamsSchema = z.strictObject({ houseMin: num, shelfMin: num, gardenMin: num, canopyDeg: num });
+const RunParamsSchema = z.strictObject({
+  houseMin: num,
+  shelfMin: num,
+  gardenMin: num,
+  canopyDeg: num,
+  /** The Soils section's plain-language readings flag bedrock shallower than this (14c). */
+  shallowBedrockCm: num,
+});
 export type RunParams = z.infer<typeof RunParamsSchema>;
 
 export const ScreenResultSchema = z.strictObject({

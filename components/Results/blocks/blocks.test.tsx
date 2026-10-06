@@ -21,10 +21,18 @@ import { buildHeading } from "@/lib/report/build";
 import { drivewayHeading, profilePath } from "@/lib/report/driveway";
 import { gardenHeading } from "@/lib/report/garden";
 import { houseHeading } from "@/lib/report/house";
+import { soilsHeading } from "@/lib/report/soils";
+import { floodHeading, gettingThereHeading, publicLandHeading } from "@/lib/report/surroundings";
+import { unknownHeading } from "@/lib/report/unknown";
 import { DarkSkies } from "./DarkSkies";
 import { DecemberSun } from "./DecemberSun";
 import { Driveway } from "./Driveway";
 import { ExistingHouse } from "./ExistingHouse";
+import { Floodplain } from "./Floodplain";
+import { GettingThere } from "./GettingThere";
+import { PublicLand } from "./PublicLand";
+import { Soils } from "./Soils";
+import { StillUnknown } from "./StillUnknown";
 import { Terrain } from "./Terrain";
 import { evaluationPoint, type BlockProps, type EvaluationPoint } from "./types";
 import { Verdict } from "./Verdict";
@@ -44,7 +52,20 @@ const BLOCKS: {
   { slug: "where-to-build", Block: WhereToBuild, heading: () => buildHeading },
   { slug: "driveway", Block: Driveway, heading: drivewayHeading },
   { slug: "where-to-garden", Block: WhereToGarden, heading: () => gardenHeading },
+  { slug: "soils", Block: Soils, heading: () => soilsHeading },
+  { slug: "floodplain", Block: Floodplain, heading: () => floodHeading },
+  { slug: "public-land-within-a-mile", Block: PublicLand, heading: () => publicLandHeading },
+  { slug: "getting-there-and-getting-out", Block: GettingThere, heading: () => gettingThereHeading },
+  { slug: "still-unknown", Block: StillUnknown, heading: () => unknownHeading },
 ];
+
+/**
+ * Differences from the prototype the plan approved, removed from our text before comparing. Q4: the Soils
+ * block carries the map-unit-scale caveat, which the prototype kept in its help dialog only.
+ */
+const APPROVED: Record<string, string> = {
+  soils: "Map-unit lines are drawn at county scale, so a boundary can be 100 ft off on the ground.",
+};
 
 const render = (Block: ComponentType<BlockProps>, result: PartialScreenResult) =>
   renderToStaticMarkup(<Block result={result} point={evaluationPoint(result)} variant="panel" />);
@@ -67,7 +88,10 @@ function expectParity(R: PrototypeResult, ours: PartialScreenResult, partial: bo
       expect(html, slug).toBe("");
       continue;
     }
-    expect(visibleText(html), slug).toBe(visibleText(section.body));
+    const text = APPROVED[slug]
+      ? visibleText(html).replace(visibleText(APPROVED[slug]), "")
+      : visibleText(html);
+    expect(text, slug).toBe(visibleText(section.body));
     const h = heading(ours, evaluationPoint(ours));
     expect(visibleText(`${h.title}${h.sub ?? ""}?`), `${slug} heading`).toBe(section.heading);
   }
@@ -145,6 +169,10 @@ describe("report blocks keep the prototype's caveats (CLAUDE.md)", () => {
     "it doesn't know about views, wells, or the neighbor's dog.",
     "Bare-earth DEM (no trees), county soils (not borings), and VDOT decides the entrance — this is a number to put in front of an excavator, not a bid.",
     "Garden score weighs frost position heavily",
+    "Map-unit lines are drawn at county scale, so a boundary can be 100 ft off on the ground.",
+    "Conservation easements on private land are not in this layer and don't count — you can't walk on them.",
+    "Drive times from OSRM's public router — fine for comparing parcels, not for catching a flight.",
+    "trailhead counts undercount national forest access.",
   ])("%s", (caveat) => {
     expect(text).toContain(caveat);
   });
