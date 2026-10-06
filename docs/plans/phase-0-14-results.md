@@ -145,6 +145,9 @@ Per plan 13e §5, the report sections stay in the side panel, and the step list 
   anchor. The copy is verbatim, with C4 already fixed.
 - **Copy summary:** `summaryText(result)` (already ported) is copied to the clipboard, and the hint says
   "Summary copied".
+- *As built (14e), after the header became one line and the app menu came in:* "How to read this" is in the
+  ☰ menu, and Copy summary is a button at the top of the report (below the steps), not in the header.
+  A "?" near the end of the help, where the box can't scroll its heading to the top, lights the heading.
 - **The `/dev/screen` page is removed**, as its header promised.
 
 **Where results live in Phase 0 (Q2).** Proposed: each run is kept in **IndexedDB**, keyed by a new screen

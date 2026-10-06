@@ -1,12 +1,13 @@
 "use client";
 /**
  * The app menu (owner, after 14d): ☰ at the map's top left opens a drawer from the left with what isn't
- * about the open parcel — History, and (when their steps land) How to read this (14e) and Settings (16).
- * It closes with ×, Esc, a tap on the scrim, or opening a parcel from History.
+ * about the open parcel — History, How to read this, and (when its step lands) Settings (16).
+ * It closes with ×, Esc, a tap on the scrim, opening a parcel from History, or opening the help.
  * The drawer is portalled to <body> so it sits above the bottom sheet on phones, not inside the map.
  */
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useHelp } from "@/components/Help/HelpDialog";
 import { History } from "./History";
 
 export function Menu() {
@@ -28,6 +29,7 @@ export function Menu() {
 }
 
 function Drawer({ close }: { close(): void }) {
+  const help = useHelp();
   const closeBtn = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     closeBtn.current?.focus();
@@ -53,8 +55,13 @@ function Drawer({ close }: { close(): void }) {
           <History onOpened={close} />
           <ul className="menu-items">
             <li>
-              <button disabled>
-                How to read this <span className="muted">· coming in 14e</span>
+              <button
+                onClick={() => {
+                  close();
+                  help();
+                }}
+              >
+                How to read this
               </button>
             </li>
             <li>
