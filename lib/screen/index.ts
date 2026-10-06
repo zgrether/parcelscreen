@@ -111,6 +111,7 @@ export const runParams = (c: UserConfig): ScreenResult["params"] => ({
   shelfMin: c.shelfMin,
   gardenMin: c.gardenMin,
   canopyDeg: c.canopyDeg,
+  shallowBedrockCm: c.shallowBedrockCm,
 });
 
 /** Runs the screen on a parcel. Never throws for a failed step: failures are recorded in `failed`. */
