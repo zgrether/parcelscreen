@@ -924,3 +924,103 @@ body {
     margin-right: 4px;
   }
 }
+
+/* ---------- Report blocks II: site cards, grades, the side-by-side table (proto L113–124) ---------- */
+@layer components {
+  .site {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--color-rule);
+  }
+  .site:last-child {
+    border-bottom: 0;
+  }
+  .site .n {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--color-ink);
+    color: #fff;
+    font: 600 13px/22px var(--font-cond);
+    text-align: center;
+    margin-right: 8px;
+    vertical-align: middle;
+    border: 1.5px solid var(--color-ink);
+  }
+  .site .n.alt {
+    background: transparent;
+    color: var(--color-ink);
+    line-height: 21px;
+  }
+  /* Garden patches: the prototype's teal markers (proto L1534). */
+  .site .n.garden-top {
+    background: #0a7870;
+    border-color: #0a7870;
+    color: #fff;
+  }
+  .site .n.garden-alt {
+    background: transparent;
+    border-color: #0a7870;
+    color: #0a7870;
+    line-height: 21px;
+  }
+  .grade {
+    display: inline-block;
+    min-width: 26px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: var(--color-ink);
+    color: #fff;
+    font: 600 13px/18px var(--font-cond);
+    text-align: center;
+    margin-left: 6px;
+  }
+  .grade.C {
+    background: var(--color-warn);
+  }
+  .grade.D,
+  .grade.F {
+    background: var(--color-steep);
+  }
+  .grade.cost {
+    background: transparent;
+    color: var(--color-ink);
+    border: 1px solid var(--color-ink-2);
+  }
+  .factors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    font-size: 12.5px;
+    color: var(--color-ink-2);
+    margin: 4px 0 2px;
+  }
+  .factors b {
+    font-weight: 500;
+    color: var(--color-ink);
+  }
+  .cmpwrap {
+    overflow-x: auto;
+  }
+  table.cmp {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    margin: 8px 0 4px;
+  }
+  table.cmp th,
+  table.cmp td {
+    padding: 4px 5px;
+    border-bottom: 1px solid var(--color-rule);
+    text-align: right;
+    white-space: nowrap;
+  }
+  table.cmp th:first-child,
+  table.cmp td:first-child {
+    text-align: left;
+  }
+  table.cmp th {
+    font-weight: 500;
+    color: var(--color-ink-2);
+  }
+}

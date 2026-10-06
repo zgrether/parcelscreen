@@ -60,13 +60,34 @@ export function prototypeSections(
   };
   const render = prototypeFn<(r: unknown, o: { partial: boolean }) => void>("renderResults", globals);
   // The DEM cell size came from the session (R._ctx), which isn't recorded; the result keeps it as demResM.
-  render({ parcel: { props: {} }, ...R, _ctx: { dFine: { res: R.demResM } } }, { partial });
+  render(
+    { parcel: { props: {} }, ...R, driveway: liveDriveway(R.driveway), _ctx: { dFine: { res: R.demResM } } },
+    {
+      partial,
+    },
+  );
 
   const out = new Map<string, PrototypeSection>();
   const re =
     /<details class="block" data-key="([^"]+)"[^>]*><summary>([\s\S]*?)<\/summary>([\s\S]*?)<\/details>/g;
   for (const m of html.matchAll(re)) out.set(m[1]!, { heading: visibleText(m[2]!), body: m[3]! });
   return out;
+}
+
+/**
+ * In the live prototype a route's `entrance` is the very object in `driveway.entrances`, which is how the
+ * panel numbers it (`entrances.indexOf(rt.entrance)`). The recorded JSON holds copies, so that identity is
+ * restored here; without it the prototype would print "from E0".
+ */
+function liveDriveway(d: unknown): unknown {
+  if (!d || typeof d !== "object") return d;
+  const dw = d as { entrances: unknown[]; routes: { entrance: unknown }[]; direct?: { entrance: unknown } };
+  const same = (e: unknown) => dw.entrances.find((x) => JSON.stringify(x) === JSON.stringify(e)) ?? e;
+  return {
+    ...dw,
+    routes: dw.routes.map((rt) => ({ ...rt, entrance: same(rt.entrance) })),
+    ...(dw.direct ? { direct: { ...dw.direct, entrance: same(dw.direct.entrance) } } : {}),
+  };
 }
 
 const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'", "#x27": "'" };

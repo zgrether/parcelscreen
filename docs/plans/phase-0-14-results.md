@@ -242,6 +242,10 @@ All six recommendations are approved, with these details:
   - A parcel reopened from History with no live session shows its results, plus a note that running again
     restores the map overlays, the horizon fan and the 3D view.
 - **Q5:** the horizon chart is labelled N, E, S, W at x = 0, 90, 180, 270.
+- **Schema v2 stays open until the end of Phase 0** (owner, #34 review). `params` gains whatever the 14b/14c
+  blocks need, such as the driveway's grade limit and unit costs or the garden threshold, without a version
+  bump. Step 18 freezes it. (14b needed nothing new: each route carries its own grade limit and costs, and
+  the shelf note uses `shelfMin`, already in `params`.)
 
 The questions, as asked:
 
