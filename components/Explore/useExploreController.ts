@@ -70,6 +70,8 @@ export interface ExploreController {
   layers: LayerNode | null;
   /** Pixels the Info panel covers on the map's right edge while it's docked there (desktop); 0 otherwise. */
   panelInset: number;
+  /** Desktop (and phones on their side): panels float over the map rather than the bottom sheet. */
+  docked: boolean;
   /** Bumped each time a tap is refused because a built parcel is open; the toolbar shows a brief note. */
   nudge: number;
   map: MlMap | null;
@@ -257,6 +259,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     shapes,
     layers,
     panelInset: docked && state.info && open ? DOCKED_PANEL_INSET : 0,
+    docked,
     nudge,
     map,
     setMap,
