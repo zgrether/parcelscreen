@@ -1,10 +1,11 @@
 "use client";
 /**
- * The map's tool stack (proto L250–265, L522–560): basemap, my location, dim, parcel lines, light
- * pollution, in a "Map" menu that closes when the map is tapped (a stack on desktop until 13e-4 docked the
- * Info panel on the right).
+ * The map's tools (proto L250–265, L522–560): basemap, dim, parcel lines and light pollution in a "Map" menu
+ * that closes when the map is tapped (a stack on desktop until 13e-4 docked the Info panel on the right), and
+ * "My location" as the usual GPS button under the zoom buttons (owner, 13e-5 review).
  * Basemap, dim and parcel lines persist; the light-pollution overlay starts off each visit, as before.
  */
+import { GeolocateControl } from "maplibre-gl";
 import { useEffect, useState } from "react";
 import { getPref, setPref } from "@/lib/client/prefs";
 import { useMap } from "./MapView";
@@ -57,14 +58,22 @@ export function MapTools({ parcelServices, hint }: { parcelServices: readonly st
     };
   }, [map]);
 
-  const locate = () =>
-    navigator.geolocation?.getCurrentPosition(
-      (p) => map?.flyTo({ center: [p.coords.longitude, p.coords.latitude], zoom: 15 }),
-      () => {
-        hint("Couldn't get your location");
-        setTimeout(() => hint((h) => (h === "Couldn't get your location" ? "" : h)), 2500);
-      },
-    );
+  // My location: MapLibre's GPS button, which shows where you are and goes there (no closer than zoom 15,
+  // as the prototype's button did).
+  useEffect(() => {
+    if (!map) return;
+    const gps = new GeolocateControl({ fitBoundsOptions: { maxZoom: 15 } });
+    const failed = () => {
+      hint("Couldn't get your location");
+      setTimeout(() => hint((h) => (h === "Couldn't get your location" ? "" : h)), 2500);
+    };
+    gps.on("error", failed);
+    map.addControl(gps, "top-left");
+    return () => {
+      gps.off("error", failed);
+      map.removeControl(gps);
+    };
+  }, [map, hint]);
 
   const tools = (
     <>
@@ -80,9 +89,6 @@ export function MapTools({ parcelServices, hint }: { parcelServices: readonly st
           </option>
         ))}
       </select>
-      <button className={btn} onClick={locate}>
-        My location
-      </button>
       <button className={btn} aria-pressed={dim} onClick={() => setDim(!dim)}>
         Dim map: {dim ? "on" : "off"}
       </button>

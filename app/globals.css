@@ -100,10 +100,6 @@ body {
   .map-hint {
     bottom: calc(var(--sheet-h) + 72px);
   }
-  .explore-map .maplibregl-ctrl-bottom-left,
-  .explore-map .maplibregl-ctrl-bottom-right {
-    bottom: calc(var(--sheet-h) + 70px);
-  }
   .sheet-handle {
     display: block;
     width: 56px;
@@ -413,10 +409,10 @@ body {
     opacity: 0;
   }
 }
-/* The map's bottom corner controls (attribution) sit above the parcel toolbar. */
-.explore-map .maplibregl-ctrl-bottom-left,
-.explore-map .maplibregl-ctrl-bottom-right {
-  bottom: 78px;
+/* The attribution sits up top, in line with the Map menu button and just left of it (owner, 13e-5 review). */
+.explore-map .maplibregl-ctrl-top-right {
+  top: 1px;
+  right: 62px;
 }
 .map-search {
   position: absolute;
@@ -464,10 +460,6 @@ body {
   }
   .map-search .field {
     width: 150px;
-  }
-  .explore-map .maplibregl-ctrl-bottom-left,
-  .explore-map .maplibregl-ctrl-bottom-right {
-    bottom: calc(var(--sheet-h) + 70px);
   }
 }
 @media (prefers-reduced-motion: reduce) {

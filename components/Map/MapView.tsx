@@ -4,8 +4,9 @@
  * Children render inside the map's container, so they can position themselves over it.
  */
 import "maplibre-gl/dist/maplibre-gl.css";
-import { Map as MlMap, NavigationControl, setWorkerUrl } from "maplibre-gl";
+import { AttributionControl, Map as MlMap, NavigationControl, setWorkerUrl } from "maplibre-gl";
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { SHEET_QUERY } from "@/components/Explore/useBottomSheet";
 import { getPref, setPref } from "@/lib/client/prefs";
 import { buildStyle, isBasemapId } from "./style";
 
@@ -16,6 +17,22 @@ const MapContext = createContext<MlMap | null>(null);
 
 /** The map, once its style has loaded (null before); tiles may still be arriving. */
 export const useMap = (): MlMap | null => useContext(MapContext);
+
+/**
+ * Keeps MapLibre's compact attribution folded to its ⓘ until it's tapped. MapLibre opens it on load, and
+ * again when the credits fill in as sources load; on a phone it would cover the search box.
+ */
+function startFolded(el: HTMLElement): void {
+  const SHOW = "maplibregl-compact-show";
+  const fold = () => {
+    if (el.classList.contains(SHOW)) el.classList.remove(SHOW);
+  };
+  const watch = new MutationObserver(fold);
+  watch.observe(el, { attributes: true, attributeFilter: ["class"] });
+  fold();
+  // The first tap is the user's: from then on it opens and closes as usual.
+  el.addEventListener("click", () => watch.disconnect(), { once: true, capture: true });
+}
 
 /** The prototype's opening view: southwest Virginia, zoom 9. */
 const START = { lat: 36.62, lon: -81.35, z: 9 };
@@ -51,9 +68,13 @@ export function MapView({
       center: [view.lon, view.lat],
       zoom: view.z,
       maxZoom: 20,
-      attributionControl: { compact: true },
+      attributionControl: false,
     });
     m.addControl(new NavigationControl({ showCompass: false }), "top-left");
+    // Up top, beside the Map menu, rather than hanging over the toolbar (owner, 13e-5 review).
+    m.addControl(new AttributionControl({ compact: true }), "top-right");
+    const attribution = m.getContainer().querySelector<HTMLElement>(".maplibregl-ctrl-attrib");
+    if (attribution && window.matchMedia(SHEET_QUERY).matches) startFolded(attribution);
     m.on("moveend", () => {
       const c = m.getCenter();
       setPref("ps.view", { lat: c.lat, lon: c.lng, z: m.getZoom() });

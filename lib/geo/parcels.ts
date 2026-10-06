@@ -103,7 +103,7 @@ export interface ParcelLine {
   source: string;
 }
 
-/** Every parcel outline in a map view (z ≥ 15), from all services in parallel; failures yield nothing. */
+/** Every parcel outline in a map view (z ≥ 14.5), from all services in parallel; failures yield nothing. */
 export async function parcelsInBounds(
   http: HttpClient,
   serviceUrls: readonly string[],
