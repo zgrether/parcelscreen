@@ -17,6 +17,7 @@ import { pickOutline, type ParcelLine } from "@/lib/geo/parcels";
 import {
   detailFor,
   fetchTile,
+  fieldsFor,
   lineKey,
   LINES_MIN_ZOOM,
   TileCache,
@@ -72,6 +73,18 @@ export function outlineAt(map: MlMap, point: PointLike): ParcelLine | null {
   // The one containing the tap, smallest first (lib/geo/parcels.ts pickOutline); else what's drawn on top.
   const ll = map.unproject(point);
   return pickOutline(under, [ll.lat, ll.lng]) ?? under[0] ?? null;
+}
+
+/** The counties of the outlines drawn now, per service: where map search looks for parcel numbers (13f). */
+export function countiesShown(map: MlMap): Map<string, Set<string>> {
+  const out = new Map<string, Set<string>>();
+  for (const l of drawn.get(map) ?? []) {
+    const code = (l.feature.properties as Record<string, unknown> | null)?.[fieldsFor(l.source).county];
+    if (code == null || code === "") continue;
+    if (!out.has(l.source)) out.set(l.source, new Set());
+    out.get(l.source)!.add(String(code));
+  }
+  return out;
 }
 
 export function useParcelLines(
