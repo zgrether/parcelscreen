@@ -414,20 +414,6 @@ body {
   top: 1px;
   right: 62px;
 }
-.map-search {
-  position: absolute;
-  z-index: 10;
-  top: 10px;
-  left: 52px;
-  display: flex;
-  gap: 6px;
-}
-.map-search .field {
-  width: 220px;
-  padding: 6px 9px;
-  font-size: 13.5px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-}
 @media (max-width: 860px) and (orientation: portrait) {
   .toolbar {
     bottom: calc(var(--sheet-h) + 10px);
@@ -457,9 +443,6 @@ body {
   }
   .tb-nudge {
     bottom: calc(var(--sheet-h) + 62px);
-  }
-  .map-search .field {
-    width: 150px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1026,9 +1009,6 @@ body {
 }
 
 /* ---------- 13f-2: the right-hand column (GPS, zoom slider); the search moves left ---------- */
-.map-search {
-  left: 10px;
-}
 /* MapLibre's own GPS button is hidden; ours triggers its control (which still draws the location dot). */
 .explore-map .maplibregl-ctrl-group:has(.maplibregl-ctrl-geolocate) {
   display: none;
@@ -1120,5 +1100,84 @@ body {
 @media (max-width: 860px) and (orientation: portrait) {
   .zoom-slider {
     height: 140px;
+  }
+}
+
+/* ---------- 13f-3: map search ---------- */
+.search-btn {
+  position: absolute;
+  z-index: 25;
+  top: 10px;
+  left: 10px;
+}
+.search-box {
+  position: absolute;
+  z-index: 25;
+  top: 10px;
+  left: 10px;
+  width: 320px;
+  border-radius: 10px;
+  background: var(--color-paper);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  color: var(--color-ink-2);
+}
+.search-field input {
+  flex: 1;
+  min-width: 0;
+  height: 42px;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 14.5px;
+  outline: none;
+}
+.search-results {
+  max-height: min(60vh, 420px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-top: 1px solid var(--color-rule);
+  padding: 4px 0 6px;
+}
+.sr-head {
+  padding: 8px 12px 3px;
+  color: var(--color-ink-2);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.sr-opt {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.sr-opt .muted {
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.sr-opt[aria-selected="true"] {
+  background: var(--color-paper-2);
+}
+.sr-note {
+  padding: 4px 12px 6px;
+  color: var(--color-ink-2);
+  font-size: 12.5px;
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  .search-box {
+    left: 8px;
+    right: 8px;
+    width: auto;
   }
 }

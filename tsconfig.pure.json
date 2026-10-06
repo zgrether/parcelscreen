@@ -14,7 +14,8 @@
     "lib/http.ts",
     "lib/format.ts",
     "lib/render/**/*.ts",
-    "lib/report/**/*.ts"
+    "lib/report/**/*.ts",
+    "lib/search/**/*.ts"
   ],
   "exclude": ["**/*.test.ts"]
 }

@@ -10,6 +10,7 @@ const PURE = [
   "lib/format.ts",
   "lib/render/**",
   "lib/report/**",
+  "lib/search/**",
 ];
 
 // The report blocks render from a ScreenResult and the evaluation point only, so the Phase 1 parcel page and

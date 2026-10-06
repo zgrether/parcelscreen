@@ -33,7 +33,7 @@ export function MapArea({
       <MapTools parcelServices={config.endpoints.parcels} hint={setHint} />
       <MapControls hint={setHint} />
       <ParcelTools />
-      <Search />
+      <Search photonUrl={config.endpoints.photon} />
       <Hint text={hint} />
       <Toolbar />
       <InfoPanel />

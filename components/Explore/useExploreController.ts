@@ -22,7 +22,6 @@ import { loadParcelStore, recipeOf, type WorkingParcel } from "@/lib/client/parc
 import { getPref, setPref } from "@/lib/client/prefs";
 import { CancelledError } from "@/lib/http";
 import { combineParcels, type CombineResult } from "@/lib/geo/combine";
-import { parseLatLon } from "@/lib/geo/coords";
 import { parcelFromLine, pickParcelAt, type ParcelLine, type ParcelRecord } from "@/lib/geo/parcels";
 import { fullRecord } from "@/lib/geo/parcelTiles";
 import { deriveParcel, ownLand, splitPreview, type DerivedParcel } from "@/lib/geo/recipe";
@@ -76,13 +75,14 @@ export interface ExploreController {
   map: MlMap | null;
   setMap(map: MlMap | null): void;
   setMode(mode: Mode): void;
-  goTo(text: string): void;
   /**
    * A tap on the map with no tool waiting: select, swap, unselect, or a nudge (decideTap). Selecting first
    * fetches the outline's full record (the drawn outlines are simplified).
    */
   tap(hit: TapHit): Promise<void>;
   close(): void;
+  /** Opens a county parcel found by search, from its full record (the outline's fields name it). */
+  openOutline(outline: { source: string; props: Record<string, unknown> }): Promise<void>;
   openSaved(key: string): void;
   removeSaved(key: string): void;
   setHouse(ll: LatLon | null): void;
@@ -214,7 +214,10 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
    * The full county record behind a drawn (simplified) outline, fetched by object id; null if a newer tap
    * superseded it or it couldn't be had (then nothing is selected: simplified geometry is never screened).
    */
-  const full = async (outline: ParcelRecord): Promise<ParcelRecord | null> => {
+  const full = async (outline: {
+    source: string;
+    props: Record<string, unknown>;
+  }): Promise<ParcelRecord | null> => {
     lookup.current?.abort();
     const ctl = new AbortController();
     lookup.current = ctl;
@@ -256,12 +259,6 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     map,
     setMap,
     setMode,
-    goTo(text) {
-      const ll = parseLatLon(text);
-      if (!ll) return hint("Need two numbers: lat, lon");
-      map?.jumpTo({ center: [ll[1], ll[0]], zoom: 16 });
-      hint("");
-    },
     async tap(hit) {
       const o = decideTap(latest.current, hit);
       if (o.kind === "clearLayer") return dispatch({ type: "layer", id: null });
@@ -281,6 +278,10 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       lookup.current?.abort();
       dispatch({ type: "close" });
       hint("");
+    },
+    async openOutline(outline) {
+      const record = await full(outline);
+      if (record) dispatch({ type: "select", record, stamp: stamp(), keepPanel: docked });
     },
     openSaved(key) {
       dispatch({ type: "openSaved", key, keepPanel: docked });
