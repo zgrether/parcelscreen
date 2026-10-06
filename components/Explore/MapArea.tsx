@@ -7,6 +7,7 @@ import { ParcelTools } from "@/components/Map/ParcelTools";
 import { Search } from "@/components/Map/Search";
 import { Toolbar } from "@/components/Map/Toolbar";
 import type { UserConfig } from "@/lib/screen/types";
+import { Menu } from "./Menu";
 import { useExplore, type SetHint } from "./useExploreController";
 
 /** The map with its tools and hint. Loaded client-side only (MapLibre needs the browser). */
@@ -33,6 +34,7 @@ export function MapArea({
       <MapTools parcelServices={config.endpoints.parcels} hint={setHint} />
       <MapControls hint={setHint} />
       <ParcelTools />
+      <Menu />
       <Search photonUrl={config.endpoints.photon} />
       <Hint text={hint} />
       <Toolbar />

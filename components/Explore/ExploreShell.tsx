@@ -3,14 +3,12 @@
  * The explorer's layout (proto L26–33, L129–148): the panel on the left and the map on the right; on narrow
  * portrait screens the map fills the screen and the panel is a bottom sheet over it. The parcel tools' state
  * is shared by the panel and the map through ExploreContext.
- * Rendered client-side only (see ExploreClient): the map and the persisted sheet height need the browser.
+ * Rendered client-side only (see ExploreClient): the map and the sheet need the browser.
  */
 import { useCallback, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { loadUserConfig } from "@/lib/client/userConfig";
-import { FindParcel } from "./FindParcel";
-import { History } from "./History";
 import { MapArea } from "./MapArea";
-import { ScreenIt } from "@/components/Results/panel/ScreenIt";
+import { ScreenBody, ScreenHeader, useScreenIt } from "@/components/Results/panel/ScreenIt";
 import { useBottomSheet } from "./useBottomSheet";
 import { ExploreContext, useExploreController } from "./useExploreController";
 
@@ -24,6 +22,7 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   // On phones the sheet steps aside to its peek while a map tool or the Info panel has the screen (13e-6).
   const { mode, split, info, store } = explore.state;
   const sheet = useBottomSheet(root, panel, mode !== null || split !== null || (info && store.open !== null));
+  const screen = useScreenIt(explore, config, sheet.raise);
 
   return (
     <ExploreContext.Provider value={explore}>
@@ -39,29 +38,13 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
           style={sheet.height != null ? { height: sheet.height } : undefined}
         >
           <div className="sheet-handle" title="Drag or tap to resize" {...sheet.handlers} />
+          {/* One line, always: the parcel and the screen button (owner, after 14d). On phones it's the peek. */}
           <header className="explore-header" {...sheet.handlers}>
-            <div>
-              <h1 className="font-cond m-0 text-[22px] leading-none font-semibold tracking-[.01em]">
-                Parcel Screen
-              </h1>
-              <div className="text-ink-2 text-[12.5px]">Kill parcels from your desk, before you drive.</div>
-            </div>
-            <button
-              className="mapmode-toggle bg-ink text-paper rounded px-2.5 py-1 text-[13px] font-medium"
-              hidden={sheet.aside}
-              onClick={(e) => {
-                e.stopPropagation();
-                sheet.toggleMapMode();
-              }}
-            >
-              {sheet.mapMode ? "Panel" : "Map"}
-            </button>
+            <ScreenHeader s={screen} />
           </header>
           <div className="explore-scroll">
-            <FindParcel />
-            <ScreenIt config={config} onFinished={sheet.raise} />
+            <ScreenBody s={screen} />
             {children}
-            <History />
           </div>
         </aside>
         <div className="explore-map">

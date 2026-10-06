@@ -188,7 +188,7 @@ The prototype's HTML string builders become React components that read `ScreenRe
 | `components/Saved/SavedParcels.tsx` | list / open / delete / export / import, same JSON shape | L1585–1606 |
 | `components/Walkthrough3D/*` | see §3d | L1646–1893 |
 | `lib/client/useScreen.ts` | worker lifecycle, run / cancel / evaluateAt / setHouse, progress state | — |
-| `lib/client/prefs.ts` | typed `localStorage` with try/catch: `ps.cfg`, `ps.base`, `ps.view`, `ps.dim`, `ps.lines`, `ps.omode`, `ps.open`, `ps.sheet` (and `ps.saved` if §9.3) | scattered |
+| `lib/client/prefs.ts` | typed `localStorage` with try/catch: `ps.cfg`, `ps.base`, `ps.view`, `ps.dim`, `ps.lines`, `ps.omode`, `ps.open` (and `ps.saved` if §9.3); `ps.sheet` was dropped after 14d (the sheet opens at its peek) | scattered |
 | `lib/client/userConfig.ts` | load/save `UserConfig` through Zod with defaults; endpoint `_v` migration. The prototype's one-time `demResM 10→3` migration is dropped, since a new origin has no old storage. | L458–467 |
 
 ### 3d. 3D walkthrough (react-three-fiber)

@@ -18,7 +18,6 @@ export interface Prefs {
   "ps.dim": boolean;
   "ps.lines": boolean;
   "ps.omode": "house" | "garden" | "slope" | "off";
-  "ps.sheet": number | null;
   "ps.open": Record<string, boolean>;
   /** New in the port (step 13d): the parcel being worked on and the house, kept across a refresh. */
   "ps.current": CurrentParcel | null;
@@ -35,7 +34,6 @@ const DEFAULTS: Prefs = {
   "ps.dim": false,
   "ps.lines": true,
   "ps.omode": "house",
-  "ps.sheet": null,
   "ps.open": {},
   "ps.current": null,
   "ps.parcels": null,
@@ -49,7 +47,6 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
   "ps.dim": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
   "ps.lines": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
   "ps.omode": { read: (r) => r as Prefs["ps.omode"], write: (v) => v },
-  "ps.sheet": { read: (r) => +r || null, write: (v) => String(Math.round(v ?? 0)) },
   "ps.open": { read: (r) => JSON.parse(r) as Record<string, boolean>, write: (v) => JSON.stringify(v) },
   "ps.current": { read: readCurrentParcel, write: writeCurrentParcel },
   "ps.parcels": { read: readParcelStore, write: (v) => (v ? writeParcelStore(v) : "null") },
