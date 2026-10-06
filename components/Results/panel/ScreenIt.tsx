@@ -2,9 +2,9 @@
 /**
  * Screen it (proto L226–233, L994–1180): the run for the open parcel, in two places (owner, after 14d):
  *   - ScreenHeader: one line at the top of the panel (the bottom sheet's peek on phones): the parcel's name
- *     and acres, a dot in the verdict's colour once it's screened, and Run screen / Cancel · Running… /
+ *     and acres, a dot in the verdict's colour once it's screened, and Screen it / Cancel · Running… /
  *     Run again — the app's main action, always in reach;
- *     On desktop the header is also the floating card (ExploreShell): "Screen it", and once there's a report,
+ *     On desktop the header is also the floating card (ExploreShell); once there's a report, it has
  *     a control that folds the panel back to the card, where a second line gives the verdict;
  *   - ScreenBody: the step list, the notes on whether the results still fit, and the report below in
  *     collapsible sections.
@@ -167,7 +167,7 @@ export function ScreenHeader({ s, desk = null }: { s: ScreenIt; desk?: DeskCard 
     return <span className="sh-empty">{desk ? "Tap a parcel to begin" : "Tap a parcel to screen it"}</span>;
   const name = s.ctl.layers?.name ?? "Parcel";
   const verdict = !s.runningHere && !s.stale ? s.shown?.result.verdict : undefined;
-  const label = s.running ? "Running…" : s.shown ? "Run again" : desk ? "Screen it" : "Run screen";
+  const label = s.running ? "Running…" : s.shown ? "Run again" : "Screen it";
   const folded = desk && !desk.expanded && desk.fold && s.display;
   return (
     <>
