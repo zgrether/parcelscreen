@@ -52,15 +52,28 @@ const STATE_BY_HOST: Record<string, string> = {
 };
 
 /**
+ * The county part of a dedupe key: the record's 5-digit county FIPS code where it carries one (VA `FIPS`,
+ * NC `stcntyfips`), else its county name in lower case (TN `COUNTY`). Parcel numbers repeat across
+ * counties (VA's 52-44 exists in four), so the key must name the county, and a code doesn't vary in spelling.
+ */
+export function countyKey(r: ParcelRecord): string {
+  const code = Object.entries(r.props).find(([k]) => /^(fips|stcntyfips)$/i.test(k))?.[1];
+  const digits = typeof code === "number" ? String(code).padStart(5, "0") : String(code ?? "").trim();
+  if (/^\d{5}$/.test(digits)) return digits;
+  return (parcelFacts(r.geo, r.props).county ?? "").trim().toLowerCase();
+}
+
+/**
  * One recorded parcel's dedupe key, as REQUIREMENTS §3 defines it: `state:county:parcel_number` when the
- * record has a number, else `state:county:centroid (4 decimals):acres (rounded)`. Null for a drawn piece.
+ * record has a number, else `state:county:centroid (4 decimals):acres (rounded)`, with the county as
+ * countyKey gives it. Null for a drawn piece.
  */
 export function pieceDedupeKey(r: ParcelRecord): string | null {
   if (memberKey(r) === null) return null; // drawn: no identity
   const host = /^https?:\/\/([^/]+)/.exec(r.source)?.[1] ?? "";
   const state = STATE_BY_HOST[host] ?? "??";
   const f = parcelFacts(r.geo, r.props);
-  const county = (f.county ?? "").trim().toLowerCase();
+  const county = countyKey(r);
   if (f.parcelId) return `${state}:${county}:${f.parcelId.trim()}`;
   const [lon, lat] = centroid(r.geo).geometry.coordinates as [number, number];
   return `${state}:${county}:${lat.toFixed(4)},${lon.toFixed(4)}:${Math.round(f.acres)}`;

@@ -1,8 +1,16 @@
-import { area } from "@turf/turf";
+import { area, polygon } from "@turf/turf";
 import { describe, expect, it } from "vitest";
 import { loadFixture } from "../../test/support/fixtures";
 import { CancelledError, createHttpClient } from "../http";
-import { boundarySourceLabel, parcelFacts, parcelFromLine, pickParcelAt, squareAround } from "./parcels";
+import {
+  boundarySourceLabel,
+  parcelFacts,
+  parcelFromLine,
+  pickOutline,
+  pickParcelAt,
+  squareAround,
+  type ParcelLine,
+} from "./parcels";
 import { M2_PER_ACRE } from "./types";
 
 // The prototype's parcel services, in its order (endpoints.parcels).
@@ -106,6 +114,8 @@ describe("parcel facts", () => {
     expect(f.parcelId).toBe("52-47A"); // VGIN's PARCELID matches "parcelid"
     expect(f.acres).toBeCloseTo(43.88, 2);
     expect(f.owner).toBeNull(); // VGIN publishes no owner name
+    // Deviation: VGIN's LOCALITY is the county (the prototype showed none for VA parcels).
+    expect(f.county).toBe("Floyd County");
   });
 
   it("labels each boundary source as the prototype does", () => {
@@ -134,5 +144,42 @@ describe("squareAround", () => {
     expect(area(squareAround([36.9, -80.5], 5)) / M2_PER_ACRE).toBeCloseTo(5, 2);
     expect(area(squareAround([36.9, -80.5], 0.1)) / M2_PER_ACRE).toBeCloseTo(0.25, 3);
     expect(area(squareAround([36.9, -80.5], 0)) / M2_PER_ACRE).toBeCloseTo(5, 2);
+  });
+});
+
+describe("pickOutline (which outline a tap means)", () => {
+  const box = (w: number, s: number, e: number, n: number, id: string): ParcelLine => ({
+    feature: polygon(
+      [
+        [
+          [w, s],
+          [e, s],
+          [e, n],
+          [w, n],
+          [w, s],
+        ],
+      ],
+      { PARCELID: id },
+    ),
+    source: VA,
+  });
+  // 51-79 (bigger) and 52-44 (smaller) share the line at lon -80.455, as they do in Floyd County.
+  const big = box(-80.457, 36.89, -80.455, 36.893, "51-79"),
+    small = box(-80.455, 36.89, -80.4535, 36.893, "52-44");
+
+  it("a tap inside one outline picks it, whatever is drawn on top", () => {
+    expect(pickOutline([small, big], [36.8915, -80.456])).toBe(big);
+    expect(pickOutline([big, small], [36.8915, -80.454])).toBe(small);
+  });
+
+  it("a tap on a shared line, inside both, picks the smaller, in either order", () => {
+    expect(pickOutline([big, small], [36.8915, -80.455])).toBe(small);
+    expect(pickOutline([small, big], [36.8915, -80.455])).toBe(small);
+  });
+
+  it("an outline inside another wins over it; outside every outline, nothing", () => {
+    const inner = box(-80.4565, 36.8905, -80.4558, 36.891, "inner");
+    expect(pickOutline([big, inner], [36.8907, -80.4562])).toBe(inner);
+    expect(pickOutline([big, small], [36.9, -80.46])).toBeNull();
   });
 });
