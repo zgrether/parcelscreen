@@ -63,8 +63,7 @@ html:has(.explore) body {
   position: relative;
   min-height: 0;
 }
-.sheet-handle,
-.mapmode-toggle {
+.sheet-handle {
   display: none;
 }
 /* The map's hint: above the bottom sheet when there is one. */
@@ -121,9 +120,6 @@ html:has(.explore) body {
     touch-action: none;
     cursor: ns-resize;
     padding-top: 6px;
-  }
-  .mapmode-toggle {
-    display: inline-block;
   }
 }
 
@@ -1356,4 +1352,53 @@ html:has(.explore) body {
   details.block > summary::before {
     transition: none;
   }
+}
+
+/* ---------- The panel's header: one line, the parcel and the screen button (owner, after 14d) ---------- */
+.explore-header {
+  align-items: center;
+  flex-wrap: nowrap;
+  min-height: 56px;
+}
+.sh-parcel {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  font: 600 18px/1.2 var(--font-cond);
+}
+/* A long name gives way; the acres always show. */
+.sh-name {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.sh-acres {
+  flex: none;
+  white-space: pre;
+  color: var(--color-ink-2);
+  font-weight: 500;
+}
+.sh-dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin-left: 8px;
+  border-radius: 50%;
+  background: var(--color-ok);
+}
+.sh-dot.marginal {
+  background: var(--color-warn);
+}
+.sh-dot.fatal {
+  background: var(--color-steep);
+}
+.sh-actions {
+  display: flex;
+  flex: none;
+  gap: 6px;
+}
+.sh-empty {
+  color: var(--color-ink-2);
+  font-size: 14px;
 }

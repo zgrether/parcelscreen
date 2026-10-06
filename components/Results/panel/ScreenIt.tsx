@@ -1,8 +1,13 @@
 "use client";
 /**
- * Screen it (proto L226–233, L994–1180): Run, Cancel and the step list for the open parcel, and its report
- * below in collapsible sections. Each finished run is kept (IndexedDB, under the parcel's `screenIds`), so a
- * parcel reopened from History shows its last results.
+ * Screen it (proto L226–233, L994–1180): the run for the open parcel, in two places (owner, after 14d):
+ *   - ScreenHeader: one line at the top of the panel (the bottom sheet's peek on phones): the parcel's name
+ *     and acres, a dot in the verdict's colour once it's screened, and Run screen / Cancel · Running… /
+ *     Run again — the app's main action, always in reach;
+ *   - ScreenBody: the step list, the notes on whether the results still fit, and the report below in
+ *     collapsible sections.
+ * Both read one useScreenIt, owned by the shell. Each finished run is kept (IndexedDB, under the parcel's
+ * `screenIds`), so a parcel reopened from History shows its last results.
  *
  * Whether the results still fit the open parcel (owner, 14d):
  *   - its boundary changed (pieces or split): the results are stale and say so; a re-run is required;
@@ -17,7 +22,7 @@ import { addScreen, getScreen, type ScreenRecord } from "@/lib/client/screenStor
 import { fmt } from "@/lib/format";
 import { STEPS } from "@/lib/screen/config";
 import type { PartialScreenResult, ScreenResult, UserConfig } from "@/lib/screen/types";
-import { useExplore } from "@/components/Explore/useExploreController";
+import type { ExploreController } from "@/components/Explore/useExploreController";
 import { evaluationPoint } from "../blocks/types";
 import { REPORT } from "../report";
 import { Section } from "./Section";
@@ -28,8 +33,9 @@ interface LiveRun {
   keys: RunKeys;
 }
 
-export function ScreenIt({ config, onFinished }: { config: UserConfig; onFinished(): void }) {
-  const ctl = useExplore();
+export type ScreenIt = ReturnType<typeof useScreenIt>;
+
+export function useScreenIt(ctl: ExploreController, config: UserConfig, onFinished: () => void) {
   const screen = useScreen();
   const { serial } = ctl.state;
   const open = ctl.state.store.open;
@@ -118,41 +124,93 @@ export function ScreenIt({ config, onFinished }: { config: UserConfig; onFinishe
   const display: PartialScreenResult | null = runningHere ? screen.state.result : (shown?.result ?? null);
   const point = display ? evaluationPoint(display) : null;
 
+  return {
+    ctl,
+    parcel,
+    running,
+    runningHere,
+    shown,
+    stale,
+    fresh,
+    sessionLive,
+    showParams,
+    toggleParams: () => setShowParams((v) => !v),
+    run,
+    cancel: screen.cancel,
+    steps: screen.state.steps,
+    showSteps: live?.serial === serial && status !== "idle",
+    error: live?.serial === serial ? screen.state.error : null,
+    display,
+    point,
+  };
+}
+
+const VERDICT_WORD = {
+  fatal: "Walk away",
+  marginal: "Worth a drive, eyes open",
+  ok: "Nothing in the data kills it",
+};
+
+/** The panel's one-line header: the parcel, its acres, the verdict's dot, and the screen button. */
+export function ScreenHeader({ s }: { s: ScreenIt }) {
+  const d = s.ctl.derived;
+  if (!s.ctl.state.store.open) return <span className="sh-empty">Tap a parcel to screen it</span>;
+  const name = s.ctl.layers?.name ?? "Parcel";
+  const verdict = !s.runningHere && !s.stale ? s.shown?.result.verdict : undefined;
   return (
     <>
-      <section className="block">
-        <div className="row justify-between">
-          <h2 className="m-0">Screen it</h2>
-          <span className="row">
-            {runningHere && (
-              <button className="btn secondary" onClick={screen.cancel}>
-                Cancel
-              </button>
-            )}
-            <button className="btn" disabled={!parcel || running} onClick={run}>
-              {running ? "Running…" : shown ? "Run again" : "Run screen"}
-            </button>
-          </span>
-        </div>
-        {!parcel && <p className="tiny muted">Select a parcel to screen it.</p>}
-        {live?.serial === serial && status !== "idle" && <StepList steps={screen.state.steps} />}
-        {screen.state.error && live?.serial === serial && (
-          <p className="tiny text-steep">The screen stopped: {screen.state.error}</p>
-        )}
-        {!runningHere && shown && (
-          <Notices
-            stale={stale}
-            houseChanged={!!fresh?.house}
-            sessionLive={sessionLive}
-            settingsChanged={!!fresh?.settings}
-            showParams={showParams}
-            toggleParams={() => setShowParams((s) => !s)}
-            params={shown.result.params}
+      <span className="sh-parcel">
+        <span className="sh-name">{name}</span>
+        {d?.ok && <span className="sh-acres"> · {fmt(d.acres, 2)} ac</span>}
+        {verdict && (
+          <span
+            className={`sh-dot ${verdict}`}
+            role="img"
+            aria-label={`Verdict: ${VERDICT_WORD[verdict]}`}
+            title={VERDICT_WORD[verdict]}
           />
         )}
-      </section>
+      </span>
+      <span className="sh-actions">
+        {s.runningHere && (
+          <button className="btn secondary small" onClick={s.cancel}>
+            Cancel
+          </button>
+        )}
+        <button className="btn small" disabled={!s.parcel || s.running} onClick={s.run}>
+          {s.running ? "Running…" : s.shown ? "Run again" : "Run screen"}
+        </button>
+      </span>
+    </>
+  );
+}
+
+/** The panel's body: the run's steps, whether the results still fit, and the report. */
+export function ScreenBody({ s }: { s: ScreenIt }) {
+  const { display, point, shown } = s;
+  const notes = !s.runningHere && shown;
+  if (!s.showSteps && !s.error && !notes && !display) return null;
+  return (
+    <>
+      {(s.showSteps || s.error || notes) && (
+        <section className="block">
+          {s.showSteps && <StepList steps={s.steps} />}
+          {s.error && <p className="tiny text-steep">The screen stopped: {s.error}</p>}
+          {notes && (
+            <Notices
+              stale={s.stale}
+              houseChanged={!!s.fresh?.house}
+              sessionLive={s.sessionLive}
+              settingsChanged={!!s.fresh?.settings}
+              showParams={s.showParams}
+              toggleParams={s.toggleParams}
+              params={shown.result.params}
+            />
+          )}
+        </section>
+      )}
       {display && (
-        <div className={stale && !runningHere ? "report stale" : "report"}>
+        <div className={s.stale && !s.runningHere ? "report stale" : "report"}>
           {REPORT.map(({ Block, heading }) => {
             const body = Block({ result: display, point, variant: "panel" });
             if (body === null) return null;

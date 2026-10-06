@@ -118,10 +118,6 @@ export function useBottomSheet(
   const raise = () => {
     if (isSheet() && mapMode) snapTo(snaps()[1]!);
   };
-  const toggleMapMode = () => {
-    const s = snaps();
-    snapTo(mapMode ? s[1]! : s[0]!);
-  };
 
   return {
     /** The sheet's height as shown (null when the panel is at the side): its peek while it steps aside. */
@@ -132,7 +128,6 @@ export function useBottomSheet(
     /** Stepped aside for a tool or the Info panel. */
     aside,
     handlers: { ...handlers, onPointerCancel: handlers.onPointerUp },
-    toggleMapMode,
     raise,
   };
 }
