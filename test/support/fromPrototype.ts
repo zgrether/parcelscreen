@@ -5,7 +5,8 @@
  * to handle fails the schema test instead of being silently ignored.
  */
 import { STEPS } from "@/lib/screen/config";
-import { SCREEN_SCHEMA_VERSION } from "@/lib/screen/index";
+import { DEFAULT_USER_CONFIG } from "@/lib/screen/config";
+import { runParams, SCREEN_SCHEMA_VERSION } from "@/lib/screen/index";
 import type { ScreenResult, Step } from "@/lib/screen/types";
 import { isDeepStrictEqual } from "node:util";
 import type { PrototypeResult } from "./fixtures";
@@ -34,7 +35,13 @@ export function fromPrototype(R: PrototypeResult): ScreenResult {
 
   // when → runAt; valleyFloorFt and benchDiag move into terrain.
   const { when, valleyFloorFt, benchDiag, ...out } = r;
-  const result: Loose = { schemaVersion: SCREEN_SCHEMA_VERSION, runAt: when, ...out };
+  // The goldens were recorded with the default config, so their params are its (schema v2).
+  const result: Loose = {
+    schemaVersion: SCREEN_SCHEMA_VERSION,
+    runAt: when,
+    params: runParams(DEFAULT_USER_CONFIG),
+    ...out,
+  };
   if (result.terrain) result.terrain = { ...(result.terrain as Loose), valleyFloorFt, diag: benchDiag };
 
   // Soil units: the pieces (geos) become `geometries`; `geo` (the first piece) is redundant.

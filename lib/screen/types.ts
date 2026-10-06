@@ -16,7 +16,7 @@ import { z } from "zod";
 import type { STEPS } from "./config";
 
 /** Bumped when ScreenResult changes shape; stored with every result. */
-export const SCREEN_SCHEMA_VERSION = 1 as const;
+export const SCREEN_SCHEMA_VERSION = 2 as const;
 
 // ---------- shared ----------
 
@@ -363,10 +363,18 @@ const SunSchema = z.strictObject({
 
 const PlaceSchema = z.strictObject({ name: z.string(), ll: LatLonSchema, km: num });
 
+/**
+ * The settings a run used that its report shows (schema v2, step 14 plan Q1): the report renders from the
+ * result alone, and a stored run keeps the thresholds it was screened with after Settings change.
+ */
+const RunParamsSchema = z.strictObject({ houseMin: num, shelfMin: num, gardenMin: num, canopyDeg: num });
+export type RunParams = z.infer<typeof RunParamsSchema>;
+
 export const ScreenResultSchema = z.strictObject({
   schemaVersion: z.literal(SCREEN_SCHEMA_VERSION),
   runAt: z.string(),
   acres: num,
+  params: RunParamsSchema,
   demSource: z.string().optional(),
   demResM: num.optional(),
   terrain: TerrainSchema.optional(),

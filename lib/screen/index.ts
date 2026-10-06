@@ -105,6 +105,14 @@ export interface ScreenOutput {
 
 type Building = Partial<ScreenResult> & { flags: ScreenResult["flags"] };
 
+/** The settings the report shows with a run (ScreenResult.params). */
+export const runParams = (c: UserConfig): ScreenResult["params"] => ({
+  houseMin: c.houseMin,
+  shelfMin: c.shelfMin,
+  gardenMin: c.gardenMin,
+  canopyDeg: c.canopyDeg,
+});
+
 /** Runs the screen on a parcel. Never throws for a failed step: failures are recorded in `failed`. */
 export async function screen(
   input: ScreenInput,
@@ -130,7 +138,7 @@ export async function screen(
   };
   const signal = deps.signal;
   const io = { http: s.deps.http, endpoints: cfg.endpoints, ...(signal ? { signal } : {}) };
-  const R: Building = { acres: s.acres, flags: [] };
+  const R: Building = { acres: s.acres, params: runParams(cfg), flags: [] };
   const failed: Step[] = [];
   let best: (SiteSearch["benches"][number] & { veto?: string | null }) | null = null;
 

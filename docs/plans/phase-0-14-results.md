@@ -1,6 +1,6 @@
 # Step 14: the results panel (plan)
 
-Status: **proposal, for the owner's approval before any code.** It covers step 14 of `phase-0.md` §6: the step
+Status: **approved (owner, 2026-10-06), with all six recommendations; see §9.** It covers step 14 of `phase-0.md` §6: the step
 list, the section components, the help dialog, Copy summary, the still-unknown checklist, and collapsible
 sections. Line numbers (L…) refer to `legacy/parcelscreen.html`.
 
@@ -164,8 +164,9 @@ The blocks need four thresholds the prototype read from `CFG` at render time. A 
 which settings produced it: a parcel page rendered after the user changes Settings must not relabel an old
 run.
 
-- **Proposed:** add `params: { houseMin, shelfMin, gardenMin, canopyDeg, roadMaxGradePct }` to
-  `ScreenResult`, set by `screen()` from the input config.
+- **Done in 14a:** `params: { houseMin, shelfMin, gardenMin, canopyDeg }` on `ScreenResult`, set by
+  `screen()` from the input config. These are the four settings the report reads. `roadMaxGradePct` was
+  dropped from the proposal: no section reads it, because a route carries its own `maxGrade`.
 - **Version:** bump `SCREEN_SCHEMA_VERSION` to 2.
 - **Goldens:** add the field to the golden mapping in `test/support/fromPrototype.ts`, read from the
   recorded input config. No computed number changes.
@@ -202,8 +203,8 @@ run.
    `/dev/results` page that renders the golden results, so it can be clicked before the panel exists.
 2. **14b: blocks II.** `ExistingHouse`, `WhereToBuild` + `CompareTable`, `Driveway` + `ProfileChart`,
    `WhereToGarden`.
-3. **14c: blocks III.** `Soils`, `Floodplain`, `PublicLand`, `GettingThere`, `StillUnknown`, plus `params` in
-   the result (Q1).
+3. **14c: blocks III.** `Soils`, `Floodplain`, `PublicLand`, `GettingThere`, `StillUnknown`. (`params` moved
+   to 14a: the Terrain and sun blocks need it.)
 4. **14d: Screen it.** Run, Cancel, the step list, stale results, house re-assessment, the sections in the
    panel with `Section` and `ps.open`, the phone sheet raise, and IndexedDB results (Q2). Removes
    `/dev/screen` and `/dev/results`.
@@ -233,7 +234,16 @@ run.
   - Cancel shows "(run cancelled)";
   - a failure shows "Incomplete: …".
 
-## 9. Questions for the owner
+## 9. Decisions (owner, 2026-10-06)
+
+All six recommendations are approved, with these details:
+
+- **Q2:** IndexedDB results are keyed by the same screen ids as the parcel's `screenIds`.
+  - A parcel reopened from History with no live session shows its results, plus a note that running again
+    restores the map overlays, the horizon fan and the 3D view.
+- **Q5:** the horizon chart is labelled N, E, S, W at x = 0, 90, 180, 270.
+
+The questions, as asked:
 
 1. **Q1 Settings in the result:** add `params` to `ScreenResult` (schema v2), so blocks stay pure and stored
    runs keep their own thresholds? *Recommended: yes.*

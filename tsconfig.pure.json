@@ -8,6 +8,13 @@
     "plugins": [],
     "incremental": false
   },
-  "include": ["lib/screen/**/*.ts", "lib/geo/**/*.ts", "lib/http.ts", "lib/format.ts", "lib/render/**/*.ts"],
+  "include": [
+    "lib/screen/**/*.ts",
+    "lib/geo/**/*.ts",
+    "lib/http.ts",
+    "lib/format.ts",
+    "lib/render/**/*.ts",
+    "lib/report/**/*.ts"
+  ],
   "exclude": ["**/*.test.ts"]
 }
