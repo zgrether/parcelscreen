@@ -1,6 +1,7 @@
 "use client";
 import { MapView } from "@/components/Map/MapView";
 import { InfoPanel } from "@/components/Map/InfoPanel";
+import { MapControls } from "@/components/Map/MapControls";
 import { Hint, MapTools } from "@/components/Map/MapTools";
 import { ParcelTools } from "@/components/Map/ParcelTools";
 import { Search } from "@/components/Map/Search";
@@ -30,6 +31,7 @@ export function MapArea({
       onMap={setMap}
     >
       <MapTools parcelServices={config.endpoints.parcels} hint={setHint} />
+      <MapControls hint={setHint} />
       <ParcelTools />
       <Search />
       <Hint text={hint} />

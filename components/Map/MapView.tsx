@@ -4,7 +4,7 @@
  * Children render inside the map's container, so they can position themselves over it.
  */
 import "maplibre-gl/dist/maplibre-gl.css";
-import { AttributionControl, Map as MlMap, NavigationControl, setWorkerUrl } from "maplibre-gl";
+import { AttributionControl, Map as MlMap, setWorkerUrl } from "maplibre-gl";
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { SHEET_QUERY } from "@/components/Explore/useBottomSheet";
 import { getPref, setPref } from "@/lib/client/prefs";
@@ -70,7 +70,7 @@ export function MapView({
       maxZoom: 20,
       attributionControl: false,
     });
-    m.addControl(new NavigationControl({ showCompass: false }), "top-left");
+    // No + / − buttons: the zoom slider in the right-hand column replaces them (13f).
     // Up top, beside the Map menu, rather than hanging over the toolbar (owner, 13e-5 review).
     m.addControl(new AttributionControl({ compact: true }), "top-right");
     const attribution = m.getContainer().querySelector<HTMLElement>(".maplibregl-ctrl-attrib");

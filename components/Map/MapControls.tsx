@@ -1,0 +1,123 @@
+"use client";
+/**
+ * The map's right-hand column (step 13f plan §2–3): the GPS button and a vertical zoom slider, under the Map
+ * menu. The slider replaces MapLibre's + / − buttons; its track is amber where parcel lines show. While the
+ * Info panel is docked on the right, the column moves left of it (the map itself doesn't move).
+ */
+import { GeolocateControl, type Map as MlMap } from "maplibre-gl";
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
+import { useExplore } from "@/components/Explore/useExploreController";
+import { useMap } from "./MapView";
+import { LINES_MIN_ZOOM } from "./useParcelLines";
+
+type Hint = (text: string | ((prev: string) => string)) => void;
+
+/** The slider's range (owner, 13f): the band where the map is useful for finding parcels. */
+const MIN_ZOOM = 5;
+const MAX_ZOOM = 20;
+const NO_LOCATION = "Couldn't get your location";
+
+export function MapControls({ hint }: { hint: Hint }) {
+  const map = useMap();
+  const { panelInset } = useExplore();
+  return (
+    <div className="map-col" style={{ right: panelInset ? panelInset + 10 : 10 }}>
+      {map && <LocateButton map={map} hint={hint} />}
+      {map && <ZoomSlider map={map} />}
+    </div>
+  );
+}
+
+/**
+ * My location: MapLibre's GeolocateControl still finds the position and draws the dot (its own button is
+ * hidden in globals.css); this button, styled like the toolbar's, triggers it. It goes no closer than zoom
+ * 15, as the prototype's button did.
+ */
+function LocateButton({ map, hint }: { map: MlMap; hint: Hint }) {
+  const gps = useRef<GeolocateControl | null>(null);
+  useEffect(() => {
+    const control = new GeolocateControl({ fitBoundsOptions: { maxZoom: 15 } });
+    const failed = () => {
+      hint(NO_LOCATION);
+      setTimeout(() => hint((h) => (h === NO_LOCATION ? "" : h)), 2500);
+    };
+    control.on("error", failed);
+    map.addControl(control, "top-left");
+    gps.current = control;
+    return () => {
+      control.off("error", failed);
+      map.removeControl(control);
+      gps.current = null;
+    };
+  }, [map, hint]);
+  return (
+    <button
+      className="map-ctl-btn"
+      aria-label="Show my location"
+      title="My location"
+      onClick={() => gps.current?.trigger()}
+    >
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+        <circle cx="9" cy="9" r="5.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
+        <circle cx="9" cy="9" r="2" fill="currentColor" />
+        <path d="M9 1v3M9 14v3M1 9h3M14 9h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    </button>
+  );
+}
+
+const clamp = (z: number) => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, z));
+
+/**
+ * A vertical range input: the thumb follows the map's zoom however it changed (pinch, scroll, a fit), and
+ * dragging the thumb or tapping the track zooms there, around the view's centre. Arrow keys step a whole
+ * zoom level.
+ */
+function ZoomSlider({ map }: { map: MlMap }) {
+  const [zoom, setZoom] = useState(() => map.getZoom());
+  useEffect(() => {
+    let frame = 0;
+    const follow = () => {
+      if (!frame)
+        frame = requestAnimationFrame(() => {
+          frame = 0;
+          setZoom(map.getZoom());
+        });
+    };
+    map.on("zoom", follow);
+    return () => {
+      map.off("zoom", follow);
+      cancelAnimationFrame(frame);
+    };
+  }, [map]);
+
+  const zoomTo = (z: number) => map.jumpTo({ zoom: clamp(z) });
+  const onKey = (e: KeyboardEvent<HTMLInputElement>) => {
+    const step = { ArrowUp: 1, ArrowRight: 1, PageUp: 1, ArrowDown: -1, ArrowLeft: -1, PageDown: -1 }[e.key];
+    if (!step) return;
+    e.preventDefault();
+    // To the next whole level up or down, from the map's own zoom (the slider's state lags a frame).
+    const now = map.getZoom();
+    zoomTo(step > 0 ? Math.floor(now) + 1 : Math.ceil(now) - 1);
+  };
+  // Where the amber band starts along the track, from the bottom.
+  const band = ((LINES_MIN_ZOOM - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM)) * 100;
+  return (
+    <div className="zoom-box" title={`Zoom ${zoom.toFixed(1)}`}>
+      <input
+        type="range"
+        className="zoom-slider"
+        min={MIN_ZOOM}
+        max={MAX_ZOOM}
+        step={0.1}
+        value={clamp(zoom)}
+        aria-label="Zoom"
+        aria-orientation="vertical"
+        aria-valuetext={`Zoom ${zoom.toFixed(1)}`}
+        style={{ "--band": `${band}%` } as CSSProperties}
+        onChange={(e) => zoomTo(Number(e.target.value))}
+        onKeyDown={onKey}
+      />
+    </div>
+  );
+}
