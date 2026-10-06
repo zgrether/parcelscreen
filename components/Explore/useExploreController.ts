@@ -110,6 +110,8 @@ export interface ExploreController {
   keepSide(side: Side): void;
   /** The Notes tab's text, for the parcel open when it was typed (state.serial then). */
   saveNotes(text: string, serial: number): void;
+  /** A screen finished (kept under `id`) for the parcel open when it started (state.serial then). */
+  screened(id: string, serial: number): void;
 }
 
 /** Shows a hint for a while, unless something else replaced it meanwhile. */
@@ -399,6 +401,9 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     saveNotes(text, serial) {
       dispatch({ type: "notes", text, serial, stamp: stamp() });
+    },
+    screened(id, serial) {
+      dispatch({ type: "screened", id, serial, stamp: stamp() });
     },
   };
 }

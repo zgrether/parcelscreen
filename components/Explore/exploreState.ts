@@ -112,7 +112,9 @@ export type ExploreAction =
   | { type: "keepSide"; side: Side; stamp: Stamp }
   | { type: "toggleHidden"; id: LayerId; stamp: Stamp }
   /** The Notes tab's text, for the parcel that was open when it was typed (`serial`). */
-  | { type: "notes"; text: string; serial: number; stamp: Stamp };
+  | { type: "notes"; text: string; serial: number; stamp: Stamp }
+  /** A screen finished (or a house was re-assessed) for the parcel open when it started (`serial`). */
+  | { type: "screened"; id: string; serial: number; stamp: Stamp };
 
 /** The house is kept to 6 decimals, as in the prototype (proto L636). */
 const roundLL = (ll: LatLon): LatLon => [+ll[0].toFixed(6), +ll[1].toFixed(6)];
@@ -254,6 +256,10 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
     case "keepSide":
       if (!open?.split) return s;
       return { ...s, store: save({ ...open, split: { ...open.split, keep: a.side } }, a.stamp) };
+    case "screened":
+      // A screen is one of the built rules: the parcel is saved to History with it.
+      if (!open || a.serial !== s.serial || open.screenIds.includes(a.id)) return s;
+      return { ...s, store: save({ ...open, screenIds: [...open.screenIds, a.id] }, a.stamp) };
     case "notes":
       // A save that lands after another parcel opened (a debounce, a blur) is dropped, not misfiled.
       if (!open || a.serial !== s.serial || a.text === open.notes) return s;

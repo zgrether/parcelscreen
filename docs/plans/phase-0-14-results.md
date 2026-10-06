@@ -242,6 +242,13 @@ All six recommendations are approved, with these details:
   - A parcel reopened from History with no live session shows its results, plus a note that running again
     restores the map overlays, the horizon fan and the 3D view.
 - **Q5:** the horizon chart is labelled N, E, S, W at x = 0, 90, 180, 270.
+- **Out-of-date results, 14d** (owner, #41 review). Three cases:
+  1. **The boundary changed** (pieces or split): the results are stale, and a re-run is required.
+  2. **The house was added or moved:** handled with `setHouse`, with no stale notice.
+  3. **Settings changed since the run:** a softer note that the results used earlier settings, with the
+     run's settings shown on request.
+
+  Each run keeps the keys it ran on (`lib/client/screenKeys.ts`).
 - **Schema v2 stays open until the end of Phase 0** (owner, #34 review). `params` gains whatever the 14b/14c
   blocks need, such as the driveway's grade limit and unit costs or the garden threshold, without a version
   bump. Step 18 freezes it. (14b needed nothing new: each route carries its own grade limit and costs, and

@@ -114,6 +114,10 @@ export function useBottomSheet(
   const shown = aside ? Math.min(height, snaps()[0]!) : height;
   const mapMode = dragMapMode ?? (shown != null && shown < MAP_MODE_BELOW);
   /** The header's Map / Panel button. */
+  /** After a run, a sheet folded to map mode rises to its middle snap, once (proto L1566). */
+  const raise = () => {
+    if (isSheet() && mapMode) snapTo(snaps()[1]!);
+  };
   const toggleMapMode = () => {
     const s = snaps();
     snapTo(mapMode ? s[1]! : s[0]!);
@@ -129,5 +133,6 @@ export function useBottomSheet(
     aside,
     handlers: { ...handlers, onPointerCancel: handlers.onPointerUp },
     toggleMapMode,
+    raise,
   };
 }
