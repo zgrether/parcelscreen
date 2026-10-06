@@ -840,3 +840,23 @@ body {
     bottom: 8px;
   }
 }
+
+/* ---------- 13e-6: the toolbar on narrow phones (360 px, e.g. smaller Android phones) ---------- */
+@media (max-width: 374px) {
+  .toolbar {
+    gap: 2px;
+    padding: 4px;
+  }
+  .tb-btn {
+    padding: 6px 5px;
+  }
+  .tb-btn.icon {
+    padding: 6px 4px;
+  }
+  .tb-sep {
+    margin: 4px 0;
+  }
+  .tb-acres {
+    padding: 0 4px 0 2px;
+  }
+}
