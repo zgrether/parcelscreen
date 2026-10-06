@@ -2,7 +2,9 @@
 /**
  * On narrow portrait screens the panel is a bottom sheet over the map (proto L1622–1642): drag the handle or
  * header to resize, tap to cycle between snap heights (peek 92 px, 46%, 88%), and below 110 px the sheet is
- * in "map mode" with its content hidden. The height persists (ps.sheet). Landscape and desktop get the side
+ * in "map mode" with its content hidden. It opens at the peek on every load, so the app starts on the map
+ * with the one-line header in reach (owner, after 14d; it used to restore the last height). Landscape and
+ * desktop get the side
  * panel.
  *
  * Deviation (step 12b): the map stays full-height under the sheet instead of shrinking with it, and a drag
@@ -15,7 +17,6 @@
  * doesn't change (the map doesn't move under a tool); afterwards the sheet is back where it was.
  */
 import { useCallback, useEffect, useRef, useState, type PointerEvent, type RefObject } from "react";
-import { getPref, setPref } from "@/lib/client/prefs";
 
 /** Where the panel becomes a bottom sheet; globals.css uses the same query. */
 export const SHEET_QUERY = "(max-width: 860px) and (orientation: portrait)";
@@ -30,11 +31,9 @@ export function useBottomSheet(
   panel: RefObject<HTMLElement | null>,
   stepAside = false,
 ) {
-  // The settled height: restored from the last visit, else the middle snap. The explorer renders
-  // client-side only, so this runs in the browser.
-  const [height, setHeight] = useState<number | null>(() =>
-    isSheet() ? clamp(getPref("ps.sheet") ?? snaps()[1]!) : null,
-  );
+  // The settled height: the peek at first. The explorer renders client-side only, so this runs in the
+  // browser.
+  const [height, setHeight] = useState<number | null>(() => (isSheet() ? snaps()[0]! : null));
   const [dragMapMode, setDragMapMode] = useState<boolean | null>(null);
   const drag = useRef<{ startY: number; startH: number; moved: boolean; h: number } | null>(null);
 
@@ -59,16 +58,14 @@ export function useBottomSheet(
       paint(target);
       setDragMapMode(null);
       setHeight(target);
-      setPref("ps.sheet", target);
       setTimeout(() => p?.style.removeProperty("transition"), SNAP_MS + 20);
     },
     [paint, panel],
   );
 
   useEffect(() => {
-    // Back to portrait (or narrow again): the saved height, as at load.
-    const onResize = () =>
-      setHeight((h) => (isSheet() ? (h ?? clamp(getPref("ps.sheet") ?? snaps()[1]!)) : null));
+    // Back to portrait (or narrow again): the height it had, else the peek.
+    const onResize = () => setHeight((h) => (isSheet() ? (h ?? snaps()[0]!) : null));
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);

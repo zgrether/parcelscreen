@@ -3,11 +3,10 @@
  * The explorer's layout (proto L26–33, L129–148): the panel on the left and the map on the right; on narrow
  * portrait screens the map fills the screen and the panel is a bottom sheet over it. The parcel tools' state
  * is shared by the panel and the map through ExploreContext.
- * Rendered client-side only (see ExploreClient): the map and the persisted sheet height need the browser.
+ * Rendered client-side only (see ExploreClient): the map and the sheet need the browser.
  */
 import { useCallback, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { loadUserConfig } from "@/lib/client/userConfig";
-import { History } from "./History";
 import { MapArea } from "./MapArea";
 import { ScreenBody, ScreenHeader, useScreenIt } from "@/components/Results/panel/ScreenIt";
 import { useBottomSheet } from "./useBottomSheet";
@@ -46,7 +45,6 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
           <div className="explore-scroll">
             <ScreenBody s={screen} />
             {children}
-            <History />
           </div>
         </aside>
         <div className="explore-map">

@@ -1,7 +1,8 @@
 "use client";
 /**
  * History (13e): every built parcel, newest first, with Open and Remove. Remove is the only way a parcel
- * leaves History (and the map); nothing expires. Remove asks once, inline.
+ * leaves History (and the map); nothing expires. Remove asks once, inline. It lives in the app menu (owner,
+ * after 14d), which closes when a parcel is opened (`onOpened`).
  */
 import { useState } from "react";
 import { recipeOf, type WorkingParcel } from "@/lib/client/parcelStore";
@@ -19,7 +20,7 @@ export function parcelName(p: WorkingParcel): { name: string; acres: number | nu
 const when = (iso: string) =>
   new Date(iso).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
-export function History() {
+export function History({ onOpened }: { onOpened?: () => void }) {
   const ctl = useExplore();
   const { built, open } = ctl.state.store;
   const [confirming, setConfirming] = useState<string | null>(null);
@@ -71,7 +72,10 @@ export function History() {
                         {!isOpen && (
                           <button
                             className="text-water cursor-pointer underline"
-                            onClick={() => ctl.openSaved(b.key!)}
+                            onClick={() => {
+                              ctl.openSaved(b.key!);
+                              onOpened?.();
+                            }}
                           >
                             Open
                           </button>
