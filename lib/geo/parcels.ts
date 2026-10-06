@@ -119,45 +119,6 @@ export function pickOutline(lines: readonly ParcelLine[], ll: LatLon): ParcelLin
   return best?.line ?? null;
 }
 
-/** Every parcel outline in a map view (z ≥ 14.5), from all services in parallel; failures yield nothing. */
-export async function parcelsInBounds(
-  http: HttpClient,
-  serviceUrls: readonly string[],
-  b: Bounds,
-  signal?: AbortSignal,
-): Promise<ParcelLine[]> {
-  const env = { xmin: b.west, ymin: b.south, xmax: b.east, ymax: b.north, spatialReference: { wkid: 4326 } };
-  const results = await Promise.all(
-    serviceUrls.map(async (url) => {
-      try {
-        const q = new URLSearchParams({
-          geometry: JSON.stringify(env),
-          geometryType: "esriGeometryEnvelope",
-          inSR: "4326",
-          spatialRel: "esriSpatialRelIntersects",
-          outFields: "*",
-          returnGeometry: "true",
-          outSR: "4326",
-          resultRecordCount: "600",
-          f: "geojson",
-        });
-        const r = await http.fetch(`${url}/query`, {
-          method: "POST",
-          body: q,
-          ...(signal ? { signal } : {}),
-        });
-        if (!r.ok) return [];
-        const j = (await r.json()) as ParcelFeatureCollection;
-        return (j.features || []).map((feature) => ({ feature, source: url }));
-      } catch (err) {
-        if (err instanceof CancelledError) throw err;
-        return [];
-      }
-    }),
-  );
-  return results.flat();
-}
-
 /** Which recorded parcel to use when the user taps an outline (same first-polygon rule as pickParcelAt). */
 export function parcelFromLine(line: ParcelLine): ParcelRecord {
   const { geo, multiPart } = firstPolygon(line.feature);

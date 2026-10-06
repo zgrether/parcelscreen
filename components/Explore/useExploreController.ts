@@ -24,6 +24,7 @@ import { CancelledError } from "@/lib/http";
 import { combineParcels, type CombineResult } from "@/lib/geo/combine";
 import { parseLatLon } from "@/lib/geo/coords";
 import { parcelFromLine, pickParcelAt, type ParcelLine, type ParcelRecord } from "@/lib/geo/parcels";
+import { fullRecord } from "@/lib/geo/parcelTiles";
 import { deriveParcel, ownLand, splitPreview, type DerivedParcel } from "@/lib/geo/recipe";
 import { pieceAt, type Side, type SplitPieces } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
@@ -76,8 +77,11 @@ export interface ExploreController {
   setMap(map: MlMap | null): void;
   setMode(mode: Mode): void;
   goTo(text: string): void;
-  /** A tap on the map with no tool waiting: select, swap, unselect, or a nudge (decideTap). */
-  tap(hit: TapHit): void;
+  /**
+   * A tap on the map with no tool waiting: select, swap, unselect, or a nudge (decideTap). Selecting first
+   * fetches the outline's full record (the drawn outlines are simplified).
+   */
+  tap(hit: TapHit): Promise<void>;
   close(): void;
   openSaved(key: string): void;
   removeSaved(key: string): void;
@@ -115,6 +119,7 @@ function flash(hint: SetHint, text: string, ms: number): void {
 }
 
 const LIMITS = SCREEN_CONSTANTS.combine;
+const LOADING = "Loading parcel…";
 /** The docked Info panel's footprint: globals.css `.info-panel` is 320 px wide, 10 px from the edge. */
 const DOCKED_PANEL_INSET = 330;
 
@@ -205,6 +210,29 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     [open, derived, shapes],
   );
 
+  /**
+   * The full county record behind a drawn (simplified) outline, fetched by object id; null if a newer tap
+   * superseded it or it couldn't be had (then nothing is selected: simplified geometry is never screened).
+   */
+  const full = async (outline: ParcelRecord): Promise<ParcelRecord | null> => {
+    lookup.current?.abort();
+    const ctl = new AbortController();
+    lookup.current = ctl;
+    // Only a slow lookup says so: most take a fraction of a second.
+    const slow = setTimeout(() => hint(LOADING), 250);
+    try {
+      const record = await fullRecord(browserHttp, outline, ctl.signal);
+      hint((h) => (h === LOADING ? "" : h));
+      return record;
+    } catch (e) {
+      hint((h) => (h === LOADING ? "" : h));
+      if (!(e instanceof CancelledError)) flash(hint, "Couldn't load that parcel's record. Try again.", 2500);
+      return null;
+    } finally {
+      clearTimeout(slow);
+    }
+  };
+
   const setMode = useCallback(
     (mode: Mode) => {
       dispatch({ type: "mode", mode });
@@ -234,13 +262,17 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       map?.jumpTo({ center: [ll[1], ll[0]], zoom: 16 });
       hint("");
     },
-    tap(hit) {
+    async tap(hit) {
       const o = decideTap(latest.current, hit);
       if (o.kind === "clearLayer") return dispatch({ type: "layer", id: null });
-      if (o.kind === "close") dispatch({ type: "close" });
-      else if (o.kind === "select")
-        dispatch({ type: "select", record: o.record, stamp: stamp(), keepPanel: docked });
-      else if (o.kind === "openSaved") dispatch({ type: "openSaved", key: o.key, keepPanel: docked });
+      if (o.kind === "close") {
+        lookup.current?.abort();
+        dispatch({ type: "close" });
+      } else if (o.kind === "select") {
+        const record = await full(o.record);
+        if (!record) return;
+        dispatch({ type: "select", record, stamp: stamp(), keepPanel: docked });
+      } else if (o.kind === "openSaved") dispatch({ type: "openSaved", key: o.key, keepPanel: docked });
       // A built parcel stays open until it's closed: the toolbar says so, briefly.
       else if (o.kind === "nudge") return setNudge((n) => n + 1);
       if (o.kind !== "none") hint("");
@@ -304,7 +336,11 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       hint("");
     },
     async combineAt(ll, line) {
-      if (line) return dispatch({ type: "combineToggle", parcel: parcelFromLine(line) });
+      if (line) {
+        const parcel = await full(parcelFromLine(line));
+        if (parcel) dispatch({ type: "combineToggle", parcel });
+        return;
+      }
       lookup.current?.abort();
       const ctl = new AbortController();
       lookup.current = ctl;
