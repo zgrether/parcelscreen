@@ -352,13 +352,25 @@ body {
   border-radius: 50%;
   background: #f0a030;
 }
+/* The acres: a quiet link that opens the Info panel (13e-4). */
 .tb-acres {
   flex: none;
   margin-left: 4px;
-  padding: 0 4px 0 8px;
+  padding: 0 6px 0 8px;
+  min-height: 36px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--tb-ink);
+  font: inherit;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  cursor: pointer;
+}
+.tb-acres:hover,
+.tb-acres[aria-expanded="true"] {
+  background: rgba(241, 243, 238, 0.1);
 }
 /* A refused tap: a ring that fades out, and a short note above the bar. */
 .tb-pulse {
@@ -495,4 +507,263 @@ body {
   border: 2px solid #fff;
   box-shadow: 0 0 0 2px var(--tb-amber);
   pointer-events: none;
+}
+
+/* ---------- 13e-4: the Info panel (Layers), the selected house, saved parcels' labels ---------- */
+:root {
+  --ip-bg: rgba(18, 26, 21, 0.8);
+  --ip-ink: #eef1ea;
+  --ip-ink-2: #a9b4aa;
+  --ip-rule: rgba(238, 241, 234, 0.14);
+  --ip-hover: rgba(238, 241, 234, 0.07);
+  --ip-sel: rgba(240, 160, 48, 0.26);
+}
+.info-panel {
+  position: absolute;
+  z-index: 16;
+  top: 52px;
+  right: 10px;
+  bottom: 80px;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--ip-bg);
+  color: var(--ip-ink);
+  -webkit-backdrop-filter: blur(8px) saturate(1.1);
+  backdrop-filter: blur(8px) saturate(1.1);
+  border: 1px solid var(--ip-rule);
+  border-radius: 10px;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.4);
+  font-size: 13.5px;
+}
+.ip-head {
+  flex: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 8px 8px 10px;
+  border-bottom: 1px solid var(--ip-rule);
+}
+.ip-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 7px;
+  background: rgba(238, 241, 234, 0.08);
+}
+.ip-tab {
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  color: var(--ip-ink-2);
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1;
+  padding: 5px 10px;
+}
+.ip-tab[aria-selected="true"] {
+  color: var(--ip-ink);
+  background: rgba(238, 241, 234, 0.16);
+}
+.ip-x {
+  border: 0;
+  background: none;
+  color: var(--ip-ink-2);
+  font-size: 20px;
+  line-height: 1;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+.ip-x:hover {
+  color: var(--ip-ink);
+}
+/* Three regions: the tree takes what's left, the details a defined 40%; each scrolls on its own. The
+   actions sit in a footer pinned to the bottom, outside both. */
+.ip-tree {
+  flex: 1 1 auto;
+  min-height: 72px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--ip-rule);
+}
+.ip-row {
+  display: grid;
+  grid-template-columns: 20px 20px 1fr auto 22px;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px 3px calc(8px + var(--d, 0) * 16px);
+  cursor: pointer;
+}
+.ip-row:hover {
+  background: var(--ip-hover);
+}
+.ip-row.sel {
+  background: var(--ip-sel);
+}
+.ip-row .tw,
+.ip-row .eye,
+.ip-row .del {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ip-ink-2);
+  cursor: pointer;
+}
+.ip-row .tw:hover,
+.ip-row .eye:hover {
+  color: var(--ip-ink);
+}
+.ip-row .tw[aria-expanded="false"] svg {
+  transform: rotate(-90deg);
+}
+.ip-row .eye.off {
+  opacity: 0.45;
+}
+.ip-row .eye.radio {
+  color: var(--tb-amber);
+  font-size: 13px;
+}
+.ip-row .del {
+  font-size: 16px;
+  visibility: hidden;
+}
+.ip-row:hover .del,
+.ip-row.sel .del,
+.ip-row .del:focus-visible {
+  visibility: visible;
+}
+.ip-row .del:hover {
+  color: var(--tb-bad);
+}
+.ip-row .nm {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.ip-row.off .nm {
+  color: var(--ip-ink-2);
+  text-decoration: line-through;
+}
+.ip-row .mt {
+  color: var(--ip-ink-2);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+.ip-row.sub {
+  cursor: default;
+}
+.ip-row.sub .nm {
+  color: var(--ip-ink-2);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.ip-details {
+  flex: 0 0 40%;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 10px 14px 12px;
+}
+.ip-details h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+.ip-details table.facts td {
+  color: var(--ip-ink);
+  border-bottom: 1px solid var(--ip-rule);
+}
+.ip-details table.facts td:first-child {
+  color: var(--ip-ink-2);
+}
+.ip-note,
+.ip-ask {
+  margin: 0;
+  color: var(--ip-ink-2);
+  font-size: 12.5px;
+}
+.ip-error {
+  margin: 0;
+  color: var(--tb-bad);
+  font-size: 12.5px;
+}
+.ip-actions {
+  flex: none;
+  min-height: 50px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--ip-rule);
+}
+.ip-btn {
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.ip-btn.go {
+  border: 0;
+  background: var(--ip-ink);
+  color: #18201b;
+}
+.ip-btn.sec {
+  border: 1px solid rgba(238, 241, 234, 0.35);
+  background: transparent;
+  color: var(--ip-ink);
+}
+.ip-btn.sec:hover {
+  border-color: var(--ip-ink);
+}
+.ip-btn.danger {
+  border: 1px solid rgba(255, 180, 166, 0.55);
+  background: transparent;
+  color: var(--tb-bad);
+}
+.bullseye.selected {
+  box-shadow:
+    0 0 0 3px var(--tb-amber),
+    0 1px 4px rgba(0, 0, 0, 0.5);
+}
+.saved-label {
+  padding: 2px 7px;
+  border: 0;
+  border-radius: 4px;
+  background: rgba(28, 38, 32, 0.78);
+  color: #f6d9a8;
+  font-size: 11.5px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.saved-labels-off .saved-label {
+  display: none;
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  .info-panel {
+    left: 8px;
+    right: 8px;
+    width: auto;
+    bottom: calc(var(--sheet-h) + 64px);
+  }
+  /* A tool needs the map: the panel steps aside while one is in use. */
+  .info-panel[data-tool] {
+    display: none;
+  }
+  .ip-row .del {
+    visibility: visible;
+  }
 }

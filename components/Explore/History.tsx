@@ -5,16 +5,15 @@
  */
 import { useState } from "react";
 import { recipeOf, type WorkingParcel } from "@/lib/client/parcelStore";
-import { parcelFacts } from "@/lib/geo/parcels";
 import { deriveParcel } from "@/lib/geo/recipe";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
+import { parcelDisplayName } from "./layers";
 import { useExplore } from "./useExploreController";
 
 /** The name History shows: the parcel IDs (with "+ drawn"), or "Drawn parcel". */
 export function parcelName(p: WorkingParcel): { name: string; acres: number | null } {
   const d = deriveParcel(recipeOf(p), SCREEN_CONSTANTS.combine);
-  if (!d.ok) return { name: "Parcel (pieces apart)", acres: null };
-  return { name: parcelFacts(d.record.geo, d.record.props).parcelId ?? "Drawn parcel", acres: d.acres };
+  return { name: parcelDisplayName(d), acres: d.ok ? d.acres : null };
 }
 
 const when = (iso: string) =>

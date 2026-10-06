@@ -1,7 +1,8 @@
 "use client";
 /**
  * The map's tool stack (proto L250–265, L522–560): basemap, my location, dim, parcel lines, light
- * pollution. On narrow screens they fold into a "Layers" menu that closes when the map is tapped.
+ * pollution, in a "Map" menu that closes when the map is tapped (a stack on desktop until 13e-4 docked the
+ * Info panel on the right).
  * Basemap, dim and parcel lines persist; the light-pollution overlay starts off each visit, as before.
  */
 import { useEffect, useState } from "react";
@@ -95,13 +96,11 @@ export function MapTools({ parcelServices, hint }: { parcelServices: readonly st
   );
 
   return (
-    <div className="absolute top-2.5 right-2.5 z-10 flex flex-col items-end gap-1.5">
-      {/* Desktop: the stack itself. */}
-      <div className="hidden flex-col items-end gap-1.5 min-[861px]:flex">{tools}</div>
-      {/* Mobile: one button that opens the stack as a menu. */}
-      <div className="relative min-[861px]:hidden">
+    <div className="absolute top-2.5 right-2.5 z-20 flex flex-col items-end gap-1.5">
+      {/* One button that opens the tools as a menu, at every width (13e-4: the Info panel docks on the right). */}
+      <div className="relative">
         <button className={btn} aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>
-          Layers {menuOpen ? "▴" : "▾"}
+          Map {menuOpen ? "▴" : "▾"}
         </button>
         {menuOpen && (
           <div className="bg-paper border-rule absolute top-10 right-0 flex min-w-[210px] flex-col gap-1.5 rounded-md border p-2 shadow-[0_4px_16px_rgba(0,0,0,.25)] [&>*]:w-full">

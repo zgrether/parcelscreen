@@ -29,13 +29,15 @@ import {
   type Stamp,
   type TapHit,
 } from "./exploreState";
+import { layerTree, parcelShapes, type LayerId, type LayerNode, type ParcelShapes } from "./layers";
 
 export type SetHint = (text: string | ((prev: string) => string)) => void;
 
-/** A saved (built) parcel drawn on the map. */
+/** A saved (built) parcel drawn on the map, with its "saved · N ac" label. */
 export interface SavedShape {
   key: string;
   geo: Feature<Polygon>;
+  acres: number;
 }
 
 export interface ExploreController {
@@ -52,6 +54,10 @@ export interface ExploreController {
   pieces: SplitPieces | null;
   /** The combination of the picked parcels, once there are two. */
   combined: CombineResult | null;
+  /** The open parcel's strip and split pieces, for the Layers tree and the map. */
+  shapes: ParcelShapes | null;
+  /** The Info panel's Layers tree for the open parcel. */
+  layers: LayerNode | null;
   /** Bumped each time a tap is refused because a built parcel is open; the toolbar shows a brief note. */
   nudge: number;
   map: MlMap | null;
@@ -79,6 +85,13 @@ export interface ExploreController {
   /** A tap while combining: the outline under it, else the parcel the services find there. */
   combineAt(ll: LatLon, line: ParcelLine | null): Promise<void>;
   applyCombination(): void;
+  setInfo(open: boolean): void;
+  selectLayer(id: LayerId | null): void;
+  /** The layer's ×: take a part out, remove the cut, remove the house. Returns why it can't, if it can't. */
+  deleteLayer(id: LayerId): string | null;
+  toggleHidden(id: LayerId): void;
+  /** Keep the other piece of the saved split. */
+  keepSide(side: Side): void;
 }
 
 /** Shows a hint for a while, unless something else replaced it meanwhile. */
@@ -125,7 +138,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
         .filter((b) => b.key !== open?.key)
         .flatMap((b) => {
           const d = derive(b);
-          return d.ok ? [{ key: b.key!, geo: d.record.geo }] : [];
+          return d.ok ? [{ key: b.key!, geo: d.record.geo, acres: d.acres }] : [];
         }),
     [store.built, open?.key],
   );
@@ -156,6 +169,12 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     [state.combine],
   );
 
+  const shapes = useMemo(() => (open ? parcelShapes(open, LIMITS) : null), [open]);
+  const layers = useMemo(
+    () => (open && derived && shapes ? layerTree(open, derived, shapes) : null),
+    [open, derived, shapes],
+  );
+
   const setMode = useCallback(
     (mode: Mode) => {
       dispatch({ type: "mode", mode });
@@ -172,6 +191,8 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     saved,
     pieces,
     combined,
+    shapes,
+    layers,
     nudge,
     map,
     setMap,
@@ -184,6 +205,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     tap(hit) {
       const o = decideTap(latest.current, hit);
+      if (o.kind === "clearLayer") return dispatch({ type: "layer", id: null });
       if (o.kind === "close") dispatch({ type: "close" });
       else if (o.kind === "select") dispatch({ type: "select", record: o.record, stamp: stamp() });
       else if (o.kind === "openSaved") dispatch({ type: "openSaved", key: o.key });
@@ -275,6 +297,36 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       if (!r.ok) return;
       dispatch({ type: "applyCombine", stamp: stamp() });
       hint("");
+    },
+    setInfo(open) {
+      dispatch({ type: "info", open });
+    },
+    selectLayer(id) {
+      dispatch({ type: "layer", id });
+    },
+    deleteLayer(id) {
+      const open = latest.current.store.open;
+      if (!open) return null;
+      if (id.startsWith("part:")) {
+        const index = Number(id.slice("part:".length));
+        const rest = open.pieces.filter((_, i) => i !== index);
+        if (!rest.length) return null;
+        // Taking a part out mustn't leave pieces that don't make one boundary.
+        const d = deriveParcel({ parts: rest }, LIMITS);
+        if (!d.ok)
+          return d.reason === "too far apart"
+            ? `The rest would be ${Math.round(d.gapM)} m apart, more than the ${LIMITS.maxGapM} m a road would explain.`
+            : "The rest wouldn't make one boundary.";
+        dispatch({ type: "removePart", index, stamp: stamp() });
+      } else if (id === "split") dispatch({ type: "removeSplit", stamp: stamp() });
+      else if (id === "house") dispatch({ type: "house", ll: null, stamp: stamp() });
+      return null;
+    },
+    toggleHidden(id) {
+      dispatch({ type: "toggleHidden", id, stamp: stamp() });
+    },
+    keepSide(side) {
+      dispatch({ type: "keepSide", side, stamp: stamp() });
     },
   };
 }
