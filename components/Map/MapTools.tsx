@@ -1,11 +1,11 @@
 "use client";
 /**
  * The map's tools (proto L250–265, L522–560): basemap, dim, parcel lines and light pollution in a "Map" menu
- * that closes when the map is tapped (a stack on desktop until 13e-4 docked the Info panel on the right), and
- * "My location" as the usual GPS button under the zoom buttons (owner, 13e-5 review).
+ * that closes when the map is tapped (a stack on desktop until 13e-4 docked the Info panel on the right). The
+ * layers are toggle buttons (13f): filled when on, outlined when off. My location and zoom are in the
+ * right-hand column (MapControls).
  * Basemap, dim and parcel lines persist; the light-pollution overlay starts off each visit, as before.
  */
-import { GeolocateControl } from "maplibre-gl";
 import { useEffect, useState } from "react";
 import { getPref, setPref } from "@/lib/client/prefs";
 import { useMap } from "./MapView";
@@ -16,6 +16,11 @@ type Hint = (text: string | ((prev: string) => string)) => void;
 
 const btn =
   "rounded bg-ink px-2.5 py-1 text-[13px] font-medium text-paper shadow-[0_1px_3px_rgba(0,0,0,.25)] text-left";
+/** A layer toggle: filled when on, outlined when off (aria-pressed carries the state; no "on/off" text). */
+const toggle = (on: boolean) =>
+  `rounded border px-2.5 py-1 text-[13px] font-medium text-left ${
+    on ? "border-ink bg-ink text-paper" : "border-rule bg-white text-ink"
+  }`;
 
 export function MapTools({ parcelServices, hint }: { parcelServices: readonly string[]; hint: Hint }) {
   const map = useMap();
@@ -58,23 +63,6 @@ export function MapTools({ parcelServices, hint }: { parcelServices: readonly st
     };
   }, [map]);
 
-  // My location: MapLibre's GPS button, which shows where you are and goes there (no closer than zoom 15,
-  // as the prototype's button did).
-  useEffect(() => {
-    if (!map) return;
-    const gps = new GeolocateControl({ fitBoundsOptions: { maxZoom: 15 } });
-    const failed = () => {
-      hint("Couldn't get your location");
-      setTimeout(() => hint((h) => (h === "Couldn't get your location" ? "" : h)), 2500);
-    };
-    gps.on("error", failed);
-    map.addControl(gps, "top-left");
-    return () => {
-      gps.off("error", failed);
-      map.removeControl(gps);
-    };
-  }, [map, hint]);
-
   const tools = (
     <>
       <select
@@ -89,14 +77,14 @@ export function MapTools({ parcelServices, hint }: { parcelServices: readonly st
           </option>
         ))}
       </select>
-      <button className={btn} aria-pressed={dim} onClick={() => setDim(!dim)}>
-        Dim map: {dim ? "on" : "off"}
+      <button className={toggle(dim)} aria-pressed={dim} onClick={() => setDim(!dim)}>
+        Dim map
       </button>
-      <button className={btn} aria-pressed={lines} onClick={() => setLines(!lines)}>
-        Parcel lines: {lines ? "on" : "off"}
+      <button className={toggle(lines)} aria-pressed={lines} onClick={() => setLines(!lines)}>
+        Parcel lines
       </button>
-      <button className={btn} aria-pressed={lp} onClick={() => setLp(!lp)}>
-        Light pollution: {lp ? "on" : "off"}
+      <button className={toggle(lp)} aria-pressed={lp} onClick={() => setLp(!lp)}>
+        Light pollution
       </button>
     </>
   );
