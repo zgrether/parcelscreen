@@ -7,7 +7,16 @@
  */
 import type { Feature, Polygon } from "geojson";
 import type { Map as MlMap } from "maplibre-gl";
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { browserHttp } from "@/lib/client/http";
 import { loadParcelStore, recipeOf, type WorkingParcel } from "@/lib/client/parcelStore";
 import { getPref, setPref } from "@/lib/client/prefs";
@@ -29,6 +38,7 @@ import {
   type Stamp,
   type TapHit,
 } from "./exploreState";
+import { SHEET_QUERY } from "./useBottomSheet";
 import { layerTree, parcelShapes, type LayerId, type LayerNode, type ParcelShapes } from "./layers";
 
 export type SetHint = (text: string | ((prev: string) => string)) => void;
@@ -58,6 +68,8 @@ export interface ExploreController {
   shapes: ParcelShapes | null;
   /** The Info panel's Layers tree for the open parcel. */
   layers: LayerNode | null;
+  /** Pixels the Info panel covers on the map's right edge while it's docked there (desktop); 0 otherwise. */
+  panelInset: number;
   /** Bumped each time a tap is refused because a built parcel is open; the toolbar shows a brief note. */
   nudge: number;
   map: MlMap | null;
@@ -101,6 +113,21 @@ function flash(hint: SetHint, text: string, ms: number): void {
 }
 
 const LIMITS = SCREEN_CONSTANTS.combine;
+/** The docked Info panel's footprint: globals.css `.info-panel` is 320 px wide, 10 px from the edge. */
+const DOCKED_PANEL_INSET = 330;
+
+/** Whether the Info panel docks beside the map (desktop, landscape) rather than over it (phone portrait). */
+function useDocked(): boolean {
+  return useSyncExternalStore(
+    (changed) => {
+      const q = window.matchMedia(SHEET_QUERY);
+      q.addEventListener("change", changed);
+      return () => q.removeEventListener("change", changed);
+    },
+    () => !window.matchMedia(SHEET_QUERY).matches,
+    () => true,
+  );
+}
 const stamp = (): Stamp => ({ now: new Date().toISOString(), key: crypto.randomUUID() });
 const derive = (p: WorkingParcel) => deriveParcel(recipeOf(p), LIMITS);
 
@@ -123,6 +150,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
   }, []);
   const [map, setMap] = useState<MlMap | null>(null);
   const [nudge, setNudge] = useState(0);
+  const docked = useDocked();
   const lookup = useRef<AbortController | null>(null);
 
   const { store } = state;
@@ -193,6 +221,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     combined,
     shapes,
     layers,
+    panelInset: docked && state.info && open ? DOCKED_PANEL_INSET : 0,
     nudge,
     map,
     setMap,
@@ -207,8 +236,9 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       const o = decideTap(latest.current, hit);
       if (o.kind === "clearLayer") return dispatch({ type: "layer", id: null });
       if (o.kind === "close") dispatch({ type: "close" });
-      else if (o.kind === "select") dispatch({ type: "select", record: o.record, stamp: stamp() });
-      else if (o.kind === "openSaved") dispatch({ type: "openSaved", key: o.key });
+      else if (o.kind === "select")
+        dispatch({ type: "select", record: o.record, stamp: stamp(), keepPanel: docked });
+      else if (o.kind === "openSaved") dispatch({ type: "openSaved", key: o.key, keepPanel: docked });
       // A built parcel stays open until it's closed: the toolbar says so, briefly.
       else if (o.kind === "nudge") return setNudge((n) => n + 1);
       if (o.kind !== "none") hint("");
@@ -219,7 +249,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       hint("");
     },
     openSaved(key) {
-      dispatch({ type: "openSaved", key });
+      dispatch({ type: "openSaved", key, keepPanel: docked });
     },
     removeSaved(key) {
       dispatch({ type: "removeSaved", key });

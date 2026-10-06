@@ -20,12 +20,13 @@ export function MapArea({
   setHint: SetHint;
   bottomInset: number;
 }) {
-  const { setMap } = useExplore();
+  const { setMap, panelInset } = useExplore();
   return (
     <MapView
       lpAtlasTiles={config.endpoints.lpAtlasTiles}
       lpYear={config.endpoints.lpAtlasYear}
       bottomInset={bottomInset}
+      rightInset={panelInset}
       onMap={setMap}
     >
       <MapTools parcelServices={config.endpoints.parcels} hint={setHint} />

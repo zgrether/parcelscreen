@@ -24,6 +24,7 @@ export function MapView({
   lpAtlasTiles,
   lpYear,
   bottomInset = 0,
+  rightInset = 0,
   onMap,
   children,
 }: {
@@ -31,13 +32,15 @@ export function MapView({
   lpYear: number;
   /** Pixels of the map hidden under the bottom sheet: the view's centre stays in the visible part. */
   bottomInset?: number;
+  /** Pixels of the map covered by the docked Info panel: fits and fly-tos land in the part still visible. */
+  rightInset?: number;
   /** Called with the map once its style has loaded, and with null when it goes away. */
   onMap?: (map: MlMap | null) => void;
   children?: ReactNode;
 }) {
   const container = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<MlMap | null>(null);
-  const padded = useRef(false);
+  const padded = useRef<{ bottom: number; right: number } | null>(null);
 
   useEffect(() => {
     const view = getPref("ps.view") ?? START;
@@ -60,19 +63,26 @@ export function MapView({
     m.once("style.load", () => setMap(m));
     return () => {
       setMap(null);
-      padded.current = false;
+      padded.current = null;
       m.remove();
     };
   }, [lpAtlasTiles, lpYear]);
 
-  // When the sheet settles, ease the centre into the visible part with the sheet's snap; at load, at once.
+  // The map's padding keeps the view's centre in the part that's visible. When the sheet settles, the centre
+  // eases into the visible part with the sheet's snap; at load, at once. When the Info panel docks or leaves
+  // (owner, 13e-4 review), nothing on the map moves: the camera's centre, which is drawn in the middle of
+  // the padded area, jumps to the point already showing there. Later fits and fly-tos then use the padding.
   useEffect(() => {
     if (!map) return;
-    const padding = { top: 0, left: 0, right: 0, bottom: bottomInset };
-    if (padded.current) map.easeTo({ padding, duration: 180 });
-    else map.jumpTo({ padding });
-    padded.current = true;
-  }, [map, bottomInset]);
+    const prev = padded.current;
+    const padding = { top: 0, left: 0, right: rightInset, bottom: bottomInset };
+    if (!prev) map.jumpTo({ padding });
+    else if (prev.right !== rightInset) {
+      const { width, height } = map.getContainer().getBoundingClientRect();
+      map.jumpTo({ center: map.unproject([(width - rightInset) / 2, (height - bottomInset) / 2]), padding });
+    } else if (prev.bottom !== bottomInset) map.easeTo({ padding, duration: 180 });
+    padded.current = { bottom: bottomInset, right: rightInset };
+  }, [map, bottomInset, rightInset]);
 
   useEffect(() => onMap?.(map), [map, onMap]);
 

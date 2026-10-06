@@ -200,6 +200,26 @@ describe("the Info panel and its layers (13e-4)", () => {
       expect(exploreReducer(s, act)).toMatchObject({ info: false, layer: null });
   });
 
+  it("switching parcels keeps a docked panel open on the new one (desktop), with no layer selected", () => {
+    const s = run([selectA(), house(), { type: "layer", id: "house" }]);
+    const key = s.store.open!.key!;
+    expect(exploreReducer(s, { type: "select", record: b, stamp: at(), keepPanel: true })).toMatchObject({
+      info: true,
+      layer: null,
+    });
+    const other = run(
+      [{ type: "close" }, { type: "select", record: b, stamp: at() }, { type: "info", open: true }],
+      s,
+    );
+    expect(exploreReducer(other, { type: "openSaved", key, keepPanel: true })).toMatchObject({ info: true });
+    // Not docked (phones): switching closes it. Unselecting always does.
+    expect(exploreReducer(other, { type: "openSaved", key })).toMatchObject({ info: false });
+    expect(exploreReducer(other, { type: "close" })).toMatchObject({ info: false });
+    // A panel that wasn't open stays closed.
+    const shut = exploreReducer(other, { type: "info", open: false });
+    expect(exploreReducer(shut, { type: "openSaved", key, keepPanel: true })).toMatchObject({ info: false });
+  });
+
   it("taking a part out keeps the parcel built, with the rest; the last part can't be taken out", () => {
     const s = run(
       [

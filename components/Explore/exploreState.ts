@@ -65,11 +65,14 @@ export interface Stamp {
 
 export type ExploreAction =
   | { type: "mode"; mode: Mode }
-  /** Open a parcel straight from a tap on its outline. */
-  | { type: "select"; record: ParcelRecord; stamp: Stamp }
+  /**
+   * Open a parcel straight from a tap on its outline. `keepPanel`: the Info panel is docked beside the map
+   * (desktop), so switching parcels leaves it open on the new one.
+   */
+  | { type: "select"; record: ParcelRecord; stamp: Stamp; keepPanel?: boolean }
   /** Unselect: close the open parcel (a built one stays in History). */
   | { type: "close" }
-  | { type: "openSaved"; key: string }
+  | { type: "openSaved"; key: string; keepPanel?: boolean }
   | { type: "removeSaved"; key: string }
   | { type: "house"; ll: LatLon | null; stamp: Stamp }
   | { type: "startDraw" }
@@ -105,8 +108,13 @@ export type ExploreAction =
 /** The house is kept to 6 decimals, as in the prototype (proto L636). */
 const roundLL = (ll: LatLon): LatLon => [+ll[0].toFixed(6), +ll[1].toFixed(6)];
 
-/** Unselecting (or opening another parcel) always closes the Info panel (owner, plan 13e §4). */
+/** Unselecting always closes the Info panel (owner, plan 13e §4); so does switching parcels, unless the panel
+ * is docked beside the map (owner, 13e-4 review). A selected layer belonged to the old parcel either way. */
 const PANEL_CLOSED: Pick<ExploreState, "info" | "layer"> = { info: false, layer: null };
+const switched = (s: ExploreState, keepPanel?: boolean): Pick<ExploreState, "info" | "layer"> => ({
+  info: !!keepPanel && s.info && !!s.store.open,
+  layer: null,
+});
 
 /** Tools in progress end when the parcel changes underneath them. */
 const NO_TOOL: Pick<ExploreState, "mode" | "draft" | "split" | "combine"> = {
@@ -123,11 +131,16 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
     case "mode":
       return { ...s, mode: a.mode };
     case "select":
-      return { ...s, ...NO_TOOL, ...PANEL_CLOSED, store: save(plainParcel(a.record, a.stamp.now), a.stamp) };
+      return {
+        ...s,
+        ...NO_TOOL,
+        ...switched(s, a.keepPanel),
+        store: save(plainParcel(a.record, a.stamp.now), a.stamp),
+      };
     case "close":
       return { ...s, ...NO_TOOL, ...PANEL_CLOSED, store: closeOpen(s.store) };
     case "openSaved":
-      return { ...s, ...NO_TOOL, ...PANEL_CLOSED, store: openBuilt(s.store, a.key) };
+      return { ...s, ...NO_TOOL, ...switched(s, a.keepPanel), store: openBuilt(s.store, a.key) };
     case "removeSaved":
       return {
         ...s,
