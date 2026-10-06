@@ -8,8 +8,14 @@ import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { CancelledError, type HttpClient } from "../http";
 import { parcelFromLine, type Bounds, type ParcelLine, type ParcelRecord } from "./parcels";
 
-/** Outlines are fetched and drawn from this zoom up (the owner's 13f decision; the prototype used 15). */
-export const LINES_MIN_ZOOM = 13.5;
+/**
+ * Outlines are fetched and drawn from this zoom up (the prototype used 15). 13f first went to 13.5, which
+ * pulled up to ~11,000 outlines into a town view; the owner moved it to 14.
+ */
+export const LINES_MIN_ZOOM = 14;
+/** Below this zoom, a tile with more than DENSE_TILE parcels isn't drawn (it waits for zoom 15). */
+export const DENSE_BELOW_ZOOM = 15;
+export const DENSE_TILE = 1500;
 /** Tiles are the standard Web Mercator XYZ grid at this zoom: about 1.95 × 1.55 km at 37°N. */
 export const TILE_ZOOM = 14;
 
@@ -144,6 +150,50 @@ export async function fetchTile(
     return { lines, complete: false, failed: true };
   }
 }
+
+/**
+ * How many parcels a service has in a tile (a count-only request: a few bytes), for the density guard.
+ * Null when the service doesn't answer.
+ */
+export async function countTile(
+  http: HttpClient,
+  serviceUrl: string,
+  tile: Tile,
+  signal?: AbortSignal,
+): Promise<number | null> {
+  const b = tile.bounds;
+  const q = new URLSearchParams({
+    geometry: JSON.stringify({
+      xmin: b.west,
+      ymin: b.south,
+      xmax: b.east,
+      ymax: b.north,
+      spatialReference: { wkid: 4326 },
+    }),
+    geometryType: "esriGeometryEnvelope",
+    inSR: "4326",
+    spatialRel: "esriSpatialRelIntersects",
+    returnCountOnly: "true",
+    f: "json",
+  });
+  try {
+    const r = await http.fetch(`${serviceUrl}/query`, {
+      method: "POST",
+      body: q,
+      ...(signal ? { signal } : {}),
+    });
+    if (!r.ok) return null;
+    const j = (await r.json()) as { count?: unknown };
+    return typeof j.count === "number" ? j.count : null;
+  } catch (err) {
+    if (err instanceof CancelledError) throw err;
+    return null;
+  }
+}
+
+/** Whether a tile is drawn at this zoom: always from DENSE_BELOW_ZOOM; below it, only if not dense. */
+export const drawsAt = (zoom: number, count: number | null): boolean =>
+  zoom >= DENSE_BELOW_ZOOM || count === null || count <= DENSE_TILE;
 
 /**
  * The full county record behind a drawn outline (all fields, full geometry), by the object id in its

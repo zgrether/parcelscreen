@@ -56,6 +56,19 @@ geometry and up to 600 records.
 - **No tile hit a limit** in this rural area. The PR re-measures with the implementation, at both widths,
   and reports counts, bytes and time to draw.
 
+### Revised after 13f shipped (owner, 2026-10-06)
+
+Zoom 13.5 pulled in up to about 11,400 outlines in a town view (Christiansburg), and the map redrew them
+every frame as tiles arrived. Four changes:
+
+- **Threshold:** parcel lines start at **zoom 14**.
+- **Density guard:** below zoom 15, a tile with more than **1,500** parcels waits for zoom 15. Its count
+  comes from a cached count-only request. The hint reads "Dense area — zoom in to see all parcel lines".
+- **Redraws:** at most every **250 ms** while tiles arrive, plus one when the last tile lands. Each tile's
+  outlines are prepared once.
+- **Slider:** a rotated horizontal range, with the column 24 px in from the edge. The track is light amber
+  from 14 to 15 and amber from 15.
+
 ## 2. Zoom slider instead of + / −
 
 - **The +/− buttons go.** Pinch, scroll and keyboard zoom stay.

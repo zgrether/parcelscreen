@@ -1033,61 +1033,74 @@ body {
 .map-ctl-btn {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border: 0;
   cursor: pointer;
 }
 .map-ctl-btn:hover {
   background: rgba(28, 38, 32, 1);
 }
+/*
+ * The zoom slider: a horizontal range turned a quarter turn, so the thumb sits on the track the same way in
+ * every browser (a writing-mode vertical range put it off the track on Android Chrome). Zoom 5 is at the
+ * bottom, 20 at the top. The track: plain below 14, light amber 14–15 (lines there depend on density),
+ * amber from 15 (--b14, --b15 set by MapControls). The box is 44 px wide: a wider grip, away from the edge.
+ */
 .zoom-box {
-  padding: 10px 9px;
+  position: relative;
+  width: 44px;
+  height: 200px;
 }
-/* A vertical range: the bottom is zoom 5, the top 20; amber from LINES_MIN_ZOOM up (--band). */
 .zoom-slider {
-  display: block;
-  writing-mode: vertical-lr;
-  direction: rtl;
+  --len: 176px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--len);
+  height: 32px;
+  margin: 0;
+  transform: translate(-50%, -50%) rotate(-90deg);
   appearance: none;
   -webkit-appearance: none;
-  width: 22px;
-  height: 180px;
-  margin: 0;
   background: transparent;
   cursor: pointer;
+  touch-action: none;
 }
 .zoom-slider::-webkit-slider-runnable-track {
-  width: 4px;
+  height: 4px;
   border-radius: 2px;
   background: linear-gradient(
-    to top,
-    rgba(241, 243, 238, 0.35) 0 var(--band),
-    var(--tb-amber) var(--band) 100%
+    to right,
+    rgba(241, 243, 238, 0.35) 0 var(--b14),
+    rgba(240, 160, 48, 0.45) var(--b14) var(--b15),
+    var(--tb-amber) var(--b15) 100%
   );
 }
 .zoom-slider::-moz-range-track {
-  width: 4px;
+  height: 4px;
   border-radius: 2px;
   background: linear-gradient(
-    to top,
-    rgba(241, 243, 238, 0.35) 0 var(--band),
-    var(--tb-amber) var(--band) 100%
+    to right,
+    rgba(241, 243, 238, 0.35) 0 var(--b14),
+    rgba(240, 160, 48, 0.45) var(--b14) var(--b15),
+    var(--tb-amber) var(--b15) 100%
   );
 }
 .zoom-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
-  margin-inline-start: -7px;
+  width: 20px;
+  height: 20px;
+  /* Centred on the 4 px track: (4 − 20) / 2. */
+  margin-top: -8px;
   border-radius: 50%;
   background: #fff;
   border: 2px solid var(--tb-bg);
   box-shadow: 0 0 0 1.5px var(--tb-ink);
 }
 .zoom-slider::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: #fff;
   border: 2px solid var(--tb-bg);
@@ -1095,11 +1108,14 @@ body {
 }
 .zoom-slider:focus-visible {
   outline: 2px solid var(--tb-amber);
-  outline-offset: 4px;
+  outline-offset: 2px;
 }
 @media (max-width: 860px) and (orientation: portrait) {
+  .zoom-box {
+    height: 160px;
+  }
   .zoom-slider {
-    height: 140px;
+    --len: 136px;
   }
 }
 
