@@ -24,8 +24,9 @@ import { addScreen, getScreen, type ScreenRecord } from "@/lib/client/screenStor
 import { fmt } from "@/lib/format";
 import { verdictView } from "@/lib/report/verdict";
 import { STEPS } from "@/lib/screen/config";
+import { summaryText } from "@/lib/screen/summary";
 import type { PartialScreenResult, ScreenResult, UserConfig } from "@/lib/screen/types";
-import type { ExploreController } from "@/components/Explore/useExploreController";
+import type { ExploreController, SetHint } from "@/components/Explore/useExploreController";
 import { evaluationPoint } from "../blocks/types";
 import { REPORT } from "../report";
 import { Section } from "./Section";
@@ -38,7 +39,12 @@ interface LiveRun {
 
 export type ScreenIt = ReturnType<typeof useScreenIt>;
 
-export function useScreenIt(ctl: ExploreController, config: UserConfig, onFinished: () => void) {
+export function useScreenIt(
+  ctl: ExploreController,
+  config: UserConfig,
+  onFinished: () => void,
+  hint: SetHint,
+) {
   const screen = useScreen();
   const { serial } = ctl.state;
   const open = ctl.state.store.open;
@@ -123,6 +129,19 @@ export function useScreenIt(ctl: ExploreController, config: UserConfig, onFinish
     screen.run({ polygon: parcel.geo.geometry, config, ...(house ? { house } : {}) });
   };
 
+  // Copy summary (proto L1565): the kept result's plain-text summary; the map's hint says so for 1.5 s.
+  const copySummary = () => {
+    if (!shown) return;
+    const say = (msg: string) => {
+      hint(msg);
+      setTimeout(() => hint((h) => (h === msg ? "" : h)), 1500);
+    };
+    navigator.clipboard.writeText(summaryText(shown.result)).then(
+      () => say("Summary copied"),
+      () => say("The browser didn't allow copying"),
+    );
+  };
+
   const runningHere = running && live?.serial === serial;
   const display: PartialScreenResult | null = runningHere ? screen.state.result : (shown?.result ?? null);
   const point = display ? evaluationPoint(display) : null;
@@ -138,6 +157,7 @@ export function useScreenIt(ctl: ExploreController, config: UserConfig, onFinish
     sessionLive,
     showParams,
     toggleParams: () => setShowParams((v) => !v),
+    copySummary,
     run,
     cancel: screen.cancel,
     steps: screen.state.steps,
@@ -244,6 +264,13 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
         <section className="block">
           {s.showSteps && <StepList steps={s.steps} />}
           {s.error && <p className="tiny text-steep">The screen stopped: {s.error}</p>}
+          {notes && !s.stale && (
+            <div className="report-actions">
+              <button className="btn secondary small" onClick={s.copySummary}>
+                Copy summary
+              </button>
+            </div>
+          )}
           {notes && (
             <Notices
               stale={s.stale}
