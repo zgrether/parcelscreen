@@ -13,8 +13,18 @@ const html = readFileSync(resolve(import.meta.dirname, "..", "..", "legacy", "pa
 export function prototypeSource(name: string): string {
   const fn = html.indexOf(`function ${name}(`);
   if (fn >= 0) {
+    // Past the parameter list first: a destructured parameter ({partial=false}) has braces of its own.
+    let parens = 0,
+      body = -1;
+    for (let i = fn + `function ${name}`.length; i < html.length; i++) {
+      if (html[i] === "(") parens++;
+      else if (html[i] === ")" && --parens === 0) {
+        body = html.indexOf("{", i);
+        break;
+      }
+    }
     let depth = 0;
-    for (let i = html.indexOf("{", fn); i < html.length; i++) {
+    for (let i = body; i < html.length; i++) {
       if (html[i] === "{") depth++;
       else if (html[i] === "}" && --depth === 0) return html.slice(fn, i + 1);
     }

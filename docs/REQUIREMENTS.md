@@ -51,12 +51,13 @@ interface ProgressEvent {
 }
 ```
 
-`ScreenResult` (store as JSON in `screens.result`; stable, versioned by `schemaVersion`, currently 1).
+`ScreenResult` (store as JSON in `screens.result`; stable, versioned by `schemaVersion`, currently 2).
 It is the prototype's result object without the session-only parts, and every object is strict.
 Sections whose step failed or was skipped are absent. Values the prototype can leave as NaN are `null`.
 
 ```
 schemaVersion, runAt, acres, demSource, demResM
+params       { houseMin, shelfMin, gardenMin, canopyDeg }: the settings the report shows with this run (v2)
 terrain      { elevMinFt, elevMaxFt, elevMeanFt, reliefFt, valleyFloorFt, heightAboveValleyFt,
                slopeMedDeg, slopeP90Deg, acresUnder15, acresOver25, diag:{houseAc, shelfAc, gardenAc, totalAc} }
 houseMinUsed the house-site threshold actually used (relaxed when nothing qualified)

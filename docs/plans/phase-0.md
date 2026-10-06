@@ -96,7 +96,7 @@ export function evaluateAt(out: ScreenOutput, ll: LatLon, label: string, deps?):
 export function setHouse(out: ScreenOutput, ll: LatLon | null, deps?): Promise<ScreenResult>;           // proto setHouse→assessHouse
 ```
 
-- `ScreenResult` is a Zod schema in `lib/screen/types.ts` with `schemaVersion: 1`. It has the REQUIREMENTS fields plus the C6 additions. `evaluateAt` and `setHouse` return a **new** result object and never mutate. This matches the immutability rule Phase 1 will enforce in the DB.
+- `ScreenResult` is a Zod schema in `lib/screen/types.ts` with `schemaVersion` (1 until step 14a added `params`, now 2). It has the REQUIREMENTS fields plus the C6 additions. `evaluateAt` and `setHouse` return a **new** result object and never mutate. This matches the immutability rule Phase 1 will enforce in the DB.
 - `ScreenSession` holds: `dFine`, `dWide` (z as `Float32Array`), `slope`, `aspect`, `inside`, `surfaces {house, garden, parts}`, `labels {house, shelf, garden}`, `bestId`, `horizon` (with ridge row/col for the fans), `roads`, `sfha` features, and lazily built `soilMask` / `flowAcc`. The worker keeps the authoritative session. A read-only **copy** of what rendering needs goes to the main thread with `done`.
 - Flag and "why" strings are product copy. They stay in `lib/screen` verbatim, so a Node run (Phase 5 digests) produces the same text.
 
