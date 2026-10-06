@@ -247,6 +247,7 @@ body {
   --tb-ink-2: #b9c3ba;
   --tb-rule: rgba(241, 243, 238, 0.22);
   --tb-bad: #ffb4a6;
+  --tb-amber: #f0a030;
 }
 .toolbar {
   position: absolute;
@@ -462,4 +463,36 @@ body {
   .tb-nudge {
     animation-duration: 0.01s;
   }
+}
+
+/* ---------- 13e-3: split piece labels, the snap ring ---------- */
+/* The cut's end handles stay above the labels, so a label never blocks a drag. */
+.pin.maplibregl-marker {
+  z-index: 2;
+}
+.piece-label {
+  z-index: 1;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: var(--tb-bg);
+  color: var(--tb-ink);
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+.piece-label:hover,
+.piece-label:focus-visible {
+  border-color: var(--tb-amber);
+  outline: none;
+}
+.snap-ring {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px var(--tb-amber);
+  pointer-events: none;
 }

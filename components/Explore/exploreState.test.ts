@@ -105,13 +105,19 @@ describe("the open parcel and History", () => {
 
   it("a split saves the line and the side kept, so it can be edited later from where it was", () => {
     const line = { a: [36.627, -81.354] as LatLon, b: [36.631, -81.354] as LatLon };
-    const s = run([
+    const placed = run([
       selectA(),
       { type: "startSplit" },
       { type: "splitTap", ll: line.a },
       { type: "splitTap", ll: line.b },
-      { type: "keepPiece", side: -1, stamp: at() },
     ]);
+    // With the line placed, the tool waits for a tap on the piece to keep.
+    expect(placed.mode).toBe("split");
+    expect(placed.split).toEqual(line);
+    expect(exploreReducer(placed, { type: "splitTap", ll: [36.629, -81.355] })).toBe(placed);
+    const s = exploreReducer(placed, { type: "keepPiece", side: -1, stamp: at() });
+    expect(s.mode).toBeNull();
+    expect(s.split).toBeNull();
     expect(s.store.open?.split).toEqual({ ...line, keep: -1 });
     expect(s.store.open?.pieces).toEqual([a]); // the pieces stay whole: the split is applied when derived
     expect(s.store.built).toHaveLength(1);

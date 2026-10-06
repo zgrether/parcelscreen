@@ -1,10 +1,10 @@
-import { polygon } from "@turf/turf";
+import { booleanPointInPolygon, point, polygon } from "@turf/turf";
 import { describe, expect, it } from "vitest";
 import { parseLatLon } from "@/lib/geo/coords";
 import { splitPieces } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
 import { combineParcels } from "@/lib/geo/combine";
-import { combineData, draftData, splitData } from "./overlays";
+import { combineData, draftData, pieceLabels, splitData } from "./overlays";
 
 describe("map overlays", () => {
   it("draft: a line through the corners and a dot each, the first one larger and amber", () => {
@@ -19,7 +19,7 @@ describe("map overlays", () => {
     expect(fc.features[1]!.geometry).toEqual({ type: "Point", coordinates: [-81.3, 36.6] });
   });
 
-  it("split: yellow left piece, blue right piece, labelled with acres and compass side, then the cut", () => {
+  it("split: yellow left piece, blue right piece, then the cut; a label inside each piece", () => {
     const parcel = polygon([
       [
         [-81.355, 36.628],
@@ -35,14 +35,33 @@ describe("map overlays", () => {
     const P = splitPieces(parcel, a, b);
     const fc = splitData(P, a, b);
     expect(fc.features.map((f) => f.geometry.type)).toEqual(["Polygon", "Polygon", "LineString"]);
-    expect(fc.features[0]!.properties).toEqual({
-      color: "#e0c43c",
-      label: `${P.leftAc.toFixed(2)} ac (W side)`,
-    });
-    expect(fc.features[1]!.properties).toEqual({
-      color: "#2b6f8f",
-      label: `${P.rightAc.toFixed(2)} ac (E side)`,
-    });
+    expect(fc.features[0]!.properties).toEqual({ side: -1, color: "#e0c43c" });
+    expect(fc.features[1]!.properties).toEqual({ side: 1, color: "#2b6f8f" });
+
+    const labels = pieceLabels(P, a, b);
+    expect(labels.map((l) => [l.side, l.text])).toEqual([
+      [-1, `W · ${P.leftAc.toFixed(2)} ac`],
+      [1, `E · ${P.rightAc.toFixed(2)} ac`],
+    ]);
+    expect(labels[0]!.at[1]).toBeLessThan(-81.354);
+    expect(labels[1]!.at[1]).toBeGreaterThan(-81.354);
+  });
+
+  it("a piece's label stays inside it, even when the piece is an L", () => {
+    // An L whose centre of mass falls in the notch.
+    const L = polygon([
+      [
+        [0, 0],
+        [0.002, 0],
+        [0.002, 0.0004],
+        [0.0004, 0.0004],
+        [0.0004, 0.002],
+        [0, 0.002],
+        [0, 0],
+      ],
+    ]);
+    const [l] = pieceLabels({ left: L, right: null, leftAc: 1, rightAc: 0 }, [-1, 0.001], [1, 0.001]);
+    expect(booleanPointInPolygon(point([l!.at[1], l!.at[0]]), L)).toBe(true);
   });
 });
 

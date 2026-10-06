@@ -2,7 +2,7 @@ import { area } from "@turf/turf";
 import { describe, expect, it } from "vitest";
 import { loadFixture } from "../../test/support/fixtures";
 import { squareAround } from "./parcels";
-import { fitSplit, sideName, splitFromLabel, splitPieces } from "./split";
+import { fitSplit, pieceAt, sideName, splitFromLabel, splitPieces } from "./split";
 import { M2_PER_ACRE, type LatLon } from "./types";
 
 const C: LatLon = [36.9, -80.5];
@@ -27,6 +27,15 @@ describe("splitPieces", () => {
     const P = splitPieces(square, east[0]!, east[1]!);
     expect(P.right).toBeNull();
     expect(P.leftAc).toBeCloseTo(total, 6);
+  });
+});
+
+describe("pieceAt", () => {
+  it("finds the piece a tap landed in: west of a northbound line is left", () => {
+    const P = splitPieces(square, south, north);
+    expect(pieceAt(P, [C[0], C[1] - 0.0001])).toBe(-1);
+    expect(pieceAt(P, [C[0], C[1] + 0.0001])).toBe(1);
+    expect(pieceAt(P, [C[0], C[1] + 0.05])).toBeNull();
   });
 });
 
