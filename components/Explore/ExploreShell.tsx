@@ -10,6 +10,7 @@ import { loadUserConfig } from "@/lib/client/userConfig";
 import { FindParcel } from "./FindParcel";
 import { History } from "./History";
 import { MapArea } from "./MapArea";
+import { ScreenIt } from "@/components/Results/panel/ScreenIt";
 import { useBottomSheet } from "./useBottomSheet";
 import { ExploreContext, useExploreController } from "./useExploreController";
 
@@ -58,6 +59,7 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
           </header>
           <div className="explore-scroll">
             <FindParcel />
+            <ScreenIt config={config} onFinished={sheet.raise} />
             {children}
             <History />
           </div>

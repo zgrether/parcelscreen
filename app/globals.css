@@ -47,8 +47,15 @@ body {
   justify-content: space-between;
   gap: 12px;
 }
+/* No pull-to-refresh in the explorer: a swipe that runs past the top of the panel's scroll (or a drag on
+   the sheet) reloaded the page on phones (owner, 14d). The panel's scroll keeps its swipes to itself. */
+html:has(.explore),
+html:has(.explore) body {
+  overscroll-behavior-y: none;
+}
 .explore-scroll {
   overflow: auto;
+  overscroll-behavior: contain;
   flex: 1;
   padding: 0 18px calc(24px + env(safe-area-inset-bottom, 0px));
 }
@@ -1233,5 +1240,120 @@ body {
   }
   ul.check input {
     margin-top: 4px;
+  }
+}
+
+/* ---------- 14d: Screen it — the step list, collapsible sections, notices (proto L34–43, L75–83) ---------- */
+@layer components {
+  .steps {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0;
+  }
+  .steps li {
+    display: flex;
+    gap: 10px;
+    padding: 3px 0;
+    font-size: 13.5px;
+    color: var(--color-ink-2);
+  }
+  .steps li .dot {
+    width: 9px;
+    height: 9px;
+    margin-top: 6px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--color-rule);
+  }
+  .steps li.run .dot {
+    background: var(--color-water);
+    animation: step-pulse 1s infinite alternate;
+  }
+  .steps li.done {
+    color: var(--color-ink);
+  }
+  .steps li.done .dot {
+    background: var(--color-ok);
+  }
+  .steps li.fail,
+  .steps li.fail .dot {
+    color: var(--color-steep);
+  }
+  .steps li.fail .dot {
+    background: var(--color-steep);
+  }
+  .steps li.skip {
+    opacity: 0.55;
+  }
+  details.block > summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    user-select: none;
+  }
+  details.block > summary::-webkit-details-marker {
+    display: none;
+  }
+  details.block > summary::before {
+    content: "";
+    flex: none;
+    width: 7px;
+    height: 7px;
+    margin: 0 4px 2px 2px;
+    border-right: 1.5px solid var(--color-ink-2);
+    border-bottom: 1.5px solid var(--color-ink-2);
+    transform: rotate(-45deg);
+    transition: transform 0.15s;
+  }
+  details.block[open] > summary::before {
+    transform: rotate(45deg);
+  }
+  details.block > summary h2 {
+    margin: 0;
+  }
+  details.block > summary:focus-visible {
+    outline: 2px solid var(--color-water);
+    outline-offset: 2px;
+  }
+  details.block > *:not(summary) {
+    margin-top: 8px;
+  }
+  /* Results for an earlier boundary stay readable but step back. */
+  .report.stale {
+    opacity: 0.55;
+  }
+  .report-note {
+    margin: 8px 0 0;
+    padding: 6px 10px;
+    border-left: 3px solid var(--color-warn);
+    background: var(--color-paper-2);
+    font-size: 13.5px;
+  }
+  .report-note.stale-note {
+    border-color: var(--color-steep);
+  }
+  .link-btn {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--color-water);
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+}
+@keyframes step-pulse {
+  to {
+    opacity: 0.35;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .steps li.run .dot {
+    animation: none;
+  }
+  details.block > summary::before {
+    transition: none;
   }
 }

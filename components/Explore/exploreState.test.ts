@@ -299,6 +299,30 @@ describe("notes (13e-5)", () => {
   });
 });
 
+describe("screens (14d)", () => {
+  it("a finished screen is added to the parcel open when it started, which makes it built", () => {
+    const s = run([selectA()]);
+    const done = exploreReducer(s, { type: "screened", id: "scr-1", serial: s.serial, stamp: at() });
+    expect(done.store.open?.screenIds).toEqual(["scr-1"]);
+    expect(done.store.open?.key).not.toBeNull();
+    expect(done.store.built).toHaveLength(1);
+    // A re-assessed house is another screen; the same id twice is ignored.
+    const again = exploreReducer(done, { type: "screened", id: "scr-2", serial: s.serial, stamp: at() });
+    expect(again.store.open?.screenIds).toEqual(["scr-1", "scr-2"]);
+    expect(exploreReducer(again, { type: "screened", id: "scr-2", serial: s.serial, stamp: at() })).toBe(
+      again,
+    );
+  });
+
+  it("a screen that finishes after another parcel opened is dropped, not misfiled", () => {
+    const s = run([selectA()]);
+    const other = exploreReducer(s, { type: "select", record: b, stamp: at() });
+    expect(exploreReducer(other, { type: "screened", id: "late", serial: s.serial, stamp: at() })).toBe(
+      other,
+    );
+  });
+});
+
 describe("tap rules (decideTap)", () => {
   const none = { insideOpen: false, outline: null, savedKey: null };
   const plain = run([selectA()]);
