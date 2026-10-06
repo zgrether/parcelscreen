@@ -27,8 +27,7 @@ body {
 
 /* ---------- Explorer layout (proto L26–33, L129–148) ---------- */
 .explore {
-  display: grid;
-  grid-template-columns: 440px 1fr;
+  position: relative;
   height: 100dvh;
   padding-top: env(safe-area-inset-top, 0px);
 }
@@ -60,8 +59,8 @@ html:has(.explore) body {
   padding: 0 18px calc(24px + env(safe-area-inset-bottom, 0px));
 }
 .explore-map {
-  position: relative;
-  min-height: 0;
+  position: absolute;
+  inset: 0;
 }
 .sheet-handle {
   display: none;
@@ -70,7 +69,7 @@ html:has(.explore) body {
 /* The map's status hint (zoom in, looking up…): centred just above the parcel toolbar (13e). */
 .map-hint {
   bottom: calc(76px + env(safe-area-inset-bottom, 0px));
-  left: 12px;
+  left: calc(var(--float-l, 0px) + 12px);
   right: 12px;
   margin-inline: auto;
   width: fit-content;
@@ -80,13 +79,7 @@ html:has(.explore) body {
    never resizes the map (step 12b). useBottomSheet.ts uses the same media query. */
 @media (max-width: 860px) and (orientation: portrait) {
   .explore {
-    display: block;
-    position: relative;
     --sheet-h: 46vh;
-  }
-  .explore-map {
-    position: absolute;
-    inset: 0;
   }
   .explore-panel {
     position: absolute;
@@ -120,13 +113,6 @@ html:has(.explore) body {
     touch-action: none;
     cursor: ns-resize;
     padding-top: 6px;
-  }
-}
-
-/* Narrow landscape screens (a phone on its side): the side panel, narrower (step 12b). */
-@media (max-width: 860px) and (orientation: landscape) {
-  .explore {
-    grid-template-columns: clamp(280px, 40vw, 440px) 1fr;
   }
 }
 
@@ -251,7 +237,7 @@ html:has(.explore) body {
 .toolbar {
   position: absolute;
   z-index: 15;
-  left: 12px;
+  left: calc(var(--float-l, 0px) + 12px);
   right: 12px;
   bottom: calc(var(--sheet-h, 0px) + 18px);
   margin-inline: auto;
@@ -390,7 +376,7 @@ html:has(.explore) body {
 .tb-nudge {
   position: absolute;
   z-index: 15;
-  left: 12px;
+  left: calc(var(--float-l, 0px) + 12px);
   right: 12px;
   bottom: calc(var(--sheet-h, 0px) + 74px);
   margin-inline: auto;
@@ -1418,18 +1404,28 @@ html:has(.explore) body {
 .menu-scrim {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.45);
 }
 .menu-drawer {
   position: absolute;
   top: 0;
   bottom: 0;
   left: 0;
-  width: min(340px, 86vw);
+  width: min(280px, 86vw);
   display: flex;
   flex-direction: column;
+  /* App navigation, not results: the toolbar's ink surface. The tokens are redrawn for it, so what's
+     inside (History's names, links and notes) reads light on dark without its own styles. */
+  --color-paper: rgb(28, 38, 32);
+  --color-paper-2: rgba(241, 243, 238, 0.08);
+  --color-ink: var(--tb-ink);
+  --color-ink-2: var(--tb-ink-2);
+  --color-rule: var(--tb-rule);
+  --color-water: #9fd3ea;
+  --color-steep: var(--tb-bad);
   background: var(--color-paper);
-  box-shadow: 6px 0 22px rgba(0, 0, 0, 0.3);
+  color: var(--color-ink);
+  box-shadow: 6px 0 22px rgba(0, 0, 0, 0.4);
 }
 .menu-head {
   display: flex;
@@ -1488,4 +1484,67 @@ html:has(.explore) body {
 .menu-body .block {
   padding: 14px 18px;
   border-bottom: 0;
+}
+
+/* ---------- Desktop: the results float at the map's top left, a card or a panel (owner, after 14d) ---------- */
+/* Below the ☰ and search buttons; --float-w is the card's or the panel's width (ExploreShell). */
+.explore-panel.float {
+  position: absolute;
+  z-index: 18;
+  top: calc(env(safe-area-inset-top, 0px) + 64px);
+  left: 10px;
+  width: var(--float-w);
+  border: 0;
+  border-radius: 10px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+.explore-panel.float.expanded {
+  bottom: 10px;
+}
+.explore-panel.float .explore-header {
+  min-height: 52px;
+  padding: 8px 10px 8px 16px;
+}
+.explore-panel.float.card .explore-header {
+  flex-wrap: wrap;
+  row-gap: 2px;
+  border-bottom: 0;
+}
+/* The folded card's verdict line, in the verdict's colour. */
+.sh-verdict {
+  flex-basis: 100%;
+  margin-top: -2px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-ok);
+}
+.sh-verdict.marginal {
+  color: var(--color-warn);
+}
+.sh-verdict.fatal {
+  color: var(--color-steep);
+}
+.sh-verdict.muted {
+  font-weight: 400;
+  color: var(--color-ink-2);
+}
+.sh-fold {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-ink-2);
+  cursor: pointer;
+}
+.sh-fold:hover {
+  background: var(--color-paper-2);
+  color: var(--color-ink);
+}
+.sh-fold:focus-visible {
+  outline: 2px solid var(--color-water);
+  outline-offset: 1px;
 }

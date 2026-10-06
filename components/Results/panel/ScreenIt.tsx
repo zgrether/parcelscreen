@@ -4,6 +4,8 @@
  *   - ScreenHeader: one line at the top of the panel (the bottom sheet's peek on phones): the parcel's name
  *     and acres, a dot in the verdict's colour once it's screened, and Run screen / Cancel · Running… /
  *     Run again — the app's main action, always in reach;
+ *     On desktop the header is also the floating card (ExploreShell): "Screen it", and once there's a report,
+ *     a control that folds the panel back to the card, where a second line gives the verdict;
  *   - ScreenBody: the step list, the notes on whether the results still fit, and the report below in
  *     collapsible sections.
  * Both read one useScreenIt, owned by the shell. Each finished run is kept (IndexedDB, under the parcel's
@@ -20,6 +22,7 @@ import { useScreen } from "@/lib/client/useScreen";
 import { freshness, runKeys, type RunKeys } from "@/lib/client/screenKeys";
 import { addScreen, getScreen, type ScreenRecord } from "@/lib/client/screenStore";
 import { fmt } from "@/lib/format";
+import { verdictView } from "@/lib/report/verdict";
 import { STEPS } from "@/lib/screen/config";
 import type { PartialScreenResult, ScreenResult, UserConfig } from "@/lib/screen/types";
 import type { ExploreController } from "@/components/Explore/useExploreController";
@@ -151,12 +154,21 @@ const VERDICT_WORD = {
   ok: "Nothing in the data kills it",
 };
 
+/** Desktop: whether the card is grown into the panel, and how to fold or unfold it (null: nothing to read). */
+export interface DeskCard {
+  expanded: boolean;
+  fold: (() => void) | null;
+}
+
 /** The panel's one-line header: the parcel, its acres, the verdict's dot, and the screen button. */
-export function ScreenHeader({ s }: { s: ScreenIt }) {
+export function ScreenHeader({ s, desk = null }: { s: ScreenIt; desk?: DeskCard | null }) {
   const d = s.ctl.derived;
-  if (!s.ctl.state.store.open) return <span className="sh-empty">Tap a parcel to screen it</span>;
+  if (!s.ctl.state.store.open)
+    return <span className="sh-empty">{desk ? "Tap a parcel to begin" : "Tap a parcel to screen it"}</span>;
   const name = s.ctl.layers?.name ?? "Parcel";
   const verdict = !s.runningHere && !s.stale ? s.shown?.result.verdict : undefined;
+  const label = s.running ? "Running…" : s.shown ? "Run again" : desk ? "Screen it" : "Run screen";
+  const folded = desk && !desk.expanded && desk.fold && s.display;
   return (
     <>
       <span className="sh-parcel">
@@ -178,10 +190,46 @@ export function ScreenHeader({ s }: { s: ScreenIt }) {
           </button>
         )}
         <button className="btn small" disabled={!s.parcel || s.running} onClick={s.run}>
-          {s.running ? "Running…" : s.shown ? "Run again" : "Run screen"}
+          {label}
         </button>
+        {desk?.fold && (
+          <button
+            className="sh-fold"
+            aria-expanded={desk.expanded}
+            aria-label={desk.expanded ? "Fold the report to the card" : "Show the report"}
+            title={desk.expanded ? "Fold to the card" : "Show the report"}
+            onClick={desk.fold}
+          >
+            <Chevron up={desk.expanded} />
+          </button>
+        )}
       </span>
+      {folded && <VerdictLine s={s} />}
     </>
+  );
+}
+
+/** The folded card's second line: the verdict's lead, or why the results no longer fit. */
+function VerdictLine({ s }: { s: ScreenIt }) {
+  if (!s.display) return null;
+  if (s.stale && !s.runningHere)
+    return <span className="sh-verdict muted">These results are for an earlier boundary. Run again.</span>;
+  const v = verdictView(s.display);
+  return <span className={`sh-verdict ${v.tone}`}>{v.lead}</span>;
+}
+
+function Chevron({ up }: { up: boolean }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+      <path
+        d={up ? "M3.5 10 8 5.5 12.5 10" : "M3.5 6 8 10.5 12.5 6"}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 

@@ -16,11 +16,13 @@ export function MapArea({
   hint,
   setHint,
   bottomInset,
+  leftInset,
 }: {
   config: UserConfig;
   hint: string;
   setHint: SetHint;
   bottomInset: number;
+  leftInset: number;
 }) {
   const { setMap, panelInset } = useExplore();
   return (
@@ -29,6 +31,7 @@ export function MapArea({
       lpYear={config.endpoints.lpAtlasYear}
       bottomInset={bottomInset}
       rightInset={panelInset}
+      leftInset={leftInset}
       onMap={setMap}
     >
       <MapTools parcelServices={config.endpoints.parcels} hint={setHint} />
