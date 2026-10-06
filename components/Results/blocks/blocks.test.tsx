@@ -17,11 +17,19 @@ import type { PartialScreenResult, ScreenResult } from "@/lib/screen/types";
 import { loadFixture, type FixtureSlug, type PrototypeResult } from "@/test/support/fixtures";
 import { fromPrototype } from "@/test/support/fromPrototype";
 import { prototypeSections, visibleText } from "@/test/support/prototypeReport";
+import { buildHeading } from "@/lib/report/build";
+import { drivewayHeading, profilePath } from "@/lib/report/driveway";
+import { gardenHeading } from "@/lib/report/garden";
+import { houseHeading } from "@/lib/report/house";
 import { DarkSkies } from "./DarkSkies";
 import { DecemberSun } from "./DecemberSun";
+import { Driveway } from "./Driveway";
+import { ExistingHouse } from "./ExistingHouse";
 import { Terrain } from "./Terrain";
 import { evaluationPoint, type BlockProps, type EvaluationPoint } from "./types";
 import { Verdict } from "./Verdict";
+import { WhereToBuild } from "./WhereToBuild";
+import { WhereToGarden } from "./WhereToGarden";
 
 const BLOCKS: {
   slug: string;
@@ -32,6 +40,10 @@ const BLOCKS: {
   { slug: "terrain", Block: Terrain, heading: () => terrainHeading },
   { slug: "december-sun", Block: DecemberSun, heading: (_, p) => sunHeading(p) },
   { slug: "dark-skies", Block: DarkSkies, heading: skyHeading },
+  { slug: "the-existing-house", Block: ExistingHouse, heading: () => houseHeading },
+  { slug: "where-to-build", Block: WhereToBuild, heading: () => buildHeading },
+  { slug: "driveway", Block: Driveway, heading: drivewayHeading },
+  { slug: "where-to-garden", Block: WhereToGarden, heading: () => gardenHeading },
 ];
 
 const render = (Block: ComponentType<BlockProps>, result: PartialScreenResult) =>
@@ -63,8 +75,14 @@ function expectParity(R: PrototypeResult, ours: PartialScreenResult, partial: bo
 
 const withoutVerdict = ({ verdict: _v, cancelled: _c, ...rest }: ScreenResult): PartialScreenResult => rest;
 
+/**
+ * The goldens don't record the DEM cell size (the prototype kept it in the session). The reference parcels
+ * ran at 3 m, which is also what the prototype's driveway caveat hard-codes (B12), so parity runs say so.
+ */
+const at3m = (R: PrototypeResult): PrototypeResult => ({ ...R, demResM: 3 });
+
 describe.each(RUNS)("report blocks vs the prototype: %s %s", (slug, key) => {
-  const R = loadFixture(slug).goldens[key]!;
+  const R = at3m(loadFixture(slug).goldens[key]!);
 
   it("finished run", () => expectParity(R, fromPrototype(R), false));
 
@@ -83,7 +101,7 @@ describe.each(RUNS)("report blocks vs the prototype: %s %s", (slug, key) => {
 });
 
 describe("report blocks: runs the goldens don't cover", () => {
-  const R = loadFixture("ferney-creek-52-47A").goldens.run;
+  const R = at3m(loadFixture("ferney-creek-52-47A").goldens.run);
   const label = (id: string) => STEPS.find(([s]) => s === id)![1];
 
   it("a cancelled run with failed steps", () => {
@@ -97,14 +115,36 @@ describe("report blocks: runs the goldens don't cover", () => {
   });
 });
 
+describe("driveway", () => {
+  it("draws the same elevation profiles as the prototype", () => {
+    const R = at3m(loadFixture("ferney-creek-52-47A").goldens.run);
+    const body = prototypeSections(R, DEFAULT_USER_CONFIG).get("driveway")!.body;
+    const theirs = [...body.matchAll(/<path d="([^"]*)"/g)].map((m) => m[1]);
+    expect(fromPrototype(R).driveway!.routes.map((rt) => profilePath(rt.profile))).toEqual(theirs);
+    expect(theirs.length).toBeGreaterThan(0);
+  });
+
+  it("B12: the caveat names the run's DEM cell size, or none when it's unknown", () => {
+    const r = fromPrototype(loadFixture("ferney-creek-52-47A").goldens.run);
+    expect(render(Driveway, { ...r, demResM: 10 })).toContain("Least-cost route over the 10 m lidar");
+    expect(render(Driveway, { ...r, demResM: undefined })).toContain("Least-cost route over the lidar");
+  });
+});
+
 describe("report blocks keep the prototype's caveats (CLAUDE.md)", () => {
   const result = fromPrototype(loadFixture("macks-mountain-35-3").goldens.run);
-  const text = BLOCKS.map(({ Block }) => render(Block, result)).join("");
+  // React escapes apostrophes in text; compare what a reader sees.
+  const text = BLOCKS.map(({ Block }) => render(Block, result))
+    .join("")
+    .replace(/&#x27;/g, "'");
 
   it.each([
     "Grey is bare-earth terrain from lidar; trees add to it.",
     "The atlas is zenith-only, so the southern-dome line samples the ground map toward the core as a proxy.",
     "Zenith brightness from the Light Pollution Atlas 2025 (Lorenz, after Falchi/Cinzano), 1/120° grid.",
+    "it doesn't know about views, wells, or the neighbor's dog.",
+    "Bare-earth DEM (no trees), county soils (not borings), and VDOT decides the entrance — this is a number to put in front of an excavator, not a bid.",
+    "Garden score weighs frost position heavily",
   ])("%s", (caveat) => {
     expect(text).toContain(caveat);
   });
