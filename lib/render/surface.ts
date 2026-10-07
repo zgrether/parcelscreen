@@ -52,16 +52,20 @@ export function heat(v: number, kind: "house" | "garden"): Rgba | null {
   ];
 }
 
-/** The slope bands, by the tangent of the slope (proto L1221). */
+/**
+ * The slope map's bands, by grade (rise over run, the tangent of the slope; proto L1221): up to 15%, 25%, 40%,
+ * and steeper. The surface image and the map's slope legend both read these.
+ */
+export const SLOPE_BANDS: readonly { upTo: number; rgba: Rgba }[] = [
+  { upTo: 0.15, rgba: [140, 190, 120, 110] },
+  { upTo: 0.25, rgba: [224, 196, 60, 120] },
+  { upTo: 0.4, rgba: [222, 130, 46, 135] },
+  { upTo: Infinity, rgba: [166, 58, 44, 150] },
+];
+
 function slopeColour(deg: number): Rgba {
   const g = Math.tan((deg * Math.PI) / 180);
-  return g <= 0.15
-    ? [140, 190, 120, 110]
-    : g <= 0.25
-      ? [224, 196, 60, 120]
-      : g <= 0.4
-        ? [222, 130, 46, 135]
-        : [166, 58, 44, 150];
+  return SLOPE_BANDS.find((b) => g <= b.upTo)!.rgba;
 }
 
 /** The grid's corners, cell edges included, from UTM 17N to [lon, lat]. */
