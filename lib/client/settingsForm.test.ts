@@ -210,9 +210,14 @@ describe("validation (owner, Q1): Save names the field and the reason", () => {
     expect(reasons({ ...DEFAULT_ENDPOINTS, lpAtlasYear: 2025.5 })).toEqual([
       "Data endpoints — lpAtlasYear must be a whole number",
     ]);
+    // Only the current version, 11 (owner, #59), with the owner's wording, below or above.
     expect(reasons({ ...DEFAULT_ENDPOINTS, _v: 10 })).toEqual([
-      "Data endpoints — _v must be 11 or more (older copies are replaced by the defaults)",
+      "Data endpoints — Endpoints are version 10; only version 11 is accepted, and older versions are replaced by defaults on load. Reset the endpoints, or update the list and set _v to 11.",
     ]);
+    expect(reasons({ ...DEFAULT_ENDPOINTS, _v: 12 })).toEqual([
+      "Data endpoints — Endpoints are version 12; only version 11 is accepted, and older versions are replaced by defaults on load. Reset the endpoints, or update the list and set _v to 11.",
+    ]);
+    expect(reasons({ ...DEFAULT_ENDPOINTS, _v: 11 })).toEqual([]);
     expect(
       reasons({
         ...DEFAULT_ENDPOINTS,

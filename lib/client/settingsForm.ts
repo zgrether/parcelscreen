@@ -177,7 +177,11 @@ const isHttps = (s: string): boolean => {
   }
 };
 
-/** The endpoints JSON: valid, the schema's shape, whole-number counts, https URLs, and a current `_v`. */
+/** The reason an endpoints `_v` other than the current one is refused (owner's wording, #59). */
+export const endpointsVersionReason = (v: number): string =>
+  `Endpoints are version ${v}; only version ${DEFAULT_ENDPOINTS._v} is accepted, and older versions are replaced by defaults on load. Reset the endpoints, or update the list and set _v to ${DEFAULT_ENDPOINTS._v}.`;
+
+/** The endpoints JSON: valid, the schema's shape, whole-number counts, https URLs, and the current `_v`. */
 export function parseEndpoints(text: string): { endpoints: UserConfig["endpoints"] } | { reasons: string[] } {
   let raw: unknown;
   try {
@@ -195,10 +199,10 @@ export function parseEndpoints(text: string): { endpoints: UserConfig["endpoints
   const e = parsed.data;
   const reasons: string[] = [];
   for (const k of ENDPOINT_INTEGERS) if (!Number.isInteger(e[k])) reasons.push(`${k} must be a whole number`);
-  // The prototype's rule (L461, migrateEndpoints): an older `_v` is replaced by the defaults on the next load,
-  // so saving one would silently lose the edit.
-  if (e._v < DEFAULT_ENDPOINTS._v)
-    reasons.push(`_v must be ${DEFAULT_ENDPOINTS._v} or more (older copies are replaced by the defaults)`);
+  // Only the current version (owner, #59). The prototype's rule (L461, migrateEndpoints) replaces an older `_v`
+  // with the defaults on the next load, so saving one would silently lose the edit; a newer one isn't a version
+  // this build knows.
+  if (e._v !== DEFAULT_ENDPOINTS._v) reasons.push(endpointsVersionReason(e._v));
   for (const [k, v] of Object.entries(e)) {
     if (typeof v === "string" && !isHttps(v)) reasons.push(`${k} must be an https URL`);
     if (Array.isArray(v))
