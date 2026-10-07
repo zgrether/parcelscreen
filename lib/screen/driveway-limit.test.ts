@@ -117,7 +117,7 @@ describe("the least-steep route on the reference parcels", () => {
     );
     expect(d.overLimit).toBeUndefined();
     expect(d.note).toMatch(
-      /even with switchbacks. Raise the grade limit in Settings or pick a different site. None does even at 30%.$/,
+      /even with switchbacks. Raise the grade limit in Settings or pick a different site. No route reaches it even at 30%.$/,
     );
   }, 120_000);
 });

@@ -10,7 +10,7 @@ import { GeolocateControl, type Map as MlMap } from "maplibre-gl";
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { useExplore } from "@/components/Explore/useExploreController";
 import { useMap } from "./MapView";
-import { SlopeLegend } from "./results/SlopeLegend";
+import { SurfaceLegend } from "./results/SurfaceLegend";
 import { SurfaceButton } from "./results/SurfaceButton";
 import { noteViewReset } from "./useFlatForTools";
 import { DENSE_BELOW_ZOOM, LINES_MIN_ZOOM } from "@/lib/geo/parcelTiles";
@@ -30,7 +30,7 @@ export function MapControls({ hint }: { hint: Hint }) {
     <div className="map-col" style={{ right: panelInset ? panelInset + 10 : 24 }}>
       {map && <Compass map={map} />}
       <SurfaceButton />
-      <SlopeLegend />
+      <SurfaceLegend />
       {map && <LocateButton map={map} hint={hint} />}
       {map && <ZoomSlider map={map} />}
     </div>
