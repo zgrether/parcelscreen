@@ -243,7 +243,7 @@ All six recommendations are approved, with these details:
 
 - **Q2:** IndexedDB results are keyed by the same screen ids as the parcel's `screenIds`.
   - A parcel reopened from History with no live session shows its results, plus a note that running again
-    restores the map overlays, the horizon fan and the 3D view. *(Step 17's ground viewer works from a kept result, so 17a changes the note to "Run again to restore the map overlays and horizon fan.")*
+    restores the map overlays and the horizon fan. *(Step 17a changed it from "…, horizon fan and 3D view.": the ground viewer works from a kept result.)*
 - **Q5:** the horizon chart is labelled N, E, S, W at x = 0, 90, 180, 270.
 - **Out-of-date results, 14d** (owner, #41 review). Three cases:
   1. **The boundary changed** (pieces or split): the results are stale, and a re-run is required.

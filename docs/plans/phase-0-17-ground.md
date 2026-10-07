@@ -1,6 +1,6 @@
 # Step 17: the ground viewer (plan)
 
-Status: **approved as written (owner, 2026-10-07); decisions in §8.** It replaces the 3D walkthrough plan of `phase-0.md` §3d and step 17 (owner decision, 2026-10-07, §9.12 there).
+Status: **approved as written (owner, 2026-10-07); decisions in §8; changes after the 17a review in §9.** It replaces the 3D walkthrough plan of `phase-0.md` §3d and step 17 (owner decision, 2026-10-07, §9.12 there).
 
 **The decision:** with 13g and step 15, the map covers the aerial side of the prototype's 3D walkthrough:
 
@@ -157,3 +157,37 @@ Every number the viewer shows comes from the `ScreenResult`, or from the engine'
 4. **Q4 Dates:** the presets Dec 21 / Mar 20 / Jun 21 / today, **and a date picker for any date**, day and night (dropping the prototype's any-month choice would be a regression). Hours for any non-stored date come from the engine's `sunHours` on the stored profile, under the reproduce-Dec/Jun test.
 5. **The skyline** draws the stored 5° profile with straight segments between its points and adds no detail it doesn't have.
 6. **The moon:** follow-up 33 (§7): phase, rise and set, and position in the night view.
+
+## 9. After the 17a review (owner, 2026-10-07)
+
+The first 17a cut drew only the report's skyline, as a silhouette. The owner found the prototype's terrain much better.
+
+1. **A 3D eye-level spike was tried and dropped:** MapLibre's own terrain with the camera 2 m up. Distant ridges rendered well, but near the camera the ~10 m terrain broke into large slabs on every view, and draped aerial imagery smeared into vertical streaks.
+2. **Ridges by distance (owner's option 1).**
+   - **A fetch on open, a deviation from "no re-run, no fetch" (§2):** opening the viewer re-fetches the screen's own wide DEM, the parcel plus 6 km at 30 m, through the engine's `fetchDEM`. It isn't kept, like every DEM raster.
+   - **The bands:** the skyline split into distance bands (0–½, ½–1½, 1½–3 and 3–6 km) with the engine's own march (`lib/render/ridges.ts`), painted far to near with haze.
+   - **Fallback:** while the data loads, or if it can't be had, the viewer shows the plain skyline with a short note.
+   - **Test:** the bands' envelope at the report's 5° points is the stored skyline exactly, on both fixtures.
+3. **The bands aren't clipped to the report's skyline.**
+   - Between the 5° points the 30 m terrain can rise above the report's straight line, and the view shows that.
+   - **The caption says so:** "Shaded ridges are the full 30 m terrain; the white line is the report's 5° skyline, which can miss narrow peaks between samples."
+   - Every number shown is still the report's.
+4. **The projection is a cylindrical panorama:** x is azimuth, wrapping round 360°; y is altitude. This replaces the eye-level rectilinear projection (§4), which couldn't hold a June sun and the skyline together.
+   - **One altitude scale** applies to everything drawn: terrain bands, skyline, canopy line, sun path and ticks.
+   - **The scale:** linear from −5° to 30° over the lower 70% of the height, then compressed from 30° to 90° in the rest.
+   - Grid lines are labelled at 0/10/20/30/45/60/90°.
+   - **So the sun is always in frame,** for any date and hour.
+   - Azimuth uses the linear part's pixels per degree. Drag pans azimuth.
+5. **The foreground** (below 0°) is 10% of the height. It's lighter than before, and never darker than the nearest ridge band.
+6. **The 5° sampling, measured.** The same 30 m data at 1° steps instead of 5° gives these direct-sun hours. It's follow-up 35: horizon sampling at 1°, which changes recorded numbers, so it waits until after Phase 0.
+
+   | Site | Canopy | Dec 21 at 5° | at 1° | Δ | Jun 21 at 5° | at 1° | Δ |
+   |---|---|---|---|---|---|---|---|
+   | Ferney Creek 52-47A (VA) | 3° | 8.70 | 8.72 | +1 min | 13.80 | 13.80 | 0 |
+   | Ferney Creek 52-47A (VA) | none | 9.35 | 9.35 | 0 | 14.37 | 14.37 | 0 |
+   | Macks Mountain 35-3 (VA) | 3° | 8.33 | 8.33 | 0 | 12.98 | 12.98 | 0 |
+   | Macks Mountain 35-3 (VA) | none | 8.93 | 8.93 | 0 | 13.52 | 13.52 | 0 |
+   | Ashe Co. 022949922877 (NC) | 3° | 5.62 | 5.78 | +10 min | 12.12 | 12.10 | −1 min |
+   | Ashe Co. 022949922877 (NC) | none | 5.93 | 6.08 | +9 min | 12.63 | 12.58 | −3 min |
+
+   The change can go either way: the engine reads the nearest sample, so a coarse 5° sample can sit above or below the finer terrain.
