@@ -13,6 +13,7 @@ import {
   type GroundView,
   type HourMark,
 } from "@/lib/render/ground";
+import type { RidgeBands } from "@/lib/render/ridges";
 
 export interface DayScene {
   view: GroundView;
@@ -22,7 +23,17 @@ export interface DayScene {
   marks: HourMark[];
   /** The sun now. */
   sun: AzAlt;
+  /** The ridges by distance, once fetched (lib/render/ridges.ts); the plain land until then. */
+  ridges?: RidgeBands | null;
 }
+
+/** The bands' fills, near to far, crest colour then deep colour: darker near, paler and bluer with distance (haze). */
+const RIDGE_FILL: readonly [string, string][] = [
+  ["#3a4c37", "#1c2620"],
+  ["#566b51", "#2e3b2c"],
+  ["#7f9488", "#55685d"],
+  ["#adbdc8", "#8a9da9"],
+];
 
 const COMPASS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
 
@@ -118,14 +129,63 @@ export function drawDay(ctx: CanvasRenderingContext2D, sc: DayScene): void {
   // The canopy allowance, a band on the skyline; then the land below the skyline, which hides the sun.
   const ground = visible(v, skylineVertices(sc.profile));
   const canopy = visible(v, canopyVertices(sc.profile, sc.canopyDeg));
-  if (ground.length > 1 && canopy.length > 1) {
-    ctx.fillStyle = "rgba(40,72,44,0.45)";
+  const trace = (pts: { x: number; y: number }[]) =>
+    pts.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
+  // With the ridges shown, the canopy is a light wash under a dashed line, so it doesn't read as another ridge.
+  const canopyBand = () => {
+    if (ground.length < 2 || canopy.length < 2) return;
+    ctx.fillStyle = sc.ridges ? "rgba(255,255,255,0.14)" : "rgba(40,72,44,0.45)";
     ctx.beginPath();
-    canopy.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
+    trace(canopy);
     for (let i = ground.length - 1; i >= 0; i--) ctx.lineTo(ground[i]!.x, ground[i]!.y);
     ctx.closePath();
     ctx.fill();
-
+    if (sc.ridges) {
+      ctx.setLineDash([6, 5]);
+      ctx.strokeStyle = "rgba(255,255,255,0.7)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      trace(canopy);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  };
+  if (!sc.ridges) canopyBand();
+  if (sc.ridges && ground.length > 1) {
+    // The ridges by distance, far to near: each nearer band over the ones behind it, darker and less hazy, its
+    // colour deepening below the crest, with a faint rim of light along the crest.
+    const { angles, stepDeg } = sc.ridges;
+    for (let b = angles.length - 1; b >= 0; b--) {
+      const pts: AzAlt[] = [];
+      angles[b]!.forEach((alt, i) => alt !== null && pts.push({ az: i * stepDeg, alt }));
+      const band = visible(v, pts);
+      if (band.length < 2) continue;
+      const [top, bottom] = RIDGE_FILL[Math.min(b, RIDGE_FILL.length - 1)]!;
+      const crest = Math.min(...band.map((p) => p.y));
+      const g = ctx.createLinearGradient(0, crest, 0, H);
+      g.addColorStop(0, top);
+      g.addColorStop(1, bottom);
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      trace(band);
+      ctx.lineTo(band[band.length - 1]!.x, H);
+      ctx.lineTo(band[0]!.x, H);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,0.22)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      trace(band);
+      ctx.stroke();
+    }
+    canopyBand();
+    // The report's skyline over them: the line its numbers come from.
+    ctx.strokeStyle = "rgba(255,255,255,0.85)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    trace(ground);
+    ctx.stroke();
+  } else if (ground.length > 1) {
     const land = ctx.createLinearGradient(0, y0 - 40, 0, H);
     land.addColorStop(0, "#3b4a39");
     land.addColorStop(1, "#1c2620");

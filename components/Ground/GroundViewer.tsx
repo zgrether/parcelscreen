@@ -23,7 +23,10 @@ import {
   type GroundInputs,
 } from "@/lib/render/ground";
 import type { PartialScreenResult } from "@/lib/screen/types";
+import type { Feature, Polygon } from "geojson";
+import type { Endpoints } from "@/lib/screen/types";
 import { drawDay } from "./drawGround";
+import { useRidges } from "./useRidges";
 import { TimeBar } from "./TimeBar";
 
 /** The day plays in this many seconds, sunrise to sunset (proto timeTick, L1847). */
@@ -51,11 +54,16 @@ const compassOf = (a: number) => COMPASS16[Math.round((((a % 360) + 360) % 360) 
 export function GroundViewer({
   result,
   inputs,
+  parcel,
+  endpoints,
   timeZone,
   close,
 }: {
   result: PartialScreenResult;
   inputs: GroundInputs;
+  /** The open parcel, for the screen's wide-DEM request (the ridges by distance); null without one. */
+  parcel: Feature<Polygon> | null;
+  endpoints: Endpoints;
   timeZone: string;
   close(): void;
 }) {
@@ -63,6 +71,7 @@ export function GroundViewer({
   const [iso, setIso] = useState(`${year}-12-21`);
   const date = groundDate(iso) ?? groundDate(`${year}-12-21`)!;
   const { lat, profile, canopyDeg, label } = inputs;
+  const ridges = useRidges(parcel, [lat, inputs.lon], endpoints);
 
   const lim = halfDay(lat, date.doy);
   // The time as a share of daylight, 0 at sunrise and 1 at sunset, so a new date keeps the moment.
@@ -144,6 +153,7 @@ export function GroundViewer({
       path,
       marks,
       sun,
+      ridges: ridges.state === "ready" ? ridges.bands : null,
     });
   });
 
@@ -216,6 +226,13 @@ export function GroundViewer({
           onPointerCancel={onUp}
         >
           <canvas ref={canvas} aria-label="The skyline and the sun's path from this point" />
+          {ridges.state !== "ready" && (
+            <div className="ground-status">
+              {ridges.state === "loading"
+                ? "Shading the ridges…"
+                : "Ridge shading unavailable: the skyline alone."}
+            </div>
+          )}
           <div className="ground-heading" aria-live="off">
             {compassOf(heading)} {Math.round(heading)}° · {clear ? "direct sun" : "sun behind the ridge"}
           </div>
@@ -234,7 +251,9 @@ export function GroundViewer({
           Eye height at the selected site. The gold arc is the sun&apos;s path on {long}. Each hour has a tick
           from the skyline up to the sun — red where the sun is behind the ridge at that hour. Trees are not
           shown. The band above the skyline is the {canopyDeg}° tree-canopy allowance the report counts as
-          blocking; the skyline is the screen&apos;s own horizon (bare earth, every 5°). Drag to look around.
+          blocking; the skyline is the screen&apos;s own horizon (bare earth, every 5°). Ridges are shaded by
+          distance (0–½, ½–1½, 1½–3 and 3–6 km) from the same 30 m elevation data; the white line is the
+          report&apos;s skyline. Drag to look around.
         </p>
       </section>
     </div>,

@@ -1738,6 +1738,16 @@ html:has(.explore) body {
   white-space: nowrap;
   pointer-events: none;
 }
+.ground-status {
+  position: absolute;
+  left: 10px;
+  bottom: 36px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(11, 20, 16, 0.7);
+  font-size: 12px;
+  pointer-events: none;
+}
 .ground-time {
   display: flex;
   align-items: center;

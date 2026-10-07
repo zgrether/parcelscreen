@@ -108,7 +108,7 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
       <HelpProvider>
         <SettingsProvider config={config} onSave={saveConfig}>
           <ScreenItContext.Provider value={screen}>
-            <GroundProvider timeZone={config.timeZone}>
+            <GroundProvider timeZone={config.timeZone} endpoints={config.endpoints}>
               <div ref={root} className="explore" style={vars as CSSProperties}>
                 <div className="explore-map">
                   <MapArea

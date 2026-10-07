@@ -5,6 +5,7 @@
  */
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
 import { groundInputs } from "@/lib/render/ground";
+import type { Endpoints } from "@/lib/screen/types";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
 import { GroundViewer } from "./GroundViewer";
 
@@ -17,7 +18,16 @@ export function useOpenGround(): (() => void) | null {
   return open && groundInputs(s?.display ?? null) ? open : null;
 }
 
-export function GroundProvider({ timeZone, children }: { timeZone: string; children: ReactNode }) {
+export function GroundProvider({
+  timeZone,
+  endpoints,
+  children,
+}: {
+  timeZone: string;
+  /** For the ridges' DEM request: the services the screen used. */
+  endpoints: Endpoints;
+  children: ReactNode;
+}) {
   const [opened, setOpened] = useState(false);
   const s = useScreenItContext();
   const open = useCallback(() => setOpened(true), []);
@@ -26,7 +36,14 @@ export function GroundProvider({ timeZone, children }: { timeZone: string; child
     <GroundContext.Provider value={open}>
       {children}
       {opened && s?.display && inputs && (
-        <GroundViewer result={s.display} inputs={inputs} timeZone={timeZone} close={() => setOpened(false)} />
+        <GroundViewer
+          result={s.display}
+          inputs={inputs}
+          parcel={s.parcel?.geo ?? null}
+          endpoints={endpoints}
+          timeZone={timeZone}
+          close={() => setOpened(false)}
+        />
       )}
     </GroundContext.Provider>
   );
