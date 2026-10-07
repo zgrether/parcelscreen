@@ -18,7 +18,9 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import { loadUserConfig } from "@/lib/client/userConfig";
+import { loadUserConfig, saveUserConfig } from "@/lib/client/userConfig";
+import type { UserConfig } from "@/lib/screen/types";
+import { SettingsProvider } from "@/components/Settings/SettingsDialog";
 import { MapArea } from "./MapArea";
 import { HelpProvider } from "@/components/Help/HelpDialog";
 import { ScreenItContext } from "@/components/Results/ScreenItContext";
@@ -48,7 +50,12 @@ function useFloatWidths(): { card: number; panel: number } {
 export function ExploreShell({ children }: { children?: ReactNode }) {
   const root = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLElement>(null);
-  const [config] = useState(loadUserConfig);
+  // Live (16a): a Settings save is used by the next run, and the open results get "used earlier settings".
+  const [config, setConfig] = useState(loadUserConfig);
+  const saveConfig = useCallback((c: UserConfig) => {
+    saveUserConfig(c);
+    setConfig(c);
+  }, []);
   const [hint, setHintState] = useState("");
   const setHint = useCallback((t: string | ((prev: string) => string)) => setHintState(t), []);
   const explore = useExploreController(config.endpoints.parcels, setHint);
@@ -98,36 +105,38 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   return (
     <ExploreContext.Provider value={explore}>
       <HelpProvider>
-        <ScreenItContext.Provider value={screen}>
-          <div ref={root} className="explore" style={vars as CSSProperties}>
-            <div className="explore-map">
-              <MapArea
-                config={config}
-                hint={hint}
-                setHint={setHint}
-                bottomInset={sheet.inset}
-                leftInset={leftInset}
-              />
+        <SettingsProvider config={config} onSave={saveConfig}>
+          <ScreenItContext.Provider value={screen}>
+            <div ref={root} className="explore" style={vars as CSSProperties}>
+              <div className="explore-map">
+                <MapArea
+                  config={config}
+                  hint={hint}
+                  setHint={setHint}
+                  bottomInset={sheet.inset}
+                  leftInset={leftInset}
+                />
+              </div>
+              <aside
+                ref={panel}
+                className={panelClass}
+                style={sheet.height != null ? { height: sheet.height } : undefined}
+              >
+                <div className="sheet-handle" title="Drag or tap to resize" {...sheet.handlers} />
+                {/* One line, always: the parcel and the screen button (owner, after 14d). On phones it's the peek. */}
+                <header className="explore-header" {...sheet.handlers}>
+                  <ScreenHeader s={screen} desk={docked ? { expanded, fold } : null} />
+                </header>
+                {(!docked || expanded) && (
+                  <div className="explore-scroll">
+                    <ScreenBody s={screen} />
+                    {children}
+                  </div>
+                )}
+              </aside>
             </div>
-            <aside
-              ref={panel}
-              className={panelClass}
-              style={sheet.height != null ? { height: sheet.height } : undefined}
-            >
-              <div className="sheet-handle" title="Drag or tap to resize" {...sheet.handlers} />
-              {/* One line, always: the parcel and the screen button (owner, after 14d). On phones it's the peek. */}
-              <header className="explore-header" {...sheet.handlers}>
-                <ScreenHeader s={screen} desk={docked ? { expanded, fold } : null} />
-              </header>
-              {(!docked || expanded) && (
-                <div className="explore-scroll">
-                  <ScreenBody s={screen} />
-                  {children}
-                </div>
-              )}
-            </aside>
-          </div>
-        </ScreenItContext.Provider>
+          </ScreenItContext.Provider>
+        </SettingsProvider>
       </HelpProvider>
     </ExploreContext.Provider>
   );
