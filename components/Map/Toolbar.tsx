@@ -1,7 +1,7 @@
 "use client";
 /**
  * The parcel toolbar on the map (13e): always one line.
- *   nothing open:  "Tap a parcel to select it │ or Draw a custom parcel"
+ *   nothing open:  "Tap a parcel to select it or Draw a custom parcel" (no rule: the "or" separates them)
  *   a parcel open: "Add: Parcel · Custom · ⌂ │ Split │ 🗑   12.34 ac ▾" (the acres open the Info panel)
  *   a tool in use: what to do next, and its controls (Finish, Done, Keep…, Cancel)
  * The trash (built parcels only) asks inline before deleting. A tap refused because a built parcel is open
@@ -230,7 +230,6 @@ function barBody(
     return (
       <>
         <Status>Tap a parcel to select it</Status>
-        <Sep />
         <span className="tb-lbl">or</span>
         <Btn onClick={ctl.startDraw}>Draw a custom parcel</Btn>
       </>

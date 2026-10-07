@@ -1716,3 +1716,8 @@ html:has(.explore) body {
 .compass svg {
   transition: transform 0.08s linear;
 }
+
+/* Phones: no sheet until a parcel is open; the toolbar's "Tap a parcel…" says it all (owner, #48). */
+.explore-panel.sheet-hidden {
+  display: none;
+}

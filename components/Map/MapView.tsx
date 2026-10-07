@@ -82,6 +82,10 @@ export function MapView({
       pitch: view.p ?? 0,
       maxZoom: 20,
       maxPitch: MAX_PITCH,
+      // Rotating with the mouse: a drag right always turns the same way, wherever the cursor is, as in
+      // Google Maps (owner, #48). MapLibre's default turns by the angle around the centre, so a drag right
+      // turned one way above the centre and the other way below it.
+      aroundCenter: false,
       attributionControl: false,
     });
     // No + / − buttons: the zoom slider in the right-hand column replaces them (13f).

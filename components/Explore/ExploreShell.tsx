@@ -1,7 +1,7 @@
 "use client";
 /**
  * The explorer's layout (proto L26–33, L129–148): a full-screen map with the results over it.
- *   - Phones (narrow portrait): the results are a bottom sheet (useBottomSheet).
+ *   - Phones (narrow portrait): the results are a bottom sheet (useBottomSheet), hidden until a parcel is open.
  *   - Desktop, and phones on their side (owner, after 14d): the results float at the map's top left, as a
  *     compact card (the parcel, its acres, Screen it) until there's something to read; a run, or a kept
  *     result, grows the card into a full-height panel. The panel folds back to the card, which then shows
@@ -66,9 +66,13 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   const fold = docked && readable ? () => setFoldedAt(expanded ? foldKey : null) : null;
   const leftInset = docked ? EDGE + (expanded ? widths.panel : widths.card) : 0;
 
+  // Phones: with no parcel open the sheet would only repeat the toolbar's "Tap a parcel…", so it's hidden
+  // until one is (owner, #48). The map keeps its bottom padding, so nothing moves when the sheet comes in.
+  const sheetHidden = !docked && store.open === null;
+
   const vars: Record<string, string> = {};
   // The sheet's height, for what sits on the map above it (hint, attribution).
-  if (sheet.height != null) vars["--sheet-h"] = `${sheet.height}px`;
+  if (sheet.height != null) vars["--sheet-h"] = sheetHidden ? "0px" : `${sheet.height}px`;
   if (docked) {
     vars["--float-w"] = `${expanded ? widths.panel : widths.card}px`;
     // What's centred along the map's bottom (toolbar, hint) keeps clear of the full-height panel.
@@ -77,6 +81,7 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   const panelClass = [
     "explore-panel",
     sheet.mapMode ? "mapmode" : "",
+    sheetHidden ? "sheet-hidden" : "",
     docked ? (expanded ? "float expanded" : "float card") : "",
   ].join(" ");
 
