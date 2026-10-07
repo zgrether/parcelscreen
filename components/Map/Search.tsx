@@ -12,7 +12,7 @@ import { coordinatesIn, idPattern, matchesName } from "@/lib/search/query";
 import { searchParcelNumbers, searchPlaces, type ParcelHit, type PlaceHit } from "@/lib/search/sources";
 import { parcelName } from "@/components/Explore/History";
 import { useExplore } from "@/components/Explore/useExploreController";
-import { countiesShown } from "./useParcelLines";
+import { countiesShown, parcelServiceDown } from "./useParcelLines";
 
 /** Network searches wait this long after the last keystroke. */
 const DEBOUNCE_MS = 300;
@@ -54,6 +54,8 @@ function SearchBox({ photonUrl, close }: { photonUrl: string; close(): void }) {
   const [parcels, setParcels] = useState<Remote<ParcelHit>>({ state: "idle" });
   const [places, setPlaces] = useState<Remote<PlaceHit>>({ state: "idle" });
   const [noCounties, setNoCounties] = useState(false);
+  /** No counties to search because the view's parcel service isn't answering (owner, after 16b). */
+  const [serviceDown, setServiceDown] = useState<string | null>(null);
 
   // A tap anywhere outside closes it. On the map, that tap only closes it: the click it makes is swallowed,
   // so it doesn't also select the parcel under the finger.
@@ -81,6 +83,7 @@ function SearchBox({ photonUrl, close }: { photonUrl: string; close(): void }) {
       // Parcel numbers have digits: "Floyd" is a place, not a parcel number.
       const wantsParcels = idPattern(q) !== null && /\d/.test(q);
       setNoCounties(wantsParcels && counties.size === 0);
+      setServiceDown(map ? parcelServiceDown(map) : null);
       if (wantsParcels && counties.size) {
         setParcels({ state: "loading" });
         searchParcelNumbers(browserHttp, counties, q, abort.signal).then(
@@ -141,7 +144,7 @@ function SearchBox({ photonUrl, close }: { photonUrl: string; close(): void }) {
     groups.push({
       title: "Parcel numbers",
       options: [],
-      note: "Zoom in on the county to search its parcel numbers.",
+      note: serviceDown ?? "Zoom in on the county to search its parcel numbers.",
     });
   else if (parcels.state !== "idle")
     groups.push({

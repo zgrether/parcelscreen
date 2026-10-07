@@ -98,6 +98,11 @@ export interface RequestOptions {
   /** Per attempt. Default 30 s, as in the prototype. */
   timeoutMs?: number;
   /**
+   * On a timeout, try once more with this longer limit (follow-up 22). Unset, a timeout is final. Only a
+   * timeout is retried this way: an HTTP error or a network failure isn't (429/503 keep `retries`).
+   */
+  retryTimeoutMs?: number;
+  /**
    * Retries after a 429/503 for this request, in place of the client's `maxRetries`. 0 returns the first
    * answer, for callers with their own rule (the Overpass mirrors).
    */
@@ -268,11 +273,19 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
     async fetch(url, opts = {}) {
       if (opts.signal?.aborted) throw new CancelledError();
       const gate = gateFor(new URL(url).host);
+      let timeoutMs = opts.timeoutMs,
+        retriedTimeout = false;
       for (let n = 0; ; n++) {
         await gate.acquire(opts.signal);
         let res: Response;
         try {
-          res = await attempt(url, opts);
+          res = await attempt(url, { ...opts, ...(timeoutMs !== undefined ? { timeoutMs } : {}) });
+        } catch (e) {
+          if (!(e instanceof TimeoutError) || opts.retryTimeoutMs === undefined || retriedTimeout) throw e;
+          retriedTimeout = true;
+          timeoutMs = opts.retryTimeoutMs;
+          n--; // a timeout retry isn't one of the 429/503 retries
+          continue;
         } finally {
           gate.release();
         }

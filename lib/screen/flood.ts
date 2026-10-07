@@ -26,7 +26,12 @@ export async function floodStep(
     deps.endpoints.nfhl,
     parcel,
     { outFields: "FLD_ZONE,SFHA_TF,ZONE_SUBTY" },
-    deps,
+    // NFHL timed out in two live runs (follow-up 22): one retry, with a longer limit.
+    {
+      ...deps,
+      timeoutMs: SCREEN_CONSTANTS.flood.timeoutMs,
+      retryTimeoutMs: SCREEN_CONSTANTS.flood.retryTimeoutMs,
+    },
   )) as FloodFeature[];
   const zones = [...new Set(feats.map((f) => f.properties.FLD_ZONE!))],
     sfha = feats.some((f) => f.properties.SFHA_TF === "T");

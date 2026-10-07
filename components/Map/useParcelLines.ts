@@ -10,6 +10,10 @@
  * see all parcel lines"). The map redraws at most every 250 ms as tiles arrive, plus once when the last one
  * lands, from outlines prepared once per tile.
  *
+ * A state service that doesn't answer (owner, after 16b): when nothing could be drawn in the view because a
+ * service failed, the hint names it ("Virginia parcel service isn't responding — …"), and a tap or a
+ * parcel-number search in that view says the same (parcelServiceDown). Before, the map just stayed empty.
+ *
  * Deviation: the prototype drew them from zoom 15, one request for the whole view. The outlines are for
  * display and picking only: a selection fetches the full record (fullRecord).
  */
@@ -35,6 +39,7 @@ import {
   type Tile,
   type TileResult,
 } from "@/lib/geo/parcelTiles";
+import { isServiceDownMessage, serviceDownMessage } from "@/lib/geo/serviceStatus";
 import { LAYER, SOURCE } from "./style";
 
 export { LINES_MIN_ZOOM };
@@ -55,6 +60,15 @@ const cache = new TileCache();
 const pending = new Map<string, Promise<TileResult>>();
 /** Each service's parcel count per tile, for the density guard (a tile's count doesn't change in a session). */
 const counts = new Map<string, Promise<number | null>>();
+
+/** The message for a parcel service that failed in the current view while nothing could be drawn. */
+const downInView = new WeakMap<MlMap, string>();
+
+/**
+ * "Virginia parcel service isn't responding — …" when the view has no parcel lines because that service
+ * failed; null otherwise. A tap on empty map and the parcel-number search say it too.
+ */
+export const parcelServiceDown = (map: MlMap): string | null => downInView.get(map) ?? null;
 
 /** A tile's outlines as the map draws them, built once per tile: each feature tagged with its key. */
 interface Prepared {
@@ -167,8 +181,9 @@ export function useParcelLines(
       drawn.set(map, lines);
       source()?.setData({ type: "FeatureCollection", features });
     };
-    const clearOurHints = (h: string) => (OUR_HINTS.has(h) ? "" : h);
+    const clearOurHints = (h: string) => (OUR_HINTS.has(h) || isServiceDownMessage(h) ? "" : h);
     if (!enabled) {
+      downInView.delete(map);
       show([]);
       hint(clearOurHints);
       return;
@@ -180,6 +195,7 @@ export function useParcelLines(
 
     const refresh = () => {
       const gen = ++generation;
+      downInView.delete(map);
       clearTimeout(redraw);
       redraw = undefined;
       const zoom = map.getZoom();
@@ -198,6 +214,7 @@ export function useParcelLines(
       });
       const detail = detailFor(zoom);
       const done: TileResult[] = [];
+      const failed = new Set<string>();
       let dense = false;
       const draw = () => {
         if (gen === generation) show(done);
@@ -210,7 +227,9 @@ export function useParcelLines(
             dense = true;
             return;
           }
-          done.push(await loadTile(url, t, detail));
+          const r = await loadTile(url, t, detail);
+          if (r.failed) failed.add(url);
+          done.push(r);
           // Redraw as tiles arrive, at most every REDRAW_MS.
           redraw ??= setTimeout(() => {
             redraw = undefined;
@@ -223,7 +242,11 @@ export function useParcelLines(
         clearTimeout(redraw);
         redraw = undefined;
         draw();
-        if (dense) hint(DENSE_HINT);
+        if (failed.size && done.every((t) => t.lines.length === 0)) {
+          const message = serviceDownMessage([...failed][0]!);
+          downInView.set(map, message);
+          hint(message);
+        } else if (dense) hint(DENSE_HINT);
         else if (done.some((t) => !t.complete && !t.failed)) hint(INCOMPLETE_HINT);
       });
     };

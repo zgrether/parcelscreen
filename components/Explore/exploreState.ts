@@ -285,6 +285,8 @@ export interface TapHit {
   outline: ParcelRecord | null;
   /** A saved (built) parcel under the tap. */
   savedKey: string | null;
+  /** Why no outline could be under it: a state parcel service that isn't answering in this view. */
+  serviceDown?: string | null;
 }
 
 export type TapOutcome =

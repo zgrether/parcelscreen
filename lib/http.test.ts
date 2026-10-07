@@ -159,6 +159,62 @@ describe("timeouts and cancellation", () => {
     await expect(p).rejects.toThrow("timed out");
   });
 
+  describe("one retry on a timeout, with a longer limit (follow-up 22)", () => {
+    /** Hangs on the first call; the second answers after `ms`. */
+    const slowThenOk = (ms: number) => {
+      let calls = 0;
+      const f = (u: unknown, init?: RequestInit) =>
+        ++calls === 1
+          ? hang(u, init)
+          : new Promise<Response>((resolve, reject) => {
+              const t = setTimeout(() => resolve(ok()), ms);
+              init?.signal?.addEventListener("abort", () => {
+                clearTimeout(t);
+                reject(new DOMException("Aborted", "AbortError"));
+              });
+            });
+      return { f, calls: () => calls };
+    };
+
+    it("answers on the second try, which has the longer limit", async () => {
+      const s = slowThenOk(40);
+      const http = createHttpClient({ env: "browser", fetchImpl: s.f });
+      const r = await http.fetch("https://hazards.fema.gov/q", { timeoutMs: 20, retryTimeoutMs: 120 });
+      expect(r.status).toBe(200);
+      expect(s.calls()).toBe(2);
+    });
+
+    it("a second timeout is final, and there's no third try", async () => {
+      const s = slowThenOk(200);
+      const http = createHttpClient({ env: "browser", fetchImpl: s.f });
+      await expect(
+        http.fetch("https://hazards.fema.gov/q", { timeoutMs: 20, retryTimeoutMs: 40 }),
+      ).rejects.toBeInstanceOf(TimeoutError);
+      expect(s.calls()).toBe(2);
+    });
+
+    it("without the option a timeout is final; other failures are never retried this way", async () => {
+      const s = slowThenOk(1);
+      const http = createHttpClient({ env: "browser", fetchImpl: s.f });
+      await expect(http.fetch("https://hazards.fema.gov/q", { timeoutMs: 20 })).rejects.toBeInstanceOf(
+        TimeoutError,
+      );
+      expect(s.calls()).toBe(1);
+      let calls = 0;
+      const down = createHttpClient({
+        env: "browser",
+        fetchImpl: async () => {
+          calls++;
+          throw new TypeError("Failed to fetch");
+        },
+      });
+      await expect(
+        down.fetch("https://vginmaps.vdem.virginia.gov/q", { retryTimeoutMs: 45_000 }),
+      ).rejects.toThrow("Failed to fetch");
+      expect(calls).toBe(1);
+    });
+  });
+
   it("rejects with CancelledError when the caller aborts mid-request", async () => {
     const ctl = new AbortController();
     const http = createHttpClient({ env: "browser", fetchImpl: hang });
