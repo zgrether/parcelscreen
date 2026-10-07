@@ -74,13 +74,17 @@ describe("the least-steep route on the reference parcels", () => {
     expect(o.limitPct).toBe(10);
     expect(o.overSpans.length).toBeGreaterThan(0);
     expect(o.overFt).toBeCloseTo(o.overSpans.reduce((m, [a, b]) => m + b - a, 0) * M2FT, 6);
-    // The prototype's first sentence, verbatim; then what's new.
+    // The prototype's note in full, unchanged; then the appended sentence (owner's wording, #52).
     expect(d.note).toBe(
-      `Entrance found on ${d.entrances[0]!.name}, but no route reaches site #1 at 10% or less, even with switchbacks. ${overLimitNote(o, "site #1")}`,
+      `Entrance found on ${d.entrances[0]!.name}, but no route reaches site #1 at 10% or less, even with switchbacks. Raise the grade limit in Settings or pick a different site. ${overLimitNote(o)}`,
     );
-    expect(overLimitNote(o, "site #1")).toBe(
-      `The least-steep route found needs grades up to ${cap}% (the lowest limit that reaches site #1), with about ${Math.round(o.overFt)} ft steeper than 10% in ${o.overSpans.length} stretch${o.overSpans.length === 1 ? "" : "es"} (drawn on the map as suspect). Regrading those, raising the grade limit in Settings, or a different site may fix it.`,
+    const n = o.overSpans.length;
+    expect(overLimitNote(o)).toBe(
+      `The least-steep route found needs grades up to ${cap}%, with about ${Math.round(o.overFt)} ft steeper than 10% in ${n} stretch${n === 1 ? "" : "es"}; it's drawn on the map as suspect.`,
     );
+    // No thousands separator, as the prototype's driveway notes; "stretch" for one.
+    expect(overLimitNote({ ...o, overFt: 2018.4 })).toContain("about 2018 ft");
+    expect(overLimitNote({ ...o, overSpans: [[0, 30]] })).toContain("in 1 stretch;");
   }, 120_000);
 
   it("Ferney Creek to its house: the same, from the house run", async () => {
@@ -113,7 +117,7 @@ describe("the least-steep route on the reference parcels", () => {
     );
     expect(d.overLimit).toBeUndefined();
     expect(d.note).toMatch(
-      /even with switchbacks\. None does even at 30%\. Pick a different site, or check the entrance\.$/,
+      /even with switchbacks. Raise the grade limit in Settings or pick a different site. None does even at 30%.$/,
     );
   }, 120_000);
 });

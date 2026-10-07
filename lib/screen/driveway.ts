@@ -535,10 +535,13 @@ export function leastSteep(
 /** The grade the least-steep route needs: its cap, the lowest whole percent that reaches the target. */
 export const neededPct = (o: OverLimitRoute): number => Math.round(o.maxGrade * 100);
 
-/** What the report says about the least-steep route, after "no route reaches … at 10% or less". */
-export function overLimitNote(o: OverLimitRoute, toLabel: string): string {
+/**
+ * The sentence appended to the prototype's no-route note (owner's wording, #52): lengths as the prototype's
+ * driveway notes give them (rounded, no thousands separator).
+ */
+export function overLimitNote(o: OverLimitRoute): string {
   const n = o.overSpans.length;
-  return `The least-steep route found needs grades up to ${neededPct(o)}% (the lowest limit that reaches ${toLabel}), with about ${Math.round(o.overFt)} ft steeper than ${o.limitPct}% in ${n} stretch${n === 1 ? "" : "es"} (drawn on the map as suspect). Regrading those, raising the grade limit in Settings, or a different site may fix it.`;
+  return `The least-steep route found needs grades up to ${neededPct(o)}%, with about ${Math.round(o.overFt)} ft steeper than ${o.limitPct}% in ${n} stretch${n === 1 ? "" : "es"}; it's drawn on the map as suspect.`;
 }
 
 /**
@@ -594,16 +597,16 @@ export function buildDriveway(
     }
   });
   if (!found.length) {
-    // New in the port (owner, after 15c): say how steep the least-steep route is, and where it goes over the
-    // limit, rather than only that none fits; it's drawn as suspect. Scoring doesn't use it.
+    // The prototype's note, verbatim. New in the port (owner, after 15c): one sentence appended saying how
+    // steep the least-steep route is (drawn as suspect, not scored), never replacing the prototype's text.
+    dw.note = `Entrance found on ${ent[0]!.name}, but no route reaches ${toLabel} at ${roadMaxGradePct}% or less, even with switchbacks. Raise the grade limit in Settings or pick a different site.`;
     const over = leastSteep(ctx, ent, toLL, roadMaxGradePct);
-    const none = `Entrance found on ${ent[0]!.name}, but no route reaches ${toLabel} at ${roadMaxGradePct}% or less, even with switchbacks.`;
     if (!over) {
-      dw.note = `${none} None does even at ${K.leastSteep.maxPct}%. Pick a different site, or check the entrance.`;
+      dw.note += ` None does even at ${K.leastSteep.maxPct}%.`;
       return dw;
     }
     dw.overLimit = over;
-    dw.note = `${none} ${overLimitNote(over, toLabel)}`;
+    dw.note += ` ${overLimitNote(over)}`;
     return dw;
   }
   found.sort((a, b) => a.rt.cost.mid - b.rt.cost.mid);
