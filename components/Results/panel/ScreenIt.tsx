@@ -25,6 +25,7 @@ import { fmt } from "@/lib/format";
 import { verdictView } from "@/lib/report/verdict";
 import { STEPS } from "@/lib/screen/config";
 import { summaryText } from "@/lib/screen/summary";
+import type { LatLon } from "@/lib/geo/types";
 import type { PartialScreenResult, ScreenResult, UserConfig } from "@/lib/screen/types";
 import type { ExploreController, SetHint } from "@/components/Explore/useExploreController";
 import { evaluationPoint } from "../blocks/types";
@@ -53,6 +54,9 @@ export function useScreenIt(
   const [live, setLive] = useState<LiveRun | null>(null);
   const [stored, setStored] = useState<{ serial: number; record: ScreenRecord } | null>(null);
   const [showParams, setShowParams] = useState(false);
+  // A pin tap re-evaluates at another point (step 15): shown, never kept (owner, 15 plan Q1).
+  const [evalAsked, setEvalAsked] = useState<{ serial: number; ll: LatLon; label: string } | null>(null);
+  const awaitingEval = useRef(false);
 
   // Handlers and effects read the latest controller and callback.
   const latest = useRef({ ctl, onFinished });
@@ -91,6 +95,11 @@ export function useScreenIt(
     if (status !== "done" || !live || !result || kept.current === result || result.verdict === undefined)
       return;
     kept.current = result;
+    // A re-evaluation at another point is exploration: not a new screen, and the sheet stays where it is.
+    if (awaitingEval.current) {
+      awaitingEval.current = false;
+      return;
+    }
     const reassessed = awaitingHouse.current ? askedHouse.current : null;
     awaitingHouse.current = false;
     const base = reassessed !== null && stored ? stored.record.keys : live.keys;
@@ -126,6 +135,8 @@ export function useScreenIt(
     askedHouse.current = null;
     awaitingHouse.current = false;
     setShowParams(false);
+    setEvalAsked(null);
+    awaitingEval.current = false;
     screen.run({ polygon: parcel.geo.geometry, config, ...(house ? { house } : {}) });
   };
 
@@ -142,8 +153,31 @@ export function useScreenIt(
     );
   };
 
+  // Re-evaluate at a pin (15b uses it): only with this parcel's live session.
+  const evaluateAt = (ll: LatLon, label: string) => {
+    if (!sessionLive || screen.state.updating) return;
+    awaitingEval.current = true;
+    setEvalAsked({ serial, ll, label });
+    screen.evaluateAt(ll, label);
+  };
+  // The live result is an unsaved re-evaluation when its evaluation point is the one asked for. (A house
+  // re-assessment moves the point to the house, so it ends this.)
+  const liveFocus = screen.state.result?.focus?.ll;
+  const evaluated =
+    sessionLive &&
+    !screen.state.updating &&
+    !!evalAsked &&
+    evalAsked.serial === serial &&
+    !!liveFocus &&
+    liveFocus[0] === evalAsked.ll[0] &&
+    liveFocus[1] === evalAsked.ll[1]
+      ? (screen.state.result as ScreenResult)
+      : null;
+
   const runningHere = running && live?.serial === serial;
-  const display: PartialScreenResult | null = runningHere ? screen.state.result : (shown?.result ?? null);
+  const display: PartialScreenResult | null = runningHere
+    ? screen.state.result
+    : (evaluated ?? shown?.result ?? null);
   const point = display ? evaluationPoint(display) : null;
 
   return {
@@ -165,6 +199,11 @@ export function useScreenIt(
     error: live?.serial === serial ? screen.state.error : null,
     display,
     point,
+    /** The worker's session for this parcel's shown run (surfaces, horizon…), or null after a reload. */
+    view: sessionLive ? screen.state.view : null,
+    evaluateAt,
+    /** The unsaved re-evaluation shown, if any (its label for the "not saved" note, 15b). */
+    evaluated: evaluated ? { label: evalAsked!.label } : null,
   };
 }
 

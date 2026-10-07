@@ -17,6 +17,7 @@ import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { findLayer, type LayerId, type LayerNode } from "@/components/Explore/layers";
 import { ParcelFacts } from "@/components/Explore/ParcelFacts";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
+import { AnalysisGroup } from "./results/AnalysisGroup";
 import { TerrainControls } from "./TerrainControls";
 
 const ac = (n: number) => `${n.toFixed(2)} ac`;
@@ -126,7 +127,7 @@ function Panel({ ctl, root }: { ctl: ExploreController; root: LayerNode }) {
             select={select}
             remove={remove}
           />
-          {/* Step 15 adds the Analysis group here, under the parcel. */}
+          <AnalysisGroup />
           <TerrainControls variant="info" />
         </div>
       )}
