@@ -11,6 +11,7 @@ import {
   dayOfYear,
   ALT_GRID,
   altToY,
+  yToAlt,
   lowScale,
   fmtSolar,
   groundDate,
@@ -167,5 +168,11 @@ describe("the sun", () => {
   it("a result with no sun has no viewer", () => {
     expect(groundInputs(null)).toBeNull();
     expect(groundInputs({ ...result("ferney-creek-52-47A", "run"), sun: null } as never)).toBeNull();
+  });
+});
+
+describe("the altitude scale's inverse and the day's ticks", () => {
+  it("yToAlt undoes altToY", () => {
+    for (const a of [-5, 0, 12.3, 30, 44, 90]) expect(yToAlt(altToY(a, 600), 600)).toBeCloseTo(a, 9);
   });
 });

@@ -1716,6 +1716,12 @@ html:has(.explore) body {
   align-items: center;
   padding: 2px 14px 10px;
 }
+/* Day / Night, at the row's end. */
+.ground-mode {
+  display: inline-flex;
+  gap: 6px;
+  margin-left: auto;
+}
 .ground-dates button,
 .ground-dates input {
   padding: 4px 10px;

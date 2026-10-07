@@ -52,7 +52,7 @@ isn't obvious.
   zenith-only atlas, OSM undercounting trailheads). They are part of the product's honesty.
 
 ## Stack (fixed — see PLAN.md "Decisions already made")
-Next.js App Router, TypeScript strict, React, Tailwind, MapLibre GL JS, react-three-fiber,
+Next.js App Router, TypeScript strict, React, Tailwind, MapLibre GL JS,
 @turf/turf, geotiff, Supabase (Postgres, Auth, Storage) via `@supabase/ssr`, Zod for all
 external JSON, Vitest for tests, pnpm.
 
@@ -60,7 +60,7 @@ external JSON, Vitest for tests, pnpm.
 ```
 app/                      routes: /explore, /library, /library/[id], /watch, /settings, /share/[token]
 app/api/                  proxies (soils, places, sky), watch/tick, attachments, export
-components/               Map/, Results/ (one component per section), Walkthrough3D/, Library/, Watch/
+components/               Map/, Results/ (one component per section), Ground/, Library/, Watch/
 lib/screen/               the pipeline (pure TS): dem.ts terrain.ts sites.ts sun.ts sky.ts soils.ts
                           flood.ts padus.ts places.ts roads.ts score.ts config.ts types.ts index.ts
 lib/screen/worker.ts      Web Worker entry: runs screen() and posts step progress
@@ -92,7 +92,9 @@ Port these from the prototype, preserving the math exactly:
 - Scoring: site quality vs. build cost, grades, side-by-side table, existing-house assessment.
 - Split tool (half-plane intersection, fit-to-acres bisection), draw tool, house bulls-eye.
 - The six-scene 3D walkthrough, including depth-correct sun/sky, soil-depth walls (10×), day sky,
-  light domes by maximum blend, compass, zoom/tilt, time slider with hour labels.
+  light domes by maximum blend, compass, zoom/tilt, time slider with hour labels. *(Superseded by step
+  17, owner 2026-10-07: a ground viewer on a 2D canvas; the aerial scenes are the 3D map, soil walls are
+  follow-up 31. See `docs/plans/phase-0-17-ground.md`.)*
 
 Restructure, don't port, these:
 - The results HTML string builders → React components reading the result type.

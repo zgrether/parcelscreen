@@ -304,3 +304,20 @@ export const PRESETS = [
   { key: "mar", label: "Mar 20", monthDay: "03-20" },
   { key: "jun", label: "Jun 21", monthDay: "06-21" },
 ] as const;
+
+/** The altitude at a screen y: altToY's inverse, for painting the sky pixel by pixel. */
+export function yToAlt(y: number, height: number): number {
+  const low = KNEE_SHARE * height;
+  const up = height - y;
+  if (up <= low) return ALT_BOTTOM + (up / low) * (ALT_KNEE - ALT_BOTTOM);
+  return ALT_KNEE + ((up - low) / (height - low)) * (ALT_TOP - ALT_KNEE);
+}
+
+/** The day's solar hours along the time bar: each whole hour's share of sunrise → sunset. */
+export function dayTicks(lat: number, doy: number): { f: number; label: string }[] {
+  const lim = halfDay(lat, doy);
+  const out: { f: number; label: string }[] = [];
+  for (let hr = Math.ceil(12 - lim / 15); hr <= Math.floor(12 + lim / 15); hr++)
+    out.push({ f: ((hr - 12) * 15 + lim) / (2 * lim), label: hourLabel(hr).replace(" ", "") });
+  return out;
+}

@@ -191,3 +191,30 @@ The first 17a cut drew only the report's skyline, as a silhouette. The owner fou
    | Ashe Co. 022949922877 (NC) | none | 5.93 | 6.08 | +9 min | 12.63 | 12.58 | −3 min |
 
    The change can go either way: the engine reads the nearest sample, so a coarse 5° sample can sit above or below the finer terrain.
+
+## 10. The night (17b)
+
+- **One viewer, a Day / Night switch.** The dates and presets are shared.
+  - By day the view follows the sun (scene 4). By night it starts toward the core (scene 5).
+  - Drag pans round 360° in both.
+- **The night's time bar** runs from sunset on the date to the next sunrise, at the point's longitude. It uses solar time, as the day's clock does; the equation of time, at most ±16 min, is left out.
+  - **Hours and the clock are civil time in `UserConfig.timeZone`** (B5).
+  - Sidereal time comes from the real instant, so the sky doesn't depend on the browser's zone.
+- **What's drawn, all on the same cylindrical panorama and altitude scale as the day:**
+  - **The Milky Way:** the core and galactic pole by `lstDeg` and `eqToHor`, with the prototype's ribbon (±120° along the plane, its brightness, mottling and dark rift).
+  - **Its fade:** `((mag − 19.6) / 2.2)^1.6`.
+  - **The atlas's glow:** the zenith haze and the light domes, sized from each `sky.domes` weight and blended by maximum, as in proto L1795.
+  - **The stars** are cosmetic and fixed for the session; fewer and dimmer under haze.
+  - **The ridges** are dark silhouettes, with the report's skyline and the canopy line.
+- **Twilight:** between sunset and the sun at −18° the sky lifts toward dusk colours and the stars and band fade. The caption adds: "The sun is N° below the horizon: twilight still lifts the sky." This is new viewer text, not report text.
+- **The caption** is scene 5's, word for word:
+  - the zenith line;
+  - the wash-out line, below visibility 0.25;
+  - the core's altitude and azimuth with the ridge there, read at the nearest 5° point as the engine reads it, plus "— hidden behind it" within the canopy allowance (the prototype's literal 3°).
+
+  After it come "Stars are illustrative" and the 30 m / 5° line.
+- **Tests (§3):**
+  - over a sidereal day, the core's peak altitude equals `sky.coreAlt` on every golden;
+  - the domes peak at the atlas's brightest azimuth, blended by maximum;
+  - the Milky Way's fade at its ends;
+  - the night's span, with the sun at the horizon at both ends, and its civil clock labels.

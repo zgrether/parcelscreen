@@ -12,7 +12,7 @@ then hand the repo to Claude Code with the phase you want.
 |---|---|---|
 | Framework | Next.js (App Router) + TypeScript + React | Same stack as BuddyTrip; one mental model |
 | Map | MapLibre GL JS (not Leaflet, not Cesium) | Free 3D terrain from the terrarium tiles already used; no key, no tier |
-| 3D walkthrough | Three.js / react-three-fiber | Already written; local diorama, no globe needed |
+| Ground viewer | 2D canvas (cylindrical panorama) | Step 17 (owner, 2026-10-07): the 3D map covers the aerial scenes; Three.js / react-three-fiber left the stack |
 | Backend | Next.js Route Handlers + Supabase (Postgres, Auth, Storage) | Proxies for CORS-hostile services, caching, accounts, files |
 | Hosting | Vercel | Already in use |
 | Pipeline | `lib/screen/*` pure TypeScript, **zero DOM**, runs in a Web Worker in the browser and in Node later | Lets the cron pre-screen listings without a browser |
@@ -105,7 +105,7 @@ Goal: the prototype, as a Next.js app, with the pipeline isolated from the DOM.
 - Web Worker that runs `screen(polygon, config)` and posts progress per step.
 - Map with MapLibre: basemaps, parcel outlines at z≥15, tap-to-select, draw, split, house marker.
 - Results panel: one React component per section, rendered from the result JSON.
-- 3D walkthrough as a component (react-three-fiber), six scenes as in the prototype.
+- Ground viewer (step 17, replacing the 3D walkthrough): stand at the evaluation point; skyline, sun path and night sky on a 2D canvas.
 - Settings persisted in localStorage (no accounts yet).
 - **Acceptance:** the Ferney Creek parent parcel (52-47A) and the Macks Mountain parent (35-3)
   produce the same verdicts, site rankings, sun hours (±0.1 h) and sky numbers as the prototype;
