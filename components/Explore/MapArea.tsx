@@ -9,6 +9,7 @@ import { TerrainLayers } from "@/components/Map/TerrainLayers";
 import { FanLayer } from "@/components/Map/results/FanLayer";
 import { ResultLayers } from "@/components/Map/results/ResultLayers";
 import { ResultPins } from "@/components/Map/results/ResultPins";
+import { StandHere } from "@/components/Map/results/StandHere";
 import { ResultTips } from "@/components/Map/results/ResultTips";
 import { SurfaceLayer } from "@/components/Map/results/SurfaceLayer";
 import { useFlatForTools } from "@/components/Map/useFlatForTools";
@@ -49,6 +50,7 @@ export function MapArea({
       <ResultLayers />
       <FanLayer />
       <ResultPins />
+      <StandHere />
       <ResultTips />
       <MapTools parcelServices={config.endpoints.parcels} hint={setHint} />
       <MapControls hint={setHint} />
