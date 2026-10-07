@@ -25,6 +25,7 @@ Status: **draft, for approval.** A small step before 18 (owner, 2026-10-07): it 
 - **History** is in localStorage, so it lists and opens.
 - **A saved parcel's kept results** come from IndexedDB, so they may show offline too. That's a bonus if it falls out naturally; nothing is built for it.
 - **Map tiles and running a screen need the network.** The banner covers that, and Screen it says so offline instead of starting.
+- **Parcel services aren't blamed offline** (found in the PR): the zoom-14 lines don't show "Virginia parcel service isn't responding" while offline, and a tap or parcel-number search says the banner's words instead.
 
 ## 3. Updates
 
@@ -35,13 +36,15 @@ Status: **draft, for approval.** A small step before 18 (owner, 2026-10-07): it 
 
 ## 4. Must not interfere
 
-- **The screen's Web Worker:** its fetches are untouched (no runtime routes), and its chunk is precached like any static asset. Checked: a screen runs live with the service worker active, and its requests reach the network.
+- **The screen's Web Worker:** its fetches are untouched (no runtime routes), and its chunks are precached like any static asset, **except Turbopack's worker entry** (`turbopack-worker-*.js`; found in the PR). That file reads its bootstrap config from its own URL's `#params=` hash, and a worker started from a cached response gets the cache's URL without the hash and fails ("Missing worker bootstrap config"), so the precache leaves it out and it loads from the network. Checked: a screen runs live on a page the service worker controls, and none of its requests are served by the service worker.
 - **The HAR-replay e2e (step 18):** Playwright doesn't route requests a service worker handles. The e2e contexts set `serviceWorkers: "block"`, and the service worker registers only in production builds (`next start`), not in `next dev`.
 - **Vitest:** unaffected; there's no service worker in Node.
 
 ## 5. Open point to settle in the PR
 
 **Serwist's Next integration with Turbopack.** Next 16 builds with Turbopack, and `@serwist/next` has historically been a webpack plugin. I'll use whichever Serwist path supports Next 16 builds: its Turbopack integration if available, else injecting the precache manifest after `next build` with Serwist's build tool. I'll name the one used in the PR. One new dependency family (Serwist), justified by the owner's choice.
+
+**Settled (17c PR):** Serwist's Turbopack integration, `@serwist/turbopack` 9.5 (`withSerwist` in `next.config.ts`, and `createSerwistRoute` serving `/serwist/sw.js` with the precache manifest injected). The app's build stays on Turbopack; no webpack switch, no post-build step.
 
 ## 6. Checks
 

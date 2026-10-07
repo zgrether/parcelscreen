@@ -39,6 +39,7 @@ import {
   type Tile,
   type TileResult,
 } from "@/lib/geo/parcelTiles";
+import { unreachableMessage } from "@/lib/client/pwa";
 import { isServiceDownMessage, serviceDownMessage } from "@/lib/geo/serviceStatus";
 import { LAYER, SOURCE } from "./style";
 
@@ -243,9 +244,11 @@ export function useParcelLines(
         redraw = undefined;
         draw();
         if (failed.size && done.every((t) => t.lines.length === 0)) {
-          const message = serviceDownMessage([...failed][0]!);
+          // Offline (step 17c), the banner already says so: a tap or search says the offline words, no hint.
+          const online = navigator.onLine;
+          const message = unreachableMessage(serviceDownMessage([...failed][0]!), online);
           downInView.set(map, message);
-          hint(message);
+          if (online) hint(message);
         } else if (dense) hint(DENSE_HINT);
         else if (done.some((t) => !t.complete && !t.failed)) hint(INCOMPLETE_HINT);
       });

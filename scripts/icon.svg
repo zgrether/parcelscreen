@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Parcel Screen: a low sun over layered ridges, on the toolbar's ink. Content keeps to the central 80%
+       so the maskable crop never cuts it. -->
+  <rect width="512" height="512" fill="#1c2620"/>
+  <circle cx="318" cy="210" r="58" fill="#e0c43c"/>
+  <path d="M51 330 L140 262 L205 300 L282 228 L360 286 L418 252 L461 284 L461 461 L51 461 Z" fill="#7f9488"/>
+  <path d="M51 362 L118 318 L196 352 L262 306 L338 350 L400 320 L461 344 L461 461 L51 461 Z" fill="#566b51"/>
+  <path d="M51 404 L150 372 L240 398 L330 366 L461 396 L461 461 L51 461 Z" fill="#3a4c37"/>
+</svg>

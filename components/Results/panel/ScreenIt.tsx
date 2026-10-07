@@ -32,6 +32,7 @@ import type { ExploreController, SetHint } from "@/components/Explore/useExplore
 import { evaluationPoint } from "../blocks/types";
 import { REPORT } from "../report";
 import { Section } from "./Section";
+import { OFFLINE_SCREEN_TEXT } from "@/lib/client/pwa";
 
 /** The run the worker's session holds: which parcel it was for (state.serial) and what it was run on. */
 interface LiveRun {
@@ -135,6 +136,12 @@ export function useScreenIt(
 
   const run = () => {
     if (!parcel || !now) return;
+    // Offline (17c): say so rather than start a run whose every request would fail.
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      hint(OFFLINE_SCREEN_TEXT);
+      setTimeout(() => hint((h) => (h === OFFLINE_SCREEN_TEXT ? "" : h)), 4000);
+      return;
+    }
     setLive({ serial, keys: now });
     askedHouse.current = null;
     awaitingHouse.current = false;
