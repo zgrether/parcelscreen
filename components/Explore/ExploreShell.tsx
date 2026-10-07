@@ -11,6 +11,7 @@
  */
 import {
   useCallback,
+  useEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -20,6 +21,7 @@ import {
 import { loadUserConfig } from "@/lib/client/userConfig";
 import { MapArea } from "./MapArea";
 import { HelpProvider } from "@/components/Help/HelpDialog";
+import { ScreenItContext } from "@/components/Results/ScreenItContext";
 import { ScreenBody, ScreenHeader, useScreenIt } from "@/components/Results/panel/ScreenIt";
 import { useBottomSheet } from "./useBottomSheet";
 import { ExploreContext, useExploreController } from "./useExploreController";
@@ -54,6 +56,14 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   const { mode, split, info, store, serial } = explore.state;
   const sheet = useBottomSheet(root, panel, mode !== null || split !== null || (info && store.open !== null));
   const screen = useScreenIt(explore, config, sheet.raise, setHint);
+  // The headless checks read the live session view, like window.__psMap (MapView): only with ps.debug set.
+  useEffect(() => {
+    try {
+      if (localStorage.getItem("ps.debug") === "1") (window as { __psScreen?: unknown }).__psScreen = screen;
+    } catch {
+      /* storage blocked: no debug handle */
+    }
+  });
 
   // Desktop: card or panel. There's something to read once a run starts (its steps), or a result is kept.
   // Folding is remembered for this parcel and this run; a new run, or another parcel, unfolds it.
@@ -88,34 +98,36 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   return (
     <ExploreContext.Provider value={explore}>
       <HelpProvider>
-        <div ref={root} className="explore" style={vars as CSSProperties}>
-          <div className="explore-map">
-            <MapArea
-              config={config}
-              hint={hint}
-              setHint={setHint}
-              bottomInset={sheet.inset}
-              leftInset={leftInset}
-            />
+        <ScreenItContext.Provider value={screen}>
+          <div ref={root} className="explore" style={vars as CSSProperties}>
+            <div className="explore-map">
+              <MapArea
+                config={config}
+                hint={hint}
+                setHint={setHint}
+                bottomInset={sheet.inset}
+                leftInset={leftInset}
+              />
+            </div>
+            <aside
+              ref={panel}
+              className={panelClass}
+              style={sheet.height != null ? { height: sheet.height } : undefined}
+            >
+              <div className="sheet-handle" title="Drag or tap to resize" {...sheet.handlers} />
+              {/* One line, always: the parcel and the screen button (owner, after 14d). On phones it's the peek. */}
+              <header className="explore-header" {...sheet.handlers}>
+                <ScreenHeader s={screen} desk={docked ? { expanded, fold } : null} />
+              </header>
+              {(!docked || expanded) && (
+                <div className="explore-scroll">
+                  <ScreenBody s={screen} />
+                  {children}
+                </div>
+              )}
+            </aside>
           </div>
-          <aside
-            ref={panel}
-            className={panelClass}
-            style={sheet.height != null ? { height: sheet.height } : undefined}
-          >
-            <div className="sheet-handle" title="Drag or tap to resize" {...sheet.handlers} />
-            {/* One line, always: the parcel and the screen button (owner, after 14d). On phones it's the peek. */}
-            <header className="explore-header" {...sheet.handlers}>
-              <ScreenHeader s={screen} desk={docked ? { expanded, fold } : null} />
-            </header>
-            {(!docked || expanded) && (
-              <div className="explore-scroll">
-                <ScreenBody s={screen} />
-                {children}
-              </div>
-            )}
-          </aside>
-        </div>
+        </ScreenItContext.Provider>
       </HelpProvider>
     </ExploreContext.Provider>
   );

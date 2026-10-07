@@ -119,6 +119,8 @@ const EMPTY_FC = { type: "FeatureCollection" as const, features: [] };
 
 /** The picked parcels while combining. */
 export const COMBINE_COLOR = "#f0a030";
+/** The selected parcel's soft amber fill (cleared while a step 15 surface shows over it). */
+export const PARCEL_FILL_OPACITY = 0.16;
 /** The selected parcel, and saved parcels (thinner, unfilled). */
 export const SELECTED_COLOR = "#f0a030";
 
@@ -236,7 +238,7 @@ export function buildStyle(opts: {
       id: LAYER.parcelFill,
       type: "fill",
       source: SOURCE.parcel,
-      paint: { "fill-color": SELECTED_COLOR, "fill-opacity": 0.16 },
+      paint: { "fill-color": SELECTED_COLOR, "fill-opacity": PARCEL_FILL_OPACITY },
     },
     {
       id: LAYER.parcelLine,

@@ -1,7 +1,8 @@
 "use client";
 /**
  * The map's right-hand column (step 13f plan §2–3): the GPS button and a vertical zoom slider, under the Map
- * menu; above them, while the map is rotated or tilted, a compass that resets it to north and flat (13g). The slider replaces MapLibre's + / − buttons; its track is amber where parcel lines show. While the
+ * menu; above them, while the map is rotated or tilted, a compass that resets it to north and flat (13g), and
+ * while a live result has one, the surface cycle button (15a). The slider replaces MapLibre's + / − buttons; its track is amber where parcel lines show. While the
  * Info panel is docked on the right, the column moves left of it (the map itself doesn't move). The track is
  * light amber from zoom 14 (parcel lines, but dense places wait) and amber from 15 (all of them).
  */
@@ -9,6 +10,7 @@ import { GeolocateControl, type Map as MlMap } from "maplibre-gl";
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { useExplore } from "@/components/Explore/useExploreController";
 import { useMap } from "./MapView";
+import { SurfaceButton } from "./results/SurfaceButton";
 import { noteViewReset } from "./useFlatForTools";
 import { DENSE_BELOW_ZOOM, LINES_MIN_ZOOM } from "@/lib/geo/parcelTiles";
 
@@ -26,6 +28,7 @@ export function MapControls({ hint }: { hint: Hint }) {
     // 24 px in from the edge, clear of the phone's back-swipe zone; beside the Info panel when it's docked.
     <div className="map-col" style={{ right: panelInset ? panelInset + 10 : 24 }}>
       {map && <Compass map={map} />}
+      <SurfaceButton />
       {map && <LocateButton map={map} hint={hint} />}
       {map && <ZoomSlider map={map} />}
     </div>

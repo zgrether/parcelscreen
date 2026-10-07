@@ -1721,3 +1721,54 @@ html:has(.explore) body {
 .explore-panel.sheet-hidden {
   display: none;
 }
+
+/* ---------- 15a: the surface cycle button (right-hand column) and the Analysis group in Info › Layers ---------- */
+.surface-btn {
+  grid-template-rows: auto auto;
+  gap: 1px;
+  align-content: center;
+}
+.surface-caption {
+  font-size: 9.5px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+.surface-btn[data-mode="off"] {
+  color: var(--tb-ink-2);
+}
+.analysis-group {
+  margin: 6px 8px 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--ip-rule);
+}
+.ag-label {
+  margin-bottom: 4px;
+  color: var(--ip-ink-2);
+  font-size: 11.5px;
+}
+.ag-row {
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+.ag-seg {
+  grid-template-columns: repeat(4, 1fr);
+}
+.analysis-group .tc-seg button {
+  border: 1px solid var(--ip-rule);
+  border-radius: 4px;
+  padding: 3px 0;
+  background: transparent;
+  color: var(--ip-ink);
+  font-size: 12px;
+  cursor: pointer;
+}
+.analysis-group .tc-seg button[aria-checked="true"] {
+  background: var(--ip-sel);
+}
+.ag-note {
+  color: var(--ip-ink-2);
+  font-size: 12px;
+}
