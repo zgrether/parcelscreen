@@ -4,12 +4,14 @@
  * that closes when the map is tapped (a stack on desktop until 13e-4 docked the Info panel on the right). The
  * layers are toggle buttons (13f): filled when on, outlined when off. My location and zoom are in the
  * right-hand column (MapControls).
- * Basemap, dim and parcel lines persist; the light-pollution overlay starts off each visit, as before.
+ * Basemap, dim and parcel lines persist; the light-pollution overlay starts off each visit, as before. The
+ * terrain preview's controls (13g) are here too, so they work with no parcel open (and in Info › Layers).
  */
 import { useEffect, useState } from "react";
 import { getPref, setPref } from "@/lib/client/prefs";
 import { useMap } from "./MapView";
 import { BASEMAPS, basemapLayerIds, isBasemapId, LAYER, type BasemapId } from "./style";
+import { TerrainControls } from "./TerrainControls";
 import { useParcelLines } from "./useParcelLines";
 
 type Hint = (text: string | ((prev: string) => string)) => void;
@@ -86,6 +88,7 @@ export function MapTools({ parcelServices, hint }: { parcelServices: readonly st
       <button className={toggle(lp)} aria-pressed={lp} onClick={() => setLp(!lp)}>
         Light pollution
       </button>
+      <TerrainControls variant="menu" />
     </>
   );
 

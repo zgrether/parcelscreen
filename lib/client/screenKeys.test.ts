@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_USER_CONFIG } from "../screen/config";
+import { UserConfigSchema } from "../screen/types";
 import { freshness, runKeys } from "./screenKeys";
 
 const square = (x: number) => ({
@@ -55,5 +56,11 @@ describe("run keys and freshness (14d)", () => {
       Object.entries(DEFAULT_USER_CONFIG).reverse(),
     ) as typeof DEFAULT_USER_CONFIG;
     expect(runKeys(square(-80.455), null, reordered).settings).toBe(run.settings);
+  });
+
+  it("can't see the terrain preview (13g): it isn't part of the settings a run records", () => {
+    // UserConfig is strict, so the preview's UI prefs can't ride along in it into the run keys.
+    expect(UserConfigSchema.safeParse({ ...DEFAULT_USER_CONFIG, terrain: true }).success).toBe(false);
+    expect(Object.keys(DEFAULT_USER_CONFIG).filter((k) => /terrain|hillshade|contour/i.test(k))).toEqual([]);
   });
 });

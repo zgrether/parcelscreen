@@ -109,4 +109,24 @@ describe("the working parcel (ps.current, step 13d)", () => {
       expect(getPref("ps.current", s)).toBeNull();
     }
   });
+
+  it("keeps the terrain preview (13g): off by default, bearing and pitch optional in the view", () => {
+    const s = memory();
+    expect(getPref("ps.terrain", s)).toEqual({ on: false, exaggeration: 1.5 });
+    // Hillshade and contours: unset until toggled, so the device decides.
+    expect(getPref("ps.hillshade", s)).toBeNull();
+    expect(getPref("ps.contours", s)).toBeNull();
+    setPref("ps.terrain", { on: true, exaggeration: 2 }, s);
+    setPref("ps.contours", false, s);
+    expect(getPref("ps.terrain", s)).toEqual({ on: true, exaggeration: 2 });
+    expect(getPref("ps.contours", s)).toBe(false);
+    // An odd exaggeration reads as the default.
+    s.data.set("ps.terrain", JSON.stringify({ on: true, exaggeration: 7 }));
+    expect(getPref("ps.terrain", s)).toEqual({ on: true, exaggeration: 1.5 });
+    // A view saved before 13g still loads; one saved after carries bearing and pitch.
+    s.data.set("ps.view", JSON.stringify({ lat: 36.9, lon: -80.4, z: 15 }));
+    expect(getPref("ps.view", s)).toEqual({ lat: 36.9, lon: -80.4, z: 15 });
+    setPref("ps.view", { lat: 36.9, lon: -80.4, z: 15, b: 30, p: 60 }, s);
+    expect(getPref("ps.view", s)).toMatchObject({ b: 30, p: 60 });
+  });
 });

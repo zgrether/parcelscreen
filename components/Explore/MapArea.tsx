@@ -5,6 +5,8 @@ import { MapControls } from "@/components/Map/MapControls";
 import { Hint, MapTools } from "@/components/Map/MapTools";
 import { ParcelTools } from "@/components/Map/ParcelTools";
 import { Search } from "@/components/Map/Search";
+import { TerrainLayers } from "@/components/Map/TerrainLayers";
+import { useFlatForTools } from "@/components/Map/useFlatForTools";
 import { Toolbar } from "@/components/Map/Toolbar";
 import type { UserConfig } from "@/lib/screen/types";
 import { Menu } from "./Menu";
@@ -24,7 +26,10 @@ export function MapArea({
   bottomInset: number;
   leftInset: number;
 }) {
-  const { setMap, panelInset } = useExplore();
+  const { setMap, panelInset, map, state } = useExplore();
+  // Draw, Combine and Split flatten the camera while they're open (13g).
+  const { mode, split } = state;
+  useFlatForTools(map, mode === "draw" || mode === "split" || mode === "combine" || split !== null);
   return (
     <MapView
       lpAtlasTiles={config.endpoints.lpAtlasTiles}
@@ -34,6 +39,7 @@ export function MapArea({
       leftInset={leftInset}
       onMap={setMap}
     >
+      <TerrainLayers hint={setHint} />
       <MapTools parcelServices={config.endpoints.parcels} hint={setHint} />
       <MapControls hint={setHint} />
       <ParcelTools />

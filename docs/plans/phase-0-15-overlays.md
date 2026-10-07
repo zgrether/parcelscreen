@@ -167,7 +167,7 @@ Each overlay is checked in **two cameras**:
 | Driveway | The projected midpoint of each route and of the direct track, and each culvert, query back to their feature. B1: present. Tooltips match. |
 | Trailheads | Each projected trailhead queries back to its dot (those in view). |
 | Pins | Each pin element's centre is within 2 px of `map.project(ll)`. A tap on pin #2 re-evaluates, and the result's `focus.ll` equals site #2's `ll` exactly, in both cameras. The fan and driveway redraw from the new point. |
-| Map tap vs. drape | At the pins' `ll`s, `unproject(project(ll))` is within 1 m. That is, what's drawn at a spot and what a tap there reads agree, pitched or not. |
+| Map tap vs. drape | At the pins' `ll`s, `unproject(project(ll))` lands on the same screen pixel (13g measured 0 px; metres mislead where a ridge hides the point). That is, what's drawn at a spot and what a tap there reads agree, pitched or not. |
 | Contours over each surface | With House, Garden, Slope and Off in turn, a contour line's projected midpoint queries back to the contour layer, and the screenshot pixel there differs from the surface's colour (the line is visible on top). |
 | Surface button | Hidden with no live result. It cycles House → Garden → Slope → Off and matches the Layers row. |
 
