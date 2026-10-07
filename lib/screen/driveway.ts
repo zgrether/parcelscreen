@@ -602,7 +602,7 @@ export function buildDriveway(
     dw.note = `Entrance found on ${ent[0]!.name}, but no route reaches ${toLabel} at ${roadMaxGradePct}% or less, even with switchbacks. Raise the grade limit in Settings or pick a different site.`;
     const over = leastSteep(ctx, ent, toLL, roadMaxGradePct);
     if (!over) {
-      dw.note += ` None does even at ${K.leastSteep.maxPct}%.`;
+      dw.note += ` No route reaches it even at ${K.leastSteep.maxPct}%.`;
       return dw;
     }
     dw.overLimit = over;

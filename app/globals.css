@@ -1858,8 +1858,9 @@ html:has(.explore) body {
   cursor: help;
 }
 
-/* ---------- The slope legend (owner, after 15c): the zoom slider's box, a banded bar, the grades ---------- */
-.slope-legend {
+/* ---------- The surface legend (owner, after 15c): the zoom slider's box; a banded bar (slope) or a score
+   ramp with its solid colours (house, garden) ---------- */
+.surface-legend {
   display: grid;
   justify-items: center;
   gap: 4px;
@@ -1884,14 +1885,29 @@ html:has(.explore) body {
   border-radius: 4px;
   overflow: visible;
 }
-.sl-bar > span:not(.sl-tick) {
+.sl-band {
   flex: 1;
 }
-.sl-bar > span:first-child {
+.sl-band:first-child {
   border-radius: 4px 4px 0 0;
 }
-.sl-bar > span:nth-child(4) {
+.sl-band:nth-child(4) {
   border-radius: 0 0 4px 4px;
+}
+.sl-bar.ramp {
+  height: 96px;
+}
+.sl-solid {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9.5px;
+  color: var(--tb-ink-2);
+}
+.sl-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
 }
 .sl-tick {
   position: absolute;

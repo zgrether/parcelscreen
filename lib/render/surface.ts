@@ -56,6 +56,17 @@ export function heat(v: number, kind: "house" | "garden"): Rgba | null {
  * The slope map's bands, by grade (rise over run, the tangent of the slope; proto L1221): up to 15%, 25%, 40%,
  * and steeper. The surface image and the map's slope legend both read these.
  */
+/**
+ * The solid colours drawn over the score ramps (proto L1219–1220): the best house site, the other house
+ * sites and the shelves on the house map; the garden patches on the garden map. The legend reads these too.
+ */
+export const SURFACE_SOLIDS = {
+  bestSite: [20, 80, 45, 220],
+  site: [31, 110, 60, 190],
+  shelf: [70, 120, 150, 170],
+  gardenPatch: [10, 120, 110, 220],
+} as const satisfies Record<string, Rgba>;
+
 export const SLOPE_BANDS: readonly { upTo: number; rgba: Rgba }[] = [
   { upTo: 0.15, rgba: [140, 190, 120, 110] },
   { upTo: 0.25, rgba: [224, 196, 60, 120] },
@@ -87,12 +98,14 @@ export function surfaceImage(view: SessionView, mode: SurfaceMode): SurfaceImage
   const colour: (i: number) => Rgba | null =
     mode === "house"
       ? (i) => {
-          if (labels.house[i]! > 0) return labels.house[i] === best ? [20, 80, 45, 220] : [31, 110, 60, 190];
-          if (labels.shelf[i]! > 0) return [70, 120, 150, 170];
+          if (labels.house[i]! > 0)
+            return [...(labels.house[i] === best ? SURFACE_SOLIDS.bestSite : SURFACE_SOLIDS.site)];
+          if (labels.shelf[i]! > 0) return [...SURFACE_SOLIDS.shelf];
           return heat(surfaces.house[i]!, "house");
         }
       : mode === "garden"
-        ? (i) => (labels.garden[i]! > 0 ? [10, 120, 110, 220] : heat(surfaces.garden[i]!, "garden"))
+        ? (i) =>
+            labels.garden[i]! > 0 ? [...SURFACE_SOLIDS.gardenPatch] : heat(surfaces.garden[i]!, "garden")
         : (i) => slopeColour(slope[i]!);
   const rgba = new Uint8ClampedArray(d.w * d.h * 4);
   for (let i = 0; i < d.w * d.h; i++) {
