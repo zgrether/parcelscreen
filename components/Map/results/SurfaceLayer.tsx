@@ -27,9 +27,9 @@ async function toUrl(width: number, height: number, rgba: Uint8ClampedArray): Pr
   return URL.createObjectURL(await canvas.convertToBlob({ type: "image/png" }));
 }
 
-/** Under the contours (or the parcel lines, without them): step 15's terrain image < soil fills < contours. */
+/** Under the soil fills, then the contours, then the parcel lines (plan §3: terrain image < soil fills < contours). */
 const beforeId = (map: MlMap) =>
-  map.getLayer(TERRAIN_LAYER.contourLines) ? TERRAIN_LAYER.contourLines : LAYER.parcelLinesFill;
+  [LAYER.soilFill, TERRAIN_LAYER.contourLines, LAYER.parcelLinesFill].find((id) => map.getLayer(id))!;
 
 export function SurfaceLayer() {
   const map = useMap();

@@ -17,8 +17,10 @@ describe("map style", () => {
     expect(at(LAYER.scrim)).toBeLessThan(at(LAYER.parcelLines));
   });
 
-  it("draws saved parcels, then the selected one and its selected layer, above the outlines; then the fan and the evaluation ring (15b); then the split, the combination, the drawing", () => {
+  it("draws the soil outlines over the parcel lines, then saved parcels, then the selected one and its selected layer, above the outlines; then the soil outlines (15c), and the fan, the driveway and the circles (15b–c); then the split, the combination, the drawing", () => {
     expect(layerIds.slice(layerIds.indexOf(LAYER.parcelLines) + 1)).toEqual([
+      LAYER.soilHalo,
+      LAYER.soilLine,
       LAYER.savedFill,
       LAYER.savedLine,
       LAYER.parcelHalo,
@@ -30,6 +32,12 @@ describe("map style", () => {
       LAYER.leftLine,
       LAYER.fanHalo,
       LAYER.fanRay,
+      LAYER.driveDirect,
+      LAYER.driveHalo,
+      LAYER.driveSecond,
+      LAYER.driveRoute,
+      LAYER.culverts,
+      LAYER.trailheads,
       LAYER.evalRing,
       LAYER.splitFill,
       LAYER.splitLine,

@@ -145,6 +145,9 @@ Draw, Combine and Split flatten the camera (13g §4). No overlay interaction hap
 - **D6:** overlays follow the open parcel; the prototype kept the last run's overlays on a new parcel.
 - **D7 (owner, after 15a):** while a surface shows, the selected parcel's amber fill goes clear (its outline stays), so the surface's colours are the legend's. It comes back with Off.
 - **D8 (15b):** a fan ray's text shows on a tap within 12 px on touch screens, picking the ray nearest the finger; such a tap doesn't close the parcel. Pins don't say "Run again to evaluate here." while a run is under way.
+- **D9 (15c):** a tap inside the open parcel used to close it (13e, `decideTap`; §4 above assumed it did nothing). With the soil units shown, that tap now shows the unit's name instead, and the parcel stays open; a tap outside still closes it. With Soil units hidden, the 13e behaviour is back.
+- **D10 (15c):** the driveway's direct 4×4 track is drawn under the routes, the recommended route on top (§3's order). The prototype drew the direct track last, over them.
+- **D11 (15c):** pins and entrance pins listen for hover only on devices that hover. On touch screens the emulated mouse events after a tap hid the tip the tap had just shown.
 
 ## 7. Tests: each overlay flat and pitched
 

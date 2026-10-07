@@ -96,9 +96,19 @@ export const LAYER = {
   selLine: "sel-line",
   leftFill: "left-fill",
   leftLine: "left-line",
-  // Step 15b: the horizon fan and the evaluation ring (15c's driveway goes between them).
+  // Step 15b–c: the soil units (fills under the contours, outlines over the parcel lines), the horizon fan,
+  // the driveway, then the circles (culverts, trailheads, the evaluation ring).
+  soilFill: "soil-fill",
+  soilHalo: "soil-halo",
+  soilLine: "soil-line",
   fanHalo: "fan-halo",
   fanRay: "fan-ray",
+  driveDirect: "drive-direct",
+  driveHalo: "drive-halo",
+  driveSecond: "drive-second",
+  driveRoute: "drive-route",
+  culverts: "culverts",
+  trailheads: "trailheads",
   evalRing: "eval-ring",
   splitFill: "split-fill",
   splitLine: "split-line",
@@ -117,6 +127,9 @@ export const SOURCE = {
   sel: "sel",
   fan: "fan",
   evalRing: "eval-ring",
+  soils: "soils",
+  driveway: "driveway",
+  trailheads: "trailheads",
   split: "split",
   combine: "combine",
   draft: "draft",
@@ -196,7 +209,15 @@ export function buildStyle(opts: {
     layout: { visibility: "none" },
     paint: { "fill-color": "#0b1410", "fill-opacity": 0.38 },
   });
-  // Step 15 puts the terrain image and soil fills here, under the contours.
+  // The terrain image (15a, added at run time) and the soil fills (15c) go here, under the contours: the
+  // proto's fill at 0.14 in the unit's colour (L1206).
+  sources[SOURCE.soils] = { type: "geojson", data: EMPTY_FC };
+  layers.push({
+    id: LAYER.soilFill,
+    type: "fill",
+    source: SOURCE.soils,
+    paint: { "fill-color": ["get", "color"], "fill-opacity": 0.14 },
+  });
   if (opts.terrain) layers.push(...contourLayers());
   sources[SOURCE.parcelLines] = { type: "geojson", data: EMPTY_FC };
   layers.push(
@@ -212,6 +233,22 @@ export function buildStyle(opts: {
       type: "line",
       source: SOURCE.parcelLines,
       paint: { "line-color": "#f6e7a1", "line-width": 1.2, "line-opacity": 0.85 },
+    },
+  );
+  // The soil units' outlines (15c; proto L1205–1206): a white halo under the unit's colour, dashed ("6 4" at
+  // weight 2.5, in line widths). Over the parcel lines, under the parcel outline.
+  layers.push(
+    {
+      id: LAYER.soilHalo,
+      type: "line",
+      source: SOURCE.soils,
+      paint: { "line-color": "#ffffff", "line-width": 4, "line-opacity": 0.9 },
+    },
+    {
+      id: LAYER.soilLine,
+      type: "line",
+      source: SOURCE.soils,
+      paint: { "line-color": ["get", "color"], "line-width": 2.5, "line-dasharray": [2.4, 1.6] },
     },
   );
   // Saved (built) parcels that aren't open: a thin amber outline, no fill (13e). The nearly transparent fill
@@ -292,6 +329,8 @@ export function buildStyle(opts: {
   // each ray, red where the ridge blocks the December sun, white where it clears. Then the evaluation ring
   // (L1240), lying flat on the ground when the map is tilted. Empty until a result is shown.
   sources[SOURCE.fan] = { type: "geojson", data: EMPTY_FC };
+  sources[SOURCE.driveway] = { type: "geojson", data: EMPTY_FC };
+  sources[SOURCE.trailheads] = { type: "geojson", data: EMPTY_FC };
   sources[SOURCE.evalRing] = { type: "geojson", data: EMPTY_FC };
   const blocks: ExpressionSpecification = ["get", "blocks"];
   layers.push(
@@ -309,6 +348,69 @@ export function buildStyle(opts: {
         "line-color": ["case", blocks, "#e0553f", "#f2efe6"],
         "line-width": ["case", blocks, 2.5, 1],
         "line-opacity": ["case", blocks, 0.95, 0.7],
+      },
+    },
+    // The driveway (15c; proto drawDriveway, L1405–1407): the direct 4×4 track (red, dotted) under the
+    // routes; the routes over a dark halo, the recommended one (i = 0) yellow on top of the second (grey,
+    // dashed). Dashes are in line widths: "2 5" at weight 2, "6 4" at weight 1.5.
+    {
+      id: LAYER.driveDirect,
+      type: "line",
+      source: SOURCE.driveway,
+      filter: ["==", ["get", "kind"], "direct"],
+      paint: { "line-color": "#b04a4a", "line-width": 2, "line-opacity": 0.9, "line-dasharray": [1, 2.5] },
+    },
+    {
+      id: LAYER.driveHalo,
+      type: "line",
+      source: SOURCE.driveway,
+      filter: ["==", ["get", "kind"], "route"],
+      layout: { "line-sort-key": ["-", 0, ["get", "i"]] },
+      paint: {
+        "line-color": "#0b1410",
+        "line-width": ["case", ["==", ["get", "i"], 0], 5, 3],
+        "line-opacity": 0.6,
+      },
+    },
+    {
+      id: LAYER.driveSecond,
+      type: "line",
+      source: SOURCE.driveway,
+      filter: ["all", ["==", ["get", "kind"], "route"], [">", ["get", "i"], 0]],
+      paint: { "line-color": "#9aa59d", "line-width": 1.5, "line-dasharray": [4, 8 / 3] },
+    },
+    {
+      id: LAYER.driveRoute,
+      type: "line",
+      source: SOURCE.driveway,
+      filter: ["all", ["==", ["get", "kind"], "route"], ["==", ["get", "i"], 0]],
+      paint: { "line-color": "#e0c43c", "line-width": 3 },
+    },
+    // The circles: culverts (L1407) and trailheads (L1129), lying flat when the map is tilted.
+    {
+      id: LAYER.culverts,
+      type: "circle",
+      source: SOURCE.driveway,
+      filter: ["==", ["get", "kind"], "culvert"],
+      paint: {
+        "circle-radius": 4,
+        "circle-color": "#2b6f8f",
+        "circle-stroke-color": "#ffffff",
+        "circle-stroke-width": 1,
+        "circle-pitch-alignment": "map",
+      },
+    },
+    {
+      id: LAYER.trailheads,
+      type: "circle",
+      source: SOURCE.trailheads,
+      paint: {
+        "circle-radius": 5,
+        "circle-color": "#2f7a46",
+        "circle-opacity": 0.9,
+        "circle-stroke-color": "#ffffff",
+        "circle-stroke-width": 1,
+        "circle-pitch-alignment": "map",
       },
     },
     {

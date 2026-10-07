@@ -2,7 +2,7 @@
 /**
  * The Analysis group in Info › Layers (step 15 plan §3): what the map draws from the open parcel's screen.
  * The Surface row (House / Garden / Slope / Off, the same setting as the map's cycle button, 15a), and an
- * eye per overlay: pins and the horizon fan (15b); soils, trailheads and the driveway come with 15c. Hidden until the parcel
+ * eye per overlay: pins and the horizon fan (15b); soil units, trailheads and the driveway (15c). Hidden until the parcel
  * has been screened; after a reload the surface needs a run.
  */
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
@@ -42,6 +42,13 @@ export function AnalysisGroup() {
         flip={() => setOverlay("fan", !shown.fan)}
         note={s.view ? null : "run again to show"}
       />
+      <Eye label="Soil units" on={shown.soils} flip={() => setOverlay("soils", !shown.soils)} />
+      <Eye
+        label="Trailheads"
+        on={shown.trailheads}
+        flip={() => setOverlay("trailheads", !shown.trailheads)}
+      />
+      <Eye label="Driveway" on={shown.driveway} flip={() => setOverlay("driveway", !shown.driveway)} />
     </div>
   );
 }
