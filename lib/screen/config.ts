@@ -312,6 +312,11 @@ export const SCREEN_CONSTANTS = deepFreeze({
     gentlest: { maxGrade: 0.08, wGrade: 4, label: "gentlest" },
     routesKept: 2,
     direct: { maxGrade: 0.15, wGrade: 0.5, label: "direct track at 15%" },
+    // New in the port (owner, after 15c): when no route fits the grade limit, the least-steep route found by
+    // raising the cap a whole percent at a time up to this, shown as suspect (not scored).
+    // Its stretches over the limit are measured over 15 m (the 3 m profile alone is noisy) and merged across
+    // gaps under 15 m.
+    leastSteep: { maxPct: 30, wGrade: 1, label: "least steep", windowM: 15, mergeM: 15 },
     chaikinPasses: 1,
     profileStepM: 3,
     turnWindowM: 15,

@@ -330,6 +330,15 @@ const DrivewaySchema = z.strictObject({
   note: z.string().nullable(),
   /** The direct ≤15% pioneer-track alignment, when one exists. */
   direct: RouteSchema.optional(),
+  /**
+   * New in the port (owner, after 15c): when no route fits the grade limit, the least-steep one found, with
+   * its stretches over the limit (metres along the route). Shown as suspect; scoring doesn't use it.
+   */
+  overLimit: RouteSchema.extend({
+    limitPct: num,
+    overFt: num,
+    overSpans: z.array(z.tuple([num, num])),
+  }).optional(),
   /** Distance from the boundary to the nearest Census road, feet (feeds the "no frontage" note). */
   roadsNearestFt: maybeNum,
 });

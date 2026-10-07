@@ -103,3 +103,32 @@ describe("driveway (15c, B1) vs the prototype's drawDriveway", () => {
     },
   );
 });
+
+describe("the least-steep route on the map (owner, after 15c)", () => {
+  it("draws it as suspect with its over-limit stretches on top, and the entrances it starts from", async () => {
+    const { replayRun } = await import("@/test/support/session");
+    const { entranceCandidates, leastSteep } = await import("../screen/driveway");
+    const { routeContext } = await import("../screen/index");
+    const { length } = await import("@turf/turf");
+    const { result, session } = await replayRun("ferney-creek-52-47A");
+    const { entrances } = entranceCandidates(session.roads ?? [], session.parcel, session.dFine!);
+    const o = leastSteep(routeContext(session), entrances, result.sites![0]!.ll, 2)!;
+    const r = { ...result, driveway: { ...result.driveway!, routes: [], direct: undefined, overLimit: o } };
+    const { lines, entrances: pins } = drivewayFeatures(r as ScreenResult);
+    const kinds = lines.features.map((f) => f.properties.kind);
+    expect(kinds.filter((k) => k === "over")).toHaveLength(1);
+    expect(kinds.filter((k) => k === "overStretch")).toHaveLength(o.overSpans.length);
+    expect(kinds.some((k) => k === "route" || k === "direct")).toBe(false);
+    // Each stretch is cut to its span along the route.
+    lines.features
+      .filter((f) => f.properties.kind === "overStretch")
+      .forEach((f, i) => {
+        const [a, b] = o.overSpans[i]!;
+        expect(length(f as never, { units: "meters" })).toBeCloseTo(b - a, 0);
+      });
+    expect(lines.features[0]!.properties.tip).toMatch(
+      /^over the limit: needs \d+%, about [\d,]+ ft steeper than 2% — ~\$[\d,]+k, suspect$/,
+    );
+    expect(pins.map((p) => p.text)).toEqual(r.driveway.entrances.map((_, i) => `E${i + 1}`));
+  }, 120_000);
+});

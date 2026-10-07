@@ -368,7 +368,7 @@ export async function screen(
 }
 
 /** The driveway router's view of the session; the soil mask and flow accumulation are built once. */
-function routeContext(s: ScreenSession): RouteContext {
+export function routeContext(s: ScreenSession): RouteContext {
   return {
     dFine: s.dFine!,
     inside: s.inside!,

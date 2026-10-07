@@ -1,6 +1,6 @@
 /**
  * Driveway (proto L1515–1532): entrance candidates, each routed alignment with its cost and elevation
- * profile, and the pioneer-track option.
+ * profile, and the pioneer-track option. When no route fits the grade limit, the least-steep one, as suspect.
  */
 import { drivewayView } from "@/lib/report/driveway";
 import { Facts, Note } from "./shared";
@@ -23,6 +23,17 @@ export function Driveway({ result, variant }: BlockProps) {
           <ProfileChart path={rt.profile} />
         </div>
       ))}
+      {v.overLimit && (
+        <div className="site suspect">
+          <div>
+            <b className="font-semibold">{v.overLimit.title}</b>{" "}
+            <span className="muted">{v.overLimit.from}</span>
+            <span className="grade cost">{v.overLimit.cost}</span>
+          </div>
+          <Facts rows={v.overLimit.rows} />
+          <ProfileChart path={v.overLimit.profile} />
+        </div>
+      )}
       {v.track && (
         <div className="site">
           <b className="font-semibold">Pioneer 4×4 track first</b>

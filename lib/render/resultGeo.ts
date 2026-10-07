@@ -4,6 +4,7 @@
  * result draws all of them, no session needed.
  */
 import type { Feature, FeatureCollection, LineString, MultiPolygon, Point, Polygon } from "geojson";
+import { lineSliceAlong } from "@turf/turf";
 import { fmt } from "../format";
 import type { LatLon } from "../geo/types";
 import type { PartialScreenResult } from "../screen/types";
@@ -41,7 +42,7 @@ export function trailheadFeatures(r: PartialScreenResult): FC<Point, { tip: stri
   };
 }
 
-export type DrivewayKind = "route" | "direct" | "culvert";
+export type DrivewayKind = "route" | "direct" | "culvert" | "over" | "overStretch";
 export interface DrivewayProps {
   kind: DrivewayKind;
   /** The route's place: 0 is the recommended one. */
@@ -67,6 +68,20 @@ export function drivewayFeatures(r: PartialScreenResult): {
 } {
   const d = r.driveway;
   const features: Feature<LineString | Point, DrivewayProps>[] = [];
+  // No route fits the limit: the least-steep one, as suspect, with its over-limit stretches on top (owner,
+  // after 15c), and the entrances it starts from.
+  if (d && !d.routes.length && d.overLimit) {
+    const o = d.overLimit;
+    const tip = `over the limit: needs ${Math.round(o.maxGrade * 100)}%, about ${fmt(o.overFt)} ft steeper than ${fmt(o.limitPct)}% — ~$${fmt(o.cost.mid / 1000)}k, suspect`;
+    features.push({ type: "Feature", properties: { kind: "over", i: 0, tip }, geometry: o.line.geometry });
+    for (const [a, b] of o.overSpans)
+      features.push({
+        type: "Feature",
+        properties: { kind: "overStretch", i: 0, tip },
+        geometry: lineSliceAlong(o.line, a, b, { units: "meters" }).geometry,
+      });
+    return { lines: { type: "FeatureCollection", features }, entrances: entrancePins(d.entrances) };
+  }
   if (!d || !d.routes.length) return { lines: { type: "FeatureCollection", features }, entrances: [] };
   d.routes.forEach((rt, i) => {
     features.push({
@@ -95,11 +110,15 @@ export function drivewayFeatures(r: PartialScreenResult): {
       },
       geometry: d.direct.line.geometry,
     });
-  const entrances = d.entrances.map((e, i) => ({
+  return { lines: { type: "FeatureCollection", features }, entrances: entrancePins(d.entrances) };
+}
+
+type Entrances = NonNullable<PartialScreenResult["driveway"]>["entrances"];
+
+const entrancePins = (entrances: Entrances): EntrancePin[] =>
+  entrances.map((e, i) => ({
     key: `entrance-${i + 1}`,
     ll: e.ll,
     text: `E${i + 1}`,
     tip: `Entrance ${i + 1} on ${e.name}: road grade ${e.roadGrade.toFixed(0)}%, bend ${e.bend.toFixed(0)}°, bank ${e.bankFt.toFixed(0)} ft`,
   }));
-  return { lines: { type: "FeatureCollection", features }, entrances };
-}

@@ -36,6 +36,8 @@ describe("map style", () => {
       LAYER.driveHalo,
       LAYER.driveSecond,
       LAYER.driveRoute,
+      LAYER.driveOver,
+      LAYER.driveOverStretch,
       LAYER.culverts,
       LAYER.trailheads,
       LAYER.evalRing,
