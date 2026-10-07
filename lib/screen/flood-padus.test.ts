@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { differences } from "../../test/support/compare";
 import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
 import { fromPrototype } from "../../test/support/fromPrototype";
-import { throughSites } from "../../test/support/pipeline";
-import type { HttpClient } from "../http";
+import { instantClock, throughSites } from "../../test/support/pipeline";
+import { createHttpClient, TimeoutError, type HttpClient, type RequestOptions } from "../http";
 import { DEFAULT_ENDPOINTS } from "./config";
 import { floodStep, inSfha, type FloodFeature } from "./flood";
 import { padusStep } from "./padus";
@@ -142,5 +142,62 @@ describe("public land step (synthetic)", () => {
         },
       }),
     ).rejects.toThrow("A/FeatureServer/0 502: down | B/FeatureServer/0 502: down");
+  });
+});
+
+describe("FEMA timeouts (follow-up 22), replayed on Ferney Creek", () => {
+  /**
+   * The recorded responses, but the first NFHL request hangs like a stalled server, and the second (when
+   * `second` is set) answers after that many ms. The flood step's limits are scaled 1000× down, so 30 s and
+   * 45 s become 30 ms and 45 ms: a 35 ms answer only arrives within the longer limit.
+   */
+  const stalling = async (second: number | null) => {
+    const t = await throughSites("ferney-creek-52-47A");
+    const replay = loadFixture("ferney-creek-52-47A").replayFetch();
+    let calls = 0;
+    const fetchImpl = (url: string | URL | Request, init?: RequestInit): Promise<Response> => {
+      if (!String(url).includes("NFHL")) return replay(url, init);
+      calls++;
+      return new Promise((resolve, reject) => {
+        const timer =
+          calls === 2 && second !== null ? setTimeout(() => resolve(replay(url, init)), second) : undefined;
+        init?.signal?.addEventListener("abort", () => {
+          clearTimeout(timer);
+          reject(new DOMException("Aborted", "AbortError"));
+        });
+      });
+    };
+    const real = createHttpClient({ env: "node", fetchImpl, clock: instantClock() });
+    const asked: RequestOptions[] = [];
+    const http: HttpClient = {
+      fetch: (url, o = {}) => {
+        if (!url.includes("NFHL")) return real.fetch(url, o);
+        asked.push(o);
+        return real.fetch(url, {
+          ...o,
+          ...(o.timeoutMs !== undefined ? { timeoutMs: o.timeoutMs / 1000 } : {}),
+          ...(o.retryTimeoutMs !== undefined ? { retryTimeoutMs: o.retryTimeoutMs / 1000 } : {}),
+        });
+      },
+    };
+    return { t, http, asked, calls: () => calls };
+  };
+
+  it("a timeout, then an answer within the longer limit, gives the golden flood result", async () => {
+    const s = await stalling(35);
+    const f = await floodStep(s.t.parcel, s.t.acres, { ...s.t.deps, http: s.http });
+    expect(differences(f.flood, fromPrototype(loadFixture("ferney-creek-52-47A").goldens.run).flood)).toEqual(
+      [],
+    );
+    expect(s.calls()).toBe(2);
+    expect(s.asked).toEqual([expect.objectContaining({ timeoutMs: 30_000, retryTimeoutMs: 45_000 })]);
+  });
+
+  it("two timeouts: the step fails as before", async () => {
+    const s = await stalling(null);
+    await expect(floodStep(s.t.parcel, s.t.acres, { ...s.t.deps, http: s.http })).rejects.toBeInstanceOf(
+      TimeoutError,
+    );
+    expect(s.calls()).toBe(2);
   });
 });

@@ -6,6 +6,7 @@ import { z } from "zod";
 import { CancelledError, type HttpClient } from "../http";
 import { fieldsFor } from "../geo/parcelTiles";
 import type { LatLon } from "../geo/types";
+import { PARCEL_SERVICE_TIMEOUTS } from "@/lib/geo/serviceStatus";
 import { idPattern, matchesId, parcelNumberWhere } from "./query";
 
 export interface ParcelHit {
@@ -83,6 +84,7 @@ export async function searchParcelNumbers(
         const r = await http.fetch(`${source}/query`, {
           method: "POST",
           body: q,
+          ...PARCEL_SERVICE_TIMEOUTS,
           ...(signal ? { signal } : {}),
         });
         if (!r.ok) return [];

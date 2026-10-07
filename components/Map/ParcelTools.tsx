@@ -18,7 +18,7 @@ import { tipAt } from "./results/tooltip";
 import { useMap } from "./MapView";
 import { combineData, draftData, labelPoint, pieceLabels, selectionData, splitData } from "./overlays";
 import { LAYER, SOURCE } from "./style";
-import { outlineAt } from "./useParcelLines";
+import { outlineAt, parcelServiceDown } from "./useParcelLines";
 
 /** The saved parcel under a screen point, by its History key. */
 function savedAt(map: MlMap, p: { x: number; y: number }): string | null {
@@ -92,6 +92,7 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
           insideOpen: !!geo && booleanPointInPolygon(point([e.lngLat.lng, e.lngLat.lat]), geo),
           outline: line ? parcelFromLine(line) : null,
           savedKey: savedAt(map, e.point),
+          serviceDown: parcelServiceDown(map),
         });
       }
       if (mode === "house") c.setHouse(toLL(e));

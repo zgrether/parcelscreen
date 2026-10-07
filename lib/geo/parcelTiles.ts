@@ -6,6 +6,7 @@
  */
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { CancelledError, type HttpClient } from "../http";
+import { PARCEL_SERVICE_TIMEOUTS } from "./serviceStatus";
 import { parcelFromLine, type Bounds, type ParcelLine, type ParcelRecord } from "./parcels";
 
 /**
@@ -135,6 +136,7 @@ export async function fetchTile(
       const r = await http.fetch(`${serviceUrl}/query`, {
         method: "POST",
         body: q,
+        ...PARCEL_SERVICE_TIMEOUTS,
         ...(signal ? { signal } : {}),
       });
       if (!r.ok) return { lines, complete: false, failed: true };
@@ -180,6 +182,7 @@ export async function countTile(
     const r = await http.fetch(`${serviceUrl}/query`, {
       method: "POST",
       body: q,
+      ...PARCEL_SERVICE_TIMEOUTS,
       ...(signal ? { signal } : {}),
     });
     if (!r.ok) return null;
@@ -215,7 +218,10 @@ export async function fullRecord(
     outSR: "4326",
     f: "geojson",
   });
-  const r = await http.fetch(`${outline.source}/query?${q}`, signal ? { signal } : {});
+  const r = await http.fetch(`${outline.source}/query?${q}`, {
+    ...PARCEL_SERVICE_TIMEOUTS,
+    ...(signal ? { signal } : {}),
+  });
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   const j = (await r.json()) as Page;
   const feature = j.features?.[0];

@@ -219,6 +219,10 @@ export const SCREEN_CONSTANTS = deepFreeze({
   },
   flood: {
     fatalShare: 0.3, // L1097: SFHA acres > 30% of the parcel → fatal
+    // Follow-up 22 (owner, after 14e): the NFHL query's limit per attempt (the client's default, as the
+    // prototype's), and one retry after a timeout with a longer one. Other errors aren't retried.
+    timeoutMs: 30_000,
+    retryTimeoutMs: 45_000,
   },
   padus: {
     searchM: 1600, // L1101

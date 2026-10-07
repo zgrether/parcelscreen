@@ -8,6 +8,9 @@ import type { HttpClient } from "../http";
 export interface ArcQueryDeps {
   http: HttpClient;
   signal?: AbortSignal;
+  /** Per attempt, and the one longer retry after a timeout (follow-up 22); the client's defaults when unset. */
+  timeoutMs?: number;
+  retryTimeoutMs?: number;
 }
 
 export async function arcQuery(
@@ -31,6 +34,8 @@ export async function arcQuery(
     method: "POST",
     body: new URLSearchParams(params),
     ...(deps.signal ? { signal: deps.signal } : {}),
+    ...(deps.timeoutMs !== undefined ? { timeoutMs: deps.timeoutMs } : {}),
+    ...(deps.retryTimeoutMs !== undefined ? { retryTimeoutMs: deps.retryTimeoutMs } : {}),
   });
   const name = url.split("/services/")[1];
   if (!r.ok) {

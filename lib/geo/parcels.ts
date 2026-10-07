@@ -6,6 +6,7 @@
 import { area, booleanPointInPolygon, destination, point, polygon } from "@turf/turf";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { CancelledError, type HttpClient } from "../http";
+import { PARCEL_SERVICE_TIMEOUTS } from "./serviceStatus";
 import { M2_PER_ACRE, type LatLon } from "./types";
 
 export type ParcelSource = "county" | "drawn" | "square" | "split" | "saved" | "combined";
@@ -62,7 +63,10 @@ export async function pickParcelAt(
         outSR: "4326",
         f: "geojson",
       });
-      const r = await http.fetch(`${url}/query?${q}`, signal ? { signal } : {});
+      const r = await http.fetch(`${url}/query?${q}`, {
+        ...PARCEL_SERVICE_TIMEOUTS,
+        ...(signal ? { signal } : {}),
+      });
       if (!r.ok) {
         report.push(`${short}: HTTP ${r.status}`);
         continue;

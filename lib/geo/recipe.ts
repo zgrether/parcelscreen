@@ -45,7 +45,7 @@ export type DerivedParcel =
 export const isCountyRecord = (r: ParcelRecord): boolean => /^https?:\/\//.test(r.source);
 
 /** The state a county record comes from, by its parcel service's host. */
-const STATE_BY_HOST: Record<string, string> = {
+export const STATE_BY_HOST: Readonly<Record<string, string>> = {
   "services.nconemap.gov": "NC",
   "vginmaps.vdem.virginia.gov": "VA",
   "geoviewer.cot.tn.gov": "TN",
