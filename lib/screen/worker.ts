@@ -19,5 +19,3 @@ const core = new ScreenWorkerCore((m) => scope.postMessage(m), {
   overpass: overpassViaRoute(`${scope.location.origin}/api/places/overpass`, http),
 });
 scope.onmessage = (e) => void core.handle(e.data);
-// Version-skew probe for #65 (reverted in the next commit): changes this chunk's hash.
-(self as unknown as { __skewProbe?: string }).__skewProbe = "2026-10-07";
