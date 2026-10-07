@@ -16,6 +16,16 @@ export interface MapView {
 }
 
 /** The terrain preview (13g): 3D terrain and its vertical exaggeration. */
+/** The result overlays a user can hide (step 15). */
+export interface OverlayPrefs {
+  pins: boolean;
+  fan: boolean;
+  soils: boolean;
+  trailheads: boolean;
+  driveway: boolean;
+}
+const ALL_OVERLAYS: OverlayPrefs = { pins: true, fan: true, soils: true, trailheads: true, driveway: true };
+
 export interface TerrainPref {
   on: boolean;
   exaggeration: 1 | 1.5 | 2;
@@ -42,6 +52,8 @@ export interface Prefs {
   "ps.terrain": TerrainPref;
   "ps.hillshade": boolean | null;
   "ps.contours": boolean | null;
+  /** Step 15: which result overlays show (the Analysis rows in Info › Layers). UI only, like the terrain. */
+  "ps.overlays": OverlayPrefs;
 }
 
 const DEFAULTS: Prefs = {
@@ -58,6 +70,7 @@ const DEFAULTS: Prefs = {
   "ps.terrain": { on: false, exaggeration: 1.5 },
   "ps.hillshade": null,
   "ps.contours": null,
+  "ps.overlays": ALL_OVERLAYS,
 };
 
 /** How each key is stored: the prototype kept flags as "1"/"0" and the rest as plain strings or JSON. */
@@ -74,6 +87,11 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
   "ps.terrain": { read: readTerrain, write: (v) => JSON.stringify(v) },
   "ps.hillshade": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
   "ps.contours": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
+  "ps.overlays": {
+    // Unknown or missing keys read as shown, so an overlay added later starts visible.
+    read: (r) => ({ ...ALL_OVERLAYS, ...(JSON.parse(r) as Partial<OverlayPrefs>) }),
+    write: (v) => JSON.stringify(v),
+  },
 };
 
 function readTerrain(raw: string): TerrainPref {

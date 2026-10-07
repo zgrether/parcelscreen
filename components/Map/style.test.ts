@@ -17,7 +17,7 @@ describe("map style", () => {
     expect(at(LAYER.scrim)).toBeLessThan(at(LAYER.parcelLines));
   });
 
-  it("draws saved parcels, then the selected one and its selected layer, above the outlines; then the split, the combination, the drawing", () => {
+  it("draws saved parcels, then the selected one and its selected layer, above the outlines; then the fan and the evaluation ring (15b); then the split, the combination, the drawing", () => {
     expect(layerIds.slice(layerIds.indexOf(LAYER.parcelLines) + 1)).toEqual([
       LAYER.savedFill,
       LAYER.savedLine,
@@ -28,6 +28,9 @@ describe("map style", () => {
       LAYER.selLine,
       LAYER.leftFill,
       LAYER.leftLine,
+      LAYER.fanHalo,
+      LAYER.fanRay,
+      LAYER.evalRing,
       LAYER.splitFill,
       LAYER.splitLine,
       LAYER.splitCut,

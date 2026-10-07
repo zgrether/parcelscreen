@@ -3,32 +3,14 @@
  * on the same session arrays, with a stub canvas that hands back the pixels it wrote.
  */
 import { describe, expect, it } from "vitest";
-import { createHttpClient } from "../http";
 import { fwd } from "../geo/utm";
-import { DEFAULT_USER_CONFIG } from "../screen/config";
-import { screen } from "../screen";
-import { sessionView, type SessionView } from "../screen/worker-protocol";
-import { loadFixture, type FixtureSlug } from "@/test/support/fixtures";
-import { instantClock } from "@/test/support/pipeline";
+import type { SessionView } from "../screen/worker-protocol";
+import type { FixtureSlug } from "@/test/support/fixtures";
+import { replayRun } from "@/test/support/session";
 import { prototypeFn } from "@/test/support/prototypeFns";
 import { heat, SURFACE_MODES, surfaceCorners, surfaceImage, type SurfaceMode } from "./surface";
 
-async function viewOf(slug: FixtureSlug): Promise<SessionView> {
-  const replay = loadFixture(slug).replayFetch();
-  const out = await screen(
-    { polygon: loadFixture(slug).input.polygon.geometry, config: DEFAULT_USER_CONFIG },
-    undefined,
-    {
-      http: createHttpClient({
-        env: "node",
-        fetchImpl: replay as unknown as typeof fetch,
-        clock: instantClock(),
-      }),
-      sleep: async () => {},
-    },
-  );
-  return sessionView(out.session);
-}
+const viewOf = async (slug: FixtureSlug): Promise<SessionView> => (await replayRun(slug)).view;
 
 /** The prototype's three images for a session: drawTerrainOverlay with a canvas that keeps the pixels. */
 function prototypeImages(v: SessionView): Record<SurfaceMode, Uint8ClampedArray> {

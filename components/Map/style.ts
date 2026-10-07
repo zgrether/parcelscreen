@@ -9,6 +9,7 @@
  * with `bounds` and `maxzoom`, so MapLibre overzooms each one correctly.
  */
 import type {
+  ExpressionSpecification,
   FilterSpecification,
   LayerSpecification,
   RasterSourceSpecification,
@@ -95,6 +96,10 @@ export const LAYER = {
   selLine: "sel-line",
   leftFill: "left-fill",
   leftLine: "left-line",
+  // Step 15b: the horizon fan and the evaluation ring (15c's driveway goes between them).
+  fanHalo: "fan-halo",
+  fanRay: "fan-ray",
+  evalRing: "eval-ring",
   splitFill: "split-fill",
   splitLine: "split-line",
   splitCut: "split-cut",
@@ -110,6 +115,8 @@ export const SOURCE = {
   saved: "saved",
   parcel: "parcel",
   sel: "sel",
+  fan: "fan",
+  evalRing: "eval-ring",
   split: "split",
   combine: "combine",
   draft: "draft",
@@ -279,6 +286,43 @@ export function buildStyle(opts: {
       source: SOURCE.sel,
       filter: selKind("left"),
       paint: { "line-color": "#ffffff", "line-width": 1.5, "line-dasharray": [3, 2] },
+    },
+  );
+  // Step 15b: the horizon fan over the parcel outline (proto drawHorizon, L1236–1242): a dark halo under
+  // each ray, red where the ridge blocks the December sun, white where it clears. Then the evaluation ring
+  // (L1240), lying flat on the ground when the map is tilted. Empty until a result is shown.
+  sources[SOURCE.fan] = { type: "geojson", data: EMPTY_FC };
+  sources[SOURCE.evalRing] = { type: "geojson", data: EMPTY_FC };
+  const blocks: ExpressionSpecification = ["get", "blocks"];
+  layers.push(
+    {
+      id: LAYER.fanHalo,
+      type: "line",
+      source: SOURCE.fan,
+      paint: { "line-color": "#0b1410", "line-width": ["case", blocks, 4, 2.5], "line-opacity": 0.5 },
+    },
+    {
+      id: LAYER.fanRay,
+      type: "line",
+      source: SOURCE.fan,
+      paint: {
+        "line-color": ["case", blocks, "#e0553f", "#f2efe6"],
+        "line-width": ["case", blocks, 2.5, 1],
+        "line-opacity": ["case", blocks, 0.95, 0.7],
+      },
+    },
+    {
+      id: LAYER.evalRing,
+      type: "circle",
+      source: SOURCE.evalRing,
+      paint: {
+        "circle-radius": 9,
+        "circle-color": "#0b1410",
+        "circle-opacity": 0.35,
+        "circle-stroke-color": "#ffffff",
+        "circle-stroke-width": 2,
+        "circle-pitch-alignment": "map",
+      },
     },
   );
   // The split pieces, coloured per piece, and the dashed cut line (proto L612–615).
