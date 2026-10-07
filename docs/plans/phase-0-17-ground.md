@@ -1,6 +1,6 @@
 # Step 17: the ground viewer (plan)
 
-Status: **draft, for approval.** It replaces the 3D walkthrough plan of `phase-0.md` §3d and step 17 (owner decision, 2026-10-07, §9.12 there).
+Status: **approved as written (owner, 2026-10-07); decisions in §8.** It replaces the 3D walkthrough plan of `phase-0.md` §3d and step 17 (owner decision, 2026-10-07, §9.12 there).
 
 **The decision:** with 13g and step 15, the map covers the aerial side of the prototype's 3D walkthrough:
 
@@ -110,7 +110,7 @@ Every number the viewer shows comes from the `ScreenResult`, or from the engine'
 
 - **What's drawn:** nothing needs 3D. The skyline is a profile, and the sky is a dome seen from its centre.
 - **It's cheap:** no second WebGL context on phones, beside the map's.
-- **Dependencies:** it drops `three` / react-three-fiber from the Phase 0 stack; nothing else uses them now.
+- **Dependencies:** react-three-fiber (and `three`) leave the Phase 0 stack when step 17 lands (owner, §8): neither is installed today, so 17's PR takes them off the fixed-stack lists in `CLAUDE.md` and `PLAN.md`.
 
 ## 5. PRs
 
@@ -140,15 +140,17 @@ Every number the viewer shows comes from the `ScreenResult`, or from the engine'
 - **Follow-up 31, soil walls (Phase 2.5, with the cost estimator):**
   - scene 6's 10× cutaway: topsoil, subsoil, water-table band, bedrock, from NRCS (L1689–1720, L1867);
   - deferred, not deleted.
+- **Follow-up 33, the moon (after Phase 0; owner, §8):**
+  - the night view has no moon today, as in the prototype;
+  - add its phase and position for the chosen date and hour, and its light washing out the Milky Way.
 - **Follow-up 32, time-of-day shading on the 3D map (after Phase 0, optional):**
   - scene 3's moving terrain shadows, from the sun's position at a chosen hour;
   - MapLibre's hillshade takes a light direction, so this may be a small change.
 
-## 8. Questions
+## 8. Decisions (owner, 2026-10-07)
 
-1. **Q1 Rendering.** A 2D canvas eye-level view, or a react-three-fiber first-person view with a terrain mesh?
-   - *Recommended: canvas*, because the skyline is a profile, numbers can't drift from it, it's light on phones, and `three` can leave the stack.
-   - A WebGL view could add near terrain (from the 3 m DEM, live session only) later.
-2. **Q2 Entry points.** *Recommended:* Stand here by the evaluation ring, and See it from here in December sun. Standing at another site is a pin tap (evaluates there, not saved), then Stand here.
-3. **Q3 The skyline's source:** the screen's own horizon profile (30 m wide DEM, as the report), not the 3 m lidar (§3). *Recommended: yes*, for exact agreement.
-4. **Q4 Night dates.** The time bar's presets (Dec 21 / Mar 20 / Jun 21) drive the night sky too. The prototype's month select allowed any month. *Recommended:* the three presets plus "today"; any month can follow if wanted.
+1. **Q1 Rendering:** a **2D canvas** eye-level view. React-three-fiber leaves when 17 lands.
+2. **Q2 Entry points:** both. **Stand here** by the evaluation ring; **See it from here** in December sun. Standing at another site is a pin tap (evaluates there, not saved), then Stand here.
+3. **Q3 Skyline source:** the **stored 30 m horizon profile** (`result.sun.profile`), as the report uses, not the 3 m lidar.
+4. **Q4 Night dates:** the three presets (Dec 21 / Mar 20 / Jun 21) **plus today**.
+5. **The moon:** follow-up 33 (§7).
