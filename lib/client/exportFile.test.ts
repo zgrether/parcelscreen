@@ -143,6 +143,49 @@ describe("matching on the History key (owner, after #58)", () => {
   });
 });
 
+describe("an identical recipe under another key is the same parcel (owner, #60)", () => {
+  it("is skipped and listed as the same parcel already in History", () => {
+    const theirs: ParcelStore = {
+      ...STORE,
+      built: [{ ...STORE.built[0]!, key: "other-key", notes: "elsewhere", house: null }],
+    };
+    const p = plan(file({}, theirs), STORE);
+    expect([p.added, p.skipped, p.sameParcel]).toEqual([[], [], ["52-47A"]]);
+    expect(p.screens).toEqual([]);
+    expect(importSummary(p, "unchanged")).toEqual([
+      "Imported 0 parcels",
+      "Skipped, same parcel already in History: 52-47A.",
+      "Settings unchanged.",
+    ]);
+  });
+
+  it("the same pieces in another order, or with other attributes, are the same; a split or a drawn shape isn't", () => {
+    const pair = [county(-81.355, "52-47A"), county(-81.353, "52-48")];
+    const mine: ParcelStore = { ...STORE, built: [built("a", { pieces: pair })] };
+    const swapped = built("b", {
+      pieces: [{ ...pair[1]!, props: { PARCELID: "52-48", OWNER: "new" } }, pair[0]!],
+    });
+    const split = built("c", { pieces: pair, split: SPLIT });
+    const drawn = built("d", { pieces: [pair[0]!, drawnPart(square(-81.353))] });
+    const p = plan(file({ screens: [] }, { ...STORE, built: [swapped, split, drawn] }), mine);
+    expect(p.sameParcel).toHaveLength(1);
+    expect(p.added.map((x) => x.key)).toEqual(["c", "d"]);
+  });
+
+  it("duplicates already in History stay as they are", () => {
+    const twins: ParcelStore = { ...STORE, built: [built("a"), built("a2")] };
+    const p = plan(file({}, STORE), twins);
+    expect(applyImport(twins, p).built.map((b) => b.key)).toEqual(["a", "a2", "b"]);
+  });
+
+  it("two identical recipes in one file: the first is added, the second skipped", () => {
+    const theirs: ParcelStore = { ...STORE, built: [built("x"), built("y")] };
+    const p = plan(file({ screens: [] }, theirs));
+    expect(p.added.map((x) => x.key)).toEqual(["x"]);
+    expect(p.sameParcel).toEqual(["52-47A"]);
+  });
+});
+
 describe("settings from a file", () => {
   it("changed fields are listed by label, and the question names them", () => {
     const theirs = { ...DEFAULT_USER_CONFIG, houseMin: 55, timeZone: "America/Chicago" };
@@ -205,14 +248,25 @@ describe("a prototype export ({ cfg, saved[] }, L1605)", () => {
   });
 
   it("its saved parcels become History parcels, with no result: house, name and notes kept", () => {
-    const p = plan(proto(undefined, [saved(), saved({ id: "x", name: "52-47A", notes: "" })]));
+    const p = plan(
+      proto(undefined, [
+        saved(),
+        saved({
+          id: "x",
+          name: "52-48",
+          notes: "",
+          geo: square(-81.351),
+          props: { PARCELID: "52-48", FIPS: "51077" },
+        }),
+      ]),
+    );
     expect(p.settings).toBeNull();
     const [a, b] = p.added;
     expect(a).toMatchObject({
       key: "new1",
       split: null,
       house: [36.629, -81.354],
-      notes: "Ridge tract\n\nSpring on the north line.",
+      notes: "Name: Ridge tract\n\nSpring on the north line.",
       notesAt: "2026-09-30T18:00:00.000Z",
       updatedAt: "2026-09-30T18:00:00.000Z",
       screenIds: [],
@@ -225,9 +279,16 @@ describe("a prototype export ({ cfg, saved[] }, L1605)", () => {
         multiPart: false,
       },
     ]);
-    // A name that's just the parcel ID adds nothing; an id that isn't a time stamps it now.
-    expect(b).toMatchObject({ key: "new2", notes: "", notesAt: null, updatedAt: NOW });
-    expect(p.sameRecord).toHaveLength(1); // the second is the same record as the first
+    // The name line is always there (owner, #60), even when it's the parcel ID; an id that isn't a time
+    // stamps it now.
+    expect(b).toMatchObject({ key: "new2", notes: "Name: 52-48", notesAt: NOW, updatedAt: NOW });
+    expect(p.sameRecord).toEqual([]);
+  });
+
+  it("the same saved parcel twice: the second is the same parcel, skipped", () => {
+    const p = plan(proto(undefined, [saved(), saved({ name: "Again" })]));
+    expect(p.added.map((x) => x.notes)).toEqual(["Name: Ridge tract\n\nSpring on the north line."]);
+    expect(p.sameParcel).toEqual(["52-47A"]);
   });
 
   it("is noted as the same county record as a port parcel from that record", () => {
@@ -249,6 +310,7 @@ describe("the summary", () => {
       added: [built("x")],
       screens: [screen("s1"), screen("s2")],
       skipped: ["52-48"],
+      sameParcel: [],
       sameRecord: [],
       settings: { config: DEFAULT_USER_CONFIG, changed: ["Data endpoints"] },
       ignored: ["extra"],

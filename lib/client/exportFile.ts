@@ -8,7 +8,8 @@
  * Import reads the port's file or a prototype export (`{ cfg, saved[] }`, proto L1605). It validates the whole
  * file first and returns either a plan or the list of what's wrong; the caller applies all of a plan or none.
  * Every parcel is matched on its History key (owner, after #58): an identical key is skipped, never
- * overwritten; anything else is added, including another recipe of a county record already in History.
+ * overwritten. So is an identical recipe under another key (owner, #60). Anything else is added, including
+ * another recipe of a county record already in History.
  */
 import { z } from "zod";
 import { DEFAULT_ENDPOINTS, DEFAULT_USER_CONFIG } from "@/lib/screen/config";
@@ -104,6 +105,8 @@ export interface ImportPlan {
   screens: ScreenRecord[];
   /** Names of the file's parcels whose History key is already there. */
   skipped: string[];
+  /** Names of the file's parcels whose recipe (pieces, split, drawn geometry) is already there, any key. */
+  sameParcel: string[];
   /** Added parcels sharing a county record with another History parcel: name and what tells it apart. */
   sameRecord: string[];
   /** Null when the file has no settings. */
@@ -123,6 +126,15 @@ const issues = (prefix: string, e: z.ZodError): string[] =>
 
 /** A county record's identity without the state (the prototype's saved parcels don't know their service). */
 const recordId = (r: ParcelRecord): string | null => pieceDedupeKey(r)?.split(":").slice(1).join(":") ?? null;
+
+/**
+ * A recipe's identity (owner, #60): its pieces, each by its source and geometry (a county record's, or the
+ * drawn shape), in any order, and its split. The service's attributes don't count: they describe the same land.
+ */
+export function recipeIdentity(p: WorkingParcel): string {
+  const pieces = p.pieces.map((x) => JSON.stringify([x.source, x.geo.geometry.coordinates])).sort();
+  return JSON.stringify([pieces, p.split]);
+}
 
 /**
  * The file's settings, as the Settings form would hold them, so they pass the same checks as Save. Missing
@@ -221,11 +233,10 @@ function fromPrototypeSaved(s: z.infer<typeof ProtoSavedSchema>, key: string, no
     screenIds: [],
     updatedAt: at,
   };
-  // History has no name field: a name other than the parcel's own ID goes first in the notes.
-  const { name } = parcelName(p);
-  const notes = [s.name && s.name.trim() !== name ? s.name.trim() : "", s.notes?.trim() ?? ""]
-    .filter((x) => x !== "")
-    .join("\n\n");
+  // History has no name field (owner, #60): the saved name is the notes' first line, exactly "Name: {name}",
+  // then a blank line and any notes. Phase 1 lifts it into the parcel's name (REQUIREMENTS §3a).
+  const name = s.name?.trim() ?? "";
+  const notes = [name ? `Name: ${name}` : "", s.notes?.trim() ?? ""].filter((x) => x !== "").join("\n\n");
   return notes ? { ...p, notes, notesAt: at } : p;
 }
 
@@ -271,14 +282,20 @@ export function planImport(
     rawCfg = f.data.cfg;
   } else return { ok: false, errors: [NOT_AN_EXPORT] };
 
-  // Parcels: matched on the History key only.
+  // Parcels: an identical History key is skipped; so is an identical recipe under another key (#60). History
+  // itself isn't touched: duplicates already in it stay, for Phase 1's dedupe.
   const have = new Set(current.store.built.map((b) => b.key));
+  const recipes = new Set(current.store.built.map(recipeIdentity));
   const added: WorkingParcel[] = [],
-    skipped: string[] = [];
+    skipped: string[] = [],
+    sameParcel: string[] = [];
   for (const p of incoming) {
+    const id = recipeIdentity(p);
     if (have.has(p.key)) skipped.push(parcelName(p).name);
+    else if (recipes.has(id)) sameParcel.push(parcelName(p).name);
     else {
       have.add(p.key);
+      recipes.add(id);
       added.push(p);
     }
   }
@@ -316,7 +333,7 @@ export function planImport(
   if (errors.length) return { ok: false, errors };
   return {
     ok: true,
-    plan: { kind, added, screens, skipped, sameRecord, settings, ignored, endpointsReplaced },
+    plan: { kind, added, screens, skipped, sameParcel, sameRecord, settings, ignored, endpointsReplaced },
   };
 }
 
@@ -341,6 +358,8 @@ export function importSummary(plan: ImportPlan, outcome: SettingsOutcome): strin
       `Added: ${names(plan.added)}${plan.screens.length ? ` (with ${plan.screens.length} kept result${plan.screens.length === 1 ? "" : "s"})` : ""}.`,
     );
   if (plan.skipped.length) lines.push(`Skipped, already in History: ${plan.skipped.join(", ")}.`);
+  if (plan.sameParcel.length)
+    lines.push(`Skipped, same parcel already in History: ${plan.sameParcel.join(", ")}.`);
   if (plan.sameRecord.length)
     lines.push(`Same county record, different recipe: ${plan.sameRecord.join(", ")}.`);
   if (outcome === "replaced" && plan.settings)

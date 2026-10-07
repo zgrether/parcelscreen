@@ -93,7 +93,11 @@ Line numbers (L…) refer to `legacy/parcelscreen.html`.
   Any failure stops the import, names what failed, and changes nothing: no parcels, no screens, no settings. The hint for a file that isn't an export at all is the prototype's, verbatim: "That file isn't a Parcel Screen export".
 - **Every parcel, county or drawn, is matched on its History `key`** (owner, §6.8). Never on the dedupe key.
   - **Identical key → skip.** The History entry is never overwritten. The file's copy is skipped, with its screens, and listed by name in the summary.
-  - **New key → add**, with its screens, as its own History entry.
+  - **Identical recipe → skip, whatever the key** (owner, #60): the same pieces and the same split.
+    - Pieces are compared by source and geometry, in any order; a county record's attributes don't count.
+    - The summary lists it as "same parcel already in History".
+    - Duplicates already in History stay as they are; Phase 1's dedupe handles them.
+  - **New key and a new recipe → add**, with its screens, as its own History entry.
   - **Never drop a distinct recipe.** A parcel that shares a county record with a History parcel but has a different recipe (different pieces, or a different split) is added as its own entry. The summary notes it as "same county record, different recipe". "Shares a county record" means a piece with the same `pieceDedupeKey` (REQUIREMENTS §3).
   - Deduplicating across recipes is Phase 1's job.
   - **History can already hold two recipes of one record:** it's keyed only by `key`, and nothing merges entries by county record.
@@ -113,7 +117,7 @@ Line numbers (L…) refer to `legacy/parcelscreen.html`.
   - **ignored fields**, by name;
   - for a prototype file, **endpoints replaced** by the defaults under the `_v` rule (§1).
 - **A prototype export** (`{ cfg, saved[] }`, L1605):
-  - **Each saved parcel becomes a History parcel** from its boundary (`geo`, `props`) and house: a boundary source "saved parcel", its name and notes. No result comes with it, as in the prototype, where reopening never restored a result: it selected the boundary and you pressed Run (L1602; Q4).
+  - **Each saved parcel becomes a History parcel** from its boundary (`geo`, `props`) and house: a boundary source "saved", its house and notes. History has no name field, so the saved name becomes the notes' first line, exactly `Name: {name}`, then a blank line and any notes (owner, #60). Phase 1 lifts it into the parcel's name (REQUIREMENTS §3a). No result comes with it, as in the prototype, where reopening never restored a result: it selected the boundary and you pressed Run (L1602; Q4).
   - **Its `cfg` converts** to the port's shape, and is then validated and confirmed as above:
     - anchors text → objects;
     - the endpoints JSON string → object, through the `_v` migration;
@@ -205,4 +209,8 @@ No new dependency.
    - the same county record with a different recipe (different pieces or split) is added as its own History entry, noted "same county record, different recipe" in the summary.
 
    Never drop a distinct recipe on import: deduplicating across recipes is Phase 1's job. History can already hold two recipes of one record (§2), so nothing needs working around.
+10. **After #60's first draft (owner):**
+    - **No History marker** for entries with identical recipes. History and Search tell apart only different recipes of one record, by acreage and "split" or the piece count.
+    - **An identical recipe under another key is skipped** on import, and listed as "same parcel already in History". Existing duplicates stay; Phase 1's dedupe handles them.
+    - **A prototype parcel's saved name** goes on the notes' first line, exactly `Name: {name}`, then a blank line, then any notes.
 9. **Acreage thresholds:** no ordering check between shelf, compact site and house site. They aren't a min/max pair, and the prototype doesn't order them. The defaults happen to rise: 0.1 ≤ 0.15 ≤ 0.3 ac.
