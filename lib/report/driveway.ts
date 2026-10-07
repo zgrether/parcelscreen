@@ -30,6 +30,8 @@ export interface DrivewayView {
   note: string | null;
   entrances: string | null;
   routes: RouteView[];
+  /** When no route fits the limit: the least-steep one, shown as suspect (owner, after 15c). */
+  overLimit: RouteView | null;
   track: { rows: FactRow[]; note: string } | null;
   caveat: Part[];
 }
@@ -49,6 +51,24 @@ export function profilePath(p: readonly (readonly [number, number])[]): string {
         `${k ? "L" : "M"}${((x[0] / L) * 360).toFixed(1)},${(95 - ((x[1] - z0) / (z1 - z0 + 1e-6)) * 85).toFixed(1)}`,
     )
     .join(" ");
+}
+
+/** The least-steep route: the same facts as a route, its grade against the real limit, titled as suspect. */
+function overLimitView(o: NonNullable<NonNullable<PartialScreenResult["driveway"]>["overLimit"]>): RouteView {
+  const v = routeView(o, 0);
+  const m = o.metrics;
+  return {
+    ...v,
+    title: "Over the limit — least steep (suspect)",
+    rows: v.rows.map((r) =>
+      r.label === "Grade, max / average"
+        ? {
+            label: "Grade",
+            value: `needs ${Math.round(o.maxGrade * 100)}% (limit ${fmt(o.limitPct)}%); about ${fmt(o.overFt)} ft over the limit in ${o.overSpans.length} stretch${o.overSpans.length === 1 ? "" : "es"} · steepest 3 m step / average ${m.maxGradePct.toFixed(1)}% / ${m.avgGradePct.toFixed(1)}%`,
+          }
+        : r,
+    ),
+  };
 }
 
 function routeView(rt: Route, i: number): RouteView {
@@ -102,6 +122,7 @@ export function drivewayView(r: PartialScreenResult): DrivewayView | null {
           .join("; ")}.`
       : null,
     routes: d.routes.map(routeView),
+    overLimit: d.overLimit ? overLimitView(d.overLimit) : null,
     track: first?.track
       ? {
           rows: [

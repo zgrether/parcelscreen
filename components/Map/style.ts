@@ -107,6 +107,8 @@ export const LAYER = {
   driveHalo: "drive-halo",
   driveSecond: "drive-second",
   driveRoute: "drive-route",
+  driveOver: "drive-over",
+  driveOverStretch: "drive-over-stretch",
   culverts: "culverts",
   trailheads: "trailheads",
   evalRing: "eval-ring",
@@ -364,7 +366,7 @@ export function buildStyle(opts: {
       id: LAYER.driveHalo,
       type: "line",
       source: SOURCE.driveway,
-      filter: ["==", ["get", "kind"], "route"],
+      filter: ["in", ["get", "kind"], ["literal", ["route", "over"]]],
       layout: { "line-sort-key": ["-", 0, ["get", "i"]] },
       paint: {
         "line-color": "#0b1410",
@@ -385,6 +387,22 @@ export function buildStyle(opts: {
       source: SOURCE.driveway,
       filter: ["all", ["==", ["get", "kind"], "route"], ["==", ["get", "i"], 0]],
       paint: { "line-color": "#e0c43c", "line-width": 3 },
+    },
+    // No route fits the grade limit: the least-steep one, suspect (owner, after 15c): orange, dashed, over a
+    // dark halo, with its stretches over the limit in red on top.
+    {
+      id: LAYER.driveOver,
+      type: "line",
+      source: SOURCE.driveway,
+      filter: ["==", ["get", "kind"], "over"],
+      paint: { "line-color": "#f0a030", "line-width": 3, "line-dasharray": [2, 1.2] },
+    },
+    {
+      id: LAYER.driveOverStretch,
+      type: "line",
+      source: SOURCE.driveway,
+      filter: ["==", ["get", "kind"], "overStretch"],
+      paint: { "line-color": "#e0553f", "line-width": 4 },
     },
     // The circles: culverts (L1407) and trailheads (L1129), lying flat when the map is tilted.
     {

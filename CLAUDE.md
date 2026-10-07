@@ -28,6 +28,8 @@ isn't obvious.
    `lib/screen/config.ts`. If you change one, update the fixture test and say so in the PR.
 5. **Ask when the spec is silent;** don't invent product behavior. Ask in the PR or the plan.
 6. Prefer boring, well-known libraries. No new dependency without a one-line justification.
+7. **Report text changes are additive.** Any scope that adds or changes report text gets a one-paragraph plan
+   first. Golden diffs must be purely additive: new text goes after existing text, never in place of it.
 
 ## Hard rules
 

@@ -169,6 +169,13 @@ describe("config", () => {
             "maxGrade": 0.08,
             "wGrade": 4,
           },
+          "leastSteep": {
+            "label": "least steep",
+            "maxPct": 30,
+            "mergeM": 15,
+            "wGrade": 1,
+            "windowM": 15,
+          },
           "m2ToSf": 10.764,
           "m3ToYd3": 1.308,
           "maxEntrances": 3,

@@ -34,6 +34,7 @@ const K = SCREEN_CONSTANTS.driveway;
 type Driveway = NonNullable<ScreenResult["driveway"]>;
 type Route = Driveway["routes"][number];
 export type Entrance = Driveway["entrances"][number];
+export type OverLimitRoute = NonNullable<Driveway["overLimit"]>;
 
 /** Binary min-heap of [key, value] pairs (proto MinHeap). */
 export class MinHeap {
@@ -492,6 +493,82 @@ export function trackCost(rt: RawRoute, dw: UserConfig["dw"]): NonNullable<Route
   };
 }
 
+/**
+ * The least-steep route when none fits the limit (owner, after 15c): the lowest whole-percent cap above the
+ * limit, up to K.leastSteep.maxPct, at which the routed entrances reach the target (binary search: a higher
+ * cap only allows more paths), the cheaper entrance winning at that cap. Its over-limit stretches come from
+ * the route's own 3 m profile.
+ */
+export function leastSteep(
+  ctx: RouteContext,
+  ent: Entrance[],
+  toLL: LatLon,
+  limitPct: number,
+): OverLimitRoute | null {
+  const L = K.leastSteep;
+  const at = (capPct: number) => {
+    let best: { rt: RawRoute; entranceIndex: number } | null = null;
+    ent.slice(0, K.entrancesRouted).forEach((e, entranceIndex) => {
+      const rt = routeDriveway(ctx, e.ll, toLL, { maxGrade: capPct / 100, wGrade: L.wGrade, label: L.label });
+      if (rt && (!best || rt.cost.mid < best.rt.cost.mid)) best = { rt, entranceIndex };
+    });
+    return best as { rt: RawRoute; entranceIndex: number } | null;
+  };
+  let lo = Math.floor(limitPct) + 1,
+    hi = L.maxPct;
+  let found = at(hi);
+  if (!found) return null;
+  while (lo < hi) {
+    const mid = Math.floor((lo + hi) / 2);
+    const r = at(mid);
+    if (r) {
+      found = r;
+      hi = mid;
+    } else lo = mid + 1;
+  }
+  const { rt, entranceIndex } = found;
+  const overSpans = overLimitSpans(rt.profile, limitPct / 100);
+  const overM = overSpans.reduce((m, [a, b]) => m + (b - a), 0);
+  return { ...rt, entranceIndex, limitPct, overFt: overM * M2FT, overSpans };
+}
+
+/** The grade the least-steep route needs: its cap, the lowest whole percent that reaches the target. */
+export const neededPct = (o: OverLimitRoute): number => Math.round(o.maxGrade * 100);
+
+/**
+ * The sentence appended to the prototype's no-route note (owner's wording, #52): lengths as the prototype's
+ * driveway notes give them (rounded, no thousands separator).
+ */
+export function overLimitNote(o: OverLimitRoute): string {
+  const n = o.overSpans.length;
+  return `The least-steep route found needs grades up to ${neededPct(o)}%, with about ${Math.round(o.overFt)} ft steeper than ${o.limitPct}% in ${n} stretch${n === 1 ? "" : "es"}; it's drawn on the map as suspect.`;
+}
+
+/**
+ * The stretches of a route steeper than a grade, from its profile ([metres along, elevation], every 3 m):
+ * the grade is taken over `windowM` (single 3 m steps are noisy), and stretches at most `mergeM` apart are
+ * one. Returns [from, to] in metres along the route.
+ */
+export function overLimitSpans(
+  profile: [number, number][],
+  grade: number,
+  windowM: number = K.leastSteep.windowM,
+  mergeM: number = K.leastSteep.mergeM,
+): [number, number][] {
+  const spans: [number, number][] = [];
+  for (let i = 0, j = 0; i < profile.length; i++) {
+    while (j < profile.length && profile[j]![0] - profile[i]![0] < windowM) j++;
+    if (j >= profile.length) break;
+    const [s0, z0] = profile[i]!,
+      [s1, z1] = profile[j]!;
+    if (Math.abs(z1 - z0) / (s1 - s0) <= grade) continue;
+    const last = spans.at(-1);
+    if (last && s0 - last[1] <= mergeM) last[1] = Math.max(last[1], s1);
+    else spans.push([s0, s1]);
+  }
+  return spans;
+}
+
 /** Entrances, the two cheapest legal routes to a target, and the pioneer tracks (proto buildDriveway). */
 export function buildDriveway(
   ctx: RouteContext,
@@ -520,7 +597,16 @@ export function buildDriveway(
     }
   });
   if (!found.length) {
+    // The prototype's note, verbatim. New in the port (owner, after 15c): one sentence appended saying how
+    // steep the least-steep route is (drawn as suspect, not scored), never replacing the prototype's text.
     dw.note = `Entrance found on ${ent[0]!.name}, but no route reaches ${toLabel} at ${roadMaxGradePct}% or less, even with switchbacks. Raise the grade limit in Settings or pick a different site.`;
+    const over = leastSteep(ctx, ent, toLL, roadMaxGradePct);
+    if (!over) {
+      dw.note += ` None does even at ${K.leastSteep.maxPct}%.`;
+      return dw;
+    }
+    dw.overLimit = over;
+    dw.note += ` ${overLimitNote(over)}`;
     return dw;
   }
   found.sort((a, b) => a.rt.cost.mid - b.rt.cost.mid);

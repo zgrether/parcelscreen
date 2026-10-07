@@ -15,7 +15,15 @@ import { canHover, hideTip, showTip, TIP_AREAS, TIP_LAYERS } from "./tooltip";
 import { useOverlayPrefs } from "./useOverlayPrefs";
 
 const EMPTY = { type: "FeatureCollection" as const, features: [] };
-for (const id of [LAYER.driveRoute, LAYER.driveSecond, LAYER.driveDirect, LAYER.culverts, LAYER.trailheads])
+for (const id of [
+  LAYER.driveRoute,
+  LAYER.driveSecond,
+  LAYER.driveDirect,
+  LAYER.driveOver,
+  LAYER.driveOverStretch,
+  LAYER.culverts,
+  LAYER.trailheads,
+])
   TIP_LAYERS.add(id);
 TIP_AREAS.add(LAYER.soilFill);
 

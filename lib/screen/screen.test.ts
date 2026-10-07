@@ -13,6 +13,7 @@ import { scoreSiteDetailed, type ScoreContext } from "./score";
 import { AtlasCache } from "./sky";
 import { soilAt } from "./soils";
 import { defaultName, summaryText } from "./summary";
+import { overLimitNote } from "./driveway";
 import type { ProgressEvent, ScreenResult } from "./types";
 
 const CFG = DEFAULT_USER_CONFIG;
@@ -63,28 +64,61 @@ const PARITY: CompareOptions = {
   },
 };
 
+/**
+ * New in the port (owner, after 15c): with no legal route, the result also carries the least-steep route
+ * (driveway.overLimit) and one sentence appended to the note. The prototype's note must come first, in full
+ * and unchanged: the golden's note is the prefix, then exactly the appended sentence. For parity both
+ * additions are taken off again.
+ */
+function asPrototype(r: ScreenResult, golden: unknown): ScreenResult {
+  const d = r.driveway;
+  if (!d?.overLimit) return r;
+  const original = (golden as { driveway: { note: string } }).driveway.note;
+  expect(d.note!.startsWith(original)).toBe(true);
+  expect(d.note!.slice(original.length)).toBe(` ${overLimitNote(d.overLimit)}`);
+  const { overLimit: _, ...rest } = d;
+  void _;
+  return { ...r, driveway: { ...rest, note: original } };
+}
+
 describe("the full screen vs the prototype: all five goldens", () => {
   it.each(FIXTURE_SLUGS)("%s: plain run", async (slug) => {
     const out = await run(slug);
-    expect(differences(out.result, fromPrototype(loadFixture(slug).goldens.run), PARITY)).toEqual([]);
+    expect(
+      differences(
+        asPrototype(out.result, loadFixture(slug).goldens.run),
+        fromPrototype(loadFixture(slug).goldens.run),
+        PARITY,
+      ),
+    ).toEqual([]);
   });
 
   it("Macks Mountain: re-evaluated at site #2 (evaluateAt)", async () => {
     const fx = loadFixture("macks-mountain-35-3");
     const ev = await evaluateAt(await run("macks-mountain-35-3"), fx.input.evaluateSite2!.ll, "site #2");
-    expect(differences(ev.result, fromPrototype(fx.goldens.evaluateSite2!), PARITY)).toEqual([]);
+    expect(
+      differences(
+        asPrototype(ev.result, fx.goldens.evaluateSite2!),
+        fromPrototype(fx.goldens.evaluateSite2!),
+        PARITY,
+      ),
+    ).toEqual([]);
   });
 
   it("Ferney Creek: house marked on the finished run (setHouse)", async () => {
     const fx = loadFixture("ferney-creek-52-47A");
     const sh = await setHouse(await run("ferney-creek-52-47A"), fx.input.house!.ll);
-    expect(differences(sh.result, fromPrototype(fx.goldens.setHouse!), PARITY)).toEqual([]);
+    expect(
+      differences(asPrototype(sh.result, fx.goldens.setHouse!), fromPrototype(fx.goldens.setHouse!), PARITY),
+    ).toEqual([]);
   });
 
   it("Ferney Creek: full run with the house (screen({ house }))", async () => {
     const fx = loadFixture("ferney-creek-52-47A");
     const out = await run("ferney-creek-52-47A", { house: fx.input.house!.ll });
-    expect(differences(out.result, fromPrototype(fx.goldens.houseRun!), PARITY)).toEqual([]);
+    expect(
+      differences(asPrototype(out.result, fx.goldens.houseRun!), fromPrototype(fx.goldens.houseRun!), PARITY),
+    ).toEqual([]);
   });
 });
 
