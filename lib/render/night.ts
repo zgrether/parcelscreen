@@ -257,6 +257,15 @@ const COMPASS16 = [
 export const compassOf = (a: number): string => COMPASS16[Math.round((((a % 360) + 360) % 360) / 22.5) % 16]!;
 
 /**
+ * The core's label (the prototype's two, L1815, plus the owner's third before #64): behind the ridge when the
+ * skyline there (read as the engine reads it) stands higher than the core; else washed out under a bright sky.
+ */
+export function coreLabel(core: AzAlt, ridgeAt: (az: number) => number, mwVis: number): string {
+  if (ridgeAt(core.az) > core.alt) return "Milky Way core (behind ridge)";
+  return mwVis > 0.25 ? "Milky Way core" : "Milky Way core (washed out here)";
+}
+
+/**
  * Scene 5's caption (proto L1865), word for word: the zenith, the wash-out, and where the core sits against
  * the ridge (the skyline read as the engine reads it, plus the canopy allowance where the prototype used 3°).
  */

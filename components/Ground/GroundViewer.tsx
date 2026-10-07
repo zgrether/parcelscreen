@@ -38,6 +38,7 @@ import {
 import {
   clockIn,
   compassOf,
+  coreLabel,
   domesOf,
   galaxyAt,
   hazeOf,
@@ -205,6 +206,7 @@ export function GroundViewer({
         band,
         mwVis,
         core: galaxy.core,
+        coreLabel: coreLabel(galaxy.core, (az) => skylineAt(profile, az), mwVis),
       });
     else drawDay(ctx, { view, profile, canopyDeg, path, marks, sun, ridges: shaded });
   });
