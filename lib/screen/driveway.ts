@@ -276,6 +276,12 @@ interface RouteOpts {
   maxGrade: number;
   wGrade: number;
   label: string;
+  /**
+   * Keep to the parcel (owner, after #52; the least-steep route only): land outside the boundary is off
+   * limits except within this many metres of the start, the entrance on the boundary. Unset, outside land
+   * costs `outsideFactor` more, as in the prototype.
+   */
+  insideExceptNearStartM?: number;
 }
 
 type RawRoute = Omit<Route, "entranceIndex">;
@@ -304,6 +310,10 @@ export function routeDriveway(
   if (sr < 0 || sc < 0 || sr >= h || sc >= w || tr < 0 || tc < 0 || tr >= h || tc >= w) return null;
   const src = sr * w + sc,
     dst = tr * w + tc;
+  // Inside-only routing: an outside cell is passable only within nearM metres of the start.
+  const nearM = opts.insideExceptNearStartM;
+  const outsideOk = (r: number, c: number) =>
+    nearM === undefined || ((r - sr) * d.resY) ** 2 + ((c - sc) * d.res) ** 2 <= nearM * nearM;
   const dist = new Float32Array(n).fill(Infinity),
     prev = new Int32Array(n).fill(-1);
   const heap = new MinHeap();
@@ -345,6 +355,7 @@ export function routeDriveway(
         cc = c + dc;
       if (rr < 0 || cc < 0 || rr >= h || cc >= w) continue;
       const j = rr * w + cc;
+      if (!inside[j] && !outsideOk(rr, cc)) continue;
       if (Number.isNaN(z[j]!)) continue;
       // B9: rows scale by res and columns by resY (swapped, harmless: equal on 3DEP output).
       const len = Math.hypot(dr * d.res, dc * d.resY);
@@ -496,8 +507,8 @@ export function trackCost(rt: RawRoute, dw: UserConfig["dw"]): NonNullable<Route
 /**
  * The least-steep route when none fits the limit (owner, after 15c): the lowest whole-percent cap above the
  * limit, up to K.leastSteep.maxPct, at which the routed entrances reach the target (binary search: a higher
- * cap only allows more paths), the cheaper entrance winning at that cap. Its over-limit stretches come from
- * the route's own 3 m profile.
+ * cap only allows more paths), the cheaper entrance winning at that cap, keeping to the parcel (land outside
+ * the boundary only at the entrance's edge). Its over-limit stretches come from the route's own 3 m profile.
  */
 export function leastSteep(
   ctx: RouteContext,
@@ -509,7 +520,14 @@ export function leastSteep(
   const at = (capPct: number) => {
     let best: { rt: RawRoute; entranceIndex: number } | null = null;
     ent.slice(0, K.entrancesRouted).forEach((e, entranceIndex) => {
-      const rt = routeDriveway(ctx, e.ll, toLL, { maxGrade: capPct / 100, wGrade: L.wGrade, label: L.label });
+      const rt = routeDriveway(ctx, e.ll, toLL, {
+        maxGrade: capPct / 100,
+        wGrade: L.wGrade,
+        label: L.label,
+        // Within the parcel: a route through the neighbours answers a different question, the easement one
+        // (owner, after #52; drawn easements are follow-up 34). Only the entrance's own few cells may lie outside.
+        insideExceptNearStartM: L.entranceM,
+      });
       if (rt && (!best || rt.cost.mid < best.rt.cost.mid)) best = { rt, entranceIndex };
     });
     return best as { rt: RawRoute; entranceIndex: number } | null;
