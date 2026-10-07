@@ -17,6 +17,9 @@ importers:
       geotiff:
         specifier: 2.1.3
         version: 2.1.3
+      maplibre-contour:
+        specifier: 0.1.1
+        version: 0.1.1
       maplibre-gl:
         specifier: ^6.12.0
         version: 6.12.0
@@ -2265,6 +2268,9 @@ packages:
 
   magic-string@1.4.2:
     resolution: {integrity: sha512-vG+rjFRj1PqdIBozIxAGMjPlOhaVe+GXpbttY/iSK7rGcJRMlwNJO7dcUwmUqkymsFLJiNGI06t4D7Fr7yRC9g==}
+
+  maplibre-contour@0.1.1:
+    resolution: {integrity: sha512-0m267124bx+LJ5zM1mpB23uvO4sCrgOb4dWgwbUbGWGsDsWNA4g93XTXPoRQga6GAD6TDI7tzyowBzdADSPusg==}
 
   maplibre-gl@6.12.0:
     resolution: {integrity: sha512-DwgganVi2BhNxOpD7ob3lJC0dQQz4HfJfuQQV3XxCY3XdOzFrMqp9ylMXhRzryRsOnIezdZcklWXIIs/Q8JPjA==}
@@ -5896,6 +5902,8 @@ snapshots:
   magic-string@1.4.2:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
+
+  maplibre-contour@0.1.1: {}
 
   maplibre-gl@6.12.0:
     dependencies:

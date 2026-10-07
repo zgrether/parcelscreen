@@ -1,7 +1,8 @@
 /**
  * The map's style: every basemap, the light-pollution overlay, the dim scrim and the parcel lines, as
  * MapLibre sources and layers, in the prototype's stacking order (proto L500–560: basemap < light pollution
- * < scrim < parcel lines < result overlays). Basemaps are all present and toggled by visibility.
+ * < scrim < parcel lines < result overlays). Basemaps are all present and toggled by visibility. Step 13g adds
+ * the terrain preview: a hillshade over the basemaps and contours under the parcel lines (terrainStyle.ts).
  *
  * The prototype's "state ortho" basemap picked VA, NC or USGS imagery per tile from the tile's centre and
  * drew the parent tile, unscaled, past each service's native zoom (plan B2). Here it is three stacked sources
@@ -14,6 +15,7 @@ import type {
   SourceSpecification,
   StyleSpecification,
 } from "maplibre-gl";
+import { contourLayers, GLYPHS, hillshadeLayer, terrainSources, type TerrainTiles } from "./terrainStyle";
 
 export type BasemapId = "state" | "imagery" | "esri" | "topo" | "streets";
 
@@ -125,6 +127,8 @@ export function buildStyle(opts: {
   base: BasemapId;
   lpAtlasTiles: string;
   lpYear: number;
+  /** The terrain preview's tiles (13g); without them the style has no terrain, hillshade or contours. */
+  terrain?: TerrainTiles;
 }): StyleSpecification {
   const sources: Record<string, SourceSpecification> = {};
   const layers: LayerSpecification[] = [];
@@ -138,6 +142,10 @@ export function buildStyle(opts: {
         layout: { visibility: id === opts.base ? "visible" : "none" },
       });
     }
+  if (opts.terrain) {
+    Object.assign(sources, terrainSources(opts.terrain));
+    layers.push(hillshadeLayer());
+  }
   sources[LAYER.lightPollution] = {
     type: "raster",
     tiles: [lightPollutionTiles(opts.lpAtlasTiles, opts.lpYear)],
@@ -179,6 +187,8 @@ export function buildStyle(opts: {
     layout: { visibility: "none" },
     paint: { "fill-color": "#0b1410", "fill-opacity": 0.38 },
   });
+  // Step 15 puts the terrain image and soil fills here, under the contours.
+  if (opts.terrain) layers.push(...contourLayers());
   sources[SOURCE.parcelLines] = { type: "geojson", data: EMPTY_FC };
   layers.push(
     // Nearly transparent fill so a tap anywhere inside an outline hits it (step 13 selects on tap).
@@ -346,5 +356,5 @@ export function buildStyle(opts: {
       },
     },
   );
-  return { version: 8, sources, layers };
+  return { version: 8, ...(opts.terrain ? { glyphs: GLYPHS } : {}), sources, layers };
 }

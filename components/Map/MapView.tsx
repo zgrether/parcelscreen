@@ -1,14 +1,17 @@
 "use client";
 /**
- * The MapLibre map: created once, view persisted (ps.view), shared with child controls through context.
+ * The MapLibre map: created once, view persisted (ps.view, with bearing and pitch from 13g), shared with child
+ * controls through context. Rotate and pitch are MapLibre's defaults (right-drag or Ctrl-drag; two fingers).
  * Children render inside the map's container, so they can position themselves over it.
  */
 import "maplibre-gl/dist/maplibre-gl.css";
 import { AttributionControl, Map as MlMap, setWorkerUrl } from "maplibre-gl";
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { SHEET_QUERY } from "@/components/Explore/useBottomSheet";
-import { getPref, setPref } from "@/lib/client/prefs";
+import { getPref, setPref, type MapView as SavedView } from "@/lib/client/prefs";
 import { buildStyle, isBasemapId } from "./style";
+import { terrainTiles } from "./terrain";
+import { MAX_PITCH } from "./terrainStyle";
 
 // MapLibre's worker is served from public/ (scripts/copy-maplibre-worker.mjs copies it there).
 setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
@@ -35,7 +38,7 @@ function startFolded(el: HTMLElement): void {
 }
 
 /** The prototype's opening view: southwest Virginia, zoom 9. */
-const START = { lat: 36.62, lon: -81.35, z: 9 };
+const START: SavedView = { lat: 36.62, lon: -81.35, z: 9 };
 
 export function MapView({
   lpAtlasTiles,
@@ -67,20 +70,35 @@ export function MapView({
     const base = getPref("ps.base");
     const m = new MlMap({
       container: container.current!,
-      style: buildStyle({ base: isBasemapId(base) ? base : "state", lpAtlasTiles, lpYear }),
+      style: buildStyle({
+        base: isBasemapId(base) ? base : "state",
+        lpAtlasTiles,
+        lpYear,
+        terrain: terrainTiles(),
+      }),
       center: [view.lon, view.lat],
       zoom: view.z,
+      bearing: view.b ?? 0,
+      pitch: view.p ?? 0,
       maxZoom: 20,
+      maxPitch: MAX_PITCH,
       attributionControl: false,
     });
     // No + / − buttons: the zoom slider in the right-hand column replaces them (13f).
     // Up top, beside the Map menu, rather than hanging over the toolbar (owner, 13e-5 review).
     m.addControl(new AttributionControl({ compact: true }), "top-right");
+    // The headless checks (and step 18's e2e) read the map's camera and rendered features: with ps.debug set
+    // in localStorage, the map is on window.__psMap. Never set in normal use.
+    try {
+      if (localStorage.getItem("ps.debug") === "1") (window as { __psMap?: MlMap }).__psMap = m;
+    } catch {
+      /* storage blocked: no debug handle */
+    }
     const attribution = m.getContainer().querySelector<HTMLElement>(".maplibregl-ctrl-attrib");
     if (attribution && window.matchMedia(SHEET_QUERY).matches) startFolded(attribution);
     m.on("moveend", () => {
       const c = m.getCenter();
-      setPref("ps.view", { lat: c.lat, lon: c.lng, z: m.getZoom() });
+      setPref("ps.view", { lat: c.lat, lon: c.lng, z: m.getZoom(), b: m.getBearing(), p: m.getPitch() });
     });
     // Ready once the style's sources and layers exist. Not "load": that also waits for the first basemap
     // tiles, so one slow or dead tile host (the VA ortho, during an outage) kept every tool switched off.

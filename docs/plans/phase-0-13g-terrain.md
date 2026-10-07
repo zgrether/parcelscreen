@@ -110,7 +110,7 @@ This is the contract step 15's pins follow (§5 of the 15 plan).
 
 ### DOM markers sit on the terrain
 
-The **house bulls-eye**, the **search marker** and step 15's **site pins** are `maplibregl.Marker` DOM elements.
+The **house bulls-eye**, the **split handles** and step 15's **site pins** are `maplibregl.Marker` DOM elements. *As built:* search drops no marker today (it only moves the map), so there's no search marker to check.
 
 - **Placement:** in MapLibre 6, a marker's screen position comes from its `lngLat` and **the terrain's elevation there** when terrain is on. It sits on the ground, not at sea level under it.
 - **Behind a ridge:** a marker hidden by terrain fades to `opacityWhenCovered` (MapLibre default 0.2). It stays tappable; see the next point.
@@ -126,7 +126,7 @@ The **house bulls-eye**, the **search marker** and step 15's **site pins** are `
 ### A tap on the map (select a parcel, place a draw corner, the house, a split end)
 
 - **Ground point:** this uses MapLibre's `e.lngLat`, which with terrain is the 3D-picked ground point (depth buffer), not the sea-level plane.
-- **13g checks the round trip** for points across the parcel and a ridge, pitched 60° at 1.5×: `unproject(project(ll))` lands within 1 m of `ll`.
+- **13g checks the round trip** for points across the parcel and a ridge, pitched 60° at 1.5×: `unproject(project(ll))` lands on the **same screen pixel** (0 px). *As built:* metres aren't the right measure. A point hidden behind a ridge from that camera unprojects to the visible slope in front of it, which is what a tap there should read. One of the nine points measured 8 m off yet 0 px.
 
 ### The tools are flat anyway (§4)
 
@@ -166,8 +166,8 @@ Precise placement never happens on a tilted map, but the rule above holds either
 - **Headless against `next start`, desktop and 390×844**, on Ferney Creek, flat and at pitch 60° / bearing 30°, terrain 1.5×:
   - **Tiles:** Terrarium tiles load (network); no CORS errors.
   - **Contours:** labelled majors at z15 (20/100 ft), 40/200 ft at z14, none at z12.
-  - **Markers:** the bulls-eye's and search marker's element centres are within 2 px of `map.project(lngLat)`. Dragging the bulls-eye on the pitched map drops it at the release point (within 2 px).
-  - **Taps:** the `unproject`/`project` round trip is within 1 m at 9 points across the parcel.
+  - **Markers:** the bulls-eye's element centre is within 2 px of `map.project(lngLat)`. Dragging the bulls-eye on the pitched map drops it at the release point (within 2 px).
+  - **Taps:** the `unproject`/`project` round trip lands on the same pixel (0 px) at 9 points across the parcel; a real tap on the pitched map selects the parcel under it.
   - **Tools:** Draw, Combine and Split flatten on entry and restore on exit.
   - **Compass:** resets to north and flat, and hides when flat.
   - **Prefs:** toggles persist across reload. A kept screen shows **no** "earlier settings" note after toggling any of them.
@@ -185,7 +185,7 @@ Precise placement never happens on a tilted map, but the rule above holds either
   - rotate and pitch by mouse and touch;
   - the compass resets to north and flat;
   - the tools flatten and restore;
-  - the bulls-eye, search marker and site pins sit on the ground when pitched, and a pin taps to its own site;
+  - the bulls-eye and site pins sit on the ground when pitched, and a pin taps to its own site;
   - toggling terrain never marks a screen out of date;
   - the phone frame rate is acceptable with everything on.
 

@@ -1,7 +1,7 @@
 "use client";
 /**
  * The map's right-hand column (step 13f plan §2–3): the GPS button and a vertical zoom slider, under the Map
- * menu. The slider replaces MapLibre's + / − buttons; its track is amber where parcel lines show. While the
+ * menu; above them, while the map is rotated or tilted, a compass that resets it to north and flat (13g). The slider replaces MapLibre's + / − buttons; its track is amber where parcel lines show. While the
  * Info panel is docked on the right, the column moves left of it (the map itself doesn't move). The track is
  * light amber from zoom 14 (parcel lines, but dense places wait) and amber from 15 (all of them).
  */
@@ -9,6 +9,7 @@ import { GeolocateControl, type Map as MlMap } from "maplibre-gl";
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { useExplore } from "@/components/Explore/useExploreController";
 import { useMap } from "./MapView";
+import { noteViewReset } from "./useFlatForTools";
 import { DENSE_BELOW_ZOOM, LINES_MIN_ZOOM } from "@/lib/geo/parcelTiles";
 
 type Hint = (text: string | ((prev: string) => string)) => void;
@@ -24,9 +25,58 @@ export function MapControls({ hint }: { hint: Hint }) {
   return (
     // 24 px in from the edge, clear of the phone's back-swipe zone; beside the Info panel when it's docked.
     <div className="map-col" style={{ right: panelInset ? panelInset + 10 : 24 }}>
+      {map && <Compass map={map} />}
       {map && <LocateButton map={map} hint={hint} />}
       {map && <ZoomSlider map={map} />}
     </div>
+  );
+}
+
+/**
+ * The compass (13g): its needle turns with the bearing and leans with the pitch. Tapping it eases to north
+ * and flat. Hidden while the map is already north-up and flat, like MapLibre's own.
+ */
+function Compass({ map }: { map: MlMap }) {
+  const [view, setView] = useState(() => ({ bearing: map.getBearing(), pitch: map.getPitch() }));
+  useEffect(() => {
+    let frame = 0;
+    const follow = () => {
+      if (!frame)
+        frame = requestAnimationFrame(() => {
+          frame = 0;
+          setView({ bearing: map.getBearing(), pitch: map.getPitch() });
+        });
+    };
+    map.on("rotate", follow);
+    map.on("pitch", follow);
+    return () => {
+      map.off("rotate", follow);
+      map.off("pitch", follow);
+      cancelAnimationFrame(frame);
+    };
+  }, [map]);
+  if (Math.abs(view.bearing) <= 0.5 && view.pitch <= 0.5) return null;
+  return (
+    <button
+      className="map-ctl-btn compass"
+      aria-label="Reset to north and flat"
+      title="Reset to north and flat"
+      onClick={() => {
+        noteViewReset(map);
+        map.easeTo({ bearing: 0, pitch: 0, duration: 300 });
+      }}
+    >
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 22 22"
+        aria-hidden="true"
+        style={{ transform: `rotateX(${view.pitch * 0.6}deg) rotate(${-view.bearing}deg)` }}
+      >
+        <path d="M11 2 15 11H7z" fill="#e0553f" />
+        <path d="M11 20 7 11h8z" fill="currentColor" />
+      </svg>
+    </button>
   );
 }
 

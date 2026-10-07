@@ -1629,3 +1629,90 @@ html:has(.explore) body {
     text-decoration: underline;
   }
 }
+
+/* ---------- 13g: the terrain preview's controls (Info › Layers dark, Map ▾ menu light) and the compass ---------- */
+.terrain-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.terrain-controls.info {
+  margin: 6px 8px 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--ip-rule);
+}
+.terrain-controls.menu {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-rule);
+}
+.tc-label {
+  font-size: 11.5px;
+  line-height: 1.3;
+}
+.terrain-controls.info .tc-label {
+  color: var(--ip-ink-2);
+}
+.terrain-controls.menu .tc-label {
+  color: var(--color-ink-2);
+}
+.tc-toggle {
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+/* Filled when on, outlined when off, as the Map menu's other toggles (13f). */
+.terrain-controls.menu .tc-toggle {
+  border: 1px solid var(--color-rule);
+  background: #fff;
+  color: var(--color-ink);
+}
+.terrain-controls.menu .tc-toggle[aria-pressed="true"] {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+.terrain-controls.info .tc-toggle {
+  border: 1px solid var(--ip-rule);
+  background: transparent;
+  color: var(--ip-ink);
+}
+.terrain-controls.info .tc-toggle[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--ip-sel);
+}
+.tc-seg {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+}
+.tc-seg button {
+  border-radius: 4px;
+  padding: 3px 0;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.terrain-controls.menu .tc-seg button {
+  border: 1px solid var(--color-rule);
+  background: #fff;
+  color: var(--color-ink);
+}
+.terrain-controls.menu .tc-seg button[aria-checked="true"] {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+.terrain-controls.info .tc-seg button {
+  border: 1px solid var(--ip-rule);
+  background: transparent;
+  color: var(--ip-ink);
+}
+.terrain-controls.info .tc-seg button[aria-checked="true"] {
+  background: var(--ip-sel);
+}
+.compass svg {
+  transition: transform 0.08s linear;
+}
