@@ -9,10 +9,14 @@ import {
   dateLabel,
   dayHours,
   dayOfYear,
+  ALT_GRID,
+  altToY,
+  lowScale,
   fmtSolar,
   groundDate,
   groundInputs,
   halfDay,
+  halfWidthDeg,
   horizonOf,
   hourMarks,
   isClear,
@@ -102,19 +106,25 @@ describe.each(GOLDENS)("the viewer's numbers on %s %s (plan §3)", (slug, key) =
   });
 });
 
-describe("the projection", () => {
-  const v = { heading: 180, pitch: 0, width: 800, height: 400, hfov: 90 };
-  it("puts the heading at the centre, the horizon at mid-height, and 45° off at the edges", () => {
-    expect(project(v, 180, 0)).toEqual({ x: 400, y: 200 });
-    const right = project(v, 225, 0)!,
-      left = project(v, 135, 0)!;
-    expect(right.x).toBeCloseTo(800, 6);
-    expect(left.x).toBeCloseTo(0, 6);
-    expect(project(v, 180, 10)!.y).toBeLessThan(200);
-    expect(project(v, 0, 0)).toBeNull(); // behind
+describe("the cylindrical panorama and its altitude scale (owner, after the 17a review)", () => {
+  const v = { heading: 180, width: 800, height: 1000, kx: 10 };
+  it("azimuth across, wrapping round; the heading at the centre", () => {
+    expect(project(v, 180, -5)).toEqual({ x: 400, y: 1000 });
+    expect(project(v, 190, 0).x).toBe(500);
+    expect(project(v, 350, 0).x).toBe(400 + 170 * 10); // the short way round
+    expect(halfWidthDeg(v)).toBe(40);
   });
-  it("pitching up lowers the horizon", () => {
-    expect(project({ ...v, pitch: 10 }, 180, 0)!.y).toBeGreaterThan(200);
+  it("−5° to 30° is linear over the lower 70%; 30° to 90° shares the rest; the sun is always in frame", () => {
+    expect(altToY(-5, 1000)).toBe(1000);
+    expect(altToY(30, 1000)).toBeCloseTo(300, 9);
+    expect(altToY(12.5, 1000)).toBeCloseTo(650, 9); // halfway through the linear part
+    expect(altToY(60, 1000)).toBeCloseTo(150, 9);
+    expect(altToY(90, 1000)).toBeCloseTo(0, 9);
+    expect(altToY(95, 1000)).toBeCloseTo(0, 9);
+    expect(lowScale(1000)).toBe(20);
+    // The ground below the horizontal stays a small share of the view: 10% (the owner's limit is ~25%).
+    expect((1000 - altToY(0, 1000)) / 1000).toBeCloseTo(0.1, 9);
+    expect(ALT_GRID).toEqual([0, 10, 20, 30, 45, 60, 90]);
   });
   it("turns the short way", () => {
     expect(turn(350, 10)).toBe(20);

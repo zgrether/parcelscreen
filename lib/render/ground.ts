@@ -24,38 +24,52 @@ export interface AzAlt {
 
 // ---------- the projection ----------
 
-/** Where the eye looks, and the window it looks through. */
+/**
+ * A cylindrical (equirectangular) panorama (owner, after the 17a review): azimuth across, wrapping round 360°,
+ * and altitude up on one scale for everything drawn (terrain, skyline, canopy line, sun path, ticks). It
+ * replaces the plan's eye-level camera projection, which couldn't hold a June sun and the skyline together.
+ */
 export interface GroundView {
-  /** Degrees clockwise from north. */
+  /** The azimuth at the centre, degrees clockwise from north. */
   heading: number;
-  /** Degrees above the horizontal. */
-  pitch: number;
   width: number;
   height: number;
-  /** Horizontal field of view, degrees. */
-  hfov: number;
+  /** Pixels per degree of azimuth. */
+  kx: number;
 }
 
 /**
- * Eye-level (rectilinear) projection, as a camera at the point sees it: null for a direction behind the eye
- * or too close to its side to draw.
+ * The altitude scale (owner): −5° to 30° linear over the lower 70% of the height, 30° to 90° compressed into
+ * the rest, so the sun is in frame at any date and hour while the skyline keeps most of the room.
  */
-export function project(v: GroundView, az: number, alt: number): { x: number; y: number } | null {
-  const a = az * DEG,
-    e = alt * DEG,
-    h = v.heading * DEG,
-    p = v.pitch * DEG;
-  // World: x east, y north, z up.
-  const dx = Math.sin(a) * Math.cos(e),
-    dy = Math.cos(a) * Math.cos(e),
-    dz = Math.sin(e);
-  const fwd = dx * Math.sin(h) * Math.cos(p) + dy * Math.cos(h) * Math.cos(p) + dz * Math.sin(p);
-  if (fwd < 0.05) return null;
-  const right = dx * Math.cos(h) - dy * Math.sin(h);
-  const up = -dx * Math.sin(h) * Math.sin(p) - dy * Math.cos(h) * Math.sin(p) + dz * Math.cos(p);
-  const f = v.width / 2 / Math.tan((v.hfov / 2) * DEG);
-  return { x: v.width / 2 + (f * right) / fwd, y: v.height / 2 - (f * up) / fwd };
+export const ALT_BOTTOM = -5;
+export const ALT_KNEE = 30;
+export const ALT_TOP = 90;
+export const KNEE_SHARE = 0.7;
+/** The labelled altitude lines. */
+export const ALT_GRID = [0, 10, 20, 30, 45, 60, 90] as const;
+
+/** Screen y of an altitude (below −5° falls under the bottom edge). */
+export function altToY(alt: number, height: number): number {
+  const low = KNEE_SHARE * height;
+  if (alt <= ALT_KNEE) return height - ((alt - ALT_BOTTOM) / (ALT_KNEE - ALT_BOTTOM)) * low;
+  const a = Math.min(alt, ALT_TOP);
+  return height - low - ((a - ALT_KNEE) / (ALT_TOP - ALT_KNEE)) * (height - low);
 }
+
+/**
+ * Pixels per degree in the linear part of the scale. Azimuth uses the same, so shapes near the horizon keep
+ * their true proportions.
+ */
+export const lowScale = (height: number): number => (KNEE_SHARE * height) / (ALT_KNEE - ALT_BOTTOM);
+
+/** Where a direction falls in the window (it may be outside it). */
+export function project(v: GroundView, az: number, alt: number): { x: number; y: number } {
+  return { x: v.width / 2 + turn(v.heading, az) * v.kx, y: altToY(alt, v.height) };
+}
+
+/** Half the window's width, in degrees of azimuth. */
+export const halfWidthDeg = (v: GroundView): number => v.width / 2 / v.kx;
 
 /** Degrees in [0, 360). */
 export const wrap360 = (d: number): number => ((d % 360) + 360) % 360;

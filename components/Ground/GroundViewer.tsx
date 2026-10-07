@@ -18,6 +18,7 @@ import {
   isClear,
   PRESETS,
   sunAt,
+  lowScale,
   sunPath,
   todayIn,
   type GroundInputs,
@@ -78,8 +79,8 @@ export function GroundViewer({
   const [f, setF] = useState(0.2);
   const H = -lim + 2 * lim * f;
   const [playing, setPlaying] = useState(true);
-  // Where the eye looks, relative to the sun (heading) and above the default (pitch).
-  const [look, setLook] = useState({ dAz: 0, dAlt: 0 });
+  // Where the eye looks, relative to the sun (the view follows it, as the prototype's did; drag to look aside).
+  const [dAz, setDAz] = useState(0);
 
   const path = useMemo(() => sunPath(lat, date.doy), [lat, date.doy]);
   const marks = useMemo(
@@ -112,7 +113,7 @@ export function GroundViewer({
 
   const sun = sunAt(lat, date.doy, H);
   const clear = isClear(lat, date.doy, H, profile, canopyDeg);
-  const heading = (((sun.az + look.dAz) % 360) + 360) % 360;
+  const heading = (((sun.az + dAz) % 360) + 360) % 360;
 
   // The canvas, sized to its box at the device's pixel ratio.
   const box = useRef<HTMLDivElement>(null);
@@ -125,18 +126,9 @@ export function GroundViewer({
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  const hfov = size.w && size.h && size.w < size.h ? 70 : 90;
-  const vfov =
-    size.w && size.h
-      ? (2 * Math.atan(Math.tan((hfov / 2) * (Math.PI / 180)) * (size.h / size.w)) * 180) / Math.PI
-      : 50;
-  // The skyline stays in the frame: the view rises with the sun (the prototype's 6° for a low winter sun,
-  // proto eyeLook) only until the horizon nears the bottom edge. A midday summer sun can sit above the frame;
-  // dragging up looks at it.
-  const pitch = Math.max(
-    -5,
-    Math.min(60, Math.max(6, Math.min(sun.alt - vfov * 0.3, vfov / 2 - 4)) + look.dAlt),
-  );
+  // Azimuth at the same pixels per degree as the altitude scale's linear part (−5° to 30°), so the land keeps
+  // its true proportions; the whole sky to 90° is always in frame (lib/render/ground altToY).
+  const kx = size.h ? lowScale(size.h) : 10;
   useEffect(() => {
     const c = canvas.current;
     if (!c || !size.w || !size.h) return;
@@ -147,7 +139,7 @@ export function GroundViewer({
     if (!ctx) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     drawDay(ctx, {
-      view: { heading, pitch, width: size.w, height: size.h, hfov },
+      view: { heading, width: size.w, height: size.h, kx },
       profile,
       canopyDeg,
       path,
@@ -157,19 +149,17 @@ export function GroundViewer({
     });
   });
 
-  // Drag to look around: the angle under the pointer follows it.
-  const drag = useRef<{ x: number; y: number } | null>(null);
+  // Drag to look around, round all 360°: the azimuth under the pointer follows it.
+  const drag = useRef<number | null>(null);
   const onDown = useCallback((e: React.PointerEvent) => {
-    drag.current = { x: e.clientX, y: e.clientY };
+    drag.current = e.clientX;
     (e.target as Element).setPointerCapture(e.pointerId);
   }, []);
   const onMove = (e: React.PointerEvent) => {
-    if (!drag.current || !size.w) return;
-    const k = hfov / size.w;
-    const dx = e.clientX - drag.current.x,
-      dy = e.clientY - drag.current.y;
-    drag.current = { x: e.clientX, y: e.clientY };
-    setLook((l) => ({ dAz: l.dAz - dx * k, dAlt: Math.max(-40, Math.min(50, l.dAlt + dy * k)) }));
+    if (drag.current === null) return;
+    const dx = e.clientX - drag.current;
+    drag.current = e.clientX;
+    setDAz((d) => d - dx / kx);
   };
   const onUp = () => (drag.current = null);
 
@@ -250,10 +240,12 @@ export function GroundViewer({
         <p className="ground-caption tiny">
           Eye height at the selected site. The gold arc is the sun&apos;s path on {long}. Each hour has a tick
           from the skyline up to the sun — red where the sun is behind the ridge at that hour. Trees are not
-          shown. The band above the skyline is the {canopyDeg}° tree-canopy allowance the report counts as
-          blocking; the skyline is the screen&apos;s own horizon (bare earth, every 5°). Ridges are shaded by
-          distance (0–½, ½–1½, 1½–3 and 3–6 km) from the same 30 m elevation data; the white line is the
-          report&apos;s skyline. Drag to look around.
+          shown. The dashed line is the {canopyDeg}° tree-canopy allowance the report counts as blocking.
+          Ridges are shaded by distance (0–½, ½–1½, 1½–3 and 3–6 km). Above 30° the altitude scale is
+          compressed. Drag to look around.
+          <br />
+          Shaded ridges are the full 30 m terrain; the white line is the report&apos;s 5° skyline, which can
+          miss narrow peaks between samples.
         </p>
       </section>
     </div>,
