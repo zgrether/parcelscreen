@@ -33,7 +33,7 @@ It assumes step 13g has landed, so **3D terrain may be on and the map may be pit
 | Horizon fan | ✓ (`view.horizon[].rc`, `decAltByAz`) | ✗: `sun.profile` has no ridge distances |
 | Tap a pin to re-evaluate | ✓ (`evaluateAt` on the session) | ✗: pins are drawn but inert, with a tooltip ending "Run again to evaluate here." |
 
-This matches the 14d note "Run again to restore the map overlays, horizon fan and 3D view." (17a drops "and 3D view": the ground viewer needs no session.) Kept results get every overlay they can.
+This matches the 14d note, now "Run again to restore the map overlays and horizon fan." (17a dropped "and 3D view": the ground viewer needs no session.) Kept results get every overlay they can.
 
 ## 3. Structure
 

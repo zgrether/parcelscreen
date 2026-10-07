@@ -21,6 +21,7 @@ import {
 import { loadUserConfig, saveUserConfig } from "@/lib/client/userConfig";
 import type { UserConfig } from "@/lib/screen/types";
 import { SettingsProvider } from "@/components/Settings/SettingsDialog";
+import { GroundProvider } from "@/components/Ground/GroundContext";
 import { MapArea } from "./MapArea";
 import { HelpProvider } from "@/components/Help/HelpDialog";
 import { ScreenItContext } from "@/components/Results/ScreenItContext";
@@ -107,34 +108,36 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
       <HelpProvider>
         <SettingsProvider config={config} onSave={saveConfig}>
           <ScreenItContext.Provider value={screen}>
-            <div ref={root} className="explore" style={vars as CSSProperties}>
-              <div className="explore-map">
-                <MapArea
-                  config={config}
-                  hint={hint}
-                  setHint={setHint}
-                  bottomInset={sheet.inset}
-                  leftInset={leftInset}
-                />
+            <GroundProvider timeZone={config.timeZone} endpoints={config.endpoints}>
+              <div ref={root} className="explore" style={vars as CSSProperties}>
+                <div className="explore-map">
+                  <MapArea
+                    config={config}
+                    hint={hint}
+                    setHint={setHint}
+                    bottomInset={sheet.inset}
+                    leftInset={leftInset}
+                  />
+                </div>
+                <aside
+                  ref={panel}
+                  className={panelClass}
+                  style={sheet.height != null ? { height: sheet.height } : undefined}
+                >
+                  <div className="sheet-handle" title="Drag or tap to resize" {...sheet.handlers} />
+                  {/* One line, always: the parcel and the screen button (owner, after 14d). On phones it's the peek. */}
+                  <header className="explore-header" {...sheet.handlers}>
+                    <ScreenHeader s={screen} desk={docked ? { expanded, fold } : null} />
+                  </header>
+                  {(!docked || expanded) && (
+                    <div className="explore-scroll">
+                      <ScreenBody s={screen} />
+                      {children}
+                    </div>
+                  )}
+                </aside>
               </div>
-              <aside
-                ref={panel}
-                className={panelClass}
-                style={sheet.height != null ? { height: sheet.height } : undefined}
-              >
-                <div className="sheet-handle" title="Drag or tap to resize" {...sheet.handlers} />
-                {/* One line, always: the parcel and the screen button (owner, after 14d). On phones it's the peek. */}
-                <header className="explore-header" {...sheet.handlers}>
-                  <ScreenHeader s={screen} desk={docked ? { expanded, fold } : null} />
-                </header>
-                {(!docked || expanded) && (
-                  <div className="explore-scroll">
-                    <ScreenBody s={screen} />
-                    {children}
-                  </div>
-                )}
-              </aside>
-            </div>
+            </GroundProvider>
           </ScreenItContext.Provider>
         </SettingsProvider>
       </HelpProvider>

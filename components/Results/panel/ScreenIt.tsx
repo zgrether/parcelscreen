@@ -413,7 +413,7 @@ function Notices(p: {
           <p className="report-note">The house changed since this run — run again to assess it.</p>
         ))}
       {!p.sessionLive && !p.houseChanged && (
-        <p className="tiny muted">Run again to restore the map overlays, horizon fan and 3D view.</p>
+        <p className="tiny muted">Run again to restore the map overlays and horizon fan.</p>
       )}
       {p.settingsChanged && (
         <div className="tiny muted">
