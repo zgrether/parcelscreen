@@ -44,3 +44,17 @@ export function prototypeFn<T extends (...args: never[]) => unknown>(
     ...names.map((n) => globals[n]),
   ) as T;
 }
+
+/** The value of a top-level `const name = {...};` object literal (e.g. DEFAULTS, L407), evaluated. */
+export function prototypeConst<T>(name: string): T {
+  const at = html.indexOf(`const ${name} = {`);
+  if (at < 0) throw new Error(`prototype const ${name} not found`);
+  const open = html.indexOf("{", at);
+  let depth = 0;
+  for (let i = open; i < html.length; i++) {
+    if (html[i] === "{") depth++;
+    else if (html[i] === "}" && --depth === 0)
+      return new Function(`return (${html.slice(open, i + 1)});`)() as T;
+  }
+  throw new Error(`prototype const ${name}: unbalanced braces`);
+}

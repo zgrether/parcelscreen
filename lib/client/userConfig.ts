@@ -1,7 +1,7 @@
 /**
  * The user's Settings (thresholds, unit costs, anchors, endpoints, time zone) in localStorage under
- * "ps.cfg", merged over the defaults and validated. The Settings dialog (step 16) edits it; until then the
- * app reads the defaults through here.
+ * "ps.cfg", merged over the defaults and validated. The Settings dialog (step 16a, lib/client/settingsForm.ts)
+ * edits it; ExploreShell holds the live copy.
  */
 import { DEFAULT_USER_CONFIG, migrateEndpoints } from "@/lib/screen/config";
 import { UserConfigSchema, type UserConfig } from "@/lib/screen/types";
