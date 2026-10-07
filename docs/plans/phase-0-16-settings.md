@@ -171,7 +171,7 @@ No new dependency.
   - the summary's added / skipped / changed counts.
 - **Round trip (16b):** export → import into an empty store gives the same parcels, screens and settings; export → import into the same store skips every parcel and changes nothing.
 - **Prototype file (16b):** a prototype `cfg` (the real L415–456 defaults with `_res3`) converts and validates; its endpoints are replaced under the `_v` rule and the summary says so; its saved parcels become History parcels.
-- **Fixture:** changing a threshold and re-running changes the result. Ferney Creek with `houseMin` raised gives fewer house sites, and the step 10 parity runs with the defaults are unchanged. **The goldens aren't touched.**
+- **Fixture:** changing a threshold and re-running changes the result. Ferney Creek with `houseMin` raised (60 → 75 → 90) leaves less house-site ground, in smaller pieces: 24.8 → 14.1 → 7.4 ac, though not fewer sites (the big site breaks up, and shelves rank as compact sites instead). The step 10 parity runs with the defaults are unchanged. **The goldens aren't touched.**
 - **Headless:**
   - a save changes the next run, and the open parcel shows "These results used earlier settings."; a no-edit save shows no note;
   - a bad field: Save names it and nothing is stored;
