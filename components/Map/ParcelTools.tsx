@@ -13,6 +13,8 @@ import type { Side } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
 import { parcelFromLine } from "@/lib/geo/parcels";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
+import { useScreenItContext } from "@/components/Results/ScreenItContext";
+import { tipAt } from "./results/tooltip";
 import { useMap } from "./MapView";
 import { combineData, draftData, labelPoint, pieceLabels, selectionData, splitData } from "./overlays";
 import { LAYER, SOURCE } from "./style";
@@ -80,8 +82,10 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
       const { mode, draft } = c.current();
       // Combining: each tap adds or removes the parcel under it (step 13b).
       if (mode === "combine") return void c.combineAt(toLL(e), outlineAt(map, e.point));
-      // No tool waiting: select, swap or unselect (13e rules, exploreState.decideTap).
+      // No tool waiting: select, swap or unselect (13e rules, exploreState.decideTap). A tap on a result
+      // overlay (a fan ray) only shows its text (step 15b).
       if (!mode) {
+        if (tipAt(map, e.point)) return;
         const geo = c.parcel?.geo;
         const line = outlineAt(map, e.point);
         return c.tap({
@@ -217,8 +221,11 @@ function domMarker(className: string, title: string, color?: string): Marker {
 
 function useHouseMarker(map: MlMap | null, ctl: ExploreController) {
   const ref = useRef(ctl);
+  const screen = useScreenItContext();
+  const screenRef = useRef(screen);
   useEffect(() => {
     ref.current = ctl;
+    screenRef.current = screen;
   });
   const marker = useRef<Marker | null>(null);
   const open = ctl.state.store.open;
@@ -242,7 +249,14 @@ function useHouseMarker(map: MlMap | null, ctl: ExploreController) {
         ref.current.setHouse([p.lat, p.lng]);
       });
       m.getElement().addEventListener("click", () => {
-        if (!dragged) ref.current.selectLayer("house");
+        if (!dragged) {
+          ref.current.selectLayer("house");
+          // With an unsaved evaluation at a pin showing, the house takes the evaluation back to itself, as
+          // the prototype's bulls-eye tap did (L641; owner, 15b).
+          const s = screenRef.current;
+          const at = ref.current.state.store.open?.house;
+          if (s?.evaluated && at) s.evaluateAt(at, "the existing house");
+        }
         dragged = false;
       });
       marker.current = m.setLngLat([house[1], house[0]]).addTo(map);

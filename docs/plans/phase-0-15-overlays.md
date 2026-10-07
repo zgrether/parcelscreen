@@ -108,7 +108,7 @@ basemap < hillshade < light pollution < scrim < **terrain image** < **soil fills
   - **While it runs:** the hint says "Evaluating `label` — routing the driveway…" (L1280).
   - **When it lands:** the fan, the evaluation ring, the driveway and the report's sun, sky and driveway sections update.
 - **The bulls-eye** keeps 13e's behaviour (a tap selects the house layer; dragging re-assesses the house).
-  - The prototype's "tap the bulls-eye to evaluate at the house" moves to the house row's actions in Info › Layers ("Evaluate here"), because the tap is already taken (deviation D5).
+  - *As built (15b):* a bulls-eye tap still selects the house layer, and when an unsaved evaluation at a pin is showing it also takes the evaluation back to the house, as the prototype's tap did (L641). There's no separate "Evaluate here" action (D5).
 
 ## 5. On a tilted map (agrees with 13g §5)
 
@@ -141,8 +141,10 @@ Draw, Combine and Split flatten the camera (13g §4). No overlay interaction hap
 - **D2:** the image and the fan appear when the run finishes, not mid-run. The worker posts `view` only on done; posting the large rasters at each step would cost more than it's worth.
 - **D3:** the surface also has a row in Info › Layers, beside the map button.
 - **D4:** tooltips also open on tap, for touch.
-- **D5:** "Evaluate at the house" is an action on the house row rather than a bulls-eye tap.
+- **D5:** a bulls-eye tap evaluates at the house only when an unsaved evaluation is showing (otherwise the house is already the evaluation point, or the run was made without it); it also selects the house layer, as since 13e.
 - **D6:** overlays follow the open parcel; the prototype kept the last run's overlays on a new parcel.
+- **D7 (owner, after 15a):** while a surface shows, the selected parcel's amber fill goes clear (its outline stays), so the surface's colours are the legend's. It comes back with Off.
+- **D8 (15b):** a fan ray's text shows on a tap within 12 px on touch screens, picking the ray nearest the finger; such a tap doesn't close the parcel. Pins don't say "Run again to evaluate here." while a run is under way.
 
 ## 7. Tests: each overlay flat and pitched
 

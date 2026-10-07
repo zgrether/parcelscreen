@@ -25,6 +25,7 @@ import { fmt } from "@/lib/format";
 import { verdictView } from "@/lib/report/verdict";
 import { STEPS } from "@/lib/screen/config";
 import { summaryText } from "@/lib/screen/summary";
+import { evaluatedNote } from "@/lib/render/pins";
 import type { LatLon } from "@/lib/geo/types";
 import type { PartialScreenResult, ScreenResult, UserConfig } from "@/lib/screen/types";
 import type { ExploreController, SetHint } from "@/components/Explore/useExploreController";
@@ -57,11 +58,12 @@ export function useScreenIt(
   // A pin tap re-evaluates at another point (step 15): shown, never kept (owner, 15 plan Q1).
   const [evalAsked, setEvalAsked] = useState<{ serial: number; ll: LatLon; label: string } | null>(null);
   const awaitingEval = useRef(false);
+  const evalHint = useRef("");
 
   // Handlers and effects read the latest controller and callback.
-  const latest = useRef({ ctl, onFinished });
+  const latest = useRef({ ctl, onFinished, hint });
   useEffect(() => {
-    latest.current = { ctl, onFinished };
+    latest.current = { ctl, onFinished, hint };
   });
 
   // The open parcel's last kept screen, read back when it opens (or when a new one is kept).
@@ -98,6 +100,8 @@ export function useScreenIt(
     // A re-evaluation at another point is exploration: not a new screen, and the sheet stays where it is.
     if (awaitingEval.current) {
       awaitingEval.current = false;
+      const msg = evalHint.current;
+      latest.current.hint((h) => (h === msg ? "" : h));
       return;
     }
     const reassessed = awaitingHouse.current ? askedHouse.current : null;
@@ -140,39 +144,49 @@ export function useScreenIt(
     screen.run({ polygon: parcel.geo.geometry, config, ...(house ? { house } : {}) });
   };
 
-  // Copy summary (proto L1565): the kept result's plain-text summary; the map's hint says so for 1.5 s.
+  // Re-evaluate at a pin (15b): only with this parcel's live session. The hint says what's happening, as the
+  // prototype's setFocus did (L1279), until the answer arrives.
+  const evaluateAt = (ll: LatLon, label: string) => {
+    if (!sessionLive || screen.state.updating) return;
+    awaitingEval.current = true;
+    setEvalAsked({ serial, ll, label });
+    const msg = `Evaluating ${label} — routing the driveway…`;
+    evalHint.current = msg;
+    hint(msg);
+    screen.evaluateAt(ll, label);
+  };
+  // The live result is an unsaved re-evaluation when its evaluation point is the one asked for and differs
+  // from the kept screen's own. Re-evaluating at the run's own point (its site, or the house) ends it, as does
+  // a house re-assessment (it moves the point to the house).
+  const liveFocus = screen.state.result?.focus?.ll;
+  const keptFocus = shown?.result.focus?.ll ?? shown?.result.point?.ll;
+  const same = (a: LatLon | undefined, b: LatLon | undefined) => !!a && !!b && a[0] === b[0] && a[1] === b[1];
+  const evaluated =
+    sessionLive &&
+    !screen.state.updating &&
+    !!evalAsked &&
+    evalAsked.serial === serial &&
+    same(liveFocus, evalAsked.ll) &&
+    !same(liveFocus, keptFocus)
+      ? (screen.state.result as ScreenResult)
+      : null;
+
+  // Copy summary (proto L1565): the shown result's plain-text summary, with the unsaved-evaluation note when
+  // there is one; the map's hint says so for 1.5 s.
   const copySummary = () => {
     if (!shown) return;
     const say = (msg: string) => {
       hint(msg);
       setTimeout(() => hint((h) => (h === msg ? "" : h)), 1500);
     };
-    navigator.clipboard.writeText(summaryText(shown.result)).then(
+    const text = evaluated
+      ? `${summaryText(evaluated)}\n${evaluatedNote(evalAsked!.label)}`
+      : summaryText(shown.result);
+    navigator.clipboard.writeText(text).then(
       () => say("Summary copied"),
       () => say("The browser didn't allow copying"),
     );
   };
-
-  // Re-evaluate at a pin (15b uses it): only with this parcel's live session.
-  const evaluateAt = (ll: LatLon, label: string) => {
-    if (!sessionLive || screen.state.updating) return;
-    awaitingEval.current = true;
-    setEvalAsked({ serial, ll, label });
-    screen.evaluateAt(ll, label);
-  };
-  // The live result is an unsaved re-evaluation when its evaluation point is the one asked for. (A house
-  // re-assessment moves the point to the house, so it ends this.)
-  const liveFocus = screen.state.result?.focus?.ll;
-  const evaluated =
-    sessionLive &&
-    !screen.state.updating &&
-    !!evalAsked &&
-    evalAsked.serial === serial &&
-    !!liveFocus &&
-    liveFocus[0] === evalAsked.ll[0] &&
-    liveFocus[1] === evalAsked.ll[1]
-      ? (screen.state.result as ScreenResult)
-      : null;
 
   const runningHere = running && live?.serial === serial;
   const display: PartialScreenResult | null = runningHere
@@ -201,11 +215,17 @@ export function useScreenIt(
     point,
     /** The worker's session for this parcel's shown run (surfaces, horizon…), or null after a reload. */
     view: sessionLive ? screen.state.view : null,
+    /** Where the live session was last evaluated (the fan starts there), and the run's canopy allowance. */
+    viewFrom: sessionLive && screen.state.result ? (evaluationPoint(screen.state.result)?.ll ?? null) : null,
+    canopyDeg: shown?.result.params.canopyDeg ?? null,
     evaluateAt,
     /** The unsaved re-evaluation shown, if any (its label for the "not saved" note, 15b). */
     evaluated: evaluated ? { label: evalAsked!.label } : null,
   };
 }
+
+/** The sections an evaluation point moves (proto setFocus: sun, sky, driveway), which carry the unsaved note. */
+const EVALUATED_SECTIONS = new Set(["december-sun", "dark-skies", "driveway"]);
 
 const VERDICT_WORD = {
   fatal: "Walk away",
@@ -331,6 +351,9 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             const h = heading(display, point);
             return (
               <Section key={h.slug} heading={h}>
+                {s.evaluated && EVALUATED_SECTIONS.has(h.slug) && (
+                  <p className="report-note eval-note">{evaluatedNote(s.evaluated.label)}</p>
+                )}
                 {body}
               </Section>
             );

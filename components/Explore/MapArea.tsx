@@ -6,6 +6,8 @@ import { Hint, MapTools } from "@/components/Map/MapTools";
 import { ParcelTools } from "@/components/Map/ParcelTools";
 import { Search } from "@/components/Map/Search";
 import { TerrainLayers } from "@/components/Map/TerrainLayers";
+import { FanLayer } from "@/components/Map/results/FanLayer";
+import { ResultPins } from "@/components/Map/results/ResultPins";
 import { SurfaceLayer } from "@/components/Map/results/SurfaceLayer";
 import { useFlatForTools } from "@/components/Map/useFlatForTools";
 import { Toolbar } from "@/components/Map/Toolbar";
@@ -42,6 +44,8 @@ export function MapArea({
     >
       <TerrainLayers hint={setHint} />
       <SurfaceLayer />
+      <FanLayer />
+      <ResultPins />
       <MapTools parcelServices={config.endpoints.parcels} hint={setHint} />
       <MapControls hint={setHint} />
       <ParcelTools />
