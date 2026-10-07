@@ -5,7 +5,7 @@
  * object id (`fullRecord`), so screening, acres and the dedupe key never see simplified geometry.
  */
 import type { Feature, MultiPolygon, Polygon } from "geojson";
-import { CancelledError, type HttpClient } from "../http";
+import { CancelledError, HttpError, type HttpClient } from "../http";
 import { PARCEL_SERVICE_TIMEOUTS } from "./serviceStatus";
 import { parcelFromLine, type Bounds, type ParcelLine, type ParcelRecord } from "./parcels";
 
@@ -201,7 +201,8 @@ export const drawsAt = (zoom: number, count: number | null): boolean =>
 /**
  * The full county record behind a drawn outline (all fields, full geometry), by the object id in its
  * properties. Throws when there's no object id or the service doesn't return the record: a simplified
- * outline is never used in its place.
+ * outline is never used in its place. A service that fails (an HTTP error, or an ArcGIS error in the body)
+ * throws HttpError, so the explorer can name it (serviceStatus isServiceDown).
  */
 export async function fullRecord(
   http: HttpClient,
@@ -222,10 +223,12 @@ export async function fullRecord(
     ...PARCEL_SERVICE_TIMEOUTS,
     ...(signal ? { signal } : {}),
   });
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  const host = new URL(outline.source).host;
+  if (!r.ok) throw new HttpError(r.status, host);
   const j = (await r.json()) as Page;
+  if (j.error) throw new HttpError(500, host, j.error.message || `${host} error`);
   const feature = j.features?.[0];
-  if (!feature) throw new Error(j.error?.message || "The record wasn't found");
+  if (!feature) throw new Error("The record wasn't found");
   return parcelFromLine({ feature, source: outline.source });
 }
 

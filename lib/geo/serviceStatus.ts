@@ -6,6 +6,7 @@
  * Parcel requests also get the flood step's timeout rule (follow-up 22): one retry after a timeout, with a
  * longer limit. An HTTP error or a refused request isn't retried; moving the map asks again.
  */
+import { HttpError, TimeoutError } from "../http";
 import { STATE_BY_HOST } from "./recipe";
 
 /** Per attempt (the client's default), and the one longer retry after a timeout. */
@@ -30,6 +31,14 @@ export function serviceDownMessage(serviceUrl: string): string {
   const name = STATE_NAMES[STATE_BY_HOST[host] ?? ""];
   return `${name ? `${name} parcel service` : "The parcel service"} ${TAIL}`;
 }
+
+/**
+ * Whether a parcel-service request failed because the service didn't answer: a timeout, an HTTP error or an
+ * ArcGIS error in the body (HttpError), or no connection at all (fetch's TypeError, as when offline). A
+ * cancelled request, or a record that isn't there, isn't the service being down.
+ */
+export const isServiceDown = (e: unknown): boolean =>
+  e instanceof TimeoutError || e instanceof HttpError || e instanceof TypeError;
 
 /** Whether a hint is one of these, so whoever showed it can clear it. */
 export const isServiceDownMessage = (h: string): boolean => h.endsWith(TAIL);
