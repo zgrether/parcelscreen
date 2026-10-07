@@ -136,7 +136,7 @@ const WorkingSchema = z.object({
   screenIds: z.array(z.string()),
   updatedAt: z.string(),
 });
-const StoreSchema = z.object({
+export const ParcelStoreSchema = z.object({
   v: z.literal(2),
   open: WorkingSchema.nullable(),
   built: z.array(WorkingSchema.extend({ key: z.string() })),
@@ -154,7 +154,7 @@ export function loadParcelStore(
 
 /** Reads `ps.parcels`; anything stale or malformed is dropped (null). */
 export function readParcelStore(raw: string): ParcelStore | null {
-  const r = StoreSchema.safeParse(JSON.parse(raw));
+  const r = ParcelStoreSchema.safeParse(JSON.parse(raw));
   return r.success ? (r.data as ParcelStore) : null;
 }
 

@@ -10,7 +10,7 @@ import { browserHttp } from "@/lib/client/http";
 import { CancelledError } from "@/lib/http";
 import { coordinatesIn, idPattern, matchesName } from "@/lib/search/query";
 import { searchParcelNumbers, searchPlaces, type ParcelHit, type PlaceHit } from "@/lib/search/sources";
-import { parcelName } from "@/components/Explore/History";
+import { historyRows } from "@/lib/client/historyRows";
 import { useExplore } from "@/components/Explore/useExploreController";
 import { countiesShown } from "./useParcelLines";
 
@@ -102,10 +102,7 @@ function SearchBox({ photonUrl, close }: { photonUrl: string; close(): void }) {
   }, [text, ctl.map, photonUrl]);
   useEffect(() => () => searching.current?.abort(), []);
 
-  const saved = useMemo(
-    () => ctl.state.store.built.map((b) => ({ key: b.key!, ...parcelName(b) })),
-    [ctl.state.store.built],
-  );
+  const saved = useMemo(() => historyRows(ctl.state.store.built), [ctl.state.store.built]);
 
   // The groups, in order; picking anything closes the search.
   const done = (f: () => void) => () => {
@@ -133,7 +130,11 @@ function SearchBox({ photonUrl, close }: { photonUrl: string; close(): void }) {
       options: savedHits.map((s) => ({
         key: `saved:${s.key}`,
         label: s.name,
-        ...(s.acres !== null ? { detail: `${s.acres.toFixed(2)} ac` } : {}),
+        ...(s.tellApart
+          ? { detail: s.tellApart }
+          : s.acres !== null
+            ? { detail: `${s.acres.toFixed(2)} ac` }
+            : {}),
         pick: done(() => ctl.openSaved(s.key)),
       })),
     });

@@ -265,9 +265,16 @@ Phase 1 imports it into Supabase the same way as the `ps.parcels` store. It's ve
   - `screens` become `screens` rows (version 1 each, immutable), linked through `screenIds`;
   - `cfg` becomes the user's settings;
   - `open` is ignored.
-- **Duplicates:** the Phase 0 import matches every parcel on its `key`: an identical key is skipped, never
-  overwritten, and a distinct recipe of the same county record is added as its own entry. So a file can carry
-  several recipes of one record. Deduplicating across recipes, with the §3 dedupe key, is Phase 1's job.
+- **Duplicates:** the Phase 0 import matches every parcel on its `key`:
+  - an identical key is skipped, never overwritten;
+  - so is an identical recipe under another key: the same pieces, by source and geometry, and the same split;
+  - a distinct recipe of the same county record is added as its own entry.
+
+  So History, and a file, can hold several recipes of one record, and duplicates made before 16b stay.
+  Deduplicating them, with the §3 dedupe key, is Phase 1's job.
+- **Names from the prototype:** History has no name field. A parcel imported from a prototype export keeps
+  its saved name as the first line of `notes`, exactly `Name: {name}`, then a blank line, then any notes.
+  Phase 1's import lifts that line into the parcel's name and keeps the rest as `notes`.
 - **All or nothing:** the whole file is validated before anything is written.
 
 ## 4. The parcel page (the export)

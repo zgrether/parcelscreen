@@ -2,20 +2,12 @@
 /**
  * History (13e): every built parcel, newest first, with Open and Remove. Remove is the only way a parcel
  * leaves History (and the map); nothing expires. Remove asks once, inline. It lives in the app menu (owner,
- * after 14d), which closes when a parcel is opened (`onOpened`).
+ * after 14d), which closes when a parcel is opened (`onOpened`). Two recipes of one record say what tells them
+ * apart (historyRows).
  */
-import { useState } from "react";
-import { recipeOf, type WorkingParcel } from "@/lib/client/parcelStore";
-import { deriveParcel } from "@/lib/geo/recipe";
-import { SCREEN_CONSTANTS } from "@/lib/screen/config";
-import { parcelDisplayName } from "./layers";
+import { useMemo, useState } from "react";
+import { historyRows } from "@/lib/client/historyRows";
 import { useExplore } from "./useExploreController";
-
-/** The name History shows: the parcel IDs (with "+ drawn"), or "Drawn parcel". */
-export function parcelName(p: WorkingParcel): { name: string; acres: number | null } {
-  const d = deriveParcel(recipeOf(p), SCREEN_CONSTANTS.combine);
-  return { name: parcelDisplayName(d), acres: d.ok ? d.acres : null };
-}
 
 const when = (iso: string) =>
   new Date(iso).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
@@ -24,6 +16,7 @@ export function History({ onOpened }: { onOpened?: () => void }) {
   const ctl = useExplore();
   const { built, open } = ctl.state.store;
   const [confirming, setConfirming] = useState<string | null>(null);
+  const rows = useMemo(() => new Map(historyRows(built).map((r) => [r.key, r])), [built]);
 
   return (
     <section className="block">
@@ -38,14 +31,18 @@ export function History({ onOpened }: { onOpened?: () => void }) {
           {[...built]
             .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
             .map((b) => {
-              const { name, acres } = parcelName(b);
+              const { name, acres, tellApart } = rows.get(b.key!)!;
               const isOpen = open?.key === b.key;
               return (
                 <li key={b.key} className="grid grid-cols-[1fr_auto] items-baseline gap-x-2.5">
                   <span>
                     <b>{name}</b>
                     {isOpen && <span className="muted"> · open</span>}{" "}
-                    {acres !== null && <span className="muted num">{acres.toFixed(2)} ac</span>}
+                    {tellApart ? (
+                      <span className="muted num">{tellApart}</span>
+                    ) : (
+                      acres !== null && <span className="muted num">{acres.toFixed(2)} ac</span>
+                    )}
                   </span>
                   <span className="row row-span-2 self-center gap-3">
                     {confirming === b.key ? (

@@ -17,7 +17,7 @@ export interface ScreenRecord {
   result: ScreenResult;
 }
 
-const RecordSchema = z.object({
+export const ScreenRecordSchema = z.object({
   id: z.string(),
   keys: z.object({ boundary: z.string(), house: z.string(), settings: z.string() }),
   result: ScreenResultSchema,
@@ -72,6 +72,34 @@ export async function getScreen(id: string): Promise<ScreenRecord | null> {
       resolve(null);
     }
   });
-  const r = RecordSchema.safeParse(raw);
+  const r = ScreenRecordSchema.safeParse(raw);
   return r.success ? (r.data as ScreenRecord) : null;
+}
+
+/** The screens with these ids that are kept and readable, in the same order (export, 16b). */
+export async function getScreens(ids: readonly string[]): Promise<ScreenRecord[]> {
+  const all = await Promise.all(ids.map(getScreen));
+  return all.filter((r): r is ScreenRecord => r !== null);
+}
+
+/**
+ * Keeps imported screens, all in one transaction: either every one is kept or none is (16b's all or nothing).
+ * `put`, not `add`: an id names one immutable screen, so one already here is the same record.
+ */
+export async function putScreens(records: readonly ScreenRecord[]): Promise<boolean> {
+  if (records.length === 0) return true;
+  const d = await open();
+  if (!d) return false;
+  return new Promise((resolve) => {
+    try {
+      const tx = d.transaction(STORE, "readwrite");
+      const store = tx.objectStore(STORE);
+      for (const r of records) store.put(r);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => resolve(false);
+      tx.onabort = () => resolve(false);
+    } catch {
+      resolve(false);
+    }
+  });
 }

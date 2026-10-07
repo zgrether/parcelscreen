@@ -25,10 +25,22 @@ import {
   type SettingsForm,
 } from "@/lib/client/settingsForm";
 
-const SettingsContext = createContext<() => void>(() => {});
+interface SettingsApi {
+  /** Opens the Settings dialog. */
+  open(): void;
+  /** The settings in use. */
+  config: UserConfig;
+  /** Stores a valid config and uses it for the next run (Save, and an import's settings). */
+  save(c: UserConfig): void;
+}
 
-/** Opens the Settings dialog. */
-export const useOpenSettings = (): (() => void) => useContext(SettingsContext);
+const SettingsContext = createContext<SettingsApi>({
+  open: () => {},
+  config: DEFAULT_USER_CONFIG,
+  save: () => {},
+});
+
+export const useSettings = (): SettingsApi => useContext(SettingsContext);
 
 /** The browser's IANA zones, with the current one first if it isn't among them. */
 function zones(current: string): string[] {
@@ -68,6 +80,7 @@ export function SettingsProvider({
   };
 
   const bad = useMemo(() => new Set(errors.map((e) => e.id)), [errors]);
+  const api = useMemo(() => ({ open, config, save: onSave }), [open, config, onSave]);
   const setNumber = (id: string, v: string) => setForm((f) => ({ ...f, numbers: { ...f.numbers, [id]: v } }));
   const numberInput = (f: NumberField) => (
     <label key={f.id} className="settings-field">
@@ -83,7 +96,7 @@ export function SettingsProvider({
   );
 
   return (
-    <SettingsContext.Provider value={open}>
+    <SettingsContext.Provider value={api}>
       {children}
       <dialog
         ref={dialog}

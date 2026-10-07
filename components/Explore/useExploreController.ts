@@ -87,6 +87,8 @@ export interface ExploreController {
   openOutline(outline: { source: string; props: Record<string, unknown> }): Promise<void>;
   openSaved(key: string): void;
   removeSaved(key: string): void;
+  /** Adds imported parcels to History (16b). */
+  importParcels(added: WorkingParcel[]): void;
   setHouse(ll: LatLon | null): void;
   startDraw(): void;
   addCorner(ll: LatLon): void;
@@ -293,6 +295,9 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     removeSaved(key) {
       dispatch({ type: "removeSaved", key });
+    },
+    importParcels(added) {
+      dispatch({ type: "imported", added });
     },
     setHouse(ll) {
       if (latest.current.mode === "house") hint("");
