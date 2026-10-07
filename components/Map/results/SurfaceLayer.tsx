@@ -4,8 +4,6 @@
  * session, as a MapLibre image source placed by the grid's four corners. It drapes on the 13g terrain like
  * any raster. Under the contours and the parcel lines (plan §3); opacity 0.9 as in the prototype (L1230).
  * Only a live session has the surfaces: after a reload, or on another parcel, there's nothing to draw.
- * While it shows, the selected parcel's amber fill goes clear (its outline stays), so the surface's colours
- * are the legend's, not tinted amber.
  */
 import { useEffect, useMemo, useRef } from "react";
 import type { ImageSource, Map as MlMap } from "maplibre-gl";
@@ -13,7 +11,7 @@ import { surfaceImage, type Corners, type SurfaceMode } from "@/lib/render/surfa
 import type { SessionView } from "@/lib/screen/worker-protocol";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
 import { useMap } from "../MapView";
-import { LAYER, PARCEL_FILL_OPACITY } from "../style";
+import { LAYER } from "../style";
 import { TERRAIN_LAYER } from "../terrainStyle";
 import { useSurfaceMode } from "./useSurfaceMode";
 
@@ -52,7 +50,6 @@ export function SurfaceLayer() {
     const clear = () => {
       if (map.getLayer(SURFACE_LAYER)) map.removeLayer(SURFACE_LAYER);
       if (map.getSource(SURFACE_SOURCE)) map.removeSource(SURFACE_SOURCE);
-      tintParcel(map, true);
     };
     if (!view || mode === "off") {
       clear();
@@ -77,7 +74,6 @@ export function SurfaceLayer() {
           beforeId(map),
         );
       }
-      tintParcel(map, false);
     });
   }, [map, view, mode, cache]);
 
@@ -87,17 +83,10 @@ export function SurfaceLayer() {
       if (!map) return;
       if (map.getLayer(SURFACE_LAYER)) map.removeLayer(SURFACE_LAYER);
       if (map.getSource(SURFACE_SOURCE)) map.removeSource(SURFACE_SOURCE);
-      tintParcel(map, true);
     },
     [map],
   );
   return null;
-}
-
-/** The selected parcel's fill: its usual amber, or clear over a surface (the fill still catches taps). */
-function tintParcel(map: MlMap, on: boolean): void {
-  if (map.getLayer(LAYER.parcelFill))
-    map.setPaintProperty(LAYER.parcelFill, "fill-opacity", on ? PARCEL_FILL_OPACITY : 0);
 }
 
 interface Built {

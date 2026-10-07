@@ -1857,3 +1857,48 @@ html:has(.explore) body {
   font-size: 12px;
   cursor: help;
 }
+
+/* ---------- The slope legend (owner, after 15c): the zoom slider's box, a banded bar, the grades ---------- */
+.slope-legend {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: 44px;
+  padding: 7px 0 9px;
+  border-radius: 10px;
+  background: var(--tb-bg);
+  color: var(--tb-ink);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+}
+.sl-title {
+  font-size: 9.5px;
+  letter-spacing: 0.02em;
+}
+.sl-bar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 8px;
+  height: 120px;
+  margin-right: 18px;
+  border-radius: 4px;
+  overflow: visible;
+}
+.sl-bar > span:not(.sl-tick) {
+  flex: 1;
+}
+.sl-bar > span:first-child {
+  border-radius: 4px 4px 0 0;
+}
+.sl-bar > span:nth-child(4) {
+  border-radius: 0 0 4px 4px;
+}
+.sl-tick {
+  position: absolute;
+  left: 12px;
+  transform: translateY(50%);
+  font-size: 9.5px;
+  line-height: 1;
+  color: var(--tb-ink-2);
+  white-space: nowrap;
+}

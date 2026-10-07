@@ -10,7 +10,7 @@ import { Marker, type GeoJSONSource } from "maplibre-gl";
 import { drivewayFeatures, soilFeatures, trailheadFeatures } from "@/lib/render/resultGeo";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
 import { useMap } from "../MapView";
-import { LAYER, SOURCE } from "../style";
+import { LAYER, PARCEL_FILL_OPACITY, SOURCE } from "../style";
 import { canHover, hideTip, showTip, TIP_AREAS, TIP_LAYERS } from "./tooltip";
 import { useOverlayPrefs } from "./useOverlayPrefs";
 
@@ -25,6 +25,14 @@ export function ResultLayers() {
   const on = useOverlayPrefs();
   const tool = s ? s.ctl.state.mode !== null || s.ctl.state.split !== null : false;
   const r = s && !s.stale && !tool ? s.display : null;
+
+  // A screened parcel keeps its amber outline but loses the amber fill, which would tint every overlay
+  // drawn over it (owner, after 15c; D7 cleared it only under a surface).
+  const screened = !!s?.display && !s.stale;
+  useEffect(() => {
+    if (map?.getLayer(LAYER.parcelFill))
+      map.setPaintProperty(LAYER.parcelFill, "fill-opacity", screened ? 0 : PARCEL_FILL_OPACITY);
+  }, [map, screened]);
 
   useEffect(() => {
     map?.getSource<GeoJSONSource>(SOURCE.soils)?.setData(r && on.soils ? soilFeatures(r) : EMPTY);
