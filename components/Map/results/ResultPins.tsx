@@ -12,7 +12,7 @@ import { inertTip, pinSpecs, type PinSpec } from "@/lib/render/pins";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
 import type { ScreenIt } from "@/components/Results/panel/ScreenIt";
 import { useMap } from "../MapView";
-import { hideTip, showTip } from "./tooltip";
+import { canHover, hideTip, showTip } from "./tooltip";
 import { useOverlayPrefs } from "./useOverlayPrefs";
 
 const CLASS: Record<PinSpec["kind"], string> = {
@@ -51,8 +51,12 @@ export function ResultPins() {
         return now?.view || now?.runningHere ? pin.tip : inertTip(pin);
       };
       const at: [number, number] = [pin.ll[1], pin.ll[0]];
-      el.addEventListener("mouseenter", () => showTip(map, at, tip()));
-      el.addEventListener("mouseleave", () => hideTip(map));
+      // Hover only where there is a mouse: after a tap, touch screens fire emulated mouse events, and a
+      // mouseleave would hide the tip the tap just showed.
+      if (canHover()) {
+        el.addEventListener("mouseenter", () => showTip(map, at, tip()));
+        el.addEventListener("mouseleave", () => hideTip(map));
+      }
       el.addEventListener("click", (e) => {
         // The pin's tap is its own: not the map's (which would close the parcel).
         e.stopPropagation();

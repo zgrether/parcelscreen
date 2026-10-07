@@ -1848,3 +1848,12 @@ html:has(.explore) body {
   background: var(--ip-sel);
   color: var(--ip-ink);
 }
+
+/* ---------- 15c: the driveway's entrance pins (proto L1404's inline style) ---------- */
+.sitepin.entrance {
+  background: #e0c43c;
+  color: #1c2620;
+  border-color: #1c2620;
+  font-size: 12px;
+  cursor: help;
+}
