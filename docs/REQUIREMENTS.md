@@ -265,8 +265,9 @@ Phase 1 imports it into Supabase the same way as the `ps.parcels` store. It's ve
   - `screens` become `screens` rows (version 1 each, immutable), linked through `screenIds`;
   - `cfg` becomes the user's settings;
   - `open` is ignored.
-- **Duplicates:** a built parcel whose dedupe key (§3) is already in the household is skipped, never
-  overwritten, as the Phase 0 import does. A parcel of drawn pieces only has no dedupe key, so it's matched on its `key`.
+- **Duplicates:** the Phase 0 import matches every parcel on its `key`: an identical key is skipped, never
+  overwritten, and a distinct recipe of the same county record is added as its own entry. So a file can carry
+  several recipes of one record. Deduplicating across recipes, with the §3 dedupe key, is Phase 1's job.
 - **All or nothing:** the whole file is validated before anything is written.
 
 ## 4. The parcel page (the export)

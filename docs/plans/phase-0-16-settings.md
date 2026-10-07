@@ -1,6 +1,6 @@
 # Step 16: Settings, and export/import (plan)
 
-Status: **approved with additions (owner, 2026-10-07); decisions in §6, two small open points in §7.** It covers
+Status: **approved with additions (owner, 2026-10-07); decisions in §6, including the import matching rule (§6.8).** It covers
 step 16 of `phase-0.md` §6 ("Settings + saved parcels").
 
 **Saved parcels** already became **History** in 13e: built parcels are kept automatically, with Open and Remove (`phase-0-13e-parcel-tools.md` L59, L235; the 14 plan dropped "Save this parcel"). What's left of them for step 16 is **export and import**.
@@ -91,10 +91,15 @@ Line numbers (L…) refer to `legacy/parcelscreen.html`.
   - `cfg` through the same checks as Save (§1).
 
   Any failure stops the import, names what failed, and changes nothing: no parcels, no screens, no settings. The hint for a file that isn't an export at all is the prototype's, verbatim: "That file isn't a Parcel Screen export".
-- **Parcels already in History are never overwritten.** A parcel is "already there" when its **dedupe key** (`recipeDedupeKey`, the REQUIREMENTS §3 rule) matches a History parcel's.
-  - It's skipped, its screens with it, and it's listed by name in the summary.
-  - A parcel of drawn pieces only has no dedupe key, so it's matched on its History `key` instead (§7).
-  - The new parcels and their screens are added. The open parcel isn't changed; the file's `open` is ignored.
+- **Every parcel, county or drawn, is matched on its History `key`** (owner, §6.8). Never on the dedupe key.
+  - **Identical key → skip.** The History entry is never overwritten. The file's copy is skipped, with its screens, and listed by name in the summary.
+  - **New key → add**, with its screens, as its own History entry.
+  - **Never drop a distinct recipe.** A parcel that shares a county record with a History parcel but has a different recipe (different pieces, or a different split) is added as its own entry. The summary notes it as "same county record, different recipe". "Shares a county record" means a piece with the same `pieceDedupeKey` (REQUIREMENTS §3).
+  - Deduplicating across recipes is Phase 1's job.
+  - **History can already hold two recipes of one record:** it's keyed only by `key`, and nothing merges entries by county record.
+    - Both are listed in History and found by Search, under the same name.
+    - On the map their outlines overlap, so a tap on the shared ground opens the top one, and the other opens from History or Search. That's how two such entries behave today; 16b doesn't change it.
+  - The open parcel isn't changed; the file's `open` is ignored.
 - **Settings replace the current ones only after a confirm listing the changed fields**, by their labels, e.g. "Replace your settings? Changed: House site: min cell score (60 → 55), Data endpoints."
   - This replaces the prototype's plain "Also import the settings from this file?" (L1609) with the list.
   - If no field differs, there's no confirm.
@@ -102,7 +107,8 @@ Line numbers (L…) refer to `legacy/parcelscreen.html`.
 - **Hidden fields are ignored and named.** `aspectFrom` / `aspectTo` keep their defaults whatever the file says, and any other field the dialog doesn't show (e.g. the prototype's `_res3`) is dropped. Each one the file carried is named in the summary, with its value when it differs from the default.
 - **The summary** opens with the prototype's hint, verbatim: "Imported N parcels". It then lists:
   - **parcels added**, and their screens;
-  - **parcels skipped**, already in History, by name;
+  - **parcels skipped**, the same History key already there, by name;
+  - **same county record, different recipe**: the added parcels that share a county record with a History parcel, by name;
   - **settings changed**, by field, or "Settings unchanged" / "Settings kept (you declined)";
   - **ignored fields**, by name;
   - for a prototype file, **endpoints replaced** by the defaults under the `_v` rule (§1).
@@ -142,7 +148,7 @@ No new dependency.
 2. **16b, Export / import:**
    - the port's file (`format`, `version`: parcels, screens, settings);
    - prototype exports converted;
-   - validate-all-then-apply, skip-by-dedupe-key, the settings confirm, and the summary.
+   - validate-all-then-apply, matching by History key (skip identical, add distinct recipes), the settings confirm, and the summary.
 
 ## 5. Checks
 
@@ -157,7 +163,9 @@ No new dependency.
 - **Reset** gives `DEFAULT_USER_CONFIG`; Reset then Save stores the defaults.
 - **Import (16b):**
   - a file with one bad screen record imports nothing (parcels, screens and settings unchanged);
-  - a parcel whose dedupe key is in History is skipped and listed, and the History copy is untouched;
+  - a parcel whose History key is already there is skipped and listed, and the History copy is untouched;
+  - the same county record with a different split (and, separately, with different pieces) is added as its own entry and noted "same county record, different recipe"; History then holds both;
+  - a drawn-only parcel with a new key is added; with a key already there, it's skipped;
   - settings are replaced only after the confirm, whose list matches the changed fields; declining keeps them;
   - prototype `aspectFrom` / `aspectTo` / `_res3` are ignored, defaults kept, and named;
   - the summary's added / skipped / changed counts.
@@ -188,12 +196,13 @@ No new dependency.
 7. **Import:**
    - validate the whole file, then apply all or none;
    - settings replaced only after a confirm listing the changed fields;
-   - parcels already in History by dedupe key skipped and listed, never overwritten;
+   - parcels matched as in §6.8, never overwritten;
    - hidden fields ignored (defaults kept) and named;
    - a summary of parcels added and skipped, and settings changed.
+8. **Import matching (owner, after #58's first draft):**
+   - every parcel, county or drawn, is matched on its History `key`, not the dedupe key;
+   - an identical key is skipped and listed;
+   - the same county record with a different recipe (different pieces or split) is added as its own History entry, noted "same county record, different recipe" in the summary.
 
-## 7. Two small open points (recommendations; 16b and 16a proceed with them unless you say otherwise)
-
-1. **Drawn-only parcels have no dedupe key** (REQUIREMENTS §3: drawn pieces never contribute). *Recommended:* match those on their History `key` (the UUID), so re-importing the same file still skips them. A drawn parcel from a different file is added.
-   - **A related consequence:** the same county record built two ways (say, split differently) shares one dedupe key, so the second is skipped, per the rule.
-2. **The acreage thresholds aren't a min/max pair**, so no ordering is enforced between them. The defaults happen to rise: shelf 0.1 ≤ compact site 0.15 ≤ house site 0.3 ac. The prototype lets them be set in any order. *Recommended:* no extra check, rather than inventing one.
+   Never drop a distinct recipe on import: deduplicating across recipes is Phase 1's job. History can already hold two recipes of one record (§2), so nothing needs working around.
+9. **Acreage thresholds:** no ordering check between shelf, compact site and house site. They aren't a min/max pair, and the prototype doesn't order them. The defaults happen to rise: 0.1 ≤ 0.15 ≤ 0.3 ac.
