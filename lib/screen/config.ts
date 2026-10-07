@@ -316,7 +316,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
     // raising the cap a whole percent at a time up to this, shown as suspect (not scored).
     // Its stretches over the limit are measured over 15 m (the 3 m profile alone is noisy) and merged across
     // gaps under 15 m.
-    leastSteep: { maxPct: 30, wGrade: 1, label: "least steep", windowM: 15, mergeM: 15 },
+    // entranceM: how far off the parcel the least-steep route may start, at its entrance (owner, after #52).
+    leastSteep: { maxPct: 30, wGrade: 1, label: "least steep", windowM: 15, mergeM: 15, entranceM: 10 },
     chaikinPasses: 1,
     profileStepM: 3,
     turnWindowM: 15,

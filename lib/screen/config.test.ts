@@ -170,6 +170,7 @@ describe("config", () => {
             "wGrade": 4,
           },
           "leastSteep": {
+            "entranceM": 10,
             "label": "least steep",
             "maxPct": 30,
             "mergeM": 15,

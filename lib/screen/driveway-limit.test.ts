@@ -72,6 +72,9 @@ describe("the least-steep route on the reference parcels", () => {
     for (const e of d.entrances.slice(0, K.entrancesRouted))
       expect(routeDriveway(ctx, e.ll, to, { maxGrade: (cap - 1) / 100, wGrade: 1, label: "x" })).toBeNull();
     expect(o.limitPct).toBe(10);
+    // It keeps to the parcel: outside land only within entranceM of the entrance (owner, after #52).
+    expect(o.metrics.outsideFt).toBeLessThanOrEqual(K.leastSteep.entranceM * M2FT);
+    expect(o.needsEasement).toBe(false);
     expect(o.overSpans.length).toBeGreaterThan(0);
     expect(o.overFt).toBeCloseTo(o.overSpans.reduce((m, [a, b]) => m + b - a, 0) * M2FT, 6);
     // The prototype's note in full, unchanged; then the appended sentence (owner's wording, #52).
@@ -100,6 +103,8 @@ describe("the least-steep route on the reference parcels", () => {
     expect(result.driveway!.routes).toEqual([]);
     expect(neededPct(o)).toBeGreaterThan(10);
     expect(result.driveway!.note).toContain("no route reaches the existing house at 10% or less");
+    expect(o.metrics.outsideFt).toBeLessThanOrEqual(K.leastSteep.entranceM * M2FT);
+    expect(o.needsEasement).toBe(false);
   }, 120_000);
 
   it("says so when nothing reaches the target even at the ceiling", async () => {
