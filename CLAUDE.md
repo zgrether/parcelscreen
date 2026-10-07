@@ -23,7 +23,9 @@ isn't obvious.
    acceptance checks you will run. Stop and wait for approval before writing application code.
 2. **One PR per plan step.** Keep PRs small enough to review in ten minutes. The PR description
    lists any behavior that differs from the prototype and why.
-3. **CI must be green** (typecheck, lint, tests) before you ask for a merge.
+3. **CI must be green** (typecheck, lint, tests) before you ask for a merge. **Zach merges every PR.** Never
+   merge one yourself or enable auto-merge, whatever the wording: "merge when…" or "merge on green" means
+   "ready for Zach to merge". Say it's ready, and pause.
 4. **Don't change the numbers silently.** Thresholds, weights and unit costs live in
    `lib/screen/config.ts`. If you change one, update the fixture test and say so in the PR.
 5. **Ask when the spec is silent;** don't invent product behavior. Ask in the PR or the plan.
