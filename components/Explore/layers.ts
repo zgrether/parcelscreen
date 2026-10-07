@@ -13,6 +13,7 @@ import type { WorkingParcel } from "@/lib/client/parcelStore";
 import type { CombineLimits } from "@/lib/geo/combine";
 import { memberLabel } from "@/lib/geo/combine";
 import { parcelFacts } from "@/lib/geo/parcels";
+import { parcelDisplayName } from "@/lib/client/historyRows";
 import { deriveParcel, ownLand, splitPreview, type DerivedParcel } from "@/lib/geo/recipe";
 import { sideName, type Side, type SplitPieces } from "@/lib/geo/split";
 
@@ -61,12 +62,6 @@ export interface LayerNode {
   /** For a split piece: the one kept. */
   kept?: boolean;
   children: LayerNode[];
-}
-
-/** How a parcel is named in the tree and History: its parcel IDs, else "Drawn parcel". */
-export function parcelDisplayName(d: DerivedParcel): string {
-  if (!d.ok) return "Parcel (pieces apart)";
-  return parcelFacts(d.record.geo, d.record.props).parcelId ?? "Drawn parcel";
 }
 
 const node = (n: Omit<LayerNode, "hidden" | "children"> & { children?: LayerNode[] }, hidden: string[]) => ({

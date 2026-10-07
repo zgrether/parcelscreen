@@ -362,3 +362,14 @@ describe("tap rules (decideTap)", () => {
     });
   });
 });
+
+describe("import (16b)", () => {
+  it("adds the parcels to History and leaves the open parcel, the tool and the panel alone", () => {
+    const s = run([selectA(), house(), { type: "info", open: true }]);
+    const extra = { ...s.store.open!, key: "imported", notes: "from a file" };
+    const t = exploreReducer(s, { type: "imported", added: [extra] });
+    expect(t.store.built.map((x) => x.key)).toEqual([s.store.open!.key, "imported"]);
+    expect(t.store.open).toBe(s.store.open);
+    expect([t.serial, t.info, t.mode]).toEqual([s.serial, s.info, s.mode]);
+  });
+});

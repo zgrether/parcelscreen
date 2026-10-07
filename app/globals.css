@@ -1486,6 +1486,26 @@ html:has(.explore) body {
   border-bottom: 0;
 }
 
+/* Export file / Import file under History (16b), and what an import did. */
+.menu-body .menu-file {
+  padding-top: 0;
+}
+.import-summary {
+  margin: 10px 0 0;
+  padding-left: 16px;
+  color: var(--color-ink-2);
+}
+.import-summary li + li {
+  margin-top: 3px;
+}
+.import-summary li:first-child {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+.import-summary.bad li:first-child {
+  color: var(--color-steep);
+}
+
 /* ---------- Desktop: the results float at the map's top left, a card or a panel (owner, after 14d) ---------- */
 /* Below the ☰ and search buttons; --float-w is the card's or the panel's width (ExploreShell). */
 .explore-panel.float {
