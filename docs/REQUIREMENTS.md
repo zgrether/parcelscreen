@@ -244,6 +244,31 @@ already converts 13d's `ps.current`, which had no `v` field at the parcel level)
 
   `screenIds` link to `screens` rows once results are stored there.
 
+**The export file (Phase 0 step 16), Phase 1's other import source.** The explorer's ☰ → Export file writes
+`parcelscreen-YYYY-MM-DD.json`, so a household's History can move between browsers before accounts exist, and
+Phase 1 imports it into Supabase the same way as the `ps.parcels` store. It's versioned by `format` and
+`version`: any change to its shape takes a new `version` and a converter.
+
+```jsonc
+{
+  "format": "parcelscreen-export",
+  "version": 1,
+  "exportedAt": "2026-10-07T15:00:00.000Z",
+  "cfg": { /* UserConfig (lib/screen/types.ts), as stored in ps.cfg */ },
+  "parcels": { "v": 2, "open": null, "built": [ /* exactly the ps.parcels store above */ ] },
+  "screens": [ /* the kept screen records named in built[].screenIds: { id, keys: { boundary, house, settings }, result } */ ]
+}
+```
+
+- **Phase 1 import:**
+  - `parcels.built[]` become `parcels` rows as above;
+  - `screens` become `screens` rows (version 1 each, immutable), linked through `screenIds`;
+  - `cfg` becomes the user's settings;
+  - `open` is ignored.
+- **Duplicates:** a built parcel whose dedupe key (§3) is already in the household is skipped, never
+  overwritten, as the Phase 0 import does. A parcel of drawn pieces only has no dedupe key, so it's matched on its `key`.
+- **All or nothing:** the whole file is validated before anything is written.
+
 ## 4. The parcel page (the export)
 
 Blocks, in order; each is computed, placeholder, or user-authored:
