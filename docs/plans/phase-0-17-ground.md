@@ -53,9 +53,10 @@ It's an **eye-level window** onto the horizon around the point: drag to look aro
 
 - **The skyline, from the screen's own horizon, not the 10 m map tiles:**
   - `result.sun.profile`: the skyline angle every 5°, at the evaluation point. That's the profile the report's direct-sun hours, the horizon chart and the map fan are computed from.
-  - The **canopy allowance** (`params.canopyDeg`, 3° by default) is drawn as a band above it.
-- **The sun's path** for a chosen date, with the **time bar**:
-  - Presets: **Dec 21 / Mar 20 / Jun 21**.
+  - **Drawn exactly as stored:** the 72 points of the 5° profile, joined by straight segments. It adds no detail the profile doesn't have: no smoothing, no interpolated peaks, no terrain between the points.
+  - The **canopy allowance** (`params.canopyDeg`, 3° by default) is drawn as a band above it, along the same segments.
+- **The date, for the day and the night:** presets **Dec 21 / Mar 20 / Jun 21 / today**, and a **date picker for any date**. The prototype allowed any month; Milky Way planning needs specific nights weeks out (owner, §8).
+- **The sun's path** for the chosen date, with the **time bar**:
   - At each whole hour (solar time, as in the prototype), the sun's position is marked **clear** (white) or **blocked** (red), by the engine's rule: skyline + canopy ≥ the sun's altitude at that azimuth.
   - The header gives that date's **direct-sun hours** (§3).
 - **The night sky, the time bar driving it** through the night:
@@ -86,10 +87,10 @@ Every number the viewer shows comes from the `ScreenResult`, or from the engine'
 
 - **Direct-sun hours.**
   - **Dec 21 and Jun 21:** shown from `sun.decDirectH` / `decDaylightH` and `junDirectH` / `junDaylightH`, the report's own.
-  - **Mar 20:** computed by the engine's `sunHours(lat, horizon, 80, canopyDeg)` (lib/screen/sun.ts) on the same `sun.profile`. The result stores no March figure, so it's labelled "from this screen's skyline".
-  - **Test:** the same call for Dec 21 and Jun 21 equals the stored hours exactly, on every golden, which proves the March figure uses the report's method.
+  - **Any other date** (Mar 20, today, or one picked): computed by the engine's `sunHours(lat, horizon, dayOfYear, canopyDeg)` (lib/screen/sun.ts) on the same stored `sun.profile`. The result stores no figure for them, so they're labelled "from this screen's skyline".
+  - **Test:** the same call for Dec 21 and Jun 21 reproduces the stored hours exactly, on every golden. That proves every other date's figure uses the report's method.
 - **Each hour's blocked/clear:** the same rule and the same `sunPos` (lib/screen/astro.ts) as `sunHours`. **Test:** counting the clear minutes reproduces the day's direct hours.
-- **The skyline:** drawn from `sun.profile`'s points. **Test:** the drawn polygon's vertices are the profile.
+- **The skyline:** drawn from `sun.profile`'s points with straight segments. **Test:** the drawn polygon's vertices are exactly the profile's 72 points, and nothing else.
 - **The sky:**
   - **Brightness, zone and domes:** from `sky` as stored.
   - **The core's altitude and azimuth:** from `eqToHor` and `lstDeg` (astro.ts), as the engine's own `coreAlt` uses. **Test:** the peak altitude over the night equals `sky.coreAlt`.
@@ -116,7 +117,7 @@ Every number the viewer shows comes from the `ScreenResult`, or from the engine'
 
 1. **17a, the day:**
    - `lib/render/ground.ts` (projection, skyline, canopy band, sun path, hours);
-   - the viewer with its time bar and the Dec 21 / Mar 20 / Jun 21 presets;
+   - the viewer with its time bar, the Dec 21 / Mar 20 / Jun 21 / today presets and the date picker;
    - **Stand here** and **See it from here**;
    - the note's new wording;
    - the §3 tests.
@@ -126,7 +127,8 @@ Every number the viewer shows comes from the `ScreenResult`, or from the engine'
 
 - **Stand here** from the evaluation ring, after tapping a pin, and from the bulls-eye; **See it from here** from the report. It opens from a kept result after a reload, with no re-run.
 - The skyline matches the horizon chart in December sun, with the canopy band above it.
-- The Dec 21 and Jun 21 direct-sun hours equal the report's; Mar 20 is labelled.
+- The Dec 21 and Jun 21 direct-sun hours equal the report's; any other date (Mar 20, today, a picked date) is labelled as computed from the screen's skyline.
+- The date picker takes any date, for the day and the night.
 - Hour marks are red where blocked and white where clear. The time bar plays and scrubs.
 - **Night:**
   - the Milky Way moves with the hour;
@@ -142,7 +144,7 @@ Every number the viewer shows comes from the `ScreenResult`, or from the engine'
   - deferred, not deleted.
 - **Follow-up 33, the moon (after Phase 0; owner, §8):**
   - the night view has no moon today, as in the prototype;
-  - add its phase and position for the chosen date and hour, and its light washing out the Milky Way.
+  - add its phase, rise and set, and position for the chosen date and hour, and its light washing out the Milky Way.
 - **Follow-up 32, time-of-day shading on the 3D map (after Phase 0, optional):**
   - scene 3's moving terrain shadows, from the sun's position at a chosen hour;
   - MapLibre's hillshade takes a light direction, so this may be a small change.
@@ -152,5 +154,6 @@ Every number the viewer shows comes from the `ScreenResult`, or from the engine'
 1. **Q1 Rendering:** a **2D canvas** eye-level view. React-three-fiber leaves when 17 lands.
 2. **Q2 Entry points:** both. **Stand here** by the evaluation ring; **See it from here** in December sun. Standing at another site is a pin tap (evaluates there, not saved), then Stand here.
 3. **Q3 Skyline source:** the **stored 30 m horizon profile** (`result.sun.profile`), as the report uses, not the 3 m lidar.
-4. **Q4 Night dates:** the three presets (Dec 21 / Mar 20 / Jun 21) **plus today**.
-5. **The moon:** follow-up 33 (§7).
+4. **Q4 Dates:** the presets Dec 21 / Mar 20 / Jun 21 / today, **and a date picker for any date**, day and night (dropping the prototype's any-month choice would be a regression). Hours for any non-stored date come from the engine's `sunHours` on the stored profile, under the reproduce-Dec/Jun test.
+5. **The skyline** draws the stored 5° profile with straight segments between its points and adds no detail it doesn't have.
+6. **The moon:** follow-up 33 (§7): phase, rise and set, and position in the night view.
