@@ -1,6 +1,6 @@
 # Step 15: result overlays on the map (plan)
 
-Status: **draft, for approval (2026-10-07).** It covers step 15 of `phase-0.md` §6:
+Status: **approved (owner, 2026-10-07), with the changes in §9.** It covers step 15 of `phase-0.md` §6:
 
 - the terrain image and the overlay cycle;
 - DOM pins with tap-to-evaluate;
@@ -44,12 +44,18 @@ This matches the 14d note "Run again to restore the map overlays, horizon fan an
 - **`components/Map/results/`:**
   - `useResultLayers.ts`: adds and updates the sources and layers from the shown result and the live view;
   - `ResultPins.tsx`: the DOM pins;
+  - `SurfaceButton.tsx`: the right-hand column cycle button;
   - `tooltip.ts`: one MapLibre popup used for hover and for tap.
 - **The terrain image** is an `image` source placed by the grid's **four UTM corners**, converted to lon/lat. The prototype stretched the UTM raster into a north-up lat/lon box, a few metres off across a parcel (§6, deviation D1).
   - The canvas is turned into a blob URL in the component, since `lib/render` stays DOM-free.
   - Three modes are cached per run.
 - **`useScreenIt` exposes `view` and `evaluateAt`.**
-  - **Bug to fix first:** today the keep-effect would store an `evaluateAt` update as a new screen and raise the phone sheet. Re-evaluations are told apart from runs and house moves. **Q1** asks whether they're kept at all.
+  - **Bug to fix first:** today the keep-effect would store an `evaluateAt` update as a new screen and raise the phone sheet. Re-evaluations are told apart from runs and house moves, and **are not kept** (Q1).
+- **An unsaved evaluation is labelled** (Q1). While the shown evaluation point differs from the kept screen's:
+  - the **December sun**, **Dark skies** and **Driveway** sections carry "Evaluated at `label` — not saved. Run again or move the house to keep it." This is panel chrome above those sections; the blocks stay pure;
+  - **Copy summary** includes the same line.
+
+  A reload goes back to the run's own evaluation point, with no label.
 - **Clearing:**
   - Overlays belong to the open parcel's shown result.
   - Opening another parcel shows that parcel's kept overlays (or none). The prototype kept the old run's overlays on a new parcel, and its overlay button could bring back a stale image (a latent bug, not ported).
@@ -57,9 +63,13 @@ This matches the 14d note "Run again to restore the map overlays, horizon fan an
 
 ### Stacking order (with 13g)
 
-basemap < hillshade < light pollution < scrim < contours < parcel lines < **terrain image** < **soil units** < the parcel outline < **horizon fan** < **driveway** (direct track, second route, recommended route) < **culverts, trailheads** (circles) < DOM markers (**pins, E#, bulls-eye**).
+Owner, 2026-10-07:
 
-The parcel outline goes above the terrain image and soils so the boundary always reads. The prototype's terrain image likely drew over its vector paths; ours doesn't.
+basemap < hillshade < light pollution < scrim < **terrain image** < **soil fills** < contours < parcel lines < **soil outlines** < the parcel outline < **horizon fan** < **driveway** (direct track, second route, recommended route) < **circles** (culverts, trailheads, the evaluation ring) < DOM markers (**pins, E#, bulls-eye**).
+
+- **Contours sit above the terrain image and the soil fills,** so they stay readable with every surface mode on.
+- **The soil outlines and the parcel outline sit above the parcel lines,** so the boundary always reads.
+- The prototype's terrain image likely drew over its vector paths; ours doesn't.
 
 ### Controls
 
@@ -76,7 +86,11 @@ The parcel outline goes above the terrain image and soils so the boundary always
 
 - **What's saved:** the toggles are UI prefs (`ps.overlays`), like 13g's, and never touch a screen's keys.
 - **Rows without a session:** a row with nothing to draw from a kept result (Surface, Horizon fan) shows "run again to show".
-- **The prototype's single cycle button** (`#btn-omode`) isn't ported as a map button (**Q2**). The help sentence "The overlay button on the map cycles…" and the Terrain section's "Cycle the overlay button on the map…" change to "Switch the surface in Info › Layers…" (deviation D3; the `onMap` parts).
+- **A one-tap surface button in the right-hand column** (Q2), styled like the GPS button. It cycles House → Garden → Slope → Off (`ps.omode`), the prototype's `#btn-omode`.
+  - It's shown **only when a live result has a surface to draw** (a session `view`). After a reload or from History it's hidden.
+  - Its icon shows the current mode, with an `aria-label` like the prototype's label: "Overlay: house suitability".
+  - The Layers row and the button share `ps.omode`.
+- **The help keeps the prototype's sentences:** "The overlay button on the map cycles…", and the Terrain section's "Cycle the overlay button on the map…". They're still true, since the button is on the map. They'd be reworded only as far as the button's new position requires, and it needs none.
 
 ## 4. Interaction
 
@@ -125,7 +139,7 @@ Draw, Combine and Split flatten the camera (13g §4). No overlay interaction hap
 
 - **D1:** the terrain image is placed by its UTM corners, not stretched into a lat/lon box.
 - **D2:** the image and the fan appear when the run finishes, not mid-run. The worker posts `view` only on done; posting the large rasters at each step would cost more than it's worth.
-- **D3:** the overlay control is in Info › Layers; the two map-pointer sentences change to say so.
+- **D3:** the surface also has a row in Info › Layers, beside the map button.
 - **D4:** tooltips also open on tap, for touch.
 - **D5:** "Evaluate at the house" is an action on the house row rather than a bulls-eye tap.
 - **D6:** overlays follow the open parcel; the prototype kept the last run's overlays on a new parcel.
@@ -154,22 +168,29 @@ Each overlay is checked in **two cameras**:
 | Trailheads | Each projected trailhead queries back to its dot (those in view). |
 | Pins | Each pin element's centre is within 2 px of `map.project(ll)`. A tap on pin #2 re-evaluates, and the result's `focus.ll` equals site #2's `ll` exactly, in both cameras. The fan and driveway redraw from the new point. |
 | Map tap vs. drape | At the pins' `ll`s, `unproject(project(ll))` is within 1 m. That is, what's drawn at a spot and what a tap there reads agree, pitched or not. |
+| Contours over each surface | With House, Garden, Slope and Off in turn, a contour line's projected midpoint queries back to the contour layer, and the screenshot pixel there differs from the surface's colour (the line is visible on top). |
+| Surface button | Hidden with no live result. It cycles House → Garden → Slope → Off and matches the Layers row. |
 
 - **Kept result after a reload:** the pins, soils, trailheads and driveway are drawn, and the Surface and Fan rows say "run again to show". A pin tap shows its tooltip with "Run again to evaluate here." and nothing else.
+- **Unsaved evaluation:**
+  - after a tap on pin #2, the sun, sky and driveway sections show "Evaluated at site #2 — not saved. Run again or move the house to keep it.", and Copy summary includes it;
+  - **no new screen is kept** (`screenIds` unchanged);
+  - **after a reload** the report is back at the run's own point, with no label.
 - **Screenshots** of every overlay, flat and pitched, desktop and phone.
 
 ## 8. PRs
 
-1. **15a:** `lib/render` + the terrain image + the Analysis group + `useScreenIt` exposing `view`/`evaluateAt`, with the keep-effect fix.
-2. **15b:** pins + tap-to-evaluate + the evaluation ring + the horizon fan + the tooltip helper.
+1. **15a:** `lib/render` + the terrain image + the surface button + the Analysis group + `useScreenIt` exposing `view`/`evaluateAt`, with the keep-effect fix.
+2. **15b:** pins + tap-to-evaluate (not kept, with the "Evaluated at … — not saved" label and Copy summary line) + the evaluation ring + the horizon fan + the tooltip helper.
 3. **15c:** soil units, trailheads, the driveway (B1), and the touch tooltips for them.
 
-## 9. Questions
+## 9. Decisions (owner, 2026-10-07)
 
-1. **Q1 Keep re-evaluations?** Today a run and a house move each keep a new screen (14d). A pin tap changes the sun, sky and driveway for another site.
-   - *Recommended: don't keep pin re-evaluations.* They're exploration. After a reload the parcel shows its run's own evaluation point. Keeping each tap would add a screen ID per tap.
-   - House moves stay kept, since they change the parcel's facts.
-2. **Q2 Map button for the surface?** The prototype had one button on the map cycling House → Garden → Slope → Off.
-   - *Recommended: Info › Layers only*, beside the terrain group, rather than another button on the map.
-   - If you want one-tap cycling back, a small button in the right-hand column is easy.
-3. **Q3 Draw hospitals and groceries?** The prototype didn't. *Recommended: not in Phase 0* (parity). Note as a Phase 1 idea.
+1. **Stacking:** contours go above the terrain image and soil fills, and below the parcel outline (the order in §3). The checks include contours visible with each surface mode on, flat and pitched (§7).
+2. **Q1 Re-evaluations:** pin re-evaluations are **not kept**.
+   - While the shown evaluation differs from the kept screen's, the sun, sky and driveway sections carry "Evaluated at `label` — not saved. Run again or move the house to keep it.", and Copy summary includes it.
+   - A test checks that a reload goes back to the run's own point with no label.
+3. **Q2 Surface control:** a one-tap cycle button in the right-hand column (House → Garden → Slope → Off), shown only when a live result has a surface to draw, **plus** the Layers row.
+   - D3 covers only the added Layers row.
+   - The prototype's "overlay button on the map" help sentences are kept.
+4. **Q3 Hospitals and groceries:** not drawn in Phase 0.

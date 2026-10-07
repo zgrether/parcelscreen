@@ -1,6 +1,6 @@
 # Step 13g: 3D terrain, hillshade and contours (plan)
 
-Status: **draft, for approval (owner request 2026-10-07).** A new map step that comes **before step 15**:
+Status: **approved (owner, 2026-10-07), with the changes in §10.** A new map step that comes **before step 15**:
 
 - the map tilts and rotates over real terrain;
 - a hillshade and contour lines in feet help read the land;
@@ -30,7 +30,7 @@ The engine already decodes the same tiles as its DEM fallback (`config.ts` `endp
 
 **Attribution:** "Terrain: AWS Terrain Tiles (USGS 3DEP, SRTM, et al.)", on the `raster-dem` source. MapLibre shows a source's attribution only while one of its layers is visible.
 
-**CSP:** the app has **no Content-Security-Policy today** (`next.config.ts` sets no headers), so there is nothing to update in 13g. See **Q1**.
+**CSP:** the app has **no Content-Security-Policy today** (`next.config.ts` sets no headers), so there is nothing to update in 13g. A CSP comes in step 18 (**Q1**).
 
 **Fallback if the endpoint fails** (it's a public bucket with no SLA): use MapTiler's terrain-rgb tiles, which need a key; that's a Phase 1 env var, so it would wait. Mapbox Terrain-DEM is not an option, since it's tied to Mapbox GL. 3DEP is not proxied, per your instruction.
 
@@ -42,11 +42,13 @@ If the tiles fail at runtime, the terrain toggles stay on, and a hint says "Terr
 
 - **One fetch per tile:** a single `DemSource` (`worker: true`, Terrarium, maxzoom 15) serves the contours, and its `sharedDemProtocolUrl` serves the `raster-dem` sources. Each tile is fetched once for all three uses.
 - **Two `raster-dem` sources on the same URL:** one for `setTerrain`, one for the `hillshade` layer. MapLibre warns when a single source is used for both. Thanks to the shared protocol, this costs no second fetch.
-- **Compatibility risk:** 0.1.x registers through the promise-based `addProtocol` (MapLibre 4+). We're on **6.12**. The first commit of 13g is a spike that proves it works. If it doesn't, the fallback is MapLibre's own `raster-dem` for terrain and hillshade, with contours deferred (**Q4**).
+- **Compatibility risk:** 0.1.x registers through the promise-based `addProtocol` (MapLibre 4+). We're on **6.12**. The first commit of 13g is a spike that proves it works. If it doesn't, terrain and hillshade ship on MapLibre's own `raster-dem`, and contours become a follow-up (**Q4**).
 
 ## 3. Layers and their order
 
-**Stacking order:** basemap < **hillshade** < light pollution < scrim < **contours** < parcel lines < step 15's result overlays < DOM markers.
+**Stacking order** (owner, with step 15): basemap < **hillshade** < light pollution < scrim < (15: terrain image < soil fills) < **contours** < parcel lines < (15: soil outlines < parcel outline < fan < driveway < circles) < DOM markers.
+
+Contours sit **above** step 15's terrain image and soil fills, so they stay readable with any surface on. 13g builds the order with empty slots for 15's layers.
 
 - **Hillshade above the ortho and below the parcel lines,** as asked:
   - `hillshade-exaggeration` 0.35;
@@ -72,13 +74,14 @@ If the tiles fail at runtime, the terrain toggles stay on, and a hint says "Terr
 
 | Control | Values | Default |
 | --- | --- | --- |
-| **3D terrain** | on/off | **off** (**Q2**) |
+| **3D terrain** | on/off | **off** (Q2) |
 | **Exaggeration** | 1× / 1.5× / 2× segmented; shown while 3D terrain is on | 1.5× |
-| **Hillshade** | on/off | on (**Q2**) |
-| **Contours** | on/off | on (desktop); see §6 for phones |
+| **Hillshade** | on/off | **on on desktop, off on phones** (Q2) |
+| **Contours** | on/off | **on on desktop, off on phones** (Q2) |
 
-- **Where the group goes:** today the Info panel exists only while a parcel is open (`InfoPanel.tsx` L27), and the terrain is about the map, not the parcel. **Q3** proposes also listing the four controls in the **Map ▾** menu, so they work with nothing selected.
-- **Saved as UI prefs only:** `ps.terrain` (`{ on, exaggeration }`), `ps.hillshade`, `ps.contours` in `lib/client/prefs.ts`. They are **not** in `UserConfig`, run `params`, schema v2 or the screen keys (`screenKeys.ts`). So they can never mark a screen out of date. A unit test asserts that `runKeys` ignores them.
+- **Phones** are the sheet's media query. The defaults there are off **regardless of the frame rate**, because hillshade and contours fetch z15 DEM tiles, which is a lot of data on cellular (Q2).
+- **Where the group goes:** Info › Layers **and** the **Map ▾** menu, under "Terrain preview" (Q3). The Info panel exists only while a parcel is open (`InfoPanel.tsx` L27), and the terrain is about the map, not the parcel; the Map ▾ menu works with nothing selected. Both show the same prefs.
+- **Saved per device** (localStorage), as UI prefs only: `ps.terrain` (`{ on, exaggeration }`), `ps.hillshade`, `ps.contours` in `lib/client/prefs.ts`. They are **not** in `UserConfig`, run `params`, schema v2 or the screen keys (`screenKeys.ts`). So they can never mark a screen out of date. A unit test asserts that `runKeys` ignores them.
 
 ### Rotate and pitch
 
@@ -134,7 +137,7 @@ Precise placement never happens on a tilted map, but the rule above holds either
 - **Measure first:** with everything on (terrain 1.5×, hillshade, contours, parcel lines), measure frame times during a scripted pan, rotate and pitch.
   - **Headless:** Chromium at 390×844 with 4× CPU throttling (CDP `Emulation.setCPUThrottlingRate`), using `requestAnimationFrame` deltas.
   - **Real device:** you check on the Vercel preview on your Android phone.
-- **Threshold:** if the median frame is over 33 ms (under 30 fps) or the 95th percentile is over 66 ms, **contours default off on phones** (the sheet's media query). The toggle still turns them on. The PR reports the numbers either way, as 13f did.
+- **Report, don't decide:** the PR reports the median and 95th-percentile frame times, as 13f did. The phone defaults are already off (§4, Q2), so the numbers inform you rather than choose a default.
 
 ## 7. Files
 
@@ -186,14 +189,13 @@ Precise placement never happens on a tilted map, but the rule above holds either
   - toggling terrain never marks a screen out of date;
   - the phone frame rate is acceptable with everything on.
 
-## 10. Questions
+## 10. Decisions (owner, 2026-10-07)
 
-1. **Q1 CSP.** There's no CSP to update. Should 13g add one?
-   - It would list every host: the basemaps, the parcel services, 3DEP, Terrarium, SDA, FEMA, PAD-US, TIGER, Photon, Overpass, OSRM, the atlas, and Vercel.
-   - The risk is breaking a host we forgot.
-   - *Recommended: not in 13g. Add it in step 18 with the full host list, checked by the e2e run.*
-2. **Q2 Defaults.**
-   - *Recommended: 3D terrain off* (rotation is opt-in, and flat is what most screening wants).
-   - *Hillshade and contours on, and drawn flat too.* They help read the land without tilting. "Default on with terrain" would otherwise mean they appear only when 3D is on.
-3. **Q3 Where the controls live.** Info › Layers as asked, but the Info panel exists only with a parcel open. *Recommended: also in the Map ▾ menu, under "Terrain preview".*
-4. **Q4 If the contour plugin can't run on MapLibre 6.** *Recommended: ship terrain and hillshade in 13g, and make contours a follow-up* rather than writing our own isolines now.
+1. **Q1 CSP:** not in 13g. Step 18 adds one with the full host list, checked by the e2e run.
+2. **Q2 Defaults:**
+   - 3D terrain off;
+   - hillshade and contours **on on desktop, off on phones** (the sheet media query), regardless of the frame-rate result, because of z15 DEM tile data on cellular;
+   - the toggles persist per device;
+   - the PR still reports the frame-time numbers.
+3. **Q3 Where the controls live:** Info › Layers **plus** the Map ▾ menu.
+4. **Q4 If the contour plugin can't run on MapLibre 6:** terrain and hillshade ship in 13g, and contours become a follow-up.
