@@ -226,16 +226,32 @@ export function hourMarks(
   profile: readonly (readonly [number, number])[],
   canopyDeg: number,
 ): HourMark[] {
+  const hours: { H: number; hour: number; label: string }[] = [];
+  for (let hr = 0; hr <= 23; hr++) hours.push({ H: (hr - 12) * 15, hour: hr, label: hourLabel(hr) });
+  return hourMarksAt(lat, doy, profile, canopyDeg, hours);
+}
+
+/**
+ * Marks at the given hour angles, the sun up at each, clear or blocked by the engine's rule. The viewer passes
+ * the whole clock hours in the user's time zone (owner, before #64): the labels are clock time, the rule is
+ * the report's.
+ */
+export function hourMarksAt(
+  lat: number,
+  doy: number,
+  profile: readonly (readonly [number, number])[],
+  canopyDeg: number,
+  hours: readonly { H: number; hour: number; label: string }[],
+): HourMark[] {
   const lim = halfDay(lat, doy);
   const marks: HourMark[] = [];
-  for (let hr = 0; hr <= 23; hr++) {
-    const H = (hr - 12) * 15;
+  for (const { H, hour, label } of hours) {
     if (Math.abs(H) > lim) continue;
     const sun = sunAt(lat, doy, H);
     if (sun.alt <= 0) continue;
     marks.push({
-      hour: hr,
-      label: hourLabel(hr),
+      hour,
+      label,
       sun,
       ridge: skylineAt(profile, sun.az) + canopyDeg,
       blocked: !isClear(lat, doy, H, profile, canopyDeg),
@@ -244,13 +260,27 @@ export function hourMarks(
   return marks;
 }
 
-/** The prototype's solar clock (proto fmtSolar, L1844): "9:30 am". */
-export function fmtSolar(H: number): string {
-  const s = 12 + H / 15;
-  const h = Math.floor(s),
-    m = Math.round((s - h) * 60);
-  const [hh, mm] = m === 60 ? [h + 1, 0] : [h, m];
-  return `${((hh + 11) % 12) + 1}:${String(mm).padStart(2, "0")} ${s < 12 ? "am" : "pm"}`;
+/**
+ * The day's clock (owner, before #64): an hour angle as a real instant, from the date's solar noon (with the
+ * equation of time); and back.
+ */
+export const instantOfH = (noonUtc: number, H: number): number => noonUtc + (H / 15) * 3_600_000;
+export const hOfInstant = (noonUtc: number, t: number): number => ((t - noonUtc) / 3_600_000) * 15;
+
+/** The whole clock hours between two instants (UTC ms), each with its label in a time zone. */
+export function clockHours(
+  start: number,
+  end: number,
+  timeZone: string,
+): { t: number; hour: number; label: string }[] {
+  const out: { t: number; hour: number; label: string }[] = [];
+  const fmt = new Intl.DateTimeFormat("en-US", { timeZone, hour: "numeric", hourCycle: "h23" });
+  for (let t = Math.ceil(start / 3_600_000) * 3_600_000; t <= end; t += 3_600_000) {
+    // Whole UTC hours are whole hours in the zones this app covers (whole-hour offsets).
+    const hour = Number(fmt.format(new Date(t))) % 24;
+    out.push({ t, hour, label: hourLabel(hour) });
+  }
+  return out;
 }
 
 // ---------- the day's hours ----------
@@ -304,3 +334,11 @@ export const PRESETS = [
   { key: "mar", label: "Mar 20", monthDay: "03-20" },
   { key: "jun", label: "Jun 21", monthDay: "06-21" },
 ] as const;
+
+/** The altitude at a screen y: altToY's inverse, for painting the sky pixel by pixel. */
+export function yToAlt(y: number, height: number): number {
+  const low = KNEE_SHARE * height;
+  const up = height - y;
+  if (up <= low) return ALT_BOTTOM + (up / low) * (ALT_KNEE - ALT_BOTTOM);
+  return ALT_KNEE + ((up - low) / (height - low)) * (ALT_TOP - ALT_KNEE);
+}

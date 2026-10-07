@@ -43,13 +43,13 @@ const RIDGE_FILL: readonly [string, string][] = [
   ["#b2c1cb", "#9fb0bb"],
 ];
 
-const COMPASS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+export const COMPASS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
 
 /** How far either side of the heading anything is drawn, degrees: the window plus a margin. */
 const reach = (v: GroundView) => Math.min(180, halfWidthDeg(v) + 10);
 
 /** The vertices within reach of the heading, in screen order (left to right), each projected. */
-function visible(v: GroundView, pts: AzAlt[]): { x: number; y: number }[] {
+export function visible(v: GroundView, pts: AzAlt[]): { x: number; y: number }[] {
   const r = reach(v);
   return pts
     .map((p) => ({ p, d: turn(v.heading, p.az) }))
@@ -76,7 +76,14 @@ function strokePath(ctx: CanvasRenderingContext2D, v: GroundView, pts: AzAlt[]) 
   ctx.stroke();
 }
 
-function pill(ctx: CanvasRenderingContext2D, x: number, y: number, text: string, bg: string, fg: string) {
+export function pill(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  text: string,
+  bg: string,
+  fg: string,
+) {
   ctx.font = "600 12px system-ui, sans-serif";
   const w = ctx.measureText(text).width + 12;
   ctx.fillStyle = bg;
