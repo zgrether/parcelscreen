@@ -7,6 +7,7 @@
 export function TimeBar({
   f,
   ticks,
+  marks = [],
   clock,
   label,
   playing,
@@ -17,6 +18,8 @@ export function TimeBar({
   f: number;
   /** The hours along the bar, at their share of the span. */
   ticks: readonly { f: number; label: string }[];
+  /** Moments marked above the bar: solar noon by day; the ends of twilight by night. */
+  marks?: readonly { f: number; label: string; minor?: boolean }[];
   /** The time now, as shown at the end of the bar. */
   clock: string;
   /** The scrub's accessible name. */
@@ -31,6 +34,15 @@ export function TimeBar({
         {playing ? "❚❚" : "▶"}
       </button>
       <div className="ground-scrub">
+        {marks.length > 0 && (
+          <div className="ground-marks" aria-hidden="true">
+            {marks.map((m) => (
+              <span key={m.label} data-minor={m.minor || undefined} style={{ left: `${m.f * 100}%` }}>
+                {m.label}
+              </span>
+            ))}
+          </div>
+        )}
         <input
           type="range"
           min={0}

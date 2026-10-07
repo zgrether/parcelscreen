@@ -19,11 +19,12 @@ import { createPortal } from "react-dom";
 import {
   dateLabel,
   dayHours,
-  dayTicks,
-  fmtSolar,
   groundDate,
   halfDay,
-  hourMarks,
+  clockHours,
+  hOfInstant,
+  hourMarksAt,
+  instantOfH,
   isClear,
   lowScale,
   PRESETS,
@@ -46,10 +47,11 @@ import {
   nightInputs,
   nightSpan,
   nightTicks,
-  sunAtInstant,
+  twilightMarks,
 } from "@/lib/render/night";
 import type { Endpoints, PartialScreenResult } from "@/lib/screen/types";
 import type { Feature, Polygon } from "geojson";
+import { solarNoon, sunAltitude, sunrise, sunset } from "@/lib/render/sunclock";
 import { drawDay } from "./drawGround";
 import { drawNight } from "./drawNight";
 import { TimeBar } from "./TimeBar";
@@ -129,16 +131,30 @@ export function GroundViewer({
   const lim = halfDay(lat, date.doy);
   const H = -lim + 2 * lim * fDay;
   const path = useMemo(() => sunPath(lat, date.doy), [lat, date.doy]);
+  // Clock time (owner, before #64): the day's whole hours in the Settings time zone, from the date's solar noon
+  // with the equation of time; the clear/blocked rule at each is the report's.
+  const noon = useMemo(() => solarNoon(date.iso, lon), [date.iso, lon]);
+  const clockHrs = useMemo(
+    () =>
+      clockHours(instantOfH(noon, -lim), instantOfH(noon, lim), timeZone).map((h) => ({
+        H: hOfInstant(noon, h.t),
+        hour: h.hour,
+        label: h.label,
+      })),
+    [noon, lim, timeZone],
+  );
   const marks = useMemo(
-    () => hourMarks(lat, date.doy, profile, canopyDeg),
-    [lat, date.doy, profile, canopyDeg],
+    () => hourMarksAt(lat, date.doy, profile, canopyDeg, clockHrs),
+    [lat, date.doy, profile, canopyDeg, clockHrs],
   );
   const hours = useMemo(() => dayHours(result, date.doy), [result, date.doy]);
   const sun = sunAt(lat, date.doy, H);
   const clear = isClear(lat, date.doy, H, profile, canopyDeg);
+  const rise = sunrise(date.iso, lat, lon),
+    set = sunset(date.iso, lat, lon);
 
   // ---------- the night ----------
-  const span = useMemo(() => nightSpan(date.iso, date.doy, lat, lon), [date.iso, date.doy, lat, lon]);
+  const span = useMemo(() => nightSpan(date.iso, lat, lon), [date.iso, lat, lon]);
   const t = span.start + (span.end - span.start) * fNight;
   const galaxy = galaxyAt(lat, lon, t);
   const band = useMemo(() => milkyWay(galaxy.core, galaxy.pole), [galaxy.core, galaxy.pole]);
@@ -146,8 +162,8 @@ export function GroundViewer({
   const stars = useMemo(() => makeStars(haze), [haze]);
   const domes = useMemo(() => (night ? domesOf(night.domes) : []), [night]);
   const mwVis = night ? milkyWayVisibility(night.mag) : 0;
-  const nightSun = sunAtInstant(lat, lon, date.doy, t);
-  const twilight = Math.max(0, Math.min(1, (nightSun.alt + 18) / 18));
+  const sunAltNow = sunAltitude(t, lat, lon);
+  const twilight = Math.max(0, Math.min(1, (sunAltNow + 18) / 18));
 
   const heading = ((((isNight ? galaxy.core.az : sun.az) + dAz) % 360) + 360) % 360;
 
@@ -239,6 +255,12 @@ export function GroundViewer({
                   {long}: {hours.directH.toFixed(1)} of {hours.daylightH.toFixed(1)} daylight hours are direct
                   sun
                   {hours.stored ? "" : " (from this screen's skyline)"}.
+                  {rise !== null && set !== null && (
+                    <>
+                      {" "}
+                      Sunrise {clockIn(timeZone, rise)}, sunset {clockIn(timeZone, set)}.
+                    </>
+                  )}
                 </span>
               )
             )}
@@ -317,6 +339,7 @@ export function GroundViewer({
           <TimeBar
             f={fNight}
             ticks={nightTicks(span, timeZone)}
+            marks={twilightMarks(span, date.iso, lat, lon)}
             clock={clockIn(timeZone, t)}
             label="Time of night"
             playing={playing}
@@ -329,8 +352,9 @@ export function GroundViewer({
         ) : (
           <TimeBar
             f={fDay}
-            ticks={dayTicks(lat, date.doy)}
-            clock={`${fmtSolar(H)} solar`}
+            ticks={clockHrs.map((h) => ({ f: (h.H + lim) / (2 * lim), label: h.label.replace(" ", "") }))}
+            marks={[{ f: 0.5, label: "solar noon" }]}
+            clock={clockIn(timeZone, instantOfH(noon, H))}
             label="Time of day"
             playing={playing}
             onPlay={() => setPlaying((p) => !p)}
@@ -344,8 +368,8 @@ export function GroundViewer({
           <p className="ground-caption tiny">
             {nightText}
             {twilight > 0.05 &&
-              ` The sun is ${Math.max(0, -nightSun.alt).toFixed(0)}° below the horizon: twilight still lifts the sky.`}{" "}
-            Stars are illustrative. Drag to look around.
+              ` The sun is ${Math.max(0, -sunAltNow).toFixed(0)}° below the horizon: twilight still lifts the sky.`}{" "}
+            Stars are illustrative. Moon not shown — check the moon phase for your date. Drag to look around.
             <br />
             Shaded ridges are the full 30 m terrain; the white line is the report&apos;s 5° skyline, which can
             miss narrow peaks between samples.

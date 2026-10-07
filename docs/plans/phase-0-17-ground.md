@@ -218,3 +218,12 @@ The first 17a cut drew only the report's skyline, as a silhouette. The owner fou
   - the domes peak at the atlas's brightest azimuth, blended by maximum;
   - the Milky Way's fade at its ends;
   - the night's span, with the sun at the horizon at both ends, and its civil clock labels.
+- **Clock time, before merging #64 (owner, display only).** Report numbers, sun hours and goldens are unchanged.
+  - **The day view's labels are clock time** in `UserConfig.timeZone`, like the night's:
+    - the time bar's hours and its clock;
+    - the hour pills on the canvas, at the whole clock hours;
+    - each pill's clear/blocked by the engine's rule at that hour angle.
+  - **Solar noon** is marked on the day bar.
+  - **Sunrise and sunset** in the viewer (the day header, and the night's span) include the equation of time and the standard −0.833° altitude: `lib/render/sunclock.ts`, the Meeus formulas NOAA uses. They're within 1 minute of NOAA's own results for Ferney, Macks and Ashe on Dec 21, Mar 20 and Jun 21 (`sunclock.test.ts`).
+  - **The night bar marks the ends of twilight:** civil −6°, nautical −12°, and astronomical −18°, labelled "dark sky from"; plus its morning start, "dark sky until". On phones only the two dark-sky marks are labelled.
+  - **The night caption adds** "Moon not shown — check the moon phase for your date." until follow-up 33.

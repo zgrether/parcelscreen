@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import type { ScreenResult } from "@/lib/screen/types";
 import { loadFixture, type FixtureSlug } from "@/test/support/fixtures";
 import { fromPrototype } from "@/test/support/fromPrototype";
-import { dayOfYear, skylineAt } from "./ground";
+import { skylineAt } from "./ground";
+import { sunAltitude } from "./sunclock";
 import {
   clockIn,
   domesOf,
@@ -15,7 +16,7 @@ import {
   nightInputs,
   nightSpan,
   nightTicks,
-  sunAtInstant,
+  twilightMarks,
 } from "./night";
 
 const GOLDENS: [FixtureSlug, string][] = [
@@ -56,19 +57,25 @@ describe.each(GOLDENS)("the night sky on %s %s (plan §3)", (slug, key) => {
 describe("the night's span and clock", () => {
   const lat = 36.89,
     lon = -80.45;
-  it("runs sunset to the next sunrise, the sun at the horizon at both ends", () => {
+  it("runs sunset to the next sunrise (NOAA's −0.833°), dark in the middle", () => {
     for (const iso of ["2026-12-21", "2026-06-21", "2026-03-20"]) {
-      const [, m, d] = iso.split("-").map(Number);
-      const doy = dayOfYear(m!, d!);
-      const s = nightSpan(iso, doy, lat, lon);
+      const s = nightSpan(iso, lat, lon);
       expect(s.end).toBeGreaterThan(s.start);
-      expect(Math.abs(sunAtInstant(lat, lon, doy, s.start).alt)).toBeLessThan(0.05);
-      expect(Math.abs(sunAtInstant(lat, lon, doy, s.end).alt)).toBeLessThan(0.05);
-      expect(sunAtInstant(lat, lon, doy, (s.start + s.end) / 2).alt).toBeLessThan(-20);
+      expect(sunAltitude(s.start, lat, lon)).toBeCloseTo(-0.833, 1);
+      expect(sunAltitude(s.end, lat, lon)).toBeCloseTo(-0.833, 1);
+      expect(sunAltitude((s.start + s.end) / 2, lat, lon)).toBeLessThan(-20);
     }
+    // Ferney Creek, Jun 21: sunset 8:44 pm EDT, as NOAA has it (sunclock.test.ts).
+    expect(clockIn("America/New_York", nightSpan("2026-06-21", 36.8874, -80.45455).start)).toBe("8:44 pm");
+  });
+  it("marks the ends of civil, nautical and astronomical twilight, and dark sky until dawn", () => {
+    const s = nightSpan("2026-06-21", lat, lon);
+    const marks = twilightMarks(s, "2026-06-21", lat, lon);
+    expect(marks.map((m) => m.label)).toEqual(["civil", "nautical", "dark sky from", "dark sky until"]);
+    expect(marks.every((m, i) => i === 0 || m.f > marks[i - 1]!.f)).toBe(true);
   });
   it("labels whole hours in the chosen time zone", () => {
-    const s = nightSpan("2026-12-21", 355, lat, lon);
+    const s = nightSpan("2026-12-21", lat, lon);
     const ny = nightTicks(s, "America/New_York").map((t) => t.label);
     expect(ny).toContain("midnight");
     expect(ny[0]).toMatch(/^[56]pm$/);

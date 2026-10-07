@@ -1793,11 +1793,29 @@ html:has(.explore) body {
 .ground-scrub {
   position: relative;
   flex: 1;
-  padding-bottom: 14px;
+  padding: 12px 0 14px;
 }
 .ground-scrub input {
   width: 100%;
   accent-color: #e0c43c;
+}
+/* Marks above the bar: solar noon by day, the ends of twilight by night. */
+.ground-marks span {
+  position: absolute;
+  top: -12px;
+  transform: translateX(-50%);
+  color: #e0c43c;
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+.ground-marks span::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 13px;
+  width: 1px;
+  height: 8px;
+  background: #e0c43c;
 }
 .ground-ticks span {
   position: absolute;
@@ -1821,6 +1839,10 @@ html:has(.explore) body {
 @media (max-width: 700px) {
   .ground-ticks span:nth-child(even) {
     display: none;
+  }
+  /* Civil and nautical keep their ticks; only the dark-sky marks are labelled on a phone. */
+  .ground-marks span[data-minor] {
+    color: transparent;
   }
 }
 

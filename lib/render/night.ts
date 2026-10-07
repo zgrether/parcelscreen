@@ -9,7 +9,8 @@
 import { eqToHor, lstDeg } from "@/lib/screen/astro";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import type { PartialScreenResult } from "@/lib/screen/types";
-import { halfDay, sunAt, type AzAlt } from "./ground";
+import type { AzAlt } from "./ground";
+import { ASTRONOMICAL_ALT, CIVIL_ALT, NAUTICAL_ALT, nextDay, sunEvent, sunrise, sunset } from "./sunclock";
 
 const DEG = Math.PI / 180;
 
@@ -28,21 +29,38 @@ export interface NightSpan {
 }
 
 /**
- * Sunset on the date to the next sunrise, at the point's longitude (solar time; the equation of time, at most
- * ±16 minutes, is left out, as the day view's solar clock does).
+ * Sunset on the date to the next sunrise, at the point (owner, before #64): with the equation of time and the
+ * standard −0.833° altitude, within a minute of NOAA (lib/render/sunclock.ts).
  */
-export function nightSpan(iso: string, doy: number, lat: number, lon: number): NightSpan {
+export function nightSpan(iso: string, lat: number, lon: number): NightSpan {
+  const start = sunset(iso, lat, lon),
+    end = sunrise(nextDay(iso), lat, lon);
+  // No sunset or sunrise only happens far north of these parcels; fall back to 6 pm → 6 am UTC-ish span.
   const [y, m, d] = iso.split("-").map(Number) as [number, number, number];
-  const noon = Date.UTC(y, m - 1, d) + (12 - lon / 15) * 3_600_000;
-  const lim = halfDay(lat, doy) / 15; // hours from noon to sunset
-  return { start: noon + lim * 3_600_000, end: noon + (24 - lim) * 3_600_000 };
+  const base = Date.UTC(y, m - 1, d) + (18 - lon / 15) * 3_600_000;
+  return { start: start ?? base, end: end ?? base + 12 * 3_600_000 };
 }
 
-/** The sun at an instant: solar time from UTC and the longitude, then the engine's sunPos. */
-export function sunAtInstant(lat: number, lon: number, doy: number, t: number): AzAlt {
-  const utcH = (t / 3_600_000) % 24;
-  const solarH = (((utcH + lon / 15) % 24) + 24) % 24;
-  return sunAt(lat, doy, (solarH - 12) * 15);
+/**
+ * Where twilight ends in the evening (civil −6°, nautical −12°, astronomical −18°) and astronomical twilight
+ * begins in the morning, as shares of the night's span, for the time bar.
+ */
+export function twilightMarks(
+  span: NightSpan,
+  iso: string,
+  lat: number,
+  lon: number,
+): { f: number; label: string; minor?: boolean }[] {
+  const f = (t: number | null) => (t === null ? null : (t - span.start) / (span.end - span.start));
+  const marks = [
+    { f: f(sunEvent(iso, lat, lon, CIVIL_ALT, false)), label: "civil", minor: true },
+    { f: f(sunEvent(iso, lat, lon, NAUTICAL_ALT, false)), label: "nautical", minor: true },
+    { f: f(sunEvent(iso, lat, lon, ASTRONOMICAL_ALT, false)), label: "dark sky from" },
+    { f: f(sunEvent(nextDay(iso), lat, lon, ASTRONOMICAL_ALT, true)), label: "dark sky until" },
+  ];
+  return marks.filter(
+    (m): m is { f: number; label: string; minor?: boolean } => m.f !== null && m.f > 0 && m.f < 1,
+  );
 }
 
 /** "9:30 pm" in a time zone. */

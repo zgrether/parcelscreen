@@ -13,7 +13,9 @@ import {
   altToY,
   yToAlt,
   lowScale,
-  fmtSolar,
+  clockHours,
+  hOfInstant,
+  instantOfH,
   groundDate,
   groundInputs,
   halfDay,
@@ -154,10 +156,25 @@ describe("dates", () => {
 });
 
 describe("the sun", () => {
-  it("the solar clock reads as the prototype's", () => {
-    expect(fmtSolar(0)).toBe("12:00 pm");
-    expect(fmtSolar(-45)).toBe("9:00 am");
-    expect(fmtSolar(22.5)).toBe("1:30 pm");
+  it("the day's clock: an hour angle as a real instant from solar noon, and whole clock hours", () => {
+    const noon = Date.UTC(2026, 11, 21, 17, 19, 46); // Ferney Creek's solar noon on Dec 21 (NOAA 1039.76 min)
+    expect(instantOfH(noon, 15) - noon).toBe(3_600_000);
+    expect(hOfInstant(noon, instantOfH(noon, -37.5))).toBeCloseTo(-37.5, 9);
+    const hrs = clockHours(noon - 5 * 3_600_000, noon + 5 * 3_600_000, "America/New_York");
+    expect(hrs.map((h) => h.label)).toEqual([
+      "8 am",
+      "9 am",
+      "10 am",
+      "11 am",
+      "noon",
+      "1 pm",
+      "2 pm",
+      "3 pm",
+      "4 pm",
+      "5 pm",
+    ]);
+    // Clock noon sits 19 min 46 s before the sun is due south at Ferney in December (EST and the equation of time).
+    expect(Math.round(hOfInstant(noon, hrs[4]!.t) * 4)).toBe(-20); // minutes of time
   });
   it("rises and sets at the day's limits", () => {
     const lat = 36.89,
