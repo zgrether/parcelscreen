@@ -35,6 +35,8 @@ export interface NightScene {
   /** The Milky Way's visibility with sky brightness (0–1). */
   mwVis: number;
   core: AzAlt;
+  /** The core's label (lib/render/night coreLabel). */
+  coreLabel: string;
 }
 
 /** Night ridges, near to far: dark silhouettes, the far ones a touch lighter against the sky glow. */
@@ -221,7 +223,7 @@ export function drawNight(ctx: CanvasRenderingContext2D, sc: NightScene): void {
   // The core, labelled where it is (the prototype's label, L1815).
   if (sc.core.alt > 0 && Math.abs(turn(v.heading, sc.core.az)) <= half) {
     const p = project(v, sc.core.az, sc.core.alt);
-    const text = sc.mwVis > 0.25 ? "Milky Way core" : "Milky Way core (washed out here)";
+    const text = sc.coreLabel;
     pill(ctx, p.x, Math.min(H - 40, p.y + 22), text, "#1c2640", "#dfe8ff");
   }
 

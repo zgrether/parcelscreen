@@ -1,3 +1,7 @@
 allowBuilds:
   # resolver used by eslint-plugin-import; ships prebuilt binaries, its install script is not needed
   unrs-resolver: false
+  # Serwist's service-worker build (step 17c): both ship prebuilt platform binaries as optional packages, so
+  # their install scripts aren't needed (esbuild checked working without it)
+  esbuild: false
+  "@swc/core": false

@@ -21,6 +21,7 @@ import { browserHttp } from "@/lib/client/http";
 import { loadParcelStore, recipeOf, type WorkingParcel } from "@/lib/client/parcelStore";
 import { getPref, setPref } from "@/lib/client/prefs";
 import { CancelledError, TimeoutError } from "@/lib/http";
+import { unreachableMessage } from "@/lib/client/pwa";
 import { serviceDownMessage } from "@/lib/geo/serviceStatus";
 import { combineParcels, type CombineResult } from "@/lib/geo/combine";
 import { parcelFromLine, pickParcelAt, type ParcelLine, type ParcelRecord } from "@/lib/geo/parcels";
@@ -239,7 +240,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       if (e instanceof CancelledError) return null;
       // The service not answering (a timeout, a refused request, an HTTP error) says which one (owner, after 16b).
       if (e instanceof TimeoutError || e instanceof TypeError || /^HTTP d/.test((e as Error).message))
-        flash(hint, serviceDownMessage(outline.source), 6000);
+        flash(hint, unreachableMessage(serviceDownMessage(outline.source), navigator.onLine), 6000);
       else flash(hint, "Couldn't load that parcel's record. Try again.", 2500);
       return null;
     } finally {

@@ -22,6 +22,7 @@ import { loadUserConfig, saveUserConfig } from "@/lib/client/userConfig";
 import type { UserConfig } from "@/lib/screen/types";
 import { SettingsProvider } from "@/components/Settings/SettingsDialog";
 import { GroundProvider } from "@/components/Ground/GroundContext";
+import { PwaShell } from "@/components/Pwa/PwaShell";
 import { MapArea } from "./MapArea";
 import { HelpProvider } from "@/components/Help/HelpDialog";
 import { ScreenItContext } from "@/components/Results/ScreenItContext";
@@ -137,6 +138,7 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
                   )}
                 </aside>
               </div>
+              <PwaShell running={screen.running} />
             </GroundProvider>
           </ScreenItContext.Provider>
         </SettingsProvider>

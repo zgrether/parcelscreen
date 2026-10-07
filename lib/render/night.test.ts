@@ -6,6 +6,7 @@ import { skylineAt } from "./ground";
 import { sunAltitude } from "./sunclock";
 import {
   clockIn,
+  coreLabel,
   domesOf,
   galaxyAt,
   glowAt,
@@ -82,6 +83,18 @@ describe("the night's span and clock", () => {
     const chi = nightTicks(s, "America/Chicago").map((t) => t.label);
     expect(chi[0]).toMatch(/^[45]pm$/);
     expect(clockIn("America/New_York", Date.UTC(2026, 11, 22, 4, 30))).toBe("11:30 pm");
+  });
+});
+
+describe("the core's label (owner, before #64)", () => {
+  const ridge = (az: number) => (az > 150 && az < 170 ? 22 : 3);
+  it("is behind the ridge when the skyline there stands higher than the core", () => {
+    expect(coreLabel({ az: 158, alt: 21 }, ridge, 0.9)).toBe("Milky Way core (behind ridge)");
+    expect(coreLabel({ az: 158, alt: 21 }, ridge, 0.1)).toBe("Milky Way core (behind ridge)");
+  });
+  it("otherwise the prototype's two (L1815)", () => {
+    expect(coreLabel({ az: 180, alt: 21 }, ridge, 0.9)).toBe("Milky Way core");
+    expect(coreLabel({ az: 180, alt: 21 }, ridge, 0.1)).toBe("Milky Way core (washed out here)");
   });
 });
 
