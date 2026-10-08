@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { differences, type CompareOptions } from "../../test/support/compare";
+import { differences } from "../../test/support/compare";
 import { FIXTURE_SLUGS, loadFixture, type FixtureSlug } from "../../test/support/fixtures";
 import { fromPrototype } from "../../test/support/fromPrototype";
+import { asPrototype, PARITY } from "../../test/support/parity";
 import { instantClock } from "../../test/support/pipeline";
 import { prototypeFn } from "../../test/support/prototypeFns";
 import * as format from "../format";
@@ -13,7 +14,6 @@ import { scoreSiteDetailed, type ScoreContext } from "./score";
 import { AtlasCache } from "./sky";
 import { soilAt } from "./soils";
 import { defaultName, summaryText } from "./summary";
-import { overLimitNote } from "./driveway";
 import type { ProgressEvent, ScreenResult } from "./types";
 
 const CFG = DEFAULT_USER_CONFIG;
@@ -37,49 +37,6 @@ const run = (slug: FixtureSlug, extra: Partial<Parameters<typeof screen>[0]> = {
     undefined,
     deps ?? depsFor(slug),
   );
-
-/**
- * Two tolerances beyond the 1e-9 default, each measured, not guessed (plan §5 "Engine rounding"):
- * - The road-distance family (roadRunFt, roadGrade, driveFt, the driveway cost point) comes from
- *   turf.nearestPointOnLine, which amplifies Chromium-vs-Node last-bit differences. Largest seen: 3.6e-6
- *   relative (Macks Mountain site #6, 1,065.99 ft).
- * - driveway.roadsNearestFt (the shortest road-to-boundary distance) comes from turf.pointToLineDistance near
- *   zero. The prototype's own loop on identical inputs gives 1.9219725335 ft in Chromium (the golden) and
- *   1.8970742829 ft in Node for Ferney Creek; 0.8974019750 vs 0.8875825113 for Macks Mountain.
- */
-const PARITY: CompareOptions = {
-  ignore: ["runAt", "demResM"], // the prototype stored neither
-  paths: {
-    "road.runFt": { rel: 1e-5 },
-    "road.gradePct": { rel: 1e-5 },
-    "sites.roadRunFt": { rel: 1e-5 },
-    "sites.roadGrade": { rel: 1e-5 },
-    "sites.driveFt": { rel: 1e-5 },
-    "sites.c.driveway": { rel: 1e-5 },
-    "house.roadRunFt": { rel: 1e-5 },
-    "house.roadGrade": { rel: 1e-5 },
-    "house.driveFt": { rel: 1e-5 },
-    "house.c.driveway": { rel: 1e-5 },
-    "driveway.roadsNearestFt": { abs: 0.05 },
-  },
-};
-
-/**
- * New in the port (owner, after 15c): with no legal route, the result also carries the least-steep route
- * (driveway.overLimit) and one sentence appended to the note. The prototype's note must come first, in full
- * and unchanged: the golden's note is the prefix, then exactly the appended sentence. For parity both
- * additions are taken off again.
- */
-function asPrototype(r: ScreenResult, golden: unknown): ScreenResult {
-  const d = r.driveway;
-  if (!d?.overLimit) return r;
-  const original = (golden as { driveway: { note: string } }).driveway.note;
-  expect(d.note!.startsWith(original)).toBe(true);
-  expect(d.note!.slice(original.length)).toBe(` ${overLimitNote(d.overLimit)}`);
-  const { overLimit: _, ...rest } = d;
-  void _;
-  return { ...r, driveway: { ...rest, note: original } };
-}
 
 describe("the full screen vs the prototype: all five goldens", () => {
   it.each(FIXTURE_SLUGS)("%s: plain run", async (slug) => {

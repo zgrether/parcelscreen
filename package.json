@@ -18,6 +18,7 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "e2e": "playwright test",
     "record:fixtures": "node scripts/record-fixtures.mts"
   },
   "dependencies": {

@@ -48,3 +48,51 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
+
+  # The browser e2e (step 18a; docs/plans/phase-0-18-acceptance.md §1): a production build, the reference
+  # parcels' recorded traffic replayed, the Web Worker's result against the goldens. A docs-only change skips
+  # the work but still reports success, so the check never sits pending.
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - id: changes
+        name: Code or docs only?
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then base="${{ github.event.pull_request.base.sha }}"; else base="${{ github.event.before }}"; fi
+          # When the changed files can't be listed (a new branch, a force-push), run.
+          files=$(git diff --name-only "$base" HEAD 2>/dev/null) || files=""
+          if [ -z "$files" ] || echo "$files" | grep -qvE '^docs/|\.md$'; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "code=false" >> "$GITHUB_OUTPUT"
+            echo "Docs-only change: the e2e is skipped."
+          fi
+      - uses: pnpm/action-setup@v6
+        if: steps.changes.outputs.code == 'true'
+      - uses: actions/setup-node@v7
+        if: steps.changes.outputs.code == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - if: steps.changes.outputs.code == 'true'
+        run: pnpm install --frozen-lockfile
+      - if: steps.changes.outputs.code == 'true'
+        run: pnpm exec playwright install --with-deps chromium
+      - if: steps.changes.outputs.code == 'true'
+        run: pnpm build
+      - if: steps.changes.outputs.code == 'true'
+        run: pnpm e2e
+        env:
+          E2E_SKIP_BUILD: "1"
+      - if: failure() && steps.changes.outputs.code == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

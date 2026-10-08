@@ -219,6 +219,8 @@ export function useScreenIt(
     showSteps: live?.serial === serial && status !== "idle",
     error: live?.serial === serial ? screen.state.error : null,
     display,
+    /** The worker's latest posted result (a run, a re-evaluation, a house re-assessment): the e2e reads it. */
+    posted: screen.state.result,
     point,
     /** The worker's session for this parcel's shown run (surfaces, horizon…), or null after a reload. */
     view: sessionLive ? screen.state.view : null,

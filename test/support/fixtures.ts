@@ -13,7 +13,9 @@ import { createReplayFetch, loadHar, type Har, type ReplayFetch } from "./replay
 export const FIXTURE_SLUGS = ["ferney-creek-52-47A", "macks-mountain-35-3"] as const;
 export type FixtureSlug = (typeof FIXTURE_SLUGS)[number];
 
-const FIXTURES_DIR = resolve(import.meta.dirname, "..", "fixtures");
+// From the repo root, where Vitest and Playwright both run: Playwright loads this file as CommonJS (the
+// package isn't "type": "module"), where import.meta doesn't parse.
+const FIXTURES_DIR = resolve(process.cwd(), "test", "fixtures");
 
 export interface FixtureInput {
   name: string;
