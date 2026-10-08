@@ -6,8 +6,8 @@ import { expect, type Page } from "@playwright/test";
 import type { PartialScreenResult, ScreenResult } from "@/lib/screen/types";
 import { differences } from "../test/support/compare";
 import { loadFixture, type FixtureSlug } from "../test/support/fixtures";
-import { fromPrototype } from "../test/support/fromPrototype";
-import { asPrototype, PARITY } from "../test/support/parity";
+import { EXPECTED_BROWSER, expectedOf } from "../test/support/expected";
+import type { Scenario } from "../test/support/scenarios";
 
 /** An empty profile with the debug handles on (window.__psScreen, __psMap), opened at the parcel. */
 export async function openExplorer(page: Page, slug: FixtureSlug): Promise<void> {
@@ -151,10 +151,13 @@ export const keptScreenCount = (page: Page): Promise<number> =>
       }),
   );
 
-/** The assertion message for againstGolden's lines. */
-export const GOLDEN = "differences from the golden (path: actual vs expected)";
+/** The assertion message for againstExpected's lines. */
+export const EXPECTED_MSG = "differences from expected.json (path: actual vs expected)";
 
-/** Every difference from the golden, as "path: actual vs expected" lines (the Node test's comparator). */
-export function againstGolden(result: unknown, golden: Parameters<typeof fromPrototype>[0]): string[] {
-  return differences(asPrototype(result as ScreenResult, golden), fromPrototype(golden), PARITY);
+/**
+ * Every difference from the fixture's expected.json (Batch A §1; the prototype's golden.json is frozen), as
+ * "path: actual vs expected" lines: the Node test's comparator, with the measured browser tolerances.
+ */
+export function againstExpected(result: unknown, slug: FixtureSlug, scenario: Scenario): string[] {
+  return differences(result as ScreenResult, expectedOf(slug, scenario), EXPECTED_BROWSER);
 }

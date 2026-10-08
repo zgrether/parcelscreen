@@ -2,7 +2,7 @@ import type { Feature, Polygon } from "geojson";
 import { describe, expect, it } from "vitest";
 import { differences } from "../../test/support/compare";
 import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
-import { fromPrototype } from "../../test/support/fromPrototype";
+import { expectedOf } from "../../test/support/expected";
 import { instantClock, throughSites } from "../../test/support/pipeline";
 import { createHttpClient, TimeoutError, type HttpClient, type RequestOptions } from "../http";
 import { DEFAULT_ENDPOINTS } from "./config";
@@ -30,7 +30,7 @@ const serve = (body: unknown): HttpClient => ({ fetch: async () => new Response(
 describe.each(FIXTURE_SLUGS)("flood and public land on %s vs the prototype", (slug) => {
   it("matches flood, protected land and their flags", async () => {
     const t = await throughSites(slug);
-    const golden = fromPrototype(loadFixture(slug).goldens.run);
+    const golden = expectedOf(slug, "run");
 
     const f = await floodStep(t.parcel, t.acres, t.deps);
     expect(differences(f.flood, golden.flood)).toEqual([]);
@@ -186,9 +186,7 @@ describe("FEMA timeouts (follow-up 22), replayed on Ferney Creek", () => {
   it("a timeout, then an answer within the longer limit, gives the golden flood result", async () => {
     const s = await stalling(35);
     const f = await floodStep(s.t.parcel, s.t.acres, { ...s.t.deps, http: s.http });
-    expect(differences(f.flood, fromPrototype(loadFixture("ferney-creek-52-47A").goldens.run).flood)).toEqual(
-      [],
-    );
+    expect(differences(f.flood, expectedOf("ferney-creek-52-47A", "run").flood)).toEqual([]);
     expect(s.calls()).toBe(2);
     expect(s.asked).toEqual([expect.objectContaining({ timeoutMs: 30_000, retryTimeoutMs: 45_000 })]);
   });
@@ -226,7 +224,7 @@ describe("FEMA network failures and 5xx (owner, after 18b), replayed on Ferney C
     };
     return { t, http, asked, calls: () => calls };
   };
-  const golden = () => fromPrototype(loadFixture("ferney-creek-52-47A").goldens.run).flood;
+  const golden = () => expectedOf("ferney-creek-52-47A", "run").flood;
 
   it.each<Failure>(["reject", 500, 502, 504])(
     "%s, then an answer, gives the golden flood result",

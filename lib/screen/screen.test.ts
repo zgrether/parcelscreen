@@ -1,15 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { differences } from "../../test/support/compare";
-import { FIXTURE_SLUGS, loadFixture, type FixtureSlug } from "../../test/support/fixtures";
+import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
 import { fromPrototype } from "../../test/support/fromPrototype";
-import { asPrototype, PARITY } from "../../test/support/parity";
-import { instantClock } from "../../test/support/pipeline";
+import { expectedOf } from "../../test/support/expected";
+import { depsFor, runFixture } from "../../test/support/scenarios";
 import { prototypeFn } from "../../test/support/prototypeFns";
 import * as format from "../format";
-import { createHttpClient } from "../http";
 import { DEFAULT_USER_CONFIG } from "./config";
 import { DemCache } from "./dem";
-import { evaluateAt, screen, setHouse, type ScreenDeps, type ScreenOutput } from "./index";
+import { screen, setHouse, type ScreenOutput } from "./index";
 import { scoreSiteDetailed, type ScoreContext } from "./score";
 import { AtlasCache } from "./sky";
 import { soilAt } from "./soils";
@@ -18,66 +17,9 @@ import type { ProgressEvent, ScreenResult } from "./types";
 
 const CFG = DEFAULT_USER_CONFIG;
 
-function depsFor(
-  slug: FixtureSlug,
-  wrap?: (f: typeof fetch) => typeof fetch,
-): ScreenDeps & { requests: string[] } {
-  const replay = loadFixture(slug).replayFetch();
-  const fetchImpl = wrap ? wrap(replay as unknown as typeof fetch) : (replay as unknown as typeof fetch);
-  return {
-    http: createHttpClient({ env: "node", fetchImpl, clock: instantClock() }),
-    sleep: async () => {},
-    requests: replay.requests,
-  };
-}
-
-const run = (slug: FixtureSlug, extra: Partial<Parameters<typeof screen>[0]> = {}, deps?: ScreenDeps) =>
-  screen(
-    { polygon: loadFixture(slug).input.polygon.geometry, config: CFG, ...extra },
-    undefined,
-    deps ?? depsFor(slug),
-  );
-
-describe("the full screen vs the prototype: all five goldens", () => {
-  it.each(FIXTURE_SLUGS)("%s: plain run", async (slug) => {
-    const out = await run(slug);
-    expect(
-      differences(
-        asPrototype(out.result, loadFixture(slug).goldens.run),
-        fromPrototype(loadFixture(slug).goldens.run),
-        PARITY,
-      ),
-    ).toEqual([]);
-  });
-
-  it("Macks Mountain: re-evaluated at site #2 (evaluateAt)", async () => {
-    const fx = loadFixture("macks-mountain-35-3");
-    const ev = await evaluateAt(await run("macks-mountain-35-3"), fx.input.evaluateSite2!.ll, "site #2");
-    expect(
-      differences(
-        asPrototype(ev.result, fx.goldens.evaluateSite2!),
-        fromPrototype(fx.goldens.evaluateSite2!),
-        PARITY,
-      ),
-    ).toEqual([]);
-  });
-
-  it("Ferney Creek: house marked on the finished run (setHouse)", async () => {
-    const fx = loadFixture("ferney-creek-52-47A");
-    const sh = await setHouse(await run("ferney-creek-52-47A"), fx.input.house!.ll);
-    expect(
-      differences(asPrototype(sh.result, fx.goldens.setHouse!), fromPrototype(fx.goldens.setHouse!), PARITY),
-    ).toEqual([]);
-  });
-
-  it("Ferney Creek: full run with the house (screen({ house }))", async () => {
-    const fx = loadFixture("ferney-creek-52-47A");
-    const out = await run("ferney-creek-52-47A", { house: fx.input.house!.ll });
-    expect(
-      differences(asPrototype(out.result, fx.goldens.houseRun!), fromPrototype(fx.goldens.houseRun!), PARITY),
-    ).toEqual([]);
-  });
-});
+// The five prototype goldens are no longer the target (Batch A §1): test/tools/expected.test.ts holds every
+// scenario to expected.json, and pnpm diff:prototype reports the departures from the prototype.
+const run = runFixture;
 
 /**
  * The owner's question: did the road-distance rounding (~1e-6 relative) move any cost index, tier or overall
@@ -86,7 +28,9 @@ describe("the full screen vs the prototype: all five goldens", () => {
  */
 describe("road-distance rounding vs cost index, tier and overall score", () => {
   const margins: string[] = [];
-  const MAX_COST_DRIFT = 3e-5; // largest |Δ c.driveway| between Node and the Chromium goldens, all fixtures
+  // Largest |Δ c.driveway| between the port and the prototype's goldens, all fixtures: Turf 7.4.0 against the
+  // prototype's 7.1.0 bundle (test/support/parity.ts), not the engines as first thought.
+  const MAX_COST_DRIFT = 3e-5;
 
   it.each([
     ["ferney-creek-52-47A", false],
@@ -269,7 +213,7 @@ describe("orchestration", () => {
     const fx = loadFixture("macks-mountain-35-3");
     const out = await run("macks-mountain-35-3", { evaluateAt: fx.input.evaluateSite2!.ll });
     expect(out.result.focus).toEqual({ ll: fx.input.evaluateSite2!.ll, label: "the evaluation point" });
-    expect(differences(out.result.sun, fromPrototype(fx.goldens.evaluateSite2!).sun)).toEqual([]);
+    expect(differences(out.result.sun, expectedOf("macks-mountain-35-3", "evaluateSite2").sun)).toEqual([]);
   });
 
   it("setHouse(null) clears the house and leaves everything else", async () => {

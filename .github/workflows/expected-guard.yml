@@ -1,0 +1,54 @@
+name: expected-guard
+
+# Batch A §1 (owner, 2026-10-08): a fixture's expected.json may change only in a PR whose description declares
+# a numbers change ("Numbers change: …") and includes this head's `pnpm diff:prototype` output. Its own
+# workflow so that editing the description re-runs only this check. The rule is test/tools/guard.ts.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+concurrency:
+  group: expected-guard-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  expected-guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - id: changed
+        name: Did the PR change an expected.json?
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git diff --name-only "$BASE_SHA" HEAD > "$RUNNER_TEMP/changed.txt"
+          if grep -qE '^test/fixtures/[^/]+/expected\.json$' "$RUNNER_TEMP/changed.txt"; then
+            echo "expected=true" >> "$GITHUB_OUTPUT"
+            grep -E '^test/fixtures/[^/]+/expected\.json$' "$RUNNER_TEMP/changed.txt"
+          else
+            echo "expected=false" >> "$GITHUB_OUTPUT"
+            echo "No expected.json changed: nothing to check."
+          fi
+      - uses: pnpm/action-setup@v6
+        if: steps.changed.outputs.expected == 'true'
+      - uses: actions/setup-node@v7
+        if: steps.changed.outputs.expected == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - if: steps.changed.outputs.expected == 'true'
+        run: pnpm install --frozen-lockfile
+      - if: steps.changed.outputs.expected == 'true'
+        run: pnpm diff:prototype
+      # The description reaches the check through the environment only, never interpolated into a script.
+      - if: steps.changed.outputs.expected == 'true'
+        run: pnpm guard:expected
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          CHANGED_FILES: ${{ runner.temp }}/changed.txt

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { differences } from "../../test/support/compare";
 import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
-import { fromPrototype } from "../../test/support/fromPrototype";
+import { expectedOf } from "../../test/support/expected";
 import { throughSoils } from "../../test/support/pipeline";
 import { prototypeFn } from "../../test/support/prototypeFns";
 import { dayLimits, eqToHor, lstDeg, sunPos } from "./astro";
@@ -151,7 +151,7 @@ describe("horizon and sun (synthetic)", () => {
 describe.each(FIXTURE_SLUGS)("sun and sky on %s vs the prototype", (slug) => {
   it("matches focus, point, sun, sky and every flag so far, then serves the atlas from the cache", async () => {
     const t = await throughSoils(slug);
-    const golden = fromPrototype(t.fx.goldens.run);
+    const golden = expectedOf(t.fx.slug, "run");
     const vfFt = t.vf * M2FT;
     const best = t.vet.best;
     const focus = chooseFocus({
@@ -202,7 +202,7 @@ describe("sun and sky at the re-evaluation points vs the prototype", () => {
   ] as const;
   it.each(cases)("%s %s", async (slug, key, where) => {
     const t = await throughSoils(slug);
-    const golden = fromPrototype(t.fx.goldens[key]!);
+    const golden = expectedOf(t.fx.slug, key);
     const ll = where();
     expect(golden.focus!.ll).toEqual(ll);
     const s = computeSun(t, ll, t.vf * M2FT, DEFAULT_USER_CONFIG.canopyDeg);

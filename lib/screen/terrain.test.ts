@@ -2,7 +2,7 @@ import { centroid, polygon } from "@turf/turf";
 import { describe, expect, it } from "vitest";
 import { differences } from "../../test/support/compare";
 import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
-import { fromPrototype } from "../../test/support/fromPrototype";
+import { expectedOf } from "../../test/support/expected";
 import { createHttpClient } from "../http";
 import { DEFAULT_ENDPOINTS } from "./config";
 import { inv } from "../geo/utm";
@@ -88,7 +88,7 @@ describe("insideMask and valleyFloor", () => {
 describe.each(FIXTURE_SLUGS)("terrain on %s vs the prototype", (slug) => {
   it("matches terrain.*, valley floor and the slope flag", async () => {
     const fx = loadFixture(slug);
-    const golden = fromPrototype(fx.goldens.run);
+    const golden = expectedOf(fx.slug, "run");
     const parcel = polygon(fx.input.polygon.geometry.coordinates);
     const deps = {
       http: createHttpClient({ env: "node", fetchImpl: fx.replayFetch() }),

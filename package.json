@@ -19,6 +19,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
+    "expected": "vitest run test/tools/expected.test.ts --mode expected",
+    "diff:prototype": "vitest run test/tools/diff-prototype.test.ts --mode diff-prototype",
+    "before-after": "vitest run test/tools/before-after.test.ts --mode before-after",
+    "guard:expected": "vitest run test/tools/expected-guard.test.ts --mode guard",
     "record:fixtures": "node scripts/record-fixtures.mts"
   },
   "dependencies": {

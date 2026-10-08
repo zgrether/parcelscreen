@@ -4,10 +4,9 @@
  * and the screen never started. Every other e2e blocks the service worker.
  */
 import { expect, test, type Page } from "@playwright/test";
-import { loadFixture } from "../test/support/fixtures";
 import {
-  againstGolden,
-  GOLDEN,
+  againstExpected,
+  EXPECTED_MSG,
   expectAllDone,
   importParcel,
   openExplorer,
@@ -20,7 +19,7 @@ const FERNEY = "ferney-creek-52-47A";
 
 test.use({ serviceWorkers: "allow" });
 
-test("Ferney Creek 52-47A with the service worker in control: the screen runs and matches the golden", async ({
+test("Ferney Creek 52-47A with the service worker in control: the screen runs and matches expected.json", async ({
   page: first,
   context,
 }) => {
@@ -62,7 +61,7 @@ test("Ferney Creek 52-47A with the service worker in control: the screen runs an
     "3DEP replayed",
   ).toBe(true);
   expectAllDone(steps);
-  expect(againstGolden(await postedResult(page), loadFixture(FERNEY).goldens.run), GOLDEN).toEqual([]);
+  expect(againstExpected(await postedResult(page), FERNEY, "run"), EXPECTED_MSG).toEqual([]);
 
   expect(workerEntry, "the screen worker's entry was requested").not.toBeNull();
   expect(workerEntry!.fromSW, `${workerEntry!.url} served by the service worker`).toBe(false);

@@ -50,7 +50,7 @@ jobs:
       - run: pnpm test
 
   # The browser e2e (step 18a; docs/plans/phase-0-18-acceptance.md §1): a production build, the reference
-  # parcels' recorded traffic replayed, the Web Worker's result against the goldens. A docs-only change skips
+  # parcels' recorded traffic replayed, the Web Worker's result against expected.json. A docs-only change skips
   # the work but still reports success, so the check never sits pending.
   e2e:
     runs-on: ubuntu-latest

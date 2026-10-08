@@ -2,7 +2,7 @@ import { centroid, polygon } from "@turf/turf";
 import { describe, expect, it } from "vitest";
 import { differences } from "../../test/support/compare";
 import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
-import { fromPrototype } from "../../test/support/fromPrototype";
+import { expectedOf } from "../../test/support/expected";
 import { createHttpClient } from "../http";
 import { DEFAULT_ENDPOINTS, DEFAULT_USER_CONFIG } from "./config";
 import { DemCache, fetchParcelDems } from "./dem";
@@ -112,7 +112,7 @@ describe("site flags", () => {
 describe.each(FIXTURE_SLUGS)("site search on %s vs the prototype", (slug) => {
   it("finds the same benches, shelves, gardens, diagnostics and flags", async () => {
     const fx = loadFixture(slug);
-    const golden = fromPrototype(fx.goldens.run);
+    const golden = expectedOf(fx.slug, "run");
     const parcel = polygon(fx.input.polygon.geometry.coordinates);
     const deps = {
       http: createHttpClient({ env: "node", fetchImpl: fx.replayFetch() }),

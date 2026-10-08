@@ -8,13 +8,20 @@ import type { ScreenResult } from "@/lib/screen/types";
 import type { CompareOptions } from "./compare";
 
 /**
- * Two tolerances beyond the 1e-9 default, each measured, not guessed (plan §5 "Engine rounding"):
+ * Two tolerances beyond the 1e-9 default, each measured, not guessed. Both are the **Turf version**, not the
+ * engines (corrected 2026-10-08, Batch A A1; plan §5): the prototype loads the Turf 7.1.0 bundle from a CDN,
+ * while npm's @turf/turf 7.1.0 declares its parts as ^7.1.0, so the port runs them at 7.4.0, where
+ * pointToLineDistance and nearestPointOnLine changed. The prototype's own functions in Node with the 7.1.0
+ * bundle reproduce every Chromium value below to the last digit or two. (The engines do amplify too, but by
+ * at most 1.6e-7 relative with the same Turf on both sides: EXPECTED_BROWSER in test/support/expected.ts.)
  * - The road-distance family (roadRunFt, roadGrade, driveFt, the driveway cost point) comes from
- *   turf.nearestPointOnLine, which amplifies Chromium-vs-Node last-bit differences. Largest seen: 3.6e-6
- *   relative (Macks Mountain site #6, 1,065.99 ft).
- * - driveway.roadsNearestFt (the shortest road-to-boundary distance) comes from turf.pointToLineDistance near
- *   zero. The prototype's own loop on identical inputs gives 1.9219725335 ft in Chromium (the golden) and
- *   1.8970742829 ft in Node for Ferney Creek; 0.8974019750 vs 0.8875825113 for Macks Mountain.
+ *   turf.nearestPointOnLine. Largest seen: 3.6e-6 relative (Macks Mountain site #6, 1,065.99 ft); across the
+ *   three fixtures' sites and roads, the two versions differ by up to 6.2e-6.
+ * - driveway.roadsNearestFt (the shortest road-to-boundary distance) comes from turf.pointToLineDistance.
+ *   7.1.0 gives 1.9219725335 ft for Ferney Creek (the golden) and 7.4.0 gives 1.8970742829 ft; 0.8974019750
+ *   vs 0.8875825113 for Macks Mountain. On Grayson Mud Creek it's 18.4283 vs 18.2627 ft, beyond this
+ *   tolerance: 7.4.0 agrees with a brute-force distance (18.262 ft), so it's listed as an intended difference
+ *   (phase-0-18-acceptance.md §5), not widened here.
  */
 export const PARITY: CompareOptions = {
   ignore: ["runAt", "demResM"], // the prototype stored neither

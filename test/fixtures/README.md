@@ -7,6 +7,11 @@ own network traffic and results for one reference parcel. The port is tested aga
 |---|---|---|
 | `ferney-creek-52-47A/` | Ferney Creek, Floyd County VA, parcel 52-47A (43.88 ac) | `36.88740, -80.45455` |
 | `macks-mountain-35-3/` | Macks Mountain, Floyd County VA, parcel 35-3 (292.01 ac) | `36.93492, -80.63139` |
+| `grayson-mud-creek-6273/` | Mud Creek, Grayson County VA, parcel 6273, PTM 63-A-62 (29.31 ac screened of 30.15; Batch A) | `36.585425, -81.561989` |
+
+Grayson Mud Creek was added in Batch A (A1, 2026-10-08; `docs/plans/batch-a.md` §2). It is the live screen
+behind follow-ups 23–29, recorded the same way from the same unmodified prototype. Its county record has two
+parts (29.31 ac and 0.84 ac, 12.1 m apart); the prototype screens the first only (B7), and so does the recording.
 
 ## Provenance
 
@@ -20,6 +25,10 @@ own network traffic and results for one reference parcel. The port is tested aga
 |---|---|---|---|
 | Ferney Creek | 2026-10-04T21:21:26.496Z | 2026-10-04T21:21:27.602Z | 2026-10-04T21:21:38.950Z |
 | Macks Mountain | 2026-10-04T21:21:39.247Z | 2026-10-04T21:21:40.231Z | 2026-10-04T21:21:47.492Z |
+| Grayson Mud Creek | 2026-10-08T16:28:57.399Z | 2026-10-08T16:28:58.557Z | 2026-10-08T16:29:12.908Z |
+
+Grayson was recorded with Playwright 1.63.0's headless Chromium on 2026-10-08, first try, every step done and
+all 22 data requests in the HAR.
 
 ### Recording history
 
@@ -49,7 +58,7 @@ own network traffic and results for one reference parcel. The port is tested aga
 | Key | Fixture | What it is | Port API it checks |
 |---|---|---|---|
 | `run` | both | Plain screen at the parcel, no house | `screen()` |
-| `evaluateSite2` | Macks Mountain | Same result after tapping site #2 (prototype `setFocus`) | `evaluateAt()` |
+| `evaluateSite2` | Macks Mountain, Grayson | Same result after tapping site #2 (prototype `setFocus`) | `evaluateAt()` |
 | `setHouse` | Ferney Creek | Same result after marking a house (prototype `setHouse` → `assessHouse` + `setFocus`) | `setHouse()` |
 | `houseRun` | Ferney Creek | Full re-run with the house marked | `screen({ house })` |
 
@@ -63,6 +72,9 @@ inside the polygon. No real house is needed, because `assessHouse` is determinis
 - Macks Mountain `run`: eight ranked sites (five benches and three compact shelves), five flags, verdict `marginal`, and no legal driveway route to site #1.
 - Macks Mountain `evaluateSite2`: a single legal route to site #2.
 - Both: every step `done`, places from Photon (the Overpass fallback was not needed), FEMA zone X only.
+- Grayson Mud Creek `run`: a 0.24 ac compact shelf ranked first over a 1.30 ac bench (follow-up 27); public land
+  reported as an NC Land and Water Fund agreement 112,947 ft away (23); no trailheads (24) and no grocers (25);
+  no legal driveway route to site #1, so the least-steep route; the first of two parts only (29).
 
 ### Known limitation, not a permanent parity target
 
@@ -80,6 +92,29 @@ add special cases to keep this outcome.
 - `driveway.entrances.roadsNearestFt` is a property on an array, which JSON drops. It is copied to
   `driveway._entrancesRoadsNearestFt`.
 - `parcel`, `when` and `soilUnits[].geos` are kept as the prototype holds them. `when` is ignored when comparing.
+
+## `expected.json`: the port's own output (Batch A)
+
+From Batch A on (owner, 2026-10-08; `docs/plans/batch-a.md` §1), `golden.json` is **frozen** as the Phase 0
+parity record, and the engine's tests compare against `expected.json` instead: one `ScreenResult` per scenario,
+in the port's shape, written by the port. `runAt` is written as a fixed string and never compared.
+
+| Command | What it does |
+|---|---|
+| `pnpm test` | includes `test/tools/expected.test.ts`: every scenario, run on the replay, equals `expected.json` |
+| `pnpm expected` | regenerates every `expected.json` (for a PR that changes numbers) |
+| `pnpm diff:prototype` | every difference between `expected.json` and the prototype's goldens, with Phase 0's comparator (`PARITY`, `asPrototype`); writes `test-results/diff-prototype.txt`, ending in a hashed summary line |
+| `pnpm before-after` | the base branch's `expected.json` against this checkout's: the headline table and the leaf diff a Batch A PR carries (`BASE=<ref>` for another base); writes `test-results/before-after.md` |
+
+**The CI guard** (`.github/workflows/expected-guard.yml`): a PR that adds or changes an `expected.json` must
+have a `Numbers change:` line in its description and the exact summary line of `pnpm diff:prototype` on its
+head; otherwise the `expected-guard` check fails. Editing the description re-runs it.
+
+When A1 created the files, `diff:prototype` showed **no difference** for Ferney Creek and Macks Mountain, and one
+for Grayson, in both scenarios: `driveway.roadsNearestFt` 18.26 ft against the prototype's 18.43 ft. That is
+the Turf version, not the port: the prototype loads Turf 7.1.0 from a CDN, while npm's `@turf/turf` 7.1.0
+resolves its parts at 7.4.0, whose `pointToLineDistance` agrees with a brute-force distance (18.262 ft). It's
+proposed as row 17 of `docs/plans/phase-0-18-acceptance.md` §5.
 
 ## Terrarium tile (DEM fallback)
 

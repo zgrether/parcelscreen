@@ -5,3 +5,4 @@
 *.gz binary
 test/fixtures/**/golden.json -diff linguist-generated
 test/fixtures/**/network.har linguist-generated
+test/fixtures/**/expected.json linguist-generated
