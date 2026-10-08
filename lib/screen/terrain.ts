@@ -3,7 +3,7 @@
  * Ported verbatim (proto L894–910, L1016–1027, L1039).
  */
 import { booleanPointInPolygon } from "@turf/turf";
-import type { Feature, Polygon } from "geojson";
+import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { at, llToRC, rcToLL } from "./dem";
 import { SCREEN_CONSTANTS } from "./config";
 import type { Dem, ScreenResult } from "./types";
@@ -41,8 +41,8 @@ export function slopeAspect(d: Dem): { slope: Float32Array; aspect: Float32Array
   return { slope, aspect };
 }
 
-/** 1 for cells whose centre is inside the parcel, else 0. */
-export function insideMask(d: Dem, parcel: Feature<Polygon>): Uint8Array {
+/** 1 for cells whose centre is inside the parcel (or its own land, which may have several parts), else 0. */
+export function insideMask(d: Dem, parcel: Feature<Polygon | MultiPolygon>): Uint8Array {
   const m = new Uint8Array(d.w * d.h);
   for (let r = 0; r < d.h; r++)
     for (let c = 0; c < d.w; c++) {
@@ -50,6 +50,24 @@ export function insideMask(d: Dem, parcel: Feature<Polygon>): Uint8Array {
       if (booleanPointInPolygon([lon, lat], parcel)) m[r * d.w + c] = 1;
     }
   return m;
+}
+
+/**
+ * The two inside masks (follow-up 29, owner 2026-10-08). `outline`: every cell inside the boundary, a bridged
+ * strip included, for the driveway's connectivity. `own`: the cells on the parcel's own land, for sites,
+ * shelves, gardens, the suitability surface, the terrain stats and the house. One array when there's no strip.
+ */
+export function insideMasks(
+  d: Dem,
+  parcel: Feature<Polygon>,
+  ownLand?: Feature<Polygon | MultiPolygon>,
+): { outline: Uint8Array; own: Uint8Array } {
+  const outline = insideMask(d, parcel);
+  if (!ownLand) return { outline, own: outline };
+  const land = insideMask(d, ownLand);
+  const own = new Uint8Array(outline.length);
+  for (let i = 0; i < own.length; i++) own[i] = outline[i]! & land[i]!;
+  return { outline, own };
 }
 
 /**

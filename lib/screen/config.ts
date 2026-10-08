@@ -228,6 +228,11 @@ export const SCREEN_CONSTANTS = deepFreeze({
   padus: {
     searchM: 1600, // L1101
     adjoinsBufferKm: 0.02, // L1103
+    // Follow-up 23 (owner, 2026-10-08): the nearest land open to visitors beyond the mile, searched this far,
+    // with outlines simplified by the server to about 20 m (full geometry would be ~7 MB a screen). It feeds
+    // only the report's "beyond a mile" line; the within-a-mile list and the adjoins flags use the 1,600 m query.
+    nearestOpenKm: 16,
+    openSimplifyDeg: 0.0002,
   },
   // Combining parcels (step 13b, new in the port): the widest gap bridged (a road right-of-way between
   // tracts sold together), and the gap below which parcels count as touching (digitizing slivers).

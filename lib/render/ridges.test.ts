@@ -1,16 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { horizonProfile } from "@/lib/screen/sun";
 import { llToRC } from "@/lib/screen/dem";
-import type { ScreenResult } from "@/lib/screen/types";
-import { FIXTURE_SLUGS, loadFixture } from "@/test/support/fixtures";
-import { fromPrototype } from "@/test/support/fromPrototype";
+import { FIXTURE_SLUGS } from "@/test/support/fixtures";
+import { expectedOf } from "@/test/support/expected";
 import { throughSites } from "@/test/support/pipeline";
 import { envelope, ridgeBands, RIDGE_BANDS_M } from "./ridges";
 
 describe.each(FIXTURE_SLUGS)("ridges by distance on %s", (slug) => {
   it("their envelope at the report's 5° points is the report's skyline, from the same 30 m DEM", async () => {
     const t = await throughSites(slug);
-    const r = fromPrototype(loadFixture(slug).goldens.run) as ScreenResult;
+    const r = expectedOf(slug, "run");
     const ll = r.point!.ll;
     const b = ridgeBands(t.dWide, ll, 5);
     expect(b.angles).toHaveLength(RIDGE_BANDS_M.length);
@@ -25,7 +24,7 @@ describe.each(FIXTURE_SLUGS)("ridges by distance on %s", (slug) => {
 
   it("at 1° the bands are nested by distance, and each covers its own ring only", async () => {
     const t = await throughSites(slug);
-    const ll = (fromPrototype(loadFixture(slug).goldens.run) as ScreenResult).point!.ll;
+    const ll = expectedOf(slug, "run").point!.ll;
     const b = ridgeBands(t.dWide, ll, 1);
     expect(b.angles.every((band) => band.length === 360)).toBe(true);
     // The nearest band always has ground (the cells next to the point).

@@ -189,8 +189,8 @@ describe.each(FIXTURE_SLUGS)("soils on %s vs the prototype", (slug) => {
   it("matches soils, soil units, bench vetoes, gardens and the flags so far", async () => {
     const t = await throughSites(slug);
     const golden = expectedOf(t.fx.slug, "run");
-    const rows = screenableRows(await fetchSoils(t.parcel, t.deps));
-    const units = await fetchSoilPolygons(t.parcel, t.deps);
+    const rows = screenableRows(await fetchSoils(t.measured, t.deps));
+    const units = await fetchSoilPolygons(t.measured, t.deps);
 
     expect(rows).toEqual(golden.soils);
     expect(
@@ -221,5 +221,28 @@ describe.each(FIXTURE_SLUGS)("soils on %s vs the prototype", (slug) => {
       ...soilFlags(rows, units, t.acres, DEFAULT_USER_CONFIG.shallowBedrockCm),
     ];
     expect(golden.flags.slice(0, flags.length)).toEqual(flags);
+  });
+});
+
+describe("soil queries on the parcel's own land (A2a, owner 2026-10-08)", () => {
+  const one = loadFixture("ferney-creek-52-47A").input.polygon;
+  it("one polygon: the prototype's text, unchanged", () => {
+    expect(componentQuery(one)).toContain("SDA_Get_Mukey_from_intersection_with_WktWgs84('polygon((");
+    expect(polygonQuery(one)).toContain("geometry::STGeomFromText('POLYGON((");
+  });
+  it("several parts: a MULTIPOLYGON of their outer rings", () => {
+    const two = {
+      type: "Feature" as const,
+      properties: {},
+      geometry: {
+        type: "MultiPolygon" as const,
+        coordinates: [
+          one.geometry.coordinates,
+          one.geometry.coordinates.map((r) => r.map(([x, y]) => [x! + 0.01, y!])),
+        ],
+      },
+    };
+    expect(componentQuery(two)).toContain("WktWgs84('MULTIPOLYGON(((");
+    expect(polygonQuery(two)).toMatch(/STGeomFromText\('MULTIPOLYGON\(\(\([^)]*\)\),\(\([^)]*\)\)\)',4326\)/);
   });
 });

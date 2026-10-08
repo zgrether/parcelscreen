@@ -3592,12 +3592,183 @@
    },
    {
     "name": "Blue Ridge Boy Scout Camp",
-    "manager": "NGO",
+    "manager": "Boy Scouts Blue Ridge Mountains Council",
     "type": "PCON",
     "access": "RA",
     "gap": "4",
     "adjoins": true,
     "distFt": null
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 19912.704539581453
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "VA Dept of Conservation and Recreation",
+    "type": "SP",
+    "access": "OA",
+    "gap": "4",
+    "adjoins": false,
+    "distFt": 19912.704539581453
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "VA Dept of Conservation and Recreation",
+    "type": "SP",
+    "access": "OA",
+    "gap": "4",
+    "adjoins": false,
+    "distFt": 24545.785208599584
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 24545.785208599584
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "VA Dept of Conservation and Recreation",
+    "type": "SP",
+    "access": "OA",
+    "gap": "4",
+    "adjoins": false,
+    "distFt": 29131.049989876286
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 29131.049989876286
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "VA Dept of Conservation and Recreation",
+    "type": "SP",
+    "access": "OA",
+    "gap": "4",
+    "adjoins": false,
+    "distFt": 29255.943266703052
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 29255.943266703052
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "VA Dept of Conservation and Recreation",
+    "type": "SP",
+    "access": "OA",
+    "gap": "4",
+    "adjoins": false,
+    "distFt": 29497.33392225216
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 29497.33392225216
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 29547.72876496921
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "VA Dept of Conservation and Recreation",
+    "type": "SP",
+    "access": "OA",
+    "gap": "4",
+    "adjoins": false,
+    "distFt": 29547.72876496921
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 29730.54042667004
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 32927.55352704764
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 37785.88942948256
+   },
+   {
+    "name": "Claytor Lake State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "2",
+    "adjoins": false,
+    "distFt": 40190.18638368188
+   },
+   {
+    "name": "Claytor Lake State Park",
+    "manager": "VA Dept of Conservation and Recreation",
+    "type": "SP",
+    "access": "OA",
+    "gap": "2",
+    "adjoins": false,
+    "distFt": 40190.18638368188
+   },
+   {
+    "name": "Claytor Lake State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "2",
+    "adjoins": false,
+    "distFt": 43179.46536787536
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 50420.51564710102
    }
   ],
   "near": {
@@ -11396,12 +11567,183 @@
    },
    {
     "name": "Blue Ridge Boy Scout Camp",
-    "manager": "NGO",
+    "manager": "Boy Scouts Blue Ridge Mountains Council",
     "type": "PCON",
     "access": "RA",
     "gap": "4",
     "adjoins": true,
     "distFt": null
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 19912.704539581453
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "VA Dept of Conservation and Recreation",
+    "type": "SP",
+    "access": "OA",
+    "gap": "4",
+    "adjoins": false,
+    "distFt": 19912.704539581453
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "VA Dept of Conservation and Recreation",
+    "type": "SP",
+    "access": "OA",
+    "gap": "4",
+    "adjoins": false,
+    "distFt": 24545.785208599584
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 24545.785208599584
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "VA Dept of Conservation and Recreation",
+    "type": "SP",
+    "access": "OA",
+    "gap": "4",
+    "adjoins": false,
+    "distFt": 29131.049989876286
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 29131.049989876286
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "VA Dept of Conservation and Recreation",
+    "type": "SP",
+    "access": "OA",
+    "gap": "4",
+    "adjoins": false,
+    "distFt": 29255.943266703052
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 29255.943266703052
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "VA Dept of Conservation and Recreation",
+    "type": "SP",
+    "access": "OA",
+    "gap": "4",
+    "adjoins": false,
+    "distFt": 29497.33392225216
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 29497.33392225216
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 29547.72876496921
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "VA Dept of Conservation and Recreation",
+    "type": "SP",
+    "access": "OA",
+    "gap": "4",
+    "adjoins": false,
+    "distFt": 29547.72876496921
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 29730.54042667004
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 32927.55352704764
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 37785.88942948256
+   },
+   {
+    "name": "Claytor Lake State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "2",
+    "adjoins": false,
+    "distFt": 40190.18638368188
+   },
+   {
+    "name": "Claytor Lake State Park",
+    "manager": "VA Dept of Conservation and Recreation",
+    "type": "SP",
+    "access": "OA",
+    "gap": "2",
+    "adjoins": false,
+    "distFt": 40190.18638368188
+   },
+   {
+    "name": "Claytor Lake State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "2",
+    "adjoins": false,
+    "distFt": 43179.46536787536
+   },
+   {
+    "name": "New River Trail State Park",
+    "manager": "UNK",
+    "type": "SP",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 50420.51564710102
    }
   ],
   "near": {

@@ -1,15 +1,17 @@
-import { centroid, polygon } from "@turf/turf";
+import { centroid, polygon, feature } from "@turf/turf";
 import { describe, expect, it } from "vitest";
 import { differences } from "../../test/support/compare";
 import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
+import { fixtureParcel } from "../../test/support/scenarios";
 import { expectedOf } from "../../test/support/expected";
 import { createHttpClient } from "../http";
 import { DEFAULT_ENDPOINTS, DEFAULT_USER_CONFIG } from "./config";
 import { DemCache, fetchParcelDems } from "./dem";
 import { aspectScore, components, findSites, frostCurve, siteFlags, siteResults } from "./sites";
 import { SCREEN_CONSTANTS } from "./config";
-import { insideMask, slopeAspect, terrainFlags, valleyFloor } from "./terrain";
+import { insideMasks, slopeAspect, terrainFlags, valleyFloor } from "./terrain";
 import type { Dem } from "./types";
+import { inv } from "../geo/utm";
 import { lerp } from "./util";
 
 /** A w×h grid of 10 m cells (0.0247 ac each) with the given scores. */
@@ -113,7 +115,9 @@ describe.each(FIXTURE_SLUGS)("site search on %s vs the prototype", (slug) => {
   it("finds the same benches, shelves, gardens, diagnostics and flags", async () => {
     const fx = loadFixture(slug);
     const golden = expectedOf(fx.slug, "run");
-    const parcel = polygon(fx.input.polygon.geometry.coordinates);
+    // The parcel as the app screens it: for Grayson, both parts with the strip between them (follow-up 29).
+    const input = await fixtureParcel(slug);
+    const parcel = polygon(input.polygon.coordinates);
     const deps = {
       http: createHttpClient({ env: "node", fetchImpl: fx.replayFetch() }),
       endpoints: DEFAULT_ENDPOINTS,
@@ -121,7 +125,7 @@ describe.each(FIXTURE_SLUGS)("site search on %s vs the prototype", (slug) => {
     };
     const { dFine, dWide } = await fetchParcelDems(parcel, 3, deps);
     const { slope, aspect } = slopeAspect(dFine);
-    const inside = insideMask(dFine, parcel);
+    const { own: inside } = insideMasks(dFine, parcel, input.ownLand ? feature(input.ownLand) : undefined);
     const [lon, lat] = centroid(parcel).geometry.coordinates as [number, number];
     const vf = valleyFloor(dWide, [lat, lon]);
     const search = findSites(dFine, slope, aspect, inside, vf, DEFAULT_USER_CONFIG);
@@ -130,13 +134,12 @@ describe.each(FIXTURE_SLUGS)("site search on %s vs the prototype", (slug) => {
     expect(differences(search.diag, golden.terrain!.diag)).toEqual([]);
     expect(out.houseMinUsed).toBe(golden.houseMinUsed);
 
-    // Benches: no veto reordered them in either golden, so order is comparable. `veto` comes from soils.
-    expect(golden.benches!.every((b) => b.veto === null)).toBe(true);
+    // Benches, by place: the soils step's veto (`veto`) can reorder them, and on Grayson Mud Creek it does (its
+    // second part is frequently flooded bottomland, follow-up 29).
+    const byPlace = <T extends { ll: [number, number] }>(xs: T[]) =>
+      [...xs].sort((a, b) => a.ll[0] - b.ll[0] || a.ll[1] - b.ll[1]);
     expect(
-      differences(
-        out.benches,
-        golden.benches!.map(({ veto: _v, ...b }) => b),
-      ),
+      differences(byPlace(out.benches), byPlace(golden.benches!.map(({ veto: _v, ...b }) => b))),
     ).toEqual([]);
 
     // Shelves: distFt/dropFt come from the rank step.
@@ -161,5 +164,70 @@ describe.each(FIXTURE_SLUGS)("site search on %s vs the prototype", (slug) => {
       ...terrainFlags(golden.terrain!.slopeP90Deg),
     ];
     expect(golden.flags.slice(0, flags.length)).toEqual(flags);
+  });
+});
+
+// Follow-up 29 (owner, 2026-10-08): the strip bridging a parcel's parts is outline, not land. Two steep parts
+// with a flat 15 m strip between them: on the outline the strip makes a house site; on the own land, nothing.
+describe("a bridged strip between two parts (follow-up 29)", () => {
+  const RES = 3,
+    W = 100,
+    H = 100,
+    STRIP = [45, 50] as const; // columns of the strip: 15 m wide, 300 m long
+  const X0 = 500000,
+    Y0 = 4050000;
+  const d: Dem = {
+    z: new Float32Array(W * H),
+    w: W,
+    h: H,
+    x0: X0,
+    y0: Y0,
+    res: RES,
+    resY: RES,
+    source: "USGS 3DEP",
+  };
+  for (let r = 0; r < H; r++)
+    for (let c = 0; c < W; c++) {
+      const inStrip = c >= STRIP[0] && c < STRIP[1];
+      // The parts fall away southward at 35°; the strip is level.
+      d.z[r * W + c] = inStrip ? 1000 : 1000 - r * RES * Math.tan((35 * Math.PI) / 180);
+    }
+  /** A lon/lat rectangle over columns c0..c1 (exclusive), all rows. */
+  const block = (c0: number, c1: number) => {
+    const ll = (x: number, y: number) => {
+      const [lat, lon] = inv(x, y);
+      return [lon, lat];
+    };
+    const [w, e] = [X0 + c0 * RES, X0 + c1 * RES];
+    const [n, s] = [Y0, Y0 - H * RES];
+    return [[ll(w, n), ll(e, n), ll(e, s), ll(w, s), ll(w, n)]];
+  };
+  const outline = polygon(block(0, W));
+  const own = feature({
+    type: "MultiPolygon" as const,
+    coordinates: [block(0, STRIP[0]), block(STRIP[1], W)],
+  });
+  const { slope, aspect } = slopeAspect(d);
+  const vf = 1000 - 60; // the strip sits 200 ft above the valley floor: inside the thermal belt
+  const stripCells = () => {
+    const out: number[] = [];
+    for (let r = 0; r < H; r++) for (let c = STRIP[0]; c < STRIP[1]; c++) out.push(r * W + c);
+    return out;
+  };
+
+  it("on the outline alone, the flat strip is a house site (so the test can see one)", () => {
+    const { outline: inside } = insideMasks(d, outline);
+    const s = findSites(d, slope, aspect, inside, vf, DEFAULT_USER_CONFIG);
+    expect(stripCells().some((i) => s.label[i]! > 0)).toBe(true);
+  });
+
+  it("on the own land, no site, shelf, garden or suitability cell is in the strip", () => {
+    const { outline: whole, own: inside } = insideMasks(d, outline, own);
+    expect(stripCells().every((i) => whole[i] === 1 && inside[i] === 0)).toBe(true);
+    const s = findSites(d, slope, aspect, inside, vf, DEFAULT_USER_CONFIG);
+    for (const i of stripCells()) {
+      expect(s.label[i]! > 0 || s.shelfLabel[i]! > 0 || s.gardenLabel[i]! > 0).toBe(false);
+      expect(Number.isNaN(s.surfaces.house[i]!) && Number.isNaN(s.surfaces.garden[i]!)).toBe(true);
+    }
   });
 });

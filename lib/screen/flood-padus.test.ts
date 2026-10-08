@@ -32,14 +32,14 @@ describe.each(FIXTURE_SLUGS)("flood and public land on %s vs the prototype", (sl
     const t = await throughSites(slug);
     const golden = expectedOf(slug, "run");
 
-    const f = await floodStep(t.parcel, t.acres, t.deps);
+    const f = await floodStep(t.measured, t.acres, t.deps);
     expect(differences(f.flood, golden.flood)).toEqual([]);
     for (const flag of f.flags) expect(golden.flags).toContainEqual(flag);
     expect(golden.flags.filter((x) => /FEMA Special Flood Hazard Area/.test(x.t))).toHaveLength(
       f.flags.length,
     );
 
-    const p = await padusStep(t.parcel, t.deps);
+    const p = await padusStep(t.measured, t.deps);
     expect(differences(p.protected, golden.protected)).toEqual([]);
     for (const flag of p.flags) expect(golden.flags).toContainEqual(flag);
     expect(golden.flags.filter((x) => /^Adjoins/.test(x.t))).toHaveLength(p.flags.length);
@@ -261,5 +261,238 @@ describe("FEMA network failures and 5xx (owner, after 18b), replayed on Ferney C
       `NFHL/MapServer/28 ${status}`,
     );
     expect(s.calls()).toBe(1);
+  });
+});
+
+describe("public land: the nearest part, and land open beyond the mile (follow-up 23)", () => {
+  const parcel = square(-80.5, 36.9, -80.49, 36.91); // about 0.9 × 1.1 km
+  type Props = { Unit_Nm: string; Mang_Name: string; Des_Tp: string; Pub_Access: string; GAP_Sts: string };
+  const props = (name: string, access = "OA", manager = "USFS"): Props => ({
+    Unit_Nm: name,
+    Mang_Name: manager,
+    Des_Tp: "NF",
+    Pub_Access: access,
+    GAP_Sts: "3",
+  });
+  const ring = (w: number, s: number, e: number, n: number) => [
+    [w, s],
+    [e, s],
+    [e, n],
+    [w, n],
+    [w, s],
+  ];
+  /** A unit east of the parcel, `km` from its edge (1° of longitude here is about 89 km). */
+  const east = (p: Props, km: number) => ({
+    ...square(-80.49 + km / 89, 36.9, -80.48 + km / 89, 36.91),
+    properties: p,
+  });
+  /** Answers the 1,600 m query with `mile` and the wider one with `wide` (or a 500), and keeps what was asked. */
+  const twoQueries = (mile: object[], wide: object[] | "down") => {
+    const asked: URLSearchParams[] = [];
+    const http: HttpClient = {
+      fetch: async (_url, o = {}) => {
+        const b = new URLSearchParams(String(o.body));
+        asked.push(b);
+        if (b.get("distance") === "1600") return new Response(JSON.stringify({ features: mile }));
+        return wide === "down"
+          ? new Response("down", { status: 500 })
+          : new Response(JSON.stringify({ features: wide }));
+      },
+    };
+    return { http, asked };
+  };
+  const names = (r: Awaited<ReturnType<typeof padusStep>>) => r.protected.map((u) => u.name);
+
+  it("measures a multi-part unit to its nearest part, not its first", async () => {
+    const fund = {
+      type: "Feature",
+      properties: props("Land Fund", "RA", "UNK"),
+      geometry: {
+        type: "MultiPolygon",
+        coordinates: [[ring(-80.38, 36.9, -80.37, 36.91)], [ring(-80.484, 36.9, -80.48, 36.91)]], // ~10 km, ~0.5 km
+      },
+    };
+    const r = await padusStep(parcel, { ...twoQueries([fund], []), endpoints: DEFAULT_ENDPOINTS });
+    const ft = r.protected[0]!.distFt!;
+    expect(ft / 3.28084).toBeGreaterThan(450);
+    expect(ft / 3.28084).toBeLessThan(600); // the near part; its first part alone is ~10 km
+  });
+
+  it("adds open land beyond the mile after the mile's units, nearest first, and never a unit the mile found", async () => {
+    const park = props("Park");
+    const q = twoQueries(
+      [east(props("Land Fund", "RA", "UNK"), 0.5), east(park, 0.8)],
+      [
+        east(props("Far Forest"), 8),
+        east(park, 0.7), // the mile's unit again (simplified): its full-geometry copy stands
+        east(props("Near Forest"), 1), // within the mile: the mile's query is the only source there
+        east(props("Forest"), 4),
+      ],
+    );
+    const r = await padusStep(parcel, { ...q, endpoints: DEFAULT_ENDPOINTS });
+    expect(names(r)).toEqual(["Land Fund", "Park", "Forest", "Far Forest"]);
+    expect(r.protected.slice(2).every((u) => !u.adjoins && u.distFt! > 1600 * 3.28084)).toBe(true);
+    expect(r.protected[1]!.distFt! / 3.28084).toBeCloseTo(800, -2); // the full-geometry copy's distance
+
+    // The wider query: open land only, 16 km, simplified; the mile's query as it always was.
+    const [mile, wide] = q.asked;
+    expect([mile!.get("distance"), mile!.get("where"), mile!.get("maxAllowableOffset")]).toEqual([
+      "1600",
+      null,
+      null,
+    ]);
+    expect([wide!.get("distance"), wide!.get("where"), wide!.get("maxAllowableOffset")]).toEqual([
+      "16000",
+      "Pub_Access='OA'",
+      "0.0002",
+    ]);
+    expect(wide!.get("outFields")).toBe(mile!.get("outFields"));
+    expect(mile!.get("outFields")).toContain("Loc_Mang"); // the local manager name, for the list and the line
+  });
+
+  it("the adjoins flags come from the mile's query only", async () => {
+    const forest = east(props("Jefferson NF"), 0); // adjoins
+    const mileOnly = await padusStep(parcel, { ...twoQueries([forest], []), endpoints: DEFAULT_ENDPOINTS });
+    const withWide = await padusStep(parcel, {
+      ...twoQueries([forest], [east(props("Other NF"), 3), east(props("Third NF"), 6)]),
+      endpoints: DEFAULT_ENDPOINTS,
+    });
+    expect(withWide.flags).toEqual(mileOnly.flags);
+  });
+
+  it("a failed wider query leaves the mile's units and flags, and fails nothing", async () => {
+    const r = await padusStep(parcel, {
+      ...twoQueries([east(props("Park"), 0.8)], "down"),
+      endpoints: DEFAULT_ENDPOINTS,
+    });
+    expect(names(r)).toEqual(["Park"]);
+  });
+});
+
+describe("flood: two trimmed queries, measured on the parcel's own land (A2a, owner 2026-10-08)", () => {
+  const own = {
+    type: "Feature" as const,
+    properties: {},
+    geometry: {
+      type: "MultiPolygon" as const,
+      coordinates: [
+        square(-80.5, 36.9, -80.495, 36.91).geometry.coordinates,
+        square(-80.494, 36.9, -80.49, 36.91).geometry.coordinates,
+      ],
+    },
+  };
+  /** Zones without geometry for the first query; the SFHA features with geometry for the second. */
+  const nfhl = (zones: FloodFeature[]) => {
+    const asked: URLSearchParams[] = [];
+    const http: HttpClient = {
+      fetch: async (_u, o = {}) => {
+        const b = new URLSearchParams(String(o.body));
+        asked.push(b);
+        const sfhaOnly = b.get("where") === "SFHA_TF='T'";
+        const feats = zones
+          .filter((z) => !sfhaOnly || z.properties.SFHA_TF === "T")
+          .map((z) => (b.get("returnGeometry") === "false" ? { ...z, geometry: null } : z));
+        return new Response(JSON.stringify({ features: feats }));
+      },
+    };
+    return { http, asked };
+  };
+  // A flood zone on the strip only (between the parts), and one on the west part.
+  const onStrip = {
+    ...square(-80.495, 36.9, -80.494, 36.91),
+    properties: { FLD_ZONE: "AE", SFHA_TF: "T" },
+  } as FloodFeature;
+  const onPart = {
+    ...square(-80.5, 36.9, -80.499, 36.91),
+    properties: { FLD_ZONE: "A", SFHA_TF: "T" },
+  } as FloodFeature;
+
+  it("asks for zones without geometry, then geometry for the SFHA features only, with the fields it uses", async () => {
+    const q = nfhl([
+      onPart,
+      { ...square(-80.5, 36.9, -80.49, 36.91), properties: { FLD_ZONE: "X", SFHA_TF: "F" } } as FloodFeature,
+    ]);
+    await floodStep(own, 10, { http: q.http, endpoints: DEFAULT_ENDPOINTS });
+    expect(q.asked.map((b) => [b.get("outFields"), b.get("returnGeometry"), b.get("where")])).toEqual([
+      ["FLD_ZONE,SFHA_TF", "false", null],
+      ["FLD_ZONE,SFHA_TF", "true", "SFHA_TF='T'"],
+    ]);
+    // The query is the own land: both parts' rings.
+    expect(JSON.parse(q.asked[0]!.get("geometry")!).rings).toHaveLength(2);
+  });
+
+  it("no SFHA zone: one query", async () => {
+    const q = nfhl([
+      { ...square(-80.5, 36.9, -80.49, 36.91), properties: { FLD_ZONE: "X", SFHA_TF: "F" } } as FloodFeature,
+    ]);
+    const r = await floodStep(own, 10, { http: q.http, endpoints: DEFAULT_ENDPOINTS });
+    expect(q.asked).toHaveLength(1);
+    expect(r.flood).toEqual({ zones: ["X"], sfha: false, sfhaAcres: 0, mapped: true });
+  });
+
+  it("flood acres count the own land, never the strip", async () => {
+    const strip = await floodStep(own, 10, { ...nfhl([onStrip]), endpoints: DEFAULT_ENDPOINTS });
+    expect(strip.flood.sfhaAcres).toBeLessThan(1e-6); // touches the parts' edges only
+    const part = await floodStep(own, 10, { ...nfhl([onPart]), endpoints: DEFAULT_ENDPOINTS });
+    expect(part.flood.sfhaAcres).toBeGreaterThan(1);
+  });
+});
+
+describe("public land: the manager the report names (owner, #80 review, 2026-10-08)", () => {
+  const parcel = square(-80.5, 36.9, -80.49, 36.91);
+  const unit = (props: object, km: number) => ({
+    ...square(-80.49 + km / 89, 36.9, -80.48 + km / 89, 36.91),
+    properties: { Pub_Access: "OA", GAP_Sts: "3", ...props },
+  });
+  it("a federal unit by its agency code; a state or local one by its local name, else its code", async () => {
+    const http: HttpClient = {
+      fetch: async (_u, o = {}) => {
+        const mile = new URLSearchParams(String(o.body)).get("distance") === "1600";
+        return new Response(
+          JSON.stringify({
+            features: mile
+              ? [
+                  unit(
+                    {
+                      Unit_Nm: "Jefferson NF",
+                      Mang_Name: "USFS",
+                      Mang_Type: "FED",
+                      Loc_Mang: "Forest Service Region 08 Southern",
+                      Des_Tp: "NF",
+                    },
+                    0.5,
+                  ),
+                  unit(
+                    {
+                      Unit_Nm: "Grayson Highlands SP",
+                      Mang_Name: "SDC",
+                      Mang_Type: "STAT",
+                      Loc_Mang: "VA Dept of Conservation and Recreation",
+                      Des_Tp: "SP",
+                    },
+                    0.6,
+                  ),
+                  unit(
+                    {
+                      Unit_Nm: "Game Land",
+                      Mang_Name: "UNK",
+                      Mang_Type: "UNK",
+                      Loc_Mang: " ",
+                      Des_Tp: "SOTH",
+                    },
+                    0.7,
+                  ),
+                ]
+              : [],
+          }),
+        );
+      },
+    };
+    const r = await padusStep(parcel, { http, endpoints: DEFAULT_ENDPOINTS });
+    expect(r.protected.map((u) => u.manager)).toEqual([
+      "USFS",
+      "VA Dept of Conservation and Recreation",
+      "UNK",
+    ]);
   });
 });

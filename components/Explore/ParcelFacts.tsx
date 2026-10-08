@@ -1,7 +1,18 @@
 /** A parcel record's facts table (proto L693–704): the side panel's and the Info panel's. */
 import { boundarySourceLabel, parcelFacts, type ParcelRecord } from "@/lib/geo/parcels";
 
-export function ParcelFacts({ parcel }: { parcel: ParcelRecord }) {
+/**
+ * `unscreened`: parts of a multi-part record too far from the rest to bridge (follow-up 29). A record with all
+ * its parts kept (`parts`) is screened whole and needs no note; one kept before then (no `parts`) screened its
+ * first part only, as the prototype did.
+ */
+export function ParcelFacts({
+  parcel,
+  unscreened,
+}: {
+  parcel: ParcelRecord;
+  unscreened?: { acres: number; parts: number } | undefined;
+}) {
   const f = parcelFacts(parcel.geo, parcel.props);
   return (
     <table className="facts">
@@ -38,10 +49,14 @@ export function ParcelFacts({ parcel }: { parcel: ParcelRecord }) {
           <td>Boundary source</td>
           <td>{boundarySourceLabel(parcel.source, parcel.props)}</td>
         </tr>
-        {parcel.multiPart && (
+        {parcel.multiPart && (!parcel.parts || unscreened) && (
           <tr>
             <td>Note</td>
-            <td>Multi-part parcel: only the first part screened</td>
+            <td>
+              Multi-part parcel: only the first part screened
+              {unscreened &&
+                `. ${unscreened.acres.toFixed(2)} ac in ${unscreened.parts} other part${unscreened.parts === 1 ? "" : "s"} not screened.`}
+            </td>
           </tr>
         )}
       </tbody>

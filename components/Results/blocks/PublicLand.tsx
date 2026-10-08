@@ -20,6 +20,7 @@ export function PublicLand({ result }: BlockProps) {
         <p className="muted">{v.none}</p>
       )}
       <p className="tiny muted">{v.caveat}</p>
+      {v.beyond && <p>{v.beyond}</p>}
     </>
   );
 }

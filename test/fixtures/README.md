@@ -93,6 +93,28 @@ add special cases to keep this outcome.
   `driveway._entrancesRoadsNearestFt`.
 - `parcel`, `when` and `soilUnits[].geos` are kept as the prototype holds them. `when` is ignored when comparing.
 
+## `network-port.har`: the requests only the port makes (Batch A)
+
+From A2a on, the port asks for things the prototype never did: the 16 km PAD-US query (follow-up 23), and for
+Grayson Mud Creek every request built from its two-part boundary (follow-up 29). `pnpm record:port` runs every
+scenario against the recordings and sends each request they can't answer to the live service once (with a browser
+User-Agent), keeping it in `network-port.har`. The replay answers from `network.har` first, then
+`network-port.har` (`loadFixture(slug).replayHar`, in Node and in the e2e); `network.har` is never edited.
+
+| Fixture | Recorded 2026-10-08 |
+|---|---|
+| Ferney Creek | 2 requests: FEMA's zones, and the 16 km PAD-US query (4 units) |
+| Macks Mountain | 2 requests: FEMA's zones, and the 16 km PAD-US query (19 units) |
+| Grayson Mud Creek | 22 requests: both DEMs, soils, FEMA (two queries), PAD-US (both), TIGER, Photon and OSRM for the two-part boundary |
+
+Re-recorded after the #80 review: FEMA asks for zone names without geometry, then geometry for the SFHA features
+only (Grayson's FEMA answer went from 8 MB to 3 KB), and the flood, soils and PAD-US queries send the parcel's own
+land. Ferney and Macks now record 2 requests each (FEMA's zones; the 16 km PAD-US query).
+
+The scenarios screen each fixture's parcel as the app does (`fixtureParcel` in `test/support/scenarios.ts`): the
+county record at the fixture's point, answered from the HAR, through the recipe. For Ferney and Macks that's the
+recorded polygon; for Grayson it's both parts with the strip between them, and the parts as own land.
+
 ## `expected.json`: the port's own output (Batch A)
 
 From Batch A on (owner, 2026-10-08; `docs/plans/batch-a.md` §1), `golden.json` is **frozen** as the Phase 0

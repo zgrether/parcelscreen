@@ -7,7 +7,7 @@
  * query string can't be used to inject SQL. Its exact text matters: replay matches it byte for byte.
  */
 import { area, booleanPointInPolygon } from "@turf/turf";
-import type { Feature, MultiPolygon, Polygon } from "geojson";
+import type { Feature, MultiPolygon, Polygon, Position } from "geojson";
 import { z } from "zod";
 import type { HttpClient } from "../http";
 import { wktToGeo } from "../geo/wkt";
@@ -36,12 +36,20 @@ export interface SoilUnit {
 
 const SdaTableSchema = z.looseObject({ Table: z.array(z.array(z.unknown())).optional() });
 
-const ring = (parcel: Feature<Polygon>) =>
-  parcel.geometry.coordinates[0]!.map((p) => `${p[0]} ${p[1]}`).join(",");
+const ringText = (ring: Position[]) => ring.map((p) => `${p[0]} ${p[1]}`).join(",");
+
+/**
+ * The parcel as WKT, outer rings only (as the prototype sent it). One polygon gives the prototype's exact text,
+ * `prefix((ring))`; several parts (own land, follow-up 29) give a MULTIPOLYGON.
+ */
+function wktOf(parcel: Feature<Polygon | MultiPolygon>, prefix: "polygon" | "POLYGON"): string {
+  if (parcel.geometry.type === "Polygon") return `${prefix}((${ringText(parcel.geometry.coordinates[0]!)}))`;
+  return `MULTIPOLYGON(${parcel.geometry.coordinates.map((p) => `((${ringText(p[0]!)}))`).join(",")})`;
+}
 
 /** The component query (major components, aggregate attributes and the septic interpretation). */
-export function componentQuery(parcel: Feature<Polygon>): string {
-  const wkt = "polygon((" + ring(parcel) + "))";
+export function componentQuery(parcel: Feature<Polygon | MultiPolygon>): string {
+  const wkt = wktOf(parcel, "polygon");
   return `SELECT m.mukey, m.muname, m.farmlndcl, c.cokey, c.compname, c.comppct_r, c.drainagecl, c.hydricrating, c.slope_l, c.slope_h,
       a.brockdepmin, a.drclassdcd, a.hydgrpdcd, a.wtdepannmin, a.flodfreqdcd, a.engdwbdcd, a.engdwobdcd, a.engstafdcd, a.englrsdcd, ci.interphrc AS septic
  FROM mapunit m
@@ -53,8 +61,8 @@ export function componentQuery(parcel: Feature<Polygon>): string {
 }
 
 /** The map-unit polygon query, clipped to the parcel by SQL Server spatial. */
-export function polygonQuery(parcel: Feature<Polygon>): string {
-  const wkt = `POLYGON((${ring(parcel)}))`;
+export function polygonQuery(parcel: Feature<Polygon | MultiPolygon>): string {
+  const wkt = wktOf(parcel, "POLYGON");
   return `SELECT p.mukey, m.muname, p.mupolygongeo.STIntersection(geometry::STGeomFromText('${wkt}',4326)).STAsText() AS wkt
  FROM mupolygon p INNER JOIN mapunit m ON m.mukey = p.mukey
  WHERE p.mupolygongeo.STIntersects(geometry::STGeomFromText('${wkt}',4326)) = 1`;
@@ -78,7 +86,10 @@ function rowsOf(json: unknown): Record<string, unknown>[] {
 }
 
 /** Major soil components on the parcel, one row per component (proto L772–789). */
-export async function fetchSoils(parcel: Feature<Polygon>, deps: SoilDeps): Promise<SoilRow[]> {
+export async function fetchSoils(
+  parcel: Feature<Polygon | MultiPolygon>,
+  deps: SoilDeps,
+): Promise<SoilRow[]> {
   const r = await sda(componentQuery(parcel), deps);
   if (!r.ok) {
     let t = "";
@@ -103,7 +114,10 @@ export async function fetchSoils(parcel: Feature<Polygon>, deps: SoilDeps): Prom
 }
 
 /** The map units clipped to the parcel, pieces merged per unit, largest first, coloured (proto L798–811). */
-export async function fetchSoilPolygons(parcel: Feature<Polygon>, deps: SoilDeps): Promise<SoilUnit[]> {
+export async function fetchSoilPolygons(
+  parcel: Feature<Polygon | MultiPolygon>,
+  deps: SoilDeps,
+): Promise<SoilUnit[]> {
   const r = await sda(polygonQuery(parcel), deps);
   if (!r.ok) throw new Error("SDA polygons " + r.status);
   const out: { mukey: string; muname: string; geo: Feature<Polygon | MultiPolygon>; acres: number }[] = [];

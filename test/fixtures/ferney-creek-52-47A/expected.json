@@ -1774,7 +1774,44 @@
    "sfhaAcres": 0,
    "mapped": true
   },
-  "protected": [],
+  "protected": [
+   {
+    "name": "Buffalo Mountain State Natural Area Preserve",
+    "manager": "UNK",
+    "type": "SCA",
+    "access": "OA",
+    "gap": "1",
+    "adjoins": false,
+    "distFt": 28028.420323420927
+   },
+   {
+    "name": "Buffalo Mountain State Natural Area Preserve",
+    "manager": "VA Dept of Conservation and Recreation",
+    "type": "SCA",
+    "access": "OA",
+    "gap": "1",
+    "adjoins": false,
+    "distFt": 28028.420323420927
+   },
+   {
+    "name": "Buffalo Mountain State Natural Area Preserve",
+    "manager": "UNK",
+    "type": "SCA",
+    "access": "OA",
+    "gap": "1",
+    "adjoins": false,
+    "distFt": 32367.166979304882
+   },
+   {
+    "name": "Buffalo Mountain State Natural Area Preserve",
+    "manager": "UNK",
+    "type": "SCA",
+    "access": "OA",
+    "gap": "1",
+    "adjoins": false,
+    "distFt": 35738.581923538004
+   }
+  ],
   "near": {
    "hospitals": [
     {
@@ -5428,7 +5465,44 @@
    "sfhaAcres": 0,
    "mapped": true
   },
-  "protected": [],
+  "protected": [
+   {
+    "name": "Buffalo Mountain State Natural Area Preserve",
+    "manager": "UNK",
+    "type": "SCA",
+    "access": "OA",
+    "gap": "1",
+    "adjoins": false,
+    "distFt": 28028.420323420927
+   },
+   {
+    "name": "Buffalo Mountain State Natural Area Preserve",
+    "manager": "VA Dept of Conservation and Recreation",
+    "type": "SCA",
+    "access": "OA",
+    "gap": "1",
+    "adjoins": false,
+    "distFt": 28028.420323420927
+   },
+   {
+    "name": "Buffalo Mountain State Natural Area Preserve",
+    "manager": "UNK",
+    "type": "SCA",
+    "access": "OA",
+    "gap": "1",
+    "adjoins": false,
+    "distFt": 32367.166979304882
+   },
+   {
+    "name": "Buffalo Mountain State Natural Area Preserve",
+    "manager": "UNK",
+    "type": "SCA",
+    "access": "OA",
+    "gap": "1",
+    "adjoins": false,
+    "distFt": 35738.581923538004
+   }
+  ],
   "near": {
    "hospitals": [
     {
@@ -9634,7 +9708,44 @@
    "sfhaAcres": 0,
    "mapped": true
   },
-  "protected": [],
+  "protected": [
+   {
+    "name": "Buffalo Mountain State Natural Area Preserve",
+    "manager": "UNK",
+    "type": "SCA",
+    "access": "OA",
+    "gap": "1",
+    "adjoins": false,
+    "distFt": 28028.420323420927
+   },
+   {
+    "name": "Buffalo Mountain State Natural Area Preserve",
+    "manager": "VA Dept of Conservation and Recreation",
+    "type": "SCA",
+    "access": "OA",
+    "gap": "1",
+    "adjoins": false,
+    "distFt": 28028.420323420927
+   },
+   {
+    "name": "Buffalo Mountain State Natural Area Preserve",
+    "manager": "UNK",
+    "type": "SCA",
+    "access": "OA",
+    "gap": "1",
+    "adjoins": false,
+    "distFt": 32367.166979304882
+   },
+   {
+    "name": "Buffalo Mountain State Natural Area Preserve",
+    "manager": "UNK",
+    "type": "SCA",
+    "access": "OA",
+    "gap": "1",
+    "adjoins": false,
+    "distFt": 35738.581923538004
+   }
+  ],
   "near": {
    "hospitals": [
     {

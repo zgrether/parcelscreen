@@ -9,9 +9,10 @@
  * - a request found in the HAR is answered from it, repeats in recorded order (the last one repeats);
  * - a request to a host the HAR has data from, but not found in it, is a miss: aborted and listed, and the
  *   test fails on it, as ReplayMissError does in Node;
- * - anything else (basemap, ortho, parcel-line and terrain tiles) is aborted and listed, not failed.
+ * - anything else (basemap, ortho and terrain tiles) is aborted and listed, not failed; a parcel-line tile is
+ *   answered empty instead (an abort reads as the county service being down) and listed the same way.
  */
-import type { BrowserContext, Route } from "@playwright/test";
+import { test, type BrowserContext, type Route } from "@playwright/test";
 import { requestKey, type HarEntry } from "../test/support/replayFetch";
 import { DEFAULT_ENDPOINTS } from "../lib/screen/config";
 import { loadFixture, type FixtureSlug } from "../test/support/fixtures";
@@ -29,6 +30,8 @@ export interface ReplayLog {
   misses: string[];
   /** Other requests, aborted (tiles and the like): listed for the PR, not failed. */
   aborted: string[];
+  /** Unrecorded parcel-service requests answered with an empty collection (also in `aborted`). */
+  emptied: string[];
 }
 
 // Hop-by-hop or encoding headers that no longer describe the decoded body handed back.
@@ -71,7 +74,7 @@ export async function replayHar(
 ): Promise<ReplayLog> {
   let delayed = false;
   const entries = (typeof slugs === "string" ? [slugs] : slugs).flatMap(
-    (x) => loadFixture(x).har.log.entries,
+    (x) => loadFixture(x).replayHar.log.entries,
   );
   const queues = new Map<string, HarEntry[]>();
   const dataHosts = new Set<string>();
@@ -83,7 +86,7 @@ export async function replayHar(
     if (!PARCEL_HOSTS.has(host)) dataHosts.add(host);
   }
   const served = new Map<string, number>();
-  const log: ReplayLog = { served: [], misses: [], aborted: [] };
+  const log: ReplayLog = { served: [], misses: [], aborted: [], emptied: [] };
 
   await context.route("**/*", async (route) => {
     const req = route.request();
@@ -111,6 +114,26 @@ export async function replayHar(
       return fulfil(route, q[Math.min(n, q.length - 1)]!, req.headers()["origin"]);
     }
     (dataHosts.has(url.host) ? log.misses : log.aborted).push(key);
+    // A parcel-line tile the HAR doesn't have (which ones depends on where the map passes while flying between
+    // parcels) gets an empty answer, not an abort: an abort reads as the county service being down, and its
+    // hint once replaced the one a test was reading (A2a). Still listed with the aborted, and each one is a test
+    // annotation (owner, 2026-10-08), so an unexpected request stays visible in the report.
+    if (PARCEL_HOSTS.has(url.host)) {
+      log.emptied.push(key);
+      try {
+        test.info().annotations.push({ type: "answered empty (unrecorded)", description: req.url() });
+      } catch {
+        /* outside a running test: the log still has it */
+      }
+      return route.fulfill({
+        status: 200,
+        headers: {
+          "content-type": "application/json",
+          "access-control-allow-origin": req.headers()["origin"] ?? "*",
+        },
+        body: JSON.stringify({ type: "FeatureCollection", features: [] }),
+      });
+    }
     return route.abort();
   });
   return log;
