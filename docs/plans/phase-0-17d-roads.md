@@ -1,6 +1,6 @@
 # Step 17d: roads and labels over the imagery (plan)
 
-Status: **draft, for approval.** A small step before 18b (owner, 2026-10-08): road lines and road names over the imagery, plus place names at low zoom, from OpenFreeMap's vector tiles. It's map display only: there are no changes to `lib/screen`, the goldens are untouched, and the toggle is a UI pref.
+Status: **approved (owner, 2026-10-08)**; §7 records the answers. A small step before 18b (owner, 2026-10-08): road lines and road names over the imagery, plus place names at low zoom, from OpenFreeMap's vector tiles. It's map display only: there are no changes to `lib/screen`, the goldens are untouched, and the toggle is a UI pref.
 
 ## 1. The source, verified (2026-10-08)
 
@@ -105,13 +105,17 @@ DOM markers: site pins, house bulls-eye, Stand here (always above the map's laye
   - roads drape with terrain on;
   - the phone's frame rate is acceptable with terrain, contours and roads on."
 
-## 7. Open questions
+## 7. Answers (owner, 2026-10-08)
 
-1. **Label stacking:** "above parcel lines but below DOM markers". I read it as the top of the map's own stack: above the parcel lines, the soil outlines, the fan and the driveway. Or do you want labels just above the county parcel lines and **under** the selected parcel, the fan and the driveway?
-2. **Basemaps:** roads over the three aerials only, with the toggle shown as unavailable on Topo and Streets, which already have roads? Or over all five?
-3. **Credit OpenFreeMap too?** "OpenFreeMap © OpenMapTiles © OpenStreetMap contributors". It's optional by their terms.
-4. **Place names:** visible from z7 (cities and towns) and hidden from z15 up. Or keep them at every zoom?
-5. **Road label zoom:** from z13. Or from z12?
+1. **Labels at the top of the map's own layers,** under the DOM markers, with a text halo.
+2. **Roads over the three aerials only.** On Topo and Streets the toggle shows as unavailable.
+3. **Credit all three:** "© OpenFreeMap © OpenMapTiles © OpenStreetMap contributors".
+4. **Place names from z7 to z14,** hidden from z15.
+5. **Road names from z13.**
+
+**Also:**
+- **The 15a colour test must not be made flaky by the new stacking.** `lib/render/surface.test.ts` compares the surface image's pixels with the prototype's own drawing code *before* the image reaches the map, so the roads can't reach it. The e2e also turns `ps.roads` off (its replay already aborts the tile host), so no rendered check sees roads.
+- **Follow-up 38** (post-Phase-0): a self-hosted PMTiles fallback, if OpenFreeMap becomes unavailable.
 
 ## 8. Files
 
