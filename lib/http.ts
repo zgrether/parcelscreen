@@ -5,6 +5,8 @@
  * - Per-host queue: at most `maxConcurrent` requests in flight and at least `minIntervalMs` between request
  *   starts. Volunteer-run services (OSRM demo, Photon, Overpass mirrors) default to 1 request/second.
  * - 429 / 503: retried up to `maxRetries` times, honouring Retry-After (seconds or HTTP date), else 2 s, 5 s.
+ * - Opt-in, per request: one retry with a longer limit after a timeout (`retryTimeoutMs`), and optionally
+ *   after a network failure or another 5xx too (`retryTransient`).
  * - Every attempt has a timeout (TimeoutError, message "timed out"); an aborted caller signal rejects with
  *   CancelledError ("cancelled"). The messages match the prototype's, which the step list displays.
  * - env "browser": no custom headers (User-Agent can't be set from a page, and extra headers trigger CORS
@@ -99,9 +101,15 @@ export interface RequestOptions {
   timeoutMs?: number;
   /**
    * On a timeout, try once more with this longer limit (follow-up 22). Unset, a timeout is final. Only a
-   * timeout is retried this way: an HTTP error or a network failure isn't (429/503 keep `retries`).
+   * timeout is retried this way unless `retryTransient` is set; 429/503 keep `retries`.
    */
   retryTimeoutMs?: number;
+  /**
+   * With `retryTimeoutMs`: the one retry also follows a network failure (the fetch itself rejected: "Failed
+   * to fetch", a connection reset) or a 5xx other than 503 (owner, after 18b). Still one retry in all, with
+   * the longer limit; a 4xx is never retried.
+   */
+  retryTransient?: boolean;
   /**
    * Retries after a 429/503 for this request, in place of the client's `maxRetries`. 0 returns the first
    * answer, for callers with their own rule (the Overpass mirrors).
@@ -274,20 +282,30 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
       if (opts.signal?.aborted) throw new CancelledError();
       const gate = gateFor(new URL(url).host);
       let timeoutMs = opts.timeoutMs,
-        retriedTimeout = false;
+        retried = false;
+      const canRetry = () => opts.retryTimeoutMs !== undefined && !retried;
       for (let n = 0; ; n++) {
         await gate.acquire(opts.signal);
         let res: Response;
         try {
           res = await attempt(url, { ...opts, ...(timeoutMs !== undefined ? { timeoutMs } : {}) });
         } catch (e) {
-          if (!(e instanceof TimeoutError) || opts.retryTimeoutMs === undefined || retriedTimeout) throw e;
-          retriedTimeout = true;
+          const transient =
+            e instanceof TimeoutError || (opts.retryTransient === true && !(e instanceof CancelledError));
+          if (!transient || !canRetry()) throw e;
+          retried = true;
           timeoutMs = opts.retryTimeoutMs;
-          n--; // a timeout retry isn't one of the 429/503 retries
+          n--; // the one retry isn't one of the 429/503 retries
           continue;
         } finally {
           gate.release();
+        }
+        if (opts.retryTransient && res.status >= 500 && res.status !== 503 && canRetry()) {
+          await res.body?.cancel();
+          retried = true;
+          timeoutMs = opts.retryTimeoutMs;
+          n--;
+          continue;
         }
         if ((res.status !== 429 && res.status !== 503) || n >= (opts.retries ?? maxRetries)) return res;
         const wait = retryAfterMs(res, n, clock);

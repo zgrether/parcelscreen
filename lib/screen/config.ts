@@ -220,7 +220,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
   flood: {
     fatalShare: 0.3, // L1097: SFHA acres > 30% of the parcel → fatal
     // Follow-up 22 (owner, after 14e): the NFHL query's limit per attempt (the client's default, as the
-    // prototype's), and one retry after a timeout with a longer one. Other errors aren't retried.
+    // prototype's), and one retry after a timeout with a longer one. Since 18b also after a network failure
+    // or a 5xx (flood.ts); never after a 4xx.
     timeoutMs: 30_000,
     retryTimeoutMs: 45_000,
   },
