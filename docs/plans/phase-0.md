@@ -1,6 +1,6 @@
 # Phase 0 — Port the Explorer
 
-Status: **approved 2026-10-04** with the answers recorded in §9. The status becomes "Phase 0 complete, {date}" when step 18b merges (§9.17).
+Status: **Phase 0 complete, 2026-10-08.** Approved 2026-10-04 with the answers recorded in §9; step 18b merged 2026-10-08 (#74), which completes it (§9.17).
 
 Goal (from PLAN.md): the prototype as a Next.js app, with the screening pipeline isolated from the
 DOM, running in a Web Worker, producing the same verdicts, site rankings, sun hours (±0.1 h) and sky
