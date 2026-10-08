@@ -9,15 +9,14 @@
  * one again (its own result and view come back as `updated`, with no network); `release(id)` drops one.
  *
  * A worker can die under the page: terminated while a phone app is in the background, or crashed. Then every
- * kept session is gone, and the page must notice rather than wait or show an error (owner, 17e). The worker is
- * taken as lost when it reports an error event, when a reactivated run is unknown to it or unanswered (4 s),
- * when it doesn't answer a ping on returning to the foreground (3 s), or when a run hears nothing at all (20 s;
- * the run is then retried once on a fresh worker). Losing it bumps `generation`: the page forgets its kept
- * sessions, and each parcel shows the usual "Run again to restore…" note.
+ * kept session is gone, and the page must notice rather than wait or show an error (owner, 17e), without ever
+ * replacing a healthy worker: the rules are in lib/client/workerWatch.ts. Losing it bumps `generation`: the
+ * page forgets its kept sessions, and each parcel shows the usual "Run again to restore…" note.
  */
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import type { PartialScreenResult, ProgressEvent, ScreenInput, ScreenResult, Step } from "@/lib/screen/types";
 import type { FromWorker, SessionBytes, SessionView, ToWorker } from "@/lib/screen/worker-protocol";
+import { WorkerWatch } from "./workerWatch";
 import type { LatLon } from "@/lib/screen/util";
 
 export type StepStatus = { status: ProgressEvent["status"]; message?: string; link?: string };
@@ -116,6 +115,8 @@ function reducer(state: ScreenState, action: Action): ScreenState {
           return { ...state, result: m.result, view: m.view, bytes: m.bytes, updating: false };
         case "pong":
           return { ...state, workerReady: true };
+        case "started": // the watchdog's (workerWatch.ts); nothing to show
+          return state;
         case "error":
           return {
             ...state,
@@ -135,22 +136,15 @@ export function useScreen() {
   // run never reuses a kept run's id.
   const runId = useRef(0);
   const lastId = useRef(0);
-  // The watchdogs (17e): a reactivation's answer, a ping's pong, a run's first word.
-  const pendingActivate = useRef<number | null>(null);
-  const timers = useRef<{ activate?: number; ping?: number; run?: number }>({});
-  const clearTimer = (k: "activate" | "ping" | "run") => {
-    window.clearTimeout(timers.current[k]);
-    timers.current[k] = undefined;
-  };
-
   // The worker is gone (or no longer to be trusted): drop it; the next request makes a fresh one.
   const lose = useCallback((error?: string) => {
     worker.current?.terminate();
     worker.current = null;
-    pendingActivate.current = null;
-    for (const k of ["activate", "ping", "run"] as const) clearTimer(k);
     dispatch({ type: "lost", ...(error ? { error } : {}) });
   }, []);
+  // When to take the worker as lost, and never a healthy one (lib/client/workerWatch.ts).
+  const watchRef = useRef<WorkerWatch | null>(null);
+  const watch = useCallback((): WorkerWatch => (watchRef.current ??= new WorkerWatch(lose)), [lose]);
 
   const getWorker = useCallback((): Worker => {
     if (!worker.current) {
@@ -158,44 +152,40 @@ export function useScreen() {
       w.onmessage = (e: MessageEvent<FromWorker>) => {
         if (worker.current !== w) return;
         const m = e.data;
-        clearTimer("run"); // the worker is alive
-        if (m.type === "pong") clearTimer("ping");
-        if (m.id === pendingActivate.current && (m.type === "updated" || m.type === "error")) {
-          pendingActivate.current = null;
-          clearTimer("activate");
-          // A kept run the worker doesn't know: it was restarted, so none of the kept sessions survive.
-          if (m.type === "error") return lose();
-        }
+        if (!watch().message(m)) return; // a kept run it doesn't know: it was restarted, and is dropped
+        if (m.type === "started") return;
         if (m.type === "pong" || m.id === runId.current) dispatch({ type: "message", msg: m });
       };
       w.onerror = (e) => {
         e.preventDefault();
-        if (worker.current === w) lose();
+        if (worker.current !== w) return;
+        watch().reset();
+        lose();
       };
       worker.current = w;
     }
     return worker.current;
-  }, [lose]);
+  }, [lose, watch]);
 
   useEffect(
     () => () => {
+      watchRef.current?.reset();
       worker.current?.terminate();
       worker.current = null;
     },
     [],
   );
 
-  // Back from the background (phones stop or kill workers there): a worker that doesn't answer is lost.
+  // Back from the background (phones stop or kill workers there): with no run going, a ping must be answered.
   useEffect(() => {
     const onVisible = () => {
-      if (document.visibilityState !== "visible" || !worker.current) return;
-      clearTimer("ping");
-      timers.current.ping = window.setTimeout(() => lose(), 3000);
-      worker.current.postMessage({ type: "ping", id: 0 } satisfies ToWorker);
+      if (document.visibilityState !== "visible") return;
+      if (watch().visible(!!worker.current))
+        worker.current!.postMessage({ type: "ping", id: 0 } satisfies ToWorker);
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => document.removeEventListener("visibilitychange", onVisible);
-  }, [lose]);
+  }, [watch]);
 
   const send = useCallback((m: ToWorker) => getWorker().postMessage(m), [getWorker]);
 
@@ -205,15 +195,10 @@ export function useScreen() {
       runId.current = lastId.current;
       dispatch({ type: "start", id: runId.current });
       send({ type: "run", id: runId.current, input });
-      // A run hears from its worker at once (its first step starts); silence means the worker is gone.
-      clearTimer("run");
-      timers.current.run = window.setTimeout(() => {
-        if (retried) return lose("The screen didn't start. Run it again.");
-        lose();
-        start(input, true);
-      }, 20_000);
+      // The worker acknowledges a run at once; without that, it's retried once on a fresh worker.
+      watch().runSent(runId.current, retried ? null : () => start(input, true));
     },
-    [send, lose],
+    [send, watch],
   );
 
   const cancel = useCallback(() => send({ type: "cancel", id: runId.current }), [send]);
@@ -240,13 +225,11 @@ export function useScreen() {
   const activate = useCallback(
     (id: number) => {
       runId.current = id;
-      pendingActivate.current = id;
       dispatch({ type: "activate", id });
       send({ type: "activate", id });
-      clearTimer("activate");
-      timers.current.activate = window.setTimeout(() => lose(), 4000);
+      watch().activateSent(id);
     },
-    [send, lose],
+    [send, watch],
   );
 
   /** The page no longer keeps this run's session. */

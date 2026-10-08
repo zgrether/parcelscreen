@@ -173,6 +173,20 @@ describe("kept sessions (17e)", () => {
   });
 });
 
+describe("the start acknowledgement (17e)", () => {
+  it("acknowledges a run at once, before any step and before any request", async () => {
+    const replay = fx.replayFetch();
+    const seen: { type: string; requests: number }[] = [];
+    const c = new ScreenWorkerCore((m) => seen.push({ type: m.type, requests: replay.requests.length }), {
+      http: createHttpClient({ env: "node", fetchImpl: replay, clock: instantClock() }),
+      sleep: async () => {},
+    });
+    await c.handle({ type: "run", id: 1, input });
+    expect(seen[0]).toEqual({ type: "started", requests: 0 });
+    expect(seen.filter((m) => m.type === "started")).toHaveLength(1);
+  });
+});
+
 describe("a restarted worker (17e)", () => {
   it("knows none of the runs the page kept: reactivating one says it's gone, which the page takes as a lost worker", async () => {
     const first = core();

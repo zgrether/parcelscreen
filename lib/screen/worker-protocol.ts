@@ -36,6 +36,8 @@ export type ToWorker =
   | { type: "ping"; id: number };
 
 export type FromWorker =
+  /** A run was received and is starting: sent at once, before any step (the page's start watchdog). */
+  | { type: "started"; id: number }
   | { type: "progress"; id: number; event: ProgressEvent }
   | { type: "done"; id: number; result: ScreenResult; view: SessionView; bytes: SessionBytes }
   | { type: "updated"; id: number; result: ScreenResult; view: SessionView; bytes: SessionBytes }
@@ -162,6 +164,7 @@ export class ScreenWorkerCore {
   }
 
   private async run(id: number, input: ScreenInput): Promise<void> {
+    this.post({ type: "started", id });
     this.current?.abort.abort(); // a new run supersedes the old one
     const abort = new AbortController();
     this.current = { id, abort };

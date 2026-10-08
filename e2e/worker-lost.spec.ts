@@ -63,3 +63,27 @@ test("a terminated or crashed worker: kept parcels fall back to the re-run note,
   await expect.poll(() => live(page)).toBe(true);
   expect(errors, "page errors").toEqual([]);
 });
+
+test("a slow first step isn't a lost worker: the start is acknowledged at once, so no retry and no message", async ({
+  page,
+  context,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  // The first elevation response takes 30 s: beyond the 20 s start timer, inside the DEM's own 45 s limit.
+  const net = await replayHar(context, FERNEY, {
+    match: /3DEPElevation\/ImageServer\/exportImage/,
+    ms: 30_000,
+  });
+  await openExplorer(page, FERNEY);
+  await importParcels(page, [FERNEY]);
+  await openFromHistory(page, "52-47A");
+  const t0 = Date.now();
+  expectAllDone(await screenIt(page));
+  expect(Date.now() - t0, "the run waited for the slow response").toBeGreaterThan(30_000);
+  // One worker did it all: the fine and the wide DEM were asked once each (a retry would ask again).
+  expect(net.served.filter((k) => k.includes("/3DEPElevation/ImageServer/exportImage"))).toHaveLength(2);
+  await expect(page.getByText(/didn't start|no longer available/i)).toHaveCount(0);
+  expect(await live(page)).toBe(true);
+  expect(errors, "page errors").toEqual([]);
+});
