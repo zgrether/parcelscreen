@@ -116,6 +116,7 @@ function reducer(state: ScreenState, action: Action): ScreenState {
         case "pong":
           return { ...state, workerReady: true };
         case "started": // the watchdog's (workerWatch.ts); nothing to show
+        case "heartbeat":
           return state;
         case "error":
           return {
@@ -153,7 +154,7 @@ export function useScreen() {
         if (worker.current !== w) return;
         const m = e.data;
         if (!watch().message(m)) return; // a kept run it doesn't know: it was restarted, and is dropped
-        if (m.type === "started") return;
+        if (m.type === "started" || m.type === "heartbeat") return;
         if (m.type === "pong" || m.id === runId.current) dispatch({ type: "message", msg: m });
       };
       w.onerror = (e) => {
