@@ -7,6 +7,14 @@ describe("differences (the parity comparator)", () => {
     expect(differences({ x: 1.0001 }, { x: 1 })).toEqual(["x: 1.0001 vs 1 (diff 1.00e-4)"]);
   });
 
+  it("is inclusive: a difference exactly at the tolerance passes, despite float noise (18b)", () => {
+    // 8.8 − 8.7 is 0.1000000000000014 in floating point: still "within ±0.1 h".
+    expect(differences({ h: 8.8 }, { h: 8.7 }, { paths: { h: { abs: 0.1 } } })).toEqual([]);
+    expect(differences({ h: 8.80001 }, { h: 8.7 }, { paths: { h: { abs: 0.1 } } })).toHaveLength(1);
+    expect(differences({ x: 1 + 1e-9 }, { x: 1 })).toEqual([]); // at the default relative tolerance
+    expect(differences({ x: 1 + 1.1e-9 }, { x: 1 })).toHaveLength(1);
+  });
+
   it("treats null and NaN/Infinity as the same non-finite value", () => {
     expect(differences({ s: NaN }, { s: null })).toEqual([]);
     expect(differences({ s: 3 }, { s: null })).toEqual(["s: 3 vs null"]);
