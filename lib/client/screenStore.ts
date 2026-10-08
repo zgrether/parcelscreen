@@ -7,6 +7,7 @@
  * Storage can be missing or refused (private windows); then nothing is kept and reads find nothing.
  */
 import { z } from "zod";
+import { ENGINE_VERSION, UNSTAMPED_ENGINE } from "../screen/engine";
 import { ScreenResultSchema, type ScreenResult } from "../screen/types";
 import type { RunKeys } from "./screenKeys";
 
@@ -15,13 +16,28 @@ export interface ScreenRecord {
   /** What the screen was run on (lib/client/screenKeys.ts). */
   keys: RunKeys;
   result: ScreenResult;
+  /** The rules it was screened with (lib/screen/engine.ts). Missing on screens kept before the stamp: 1. */
+  engine?: number;
 }
 
 export const ScreenRecordSchema = z.object({
   id: z.string(),
   keys: z.object({ boundary: z.string(), house: z.string(), settings: z.string() }),
   result: ScreenResultSchema,
+  engine: z.number().int().positive().optional(),
 });
+
+/** The rules a kept screen was screened with; an unstamped one is Phase 0's. */
+export const engineOf = (r: Pick<ScreenRecord, "engine">): number => r.engine ?? UNSTAMPED_ENGINE;
+
+/** Whether a kept screen came from earlier rules than this build's, so a re-run may give other numbers. */
+export const fromEarlierRules = (
+  r: Pick<ScreenRecord, "engine">,
+  current: number = ENGINE_VERSION,
+): boolean => engineOf(r) < current;
+
+/** What History and a reopened result say about such a screen (owner, 2026-10-08). */
+export const EARLIER_RULES = "Screened with earlier rules — run again for current results";
 
 const DB_NAME = "parcelscreen";
 const STORE = "screens";

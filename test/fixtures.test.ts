@@ -3,7 +3,13 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { FIXTURE_SLUGS, loadFixture } from "./support/fixtures";
+import { FIXTURE_SLUGS, loadFixture, type FixtureSlug } from "./support/fixtures";
+
+const PARCEL_IDS: Record<FixtureSlug, string> = {
+  "ferney-creek-52-47A": "52-47A",
+  "macks-mountain-35-3": "35-3",
+  "grayson-mud-creek-6273": "6273",
+};
 
 const legacy = readFileSync(resolve(import.meta.dirname, "..", "legacy", "parcelscreen.html"), "utf8");
 const legacyBuild = /name="parcelscreen-build" content="([^"]+)"/.exec(legacy)?.[1];
@@ -17,7 +23,7 @@ describe.each(FIXTURE_SLUGS)("fixture %s", (slug) => {
 
   it("has a parcel polygon from the county service", () => {
     expect(fx.input.polygon.geometry.type).toBe("Polygon");
-    expect(fx.input.props.PARCELID).toBe(slug.endsWith("52-47A") ? "52-47A" : "35-3");
+    expect(fx.input.props.PARCELID).toBe(PARCEL_IDS[slug]);
   });
 
   it("recorded only complete runs (no failed or skipped steps)", () => {
@@ -84,5 +90,13 @@ describe("golden coverage", () => {
     expect(Object.keys(goldens).sort()).toEqual(["evaluateSite2", "run"]);
     expect((goldens.evaluateSite2 as { focus?: { label: string } }).focus?.label).toBe("site #2");
     expect(input.evaluateSite2?.label).toBe("site #2");
+  });
+
+  it("Grayson Mud Creek has the plain run and the re-evaluation at site #2, on the first of two parts", () => {
+    const { goldens, input } = loadFixture("grayson-mud-creek-6273");
+    expect(Object.keys(goldens).sort()).toEqual(["evaluateSite2", "run"]);
+    expect(input.evaluateSite2?.label).toBe("site #2");
+    // The county record has two parts (29.31 + 0.84 ac); the prototype screens the first only (B7).
+    expect(goldens.run.acres).toBeCloseTo(29.31, 2);
   });
 });

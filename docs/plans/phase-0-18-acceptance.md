@@ -102,6 +102,7 @@ decision the owner already approved; the last column says what the live run show
 | 14 | Split: no fit-to-acres; drag the line, tap the piece to keep. | 13e decision 15. | `phase-0-13e-parcel-tools.md`; #22, #27 | Split 1/1 on production. |
 | 15 | Roads and labels over the aerials. | 17d. | `phase-0-17d-roads.md`; #70, #71 | Checked on production. |
 | 16 | Parcel switching, the map panel, the phone sheet, kept live sessions. | 17e. | `phase-0-17e-switching.md`; #72, #73 | Checked; one bug found and fixed in 18b (Back after an unchanged run). |
+| 17 | Point-to-line road distances use Turf 7.4.0 (the npm parts), not the prototype's 7.1.0 bundle. **Approved (owner, 2026-10-08, #78).** | 7.4.0's `pointToLineDistance` agrees with a brute-force distance; 7.1.0's overstates it. On Grayson Mud Creek, `driveway.roadsNearestFt` is 18.26 ft against the prototype's 18.43 ft (brute force: 18.262 ft). Ferney and Macks stay within the existing 0.05 ft tolerance. | A1 (#78) | Found on the Grayson fixture, the only difference in its two scenarios. |
 
 **Not a difference:** the Groceries row read as one line in the prototype and two in the port. Same cells, same words:
 the prototype separates grocers with `<br>`, and the port wraps each in a `<div>`, which `innerText` breaks onto its own line.

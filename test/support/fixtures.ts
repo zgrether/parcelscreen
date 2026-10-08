@@ -10,7 +10,11 @@ import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { createReplayFetch, loadHar, type Har, type ReplayFetch } from "./replayFetch";
 
-export const FIXTURE_SLUGS = ["ferney-creek-52-47A", "macks-mountain-35-3"] as const;
+export const FIXTURE_SLUGS = [
+  "ferney-creek-52-47A",
+  "macks-mountain-35-3",
+  "grayson-mud-creek-6273",
+] as const;
 export type FixtureSlug = (typeof FIXTURE_SLUGS)[number];
 
 // From the repo root, where Vitest and Playwright both run: Playwright loads this file as CommonJS (the

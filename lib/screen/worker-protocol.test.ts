@@ -97,7 +97,8 @@ describe("ping", () => {
   });
 });
 
-describe("kept sessions (17e)", () => {
+// Each test runs three or four full screens; under the whole suite's load they passed 30 s (Batch A A1).
+describe("kept sessions (17e)", { timeout: 120_000 }, () => {
   const lastOf = (posted: FromWorker[], id: number) => posted.filter((m) => m.id === id).at(-1)!;
 
   it("keeps the last runs: an earlier run can still be re-evaluated after later ones", async () => {

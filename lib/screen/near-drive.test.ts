@@ -2,7 +2,7 @@ import * as turf from "@turf/turf";
 import { describe, expect, it } from "vitest";
 import { differences } from "../../test/support/compare";
 import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
-import { fromPrototype } from "../../test/support/fromPrototype";
+import { expectedOf } from "../../test/support/expected";
 import { instantClock, throughSoils } from "../../test/support/pipeline";
 import { prototypeFn } from "../../test/support/prototypeFns";
 import { createHttpClient, type HttpClient } from "../http";
@@ -27,19 +27,16 @@ const CFG = DEFAULT_USER_CONFIG;
 describe.each(FIXTURE_SLUGS)("near, roads and drive times on %s vs the prototype", (slug) => {
   it("matches places, roads (in layer order), the road grade, drive times and every flag so far", async () => {
     const t = await throughSoils(slug);
-    const golden = fromPrototype(t.fx.goldens.run);
+    const golden = expectedOf(t.fx.slug, "run");
     const best = t.vet.best;
     const bestLL = best ? rcToLL(t.dFine, best.rc[0], best.rc[1]) : null;
 
     const n = await nearStep(t.centre, bestLL, t.dWide, CFG.roadMaxGradePct, t.deps);
     expect(differences(n.near, golden.near)).toEqual([]);
     expect(n.nearNote).toBe(golden.nearNote);
-    // turf.nearestPointOnLine amplifies the engines' last-bit Math differences (plan §5): the prototype's own
-    // nearestRoad on identical inputs gives 69.79016070998650 m in Chromium (the golden) and 69.79025171847941 m
-    // in Node for Macks Mountain, ~1.3e-6 relative. Hence 1e-5 on the two numbers derived from that distance.
-    expect(
-      differences(n.road, golden.road, { paths: { runFt: { rel: 1e-5 }, gradePct: { rel: 1e-5 } } }),
-    ).toEqual([]);
+    // Against the port's own expected.json, so no widened tolerance: the 1e-5 this needed against the prototype
+    // was the Turf version, not the engines (plan §5, correction of 2026-10-08).
+    expect(differences(n.road, golden.road)).toEqual([]);
     expect(n.roadNote).toBe(golden.roadNote);
     // The raw TIGER features in the prototype's order (local, secondary, primary): later steps depend on it.
     expect(n.roads).toEqual(t.fx.goldens.run._roads);

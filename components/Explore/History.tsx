@@ -5,8 +5,10 @@
  * after 14d), which closes when a parcel is opened (`onOpened`). Two recipes of one record say what tells them
  * apart (historyRows).
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { historyRows } from "@/lib/client/historyRows";
+import type { WorkingParcel } from "@/lib/client/parcelStore";
+import { EARLIER_RULES, fromEarlierRules, getScreens } from "@/lib/client/screenStore";
 import { useExplore } from "./useExploreController";
 
 const when = (iso: string) =>
@@ -17,6 +19,7 @@ export function History({ onOpened }: { onOpened?: () => void }) {
   const { built, open } = ctl.state.store;
   const [confirming, setConfirming] = useState<string | null>(null);
   const rows = useMemo(() => new Map(historyRows(built).map((r) => [r.key, r])), [built]);
+  const earlier = useEarlierRules(built);
 
   return (
     <section className="block">
@@ -86,7 +89,10 @@ export function History({ onOpened }: { onOpened?: () => void }) {
                       </>
                     )}
                   </span>
-                  <span className="tiny muted">{when(b.updatedAt)}</span>
+                  <span className="tiny muted">
+                    {when(b.updatedAt)}
+                    {earlier.has(b.key!) && ` · ${EARLIER_RULES}`}
+                  </span>
                 </li>
               );
             })}
@@ -94,4 +100,29 @@ export function History({ onOpened }: { onOpened?: () => void }) {
       )}
     </section>
   );
+}
+
+/**
+ * The History entries whose latest screen came from earlier rules (Batch A §6): read from the kept screens,
+ * so it's known once IndexedDB answers. An entry with no kept screen has nothing to say.
+ */
+function useEarlierRules(built: readonly WorkingParcel[]): ReadonlySet<string> {
+  const [keys, setKeys] = useState<ReadonlySet<string>>(new Set());
+  const latest = built.flatMap((b) =>
+    b.key && b.screenIds.length ? [[b.key, b.screenIds.at(-1)!] as const] : [],
+  );
+  const sig = latest.map(([k, id]) => `${k}:${id}`).join(",");
+  useEffect(() => {
+    let alive = true;
+    const ids = new Map(latest.map(([k, id]) => [id, k]));
+    void getScreens([...ids.keys()]).then((records) => {
+      if (alive) setKeys(new Set(records.filter((r) => fromEarlierRules(r)).map((r) => ids.get(r.id)!)));
+    });
+    return () => {
+      alive = false;
+    };
+    // `sig` stands for `latest`: the effect re-reads only when an entry's latest screen changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sig]);
+  return keys;
 }

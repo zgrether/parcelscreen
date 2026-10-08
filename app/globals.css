@@ -1,4 +1,8 @@
 @import "tailwindcss";
+/* Tailwind scans every file git doesn't ignore for class names. The recorded fixtures are megabytes of JSON
+   with long base64 bodies, which held a build for over 20 minutes once a third one was added (Batch A, A1). */
+@source not "../test/fixtures";
+@source not "../legacy";
 
 /* Prototype palette (legacy/parcelscreen.html :root), exposed as Tailwind colors: bg-paper, text-ink, … */
 @theme {

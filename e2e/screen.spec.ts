@@ -1,14 +1,15 @@
 /**
- * The in-browser screen vs the prototype's goldens (step 18a; plan phase-0-18-acceptance.md §1, phase-0.md
- * §7a.4): a production build, the result the Web Worker posts, the Node test's comparator and tolerances.
+ * The in-browser screen vs the port's expected.json (step 18a, then Batch A §1; plan phase-0-18-acceptance.md
+ * §1, phase-0.md §7a.4): a production build, the result the Web Worker posts, the Node test's comparator with
+ * the measured browser tolerances (EXPECTED_BROWSER).
  * Each test starts from an empty profile and brings its parcel in through History import.
  */
 import { expect, test, type Page } from "@playwright/test";
 import type { ScreenResult } from "@/lib/screen/types";
 import { loadFixture } from "../test/support/fixtures";
 import {
-  againstGolden,
-  GOLDEN,
+  againstExpected,
+  EXPECTED_MSG,
   expectAllDone,
   importParcel,
   keptScreenCount,
@@ -68,7 +69,7 @@ async function expectCleanRun(page: Page, steps: Record<string, string>): Promis
     ).toBe(true);
 }
 
-test("Ferney Creek 52-47A: the plain run matches the golden; the ground viewer opens, day and night", async ({
+test("Ferney Creek 52-47A: the plain run matches expected.json; the ground viewer opens, day and night", async ({
   page,
   context,
 }) => {
@@ -77,7 +78,7 @@ test("Ferney Creek 52-47A: the plain run matches the golden; the ground viewer o
   await importParcel(page, FERNEY);
   const steps = await screenIt(page);
   await expectCleanRun(page, steps);
-  expect(againstGolden(await postedResult(page), loadFixture(FERNEY).goldens.run), GOLDEN).toEqual([]);
+  expect(againstExpected(await postedResult(page), FERNEY, "run"), EXPECTED_MSG).toEqual([]);
 
   // The ground viewer (step 17, in place of the 3D walkthrough): Stand here, by day, then by night.
   await page.locator(".stand-here").click();
@@ -95,7 +96,7 @@ test("Ferney Creek 52-47A: the plain run matches the golden; the ground viewer o
   expect(errors, "page errors in the ground viewer").toEqual([]);
 });
 
-test("Ferney Creek 52-47A: with the house marked, the run matches the house golden", async ({
+test("Ferney Creek 52-47A: with the house marked, the run matches expected.json", async ({
   page,
   context,
 }) => {
@@ -105,10 +106,10 @@ test("Ferney Creek 52-47A: with the house marked, the run matches the house gold
   const steps = await screenIt(page);
   await expectCleanRun(page, steps);
   await expect(page.locator(".block summary h2", { hasText: /^The existing house/ })).toBeVisible();
-  expect(againstGolden(await postedResult(page), loadFixture(FERNEY).goldens.houseRun!), GOLDEN).toEqual([]);
+  expect(againstExpected(await postedResult(page), FERNEY, "houseRun"), EXPECTED_MSG).toEqual([]);
 });
 
-test("Macks Mountain 35-3: the plain run and the re-evaluation at site #2 match their goldens", async ({
+test("Macks Mountain 35-3: the plain run and the re-evaluation at site #2 match expected.json", async ({
   page,
   context,
 }) => {
@@ -117,17 +118,16 @@ test("Macks Mountain 35-3: the plain run and the re-evaluation at site #2 match 
   await importParcel(page, MACKS);
   const steps = await screenIt(page);
   await expectCleanRun(page, steps);
-  const fx = loadFixture(MACKS);
-  expect(againstGolden(await postedResult(page), fx.goldens.run), GOLDEN).toEqual([]);
+  expect(againstExpected(await postedResult(page), MACKS, "run"), EXPECTED_MSG).toEqual([]);
 
   // Tapping site #2's pin re-evaluates the sun, sky and driveway there (the worker's evaluateAt). Here site #2 is
   // the run's own point (the largest house site), so the panel keeps showing the run (15b); the worker still
-  // posts the re-evaluation, labelled "site #2", and that is what the golden recorded.
+  // posts the re-evaluation, labelled "site #2", and that is what expected.json holds.
   // The pin can sit under the desktop panel at this zoom: the click goes to the pin itself (this is about the
   // worker's re-evaluation, not the map's hit testing).
   await page.locator('[data-pin="site-2"]').dispatchEvent("click");
   await waitForPosted(page, "site #2");
-  expect(againstGolden(await postedResult(page), fx.goldens.evaluateSite2!), GOLDEN).toEqual([]);
+  expect(againstExpected(await postedResult(page), MACKS, "evaluateSite2"), EXPECTED_MSG).toEqual([]);
   expect(errors, "page errors").toEqual([]);
 });
 
