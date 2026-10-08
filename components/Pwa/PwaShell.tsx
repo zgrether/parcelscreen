@@ -36,8 +36,9 @@ export function PwaShell({ running }: { running: boolean }) {
     if (!shouldRegister(process.env.NODE_ENV, "serviceWorker" in navigator)) return;
     let gone = false;
     navigator.serviceWorker.register("/serwist/sw.js", { scope: "/" }).then(
-      (r) => {
-        if (gone) return;
+      (r: ServiceWorkerRegistration | undefined) => {
+        // No registration: Playwright's serviceWorkers: "block" resolves with nothing (the e2e).
+        if (gone || !r) return;
         reg.current = r;
         // A waiting worker is an update only when an older one controls this page.
         const check = () => setWaiting(!!r.waiting && !!navigator.serviceWorker.controller);
