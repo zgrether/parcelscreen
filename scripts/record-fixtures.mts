@@ -42,6 +42,14 @@ const PARCELS: ParcelSpec[] = [
     point: { lat: 36.93492, lon: -80.63139 },
     evaluateSite2: true,
   },
+  {
+    // Batch A, A1 (owner, 2026-10-08): the live screen behind follow-ups 23–29. A two-part county record; the
+    // point is inside the first, larger part (29.31 ac of 30.15), which is the part the prototype screens.
+    slug: "grayson-mud-creek-6273",
+    name: "Mud Creek, Grayson County VA, parcel 6273 (PTM 63-A-62)",
+    point: { lat: 36.585425, lon: -81.561989 },
+    evaluateSite2: true,
+  },
 ];
 
 // Only the data services go into the HAR; CDNs (Leaflet/turf/geotiff/three) and fonts stay out.
