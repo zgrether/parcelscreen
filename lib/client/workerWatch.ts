@@ -4,11 +4,10 @@
  *
  * - A run: the worker acknowledges it at once (`started`, before any step). No acknowledgement within
  *   START_MS: lost, and the run is retried once on a fresh worker (then it says the screen didn't start).
- * - During a run, every message from it is liveness, and only silence beyond RUN_SILENCE_MS counts as lost.
- *   That's well beyond the longest single step's network limits (the DEM step: 3 attempts × 45 s plus back-off,
- *   for the fine and the wide DEM; near: 15 s of Photon, then up to 180 s for the Overpass route; flood: 30 s,
- *   then the 45 s retry), so a slow service, or the worker busy computing synchronously, isn't mistaken for
- *   a dead worker. There's no foreground ping during a run.
+ * - During a run, every message from it is liveness: its steps, and a heartbeat every 5 s (HEARTBEAT_MS; its
+ *   event loop is free while it waits on the network, however slow a service is). So only its synchronous
+ *   computation can keep it quiet, and silence beyond RUN_SILENCE_MS counts as lost: a worker killed mid-run is
+ *   noticed in about a minute. There's no foreground ping during a run.
  * - Reopening a kept run (`activate`): answered (`updated`) within ACTIVATE_MS, or lost. An `error` answer
  *   means the worker doesn't know the run: it was restarted, so it's lost too.
  * - Back in the foreground with no run going: a ping answered within PING_MS, or lost.
@@ -16,7 +15,15 @@
 import type { FromWorker } from "@/lib/screen/worker-protocol";
 
 export const START_MS = 20_000;
-export const RUN_SILENCE_MS = 10 * 60_000;
+/**
+ * The longest synchronous computation in a run, measured in Chromium on the reference parcels (18b; the gap
+ * in a 20 ms timer inside the worker): Ferney Creek 1.48 s, Macks Mountain 3.92 s, both at the end of the run.
+ * Chromium can't throttle a dedicated worker's CPU ("Operation is only supported for pages, not workers"), so
+ * the 4× phone allowance is the measurement × 4: 15.7 s. The owner's rule: max(60 s, 3 × that) = 60 s. Bigger
+ * parcels compute longer, but the DEM's 2.4 M-cell cap (Macks is near it) keeps them within about 2× Macks.
+ */
+export const LONGEST_BLOCK_4X_MS = 4 * 3_920;
+export const RUN_SILENCE_MS = Math.max(60_000, 3 * LONGEST_BLOCK_4X_MS);
 export const ACTIVATE_MS = 4_000;
 export const PING_MS = 3_000;
 export const DIDNT_START = "The screen didn't start. Run it again.";

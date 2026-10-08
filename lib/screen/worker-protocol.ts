@@ -38,6 +38,11 @@ export type ToWorker =
 export type FromWorker =
   /** A run was received and is starting: sent at once, before any step (the page's start watchdog). */
   | { type: "started"; id: number }
+  /**
+   * While a run is going, every HEARTBEAT_MS: the worker's event loop is free during network waits, so silence
+   * longer than its longest synchronous computation means it's gone (the page's watch, 18b).
+   */
+  | { type: "heartbeat"; id: number }
   | { type: "progress"; id: number; event: ProgressEvent }
   | { type: "done"; id: number; result: ScreenResult; view: SessionView; bytes: SessionBytes }
   | { type: "updated"; id: number; result: ScreenResult; view: SessionView; bytes: SessionBytes }
@@ -114,6 +119,9 @@ export const sessionBytes = (out: ScreenOutput): SessionBytes => ({
   view: arrayBytes(sessionView(out.session)),
 });
 
+/** How often a running worker says it's alive. */
+export const HEARTBEAT_MS = 5_000;
+
 /** The worker never keeps more than this many sessions, whatever the page says (a missed release can't grow). */
 export const MAX_SESSIONS = 3;
 
@@ -123,6 +131,8 @@ export interface WorkerCoreOptions {
   sleep?: (ms: number) => Promise<void>;
   /** The browser entry passes the server route (see places.ts); tests leave it unset. */
   overpass?: OverpassFallback;
+  /** Defaults to HEARTBEAT_MS; tests shorten it. */
+  heartbeatMs?: number;
 }
 
 /** The worker's state machine. One instance per worker; caches live for the worker's lifetime (the session). */
@@ -169,6 +179,10 @@ export class ScreenWorkerCore {
     const abort = new AbortController();
     this.current = { id, abort };
     const live = () => this.current?.id === id;
+    const beat = setInterval(
+      () => live() && this.post({ type: "heartbeat", id }),
+      this.opts.heartbeatMs ?? HEARTBEAT_MS,
+    );
     try {
       const out = await screen(input, (event) => live() && this.post({ type: "progress", id, event }), {
         http: this.http,
@@ -189,6 +203,8 @@ export class ScreenWorkerCore {
       });
     } catch (e) {
       if (live()) this.post({ type: "error", id, message: (e as Error).message || String(e) });
+    } finally {
+      clearInterval(beat);
     }
   }
 
