@@ -85,10 +85,12 @@ export async function openFromHistory(page: Page, name: string): Promise<void> {
 /** Screen it, wait for the run to finish, and return each step's final status. */
 export async function screenIt(page: Page): Promise<Record<string, string>> {
   if (await page.locator(".menu-scrim").count()) await page.keyboard.press("Escape");
+  // "Run again" when the parcel already has a result: wait for this run to start, then to finish.
   await page
-    .locator("button", { hasText: /^Screen it$/ })
+    .locator("button", { hasText: /^(Screen it|Run again)$/ })
     .first()
     .click();
+  await expect(page.locator("button", { hasText: /^Running…$/ }).first()).toBeVisible();
   await expect(page.locator("button", { hasText: /^Run again$/ }).first()).toBeVisible({ timeout: 200_000 });
   return page.evaluate(() => {
     const s = (

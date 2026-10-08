@@ -77,7 +77,9 @@ export function useScreenIt(
     if (!latestId) return;
     let gone = false;
     void getScreen(latestId).then((record) => {
-      if (!gone && record) setStored((s) => (s?.record.id === record.id ? s : { serial, record }));
+      // Keyed by this open too: the same record reopened later (another parcel in between) is shown again.
+      if (!gone && record)
+        setStored((s) => (s?.record.id === record.id && s.serial === serial ? s : { serial, record }));
     });
     return () => {
       gone = true;
@@ -133,14 +135,7 @@ export function useScreenIt(
   const fresh = shown && now ? freshness(shown.keys, now) : null;
   const stale = !!shown && (!now || !!fresh?.boundary);
   // The worker's session is this parcel's last run, on this boundary: it can re-assess the house.
-  // (A reopened session the worker no longer has is not live: 17e.)
-  const sessionLive =
-    !!live &&
-    live.serial === serial &&
-    status === "done" &&
-    !!shown &&
-    !stale &&
-    !(screen.state.restored && screen.state.error);
+  const sessionLive = !!live && live.serial === serial && status === "done" && !!shown && !stale;
 
   // The house changed: re-assess it with the session (no notice), when there is one.
   useEffect(() => {
@@ -190,10 +185,13 @@ export function useScreenIt(
     screen.activate(kept.runId);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once per parcel opened
   }, [serial, openKey]);
-  // The worker no longer has a reopened session (it restarted): forget it. The panel says to run it again.
+  // The worker was lost (terminated in the background, crashed, restarted): every kept session went with it.
+  // Each parcel falls back to the "Run again to restore…" note, with no error (owner, 17e).
   useEffect(() => {
-    if (st.restored && st.error && openKey) sessions.current.remove(openKey);
-  }, [st.restored, st.error, openKey]);
+    sessions.current = new SessionLru<RunKeys>();
+    indexed.current = null;
+    awaitingRestore.current = false;
+  }, [st.generation]);
   // A parcel removed from History: its session goes too.
   const builtKeys = ctl.state.store.built.map((b) => b.key).join("|");
   useEffect(() => {

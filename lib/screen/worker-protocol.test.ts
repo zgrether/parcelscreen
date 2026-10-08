@@ -173,6 +173,26 @@ describe("kept sessions (17e)", () => {
   });
 });
 
+describe("a restarted worker (17e)", () => {
+  it("knows none of the runs the page kept: reactivating one says it's gone, which the page takes as a lost worker", async () => {
+    const first = core();
+    for (const id of [1, 2]) await first.c.handle({ type: "run", id, input });
+    expect(first.c.keptIds()).toEqual([1, 2]);
+    // The browser terminated it; the page's next request makes a fresh worker.
+    const { c, posted, replay } = core();
+    expect(c.keptIds()).toEqual([]);
+    for (const id of [1, 2]) await c.handle({ type: "activate", id });
+    expect(posted).toEqual(
+      [1, 2].map((id) => ({
+        type: "error",
+        id,
+        message: "That screen is no longer available; run it again.",
+      })),
+    );
+    expect(replay.requests).toEqual([]); // and asked nothing of the network
+  });
+});
+
 describe("session sizes (for the 17e PR)", () => {
   it.each(["ferney-creek-52-47A", "macks-mountain-35-3"] as const)("%s", async (slug) => {
     const f = loadFixture(slug);
