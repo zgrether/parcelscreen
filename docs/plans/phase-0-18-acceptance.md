@@ -77,3 +77,32 @@ Answered (owner, 2026-10-07):
   - the §7b checklist is complete in the PR, with the owner's phone items marked for the owner;
   - every live difference either matches a row of the table or is listed as a bug or a proposed row;
   - production serves `main`.
+
+## 5. Intended differences from the prototype (18b, live run 2026-10-08)
+
+The prototype (`legacy/parcelscreen.html`, served locally) and production (`main` at `2ed4369`) ran both reference parcels
+within four seconds of each other. Every section's text was read from both and compared line by line. Each row below is a
+decision the owner already approved; the last column says what the live run showed. No row was added in 18b.
+
+| # | Difference | Reason | Approved in | Live, 2026-10-08 |
+|---|---|---|---|---|
+| 1 | The routed driveway, entrances and culverts are drawn on the map (B1). | A prototype bug; the 2026-10-04 prototype fixes it too. | §1b, §9.1; #51 | Both draw it. |
+| 2 | Sites are re-sorted and re-ranked after the driveway step (B8, B10). | A prototype bug; fixed in the 2026-10-04 20:36 prototype, ported verbatim. | §1b; #3 goldens | Identical pins on both parcels. |
+| 3 | A places outage fails only the "near" step; the roads, road grade and its flag stay. | The prototype lost all three. | §9.11; #11 | Not live (the services were up); the forced-failure check shows "Incomplete: … didn't run". |
+| 4 | A multi-part parcel says "only the first part screened". | B7: the prototype screened the first part silently. | §9.8; #5 | Not on the reference parcels; unit-tested. Follow-up 29. |
+| 5 | The ground viewer replaces the six-scene 3D walkthrough; the aerial scenes are the 3D map. | Owner, 2026-10-07. | §9.12; #62, #64 | Dec 21 and Jun 21 hours equal the report's. |
+| 6 | The ground viewer's labels are clock time in `UserConfig.timeZone`, with solar noon, sunrise/sunset and twilight marks. | Display only; numbers unchanged. | `phase-0-17-ground.md` "Clock time"; #64 | As planned. |
+| 7 | Offline: the shell opens, with "You're offline — saved parcels still open from History". | The prototype has no offline state. | `phase-0-17c-pwa.md` §2; #65 | Owner's phone pass. |
+| 8 | The horizon chart is labelled N, E, S, W at 0°, 90°, 180°, 270° (the prototype labelled E, S, W at 0°, 180°, 360°). | B11: x is azimuth from north. The plotted data is unchanged. | `phase-0-14-results.md` Q5; #34 | +1 line, "N", in December sun. |
+| 9 | Soils carries "Map-unit lines are drawn at county scale, so a boundary can be 100 ft off on the ground." | The prototype had it in help only. | `phase-0-14-results.md` Q4; #41 | +1 line in Soils. |
+| 10 | No "Save this parcel" or "Saved" sections; History and Notes replace them; Copy summary is in the Screen it header. | Q3. | `phase-0-14-results.md` Q3; #34 | Both sections absent; Copy summary text identical. |
+| 11 | "See it from here — the skyline and the sun's path, standing at this point." under the horizon chart. | The ground viewer's entry from the report. | `phase-0-17-ground.md`; #62 | +1 line in December sun. |
+| 12 | When no route meets the grade limit, the least-steep route is shown as suspect, appended after the prototype's sentence, which is kept. It may use outside land only within `leastSteep.entranceM` = 10 m of its entrance. | Rule 7: additive. | #52, #57 (§9 decision 15) | Macks: the prototype sentence, then the over-limit table. |
+| 13 | Find a parcel: no "no parcel here" report and no square fallback; Draw replaces them. | 13e. | `phase-0-13e-parcel-tools.md`; #22, #27 | Draw 4/4 on production. |
+| 14 | Split: no fit-to-acres; drag the line, tap the piece to keep. | 13e decision 15. | `phase-0-13e-parcel-tools.md`; #22, #27 | Split 1/1 on production. |
+| 15 | Roads and labels over the aerials. | 17d. | `phase-0-17d-roads.md`; #70, #71 | Checked on production. |
+| 16 | Parcel switching, the map panel, the phone sheet, kept live sessions. | 17e. | `phase-0-17e-switching.md`; #72, #73 | Checked; one bug found and fixed in 18b (Back after an unchanged run). |
+
+**Not a difference:** the Groceries row read as one line in the prototype and two in the port. Same cells, same words:
+the prototype separates grocers with `<br>`, and the port wraps each in a `<div>`, which `innerText` breaks onto its own line.
+On screen both show the name in the value cell.
