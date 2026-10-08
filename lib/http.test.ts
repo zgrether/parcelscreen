@@ -215,6 +215,120 @@ describe("timeouts and cancellation", () => {
     });
   });
 
+  describe("retryTransient: the one retry also after a network failure or a 5xx (owner, after 18b)", () => {
+    const FEMA = "https://hazards.fema.gov/q";
+    /**
+     * Answers each call from the list in turn, the last one repeating: a status (a fresh Response each time,
+     * "fine" for 200), "reject" (the fetch itself fails) or "hang".
+     */
+    const script = (...steps: (number | "reject" | "hang")[]) => {
+      let calls = 0;
+      const f = (u: unknown, init?: RequestInit) => {
+        const s = steps[Math.min(calls++, steps.length - 1)]!;
+        if (s === "hang") return hang(u, init);
+        if (s === "reject") return Promise.reject(new TypeError("Failed to fetch"));
+        return Promise.resolve(s === 200 ? ok("fine") : new Response("down", { status: s }));
+      };
+      return { f, calls: () => calls };
+    };
+    const opts = { timeoutMs: 20, retryTimeoutMs: 120, retryTransient: true } as const;
+
+    it("a network failure, then an answer", async () => {
+      const s = script("reject", 200);
+      const http = createHttpClient({ env: "browser", fetchImpl: s.f });
+      const r = await http.fetch(FEMA, opts);
+      expect(await r.text()).toBe("fine");
+      expect(s.calls()).toBe(2);
+    });
+
+    it.each([500, 502, 504])("a %i, then an answer", async (status) => {
+      const s = script(status, 200);
+      const http = createHttpClient({ env: "browser", fetchImpl: s.f });
+      expect((await http.fetch(FEMA, opts)).status).toBe(200);
+      expect(s.calls()).toBe(2);
+    });
+
+    it("the retry has the longer limit", async () => {
+      let calls = 0;
+      const f = (_u: unknown, init?: RequestInit) =>
+        ++calls === 1
+          ? Promise.reject(new TypeError("Failed to fetch"))
+          : new Promise<Response>((resolve, reject) => {
+              const t = setTimeout(() => resolve(ok()), 40);
+              init?.signal?.addEventListener("abort", () => {
+                clearTimeout(t);
+                reject(new DOMException("Aborted", "AbortError"));
+              });
+            });
+      const http = createHttpClient({ env: "browser", fetchImpl: f });
+      expect((await http.fetch(FEMA, opts)).status).toBe(200);
+      expect(calls).toBe(2);
+    });
+
+    it("two failures are final: the second's error or status, and no third try", async () => {
+      const a = script("reject");
+      await expect(createHttpClient({ env: "browser", fetchImpl: a.f }).fetch(FEMA, opts)).rejects.toThrow(
+        "Failed to fetch",
+      );
+      expect(a.calls()).toBe(2);
+      const b = script(502);
+      expect((await createHttpClient({ env: "browser", fetchImpl: b.f }).fetch(FEMA, opts)).status).toBe(502);
+      expect(b.calls()).toBe(2);
+    });
+
+    it("still one retry in all: a timeout, then a network failure, is final", async () => {
+      const s = script("hang", "reject", 200);
+      await expect(createHttpClient({ env: "browser", fetchImpl: s.f }).fetch(FEMA, opts)).rejects.toThrow(
+        "Failed to fetch",
+      );
+      expect(s.calls()).toBe(2);
+    });
+
+    it.each([400, 404])("a %i is never retried", async (status) => {
+      const s = script(status, 200);
+      const http = createHttpClient({ env: "browser", fetchImpl: s.f });
+      expect((await http.fetch(FEMA, opts)).status).toBe(status);
+      expect(s.calls()).toBe(1);
+    });
+
+    it("a 503 keeps the client's backoff and isn't retried again after it", async () => {
+      const clock = fakeClock();
+      const s = script(503);
+      const http = createHttpClient({ env: "browser", fetchImpl: s.f, clock });
+      expect((await http.fetch(FEMA, opts)).status).toBe(503);
+      expect(s.calls()).toBe(3); // the first try and the two 503 retries, as without the option
+      expect(clock.sleeps).toEqual([2000, 5000]);
+    });
+
+    it("a cancel is never retried", async () => {
+      const ctl = new AbortController();
+      const s = script("hang", 200);
+      const p = createHttpClient({ env: "browser", fetchImpl: s.f }).fetch(FEMA, {
+        ...opts,
+        timeoutMs: 1000,
+        signal: ctl.signal,
+      });
+      await expect.poll(s.calls).toBe(1);
+      ctl.abort();
+      await expect(p).rejects.toBeInstanceOf(CancelledError);
+      expect(s.calls()).toBe(1);
+    });
+
+    it("without it, a network failure and a 5xx aren't retried", async () => {
+      const a = script("reject", 200);
+      await expect(
+        createHttpClient({ env: "browser", fetchImpl: a.f }).fetch(FEMA, { retryTimeoutMs: 120 }),
+      ).rejects.toThrow("Failed to fetch");
+      expect(a.calls()).toBe(1);
+      const b = script(500, 200);
+      const r = await createHttpClient({ env: "browser", fetchImpl: b.f }).fetch(FEMA, {
+        retryTimeoutMs: 120,
+      });
+      expect(r.status).toBe(500);
+      expect(b.calls()).toBe(1);
+    });
+  });
+
   it("rejects with CancelledError when the caller aborts mid-request", async () => {
     const ctl = new AbortController();
     const http = createHttpClient({ env: "browser", fetchImpl: hang });

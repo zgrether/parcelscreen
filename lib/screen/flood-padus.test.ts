@@ -201,3 +201,67 @@ describe("FEMA timeouts (follow-up 22), replayed on Ferney Creek", () => {
     expect(s.calls()).toBe(2);
   });
 });
+
+describe("FEMA network failures and 5xx (owner, after 18b), replayed on Ferney Creek", () => {
+  type Failure = "reject" | number;
+  /** The recorded responses, but the NFHL requests fail as listed, in turn; past the list, they answer. */
+  const failing = async (...failures: Failure[]) => {
+    const t = await throughSites("ferney-creek-52-47A");
+    const replay = loadFixture("ferney-creek-52-47A").replayFetch();
+    let calls = 0;
+    const fetchImpl = (url: string | URL | Request, init?: RequestInit): Promise<Response> => {
+      if (!String(url).includes("NFHL")) return replay(url, init);
+      const f = failures[calls++];
+      if (f === undefined) return replay(url, init);
+      if (f === "reject") return Promise.reject(new TypeError("Failed to fetch"));
+      return Promise.resolve(new Response("Service unavailable", { status: f }));
+    };
+    const real = createHttpClient({ env: "node", fetchImpl, clock: instantClock() });
+    const asked: RequestOptions[] = [];
+    const http: HttpClient = {
+      fetch: (url, o = {}) => {
+        if (url.includes("NFHL")) asked.push(o);
+        return real.fetch(url, o);
+      },
+    };
+    return { t, http, asked, calls: () => calls };
+  };
+  const golden = () => fromPrototype(loadFixture("ferney-creek-52-47A").goldens.run).flood;
+
+  it.each<Failure>(["reject", 500, 502, 504])(
+    "%s, then an answer, gives the golden flood result",
+    async (f) => {
+      const s = await failing(f);
+      const r = await floodStep(s.t.parcel, s.t.acres, { ...s.t.deps, http: s.http });
+      expect(differences(r.flood, golden())).toEqual([]);
+      expect(s.calls()).toBe(2);
+      expect(s.asked).toEqual([
+        expect.objectContaining({ timeoutMs: 30_000, retryTimeoutMs: 45_000, retryTransient: true }),
+      ]);
+    },
+  );
+
+  it("two network failures: the step fails as before", async () => {
+    const s = await failing("reject", "reject");
+    await expect(floodStep(s.t.parcel, s.t.acres, { ...s.t.deps, http: s.http })).rejects.toThrow(
+      "Failed to fetch",
+    );
+    expect(s.calls()).toBe(2);
+  });
+
+  it("two 5xx: the step fails with the service and the status, as before", async () => {
+    const s = await failing(502, 500);
+    await expect(floodStep(s.t.parcel, s.t.acres, { ...s.t.deps, http: s.http })).rejects.toThrow(
+      "NFHL/MapServer/28 500: Service unavailable",
+    );
+    expect(s.calls()).toBe(2);
+  });
+
+  it.each([400, 404])("a %i isn't retried", async (status) => {
+    const s = await failing(status);
+    await expect(floodStep(s.t.parcel, s.t.acres, { ...s.t.deps, http: s.http })).rejects.toThrow(
+      `NFHL/MapServer/28 ${status}`,
+    );
+    expect(s.calls()).toBe(1);
+  });
+});
