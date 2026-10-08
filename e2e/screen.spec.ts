@@ -4,15 +4,18 @@
  * Each test starts from an empty profile and brings its parcel in through History import.
  */
 import { expect, test, type Page } from "@playwright/test";
+import type { ScreenResult } from "@/lib/screen/types";
 import { loadFixture } from "../test/support/fixtures";
 import {
   againstGolden,
   GOLDEN,
   expectAllDone,
   importParcel,
+  keptScreenCount,
   openExplorer,
   screenIt,
   postedResult,
+  waitForPosted,
 } from "./flow";
 import { replayHar, type ReplayLog } from "./replay";
 
@@ -123,11 +126,52 @@ test("Macks Mountain 35-3: the plain run and the re-evaluation at site #2 match 
   // The pin can sit under the desktop panel at this zoom: the click goes to the pin itself (this is about the
   // worker's re-evaluation, not the map's hit testing).
   await page.locator('[data-pin="site-2"]').dispatchEvent("click");
-  await page.waitForFunction(() => {
-    const s = (window as unknown as { __psScreen: { posted: { focus?: { label: string } } | null } })
-      .__psScreen;
-    return s.posted?.focus?.label === "site #2";
-  });
+  await waitForPosted(page, "site #2");
   expect(againstGolden(await postedResult(page), fx.goldens.evaluateSite2!), GOLDEN).toEqual([]);
+  expect(errors, "page errors").toEqual([]);
+});
+
+/** The sections a re-evaluation moves (sun, sky, driveway: ScreenIt's EVALUATED_SECTIONS), by data-key. */
+const EVALUATED = ["december-sun", "dark-skies", "driveway"];
+
+test("Ferney Creek 52-47A: a pin away from the run's point is an unsaved re-evaluation; the run's own site ends it", async ({
+  page,
+  context,
+}) => {
+  net = await replayHar(context, FERNEY);
+  await openExplorer(page, FERNEY);
+  await importParcel(page, FERNEY);
+  const steps = await screenIt(page);
+  await expectCleanRun(page, steps);
+
+  // The run's own point (where its sun and sky were evaluated), and a site that isn't it.
+  const run = (await postedResult(page)) as ScreenResult;
+  const own = run.focus?.ll ?? run.point?.ll;
+  const same = (a: readonly number[], b: readonly number[] | undefined) =>
+    !!b && a[0] === b[0] && a[1] === b[1];
+  const sites = run.sites ?? [];
+  const ownSite = sites.find((s) => same(s.ll, own));
+  const other = sites.find((s) => !same(s.ll, own));
+  expect(ownSite, `a site at the run's own point ${JSON.stringify(own)}`).toBeDefined();
+  expect(other, "a site away from the run's point").toBeDefined();
+  const kept = await keptScreenCount(page);
+
+  const label = `site #${other!.rank}`;
+  await page.locator(`[data-pin="site-${other!.rank}"]`).dispatchEvent("click");
+  await waitForPosted(page, label);
+  // The note, on exactly the sun, sky and driveway sections.
+  const note = `Evaluated at ${label} — not saved. Run again or move the house to keep it.`;
+  for (const key of EVALUATED)
+    await expect(page.locator(`details[data-key="${key}"] .eval-note`)).toHaveText(note);
+  await expect(page.locator(".eval-note")).toHaveCount(EVALUATED.length);
+  // Evaluated exactly at the site's stored point, and nothing kept.
+  expect((await postedResult(page))!.focus!.ll).toStrictEqual(other!.ll);
+  expect(await keptScreenCount(page), "kept screens").toBe(kept);
+
+  // The run's own site ends the re-evaluation: the notes clear.
+  await page.locator(`[data-pin="site-${ownSite!.rank}"]`).dispatchEvent("click");
+  await waitForPosted(page, `site #${ownSite!.rank}`);
+  await expect(page.locator(".eval-note")).toHaveCount(0);
+  expect(await keptScreenCount(page), "kept screens").toBe(kept);
   expect(errors, "page errors").toEqual([]);
 });

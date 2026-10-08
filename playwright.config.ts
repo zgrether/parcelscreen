@@ -17,6 +17,7 @@ export default defineConfig({
   expect: { timeout: 30_000 },
   fullyParallel: false,
   workers: 1,
+  // Never retried, on CI or locally (owner, #68): a test that passes only on a retry is a bug to fix.
   retries: 0,
   forbidOnly: !!process.env.CI,
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",

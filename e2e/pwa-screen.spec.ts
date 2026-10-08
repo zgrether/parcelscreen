@@ -28,20 +28,21 @@ test("Ferney Creek 52-47A with the service worker in control: the screen runs an
   context.on("weberror", (e) => errors.push(e.error().message));
   const net = await replayHar(context, FERNEY);
   await openExplorer(first, FERNEY);
-  await first.waitForFunction(
-    async () => (await navigator.serviceWorker.getRegistration("/"))?.active?.state === "activated",
-  );
+  // expect.poll, not page.waitForFunction: waitForFunction doesn't await an async predicate (its Promise
+  // counts as truthy at once), which once made this wait pass before the app had even registered.
+  await expect
+    .poll(() =>
+      first.evaluate(
+        async () => (await navigator.serviceWorker.getRegistration("/"))?.active?.state ?? "none",
+      ),
+    )
+    .toBe("activated");
 
-  // Relaunch in new tabs until one is controlled. The first tab stays open meanwhile: closing the only client
-  // right after activation lost the registration here, and the next tabs started over (installing).
-  let page: Page = first;
-  for (let i = 0; i < 8 && !(await page.evaluate(() => !!navigator.serviceWorker.controller)); i++) {
-    if (page !== first) await page.close();
-    page = await context.newPage();
-    await page.goto("/explore");
-    await page.waitForTimeout(500);
-  }
+  // A relaunch: the app closed and opened again. The new tab's first load is served by the service worker.
+  const page: Page = await context.newPage();
   await first.close();
+  const nav = await page.goto("/explore");
+  expect(nav?.fromServiceWorker(), "the relaunch served by the service worker").toBe(true);
   expect(await page.evaluate(() => !!navigator.serviceWorker.controller), "page controlled").toBe(true);
 
   const fromSW: string[] = [];

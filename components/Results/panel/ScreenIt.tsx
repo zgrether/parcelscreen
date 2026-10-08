@@ -25,6 +25,7 @@ import { fmt } from "@/lib/format";
 import { verdictView } from "@/lib/report/verdict";
 import { STEPS } from "@/lib/screen/config";
 import { summaryText } from "@/lib/screen/summary";
+import { publishPosted } from "@/lib/client/debugHandle";
 import { evaluatedNote } from "@/lib/render/pins";
 import type { LatLon } from "@/lib/geo/types";
 import type { PartialScreenResult, ScreenResult, UserConfig } from "@/lib/screen/types";
@@ -94,6 +95,8 @@ export function useScreenIt(
   const awaitingHouse = useRef(false);
   const status = screen.state.status;
   const result = screen.state.result;
+  // The test-only debug handle (window.__psDebug.posted, with ps.debug): written here, never read by the app.
+  useEffect(() => publishPosted(result), [result]);
   useEffect(() => {
     if (status !== "done" || !live || !result || kept.current === result || result.verdict === undefined)
       return;
@@ -219,8 +222,6 @@ export function useScreenIt(
     showSteps: live?.serial === serial && status !== "idle",
     error: live?.serial === serial ? screen.state.error : null,
     display,
-    /** The worker's latest posted result (a run, a re-evaluation, a house re-assessment): the e2e reads it. */
-    posted: screen.state.result,
     point,
     /** The worker's session for this parcel's shown run (surfaces, horizon…), or null after a reload. */
     view: sessionLive ? screen.state.view : null,

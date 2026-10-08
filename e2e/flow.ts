@@ -81,12 +81,39 @@ export function expectAllDone(steps: Record<string, string>): void {
 }
 
 /**
- * The result the Web Worker last posted (`__psScreen.posted`): the run, or a re-evaluation. Not the panel's
- * display, which shows the kept run when a pin is the run's own point (15b).
+ * The result the Web Worker last posted: the run, or a re-evaluation. Read from the test-only debug handle
+ * (`window.__psDebug.posted`, lib/client/debugHandle.ts), not the panel's display, which shows the kept run
+ * when a pin is the run's own point (15b).
  */
 export const postedResult = (page: Page): Promise<PartialScreenResult | null> =>
   page.evaluate(
-    () => (window as unknown as { __psScreen: { posted: PartialScreenResult | null } }).__psScreen.posted,
+    () =>
+      (window as unknown as { __psDebug?: { posted: PartialScreenResult | null } }).__psDebug?.posted ?? null,
+  );
+
+/** Waits until the worker has posted a result evaluated at `label` ("site #2"). */
+export async function waitForPosted(page: Page, label: string): Promise<void> {
+  await expect
+    .poll(async () => ((await postedResult(page)) as { focus?: { label: string } } | null)?.focus?.label)
+    .toBe(label);
+}
+
+/** How many screens this browser keeps (IndexedDB "parcelscreen" / "screens", lib/client/screenStore.ts). */
+export const keptScreenCount = (page: Page): Promise<number> =>
+  page.evaluate(
+    () =>
+      new Promise<number>((resolve, reject) => {
+        const open = indexedDB.open("parcelscreen");
+        open.onerror = () => reject(open.error);
+        open.onsuccess = () => {
+          const req = open.result.transaction("screens", "readonly").objectStore("screens").count();
+          req.onsuccess = () => {
+            open.result.close();
+            resolve(req.result);
+          };
+          req.onerror = () => reject(req.error);
+        };
+      }),
   );
 
 /** The assertion message for againstGolden's lines. */
