@@ -26,6 +26,7 @@ import { verdictView } from "@/lib/report/verdict";
 import { STEPS } from "@/lib/screen/config";
 import { summaryText } from "@/lib/screen/summary";
 import { publishPosted } from "@/lib/client/debugHandle";
+import { SessionLru } from "@/lib/client/sessionLru";
 import { evaluatedNote } from "@/lib/render/pins";
 import type { LatLon } from "@/lib/geo/types";
 import type { PartialScreenResult, ScreenResult, UserConfig } from "@/lib/screen/types";
@@ -60,6 +61,8 @@ export function useScreenIt(
   // A pin tap re-evaluates at another point (step 15): shown, never kept (owner, 15 plan Q1).
   const [evalAsked, setEvalAsked] = useState<{ serial: number; ll: LatLon; label: string } | null>(null);
   const awaitingEval = useRef(false);
+  // A kept session reactivated (17e): its result comes back, but it's not a new screen to keep.
+  const awaitingRestore = useRef(false);
   const evalHint = useRef("");
 
   // Handlers and effects read the latest controller and callback.
@@ -101,6 +104,10 @@ export function useScreenIt(
     if (status !== "done" || !live || !result || kept.current === result || result.verdict === undefined)
       return;
     kept.current = result;
+    if (awaitingRestore.current) {
+      awaitingRestore.current = false;
+      return;
+    }
     // A re-evaluation at another point is exploration: not a new screen, and the sheet stays where it is.
     if (awaitingEval.current) {
       awaitingEval.current = false;
@@ -126,7 +133,14 @@ export function useScreenIt(
   const fresh = shown && now ? freshness(shown.keys, now) : null;
   const stale = !!shown && (!now || !!fresh?.boundary);
   // The worker's session is this parcel's last run, on this boundary: it can re-assess the house.
-  const sessionLive = !!live && live.serial === serial && status === "done" && !!shown && !stale;
+  // (A reopened session the worker no longer has is not live: 17e.)
+  const sessionLive =
+    !!live &&
+    live.serial === serial &&
+    status === "done" &&
+    !!shown &&
+    !stale &&
+    !(screen.state.restored && screen.state.error);
 
   // The house changed: re-assess it with the session (no notice), when there is one.
   useEffect(() => {
@@ -136,6 +150,60 @@ export function useScreenIt(
     awaitingHouse.current = true;
     screen.setHouse(house);
   }, [sessionLive, fresh?.house, now, house, screen]);
+
+  // The controller won't switch parcels while a screen runs (17e).
+  useEffect(() => latest.current.ctl.setBusy(running), [running]);
+
+  // Live sessions for the most recently screened parcels (17e): reopening one restores its overlays, the
+  // ground viewer and pin re-evaluation from the worker, with no re-run. Keyed by History key.
+  const sessions = useRef(new SessionLru<RunKeys>());
+  const openKey = open?.key ?? null;
+  const st = screen.state;
+  // Index the current run once it's done (and again after a house re-assessment: its size may change).
+  const indexed = useRef<unknown>(null);
+  useEffect(() => {
+    if (st.status !== "done" || st.updating || !st.bytes || st.runId === null || !live || !openKey) return;
+    if (live.serial !== serial || indexed.current === st.result) return;
+    indexed.current = st.result;
+    const entry = {
+      parcel: openKey,
+      runId: st.runId,
+      keys: live.keys,
+      bytes: st.bytes.session + st.bytes.view,
+    };
+    for (const r of sessions.current.put(entry, openKey)) if (r.runId !== st.runId) screen.release(r.runId);
+  }, [st.status, st.updating, st.bytes, st.runId, st.result, live, openKey, serial, screen]);
+  // A parcel opened from History (or Back) that still has a session: make it the current one again.
+  useEffect(() => {
+    if (running || !openKey || !parcel) return;
+    const kept = sessions.current.get(openKey);
+    if (!kept || kept.runId === screen.state.runId) return;
+    const nowKeys = runKeys(parcel.geo.geometry, open?.house ?? null, config);
+    if (freshness(kept.keys, nowKeys).boundary) return; // its boundary changed since: the run no longer applies
+    sessions.current.touch(openKey);
+    setLive({ serial, keys: kept.keys });
+    setEvalAsked(null);
+    awaitingEval.current = false;
+    askedHouse.current = null;
+    awaitingHouse.current = false;
+    awaitingRestore.current = true;
+    screen.activate(kept.runId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per parcel opened
+  }, [serial, openKey]);
+  // The worker no longer has a reopened session (it restarted): forget it. The panel says to run it again.
+  useEffect(() => {
+    if (st.restored && st.error && openKey) sessions.current.remove(openKey);
+  }, [st.restored, st.error, openKey]);
+  // A parcel removed from History: its session goes too.
+  const builtKeys = ctl.state.store.built.map((b) => b.key).join("|");
+  useEffect(() => {
+    const keys = new Set(builtKeys.split("|"));
+    for (const k of sessions.current.parcels())
+      if (!keys.has(k)) {
+        const gone = sessions.current.remove(k);
+        if (gone) screen.release(gone.runId);
+      }
+  }, [builtKeys, screen]);
 
   const run = () => {
     if (!parcel || !now) return;
@@ -219,7 +287,7 @@ export function useScreenIt(
     run,
     cancel: screen.cancel,
     steps: screen.state.steps,
-    showSteps: live?.serial === serial && status !== "idle",
+    showSteps: live?.serial === serial && status !== "idle" && !screen.state.restored,
     error: live?.serial === serial ? screen.state.error : null,
     display,
     point,
@@ -292,6 +360,15 @@ export function ScreenHeader({ s, desk = null }: { s: ScreenIt; desk?: DeskCard 
             <Chevron up={desk.expanded} />
           </button>
         )}
+        {/* Deselect the parcel (17e); Esc does the same on desktop. A screened one stays in History. */}
+        <button
+          className="sh-x"
+          aria-label="Close this parcel"
+          title={desk ? "Close this parcel (Esc)" : "Close this parcel"}
+          onClick={() => s.ctl.close()}
+        >
+          ×
+        </button>
       </span>
       {folded && <VerdictLine s={s} />}
     </>

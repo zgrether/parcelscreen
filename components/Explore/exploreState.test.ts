@@ -339,10 +339,10 @@ describe("tap rules (decideTap)", () => {
     expect(decideTap(INITIAL, none)).toEqual({ kind: "none" });
   });
 
-  it("tapping the open parcel again, or empty map, unselects it (plain or built)", () => {
+  it("tapping the open parcel, or empty map, does nothing: ×, Esc or another parcel close it (17e)", () => {
     for (const s of [plain, built]) {
-      expect(decideTap(s, { ...none, insideOpen: true, outline: a })).toEqual({ kind: "close" });
-      expect(decideTap(s, none)).toEqual({ kind: "close" });
+      expect(decideTap(s, { ...none, insideOpen: true, outline: a })).toEqual({ kind: "none" });
+      expect(decideTap(s, none)).toEqual({ kind: "none" });
     }
   });
 
@@ -352,14 +352,32 @@ describe("tap rules (decideTap)", () => {
       expect(decideTap(s, hit)).toEqual({ kind: "clearLayer" });
   });
 
-  it("another parcel: a plain one swaps; a built one stays and nudges", () => {
+  it("another parcel switches at once, plain or built (17e); not while a screen runs", () => {
     expect(decideTap(plain, { ...none, outline: b })).toEqual({ kind: "select", record: b });
-    expect(decideTap(built, { ...none, outline: b })).toEqual({ kind: "nudge" });
+    expect(decideTap(built, { ...none, outline: b })).toEqual({ kind: "select", record: b });
+    expect(decideTap(built, { ...none, outline: b }, true)).toEqual({ kind: "busy" });
+    expect(decideTap(built, { ...none, savedKey: "other" }, true)).toEqual({ kind: "busy" });
+    // Busy changes nothing that isn't a switch.
+    expect(decideTap(built, none, true)).toEqual({ kind: "none" });
+    expect(decideTap(INITIAL, { ...none, outline: b }, true)).toEqual({ kind: "select", record: b });
     const plainWithSaved = run([selectA()], withSaved);
     expect(decideTap(plainWithSaved, { ...none, outline: b, savedKey: builtKey })).toEqual({
       kind: "openSaved",
       key: builtKey,
     });
+  });
+});
+
+describe("panels (17e): one at a time", () => {
+  it("opening the map panel closes Info (and its selected layer); opening Info closes the map panel", () => {
+    const s = run([selectA(), { type: "info", open: true }, { type: "layer", id: "house" }]);
+    const m = exploreReducer(s, { type: "mapPanel", open: true });
+    expect([m.mapPanel, m.info, m.layer]).toEqual([true, false, null]);
+    const i = exploreReducer(m, { type: "info", open: true });
+    expect([i.mapPanel, i.info]).toEqual([false, true]);
+    const l = exploreReducer(m, { type: "layer", id: "house" });
+    expect([l.mapPanel, l.info]).toEqual([false, true]);
+    expect(exploreReducer(m, { type: "mapPanel", open: false }).mapPanel).toBe(false);
   });
 });
 

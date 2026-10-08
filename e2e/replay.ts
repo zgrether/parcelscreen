@@ -62,12 +62,17 @@ function fulfil(route: Route, e: HarEntry, origin: string | undefined): Promise<
   return route.fulfill({ status, headers: h, body });
 }
 
-/** Routes every request in `context` through the parcel's HAR. */
-export async function replayHar(context: BrowserContext, slug: FixtureSlug): Promise<ReplayLog> {
-  const { har } = loadFixture(slug);
+/** Routes every request in `context` through the parcels' HARs (one fixture, or several for switching). */
+export async function replayHar(
+  context: BrowserContext,
+  slugs: FixtureSlug | readonly FixtureSlug[],
+): Promise<ReplayLog> {
+  const entries = (typeof slugs === "string" ? [slugs] : slugs).flatMap(
+    (x) => loadFixture(x).har.log.entries,
+  );
   const queues = new Map<string, HarEntry[]>();
   const dataHosts = new Set<string>();
-  for (const e of har.log.entries) {
+  for (const e of entries) {
     if (e.response.status === 0) continue; // aborted during recording: never a real answer
     const k = entryKey(e);
     queues.set(k, [...(queues.get(k) ?? []), e]);

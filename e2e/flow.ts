@@ -51,6 +51,37 @@ export async function importParcel(page: Page, slug: FixtureSlug, house?: [numbe
   await expect(page.locator(".sh-name").first()).toBeVisible();
 }
 
+/** Several parcels as one prototype export, imported into History without opening any (17e's switching). */
+export async function importParcels(page: Page, slugs: readonly FixtureSlug[]): Promise<void> {
+  const saved = slugs.map((slug, i) => {
+    const { input } = loadFixture(slug);
+    return {
+      id: Date.parse(input.recorded.runAt) + i,
+      name: input.name,
+      geo: input.polygon,
+      props: input.props,
+    };
+  });
+  await page.getByRole("button", { name: "Menu", exact: true }).click();
+  await page.locator('input[aria-label="Import file"]').setInputFiles({
+    name: "parcels.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify({ saved })),
+  });
+  await expect(page.locator(".import-summary")).toContainText(`Imported ${slugs.length} parcels`);
+  await page.keyboard.press("Escape");
+}
+
+/** Opens a History parcel by the name its row shows (☰ → History → Open). */
+export async function openFromHistory(page: Page, name: string): Promise<void> {
+  await page.getByRole("button", { name: "Menu", exact: true }).click();
+  await page
+    .locator(".menu-drawer li", { hasText: name })
+    .getByRole("button", { name: "Open", exact: true })
+    .click();
+  await expect(page.locator(".sh-name").first()).toHaveText(name);
+}
+
 /** Screen it, wait for the run to finish, and return each step's final status. */
 export async function screenIt(page: Page): Promise<Record<string, string>> {
   if (await page.locator(".menu-scrim").count()) await page.keyboard.press("Escape");

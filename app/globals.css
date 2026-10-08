@@ -114,6 +114,15 @@ html:has(.explore) body {
     cursor: ns-resize;
     padding-top: 6px;
   }
+  /* A parcel with nothing run yet (17e): the header only, no divider, the Screen button centred in it. */
+  .explore-panel.bare .explore-header {
+    border-bottom: 0;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  .explore-panel.bare .explore-scroll {
+    display: none;
+  }
 }
 
 /* ---------- Panel components (proto L44–70, L89–90) ---------- */
@@ -357,23 +366,8 @@ html:has(.explore) body {
 .tb-acres[aria-expanded="true"] {
   background: rgba(241, 243, 238, 0.1);
 }
-/* A refused tap: a ring that fades out, and a short note above the bar. */
-.tb-pulse {
-  position: absolute;
-  inset: 0;
-  border-radius: 10px;
-  pointer-events: none;
-  animation: tb-pulse 0.6s ease-out forwards;
-}
-@keyframes tb-pulse {
-  from {
-    box-shadow: 0 0 0 0 rgba(240, 160, 48, 0.9);
-  }
-  to {
-    box-shadow: 0 0 0 10px rgba(240, 160, 48, 0);
-  }
-}
-.tb-nudge {
+/* After leaving a parcel with a screen (17e): "{parcel} kept in History — Back", where the hint sits. */
+.switch-toast {
   position: absolute;
   z-index: 15;
   left: calc(var(--float-l, 0px) + 12px);
@@ -381,27 +375,31 @@ html:has(.explore) body {
   bottom: calc(var(--sheet-h, 0px) + 74px);
   margin-inline: auto;
   width: fit-content;
-  padding: 3px 9px;
-  border-radius: 5px;
-  font-size: 12.5px;
+  max-width: calc(100% - 24px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 6px 5px 11px;
+  border-radius: 8px;
+  font-size: 13px;
   color: var(--tb-ink);
-  background: rgba(28, 38, 32, 0.78);
-  pointer-events: none;
-  animation: tb-nudge 1.6s ease-in forwards;
+  background: rgba(28, 38, 32, 0.92);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
 }
-@keyframes tb-nudge {
-  0%,
-  70% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
+.switch-toast button {
+  border: 0;
+  border-radius: 5px;
+  padding: 4px 10px;
+  font: inherit;
+  font-weight: 600;
+  color: #1c2620;
+  background: #f0a030;
+  cursor: pointer;
 }
-/* The attribution sits up top, in line with the Map menu button and just left of it (owner, 13e-5 review). */
+/* The attribution sits alone in the top-right corner (owner, 17e: the Map menu became the map panel). */
 .explore-map .maplibregl-ctrl-top-right {
   top: 1px;
-  right: 62px;
+  right: 1px;
 }
 @media (max-width: 860px) and (orientation: portrait) {
   .toolbar {
@@ -430,14 +428,8 @@ html:has(.explore) body {
   .tb-status .long {
     display: none;
   }
-  .tb-nudge {
+  .switch-toast {
     bottom: calc(var(--sheet-h) + 62px);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .tb-pulse,
-  .tb-nudge {
-    animation-duration: 0.01s;
   }
 }
 
@@ -1564,6 +1556,25 @@ html:has(.explore) body {
   background: var(--color-paper-2);
   color: var(--color-ink);
 }
+/* The parcel's × (17e). */
+.sh-x {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-ink-2);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+.sh-x:hover {
+  background: var(--color-paper-2);
+  color: var(--color-ink);
+}
+.sh-x:focus-visible,
 .sh-fold:focus-visible {
   outline: 2px solid var(--color-water);
   outline-offset: 1px;
@@ -2279,4 +2290,56 @@ html:has(.explore) body {
     top: calc(env(safe-area-inset-top, 0px) + 58px);
     transform: translateX(-50%);
   }
+}
+
+/* ---------- 17e: the map panel (a slide-over like Info): basemaps as radio rows, map layers, terrain ---------- */
+.map-panel .mp-title {
+  margin: 0;
+  padding-left: 2px;
+  font: 600 16px/1.2 var(--font-cond);
+  color: var(--ip-ink);
+}
+.mp-body {
+  flex: 1 1 auto;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 10px;
+}
+.mp-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 8px 8px 4px;
+}
+.mp-group .tc-label {
+  color: var(--ip-ink-2);
+  margin-bottom: 1px;
+}
+.mp-radio {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 9px;
+  border: 1px solid var(--ip-rule);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ip-ink);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+.mp-radio[aria-checked="true"] {
+  border-color: transparent;
+  background: var(--ip-sel);
+}
+.mp-dot {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ip-ink-2);
+}
+.mp-radio[aria-checked="true"] .mp-dot {
+  border-color: var(--ip-ink);
+  background: radial-gradient(circle, var(--ip-ink) 0 2.5px, transparent 3px);
 }
