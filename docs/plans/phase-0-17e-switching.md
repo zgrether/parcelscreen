@@ -1,6 +1,6 @@
 # Step 17e: parcel switching, the map panel, and the phone sheet (plan)
 
-Status: **draft, for approval.** A small UX step before 18b (owner, 2026-10-08). It's UI only: no report text, the goldens untouched, no screen numbers. It builds on 17d (#71), whose "Roads & labels" toggle moves into the new map panel (§2).
+Status: **approved (owner, 2026-10-08)**; §7 records the answers. The `lib/screen/worker-protocol.ts` change is approved: the PR shows the goldens unchanged and the protocol tests. A small UX step before 18b (owner, 2026-10-08). It's UI only: no report text, the goldens untouched, no screen numbers. It builds on 17d (#71), whose "Roads & labels" toggle moves into the new map panel (§2).
 
 ## 1. Parcel switching (replaces the built-parcel guard)
 
@@ -114,10 +114,10 @@ Once a run starts, the sheet is as today: the steps, then the report.
   - `e2e/switching.spec.ts`: Ferney, then Macks, then Back. Ferney's overlays are live with no new requests, and Macks running blocks a switch.
 - **Not changed:** the pipeline, report text, `UserConfig`, the goldens.
 
-## 7. Open questions
+## 7. Answers (owner, 2026-10-08)
 
-1. **Taps that used to close:** with × and Esc to deselect, should tapping **inside the open parcel** or on **empty map** still deselect? I propose **neither does**. Taps inside the parcel belong to its pins, its house and its layers, and an accidental empty-map tap shouldn't drop a parcel. Deselecting is the ×, Esc, or opening another parcel.
-2. **The map panel's toggles:** Dim map, Parcel lines, Roads & labels and Light pollution go between the basemap radios and the terrain group, as above?
-3. **Session memory:** if 3 sessions together come to more than about 150 MB on the page and in the worker combined, keep 3 anyway, or cap by size and say so in the note? I'll report the measured numbers first.
-4. **Panels:** one at a time (map or Info), as proposed? Or may they stack on desktop?
-5. **Back after deselecting with ×:** should × also show the "kept in History — Back" toast, when the parcel had a screen? I propose **yes**, the same toast, so an accidental × is recoverable.
+1. **Neither deselects.** A tap inside the open parcel or on empty map leaves it open. Deselect with ×, Esc, or by opening another parcel.
+2. **Yes:** Dim map, Parcel lines, Roads & labels and Light pollution go between the basemap radios and the terrain group.
+3. **Cap by size:** keep up to 3 sessions, and evict the least recently used while their total is above about **150 MB**. Never evict the current parcel's session. The PR reports the measured sizes.
+4. **One panel at a time** (map or Info), on desktop and phone.
+5. **Yes:** × shows the same "kept in History — Back" toast when the parcel had a screen.
