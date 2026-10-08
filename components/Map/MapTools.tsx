@@ -10,8 +10,11 @@
 import { useEffect, useState } from "react";
 import { getPref, setPref } from "@/lib/client/prefs";
 import { useMap } from "./MapView";
-import { BASEMAPS, basemapLayerIds, isBasemapId, LAYER, type BasemapId } from "./style";
+import { ROAD_LAYERS } from "./roadsStyle";
+import { RoadsToggle } from "./RoadsToggle";
+import { BASEMAPS, basemapLayerIds, LAYER, type BasemapId } from "./style";
 import { TerrainControls } from "./TerrainControls";
+import { roadsShown, setMapLayerPrefs, useMapLayerPrefs } from "./useMapLayerPrefs";
 import { useParcelLines } from "./useParcelLines";
 
 type Hint = (text: string | ((prev: string) => string)) => void;
@@ -26,10 +29,10 @@ const toggle = (on: boolean) =>
 
 export function MapTools({ parcelServices, hint }: { parcelServices: readonly string[]; hint: Hint }) {
   const map = useMap();
-  const [base, setBase] = useState<BasemapId>(() => {
-    const b = getPref("ps.base");
-    return isBasemapId(b) ? b : "state";
-  });
+  // The basemap and roads are shared with Info › Layers (17d).
+  const layerPrefs = useMapLayerPrefs();
+  const { base } = layerPrefs;
+  const showRoads = roadsShown(layerPrefs);
   const [dim, setDim] = useState(() => getPref("ps.dim"));
   const [lines, setLines] = useState(() => getPref("ps.lines"));
   const [lp, setLp] = useState(false);
@@ -40,8 +43,14 @@ export function MapTools({ parcelServices, hint }: { parcelServices: readonly st
     for (const b of BASEMAPS)
       for (const id of basemapLayerIds(b.id))
         map.setLayoutProperty(id, "visibility", b.id === base ? "visible" : "none");
-    setPref("ps.base", base);
   }, [map, base]);
+
+  // Roads & labels (17d): over the aerials, when switched on.
+  useEffect(() => {
+    if (!map) return;
+    for (const id of ROAD_LAYERS)
+      if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", showRoads ? "visible" : "none");
+  }, [map, showRoads]);
 
   useEffect(() => {
     if (!map) return;
@@ -71,7 +80,7 @@ export function MapTools({ parcelServices, hint }: { parcelServices: readonly st
         aria-label="Basemap"
         className="border-rule w-auto rounded border bg-white px-2 py-1 text-[13px] shadow-[0_1px_3px_rgba(0,0,0,.25)]"
         value={base}
-        onChange={(e) => setBase(e.target.value as BasemapId)}
+        onChange={(e) => setMapLayerPrefs({ base: e.target.value as BasemapId })}
       >
         {BASEMAPS.map((b) => (
           <option key={b.id} value={b.id}>
@@ -85,6 +94,7 @@ export function MapTools({ parcelServices, hint }: { parcelServices: readonly st
       <button className={toggle(lines)} aria-pressed={lines} onClick={() => setLines(!lines)}>
         Parcel lines
       </button>
+      <RoadsToggle variant="menu" className={toggle(showRoads)} />
       <button className={toggle(lp)} aria-pressed={lp} onClick={() => setLp(!lp)}>
         Light pollution
       </button>

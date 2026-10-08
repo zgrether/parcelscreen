@@ -11,6 +11,7 @@ import { surfaceImage, type Corners, type SurfaceMode } from "@/lib/render/surfa
 import type { SessionView } from "@/lib/screen/worker-protocol";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
 import { useMap } from "../MapView";
+import { ROADS_LAYER } from "../roadsStyle";
 import { LAYER } from "../style";
 import { TERRAIN_LAYER } from "../terrainStyle";
 import { useSurfaceMode } from "./useSurfaceMode";
@@ -27,7 +28,10 @@ async function toUrl(width: number, height: number, rgba: Uint8ClampedArray): Pr
 
 /** Under the soil fills, then the contours, then the parcel lines (plan §3: terrain image < soil fills < contours). */
 const beforeId = (map: MlMap) =>
-  [LAYER.soilFill, TERRAIN_LAYER.contourLines, LAYER.parcelLinesFill].find((id) => map.getLayer(id))!;
+  // Under the road lines (17d), which sit under the soil fills.
+  [ROADS_LAYER.casing, LAYER.soilFill, TERRAIN_LAYER.contourLines, LAYER.parcelLinesFill].find((id) =>
+    map.getLayer(id),
+  )!;
 
 export function SurfaceLayer() {
   const map = useMap();

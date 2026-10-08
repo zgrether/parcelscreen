@@ -1977,6 +1977,11 @@ html:has(.explore) body {
   text-align: left;
   cursor: pointer;
 }
+/* Roads & labels over a basemap that draws its own roads (17d). */
+.tc-toggle:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
 /* Filled when on, outlined when off, as the Map menu's other toggles (13f). */
 .terrain-controls.menu .tc-toggle {
   border: 1px solid var(--color-rule);
