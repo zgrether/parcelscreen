@@ -114,7 +114,7 @@ When A1 created the files, `diff:prototype` showed **no difference** for Ferney 
 for Grayson, in both scenarios: `driveway.roadsNearestFt` 18.26 ft against the prototype's 18.43 ft. That is
 the Turf version, not the port: the prototype loads Turf 7.1.0 from a CDN, while npm's `@turf/turf` 7.1.0
 resolves its parts at 7.4.0, whose `pointToLineDistance` agrees with a brute-force distance (18.262 ft). It's
-proposed as row 17 of `docs/plans/phase-0-18-acceptance.md` §5.
+approved as row 17 of `docs/plans/phase-0-18-acceptance.md` §5 (owner, 2026-10-08).
 
 ## Terrarium tile (DEM fallback)
 
