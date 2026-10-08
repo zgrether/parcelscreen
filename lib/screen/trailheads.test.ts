@@ -29,6 +29,7 @@ describe("trailhead names (follow-up 24)", () => {
     expect(readableName("ELK GARDEN A.T.")).toBe("Elk Garden A.T.");
     expect(readableName("Grayson Highlands State Park")).toBe("Grayson Highlands State Park");
     expect(readableName("A.T.")).toBe("A.T.");
+    expect(readableName("BEECH MOUNTAIN AT")).toBe("Beech Mountain AT"); // the Appalachian Trail, not "at"
   });
 });
 

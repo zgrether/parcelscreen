@@ -33,11 +33,17 @@ const STATE_PARKS: Readonly<Record<string, { name: string; where?: string }>> = 
   "services5.arcgis.com": { name: "PARK_NAME" }, // TN TDEC
 };
 
-/** Name in title case when a source shouts it (USFS: "ELK GARDEN A.T."), else as given. */
+/**
+ * Name in title case when a source shouts it (USFS: "ELK GARDEN A.T."), else as given. "AT" keeps its capitals:
+ * in a shouted trailhead name it's the Appalachian Trail (USFS: "BEECH MOUNTAIN AT"), not "at".
+ */
 export function readableName(s: string): string {
   const t = s.trim();
   if (t !== t.toUpperCase() || !/[A-Z]{3}/.test(t)) return t;
-  return t.toLowerCase().replace(/\b([a-z])/g, (c) => c.toUpperCase());
+  return t
+    .toLowerCase()
+    .replace(/\b([a-z])/g, (c) => c.toUpperCase())
+    .replace(/\bAt\b/g, "AT");
 }
 
 /** The dedupe form of a name: lower case, punctuation out, "trailhead"/"th"/"parking" dropped. */
