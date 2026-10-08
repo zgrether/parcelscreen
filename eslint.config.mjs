@@ -17,6 +17,9 @@ const PURE = [
 // its PDF can reuse them, rendered on a server (step 14 plan §2).
 const BLOCKS = ["components/Results/blocks/**"];
 
+const ASYNC_WAIT =
+  "waitForFunction doesn't await a Promise: it passes at once. Poll instead: expect.poll(() => page.evaluate(async () => …)).";
+
 const config = [
   {
     ignores: [
@@ -36,6 +39,25 @@ const config = [
     // Omitting fields with a rest spread ({ veto: _v, ...bench }) is how the parity tests drop fields
     // a later step adds; the omitted names are intentionally unused.
     rules: { "@typescript-eslint/no-unused-vars": ["warn", { ignoreRestSiblings: true }] },
+  },
+  {
+    // Playwright's waitForFunction doesn't await a predicate's Promise: an async predicate is truthy at once,
+    // so the wait passes immediately (found in 18a, where it hid that the service worker hadn't registered).
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            "CallExpression[callee.property.name='waitForFunction'] > :matches(ArrowFunctionExpression, FunctionExpression)[async=true]",
+          message: ASYNC_WAIT,
+        },
+        {
+          selector:
+            "CallExpression[callee.property.name='waitForFunction'] > ArrowFunctionExpression > CallExpression[callee.property.name='then']",
+          message: ASYNC_WAIT,
+        },
+      ],
+    },
   },
   {
     files: PURE,
