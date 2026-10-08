@@ -20,6 +20,9 @@ export interface CompareOptions extends Tolerance {
   ignore?: string[];
 }
 
+/** The relative slack added to every tolerance, for float noise in the difference itself. */
+export const FLOAT_NOISE = 1e-12;
+
 const isNonFinite = (v: unknown) => v === null || (typeof v === "number" && !Number.isFinite(v));
 
 /** Every difference between `actual` and `expected`, as "path: detail" lines. Empty means they match. */
@@ -42,7 +45,10 @@ export function differences(
       return [`${here}: ${typeof actual} vs number`];
     const t = toleranceFor(path, opts);
     const diff = Math.abs(actual - expected);
-    const ok = diff <= Math.max(t.abs, t.rel * Math.max(Math.abs(actual), Math.abs(expected)));
+    // Inclusive (|diff| ≤ tolerance), with a hair of slack for float noise: 8.8 − 8.7 is 0.1000000000000014,
+    // which must pass a 0.1 tolerance (owner, 18b). The slack is 1e-12 of the larger magnitude.
+    const scale = Math.max(Math.abs(actual), Math.abs(expected));
+    const ok = diff <= Math.max(t.abs, t.rel * scale) + FLOAT_NOISE * Math.max(1, scale);
     return ok ? [] : [`${here}: ${actual} vs ${expected} (diff ${diff.toExponential(2)})`];
   }
   if (Array.isArray(expected) || Array.isArray(actual)) {

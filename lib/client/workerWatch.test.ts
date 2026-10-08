@@ -1,6 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { FromWorker } from "@/lib/screen/worker-protocol";
-import { ACTIVATE_MS, DIDNT_START, PING_MS, RUN_SILENCE_MS, START_MS, WorkerWatch } from "./workerWatch";
+import { HEARTBEAT_MS } from "@/lib/screen/worker-protocol";
+import {
+  ACTIVATE_MS,
+  DIDNT_START,
+  LONGEST_BLOCK_4X_MS,
+  PING_MS,
+  RUN_SILENCE_MS,
+  START_MS,
+  WorkerWatch,
+} from "./workerWatch";
 
 const progress = (id: number): FromWorker =>
   ({ type: "progress", id, event: { step: "dem", status: "run" } }) as FromWorker;
@@ -43,17 +52,33 @@ describe("the worker watch (17e): a healthy worker is never declared lost", () =
     expect(lost).toEqual([undefined, DIDNT_START]);
   });
 
-  it("during a run, messages are liveness: only silence well beyond the longest step is lost", () => {
-    // The limits it must exceed: the DEM step (3 × 45 s + back-off, twice), near (15 s + 180 s), flood (30 + 45 s).
-    expect(RUN_SILENCE_MS).toBeGreaterThan(2 * (3 * 45_000 + 4_500) + 195_000);
+  it("the in-run silence limit is max(60 s, 3 × the longest synchronous block at 4×): 60 s", () => {
+    expect(LONGEST_BLOCK_4X_MS).toBe(15_680);
+    expect(RUN_SILENCE_MS).toBe(60_000);
+    expect(RUN_SILENCE_MS).toBeGreaterThan(3 * LONGEST_BLOCK_4X_MS);
+  });
+
+  it("heartbeats keep a run alive through any network wait; a long synchronous block is tolerated", () => {
     w.runSent(1, () => retries++);
     w.message({ type: "started", id: 1 });
-    for (let i = 0; i < 5; i++) {
-      vi.advanceTimersByTime(RUN_SILENCE_MS - 1_000); // a long synchronous step, or a slow service
-      w.message(progress(1));
+    // A slow service: 5 minutes of waiting, the worker's heartbeat every 5 s all through it.
+    for (let t = 0; t < 5 * 60_000; t += HEARTBEAT_MS) {
+      vi.advanceTimersByTime(HEARTBEAT_MS);
+      w.message({ type: "heartbeat", id: 1 });
     }
+    // Then the longest synchronous computation, with a phone's margin: no message for 3 × 15.7 s.
+    vi.advanceTimersByTime(3 * LONGEST_BLOCK_4X_MS);
+    w.message(progress(1));
+    expect([lost, retries]).toEqual([[], 0]);
+  });
+
+  it("a worker killed mid-run (heartbeats stop) is noticed after a minute of silence", () => {
+    w.runSent(1, () => retries++);
+    w.message({ type: "started", id: 1 });
+    w.message({ type: "heartbeat", id: 1 });
+    vi.advanceTimersByTime(RUN_SILENCE_MS - 1);
     expect(lost).toEqual([]);
-    vi.advanceTimersByTime(RUN_SILENCE_MS);
+    vi.advanceTimersByTime(1);
     expect(lost).toEqual([undefined]);
   });
 

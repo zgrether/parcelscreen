@@ -187,6 +187,34 @@ describe("the start acknowledgement (17e)", () => {
   });
 });
 
+describe("heartbeats (18b)", () => {
+  it("beat while a run waits on the network, and stop when it ends", async () => {
+    const replay = fx.replayFetch();
+    let first = true;
+    // The first response takes 60 ms: the worker's event loop is free meanwhile, so it beats (every 5 ms here).
+    const slow = (async (u: string, i?: RequestInit) => {
+      if (first) {
+        first = false;
+        await new Promise((r) => setTimeout(r, 60));
+      }
+      return replay(u, i);
+    }) as typeof fetch;
+    const posted: FromWorker[] = [];
+    const c = new ScreenWorkerCore((m) => posted.push(m), {
+      http: createHttpClient({ env: "node", fetchImpl: slow, clock: instantClock() }),
+      sleep: async () => {},
+      heartbeatMs: 5,
+    });
+    await c.handle({ type: "run", id: 1, input });
+    const types = posted.map((m) => m.type);
+    expect(types.filter((t) => t === "heartbeat").length).toBeGreaterThan(3);
+    expect(types.indexOf("heartbeat")).toBeGreaterThan(types.indexOf("started"));
+    const done = types.lastIndexOf("done");
+    await new Promise((r) => setTimeout(r, 40));
+    expect(posted.slice(done + 1)).toEqual([]); // nothing after the run ends
+  });
+});
+
 describe("a restarted worker (17e)", () => {
   it("knows none of the runs the page kept: reactivating one says it's gone, which the page takes as a lost worker", async () => {
     const first = core();

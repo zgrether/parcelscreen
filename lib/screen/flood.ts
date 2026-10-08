@@ -26,11 +26,13 @@ export async function floodStep(
     deps.endpoints.nfhl,
     parcel,
     { outFields: "FLD_ZONE,SFHA_TF,ZONE_SUBTY" },
-    // NFHL timed out in two live runs (follow-up 22): one retry, with a longer limit.
+    // NFHL timed out in two live runs (follow-up 22), and in 18b's live runs its fetch failed outright: one
+    // retry, with a longer limit, after a timeout, a network failure or a 5xx. Never after a 4xx.
     {
       ...deps,
       timeoutMs: SCREEN_CONSTANTS.flood.timeoutMs,
       retryTimeoutMs: SCREEN_CONSTANTS.flood.retryTimeoutMs,
+      retryTransient: true,
     },
   )) as FloodFeature[];
   const zones = [...new Set(feats.map((f) => f.properties.FLD_ZONE!))],

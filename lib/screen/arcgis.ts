@@ -11,6 +11,8 @@ export interface ArcQueryDeps {
   /** Per attempt, and the one longer retry after a timeout (follow-up 22); the client's defaults when unset. */
   timeoutMs?: number;
   retryTimeoutMs?: number;
+  /** The one retry also after a network failure or a 5xx (the flood step; see `RequestOptions`). */
+  retryTransient?: boolean;
 }
 
 export async function arcQuery(
@@ -36,6 +38,7 @@ export async function arcQuery(
     ...(deps.signal ? { signal: deps.signal } : {}),
     ...(deps.timeoutMs !== undefined ? { timeoutMs: deps.timeoutMs } : {}),
     ...(deps.retryTimeoutMs !== undefined ? { retryTimeoutMs: deps.retryTimeoutMs } : {}),
+    ...(deps.retryTransient ? { retryTransient: true } : {}),
   });
   const name = url.split("/services/")[1];
   if (!r.ok) {

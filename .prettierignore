@@ -4,3 +4,5 @@ test/fixtures/
 docs/
 *.md
 tmp/
+# Generated and compared byte for byte (schema-v2.test.ts)
+lib/screen/__snapshots__/
