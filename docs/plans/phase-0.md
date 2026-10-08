@@ -232,7 +232,7 @@ The stack is fixed by PLAN. Additions get a one-line justification each.
 | `maplibre-contour` | Contour lines from the terrain tiles in MapLibre itself (13g, #48): no contour tile server to run. |
 | `@serwist/turbopack`, `serwist` | The installable app's service worker (17c, #65), through Serwist's Turbopack integration, so the build stays on Turbopack. |
 | `@turf/turf` **pinned `7.1.0` exact** | Fixed stack. The exact pin matches the prototype's CDN build, so `area`/`buffer`/`intersect` give bit-identical numbers. *Superseded (2026-10-08): the pin held `@turf/turf` only, and its parts floated to 7.4.0. Every `@turf/*` package is now pinned to exactly **7.4.0** (below).* |
-| `geotiff` **pinned `2.1.3` exact** | Fixed stack. Same exact-pin reason. |
+| `geotiff` **pinned `2.1.3` exact** | Fixed stack. Same exact-pin reason. *Amended (2026-10-08): its decoding dependencies had floated too; they're now pinned exactly as well (below).* |
 | `zod` | Fixed stack (all external JSON, config, results). |
 | `fast-png` | Pure-TS PNG decoder, so the terrarium fallback decodes in the Worker *and* Node without a canvas. |
 | `@types/geojson` | GeoJSON types for the pipeline contract. |
@@ -245,7 +245,7 @@ The stack is fixed by PLAN. Additions get a one-line justification each.
 - **How the port ended up on 7.4.0.** `package.json` pinned `@turf/turf` to exactly 7.1.0. But `@turf/turf` is a front package: its own `package.json` declares each part (`@turf/along`, `@turf/helpers`, … 114 of them) as `^7.1.0`. So the install of step 3 (#5, 2026-10-04) resolved every part to the newest 7.x, 7.4.0. The port has run 7.4.0's functions behind a 7.1.0 `@turf/turf` since then. The exact pin didn't reach the parts.
 - **The decision: stay on 7.4.0.** `golden.json` is frozen as the Phase 0 record and `expected.json` is the reference (Batch A §1), so nothing needs the prototype's 7.1.0. 7.4.0 is the more accurate of the two where they differ (`pointToLineDistance` agrees with a brute-force distance on Grayson; intended-difference row 17).
 - **The pin.** `pnpm-workspace.yaml` `overrides` names every `@turf/*` package at exactly 7.4.0 (116, including the two that 7.4.0's `@turf/turf` adds), and `@turf/turf` itself is 7.4.0 in `package.json`. The one exception is `@turf/jsts`, Turf's fork of JSTS used by `@turf/buffer`, on its own line at exactly 2.7.2. (pnpm 11 reads `overrides` from `pnpm-workspace.yaml`, where this repo's other pnpm settings already are.)
-- **The check.** `pnpm check:turf` (a CI step in the lint job; `test/tools/turfPin.ts`) fails if the lockfile resolves any `@turf` package to another version, or one has no exact override. A new Turf part has to be added to the overrides.
+- **The check.** `pnpm check:pins` (a CI step in the lint job; `test/tools/pins.ts`; first `check:turf`) fails if the lockfile resolves any `@turf` package to another version, or one has no exact override. A new Turf part has to be added to the overrides.
 - **What the versions change** (`pnpm turf-versions`, every call made by the seven fixture scenarios and the parcel tools, both versions in the same Node):
   - identical: `along`, `area`, `bbox`, `bearing`, `booleanIntersects`, `booleanPointInPolygon`, `buffer`, `centroid`, `destination`, `distance`, `length`, `polygonToLine` and the constructors;
   - `pointToLineDistance`: 7,750 of 68,537 calls differ, by up to 2.4% relative;
@@ -253,6 +253,12 @@ The stack is fixed by PLAN. Additions get a one-line justification each.
   - `intersect`: last-bit differences (2e-16), and one result with two extra vertices enclosing the same area (1e-11);
   - `union` (the parcel tools): three results with two more vertices, areas within 3.7e-7.
 - **On the screen's output,** only the road-distance family moves: `road.runFt`/`gradePct`, `sites.roadRunFt`/`roadGrade`/`driveFt`/`c.driveway`, `house.roadRunFt`/`roadGrade` (≤3.6e-6) and `driveway.roadsNearestFt` (Ferney 1.3%, Grayson 0.9%). Those are exactly the paths `test/support/parity.ts` widened. Nothing discrete moves.
+
+**geotiff: 2.1.3 and its decoders, exactly (owner, 2026-10-08).**
+- **The same pattern as Turf.** geotiff 2.1.3 declares its eight dependencies as `^` ranges, so the exact pin on geotiff didn't hold them. The prototype's CDN bundle (`geotiff@2.1.3/dist-browser`) carries **pako 2.0.4** and **float16 3.4.7** (found by hashing its source map against each release); the port had resolved **pako 2.2.0** and **float16 3.9.3**. LERC 3.0.0 and zstddec 0.1.0 are byte-identical in both.
+- **What can affect decoding:** `pako` (deflate), `lerc` (LERC), `zstddec` (zstd) and `@petamoriken/float16` (half-floats). The others (`quick-lru`, `parse-headers`, `web-worker`, `xml-utils`) serve remote files, worker pools and GDAL XML metadata; `lib/screen/dem.ts` uses only `fromArrayBuffer`, `getImage` and `readRasters`.
+- **The DEM comparison, re-run** (`pnpm geotiff-versions`): the recorded 3DEP rasters are uncompressed float32, so no fixture reaches a codec. Every raster in the three HARs (8 rasters, 1,319,793 cells) decodes **bit for bit** the same with the prototype's bundle as with the port's install. The two codecs that moved, compared directly: pako 2.0.4 and 2.2.0 inflate 24 zlib streams (the rasters at levels 1, 6 and 9) to the same, original bytes; float16 3.4.7 and 3.9.3 read all 65,536 half-float bit patterns the same.
+- **The pin:** `pnpm-workspace.yaml` `overrides` holds `geotiff` 2.1.3 and, scoped to it, `geotiff>pako` 2.2.0, `geotiff>lerc` 3.0.0, `geotiff>zstddec` 0.1.0 and `geotiff>@petamoriken/float16` 3.9.3: the versions the port has run, which decode identically to the prototype's. `pnpm check:pins` checks geotiff's resolved dependencies against them.
 
 **Removed from the plan:** `three`, `@react-three/fiber` and `@react-three/drei`. They were listed for the 3D walkthrough, but never installed: the ground viewer replaced it (2026-10-07, §9.12) before any 3D code was written. `@testing-library/react` and `jsdom` weren't needed either: the section smoke tests render with `react-dom/server`.
 

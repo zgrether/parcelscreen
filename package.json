@@ -23,8 +23,9 @@
     "diff:prototype": "vitest run test/tools/diff-prototype.test.ts --mode diff-prototype",
     "before-after": "vitest run test/tools/before-after.test.ts --mode before-after",
     "guard:expected": "vitest run test/tools/expected-guard.test.ts --mode guard",
-    "check:turf": "vitest run test/tools/turf-pin.test.ts",
+    "check:pins": "vitest run test/tools/pins.test.ts",
     "turf-versions": "vitest run test/tools/turf-versions.test.ts --mode turf-versions",
+    "geotiff-versions": "vitest run test/tools/geotiff-versions.test.ts --mode geotiff-versions",
     "record:fixtures": "node scripts/record-fixtures.mts"
   },
   "dependencies": {

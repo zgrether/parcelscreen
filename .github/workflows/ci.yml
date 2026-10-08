@@ -36,8 +36,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm format:check
-      # Every @turf package at exactly 7.4.0 (@turf/jsts 2.7.2): docs/plans/phase-0.md §4, test/tools/turfPin.ts.
-      - run: pnpm check:turf
+      # The exact pins: every @turf package at 7.4.0 (@turf/jsts 2.7.2), geotiff 2.1.3 and its decoders
+      # (docs/plans/phase-0.md §4, test/tools/pins.ts).
+      - run: pnpm check:pins
 
   test:
     runs-on: ubuntu-latest
