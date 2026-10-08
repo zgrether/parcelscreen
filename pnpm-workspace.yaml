@@ -9,7 +9,7 @@ allowBuilds:
 # Turf, every package at one exact version (owner, 2026-10-08, Batch A A1; docs/plans/phase-0.md §4). @turf/turf
 # declares its parts as ^7.x, so an exact pin on @turf/turf alone let them float: the port ran 7.4.0 parts
 # behind a 7.1.0 front package. @turf/jsts is Turf's fork of JSTS (used by @turf/buffer) on its own 2.7.x line.
-# CI checks the lockfile (`pnpm check:turf`, test/tools/turfPin.ts): add any new @turf package here.
+# CI checks the lockfile (`pnpm check:pins`, test/tools/pins.ts): add any new @turf package here.
 overrides:
   "@turf/along": 7.4.0
   "@turf/angle": 7.4.0
@@ -127,3 +127,11 @@ overrides:
   "@turf/union": 7.4.0
   "@turf/unkink-polygon": 7.4.0
   "@turf/voronoi": 7.4.0
+  # geotiff and the packages it decodes with, exactly (owner, 2026-10-08; phase-0.md §4). Like @turf/turf, geotiff
+  # declares them as ^ ranges, so they had moved past the prototype's bundle (pako 2.0.4 → 2.2.0, float16 3.4.7 →
+  # 3.9.3; both decode identically, `pnpm geotiff-versions`). Scoped to geotiff, their only user here.
+  geotiff: 2.1.3
+  "geotiff>pako": 2.2.0
+  "geotiff>lerc": 3.0.0
+  "geotiff>zstddec": 0.1.0
+  "geotiff>@petamoriken/float16": 3.9.3
