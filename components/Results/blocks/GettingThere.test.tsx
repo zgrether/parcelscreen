@@ -1,8 +1,8 @@
-/** Getting there: the additions of Batch A A2b, appended (rule 7; follow-ups 24 and 25). */
+/** Getting there: the additions of Batch A A2b, appended (rule 7; follow-ups 24 and 25, the owner's #81 review). */
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { NO_GROCER_CAVEAT } from "@/lib/report/surroundings";
-import type { PartialScreenResult } from "@/lib/screen/types";
+import { CLOSER_GROCERY, REAL_GROCERY, type PartialScreenResult } from "@/lib/screen/types";
 import { GettingThere } from "./GettingThere";
 
 const near = (
@@ -29,6 +29,25 @@ describe("Getting there (Batch A A2b)", () => {
   it("a grocer found: no such line", () => {
     expect(html(near([{ name: "Lansing Foods", ll: [36.5, -81.5], km: 10.8, big: false }]))).not.toContain(
       "incomplete in rural",
+    );
+  });
+
+  it("a closer non-chain grocery: appended to the grocery row, never a row of its own (owner, #81)", () => {
+    const drives = [
+      { label: "Nearest hospital", name: "Twin County", min: 40, mi: 25.1 },
+      { label: REAL_GROCERY, name: "Food Lion", min: 38, mi: 24.0 },
+      { label: "Airport", name: "", min: 90, mi: 70.2 },
+      { label: CLOSER_GROCERY, name: "Lansing Foods", min: 21, mi: 9.9 },
+    ];
+    const h = html({ ...near([]), drives } as PartialScreenResult);
+    expect(h).toContain(
+      `${REAL_GROCERY}<div class="tiny muted">Food Lion</div></td><td class="num">38 min, 24 mi<div>Closer: Lansing Foods, 21 min.</div></td>`,
+    );
+    expect(h).not.toContain(CLOSER_GROCERY);
+    expect(h.match(/<tr>/g)?.length).toBe(3 + 2); // three drives, groceries, trailheads
+    // Without one, the row is the prototype's.
+    expect(html({ ...near([]), drives: drives.slice(0, 3) } as PartialScreenResult)).toContain(
+      `<td class="num">38 min, 24 mi</td>`,
     );
   });
 

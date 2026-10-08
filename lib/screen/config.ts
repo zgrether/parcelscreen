@@ -279,6 +279,11 @@ export const SCREEN_CONSTANTS = deepFreeze({
     candidates: 3, // L1141: try the nearest 3 hospitals / grocers
     timeoutMs: 15_000,
   },
+  grocery: {
+    // Owner, #81: "Closer: {name}, {N} min." after the chain grocery's drive time, when a non-chain grocery
+    // is at least this many minutes nearer by road.
+    closerMinMin: 10,
+  },
   score: {
     siteAspectTargetDeg: 160, // L1290 (cells use 165; plan §9.4 unifies to 165 after Phase 0)
     sunGoodShare: 0.75, // L1296: "good" / "acceptable" wording

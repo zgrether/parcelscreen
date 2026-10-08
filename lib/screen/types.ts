@@ -18,6 +18,14 @@ import type { STEPS } from "./config";
 /** Bumped when ScreenResult changes shape; stored with every result. */
 export const SCREEN_SCHEMA_VERSION = 2 as const;
 
+/** The `drives` label of the chain-preferring grocery drive time (proto L1141). */
+export const REAL_GROCERY = "Nearest real grocery";
+/**
+ * The `drives` label of a non-chain grocery at least grocery.closerMinMin nearer by road than the chain one
+ * (owner, #81). Always the last entry; the report appends it to the REAL_GROCERY row, not as a row of its own.
+ */
+export const CLOSER_GROCERY = "Closer grocery";
+
 // ---------- shared ----------
 
 export const LatLonSchema = z.tuple([z.number(), z.number()]);
@@ -453,6 +461,7 @@ export const ScreenResultSchema = z.strictObject({
   nearNote: z.string().optional(),
   road: z.strictObject({ name: z.string(), riseFt: num, runFt: num, gradePct: num }).optional(),
   roadNote: z.string().optional(),
+  /** Labels: "Nearest hospital", REAL_GROCERY, each anchor's name, and last, CLOSER_GROCERY when found. */
   drives: z.array(z.strictObject({ label: z.string(), name: z.string(), min: num, mi: num })).optional(),
   excluded: z.array(z.strictObject({ acres: num, ll: LatLonSchema, why: z.string() })).optional(),
   sites: z.array(SiteSchema).optional(),

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_ENDPOINTS, DEFAULT_USER_CONFIG } from "@/lib/screen/config";
+import { readFileSync } from "node:fs";
+import { DEFAULT_ENDPOINTS, DEFAULT_USER_CONFIG, migrateEndpoints } from "@/lib/screen/config";
 import type { UserConfig } from "@/lib/screen/types";
 import { prototypeConst, prototypeFn } from "@/test/support/prototypeFns";
 import type { KeyValueStore } from "./prefs";
@@ -198,6 +199,30 @@ describe("validation (owner, Q1): Save names the field and the reason", () => {
     expect(errorsOf(fromForm(edit({ anchors: "X, north, 1" }), DEFAULT_USER_CONFIG))).toEqual([
       { id: "anchors", label: "Drive-time anchors", reason: "line 1: latitude must be -90 to 90" },
     ]);
+  });
+
+  it("the _v check, its message and the load rule follow DEFAULT_ENDPOINTS._v, never a literal (owner, #81)", () => {
+    const reasons = (e: unknown) =>
+      errorsOf(fromForm(edit({ endpoints: JSON.stringify(e) }), DEFAULT_USER_CONFIG)).map((x) => x.reason);
+    const current = DEFAULT_ENDPOINTS._v;
+    // A bump to the constant alone moves the check, the message and the load rule with it.
+    (DEFAULT_ENDPOINTS as { _v: number })._v = 99;
+    try {
+      expect(reasons({ ...DEFAULT_ENDPOINTS, _v: 99 })).toEqual([]);
+      expect(reasons({ ...DEFAULT_ENDPOINTS, _v: current })).toEqual([
+        `Endpoints are version ${current}; only version 99 is accepted, and older versions are replaced by defaults on load. Reset the endpoints, or update the list and set _v to 99.`,
+      ]);
+      expect(migrateEndpoints({ ...DEFAULT_ENDPOINTS, _v: current })).toBe(DEFAULT_ENDPOINTS);
+      const kept = { ...DEFAULT_ENDPOINTS, _v: 99 };
+      expect(migrateEndpoints(kept)).toBe(kept);
+    } finally {
+      (DEFAULT_ENDPOINTS as { _v: number })._v = current;
+    }
+    // And no version number is written into the code that checks it.
+    for (const f of ["lib/client/settingsForm.ts", "lib/client/exportFile.ts"]) {
+      const code = readFileSync(f, "utf8").replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "");
+      expect(code, f).not.toMatch(/_v\s*(?:[!=<>]=?=?|to|:)\s*\d|version \d/);
+    }
   });
 
   it("endpoints: JSON, the schema, whole-number counts, https, a current _v", () => {

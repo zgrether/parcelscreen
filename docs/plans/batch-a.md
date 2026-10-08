@@ -16,6 +16,7 @@ Each group is its own PR, with a before/after table across all three fixtures. T
 - **A1:** the Grayson fixture, `expected.json`, the CI guard and the engine stamp;
 - **A2a:** 23 and 29;
 - **A2b:** 24 and 25;
+- **A2c:** hospitals by tag, and every other name-text search in `places.ts` (owner, #81 review);
 - **A3:** 19, 27 and 20;
 - **A4:** 37 and 35.
 
@@ -201,9 +202,8 @@ by trailheads the new sources add, and the table lists them.
 - **Not only the new sources moved the counts:** OSM's trailheads came from Photon's text search for "trailhead",
   which finds only places named so. Asked by tag instead (the same fix as 25), Macks gains three OSM trailheads
   (Heritage Park, Cool Springs, Dora Highway Park) besides Claytor Lake State Park: 1 → 4.
-- **The parking-lot routing (#76):** no drive time goes to a trailhead today (only hospitals, groceries and the
-  airports), so there's nothing to route yet. A "nearest trailhead" drive time would be new report text, which
-  needs the owner's approval first (rule 7): proposed in the PR, not built.
+- **The parking-lot routing (#76): dropped from the report** (owner, #81 review). No drive time goes to a
+  trailhead today, and none is added. The plan moved to follow-up 39 (tap-to-drive-time, display only).
 
 ### 25: groceries reported as none
 
@@ -231,7 +231,14 @@ Photon's reverse geocoder, filtered by the tag within `near.groceryKm`, returns 
 **Grayson: Lansing Foods, 6.7 mi** (acceptance met), and five more in Jefferson and West Jefferson. Because the
 prototype's "nearest real grocery" drive time prefers the chains it now finds, that drive time moves too: Ferney
 Food Lion 16 min (was Slaughters' 14), Macks Walmart Supercenter 61 min (was Slaughters' 42), Grayson Food Lion
-38 min. The hospital search (`q=hospital`) has the same flaw; left for a follow-up the owner can number.
+38 min. The hospital search (`q=hospital`) has the same flaw: A2c.
+
+**The closer grocery (owner, #81 review).** The chain rule stays for the existing line. When a non-chain grocery
+is at least `grocery.closerMinMin` (10) minutes nearer by road, "Closer: {name}, {N} min." is appended to that
+row. The drive step routes the three nearest non-chain stores (as it does the chains) and keeps the quickest; it's
+stored as the last `drives` entry, labelled "Closer grocery", so v2's shape is unchanged and every earlier entry
+keeps its place. The copied summary leaves it out. **Grayson: Closer: Lansing Foods, 21 min** (Food Lion 38).
+Ferney's nearest non-chain is 2 min nearer and Macks's isn't nearer, so neither shows it.
 
 ### 29: every part of a multi-part parcel
 
@@ -328,7 +335,7 @@ with, so History has to say when those came from earlier rules.
 - **`ENGINE_VERSION`:**
   - in `lib/screen/engine.ts`, a plain integer, so `lib/screen` stays DOM-free;
   - **1 is Phase 0's rules;**
-  - **A2a, A2b, A3 and A4 each bump it,** to 2, 3, 4 and 5.
+  - **A2a, A2b, A2c, A3 and A4 each bump it,** to 2, 3, 4, 5 and 6 (A2c added by the owner, #81 review).
   - A1 introduces it at 1 and doesn't bump it: it changes no number, so nothing kept from Phase 0 is marked. If
     you want A1 to bump it too, it's one line.
 - **On the record envelope, not in `ScreenResult`:**
@@ -370,6 +377,8 @@ Each is its own PR, with no golden or `expected.json` change.
 6. **37's direct-sun hours:** unchanged, and A4 reports the measured direct-sun delta on all three fixtures.
 7. **23's open-access search:** 16 km. **24's de-duplication:** within 300 m **and** names match after
    normalisation (case, punctuation, "trailhead" / "TH" / "parking" stripped); otherwise both are kept.
+8. **#81 review:** the closer non-chain grocery line (§3, 25); trailhead parking-lot routing moves to follow-up 39;
+   hospitals by tag, with a sweep of `places.ts` for name-text searches, are a new PR, A2c, before A3.
 
 ## 9. Checks for every Batch A PR
 

@@ -2040,6 +2040,12 @@
     "name": "",
     "min": 195,
     "mi": 139.9
+   },
+   {
+    "label": "Closer grocery",
+    "min": 21,
+    "mi": 9,
+    "name": "Lansing Foods"
    }
   ],
   "excluded": [
@@ -5546,6 +5552,12 @@
     "name": "",
     "min": 195,
     "mi": 139.9
+   },
+   {
+    "label": "Closer grocery",
+    "min": 21,
+    "mi": 9,
+    "name": "Lansing Foods"
    }
   ],
   "excluded": [

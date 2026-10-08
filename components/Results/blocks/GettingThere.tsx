@@ -17,7 +17,10 @@ export function GettingThere({ result, variant }: BlockProps) {
                 {d.label}
                 {d.name && <div className="tiny muted">{d.name}</div>}
               </td>
-              <td className="num">{d.value}</td>
+              <td className="num">
+                {d.value}
+                {d.closer && <div>{d.closer}</div>}
+              </td>
             </tr>
           ))}
           {v.grocers && (

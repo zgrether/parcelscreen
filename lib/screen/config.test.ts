@@ -220,6 +220,9 @@ describe("config", () => {
           "retryTimeoutMs": 45000,
           "timeoutMs": 30000,
         },
+        "grocery": {
+          "closerMinMin": 10,
+        },
         "near": {
           "bigGrocer": /walmart\\|ingles\\|food lion\\|publix\\|harris teeter\\|kroger\\|lowes foods\\|food city\\|trader joe\\|whole foods\\|sprouts\\|aldi/i,
           "excludeHospital": /urgent\\|veterinar\\|animal\\|behavioral\\|psychiatric/i,
