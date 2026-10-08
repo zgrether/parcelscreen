@@ -1,0 +1,2240 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "number",
+      "const": 2
+    },
+    "runAt": {
+      "type": "string"
+    },
+    "acres": {
+      "type": "number"
+    },
+    "params": {
+      "type": "object",
+      "properties": {
+        "houseMin": {
+          "type": "number"
+        },
+        "shelfMin": {
+          "type": "number"
+        },
+        "gardenMin": {
+          "type": "number"
+        },
+        "canopyDeg": {
+          "type": "number"
+        },
+        "shallowBedrockCm": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "houseMin",
+        "shelfMin",
+        "gardenMin",
+        "canopyDeg",
+        "shallowBedrockCm"
+      ],
+      "additionalProperties": false
+    },
+    "demSource": {
+      "type": "string"
+    },
+    "demResM": {
+      "type": "number"
+    },
+    "terrain": {
+      "type": "object",
+      "properties": {
+        "elevMinFt": {
+          "type": "number"
+        },
+        "elevMaxFt": {
+          "type": "number"
+        },
+        "elevMeanFt": {
+          "type": "number"
+        },
+        "reliefFt": {
+          "type": "number"
+        },
+        "slopeMedDeg": {
+          "type": "number"
+        },
+        "slopeP90Deg": {
+          "type": "number"
+        },
+        "acresUnder15": {
+          "type": "number"
+        },
+        "acresOver25": {
+          "type": "number"
+        },
+        "heightAboveValleyFt": {
+          "type": "number"
+        },
+        "valleyFloorFt": {
+          "type": "number"
+        },
+        "diag": {
+          "type": "object",
+          "properties": {
+            "houseAc": {
+              "type": "number"
+            },
+            "shelfAc": {
+              "type": "number"
+            },
+            "gardenAc": {
+              "type": "number"
+            },
+            "totalAc": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "houseAc",
+            "shelfAc",
+            "gardenAc",
+            "totalAc"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "elevMinFt",
+        "elevMaxFt",
+        "elevMeanFt",
+        "reliefFt",
+        "slopeMedDeg",
+        "slopeP90Deg",
+        "acresUnder15",
+        "acresOver25",
+        "heightAboveValleyFt",
+        "valleyFloorFt",
+        "diag"
+      ],
+      "additionalProperties": false
+    },
+    "houseMinUsed": {
+      "type": "number"
+    },
+    "benches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "acres": {
+            "type": "number"
+          },
+          "elevFt": {
+            "type": "number"
+          },
+          "slopeDeg": {
+            "type": "number"
+          },
+          "aspectDeg": {
+            "type": "number"
+          },
+          "score": {
+            "type": "number"
+          },
+          "ll": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "veto": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "acres",
+          "elevFt",
+          "slopeDeg",
+          "aspectDeg",
+          "score",
+          "ll"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "shelves": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "acres": {
+            "type": "number"
+          },
+          "elevFt": {
+            "type": "number"
+          },
+          "slopeDeg": {
+            "type": "number"
+          },
+          "aspectDeg": {
+            "type": "number"
+          },
+          "score": {
+            "type": "number"
+          },
+          "ll": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "distFt": {
+            "type": "number"
+          },
+          "dropFt": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "acres",
+          "elevFt",
+          "slopeDeg",
+          "aspectDeg",
+          "score",
+          "ll"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "gardens": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "acres": {
+            "type": "number"
+          },
+          "elevFt": {
+            "type": "number"
+          },
+          "slopeDeg": {
+            "type": "number"
+          },
+          "aspectDeg": {
+            "type": "number"
+          },
+          "score": {
+            "type": "number"
+          },
+          "aboveFt": {
+            "type": "number"
+          },
+          "ll": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "soil": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "soilNote": {
+            "type": "string"
+          },
+          "adj": {
+            "type": "number"
+          },
+          "finalScore": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "acres",
+          "elevFt",
+          "slopeDeg",
+          "aspectDeg",
+          "score",
+          "aboveFt",
+          "ll"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "soils": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "mukey": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "muname": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "farmlndcl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cokey": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "compname": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "comppct_r": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "drainagecl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hydricrating": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "slope_l": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "slope_h": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "brockdepmin": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "drclassdcd": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hydgrpdcd": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "wtdepannmin": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "flodfreqdcd": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "engdwbdcd": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "engdwobdcd": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "engstafdcd": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "englrsdcd": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "septic": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "mukey",
+          "muname",
+          "farmlndcl",
+          "cokey",
+          "compname",
+          "comppct_r",
+          "drainagecl",
+          "hydricrating",
+          "slope_l",
+          "slope_h",
+          "brockdepmin",
+          "drclassdcd",
+          "hydgrpdcd",
+          "wtdepannmin",
+          "flodfreqdcd",
+          "engdwbdcd",
+          "engdwobdcd",
+          "engstafdcd",
+          "englrsdcd",
+          "septic"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "soilUnits": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "mukey": {
+                "type": "string"
+              },
+              "muname": {
+                "type": "string"
+              },
+              "acres": {
+                "type": "number"
+              },
+              "color": {
+                "type": "string"
+              },
+              "geometries": {
+                "type": "array",
+                "items": {}
+              }
+            },
+            "required": [
+              "mukey",
+              "muname",
+              "acres",
+              "color",
+              "geometries"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "focus": {
+      "type": "object",
+      "properties": {
+        "ll": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "ll",
+        "label"
+      ],
+      "additionalProperties": false
+    },
+    "point": {
+      "type": "object",
+      "properties": {
+        "ll": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "elevFt": {
+          "type": "number"
+        },
+        "aboveFloorFt": {
+          "type": "number"
+        },
+        "slopeDeg": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "aspectDeg": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "ll",
+        "elevFt",
+        "aboveFloorFt",
+        "slopeDeg",
+        "aspectDeg"
+      ],
+      "additionalProperties": false
+    },
+    "sun": {
+      "type": "object",
+      "properties": {
+        "decDirectH": {
+          "type": "number"
+        },
+        "decDaylightH": {
+          "type": "number"
+        },
+        "noonAlt": {
+          "type": "number"
+        },
+        "noonClearance": {
+          "type": "number"
+        },
+        "worstAz": {
+          "type": "number"
+        },
+        "worstAngle": {
+          "type": "number"
+        },
+        "junDirectH": {
+          "type": "number"
+        },
+        "junDaylightH": {
+          "type": "number"
+        },
+        "profile": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+          }
+        }
+      },
+      "required": [
+        "decDirectH",
+        "decDaylightH",
+        "noonAlt",
+        "noonClearance",
+        "worstAz",
+        "worstAngle",
+        "junDirectH",
+        "junDaylightH",
+        "profile"
+      ],
+      "additionalProperties": false
+    },
+    "sky": {
+      "type": "object",
+      "properties": {
+        "mag": {
+          "type": "number"
+        },
+        "ratio": {
+          "type": "number"
+        },
+        "zone": {
+          "type": "string"
+        },
+        "zoneWord": {
+          "type": "string"
+        },
+        "year": {
+          "type": "number"
+        },
+        "coreAlt": {
+          "type": "number"
+        },
+        "ridgeS": {
+          "type": "number"
+        },
+        "coreClear": {
+          "type": "number"
+        },
+        "dome": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "az": {
+                  "type": "number"
+                },
+                "km": {
+                  "type": "number"
+                },
+                "ratio": {
+                  "type": "number"
+                },
+                "w": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "az",
+                "km",
+                "ratio",
+                "w"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "domes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "az": {
+                "type": "number"
+              },
+              "w": {
+                "type": "number"
+              },
+              "km": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "ratio": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "az",
+              "w",
+              "km",
+              "ratio"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "score": {
+          "type": "number"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "mag",
+        "ratio",
+        "zone",
+        "zoneWord",
+        "year",
+        "coreAlt",
+        "ridgeS",
+        "coreClear",
+        "dome",
+        "domes",
+        "score",
+        "notes"
+      ],
+      "additionalProperties": false
+    },
+    "flood": {
+      "type": "object",
+      "properties": {
+        "zones": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sfha": {
+          "type": "boolean"
+        },
+        "sfhaAcres": {
+          "type": "number"
+        },
+        "mapped": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "zones",
+        "sfha",
+        "sfhaAcres",
+        "mapped"
+      ],
+      "additionalProperties": false
+    },
+    "protected": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "manager": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "access": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "gap": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "adjoins": {
+            "type": "boolean"
+          },
+          "distFt": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "manager",
+          "type",
+          "access",
+          "gap",
+          "adjoins",
+          "distFt"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "near": {
+      "type": "object",
+      "properties": {
+        "hospitals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "ll": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "km": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "name",
+              "ll",
+              "km"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "grocers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "ll": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "km": {
+                "type": "number"
+              },
+              "big": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "name",
+              "ll",
+              "km",
+              "big"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "trailheads": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "ll": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "km": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "name",
+              "ll",
+              "km"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "trailheadCount": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "hospitals",
+        "grocers",
+        "trailheads",
+        "trailheadCount"
+      ],
+      "additionalProperties": false
+    },
+    "nearNote": {
+      "type": "string"
+    },
+    "road": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "riseFt": {
+          "type": "number"
+        },
+        "runFt": {
+          "type": "number"
+        },
+        "gradePct": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "name",
+        "riseFt",
+        "runFt",
+        "gradePct"
+      ],
+      "additionalProperties": false
+    },
+    "roadNote": {
+      "type": "string"
+    },
+    "drives": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "min": {
+            "type": "number"
+          },
+          "mi": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "label",
+          "name",
+          "min",
+          "mi"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "excluded": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "acres": {
+            "type": "number"
+          },
+          "ll": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "why": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "acres",
+          "ll",
+          "why"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "sites": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "rank": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "ll": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "acres": {
+            "type": "number"
+          },
+          "elevFt": {
+            "type": "number"
+          },
+          "aspectDeg": {
+            "type": "number"
+          },
+          "slopeDeg": {
+            "type": "number"
+          },
+          "compact": {
+            "type": "boolean",
+            "const": true
+          },
+          "cell": {
+            "type": "object",
+            "properties": {
+              "score": {
+                "type": "number"
+              },
+              "slope": {
+                "type": "number"
+              },
+              "aspect": {
+                "type": "number"
+              },
+              "thermal": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "score",
+              "slope",
+              "aspect",
+              "thermal"
+            ],
+            "additionalProperties": false
+          },
+          "score": {
+            "type": "number"
+          },
+          "why": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sunH": {
+            "type": "number"
+          },
+          "daylightH": {
+            "type": "number"
+          },
+          "q": {
+            "type": "object",
+            "properties": {
+              "sun": {
+                "type": "number"
+              },
+              "aspect": {
+                "type": "number"
+              },
+              "frost": {
+                "type": "number"
+              },
+              "slope": {
+                "type": "number"
+              },
+              "sky": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "sun",
+              "aspect",
+              "frost",
+              "slope",
+              "sky"
+            ],
+            "additionalProperties": false
+          },
+          "soil": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "c": {
+            "type": "object",
+            "properties": {
+              "septic": {
+                "type": "number"
+              },
+              "foundation": {
+                "type": "number"
+              },
+              "rock": {
+                "type": "number"
+              },
+              "pad": {
+                "type": "number"
+              },
+              "driveway": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "septic",
+              "foundation",
+              "rock",
+              "pad",
+              "driveway"
+            ],
+            "additionalProperties": false
+          },
+          "costIdx": {
+            "type": "number"
+          },
+          "costTier": {
+            "type": "string",
+            "enum": [
+              "$",
+              "$$",
+              "$$$",
+              "$$$$"
+            ]
+          },
+          "quality": {
+            "type": "number"
+          },
+          "qGrade": {
+            "type": "string",
+            "enum": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "F"
+            ]
+          },
+          "grade": {
+            "type": "string",
+            "enum": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "F"
+            ]
+          },
+          "driveFt": {
+            "type": "number"
+          },
+          "roadGrade": {
+            "type": "number"
+          },
+          "roadRunFt": {
+            "type": "number"
+          },
+          "roadName": {
+            "type": "string"
+          },
+          "flood": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "required": [
+          "rank",
+          "ll",
+          "acres",
+          "elevFt",
+          "aspectDeg",
+          "slopeDeg",
+          "cell",
+          "score",
+          "why",
+          "sunH",
+          "daylightH",
+          "q",
+          "soil",
+          "c",
+          "costIdx",
+          "costTier",
+          "quality",
+          "qGrade",
+          "grade"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "house": {
+      "anyOf": [
+        {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "ll": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "inside": {
+                  "type": "boolean"
+                },
+                "elevFt": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "slopeDeg": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "aspectDeg": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "onBench": {
+                  "type": "boolean"
+                },
+                "benchAcres": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "veto": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "inSFHA": {
+                  "type": "boolean"
+                },
+                "cell": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "score": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "slope": {
+                          "type": "number"
+                        },
+                        "aspect": {
+                          "type": "number"
+                        },
+                        "thermal": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "score",
+                        "slope",
+                        "aspect",
+                        "thermal"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "score": {
+                  "type": "number"
+                },
+                "why": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "sunH": {
+                  "type": "number"
+                },
+                "daylightH": {
+                  "type": "number"
+                },
+                "q": {
+                  "type": "object",
+                  "properties": {
+                    "sun": {
+                      "type": "number"
+                    },
+                    "aspect": {
+                      "type": "number"
+                    },
+                    "frost": {
+                      "type": "number"
+                    },
+                    "slope": {
+                      "type": "number"
+                    },
+                    "sky": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "sun",
+                    "aspect",
+                    "frost",
+                    "slope",
+                    "sky"
+                  ],
+                  "additionalProperties": false
+                },
+                "soil": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "c": {
+                  "type": "object",
+                  "properties": {
+                    "septic": {
+                      "type": "number"
+                    },
+                    "foundation": {
+                      "type": "number"
+                    },
+                    "rock": {
+                      "type": "number"
+                    },
+                    "pad": {
+                      "type": "number"
+                    },
+                    "driveway": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "septic",
+                    "foundation",
+                    "rock",
+                    "pad",
+                    "driveway"
+                  ],
+                  "additionalProperties": false
+                },
+                "costIdx": {
+                  "type": "number"
+                },
+                "costTier": {
+                  "type": "string",
+                  "enum": [
+                    "$",
+                    "$$",
+                    "$$$",
+                    "$$$$"
+                  ]
+                },
+                "quality": {
+                  "type": "number"
+                },
+                "qGrade": {
+                  "type": "string",
+                  "enum": [
+                    "A",
+                    "B",
+                    "C",
+                    "D",
+                    "F"
+                  ]
+                },
+                "grade": {
+                  "type": "string",
+                  "enum": [
+                    "A",
+                    "B",
+                    "C",
+                    "D",
+                    "F"
+                  ]
+                },
+                "driveFt": {
+                  "type": "number"
+                },
+                "roadGrade": {
+                  "type": "number"
+                },
+                "roadRunFt": {
+                  "type": "number"
+                },
+                "roadName": {
+                  "type": "string"
+                },
+                "flood": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "ll",
+                "inside",
+                "elevFt",
+                "slopeDeg",
+                "aspectDeg",
+                "onBench",
+                "benchAcres",
+                "veto",
+                "inSFHA",
+                "cell",
+                "score",
+                "why",
+                "sunH",
+                "daylightH",
+                "q",
+                "soil",
+                "c",
+                "costIdx",
+                "costTier",
+                "quality",
+                "qGrade",
+                "grade"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "ll": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "outside": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "ll",
+                "outside"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "driveway": {
+      "type": "object",
+      "properties": {
+        "toLabel": {
+          "type": "string"
+        },
+        "entrances": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "ll": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "name": {
+                "type": "string"
+              },
+              "roadGrade": {
+                "type": "number"
+              },
+              "bend": {
+                "type": "number"
+              },
+              "bankFt": {
+                "type": "number"
+              },
+              "score": {
+                "type": "number"
+              },
+              "fallback": {
+                "type": "boolean",
+                "const": true
+              },
+              "gapFt": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "ll",
+              "name",
+              "roadGrade",
+              "bend",
+              "bankFt",
+              "score"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "routes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "line": {},
+              "profile": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 2,
+                  "maxItems": 2
+                }
+              },
+              "metrics": {
+                "type": "object",
+                "properties": {
+                  "lengthFt": {
+                    "type": "number"
+                  },
+                  "riseFt": {
+                    "type": "number"
+                  },
+                  "maxGradePct": {
+                    "type": "number"
+                  },
+                  "avgGradePct": {
+                    "type": "number"
+                  },
+                  "switchbacks": {
+                    "type": "number"
+                  },
+                  "earthYd": {
+                    "type": "number"
+                  },
+                  "rockYd": {
+                    "type": "number"
+                  },
+                  "stoneTons": {
+                    "type": "number"
+                  },
+                  "fabricSf": {
+                    "type": "number"
+                  },
+                  "clearAc": {
+                    "type": "number"
+                  },
+                  "culverts": {
+                    "type": "number"
+                  },
+                  "outsideFt": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "lengthFt",
+                  "riseFt",
+                  "maxGradePct",
+                  "avgGradePct",
+                  "switchbacks",
+                  "earthYd",
+                  "rockYd",
+                  "stoneTons",
+                  "fabricSf",
+                  "clearAc",
+                  "culverts",
+                  "outsideFt"
+                ],
+                "additionalProperties": false
+              },
+              "cost": {
+                "type": "object",
+                "properties": {
+                  "mid": {
+                    "type": "number"
+                  },
+                  "low": {
+                    "type": "number"
+                  },
+                  "high": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "mid",
+                  "low",
+                  "high"
+                ],
+                "additionalProperties": false
+              },
+              "culverts": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 2,
+                  "maxItems": 2
+                }
+              },
+              "needsEasement": {
+                "type": "boolean"
+              },
+              "maxGrade": {
+                "type": "number"
+              },
+              "label": {
+                "type": "string"
+              },
+              "entranceIndex": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "track": {
+                "type": "object",
+                "properties": {
+                  "hours": {
+                    "type": "number"
+                  },
+                  "waterBars": {
+                    "type": "number"
+                  },
+                  "cost": {
+                    "type": "object",
+                    "properties": {
+                      "mid": {
+                        "type": "number"
+                      },
+                      "low": {
+                        "type": "number"
+                      },
+                      "high": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "mid",
+                      "low",
+                      "high"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "hours",
+                  "waterBars",
+                  "cost"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "line",
+              "profile",
+              "metrics",
+              "cost",
+              "culverts",
+              "needsEasement",
+              "maxGrade",
+              "label",
+              "entranceIndex"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "direct": {
+          "type": "object",
+          "properties": {
+            "line": {},
+            "profile": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 2,
+                "maxItems": 2
+              }
+            },
+            "metrics": {
+              "type": "object",
+              "properties": {
+                "lengthFt": {
+                  "type": "number"
+                },
+                "riseFt": {
+                  "type": "number"
+                },
+                "maxGradePct": {
+                  "type": "number"
+                },
+                "avgGradePct": {
+                  "type": "number"
+                },
+                "switchbacks": {
+                  "type": "number"
+                },
+                "earthYd": {
+                  "type": "number"
+                },
+                "rockYd": {
+                  "type": "number"
+                },
+                "stoneTons": {
+                  "type": "number"
+                },
+                "fabricSf": {
+                  "type": "number"
+                },
+                "clearAc": {
+                  "type": "number"
+                },
+                "culverts": {
+                  "type": "number"
+                },
+                "outsideFt": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "lengthFt",
+                "riseFt",
+                "maxGradePct",
+                "avgGradePct",
+                "switchbacks",
+                "earthYd",
+                "rockYd",
+                "stoneTons",
+                "fabricSf",
+                "clearAc",
+                "culverts",
+                "outsideFt"
+              ],
+              "additionalProperties": false
+            },
+            "cost": {
+              "type": "object",
+              "properties": {
+                "mid": {
+                  "type": "number"
+                },
+                "low": {
+                  "type": "number"
+                },
+                "high": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "mid",
+                "low",
+                "high"
+              ],
+              "additionalProperties": false
+            },
+            "culverts": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 2,
+                "maxItems": 2
+              }
+            },
+            "needsEasement": {
+              "type": "boolean"
+            },
+            "maxGrade": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            },
+            "entranceIndex": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "track": {
+              "type": "object",
+              "properties": {
+                "hours": {
+                  "type": "number"
+                },
+                "waterBars": {
+                  "type": "number"
+                },
+                "cost": {
+                  "type": "object",
+                  "properties": {
+                    "mid": {
+                      "type": "number"
+                    },
+                    "low": {
+                      "type": "number"
+                    },
+                    "high": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "mid",
+                    "low",
+                    "high"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "hours",
+                "waterBars",
+                "cost"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "line",
+            "profile",
+            "metrics",
+            "cost",
+            "culverts",
+            "needsEasement",
+            "maxGrade",
+            "label",
+            "entranceIndex"
+          ],
+          "additionalProperties": false
+        },
+        "overLimit": {
+          "type": "object",
+          "properties": {
+            "line": {},
+            "profile": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 2,
+                "maxItems": 2
+              }
+            },
+            "metrics": {
+              "type": "object",
+              "properties": {
+                "lengthFt": {
+                  "type": "number"
+                },
+                "riseFt": {
+                  "type": "number"
+                },
+                "maxGradePct": {
+                  "type": "number"
+                },
+                "avgGradePct": {
+                  "type": "number"
+                },
+                "switchbacks": {
+                  "type": "number"
+                },
+                "earthYd": {
+                  "type": "number"
+                },
+                "rockYd": {
+                  "type": "number"
+                },
+                "stoneTons": {
+                  "type": "number"
+                },
+                "fabricSf": {
+                  "type": "number"
+                },
+                "clearAc": {
+                  "type": "number"
+                },
+                "culverts": {
+                  "type": "number"
+                },
+                "outsideFt": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "lengthFt",
+                "riseFt",
+                "maxGradePct",
+                "avgGradePct",
+                "switchbacks",
+                "earthYd",
+                "rockYd",
+                "stoneTons",
+                "fabricSf",
+                "clearAc",
+                "culverts",
+                "outsideFt"
+              ],
+              "additionalProperties": false
+            },
+            "cost": {
+              "type": "object",
+              "properties": {
+                "mid": {
+                  "type": "number"
+                },
+                "low": {
+                  "type": "number"
+                },
+                "high": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "mid",
+                "low",
+                "high"
+              ],
+              "additionalProperties": false
+            },
+            "culverts": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 2,
+                "maxItems": 2
+              }
+            },
+            "needsEasement": {
+              "type": "boolean"
+            },
+            "maxGrade": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            },
+            "entranceIndex": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "track": {
+              "type": "object",
+              "properties": {
+                "hours": {
+                  "type": "number"
+                },
+                "waterBars": {
+                  "type": "number"
+                },
+                "cost": {
+                  "type": "object",
+                  "properties": {
+                    "mid": {
+                      "type": "number"
+                    },
+                    "low": {
+                      "type": "number"
+                    },
+                    "high": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "mid",
+                    "low",
+                    "high"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "hours",
+                "waterBars",
+                "cost"
+              ],
+              "additionalProperties": false
+            },
+            "limitPct": {
+              "type": "number"
+            },
+            "overFt": {
+              "type": "number"
+            },
+            "overSpans": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 2,
+                "maxItems": 2
+              }
+            }
+          },
+          "required": [
+            "line",
+            "profile",
+            "metrics",
+            "cost",
+            "culverts",
+            "needsEasement",
+            "maxGrade",
+            "label",
+            "entranceIndex",
+            "limitPct",
+            "overFt",
+            "overSpans"
+          ],
+          "additionalProperties": false
+        },
+        "roadsNearestFt": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "toLabel",
+        "entrances",
+        "routes",
+        "note",
+        "roadsNearestFt"
+      ],
+      "additionalProperties": false
+    },
+    "flags": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lvl": {
+            "type": "string",
+            "enum": [
+              "fatal",
+              "warn",
+              "good"
+            ]
+          },
+          "t": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "lvl",
+          "t"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "failed": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "dem",
+          "terrain",
+          "soils",
+          "sun",
+          "sky",
+          "flood",
+          "padus",
+          "near",
+          "drive",
+          "rank",
+          "driveway"
+        ]
+      }
+    },
+    "cancelled": {
+      "type": "boolean"
+    },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "fatal",
+        "marginal",
+        "ok"
+      ]
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "runAt",
+    "acres",
+    "params",
+    "flags",
+    "failed",
+    "cancelled",
+    "verdict"
+  ],
+  "additionalProperties": false
+}
