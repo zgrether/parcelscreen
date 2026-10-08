@@ -1,6 +1,6 @@
 # Batch A: the third fixture, data sources, scoring, sun (plan)
 
-Status: **proposed (2026-10-08), for the owner's approval.** No code until it's approved.
+Status: **approved (owner, 2026-10-08), with the answers in §8.** A1 starts when this merges.
 
 The owner's direction (2026-10-08, after #73): before Phase 1, a short batch of the follow-ups that change what a
 screen finds or how it scores. In this order:
@@ -10,9 +10,17 @@ screen finds or how it scores. In this order:
 3. scoring, as one reviewed change: 19, 27, 20;
 4. sun: 37, 35.
 
-Each group is its own PR, with a before/after table across all three fixtures. Batch B (30, 21, 32, 33, 38) is UI
-only and can interleave. 28 and 36 go to Phase 1; 26, 31 and 34 go to Phase 2.5. The FEMA network-failure retry
-(#75) lands before Batch A and changes no number on the success path.
+Each group is its own PR, with a before/after table across all three fixtures. The data sources are two PRs
+(owner, Q5). So the PRs are:
+
+- **A1:** the Grayson fixture, `expected.json`, the CI guard and the engine stamp;
+- **A2a:** 23 and 29;
+- **A2b:** 24 and 25;
+- **A3:** 19, 27 and 20;
+- **A4:** 37 and 35.
+
+Batch B (30, 21, 32, 33, 38) is UI only and can interleave. 28 and 36 go to Phase 1; 26, 31 and 34 go to Phase
+2.5. The FEMA network-failure retry (#75, merged 2026-10-08) came first and changed no number on the success path.
 
 Batch A is the first deliberate departure from the prototype's numbers. Until now every golden was the
 prototype's own output; from group 2 on, the port's expected output and the prototype's differ on purpose, and
@@ -32,7 +40,24 @@ each difference has to be visible and explained. §1 is how.
   - the before/after table (below);
   - the full leaf diff: removed, added and changed paths, as in the memory's five-golden check.
 - **`pnpm diff:prototype`** prints every difference between `expected.json` and the prototype golden. Drift from
-  the prototype stays visible in one place, and each group's PR quotes it.
+  the prototype stays visible in one place, and each group's PR quotes it. Its last line is a summary with a
+  hash of the whole output: `diff:prototype <hash>: <n> differences (ferney <a>, macks <b>, grayson <c>)`.
+
+**The CI guard (owner, Q1):**
+
+- `expected.json` may change only in a PR that declares a numbers change in its description and includes the
+  `pnpm diff:prototype` output. Otherwise CI fails.
+- **The rule.** A new `expected-guard` job runs on pull requests (`opened`, `synchronize`, `reopened` and
+  `edited`, so fixing the description re-runs it). If any `test/fixtures/*/expected.json` was added or changed
+  against the base, the description must contain both:
+  - a line starting `Numbers change:`;
+  - the exact summary line that `pnpm diff:prototype` prints on the PR's head.
+
+  The hash makes a stale paste fail.
+- **How it reads the description.** The body comes in through an environment variable, never interpolated into
+  the script. The check is a small Node script (`scripts/expected-guard.mts`) with its own unit test.
+- **A1 creates the files,** so its description carries the declaration too: "Numbers change: none —
+  `expected.json` created, equal to the prototype goldens".
 
 **The before/after table**, one column pair per fixture (Ferney, Macks, Grayson), one row per headline:
 
@@ -62,17 +87,20 @@ Below it, the leaf-diff counts per scenario.
   comparator. Every difference is either a port bug (fixed in A1) or a proposed row in the intended-differences
   table (`phase-0-18-acceptance.md` §5), for the owner to approve. That makes this the port's first parity test on
   a parcel it wasn't built against.
-- **`expected.json`** for all three fixtures (§1), and the scripts.
+- **`expected.json`** for all three fixtures (§1), the scripts and the CI guard.
+- **The engine stamp** (§6), at version 1.
 - **Grayson joins the Vitest pipeline tests** (`FIXTURE_SLUGS`). The e2e stays at two parcels, for its run time.
 - **Acceptance:**
   - the Grayson parity check passes, or each difference is listed;
   - `expected.json` equals the prototype golden for all three;
-  - the before/after table shows no change.
+  - the before/after table shows no change;
+  - the guard fails a PR that changes `expected.json` without the declaration, and passes it with one. Shown by
+    its unit test, and once on a throwaway branch, quoted in the PR.
 
-## 3. A2: data sources (23, 24, 25, 29)
+## 3. A2: data sources, in two PRs: A2a (23, 29) and A2b (24, 25)
 
 Each item is its own commit, with its own before/after rows. Ferney's and Macks's numbers may move here too, if
-the fixes reach them; the table says which and why.
+the fixes reach them; the table says which and why. Each PR bumps the engine version (§6).
 
 ### 23: PAD-US misses the Forest Service land
 
@@ -89,7 +117,7 @@ the fixes reach them; the table says which and why.
 
 - measure the distance to the nearest part of each feature;
 - add a second, wider query for **open-access** land only (`Pub_Access` = OA). It reports "nearest public land"
-  up to `padus.nearestOpenKm` (proposed 16 km, about 10 mi);
+  up to `padus.nearestOpenKm` = 16 km, about 10 mi (owner, Q7);
 - keep the 1,600 m query for adjacency, unchanged.
 
 **Number changes:** `padus.nearestOpenKm` is a new constant; `searchM` is unchanged. The config snapshot is
@@ -113,14 +141,20 @@ unless the table explains why.
 
 **How they combine:**
 
-- They are merged with the OSM trailheads, de-duplicated by distance (proposed 300 m, keeping the named source).
+- They are merged with the OSM trailheads. **De-duplication (owner, Q7):** two points are the same trailhead only
+  if they are within `near.trailheadDedupeM` = 300 m **and** their names match after normalisation. Otherwise
+  both are kept.
+  - **Normalisation:** lower case; punctuation removed; the words "trailhead", "TH" and "parking" stripped;
+    spaces collapsed. For example, "Elk Garden A.T." and "ELK GARDEN A.T. Trailhead" both become "elk garden at".
+  - **Of a matched pair,** the official source's point is kept (USFS, then the state's, then OSM's).
+  - A unit test covers the pairs: same name near, same name far, different names near, and an unnamed OSM point.
 - A state park point is the park's address point, not necessarily a trailhead. It is listed as the park, e.g.
   "Grayson Highlands State Park".
 - The endpoints go in `DEFAULT_ENDPOINTS`, so **endpoints `_v` 11 → 12**. Saved endpoint JSON at version 11 is
   replaced by the defaults on load, as today, with its message.
 
-**Schema:** a trailhead keeps today's shape (no source field), so schema v2 is untouched. If the source is wanted
-in the UI, that is v3: **Q4**.
+**Schema:** a trailhead keeps today's shape (no source field), so schema v2 is untouched. **A trailhead source
+goes in v3** (owner, Q4; §6).
 
 **Text (rule 7, this plan's paragraph):**
 
@@ -145,12 +179,11 @@ Overpass as the fallback. Lansing and West Jefferson have groceries. Candidates:
 **"No data" vs "none" (rule 7):**
 
 - Today an empty answer renders "none in OSM".
-- **Proposed:** keep it, and append " — no data, which isn't proof there's none."
-- The alternative, replacing it with "no data", is a replacement, so it needs the owner's explicit exception:
-  **Q3**.
+- **Owner, Q3:** keep it word for word, and append, as its own line in the same cell: "OpenStreetMap is
+  incomplete in rural areas, so this isn't proof there are none."
 
-**Acceptance:** Grayson finds a grocer in Lansing or West Jefferson, and an empty answer renders the appended
-sentence.
+**Acceptance:** Grayson finds a grocer in Lansing or West Jefferson, and an empty answer renders "none in OSM",
+then that sentence.
 
 ### 29: every part of a multi-part parcel
 
@@ -186,6 +219,7 @@ sentence.
    The owner picks.
 2. **Then the code:**
    - the chosen weights in `config.ts`;
+   - the engine version bumped (§6);
    - **20:** the garden soil adjustment moved out of the bench-vetting block, with a synthetic test (a parcel with
      gardens and no house site). Neither recorded parcel lacks a house site, so likely no golden moves;
    - `expected.json` regenerated;
@@ -203,9 +237,10 @@ rule 7. 20 adds soil notes to gardens where none showed before; that is additive
   definition: −0.833° with the equation of time (`lib/render/sunclock.ts`, which moves to `lib/screen` since the
   engine now needs it; it is DOM-free).
 - Ferney's Dec 21 goes from 9.5 h (569 min) to about 9.6 h (9 h 37 min).
-- **Direct-sun hours:** **Q6.** Recommended: unchanged. They compare the sun's geometric altitude with the
-  skyline plus the 3° canopy. Refraction (about 0.5° at the horizon) is small next to the canopy allowance, and
-  changing it would move every direct-sun number for little gain.
+- **Direct-sun hours stay unchanged** (owner, Q6). They compare the sun's geometric altitude with the skyline
+  plus the 3° canopy.
+- **The PR reports the measured delta on all three fixtures:** Dec 21 and Jun 21 direct-sun hours, as computed
+  and with the sun's apparent (refracted) altitude. That shows what the choice leaves out.
 
 ### 35: horizon every 1°
 
@@ -216,18 +251,36 @@ rule 7. 20 adds soil notes to gardens where none showed before; that is additive
 - **Cost:** the horizon is 5× the rays. The PR measures the sun step on Macks (the largest), and the run's longest
   synchronous block against #74's 60 s silence rule. If it is too slow, it proposes 2°.
 
+**The engine version** is bumped (§6).
+
 **Acceptance:**
 - the report's daylight equals the viewer's sunset − sunrise within a minute on all three fixtures;
+- the direct-sun delta table is in the PR;
 - `expected.json` is regenerated, with the table and the leaf diff;
 - the viewer's ridges and the report's line agree at 1°.
 
-## 6. Kept results from before Batch A
+## 6. The engine version on kept results (owner, Q2)
 
-- History keeps v2 results in IndexedDB, and screens are immutable.
-- A kept result from before Batch A shows the numbers it was computed with. A re-run shows the new ones.
-- v2 has no engine version, and it is frozen. **Q2.** Recommended: no change in Batch A. Add an engine version
-  in **v3 at the start of Phase 1**, alongside the Supabase migration that stores screens anyway, so two screens
-  of the same parcel can say why they differ.
+History keeps v2 results in IndexedDB, and screens are immutable. A kept result shows the numbers it was computed
+with, so History has to say when those came from earlier rules.
+
+- **`ENGINE_VERSION`:**
+  - in `lib/screen/engine.ts`, a plain integer, so `lib/screen` stays DOM-free;
+  - **1 is Phase 0's rules;**
+  - **A2a, A2b, A3 and A4 each bump it,** to 2, 3, 4 and 5.
+  - A1 introduces it at 1 and doesn't bump it: it changes no number, so nothing kept from Phase 0 is marked. If
+    you want A1 to bump it too, it's one line.
+- **On the record envelope, not in `ScreenResult`:**
+  - `ScreenRecord` (`lib/client/screenStore.ts`) gains `engine: number`, so schema v2 stays frozen;
+  - a record without it counts as 1;
+  - new screens are stamped with the current version;
+  - export and import (16b) carry it, since they use the same record schema; an older file without it imports as 1.
+- **History:** an entry whose `engine` is below the current version shows "Screened with earlier rules — run again
+  for current results". *Proposed:* the same line shows on that result when it's reopened, beside the existing
+  "earlier settings" note. Say if you want it in History only.
+- **Phase 1:** the import into Supabase carries `engine` into a field of v3's `ScreenResult`.
+
+**Carried to v3 (Phase 1):** the engine version (from the envelope) and a trailhead source (Q4).
 
 ## 7. Batch B (interleaved, UI only)
 
@@ -240,25 +293,28 @@ rule 7. 20 adds soil notes to gardens where none showed before; that is additive
 
 Each is its own PR, with no golden or `expected.json` change.
 
-## 8. Open questions
+## 8. Decisions (owner, 2026-10-08)
 
-1. **Goldens (§1):** freeze the prototype's `golden.json` and test against a new `expected.json`, with
-   `diff:prototype` keeping the drift visible? *Recommended: yes.*
-2. **Kept results (§6):** no engine version in Batch A; add one in v3 at Phase 1's start? *Recommended: yes.*
-3. **25's wording:** append " — no data, which isn't proof there's none." after "none in OSM", or replace it
-   with "no data" (a rule 7 exception)? *Recommended: append.*
-4. **24's source in the UI:** keep the trailhead shape (no source field) for now? *Recommended: yes.* A source
-   label would be v3.
-5. **A2's size:** four items in one PR, as directed, or two PRs, 2a (23, 29: PAD-US and parts) and 2b (24, 25:
-   places)? *Recommended: two, to keep each reviewable in ten minutes.* One PR if you prefer.
-6. **37's direct-sun hours:** unchanged (geometric altitude)? *Recommended: yes.*
-7. **24's de-duplication distance** 300 m, and **23's wider open-access search** 16 km? *Recommended: yes.* Both
-   are new constants in `config.ts`.
+1. **Goldens:** `golden.json` is frozen, and tests compare against `expected.json`. Add a CI guard:
+   `expected.json` may change only in a PR whose description declares a numbers change and includes the
+   `pnpm diff:prototype` output; otherwise CI fails (§1).
+2. **Kept results:** not deferred. Stamp an engine version now on the IndexedDB record envelope (not inside
+   `ScreenResult`, so v2 stays frozen). History shows "Screened with earlier rules — run again for current
+   results" for older entries. Phase 1's import carries it into the v3 field. Every Batch A PR that changes rules
+   bumps it (§6).
+3. **25's wording:** append "OpenStreetMap is incomplete in rural areas, so this isn't proof there are none."
+4. **24's source:** agreed, no source field in v2; a trailhead source is added in v3.
+5. **A2:** two PRs, A2a (23, 29) and A2b (24, 25).
+6. **37's direct-sun hours:** unchanged, and A4 reports the measured direct-sun delta on all three fixtures.
+7. **23's open-access search:** 16 km. **24's de-duplication:** within 300 m **and** names match after
+   normalisation (case, punctuation, "trailhead" / "TH" / "parking" stripped); otherwise both are kept.
 
 ## 9. Checks for every Batch A PR
 
 - typecheck, lint, format, Vitest and e2e: green;
-- `expected.json` equals a fresh `scripts/expected.mts` run;
+- `expected.json` equals a fresh `scripts/expected.mts` run, and the guard passes: the description declares the
+  numbers change and carries the `diff:prototype` summary line;
+- the engine version is bumped (from A2a on);
 - the before/after table and the leaf diff are in the PR, with every moved number explained;
 - the config snapshot is updated where a constant changed, and the PR names it;
 - `pnpm diff:prototype` is quoted;
