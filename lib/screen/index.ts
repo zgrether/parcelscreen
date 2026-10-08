@@ -72,7 +72,11 @@ export interface ScreenDeps {
 /** Everything a run computed that isn't stored: rasters, raw features, caches. In memory only. */
 export interface ScreenSession {
   parcel: Feature<Polygon>;
-  /** The parcel's own land, when the outline bridges a strip between parts (ScreenInput.ownLand). */
+  /**
+   * The parcel's own land, when the outline bridges a strip between parts (ScreenInput.ownLand). Sites, terrain
+   * stats, soils, flood and public land measure it (owner, 2026-10-08); only the driveway router and the outline
+   * keep the strip.
+   */
   ownLand?: Feature<Polygon | MultiPolygon>;
   acres: number;
   centre: LatLon;
@@ -224,11 +228,11 @@ export async function screen(
   });
 
   await step("soils", async () => {
-    const rows = screenableRows(await fetchSoils(parcel, io));
+    const rows = screenableRows(await fetchSoils(s.ownLand ?? parcel, io));
     R.soils = rows;
     s.rows = rows;
     try {
-      s.units = await fetchSoilPolygons(parcel, io);
+      s.units = await fetchSoilPolygons(s.ownLand ?? parcel, io);
     } catch {
       s.units = null; // the prototype carries on without map units (and so without vetoes)
     }
@@ -279,14 +283,14 @@ export async function screen(
   });
 
   await step("flood", async () => {
-    const f = await floodStep(parcel, s.acres, io);
+    const f = await floodStep(s.ownLand ?? parcel, s.acres, io);
     R.flood = f.flood;
     s.sfha = f.sfha;
     R.flags.push(...f.flags);
   });
 
   await step("padus", async () => {
-    const p = await padusStep(parcel, io);
+    const p = await padusStep(s.ownLand ?? parcel, io);
     R.protected = p.protected;
     R.flags.push(...p.flags);
   });

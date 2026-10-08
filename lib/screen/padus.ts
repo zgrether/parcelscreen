@@ -14,9 +14,8 @@ import {
   lineString,
   nearestPointOnLine,
   pointToLineDistance,
-  polygonToLine,
 } from "@turf/turf";
-import type { Feature, FeatureCollection, LineString, MultiLineString, MultiPolygon, Polygon } from "geojson";
+import type { Feature, LineString, MultiPolygon, Polygon } from "geojson";
 import type { HttpClient } from "../http";
 import { arcQuery } from "./arcgis";
 import { SCREEN_CONSTANTS } from "./config";
@@ -24,11 +23,6 @@ import type { Endpoints, ScreenResult } from "./types";
 import { M2FT } from "./util";
 
 const K = SCREEN_CONSTANTS.padus;
-
-type Line = Feature<LineString | MultiLineString>;
-/** polygonToLine gives a FeatureCollection for multi-polygons; the parcel (one polygon) has one line. */
-const firstLine = (l: Line | FeatureCollection<LineString | MultiLineString>): Line =>
-  l.type === "FeatureCollection" ? l.features[0]! : l;
 
 /** Every ring of every part, each as its own line. */
 function rings(f: Feature<Polygon | MultiPolygon>): Feature<LineString>[] {
@@ -40,14 +34,20 @@ function rings(f: Feature<Polygon | MultiPolygon>): Feature<LineString>[] {
  * How far a unit is, ft: the prototype's measure (the unit's point nearest the parcel's centre, to the
  * parcel's edge), taken for each ring of each part, the least of them. Null when no ring will measure.
  */
-function distanceFt(f: Feature<Polygon | MultiPolygon>, parcel: Feature<Polygon>, edge: Line): number | null {
+function distanceFt(
+  f: Feature<Polygon | MultiPolygon>,
+  parcel: Feature<Polygon | MultiPolygon>,
+  edges: Feature<LineString>[],
+): number | null {
   const c = centroid(parcel);
   let best: number | null = null;
   for (const ring of rings(f)) {
     try {
       const np = nearestPointOnLine(ring, c);
-      const d = pointToLineDistance(np, edge as Feature<LineString>, { units: "feet" });
-      if (best === null || d < best) best = d;
+      for (const edge of edges) {
+        const d = pointToLineDistance(np, edge, { units: "feet" });
+        if (best === null || d < best) best = d;
+      }
     } catch {
       /* a ring that won't measure leaves the others */
     }
@@ -55,7 +55,22 @@ function distanceFt(f: Feature<Polygon | MultiPolygon>, parcel: Feature<Polygon>
   return best;
 }
 
+/** The parcel's edge: each part's outer ring (one part: the prototype's line). */
+function outerEdges(parcel: Feature<Polygon | MultiPolygon>): Feature<LineString>[] {
+  const polys =
+    parcel.geometry.type === "Polygon" ? [parcel.geometry.coordinates] : parcel.geometry.coordinates;
+  return polys.map((p) => lineString(p[0]!));
+}
+
+/**
+ * The manager as the line names it (owner, 2026-10-08): PAD-US's local manager name when it has one, else its
+ * manager code. The report turns a code into an agency name (lib/report/surroundings.ts), never printing it bare.
+ */
+const managerOf = (p: PadusProps): string | null => p.Loc_Mang?.trim() || p.Mang_Name || null;
+
 const OUT_FIELDS = "Unit_Nm,Mang_Name,Mang_Type,Pub_Access,GAP_Sts,Des_Tp";
+/** The wider query also asks for the local manager name, for the "beyond a mile" line. */
+const WIDE_OUT_FIELDS = `${OUT_FIELDS},Loc_Mang`;
 const sameUnit = (a: PadusProps, b: PadusProps) =>
   a.Unit_Nm === b.Unit_Nm &&
   a.Mang_Name === b.Mang_Name &&
@@ -65,6 +80,7 @@ const sameUnit = (a: PadusProps, b: PadusProps) =>
 
 interface PadusProps {
   Unit_Nm?: string | null;
+  Loc_Mang?: string | null;
   Mang_Name?: string | null;
   Des_Tp?: string | null;
   Pub_Access?: string | null;
@@ -72,7 +88,7 @@ interface PadusProps {
 }
 
 export async function padusStep(
-  parcel: Feature<Polygon>,
+  parcel: Feature<Polygon | MultiPolygon>,
   deps: { http: HttpClient; endpoints: Endpoints; signal?: AbortSignal },
 ): Promise<{ protected: NonNullable<ScreenResult["protected"]>; flags: ScreenResult["flags"] }> {
   let feats: Feature<Polygon | MultiPolygon, PadusProps>[] | null = null;
@@ -98,10 +114,10 @@ export async function padusStep(
   const near = feats;
   const wide = await openBeyond(parcel, deps);
   const buffered = buffer(parcel, K.adjoinsBufferKm, { units: "kilometers" })!;
-  const edge = firstLine(polygonToLine(parcel));
-  const unit = (p: PadusProps, adjoins: boolean, distFt: number | null) => ({
+  const edges = outerEdges(parcel);
+  const unit = (p: PadusProps, adjoins: boolean, distFt: number | null, manager = p.Mang_Name ?? null) => ({
     name: p.Unit_Nm ?? null,
-    manager: p.Mang_Name ?? null,
+    manager,
     type: p.Des_Tp ?? null,
     access: p.Pub_Access ?? null,
     gap: p.GAP_Sts ?? null,
@@ -113,7 +129,7 @@ export async function padusStep(
       distFt: number | null = null;
     try {
       adj = booleanIntersects(buffered, f);
-      if (!adj) distFt = distanceFt(f, parcel, edge);
+      if (!adj) distFt = distanceFt(f, parcel, edges);
     } catch {
       /* geometry trouble leaves adjoins false and distance unknown, as in the prototype */
     }
@@ -124,10 +140,10 @@ export async function padusStep(
   const beyondFt = K.searchM * M2FT;
   const farther = wide
     .filter((f) => !near.some((g) => sameUnit(f.properties, g.properties)))
-    .map((f) => ({ p: f.properties, d: distanceFt(f, parcel, edge) }))
+    .map((f) => ({ p: f.properties, d: distanceFt(f, parcel, edges) }))
     .filter((x): x is { p: PadusProps; d: number } => x.d !== null && x.d > beyondFt)
     .sort((a, b) => a.d - b.d)
-    .map((x) => unit(x.p, false, x.d));
+    .map((x) => unit(x.p, false, x.d, managerOf(x.p)));
   const flags: ScreenResult["flags"] = [];
   const adjOpen = units.filter((u) => u.access === "OA" && u.adjoins);
   if (adjOpen.length)
@@ -148,7 +164,7 @@ export async function padusStep(
  * failure here never fails the step: the mile's units and flags stand, and the report has no "beyond" line.
  */
 async function openBeyond(
-  parcel: Feature<Polygon>,
+  parcel: Feature<Polygon | MultiPolygon>,
   deps: { http: HttpClient; endpoints: Endpoints; signal?: AbortSignal },
 ): Promise<Feature<Polygon | MultiPolygon, PadusProps>[]> {
   for (const u of deps.endpoints.padus) {
@@ -161,7 +177,7 @@ async function openBeyond(
           units: "esriSRUnit_Meter",
           where: "Pub_Access='OA'",
           maxAllowableOffset: K.openSimplifyDeg,
-          outFields: OUT_FIELDS,
+          outFields: WIDE_OUT_FIELDS,
         },
         deps,
       )) as Feature<Polygon | MultiPolygon, PadusProps>[];

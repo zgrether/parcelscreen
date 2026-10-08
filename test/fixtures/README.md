@@ -103,9 +103,13 @@ User-Agent), keeping it in `network-port.har`. The replay answers from `network.
 
 | Fixture | Recorded 2026-10-08 |
 |---|---|
-| Ferney Creek | 1 request: the 16 km PAD-US query (4 units) |
-| Macks Mountain | 1 request: the 16 km PAD-US query (19 units) |
-| Grayson Mud Creek | 21 requests: both DEMs, soils, FEMA, PAD-US (both queries), TIGER, Photon and OSRM for the two-part boundary |
+| Ferney Creek | 2 requests: FEMA's zones, and the 16 km PAD-US query (4 units) |
+| Macks Mountain | 2 requests: FEMA's zones, and the 16 km PAD-US query (19 units) |
+| Grayson Mud Creek | 22 requests: both DEMs, soils, FEMA (two queries), PAD-US (both), TIGER, Photon and OSRM for the two-part boundary |
+
+Re-recorded after the #80 review: FEMA asks for zone names without geometry, then geometry for the SFHA features
+only (Grayson's FEMA answer went from 8 MB to 3 KB), and the flood, soils and PAD-US queries send the parcel's own
+land. Ferney and Macks now record 2 requests each (FEMA's zones; the 16 km PAD-US query).
 
 The scenarios screen each fixture's parcel as the app does (`fixtureParcel` in `test/support/scenarios.ts`): the
 county record at the fixture's point, answered from the HAR, through the recipe. For Ferney and Macks that's the

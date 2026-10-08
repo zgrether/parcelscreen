@@ -141,6 +141,10 @@ updated, and the PR says so.
   distance, the line names the copy whose manager is known rather than "UNK".
 - The wider query failing never fails the step: the mile's units and flags stand, and there's no line.
 - Distance to the nearest part (all parts and rings): a value change under rule 4, declared in the PR.
+- **Owner, #80 review (2026-10-08):** the line names the manager by PAD-US's local manager name (`Loc_Mang`) when it
+  has one, else by the agency its code stands for (the service's own domain; USFS reads "U.S. Forest Service"),
+  never a bare code. And when the wider query fails, the section should say "The wider public-land search didn't
+  respond.": that needs a stored field, so it waits on a schema decision (v2 is frozen).
 - **The acceptance's "about 4.5 mi" was an estimate:** Jefferson NF's nearest boundary is **2.26 mi** from the
   parcel, measured on its full, unsimplified geometry. The report says 2.3 mi.
 
@@ -226,8 +230,10 @@ outline, and nothing on the own land. The screen gets the own land as `ScreenInp
 keeps its parts (`ParcelRecord.parts`), and records saved before keep the first-part note.
 
 **Found in A2a:** Grayson's second part (0.84 ac, along Mud Creek) is frequently flooded bottomland with 0.47 ac
-of FEMA zone A; screening it adds those two flags. None of it is on the strip. The flood and soils steps still
-measure the outline, so the 0.61 ac strip counts there (here it holds no flood zone): a question for the owner.
+of FEMA zone A; screening it adds those two flags. None of it is on the strip.
+
+**Owner, #80 review (2026-10-08):** the flood, soils and public-land steps measure the own land too (the queries
+send the parts; SDA gets a MULTIPOLYGON). Only the driveway router and the outline keep the whole shape.
 
 ## 4. A3: scoring, one reviewed change (19, 27, 20)
 

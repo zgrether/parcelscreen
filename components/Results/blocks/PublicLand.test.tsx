@@ -4,7 +4,7 @@
  */
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { publicLandView } from "@/lib/report/surroundings";
+import { managerName, PADUS_MANAGERS, publicLandView } from "@/lib/report/surroundings";
 import type { PartialScreenResult } from "@/lib/screen/types";
 import { PublicLand } from "./PublicLand";
 
@@ -45,7 +45,7 @@ describe("public land beyond the mile", () => {
       u("Old Flat State Forest", "OA", 2.44 * 5280, false, "SDNR"),
       u("Jefferson National Forest", "OA", 2.26 * 5280),
     ]);
-    expect(v.beyond).toBe(LINE("Jefferson National Forest", "USFS", "2.3"));
+    expect(v.beyond).toBe(LINE("Jefferson National Forest", "U.S. Forest Service", "2.3"));
   });
 
   it("of two copies at the same distance, names the one whose manager is known", () => {
@@ -53,7 +53,7 @@ describe("public land beyond the mile", () => {
       u("Buffalo Mountain Preserve", "OA", 5.31 * 5280, false, "UNK"),
       u("Buffalo Mountain Preserve", "OA", 5.31 * 5280, false, "SDC"),
     ]);
-    expect(v.beyond).toBe(LINE("Buffalo Mountain Preserve", "SDC", "5.3"));
+    expect(v.beyond).toBe(LINE("Buffalo Mountain Preserve", "State Department of Conservation", "5.3"));
   });
 
   it("no line when land open to visitors is within the mile, or adjoins", () => {
@@ -75,9 +75,31 @@ describe("public land beyond the mile", () => {
     } as PartialScreenResult;
     const html = renderToStaticMarkup(<PublicLand result={result} point={null} variant="panel" />);
     const caveat = html.indexOf("Conservation easements on private land");
-    const line = html.indexOf(LINE("Jefferson National Forest", "USFS", "2.3"));
+    const line = html.indexOf(LINE("Jefferson National Forest", "U.S. Forest Service", "2.3"));
     expect(caveat).toBeGreaterThan(0);
     expect(line).toBeGreaterThan(caveat);
     expect(html.slice(0, caveat)).not.toContain("Jefferson");
+  });
+});
+
+describe("manager names (owner, 2026-10-08): never a bare code", () => {
+  it("a local name as it is; a code as its agency; an empty or unknown one as 'manager unknown'", () => {
+    expect(managerName("Forest Service Region 08 Southern")).toBe("Forest Service Region 08 Southern");
+    expect(managerName("USFS")).toBe("U.S. Forest Service");
+    expect(managerName("NPS")).toBe("National Park Service"); // PAD-US sometimes has a code as the local name
+    expect(managerName("SDC")).toBe("State Department of Conservation");
+    expect(managerName("UNK")).toBe("manager unknown");
+    expect(managerName(" ")).toBe("manager unknown");
+    expect(managerName(null)).toBe("manager unknown");
+    expect(managerName("ZZZ")).toBe("manager unknown"); // an unlisted code is still a bare code
+  });
+
+  it("no code in the list prints as itself", () => {
+    for (const [code, name] of Object.entries(PADUS_MANAGERS)) expect(name).not.toBe(code);
+  });
+
+  it("the line never shows a bare code", () => {
+    const v = view([u("Buffalo Mountain Preserve", "OA", 5.31 * 5280, false, "UNK")]);
+    expect(v.beyond).toBe(LINE("Buffalo Mountain Preserve", "manager unknown", "5.3"));
   });
 });

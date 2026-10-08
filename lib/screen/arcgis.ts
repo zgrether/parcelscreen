@@ -2,7 +2,7 @@
  * Polygon-intersects query against an ArcGIS FeatureServer/MapServer layer, returning GeoJSON features.
  * Used by the flood and public-land steps. Ported verbatim (proto L855–860), including its error text.
  */
-import type { Feature, Polygon } from "geojson";
+import type { Feature, MultiPolygon, Polygon } from "geojson";
 import type { HttpClient } from "../http";
 
 export interface ArcQueryDeps {
@@ -17,12 +17,17 @@ export interface ArcQueryDeps {
 
 export async function arcQuery(
   url: string,
-  parcel: Feature<Polygon>,
+  parcel: Feature<Polygon | MultiPolygon>,
   extra: Record<string, string | number>,
   deps: ArcQueryDeps,
 ): Promise<Feature[]> {
   const params: Record<string, string> = {
-    geometry: JSON.stringify({ rings: parcel.geometry.coordinates, spatialReference: { wkid: 4326 } }),
+    // A parcel of several parts (its own land, follow-up 29) sends every part's rings.
+    geometry: JSON.stringify({
+      rings:
+        parcel.geometry.type === "Polygon" ? parcel.geometry.coordinates : parcel.geometry.coordinates.flat(),
+      spatialReference: { wkid: 4326 },
+    }),
     geometryType: "esriGeometryPolygon",
     inSR: "4326",
     spatialRel: "esriSpatialRelIntersects",

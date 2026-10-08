@@ -32,14 +32,14 @@ describe.each(FIXTURE_SLUGS)("flood and public land on %s vs the prototype", (sl
     const t = await throughSites(slug);
     const golden = expectedOf(slug, "run");
 
-    const f = await floodStep(t.parcel, t.acres, t.deps);
+    const f = await floodStep(t.measured, t.acres, t.deps);
     expect(differences(f.flood, golden.flood)).toEqual([]);
     for (const flag of f.flags) expect(golden.flags).toContainEqual(flag);
     expect(golden.flags.filter((x) => /FEMA Special Flood Hazard Area/.test(x.t))).toHaveLength(
       f.flags.length,
     );
 
-    const p = await padusStep(t.parcel, t.deps);
+    const p = await padusStep(t.measured, t.deps);
     expect(differences(p.protected, golden.protected)).toEqual([]);
     for (const flag of p.flags) expect(golden.flags).toContainEqual(flag);
     expect(golden.flags.filter((x) => /^Adjoins/.test(x.t))).toHaveLength(p.flags.length);
@@ -346,7 +346,7 @@ describe("public land: the nearest part, and land open beyond the mile (follow-u
       "Pub_Access='OA'",
       "0.0002",
     ]);
-    expect(wide!.get("outFields")).toBe(mile!.get("outFields"));
+    expect(wide!.get("outFields")).toBe(`${mile!.get("outFields")},Loc_Mang`); // the local manager name, for the line
   });
 
   it("the adjoins flags come from the mile's query only", async () => {
@@ -365,5 +365,74 @@ describe("public land: the nearest part, and land open beyond the mile (follow-u
       endpoints: DEFAULT_ENDPOINTS,
     });
     expect(names(r)).toEqual(["Park"]);
+  });
+});
+
+describe("flood: two trimmed queries, measured on the parcel's own land (A2a, owner 2026-10-08)", () => {
+  const own = {
+    type: "Feature" as const,
+    properties: {},
+    geometry: {
+      type: "MultiPolygon" as const,
+      coordinates: [
+        square(-80.5, 36.9, -80.495, 36.91).geometry.coordinates,
+        square(-80.494, 36.9, -80.49, 36.91).geometry.coordinates,
+      ],
+    },
+  };
+  /** Zones without geometry for the first query; the SFHA features with geometry for the second. */
+  const nfhl = (zones: FloodFeature[]) => {
+    const asked: URLSearchParams[] = [];
+    const http: HttpClient = {
+      fetch: async (_u, o = {}) => {
+        const b = new URLSearchParams(String(o.body));
+        asked.push(b);
+        const sfhaOnly = b.get("where") === "SFHA_TF='T'";
+        const feats = zones
+          .filter((z) => !sfhaOnly || z.properties.SFHA_TF === "T")
+          .map((z) => (b.get("returnGeometry") === "false" ? { ...z, geometry: null } : z));
+        return new Response(JSON.stringify({ features: feats }));
+      },
+    };
+    return { http, asked };
+  };
+  // A flood zone on the strip only (between the parts), and one on the west part.
+  const onStrip = {
+    ...square(-80.495, 36.9, -80.494, 36.91),
+    properties: { FLD_ZONE: "AE", SFHA_TF: "T" },
+  } as FloodFeature;
+  const onPart = {
+    ...square(-80.5, 36.9, -80.499, 36.91),
+    properties: { FLD_ZONE: "A", SFHA_TF: "T" },
+  } as FloodFeature;
+
+  it("asks for zones without geometry, then geometry for the SFHA features only, with the fields it uses", async () => {
+    const q = nfhl([
+      onPart,
+      { ...square(-80.5, 36.9, -80.49, 36.91), properties: { FLD_ZONE: "X", SFHA_TF: "F" } } as FloodFeature,
+    ]);
+    await floodStep(own, 10, { http: q.http, endpoints: DEFAULT_ENDPOINTS });
+    expect(q.asked.map((b) => [b.get("outFields"), b.get("returnGeometry"), b.get("where")])).toEqual([
+      ["FLD_ZONE,SFHA_TF", "false", null],
+      ["FLD_ZONE,SFHA_TF", "true", "SFHA_TF='T'"],
+    ]);
+    // The query is the own land: both parts' rings.
+    expect(JSON.parse(q.asked[0]!.get("geometry")!).rings).toHaveLength(2);
+  });
+
+  it("no SFHA zone: one query", async () => {
+    const q = nfhl([
+      { ...square(-80.5, 36.9, -80.49, 36.91), properties: { FLD_ZONE: "X", SFHA_TF: "F" } } as FloodFeature,
+    ]);
+    const r = await floodStep(own, 10, { http: q.http, endpoints: DEFAULT_ENDPOINTS });
+    expect(q.asked).toHaveLength(1);
+    expect(r.flood).toEqual({ zones: ["X"], sfha: false, sfhaAcres: 0, mapped: true });
+  });
+
+  it("flood acres count the own land, never the strip", async () => {
+    const strip = await floodStep(own, 10, { ...nfhl([onStrip]), endpoints: DEFAULT_ENDPOINTS });
+    expect(strip.flood.sfhaAcres).toBeLessThan(1e-6); // touches the parts' edges only
+    const part = await floodStep(own, 10, { ...nfhl([onPart]), endpoints: DEFAULT_ENDPOINTS });
+    expect(part.flood.sfhaAcres).toBeGreaterThan(1);
   });
 });

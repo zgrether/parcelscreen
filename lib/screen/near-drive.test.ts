@@ -62,8 +62,8 @@ describe.each(FIXTURE_SLUGS)("near, roads and drive times on %s vs the prototype
       ...soilFlags(t.rows, t.units, t.acres, CFG.shallowBedrockCm),
       ...sunFlags(s.sun, focus.label, s.worst, CFG.sunHoursWanted),
       ...skyFlags(k.sky, k.zone, k.worst),
-      ...(await floodStep(t.parcel, t.acres, t.deps)).flags,
-      ...(await padusStep(t.parcel, t.deps)).flags,
+      ...(await floodStep(t.measured, t.acres, t.deps)).flags,
+      ...(await padusStep(t.measured, t.deps)).flags,
       ...n.flags,
     ];
     expect(golden.flags.slice(0, flags.length)).toEqual(flags);

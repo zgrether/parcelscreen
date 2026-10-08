@@ -45,6 +45,8 @@ export async function throughSites(slug: FixtureSlug) {
     fetch,
     deps,
     parcel,
+    /** What soils, flood and public land measure: the own land, or the parcel when it has no strip (follow-up 29). */
+    measured: ownLand ?? parcel,
     acres,
     centre,
     dFine,
@@ -61,8 +63,8 @@ export async function throughSites(slug: FixtureSlug) {
 /** …then the soils step: rows, map units, vetted benches (with the re-picked best) and gardens. */
 export async function throughSoils(slug: FixtureSlug) {
   const t = await throughSites(slug);
-  const rows = screenableRows(await fetchSoils(t.parcel, t.deps));
-  const units = await fetchSoilPolygons(t.parcel, t.deps);
+  const rows = screenableRows(await fetchSoils(t.measured, t.deps));
+  const units = await fetchSoilPolygons(t.measured, t.deps);
   const vet = vetBenches(t.search.benches, t.dFine, units, rows);
   return { ...t, rows, units, vet, gardens: vetGardens(t.sites.gardens, units, rows) };
 }

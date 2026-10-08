@@ -75,12 +75,75 @@ function beyondMile(units: readonly Unit[]): string | null {
   if (units.some((u) => withinMile(u) && u.access === "OA")) return null;
   const open = units.filter((u) => !withinMile(u) && u.access === "OA").sort((a, b) => a.distFt! - b.distFt!);
   if (!open.length) return null;
-  // PAD-US often lists one unit twice, once with its manager unknown ("UNK"): at the same distance, name the
-  // manager when one copy has it.
+  // PAD-US often lists one unit twice, once with its manager unknown: at the same distance, name the copy
+  // whose manager is known.
   const atNearest = open.filter((u) => u.distFt! - open[0]!.distFt! < 1);
-  const nearest = atNearest.find((u) => u.manager && u.manager !== "UNK") ?? open[0]!;
+  const nearest = atNearest.find((u) => managerName(u.manager) !== UNKNOWN_MANAGER) ?? open[0]!;
   const mi = (nearest.distFt! / 5280).toFixed(1);
-  return `Nearest public land open to visitors beyond a mile: ${nearest.name || "Unnamed"} (${nearest.manager || "unknown"}), ${mi} mi straight-line.`;
+  return `Nearest public land open to visitors beyond a mile: ${nearest.name || "Unnamed"} (${managerName(nearest.manager)}), ${mi} mi straight-line.`;
+}
+
+const UNKNOWN_MANAGER = "manager unknown";
+
+/**
+ * PAD-US manager codes (`Mang_Name`) as agency names: the service's own coded-value domain (Fee_Managers_PADUS,
+ * read 2026-10-08), with USFS as "U.S. Forest Service" (owner's example) and the unknown kinds as "manager
+ * unknown". The wider query stores the local manager name (`Loc_Mang`) when PAD-US has one and the code
+ * otherwise; the line never prints a bare code (owner, 2026-10-08).
+ */
+export const PADUS_MANAGERS: Readonly<Record<string, string>> = {
+  TVA: "Tennessee Valley Authority",
+  BLM: "Bureau of Land Management",
+  BOEM: "Bureau of Ocean Energy Management",
+  USBR: "Bureau of Reclamation",
+  FWS: "U.S. Fish and Wildlife Service",
+  USFS: "U.S. Forest Service",
+  DOD: "Department of Defense",
+  USACE: "Army Corps of Engineers",
+  DOE: "Department of Energy",
+  NPS: "National Park Service",
+  NRCS: "Natural Resources Conservation Service",
+  ARS: "Agricultural Research Service",
+  BIA: "Bureau of Indian Affairs",
+  NOAA: "National Oceanic and Atmospheric Administration",
+  BPA: "Bonneville Power Administration",
+  OTHF: "Other or Unknown Federal Land",
+  TRIB: "American Indian Lands",
+  SPR: "State Park and Recreation",
+  SDC: "State Department of Conservation",
+  SLB: "State Land Board",
+  SFW: "State Fish and Wildlife",
+  SDNR: "State Department of Natural Resources",
+  SDOL: "State Department of Land",
+  OTHS: "Other or Unknown State Land",
+  REG: "Regional Agency Land",
+  RWD: "Regional Water Districts",
+  CITY: "City Land",
+  CNTY: "County Land",
+  UNKL: "Other or Unknown Local Government",
+  NGO: "Non-Governmental Organization",
+  PVT: "Private",
+  JNT: "Joint",
+  OTHR: "Other",
+  UNK: UNKNOWN_MANAGER,
+  DESG: UNKNOWN_MANAGER,
+  VI: "U.S. Virgin Islands Government",
+  AS: "American Samoa Government",
+  GU: "Guam Government",
+  MP: "Mariana Islands Government",
+  PR: "Puerto Rico Government",
+  FM: "Federated States of Micronesia Government",
+  MH: "Marshall Islands Government",
+  PW: "Palau Government",
+  UM: "U.S. Minor Outlying Islands Government",
+};
+
+/** A manager as the report names it: a local name as it is, a code as its agency, nothing as "manager unknown". */
+export function managerName(m: string | null | undefined): string {
+  const v = m?.trim();
+  if (!v) return UNKNOWN_MANAGER;
+  if (PADUS_MANAGERS[v]) return PADUS_MANAGERS[v]!;
+  return /^[A-Z]{2,5}$/.test(v) ? UNKNOWN_MANAGER : v; // an unlisted code is still a bare code
 }
 
 /** Null until the public-land step has run. */
