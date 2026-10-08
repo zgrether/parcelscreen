@@ -385,7 +385,7 @@ function ParcelDetails({ ctl, name }: { ctl: ExploreController; name: string }) 
   return (
     <>
       <h3>{name}</h3>
-      {ctl.parcel && <ParcelFacts parcel={ctl.parcel} />}
+      {ctl.parcel && <ParcelFacts parcel={ctl.parcel} unscreened={d?.ok ? d.unscreened : undefined} />}
       {d?.ok && d.splitDropped && (
         <p className="ip-note">The split no longer crosses the boundary, so it&apos;s left off.</p>
       )}

@@ -43,6 +43,10 @@ export const PolygonGeometrySchema = z.strictObject({
   type: z.literal("Polygon"),
   coordinates: z.array(z.array(z.array(z.number()))),
 });
+export const MultiPolygonGeometrySchema = z.strictObject({
+  type: z.literal("MultiPolygon"),
+  coordinates: z.array(z.array(z.array(z.array(z.number())))),
+});
 
 // ---------- user config (Settings) ----------
 
@@ -107,6 +111,12 @@ export type UserConfig = z.infer<typeof UserConfigSchema>;
 
 export const ScreenInputSchema = z.strictObject({
   polygon: PolygonGeometrySchema, // WGS84
+  /**
+   * The parcel's own land when `polygon` bridges a gap between its parts (a road right-of-way; follow-up 29,
+   * 13b's combinations): the acres and every site, shelf, garden and suitability cell come from it. The outline
+   * stays for the driveway's connectivity and the drawing. Absent: the polygon is all own land.
+   */
+  ownLand: z.union([PolygonGeometrySchema, MultiPolygonGeometrySchema]).optional(),
   config: UserConfigSchema,
   house: LatLonSchema.optional(),
   evaluateAt: LatLonSchema.optional(),

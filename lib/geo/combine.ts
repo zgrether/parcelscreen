@@ -152,6 +152,12 @@ export function combinedRecord(
     // A member that was itself a combination contributes its own parts, so the list stays flat.
     members: members
       .flatMap((m) => m.members ?? [m])
-      .map((m) => ({ geo: m.geo, props: m.props, source: m.source, multiPart: m.multiPart })),
+      .map((m) => ({
+        geo: m.geo,
+        props: m.props,
+        source: m.source,
+        multiPart: m.multiPart,
+        ...(m.parts ? { parts: m.parts } : {}),
+      })),
   };
 }

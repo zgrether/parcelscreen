@@ -6,8 +6,8 @@
  *
  * No DOM here: this runs in a Web Worker and in Node.
  */
-import { area, centroid, polygon } from "@turf/turf";
-import type { Feature, Polygon } from "geojson";
+import { area, centroid, feature, polygon } from "@turf/turf";
+import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { CancelledError, createHttpClient, type HttpClient } from "../http";
 import { STEPS } from "./config";
 import { DemCache, fetchDEM, fineResM, parcelBboxes, rcToLL } from "./dem";
@@ -39,7 +39,7 @@ import {
   type VettedBench,
 } from "./soils";
 import { chooseFocus, computeSun, sunFlags, type HorizonPoint } from "./sun";
-import { insideMask, slopeAspect, terrainFlags, terrainStats, valleyFloor } from "./terrain";
+import { insideMasks, slopeAspect, terrainFlags, terrainStats, valleyFloor } from "./terrain";
 import type {
   Dem,
   PartialScreenResult,
@@ -72,6 +72,8 @@ export interface ScreenDeps {
 /** Everything a run computed that isn't stored: rasters, raw features, caches. In memory only. */
 export interface ScreenSession {
   parcel: Feature<Polygon>;
+  /** The parcel's own land, when the outline bridges a strip between parts (ScreenInput.ownLand). */
+  ownLand?: Feature<Polygon | MultiPolygon>;
   acres: number;
   centre: LatLon;
   config: UserConfig;
@@ -80,7 +82,10 @@ export interface ScreenSession {
   dWide?: Dem;
   slope?: Float32Array;
   aspect?: Float32Array;
+  /** Cells on the parcel's own land: sites, shelves, gardens, suitability, terrain stats, the house. */
   inside?: Uint8Array;
+  /** Cells inside the outline, bridged strip included: only the driveway router (connectivity) uses it. */
+  outlineInside?: Uint8Array;
   valleyFloorFt?: number;
   search?: SiteSearch;
   /** House sites after the soils step's bottomland check (absent if soils didn't run). */
@@ -122,11 +127,13 @@ export async function screen(
 ): Promise<ScreenOutput> {
   const cfg = input.config;
   const parcel = polygon(input.polygon.coordinates);
+  const ownLand = input.ownLand ? feature(input.ownLand) : undefined;
   const [cLon, cLat] = centroid(parcel).geometry.coordinates as [number, number];
   const house = input.house ?? null;
   const s: ScreenSession = {
     parcel,
-    acres: area(parcel) / M2_PER_ACRE,
+    ...(ownLand ? { ownLand } : {}),
+    acres: area(ownLand ?? parcel) / M2_PER_ACRE,
     centre: [cLat, cLon],
     config: cfg,
     house,
@@ -201,7 +208,9 @@ export async function screen(
     const { slope, aspect } = slopeAspect(s.dFine);
     s.slope = slope;
     s.aspect = aspect;
-    s.inside = insideMask(s.dFine, parcel);
+    const masks = insideMasks(s.dFine, parcel, s.ownLand);
+    s.outlineInside = masks.outline;
+    s.inside = masks.own;
     const vf = valleyFloor(s.dWide!, s.centre);
     s.valleyFloorFt = vf * M2FT;
     const stats = terrainStats(s.dFine, slope, s.inside, vf);
@@ -369,18 +378,14 @@ export async function screen(
 
 /** The driveway router's view of the session; the soil mask and flow accumulation are built once. */
 export function routeContext(s: ScreenSession): RouteContext {
+  // The router keeps the whole outline: a driveway may cross a bridged right-of-way (follow-up 29).
+  const inside = s.outlineInside ?? s.inside!;
   return {
     dFine: s.dFine!,
-    inside: s.inside!,
+    inside,
     slope: s.slope!,
     soilMask: () =>
-      (s.soilMask ??= soilMask(
-        s.units ?? null,
-        s.rows ?? null,
-        s.dFine!,
-        s.inside!,
-        s.config.shallowBedrockCm,
-      )),
+      (s.soilMask ??= soilMask(s.units ?? null, s.rows ?? null, s.dFine!, inside, s.config.shallowBedrockCm)),
     flowAcc: () => (s.flowAcc ??= flowAccum(s.dFine!)),
     dw: s.config.dw,
   };

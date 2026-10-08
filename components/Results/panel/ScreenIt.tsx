@@ -228,7 +228,15 @@ export function useScreenIt(
     setShowParams(false);
     setEvalAsked(null);
     awaitingEval.current = false;
-    screen.run({ polygon: parcel.geo.geometry, config, ...(house ? { house } : {}) });
+    // A boundary that bridges a strip between parts screens only the parts' own land (follow-up 29).
+    const d = ctl.derived;
+    const ownLand = d?.ok && d.bridgeAcres > 0 ? d.own.geometry : null;
+    screen.run({
+      polygon: parcel.geo.geometry,
+      config,
+      ...(ownLand ? { ownLand } : {}),
+      ...(house ? { house } : {}),
+    });
   };
 
   // Re-evaluate at a pin (15b): only with this parcel's live session. The hint says what's happening, as the

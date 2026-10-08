@@ -32,6 +32,13 @@ export type DerivedParcel =
       record: ParcelRecord;
       /** The parcels' own acres: a bridged road strip isn't part of the listing. */
       acres: number;
+      /**
+       * The parcels' own land inside the boundary: the parts without any bridged strip (for a split, on the
+       * side kept). The screen finds sites only on it (follow-up 29).
+       */
+      own: Feature<Polygon | MultiPolygon>;
+      /** Parts of a multi-part county record too far from the rest to bridge: not screened (follow-up 29). */
+      unscreened?: { acres: number; parts: number };
       /** Acres of bridged strip inside the boundary. */
       bridgeAcres: number;
       /** The widest gap bridged, m; 0 when the parts touch. */
@@ -94,9 +101,58 @@ export function drawnPart(geo: Feature<Polygon>): ParcelRecord {
   return { geo, props: {}, source: "drawn", multiPart: false };
 }
 
+/** The polygons a part brings: every part of a multi-part county record (follow-up 29), else its boundary. */
+const polygonsOf = (p: ParcelRecord): Feature<Polygon>[] => (p.parts?.length ? p.parts : [p.geo]);
+
+const unionOf = (polys: Feature<Polygon>[]): Feature<Polygon | MultiPolygon> | null =>
+  polys.length === 1 ? polys[0]! : union(featureCollection(polys));
+
 /** The parts' own land: their union, without any bridged strip. */
 export function ownLand(parts: ParcelRecord[]): Feature<Polygon | MultiPolygon> | null {
-  return parts.length === 1 ? parts[0]!.geo : union(featureCollection(parts.map((p) => p.geo)));
+  return unionOf(parts.flatMap(polygonsOf));
+}
+
+type Joined =
+  | {
+      ok: true;
+      base: ParcelRecord;
+      acres: number;
+      bridgeAcres: number;
+      gapM: number;
+      own: Feature<Polygon | MultiPolygon>;
+    }
+  | { ok: false; reason: "no parts" | "too far apart" | "no single boundary"; gapM: number };
+
+/** One boundary from these polygons of these parts (13b's rules), its own acres and land, and any strip. */
+function join(parts: ParcelRecord[], polys: Feature<Polygon>[], limits: CombineLimits): Joined {
+  if (polys.length === 1) {
+    // A drawn piece never supplies facts, even if it carries stray properties.
+    const base = parts[0]!.source === "drawn" ? { ...parts[0]!, props: {} } : parts[0]!;
+    return {
+      ok: true,
+      base,
+      acres: parcelFacts(base.geo, base.props).acres,
+      bridgeAcres: 0,
+      gapM: 0,
+      own: base.geo,
+    };
+  }
+  const c = combineParcels(polys, limits);
+  if (!c.ok)
+    return { ok: false, reason: c.reason === "fewer than two" ? "no parts" : c.reason, gapM: c.gapM };
+  // One multi-part county record keeps its own identity and facts; several records make a combination.
+  const base =
+    parts.length === 1
+      ? { ...parts[0]!, geo: c.geo, props: { ...parts[0]!.props, combined_acres: c.acres } }
+      : combinedRecord(parts, c);
+  return {
+    ok: true,
+    base,
+    acres: c.acres,
+    bridgeAcres: c.bridgeAcres,
+    gapM: c.gapM,
+    own: unionOf(polys) ?? c.geo,
+  };
 }
 
 /** The parts' own land on one side of a cut, in acres. */
@@ -135,48 +191,53 @@ export function deriveParcel(recipe: ParcelRecipe, limits: CombineLimits): Deriv
   const { parts } = recipe;
   if (!parts.length) return { ok: false, reason: "no parts", gapM: 0 };
 
-  let base: ParcelRecord,
-    acres: number,
-    bridgeAcres = 0,
-    gapM = 0;
-  if (parts.length === 1) {
-    // A drawn piece never supplies facts, even if it carries stray properties.
-    base = parts[0]!.source === "drawn" ? { ...parts[0]!, props: {} } : parts[0]!;
-    acres = parcelFacts(base.geo, base.props).acres;
-  } else {
-    const c = combineParcels(
+  // Every part of every record (follow-up 29). If a multi-part record's other parts are too far to bridge,
+  // screen each record's first part, as before, and say what was left out.
+  let joined = join(parts, parts.flatMap(polygonsOf), limits);
+  let unscreened: { acres: number; parts: number } | undefined;
+  const extra = parts.flatMap((p) => p.parts?.slice(1) ?? []);
+  if (!joined.ok && extra.length) {
+    const firsts = join(
+      parts,
       parts.map((p) => p.geo),
       limits,
     );
-    if (!c.ok)
-      return { ok: false, reason: c.reason === "fewer than two" ? "no parts" : c.reason, gapM: c.gapM };
-    base = combinedRecord(parts, c);
-    acres = c.acres;
-    bridgeAcres = c.bridgeAcres;
-    gapM = c.gapM;
+    if (firsts.ok) {
+      joined = firsts;
+      unscreened = { acres: extra.reduce((n, g) => n + area(g), 0) / M2_PER_ACRE, parts: extra.length };
+    }
   }
-  if (!recipe.split) return { ok: true, record: base, acres, bridgeAcres, gapM, splitDropped: false };
+  if (!joined.ok) return joined;
+  const { base, acres, bridgeAcres, gapM, own } = joined;
+  const more = unscreened ? { unscreened } : {};
+  if (!recipe.split)
+    return { ok: true, record: base, acres, own, bridgeAcres, gapM, splitDropped: false, ...more };
 
   const { a, b, keep } = recipe.split;
   const P = splitPieces(base.geo, a, b);
   const piece = keep < 0 ? P.left : P.right,
     other = keep < 0 ? P.right : P.left;
-  if (!piece || !other) return { ok: true, record: base, acres, bridgeAcres, gapM, splitDropped: true };
+  if (!piece || !other)
+    return { ok: true, record: base, acres, own, bridgeAcres, gapM, splitDropped: true, ...more };
 
-  const own = ownAcresOnSide(ownLand(parts), a, b, keep);
+  const ownKept = intersect(featureCollection([own, halfPlane(a, b, keep)]));
+  const ownAc = ownKept ? area(ownKept) / M2_PER_ACRE : 0;
   const record: ParcelRecord = {
     geo: piece,
-    props: { ...base.props, split_from: splitFromLabel(base.props), combined_acres: own },
+    props: { ...base.props, split_from: splitFromLabel(base.props), combined_acres: ownAc },
     source: "split",
     multiPart: base.multiPart,
     ...(base.members ? { members: base.members } : {}),
+    ...(base.parts ? { parts: base.parts } : {}),
   };
   return {
     ok: true,
     record,
-    acres: own,
-    bridgeAcres: Math.max(0, area(piece) / M2_PER_ACRE - own),
+    acres: ownAc,
+    own: ownKept ?? piece,
+    bridgeAcres: Math.max(0, area(piece) / M2_PER_ACRE - ownAc),
     gapM,
     splitDropped: false,
+    ...more,
   };
 }

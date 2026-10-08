@@ -24,6 +24,8 @@ export const RecordSchema = z.object({
   props: z.record(z.string(), z.unknown()),
   source: z.string(),
   multiPart: z.boolean(),
+  // Every part of a multi-part county record (Batch A, A2a); absent on records kept before then.
+  parts: z.array(PolygonFeature).optional(),
 });
 const ParcelSchema = RecordSchema.extend({ members: z.array(RecordSchema).optional() });
 const CurrentSchema = z.object({

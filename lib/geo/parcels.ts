@@ -17,10 +17,15 @@ export interface ParcelRecord {
   /** The service URL for county records; otherwise how the boundary was made. */
   source: string;
   /**
-   * The record was a MultiPolygon and only its first polygon is kept, as in the prototype (plan B7);
-   * the UI shows a "multi-part parcel: only the first part screened" note.
+   * The record was a MultiPolygon. `geo` is its first polygon, as in the prototype (plan B7); `parts` holds
+   * them all, so the recipe screens every part (follow-up 29).
    */
   multiPart: boolean;
+  /**
+   * Every polygon of a multi-part county record, the first being `geo` (Batch A, A2a). Records kept before
+   * then have only `geo`: they screen the first part, with the old note.
+   */
+  parts?: Feature<Polygon>[];
   /** For a combination: the parcels it was made from, so it can be edited later. */
   members?: ParcelRecord[];
 }
@@ -36,10 +41,15 @@ interface ParcelFeatureCollection {
   error?: { message?: string };
 }
 
-function firstPolygon(f: Feature<Polygon | MultiPolygon>): { geo: Feature<Polygon>; multiPart: boolean } {
-  return f.geometry.type === "MultiPolygon"
-    ? { geo: polygon(f.geometry.coordinates[0]!), multiPart: true }
-    : { geo: polygon(f.geometry.coordinates), multiPart: false };
+/** The record's first polygon (its identity, as in the prototype), and all of them when it has several. */
+function firstPolygon(f: Feature<Polygon | MultiPolygon>): {
+  geo: Feature<Polygon>;
+  multiPart: boolean;
+  parts?: Feature<Polygon>[];
+} {
+  if (f.geometry.type === "Polygon") return { geo: polygon(f.geometry.coordinates), multiPart: false };
+  const parts = f.geometry.coordinates.map((rings) => polygon(rings));
+  return parts.length > 1 ? { geo: parts[0]!, multiPart: true, parts } : { geo: parts[0]!, multiPart: false };
 }
 
 /** The parcel under a point: each service in turn until one returns a feature. */
@@ -81,9 +91,15 @@ export async function pickParcelAt(
         report.push(`${short}: no parcel at this point`);
         continue;
       }
-      const { geo, multiPart } = firstPolygon(f);
+      const { geo, multiPart, parts } = firstPolygon(f);
       return {
-        parcel: { geo, props: (f.properties as Record<string, unknown>) || {}, source: url, multiPart },
+        parcel: {
+          geo,
+          props: (f.properties as Record<string, unknown>) || {},
+          source: url,
+          multiPart,
+          ...(parts ? { parts } : {}),
+        },
         report,
       };
     } catch (err) {
@@ -125,12 +141,13 @@ export function pickOutline(lines: readonly ParcelLine[], ll: LatLon): ParcelLin
 
 /** Which recorded parcel to use when the user taps an outline (same first-polygon rule as pickParcelAt). */
 export function parcelFromLine(line: ParcelLine): ParcelRecord {
-  const { geo, multiPart } = firstPolygon(line.feature);
+  const { geo, multiPart, parts } = firstPolygon(line.feature);
   return {
     geo,
     props: (line.feature.properties as Record<string, unknown>) || {},
     source: line.source,
     multiPart,
+    ...(parts ? { parts } : {}),
   };
 }
 

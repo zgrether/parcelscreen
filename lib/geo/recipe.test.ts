@@ -1,7 +1,8 @@
 import { area, destination, polygon } from "@turf/turf";
 import type { Feature, Polygon } from "geojson";
 import { describe, expect, it } from "vitest";
-import { boundarySourceLabel, parcelFacts, type ParcelRecord } from "./parcels";
+import { loadFixture } from "@/test/support/fixtures";
+import { boundarySourceLabel, parcelFacts, parcelFromLine, type ParcelRecord } from "./parcels";
 import { memberKey } from "./combine";
 import {
   deriveParcel,
@@ -216,5 +217,70 @@ describe("drawn pieces never supply facts or identity", () => {
     expect(recipeDedupeKey({ parts: [b, a] })).toBe(recipeDedupeKey({ parts: [a, b] }));
     expect(recipeDedupeKey({ parts: [a, b] })).not.toBe(recipeDedupeKey({ parts: [a] }));
     expect(recipeDedupeKey({ parts: [stray, drawnPart(rect(0))] })).toBeNull();
+  });
+});
+
+// Follow-up 29 (owner, 2026-10-08): a multi-part county record screens every part as one recipe, by 13b's rules.
+describe("a multi-part county record", () => {
+  /** Grayson Mud Creek's county record, both parts, as the VGIN parcel query answered it (from the HAR). */
+  const grayson = (): ParcelRecord => {
+    const entry = loadFixture("grayson-mud-creek-6273").har.log.entries.find((e) =>
+      /VA_Parcels/.test(e.request.url),
+    )!;
+    const c = entry.response.content as { text: string; encoding?: string };
+    const f = JSON.parse(c.encoding === "base64" ? Buffer.from(c.text, "base64").toString() : c.text)
+      .features[0];
+    return parcelFromLine({ feature: f, source: "https://vginmaps.vdem.virginia.gov/x" });
+  };
+
+  it("keeps every part, the first as its identity", () => {
+    const r = grayson();
+    expect(r.multiPart).toBe(true);
+    expect(r.parts!.map((p) => +ac(p).toFixed(2))).toEqual([29.31, 0.84]);
+    expect(r.geo).toEqual(r.parts![0]);
+  });
+
+  it("screens both parts across their 12 m gap: the parts' 30.15 ac, the strip left out", () => {
+    const d = ok(deriveParcel({ parts: [grayson()] }, LIMITS));
+    expect(d.gapM).toBeCloseTo(12.1, 1);
+    expect(d.acres).toBeCloseTo(30.15, 2);
+    expect(area(d.own) / M2_PER_ACRE).toBeCloseTo(30.15, 2);
+    expect(d.bridgeAcres).toBeGreaterThan(0.5);
+    expect(ac(d.record.geo)).toBeCloseTo(d.acres + d.bridgeAcres, 6); // the boundary is the parts plus the strip
+    expect(parcelFacts(d.record.geo, d.record.props).acres).toBeCloseTo(30.15, 2); // what every acres label shows
+    expect(d.record.source).toBe("https://vginmaps.vdem.virginia.gov/x"); // still the county record
+    expect(d.unscreened).toBeUndefined();
+  });
+
+  it("parts too far apart to bridge: the first part, and what was left out", () => {
+    const r = grayson();
+    const far = polygon(
+      r.parts![1]!.geometry.coordinates.map((ring) => ring.map(([x, y]) => [x! + 0.01, y!])),
+    );
+    const d = ok(deriveParcel({ parts: [{ ...r, parts: [r.parts![0]!, far] }] }, LIMITS));
+    expect(d.acres).toBeCloseTo(29.31, 2);
+    expect(d.record.geo).toEqual(r.geo);
+    expect(d.unscreened!.parts).toBe(1);
+    expect(d.unscreened!.acres).toBeCloseTo(0.84, 2);
+  });
+
+  it("a record kept before parts were recorded still screens its first part", () => {
+    const { parts: _p, ...old } = grayson();
+    const d = ok(deriveParcel({ parts: [old] }, LIMITS));
+    expect(d.acres).toBeCloseTo(29.31, 2);
+    expect(d.record.multiPart).toBe(true);
+    expect(d.unscreened).toBeUndefined();
+  });
+
+  it("split: the kept side's own acres count both parts and never the strip", () => {
+    const r = grayson();
+    const whole = ok(deriveParcel({ parts: [r] }, LIMITS));
+    const [w, , e] = [-81.5668, 0, -81.5568];
+    const mid = (w + e) / 2;
+    const cut = { a: [36.6, mid] as LatLon, b: [36.57, mid] as LatLon };
+    const left = ok(deriveParcel({ parts: [r], split: { ...cut, keep: -1 } }, LIMITS));
+    const right = ok(deriveParcel({ parts: [r], split: { ...cut, keep: 1 } }, LIMITS));
+    expect(left.acres + right.acres).toBeCloseTo(whole.acres, 1);
+    expect(left.record.parts).toHaveLength(2);
   });
 });
