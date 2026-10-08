@@ -16,6 +16,7 @@ import type {
   SourceSpecification,
   StyleSpecification,
 } from "maplibre-gl";
+import { ROADS_SOURCE, roadLabelLayers, roadLineLayers, roadsSource } from "./roadsStyle";
 import { contourLayers, GLYPHS, hillshadeLayer, terrainSources, type TerrainTiles } from "./terrainStyle";
 
 export type BasemapId = "state" | "imagery" | "esri" | "topo" | "streets";
@@ -153,6 +154,8 @@ export function buildStyle(opts: {
   lpYear: number;
   /** The terrain preview's tiles (13g); without them the style has no terrain, hillshade or contours. */
   terrain?: TerrainTiles;
+  /** Roads and labels over the aerials (17d), with their starting visibility; without it, none. */
+  roads?: { visible: boolean };
 }): StyleSpecification {
   const sources: Record<string, SourceSpecification> = {};
   const layers: LayerSpecification[] = [];
@@ -211,8 +214,12 @@ export function buildStyle(opts: {
     layout: { visibility: "none" },
     paint: { "fill-color": "#0b1410", "fill-opacity": 0.38 },
   });
-  // The terrain image (15a, added at run time) and the soil fills (15c) go here, under the contours: the
-  // proto's fill at 0.14 in the unit's colour (L1206).
+  // The terrain image (15a, added at run time), then the road lines (17d) over it, then the soil fills (15c),
+  // all under the contours: the soil fill is the proto's fill at 0.14 in the unit's colour (L1206).
+  if (opts.roads) {
+    sources[ROADS_SOURCE] = roadsSource();
+    layers.push(...roadLineLayers(opts.roads.visible));
+  }
   sources[SOURCE.soils] = { type: "geojson", data: EMPTY_FC };
   layers.push({
     id: LAYER.soilFill,
@@ -522,5 +529,7 @@ export function buildStyle(opts: {
       },
     },
   );
-  return { version: 8, ...(opts.terrain ? { glyphs: GLYPHS } : {}), sources, layers };
+  // The road and place names go at the top of the map's own layers, under the DOM markers (17d §3).
+  if (opts.roads) layers.push(...roadLabelLayers(opts.roads.visible));
+  return { version: 8, ...(opts.terrain || opts.roads ? { glyphs: GLYPHS } : {}), sources, layers };
 }

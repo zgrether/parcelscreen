@@ -18,6 +18,8 @@ export async function openExplorer(page: Page, slug: FixtureSlug): Promise<void>
       sessionStorage.setItem("e2e", "1");
       localStorage.clear();
       localStorage.setItem("ps.debug", "1");
+      // No roads & labels (17d): their tiles aren't in the fixtures, and no rendered check should see them.
+      localStorage.setItem("ps.roads", "0");
       localStorage.setItem("ps.view", JSON.stringify(view));
     },
     { lat: point.lat, lon: point.lon, z: 15 },
