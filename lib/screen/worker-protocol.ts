@@ -5,6 +5,11 @@
  * Each request carries an `id`; a new `run` supersedes the previous one (its progress and result are
  * dropped), and `evaluateAt` / `setHouse` act on the run with that id. The worker keeps the session (DEMs,
  * caches) and sends the page a structured-clone-safe `SessionView`: only what the map and 3D need.
+ *
+ * Step 17e: the worker keeps the sessions of the last few runs (the page keeps up to 3, by recent use and a
+ * size budget, and says which to drop with `release`; the worker also caps itself at MAX_SESSIONS). Each
+ * keeps its run's own result (`base`: the run, or its last house re-assessment) and the current one (a pin
+ * re-evaluation moves it). `activate` reopens a kept run at its own point, with no network.
  */
 import type { Feature, Polygon } from "geojson";
 import { createHttpClient, type HttpClient } from "../http";
@@ -23,13 +28,19 @@ export type ToWorker =
   | { type: "cancel"; id: number }
   | { type: "evaluateAt"; id: number; ll: LatLon; label: string }
   | { type: "setHouse"; id: number; ll: LatLon | null }
+  /** Reopen a kept run at its own point (an unsaved re-evaluation is dropped): answered as `updated`. */
+  | { type: "activate"; id: number }
+  /** The page no longer needs this run's session. */
+  | { type: "release"; id: number }
   /** Liveness check: the worker loaded and its modules evaluated. No network. */
   | { type: "ping"; id: number };
 
 export type FromWorker =
+  /** A run was received and is starting: sent at once, before any step (the page's start watchdog). */
+  | { type: "started"; id: number }
   | { type: "progress"; id: number; event: ProgressEvent }
-  | { type: "done"; id: number; result: ScreenResult; view: SessionView }
-  | { type: "updated"; id: number; result: ScreenResult; view: SessionView }
+  | { type: "done"; id: number; result: ScreenResult; view: SessionView; bytes: SessionBytes }
+  | { type: "updated"; id: number; result: ScreenResult; view: SessionView; bytes: SessionBytes }
   | { type: "error"; id: number; message: string }
   | { type: "pong"; id: number };
 
@@ -72,6 +83,40 @@ export function sessionView(s: ScreenSession): SessionView {
   };
 }
 
+/** The bytes of a kept session's arrays: in the worker, and the view the page holds a copy of. */
+export interface SessionBytes {
+  session: number;
+  view: number;
+}
+
+/** Bytes of every typed array reachable from `root` (each buffer once). */
+export function arrayBytes(root: unknown): number {
+  const buffers = new Set<ArrayBufferLike>();
+  const seen = new WeakSet<object>();
+  const walk = (v: unknown): void => {
+    if (v === null || typeof v !== "object" || seen.has(v)) return;
+    seen.add(v);
+    if (ArrayBuffer.isView(v)) {
+      buffers.add(v.buffer);
+      return;
+    }
+    if (v instanceof Map) return v.forEach((x) => walk(x));
+    for (const x of Object.values(v)) walk(x);
+  };
+  walk(root);
+  let n = 0;
+  buffers.forEach((b) => (n += b.byteLength));
+  return n;
+}
+
+export const sessionBytes = (out: ScreenOutput): SessionBytes => ({
+  session: arrayBytes(out.session),
+  view: arrayBytes(sessionView(out.session)),
+});
+
+/** The worker never keeps more than this many sessions, whatever the page says (a missed release can't grow). */
+export const MAX_SESSIONS = 3;
+
 export interface WorkerCoreOptions {
   /** Defaults to a browser-mode client (no custom headers). */
   http?: HttpClient;
@@ -83,7 +128,8 @@ export interface WorkerCoreOptions {
 /** The worker's state machine. One instance per worker; caches live for the worker's lifetime (the session). */
 export class ScreenWorkerCore {
   private current: { id: number; abort: AbortController } | null = null;
-  private readonly outputs = new Map<number, ScreenOutput>();
+  /** Kept runs, least recently used first. */
+  private readonly sessions = new Map<number, { base: ScreenOutput; current: ScreenOutput }>();
   private readonly demCache = new DemCache();
   private readonly atlas = new AtlasCache();
   private readonly http: HttpClient;
@@ -103,15 +149,22 @@ export class ScreenWorkerCore {
         if (this.current?.id === msg.id) this.current.abort.abort();
         return;
       case "evaluateAt":
-        return this.update(msg.id, (out) => evaluateAt(out, msg.ll, msg.label));
+        return this.update(msg.id, (out) => evaluateAt(out, msg.ll, msg.label), false);
       case "setHouse":
-        return this.update(msg.id, (out) => setHouse(out, msg.ll));
+        // A house re-assessment is kept as a new screen: it becomes the run's own result.
+        return this.update(msg.id, (out) => setHouse(out, msg.ll), true);
+      case "activate":
+        return this.activate(msg.id);
+      case "release":
+        this.sessions.delete(msg.id);
+        return;
       case "ping":
         return this.post({ type: "pong", id: msg.id });
     }
   }
 
   private async run(id: number, input: ScreenInput): Promise<void> {
+    this.post({ type: "started", id });
     this.current?.abort.abort(); // a new run supersedes the old one
     const abort = new AbortController();
     this.current = { id, abort };
@@ -126,24 +179,71 @@ export class ScreenWorkerCore {
         ...(this.opts.overpass ? { overpass: this.opts.overpass } : {}),
       });
       if (!live()) return;
-      this.outputs.clear(); // only the latest run can be re-evaluated
-      this.outputs.set(id, out);
-      this.post({ type: "done", id, result: out.result, view: sessionView(out.session) });
+      this.keep(id, { base: out, current: out });
+      this.post({
+        type: "done",
+        id,
+        result: out.result,
+        view: sessionView(out.session),
+        bytes: sessionBytes(out),
+      });
     } catch (e) {
       if (live()) this.post({ type: "error", id, message: (e as Error).message || String(e) });
     }
   }
 
-  private async update(id: number, fn: (out: ScreenOutput) => Promise<ScreenOutput>): Promise<void> {
-    const out = this.outputs.get(id);
-    if (!out)
-      return this.post({ type: "error", id, message: "That screen is no longer available; run it again." });
+  /** Keeps a run's session as the most recently used, dropping the oldest above MAX_SESSIONS. */
+  private keep(id: number, s: { base: ScreenOutput; current: ScreenOutput }): void {
+    this.sessions.delete(id);
+    this.sessions.set(id, s);
+    for (const old of this.sessions.keys()) {
+      if (this.sessions.size <= MAX_SESSIONS) break;
+      if (old !== id) this.sessions.delete(old);
+    }
+  }
+
+  private gone(id: number): void {
+    this.post({ type: "error", id, message: "That screen is no longer available; run it again." });
+  }
+
+  private async update(
+    id: number,
+    fn: (out: ScreenOutput) => Promise<ScreenOutput>,
+    keepAsBase: boolean,
+  ): Promise<void> {
+    const s = this.sessions.get(id);
+    if (!s) return this.gone(id);
     try {
-      const next = await fn(out);
-      this.outputs.set(id, next);
-      this.post({ type: "updated", id, result: next.result, view: sessionView(next.session) });
+      const next = await fn(s.current);
+      this.keep(id, { base: keepAsBase ? next : s.base, current: next });
+      this.post({
+        type: "updated",
+        id,
+        result: next.result,
+        view: sessionView(next.session),
+        bytes: sessionBytes(next),
+      });
     } catch (e) {
       this.post({ type: "error", id, message: (e as Error).message || String(e) });
     }
+  }
+
+  private activate(id: number): void {
+    const s = this.sessions.get(id);
+    if (!s) return this.gone(id);
+    this.keep(id, { base: s.base, current: s.base });
+    const out = s.base;
+    this.post({
+      type: "updated",
+      id,
+      result: out.result,
+      view: sessionView(out.session),
+      bytes: sessionBytes(out),
+    });
+  }
+
+  /** The kept runs, least recently used first (for tests). */
+  keptIds(): number[] {
+    return [...this.sessions.keys()];
   }
 }

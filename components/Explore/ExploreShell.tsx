@@ -65,6 +65,25 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   const { mode, split, info, store, serial } = explore.state;
   const sheet = useBottomSheet(root, panel, mode !== null || split !== null || (info && store.open !== null));
   const screen = useScreenIt(explore, config, sheet.raise, setHint);
+  // Esc on desktop closes the open parcel (17e), when nothing else should take it: no map tool, no panel, no
+  // menu, viewer or dialog, no text field. Those keep their own Esc.
+  const escape = useRef({ explore, docked: explore.docked });
+  useEffect(() => {
+    escape.current = { explore, docked: explore.docked };
+  });
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const { explore: x, docked: desk } = escape.current;
+      if (e.key !== "Escape" || e.defaultPrevented || !desk) return;
+      const s = x.current();
+      if (!s.store.open || s.mode || s.split || s.info || s.mapPanel) return;
+      if ((e.target as HTMLElement | null)?.closest("input,select,textarea,[contenteditable]")) return;
+      if (document.querySelector(".menu-layer, .ground-layer, dialog[open]")) return;
+      x.close();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
   // The headless checks read the live session view, like window.__psMap (MapView): only with ps.debug set.
   useEffect(() => {
     try {
@@ -102,6 +121,8 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
     sheet.mapMode ? "mapmode" : "",
     sheetHidden ? "sheet-hidden" : "",
     docked ? (expanded ? "float expanded" : "float card") : "",
+    // The phone sheet with a parcel open and nothing run yet: the header alone (17e).
+    !docked && explore.state.store.open && !screen.display && !screen.showSteps ? "bare" : "",
   ].join(" ");
 
   return (

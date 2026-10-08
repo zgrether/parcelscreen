@@ -18,6 +18,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { browserHttp } from "@/lib/client/http";
+import { parcelName } from "@/lib/client/historyRows";
 import { loadParcelStore, recipeOf, type WorkingParcel } from "@/lib/client/parcelStore";
 import { getPref, setPref } from "@/lib/client/prefs";
 import { CancelledError } from "@/lib/http";
@@ -31,6 +32,7 @@ import { pieceAt, type Side, type SplitPieces } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import {
+  BUSY_TEXT,
   decideTap,
   exploreReducer,
   INITIAL,
@@ -74,14 +76,21 @@ export interface ExploreController {
   panelInset: number;
   /** Desktop (and phones on their side): panels float over the map rather than the bottom sheet. */
   docked: boolean;
-  /** Bumped each time a tap is refused because a built parcel is open; the toolbar shows a brief note. */
-  nudge: number;
+  /** "{parcel} kept in History — Back" after leaving a parcel with a screen (17e), until it times out. */
+  toast: SwitchToast | null;
+  /** Reopen the parcel the toast names. */
+  back(): void;
+  dismissToast(): void;
+  /** A screen is running (the screen hook says so): switching parcels waits (17e). */
+  setBusy(busy: boolean): void;
+  /** Open or close the map panel (17e); one panel at a time with Info. */
+  setMapPanel(open: boolean): void;
   map: MlMap | null;
   setMap(map: MlMap | null): void;
   setMode(mode: Mode): void;
   /**
-   * A tap on the map with no tool waiting: select, swap, unselect, or a nudge (decideTap). Selecting first
-   * fetches the outline's full record (the drawn outlines are simplified).
+   * A tap on the map with no tool waiting: select or switch (decideTap); while a screen runs, a hint instead.
+   * Selecting first fetches the outline's full record (the drawn outlines are simplified).
    */
   tap(hit: TapHit): Promise<void>;
   close(): void;
@@ -118,6 +127,13 @@ export interface ExploreController {
   saveNotes(text: string, serial: number): void;
   /** A screen finished (kept under `id`) for the parcel open when it started (state.serial then). */
   screened(id: string, serial: number): void;
+}
+
+/** The toast after leaving a parcel with a screen (17e). `at` tells two toasts for the same parcel apart. */
+export interface SwitchToast {
+  key: string;
+  name: string;
+  at: number;
 }
 
 /** Shows a hint for a while, unless something else replaced it meanwhile. */
@@ -164,7 +180,20 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     setState(latest.current);
   }, []);
   const [map, setMap] = useState<MlMap | null>(null);
-  const [nudge, setNudge] = useState(0);
+  const [toast, setToast] = useState<SwitchToast | null>(null);
+  const busy = useRef(false);
+  /** About to leave the open parcel: if it has a screen, offer Back to it. */
+  const leaving = () => {
+    const o = latest.current.store.open;
+    if (o?.key && o.screenIds.length > 0) setToast({ key: o.key, name: parcelName(o).name, at: Date.now() });
+    else setToast(null);
+  };
+  /** A switch asked for while a screen runs: say so, and don't switch (17e). */
+  const refuseBusy = (): boolean => {
+    if (!busy.current) return false;
+    flash(hint, BUSY_TEXT, 3000);
+    return true;
+  };
   const docked = useDocked();
   const lookup = useRef<AbortController | null>(null);
 
@@ -252,6 +281,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     (mode: Mode) => {
       dispatch({ type: "mode", mode });
       hint("");
+      if (mode) setToast(null); // a map tool starting replaces the Back toast
     },
     [dispatch, hint],
   );
@@ -266,39 +296,64 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     combined,
     shapes,
     layers,
-    panelInset: docked && state.info && open ? DOCKED_PANEL_INSET : 0,
+    panelInset: docked && ((state.info && open) || state.mapPanel) ? DOCKED_PANEL_INSET : 0,
     docked,
-    nudge,
+    toast,
+    back() {
+      const t = toast;
+      if (!t || refuseBusy()) return;
+      setToast(null);
+      lookup.current?.abort();
+      leaving();
+      dispatch({ type: "openSaved", key: t.key, keepPanel: docked });
+      hint("");
+    },
+    dismissToast() {
+      setToast(null);
+    },
+    setBusy(b) {
+      busy.current = b;
+    },
+    setMapPanel(open) {
+      dispatch({ type: "mapPanel", open });
+    },
     map,
     setMap,
     setMode,
     async tap(hit) {
-      const o = decideTap(latest.current, hit);
+      const o = decideTap(latest.current, hit, busy.current);
       if (o.kind === "clearLayer") return dispatch({ type: "layer", id: null });
-      if (o.kind === "close") {
-        lookup.current?.abort();
-        dispatch({ type: "close" });
-      } else if (o.kind === "select") {
+      if (o.kind === "busy") return void refuseBusy();
+      if (o.kind === "select") {
         const record = await full(o.record);
-        if (!record) return;
+        if (!record || refuseBusy()) return;
+        leaving();
         dispatch({ type: "select", record, stamp: stamp(), keepPanel: docked });
-      } else if (o.kind === "openSaved") dispatch({ type: "openSaved", key: o.key, keepPanel: docked });
-      // A built parcel stays open until it's closed: the toolbar says so, briefly.
-      else if (o.kind === "nudge") return setNudge((n) => n + 1);
+      } else if (o.kind === "openSaved") {
+        leaving();
+        dispatch({ type: "openSaved", key: o.key, keepPanel: docked });
+      }
       if (o.kind !== "none") hint("");
       // An empty map because the parcel service isn't answering: say so, not nothing (owner, after 16b).
       else if (hit.serviceDown) hint(hit.serviceDown);
     },
     close() {
+      if (refuseBusy()) return;
       lookup.current?.abort();
+      leaving();
       dispatch({ type: "close" });
       hint("");
     },
     async openOutline(outline) {
+      if (refuseBusy()) return;
       const record = await full(outline);
-      if (record) dispatch({ type: "select", record, stamp: stamp(), keepPanel: docked });
+      if (!record || refuseBusy()) return;
+      leaving();
+      dispatch({ type: "select", record, stamp: stamp(), keepPanel: docked });
     },
     openSaved(key) {
+      if (key === latest.current.store.open?.key || refuseBusy()) return;
+      leaving();
       dispatch({ type: "openSaved", key, keepPanel: docked });
     },
     removeSaved(key) {

@@ -79,11 +79,6 @@ export function Toolbar() {
     <>
       {/* Keyed by the open parcel so a pending delete confirmation never carries over to another. */}
       <Bar key={open?.key ?? (open ? "plain" : "none")} ctl={ctl} />
-      {ctl.nudge > 0 && (
-        <div key={ctl.nudge} className="tb-nudge" role="status">
-          Tap it again to close it
-        </div>
-      )}
     </>
   );
 }
@@ -100,8 +95,6 @@ function Bar({ ctl }: { ctl: ExploreController }) {
       aria-label="Parcel tools"
       data-mode={mode ?? (open ? "open" : "idle")}
     >
-      {/* The pulse plays each time a tap is refused (keyed by the nudge count). */}
-      {ctl.nudge > 0 && <span key={ctl.nudge} className="tb-pulse" aria-hidden="true" />}
       {body}
     </div>
   );
