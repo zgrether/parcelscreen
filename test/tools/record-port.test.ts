@@ -9,8 +9,7 @@
  *
  * Run by hand, never in CI: it reaches the public services. The prototype's network.har is never touched.
  */
-import { existsSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { existsSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { createHttpClient, realClock } from "@/lib/http";
 import { FIXTURE_SLUGS, loadFixture } from "../support/fixtures";
@@ -22,6 +21,7 @@ import {
   type Har,
   type HarEntry,
 } from "../support/replayFetch";
+import { portHarPath, writePortHar } from "../support/portHar";
 import { runScenario, SCENARIOS } from "../support/scenarios";
 
 /** Some services (the TN parcel WAF, Overpass) refuse a non-browser User-Agent. */
@@ -39,7 +39,8 @@ describe.runIf(import.meta.env.MODE === "record-port")("record the port's own re
       const live = (globalThis as unknown as Record<symbol, typeof fetch>)[
         Symbol.for("parcelscreen.liveFetch")
       ]!;
-      const path = join(resolve(process.cwd(), "test", "fixtures"), slug, "network-port.har");
+      // The only file this tool writes (test/support/portHar.ts refuses any other).
+      const path = portHarPath(slug);
       const kept: HarEntry[] = existsSync(path) ? loadHar(path).log.entries : [];
       const added: HarEntry[] = [];
       const answers: { requests: readonly string[] }[] = [];
@@ -117,16 +118,7 @@ describe.runIf(import.meta.env.MODE === "record-port")("record the port's own re
       const used = kept.filter((e) => asked.has(keyOf(e)));
       const dropped = kept.length - used.length;
       const har: Har = { log: { entries: [...used, ...added] } };
-      writeFileSync(
-        path,
-        JSON.stringify({
-          log: {
-            version: "1.2",
-            creator: { name: "pnpm record:port", version: "1" },
-            entries: har.log.entries,
-          },
-        }),
-      );
+      writePortHar(path, har);
       console.log(
         `${slug}: ${added.length} new request(s) recorded, ${used.length} kept, ${dropped} dropped`,
       );
