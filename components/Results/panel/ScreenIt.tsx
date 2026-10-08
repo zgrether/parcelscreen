@@ -172,7 +172,10 @@ export function useScreenIt(
   useEffect(() => {
     if (running || !openKey || !parcel) return;
     const kept = sessions.current.get(openKey);
-    if (!kept || kept.runId === screen.state.runId) return;
+    // Even when it is still the worker's current run (nothing else ran meanwhile): this open is a new one, and
+    // reactivating also takes it back to the run's own point (18b, found in the live acceptance run).
+    // (Not when it is already live for this open: a just-finished run getting its History key.)
+    if (!kept || (live?.serial === serial && screen.state.runId === kept.runId)) return;
     const nowKeys = runKeys(parcel.geo.geometry, open?.house ?? null, config);
     if (freshness(kept.keys, nowKeys).boundary) return; // its boundary changed since: the run no longer applies
     sessions.current.touch(openKey);

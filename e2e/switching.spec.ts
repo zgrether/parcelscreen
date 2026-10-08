@@ -80,6 +80,8 @@ test("switching keeps screened parcels live: back to one with no re-run and no n
   await expect(toast(page)).toContainText("35-3 kept in History");
   await toast(page).getByRole("button", { name: "Back" }).click();
   await expect(page.locator(".sh-name").first()).toHaveText("35-3");
+  // Nothing else ran since: still the worker's current run, and live again for this new open (18b).
+  await expect.poll(() => live(page)).toBe(true);
 
   // Esc (desktop) closes it too. Tapping empty map or the parcel itself no longer does (unit-tested).
   await page.locator("body").press("Escape");
