@@ -1,13 +1,14 @@
-import { centroid, polygon } from "@turf/turf";
+import { centroid, polygon, feature } from "@turf/turf";
 import { describe, expect, it } from "vitest";
 import { differences } from "../../test/support/compare";
 import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
+import { fixtureParcel } from "../../test/support/scenarios";
 import { expectedOf } from "../../test/support/expected";
 import { createHttpClient } from "../http";
 import { DEFAULT_ENDPOINTS } from "./config";
 import { inv } from "../geo/utm";
 import { DemCache, fetchParcelDems, rcToLL, rcToUTM } from "./dem";
-import { insideMask, slopeAspect, terrainFlags, terrainStats, valleyFloor } from "./terrain";
+import { insideMask, insideMasks, slopeAspect, terrainFlags, terrainStats, valleyFloor } from "./terrain";
 import type { Dem } from "./types";
 import type { LatLon } from "./util";
 
@@ -89,7 +90,9 @@ describe.each(FIXTURE_SLUGS)("terrain on %s vs the prototype", (slug) => {
   it("matches terrain.*, valley floor and the slope flag", async () => {
     const fx = loadFixture(slug);
     const golden = expectedOf(fx.slug, "run");
-    const parcel = polygon(fx.input.polygon.geometry.coordinates);
+    // The parcel as the app screens it: for Grayson, both parts with the strip between them (follow-up 29).
+    const input = await fixtureParcel(slug);
+    const parcel = polygon(input.polygon.coordinates);
     const deps = {
       http: createHttpClient({ env: "node", fetchImpl: fx.replayFetch() }),
       endpoints: DEFAULT_ENDPOINTS,
@@ -97,7 +100,7 @@ describe.each(FIXTURE_SLUGS)("terrain on %s vs the prototype", (slug) => {
     };
     const { dFine, dWide } = await fetchParcelDems(parcel, 3, deps);
     const { slope } = slopeAspect(dFine);
-    const inside = insideMask(dFine, parcel);
+    const { own: inside } = insideMasks(dFine, parcel, input.ownLand ? feature(input.ownLand) : undefined);
     const [lon, lat] = centroid(parcel).geometry.coordinates as [number, number];
     const vf = valleyFloor(dWide, [lat, lon]);
     const stats = terrainStats(dFine, slope, inside, vf);

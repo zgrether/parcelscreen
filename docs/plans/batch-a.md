@@ -90,6 +90,10 @@ Below it, the leaf-diff counts per scenario.
 - **`expected.json`** for all three fixtures (§1), the scripts and the CI guard.
 - **The engine stamp** (§6), at version 1.
 - **Grayson joins the Vitest pipeline tests** (`FIXTURE_SLUGS`). The e2e stays at two parcels, for its run time.
+- **The port's own requests (A2a):** a request the prototype never made (the 16 km PAD-US query; everything for
+  Grayson's two-part boundary) is recorded live once by `pnpm record:port` into `network-port.har`, beside the
+  prototype's `network.har`, and replayed with it. The fixtures enter the screen as the app makes them: the
+  county record from the HAR, through the recipe.
 - **Acceptance:**
   - the Grayson parity check passes, or each difference is listed;
   - `expected.json` equals the prototype golden for all three;
@@ -125,7 +129,22 @@ updated, and the PR says so.
 
 **Text:** no new sentence. The existing "nearest public land" line gets a different value.
 
-**Acceptance:** Grayson reports Jefferson NF / Mount Rogers NRA at about 4.5 mi. Ferney and Macks are unchanged,
+**Done in A2a (#80), with the owner's constraints (2026-10-08):**
+
+- The 1,600 m query keeps full geometry. The "adjoins" flags and the within-a-mile list come only from it; the
+  list filters by distance ≤ 1,600 m at render, and a test proves a beyond-a-mile unit never appears under that
+  heading.
+- The 16 km query (`padus.openSimplifyDeg` 0.0002°) feeds only one new line, appended after the section's
+  caveat, exactly: "Nearest public land open to visitors beyond a mile: {name} ({manager}), {d} mi
+  straight-line." It shows only when no open unit is within the mile and a wider one exists; older results show
+  nothing. A unit found by both keeps the full-geometry copy. Where PAD-US lists one unit twice at the same
+  distance, the line names the copy whose manager is known rather than "UNK".
+- The wider query failing never fails the step: the mile's units and flags stand, and there's no line.
+- Distance to the nearest part (all parts and rings): a value change under rule 4, declared in the PR.
+- **The acceptance's "about 4.5 mi" was an estimate:** Jefferson NF's nearest boundary is **2.26 mi** from the
+  parcel, measured on its full, unsimplified geometry. The report says 2.3 mi.
+
+**Acceptance (as written before A2a):** Grayson reports Jefferson NF / Mount Rogers NRA at about 4.5 mi. Ferney and Macks are unchanged,
 unless the table explains why.
 
 ### 24: trailheads from the Forest Service and state parks
@@ -198,6 +217,17 @@ then that sentence.
   change.
 
 **Acceptance:** Grayson screens as 30.15 ac; a synthetic far-apart MultiPolygon shows the appended acreage.
+
+**Done in A2a (#80), with the owner's addition (2026-10-08):** besides the own-land acres, the bridged strip is
+left out of the parcel's inside mask for site finding, gardens, shelves and the suitability surface (and the
+terrain stats and the house check, so "of N acres" agrees). Only the driveway router keeps the whole outline, for
+connectivity. A synthetic test with a flat strip between two steep parts finds a house site in the strip on the
+outline, and nothing on the own land. The screen gets the own land as `ScreenInput.ownLand`; a county record
+keeps its parts (`ParcelRecord.parts`), and records saved before keep the first-part note.
+
+**Found in A2a:** Grayson's second part (0.84 ac, along Mud Creek) is frequently flooded bottomland with 0.47 ac
+of FEMA zone A; screening it adds those two flags. None of it is on the strip. The flood and soils steps still
+measure the outline, so the 0.61 ac strip counts there (here it holds no flood zone): a question for the owner.
 
 ## 4. A3: scoring, one reviewed change (19, 27, 20)
 

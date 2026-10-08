@@ -12,6 +12,7 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { describe, it } from "vitest";
 import type { ScreenResult } from "@/lib/screen/types";
+import { publicLandView } from "@/lib/report/surroundings";
 import { differences } from "../support/compare";
 import { EXPECTED, expectedPath, type ExpectedResults } from "../support/expected";
 import { FIXTURE_SLUGS, type FixtureSlug } from "../support/fixtures";
@@ -44,9 +45,9 @@ const mi = (km: number | undefined) => (km == null ? "—" : `${(km * 0.621371).
 export function headlines(r: ScreenResult | undefined): Record<string, string> {
   if (!r) return {};
   const top = (r.sites ?? []).slice(0, 3);
-  const land = [...(r.protected ?? [])].sort((a, b) =>
-    a.adjoins ? -1 : b.adjoins ? 1 : (a.distFt ?? Infinity) - (b.distFt ?? Infinity),
-  )[0];
+  // Through the report's own view, so the table and the report agree on what's within the mile (follow-up 23).
+  const pl = r.protected ? publicLandView(r) : null;
+  const land = pl?.units[0];
   const route = r.driveway?.routes?.[0] ?? r.driveway?.overLimit ?? null;
   return {
     Acres: n(r.acres, 2),
@@ -58,9 +59,9 @@ export function headlines(r: ScreenResult | undefined): Record<string, string> {
     "Dec 21 daylight h": n(r.sun?.decDaylightH, 2),
     "Jun 21 direct sun h": n(r.sun?.junDirectH, 2),
     "Sky mag": n(r.sky?.mag, 2),
-    "Public land": land
-      ? `${land.name ?? "unnamed"}, ${land.adjoins ? "adjoins" : `${n((land.distFt ?? NaN) / 5280, 1)} mi`}`
-      : "none",
+    "Public land within a mile": land ? `${land.name}, ${land.where.text}` : "none",
+    "Open land beyond a mile":
+      pl?.beyond?.replace(/^Nearest public land open to visitors beyond a mile: /, "") ?? "—",
     Trailheads: r.near
       ? `${r.near.trailheadCount ?? 0}${r.near.trailheads?.[0] ? `, nearest ${mi(r.near.trailheads[0].km)}` : ""}`
       : "—",

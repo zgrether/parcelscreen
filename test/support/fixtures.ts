@@ -6,7 +6,7 @@
  * lands in step 4 together with the ScreenResult schema it maps onto.
  */
 import type { Feature, Polygon } from "geojson";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { createReplayFetch, loadHar, type Har, type ReplayFetch } from "./replayFetch";
 
@@ -60,8 +60,14 @@ export interface Fixture {
   slug: FixtureSlug;
   input: FixtureInput;
   goldens: FixtureGoldens;
+  /** The prototype's recording (network.har). */
   har: Har;
-  /** A fresh offline fetch over this fixture's HAR. */
+  /**
+   * What the replay answers from: the prototype's recording, then the requests only the port makes
+   * (network-port.har, recorded by `pnpm record:port`; Batch A).
+   */
+  replayHar: Har;
+  /** A fresh offline fetch over this fixture's recordings. */
   replayFetch(): ReplayFetch;
 }
 
@@ -72,11 +78,16 @@ function readJson<T>(path: string): T {
 export function loadFixture(slug: FixtureSlug): Fixture {
   const dir = join(FIXTURES_DIR, slug);
   const har = loadHar(join(dir, "network.har"));
+  const portPath = join(dir, "network-port.har");
+  const replayHar: Har = existsSync(portPath)
+    ? { log: { entries: [...har.log.entries, ...loadHar(portPath).log.entries] } }
+    : har;
   return {
     slug,
     input: readJson<FixtureInput>(join(dir, "input.json")),
     goldens: readJson<FixtureGoldens>(join(dir, "golden.json")),
     har,
-    replayFetch: () => createReplayFetch(har),
+    replayHar,
+    replayFetch: () => createReplayFetch(replayHar),
   };
 }

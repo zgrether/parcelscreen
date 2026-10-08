@@ -26,7 +26,8 @@
     "check:pins": "vitest run test/tools/pins.test.ts",
     "turf-versions": "vitest run test/tools/turf-versions.test.ts --mode turf-versions",
     "geotiff-versions": "vitest run test/tools/geotiff-versions.test.ts --mode geotiff-versions",
-    "record:fixtures": "node scripts/record-fixtures.mts"
+    "record:fixtures": "node scripts/record-fixtures.mts",
+    "record:port": "vitest run test/tools/record-port.test.ts --mode record-port"
   },
   "dependencies": {
     "@serwist/turbopack": "9.5.13",
