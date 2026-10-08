@@ -16,6 +16,8 @@ import { useFlatForTools } from "@/components/Map/useFlatForTools";
 import { Toolbar } from "@/components/Map/Toolbar";
 import type { UserConfig } from "@/lib/screen/types";
 import { Menu } from "./Menu";
+import { SwitchToast } from "./SwitchToast";
+import { MapPanel } from "@/components/Map/MapPanel";
 import { useExplore, type SetHint } from "./useExploreController";
 
 /** The map with its tools and hint. Loaded client-side only (MapLibre needs the browser). */
@@ -58,8 +60,10 @@ export function MapArea({
       <Menu />
       <Search photonUrl={config.endpoints.photon} />
       <Hint text={hint} />
+      <SwitchToast />
       <Toolbar />
       <InfoPanel />
+      <MapPanel />
     </MapView>
   );
 }

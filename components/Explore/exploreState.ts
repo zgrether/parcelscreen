@@ -9,7 +9,6 @@ import {
   closeOpen,
   commitOpen,
   EMPTY_STORE,
-  isBuilt,
   openBuilt,
   plainParcel,
   removeBuilt,
@@ -43,6 +42,8 @@ export interface ExploreState {
   combine: ParcelRecord[] | null;
   /** The Info panel is open (13e-4). */
   info: boolean;
+  /** The map panel is open (17e): basemaps, map layers, terrain. One panel at a time, with Info. */
+  mapPanel: boolean;
   /** The layer selected in the panel or on the map. */
   layer: LayerId | null;
   /**
@@ -60,6 +61,7 @@ export const INITIAL: ExploreState = {
   split: null,
   combine: null,
   info: false,
+  mapPanel: false,
   layer: null,
   serial: 0,
 };
@@ -105,6 +107,8 @@ export type ExploreAction =
   | { type: "applyCombine"; stamp: Stamp }
   /** Open or close the Info panel; closing it clears the selected layer. */
   | { type: "info"; open: boolean }
+  /** Open or close the map panel (17e); opening it closes Info. */
+  | { type: "mapPanel"; open: boolean }
   /** Select a layer (opening the panel), or clear the selection. */
   | { type: "layer"; id: LayerId | null }
   /** Take a part out of the parcel; the caller has checked that the rest make one boundary. */
@@ -243,9 +247,11 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       };
     }
     case "info":
-      return a.open ? { ...s, info: true } : { ...s, ...PANEL_CLOSED };
+      return a.open ? { ...s, info: true, mapPanel: false } : { ...s, ...PANEL_CLOSED };
+    case "mapPanel":
+      return a.open ? { ...s, mapPanel: true, ...PANEL_CLOSED } : { ...s, mapPanel: false };
     case "layer":
-      return { ...s, layer: a.id, info: a.id ? true : s.info };
+      return { ...s, layer: a.id, info: a.id ? true : s.info, mapPanel: a.id ? false : s.mapPanel };
     case "removePart":
       if (!open || open.pieces.length < 2) return s;
       // A split that no longer cuts what's left is left off when the parcel is derived, and says so.
@@ -293,31 +299,35 @@ export interface TapHit {
   serviceDown?: string | null;
 }
 
+/** While a screen runs, switching parcels waits (owner, 17e). */
+export const BUSY_TEXT = "Screening — finish or Cancel first.";
+
 export type TapOutcome =
   | { kind: "clearLayer" }
   | { kind: "close" }
-  | { kind: "nudge" }
+  /** A screen is running: no switching until it finishes or is cancelled (17e). */
+  | { kind: "busy" }
   | { kind: "select"; record: ParcelRecord }
   | { kind: "openSaved"; key: string }
   | { kind: "none" };
 
 /**
- * The selection rules (plan 13e §4): tap a visible outline to select it; tap the open parcel again, or empty
- * map, to unselect. A plain parcel swaps when you tap another; a built one stays until you close it (a small
- * nudge says so). A saved parcel under the tap wins over the county outline beneath it. With a layer
+ * The selection rules (plan 13e §4, 17e §1): tap a visible outline to select it. Tapping another parcel
+ * switches at once, whatever is open (a built one stays in History; the explorer offers Back), but not while a
+ * screen runs (`busy`). Tapping the open parcel or empty map does nothing: the ×, Esc or another parcel
+ * close it (owner, 17e). A saved parcel under the tap wins over the county outline beneath it. With a layer
  * selected, the first tap only clears it.
  */
-export function decideTap(s: ExploreState, hit: TapHit): TapOutcome {
+export function decideTap(s: ExploreState, hit: TapHit, busy = false): TapOutcome {
   const open = s.store.open;
   if (open && s.layer) return { kind: "clearLayer" };
+  if (open && hit.insideOpen) return { kind: "none" };
   const other = hit.savedKey && hit.savedKey !== open?.key ? hit.savedKey : null;
-  if (open) {
-    if (hit.insideOpen) return { kind: "close" };
-    if (!other && !hit.outline) return { kind: "close" };
-    if (isBuilt(open)) return { kind: "nudge" };
-    return other ? { kind: "openSaved", key: other } : { kind: "select", record: hit.outline! };
-  }
-  if (other) return { kind: "openSaved", key: other };
-  if (hit.outline) return { kind: "select", record: hit.outline };
-  return { kind: "none" };
+  const to: TapOutcome | null = other
+    ? { kind: "openSaved", key: other }
+    : hit.outline
+      ? { kind: "select", record: hit.outline }
+      : null;
+  if (!to) return { kind: "none" };
+  return busy && open ? { kind: "busy" } : to;
 }

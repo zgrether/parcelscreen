@@ -62,12 +62,20 @@ function fulfil(route: Route, e: HarEntry, origin: string | undefined): Promise<
   return route.fulfill({ status, headers: h, body });
 }
 
-/** Routes every request in `context` through the parcel's HAR. */
-export async function replayHar(context: BrowserContext, slug: FixtureSlug): Promise<ReplayLog> {
-  const { har } = loadFixture(slug);
+/** Routes every request in `context` through the parcels' HARs (one fixture, or several for switching). */
+export async function replayHar(
+  context: BrowserContext,
+  slugs: FixtureSlug | readonly FixtureSlug[],
+  /** Holds the first response whose key matches for `ms` (a slow service; the 17e watchdog test). */
+  delayFirst?: { match: RegExp; ms: number },
+): Promise<ReplayLog> {
+  let delayed = false;
+  const entries = (typeof slugs === "string" ? [slugs] : slugs).flatMap(
+    (x) => loadFixture(x).har.log.entries,
+  );
   const queues = new Map<string, HarEntry[]>();
   const dataHosts = new Set<string>();
-  for (const e of har.log.entries) {
+  for (const e of entries) {
     if (e.response.status === 0) continue; // aborted during recording: never a real answer
     const k = entryKey(e);
     queues.set(k, [...(queues.get(k) ?? []), e]);
@@ -96,6 +104,10 @@ export async function replayHar(context: BrowserContext, slug: FixtureSlug): Pro
       const n = served.get(key) ?? 0;
       served.set(key, n + 1);
       log.served.push(key);
+      if (delayFirst && !delayed && delayFirst.match.test(key)) {
+        delayed = true;
+        await new Promise((r) => setTimeout(r, delayFirst.ms));
+      }
       return fulfil(route, q[Math.min(n, q.length - 1)]!, req.headers()["origin"]);
     }
     (dataHosts.has(url.host) ? log.misses : log.aborted).push(key);

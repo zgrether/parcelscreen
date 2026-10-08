@@ -18,6 +18,7 @@ import { findLayer, type LayerId, type LayerNode } from "@/components/Explore/la
 import { ParcelFacts } from "@/components/Explore/ParcelFacts";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { AnalysisGroup } from "./results/AnalysisGroup";
+import { RoadsToggle } from "./RoadsToggle";
 import { TerrainControls } from "./TerrainControls";
 
 const ac = (n: number) => `${n.toFixed(2)} ac`;
@@ -128,6 +129,7 @@ function Panel({ ctl, root }: { ctl: ExploreController; root: LayerNode }) {
             remove={remove}
           />
           <AnalysisGroup />
+          <RoadsToggle variant="info" />
           <TerrainControls variant="info" />
         </div>
       )}

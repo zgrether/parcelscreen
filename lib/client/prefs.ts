@@ -36,6 +36,8 @@ export interface Prefs {
   "ps.view": MapView | null;
   "ps.dim": boolean;
   "ps.lines": boolean;
+  /** Roads & labels over the aerials (17d): a UI pref, never part of UserConfig or a run. */
+  "ps.roads": boolean;
   "ps.omode": "house" | "garden" | "slope" | "off";
   "ps.open": Record<string, boolean>;
   /** New in the port (step 13d): the parcel being worked on and the house, kept across a refresh. */
@@ -62,6 +64,7 @@ const DEFAULTS: Prefs = {
   // Off by default (owner, 13e-5 review); the prototype started dimmed.
   "ps.dim": false,
   "ps.lines": true,
+  "ps.roads": true,
   "ps.omode": "house",
   "ps.open": {},
   "ps.current": null,
@@ -79,6 +82,7 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
   "ps.view": { read: (r) => JSON.parse(r) as MapView, write: (v) => JSON.stringify(v) },
   "ps.dim": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
   "ps.lines": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
+  "ps.roads": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
   "ps.omode": { read: (r) => r as Prefs["ps.omode"], write: (v) => v },
   "ps.open": { read: (r) => JSON.parse(r) as Record<string, boolean>, write: (v) => JSON.stringify(v) },
   "ps.current": { read: readCurrentParcel, write: writeCurrentParcel },

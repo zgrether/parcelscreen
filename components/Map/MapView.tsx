@@ -11,6 +11,7 @@ import { SHEET_QUERY } from "@/components/Explore/useBottomSheet";
 import { getPref, setPref, type MapView as SavedView } from "@/lib/client/prefs";
 import { buildStyle, isBasemapId } from "./style";
 import { terrainTiles } from "./terrain";
+import { mapLayerPrefs, roadsShown } from "./useMapLayerPrefs";
 import { MAX_PITCH } from "./terrainStyle";
 
 // MapLibre's worker is served from public/ (scripts/copy-maplibre-worker.mjs copies it there).
@@ -75,6 +76,7 @@ export function MapView({
         lpAtlasTiles,
         lpYear,
         terrain: terrainTiles(),
+        roads: { visible: roadsShown(mapLayerPrefs()) },
       }),
       center: [view.lon, view.lat],
       zoom: view.z,
