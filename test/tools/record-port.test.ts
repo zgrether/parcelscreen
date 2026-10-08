@@ -4,7 +4,8 @@
  * User-Agent, and is kept in test/fixtures/<slug>/network-port.har. Tests then replay it with the prototype's
  * network.har (loadFixture's replayHar), offline as ever.
  *
- *   pnpm record:port            records what's missing (never re-records what's there)
+ *   pnpm record:port            records what's missing (never re-records what's there), and drops what no
+ *                               scenario asks for any more (a request the port has since changed)
  *
  * Run by hand, never in CI: it reaches the public services. The prototype's network.har is never touched.
  */
@@ -13,7 +14,14 @@ import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { createHttpClient, realClock } from "@/lib/http";
 import { FIXTURE_SLUGS, loadFixture } from "../support/fixtures";
-import { createReplayFetch, loadHar, ReplayMissError, type Har, type HarEntry } from "../support/replayFetch";
+import {
+  createReplayFetch,
+  loadHar,
+  ReplayMissError,
+  requestKey,
+  type Har,
+  type HarEntry,
+} from "../support/replayFetch";
 import { runScenario, SCENARIOS } from "../support/scenarios";
 
 /** Some services (the TN parcel WAF, Overpass) refuse a non-browser User-Agent. */
@@ -34,11 +42,14 @@ describe.runIf(import.meta.env.MODE === "record-port")("record the port's own re
       const path = join(resolve(process.cwd(), "test", "fixtures"), slug, "network-port.har");
       const kept: HarEntry[] = existsSync(path) ? loadHar(path).log.entries : [];
       const added: HarEntry[] = [];
+      const answers: { requests: readonly string[] }[] = [];
       const replay = () =>
         createReplayFetch({ log: { entries: [...loadFixture(slug).replayHar.log.entries, ...added] } });
 
+      const asked = new Set<string>();
       const recording = (): typeof fetch => {
         const answer = replay();
+        answers.push(answer);
         return (async (input: string | URL | Request, init?: RequestInit) => {
           try {
             return await answer(input, init);
@@ -94,7 +105,18 @@ describe.runIf(import.meta.env.MODE === "record-port")("record the port's own re
       });
       for (const scenario of SCENARIOS[slug]) await runScenario(slug, scenario, deps);
 
-      const har: Har = { log: { entries: [...kept, ...added] } };
+      // Keep only what this run asked for: a request the port no longer makes is dropped.
+      for (const a of answers) for (const k of a.requests) asked.add(k);
+      const keyOf = (e: HarEntry) =>
+        requestKey(
+          e.request.method,
+          e.request.url,
+          e.request.postData?.text ?? null,
+          e.request.postData?.mimeType,
+        );
+      const used = kept.filter((e) => asked.has(keyOf(e)));
+      const dropped = kept.length - used.length;
+      const har: Har = { log: { entries: [...used, ...added] } };
       writeFileSync(
         path,
         JSON.stringify({
@@ -105,7 +127,9 @@ describe.runIf(import.meta.env.MODE === "record-port")("record the port's own re
           },
         }),
       );
-      console.log(`${slug}: ${added.length} new request(s) recorded, ${kept.length} kept`);
+      console.log(
+        `${slug}: ${added.length} new request(s) recorded, ${used.length} kept, ${dropped} dropped`,
+      );
       expect(added.every((e) => e.response.status > 0)).toBe(true);
     },
     600_000,

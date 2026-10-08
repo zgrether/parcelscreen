@@ -143,8 +143,12 @@ updated, and the PR says so.
 - Distance to the nearest part (all parts and rings): a value change under rule 4, declared in the PR.
 - **Owner, #80 review (2026-10-08):** the line names the manager by PAD-US's local manager name (`Loc_Mang`) when it
   has one, else by the agency its code stands for (the service's own domain; USFS reads "U.S. Forest Service"),
-  never a bare code. And when the wider query fails, the section should say "The wider public-land search didn't
-  respond.": that needs a stored field, so it waits on a schema decision (v2 is frozen).
+  never a bare code. Then (same review): a federal unit by its agency; a state or local one by `Loc_Mang` when present,
+  else its agency; and the within-a-mile list names its codes too (an approved exception to rule 7, phase-0.md §9.18).
+- **When the wider query fails** (owner, #80 review): an info-level flag "The wider public-land search didn't
+  respond." if v2 had an info level, with no schema change. **It doesn't** (`fatal`, `warn`, `good`), so by the
+  owner's fallback this folds into **Phase 1's v3** (with the engine version and a trailhead source); until then a
+  failed wider query shows nothing.
 - **The acceptance's "about 4.5 mi" was an estimate:** Jefferson NF's nearest boundary is **2.26 mi** from the
   parcel, measured on its full, unsimplified geometry. The report says 2.3 mi.
 
@@ -316,7 +320,8 @@ with, so History has to say when those came from earlier rules.
   "earlier settings" note. Say if you want it in History only.
 - **Phase 1:** the import into Supabase carries `engine` into a field of v3's `ScreenResult`.
 
-**Carried to v3 (Phase 1):** the engine version (from the envelope) and a trailhead source (Q4).
+**Carried to v3 (Phase 1):** the engine version (from the envelope) and a trailhead source (Q4); and a record that
+the wider public-land search didn't respond, so the section can say so (owner, #80 review, 2026-10-08).
 
 ## 7. Batch B (interleaved, UI only)
 

@@ -63,14 +63,15 @@ function outerEdges(parcel: Feature<Polygon | MultiPolygon>): Feature<LineString
 }
 
 /**
- * The manager as the line names it (owner, 2026-10-08): PAD-US's local manager name when it has one, else its
- * manager code. The report turns a code into an agency name (lib/report/surroundings.ts), never printing it bare.
+ * The manager as the report names it (owner, #80 review, 2026-10-08): a federal unit by its agency (its code,
+ * which the report spells out); a state or local one by PAD-US's local manager name when it has one, else its
+ * code. The report turns a code into a name (lib/report/surroundings.ts) and never prints one bare.
  */
-const managerOf = (p: PadusProps): string | null => p.Loc_Mang?.trim() || p.Mang_Name || null;
+const managerOf = (p: PadusProps): string | null =>
+  (p.Mang_Type !== "FED" && p.Loc_Mang?.trim()) || p.Mang_Name || null;
 
-const OUT_FIELDS = "Unit_Nm,Mang_Name,Mang_Type,Pub_Access,GAP_Sts,Des_Tp";
-/** The wider query also asks for the local manager name, for the "beyond a mile" line. */
-const WIDE_OUT_FIELDS = `${OUT_FIELDS},Loc_Mang`;
+// Loc_Mang since the #80 review, for the manager's name in both the list and the line.
+const OUT_FIELDS = "Unit_Nm,Mang_Name,Mang_Type,Pub_Access,GAP_Sts,Des_Tp,Loc_Mang";
 const sameUnit = (a: PadusProps, b: PadusProps) =>
   a.Unit_Nm === b.Unit_Nm &&
   a.Mang_Name === b.Mang_Name &&
@@ -81,6 +82,7 @@ const sameUnit = (a: PadusProps, b: PadusProps) =>
 interface PadusProps {
   Unit_Nm?: string | null;
   Loc_Mang?: string | null;
+  Mang_Type?: string | null;
   Mang_Name?: string | null;
   Des_Tp?: string | null;
   Pub_Access?: string | null;
@@ -115,9 +117,9 @@ export async function padusStep(
   const wide = await openBeyond(parcel, deps);
   const buffered = buffer(parcel, K.adjoinsBufferKm, { units: "kilometers" })!;
   const edges = outerEdges(parcel);
-  const unit = (p: PadusProps, adjoins: boolean, distFt: number | null, manager = p.Mang_Name ?? null) => ({
+  const unit = (p: PadusProps, adjoins: boolean, distFt: number | null) => ({
     name: p.Unit_Nm ?? null,
-    manager,
+    manager: managerOf(p),
     type: p.Des_Tp ?? null,
     access: p.Pub_Access ?? null,
     gap: p.GAP_Sts ?? null,
@@ -143,7 +145,7 @@ export async function padusStep(
     .map((f) => ({ p: f.properties, d: distanceFt(f, parcel, edges) }))
     .filter((x): x is { p: PadusProps; d: number } => x.d !== null && x.d > beyondFt)
     .sort((a, b) => a.d - b.d)
-    .map((x) => unit(x.p, false, x.d, managerOf(x.p)));
+    .map((x) => unit(x.p, false, x.d));
   const flags: ScreenResult["flags"] = [];
   const adjOpen = units.filter((u) => u.access === "OA" && u.adjoins);
   if (adjOpen.length)
@@ -177,7 +179,7 @@ async function openBeyond(
           units: "esriSRUnit_Meter",
           where: "Pub_Access='OA'",
           maxAllowableOffset: K.openSimplifyDeg,
-          outFields: WIDE_OUT_FIELDS,
+          outFields: OUT_FIELDS,
         },
         deps,
       )) as Feature<Polygon | MultiPolygon, PadusProps>[];

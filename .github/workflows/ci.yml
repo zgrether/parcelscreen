@@ -39,6 +39,8 @@ jobs:
       # The exact pins: every @turf package at 7.4.0 (@turf/jsts 2.7.2), geotiff 2.1.3 and its decoders
       # (docs/plans/phase-0.md §4, test/tools/pins.ts).
       - run: pnpm check:pins
+      # The fixtures stay under 100 MB on disk, in plain git (docs/plans/phase-0.md §9.19).
+      - run: pnpm check:fixtures
 
   test:
     runs-on: ubuntu-latest

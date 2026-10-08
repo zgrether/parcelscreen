@@ -22,7 +22,13 @@ import { drivewayHeading, profilePath } from "@/lib/report/driveway";
 import { gardenHeading } from "@/lib/report/garden";
 import { houseHeading } from "@/lib/report/house";
 import { soilsHeading } from "@/lib/report/soils";
-import { floodHeading, gettingThereHeading, publicLandHeading } from "@/lib/report/surroundings";
+import {
+  designationName,
+  floodHeading,
+  gettingThereHeading,
+  managerName,
+  publicLandHeading,
+} from "@/lib/report/surroundings";
 import { unknownHeading } from "@/lib/report/unknown";
 import { DarkSkies } from "./DarkSkies";
 import { DecemberSun } from "./DecemberSun";
@@ -67,6 +73,18 @@ const APPROVED: Record<string, string> = {
   soils: "Map-unit lines are drawn at county scale, so a boundary can be 100 ft off on the ground.",
 };
 
+/**
+ * Approved changes to the prototype's own text, applied to it before comparing: the public-land list names its
+ * PAD-US manager and designation codes (owner, #80 review, 2026-10-08: an approved exception to rule 7).
+ */
+const APPROVED_PROTO: Record<string, (text: string) => string> = {
+  "public-land-within-a-mile": (t) =>
+    t.replace(
+      /\(([A-Z]*), ([A-Z]*)\)/g,
+      (_m, m: string, d: string) => `(${managerName(m)}, ${designationName(d)})`,
+    ),
+};
+
 const render = (Block: ComponentType<BlockProps>, result: PartialScreenResult) =>
   renderToStaticMarkup(<Block result={result} point={evaluationPoint(result)} variant="panel" />);
 
@@ -91,7 +109,8 @@ function expectParity(R: PrototypeResult, ours: PartialScreenResult, partial: bo
     const text = APPROVED[slug]
       ? visibleText(html).replace(visibleText(APPROVED[slug]), "")
       : visibleText(html);
-    expect(text, slug).toBe(visibleText(section.body));
+    const theirs = visibleText(APPROVED_PROTO[slug]?.(section.body) ?? section.body);
+    expect(text, slug).toBe(theirs);
     const h = heading(ours, evaluationPoint(ours));
     expect(visibleText(`${h.title}${h.sub ?? ""}?`), `${slug} heading`).toBe(section.heading);
   }

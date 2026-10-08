@@ -4,7 +4,13 @@
  */
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { managerName, PADUS_MANAGERS, publicLandView } from "@/lib/report/surroundings";
+import {
+  designationName,
+  managerName,
+  PADUS_DESIGNATIONS,
+  PADUS_MANAGERS,
+  publicLandView,
+} from "@/lib/report/surroundings";
 import type { PartialScreenResult } from "@/lib/screen/types";
 import { PublicLand } from "./PublicLand";
 
@@ -101,5 +107,25 @@ describe("manager names (owner, 2026-10-08): never a bare code", () => {
   it("the line never shows a bare code", () => {
     const v = view([u("Buffalo Mountain Preserve", "OA", 5.31 * 5280, false, "UNK")]);
     expect(v.beyond).toBe(LINE("Buffalo Mountain Preserve", "manager unknown", "5.3"));
+  });
+});
+
+describe("the within-a-mile list names codes (an approved exception to rule 7, phase-0.md §9.18)", () => {
+  it("manager and designation by name, never a bare code", () => {
+    const v = view([
+      u("Game Land", "OA", 3000, false, "UNK"),
+      { ...u("Jefferson NF", "OA", null, true, "USFS"), type: "NF" },
+    ]);
+    expect(v.units.map((x) => x.meta)).toEqual([
+      "(manager unknown, National Forest)",
+      "(U.S. Forest Service, National Forest)",
+    ]);
+  });
+  it("designations: the service's names, and an unknown one as 'designation unknown'", () => {
+    expect(designationName("SOTH")).toBe("State Other or Unknown");
+    expect(designationName("SP")).toBe("State Park");
+    expect(designationName("ZZ")).toBe("designation unknown");
+    expect(designationName(null)).toBe("designation unknown");
+    for (const [code, name] of Object.entries(PADUS_DESIGNATIONS)) expect(name).not.toBe(code);
   });
 });

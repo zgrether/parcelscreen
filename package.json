@@ -24,6 +24,7 @@
     "before-after": "vitest run test/tools/before-after.test.ts --mode before-after",
     "guard:expected": "vitest run test/tools/expected-guard.test.ts --mode guard",
     "check:pins": "vitest run test/tools/pins.test.ts",
+    "check:fixtures": "vitest run test/tools/fixture-size.test.ts",
     "turf-versions": "vitest run test/tools/turf-versions.test.ts --mode turf-versions",
     "geotiff-versions": "vitest run test/tools/geotiff-versions.test.ts --mode geotiff-versions",
     "record:fixtures": "node scripts/record-fixtures.mts",

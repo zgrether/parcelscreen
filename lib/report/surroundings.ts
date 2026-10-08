@@ -138,6 +138,81 @@ export const PADUS_MANAGERS: Readonly<Record<string, string>> = {
   UM: "U.S. Minor Outlying Islands Government",
 };
 
+const UNKNOWN_DESIGNATION = "designation unknown";
+
+/** PAD-US designation types (`Des_Tp`) as names: the service's own coded-value domain (read 2026-10-08). */
+export const PADUS_DESIGNATIONS: Readonly<Record<string, string>> = {
+  NP: "National Park",
+  NM: "National Monument",
+  NCA: "Conservation Area",
+  NF: "National Forest",
+  NG: "National Grassland",
+  PUB: "National Public Lands",
+  NT: "National Scenic or Historic Trail",
+  NWR: "National Wildlife Refuge",
+  WA: "Wilderness Area",
+  WSR: "Wild and Scenic River",
+  WSA: "Wilderness Study Area",
+  MPA: "Marine Protected Area",
+  NRA: "National Recreation Area",
+  NSBV: "National Scenic, Botanical or Volcanic Area",
+  NLS: "National Lakeshore or Seashore",
+  IRA: "Inventoried Roadless Area",
+  ACEC: "Area of Critical Environmental Concern",
+  RNA: "Research Natural Area",
+  REC: "Recreation Management Area",
+  RMA: "Resource Management Area",
+  WPA: "Watershed Protection Area",
+  REA: "Research or Educational Area",
+  HCA: "Historic or Cultural Area",
+  MIT: "Mitigation Land or Bank",
+  MIL: "Military Land",
+  ACC: "Access Area",
+  SDA: "Special Designation Area",
+  PROC: "Approved or Proclamation Boundary",
+  FOTH: "Federal Other or Unknown",
+  ND: "Not Designated",
+  TRIBL: "Native American Land Area",
+  SP: "State Park",
+  SW: "State Wilderness",
+  SCA: "State Conservation Area",
+  SREC: "State Recreation Area",
+  SHCA: "State Historic or Cultural Area",
+  SRMA: "State Resource Management Area",
+  SOTH: "State Other or Unknown",
+  LP: "Local Park",
+  LCA: "Local Conservation Area",
+  LREC: "Local Recreation Area",
+  LHCA: "Local Historic or Cultural Area",
+  LRMA: "Local Resource Management Area",
+  LOTH: "Local Other or Unknown",
+  PCON: "Private Conservation",
+  PPRK: "Private Park",
+  PREC: "Private Recreation or Education",
+  PHCA: "Private Historic or Cultural",
+  PAGR: "Private Agricultural",
+  PRAN: "Private Ranch",
+  PFOR: "Private Forest Stewardship",
+  POTH: "Private Other or Unknown",
+  CONE: "Conservation Easement",
+  RECE: "Recreation or Education Easement",
+  HCAE: "Historic or Cultural Easement",
+  AGRE: "Agricultural Easement",
+  RANE: "Ranch Easement",
+  FORE: "Forest Stewardship Easement",
+  OTHE: "Other Easement",
+  UNKE: "Unknown Easement",
+  UNK: UNKNOWN_DESIGNATION,
+  OCS: "Outer Continental Shelf Area",
+  FACY: "Facility",
+};
+
+/** A designation as the report names it; never a bare code. */
+export function designationName(t: string | null | undefined): string {
+  const v = t?.trim();
+  return (v && PADUS_DESIGNATIONS[v]) || UNKNOWN_DESIGNATION;
+}
+
 /** A manager as the report names it: a local name as it is, a code as its agency, nothing as "manager unknown". */
 export function managerName(m: string | null | undefined): string {
   const v = m?.trim();
@@ -152,7 +227,8 @@ export function publicLandView(r: PartialScreenResult): PublicLandView | null {
   return {
     units: r.protected.filter(withinMile).map((u) => ({
       name: u.name || "Unnamed",
-      meta: `(${u.manager || ""}, ${u.type || ""})`,
+      // Names, not PAD-US codes: an approved exception to rule 7 (owner, #80 review, 2026-10-08).
+      meta: `(${managerName(u.manager)}, ${designationName(u.type)})`,
       where: u.adjoins
         ? { text: "adjoins the boundary", strong: true }
         : { text: u.distFt != null ? `${fmt(u.distFt)} ft away` : "nearby", strong: false },

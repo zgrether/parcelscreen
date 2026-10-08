@@ -346,7 +346,8 @@ describe("public land: the nearest part, and land open beyond the mile (follow-u
       "Pub_Access='OA'",
       "0.0002",
     ]);
-    expect(wide!.get("outFields")).toBe(`${mile!.get("outFields")},Loc_Mang`); // the local manager name, for the line
+    expect(wide!.get("outFields")).toBe(mile!.get("outFields"));
+    expect(mile!.get("outFields")).toContain("Loc_Mang"); // the local manager name, for the list and the line
   });
 
   it("the adjoins flags come from the mile's query only", async () => {
@@ -434,5 +435,64 @@ describe("flood: two trimmed queries, measured on the parcel's own land (A2a, ow
     expect(strip.flood.sfhaAcres).toBeLessThan(1e-6); // touches the parts' edges only
     const part = await floodStep(own, 10, { ...nfhl([onPart]), endpoints: DEFAULT_ENDPOINTS });
     expect(part.flood.sfhaAcres).toBeGreaterThan(1);
+  });
+});
+
+describe("public land: the manager the report names (owner, #80 review, 2026-10-08)", () => {
+  const parcel = square(-80.5, 36.9, -80.49, 36.91);
+  const unit = (props: object, km: number) => ({
+    ...square(-80.49 + km / 89, 36.9, -80.48 + km / 89, 36.91),
+    properties: { Pub_Access: "OA", GAP_Sts: "3", ...props },
+  });
+  it("a federal unit by its agency code; a state or local one by its local name, else its code", async () => {
+    const http: HttpClient = {
+      fetch: async (_u, o = {}) => {
+        const mile = new URLSearchParams(String(o.body)).get("distance") === "1600";
+        return new Response(
+          JSON.stringify({
+            features: mile
+              ? [
+                  unit(
+                    {
+                      Unit_Nm: "Jefferson NF",
+                      Mang_Name: "USFS",
+                      Mang_Type: "FED",
+                      Loc_Mang: "Forest Service Region 08 Southern",
+                      Des_Tp: "NF",
+                    },
+                    0.5,
+                  ),
+                  unit(
+                    {
+                      Unit_Nm: "Grayson Highlands SP",
+                      Mang_Name: "SDC",
+                      Mang_Type: "STAT",
+                      Loc_Mang: "VA Dept of Conservation and Recreation",
+                      Des_Tp: "SP",
+                    },
+                    0.6,
+                  ),
+                  unit(
+                    {
+                      Unit_Nm: "Game Land",
+                      Mang_Name: "UNK",
+                      Mang_Type: "UNK",
+                      Loc_Mang: " ",
+                      Des_Tp: "SOTH",
+                    },
+                    0.7,
+                  ),
+                ]
+              : [],
+          }),
+        );
+      },
+    };
+    const r = await padusStep(parcel, { http, endpoints: DEFAULT_ENDPOINTS });
+    expect(r.protected.map((u) => u.manager)).toEqual([
+      "USFS",
+      "VA Dept of Conservation and Recreation",
+      "UNK",
+    ]);
   });
 });
