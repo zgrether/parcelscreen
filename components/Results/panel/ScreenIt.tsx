@@ -20,7 +20,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useScreen } from "@/lib/client/useScreen";
 import { freshness, runKeys, type RunKeys } from "@/lib/client/screenKeys";
-import { addScreen, getScreen, type ScreenRecord } from "@/lib/client/screenStore";
+import {
+  addScreen,
+  EARLIER_RULES,
+  fromEarlierRules,
+  getScreen,
+  type ScreenRecord,
+} from "@/lib/client/screenStore";
+import { ENGINE_VERSION } from "@/lib/screen/engine";
 import { fmt } from "@/lib/format";
 import { verdictView } from "@/lib/report/verdict";
 import { STEPS } from "@/lib/screen/config";
@@ -124,6 +131,7 @@ export function useScreenIt(
       id: crypto.randomUUID(),
       keys: reassessed !== null ? { ...base, house: reassessed } : base,
       result: result as ScreenResult,
+      engine: ENGINE_VERSION,
     };
     void addScreen(record).then(() => setStored({ serial: live.serial, record }));
     latest.current.ctl.screened(record.id, live.serial);
@@ -424,6 +432,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
               houseChanged={!!s.fresh?.house}
               sessionLive={s.sessionLive}
               settingsChanged={!!s.fresh?.settings}
+              earlierRules={fromEarlierRules(shown)}
               showParams={s.showParams}
               toggleParams={s.toggleParams}
               params={shown.result.params}
@@ -485,6 +494,8 @@ function Notices(p: {
   houseChanged: boolean;
   sessionLive: boolean;
   settingsChanged: boolean;
+  /** Screened with earlier rules than this build's (Batch A §6). */
+  earlierRules: boolean;
   showParams: boolean;
   toggleParams(): void;
   params: ScreenResult["params"];
@@ -500,6 +511,7 @@ function Notices(p: {
         ) : (
           <p className="report-note">The house changed since this run — run again to assess it.</p>
         ))}
+      {p.earlierRules && <p className="report-note">{EARLIER_RULES}.</p>}
       {!p.sessionLive && !p.houseChanged && (
         <p className="tiny muted">Run again to restore the map overlays and horizon fan.</p>
       )}

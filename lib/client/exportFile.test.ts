@@ -81,6 +81,14 @@ describe("import: validate all, then all or nothing", () => {
     expect(p.skipped).toEqual([]);
   });
 
+  it("carries each screen's engine stamp, and takes a file without one (Batch A §6)", () => {
+    const stamped = JSON.stringify({
+      ...buildExport(DEFAULT_USER_CONFIG, STORE, [{ ...screen("s1"), engine: 4 }], NOW),
+    });
+    expect(plan(stamped).screens[0]!.engine).toBe(4);
+    expect(plan(file()).screens[0]!.engine).toBeUndefined(); // an export from before the stamp
+  });
+
   it("into the same History: every parcel skipped and listed, nothing changes", () => {
     const p = plan(file(), STORE);
     expect(p.added).toEqual([]);
