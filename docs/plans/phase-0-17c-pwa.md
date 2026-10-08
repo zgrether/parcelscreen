@@ -67,3 +67,25 @@ Status: **draft, for approval.** A small step before 18 (owner, 2026-10-07): it 
 **Follow-up 36: field offline mode** (Phase 1, designed with Supabase sync):
 - saved parcels and their results available offline;
 - pre-cached map tiles for saved parcels, subject to each tile source's terms and the browser's storage limits.
+
+## 8. Correction (2026-10-08, after 18a)
+
+The #65 description is left as written; this section corrects it.
+
+**1. The same-tab reload claim was wrong.** #65 said a same-tab reload in Playwright "isn't served by the service worker", and that the first relaunch right after activation wasn't controlled.
+- **The real cause:** my live-check scripts waited for activation with `page.waitForFunction(async () => …)`. Playwright doesn't await a predicate's Promise, so the wait passed at once (`async () => false` resolves in 18 ms), before the app had registered the service worker. The early reload or relaunch then ran with no active service worker yet.
+- With a wait that polls `page.evaluate`, the first relaunch is controlled and served by the service worker (18a's `e2e/pwa-screen.spec.ts`). A same-tab reload wasn't retested.
+- A lint rule now rejects async predicates in `waitForFunction` (`eslint.config.mjs`, tested in `test/lint.test.ts`).
+
+**2. The version-skew conclusion stands, re-checked with correct waits.** The #65 test's "activated" wait had the same flaw. Its relaunch loop and its `controlled: true` check used awaited evaluations, though, so the old tab was controlled.
+
+The re-run on 2026-10-08, on the `p0/waits` preview:
+1. An old tab ran build `746b686`, with `navigator.serviceWorker.controller` non-null, asserted.
+2. A probe commit (`37587b0`, reverted in `d4840af`) changed the screen worker's code.
+3. With that build live, the old tab screened without reloading: all 11 steps done, verdict "ok".
+
+**Where the worker's files came from:**
+- the bootstrap `turbopack-worker-2g80pj3ycf14_.js`: from the network, as designed (it's kept out of the precache). Its name is the same in both builds.
+- the 5 chunks it loaded: **from the old service worker's precache**. Two of them (`turbopack-358wr-eh3_cnv.js`, `0gj6y4raino02.js`) don't exist in the new build.
+
+So an old tab's screen code comes from its own cache. Vercel still serving old `/_next/static/immutable/*` files is a second safeguard, not the only one.
