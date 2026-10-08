@@ -192,6 +192,19 @@ goes in v3** (owner, Q4; §6).
 **Acceptance:** Grayson lists Elk Garden and Grayson Highlands within 7 mi. Ferney's and Macks's counts move only
 by trailheads the new sources add, and the table lists them.
 
+**Done in A2b (#81, 2026-10-08):**
+- Sources as planned, and Tennessee found: TDEC's "TN State Parks Points" (69 parks; only `PARK_NAME` is asked for,
+  never the layer's staff contact fields). Endpoints `_v` 12 (`usfsRecSites`, `stateParks`).
+- De-duplication by the owner's rule (within 300 m AND names match after normalisation; else both kept); of a
+  matched pair the official point (USFS, state, OSM).
+- **Grayson: 9 trailheads**, Grayson Highlands State Park at 4.9 mi and Elk Garden A.T. at 5.3 mi (acceptance met).
+- **Not only the new sources moved the counts:** OSM's trailheads came from Photon's text search for "trailhead",
+  which finds only places named so. Asked by tag instead (the same fix as 25), Macks gains three OSM trailheads
+  (Heritage Park, Cool Springs, Dora Highway Park) besides Claytor Lake State Park: 1 → 4.
+- **The parking-lot routing (#76):** no drive time goes to a trailhead today (only hospitals, groceries and the
+  airports), so there's nothing to route yet. A "nearest trailhead" drive time would be new report text, which
+  needs the owner's approval first (rule 7): proposed in the PR, not built.
+
 ### 25: groceries reported as none
 
 **First the cause, on the Grayson replay.** Photon is asked for `shop:supermarket` in a 40 km bbox, limit 40, with
@@ -211,6 +224,14 @@ Overpass as the fallback. Lansing and West Jefferson have groceries. Candidates:
 
 **Acceptance:** Grayson finds a grocer in Lansing or West Jefferson, and an empty answer renders "none in OSM",
 then that sentence.
+
+**Done in A2b (#81, 2026-10-08). The cause:** Photon's forward search matches its query text against names, so
+`q=supermarket` found "Slaughters' Supermarket" and never a Food Lion or Ingles; on Grayson it found none.
+Photon's reverse geocoder, filtered by the tag within `near.groceryKm`, returns every supermarket nearest first.
+**Grayson: Lansing Foods, 6.7 mi** (acceptance met), and five more in Jefferson and West Jefferson. Because the
+prototype's "nearest real grocery" drive time prefers the chains it now finds, that drive time moves too: Ferney
+Food Lion 16 min (was Slaughters' 14), Macks Walmart Supercenter 61 min (was Slaughters' 42), Grayson Food Lion
+38 min. The hospital search (`q=hospital`) has the same flaw; left for a follow-up the owner can number.
 
 ### 29: every part of a multi-part parcel
 

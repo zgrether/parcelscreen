@@ -1856,6 +1856,51 @@
      ],
      "km": 10.331342407839117,
      "big": false
+    },
+    {
+     "name": "Food Lion",
+     "ll": [
+      36.9115005,
+      -80.3235801
+     ],
+     "km": 11.866937919232981,
+     "big": true
+    },
+    {
+     "name": "Harvest Moon Food Store",
+     "ll": [
+      36.9147238,
+      -80.3202241
+     ],
+     "km": 12.242218435705079,
+     "big": false
+    },
+    {
+     "name": "Food City",
+     "ll": [
+      37.121124,
+      -80.5315181
+     ],
+     "km": 26.92185533171664,
+     "big": true
+    },
+    {
+     "name": "Dollar General Market",
+     "ll": [
+      37.1274131,
+      -80.4101918
+     ],
+     "km": 26.9904675547484,
+     "big": false
+    },
+    {
+     "name": "Kroger",
+     "ll": [
+      37.1361102,
+      -80.411704
+     ],
+     "km": 27.929813396490882,
+     "big": true
     }
    ],
    "trailheads": [
@@ -1879,9 +1924,9 @@
    },
    {
     "label": "Nearest real grocery",
-    "min": 14,
-    "mi": 8.7,
-    "name": "Slaughters' Supermarket"
+    "min": 16,
+    "mi": 9.7,
+    "name": "Food Lion"
    },
    {
     "label": "Asheville airport (AVL)",
@@ -5547,6 +5592,51 @@
      ],
      "km": 10.331342407839117,
      "big": false
+    },
+    {
+     "name": "Food Lion",
+     "ll": [
+      36.9115005,
+      -80.3235801
+     ],
+     "km": 11.866937919232981,
+     "big": true
+    },
+    {
+     "name": "Harvest Moon Food Store",
+     "ll": [
+      36.9147238,
+      -80.3202241
+     ],
+     "km": 12.242218435705079,
+     "big": false
+    },
+    {
+     "name": "Food City",
+     "ll": [
+      37.121124,
+      -80.5315181
+     ],
+     "km": 26.92185533171664,
+     "big": true
+    },
+    {
+     "name": "Dollar General Market",
+     "ll": [
+      37.1274131,
+      -80.4101918
+     ],
+     "km": 26.9904675547484,
+     "big": false
+    },
+    {
+     "name": "Kroger",
+     "ll": [
+      37.1361102,
+      -80.411704
+     ],
+     "km": 27.929813396490882,
+     "big": true
     }
    ],
    "trailheads": [
@@ -5570,9 +5660,9 @@
    },
    {
     "label": "Nearest real grocery",
-    "min": 14,
-    "mi": 8.7,
-    "name": "Slaughters' Supermarket"
+    "min": 16,
+    "mi": 9.7,
+    "name": "Food Lion"
    },
    {
     "label": "Asheville airport (AVL)",
@@ -9790,6 +9880,51 @@
      ],
      "km": 10.331342407839117,
      "big": false
+    },
+    {
+     "name": "Food Lion",
+     "ll": [
+      36.9115005,
+      -80.3235801
+     ],
+     "km": 11.866937919232981,
+     "big": true
+    },
+    {
+     "name": "Harvest Moon Food Store",
+     "ll": [
+      36.9147238,
+      -80.3202241
+     ],
+     "km": 12.242218435705079,
+     "big": false
+    },
+    {
+     "name": "Food City",
+     "ll": [
+      37.121124,
+      -80.5315181
+     ],
+     "km": 26.92185533171664,
+     "big": true
+    },
+    {
+     "name": "Dollar General Market",
+     "ll": [
+      37.1274131,
+      -80.4101918
+     ],
+     "km": 26.9904675547484,
+     "big": false
+    },
+    {
+     "name": "Kroger",
+     "ll": [
+      37.1361102,
+      -80.411704
+     ],
+     "km": 27.929813396490882,
+     "big": true
     }
    ],
    "trailheads": [
@@ -9813,9 +9948,9 @@
    },
    {
     "label": "Nearest real grocery",
-    "min": 14,
-    "mi": 8.7,
-    "name": "Slaughters' Supermarket"
+    "min": 16,
+    "mi": 9.7,
+    "name": "Food Lion"
    },
    {
     "label": "Asheville airport (AVL)",

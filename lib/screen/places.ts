@@ -11,6 +11,7 @@ import { distance } from "@turf/turf";
 import { CancelledError, retryAfterHeaderMs, type HttpClient } from "../http";
 import { SCREEN_CONSTANTS } from "./config";
 import type { Endpoints, ScreenResult } from "./types";
+import type { TrailheadPoint } from "./trailheads";
 import type { LatLon } from "./util";
 
 const K = SCREEN_CONSTANTS.near;
@@ -55,6 +56,40 @@ export async function photon(
     dx = d / Math.cos((lat * Math.PI) / 180),
     bbox = `${lon - dx},${lat - d},${lon + dx},${lat + d}`;
   const u = `${deps.endpoints.photon}?q=${encodeURIComponent(q)}&osm_tag=${encodeURIComponent(tag)}&lat=${lat}&lon=${lon}&bbox=${bbox}&limit=${limit}`;
+  const r = await deps.http.fetch(u, {
+    timeoutMs: K.photonTimeoutMs,
+    ...(deps.signal ? { signal: deps.signal } : {}),
+  });
+  if (!r.ok) throw new Error("Photon " + r.status);
+  const j = (await r.json()) as {
+    features?: { geometry: { coordinates: [number, number] }; properties: { name?: string } }[];
+  };
+  const [k, v] = tag.split(":") as [string, string];
+  return (j.features || []).map((f) => ({
+    type: "node",
+    lat: f.geometry.coordinates[1],
+    lon: f.geometry.coordinates[0],
+    tags: { name: f.properties.name, [k]: v },
+  }));
+}
+
+/**
+ * OSM places by tag around a point, nearest first, through Photon's reverse geocoder (Batch A, A2b). The forward
+ * search (`photon`) matches its query text against names: `q=supermarket` found "Slaughters' Supermarket" but
+ * never a Food Lion, which left Grayson Mud Creek with no grocer although Lansing and West Jefferson have them
+ * (follow-up 25), and `q=trailhead` missed trailheads not named so (follow-up 24). Reverse, filtered by the tag
+ * within `radiusKm`, returns every match.
+ */
+export async function photonNear(
+  tag: string,
+  lat: number,
+  lon: number,
+  radiusKm: number,
+  deps: PlacesDeps,
+  limit: number = K.photonLimit,
+): Promise<OsmElement[]> {
+  const base = new URL("../reverse", deps.endpoints.photon).toString();
+  const u = `${base}?lat=${lat}&lon=${lon}&osm_tag=${encodeURIComponent(tag)}&radius=${radiusKm}&limit=${limit}`;
   const r = await deps.http.fetch(u, {
     timeoutMs: K.photonTimeoutMs,
     ...(deps.signal ? { signal: deps.signal } : {}),
@@ -181,15 +216,21 @@ export async function findPlaces(
   centre: LatLon,
   deps: PlacesDeps,
   mirrors: OverpassMirrors,
-): Promise<{ near: NonNullable<ScreenResult["near"]>; nearNote?: string }> {
+): Promise<{
+  near: NonNullable<ScreenResult["near"]>;
+  nearNote?: string;
+  /** Every OSM trailhead found, before the cap: the near step merges them with the official ones (follow-up 24). */
+  osmTrailheads: TrailheadPoint[];
+}> {
   const [lat, lon] = centre;
   let els: OsmElement[] = [];
   let nearNote: string | undefined;
   try {
     const [p1, p2, p3] = await Promise.all([
       photon("hospital", "amenity:hospital", lat, lon, K.hospitalKm, deps),
-      photon("supermarket", "shop:supermarket", lat, lon, K.groceryKm, deps),
-      photon("trailhead", "highway:trailhead", lat, lon, K.trailheadKm, deps),
+      // Groceries and trailheads by tag, not by name (photonNear): follow-ups 25 and 24.
+      photonNear("shop:supermarket", lat, lon, K.groceryKm, deps),
+      photonNear("highway:trailhead", lat, lon, K.trailheadKm, deps),
     ]);
     els = [...p1, ...p2, ...p3];
     if (!els.length) throw new Error("returned nothing");
@@ -223,17 +264,33 @@ export async function findPlaces(
       big: K.bigGrocer.test(e.tags!.name || ""),
     }))
     .sort((a, b) => a.km - b.km);
-  const trailheads = withPos
+  const osmTrailheads: TrailheadPoint[] = withPos
     .filter((e) => e.tags?.highway === "trailhead" || e.tags?.information === "trailhead")
-    .map((e) => ({ name: e.tags!.name || "Trailhead", ll: opLL(e), km: km(e) }))
-    .sort((a, b) => a.km - b.km);
+    .map((e) => ({ name: e.tags!.name || "Trailhead", ll: opLL(e), source: "osm" as const }));
+  const trailheads = trailheadsNear(osmTrailheads, centre);
   return {
     near: {
       hospitals: hospitals.slice(0, K.maxHospitals),
       grocers: grocers.slice(0, K.maxGrocers),
-      trailheads: trailheads.slice(0, K.maxTrailheads),
-      trailheadCount: trailheads.length,
+      ...trailheads,
     },
     ...(nearNote ? { nearNote } : {}),
+    osmTrailheads,
   };
+}
+
+/** Trailheads as the result keeps them: nearest first, the first near.maxTrailheads, and the count of all. */
+export function trailheadsNear(
+  points: readonly TrailheadPoint[],
+  centre: LatLon,
+): Pick<NonNullable<ScreenResult["near"]>, "trailheads" | "trailheadCount"> {
+  const [lat, lon] = centre;
+  const all = points
+    .map((p) => ({
+      name: p.name,
+      ll: p.ll,
+      km: distance([lon, lat], [p.ll[1], p.ll[0]], { units: "kilometers" }),
+    }))
+    .sort((a, b) => a.km - b.km);
+  return { trailheads: all.slice(0, K.maxTrailheads), trailheadCount: all.length };
 }

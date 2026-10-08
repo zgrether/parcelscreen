@@ -6,7 +6,7 @@
  * 1 is Phase 0's rules (the prototype's numbers). Each Batch A PR that changes a number bumps it: A2a → 2,
  * A2b → 3, A3 → 4, A4 → 5. A record without a stamp counts as 1.
  */
-export const ENGINE_VERSION = 2;
+export const ENGINE_VERSION = 3;
 
 /** What a kept screen without a stamp counts as: everything kept before the stamp existed is Phase 0's. */
 export const UNSTAMPED_ENGINE = 1;

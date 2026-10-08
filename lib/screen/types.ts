@@ -59,6 +59,8 @@ export const EndpointsSchema = z.strictObject({
   nfhl: z.string(),
   overpass: z.array(z.string()),
   photon: z.string(),
+  usfsRecSites: z.string(),
+  stateParks: z.array(z.string()),
   tiger: z.string(),
   lpAtlasYear: z.number(),
   lpAtlasBinary: z.string(),

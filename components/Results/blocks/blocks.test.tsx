@@ -23,11 +23,11 @@ import { gardenHeading } from "@/lib/report/garden";
 import { houseHeading } from "@/lib/report/house";
 import { soilsHeading } from "@/lib/report/soils";
 import {
-  designationName,
   floodHeading,
   gettingThereHeading,
-  managerName,
+  NO_GROCER_CAVEAT,
   publicLandHeading,
+  unitMeta,
 } from "@/lib/report/surroundings";
 import { unknownHeading } from "@/lib/report/unknown";
 import { DarkSkies } from "./DarkSkies";
@@ -67,22 +67,26 @@ const BLOCKS: {
 
 /**
  * Differences from the prototype the plan approved, removed from our text before comparing. Q4: the Soils
- * block carries the map-unit-scale caveat, which the prototype kept in its help dialog only.
+ * block carries the map-unit-scale caveat, which the prototype kept in its help dialog only. Batch A A2b
+ * (rule 7, appended): the trailhead sources after the Getting-there caveat (follow-up 24), and the line under
+ * "none in OSM" when no grocer was found (follow-up 25).
  */
-const APPROVED: Record<string, string> = {
-  soils: "Map-unit lines are drawn at county scale, so a boundary can be 100 ft off on the ground.",
+const APPROVED: Record<string, string[]> = {
+  soils: ["Map-unit lines are drawn at county scale, so a boundary can be 100 ft off on the ground."],
+  "getting-there-and-getting-out": [
+    " Forest Service trailheads and state parks are included too.",
+    NO_GROCER_CAVEAT,
+  ],
 };
 
 /**
  * Approved changes to the prototype's own text, applied to it before comparing: the public-land list names its
- * PAD-US manager and designation codes (owner, #80 review, 2026-10-08: an approved exception to rule 7).
+ * PAD-US manager and designation codes (owner, #80 review, 2026-10-08: an approved exception to rule 7), and
+ * none at all when both are unknown or catch-all (owner, 2026-10-08).
  */
 const APPROVED_PROTO: Record<string, (text: string) => string> = {
   "public-land-within-a-mile": (t) =>
-    t.replace(
-      /\(([A-Z]*), ([A-Z]*)\)/g,
-      (_m, m: string, d: string) => `(${managerName(m)}, ${designationName(d)})`,
-    ),
+    t.replace(/\(([A-Z]*), ([A-Z]*)\)/g, (_m, m: string, d: string) => unitMeta({ manager: m, type: d })),
 };
 
 const render = (Block: ComponentType<BlockProps>, result: PartialScreenResult) =>
@@ -106,9 +110,7 @@ function expectParity(R: PrototypeResult, ours: PartialScreenResult, partial: bo
       expect(html, slug).toBe("");
       continue;
     }
-    const text = APPROVED[slug]
-      ? visibleText(html).replace(visibleText(APPROVED[slug]), "")
-      : visibleText(html);
+    const text = (APPROVED[slug] ?? []).reduce((t, a) => t.replace(visibleText(a), ""), visibleText(html));
     const theirs = visibleText(APPROVED_PROTO[slug]?.(section.body) ?? section.body);
     expect(text, slug).toBe(theirs);
     const h = heading(ours, evaluationPoint(ours));

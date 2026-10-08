@@ -57,15 +57,17 @@ describe("the defaults are the prototype's (owner, step 16)", () => {
     const anchors = prototypeFn<() => unknown>("anchors", { CFG: PROTO });
     expect(DEFAULT_USER_CONFIG.anchors).toEqual(anchors());
 
-    // Endpoints: the prototype's JSON string is the port's object, except _v and overpass (#18).
+    // Endpoints: the prototype's JSON string is the port's object, except _v and overpass (#18), and the
+    // official trailhead sources the port adds (follow-up 24, Batch A A2b).
     const protoEndpoints = JSON.parse(PROTO.endpoints) as Record<string, unknown>;
     const portEndpoints = DEFAULT_ENDPOINTS as unknown as Record<string, unknown>;
-    expect(Object.keys(portEndpoints)).toEqual(Object.keys(protoEndpoints));
+    const ADDED = ["usfsRecSites", "stateParks"];
+    expect(Object.keys(portEndpoints).filter((k) => !ADDED.includes(k))).toEqual(Object.keys(protoEndpoints));
     const differ = Object.keys(protoEndpoints).filter(
       (k) => JSON.stringify(protoEndpoints[k]) !== JSON.stringify(portEndpoints[k]),
     );
     expect(differ).toEqual(["_v", "overpass"]);
-    expect([protoEndpoints._v, portEndpoints._v]).toEqual([10, 11]);
+    expect([protoEndpoints._v, portEndpoints._v]).toEqual([10, 12]);
     for (const k of Object.keys(protoEndpoints))
       expect(typeof portEndpoints[k], k).toBe(typeof protoEndpoints[k]);
 
@@ -210,14 +212,14 @@ describe("validation (owner, Q1): Save names the field and the reason", () => {
     expect(reasons({ ...DEFAULT_ENDPOINTS, lpAtlasYear: 2025.5 })).toEqual([
       "Data endpoints — lpAtlasYear must be a whole number",
     ]);
-    // Only the current version, 11 (owner, #59), with the owner's wording, below or above.
-    expect(reasons({ ...DEFAULT_ENDPOINTS, _v: 10 })).toEqual([
-      "Data endpoints — Endpoints are version 10; only version 11 is accepted, and older versions are replaced by defaults on load. Reset the endpoints, or update the list and set _v to 11.",
+    // Only the current version, 12 since A2b (owner, #59), with the owner's wording, below or above.
+    expect(reasons({ ...DEFAULT_ENDPOINTS, _v: 11 })).toEqual([
+      "Data endpoints — Endpoints are version 11; only version 12 is accepted, and older versions are replaced by defaults on load. Reset the endpoints, or update the list and set _v to 12.",
     ]);
-    expect(reasons({ ...DEFAULT_ENDPOINTS, _v: 12 })).toEqual([
-      "Data endpoints — Endpoints are version 12; only version 11 is accepted, and older versions are replaced by defaults on load. Reset the endpoints, or update the list and set _v to 11.",
+    expect(reasons({ ...DEFAULT_ENDPOINTS, _v: 13 })).toEqual([
+      "Data endpoints — Endpoints are version 13; only version 12 is accepted, and older versions are replaced by defaults on load. Reset the endpoints, or update the list and set _v to 12.",
     ]);
-    expect(reasons({ ...DEFAULT_ENDPOINTS, _v: 11 })).toEqual([]);
+    expect(reasons({ ...DEFAULT_ENDPOINTS, _v: 12 })).toEqual([]);
     expect(
       reasons({
         ...DEFAULT_ENDPOINTS,

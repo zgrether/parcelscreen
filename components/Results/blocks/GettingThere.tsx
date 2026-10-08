@@ -1,5 +1,5 @@
 /** Getting there and getting out (proto L1551–1555): drive times, groceries, trailheads. */
-import { gettingThereView } from "@/lib/report/surroundings";
+import { gettingThereView, NO_GROCER_CAVEAT } from "@/lib/report/surroundings";
 import { Note } from "./shared";
 import { showsMap, type BlockProps } from "./types";
 import { joinParts } from "@/lib/report/parts";
@@ -24,13 +24,18 @@ export function GettingThere({ result, variant }: BlockProps) {
             <tr>
               <td>Groceries within 28 mi (straight line)</td>
               <td>
-                {v.grocers.length
-                  ? v.grocers.map((g, i) => (
-                      <div key={i}>
-                        {g.name} <span className="tiny muted">{g.mi}</span>
-                      </div>
-                    ))
-                  : "none in OSM"}
+                {v.grocers.length ? (
+                  v.grocers.map((g, i) => (
+                    <div key={i}>
+                      {g.name} <span className="tiny muted">{g.mi}</span>
+                    </div>
+                  ))
+                ) : (
+                  <>
+                    none in OSM
+                    <div className="tiny muted">{NO_GROCER_CAVEAT}</div>
+                  </>
+                )}
               </td>
             </tr>
           )}
