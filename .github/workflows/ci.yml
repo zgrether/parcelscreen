@@ -36,6 +36,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm format:check
+      # Every @turf package at exactly 7.4.0 (@turf/jsts 2.7.2): docs/plans/phase-0.md §4, test/tools/turfPin.ts.
+      - run: pnpm check:turf
 
   test:
     runs-on: ubuntu-latest

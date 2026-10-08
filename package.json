@@ -23,11 +23,13 @@
     "diff:prototype": "vitest run test/tools/diff-prototype.test.ts --mode diff-prototype",
     "before-after": "vitest run test/tools/before-after.test.ts --mode before-after",
     "guard:expected": "vitest run test/tools/expected-guard.test.ts --mode guard",
+    "check:turf": "vitest run test/tools/turf-pin.test.ts",
+    "turf-versions": "vitest run test/tools/turf-versions.test.ts --mode turf-versions",
     "record:fixtures": "node scripts/record-fixtures.mts"
   },
   "dependencies": {
     "@serwist/turbopack": "9.5.13",
-    "@turf/turf": "7.1.0",
+    "@turf/turf": "7.4.0",
     "fast-png": "^8.0.0",
     "geotiff": "2.1.3",
     "maplibre-contour": "0.1.1",
