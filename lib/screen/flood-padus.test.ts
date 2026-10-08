@@ -263,3 +263,107 @@ describe("FEMA network failures and 5xx (owner, after 18b), replayed on Ferney C
     expect(s.calls()).toBe(1);
   });
 });
+
+describe("public land: the nearest part, and land open beyond the mile (follow-up 23)", () => {
+  const parcel = square(-80.5, 36.9, -80.49, 36.91); // about 0.9 × 1.1 km
+  type Props = { Unit_Nm: string; Mang_Name: string; Des_Tp: string; Pub_Access: string; GAP_Sts: string };
+  const props = (name: string, access = "OA", manager = "USFS"): Props => ({
+    Unit_Nm: name,
+    Mang_Name: manager,
+    Des_Tp: "NF",
+    Pub_Access: access,
+    GAP_Sts: "3",
+  });
+  const ring = (w: number, s: number, e: number, n: number) => [
+    [w, s],
+    [e, s],
+    [e, n],
+    [w, n],
+    [w, s],
+  ];
+  /** A unit east of the parcel, `km` from its edge (1° of longitude here is about 89 km). */
+  const east = (p: Props, km: number) => ({
+    ...square(-80.49 + km / 89, 36.9, -80.48 + km / 89, 36.91),
+    properties: p,
+  });
+  /** Answers the 1,600 m query with `mile` and the wider one with `wide` (or a 500), and keeps what was asked. */
+  const twoQueries = (mile: object[], wide: object[] | "down") => {
+    const asked: URLSearchParams[] = [];
+    const http: HttpClient = {
+      fetch: async (_url, o = {}) => {
+        const b = new URLSearchParams(String(o.body));
+        asked.push(b);
+        if (b.get("distance") === "1600") return new Response(JSON.stringify({ features: mile }));
+        return wide === "down"
+          ? new Response("down", { status: 500 })
+          : new Response(JSON.stringify({ features: wide }));
+      },
+    };
+    return { http, asked };
+  };
+  const names = (r: Awaited<ReturnType<typeof padusStep>>) => r.protected.map((u) => u.name);
+
+  it("measures a multi-part unit to its nearest part, not its first", async () => {
+    const fund = {
+      type: "Feature",
+      properties: props("Land Fund", "RA", "UNK"),
+      geometry: {
+        type: "MultiPolygon",
+        coordinates: [[ring(-80.38, 36.9, -80.37, 36.91)], [ring(-80.484, 36.9, -80.48, 36.91)]], // ~10 km, ~0.5 km
+      },
+    };
+    const r = await padusStep(parcel, { ...twoQueries([fund], []), endpoints: DEFAULT_ENDPOINTS });
+    const ft = r.protected[0]!.distFt!;
+    expect(ft / 3.28084).toBeGreaterThan(450);
+    expect(ft / 3.28084).toBeLessThan(600); // the near part; its first part alone is ~10 km
+  });
+
+  it("adds open land beyond the mile after the mile's units, nearest first, and never a unit the mile found", async () => {
+    const park = props("Park");
+    const q = twoQueries(
+      [east(props("Land Fund", "RA", "UNK"), 0.5), east(park, 0.8)],
+      [
+        east(props("Far Forest"), 8),
+        east(park, 0.7), // the mile's unit again (simplified): its full-geometry copy stands
+        east(props("Near Forest"), 1), // within the mile: the mile's query is the only source there
+        east(props("Forest"), 4),
+      ],
+    );
+    const r = await padusStep(parcel, { ...q, endpoints: DEFAULT_ENDPOINTS });
+    expect(names(r)).toEqual(["Land Fund", "Park", "Forest", "Far Forest"]);
+    expect(r.protected.slice(2).every((u) => !u.adjoins && u.distFt! > 1600 * 3.28084)).toBe(true);
+    expect(r.protected[1]!.distFt! / 3.28084).toBeCloseTo(800, -2); // the full-geometry copy's distance
+
+    // The wider query: open land only, 16 km, simplified; the mile's query as it always was.
+    const [mile, wide] = q.asked;
+    expect([mile!.get("distance"), mile!.get("where"), mile!.get("maxAllowableOffset")]).toEqual([
+      "1600",
+      null,
+      null,
+    ]);
+    expect([wide!.get("distance"), wide!.get("where"), wide!.get("maxAllowableOffset")]).toEqual([
+      "16000",
+      "Pub_Access='OA'",
+      "0.0002",
+    ]);
+    expect(wide!.get("outFields")).toBe(mile!.get("outFields"));
+  });
+
+  it("the adjoins flags come from the mile's query only", async () => {
+    const forest = east(props("Jefferson NF"), 0); // adjoins
+    const mileOnly = await padusStep(parcel, { ...twoQueries([forest], []), endpoints: DEFAULT_ENDPOINTS });
+    const withWide = await padusStep(parcel, {
+      ...twoQueries([forest], [east(props("Other NF"), 3), east(props("Third NF"), 6)]),
+      endpoints: DEFAULT_ENDPOINTS,
+    });
+    expect(withWide.flags).toEqual(mileOnly.flags);
+  });
+
+  it("a failed wider query leaves the mile's units and flags, and fails nothing", async () => {
+    const r = await padusStep(parcel, {
+      ...twoQueries([east(props("Park"), 0.8)], "down"),
+      endpoints: DEFAULT_ENDPOINTS,
+    });
+    expect(names(r)).toEqual(["Park"]);
+  });
+});

@@ -3,6 +3,8 @@
  * and Getting there and getting out (L1551–1555).
  */
 import { fmt } from "../format";
+import { SCREEN_CONSTANTS } from "../screen/config";
+import { M2FT } from "../screen/util";
 import type { PartialScreenResult } from "../screen/types";
 import type { RichItem } from "./facts";
 import { onMap, said, type Heading, type Part } from "./parts";
@@ -52,13 +54,40 @@ export interface PublicLandView {
   units: PublicUnitView[];
   none: string;
   caveat: string;
+  /** The nearest land open to visitors beyond the mile (follow-up 23), or null. */
+  beyond: string | null;
+}
+
+type Unit = NonNullable<PartialScreenResult["protected"]>[number];
+
+/**
+ * Within the mile: what the 1,600 m query found (follow-up 23). Units from the wider query are always measured
+ * beyond it (lib/screen/padus.ts), so the distance alone tells them apart, and old results have none.
+ */
+const withinMile = (u: Unit): boolean =>
+  u.adjoins || u.distFt == null || u.distFt <= SCREEN_CONSTANTS.padus.searchM * M2FT;
+
+/**
+ * The nearest land open to visitors beyond the mile, as one sentence (owner, 2026-10-08): only when nothing
+ * open is within the mile and the wider query found something. Appended after the caveat (rule 7).
+ */
+function beyondMile(units: readonly Unit[]): string | null {
+  if (units.some((u) => withinMile(u) && u.access === "OA")) return null;
+  const open = units.filter((u) => !withinMile(u) && u.access === "OA").sort((a, b) => a.distFt! - b.distFt!);
+  if (!open.length) return null;
+  // PAD-US often lists one unit twice, once with its manager unknown ("UNK"): at the same distance, name the
+  // manager when one copy has it.
+  const atNearest = open.filter((u) => u.distFt! - open[0]!.distFt! < 1);
+  const nearest = atNearest.find((u) => u.manager && u.manager !== "UNK") ?? open[0]!;
+  const mi = (nearest.distFt! / 5280).toFixed(1);
+  return `Nearest public land open to visitors beyond a mile: ${nearest.name || "Unnamed"} (${nearest.manager || "unknown"}), ${mi} mi straight-line.`;
 }
 
 /** Null until the public-land step has run. */
 export function publicLandView(r: PartialScreenResult): PublicLandView | null {
   if (!r.protected) return null;
   return {
-    units: r.protected.map((u) => ({
+    units: r.protected.filter(withinMile).map((u) => ({
       name: u.name || "Unnamed",
       meta: `(${u.manager || ""}, ${u.type || ""})`,
       where: u.adjoins
@@ -69,6 +98,7 @@ export function publicLandView(r: PartialScreenResult): PublicLandView | null {
     none: "None. All your buffer is land you buy.",
     caveat:
       "Conservation easements on private land are not in this layer and don't count — you can't walk on them.",
+    beyond: beyondMile(r.protected),
   };
 }
 

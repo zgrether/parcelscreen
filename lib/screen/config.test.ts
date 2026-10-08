@@ -232,6 +232,8 @@ describe("config", () => {
         },
         "padus": {
           "adjoinsBufferKm": 0.02,
+          "nearestOpenKm": 16,
+          "openSimplifyDeg": 0.0002,
           "searchM": 1600,
         },
         "roads": {

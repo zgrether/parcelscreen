@@ -1,0 +1,83 @@
+/**
+ * The public-land block with land beyond the mile (follow-up 23, owner 2026-10-08): the within-a-mile list keeps
+ * to 1,600 m, and one line names the nearest land open to visitors beyond it, only when none is open within.
+ */
+import { renderToStaticMarkup } from "react-dom/server";
+import { describe, expect, it } from "vitest";
+import { publicLandView } from "@/lib/report/surroundings";
+import type { PartialScreenResult } from "@/lib/screen/types";
+import { PublicLand } from "./PublicLand";
+
+type Unit = NonNullable<PartialScreenResult["protected"]>[number];
+const MILE_FT = 1600 * 3.28084;
+const u = (name: string, access: string, distFt: number | null, adjoins = false, manager = "USFS"): Unit => ({
+  name,
+  manager,
+  type: "NF",
+  access,
+  gap: "3",
+  adjoins,
+  distFt,
+});
+const view = (units: Unit[]) => publicLandView({ protected: units } as PartialScreenResult)!;
+const LINE = (name: string, manager: string, mi: string) =>
+  `Nearest public land open to visitors beyond a mile: ${name} (${manager}), ${mi} mi straight-line.`;
+
+describe("public land beyond the mile", () => {
+  it("a unit beyond the mile never appears under 'Public land within a mile'", () => {
+    const v = view([
+      u("Land Fund", "RA", 3411),
+      u("Edge of the mile", "RA", MILE_FT), // exactly 1,600 m: within
+      u("Jefferson National Forest", "OA", 2.26 * 5280),
+      u("Just beyond", "RA", MILE_FT + 1),
+    ]);
+    expect(v.units.map((x) => x.name)).toEqual(["Land Fund", "Edge of the mile"]);
+  });
+
+  it("adjoining units and units the mile's query couldn't measure stay in the list", () => {
+    const v = view([u("Scout Camp", "RA", null, true), u("Odd geometry", "RA", null)]);
+    expect(v.units.map((x) => x.name)).toEqual(["Scout Camp", "Odd geometry"]);
+  });
+
+  it("names the nearest open land beyond the mile, in the owner's words, when none is open within it", () => {
+    const v = view([
+      u("Land Fund", "RA", 3411),
+      u("Old Flat State Forest", "OA", 2.44 * 5280, false, "SDNR"),
+      u("Jefferson National Forest", "OA", 2.26 * 5280),
+    ]);
+    expect(v.beyond).toBe(LINE("Jefferson National Forest", "USFS", "2.3"));
+  });
+
+  it("of two copies at the same distance, names the one whose manager is known", () => {
+    const v = view([
+      u("Buffalo Mountain Preserve", "OA", 5.31 * 5280, false, "UNK"),
+      u("Buffalo Mountain Preserve", "OA", 5.31 * 5280, false, "SDC"),
+    ]);
+    expect(v.beyond).toBe(LINE("Buffalo Mountain Preserve", "SDC", "5.3"));
+  });
+
+  it("no line when land open to visitors is within the mile, or adjoins", () => {
+    expect(view([u("Park", "OA", 2000), u("Far Forest", "OA", 4 * 5280)]).beyond).toBeNull();
+    expect(view([u("Park", "OA", null, true), u("Far Forest", "OA", 4 * 5280)]).beyond).toBeNull();
+  });
+
+  it("no line for a result without wider units (screened before Batch A, or the wider query failed)", () => {
+    expect(view([u("Land Fund", "RA", 3411)]).beyond).toBeNull();
+    expect(view([]).beyond).toBeNull();
+  });
+
+  it("the block shows the line after the caveat, and the list without the far unit", () => {
+    const result = {
+      protected: [
+        u("Land Fund", "RA", 3411, false, "UNK"),
+        u("Jefferson National Forest", "OA", 2.26 * 5280),
+      ],
+    } as PartialScreenResult;
+    const html = renderToStaticMarkup(<PublicLand result={result} point={null} variant="panel" />);
+    const caveat = html.indexOf("Conservation easements on private land");
+    const line = html.indexOf(LINE("Jefferson National Forest", "USFS", "2.3"));
+    expect(caveat).toBeGreaterThan(0);
+    expect(line).toBeGreaterThan(caveat);
+    expect(html.slice(0, caveat)).not.toContain("Jefferson");
+  });
+});
