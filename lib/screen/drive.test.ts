@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import type { HttpClient } from "../http";
 import { DEFAULT_ENDPOINTS, SCREEN_CONSTANTS } from "./config";
 import { driveTimes } from "./drive";
-import { CLOSER_GROCERY, REAL_GROCERY, type ScreenResult } from "./types";
+import { CLOSER_GROCERY, REAL_GROCERY } from "./driveList";
+import type { ScreenResult } from "./types";
 import type { LatLon } from "./util";
 
 type Near = NonNullable<ScreenResult["near"]>;
@@ -83,6 +84,24 @@ describe("the closer non-chain grocery (owner, #81)", () => {
     const { drives, asked } = await run([grocer("Food Lion", -2, true)], { "-2": 38, "-80.2": 90 });
     expect(drives.map((d) => d.label)).toEqual([REAL_GROCERY, "Airport"]);
     expect(asked).toEqual(["-2", "-80.2"]);
+  });
+
+  it("looks beyond the six listed stores: the pool is every non-chain store found (Macks's Slaughters')", async () => {
+    const o = osrm({ "-2": 61, "-4": 61, "-10": 42, "-11": 50, "-80.2": 90 });
+    const listed = [grocer("Food City", -2, true), grocer("Maria Bonita", -4, false)];
+    const pool = [listed[1]!, grocer("Slaughters'", -10, false), grocer("Harvest Moon", -11, false)];
+    const drives = await driveTimes(
+      FROM,
+      near(listed),
+      [],
+      { http: o.http, endpoints: DEFAULT_ENDPOINTS },
+      pool,
+    );
+    expect(drives.map((d) => [d.label, d.name, d.min])).toEqual([
+      [REAL_GROCERY, "Food City", 61],
+      [CLOSER_GROCERY, "Slaughters'", 42],
+    ]);
+    expect(o.asked).toEqual(["-2", "-4", "-10", "-11"]); // the chain, then the three nearest in the pool
   });
 
   it("the chain can't be routed: no closer line", async () => {

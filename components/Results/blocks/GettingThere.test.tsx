@@ -2,7 +2,8 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { NO_GROCER_CAVEAT } from "@/lib/report/surroundings";
-import { CLOSER_GROCERY, REAL_GROCERY, type PartialScreenResult } from "@/lib/screen/types";
+import { CLOSER_GROCERY, REAL_GROCERY } from "@/lib/screen/driveList";
+import type { PartialScreenResult } from "@/lib/screen/types";
 import { GettingThere } from "./GettingThere";
 
 const near = (

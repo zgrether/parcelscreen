@@ -102,6 +102,8 @@ export interface ScreenSession {
   decAltByAz?: (number | null)[];
   sfha?: FloodFeature[];
   roads?: RoadFeature[];
+  /** Every non-chain supermarket the near step found, nearest first: the closer grocery's candidates (#81). */
+  otherGrocers?: { name: string; ll: LatLon }[];
   soilMask?: Uint8Array;
   flowAcc?: Float32Array;
   deps: { http: HttpClient; demCache: DemCache; atlas: AtlasCache; sleep?: (ms: number) => Promise<void> };
@@ -312,6 +314,7 @@ export async function screen(
     if (n.near) R.near = n.near;
     if (n.nearNote) R.nearNote = n.nearNote;
     s.roads = n.roads;
+    if (n.otherGrocers) s.otherGrocers = n.otherGrocers;
     if (n.road) R.road = n.road;
     if (n.roadNote) R.roadNote = n.roadNote;
     R.flags.push(...n.flags);
@@ -321,7 +324,7 @@ export async function screen(
 
   await step("drive", async () => {
     R.drives = [];
-    R.drives = await driveTimes(s.centre, R.near, cfg.anchors, io); // stays [] if nothing routes
+    R.drives = await driveTimes(s.centre, R.near, cfg.anchors, io, s.otherGrocers); // stays [] if nothing routes
   });
 
   await step("rank", () => {

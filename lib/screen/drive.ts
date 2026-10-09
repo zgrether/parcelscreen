@@ -6,7 +6,8 @@
  */
 import { CancelledError, type HttpClient } from "../http";
 import { SCREEN_CONSTANTS } from "./config";
-import { CLOSER_GROCERY, REAL_GROCERY, type Anchor, type Endpoints, type ScreenResult } from "./types";
+import { CLOSER_GROCERY, REAL_GROCERY } from "./driveList";
+import type { Anchor, Endpoints, ScreenResult } from "./types";
 import type { LatLon } from "./util";
 
 const K = SCREEN_CONSTANTS.drive;
@@ -50,6 +51,11 @@ export async function driveTimes(
   near: ScreenResult["near"] | undefined,
   anchors: Anchor[],
   deps: DriveDeps,
+  /**
+   * Every non-chain supermarket found, nearest first, beyond the six the report lists (owner, #81: Macks's
+   * Slaughters' is the tenth nearest). Defaults to the listed ones.
+   */
+  otherGrocers: readonly Place[] = near ? near.grocers.filter((g) => !g.big) : [],
 ): Promise<NonNullable<ScreenResult["drives"]>> {
   const drives: NonNullable<ScreenResult["drives"]> = [];
   const quickest = async (list: Place[], n: number) => {
@@ -72,10 +78,7 @@ export async function driveTimes(
     const chain = await tryN(big.length ? big : near.grocers, REAL_GROCERY, K.candidates);
     // Owner, #81: the chain rule stands; a non-chain grocery that's clearly nearer by road is added after it.
     if (chain && big.length) {
-      const other = await quickest(
-        near.grocers.filter((g) => !g.big),
-        K.candidates,
-      );
+      const other = await quickest([...otherGrocers], K.candidates);
       if (other && chain.min - other.min >= SCREEN_CONSTANTS.grocery.closerMinMin)
         closer = { label: CLOSER_GROCERY, ...other };
     }

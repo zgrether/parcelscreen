@@ -5,7 +5,8 @@
 import { fmt } from "../format";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { M2FT } from "../screen/util";
-import { CLOSER_GROCERY, REAL_GROCERY, type PartialScreenResult } from "../screen/types";
+import { REAL_GROCERY, splitDrives } from "../screen/driveList";
+import type { PartialScreenResult } from "../screen/types";
 import type { RichItem } from "./facts";
 import { onMap, said, type Heading, type Part } from "./parts";
 
@@ -268,15 +269,15 @@ type Drive = NonNullable<PartialScreenResult["drives"]>[number];
  * grocery" row as "Closer: {name}, {N} min." rather than shown as a row of its own.
  */
 function driveRows(drives: readonly Drive[]): GettingThereView["drives"] {
-  const closer = drives.find((d) => d.label === CLOSER_GROCERY && d.name);
-  return drives
-    .filter((d) => d !== closer)
-    .map((d) => ({
-      label: d.label,
-      name: d.name,
-      value: `${d.min} min, ${d.mi} mi`,
-      ...(closer && d.label === REAL_GROCERY ? { closer: `Closer: ${closer.name}, ${closer.min} min.` } : {}),
-    }));
+  const { destinations, closer } = splitDrives(drives);
+  return destinations.map((d) => ({
+    label: d.label,
+    name: d.name,
+    value: `${d.min} min, ${d.mi} mi`,
+    ...(closer && d.label === REAL_GROCERY && d.name !== ""
+      ? { closer: `Closer: ${closer.name}, ${closer.min} min.` }
+      : {}),
+  }));
 }
 
 /** Null until the drive or near step has run. */

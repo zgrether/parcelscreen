@@ -3946,6 +3946,12 @@
     "name": "",
     "min": 189,
     "mi": 141
+   },
+   {
+    "label": "Closer grocery",
+    "min": 42,
+    "mi": 22.5,
+    "name": "Slaughters' Supermarket"
    }
   ],
   "excluded": [],
@@ -11972,6 +11978,12 @@
     "name": "",
     "min": 189,
     "mi": 141
+   },
+   {
+    "label": "Closer grocery",
+    "min": 42,
+    "mi": 22.5,
+    "name": "Slaughters' Supermarket"
    }
   ],
   "excluded": [],

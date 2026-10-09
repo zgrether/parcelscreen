@@ -235,10 +235,14 @@ Food Lion 16 min (was Slaughters' 14), Macks Walmart Supercenter 61 min (was Sla
 
 **The closer grocery (owner, #81 review).** The chain rule stays for the existing line. When a non-chain grocery
 is at least `grocery.closerMinMin` (10) minutes nearer by road, "Closer: {name}, {N} min." is appended to that
-row. The drive step routes the three nearest non-chain stores (as it does the chains) and keeps the quickest; it's
-stored as the last `drives` entry, labelled "Closer grocery", so v2's shape is unchanged and every earlier entry
-keeps its place. The copied summary leaves it out. **Grayson: Closer: Lansing Foods, 21 min** (Food Lion 38).
-Ferney's nearest non-chain is 2 min nearer and Macks's isn't nearer, so neither shows it.
+row. The drive step routes the three nearest non-chain stores of **every** one the search found within
+`near.groceryKm`, not only the six the report lists, and keeps the quickest. It's stored as the last `drives` entry,
+labelled "Closer grocery" with the store's name (anchors are stored with name ""), so v2's shape is unchanged and
+every earlier entry keeps its place; every consumer reads the list through `splitDrives` (`lib/screen/driveList.ts`),
+and the copied summary lists destinations only. **Grayson: Closer: Lansing Foods, 21 min** (Food Lion 38). **Macks:
+Closer: Slaughters' Supermarket, 42 min** (Walmart Supercenter 61): main's 42-min store, still `shop=supermarket`
+and still found by the tag search, tenth nearest at 15.7 mi, so outside the six listed. Ferney's nearest non-chain
+is 2 min nearer, so no line.
 
 ### 29: every part of a multi-part parcel
 
@@ -349,7 +353,9 @@ with, so History has to say when those came from earlier rules.
 - **Phase 1:** the import into Supabase carries `engine` into a field of v3's `ScreenResult`.
 
 **Carried to v3 (Phase 1):** the engine version (from the envelope) and a trailhead source (Q4); and a record that
-the wider public-land search didn't respond, so the section can say so (owner, #80 review, 2026-10-08).
+the wider public-land search didn't respond, so the section can say so (owner, #80 review, 2026-10-08); and an
+explicit closer-grocery field, moved out of `drives` by the migration (owner, #81 review). The full list is
+`phase-0.md` §9.20.
 
 ## 7. Batch B (interleaved, UI only)
 

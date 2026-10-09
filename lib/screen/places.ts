@@ -221,6 +221,11 @@ export async function findPlaces(
   nearNote?: string;
   /** Every OSM trailhead found, before the cap: the near step merges them with the official ones (follow-up 24). */
   osmTrailheads: TrailheadPoint[];
+  /**
+   * Session-only: every non-chain supermarket found within near.groceryKm, nearest first, before the cap of
+   * maxGrocers. The drive step looks for a closer one here (owner, #81), not only among the six listed.
+   */
+  otherGrocers: { name: string; ll: LatLon }[];
 }> {
   const [lat, lon] = centre;
   let els: OsmElement[] = [];
@@ -276,6 +281,7 @@ export async function findPlaces(
     },
     ...(nearNote ? { nearNote } : {}),
     osmTrailheads,
+    otherGrocers: grocers.filter((g) => !g.big).map(({ name, ll }) => ({ name, ll })),
   };
 }
 

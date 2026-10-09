@@ -25,6 +25,8 @@ export interface NearDeps {
 export interface NearOutcome extends Pick<ScreenResult, "near" | "nearNote" | "road" | "roadNote"> {
   /** Session-only: the raw TIGER features, for site scoring and the driveway router. */
   roads: RoadFeature[];
+  /** Session-only: every non-chain supermarket found, nearest first (findPlaces), for the closer grocery. */
+  otherGrocers?: { name: string; ll: LatLon }[];
   flags: ScreenResult["flags"];
   /**
    * Set when both place sources failed: the orchestrator marks the step failed with this message and its
@@ -59,6 +61,7 @@ export async function nearStep(
           },
           ...(places.value.nearNote ? { nearNote: places.value.nearNote } : {}),
           roads: roads.value,
+          otherGrocers: places.value.otherGrocers,
           flags: [],
         }
       : { roads: roads.value, flags: [], placesError: places.reason as PlacesError };
