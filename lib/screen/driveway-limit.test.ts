@@ -6,7 +6,6 @@
 import { describe, expect, it } from "vitest";
 import { replayRun } from "@/test/support/session";
 import { runFixture } from "@/test/support/scenarios";
-import { loadFixture } from "@/test/support/fixtures";
 import { M2FT } from "./util";
 import {
   buildDriveway,
@@ -52,6 +51,9 @@ describe("overLimitSpans", () => {
   });
 });
 
+/** A grade limit the fixtures' sites can't all meet, to exercise the least-steep path (A3b). */
+const STRICT = 5;
+
 describe("the least-steep route on the reference parcels", () => {
   it("Ferney Creek to site #1 at the real limit: routes as before, nothing over the limit", async () => {
     const { result } = await replayRun("ferney-creek-52-47A");
@@ -59,14 +61,22 @@ describe("the least-steep route on the reference parcels", () => {
     expect(result.driveway!.overLimit).toBeUndefined();
   });
 
-  // Grayson since A3: Macks's #1 became its 9.6 ac bench, which has a legal route; Grayson's #1 still has none.
-  it("Grayson Mud Creek to site #1: no legal route; the least-steep one is the lowest cap that reaches it", async () => {
+  // Since A3b (follow-up 44) every fixture site has a route within the real 10% limit: the router used to skip
+  // half its cells. The least-steep path is exercised at a stricter limit, on the real terrain.
+  it("Grayson Mud Creek to site #1 at a 5% limit: no legal route; the least-steep one is the lowest cap that reaches it", async () => {
     const { result, session } = await runFixture("grayson-mud-creek-6273");
-    const d = result.driveway!;
+    const d = buildDriveway(
+      routeContext(session),
+      session.roads ?? [],
+      session.parcel,
+      result.sites![0]!.ll,
+      "site #1",
+      STRICT,
+    );
     expect(d.routes).toEqual([]);
     const o = d.overLimit!;
     const cap = neededPct(o);
-    expect(cap).toBeGreaterThan(10);
+    expect(cap).toBeGreaterThan(STRICT);
     expect(cap).toBeLessThanOrEqual(K.leastSteep.maxPct);
     // One percent lower, neither routed entrance reaches the site.
     const ctx = routeContext(session);
@@ -80,39 +90,47 @@ describe("the least-steep route on the reference parcels", () => {
           insideExceptNearStartM: K.leastSteep.entranceM,
         }),
       ).toBeNull();
-    expect(o.limitPct).toBe(10);
+    expect(o.limitPct).toBe(STRICT);
     // It keeps to the parcel: outside land only within entranceM of the entrance (owner, after #52).
-    expect(o.metrics.outsideFt).toBeLessThanOrEqual(K.leastSteep.entranceM * M2FT);
+    // Outside land only near the entrance: no easement (the outside cells lie within entranceM of it, though
+    // the path may wander inside that disc for longer than entranceM).
+    expect(o.metrics.outsideFt).toBeLessThanOrEqual(SCREEN_CONSTANTS.driveway.easementOutsideFt);
     expect(o.needsEasement).toBe(false);
     expect(o.overSpans.length).toBeGreaterThan(0);
     expect(o.overFt).toBeCloseTo(o.overSpans.reduce((m, [a, b]) => m + b - a, 0) * M2FT, 6);
     // The prototype's note in full, unchanged; then the appended sentence (owner's wording, #52).
     expect(d.note).toBe(
-      `Entrance found on ${d.entrances[0]!.name}, but no route reaches site #1 at 10% or less, even with switchbacks. Raise the grade limit in Settings or pick a different site. ${overLimitNote(o)}`,
+      `Entrance found on ${d.entrances[0]!.name}, but no route reaches site #1 at ${STRICT}% or less, even with switchbacks. Raise the grade limit in Settings or pick a different site. ${overLimitNote(o)}`,
     );
     const n = o.overSpans.length;
     expect(overLimitNote(o)).toBe(
-      `The least-steep route found needs grades up to ${cap}%, with about ${Math.round(o.overFt)} ft steeper than 10% in ${n} stretch${n === 1 ? "" : "es"}; it's drawn on the map as suspect.`,
+      `The least-steep route found needs grades up to ${cap}%, with about ${Math.round(o.overFt)} ft steeper than ${STRICT}% in ${n} stretch${n === 1 ? "" : "es"}; it's drawn on the map as suspect.`,
     );
     // No thousands separator, as the prototype's driveway notes; "stretch" for one.
     expect(overLimitNote({ ...o, overFt: 2018.4 })).toContain("about 2018 ft");
     expect(overLimitNote({ ...o, overSpans: [[0, 30]] })).toContain("in 1 stretch;");
   }, 120_000);
 
-  it("Ferney Creek to its house: the same, from the house run", async () => {
-    const fx = loadFixture("ferney-creek-52-47A");
-    const { replayRun: _ } = { replayRun };
-    void _;
-    const { result } = await (
-      await import("@/test/support/session")
-    ).replayRun("ferney-creek-52-47A", {
-      house: fx.input.house!.ll,
-    });
-    const o = result.driveway!.overLimit!;
-    expect(result.driveway!.routes).toEqual([]);
-    expect(neededPct(o)).toBeGreaterThan(10);
-    expect(result.driveway!.note).toContain("no route reaches the existing house at 10% or less");
-    expect(o.metrics.outsideFt).toBeLessThanOrEqual(K.leastSteep.entranceM * M2FT);
+  // To a house, the note names it. On Grayson's terrain at 5%: Ferney's house has a route under any limit, since
+  // buildDriveway's "gentlest" style keeps its own 8% cap (the prototype's), which a limit below 8% doesn't lower.
+  it("to an existing house at a 5% limit: the same, the note naming the house", async () => {
+    const HOUSE_STRICT = STRICT;
+    const { result, session } = await runFixture("grayson-mud-creek-6273");
+    const d = buildDriveway(
+      routeContext(session),
+      session.roads ?? [],
+      session.parcel,
+      result.sites![0]!.ll,
+      "the existing house",
+      HOUSE_STRICT,
+    );
+    const o = d.overLimit!;
+    expect(d.routes).toEqual([]);
+    expect(neededPct(o)).toBeGreaterThan(HOUSE_STRICT);
+    expect(d.note).toContain(`no route reaches the existing house at ${HOUSE_STRICT}% or less`);
+    // Outside land only near the entrance: no easement (the outside cells lie within entranceM of it, though
+    // the path may wander inside that disc for longer than entranceM).
+    expect(o.metrics.outsideFt).toBeLessThanOrEqual(SCREEN_CONSTANTS.driveway.easementOutsideFt);
     expect(o.needsEasement).toBe(false);
   }, 120_000);
 

@@ -26,9 +26,24 @@ function prototypeHelp(): string {
   return dialog.slice(dialog.indexOf('<p class="tiny muted">'));
 }
 
+/**
+ * Corrections the owner approved, as [the prototype's text, ours]. A3b (2026-10-09): driveways are routed since A3,
+ * so the help no longer says the driveway line is straight-line rise over run.
+ */
+const APPROVED: [string, string][] = [
+  [
+    "The driveway line is straight-line rise over run from the nearest Census road to the site; a real driveway at 10% needs the length shown.",
+    "The road grade is straight-line rise over run from the nearest Census road to the site. Driveways are routed: each house site's driveway is drawn over the terrain from a road entrance, within the grade limit (10% unless you change it), and that route's cost estimate is the driveway part of the site's score.",
+  ],
+];
+
 describe("help (14e)", () => {
-  it("is the prototype's copy, word for word", () => {
-    expect(visibleText(ours)).toBe(visibleText(prototypeHelp()));
+  it("is the prototype's copy, word for word, but for the owner's approved corrections", () => {
+    const proto = APPROVED.reduce((t, [was, now]) => {
+      expect(t, `the prototype still says: ${was}`).toContain(visibleText(was));
+      return t.replace(visibleText(was), visibleText(now));
+    }, visibleText(prototypeHelp()));
+    expect(visibleText(ours)).toBe(proto);
   });
 
   it("has the prototype's anchors, in its order", () => {

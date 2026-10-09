@@ -3,14 +3,14 @@ import { polygon } from "@turf/turf";
 import type { Position } from "geojson";
 import { describe, expect, it } from "vitest";
 import type { HttpClient } from "../http";
-import { runFixture } from "../../test/support/scenarios";
+import { depsFor, fixtureParcel, runFixture } from "../../test/support/scenarios";
 import { DEFAULT_ENDPOINTS, DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "./config";
 import { rcToLL, rcToUTM } from "./dem";
 import { buildDriveway, routeDriveway, routeMany, siteDriveways, type SiteDriveway } from "./driveway";
-import { routeContext } from "./index";
+import { routeContext, screen } from "./index";
 import { drivewayPoints, rockPoints } from "./score";
 import { fetchSoilLimits } from "./soils";
-import type { Dem } from "./types";
+import type { Dem, ProgressEvent } from "./types";
 import type { LatLon } from "./util";
 
 const C = SCREEN_CONSTANTS.score.drivewayCost;
@@ -139,7 +139,38 @@ describe("routing many targets in one search (A3)", () => {
   });
 });
 
-describe("every ranked site routed at once = each routed alone (A3, Grayson: least-steep routes)", () => {
+describe("gardens without a house site (follow-up 20, A3b)", () => {
+  it("a parcel with gardens and no house site still gets soil notes and adjusted garden scores", async () => {
+    // Ferney Creek with a house-site minimum no bench can meet: no house sites, the gardens are still found.
+    const events: ProgressEvent[] = [];
+    await screen(
+      {
+        ...(await fixtureParcel("ferney-creek-52-47A")),
+        config: { ...DEFAULT_USER_CONFIG, houseMin: 1_000_000 },
+      },
+      (e) => events.push(e),
+      depsFor("ferney-creek-52-47A"),
+    );
+    const soils = events.find((e) => e.step === "soils" && e.status === "done")!.partial!;
+    expect(soils.benches ?? []).toEqual([]);
+    const gardens = soils.gardens!;
+    expect(gardens.length).toBeGreaterThan(0);
+    for (const g of gardens) {
+      expect(g.soilNote).toBeTruthy();
+      expect(g.finalScore).toBeCloseTo(Math.min(SCREEN_CONSTANTS.soils.gardenScoreCap, g.score * g.adj!), 9);
+    }
+    // Re-sorted by the adjusted score.
+    expect(gardens.map((g) => g.finalScore)).toEqual(
+      [...gardens.map((g) => g.finalScore)].sort((a, b) => b! - a!),
+    );
+  }, 120_000);
+});
+
+// At a 5% limit: since A3b every fixture site has a route within the real 10%, so the least-steep path is exercised
+// at a stricter one, on Grayson's real terrain.
+const STRICT = 5;
+
+describe("every ranked site routed at once = each routed alone (A3, Grayson at 5%: least-steep routes)", () => {
   it("siteDriveways gives each site buildDriveway's routes[0], else its overLimit", async () => {
     const { result, session: s } = await runFixture("grayson-mud-creek-6273");
     const parcel = polygon(s.parcel.geometry.coordinates as Position[][]);
@@ -149,13 +180,17 @@ describe("every ranked site routed at once = each routed alone (A3, Grayson: lea
       s.roads ?? [],
       parcel,
       sites.map((x) => x.ll),
-      10,
+      STRICT,
     );
     sites.forEach((site, i) => {
-      const one = buildDriveway(routeContext(s), s.roads ?? [], parcel, site.ll, "x", 10);
-      const want = one.routes[0] ?? one.overLimit ?? null;
+      const one = buildDriveway(routeContext(s), s.roads ?? [], parcel, site.ll, "x", STRICT);
       expect(many[i]!.legal).toBe(!!one.routes[0]);
-      expect(many[i]!.route).toEqual(want);
+      if (one.routes[0]) {
+        // buildDriveway's first route also carries its entrance and pioneer-track estimate; the rest is the route.
+        const { entranceIndex, track: _track, ...route } = one.routes[0];
+        expect(many[i]!.entranceIndex).toBe(entranceIndex);
+        expect(many[i]!.route).toEqual(route);
+      } else expect(many[i]!.route).toEqual(one.overLimit ?? null);
     });
     expect(many.some((x) => !x.legal && x.route)).toBe(true); // the least-steep path is exercised
   }, 180_000);

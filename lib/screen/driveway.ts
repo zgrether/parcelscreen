@@ -4,7 +4,8 @@
  * estimates. Ported verbatim from the prototype (proto MinHeap … buildDriveway). Phase 2.5 brings it to
  * REQUIREMENTS §2a; Phase 0 reproduces it, known limitations included (test/fixtures/README.md).
  *
- * Path costs are kept in a Float32Array as in the prototype: near-ties are decided at float32 precision.
+ * Path costs are kept in a Float64Array (A3b, follow-up 44). The prototype kept them in a Float32Array but popped
+ * full-precision keys, so every cell whose stored cost rounded down was skipped, never expanded: about half of them.
  */
 import {
   along,
@@ -36,42 +37,74 @@ type Route = Driveway["routes"][number];
 export type Entrance = Driveway["entrances"][number];
 export type OverLimitRoute = NonNullable<Driveway["overLimit"]>;
 
-/** Binary min-heap of [key, value] pairs (proto MinHeap). */
+/**
+ * Binary min-heap of (key, value) pairs (proto MinHeap). Typed arrays rather than [key, value] tuples (A3b): the
+ * router pushes millions of entries a screen. The comparisons and sifting are the prototype's, so entries come out
+ * in the same order.
+ */
 export class MinHeap {
-  private readonly a: [number, number][] = [];
-  push(k: number, v: number): void {
-    const a = this.a;
-    a.push([k, v]);
-    let i = a.length - 1;
+  private k = new Float64Array(1024);
+  private v = new Int32Array(1024);
+  private n = 0;
+  /** The key of the entry the last pop returned. */
+  lastKey = 0;
+  push(key: number, value: number): void {
+    if (this.n === this.k.length) {
+      const k = new Float64Array(this.n * 2),
+        v = new Int32Array(this.n * 2);
+      k.set(this.k);
+      v.set(this.v);
+      this.k = k;
+      this.v = v;
+    }
+    const K = this.k,
+      V = this.v;
+    let i = this.n++;
+    K[i] = key;
+    V[i] = value;
     while (i > 0) {
       const p = (i - 1) >> 1;
-      if (a[p]![0] <= a[i]![0]) break;
-      [a[p], a[i]] = [a[i]!, a[p]!];
+      if (K[p]! <= K[i]!) break;
+      const tk = K[p]!,
+        tv = V[p]!;
+      K[p] = K[i]!;
+      V[p] = V[i]!;
+      K[i] = tk;
+      V[i] = tv;
       i = p;
     }
   }
-  pop(): [number, number] {
-    const a = this.a;
-    const top = a[0]!;
-    const last = a.pop()!;
-    if (a.length) {
-      a[0] = last;
+  /** Removes the smallest entry and returns its value; its key is then `lastKey`. */
+  pop(): number {
+    const K = this.k,
+      V = this.v;
+    this.lastKey = K[0]!;
+    const top = V[0]!;
+    const n = --this.n;
+    if (n) {
+      K[0] = K[n]!;
+      V[0] = V[n]!;
       let i = 0;
       for (;;) {
         const l = 2 * i + 1,
           r = l + 1;
         let m = i;
-        if (l < a.length && a[l]![0] < a[m]![0]) m = l;
-        if (r < a.length && a[r]![0] < a[m]![0]) m = r;
+        if (l < n && K[l]! < K[m]!) m = l;
+        if (r < n && K[r]! < K[m]!) m = r;
         if (m === i) break;
-        [a[m], a[i]] = [a[i]!, a[m]!];
+        const tk = K[m]!,
+          tv = V[m]!;
+        K[m] = K[i]!;
+        V[m] = V[i]!;
+        K[i] = tk;
+        V[i] = tv;
         i = m;
       }
     }
     return top;
   }
   get size(): number {
-    return this.a.length;
+    return this.n;
   }
 }
 
@@ -171,11 +204,48 @@ const linesOf = (f: RoadFeature): Feature<LineString>[] =>
  * Frontage points on Census roads near the boundary, scored by road grade, bend and bank height; the best
  * three at least 60 m apart. With no frontage, the nearest road point within 400 m as a flagged fallback.
  */
-export function entranceCandidates(
-  roads: RoadFeature[],
-  parcel: Feature<Polygon>,
-  d: Dem,
-): { entrances: Entrance[]; roadsNearestFt: number | null } {
+/**
+ * Turf's along() for nondecreasing distances on one line: the same arithmetic step for step (the travelled sum
+ * accumulates in the same order, so the points are identical), continuing from the last answer instead of from
+ * the start, so sampling a route every 3 m is linear rather than quadratic in its length (A3b).
+ */
+function alongWalker(coords: Position[]): (d: number) => Position {
+  const last = coords.length - 1;
+  let i = 0,
+    travelled = 0;
+  return (dist: number) => {
+    for (;;) {
+      if (dist >= travelled && i === last) return coords[last]!;
+      if (travelled >= dist) {
+        const overshot = dist - travelled;
+        if (!overshot) return coords[i]!;
+        const direction = bearing(coords[i]!, coords[i - 1]!) - 180;
+        return destination(coords[i]!, overshot, direction, { units: "meters" }).geometry.coordinates;
+      }
+      travelled += distance(coords[i]!, coords[i + 1]!, { units: "meters" });
+      i++;
+    }
+  };
+}
+
+type Entrances = { entrances: Entrance[]; roadsNearestFt: number | null };
+const entranceCache = new WeakMap<RoadFeature[], WeakMap<Feature<Polygon>, WeakMap<Dem, Entrances>>>();
+
+/**
+ * Entrance candidates (proto entrances), computed once per roads, parcel and DEM (A3b): the multi-site pass and
+ * site #1's driveway both need them, and finding them is the slow part of routing.
+ */
+export function entranceCandidates(roads: RoadFeature[], parcel: Feature<Polygon>, d: Dem): Entrances {
+  let byParcel = entranceCache.get(roads);
+  if (!byParcel) entranceCache.set(roads, (byParcel = new WeakMap()));
+  let byDem = byParcel.get(parcel);
+  if (!byDem) byParcel.set(parcel, (byDem = new WeakMap()));
+  let found = byDem.get(d);
+  if (!found) byDem.set(d, (found = findEntrances(roads, parcel, d)));
+  return found;
+}
+
+function findEntrances(roads: RoadFeature[], parcel: Feature<Polygon>, d: Dem): Entrances {
   if (!roads.length) return { entrances: [], roadsNearestFt: null };
   const edgeLine = firstLine(polygonToLine(parcel)) as Feature<LineString>;
   const out: Entrance[] = [];
@@ -353,7 +423,7 @@ export function routeMany(
   const nearM = opts.insideExceptNearStartM;
   const outsideOk = (r: number, c: number) =>
     nearM === undefined || ((r - sr) * d.resY) ** 2 + ((c - sc) * d.res) ** 2 <= nearM * nearM;
-  const dist = new Float32Array(n).fill(Infinity),
+  const dist = new Float64Array(n).fill(Infinity),
     prev = new Int32Array(n).fill(-1);
   const heap = new MinHeap();
   dist[src] = 0;
@@ -366,7 +436,8 @@ export function routeMany(
     return f;
   };
   while (heap.size) {
-    const [dcur, i] = heap.pop();
+    const i = heap.pop(),
+      dcur = heap.lastKey;
     if (dcur > dist[i]!) continue;
     // A target is settled when it's popped; stop once all are (one target: the prototype's own stop).
     if (remaining.delete(i) && !remaining.size) break;
@@ -428,8 +499,10 @@ export function routeMany(
       lastB: number | null = null;
     const W = K.benchWidthM,
       step = K.profileStepM;
+    const at = alongWalker(pts),
+      behind = alongWalker(pts);
     for (let s = 0; s <= lenM; s += step) {
-      const p = along(line, s, { units: "meters" }).geometry.coordinates;
+      const p = at(s);
       const [x, y] = UTM.fwd(p[1]!, p[0]!);
       const [rr, cc] = utmToRC(d, x, y);
       if (rr < 0 || cc < 0 || rr >= h || cc >= w) continue;
@@ -444,7 +517,7 @@ export function routeMany(
       if (acc[i]! >= streamCells && prevAcc < streamCells) culverts.push([p[1]!, p[0]!]);
       prevAcc = acc[i]!;
       if (s >= K.turnWindowM) {
-        const q = along(line, s - K.turnWindowM, { units: "meters" }).geometry.coordinates;
+        const q = behind(s - K.turnWindowM);
         const b = bearing(q, p);
         if (lastB != null) {
           let db = Math.abs(b - lastB);

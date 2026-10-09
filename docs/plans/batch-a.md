@@ -379,6 +379,29 @@ proposed replacements, absolute vs. relative cutoffs, and the owner's gut grades
 **Text:** no sentence changes. Grades and values move inside unchanged sentences. That is rule 4 (numbers), not
 rule 7. 20 adds soil notes to gardens where none showed before; that is additive.
 
+### A3b: the router's cost precision (follow-up 44), 20, and two wording additions (owner, 2026-10-09)
+
+- **Follow-up 44, moved into Batch A** (it feeds rankings through A3's routed driveway cost and the no-route
+  penalty). The router kept path costs in a Float32Array but popped full-precision keys, so every cell whose
+  stored cost rounded down was skipped: about half of them. Costs are now a Float64Array. Measured per fixture in
+  `docs/studies/a3b-router-precision.md` (`pnpm a3b:router`).
+  - **Every ranked site on the three fixtures now has a route within the 10% limit.** Before, 11 of 17 needed a
+    least-steep route (Macks 11–20%, Grayson 22%). Kept to the parcel, Grayson's sites need **11%** (the 10.8% path),
+    not 22%; their legal routes cross neighbouring land (+10 easement points).
+  - Rankings move little: Ferney #4/#5 and Macks #3/#4 and #6/#7 swap; every #1 stays.
+- **Routing time, with the fix:** the correct search explores more, so three changes that keep results identical
+  (each checked on all three fixtures, site by site): a typed-array heap, entrance candidates computed once per
+  screen and shared with site #1's driveway, and the route profile walked once instead of Turf's along() from the
+  start every 3 m (quadratic in the route's length). One pass over every ranked site: Ferney 0.17 s, Macks 0.44 s,
+  Grayson 0.06 s (was 1.5, 4.6, 3.3 s); whole screens are faster than before A3.
+- **20:** gardens get their soil adjustment whether or not there's a house site (moved out of the bench block),
+  with a synthetic test (Ferney with an impossible house-site minimum).
+- **Wording (rule 7, approved):** the routed-driveway line is appended to every ranked site below #1 with a route
+  within the limit; the help text says driveways are routed (the one approved replacement, `help.test.tsx`).
+- **Found, not changed:** buildDriveway's "gentlest" style keeps its own 8% cap, so under a grade limit below 8% it
+  can still return an 8% route as legal (the prototype's). The tests that need the least-steep path use 5% on
+  Grayson's terrain for that reason.
+
 ## 5. A4: sun (37, 35)
 
 ### 37: daylight by the standard sunrise and sunset
@@ -417,7 +440,7 @@ with, so History has to say when those came from earlier rules.
 - **`ENGINE_VERSION`:**
   - in `lib/screen/engine.ts`, a plain integer, so `lib/screen` stays DOM-free;
   - **1 is Phase 0's rules;**
-  - **A2a, A2b, A2c, A3 and A4 each bump it,** to 2, 3, 4, 5 and 6 (A2c added by the owner, #81 review).
+  - **A2a, A2b, A2c, A3, A3b and A4 each bump it,** to 2, 3, 4, 5, 6 and 7 (A2c and A3b added by the owner).
   - A1 introduces it at 1 and doesn't bump it: it changes no number, so nothing kept from Phase 0 is marked. If
     you want A1 to bump it too, it's one line.
 - **On the record envelope, not in `ScreenResult`:**
