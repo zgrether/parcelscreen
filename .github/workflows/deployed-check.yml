@@ -1,0 +1,19 @@
+name: deployed-check
+
+# After every successful Vercel deployment (preview or production): a first visit to the deployed site must not
+# fetch the hospital snapshot (owner, #85; scripts/check-deployed.mts). Vercel reports its deployments to GitHub,
+# so this runs on their status, against the deployment's own URL.
+on: deployment_status
+
+jobs:
+  first-visit:
+    if: github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.deployment.sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - run: node scripts/check-deployed.mts "${{ github.event.deployment_status.environment_url }}"
