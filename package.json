@@ -32,7 +32,8 @@
     "check:hospitals-age": "node scripts/check-hospitals-age.mts",
     "record:port": "vitest run test/tools/record-port.test.ts --mode record-port",
     "study:grades": "vitest run test/tools/grade-study.test.ts --mode grade-study",
-    "a3:analysis": "vitest run test/tools/a3-analysis.test.ts --mode a3"
+    "a3:analysis": "vitest run test/tools/a3-analysis.test.ts --mode a3",
+    "a3:curve": "vitest run test/tools/a3-curve.test.ts --mode a3-curve"
   },
   "dependencies": {
     "@serwist/turbopack": "9.5.13",

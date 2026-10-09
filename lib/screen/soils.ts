@@ -113,6 +113,53 @@ export async function fetchSoils(
   return out;
 }
 
+/** NRCS's septic and dwellings (no basement) ratings, rebuilt without slope (A3); null when it has no rating. */
+export interface SoilLimits {
+  septic: "fine" | "workable" | "poor" | null;
+  foundation: "fine" | "workable" | "poor" | null;
+}
+
+const SEPTIC_RULE = "ENG - Septic Tank Absorption Fields";
+const DWELLINGS_RULE = "ENG - Dwellings W/O Basements";
+
+/**
+ * A3 (owner, 2026-10-09): the septic and foundation ratings without the map unit's slope, which quality's slope
+ * and cost's pad already count. From each component's limiting features (cointerp, rule depth 1): any feature
+ * other than slope at 1 is "very limited", any above 0 "somewhat limited", none "not limited". By cokey; session
+ * only (schema v2 has no place for it). A component NRCS doesn't rate under a rule is absent from it.
+ */
+export async function fetchSoilLimits(
+  cokeys: readonly string[],
+  deps: SoilDeps,
+): Promise<Map<string, SoilLimits>> {
+  const out = new Map<string, SoilLimits>();
+  const keys = [...new Set(cokeys.filter((k) => /^\d+$/.test(k)))];
+  if (!keys.length) return out;
+  const r = await sda(
+    `SELECT ci.cokey, ci.mrulename, ci.ruledepth, ci.rulename, ci.interphr FROM cointerp ci
+     WHERE ci.cokey IN (${keys.map((k) => `'${k}'`).join(",")})
+       AND ci.mrulename IN ('${SEPTIC_RULE}', '${DWELLINGS_RULE}')
+       AND (ci.ruledepth = 0 OR (ci.ruledepth = 1 AND ci.interphr > 0))
+     ORDER BY ci.cokey, ci.mrulename, ci.ruledepth, ci.rulename`,
+    deps,
+  );
+  if (!r.ok) throw new Error(`SDA ${r.status}`);
+  const rows = rowsOf(await r.json());
+  const rated = (cokey: string, rule: string) => {
+    const mine = rows.filter((x) => String(x.cokey) === cokey && x.mrulename === rule);
+    if (!mine.some((x) => Number(x.ruledepth) === 0)) return null;
+    const worst = Math.max(
+      0,
+      ...mine
+        .filter((x) => Number(x.ruledepth) === 1 && !/^Slope/i.test(String(x.rulename)))
+        .map((x) => Number(x.interphr) || 0),
+    );
+    return worst >= 1 ? ("poor" as const) : worst > 0 ? ("workable" as const) : ("fine" as const);
+  };
+  for (const k of keys) out.set(k, { septic: rated(k, SEPTIC_RULE), foundation: rated(k, DWELLINGS_RULE) });
+  return out;
+}
+
 /** The map units clipped to the parcel, pieces merged per unit, largest first, coloured (proto L798–811). */
 export async function fetchSoilPolygons(
   parcel: Feature<Polygon | MultiPolygon>,

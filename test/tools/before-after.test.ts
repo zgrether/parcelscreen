@@ -94,6 +94,31 @@ export function headlines(r: ScreenResult | undefined): Record<string, string> {
   };
 }
 
+/**
+ * Every ranked site of a fixture's run, before and after, matched by position (the same benches and shelves,
+ * re-ranked): rank, grade, score, cost index, driveway points and driveway length. Sorted by the new rank.
+ */
+export function rankingTable(before: ScreenResult | undefined, after: ScreenResult): string {
+  const key = (s: { ll: [number, number] }) => `${s.ll[0].toFixed(6)},${s.ll[1].toFixed(6)}`;
+  const was = new Map((before?.sites ?? []).map((s) => [key(s), s] as const));
+  const cell = (s: NonNullable<ScreenResult["sites"]>[number] | undefined) =>
+    s
+      ? `#${s.rank} ${s.grade} ${s.score} | ${s.costIdx} | ${s.c.driveway.toFixed(1)} | ${s.driveFt == null ? "—" : Math.round(s.driveFt)}`
+      : "— | — | — | —";
+  const rows = (after.sites ?? []).map((s) => {
+    const b = was.get(key(s));
+    const moved = !b || b.rank !== s.rank || b.grade !== s.grade;
+    return `| ${s.acres.toFixed(2)} ac${s.compact ? " (shelf)" : ""} | ${cell(b)} | ${moved ? cell(s).replace(/^(#\d+ \w \d+)/, "**$1**") : cell(s)} |`;
+  });
+  const gone = (before?.sites ?? []).filter((s) => !(after.sites ?? []).some((a) => key(a) === key(s)));
+  return [
+    "| Site | Before: rank, grade, score | Cost | Driveway pts | Driveway ft | After: rank, grade, score | Cost | Driveway pts | Driveway ft |",
+    "|---|---|---|---|---|---|---|---|---|",
+    ...rows,
+    ...gone.map((s) => `| ${s.acres.toFixed(2)} ac (no longer ranked) | ${cell(s)} | — | — | — | — |`),
+  ].join("\n");
+}
+
 describe.runIf(import.meta.env.MODE === "before-after")("before-after", () => {
   it("writes the table", () => {
     const base = process.env.BASE ?? "origin/main";
@@ -121,6 +146,14 @@ describe.runIf(import.meta.env.MODE === "before-after")("before-after", () => {
         return `| ${row} | ${cells.join(" | ")} |`;
       }),
       "",
+      "**Ranking** (run scenario; every ranked site, before and after; bold where its rank or grade moved):",
+      "",
+      ...FIXTURE_SLUGS.flatMap((s) => [
+        `*${shortName(s)}*`,
+        "",
+        rankingTable(before.get(s)?.run, after.get(s)!.run!),
+        "",
+      ]),
       "**Leaf diff** (every path, all scenarios; the comparator at its default tolerance):",
       "",
     ];

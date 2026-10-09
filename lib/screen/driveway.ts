@@ -286,6 +286,26 @@ interface RouteOpts {
 
 type RawRoute = Omit<Route, "entranceIndex">;
 
+/** The 16 moves of the router's search: 8 neighbours and 8 knight's moves (proto routeDriveway). */
+const NEIGHBOURS = [
+  [1, 0],
+  [-1, 0],
+  [0, 1],
+  [0, -1],
+  [1, 1],
+  [1, -1],
+  [-1, 1],
+  [-1, -1],
+  [2, 1],
+  [2, -1],
+  [-2, 1],
+  [-2, -1],
+  [1, 2],
+  [1, -2],
+  [-1, 2],
+  [-1, -2],
+] as const;
+
 /** Least-cost path from one point to another under a grade limit, with quantities and cost (proto routeDriveway). */
 export function routeDriveway(
   ctx: RouteContext,
@@ -293,6 +313,20 @@ export function routeDriveway(
   toLL: LatLon,
   opts: RouteOpts,
 ): RawRoute | null {
+  return routeMany(ctx, fromLL, [toLL], opts)[0]!;
+}
+
+/**
+ * The same search, from one point to several (A3, owner 2026-10-09: every ranked site routed, one pass per
+ * entrance). Dijkstra runs until every target is settled, and a settled cell's distance and predecessor never
+ * change, so each target's route is exactly the one a search for it alone would find.
+ */
+export function routeMany(
+  ctx: RouteContext,
+  fromLL: LatLon,
+  toLLs: readonly LatLon[],
+  opts: RouteOpts,
+): (RawRoute | null)[] {
   const d = ctx.dFine,
     { w, h, z } = d,
     n = w * h,
@@ -305,11 +339,16 @@ export function routeDriveway(
   const streamCells = Math.round(K.streamContributingM2 / (d.res * d.resY)); // 2 ha contributing area
   const [sx, sy] = UTM.fwd(fromLL[0], fromLL[1]);
   const [sr, sc] = utmToRC(d, sx, sy);
-  const [tx, ty] = UTM.fwd(toLL[0], toLL[1]);
-  const [tr, tc] = utmToRC(d, tx, ty);
-  if (sr < 0 || sc < 0 || sr >= h || sc >= w || tr < 0 || tc < 0 || tr >= h || tc >= w) return null;
-  const src = sr * w + sc,
-    dst = tr * w + tc;
+  const inGrid = (r: number, c: number) => r >= 0 && c >= 0 && r < h && c < w;
+  const dsts = toLLs.map((ll) => {
+    const [tx, ty] = UTM.fwd(ll[0], ll[1]);
+    const [tr, tc] = utmToRC(d, tx, ty);
+    return inGrid(tr, tc) ? tr * w + tc : -1;
+  });
+  if (!inGrid(sr, sc)) return dsts.map(() => null);
+  const src = sr * w + sc;
+  const remaining = new Set(dsts.filter((x) => x >= 0));
+  if (!remaining.size) return dsts.map(() => null);
   // Inside-only routing: an outside cell is passable only within nearM metres of the start.
   const nearM = opts.insideExceptNearStartM;
   const outsideOk = (r: number, c: number) =>
@@ -319,24 +358,6 @@ export function routeDriveway(
   const heap = new MinHeap();
   dist[src] = 0;
   heap.push(0, src);
-  const nb = [
-    [1, 0],
-    [-1, 0],
-    [0, 1],
-    [0, -1],
-    [1, 1],
-    [1, -1],
-    [-1, 1],
-    [-1, -1],
-    [2, 1],
-    [2, -1],
-    [-2, 1],
-    [-2, -1],
-    [1, 2],
-    [1, -2],
-    [-1, 2],
-    [-1, -2],
-  ] as const;
   const cellCost = (i: number) => {
     let f = 1 + K.crossSlopeFactor * Math.tan(((slope[i] || 0) * Math.PI) / 180);
     if (soil[i] === 1) f *= K.bottomlandFactor;
@@ -347,10 +368,11 @@ export function routeDriveway(
   while (heap.size) {
     const [dcur, i] = heap.pop();
     if (dcur > dist[i]!) continue;
-    if (i === dst) break;
+    // A target is settled when it's popped; stop once all are (one target: the prototype's own stop).
+    if (remaining.delete(i) && !remaining.size) break;
     const r = (i / w) | 0,
       c = i % w;
-    for (const [dr, dc] of nb) {
+    for (const [dr, dc] of NEIGHBOURS) {
       const rr = r + dr,
         cc = c + dc;
       if (rr < 0 || cc < 0 || rr >= h || cc >= w) continue;
@@ -371,110 +393,112 @@ export function routeDriveway(
       }
     }
   }
-  if (!Number.isFinite(dist[dst]!)) return null;
-  const cells: number[] = [];
-  for (let i = dst; i >= 0; i = prev[i]!) cells.push(i);
-  cells.reverse();
-  let pts: Position[] = cells.map((i) => {
-    const [lat, lon] = rcToLL(d, (i / w) | 0, i % w);
-    return [lon, lat];
-  });
-  for (let k = 0; k < K.chaikinPasses; k++) {
-    const o: Position[] = [pts[0]!];
-    for (let i = 0; i < pts.length - 1; i++) {
-      const p = pts[i]!,
-        q = pts[i + 1]!;
-      o.push(
-        [0.75 * p[0]! + 0.25 * q[0]!, 0.75 * p[1]! + 0.25 * q[1]!],
-        [0.25 * p[0]! + 0.75 * q[0]!, 0.25 * p[1]! + 0.75 * q[1]!],
-      );
-    }
-    o.push(pts[pts.length - 1]!);
-    pts = o;
-  }
-  const line = lineString(pts);
-  const lenM = length(line, { units: "meters" });
-  const prof: [number, number][] = [];
-  const culverts: LatLon[] = [];
-  let outside = 0,
-    rockM = 0,
-    earth = 0,
-    prevAcc = 0,
-    maxg = 0,
-    sumg = 0,
-    turns = 0,
-    lastB: number | null = null;
-  const W = K.benchWidthM,
-    step = K.profileStepM;
-  for (let s = 0; s <= lenM; s += step) {
-    const p = along(line, s, { units: "meters" }).geometry.coordinates;
-    const [x, y] = UTM.fwd(p[1]!, p[0]!);
-    const [rr, cc] = utmToRC(d, x, y);
-    if (rr < 0 || cc < 0 || rr >= h || cc >= w) continue;
-    const i = rr * w + cc;
-    const zz = z[i]!;
-    if (Number.isNaN(zz)) continue;
-    prof.push([s, zz]);
-    if (!inside[i]) outside += step;
-    if (soil[i] === 2) rockM += step;
-    const cs = Math.tan(((slope[i] || 0) * Math.PI) / 180);
-    earth += ((W * W * cs) / 2) * step;
-    if (acc[i]! >= streamCells && prevAcc < streamCells) culverts.push([p[1]!, p[0]!]);
-    prevAcc = acc[i]!;
-    if (s >= K.turnWindowM) {
-      const q = along(line, s - K.turnWindowM, { units: "meters" }).geometry.coordinates;
-      const b = bearing(q, p);
-      if (lastB != null) {
-        let db = Math.abs(b - lastB);
-        if (db > 180) db = 360 - db;
-        if (db > K.switchbackTurnDeg) turns++;
+  const finish = (dst: number): RawRoute => {
+    const cells: number[] = [];
+    for (let i = dst; i >= 0; i = prev[i]!) cells.push(i);
+    cells.reverse();
+    let pts: Position[] = cells.map((i) => {
+      const [lat, lon] = rcToLL(d, (i / w) | 0, i % w);
+      return [lon, lat];
+    });
+    for (let k = 0; k < K.chaikinPasses; k++) {
+      const o: Position[] = [pts[0]!];
+      for (let i = 0; i < pts.length - 1; i++) {
+        const p = pts[i]!,
+          q = pts[i + 1]!;
+        o.push(
+          [0.75 * p[0]! + 0.25 * q[0]!, 0.75 * p[1]! + 0.25 * q[1]!],
+          [0.25 * p[0]! + 0.75 * q[0]!, 0.25 * p[1]! + 0.75 * q[1]!],
+        );
       }
-      lastB = b;
+      o.push(pts[pts.length - 1]!);
+      pts = o;
     }
-  }
-  for (let i = 1; i < prof.length; i++) {
-    const g = Math.abs(prof[i]![1] - prof[i - 1]![1]) / (prof[i]![0] - prof[i - 1]![0]);
-    if (g > maxg) maxg = g;
-    sumg += g;
-  }
-  const rise = prof.length ? Math.abs(prof[prof.length - 1]![1] - prof[0]![1]) : 0;
-  const q = {
-    lengthFt: lenM * M2FT,
-    riseFt: rise * M2FT,
-    maxGradePct: maxg * 100,
-    avgGradePct: prof.length > 1 ? (sumg / (prof.length - 1)) * 100 : 0,
-    switchbacks: Math.max(0, Math.round(turns / 2)),
-    earthYd: earth * K.m3ToYd3,
-    rockYd: earth * K.m3ToYd3 * (lenM ? rockM / lenM : 0),
-    stoneTons: W * K.stoneDepthM * lenM * K.stoneTPerM3,
-    fabricSf: W * lenM * K.m2ToSf,
-    clearAc: (K.clearingWidthM * lenM) / M2_PER_ACRE,
-    culverts: culverts.length + 1,
-    outsideFt: outside * M2FT,
+    const line = lineString(pts);
+    const lenM = length(line, { units: "meters" });
+    const prof: [number, number][] = [];
+    const culverts: LatLon[] = [];
+    let outside = 0,
+      rockM = 0,
+      earth = 0,
+      prevAcc = 0,
+      maxg = 0,
+      sumg = 0,
+      turns = 0,
+      lastB: number | null = null;
+    const W = K.benchWidthM,
+      step = K.profileStepM;
+    for (let s = 0; s <= lenM; s += step) {
+      const p = along(line, s, { units: "meters" }).geometry.coordinates;
+      const [x, y] = UTM.fwd(p[1]!, p[0]!);
+      const [rr, cc] = utmToRC(d, x, y);
+      if (rr < 0 || cc < 0 || rr >= h || cc >= w) continue;
+      const i = rr * w + cc;
+      const zz = z[i]!;
+      if (Number.isNaN(zz)) continue;
+      prof.push([s, zz]);
+      if (!inside[i]) outside += step;
+      if (soil[i] === 2) rockM += step;
+      const cs = Math.tan(((slope[i] || 0) * Math.PI) / 180);
+      earth += ((W * W * cs) / 2) * step;
+      if (acc[i]! >= streamCells && prevAcc < streamCells) culverts.push([p[1]!, p[0]!]);
+      prevAcc = acc[i]!;
+      if (s >= K.turnWindowM) {
+        const q = along(line, s - K.turnWindowM, { units: "meters" }).geometry.coordinates;
+        const b = bearing(q, p);
+        if (lastB != null) {
+          let db = Math.abs(b - lastB);
+          if (db > 180) db = 360 - db;
+          if (db > K.switchbackTurnDeg) turns++;
+        }
+        lastB = b;
+      }
+    }
+    for (let i = 1; i < prof.length; i++) {
+      const g = Math.abs(prof[i]![1] - prof[i - 1]![1]) / (prof[i]![0] - prof[i - 1]![0]);
+      if (g > maxg) maxg = g;
+      sumg += g;
+    }
+    const rise = prof.length ? Math.abs(prof[prof.length - 1]![1] - prof[0]![1]) : 0;
+    const q = {
+      lengthFt: lenM * M2FT,
+      riseFt: rise * M2FT,
+      maxGradePct: maxg * 100,
+      avgGradePct: prof.length > 1 ? (sumg / (prof.length - 1)) * 100 : 0,
+      switchbacks: Math.max(0, Math.round(turns / 2)),
+      earthYd: earth * K.m3ToYd3,
+      rockYd: earth * K.m3ToYd3 * (lenM ? rockM / lenM : 0),
+      stoneTons: W * K.stoneDepthM * lenM * K.stoneTPerM3,
+      fabricSf: W * lenM * K.m2ToSf,
+      clearAc: (K.clearingWidthM * lenM) / M2_PER_ACRE,
+      culverts: culverts.length + 1,
+      outsideFt: outside * M2FT,
+    };
+    const u = ctx.dw;
+    const wooded = Math.min(1, Math.max(0, (u.woodedPct || 100) / 100));
+    const cost =
+      u.mobilize +
+      u.entrance +
+      u.erosion +
+      q.clearAc * wooded * u.clearPerAc +
+      (q.earthYd - q.rockYd) * u.earthSoilPerYd +
+      q.rockYd * u.earthRockPerYd +
+      q.stoneTons * u.stonePerTon +
+      q.fabricSf * u.fabricPerSf +
+      q.culverts * u.culvertEach;
+    const R = K.costRange;
+    return {
+      line,
+      profile: prof,
+      metrics: q,
+      cost: { mid: cost, low: cost * R.low, high: cost * R.high },
+      culverts,
+      needsEasement: q.outsideFt > K.easementOutsideFt,
+      maxGrade: maxG,
+      label: opts.label,
+    }; // the first ~50 ft from the road edge is normally outside the line
   };
-  const u = ctx.dw;
-  const wooded = Math.min(1, Math.max(0, (u.woodedPct || 100) / 100));
-  const cost =
-    u.mobilize +
-    u.entrance +
-    u.erosion +
-    q.clearAc * wooded * u.clearPerAc +
-    (q.earthYd - q.rockYd) * u.earthSoilPerYd +
-    q.rockYd * u.earthRockPerYd +
-    q.stoneTons * u.stonePerTon +
-    q.fabricSf * u.fabricPerSf +
-    q.culverts * u.culvertEach;
-  const R = K.costRange;
-  return {
-    line,
-    profile: prof,
-    metrics: q,
-    cost: { mid: cost, low: cost * R.low, high: cost * R.high },
-    culverts,
-    needsEasement: q.outsideFt > K.easementOutsideFt,
-    maxGrade: maxG,
-    label: opts.label,
-  }; // the first ~50 ft from the road edge is normally outside the line
+  return dsts.map((dst) => (dst >= 0 && Number.isFinite(dist[dst]!) ? finish(dst) : null));
 }
 
 /** A pioneer 4×4 track on an alignment: blade only, water bars, a pipe or ford at crossings (proto trackCost). */
@@ -545,9 +569,109 @@ export function leastSteep(
     } else lo = mid + 1;
   }
   const { rt, entranceIndex } = found;
+  return overLimitRoute(rt, entranceIndex, limitPct);
+}
+
+/** A least-steep route with its stretches over the limit (from its own profile). */
+function overLimitRoute(rt: RawRoute, entranceIndex: number, limitPct: number): OverLimitRoute {
   const overSpans = overLimitSpans(rt.profile, limitPct / 100);
   const overM = overSpans.reduce((m, [a, b]) => m + (b - a), 0);
   return { ...rt, entranceIndex, limitPct, overFt: overM * M2FT, overSpans };
+}
+
+/** One site's driveway for scoring (A3): the cheapest legal route, else the least-steep one, else none. */
+export interface SiteDriveway {
+  route: RawRoute | OverLimitRoute | null;
+  legal: boolean;
+  entranceIndex: number | null;
+}
+
+/**
+ * The driveway to every ranked site, for scoring (A3, owner 2026-10-09): what buildDriveway gives each site on
+ * its own (its routes[0], else its overLimit), from the same entrances, but in one search per entrance and
+ * style (routeMany), and for the least-steep routes one minimax search per entrance plus one per needed cap.
+ */
+export function siteDriveways(
+  ctx: RouteContext,
+  roads: RoadFeature[],
+  parcel: Feature<Polygon>,
+  toLLs: readonly LatLon[],
+  roadMaxGradePct: number,
+): SiteDriveway[] {
+  const none = (): SiteDriveway => ({ route: null, legal: false, entranceIndex: null });
+  const { entrances } = entranceCandidates(roads, parcel, ctx.dFine);
+  const ent = entrances.slice(0, K.entrancesRouted);
+  if (!ent.length) return toLLs.map(none);
+  const found: { rt: RawRoute; entranceIndex: number }[][] = toLLs.map(() => []);
+  ent.forEach((e, entranceIndex) => {
+    for (const o of [
+      { maxGrade: roadMaxGradePct / 100, wGrade: K.shortest.wGrade, label: K.shortest.label },
+      { maxGrade: K.gentlest.maxGrade, wGrade: K.gentlest.wGrade, label: K.gentlest.label },
+    ])
+      routeMany(ctx, e.ll, toLLs, o).forEach((rt, t) => rt && found[t]!.push({ rt, entranceIndex }));
+  });
+  const out: SiteDriveway[] = found.map((list) => {
+    if (!list.length) return none();
+    // buildDriveway's order: cheapest first, a stable sort over (entrance, style).
+    const best = [...list].sort((a, b) => a.rt.cost.mid - b.rt.cost.mid)[0]!;
+    return { route: best.rt, legal: true, entranceIndex: best.entranceIndex };
+  });
+
+  const pending = out.map((o, t) => (o.route ? -1 : t)).filter((t) => t >= 0);
+  if (!pending.length) return out;
+  // leastSteep's binary search over whole-percent caps, run for every pending site together: each round,
+  // the sites wanting the same cap share one search per entrance. Same caps, same routes, as site by site.
+  const L = K.leastSteep;
+  const opts = (cap: number) => ({
+    maxGrade: cap / 100,
+    wGrade: L.wGrade,
+    label: L.label,
+    insideExceptNearStartM: L.entranceM,
+  });
+  /** leastSteep's at(cap), for several sites: the cheaper entrance's route to each, null where none reaches. */
+  const at = (cap: number, ts: number[]) => {
+    const best: ({ rt: RawRoute; entranceIndex: number } | null)[] = ts.map(() => null);
+    ent.forEach((e, entranceIndex) =>
+      routeMany(
+        ctx,
+        e.ll,
+        ts.map((t) => toLLs[t]!),
+        opts(cap),
+      ).forEach((rt, i) => {
+        const b = best[i];
+        if (rt && (!b || rt.cost.mid < b.rt.cost.mid)) best[i] = { rt, entranceIndex };
+      }),
+    );
+    return best;
+  };
+  const state = new Map<number, { lo: number; hi: number; found: { rt: RawRoute; entranceIndex: number } }>();
+  at(L.maxPct, pending).forEach((r, i) => {
+    if (r) state.set(pending[i]!, { lo: Math.floor(roadMaxGradePct) + 1, hi: L.maxPct, found: r });
+  });
+  for (;;) {
+    const byMid = new Map<number, number[]>();
+    for (const [t, st] of state)
+      if (st.lo < st.hi) {
+        const mid = Math.floor((st.lo + st.hi) / 2);
+        byMid.set(mid, [...(byMid.get(mid) ?? []), t]);
+      }
+    if (!byMid.size) break;
+    for (const [mid, ts] of byMid)
+      at(mid, ts).forEach((r, i) => {
+        const st = state.get(ts[i]!)!;
+        if (r) {
+          st.found = r;
+          st.hi = mid;
+        } else st.lo = mid + 1;
+      });
+  }
+  for (const [t, { found }] of state)
+    out[t] = {
+      route: overLimitRoute(found.rt, found.entranceIndex, roadMaxGradePct),
+      legal: false,
+      entranceIndex: found.entranceIndex,
+    };
+  return out;
 }
 
 /** The grade the least-steep route needs: its cap, the lowest whole percent that reaches the target. */

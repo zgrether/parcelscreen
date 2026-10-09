@@ -103,14 +103,16 @@ User-Agent), keeping it in `network-port.har`. The replay answers from `network.
 
 | Fixture | Recorded 2026-10-08 |
 |---|---|
-| Ferney Creek | 17 requests: FEMA's zones; PAD-US (both queries); Photon's reverse lookups for groceries and trailheads; USFS and the three state-park layers; OSRM to the grocers it finds (chain and non-chain) |
-| Macks Mountain | 17 requests: the same |
-| Grayson Mud Creek | 31 requests: everything for its two-part boundary (DEMs, soils, FEMA, PAD-US, TIGER, Photon, OSRM), and the A2b sources |
+| Ferney Creek | 18 requests: FEMA's zones; PAD-US (both queries); Photon's reverse lookups for groceries and trailheads; USFS and the three state-park layers; OSRM to the grocers it finds (chain and non-chain) |
+| Macks Mountain | 18 requests: the same |
+| Grayson Mud Creek | 32 requests: everything for its two-part boundary (DEMs, soils, FEMA, PAD-US, TIGER, Photon, OSRM), and the A2b sources |
 
 A2b (2026-10-08) added Photon's reverse lookups (groceries and trailheads by tag, follow-ups 24 and 25) and the
 official trailhead sources, and dropped the forward searches they replace.
 A2c (2026-10-09) reads hospitals from `lib/screen/data/hospitals.json`, not Photon, so the prototype's `q=hospital`
 requests in `network.har` go unused; the port HARs gain the OSRM routes to the emergency hospitals it prefers.
+A3 (2026-10-09) adds one SDA request: each component's limiting features (septic and dwellings), for the
+slope-free ratings.
 
 Re-recorded after the #80 review: FEMA asks for zone names without geometry, then geometry for the SFHA features
 only (Grayson's FEMA answer went from 8 MB to 3 KB), and the flood, soils and PAD-US queries send the parcel's own

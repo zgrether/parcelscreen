@@ -12,7 +12,14 @@ import { CancelledError, createHttpClient, type HttpClient } from "../http";
 import { STEPS } from "./config";
 import { DemCache, fetchDEM, fineResM, parcelBboxes, rcToLL } from "./dem";
 import { driveTimes } from "./drive";
-import { buildDriveway, flowAccum, soilMask, type RouteContext } from "./driveway";
+import {
+  buildDriveway,
+  flowAccum,
+  siteDriveways,
+  soilMask,
+  type RouteContext,
+  type SiteDriveway,
+} from "./driveway";
 import { floodStep, type FloodFeature } from "./flood";
 import { nearStep } from "./near";
 import { padusStep } from "./padus";
@@ -20,22 +27,26 @@ import type { HospitalCandidate, HospitalSource } from "./hospitals";
 import { OverpassMirrors, type OverpassFallback } from "./places";
 import type { RoadFeature } from "./roads";
 import {
-  applyRoutedDriveway,
   assessHouse,
+  grade,
   rankSites,
   rerank,
   shelvesFromBest,
+  withDrivewayCost,
+  withRoutedWhy,
   type ScoreContext,
 } from "./score";
 import { findSites, siteFlags, siteResults, type SiteSearch } from "./sites";
 import { AtlasCache, computeSky, skyFlags } from "./sky";
 import {
+  fetchSoilLimits,
   fetchSoilPolygons,
   fetchSoils,
   screenableRows,
   soilFlags,
   vetBenches,
   vetGardens,
+  type SoilLimits,
   type SoilUnit,
   type VettedBench,
 } from "./soils";
@@ -101,6 +112,8 @@ export interface ScreenSession {
   bestId?: number;
   rows?: SoilRow[];
   units?: SoilUnit[] | null;
+  /** NRCS's septic and foundation ratings without slope, by cokey (A3); null when SDA didn't answer. */
+  limits?: Map<string, SoilLimits> | null;
   horizon?: HorizonPoint[];
   decAltByAz?: (number | null)[];
   sfha?: FloodFeature[];
@@ -201,6 +214,7 @@ export async function screen(
     sfha: s.sfha ?? null,
     units: s.units ?? null,
     rows: s.rows ?? null,
+    limits: s.limits ?? null,
     cfg,
   });
 
@@ -238,6 +252,17 @@ export async function screen(
     const rows = screenableRows(await fetchSoils(s.ownLand ?? parcel, io));
     R.soils = rows;
     s.rows = rows;
+    // A3: NRCS's ratings without the map unit's slope. Without them every site keeps NRCS's classes, so one
+    // ranking never mixes the two.
+    try {
+      s.limits = await fetchSoilLimits(
+        rows.map((r) => String(r.cokey)),
+        io,
+      );
+    } catch (e) {
+      if (e instanceof CancelledError) throw e;
+      s.limits = null;
+    }
     try {
       s.units = await fetchSoilPolygons(s.ownLand ?? parcel, io);
     } catch {
@@ -360,18 +385,31 @@ export async function screen(
 
   await step("driveway", () => {
     if (!s.dFine) throw new Error("needs elevation");
+    const rctx = routeContext(s);
+    const sctx = scoreContext();
+    // A3 (owner, 2026-10-09): every ranked site re-costed from its own routed driveway, all in one search per
+    // entrance (siteDriveways), so the ranking compares like with like.
+    if (R.sites && R.sites.length) {
+      const est = siteDriveways(
+        rctx,
+        s.roads ?? [],
+        parcel,
+        R.sites.map((x) => x.ll),
+        cfg.roadMaxGradePct,
+      );
+      R.sites = rerank(R.sites.map((x, i) => withDrivewayCost(sctx, x, est[i]!)));
+    }
     const to = house
       ? { ll: house, label: "the existing house" }
       : R.sites && R.sites[0]
         ? { ll: R.sites[0].ll, label: "site #1" }
         : null;
     if (!to) throw new Error("no site to route to");
-    R.driveway = buildDriveway(routeContext(s), s.roads ?? [], parcel, to.ll, to.label, cfg.roadMaxGradePct);
+    R.driveway = buildDriveway(rctx, s.roads ?? [], parcel, to.ll, to.label, cfg.roadMaxGradePct);
     const rt = R.driveway.routes[0];
-    if (rt && R.sites && R.sites[0] && !house) {
-      R.sites = rerank([applyRoutedDriveway(R.sites[0], rt), ...R.sites.slice(1)]);
-      if (R.shelves) R.shelves = shelvesFromBest(R.shelves, R.sites);
-    }
+    if (rt && R.sites && R.sites[0] && !house) R.sites = [withRoutedWhy(R.sites[0], rt), ...R.sites.slice(1)];
+    if (house && R.house) R.house = houseWithDriveway(sctx, R.house, R.driveway);
+    if (R.shelves && R.sites) R.shelves = shelvesFromBest(R.shelves, R.sites);
     return R.driveway.note ?? undefined;
   });
 
@@ -465,17 +503,52 @@ export async function setHouse(out: ScreenOutput, ll: LatLon | null): Promise<Sc
     sfha: s.sfha ?? null,
     units: s.units ?? null,
     rows: s.rows ?? null,
+    limits: s.limits ?? null,
     cfg: s.config,
   };
   const assessed = assessHouse(
     { ...ctx, slope: s.slope, aspect: s.aspect, inside: s.inside, search: s.search ?? null },
     house,
   );
-  return evaluateAt(
+  const done = await evaluateAt(
     { result: { ...out.result, house: assessed }, session: { ...s, house } },
     house,
     "the existing house",
   );
+  const dw = done.result.driveway;
+  return dw && done.result.house
+    ? { ...done, result: { ...done.result, house: houseWithDriveway(ctx, done.result.house, dw) } }
+    : done;
+}
+
+/** A driveway built to one point, as the cost estimate scoring reads (A3): its cheapest route, else its least-steep. */
+function asSiteDriveway(dw: NonNullable<ScreenResult["driveway"]>): SiteDriveway {
+  const rt = dw.routes[0];
+  if (rt) return { route: rt, legal: true, entranceIndex: rt.entranceIndex };
+  if (dw.overLimit) return { route: dw.overLimit, legal: false, entranceIndex: dw.overLimit.entranceIndex };
+  return { route: null, legal: false, entranceIndex: null };
+}
+
+/** The existing house re-costed from the driveway routed to it (A3), when it has the measures to score. */
+function houseWithDriveway(
+  ctx: Pick<ScoreContext, "valleyFloorFt" | "skyScore" | "cfg">,
+  h: NonNullable<ScreenResult["house"]>,
+  dw: NonNullable<ScreenResult["driveway"]>,
+): NonNullable<ScreenResult["house"]> {
+  if ("outside" in h || h.elevFt == null || h.slopeDeg == null || h.aspectDeg == null) return h;
+  const scored = withDrivewayCost(
+    ctx,
+    { ...h, elevFt: h.elevFt, slopeDeg: h.slopeDeg, aspectDeg: h.aspectDeg },
+    asSiteDriveway(dw),
+  );
+  return {
+    ...h,
+    ...scored,
+    elevFt: h.elevFt,
+    slopeDeg: h.slopeDeg,
+    aspectDeg: h.aspectDeg,
+    grade: grade(scored.score),
+  };
 }
 
 export { STEPS };
