@@ -58,7 +58,7 @@ async function capture(): Promise<Capture[]> {
       s.parcel,
       sites.map((x) => x.ll),
       s.config.roadMaxGradePct,
-    );
+    ).map((r) => r.withinLimit ?? r.onParcel ?? { route: null, legal: false, entranceIndex: null }); // A3b's choice
     const passMs = performance.now() - p0;
     const ctx = routeContext(s);
     const limit = s.config.roadMaxGradePct;

@@ -312,7 +312,11 @@ export const SCREEN_CONSTANTS = deepFreeze({
     // cost estimate (mid): k · ln(1 + cost / c0), + noRoute when no route fits the grade limit (the least-steep
     // route's cost), + easement when the route runs outside the parcel, capped at max; a site no route reaches
     // at all takes max. The straight-line terms above stay for a run whose driveway step fails.
-    drivewayCost: { k: 9, c0: 20_000, noRoute: 10, easement: 10, max: 40 },
+    // A4 (owner, #87 review): the no-route term is scaled by how far over the limit the least-steep route goes,
+    // noRoute × min(1, (needed% − limit%) / noRouteFullPct): +1 for a route needing 11% under a 10% limit, the full
+    // +10 at 20% and over. (Scaled by the length over the limit instead, it can't tell 11% from 22%:
+    // docs/studies/a4-driveway.md.)
+    drivewayCost: { k: 9, c0: 20_000, noRoute: 10, noRouteFullPct: 10, easement: 10, max: 40 },
     overall: { quality: 0.7, cost: 0.3 }, // L1313
     costTiers: [
       [20, "$"],

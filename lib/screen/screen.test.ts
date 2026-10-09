@@ -10,7 +10,13 @@ import { DEFAULT_USER_CONFIG } from "./config";
 import { DemCache } from "./dem";
 import { siteDriveways, type SiteDriveway } from "./driveway";
 import { routeContext, screen, setHouse, type ScreenOutput } from "./index";
-import { scoreSiteDetailed, storedQuality, withDrivewayCost, type ScoreContext } from "./score";
+import {
+  chooseDriveway,
+  scoreSiteDetailed,
+  storedQuality,
+  withDrivewayCost,
+  type ScoreContext,
+} from "./score";
 import { AtlasCache } from "./sky";
 import { soilAt } from "./soils";
 import { defaultName, summaryText } from "./summary";
@@ -63,12 +69,13 @@ describe("road-distance rounding vs cost index, tier and overall score", () => {
       sites.map((x) => x.ll),
       CFG.roadMaxGradePct,
     );
-    const dw = out.result.driveway;
-    const toHouse: SiteDriveway = dw?.routes[0]
-      ? { route: dw.routes[0], legal: true, entranceIndex: dw.routes[0].entranceIndex }
-      : dw?.overLimit
-        ? { route: dw.overLimit, legal: false, entranceIndex: dw.overLimit.entranceIndex }
-        : { route: null, legal: false, entranceIndex: null };
+    const h0 = out.result.house;
+    const toHouse: SiteDriveway | null =
+      h0 && !("outside" in h0)
+        ? chooseDriveway(
+            siteDriveways(routeContext(s), s.roads ?? [], s.parcel, [h0.ll], CFG.roadMaxGradePct)[0]!,
+          )
+        : null;
     const spots = sites.map((x, i) => ({
       name: `site #${x.rank}`,
       ll: x.ll,
@@ -80,7 +87,7 @@ describe("road-distance rounding vs cost index, tier and overall score", () => {
         compact: x.compact,
       },
       shown: x,
-      dw: routed[i]!,
+      dw: chooseDriveway(routed[i]!),
     }));
     const h = out.result.house;
     if (h && !("outside" in h))
@@ -95,7 +102,7 @@ describe("road-distance rounding vs cost index, tier and overall score", () => {
           compact: undefined,
         },
         shown: h as never,
-        dw: toHouse,
+        dw: toHouse!,
       });
     for (const sp of spots) {
       const { scored } = scoreSiteDetailed(ctx, sp.ll, {

@@ -11,7 +11,7 @@ import { describe, it } from "vitest";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { siteDriveways } from "@/lib/screen/driveway";
 import { routeContext } from "@/lib/screen/index";
-import { drivewayPoints } from "@/lib/screen/score";
+import { chooseDriveway, drivewayPoints } from "@/lib/screen/score";
 import { ENGINE_VERSION } from "@/lib/screen/engine";
 import { FIXTURE_SLUGS } from "../support/fixtures";
 import { runFixture } from "../support/scenarios";
@@ -103,7 +103,7 @@ describe.runIf(import.meta.env.MODE === "a3-curve")("A3 driveway curve", () => {
           s.config.roadMaxGradePct,
         );
         sites.forEach((site, i) => {
-          const d = dw[i]!;
+          const d = chooseDriveway(dw[i]!);
           points.push({
             fixture: slug.split("-")[0]!,
             rank: site.rank,

@@ -652,7 +652,22 @@ function overLimitRoute(rt: RawRoute, entranceIndex: number, limitPct: number): 
   return { ...rt, entranceIndex, limitPct, overFt: overM * M2FT, overSpans };
 }
 
-/** One site's driveway for scoring (A3): the cheapest legal route, else the least-steep one, else none. */
+/**
+ * The two styles routed within a grade limit (proto buildDriveway). The gentlest keeps its own cap only where it is
+ * below the limit (A4, owner #87 review): under a 6% limit it is a 6% route, never an 8% one called legal.
+ */
+function styles(roadMaxGradePct: number): RouteOpts[] {
+  return [
+    { maxGrade: roadMaxGradePct / 100, wGrade: K.shortest.wGrade, label: K.shortest.label },
+    {
+      maxGrade: Math.min(K.gentlest.maxGrade, roadMaxGradePct / 100),
+      wGrade: K.gentlest.wGrade,
+      label: K.gentlest.label,
+    },
+  ];
+}
+
+/** One driveway for scoring (A3): a route within the limit, a least-steep one over it, or none. */
 export interface SiteDriveway {
   route: RawRoute | OverLimitRoute | null;
   legal: boolean;
@@ -660,9 +675,23 @@ export interface SiteDriveway {
 }
 
 /**
- * The driveway to every ranked site, for scoring (A3, owner 2026-10-09): what buildDriveway gives each site on
- * its own (its routes[0], else its overLimit), from the same entrances, but in one search per entrance and
- * style (routeMany), and for the least-steep routes one minimax search per entrance plus one per needed cap.
+ * A site's two candidate driveways (A4, owner 2026-10-09); scoring takes the one with fewer points (chooseDriveway).
+ * - `withinLimit`: the cheapest route within the grade limit, wherever it goes (buildDriveway's routes[0]); null
+ *   when none fits.
+ * - `onParcel`: the cheapest route kept to the parcel (land outside only at the entrance, as leastSteep keeps it),
+ *   within the limit when one is, else the least-steep one; null when none reaches. When `withinLimit` needs no
+ *   easement it is on the owner's land already, and it is both candidates.
+ */
+export interface SiteRoutes {
+  withinLimit: SiteDriveway | null;
+  onParcel: SiteDriveway | null;
+}
+
+type Found = { rt: RawRoute; entranceIndex: number };
+
+/**
+ * Both candidate driveways to every ranked site (A3, A4): one search per entrance and style for all the sites
+ * together (routeMany), and for the least-steep routes one search per entrance and needed cap.
  */
 export function siteDriveways(
   ctx: RouteContext,
@@ -670,54 +699,52 @@ export function siteDriveways(
   parcel: Feature<Polygon>,
   toLLs: readonly LatLon[],
   roadMaxGradePct: number,
-): SiteDriveway[] {
-  const none = (): SiteDriveway => ({ route: null, legal: false, entranceIndex: null });
+): SiteRoutes[] {
   const { entrances } = entranceCandidates(roads, parcel, ctx.dFine);
   const ent = entrances.slice(0, K.entrancesRouted);
-  if (!ent.length) return toLLs.map(none);
-  const found: { rt: RawRoute; entranceIndex: number }[][] = toLLs.map(() => []);
-  ent.forEach((e, entranceIndex) => {
-    for (const o of [
-      { maxGrade: roadMaxGradePct / 100, wGrade: K.shortest.wGrade, label: K.shortest.label },
-      { maxGrade: K.gentlest.maxGrade, wGrade: K.gentlest.wGrade, label: K.gentlest.label },
-    ])
-      routeMany(ctx, e.ll, toLLs, o).forEach((rt, t) => rt && found[t]!.push({ rt, entranceIndex }));
-  });
-  const out: SiteDriveway[] = found.map((list) => {
-    if (!list.length) return none();
-    // buildDriveway's order: cheapest first, a stable sort over (entrance, style).
-    const best = [...list].sort((a, b) => a.rt.cost.mid - b.rt.cost.mid)[0]!;
-    return { route: best.rt, legal: true, entranceIndex: best.entranceIndex };
+  if (!ent.length) return toLLs.map(() => ({ withinLimit: null, onParcel: null }));
+  /** The cheapest route from any entrance in any of the styles to each of the sites `ts`. */
+  const cheapest = (ts: number[], opts: RouteOpts[]): (Found | null)[] => {
+    const best: (Found | null)[] = ts.map(() => null);
+    ent.forEach((e, entranceIndex) => {
+      for (const o of opts)
+        routeMany(
+          ctx,
+          e.ll,
+          ts.map((t) => toLLs[t]!),
+          o,
+        ).forEach((rt, i) => {
+          // buildDriveway's order: cheapest first, a stable sort over (entrance, style).
+          const b = best[i];
+          if (rt && (!b || rt.cost.mid < b.rt.cost.mid)) best[i] = { rt, entranceIndex };
+        });
+    });
+    return best;
+  };
+  const legal = (f: Found): SiteDriveway => ({ route: f.rt, legal: true, entranceIndex: f.entranceIndex });
+
+  const all = toLLs.map((_, t) => t);
+  const out: SiteRoutes[] = cheapest(all, styles(roadMaxGradePct)).map((f) => {
+    const withinLimit = f ? legal(f) : null;
+    return { withinLimit, onParcel: withinLimit && !f!.rt.needsEasement ? withinLimit : null };
   });
 
-  const pending = out.map((o, t) => (o.route ? -1 : t)).filter((t) => t >= 0);
+  // Kept to the parcel, within the limit: for the sites whose cheapest route leaves it, or that have none.
+  const L = K.leastSteep;
+  const keptOpts = (o: RouteOpts): RouteOpts => ({ ...o, insideExceptNearStartM: L.entranceM });
+  const offParcel = all.filter((t) => !out[t]!.onParcel);
+  if (!offParcel.length) return out;
+  cheapest(offParcel, styles(roadMaxGradePct).map(keptOpts)).forEach((f, i) => {
+    if (f) out[offParcel[i]!]!.onParcel = legal(f);
+  });
+
+  const pending = offParcel.filter((t) => !out[t]!.onParcel);
   if (!pending.length) return out;
   // leastSteep's binary search over whole-percent caps, run for every pending site together: each round,
   // the sites wanting the same cap share one search per entrance. Same caps, same routes, as site by site.
-  const L = K.leastSteep;
-  const opts = (cap: number) => ({
-    maxGrade: cap / 100,
-    wGrade: L.wGrade,
-    label: L.label,
-    insideExceptNearStartM: L.entranceM,
-  });
-  /** leastSteep's at(cap), for several sites: the cheaper entrance's route to each, null where none reaches. */
-  const at = (cap: number, ts: number[]) => {
-    const best: ({ rt: RawRoute; entranceIndex: number } | null)[] = ts.map(() => null);
-    ent.forEach((e, entranceIndex) =>
-      routeMany(
-        ctx,
-        e.ll,
-        ts.map((t) => toLLs[t]!),
-        opts(cap),
-      ).forEach((rt, i) => {
-        const b = best[i];
-        if (rt && (!b || rt.cost.mid < b.rt.cost.mid)) best[i] = { rt, entranceIndex };
-      }),
-    );
-    return best;
-  };
-  const state = new Map<number, { lo: number; hi: number; found: { rt: RawRoute; entranceIndex: number } }>();
+  const at = (cap: number, ts: number[]) =>
+    cheapest(ts, [keptOpts({ maxGrade: cap / 100, wGrade: L.wGrade, label: L.label })]);
+  const state = new Map<number, { lo: number; hi: number; found: Found }>();
   at(L.maxPct, pending).forEach((r, i) => {
     if (r) state.set(pending[i]!, { lo: Math.floor(roadMaxGradePct) + 1, hi: L.maxPct, found: r });
   });
@@ -739,7 +766,7 @@ export function siteDriveways(
       });
   }
   for (const [t, { found }] of state)
-    out[t] = {
+    out[t]!.onParcel = {
       route: overLimitRoute(found.rt, found.entranceIndex, roadMaxGradePct),
       legal: false,
       entranceIndex: found.entranceIndex,
@@ -803,10 +830,7 @@ export function buildDriveway(
     dw.note = `No road frontage found within 130 ft of the boundary; routing from the nearest road point, ${Math.round(ent[0]!.gapFt!)} ft off the line. The route will cross someone else's land — that's an easement, not a driveway, unless the frontage is real and TIGER is wrong.`;
   const found: { rt: RawRoute; entranceIndex: number }[] = [];
   ent.slice(0, K.entrancesRouted).forEach((e, entranceIndex) => {
-    for (const o of [
-      { maxGrade: roadMaxGradePct / 100, wGrade: K.shortest.wGrade, label: K.shortest.label },
-      { maxGrade: K.gentlest.maxGrade, wGrade: K.gentlest.wGrade, label: K.gentlest.label },
-    ]) {
+    for (const o of styles(roadMaxGradePct)) {
       const rt = routeDriveway(ctx, e.ll, toLL, o);
       if (rt) found.push({ rt, entranceIndex });
     }

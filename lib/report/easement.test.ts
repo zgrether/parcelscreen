@@ -37,11 +37,15 @@ describe("routes that need an easement say so (owner, #87)", () => {
     },
   );
 
-  it("Grayson's #1 is the case: its scored route crosses neighbouring land", () => {
+  // Since A4 the site is scored on its route kept to the parcel (lib/screen/a4-driveway.test.ts); the driveway card
+  // and the routed line still describe the route within the limit, which crosses neighbouring land.
+  it("Grayson's #1 is the case: its driveway card's route crosses neighbouring land", () => {
     const r = run("grayson-mud-creek-6273");
     expect(r.driveway!.routes[0]!.needsEasement).toBe(true);
     expect(drivewayView(r)!.routes[0]!.title).toBe("Recommended — shortest legal — needs an easement");
-    expect(r.sites![0]!.why.at(-1)).toMatch(/^routed driveway: .*, needs an easement$/);
+    expect(r.sites![0]!.why.find((w) => w.startsWith("routed driveway"))).toMatch(
+      /^routed driveway: .*, needs an easement$/,
+    );
   });
 
   it("the label and the line, for any route", () => {

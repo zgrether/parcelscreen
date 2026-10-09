@@ -2075,12 +2075,14 @@
      "aspect": 64.40832727425651,
      "thermal": 87.5092623093549
     },
-    "score": 61,
+    "score": 64,
     "why": [
      "8.3 h of December sun — good",
      "1.3 ac, faces W, 7.0° slope, 650 ft above the valley floor",
      "Pigeonroost: septic rated very limited — alternative system, rock near the surface",
-     "routed driveway: 5176 ft at ≤10%, 1 switchback, ~$318–590k, needs an easement"
+     "routed driveway: 5176 ft at ≤10%, 1 switchback, ~$318–590k, needs an easement",
+     "Best on your land: 11%, 4228 ft",
+     "Within 10% only via neighbouring land (needs an easement): 5176 ft"
     ],
     "sunH": 8.25,
     "daylightH": 9.483333333333333,
@@ -2097,16 +2099,16 @@
      "foundation": 0,
      "rock": 8.4,
      "pad": 1.2062970820853047,
-     "driveway": 38.4824126388965
+     "driveway": 27.9955637549492
     },
-    "costIdx": 88,
+    "costIdx": 78,
     "costTier": "$$$$",
     "quality": 82,
     "qGrade": "A",
     "roadGrade": 11.660691375667428,
     "roadRunFt": 614.3255830669212,
     "roadName": "unnamed road",
-    "driveFt": 5176.424714394212,
+    "driveFt": 4227.916832967971,
     "grade": "C"
    },
    {
@@ -2126,14 +2128,16 @@
      "aspect": 97.68368007518627,
      "thermal": 99.64654682300709
     },
-    "score": 61,
+    "score": 64,
     "why": [
      "compact site: 0.24 ac shelf — needs a cut pad and probably a retaining wall",
      "7.9 h of December sun — good",
      "0.2 ac, faces S, 11.3° slope, 405 ft above the valley floor",
      "Pigeonroost: septic rated very limited — alternative system, rock near the surface",
      "295 ft to Mud Creek Rd at 36% straight-line — about 1063 ft of driveway with switchbacks",
-     "routed driveway: 2307 ft at ≤10%, 1 switchback, ~$126–234k, needs an easement"
+     "routed driveway: 2307 ft at ≤10%, 1 switchback, ~$126–234k, needs an easement",
+     "Best on your land: 11%, 1434 ft",
+     "Within 10% only via neighbouring land (needs an easement): 2307 ft"
     ],
     "sunH": 7.933333333333334,
     "daylightH": 9.483333333333333,
@@ -2150,16 +2154,16 @@
      "foundation": 0,
      "rock": 8.4,
      "pad": 15,
-     "driveway": 30.70899440773683
+     "driveway": 19.984664296288344
     },
-    "costIdx": 94,
+    "costIdx": 83,
     "costTier": "$$$$",
     "quality": 84,
     "qGrade": "A",
     "roadGrade": 36.099887730928245,
     "roadRunFt": 294.53867668222597,
     "roadName": "Mud Creek Rd",
-    "driveFt": 2306.6139190117524,
+    "driveFt": 1434.0014147452687,
     "grade": "C"
    },
    {
@@ -2179,14 +2183,16 @@
      "aspect": 89.35933709030516,
      "thermal": 89.27450608979001
     },
-    "score": 57,
+    "score": 60,
     "why": [
      "compact site: 0.46 ac shelf — needs a cut pad and probably a retaining wall",
      "8.3 h of December sun — good",
      "0.5 ac, faces SW, 13.0° slope, 615 ft above the valley floor",
      "Pigeonroost: septic rated very limited — alternative system, rock near the surface",
      "804 ft to Mud Creek Ln at 35% straight-line — about 2805 ft of driveway with switchbacks",
-     "routed driveway: 4749 ft at ≤10%, 1 switchback, ~$296–550k, needs an easement"
+     "routed driveway: 4749 ft at ≤10%, 1 switchback, ~$296–550k, needs an easement",
+     "Best on your land: 11%, 3815 ft",
+     "Within 10% only via neighbouring land (needs an easement): 4749 ft"
     ],
     "sunH": 8.283333333333333,
     "daylightH": 9.483333333333333,
@@ -2203,16 +2209,16 @@
      "foundation": 0,
      "rock": 8.4,
      "pad": 15,
-     "driveway": 37.87649720723873
+     "driveway": 27.290332310245667
     },
-    "costIdx": 100,
+    "costIdx": 91,
     "costTier": "$$$$",
     "quality": 81,
     "qGrade": "A",
     "roadGrade": 34.8957316910476,
     "roadRunFt": 803.8875228422704,
     "roadName": "Mud Creek Ln",
-    "driveFt": 4748.976807106072,
+    "driveFt": 3815.051276706525,
     "grade": "C"
    },
    {
@@ -2232,14 +2238,16 @@
      "aspect": 45.843962016858555,
      "thermal": 88.07492611533718
     },
-    "score": 53,
+    "score": 55,
     "why": [
      "compact site: 0.63 ac shelf — needs a cut pad and probably a retaining wall",
      "8.0 h of December sun — good",
      "0.6 ac, faces NW, 10.6° slope, 639 ft above the valley floor",
      "Pigeonroost: septic rated very limited — alternative system, rock near the surface",
      "556 ft to unnamed road at 15% straight-line — about 846 ft of driveway with switchbacks",
-     "routed driveway: 5115 ft at ≤10%, 1 switchback, ~$318–590k, needs an easement"
+     "routed driveway: 5115 ft at ≤10%, 1 switchback, ~$318–590k, needs an easement",
+     "Best on your land: 11%, 4184 ft",
+     "Within 10% only via neighbouring land (needs an easement): 5115 ft"
     ],
     "sunH": 8.033333333333333,
     "daylightH": 9.483333333333333,
@@ -2256,16 +2264,16 @@
      "foundation": 0,
      "rock": 8.4,
      "pad": 15,
-     "driveway": 38.488074181089274
+     "driveway": 28.05140851179674
     },
-    "costIdx": 100,
+    "costIdx": 91,
     "costTier": "$$$$",
     "quality": 75,
     "qGrade": "B",
     "roadGrade": 15.213416457767547,
     "roadRunFt": 556.1445489110306,
     "roadName": "unnamed road",
-    "driveFt": 5115.079534704171,
+    "driveFt": 4183.5918677057925,
     "grade": "C"
    }
   ],
@@ -17810,12 +17818,14 @@
      "aspect": 64.40832727425651,
      "thermal": 87.5092623093549
     },
-    "score": 61,
+    "score": 64,
     "why": [
      "8.3 h of December sun — good",
      "1.3 ac, faces W, 7.0° slope, 650 ft above the valley floor",
      "Pigeonroost: septic rated very limited — alternative system, rock near the surface",
-     "routed driveway: 5176 ft at ≤10%, 1 switchback, ~$318–590k, needs an easement"
+     "routed driveway: 5176 ft at ≤10%, 1 switchback, ~$318–590k, needs an easement",
+     "Best on your land: 11%, 4228 ft",
+     "Within 10% only via neighbouring land (needs an easement): 5176 ft"
     ],
     "sunH": 8.25,
     "daylightH": 9.483333333333333,
@@ -17832,16 +17842,16 @@
      "foundation": 0,
      "rock": 8.4,
      "pad": 1.2062970820853047,
-     "driveway": 38.4824126388965
+     "driveway": 27.9955637549492
     },
-    "costIdx": 88,
+    "costIdx": 78,
     "costTier": "$$$$",
     "quality": 82,
     "qGrade": "A",
     "roadGrade": 11.660691375667428,
     "roadRunFt": 614.3255830669212,
     "roadName": "unnamed road",
-    "driveFt": 5176.424714394212,
+    "driveFt": 4227.916832967971,
     "grade": "C"
    },
    {
@@ -17861,14 +17871,16 @@
      "aspect": 97.68368007518627,
      "thermal": 99.64654682300709
     },
-    "score": 61,
+    "score": 64,
     "why": [
      "compact site: 0.24 ac shelf — needs a cut pad and probably a retaining wall",
      "7.9 h of December sun — good",
      "0.2 ac, faces S, 11.3° slope, 405 ft above the valley floor",
      "Pigeonroost: septic rated very limited — alternative system, rock near the surface",
      "295 ft to Mud Creek Rd at 36% straight-line — about 1063 ft of driveway with switchbacks",
-     "routed driveway: 2307 ft at ≤10%, 1 switchback, ~$126–234k, needs an easement"
+     "routed driveway: 2307 ft at ≤10%, 1 switchback, ~$126–234k, needs an easement",
+     "Best on your land: 11%, 1434 ft",
+     "Within 10% only via neighbouring land (needs an easement): 2307 ft"
     ],
     "sunH": 7.933333333333334,
     "daylightH": 9.483333333333333,
@@ -17885,16 +17897,16 @@
      "foundation": 0,
      "rock": 8.4,
      "pad": 15,
-     "driveway": 30.70899440773683
+     "driveway": 19.984664296288344
     },
-    "costIdx": 94,
+    "costIdx": 83,
     "costTier": "$$$$",
     "quality": 84,
     "qGrade": "A",
     "roadGrade": 36.099887730928245,
     "roadRunFt": 294.53867668222597,
     "roadName": "Mud Creek Rd",
-    "driveFt": 2306.6139190117524,
+    "driveFt": 1434.0014147452687,
     "grade": "C"
    },
    {
@@ -17914,14 +17926,16 @@
      "aspect": 89.35933709030516,
      "thermal": 89.27450608979001
     },
-    "score": 57,
+    "score": 60,
     "why": [
      "compact site: 0.46 ac shelf — needs a cut pad and probably a retaining wall",
      "8.3 h of December sun — good",
      "0.5 ac, faces SW, 13.0° slope, 615 ft above the valley floor",
      "Pigeonroost: septic rated very limited — alternative system, rock near the surface",
      "804 ft to Mud Creek Ln at 35% straight-line — about 2805 ft of driveway with switchbacks",
-     "routed driveway: 4749 ft at ≤10%, 1 switchback, ~$296–550k, needs an easement"
+     "routed driveway: 4749 ft at ≤10%, 1 switchback, ~$296–550k, needs an easement",
+     "Best on your land: 11%, 3815 ft",
+     "Within 10% only via neighbouring land (needs an easement): 4749 ft"
     ],
     "sunH": 8.283333333333333,
     "daylightH": 9.483333333333333,
@@ -17938,16 +17952,16 @@
      "foundation": 0,
      "rock": 8.4,
      "pad": 15,
-     "driveway": 37.87649720723873
+     "driveway": 27.290332310245667
     },
-    "costIdx": 100,
+    "costIdx": 91,
     "costTier": "$$$$",
     "quality": 81,
     "qGrade": "A",
     "roadGrade": 34.8957316910476,
     "roadRunFt": 803.8875228422704,
     "roadName": "Mud Creek Ln",
-    "driveFt": 4748.976807106072,
+    "driveFt": 3815.051276706525,
     "grade": "C"
    },
    {
@@ -17967,14 +17981,16 @@
      "aspect": 45.843962016858555,
      "thermal": 88.07492611533718
     },
-    "score": 53,
+    "score": 55,
     "why": [
      "compact site: 0.63 ac shelf — needs a cut pad and probably a retaining wall",
      "8.0 h of December sun — good",
      "0.6 ac, faces NW, 10.6° slope, 639 ft above the valley floor",
      "Pigeonroost: septic rated very limited — alternative system, rock near the surface",
      "556 ft to unnamed road at 15% straight-line — about 846 ft of driveway with switchbacks",
-     "routed driveway: 5115 ft at ≤10%, 1 switchback, ~$318–590k, needs an easement"
+     "routed driveway: 5115 ft at ≤10%, 1 switchback, ~$318–590k, needs an easement",
+     "Best on your land: 11%, 4184 ft",
+     "Within 10% only via neighbouring land (needs an easement): 5115 ft"
     ],
     "sunH": 8.033333333333333,
     "daylightH": 9.483333333333333,
@@ -17991,16 +18007,16 @@
      "foundation": 0,
      "rock": 8.4,
      "pad": 15,
-     "driveway": 38.488074181089274
+     "driveway": 28.05140851179674
     },
-    "costIdx": 100,
+    "costIdx": 91,
     "costTier": "$$$$",
     "quality": 75,
     "qGrade": "B",
     "roadGrade": 15.213416457767547,
     "roadRunFt": 556.1445489110306,
     "roadName": "unnamed road",
-    "driveFt": 5115.079534704171,
+    "driveFt": 4183.5918677057925,
     "grade": "C"
    }
   ],

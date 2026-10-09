@@ -280,6 +280,7 @@ describe("config", () => {
             "k": 9,
             "max": 40,
             "noRoute": 10,
+            "noRouteFullPct": 10,
           },
           "drivewayFtPerPoint": 100,
           "drivewayMax": 30,

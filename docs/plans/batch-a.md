@@ -452,7 +452,23 @@ Sun moved out of A4 (re-scope, owner, 2026-10-09): it is §5d, any time later.
 shows both penalty forms with the synthetic over-limit site; Grayson's #1 before/after table is in the PR;
 `expected.json` is regenerated with the numbers change declared and the leaf diff.
 
-## 5b. A5: soil properties in place of NRCS's septic and foundation ratings (follow-up 45)
+**Done in A4 (2026-10-09; measured in `docs/studies/a4-driveway.md`, `pnpm a4:driveway`):**
+- **The over-limit term is scaled by grade:** noRoute × min(1, (needed% − limit%) / noRouteFullPct), with
+  `drivewayCost.noRouteFullPct` = 10, so +1 for a route needing 11% and the full +10 at 20% and over. Scaled by the
+  length over the limit, it can't separate them: that length is measured on the route's 3 m profile, and Grayson's #1
+  kept to the parcel needs 11% but has 3,179 ft "over 10%", more than the 1,959 ft of its engine-5 route that needed
+  22%. Both would take the full +10.
+- **Two candidates per site** (`siteDriveways` → `SiteRoutes`; `chooseDriveway` in `score.ts`): the cheapest route
+  within the limit, and the cheapest kept to the parcel, within the limit when one is, else the least-steep one. When
+  the route within the limit needs no easement it is both. A tie goes to the route within the limit. The house is
+  scored the same way.
+- **Only Grayson moves:** its four sites' routes within 10% need an easement, and each is now scored on its route kept
+  to the parcel (needs 11%). Grayson's #1: 38.5 → 28.0 driveway points, 5,176 → 4,228 ft, C 61 → C 64, still #1. Ranks
+  and grades are unchanged; Ferney and Macks are unchanged.
+- **The site's card** appends both candidates when they differ, the scored one first (rule 7; the owner's wording). The
+  driveway section still recommends the route within the limit, labelled "needs an easement".
+- **Routing time,** both candidates for every site: 0.20, 0.48 and 0.23 s (Ferney, Macks, Grayson).
+ in place of NRCS's septic and foundation ratings (follow-up 45)
 
 Owner, 2026-10-09. First a **report-only simulation on the 27-parcel study** (`docs/studies/`): each candidate
 property (depth to bedrock or another restrictive layer, the slowest layer's Ksat, slope within the unit) and the

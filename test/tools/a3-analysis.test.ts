@@ -111,7 +111,7 @@ async function gather(slug: FixtureSlug, cache: Record<string, Reason[]>): Promi
     parcel,
     sites.map((x) => x.ll),
     CFG.roadMaxGradePct,
-  );
+  ).map((r) => r.withinLimit ?? r.onParcel ?? { route: null, legal: false, entranceIndex: null }); // A3's choice
   const multiMs = performance.now() - m0;
   const mismatches: string[] = [];
   const routed = [];
