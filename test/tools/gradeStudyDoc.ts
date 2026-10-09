@@ -50,19 +50,18 @@ the household is looking in, which factors carry the ranking, which barely vary,
 - **Your History:** not included. It lives in your browser's IndexedDB, which I can't read. Export it
   (History › Export) to \`tmp/study/history.json\` and I'll add those parcels to the next run.
 
-## 1. Your gut grades first
+## 1. The gut-grade sheet (not used)
 
-Grade these ${gut.length} before opening anything below: the rest of this file shows the tool's grades. They were
-picked evenly through the tool's ranking, so they cover its whole range, and are listed by parcel ID so their order
-gives nothing away. Open each point in the app (tap the parcel there), or on the map links. A–F, with a note if you
-like; then tell me (or edit this table in the PR) and I'll fill in §8.
+These ${gut.length} were picked for blind gut grades: evenly through the tool's ranking, listed by parcel ID. **The
+owner skipped the comparison (2026-10-09), so §8 has no grades**; the sheet stays so it can be done later without
+re-picking. Grades are left blank on purpose.
 
-| # | County | Parcel | Acres | Point | Maps | Your grade | Your note |
+| # | County | Parcel | Acres | Point | Maps | Gut grade | Note |
 |---|---|---|---|---|---|---|---|
 ${gut.map((p, i) => `| G${i + 1} | ${p.county} | ${p.fixture ? `${p.parcelId} (fixture)` : p.parcelId} | ${fmt(p.acres)} | ${p.point[0]}, ${p.point[1]} | ${maps(p.point)} |  |  |`).join("\n")}
 
 <details>
-<summary><b>The study</b> (open after grading)</summary>
+<summary><b>The study</b></summary>
 
 ## 2. Findings in brief
 
@@ -86,7 +85,7 @@ ${gut.map((p, i) => `| G${i + 1} | ${p.county} | ${p.fixture ? `${p.parcelId} (f
    already prefers benches above the valley floor. They act as penalties for the exceptions, which is their job.
 7. **Fixing the soil inputs lifts grades but doesn't spread them** (what-if B: ${shares(ws, (w) => w.b.grade).replace(/ \| /g, " / ")} for A/B/C/D/F). The
    spread is limited by quality's narrow range. Any grade letter that's meant to separate these parcels needs
-   cutoffs calibrated on them, which is what your gut grades are for (§7).
+   cutoffs calibrated on them against real judgment (§7); the gut-grade comparison that would do it was skipped (§8).
 
 ## 3. The parcels and how each was chosen
 
@@ -210,13 +209,21 @@ by percentile among the parcels in your library, so a grade means "better than m
 | Pad, driveway | Absolute | They're dollars. |
 | **The overall grade** | **Absolute, but calibrated once** on this set and your gut grades, then fixed | Relative grades would shift as the library grows (an A today becomes a B after a good find). Today's 80/65/50/35 were never calibrated: on these parcels nothing reaches 80. Calibrate them to where your grades fall, and show a parcel's rank in the library separately. |
 
-## 8. Your grades against the tool's
+## 8. Gut grades against the tool's: skipped
 
-*Pending your grades in §1.* When they're in, this section reports exact matches, within-one-letter matches, the
-rank correlation (Spearman) between your order and the tool's, and for each disagreement the factor that moved the
-tool most. Then the cutoffs that would best match your letters, for A3.
+**Skipped by the owner (2026-10-09); A3 proceeds without it.** Nothing here was graded, and no grades were made up
+in their place: a comparison against invented letters would only measure the invention. So the overall cutoffs keep
+their current values until there's real judgment to calibrate them against (§7's last row). If the comparison is
+done later: grade the sheet in §1 blind (and Julie separately, if she likes), and the report then gives exact and
+within-one-letter matches, the rank correlation, the factor behind each disagreement, and the best-fitting cutoffs.
 
-<details><summary>The tool's grades for G1–G${gut.length} (open after grading)</summary>
+The owners' stated priorities (2026-10-09), for A3 and later work. These aren't grades:
+- **Zach:** high-performance building concepts (passive solar: winter sun, south aspect, a compact foundation),
+  and high elevation.
+- **Julie:** proximity to recreation, no HOA, self-sufficiency (gardens, water, sun), and remoteness. HOA status
+  isn't in any data source the app reads; county parcel records don't carry it.
+
+<details><summary>The tool's grades for G1–G${gut.length}</summary>
 
 | # | Parcel | Tool's #1 grade, score | Quality | Cost index | What-if B |
 |---|---|---|---|---|---|
