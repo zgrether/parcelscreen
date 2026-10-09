@@ -20,8 +20,9 @@ const revision =
  * found by the source line `pnpm data:hospitals` writes into the file.
  */
 function isHospitalSnapshot(url: string): boolean {
-  // Our transforms run before Serwist's own, which rewrites ".next/…" to "/_next/…"; accept either.
-  const m = /^(?:\/_next|\.next)\/(static\/chunks\/[^/]+\.js)$/.exec(url);
+  // Our transforms run before Serwist's own, which rewrites ".next/…" to "/_next/…"; accept either. Any script
+  // under static/: locally chunks are in static/chunks/, on Vercel in static/immutable/chunks/.
+  const m = /^(?:\/_next|\.next)\/(static\/.+\.js)$/.exec(url);
   if (!m) return false;
   try {
     return readFileSync(join(process.cwd(), ".next", m[1]!), "utf8").includes(HOSPITAL_SNAPSHOT_MARKER);
@@ -38,15 +39,21 @@ export const { dynamic, dynamicParams, revalidate, generateStaticParams, GET } =
   // the cache's URL, without the hash, and fails ("Missing worker bootstrap config"), so the screen's worker
   // must load that one file from the network. The chunks it then imports are precached as usual.
   manifestTransforms: [
-    async (entries) => ({
-      manifest: entries.filter(
-        (e) =>
-          !e.url.endsWith(".md") &&
-          !/\/turbopack-worker-[^/]*\.js$/.test(e.url) &&
-          !isHospitalSnapshot(e.url),
-      ),
-      warnings: [],
-    }),
+    async (entries) => {
+      const snapshot = entries.filter((e) => isHospitalSnapshot(e.url));
+      return {
+        manifest: entries.filter(
+          (e) =>
+            !e.url.endsWith(".md") && !/\/turbopack-worker-[^/]*\.js$/.test(e.url) && !snapshot.includes(e),
+        ),
+        // Said at build time if the filter ever stops finding it (a new chunk layout), rather than silently
+        // precaching it again.
+        warnings:
+          snapshot.length === 1
+            ? []
+            : [`hospital snapshot: ${snapshot.length} precache entries matched, expected 1`],
+      };
+    },
   ],
   useNativeEsbuild: true,
 });
