@@ -1,0 +1,5284 @@
+{
+  "generatedAt": "2026-10-09",
+  "source": "OpenStreetMap contributors (ODbL), via overpass-api.de: amenity=hospital or healthcare=hospital in VA, NC and TN",
+  "hospitals": [
+    {
+      "id": "node/356811523",
+      "name": "Holston Valley Medical Center",
+      "lat": 36.554268,
+      "lon": -82.554874,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "node/356847116",
+      "name": "Ridgeview Behavioral Health Services",
+      "lat": 36.02587,
+      "lon": -84.243149,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "node/356872309",
+      "name": "Behavioral Healthcare Center at Martin",
+      "lat": 36.338119,
+      "lon": -88.871172,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "node/356873171",
+      "name": "Kindred Hospital - Chattanooga",
+      "lat": 35.047683,
+      "lon": -85.307723,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "node/356874869",
+      "name": "Parkridge Valley Child and Adolescent Campus",
+      "lat": 35.027019,
+      "lon": -85.121896,
+      "tags": {
+        "amenity": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "node/356876036",
+      "name": "Alvin C. York Campus",
+      "lat": 35.913953,
+      "lon": -86.379436,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "node/356879642",
+      "name": "TriStar Skyline Madison Campus",
+      "lat": 36.254776,
+      "lon": -86.682497,
+      "tags": {
+        "amenity": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "node/356898097",
+      "name": "Monroe Carell Jr. Children's Hospital at Vanderbilt",
+      "lat": 36.139368,
+      "lon": -86.802276,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "node/356901157",
+      "name": "Lloyd C. Elam Mental Health Center",
+      "lat": 36.166704,
+      "lon": -86.808011,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "node/356901174",
+      "name": "TriStar Centennial Parthenon Pavilion",
+      "lat": 36.152698,
+      "lon": -86.810494,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "node/356901177",
+      "name": "Select Specialty Hospital - Nashville",
+      "lat": 36.152532,
+      "lon": -86.801106,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "node/357810105",
+      "name": "CarePartners Rehabilitation Hospital",
+      "lat": 35.562019,
+      "lon": -82.531462,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "node/357810213",
+      "name": "Rutherford Regional Health System",
+      "lat": 35.362621,
+      "lon": -81.965661,
+      "tags": {
+        "amenity": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "node/1264230416",
+      "name": "Haywood Regional Medical Center",
+      "lat": 35.525231,
+      "lon": -82.942738,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "node/2337553091",
+      "name": "Free Clinic of Powhatan",
+      "lat": 37.546102,
+      "lon": -77.919356,
+      "tags": {
+        "amenity": "clinic",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "node/2607928466",
+      "name": "TriStar Spring Hill ER",
+      "lat": 35.733866,
+      "lon": -86.918566,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "node/4614766058",
+      "name": "Cherry Hospital",
+      "lat": 35.394778,
+      "lon": -78.020143,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "node/4904992463",
+      "name": "The Children's Hospital at TriStar Centennial",
+      "lat": 36.153542,
+      "lon": -86.807152,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "node/5464768674",
+      "name": "Spence and Becky Wilson Baptist Children's Hospital",
+      "lat": 35.128143,
+      "lon": -89.854958,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "node/5685004422",
+      "name": "Saint Thomas Hospital for Specialty Surgery",
+      "lat": 36.155146,
+      "lon": -86.803319,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "node/9797338430",
+      "name": "FirstHealth Emergency",
+      "lat": 35.20507,
+      "lon": -79.457238,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/10111672439",
+      "name": "Novant Health & Vascular Institute - Elizabeth (Cardio)",
+      "lat": 35.211546,
+      "lon": -80.826688,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/10129388538",
+      "name": "Novant Health",
+      "lat": 33.962111,
+      "lon": -78.396875,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/10601806527",
+      "name": "Frye Surgery Center - Tate Campus",
+      "lat": 35.731829,
+      "lon": -81.309314,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/10754379632",
+      "name": "TriStar Natchez ER",
+      "lat": 36.010534,
+      "lon": -87.329593,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "node/10830653091",
+      "name": "Stuart Community Hospital",
+      "lat": 36.646318,
+      "lon": -80.254812,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "node/10830680979",
+      "name": "Select Specialty Hospital",
+      "lat": 37.590626,
+      "lon": -77.490733,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/10830713199",
+      "name": "Sheltering Arms Institute",
+      "lat": 37.659781,
+      "lon": -77.656532,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "rehabilitation"
+      }
+    },
+    {
+      "id": "node/10832140430",
+      "name": "Veritas Collaborative Eating Disorder Treatment Center",
+      "lat": 36.00994,
+      "lon": -78.942325,
+      "tags": {
+        "amenity": "hospital"
+      }
+    },
+    {
+      "id": "node/10832175895",
+      "name": "Fellowship Hall",
+      "lat": 36.148057,
+      "lon": -79.728639,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/10832186226",
+      "name": "Carolina Dunes Behavioral Health",
+      "lat": 34.260758,
+      "lon": -78.063714,
+      "tags": {
+        "amenity": "hospital"
+      }
+    },
+    {
+      "id": "node/10832193337",
+      "name": "Maria Parham Health",
+      "lat": 36.330865,
+      "lon": -78.449446,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "node/10832193884",
+      "name": "Womack Army Medical Center",
+      "lat": 35.145995,
+      "lon": -79.002433,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/10832197982",
+      "name": "Novant Health Rehabilitation Hospital",
+      "lat": 36.05114,
+      "lon": -80.32697,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "rehabilitation"
+      }
+    },
+    {
+      "id": "node/10832198020",
+      "name": "Good Hope Hospital, Inc",
+      "lat": 35.327363,
+      "lon": -78.669803,
+      "tags": {
+        "amenity": "hospital"
+      }
+    },
+    {
+      "id": "node/10832198022",
+      "name": "Triangle Springs",
+      "lat": 35.902753,
+      "lon": -78.815788,
+      "tags": {
+        "amenity": "hospital"
+      }
+    },
+    {
+      "id": "node/10832206695",
+      "name": "Atrium Health Behavioral Health Charlotte",
+      "lat": 35.192004,
+      "lon": -80.80394,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/10914145015",
+      "name": "Erlanger North Hospital",
+      "lat": 35.123445,
+      "lon": -85.302126,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/11382331289",
+      "name": "Baptist Arlington Emergency Department",
+      "lat": 35.266531,
+      "lon": -89.666246,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "node/12077711233",
+      "name": "Palmetto Tower",
+      "lat": 35.092077,
+      "lon": -80.873088,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "node/12420880668",
+      "name": "Vanderbilt Wilson County Hospital",
+      "lat": 36.221688,
+      "lon": -86.327509,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "node/12431788914",
+      "name": "Hugh Chatham Memorial Hosital",
+      "lat": 36.262402,
+      "lon": -80.838813,
+      "tags": {
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/12438912568",
+      "name": "Inova Schar Heart and Vascular",
+      "lat": 38.857306,
+      "lon": -77.229535,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/12438912569",
+      "name": "Inova Fairfax Surgery Center",
+      "lat": 38.857438,
+      "lon": -77.228915,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/12438912570",
+      "name": "Inova L.J. Murphy Children's Hospital",
+      "lat": 38.856508,
+      "lon": -77.227209,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/12438912571",
+      "name": "Inova Women's Hospital",
+      "lat": 38.857035,
+      "lon": -77.227026,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/12438912572",
+      "name": "Children's Emergency",
+      "lat": 38.858725,
+      "lon": -77.226872,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/12438912573",
+      "name": "Adult Emergency",
+      "lat": 38.857623,
+      "lon": -77.226552,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/12700462597",
+      "name": "Bon Secours Urgent Care Center",
+      "lat": 37.404385,
+      "lon": -77.6766,
+      "tags": {
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/13005336101",
+      "name": "Rogers Behavioral Health",
+      "lat": 36.032198,
+      "lon": -86.778616,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/13125416755",
+      "name": "Atrium Health Urgent Care",
+      "lat": 35.208807,
+      "lon": -80.859785,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/13288114299",
+      "name": "",
+      "lat": 35.154968,
+      "lon": -80.875226,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/13404346301",
+      "name": "Garner VA Clinic",
+      "lat": 35.655394,
+      "lon": -78.614714,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/13448397901",
+      "name": "Erlanger Sequatchie Valley Emergency Department16931 Rankin Ave #100, Dunlap, TN 37327",
+      "lat": 35.387739,
+      "lon": -85.379549,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/13527554223",
+      "name": "Sentara Albemarle Regional Health Campus",
+      "lat": 36.299049,
+      "lon": -76.271694,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/13532459601",
+      "name": "Erlanger Behavioral Health Hospital",
+      "lat": 35.049025,
+      "lon": -85.276058,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/13719240901",
+      "name": "East Tennessee Behavioral Health",
+      "lat": 35.951755,
+      "lon": -84.022046,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/13738343301",
+      "name": "Atrium Health Huntersville",
+      "lat": 35.438945,
+      "lon": -80.866751,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/13983846319",
+      "name": "Women's Care Maternal Fetal Medicine",
+      "lat": 35.20881,
+      "lon": -80.838598,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/14016028373",
+      "name": "Atrium Health Urgent Care",
+      "lat": 35.054137,
+      "lon": -80.772609,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/14032254712",
+      "name": "Atrium Health Providence Emergency Room",
+      "lat": 35.052403,
+      "lon": -80.770845,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/14173541537",
+      "name": "FirstHealth Cancer Center",
+      "lat": 35.204028,
+      "lon": -79.454116,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "node/14173541540",
+      "name": "FirstHealth UNC Maternal-Fetal Medicine",
+      "lat": 35.206391,
+      "lon": -79.454028,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "relation/324643",
+      "name": "UNC Medical Center",
+      "lat": 35.905022,
+      "lon": -79.050243,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "relation/2834661",
+      "name": "ValleyHealth Winchester Medical Center",
+      "lat": 39.196291,
+      "lon": -78.192321,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "relation/5406969",
+      "name": "Eastern State Hospital",
+      "lat": 37.291296,
+      "lon": -76.743454,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "relation/6631420",
+      "name": "Portsmouth Naval Hospital",
+      "lat": 36.845602,
+      "lon": -76.305965,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "relation/11198947",
+      "name": "Broughton Hospital",
+      "lat": 35.730786,
+      "lon": -81.675838,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "relation/11269576",
+      "name": "Children's Hospital of the King's Daughters",
+      "lat": 36.864275,
+      "lon": -76.305267,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "relation/11269660",
+      "name": "Sentara Norfolk General Hospital",
+      "lat": 36.862457,
+      "lon": -76.30312,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "relation/13654719",
+      "name": "University of Tennessee Medical Center",
+      "lat": 35.939907,
+      "lon": -83.943522,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "relation/14361617",
+      "name": "Highpoint Health - Sewanee",
+      "lat": 35.20767,
+      "lon": -85.913706,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "relation/19257496",
+      "name": "Ascension Saint Thomas Rutherford Westlawn Hospital and ER",
+      "lat": 35.858787,
+      "lon": -86.506228,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "relation/20708610",
+      "name": "Tennova Healthcare - Dyersburg Regional",
+      "lat": 36.04924,
+      "lon": -89.38023,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital;yes",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "relation/20735331",
+      "name": "Western Mental Health Institute",
+      "lat": 35.270568,
+      "lon": -89.025798,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "relation/21061971",
+      "name": "St. Jude Children's Research Hospital",
+      "lat": 35.154226,
+      "lon": -90.04077,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "relation/21075529",
+      "name": "Le Bonheur Children's Hospital",
+      "lat": 35.145733,
+      "lon": -90.030748,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "relation/21086410",
+      "name": "Regional One Medical Center",
+      "lat": 35.141995,
+      "lon": -90.030562,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "relation/21086412",
+      "name": "Memphis VA Medical Center",
+      "lat": 35.143069,
+      "lon": -90.026121,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "relation/21370174",
+      "name": "Baptist Memorial Hospital - Union City",
+      "lat": 36.414328,
+      "lon": -89.044767,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/27569013",
+      "name": "Vanderbilt Clarksville Hospital",
+      "lat": 36.582432,
+      "lon": -87.270129,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/32786331",
+      "name": "Cape Fear Valley Medical Center",
+      "lat": 35.031428,
+      "lon": -78.934158,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/32786367",
+      "name": "Fayetteville VA Medical Center",
+      "lat": 35.087948,
+      "lon": -78.876646,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/37889430",
+      "name": "Sentara Leigh Hospital",
+      "lat": 36.851119,
+      "lon": -76.190102,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/38028729",
+      "name": "Harbor Point Behavioral Health Center",
+      "lat": 36.840492,
+      "lon": -76.307257,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/44643156",
+      "name": "Carilion Rockbridge Community Hospital",
+      "lat": 37.778919,
+      "lon": -79.440768,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/44820052",
+      "name": "LewisGale Medical Center",
+      "lat": 37.263708,
+      "lon": -80.029882,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/44882482",
+      "name": "Memorial Regional Medical Center",
+      "lat": 37.628746,
+      "lon": -77.385599,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/44966334",
+      "name": "Parham Doctors' Hospital",
+      "lat": 37.631582,
+      "lon": -77.525153,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/45061747",
+      "name": "Central State Hospital",
+      "lat": 37.209422,
+      "lon": -77.451334,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/45103241",
+      "name": "Children's Hospital of Richmond at VCU Brook Road Campus",
+      "lat": 37.571284,
+      "lon": -77.450823,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/45199200",
+      "name": "Saint Mary's Hospital",
+      "lat": 37.583936,
+      "lon": -77.512913,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/45907100",
+      "name": "Henrico Doctors' Hospital",
+      "lat": 37.603287,
+      "lon": -77.541028,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/46843109",
+      "name": "Hunter Holmes McGuire Veterans Administration Medical Center",
+      "lat": 37.496286,
+      "lon": -77.465775,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/48734994",
+      "name": "Virginia Beach General Hospital",
+      "lat": 36.86492,
+      "lon": -76.026101,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/50945901",
+      "name": "Bon Secours Mary Immaculate Hospital",
+      "lat": 37.144224,
+      "lon": -76.511119,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/60616686",
+      "name": "LewisGale Hospital Pulaski",
+      "lat": 37.068471,
+      "lon": -80.75714,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/69604316",
+      "name": "Reston Hospital Center",
+      "lat": 38.962559,
+      "lon": -77.365028,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/70127228",
+      "name": "Moccasin Bend Mental Health Institute",
+      "lat": 35.025479,
+      "lon": -85.335524,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/76692183",
+      "name": "LewisGale Hospital Montgomery",
+      "lat": 37.1873,
+      "lon": -80.411632,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/79613314",
+      "name": "Inova Medical Center - Reston",
+      "lat": 38.96548,
+      "lon": -77.356923,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/82881605",
+      "name": "Centra Southside Community Hospital",
+      "lat": 37.302709,
+      "lon": -78.404013,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/142028799",
+      "name": "Alexander T. Augusta Military Medical Center",
+      "lat": 38.706092,
+      "lon": -77.142781,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/149975007",
+      "name": "North Spring Behavioral Healthcare",
+      "lat": 39.144765,
+      "lon": -77.546756,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/157034592",
+      "name": "UVA HealthSouth Rehabilitation Hospital",
+      "lat": 38.02447,
+      "lon": -78.525559,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/167269304",
+      "name": "Inova Loudoun (Cornwall) Medical Campus",
+      "lat": 39.119655,
+      "lon": -77.568861,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/170534562",
+      "name": "Atrium Health Kannapolis",
+      "lat": 35.500767,
+      "lon": -80.568086,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/186412949",
+      "name": "James H. Quillen VA Medical Center",
+      "lat": 36.307494,
+      "lon": -82.376171,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/189699985",
+      "name": "Maury Regional Medical Center",
+      "lat": 35.60712,
+      "lon": -87.066119,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/192355194",
+      "name": "Encompass Health Rehabilitation Hospital of Fredericksburg",
+      "lat": 38.312756,
+      "lon": -77.487081,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/195979489",
+      "name": "Duke Raleigh Hospital",
+      "lat": 35.828605,
+      "lon": -78.617939,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/198163515",
+      "name": "Holly Hill Hospital",
+      "lat": 35.783015,
+      "lon": -78.584022,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/198168608",
+      "name": "WakeMed Health & Hospitals: Raleigh Campus",
+      "lat": 35.782591,
+      "lon": -78.588128,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/207911146",
+      "name": "Watauga Medical Center",
+      "lat": 36.19846,
+      "lon": -81.651062,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/220515441",
+      "name": "UNC Health Johnston Clayton",
+      "lat": 35.630636,
+      "lon": -78.502917,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/223197857",
+      "name": "Nash General Hospital",
+      "lat": 35.976129,
+      "lon": -77.85479,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/236067321",
+      "name": "Bon Secours Saint Francis Medical Center",
+      "lat": 37.466683,
+      "lon": -77.659413,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/239149691",
+      "name": "Carolinas Medical Center",
+      "lat": 35.203338,
+      "lon": -80.83883,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/264890230",
+      "name": "Lincoln Medical Center",
+      "lat": 35.149568,
+      "lon": -86.555918,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/274820222",
+      "name": "LifeBrite Community Hospital of Stokes",
+      "lat": 36.418075,
+      "lon": -80.230862,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/276027716",
+      "name": "TriStar Hendersonville",
+      "lat": 36.325483,
+      "lon": -86.622384,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/295592944",
+      "name": "Carteret Health Care Medical Center",
+      "lat": 34.725939,
+      "lon": -76.755191,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/298161573",
+      "name": "Riverside Regional Medical Center",
+      "lat": 37.063433,
+      "lon": -76.483156,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/304327957",
+      "name": "Greeneville Community Hospital",
+      "lat": 36.173983,
+      "lon": -82.790375,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/305879102",
+      "name": "Duke University Hospital",
+      "lat": 36.007003,
+      "lon": -78.937393,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/311041319",
+      "name": "Stone Springs Hospital Center",
+      "lat": 38.940434,
+      "lon": -77.542867,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/319318455",
+      "name": "Murphy Medical Center",
+      "lat": 35.072723,
+      "lon": -83.967056,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/323914910",
+      "name": "Inova Fair Oaks Hospital",
+      "lat": 38.885206,
+      "lon": -77.38116,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/324411759",
+      "name": "Atrium Health Biddle Point",
+      "lat": 35.241879,
+      "lon": -80.859392,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/325122946",
+      "name": "Sentara Port Warwick",
+      "lat": 37.084468,
+      "lon": -76.484256,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/329902831",
+      "name": "WakeMed Cary Hospital",
+      "lat": 35.740332,
+      "lon": -78.781554,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/331168049",
+      "name": "Colonel Florence A Blanchfield Army Community Hospital",
+      "lat": 36.636887,
+      "lon": -87.447107,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/331242167",
+      "name": "Haymarket Medical Center",
+      "lat": 38.820939,
+      "lon": -77.642128,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/338531287",
+      "name": "Johnston Health",
+      "lat": 35.514867,
+      "lon": -78.333703,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/344024165",
+      "name": "Langley Hospital",
+      "lat": 37.074022,
+      "lon": -76.357533,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/350174795",
+      "name": "Frye Regional Medical Center",
+      "lat": 35.737311,
+      "lon": -81.338088,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/350240791",
+      "name": "Catawba Valley Medical Center",
+      "lat": 35.714447,
+      "lon": -81.267388,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/351274051",
+      "name": "W. G. (Bill) Hefner Veterans Affairs Medical Center",
+      "lat": 35.684259,
+      "lon": -80.490845,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/351287722",
+      "name": "Novant Health Rowan Medical Center",
+      "lat": 35.681578,
+      "lon": -80.471106,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/351759668",
+      "name": "New Hanover Regional Medical Center",
+      "lat": 34.205362,
+      "lon": -77.921028,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/352857448",
+      "name": "Randolph Health",
+      "lat": 35.71169,
+      "lon": -79.814432,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/368222774",
+      "name": "Sentara Williamsburg Regional Medical Center",
+      "lat": 37.3366,
+      "lon": -76.740524,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/374890122",
+      "name": "WakeMed North Family Health & Women’s Hospital",
+      "lat": 35.90914,
+      "lon": -78.597816,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/383562784",
+      "name": "Hampton Veterans Affairs Medical Center",
+      "lat": 37.016951,
+      "lon": -76.333652,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/383568830",
+      "name": "Novant Health Clemmons Medical Center",
+      "lat": 36.028304,
+      "lon": -80.398495,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/388595616",
+      "name": "Orthopaedic Hospital",
+      "lat": 37.057814,
+      "lon": -76.390384,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/392088732",
+      "name": "New Hanover Regional Medical Center Orthopedic Hospital",
+      "lat": 34.213042,
+      "lon": -77.862731,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/394180867",
+      "name": "Iredell Memorial Hospital",
+      "lat": 35.800206,
+      "lon": -80.878795,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/397878148",
+      "name": "Lake Taylor Transitional Care Hospital",
+      "lat": 36.867135,
+      "lon": -76.205773,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/401000361",
+      "name": "Chesapeake Regional Medical Center",
+      "lat": 36.747799,
+      "lon": -76.247241,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/412279436",
+      "name": "Sentara Princess Anne Hospital",
+      "lat": 36.776275,
+      "lon": -76.097479,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/420045851",
+      "name": "Murdoch Developmental Center",
+      "lat": 36.149877,
+      "lon": -78.73876,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/430129572",
+      "name": "Central Carolina Hospital",
+      "lat": 35.46885,
+      "lon": -79.186898,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/431470262",
+      "name": "Person Memorial Hospital",
+      "lat": 36.408399,
+      "lon": -78.9852,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/432138449",
+      "name": "Onslow Memorial Hospital",
+      "lat": 34.763274,
+      "lon": -77.385391,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/435593909",
+      "name": "Atrium Health Harrisburg Emergency Department",
+      "lat": 35.285339,
+      "lon": -80.666779,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/437073426",
+      "name": "Duke Health Lake Norman Hospital",
+      "lat": 35.549267,
+      "lon": -80.853589,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/438613679",
+      "name": "Kings Mountain Hospital",
+      "lat": 35.241745,
+      "lon": -81.356241,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/439125951",
+      "name": "Atrium Health Union",
+      "lat": 34.975346,
+      "lon": -80.522136,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/439205799",
+      "name": "Ascension Saint Thomas Three Rivers",
+      "lat": 36.075803,
+      "lon": -87.792545,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/439542369",
+      "name": "Charles George Department of Veterans Affairs Medical Center",
+      "lat": 35.590101,
+      "lon": -82.484364,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/439967108",
+      "name": "Atrium Health - Stanly",
+      "lat": 35.364067,
+      "lon": -80.19485,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/441289660",
+      "name": "Wilkes Medical Center",
+      "lat": 36.159906,
+      "lon": -81.158875,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/441492703",
+      "name": "Carolinas Healthcare System Lincoln",
+      "lat": 35.490064,
+      "lon": -81.20308,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/443703476",
+      "name": "Western State Hospital",
+      "lat": 38.142617,
+      "lon": -79.028158,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/464452712",
+      "name": "Swain County Hospital",
+      "lat": 35.43459,
+      "lon": -83.444783,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/464467213",
+      "name": "Harris Pain Center",
+      "lat": 35.385528,
+      "lon": -83.20272,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/464555970",
+      "name": "Transylvania Regional Hospital",
+      "lat": 35.255939,
+      "lon": -82.711796,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/464569034",
+      "name": "AdventHealth Polk",
+      "lat": 35.239708,
+      "lon": -82.212657,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/464575984",
+      "name": "Pardee Hospital",
+      "lat": 35.32031,
+      "lon": -82.468555,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/464608703",
+      "name": "AdventHealth Hendersonville",
+      "lat": 35.389834,
+      "lon": -82.487799,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/464619431",
+      "name": "Mission Hospital",
+      "lat": 35.576629,
+      "lon": -82.549348,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/464820148",
+      "name": "Blue Ridge Regional Hospital",
+      "lat": 35.911492,
+      "lon": -82.062287,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/464832522",
+      "name": "UNC Health Blue Ridge - Valdese",
+      "lat": 35.747731,
+      "lon": -81.522882,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/464841287",
+      "name": "Caldwell Memorial Hospital",
+      "lat": 35.910444,
+      "lon": -81.53512,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/464846511",
+      "name": "Alleghany Memorial Hospital",
+      "lat": 36.509472,
+      "lon": -81.114715,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/464850644",
+      "name": "Northern Hospital of Surry County",
+      "lat": 36.488909,
+      "lon": -80.612354,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/464853235",
+      "name": "Hugh Chatham Memorial Hospital",
+      "lat": 36.26187,
+      "lon": -80.838991,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/464998082",
+      "name": "Iredell Davis",
+      "lat": 35.819009,
+      "lon": -80.829186,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/465547756",
+      "name": "CaroMont Regional Medical Center",
+      "lat": 35.272034,
+      "lon": -81.139427,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/465557450",
+      "name": "Carolinas ContinueCARE Hospital",
+      "lat": 35.094395,
+      "lon": -80.87315,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/465557452",
+      "name": "Atrium Health Pineville",
+      "lat": 35.092055,
+      "lon": -80.872039,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/465558260",
+      "name": "Matthews Medical Center",
+      "lat": 35.119562,
+      "lon": -80.714603,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/465563864",
+      "name": "Atrium Health Cabarrus",
+      "lat": 35.437499,
+      "lon": -80.601984,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466001921",
+      "name": "Charlotte Orthopedic Hospital",
+      "lat": 35.210131,
+      "lon": -80.823197,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/466001922",
+      "name": "Atrium Health Mercy",
+      "lat": 35.209668,
+      "lon": -80.8211,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466001923",
+      "name": "Novant Health Presbyterian Medical Center",
+      "lat": 35.212407,
+      "lon": -80.823912,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466137493",
+      "name": "Forsyth Medical Center",
+      "lat": 36.07549,
+      "lon": -80.296388,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466148586",
+      "name": "Wake Forest Baptist Medical Center",
+      "lat": 36.089674,
+      "lon": -80.267627,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466160233",
+      "name": "Lexington Medical Center",
+      "lat": 35.80581,
+      "lon": -80.286951,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466168316",
+      "name": "Thomasville Medical Center",
+      "lat": 35.879524,
+      "lon": -80.111074,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466177188",
+      "name": "High Point Medical Center",
+      "lat": 35.961864,
+      "lon": -80.01358,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466181183",
+      "name": "Cone Health Wesley Long Hospital",
+      "lat": 36.083111,
+      "lon": -79.826033,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466184103",
+      "name": "The Moses H. Cone Memorial Hospital",
+      "lat": 36.092127,
+      "lon": -79.786075,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466201018",
+      "name": "UNC Rockingham Health Care",
+      "lat": 36.494925,
+      "lon": -79.738889,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466206925",
+      "name": "Annie Penn Hospital",
+      "lat": 36.353641,
+      "lon": -79.667506,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466221293",
+      "name": "FirstHealth Montgomery Memorial Hospital",
+      "lat": 35.36479,
+      "lon": -79.89058,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466222202",
+      "name": "Atrium Health Anson",
+      "lat": 34.977609,
+      "lon": -80.110113,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466280234",
+      "name": "Cape Fear Valley Highsmith-Rainey Specialty Hospital",
+      "lat": 35.054301,
+      "lon": -78.888489,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/466439773",
+      "name": "Naval Medical Center Camp Lejeune",
+      "lat": 34.72131,
+      "lon": -77.359151,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466450778",
+      "name": "Dosher Memorial Hospital",
+      "lat": 33.929214,
+      "lon": -78.021346,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466458417",
+      "name": "Brunswick Medical Center",
+      "lat": 34.031295,
+      "lon": -78.261456,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466468678",
+      "name": "Columbus Regional Healthcare System",
+      "lat": 34.337423,
+      "lon": -78.694525,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466525880",
+      "name": "Cape Fear Valley Bladen County Hospital",
+      "lat": 34.622559,
+      "lon": -78.608007,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466535655",
+      "name": "Sampson Regional Medical Center",
+      "lat": 35.006,
+      "lon": -78.324459,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466573529",
+      "name": "Pender Medical Center",
+      "lat": 34.550421,
+      "lon": -77.919796,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466690450",
+      "name": "ECU Health Duplin Hospital",
+      "lat": 34.964974,
+      "lon": -77.961848,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466715241",
+      "name": "Lenoir Memorial Hospital",
+      "lat": 35.289948,
+      "lon": -77.583392,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466731581",
+      "name": "UNC Health Wayne",
+      "lat": 35.398639,
+      "lon": -77.952565,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466806187",
+      "name": "Wilson Medical Center",
+      "lat": 35.719002,
+      "lon": -77.943635,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466945681",
+      "name": "ECU Health Medical Center",
+      "lat": 35.607499,
+      "lon": -77.403079,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/466970704",
+      "name": "ECU Health Beaufort Hospital",
+      "lat": 35.54922,
+      "lon": -77.037845,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/467002908",
+      "name": "ECU Health Bertie Hospital",
+      "lat": 35.988487,
+      "lon": -76.928955,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/467005817",
+      "name": "ECU Health Chowan Hospital",
+      "lat": 36.069864,
+      "lon": -76.61077,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/467018304",
+      "name": "Vidant Roanoke-Chowan Hospital",
+      "lat": 36.285647,
+      "lon": -76.994968,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/467027288",
+      "name": "ECU Health Edgecombe Hospital",
+      "lat": 35.92134,
+      "lon": -77.55573,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/467040270",
+      "name": "Granville Medical Center",
+      "lat": 36.326949,
+      "lon": -78.59262,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/467075798",
+      "name": "Central Regional Hospital",
+      "lat": 36.145435,
+      "lon": -78.7718,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/467088886",
+      "name": "Duke Regional Hospital",
+      "lat": 36.036493,
+      "lon": -78.899562,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/467090303",
+      "name": "Lenox Baker Children's Hospital",
+      "lat": 36.005128,
+      "lon": -78.949695,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/469583540",
+      "name": "Sentara Obici Hospital",
+      "lat": 36.772811,
+      "lon": -76.581171,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/469617923",
+      "name": "Rhea Medical Center",
+      "lat": 35.52914,
+      "lon": -84.982224,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/473433788",
+      "name": "Blount Memorial Hospital",
+      "lat": 35.756882,
+      "lon": -83.958968,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/474226387",
+      "name": "Carilion Clinic Saint Albans Hospital",
+      "lat": 37.088587,
+      "lon": -80.505551,
+      "tags": {
+        "amenity": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/475161392",
+      "name": "Methodist Medical Center of Oak Ridge",
+      "lat": 36.024115,
+      "lon": -84.246157,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/483777429",
+      "name": "Southern Tennessee Regional Lawrenceburg",
+      "lat": 35.221806,
+      "lon": -87.338526,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/487124714",
+      "name": "Vanderbilt University Medical Center",
+      "lat": 36.140868,
+      "lon": -86.802591,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/490448445",
+      "name": "Bon Secours Maryview Medical Center",
+      "lat": 36.836789,
+      "lon": -76.34695,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/496328331",
+      "name": "Methodist University Hospital",
+      "lat": 35.136836,
+      "lon": -90.019377,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/496331934",
+      "name": "Methodist South Hospital",
+      "lat": 35.032014,
+      "lon": -90.021571,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/496342836",
+      "name": "Healthsouth Rehabilitation Hospital North",
+      "lat": 35.237141,
+      "lon": -89.891974,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/496342837",
+      "name": "Methodist North Hospital",
+      "lat": 35.234679,
+      "lon": -89.892335,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/496362641",
+      "name": "Delta Specialty Hospital",
+      "lat": 35.066404,
+      "lon": -89.930741,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/496384166",
+      "name": "Saint Francis Hospital",
+      "lat": 35.09702,
+      "lon": -89.864444,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/496445802",
+      "name": "Baptist Memorial Hospital for Women",
+      "lat": 35.128004,
+      "lon": -89.855991,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/496445813",
+      "name": "Baptist Memorial Hospital-Memphis",
+      "lat": 35.128578,
+      "lon": -89.861019,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/496448743",
+      "name": "Methodist Le Bonheur Germantown Hospital",
+      "lat": 35.089756,
+      "lon": -89.808037,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/496453160",
+      "name": "Saint Francis Hospital - Bartlett",
+      "lat": 35.206993,
+      "lon": -89.800567,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/496456919",
+      "name": "Baptist Memorial Hospital - Tipton",
+      "lat": 35.53578,
+      "lon": -89.677998,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/496476114",
+      "name": "Lauderdale Community Hospital",
+      "lat": 35.745126,
+      "lon": -89.549837,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/496661633",
+      "name": "West Tennessee Healthcare Volunteer Hospital",
+      "lat": 36.334403,
+      "lon": -88.868454,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/496963911",
+      "name": "West Tennessee Healthcare Bolivar Hospital",
+      "lat": 35.267731,
+      "lon": -88.999618,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/496996083",
+      "name": "Jackson-Madison County General Hospital",
+      "lat": 35.637462,
+      "lon": -88.830614,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497053171",
+      "name": "Baptist Memorial Hospital",
+      "lat": 36.022948,
+      "lon": -88.412339,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497163699",
+      "name": "Camden General Hospital",
+      "lat": 36.054955,
+      "lon": -88.107648,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497196615",
+      "name": "Wayne Medical Center",
+      "lat": 35.324994,
+      "lon": -87.756571,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497215137",
+      "name": "Ascension Saint Thomas Hickman",
+      "lat": 35.779487,
+      "lon": -87.459185,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497245877",
+      "name": "TriStar Horizon Medical Center",
+      "lat": 36.073504,
+      "lon": -87.375383,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497251260",
+      "name": "Houston County Community Hospital",
+      "lat": 36.320112,
+      "lon": -87.689744,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497288672",
+      "name": "Johnson County Community Hospital",
+      "lat": 36.453558,
+      "lon": -81.797537,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497314192",
+      "name": "Bristol Regional Medical Center",
+      "lat": 36.585663,
+      "lon": -82.255859,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497316277",
+      "name": "Indian Path Community Hospital",
+      "lat": 36.551128,
+      "lon": -82.514507,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497391171",
+      "name": "Sycamore Shoals Hospital",
+      "lat": 36.345806,
+      "lon": -82.249541,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497460095",
+      "name": "Johnson City Medical Center",
+      "lat": 36.307684,
+      "lon": -82.384271,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497483590",
+      "name": "Hawkins County Memorial Hospital",
+      "lat": 36.400033,
+      "lon": -83.013989,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497487785",
+      "name": "Hancock County Hospital",
+      "lat": 36.533338,
+      "lon": -83.21528,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497490669",
+      "name": "Morristown-Hamblen Healthcare Center",
+      "lat": 36.213231,
+      "lon": -83.30513,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497497581",
+      "name": "Jefferson Memorial Hospital",
+      "lat": 36.106799,
+      "lon": -83.519347,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497500097",
+      "name": "Claiborne Medical Center",
+      "lat": 36.452618,
+      "lon": -83.57214,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497687941",
+      "name": "LeConte Medical Center",
+      "lat": 35.855774,
+      "lon": -83.534885,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497737233",
+      "name": "Parkwest Medical Center",
+      "lat": 35.917792,
+      "lon": -84.102595,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497775429",
+      "name": "Fort Sanders Regional Medical Center",
+      "lat": 35.957454,
+      "lon": -83.937337,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497775431",
+      "name": "Dolly Parton Children’s Hospital",
+      "lat": 35.95579,
+      "lon": -83.938581,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497789687",
+      "name": "LaFollette Medical Center",
+      "lat": 36.389263,
+      "lon": -84.111692,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497796917",
+      "name": "Cumberland Medical Center",
+      "lat": 35.943767,
+      "lon": -85.021754,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497866864",
+      "name": "Roane Medical Center",
+      "lat": 35.888376,
+      "lon": -84.555101,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497887929",
+      "name": "Sweetwater Hospital",
+      "lat": 35.600998,
+      "lon": -84.464466,
+      "tags": {
+        "amenity": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497905809",
+      "name": "Starr Regional Medical Center",
+      "lat": 35.440472,
+      "lon": -84.60735,
+      "tags": {
+        "amenity": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497907487",
+      "name": "Starr Regional Medical Center",
+      "lat": 35.345206,
+      "lon": -84.522336,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497935145",
+      "name": "Bradley Medical Center",
+      "lat": 35.176883,
+      "lon": -84.870182,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497965700",
+      "name": "Erlanger East Hospital",
+      "lat": 35.022754,
+      "lon": -85.16089,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497969392",
+      "name": "Parkridge Medical Center",
+      "lat": 35.034664,
+      "lon": -85.267986,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/497969415",
+      "name": "CommonSpirit - Memorial Hospital - Chattanooga",
+      "lat": 35.043283,
+      "lon": -85.259897,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498061062",
+      "name": "HealthSouth Chattanooga Rehabilitation Hospital",
+      "lat": 35.032233,
+      "lon": -85.266518,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/498075227",
+      "name": "Erlanger Health System",
+      "lat": 35.048854,
+      "lon": -85.289923,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498079376",
+      "name": "CommonSpirit Memorial Hospital Hixson",
+      "lat": 35.125084,
+      "lon": -85.237279,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498109339",
+      "name": "Highpoint Health – Winchester",
+      "lat": 35.176278,
+      "lon": -86.089654,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498116707",
+      "name": "Southern Tennessee - Pulaski",
+      "lat": 35.189551,
+      "lon": -87.00409,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498325597",
+      "name": "Marshall Medical Center",
+      "lat": 35.464926,
+      "lon": -86.785772,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498329748",
+      "name": "Vanderbilt Bedford Hospital",
+      "lat": 35.563825,
+      "lon": -86.448345,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498346434",
+      "name": "Vanderbilt Tullahoma-Harton Hospital",
+      "lat": 35.38216,
+      "lon": -86.231459,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498423812",
+      "name": "Unity Medical Center",
+      "lat": 35.497163,
+      "lon": -86.078517,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498458585",
+      "name": "Virginia Hospital Center",
+      "lat": 38.889964,
+      "lon": -77.127489,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498567479",
+      "name": "Saint Thomas River Park Hospital",
+      "lat": 35.70013,
+      "lon": -85.742888,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498569152",
+      "name": "Saint Thomas Stones River Hospital",
+      "lat": 35.832631,
+      "lon": -86.072078,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498575656",
+      "name": "Saint Thomas DeKalb Hospital",
+      "lat": 35.960761,
+      "lon": -85.829286,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498592393",
+      "name": "Saint Thomas Highlands Hospital",
+      "lat": 35.949088,
+      "lon": -85.4769,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498620079",
+      "name": "Cookeville Regional Medical Center",
+      "lat": 36.169863,
+      "lon": -85.509134,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498647082",
+      "name": "Riverview with Ascension Saint Thomas",
+      "lat": 36.264288,
+      "lon": -85.950168,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498652506",
+      "name": "Highpoint Health – Trousdale",
+      "lat": 36.387928,
+      "lon": -86.16822,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498666658",
+      "name": "Macon County General Hospital",
+      "lat": 36.518994,
+      "lon": -86.026676,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498698489",
+      "name": "TriStar NorthCrest Medical Center",
+      "lat": 36.47889,
+      "lon": -86.886652,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498709642",
+      "name": "Highpoint Health - Sumner with Ascension Saint Thomas",
+      "lat": 36.389823,
+      "lon": -86.433627,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498860279",
+      "name": "Saint Thomas Rutherford Hospital",
+      "lat": 35.860697,
+      "lon": -86.424417,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498866382",
+      "name": "TriStar StoneCrest Medical Center",
+      "lat": 35.975077,
+      "lon": -86.565757,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498873809",
+      "name": "Williamson Medical Center",
+      "lat": 35.916439,
+      "lon": -86.820194,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498884920",
+      "name": "TriStar Southern Hills Medical Center",
+      "lat": 36.076578,
+      "lon": -86.722409,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498901964",
+      "name": "TriStar Summit Medical Center",
+      "lat": 36.176207,
+      "lon": -86.608436,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/498973195",
+      "name": "Tristar Skyline Medical Center",
+      "lat": 36.245162,
+      "lon": -86.750023,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/499152027",
+      "name": "Nashville General Hospital",
+      "lat": 36.166852,
+      "lon": -86.807254,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/499161822",
+      "name": "VA Tennessee Valley Healthcare System",
+      "lat": 36.141594,
+      "lon": -86.803938,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/499190651",
+      "name": "TriStar Centennial Medical Center",
+      "lat": 36.153694,
+      "lon": -86.808816,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/499190655",
+      "name": "Ascension Saint Thomas Midtown Hospital",
+      "lat": 36.15386,
+      "lon": -86.802243,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/499320685",
+      "name": "Saint Thomas West Hospital",
+      "lat": 36.129879,
+      "lon": -86.844577,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/507137309",
+      "name": "Outer Banks Health Hospital",
+      "lat": 35.939986,
+      "lon": -75.618197,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/511418065",
+      "name": "Riverside Doctors Hospital Williamsburg",
+      "lat": 37.250903,
+      "lon": -76.668307,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/515361222",
+      "name": "Centra Lynchburg General Hospital",
+      "lat": 37.417112,
+      "lon": -79.171916,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/515361224",
+      "name": "Centra Virginia Baptist Hospital",
+      "lat": 37.437228,
+      "lon": -79.187507,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/515613354",
+      "name": "Carilion Roanoke Community Hospital",
+      "lat": 37.265297,
+      "lon": -79.939722,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/515671251",
+      "name": "Salem Veterans Affairs Medical Center",
+      "lat": 37.274705,
+      "lon": -80.020106,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/515725979",
+      "name": "Smyth County Community Hospital",
+      "lat": 36.851678,
+      "lon": -81.488434,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/515739148",
+      "name": "Prince William Medical Center",
+      "lat": 38.767161,
+      "lon": -77.488248,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/515950443",
+      "name": "Inova Loudoun Hospital",
+      "lat": 39.07451,
+      "lon": -77.477569,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/516241327",
+      "name": "Dominion Hospital",
+      "lat": 38.870268,
+      "lon": -77.158403,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/516253617",
+      "name": "Inova Alexandria Hospital",
+      "lat": 38.822344,
+      "lon": -77.10495,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/516261735",
+      "name": "Inova Mount Vernon Hospital",
+      "lat": 38.739677,
+      "lon": -77.076792,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/516269207",
+      "name": "Sentara Northern Virginia Medical Center",
+      "lat": 38.637081,
+      "lon": -77.285403,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/516393895",
+      "name": "Northern Virginia Mental Health Institute",
+      "lat": 38.857843,
+      "lon": -77.232264,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/516393904",
+      "name": "Inova Fairfax Hospital",
+      "lat": 38.856988,
+      "lon": -77.227999,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/516459441",
+      "name": "Fauquier Hospital",
+      "lat": 38.711981,
+      "lon": -77.808716,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/516485668",
+      "name": "Mary Washington Hospital",
+      "lat": 38.310434,
+      "lon": -77.483428,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/516489434",
+      "name": "Spotsylvania Regional Medical Center",
+      "lat": 38.217798,
+      "lon": -77.496029,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/516491080",
+      "name": "Riverside Tappahannock Hospital",
+      "lat": 37.900742,
+      "lon": -76.878246,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/516501602",
+      "name": "Rappahannock General Hospital",
+      "lat": 37.701206,
+      "lon": -76.387676,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/516510811",
+      "name": "Riverside Walter Reed Hospital",
+      "lat": 37.420284,
+      "lon": -76.541888,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/516660897",
+      "name": "Sentara Independence",
+      "lat": 36.867678,
+      "lon": -76.131013,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/516688678",
+      "name": "Southampton Memorial Hospital",
+      "lat": 36.692235,
+      "lon": -76.937114,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/516723446",
+      "name": "Sentara CarePlex Hospital",
+      "lat": 37.056608,
+      "lon": -76.390304,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/516930722",
+      "name": "Richmond Community Hospital",
+      "lat": 37.540114,
+      "lon": -77.406724,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/516930723",
+      "name": "VCU Medical Center",
+      "lat": 37.540236,
+      "lon": -77.430056,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/517040263",
+      "name": "Chippenham Hospital",
+      "lat": 37.512654,
+      "lon": -77.526222,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/517046782",
+      "name": "Johnston-Willis Hospital",
+      "lat": 37.510596,
+      "lon": -77.595558,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/517065151",
+      "name": "Retreat Doctors' Hospital",
+      "lat": 37.553751,
+      "lon": -77.472953,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/517073866",
+      "name": "TriCities Hospital",
+      "lat": 37.307991,
+      "lon": -77.291331,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/517076669",
+      "name": "Bon Secours - Southside Regional Medical Center",
+      "lat": 37.182393,
+      "lon": -77.359496,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/517084933",
+      "name": "Southern Virginia Regional Medical Center",
+      "lat": 36.70166,
+      "lon": -77.537344,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/517130637",
+      "name": "Sentara Halifax Regional Hospital",
+      "lat": 36.711964,
+      "lon": -78.914095,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/517433167",
+      "name": "Southern Virginia Mental Health Institute",
+      "lat": 36.555087,
+      "lon": -79.410281,
+      "tags": {
+        "amenity": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/517433169",
+      "name": "Sovah Health - Danville",
+      "lat": 36.577624,
+      "lon": -79.404455,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/517464447",
+      "name": "Carilion Franklin Memorial Hospital",
+      "lat": 36.993661,
+      "lon": -79.890376,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/517465462",
+      "name": "Sovah Health - Martinsville",
+      "lat": 36.699232,
+      "lon": -79.866476,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/517484622",
+      "name": "Twin County Regional Hospital",
+      "lat": 36.670824,
+      "lon": -80.923671,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/517722471",
+      "name": "Shenandoah Memorial Hospital",
+      "lat": 38.870281,
+      "lon": -78.512563,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/517749692",
+      "name": "Culpeper Medical Center",
+      "lat": 38.45523,
+      "lon": -78.013216,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/517778184",
+      "name": "Sentara RMH Medical Center",
+      "lat": 38.405147,
+      "lon": -78.855989,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/517817443",
+      "name": "University of Virginia Medical Center",
+      "lat": 38.032394,
+      "lon": -78.499346,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/517826763",
+      "name": "Sentara Martha Jefferson Hospital",
+      "lat": 38.022922,
+      "lon": -78.444624,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/518020218",
+      "name": "LewisGale Hospital Alleghany",
+      "lat": 37.792016,
+      "lon": -79.881244,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/518030521",
+      "name": "Catawba Hospital",
+      "lat": 37.39248,
+      "lon": -80.109768,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/518149748",
+      "name": "Carilion New River Valley Medical Center",
+      "lat": 37.08829,
+      "lon": -80.505149,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/518157076",
+      "name": "Carilion Giles Community Hospital",
+      "lat": 37.333039,
+      "lon": -80.712615,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/518397572",
+      "name": "Wythe County Community Hospital",
+      "lat": 36.954782,
+      "lon": -81.096831,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/518426210",
+      "name": "Carilion Tazewell Community Hospital",
+      "lat": 37.123749,
+      "lon": -81.48921,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/518438913",
+      "name": "Clinch Valley Medical Center",
+      "lat": 37.095614,
+      "lon": -81.819939,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/518440289",
+      "name": "Buchanan General Hospital",
+      "lat": 37.28507,
+      "lon": -82.066772,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/518443641",
+      "name": "Dickenson Community Hospital",
+      "lat": 37.160428,
+      "lon": -82.449288,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/518462304",
+      "name": "Russell County Hospital",
+      "lat": 36.89846,
+      "lon": -82.078364,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/518479062",
+      "name": "Johnston Memorial Hospital",
+      "lat": 36.722423,
+      "lon": -81.911198,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/518641248",
+      "name": "Norton Community Hospital",
+      "lat": 36.933495,
+      "lon": -82.642435,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/518694483",
+      "name": "Lonesome Pine Hospital",
+      "lat": 36.877085,
+      "lon": -82.754507,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/538654031",
+      "name": "Stafford Hospital",
+      "lat": 38.416706,
+      "lon": -77.405334,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/544057060",
+      "name": "Fayetteville VA Medical Center",
+      "lat": 35.031943,
+      "lon": -79.028801,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/544496455",
+      "name": "FirstHealth Moore Regional Hospital-Hoke Campus",
+      "lat": 35.020532,
+      "lon": -79.15021,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/544496456",
+      "name": "Cape Fear Valley Health Hoke Hospital",
+      "lat": 35.029616,
+      "lon": -79.10692,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/546184148",
+      "name": "ECU Health North Hospital",
+      "lat": 36.432181,
+      "lon": -77.64603,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/577837289",
+      "name": "Atrium Health University City",
+      "lat": 35.305764,
+      "lon": -80.747188,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/584036594",
+      "name": "UNC Health Blue Ridge",
+      "lat": 35.726503,
+      "lon": -81.655044,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/584070180",
+      "name": "UNC Hospitals Hillsborough Campus",
+      "lat": 36.036907,
+      "lon": -79.090836,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/591800540",
+      "name": "Scotland Memorial Hospital",
+      "lat": 34.752676,
+      "lon": -79.4688,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/591809046",
+      "name": "North Carolina Specialty Hospital",
+      "lat": 36.043068,
+      "lon": -78.896953,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/591931735",
+      "name": "Mission Hospital McDowell",
+      "lat": 35.662816,
+      "lon": -82.028443,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/591934356",
+      "name": "FirstHealth Moore Regional Hospital",
+      "lat": 35.20586,
+      "lon": -79.456497,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/591939885",
+      "name": "Novant Health Medical Park Hospital",
+      "lat": 36.079036,
+      "lon": -80.296086,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/591942914",
+      "name": "ᏣᎳᎩ ᎠᏂᏴᏫᏯ ᎦᏂᎦᏙᎢ;Cherokee Indian Hospital",
+      "lat": 35.48382,
+      "lon": -83.323694,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/592105644",
+      "name": "UNC Health Chatham",
+      "lat": 35.723138,
+      "lon": -79.420775,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/592117841",
+      "name": "Highlands-Cashiers Hospital",
+      "lat": 35.086273,
+      "lon": -83.185534,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/592120919",
+      "name": "Ashe Memorial Hospital",
+      "lat": 36.423499,
+      "lon": -81.457977,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/592121805",
+      "name": "Cape Fear Valley Central Harnett Hospital",
+      "lat": 35.425342,
+      "lon": -78.808359,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/596245757",
+      "name": "Perry Community Hospital",
+      "lat": 35.592138,
+      "lon": -87.863495,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/596247702",
+      "name": "Milan General Hospital",
+      "lat": 35.91258,
+      "lon": -88.754256,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/596462390",
+      "name": "Hardin Medical Center",
+      "lat": 35.228428,
+      "lon": -88.230217,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/596478801",
+      "name": "Fort Loudoun Medical Center",
+      "lat": 35.825147,
+      "lon": -84.269919,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/596690383",
+      "name": "Newport Medical Center",
+      "lat": 35.964087,
+      "lon": -83.18203,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/596706920",
+      "name": "Franklin Woods Community Hospital",
+      "lat": 36.336581,
+      "lon": -82.401908,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/596708798",
+      "name": "Livingston Regional Hospital",
+      "lat": 36.385093,
+      "lon": -85.327845,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/596902485",
+      "name": "West Tennessee Healthcare North Hospital",
+      "lat": 35.68397,
+      "lon": -88.853812,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/596916394",
+      "name": "Trustpoint Hospital",
+      "lat": 35.864516,
+      "lon": -86.430325,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/597079190",
+      "name": "Erlanger Bledsoe Hospital",
+      "lat": 35.620929,
+      "lon": -85.190755,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/604006649",
+      "name": "Augusta Health",
+      "lat": 38.09533,
+      "lon": -78.986321,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/604007665",
+      "name": "Centra Bedford Memorial Hospital",
+      "lat": 37.352002,
+      "lon": -79.517475,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/604074882",
+      "name": "Cumberland Hospital for Children and Adolescents",
+      "lat": 37.546775,
+      "lon": -76.97843,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/604096538",
+      "name": "Bath Community Hospital",
+      "lat": 37.993266,
+      "lon": -79.831912,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/604531470",
+      "name": "CaroMont Regional Medical Center",
+      "lat": 35.298012,
+      "lon": -81.010526,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/628662916",
+      "name": "Hanover Emergency Center",
+      "lat": 37.65199,
+      "lon": -77.399007,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/635396682",
+      "name": "Baptist Memorial Hospital - Collierville",
+      "lat": 35.050178,
+      "lon": -89.714951,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/657312795",
+      "name": "Cannon Memorial Hospital",
+      "lat": 36.06082,
+      "lon": -81.889239,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/668194108",
+      "name": "The Hughes Center",
+      "lat": 36.644903,
+      "lon": -79.404654,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/679128004",
+      "name": "Henderson County Community Hospital",
+      "lat": 35.655142,
+      "lon": -88.398747,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/683572790",
+      "name": "HCA - Swift Creek Emergency Center",
+      "lat": 37.402321,
+      "lon": -77.678282,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/683577155",
+      "name": "Prince George ER",
+      "lat": 37.250965,
+      "lon": -77.371175,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/690414021",
+      "name": "Parkridge East Hospital",
+      "lat": 34.999455,
+      "lon": -85.219397,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/692940134",
+      "name": "Old Vineyard Behavioral Health",
+      "lat": 36.078316,
+      "lon": -80.318695,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/692942007",
+      "name": "Brynn Marr Hospital",
+      "lat": 34.746355,
+      "lon": -77.375149,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/693168790",
+      "name": "Compass Intervention Center",
+      "lat": 35.035749,
+      "lon": -89.800639,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/693173443",
+      "name": "Lakeside Behavioral Health System",
+      "lat": 35.206808,
+      "lon": -89.770516,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/693234977",
+      "name": "Oak Plains Academy",
+      "lat": 36.414933,
+      "lon": -87.187145,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/693238298",
+      "name": "Hermitage Hall",
+      "lat": 36.139894,
+      "lon": -86.777547,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/693239552",
+      "name": "Rolling Hills Hospital",
+      "lat": 35.913052,
+      "lon": -86.815583,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/693248979",
+      "name": "Mountain Youth Academy",
+      "lat": 36.503924,
+      "lon": -81.824846,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/693514823",
+      "name": "Poplar Springs Hospital",
+      "lat": 37.187657,
+      "lon": -77.358988,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/693515461",
+      "name": "Newport News Behavioral Health",
+      "lat": 37.204294,
+      "lon": -76.583534,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/702265373",
+      "name": "VCU Health Community Memorial Hospital",
+      "lat": 36.750499,
+      "lon": -78.104909,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/723525942",
+      "name": "First Health Richmond Memorial Hospital",
+      "lat": 34.930347,
+      "lon": -79.749288,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/730430629",
+      "name": "Riverside Shore Memorial Hospital",
+      "lat": 37.697657,
+      "lon": -75.723374,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/761314680",
+      "name": "VCU Trauma Center",
+      "lat": 37.506207,
+      "lon": -77.18715,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/770687481",
+      "name": "Atrium Health Primary Care",
+      "lat": 35.169467,
+      "lon": -80.662522,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/776653006",
+      "name": "Atrium Health Cleveland",
+      "lat": 35.302803,
+      "lon": -81.536568,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/778578096",
+      "name": "Riverside Rehabilitation Hospital",
+      "lat": 37.121502,
+      "lon": -76.454138,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/785966409",
+      "name": "",
+      "lat": 35.211996,
+      "lon": -80.821329,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/796342467",
+      "name": "West Tennessee Healthcare Henry County Hospital",
+      "lat": 36.296555,
+      "lon": -88.310394,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/801475504",
+      "name": "Lee County Community Hospital",
+      "lat": 36.748835,
+      "lon": -83.050594,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/830795070",
+      "name": "Novant Health Huntersville Medical Center",
+      "lat": 35.405749,
+      "lon": -80.860092,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/836488964",
+      "name": "Novant Health Imaging - Museum",
+      "lat": 35.197657,
+      "lon": -80.811414,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/837679773",
+      "name": "Commonwealth Center for Children and Adolescents",
+      "lat": 38.131794,
+      "lon": -79.035027,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/844009419",
+      "name": "Big South Fork Medical Center",
+      "lat": 36.504399,
+      "lon": -84.515911,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/856912291",
+      "name": "Hiram W. Davis Medical Center",
+      "lat": 37.205032,
+      "lon": -77.454151,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/859475029",
+      "name": "Atrium Health Levine Children's Pediatrics",
+      "lat": 35.196305,
+      "lon": -80.837454,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/896027069",
+      "name": "",
+      "lat": 36.111081,
+      "lon": -83.514791,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/905812587",
+      "name": "Atrium Health Wake Forest Baptist Outpatient Surgery",
+      "lat": 36.042304,
+      "lon": -80.384709,
+      "tags": {
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/905812588",
+      "name": "Atrium Health Wake Forest Baptist Medical Plaza - Clemmons",
+      "lat": 36.041196,
+      "lon": -80.385514,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/915156704",
+      "name": "Novant Health Kernersville Medical Center",
+      "lat": 36.091367,
+      "lon": -80.045222,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/916501293",
+      "name": "Atrium Health Wake Forest Baptist",
+      "lat": 36.110807,
+      "lon": -80.21533,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/925967866",
+      "name": "Tennova Medical Park",
+      "lat": 35.944205,
+      "lon": -84.020756,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/928284672",
+      "name": "Mint Hill Medical Center",
+      "lat": 35.223197,
+      "lon": -80.648091,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/930763889",
+      "name": "",
+      "lat": 35.210182,
+      "lon": -80.838894,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/930853152",
+      "name": "Pineville Medical Plaza I",
+      "lat": 35.09079,
+      "lon": -80.871254,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/930853153",
+      "name": "Pineville Medical Plaza II",
+      "lat": 35.090096,
+      "lon": -80.870995,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/931079996",
+      "name": "Atrium Health Steele Creek",
+      "lat": 35.098976,
+      "lon": -80.993165,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/967657822",
+      "name": "Peninsula Hospital",
+      "lat": 35.870808,
+      "lon": -84.021608,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/972133657",
+      "name": "Surgery Center - Abingdon on Campus Drive",
+      "lat": 36.710517,
+      "lon": -81.993618,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/978415177",
+      "name": "Cape Fear Valley Betsy Johnson Hospital",
+      "lat": 35.306905,
+      "lon": -78.635038,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/980378470",
+      "name": "Fort Sanders West",
+      "lat": 35.899269,
+      "lon": -84.119588,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/981340066",
+      "name": "Cone Health Alamance Regional",
+      "lat": 36.061515,
+      "lon": -79.501464,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/981585350",
+      "name": "CarolinaEast Medical Center",
+      "lat": 35.114065,
+      "lon": -77.066254,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/981814247",
+      "name": "UNC Health Southeastern",
+      "lat": 34.637215,
+      "lon": -79.011336,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/983215538",
+      "name": "Turkey Creek Medical Center",
+      "lat": 35.898799,
+      "lon": -84.144287,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/992039765",
+      "name": "Atrium Health Wake Forest Baptist - Davie Medical Center",
+      "lat": 36.009288,
+      "lon": -80.447504,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1003621138",
+      "name": "North Knoxville Medical Center",
+      "lat": 36.052872,
+      "lon": -83.996178,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1022082686",
+      "name": "Bon Secours Health Center at Harbour View",
+      "lat": 36.86882,
+      "lon": -76.441586,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/1030774235",
+      "name": "Atrium Health Union West",
+      "lat": 35.094017,
+      "lon": -80.675876,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/1042197733",
+      "name": "Riverside Smithfield Hospital",
+      "lat": 36.936076,
+      "lon": -76.588736,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1059296390",
+      "name": "",
+      "lat": 35.264278,
+      "lon": -81.030038,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/1063275563",
+      "name": "Bon Secours - Chester Emergency Center",
+      "lat": 37.362486,
+      "lon": -77.414191,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/1064208604",
+      "name": "Covenant Health South",
+      "lat": 35.905417,
+      "lon": -83.833119,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1069803157",
+      "name": "East Tennessee Children's Hospital West",
+      "lat": 35.875581,
+      "lon": -84.097337,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1075287182",
+      "name": "Parkridge West Hospital",
+      "lat": 35.046928,
+      "lon": -85.629888,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1089777103",
+      "name": "Atrium Health",
+      "lat": 35.442997,
+      "lon": -80.885013,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1090818421",
+      "name": "Unity Healing Center",
+      "lat": 35.482322,
+      "lon": -83.318435,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1090983923",
+      "name": "Haywood County Community Hospital",
+      "lat": 35.610237,
+      "lon": -89.243275,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1099470518",
+      "name": "CaroMont Regional Medical Center-Belmont",
+      "lat": 35.258328,
+      "lon": -81.032691,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1104937822",
+      "name": "Warren Memorial Hospital",
+      "lat": 38.919967,
+      "lon": -78.153293,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1106556047",
+      "name": "Page Memorial Hospital",
+      "lat": 38.662688,
+      "lon": -78.468773,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1108031211",
+      "name": "",
+      "lat": 35.039327,
+      "lon": -80.843323,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1155621148",
+      "name": "Fort Sanders - Topside",
+      "lat": 35.846794,
+      "lon": -83.989667,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1156107637",
+      "name": "INOVA Health-Plex Lorton",
+      "lat": 38.702936,
+      "lon": -77.226791,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1158059842",
+      "name": "Piedmont Geriatric Hospital",
+      "lat": 37.192284,
+      "lon": -78.174671,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/1182773831",
+      "name": "Unicoi County Hospital",
+      "lat": 36.118523,
+      "lon": -82.444561,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1193244317",
+      "name": "Tristar Ashland City Medical Center",
+      "lat": 36.277154,
+      "lon": -87.065701,
+      "tags": {
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/1234573800",
+      "name": "Thompson Proton Center",
+      "lat": 35.949092,
+      "lon": -84.024878,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "no"
+      }
+    },
+    {
+      "id": "way/1274234310",
+      "name": "Kindred Hospital Greensboro",
+      "lat": 36.048959,
+      "lon": -79.770129,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1292846772",
+      "name": "VA Medical Center",
+      "lat": 36.093578,
+      "lon": -80.049225,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1295538016",
+      "name": "Centra Care",
+      "lat": 35.44453,
+      "lon": -82.534501,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1333722325",
+      "name": "The Pavilion At Williamsburg Place",
+      "lat": 37.314779,
+      "lon": -76.73146,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1333723663",
+      "name": "Encompass Health Rehabilitation Hospital of Virginia",
+      "lat": 37.585862,
+      "lon": -77.50682,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1334631641",
+      "name": "Encompass Health Rehabilitation Hospital of Northern Virginia",
+      "lat": 38.939239,
+      "lon": -77.553011,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1334632012",
+      "name": "Encompass Health Rehabilitation Hospital Of Petersburg",
+      "lat": 37.184216,
+      "lon": -77.363831,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1346981339",
+      "name": "INOVA Emergency Room",
+      "lat": 38.83815,
+      "lon": -77.310219,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1349889895",
+      "name": "Centra Gretna Medical Center",
+      "lat": 36.950589,
+      "lon": -79.376403,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1354096700",
+      "name": "Siskin Hospital for Physical Rehabilitiation",
+      "lat": 35.050708,
+      "lon": -85.291593,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1378696403",
+      "name": "Brunswick Medical Center",
+      "lat": 34.008893,
+      "lon": -78.290699,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1390593356",
+      "name": "PAM Health Specialty Hospital of Rocky Mount",
+      "lat": 35.974881,
+      "lon": -77.818366,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1391894522",
+      "name": "Kaiser Permanente Caton Hill Medical Center",
+      "lat": 38.659655,
+      "lon": -77.297062,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1424495005",
+      "name": "LewisGale Blue Hills Emergency Room",
+      "lat": 37.31201,
+      "lon": -79.885368,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/1490356142",
+      "name": "Cone Health Behavioral Health Hospital",
+      "lat": 36.082975,
+      "lon": -79.822649,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1496184492",
+      "name": "Atrium Health Medical Plaza",
+      "lat": 35.147672,
+      "lon": -80.823746,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1505454495",
+      "name": "Morristown-Hamblen West",
+      "lat": 36.182157,
+      "lon": -83.349391,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1537306060",
+      "name": "Memphis Mental Health Institute",
+      "lat": 35.141435,
+      "lon": -90.030561,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1550324265",
+      "name": "Atrium Health Concord Emergency Department",
+      "lat": 35.363273,
+      "lon": -80.698175,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital"
+      }
+    },
+    {
+      "id": "way/1550726033",
+      "name": "Carilion Roanoke Memorial Hospital",
+      "lat": 37.251264,
+      "lon": -79.941818,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/1552713331",
+      "name": "Angel Medical Center",
+      "lat": 35.19275,
+      "lon": -83.35977,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    },
+    {
+      "id": "way/1564902899",
+      "name": "TriStar Portland ER",
+      "lat": 36.557198,
+      "lon": -86.51136,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "emergency": "yes"
+      }
+    }
+  ]
+}

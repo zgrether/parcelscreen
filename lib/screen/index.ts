@@ -16,7 +16,8 @@ import { buildDriveway, flowAccum, soilMask, type RouteContext } from "./drivewa
 import { floodStep, type FloodFeature } from "./flood";
 import { nearStep } from "./near";
 import { padusStep } from "./padus";
-import { OverpassMirrors, PlacesError, type OverpassFallback } from "./places";
+import type { HospitalCandidate, HospitalSource } from "./hospitals";
+import { OverpassMirrors, type OverpassFallback } from "./places";
 import type { RoadFeature } from "./roads";
 import {
   applyRoutedDriveway,
@@ -67,6 +68,8 @@ export interface ScreenDeps {
   now?: () => Date;
   /** The browser's Overpass fallback (through /api/places/overpass); Node calls the mirrors directly. */
   overpass?: OverpassFallback;
+  /** The hospital snapshot (A2c); injectable so tests can make it fail. Defaults to the committed one. */
+  hospitals?: HospitalSource;
 }
 
 /** Everything a run computed that isn't stored: rasters, raw features, caches. In memory only. */
@@ -104,6 +107,8 @@ export interface ScreenSession {
   roads?: RoadFeature[];
   /** Every non-chain supermarket the near step found, nearest first: the closer grocery's candidates (#81). */
   otherGrocers?: { name: string; ll: LatLon }[];
+  /** Every candidate hospital, nearest first, with its emergency status when known (A2c). */
+  hospitalPool?: HospitalCandidate[];
   soilMask?: Uint8Array;
   flowAcc?: Float32Array;
   deps: { http: HttpClient; demCache: DemCache; atlas: AtlasCache; sleep?: (ms: number) => Promise<void> };
@@ -183,7 +188,7 @@ export async function screen(
     } catch (e) {
       if (e instanceof CancelledError) return emit(k, "skip", e.message);
       failed.push(k);
-      emit(k, "fail", (e as Error).message || String(e), e instanceof PlacesError ? e.link : undefined);
+      emit(k, "fail", (e as Error).message || String(e));
     }
   };
 
@@ -308,6 +313,7 @@ export async function screen(
         ...io,
         ...(s.deps.sleep ? { sleep: s.deps.sleep } : {}),
         ...(deps.overpass ? { overpass: deps.overpass } : {}),
+        ...(deps.hospitals ? { hospitals: deps.hospitals } : {}),
       },
       new OverpassMirrors(),
     );
@@ -315,6 +321,7 @@ export async function screen(
     if (n.nearNote) R.nearNote = n.nearNote;
     s.roads = n.roads;
     if (n.otherGrocers) s.otherGrocers = n.otherGrocers;
+    if (n.hospitalPool) s.hospitalPool = n.hospitalPool;
     if (n.road) R.road = n.road;
     if (n.roadNote) R.roadNote = n.roadNote;
     R.flags.push(...n.flags);
@@ -324,7 +331,10 @@ export async function screen(
 
   await step("drive", async () => {
     R.drives = [];
-    R.drives = await driveTimes(s.centre, R.near, cfg.anchors, io, s.otherGrocers); // stays [] if nothing routes
+    R.drives = await driveTimes(s.centre, R.near, cfg.anchors, io, {
+      ...(s.otherGrocers ? { otherGrocers: s.otherGrocers } : {}),
+      ...(s.hospitalPool ? { hospitals: s.hospitalPool } : {}),
+    }); // stays [] if nothing routes
   });
 
   await step("rank", () => {

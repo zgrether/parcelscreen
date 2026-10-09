@@ -1815,36 +1815,36 @@
   "near": {
    "hospitals": [
     {
+     "name": "Carilion New River Valley Medical Center",
+     "ll": [
+      37.08829,
+      -80.505149
+     ],
+     "km": 22.829931534252122
+    },
+    {
      "name": "Carilion Clinic Saint Albans Hospital",
      "ll": [
-      37.0885844,
-      -80.5057643
+      37.088587,
+      -80.505551
      ],
-     "km": 22.87302421325787
+     "km": 22.869471248451383
     },
     {
      "name": "Stuart Community Hospital",
      "ll": [
-      36.6463178,
-      -80.2548125
+      36.646318,
+      -80.254812
      ],
-     "km": 32.10105842555631
+     "km": 32.101064416954706
     },
     {
      "name": "LewisGale Hospital Montgomery",
      "ll": [
-      37.1872836,
-      -80.4119087
+      37.1873,
+      -80.411632
      ],
-     "km": 33.57592735074192
-    },
-    {
-     "name": "LewisGale Hospital Pulaski",
-     "ll": [
-      37.0687436,
-      -80.7570461
-     ],
-     "km": 33.6846942478646
+     "km": 33.580450020648264
     }
    ],
    "grocers": [
@@ -1918,15 +1918,15 @@
   "drives": [
    {
     "label": "Nearest hospital",
-    "min": 47,
-    "mi": 21.7,
-    "name": "Carilion Clinic Saint Albans Hospital"
+    "name": "Carilion New River Valley Medical Center",
+    "min": 48,
+    "mi": 22
    },
    {
     "label": "Nearest real grocery",
+    "name": "Food Lion",
     "min": 16,
-    "mi": 9.7,
-    "name": "Food Lion"
+    "mi": 9.7
    },
    {
     "label": "Asheville airport (AVL)",
@@ -5551,36 +5551,36 @@
   "near": {
    "hospitals": [
     {
+     "name": "Carilion New River Valley Medical Center",
+     "ll": [
+      37.08829,
+      -80.505149
+     ],
+     "km": 22.829931534252122
+    },
+    {
      "name": "Carilion Clinic Saint Albans Hospital",
      "ll": [
-      37.0885844,
-      -80.5057643
+      37.088587,
+      -80.505551
      ],
-     "km": 22.87302421325787
+     "km": 22.869471248451383
     },
     {
      "name": "Stuart Community Hospital",
      "ll": [
-      36.6463178,
-      -80.2548125
+      36.646318,
+      -80.254812
      ],
-     "km": 32.10105842555631
+     "km": 32.101064416954706
     },
     {
      "name": "LewisGale Hospital Montgomery",
      "ll": [
-      37.1872836,
-      -80.4119087
+      37.1873,
+      -80.411632
      ],
-     "km": 33.57592735074192
-    },
-    {
-     "name": "LewisGale Hospital Pulaski",
-     "ll": [
-      37.0687436,
-      -80.7570461
-     ],
-     "km": 33.6846942478646
+     "km": 33.580450020648264
     }
    ],
    "grocers": [
@@ -5654,15 +5654,15 @@
   "drives": [
    {
     "label": "Nearest hospital",
-    "min": 47,
-    "mi": 21.7,
-    "name": "Carilion Clinic Saint Albans Hospital"
+    "name": "Carilion New River Valley Medical Center",
+    "min": 48,
+    "mi": 22
    },
    {
     "label": "Nearest real grocery",
+    "name": "Food Lion",
     "min": 16,
-    "mi": 9.7,
-    "name": "Food Lion"
+    "mi": 9.7
    },
    {
     "label": "Asheville airport (AVL)",
@@ -9839,36 +9839,36 @@
   "near": {
    "hospitals": [
     {
+     "name": "Carilion New River Valley Medical Center",
+     "ll": [
+      37.08829,
+      -80.505149
+     ],
+     "km": 22.829931534252122
+    },
+    {
      "name": "Carilion Clinic Saint Albans Hospital",
      "ll": [
-      37.0885844,
-      -80.5057643
+      37.088587,
+      -80.505551
      ],
-     "km": 22.87302421325787
+     "km": 22.869471248451383
     },
     {
      "name": "Stuart Community Hospital",
      "ll": [
-      36.6463178,
-      -80.2548125
+      36.646318,
+      -80.254812
      ],
-     "km": 32.10105842555631
+     "km": 32.101064416954706
     },
     {
      "name": "LewisGale Hospital Montgomery",
      "ll": [
-      37.1872836,
-      -80.4119087
+      37.1873,
+      -80.411632
      ],
-     "km": 33.57592735074192
-    },
-    {
-     "name": "LewisGale Hospital Pulaski",
-     "ll": [
-      37.0687436,
-      -80.7570461
-     ],
-     "km": 33.6846942478646
+     "km": 33.580450020648264
     }
    ],
    "grocers": [
@@ -9942,15 +9942,15 @@
   "drives": [
    {
     "label": "Nearest hospital",
-    "min": 47,
-    "mi": 21.7,
-    "name": "Carilion Clinic Saint Albans Hospital"
+    "name": "Carilion New River Valley Medical Center",
+    "min": 48,
+    "mi": 22
    },
    {
     "label": "Nearest real grocery",
+    "name": "Food Lion",
     "min": 16,
-    "mi": 9.7,
-    "name": "Food Lion"
+    "mi": 9.7
    },
    {
     "label": "Asheville airport (AVL)",

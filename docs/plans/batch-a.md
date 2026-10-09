@@ -244,6 +244,44 @@ Closer: Slaughters' Supermarket, 42 min** (Walmart Supercenter 61): main's 42-mi
 and still found by the tag search, tenth nearest at 15.7 mi, so outside the six listed. Ferney's nearest non-chain
 is 2 min nearer, so no line.
 
+### A2c: hospitals from a snapshot, by tag (owner, #81 review and 2026-10-09)
+
+**The problem:** hospitals were the last name search: Photon's `q=hospital` finds only places with "hospital" in
+the name. Photon also never returns the `emergency` tag, so it can't say which hospitals have an emergency
+department.
+
+**The decision (owner, 2026-10-09, option C):**
+- A committed OSM snapshot, `lib/screen/data/hospitals.json`, made by `pnpm data:hospitals`
+  (`scripts/data-hospitals.mts`).
+  - It's one Overpass query for `amenity=hospital` or `healthcare=hospital` in VA, NC and TN.
+  - It keeps the OSM id, name, position, the `emergency`, `healthcare` and `amenity` tags, and a
+    `generatedAt` date.
+  - It's regenerated quarterly (`phase-0.md` §9.21). There's no runtime endpoint; endpoints `_v` stays 12.
+- **De-duplication:** one entry per OSM id. Same-named copies within 300 m merge, keeping the `emergency=yes`
+  one. Position alone isn't enough: Carilion Saint Albans (psychiatric, `emergency=no`) is 49 m from Carilion New
+  River Valley Medical Center (`emergency=yes`).
+- **At screen time:**
+  - Candidates are the snapshot's hospitals within `near.hospitalKm`, nearest first, with the
+    `excludeHospital` name filter kept.
+  - The three nearest are routed by OSRM as before. If any candidate is `emergency=yes`, only those are routed,
+    like the grocery chain rule.
+  - When the chosen hospital isn't `emergency=yes`, its row appends "— emergency department not listed in
+    OpenStreetMap" (rule 7). v2 has no field for it, so it's stored in `name`; v3 gets one (`phase-0.md`
+    §9.20 (e)).
+- **If the snapshot can't be loaded:** hospitals come from Photon by tag (`amenity:hospital` and
+  `healthcare:hospital`, de-duplicated by OSM id), are chosen by distance, and nothing is appended.
+- **The sweep:** the forward search `photon()` is gone; every Photon request is now a reverse lookup by tag.
+  The places-failure "test the query" link went to that hospital search. No clean OSM map view of hospitals
+  near a point exists (`openstreetmap.org/search` ignores the map position and finds places named "Hospital"
+  worldwide; overpass-turbo depends on Overpass), so the link is dropped.
+- **Radius (measured):** routed by OSRM from each fixture to every snapshot hospital 40–100 km away (90 routes).
+  None beyond 60 km is under 60 min; the quickest is 78 min (Ferney to Carilion Roanoke Community, 62 km). So
+  `near.hospitalKm` 60 covers a 60-min drive here; proposed: keep it.
+
+**Result:** Ferney and Macks were routed to Carilion Clinic Saint Albans, a psychiatric hospital the name filter
+misses (`emergency=no`). Both now go to Carilion New River Valley Medical Center (`emergency=yes`), 48 min (was
+47). Grayson keeps Ashe Memorial (`emergency=yes`), 38 min. No fixture shows the note.
+
 ### 29: every part of a multi-part parcel
 
 - A county record that is a MultiPolygon becomes a **recipe** of its parts, combined by 13b's rules:
@@ -385,6 +423,8 @@ Each is its own PR, with no golden or `expected.json` change.
    normalisation (case, punctuation, "trailhead" / "TH" / "parking" stripped); otherwise both are kept.
 8. **#81 review:** the closer non-chain grocery line (§3, 25); trailhead parking-lot routing moves to follow-up 39;
    hospitals by tag, with a sweep of `places.ts` for name-text searches, are a new PR, A2c, before A3.
+9. **A2c (2026-10-09):** hospitals from a committed OSM snapshot, regenerated quarterly, not a runtime endpoint
+   (option C); emergency=yes preferred, the note appended otherwise; follow-up 42 for CMS's emergency status.
 
 ## 9. Checks for every Batch A PR
 

@@ -4,9 +4,9 @@
  * result came from earlier rules. Phase 1's import carries it into a v3 field.
  *
  * 1 is Phase 0's rules (the prototype's numbers). Each Batch A PR that changes a number bumps it: A2a → 2,
- * A2b → 3, A3 → 4, A4 → 5. A record without a stamp counts as 1.
+ * A2b → 3, A2c → 4, A3 → 5, A4 → 6 (A2c added in the #81 review). A record without a stamp counts as 1.
  */
-export const ENGINE_VERSION = 3;
+export const ENGINE_VERSION = 4;
 
 /** What a kept screen without a stamp counts as: everything kept before the stamp existed is Phase 0's. */
 export const UNSTAMPED_ENGINE = 1;

@@ -1830,34 +1830,34 @@
     {
      "name": "Ashe Memorial Hospital",
      "ll": [
-      36.4234688,
-      -81.4578219
+      36.423499,
+      -81.457977
      ],
-     "km": 20.3232296004844
+     "km": 20.313833453654695
+    },
+    {
+     "name": "Mountain Youth Academy",
+     "ll": [
+      36.503924,
+      -81.824846
+     ],
+     "km": 25.07325318135854
     },
     {
      "name": "Johnson County Community Hospital",
      "ll": [
-      36.4535322,
-      -81.7975587
+      36.453558,
+      -81.797537
      ],
-     "km": 25.57156481855978
+     "km": 25.56832798609294
     },
     {
      "name": "Smyth County Community Hospital",
      "ll": [
-      36.8513787,
-      -81.4886372
+      36.851678,
+      -81.488434
      ],
-     "km": 30.307439819712684
-    },
-    {
-     "name": "Johnston Memorial Hospital",
-     "ll": [
-      36.7222113,
-      -81.9117828
-     ],
-     "km": 34.61886973197768
+     "km": 30.34387971313808
     }
    ],
    "grocers": [
@@ -2001,15 +2001,15 @@
   "drives": [
    {
     "label": "Nearest hospital",
+    "name": "Ashe Memorial Hospital",
     "min": 38,
-    "mi": 19,
-    "name": "Ashe Memorial Hospital"
+    "mi": 19
    },
    {
     "label": "Nearest real grocery",
+    "name": "Food Lion",
     "min": 38,
-    "mi": 19,
-    "name": "Food Lion"
+    "mi": 19
    },
    {
     "label": "Asheville airport (AVL)",
@@ -2043,9 +2043,9 @@
    },
    {
     "label": "Closer grocery",
+    "name": "Lansing Foods",
     "min": 21,
-    "mi": 9,
-    "name": "Lansing Foods"
+    "mi": 9
    }
   ],
   "excluded": [
@@ -5342,34 +5342,34 @@
     {
      "name": "Ashe Memorial Hospital",
      "ll": [
-      36.4234688,
-      -81.4578219
+      36.423499,
+      -81.457977
      ],
-     "km": 20.3232296004844
+     "km": 20.313833453654695
+    },
+    {
+     "name": "Mountain Youth Academy",
+     "ll": [
+      36.503924,
+      -81.824846
+     ],
+     "km": 25.07325318135854
     },
     {
      "name": "Johnson County Community Hospital",
      "ll": [
-      36.4535322,
-      -81.7975587
+      36.453558,
+      -81.797537
      ],
-     "km": 25.57156481855978
+     "km": 25.56832798609294
     },
     {
      "name": "Smyth County Community Hospital",
      "ll": [
-      36.8513787,
-      -81.4886372
+      36.851678,
+      -81.488434
      ],
-     "km": 30.307439819712684
-    },
-    {
-     "name": "Johnston Memorial Hospital",
-     "ll": [
-      36.7222113,
-      -81.9117828
-     ],
-     "km": 34.61886973197768
+     "km": 30.34387971313808
     }
    ],
    "grocers": [
@@ -5513,15 +5513,15 @@
   "drives": [
    {
     "label": "Nearest hospital",
+    "name": "Ashe Memorial Hospital",
     "min": 38,
-    "mi": 19,
-    "name": "Ashe Memorial Hospital"
+    "mi": 19
    },
    {
     "label": "Nearest real grocery",
+    "name": "Food Lion",
     "min": 38,
-    "mi": 19,
-    "name": "Food Lion"
+    "mi": 19
    },
    {
     "label": "Asheville airport (AVL)",
@@ -5555,9 +5555,9 @@
    },
    {
     "label": "Closer grocery",
+    "name": "Lansing Foods",
     "min": 21,
-    "mi": 9,
-    "name": "Lansing Foods"
+    "mi": 9
    }
   ],
   "excluded": [

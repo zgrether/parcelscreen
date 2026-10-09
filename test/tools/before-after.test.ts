@@ -12,6 +12,8 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { describe, it } from "vitest";
 import type { ScreenResult } from "@/lib/screen/types";
+import { ER_NOT_LISTED, NEAREST_HOSPITAL } from "@/lib/screen/driveList";
+import SNAPSHOT from "@/lib/screen/data/hospitals.json";
 import { publicLandView } from "@/lib/report/surroundings";
 import { differences } from "../support/compare";
 import { EXPECTED, expectedPath, type ExpectedResults } from "../support/expected";
@@ -41,6 +43,19 @@ const n = (v: number | null | undefined, digits = 1) =>
   v == null || !Number.isFinite(v) ? "—" : v.toFixed(digits);
 const mi = (km: number | undefined) => (km == null ? "—" : `${(km * 0.621371).toFixed(1)} mi`);
 
+/**
+ * The hospital drive and the chosen hospital's emergency tag, looked up by name in the committed snapshot so
+ * both columns are read the same way (A2c; main's results carry no status of their own).
+ */
+function hospitalDrive(r: ScreenResult): string {
+  const d = r.drives?.find((x) => x.label === NEAREST_HOSPITAL);
+  if (!d) return "—";
+  const name = d.name.endsWith(ER_NOT_LISTED) ? d.name.slice(0, -ER_NOT_LISTED.length) : d.name;
+  const tag = SNAPSHOT.hospitals.find((h) => h.name === name)?.tags.emergency;
+  const note = d.name.endsWith(ER_NOT_LISTED) ? "; note shown" : "";
+  return `${name}, ${d.min} min (emergency=${tag ?? "untagged"}${note})`;
+}
+
 /** The headline rows, in the plan's order. */
 export function headlines(r: ScreenResult | undefined): Record<string, string> {
   if (!r) return {};
@@ -65,6 +80,10 @@ export function headlines(r: ScreenResult | undefined): Record<string, string> {
     Trailheads: r.near
       ? `${r.near.trailheadCount ?? 0}${r.near.trailheads?.[0] ? `, nearest ${mi(r.near.trailheads[0].km)}` : ""}`
       : "—",
+    "Nearest hospital (straight line)": r.near?.hospitals?.[0]
+      ? `${r.near.hospitals[0].name}, ${mi(r.near.hospitals[0].km)}`
+      : "none",
+    "Hospital drive (ER status in today's snapshot)": hospitalDrive(r),
     "Nearest grocer": r.near?.grocers?.[0]
       ? `${r.near.grocers[0].name}, ${mi(r.near.grocers[0].km)}`
       : "none",
