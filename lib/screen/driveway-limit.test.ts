@@ -5,6 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { replayRun } from "@/test/support/session";
+import { runFixture } from "@/test/support/scenarios";
 import { loadFixture } from "@/test/support/fixtures";
 import { M2FT } from "./util";
 import {
@@ -58,8 +59,9 @@ describe("the least-steep route on the reference parcels", () => {
     expect(result.driveway!.overLimit).toBeUndefined();
   });
 
-  it("Macks Mountain to site #1: no legal route; the least-steep one is the lowest cap that reaches it", async () => {
-    const { result, session } = await replayRun("macks-mountain-35-3");
+  // Grayson since A3: Macks's #1 became its 9.6 ac bench, which has a legal route; Grayson's #1 still has none.
+  it("Grayson Mud Creek to site #1: no legal route; the least-steep one is the lowest cap that reaches it", async () => {
+    const { result, session } = await runFixture("grayson-mud-creek-6273");
     const d = result.driveway!;
     expect(d.routes).toEqual([]);
     const o = d.overLimit!;
@@ -70,7 +72,14 @@ describe("the least-steep route on the reference parcels", () => {
     const ctx = routeContext(session);
     const to = result.sites![0]!.ll;
     for (const e of d.entrances.slice(0, K.entrancesRouted))
-      expect(routeDriveway(ctx, e.ll, to, { maxGrade: (cap - 1) / 100, wGrade: 1, label: "x" })).toBeNull();
+      expect(
+        routeDriveway(ctx, e.ll, to, {
+          maxGrade: (cap - 1) / 100,
+          wGrade: K.leastSteep.wGrade,
+          label: "x",
+          insideExceptNearStartM: K.leastSteep.entranceM,
+        }),
+      ).toBeNull();
     expect(o.limitPct).toBe(10);
     // It keeps to the parcel: outside land only within entranceM of the entrance (owner, after #52).
     expect(o.metrics.outsideFt).toBeLessThanOrEqual(K.leastSteep.entranceM * M2FT);

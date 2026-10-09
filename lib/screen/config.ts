@@ -163,7 +163,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
       [15, 0],
     ] as Curve,
     flatBelowDeg: 3, // aspect scores 100 on near-flat ground
-    cellAspectTargetDeg: 165, // L913 (site quality uses 160: score.siteAspectTargetDeg; plan §9.4)
+    cellAspectTargetDeg: 165, // L913 (site quality too since A3: score.siteAspectTargetDeg; plan §9.4)
     aspectCurve: ASPECT_CURVE, // by angular distance from the target
     /** Frost curves take thermalMinFt (user config) as the x of their second point. */
     frostHouse: { atFloor: 40, full: 100, beltTopFt: 400, exposedFt: 900, exposed: 75 },
@@ -213,8 +213,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
     coreDecDeg: -29.0, // L1267: core altitude = 90 − lat − 29
     coreRidgeArc: [150, 210] as const,
     magRange: [19.0, 22.0] as const, // L1269
-    domePenaltyMax: 25, // L1270: × min(1, w/3)
-    domePenaltyFullW: 3,
+    domePenaltyMax: 25, // L1270: × min(1, w/fullW)
+    domePenaltyFullW: 8, // A3 (owner, 2026-10-09): was 3 (L1270), which nearly every parcel here reached
     coreBlockedPenalty: 30, // L1271
     coreLowPenalty: 10, // L1272
     coreLowDeg: 8,
@@ -288,7 +288,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
     closerMinMin: 10,
   },
   score: {
-    siteAspectTargetDeg: 160, // L1290 (cells use 165; plan §9.4 unifies to 165 after Phase 0)
+    siteAspectTargetDeg: 165, // A3 (follow-up 19): the cells' target; the prototype's sites used 160 (L1290)
     sunGoodShare: 0.75, // L1296: "good" / "acceptable" wording
     sunOkShare: 0.5,
     weights: { sun: 0.4, aspect: 0.15, frost: 0.15, slope: 0.15, sky: 0.15 }, // L1295
@@ -297,6 +297,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
     septic: { fine: 0, workable: 20, poor: 40, unrated: 25 }, // L1302
     foundation: { fine: 0, workable: 10, poor: 25, unrated: 12 },
     rock: 15,
+    // A3 (owner, 2026-10-09): rock by depth, full points at or above this depth to bedrock, none at or below.
+    rockDepthCm: { full: 50, none: 150 },
     compactPad: 15,
     pad: [
       [6, 0],
@@ -306,6 +308,11 @@ export const SCREEN_CONSTANTS = deepFreeze({
     drivewayMax: 30, // min(30, needed ft / 100)
     drivewayFtPerPoint: 100,
     drivewayOverGrade: 10, // + 10 if the straight-line grade exceeds roadMaxGradePct
+    // A3 (owner, 2026-10-09): every ranked site's driveway is routed, and its points come from the route's
+    // cost estimate (mid): k · ln(1 + cost / c0), + noRoute when no route fits the grade limit (the least-steep
+    // route's cost), + easement when the route runs outside the parcel, capped at max; a site no route reaches
+    // at all takes max. The straight-line terms above stay for a run whose driveway step fails.
+    drivewayCost: { k: 9, c0: 20_000, noRoute: 10, easement: 10, max: 40 },
     overall: { quality: 0.7, cost: 0.3 }, // L1313
     costTiers: [
       [20, "$"],

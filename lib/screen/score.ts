@@ -10,7 +10,8 @@ import { at, inGrid, llToRC, rcToLL } from "./dem";
 import { inSfha, type FloodFeature } from "./flood";
 import { nearestRoad, type RoadFeature } from "./roads";
 import { frostCurve, type SiteSearch } from "./sites";
-import { bottomland, soilAt, type SoilUnit, type VettedBench } from "./soils";
+import type { SiteDriveway } from "./driveway";
+import { bottomland, soilAt, type SoilLimits, type SoilUnit, type VettedBench } from "./soils";
 import { horizonProfile, sunHours } from "./sun";
 import type { Dem, ScreenResult, Site, SoilRow, UserConfig } from "./types";
 import { lerp, M2FT, type LatLon } from "./util";
@@ -45,6 +46,8 @@ export interface ScoreContext {
   units: SoilUnit[] | null;
   rows: SoilRow[] | null;
   cfg: UserConfig;
+  /** NRCS's septic and foundation ratings without slope, by cokey (A3; soils step). Absent: NRCS's classes. */
+  limits?: Map<string, SoilLimits> | null;
 }
 
 export interface SiteInput {
@@ -73,6 +76,85 @@ const rate = (r: string | null | undefined) => {
         : "unrated";
 };
 
+/**
+ * Quality's parts and their weighted sum for a spot, before the flood veto (proto scoreSite). The December sun
+ * share is measured by the caller. Shared with the driveway step, which re-costs every ranked site (A3) and
+ * needs the unrounded quality back from a site's stored fields.
+ */
+export function qualityParts(
+  ctx: Pick<ScoreContext, "valleyFloorFt" | "skyScore" | "cfg">,
+  sunShare: number,
+  b: Pick<SiteInput, "aspectDeg" | "slopeDeg" | "elevFt">,
+): { aspectS: number; above: number; frostS: number; slopeS: number; skyS: number; quality: number } {
+  const adiff = Math.min(
+    Math.abs(b.aspectDeg - K.siteAspectTargetDeg),
+    360 - Math.abs(b.aspectDeg - K.siteAspectTargetDeg),
+  );
+  const aspectS = b.slopeDeg < SU.flatBelowDeg ? 100 : lerp(adiff, SU.aspectCurve);
+  const above = b.elevFt - ctx.valleyFloorFt;
+  const frostS = lerp(above, frostCurve(SU.frostHouse, ctx.cfg.thermalMinFt));
+  const slopeS = lerp(b.slopeDeg, SU.slopeHouse);
+  const skyS = ctx.skyScore ?? K.skyIfMissing;
+  const W = K.weights;
+  const quality =
+    W.sun * 100 * sunShare + W.aspect * aspectS + W.frost * frostS + W.slope * slopeS + W.sky * skyS;
+  return { aspectS, above, frostS, slopeS, skyS, quality };
+}
+
+/** Rock by depth (A3): full points at ≤ rockDepthCm.full, none at ≥ rockDepthCm.none or with no bedrock reported. */
+export function rockPoints(depthCm: number | null): number {
+  if (depthCm == null) return 0;
+  const { full, none } = K.rockDepthCm;
+  return K.rock * Math.max(0, Math.min(1, (none - depthCm) / (none - full)));
+}
+
+/**
+ * Driveway points from a routed cost estimate (A3, owner 2026-10-09): k · ln(1 + cost / c0), plus noRoute when no
+ * route fits the grade limit (the least-steep route's cost is used) and easement when the route needs one, capped
+ * at max. A site no route reaches at all takes max.
+ */
+export function drivewayPoints(dw: SiteDriveway): number {
+  const C = K.drivewayCost;
+  if (!dw.route) return C.max;
+  const p =
+    C.k * Math.log(1 + dw.route.cost.mid / C.c0) +
+    (dw.legal ? 0 : C.noRoute) +
+    (dw.route.needsEasement ? C.easement : 0);
+  return Math.min(C.max, p);
+}
+
+/**
+ * A scored spot re-costed with its routed driveway (A3): driveway points from the estimate, its length when a
+ * route was found, and the cost, tier and score again from the unrounded quality. The rank and grade follow in
+ * rerank.
+ */
+export function withDrivewayCost<T extends Scored & Pick<Site, "aspectDeg" | "slopeDeg" | "elevFt">>(
+  ctx: Pick<ScoreContext, "valleyFloorFt" | "skyScore" | "cfg">,
+  s: T,
+  dw: SiteDriveway,
+): T {
+  const c = { ...s.c, driveway: drivewayPoints(dw) };
+  const cost = Math.min(100, c.septic + c.foundation + c.rock + c.pad + c.driveway);
+  const score = Math.round(K.overall.quality * storedQuality(ctx, s) + K.overall.cost * (100 - cost));
+  return {
+    ...s,
+    c,
+    ...(dw.route ? { driveFt: dw.route.metrics.lengthFt } : {}),
+    costIdx: Math.round(cost),
+    costTier: costTier(cost),
+    score,
+  };
+}
+
+/** A site's unrounded quality from its stored fields: qualityParts, then the flood veto. */
+export function storedQuality(
+  ctx: Pick<ScoreContext, "valleyFloorFt" | "skyScore" | "cfg">,
+  s: Pick<Site, "sunH" | "daylightH" | "aspectDeg" | "slopeDeg" | "elevFt" | "flood">,
+): number {
+  const q = qualityParts(ctx, s.daylightH ? s.sunH / s.daylightH : 0, s).quality;
+  return s.flood ? q * K.sfhaQualityFactor : q;
+}
+
 /** Quality, cost and overall score for a spot (proto scoreSite). */
 export function scoreSite(ctx: ScoreContext, ll: LatLon, b: SiteInput): Scored {
   return scoreSiteDetailed(ctx, ll, b).scored;
@@ -98,15 +180,8 @@ export function scoreSiteDetailed(
   const hz = horizonProfile(ctx.dWide, r0, c0, 5, 6000);
   const sun = sunHours(ll[0], hz, SCREEN_CONSTANTS.sun.decemberDoy, cfg.canopyDeg);
   const sunShare = sun.daylightH ? sun.directH / sun.daylightH : 0;
-  const adiff = Math.min(
-    Math.abs(b.aspectDeg - K.siteAspectTargetDeg),
-    360 - Math.abs(b.aspectDeg - K.siteAspectTargetDeg),
-  );
-  const aspectS = b.slopeDeg < SU.flatBelowDeg ? 100 : lerp(adiff, SU.aspectCurve);
-  const above = b.elevFt - ctx.valleyFloorFt;
-  const frostS = lerp(above, frostCurve(SU.frostHouse, cfg.thermalMinFt));
-  const slopeS = lerp(b.slopeDeg, SU.slopeHouse);
-  const skyS = ctx.skyScore ?? K.skyIfMissing;
+  const parts = qualityParts(ctx, sunShare, b);
+  const { aspectS, above, frostS, slopeS, skyS } = parts;
   const q = {
     sun: Math.round(100 * sunShare),
     aspect: Math.round(aspectS),
@@ -114,9 +189,7 @@ export function scoreSiteDetailed(
     slope: Math.round(slopeS),
     sky: Math.round(skyS),
   };
-  const W = K.weights;
-  let quality =
-    W.sun * 100 * sunShare + W.aspect * aspectS + W.frost * frostS + W.slope * slopeS + W.sky * skyS;
+  let quality = parts.quality;
   why.push(
     sunShare >= K.sunGoodShare
       ? `${sun.directH.toFixed(1)} h of December sun — good`
@@ -129,14 +202,17 @@ export function scoreSiteDetailed(
   );
   // --- cost ---
   const comp = b.soil || soilAt(ctx.units, ctx.rows, ll);
-  const sep = rate(comp && (comp.septic || comp.engstafdcd)),
-    dw = rate(comp && comp.engdwobdcd);
-  const rock =
-    !!comp && comp.brockdepmin != null && comp.brockdepmin !== "" && +comp.brockdepmin < cfg.shallowBedrockCm;
+  // A3: NRCS's ratings without the map unit's slope when the soils step has them (else NRCS's own classes).
+  const lim = comp && ctx.limits ? ctx.limits.get(String(comp.cokey)) : undefined;
+  const sep = lim?.septic ?? rate(comp && (comp.septic || comp.engstafdcd)),
+    dw = lim?.foundation ?? rate(comp && comp.engdwobdcd);
+  const depthCm = comp && comp.brockdepmin != null && comp.brockdepmin !== "" ? +comp.brockdepmin : null;
+  // The wording keeps the user's shallow-bedrock setting; the points scale with depth (A3).
+  const rock = depthCm != null && depthCm < cfg.shallowBedrockCm;
   const c = {
     septic: K.septic[sep],
     foundation: K.foundation[dw],
-    rock: rock ? K.rock : 0,
+    rock: rockPoints(depthCm),
     pad: b.compact ? K.compactPad : lerp(b.slopeDeg, K.pad),
     driveway: 0,
   };
@@ -336,26 +412,13 @@ export function assessHouse(
 type Route = NonNullable<ScreenResult["driveway"]>["routes"][number];
 
 /**
- * The driveway step's rewrite of site #1 from its routed driveway (proto driveway step): the driveway cost
- * point now comes from the routed length (plus 10 if it needs an easement), and cost tier and overall score
- * are recomputed from the rounded cost index, exactly as the prototype did.
+ * Site #1's reasons with its routed driveway in place of the straight-line line (the prototype's driveway step).
+ * Since A3 the driveway points and score come from withDrivewayCost, for every ranked site; this keeps #1's
+ * wording as it was.
  */
-export function applyRoutedDriveway(site: Site, rt: Route): Site {
-  const c = {
-    ...site.c,
-    driveway:
-      Math.min(K.drivewayMax, rt.metrics.lengthFt / K.drivewayFtPerPoint) + (rt.needsEasement ? 10 : 0),
-  };
-  const costIdx = Math.round(Math.min(100, c.septic + c.foundation + c.rock + c.pad + c.driveway));
-  const score = Math.round(K.overall.quality * site.quality + K.overall.cost * (100 - costIdx));
+export function withRoutedWhy(site: Site, rt: Route): Site {
   return {
     ...site,
-    driveFt: rt.metrics.lengthFt,
-    c,
-    costIdx,
-    costTier: costTier(costIdx),
-    score,
-    grade: grade(score),
     why: [
       ...site.why.filter((x) => !/ft to .* at .*straight-line/.test(x)),
       `routed driveway: ${Math.round(rt.metrics.lengthFt)} ft at ≤${(rt.maxGrade * 100).toFixed(0)}%, ${rt.metrics.switchbacks} switchback${rt.metrics.switchbacks === 1 ? "" : "s"}, ~$${fmt(rt.cost.low / 1000)}–${fmt(rt.cost.high / 1000)}k`,

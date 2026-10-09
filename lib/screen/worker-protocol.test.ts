@@ -39,7 +39,7 @@ describe("ScreenWorkerCore", () => {
     expect(done.view.labels?.house).toBeInstanceOf(Int32Array);
     expect(done.view.horizon).toHaveLength(72);
     expect(structuredClone(done.view).bestId).toBe(done.view.bestId);
-  });
+  }, 90_000); // two whole screens of Macks Mountain; since A3 each routes all 8 ranked sites (~4.5 s)
 
   it("re-evaluates the run it holds (evaluateAt, setHouse) and refuses unknown runs", async () => {
     const { c, posted } = core();

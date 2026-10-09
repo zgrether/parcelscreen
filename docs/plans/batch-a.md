@@ -319,7 +319,37 @@ send the parts; SDA gets a MULTIPOLYGON). Only the driveway router and the outli
 **Before it: the grade-distribution study** (owner, 2026-10-09; report only, no scoring change): 27 parcels in Floyd,
 Carroll, Grayson, Ashe, Watauga and Alleghany, per-factor distributions, correlations, near-constant factors and
 proposed replacements, absolute vs. relative cutoffs, and the owner's gut grades on nine of them.
-`docs/studies/grade-distribution.md`; reproduce with `pnpm study:grades`.
+`docs/studies/grade-distribution.md`; reproduce with `pnpm study:grades`. (The gut grades were skipped, §8.)
+
+**A3's scope (owner, 2026-10-09, after the study; supersedes the candidates below where they differ):**
+- **In:** 19 (aspect 165°); septic and foundation without the map unit's slope (it's already in quality's slope
+  and cost's pad); rock scored by depth; the sky's dome penalty de-saturated; how driveway length and grade enter
+  cost, as a cost estimate.
+- **Out: the 70/30 quality/cost split stays as is.** Weights are a preference, not a fact: they become per-person
+  rubric settings in follow-up 41. With no gut-grade calibration, the grade cutoffs (80/65/50/35) stay too.
+- **Stage 1:** the three fixtures ranked before and after each in-scope change separately, so the owner can see
+  which change moves what: `docs/studies/a3-scoring-analysis.md`, from `pnpm a3:analysis`.
+
+**Done in A3 (#86, 2026-10-09).** The owner adopted all five; the driveway with a log curve instead of a linear rate.
+- **19:** site aspect scored from 165°, the cells' target.
+- **Septic and foundation without the map unit's slope:** the soils step also fetches each component's limiting
+  features (cointerp, rule depth 1) and rebuilds NRCS's class from the features other than slope (`fetchSoilLimits`;
+  session only). Without that answer every site keeps NRCS's own class, so a ranking never mixes the two.
+- **Rock by depth:** 15 points at ≤ 50 cm of bedrock, none at ≥ 150 cm, linear between (`score.rockDepthCm`); the
+  wording still follows the user's shallow-bedrock setting.
+- **The sky's dome penalty:** full at w = 8 (was 3).
+- **The driveway as a cost estimate:** every ranked site is routed (`siteDriveways`: one search per entrance and
+  style, the least-steep binary search shared across sites; each site's route is exactly the one `buildDriveway`
+  finds for it alone). Points = min(40, 9 · ln(1 + cost / $20k) + 10 with no route within the limit + 10 for an
+  easement); no fixture site reaches 40 (highest 37.7). The house is re-costed from the route to it the same way.
+  Curve: `docs/studies/a3-driveway-curve.md`.
+- **Routing time** (Node, desktop): 1.5 s (Ferney, 5 sites), 4.5 s (Macks, 8), 3.3 s (Grayson, 4) for the whole
+  pass, within the owner's 5 s budget; per site separately it was 7–30 s.
+- **Found on the way:** the router skips about half its cells (float32 costs): follow-up 44.
+- **Text:** no sentence changes. Values and which existing phrase shows move (rule 4). Site #1 keeps its routed
+  driveway line; no new line was added for the other sites, and the help text still describes the straight line
+  (a text proposal for the owner).
+- **20** (garden soil without house sites) wasn't in the owner's A3 list; it's still open.
 
 **This group changes rankings, so it goes in two stages within one PR.**
 

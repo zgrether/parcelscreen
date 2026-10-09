@@ -18,8 +18,8 @@ const record = (engine?: number): ScreenRecord => ({
 });
 
 describe("the engine stamp on a kept screen (Batch A §6)", () => {
-  it("Phase 0's rules are version 1, A2a's 2, A2b's 3, A2c's 4, and a screen kept before the stamp counts as 1", () => {
-    expect(ENGINE_VERSION).toBe(4); // A2c (hospitals from the snapshot)
+  it("Phase 0's rules are version 1, A2a's 2, A2b's 3, A2c's 4, A3's 5, and a screen kept before the stamp counts as 1", () => {
+    expect(ENGINE_VERSION).toBe(5); // A3 (scoring: 19, soils without slope, rock by depth, sky dome, driveway cost)
     expect(engineOf(record())).toBe(1);
     expect(engineOf(record(3))).toBe(3);
   });
@@ -28,7 +28,8 @@ describe("the engine stamp on a kept screen (Batch A §6)", () => {
     expect(fromEarlierRules(record())).toBe(true); // a Phase 0 screen, after A2a's bump
     expect(fromEarlierRules(record(2))).toBe(true); // A2a's rules, after A2b's bump
     expect(fromEarlierRules(record(3))).toBe(true); // A2b's rules, after A2c's bump
-    expect(fromEarlierRules(record(4))).toBe(false); // screened with A2c's rules
+    expect(fromEarlierRules(record(4))).toBe(true); // A2c's rules, after A3's bump
+    expect(fromEarlierRules(record(5))).toBe(false); // screened with A3's rules
     expect(fromEarlierRules(record(), 1)).toBe(false); // against Phase 0's rules
     expect(fromEarlierRules(record(2), 2)).toBe(false);
     expect(fromEarlierRules(record(1), 5)).toBe(true);

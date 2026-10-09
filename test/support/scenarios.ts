@@ -92,15 +92,25 @@ export async function runScenario(
     case "run":
       return (await runFixture(slug, {}, deps())).result;
     case "evaluateSite2": {
+      // The prototype's recorded site #2 point, labelled as the app labels the pin there now: since A3's
+      // re-ranking the same bench can hold another rank (Macks's 9.6 ac bench is #1). The browser test taps
+      // that same pin (e2e/screen.spec.ts).
       const at = input.evaluateSite2;
       if (!at) throw new Error(`${slug} has no evaluateSite2 point`);
-      return (await evaluateAt(await runFixture(slug, {}, deps()), at.ll, at.label)).result;
+      const out = await runFixture(slug, {}, deps());
+      return (await evaluateAt(out, at.ll, sitePinLabel(out.result, at.ll) ?? at.label)).result;
     }
     case "setHouse":
       return (await setHouse(await runFixture(slug, {}, deps()), houseOf(slug))).result;
     case "houseRun":
       return (await runFixture(slug, { house: houseOf(slug) }, deps())).result;
   }
+}
+
+/** "site #N" for the ranked site at this point, as the map's pin there is labelled; undefined if none is. */
+export function sitePinLabel(result: ScreenResult, ll: readonly [number, number]): string | undefined {
+  const s = result.sites?.find((x) => Math.abs(x.ll[0] - ll[0]) < 1e-9 && Math.abs(x.ll[1] - ll[1]) < 1e-9);
+  return s ? `site #${s.rank}` : undefined;
 }
 
 function houseOf(slug: FixtureSlug): [number, number] {

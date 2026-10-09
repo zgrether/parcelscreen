@@ -19,6 +19,7 @@ import {
   waitForPosted,
 } from "./flow";
 import { replayHar, type ReplayLog } from "./replay";
+import { sitePinLabel } from "../test/support/scenarios";
 
 const FERNEY = "ferney-creek-52-47A";
 const MACKS = "macks-mountain-35-3";
@@ -120,13 +121,16 @@ test("Macks Mountain 35-3: the plain run and the re-evaluation at site #2 match 
   await expectCleanRun(page, steps);
   expect(againstExpected(await postedResult(page), MACKS, "run"), EXPECTED_MSG).toEqual([]);
 
-  // Tapping site #2's pin re-evaluates the sun, sky and driveway there (the worker's evaluateAt). Here site #2 is
-  // the run's own point (the largest house site), so the panel keeps showing the run (15b); the worker still
-  // posts the re-evaluation, labelled "site #2", and that is what expected.json holds.
+  // Tapping the pin at the prototype's recorded site #2 re-evaluates the sun, sky and driveway there (the worker's
+  // evaluateAt). That bench is the run's own point (the largest house site), so the panel keeps showing the run
+  // (15b); the worker still posts the re-evaluation, labelled as its pin, and that is what expected.json holds.
+  // Since A3's re-ranking the bench is site #1 here, so the pin is found by position, not by rank.
   // The pin can sit under the desktop panel at this zoom: the click goes to the pin itself (this is about the
   // worker's re-evaluation, not the map's hit testing).
-  await page.locator('[data-pin="site-2"]').dispatchEvent("click");
-  await waitForPosted(page, "site #2");
+  const at = loadFixture(MACKS).input.evaluateSite2!.ll;
+  const label = sitePinLabel((await postedResult(page)) as ScreenResult, at)!;
+  await page.locator(`[data-pin="site-${label.replace("site #", "")}"]`).dispatchEvent("click");
+  await waitForPosted(page, label);
   expect(againstExpected(await postedResult(page), MACKS, "evaluateSite2"), EXPECTED_MSG).toEqual([]);
   expect(errors, "page errors").toEqual([]);
 });

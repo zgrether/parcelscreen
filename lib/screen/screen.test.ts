@@ -8,8 +8,9 @@ import { prototypeFn } from "../../test/support/prototypeFns";
 import * as format from "../format";
 import { DEFAULT_USER_CONFIG } from "./config";
 import { DemCache } from "./dem";
-import { screen, setHouse, type ScreenOutput } from "./index";
-import { scoreSiteDetailed, type ScoreContext } from "./score";
+import { siteDriveways, type SiteDriveway } from "./driveway";
+import { routeContext, screen, setHouse, type ScreenOutput } from "./index";
+import { scoreSiteDetailed, storedQuality, withDrivewayCost, type ScoreContext } from "./score";
 import { AtlasCache } from "./sky";
 import { soilAt } from "./soils";
 import { defaultName, summaryText } from "./summary";
@@ -49,23 +50,38 @@ describe("road-distance rounding vs cost index, tier and overall score", () => {
       sfha: s.sfha ?? null,
       units: s.units ?? null,
       rows: s.rows ?? null,
+      limits: s.limits ?? null,
       cfg: CFG,
     };
-    const spots = (out.result.sites ?? [])
-      // Site #1 rewritten from the routed driveway uses integers only (rounded cost index and quality).
-      .filter((x) => !x.why.some((w) => w.startsWith("routed driveway")))
-      .map((x) => ({
-        name: `site #${x.rank}`,
-        ll: x.ll,
-        b: {
-          acres: x.acres,
-          elevFt: x.elevFt,
-          aspectDeg: x.aspectDeg,
-          slopeDeg: x.slopeDeg,
-          compact: x.compact,
-        },
-        shown: x,
-      }));
+    // Since A3 every ranked site is re-costed from its routed driveway (and the house from the route to it):
+    // rebuild each the way the pipeline does, then measure the same margins on those numbers.
+    const sites = out.result.sites ?? [];
+    const routed = siteDriveways(
+      routeContext(s),
+      s.roads ?? [],
+      s.parcel,
+      sites.map((x) => x.ll),
+      CFG.roadMaxGradePct,
+    );
+    const dw = out.result.driveway;
+    const toHouse: SiteDriveway = dw?.routes[0]
+      ? { route: dw.routes[0], legal: true, entranceIndex: dw.routes[0].entranceIndex }
+      : dw?.overLimit
+        ? { route: dw.overLimit, legal: false, entranceIndex: dw.overLimit.entranceIndex }
+        : { route: null, legal: false, entranceIndex: null };
+    const spots = sites.map((x, i) => ({
+      name: `site #${x.rank}`,
+      ll: x.ll,
+      b: {
+        acres: x.acres,
+        elevFt: x.elevFt,
+        aspectDeg: x.aspectDeg,
+        slopeDeg: x.slopeDeg,
+        compact: x.compact,
+      },
+      shown: x,
+      dw: routed[i]!,
+    }));
     const h = out.result.house;
     if (h && !("outside" in h))
       spots.push({
@@ -79,29 +95,31 @@ describe("road-distance rounding vs cost index, tier and overall score", () => {
           compact: undefined,
         },
         shown: h as never,
+        dw: toHouse,
       });
     for (const sp of spots) {
-      const { scored, raw } = scoreSiteDetailed(ctx, sp.ll, {
+      const { scored } = scoreSiteDetailed(ctx, sp.ll, {
         ...sp.b,
         soil: soilAt(ctx.units, ctx.rows, sp.ll),
       });
-      expect(scored.costIdx).toBe(sp.shown.costIdx);
-      expect(scored.costTier).toBe(sp.shown.costTier);
+      const re = withDrivewayCost(ctx, { ...scored, ...sp.b }, sp.dw);
+      expect(re.costIdx).toBe(sp.shown.costIdx);
+      expect(re.costTier).toBe(sp.shown.costTier);
+      expect(re.score).toBe(sp.shown.score);
+      const cost = Math.min(100, re.c.septic + re.c.foundation + re.c.rock + re.c.pad + re.c.driveway);
+      const overall = 0.7 * storedQuality(ctx, { ...scored, ...sp.b }) + 0.3 * (100 - cost);
       const toHalf = (v: number) => Math.abs(v - (Math.floor(v) + 0.5));
-      const costRound = toHalf(raw.cost),
-        costTier = Math.min(...[20, 40, 65].map((t) => Math.abs(raw.cost - t))),
-        overallRound = toHalf(raw.overall),
-        gradeEdge = scored.roadGrade == null ? Infinity : Math.abs(scored.roadGrade - CFG.roadMaxGradePct);
+      const costRound = toHalf(cost),
+        costTier = Math.min(...[20, 40, 65].map((t) => Math.abs(cost - t))),
+        overallRound = toHalf(overall);
       margins.push(
-        `${slug}${withHouse ? " (house run)" : ""} ${sp.name}: cost ${raw.cost.toFixed(4)} → idx ${scored.costIdx} ${scored.costTier}; ` +
-          `to .5 ${costRound.toFixed(4)}, to tier edge ${costTier.toFixed(3)}; overall ${raw.overall.toFixed(4)} → ${scored.score}, to .5 ${overallRound.toFixed(4)}; ` +
-          `road grade ${scored.roadGrade?.toFixed(2) ?? "—"}% (to 10%: ${Number.isFinite(gradeEdge) ? gradeEdge.toFixed(2) : "—"})`,
+        `${slug}${withHouse ? " (house run)" : ""} ${sp.name}: cost ${cost.toFixed(4)} → idx ${re.costIdx} ${re.costTier}; ` +
+          `to .5 ${costRound.toFixed(4)}, to tier edge ${costTier.toFixed(3)}; overall ${overall.toFixed(4)} → ${re.score}, to .5 ${overallRound.toFixed(4)}`,
       );
       // The drift in cost moves overall by 0.3× as much. Demand at least 30× headroom everywhere.
       expect(costRound).toBeGreaterThan(30 * MAX_COST_DRIFT);
       expect(costTier).toBeGreaterThan(30 * MAX_COST_DRIFT);
       expect(overallRound).toBeGreaterThan(30 * 0.3 * MAX_COST_DRIFT);
-      expect(gradeEdge).toBeGreaterThan(0.01);
     }
   });
 
@@ -144,7 +162,7 @@ describe("places outage (plan §9.11): roads, road grade and the driveway still 
 describe("orchestration", () => {
   it("reports each step run → done in the prototype's order, with partial results (no verdict yet)", async () => {
     const events: ProgressEvent[] = [];
-    await screen(
+    const out = await screen(
       { polygon: loadFixture("macks-mountain-35-3").input.polygon.geometry, config: CFG },
       (e) => events.push(e),
       depsFor("macks-mountain-35-3"),
@@ -167,7 +185,9 @@ describe("orchestration", () => {
     );
     const done = events.filter((e) => e.status === "done");
     expect(done.every((e) => e.partial && e.partial.verdict === undefined)).toBe(true);
-    expect(done.at(-1)!.message).toMatch(/^Entrance found on .*, but no route reaches site #1/); // the driveway note
+    // The driveway step's message is the driveway's note (since A3 Macks's #1 has a legal route, and no note).
+    expect(done.at(-1)!.step).toBe("driveway");
+    expect(done.at(-1)!.message).toBe(out.result.driveway?.note ?? undefined);
     expect(done.find((e) => e.step === "terrain")!.partial!.terrain).toBeDefined();
   });
 
