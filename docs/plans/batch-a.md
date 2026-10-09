@@ -316,6 +316,11 @@ send the parts; SDA gets a MULTIPOLYGON). Only the driveway router and the outli
 
 ## 4. A3: scoring, one reviewed change (19, 27, 20)
 
+**Before it: the grade-distribution study** (owner, 2026-10-09; report only, no scoring change): 27 parcels in Floyd,
+Carroll, Grayson, Ashe, Watauga and Alleghany, per-factor distributions, correlations, near-constant factors and
+proposed replacements, absolute vs. relative cutoffs, and the owner's gut grades on nine of them.
+`docs/studies/grade-distribution.md`; reproduce with `pnpm study:grades`.
+
 **This group changes rankings, so it goes in two stages within one PR.**
 
 1. **The analysis first,** as a draft PR with no code: the three fixtures ranked under today's weights and under

@@ -30,7 +30,8 @@
     "record:fixtures": "node scripts/record-fixtures.mts",
     "data:hospitals": "node scripts/data-hospitals.mts",
     "check:hospitals-age": "node scripts/check-hospitals-age.mts",
-    "record:port": "vitest run test/tools/record-port.test.ts --mode record-port"
+    "record:port": "vitest run test/tools/record-port.test.ts --mode record-port",
+    "study:grades": "vitest run test/tools/grade-study.test.ts --mode grade-study"
   },
   "dependencies": {
     "@serwist/turbopack": "9.5.13",
