@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 420" font-family="sans-serif" font-size="12">
+<rect width="760" height="420" fill="#fff"/>
+<text x="740" y="24" text-anchor="end" font-weight="bold">Engine 6, after the router fix (A3b)</text>
+<line x1="56" x2="740" y1="372" y2="372" stroke="#eee"/><text x="48" y="376" text-anchor="end">0</text>
+<line x1="56" x2="740" y1="293.77777777777777" y2="293.77777777777777" stroke="#eee"/><text x="48" y="297.77777777777777" text-anchor="end">10</text>
+<line x1="56" x2="740" y1="215.55555555555557" y2="215.55555555555557" stroke="#eee"/><text x="48" y="219.55555555555557" text-anchor="end">20</text>
+<line x1="56" x2="740" y1="137.33333333333334" y2="137.33333333333334" stroke="#eee"/><text x="48" y="141.33333333333334" text-anchor="end">30</text>
+<line x1="56" x2="740" y1="59.11111111111113" y2="59.11111111111113" stroke="#eee"/><text x="48" y="63.11111111111113" text-anchor="end">40</text>
+<text x="56" y="390" text-anchor="middle">$0k</text>
+<text x="124.4" y="390" text-anchor="middle">$50k</text>
+<text x="192.8" y="390" text-anchor="middle">$100k</text>
+<text x="261.2" y="390" text-anchor="middle">$150k</text>
+<text x="329.6" y="390" text-anchor="middle">$200k</text>
+<text x="398" y="390" text-anchor="middle">$250k</text>
+<text x="466.4" y="390" text-anchor="middle">$300k</text>
+<text x="534.8" y="390" text-anchor="middle">$350k</text>
+<text x="603.2" y="390" text-anchor="middle">$400k</text>
+<text x="671.6" y="390" text-anchor="middle">$450k</text>
+<text x="740" y="390" text-anchor="middle">$500k</text>
+<line x1="56" x2="740" y1="59.11111111111113" y2="59.11111111111113" stroke="#999" stroke-dasharray="4 3"/>
+<text x="740" y="53.11111111111113" text-anchor="end" fill="#666">cap 40</text>
+<path d="M56.0,372.0 L62.8,356.3 L69.7,343.5 L76.5,332.6 L83.4,323.2 L90.2,314.9 L97.0,307.5 L103.9,300.8 L110.7,294.7 L117.6,289.0 L124.4,283.8 L131.2,278.9 L138.1,274.4 L144.9,270.1 L151.8,266.1 L158.6,262.3 L165.4,258.7 L172.3,255.3 L179.1,252.0 L186.0,248.9 L192.8,245.9 L199.6,243.0 L206.5,240.2 L213.3,237.6 L220.2,235.0 L227.0,232.5 L233.8,230.2 L240.7,227.8 L247.5,225.6 L254.4,223.4 L261.2,221.3 L268.0,219.3 L274.9,217.3 L281.7,215.4 L288.6,213.5 L295.4,211.7 L302.2,209.9 L309.1,208.2 L315.9,206.5 L322.8,204.8 L329.6,203.2 L336.4,201.6 L343.3,200.1 L350.1,198.5 L357.0,197.1 L363.8,195.6 L370.6,194.2 L377.5,192.8 L384.3,191.4 L391.2,190.1 L398.0,188.8 L404.8,187.5 L411.7,186.2 L418.5,185.0 L425.4,183.7 L432.2,182.5 L439.0,181.4 L445.9,180.2 L452.7,179.0 L459.6,177.9 L466.4,176.8 L473.2,175.7 L480.1,174.6 L486.9,173.6 L493.8,172.5 L500.6,171.5 L507.4,170.5 L514.3,169.5 L521.1,168.5 L528.0,167.5 L534.8,166.6 L541.6,165.6 L548.5,164.7 L555.3,163.8 L562.2,162.9 L569.0,162.0 L575.8,161.1 L582.7,160.2 L589.5,159.4 L596.4,158.5 L603.2,157.7 L610.0,156.8 L616.9,156.0 L623.7,155.2 L630.6,154.4 L637.4,153.6 L644.2,152.8 L651.1,152.0 L657.9,151.3 L664.8,150.5 L671.6,149.7 L678.4,149.0 L685.3,148.3 L692.1,147.5 L699.0,146.8 L705.8,146.1 L712.6,145.4 L719.5,144.7 L726.3,144.0 L733.2,143.3 L740.0,142.6" fill="none" stroke="#333" stroke-width="2"/>
+<path d="M56.0,293.8 L62.8,278.1 L69.7,265.2 L76.5,254.4 L83.4,245.0 L90.2,236.7 L97.0,229.3 L103.9,222.6 L110.7,216.4 L117.6,210.8 L124.4,205.6 L131.2,200.7 L138.1,196.2 L144.9,191.9 L151.8,187.9 L158.6,184.1 L165.4,180.5 L172.3,177.0 L179.1,173.8 L186.0,170.6 L192.8,167.6 L199.6,164.8 L206.5,162.0 L213.3,159.3 L220.2,156.8 L227.0,154.3 L233.8,151.9 L240.7,149.6 L247.5,147.4 L254.4,145.2 L261.2,143.1 L268.0,141.1 L274.9,139.1 L281.7,137.2 L288.6,135.3 L295.4,133.5 L302.2,131.7 L309.1,129.9 L315.9,128.2 L322.8,126.6 L329.6,125.0 L336.4,123.4 L343.3,121.8 L350.1,120.3 L357.0,118.8 L363.8,117.4 L370.6,116.0 L377.5,114.6 L384.3,113.2 L391.2,111.9 L398.0,110.5 L404.8,109.3 L411.7,108.0 L418.5,106.7 L425.4,105.5 L432.2,104.3 L439.0,103.1 L445.9,102.0 L452.7,100.8 L459.6,99.7 L466.4,98.6 L473.2,97.5 L480.1,96.4 L486.9,95.4 L493.8,94.3 L500.6,93.3 L507.4,92.3 L514.3,91.3 L521.1,90.3 L528.0,89.3 L534.8,88.4 L541.6,87.4 L548.5,86.5 L555.3,85.6 L562.2,84.7 L569.0,83.8 L575.8,82.9 L582.7,82.0 L589.5,81.1 L596.4,80.3 L603.2,79.4 L610.0,78.6 L616.9,77.8 L623.7,77.0 L630.6,76.2 L637.4,75.4 L644.2,74.6 L651.1,73.8 L657.9,73.0 L664.8,72.3 L671.6,71.5 L678.4,70.8 L685.3,70.0 L692.1,69.3 L699.0,68.6 L705.8,67.9 L712.6,67.2 L719.5,66.5 L726.3,65.8 L733.2,65.1 L740.0,64.4" fill="none" stroke="#333" stroke-width="1.5" stroke-dasharray="6 4"/>
+<circle cx="99.8" cy="304.7" r="5" fill="#1f77b4" stroke="#1f77b4" stroke-width="2"><title>ferney #1: 32k, 8.6 pts</title></circle>
+<circle cx="198.1" cy="243.6" r="5" fill="#1f77b4" stroke="#1f77b4" stroke-width="2"><title>ferney #2: 104k, 16.4 pts</title></circle>
+<circle cx="143.5" cy="271.0" r="5" fill="#1f77b4" stroke="#1f77b4" stroke-width="2"><title>ferney #3: 64k, 12.9 pts</title></circle>
+<circle cx="151.0" cy="266.6" r="5" fill="#1f77b4" stroke="#1f77b4" stroke-width="2"><title>ferney #4: 69k, 13.5 pts</title></circle>
+<circle cx="98.6" cy="305.9" r="5" fill="#1f77b4" stroke="#1f77b4" stroke-width="2"><title>ferney #5: 31k, 8.5 pts</title></circle>
+<circle cx="172.5" cy="255.2" r="5" fill="#d62728" stroke="#d62728" stroke-width="2"><title>macks #1: 85k, 14.9 pts</title></circle>
+<circle cx="441.9" cy="180.9" r="5" fill="#d62728" stroke="#d62728" stroke-width="2"><title>macks #2: 282k, 24.4 pts</title></circle>
+<circle cx="232.3" cy="230.7" r="5" fill="#d62728" stroke="#d62728" stroke-width="2"><title>macks #3: 129k, 18.1 pts</title></circle>
+<circle cx="629.9" cy="154.5" r="5" fill="#d62728" stroke="#d62728" stroke-width="2"><title>macks #4: 420k, 27.8 pts</title></circle>
+<circle cx="161.4" cy="260.8" r="5" fill="#d62728" stroke="#d62728" stroke-width="2"><title>macks #5: 77k, 14.2 pts</title></circle>
+<circle cx="150.5" cy="266.8" r="5" fill="#d62728" stroke="#d62728" stroke-width="2"><title>macks #6: 69k, 13.4 pts</title></circle>
+<circle cx="396.1" cy="189.1" r="5" fill="#d62728" stroke="#d62728" stroke-width="2"><title>macks #7: 249k, 23.4 pts</title></circle>
+<circle cx="271.2" cy="218.4" r="5" fill="#d62728" stroke="#d62728" stroke-width="2"><title>macks #8: 157k, 19.6 pts</title></circle>
+<path d="M676.6,64.0 l7,7 l-7,7 l-7,-7 z" fill="#2ca02c" stroke="#2ca02c" stroke-width="2"><title>grayson #1: 454k, 38.5 pts, needs an easement</title></path>
+<path d="M301.8,124.8 l7,7 l-7,7 l-7,-7 z" fill="#2ca02c" stroke="#2ca02c" stroke-width="2"><title>grayson #2: 180k, 30.7 pts, needs an easement</title></path>
+<path d="M634.4,68.7 l7,7 l-7,7 l-7,-7 z" fill="#2ca02c" stroke="#2ca02c" stroke-width="2"><title>grayson #3: 423k, 37.9 pts, needs an easement</title></path>
+<path d="M677.0,63.9 l7,7 l-7,7 l-7,-7 z" fill="#2ca02c" stroke="#2ca02c" stroke-width="2"><title>grayson #4: 454k, 38.5 pts, needs an easement</title></path>
+<text x="398" y="412" text-anchor="middle">Route cost (mid estimate)</text>
+<text transform="translate(16 196) rotate(-90)" text-anchor="middle">Driveway points</text>
+<g transform="translate(68 28)">
+<line x1="0" x2="24" y1="0" y2="0" stroke="#333" stroke-width="2"/><text x="30" y="4">within the grade limit</text>
+<line x1="0" x2="24" y1="18" y2="18" stroke="#333" stroke-dasharray="6 4"/><text x="30" y="22">+10: no route within the limit (open), or the route needs an easement (diamonds)</text>
+<circle cx="12" cy="40" r="5" fill="#1f77b4"/><text x="30" y="44">ferney</text><circle cx="12" cy="58" r="5" fill="#d62728"/><text x="30" y="62">macks</text><circle cx="12" cy="76" r="5" fill="#2ca02c"/><text x="30" y="80">grayson</text>
+</g>
+</svg>

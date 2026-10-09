@@ -1,5 +1,6 @@
 /** The Driveway section (proto L1515–1532): entrances, routed alignments with costs, the pioneer track. */
 import { fmt } from "../format";
+import { routeLabel } from "../screen/routeLabel";
 import type { PartialScreenResult } from "../screen/types";
 import type { FactRow } from "./facts";
 import { said, type Heading, type Part } from "./parts";
@@ -98,7 +99,7 @@ function routeView(rt: Route, i: number): RouteView {
       strong: `${fmt(m.outsideFt)} ft outside the line — needs an easement`,
     });
   return {
-    title: `${i ? "Alternative" : "Recommended"} — ${rt.label}`,
+    title: `${i ? "Alternative" : "Recommended"} — ${routeLabel(rt)}`,
     from: `from E${rt.entranceIndex + 1}`,
     cost: k$(rt.cost),
     rows,

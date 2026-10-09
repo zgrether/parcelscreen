@@ -29,7 +29,8 @@ import { writeReport } from "./gradeStudyDoc";
 
 const BROWSER_UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36";
-export const STUDY_DIR = "tmp/study";
+/** Where a run keeps its screens; STUDY_DIR picks another, so a re-run at a new engine keeps the last one. */
+export const STUDY_DIR = process.env.STUDY_DIR ?? "tmp/study";
 const M2_PER_ACRE = 4046.8564224;
 
 export const COUNTIES = [
@@ -379,7 +380,15 @@ describe.runIf(import.meta.env.MODE === "grade-study" && process.env.STAGE === "
   () => {
     it("writes docs/studies/grade-distribution.md", () => {
       const parcels = JSON.parse(readFileSync(`${STUDY_DIR}/parcels.json`, "utf8")) as StudyParcel[];
-      writeReport(parcels, readFileSync(`${STUDY_DIR}/selection-log.txt`, "utf8"));
+      // PREV_DIR: an earlier run of the same parcels (another engine), to compare grade shares with.
+      const prevDir = process.env.PREV_DIR;
+      const prev = prevDir
+        ? {
+            parcels: JSON.parse(readFileSync(`${prevDir}/parcels.json`, "utf8")) as StudyParcel[],
+            engine: Number(process.env.PREV_ENGINE ?? 0),
+          }
+        : undefined;
+      writeReport(parcels, readFileSync(`${STUDY_DIR}/selection-log.txt`, "utf8"), prev);
     });
   },
 );

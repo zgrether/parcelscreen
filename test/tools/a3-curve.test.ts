@@ -1,7 +1,8 @@
 /**
  * A3's driveway curve (owner, 2026-10-09): points = k · ln(1 + cost / c0) (+ noRoute, + easement, capped), and
  * where every ranked site of the three fixtures sits on it, from the pipeline as it now runs (every site routed by
- * siteDriveways). Writes docs/studies/a3-driveway-curve.md and docs/studies/a3-driveway-curve.svg.
+ * siteDriveways). Writes docs/studies/<CURVE_NAME>.md and .svg (a3b-driveway-curve by default; A3's engine-5 chart
+ * is a3-driveway-curve, kept as it was, before the router fix).
  *
  *   pnpm a3:curve
  */
@@ -11,12 +12,16 @@ import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { siteDriveways } from "@/lib/screen/driveway";
 import { routeContext } from "@/lib/screen/index";
 import { drivewayPoints } from "@/lib/screen/score";
+import { ENGINE_VERSION } from "@/lib/screen/engine";
 import { FIXTURE_SLUGS } from "../support/fixtures";
 import { runFixture } from "../support/scenarios";
 
 const C = SCREEN_CONSTANTS.score.drivewayCost;
-const DOC = "docs/studies/a3-driveway-curve.md";
-const SVG = "docs/studies/a3-driveway-curve.svg";
+/** The chart's name and caption: A3's (engine 5, before the router fix) or A3b's (engine 6, after it). */
+const NAME = process.env.CURVE_NAME ?? `a3b-driveway-curve`;
+const CAPTION = process.env.CURVE_CAPTION ?? `Engine ${ENGINE_VERSION}, after the router fix (A3b)`;
+const DOC = `docs/studies/${NAME}.md`;
+const SVG = `docs/studies/${NAME}.svg`;
 const curve = (cost: number) => C.k * Math.log(1 + cost / C.c0);
 
 interface Point {
@@ -38,19 +43,20 @@ function svg(points: Point[]): string {
     R = 20,
     T = 20,
     B = 48;
-  const xMax = 450_000,
+  const xMax = 500_000,
     yMax = 45;
   const x = (c: number) => L + (c / xMax) * (W - L - R);
   const y = (p: number) => T + (1 - p / yMax) * (H - T - B);
   const path = (off: number) =>
-    Array.from({ length: 91 }, (_, i) => (i * xMax) / 90)
+    Array.from({ length: 101 }, (_, i) => (i * xMax) / 100)
       .map((c, i) => `${i ? "L" : "M"}${x(c).toFixed(1)},${y(Math.min(C.max, curve(c) + off)).toFixed(1)}`)
       .join(" ");
   const colour: Record<string, string> = { ferney: "#1f77b4", macks: "#d62728", grayson: "#2ca02c" };
-  const ticksX = [0, 50_000, 100_000, 150_000, 200_000, 250_000, 300_000, 350_000, 400_000, 450_000];
+  const ticksX = [0, 50_000, 100_000, 150_000, 200_000, 250_000, 300_000, 350_000, 400_000, 450_000, 500_000];
   const ticksY = [0, 10, 20, 30, 40];
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" font-family="sans-serif" font-size="12">
 <rect width="${W}" height="${H}" fill="#fff"/>
+<text x="${W - R}" y="${T + 4}" text-anchor="end" font-weight="bold">${CAPTION}</text>
 ${ticksY.map((t) => `<line x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}" stroke="#eee"/><text x="${L - 8}" y="${y(t) + 4}" text-anchor="end">${t}</text>`).join("\n")}
 ${ticksX.map((t) => `<text x="${x(t)}" y="${H - B + 18}" text-anchor="middle">$${t / 1000}k</text>`).join("\n")}
 <line x1="${L}" x2="${W - R}" y1="${y(C.max)}" y2="${y(C.max)}" stroke="#999" stroke-dasharray="4 3"/>
@@ -59,16 +65,17 @@ ${ticksX.map((t) => `<text x="${x(t)}" y="${H - B + 18}" text-anchor="middle">$$
 <path d="${path(C.noRoute)}" fill="none" stroke="#333" stroke-width="1.5" stroke-dasharray="6 4"/>
 ${points
   .filter((p) => p.cost != null)
-  .map(
-    (p) =>
-      `<circle cx="${x(p.cost!).toFixed(1)}" cy="${y(p.points).toFixed(1)}" r="5" fill="${p.legal ? colour[p.fixture] : "#fff"}" stroke="${colour[p.fixture]}" stroke-width="2"><title>${p.fixture} #${p.rank}: $${Math.round(p.cost! / 1000)}k, ${p.points.toFixed(1)} pts</title></circle>`,
+  .map((p) =>
+    p.easement
+      ? `<path d="M${x(p.cost!).toFixed(1)},${(y(p.points) - 7).toFixed(1)} l7,7 l-7,7 l-7,-7 z" fill="${p.legal ? colour[p.fixture] : "#fff"}" stroke="${colour[p.fixture]}" stroke-width="2"><title>${p.fixture} #${p.rank}: ${Math.round(p.cost! / 1000)}k, ${p.points.toFixed(1)} pts, needs an easement</title></path>`
+      : `<circle cx="${x(p.cost!).toFixed(1)}" cy="${y(p.points).toFixed(1)}" r="5" fill="${p.legal ? colour[p.fixture] : "#fff"}" stroke="${colour[p.fixture]}" stroke-width="2"><title>${p.fixture} #${p.rank}: ${Math.round(p.cost! / 1000)}k, ${p.points.toFixed(1)} pts</title></circle>`,
   )
   .join("\n")}
 <text x="${(L + W - R) / 2}" y="${H - 8}" text-anchor="middle">Route cost (mid estimate)</text>
 <text transform="translate(16 ${(T + H - B) / 2}) rotate(-90)" text-anchor="middle">Driveway points</text>
 <g transform="translate(${L + 12} ${T + 8})">
 <line x1="0" x2="24" y1="0" y2="0" stroke="#333" stroke-width="2"/><text x="30" y="4">within the grade limit</text>
-<line x1="0" x2="24" y1="18" y2="18" stroke="#333" stroke-dasharray="6 4"/><text x="30" y="22">+${C.noRoute}: no route within the limit (open dots), or an easement</text>
+<line x1="0" x2="24" y1="18" y2="18" stroke="#333" stroke-dasharray="6 4"/><text x="30" y="22">+${C.noRoute}: no route within the limit (open), or the route needs an easement (diamonds)</text>
 ${Object.entries(colour)
   .map(
     ([k, c], i) =>
@@ -113,7 +120,7 @@ describe.runIf(import.meta.env.MODE === "a3-curve")("A3 driveway curve", () => {
       writeFileSync(SVG, svg(points));
       const marks = [10_000, 25_000, 50_000, 100_000, 150_000, 250_000, 400_000];
       const max = Math.max(...points.map((p) => p.points));
-      const md = `# A3's driveway points curve
+      const md = `# The driveway points curve: ${CAPTION}
 
 Batch A, A3 (owner, 2026-10-09). Every ranked site's driveway is routed (\`siteDriveways\`), and its points come from
 the route's cost estimate (mid):
@@ -129,7 +136,7 @@ site on the three fixtures has no route within the limit, so it takes the +${C.n
 ${max.toFixed(1)} points, under the cap of ${C.max}. For comparison, today's linear rule (length / 100 ft) reaches its
 30-point maximum at 3,000 ft. The curve keeps separating sites past that.
 
-![The curve and every fixture site on it](a3-driveway-curve.svg)
+![The curve and every fixture site on it](${NAME}.svg)
 
 | Route cost | ${marks.map((m) => `$${m / 1000}k`).join(" | ")} |
 |---|${marks.map(() => "---").join("|")}|
@@ -143,7 +150,7 @@ ${max.toFixed(1)} points, under the cap of ${C.max}. For comparison, today's lin
 ${points
   .map(
     (p) =>
-      `| ${p.fixture} | #${p.rank} | ${p.acres.toFixed(2)} ac${p.shelf ? " shelf" : ""} | ${p.cost == null ? "none reaches it" : p.legal ? "within the limit" : "least-steep (over the limit)"}${p.easement ? ", easement" : ""} | ${p.lengthFt == null ? "—" : Math.round(p.lengthFt)} | ${p.cost == null ? "—" : `$${Math.round(p.cost / 1000)}k`} | ${p.points.toFixed(1)} |`,
+      `| ${p.fixture} | #${p.rank} | ${p.acres.toFixed(2)} ac${p.shelf ? " shelf" : ""} | ${p.cost == null ? "none reaches it" : p.legal ? "within the limit" : "least-steep (over the limit)"}${p.easement ? ", needs an easement" : ""} | ${p.lengthFt == null ? "—" : Math.round(p.lengthFt)} | ${p.cost == null ? "—" : `$${Math.round(p.cost / 1000)}k`} | ${p.points.toFixed(1)} |`,
   )
   .join("\n")}
 `;

@@ -134,8 +134,10 @@ export function HelpText() {
       <p>
         Drive times from OSRM&apos;s public router — fine for comparing parcels, not for catching flights.
         Hospitals, groceries and trailheads come from OpenStreetMap and undercount national-forest trailheads.
-        The driveway line is straight-line rise over run from the nearest Census road to the site; a real
-        driveway at 10% needs the length shown.
+        The road grade is straight-line rise over run from the nearest Census road to the site. Driveways are
+        routed: each house site&apos;s driveway is drawn over the terrain from a road entrance, within the
+        grade limit (10% unless you change it), and that route&apos;s cost estimate is the driveway part of
+        the site&apos;s score.
       </p>
 
       <h3 id="h-unknown">Still unknown</h3>

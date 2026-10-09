@@ -34,7 +34,8 @@
     "record:port": "vitest run test/tools/record-port.test.ts --mode record-port",
     "study:grades": "vitest run test/tools/grade-study.test.ts --mode grade-study",
     "a3:analysis": "vitest run test/tools/a3-analysis.test.ts --mode a3",
-    "a3:curve": "vitest run test/tools/a3-curve.test.ts --mode a3-curve"
+    "a3:curve": "vitest run test/tools/a3-curve.test.ts --mode a3-curve",
+    "a3b:router": "vitest run test/tools/a3b-router.test.ts --mode a3b"
   },
   "dependencies": {
     "@serwist/turbopack": "9.5.13",

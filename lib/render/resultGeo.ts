@@ -6,6 +6,7 @@
 import type { Feature, FeatureCollection, LineString, MultiPolygon, Point, Polygon } from "geojson";
 import { lineSliceAlong } from "@turf/turf";
 import { fmt } from "../format";
+import { routeLabel } from "../screen/routeLabel";
 import type { LatLon } from "../geo/types";
 import type { PartialScreenResult } from "../screen/types";
 
@@ -89,7 +90,7 @@ export function drivewayFeatures(r: PartialScreenResult): {
       properties: {
         kind: "route",
         i,
-        tip: `${rt.label}: ${fmt(rt.metrics.lengthFt)} ft, max ${rt.metrics.maxGradePct.toFixed(0)}%, ~$${fmt(rt.cost.mid / 1000)}k`,
+        tip: `${routeLabel(rt)}: ${fmt(rt.metrics.lengthFt)} ft, max ${rt.metrics.maxGradePct.toFixed(0)}%, ~$${fmt(rt.cost.mid / 1000)}k`,
       },
       geometry: rt.line.geometry,
     });

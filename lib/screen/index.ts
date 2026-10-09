@@ -33,6 +33,7 @@ import {
   rerank,
   shelvesFromBest,
   withDrivewayCost,
+  withRoutedLineAppended,
   withRoutedWhy,
   type ScoreContext,
 } from "./score";
@@ -269,7 +270,7 @@ export async function screen(
       s.units = null; // the prototype carries on without map units (and so without vetoes)
     }
     R.soilUnits = s.units && s.units.map(({ geos, ...u }) => ({ ...u, geometries: geos }));
-    // Re-pick the best bench: the biggest one that is not bottomland (gardens are only adjusted here too).
+    // Re-pick the best bench: the biggest one that is not bottomland.
     if (s.dFine && s.search && s.search.benches.length) {
       const vet = vetBenches(s.search.benches, s.dFine, s.units, rows);
       s.vetted = vet.benches;
@@ -277,9 +278,11 @@ export async function screen(
       s.bestId = best?.id ?? 0;
       const pins = new Map(s.search.benches.map((b, i) => [b.id, R.benches![i]!]));
       R.benches = vet.benches.map((b) => ({ ...pins.get(b.id)!, veto: b.veto }));
-      R.gardens = vetGardens(R.gardens || [], s.units, rows);
       R.flags.push(...vet.flags);
     }
+    // Gardens get their soil adjustment whether or not there's a house site (follow-up 20, A3b): the prototype
+    // adjusted them only inside the bench block above.
+    if (R.gardens && R.gardens.length) R.gardens = vetGardens(R.gardens, s.units, rows);
     R.flags.push(...soilFlags(rows, s.units, s.acres, cfg.shallowBedrockCm));
   });
 
@@ -389,6 +392,9 @@ export async function screen(
     const sctx = scoreContext();
     // A3 (owner, 2026-10-09): every ranked site re-costed from its own routed driveway, all in one search per
     // entrance (siteDriveways), so the ranking compares like with like.
+    // Each site's route, by position (rerank copies the sites).
+    const routeAt = new Map<string, SiteDriveway>();
+    const at = (ll: LatLon) => `${ll[0]},${ll[1]}`;
     if (R.sites && R.sites.length) {
       const est = siteDriveways(
         rctx,
@@ -397,6 +403,7 @@ export async function screen(
         R.sites.map((x) => x.ll),
         cfg.roadMaxGradePct,
       );
+      R.sites.forEach((x, i) => routeAt.set(at(x.ll), est[i]!));
       R.sites = rerank(R.sites.map((x, i) => withDrivewayCost(sctx, x, est[i]!)));
     }
     const to = house
@@ -407,7 +414,14 @@ export async function screen(
     if (!to) throw new Error("no site to route to");
     R.driveway = buildDriveway(rctx, s.roads ?? [], parcel, to.ll, to.label, cfg.roadMaxGradePct);
     const rt = R.driveway.routes[0];
-    if (rt && R.sites && R.sites[0] && !house) R.sites = [withRoutedWhy(R.sites[0], rt), ...R.sites.slice(1)];
+    // Site #1 keeps the prototype's routed line in place of its straight-line one; every other site with a route
+    // within the limit gets the same line appended (A3b, owner 2026-10-09).
+    if (R.sites)
+      R.sites = R.sites.map((x, i) => {
+        if (i === 0 && rt && !house) return withRoutedWhy(x, rt);
+        const dw = routeAt.get(at(x.ll));
+        return dw ? withRoutedLineAppended(x, dw) : x;
+      });
     if (house && R.house) R.house = houseWithDriveway(sctx, R.house, R.driveway);
     if (R.shelves && R.sites) R.shelves = shelvesFromBest(R.shelves, R.sites);
     return R.driveway.note ?? undefined;

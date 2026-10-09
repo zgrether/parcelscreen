@@ -11,6 +11,7 @@ import { inSfha, type FloodFeature } from "./flood";
 import { nearestRoad, type RoadFeature } from "./roads";
 import { frostCurve, type SiteSearch } from "./sites";
 import type { SiteDriveway } from "./driveway";
+import { NEEDS_EASEMENT } from "./routeLabel";
 import { bottomland, soilAt, type SoilLimits, type SoilUnit, type VettedBench } from "./soils";
 import { horizonProfile, sunHours } from "./sun";
 import type { Dem, ScreenResult, Site, SoilRow, UserConfig } from "./types";
@@ -411,6 +412,11 @@ export function assessHouse(
 
 type Route = NonNullable<ScreenResult["driveway"]>["routes"][number];
 
+/** The routed-driveway line (the prototype's, for site #1): length, grade cap, switchbacks and cost range. */
+export function routedLine(rt: Pick<Route, "metrics" | "maxGrade" | "cost" | "needsEasement">): string {
+  return `routed driveway: ${Math.round(rt.metrics.lengthFt)} ft at ≤${(rt.maxGrade * 100).toFixed(0)}%, ${rt.metrics.switchbacks} switchback${rt.metrics.switchbacks === 1 ? "" : "s"}, ~$${fmt(rt.cost.low / 1000)}–${fmt(rt.cost.high / 1000)}k${rt.needsEasement ? `, ${NEEDS_EASEMENT}` : ""}`;
+}
+
 /**
  * Site #1's reasons with its routed driveway in place of the straight-line line (the prototype's driveway step).
  * Since A3 the driveway points and score come from withDrivewayCost, for every ranked site; this keeps #1's
@@ -419,9 +425,14 @@ type Route = NonNullable<ScreenResult["driveway"]>["routes"][number];
 export function withRoutedWhy(site: Site, rt: Route): Site {
   return {
     ...site,
-    why: [
-      ...site.why.filter((x) => !/ft to .* at .*straight-line/.test(x)),
-      `routed driveway: ${Math.round(rt.metrics.lengthFt)} ft at ≤${(rt.maxGrade * 100).toFixed(0)}%, ${rt.metrics.switchbacks} switchback${rt.metrics.switchbacks === 1 ? "" : "s"}, ~$${fmt(rt.cost.low / 1000)}–${fmt(rt.cost.high / 1000)}k`,
-    ],
+    why: [...site.why.filter((x) => !/ft to .* at .*straight-line/.test(x)), routedLine(rt)],
   };
+}
+
+/**
+ * Any other ranked site with a route within the grade limit: the same line, appended after its own (A3b, owner
+ * 2026-10-09; rule 7: added, nothing replaced). A least-steep route gets no line: its "≤ N%" would read as legal.
+ */
+export function withRoutedLineAppended(site: Site, dw: SiteDriveway): Site {
+  return dw.legal && dw.route ? { ...site, why: [...site.why, routedLine(dw.route)] } : site;
 }
