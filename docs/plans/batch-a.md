@@ -468,11 +468,27 @@ shows both penalty forms with the synthetic over-limit site; Grayson's #1 before
   and grades are unchanged; Ferney and Macks are unchanged.
 - **The site's card** appends both candidates when they differ, the scored one first (rule 7; the owner's wording). The
   driveway section still recommends the route within the limit, labelled "needs an easement". Showing the scored route
-  there as the primary drawing is planned in #88, for the owner's approval before code.
+  there as the primary drawing was planned in #88 and approved; it is the next PR (below).
 - **Help text** (owner, #88 review; appended): "Where that route needs an easement, or there is none, the site is
   scored on whichever costs fewer points: …; the site shows both."
 - **Routing time,** both candidates for every site: 0.20, 0.48 and 0.23 s (Ferney, Macks, Grayson).
- in place of NRCS's septic and foundation ratings (follow-up 45)
+
+**After A4 (owner, #88 review, 2026-10-09):**
+- **The driveway section leads with the scored route** (its own PR after #88; ENGINE_VERSION 8): over the limit, the
+  suspect card and drawing first, with the route through the neighbours as the alternative, "Within 10% only via
+  neighbouring land — needs an easement". An approved exception to rule 7: `phase-0.md` §9, decision 22.
+- **Next, A4b (report only): the router's realism.** The reported maximum grade measured the way the limit is
+  enforced, over 15, 30 and 60 m windows along the smoothed route; zigzag inflation (router length against a
+  simplified, grade-checked path); a proposed turn penalty, minimum leg between switchbacks, switchback radius and
+  post-route smoothing; and a veto simulation: `driveway.vetoGradePct` = 20 (shown in Settings), so a candidate
+  whose 30 m-window grade exceeds it is not eligible whatever its cost, and when every candidate is vetoed the
+  least-bad one is shown under a "no practical route found" flag (never an empty result). The report shows
+  Grayson's route through the neighbours at 15/30/60 m before and after the fix, and whether the veto removes it.
+  The margin (+20 against the easement's +10) stays until then.
+- **Then** `docs/plans/value-ranking.md`, then follow-up 47 (unit-cost calibration). Follow-up 46 stays the county
+  grade and fire-access limits.
+
+## 5b. A5: soil properties in place of NRCS's septic and foundation ratings (follow-up 45)
 
 Owner, 2026-10-09. First a **report-only simulation on the 27-parcel study** (`docs/studies/`): each candidate
 property (depth to bedrock or another restrictive layer, the slowest layer's Ksat, slope within the unit) and the

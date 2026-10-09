@@ -17,6 +17,7 @@ import {
   flowAccum,
   siteDriveways,
   soilMask,
+  withScoredRoute,
   type RouteContext,
   type SiteRoutes,
 } from "./driveway";
@@ -414,7 +415,12 @@ export async function screen(
         ? { ll: R.sites[0].ll, label: "site #1" }
         : null;
     if (!to) throw new Error("no site to route to");
+    const toRoutes = house
+      ? houseRoutes(rctx, s.roads ?? [], parcel, house, cfg.roadMaxGradePct)
+      : routeAt.get(at(to.ll));
     R.driveway = buildDriveway(rctx, s.roads ?? [], parcel, to.ll, to.label, cfg.roadMaxGradePct);
+    // The route the target is scored on, first in the section and on the map (owner, #88 review).
+    if (toRoutes) R.driveway = withScoredRoute(rctx, R.driveway, chooseDriveway(toRoutes), to.ll);
     const rt = R.driveway.routes[0];
     // Site #1 keeps the prototype's routed line in place of its straight-line one; every other site with a route
     // within the limit gets the same line appended (A3b, owner 2026-10-09). Then, where its two candidates differ,
@@ -430,12 +436,7 @@ export async function screen(
               : x;
         return r ? withDrivewayChoice(y, r, cfg.roadMaxGradePct) : y;
       });
-    if (house && R.house)
-      R.house = houseWithDriveway(
-        sctx,
-        R.house,
-        houseRoutes(rctx, s.roads ?? [], parcel, house, cfg.roadMaxGradePct),
-      );
+    if (house && R.house && toRoutes) R.house = houseWithDriveway(sctx, R.house, toRoutes);
     if (R.shelves && R.sites) R.shelves = shelvesFromBest(R.shelves, R.sites);
     return R.driveway.note ?? undefined;
   });
@@ -497,15 +498,12 @@ export async function evaluateAt(out: ScreenOutput, ll: LatLon, label: string): 
     /* keep the previous sky */
   }
   try {
-    if (s.inside)
-      result.driveway = buildDriveway(
-        routeContext(session),
-        s.roads ?? [],
-        s.parcel,
-        ll,
-        label,
-        s.config.roadMaxGradePct,
-      );
+    if (s.inside) {
+      const ctx = routeContext(session);
+      const dw = buildDriveway(ctx, s.roads ?? [], s.parcel, ll, label, s.config.roadMaxGradePct);
+      const routes = siteDriveways(ctx, s.roads ?? [], s.parcel, [ll], s.config.roadMaxGradePct)[0]!;
+      result.driveway = withScoredRoute(ctx, dw, chooseDriveway(routes), ll);
+    }
   } catch {
     /* keep the previous driveway */
   }

@@ -1,6 +1,6 @@
 /** The Driveway section (proto L1515–1532): entrances, routed alignments with costs, the pioneer track. */
 import { fmt } from "../format";
-import { routeLabel } from "../screen/routeLabel";
+import { NEEDS_EASEMENT, routeLabel } from "../screen/routeLabel";
 import type { PartialScreenResult } from "../screen/types";
 import type { FactRow } from "./facts";
 import { said, type Heading, type Part } from "./parts";
@@ -31,7 +31,11 @@ export interface DrivewayView {
   note: string | null;
   entrances: string | null;
   routes: RouteView[];
-  /** When no route fits the limit: the least-steep one, shown as suspect (owner, after 15c). */
+  /**
+   * When no route fits the limit: the least-steep one, shown as suspect (owner, after 15c). Since #88's follow-up
+   * also when the route kept to the parcel over the limit is the one scored: it comes first, and the routes within
+   * the limit are the alternatives.
+   */
   overLimit: RouteView | null;
   track: { rows: FactRow[]; note: string } | null;
   caveat: Part[];
@@ -72,7 +76,14 @@ function overLimitView(o: NonNullable<NonNullable<PartialScreenResult["driveway"
   };
 }
 
-function routeView(rt: Route, i: number): RouteView {
+/**
+ * The scored route over the limit is shown first; the route within the limit that needs an easement is then the
+ * alternative, titled in the owner's words (#88 review; an approved rule-7 exception, phase-0.md §9).
+ */
+export const viaNeighbours = (limitPct: number) =>
+  `Within ${fmt(limitPct)}% only via neighbouring land — ${NEEDS_EASEMENT}`;
+
+function routeView(rt: Route, i: number, overLimitPct: number | null = null): RouteView {
   const m = rt.metrics;
   const rows: FactRow[] = [
     { label: "Length / rise", value: `${fmt(m.lengthFt)} ft / ${fmt(m.riseFt)} ft` },
@@ -99,7 +110,10 @@ function routeView(rt: Route, i: number): RouteView {
       strong: `${fmt(m.outsideFt)} ft outside the line — needs an easement`,
     });
   return {
-    title: `${i ? "Alternative" : "Recommended"} — ${routeLabel(rt)}`,
+    title:
+      overLimitPct != null && i === 0 && rt.needsEasement
+        ? viaNeighbours(overLimitPct)
+        : `${i || overLimitPct != null ? "Alternative" : "Recommended"} — ${routeLabel(rt)}`,
     from: `from E${rt.entranceIndex + 1}`,
     cost: k$(rt.cost),
     rows,
@@ -111,7 +125,9 @@ function routeView(rt: Route, i: number): RouteView {
 export function drivewayView(r: PartialScreenResult): DrivewayView | null {
   const d = r.driveway;
   if (!d) return null;
-  const first = d.routes[0];
+  // The pioneer track follows the scored route: the over-limit one when it is scored (it then carries the track).
+  const first = d.overLimit?.track ? d.overLimit : d.routes[0];
+  const overLimitPct = d.overLimit && d.routes.length ? d.overLimit.limitPct : null;
   return {
     note: d.note,
     entrances: d.entrances.length
@@ -122,7 +138,7 @@ export function drivewayView(r: PartialScreenResult): DrivewayView | null {
           )
           .join("; ")}.`
       : null,
-    routes: d.routes.map(routeView),
+    routes: d.routes.map((rt, i) => routeView(rt, i, overLimitPct)),
     overLimit: d.overLimit ? overLimitView(d.overLimit) : null,
     track: first?.track
       ? {

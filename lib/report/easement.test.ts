@@ -42,7 +42,11 @@ describe("routes that need an easement say so (owner, #87)", () => {
   it("Grayson's #1 is the case: its driveway card's route crosses neighbouring land", () => {
     const r = run("grayson-mud-creek-6273");
     expect(r.driveway!.routes[0]!.needsEasement).toBe(true);
-    expect(drivewayView(r)!.routes[0]!.title).toBe("Recommended — shortest legal — needs an easement");
+    // Since #88's follow-up the scored route kept to the parcel comes first, and this route is the alternative
+    // titled in the owner's words (an approved replacement of "Recommended — shortest legal — needs an easement").
+    expect(drivewayView(r)!.routes[0]!.title).toBe(
+      "Within 10% only via neighbouring land — needs an easement",
+    );
     expect(r.sites![0]!.why.find((w) => w.startsWith("routed driveway"))).toMatch(
       /^routed driveway: .*, needs an easement$/,
     );

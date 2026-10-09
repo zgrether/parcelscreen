@@ -858,3 +858,49 @@ export function buildDriveway(
   if (direct) dw.direct = { ...direct, entranceIndex: rec.entranceIndex, track: trackCost(direct, ctx.dw) };
   return dw;
 }
+
+/**
+ * The driveway built to #1 (or the house, or a picked point) with the route it is scored on first (owner, #88 review
+ * and its approved plan). buildDriveway lists the cheapest routes within the limit; the score takes the candidate
+ * with fewer points (chooseDriveway), which can be the route kept to the parcel:
+ * - over the limit: it fills `overLimit` (shown and drawn first, as suspect, with the over-limit sentence appended
+ *   to the note), and the routes within the limit stay as the alternatives;
+ * - within the limit but not routes[0]: it goes first in `routes`.
+ * The pioneer track and the direct line follow the scored route. When no route fits the limit at all, buildDriveway
+ * already shows the least-steep one, and the result is unchanged.
+ */
+export function withScoredRoute(
+  ctx: RouteContext,
+  dw: Driveway,
+  scored: SiteDriveway,
+  toLL: LatLon,
+): Driveway {
+  const rt = scored.route;
+  const first = dw.routes[0];
+  if (!rt || scored.entranceIndex == null || !first) return dw;
+  const entranceIndex = scored.entranceIndex;
+  /** The scored route itself (siteDriveways and buildDriveway find the same routes, A3). */
+  const isScored = (r: Route) =>
+    r.entranceIndex === entranceIndex &&
+    r.cost.mid === rt.cost.mid &&
+    r.metrics.lengthFt === rt.metrics.lengthFt;
+  if (scored.legal && isScored(first)) return dw;
+  const track = trackCost(rt, ctx.dw);
+  const routes = dw.routes.map(({ track: _track, ...r }) => r);
+  const direct = routeDriveway(ctx, dw.entrances[entranceIndex]!.ll, toLL, K.direct);
+  const out: Driveway = { ...dw, routes };
+  delete out.direct;
+  if (direct) out.direct = { ...direct, entranceIndex, track: trackCost(direct, ctx.dw) };
+  if (!scored.legal) {
+    const over: OverLimitRoute = { ...(rt as OverLimitRoute), entranceIndex, track };
+    const sentence = overLimitNote(over);
+    return { ...out, overLimit: over, note: dw.note ? `${dw.note} ${sentence}` : sentence };
+  }
+  return {
+    ...out,
+    routes: [{ ...(rt as RawRoute), entranceIndex, track }, ...routes.filter((r) => !isScored(r))].slice(
+      0,
+      K.routesKept,
+    ),
+  };
+}
