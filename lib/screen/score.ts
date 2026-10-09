@@ -124,15 +124,25 @@ export function drivewayPoints(dw: SiteDriveway): number {
   return Math.min(C.max, p);
 }
 
-/**
- * The over-limit term (A4, owner #87 review): noRoute scaled by the grade the least-steep route needs above the
- * limit, full at noRouteFullPct over. A route within the limit takes none.
- */
+/** The over-limit term for a driveway (A4): none within the limit, else overLimitTerm of the grade it needs. */
 export function overLimitPoints(dw: SiteDriveway): number {
-  const C = K.drivewayCost;
   if (dw.legal || !dw.route || !("limitPct" in dw.route)) return 0;
-  const over = Math.max(0, neededPct(dw.route) - dw.route.limitPct);
-  return C.noRoute * Math.min(1, over / C.noRouteFullPct);
+  return overLimitTerm(neededPct(dw.route), dw.route.limitPct);
+}
+
+/**
+ * The over-limit term for a route needing `neededPct` under a `limitPct` limit (A4, owner #88 review):
+ * overLimitPtsPerPct a percent over the limit up to practicalMaxPct (or the limit, if higher), then straight up to
+ * overLimitMaxPts at overLimitMaxAtPct and above. Under a 10% limit: 11% +1, 15% +5, 18% +14, 20% and over +20.
+ */
+export function overLimitTerm(neededPct: number, limitPct: number): number {
+  const D = SCREEN_CONSTANTS.driveway;
+  if (neededPct <= limitPct) return 0;
+  const knee = Math.max(limitPct, D.practicalMaxPct);
+  if (neededPct <= knee) return (neededPct - limitPct) * D.overLimitPtsPerPct;
+  if (neededPct >= D.overLimitMaxAtPct || knee >= D.overLimitMaxAtPct) return D.overLimitMaxPts;
+  const atKnee = (knee - limitPct) * D.overLimitPtsPerPct;
+  return atKnee + ((neededPct - knee) / (D.overLimitMaxAtPct - knee)) * (D.overLimitMaxPts - atKnee);
 }
 
 /**

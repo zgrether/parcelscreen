@@ -8,7 +8,7 @@ import { runFixture } from "../../test/support/scenarios";
 import { SCREEN_CONSTANTS } from "./config";
 import { buildDriveway, entranceCandidates, leastSteep, siteDriveways, type SiteDriveway } from "./driveway";
 import { routeContext } from "./index";
-import { chooseDriveway, drivewayChoiceLines, drivewayPoints } from "./score";
+import { chooseDriveway, drivewayChoiceLines, drivewayPoints, overLimitTerm } from "./score";
 
 const C = SCREEN_CONSTANTS.score.drivewayCost;
 
@@ -60,10 +60,22 @@ describe("the scored route: the candidate with fewer points (A4)", () => {
     expect(chooseDriveway({ withinLimit: easement, onParcel: own })).toBe(own);
   });
 
-  // At 20% and over the over-limit term is the full 10, the same as the easement's, so the cost decides.
-  it("a 22% route on the parcel that costs more loses to the easement route", () => {
-    const steep = dwOf({ mid: 500_000, ft: 4228, legal: false, neededPct: 22 });
+  // At 20% and over the over-limit term is +20, past the easement's +10 (owner, #88 review).
+  it("the same route needing 22% loses to the easement route; needing 15% it still wins", () => {
+    const steep = dwOf({ mid: 382_000, ft: 4228, legal: false, neededPct: 22 });
+    expect(drivewayPoints(steep)).toBe(C.max); // 27.0 + 20, capped
     expect(chooseDriveway({ withinLimit: easement, onParcel: steep })).toBe(easement);
+    const fifteen = dwOf({ mid: 382_000, ft: 4228, legal: false, neededPct: 15 });
+    expect(drivewayPoints(fifteen)).toBeCloseTo(C.k * Math.log(1 + 382_000 / C.c0) + 5, 9);
+    expect(chooseDriveway({ withinLimit: easement, onParcel: fifteen })).toBe(fifteen);
+  });
+
+  it("the over-limit term under a 10% limit: +1 a percent to 15%, then straight up to +20 at 20%", () => {
+    expect([10, 11, 13, 15, 16, 18, 20, 25, 30].map((p) => overLimitTerm(p, 10))).toEqual([
+      0, 1, 3, 5, 8, 14, 20, 20, 20,
+    ]);
+    // Under a 6% limit the first stretch is longer (+9 at 15%); over 15% the rise still ends at +20 at 20%.
+    expect([7, 15, 20].map((p) => overLimitTerm(p, 6))).toEqual([1, 9, 20]);
   });
 
   it("a tie goes to the route within the limit; a route on the parcel within the limit is both", () => {
@@ -80,7 +92,7 @@ describe("the scored route: the candidate with fewer points (A4)", () => {
       "Best on your land: 11%, 4228 ft",
       "Within 10% only via neighbouring land (needs an easement): 5176 ft",
     ]);
-    const steep = dwOf({ mid: 500_000, ft: 4228, legal: false, neededPct: 22 });
+    const steep = dwOf({ mid: 382_000, ft: 4228, legal: false, neededPct: 22 });
     expect(drivewayChoiceLines({ withinLimit: easement, onParcel: steep }, 10)).toEqual([
       "Within 10% only via neighbouring land (needs an easement): 5176 ft",
       "Best on your land: 22%, 4228 ft",

@@ -29,13 +29,14 @@ describe("driveway points from the route's cost (A3)", () => {
     expect(p[1]! - p[0]!).toBeGreaterThan(5);
     expect(p[2]! - p[1]!).toBeGreaterThan(5);
   });
-  it("no route within the limit adds up to 10 (scaled by the grade over it, A4), an easement 10; capped at 40; unreachable is 40", () => {
-    // A4 (owner, #87 review): 1 point a percent over the limit, the full 10 at 10 points over and beyond.
+  it("no route within the limit adds the over-limit term (A4), an easement 10; capped at 40; unreachable is 40", () => {
+    // A4 (owner, #88 review): 1 point a percent over the limit up to 15%, then straight up to 20 at 20% and above.
     for (const [needed, extra] of [
       [11, 1],
       [15, 5],
-      [20, 10],
-      [22, 10],
+      [18, 14],
+      [20, 20],
+      [22, 20],
     ] as const)
       expect(drivewayPoints(costOf(150_000, false, false, needed))).toBeCloseTo(
         drivewayPoints(costOf(150_000)) + extra,

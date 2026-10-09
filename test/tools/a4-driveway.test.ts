@@ -12,7 +12,7 @@ import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { neededPct, siteDriveways, type OverLimitRoute, type SiteDriveway } from "@/lib/screen/driveway";
 import { ENGINE_VERSION } from "@/lib/screen/engine";
 import { routeContext } from "@/lib/screen/index";
-import { chooseDriveway, drivewayPoints } from "@/lib/screen/score";
+import { chooseDriveway, drivewayPoints, overLimitTerm } from "@/lib/screen/score";
 import type { ScreenResult } from "@/lib/screen/types";
 import { expectedPath } from "../support/expected";
 import { FIXTURE_SLUGS, type FixtureSlug } from "../support/fixtures";
@@ -24,9 +24,11 @@ const SVG = "docs/studies/a4-driveway-curve.svg";
 const BASE = process.env.BASE ?? "origin/main";
 const curve = (cost: number) => C.k * Math.log(1 + cost / C.c0);
 /** The two forms the owner proposed for the over-limit term. */
-const byLength = (overFt: number) => C.noRoute * Math.min(1, overFt / 1000);
-const byGrade = (needed: number, limit: number) =>
-  C.noRoute * Math.min(1, Math.max(0, needed - limit) / C.noRouteFullPct);
+/** The two forms proposed in #87 for the over-limit term: by length over the limit (not adopted), and by grade. */
+const byLength = (overFt: number) => 10 * Math.min(1, overFt / 1000);
+const byGrade = (needed: number, limit: number) => overLimitTerm(needed, limit);
+const D = SCREEN_CONSTANTS.driveway;
+const GRADES = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22];
 
 /**
  * Grayson's least-steep routes kept to the parcel with the engine-5 router (before follow-up 44, which skipped about
@@ -70,10 +72,7 @@ const routeCell = (d: SiteDriveway | null) => {
   return `${grade}${r.needsEasement ? ", easement" : ""}, ${ft(r.metrics.lengthFt)} ft, ${money(r.cost.mid)}, **${drivewayPoints(d).toFixed(1)}**`;
 };
 
-function svg(
-  rows: Row[],
-  synthetic: { label: string; cost: number; needed: number; overFt: number }[],
-): string {
+function svg(rows: Row[], synthetic: { cost: number; needed: number }[]): string {
   const W = 760,
     H = 560,
     L = 56,
@@ -114,19 +113,12 @@ function svg(
     }
     return out;
   });
-  // Each synthetic site: the term by grade (filled) and by length (open, drawn larger so a coinciding pair shows).
+  // The synthetic over-limit sites: one route cost, needing each grade, labelled with the term.
   const synth = synthetic.flatMap((s) => {
-    const base = curve(s.cost);
-    const g = base + byGrade(s.needed, 10),
-      l = base + byLength(s.overFt);
-    const label = (p: number, text: string) =>
-      `<text x="${(x(s.cost) - 12).toFixed(1)}" y="${(y(p) + 4).toFixed(1)}" text-anchor="end" fill="#7b3fa0">${text}</text>`;
+    const p = Math.min(C.max, curve(s.cost) + byGrade(s.needed, 10));
     return [
-      square(x(s.cost), y(g), "#7b3fa0", `${s.label}: by grade, ${g.toFixed(1)} pts`),
-      `<rect x="${(x(s.cost) - 8).toFixed(1)}" y="${(y(l) - 8).toFixed(1)}" width="16" height="16" fill="none" stroke="#7b3fa0" stroke-width="2"><title>${s.label}: by length, ${l.toFixed(1)} pts</title></rect>`,
-      ...(Math.abs(g - l) < 0.05
-        ? [label(g, `${s.label}: both forms`)]
-        : [label(g, `${s.label}: by grade`), label(l, `${s.label}: by length`)]),
+      square(x(s.cost), y(p), "#7b3fa0", `needs ${s.needed}%: ${p.toFixed(1)} pts`),
+      `<text x="${(x(s.cost) - 12).toFixed(1)}" y="${(y(p) + 4).toFixed(1)}" text-anchor="end" fill="#7b3fa0">needs ${s.needed}%: +${byGrade(s.needed, 10).toFixed(0)}${p >= C.max ? " (capped)" : ""}</text>`,
     ];
   });
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" font-family="sans-serif" font-size="12">
@@ -139,17 +131,18 @@ ${ticksX.map((t) => `<text x="${x(t)}" y="${H - B + 18}" text-anchor="middle">$$
 <path d="${path(0)}" fill="none" stroke="#333" stroke-width="2"/>
 <path d="${path(1)}" fill="none" stroke="#7b3fa0" stroke-width="1" stroke-dasharray="2 3"/>
 <path d="${path(5)}" fill="none" stroke="#7b3fa0" stroke-width="1" stroke-dasharray="2 3"/>
-<path d="${path(C.noRoute)}" fill="none" stroke="#333" stroke-width="1.5" stroke-dasharray="6 4"/>
+<path d="${path(C.easement)}" fill="none" stroke="#333" stroke-width="1.5" stroke-dasharray="6 4"/>
+<path d="${path(D.overLimitMaxPts)}" fill="none" stroke="#7b3fa0" stroke-width="1.5" stroke-dasharray="6 4"/>
 ${marks.join("\n")}
 ${synth.join("\n")}
 <text x="${(L + W - R) / 2}" y="${H - B + 38}" text-anchor="middle">Route cost (mid estimate)</text>
 <text transform="translate(16 ${(T + H - B) / 2}) rotate(-90)" text-anchor="middle">Driveway points</text>
 <g transform="translate(${L} ${H - B + 64})">
 <line x1="0" x2="24" y1="0" y2="0" stroke="#333" stroke-width="2"/><text x="30" y="4">within the limit, on the parcel</text>
-<line x1="0" x2="24" y1="18" y2="18" stroke="#7b3fa0" stroke-dasharray="2 3"/><text x="30" y="22">+1 (needs 11%), +5 (needs 15%) over a 10% limit</text>
-<line x1="0" x2="24" y1="36" y2="36" stroke="#333" stroke-dasharray="6 4"/><text x="30" y="40">+10: needs an easement (diamonds), or 20% and more over the limit</text>
+<line x1="0" x2="24" y1="18" y2="18" stroke="#7b3fa0" stroke-dasharray="2 3"/><text x="30" y="22">+1 (needs 11%), +5 (needs 15%), and +${D.overLimitMaxPts} (needs ${D.overLimitMaxAtPct}% and more), over a 10% limit</text>
+<line x1="0" x2="24" y1="36" y2="36" stroke="#333" stroke-dasharray="6 4"/><text x="30" y="40">+${C.easement}: needs an easement (diamonds)</text>
 <text x="0" y="62">● within the limit · ◆ needs an easement · ▲ kept to the parcel, over the limit · filled = scored</text>
-<text x="0" y="80" fill="#7b3fa0">■ synthetic sites: filled = the term by grade (adopted), open = by length over the limit</text>
+<text x="0" y="80" fill="#7b3fa0">■ synthetic sites: one route cost, needing 11, 15, 18 and 22%</text>
 ${Object.entries(colour)
   .map(
     ([k, c], i) =>
@@ -215,15 +208,8 @@ describe.runIf(import.meta.env.MODE === "a4-driveway")("A4 driveway study", () =
       }
 
       const g1 = rows.find((r) => r.slug.startsWith("grayson") && r.site.rank === 1)!;
-      const synthetic = [
-        {
-          label: "needs 11%",
-          cost: 230_000,
-          needed: 11,
-          overFt: g1.onParcel?.route ? (g1.onParcel.route as OverLimitRoute).overFt : 0,
-        },
-        { label: "needs 22%", cost: 330_000, needed: 22, overFt: ENGINE5_GRAYSON[0]!.overFt },
-      ];
+      const g1OverFt = g1.onParcel?.route ? (g1.onParcel.route as OverLimitRoute).overFt : 0;
+      const synthetic = [11, 15, 18, 22].map((needed) => ({ cost: 200_000, needed }));
       writeFileSync(SVG, svg(rows, synthetic));
 
       const penaltyRows = [
@@ -252,33 +238,42 @@ Batch A, A4 (owner, #87 review and re-scope, 2026-10-09). Generated by \`pnpm a4
 
 ## 1. The over-limit term: by grade, not by length
 
-When no route fits the grade limit, A3 added a flat +${C.noRoute}. The owner asked for a term scaled by how far over the
-limit the route goes, by whichever of two forms separates a route needing 10.5% from one needing 22%:
+When no route fits the grade limit, A3 added a flat +10. The owner asked (#87) for a term scaled by how far over the
+limit the route goes, by whichever of two forms separates a route needing 10.5% from one needing 22%: by length,
+10 × min(1, ft over the limit / 1000), or by the grade needed.
 
-- **by length:** ${C.noRoute} × min(1, ft over the limit / 1000);
-- **by grade:** ${C.noRoute} × min(1, (needed % − limit %) / ${C.noRouteFullPct}).
+**Adopted (owner, #88 review): by grade.** Under a 10% limit: +${D.overLimitPtsPerPct} a percent over the limit up to
+${D.practicalMaxPct}% (+${byGrade(D.practicalMaxPct, 10)}), then straight up to +${D.overLimitMaxPts} at ${D.overLimitMaxAtPct}% and above: past the
+easement's +${C.easement}, so a grade that is in practice unpermittable loses to a route through the neighbours at a
+similar cost. In \`config.ts\`: \`driveway.practicalMaxPct\` = ${D.practicalMaxPct}, \`overLimitPtsPerPct\` = ${D.overLimitPtsPerPct},
+\`overLimitMaxAtPct\` = ${D.overLimitMaxAtPct}, \`overLimitMaxPts\` = ${D.overLimitMaxPts}. Per-county limits are follow-up 46.
 
-Every route kept to the parcel that needs more than the 10% limit, on the three fixtures now, and Grayson's with the
-engine-5 router (the 22% routes, before follow-up 44; measured once, since that router is no longer in the tree):
+| Needs | ${GRADES.map((p) => `${p}%`).join(" | ")} |
+|---|${GRADES.map(() => "---").join("|")}|
+| Points (10% limit) | ${GRADES.map((p) => `+${byGrade(p, 10)}`).join(" | ")} |
 
-| Site | Needs | Length (ft) | Ft over 10% | By length | By grade |
+**The margin isn't a veto.** A route needing ${D.overLimitMaxAtPct}% or more is ${D.overLimitMaxPts - C.easement} points behind an easement route at the
+same cost, so it still wins when the cost curve puts it more than ${D.overLimitMaxPts - C.easement} points ahead: a 22% route at $50k
+(${(curve(50_000) + byGrade(22, 10)).toFixed(1)} points) beats an easement route at $300k (${(curve(300_000) + C.easement).toFixed(1)}).
+
+**Why not by length.** Every route kept to the parcel that needs more than the 10% limit, on the three fixtures now,
+and Grayson's with the engine-5 router (the 22% routes, before follow-up 44; measured once, since that router is no
+longer in the tree):
+
+| Site | Needs | Length (ft) | Ft over 10% | By length (not adopted) | By grade (adopted) |
 |---|---|---|---|---|---|
 ${penaltyRows.join("\n")}
 
-**Adopted: by grade.** The length over the limit can't tell the two apart. It is measured on the route's own 3 m
-profile over a 15 m window, which on these slopes finds "steeper than 10%" stretches even on a route the router held
-to 11%. Grayson's #1 kept to the parcel needs 11% and has ${ft(synthetic[0]!.overFt)} ft over 10%, more than the
-${ft(ENGINE5_GRAYSON[0]!.overFt)} ft of its engine-5 route that needed 22%: both take the full ${C.noRoute}. By grade,
-11% takes +1 and 22% the full +${C.noRoute}. In \`config.ts\`: \`drivewayCost.noRouteFullPct\` = ${C.noRouteFullPct}.
+The length over the limit can't tell the two apart. It is measured on the route's own 3 m profile over a 15 m window,
+which on these slopes finds "steeper than 10%" stretches even on a route the router held to 11%. Grayson's #1 kept to
+the parcel needs 11% and has ${ft(g1OverFt)} ft over 10%, more than the ${ft(ENGINE5_GRAYSON[0]!.overFt)} ft of its
+engine-5 route that needed 22%: both would take the full 10.
 
-At 20% and over, the over-limit term equals the easement's (${C.easement}), so between a route kept to the parcel
-that steep and one through the neighbours within the limit, the cost decides.
+![Both candidates per site, and four synthetic over-limit sites](a4-driveway-curve.svg)
 
-![Both candidates per site, and the two synthetic over-limit sites under each form](a4-driveway-curve.svg)
-
-The synthetic sites (purple squares) are two routes, at $230k and $330k: one needing 11% (a 10.5% path), one needing
-22%, with Grayson's measured lengths over the limit (above). By grade (filled) the 11% route takes +1 and the 22%
-route +10; by length (open) both take +10.
+The synthetic sites (purple squares) are one $200k route needing 11, 15, 18 and 22%: +${byGrade(11, 10)}, +${byGrade(15, 10)},
++${byGrade(18, 10)} and +${byGrade(22, 10)} (at 22% the total is capped at ${C.max}). An easement route at the same cost sits on the
++${C.easement} line.
 
 ## 2. The scored route: the candidate with fewer points
 

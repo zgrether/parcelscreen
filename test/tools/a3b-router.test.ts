@@ -121,8 +121,9 @@ const fmt = (x: number | null, d = 0) => (x == null ? "—" : x.toFixed(d));
 /** Whether a site's route needed an easement: its points less the curve (and the no-route term) leave the +10. */
 function easementOf(r: SiteRow): boolean {
   const C = SCREEN_CONSTANTS.score.drivewayCost;
+  const A3_NO_ROUTE = 10; // A3b's flat no-route term, before A4 scaled it by grade
   if (r.cost == null || r.points >= C.max) return false;
-  const base = C.k * Math.log(1 + r.cost / C.c0) + (r.legal ? 0 : C.noRoute);
+  const base = C.k * Math.log(1 + r.cost / C.c0) + (r.legal ? 0 : A3_NO_ROUTE);
   return r.points - base > C.easement / 2;
 }
 const money = (x: number | null) => (x == null ? "—" : `$${Math.round(x / 1000)}k`);

@@ -453,11 +453,12 @@ shows both penalty forms with the synthetic over-limit site; Grayson's #1 before
 `expected.json` is regenerated with the numbers change declared and the leaf diff.
 
 **Done in A4 (2026-10-09; measured in `docs/studies/a4-driveway.md`, `pnpm a4:driveway`):**
-- **The over-limit term is scaled by grade:** noRoute × min(1, (needed% − limit%) / noRouteFullPct), with
-  `drivewayCost.noRouteFullPct` = 10, so +1 for a route needing 11% and the full +10 at 20% and over. Scaled by the
-  length over the limit, it can't separate them: that length is measured on the route's 3 m profile, and Grayson's #1
-  kept to the parcel needs 11% but has 3,179 ft "over 10%", more than the 1,959 ft of its engine-5 route that needed
-  22%. Both would take the full +10.
+- **The over-limit term is scaled by grade** (owner, #88 review): +1 a percent over the limit up to 15% needed
+  (`driveway.practicalMaxPct`; +5 under a 10% limit), then straight up to +20 (`overLimitMaxPts`) at 20%
+  (`overLimitMaxAtPct`) and above, past the easement's +10, so a grade that is in practice unpermittable loses to an
+  easement route at a similar cost. Scaled by the length over the limit, it can't separate 11% from 22%: that length
+  is measured on the route's 3 m profile, and Grayson's #1 kept to the parcel needs 11% but has 3,179 ft "over 10%",
+  more than the 1,959 ft of its engine-5 route that needed 22%. Per-county limits: follow-up 46.
 - **Two candidates per site** (`siteDriveways` → `SiteRoutes`; `chooseDriveway` in `score.ts`): the cheapest route
   within the limit, and the cheapest kept to the parcel, within the limit when one is, else the least-steep one. When
   the route within the limit needs no easement it is both. A tie goes to the route within the limit. The house is
@@ -466,7 +467,10 @@ shows both penalty forms with the synthetic over-limit site; Grayson's #1 before
   to the parcel (needs 11%). Grayson's #1: 38.5 → 28.0 driveway points, 5,176 → 4,228 ft, C 61 → C 64, still #1. Ranks
   and grades are unchanged; Ferney and Macks are unchanged.
 - **The site's card** appends both candidates when they differ, the scored one first (rule 7; the owner's wording). The
-  driveway section still recommends the route within the limit, labelled "needs an easement".
+  driveway section still recommends the route within the limit, labelled "needs an easement". Showing the scored route
+  there as the primary drawing is planned in #88, for the owner's approval before code.
+- **Help text** (owner, #88 review; appended): "Where that route needs an easement, or there is none, the site is
+  scored on whichever costs fewer points: …; the site shows both."
 - **Routing time,** both candidates for every site: 0.20, 0.48 and 0.23 s (Ferney, Macks, Grayson).
  in place of NRCS's septic and foundation ratings (follow-up 45)
 

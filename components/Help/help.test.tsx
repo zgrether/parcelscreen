@@ -33,7 +33,7 @@ function prototypeHelp(): string {
 const APPROVED: [string, string][] = [
   [
     "The driveway line is straight-line rise over run from the nearest Census road to the site; a real driveway at 10% needs the length shown.",
-    "The road grade is straight-line rise over run from the nearest Census road to the site. Driveways are routed: each house site's driveway is drawn over the terrain from a road entrance, within the grade limit (10% unless you change it), and that route's cost estimate is the driveway part of the site's score.",
+    "The road grade is straight-line rise over run from the nearest Census road to the site. Driveways are routed: each house site's driveway is drawn over the terrain from a road entrance, within the grade limit (10% unless you change it), and that route's cost estimate is the driveway part of the site's score. Where that route needs an easement, or there is none, the site is scored on whichever costs fewer points: that route (+10 for the easement) or the best route kept to your land (+1 for each percent it needs over the limit up to 15%, rising to +20 at 20% and over); the site shows both.",
   ],
 ];
 

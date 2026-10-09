@@ -309,14 +309,11 @@ export const SCREEN_CONSTANTS = deepFreeze({
     drivewayFtPerPoint: 100,
     drivewayOverGrade: 10, // + 10 if the straight-line grade exceeds roadMaxGradePct
     // A3 (owner, 2026-10-09): every ranked site's driveway is routed, and its points come from the route's
-    // cost estimate (mid): k · ln(1 + cost / c0), + noRoute when no route fits the grade limit (the least-steep
-    // route's cost), + easement when the route runs outside the parcel, capped at max; a site no route reaches
-    // at all takes max. The straight-line terms above stay for a run whose driveway step fails.
-    // A4 (owner, #87 review): the no-route term is scaled by how far over the limit the least-steep route goes,
-    // noRoute × min(1, (needed% − limit%) / noRouteFullPct): +1 for a route needing 11% under a 10% limit, the full
-    // +10 at 20% and over. (Scaled by the length over the limit instead, it can't tell 11% from 22%:
-    // docs/studies/a4-driveway.md.)
-    drivewayCost: { k: 9, c0: 20_000, noRoute: 10, noRouteFullPct: 10, easement: 10, max: 40 },
+    // cost estimate (mid): k · ln(1 + cost / c0), + an over-limit term when no route fits the grade limit (the
+    // least-steep route's cost; driveway.overLimit*, A4), + easement when the route runs outside the parcel, capped
+    // at max; a site no route reaches at all takes max. The straight-line terms above stay for a run whose driveway
+    // step fails.
+    drivewayCost: { k: 9, c0: 20_000, easement: 10, max: 40 },
     overall: { quality: 0.7, cost: 0.3 }, // L1313
     costTiers: [
       [20, "$"],
@@ -369,6 +366,15 @@ export const SCREEN_CONSTANTS = deepFreeze({
     m2ToSf: 10.764,
     clearingWidthM: 7.3, // 24 ft corridor
     easementOutsideFt: 100,
+    // A4 (owner, #88 review): the over-limit term, by the grade the least-steep route needs (whole percent): +1 a
+    // percent over the limit up to practicalMaxPct (+5 at 15% under a 10% limit), then rising straight to
+    // overLimitMaxPts at overLimitMaxAtPct needed and above, past the easement's +10, so a grade that is in
+    // practice unpermittable loses to a route through the neighbours. (By the length over the limit instead, it
+    // can't tell 11% from 22%: docs/studies/a4-driveway.md.) Per-county limits: follow-up 46.
+    practicalMaxPct: 15,
+    overLimitPtsPerPct: 1,
+    overLimitMaxAtPct: 20,
+    overLimitMaxPts: 20,
     costRange: { low: 0.7, high: 1.3 },
     track: {
       dozerPerHr: 200,
