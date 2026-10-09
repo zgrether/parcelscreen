@@ -319,7 +319,16 @@ send the parts; SDA gets a MULTIPOLYGON). Only the driveway router and the outli
 **Before it: the grade-distribution study** (owner, 2026-10-09; report only, no scoring change): 27 parcels in Floyd,
 Carroll, Grayson, Ashe, Watauga and Alleghany, per-factor distributions, correlations, near-constant factors and
 proposed replacements, absolute vs. relative cutoffs, and the owner's gut grades on nine of them.
-`docs/studies/grade-distribution.md`; reproduce with `pnpm study:grades`.
+`docs/studies/grade-distribution.md`; reproduce with `pnpm study:grades`. (The gut grades were skipped, §8.)
+
+**A3's scope (owner, 2026-10-09, after the study; supersedes the candidates below where they differ):**
+- **In:** 19 (aspect 165°); septic and foundation without the map unit's slope (it's already in quality's slope
+  and cost's pad); rock scored by depth; the sky's dome penalty de-saturated; how driveway length and grade enter
+  cost, as a cost estimate.
+- **Out: the 70/30 quality/cost split stays as is.** Weights are a preference, not a fact: they become per-person
+  rubric settings in follow-up 41. With no gut-grade calibration, the grade cutoffs (80/65/50/35) stay too.
+- **Stage 1:** the three fixtures ranked before and after each in-scope change separately, so the owner can see
+  which change moves what: `docs/studies/a3-scoring-analysis.md`, from `pnpm a3:analysis`.
 
 **This group changes rankings, so it goes in two stages within one PR.**
 
