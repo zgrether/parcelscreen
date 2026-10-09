@@ -119,6 +119,8 @@ Goal: save a contender; the parcel page is the document.
 - Parcel page = computed blocks (from `screens.result`) + placeholders + user blocks.
 - Attachments upload to Storage (PDF, images, links). Price history editor.
 - Migrate the prototype's saved-parcels JSON export via an import screen.
+- Screens computed by an older engine (`ENGINE_VERSION`) are re-run automatically: a new `screens` row
+  (version = max + 1), never an update (owner, 2026-10-09; `docs/plans/batch-a.md` §6).
 - **Acceptance:** save Macks Mountain as a contender with the plat PDF attached and two price
   events; reload shows everything without re-running the screen.
 

@@ -14,8 +14,13 @@ import type { Dem, ProgressEvent } from "./types";
 import type { LatLon } from "./util";
 
 const C = SCREEN_CONSTANTS.score.drivewayCost;
-const costOf = (mid: number, legal = true, needsEasement = false): SiteDriveway =>
-  ({ route: { cost: { mid }, needsEasement }, legal, entranceIndex: 0 }) as unknown as SiteDriveway;
+/** A route at a cost; over the limit, a least-steep one needing `neededPct` under a 10% limit (A4). */
+const costOf = (mid: number, legal = true, needsEasement = false, neededPct = 22): SiteDriveway =>
+  ({
+    route: { cost: { mid }, needsEasement, ...(legal ? {} : { maxGrade: neededPct / 100, limitPct: 10 }) },
+    legal,
+    entranceIndex: 0,
+  }) as unknown as SiteDriveway;
 
 describe("driveway points from the route's cost (A3)", () => {
   it("the owner's three costs stay clearly apart, and grow without saturating", () => {
@@ -24,11 +29,19 @@ describe("driveway points from the route's cost (A3)", () => {
     expect(p[1]! - p[0]!).toBeGreaterThan(5);
     expect(p[2]! - p[1]!).toBeGreaterThan(5);
   });
-  it("no route within the limit adds 10, an easement 10; capped at 40; unreachable is 40", () => {
-    expect(drivewayPoints(costOf(150_000, false))).toBeCloseTo(
-      drivewayPoints(costOf(150_000)) + C.noRoute,
-      9,
-    );
+  it("no route within the limit adds the over-limit term (A4), an easement 10; capped at 40; unreachable is 40", () => {
+    // A4 (owner, #88 review): 1 point a percent over the limit up to 15%, then straight up to 20 at 20% and above.
+    for (const [needed, extra] of [
+      [11, 1],
+      [15, 5],
+      [18, 14],
+      [20, 20],
+      [22, 20],
+    ] as const)
+      expect(drivewayPoints(costOf(150_000, false, false, needed))).toBeCloseTo(
+        drivewayPoints(costOf(150_000)) + extra,
+        9,
+      );
     expect(drivewayPoints(costOf(150_000, true, true))).toBeCloseTo(
       drivewayPoints(costOf(150_000)) + C.easement,
       9,
@@ -175,13 +188,14 @@ describe("every ranked site routed at once = each routed alone (A3, Grayson at 5
     const { result, session: s } = await runFixture("grayson-mud-creek-6273");
     const parcel = polygon(s.parcel.geometry.coordinates as Position[][]);
     const sites = result.sites!;
+    // buildDriveway's routes[0], else its overLimit: the within-limit candidate, else the one kept to the parcel.
     const many = siteDriveways(
       routeContext(s),
       s.roads ?? [],
       parcel,
       sites.map((x) => x.ll),
       STRICT,
-    );
+    ).map((r) => r.withinLimit ?? r.onParcel ?? { route: null, legal: false, entranceIndex: null });
     sites.forEach((site, i) => {
       const one = buildDriveway(routeContext(s), s.roads ?? [], parcel, site.ll, "x", STRICT);
       expect(many[i]!.legal).toBe(!!one.routes[0]);

@@ -2,6 +2,11 @@
 
 Status: **approved (owner, 2026-10-08), with the answers in §8.** A1 starts when this merges.
 
+**Re-scope (owner, 2026-10-09, after #87):** "before Phase 1" is no longer a requirement. Mixed engine versions in
+History aren't a concern: saved screens are simply re-screened when the engine changes (§6). The rest of the batch
+runs in this order: A4 (the driveway, §5), A5 (soil properties, §5b), calibration against the household's grades
+(§5c), and the sun follow-ups 37 and 35, deprioritized to any time later (§5d).
+
 The owner's direction (2026-10-08, after #73): before Phase 1, a short batch of the follow-ups that change what a
 screen finds or how it scores. In this order:
 
@@ -19,9 +24,13 @@ Each group is its own PR, with a before/after table across all three fixtures. T
 - **A2c:** hospitals by tag, and every other name-text search in `places.ts` (owner, #81 review);
 - **A3:** 19, 27 and the scoring changes (#86);
 - **A3b:** follow-up 44 (the router's cost precision), 20, and the routed-driveway wording (#87);
-- **A4:** 37 and 35, plus the driveway style cap and the scaled no-route penalty (§5);
-- **A5 (proposed, before Phase 1):** follow-up 45, soil properties in place of NRCS's septic and foundation
-  interpretations: simulated on the 27-parcel study first, report-only, then a decision.
+- **A4, the driveway (§5):** the "gentlest" style's cap becomes min(style cap, user limit), the scaled over-limit
+  penalty, and the scoring route chosen by minimum total points (on the parcel vs. via an easement); a declared
+  numbers change;
+- **A5, soil properties (§5b):** follow-up 45, in place of NRCS's septic and foundation ratings: a report-only
+  simulation on the 27-parcel study first, then implemented on the owner's go;
+- **Calibration (§5c):** when the owner sends 8–10 parcels the household knows;
+- **Sun, 37 and 35 (§5d):** deprioritized; any time later.
 
 Batch B (30, 21, 32, 33, 38) is UI only and can interleave. 28 and 36 go to Phase 1; 26, 31 and 34 go to Phase
 2.5. The FEMA network-failure retry (#75, merged 2026-10-08) came first and changed no number on the success path.
@@ -417,9 +426,11 @@ rule 7. 20 adds soil notes to gardens where none showed before; that is additive
   can still return an 8% route as legal (the prototype's). Fixed in A4 (§5). The tests that need the least-steep path use 5% on
   Grayson's terrain for that reason.
 
-## 5. A4: sun (37, 35)
+## 5. A4: the driveway
 
-**Added to A4 (owner, #87 review, 2026-10-09):**
+Sun moved out of A4 (re-scope, owner, 2026-10-09): it is §5d, any time later.
+
+**A4 (owner, #87 review and re-scope, 2026-10-09):**
 - **The driveway style's own grade cap:** buildDriveway's "gentlest" style keeps its own 8% cap (the prototype's),
   so under a user grade limit below 8% it can still return an 8% route as legal. It becomes min(style cap, user
   grade limit). Test: a 6% limit returns no route steeper than 6%.
@@ -427,6 +438,60 @@ rule 7. 20 adds soil notes to gardens where none showed before; that is additive
   limit, either 10 × min(1, overLimitFt / 1000) or one scaled by the excess grade needed (needed% − limit%),
   whichever separates a route needing 10.5% from one needing 22%. Both shown on the curve chart with a synthetic
   over-limit site. A declared numbers change; no fixture should move (since A3b none needs a least-steep route).
+- **The scoring route: the one with the fewest total driveway points** (depends on the scaled penalty), not "the
+  cheapest within the limit". Each ranked site has two candidates:
+  - the best route kept to the parcel, whatever grade it needs, with the scaled over-limit penalty;
+  - the best route within the limit, with the easement penalty when it leaves the parcel.
+
+  The site is scored on whichever totals fewer points. Its card shows the chosen route, and the other candidate
+  when it differs, appended (rule 7), in the owner's wording: "Best on your land: N%, X ft" and "Within N% only via
+  neighbouring land (needs an easement): X ft". The PR reports Grayson's #1 before and after (route, points, rank)
+  and checks the routing pass still fits the 5 s budget with the on-parcel candidate computed for every site.
+
+**The engine version** is bumped to 7. **Acceptance:** a 6% limit returns no route steeper than 6%; the curve chart
+shows both penalty forms with the synthetic over-limit site; Grayson's #1 before/after table is in the PR;
+`expected.json` is regenerated with the numbers change declared and the leaf diff.
+
+**Done in A4 (2026-10-09; measured in `docs/studies/a4-driveway.md`, `pnpm a4:driveway`):**
+- **The over-limit term is scaled by grade** (owner, #88 review): +1 a percent over the limit up to 15% needed
+  (`driveway.practicalMaxPct`; +5 under a 10% limit), then straight up to +20 (`overLimitMaxPts`) at 20%
+  (`overLimitMaxAtPct`) and above, past the easement's +10, so a grade that is in practice unpermittable loses to an
+  easement route at a similar cost. Scaled by the length over the limit, it can't separate 11% from 22%: that length
+  is measured on the route's 3 m profile, and Grayson's #1 kept to the parcel needs 11% but has 3,179 ft "over 10%",
+  more than the 1,959 ft of its engine-5 route that needed 22%. Per-county limits: follow-up 46.
+- **Two candidates per site** (`siteDriveways` → `SiteRoutes`; `chooseDriveway` in `score.ts`): the cheapest route
+  within the limit, and the cheapest kept to the parcel, within the limit when one is, else the least-steep one. When
+  the route within the limit needs no easement it is both. A tie goes to the route within the limit. The house is
+  scored the same way.
+- **Only Grayson moves:** its four sites' routes within 10% need an easement, and each is now scored on its route kept
+  to the parcel (needs 11%). Grayson's #1: 38.5 → 28.0 driveway points, 5,176 → 4,228 ft, C 61 → C 64, still #1. Ranks
+  and grades are unchanged; Ferney and Macks are unchanged.
+- **The site's card** appends both candidates when they differ, the scored one first (rule 7; the owner's wording). The
+  driveway section still recommends the route within the limit, labelled "needs an easement". Showing the scored route
+  there as the primary drawing is planned in #88, for the owner's approval before code.
+- **Help text** (owner, #88 review; appended): "Where that route needs an easement, or there is none, the site is
+  scored on whichever costs fewer points: …; the site shows both."
+- **Routing time,** both candidates for every site: 0.20, 0.48 and 0.23 s (Ferney, Macks, Grayson).
+ in place of NRCS's septic and foundation ratings (follow-up 45)
+
+Owner, 2026-10-09. First a **report-only simulation on the 27-parcel study** (`docs/studies/`): each candidate
+property (depth to bedrock or another restrictive layer, the slowest layer's Ksat, slope within the unit) and the
+grades it would give against today's. Implemented only on the owner's go, as a declared numbers change with the
+engine version bumped.
+
+## 5c. Calibration against the household's grades
+
+Owner, 2026-10-09. When the owner sends 8–10 parcels the household knows:
+1. screen them;
+2. build a **blind sheet**: the land only, and a one-line reason with each grade, filled separately by each
+   member of the household;
+3. fit per-factor and overall grade cutoffs to those grades, and report the disagreements and their causes.
+
+No grade is filled in for the household, and nothing is calibrated on parcels the household doesn't know.
+
+## 5d. Sun (37, 35): deprioritized, any time later
+
+Owner, 2026-10-09. Unchanged in scope; its own PR whenever it's picked up.
 
 ### 37: daylight by the standard sunrise and sunset
 
@@ -458,13 +523,19 @@ rule 7. 20 adds soil notes to gardens where none showed before; that is additive
 
 ## 6. The engine version on kept results (owner, Q2)
 
+**Re-scope (owner, 2026-10-09):** mixed-engine History isn't a concern. Saved screens are simply re-screened when
+the engine changes. `ENGINE_VERSION` stays: it's how a saved screen is known to be older. **In Phase 1, a screen
+whose engine is below the current one is re-run automatically**, as a new `screens` row (version = max + 1; screens
+stay immutable). Recorded in PLAN.md's Phase 1 and `phase-0.md` §9.20 (a). What A1 built below stays as it is.
+
 History keeps v2 results in IndexedDB, and screens are immutable. A kept result shows the numbers it was computed
 with, so History has to say when those came from earlier rules.
 
 - **`ENGINE_VERSION`:**
   - in `lib/screen/engine.ts`, a plain integer, so `lib/screen` stays DOM-free;
   - **1 is Phase 0's rules;**
-  - **A2a, A2b, A2c, A3, A3b and A4 each bump it,** to 2, 3, 4, 5, 6 and 7 (A2c and A3b added by the owner).
+  - **A2a, A2b, A2c, A3, A3b and A4 each bump it,** to 2, 3, 4, 5, 6 and 7 (A2c and A3b added by the owner);
+    A5 and the sun follow-ups bump it again when they change numbers.
   - A1 introduces it at 1 and doesn't bump it: it changes no number, so nothing kept from Phase 0 is marked. If
     you want A1 to bump it too, it's one line.
 - **On the record envelope, not in `ScreenResult`:**

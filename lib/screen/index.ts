@@ -18,7 +18,7 @@ import {
   siteDriveways,
   soilMask,
   type RouteContext,
-  type SiteDriveway,
+  type SiteRoutes,
 } from "./driveway";
 import { floodStep, type FloodFeature } from "./flood";
 import { nearStep } from "./near";
@@ -28,10 +28,12 @@ import { OverpassMirrors, type OverpassFallback } from "./places";
 import type { RoadFeature } from "./roads";
 import {
   assessHouse,
+  chooseDriveway,
   grade,
   rankSites,
   rerank,
   shelvesFromBest,
+  withDrivewayChoice,
   withDrivewayCost,
   withRoutedLineAppended,
   withRoutedWhy,
@@ -391,9 +393,9 @@ export async function screen(
     const rctx = routeContext(s);
     const sctx = scoreContext();
     // A3 (owner, 2026-10-09): every ranked site re-costed from its own routed driveway, all in one search per
-    // entrance (siteDriveways), so the ranking compares like with like.
-    // Each site's route, by position (rerank copies the sites).
-    const routeAt = new Map<string, SiteDriveway>();
+    // entrance (siteDriveways), so the ranking compares like with like. A4: from the candidate with fewer points.
+    // Each site's routes, by position (rerank copies the sites).
+    const routeAt = new Map<string, SiteRoutes>();
     const at = (ll: LatLon) => `${ll[0]},${ll[1]}`;
     if (R.sites && R.sites.length) {
       const est = siteDriveways(
@@ -404,7 +406,7 @@ export async function screen(
         cfg.roadMaxGradePct,
       );
       R.sites.forEach((x, i) => routeAt.set(at(x.ll), est[i]!));
-      R.sites = rerank(R.sites.map((x, i) => withDrivewayCost(sctx, x, est[i]!)));
+      R.sites = rerank(R.sites.map((x, i) => withDrivewayCost(sctx, x, chooseDriveway(est[i]!))));
     }
     const to = house
       ? { ll: house, label: "the existing house" }
@@ -415,14 +417,25 @@ export async function screen(
     R.driveway = buildDriveway(rctx, s.roads ?? [], parcel, to.ll, to.label, cfg.roadMaxGradePct);
     const rt = R.driveway.routes[0];
     // Site #1 keeps the prototype's routed line in place of its straight-line one; every other site with a route
-    // within the limit gets the same line appended (A3b, owner 2026-10-09).
+    // within the limit gets the same line appended (A3b, owner 2026-10-09). Then, where its two candidates differ,
+    // both, the scored one first (A4).
     if (R.sites)
       R.sites = R.sites.map((x, i) => {
-        if (i === 0 && rt && !house) return withRoutedWhy(x, rt);
-        const dw = routeAt.get(at(x.ll));
-        return dw ? withRoutedLineAppended(x, dw) : x;
+        const r = routeAt.get(at(x.ll));
+        const y =
+          i === 0 && rt && !house
+            ? withRoutedWhy(x, rt)
+            : r?.withinLimit
+              ? withRoutedLineAppended(x, r.withinLimit)
+              : x;
+        return r ? withDrivewayChoice(y, r, cfg.roadMaxGradePct) : y;
       });
-    if (house && R.house) R.house = houseWithDriveway(sctx, R.house, R.driveway);
+    if (house && R.house)
+      R.house = houseWithDriveway(
+        sctx,
+        R.house,
+        houseRoutes(rctx, s.roads ?? [], parcel, house, cfg.roadMaxGradePct),
+      );
     if (R.shelves && R.sites) R.shelves = shelvesFromBest(R.shelves, R.sites);
     return R.driveway.note ?? undefined;
   });
@@ -529,31 +542,43 @@ export async function setHouse(out: ScreenOutput, ll: LatLon | null): Promise<Sc
     house,
     "the existing house",
   );
-  const dw = done.result.driveway;
-  return dw && done.result.house
-    ? { ...done, result: { ...done.result, house: houseWithDriveway(ctx, done.result.house, dw) } }
+  return done.result.driveway && done.result.house
+    ? {
+        ...done,
+        result: {
+          ...done.result,
+          house: houseWithDriveway(
+            ctx,
+            done.result.house,
+            houseRoutes(routeContext(done.session), s.roads ?? [], s.parcel, house, s.config.roadMaxGradePct),
+          ),
+        },
+      }
     : done;
 }
 
-/** A driveway built to one point, as the cost estimate scoring reads (A3): its cheapest route, else its least-steep. */
-function asSiteDriveway(dw: NonNullable<ScreenResult["driveway"]>): SiteDriveway {
-  const rt = dw.routes[0];
-  if (rt) return { route: rt, legal: true, entranceIndex: rt.entranceIndex };
-  if (dw.overLimit) return { route: dw.overLimit, legal: false, entranceIndex: dw.overLimit.entranceIndex };
-  return { route: null, legal: false, entranceIndex: null };
+/** The existing house's two candidate driveways (A4), as every ranked site's. */
+function houseRoutes(
+  ctx: RouteContext,
+  roads: RoadFeature[],
+  parcel: Feature<Polygon>,
+  house: LatLon,
+  roadMaxGradePct: number,
+): SiteRoutes {
+  return siteDriveways(ctx, roads, parcel, [house], roadMaxGradePct)[0]!;
 }
 
-/** The existing house re-costed from the driveway routed to it (A3), when it has the measures to score. */
+/** The existing house re-costed from its driveway (A3), the candidate with fewer points (A4), when it can be scored. */
 function houseWithDriveway(
   ctx: Pick<ScoreContext, "valleyFloorFt" | "skyScore" | "cfg">,
   h: NonNullable<ScreenResult["house"]>,
-  dw: NonNullable<ScreenResult["driveway"]>,
+  routes: SiteRoutes,
 ): NonNullable<ScreenResult["house"]> {
   if ("outside" in h || h.elevFt == null || h.slopeDeg == null || h.aspectDeg == null) return h;
   const scored = withDrivewayCost(
     ctx,
     { ...h, elevFt: h.elevFt, slopeDeg: h.slopeDeg, aspectDeg: h.aspectDeg },
-    asSiteDriveway(dw),
+    chooseDriveway(routes),
   );
   return {
     ...h,
