@@ -6,6 +6,7 @@
  */
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { CancelledError, HttpError, type HttpClient } from "../http";
+import { fieldsFor, recordOutFields } from "./parcelFields";
 import { PARCEL_SERVICE_TIMEOUTS } from "./serviceStatus";
 import { parcelFromLine, type Bounds, type ParcelLine, type ParcelRecord } from "./parcels";
 
@@ -27,23 +28,8 @@ export const detailFor = (zoom: number): Detail => (zoom >= 15 ? "fine" : "coars
 /** Pages fetched per tile before it's marked incomplete. */
 export const MAX_PAGES = 3;
 
-/** What each service calls the three fields the outlines carry, and its record limit (checked 2026-10-06). */
-interface ServiceFields {
-  oid: string;
-  id: string;
-  county: string;
-  maxRecords: number;
-}
-const FIELDS_BY_HOST: Record<string, ServiceFields> = {
-  "services.nconemap.gov": { oid: "objectid", id: "parno", county: "stcntyfips", maxRecords: 5000 },
-  "vginmaps.vdem.virginia.gov": { oid: "OBJECTID", id: "PARCELID", county: "FIPS", maxRecords: 2000 },
-  "geoviewer.cot.tn.gov": { oid: "OBJECTID", id: "PARCELID", county: "COUNTY", maxRecords: 2000 },
-};
-/** An unknown service gets the ArcGIS defaults. */
-const DEFAULT_FIELDS: ServiceFields = { oid: "OBJECTID", id: "PARCELID", county: "COUNTY", maxRecords: 1000 };
-
-export const fieldsFor = (serviceUrl: string): ServiceFields =>
-  FIELDS_BY_HOST[/^https?:\/\/([^/]+)/.exec(serviceUrl)?.[1] ?? ""] ?? DEFAULT_FIELDS;
+// The services' field names moved to parcelFields.ts, beside the full record's (#89 pre-flight review).
+export { fieldsFor } from "./parcelFields";
 
 export interface Tile {
   x: number;
@@ -199,7 +185,7 @@ export const drawsAt = (zoom: number, count: number | null): boolean =>
   zoom >= DENSE_BELOW_ZOOM || count === null || count <= DENSE_TILE;
 
 /**
- * The full county record behind a drawn outline (all fields, full geometry), by the object id in its
+ * The full county record behind a drawn outline (the fields the app reads, full geometry), by the object id in its
  * properties. Throws when there's no object id or the service doesn't return the record: a simplified
  * outline is never used in its place. A service that fails (an HTTP error, or an ArcGIS error in the body)
  * throws HttpError, so the explorer can name it (serviceStatus isServiceDown).
@@ -214,7 +200,7 @@ export async function fullRecord(
   if (oid == null) throw new Error("This outline has no record id");
   const q = new URLSearchParams({
     objectIds: String(oid),
-    outFields: "*",
+    outFields: recordOutFields(outline.source),
     returnGeometry: "true",
     outSR: "4326",
     f: "geojson",

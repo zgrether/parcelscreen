@@ -7,6 +7,7 @@ import { writeFileSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
 import type { FixtureSlug } from "./fixtures";
 import type { Har } from "./replayFetch";
+import { scrubHar } from "./scrubHar";
 
 const FIXTURES = resolve(process.cwd(), "test", "fixtures");
 export const PORT_HAR = "network-port.har";
@@ -21,9 +22,10 @@ export function assertPortHar(path: string): void {
     throw new Error(`record:port may write only test/fixtures/<slug>/${PORT_HAR}, not ${path}`);
 }
 
-/** Writes a port recording, after checking the path. */
+/** Writes a port recording, after checking the path; cookies, auth headers and owner fields scrubbed (scrubHar.ts). */
 export function writePortHar(path: string, har: Har): void {
   assertPortHar(path);
+  har = scrubHar(har).har;
   writeFileSync(
     path,
     JSON.stringify({

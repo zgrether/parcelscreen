@@ -6,6 +6,7 @@
 import { area, booleanPointInPolygon, destination, point, polygon } from "@turf/turf";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { CancelledError, type HttpClient } from "../http";
+import { recordOutFields } from "./parcelFields";
 import { PARCEL_SERVICE_TIMEOUTS } from "./serviceStatus";
 import { M2_PER_ACRE, type LatLon } from "./types";
 
@@ -68,7 +69,7 @@ export async function pickParcelAt(
         geometryType: "esriGeometryPoint",
         inSR: "4326",
         spatialRel: "esriSpatialRelIntersects",
-        outFields: "*",
+        outFields: recordOutFields(url),
         returnGeometry: "true",
         outSR: "4326",
         f: "geojson",
