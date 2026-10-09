@@ -4,6 +4,10 @@ The parcels of `grade-distribution.md` (engine 4), screened again with today's r
 A3 and A3b. Report only. Reproduce: `STUDY_DIR=tmp/study-e6 pnpm study:grades`, then the report stage with
 `PREV_DIR` set to the earlier run. The first run's findings, proposals and caveats stay in `grade-distribution.md`.
 
+**For the record (owner, #87 review, 2026-10-09):** at engine 6, randomly drawn parcels are 78% A/B and 0% F, so
+the scale looks lenient at the bottom. The cutoffs (80/65/50/35) stay until they're calibrated against the owner's
+gut grades (`grade-distribution.md` §1 and §8).
+
 ## 10. Since the last run: engine 4 → engine 6
 
 The same 27 parcels, screened again with today's rules. Same selection (the seeded draws find the same

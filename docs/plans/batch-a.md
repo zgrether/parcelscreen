@@ -17,8 +17,11 @@ Each group is its own PR, with a before/after table across all three fixtures. T
 - **A2a:** 23 and 29;
 - **A2b:** 24 and 25;
 - **A2c:** hospitals by tag, and every other name-text search in `places.ts` (owner, #81 review);
-- **A3:** 19, 27 and 20;
-- **A4:** 37 and 35.
+- **A3:** 19, 27 and the scoring changes (#86);
+- **A3b:** follow-up 44 (the router's cost precision), 20, and the routed-driveway wording (#87);
+- **A4:** 37 and 35, plus the driveway style cap and the scaled no-route penalty (§5);
+- **A5 (proposed, before Phase 1):** follow-up 45, soil properties in place of NRCS's septic and foundation
+  interpretations: simulated on the 27-parcel study first, report-only, then a decision.
 
 Batch B (30, 21, 32, 33, 38) is UI only and can interleave. 28 and 36 go to Phase 1; 26, 31 and 34 go to Phase
 2.5. The FEMA network-failure retry (#75, merged 2026-10-08) came first and changed no number on the success path.
@@ -398,11 +401,32 @@ rule 7. 20 adds soil notes to gardens where none showed before; that is additive
   with a synthetic test (Ferney with an impossible house-site minimum).
 - **Wording (rule 7, approved):** the routed-driveway line is appended to every ranked site below #1 with a route
   within the limit; the help text says driveways are routed (the one approved replacement, `help.test.tsx`).
+- **Which route Grayson's #1 is scored on** (owner's question, #87): the one within the 10% limit that crosses
+  neighbouring land (5,176 ft, about $454k, +10 for the easement); scoring takes the cheapest route within the limit.
+  Kept to the parcel the same site needs 11%; that route isn't scored.
+- **Routes out of the parcel say so** (owner, #87): the driveway card's title, the map's tooltip and the site's
+  routed-driveway line append "needs an easement" (`routeLabel`, `lib/screen/routeLabel.ts`); never "legal" or
+  "within the limit" without it. Test: `lib/report/easement.test.ts`.
+- **The curve at engine 6:** `docs/studies/a3b-driveway-curve.md` (Ferney's and Macks's sites on the within-limit
+  line; Grayson's on the +10 line, as diamonds, for the easement). A3's engine-5 chart is kept, labelled "before the
+  router fix".
+- **The grade study at engine 6** (`grade-distribution-engine6.md`). Owner's note for the record: randomly drawn
+  parcels come out 78% A/B and 0% F, so the scale looks lenient at the bottom; the cutoffs stay until calibrated
+  against the owner's gut grades.
 - **Found, not changed:** buildDriveway's "gentlest" style keeps its own 8% cap, so under a grade limit below 8% it
-  can still return an 8% route as legal (the prototype's). The tests that need the least-steep path use 5% on
+  can still return an 8% route as legal (the prototype's). Fixed in A4 (§5). The tests that need the least-steep path use 5% on
   Grayson's terrain for that reason.
 
 ## 5. A4: sun (37, 35)
+
+**Added to A4 (owner, #87 review, 2026-10-09):**
+- **The driveway style's own grade cap:** buildDriveway's "gentlest" style keeps its own 8% cap (the prototype's),
+  so under a user grade limit below 8% it can still return an 8% route as legal. It becomes min(style cap, user
+  grade limit). Test: a 6% limit returns no route steeper than 6%.
+- **A no-route penalty scaled by how far over the limit:** in place of A3's flat +10 when no route fits the grade
+  limit, either 10 × min(1, overLimitFt / 1000) or one scaled by the excess grade needed (needed% − limit%),
+  whichever separates a route needing 10.5% from one needing 22%. Both shown on the curve chart with a synthetic
+  over-limit site. A declared numbers change; no fixture should move (since A3b none needs a least-steep route).
 
 ### 37: daylight by the standard sunrise and sunset
 

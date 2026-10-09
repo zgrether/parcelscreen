@@ -11,6 +11,7 @@ import { inSfha, type FloodFeature } from "./flood";
 import { nearestRoad, type RoadFeature } from "./roads";
 import { frostCurve, type SiteSearch } from "./sites";
 import type { SiteDriveway } from "./driveway";
+import { NEEDS_EASEMENT } from "./routeLabel";
 import { bottomland, soilAt, type SoilLimits, type SoilUnit, type VettedBench } from "./soils";
 import { horizonProfile, sunHours } from "./sun";
 import type { Dem, ScreenResult, Site, SoilRow, UserConfig } from "./types";
@@ -412,8 +413,8 @@ export function assessHouse(
 type Route = NonNullable<ScreenResult["driveway"]>["routes"][number];
 
 /** The routed-driveway line (the prototype's, for site #1): length, grade cap, switchbacks and cost range. */
-export function routedLine(rt: Pick<Route, "metrics" | "maxGrade" | "cost">): string {
-  return `routed driveway: ${Math.round(rt.metrics.lengthFt)} ft at ≤${(rt.maxGrade * 100).toFixed(0)}%, ${rt.metrics.switchbacks} switchback${rt.metrics.switchbacks === 1 ? "" : "s"}, ~$${fmt(rt.cost.low / 1000)}–${fmt(rt.cost.high / 1000)}k`;
+export function routedLine(rt: Pick<Route, "metrics" | "maxGrade" | "cost" | "needsEasement">): string {
+  return `routed driveway: ${Math.round(rt.metrics.lengthFt)} ft at ≤${(rt.maxGrade * 100).toFixed(0)}%, ${rt.metrics.switchbacks} switchback${rt.metrics.switchbacks === 1 ? "" : "s"}, ~$${fmt(rt.cost.low / 1000)}–${fmt(rt.cost.high / 1000)}k${rt.needsEasement ? `, ${NEEDS_EASEMENT}` : ""}`;
 }
 
 /**

@@ -1,4 +1,8 @@
-# A3's driveway points curve
+# A3's driveway points curve: engine 5, before the router fix
+
+**Before the router fix.** Generated at A3 (engine 5), when the router skipped about half its cells (follow-up 44):
+the sites marked "least-steep (over the limit)" below have routes within the limit since A3b. The same curve at
+engine 6, after the fix: `a3b-driveway-curve.md`.
 
 Batch A, A3 (owner, 2026-10-09). Every ranked site's driveway is routed (`siteDriveways`), and its points come from
 the route's cost estimate (mid):
