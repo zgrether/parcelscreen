@@ -1,4 +1,5 @@
 /** Hospitals from the committed OSM snapshot (Batch A A2c, owner 2026-10-09). */
+import { HOSPITAL_SNAPSHOT_MARKER } from "./hospitalsMarker";
 import { describe, expect, it } from "vitest";
 import type { HttpClient } from "../http";
 import { DEFAULT_ENDPOINTS, SCREEN_CONSTANTS } from "./config";
@@ -20,6 +21,7 @@ describe("the committed snapshot", () => {
     expect(s).not.toBeNull();
     expect(s.generatedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(s.source).toContain("OpenStreetMap");
+    expect(s.source).toContain(HOSPITAL_SNAPSHOT_MARKER); // how the precache leaves its chunk out
     expect(s.hospitals.length).toBeGreaterThan(300);
     expect(new Set(s.hospitals.map((h) => h.id)).size).toBe(s.hospitals.length);
     expect(s.hospitals.every((h) => h.tags.amenity === "hospital" || h.tags.healthcare === "hospital")).toBe(
