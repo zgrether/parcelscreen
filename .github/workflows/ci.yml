@@ -41,6 +41,8 @@ jobs:
       - run: pnpm check:pins
       # The fixtures stay under 100 MB on disk, in plain git (docs/plans/phase-0.md §9.19).
       - run: pnpm check:fixtures
+      # A warning, never a failure, once the hospital snapshot is over 120 days old (phase-0.md §9.21).
+      - run: pnpm check:hospitals-age
 
   test:
     runs-on: ubuntu-latest

@@ -56,6 +56,52 @@ describe("the committed snapshot", () => {
   });
 });
 
+describe("psychiatric and rehabilitation hospitals, by tag (owner, #82)", () => {
+  it("Carilion Saint Albans (healthcare:speciality=psychiatry) is never a candidate, even with no emergency hospital in range", async () => {
+    const real = (await loadHospitalSnapshot())!;
+    const stAlbans = real.hospitals.find((h) => h.name === "Carilion Clinic Saint Albans Hospital")!;
+    expect(stAlbans.tags).toMatchObject({ emergency: "no", "healthcare:speciality": "psychiatry" });
+    expect(SCREEN_CONSTANTS.near.excludeHospital.test(stAlbans.name)).toBe(false); // the name filter misses it
+    // Only Saint Albans and a farther hospital with no emergency tag in range.
+    const other = {
+      id: "way/9",
+      name: "Farther Community",
+      lat: stAlbans.lat + 0.1,
+      lon: stAlbans.lon,
+      tags: { amenity: "hospital" },
+    };
+    const snap: HospitalSnapshot = { ...real, hospitals: [stAlbans, other] };
+    const near: LatLon = [stAlbans.lat - 0.05, stAlbans.lon];
+    expect(hospitalCandidates(snap, near).map((c) => [c.name, c.er])).toEqual([["Farther Community", false]]);
+    // In the real snapshot too, from Ferney Creek, where it's the second nearest.
+    expect(hospitalCandidates(real, [36.8872, -80.4535]).map((c) => c.name)).not.toContain(stAlbans.name);
+  });
+
+  it("rehabilitation too, and the older health_specialty keys are folded in by the script", () => {
+    const snap: HospitalSnapshot = {
+      generatedAt: "2026-10-09",
+      source: "OpenStreetMap",
+      hospitals: [
+        {
+          id: "way/1",
+          name: "Rehab Hospital of the South",
+          lat: GRAYSON[0] + 0.01,
+          lon: GRAYSON[1],
+          tags: { amenity: "hospital", "healthcare:speciality": "physical_medicine_and_rehabilitation" },
+        },
+        {
+          id: "way/2",
+          name: "General",
+          lat: GRAYSON[0] + 0.02,
+          lon: GRAYSON[1],
+          tags: { amenity: "hospital", "healthcare:speciality": "general;cardiology" },
+        },
+      ],
+    };
+    expect(hospitalCandidates(snap, GRAYSON).map((c) => c.name)).toEqual(["General"]);
+  });
+});
+
 describe("the hospital drive: emergency=yes preferred (A2c)", () => {
   /** OSRM answering each destination (by its latitude) with the minutes given. */
   const osrm = (minutesByLat: Record<string, number>): HttpClient => ({

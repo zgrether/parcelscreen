@@ -28,6 +28,7 @@ const SnapshotSchema = z.object({
           amenity: z.string().optional(),
           healthcare: z.string().optional(),
           emergency: z.string().optional(),
+          "healthcare:speciality": z.string().optional(),
         }),
       }),
     )
@@ -59,11 +60,15 @@ export const loadHospitalSnapshot: HospitalSource = () =>
       return null;
     }));
 
-/** The snapshot's hospitals within near.hospitalKm, the name filter applied, nearest first (straight line). */
+/**
+ * The snapshot's hospitals within near.hospitalKm, nearest first (straight line). Left out: the prototype's name
+ * filter, and psychiatric or rehabilitation hospitals by their healthcare:speciality tag (owner, #82).
+ */
 export function hospitalCandidates(snapshot: HospitalSnapshot, centre: LatLon): HospitalCandidate[] {
   const [lat, lon] = centre;
   return snapshot.hospitals
     .filter((h) => !K.excludeHospital.test(h.name))
+    .filter((h) => !K.excludeHospitalSpeciality.test(h.tags["healthcare:speciality"] ?? ""))
     .map((h) => ({
       name: h.name || "Hospital",
       ll: [h.lat, h.lon] as LatLon,

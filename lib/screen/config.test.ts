@@ -226,6 +226,7 @@ describe("config", () => {
         "near": {
           "bigGrocer": /walmart\\|ingles\\|food lion\\|publix\\|harris teeter\\|kroger\\|lowes foods\\|food city\\|trader joe\\|whole foods\\|sprouts\\|aldi/i,
           "excludeHospital": /urgent\\|veterinar\\|animal\\|behavioral\\|psychiatric/i,
+          "excludeHospitalSpeciality": /psychiatr\\|rehabilitat/i,
           "groceryKm": 40,
           "hospitalKm": 60,
           "maxGrocers": 6,

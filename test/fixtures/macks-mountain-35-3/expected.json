@@ -3790,20 +3790,20 @@
      "km": 20.800611351341455
     },
     {
-     "name": "Carilion Clinic Saint Albans Hospital",
-     "ll": [
-      37.088587,
-      -80.505551
-     ],
-     "km": 20.810938755619972
-    },
-    {
      "name": "LewisGale Hospital Montgomery",
      "ll": [
       37.1873,
       -80.411632
      ],
      "km": 34.53109491086321
+    },
+    {
+     "name": "Twin County Regional Hospital",
+     "ll": [
+      36.670824,
+      -80.923671
+     ],
+     "km": 39.03143482935081
     }
    ],
    "grocers": [
@@ -11822,20 +11822,20 @@
      "km": 20.800611351341455
     },
     {
-     "name": "Carilion Clinic Saint Albans Hospital",
-     "ll": [
-      37.088587,
-      -80.505551
-     ],
-     "km": 20.810938755619972
-    },
-    {
      "name": "LewisGale Hospital Montgomery",
      "ll": [
       37.1873,
       -80.411632
      ],
      "km": 34.53109491086321
+    },
+    {
+     "name": "Twin County Regional Hospital",
+     "ll": [
+      36.670824,
+      -80.923671
+     ],
+     "km": 39.03143482935081
     }
    ],
    "grocers": [

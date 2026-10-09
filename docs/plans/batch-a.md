@@ -253,16 +253,21 @@ department.
 **The decision (owner, 2026-10-09, option C):**
 - A committed OSM snapshot, `lib/screen/data/hospitals.json`, made by `pnpm data:hospitals`
   (`scripts/data-hospitals.mts`).
-  - It's one Overpass query for `amenity=hospital` or `healthcare=hospital` in VA, NC and TN.
-  - It keeps the OSM id, name, position, the `emergency`, `healthcare` and `amenity` tags, and a
-    `generatedAt` date.
-  - It's regenerated quarterly (`phase-0.md` §9.21). There's no runtime endpoint; endpoints `_v` stays 12.
+  - It's one Overpass query for `amenity=hospital` or `healthcare=hospital` in the VA ∪ NC ∪ TN bounding box
+    widened by `near.hospitalKm` (owner, #82 review): 33.30–40.01 N, 90.96–74.59 W.
+  - It keeps the OSM id, name, position, the `emergency`, `healthcare`, `amenity` and `healthcare:speciality`
+    tags (the older `health_specialty:psychiatry` / `:rehabilitation` keys folded in), and a `generatedAt` date.
+  - 2026-10-09: 1,485 hospitals (998 `emergency=yes`), 255 KB, one hospital per line.
+  - It's regenerated quarterly (`phase-0.md` §9.21); CI warns past 120 days. There's no runtime endpoint;
+    endpoints `_v` stays 12.
 - **De-duplication:** one entry per OSM id. Same-named copies within 300 m merge, keeping the `emergency=yes`
   one. Position alone isn't enough: Carilion Saint Albans (psychiatric, `emergency=no`) is 49 m from Carilion New
   River Valley Medical Center (`emergency=yes`).
 - **At screen time:**
   - Candidates are the snapshot's hospitals within `near.hospitalKm`, nearest first, with the
-    `excludeHospital` name filter kept.
+    `excludeHospital` name filter kept, and psychiatric or rehabilitation hospitals left out by their
+    `healthcare:speciality` tag (`near.excludeHospitalSpeciality`, owner, #82 review). That catches Carilion
+    Saint Albans and Mountain Youth Academy, which the names don't.
   - The three nearest are routed by OSRM as before. If any candidate is `emergency=yes`, only those are routed,
     like the grocery chain rule.
   - When the chosen hospital isn't `emergency=yes`, its row appends "— emergency department not listed in

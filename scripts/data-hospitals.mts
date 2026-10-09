@@ -1,7 +1,8 @@
 /**
- * Regenerates lib/screen/data/hospitals.json: every OSM hospital in Virginia, North Carolina and Tennessee
- * (amenity=hospital or healthcare=hospital), with the tags the screen reads. Batch A A2c (owner, 2026-10-09);
- * regenerated quarterly (docs/plans/phase-0.md §9.21).
+ * Regenerates lib/screen/data/hospitals.json: every OSM hospital (amenity=hospital or healthcare=hospital) in the
+ * bounding box of Virginia, North Carolina and Tennessee widened by near.hospitalKm, so a parcel near a state
+ * line sees the hospitals across it (owner, #82 review). With the tags the screen reads. Batch A A2c (owner,
+ * 2026-10-09); regenerated quarterly (docs/plans/phase-0.md §9.21).
  *
  *   pnpm data:hospitals
  *
@@ -19,9 +20,29 @@ const MIRRORS = ["https://overpass-api.de/api/interpreter", "https://overpass.ku
 const UA =
   "parcelscreen-data/1 (hospital snapshot, run by hand quarterly; https://github.com/zgrether/parcelscreen)";
 
-export const QUERY = `[out:json][timeout:300];
-(area["ISO3166-2"="US-VA"]; area["ISO3166-2"="US-NC"]; area["ISO3166-2"="US-TN"];)->.s;
-(nwr["amenity"="hospital"](area.s); nwr["healthcare"="hospital"](area.s););
+/** near.hospitalKm (lib/screen/config.ts); a test holds the two equal. */
+export const HOSPITAL_KM = 60;
+
+/**
+ * The three states' extents (US Census Bureau, TIGER state boundaries): VA 36.54–39.47 N, 83.68–75.24 W;
+ * NC 33.84–36.59 N, 84.32–75.46 W; TN 34.98–36.68 N, 90.31–81.65 W. Their union, as [south, west, north, east].
+ */
+export const STATES_BOX = [33.84, -90.31, 39.47, -75.24] as const;
+
+/**
+ * The union widened by HOSPITAL_KM on every side: 1° of latitude is 111.2 km; a degree of longitude is taken at
+ * the box's southern edge, where it's shortest, so the margin is at least HOSPITAL_KM everywhere.
+ */
+export function searchBox(km: number = HOSPITAL_KM): [number, number, number, number] {
+  const [s, w, n, e] = STATES_BOX;
+  const dLat = km / 111.2;
+  const dLon = km / (111.32 * Math.cos((s * Math.PI) / 180));
+  const r = (x: number) => +x.toFixed(3);
+  return [r(s - dLat), r(w - dLon), r(n + dLat), r(e + dLon)];
+}
+
+export const QUERY = `[out:json][timeout:300][bbox:${searchBox().join(",")}];
+(nwr["amenity"="hospital"]; nwr["healthcare"="hospital"];);
 out center tags;`;
 
 /** Two copies of one hospital are one when this close and same-named (a campus area and its node). */
@@ -42,7 +63,7 @@ export interface Hospital {
   name: string;
   lat: number;
   lon: number;
-  tags: { amenity?: string; healthcare?: string; emergency?: string };
+  tags: { amenity?: string; healthcare?: string; emergency?: string; "healthcare:speciality"?: string };
 }
 
 export interface HospitalSnapshot {
@@ -77,6 +98,15 @@ export function shapeHospitals(elements: readonly Element[]): Hospital[] {
     if (t.amenity) tags.amenity = t.amenity;
     if (t.healthcare) tags.healthcare = t.healthcare;
     if (t.emergency) tags.emergency = t.emergency;
+    // The speciality, for the screen's psychiatric / rehabilitation exclusion (owner, #82). The older
+    // health_specialty:<x>=yes keys say the same thing; they're folded in.
+    const spec = [
+      ...(t["healthcare:speciality"] ?? "").split(";"),
+      ...["psychiatry", "rehabilitation"].filter((x) => t[`health_specialty:${x}`] === "yes"),
+    ]
+      .map((x) => x.trim())
+      .filter((x, i, a) => x && a.indexOf(x) === i);
+    if (spec.length) tags["healthcare:speciality"] = spec.join(";");
     byId.set(`${e.type}/${e.id}`, {
       id: `${e.type}/${e.id}`,
       name: (t.name ?? "").trim(),
@@ -92,6 +122,13 @@ export function shapeHospitals(elements: readonly Element[]): Hospital[] {
     if (!dup) kept.push(h);
   }
   return kept.sort((a, b) => a.id.localeCompare(b.id, "en", { numeric: true }));
+}
+
+/** One hospital per line: small, and a quarterly regeneration diffs line by line. */
+export function serialize(snapshot: HospitalSnapshot): string {
+  const { hospitals, ...head } = snapshot;
+  const top = JSON.stringify(head).slice(0, -1);
+  return `${top},"hospitals":[\n${hospitals.map((h) => JSON.stringify(h)).join(",\n")}\n]}\n`;
 }
 
 async function main(): Promise<void> {
@@ -111,10 +148,10 @@ async function main(): Promise<void> {
         throw new Error(`${url}: only ${hospitals.length} hospitals; refusing to write`);
       const snapshot: HospitalSnapshot = {
         generatedAt: new Date().toISOString().slice(0, 10),
-        source: `OpenStreetMap contributors (ODbL), via ${new URL(url).host}: amenity=hospital or healthcare=hospital in VA, NC and TN`,
+        source: `OpenStreetMap contributors (ODbL), via ${new URL(url).host}: amenity=hospital or healthcare=hospital in ${searchBox().join(",")} (VA, NC and TN widened by ${HOSPITAL_KM} km)`,
         hospitals,
       };
-      writeFileSync(OUT, JSON.stringify(snapshot, null, 1) + "\n");
+      writeFileSync(OUT, serialize(snapshot));
       const er = hospitals.filter((h) => h.tags.emergency === "yes").length;
       console.log(
         `${hospitals.length} hospitals (${j.elements?.length} elements; emergency=yes ${er}) → ${OUT}`,

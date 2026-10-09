@@ -1836,14 +1836,6 @@
      "km": 20.313833453654695
     },
     {
-     "name": "Mountain Youth Academy",
-     "ll": [
-      36.503924,
-      -81.824846
-     ],
-     "km": 25.07325318135854
-    },
-    {
      "name": "Johnson County Community Hospital",
      "ll": [
       36.453558,
@@ -1858,6 +1850,14 @@
       -81.488434
      ],
      "km": 30.34387971313808
+    },
+    {
+     "name": "Johnston Memorial Hospital",
+     "ll": [
+      36.722423,
+      -81.911198
+     ],
+     "km": 34.582335454803946
     }
    ],
    "grocers": [
@@ -5348,14 +5348,6 @@
      "km": 20.313833453654695
     },
     {
-     "name": "Mountain Youth Academy",
-     "ll": [
-      36.503924,
-      -81.824846
-     ],
-     "km": 25.07325318135854
-    },
-    {
      "name": "Johnson County Community Hospital",
      "ll": [
       36.453558,
@@ -5370,6 +5362,14 @@
       -81.488434
      ],
      "km": 30.34387971313808
+    },
+    {
+     "name": "Johnston Memorial Hospital",
+     "ll": [
+      36.722423,
+      -81.911198
+     ],
+     "km": 34.582335454803946
     }
    ],
    "grocers": [

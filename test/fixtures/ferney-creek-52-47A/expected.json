@@ -1823,14 +1823,6 @@
      "km": 22.829931534252122
     },
     {
-     "name": "Carilion Clinic Saint Albans Hospital",
-     "ll": [
-      37.088587,
-      -80.505551
-     ],
-     "km": 22.869471248451383
-    },
-    {
      "name": "Stuart Community Hospital",
      "ll": [
       36.646318,
@@ -1845,6 +1837,14 @@
       -80.411632
      ],
      "km": 33.580450020648264
+    },
+    {
+     "name": "LewisGale Hospital Pulaski",
+     "ll": [
+      37.068471,
+      -80.75714
+     ],
+     "km": 33.67325292804025
     }
    ],
    "grocers": [
@@ -5559,14 +5559,6 @@
      "km": 22.829931534252122
     },
     {
-     "name": "Carilion Clinic Saint Albans Hospital",
-     "ll": [
-      37.088587,
-      -80.505551
-     ],
-     "km": 22.869471248451383
-    },
-    {
      "name": "Stuart Community Hospital",
      "ll": [
       36.646318,
@@ -5581,6 +5573,14 @@
       -80.411632
      ],
      "km": 33.580450020648264
+    },
+    {
+     "name": "LewisGale Hospital Pulaski",
+     "ll": [
+      37.068471,
+      -80.75714
+     ],
+     "km": 33.67325292804025
     }
    ],
    "grocers": [
@@ -9847,14 +9847,6 @@
      "km": 22.829931534252122
     },
     {
-     "name": "Carilion Clinic Saint Albans Hospital",
-     "ll": [
-      37.088587,
-      -80.505551
-     ],
-     "km": 22.869471248451383
-    },
-    {
      "name": "Stuart Community Hospital",
      "ll": [
       36.646318,
@@ -9869,6 +9861,14 @@
       -80.411632
      ],
      "km": 33.580450020648264
+    },
+    {
+     "name": "LewisGale Hospital Pulaski",
+     "ll": [
+      37.068471,
+      -80.75714
+     ],
+     "km": 33.67325292804025
     }
    ],
    "grocers": [
