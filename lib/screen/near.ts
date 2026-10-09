@@ -8,7 +8,8 @@
  * regardless; only the places half is lost. The step still reports failure, via `placesError`.
  */
 import type { HttpClient } from "../http";
-import { findPlaces, OverpassMirrors, PlacesError, type OverpassFallback } from "./places";
+import { findPlaces, trailheadsNear, OverpassMirrors, PlacesError, type OverpassFallback } from "./places";
+import { mergeTrailheads, officialTrailheads } from "./trailheads";
 import { fetchRoads, roadToSite, type RoadFeature } from "./roads";
 import type { Dem, Endpoints, ScreenResult } from "./types";
 import type { LatLon } from "./util";
@@ -24,6 +25,8 @@ export interface NearDeps {
 export interface NearOutcome extends Pick<ScreenResult, "near" | "nearNote" | "road" | "roadNote"> {
   /** Session-only: the raw TIGER features, for site scoring and the driveway router. */
   roads: RoadFeature[];
+  /** Session-only: every non-chain supermarket found, nearest first (findPlaces), for the closer grocery. */
+  otherGrocers?: { name: string; ll: LatLon }[];
   flags: ScreenResult["flags"];
   /**
    * Set when both place sources failed: the orchestrator marks the step failed with this message and its
@@ -41,15 +44,26 @@ export async function nearStep(
   deps: NearDeps,
   mirrors: OverpassMirrors = new OverpassMirrors(),
 ): Promise<NearOutcome> {
-  const [places, roads] = await Promise.allSettled([
+  const [places, roads, official] = await Promise.allSettled([
     findPlaces(centre, deps, mirrors),
     fetchRoads(centre, deps),
+    officialTrailheads(centre, deps), // follow-up 24: USFS and the state parks; never fails but for a cancel
   ]);
   if (roads.status === "rejected") throw roads.reason; // only cancellation reaches here
+  if (official.status === "rejected") throw official.reason; // cancellation
   if (places.status === "rejected" && !(places.reason instanceof PlacesError)) throw places.reason; // cancellation
   const out: NearOutcome =
     places.status === "fulfilled"
-      ? { ...places.value, roads: roads.value, flags: [] }
+      ? {
+          near: {
+            ...places.value.near,
+            ...trailheadsNear(mergeTrailheads([...official.value, ...places.value.osmTrailheads]), centre),
+          },
+          ...(places.value.nearNote ? { nearNote: places.value.nearNote } : {}),
+          roads: roads.value,
+          otherGrocers: places.value.otherGrocers,
+          flags: [],
+        }
       : { roads: roads.value, flags: [], placesError: places.reason as PlacesError };
   if (!dWide) return out;
   return { ...out, ...roadToSite(roads.value, siteLL ?? centre, dWide, roadMaxGradePct) };

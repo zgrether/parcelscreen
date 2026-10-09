@@ -18,15 +18,16 @@ const record = (engine?: number): ScreenRecord => ({
 });
 
 describe("the engine stamp on a kept screen (Batch A §6)", () => {
-  it("Phase 0's rules are version 1, A2a's are 2, and a screen kept before the stamp counts as 1", () => {
-    expect(ENGINE_VERSION).toBe(2); // A2a (follow-ups 23, 29)
+  it("Phase 0's rules are version 1, A2a's 2, A2b's 3, and a screen kept before the stamp counts as 1", () => {
+    expect(ENGINE_VERSION).toBe(3); // A2b (follow-ups 24, 25)
     expect(engineOf(record())).toBe(1);
     expect(engineOf(record(3))).toBe(3);
   });
 
   it("is from earlier rules only below the current version", () => {
     expect(fromEarlierRules(record())).toBe(true); // a Phase 0 screen, after A2a's bump
-    expect(fromEarlierRules(record(2))).toBe(false); // screened with A2a's rules
+    expect(fromEarlierRules(record(2))).toBe(true); // A2a's rules, after A2b's bump
+    expect(fromEarlierRules(record(3))).toBe(false); // screened with A2b's rules
     expect(fromEarlierRules(record(), 1)).toBe(false); // against Phase 0's rules
     expect(fromEarlierRules(record(2), 2)).toBe(false);
     expect(fromEarlierRules(record(1), 5)).toBe(true);

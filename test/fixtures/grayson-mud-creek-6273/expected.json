@@ -1860,9 +1860,137 @@
      "km": 34.61886973197768
     }
    ],
-   "grocers": [],
-   "trailheads": [],
-   "trailheadCount": 0
+   "grocers": [
+    {
+     "name": "Lansing Foods",
+     "ll": [
+      36.4983723,
+      -81.5101524
+     ],
+     "km": 10.777976646445865,
+     "big": false
+    },
+    {
+     "name": "Food Lion",
+     "ll": [
+      36.4215828,
+      -81.4585873
+     ],
+     "km": 20.47804971160287,
+     "big": true
+    },
+    {
+     "name": "The Corner Market",
+     "ll": [
+      36.4179666,
+      -81.4455994
+     ],
+     "km": 21.382672917067246,
+     "big": false
+    },
+    {
+     "name": "Food City",
+     "ll": [
+      36.6410019,
+      -81.7982509
+     ],
+     "km": 21.873410018407984,
+     "big": true
+    },
+    {
+     "name": "Walmart Supercenter",
+     "ll": [
+      36.3892338,
+      -81.4813036
+     ],
+     "km": 23.012163200599318,
+     "big": true
+    },
+    {
+     "name": "Ingles",
+     "ll": [
+      36.3807861,
+      -81.4889626
+     ],
+     "km": 23.70406932890541,
+     "big": true
+    }
+   ],
+   "trailheads": [
+    {
+     "name": "Grayson Highlands State Park",
+     "ll": [
+      36.61298527273358,
+      -81.48135111875993
+     ],
+     "km": 7.919129809212678
+    },
+    {
+     "name": "Elk Garden A.T.",
+     "ll": [
+      36.658597152989756,
+      -81.5945535484374
+     ],
+     "km": 8.60324903368823
+    },
+    {
+     "name": "Green Cove",
+     "ll": [
+      36.620562702867886,
+      -81.65250356343203
+     ],
+     "km": 8.880103799675288
+    },
+    {
+     "name": "Scales Trailhead",
+     "ll": [
+      36.67028493963072,
+      -81.48722573707049
+     ],
+     "km": 11.61521247676043
+    },
+    {
+     "name": "Creek Junction Trailhead",
+     "ll": [
+      36.64750714748283,
+      -81.6761146821212
+     ],
+     "km": 12.217120810593679
+    },
+    {
+     "name": "Fox Creek A.T.",
+     "ll": [
+      36.69639605428542,
+      -81.50555908413908
+     ],
+     "km": 13.364889648775184
+    },
+    {
+     "name": "Rogers Ridge Trailhead",
+     "ll": [
+      36.544954123883215,
+      -81.7386745845583
+     ],
+     "km": 16.308985288814437
+    },
+    {
+     "name": "Straight Branch",
+     "ll": [
+      36.64411814425518,
+      -81.74002669099214
+     ],
+     "km": 17.080930108234487
+    },
+    {
+     "name": "Beech Mountain AT",
+     "ll": [
+      36.65722936596199,
+      -81.76500359924611
+     ],
+     "km": 19.702850898561604
+    }
+   ],
+   "trailheadCount": 9
   },
   "road": {
    "name": "unnamed road",
@@ -1876,6 +2004,12 @@
     "min": 38,
     "mi": 19,
     "name": "Ashe Memorial Hospital"
+   },
+   {
+    "label": "Nearest real grocery",
+    "min": 38,
+    "mi": 19,
+    "name": "Food Lion"
    },
    {
     "label": "Asheville airport (AVL)",
@@ -1906,6 +2040,12 @@
     "name": "",
     "min": 195,
     "mi": 139.9
+   },
+   {
+    "label": "Closer grocery",
+    "min": 21,
+    "mi": 9,
+    "name": "Lansing Foods"
    }
   ],
   "excluded": [
@@ -5232,9 +5372,137 @@
      "km": 34.61886973197768
     }
    ],
-   "grocers": [],
-   "trailheads": [],
-   "trailheadCount": 0
+   "grocers": [
+    {
+     "name": "Lansing Foods",
+     "ll": [
+      36.4983723,
+      -81.5101524
+     ],
+     "km": 10.777976646445865,
+     "big": false
+    },
+    {
+     "name": "Food Lion",
+     "ll": [
+      36.4215828,
+      -81.4585873
+     ],
+     "km": 20.47804971160287,
+     "big": true
+    },
+    {
+     "name": "The Corner Market",
+     "ll": [
+      36.4179666,
+      -81.4455994
+     ],
+     "km": 21.382672917067246,
+     "big": false
+    },
+    {
+     "name": "Food City",
+     "ll": [
+      36.6410019,
+      -81.7982509
+     ],
+     "km": 21.873410018407984,
+     "big": true
+    },
+    {
+     "name": "Walmart Supercenter",
+     "ll": [
+      36.3892338,
+      -81.4813036
+     ],
+     "km": 23.012163200599318,
+     "big": true
+    },
+    {
+     "name": "Ingles",
+     "ll": [
+      36.3807861,
+      -81.4889626
+     ],
+     "km": 23.70406932890541,
+     "big": true
+    }
+   ],
+   "trailheads": [
+    {
+     "name": "Grayson Highlands State Park",
+     "ll": [
+      36.61298527273358,
+      -81.48135111875993
+     ],
+     "km": 7.919129809212678
+    },
+    {
+     "name": "Elk Garden A.T.",
+     "ll": [
+      36.658597152989756,
+      -81.5945535484374
+     ],
+     "km": 8.60324903368823
+    },
+    {
+     "name": "Green Cove",
+     "ll": [
+      36.620562702867886,
+      -81.65250356343203
+     ],
+     "km": 8.880103799675288
+    },
+    {
+     "name": "Scales Trailhead",
+     "ll": [
+      36.67028493963072,
+      -81.48722573707049
+     ],
+     "km": 11.61521247676043
+    },
+    {
+     "name": "Creek Junction Trailhead",
+     "ll": [
+      36.64750714748283,
+      -81.6761146821212
+     ],
+     "km": 12.217120810593679
+    },
+    {
+     "name": "Fox Creek A.T.",
+     "ll": [
+      36.69639605428542,
+      -81.50555908413908
+     ],
+     "km": 13.364889648775184
+    },
+    {
+     "name": "Rogers Ridge Trailhead",
+     "ll": [
+      36.544954123883215,
+      -81.7386745845583
+     ],
+     "km": 16.308985288814437
+    },
+    {
+     "name": "Straight Branch",
+     "ll": [
+      36.64411814425518,
+      -81.74002669099214
+     ],
+     "km": 17.080930108234487
+    },
+    {
+     "name": "Beech Mountain AT",
+     "ll": [
+      36.65722936596199,
+      -81.76500359924611
+     ],
+     "km": 19.702850898561604
+    }
+   ],
+   "trailheadCount": 9
   },
   "road": {
    "name": "unnamed road",
@@ -5248,6 +5516,12 @@
     "min": 38,
     "mi": 19,
     "name": "Ashe Memorial Hospital"
+   },
+   {
+    "label": "Nearest real grocery",
+    "min": 38,
+    "mi": 19,
+    "name": "Food Lion"
    },
    {
     "label": "Asheville airport (AVL)",
@@ -5278,6 +5552,12 @@
     "name": "",
     "min": 195,
     "mi": 139.9
+   },
+   {
+    "label": "Closer grocery",
+    "min": 21,
+    "mi": 9,
+    "name": "Lansing Foods"
    }
   ],
   "excluded": [

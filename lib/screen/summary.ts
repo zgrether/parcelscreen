@@ -4,6 +4,7 @@
  * pipeline and not the UI.
  */
 import { fmt } from "../format";
+import { splitDrives } from "./driveList";
 import type { ScreenResult } from "./types";
 
 /** The parcel number if the county record has one, else the evaluation point, else "Parcel". */
@@ -40,6 +41,7 @@ export function summaryText(R: ScreenResult): string {
       lines.push(
         `Site #${x.rank} (${x.score}): ${x.ll[0].toFixed(5)}, ${x.ll[1].toFixed(5)} — ${x.why.join("; ")}`,
       );
-  if (R.drives) for (const d of R.drives) lines.push(`${d.label}: ${d.min} min`);
+  // The closer non-chain grocery (owner, #81) is report text only; the copied summary stays as it was.
+  if (R.drives) for (const d of splitDrives(R.drives).destinations) lines.push(`${d.label}: ${d.min} min`);
   return lines.join("\n");
 }

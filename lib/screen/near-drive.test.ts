@@ -41,7 +41,7 @@ describe.each(FIXTURE_SLUGS)("near, roads and drive times on %s vs the prototype
     // The raw TIGER features in the prototype's order (local, secondary, primary): later steps depend on it.
     expect(n.roads).toEqual(t.fx.goldens.run._roads);
 
-    const drives = await driveTimes(t.centre, n.near, CFG.anchors, t.deps);
+    const drives = await driveTimes(t.centre, n.near, CFG.anchors, t.deps, n.otherGrocers); // as the engine does
     expect(differences(drives, golden.drives)).toEqual([]);
 
     // Every flag through the near step, in the prototype's order.

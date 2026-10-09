@@ -13,7 +13,7 @@ import type { Curve } from "./util";
 
 /** Service endpoints. `_v` bumps when a default moves, so stale stored copies are replaced. */
 export const DEFAULT_ENDPOINTS: Endpoints = {
-  _v: 11,
+  _v: 12,
   dem: "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
   terrarium: "https://s3.amazonaws.com/elevation-tiles-prod/terrarium",
   sda: "https://SDMDataAccess.sc.egov.usda.gov/Tabular/post.rest",
@@ -29,6 +29,14 @@ export const DEFAULT_ENDPOINTS: Endpoints = {
     "https://overpass.kumi.systems/api/interpreter",
   ],
   photon: "https://photon.komoot.io/api/",
+  // Follow-up 24 (Batch A A2b, _v 12): official trailheads. USFS INFRA recreation sites (subtype TRAILHEAD), and
+  // each state's park points (VA VGIN landmarks, NC DPR, TN TDEC; lib/screen/trailheads.ts knows their fields).
+  usfsRecSites: "https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_InfraRecreationSites_01/MapServer/0",
+  stateParks: [
+    "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Landmarks/FeatureServer/1",
+    "https://services6.arcgis.com/nRIB86xC7kq6wavB/arcgis/rest/services/NC_State_Parks_Points/FeatureServer/0",
+    "https://services5.arcgis.com/bPacKTm9cauMXVfn/arcgis/rest/services/TN_State_Parks_Points/FeatureServer/0",
+  ],
   tiger: "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer",
   lpAtlasYear: 2025,
   lpAtlasBinary: "https://djlorenz.github.io/astronomy/binary_tiles",
@@ -257,6 +265,9 @@ export const SCREEN_CONSTANTS = deepFreeze({
     maxHospitals: 4, // L1128
     maxGrocers: 6,
     maxTrailheads: 25,
+    // Follow-up 24 (owner, 2026-10-08): two trailheads are one only within this AND with matching names.
+    trailheadDedupeM: 300,
+    officialTimeoutMs: 20_000,
   },
   roads: {
     layers: [8, 6, 2] as const, // L843: local, secondary, primary
@@ -267,6 +278,11 @@ export const SCREEN_CONSTANTS = deepFreeze({
   drive: {
     candidates: 3, // L1141: try the nearest 3 hospitals / grocers
     timeoutMs: 15_000,
+  },
+  grocery: {
+    // Owner, #81: "Closer: {name}, {N} min." after the chain grocery's drive time, when a non-chain grocery
+    // is at least this many minutes nearer by road.
+    closerMinMin: 10,
   },
   score: {
     siteAspectTargetDeg: 160, // L1290 (cells use 165; plan §9.4 unifies to 165 after Phase 0)

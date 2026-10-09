@@ -5,6 +5,7 @@
 import { fmt } from "../format";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { M2FT } from "../screen/util";
+import { REAL_GROCERY, splitDrives } from "../screen/driveList";
 import type { PartialScreenResult } from "../screen/types";
 import type { RichItem } from "./facts";
 import { onMap, said, type Heading, type Part } from "./parts";
@@ -213,6 +214,14 @@ export function designationName(t: string | null | undefined): string {
   return (v && PADUS_DESIGNATIONS[v]) || UNKNOWN_DESIGNATION;
 }
 
+/** "(manager, designation)", or nothing when neither says anything: an unknown manager and a catch-all designation. */
+export function unitMeta(u: { manager: string | null; type: string | null }): string {
+  const m = managerName(u.manager),
+    d = designationName(u.type);
+  const catchAll = d === UNKNOWN_DESIGNATION || /Other or Unknown$/.test(d);
+  return m === UNKNOWN_MANAGER && catchAll ? "" : `(${m}, ${d})`;
+}
+
 /** A manager as the report names it: a local name as it is, a code as its agency, nothing as "manager unknown". */
 export function managerName(m: string | null | undefined): string {
   const v = m?.trim();
@@ -227,8 +236,9 @@ export function publicLandView(r: PartialScreenResult): PublicLandView | null {
   return {
     units: r.protected.filter(withinMile).map((u) => ({
       name: u.name || "Unnamed",
-      // Names, not PAD-US codes: an approved exception to rule 7 (owner, #80 review, 2026-10-08).
-      meta: `(${managerName(u.manager)}, ${designationName(u.type)})`,
+      // Names, not PAD-US codes: an approved exception to rule 7 (owner, #80 review, 2026-10-08). With nothing
+      // known of either (manager unknown, a catch-all designation), no parenthetical at all (owner, 2026-10-08).
+      meta: unitMeta(u),
       where: u.adjoins
         ? { text: "adjoins the boundary", strong: true }
         : { text: u.distFt != null ? `${fmt(u.distFt)} ft away` : "nearby", strong: false },
@@ -242,7 +252,8 @@ export function publicLandView(r: PartialScreenResult): PublicLandView | null {
 }
 
 export interface GettingThereView {
-  drives: { label: string; name: string; value: string }[];
+  /** `closer`: after the grocery row's value, "Closer: {name}, {N} min." (owner, #81). */
+  drives: { label: string; name: string; value: string; closer?: string }[];
   /** Null when the near step didn't run. */
   grocers: { name: string; mi: string }[] | null;
   /** "3 (green dots on map; nearest 1.2 mi)" */
@@ -251,16 +262,30 @@ export interface GettingThereView {
   caveat: string;
 }
 
+type Drive = NonNullable<PartialScreenResult["drives"]>[number];
+
+/**
+ * One row per drive, except the closer non-chain grocery (owner, #81): it's appended to the "Nearest real
+ * grocery" row as "Closer: {name}, {N} min." rather than shown as a row of its own.
+ */
+function driveRows(drives: readonly Drive[]): GettingThereView["drives"] {
+  const { destinations, closer } = splitDrives(drives);
+  return destinations.map((d) => ({
+    label: d.label,
+    name: d.name,
+    value: `${d.min} min, ${d.mi} mi`,
+    ...(closer && d.label === REAL_GROCERY && d.name !== ""
+      ? { closer: `Closer: ${closer.name}, ${closer.min} min.` }
+      : {}),
+  }));
+}
+
 /** Null until the drive or near step has run. */
 export function gettingThereView(r: PartialScreenResult): GettingThereView | null {
   if (!r.drives && !r.near) return null;
   const n = r.near;
   return {
-    drives: (r.drives ?? []).map((d) => ({
-      label: d.label,
-      name: d.name,
-      value: `${d.min} min, ${d.mi} mi`,
-    })),
+    drives: driveRows(r.drives ?? []),
     grocers: n ? n.grocers.map((g) => ({ name: g.name, mi: `${fmt(g.km * 0.621, 0)} mi` })) : null,
     trailheads: n
       ? {
@@ -277,6 +302,12 @@ export function gettingThereView(r: PartialScreenResult): GettingThereView | nul
       : null,
     notes: [r.nearNote, r.roadNote].filter((x): x is string => !!x),
     caveat:
-      "Drive times from OSRM's public router — fine for comparing parcels, not for catching a flight. Places come from OpenStreetMap data (via Photon); trailhead counts undercount national forest access. Roads from the Census Bureau's TIGER lines.",
+      "Drive times from OSRM's public router — fine for comparing parcels, not for catching a flight. Places come from OpenStreetMap data (via Photon); trailhead counts undercount national forest access. Roads from the Census Bureau's TIGER lines." +
+      // Appended (rule 7; follow-up 24, Batch A plan §3): the prototype's sentence above stays word for word.
+      " Forest Service trailheads and state parks are included too.",
   };
 }
+
+/** With no grocer found, after "none in OSM" on its own line (follow-up 25; owner's wording, 2026-10-08). */
+export const NO_GROCER_CAVEAT =
+  "OpenStreetMap is incomplete in rural areas, so this isn't proof there are none.";

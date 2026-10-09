@@ -59,6 +59,8 @@ export const EndpointsSchema = z.strictObject({
   nfhl: z.string(),
   overpass: z.array(z.string()),
   photon: z.string(),
+  usfsRecSites: z.string(),
+  stateParks: z.array(z.string()),
   tiger: z.string(),
   lpAtlasYear: z.number(),
   lpAtlasBinary: z.string(),
@@ -451,6 +453,10 @@ export const ScreenResultSchema = z.strictObject({
   nearNote: z.string().optional(),
   road: z.strictObject({ name: z.string(), riseFt: num, runFt: num, gradePct: num }).optional(),
   roadNote: z.string().optional(),
+  /**
+   * Destinations ("Nearest hospital", "Nearest real grocery", each anchor) and, last, possibly the closer
+   * non-chain grocery, which is not a destination. Read it only through `splitDrives` (driveList.ts).
+   */
   drives: z.array(z.strictObject({ label: z.string(), name: z.string(), min: num, mi: num })).optional(),
   excluded: z.array(z.strictObject({ acres: num, ll: LatLonSchema, why: z.string() })).optional(),
   sites: z.array(SiteSchema).optional(),

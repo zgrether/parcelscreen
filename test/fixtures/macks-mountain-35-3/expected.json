@@ -3808,44 +3808,95 @@
    ],
    "grocers": [
     {
-     "name": "Slaughters' Supermarket",
+     "name": "Food City",
      "ll": [
-      36.9084534,
-      -80.3404264
+      37.0473322,
+      -80.7526635
      ],
-     "km": 25.320256058353774,
+     "km": 17.56186242804915,
+     "big": true
+    },
+    {
+     "name": "Food Lion",
+     "ll": [
+      37.0464647,
+      -80.7550538
+     ],
+     "km": 17.627826054431736,
+     "big": true
+    },
+    {
+     "name": "Maria Bonita Tienda Mexicana",
+     "ll": [
+      37.0821204,
+      -80.6942358
+     ],
+     "km": 18.31034057425395,
      "big": false
     },
     {
-     "name": "Grant's IGA Supermarket",
+     "name": "Walmart Supercenter",
      "ll": [
-      36.6745075,
-      -80.9144261
+      37.0839745,
+      -80.694659
      ],
-     "km": 38.17099640057119,
-     "big": false
+     "km": 18.517034918805052,
+     "big": true
     },
     {
-     "name": "Horton's Supermarket",
+     "name": "Food Lion",
      "ll": [
-      36.6444602,
-      -80.9195998
+      36.7625975,
+      -80.7327124
      ],
-     "km": 40.99078069354509,
-     "big": false
+     "km": 20.692741123122545,
+     "big": true
+    },
+    {
+     "name": "Food City",
+     "ll": [
+      37.121124,
+      -80.5315181
+     ],
+     "km": 23.080151592181267,
+     "big": true
     }
    ],
    "trailheads": [
     {
-     "name": "Buffalo Mountain Trailhead",
+     "name": "Claytor Lake State Park",
      "ll": [
-      36.7941894,
-      -80.4665278
+      37.0571814551906,
+      -80.62026620568383
      ],
-     "km": 20.390449565954164
+     "km": 14.455504818847029
+    },
+    {
+     "name": "Heritage Park",
+     "ll": [
+      37.0441901,
+      -80.7619609
+     ],
+     "km": 17.853011988292334
+    },
+    {
+     "name": "Cool Springs",
+     "ll": [
+      37.0439713,
+      -80.765408
+     ],
+     "km": 18.046624215668757
+    },
+    {
+     "name": "Dora Highway Park",
+     "ll": [
+      37.0455888,
+      -80.7793751
+     ],
+     "km": 19.05310169893537
     }
    ],
-   "trailheadCount": 1
+   "trailheadCount": 4
   },
   "road": {
    "name": "unnamed road",
@@ -3862,9 +3913,9 @@
    },
    {
     "label": "Nearest real grocery",
-    "min": 42,
-    "mi": 22.5,
-    "name": "Slaughters' Supermarket"
+    "min": 61,
+    "mi": 31.6,
+    "name": "Walmart Supercenter"
    },
    {
     "label": "Asheville airport (AVL)",
@@ -3895,6 +3946,12 @@
     "name": "",
     "min": 189,
     "mi": 141
+   },
+   {
+    "label": "Closer grocery",
+    "min": 42,
+    "mi": 22.5,
+    "name": "Slaughters' Supermarket"
    }
   ],
   "excluded": [],
@@ -11783,44 +11840,95 @@
    ],
    "grocers": [
     {
-     "name": "Slaughters' Supermarket",
+     "name": "Food City",
      "ll": [
-      36.9084534,
-      -80.3404264
+      37.0473322,
+      -80.7526635
      ],
-     "km": 25.320256058353774,
+     "km": 17.56186242804915,
+     "big": true
+    },
+    {
+     "name": "Food Lion",
+     "ll": [
+      37.0464647,
+      -80.7550538
+     ],
+     "km": 17.627826054431736,
+     "big": true
+    },
+    {
+     "name": "Maria Bonita Tienda Mexicana",
+     "ll": [
+      37.0821204,
+      -80.6942358
+     ],
+     "km": 18.31034057425395,
      "big": false
     },
     {
-     "name": "Grant's IGA Supermarket",
+     "name": "Walmart Supercenter",
      "ll": [
-      36.6745075,
-      -80.9144261
+      37.0839745,
+      -80.694659
      ],
-     "km": 38.17099640057119,
-     "big": false
+     "km": 18.517034918805052,
+     "big": true
     },
     {
-     "name": "Horton's Supermarket",
+     "name": "Food Lion",
      "ll": [
-      36.6444602,
-      -80.9195998
+      36.7625975,
+      -80.7327124
      ],
-     "km": 40.99078069354509,
-     "big": false
+     "km": 20.692741123122545,
+     "big": true
+    },
+    {
+     "name": "Food City",
+     "ll": [
+      37.121124,
+      -80.5315181
+     ],
+     "km": 23.080151592181267,
+     "big": true
     }
    ],
    "trailheads": [
     {
-     "name": "Buffalo Mountain Trailhead",
+     "name": "Claytor Lake State Park",
      "ll": [
-      36.7941894,
-      -80.4665278
+      37.0571814551906,
+      -80.62026620568383
      ],
-     "km": 20.390449565954164
+     "km": 14.455504818847029
+    },
+    {
+     "name": "Heritage Park",
+     "ll": [
+      37.0441901,
+      -80.7619609
+     ],
+     "km": 17.853011988292334
+    },
+    {
+     "name": "Cool Springs",
+     "ll": [
+      37.0439713,
+      -80.765408
+     ],
+     "km": 18.046624215668757
+    },
+    {
+     "name": "Dora Highway Park",
+     "ll": [
+      37.0455888,
+      -80.7793751
+     ],
+     "km": 19.05310169893537
     }
    ],
-   "trailheadCount": 1
+   "trailheadCount": 4
   },
   "road": {
    "name": "unnamed road",
@@ -11837,9 +11945,9 @@
    },
    {
     "label": "Nearest real grocery",
-    "min": 42,
-    "mi": 22.5,
-    "name": "Slaughters' Supermarket"
+    "min": 61,
+    "mi": 31.6,
+    "name": "Walmart Supercenter"
    },
    {
     "label": "Asheville airport (AVL)",
@@ -11870,6 +11978,12 @@
     "name": "",
     "min": 189,
     "mi": 141
+   },
+   {
+    "label": "Closer grocery",
+    "min": 42,
+    "mi": 22.5,
+    "name": "Slaughters' Supermarket"
    }
   ],
   "excluded": [],

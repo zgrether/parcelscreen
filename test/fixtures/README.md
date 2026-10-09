@@ -103,9 +103,12 @@ User-Agent), keeping it in `network-port.har`. The replay answers from `network.
 
 | Fixture | Recorded 2026-10-08 |
 |---|---|
-| Ferney Creek | 2 requests: FEMA's zones, and the 16 km PAD-US query (4 units) |
-| Macks Mountain | 2 requests: FEMA's zones, and the 16 km PAD-US query (19 units) |
-| Grayson Mud Creek | 22 requests: both DEMs, soils, FEMA (two queries), PAD-US (both), TIGER, Photon and OSRM for the two-part boundary |
+| Ferney Creek | 14 requests: FEMA's zones; PAD-US (both queries); Photon's reverse lookups for groceries and trailheads; USFS and the three state-park layers; OSRM to the grocers it finds (chain and non-chain) |
+| Macks Mountain | 14 requests: the same |
+| Grayson Mud Creek | 32 requests: everything for its two-part boundary (DEMs, soils, FEMA, PAD-US, TIGER, Photon, OSRM), and the A2b sources |
+
+A2b (2026-10-08) added Photon's reverse lookups (groceries and trailheads by tag, follow-ups 24 and 25) and the
+official trailhead sources, and dropped the forward searches they replace.
 
 Re-recorded after the #80 review: FEMA asks for zone names without geometry, then geometry for the SFHA features
 only (Grayson's FEMA answer went from 8 MB to 3 KB), and the flood, soils and PAD-US queries send the parcel's own

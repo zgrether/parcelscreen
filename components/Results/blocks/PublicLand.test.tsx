@@ -10,6 +10,7 @@ import {
   PADUS_DESIGNATIONS,
   PADUS_MANAGERS,
   publicLandView,
+  unitMeta,
 } from "@/lib/report/surroundings";
 import type { PartialScreenResult } from "@/lib/screen/types";
 import { PublicLand } from "./PublicLand";
@@ -127,5 +128,17 @@ describe("the within-a-mile list names codes (an approved exception to rule 7, p
     expect(designationName("ZZ")).toBe("designation unknown");
     expect(designationName(null)).toBe("designation unknown");
     for (const [code, name] of Object.entries(PADUS_DESIGNATIONS)) expect(name).not.toBe(code);
+  });
+});
+
+describe("no parenthetical when neither says anything (owner, 2026-10-08)", () => {
+  it("an unknown manager with a catch-all designation: nothing; either one known: both shown", () => {
+    expect(unitMeta({ manager: "UNK", type: "SOTH" })).toBe("");
+    expect(unitMeta({ manager: null, type: "UNK" })).toBe("");
+    expect(unitMeta({ manager: " ", type: "LOTH" })).toBe("");
+    expect(unitMeta({ manager: "UNK", type: "PCON" })).toBe("(manager unknown, Private Conservation)");
+    expect(unitMeta({ manager: "SDC", type: "SOTH" })).toBe(
+      "(State Department of Conservation, State Other or Unknown)",
+    );
   });
 });

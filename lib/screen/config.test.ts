@@ -54,7 +54,7 @@ describe("config", () => {
           "woodedPct": 100,
         },
         "endpoints": {
-          "_v": 11,
+          "_v": 12,
           "dem": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
           "lpAtlasBinary": "https://djlorenz.github.io/astronomy/binary_tiles",
           "lpAtlasTiles": "https://djlorenz.github.io/astronomy/image_tiles",
@@ -76,8 +76,14 @@ describe("config", () => {
           ],
           "photon": "https://photon.komoot.io/api/",
           "sda": "https://SDMDataAccess.sc.egov.usda.gov/Tabular/post.rest",
+          "stateParks": [
+            "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Landmarks/FeatureServer/1",
+            "https://services6.arcgis.com/nRIB86xC7kq6wavB/arcgis/rest/services/NC_State_Parks_Points/FeatureServer/0",
+            "https://services5.arcgis.com/bPacKTm9cauMXVfn/arcgis/rest/services/TN_State_Parks_Points/FeatureServer/0",
+          ],
           "terrarium": "https://s3.amazonaws.com/elevation-tiles-prod/terrarium",
           "tiger": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer",
+          "usfsRecSites": "https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_InfraRecreationSites_01/MapServer/0",
         },
         "gardenMin": 60,
         "gardenMinAcres": 0.05,
@@ -214,6 +220,9 @@ describe("config", () => {
           "retryTimeoutMs": 45000,
           "timeoutMs": 30000,
         },
+        "grocery": {
+          "closerMinMin": 10,
+        },
         "near": {
           "bigGrocer": /walmart\\|ingles\\|food lion\\|publix\\|harris teeter\\|kroger\\|lowes foods\\|food city\\|trader joe\\|whole foods\\|sprouts\\|aldi/i,
           "excludeHospital": /urgent\\|veterinar\\|animal\\|behavioral\\|psychiatric/i,
@@ -222,12 +231,14 @@ describe("config", () => {
           "maxGrocers": 6,
           "maxHospitals": 4,
           "maxTrailheads": 25,
+          "officialTimeoutMs": 20000,
           "overpass429WaitMs": 5000,
           "overpassRetryAfterCapMs": 30000,
           "overpassRouteTimeoutMs": 180000,
           "overpassTimeoutMs": 25000,
           "photonLimit": 40,
           "photonTimeoutMs": 15000,
+          "trailheadDedupeM": 300,
           "trailheadKm": 20,
         },
         "padus": {
