@@ -2,6 +2,9 @@
  * Hospitals, groceries and trailheads near the parcel, from OpenStreetMap via Photon (komoot), with the
  * Overpass mirrors as a fallback. Ported verbatim (proto L861–882, L1111–1128).
  *
+ * Batch A A2c (owner, 2026-10-09): hospitals come from the committed OSM snapshot (hospitals.ts), with their
+ * emergency tag; Photon (by tag, amenity and healthcare) and Overpass supply them only if it can't be loaded.
+ *
  * Deviation (step 13 CORS check): no Overpass mirror answers a browser any more (overpass-api.de sends 406
  * to browser User-Agents, openstreetmap.fr 403 "white-listed usages only", the other two time out), so in
  * the browser the fallback goes through /api/places/overpass, which runs `overpassPlaces` server-side with
@@ -11,6 +14,12 @@ import { distance } from "@turf/turf";
 import { CancelledError, retryAfterHeaderMs, type HttpClient } from "../http";
 import { SCREEN_CONSTANTS } from "./config";
 import type { Endpoints, ScreenResult } from "./types";
+import {
+  hospitalCandidates,
+  loadHospitalSnapshot,
+  type HospitalCandidate,
+  type HospitalSource,
+} from "./hospitals";
 import type { TrailheadPoint } from "./trailheads";
 import type { LatLon } from "./util";
 
@@ -27,11 +36,17 @@ export interface PlacesDeps {
   sleep?: (ms: number) => Promise<void>;
   /** When set, replaces calling the Overpass mirrors directly. */
   overpass?: OverpassFallback;
+  /** The hospital snapshot; injectable so tests can make it fail. Defaults to the committed one. */
+  hospitals?: HospitalSource;
 }
 
 /** An OSM element as Overpass returns it; Photon results are reshaped into the same form. */
 export interface OsmElement {
   type: string;
+  /** Overpass's element id; with `type`, the OSM identity. */
+  id?: number;
+  /** Photon's OSM identity ("way/123"); its elements are reshaped as nodes, so `type` can't say. */
+  osm?: string;
   lat?: number;
   lon?: number;
   center?: { lat: number; lon: number };
@@ -41,41 +56,9 @@ export interface OsmElement {
 const opLL = (e: OsmElement): LatLon =>
   e.type === "node" ? [e.lat!, e.lon!] : [e.center!.lat, e.center!.lon];
 
-/** OSM places by tag through Photon, as Overpass-style nodes (proto L876–882). */
-export async function photon(
-  q: string,
-  tag: string,
-  lat: number,
-  lon: number,
-  radiusKm: number,
-  deps: PlacesDeps,
-  limit: number = K.photonLimit,
-): Promise<OsmElement[]> {
-  // OSM data via komoot's geocoder — a different host than Overpass, for networks that block it
-  const d = radiusKm / 111,
-    dx = d / Math.cos((lat * Math.PI) / 180),
-    bbox = `${lon - dx},${lat - d},${lon + dx},${lat + d}`;
-  const u = `${deps.endpoints.photon}?q=${encodeURIComponent(q)}&osm_tag=${encodeURIComponent(tag)}&lat=${lat}&lon=${lon}&bbox=${bbox}&limit=${limit}`;
-  const r = await deps.http.fetch(u, {
-    timeoutMs: K.photonTimeoutMs,
-    ...(deps.signal ? { signal: deps.signal } : {}),
-  });
-  if (!r.ok) throw new Error("Photon " + r.status);
-  const j = (await r.json()) as {
-    features?: { geometry: { coordinates: [number, number] }; properties: { name?: string } }[];
-  };
-  const [k, v] = tag.split(":") as [string, string];
-  return (j.features || []).map((f) => ({
-    type: "node",
-    lat: f.geometry.coordinates[1],
-    lon: f.geometry.coordinates[0],
-    tags: { name: f.properties.name, [k]: v },
-  }));
-}
-
 /**
  * OSM places by tag around a point, nearest first, through Photon's reverse geocoder (Batch A, A2b). The forward
- * search (`photon`) matches its query text against names: `q=supermarket` found "Slaughters' Supermarket" but
+ * search (`photon`, removed in A2c with its last use, hospitals) matched its query text against names: `q=supermarket` found "Slaughters' Supermarket" but
  * never a Food Lion, which left Grayson Mud Creek with no grocer although Lansing and West Jefferson have them
  * (follow-up 25), and `q=trailhead` missed trailheads not named so (follow-up 24). Reverse, filtered by the tag
  * within `radiusKm`, returns every match.
@@ -96,11 +79,18 @@ export async function photonNear(
   });
   if (!r.ok) throw new Error("Photon " + r.status);
   const j = (await r.json()) as {
-    features?: { geometry: { coordinates: [number, number] }; properties: { name?: string } }[];
+    features?: {
+      geometry: { coordinates: [number, number] };
+      properties: { name?: string; osm_type?: string; osm_id?: number };
+    }[];
   };
   const [k, v] = tag.split(":") as [string, string];
+  const TYPE: Record<string, string> = { N: "node", W: "way", R: "relation" };
   return (j.features || []).map((f) => ({
     type: "node",
+    ...(f.properties.osm_type && f.properties.osm_id !== undefined
+      ? { osm: `${TYPE[f.properties.osm_type] ?? f.properties.osm_type}/${f.properties.osm_id}` }
+      : {}),
     lat: f.geometry.coordinates[1],
     lon: f.geometry.coordinates[0],
     tags: { name: f.properties.name, [k]: v },
@@ -200,16 +190,21 @@ export function overpassViaRoute(routeUrl: string, http: HttpClient): OverpassFa
   };
 }
 
-/** Both place sources failed; `link` is the "test the query" URL the step list shows. */
+/**
+ * Both place sources failed. Its "test the query" link went to Photon's hospital search; with hospitals from
+ * the snapshot that query no longer runs, and no clean OSM map view of hospitals near a point exists, so the
+ * link is gone (owner's fallback, A2c).
+ */
 export class PlacesError extends Error {
-  constructor(
-    message: string,
-    readonly link: string,
-  ) {
+  constructor(message: string) {
     super(message);
     this.name = "PlacesError";
   }
 }
+
+/** An element's OSM identity, when its source gave one. */
+const osmIdOf = (e: OsmElement): string | undefined =>
+  e.osm ?? (e.id !== undefined ? `${e.type}/${e.id}` : undefined);
 
 /** The places half of the 'near' step (proto L1112–1128). */
 export async function findPlaces(
@@ -226,18 +221,33 @@ export async function findPlaces(
    * maxGrocers. The drive step looks for a closer one here (owner, #81), not only among the six listed.
    */
   otherGrocers: { name: string; ll: LatLon }[];
+  /**
+   * Session-only: every hospital the drive step may route to, nearest first, with its emergency status when
+   * the snapshot gave it (A2c). near.hospitals is its first maxHospitals.
+   */
+  hospitalPool: HospitalCandidate[];
 }> {
   const [lat, lon] = centre;
+  // Loaded alongside Photon, not before it, so places and roads still start together (it never rejects).
+  const loading = (deps.hospitals ?? loadHospitalSnapshot)();
   let els: OsmElement[] = [];
   let nearNote: string | undefined;
   try {
-    const [p1, p2, p3] = await Promise.all([
-      photon("hospital", "amenity:hospital", lat, lon, K.hospitalKm, deps),
-      // Groceries and trailheads by tag, not by name (photonNear): follow-ups 25 and 24.
+    // By tag, not by name (photonNear): groceries and trailheads (follow-ups 25 and 24), and hospitals only
+    // when the snapshot couldn't be loaded, both tags (A2c).
+    const ps = await Promise.all([
       photonNear("shop:supermarket", lat, lon, K.groceryKm, deps),
       photonNear("highway:trailhead", lat, lon, K.trailheadKm, deps),
+      loading.then((snap) =>
+        snap
+          ? []
+          : Promise.all([
+              photonNear("amenity:hospital", lat, lon, K.hospitalKm, deps),
+              photonNear("healthcare:hospital", lat, lon, K.hospitalKm, deps),
+            ]).then((h) => h.flat()),
+      ),
     ]);
-    els = [...p1, ...p2, ...p3];
+    els = ps.flat();
     if (!els.length) throw new Error("returned nothing");
   } catch (e1) {
     if (e1 instanceof CancelledError) throw e1;
@@ -248,18 +258,28 @@ export async function findPlaces(
       nearNote = "Places came from Overpass (Photon was unavailable).";
     } catch (e2) {
       if (e2 instanceof CancelledError) throw e2;
-      throw new PlacesError(
-        `Photon: ${(e1 as Error).message}; Overpass: ${(e2 as Error).message}`,
-        `${deps.endpoints.photon}?q=hospital&osm_tag=amenity:hospital&lat=${lat}&lon=${lon}&limit=5`,
-      );
+      throw new PlacesError(`Photon: ${(e1 as Error).message}; Overpass: ${(e2 as Error).message}`);
     }
   }
   const withPos = els.filter((e) => e.lat || e.center);
   const km = (e: OsmElement) => distance([lon, lat], [opLL(e)[1], opLL(e)[0]], { units: "kilometers" });
-  const hospitals = withPos
-    .filter((e) => e.tags?.amenity === "hospital" && !K.excludeHospital.test(e.tags.name || ""))
-    .map((e) => ({ name: e.tags!.name || "Hospital", ll: opLL(e), km: km(e) }))
-    .sort((a, b) => a.km - b.km);
+  const snapshot = await loading;
+  const seen = new Set<string>();
+  const hospitalPool: HospitalCandidate[] = snapshot
+    ? hospitalCandidates(snapshot, centre)
+    : withPos
+        .filter((e) => e.tags?.amenity === "hospital" || e.tags?.healthcare === "hospital")
+        .filter((e) => !K.excludeHospital.test(e.tags!.name || ""))
+        .filter((e) => {
+          // One element found by both tags, once.
+          const id = osmIdOf(e);
+          if (id === undefined) return true;
+          if (seen.has(id)) return false;
+          seen.add(id);
+          return true;
+        })
+        .map((e) => ({ name: e.tags!.name || "Hospital", ll: opLL(e), km: km(e) }))
+        .sort((a, b) => a.km - b.km);
   const grocers = withPos
     .filter((e) => e.tags?.shop === "supermarket")
     .map((e) => ({
@@ -275,13 +295,14 @@ export async function findPlaces(
   const trailheads = trailheadsNear(osmTrailheads, centre);
   return {
     near: {
-      hospitals: hospitals.slice(0, K.maxHospitals),
+      hospitals: hospitalPool.slice(0, K.maxHospitals).map(({ name, ll, km }) => ({ name, ll, km })),
       grocers: grocers.slice(0, K.maxGrocers),
       ...trailheads,
     },
     ...(nearNote ? { nearNote } : {}),
     osmTrailheads,
     otherGrocers: grocers.filter((g) => !g.big).map(({ name, ll }) => ({ name, ll })),
+    hospitalPool,
   };
 }
 

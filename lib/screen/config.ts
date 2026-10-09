@@ -260,6 +260,9 @@ export const SCREEN_CONSTANTS = deepFreeze({
     // server). The route's maxDuration matches. Was 120 s.
     overpassRouteTimeoutMs: 180_000,
     excludeHospital: /urgent|veterinar|animal|behavioral|psychiatric/i, // L1125
+    // A2c (owner, #82): also by the snapshot's healthcare:speciality, which catches what the name doesn't
+    // (Carilion Clinic Saint Albans Hospital: psychiatry).
+    excludeHospitalSpeciality: /psychiatr|rehabilitat/i,
     bigGrocer:
       /walmart|ingles|food lion|publix|harris teeter|kroger|lowes foods|food city|trader joe|whole foods|sprouts|aldi/i, // L1126
     maxHospitals: 4, // L1128

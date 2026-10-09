@@ -3776,34 +3776,34 @@
     {
      "name": "LewisGale Hospital Pulaski",
      "ll": [
-      37.0687436,
-      -80.7570461
+      37.068471,
+      -80.75714
      ],
-     "km": 19.66403441681886
+     "km": 19.6448051074941
     },
     {
-     "name": "Carilion Clinic Saint Albans Hospital",
+     "name": "Carilion New River Valley Medical Center",
      "ll": [
-      37.0885844,
-      -80.5057643
+      37.08829,
+      -80.505149
      ],
-     "km": 20.801101598529414
+     "km": 20.800611351341455
     },
     {
      "name": "LewisGale Hospital Montgomery",
      "ll": [
-      37.1872836,
-      -80.4119087
+      37.1873,
+      -80.411632
      ],
-     "km": 34.51615718639039
+     "km": 34.53109491086321
     },
     {
      "name": "Twin County Regional Hospital",
      "ll": [
-      36.6708585,
-      -80.9240619
+      36.670824,
+      -80.923671
      ],
-     "km": 39.052409905109826
+     "km": 39.03143482935081
     }
    ],
    "grocers": [
@@ -3907,15 +3907,15 @@
   "drives": [
    {
     "label": "Nearest hospital",
-    "min": 47,
-    "mi": 20.1,
-    "name": "Carilion Clinic Saint Albans Hospital"
+    "name": "Carilion New River Valley Medical Center",
+    "min": 48,
+    "mi": 20.4
    },
    {
     "label": "Nearest real grocery",
+    "name": "Walmart Supercenter",
     "min": 61,
-    "mi": 31.6,
-    "name": "Walmart Supercenter"
+    "mi": 31.6
    },
    {
     "label": "Asheville airport (AVL)",
@@ -3949,9 +3949,9 @@
    },
    {
     "label": "Closer grocery",
+    "name": "Slaughters' Supermarket",
     "min": 42,
-    "mi": 22.5,
-    "name": "Slaughters' Supermarket"
+    "mi": 22.5
    }
   ],
   "excluded": [],
@@ -11808,34 +11808,34 @@
     {
      "name": "LewisGale Hospital Pulaski",
      "ll": [
-      37.0687436,
-      -80.7570461
+      37.068471,
+      -80.75714
      ],
-     "km": 19.66403441681886
+     "km": 19.6448051074941
     },
     {
-     "name": "Carilion Clinic Saint Albans Hospital",
+     "name": "Carilion New River Valley Medical Center",
      "ll": [
-      37.0885844,
-      -80.5057643
+      37.08829,
+      -80.505149
      ],
-     "km": 20.801101598529414
+     "km": 20.800611351341455
     },
     {
      "name": "LewisGale Hospital Montgomery",
      "ll": [
-      37.1872836,
-      -80.4119087
+      37.1873,
+      -80.411632
      ],
-     "km": 34.51615718639039
+     "km": 34.53109491086321
     },
     {
      "name": "Twin County Regional Hospital",
      "ll": [
-      36.6708585,
-      -80.9240619
+      36.670824,
+      -80.923671
      ],
-     "km": 39.052409905109826
+     "km": 39.03143482935081
     }
    ],
    "grocers": [
@@ -11939,15 +11939,15 @@
   "drives": [
    {
     "label": "Nearest hospital",
-    "min": 47,
-    "mi": 20.1,
-    "name": "Carilion Clinic Saint Albans Hospital"
+    "name": "Carilion New River Valley Medical Center",
+    "min": 48,
+    "mi": 20.4
    },
    {
     "label": "Nearest real grocery",
+    "name": "Walmart Supercenter",
     "min": 61,
-    "mi": 31.6,
-    "name": "Walmart Supercenter"
+    "mi": 31.6
    },
    {
     "label": "Asheville airport (AVL)",
@@ -11981,9 +11981,9 @@
    },
    {
     "label": "Closer grocery",
+    "name": "Slaughters' Supermarket",
     "min": 42,
-    "mi": 22.5,
-    "name": "Slaughters' Supermarket"
+    "mi": 22.5
    }
   ],
   "excluded": [],

@@ -11,6 +11,14 @@ import type { ScreenResult } from "./types";
 
 export type DriveEntry = NonNullable<ScreenResult["drives"]>[number];
 
+/** The `drives` label of the hospital drive time (proto L1141). */
+export const NEAREST_HOSPITAL = "Nearest hospital";
+/**
+ * Appended to the chosen hospital's name when the snapshot doesn't list it with emergency=yes (owner, A2c;
+ * rule 7, appended). v2 has no field for it, so it's stored in `name`; v3 gets one (phase-0.md §9.20).
+ */
+export const ER_NOT_LISTED = " — emergency department not listed in OpenStreetMap";
+
 /** The `drives` label of the chain-preferring grocery drive time (proto L1141). */
 export const REAL_GROCERY = "Nearest real grocery";
 /** The `drives` label of the closer non-chain grocery: an annotation of the REAL_GROCERY row, not a destination. */

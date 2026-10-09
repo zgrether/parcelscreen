@@ -129,7 +129,7 @@ describe("places outage (plan §9.11): roads, road grade and the driveway still 
     expect(out.result.failed).toEqual(["near"]);
     const nearFail = events.find((e) => e.step === "near" && e.status === "fail")!;
     expect(nearFail.message).toMatch(/^Photon: Photon 503; Overpass: Overpass unreachable/);
-    expect(nearFail.link).toMatch(/^https:\/\/photon\.komoot\.io\/api\/\?q=hospital/);
+    expect(nearFail.link).toBeUndefined(); // A2c: the hospital search it tested no longer runs
     expect(out.result.near).toBeUndefined();
     // …but the roads and everything downstream of them survive:
     expect(out.result.road).toEqual(normal.road);

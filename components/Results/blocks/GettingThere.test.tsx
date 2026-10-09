@@ -2,7 +2,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { NO_GROCER_CAVEAT } from "@/lib/report/surroundings";
-import { CLOSER_GROCERY, REAL_GROCERY } from "@/lib/screen/driveList";
+import { CLOSER_GROCERY, ER_NOT_LISTED, NEAREST_HOSPITAL, REAL_GROCERY } from "@/lib/screen/driveList";
 import type { PartialScreenResult } from "@/lib/screen/types";
 import { GettingThere } from "./GettingThere";
 
@@ -49,6 +49,15 @@ describe("Getting there (Batch A A2b)", () => {
     // Without one, the row is the prototype's.
     expect(html({ ...near([]), drives: drives.slice(0, 3) } as PartialScreenResult)).toContain(
       `<td class="num">38 min, 24 mi</td>`,
+    );
+  });
+
+  it("a hospital not listed with an emergency department: the note follows its name (A2c, appended)", () => {
+    const drives = [
+      { label: NEAREST_HOSPITAL, name: `Johnston Memorial${ER_NOT_LISTED}`, min: 44, mi: 30.2 },
+    ];
+    expect(html({ ...near([]), drives } as PartialScreenResult)).toContain(
+      `${NEAREST_HOSPITAL}<div class="tiny muted">Johnston Memorial — emergency department not listed in OpenStreetMap</div></td><td class="num">44 min, 30.2 mi</td>`,
     );
   });
 

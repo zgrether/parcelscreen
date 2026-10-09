@@ -9,6 +9,7 @@
  */
 import type { HttpClient } from "../http";
 import { findPlaces, trailheadsNear, OverpassMirrors, PlacesError, type OverpassFallback } from "./places";
+import type { HospitalCandidate, HospitalSource } from "./hospitals";
 import { mergeTrailheads, officialTrailheads } from "./trailheads";
 import { fetchRoads, roadToSite, type RoadFeature } from "./roads";
 import type { Dem, Endpoints, ScreenResult } from "./types";
@@ -20,6 +21,7 @@ export interface NearDeps {
   signal?: AbortSignal;
   sleep?: (ms: number) => Promise<void>;
   overpass?: OverpassFallback;
+  hospitals?: HospitalSource;
 }
 
 export interface NearOutcome extends Pick<ScreenResult, "near" | "nearNote" | "road" | "roadNote"> {
@@ -27,6 +29,8 @@ export interface NearOutcome extends Pick<ScreenResult, "near" | "nearNote" | "r
   roads: RoadFeature[];
   /** Session-only: every non-chain supermarket found, nearest first (findPlaces), for the closer grocery. */
   otherGrocers?: { name: string; ll: LatLon }[];
+  /** Session-only: every candidate hospital, nearest first, with its emergency status when known (A2c). */
+  hospitalPool?: HospitalCandidate[];
   flags: ScreenResult["flags"];
   /**
    * Set when both place sources failed: the orchestrator marks the step failed with this message and its
@@ -62,6 +66,7 @@ export async function nearStep(
           ...(places.value.nearNote ? { nearNote: places.value.nearNote } : {}),
           roads: roads.value,
           otherGrocers: places.value.otherGrocers,
+          hospitalPool: places.value.hospitalPool,
           flags: [],
         }
       : { roads: roads.value, flags: [], placesError: places.reason as PlacesError };

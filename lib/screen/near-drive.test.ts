@@ -41,7 +41,10 @@ describe.each(FIXTURE_SLUGS)("near, roads and drive times on %s vs the prototype
     // The raw TIGER features in the prototype's order (local, secondary, primary): later steps depend on it.
     expect(n.roads).toEqual(t.fx.goldens.run._roads);
 
-    const drives = await driveTimes(t.centre, n.near, CFG.anchors, t.deps, n.otherGrocers); // as the engine does
+    const drives = await driveTimes(t.centre, n.near, CFG.anchors, t.deps, {
+      ...(n.otherGrocers ? { otherGrocers: n.otherGrocers } : {}),
+      ...(n.hospitalPool ? { hospitals: n.hospitalPool } : {}),
+    }); // as the engine does
     expect(differences(drives, golden.drives)).toEqual([]);
 
     // Every flag through the near step, in the prototype's order.
@@ -117,6 +120,8 @@ describe("places and roads run at the same time", () => {
 describe("places fallbacks (synthetic)", () => {
   const centre: LatLon = [36.9, -80.5];
   const hospital = { type: "node", lat: 36.95, lon: -80.45, tags: { amenity: "hospital", name: "Carilion" } };
+  /** These exercise Photon and Overpass for hospitals too, which they supply only without the snapshot (A2c). */
+  const noSnapshot = { hospitals: async () => null };
   const route = (handler: (u: string) => Response | Promise<Response>): HttpClient => ({
     fetch: async (u) => handler(u),
   });
@@ -130,11 +135,11 @@ describe("places fallbacks (synthetic)", () => {
       return new Response(JSON.stringify({ elements: [hospital] }));
     });
     const mirrors = new OverpassMirrors();
-    const r = await findPlaces(centre, { http, endpoints: DEFAULT_ENDPOINTS }, mirrors);
+    const r = await findPlaces(centre, { http, endpoints: DEFAULT_ENDPOINTS, ...noSnapshot }, mirrors);
     expect(r.nearNote).toBe("Places came from Overpass (Photon was unavailable).");
     expect(r.near.hospitals[0]!.name).toBe("Carilion");
-    // 3 Photon, then the main server (504: not a wait status) → openstreetmap.fr (answers, moves to front).
-    expect(asked.slice(3)).toEqual([
+    // After Photon, the main server (504: not a wait status) → openstreetmap.fr (answers, moves to front).
+    expect(asked.filter((h) => !h.includes("photon"))).toEqual([
       "overpass-api.de",
       "overpass.openstreetmap.fr",
       "overpass.openstreetmap.fr",
@@ -216,7 +221,7 @@ describe("places fallbacks (synthetic)", () => {
     expect(retries).toEqual([0, 0, 0]);
   });
 
-  it("when both fail: one error naming both, with the 'test the query' link", async () => {
+  it("when both fail: one error naming both, and no 'test the query' link (A2c: no clean OSM equivalent)", async () => {
     const http = route((u) =>
       u.includes("tigerweb")
         ? new Response(JSON.stringify({ features: [] }))
@@ -227,9 +232,7 @@ describe("places fallbacks (synthetic)", () => {
     expect(out.placesError!.message).toBe(
       "Photon: Photon 502; Overpass: Overpass unreachable (overpass-api.de 502; overpass.openstreetmap.fr 502; overpass.kumi.systems 502)",
     );
-    expect(out.placesError!.link).toBe(
-      "https://photon.komoot.io/api/?q=hospital&osm_tag=amenity:hospital&lat=36.9&lon=-80.5&limit=5",
-    );
+    expect(Object.keys(out.placesError!)).not.toContain("link");
     expect(out.near).toBeUndefined();
   });
 
@@ -246,6 +249,7 @@ describe("places fallbacks (synthetic)", () => {
       {
         http,
         endpoints: DEFAULT_ENDPOINTS,
+        ...noSnapshot,
         overpass: async (c) => (calls.push(c), [hospital]),
       },
       new OverpassMirrors(),

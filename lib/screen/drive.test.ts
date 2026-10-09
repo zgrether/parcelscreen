@@ -95,7 +95,7 @@ describe("the closer non-chain grocery (owner, #81)", () => {
       near(listed),
       [],
       { http: o.http, endpoints: DEFAULT_ENDPOINTS },
-      pool,
+      { otherGrocers: pool },
     );
     expect(drives.map((d) => [d.label, d.name, d.min])).toEqual([
       [REAL_GROCERY, "Food City", 61],

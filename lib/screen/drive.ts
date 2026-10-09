@@ -1,12 +1,14 @@
 /**
  * Drive times from the parcel centroid by the public OSRM router: the nearest of the top three hospitals
+ * (those with an emergency department first, A2c)
  * and big-name groceries, then each anchor. Ported verbatim (proto L883–889, L1138–1144), plus a nearer
  * non-chain grocery when there is one (owner, #81; CLOSER_GROCERY). Requests stay
  * sequential, as in the prototype; lib/http spaces them one per second for the volunteer-run demo server.
  */
 import { CancelledError, type HttpClient } from "../http";
 import { SCREEN_CONSTANTS } from "./config";
-import { CLOSER_GROCERY, REAL_GROCERY } from "./driveList";
+import { CLOSER_GROCERY, ER_NOT_LISTED, NEAREST_HOSPITAL, REAL_GROCERY } from "./driveList";
+import type { HospitalCandidate } from "./hospitals";
 import type { Anchor, Endpoints, ScreenResult } from "./types";
 import type { LatLon } from "./util";
 
@@ -45,42 +47,60 @@ export async function drive(
 
 type Place = { name: string; ll: LatLon };
 
+/** The near step's session-only lists, wider than what the result stores. Each defaults to the stored one. */
+export interface DrivePools {
+  /**
+   * Every non-chain supermarket found, nearest first, beyond the six the report lists (owner, #81: Macks's
+   * Slaughters' is the tenth nearest).
+   */
+  otherGrocers?: readonly Place[];
+  /** Every candidate hospital, nearest first, with its emergency status when the snapshot gave it (A2c). */
+  hospitals?: readonly HospitalCandidate[];
+}
+
 /** The 'drive' step. Throws when nothing could be routed at all. */
 export async function driveTimes(
   from: LatLon,
   near: ScreenResult["near"] | undefined,
   anchors: Anchor[],
   deps: DriveDeps,
-  /**
-   * Every non-chain supermarket found, nearest first, beyond the six the report lists (owner, #81: Macks's
-   * Slaughters' is the tenth nearest). Defaults to the listed ones.
-   */
-  otherGrocers: readonly Place[] = near ? near.grocers.filter((g) => !g.big) : [],
+  pools: DrivePools = {},
 ): Promise<NonNullable<ScreenResult["drives"]>> {
   const drives: NonNullable<ScreenResult["drives"]> = [];
-  const quickest = async (list: Place[], n: number) => {
-    let bestD: { min: number; mi: number; name: string } | null = null;
+  const quickest = async <P extends Place>(list: readonly P[], n: number) => {
+    let bestD: { min: number; mi: number; name: string; place: P } | null = null;
     for (const x of list.slice(0, n)) {
       const d = await drive(from, x.ll, deps);
-      if (d && (!bestD || d.min < bestD.min)) bestD = { ...d, name: x.name };
+      if (d && (!bestD || d.min < bestD.min)) bestD = { ...d, name: x.name, place: x };
     }
     return bestD;
   };
-  const tryN = async (list: Place[], label: string, n: number) => {
+  const tryN = async (list: readonly Place[], label: string, n: number) => {
     const bestD = await quickest(list, n);
-    if (bestD) drives.push({ label, ...bestD });
+    if (bestD) drives.push({ label, name: bestD.name, min: bestD.min, mi: bestD.mi });
     return bestD;
   };
   let closer: NonNullable<ScreenResult["drives"]>[number] | null = null;
   if (near) {
-    await tryN(near.hospitals, "Nearest hospital", K.candidates);
+    // A2c (owner, 2026-10-09): prefer hospitals the snapshot lists with emergency=yes, as the grocery rule
+    // prefers chains; when the one chosen isn't, its row says so. Unknown status (no snapshot): no note.
+    const hospitals: readonly HospitalCandidate[] = pools.hospitals ?? near.hospitals;
+    const er = hospitals.filter((h) => h.er === true);
+    const h = await quickest(er.length ? er : hospitals, K.candidates);
+    if (h)
+      drives.push({
+        label: NEAREST_HOSPITAL,
+        name: h.place.er === false ? h.name + ER_NOT_LISTED : h.name,
+        min: h.min,
+        mi: h.mi,
+      });
     const big = near.grocers.filter((g) => g.big);
     const chain = await tryN(big.length ? big : near.grocers, REAL_GROCERY, K.candidates);
     // Owner, #81: the chain rule stands; a non-chain grocery that's clearly nearer by road is added after it.
     if (chain && big.length) {
-      const other = await quickest([...otherGrocers], K.candidates);
+      const other = await quickest(pools.otherGrocers ?? near.grocers.filter((g) => !g.big), K.candidates);
       if (other && chain.min - other.min >= SCREEN_CONSTANTS.grocery.closerMinMin)
-        closer = { label: CLOSER_GROCERY, ...other };
+        closer = { label: CLOSER_GROCERY, name: other.name, min: other.min, mi: other.mi };
     }
   }
   for (const a of anchors) {
