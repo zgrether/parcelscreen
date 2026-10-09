@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import type { StudyParcel } from "./grade-study.test";
 import { dist, fmt, GRADES, gutPicks, tables } from "./gradeStudyReport";
 import { whatIfs, type WhatIf } from "./gradeStudySim";
+import { ENGINE_VERSION } from "@/lib/screen/engine";
 
 export const DOC = "docs/studies/grade-distribution.md";
 
@@ -12,7 +13,53 @@ const shares = (ws: WhatIf[], pick: (w: WhatIf) => string) =>
 const maps = (ll: [number, number]) =>
   `[satellite](https://www.google.com/maps/@${ll[0]},${ll[1]},700m/data=!3m1!1e3) · [OSM](https://www.openstreetmap.org/?mlat=${ll[0]}&mlon=${ll[1]}#map=16/${ll[0]}/${ll[1]})`;
 
-export function writeReport(parcels: StudyParcel[], log: string): void {
+/**
+ * The same parcels under an earlier engine and this one (owner, after A3b): grade shares, whether the top
+ * compressed (the A and B share), and each parcel's #1 before and after.
+ */
+function compareRuns(prev: { parcels: StudyParcel[]; engine: number }, now: StudyParcel[]): string {
+  const pairs = now
+    .map((p) => ({ p, q: prev.parcels.find((x) => x.key === p.key) }))
+    .filter(
+      (x): x is { p: StudyParcel; q: StudyParcel } =>
+        !!x.q && !!x.p.result.sites?.length && !!x.q.result.sites?.length,
+    );
+  const firsts = (side: "p" | "q") => pairs.map((x) => x[side].result.sites![0]!);
+  const every = (side: "p" | "q") => pairs.flatMap((x) => x[side].result.sites!);
+  const row = (label: string, sites: { grade: string }[]) =>
+    `| ${label} | ${sites.length} | ${GRADES.map((g) => pct(sites.filter((s) => s.grade === g).length, sites.length)).join(" | ")} | ${pct(sites.filter((s) => s.grade === "A" || s.grade === "B").length, sites.length)} |`;
+  const e0 = prev.engine || "earlier",
+    e1 = ENGINE_VERSION;
+  const b = firsts("q"),
+    a = firsts("p");
+  const scoreMedian = (xs: { score: number }[]) => fmt(dist(xs.map((x) => x.score))!.median, 0);
+  const moved = pairs.filter((x) => x.q.result.sites![0]!.grade !== x.p.result.sites![0]!.grade);
+  return `## 10. Since the last run: engine ${e0} → engine ${e1}
+
+The same ${pairs.length} parcels, screened again with today's rules. Same selection (the seeded draws find the same
+parcels), so every difference is the engine's.
+
+| Grades | n | ${GRADES.join(" | ")} | A or B |
+|---|---|---|---|---|---|---|---|
+${row(`#1 site, engine ${e0}`, b)}
+${row(`#1 site, engine ${e1}`, a)}
+${row(`Every ranked site, engine ${e0}`, every("q"))}
+${row(`Every ranked site, engine ${e1}`, every("p"))}
+
+Median #1 score: ${scoreMedian(b)} → ${scoreMedian(a)}. ${moved.length} of ${pairs.length} parcels' #1 changed grade.
+
+| Parcel | #1 at engine ${e0} | #1 at engine ${e1} |
+|---|---|---|
+${pairs.map(({ p, q }) => `| ${p.parcelId} (${p.county}) | ${q.result.sites![0]!.grade} ${q.result.sites![0]!.score} | ${p.result.sites![0]!.grade} ${p.result.sites![0]!.score} |`).join("\n")}
+
+`;
+}
+
+export function writeReport(
+  parcels: StudyParcel[],
+  log: string,
+  prev?: { parcels: StudyParcel[]; engine: number },
+): void {
   const t = tables(parcels);
   const ws = whatIfs(parcels);
   const gut = gutPicks(parcels);
@@ -43,7 +90,7 @@ Batch A, before A3 (owner, ${date}). How Parcel Screen's site grades spread over
 the household is looking in, which factors carry the ranking, which barely vary, and what could replace them.
 **No scoring code changes here**; A3 decides what to change.
 
-- **Data:** ${parcels.length} parcels, screened ${date} with today's rules (engine 4) and default settings.
+- **Data:** ${parcels.length} parcels, screened ${date} with today's rules (engine ${ENGINE_VERSION}) and default settings.
 - **Reproduce:** \`pnpm study:grades\` (live; picks and screens into \`tmp/study/\`), then \`STAGE=report pnpm study:grades\`
   (offline; writes this file). Tool: \`test/tools/grade-study.test.ts\`, \`gradeStudyReport.ts\`, \`gradeStudySim.ts\`,
   \`gradeStudyDoc.ts\`. The numbers in the prose are computed by the same run.
@@ -254,5 +301,37 @@ ${t.soilPerParcel}
 </details>
 `;
   mkdirSync("docs/studies", { recursive: true });
-  writeFileSync(DOC, md);
+  // A re-run against an earlier one is its own file: the first run's findings stay as written.
+  if (prev)
+    writeFileSync(`docs/studies/grade-distribution-engine${ENGINE_VERSION}.md`, rerunDoc(prev, parcels, t));
+  else writeFileSync(DOC, md);
+}
+
+/** The re-run's page: the comparison, then this engine's grade and factor tables (no prose written for the first run). */
+function rerunDoc(
+  prev: { parcels: StudyParcel[]; engine: number },
+  parcels: StudyParcel[],
+  t: Record<string, string>,
+): string {
+  const e = ENGINE_VERSION;
+  return `# Grade distribution at engine ${e}: the study re-run
+
+The parcels of \`grade-distribution.md\` (engine ${prev.engine || "earlier"}), screened again with today's rules after Batch A's
+A3 and A3b. Report only. Reproduce: \`STUDY_DIR=tmp/study-e${e} pnpm study:grades\`, then the report stage with
+\`PREV_DIR\` set to the earlier run. The first run's findings, proposals and caveats stay in \`grade-distribution.md\`.
+
+${compareRuns(prev, parcels)}## Grades at engine ${e}
+
+${t.grades}
+
+## Per factor at engine ${e} (#1 sites)
+
+${t.factorsBest}
+
+${t.costValues}
+
+## How the factors move together at engine ${e}
+
+${t.corr}
+`;
 }
