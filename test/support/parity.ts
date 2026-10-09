@@ -42,16 +42,31 @@ export const PARITY: CompareOptions = {
 
 /**
  * New in the port (owner, after 15c): with no legal route, the result also carries the least-steep route
- * (driveway.overLimit) and one sentence appended to the note. The prototype's note must come first, in full
- * and unchanged: the golden's note is the prefix, then exactly the appended sentence. For parity both
- * additions are taken off again. Throws when the note isn't the prototype's plus that sentence.
+ * (driveway.overLimit) and one sentence appended to the note. Since #88's follow-up the same happens when the
+ * least-steep route kept to the parcel is the one scored, beside routes within the limit: then both additions are
+ * taken off and the rest compared as it is. With no legal route, the prototype's note must come first, in full and unchanged:
+ * the golden's note is the prefix, then exactly the appended sentence. For parity both additions are taken off
+ * again. Throws when the note isn't the prototype's plus that sentence.
  */
 export function asPrototype(r: ScreenResult, golden: unknown): ScreenResult {
   const d = r.driveway;
   if (!d?.overLimit) return r;
-  const original = (golden as { driveway: { note: string } }).driveway.note;
-  const appended = ` ${overLimitNote(d.overLimit)}`;
-  if (d.note !== original + appended)
+  const sentence = overLimitNote(d.overLimit);
+  if (d.routes.length) {
+    // The scored route kept to the parcel beside routes within the limit: take off the route and the sentence, and
+    // compare the rest as it is (the prototype never had this case).
+    const own =
+      d.note === sentence
+        ? null
+        : d.note?.endsWith(` ${sentence}`)
+          ? d.note.slice(0, -sentence.length - 1)
+          : d.note;
+    const { overLimit: _o, ...rest } = d;
+    void _o;
+    return { ...r, driveway: { ...rest, note: own } };
+  }
+  const original = (golden as { driveway: { note: string | null } }).driveway.note;
+  if (d.note !== (original == null ? sentence : `${original} ${sentence}`))
     throw new Error(`driveway.note isn't the prototype's note plus the over-limit sentence:\n${d.note}`);
   const { overLimit: _, ...rest } = d;
   void _;

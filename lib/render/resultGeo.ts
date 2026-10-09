@@ -69,10 +69,11 @@ export function drivewayFeatures(r: PartialScreenResult): {
 } {
   const d = r.driveway;
   const features: Feature<LineString | Point, DrivewayProps>[] = [];
-  // No route fits the limit: the least-steep one, as suspect, with its over-limit stretches on top (owner,
-  // after 15c), and the entrances it starts from.
-  if (d && !d.routes.length && d.overLimit) {
-    const o = d.overLimit;
+  // The least-steep route, as suspect, with its over-limit stretches on top (owner, after 15c): when no route fits
+  // the limit, or (#88's follow-up) when it is the one scored, and the routes within the limit are then drawn as
+  // the alternatives.
+  const o = d?.overLimit;
+  if (o) {
     const tip = `over the limit: needs ${Math.round(o.maxGrade * 100)}%, about ${fmt(o.overFt)} ft steeper than ${fmt(o.limitPct)}% — ~$${fmt(o.cost.mid / 1000)}k, suspect`;
     features.push({ type: "Feature", properties: { kind: "over", i: 0, tip }, geometry: o.line.geometry });
     for (const [a, b] of o.overSpans)
@@ -81,7 +82,8 @@ export function drivewayFeatures(r: PartialScreenResult): {
         properties: { kind: "overStretch", i: 0, tip },
         geometry: lineSliceAlong(o.line, a, b, { units: "meters" }).geometry,
       });
-    return { lines: { type: "FeatureCollection", features }, entrances: entrancePins(d.entrances) };
+    if (!d.routes.length)
+      return { lines: { type: "FeatureCollection", features }, entrances: entrancePins(d.entrances) };
   }
   if (!d || !d.routes.length) return { lines: { type: "FeatureCollection", features }, entrances: [] };
   d.routes.forEach((rt, i) => {
@@ -89,7 +91,7 @@ export function drivewayFeatures(r: PartialScreenResult): {
       type: "Feature",
       properties: {
         kind: "route",
-        i,
+        i: o ? i + 1 : i,
         tip: `${routeLabel(rt)}: ${fmt(rt.metrics.lengthFt)} ft, max ${rt.metrics.maxGradePct.toFixed(0)}%, ~$${fmt(rt.cost.mid / 1000)}k`,
       },
       geometry: rt.line.geometry,

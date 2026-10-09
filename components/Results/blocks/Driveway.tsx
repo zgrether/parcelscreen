@@ -1,6 +1,7 @@
 /**
  * Driveway (proto L1515–1532): entrance candidates, each routed alignment with its cost and elevation
- * profile, and the pioneer-track option. When no route fits the grade limit, the least-steep one, as suspect.
+ * profile, and the pioneer-track option. When no route fits the grade limit, the least-steep one, as suspect; and
+ * since #88's follow-up, first, when the route kept to the parcel over the limit is the one scored.
  */
 import { drivewayView } from "@/lib/report/driveway";
 import { Facts, Note } from "./shared";
@@ -13,16 +14,6 @@ export function Driveway({ result, variant }: BlockProps) {
     <>
       {v.note && <p>{v.note}</p>}
       {v.entrances && <p className="tiny muted">{v.entrances}</p>}
-      {v.routes.map((rt) => (
-        <div key={rt.title} className="site">
-          <div>
-            <b className="font-semibold">{rt.title}</b> <span className="muted">{rt.from}</span>
-            <span className="grade cost">{rt.cost}</span>
-          </div>
-          <Facts rows={rt.rows} />
-          <ProfileChart path={rt.profile} />
-        </div>
-      ))}
       {v.overLimit && (
         <div className="site suspect">
           <div>
@@ -34,6 +25,16 @@ export function Driveway({ result, variant }: BlockProps) {
           <ProfileChart path={v.overLimit.profile} />
         </div>
       )}
+      {v.routes.map((rt) => (
+        <div key={rt.title} className="site">
+          <div>
+            <b className="font-semibold">{rt.title}</b> <span className="muted">{rt.from}</span>
+            <span className="grade cost">{rt.cost}</span>
+          </div>
+          <Facts rows={rt.rows} />
+          <ProfileChart path={rt.profile} />
+        </div>
+      ))}
       {v.track && (
         <div className="site">
           <b className="font-semibold">Pioneer 4×4 track first</b>
