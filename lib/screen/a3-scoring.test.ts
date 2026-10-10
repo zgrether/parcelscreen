@@ -17,7 +17,13 @@ const C = SCREEN_CONSTANTS.score.drivewayCost;
 /** A route at a cost; over the limit, a least-steep one needing `neededPct` under a 10% limit (A4). */
 const costOf = (mid: number, legal = true, needsEasement = false, neededPct = 22): SiteDriveway =>
   ({
-    route: { cost: { mid }, needsEasement, ...(legal ? {} : { maxGrade: neededPct / 100, limitPct: 10 }) },
+    // A4b: the over-limit term reads the route's 30 m grade (metrics.maxGradePct), set here to what it needs.
+    route: {
+      cost: { mid },
+      needsEasement,
+      metrics: { maxGradePct: legal ? 10 : neededPct },
+      ...(legal ? {} : { maxGrade: neededPct / 100, limitPct: 10 }),
+    },
     legal,
     entranceIndex: 0,
   }) as unknown as SiteDriveway;

@@ -65,6 +65,7 @@ export const DEFAULT_USER_CONFIG: UserConfig = {
   sunHoursWanted: 5,
   canopyDeg: 3,
   roadMaxGradePct: 10,
+  roadVetoGradePct: 20,
   dw: {
     clearPerAc: 6000,
     earthSoilPerYd: 12,
@@ -366,6 +367,9 @@ export const SCREEN_CONSTANTS = deepFreeze({
     m2ToSf: 10.764,
     clearingWidthM: 7.3, // 24 ft corridor
     easementOutsideFt: 100,
+    // A4b (owner, 2026-10-10): a route's grade is measured over these windows of its profile, the ground between
+    // the cells interpolated: 30 m is the headline (the card, the over-limit term, the veto), 15 and 60 m details.
+    gradeWindowsM: { short: 15, headline: 30, long: 60 },
     // A4 (owner, #88 review): the over-limit term, by the grade the least-steep route needs (whole percent): +1 a
     // percent over the limit up to practicalMaxPct (+5 at 15% under a 10% limit), then rising straight to
     // overLimitMaxPts at overLimitMaxAtPct needed and above, past the easement's +10, so a grade that is in

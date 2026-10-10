@@ -71,6 +71,8 @@ export const THRESHOLD_FIELDS: readonly NumberField[] = [
   threshold("sunHoursWanted", "Winter sun: hours of direct sun wanted", { step: 0.5 }),
   threshold("canopyDeg", "Tree canopy allowance on the horizon (degrees)", { step: 0.5 }),
   threshold("roadMaxGradePct", "Road grade warning (%)"),
+  // A4b (owner, 2026-10-10): the veto, beside the limit.
+  threshold("roadVetoGradePct", "Driveway veto: steepest grade over 30 m (%)"),
   threshold("demResM", "DEM cell size (m, 1–30; 3 sees a house pad, 10 doesn't)", { min: 1, max: 30 }),
 ];
 

@@ -18,7 +18,7 @@ import { loadFixture, type FixtureSlug, type PrototypeResult } from "@/test/supp
 import { fromPrototype } from "@/test/support/fromPrototype";
 import { prototypeSections, visibleText } from "@/test/support/prototypeReport";
 import { buildHeading } from "@/lib/report/build";
-import { drivewayHeading, profilePath } from "@/lib/report/driveway";
+import { drivewayHeading, GROUND_GRADE_NOTE, profilePath } from "@/lib/report/driveway";
 import { gardenHeading } from "@/lib/report/garden";
 import { houseHeading } from "@/lib/report/house";
 import { soilsHeading } from "@/lib/report/soils";
@@ -85,9 +85,24 @@ const APPROVED: Record<string, string[]> = {
  * none at all when both are unknown or catch-all (owner, 2026-10-08).
  */
 const APPROVED_PROTO: Record<string, (text: string) => string> = {
+  // A4b (owner, 2026-10-10: an approved replacement): a route's grade is the steepest over 30 m, not a single 3 m
+  // step: the card's row and the direct track's say so.
+  driveway: (t) =>
+    t
+      .replaceAll("Grade, max / average", "Grade over 30 m / average")
+      .replace(/, max (\d+)% · /g, ", $1% over 30 m · "),
   "public-land-within-a-mile": (t) =>
     t.replace(/\(([A-Z]*), ([A-Z]*)\)/g, (_m, m: string, d: string) => unitMeta({ manager: m, type: d })),
 };
+
+/**
+ * A4b (owner, 2026-10-10; added): each route card's disclosure with its 15 and 60 m grades and the ground note,
+ * which the prototype doesn't have, taken out of our text before comparing.
+ */
+const GRADE_DETAILS = new RegExp(
+  `Gradeover15and60mGradeover15m[\\d.]+%Gradeover60m[\\d.]+%${visibleText(GROUND_GRADE_NOTE).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
+  "g",
+);
 
 const render = (Block: ComponentType<BlockProps>, result: PartialScreenResult) =>
   renderToStaticMarkup(<Block result={result} point={evaluationPoint(result)} variant="panel" />);
@@ -110,7 +125,9 @@ function expectParity(R: PrototypeResult, ours: PartialScreenResult, partial: bo
       expect(html, slug).toBe("");
       continue;
     }
-    const text = (APPROVED[slug] ?? []).reduce((t, a) => t.replace(visibleText(a), ""), visibleText(html));
+    const text = (APPROVED[slug] ?? [])
+      .reduce((t, a) => t.replace(visibleText(a), ""), visibleText(html))
+      .replace(GRADE_DETAILS, "");
     const theirs = visibleText(APPROVED_PROTO[slug]?.(section.body) ?? section.body);
     expect(text, slug).toBe(theirs);
     const h = heading(ours, evaluationPoint(ours));

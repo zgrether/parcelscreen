@@ -488,6 +488,20 @@ shows both penalty forms with the synthetic over-limit site; Grayson's #1 before
 - **Then** `docs/plans/value-ranking.md`, then follow-up 47 (unit-cost calibration). Follow-up 46 stays the county
   grade and fire-access limits.
 
+**A4b (owner's go, 2026-10-10), in two PRs after the study (`docs/studies/a4b-router-realism.md`, #91):**
+- **PR A, grade over set distances and the veto (ENGINE_VERSION 9):** a route's profile reads the ground between the
+  DEM's cells (`zBilinear`), and its grade is the steepest over 30 m (`gradeOver`, `driveway.gradeWindowsM`); 15 and
+  60 m are in the card's details, with the ground-vs-road note. The over-limit term reads the 30 m grade (it read the
+  whole-percent cap). The veto, `roadVetoGradePct` = 20 in Settings: a candidate steeper than it over 30 m can't be
+  chosen; when every one is, the least steep is shown under "No practical route found" (a flag, the driveway note,
+  and the site's line). Approved text replacements: `phase-0.md` §9 decision 24. Follow-up 48: the veto moves to a
+  designed road profile when the router designs one.
+- **PR B, the router:** 32 directions, a heading-aware turn cost (3 m per 45°), 30 m per switchback landing, a 100 ft
+  minimum leg (enforced), a 30 ft switchback radius to the road centre (placeholder until follow-up 46), the ground
+  under every multi-cell move checked, length and cost from the routed, smoothed and grade-rechecked path, within the
+  5 s budget.
+- **Then** `docs/plans/value-ranking.md` (written while PR B is in progress), then follow-up 47.
+
 ## 5b. A5: soil properties in place of NRCS's septic and foundation ratings (follow-up 45)
 
 Owner, 2026-10-09. First a **report-only simulation on the 27-parcel study** (`docs/studies/`): each candidate

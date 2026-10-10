@@ -92,7 +92,7 @@ export function drivewayFeatures(r: PartialScreenResult): {
       properties: {
         kind: "route",
         i: o ? i + 1 : i,
-        tip: `${routeLabel(rt)}: ${fmt(rt.metrics.lengthFt)} ft, max ${rt.metrics.maxGradePct.toFixed(0)}%, ~$${fmt(rt.cost.mid / 1000)}k`,
+        tip: `${routeLabel(rt)}: ${fmt(rt.metrics.lengthFt)} ft, ${rt.metrics.maxGradePct.toFixed(0)}% over 30 m, ~$${fmt(rt.cost.mid / 1000)}k`,
       },
       geometry: rt.line.geometry,
     });
