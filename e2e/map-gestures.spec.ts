@@ -40,7 +40,7 @@ test.describe("desktop", () => {
   }) => {
     await replayHar(context, SLUG);
     await openExplorer(page, SLUG);
-    await expect(page.locator(".tilt-hint")).toHaveText(new RegExp(HINT.replace(/[().]/g, "\\$&")));
+    await expect(page.locator(".tilt-hint")).toContainText(HINT);
     await settle(page);
     const c = await centre(page);
     const before = await camera(page);
