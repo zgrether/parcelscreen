@@ -8,6 +8,8 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noEmit": true,
+    // scripts/record-fixtures.mts imports test/support/scrubHar.ts under plain Node, which needs the extension.
+    "allowImportingTsExtensions": true,
     "esModuleInterop": true,
     "module": "ESNext",
     "moduleResolution": "bundler",

@@ -3,7 +3,7 @@
  * expected.json generator and its check (test/tools/expected.test.ts), the prototype diff
  * (test/tools/diff-prototype.test.ts) and the screen tests.
  */
-import { createHttpClient } from "@/lib/http";
+import { createHttpClient, type HttpClient } from "@/lib/http";
 import { pickParcelAt } from "@/lib/geo/parcels";
 import { deriveParcel } from "@/lib/geo/recipe";
 import { DEFAULT_ENDPOINTS, DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "@/lib/screen/config";
@@ -44,14 +44,18 @@ const parcels = new Map<FixtureSlug, Promise<Pick<ScreenInput, "polygon" | "ownL
 /**
  * The fixture's parcel as the app screens it: the county record at the fixture's point, answered from the
  * HAR, through the recipe (lib/geo/recipe.ts). For a one-part record it's the recorded polygon; for Grayson
- * Mud Creek's two parts it's the bridged boundary with the parts as own land (follow-up 29).
+ * Mud Creek's two parts it's the bridged boundary with the parts as own land (follow-up 29). `http` is the run's
+ * own client when it brings one (record:port's, which records what the HAR lacks); the replay's answer is cached.
  */
-export function fixtureParcel(slug: FixtureSlug): Promise<Pick<ScreenInput, "polygon" | "ownLand">> {
-  let p = parcels.get(slug);
+export function fixtureParcel(
+  slug: FixtureSlug,
+  http?: HttpClient,
+): Promise<Pick<ScreenInput, "polygon" | "ownLand">> {
+  let p = http ? undefined : parcels.get(slug);
   if (!p) {
     p = (async () => {
       const { point } = loadFixture(slug).input;
-      const { parcel, report } = await pickParcelAt(depsFor(slug).http!, DEFAULT_ENDPOINTS.parcels, [
+      const { parcel, report } = await pickParcelAt(http ?? depsFor(slug).http!, DEFAULT_ENDPOINTS.parcels, [
         point.lat,
         point.lon,
       ]);
@@ -60,7 +64,7 @@ export function fixtureParcel(slug: FixtureSlug): Promise<Pick<ScreenInput, "pol
       if (!d.ok) throw new Error(`${slug}: the recipe failed (${d.reason})`);
       return { polygon: d.record.geo.geometry, ...(d.bridgeAcres > 0 ? { ownLand: d.own.geometry } : {}) };
     })();
-    parcels.set(slug, p);
+    if (!http) parcels.set(slug, p);
   }
   return p;
 }
@@ -72,7 +76,7 @@ export async function runFixture(
   deps?: ScreenDeps,
 ): Promise<ScreenOutput> {
   return screen(
-    { ...(await fixtureParcel(slug)), config: DEFAULT_USER_CONFIG, ...extra },
+    { ...(await fixtureParcel(slug, deps?.http)), config: DEFAULT_USER_CONFIG, ...extra },
     undefined,
     deps ?? depsFor(slug),
   );

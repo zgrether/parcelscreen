@@ -125,13 +125,14 @@ describe("lineKey", () => {
 });
 
 describe("fullRecord", () => {
-  it("fetches the outline's full record by object id: all fields, full geometry", async () => {
+  it("fetches the outline's full record by object id: the fields the app reads, full geometry", async () => {
     const full = { ...square(7), properties: { OBJECTID: 7, PARCELID: "52-7", LOCALITY: "Floyd County" } };
     const { http, urls } = stub([{ features: [full] }]);
     const rec = await fullRecord(http, { props: square(7).properties!, source: VA });
     const q = new URLSearchParams(urls[0]!.split("?")[1]);
     expect(q.get("objectIds")).toBe("7");
-    expect(q.get("outFields")).toBe("*");
+    // Only what parcelFacts, the dedupe key and the outlines read (owner, #89 pre-flight review).
+    expect(q.get("outFields")).toBe("OBJECTID,PARCELID,FIPS,LOCALITY");
     expect(q.has("maxAllowableOffset")).toBe(false);
     expect(rec.props.LOCALITY).toBe("Floyd County");
     expect(rec.source).toBe(VA);

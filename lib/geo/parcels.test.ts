@@ -28,7 +28,10 @@ describe("pickParcelAt (recorded services)", () => {
       const http = createHttpClient({ env: "browser", fetchImpl: fx.replayFetch() });
       const { parcel, report } = await pickParcelAt(http, SERVICES, [fx.input.point.lat, fx.input.point.lon]);
       expect(parcel?.geo).toEqual(fx.input.polygon);
-      expect(parcel?.props).toEqual(fx.input.props);
+      // The same record, asked for the fields the app reads only (owner, #89 pre-flight review): the prototype
+      // asked for all of them.
+      const asked = ["OBJECTID", "PARCELID", "FIPS", "LOCALITY"] as const;
+      expect(parcel?.props).toEqual(Object.fromEntries(asked.map((k) => [k, fx.input.props[k]])));
       expect(parcel?.source).toBe(VA);
       expect(parcel?.multiPart).toBe(false);
       // NC answered first with an empty collection; VA had it, so TN was never asked.

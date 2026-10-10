@@ -13,6 +13,7 @@ import { chromium, type Page } from "@playwright/test";
 import { createServer, type Server } from "node:http";
 import { mkdirSync, readFileSync, writeFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { scrubHar } from "../test/support/scrubHar.ts";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const LEGACY = join(ROOT, "legacy", "parcelscreen.html");
@@ -254,6 +255,11 @@ async function recordParcel(spec: ParcelSpec, harnessUrl: string, buildStamp: st
   const finishedAt = new Date().toISOString();
   await context.close(); // flushes the HAR
   await browser.close();
+  // Cookies, auth headers and parcel owner/mailing fields stay out of the repo (owner, #89 pre-flight review).
+  const harPath = join(dir, "network.har");
+  const scrubbed = scrubHar(JSON.parse(readFileSync(harPath, "utf8")));
+  writeFileSync(harPath, JSON.stringify(scrubbed.har));
+  console.log(`[${spec.slug}] scrubbed ${scrubbed.headers} headers, ${scrubbed.fields} owner/mailing fields`);
 
   const p = parcel as { geo: unknown; props: unknown; source: string };
   writeFileSync(
