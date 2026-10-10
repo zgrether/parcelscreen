@@ -66,11 +66,14 @@ const raster = (
 const BASEMAP_SOURCES: Record<BasemapId, [string, RasterSourceSpecification][]> = {
   state: [
     ["base-state-usgs", raster(USGS_IMAGERY, 16, "USGS")],
-    // The prototype's state boxes (orthoFor, proto L511) split at 36.54°, but the VA–NC line runs as far north as
-    // ~36.59° (at Grayson County), so NC land in that strip got the USGS fallback: VBMP is transparent outside
-    // Virginia. NC now runs to 36.6° under VA; VA's opaque tiles cover it wherever Virginia has imagery.
-    ["base-state-nc", raster(NC_ORTHO, 20, "NC OneMap", { bounds: [-84.4, 33.8, -75.4, 36.6] })],
-    ["base-state-va", raster(VA_ORTHO, 19, "VGIN VBMP", { bounds: [-83.7, 36.54, -75.2, 39.5] })],
+    // Each state's ortho is transparent outside its own coverage (NC's tiles there are blank RGBA, VBMP's export
+    // is transparent), so the sources draw the state outlines themselves and the bounds only limit which tiles are
+    // asked for. The bounds are each state's whole extent (TIGER, 2026-10-10: NC −84.32…−75.40, 33.75…36.59;
+    // VA −83.68…−75.17, 36.54…39.47), rounded outward. The prototype's boxes (orthoFor, proto L511) split at
+    // 36.54°, south of the VA–NC line near Grayson (~36.59°), and that strip of NC got the USGS fallback; they
+    // also cut NC's imagery offshore at 33.8° and VA's at −75.2°. VA is drawn over NC where both have imagery.
+    ["base-state-nc", raster(NC_ORTHO, 20, "NC OneMap", { bounds: [-84.4, 33.7, -75.3, 36.65] })],
+    ["base-state-va", raster(VA_ORTHO, 19, "VGIN VBMP", { bounds: [-83.75, 36.5, -75.1, 39.5] })],
   ],
   imagery: [["base-imagery", raster(USGS_IMAGERY, 16, "USGS")]],
   esri: [["base-esri", raster(ESRI_IMAGERY, 19, "Esri, Maxar, Earthstar Geographics")]],
