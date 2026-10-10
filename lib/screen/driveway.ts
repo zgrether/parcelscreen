@@ -24,7 +24,7 @@ import {
 import type { Feature, FeatureCollection, LineString, MultiLineString, Polygon, Position } from "geojson";
 import * as UTM from "../geo/utm";
 import { SCREEN_CONSTANTS } from "./config";
-import { rcToLL, utmToRC } from "./dem";
+import { rcToLL, utmToRC, zBilinear } from "./dem";
 import type { RoadFeature } from "./roads";
 import { bottomland, type SoilUnit } from "./soils";
 import type { Dem, ScreenResult, SoilRow, UserConfig } from "./types";
@@ -493,7 +493,6 @@ export function routeMany(
       rockM = 0,
       earth = 0,
       prevAcc = 0,
-      maxg = 0,
       sumg = 0,
       turns = 0,
       lastB: number | null = null;
@@ -509,7 +508,9 @@ export function routeMany(
       const i = rr * w + cc;
       const zz = z[i]!;
       if (Number.isNaN(zz)) continue;
-      prof.push([s, zz]);
+      // The ground between the cells (A4b): the cell a sample falls in can be the one above or below the path.
+      const zb = zBilinear(d, x, y);
+      prof.push([s, Number.isNaN(zb) ? zz : zb]);
       if (!inside[i]) outside += step;
       if (soil[i] === 2) rockM += step;
       const cs = Math.tan(((slope[i] || 0) * Math.PI) / 180);
@@ -527,16 +528,14 @@ export function routeMany(
         lastB = b;
       }
     }
-    for (let i = 1; i < prof.length; i++) {
-      const g = Math.abs(prof[i]![1] - prof[i - 1]![1]) / (prof[i]![0] - prof[i - 1]![0]);
-      if (g > maxg) maxg = g;
-      sumg += g;
-    }
+    for (let i = 1; i < prof.length; i++)
+      sumg += Math.abs(prof[i]![1] - prof[i - 1]![1]) / (prof[i]![0] - prof[i - 1]![0]);
     const rise = prof.length ? Math.abs(prof[prof.length - 1]![1] - prof[0]![1]) : 0;
     const q = {
       lengthFt: lenM * M2FT,
       riseFt: rise * M2FT,
-      maxGradePct: maxg * 100,
+      // The steepest grade over the headline window, not a single 3 m step (A4b, owner 2026-10-10).
+      maxGradePct: gradeOver(prof, K.gradeWindowsM.headline),
       avgGradePct: prof.length > 1 ? (sumg / (prof.length - 1)) * 100 : 0,
       switchbacks: Math.max(0, Math.round(turns / 2)),
       earthYd: earth * K.m3ToYd3,
@@ -672,6 +671,8 @@ export interface SiteDriveway {
   route: RawRoute | OverLimitRoute | null;
   legal: boolean;
   entranceIndex: number | null;
+  /** Every candidate was vetoed and this is the least steep of them (A4b, chooseDriveway): "No practical route found". */
+  noPractical?: true;
 }
 
 /**
@@ -784,6 +785,21 @@ export const neededPct = (o: OverLimitRoute): number => Math.round(o.maxGrade * 
 export function overLimitNote(o: OverLimitRoute): string {
   const n = o.overSpans.length;
   return `The least-steep route found needs grades up to ${neededPct(o)}%, with about ${Math.round(o.overFt)} ft steeper than ${o.limitPct}% in ${n} stretch${n === 1 ? "" : "es"}; it's drawn on the map as suspect.`;
+}
+
+/**
+ * The steepest grade along a profile ([metres along, elevation], every 3 m) over a window of `windowM`, in percent
+ * (A4b, owner 2026-10-10): the rise between two samples at least `windowM` apart over the distance between them.
+ * The route's reported grade is the 30 m one; 15 and 60 m are in the card's details.
+ */
+export function gradeOver(profile: readonly (readonly [number, number])[], windowM: number): number {
+  let best = 0;
+  for (let i = 0, j = 0; i < profile.length; i++) {
+    while (j < profile.length && profile[j]![0] - profile[i]![0] < windowM) j++;
+    if (j >= profile.length) break;
+    best = Math.max(best, Math.abs(profile[j]![1] - profile[i]![1]) / (profile[j]![0] - profile[i]![0]));
+  }
+  return best * 100;
 }
 
 /**

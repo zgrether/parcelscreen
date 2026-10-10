@@ -72,11 +72,11 @@ describe("the defaults are the prototype's (owner, step 16)", () => {
     for (const k of Object.keys(protoEndpoints))
       expect(typeof portEndpoints[k], k).toBe(typeof protoEndpoints[k]);
 
-    // timeZone is the only port-only setting (B5).
-    expect(Object.keys(port).filter((k) => !(k in PROTO))).toEqual(["timeZone"]);
+    // The port-only settings: timeZone (B5), and the driveway veto (A4b, owner 2026-10-10).
+    expect(Object.keys(port).filter((k) => !(k in PROTO))).toEqual(["roadVetoGradePct", "timeZone"]);
   });
 
-  it("the dialog shows the prototype's fields with its labels, less the hidden aspect pair", () => {
+  it("the dialog shows the prototype's fields with its labels, less the hidden aspect pair, plus the veto", () => {
     expect(THRESHOLD_FIELDS.map((f) => f.id)).toEqual([
       "houseMin",
       "benchMinAcres",
@@ -90,6 +90,7 @@ describe("the defaults are the prototype's (owner, step 16)", () => {
       "sunHoursWanted",
       "canopyDeg",
       "roadMaxGradePct",
+      "roadVetoGradePct", // A4b: the veto, beside the limit
       "demResM",
     ]);
     expect(COST_FIELDS.map((f) => f.id)).toEqual(Object.keys(PROTO.dw).map((k) => `dw.${k}`));

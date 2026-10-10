@@ -1,5 +1,7 @@
 /** The Driveway section (proto L1515–1532): entrances, routed alignments with costs, the pioneer track. */
 import { fmt } from "../format";
+import { SCREEN_CONSTANTS } from "../screen/config";
+import { gradeOver } from "../screen/driveway";
 import { NEEDS_EASEMENT, routeLabel } from "../screen/routeLabel";
 import type { PartialScreenResult } from "../screen/types";
 import type { FactRow } from "./facts";
@@ -25,6 +27,24 @@ export interface RouteView {
   rows: FactRow[];
   /** The elevation profile, drawn in a 360 × 100 viewBox (proto L1527). */
   profile: string;
+  /** The grade over the shorter and longer windows, and how the ground reads against a road (A4b), behind a disclosure. */
+  details: { rows: FactRow[]; note: string };
+}
+
+const WIN = SCREEN_CONSTANTS.driveway.gradeWindowsM;
+/** The details' note (owner, A4b, 2026-10-10). */
+export const GROUND_GRADE_NOTE =
+  "Grades are measured on the ground under the route, between the DEM's cells. A built road's grade reads about 1–4 points lower, once cut and fill smooth the ground.";
+
+/** The 15 and 60 m grades, from the route's profile. */
+function gradeDetails(rt: { profile: readonly (readonly [number, number])[] }): RouteView["details"] {
+  return {
+    rows: [
+      { label: `Grade over ${WIN.short} m`, value: `${gradeOver(rt.profile, WIN.short).toFixed(1)}%` },
+      { label: `Grade over ${WIN.long} m`, value: `${gradeOver(rt.profile, WIN.long).toFixed(1)}%` },
+    ],
+    note: GROUND_GRADE_NOTE,
+  };
 }
 
 export interface DrivewayView {
@@ -66,10 +86,10 @@ function overLimitView(o: NonNullable<NonNullable<PartialScreenResult["driveway"
     ...v,
     title: "Over the limit — least steep (suspect)",
     rows: v.rows.map((r) =>
-      r.label === "Grade, max / average"
+      r.label === GRADE_ROW
         ? {
             label: "Grade",
-            value: `needs ${Math.round(o.maxGrade * 100)}% (limit ${fmt(o.limitPct)}%); about ${fmt(o.overFt)} ft over the limit in ${o.overSpans.length} stretch${o.overSpans.length === 1 ? "" : "es"} · steepest 3 m step / average ${m.maxGradePct.toFixed(1)}% / ${m.avgGradePct.toFixed(1)}%`,
+            value: `needs ${Math.round(o.maxGrade * 100)}% (limit ${fmt(o.limitPct)}%); about ${fmt(o.overFt)} ft over the limit in ${o.overSpans.length} stretch${o.overSpans.length === 1 ? "" : "es"} · over ${WIN.headline} m / average ${m.maxGradePct.toFixed(1)}% / ${m.avgGradePct.toFixed(1)}%`,
           }
         : r,
     ),
@@ -83,12 +103,15 @@ function overLimitView(o: NonNullable<NonNullable<PartialScreenResult["driveway"
 export const viaNeighbours = (limitPct: number) =>
   `Within ${fmt(limitPct)}% only via neighbouring land — ${NEEDS_EASEMENT}`;
 
+/** The grade row: over the headline window (30 m), no longer the steepest single 3 m step (A4b, owner 2026-10-10). */
+const GRADE_ROW = `Grade over ${WIN.headline} m / average`;
+
 function routeView(rt: Route, i: number, overLimitPct: number | null = null): RouteView {
   const m = rt.metrics;
   const rows: FactRow[] = [
     { label: "Length / rise", value: `${fmt(m.lengthFt)} ft / ${fmt(m.riseFt)} ft` },
     {
-      label: "Grade, max / average",
+      label: GRADE_ROW,
       value: `${m.maxGradePct.toFixed(1)}% / ${m.avgGradePct.toFixed(1)}% (limit ${(rt.maxGrade * 100).toFixed(0)}%)`,
     },
     { label: "Switchbacks", value: String(m.switchbacks) },
@@ -118,6 +141,7 @@ function routeView(rt: Route, i: number, overLimitPct: number | null = null): Ro
     cost: k$(rt.cost),
     rows,
     profile: profilePath(rt.profile),
+    details: gradeDetails(rt),
   };
 }
 
@@ -152,7 +176,7 @@ export function drivewayView(r: PartialScreenResult): DrivewayView | null {
               ? [
                   {
                     label: "Direct line at ≤15% (red dotted; cheaper now, replaced later)",
-                    value: `${fmt(d.direct.metrics.lengthFt)} ft, max ${d.direct.metrics.maxGradePct.toFixed(0)}% · `,
+                    value: `${fmt(d.direct.metrics.lengthFt)} ft, ${d.direct.metrics.maxGradePct.toFixed(0)}% over ${WIN.headline} m · `,
                     strong: k$(d.direct.track.cost),
                   },
                 ]

@@ -89,6 +89,7 @@ describe("config", () => {
         "gardenMinAcres": 0.05,
         "houseMin": 60,
         "roadMaxGradePct": 10,
+        "roadVetoGradePct": 20,
         "shallowBedrockCm": 100,
         "shelfMin": 45,
         "shelfMinAcres": 0.1,
@@ -174,6 +175,11 @@ describe("config", () => {
             "label": "gentlest",
             "maxGrade": 0.08,
             "wGrade": 4,
+          },
+          "gradeWindowsM": {
+            "headline": 30,
+            "long": 60,
+            "short": 15,
           },
           "leastSteep": {
             "entranceM": 10,

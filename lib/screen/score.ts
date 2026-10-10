@@ -10,7 +10,7 @@ import { at, inGrid, llToRC, rcToLL } from "./dem";
 import { inSfha, type FloodFeature } from "./flood";
 import { nearestRoad, type RoadFeature } from "./roads";
 import { frostCurve, type SiteSearch } from "./sites";
-import { neededPct, type SiteDriveway, type SiteRoutes } from "./driveway";
+import type { SiteDriveway, SiteRoutes } from "./driveway";
 import { NEEDS_EASEMENT } from "./routeLabel";
 import { bottomland, soilAt, type SoilLimits, type SoilUnit, type VettedBench } from "./soils";
 import { horizonProfile, sunHours } from "./sun";
@@ -124,11 +124,17 @@ export function drivewayPoints(dw: SiteDriveway): number {
   return Math.min(C.max, p);
 }
 
-/** The over-limit term for a driveway (A4): none within the limit, else overLimitTerm of the grade it needs. */
+/**
+ * The over-limit term for a driveway (A4): none within the limit, else overLimitTerm of its grade over 30 m (A4b,
+ * owner 2026-10-10; it was the whole-percent cap the least-steep search needed).
+ */
 export function overLimitPoints(dw: SiteDriveway): number {
   if (dw.legal || !dw.route || !("limitPct" in dw.route)) return 0;
-  return overLimitTerm(neededPct(dw.route), dw.route.limitPct);
+  return overLimitTerm(dw.route.metrics.maxGradePct, dw.route.limitPct);
 }
+
+/** A candidate's grade over the headline window (30 m): what the over-limit term and the veto read (A4b). */
+export const grade30 = (dw: SiteDriveway): number => dw.route?.metrics.maxGradePct ?? Infinity;
 
 /**
  * The over-limit term for a route needing `neededPct` under a `limitPct` limit (A4, owner #88 review):
@@ -149,11 +155,26 @@ export function overLimitTerm(neededPct: number, limitPct: number): number {
  * The driveway a site is scored on (A4, owner 2026-10-09): of its two candidates, the one with fewer points: the
  * route within the limit (with the easement term when it leaves the parcel) or the one kept to the parcel (with
  * the over-limit term when it needs more than the limit). A tie goes to the route within the limit.
+ *
+ * The veto (A4b, owner 2026-10-10): a candidate steeper than `vetoPct` over 30 m (the ground under it) can't be
+ * chosen, whatever its cost. When every candidate is, the least steep is returned, marked `noPractical`.
  */
-export function chooseDriveway(r: SiteRoutes): SiteDriveway {
+export function chooseDriveway(r: SiteRoutes, vetoPct = Infinity): SiteDriveway {
+  const none: SiteDriveway = { route: null, legal: false, entranceIndex: null };
+  const all = [r.withinLimit, r.onParcel].filter(
+    (d, i, a): d is SiteDriveway => !!d?.route && a.indexOf(d) === i,
+  );
+  if (!all.length) return r.withinLimit ?? r.onParcel ?? none;
+  const ok = all.filter((d) => grade30(d) <= vetoPct);
+  if (!ok.length) return { ...all.reduce((a, b) => (grade30(b) < grade30(a) ? b : a)), noPractical: true };
   const { withinLimit: w, onParcel: p } = r;
-  if (!w) return p ?? { route: null, legal: false, entranceIndex: null };
-  return p && drivewayPoints(p) < drivewayPoints(w) ? p : w;
+  if (w && ok.includes(w)) return p && ok.includes(p) && drivewayPoints(p) < drivewayPoints(w) ? p : w;
+  return ok[0]!;
+}
+
+/** The sentence for a target whose every driveway candidate is vetoed (A4b; owner's wording, "No practical route found"). */
+export function noPracticalLine(dw: SiteDriveway, vetoPct: number): string {
+  return `No practical route found: every driveway route is steeper than ${vetoPct}% over 30 m; the least steep (${grade30(dw).toFixed(0)}% over 30 m) is shown.`;
 }
 
 /**
@@ -474,7 +495,7 @@ export function withRoutedLineAppended(site: Site, dw: SiteDriveway): Site {
  * it is scored on first, then the other. They differ when the route within the limit needs an easement, or when
  * there is none; otherwise that route is on the owner's land and the routed line above says so.
  */
-export function drivewayChoiceLines(r: SiteRoutes, limitPct: number): string[] {
+export function drivewayChoiceLines(r: SiteRoutes, limitPct: number, vetoPct = Infinity): string[] {
   const { withinLimit: w, onParcel: p } = r;
   if (w && w === p) return [];
   const own = (d: SiteDriveway) =>
@@ -482,12 +503,12 @@ export function drivewayChoiceLines(r: SiteRoutes, limitPct: number): string[] {
   const via = (d: SiteDriveway) =>
     `Within ${limitPct}% only via neighbouring land (needs an easement): ${Math.round(d.route!.metrics.lengthFt)} ft`;
   const lines = [p?.route ? own(p) : null, w?.route ? via(w) : null];
-  const chosen = chooseDriveway(r);
-  return (chosen === w ? lines.reverse() : lines).filter((x): x is string => x != null);
+  const chosen = chooseDriveway(r, vetoPct);
+  return (chosen.route === w?.route ? lines.reverse() : lines).filter((x): x is string => x != null);
 }
 
 /** The site with its candidate lines appended. */
-export function withDrivewayChoice(site: Site, r: SiteRoutes, limitPct: number): Site {
-  const lines = drivewayChoiceLines(r, limitPct);
+export function withDrivewayChoice(site: Site, r: SiteRoutes, limitPct: number, vetoPct = Infinity): Site {
+  const lines = drivewayChoiceLines(r, limitPct, vetoPct);
   return lines.length ? { ...site, why: [...site.why, ...lines] } : site;
 }

@@ -17,7 +17,8 @@ const dwOf = (o: { mid: number; ft: number; legal?: boolean; easement?: boolean;
   ({
     route: {
       cost: { mid: o.mid },
-      metrics: { lengthFt: o.ft },
+      // A4b: the over-limit term and the veto read the 30 m grade, set here to what the route needs.
+      metrics: { lengthFt: o.ft, maxGradePct: o.neededPct ?? 10 },
       needsEasement: !!o.easement,
       maxGrade: (o.neededPct ?? 10) / 100,
       ...(o.legal === false ? { limitPct: 10 } : {}),
@@ -129,8 +130,9 @@ describe("Grayson's sites, scored on the route kept to the parcel (A4)", () => {
       expect(site.driveFt).toBe(r.onParcel!.route!.metrics.lengthFt);
       expect(site.why.slice(-2)).toEqual(drivewayChoiceLines(r, limit));
     });
-    // #1: 11% and 4,228 ft on the parcel, against 5,176 ft within 10% through the neighbours.
-    expect(sites[0]!.why.slice(-2)).toEqual([
+    // The 1.28 ac site (#1 at engine 7; A4b's 30 m grades swap it with the 0.24 ac shelf, tied before): 11% and
+    // 4,228 ft on the parcel, against 5,176 ft within 10% through the neighbours.
+    expect(sites.find((x) => x.acres > 1.2 && x.acres < 1.3)!.why.slice(-2)).toEqual([
       "Best on your land: 11%, 4228 ft",
       "Within 10% only via neighbouring land (needs an easement): 5176 ft",
     ]);

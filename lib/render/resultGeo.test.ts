@@ -94,7 +94,8 @@ describe("driveway (15c, B1) vs the prototype's drawDriveway", () => {
       const lines = ours.lines.features
         .filter((f) => f.properties.kind !== "culvert")
         .map((f) => f.properties.tip);
-      expect(lines).toEqual(tips("line"));
+      // A4b (owner, 2026-10-10: an approved replacement): "max N%" reads "N% over 30 m".
+      expect(lines).toEqual(tips("line").map((t) => t?.replace(/, max (\d+)%, ~/, ", $1% over 30 m, ~")));
       const culverts = ours.lines.features.filter((f) => f.properties.kind === "culvert");
       expect(culverts.length).toBe(drawn.filter((d) => d.kind === "circle").length);
       // B1: these runs have a driveway, and it's drawn.
