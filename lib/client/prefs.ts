@@ -56,6 +56,8 @@ export interface Prefs {
   "ps.contours": boolean | null;
   /** Step 15: which result overlays show (the Analysis rows in Info › Layers). UI only, like the terrain. */
   "ps.overlays": OverlayPrefs;
+  /** The one-time desktop hint for tilting and rotating has been seen (owner, map UX 2026-10-10). */
+  "ps.tiltHint": boolean;
 }
 
 const DEFAULTS: Prefs = {
@@ -74,6 +76,7 @@ const DEFAULTS: Prefs = {
   "ps.hillshade": null,
   "ps.contours": null,
   "ps.overlays": ALL_OVERLAYS,
+  "ps.tiltHint": false,
 };
 
 /** How each key is stored: the prototype kept flags as "1"/"0" and the rest as plain strings or JSON. */
@@ -91,6 +94,7 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
   "ps.terrain": { read: readTerrain, write: (v) => JSON.stringify(v) },
   "ps.hillshade": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
   "ps.contours": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
+  "ps.tiltHint": { read: (r) => r === "1", write: (v) => (v ? "1" : "0") },
   "ps.overlays": {
     // Unknown or missing keys read as shown, so an overlay added later starts visible.
     read: (r) => ({ ...ALL_OVERLAYS, ...(JSON.parse(r) as Partial<OverlayPrefs>) }),

@@ -66,8 +66,10 @@ const raster = (
 const BASEMAP_SOURCES: Record<BasemapId, [string, RasterSourceSpecification][]> = {
   state: [
     ["base-state-usgs", raster(USGS_IMAGERY, 16, "USGS")],
-    // The prototype's state boxes (orthoFor, proto L511): NC south of 36.54°, VA from there north.
-    ["base-state-nc", raster(NC_ORTHO, 20, "NC OneMap", { bounds: [-84.4, 33.8, -75.4, 36.54] })],
+    // The prototype's state boxes (orthoFor, proto L511) split at 36.54°, but the VA–NC line runs as far north as
+    // ~36.59° (at Grayson County), so NC land in that strip got the USGS fallback: VBMP is transparent outside
+    // Virginia. NC now runs to 36.6° under VA; VA's opaque tiles cover it wherever Virginia has imagery.
+    ["base-state-nc", raster(NC_ORTHO, 20, "NC OneMap", { bounds: [-84.4, 33.8, -75.4, 36.6] })],
     ["base-state-va", raster(VA_ORTHO, 19, "VGIN VBMP", { bounds: [-83.7, 36.54, -75.2, 39.5] })],
   ],
   imagery: [["base-imagery", raster(USGS_IMAGERY, 16, "USGS")]],
@@ -113,6 +115,9 @@ export const LAYER = {
   culverts: "culverts",
   trailheads: "trailheads",
   evalRing: "eval-ring",
+  // Tilted, the points stand up as flags on poles (map UX, 2026-10-10; flags.ts switches them with the pitch).
+  trailheadFlags: "trailhead-flags",
+  evalFlag: "eval-flag",
   splitFill: "split-fill",
   splitLine: "split-line",
   splitCut: "split-cut",
@@ -451,6 +456,10 @@ export function buildStyle(opts: {
         "circle-pitch-alignment": "map",
       },
     },
+    // The same points as flags on poles when the map is tilted: anchored at the foot of the pole, facing the viewer,
+    // never hidden by labels. Off until flags.ts sees the pitch pass FLAG_PITCH.
+    flagLayer(LAYER.trailheadFlags, SOURCE.trailheads, "flag-trailhead"),
+    flagLayer(LAYER.evalFlag, SOURCE.evalRing, "flag-eval"),
   );
   // The split pieces, coloured per piece, and the dashed cut line (proto L612–615).
   sources[SOURCE.split] = { type: "geojson", data: EMPTY_FC };
@@ -532,4 +541,22 @@ export function buildStyle(opts: {
   // The road and place names go at the top of the map's own layers, under the DOM markers (17d §3).
   if (opts.roads) layers.push(...roadLabelLayers(opts.roads.visible));
   return { version: 8, ...(opts.terrain || opts.roads ? { glyphs: GLYPHS } : {}), sources, layers };
+}
+
+/** A point source drawn as flags on poles (map UX, 2026-10-10): hidden until the map is tilted (flags.ts). */
+function flagLayer(id: string, source: string, image: string): LayerSpecification {
+  return {
+    id,
+    type: "symbol",
+    source,
+    layout: {
+      visibility: "none",
+      "icon-image": image,
+      "icon-anchor": "bottom",
+      "icon-pitch-alignment": "viewport",
+      "icon-rotation-alignment": "viewport",
+      "icon-allow-overlap": true,
+      "icon-ignore-placement": true,
+    },
+  };
 }

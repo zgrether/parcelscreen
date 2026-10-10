@@ -14,6 +14,12 @@ import { useMap } from "./MapView";
 import { SurfaceLegend } from "./results/SurfaceLegend";
 import { SurfaceButton } from "./results/SurfaceButton";
 import { noteViewReset } from "./useFlatForTools";
+import { SHEET_QUERY } from "@/components/Explore/useBottomSheet";
+import { getPref, setPref } from "@/lib/client/prefs";
+import { canHover } from "./results/tooltip";
+import { FLAG_PITCH } from "./flags";
+import { MAX_PITCH } from "./terrainStyle";
+import { setTerrainPrefs, useTerrainPrefs } from "./useTerrainPrefs";
 import { DENSE_BELOW_ZOOM, LINES_MIN_ZOOM } from "@/lib/geo/parcelTiles";
 
 type Hint = (text: string | ((prev: string) => string)) => void;
@@ -31,6 +37,7 @@ export function MapControls({ hint }: { hint: Hint }) {
     <div className="map-col" style={{ right: panelInset ? panelInset + 10 : 24 }}>
       <MapPanelButton />
       {map && <Compass map={map} />}
+      {map && <TiltButton map={map} />}
       <SurfaceButton />
       <SurfaceLegend />
       {map && <LocateButton map={map} hint={hint} />}
@@ -84,6 +91,100 @@ function Compass({ map }: { map: MlMap }) {
         <path d="M11 20 7 11h8z" fill="currentColor" />
       </svg>
     </button>
+  );
+}
+
+/** The 3D button's tilt (owner, map UX 2026-10-10): about 60°. */
+const TILT_3D = Math.min(60, MAX_PITCH);
+const TILT_HINT = "Double-click and drag (or middle-drag) to tilt and rotate.";
+
+/** Whether the 3D button turned the terrain on, so going back to 2D turns it off again (and only then). */
+let terrainFromButton = false;
+
+/**
+ * 3D (owner, map UX 2026-10-10): eases to a 60° tilt with 3D terrain on (the owner: tilting to 3D should show the
+ * terrain), and back to flat and north up, turning the terrain off again only if the button turned it on. A tilt by
+ * gesture leaves the terrain setting alone. Pressed while the map is tilted past the flags' threshold. Off while a
+ * tool is open, since the tools lock the map flat. On desktop it also carries the one-time tilt hint, which goes
+ * once the map is first tilted or turned, by any means.
+ */
+function TiltButton({ map }: { map: MlMap }) {
+  const { state } = useExplore();
+  const tool = !!state.mode || !!state.split;
+  const { terrain } = useTerrainPrefs();
+  const [tilted, setTilted] = useState(() => map.getPitch() >= FLAG_PITCH);
+  // Shown once, on desktop (a mouse, not the phone sheet), until the map is first tilted or turned.
+  const [hint, setHint] = useState(
+    () => canHover() && !window.matchMedia(SHEET_QUERY).matches && !getPref("ps.tiltHint"),
+  );
+  useEffect(() => {
+    let frame = 0;
+    const follow = () => {
+      if (!frame)
+        frame = requestAnimationFrame(() => {
+          frame = 0;
+          setTilted(map.getPitch() >= FLAG_PITCH);
+        });
+    };
+    map.on("pitch", follow);
+    return () => {
+      map.off("pitch", follow);
+      cancelAnimationFrame(frame);
+    };
+  }, [map]);
+  useEffect(() => {
+    if (!hint) return;
+    const used = () => {
+      setHint(false);
+      setPref("ps.tiltHint", true);
+    };
+    map.once("pitchstart", used);
+    map.once("rotatestart", used);
+    return () => {
+      map.off("pitchstart", used);
+      map.off("rotatestart", used);
+    };
+  }, [map, hint]);
+  return (
+    <div className="tilt-wrap">
+      <button
+        className="map-ctl-btn tilt-btn"
+        aria-label={tilted ? "Back to flat, north up" : "Tilt the map to 3D"}
+        aria-pressed={tilted}
+        title={tilted ? "Flat (2D)" : "Tilt (3D)"}
+        disabled={tool}
+        onClick={() => {
+          if (tilted) {
+            noteViewReset(map);
+            map.easeTo({ pitch: 0, bearing: 0, duration: 600 });
+            if (terrainFromButton && terrain) setTerrainPrefs({ terrain: false });
+            terrainFromButton = false;
+          } else {
+            if (!terrain) {
+              setTerrainPrefs({ terrain: true });
+              terrainFromButton = true;
+            }
+            map.easeTo({ pitch: TILT_3D, duration: 600 });
+          }
+        }}
+      >
+        3D
+      </button>
+      {hint && (
+        <div className="tilt-hint" role="status">
+          {TILT_HINT}
+          <button
+            aria-label="Dismiss"
+            onClick={() => {
+              setHint(false);
+              setPref("ps.tiltHint", true);
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 

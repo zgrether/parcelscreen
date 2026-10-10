@@ -51,12 +51,16 @@ export const ROAD_CLASSES = [
   "service",
 ] as const;
 export const TRACK_CLASS = "track";
-/** Place classes named, each from its own zoom (owner, after the 17d plan): larger places sooner. */
+/**
+ * Place classes named, each from its own zoom (owner, after the 17d plan): larger places sooner. Towns from z8 and
+ * villages from z10, a level sooner each (owner, map UX 2026-10-10). Around Grayson that brings in Galax, Sparta and
+ * Jefferson at z8, and Damascus and Lansing at z10.
+ */
 export const PLACE_CLASSES = ["city", "town", "village", "hamlet"] as const;
 export const PLACE_MIN_ZOOM: Record<(typeof PLACE_CLASSES)[number], number> = {
   city: 7,
-  town: 9,
-  village: 11,
+  town: 8,
+  village: 10,
   hamlet: 12,
 };
 
@@ -222,8 +226,12 @@ export function roadLabelLayers(visible: boolean): LayerSpecification[] {
         "text-field": ["coalesce", ["get", "name:latin"], ["get", "name"]],
         "text-font": [LABEL_FONT],
         "text-size": ["match", cls, "city", 16, "town", 14, "village", 12.5, 11.5],
-        // Bigger places win collisions.
-        "symbol-sort-key": ["coalesce", ["get", "rank"], 99],
+        // Bigger places win collisions: the class first (city, town, village, hamlet), then the tiles' own rank.
+        "symbol-sort-key": [
+          "+",
+          ["*", ["match", cls, "city", 0, "town", 1, "village", 2, 3], 100],
+          ["coalesce", ["get", "rank"], 99],
+        ],
         "text-max-width": 8,
       },
       paint: halo,

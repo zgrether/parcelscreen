@@ -58,7 +58,7 @@ describe("roads and labels (17d)", () => {
     expect(ROAD_NAMES_MIN_ZOOM).toBe(13);
     expect([places!.minzoom, places!.maxzoom]).toEqual([PLACES_MIN_ZOOM, PLACES_MAX_ZOOM]);
     expect([PLACES_MIN_ZOOM, PLACES_MAX_ZOOM]).toEqual([7, 15]);
-    expect(PLACE_MIN_ZOOM).toEqual({ city: 7, town: 9, village: 11, hamlet: 12 });
+    expect(PLACE_MIN_ZOOM).toEqual({ city: 7, town: 8, village: 10, hamlet: 12 }); // map UX, 2026-10-10
     const filter = JSON.stringify(places!.filter);
     for (const [c, z] of Object.entries(PLACE_MIN_ZOOM))
       expect(filter).toContain(`["==",["get","class"],"${c}"],[">=",["zoom"],${z}]`);

@@ -41,6 +41,8 @@ describe("map style", () => {
       LAYER.culverts,
       LAYER.trailheads,
       LAYER.evalRing,
+      LAYER.trailheadFlags, // map UX: the points as flags when tilted
+      LAYER.evalFlag,
       LAYER.splitFill,
       LAYER.splitLine,
       LAYER.splitCut,
@@ -63,7 +65,7 @@ describe("map style", () => {
     expect(basemapLayerIds("state")).toEqual(["base-state-usgs", "base-state-nc", "base-state-va"]);
     const src = (id: string) => style.sources[id] as { maxzoom?: number; bounds?: number[]; tiles: string[] };
     expect(src("base-state-usgs").maxzoom).toBe(16);
-    expect(src("base-state-nc")).toMatchObject({ maxzoom: 20, bounds: [-84.4, 33.8, -75.4, 36.54] });
+    expect(src("base-state-nc")).toMatchObject({ maxzoom: 20, bounds: [-84.4, 33.8, -75.4, 36.6] });
     expect(src("base-state-va")).toMatchObject({ maxzoom: 19, bounds: [-83.7, 36.54, -75.2, 39.5] });
     expect(src("base-state-va").tiles[0]).toContain("bbox={bbox-epsg-3857}");
     expect(src("base-state-va").tiles[0]).toContain("transparent=true");
