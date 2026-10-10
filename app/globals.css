@@ -1023,6 +1023,58 @@ html:has(.explore) body {
   border: 0;
   cursor: pointer;
 }
+/* The point a double-click-drag or middle-drag turns around (map UX, 2026-10-10), as Google Earth marks it. */
+.tilt-anchor {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  z-index: 3;
+}
+/* The 3D button and its one-time hint (map UX, 2026-10-10). */
+.tilt-wrap {
+  position: relative;
+}
+.tilt-btn {
+  font: 700 13px/1 var(--font-cond);
+  letter-spacing: 0.02em;
+}
+.tilt-btn[aria-pressed="true"] {
+  color: #e0c43c;
+}
+.tilt-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.tilt-hint {
+  position: absolute;
+  right: 54px;
+  top: 4px;
+  width: 220px;
+  padding: 8px 28px 8px 10px;
+  border-radius: 8px;
+  background: rgba(28, 38, 32, 0.94);
+  color: #f1f3ee;
+  font-size: 12.5px;
+  line-height: 1.35;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.35);
+}
+.tilt-hint button {
+  position: absolute;
+  right: 4px;
+  top: 2px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
 .map-ctl-btn:hover {
   background: rgba(28, 38, 32, 1);
 }
@@ -2143,6 +2195,38 @@ html:has(.explore) body {
   border-color: #fff;
   font-size: 12px;
   cursor: help;
+}
+/*
+ * Map UX (owner, 2026-10-10): tilted past 15° (flags.ts sets .map-tilted on the map), a pin stands up as a flag on
+ * a pole. The marker's own transform places its centre on the ground point; `translate` (separate from it) lifts
+ * the flag 40 px and moves it right, so the pole on its left edge falls on the ground point.
+ */
+.map-tilted .sitepin {
+  translate: 13px -40px;
+  border-radius: 3px;
+  overflow: visible;
+}
+.map-tilted .sitepin::after {
+  content: "";
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  width: 2px;
+  height: 55px;
+  background: #1c2620;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.7);
+  pointer-events: none;
+}
+.map-tilted .sitepin::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: 50px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #1c2620;
+  pointer-events: none;
 }
 .result-tip .maplibregl-popup-content {
   padding: 5px 8px;

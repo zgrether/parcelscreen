@@ -13,6 +13,7 @@ import { useMap } from "../MapView";
 import { LAYER, PARCEL_FILL_OPACITY, SOURCE } from "../style";
 import { canHover, hideTip, showTip, TIP_AREAS, TIP_LAYERS } from "./tooltip";
 import { useOverlayPrefs } from "./useOverlayPrefs";
+import { installFlags } from "../flags";
 
 const EMPTY = { type: "FeatureCollection" as const, features: [] };
 for (const id of [
@@ -23,12 +24,15 @@ for (const id of [
   LAYER.driveOverStretch,
   LAYER.culverts,
   LAYER.trailheads,
+  LAYER.trailheadFlags,
 ])
   TIP_LAYERS.add(id);
 TIP_AREAS.add(LAYER.soilFill);
 
 export function ResultLayers() {
   const map = useMap();
+  // Tilted, the points stand up as flags on poles (map UX, 2026-10-10).
+  useEffect(() => (map ? installFlags(map) : undefined), [map]);
   const s = useScreenItContext();
   const on = useOverlayPrefs();
   const tool = s ? s.ctl.state.mode !== null || s.ctl.state.split !== null : false;

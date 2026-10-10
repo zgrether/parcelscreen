@@ -15,6 +15,7 @@ import { parcelFromLine } from "@/lib/geo/parcels";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
 import { tipAt } from "./results/tooltip";
+import { installTiltRotate } from "./tiltRotate";
 import { useMap } from "./MapView";
 import { combineData, draftData, labelPoint, pieceLabels, selectionData, splitData } from "./overlays";
 import { LAYER, SOURCE } from "./style";
@@ -126,10 +127,17 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
     map.on("click", onClick);
     map.on("dblclick", onDblClick);
     document.addEventListener("keydown", onKey);
+    // Double-click and drag, or middle-drag, tilts and rotates; a double-click alone zooms in (Google Earth's
+    // way, owner 2026-10-10). Not while a tool is open: Draw finishes a boundary with a double-click.
+    const uninstall = installTiltRotate(map, () => {
+      const { mode, split } = ref.current.current();
+      return !!mode || !!split;
+    });
     return () => {
       map.off("click", onClick);
       map.off("dblclick", onDblClick);
       document.removeEventListener("keydown", onKey);
+      uninstall();
     };
   }, [map]);
 
