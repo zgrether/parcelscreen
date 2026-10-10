@@ -32,6 +32,25 @@ export const utmToRC = (d: Dem, x: number, y: number): [number, number] => [
   Math.floor((d.y0 - y) / d.resY),
   Math.floor((x - d.x0) / d.res),
 ];
+/**
+ * Elevation at a UTM point, interpolated between the four nearest cell centres (A4b, owner 2026-10-10): a route's
+ * profile reads the ground between the cells, not the cell a sample happens to fall in. NaN where a neighbour is.
+ */
+export function zBilinear(d: Dem, x: number, y: number): number {
+  const c = (x - d.x0) / d.res - 0.5,
+    r = (d.y0 - y) / d.resY - 0.5;
+  const c0 = Math.max(0, Math.min(d.w - 2, Math.floor(c))),
+    r0 = Math.max(0, Math.min(d.h - 2, Math.floor(r)));
+  const fc = Math.min(1, Math.max(0, c - c0)),
+    fr = Math.min(1, Math.max(0, r - r0));
+  return (
+    at(d, r0, c0) * (1 - fr) * (1 - fc) +
+    at(d, r0, c0 + 1) * (1 - fr) * fc +
+    at(d, r0 + 1, c0) * fr * (1 - fc) +
+    at(d, r0 + 1, c0 + 1) * fr * fc
+  );
+}
+
 export const rcToLL = (d: Dem, r: number, c: number): LatLon => {
   const [x, y] = rcToUTM(d, r, c);
   return UTM.inv(x, y);

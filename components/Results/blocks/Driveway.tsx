@@ -3,7 +3,7 @@
  * profile, and the pioneer-track option. When no route fits the grade limit, the least-steep one, as suspect; and
  * since #88's follow-up, first, when the route kept to the parcel over the limit is the one scored.
  */
-import { drivewayView } from "@/lib/report/driveway";
+import { drivewayView, type RouteView } from "@/lib/report/driveway";
 import { Facts, Note } from "./shared";
 import type { BlockProps } from "./types";
 
@@ -23,6 +23,7 @@ export function Driveway({ result, variant }: BlockProps) {
           </div>
           <Facts rows={v.overLimit.rows} />
           <ProfileChart path={v.overLimit.profile} />
+          <GradeDetails details={v.overLimit.details} />
         </div>
       )}
       {v.routes.map((rt) => (
@@ -33,6 +34,7 @@ export function Driveway({ result, variant }: BlockProps) {
           </div>
           <Facts rows={rt.rows} />
           <ProfileChart path={rt.profile} />
+          <GradeDetails details={rt.details} />
         </div>
       ))}
       {v.track && (
@@ -44,6 +46,17 @@ export function Driveway({ result, variant }: BlockProps) {
       )}
       <Note parts={v.caveat} variant={variant} />
     </>
+  );
+}
+
+/** The grade over 15 and 60 m, and the ground-vs-road note, behind a disclosure (A4b, owner 2026-10-10). */
+function GradeDetails({ details }: { details: RouteView["details"] }) {
+  return (
+    <details className="grade-details tiny">
+      <summary>Grade over 15 and 60 m</summary>
+      <Facts rows={details.rows} />
+      <p className="muted">{details.note}</p>
+    </details>
   );
 }
 

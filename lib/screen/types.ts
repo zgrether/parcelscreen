@@ -101,6 +101,8 @@ export const UserConfigSchema = z.strictObject({
   sunHoursWanted: num,
   canopyDeg: num,
   roadMaxGradePct: num,
+  /** A4b (owner, 2026-10-10): a driveway steeper than this over 30 m can't be chosen (`chooseDriveway`). */
+  roadVetoGradePct: num,
   dw: DrivewayCostsSchema,
   demResM: num,
   anchors: z.array(AnchorSchema),

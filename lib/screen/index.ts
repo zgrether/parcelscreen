@@ -31,6 +31,7 @@ import {
   assessHouse,
   chooseDriveway,
   grade,
+  noPracticalLine,
   rankSites,
   rerank,
   shelvesFromBest,
@@ -407,7 +408,9 @@ export async function screen(
         cfg.roadMaxGradePct,
       );
       R.sites.forEach((x, i) => routeAt.set(at(x.ll), est[i]!));
-      R.sites = rerank(R.sites.map((x, i) => withDrivewayCost(sctx, x, chooseDriveway(est[i]!))));
+      R.sites = rerank(
+        R.sites.map((x, i) => withDrivewayCost(sctx, x, chooseDriveway(est[i]!, cfg.roadVetoGradePct))),
+      );
     }
     const to = house
       ? { ll: house, label: "the existing house" }
@@ -420,7 +423,16 @@ export async function screen(
       : routeAt.get(at(to.ll));
     R.driveway = buildDriveway(rctx, s.roads ?? [], parcel, to.ll, to.label, cfg.roadMaxGradePct);
     // The route the target is scored on, first in the section and on the map (owner, #88 review).
-    if (toRoutes) R.driveway = withScoredRoute(rctx, R.driveway, chooseDriveway(toRoutes), to.ll);
+    if (toRoutes) {
+      const scored = chooseDriveway(toRoutes, cfg.roadVetoGradePct);
+      R.driveway = withScoredRoute(rctx, R.driveway, scored, to.ll);
+      // Every candidate vetoed (A4b): the least steep is shown, under a flag and a sentence appended to the note.
+      if (scored.noPractical) {
+        const line = noPracticalLine(scored, cfg.roadVetoGradePct);
+        R.driveway = { ...R.driveway, note: R.driveway.note ? `${R.driveway.note} ${line}` : line };
+        R.flags.push({ lvl: "warn", t: `Driveway to ${to.label}: ${line}` });
+      }
+    }
     const rt = R.driveway.routes[0];
     // Site #1 keeps the prototype's routed line in place of its straight-line one; every other site with a route
     // within the limit gets the same line appended (A3b, owner 2026-10-09). Then, where its two candidates differ,
@@ -434,7 +446,12 @@ export async function screen(
             : r?.withinLimit
               ? withRoutedLineAppended(x, r.withinLimit)
               : x;
-        return r ? withDrivewayChoice(y, r, cfg.roadMaxGradePct) : y;
+        if (!r) return y;
+        const z = withDrivewayChoice(y, r, cfg.roadMaxGradePct, cfg.roadVetoGradePct);
+        const chosen = chooseDriveway(r, cfg.roadVetoGradePct);
+        return chosen.noPractical
+          ? { ...z, why: [...z.why, noPracticalLine(chosen, cfg.roadVetoGradePct)] }
+          : z;
       });
     if (house && R.house && toRoutes) R.house = houseWithDriveway(sctx, R.house, toRoutes);
     if (R.shelves && R.sites) R.shelves = shelvesFromBest(R.shelves, R.sites);
@@ -502,7 +519,15 @@ export async function evaluateAt(out: ScreenOutput, ll: LatLon, label: string): 
       const ctx = routeContext(session);
       const dw = buildDriveway(ctx, s.roads ?? [], s.parcel, ll, label, s.config.roadMaxGradePct);
       const routes = siteDriveways(ctx, s.roads ?? [], s.parcel, [ll], s.config.roadMaxGradePct)[0]!;
-      result.driveway = withScoredRoute(ctx, dw, chooseDriveway(routes), ll);
+      const scored = chooseDriveway(routes, s.config.roadVetoGradePct);
+      result.driveway = withScoredRoute(ctx, dw, scored, ll);
+      if (scored.noPractical) {
+        const line = noPracticalLine(scored, s.config.roadVetoGradePct);
+        result.driveway = {
+          ...result.driveway,
+          note: result.driveway.note ? `${result.driveway.note} ${line}` : line,
+        };
+      }
     }
   } catch {
     /* keep the previous driveway */
@@ -576,7 +601,7 @@ function houseWithDriveway(
   const scored = withDrivewayCost(
     ctx,
     { ...h, elevFt: h.elevFt, slopeDeg: h.slopeDeg, aspectDeg: h.aspectDeg },
-    chooseDriveway(routes),
+    chooseDriveway(routes, ctx.cfg.roadVetoGradePct),
   );
   return {
     ...h,
