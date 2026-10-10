@@ -167,4 +167,39 @@ test.describe("phone", () => {
     await settle(page);
     expect((await camera(page)).pitch).toBeCloseTo(60, 0);
   });
+
+  test("a tap reaches the map at once: no double-click wait on touch", async ({ page, context }) => {
+    await replayHar(context, SLUG);
+    await openExplorer(page, SLUG);
+    await settle(page);
+    // Timed in the page, from the touch's pointerdown to the map's click (the mouse's hold-back is 400 ms).
+    await page.evaluate(() => {
+      const w = window as unknown as {
+        __psMap: { on(t: string, f: () => void): void };
+        __down: number;
+        __clickAt: number[];
+        __touch: boolean;
+      };
+      w.__clickAt = [];
+      window.addEventListener(
+        "pointerdown",
+        (e) => {
+          w.__down = performance.now();
+          w.__touch = e.pointerType === "touch";
+        },
+        true,
+      );
+      w.__psMap.on("click", () => w.__clickAt.push(performance.now() - w.__down));
+    });
+    const c = await centre(page);
+    await page.touchscreen.tap(c.x + 40, c.y + 40);
+    await page.waitForTimeout(600);
+    const r = await page.evaluate(() => {
+      const w = window as unknown as { __clickAt: number[]; __touch: boolean };
+      return { at: w.__clickAt, touch: w.__touch };
+    });
+    expect(r.touch).toBe(true);
+    expect(r.at).toHaveLength(1);
+    expect(r.at[0]).toBeLessThan(150);
+  });
 });

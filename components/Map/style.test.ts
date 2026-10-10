@@ -65,8 +65,14 @@ describe("map style", () => {
     expect(basemapLayerIds("state")).toEqual(["base-state-usgs", "base-state-nc", "base-state-va"]);
     const src = (id: string) => style.sources[id] as { maxzoom?: number; bounds?: number[]; tiles: string[] };
     expect(src("base-state-usgs").maxzoom).toBe(16);
-    expect(src("base-state-nc")).toMatchObject({ maxzoom: 20, bounds: [-84.4, 33.8, -75.4, 36.6] });
-    expect(src("base-state-va")).toMatchObject({ maxzoom: 19, bounds: [-83.7, 36.54, -75.2, 39.5] });
+    expect(src("base-state-nc").maxzoom).toBe(20);
+    expect(src("base-state-va").maxzoom).toBe(19);
+    // Each box holds its whole state (TIGER extents, 2026-10-10): a box that cuts into the state leaves a strip of it
+    // on the USGS fallback, as the prototype's 36.54° split did near Grayson.
+    const holds = (b: number[] | undefined, [w, s, e, n]: number[]) =>
+      !!b && b[0]! < w! && b[1]! < s! && b[2]! > e! && b[3]! > n!;
+    expect(holds(src("base-state-nc").bounds, [-84.3218, 33.7529, -75.4001, 36.5881])).toBe(true);
+    expect(holds(src("base-state-va").bounds, [-83.6754, 36.5409, -75.1664, 39.466])).toBe(true);
     expect(src("base-state-va").tiles[0]).toContain("bbox={bbox-epsg-3857}");
     expect(src("base-state-va").tiles[0]).toContain("transparent=true");
   });
