@@ -5,10 +5,20 @@ name: deployed-check
 # so this runs on their status, against the deployment's own URL.
 on: deployment_status
 
+# A newer deployment of the same ref (and environment: a preview and production can share one) replaces the check
+# still running on the older one (owner, after going public).
+concurrency:
+  group: deployed-check-${{ github.event.deployment.ref }}-${{ github.event.deployment.environment }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   first-visit:
     if: github.event.deployment_status.state == 'success'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
         with:
@@ -16,4 +26,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
-      - run: node scripts/check-deployed.mts "${{ github.event.deployment_status.environment_url }}"
+      # The URL reaches the script through the environment only, never interpolated into it.
+      - run: node scripts/check-deployed.mts "$DEPLOYMENT_URL"
+        env:
+          DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url }}
