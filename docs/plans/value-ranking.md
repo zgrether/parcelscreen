@@ -43,9 +43,10 @@ build-cost score: quality (sun, aspect, frost, slope, sky) and cost (septic, fou
 ignores elevation, drive times, public land, room, gardens and price, which is why random parcels grade 78% A/B at
 engine 6. It isn't meant to judge the parcel.
 
-**One change, from the owner's spec:** the steep-driveway points become a cost (Stage 2), and stop counting as grade
-points. In this design, things money can fix count only as stage costs, never as grade points (§3.3). The A4b veto
-still applies. The homesite grade keeps everything else, so it still picks the same kind of spot.
+**No change to it** (owner, #95 review). Its build-cost part, the over-limit driveway points included, stays in the
+homesite grade for choosing and ordering the build sites, and the A4b veto still applies. The parcel card reads only the
+#1 site's **quality** grade (`qGrade`: sun, facing, frost, slope, sky) for its Best homesite row (§3.2), and Stage 2
+prices the driveway for the cost to enjoy. Fixable items never reach the parcel grade (§3.3).
 
 ### 3.2 The parcel report card: the headline
 
@@ -63,7 +64,7 @@ still applies. The homesite grade keeps everything else, so it still picks the s
 | Row | Question | Data | A | B | C | D | F | Weight, Zach / Julie |
 |---|---|---|---|---|---|---|---|---|
 | **Elevation at the build site** | High enough for the climate and the views we want? | 3DEP elevation at site #1 | ≥ 3,000 ft | 2,500–3,000 | 2,000–2,500 | 1,500–2,000 | < 1,500 | 25 / 10 |
-| **Best homesite** | Is there a good place to build? | site #1's homesite grade | A | B | C | D | F (or no site) | 25 / 15 |
+| **Best homesite** | Is there a good place to build? | site #1's quality grade (`qGrade`: sun, facing, frost, slope, sky), not the full homesite grade with its build cost | A | B | C | D | F (or no site) | 25 / 15 |
 | **Night sky** | How dark is it overhead? | Lorenz atlas zenith brightness (mag/arcsec²) | ≥ 21.5 | 21.2–21.5 | 20.9–21.2 | 20.5–20.9 | < 20.5 | 10 / 10 |
 | **Room to build** | Does the whole build fit on gentle ground: the house, the garage, the turnaround and the septic field with its reserve? | the build footprint (§5.4) placed on ground at or under 15% grade: the pad on a homesite, the drainfield and reserve on the rest | gentle ground ≥ 3× the footprint | ≥ 2× | ≥ 1.25× | fits, under 1.25× | **doesn't fit** | 15 / 10 |
 | **Trails and public land** | How close is the woods we can walk in? | PAD-US open-access land (adjoining, within a mile, nearest beyond); trailheads (straight-line until follow-up 39 adds drive times) | adjoins open public land, or a trailhead within 5 km | open land within a mile, or a trailhead within 10 km | trailhead within 20 km | within 35 km | farther | 10 / 25 |
@@ -95,13 +96,16 @@ very limited for a septic field." "Contender: the weakest part is town and hospi
 | | Ferney Creek 52-47A | Macks Mountain 35-3 | Grayson Mud Creek 6273 |
 |---|---|---|---|
 | Elevation at #1 | 2,729 ft: B | 3,251 ft: A | 3,543 ft (the 1.28 ac site, #1 once the footprint applies; §5.4): A |
-| Best homesite | A | B | C (63) |
+| Best homesite (quality) | A (88) | A (84) | A (82, the 1.28 ac site) |
 | Night sky | 21.39: B | 21.37: B | 21.52: A |
 | Room to build | 18.7 ac gentle, 41× the footprint: A | 20.9 ac, 46×: A | 1.3 ac, 2.8×: B (§5.4) |
 | Trails and public land | trailhead 10.4 km: C | adjoins restricted land; trailhead 14.5 km: C | trailhead 7.9 km: B |
 | Town and hospital | ER 48 min, grocery 16: D | ER 48, grocery 61: F | ER 38, grocery 38: D |
 | Garden ground | 2.48 ac (soil class to check): A or B | 0.34 ac: B | 0.10 ac: C |
 | Gates | all pass | septic warn | floodplain warn, septic warn |
+
+**Best homesite on quality alone** reads A on all three fixtures (88, 84 and 82): the #1 sites are good spots, and
+the row won't separate these parcels unless calibration tightens its cutoffs.
 
 **Not computed yet:** the grades, the verdicts and the farmland-class check. The implementation (§11, VR2) computes
 them, and the calibration decides whether they're right.
@@ -110,8 +114,8 @@ them, and the calibration decides whether they're right.
 
 - **Can't add:** elevation, dark sky, view and horizon, sun, drive times to trails and towns, buildable room, flood
   risk, neighbours and HOA, soil for growing food. The parcel grade comes only from these.
-- **Can fix with money:** the driveway, clearing, septic, the well, power. These count only as stage costs, never as
-  grade points.
+- **Can fix with money:** the driveway, clearing, septic, the well, power. These never reach the parcel grade: they
+  are stage costs. The homesite grade uses them only to pick the spot (§3.1).
 - **No dollars for qualities.** The card never converts a quality into dollars. The comparison sets the two side by
   side: "B is $X cheaper to enjoy through Stage 2; A has [the qualities money can't add]."
 
@@ -248,6 +252,16 @@ A site that doesn't fit can't be #1. Sites that fit rank first in their own orde
 homesite grade itself doesn't change: it still rates the spot. The label is added to the site's card (rule 7,
 appended).
 
+**"Garage under the house (walkout)"** (Settings toggle, owner, #95 review; off by default). When it's on, the garage
+is the house's lower level: its area folds into the house's, and the footprint is the larger of the two (1,700 sq ft
+by default), so the pad is the house rectangle with its margin plus the turnaround: 5,120 + 2,400 = **7,520 ft²**
+(0.17 ac, against 11,720). The fit check then also needs a walkout's slope: a site fits as a walkout when the smaller
+pad fits **and** its slope is in the foundation band for a walkout or garage-under (4–10°, §5.1). Outside that band
+the separate-garage pad applies, so a flat or steep site isn't credited with a walkout it can't have. On Grayson, the
+0.24 ac shelf would fit the walkout pad by area (10,444 ft² ≥ 7,520), but its slope is 11.3°, above the band, so it
+stays "fits house only"; the 1.28 ac site (7.0°) fits either way. The drainfield, its reserve and the Room to build
+row are unchanged by the toggle, except that the pad they're added to is smaller.
+
 **(b) Room to build.** The row checks that the whole footprint fits on gentle ground (at or under 15% grade): the pad
 on the #1 site, and the drainfield with its reserve on the remaining gentle ground near it (proposed: within 300 ft of
 the pad). It's graded by how much gentle ground there is beyond the footprint (§3.2), and is an F when it doesn't fit.
@@ -315,7 +329,7 @@ Every panel is written for someone who has just tapped a parcel:
   | Frost belt | Pocket · Thermal belt 80–400 ft · Exposed · Windy |
   | Sky | Town glow · Rural · Dark |
   | Slope as foundation | Slab or crawl < 4° · Walkout or garage-under 4–10° · Cut-fill and walls 10–16° · Engineered piers 16°+ |
-  | Septic | Conventional · Modified · Alternative |
+  | Septic | Conventional · Modified · Alternative (the panel's words follow §5.3: "somewhat limited" is conventional, possibly a larger field; not the mock's wording) |
   | Driveway | Easy ≤ 8% · Good gravel 8–12% · Pave or regrade 12–15% · Ice, washouts, fire access 15%+ |
 
   Proposed for the other rows:
@@ -323,7 +337,7 @@ Every panel is written for someone who has just tapped a parcel:
   | Scale | Bands |
   |---|---|
   | Elevation | Valley < 1,500 ft · Foothill 1,500–2,500 · Mountain 2,500–3,000 · High 3,000+ |
-  | Room to build | Tight < 1 ac · Enough 1–2 · Roomy 2–5 · Spacious 5+ |
+  | Room to build (the footprint multiples of the row's cutoffs; no acre bands) | Doesn't fit · Tight under 1.25× · Enough 1.25–2× · Roomy 2–3× · Spacious 3×+ |
   | Trails | At the edge · A short drive · A drive · Far |
   | Town and hospital | Close · Practical · A haul · Remote |
   | Garden | None · Kitchen garden · Market garden · Small farm |
@@ -432,7 +446,7 @@ How it's scored: sun 40 of the homesite's quality points; full at 5 h (Settings)
   - `budget.tightPct` (Settings).
 - **The house:** `house.footprintSqFt` = 1,500 and `house.basementDepthFt` = 8 (Settings); `house.sqFt` = 1,200–1,700, `house.garageSqFt`, `house.perSqFt` (Settings, TBD values).
 - **Foundation:** `foundation.bandsDeg` (4 / 10 / 16), `foundation.shallowRockCm` (50).
-- **The build footprint (Settings, §5.4):** `build.houseSqFt` 1,700, `build.houseRectFt` 34 × 50, `build.garageFt` 30 × 40, `build.marginFt` 15, `build.turnaround` hammerhead 120 × 20 ft, `build.bedrooms` 3, `build.percMinPerIn` 60, `build.reservePct` 100; internal: `build.trenchSpacingFactor` 3, `build.drainfieldWithinFt` 300.
+- **The build footprint (Settings, §5.4):** `build.houseSqFt` 1,700, `build.houseRectFt` 34 × 50, `build.garageFt` 30 × 40, `build.marginFt` 15, `build.turnaround` hammerhead 120 × 20 ft, `build.bedrooms` 3, `build.percMinPerIn` 60, `build.reservePct` 100, `build.garageUnder` false (the walkout toggle); internal: `build.trenchSpacingFactor` 3, `build.drainfieldWithinFt` 300.
 - **Open ground:** `openGround.{maxCanopyPct, maxSlopePct, minAcres}` (20 / 15 / 0.05).
 
 ## 10. Open questions, with proposed answers
@@ -470,6 +484,12 @@ Zach and Julie each grade 8–10 parcels they know, blind, on the land only, wit
 cutoffs and the weights are tuned until the parcel grades match theirs. The report lists every remaining
 disagreement and its cause. This is the calibration step from `batch-a.md` §5c, applied to the card.
 
+**The septic warning's frequency** (owner, #95 review). The calibration report counts how many of the parcels get the
+septic warning. Two of the three fixtures do (every soil on Macks and Grayson rates "very limited"), so it may fire on
+most mountain parcels and stop telling them apart. If it does, the proposed narrower rule: warn only when the build
+site's own soil **and** every soil within the drainfield distance of it (§5.4, 300 ft) rate "very limited". The
+report shows both rules' counts side by side.
+
 ## 13. Decisions to record in `phase-0.md` §9 (in the implementation PRs)
 
 - **Schema v3 is a clean break** (owner, 2026-10-09): no compatibility with old data. Records re-screen on an engine
@@ -477,8 +497,9 @@ disagreement and its cause. This is the calibration step from `batch-a.md` §5c,
 - **The report's restructure** (owner, 2026-10-10): the report sheet's top level is the card. Today's report text
   moves into the panels unchanged, and nothing is deleted. The panels' plain-language text is added. Rule 7 holds:
   moved, not replaced.
-- **Money can fix vs can't add** (owner, 2026-10-09): fixable items are stage costs only. The homesite grade's
-  steep-driveway points become a Stage 2 cost.
+- **Money can fix vs can't add** (owner, 2026-10-09; #95 review): fixable items never reach the parcel grade; they are
+  stage costs. The homesite grade keeps them, with the over-limit driveway points and the A4b veto, only to pick and
+  order the build sites; the parcel card's Best homesite row reads the quality grade.
 
 ## 14. Later, not now
 
