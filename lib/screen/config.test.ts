@@ -107,6 +107,110 @@ describe("config", () => {
   it("screen constants are unchanged", () => {
     expect(SCREEN_CONSTANTS).toMatchInlineSnapshot(`
       {
+        "build": {
+          "bedrooms": 3,
+          "garageFt": [
+            30,
+            40,
+          ],
+          "houseRectFt": [
+            34,
+            50,
+          ],
+          "marginFt": 15,
+          "reservePct": 100,
+          "trenchFt2PerBedroom": 452,
+          "trenchSpacingFactor": 3,
+          "turnaroundFt": [
+            120,
+            20,
+          ],
+        },
+        "card": {
+          "gradeCutoffs": [
+            3.5,
+            2.5,
+            1.5,
+            0.5,
+          ],
+          "points": {
+            "A": 4,
+            "B": 3,
+            "C": 2,
+            "D": 1,
+            "F": 0,
+          },
+          "rows": {
+            "elevationFt": [
+              3000,
+              2500,
+              2000,
+              1500,
+            ],
+            "erMin": [
+              20,
+              30,
+              45,
+              60,
+            ],
+            "gardenAc": [
+              0.5,
+              0.25,
+              0.1,
+              0,
+            ],
+            "groceryMin": [
+              10,
+              20,
+              30,
+              45,
+            ],
+            "openLandWithinFt": 5280,
+            "roomX": [
+              3,
+              2,
+              1.25,
+              1,
+            ],
+            "skyMag": [
+              21.5,
+              21.2,
+              20.9,
+              20.5,
+            ],
+            "trailheadKm": [
+              5,
+              10,
+              20,
+              35,
+            ],
+          },
+          "verdict": {
+            "contender": 2.75,
+            "contenderMaxWarns": 1,
+            "pass": 1.75,
+          },
+          "weights": {
+            "julie": {
+              "elevation": 10,
+              "garden": 20,
+              "homesite": 15,
+              "room": 10,
+              "sky": 10,
+              "town": 10,
+              "trails": 25,
+            },
+            "zach": {
+              "elevation": 25,
+              "garden": 10,
+              "homesite": 25,
+              "room": 15,
+              "sky": 10,
+              "town": 5,
+              "trails": 10,
+            },
+          },
+        },
         "combine": {
           "joinBudgetMs": 2000,
           "maxGapM": 30,

@@ -363,12 +363,16 @@ export function vetBenches(
   return { benches: vetted, best, flags };
 }
 
+/** NRCS farmland class: prime ("Prime farmland if drained" included, "Not prime" not), as the garden reading has it. */
+export const isPrimeFarmland = (farmlndcl: string | null): boolean =>
+  /prime farmland/i.test(farmlndcl || "") && !/not prime/i.test(farmlndcl || "");
+
 /** The soil reading under a garden patch and its score adjustment (proto L1049–1051). */
 export function gardenSoil(c: SoilRow | null): { soil: string | null; soilNote: string; adj: number } {
   const A = K.gardenAdj;
   const fl = (c && c.farmlndcl) || "",
     dc = ((c && (c.drainagecl || c.drclassdcd)) || "").toLowerCase();
-  const prime = /prime farmland/i.test(fl) && !/not prime/i.test(fl);
+  const prime = isPrimeFarmland(fl);
   return {
     soil: c ? c.compname : null,
     soilNote: !c

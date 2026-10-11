@@ -173,9 +173,12 @@ export function chooseDriveway(r: SiteRoutes, vetoPct = Infinity): SiteDriveway 
   return ok[0]!;
 }
 
+/** How a vetoed target's sentence starts; the report card's Easement gate reads it from the stored note (VR2). */
+export const NO_PRACTICAL_ROUTE = "No practical route found";
+
 /** The sentence for a target whose every driveway candidate is vetoed (A4b; owner's wording, "No practical route found"). */
 export function noPracticalLine(dw: SiteDriveway, vetoPct: number): string {
-  return `No practical route found: every driveway route is steeper than ${vetoPct}% over 30 m; the least steep (${grade30(dw).toFixed(0)}% over 30 m) is shown.`;
+  return `${NO_PRACTICAL_ROUTE}: every driveway route is steeper than ${vetoPct}% over 30 m; the least steep (${grade30(dw).toFixed(0)}% over 30 m) is shown.`;
 }
 
 /**

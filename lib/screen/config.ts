@@ -463,6 +463,41 @@ export const SCREEN_CONSTANTS = deepFreeze({
       clearingRateShare: 0.5,
     },
   },
+  // The build footprint (value-ranking.md §5.4, owner #94 review): the parts' defaults, in ft. VR3 moves the
+  // user's parts to Settings and places the footprint on the site; until then the Room to build row divides the
+  // gentle acres by the whole footprint's area.
+  build: {
+    houseRectFt: [34, 50],
+    garageFt: [30, 40],
+    marginFt: 15,
+    turnaroundFt: [120, 20], // IFC Appendix D, Table D103.4 hammerhead (placeholder until follow-up 46)
+    bedrooms: 3,
+    trenchFt2PerBedroom: 452, // VT Extension SPES-580 Table 3, 60 min/in
+    trenchSpacingFactor: 3, // 3 ft trenches on 9 ft centres
+    reservePct: 100,
+  },
+  // The parcel report card (value-ranking.md §3.2, approved #95; VR2). Every cutoff is a proposal for the
+  // calibration (VR8). Cutoffs are each grade's lower edge, A then B, C, D; below the last is an F.
+  card: {
+    points: { A: 4, B: 3, C: 2, D: 1, F: 0 },
+    gradeCutoffs: [3.5, 2.5, 1.5, 0.5], // the parcel grade from the weighted average of the rows' points
+    verdict: { contender: 2.75, pass: 1.75, contenderMaxWarns: 1 },
+    rows: {
+      elevationFt: [3000, 2500, 2000, 1500],
+      skyMag: [21.5, 21.2, 20.9, 20.5],
+      roomX: [3, 2, 1.25, 1], // gentle ground over the whole footprint; under 1× doesn't fit
+      trailheadKm: [5, 10, 20, 35], // straight line until follow-up 39 adds drive times
+      openLandWithinFt: 5280, // open public land within a mile is a B
+      erMin: [20, 30, 45, 60],
+      groceryMin: [10, 20, 30, 45],
+      gardenAc: [0.5, 0.25, 0.1, 0], // an A also needs prime or statewide-important soil; any garden is a D
+    },
+    // Each person's weights sum to 100 (follow-up 41's rubric replaces them).
+    weights: {
+      zach: { elevation: 25, homesite: 25, sky: 10, room: 15, trails: 10, town: 5, garden: 10 },
+      julie: { elevation: 10, homesite: 15, sky: 10, room: 10, trails: 25, town: 10, garden: 20 },
+    },
+  },
 });
 
 /** The step list and its labels, in run order (proto L990). */
