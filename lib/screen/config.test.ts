@@ -108,7 +108,10 @@ describe("config", () => {
     expect(SCREEN_CONSTANTS).toMatchInlineSnapshot(`
       {
         "combine": {
+          "joinBudgetMs": 2000,
           "maxGapM": 30,
+          "maxJoinParts": 20,
+          "maxJoinVertices": 2500,
           "touchM": 1,
         },
         "dem": {
