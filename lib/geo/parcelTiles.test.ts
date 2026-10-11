@@ -89,6 +89,12 @@ describe("fetchTile", () => {
     expect(asked[0]!.get("resultRecordCount")).toBe("5000");
   });
 
+  it("drops a service's placeholder for unparceled land (PARCELID \"0\"): it's never drawn, so never tapped", async () => {
+    const placeholder = { ...square(9), properties: { OBJECTID: 9, PARCELID: "0", FIPS: "51077" } };
+    const r = await fetchTile(stub([{ features: [square(1), placeholder] }]).http, VA, tile, "coarse");
+    expect(r.lines.map((l) => l.feature.properties?.PARCELID)).toEqual(["52-1"]);
+  });
+
   it("pages past the transfer limit, in object-id order", async () => {
     const { http, asked } = stub([
       { features: [square(1)], properties: { exceededTransferLimit: true } },

@@ -308,7 +308,12 @@ export interface TapHit {
   savedKey: string | null;
   /** Why no outline could be under it: a state parcel service that isn't answering in this view. */
   serviceDown?: string | null;
+  /** Parcel outlines are drawn at this zoom, so an empty spot has no record (not just none drawn yet). */
+  linesShown?: boolean;
 }
+
+/** An empty tap where outlines are drawn (owner, 2026-10-11). */
+export const NO_PARCEL_HERE = "No parcel record here. Draw a custom parcel?";
 
 /** While a screen runs, switching parcels waits (owner, 17e). */
 export const BUSY_TEXT = "Screening — finish or Cancel first.";

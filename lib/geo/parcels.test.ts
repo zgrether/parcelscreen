@@ -63,6 +63,36 @@ describe("pickParcelAt (failure reporting)", () => {
     ]);
   });
 
+  it('a tap on unparceled land (the service\'s PARCELID "0" placeholder) is no parcel (owner, 2026-10-11)', async () => {
+    const placeholder = {
+      type: "Feature",
+      properties: { PARCELID: "0", LOCALITY: "Grayson County" },
+      geometry: {
+        type: "MultiPolygon",
+        coordinates: [0, 1, 2].map((k) => [
+          [
+            [k, 0],
+            [k + 0.5, 0],
+            [k + 0.5, 1],
+            [k, 0],
+          ],
+        ]),
+      },
+    };
+    const http = createHttpClient({
+      env: "browser",
+      fetchImpl: async (u) =>
+        respond(String(u).includes("vginmaps") ? { features: [placeholder] } : { features: [] }),
+    });
+    const r = await pickParcelAt(http, SERVICES, [36.62942, -81.5667]);
+    expect(r.parcel).toBeNull();
+    expect(r.report).toEqual([
+      "services.nconemap.gov: no parcel at this point",
+      "vginmaps.vdem.virginia.gov: no parcel at this point",
+      "geoviewer.cot.tn.gov: no parcel at this point",
+    ]);
+  });
+
   it("keeps only the first polygon of a MultiPolygon and says so", async () => {
     const mp = {
       type: "Feature",
