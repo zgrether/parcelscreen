@@ -52,8 +52,9 @@ isn't obvious.
   new row with `version = max+1`.
 - **Schema v3 is frozen** (B2a; v2 was frozen at step 18b): `SCREEN_SCHEMA_VERSION` is 3, and
   `lib/screen/schema-v3.test.ts` snapshots the stored `ScreenResult` shape. Any change to that shape (a field added,
-  removed or retyped) requires **v4 plus a migration** of the results already stored, in the same PR. (v3 itself was
-  a clean break with no migration, by the owner's decision: `docs/plans/phase-0.md` §9.26.)
+  removed or retyped) requires **a new version plus either a migration** of the results already stored **or a clean
+  break** (older results are cleared, and their parcels re-screen when opened, as v3 did), in the same PR, with the
+  choice recorded in `docs/plans/phase-0.md` §9 (owner, #109 review; v3's clean break is §9.26).
 - External fetches go through `lib/http.ts`: one throttled client with a per-host queue,
   identifying User-Agent, conditional requests, and 429 backoff. Connectors declare a minimum
   cadence and the scheduler cannot run them faster.
