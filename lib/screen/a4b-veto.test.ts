@@ -24,9 +24,10 @@ describe("a route's grade over a window of its profile", () => {
 });
 
 /**
- * The parcel is a strip two cells wide running north up a 30% scarp: kept to it, the only way up climbs at about
- * 21% (the steepest diagonal of a 2-cell strip). Off the parcel the scarp is a cliff except a gentle 5.5% ramp far to
- * the east, so the route within a 10% limit is long, costly, and needs an easement.
+ * The parcel is a strip two cells wide running north up its own 21.5% scarp: kept to it, the only way up is straight
+ * up that, a 22% route. (The strip once had a 30% scarp that a zigzag climbed at about 21%; since A4b PR B the router
+ * doesn't zigzag in a 6 m strip.) Off the parcel the scarp is a cliff except a gentle 5.5% ramp far to the east, so
+ * the route within a 10% limit is long, costly, and needs an easement.
  */
 function scarp(withRamp: boolean) {
   const W = 500,
@@ -47,7 +48,7 @@ function scarp(withRamp: boolean) {
     for (let c = 0; c < W; c++) {
       const u = c * RES,
         v = (H - r) * RES; // metres east, and north from the bottom row
-      const width = STRIP.includes(c) ? 11 / 0.3 : withRamp && u >= 1400 ? 200 : 3;
+      const width = STRIP.includes(c) ? 11 / 0.215 : withRamp && u >= 1400 ? 200 : 3;
       d.z[r * W + c] = 11 * Math.min(1, Math.max(0, (v - 100) / width));
     }
   const inside = new Uint8Array(W * H);
@@ -78,11 +79,11 @@ function scarp(withRamp: boolean) {
 }
 
 describe("the veto (driveway.vetoGradePct, Settings)", () => {
-  it("the only way kept to the parcel is ~21%; the gentle route needs an easement and costs more; the veto picks it", () => {
+  it("the only way kept to the parcel is ~22%; the gentle route needs an easement and costs more; the veto picks it", () => {
     const r = scarp(true);
     const steep = r.onParcel!,
       gentle = r.withinLimit!;
-    expect(Math.round(steep.route!.maxGrade * 100)).toBe(22); // the least-steep cap a 2-cell strip allows
+    expect(Math.round(steep.route!.maxGrade * 100)).toBe(22); // the least-steep cap: the strip's scarp, straight up
     expect(grade30(steep)).toBeGreaterThan(20); // ground over 30 m: vetoed at 20
     expect(gentle.route!.needsEasement).toBe(true);
     expect(grade30(gentle)).toBeLessThanOrEqual(20);

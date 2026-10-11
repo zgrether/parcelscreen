@@ -13,6 +13,7 @@ import { STEPS } from "./config";
 import { DemCache, fetchDEM, fineResM, parcelBboxes, rcToLL } from "./dem";
 import { driveTimes } from "./drive";
 import {
+  bedrockDepth,
   buildDriveway,
   flowAccum,
   siteDriveways,
@@ -129,6 +130,7 @@ export interface ScreenSession {
   hospitalPool?: HospitalCandidate[];
   soilMask?: Uint8Array;
   flowAcc?: Float32Array;
+  bedrockCm?: Float32Array;
   deps: { http: HttpClient; demCache: DemCache; atlas: AtlasCache; sleep?: (ms: number) => Promise<void> };
 }
 
@@ -393,6 +395,14 @@ export async function screen(
   await step("driveway", () => {
     if (!s.dFine) throw new Error("needs elevation");
     const rctx = routeContext(s);
+    // Progress while the router works (A4b PR B; the step can take seconds): a count of its searches.
+    let searches = 0;
+    const routing = {
+      onProgress: () => {
+        searches++;
+        emit("driveway", "run", `${searches} route search${searches === 1 ? "" : "es"} done`);
+      },
+    };
     const sctx = scoreContext();
     // A3 (owner, 2026-10-09): every ranked site re-costed from its own routed driveway, all in one search per
     // entrance (siteDriveways), so the ranking compares like with like. A4: from the candidate with fewer points.
@@ -406,6 +416,7 @@ export async function screen(
         parcel,
         R.sites.map((x) => x.ll),
         cfg.roadMaxGradePct,
+        routing,
       );
       R.sites.forEach((x, i) => routeAt.set(at(x.ll), est[i]!));
       R.sites = rerank(
@@ -421,7 +432,7 @@ export async function screen(
     const toRoutes = house
       ? houseRoutes(rctx, s.roads ?? [], parcel, house, cfg.roadMaxGradePct)
       : routeAt.get(at(to.ll));
-    R.driveway = buildDriveway(rctx, s.roads ?? [], parcel, to.ll, to.label, cfg.roadMaxGradePct);
+    R.driveway = buildDriveway(rctx, s.roads ?? [], parcel, to.ll, to.label, cfg.roadMaxGradePct, routing);
     // The route the target is scored on, first in the section and on the map (owner, #88 review).
     if (toRoutes) {
       const scored = chooseDriveway(toRoutes, cfg.roadVetoGradePct);
@@ -487,6 +498,7 @@ export function routeContext(s: ScreenSession): RouteContext {
     soilMask: () =>
       (s.soilMask ??= soilMask(s.units ?? null, s.rows ?? null, s.dFine!, inside, s.config.shallowBedrockCm)),
     flowAcc: () => (s.flowAcc ??= flowAccum(s.dFine!)),
+    bedrockCm: () => (s.bedrockCm ??= bedrockDepth(s.units ?? null, s.rows ?? null, s.dFine!, inside)),
     dw: s.config.dw,
   };
 }
