@@ -264,6 +264,35 @@ describe("the rows", () => {
     expect(rowOf(r, "trails")).toMatchObject({ grade: "F", detail: "no trailhead found within 12.4 mi" });
   });
 
+  it("Best homesite in plain words; the quality score is the panel's (owner, #110)", () => {
+    const r = ferney();
+    expect(rowOf(r, "homesite")).toMatchObject({
+      grade: "A",
+      detail: "faces E, 8.7 h of December sun, 7° slope",
+      panelNote: "site #1's quality A (88)",
+    });
+  });
+
+  it("a build that doesn't fit caps the verdict at Maybe and is the first thing to check (owner, #110)", () => {
+    const r = ferney();
+    r.terrain = { ...r.terrain!, acresUnder15: 0.2 };
+    r.sky = { ...r.sky!, mag: 22 }; // an A, so the points alone would make a Contender
+    expect(rowOf(r, "room")).toMatchObject({
+      grade: "F",
+      checkFirst: "your build doesn't fit on the gentle ground (0.2 ac, 0.4× the footprint)",
+    });
+    const c = reportCard(r, "zach");
+    expect(c.points).toBeGreaterThan(K.verdict.contender); // a Contender on points alone
+    expect(c.verdict).toBe("Maybe");
+    expect(c.reason).toBe(
+      "Maybe. Check first: your build doesn't fit on the gentle ground (0.2 ac, 0.4× the footprint).",
+    );
+    // A fail still comes first.
+    r.sites![0]!.flood = true;
+    r.flood = { zones: ["AE"], sfha: true, sfhaAcres: 3, mapped: true };
+    expect(reportCard(r, "zach").reason).toBe("Pass: the build site is in a FEMA flood zone.");
+  });
+
   it("no build site: the homesite is an F, and the elevation is left out (not incomplete)", () => {
     const r = ferney();
     r.sites = [];

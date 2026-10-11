@@ -13,9 +13,10 @@ const SHORT: Record<string, string> = {
   easement: "Easement",
   septic: "Septic",
 };
+/** The switch's labels (owner, #110). Phase 1 defaults it to the signed-in person. */
 const PEOPLE: { key: Person; name: string }[] = [
-  { key: "zach", name: "Zach" },
-  { key: "julie", name: "Julie" },
+  { key: "zach", name: "Zach's grade" },
+  { key: "julie", name: "Julie's grade" },
 ];
 
 export function ReportCard({
@@ -41,7 +42,6 @@ export function ReportCard({
           </span>
         </button>
         <div className="card-person" role="group" aria-label="Whose weights grade the parcel">
-          <span className="tiny muted">Weights</span>
           {PEOPLE.map((p) => (
             <button
               key={p.key}

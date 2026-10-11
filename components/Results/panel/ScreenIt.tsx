@@ -31,7 +31,6 @@ import {
 import { useOnline } from "@/lib/client/useOnline";
 import { ENGINE_VERSION } from "@/lib/screen/engine";
 import { fmt } from "@/lib/format";
-import { verdictView } from "@/lib/report/verdict";
 import { STEPS } from "@/lib/screen/config";
 import { summaryText } from "@/lib/screen/summary";
 import { debugOn, publishPosted } from "@/lib/client/debugHandle";
@@ -72,6 +71,8 @@ export function useScreenIt(
   const [live, setLive] = useState<LiveRun | null>(null);
   const [stored, setStored] = useState<{ serial: number; record: ScreenRecord } | null>(null);
   const [showParams, setShowParams] = useState(false);
+  // Whose grade the card shows (VR5; owner #110: on the sheet, remembered per browser).
+  const [person, setPersonState] = useState<Person>(() => getPref("ps.person"));
   // A pin tap re-evaluates at another point (step 15): shown, never kept (owner, 15 plan Q1).
   const [evalAsked, setEvalAsked] = useState<{ serial: number; ll: LatLon; label: string } | null>(null);
   const awaitingEval = useRef(false);
@@ -358,17 +359,16 @@ export function useScreenIt(
     evaluateAt,
     /** The unsaved re-evaluation shown, if any (its label for the "not saved" note, 15b). */
     evaluated: evaluated ? { label: evalAsked!.label } : null,
+    person,
+    setPerson: (p: Person) => {
+      setPersonState(p);
+      setPref("ps.person", p);
+    },
   };
 }
 
 /** The sections an evaluation point moves (proto setFocus: sun, sky, driveway), which carry the unsaved note. */
 const EVALUATED_SECTIONS = new Set(["december-sun", "dark-skies", "driveway"]);
-
-const VERDICT_WORD = {
-  fatal: "Walk away",
-  marginal: "Worth a drive, eyes open",
-  ok: "Nothing in the data kills it",
-};
 
 /** Desktop: whether the card is grown into the panel, and how to fold or unfold it (null: nothing to read). */
 export interface DeskCard {
@@ -382,7 +382,8 @@ export function ScreenHeader({ s, desk = null }: { s: ScreenIt; desk?: DeskCard 
   if (!s.ctl.state.store.open)
     return <span className="sh-empty">{desk ? "Tap a parcel to begin" : "Tap a parcel to screen it"}</span>;
   const name = s.ctl.layers?.name ?? "Parcel";
-  const verdict = !s.runningHere && !s.stale ? s.shown?.result.verdict : undefined;
+  // The card's grade and verdict for the kept run (owner, #110), in whoever's grade is on.
+  const card = !s.runningHere && !s.stale && s.shown ? reportCard(s.shown.result, s.person) : null;
   const label = s.running ? "Running…" : s.shown ? "Run again" : "Screen it";
   const folded = desk && !desk.expanded && desk.fold && s.display;
   return (
@@ -390,13 +391,11 @@ export function ScreenHeader({ s, desk = null }: { s: ScreenIt; desk?: DeskCard 
       <span className="sh-parcel">
         <span className="sh-name">{name}</span>
         {d?.ok && <span className="sh-acres"> · {fmt(d.acres, 2)} ac</span>}
-        {verdict && (
-          <span
-            className={`sh-dot ${verdict}`}
-            role="img"
-            aria-label={`Verdict: ${VERDICT_WORD[verdict]}`}
-            title={VERDICT_WORD[verdict]}
-          />
+        {card && (
+          <span className={`sh-card v-${card.verdict.toLowerCase()}`} title={card.reason}>
+            <span className={`card-grade small g-${card.grade ?? "none"}`}>{card.grade ?? "–"}</span>
+            <span className="sh-word">{card.verdict}</span>
+          </span>
         )}
       </span>
       <span className="sh-actions">
@@ -454,13 +453,16 @@ function RescreenLine({ s }: { s: ScreenIt }) {
   return null;
 }
 
-/** The folded card's second line: the verdict's lead, or why the results no longer fit. */
+/**
+ * The folded card's second line: the report card's reason (owner, #110; the prototype's lead is in the Grade and
+ * verdict panel), or why the results no longer fit.
+ */
 function VerdictLine({ s }: { s: ScreenIt }) {
   if (!s.display) return null;
   if (s.stale && !s.runningHere)
     return <span className="sh-verdict muted">These results are for an earlier boundary. Run again.</span>;
-  const v = verdictView(s.display);
-  return <span className={`sh-verdict ${v.tone}`}>{v.lead}</span>;
+  if (s.runningHere) return <span className="sh-verdict muted">Screening…</span>;
+  return <span className="sh-verdict">{reportCard(s.display, s.person).reason}</span>;
 }
 
 function Chevron({ up }: { up: boolean }) {
@@ -485,11 +487,6 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
   const [opened, setOpened] = useState<{ key: PanelKey; serial: number } | null>(null);
   const serial = s.ctl.state.serial;
   const panel = opened && opened.serial === serial ? opened.key : null;
-  const [person, setPersonState] = useState<Person>(() => getPref("ps.person"));
-  const setPerson = (p: Person) => {
-    setPersonState(p);
-    setPref("ps.person", p);
-  };
   const closePanel = useCallback(() => setOpened(null), []);
   const now = s.runningHere ? STEPS.find(([id]) => s.steps[id]?.status === "run") : undefined;
   const running = now ? { step: now[0], message: s.steps[now[0]]!.message } : undefined;
@@ -500,7 +497,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
       {(s.showSteps || s.error || notes || (s.rescreenOffline && display)) && (
         <section className="block">
           {s.rescreenOffline && s.display && <p className="report-note rescreen-note">{RESCREEN_OFFLINE}.</p>}
-          {s.showSteps && <StepList steps={s.steps} />}
+          {s.showSteps && <StepList steps={s.steps} running={s.runningHere} />}
           {s.error && (
             <p className="tiny text-steep">
               The screen stopped: {s.error}
@@ -538,9 +535,9 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
       {display && (
         <div className={s.stale && !s.runningHere ? "report stale" : "report"}>
           <ReportCard
-            card={reportCard(display, person)}
+            card={reportCard(display, s.person)}
             running={!!s.runningHere}
-            setPerson={setPerson}
+            setPerson={s.setPerson}
             onOpen={(key) => setOpened({ key, serial })}
           />
         </div>
@@ -548,7 +545,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
       {display && panel && (
         <CardPanel
           panel={panel}
-          card={reportCard(display, person)}
+          card={reportCard(display, s.person)}
           result={display}
           point={point}
           running={running}
@@ -565,10 +562,29 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
   );
 }
 
-/** The run's steps (proto renderSteps, L991): a dot per step, with its message and the query link. */
-function StepList({ steps }: { steps: ReturnType<typeof useScreen>["state"]["steps"] }) {
+/**
+ * The run's steps (proto renderSteps, L991): a dot per step, with its message and the query link. A run that
+ * finished with every step done folds to one line, "Screened ✓", which opens the list (owner, #110); a run in
+ * progress, or one with a failed step, shows it all.
+ */
+function StepList({
+  steps,
+  running,
+}: {
+  steps: ReturnType<typeof useScreen>["state"]["steps"];
+  running: boolean;
+}) {
   // Debug mode: how long each step took, as the page saw it (A4b PR B: the owner's phone timings).
   const timed = debugOn();
+  const [open, setOpen] = useState(false);
+  const clean =
+    !running && STEPS.every(([id]) => steps[id]?.status === "done" || steps[id]?.status === "skip");
+  if (clean && !open)
+    return (
+      <button className="link-btn steps-folded" aria-expanded={false} onClick={() => setOpen(true)}>
+        Screened ✓
+      </button>
+    );
   return (
     <ul className="steps">
       {STEPS.map(([id, label]) => {

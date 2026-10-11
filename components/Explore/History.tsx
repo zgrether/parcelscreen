@@ -9,7 +9,9 @@ import { useEffect, useMemo, useState } from "react";
 import { shortPrice } from "@/lib/client/askingPrice";
 import { historyRows } from "@/lib/client/historyRows";
 import type { WorkingParcel } from "@/lib/client/parcelStore";
+import { getPref } from "@/lib/client/prefs";
 import { needsRescreen, readScreen, RESCREENS_ON_OPEN } from "@/lib/client/screenStore";
+import { reportCard, type Card } from "@/lib/report/card";
 import { useExplore } from "./useExploreController";
 
 const when = (iso: string) =>
@@ -20,7 +22,7 @@ export function History({ onOpened }: { onOpened?: () => void }) {
   const { built, open } = ctl.state.store;
   const [confirming, setConfirming] = useState<string | null>(null);
   const rows = useMemo(() => new Map(historyRows(built).map((r) => [r.key, r])), [built]);
-  const rescreen = useRescreens(built);
+  const latest = useLatest(built);
 
   return (
     <section className="block">
@@ -54,6 +56,8 @@ export function History({ onOpened }: { onOpened?: () => void }) {
                 <li key={b.key} className="grid grid-cols-[1fr_auto] items-baseline gap-x-2.5">
                   <span>
                     <b>{name}</b>
+                    {/* The card's verdict for the latest kept screen (owner, #110), in the grade last shown. */}
+                    {latest.get(b.key!)?.card && <VerdictDot card={latest.get(b.key!)!.card!} />}
                     {isOpen && <span className="muted"> · open</span>}{" "}
                     {tellApart ? (
                       <span className="muted num">{tellApart}</span>
@@ -108,7 +112,7 @@ export function History({ onOpened }: { onOpened?: () => void }) {
                   </span>
                   <span className="tiny muted">
                     {when(b.updatedAt)}
-                    {rescreen.has(b.key!) && ` · ${RESCREENS_ON_OPEN}`}
+                    {latest.get(b.key!)?.rescreen && ` · ${RESCREENS_ON_OPEN}`}
                   </span>
                 </li>
               );
@@ -119,24 +123,44 @@ export function History({ onOpened }: { onOpened?: () => void }) {
   );
 }
 
+function VerdictDot({ card }: { card: Card }) {
+  return (
+    <span
+      className={`hist-dot v-${card.verdict.toLowerCase()}`}
+      role="img"
+      aria-label={`${card.verdict}, grade ${card.grade ?? "none"}`}
+      title={`${card.grade ?? "–"} · ${card.verdict}`}
+    />
+  );
+}
+
 /**
- * The History entries whose latest screen will re-screen when opened (owner, #101): gone (v3's clean break) or
- * from earlier rules (Batch A §6). Read from the kept screens, so it's known once IndexedDB answers; an entry never
- * screened, or a browser that keeps nothing, has nothing to say.
+ * What each History entry's latest kept screen says: whether it will re-screen when opened (owner, #101: gone, v3's
+ * clean break, or from earlier rules, Batch A §6), and otherwise its report card (owner, #110). Read from the kept
+ * screens, so it's known once IndexedDB answers; an entry never screened, or a browser that keeps nothing, has
+ * nothing to say.
  */
-function useRescreens(built: readonly WorkingParcel[]): ReadonlySet<string> {
-  const [keys, setKeys] = useState<ReadonlySet<string>>(new Set());
+function useLatest(
+  built: readonly WorkingParcel[],
+): ReadonlyMap<string, { rescreen: boolean; card: Card | null }> {
+  const [keys, setKeys] = useState<ReadonlyMap<string, { rescreen: boolean; card: Card | null }>>(new Map());
   const latest = built.flatMap((b) =>
     b.key && b.screenIds.length ? [[b.key, b.screenIds.at(-1)!] as const] : [],
   );
   const sig = latest.map(([k, id]) => `${k}:${id}`).join(",");
   useEffect(() => {
     let alive = true;
-    void Promise.all(latest.map(async ([k, id]) => (needsRescreen(await readScreen(id)) ? [k] : []))).then(
-      (keys) => {
-        if (alive) setKeys(new Set(keys.flat()));
-      },
-    );
+    const person = getPref("ps.person");
+    void Promise.all(
+      latest.map(async ([k, id]) => {
+        const r = await readScreen(id);
+        const rescreen = needsRescreen(r);
+        const card = r.kind === "ok" && !rescreen ? reportCard(r.record.result, person) : null;
+        return [k, { rescreen, card }] as const;
+      }),
+    ).then((entries) => {
+      if (alive) setKeys(new Map(entries));
+    });
     return () => {
       alive = false;
     };

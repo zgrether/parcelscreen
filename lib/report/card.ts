@@ -6,7 +6,7 @@
  * Money can fix the driveway, clearing, septic, the well and power, so they never reach the grade (§3.3): the
  * gates only warn or fail, and the rows are the qualities money can't add.
  */
-import { fmt } from "../format";
+import { compass, fmt } from "../format";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { NEAREST_HOSPITAL, REAL_GROCERY, type DriveEntry } from "../screen/driveList";
 import { NO_PRACTICAL_ROUTE } from "../screen/score";
@@ -44,6 +44,10 @@ export interface Row {
   detail: string;
   /** The data that didn't load, when that's why it isn't graded. */
   missing?: string;
+  /** Something to check before anything else; it caps the verdict at Maybe (Room to build's F, owner #110). */
+  checkFirst?: string;
+  /** More for the row's panel than its one line holds (the homesite's quality grade). */
+  panelNote?: string;
 }
 
 /** What the card says regardless of whose weights are on. */
@@ -104,12 +108,12 @@ type Result = PartialScreenResult;
  * The build site: the house when you've placed one (owner, #109 review), else site #1. null when there's neither;
  * undefined when the homesites weren't ranked and there's no house.
  */
-interface BuildSite {
+export interface BuildSite {
   label: string;
   elevFt: number | null;
   inSfha: boolean;
 }
-function buildSite(r: Result): BuildSite | null | undefined {
+export function buildSite(r: Result): BuildSite | null | undefined {
   const h = r.house;
   if (h && !("outside" in h)) return { label: "the marked house", elevFt: h.elevFt, inSfha: h.inSFHA };
   if (!r.sites) return undefined;
@@ -220,13 +224,22 @@ function elevation(site: BuildSite | null | undefined, K: CardConfig): Row {
   return g(atLeast(site.elevFt, K.rows.elevationFt), `${fmt(site.elevFt)} ft at ${site.label}`);
 }
 
-/** Site #1's quality grade only (owner, #95 review): its build cost picks the site, but never grades the parcel. */
+/**
+ * Site #1's quality grade only (owner, #95 review): its build cost picks the site, but never grades the parcel. The
+ * line says it in plain words; the quality score is the panel's (owner, #110).
+ */
 function homesite(r: Result): Row {
   const g = row("homesite", "Best homesite");
   if (!r.sites) return notLoaded(g, "the homesite ranking");
   const s = r.sites[0];
   if (!s) return g("F", "no build site found");
-  return g(s.qGrade, `site #1's quality ${s.qGrade} (${fmt(s.quality)})`);
+  return {
+    ...g(
+      s.qGrade,
+      `faces ${compass(s.aspectDeg)}, ${fmt(s.sunH, 1)} h of December sun, ${fmt(s.slopeDeg)}° slope`,
+    ),
+    panelNote: `site #1's quality ${s.qGrade} (${fmt(s.quality)})`,
+  };
 }
 
 /** The zone in words (owner, #109 review); mag/arcsec² is the panel's. */
@@ -244,10 +257,18 @@ function room(r: Result, K: CardConfig, footprintAc: number): Row {
   const g = row("room", "Room to build");
   if (!r.terrain) return notLoaded(g, "the terrain");
   const x = r.terrain.acresUnder15 / footprintAc;
-  return g(
-    atLeast(x, K.rows.roomX),
+  const grade = atLeast(x, K.rows.roomX);
+  const line = g(
+    grade,
     `${fmt(r.terrain.acresUnder15, 1)} ac of gentle ground, ${fmt(x, x < 10 ? 1 : 0)}× the build footprint`,
   );
+  // The build doesn't fit: the first thing to check, and at best a Maybe (owner, #110).
+  return grade === "F"
+    ? {
+        ...line,
+        checkFirst: `your build doesn't fit on the gentle ground (${fmt(r.terrain.acresUnder15, 1)} ac, ${fmt(x, 1)}× the footprint)`,
+      }
+    : line;
 }
 
 function trails(r: Result, K: CardConfig): Row {
@@ -349,7 +370,8 @@ const listOf = (xs: string[]): string =>
 /**
  * One person's card: the weighted grade, the verdict, and its reason (owner, #109 review): "Pass: {fail}.",
  * "{Verdict}. Check first: {warn}.", or "{Verdict}. Weakest part: {row} ({grade}, {detail})." A Pass for a low grade
- * names the weakest row. When something didn't load, the verdict is at most a Maybe and the line says what.
+ * names the weakest row. A build that doesn't fit (Room to build's F) comes first after a fail, and caps the verdict at
+ * Maybe (owner, #110). When something didn't load, the verdict is at most a Maybe and the line says what.
  */
 export function cardFor(facts: CardFacts, person: Person, K: CardConfig = SCREEN_CONSTANTS.card): Card {
   const w = K.weights[person];
@@ -359,6 +381,7 @@ export function cardFor(facts: CardFacts, person: Person, K: CardConfig = SCREEN
   const grade = points === null ? null : atLeast(points, K.gradeCutoffs);
   const fail = facts.gates.find((x) => x.status === "fail");
   const warns = facts.gates.filter((x) => x.status === "warn");
+  const check = facts.rows.find((x) => x.checkFirst)?.checkFirst;
   const incomplete = [
     ...new Set([...facts.gates, ...facts.rows].map((x) => x.missing).filter((m): m is string => !!m)),
   ];
@@ -368,18 +391,21 @@ export function cardFor(facts: CardFacts, person: Person, K: CardConfig = SCREEN
       : points !== null &&
           points >= K.verdict.contender &&
           warns.length <= K.verdict.contenderMaxWarns &&
-          !incomplete.length
+          !incomplete.length &&
+          !check
         ? "Contender"
         : "Maybe";
   // The lowest row; among equals, the one this person weighs most, then the card's order.
   const weakest = [...graded].sort((a, b) => K.points[a.grade] - K.points[b.grade] || w[b.key] - w[a.key])[0];
   const why = fail
     ? `${verdict}: ${lowerFirst(fail.reason)}`
-    : warns[0] && verdict !== "Pass"
-      ? `${verdict}. Check first: ${lowerFirst(warns[0].reason)}`
-      : weakest
-        ? `${verdict}. Weakest part: ${lowerFirst(weakest.label)} (${weakest.grade}, ${weakest.detail})`
-        : `${verdict}. Not enough of the screen ran to grade the land`;
+    : check && verdict !== "Pass"
+      ? `${verdict}. Check first: ${check}`
+      : warns[0] && verdict !== "Pass"
+        ? `${verdict}. Check first: ${lowerFirst(warns[0].reason)}`
+        : weakest
+          ? `${verdict}. Weakest part: ${lowerFirst(weakest.label)} (${weakest.grade}, ${weakest.detail})`
+          : `${verdict}. Not enough of the screen ran to grade the land`;
   const more = incomplete.length ? ` (incomplete: ${listOf(incomplete)} didn't load, run again)` : "";
   return { ...facts, person, points, grade, verdict, reason: `${why}${more}.`, incomplete };
 }

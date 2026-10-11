@@ -1435,19 +1435,28 @@ html:has(.explore) body {
   color: var(--color-ink-2);
   font-weight: 500;
 }
-.sh-dot {
+/* The report card's grade and verdict for the kept run (VR5, owner #110). */
+.sh-card {
   flex: none;
-  width: 10px;
-  height: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   margin-left: 8px;
-  border-radius: 50%;
-  background: var(--color-ok);
+  font: 600 14px/1 var(--font-cond);
 }
-.sh-dot.marginal {
-  background: var(--color-warn);
+.sh-card.v-contender {
+  color: var(--color-ok);
 }
-.sh-dot.fatal {
-  background: var(--color-steep);
+.sh-card.v-maybe {
+  color: var(--color-warn);
+}
+.sh-card.v-pass {
+  color: var(--color-steep);
+}
+.sh-card .card-grade.small {
+  min-width: 20px;
+  height: 20px;
+  font-size: 13px;
 }
 .sh-actions {
   display: flex;
@@ -1606,11 +1615,7 @@ html:has(.explore) body {
   flex-basis: 100%;
   margin-top: -2px;
   font-size: 14px;
-  font-weight: 600;
-  color: var(--color-ok);
-}
-.sh-verdict.marginal {
-  color: var(--color-warn);
+  color: var(--color-ink);
 }
 .sh-verdict.fatal {
   color: var(--color-steep);
@@ -2766,4 +2771,65 @@ html:has(.explore) body {
   .card-panel {
     animation: none;
   }
+}
+
+/* History's dot: the card's verdict for the latest kept screen (VR5, owner #110). */
+.hist-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-left: 6px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+.hist-dot.v-contender {
+  background: var(--color-ok);
+}
+.hist-dot.v-maybe {
+  background: var(--color-warn);
+}
+.hist-dot.v-pass {
+  background: var(--color-steep);
+}
+/* A finished run's steps, folded to one line (owner, #110). */
+.steps-folded {
+  font-size: 13px;
+  color: var(--color-ok);
+}
+/* A panel's banded scale (value-ranking.md §6.2 (b)): this parcel's band lit, its value under it. */
+.scale {
+  display: grid;
+  gap: 2px;
+  margin: 10px 0 12px;
+}
+.scale-name {
+  grid-column: 1 / -1;
+  font: 600 13px/1.2 var(--font-cond);
+  color: var(--color-ink-2);
+  margin-bottom: 2px;
+}
+.scale-band {
+  padding: 5px 4px;
+  font-size: 12px;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--color-ink-2);
+  background: var(--color-paper-2);
+}
+.scale-band:first-of-type {
+  border-radius: 4px 0 0 4px;
+}
+.scale-band:last-of-type {
+  border-radius: 0 4px 4px 0;
+}
+.scale-band.on {
+  color: var(--color-paper);
+  background: var(--color-ink);
+  font-weight: 600;
+}
+.scale-mark {
+  grid-row: 3;
+  text-align: center;
+  font-size: 12.5px;
+  font-weight: 600;
 }

@@ -9,6 +9,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { useHelp } from "@/components/Help/HelpDialog";
 import type { Card, GateStatus } from "@/lib/report/card";
 import { panelText, type PanelKey } from "@/lib/report/cardPanels";
+import { scalesFor, type Scale } from "@/lib/report/scales";
 import type { PartialScreenResult, ScreenResult, Step } from "@/lib/screen/types";
 import type { EvaluationPoint } from "../blocks/types";
 import { panelSections } from "./panelBlocks";
@@ -28,7 +29,8 @@ function reading(key: PanelKey, card: Card): { mark: string; tone: string; text:
   const gate = card.gates.find((g) => g.key === key);
   if (gate) return { mark: STATUS[gate.status], tone: `gate ${gate.status}`, text: `${gate.reason}.` };
   const row = card.rows.find((r) => r.key === key)!;
-  return { mark: row.grade ?? "–", tone: `g-${row.grade ?? "none"}`, text: `${row.detail}.` };
+  const note = row.panelNote ? `; ${row.panelNote}` : "";
+  return { mark: row.grade ?? "–", tone: `g-${row.grade ?? "none"}`, text: `${row.detail}${note}.` };
 }
 
 export function CardPanel({
@@ -81,6 +83,9 @@ export function CardPanel({
         <p className="panel-reading">
           <span className={`card-grade small ${r.tone}`}>{r.mark}</span> {r.text}
         </p>
+        {scalesFor(panel, result, card).map((sc) => (
+          <ScaleBar key={sc.name} scale={sc} />
+        ))}
         <p className="tiny muted panel-scored">How it&apos;s scored: {t.howScored}</p>
         <h3 className="panel-from">From the report</h3>
         {panelSections(panel).map(({ Block, heading }) => {
@@ -108,5 +113,29 @@ export function CardPanel({
         })}
       </div>
     </div>
+  );
+}
+
+/** A banded scale (§6.2 (b)): the bands in a row, this parcel's lit, and its value under it. */
+function ScaleBar({ scale }: { scale: Scale }) {
+  const n = scale.bands.length;
+  return (
+    <figure className="scale" style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>
+      <figcaption className="scale-name">{scale.name}</figcaption>
+      {scale.bands.map((b, i) => (
+        <span
+          key={b}
+          className={i === scale.at ? "scale-band on" : "scale-band"}
+          aria-current={i === scale.at}
+        >
+          {b}
+        </span>
+      ))}
+      {scale.at !== null && (
+        <div className="scale-mark" style={{ gridColumn: scale.at + 1 }}>
+          ▲ {scale.value}
+        </div>
+      )}
+    </figure>
   );
 }
