@@ -53,8 +53,10 @@ export function ParcelFacts({
           <tr>
             <td>Note</td>
             <td>
-              Multi-part parcel: only the first part screened
-              {unscreened?.tooComplex && " (too complex to join)"}
+              {/* Too complex to join: the largest part is screened, not the first (owner, #106 review). */}
+              {unscreened?.tooComplex
+                ? "Multi-part parcel: only the largest part screened (too complex to join)"
+                : "Multi-part parcel: only the first part screened"}
               {unscreened &&
                 `. ${unscreened.acres.toFixed(2)} ac in ${unscreened.parts} other part${unscreened.parts === 1 ? "" : "s"} not screened.`}
             </td>
