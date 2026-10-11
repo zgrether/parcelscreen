@@ -64,8 +64,13 @@ export const DEFAULT_USER_CONFIG: UserConfig = {
   shallowBedrockCm: 100,
   sunHoursWanted: 5,
   canopyDeg: 3,
-  roadMaxGradePct: 10,
-  roadVetoGradePct: 20,
+  // 15%, not the prototype's 10% (owner, #103 decisions, 2026-10-11; phase-0.md §9.28): local practice builds 15–20%
+  // (docs/studies/driveway-validation.md), and a short drive paved above paveAbovePct meets the durability goal
+  // better than a long 10% gravel ladder. Still editable in Settings.
+  roadMaxGradePct: 15,
+  // 25% on the ground's grade over 30 m (owner, #103 decisions), up from 20%: both real roads in the validation study
+  // fail at 20%. Follow-up 48 moves it to the designed road's profile.
+  roadVetoGradePct: 25,
   dw: {
     clearPerAc: 6000,
     earthSoilPerYd: 12,
@@ -416,9 +421,9 @@ export const SCREEN_CONSTANTS = deepFreeze({
     // gap is follow-up 48) (owner, option C, 2026-10-11). When follow-up 47 prices paving, the paving cost replaces
     // this term.
     impracticalShareOfReadyToBuild: 0.75,
-    // Above this grade a drive is normally paved (docs/studies/driveway-cost-check.md §5): the steeper alternative
-    // gives its length over it. Paving has no rate yet (follow-up 47).
-    pavedOverPct: 12,
+    // Above this grade a drive is paved (owner, #103 decisions; docs/studies/driveway-cost-check.md §5): every route
+    // card and the steeper alternative give the length over it, cost TBD until follow-up 47 has a rate (Stage 2).
+    paveAbovePct: 12,
     smoothEpsM: 5,
     benchWidthM: 3.66, // 12 ft
     m3ToYd3: 1.308,
@@ -436,6 +441,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
     // overLimitMaxPts at overLimitMaxAtPct needed and above, past the easement's +10, so a grade that is in
     // practice unpermittable loses to a route through the neighbours. (By the length over the limit instead, it
     // can't tell 11% from 22%: docs/studies/a4-driveway.md.) Per-county limits: follow-up 46.
+    // Also the "no practical drive" rule's steeper alternative, offered only when the limit is below it (#103
+    // decisions: at the 15% default there is none, and the rule offers the route through the neighbours).
     practicalMaxPct: 15,
     overLimitPtsPerPct: 1,
     overLimitMaxAtPct: 20,

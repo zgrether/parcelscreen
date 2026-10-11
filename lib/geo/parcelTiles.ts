@@ -6,7 +6,7 @@
  */
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { CancelledError, HttpError, type HttpClient } from "../http";
-import { fieldsFor, recordOutFields } from "./parcelFields";
+import { fieldsFor, isPlaceholderRecord, recordOutFields } from "./parcelFields";
 import { PARCEL_SERVICE_TIMEOUTS } from "./serviceStatus";
 import { parcelFromLine, type Bounds, type ParcelLine, type ParcelRecord } from "./parcels";
 
@@ -128,7 +128,8 @@ export async function fetchTile(
       if (!r.ok) return { lines, complete: false, failed: true };
       const j = (await r.json()) as Page;
       if (j.error) return { lines, complete: false, failed: true };
-      for (const feature of j.features ?? []) lines.push({ feature, source: serviceUrl });
+      for (const feature of j.features ?? [])
+        if (!isPlaceholderRecord(serviceUrl, feature.properties)) lines.push({ feature, source: serviceUrl });
       if (!(j.exceededTransferLimit || j.properties?.exceededTransferLimit))
         return { lines, complete: true, failed: false };
     }

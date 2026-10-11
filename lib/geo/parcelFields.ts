@@ -51,5 +51,19 @@ const DEFAULT_FIELDS: ServiceFields = {
 export const fieldsFor = (serviceUrl: string): ServiceFields =>
   FIELDS_BY_HOST[/^https?:\/\/([^/]+)/.exec(serviceUrl)?.[1] ?? ""] ?? DEFAULT_FIELDS;
 
+/**
+ * A feature that isn't a parcel record: its parcel ID is blank or "0". VGIN keeps the unparceled land of a county
+ * (roads, water, gaps between records) as one such feature: Grayson's is PARCELID "0", 61 parts and 14,126
+ * vertices around Whitetop. Drawn as an outline it could be tapped, and joining its parts never finished (owner's
+ * bug report, 2026-10-11). It's dropped wherever a service's features come in.
+ */
+export function isPlaceholderRecord(
+  serviceUrl: string,
+  props: Record<string, unknown> | null | undefined,
+): boolean {
+  const id = props?.[fieldsFor(serviceUrl).id];
+  return id == null || /^\s*0*\s*$/.test(String(id));
+}
+
 /** A full record's `outFields` for a service. */
 export const recordOutFields = (serviceUrl: string): string => fieldsFor(serviceUrl).record?.join(",") ?? "*";

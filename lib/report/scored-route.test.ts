@@ -13,10 +13,18 @@ import { buildDriveway, overLimitNote, siteDriveways, withScoredRoute } from "@/
 import { routeContext } from "@/lib/screen/index";
 import type { ScreenResult } from "@/lib/screen/types";
 import { expectedPath } from "@/test/support/expected";
-import { runFixture } from "@/test/support/scenarios";
+import { RULES_AT_10, runFixture, runScenario } from "@/test/support/scenarios";
 
 const expected = (slug: string): { run: ScreenResult; evaluateSite2?: ScreenResult } =>
   JSON.parse(readFileSync(expectedPath(slug as never), "utf8"));
+
+/** Grayson at the 10% limit and 20% veto these cases were written under (RULES_AT_10), run once. */
+let grayson10: Promise<{ run: ScreenResult; evaluateSite2: ScreenResult }> | null = null;
+const graysonAt10 = () =>
+  (grayson10 ??= (async () => ({
+    run: await runScenario("grayson-mud-creek-6273", "run", undefined, RULES_AT_10),
+    evaluateSite2: await runScenario("grayson-mud-creek-6273", "evaluateSite2", undefined, RULES_AT_10),
+  }))());
 
 /** The approved replacements (owner, #88 review): the card titles before → after, in order. */
 const APPROVED = {
@@ -32,8 +40,8 @@ const APPROVED = {
 };
 
 describe("the scored route first (#88 follow-up)", () => {
-  it("Grayson #1: the 11% route kept to the parcel is the suspect card, first; the easement route is the alternative", () => {
-    const r = expected("grayson-mud-creek-6273").run;
+  it("Grayson #1 at 10%: the 11% route kept to the parcel is the suspect card, first; the easement route is the alternative", async () => {
+    const r = (await graysonAt10()).run;
     const d = r.driveway!;
     expect(d.overLimit && d.routes.length).toBeTruthy();
     expect(Math.round(d.overLimit!.maxGrade * 100)).toBe(11);
@@ -59,19 +67,36 @@ describe("the scored route first (#88 follow-up)", () => {
     const f = drivewayFeatures(r).lines.features;
     expect(f[0]!.properties.kind).toBe("over");
     expect(f.filter((x) => x.properties.kind === "route").map((x) => x.properties.i)).toEqual([1, 2]);
-  });
+  }, 120_000);
 
-  it("the titles change only as approved: the same routes without the scored one read as before", () => {
-    const r = expected("grayson-mud-creek-6273").run;
+  it("the titles change only as approved: the same routes without the scored one read as before", async () => {
+    const r = (await graysonAt10()).run;
     const { overLimit: _o, ...d } = r.driveway!;
     const before = drivewayView({ ...r, driveway: d })!;
     expect(before.routes.map((x) => x.title)).toEqual(APPROVED.before);
-  });
+  }, 120_000);
 
-  it("Grayson's evaluateAt site #2: the section shows that site's scored route too", () => {
-    const e = expected("grayson-mud-creek-6273").evaluateSite2!;
+  it("Grayson's evaluateAt site #2 at 10%: the section shows that site's scored route too", async () => {
+    const e = (await graysonAt10()).evaluateSite2;
     expect(e.driveway!.overLimit && e.driveway!.routes.length).toBeTruthy();
     expect(Math.round(e.driveway!.overLimit!.maxGrade * 100)).toBe(11);
+  }, 120_000);
+
+  it("Grayson at the 15% default: #1 is reached on its own land within the limit, so nothing is over it", () => {
+    const d = expected("grayson-mud-creek-6273").run.driveway!;
+    expect(d.overLimit).toBeUndefined();
+    expect(d.routes[0]!.needsEasement).toBe(false);
+    const v = drivewayView(expected("grayson-mud-creek-6273").run)!;
+    expect(v.routes[0]!.title).toMatch(/^Recommended — /);
+    // Its steep stretches are paved, no rate yet (#103 decisions): the card says how much.
+    const paving = v.routes[0]!.rows.find((r) => r.label === "Paving (over 12%)");
+    expect(paving?.value).toMatch(/^~[\d,]+ ft \(cost TBD\)$/);
+    expect(Number(paving!.value.replace(/[^\d]/g, ""))).toBeGreaterThan(1000);
+  });
+
+  it("a route with nothing over 12% has no paving row", () => {
+    const v = drivewayView(expected("ferney-creek-52-47A").run)!;
+    expect(v.routes[0]!.rows.some((r) => r.label.startsWith("Paving"))).toBe(false);
   });
 
   it.each(["ferney-creek-52-47A", "macks-mountain-35-3"])(

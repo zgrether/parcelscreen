@@ -277,7 +277,7 @@ const PracticalAltSchema = z.strictObject({
   lengthFt: num,
   switchbacks: num,
   cost: CostRangeSchema,
-  /** The length steeper than driveway.pavedOverPct: paved, cost TBD (follow-up 47). 0 for the easement route. */
+  /** The length steeper than driveway.paveAbovePct: paved, cost TBD (follow-up 47). 0 for the easement route. */
   pavedFt: num,
 });
 
