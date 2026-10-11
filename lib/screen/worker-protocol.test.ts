@@ -224,7 +224,9 @@ describe("heartbeats (18b)", () => {
   });
 });
 
-describe("a restarted worker (17e)", () => {
+// Two whole screens of Macks Mountain (~14 s each locally since the "no practical drive" rule routes Macks #4's
+// alternatives): over the 30 s default on CI, as the kept-session tests above.
+describe("a restarted worker (17e)", { timeout: 120_000 }, () => {
   it("knows none of the runs the page kept: reactivating one says it's gone, which the page takes as a lost worker", async () => {
     const first = core();
     for (const id of [1, 2]) await first.c.handle({ type: "run", id, input });
