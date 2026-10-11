@@ -15,6 +15,7 @@ const gates = (r: ScreenResult) => Object.fromEntries(cardFacts(r).gates.map((g)
 const grades = (r: ScreenResult) => Object.fromEntries(cardFacts(r).rows.map((x) => [x.key, x.grade]));
 const gateOf = (r: ScreenResult, key: string) => cardFacts(r).gates.find((g) => g.key === key)!;
 const rowOf = (r: ScreenResult, key: string) => cardFacts(r).rows.find((x) => x.key === key)!;
+const SEPTIC_WARN = "no soil on the parcel rates better than very limited for a septic field";
 
 describe("the report card on the fixtures (engine 13)", () => {
   it("Ferney Creek 52-47A: every gate passes; a Contender for both", () => {
@@ -33,11 +34,16 @@ describe("the report card on the fixtures (engine 13)", () => {
     expect(zach.points).toBeCloseTo(3.3, 9);
     expect([zach.grade, zach.verdict]).toEqual(["B", "Contender"]);
     expect(zach.reason).toBe(
-      "Contender: the weakest part is town and hospital (D, a 48-minute drive to an ER, 16 to a grocery).",
+      "Contender. Weakest part: town and hospital (D, a 48-minute drive to an ER, 16 to a grocery).",
     );
+    expect(zach.incomplete).toEqual([]);
     expect(reportCard(r, "julie").points).toBeCloseTo(3.0, 9);
     expect(rowOf(r, "garden").detail).toBe("a 2.48 ac garden on prime farmland");
     expect(rowOf(r, "room").detail).toBe("18.7 ac of gentle ground, 41× the build footprint");
+    expect(rowOf(r, "sky").detail).toBe("rural sky (zone 3b)");
+    expect(rowOf(r, "trails").detail).toBe(
+      "a trailhead 6.5 mi away in a straight line (Buffalo Mountain Trailhead)",
+    );
   });
 
   it("Macks Mountain 35-3: the septic warn, the closer grocery", () => {
@@ -59,14 +65,15 @@ describe("the report card on the fixtures (engine 13)", () => {
     expect(zach.points).toBeCloseTo(3.45, 9);
     expect([zach.grade, zach.verdict]).toEqual(["B", "Contender"]);
     expect(julie.points).toBeCloseTo(2.9, 9);
-    expect(zach.reason).toBe(
-      "Contender: no soil on the parcel rates better than very limited for a septic field.",
-    );
+    expect(zach.reason).toBe(`Contender. Check first: ${SEPTIC_WARN}.`);
   });
 
-  it("Grayson Mud Creek 6273: two warns make it a Maybe", () => {
+  it("Grayson Mud Creek 6273: the flood zone is away from the build site, so one warn: a Contender", () => {
     const r = expectedOf("grayson-mud-creek-6273", "run");
-    expect(gates(r)).toEqual({ floodplain: "warn", access: "pass", easement: "pass", septic: "warn" });
+    expect(gates(r)).toEqual({ floodplain: "pass", access: "pass", easement: "pass", septic: "warn" });
+    expect(gateOf(r, "floodplain").reason).toBe(
+      "A FEMA flood zone covers 0.5 ac of the parcel, away from the build site; the driveway isn't checked yet",
+    );
     expect(grades(r)).toEqual({
       elevation: "A",
       homesite: "A",
@@ -78,9 +85,11 @@ describe("the report card on the fixtures (engine 13)", () => {
     });
     const zach = reportCard(r, "zach");
     expect(zach.points).toBeCloseTo(3.45, 9);
-    expect([zach.grade, zach.verdict]).toEqual(["B", "Maybe"]);
-    expect(zach.reason).toBe("Maybe: a FEMA flood zone covers 0.5 ac of the parcel, not the build site.");
+    expect([zach.grade, zach.verdict]).toEqual(["B", "Contender"]);
+    expect(zach.reason).toBe(`Contender. Check first: ${SEPTIC_WARN}.`);
+    expect(reportCard(r, "julie").verdict).toBe("Contender");
     expect(rowOf(r, "room").detail).toBe("1.3 ac of gentle ground, 2.9× the build footprint");
+    expect(rowOf(r, "sky").detail).toBe("rural dark sky (zone 3a)");
   });
 });
 
@@ -94,18 +103,49 @@ describe("the gates", () => {
     expect(c.reason).toBe("Pass: the build site is in a FEMA flood zone.");
   });
 
-  it("an unmapped area is unknown, and counts as a warn", () => {
+  it("a placed house is the build site: its flood zone and its elevation (owner, #109 review)", () => {
+    const r = structuredClone(expectedOf("ferney-creek-52-47A", "setHouse"));
+    expect(rowOf(r, "elevation")).toMatchObject({ grade: "B", detail: "2,654 ft at the marked house" });
+    const h = r.house as Extract<NonNullable<ScreenResult["house"]>, { inSFHA: boolean }>;
+    r.flood = { zones: ["AE"], sfha: true, sfhaAcres: 1, mapped: true };
+    expect(gateOf(r, "floodplain").status).toBe("pass"); // site #1 isn't the build site now
+    h.inSFHA = true;
+    expect(gateOf(r, "floodplain").status).toBe("fail");
+  });
+
+  it("an unmapped area is unknown with its note, and isn't a warn", () => {
     const r = ferney();
     r.flood = { zones: [], sfha: false, sfhaAcres: 0, mapped: false };
-    expect(gateOf(r, "floodplain")).toMatchObject({
+    expect(gateOf(r, "floodplain")).toEqual({
+      key: "floodplain",
+      label: "Floodplain",
       status: "unknown",
       reason: "FEMA has no flood mapping here",
     });
-    expect(reportCard(r, "zach").verdict).toBe("Contender"); // one warn is allowed
     r.soils = r.soils!.map((x) => ({ ...x, septic: "Very limited" }));
     const c = reportCard(r, "zach");
+    expect(c.verdict).toBe("Contender"); // the septic warn is its only warn
+    expect(c.incomplete).toEqual([]);
+  });
+
+  it("data that didn't load: not a warn; the verdict is at most a Maybe and says what to re-run", () => {
+    const r = ferney();
+    delete r.flood;
+    delete r.sky;
+    expect(gateOf(r, "floodplain")).toMatchObject({ status: "unknown", missing: "the FEMA flood map" });
+    expect(rowOf(r, "sky")).toMatchObject({ grade: null, detail: "the sky atlas didn't load" });
+    const c = reportCard(r, "zach");
+    expect(c.incomplete).toEqual(["the FEMA flood map", "the sky atlas"]);
     expect(c.verdict).toBe("Maybe");
-    expect(c.reason).toBe("Maybe: FEMA has no flood mapping here.");
+    expect(c.reason).toBe(
+      "Maybe. Weakest part: town and hospital (D, a 48-minute drive to an ER, 16 to a grocery) (incomplete: the FEMA flood map and the sky atlas didn't load, run again).",
+    );
+    // A Pass stays a Pass.
+    r.sites![0]!.flood = true;
+    r.flood = { zones: ["AE"], sfha: true, sfhaAcres: 3, mapped: true };
+    expect(reportCard(r, "zach").reason).toBe(
+      "Pass: the build site is in a FEMA flood zone (incomplete: the sky atlas didn't load, run again).",
+    );
   });
 
   it("no frontage: routed from the nearest road point, a warn", () => {
@@ -123,7 +163,7 @@ describe("the gates", () => {
     r.driveway = { ...r.driveway!, entrances: [], routes: [] };
     expect(gates(r)).toMatchObject({ access: "fail", easement: "fail" });
     expect(reportCard(r, "julie").reason).toBe(
-      "Pass: no road within 400 m of the boundary (landlocked, or TIGER is wrong).",
+      "Pass: no road within 0.25 mi of the boundary (landlocked, or TIGER is wrong).",
     );
   });
 
@@ -139,7 +179,7 @@ describe("the gates", () => {
     );
   });
 
-  it("an easement, and no practical drive within the budget, warn together", () => {
+  it("an easement, and no practical drive within the budget, warn together; two warns are a Maybe", () => {
     const r = ferney();
     r.driveway!.routes[0] = { ...r.driveway!.routes[0]!, needsEasement: true };
     expect(gateOf(r, "easement")).toMatchObject({
@@ -160,12 +200,16 @@ describe("the gates", () => {
     expect(gateOf(r, "easement").reason).toBe(
       "The driveway needs an easement across neighbouring land; the drive needs a steeper paved alignment or an easement",
     );
+    r.soils = r.soils!.map((x) => ({ ...x, septic: "Very limited" }));
+    expect(reportCard(r, "zach").reason).toBe(
+      "Maybe. Check first: the driveway needs an easement across neighbouring land; the drive needs a steeper paved alignment or an easement.",
+    );
   });
 
   it("septic: unknown when the soils didn't load; never a fail", () => {
     const r = ferney();
     delete r.soils;
-    expect(gateOf(r, "septic").status).toBe("unknown");
+    expect(gateOf(r, "septic")).toMatchObject({ status: "unknown", missing: "the NRCS soils" });
   });
 });
 
@@ -209,21 +253,25 @@ describe("the rows", () => {
     expect(rowOf(r, "trails")).toMatchObject({ grade: "B" });
     expect(rowOf(r, "trails").detail).toMatch(/^open public land 0\.5 mi away/);
     r.near!.trailheads = [{ ...r.near!.trailheads[0]!, km: 4 }];
-    expect(rowOf(r, "trails").grade).toBe("A");
+    expect(rowOf(r, "trails")).toMatchObject({
+      grade: "A",
+      detail: "a trailhead 2.5 mi away in a straight line (Buffalo Mountain Trailhead)",
+    });
     r.protected = [{ ...open, adjoins: true, distFt: null }];
     r.near!.trailheads = [];
     expect(rowOf(r, "trails").grade).toBe("A");
     r.protected = [];
-    expect(rowOf(r, "trails")).toMatchObject({ grade: "F", detail: "no trailhead found within 20 km" });
+    expect(rowOf(r, "trails")).toMatchObject({ grade: "F", detail: "no trailhead found within 12.4 mi" });
   });
 
-  it("no build site: the homesite is an F, and the elevation isn't graded", () => {
+  it("no build site: the homesite is an F, and the elevation is left out (not incomplete)", () => {
     const r = ferney();
     r.sites = [];
     expect(grades(r)).toMatchObject({ homesite: "F", elevation: null });
+    expect(reportCard(r, "zach").incomplete).toEqual([]);
   });
 
-  it("a row whose step didn't run is left out of the grade", () => {
+  it("a row whose data didn't load is left out of the grade", () => {
     const r = ferney();
     delete r.sky;
     const c = reportCard(r, "zach");
@@ -264,7 +312,7 @@ describe("config and weights", () => {
     expect([zach.verdict, julie.verdict]).toEqual(["Maybe", "Pass"]);
     // Trails and the garden are both F; the reason names the one this person weighs more (Julie: trails 25).
     expect(julie.reason).toBe(
-      "Pass: the weakest part is trails and public land (F, no trailhead found within 20 km).",
+      "Pass. Weakest part: trails and public land (F, no trailhead found within 12.4 mi).",
     );
     expect(zach.gates).toEqual(julie.gates);
     expect(zach.rows).toEqual(julie.rows);
