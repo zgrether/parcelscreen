@@ -22,10 +22,16 @@ isn't obvious.
    change, module boundaries, what is ported verbatim vs. restructured, open questions, and the
    acceptance checks you will run. Stop and wait for approval before writing application code.
 2. **One PR per plan step.** Keep PRs small enough to review in ten minutes. The PR description
-   lists any behavior that differs from the prototype and why.
-3. **CI must be green** (typecheck, lint, tests) before you ask for a merge. **Zach merges every PR.** Never
-   merge one yourself or enable auto-merge, whatever the wording: "merge when…" or "merge on green" means
-   "ready for Zach to merge". Say it's ready, and pause.
+   lists any behavior that differs from the prototype and why. Fold trivial follow-ups (wording, one-line
+   fixes) into the next substantive PR instead of opening their own.
+3. **Check locally, then let CI gate** (owner, 2026-10-11). Before pushing: `pnpm typecheck`, `pnpm lint`
+   and the unit tests related to the change (`pnpm test:changed`). Run `pnpm expected` once when engine
+   output may change (CI checks it's deterministic). Run the full e2e locally only when the PR changes UI
+   behaviour the e2e covers. Then push, open the PR with Auto-fix on, report, and pause: don't wait on CI.
+   CI (typecheck, lint, the full unit suite, e2e, determinism, expected-guard) is the full gate, and
+   Auto-fix handles its failures. The report is ten lines or fewer; the details go in the PR description.
+   **Zach merges every PR.** Never merge one yourself or enable auto-merge, whatever the wording: "merge
+   when…" or "merge on green" means "ready for Zach to merge". Say it's ready, and pause.
 4. **Don't change the numbers silently.** Thresholds, weights and unit costs live in
    `lib/screen/config.ts`. If you change one, update the fixture test and say so in the PR.
 5. **Ask when the spec is silent;** don't invent product behavior. Ask in the PR or the plan.
