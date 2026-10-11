@@ -16,6 +16,8 @@ fixture on desktop Node (as A3 measured it); the phone is the owner's check from
 | macks | 8 | 4.9 s (4.9, 4.9, 5.2) | 6.8 s |
 | grayson | 4 | 2.3 s (2.3, 2.3, 2.8) | 3.5 s |
 
+**On a phone** (owner, 2026-10-11: a real phone, the preview build of #98, `?debug=1`): the Macks driveway step took 3 s, well under the budget. Desktop Node within 5 s stays the CI target.
+
 ## 2. Cost against the exact search
 
 The screen's search inflates its A* estimate by 1.25 (`estimateWeight`), with the grade-aware
