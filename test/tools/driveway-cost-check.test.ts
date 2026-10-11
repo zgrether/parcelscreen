@@ -10,6 +10,10 @@
  *  6. a proposed rule for when the card should say "no practical route" instead of a six-figure gravel cost.
  * Nothing in lib/ changes.
  *
+ * Written against engine 10. Engine 11 (the owner's #99 decisions) applies corrections 1–4 and adds relief culverts,
+ * so a run now no longer reproduces the doc: the before and after are in docs/studies/driveway-quantities.md
+ * (pnpm dw:quant).
+ *
  *   pnpm dw:cost
  */
 import { writeFileSync } from "node:fs";

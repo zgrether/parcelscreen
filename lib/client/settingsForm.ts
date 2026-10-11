@@ -84,13 +84,26 @@ export const COST_FIELDS: readonly NumberField[] = [
   cost("stonePerTon", "Stone $/ton delivered"),
   cost("fabricPerSf", "Geotextile $/sq ft", 0.05),
   cost("culvertEach", "Culvert, each"),
+  cost("reliefCulvertEach", "Relief culvert (cross-drain), each"),
   cost("entrance", "VDOT entrance"),
   cost("erosion", "Erosion control (flat)"),
   cost("mobilize", "Mobilization"),
   cost("woodedPct", "Corridor assumed wooded, %"),
 ];
 
-export const NUMBER_FIELDS: readonly NumberField[] = [...THRESHOLD_FIELDS, ...COST_FIELDS];
+/** The budget (value-ranking.md §4; owner, 2026-10-11: the driveway's "no practical drive" rule reads it). */
+export const BUDGET_FIELDS: readonly NumberField[] = [
+  {
+    id: "budget.readyToBuild",
+    label: "Budget: ready to build (land prep, well, septic, power, driveway) $",
+    min: 0,
+    step: 5000,
+    get: (c) => c.budget.readyToBuild,
+    set: (c, v) => ({ ...c, budget: { ...c.budget, readyToBuild: v } }),
+  },
+];
+
+export const NUMBER_FIELDS: readonly NumberField[] = [...THRESHOLD_FIELDS, ...COST_FIELDS, ...BUDGET_FIELDS];
 
 export const ANCHORS_LABEL = "Drive-time anchors";
 export const ENDPOINTS_LABEL = "Data endpoints";

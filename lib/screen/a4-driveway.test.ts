@@ -6,9 +6,25 @@
 import { describe, expect, it } from "vitest";
 import { runFixture } from "../../test/support/scenarios";
 import { SCREEN_CONSTANTS } from "./config";
-import { buildDriveway, entranceCandidates, leastSteep, siteDriveways, type SiteDriveway } from "./driveway";
+import {
+  buildDriveway,
+  entranceCandidates,
+  leastSteep,
+  practicalAlternatives,
+  siteDriveways,
+  type SiteDriveway,
+} from "./driveway";
 import { routeContext } from "./index";
-import { chooseDriveway, drivewayChoiceLines, drivewayPoints, overLimitTerm } from "./score";
+import {
+  chooseDriveway,
+  drivewayChoiceLines,
+  drivewayPoints,
+  impracticalLine,
+  isImpractical,
+  overLimitTerm,
+  practicalDriveway,
+  withoutVetoed,
+} from "./score";
 
 const C = SCREEN_CONSTANTS.score.drivewayCost;
 
@@ -120,24 +136,50 @@ describe("Grayson's sites, scored on the route kept to the parcel (A4)", () => {
       limit,
     );
     const ent = entranceCandidates(s.roads ?? [], s.parcel, ctx.dFine).entrances;
+    const ready = s.config.budget.readyToBuild,
+      veto = s.config.roadVetoGradePct;
+    // The alternatives, routed for every tripped site together as the engine does (one site alone can settle on a
+    // route a few feet different: the weighted A*).
+    const trip = sites.flatMap((_, i) => (isImpractical(routes[i]!.onParcel!, ready) ? [i] : []));
+    const alts = practicalAlternatives(
+      ctx,
+      s.roads ?? [],
+      s.parcel,
+      trip.map((i) => sites[i]!.ll),
+      trip.map((i) => routes[i]!),
+      limit,
+    );
     sites.forEach((site, i) => {
       const r = routes[i]!;
       expect(r.withinLimit?.route?.needsEasement).toBe(true);
       expect(r.onParcel?.legal).toBe(false);
       expect(r.onParcel!.route).toEqual(leastSteep(ctx, ent, site.ll, limit));
-      // Kept to the parcel everywhere but the 0.24 ac shelf: its route through the neighbours is 1,000 ft shorter
-      // (A4b PR B; before, every site was scored on the parcel).
-      const scored = site.acres < 0.3 ? r.withinLimit! : r.onParcel!;
-      expect(chooseDriveway(r)).toBe(scored);
+      // Kept to the parcel at 11%: since the quantity corrections (#99 decisions) the 0.24 ac shelf's too.
+      const chosen = r.onParcel!;
+      expect(chooseDriveway(r)).toBe(chosen);
+      // "No practical drive" (#99 decisions): the three long routes cost over $225k, and those sites are scored on
+      // their alternatives, with the paragraph appended to their reasons; the shelf's $129k route is scored.
+      expect(isImpractical(chosen, ready)).toBe(site.acres > 0.3);
+      const k = trip.indexOf(i);
+      const alt = k >= 0 ? withoutVetoed(alts[k]!, veto) : null;
+      const scored = practicalDriveway(chosen, alt);
       expect(site.c.driveway).toBeCloseTo(drivewayPoints(scored), 9);
       expect(site.driveFt).toBe(scored.route!.metrics.lengthFt);
-      expect(site.why.slice(-2)).toEqual(drivewayChoiceLines(r, limit));
+      const why = alt ? site.why.slice(-3) : [...site.why.slice(-2), null];
+      expect(why).toEqual([
+        ...drivewayChoiceLines(r, limit),
+        alt ? impracticalLine(chosen, alt, limit, ready) : null,
+      ]);
     });
     // The 1.28 ac site: 11% and 5,940 ft on the parcel, against 6,233 ft within 10% through the neighbours (A4b PR B;
-    // 4,228 and 5,176 ft before, the router's zigzags and steps over banks now gone).
-    expect(sites.find((x) => x.acres > 1.2 && x.acres < 1.3)!.why.slice(-2)).toEqual([
+    // 4,228 and 5,176 ft before, the router's zigzags and steps over banks now gone); then its alternatives.
+    expect(sites.find((x) => x.acres > 1.2 && x.acres < 1.3)!.why.slice(-3)).toEqual([
       "Best on your land: 11%, 5940 ft",
       "Within 10% only via neighbouring land (needs an easement): 6233 ft",
+      "No practical drive at your 10% limit: the best route found costs about $263–488k, more than 75% of your $300k " +
+        "ready-to-build budget. At 15%: 2,888 ft on your land, 5 switchbacks, about $116–216k of gravel work, paving " +
+        "on ~2,185 ft (cost TBD); county limit to check (follow-up 46). Within 10% via neighbouring land (needs an " +
+        "easement): 6,233 ft, about $220–408k. Scored on the route at 15%.",
     ]);
   }, 120_000);
 });

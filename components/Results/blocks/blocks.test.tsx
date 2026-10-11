@@ -104,6 +104,9 @@ const GRADE_DETAILS = new RegExp(
   "g",
 );
 
+/** #99 decisions (owner, 2026-10-11; added): each route card's relief-culvert row, which the prototype doesn't have. */
+const RELIEF_ROW = /Reliefculverts\d+\(oneevery150–400ft,bygrade\)/g;
+
 const render = (Block: ComponentType<BlockProps>, result: PartialScreenResult) =>
   renderToStaticMarkup(<Block result={result} point={evaluationPoint(result)} variant="panel" />);
 
@@ -127,7 +130,8 @@ function expectParity(R: PrototypeResult, ours: PartialScreenResult, partial: bo
     }
     const text = (APPROVED[slug] ?? [])
       .reduce((t, a) => t.replace(visibleText(a), ""), visibleText(html))
-      .replace(GRADE_DETAILS, "");
+      .replace(GRADE_DETAILS, "")
+      .replace(RELIEF_ROW, "");
     const theirs = visibleText(APPROVED_PROTO[slug]?.(section.body) ?? section.body);
     expect(text, slug).toBe(theirs);
     const h = heading(ours, evaluationPoint(ours));

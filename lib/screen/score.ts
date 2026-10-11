@@ -10,7 +10,7 @@ import { at, inGrid, llToRC, rcToLL } from "./dem";
 import { inSfha, type FloodFeature } from "./flood";
 import { nearestRoad, type RoadFeature } from "./roads";
 import { frostCurve, type SiteSearch } from "./sites";
-import type { SiteDriveway, SiteRoutes } from "./driveway";
+import { overLimitSpans, type PracticalAlternatives, type SiteDriveway, type SiteRoutes } from "./driveway";
 import { NEEDS_EASEMENT } from "./routeLabel";
 import { bottomland, soilAt, type SoilLimits, type SoilUnit, type VettedBench } from "./soils";
 import { horizonProfile, sunHours } from "./sun";
@@ -130,7 +130,8 @@ export function drivewayPoints(dw: SiteDriveway): number {
  */
 export function overLimitPoints(dw: SiteDriveway): number {
   if (dw.legal || !dw.route || !("limitPct" in dw.route)) return 0;
-  return overLimitTerm(dw.route.metrics.maxGradePct, dw.route.limitPct);
+  // A designed alignment reads its design grade, not the ungraded ground (owner, option C; follow-up 48).
+  return overLimitTerm(dw.designPct ?? dw.route.metrics.maxGradePct, dw.route.limitPct);
 }
 
 /** A candidate's grade over the headline window (30 m): what the over-limit term and the veto read (A4b). */
@@ -175,6 +176,83 @@ export function chooseDriveway(r: SiteRoutes, vetoPct = Infinity): SiteDriveway 
 /** The sentence for a target whose every driveway candidate is vetoed (A4b; owner's wording, "No practical route found"). */
 export function noPracticalLine(dw: SiteDriveway, vetoPct: number): string {
   return `No practical route found: every driveway route is steeper than ${vetoPct}% over 30 m; the least steep (${grade30(dw).toFixed(0)}% over 30 m) is shown.`;
+}
+
+/**
+ * "No practical drive" (owner, #99 decisions, 2026-10-11): the driveway a target is scored on costs more than
+ * impracticalShareOfReadyToBuild of the Settings' ready-to-build budget. Applied after the quantity corrections.
+ */
+export function isImpractical(dw: SiteDriveway, readyToBuild: number): boolean {
+  return (
+    !!dw.route && dw.route.cost.mid > SCREEN_CONSTANTS.driveway.impracticalShareOfReadyToBuild * readyToBuild
+  );
+}
+
+/** The alternatives the veto allows: a candidate steeper than `vetoPct` over 30 m is dropped (A4b). */
+export function withoutVetoed(alt: PracticalAlternatives, vetoPct: number): PracticalAlternatives {
+  const ok = (d: SiteDriveway | null) => (d?.route && grade30(d) <= vetoPct ? d : null);
+  return { steeper: ok(alt.steeper), easement: ok(alt.easement) };
+}
+
+/**
+ * The driveway a site is scored on (owner, #99 decisions): when its chosen route is impractical, the alternative with
+ * fewer points (as chooseDriveway weighs its two candidates; a tie goes to the steeper route kept to the parcel), so
+ * the ranking isn't driven by an alignment nobody would build. Without alternatives, the chosen route stands.
+ */
+export function practicalDriveway(
+  chosen: SiteDriveway,
+  alt: PracticalAlternatives | null | undefined,
+): SiteDriveway {
+  const c = [alt?.steeper, alt?.easement].filter((d): d is SiteDriveway => !!d?.route);
+  return c.length ? c.reduce((a, b) => (drivewayPoints(b) < drivewayPoints(a) ? b : a)) : chosen;
+}
+
+const k$ = (c: { low: number; high: number }) => `$${fmt(c.low / 1000)}–${fmt(c.high / 1000)}k`;
+
+/**
+ * The paragraph a "no practical drive" target's driveway section leads with, and its site's reason (owner's wording,
+ * #99 decisions): the limit, why, then the alternatives the veto allows.
+ */
+export function impracticalLine(
+  dw: SiteDriveway,
+  alt: PracticalAlternatives,
+  limitPct: number,
+  readyToBuild: number,
+): string {
+  const D = SCREEN_CONSTANTS.driveway;
+  const lines = [
+    `No practical drive at your ${fmt(limitPct)}% limit: the best route found costs about ${k$(dw.route!.cost)}, ` +
+      `more than ${Math.round(D.impracticalShareOfReadyToBuild * 100)}% of your $${fmt(readyToBuild / 1000)}k ` +
+      `ready-to-build budget.`,
+  ];
+  const s = alt.steeper?.route;
+  if (s) {
+    const pavedFt =
+      overLimitSpans(s.profile, D.pavedOverPct / 100).reduce((t, [a, b]) => t + (b - a), 0) * M2FT;
+    const n = s.metrics.switchbacks;
+    lines.push(
+      `At ${D.practicalMaxPct}%: ${fmt(s.metrics.lengthFt)} ft on your land, ${n} switchback${n === 1 ? "" : "s"}, ` +
+        `about ${k$(s.cost)} of gravel work${pavedFt >= 1 ? `, paving on ~${fmt(pavedFt)} ft (cost TBD)` : ""}; ` +
+        `county limit to check (follow-up 46).`,
+    );
+  }
+  const e = alt.easement?.route;
+  if (e)
+    lines.push(
+      `Within ${fmt(limitPct)}% via neighbouring land (${NEEDS_EASEMENT}): ${fmt(e.metrics.lengthFt)} ft, about ${k$(e.cost)}.`,
+    );
+  const pick = practicalDriveway(dw, alt);
+  if (pick !== dw)
+    lines.push(
+      pick === alt.steeper
+        ? `Scored on the route at ${D.practicalMaxPct}%.`
+        : "Scored on the route through the neighbours.",
+    );
+  if (!s && !e)
+    lines.push(
+      `No route at ${D.practicalMaxPct}% on your land, or within ${fmt(limitPct)}% through the neighbours, was found.`,
+    );
+  return lines.join(" ");
 }
 
 /**

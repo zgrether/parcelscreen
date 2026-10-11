@@ -77,6 +77,7 @@ export const DrivewayCostsSchema = z.strictObject({
   stonePerTon: num,
   fabricPerSf: num,
   culvertEach: num,
+  reliefCulvertEach: num,
   entrance: num,
   erosion: num,
   mobilize: num,
@@ -104,6 +105,8 @@ export const UserConfigSchema = z.strictObject({
   /** A4b (owner, 2026-10-10): a driveway steeper than this over 30 m can't be chosen (`chooseDriveway`). */
   roadVetoGradePct: num,
   dw: DrivewayCostsSchema,
+  /** value-ranking.md §4. The driveway's "no practical drive" rule reads readyToBuild (owner, 2026-10-11). */
+  budget: z.strictObject({ readyToBuild: num }),
   demResM: num,
   anchors: z.array(AnchorSchema),
   endpoints: EndpointsSchema,

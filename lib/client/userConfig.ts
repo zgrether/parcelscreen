@@ -26,7 +26,13 @@ export function loadUserConfig(from: KeyValueStore | null = store()): UserConfig
     const merged = {
       ...DEFAULT_USER_CONFIG,
       ...stored,
-      dw: { ...DEFAULT_USER_CONFIG.dw, ...stored.dw },
+      // A config saved before relief culverts had their own rate keeps its culvert rate for them (owner, 2026-10-11).
+      dw: {
+        ...DEFAULT_USER_CONFIG.dw,
+        ...(stored.dw?.culvertEach !== undefined ? { reliefCulvertEach: stored.dw.culvertEach } : {}),
+        ...stored.dw,
+      },
+      budget: { ...DEFAULT_USER_CONFIG.budget, ...stored.budget },
       endpoints: migrateEndpoints(stored.endpoints),
     };
     const parsed = UserConfigSchema.safeParse(merged);

@@ -38,6 +38,9 @@ describe("config", () => {
         "aspectFrom": 90,
         "aspectTo": 225,
         "benchMinAcres": 0.3,
+        "budget": {
+          "readyToBuild": 300000,
+        },
         "canopyDeg": 3,
         "compactMinAcres": 0.15,
         "demResM": 3,
@@ -50,6 +53,7 @@ describe("config", () => {
           "erosion": 3000,
           "fabricPerSf": 0.75,
           "mobilize": 2500,
+          "reliefCulvertEach": 3500,
           "stonePerTon": 38,
           "woodedPct": 100,
         },
@@ -171,6 +175,7 @@ describe("config", () => {
           "entrancesRouted": 2,
           "estimateWeight": 1.25,
           "fallbackMaxM": 400,
+          "fullBenchSlopeDeg": 30,
           "gentlest": {
             "label": "gentlest",
             "maxGrade": 0.08,
@@ -181,6 +186,7 @@ describe("config", () => {
             "long": 60,
             "short": 15,
           },
+          "impracticalShareOfReadyToBuild": 0.75,
           "landingCostM": 30,
           "landingCutFillM": 3,
           "landingMaxSideSlopeDeg": 35,
@@ -201,8 +207,26 @@ describe("config", () => {
           "overLimitMaxAtPct": 20,
           "overLimitMaxPts": 20,
           "overLimitPtsPerPct": 1,
+          "pavedOverPct": 12,
           "practicalMaxPct": 15,
           "profileStepM": 3,
+          "reliefCulverts": {
+            "everyFt": [
+              [
+                5,
+                400,
+              ],
+              [
+                10,
+                300,
+              ],
+              [
+                15,
+                200,
+              ],
+            ],
+            "steeperFt": 150,
+          },
           "rockFactor": 1.5,
           "routesKept": 2,
           "shortest": {
@@ -210,7 +234,7 @@ describe("config", () => {
             "wGrade": 1,
           },
           "smoothEpsM": 5,
-          "stoneDepthM": 0.2,
+          "stoneDepthM": 0.1524,
           "stoneTPerM3": 1.8,
           "streamContributingM2": 20000,
           "switchbackRadiusFt": 30,

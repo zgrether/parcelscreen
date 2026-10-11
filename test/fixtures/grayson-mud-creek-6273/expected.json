@@ -2075,14 +2075,15 @@
      "aspect": 64.40832727425651,
      "thermal": 87.5092623093549
     },
-    "score": 60,
+    "score": 65,
     "why": [
      "8.3 h of December sun — good",
      "1.3 ac, faces W, 7.0° slope, 650 ft above the valley floor",
      "Pigeonroost: septic rated very limited — alternative system, rock near the surface",
-     "routed driveway: 6261 ft at ≤10%, 14 switchbacks, ~$514–954k, needs an easement",
+     "routed driveway: 6261 ft at ≤10%, 14 switchbacks, ~$228–423k, needs an easement",
      "Best on your land: 11%, 5940 ft",
-     "Within 10% only via neighbouring land (needs an easement): 6233 ft"
+     "Within 10% only via neighbouring land (needs an easement): 6233 ft",
+     "No practical drive at your 10% limit: the best route found costs about $263–488k, more than 75% of your $300k ready-to-build budget. At 15%: 2,888 ft on your land, 5 switchbacks, about $116–216k of gravel work, paving on ~2,185 ft (cost TBD); county limit to check (follow-up 46). Within 10% via neighbouring land (needs an easement): 6,233 ft, about $220–408k. Scored on the route at 15%."
     ],
     "sunH": 8.25,
     "daylightH": 9.483333333333333,
@@ -2099,17 +2100,17 @@
      "foundation": 0,
      "rock": 8.4,
      "pad": 1.2062970820853047,
-     "driveway": 39.171973497435424
+     "driveway": 25.086594995806816
     },
-    "costIdx": 89,
+    "costIdx": 75,
     "costTier": "$$$$",
     "quality": 82,
     "qGrade": "A",
     "roadGrade": 11.660691375667428,
     "roadRunFt": 614.3255830669212,
     "roadName": "unnamed road",
-    "driveFt": 5940.049555748071,
-    "grade": "C"
+    "driveFt": 2887.618130949411,
+    "grade": "B"
    },
    {
     "rank": 2,
@@ -2128,16 +2129,16 @@
      "aspect": 97.68368007518627,
      "thermal": 99.64654682300709
     },
-    "score": 60,
+    "score": 63,
     "why": [
      "compact site: 0.24 ac shelf — needs a cut pad and probably a retaining wall",
      "7.9 h of December sun — good",
      "0.2 ac, faces S, 11.3° slope, 405 ft above the valley floor",
      "Pigeonroost: septic rated very limited — alternative system, rock near the surface",
      "295 ft to Mud Creek Rd at 36% straight-line — about 1063 ft of driveway with switchbacks",
-     "routed driveway: 1591 ft at ≤10%, 2 switchbacks, ~$154–285k, needs an easement",
-     "Within 10% only via neighbouring land (needs an easement): 1591 ft",
-     "Best on your land: 11%, 2608 ft"
+     "routed driveway: 1591 ft at ≤10%, 2 switchbacks, ~$78–145k, needs an easement",
+     "Best on your land: 11%, 2608 ft",
+     "Within 10% only via neighbouring land (needs an easement): 1591 ft"
     ],
     "sunH": 7.933333333333334,
     "daylightH": 9.483333333333333,
@@ -2154,16 +2155,16 @@
      "foundation": 0,
      "rock": 8.4,
      "pad": 15,
-     "driveway": 32.345506648805745
+     "driveway": 23.708358566540035
     },
-    "costIdx": 96,
+    "costIdx": 87,
     "costTier": "$$$$",
     "quality": 84,
     "qGrade": "A",
     "roadGrade": 36.099887730928245,
     "roadRunFt": 294.53867668222597,
     "roadName": "Mud Creek Rd",
-    "driveFt": 1591.2601457245792,
+    "driveFt": 2607.900306655138,
     "grade": "C"
    },
    {
@@ -2183,16 +2184,17 @@
      "aspect": 89.35933709030516,
      "thermal": 89.27450608979001
     },
-    "score": 57,
+    "score": 60,
     "why": [
      "compact site: 0.46 ac shelf — needs a cut pad and probably a retaining wall",
      "8.3 h of December sun — good",
      "0.5 ac, faces SW, 13.0° slope, 615 ft above the valley floor",
      "Pigeonroost: septic rated very limited — alternative system, rock near the surface",
      "804 ft to Mud Creek Ln at 35% straight-line — about 2805 ft of driveway with switchbacks",
-     "routed driveway: 6184 ft at ≤10%, 13 switchbacks, ~$519–963k, needs an easement",
+     "routed driveway: 6184 ft at ≤10%, 13 switchbacks, ~$230–427k, needs an easement",
      "Best on your land: 11%, 5841 ft",
-     "Within 10% only via neighbouring land (needs an easement): 6184 ft"
+     "Within 10% only via neighbouring land (needs an easement): 6184 ft",
+     "No practical drive at your 10% limit: the best route found costs about $260–483k, more than 75% of your $300k ready-to-build budget. At 15%: 2,578 ft on your land, 6 switchbacks, about $114–211k of gravel work, paving on ~1,890 ft (cost TBD); county limit to check (follow-up 46). Within 10% via neighbouring land (needs an easement): 6,184 ft, about $230–427k. Scored on the route at 15%."
     ],
     "sunH": 8.283333333333333,
     "daylightH": 9.483333333333333,
@@ -2209,16 +2211,16 @@
      "foundation": 0,
      "rock": 8.4,
      "pad": 15,
-     "driveway": 39.18193819853797
+     "driveway": 24.903180449388213
     },
-    "costIdx": 100,
+    "costIdx": 88,
     "costTier": "$$$$",
     "quality": 81,
     "qGrade": "A",
     "roadGrade": 34.8957316910476,
     "roadRunFt": 803.8875228422704,
     "roadName": "Mud Creek Ln",
-    "driveFt": 5840.6155197757535,
+    "driveFt": 2578.0350724695954,
     "grade": "C"
    },
    {
@@ -2238,16 +2240,17 @@
      "aspect": 45.843962016858555,
      "thermal": 88.07492611533718
     },
-    "score": 53,
+    "score": 56,
     "why": [
      "compact site: 0.63 ac shelf — needs a cut pad and probably a retaining wall",
      "8.0 h of December sun — good",
      "0.6 ac, faces NW, 10.6° slope, 639 ft above the valley floor",
      "Pigeonroost: septic rated very limited — alternative system, rock near the surface",
      "556 ft to unnamed road at 15% straight-line — about 846 ft of driveway with switchbacks",
-     "routed driveway: 6197 ft at ≤10%, 14 switchbacks, ~$513–953k, needs an easement",
+     "routed driveway: 6197 ft at ≤10%, 14 switchbacks, ~$226–420k, needs an easement",
      "Best on your land: 11%, 5894 ft",
-     "Within 10% only via neighbouring land (needs an easement): 6197 ft"
+     "Within 10% only via neighbouring land (needs an easement): 6197 ft",
+     "No practical drive at your 10% limit: the best route found costs about $268–497k, more than 75% of your $300k ready-to-build budget. At 15%: 2,845 ft on your land, 5 switchbacks, about $114–211k of gravel work, paving on ~1,880 ft (cost TBD); county limit to check (follow-up 46). Within 10% via neighbouring land (needs an easement): 6,197 ft, about $226–420k. Scored on the route at 15%."
     ],
     "sunH": 8.033333333333333,
     "daylightH": 9.483333333333333,
@@ -2264,16 +2267,16 @@
      "foundation": 0,
      "rock": 8.4,
      "pad": 15,
-     "driveway": 39.29785136003064
+     "driveway": 24.886953296118943
     },
-    "costIdx": 100,
+    "costIdx": 88,
     "costTier": "$$$$",
     "quality": 75,
     "qGrade": "B",
     "roadGrade": 15.213416457767547,
     "roadRunFt": 556.1445489110306,
     "roadName": "unnamed road",
-    "driveFt": 5894.359045666247,
+    "driveFt": 2844.855485397168,
     "grade": "C"
    }
   ],
@@ -6137,18 +6140,18 @@
       "maxGradePct": 13.201911529460327,
       "avgGradePct": 7.074146799318674,
       "switchbacks": 14,
-      "earthYd": 9921.06689076772,
-      "rockYd": 5436.53307074669,
-      "stoneTons": 2514.4890020294133,
-      "fabricSf": 75183.22116067946,
+      "earthYd": 5867.676226698213,
+      "rockYd": 941.4828951025834,
+      "stoneTons": 1916.040619546413,
+      "fabricSf": 0,
       "clearAc": 3.442475309388401,
       "culverts": 1,
       "outsideFt": 895.66932
      },
      "cost": {
-      "mid": 733695.2320114123,
-      "low": 513586.66240798857,
-      "high": 953803.801614836
+      "mid": 325312.1759374742,
+      "low": 227718.5231562319,
+      "high": 422905.82871871645
      },
      "culverts": [],
      "needsEasement": true,
@@ -10070,18 +10073,18 @@
       "maxGradePct": 13.37957261439063,
       "avgGradePct": 6.9802195296853915,
       "switchbacks": 14,
-      "earthYd": 9999.86673389958,
-      "rockYd": 5330.400657085823,
-      "stoneTons": 2603.8252878944086,
-      "fabricSf": 77854.3761080428,
+      "earthYd": 5853.559252934254,
+      "rockYd": 921.4421424079903,
+      "stoneTons": 1984.114869375539,
+      "fabricSf": 0,
       "clearAc": 3.564781653967557,
       "culverts": 2,
       "outsideFt": 964.56696
      },
      "cost": {
-      "mid": 735994.4850043141,
-      "low": 515196.13950301986,
-      "high": 956792.8305056083
+      "mid": 330400.2531031101,
+      "low": 231280.17717217706,
+      "high": 429520.3290340432
      },
      "culverts": [
       [
@@ -10095,7 +10098,7 @@
      "entranceIndex": 0
     }
    ],
-   "note": "The least-steep route found needs grades up to 11%, with about 2953 ft steeper than 10% in 18 stretches; it's drawn on the map as suspect.",
+   "note": "No practical drive at your 10% limit: the best route found costs about $263–488k, more than 75% of your $300k ready-to-build budget. At 15%: 2,888 ft on your land, 5 switchbacks, about $116–216k of gravel work, paving on ~2,185 ft (cost TBD); county limit to check (follow-up 46). Within 10% via neighbouring land (needs an easement): 6,233 ft, about $220–408k. Scored on the route at 15%. The least-steep route found needs grades up to 11%, with about 2953 ft steeper than 10% in 18 stretches; it's drawn on the map as suspect.",
    "roadsNearestFt": 0.3397206132165911,
    "direct": {
     "line": {
@@ -11747,18 +11750,18 @@
      "maxGradePct": 17.877068992858465,
      "avgGradePct": 11.91538929401236,
      "switchbacks": 5,
-     "earthYd": 3744.536100005709,
-     "rockYd": 2880.5519106263055,
-     "stoneTons": 1156.2230948364022,
-     "fabricSf": 34571.070535608415,
+     "earthYd": 1895.0192124664618,
+     "rockYd": 433.8974897955654,
+     "stoneTons": 881.0419982653384,
+     "fabricSf": 0,
      "clearAc": 1.5829337304345061,
      "culverts": 1,
      "outsideFt": 0
     },
     "cost": {
-     "mid": 366979.865117017,
-     "low": 256885.90558191188,
-     "high": 477073.8246521221
+     "mid": 166561.43307034153,
+     "low": 116593.00314923907,
+     "high": 216529.862991444
     },
     "culverts": [],
     "needsEasement": false,
@@ -15293,18 +15296,18 @@
      "maxGradePct": 14.979815412717699,
      "avgGradePct": 7.717845696736569,
      "switchbacks": 12,
-     "earthYd": 9981.07014229801,
-     "rockYd": 7284.995007991812,
-     "stoneTons": 2385.5504366728214,
-     "fabricSf": 71327.95805651734,
+     "earthYd": 5656.3254686281525,
+     "rockYd": 1630.7879066666492,
+     "stoneTons": 1817.7894327446897,
+     "fabricSf": 0,
      "clearAc": 3.2659512413531897,
      "culverts": 2,
      "outsideFt": 0
     },
     "cost": {
-     "mid": 873245.0449150119,
-     "low": 611271.5314405082,
-     "high": 1135218.5583895154
+     "mid": 375249.0682359538,
+     "low": 262674.34776516765,
+     "high": 487823.78870673996
     },
     "culverts": [
      [
@@ -17485,14 +17488,15 @@
      "aspect": 64.40832727425651,
      "thermal": 87.5092623093549
     },
-    "score": 60,
+    "score": 65,
     "why": [
      "8.3 h of December sun — good",
      "1.3 ac, faces W, 7.0° slope, 650 ft above the valley floor",
      "Pigeonroost: septic rated very limited — alternative system, rock near the surface",
-     "routed driveway: 6261 ft at ≤10%, 14 switchbacks, ~$514–954k, needs an easement",
+     "routed driveway: 6261 ft at ≤10%, 14 switchbacks, ~$228–423k, needs an easement",
      "Best on your land: 11%, 5940 ft",
-     "Within 10% only via neighbouring land (needs an easement): 6233 ft"
+     "Within 10% only via neighbouring land (needs an easement): 6233 ft",
+     "No practical drive at your 10% limit: the best route found costs about $263–488k, more than 75% of your $300k ready-to-build budget. At 15%: 2,888 ft on your land, 5 switchbacks, about $116–216k of gravel work, paving on ~2,185 ft (cost TBD); county limit to check (follow-up 46). Within 10% via neighbouring land (needs an easement): 6,233 ft, about $220–408k. Scored on the route at 15%."
     ],
     "sunH": 8.25,
     "daylightH": 9.483333333333333,
@@ -17509,17 +17513,17 @@
      "foundation": 0,
      "rock": 8.4,
      "pad": 1.2062970820853047,
-     "driveway": 39.171973497435424
+     "driveway": 25.086594995806816
     },
-    "costIdx": 89,
+    "costIdx": 75,
     "costTier": "$$$$",
     "quality": 82,
     "qGrade": "A",
     "roadGrade": 11.660691375667428,
     "roadRunFt": 614.3255830669212,
     "roadName": "unnamed road",
-    "driveFt": 5940.049555748071,
-    "grade": "C"
+    "driveFt": 2887.618130949411,
+    "grade": "B"
    },
    {
     "rank": 2,
@@ -17538,16 +17542,16 @@
      "aspect": 97.68368007518627,
      "thermal": 99.64654682300709
     },
-    "score": 60,
+    "score": 63,
     "why": [
      "compact site: 0.24 ac shelf — needs a cut pad and probably a retaining wall",
      "7.9 h of December sun — good",
      "0.2 ac, faces S, 11.3° slope, 405 ft above the valley floor",
      "Pigeonroost: septic rated very limited — alternative system, rock near the surface",
      "295 ft to Mud Creek Rd at 36% straight-line — about 1063 ft of driveway with switchbacks",
-     "routed driveway: 1591 ft at ≤10%, 2 switchbacks, ~$154–285k, needs an easement",
-     "Within 10% only via neighbouring land (needs an easement): 1591 ft",
-     "Best on your land: 11%, 2608 ft"
+     "routed driveway: 1591 ft at ≤10%, 2 switchbacks, ~$78–145k, needs an easement",
+     "Best on your land: 11%, 2608 ft",
+     "Within 10% only via neighbouring land (needs an easement): 1591 ft"
     ],
     "sunH": 7.933333333333334,
     "daylightH": 9.483333333333333,
@@ -17564,16 +17568,16 @@
      "foundation": 0,
      "rock": 8.4,
      "pad": 15,
-     "driveway": 32.345506648805745
+     "driveway": 23.708358566540035
     },
-    "costIdx": 96,
+    "costIdx": 87,
     "costTier": "$$$$",
     "quality": 84,
     "qGrade": "A",
     "roadGrade": 36.099887730928245,
     "roadRunFt": 294.53867668222597,
     "roadName": "Mud Creek Rd",
-    "driveFt": 1591.2601457245792,
+    "driveFt": 2607.900306655138,
     "grade": "C"
    },
    {
@@ -17593,16 +17597,17 @@
      "aspect": 89.35933709030516,
      "thermal": 89.27450608979001
     },
-    "score": 57,
+    "score": 60,
     "why": [
      "compact site: 0.46 ac shelf — needs a cut pad and probably a retaining wall",
      "8.3 h of December sun — good",
      "0.5 ac, faces SW, 13.0° slope, 615 ft above the valley floor",
      "Pigeonroost: septic rated very limited — alternative system, rock near the surface",
      "804 ft to Mud Creek Ln at 35% straight-line — about 2805 ft of driveway with switchbacks",
-     "routed driveway: 6184 ft at ≤10%, 13 switchbacks, ~$519–963k, needs an easement",
+     "routed driveway: 6184 ft at ≤10%, 13 switchbacks, ~$230–427k, needs an easement",
      "Best on your land: 11%, 5841 ft",
-     "Within 10% only via neighbouring land (needs an easement): 6184 ft"
+     "Within 10% only via neighbouring land (needs an easement): 6184 ft",
+     "No practical drive at your 10% limit: the best route found costs about $260–483k, more than 75% of your $300k ready-to-build budget. At 15%: 2,578 ft on your land, 6 switchbacks, about $114–211k of gravel work, paving on ~1,890 ft (cost TBD); county limit to check (follow-up 46). Within 10% via neighbouring land (needs an easement): 6,184 ft, about $230–427k. Scored on the route at 15%."
     ],
     "sunH": 8.283333333333333,
     "daylightH": 9.483333333333333,
@@ -17619,16 +17624,16 @@
      "foundation": 0,
      "rock": 8.4,
      "pad": 15,
-     "driveway": 39.18193819853797
+     "driveway": 24.903180449388213
     },
-    "costIdx": 100,
+    "costIdx": 88,
     "costTier": "$$$$",
     "quality": 81,
     "qGrade": "A",
     "roadGrade": 34.8957316910476,
     "roadRunFt": 803.8875228422704,
     "roadName": "Mud Creek Ln",
-    "driveFt": 5840.6155197757535,
+    "driveFt": 2578.0350724695954,
     "grade": "C"
    },
    {
@@ -17648,16 +17653,17 @@
      "aspect": 45.843962016858555,
      "thermal": 88.07492611533718
     },
-    "score": 53,
+    "score": 56,
     "why": [
      "compact site: 0.63 ac shelf — needs a cut pad and probably a retaining wall",
      "8.0 h of December sun — good",
      "0.6 ac, faces NW, 10.6° slope, 639 ft above the valley floor",
      "Pigeonroost: septic rated very limited — alternative system, rock near the surface",
      "556 ft to unnamed road at 15% straight-line — about 846 ft of driveway with switchbacks",
-     "routed driveway: 6197 ft at ≤10%, 14 switchbacks, ~$513–953k, needs an easement",
+     "routed driveway: 6197 ft at ≤10%, 14 switchbacks, ~$226–420k, needs an easement",
      "Best on your land: 11%, 5894 ft",
-     "Within 10% only via neighbouring land (needs an easement): 6197 ft"
+     "Within 10% only via neighbouring land (needs an easement): 6197 ft",
+     "No practical drive at your 10% limit: the best route found costs about $268–497k, more than 75% of your $300k ready-to-build budget. At 15%: 2,845 ft on your land, 5 switchbacks, about $114–211k of gravel work, paving on ~1,880 ft (cost TBD); county limit to check (follow-up 46). Within 10% via neighbouring land (needs an easement): 6,197 ft, about $226–420k. Scored on the route at 15%."
     ],
     "sunH": 8.033333333333333,
     "daylightH": 9.483333333333333,
@@ -17674,16 +17680,16 @@
      "foundation": 0,
      "rock": 8.4,
      "pad": 15,
-     "driveway": 39.29785136003064
+     "driveway": 24.886953296118943
     },
-    "costIdx": 100,
+    "costIdx": 88,
     "costTier": "$$$$",
     "quality": 75,
     "qGrade": "B",
     "roadGrade": 15.213416457767547,
     "roadRunFt": 556.1445489110306,
     "roadName": "unnamed road",
-    "driveFt": 5894.359045666247,
+    "driveFt": 2844.855485397168,
     "grade": "C"
    }
   ],
@@ -21547,18 +21553,18 @@
       "maxGradePct": 13.201911529460327,
       "avgGradePct": 7.074146799318674,
       "switchbacks": 14,
-      "earthYd": 9921.06689076772,
-      "rockYd": 5436.53307074669,
-      "stoneTons": 2514.4890020294133,
-      "fabricSf": 75183.22116067946,
+      "earthYd": 5867.676226698213,
+      "rockYd": 941.4828951025834,
+      "stoneTons": 1916.040619546413,
+      "fabricSf": 0,
       "clearAc": 3.442475309388401,
       "culverts": 1,
       "outsideFt": 895.66932
      },
      "cost": {
-      "mid": 733695.2320114123,
-      "low": 513586.66240798857,
-      "high": 953803.801614836
+      "mid": 325312.1759374742,
+      "low": 227718.5231562319,
+      "high": 422905.82871871645
      },
      "culverts": [],
      "needsEasement": true,
@@ -25480,18 +25486,18 @@
       "maxGradePct": 13.37957261439063,
       "avgGradePct": 6.9802195296853915,
       "switchbacks": 14,
-      "earthYd": 9999.86673389958,
-      "rockYd": 5330.400657085823,
-      "stoneTons": 2603.8252878944086,
-      "fabricSf": 77854.3761080428,
+      "earthYd": 5853.559252934254,
+      "rockYd": 921.4421424079903,
+      "stoneTons": 1984.114869375539,
+      "fabricSf": 0,
       "clearAc": 3.564781653967557,
       "culverts": 2,
       "outsideFt": 964.56696
      },
      "cost": {
-      "mid": 735994.4850043141,
-      "low": 515196.13950301986,
-      "high": 956792.8305056083
+      "mid": 330400.2531031101,
+      "low": 231280.17717217706,
+      "high": 429520.3290340432
      },
      "culverts": [
       [
@@ -25505,7 +25511,7 @@
      "entranceIndex": 0
     }
    ],
-   "note": "The least-steep route found needs grades up to 11%, with about 2953 ft steeper than 10% in 18 stretches; it's drawn on the map as suspect.",
+   "note": "No practical drive at your 10% limit: the best route found costs about $263–488k, more than 75% of your $300k ready-to-build budget. At 15%: 2,888 ft on your land, 5 switchbacks, about $116–216k of gravel work, paving on ~2,185 ft (cost TBD); county limit to check (follow-up 46). Within 10% via neighbouring land (needs an easement): 6,261 ft, about $228–423k. Scored on the route at 15%. The least-steep route found needs grades up to 11%, with about 2953 ft steeper than 10% in 18 stretches; it's drawn on the map as suspect.",
    "roadsNearestFt": 0.3397206132165911,
    "direct": {
     "line": {
@@ -27157,18 +27163,18 @@
      "maxGradePct": 17.877068992858465,
      "avgGradePct": 11.91538929401236,
      "switchbacks": 5,
-     "earthYd": 3744.536100005709,
-     "rockYd": 2880.5519106263055,
-     "stoneTons": 1156.2230948364022,
-     "fabricSf": 34571.070535608415,
+     "earthYd": 1895.0192124664618,
+     "rockYd": 433.8974897955654,
+     "stoneTons": 881.0419982653384,
+     "fabricSf": 0,
      "clearAc": 1.5829337304345061,
      "culverts": 1,
      "outsideFt": 0
     },
     "cost": {
-     "mid": 366979.865117017,
-     "low": 256885.90558191188,
-     "high": 477073.8246521221
+     "mid": 166561.43307034153,
+     "low": 116593.00314923907,
+     "high": 216529.862991444
     },
     "culverts": [],
     "needsEasement": false,
@@ -30703,18 +30709,18 @@
      "maxGradePct": 14.979815412717699,
      "avgGradePct": 7.717845696736569,
      "switchbacks": 12,
-     "earthYd": 9981.07014229801,
-     "rockYd": 7284.995007991812,
-     "stoneTons": 2385.5504366728214,
-     "fabricSf": 71327.95805651734,
+     "earthYd": 5656.3254686281525,
+     "rockYd": 1630.7879066666492,
+     "stoneTons": 1817.7894327446897,
+     "fabricSf": 0,
      "clearAc": 3.2659512413531897,
      "culverts": 2,
      "outsideFt": 0
     },
     "cost": {
-     "mid": 873245.0449150119,
-     "low": 611271.5314405082,
-     "high": 1135218.5583895154
+     "mid": 375249.0682359538,
+     "low": 262674.34776516765,
+     "high": 487823.78870673996
     },
     "culverts": [
      [

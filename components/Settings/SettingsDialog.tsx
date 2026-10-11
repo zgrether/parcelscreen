@@ -13,6 +13,7 @@ import { DEFAULT_USER_CONFIG } from "@/lib/screen/config";
 import type { UserConfig } from "@/lib/screen/types";
 import {
   ANCHORS_LABEL,
+  BUDGET_FIELDS,
   COST_FIELDS,
   ENDPOINTS_LABEL,
   fromForm,
@@ -118,6 +119,13 @@ export function SettingsProvider({
             Blue Ridge 2026 rough rates; edit to your excavator&apos;s numbers. The estimate is shown as ±30%.
           </p>
           <div className="settings-grid">{COST_FIELDS.map(numberInput)}</div>
+
+          <h3>Budget</h3>
+          <p className="tiny muted">
+            A driveway whose route alone costs more than three quarters of this is shown as no practical
+            drive, with its steeper and easement alternatives.
+          </p>
+          <div className="settings-grid">{BUDGET_FIELDS.map(numberInput)}</div>
 
           <h3>{ANCHORS_LABEL}</h3>
           <p className="tiny muted">

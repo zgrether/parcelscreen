@@ -5,6 +5,7 @@ import type { UserConfig } from "@/lib/screen/types";
 import { prototypeConst, prototypeFn } from "@/test/support/prototypeFns";
 import type { KeyValueStore } from "./prefs";
 import {
+  BUDGET_FIELDS,
   COST_FIELDS,
   fromForm,
   NUMBER_FIELDS,
@@ -48,7 +49,12 @@ describe("the defaults are the prototype's (owner, step 16)", () => {
       expect(typeof port[k], k).toBe(typeof PROTO[k]);
       expect(port[k], k).toBe(PROTO[k]);
     }
-    expect(Object.keys(DEFAULT_USER_CONFIG.dw)).toEqual(Object.keys(PROTO.dw));
+    // The prototype's costs, in its order, plus the relief culvert rate after the culvert's (owner, 2026-10-11).
+    const protoDw = Object.keys(PROTO.dw);
+    const withRelief = (keys: string[]) =>
+      keys.flatMap((k) => (k === "culvertEach" ? [k, "reliefCulvertEach"] : [k]));
+    expect(Object.keys(DEFAULT_USER_CONFIG.dw)).toEqual(withRelief(protoDw));
+    expect(DEFAULT_USER_CONFIG.dw.reliefCulvertEach).toBe(DEFAULT_USER_CONFIG.dw.culvertEach);
     for (const [k, v] of Object.entries(PROTO.dw)) {
       expect(typeof DEFAULT_USER_CONFIG.dw[k as keyof UserConfig["dw"]], k).toBe(typeof v);
       expect(DEFAULT_USER_CONFIG.dw[k as keyof UserConfig["dw"]], k).toBe(v);
@@ -72,8 +78,13 @@ describe("the defaults are the prototype's (owner, step 16)", () => {
     for (const k of Object.keys(protoEndpoints))
       expect(typeof portEndpoints[k], k).toBe(typeof protoEndpoints[k]);
 
-    // The port-only settings: timeZone (B5), and the driveway veto (A4b, owner 2026-10-10).
-    expect(Object.keys(port).filter((k) => !(k in PROTO))).toEqual(["roadVetoGradePct", "timeZone"]);
+    // The port-only settings: timeZone (B5), the driveway veto (A4b, owner 2026-10-10), and the ready-to-build
+    // budget (#99 decisions, owner 2026-10-11).
+    expect(Object.keys(port).filter((k) => !(k in PROTO))).toEqual([
+      "roadVetoGradePct",
+      "budget",
+      "timeZone",
+    ]);
   });
 
   it("the dialog shows the prototype's fields with its labels, less the hidden aspect pair, plus the veto", () => {
@@ -93,7 +104,35 @@ describe("the defaults are the prototype's (owner, step 16)", () => {
       "roadVetoGradePct", // A4b: the veto, beside the limit
       "demResM",
     ]);
-    expect(COST_FIELDS.map((f) => f.id)).toEqual(Object.keys(PROTO.dw).map((k) => `dw.${k}`));
+    expect(COST_FIELDS.map((f) => f.id)).toEqual(
+      Object.keys(PROTO.dw)
+        .flatMap((k) => (k === "culvertEach" ? [k, "reliefCulvertEach"] : [k]))
+        .map((k) => `dw.${k}`),
+    );
+    // The ready-to-build budget (#99 decisions, owner 2026-10-11): the driveway's "no practical drive" rule reads it.
+    expect(BUDGET_FIELDS.map((f) => f.id)).toEqual(["budget.readyToBuild"]);
+  });
+
+  it("a config saved before relief culverts had their own rate keeps its culvert rate for them", () => {
+    const stored = memory();
+    const { reliefCulvertEach: _r, ...olderDw } = { ...DEFAULT_USER_CONFIG.dw, culvertEach: 4200 };
+    stored.data["ps.cfg"] = JSON.stringify({ ...DEFAULT_USER_CONFIG, dw: olderDw });
+    expect(loadUserConfig(stored).dw.reliefCulvertEach).toBe(4200);
+    // Once set, its own.
+    stored.data["ps.cfg"] = JSON.stringify({
+      ...DEFAULT_USER_CONFIG,
+      dw: { ...olderDw, reliefCulvertEach: 1200 },
+    });
+    expect(loadUserConfig(stored).dw.reliefCulvertEach).toBe(1200);
+  });
+
+  it("a config saved before the budget existed loads with the default budget", () => {
+    const stored = memory();
+    const { budget: _b, ...older } = { ...DEFAULT_USER_CONFIG, houseMin: 55 };
+    stored.data["ps.cfg"] = JSON.stringify(older);
+    const loaded = loadUserConfig(stored);
+    expect(loaded.budget).toEqual({ readyToBuild: 300_000 });
+    expect(loaded.houseMin).toBe(55);
   });
 });
 
@@ -108,6 +147,7 @@ describe("saving without edits", () => {
       gardenMinAcres: 0.07,
       canopyDeg: 4.5,
       dw: { ...DEFAULT_USER_CONFIG.dw, fabricPerSf: 0.8 },
+      budget: { readyToBuild: 250_000 },
       anchors: [...DEFAULT_USER_CONFIG.anchors, { name: "Boone (NC)", lat: 36.2168, lon: -81.6746 }],
       timeZone: "America/Chicago",
     };

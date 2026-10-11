@@ -1,0 +1,347 @@
+{
+  "engine": 10,
+  "ferney-creek-52-47A": [
+    {
+      "rank": 1,
+      "ll": [36.88740048600613, -80.45454876255718],
+      "acres": 18.77,
+      "score": 82,
+      "drivewayPts": 8.59,
+      "withinLimit": {
+        "lengthFt": 478,
+        "costMid": 31943,
+        "culverts": 1,
+        "switchbacks": 0,
+        "maxGradePct": 5.2,
+        "needsEasement": false,
+        "legal": true
+      },
+      "onParcel": "same",
+      "scored": "withinLimit"
+    },
+    {
+      "rank": 2,
+      "ll": [36.88930690897446, -80.45241839939978],
+      "acres": 6.06,
+      "score": 79,
+      "drivewayPts": 16.2,
+      "withinLimit": {
+        "lengthFt": 2460,
+        "costMid": 100942,
+        "culverts": 1,
+        "switchbacks": 2,
+        "maxGradePct": 11.7,
+        "needsEasement": false,
+        "legal": true
+      },
+      "onParcel": "same",
+      "scored": "withinLimit"
+    },
+    {
+      "rank": 3,
+      "ll": [36.88744596568919, -80.45270048371572],
+      "acres": 2.11,
+      "score": 69,
+      "drivewayPts": 12.91,
+      "withinLimit": {
+        "lengthFt": 1447,
+        "costMid": 63947,
+        "culverts": 1,
+        "switchbacks": 1,
+        "maxGradePct": 10.7,
+        "needsEasement": false,
+        "legal": true
+      },
+      "onParcel": "same",
+      "scored": "withinLimit"
+    },
+    {
+      "rank": 4,
+      "ll": [36.88825282291574, -80.45208993243159],
+      "acres": 0.37,
+      "score": 69,
+      "drivewayPts": 13.91,
+      "withinLimit": {
+        "lengthFt": 1643,
+        "costMid": 73833,
+        "culverts": 1,
+        "switchbacks": 2,
+        "maxGradePct": 10,
+        "needsEasement": false,
+        "legal": true
+      },
+      "onParcel": "same",
+      "scored": "withinLimit"
+    },
+    {
+      "rank": 5,
+      "ll": [36.887678220595696, -80.4562603506132],
+      "acres": 1.12,
+      "score": 69,
+      "drivewayPts": 8.68,
+      "withinLimit": {
+        "lengthFt": 439,
+        "costMid": 32476,
+        "culverts": 1,
+        "switchbacks": 1,
+        "maxGradePct": 9,
+        "needsEasement": false,
+        "legal": true
+      },
+      "onParcel": "same",
+      "scored": "withinLimit"
+    }
+  ],
+  "macks-mountain-35-3": [
+    {
+      "rank": 1,
+      "ll": [36.93492231785876, -80.63138552593298],
+      "acres": 9.61,
+      "score": 65,
+      "drivewayPts": 14.94,
+      "withinLimit": {
+        "lengthFt": 1116,
+        "costMid": 85199,
+        "culverts": 1,
+        "switchbacks": 0,
+        "maxGradePct": 5.4,
+        "needsEasement": false,
+        "legal": true
+      },
+      "onParcel": "same",
+      "scored": "withinLimit"
+    },
+    {
+      "rank": 2,
+      "ll": [36.931413543713816, -80.62352987730311],
+      "acres": 1.02,
+      "score": 63,
+      "drivewayPts": 26.42,
+      "withinLimit": {
+        "lengthFt": 4658,
+        "costMid": 356743,
+        "culverts": 1,
+        "switchbacks": 5,
+        "maxGradePct": 10,
+        "needsEasement": false,
+        "legal": true
+      },
+      "onParcel": "same",
+      "scored": "withinLimit"
+    },
+    {
+      "rank": 3,
+      "ll": [36.93226805833039, -80.6290096026646],
+      "acres": 9.56,
+      "score": 63,
+      "drivewayPts": 18.98,
+      "withinLimit": {
+        "lengthFt": 2221,
+        "costMid": 144812,
+        "culverts": 1,
+        "switchbacks": 1,
+        "maxGradePct": 10,
+        "needsEasement": false,
+        "legal": true
+      },
+      "onParcel": "same",
+      "scored": "withinLimit"
+    },
+    {
+      "rank": 4,
+      "ll": [36.92960728266237, -80.62458167921368],
+      "acres": 0.73,
+      "score": 61,
+      "drivewayPts": 29.94,
+      "withinLimit": {
+        "lengthFt": 6020,
+        "costMid": 536938,
+        "culverts": 1,
+        "switchbacks": 6,
+        "maxGradePct": 12.9,
+        "needsEasement": false,
+        "legal": true
+      },
+      "onParcel": "same",
+      "scored": "withinLimit"
+    },
+    {
+      "rank": 5,
+      "ll": [36.93551242288582, -80.63007052275822],
+      "acres": 2.81,
+      "score": 57,
+      "drivewayPts": 13.87,
+      "withinLimit": {
+        "lengthFt": 732,
+        "costMid": 73442,
+        "culverts": 1,
+        "switchbacks": 0,
+        "maxGradePct": 9.6,
+        "needsEasement": false,
+        "legal": true
+      },
+      "onParcel": "same",
+      "scored": "withinLimit"
+    },
+    {
+      "rank": 6,
+      "ll": [36.93399322762453, -80.62792461764181],
+      "acres": 0.7,
+      "score": 53,
+      "drivewayPts": 25.26,
+      "withinLimit": {
+        "lengthFt": 3177,
+        "costMid": 311079,
+        "culverts": 3,
+        "switchbacks": 7,
+        "maxGradePct": 12.1,
+        "needsEasement": false,
+        "legal": true
+      },
+      "onParcel": "same",
+      "scored": "withinLimit"
+    },
+    {
+      "rank": 7,
+      "ll": [36.93230719206714, -80.63291208817841],
+      "acres": 2.61,
+      "score": 53,
+      "drivewayPts": 14.23,
+      "withinLimit": {
+        "lengthFt": 769,
+        "costMid": 77233,
+        "culverts": 1,
+        "switchbacks": 2,
+        "maxGradePct": 11,
+        "needsEasement": false,
+        "legal": true
+      },
+      "onParcel": "same",
+      "scored": "withinLimit"
+    },
+    {
+      "rank": 8,
+      "ll": [36.932642070362704, -80.62769567806754],
+      "acres": 4.65,
+      "score": 51,
+      "drivewayPts": 20.4,
+      "withinLimit": {
+        "lengthFt": 2657,
+        "costMid": 172972,
+        "culverts": 1,
+        "switchbacks": 1,
+        "maxGradePct": 10,
+        "needsEasement": false,
+        "legal": true
+      },
+      "onParcel": "same",
+      "scored": "withinLimit"
+    }
+  ],
+  "grayson-mud-creek-6273": [
+    {
+      "rank": 1,
+      "ll": [36.586323449527896, -81.56041493428297],
+      "acres": 1.28,
+      "score": 60,
+      "drivewayPts": 39.17,
+      "withinLimit": {
+        "lengthFt": 6233,
+        "costMid": 723413,
+        "culverts": 1,
+        "switchbacks": 14,
+        "maxGradePct": 13.2,
+        "needsEasement": true,
+        "legal": true
+      },
+      "onParcel": {
+        "lengthFt": 5940,
+        "costMid": 873245,
+        "culverts": 2,
+        "switchbacks": 12,
+        "maxGradePct": 15,
+        "needsEasement": false,
+        "legal": false
+      },
+      "scored": "onParcel"
+    },
+    {
+      "rank": 2,
+      "ll": [36.58407208487061, -81.5622414606661],
+      "acres": 0.24,
+      "score": 60,
+      "drivewayPts": 32.35,
+      "withinLimit": {
+        "lengthFt": 1591,
+        "costMid": 219503,
+        "culverts": 1,
+        "switchbacks": 2,
+        "maxGradePct": 10.9,
+        "needsEasement": true,
+        "legal": true
+      },
+      "onParcel": {
+        "lengthFt": 2608,
+        "costMid": 369998,
+        "culverts": 2,
+        "switchbacks": 3,
+        "maxGradePct": 15.2,
+        "needsEasement": false,
+        "legal": false
+      },
+      "scored": "withinLimit"
+    },
+    {
+      "rank": 3,
+      "ll": [36.58586000518554, -81.56128274645842],
+      "acres": 0.46,
+      "score": 57,
+      "drivewayPts": 39.18,
+      "withinLimit": {
+        "lengthFt": 6184,
+        "costMid": 741114,
+        "culverts": 1,
+        "switchbacks": 13,
+        "maxGradePct": 13.2,
+        "needsEasement": true,
+        "legal": true
+      },
+      "onParcel": {
+        "lengthFt": 5841,
+        "costMid": 874235,
+        "culverts": 2,
+        "switchbacks": 11,
+        "maxGradePct": 15,
+        "needsEasement": false,
+        "legal": false
+      },
+      "scored": "onParcel"
+    },
+    {
+      "rank": 4,
+      "ll": [36.58656584463148, -81.56058421941316],
+      "acres": 0.63,
+      "score": 53,
+      "drivewayPts": 39.3,
+      "withinLimit": {
+        "lengthFt": 6197,
+        "costMid": 732726,
+        "culverts": 1,
+        "switchbacks": 14,
+        "maxGradePct": 13.2,
+        "needsEasement": true,
+        "legal": true
+      },
+      "onParcel": {
+        "lengthFt": 5894,
+        "costMid": 885826,
+        "culverts": 2,
+        "switchbacks": 12,
+        "maxGradePct": 15,
+        "needsEasement": false,
+        "legal": false
+      },
+      "scored": "onParcel"
+    }
+  ]
+}

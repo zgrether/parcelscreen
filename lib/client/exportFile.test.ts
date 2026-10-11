@@ -196,14 +196,21 @@ describe("an identical recipe under another key is the same parcel (owner, #60)"
 
 describe("settings from a file", () => {
   it("changed fields are listed by label, and the question names them", () => {
-    const theirs = { ...DEFAULT_USER_CONFIG, houseMin: 55, timeZone: "America/Chicago" };
+    const theirs = {
+      ...DEFAULT_USER_CONFIG,
+      houseMin: 55,
+      budget: { readyToBuild: 250_000 },
+      timeZone: "America/Chicago",
+    };
     const p = plan(file({}, STORE, theirs));
     expect(p.settings!.changed).toEqual([
       "House site: min cell score (0–100) (60 → 55)",
+      "Budget: ready to build (land prep, well, septic, power, driveway) $ (300000 → 250000)",
       "Time zone (America/New_York → America/Chicago)",
     ]);
+    expect(p.settings!.config.budget).toEqual({ readyToBuild: 250_000 });
     expect(settingsQuestion(p.settings!)).toBe(
-      "Replace your settings with the file's?\n\nChanged: House site: min cell score (0–100) (60 → 55); Time zone (America/New_York → America/Chicago).",
+      "Replace your settings with the file's?\n\nChanged: House site: min cell score (0–100) (60 → 55); Budget: ready to build (land prep, well, septic, power, driveway) $ (300000 → 250000); Time zone (America/New_York → America/Chicago).",
     );
     expect(changedFields(DEFAULT_USER_CONFIG, { ...DEFAULT_USER_CONFIG, anchors: [] })).toEqual([
       "Drive-time anchors",
@@ -219,9 +226,15 @@ describe("settings from a file", () => {
   });
 
   it("hidden and unknown fields are ignored, current values kept, and named", () => {
-    const theirs = { ...DEFAULT_USER_CONFIG, aspectFrom: 100, aspectTo: 225, extra: 1 };
+    const theirs = {
+      ...DEFAULT_USER_CONFIG,
+      aspectFrom: 100,
+      aspectTo: 225,
+      budget: { readyToBuild: 300_000, landPrep: 1 },
+      extra: 1,
+    };
     const p = plan(file({ cfg: theirs as never }));
-    expect(p.ignored).toEqual(["Good aspect from (degrees) 100 (kept 90)", "extra"]);
+    expect(p.ignored).toEqual(["Good aspect from (degrees) 100 (kept 90)", "extra", "budget.landPrep"]);
     expect([p.settings!.config.aspectFrom, p.settings!.config.aspectTo]).toEqual([90, 225]);
     expect(p.settings!.changed).toEqual([]);
   });
@@ -253,6 +266,12 @@ describe("a prototype export ({ cfg, saved[] }, L1605)", () => {
     expect(importSummary(p, "unchanged")).toContain(
       "The file's endpoints were an older version, so the defaults are used.",
     );
+  });
+
+  it("its culvert rate is also the relief culverts' (owner, 2026-10-11: their own rate defaults to it)", () => {
+    const dw = { ...(PROTO.dw as Record<string, number>), culvertEach: 4200 };
+    const p = plan(proto({ ...PROTO, dw }));
+    expect(p.settings!.config.dw).toMatchObject({ culvertEach: 4200, reliefCulvertEach: 4200 });
   });
 
   it("its saved parcels become History parcels, with no result: house, name and notes kept", () => {

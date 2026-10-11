@@ -73,11 +73,17 @@ export const DEFAULT_USER_CONFIG: UserConfig = {
     stonePerTon: 38,
     fabricPerSf: 0.75,
     culvertEach: 3500,
+    // Relief culverts (cross-drains) along the road (owner, 2026-10-11): usually smaller pipes than a drainage
+    // crossing's; the same rate until Zach's quote (follow-up 47). A stored config without it takes its culvertEach.
+    reliefCulvertEach: 3500,
     entrance: 9000,
     erosion: 3000,
     mobilize: 2500,
     woodedPct: 100,
   },
+  // value-ranking.md §4: what getting to "ready to build" (stages 0–2) may cost. The driveway's "no practical drive"
+  // rule reads it (owner, #99 decisions, 2026-10-11).
+  budget: { readyToBuild: 300_000 },
   demResM: 3,
   anchors: [
     { name: "Asheville airport (AVL)", lat: 35.4362, lon: -82.5418 },
@@ -380,10 +386,38 @@ export const SCREEN_CONSTANTS = deepFreeze({
     // (owner, 2026-10-10: desktop Node within 5 s per fixture; the router report gives each fixture's actual cost
     // difference against the search without it).
     estimateWeight: 1.25,
+    // The road's earthwork (owner, #99 decisions, 2026-10-11; docs/studies/driveway-cost-check.md): on a side slope
+    // under fullBenchSlopeDeg the road is a balanced half bench (cut half its width, fill the other half with it);
+    // steeper, fill won't stand and it's cut into the hill across its whole width. Only the cut below the soils'
+    // depth to bedrock is rock. Geotextile only on bottomland and poorly drained soils.
+    fullBenchSlopeDeg: 30,
+    // Relief culverts (cross-drains) along the road, one per everyFt by the road's grade over 30 m: [grade up to %,
+    // every ft]; steeper than the last band, one every steeperFt. On top of one at each drainage crossing and the
+    // entrance's. Priced at dw.reliefCulvertEach.
+    reliefCulverts: {
+      everyFt: [
+        [5, 400],
+        [10, 300],
+        [15, 200],
+      ] as [number, number][],
+      steeperFt: 150,
+    },
+    // "No practical drive" (owner, #99 decisions): a site whose scored route costs more than this share of the
+    // Settings' budget.readyToBuild is scored on its realistic alternatives instead: the route at practicalMaxPct,
+    // or the cheapest one through the neighbours.
+    // Its practicalMaxPct alternative is a designed alignment: its over-limit term reads that design limit (+5 at 15%
+    // under a 10% limit), not the 30 m grade of the ungraded ground under it (17.9% on Grayson; the ground-vs-road
+    // gap is follow-up 48) (owner, option C, 2026-10-11). When follow-up 47 prices paving, the paving cost replaces
+    // this term.
+    impracticalShareOfReadyToBuild: 0.75,
+    // Above this grade a drive is normally paved (docs/studies/driveway-cost-check.md §5): the steeper alternative
+    // gives its length over it. Paving has no rate yet (follow-up 47).
+    pavedOverPct: 12,
     smoothEpsM: 5,
     benchWidthM: 3.66, // 12 ft
     m3ToYd3: 1.308,
-    stoneDepthM: 0.2, // 8 in
+    // 6 in of stone (4 in of base, 2 in of surface), not the prototype's 8 in (owner, #99 decisions, 2026-10-11).
+    stoneDepthM: 0.1524,
     stoneTPerM3: 1.8,
     m2ToSf: 10.764,
     clearingWidthM: 7.3, // 24 ft corridor
