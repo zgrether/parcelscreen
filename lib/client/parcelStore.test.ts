@@ -169,4 +169,22 @@ describe("storage (ps.parcels)", () => {
     ])
       expect(readParcelStore(JSON.stringify(bad))).toBeNull();
   });
+
+  it("a parcel kept before the asking price existed loads with none (B2a)", () => {
+    const s = commitOpen(EMPTY_STORE, plain, T0, keys());
+    const raw = JSON.parse(writeParcelStore(s)) as {
+      open: Record<string, unknown>;
+      built: Record<string, unknown>[];
+    };
+    delete raw.open.askingPrice;
+    delete raw.open.askingPriceAt;
+    for (const p of raw.built) {
+      delete p.askingPrice;
+      delete p.askingPriceAt;
+    }
+    expect(readParcelStore(JSON.stringify(raw))?.open).toMatchObject({
+      askingPrice: null,
+      askingPriceAt: null,
+    });
+  });
 });

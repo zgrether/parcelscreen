@@ -292,6 +292,26 @@ describe("notes (13e-5)", () => {
     expect(cleared.store.built).toHaveLength(1);
   });
 
+  it("the asking price (owner, #101): saved with its entry date, builds the parcel; cleared, no date", () => {
+    const s = run([selectA()]);
+    const priced = exploreReducer(s, { type: "askingPrice", price: 185_000, serial: s.serial, stamp: at() });
+    expect(priced.store.open).toMatchObject({ askingPrice: 185_000 });
+    expect(priced.store.open?.askingPriceAt).not.toBeNull();
+    expect(priced.store.built).toHaveLength(1);
+    const cleared = exploreReducer(priced, {
+      type: "askingPrice",
+      price: null,
+      serial: s.serial,
+      stamp: at(),
+    });
+    expect(cleared.store.open).toMatchObject({ askingPrice: null, askingPriceAt: null });
+    // A save after another parcel opened is dropped, as notes are.
+    const other = exploreReducer(s, { type: "select", record: b, stamp: at() });
+    expect(exploreReducer(other, { type: "askingPrice", price: 1, serial: s.serial, stamp: at() })).toBe(
+      other,
+    );
+  });
+
   it("serial: opening, closing or switching parcels bumps it; editing the open one doesn't", () => {
     const s = run([selectA()]);
     expect(run([house(), { type: "toggleHidden", id: "house", stamp: at() }], s).serial).toBe(s.serial);

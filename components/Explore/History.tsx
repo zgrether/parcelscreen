@@ -6,9 +6,10 @@
  * apart (historyRows).
  */
 import { useEffect, useMemo, useState } from "react";
+import { shortPrice } from "@/lib/client/askingPrice";
 import { historyRows } from "@/lib/client/historyRows";
 import type { WorkingParcel } from "@/lib/client/parcelStore";
-import { EARLIER_RULES, fromEarlierRules, getScreens } from "@/lib/client/screenStore";
+import { needsRescreen, readScreen, RESCREENS_ON_OPEN } from "@/lib/client/screenStore";
 import { useExplore } from "./useExploreController";
 
 const when = (iso: string) =>
@@ -19,11 +20,24 @@ export function History({ onOpened }: { onOpened?: () => void }) {
   const { built, open } = ctl.state.store;
   const [confirming, setConfirming] = useState<string | null>(null);
   const rows = useMemo(() => new Map(historyRows(built).map((r) => [r.key, r])), [built]);
-  const earlier = useEarlierRules(built);
+  const rescreen = useRescreens(built);
 
   return (
     <section className="block">
       <h2>History</h2>
+      {ctl.cleared && (
+        <div className="report-note cleared-note" role="status">
+          <p className="m-0">
+            Saved results from an older version of Parcel Screen were cleared. Your parcels, notes and houses
+            are kept; each re-screens when you open it.
+            {ctl.cleared.dropped.length > 0 &&
+              ` Dropped (couldn't be re-screened): ${ctl.cleared.dropped.length} parcel${ctl.cleared.dropped.length === 1 ? "" : "s"} (${ctl.cleared.dropped.join(", ")}).`}
+          </p>
+          <button className="link-btn" onClick={ctl.dismissCleared}>
+            OK
+          </button>
+        </div>
+      )}
       {built.length === 0 ? (
         <p className="tiny muted">
           Parcels you build (combine, split, draw onto, mark the house on) are kept here and on the map, until
@@ -45,6 +59,9 @@ export function History({ onOpened }: { onOpened?: () => void }) {
                       <span className="muted num">{tellApart}</span>
                     ) : (
                       acres !== null && <span className="muted num">{acres.toFixed(2)} ac</span>
+                    )}
+                    {b.askingPrice !== null && (
+                      <span className="muted num"> · {shortPrice(b.askingPrice)}</span>
                     )}
                   </span>
                   <span className="row row-span-2 self-center gap-3">
@@ -91,7 +108,7 @@ export function History({ onOpened }: { onOpened?: () => void }) {
                   </span>
                   <span className="tiny muted">
                     {when(b.updatedAt)}
-                    {earlier.has(b.key!) && ` · ${EARLIER_RULES}`}
+                    {rescreen.has(b.key!) && ` · ${RESCREENS_ON_OPEN}`}
                   </span>
                 </li>
               );
@@ -103,10 +120,11 @@ export function History({ onOpened }: { onOpened?: () => void }) {
 }
 
 /**
- * The History entries whose latest screen came from earlier rules (Batch A §6): read from the kept screens,
- * so it's known once IndexedDB answers. An entry with no kept screen has nothing to say.
+ * The History entries whose latest screen will re-screen when opened (owner, #101): gone (v3's clean break) or
+ * from earlier rules (Batch A §6). Read from the kept screens, so it's known once IndexedDB answers; an entry never
+ * screened, or a browser that keeps nothing, has nothing to say.
  */
-function useEarlierRules(built: readonly WorkingParcel[]): ReadonlySet<string> {
+function useRescreens(built: readonly WorkingParcel[]): ReadonlySet<string> {
   const [keys, setKeys] = useState<ReadonlySet<string>>(new Set());
   const latest = built.flatMap((b) =>
     b.key && b.screenIds.length ? [[b.key, b.screenIds.at(-1)!] as const] : [],
@@ -114,10 +132,11 @@ function useEarlierRules(built: readonly WorkingParcel[]): ReadonlySet<string> {
   const sig = latest.map(([k, id]) => `${k}:${id}`).join(",");
   useEffect(() => {
     let alive = true;
-    const ids = new Map(latest.map(([k, id]) => [id, k]));
-    void getScreens([...ids.keys()]).then((records) => {
-      if (alive) setKeys(new Set(records.filter((r) => fromEarlierRules(r)).map((r) => ids.get(r.id)!)));
-    });
+    void Promise.all(latest.map(async ([k, id]) => (needsRescreen(await readScreen(id)) ? [k] : []))).then(
+      (keys) => {
+        if (alive) setKeys(new Set(keys.flat()));
+      },
+    );
     return () => {
       alive = false;
     };

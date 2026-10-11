@@ -13,6 +13,7 @@ import {
   isImpractical,
   overLimitPoints,
   practicalDriveway,
+  practicalOutcome,
   withoutVetoed,
 } from "./score";
 import { M2FT } from "./util";
@@ -137,7 +138,16 @@ describe('"no practical drive"', () => {
 
   it("reads: the limit, why, the alternatives, the one scored", () => {
     const alt: PracticalAlternatives = { steeper, easement };
-    expect(impracticalLine(chosen, alt, 10, ready)).toBe(
+    const p = practicalOutcome(chosen, alt, 10, ready);
+    expect(p).toMatchObject({
+      limitPct: 10,
+      steeperPct: 15,
+      readyToBuild: ready,
+      share: 0.75,
+      scoredOn: "steeper",
+    });
+    expect(p.easement!.pavedFt).toBe(0);
+    expect(impracticalLine(p)).toBe(
       "No practical drive at your 10% limit: the best route found costs about $263–488k, more than 75% of your " +
         "$300k ready-to-build budget. At 15%: 2,888 ft on your land, 5 switchbacks, about $116–216k of gravel " +
         "work, paving on ~2,884 ft (cost TBD); county limit to check (follow-up 46). Within 10% via neighbouring " +
@@ -145,10 +155,12 @@ describe('"no practical drive"', () => {
     );
     // A gentler steep route needs no paving; no alternatives at all says so.
     const gentle = dwOf({ mid: 166_000, ft: 2888, pct: 11, limitPct: 10, switchbacks: 1 });
-    expect(impracticalLine(chosen, { steeper: gentle, easement: null }, 10, ready)).toContain(
+    expect(
+      impracticalLine(practicalOutcome(chosen, { steeper: gentle, easement: null }, 10, ready)),
+    ).toContain(
       "1 switchback, about $116–216k of gravel work; county limit to check (follow-up 46). Scored on the route at 15%.",
     );
-    expect(impracticalLine(chosen, { steeper: null, easement: null }, 10, ready)).toMatch(
+    expect(impracticalLine(practicalOutcome(chosen, { steeper: null, easement: null }, 10, ready))).toMatch(
       /budget\. No route at 15% on your land, or within 10% through the neighbours, was found\.$/,
     );
   });

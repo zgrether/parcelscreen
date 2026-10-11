@@ -2,7 +2,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { NO_GROCER_CAVEAT } from "@/lib/report/surroundings";
-import { CLOSER_GROCERY, ER_NOT_LISTED, NEAREST_HOSPITAL, REAL_GROCERY } from "@/lib/screen/driveList";
+import { CLOSER_GROCERY, NEAREST_HOSPITAL, REAL_GROCERY } from "@/lib/screen/driveList";
 import type { PartialScreenResult } from "@/lib/screen/types";
 import { GettingThere } from "./GettingThere";
 
@@ -35,26 +35,28 @@ describe("Getting there (Batch A A2b)", () => {
 
   it("a closer non-chain grocery: appended to the grocery row, never a row of its own (owner, #81)", () => {
     const drives = [
-      { label: "Nearest hospital", name: "Twin County", min: 40, mi: 25.1 },
-      { label: REAL_GROCERY, name: "Food Lion", min: 38, mi: 24.0 },
-      { label: "Airport", name: "", min: 90, mi: 70.2 },
-      { label: CLOSER_GROCERY, name: "Lansing Foods", min: 21, mi: 9.9 },
+      { label: "Nearest hospital", name: "Twin County", min: 40, mi: 25.1, er: "yes" as const },
+      { label: REAL_GROCERY, name: "Food Lion", min: 38, mi: 24.0, er: null },
+      { label: "Airport", name: "", min: 90, mi: 70.2, er: null },
     ];
-    const h = html({ ...near([]), drives } as PartialScreenResult);
+    // Its own field since schema v3 (B2a); v2 kept it last in drives.
+    const closerGrocery = { label: CLOSER_GROCERY, name: "Lansing Foods", min: 21, mi: 9.9, er: null };
+    const h = html({ ...near([]), drives, closerGrocery } as PartialScreenResult);
     expect(h).toContain(
       `${REAL_GROCERY}<div class="tiny muted">Food Lion</div></td><td class="num">38 min, 24 mi<div>Closer: Lansing Foods, 21 min.</div></td>`,
     );
     expect(h).not.toContain(CLOSER_GROCERY);
     expect(h.match(/<tr>/g)?.length).toBe(3 + 2); // three drives, groceries, trailheads
     // Without one, the row is the prototype's.
-    expect(html({ ...near([]), drives: drives.slice(0, 3) } as PartialScreenResult)).toContain(
+    expect(html({ ...near([]), drives, closerGrocery: null } as PartialScreenResult)).toContain(
       `<td class="num">38 min, 24 mi</td>`,
     );
   });
 
   it("a hospital not listed with an emergency department: the note follows its name (A2c, appended)", () => {
+    // Since schema v3 (B2a) the status is stored and the row appends the note.
     const drives = [
-      { label: NEAREST_HOSPITAL, name: `Johnston Memorial${ER_NOT_LISTED}`, min: 44, mi: 30.2 },
+      { label: NEAREST_HOSPITAL, name: "Johnston Memorial", min: 44, mi: 30.2, er: "not-listed" as const },
     ];
     expect(html({ ...near([]), drives } as PartialScreenResult)).toContain(
       `${NEAREST_HOSPITAL}<div class="tiny muted">Johnston Memorial — emergency department not listed in OpenStreetMap</div></td><td class="num">44 min, 30.2 mi</td>`,

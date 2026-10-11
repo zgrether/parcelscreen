@@ -19,6 +19,7 @@ import {
 } from "react";
 import { browserHttp } from "@/lib/client/http";
 import { parcelName } from "@/lib/client/historyRows";
+import { clearUnreadableScreens } from "@/lib/client/screenStore";
 import { loadParcelStore, recipeOf, type WorkingParcel } from "@/lib/client/parcelStore";
 import { getPref, setPref } from "@/lib/client/prefs";
 import { CancelledError } from "@/lib/http";
@@ -54,8 +55,19 @@ export interface SavedShape {
   acres: number;
 }
 
+/** What the start-up sweep cleared (v3's clean break, B2a): History says so once. */
+export interface ClearedNotice {
+  /** Kept results that weren't the current schema. */
+  results: number;
+  /** The parcels dropped because they couldn't be re-screened (their boundary no longer builds). */
+  dropped: string[];
+}
+
 export interface ExploreController {
   state: ExploreState;
+  /** Set when the start-up sweep cleared kept results; null once dismissed, or when there were none. */
+  cleared: ClearedNotice | null;
+  dismissCleared(): void;
   /** The state as of the last action, for event handlers that run before React re-renders. */
   current(): ExploreState;
   /** The open parcel's boundary and facts, derived from its recipe (null when nothing is open). */
@@ -125,6 +137,8 @@ export interface ExploreController {
   keepSide(side: Side): void;
   /** The Notes tab's text, for the parcel open when it was typed (state.serial then). */
   saveNotes(text: string, serial: number): void;
+  /** The open parcel's asking price, in dollars (null clears it), for the parcel open as `serial`. */
+  saveAskingPrice(price: number | null, serial: number): void;
   /** A screen finished (kept under `id`) for the parcel open when it started (state.serial then). */
   screened(id: string, serial: number): void;
 }
@@ -199,6 +213,26 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
 
   const { store } = state;
   useEffect(() => setPref("ps.parcels", store), [store]);
+
+  // v3's clean break (owner, #101, 2026-10-11): kept results that aren't the current schema are deleted, once, at
+  // start-up (no network). Their parcels stay and re-screen when opened; one whose boundary no longer builds can't
+  // be re-screened and is dropped. History says so.
+  const [cleared, setCleared] = useState<ClearedNotice | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void clearUnreadableScreens().then((ids) => {
+      if (!alive || !ids.length) return;
+      const gone = new Set(ids);
+      const dropped = latest.current.store.built.filter(
+        (b) => b.screenIds.some((id) => gone.has(id)) && !derive(b).ok,
+      );
+      for (const b of dropped) dispatch({ type: "removeSaved", key: b.key! });
+      setCleared({ results: ids.length, dropped: dropped.map((b) => parcelName(b).name) });
+    });
+    return () => {
+      alive = false;
+    };
+  }, [dispatch]);
 
   const open = store.open;
   const derived = useMemo(() => (open ? derive(open) : null), [open]);
@@ -288,6 +322,8 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
 
   return {
     state,
+    cleared,
+    dismissCleared: () => setCleared(null),
     current: () => latest.current,
     derived,
     parcel,
@@ -472,6 +508,9 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     saveNotes(text, serial) {
       dispatch({ type: "notes", text, serial, stamp: stamp() });
+    },
+    saveAskingPrice(price, serial) {
+      dispatch({ type: "askingPrice", price, serial, stamp: stamp() });
     },
     screened(id, serial) {
       dispatch({ type: "screened", id, serial, stamp: stamp() });

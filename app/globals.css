@@ -746,7 +746,7 @@ html:has(.explore) body {
   overflow: auto;
   overscroll-behavior: contain;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto auto 1fr auto;
   gap: 8px;
   padding: 10px 12px;
   border-bottom: 1px solid var(--ip-rule);
@@ -754,6 +754,26 @@ html:has(.explore) body {
 .ip-notes-for {
   font-size: 15px;
   font-weight: 600;
+}
+/* The asking price, above the notes (owner, #101). */
+.ip-price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  font-size: 13px;
+}
+.ip-price input {
+  width: 9em;
+  padding: 4px 8px;
+  border: 1px solid var(--ip-rule);
+  border-radius: 6px;
+  background: rgba(238, 241, 234, 0.08);
+  color: var(--ip-ink);
+  font: inherit;
+}
+.ip-price .tiny {
+  color: var(--ip-ink-2);
 }
 .ip-notes-for span {
   color: var(--ip-ink-2);
@@ -1596,6 +1616,11 @@ html:has(.explore) body {
 .sh-verdict.muted {
   font-weight: 400;
   color: var(--color-ink-2);
+}
+/* The re-screen's state when there is no result to show (B2a): its own line under the parcel, phone and desktop. */
+.explore-header:has(> .sh-rescreen) {
+  flex-wrap: wrap;
+  row-gap: 2px;
 }
 .sh-fold {
   display: grid;

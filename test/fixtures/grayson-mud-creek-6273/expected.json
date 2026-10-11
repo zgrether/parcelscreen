@@ -1923,7 +1923,8 @@
       36.61298527273358,
       -81.48135111875993
      ],
-     "km": 7.919129809212678
+     "km": 7.919129809212678,
+     "source": "state"
     },
     {
      "name": "Elk Garden A.T.",
@@ -1931,7 +1932,8 @@
       36.658597152989756,
       -81.5945535484374
      ],
-     "km": 8.60324903368823
+     "km": 8.60324903368823,
+     "source": "usfs"
     },
     {
      "name": "Green Cove",
@@ -1939,7 +1941,8 @@
       36.620562702867886,
       -81.65250356343203
      ],
-     "km": 8.880103799675288
+     "km": 8.880103799675288,
+     "source": "usfs"
     },
     {
      "name": "Scales Trailhead",
@@ -1947,7 +1950,8 @@
       36.67028493963072,
       -81.48722573707049
      ],
-     "km": 11.61521247676043
+     "km": 11.61521247676043,
+     "source": "usfs"
     },
     {
      "name": "Creek Junction Trailhead",
@@ -1955,7 +1959,8 @@
       36.64750714748283,
       -81.6761146821212
      ],
-     "km": 12.217120810593679
+     "km": 12.217120810593679,
+     "source": "usfs"
     },
     {
      "name": "Fox Creek A.T.",
@@ -1963,7 +1968,8 @@
       36.69639605428542,
       -81.50555908413908
      ],
-     "km": 13.364889648775184
+     "km": 13.364889648775184,
+     "source": "usfs"
     },
     {
      "name": "Rogers Ridge Trailhead",
@@ -1971,7 +1977,8 @@
       36.544954123883215,
       -81.7386745845583
      ],
-     "km": 16.308985288814437
+     "km": 16.308985288814437,
+     "source": "usfs"
     },
     {
      "name": "Straight Branch",
@@ -1979,7 +1986,8 @@
       36.64411814425518,
       -81.74002669099214
      ],
-     "km": 17.080930108234487
+     "km": 17.080930108234487,
+     "source": "usfs"
     },
     {
      "name": "Beech Mountain AT",
@@ -1987,7 +1995,8 @@
       36.65722936596199,
       -81.76500359924611
      ],
-     "km": 19.702850898561604
+     "km": 19.702850898561604,
+     "source": "usfs"
     }
    ],
    "trailheadCount": 9
@@ -2003,51 +2012,59 @@
     "label": "Nearest hospital",
     "name": "Ashe Memorial Hospital",
     "min": 38,
-    "mi": 19
+    "mi": 19,
+    "er": "yes"
    },
    {
     "label": "Nearest real grocery",
     "name": "Food Lion",
     "min": 38,
-    "mi": 19
+    "mi": 19,
+    "er": null
    },
    {
     "label": "Asheville airport (AVL)",
     "name": "",
     "min": 202,
-    "mi": 157.9
+    "mi": 157.9,
+    "er": null
    },
    {
     "label": "Roanoke airport (ROA)",
     "name": "",
     "min": 173,
-    "mi": 132
+    "mi": 132,
+    "er": null
    },
    {
     "label": "Tri-Cities airport (TRI)",
     "name": "",
     "min": 93,
-    "mi": 67.2
+    "mi": 67.2,
+    "er": null
    },
    {
     "label": "Greenville-Spartanburg (GSP)",
     "name": "",
     "min": 255,
-    "mi": 164.7
+    "mi": 164.7,
+    "er": null
    },
    {
     "label": "Charlotte airport (CLT)",
     "name": "",
     "min": 195,
-    "mi": 139.9
-   },
-   {
-    "label": "Closer grocery",
-    "name": "Lansing Foods",
-    "min": 21,
-    "mi": 9
+    "mi": 139.9,
+    "er": null
    }
   ],
+  "closerGrocery": {
+   "label": "Closer grocery",
+   "name": "Lansing Foods",
+   "min": 21,
+   "mi": 9,
+   "er": null
+  },
   "excluded": [
    {
     "acres": 0.3108103208683959,
@@ -2110,7 +2127,39 @@
     "roadRunFt": 614.3255830669212,
     "roadName": "unnamed road",
     "driveFt": 2887.618130949411,
-    "grade": "B"
+    "grade": "B",
+    "practical": {
+     "limitPct": 10,
+     "steeperPct": 15,
+     "readyToBuild": 300000,
+     "share": 0.75,
+     "cost": {
+      "mid": 375249.0682359538,
+      "low": 262674.34776516765,
+      "high": 487823.78870673996
+     },
+     "steeper": {
+      "lengthFt": 2887.618130949411,
+      "switchbacks": 5,
+      "cost": {
+       "mid": 166340.59628051126,
+       "low": 116438.41739635788,
+       "high": 216242.77516466466
+      },
+      "pavedFt": 2185.03944
+     },
+     "easement": {
+      "lengthFt": 6233.00408243141,
+      "switchbacks": 14,
+      "cost": {
+       "mid": 313674.18129021255,
+       "low": 219571.92690314876,
+       "high": 407776.43567727634
+      },
+      "pavedFt": 0
+     },
+     "scoredOn": "steeper"
+    }
    },
    {
     "rank": 2,
@@ -2165,7 +2214,8 @@
     "roadRunFt": 294.53867668222597,
     "roadName": "Mud Creek Rd",
     "driveFt": 2607.900306655138,
-    "grade": "C"
+    "grade": "C",
+    "practical": null
    },
    {
     "rank": 3,
@@ -2221,7 +2271,39 @@
     "roadRunFt": 803.8875228422704,
     "roadName": "Mud Creek Ln",
     "driveFt": 2578.0350724695954,
-    "grade": "C"
+    "grade": "C",
+    "practical": {
+     "limitPct": 10,
+     "steeperPct": 15,
+     "readyToBuild": 300000,
+     "share": 0.75,
+     "cost": {
+      "mid": 371549.33223687037,
+      "low": 260084.53256580923,
+      "high": 483014.13190793147
+     },
+     "steeper": {
+      "lengthFt": 2578.0350724695954,
+      "switchbacks": 6,
+      "cost": {
+       "mid": 162581.5217729435,
+       "low": 113807.06524106044,
+       "high": 211355.97830482654
+      },
+      "pavedFt": 1889.76384
+     },
+     "easement": {
+      "lengthFt": 6184.209163608807,
+      "switchbacks": 13,
+      "cost": {
+       "mid": 328729.92265257606,
+       "low": 230110.9458568032,
+       "high": 427348.8994483489
+      },
+      "pavedFt": 0
+     },
+     "scoredOn": "steeper"
+    }
    },
    {
     "rank": 4,
@@ -2277,7 +2359,39 @@
     "roadRunFt": 556.1445489110306,
     "roadName": "unnamed road",
     "driveFt": 2844.855485397168,
-    "grade": "C"
+    "grade": "C",
+    "practical": {
+     "limitPct": 10,
+     "steeperPct": 15,
+     "readyToBuild": 300000,
+     "share": 0.75,
+     "cost": {
+      "mid": 382647.8879661875,
+      "low": 267853.52157633123,
+      "high": 497442.25435604376
+     },
+     "steeper": {
+      "lengthFt": 2844.855485397168,
+      "switchbacks": 5,
+      "cost": {
+       "mid": 162252.6207759889,
+       "low": 113576.83454319224,
+       "high": 210928.40700878558
+      },
+      "pavedFt": 1879.92132
+     },
+     "easement": {
+      "lengthFt": 6196.610971592523,
+      "switchbacks": 14,
+      "cost": {
+       "mid": 322862.2632156439,
+       "low": 226003.5842509507,
+       "high": 419720.94218033704
+      },
+      "pavedFt": 0
+     },
+     "scoredOn": "steeper"
+    }
    }
   ],
   "driveway": {
@@ -10098,8 +10212,41 @@
      "entranceIndex": 0
     }
    ],
-   "note": "No practical drive at your 10% limit: the best route found costs about $263–488k, more than 75% of your $300k ready-to-build budget. At 15%: 2,888 ft on your land, 5 switchbacks, about $116–216k of gravel work, paving on ~2,185 ft (cost TBD); county limit to check (follow-up 46). Within 10% via neighbouring land (needs an easement): 6,233 ft, about $220–408k. Scored on the route at 15%. The least-steep route found needs grades up to 11%, with about 2953 ft steeper than 10% in 18 stretches; it's drawn on the map as suspect.",
+   "note": "The least-steep route found needs grades up to 11%, with about 2953 ft steeper than 10% in 18 stretches; it's drawn on the map as suspect.",
    "roadsNearestFt": 0.3397206132165911,
+   "practical": {
+    "limitPct": 10,
+    "steeperPct": 15,
+    "readyToBuild": 300000,
+    "share": 0.75,
+    "cost": {
+     "mid": 375249.0682359538,
+     "low": 262674.34776516765,
+     "high": 487823.78870673996
+    },
+    "steeper": {
+     "lengthFt": 2887.618130949411,
+     "switchbacks": 5,
+     "cost": {
+      "mid": 166340.59628051126,
+      "low": 116438.41739635788,
+      "high": 216242.77516466466
+     },
+     "pavedFt": 2185.03944
+    },
+    "easement": {
+     "lengthFt": 6233.00408243141,
+     "switchbacks": 14,
+     "cost": {
+      "mid": 313674.18129021255,
+      "low": 219571.92690314876,
+      "high": 407776.43567727634
+     },
+     "pavedFt": 0
+    },
+    "scoredOn": "steeper"
+   },
+   "steepLanding": null,
    "direct": {
     "line": {
      "type": "Feature",
@@ -15406,7 +15553,8 @@
     }
    }
   },
-  "schemaVersion": 2,
+  "schemaVersion": 3,
+  "engine": 12,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -17336,7 +17484,8 @@
       36.61298527273358,
       -81.48135111875993
      ],
-     "km": 7.919129809212678
+     "km": 7.919129809212678,
+     "source": "state"
     },
     {
      "name": "Elk Garden A.T.",
@@ -17344,7 +17493,8 @@
       36.658597152989756,
       -81.5945535484374
      ],
-     "km": 8.60324903368823
+     "km": 8.60324903368823,
+     "source": "usfs"
     },
     {
      "name": "Green Cove",
@@ -17352,7 +17502,8 @@
       36.620562702867886,
       -81.65250356343203
      ],
-     "km": 8.880103799675288
+     "km": 8.880103799675288,
+     "source": "usfs"
     },
     {
      "name": "Scales Trailhead",
@@ -17360,7 +17511,8 @@
       36.67028493963072,
       -81.48722573707049
      ],
-     "km": 11.61521247676043
+     "km": 11.61521247676043,
+     "source": "usfs"
     },
     {
      "name": "Creek Junction Trailhead",
@@ -17368,7 +17520,8 @@
       36.64750714748283,
       -81.6761146821212
      ],
-     "km": 12.217120810593679
+     "km": 12.217120810593679,
+     "source": "usfs"
     },
     {
      "name": "Fox Creek A.T.",
@@ -17376,7 +17529,8 @@
       36.69639605428542,
       -81.50555908413908
      ],
-     "km": 13.364889648775184
+     "km": 13.364889648775184,
+     "source": "usfs"
     },
     {
      "name": "Rogers Ridge Trailhead",
@@ -17384,7 +17538,8 @@
       36.544954123883215,
       -81.7386745845583
      ],
-     "km": 16.308985288814437
+     "km": 16.308985288814437,
+     "source": "usfs"
     },
     {
      "name": "Straight Branch",
@@ -17392,7 +17547,8 @@
       36.64411814425518,
       -81.74002669099214
      ],
-     "km": 17.080930108234487
+     "km": 17.080930108234487,
+     "source": "usfs"
     },
     {
      "name": "Beech Mountain AT",
@@ -17400,7 +17556,8 @@
       36.65722936596199,
       -81.76500359924611
      ],
-     "km": 19.702850898561604
+     "km": 19.702850898561604,
+     "source": "usfs"
     }
    ],
    "trailheadCount": 9
@@ -17416,51 +17573,59 @@
     "label": "Nearest hospital",
     "name": "Ashe Memorial Hospital",
     "min": 38,
-    "mi": 19
+    "mi": 19,
+    "er": "yes"
    },
    {
     "label": "Nearest real grocery",
     "name": "Food Lion",
     "min": 38,
-    "mi": 19
+    "mi": 19,
+    "er": null
    },
    {
     "label": "Asheville airport (AVL)",
     "name": "",
     "min": 202,
-    "mi": 157.9
+    "mi": 157.9,
+    "er": null
    },
    {
     "label": "Roanoke airport (ROA)",
     "name": "",
     "min": 173,
-    "mi": 132
+    "mi": 132,
+    "er": null
    },
    {
     "label": "Tri-Cities airport (TRI)",
     "name": "",
     "min": 93,
-    "mi": 67.2
+    "mi": 67.2,
+    "er": null
    },
    {
     "label": "Greenville-Spartanburg (GSP)",
     "name": "",
     "min": 255,
-    "mi": 164.7
+    "mi": 164.7,
+    "er": null
    },
    {
     "label": "Charlotte airport (CLT)",
     "name": "",
     "min": 195,
-    "mi": 139.9
-   },
-   {
-    "label": "Closer grocery",
-    "name": "Lansing Foods",
-    "min": 21,
-    "mi": 9
+    "mi": 139.9,
+    "er": null
    }
   ],
+  "closerGrocery": {
+   "label": "Closer grocery",
+   "name": "Lansing Foods",
+   "min": 21,
+   "mi": 9,
+   "er": null
+  },
   "excluded": [
    {
     "acres": 0.3108103208683959,
@@ -17523,7 +17688,39 @@
     "roadRunFt": 614.3255830669212,
     "roadName": "unnamed road",
     "driveFt": 2887.618130949411,
-    "grade": "B"
+    "grade": "B",
+    "practical": {
+     "limitPct": 10,
+     "steeperPct": 15,
+     "readyToBuild": 300000,
+     "share": 0.75,
+     "cost": {
+      "mid": 375249.0682359538,
+      "low": 262674.34776516765,
+      "high": 487823.78870673996
+     },
+     "steeper": {
+      "lengthFt": 2887.618130949411,
+      "switchbacks": 5,
+      "cost": {
+       "mid": 166340.59628051126,
+       "low": 116438.41739635788,
+       "high": 216242.77516466466
+      },
+      "pavedFt": 2185.03944
+     },
+     "easement": {
+      "lengthFt": 6233.00408243141,
+      "switchbacks": 14,
+      "cost": {
+       "mid": 313674.18129021255,
+       "low": 219571.92690314876,
+       "high": 407776.43567727634
+      },
+      "pavedFt": 0
+     },
+     "scoredOn": "steeper"
+    }
    },
    {
     "rank": 2,
@@ -17578,7 +17775,8 @@
     "roadRunFt": 294.53867668222597,
     "roadName": "Mud Creek Rd",
     "driveFt": 2607.900306655138,
-    "grade": "C"
+    "grade": "C",
+    "practical": null
    },
    {
     "rank": 3,
@@ -17634,7 +17832,39 @@
     "roadRunFt": 803.8875228422704,
     "roadName": "Mud Creek Ln",
     "driveFt": 2578.0350724695954,
-    "grade": "C"
+    "grade": "C",
+    "practical": {
+     "limitPct": 10,
+     "steeperPct": 15,
+     "readyToBuild": 300000,
+     "share": 0.75,
+     "cost": {
+      "mid": 371549.33223687037,
+      "low": 260084.53256580923,
+      "high": 483014.13190793147
+     },
+     "steeper": {
+      "lengthFt": 2578.0350724695954,
+      "switchbacks": 6,
+      "cost": {
+       "mid": 162581.5217729435,
+       "low": 113807.06524106044,
+       "high": 211355.97830482654
+      },
+      "pavedFt": 1889.76384
+     },
+     "easement": {
+      "lengthFt": 6184.209163608807,
+      "switchbacks": 13,
+      "cost": {
+       "mid": 328729.92265257606,
+       "low": 230110.9458568032,
+       "high": 427348.8994483489
+      },
+      "pavedFt": 0
+     },
+     "scoredOn": "steeper"
+    }
    },
    {
     "rank": 4,
@@ -17690,7 +17920,39 @@
     "roadRunFt": 556.1445489110306,
     "roadName": "unnamed road",
     "driveFt": 2844.855485397168,
-    "grade": "C"
+    "grade": "C",
+    "practical": {
+     "limitPct": 10,
+     "steeperPct": 15,
+     "readyToBuild": 300000,
+     "share": 0.75,
+     "cost": {
+      "mid": 382647.8879661875,
+      "low": 267853.52157633123,
+      "high": 497442.25435604376
+     },
+     "steeper": {
+      "lengthFt": 2844.855485397168,
+      "switchbacks": 5,
+      "cost": {
+       "mid": 162252.6207759889,
+       "low": 113576.83454319224,
+       "high": 210928.40700878558
+      },
+      "pavedFt": 1879.92132
+     },
+     "easement": {
+      "lengthFt": 6196.610971592523,
+      "switchbacks": 14,
+      "cost": {
+       "mid": 322862.2632156439,
+       "low": 226003.5842509507,
+       "high": 419720.94218033704
+      },
+      "pavedFt": 0
+     },
+     "scoredOn": "steeper"
+    }
    }
   ],
   "driveway": {
@@ -25511,8 +25773,41 @@
      "entranceIndex": 0
     }
    ],
-   "note": "No practical drive at your 10% limit: the best route found costs about $263–488k, more than 75% of your $300k ready-to-build budget. At 15%: 2,888 ft on your land, 5 switchbacks, about $116–216k of gravel work, paving on ~2,185 ft (cost TBD); county limit to check (follow-up 46). Within 10% via neighbouring land (needs an easement): 6,261 ft, about $228–423k. Scored on the route at 15%. The least-steep route found needs grades up to 11%, with about 2953 ft steeper than 10% in 18 stretches; it's drawn on the map as suspect.",
+   "note": "The least-steep route found needs grades up to 11%, with about 2953 ft steeper than 10% in 18 stretches; it's drawn on the map as suspect.",
    "roadsNearestFt": 0.3397206132165911,
+   "practical": {
+    "limitPct": 10,
+    "steeperPct": 15,
+    "readyToBuild": 300000,
+    "share": 0.75,
+    "cost": {
+     "mid": 375249.0682359538,
+     "low": 262674.34776516765,
+     "high": 487823.78870673996
+    },
+    "steeper": {
+     "lengthFt": 2887.618130949411,
+     "switchbacks": 5,
+     "cost": {
+      "mid": 166340.59628051126,
+      "low": 116438.41739635788,
+      "high": 216242.77516466466
+     },
+     "pavedFt": 2185.03944
+    },
+    "easement": {
+     "lengthFt": 6261.108149224484,
+     "switchbacks": 14,
+     "cost": {
+      "mid": 325312.1759374742,
+      "low": 227718.5231562319,
+      "high": 422905.82871871645
+     },
+     "pavedFt": 0
+    },
+    "scoredOn": "steeper"
+   },
+   "steepLanding": null,
    "direct": {
     "line": {
      "type": "Feature",
@@ -30819,7 +31114,8 @@
     }
    }
   },
-  "schemaVersion": 2,
+  "schemaVersion": 3,
+  "engine": 12,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,

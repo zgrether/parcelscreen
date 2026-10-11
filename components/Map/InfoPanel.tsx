@@ -9,6 +9,7 @@
  *
  * Keys: Delete or Backspace deletes the selected layer; Esc clears the selection, then closes the panel.
  */
+import { askingLine, parsePrice } from "@/lib/client/askingPrice";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { isBuilt } from "@/lib/client/parcelStore";
 import { getPref, setPref } from "@/lib/client/prefs";
@@ -469,6 +470,7 @@ function Notes({ ctl, name }: { ctl: ExploreController; name: string }) {
   const pending = text !== open.notes;
   return (
     <div className="ip-notes">
+      <AskingPrice ctl={ctl} />
       <div className="ip-notes-for">
         Notes <span>· {name}</span>
       </div>
@@ -499,6 +501,47 @@ function Notes({ ctl, name }: { ctl: ExploreController; name: string }) {
           </button>
         )}
       </div>
+    </div>
+  );
+}
+
+/**
+ * The asking price (owner, #101, 2026-10-11): entered by hand, saved when the box loses focus or on Enter, with the
+ * date it was entered ("asking $X as of [date]"). Nothing reads it yet: the cost-to-enjoy stages will (VR4).
+ */
+function AskingPrice({ ctl }: { ctl: ExploreController }) {
+  const open = ctl.state.store.open!;
+  const serial = ctl.state.serial;
+  const [text, setText] = useState(open.askingPrice !== null ? String(open.askingPrice) : "");
+  const [bad, setBad] = useState(false);
+  const commit = () => {
+    const v = parsePrice(text);
+    setBad(v === undefined);
+    if (v !== undefined) ctl.saveAskingPrice(v, serial);
+  };
+  return (
+    <div className="ip-price">
+      <label>
+        Asking price
+        <input
+          inputMode="decimal"
+          aria-label="Asking price"
+          placeholder="e.g. 185,000"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") commit();
+          }}
+        />
+      </label>
+      <span className="tiny muted">
+        {bad
+          ? "Enter dollars, like 185,000 or 185k."
+          : open.askingPrice !== null && open.askingPriceAt
+            ? askingLine(open.askingPrice, open.askingPriceAt)
+            : ""}
+      </span>
     </div>
   );
 }

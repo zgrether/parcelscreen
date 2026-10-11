@@ -3,9 +3,12 @@ import { ENGINE_VERSION } from "@/lib/screen/engine";
 import type { ScreenResult } from "@/lib/screen/types";
 import { expectedOf } from "@/test/support/expected";
 import {
-  EARLIER_RULES,
   engineOf,
   fromEarlierRules,
+  needsRescreen,
+  RESCREEN_OFFLINE,
+  RESCREENED,
+  RESCREENS_ON_OPEN,
   ScreenRecordSchema,
   type ScreenRecord,
 } from "./screenStore";
@@ -19,7 +22,7 @@ const record = (engine?: number): ScreenRecord => ({
 
 describe("the engine stamp on a kept screen (Batch A §6)", () => {
   it("Phase 0's rules are version 1, A2a's 2, A2b's 3, A2c's 4, A3's 5, A3b's 6, and a screen kept before the stamp counts as 1", () => {
-    expect(ENGINE_VERSION).toBe(11); // #99 decisions: the driveway quantities, relief culverts, "no practical drive"
+    expect(ENGINE_VERSION).toBe(12); // B2a: schema v3
     expect(engineOf(record())).toBe(1);
     expect(engineOf(record(3))).toBe(3);
   });
@@ -35,7 +38,8 @@ describe("the engine stamp on a kept screen (Batch A §6)", () => {
     expect(fromEarlierRules(record(8))).toBe(true); // the #88 follow-up's rules, after A4b's bump
     expect(fromEarlierRules(record(9))).toBe(true); // A4b's grade over 30 m, after the router's bump
     expect(fromEarlierRules(record(10))).toBe(true); // A4b PR B's router, after the #99 decisions' bump
-    expect(fromEarlierRules(record(11))).toBe(false); // screened with the #99 decisions' driveway quantities
+    expect(fromEarlierRules(record(11))).toBe(true); // the #99 decisions' rules, after B2a's bump
+    expect(fromEarlierRules(record(12))).toBe(false); // screened with schema v3 (B2a)
     expect(fromEarlierRules(record(), 1)).toBe(false); // against Phase 0's rules
     expect(fromEarlierRules(record(2), 2)).toBe(false);
     expect(fromEarlierRules(record(1), 5)).toBe(true);
@@ -47,8 +51,25 @@ describe("the engine stamp on a kept screen (Batch A §6)", () => {
     expect(ScreenRecordSchema.safeParse(record(0)).success).toBe(false);
     expect(ScreenRecordSchema.safeParse({ ...record(), engine: 1.5 }).success).toBe(false);
   });
+});
 
-  it("says it in the owner's words", () => {
-    expect(EARLIER_RULES).toBe("Screened with earlier rules — run again for current results");
+describe("re-screen on open (owner, #101, 2026-10-11)", () => {
+  it("a parcel whose last screen is gone or from earlier rules re-screens; a current one, or no storage, doesn't", () => {
+    expect(needsRescreen({ kind: "gone" })).toBe(true);
+    expect(needsRescreen({ kind: "ok", record: record(ENGINE_VERSION - 1) })).toBe(true);
+    expect(needsRescreen({ kind: "ok", record: record() })).toBe(true); // unstamped: Phase 0's rules
+    expect(needsRescreen({ kind: "ok", record: record(ENGINE_VERSION) })).toBe(false);
+    expect(needsRescreen({ kind: "unavailable" })).toBe(false);
+  });
+
+  it("a v2 result doesn't read as a kept screen (v3's clean break): it's gone, not migrated", () => {
+    const v2 = { ...record(ENGINE_VERSION), result: { ...record().result, schemaVersion: 2 } };
+    expect(ScreenRecordSchema.safeParse(v2).success).toBe(false);
+  });
+
+  it('says it in the owner\'s words (the approved replacement of "Screened with earlier rules — run again")', () => {
+    expect(RESCREENED).toBe("Re-screened with the current rules");
+    expect(RESCREEN_OFFLINE).toBe("Will re-screen when you're back online");
+    expect(RESCREENS_ON_OPEN).toBe("Re-screens with the current rules when opened");
   });
 });

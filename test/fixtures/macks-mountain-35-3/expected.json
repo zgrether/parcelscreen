@@ -3869,7 +3869,8 @@
       37.0571814551906,
       -80.62026620568383
      ],
-     "km": 14.455504818847029
+     "km": 14.455504818847029,
+     "source": "state"
     },
     {
      "name": "Heritage Park",
@@ -3877,7 +3878,8 @@
       37.0441901,
       -80.7619609
      ],
-     "km": 17.853011988292334
+     "km": 17.853011988292334,
+     "source": "osm"
     },
     {
      "name": "Cool Springs",
@@ -3885,7 +3887,8 @@
       37.0439713,
       -80.765408
      ],
-     "km": 18.046624215668757
+     "km": 18.046624215668757,
+     "source": "osm"
     },
     {
      "name": "Dora Highway Park",
@@ -3893,7 +3896,8 @@
       37.0455888,
       -80.7793751
      ],
-     "km": 19.05310169893537
+     "km": 19.05310169893537,
+     "source": "osm"
     }
    ],
    "trailheadCount": 4
@@ -3909,51 +3913,59 @@
     "label": "Nearest hospital",
     "name": "Carilion New River Valley Medical Center",
     "min": 48,
-    "mi": 20.4
+    "mi": 20.4,
+    "er": "yes"
    },
    {
     "label": "Nearest real grocery",
     "name": "Walmart Supercenter",
     "min": 61,
-    "mi": 31.6
+    "mi": 31.6,
+    "er": null
    },
    {
     "label": "Asheville airport (AVL)",
     "name": "",
     "min": 260,
-    "mi": 203.2
+    "mi": 203.2,
+    "er": null
    },
    {
     "label": "Roanoke airport (ROA)",
     "name": "",
     "min": 97,
-    "mi": 57.1
+    "mi": 57.1,
+    "er": null
    },
    {
     "label": "Tri-Cities airport (TRI)",
     "name": "",
     "min": 176,
-    "mi": 139.3
+    "mi": 139.3,
+    "er": null
    },
    {
     "label": "Greenville-Spartanburg (GSP)",
     "name": "",
     "min": 276,
-    "mi": 217.1
+    "mi": 217.1,
+    "er": null
    },
    {
     "label": "Charlotte airport (CLT)",
     "name": "",
     "min": 189,
-    "mi": 141
-   },
-   {
-    "label": "Closer grocery",
-    "name": "Slaughters' Supermarket",
-    "min": 42,
-    "mi": 22.5
+    "mi": 141,
+    "er": null
    }
   ],
+  "closerGrocery": {
+   "label": "Closer grocery",
+   "name": "Slaughters' Supermarket",
+   "min": 42,
+   "mi": 22.5,
+   "er": null
+  },
   "excluded": [],
   "sites": [
    {
@@ -4004,7 +4016,8 @@
     "roadRunFt": 228.97064944805598,
     "roadName": "unnamed road",
     "driveFt": 1115.995848077793,
-    "grade": "B"
+    "grade": "B",
+    "practical": null
    },
    {
     "rank": 2,
@@ -4055,7 +4068,8 @@
     "roadRunFt": 1180.586318488471,
     "roadName": "unnamed road",
     "driveFt": 4657.778233587128,
-    "grade": "B"
+    "grade": "B",
+    "practical": null
    },
    {
     "rank": 3,
@@ -4106,7 +4120,8 @@
     "roadRunFt": 1331.0553964588214,
     "roadName": "unnamed road",
     "driveFt": 2220.6480643096043,
-    "grade": "C"
+    "grade": "C",
+    "practical": null
    },
    {
     "rank": 4,
@@ -4158,7 +4173,30 @@
     "roadRunFt": 1101.9266500925148,
     "roadName": "State Rte 611",
     "driveFt": 4095.867802445373,
-    "grade": "C"
+    "grade": "C",
+    "practical": {
+     "limitPct": 10,
+     "steeperPct": 15,
+     "readyToBuild": 300000,
+     "share": 0.75,
+     "cost": {
+      "mid": 242962.75018184457,
+      "low": 170073.92512729118,
+      "high": 315851.57523639797
+     },
+     "steeper": {
+      "lengthFt": 4095.867802445373,
+      "switchbacks": 5,
+      "cost": {
+       "mid": 161569.28218042443,
+       "low": 113098.4975262971,
+       "high": 210040.06683455178
+      },
+      "pavedFt": 2362.2048
+     },
+     "easement": null,
+     "scoredOn": "steeper"
+    }
    },
    {
     "rank": 5,
@@ -4211,7 +4249,8 @@
     "roadRunFt": 297.2506334055836,
     "roadName": "unnamed road",
     "driveFt": 731.8794952949877,
-    "grade": "C"
+    "grade": "C",
+    "practical": null
    },
    {
     "rank": 6,
@@ -4264,7 +4303,8 @@
     "roadRunFt": 356.38450641170306,
     "roadName": "unnamed road",
     "driveFt": 769.3104155391011,
-    "grade": "C"
+    "grade": "C",
+    "practical": null
    },
    {
     "rank": 7,
@@ -4315,7 +4355,8 @@
     "roadRunFt": 1065.9946781203896,
     "roadName": "unnamed road",
     "driveFt": 3177.1636516210233,
-    "grade": "C"
+    "grade": "C",
+    "practical": null
    },
    {
     "rank": 8,
@@ -4368,7 +4409,8 @@
     "roadRunFt": 1540.0480735452827,
     "roadName": "unnamed road",
     "driveFt": 2656.980758518386,
-    "grade": "C"
+    "grade": "C",
+    "practical": null
    }
   ],
   "driveway": {
@@ -5471,6 +5513,8 @@
    ],
    "note": null,
    "roadsNearestFt": 0.8875825113403377,
+   "practical": null,
+   "steepLanding": null,
    "direct": {
     "line": {
      "type": "Feature",
@@ -6002,7 +6046,8 @@
     }
    }
   },
-  "schemaVersion": 2,
+  "schemaVersion": 3,
+  "engine": 12,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -9878,7 +9923,8 @@
       37.0571814551906,
       -80.62026620568383
      ],
-     "km": 14.455504818847029
+     "km": 14.455504818847029,
+     "source": "state"
     },
     {
      "name": "Heritage Park",
@@ -9886,7 +9932,8 @@
       37.0441901,
       -80.7619609
      ],
-     "km": 17.853011988292334
+     "km": 17.853011988292334,
+     "source": "osm"
     },
     {
      "name": "Cool Springs",
@@ -9894,7 +9941,8 @@
       37.0439713,
       -80.765408
      ],
-     "km": 18.046624215668757
+     "km": 18.046624215668757,
+     "source": "osm"
     },
     {
      "name": "Dora Highway Park",
@@ -9902,7 +9950,8 @@
       37.0455888,
       -80.7793751
      ],
-     "km": 19.05310169893537
+     "km": 19.05310169893537,
+     "source": "osm"
     }
    ],
    "trailheadCount": 4
@@ -9918,51 +9967,59 @@
     "label": "Nearest hospital",
     "name": "Carilion New River Valley Medical Center",
     "min": 48,
-    "mi": 20.4
+    "mi": 20.4,
+    "er": "yes"
    },
    {
     "label": "Nearest real grocery",
     "name": "Walmart Supercenter",
     "min": 61,
-    "mi": 31.6
+    "mi": 31.6,
+    "er": null
    },
    {
     "label": "Asheville airport (AVL)",
     "name": "",
     "min": 260,
-    "mi": 203.2
+    "mi": 203.2,
+    "er": null
    },
    {
     "label": "Roanoke airport (ROA)",
     "name": "",
     "min": 97,
-    "mi": 57.1
+    "mi": 57.1,
+    "er": null
    },
    {
     "label": "Tri-Cities airport (TRI)",
     "name": "",
     "min": 176,
-    "mi": 139.3
+    "mi": 139.3,
+    "er": null
    },
    {
     "label": "Greenville-Spartanburg (GSP)",
     "name": "",
     "min": 276,
-    "mi": 217.1
+    "mi": 217.1,
+    "er": null
    },
    {
     "label": "Charlotte airport (CLT)",
     "name": "",
     "min": 189,
-    "mi": 141
-   },
-   {
-    "label": "Closer grocery",
-    "name": "Slaughters' Supermarket",
-    "min": 42,
-    "mi": 22.5
+    "mi": 141,
+    "er": null
    }
   ],
+  "closerGrocery": {
+   "label": "Closer grocery",
+   "name": "Slaughters' Supermarket",
+   "min": 42,
+   "mi": 22.5,
+   "er": null
+  },
   "excluded": [],
   "sites": [
    {
@@ -10013,7 +10070,8 @@
     "roadRunFt": 228.97064944805598,
     "roadName": "unnamed road",
     "driveFt": 1115.995848077793,
-    "grade": "B"
+    "grade": "B",
+    "practical": null
    },
    {
     "rank": 2,
@@ -10064,7 +10122,8 @@
     "roadRunFt": 1180.586318488471,
     "roadName": "unnamed road",
     "driveFt": 4657.778233587128,
-    "grade": "B"
+    "grade": "B",
+    "practical": null
    },
    {
     "rank": 3,
@@ -10115,7 +10174,8 @@
     "roadRunFt": 1331.0553964588214,
     "roadName": "unnamed road",
     "driveFt": 2220.6480643096043,
-    "grade": "C"
+    "grade": "C",
+    "practical": null
    },
    {
     "rank": 4,
@@ -10167,7 +10227,30 @@
     "roadRunFt": 1101.9266500925148,
     "roadName": "State Rte 611",
     "driveFt": 4095.867802445373,
-    "grade": "C"
+    "grade": "C",
+    "practical": {
+     "limitPct": 10,
+     "steeperPct": 15,
+     "readyToBuild": 300000,
+     "share": 0.75,
+     "cost": {
+      "mid": 242962.75018184457,
+      "low": 170073.92512729118,
+      "high": 315851.57523639797
+     },
+     "steeper": {
+      "lengthFt": 4095.867802445373,
+      "switchbacks": 5,
+      "cost": {
+       "mid": 161569.28218042443,
+       "low": 113098.4975262971,
+       "high": 210040.06683455178
+      },
+      "pavedFt": 2362.2048
+     },
+     "easement": null,
+     "scoredOn": "steeper"
+    }
    },
    {
     "rank": 5,
@@ -10220,7 +10303,8 @@
     "roadRunFt": 297.2506334055836,
     "roadName": "unnamed road",
     "driveFt": 731.8794952949877,
-    "grade": "C"
+    "grade": "C",
+    "practical": null
    },
    {
     "rank": 6,
@@ -10273,7 +10357,8 @@
     "roadRunFt": 356.38450641170306,
     "roadName": "unnamed road",
     "driveFt": 769.3104155391011,
-    "grade": "C"
+    "grade": "C",
+    "practical": null
    },
    {
     "rank": 7,
@@ -10324,7 +10409,8 @@
     "roadRunFt": 1065.9946781203896,
     "roadName": "unnamed road",
     "driveFt": 3177.1636516210233,
-    "grade": "C"
+    "grade": "C",
+    "practical": null
    },
    {
     "rank": 8,
@@ -10377,7 +10463,8 @@
     "roadRunFt": 1540.0480735452827,
     "roadName": "unnamed road",
     "driveFt": 2656.980758518386,
-    "grade": "C"
+    "grade": "C",
+    "practical": null
    }
   ],
   "driveway": {
@@ -11480,6 +11567,8 @@
    ],
    "note": null,
    "roadsNearestFt": 0.8875825113403377,
+   "practical": null,
+   "steepLanding": null,
    "direct": {
     "line": {
      "type": "Feature",
@@ -12011,7 +12100,8 @@
     }
    }
   },
-  "schemaVersion": 2,
+  "schemaVersion": 3,
+  "engine": 12,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,

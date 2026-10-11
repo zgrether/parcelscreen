@@ -43,13 +43,20 @@ const near = (grocers: Near["grocers"]): Near => ({
   trailheadCount: 0,
 });
 
+/** The destinations, then the closer grocery (its own field since v3, B2a), as one list to read. */
+const listed = (d: Awaited<ReturnType<typeof driveTimes>>) => [
+  ...d.drives,
+  ...(d.closerGrocery ? [d.closerGrocery] : []),
+];
+
 async function run(grocers: Near["grocers"], minutes: Record<string, number>) {
   const o = osrm(minutes);
-  const drives = await driveTimes(FROM, near(grocers), [{ name: "Airport", lat: 36.1, lon: -80.2 }], {
+  const d = await driveTimes(FROM, near(grocers), [{ name: "Airport", lat: 36.1, lon: -80.2 }], {
     http: o.http,
     endpoints: DEFAULT_ENDPOINTS,
   });
-  return { drives, asked: o.asked };
+  expect(d.drives.some((x) => x.label === CLOSER_GROCERY)).toBe(false); // never a destination
+  return { drives: listed(d), asked: o.asked };
 }
 
 describe("the closer non-chain grocery (owner, #81)", () => {
@@ -59,7 +66,7 @@ describe("the closer non-chain grocery (owner, #81)", () => {
     grocer("Corner Market", -3, false),
   ];
 
-  it("is appended last when at least grocery.closerMinMin nearer by road; the chain line is unchanged", async () => {
+  it("is kept apart when at least grocery.closerMinMin nearer by road; the chain line is unchanged", async () => {
     expect(SCREEN_CONSTANTS.grocery.closerMinMin).toBe(10);
     const { drives } = await run(G, { "-1": 28, "-2": 38, "-3": 25, "-80.2": 90 });
     expect(drives.map((d) => [d.label, d.name, d.min])).toEqual([
@@ -88,14 +95,16 @@ describe("the closer non-chain grocery (owner, #81)", () => {
 
   it("looks beyond the six listed stores: the pool is every non-chain store found (Macks's Slaughters')", async () => {
     const o = osrm({ "-2": 61, "-4": 61, "-10": 42, "-11": 50, "-80.2": 90 });
-    const listed = [grocer("Food City", -2, true), grocer("Maria Bonita", -4, false)];
-    const pool = [listed[1]!, grocer("Slaughters'", -10, false), grocer("Harvest Moon", -11, false)];
-    const drives = await driveTimes(
-      FROM,
-      near(listed),
-      [],
-      { http: o.http, endpoints: DEFAULT_ENDPOINTS },
-      { otherGrocers: pool },
+    const shown = [grocer("Food City", -2, true), grocer("Maria Bonita", -4, false)];
+    const pool = [shown[1]!, grocer("Slaughters'", -10, false), grocer("Harvest Moon", -11, false)];
+    const drives = listed(
+      await driveTimes(
+        FROM,
+        near(shown),
+        [],
+        { http: o.http, endpoints: DEFAULT_ENDPOINTS },
+        { otherGrocers: pool },
+      ),
     );
     expect(drives.map((d) => [d.label, d.name, d.min])).toEqual([
       [REAL_GROCERY, "Food City", 61],

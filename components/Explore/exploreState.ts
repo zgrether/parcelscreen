@@ -119,6 +119,7 @@ export type ExploreAction =
   | { type: "toggleHidden"; id: LayerId; stamp: Stamp }
   /** The Notes tab's text, for the parcel that was open when it was typed (`serial`). */
   | { type: "notes"; text: string; serial: number; stamp: Stamp }
+  | { type: "askingPrice"; price: number | null; serial: number; stamp: Stamp }
   /** A screen finished (or a house was re-assessed) for the parcel open when it started (`serial`). */
   | { type: "screened"; id: string; serial: number; stamp: Stamp };
 
@@ -276,6 +277,16 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       return {
         ...s,
         store: save({ ...open, notes: a.text, notesAt: a.text.trim() ? a.stamp.now : null }, a.stamp),
+      };
+    case "askingPrice":
+      // As notes: a save after another parcel opened is dropped. The date is the entry's (owner, #101).
+      if (!open || a.serial !== s.serial || a.price === open.askingPrice) return s;
+      return {
+        ...s,
+        store: save(
+          { ...open, askingPrice: a.price, askingPriceAt: a.price === null ? null : a.stamp.now },
+          a.stamp,
+        ),
       };
     case "toggleHidden": {
       if (!open) return s;

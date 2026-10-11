@@ -336,6 +336,7 @@ describe("the summary", () => {
       kind: "port",
       added: [built("x")],
       screens: [screen("s1"), screen("s2")],
+      olderResults: 0,
       skipped: ["52-48"],
       sameParcel: [],
       sameRecord: [],
@@ -352,5 +353,36 @@ describe("the summary", () => {
     ]);
     expect(importSummary(p, "declined")[3]).toBe("Settings kept (you declined).");
     expect(T0 < NOW).toBe(true);
+    expect(importSummary({ ...p, olderResults: 2 }, "none")[2]).toBe(
+      "2 saved results were from an older version and skipped; those parcels re-screen when opened.",
+    );
+  });
+});
+
+describe("schema v3 (B2a): older results and the asking price", () => {
+  it("a result from an older schema is skipped, not an error: its parcel is added and re-screens when opened", () => {
+    const v2 = { ...screen("s1"), result: { ...RESULT, schemaVersion: 2 } };
+    const p = plan(file({ screens: [v2] as never }));
+    expect(p.added.map((x) => x.screenIds)).toEqual([["s1"], []]);
+    expect([p.screens, p.olderResults]).toEqual([[], 1]);
+    expect(importSummary(p, "none")).toContain(
+      "1 saved result was from an older version and skipped; those parcels re-screen when opened.",
+    );
+    // A current result that's malformed still fails the whole import.
+    expect(
+      errors(file({ screens: [{ ...screen("s1"), result: { ...RESULT, verdict: 42 } }] as never })),
+    ).not.toEqual([]);
+  });
+
+  it("the asking price and its date round-trip; a parcel kept before the price has none", () => {
+    const at = "2026-10-11T12:00:00.000Z";
+    const priced: ParcelStore = {
+      ...STORE,
+      built: [{ ...STORE.built[0]!, askingPrice: 185_000, askingPriceAt: at }],
+    };
+    expect(plan(file({}, priced)).added[0]).toMatchObject({ askingPrice: 185_000, askingPriceAt: at });
+    const { askingPrice: _p, askingPriceAt: _a, ...older } = STORE.built[0]!;
+    const before = plan(file({ parcels: { ...STORE, built: [older as never] } }));
+    expect(before.added[0]).toMatchObject({ askingPrice: null, askingPriceAt: null });
   });
 });

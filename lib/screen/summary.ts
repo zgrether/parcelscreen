@@ -42,6 +42,6 @@ export function summaryText(R: ScreenResult): string {
         `Site #${x.rank} (${x.score}): ${x.ll[0].toFixed(5)}, ${x.ll[1].toFixed(5)} — ${x.why.join("; ")}`,
       );
   // The closer non-chain grocery (owner, #81) is report text only; the copied summary stays as it was.
-  if (R.drives) for (const d of splitDrives(R.drives).destinations) lines.push(`${d.label}: ${d.min} min`);
+  if (R.drives) for (const d of splitDrives(R).destinations) lines.push(`${d.label}: ${d.min} min`);
   return lines.join("\n");
 }

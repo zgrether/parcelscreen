@@ -3,6 +3,7 @@ import { fmt } from "../format";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { gradeOver, reliefCulverts } from "../screen/driveway";
 import { NEEDS_EASEMENT, routeLabel } from "../screen/routeLabel";
+import { impracticalLine } from "../screen/score";
 import type { PartialScreenResult } from "../screen/types";
 import { M2FT } from "../screen/util";
 import type { FactRow } from "./facts";
@@ -164,7 +165,10 @@ export function drivewayView(r: PartialScreenResult): DrivewayView | null {
   const first = d.overLimit?.track ? d.overLimit : d.routes[0];
   const overLimitPct = d.overLimit && d.routes.length ? d.overLimit.limitPct : null;
   return {
-    note: d.note,
+    // "No practical drive" leads the section (owner, #99 decisions; phase-0.md §9.25), from the stored outcome.
+    note:
+      [d.practical ? impracticalLine(d.practical) : null, d.note].filter((x): x is string => !!x).join(" ") ||
+      null,
     entrances: d.entrances.length
       ? `Entrance candidates on the frontage (E1 best): ${d.entrances
           .map(

@@ -7,7 +7,7 @@
  */
 import { CancelledError, type HttpClient } from "../http";
 import { SCREEN_CONSTANTS } from "./config";
-import { CLOSER_GROCERY, ER_NOT_LISTED, NEAREST_HOSPITAL, REAL_GROCERY } from "./driveList";
+import { CLOSER_GROCERY, NEAREST_HOSPITAL, REAL_GROCERY, type DriveEntry } from "./driveList";
 import type { HospitalCandidate } from "./hospitals";
 import type { Anchor, Endpoints, ScreenResult } from "./types";
 import type { LatLon } from "./util";
@@ -65,7 +65,7 @@ export async function driveTimes(
   anchors: Anchor[],
   deps: DriveDeps,
   pools: DrivePools = {},
-): Promise<NonNullable<ScreenResult["drives"]>> {
+): Promise<{ drives: NonNullable<ScreenResult["drives"]>; closerGrocery: DriveEntry | null }> {
   const drives: NonNullable<ScreenResult["drives"]> = [];
   const quickest = async <P extends Place>(list: readonly P[], n: number) => {
     let bestD: { min: number; mi: number; name: string; place: P } | null = null;
@@ -77,10 +77,10 @@ export async function driveTimes(
   };
   const tryN = async (list: readonly Place[], label: string, n: number) => {
     const bestD = await quickest(list, n);
-    if (bestD) drives.push({ label, name: bestD.name, min: bestD.min, mi: bestD.mi });
+    if (bestD) drives.push({ label, name: bestD.name, min: bestD.min, mi: bestD.mi, er: null });
     return bestD;
   };
-  let closer: NonNullable<ScreenResult["drives"]>[number] | null = null;
+  let closer: DriveEntry | null = null;
   if (near) {
     // A2c (owner, 2026-10-09): prefer hospitals the snapshot lists with emergency=yes, as the grocery rule
     // prefers chains; when the one chosen isn't, its row says so. Unknown status (no snapshot): no note.
@@ -90,9 +90,10 @@ export async function driveTimes(
     if (h)
       drives.push({
         label: NEAREST_HOSPITAL,
-        name: h.place.er === false ? h.name + ER_NOT_LISTED : h.name,
+        name: h.name,
         min: h.min,
         mi: h.mi,
+        er: h.place.er === true ? "yes" : h.place.er === false ? "not-listed" : "unknown",
       });
     const big = near.grocers.filter((g) => g.big);
     const chain = await tryN(big.length ? big : near.grocers, REAL_GROCERY, K.candidates);
@@ -100,15 +101,14 @@ export async function driveTimes(
     if (chain && big.length) {
       const other = await quickest(pools.otherGrocers ?? near.grocers.filter((g) => !g.big), K.candidates);
       if (other && chain.min - other.min >= SCREEN_CONSTANTS.grocery.closerMinMin)
-        closer = { label: CLOSER_GROCERY, name: other.name, min: other.min, mi: other.mi };
+        closer = { label: CLOSER_GROCERY, name: other.name, min: other.min, mi: other.mi, er: null };
     }
   }
   for (const a of anchors) {
     const d = await drive(from, [a.lat, a.lon], deps);
-    if (d) drives.push({ label: a.name, name: "", ...d });
+    if (d) drives.push({ label: a.name, name: "", ...d, er: null });
   }
-  // Last, so every earlier entry keeps its place; the report shows it with the grocery's row, not as its own.
-  if (closer) drives.push(closer);
   if (!drives.length) throw new Error("OSRM routing unavailable — straight-line only");
-  return drives;
+  // The report shows the closer grocery with the grocery's row, not as its own.
+  return { drives, closerGrocery: closer };
 }

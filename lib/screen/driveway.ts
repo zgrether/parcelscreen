@@ -993,7 +993,15 @@ export function buildDriveway(
 ): Driveway {
   const extra = { exact: routing.exact, landingMaxSideSlopeDeg: routing.landingMaxSideSlopeDeg };
   const { entrances: ent, roadsNearestFt } = entranceCandidates(roads, parcel, ctx.dFine);
-  const dw: Driveway = { toLabel, entrances: ent, routes: [], note: null, roadsNearestFt };
+  const dw: Driveway = {
+    toLabel,
+    entrances: ent,
+    routes: [],
+    note: null,
+    roadsNearestFt,
+    practical: null,
+    steepLanding: null,
+  };
   if (!ent.length) {
     dw.note = `No Census road within 400 m of the boundary${roadsNearestFt != null ? ` (nearest is ${Math.round(roadsNearestFt)} ft away)` : ""} — the parcel may be landlocked, or TIGER has the road wrong here. ${roads.length ? "" : "No roads were returned by the TIGER query at all."}`;
     return dw;

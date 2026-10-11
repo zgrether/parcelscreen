@@ -44,9 +44,10 @@ isn't obvious.
 - Secrets never reach the client. `SUPABASE_SERVICE_ROLE_KEY` and `CRON_SECRET` are server-only.
 - Screen results are **immutable**: `screens` rows are inserted, never updated. A re-run inserts a
   new row with `version = max+1`.
-- **Schema v2 is frozen** (step 18b): `SCREEN_SCHEMA_VERSION` is 2, and `lib/screen/schema-v2.test.ts`
-  snapshots the stored `ScreenResult` shape. Any change to that shape (a field added, removed or
-  retyped) requires **v3 plus a migration** of the results already stored, in the same PR.
+- **Schema v3 is frozen** (B2a; v2 was frozen at step 18b): `SCREEN_SCHEMA_VERSION` is 3, and
+  `lib/screen/schema-v3.test.ts` snapshots the stored `ScreenResult` shape. Any change to that shape (a field added,
+  removed or retyped) requires **v4 plus a migration** of the results already stored, in the same PR. (v3 itself was
+  a clean break with no migration, by the owner's decision: `docs/plans/phase-0.md` §9.26.)
 - External fetches go through `lib/http.ts`: one throttled client with a per-host queue,
   identifying User-Agent, conditional requests, and 429 backoff. Connectors declare a minimum
   cadence and the scheduler cannot run them faster.

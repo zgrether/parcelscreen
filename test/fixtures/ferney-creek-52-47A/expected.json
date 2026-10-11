@@ -1910,7 +1910,8 @@
       36.7941894,
       -80.4665278
      ],
-     "km": 10.40258247406278
+     "km": 10.40258247406278,
+     "source": "osm"
     }
    ],
    "trailheadCount": 1
@@ -1920,45 +1921,53 @@
     "label": "Nearest hospital",
     "name": "Carilion New River Valley Medical Center",
     "min": 48,
-    "mi": 22
+    "mi": 22,
+    "er": "yes"
    },
    {
     "label": "Nearest real grocery",
     "name": "Food Lion",
     "min": 16,
-    "mi": 9.7
+    "mi": 9.7,
+    "er": null
    },
    {
     "label": "Asheville airport (AVL)",
     "name": "",
     "min": 246,
-    "mi": 201.5
+    "mi": 201.5,
+    "er": null
    },
    {
     "label": "Roanoke airport (ROA)",
     "name": "",
     "min": 89,
-    "mi": 55
+    "mi": 55,
+    "er": null
    },
    {
     "label": "Tri-Cities airport (TRI)",
     "name": "",
     "min": 162,
-    "mi": 137.6
+    "mi": 137.6,
+    "er": null
    },
    {
     "label": "Greenville-Spartanburg (GSP)",
     "name": "",
     "min": 261,
-    "mi": 215.4
+    "mi": 215.4,
+    "er": null
    },
    {
     "label": "Charlotte airport (CLT)",
     "name": "",
     "min": 174,
-    "mi": 139.3
+    "mi": 139.3,
+    "er": null
    }
   ],
+  "closerGrocery": null,
   "excluded": [],
   "sites": [
    {
@@ -2006,6 +2015,7 @@
     "quality": 88,
     "qGrade": "A",
     "grade": "A",
+    "practical": null,
     "driveFt": 477.59401475273756
    },
    {
@@ -2057,7 +2067,8 @@
     "roadRunFt": 128.61708832262076,
     "roadName": "unnamed road",
     "driveFt": 2459.9246705009314,
-    "grade": "B"
+    "grade": "B",
+    "practical": null
    },
    {
     "rank": 3,
@@ -2110,7 +2121,8 @@
     "roadRunFt": 212.1108256935515,
     "roadName": "unnamed road",
     "driveFt": 1446.7191979464135,
-    "grade": "B"
+    "grade": "B",
+    "practical": null
    },
    {
     "rank": 4,
@@ -2163,7 +2175,8 @@
     "roadRunFt": 236.3286037800262,
     "roadName": "unnamed road",
     "driveFt": 438.75003857736965,
-    "grade": "B"
+    "grade": "B",
+    "practical": null
    },
    {
     "rank": 5,
@@ -2212,6 +2225,7 @@
     "quality": 77,
     "qGrade": "B",
     "grade": "B",
+    "practical": null,
     "driveFt": 1642.6025292736879
    }
   ],
@@ -2783,6 +2797,8 @@
    ],
    "note": null,
    "roadsNearestFt": 1.8970742828891392,
+   "practical": null,
+   "steepLanding": null,
    "direct": {
     "line": {
      "type": "Feature",
@@ -3042,7 +3058,8 @@
     }
    }
   },
-  "schemaVersion": 2,
+  "schemaVersion": 3,
+  "engine": 12,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -4959,7 +4976,8 @@
       36.7941894,
       -80.4665278
      ],
-     "km": 10.40258247406278
+     "km": 10.40258247406278,
+     "source": "osm"
     }
    ],
    "trailheadCount": 1
@@ -4969,45 +4987,53 @@
     "label": "Nearest hospital",
     "name": "Carilion New River Valley Medical Center",
     "min": 48,
-    "mi": 22
+    "mi": 22,
+    "er": "yes"
    },
    {
     "label": "Nearest real grocery",
     "name": "Food Lion",
     "min": 16,
-    "mi": 9.7
+    "mi": 9.7,
+    "er": null
    },
    {
     "label": "Asheville airport (AVL)",
     "name": "",
     "min": 246,
-    "mi": 201.5
+    "mi": 201.5,
+    "er": null
    },
    {
     "label": "Roanoke airport (ROA)",
     "name": "",
     "min": 89,
-    "mi": 55
+    "mi": 55,
+    "er": null
    },
    {
     "label": "Tri-Cities airport (TRI)",
     "name": "",
     "min": 162,
-    "mi": 137.6
+    "mi": 137.6,
+    "er": null
    },
    {
     "label": "Greenville-Spartanburg (GSP)",
     "name": "",
     "min": 261,
-    "mi": 215.4
+    "mi": 215.4,
+    "er": null
    },
    {
     "label": "Charlotte airport (CLT)",
     "name": "",
     "min": 174,
-    "mi": 139.3
+    "mi": 139.3,
+    "er": null
    }
   ],
+  "closerGrocery": null,
   "excluded": [],
   "sites": [
    {
@@ -5055,6 +5081,7 @@
     "quality": 88,
     "qGrade": "A",
     "grade": "A",
+    "practical": null,
     "driveFt": 477.59401475273756
    },
    {
@@ -5106,7 +5133,8 @@
     "roadRunFt": 128.61708832262076,
     "roadName": "unnamed road",
     "driveFt": 2459.9246705009314,
-    "grade": "B"
+    "grade": "B",
+    "practical": null
    },
    {
     "rank": 3,
@@ -5159,7 +5187,8 @@
     "roadRunFt": 212.1108256935515,
     "roadName": "unnamed road",
     "driveFt": 1446.7191979464135,
-    "grade": "B"
+    "grade": "B",
+    "practical": null
    },
    {
     "rank": 4,
@@ -5212,7 +5241,8 @@
     "roadRunFt": 236.3286037800262,
     "roadName": "unnamed road",
     "driveFt": 438.75003857736965,
-    "grade": "B"
+    "grade": "B",
+    "practical": null
    },
    {
     "rank": 5,
@@ -5261,6 +5291,7 @@
     "quality": 77,
     "qGrade": "B",
     "grade": "B",
+    "practical": null,
     "driveFt": 1642.6025292736879
    }
   ],
@@ -7440,6 +7471,8 @@
    ],
    "note": null,
    "roadsNearestFt": 1.8970742828891392,
+   "practical": null,
+   "steepLanding": null,
    "direct": {
     "line": {
      "type": "Feature",
@@ -8047,7 +8080,8 @@
     }
    }
   },
-  "schemaVersion": 2,
+  "schemaVersion": 3,
+  "engine": 12,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -10017,7 +10051,8 @@
       36.7941894,
       -80.4665278
      ],
-     "km": 10.40258247406278
+     "km": 10.40258247406278,
+     "source": "osm"
     }
    ],
    "trailheadCount": 1
@@ -10027,45 +10062,53 @@
     "label": "Nearest hospital",
     "name": "Carilion New River Valley Medical Center",
     "min": 48,
-    "mi": 22
+    "mi": 22,
+    "er": "yes"
    },
    {
     "label": "Nearest real grocery",
     "name": "Food Lion",
     "min": 16,
-    "mi": 9.7
+    "mi": 9.7,
+    "er": null
    },
    {
     "label": "Asheville airport (AVL)",
     "name": "",
     "min": 246,
-    "mi": 201.5
+    "mi": 201.5,
+    "er": null
    },
    {
     "label": "Roanoke airport (ROA)",
     "name": "",
     "min": 89,
-    "mi": 55
+    "mi": 55,
+    "er": null
    },
    {
     "label": "Tri-Cities airport (TRI)",
     "name": "",
     "min": 162,
-    "mi": 137.6
+    "mi": 137.6,
+    "er": null
    },
    {
     "label": "Greenville-Spartanburg (GSP)",
     "name": "",
     "min": 261,
-    "mi": 215.4
+    "mi": 215.4,
+    "er": null
    },
    {
     "label": "Charlotte airport (CLT)",
     "name": "",
     "min": 174,
-    "mi": 139.3
+    "mi": 139.3,
+    "er": null
    }
   ],
+  "closerGrocery": null,
   "excluded": [],
   "house": {
    "ll": [
@@ -10166,6 +10209,7 @@
     "quality": 86,
     "qGrade": "A",
     "grade": "A",
+    "practical": null,
     "driveFt": 477.59401475273756
    },
    {
@@ -10217,7 +10261,8 @@
     "roadRunFt": 128.61708832262076,
     "roadName": "unnamed road",
     "driveFt": 2459.9246705009314,
-    "grade": "B"
+    "grade": "B",
+    "practical": null
    },
    {
     "rank": 3,
@@ -10270,7 +10315,8 @@
     "roadRunFt": 212.1108256935515,
     "roadName": "unnamed road",
     "driveFt": 1446.7191979464135,
-    "grade": "B"
+    "grade": "B",
+    "practical": null
    },
    {
     "rank": 4,
@@ -10323,7 +10369,8 @@
     "roadRunFt": 236.3286037800262,
     "roadName": "unnamed road",
     "driveFt": 438.75003857736965,
-    "grade": "B"
+    "grade": "B",
+    "practical": null
    },
    {
     "rank": 5,
@@ -10372,6 +10419,7 @@
     "quality": 75,
     "qGrade": "B",
     "grade": "B",
+    "practical": null,
     "driveFt": 1642.6025292736879
    }
   ],
@@ -12551,6 +12599,8 @@
    ],
    "note": null,
    "roadsNearestFt": 1.8970742828891392,
+   "practical": null,
+   "steepLanding": null,
    "direct": {
     "line": {
      "type": "Feature",
@@ -13158,7 +13208,8 @@
     }
    }
   },
-  "schemaVersion": 2,
+  "schemaVersion": 3,
+  "engine": 12,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,

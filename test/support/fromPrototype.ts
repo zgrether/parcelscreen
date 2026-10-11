@@ -6,6 +6,8 @@
  */
 import { STEPS } from "@/lib/screen/config";
 import { DEFAULT_USER_CONFIG } from "@/lib/screen/config";
+import { NEAREST_HOSPITAL } from "@/lib/screen/driveList";
+import { UNSTAMPED_ENGINE } from "@/lib/screen/engine";
 import { runParams, SCREEN_SCHEMA_VERSION } from "@/lib/screen/index";
 import type { ScreenResult, Step } from "@/lib/screen/types";
 import { isDeepStrictEqual } from "node:util";
@@ -38,6 +40,8 @@ export function fromPrototype(R: PrototypeResult): ScreenResult {
   // The goldens were recorded with the default config, so their params are its (schema v2).
   const result: Loose = {
     schemaVersion: SCREEN_SCHEMA_VERSION,
+    // The prototype's rules are engine 1 (lib/screen/engine.ts).
+    engine: UNSTAMPED_ENGINE,
     runAt: when,
     params: runParams(DEFAULT_USER_CONFIG),
     ...out,
@@ -66,7 +70,28 @@ export function fromPrototype(R: PrototypeResult): ScreenResult {
       routes: (routes as Loose[]).map((rt) => mapRoute(rt, entrances)),
       ...(direct ? { direct: mapRoute(direct as Loose, entrances) } : {}),
       roadsNearestFt: _entrancesRoadsNearestFt ?? null,
+      // v3 (B2a): the prototype had neither rule.
+      practical: null,
+      steepLanding: null,
     };
+  }
+
+  // v3 (B2a): each site's "no practical drive" outcome (none in the prototype).
+  if (Array.isArray(result.sites))
+    result.sites = (result.sites as Loose[]).map((x) => ({ ...x, practical: null }));
+
+  // v3 (B2a): the prototype's trailheads are all OpenStreetMap's; its hospital's emergency status is unknown, and it
+  // had no closer grocery.
+  if (result.near) {
+    const n = result.near as Loose;
+    result.near = { ...n, trailheads: (n.trailheads as Loose[]).map((t) => ({ ...t, source: "osm" })) };
+  }
+  if (Array.isArray(result.drives)) {
+    result.drives = (result.drives as Loose[]).map((d) => ({
+      ...d,
+      er: d.label === NEAREST_HOSPITAL ? "unknown" : null,
+    }));
+    result.closerGrocery = null;
   }
 
   return result as ScreenResult;

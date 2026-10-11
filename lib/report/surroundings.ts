@@ -5,7 +5,7 @@
 import { fmt } from "../format";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { M2FT } from "../screen/util";
-import { REAL_GROCERY, splitDrives } from "../screen/driveList";
+import { driveName, REAL_GROCERY, splitDrives } from "../screen/driveList";
 import type { PartialScreenResult } from "../screen/types";
 import type { RichItem } from "./facts";
 import { onMap, said, type Heading, type Part } from "./parts";
@@ -262,17 +262,15 @@ export interface GettingThereView {
   caveat: string;
 }
 
-type Drive = NonNullable<PartialScreenResult["drives"]>[number];
-
 /**
  * One row per drive, except the closer non-chain grocery (owner, #81): it's appended to the "Nearest real
  * grocery" row as "Closer: {name}, {N} min." rather than shown as a row of its own.
  */
-function driveRows(drives: readonly Drive[]): GettingThereView["drives"] {
-  const { destinations, closer } = splitDrives(drives);
+function driveRows(r: Pick<PartialScreenResult, "drives" | "closerGrocery">): GettingThereView["drives"] {
+  const { destinations, closer } = splitDrives(r);
   return destinations.map((d) => ({
     label: d.label,
-    name: d.name,
+    name: driveName(d),
     value: `${d.min} min, ${d.mi} mi`,
     ...(closer && d.label === REAL_GROCERY && d.name !== ""
       ? { closer: `Closer: ${closer.name}, ${closer.min} min.` }
@@ -285,7 +283,7 @@ export function gettingThereView(r: PartialScreenResult): GettingThereView | nul
   if (!r.drives && !r.near) return null;
   const n = r.near;
   return {
-    drives: driveRows(r.drives ?? []),
+    drives: driveRows(r),
     grocers: n ? n.grocers.map((g) => ({ name: g.name, mi: `${fmt(g.km * 0.621, 0)} mi` })) : null,
     trailheads: n
       ? {

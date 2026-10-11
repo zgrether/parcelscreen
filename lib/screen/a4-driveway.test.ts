@@ -23,6 +23,7 @@ import {
   isImpractical,
   overLimitTerm,
   practicalDriveway,
+  practicalOutcome,
   withoutVetoed,
 } from "./score";
 
@@ -165,11 +166,11 @@ describe("Grayson's sites, scored on the route kept to the parcel (A4)", () => {
       const scored = practicalDriveway(chosen, alt);
       expect(site.c.driveway).toBeCloseTo(drivewayPoints(scored), 9);
       expect(site.driveFt).toBe(scored.route!.metrics.lengthFt);
+      // Stored since v3 (B2a): the site's outcome, and the paragraph rendered from it.
+      const p = alt ? practicalOutcome(chosen, alt, limit, ready) : null;
+      expect(site.practical).toEqual(p);
       const why = alt ? site.why.slice(-3) : [...site.why.slice(-2), null];
-      expect(why).toEqual([
-        ...drivewayChoiceLines(r, limit),
-        alt ? impracticalLine(chosen, alt, limit, ready) : null,
-      ]);
+      expect(why).toEqual([...drivewayChoiceLines(r, limit), p ? impracticalLine(p) : null]);
     });
     // The 1.28 ac site: 11% and 5,940 ft on the parcel, against 6,233 ft within 10% through the neighbours (A4b PR B;
     // 4,228 and 5,176 ft before, the router's zigzags and steps over banks now gone); then its alternatives.

@@ -41,11 +41,12 @@ describe.each(FIXTURE_SLUGS)("near, roads and drive times on %s vs the prototype
     // The raw TIGER features in the prototype's order (local, secondary, primary): later steps depend on it.
     expect(n.roads).toEqual(t.fx.goldens.run._roads);
 
-    const drives = await driveTimes(t.centre, n.near, CFG.anchors, t.deps, {
+    const d = await driveTimes(t.centre, n.near, CFG.anchors, t.deps, {
       ...(n.otherGrocers ? { otherGrocers: n.otherGrocers } : {}),
       ...(n.hospitalPool ? { hospitals: n.hospitalPool } : {}),
     }); // as the engine does
-    expect(differences(drives, golden.drives)).toEqual([]);
+    expect(differences(d.drives, golden.drives)).toEqual([]);
+    expect(differences(d.closerGrocery, golden.closerGrocery ?? null)).toEqual([]);
 
     // Every flag through the near step, in the prototype's order.
     const focus = chooseFocus({
@@ -378,11 +379,12 @@ describe("roads and drives (synthetic)", () => {
       trailheads: [],
       trailheadCount: 0,
     };
-    const drives = await driveTimes([0, 0], near, [], {
+    const { drives } = await driveTimes([0, 0], near, [], {
       http: osrm({ "1,1": 30, "2,2": 20, "4,4": 5 }),
       endpoints: DEFAULT_ENDPOINTS,
     });
-    expect(drives).toEqual([{ label: "Nearest hospital", min: 20, mi: 20, name: "B" }]); // D is the 4th: not tried
+    // D is the 4th: not tried. No snapshot, so the emergency status is unknown.
+    expect(drives).toEqual([{ label: "Nearest hospital", min: 20, mi: 20, name: "B", er: "unknown" }]);
     await expect(
       driveTimes([0, 0], near, [], { http: osrm({}), endpoints: DEFAULT_ENDPOINTS }),
     ).rejects.toThrow("OSRM routing unavailable — straight-line only");
