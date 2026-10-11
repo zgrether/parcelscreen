@@ -930,6 +930,49 @@ export function practicalAlternatives(
   });
 }
 
+export type SteepLanding = NonNullable<Driveway["steepLanding"]>;
+
+/**
+ * A switchback the router refused on a side slope over landingMaxSideSlopeDeg (owner, PR B decisions, 2026-10-10;
+ * B2b): the target's route searched again with that limit lifted, from the scored route's entrance (every routed
+ * entrance when none was found), at its grade, kept to the parcel when it is. If that route builds a landing on
+ * steeper ground, it's the one in the way: `avoided` when a route was found anyway. Searched only when the scored
+ * route has a switchback, or there's none (owner, #101 Q3); null when nothing was refused.
+ */
+export function steepLanding(
+  ctx: RouteContext,
+  entrances: readonly Entrance[],
+  toLL: LatLon,
+  scored: SiteDriveway,
+  roadMaxGradePct: number,
+  routing: RoutingOpts = {},
+): SteepLanding | null {
+  const rt = scored.route;
+  if (rt && rt.metrics.switchbacks < 1) return null;
+  const from =
+    rt && scored.entranceIndex != null && entrances[scored.entranceIndex]
+      ? [entrances[scored.entranceIndex]!.ll]
+      : entrances.slice(0, K.entrancesRouted).map((e) => e.ll);
+  if (!from.length) return null;
+  const base: RouteOpts = {
+    maxGrade: rt ? rt.maxGrade : roadMaxGradePct / 100,
+    wGrade: K.shortest.wGrade,
+    label: K.shortest.label,
+  };
+  const f = routeManyFrom(ctx, from, [toLL], {
+    ...(rt && !rt.needsEasement ? keptOpts(base) : base),
+    exact: routing.exact,
+    landingMaxSideSlopeDeg: 90,
+  })[0];
+  routing.onProgress?.();
+  const refused = f
+    ? routeDetail(f.rt)?.landings.find((L) => L.sideSlopeDeg > K.landingMaxSideSlopeDeg)
+    : undefined;
+  return refused
+    ? { ll: refused.ll, atFt: refused.atM * M2FT, sideSlopeDeg: refused.sideSlopeDeg, avoided: !!rt }
+    : null;
+}
+
 /** The grade the least-steep route needs: its cap, the lowest whole percent that reaches the target. */
 export const neededPct = (o: OverLimitRoute): number => Math.round(o.maxGrade * 100);
 

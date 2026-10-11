@@ -51,6 +51,8 @@ function gradeDetails(rt: { profile: readonly (readonly [number, number])[] }): 
 
 export interface DrivewayView {
   note: string | null;
+  /** A switchback refused on a steep side slope (B2b): after the note, in the owner's words. */
+  steepLanding: string | null;
   entrances: string | null;
   routes: RouteView[];
   /**
@@ -162,6 +164,19 @@ function routeView(rt: Route, i: number, overLimitPct: number | null = null): Ro
   };
 }
 
+/**
+ * The card's line, and the map flag's tip, for a switchback refused on a steep side slope (owner's wording, PR B
+ * decisions, 2026-10-10).
+ */
+export function steepLandingLine(
+  s: NonNullable<NonNullable<PartialScreenResult["driveway"]>["steepLanding"]>,
+): string {
+  return (
+    `A switchback near ${fmt(Math.round(s.atFt / 10) * 10)} ft would sit on a ${Math.round(s.sideSlopeDeg)}° side slope — ` +
+    `too steep without retaining walls; ${s.avoided ? "route goes around it" : "no route avoids it"}`
+  );
+}
+
 /** Null until the driveway step has run. */
 export function drivewayView(r: PartialScreenResult): DrivewayView | null {
   const d = r.driveway;
@@ -174,6 +189,7 @@ export function drivewayView(r: PartialScreenResult): DrivewayView | null {
     note:
       [d.practical ? impracticalLine(d.practical) : null, d.note].filter((x): x is string => !!x).join(" ") ||
       null,
+    steepLanding: d.steepLanding ? steepLandingLine(d.steepLanding) : null,
     entrances: d.entrances.length
       ? `Entrance candidates on the frontage (E1 best): ${d.entrances
           .map(

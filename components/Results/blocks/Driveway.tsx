@@ -17,6 +17,7 @@ export function Driveway({ result, variant, running }: BlockProps) {
   return (
     <>
       {v.note && <p>{v.note}</p>}
+      {v.steepLanding && <p className="steep-landing">{v.steepLanding}.</p>}
       {v.entrances && <p className="tiny muted">{v.entrances}</p>}
       {v.overLimit && (
         <div className="site suspect">

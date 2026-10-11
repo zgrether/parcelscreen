@@ -21,6 +21,7 @@ import {
   practicalAlternatives,
   siteDriveways,
   soilMask,
+  steepLanding,
   withScoredRoute,
   type PracticalAlternatives,
   type RouteContext,
@@ -465,6 +466,11 @@ export async function screen(
         R.driveway = { ...R.driveway, note: R.driveway.note ? `${R.driveway.note} ${line}` : line };
         R.flags.push({ lvl: "warn", t: `Driveway to ${to.label}: ${line}` });
       }
+      // A switchback refused on a side slope over 35° (owner, PR B decisions; B2b): stored, the card says so.
+      R.driveway = {
+        ...R.driveway,
+        steepLanding: steepLanding(rctx, R.driveway.entrances, to.ll, scored, cfg.roadMaxGradePct, routing),
+      };
       // The section leads with "No practical drive" and the alternatives (owner, #99 decisions: placed first).
       const alt = house ? alternativesFor(rctx, s, [to.ll], [toRoutes], routing)[0] : altAt.get(at(to.ll));
       if (alt) R.driveway = { ...R.driveway, practical: outcome(scored, alt, cfg) };
@@ -605,6 +611,10 @@ export async function evaluateAt(out: ScreenOutput, ll: LatLon, label: string): 
           note: result.driveway.note ? `${result.driveway.note} ${line}` : line,
         };
       }
+      result.driveway = {
+        ...result.driveway,
+        steepLanding: steepLanding(ctx, result.driveway.entrances, ll, scored, s.config.roadMaxGradePct),
+      };
       const alt = alternativesFor(ctx, session, [ll], [routes])[0];
       if (alt) result.driveway = { ...result.driveway, practical: outcome(scored, alt, s.config) };
     }
