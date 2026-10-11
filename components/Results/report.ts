@@ -1,7 +1,7 @@
 /**
  * The report's sections in the prototype's order (proto L1453–1557): each block with its heading. The
- * explorer's panel wraps each in a collapsible Section; the Phase 1 parcel page will render the same list
- * with its own headings.
+ * explorer's report card places each in the slide-in panels of the lines it belongs to (VR5, card/panelBlocks.ts);
+ * the Phase 1 parcel page will render the same list with its own headings.
  */
 import type { ReactNode } from "react";
 import { buildHeading } from "@/lib/report/build";
@@ -53,15 +53,3 @@ export const REPORT: readonly ReportSection[] = [
   { Block: GettingThere, heading: () => gettingThereHeading },
   { Block: StillUnknown, heading: () => unknownHeading },
 ];
-
-/** Which sections start open, by slug (proto OPEN_DEFAULT, L1194); the rest start closed. */
-export const OPEN_DEFAULT: Readonly<Record<string, boolean>> = {
-  verdict: true,
-  terrain: true,
-  "december-sun": true,
-  "dark-skies": true,
-  "where-to-build": true,
-  "where-to-garden": true,
-  "the-existing-house": true,
-  driveway: true,
-};

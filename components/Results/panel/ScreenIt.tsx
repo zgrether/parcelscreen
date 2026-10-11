@@ -6,8 +6,8 @@
  *     Run again — the app's main action, always in reach;
  *     On desktop the header is also the floating card (ExploreShell); once there's a report, it has
  *     a control that folds the panel back to the card, where a second line gives the verdict;
- *   - ScreenBody: the step list, the notes on whether the results still fit, and the report below in
- *     collapsible sections.
+ *   - ScreenBody: the step list, the notes on whether the results still fit, and the report card below
+ *     (VR5): each of its lines opens a slide-in panel holding the report sections that belong to it.
  * Both read one useScreenIt, owned by the shell. Each finished run is kept (IndexedDB, under the parcel's
  * `screenIds`), so a parcel reopened from History shows its last results.
  *
@@ -17,7 +17,7 @@
  *     reload there's no session to do it with, and a short note asks for a run);
  *   - Settings changed since the run: a softer note, with the run's settings on request.
  */
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useScreen } from "@/lib/client/useScreen";
 import { freshness, runKeys, type RunKeys } from "@/lib/client/screenKeys";
 import {
@@ -41,8 +41,11 @@ import type { LatLon } from "@/lib/geo/types";
 import type { PartialScreenResult, ScreenResult, UserConfig } from "@/lib/screen/types";
 import type { ExploreController, SetHint } from "@/components/Explore/useExploreController";
 import { evaluationPoint } from "../blocks/types";
-import { REPORT } from "../report";
-import { Section } from "./Section";
+import { getPref, setPref } from "@/lib/client/prefs";
+import { reportCard, type Person } from "@/lib/report/card";
+import type { PanelKey } from "@/lib/report/cardPanels";
+import { CardPanel } from "../card/CardPanel";
+import { ReportCard } from "../card/ReportCard";
 import { OFFLINE_SCREEN_TEXT } from "@/lib/client/pwa";
 
 /** The run the worker's session holds: which parcel it was for (state.serial) and what it was run on. */
@@ -478,6 +481,16 @@ function Chevron({ up }: { up: boolean }) {
 /** The panel's body: the run's steps, whether the results still fit, and the report. */
 export function ScreenBody({ s }: { s: ScreenIt }) {
   const { display, point, shown } = s;
+  // The open panel, for the parcel it was opened on: another parcel closes it.
+  const [opened, setOpened] = useState<{ key: PanelKey; serial: number } | null>(null);
+  const serial = s.ctl.state.serial;
+  const panel = opened && opened.serial === serial ? opened.key : null;
+  const [person, setPersonState] = useState<Person>(() => getPref("ps.person"));
+  const setPerson = (p: Person) => {
+    setPersonState(p);
+    setPref("ps.person", p);
+  };
+  const closePanel = useCallback(() => setOpened(null), []);
   const now = s.runningHere ? STEPS.find(([id]) => s.steps[id]?.status === "run") : undefined;
   const running = now ? { step: now[0], message: s.steps[now[0]]!.message } : undefined;
   const notes = !s.runningHere && shown;
@@ -524,20 +537,29 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
       )}
       {display && (
         <div className={s.stale && !s.runningHere ? "report stale" : "report"}>
-          {REPORT.map(({ Block, heading }) => {
-            const body = Block({ result: display, point, variant: "panel", running });
-            if (body === null) return null;
-            const h = heading(display, point);
-            return (
-              <Section key={h.slug} heading={h}>
-                {s.evaluated && EVALUATED_SECTIONS.has(h.slug) && (
-                  <p className="report-note eval-note">{evaluatedNote(s.evaluated.label)}</p>
-                )}
-                {body}
-              </Section>
-            );
-          })}
+          <ReportCard
+            card={reportCard(display, person)}
+            running={!!s.runningHere}
+            setPerson={setPerson}
+            onOpen={(key) => setOpened({ key, serial })}
+          />
         </div>
+      )}
+      {display && panel && (
+        <CardPanel
+          panel={panel}
+          card={reportCard(display, person)}
+          result={display}
+          point={point}
+          running={running}
+          noteFor={(slug) =>
+            s.evaluated &&
+            EVALUATED_SECTIONS.has(slug) && (
+              <p className="report-note eval-note">{evaluatedNote(s.evaluated.label)}</p>
+            )
+          }
+          onClose={closePanel}
+        />
       )}
     </>
   );

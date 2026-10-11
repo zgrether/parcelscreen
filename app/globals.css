@@ -36,6 +36,8 @@ body {
   padding-top: env(safe-area-inset-top, 0px);
 }
 .explore-panel {
+  /* The report card's slide-in panel is laid over it (VR5); the phone sheet and the desktop card set their own. */
+  position: relative;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -2464,4 +2466,304 @@ html:has(.explore) body {
 .mp-radio[aria-checked="true"] .mp-dot {
   border-color: var(--ip-ink);
   background: radial-gradient(circle, var(--ip-ink) 0 2.5px, transparent 3px);
+}
+
+/* ---------- The report card and its slide-in panels (VR5; value-ranking.md §6) ---------- */
+.card {
+  padding: 12px 0 6px;
+}
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.card-verdict {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  font: 600 22px/1 var(--font-cond);
+}
+.card-grade {
+  display: inline-grid;
+  place-items: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 6px;
+  border-radius: 6px;
+  font: 700 20px/1 var(--font-cond);
+  color: #fff;
+  background: var(--color-ink-2);
+}
+.card-grade.small {
+  min-width: 24px;
+  height: 24px;
+  font-size: 15px;
+  border-radius: 4px;
+}
+.card-grade.g-A,
+.card-grade.g-B {
+  background: var(--color-ok);
+}
+.card-grade.g-C {
+  background: var(--color-warn);
+}
+.card-grade.g-D,
+.card-grade.g-F {
+  background: var(--color-steep);
+}
+.card-grade.g-none {
+  background: transparent;
+  color: var(--color-ink-2);
+  border: 1px solid var(--color-rule);
+}
+.card-word.v-contender {
+  color: var(--color-ok);
+}
+.card-word.v-maybe {
+  color: var(--color-warn);
+}
+.card-word.v-pass {
+  color: var(--color-steep);
+}
+.card-word.v-running {
+  color: var(--color-ink-2);
+}
+.card-person {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.card-person .chip {
+  border: 1px solid var(--color-rule);
+  background: transparent;
+  color: var(--color-ink);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.card-person .chip[aria-pressed="true"] {
+  background: var(--color-ink);
+  color: var(--color-paper);
+  border-color: var(--color-ink);
+}
+.card-reason {
+  margin: 8px 0 10px;
+}
+.card-gates {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  border-top: 1px solid var(--color-rule);
+}
+.card-sub {
+  font: 600 14px/1 var(--font-cond);
+  color: var(--color-ink-2);
+  margin-right: 4px;
+}
+.gate {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--color-rule);
+  background: transparent;
+  color: var(--color-ink);
+  border-radius: 999px;
+  padding: 3px 10px 3px 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.gate .mark {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--color-ink-2);
+}
+.gate.pass .mark {
+  background: var(--color-ok);
+}
+.gate.warn .mark {
+  background: var(--color-warn);
+}
+.gate.fail .mark {
+  background: var(--color-steep);
+}
+.gate.unknown .mark,
+.gate.pending .mark {
+  background: transparent;
+  color: var(--color-ink-2);
+  border: 1px solid var(--color-rule);
+}
+.card-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--color-rule);
+}
+.card-rows li {
+  border-bottom: 1px solid var(--color-rule);
+}
+.card-row {
+  display: grid;
+  grid-template-columns: minmax(0, 9.5em) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 0;
+  background: none;
+  border: 0;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.card-row .row-label {
+  font-weight: 600;
+}
+.card-row .row-detail {
+  color: var(--color-ink-2);
+  font-size: 13.5px;
+}
+.card-row:hover .row-label,
+.card-verdict:hover .card-word {
+  text-decoration: underline;
+}
+.card-row:focus-visible,
+.card-verdict:focus-visible,
+.gate:focus-visible,
+.card-person .chip:focus-visible {
+  outline: 2px solid var(--color-water);
+  outline-offset: 2px;
+}
+.card-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-paper);
+  animation: card-panel-in 0.18s ease-out;
+}
+@keyframes card-panel-in {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+}
+.card-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px 10px 18px;
+  border-bottom: 1px solid var(--color-rule);
+}
+.card-panel-head h2 {
+  margin: 0;
+  font: 600 19px/1.15 var(--font-cond);
+}
+.card-panel-head .icon-btn {
+  background: none;
+  border: 0;
+  color: var(--color-ink);
+  font-size: 18px;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+}
+.card-panel-body {
+  overflow: auto;
+  overscroll-behavior: contain;
+  flex: 1;
+  padding: 10px 18px calc(24px + env(safe-area-inset-bottom, 0px));
+}
+.panel-question {
+  font: italic 500 16px/1.35 var(--font-sans);
+  margin: 4px 0 10px;
+}
+.panel-reading {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+.panel-reading .card-grade.gate {
+  width: auto;
+  padding: 0 8px;
+  font-size: 13px;
+  border: 0;
+  color: #fff;
+}
+.panel-reading .gate.pass {
+  background: var(--color-ok);
+}
+.panel-reading .gate.warn {
+  background: var(--color-warn);
+}
+.panel-reading .gate.fail {
+  background: var(--color-steep);
+}
+.panel-reading .gate.unknown {
+  background: var(--color-ink-2);
+}
+.panel-reading .v-contender {
+  background: var(--color-ok);
+}
+.panel-reading .v-maybe {
+  background: var(--color-warn);
+}
+.panel-reading .v-pass {
+  background: var(--color-steep);
+}
+.panel-from {
+  margin: 16px 0 0;
+  padding-top: 10px;
+  border-top: 2px solid var(--color-rule);
+  font: 600 13px/1 var(--font-cond);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-ink-2);
+}
+.panel-block h3 {
+  font: 600 17px/1.15 var(--font-cond);
+  margin: 0 0 8px;
+}
+.panel-block h3 small {
+  margin-left: 6px;
+  font-weight: 400;
+  color: var(--color-ink-2);
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  .card-panel {
+    border-radius: 14px 14px 0 0;
+    animation-name: card-panel-up;
+  }
+  @keyframes card-panel-up {
+    from {
+      transform: translateY(32px);
+      opacity: 0;
+    }
+  }
+  .card-row {
+    grid-template-columns: minmax(0, 8em) auto minmax(0, 1fr);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-panel {
+    animation: none;
+  }
 }

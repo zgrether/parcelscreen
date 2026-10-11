@@ -94,7 +94,7 @@ test("offline, a parcel from earlier rules shows its result and waits; back onli
   await openFromHistory(page, "52-47A");
   await expect(page.locator(".rescreen-note")).toHaveText("Will re-screen when you're back online.");
   // Never a blank report: the kept result is shown while it waits.
-  await expect(page.locator(".block summary h2", { hasText: "Verdict" })).toBeVisible();
+  await expect(page.locator(".card-verdict")).toBeVisible();
   expect(await keptScreenCount(page)).toBe(1);
 
   await context.setOffline(false);

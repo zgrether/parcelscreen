@@ -4,7 +4,7 @@
  * the measured browser tolerances (EXPECTED_BROWSER).
  * Each test starts from an empty profile and brings its parcel in through History import.
  */
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import type { ScreenResult } from "@/lib/screen/types";
 import { loadFixture } from "../test/support/fixtures";
 import {
@@ -62,12 +62,43 @@ async function expectCleanRun(page: Page, steps: Record<string, string>): Promis
   expect(net.misses, "data requests the HAR doesn't have").toEqual([]);
   expectAllDone(steps);
   expect(errors, "page errors").toEqual([]);
-  const headings = await page.locator(".block summary h2").allInnerTexts();
+  const headings = await panelHeadings(page);
   for (const s of SECTIONS)
     expect(
       headings.some((h) => h.startsWith(s)),
       `section "${s}" in ${JSON.stringify(headings)}`,
     ).toBe(true);
+}
+
+/** The report card's line opening a panel: the verdict, a dealbreaker or a row (VR5). */
+const cardLine = (page: Page, name: string) =>
+  page.locator(".card-verdict, .card-gates .gate, .card-row").filter({ hasText: name }).first();
+
+/** Opens a card panel, runs `check` on it, and closes it again. */
+async function inPanel(page: Page, line: string, check: (panel: Locator) => Promise<void>): Promise<void> {
+  await cardLine(page, line).click();
+  const panel = page.locator(".card-panel");
+  await expect(panel).toBeVisible();
+  await check(panel);
+  await panel.getByRole("button", { name: "Close" }).click();
+  await expect(panel).toBeHidden();
+}
+
+/** Every panel the card opens, in turn: the report sections now under "From the report" (VR5). */
+async function panelHeadings(page: Page): Promise<string[]> {
+  const out: string[] = [];
+  const lines = page.locator(".card-verdict, .card-gates .gate, .card-row");
+  const n = await lines.count();
+  expect(n, "the card's lines").toBe(13);
+  for (let i = 0; i < n; i++) {
+    await lines.nth(i).click();
+    const panel = page.locator(".card-panel");
+    await expect(panel).toBeVisible();
+    out.push(...(await panel.locator(".panel-block h3").allInnerTexts()));
+    await panel.getByRole("button", { name: "Close" }).click();
+    await expect(panel).toBeHidden();
+  }
+  return out;
 }
 
 test("Ferney Creek 52-47A: the plain run matches expected.json; the ground viewer opens, day and night", async ({
@@ -106,7 +137,9 @@ test("Ferney Creek 52-47A: with the house marked, the run matches expected.json"
   await importParcel(page, FERNEY, loadFixture(FERNEY).input.house!.ll);
   const steps = await screenIt(page);
   await expectCleanRun(page, steps);
-  await expect(page.locator(".block summary h2", { hasText: /^The existing house/ })).toBeVisible();
+  await inPanel(page, "Best homesite", async (panel) => {
+    await expect(panel.locator(".panel-block h3", { hasText: /^The existing house/ })).toBeVisible();
+  });
   expect(againstExpected(await postedResult(page), FERNEY, "houseRun"), EXPECTED_MSG).toEqual([]);
 });
 
@@ -135,8 +168,12 @@ test("Macks Mountain 35-3: the plain run and the re-evaluation at site #2 match 
   expect(errors, "page errors").toEqual([]);
 });
 
-/** The sections a re-evaluation moves (sun, sky, driveway: ScreenIt's EVALUATED_SECTIONS), by data-key. */
-const EVALUATED = ["december-sun", "dark-skies", "driveway"];
+/** The sections a re-evaluation moves (sun, sky, driveway: ScreenIt's EVALUATED_SECTIONS), by data-key, and the card line whose panel holds each. */
+const EVALUATED = [
+  ["december-sun", "Best homesite"],
+  ["dark-skies", "Night sky"],
+  ["driveway", "Easement"],
+] as const;
 
 test("Ferney Creek 52-47A: a pin away from the run's point is an unsaved re-evaluation; the run's own site ends it", async ({
   page,
@@ -165,9 +202,16 @@ test("Ferney Creek 52-47A: a pin away from the run's point is an unsaved re-eval
   await waitForPosted(page, label);
   // The note, on exactly the sun, sky and driveway sections.
   const note = `Evaluated at ${label} — not saved. Run again or move the house to keep it.`;
-  for (const key of EVALUATED)
-    await expect(page.locator(`details[data-key="${key}"] .eval-note`)).toHaveText(note);
-  await expect(page.locator(".eval-note")).toHaveCount(EVALUATED.length);
+  for (const [key, line] of EVALUATED)
+    await inPanel(page, line, async (panel) => {
+      await expect(panel.locator(`.panel-block[data-key="${key}"] .eval-note`)).toHaveText(note);
+      await expect(panel.locator(".eval-note")).toHaveCount(1);
+    });
+  // Not on the sections it doesn't move.
+  await inPanel(page, "Room to build", async (panel) => {
+    await expect(panel.locator(".panel-block")).not.toHaveCount(0);
+    await expect(panel.locator(".eval-note")).toHaveCount(0);
+  });
   // Evaluated exactly at the site's stored point, and nothing kept.
   expect((await postedResult(page))!.focus!.ll).toStrictEqual(other!.ll);
   expect(await keptScreenCount(page), "kept screens").toBe(kept);
@@ -175,7 +219,10 @@ test("Ferney Creek 52-47A: a pin away from the run's point is an unsaved re-eval
   // The run's own site ends the re-evaluation: the notes clear.
   await page.locator(`[data-pin="site-${ownSite!.rank}"]`).dispatchEvent("click");
   await waitForPosted(page, `site #${ownSite!.rank}`);
-  await expect(page.locator(".eval-note")).toHaveCount(0);
+  await inPanel(page, "Night sky", async (panel) => {
+    await expect(panel.locator(".panel-block")).not.toHaveCount(0);
+    await expect(panel.locator(".eval-note")).toHaveCount(0);
+  });
   expect(await keptScreenCount(page), "kept screens").toBe(kept);
   expect(errors, "page errors").toEqual([]);
 });

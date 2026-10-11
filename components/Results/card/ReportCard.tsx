@@ -1,0 +1,95 @@
+/**
+ * The report sheet's top level (value-ranking.md §6.1; VR5): the parcel grade and verdict with its reason, the
+ * dealbreakers, the graded rows one line each, and the cost to enjoy (pending until VR4). Every line opens its
+ * slide-in panel, where today's report sections now live.
+ */
+import type { Card, GateStatus, Person } from "@/lib/report/card";
+import type { PanelKey } from "@/lib/report/cardPanels";
+
+const MARK: Record<GateStatus, string> = { pass: "✓", warn: "!", fail: "✗", unknown: "?" };
+const SHORT: Record<string, string> = {
+  floodplain: "Flood",
+  access: "Access",
+  easement: "Easement",
+  septic: "Septic",
+};
+const PEOPLE: { key: Person; name: string }[] = [
+  { key: "zach", name: "Zach" },
+  { key: "julie", name: "Julie" },
+];
+
+export function ReportCard({
+  card,
+  running,
+  setPerson,
+  onOpen,
+}: {
+  card: Card;
+  /** A run in progress: data still to come reads "…", not "didn't load". */
+  running: boolean;
+  setPerson(p: Person): void;
+  onOpen(key: PanelKey): void;
+}) {
+  const pending = (missing: string | undefined) => running && !!missing;
+  return (
+    <section className="card" aria-label="Report card">
+      <div className="card-head">
+        <button className="card-verdict" onClick={() => onOpen("verdict")}>
+          <span className={`card-grade g-${card.grade ?? "none"}`}>{card.grade ?? "–"}</span>
+          <span className={`card-word v-${running ? "running" : card.verdict.toLowerCase()}`}>
+            {running ? "Screening…" : card.verdict}
+          </span>
+        </button>
+        <div className="card-person" role="group" aria-label="Whose weights grade the parcel">
+          <span className="tiny muted">Weights</span>
+          {PEOPLE.map((p) => (
+            <button
+              key={p.key}
+              className="chip"
+              aria-pressed={card.person === p.key}
+              onClick={() => setPerson(p.key)}
+            >
+              {p.name}
+            </button>
+          ))}
+        </div>
+      </div>
+      {!running && <p className="card-reason">{card.reason}</p>}
+      <div className="card-gates">
+        <span className="card-sub">Dealbreakers</span>
+        {card.gates.map((g) => (
+          <button
+            key={g.key}
+            className={`gate ${pending(g.missing) ? "pending" : g.status}`}
+            title={g.reason}
+            aria-label={`${g.label}: ${pending(g.missing) ? "pending" : g.status}`}
+            onClick={() => onOpen(g.key)}
+          >
+            <span className="mark" aria-hidden="true">
+              {pending(g.missing) ? "…" : MARK[g.status]}
+            </span>
+            {SHORT[g.key]}
+          </button>
+        ))}
+      </div>
+      <ul className="card-rows">
+        {card.rows.map((r) => (
+          <li key={r.key}>
+            <button className="card-row" onClick={() => onOpen(r.key)}>
+              <span className="row-label">{r.label}</span>
+              <span className={`card-grade small g-${r.grade ?? "none"}`}>{r.grade ?? "–"}</span>
+              <span className="row-detail">{pending(r.missing) ? "…" : r.detail}</span>
+            </button>
+          </li>
+        ))}
+        <li>
+          <button className="card-row" onClick={() => onOpen("cost")}>
+            <span className="row-label">Cost to enjoy</span>
+            <span className="card-grade small g-none">–</span>
+            <span className="row-detail">pending</span>
+          </button>
+        </li>
+      </ul>
+    </section>
+  );
+}
