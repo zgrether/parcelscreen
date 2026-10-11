@@ -2299,6 +2299,15 @@ html:has(.explore) body {
   font-size: 12px;
   cursor: help;
 }
+/* B2b: a switchback refused on a steep side slope, beside the entrances: a warning flag. */
+.sitepin.steep {
+  background: #fff;
+  color: #b42318;
+  border-color: #b42318;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: help;
+}
 
 /* ---------- The surface legend (owner, after 15c): the zoom slider's box; a banded bar (slope) or a score
    ramp with its solid colours (house, garden) ---------- */

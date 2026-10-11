@@ -60,13 +60,13 @@ export function ResultLayers() {
     map?.getSource<GeoJSONSource>(SOURCE.driveway)?.setData(drive ? drive.lines : EMPTY);
   }, [map, drive]);
 
-  // The entrance pins: yellow E1…, their text on hover or tap.
+  // The entrance pins: yellow E1…, their text on hover or tap; and a refused switchback's red flag (B2b).
   const entrances = drive?.entrances ?? null;
   useEffect(() => {
     if (!map || !entrances?.length) return;
     const markers = entrances.map((e) => {
       const el = document.createElement("div");
-      el.className = "sitepin entrance";
+      el.className = e.warn ? "sitepin steep" : "sitepin entrance";
       el.textContent = e.text;
       el.dataset.pin = e.key;
       el.setAttribute("role", "img");

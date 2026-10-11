@@ -8,6 +8,7 @@ import { lineSliceAlong } from "@turf/turf";
 import { fmt } from "../format";
 import { routeLabel } from "../screen/routeLabel";
 import type { LatLon } from "../geo/types";
+import { steepLandingLine } from "../report/driveway";
 import type { PartialScreenResult } from "../screen/types";
 
 type FC<G extends Polygon | MultiPolygon | LineString | Point, P> = FeatureCollection<G, P>;
@@ -56,6 +57,8 @@ export interface EntrancePin {
   ll: LatLon;
   text: string;
   tip: string;
+  /** A warning (the refused switchback, B2b), not an entrance. */
+  warn?: true;
 }
 
 /**
@@ -83,9 +86,14 @@ export function drivewayFeatures(r: PartialScreenResult): {
         geometry: lineSliceAlong(o.line, a, b, { units: "meters" }).geometry,
       });
     if (!d.routes.length)
-      return { lines: { type: "FeatureCollection", features }, entrances: entrancePins(d.entrances) };
+      return {
+        lines: { type: "FeatureCollection", features },
+        entrances: [...entrancePins(d.entrances), ...steepPin(d)],
+      };
   }
-  if (!d || !d.routes.length) return { lines: { type: "FeatureCollection", features }, entrances: [] };
+  // No route: no entrance pins (as the prototype drew nothing), but a refused switchback's flag says why (B2b).
+  if (!d || !d.routes.length)
+    return { lines: { type: "FeatureCollection", features }, entrances: d ? steepPin(d) : [] };
   d.routes.forEach((rt, i) => {
     features.push({
       type: "Feature",
@@ -113,8 +121,25 @@ export function drivewayFeatures(r: PartialScreenResult): {
       },
       geometry: d.direct.line.geometry,
     });
-  return { lines: { type: "FeatureCollection", features }, entrances: entrancePins(d.entrances) };
+  return {
+    lines: { type: "FeatureCollection", features },
+    entrances: [...entrancePins(d.entrances), ...steepPin(d)],
+  };
 }
+
+/** The refused switchback's flag (B2b), with the card's line as its tip. */
+const steepPin = (d: NonNullable<PartialScreenResult["driveway"]>): EntrancePin[] =>
+  d.steepLanding
+    ? [
+        {
+          key: "steep-landing",
+          ll: d.steepLanding.ll,
+          text: "!",
+          tip: steepLandingLine(d.steepLanding),
+          warn: true,
+        },
+      ]
+    : [];
 
 type Entrances = NonNullable<PartialScreenResult["driveway"]>["entrances"];
 
