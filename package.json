@@ -37,7 +37,8 @@
     "a3:curve": "vitest run test/tools/a3-curve.test.ts --mode a3-curve",
     "a3b:router": "vitest run test/tools/a3b-router.test.ts --mode a3b",
     "a4:driveway": "vitest run test/tools/a4-driveway.test.ts --mode a4-driveway",
-    "a4b:realism": "vitest run test/tools/a4b-realism.test.ts --mode a4b-realism"
+    "a4b:realism": "vitest run test/tools/a4b-realism.test.ts --mode a4b-realism",
+    "a4b:router": "vitest run test/tools/a4b-router.test.ts --mode a4b-router"
   },
   "dependencies": {
     "@serwist/turbopack": "9.5.13",

@@ -43,92 +43,96 @@ describe("road-distance rounding vs cost index, tier and overall score", () => {
     ["ferney-creek-52-47A", false],
     ["macks-mountain-35-3", false],
     ["ferney-creek-52-47A", true],
-  ] as const)("%s (house: %s): every boundary is far beyond the drift", async (slug, withHouse) => {
-    const fx = loadFixture(slug);
-    const out = await run(slug, withHouse ? { house: fx.input.house!.ll } : {});
-    const s = out.session;
-    const ctx: ScoreContext = {
-      dFine: s.dFine!,
-      dWide: s.dWide!,
-      valleyFloorFt: s.valleyFloorFt!,
-      skyScore: out.result.sky?.score,
-      roads: s.roads ?? null,
-      sfha: s.sfha ?? null,
-      units: s.units ?? null,
-      rows: s.rows ?? null,
-      limits: s.limits ?? null,
-      cfg: CFG,
-    };
-    // Since A3 every ranked site is re-costed from its routed driveway (and the house from the route to it):
-    // rebuild each the way the pipeline does, then measure the same margins on those numbers.
-    const sites = out.result.sites ?? [];
-    const routed = siteDriveways(
-      routeContext(s),
-      s.roads ?? [],
-      s.parcel,
-      sites.map((x) => x.ll),
-      CFG.roadMaxGradePct,
-    );
-    const h0 = out.result.house;
-    const toHouse: SiteDriveway | null =
-      h0 && !("outside" in h0)
-        ? chooseDriveway(
-            siteDriveways(routeContext(s), s.roads ?? [], s.parcel, [h0.ll], CFG.roadMaxGradePct)[0]!,
-          )
-        : null;
-    const spots = sites.map((x, i) => ({
-      name: `site #${x.rank}`,
-      ll: x.ll,
-      b: {
-        acres: x.acres,
-        elevFt: x.elevFt,
-        aspectDeg: x.aspectDeg,
-        slopeDeg: x.slopeDeg,
-        compact: x.compact,
-      },
-      shown: x,
-      dw: chooseDriveway(routed[i]!),
-    }));
-    const h = out.result.house;
-    if (h && !("outside" in h))
-      spots.push({
-        name: "house",
-        ll: h.ll,
-        b: {
-          acres: h.benchAcres ?? 0.25,
-          elevFt: h.elevFt!,
-          aspectDeg: h.aspectDeg!,
-          slopeDeg: h.slopeDeg!,
-          compact: undefined,
-        },
-        shown: h as never,
-        dw: toHouse!,
-      });
-    for (const sp of spots) {
-      const { scored } = scoreSiteDetailed(ctx, sp.ll, {
-        ...sp.b,
-        soil: soilAt(ctx.units, ctx.rows, sp.ll),
-      });
-      const re = withDrivewayCost(ctx, { ...scored, ...sp.b }, sp.dw);
-      expect(re.costIdx).toBe(sp.shown.costIdx);
-      expect(re.costTier).toBe(sp.shown.costTier);
-      expect(re.score).toBe(sp.shown.score);
-      const cost = Math.min(100, re.c.septic + re.c.foundation + re.c.rock + re.c.pad + re.c.driveway);
-      const overall = 0.7 * storedQuality(ctx, { ...scored, ...sp.b }) + 0.3 * (100 - cost);
-      const toHalf = (v: number) => Math.abs(v - (Math.floor(v) + 0.5));
-      const costRound = toHalf(cost),
-        costTier = Math.min(...[20, 40, 65].map((t) => Math.abs(cost - t))),
-        overallRound = toHalf(overall);
-      margins.push(
-        `${slug}${withHouse ? " (house run)" : ""} ${sp.name}: cost ${cost.toFixed(4)} → idx ${re.costIdx} ${re.costTier}; ` +
-          `to .5 ${costRound.toFixed(4)}, to tier edge ${costTier.toFixed(3)}; overall ${overall.toFixed(4)} → ${re.score}, to .5 ${overallRound.toFixed(4)}`,
+  ] as const)(
+    "%s (house: %s): every boundary is far beyond the drift",
+    async (slug, withHouse) => {
+      const fx = loadFixture(slug);
+      const out = await run(slug, withHouse ? { house: fx.input.house!.ll } : {});
+      const s = out.session;
+      const ctx: ScoreContext = {
+        dFine: s.dFine!,
+        dWide: s.dWide!,
+        valleyFloorFt: s.valleyFloorFt!,
+        skyScore: out.result.sky?.score,
+        roads: s.roads ?? null,
+        sfha: s.sfha ?? null,
+        units: s.units ?? null,
+        rows: s.rows ?? null,
+        limits: s.limits ?? null,
+        cfg: CFG,
+      };
+      // Since A3 every ranked site is re-costed from its routed driveway (and the house from the route to it):
+      // rebuild each the way the pipeline does, then measure the same margins on those numbers.
+      const sites = out.result.sites ?? [];
+      const routed = siteDriveways(
+        routeContext(s),
+        s.roads ?? [],
+        s.parcel,
+        sites.map((x) => x.ll),
+        CFG.roadMaxGradePct,
       );
-      // The drift in cost moves overall by 0.3× as much. Demand at least 30× headroom everywhere.
-      expect(costRound).toBeGreaterThan(30 * MAX_COST_DRIFT);
-      expect(costTier).toBeGreaterThan(30 * MAX_COST_DRIFT);
-      expect(overallRound).toBeGreaterThan(30 * 0.3 * MAX_COST_DRIFT);
-    }
-  });
+      const h0 = out.result.house;
+      const toHouse: SiteDriveway | null =
+        h0 && !("outside" in h0)
+          ? chooseDriveway(
+              siteDriveways(routeContext(s), s.roads ?? [], s.parcel, [h0.ll], CFG.roadMaxGradePct)[0]!,
+            )
+          : null;
+      const spots = sites.map((x, i) => ({
+        name: `site #${x.rank}`,
+        ll: x.ll,
+        b: {
+          acres: x.acres,
+          elevFt: x.elevFt,
+          aspectDeg: x.aspectDeg,
+          slopeDeg: x.slopeDeg,
+          compact: x.compact,
+        },
+        shown: x,
+        dw: chooseDriveway(routed[i]!),
+      }));
+      const h = out.result.house;
+      if (h && !("outside" in h))
+        spots.push({
+          name: "house",
+          ll: h.ll,
+          b: {
+            acres: h.benchAcres ?? 0.25,
+            elevFt: h.elevFt!,
+            aspectDeg: h.aspectDeg!,
+            slopeDeg: h.slopeDeg!,
+            compact: undefined,
+          },
+          shown: h as never,
+          dw: toHouse!,
+        });
+      for (const sp of spots) {
+        const { scored } = scoreSiteDetailed(ctx, sp.ll, {
+          ...sp.b,
+          soil: soilAt(ctx.units, ctx.rows, sp.ll),
+        });
+        const re = withDrivewayCost(ctx, { ...scored, ...sp.b }, sp.dw);
+        expect(re.costIdx).toBe(sp.shown.costIdx);
+        expect(re.costTier).toBe(sp.shown.costTier);
+        expect(re.score).toBe(sp.shown.score);
+        const cost = Math.min(100, re.c.septic + re.c.foundation + re.c.rock + re.c.pad + re.c.driveway);
+        const overall = 0.7 * storedQuality(ctx, { ...scored, ...sp.b }) + 0.3 * (100 - cost);
+        const toHalf = (v: number) => Math.abs(v - (Math.floor(v) + 0.5));
+        const costRound = toHalf(cost),
+          costTier = Math.min(...[20, 40, 65].map((t) => Math.abs(cost - t))),
+          overallRound = toHalf(overall);
+        margins.push(
+          `${slug}${withHouse ? " (house run)" : ""} ${sp.name}: cost ${cost.toFixed(4)} → idx ${re.costIdx} ${re.costTier}; ` +
+            `to .5 ${costRound.toFixed(4)}, to tier edge ${costTier.toFixed(3)}; overall ${overall.toFixed(4)} → ${re.score}, to .5 ${overallRound.toFixed(4)}`,
+        );
+        // The drift in cost moves overall by 0.3× as much. Demand at least 30× headroom everywhere.
+        expect(costRound).toBeGreaterThan(30 * MAX_COST_DRIFT);
+        expect(costTier).toBeGreaterThan(30 * MAX_COST_DRIFT);
+        expect(overallRound).toBeGreaterThan(30 * 0.3 * MAX_COST_DRIFT);
+      }
+    },
+    120_000,
+  ); // every site routed twice (the pipeline, then here): slow on a loaded CI runner
 
   it("prints the margins (for the PR)", () => {
     console.log("ROUNDING MARGINS\n" + margins.join("\n"));
@@ -187,7 +191,10 @@ describe("orchestration", () => {
       "rank",
       "driveway",
     ];
-    expect(events.map((e) => `${e.step}:${e.status}`)).toEqual(
+    // The driveway step also counts its route searches while it runs (A4b PR B): those repeat its "run".
+    const counts = events.filter((e) => e.step === "driveway" && e.status === "run" && e.message);
+    expect(counts.length).toBeGreaterThan(0);
+    expect(events.filter((e) => !counts.includes(e)).map((e) => `${e.step}:${e.status}`)).toEqual(
       steps.flatMap((k) => [`${k}:run`, `${k}:done`]),
     );
     const done = events.filter((e) => e.status === "done");

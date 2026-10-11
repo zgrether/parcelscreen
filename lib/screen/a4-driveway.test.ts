@@ -107,7 +107,7 @@ describe("the scored route: the candidate with fewer points (A4)", () => {
 });
 
 describe("Grayson's sites, scored on the route kept to the parcel (A4)", () => {
-  it("each site's on-parcel candidate is leastSteep's route, and it is the one scored", async () => {
+  it("each site's on-parcel candidate is leastSteep's route, and the one with fewer points is scored", async () => {
     const { result, session: s } = await runFixture("grayson-mud-creek-6273");
     const ctx = routeContext(s);
     const limit = s.config.roadMaxGradePct;
@@ -125,16 +125,19 @@ describe("Grayson's sites, scored on the route kept to the parcel (A4)", () => {
       expect(r.withinLimit?.route?.needsEasement).toBe(true);
       expect(r.onParcel?.legal).toBe(false);
       expect(r.onParcel!.route).toEqual(leastSteep(ctx, ent, site.ll, limit));
-      expect(chooseDriveway(r)).toBe(r.onParcel);
-      expect(site.c.driveway).toBeCloseTo(drivewayPoints(r.onParcel!), 9);
-      expect(site.driveFt).toBe(r.onParcel!.route!.metrics.lengthFt);
+      // Kept to the parcel everywhere but the 0.24 ac shelf: its route through the neighbours is 1,000 ft shorter
+      // (A4b PR B; before, every site was scored on the parcel).
+      const scored = site.acres < 0.3 ? r.withinLimit! : r.onParcel!;
+      expect(chooseDriveway(r)).toBe(scored);
+      expect(site.c.driveway).toBeCloseTo(drivewayPoints(scored), 9);
+      expect(site.driveFt).toBe(scored.route!.metrics.lengthFt);
       expect(site.why.slice(-2)).toEqual(drivewayChoiceLines(r, limit));
     });
-    // The 1.28 ac site (#1 at engine 7; A4b's 30 m grades swap it with the 0.24 ac shelf, tied before): 11% and
-    // 4,228 ft on the parcel, against 5,176 ft within 10% through the neighbours.
+    // The 1.28 ac site: 11% and 5,940 ft on the parcel, against 6,233 ft within 10% through the neighbours (A4b PR B;
+    // 4,228 and 5,176 ft before, the router's zigzags and steps over banks now gone).
     expect(sites.find((x) => x.acres > 1.2 && x.acres < 1.3)!.why.slice(-2)).toEqual([
-      "Best on your land: 11%, 4228 ft",
-      "Within 10% only via neighbouring land (needs an easement): 5176 ft",
+      "Best on your land: 11%, 5940 ft",
+      "Within 10% only via neighbouring land (needs an easement): 6233 ft",
     ]);
   }, 120_000);
 });

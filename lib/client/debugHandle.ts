@@ -12,13 +12,28 @@ export interface DebugHandle {
   readonly posted: Readonly<PartialScreenResult> | null;
 }
 
-const debugOn = (): boolean => {
+/** Debug mode (localStorage `ps.debug` = "1"): the headless checks' handles, and the step times in the panel. */
+export const debugOn = (): boolean => {
   try {
     return localStorage.getItem("ps.debug") === "1";
   } catch {
     return false; // storage blocked: no handle
   }
 };
+
+/**
+ * `?debug=1` turns debug mode on and `?debug=0` off (A4b PR B: the owner times the driveway step on a phone, where
+ * localStorage can't be set by hand). Kept until changed.
+ */
+export function debugFromUrl(search: string): void {
+  const v = new URLSearchParams(search).get("debug");
+  try {
+    if (v === "1") localStorage.setItem("ps.debug", "1");
+    else if (v === "0") localStorage.removeItem("ps.debug");
+  } catch {
+    /* storage blocked: debug mode stays as it was */
+  }
+}
 
 /** Freezes an object and everything under it. */
 export function deepFreeze<T>(v: T): T {

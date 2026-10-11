@@ -32,7 +32,7 @@ import { fmt } from "@/lib/format";
 import { verdictView } from "@/lib/report/verdict";
 import { STEPS } from "@/lib/screen/config";
 import { summaryText } from "@/lib/screen/summary";
-import { publishPosted } from "@/lib/client/debugHandle";
+import { debugOn, publishPosted } from "@/lib/client/debugHandle";
 import { SessionLru } from "@/lib/client/sessionLru";
 import { evaluatedNote } from "@/lib/render/pins";
 import type { LatLon } from "@/lib/geo/types";
@@ -419,6 +419,8 @@ function Chevron({ up }: { up: boolean }) {
 /** The panel's body: the run's steps, whether the results still fit, and the report. */
 export function ScreenBody({ s }: { s: ScreenIt }) {
   const { display, point, shown } = s;
+  const now = s.runningHere ? STEPS.find(([id]) => s.steps[id]?.status === "run") : undefined;
+  const running = now ? { step: now[0], message: s.steps[now[0]]!.message } : undefined;
   const notes = !s.runningHere && shown;
   if (!s.showSteps && !s.error && !notes && !display) return null;
   return (
@@ -451,7 +453,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
       {display && (
         <div className={s.stale && !s.runningHere ? "report stale" : "report"}>
           {REPORT.map(({ Block, heading }) => {
-            const body = Block({ result: display, point, variant: "panel" });
+            const body = Block({ result: display, point, variant: "panel", running });
             if (body === null) return null;
             const h = heading(display, point);
             return (
@@ -471,6 +473,8 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
 
 /** The run's steps (proto renderSteps, L991): a dot per step, with its message and the query link. */
 function StepList({ steps }: { steps: ReturnType<typeof useScreen>["state"]["steps"] }) {
+  // Debug mode: how long each step took, as the page saw it (A4b PR B: the owner's phone timings).
+  const timed = debugOn();
   return (
     <ul className="steps">
       {STEPS.map(([id, label]) => {
@@ -481,6 +485,9 @@ function StepList({ steps }: { steps: ReturnType<typeof useScreen>["state"]["ste
             <span>
               {label}
               {st?.message && <span className="muted"> — {st.message}</span>}
+              {timed && st?.ms !== undefined && (
+                <span className="muted tiny step-ms"> · {(st.ms / 1000).toFixed(1)} s</span>
+              )}
               {st?.link && (
                 <>
                   {" "}

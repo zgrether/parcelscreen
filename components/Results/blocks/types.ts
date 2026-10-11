@@ -3,7 +3,7 @@
  * context, no browser APIs, no explorer or map state (ESLint enforces it for this folder). So the same block
  * renders in the explorer's panel, on the Phase 1 parcel page, and on the server for its PDF.
  */
-import type { PartialScreenResult, ScreenResult } from "@/lib/screen/types";
+import type { PartialScreenResult, ScreenResult, Step } from "@/lib/screen/types";
 import type { LatLon } from "@/lib/screen/util";
 import type { EvaluationPoint } from "@/lib/report/point";
 
@@ -23,6 +23,8 @@ export interface BlockProps {
   variant: Variant;
   /** Panel-only callbacks. Absent on the parcel page and in print, and then no control renders. */
   actions?: BlockActions;
+  /** While a run is in progress (panel only): the step running now, and its progress message if it sends one. */
+  running?: { step: Step; message?: string };
 }
 
 export interface BlockActions {
