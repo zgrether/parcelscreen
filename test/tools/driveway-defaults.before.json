@@ -1,0 +1,385 @@
+{
+  "engine": 12,
+  "ferney-creek-52-47A": [
+    {
+      "rank": 1,
+      "ll": [36.88740048600613, -80.45454876255718],
+      "acres": 18.77,
+      "score": 83,
+      "drivewayPts": 8.03,
+      "driveFt": 478,
+      "chosen": {
+        "lengthFt": 478,
+        "costMid": 28824,
+        "switchbacks": 0,
+        "maxGradePct": 5.2,
+        "needsEasement": false,
+        "legal": true
+      },
+      "practical": null
+    },
+    {
+      "rank": 2,
+      "ll": [36.88930690897446, -80.45241839939978],
+      "acres": 6.06,
+      "score": 79,
+      "drivewayPts": 15.18,
+      "driveFt": 2460,
+      "chosen": {
+        "lengthFt": 2460,
+        "costMid": 88005,
+        "switchbacks": 2,
+        "maxGradePct": 11.7,
+        "needsEasement": false,
+        "legal": true
+      },
+      "practical": null
+    },
+    {
+      "rank": 3,
+      "ll": [36.88744596568919, -80.45270048371572],
+      "acres": 2.11,
+      "score": 70,
+      "drivewayPts": 11.99,
+      "driveFt": 1447,
+      "chosen": {
+        "lengthFt": 1447,
+        "costMid": 55783,
+        "switchbacks": 1,
+        "maxGradePct": 10.7,
+        "needsEasement": false,
+        "legal": true
+      },
+      "practical": null
+    },
+    {
+      "rank": 4,
+      "ll": [36.887678220595696, -80.4562603506132],
+      "acres": 1.12,
+      "score": 70,
+      "drivewayPts": 8.12,
+      "driveFt": 439,
+      "chosen": {
+        "lengthFt": 439,
+        "costMid": 29274,
+        "switchbacks": 1,
+        "maxGradePct": 9,
+        "needsEasement": false,
+        "legal": true
+      },
+      "practical": null
+    },
+    {
+      "rank": 5,
+      "ll": [36.88825282291574, -80.45208993243159],
+      "acres": 0.37,
+      "score": 69,
+      "drivewayPts": 13.01,
+      "driveFt": 1643,
+      "chosen": {
+        "lengthFt": 1643,
+        "costMid": 64912,
+        "switchbacks": 2,
+        "maxGradePct": 10,
+        "needsEasement": false,
+        "legal": true
+      },
+      "practical": null
+    }
+  ],
+  "macks-mountain-35-3": [
+    {
+      "rank": 1,
+      "ll": [36.93492231785876, -80.63138552593298],
+      "acres": 9.61,
+      "score": 66,
+      "drivewayPts": 10.8,
+      "driveFt": 1116,
+      "chosen": {
+        "lengthFt": 1116,
+        "costMid": 46369,
+        "switchbacks": 0,
+        "maxGradePct": 5.4,
+        "needsEasement": false,
+        "legal": true
+      },
+      "practical": null
+    },
+    {
+      "rank": 2,
+      "ll": [36.931413543713816, -80.62352987730311],
+      "acres": 1.02,
+      "score": 65,
+      "drivewayPts": 20.13,
+      "driveFt": 4658,
+      "chosen": {
+        "lengthFt": 4658,
+        "costMid": 167323,
+        "switchbacks": 5,
+        "maxGradePct": 10,
+        "needsEasement": false,
+        "legal": true
+      },
+      "practical": null
+    },
+    {
+      "rank": 3,
+      "ll": [36.93226805833039, -80.6290096026646],
+      "acres": 9.56,
+      "score": 64,
+      "drivewayPts": 14.37,
+      "driveFt": 2221,
+      "chosen": {
+        "lengthFt": 2221,
+        "costMid": 78731,
+        "switchbacks": 1,
+        "maxGradePct": 10,
+        "needsEasement": false,
+        "legal": true
+      },
+      "practical": null
+    },
+    {
+      "rank": 4,
+      "ll": [36.92960728266237, -80.62458167921368],
+      "acres": 0.73,
+      "score": 61,
+      "drivewayPts": 24.85,
+      "driveFt": 4096,
+      "chosen": {
+        "lengthFt": 6020,
+        "costMid": 242963,
+        "switchbacks": 6,
+        "maxGradePct": 12.9,
+        "needsEasement": false,
+        "legal": true
+      },
+      "practical": {
+        "scoredOn": "steeper",
+        "costMid": 242963
+      }
+    },
+    {
+      "rank": 5,
+      "ll": [36.93551242288582, -80.63007052275822],
+      "acres": 2.81,
+      "score": 57,
+      "drivewayPts": 9.44,
+      "driveFt": 732,
+      "chosen": {
+        "lengthFt": 732,
+        "costMid": 37096,
+        "switchbacks": 0,
+        "maxGradePct": 9.6,
+        "needsEasement": false,
+        "legal": true
+      },
+      "practical": null
+    },
+    {
+      "rank": 6,
+      "ll": [36.93230719206714, -80.63291208817841],
+      "acres": 2.61,
+      "score": 54,
+      "drivewayPts": 10.83,
+      "driveFt": 769,
+      "chosen": {
+        "lengthFt": 769,
+        "costMid": 46630,
+        "switchbacks": 2,
+        "maxGradePct": 11,
+        "needsEasement": false,
+        "legal": true
+      },
+      "practical": null
+    },
+    {
+      "rank": 7,
+      "ll": [36.93399322762453, -80.62792461764181],
+      "acres": 0.7,
+      "score": 53,
+      "drivewayPts": 18.57,
+      "driveFt": 3177,
+      "chosen": {
+        "lengthFt": 3177,
+        "costMid": 137510,
+        "switchbacks": 7,
+        "maxGradePct": 12.1,
+        "needsEasement": false,
+        "legal": true
+      },
+      "practical": null
+    },
+    {
+      "rank": 8,
+      "ll": [36.932642070362704, -80.62769567806754],
+      "acres": 4.65,
+      "score": 52,
+      "drivewayPts": 15.28,
+      "driveFt": 2657,
+      "chosen": {
+        "lengthFt": 2657,
+        "costMid": 89285,
+        "switchbacks": 1,
+        "maxGradePct": 10,
+        "needsEasement": false,
+        "legal": true
+      },
+      "practical": null
+    }
+  ],
+  "grayson-mud-creek-6273": [
+    {
+      "rank": 1,
+      "ll": [36.586323449527896, -81.56041493428297],
+      "acres": 1.28,
+      "score": 65,
+      "drivewayPts": 25.09,
+      "driveFt": 2888,
+      "chosen": {
+        "lengthFt": 5940,
+        "costMid": 375249,
+        "switchbacks": 12,
+        "maxGradePct": 15,
+        "needsEasement": false,
+        "legal": false
+      },
+      "practical": {
+        "scoredOn": "steeper",
+        "costMid": 375249
+      }
+    },
+    {
+      "rank": 2,
+      "ll": [36.58407208487061, -81.5622414606661],
+      "acres": 0.24,
+      "score": 63,
+      "drivewayPts": 23.71,
+      "driveFt": 2608,
+      "chosen": {
+        "lengthFt": 2608,
+        "costMid": 129338,
+        "switchbacks": 3,
+        "maxGradePct": 15.2,
+        "needsEasement": false,
+        "legal": false
+      },
+      "practical": null
+    },
+    {
+      "rank": 3,
+      "ll": [36.58586000518554, -81.56128274645842],
+      "acres": 0.46,
+      "score": 60,
+      "drivewayPts": 24.9,
+      "driveFt": 2578,
+      "chosen": {
+        "lengthFt": 5841,
+        "costMid": 371549,
+        "switchbacks": 11,
+        "maxGradePct": 15,
+        "needsEasement": false,
+        "legal": false
+      },
+      "practical": {
+        "scoredOn": "steeper",
+        "costMid": 371549
+      }
+    },
+    {
+      "rank": 4,
+      "ll": [36.58656584463148, -81.56058421941316],
+      "acres": 0.63,
+      "score": 56,
+      "drivewayPts": 24.89,
+      "driveFt": 2845,
+      "chosen": {
+        "lengthFt": 5894,
+        "costMid": 382648,
+        "switchbacks": 12,
+        "maxGradePct": 15,
+        "needsEasement": false,
+        "legal": false
+      },
+      "practical": {
+        "scoredOn": "steeper",
+        "costMid": 382648
+      }
+    }
+  ],
+  "target": {
+    "ferney-creek-52-47A": {
+      "toLabel": "site #1",
+      "overLimit": null,
+      "routes": [
+        {
+          "lengthFt": 478,
+          "costMid": 28824,
+          "switchbacks": 0,
+          "maxGradePct": 5.2,
+          "needsEasement": false,
+          "label": "shortest legal"
+        },
+        {
+          "lengthFt": 525,
+          "costMid": 29726,
+          "switchbacks": 0,
+          "maxGradePct": 3.8,
+          "needsEasement": false,
+          "label": "gentlest"
+        }
+      ]
+    },
+    "macks-mountain-35-3": {
+      "toLabel": "site #1",
+      "overLimit": null,
+      "routes": [
+        {
+          "lengthFt": 1116,
+          "costMid": 46369,
+          "switchbacks": 0,
+          "maxGradePct": 5.4,
+          "needsEasement": false,
+          "label": "shortest legal"
+        },
+        {
+          "lengthFt": 1163,
+          "costMid": 47340,
+          "switchbacks": 0,
+          "maxGradePct": 4.4,
+          "needsEasement": false,
+          "label": "gentlest"
+        }
+      ]
+    },
+    "grayson-mud-creek-6273": {
+      "toLabel": "site #1",
+      "overLimit": {
+        "lengthFt": 5940,
+        "costMid": 375249,
+        "switchbacks": 12,
+        "maxGradePct": 15,
+        "needsEasement": false,
+        "label": "least steep"
+      },
+      "routes": [
+        {
+          "lengthFt": 6261,
+          "costMid": 325312,
+          "switchbacks": 14,
+          "maxGradePct": 13.2,
+          "needsEasement": true,
+          "label": "shortest legal"
+        },
+        {
+          "lengthFt": 6484,
+          "costMid": 330400,
+          "switchbacks": 14,
+          "maxGradePct": 13.4,
+          "needsEasement": true,
+          "label": "shortest legal"
+        }
+      ]
+    }
+  }
+}

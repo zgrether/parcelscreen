@@ -1,7 +1,7 @@
 /** The Driveway section (proto L1515–1532): entrances, routed alignments with costs, the pioneer track. */
 import { fmt } from "../format";
 import { SCREEN_CONSTANTS } from "../screen/config";
-import { gradeOver, reliefCulverts } from "../screen/driveway";
+import { gradeOver, overLimitSpans, reliefCulverts } from "../screen/driveway";
 import { NEEDS_EASEMENT, routeLabel } from "../screen/routeLabel";
 import { impracticalLine } from "../screen/score";
 import type { PartialScreenResult } from "../screen/types";
@@ -138,6 +138,11 @@ function routeView(rt: Route, i: number, overLimitPct: number | null = null): Ro
     // Owner, #99 decisions (2026-10-11): cross-drains along the road, by its grade; priced at the culvert rate.
     { label: "Relief culverts", value: `${reliefCulverts(rt.profile)} (one every 150–400 ft, by grade)` },
   ];
+  // Owner, #103 decisions (2026-10-11): the length steeper than paveAbovePct is paved; no rate until follow-up 47.
+  const pavedFt =
+    overLimitSpans(rt.profile, DW.paveAbovePct / 100).reduce((t, [a, b]) => t + (b - a), 0) * M2FT;
+  if (pavedFt >= 1)
+    rows.push({ label: `Paving (over ${DW.paveAbovePct}%)`, value: `~${fmt(pavedFt)} ft (cost TBD)` });
   if (rt.needsEasement)
     rows.push({
       label: "Leaves the boundary",

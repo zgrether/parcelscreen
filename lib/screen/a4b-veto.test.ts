@@ -91,10 +91,14 @@ describe("the veto (driveway.vetoGradePct, Settings)", () => {
     // Without the veto the steep route wins on points (its +20 against the easement's +10 and a far higher cost)…
     expect(drivewayPoints(steep)).toBeLessThan(drivewayPoints(gentle));
     expect(chooseDriveway(r)).toBe(steep);
-    // …and with it, it can't be chosen.
-    const chosen = chooseDriveway(r, DEFAULT_USER_CONFIG.roadVetoGradePct);
+    // …and with a 20% veto (the default until #103's decisions), it can't be chosen.
+    const chosen = chooseDriveway(r, 20);
     expect(chosen).toBe(gentle);
     expect(chosen.noPractical).toBeUndefined();
+    // The 25% default allows it: the ~22% ground grade is under it.
+    expect(DEFAULT_USER_CONFIG.roadVetoGradePct).toBe(25);
+    expect(grade30(steep)).toBeLessThan(25);
+    expect(chooseDriveway(r, DEFAULT_USER_CONFIG.roadVetoGradePct)).toBe(steep);
   });
 
   it("when every candidate is vetoed, the least steep is shown, flagged", () => {

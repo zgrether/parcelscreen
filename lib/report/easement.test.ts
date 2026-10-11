@@ -11,6 +11,7 @@ import { routedLine } from "@/lib/screen/score";
 import type { ScreenResult } from "@/lib/screen/types";
 import { FIXTURE_SLUGS } from "@/test/support/fixtures";
 import { expectedPath } from "@/test/support/expected";
+import { RULES_AT_10, runScenario } from "@/test/support/scenarios";
 
 const run = (slug: string): ScreenResult =>
   (JSON.parse(readFileSync(expectedPath(slug as never), "utf8")) as { run: ScreenResult }).run;
@@ -39,8 +40,9 @@ describe("routes that need an easement say so (owner, #87)", () => {
 
   // Since A4 the site is scored on its route kept to the parcel (lib/screen/a4-driveway.test.ts); the driveway card
   // and the routed line still describe the route within the limit, which crosses neighbouring land.
-  it("Grayson's #1 is the case: its driveway card's route crosses neighbouring land", () => {
-    const r = run("grayson-mud-creek-6273");
+  it("Grayson's #1 at 10% is the case: its driveway card's route crosses neighbouring land", async () => {
+    // Written under the 10% limit (RULES_AT_10): at the 15% default #1's route stays on the parcel.
+    const r = await runScenario("grayson-mud-creek-6273", "run", undefined, RULES_AT_10);
     expect(r.driveway!.routes[0]!.needsEasement).toBe(true);
     // Since #88's follow-up the scored route kept to the parcel comes first, and this route is the alternative
     // titled in the owner's words (an approved replacement of "Recommended — shortest legal — needs an easement").
@@ -50,7 +52,7 @@ describe("routes that need an easement say so (owner, #87)", () => {
     expect(r.sites![0]!.why.find((w) => w.startsWith("routed driveway"))).toMatch(
       /^routed driveway: .*, needs an easement$/,
     );
-  });
+  }, 120_000);
 
   it("the label and the line, for any route", () => {
     expect(routeLabel({ label: "shortest legal", needsEasement: true })).toBe(

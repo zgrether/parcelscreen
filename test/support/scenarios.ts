@@ -8,7 +8,7 @@ import { pickParcelAt } from "@/lib/geo/parcels";
 import { deriveParcel } from "@/lib/geo/recipe";
 import { DEFAULT_ENDPOINTS, DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { evaluateAt, screen, setHouse, type ScreenDeps, type ScreenOutput } from "@/lib/screen";
-import type { ScreenInput, ScreenResult } from "@/lib/screen/types";
+import type { ScreenInput, ScreenResult, UserConfig } from "@/lib/screen/types";
 import { FIXTURE_SLUGS, loadFixture, type FixtureGoldens, type FixtureSlug } from "./fixtures";
 import { instantClock } from "./pipeline";
 
@@ -90,26 +90,35 @@ export async function runScenario(
   slug: FixtureSlug,
   scenario: Scenario,
   deps: () => ScreenDeps = () => depsFor(slug),
+  config?: UserConfig,
 ): Promise<ScreenResult> {
   const input = loadFixture(slug).input;
+  const extra = config ? { config } : {};
   switch (scenario) {
     case "run":
-      return (await runFixture(slug, {}, deps())).result;
+      return (await runFixture(slug, extra, deps())).result;
     case "evaluateSite2": {
       // The prototype's recorded site #2 point, labelled as the app labels the pin there now: since A3's
       // re-ranking the same bench can hold another rank (Macks's 9.6 ac bench is #1). The browser test taps
       // that same pin (e2e/screen.spec.ts).
       const at = input.evaluateSite2;
       if (!at) throw new Error(`${slug} has no evaluateSite2 point`);
-      const out = await runFixture(slug, {}, deps());
+      const out = await runFixture(slug, extra, deps());
       return (await evaluateAt(out, at.ll, sitePinLabel(out.result, at.ll) ?? at.label)).result;
     }
     case "setHouse":
-      return (await setHouse(await runFixture(slug, {}, deps()), houseOf(slug))).result;
+      return (await setHouse(await runFixture(slug, extra, deps()), houseOf(slug))).result;
     case "houseRun":
-      return (await runFixture(slug, { house: houseOf(slug) }, deps())).result;
+      return (await runFixture(slug, { ...extra, house: houseOf(slug) }, deps())).result;
   }
 }
+
+/**
+ * The rules most driveway tests were written under: a 10% grade limit and a 20% veto. The defaults are 15% and 25%
+ * since #103's decisions (2026-10-11); at 15% Grayson's #1 is reached on its own land within the limit, so the
+ * over-limit, easement and "no practical drive" cases the fixtures exercise appear only at 10%.
+ */
+export const RULES_AT_10: UserConfig = { ...DEFAULT_USER_CONFIG, roadMaxGradePct: 10, roadVetoGradePct: 20 };
 
 /** "site #N" for the ranked site at this point, as the map's pin there is labelled; undefined if none is. */
 export function sitePinLabel(result: ScreenResult, ll: readonly [number, number]): string | undefined {

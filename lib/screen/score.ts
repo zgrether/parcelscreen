@@ -224,7 +224,7 @@ export function practicalOutcome(
     const r = d?.route;
     if (!r) return null;
     const pavedFt = paved
-      ? overLimitSpans(r.profile, D.pavedOverPct / 100).reduce((t, [a, b]) => t + (b - a), 0) * M2FT
+      ? overLimitSpans(r.profile, D.paveAbovePct / 100).reduce((t, [a, b]) => t + (b - a), 0) * M2FT
       : 0;
     return { lengthFt: r.metrics.lengthFt, switchbacks: r.metrics.switchbacks, cost: r.cost, pavedFt };
   };
@@ -274,7 +274,9 @@ export function impracticalLine(p: Practical): string {
     );
   if (!s && !e)
     lines.push(
-      `No route at ${p.steeperPct}% on your land, or within ${fmt(p.limitPct)}% through the neighbours, was found.`,
+      p.steeperPct > p.limitPct
+        ? `No route at ${p.steeperPct}% on your land, or within ${fmt(p.limitPct)}% through the neighbours, was found.`
+        : `No route within ${fmt(p.limitPct)}% through the neighbours was found.`,
     );
   return lines.join(" ");
 }

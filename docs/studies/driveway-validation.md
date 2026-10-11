@@ -59,33 +59,34 @@ Today's unit rates (Settings), the corrected quantities (#100); a real road's sw
 
 ## 5. The neighbour parcel, screened
 
-The neighbour parcel, Ashe County NC (the owner's 4.90 ac screen), PINs 082044716014 + 082044800946: 4.9 ac, verdict marginal. Sites: #1 0.31 ac, score 67, 225 ft of driveway; #2 0.19 ac, score 65, 3,909 ft of driveway.
+The neighbour parcel, Ashe County NC (the owner's 4.90 ac screen), PINs 082044716014 + 082044800946: 4.9 ac, verdict marginal. Sites: #1 0.19 ac, score 71, 811 ft of driveway; #2 0.31 ac, score 67, 204 ft of driveway.
 
-The screen's site #1 is 81 ft from the end of C (the pad), and its driveway comes from E1 (road), 205 ft from the pad, not up C from Mud Creek Rd: the Census roads include one at the top of this parcel. The card as it reads:
+The screen's site #1 is 618 ft from the end of C (the pad), and its driveway comes from E1 (road), 205 ft from the pad, not up C from Mud Creek Rd: the Census roads include one at the top of this parcel. The card as it reads:
 
 > Entrance candidates on the frontage (E1 best): E1 road — road 4%, bend 2°, bank 0 ft; E2 Mud Creek Rd — road 3%, bend 22°, bank 10 ft; E3 Mud Creek Rd — road 3%, bend 13°, bank 14 ft.
 >
-> **Recommended — shortest legal — needs an easement** from E1 · $18–33k
-> - Length / rise: 225 ft / 11 ft
-> - Grade over 30 m / average: 8.3% / 5.2% (limit 10%)
-> - Switchbacks: 0
-> - Earthwork: 19 yd³
-> - Stone: 69 tons (12 ft × 6 in)
-> - Clearing corridor: 0.12 ac
+> **Recommended — shortest legal** from E2 · $37–69k
+> - Length / rise: 811 ft / 65 ft
+> - Grade over 30 m / average: 16.2% / 9.5% (limit 15%)
+> - Switchbacks: 2
+> - Earthwork: 1,007 yd³
+> - Stone: 248 tons (12 ft × 6 in)
+> - Clearing corridor: 0.45 ac
 > - Culverts: 1 (entrance + 0 drainage crossings)
-> - Relief culverts: 1 (one every 150–400 ft, by grade)
-> - Leaves the boundary:  **118 ft outside the line — needs an easement**
+> - Relief culverts: 3 (one every 150–400 ft, by grade)
+> - Paving (over 12%): ~325 ft (cost TBD)
 >
-> **Alternative — gentlest — needs an easement** from E1 · $19–35k
-> - Length / rise: 246 ft / 17 ft
-> - Grade over 30 m / average: 8.0% / 6.8% (limit 8%)
-> - Switchbacks: 1
-> - Earthwork: 175 yd³
-> - Stone: 75 tons (12 ft × 6 in)
-> - Clearing corridor: 0.14 ac
+> **Alternative — shortest legal — needs an easement** from E1 · $63–117k
+> - Length / rise: 1,650 ft / 145 ft
+> - Grade over 30 m / average: 14.9% / 11.3% (limit 15%)
+> - Switchbacks: 5
+> - Earthwork: 1,903 yd³
+> - Stone: 505 tons (12 ft × 6 in)
+> - Clearing corridor: 0.91 ac
 > - Culverts: 1 (entrance + 0 drainage crossings)
-> - Relief culverts: 1 (one every 150–400 ft, by grade)
-> - Leaves the boundary:  **157 ft outside the line — needs an easement**
+> - Relief culverts: 7 (one every 150–400 ft, by grade)
+> - Paving (over 12%): ~1,014 ft (cost TBD)
+> - Leaves the boundary:  **295 ft outside the line — needs an easement**
 >
 
 ## 6. Conclusions
@@ -114,3 +115,17 @@ The screen's site #1 is 81 ft from the end of C (the pad), and its driveway come
 3. **Landings: fewer and cheaper.** Raise the landing's search cost (30 m now) so a ladder of short legs loses to a longer, steadier line, and price a landing as a half bench like the ordinary road rather than a full-width cut or fill up to 3 m. A+B has legs as short as 59 ft (an S-curve), so the 100 ft minimum leg is not the constraint; the number of landings is.
 4. **The veto at 20% on ground grade** would reject the neighbour's real drive. Either read it on the road's grade (follow-up 48) or raise it to about 25% until then.
 5. **Relief culverts:** keep the count, but price them with the quote's small-pipe rate.
+
+## 7. At the new defaults (15% limit, 25% veto; engine 13)
+
+The router is unchanged, so its routes at the default are the 15% rows above; what changed is the default, the veto, and that every card now shows its length over the paving grade.
+
+| Road | The real road | The router at 15% | Landings' share of its cost | The real road's steepest 30 m, at the 25% veto |
+|---|---|---|---|---|
+| C | 872 ft, 1 switchback, ~650 ft over 12% | 1,720 ft, 6 landings, ~1,102 ft over 12%, $100k | 23% | 41.0% (vetoed) |
+| A+B | 2,290 ft, 5 switchbacks, ~1,919 ft over 12% | 2,608 ft, 6 landings, ~2,047 ft over 12%, $162k | 35% | 34.5% (vetoed) |
+
+- **Ladders:** yes, still: C's route at 15% has 6 landings where the real road has 1 switchback. On A+B the router is close (6 landings against 5 switchbacks).
+- **Landing share:** 23% of C's route and 35% of A+B's, both under the owner's ~40% threshold.
+- **The veto:** both real roads still exceed 25% over 30 m on the ground (C 41.0%, A+B 34.5%); the gap between ground and road grade is follow-up 48's.
+- **The owner's rule** (#103 decisions): the router still builds ladders, so landing and pitch changes are proposed as a follow-up (in the PR).

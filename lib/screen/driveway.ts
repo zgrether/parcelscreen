@@ -908,8 +908,9 @@ export function practicalAlternatives(
   routing: RoutingOpts = {},
 ): PracticalAlternatives[] {
   const ent = entranceCandidates(roads, parcel, ctx.dFine).entrances.slice(0, K.entrancesRouted);
+  // The steeper alternative only when the limit is below it (#103 decisions: none at the 15% default).
   const steeper =
-    ent.length && toLLs.length
+    ent.length && toLLs.length && K.practicalMaxPct > roadMaxGradePct
       ? cheapestFrom(ctx, ent, toLLs, styles(K.practicalMaxPct).map(keptOpts), routing)
       : toLLs.map(() => null);
   return toLLs.map((_, i) => {

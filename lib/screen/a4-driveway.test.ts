@@ -4,7 +4,7 @@
  * the limit and the one kept to the parcel, with both shown on the site when they differ.
  */
 import { describe, expect, it } from "vitest";
-import { runFixture } from "../../test/support/scenarios";
+import { RULES_AT_10, runFixture } from "../../test/support/scenarios";
 import { SCREEN_CONSTANTS } from "./config";
 import {
   buildDriveway,
@@ -125,7 +125,8 @@ describe("the scored route: the candidate with fewer points (A4)", () => {
 
 describe("Grayson's sites, scored on the route kept to the parcel (A4)", () => {
   it("each site's on-parcel candidate is leastSteep's route, and the one with fewer points is scored", async () => {
-    const { result, session: s } = await runFixture("grayson-mud-creek-6273");
+    // Under the 10% limit and 20% veto these cases were written for (RULES_AT_10; the defaults are 15% / 25% now).
+    const { result, session: s } = await runFixture("grayson-mud-creek-6273", { config: RULES_AT_10 });
     const ctx = routeContext(s);
     const limit = s.config.roadMaxGradePct;
     const sites = result.sites!;
