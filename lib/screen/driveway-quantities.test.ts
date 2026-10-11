@@ -5,7 +5,14 @@
 import { describe, expect, it } from "vitest";
 import { runFixture } from "../../test/support/scenarios";
 import { SCREEN_CONSTANTS } from "./config";
-import { reliefCulverts, roadCut, type PracticalAlternatives, type SiteDriveway } from "./driveway";
+import {
+  practicalAlternatives,
+  reliefCulverts,
+  roadCut,
+  siteDriveways,
+  type PracticalAlternatives,
+  type SiteDriveway,
+} from "./driveway";
 import { routeContext } from "./index";
 import {
   drivewayPoints,
@@ -163,7 +170,25 @@ describe('"no practical drive"', () => {
     expect(impracticalLine(practicalOutcome(chosen, { steeper: null, easement: null }, 10, ready))).toMatch(
       /budget\. No route at 15% on your land, or within 10% through the neighbours, was found\.$/,
     );
+    // At a limit of practicalMaxPct or more there's no steeper alternative to look for (#103 decisions).
+    expect(impracticalLine(practicalOutcome(chosen, { steeper: null, easement: null }, 15, ready))).toMatch(
+      /budget\. No route within 15% through the neighbours was found\.$/,
+    );
   });
+
+  it("at the 15% default there's no steeper alternative: the rule offers the route through the neighbours (#103)", async () => {
+    expect(SCREEN_CONSTANTS.driveway.practicalMaxPct).toBe(15);
+    const { result, session: s } = await runFixture("grayson-mud-creek-6273");
+    expect(s.config.roadMaxGradePct).toBe(15);
+    const ctx = routeContext(s);
+    const lls = result.sites!.map((x) => x.ll);
+    const routes = siteDriveways(ctx, s.roads ?? [], s.parcel, lls, 15);
+    const at15 = practicalAlternatives(ctx, s.roads ?? [], s.parcel, lls, routes, 15);
+    expect(at15.every((a) => a.steeper === null)).toBe(true);
+    // Under a 10% limit it's still looked for.
+    const at10 = practicalAlternatives(ctx, s.roads ?? [], s.parcel, lls.slice(0, 1), routes.slice(0, 1), 10);
+    expect(at10[0]!.steeper?.designPct).toBe(15);
+  }, 120_000);
 });
 
 describe("geotextile only on bottomland and poorly drained soils (correction 4)", () => {

@@ -260,7 +260,11 @@ describe("a prototype export ({ cfg, saved[] }, L1605)", () => {
   it("its cfg (the real defaults, with _res3) converts and validates; old endpoints are replaced", () => {
     const p = plan(proto({ ...PROTO, _res3: true }));
     expect(p.kind).toBe("prototype");
-    expect(p.settings).toEqual({ config: DEFAULT_USER_CONFIG, changed: [] });
+    // The prototype's 10% grade limit is its own; the port's default is 15% (#103 decisions), so it reads as a change.
+    expect(p.settings).toEqual({
+      config: { ...DEFAULT_USER_CONFIG, roadMaxGradePct: 10 },
+      changed: ["Road grade warning (%) (15 → 10)"],
+    });
     expect(p.endpointsReplaced).toBe(true);
     expect(p.ignored).toEqual(["Good aspect from (degrees)", "Good aspect to (degrees)", "_res3"]);
     expect(importSummary(p, "unchanged")).toContain(

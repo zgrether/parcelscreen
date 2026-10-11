@@ -45,9 +45,12 @@ describe("the defaults are the prototype's (owner, step 16)", () => {
     // Every prototype default the port keeps as a plain value: same value, same type.
     const scalars = Object.keys(PROTO).filter((k) => !["dw", "anchors", "endpoints"].includes(k));
     expect(scalars.length).toBe(15); // the 13 thresholds shown, and the hidden aspect pair
+    // The one value that differs: the grade limit, 15% not 10% (owner, #103 decisions, 2026-10-11).
+    const CHANGED: Record<string, unknown> = { roadMaxGradePct: 15 };
+    expect(PROTO.roadMaxGradePct).toBe(10);
     for (const k of scalars) {
       expect(typeof port[k], k).toBe(typeof PROTO[k]);
-      expect(port[k], k).toBe(PROTO[k]);
+      expect(port[k], k).toBe(k in CHANGED ? CHANGED[k] : PROTO[k]);
     }
     // The prototype's costs, in its order, plus the relief culvert rate after the culvert's (owner, 2026-10-11).
     const protoDw = Object.keys(PROTO.dw);

@@ -41,7 +41,8 @@
     "a4b:router": "vitest run test/tools/a4b-router.test.ts --mode a4b-router",
     "dw:cost": "vitest run test/tools/driveway-cost-check.test.ts --mode dw-cost",
     "dw:val": "vitest run test/tools/driveway-validation.test.ts --mode dw-val",
-    "dw:quant": "vitest run test/tools/driveway-quantities.test.ts --mode dw-quant"
+    "dw:quant": "vitest run test/tools/driveway-quantities.test.ts --mode dw-quant",
+    "dw:defaults": "vitest run test/tools/driveway-defaults.test.ts --mode dw-defaults"
   },
   "dependencies": {
     "@serwist/turbopack": "9.5.13",

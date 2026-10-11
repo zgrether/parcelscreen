@@ -24,12 +24,14 @@ import { drivewayView } from "@/lib/report/driveway";
 import { DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { utmToRC, zBilinear } from "@/lib/screen/dem";
 import {
+  overLimitSpans,
   reliefCulverts,
   roadCut,
   routeDetail,
   routeManyFrom,
   type RouteContext,
 } from "@/lib/screen/driveway";
+import { ENGINE_VERSION } from "@/lib/screen/engine";
 import { routeContext, screen, type ScreenOutput } from "@/lib/screen/index";
 import type { LatLon } from "@/lib/screen/util";
 import { M2FT, M2_PER_ACRE } from "@/lib/screen/util";
@@ -446,6 +448,56 @@ function conclusions(c: Pair, ab: Pair): string[] {
   ];
 }
 
+/**
+ * The comparison at the defaults since #103's decisions (owner, 2026-10-11): the 15% limit, the 25% veto, paving over
+ * paveAbovePct shown. The router itself didn't change, so its routes at 15% are the ones above; what changes is which
+ * is the default, the veto, and what the card says.
+ */
+function atDefaults(c: Pair, ab: Pair): string[] {
+  const L = DEFAULT_USER_CONFIG.roadMaxGradePct,
+    V = DEFAULT_USER_CONFIG.roadVetoGradePct;
+  const at = (p: Pair) => p.routes[LIMITS.indexOf(L)] ?? null;
+  const paved = (prof: Profile) =>
+    overLimitSpans(prof, K.paveAbovePct / 100).reduce((t, [a, b]) => t + (b - a), 0) * M2FT;
+  const row = (name: string, p: Pair) => {
+    const r = at(p);
+    return (
+      `| ${name} | ${f0(p.real.lengthFt)} ft, ${p.real.switchbacks.count} switchback${p.real.switchbacks.count === 1 ? "" : "s"}, ` +
+      `~${f0(paved(p.real.profile))} ft over ${K.paveAbovePct}% | ` +
+      (r
+        ? `${f0(r.measured.lengthFt)} ft, ${r.landings} landings, ~${f0(paved(r.measured.profile))} ft over ${K.paveAbovePct}%, ` +
+          `${k$(r.engineCost)} | ${pct(r.landingCost / r.engineCost)} | `
+        : "no route | | ") +
+      `${f1(p.real.grade[30].max)}% (${p.real.grade[30].max > V ? "vetoed" : "allowed"}) |`
+    );
+  };
+  const ladder = (p: Pair) => (at(p)?.landings ?? 0) > p.real.switchbacks.count + 1;
+  const share = (p: Pair) => {
+    const r = at(p);
+    return r ? r.landingCost / r.engineCost : 0;
+  };
+  const both = [c, ab];
+  return [
+    `## 7. At the new defaults (${L}% limit, ${V}% veto; engine ${ENGINE_VERSION})`,
+    "",
+    "The router is unchanged, so its routes at the default are the 15% rows above; what changed is the default, the " +
+      "veto, and that every card now shows its length over the paving grade.",
+    "",
+    `| Road | The real road | The router at ${L}% | Landings' share of its cost | The real road's steepest 30 m, at the ${V}% veto |`,
+    "|---|---|---|---|---|",
+    row("C", c),
+    row("A+B", ab),
+    "",
+    `- **Ladders:** ${both.some(ladder) ? `yes, still: C's route at ${L}% has ${at(c)?.landings ?? 0} landings where the real road has ${c.real.switchbacks.count} switchback` : "no longer"}. ` +
+      `On A+B the router is close (${at(ab)?.landings ?? 0} landings against ${ab.real.switchbacks.count} switchbacks).`,
+    `- **Landing share:** ${pct(share(c))} of C's route and ${pct(share(ab))} of A+B's, ` +
+      `${both.every((p) => share(p) <= 0.4) ? "both under the owner's ~40% threshold" : "over the owner's ~40% threshold"}.`,
+    `- **The veto:** both real roads still exceed ${V}% over 30 m on the ground (C ${f1(c.real.grade[30].max)}%, A+B ` +
+      `${f1(ab.real.grade[30].max)}%); the gap between ground and road grade is follow-up 48's.`,
+    `- **The owner's rule** (#103 decisions): ${both.some(ladder) || both.some((p) => share(p) > 0.4) ? "the router still builds ladders, so landing and pitch changes are proposed as a follow-up (in the PR)" : "neither condition holds; no follow-up needed"}.`,
+  ];
+}
+
 describe.runIf(import.meta.env.MODE === "dw-val")("driveway validation against real roads", () => {
   it("writes the report", async () => {
     const live = (globalThis as unknown as Record<symbol, typeof fetch>)[
@@ -695,7 +747,7 @@ describe.runIf(import.meta.env.MODE === "dw-val")("driveway validation against r
         out.push(">");
       }
     }
-    out.push("", ...conclusions(summary.c!, summary.ab!), "");
+    out.push("", ...conclusions(summary.c!, summary.ab!), "", ...atDefaults(summary.c!, summary.ab!), "");
     writeFileSync(DOC, out.join("\n"));
   }, 900_000);
 });

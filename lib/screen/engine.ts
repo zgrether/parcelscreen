@@ -4,9 +4,9 @@
  * re-screens when its parcel is opened (owner, #101, 2026-10-11).
  *
  * 1 is Phase 0's rules (the prototype's numbers). Each Batch A PR that changes a number bumps it: A2a → 2,
- * A2b → 3, A2c → 4, A3 → 5, A3b → 6, A4 → 7, the scored route shown first (#88 follow-up) → 8, A4b grade over 30 m and the veto → 9, the A4b router (turns, landings, 32 directions) → 10, the driveway quantities, relief culverts and "no practical drive" (#99 decisions) → 11, schema v3 (B2a) → 12 (A2c and A3b added by the owner). A record without a stamp counts as 1.
+ * A2b → 3, A2c → 4, A3 → 5, A3b → 6, A4 → 7, the scored route shown first (#88 follow-up) → 8, A4b grade over 30 m and the veto → 9, the A4b router (turns, landings, 32 directions) → 10, the driveway quantities, relief culverts and "no practical drive" (#99 decisions) → 11, schema v3 (B2a) → 12, the 15% grade limit and 25% veto (#103 decisions) → 13 (A2c and A3b added by the owner). A record without a stamp counts as 1.
  */
-export const ENGINE_VERSION = 12;
+export const ENGINE_VERSION = 13;
 
 /** What a kept screen without a stamp counts as: everything kept before the stamp existed is Phase 0's. */
 export const UNSTAMPED_ENGINE = 1;
