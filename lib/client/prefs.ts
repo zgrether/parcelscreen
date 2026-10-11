@@ -39,7 +39,6 @@ export interface Prefs {
   /** Roads & labels over the aerials (17d): a UI pref, never part of UserConfig or a run. */
   "ps.roads": boolean;
   "ps.omode": "house" | "garden" | "slope" | "off";
-  "ps.open": Record<string, boolean>;
   /** New in the port (step 13d): the parcel being worked on and the house, kept across a refresh. */
   "ps.current": CurrentParcel | null;
   /** Step 13e: the open parcel and History. Replaces ps.current, which converts on first read. */
@@ -58,6 +57,8 @@ export interface Prefs {
   "ps.overlays": OverlayPrefs;
   /** The one-time desktop hint for tilting and rotating has been seen (owner, map UX 2026-10-10). */
   "ps.tiltHint": boolean;
+  /** Whose weights the report card grades with (VR5; value-ranking.md §3.2). UI only, never part of a run. */
+  "ps.person": "zach" | "julie";
 }
 
 const DEFAULTS: Prefs = {
@@ -68,7 +69,6 @@ const DEFAULTS: Prefs = {
   "ps.lines": true,
   "ps.roads": true,
   "ps.omode": "house",
-  "ps.open": {},
   "ps.current": null,
   "ps.parcels": null,
   "ps.infoTab": "layers",
@@ -77,6 +77,7 @@ const DEFAULTS: Prefs = {
   "ps.contours": null,
   "ps.overlays": ALL_OVERLAYS,
   "ps.tiltHint": false,
+  "ps.person": "zach",
 };
 
 /** How each key is stored: the prototype kept flags as "1"/"0" and the rest as plain strings or JSON. */
@@ -87,7 +88,6 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
   "ps.lines": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
   "ps.roads": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
   "ps.omode": { read: (r) => r as Prefs["ps.omode"], write: (v) => v },
-  "ps.open": { read: (r) => JSON.parse(r) as Record<string, boolean>, write: (v) => JSON.stringify(v) },
   "ps.current": { read: readCurrentParcel, write: writeCurrentParcel },
   "ps.parcels": { read: readParcelStore, write: (v) => (v ? writeParcelStore(v) : "null") },
   "ps.infoTab": { read: (r) => (r === "notes" ? "notes" : "layers"), write: (v) => v },
@@ -95,6 +95,7 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
   "ps.hillshade": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
   "ps.contours": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
   "ps.tiltHint": { read: (r) => r === "1", write: (v) => (v ? "1" : "0") },
+  "ps.person": { read: (r) => (r === "julie" ? "julie" : "zach"), write: (v) => v },
   "ps.overlays": {
     // Unknown or missing keys read as shown, so an overlay added later starts visible.
     read: (r) => ({ ...ALL_OVERLAYS, ...(JSON.parse(r) as Partial<OverlayPrefs>) }),
