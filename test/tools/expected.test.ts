@@ -29,9 +29,14 @@ describe.each(FIXTURE_SLUGS)("%s: the port's output", (slug) => {
     }, 120_000);
     return;
   }
-  it.each(SCENARIOS[slug])("%s equals expected.json", async (scenario) => {
-    const want = loadExpected(slug)[scenario];
-    expect(want, `expected.json has no ${scenario}: run pnpm expected`).toBeDefined();
-    expect(differences(await runScenario(slug, scenario), want!, EXPECTED)).toEqual([]);
-  });
+  // A full screen: about 11 s alone for Ferney's house run since B2b, past 30 s with the whole suite running.
+  it.each(SCENARIOS[slug])(
+    "%s equals expected.json",
+    async (scenario) => {
+      const want = loadExpected(slug)[scenario];
+      expect(want, `expected.json has no ${scenario}: run pnpm expected`).toBeDefined();
+      expect(differences(await runScenario(slug, scenario), want!, EXPECTED)).toEqual([]);
+    },
+    120_000,
+  );
 });
