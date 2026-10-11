@@ -5,6 +5,7 @@ import type { UserConfig } from "@/lib/screen/types";
 import { prototypeConst, prototypeFn } from "@/test/support/prototypeFns";
 import type { KeyValueStore } from "./prefs";
 import {
+  BUDGET_FIELDS,
   COST_FIELDS,
   fromForm,
   NUMBER_FIELDS,
@@ -72,8 +73,13 @@ describe("the defaults are the prototype's (owner, step 16)", () => {
     for (const k of Object.keys(protoEndpoints))
       expect(typeof portEndpoints[k], k).toBe(typeof protoEndpoints[k]);
 
-    // The port-only settings: timeZone (B5), and the driveway veto (A4b, owner 2026-10-10).
-    expect(Object.keys(port).filter((k) => !(k in PROTO))).toEqual(["roadVetoGradePct", "timeZone"]);
+    // The port-only settings: timeZone (B5), the driveway veto (A4b, owner 2026-10-10), and the ready-to-build
+    // budget (#99 decisions, owner 2026-10-11).
+    expect(Object.keys(port).filter((k) => !(k in PROTO))).toEqual([
+      "roadVetoGradePct",
+      "budget",
+      "timeZone",
+    ]);
   });
 
   it("the dialog shows the prototype's fields with its labels, less the hidden aspect pair, plus the veto", () => {
@@ -94,6 +100,17 @@ describe("the defaults are the prototype's (owner, step 16)", () => {
       "demResM",
     ]);
     expect(COST_FIELDS.map((f) => f.id)).toEqual(Object.keys(PROTO.dw).map((k) => `dw.${k}`));
+    // The ready-to-build budget (#99 decisions, owner 2026-10-11): the driveway's "no practical drive" rule reads it.
+    expect(BUDGET_FIELDS.map((f) => f.id)).toEqual(["budget.readyToBuild"]);
+  });
+
+  it("a config saved before the budget existed loads with the default budget", () => {
+    const stored = memory();
+    const { budget: _b, ...older } = { ...DEFAULT_USER_CONFIG, houseMin: 55 };
+    stored.data["ps.cfg"] = JSON.stringify(older);
+    const loaded = loadUserConfig(stored);
+    expect(loaded.budget).toEqual({ readyToBuild: 300_000 });
+    expect(loaded.houseMin).toBe(55);
   });
 });
 
@@ -108,6 +125,7 @@ describe("saving without edits", () => {
       gardenMinAcres: 0.07,
       canopyDeg: 4.5,
       dw: { ...DEFAULT_USER_CONFIG.dw, fabricPerSf: 0.8 },
+      budget: { readyToBuild: 250_000 },
       anchors: [...DEFAULT_USER_CONFIG.anchors, { name: "Boone (NC)", lat: 36.2168, lon: -81.6746 }],
       timeZone: "America/Chicago",
     };

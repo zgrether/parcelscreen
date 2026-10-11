@@ -161,11 +161,14 @@ function settingsForm(
   }
   const dw = isRecord(raw.dw) ? raw.dw : {};
   for (const k of Object.keys(dw)) if (!(k in DEFAULT_USER_CONFIG.dw)) ignored.push(`dw.${k}`);
+  const budget = isRecord(raw.budget) ? raw.budget : {};
+  for (const k of Object.keys(budget)) if (!(k in DEFAULT_USER_CONFIG.budget)) ignored.push(`budget.${k}`);
 
   const numbers: Record<string, string> = {};
+  const groups: Record<string, Record<string, unknown>> = { dw, budget };
   for (const f of NUMBER_FIELDS) {
-    const [, costKey] = f.id.split(".");
-    const v = costKey ? dw[costKey] : raw[f.id];
+    const [group, key] = f.id.split(".");
+    const v = key ? groups[group!]?.[key] : raw[f.id];
     numbers[f.id] = v === undefined ? String(f.get(DEFAULT_USER_CONFIG)) : String(v);
   }
 

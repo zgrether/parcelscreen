@@ -1,9 +1,10 @@
 /** The Driveway section (proto L1515–1532): entrances, routed alignments with costs, the pioneer track. */
 import { fmt } from "../format";
 import { SCREEN_CONSTANTS } from "../screen/config";
-import { gradeOver } from "../screen/driveway";
+import { gradeOver, reliefCulverts } from "../screen/driveway";
 import { NEEDS_EASEMENT, routeLabel } from "../screen/routeLabel";
 import type { PartialScreenResult } from "../screen/types";
+import { M2FT } from "../screen/util";
 import type { FactRow } from "./facts";
 import { said, type Heading, type Part } from "./parts";
 
@@ -106,6 +107,14 @@ export const viaNeighbours = (limitPct: number) =>
 /** The grade row: over the headline window (30 m), no longer the steepest single 3 m step (A4b, owner 2026-10-10). */
 const GRADE_ROW = `Grade over ${WIN.headline} m / average`;
 
+const DW = SCREEN_CONSTANTS.driveway;
+/**
+ * The stone's depth, from the route's own tons (6 in since #99's decisions, 8 in before): a result screened under the
+ * old depth still reads its own.
+ */
+const stoneDepthIn = (m: Route["metrics"]): number =>
+  m.lengthFt > 0 ? m.stoneTons / (DW.stoneTPerM3 * DW.benchWidthM * (m.lengthFt / M2FT)) / 0.0254 : 0;
+
 function routeView(rt: Route, i: number, overLimitPct: number | null = null): RouteView {
   const m = rt.metrics;
   const rows: FactRow[] = [
@@ -119,12 +128,14 @@ function routeView(rt: Route, i: number, overLimitPct: number | null = null): Ro
       label: "Earthwork",
       value: `${fmt(m.earthYd)} yd³${m.rockYd > 0 ? ` (${fmt(m.rockYd)} yd³ in rock)` : ""}`,
     },
-    { label: "Stone", value: `${fmt(m.stoneTons)} tons (12 ft × 8 in)` },
+    { label: "Stone", value: `${fmt(m.stoneTons)} tons (12 ft × ${fmt(stoneDepthIn(m))} in)` },
     { label: "Clearing corridor", value: `${fmt(m.clearAc, 2)} ac` },
     {
       label: "Culverts",
       value: `${m.culverts} (entrance + ${m.culverts - 1} drainage crossing${m.culverts - 1 === 1 ? "" : "s"})`,
     },
+    // Owner, #99 decisions (2026-10-11): cross-drains along the road, by its grade; priced at the culvert rate.
+    { label: "Relief culverts", value: `${reliefCulverts(rt.profile)} (one every 150–400 ft, by grade)` },
   ];
   if (rt.needsEasement)
     rows.push({

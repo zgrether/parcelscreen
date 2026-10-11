@@ -16,10 +16,15 @@ import {
   bedrockDepth,
   buildDriveway,
   flowAccum,
+  poorlyDrained,
+  practicalAlternatives,
   siteDriveways,
   soilMask,
   withScoredRoute,
+  type PracticalAlternatives,
   type RouteContext,
+  type RoutingOpts,
+  type SiteDriveway,
   type SiteRoutes,
 } from "./driveway";
 import { floodStep, type FloodFeature } from "./flood";
@@ -32,7 +37,10 @@ import {
   assessHouse,
   chooseDriveway,
   grade,
+  impracticalLine,
+  isImpractical,
   noPracticalLine,
+  practicalDriveway,
   rankSites,
   rerank,
   shelvesFromBest,
@@ -40,6 +48,7 @@ import {
   withDrivewayCost,
   withRoutedLineAppended,
   withRoutedWhy,
+  withoutVetoed,
   type ScoreContext,
 } from "./score";
 import { findSites, siteFlags, siteResults, type SiteSearch } from "./sites";
@@ -131,6 +140,7 @@ export interface ScreenSession {
   soilMask?: Uint8Array;
   flowAcc?: Float32Array;
   bedrockCm?: Float32Array;
+  wetSoil?: Uint8Array;
   deps: { http: HttpClient; demCache: DemCache; atlas: AtlasCache; sleep?: (ms: number) => Promise<void> };
 }
 
@@ -408,19 +418,25 @@ export async function screen(
     // entrance (siteDriveways), so the ranking compares like with like. A4: from the candidate with fewer points.
     // Each site's routes, by position (rerank copies the sites).
     const routeAt = new Map<string, SiteRoutes>();
+    // "No practical drive" (owner, #99 decisions): the alternatives of each site whose chosen route is impractical.
+    const altAt = new Map<string, PracticalAlternatives>();
     const at = (ll: LatLon) => `${ll[0]},${ll[1]}`;
     if (R.sites && R.sites.length) {
-      const est = siteDriveways(
-        rctx,
-        s.roads ?? [],
-        parcel,
-        R.sites.map((x) => x.ll),
-        cfg.roadMaxGradePct,
-        routing,
-      );
-      R.sites.forEach((x, i) => routeAt.set(at(x.ll), est[i]!));
+      const lls = R.sites.map((x) => x.ll);
+      const est = siteDriveways(rctx, s.roads ?? [], parcel, lls, cfg.roadMaxGradePct, routing);
+      const alts = alternativesFor(rctx, s, lls, est, routing);
+      R.sites.forEach((x, i) => {
+        routeAt.set(at(x.ll), est[i]!);
+        if (alts[i]) altAt.set(at(x.ll), alts[i]);
+      });
       R.sites = rerank(
-        R.sites.map((x, i) => withDrivewayCost(sctx, x, chooseDriveway(est[i]!, cfg.roadVetoGradePct))),
+        R.sites.map((x, i) =>
+          withDrivewayCost(
+            sctx,
+            x,
+            practicalDriveway(chooseDriveway(est[i]!, cfg.roadVetoGradePct), alts[i]),
+          ),
+        ),
       );
     }
     const to = house
@@ -443,6 +459,9 @@ export async function screen(
         R.driveway = { ...R.driveway, note: R.driveway.note ? `${R.driveway.note} ${line}` : line };
         R.flags.push({ lvl: "warn", t: `Driveway to ${to.label}: ${line}` });
       }
+      // The section leads with "No practical drive" and the alternatives (owner, #99 decisions: placed first).
+      const alt = house ? alternativesFor(rctx, s, [to.ll], [toRoutes], routing)[0] : altAt.get(at(to.ll));
+      if (alt) R.driveway = withImpracticalNote(R.driveway, scored, alt, cfg);
     }
     const rt = R.driveway.routes[0];
     // Site #1 keeps the prototype's routed line in place of its straight-line one; every other site with a route
@@ -460,11 +479,19 @@ export async function screen(
         if (!r) return y;
         const z = withDrivewayChoice(y, r, cfg.roadMaxGradePct, cfg.roadVetoGradePct);
         const chosen = chooseDriveway(r, cfg.roadVetoGradePct);
-        return chosen.noPractical
+        const v = chosen.noPractical
           ? { ...z, why: [...z.why, noPracticalLine(chosen, cfg.roadVetoGradePct)] }
           : z;
+        const alt = altAt.get(at(x.ll));
+        return alt
+          ? {
+              ...v,
+              why: [...v.why, impracticalLine(chosen, alt, cfg.roadMaxGradePct, cfg.budget.readyToBuild)],
+            }
+          : v;
       });
-    if (house && R.house && toRoutes) R.house = houseWithDriveway(sctx, R.house, toRoutes);
+    if (house && R.house && toRoutes)
+      R.house = houseWithDriveway(sctx, R.house, toRoutes, alternativesFor(rctx, s, [house], [toRoutes])[0]);
     if (R.shelves && R.sites) R.shelves = shelvesFromBest(R.shelves, R.sites);
     return R.driveway.note ?? undefined;
   });
@@ -487,6 +514,46 @@ export async function screen(
   return out;
 }
 
+/**
+ * "No practical drive" (owner, #99 decisions, 2026-10-11): for each target whose chosen driveway is impractical
+ * (isImpractical), its realistic alternatives the veto allows; null for the rest. One search per style for all.
+ */
+function alternativesFor(
+  ctx: RouteContext,
+  s: ScreenSession,
+  lls: readonly LatLon[],
+  routes: readonly SiteRoutes[],
+  routing: RoutingOpts = {},
+): (PracticalAlternatives | null)[] {
+  const c = s.config;
+  const out: (PracticalAlternatives | null)[] = routes.map(() => null);
+  const trip = routes.flatMap((r, i) =>
+    isImpractical(chooseDriveway(r, c.roadVetoGradePct), c.budget.readyToBuild) ? [i] : [],
+  );
+  if (!trip.length) return out;
+  practicalAlternatives(
+    ctx,
+    s.roads ?? [],
+    s.parcel,
+    trip.map((i) => lls[i]!),
+    trip.map((i) => routes[i]!),
+    c.roadMaxGradePct,
+    routing,
+  ).forEach((a, k) => (out[trip[k]!] = withoutVetoed(a, c.roadVetoGradePct)));
+  return out;
+}
+
+/** The driveway section with the "No practical drive" paragraph first (owner, #99 decisions: it leads). */
+function withImpracticalNote(
+  dw: NonNullable<ScreenResult["driveway"]>,
+  scored: SiteDriveway,
+  alt: PracticalAlternatives,
+  cfg: UserConfig,
+): NonNullable<ScreenResult["driveway"]> {
+  const line = impracticalLine(scored, alt, cfg.roadMaxGradePct, cfg.budget.readyToBuild);
+  return { ...dw, note: dw.note ? `${line} ${dw.note}` : line };
+}
+
 /** The driveway router's view of the session; the soil mask and flow accumulation are built once. */
 export function routeContext(s: ScreenSession): RouteContext {
   // The router keeps the whole outline: a driveway may cross a bridged right-of-way (follow-up 29).
@@ -499,6 +566,7 @@ export function routeContext(s: ScreenSession): RouteContext {
       (s.soilMask ??= soilMask(s.units ?? null, s.rows ?? null, s.dFine!, inside, s.config.shallowBedrockCm)),
     flowAcc: () => (s.flowAcc ??= flowAccum(s.dFine!)),
     bedrockCm: () => (s.bedrockCm ??= bedrockDepth(s.units ?? null, s.rows ?? null, s.dFine!, inside)),
+    wetSoil: () => (s.wetSoil ??= poorlyDrained(s.units ?? null, s.rows ?? null, s.dFine!, inside)),
     dw: s.config.dw,
   };
 }
@@ -540,6 +608,8 @@ export async function evaluateAt(out: ScreenOutput, ll: LatLon, label: string): 
           note: result.driveway.note ? `${result.driveway.note} ${line}` : line,
         };
       }
+      const alt = alternativesFor(ctx, session, [ll], [routes])[0];
+      if (alt) result.driveway = withImpracticalNote(result.driveway, scored, alt, s.config);
     }
   } catch {
     /* keep the previous driveway */
@@ -577,19 +647,11 @@ export async function setHouse(out: ScreenOutput, ll: LatLon | null): Promise<Sc
     house,
     "the existing house",
   );
-  return done.result.driveway && done.result.house
-    ? {
-        ...done,
-        result: {
-          ...done.result,
-          house: houseWithDriveway(
-            ctx,
-            done.result.house,
-            houseRoutes(routeContext(done.session), s.roads ?? [], s.parcel, house, s.config.roadMaxGradePct),
-          ),
-        },
-      }
-    : done;
+  if (!done.result.driveway || !done.result.house) return done;
+  const rc = routeContext(done.session);
+  const hr = houseRoutes(rc, s.roads ?? [], s.parcel, house, s.config.roadMaxGradePct);
+  const alt = alternativesFor(rc, done.session, [house], [hr])[0];
+  return { ...done, result: { ...done.result, house: houseWithDriveway(ctx, done.result.house, hr, alt) } };
 }
 
 /** The existing house's two candidate driveways (A4), as every ranked site's. */
@@ -608,12 +670,13 @@ function houseWithDriveway(
   ctx: Pick<ScoreContext, "valleyFloorFt" | "skyScore" | "cfg">,
   h: NonNullable<ScreenResult["house"]>,
   routes: SiteRoutes,
+  alt: PracticalAlternatives | null | undefined,
 ): NonNullable<ScreenResult["house"]> {
   if ("outside" in h || h.elevFt == null || h.slopeDeg == null || h.aspectDeg == null) return h;
   const scored = withDrivewayCost(
     ctx,
     { ...h, elevFt: h.elevFt, slopeDeg: h.slopeDeg, aspectDeg: h.aspectDeg },
-    chooseDriveway(routes, ctx.cfg.roadVetoGradePct),
+    practicalDriveway(chooseDriveway(routes, ctx.cfg.roadVetoGradePct), alt),
   );
   return {
     ...h,

@@ -27,6 +27,7 @@ export function loadUserConfig(from: KeyValueStore | null = store()): UserConfig
       ...DEFAULT_USER_CONFIG,
       ...stored,
       dw: { ...DEFAULT_USER_CONFIG.dw, ...stored.dw },
+      budget: { ...DEFAULT_USER_CONFIG.budget, ...stored.budget },
       endpoints: migrateEndpoints(stored.endpoints),
     };
     const parsed = UserConfigSchema.safeParse(merged);

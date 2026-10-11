@@ -3972,12 +3972,12 @@
      "aspect": 80.2839159342213,
      "thermal": 75.97558413675145
     },
-    "score": 65,
+    "score": 66,
     "why": [
      "8.3 h of December sun — good",
      "9.6 ac, faces ESE, 6.1° slope, 888 ft above the valley floor",
      "Marbleyard: septic rated very limited — alternative system, rock near the surface",
-     "routed driveway: 1116 ft at ≤10%, 0 switchbacks, ~$60–111k"
+     "routed driveway: 1116 ft at ≤10%, 0 switchbacks, ~$32–60k"
     ],
     "sunH": 8.333333333333334,
     "daylightH": 9.45,
@@ -3994,9 +3994,9 @@
      "foundation": 10,
      "rock": 15,
      "pad": 0.08369684414658463,
-     "driveway": 14.941086143141144
+     "driveway": 10.79554020633662
     },
-    "costIdx": 80,
+    "costIdx": 76,
     "costTier": "$$$$",
     "quality": 84,
     "qGrade": "A",
@@ -4022,13 +4022,13 @@
      "aspect": 88.90101571062246,
      "thermal": 88.80872108426156
     },
-    "score": 63,
+    "score": 65,
     "why": [
      "8.6 h of December sun — good",
      "1.0 ac, faces SE, 8.2° slope, 624 ft above the valley floor",
      "Marbleyard: septic rated very limited — alternative system, rock near the surface",
      "1181 ft to unnamed road at 0% straight-line",
-     "routed driveway: 4658 ft at ≤10%, 5 switchbacks, ~$250–464k"
+     "routed driveway: 4658 ft at ≤10%, 5 switchbacks, ~$117–218k"
     ],
     "sunH": 8.6,
     "daylightH": 9.45,
@@ -4045,9 +4045,9 @@
      "foundation": 10,
      "rock": 15,
      "pad": 2.7669160830987583,
-     "driveway": 26.42248663730774
+     "driveway": 20.133901984782355
     },
-    "costIdx": 94,
+    "costIdx": 88,
     "costTier": "$$$$",
     "quality": 87,
     "qGrade": "A",
@@ -4055,7 +4055,7 @@
     "roadRunFt": 1180.586318488471,
     "roadName": "unnamed road",
     "driveFt": 4657.778233587128,
-    "grade": "C"
+    "grade": "B"
    },
    {
     "rank": 3,
@@ -4073,13 +4073,13 @@
      "aspect": 71.43975314284333,
      "thermal": 79.8847499060758
     },
-    "score": 63,
+    "score": 64,
     "why": [
      "8.8 h of December sun — good",
      "9.6 ac, faces ENE, 6.5° slope, 802 ft above the valley floor",
      "Marbleyard: septic rated very limited — alternative system, rock near the surface",
      "1331 ft to unnamed road at 7% straight-line",
-     "routed driveway: 2221 ft at ≤10%, 1 switchback, ~$101–188k"
+     "routed driveway: 2221 ft at ≤10%, 1 switchback, ~$55–102k"
     ],
     "sunH": 8.75,
     "daylightH": 9.45,
@@ -4096,9 +4096,9 @@
      "foundation": 10,
      "rock": 15,
      "pad": 0.60410851192501,
-     "driveway": 18.981653158477137
+     "driveway": 14.369988968626801
     },
-    "costIdx": 85,
+    "costIdx": 80,
     "costTier": "$$$$",
     "quality": 83,
     "qGrade": "A",
@@ -4130,7 +4130,8 @@
      "0.7 ac, faces S, 7.7° slope, 547 ft above the valley floor",
      "Unicoi: septic rated very limited — alternative system, foundation rated very limited, rock near the surface",
      "1102 ft to State Rte 611 at 30% straight-line — about 3288 ft of driveway with switchbacks",
-     "routed driveway: 6020 ft at ≤10%, 6 switchbacks, ~$376–698k"
+     "routed driveway: 6020 ft at ≤10%, 6 switchbacks, ~$170–316k",
+     "No practical drive at your 10% limit: the best route found costs about $170–316k, more than 75% of your $300k ready-to-build budget. At 15%: 4,096 ft on your land, 5 switchbacks, about $113–210k of gravel work, paving on ~2,362 ft (cost TBD); county limit to check (follow-up 46). Scored on the route at 15%."
     ],
     "sunH": 8.366666666666667,
     "daylightH": 9.45,
@@ -4147,7 +4148,7 @@
      "foundation": 25,
      "rock": 15,
      "pad": 2.148270430696402,
-     "driveway": 29.940502167536337
+     "driveway": 29.320189365239045
     },
     "costIdx": 100,
     "costTier": "$$$$",
@@ -4156,7 +4157,7 @@
     "roadGrade": 29.83936284383694,
     "roadRunFt": 1101.9266500925148,
     "roadName": "State Rte 611",
-    "driveFt": 6019.587373932669,
+    "driveFt": 4095.867802445373,
     "grade": "C"
    },
    {
@@ -4183,7 +4184,7 @@
      "2.8 ac, faces SE, 12.6° slope, 830 ft above the valley floor",
      "Unicoi: septic rated very limited — alternative system, foundation rated very limited, rock near the surface",
      "297 ft to unnamed road at 16% straight-line — about 476 ft of driveway with switchbacks",
-     "routed driveway: 732 ft at ≤10%, 0 switchbacks, ~$51–95k"
+     "routed driveway: 732 ft at ≤10%, 0 switchbacks, ~$26–48k"
     ],
     "sunH": 8.483333333333333,
     "daylightH": 9.45,
@@ -4200,7 +4201,7 @@
      "foundation": 25,
      "rock": 15,
      "pad": 15,
-     "driveway": 13.874463139405073
+     "driveway": 9.44104657964307
     },
     "costIdx": 100,
     "costTier": "$$$$",
@@ -4214,6 +4215,59 @@
    },
    {
     "rank": 6,
+    "ll": [
+     36.93230719206714,
+     -80.63291208817841
+    ],
+    "acres": 2.6131025419722036,
+    "elevFt": 3240.241814341958,
+    "aspectDeg": 67.94257956674721,
+    "slopeDeg": 10.985551618558238,
+    "compact": true,
+    "cell": {
+     "score": 53.98463002125557,
+     "slope": 68.80994577845006,
+     "aspect": 64.01993204256067,
+     "thermal": 76.3167868583433
+    },
+    "score": 54,
+    "why": [
+     "compact site: 2.61 ac shelf — needs a cut pad and probably a retaining wall",
+     "7.8 h of December sun — good",
+     "2.6 ac, faces ENE, 11.0° slope, 878 ft above the valley floor",
+     "Marbleyard: septic rated very limited — alternative system, rock near the surface",
+     "356 ft to unnamed road at 14% straight-line — about 515 ft of driveway with switchbacks",
+     "routed driveway: 769 ft at ≤10%, 2 switchbacks, ~$33–61k"
+    ],
+    "sunH": 7.816666666666666,
+    "daylightH": 9.45,
+    "q": {
+     "sun": 83,
+     "aspect": 62,
+     "frost": 76,
+     "slope": 69,
+     "sky": 65
+    },
+    "soil": "Marbleyard",
+    "c": {
+     "septic": 40,
+     "foundation": 10,
+     "rock": 15,
+     "pad": 15,
+     "driveway": 10.830776557418163
+    },
+    "costIdx": 91,
+    "costTier": "$$$$",
+    "quality": 74,
+    "qGrade": "B",
+    "roadGrade": 14.44394640917219,
+    "roadRunFt": 356.38450641170306,
+    "roadName": "unnamed road",
+    "driveFt": 769.3104155391011,
+    "grade": "C"
+   },
+   {
+    "rank": 7,
     "ll": [
      36.93399322762453,
      -80.62792461764181
@@ -4234,7 +4288,7 @@
      "0.7 ac, faces E, 7.2° slope, 625 ft above the valley floor",
      "Unicoi: septic rated very limited — alternative system, foundation rated very limited, rock near the surface",
      "1066 ft to unnamed road at 21% straight-line — about 2216 ft of driveway with switchbacks",
-     "routed driveway: 3177 ft at ≤10%, 7 switchbacks, ~$218–404k"
+     "routed driveway: 3177 ft at ≤10%, 7 switchbacks, ~$96–179k"
     ],
     "sunH": 6.516666666666667,
     "daylightH": 9.45,
@@ -4251,7 +4305,7 @@
      "foundation": 25,
      "rock": 15,
      "pad": 1.442344367977173,
-     "driveway": 25.259631788578627
+     "driveway": 18.573817591376685
     },
     "costIdx": 100,
     "costTier": "$$$$",
@@ -4261,59 +4315,6 @@
     "roadRunFt": 1065.9946781203896,
     "roadName": "unnamed road",
     "driveFt": 3177.1636516210233,
-    "grade": "C"
-   },
-   {
-    "rank": 7,
-    "ll": [
-     36.93230719206714,
-     -80.63291208817841
-    ],
-    "acres": 2.6131025419722036,
-    "elevFt": 3240.241814341958,
-    "aspectDeg": 67.94257956674721,
-    "slopeDeg": 10.985551618558238,
-    "compact": true,
-    "cell": {
-     "score": 53.98463002125557,
-     "slope": 68.80994577845006,
-     "aspect": 64.01993204256067,
-     "thermal": 76.3167868583433
-    },
-    "score": 53,
-    "why": [
-     "compact site: 2.61 ac shelf — needs a cut pad and probably a retaining wall",
-     "7.8 h of December sun — good",
-     "2.6 ac, faces ENE, 11.0° slope, 878 ft above the valley floor",
-     "Marbleyard: septic rated very limited — alternative system, rock near the surface",
-     "356 ft to unnamed road at 14% straight-line — about 515 ft of driveway with switchbacks",
-     "routed driveway: 769 ft at ≤10%, 2 switchbacks, ~$54–100k"
-    ],
-    "sunH": 7.816666666666666,
-    "daylightH": 9.45,
-    "q": {
-     "sun": 83,
-     "aspect": 62,
-     "frost": 76,
-     "slope": 69,
-     "sky": 65
-    },
-    "soil": "Marbleyard",
-    "c": {
-     "septic": 40,
-     "foundation": 10,
-     "rock": 15,
-     "pad": 15,
-     "driveway": 14.23237504988588
-    },
-    "costIdx": 94,
-    "costTier": "$$$$",
-    "quality": 74,
-    "qGrade": "B",
-    "roadGrade": 14.44394640917219,
-    "roadRunFt": 356.38450641170306,
-    "roadName": "unnamed road",
-    "driveFt": 769.3104155391011,
     "grade": "C"
    },
    {
@@ -4333,14 +4334,14 @@
      "aspect": 51.94457867060186,
      "thermal": 81.66628137556636
     },
-    "score": 51,
+    "score": 52,
     "why": [
      "compact site: 4.65 ac shelf — needs a cut pad and probably a retaining wall",
      "7.8 h of December sun — good",
      "4.6 ac, faces NNE, 10.5° slope, 767 ft above the valley floor",
      "Marbleyard: septic rated very limited — alternative system, rock near the surface",
      "1540 ft to unnamed road at 6% straight-line",
-     "routed driveway: 2657 ft at ≤10%, 1 switchback, ~$121–225k"
+     "routed driveway: 2657 ft at ≤10%, 1 switchback, ~$62–116k"
     ],
     "sunH": 7.783333333333333,
     "daylightH": 9.45,
@@ -4357,9 +4358,9 @@
      "foundation": 10,
      "rock": 15,
      "pad": 15,
-     "driveway": 20.401338318100354
+     "driveway": 15.284028024224408
     },
-    "costIdx": 100,
+    "costIdx": 95,
     "costTier": "$$$$",
     "quality": 72,
     "qGrade": "B",
@@ -4898,18 +4899,18 @@
       "maxGradePct": 5.363670775653493,
       "avgGradePct": 2.9980083191233953,
       "switchbacks": 0,
-      "earthYd": 402.94552026805866,
-      "rockYd": 405.13047228957413,
-      "stoneTons": 448.1889179073957,
-      "fabricSf": 13400.84864543113,
+      "earthYd": 100.73638006701466,
+      "rockYd": 0.016331554079117343,
+      "stoneTons": 341.5199554454355,
+      "fabricSf": 0,
       "clearAc": 0.613595558617467,
       "culverts": 1,
       "outsideFt": 0
      },
      "cost": {
-      "mid": 85198.91179806268,
-      "low": 59639.23825864387,
-      "high": 110758.58533748148
+      "mid": 46369.442080653695,
+      "low": 32458.609456457583,
+      "high": 60280.274704849806
      },
      "culverts": [],
      "needsEasement": false,
@@ -5448,18 +5449,18 @@
       "maxGradePct": 4.366728501381658,
       "avgGradePct": 2.4119177484050844,
       "switchbacks": 0,
-      "earthYd": 490.5099909193925,
-      "rockYd": 493.86513425221125,
-      "stoneTons": 467.1875845416633,
-      "fabricSf": 13968.908777795728,
+      "earthYd": 122.62749772984813,
+      "rockYd": 0.03779284138858032,
+      "stoneTons": 355.99693942074737,
+      "fabricSf": 0,
       "clearAc": 0.6396057900191479,
       "culverts": 1,
       "outsideFt": 0
      },
      "cost": {
-      "mid": 94475.04489875009,
-      "low": 66132.53142912505,
-      "high": 122817.55836837512
+      "mid": 47339.99625248977,
+      "low": 33137.99737674284,
+      "high": 61541.995128236704
      },
      "culverts": [],
      "needsEasement": false,
@@ -5972,18 +5973,18 @@
      "maxGradePct": 8.41834499859298,
      "avgGradePct": 3.7650458551636325,
      "switchbacks": 0,
-     "earthYd": 323.5525280721426,
-     "rockYd": 325.168801902115,
-     "stoneTons": 456.2456710359108,
-     "fabricSf": 13641.745563973729,
+     "earthYd": 80.88813201803565,
+     "rockYd": 0.016064248203585266,
+     "stoneTons": 347.659201329364,
+     "fabricSf": 0,
      "clearAc": 0.6246257017981951,
      "culverts": 1,
      "outsideFt": 0
     },
     "cost": {
-     "mid": 78562.19576836476,
-     "low": 54993.537037855334,
-     "high": 102130.85449887419
+     "mid": 46430.71445688131,
+     "low": 32501.500119816916,
+     "high": 60359.928793945706
     },
     "culverts": [],
     "needsEasement": false,
@@ -9980,12 +9981,12 @@
      "aspect": 80.2839159342213,
      "thermal": 75.97558413675145
     },
-    "score": 65,
+    "score": 66,
     "why": [
      "8.3 h of December sun — good",
      "9.6 ac, faces ESE, 6.1° slope, 888 ft above the valley floor",
      "Marbleyard: septic rated very limited — alternative system, rock near the surface",
-     "routed driveway: 1116 ft at ≤10%, 0 switchbacks, ~$60–111k"
+     "routed driveway: 1116 ft at ≤10%, 0 switchbacks, ~$32–60k"
     ],
     "sunH": 8.333333333333334,
     "daylightH": 9.45,
@@ -10002,9 +10003,9 @@
      "foundation": 10,
      "rock": 15,
      "pad": 0.08369684414658463,
-     "driveway": 14.941086143141144
+     "driveway": 10.79554020633662
     },
-    "costIdx": 80,
+    "costIdx": 76,
     "costTier": "$$$$",
     "quality": 84,
     "qGrade": "A",
@@ -10030,13 +10031,13 @@
      "aspect": 88.90101571062246,
      "thermal": 88.80872108426156
     },
-    "score": 63,
+    "score": 65,
     "why": [
      "8.6 h of December sun — good",
      "1.0 ac, faces SE, 8.2° slope, 624 ft above the valley floor",
      "Marbleyard: septic rated very limited — alternative system, rock near the surface",
      "1181 ft to unnamed road at 0% straight-line",
-     "routed driveway: 4658 ft at ≤10%, 5 switchbacks, ~$250–464k"
+     "routed driveway: 4658 ft at ≤10%, 5 switchbacks, ~$117–218k"
     ],
     "sunH": 8.6,
     "daylightH": 9.45,
@@ -10053,9 +10054,9 @@
      "foundation": 10,
      "rock": 15,
      "pad": 2.7669160830987583,
-     "driveway": 26.42248663730774
+     "driveway": 20.133901984782355
     },
-    "costIdx": 94,
+    "costIdx": 88,
     "costTier": "$$$$",
     "quality": 87,
     "qGrade": "A",
@@ -10063,7 +10064,7 @@
     "roadRunFt": 1180.586318488471,
     "roadName": "unnamed road",
     "driveFt": 4657.778233587128,
-    "grade": "C"
+    "grade": "B"
    },
    {
     "rank": 3,
@@ -10081,13 +10082,13 @@
      "aspect": 71.43975314284333,
      "thermal": 79.8847499060758
     },
-    "score": 63,
+    "score": 64,
     "why": [
      "8.8 h of December sun — good",
      "9.6 ac, faces ENE, 6.5° slope, 802 ft above the valley floor",
      "Marbleyard: septic rated very limited — alternative system, rock near the surface",
      "1331 ft to unnamed road at 7% straight-line",
-     "routed driveway: 2221 ft at ≤10%, 1 switchback, ~$101–188k"
+     "routed driveway: 2221 ft at ≤10%, 1 switchback, ~$55–102k"
     ],
     "sunH": 8.75,
     "daylightH": 9.45,
@@ -10104,9 +10105,9 @@
      "foundation": 10,
      "rock": 15,
      "pad": 0.60410851192501,
-     "driveway": 18.981653158477137
+     "driveway": 14.369988968626801
     },
-    "costIdx": 85,
+    "costIdx": 80,
     "costTier": "$$$$",
     "quality": 83,
     "qGrade": "A",
@@ -10138,7 +10139,8 @@
      "0.7 ac, faces S, 7.7° slope, 547 ft above the valley floor",
      "Unicoi: septic rated very limited — alternative system, foundation rated very limited, rock near the surface",
      "1102 ft to State Rte 611 at 30% straight-line — about 3288 ft of driveway with switchbacks",
-     "routed driveway: 6020 ft at ≤10%, 6 switchbacks, ~$376–698k"
+     "routed driveway: 6020 ft at ≤10%, 6 switchbacks, ~$170–316k",
+     "No practical drive at your 10% limit: the best route found costs about $170–316k, more than 75% of your $300k ready-to-build budget. At 15%: 4,096 ft on your land, 5 switchbacks, about $113–210k of gravel work, paving on ~2,362 ft (cost TBD); county limit to check (follow-up 46). Scored on the route at 15%."
     ],
     "sunH": 8.366666666666667,
     "daylightH": 9.45,
@@ -10155,7 +10157,7 @@
      "foundation": 25,
      "rock": 15,
      "pad": 2.148270430696402,
-     "driveway": 29.940502167536337
+     "driveway": 29.320189365239045
     },
     "costIdx": 100,
     "costTier": "$$$$",
@@ -10164,7 +10166,7 @@
     "roadGrade": 29.83936284383694,
     "roadRunFt": 1101.9266500925148,
     "roadName": "State Rte 611",
-    "driveFt": 6019.587373932669,
+    "driveFt": 4095.867802445373,
     "grade": "C"
    },
    {
@@ -10191,7 +10193,7 @@
      "2.8 ac, faces SE, 12.6° slope, 830 ft above the valley floor",
      "Unicoi: septic rated very limited — alternative system, foundation rated very limited, rock near the surface",
      "297 ft to unnamed road at 16% straight-line — about 476 ft of driveway with switchbacks",
-     "routed driveway: 732 ft at ≤10%, 0 switchbacks, ~$51–95k"
+     "routed driveway: 732 ft at ≤10%, 0 switchbacks, ~$26–48k"
     ],
     "sunH": 8.483333333333333,
     "daylightH": 9.45,
@@ -10208,7 +10210,7 @@
      "foundation": 25,
      "rock": 15,
      "pad": 15,
-     "driveway": 13.874463139405073
+     "driveway": 9.44104657964307
     },
     "costIdx": 100,
     "costTier": "$$$$",
@@ -10222,6 +10224,59 @@
    },
    {
     "rank": 6,
+    "ll": [
+     36.93230719206714,
+     -80.63291208817841
+    ],
+    "acres": 2.6131025419722036,
+    "elevFt": 3240.241814341958,
+    "aspectDeg": 67.94257956674721,
+    "slopeDeg": 10.985551618558238,
+    "compact": true,
+    "cell": {
+     "score": 53.98463002125557,
+     "slope": 68.80994577845006,
+     "aspect": 64.01993204256067,
+     "thermal": 76.3167868583433
+    },
+    "score": 54,
+    "why": [
+     "compact site: 2.61 ac shelf — needs a cut pad and probably a retaining wall",
+     "7.8 h of December sun — good",
+     "2.6 ac, faces ENE, 11.0° slope, 878 ft above the valley floor",
+     "Marbleyard: septic rated very limited — alternative system, rock near the surface",
+     "356 ft to unnamed road at 14% straight-line — about 515 ft of driveway with switchbacks",
+     "routed driveway: 769 ft at ≤10%, 2 switchbacks, ~$33–61k"
+    ],
+    "sunH": 7.816666666666666,
+    "daylightH": 9.45,
+    "q": {
+     "sun": 83,
+     "aspect": 62,
+     "frost": 76,
+     "slope": 69,
+     "sky": 65
+    },
+    "soil": "Marbleyard",
+    "c": {
+     "septic": 40,
+     "foundation": 10,
+     "rock": 15,
+     "pad": 15,
+     "driveway": 10.830776557418163
+    },
+    "costIdx": 91,
+    "costTier": "$$$$",
+    "quality": 74,
+    "qGrade": "B",
+    "roadGrade": 14.44394640917219,
+    "roadRunFt": 356.38450641170306,
+    "roadName": "unnamed road",
+    "driveFt": 769.3104155391011,
+    "grade": "C"
+   },
+   {
+    "rank": 7,
     "ll": [
      36.93399322762453,
      -80.62792461764181
@@ -10242,7 +10297,7 @@
      "0.7 ac, faces E, 7.2° slope, 625 ft above the valley floor",
      "Unicoi: septic rated very limited — alternative system, foundation rated very limited, rock near the surface",
      "1066 ft to unnamed road at 21% straight-line — about 2216 ft of driveway with switchbacks",
-     "routed driveway: 3177 ft at ≤10%, 7 switchbacks, ~$218–404k"
+     "routed driveway: 3177 ft at ≤10%, 7 switchbacks, ~$96–179k"
     ],
     "sunH": 6.516666666666667,
     "daylightH": 9.45,
@@ -10259,7 +10314,7 @@
      "foundation": 25,
      "rock": 15,
      "pad": 1.442344367977173,
-     "driveway": 25.259631788578627
+     "driveway": 18.573817591376685
     },
     "costIdx": 100,
     "costTier": "$$$$",
@@ -10269,59 +10324,6 @@
     "roadRunFt": 1065.9946781203896,
     "roadName": "unnamed road",
     "driveFt": 3177.1636516210233,
-    "grade": "C"
-   },
-   {
-    "rank": 7,
-    "ll": [
-     36.93230719206714,
-     -80.63291208817841
-    ],
-    "acres": 2.6131025419722036,
-    "elevFt": 3240.241814341958,
-    "aspectDeg": 67.94257956674721,
-    "slopeDeg": 10.985551618558238,
-    "compact": true,
-    "cell": {
-     "score": 53.98463002125557,
-     "slope": 68.80994577845006,
-     "aspect": 64.01993204256067,
-     "thermal": 76.3167868583433
-    },
-    "score": 53,
-    "why": [
-     "compact site: 2.61 ac shelf — needs a cut pad and probably a retaining wall",
-     "7.8 h of December sun — good",
-     "2.6 ac, faces ENE, 11.0° slope, 878 ft above the valley floor",
-     "Marbleyard: septic rated very limited — alternative system, rock near the surface",
-     "356 ft to unnamed road at 14% straight-line — about 515 ft of driveway with switchbacks",
-     "routed driveway: 769 ft at ≤10%, 2 switchbacks, ~$54–100k"
-    ],
-    "sunH": 7.816666666666666,
-    "daylightH": 9.45,
-    "q": {
-     "sun": 83,
-     "aspect": 62,
-     "frost": 76,
-     "slope": 69,
-     "sky": 65
-    },
-    "soil": "Marbleyard",
-    "c": {
-     "septic": 40,
-     "foundation": 10,
-     "rock": 15,
-     "pad": 15,
-     "driveway": 14.23237504988588
-    },
-    "costIdx": 94,
-    "costTier": "$$$$",
-    "quality": 74,
-    "qGrade": "B",
-    "roadGrade": 14.44394640917219,
-    "roadRunFt": 356.38450641170306,
-    "roadName": "unnamed road",
-    "driveFt": 769.3104155391011,
     "grade": "C"
    },
    {
@@ -10341,14 +10343,14 @@
      "aspect": 51.94457867060186,
      "thermal": 81.66628137556636
     },
-    "score": 51,
+    "score": 52,
     "why": [
      "compact site: 4.65 ac shelf — needs a cut pad and probably a retaining wall",
      "7.8 h of December sun — good",
      "4.6 ac, faces NNE, 10.5° slope, 767 ft above the valley floor",
      "Marbleyard: septic rated very limited — alternative system, rock near the surface",
      "1540 ft to unnamed road at 6% straight-line",
-     "routed driveway: 2657 ft at ≤10%, 1 switchback, ~$121–225k"
+     "routed driveway: 2657 ft at ≤10%, 1 switchback, ~$62–116k"
     ],
     "sunH": 7.783333333333333,
     "daylightH": 9.45,
@@ -10365,9 +10367,9 @@
      "foundation": 10,
      "rock": 15,
      "pad": 15,
-     "driveway": 20.401338318100354
+     "driveway": 15.284028024224408
     },
-    "costIdx": 100,
+    "costIdx": 95,
     "costTier": "$$$$",
     "quality": 72,
     "qGrade": "B",
@@ -10906,18 +10908,18 @@
       "maxGradePct": 5.363670775653493,
       "avgGradePct": 2.9980083191233953,
       "switchbacks": 0,
-      "earthYd": 402.94552026805866,
-      "rockYd": 405.13047228957413,
-      "stoneTons": 448.1889179073957,
-      "fabricSf": 13400.84864543113,
+      "earthYd": 100.73638006701466,
+      "rockYd": 0.016331554079117343,
+      "stoneTons": 341.5199554454355,
+      "fabricSf": 0,
       "clearAc": 0.613595558617467,
       "culverts": 1,
       "outsideFt": 0
      },
      "cost": {
-      "mid": 85198.91179806268,
-      "low": 59639.23825864387,
-      "high": 110758.58533748148
+      "mid": 46369.442080653695,
+      "low": 32458.609456457583,
+      "high": 60280.274704849806
      },
      "culverts": [],
      "needsEasement": false,
@@ -11456,18 +11458,18 @@
       "maxGradePct": 4.366728501381658,
       "avgGradePct": 2.4119177484050844,
       "switchbacks": 0,
-      "earthYd": 490.5099909193925,
-      "rockYd": 493.86513425221125,
-      "stoneTons": 467.1875845416633,
-      "fabricSf": 13968.908777795728,
+      "earthYd": 122.62749772984813,
+      "rockYd": 0.03779284138858032,
+      "stoneTons": 355.99693942074737,
+      "fabricSf": 0,
       "clearAc": 0.6396057900191479,
       "culverts": 1,
       "outsideFt": 0
      },
      "cost": {
-      "mid": 94475.04489875009,
-      "low": 66132.53142912505,
-      "high": 122817.55836837512
+      "mid": 47339.99625248977,
+      "low": 33137.99737674284,
+      "high": 61541.995128236704
      },
      "culverts": [],
      "needsEasement": false,
@@ -11980,18 +11982,18 @@
      "maxGradePct": 8.41834499859298,
      "avgGradePct": 3.7650458551636325,
      "switchbacks": 0,
-     "earthYd": 323.5525280721426,
-     "rockYd": 325.168801902115,
-     "stoneTons": 456.2456710359108,
-     "fabricSf": 13641.745563973729,
+     "earthYd": 80.88813201803565,
+     "rockYd": 0.016064248203585266,
+     "stoneTons": 347.659201329364,
+     "fabricSf": 0,
      "clearAc": 0.6246257017981951,
      "culverts": 1,
      "outsideFt": 0
     },
     "cost": {
-     "mid": 78562.19576836476,
-     "low": 54993.537037855334,
-     "high": 102130.85449887419
+     "mid": 46430.71445688131,
+     "low": 32501.500119816916,
+     "high": 60359.928793945706
     },
     "culverts": [],
     "needsEasement": false,

@@ -1977,12 +1977,12 @@
      "aspect": 76.01444012892281,
      "thermal": 100
     },
-    "score": 82,
+    "score": 83,
     "why": [
      "8.7 h of December sun — good",
      "18.8 ac, faces E, 6.6° slope, 248 ft above the valley floor",
      "Glenelg: septic needs an engineered design",
-     "routed driveway: 478 ft at ≤10%, 0 switchbacks, ~$22–42k"
+     "routed driveway: 478 ft at ≤10%, 0 switchbacks, ~$20–37k"
     ],
     "sunH": 8.7,
     "daylightH": 9.483333333333333,
@@ -1999,7 +1999,7 @@
      "foundation": 0,
      "rock": 0,
      "pad": 0.7903281040607801,
-     "driveway": 8.589725456783894
+     "driveway": 8.032376536436768
     },
     "costIdx": 29,
     "costTier": "$$",
@@ -2030,7 +2030,7 @@
      "6.1 ac, faces SE, 5.2° slope, 130 ft above the valley floor",
      "Glenelg: septic needs an engineered design",
      "129 ft to unnamed road at 3% straight-line",
-     "routed driveway: 2460 ft at ≤10%, 2 switchbacks, ~$71–131k"
+     "routed driveway: 2460 ft at ≤10%, 2 switchbacks, ~$62–114k"
     ],
     "sunH": 7.2,
     "daylightH": 9.483333333333333,
@@ -2047,9 +2047,9 @@
      "foundation": 0,
      "rock": 0,
      "pad": 0,
-     "driveway": 16.196191013907274
+     "driveway": 15.178010388159224
     },
-    "costIdx": 36,
+    "costIdx": 35,
     "costTier": "$$",
     "quality": 85,
     "qGrade": "A",
@@ -2076,14 +2076,14 @@
      "aspect": 66.90859727169008,
      "thermal": 100
     },
-    "score": 69,
+    "score": 70,
     "why": [
      "compact site: 2.11 ac shelf — needs a cut pad and probably a retaining wall",
      "7.7 h of December sun — good",
      "2.1 ac, faces ENE, 11.7° slope, 207 ft above the valley floor",
      "Glenelg: septic needs an engineered design",
      "212 ft to unnamed road at 2% straight-line",
-     "routed driveway: 1447 ft at ≤10%, 1 switchback, ~$45–83k"
+     "routed driveway: 1447 ft at ≤10%, 1 switchback, ~$39–73k"
     ],
     "sunH": 7.7,
     "daylightH": 9.483333333333333,
@@ -2100,9 +2100,9 @@
      "foundation": 0,
      "rock": 0,
      "pad": 15,
-     "driveway": 12.910028911889986
+     "driveway": 11.989330908939094
     },
-    "costIdx": 48,
+    "costIdx": 47,
     "costTier": "$$$",
     "quality": 77,
     "qGrade": "B",
@@ -2114,6 +2114,59 @@
    },
    {
     "rank": 4,
+    "ll": [
+     36.887678220595696,
+     -80.4562603506132
+    ],
+    "acres": 1.1163621642574217,
+    "elevFt": 2746.0287969110636,
+    "aspectDeg": 0.26681566453169125,
+    "slopeDeg": 10.543376576332818,
+    "compact": true,
+    "cell": {
+     "score": 53.82275155233958,
+     "slope": 71.60200150807698,
+     "aspect": 45.12513318894401,
+     "thermal": 100
+    },
+    "score": 70,
+    "why": [
+     "compact site: 1.12 ac shelf — needs a cut pad and probably a retaining wall",
+     "7.8 h of December sun — good",
+     "1.1 ac, faces N, 10.5° slope, 265 ft above the valley floor",
+     "Glenelg: septic needs an engineered design",
+     "236 ft to unnamed road at 8% straight-line",
+     "routed driveway: 439 ft at ≤10%, 1 switchback, ~$20–38k"
+    ],
+    "sunH": 7.816666666666666,
+    "daylightH": 9.483333333333333,
+    "q": {
+     "sun": 82,
+     "aspect": 42,
+     "frost": 100,
+     "slope": 72,
+     "sky": 67
+    },
+    "soil": "Glenelg",
+    "c": {
+     "septic": 20,
+     "foundation": 0,
+     "rock": 0,
+     "pad": 15,
+     "driveway": 8.115015352414963
+    },
+    "costIdx": 43,
+    "costTier": "$$$",
+    "quality": 75,
+    "qGrade": "B",
+    "roadGrade": 7.88603202979003,
+    "roadRunFt": 236.3286037800262,
+    "roadName": "unnamed road",
+    "driveFt": 438.75003857736965,
+    "grade": "B"
+   },
+   {
+    "rank": 5,
     "ll": [
      36.88825282291574,
      -80.45208993243159
@@ -2135,7 +2188,7 @@
      "7.8 h of December sun — good",
      "0.4 ac, faces ENE, 11.7° slope, 181 ft above the valley floor",
      "Glenelg: septic needs an engineered design",
-     "routed driveway: 1643 ft at ≤10%, 2 switchbacks, ~$52–96k"
+     "routed driveway: 1643 ft at ≤10%, 2 switchbacks, ~$45–84k"
     ],
     "sunH": 7.85,
     "daylightH": 9.483333333333333,
@@ -2152,67 +2205,14 @@
      "foundation": 0,
      "rock": 0,
      "pad": 15,
-     "driveway": 13.912077935211936
+     "driveway": 13.012978413973036
     },
-    "costIdx": 49,
+    "costIdx": 48,
     "costTier": "$$$",
     "quality": 77,
     "qGrade": "B",
     "grade": "B",
     "driveFt": 1642.6025292736879
-   },
-   {
-    "rank": 5,
-    "ll": [
-     36.887678220595696,
-     -80.4562603506132
-    ],
-    "acres": 1.1163621642574217,
-    "elevFt": 2746.0287969110636,
-    "aspectDeg": 0.26681566453169125,
-    "slopeDeg": 10.543376576332818,
-    "compact": true,
-    "cell": {
-     "score": 53.82275155233958,
-     "slope": 71.60200150807698,
-     "aspect": 45.12513318894401,
-     "thermal": 100
-    },
-    "score": 69,
-    "why": [
-     "compact site: 1.12 ac shelf — needs a cut pad and probably a retaining wall",
-     "7.8 h of December sun — good",
-     "1.1 ac, faces N, 10.5° slope, 265 ft above the valley floor",
-     "Glenelg: septic needs an engineered design",
-     "236 ft to unnamed road at 8% straight-line",
-     "routed driveway: 439 ft at ≤10%, 1 switchback, ~$23–42k"
-    ],
-    "sunH": 7.816666666666666,
-    "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 82,
-     "aspect": 42,
-     "frost": 100,
-     "slope": 72,
-     "sky": 67
-    },
-    "soil": "Glenelg",
-    "c": {
-     "septic": 20,
-     "foundation": 0,
-     "rock": 0,
-     "pad": 15,
-     "driveway": 8.681610353777547
-    },
-    "costIdx": 44,
-    "costTier": "$$$",
-    "quality": 75,
-    "qGrade": "B",
-    "roadGrade": 7.88603202979003,
-    "roadRunFt": 236.3286037800262,
-    "roadName": "unnamed road",
-    "driveFt": 438.75003857736965,
-    "grade": "B"
    }
   ],
   "driveway": {
@@ -2483,18 +2483,18 @@
       "maxGradePct": 5.164079705461593,
       "avgGradePct": 2.806772367143474,
       "switchbacks": 0,
-      "earthYd": 64.8058183513978,
+      "earthYd": 16.20145458784945,
       "rockYd": 0,
-      "stoneTons": 191.80388980816105,
-      "fabricSf": 5734.936305264015,
+      "stoneTons": 146.1545640338187,
+      "fabricSf": 0,
       "clearAc": 0.2625901940220633,
       "culverts": 1,
       "outsideFt": 49.2126
      },
      "cost": {
-      "mid": 31942.961026007284,
-      "low": 22360.072718205098,
-      "high": 41525.84933380947
+      "mid": 28823.832052471684,
+      "low": 20176.682436730178,
+      "high": 37470.98166821319
      },
      "culverts": [],
      "needsEasement": false,
@@ -2761,18 +2761,18 @@
       "maxGradePct": 3.8139541495214266,
       "avgGradePct": 1.9521230141992802,
       "switchbacks": 0,
-      "earthYd": 127.42914749972525,
+      "earthYd": 31.85728687493131,
       "rockYd": 0,
-      "stoneTons": 211.00927546041294,
-      "fabricSf": 6309.177336266346,
+      "stoneTons": 160.78906790083465,
+      "fabricSf": 0,
       "clearAc": 0.2888834352578768,
       "culverts": 1,
       "outsideFt": 0
      },
      "cost": {
-      "mid": 34012.68585123941,
-      "low": 23808.880095867586,
-      "high": 44216.491606611235
+      "mid": 29725.572634278153,
+      "low": 20807.900843994707,
+      "high": 38643.2444245616
      },
      "culverts": [],
      "needsEasement": false,
@@ -3013,18 +3013,18 @@
      "maxGradePct": 5.303688829772757,
      "avgGradePct": 2.7989403574251375,
      "switchbacks": 0,
-     "earthYd": 64.16049410407135,
+     "earthYd": 16.040123526017837,
      "rockYd": 0,
-     "stoneTons": 191.99571799535752,
-     "fabricSf": 5740.671968061189,
+     "stoneTons": 146.30073711246243,
+     "fabricSf": 0,
      "clearAc": 0.26285281748056144,
      "culverts": 1,
      "outsideFt": 49.2126
     },
     "cost": {
-     "mid": 31948.384094001703,
-     "low": 22363.868865801192,
-     "high": 41532.89932220222
+     "mid": 28829.026397469155,
+     "low": 20180.318478228408,
+     "high": 37477.7343167099
     },
     "culverts": [],
     "needsEasement": false,
@@ -5026,12 +5026,12 @@
      "aspect": 76.01444012892281,
      "thermal": 100
     },
-    "score": 82,
+    "score": 83,
     "why": [
      "8.7 h of December sun — good",
      "18.8 ac, faces E, 6.6° slope, 248 ft above the valley floor",
      "Glenelg: septic needs an engineered design",
-     "routed driveway: 478 ft at ≤10%, 0 switchbacks, ~$22–42k"
+     "routed driveway: 478 ft at ≤10%, 0 switchbacks, ~$20–37k"
     ],
     "sunH": 8.7,
     "daylightH": 9.483333333333333,
@@ -5048,7 +5048,7 @@
      "foundation": 0,
      "rock": 0,
      "pad": 0.7903281040607801,
-     "driveway": 8.589725456783894
+     "driveway": 8.032376536436768
     },
     "costIdx": 29,
     "costTier": "$$",
@@ -5079,7 +5079,7 @@
      "6.1 ac, faces SE, 5.2° slope, 130 ft above the valley floor",
      "Glenelg: septic needs an engineered design",
      "129 ft to unnamed road at 3% straight-line",
-     "routed driveway: 2460 ft at ≤10%, 2 switchbacks, ~$71–131k"
+     "routed driveway: 2460 ft at ≤10%, 2 switchbacks, ~$62–114k"
     ],
     "sunH": 7.2,
     "daylightH": 9.483333333333333,
@@ -5096,9 +5096,9 @@
      "foundation": 0,
      "rock": 0,
      "pad": 0,
-     "driveway": 16.196191013907274
+     "driveway": 15.178010388159224
     },
-    "costIdx": 36,
+    "costIdx": 35,
     "costTier": "$$",
     "quality": 85,
     "qGrade": "A",
@@ -5125,14 +5125,14 @@
      "aspect": 66.90859727169008,
      "thermal": 100
     },
-    "score": 69,
+    "score": 70,
     "why": [
      "compact site: 2.11 ac shelf — needs a cut pad and probably a retaining wall",
      "7.7 h of December sun — good",
      "2.1 ac, faces ENE, 11.7° slope, 207 ft above the valley floor",
      "Glenelg: septic needs an engineered design",
      "212 ft to unnamed road at 2% straight-line",
-     "routed driveway: 1447 ft at ≤10%, 1 switchback, ~$45–83k"
+     "routed driveway: 1447 ft at ≤10%, 1 switchback, ~$39–73k"
     ],
     "sunH": 7.7,
     "daylightH": 9.483333333333333,
@@ -5149,9 +5149,9 @@
      "foundation": 0,
      "rock": 0,
      "pad": 15,
-     "driveway": 12.910028911889986
+     "driveway": 11.989330908939094
     },
-    "costIdx": 48,
+    "costIdx": 47,
     "costTier": "$$$",
     "quality": 77,
     "qGrade": "B",
@@ -5163,6 +5163,59 @@
    },
    {
     "rank": 4,
+    "ll": [
+     36.887678220595696,
+     -80.4562603506132
+    ],
+    "acres": 1.1163621642574217,
+    "elevFt": 2746.0287969110636,
+    "aspectDeg": 0.26681566453169125,
+    "slopeDeg": 10.543376576332818,
+    "compact": true,
+    "cell": {
+     "score": 53.82275155233958,
+     "slope": 71.60200150807698,
+     "aspect": 45.12513318894401,
+     "thermal": 100
+    },
+    "score": 70,
+    "why": [
+     "compact site: 1.12 ac shelf — needs a cut pad and probably a retaining wall",
+     "7.8 h of December sun — good",
+     "1.1 ac, faces N, 10.5° slope, 265 ft above the valley floor",
+     "Glenelg: septic needs an engineered design",
+     "236 ft to unnamed road at 8% straight-line",
+     "routed driveway: 439 ft at ≤10%, 1 switchback, ~$20–38k"
+    ],
+    "sunH": 7.816666666666666,
+    "daylightH": 9.483333333333333,
+    "q": {
+     "sun": 82,
+     "aspect": 42,
+     "frost": 100,
+     "slope": 72,
+     "sky": 67
+    },
+    "soil": "Glenelg",
+    "c": {
+     "septic": 20,
+     "foundation": 0,
+     "rock": 0,
+     "pad": 15,
+     "driveway": 8.115015352414963
+    },
+    "costIdx": 43,
+    "costTier": "$$$",
+    "quality": 75,
+    "qGrade": "B",
+    "roadGrade": 7.88603202979003,
+    "roadRunFt": 236.3286037800262,
+    "roadName": "unnamed road",
+    "driveFt": 438.75003857736965,
+    "grade": "B"
+   },
+   {
+    "rank": 5,
     "ll": [
      36.88825282291574,
      -80.45208993243159
@@ -5184,7 +5237,7 @@
      "7.8 h of December sun — good",
      "0.4 ac, faces ENE, 11.7° slope, 181 ft above the valley floor",
      "Glenelg: septic needs an engineered design",
-     "routed driveway: 1643 ft at ≤10%, 2 switchbacks, ~$52–96k"
+     "routed driveway: 1643 ft at ≤10%, 2 switchbacks, ~$45–84k"
     ],
     "sunH": 7.85,
     "daylightH": 9.483333333333333,
@@ -5201,67 +5254,14 @@
      "foundation": 0,
      "rock": 0,
      "pad": 15,
-     "driveway": 13.912077935211936
+     "driveway": 13.012978413973036
     },
-    "costIdx": 49,
+    "costIdx": 48,
     "costTier": "$$$",
     "quality": 77,
     "qGrade": "B",
     "grade": "B",
     "driveFt": 1642.6025292736879
-   },
-   {
-    "rank": 5,
-    "ll": [
-     36.887678220595696,
-     -80.4562603506132
-    ],
-    "acres": 1.1163621642574217,
-    "elevFt": 2746.0287969110636,
-    "aspectDeg": 0.26681566453169125,
-    "slopeDeg": 10.543376576332818,
-    "compact": true,
-    "cell": {
-     "score": 53.82275155233958,
-     "slope": 71.60200150807698,
-     "aspect": 45.12513318894401,
-     "thermal": 100
-    },
-    "score": 69,
-    "why": [
-     "compact site: 1.12 ac shelf — needs a cut pad and probably a retaining wall",
-     "7.8 h of December sun — good",
-     "1.1 ac, faces N, 10.5° slope, 265 ft above the valley floor",
-     "Glenelg: septic needs an engineered design",
-     "236 ft to unnamed road at 8% straight-line",
-     "routed driveway: 439 ft at ≤10%, 1 switchback, ~$23–42k"
-    ],
-    "sunH": 7.816666666666666,
-    "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 82,
-     "aspect": 42,
-     "frost": 100,
-     "slope": 72,
-     "sky": 67
-    },
-    "soil": "Glenelg",
-    "c": {
-     "septic": 20,
-     "foundation": 0,
-     "rock": 0,
-     "pad": 15,
-     "driveway": 8.681610353777547
-    },
-    "costIdx": 44,
-    "costTier": "$$$",
-    "quality": 75,
-    "qGrade": "B",
-    "roadGrade": 7.88603202979003,
-    "roadRunFt": 236.3286037800262,
-    "roadName": "unnamed road",
-    "driveFt": 438.75003857736965,
-    "grade": "B"
    }
   ],
   "driveway": {
@@ -6292,18 +6292,18 @@
       "maxGradePct": 9.893955606055442,
       "avgGradePct": 6.651227052327553,
       "switchbacks": 3,
-      "earthYd": 1126.7369812818235,
+      "earthYd": 638.7526839726185,
       "rockYd": 0,
-      "stoneTons": 676.6736576052216,
-      "fabricSf": 20232.542362396125,
+      "stoneTons": 515.6253270951789,
+      "fabricSf": 0,
       "clearAc": 0.9264038764693183,
       "culverts": 1,
       "outsideFt": 9.84252
      },
      "cost": {
-      "mid": 77967.2727949933,
-      "low": 54577.09095649531,
-      "high": 101357.4546334913
+      "mid": 68317.21789610414,
+      "low": 47822.05252727289,
+      "high": 88812.38326493539
      },
      "culverts": [],
      "needsEasement": false,
@@ -7418,18 +7418,18 @@
       "maxGradePct": 9.893481844038282,
       "avgGradePct": 5.947702076922676,
       "switchbacks": 3,
-      "earthYd": 1153.9163215530339,
+      "earthYd": 645.5475190404211,
       "rockYd": 0,
-      "stoneTons": 784.3892348597121,
-      "fabricSf": 23453.23812230539,
+      "stoneTons": 597.7045969631006,
+      "fabricSf": 0,
       "clearAc": 1.0738724932880148,
       "culverts": 1,
       "outsideFt": 137.79528
      },
      "cost": {
-      "mid": 85686.9503347626,
-      "low": 59980.86523433382,
-      "high": 111393.03543519138
+      "mid": 75902.57987281097,
+      "low": 53131.805910967676,
+      "high": 98673.35383465426
      },
      "culverts": [],
      "needsEasement": true,
@@ -8018,18 +8018,18 @@
      "maxGradePct": 15.360318897764197,
      "avgGradePct": 9.277523105297735,
      "switchbacks": 0,
-     "earthYd": 565.2812076321554,
+     "earthYd": 141.32030190803886,
      "rockYd": 0,
-     "stoneTons": 504.91439076621623,
-     "fabricSf": 15096.94028390986,
+     "stoneTons": 384.7447657638567,
+     "fabricSf": 0,
      "clearAc": 0.6912558862515374,
      "culverts": 1,
      "outsideFt": 0
     },
     "cost": {
-     "mid": 59440.3618711437,
-     "low": 41608.25330980059,
-     "high": 77272.4704324868
+     "mid": 55963.68003943225,
+     "low": 39174.57602760257,
+     "high": 72752.78405126193
     },
     "culverts": [],
     "needsEasement": false,
@@ -8071,7 +8071,7 @@
     "aspect": 40.51739501953125,
     "thermal": 100
    },
-   "score": 67,
+   "score": 68,
    "why": [
     "6.5 h of December sun — acceptable",
     "0.3 ac, faces NNW, 9.8° slope, 172 ft above the valley floor",
@@ -8093,9 +8093,9 @@
     "foundation": 0,
     "rock": 0,
     "pad": 4.787353277206421,
-    "driveway": 14.300110784439065
+    "driveway": 13.366825273872811
    },
-   "costIdx": 39,
+   "costIdx": 38,
    "costTier": "$$",
    "quality": 70,
    "qGrade": "B",
@@ -10086,7 +10086,7 @@
     "aspect": 40.51739501953125,
     "thermal": 100
    },
-   "score": 66,
+   "score": 67,
    "why": [
     "6.5 h of December sun — acceptable",
     "0.3 ac, faces NNW, 9.8° slope, 172 ft above the valley floor",
@@ -10108,9 +10108,9 @@
     "foundation": 0,
     "rock": 0,
     "pad": 4.787353277206421,
-    "driveway": 14.300110784439065
+    "driveway": 13.366825273872811
    },
-   "costIdx": 39,
+   "costIdx": 38,
    "costTier": "$$",
    "quality": 69,
    "qGrade": "B",
@@ -10137,12 +10137,12 @@
      "aspect": 76.01444012892281,
      "thermal": 100
     },
-    "score": 81,
+    "score": 82,
     "why": [
      "8.7 h of December sun — good",
      "18.8 ac, faces E, 6.6° slope, 248 ft above the valley floor",
      "Glenelg: septic needs an engineered design",
-     "routed driveway: 478 ft at ≤10%, 0 switchbacks, ~$22–42k"
+     "routed driveway: 478 ft at ≤10%, 0 switchbacks, ~$20–37k"
     ],
     "sunH": 8.7,
     "daylightH": 9.483333333333333,
@@ -10159,7 +10159,7 @@
      "foundation": 0,
      "rock": 0,
      "pad": 0.7903281040607801,
-     "driveway": 8.589725456783894
+     "driveway": 8.032376536436768
     },
     "costIdx": 29,
     "costTier": "$$",
@@ -10190,7 +10190,7 @@
      "6.1 ac, faces SE, 5.2° slope, 130 ft above the valley floor",
      "Glenelg: septic needs an engineered design",
      "129 ft to unnamed road at 3% straight-line",
-     "routed driveway: 2460 ft at ≤10%, 2 switchbacks, ~$71–131k"
+     "routed driveway: 2460 ft at ≤10%, 2 switchbacks, ~$62–114k"
     ],
     "sunH": 7.2,
     "daylightH": 9.483333333333333,
@@ -10207,9 +10207,9 @@
      "foundation": 0,
      "rock": 0,
      "pad": 0,
-     "driveway": 16.196191013907274
+     "driveway": 15.178010388159224
     },
-    "costIdx": 36,
+    "costIdx": 35,
     "costTier": "$$",
     "quality": 84,
     "qGrade": "A",
@@ -10236,14 +10236,14 @@
      "aspect": 66.90859727169008,
      "thermal": 100
     },
-    "score": 68,
+    "score": 69,
     "why": [
      "compact site: 2.11 ac shelf — needs a cut pad and probably a retaining wall",
      "7.7 h of December sun — good",
      "2.1 ac, faces ENE, 11.7° slope, 207 ft above the valley floor",
      "Glenelg: septic needs an engineered design",
      "212 ft to unnamed road at 2% straight-line",
-     "routed driveway: 1447 ft at ≤10%, 1 switchback, ~$45–83k"
+     "routed driveway: 1447 ft at ≤10%, 1 switchback, ~$39–73k"
     ],
     "sunH": 7.7,
     "daylightH": 9.483333333333333,
@@ -10260,9 +10260,9 @@
      "foundation": 0,
      "rock": 0,
      "pad": 15,
-     "driveway": 12.910028911889986
+     "driveway": 11.989330908939094
     },
-    "costIdx": 48,
+    "costIdx": 47,
     "costTier": "$$$",
     "quality": 75,
     "qGrade": "B",
@@ -10274,6 +10274,59 @@
    },
    {
     "rank": 4,
+    "ll": [
+     36.887678220595696,
+     -80.4562603506132
+    ],
+    "acres": 1.1163621642574217,
+    "elevFt": 2746.0287969110636,
+    "aspectDeg": 0.26681566453169125,
+    "slopeDeg": 10.543376576332818,
+    "compact": true,
+    "cell": {
+     "score": 53.82275155233958,
+     "slope": 71.60200150807698,
+     "aspect": 45.12513318894401,
+     "thermal": 100
+    },
+    "score": 69,
+    "why": [
+     "compact site: 1.12 ac shelf — needs a cut pad and probably a retaining wall",
+     "7.8 h of December sun — good",
+     "1.1 ac, faces N, 10.5° slope, 265 ft above the valley floor",
+     "Glenelg: septic needs an engineered design",
+     "236 ft to unnamed road at 8% straight-line",
+     "routed driveway: 439 ft at ≤10%, 1 switchback, ~$20–38k"
+    ],
+    "sunH": 7.816666666666666,
+    "daylightH": 9.483333333333333,
+    "q": {
+     "sun": 82,
+     "aspect": 42,
+     "frost": 100,
+     "slope": 72,
+     "sky": 57
+    },
+    "soil": "Glenelg",
+    "c": {
+     "septic": 20,
+     "foundation": 0,
+     "rock": 0,
+     "pad": 15,
+     "driveway": 8.115015352414963
+    },
+    "costIdx": 43,
+    "costTier": "$$$",
+    "quality": 74,
+    "qGrade": "B",
+    "roadGrade": 7.88603202979003,
+    "roadRunFt": 236.3286037800262,
+    "roadName": "unnamed road",
+    "driveFt": 438.75003857736965,
+    "grade": "B"
+   },
+   {
+    "rank": 5,
     "ll": [
      36.88825282291574,
      -80.45208993243159
@@ -10295,7 +10348,7 @@
      "7.8 h of December sun — good",
      "0.4 ac, faces ENE, 11.7° slope, 181 ft above the valley floor",
      "Glenelg: septic needs an engineered design",
-     "routed driveway: 1643 ft at ≤10%, 2 switchbacks, ~$52–96k"
+     "routed driveway: 1643 ft at ≤10%, 2 switchbacks, ~$45–84k"
     ],
     "sunH": 7.85,
     "daylightH": 9.483333333333333,
@@ -10312,67 +10365,14 @@
      "foundation": 0,
      "rock": 0,
      "pad": 15,
-     "driveway": 13.912077935211936
+     "driveway": 13.012978413973036
     },
-    "costIdx": 49,
+    "costIdx": 48,
     "costTier": "$$$",
     "quality": 75,
     "qGrade": "B",
     "grade": "B",
     "driveFt": 1642.6025292736879
-   },
-   {
-    "rank": 5,
-    "ll": [
-     36.887678220595696,
-     -80.4562603506132
-    ],
-    "acres": 1.1163621642574217,
-    "elevFt": 2746.0287969110636,
-    "aspectDeg": 0.26681566453169125,
-    "slopeDeg": 10.543376576332818,
-    "compact": true,
-    "cell": {
-     "score": 53.82275155233958,
-     "slope": 71.60200150807698,
-     "aspect": 45.12513318894401,
-     "thermal": 100
-    },
-    "score": 68,
-    "why": [
-     "compact site: 1.12 ac shelf — needs a cut pad and probably a retaining wall",
-     "7.8 h of December sun — good",
-     "1.1 ac, faces N, 10.5° slope, 265 ft above the valley floor",
-     "Glenelg: septic needs an engineered design",
-     "236 ft to unnamed road at 8% straight-line",
-     "routed driveway: 439 ft at ≤10%, 1 switchback, ~$23–42k"
-    ],
-    "sunH": 7.816666666666666,
-    "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 82,
-     "aspect": 42,
-     "frost": 100,
-     "slope": 72,
-     "sky": 57
-    },
-    "soil": "Glenelg",
-    "c": {
-     "septic": 20,
-     "foundation": 0,
-     "rock": 0,
-     "pad": 15,
-     "driveway": 8.681610353777547
-    },
-    "costIdx": 44,
-    "costTier": "$$$",
-    "quality": 74,
-    "qGrade": "B",
-    "roadGrade": 7.88603202979003,
-    "roadRunFt": 236.3286037800262,
-    "roadName": "unnamed road",
-    "driveFt": 438.75003857736965,
-    "grade": "B"
    }
   ],
   "driveway": {
@@ -11403,18 +11403,18 @@
       "maxGradePct": 9.893955606055442,
       "avgGradePct": 6.651227052327553,
       "switchbacks": 3,
-      "earthYd": 1126.7369812818235,
+      "earthYd": 638.7526839726185,
       "rockYd": 0,
-      "stoneTons": 676.6736576052216,
-      "fabricSf": 20232.542362396125,
+      "stoneTons": 515.6253270951789,
+      "fabricSf": 0,
       "clearAc": 0.9264038764693183,
       "culverts": 1,
       "outsideFt": 9.84252
      },
      "cost": {
-      "mid": 77967.2727949933,
-      "low": 54577.09095649531,
-      "high": 101357.4546334913
+      "mid": 68317.21789610414,
+      "low": 47822.05252727289,
+      "high": 88812.38326493539
      },
      "culverts": [],
      "needsEasement": false,
@@ -12529,18 +12529,18 @@
       "maxGradePct": 9.893481844038282,
       "avgGradePct": 5.947702076922676,
       "switchbacks": 3,
-      "earthYd": 1153.9163215530339,
+      "earthYd": 645.5475190404211,
       "rockYd": 0,
-      "stoneTons": 784.3892348597121,
-      "fabricSf": 23453.23812230539,
+      "stoneTons": 597.7045969631006,
+      "fabricSf": 0,
       "clearAc": 1.0738724932880148,
       "culverts": 1,
       "outsideFt": 137.79528
      },
      "cost": {
-      "mid": 85686.9503347626,
-      "low": 59980.86523433382,
-      "high": 111393.03543519138
+      "mid": 75902.57987281097,
+      "low": 53131.805910967676,
+      "high": 98673.35383465426
      },
      "culverts": [],
      "needsEasement": true,
@@ -13129,18 +13129,18 @@
      "maxGradePct": 15.360318897764197,
      "avgGradePct": 9.277523105297735,
      "switchbacks": 0,
-     "earthYd": 565.2812076321554,
+     "earthYd": 141.32030190803886,
      "rockYd": 0,
-     "stoneTons": 504.91439076621623,
-     "fabricSf": 15096.94028390986,
+     "stoneTons": 384.7447657638567,
+     "fabricSf": 0,
      "clearAc": 0.6912558862515374,
      "culverts": 1,
      "outsideFt": 0
     },
     "cost": {
-     "mid": 59440.3618711437,
-     "low": 41608.25330980059,
-     "high": 77272.4704324868
+     "mid": 55963.68003943225,
+     "low": 39174.57602760257,
+     "high": 72752.78405126193
     },
     "culverts": [],
     "needsEasement": false,

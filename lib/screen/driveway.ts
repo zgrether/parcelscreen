@@ -169,6 +169,93 @@ export function bedrockDepth(
   return m;
 }
 
+/**
+ * Cells on poorly drained soils (the dominant component's drainage class: somewhat poorly, poorly or very poorly
+ * drained), inside the parcel: the road gets geotextile there, as on bottomland (owner, #99 decisions, 2026-10-11).
+ */
+export function poorlyDrained(
+  units: SoilUnit[] | null,
+  rows: SoilRow[] | null,
+  d: Dem,
+  inside: Uint8Array,
+): Uint8Array {
+  const m = new Uint8Array(d.w * d.h);
+  if (!units) return m;
+  const wetUnits = units.flatMap((u) => {
+    const comp = (rows || [])
+      .filter((x) => String(x.mukey) === u.mukey)
+      .sort((a, b) => (+b.comppct_r! || 0) - (+a.comppct_r! || 0))[0];
+    return comp && /poorly drained/i.test(String(comp.drclassdcd ?? ""))
+      ? [{ u, bb: u.geos.map((g) => bbox(g)) }]
+      : [];
+  });
+  if (!wetUnits.length) return m;
+  for (let r = 0; r < d.h; r++)
+    for (let c = 0; c < d.w; c++) {
+      const i = r * d.w + c;
+      if (!inside[i]) continue;
+      const [lat, lon] = rcToLL(d, r, c);
+      if (
+        wetUnits.some((x) =>
+          x.u.geos.some((g, k) => {
+            const b = x.bb[k]!;
+            return (
+              lon >= b[0]! &&
+              lon <= b[2]! &&
+              lat >= b[1]! &&
+              lat <= b[3]! &&
+              booleanPointInPolygon([lon, lat], g)
+            );
+          }),
+        )
+      )
+        m[i] = 1;
+    }
+  return m;
+}
+
+/**
+ * The road's cut per metre at a side slope (degrees), and how much of it is rock with bedrock at `bedrockCm` (NaN:
+ * none reported). Under fullBenchSlopeDeg, a balanced half bench: half the width cut, its spoil filling the other
+ * half (W² tanθ / 8); steeper, fill won't stand, and the whole width is cut (W² tanθ / 2). Either way a triangle,
+ * deepest at the hillside edge: the share below bedrock at depth b of a cut H deep is ((H − b) / H)².
+ */
+export function roadCut(slopeDeg: number, bedrockCm: number): { m2: number; rockM2: number } {
+  const W = K.benchWidthM;
+  const t = Math.tan((slopeDeg * Math.PI) / 180);
+  const half = slopeDeg < K.fullBenchSlopeDeg;
+  const m2 = half ? (W * W * t) / 8 : (W * W * t) / 2;
+  const H = (half ? W / 2 : W) * t,
+    b = bedrockCm / 100;
+  const rock = Number.isFinite(b) && H > b ? ((H - b) / H) ** 2 : 0;
+  return { m2, rockM2: m2 * rock };
+}
+
+/**
+ * Relief culverts (cross-drains) along a route, from its profile (owner, #99 decisions, 2026-10-11): at each 3 m
+ * step, one per `reliefCulverts.everyFt` for the road's grade over 30 m there, rounded to a whole number. The
+ * entrance's culvert and those at drainage crossings are counted apart (`metrics.culverts`).
+ */
+export function reliefCulverts(profile: readonly (readonly [number, number])[]): number {
+  const C = K.reliefCulverts;
+  const half = K.gradeWindowsM.headline / 2;
+  let n = 0;
+  for (let i = 1; i < profile.length; i++) {
+    const s = profile[i]![0];
+    // The grade over 30 m centred here (or what's left of it near an end).
+    let a = i,
+      b = i;
+    while (a > 0 && s - profile[a - 1]![0] <= half) a--;
+    while (b < profile.length - 1 && profile[b + 1]![0] - s <= half) b++;
+    const run = profile[b]![0] - profile[a]![0];
+    const pct = run > 0 ? (Math.abs(profile[b]![1] - profile[a]![1]) / run) * 100 : 0;
+    const band = C.everyFt.find(([upTo]) => pct <= upTo);
+    const everyM = (band ? band[1] : C.steeperFt) / M2FT;
+    n += (profile[i]![0] - profile[i - 1]![0]) / everyM;
+  }
+  return Math.round(n);
+}
+
 type Line = Feature<LineString | MultiLineString>;
 const firstLine = (l: Line | FeatureCollection<LineString | MultiLineString>): Line =>
   l.type === "FeatureCollection" ? l.features[0]! : l;
@@ -320,6 +407,8 @@ export interface RouteContext {
   flowAcc: () => Float32Array;
   /** Depth to bedrock per cell, cm (NaN unknown): a landing's cut below it is priced as rock. Absent: all soil. */
   bedrockCm?: () => Float32Array;
+  /** Poorly drained soils per cell (1): the road gets geotextile there. Absent: none. */
+  wetSoil?: () => Uint8Array;
   dw: UserConfig["dw"];
 }
 
@@ -439,12 +528,15 @@ export function routeManyFrom(
     const prof: [number, number][] = [];
     const culverts: LatLon[] = [];
     let outside = 0,
-      rockM = 0,
       earth = 0,
+      rockEarth = 0,
+      fabricM = 0,
       prevAcc = 0,
       sumg = 0;
     const W = K.benchWidthM,
       step = K.profileStepM;
+    const bedrock = ctx.bedrockCm?.(),
+      wet = ctx.wetSoil?.();
     const at = alongWalkerSeg(pts);
     for (let s = 0; s <= lenM; s += step) {
       const [p, k, f] = at(s);
@@ -462,9 +554,12 @@ export function routeManyFrom(
       const zb = Number.isNaN(zd) ? zBilinear(d, x, y) : zd;
       prof.push([s, Number.isNaN(zb) ? zz : zb]);
       if (!inside[i]) outside += step;
-      if (soil[i] === 2) rockM += step;
-      const cs = Math.tan(((slope[i] || 0) * Math.PI) / 180);
-      earth += ((W * W * cs) / 2) * step;
+      // The road's cut (owner, #99 decisions): a balanced half bench under fullBenchSlopeDeg, a full bench steeper; a
+      // triangle deepest at the hillside edge, the part below the soils' depth to bedrock is rock.
+      const cut = roadCut(slope[i] || 0, bedrock?.[i] ?? NaN);
+      earth += cut.m2 * step;
+      rockEarth += cut.rockM2 * step;
+      if (soil[i] === 1 || wet?.[i] === 1) fabricM += step;
       if (acc[i]! >= streamCells && prevAcc < streamCells) culverts.push([p[1]!, p[0]!]);
       prevAcc = acc[i]!;
     }
@@ -473,7 +568,6 @@ export function routeManyFrom(
     const rise = prof.length ? Math.abs(prof[prof.length - 1]![1] - prof[0]![1]) : 0;
     // Each landing's graded bench: the cut or fill between the ground and the road, a bench's width wide; cut
     // below the bedrock depth is rock.
-    const bedrock = ctx.bedrockCm?.();
     const landingDetails: LandingDetail[] = path.landings.map((L) => {
       let m3 = 0,
         rock = 0;
@@ -514,9 +608,9 @@ export function routeManyFrom(
       // The landings the router built (A4b PR B): each turn of more than switchbackTurnDeg.
       switchbacks: path.landings.length,
       earthYd: earth * K.m3ToYd3 + benchYd,
-      rockYd: earth * K.m3ToYd3 * (lenM ? rockM / lenM : 0) + benchRockYd,
+      rockYd: rockEarth * K.m3ToYd3 + benchRockYd,
       stoneTons: W * K.stoneDepthM * lenM * K.stoneTPerM3,
-      fabricSf: W * lenM * K.m2ToSf,
+      fabricSf: W * fabricM * K.m2ToSf,
       clearAc: (K.clearingWidthM * lenM) / M2_PER_ACRE,
       culverts: culverts.length + 1,
       outsideFt: outside * M2FT,
@@ -532,7 +626,7 @@ export function routeManyFrom(
       q.rockYd * u.earthRockPerYd +
       q.stoneTons * u.stonePerTon +
       q.fabricSf * u.fabricPerSf +
-      q.culverts * u.culvertEach;
+      (q.culverts + reliefCulverts(prof)) * u.culvertEach;
     const R = K.costRange;
     const rt: RawRoute = {
       line,
@@ -688,27 +782,14 @@ export function siteDriveways(
   const { entrances } = entranceCandidates(roads, parcel, ctx.dFine);
   const ent = entrances.slice(0, K.entrancesRouted);
   if (!ent.length) return toLLs.map(() => ({ withinLimit: null, onParcel: null }));
-  const extra = { exact: routing.exact, landingMaxSideSlopeDeg: routing.landingMaxSideSlopeDeg };
-  /**
-   * The cheapest route from any entrance in any of the styles to each of the sites `ts`: one search per style from
-   * every entrance at once (A4b PR B), the cheaper style winning (buildDriveway's order on a tie: the first style).
-   */
-  const cheapest = (ts: number[], opts: RouteOpts[]): (Found | null)[] => {
-    const best: (Found | null)[] = ts.map(() => null);
-    for (const o of opts) {
-      routeManyFrom(
-        ctx,
-        ent.map((e) => e.ll),
-        ts.map((t) => toLLs[t]!),
-        { ...o, ...extra },
-      ).forEach((f, i) => {
-        const b = best[i];
-        if (f && (!b || f.rt.cost.mid < b.rt.cost.mid)) best[i] = f;
-      });
-      routing.onProgress?.();
-    }
-    return best;
-  };
+  const cheapest = (ts: number[], opts: RouteOpts[]): (Found | null)[] =>
+    cheapestFrom(
+      ctx,
+      ent,
+      ts.map((t) => toLLs[t]!),
+      opts,
+      routing,
+    );
   const legal = (f: Found): SiteDriveway => ({ route: f.rt, legal: true, entranceIndex: f.entranceIndex });
 
   const all = toLLs.map((_, t) => t);
@@ -719,7 +800,6 @@ export function siteDriveways(
 
   // Kept to the parcel, within the limit: for the sites whose cheapest route leaves it, or that have none.
   const L = K.leastSteep;
-  const keptOpts = (o: RouteOpts): RouteOpts => ({ ...o, insideExceptNearStartM: L.entranceM });
   const offParcel = all.filter((t) => !out[t]!.onParcel);
   if (!offParcel.length) return out;
   cheapest(offParcel, styles(roadMaxGradePct).map(keptOpts)).forEach((f, i) => {
@@ -760,6 +840,85 @@ export function siteDriveways(
       entranceIndex: found.entranceIndex,
     };
   return out;
+}
+
+/**
+ * The cheapest route from any of the entrances in any of the styles to each of `toLLs`: one search per style from
+ * every entrance at once (A4b PR B), the cheaper style winning (buildDriveway's order on a tie: the first style).
+ */
+function cheapestFrom(
+  ctx: RouteContext,
+  ent: readonly Entrance[],
+  toLLs: readonly LatLon[],
+  opts: RouteOpts[],
+  routing: RoutingOpts,
+): (Found | null)[] {
+  const extra = { exact: routing.exact, landingMaxSideSlopeDeg: routing.landingMaxSideSlopeDeg };
+  const best: (Found | null)[] = toLLs.map(() => null);
+  for (const o of opts) {
+    routeManyFrom(
+      ctx,
+      ent.map((e) => e.ll),
+      toLLs,
+      { ...o, ...extra },
+    ).forEach((f, i) => {
+      const b = best[i];
+      if (f && (!b || f.rt.cost.mid < b.rt.cost.mid)) best[i] = f;
+    });
+    routing.onProgress?.();
+  }
+  return best;
+}
+
+/** A route kept to the parcel: land outside only at the entrance's edge, as leastSteep keeps it. */
+const keptOpts = (o: RouteOpts): RouteOpts => ({ ...o, insideExceptNearStartM: K.leastSteep.entranceM });
+
+/**
+ * A "no practical drive" target's realistic alternatives (owner, #99 decisions, 2026-10-11): what a builder would
+ * price instead of a route that costs more than its share of the ready-to-build budget.
+ */
+export interface PracticalAlternatives {
+  /**
+   * The cheapest route kept to the parcel at practicalMaxPct, the steep parts paved: scored as over the limit
+   * (legal false), so it carries the over-limit term. Null when none reaches.
+   */
+  steeper: SiteDriveway | null;
+  /** The cheapest route within the limit, when it goes through neighbouring land (an easement). */
+  easement: SiteDriveway | null;
+}
+
+/**
+ * The alternatives for each target, given its two candidates (`routes`, from siteDriveways): the routes at
+ * practicalMaxPct in one search per style from every entrance, for all the targets together.
+ */
+export function practicalAlternatives(
+  ctx: RouteContext,
+  roads: RoadFeature[],
+  parcel: Feature<Polygon>,
+  toLLs: readonly LatLon[],
+  routes: readonly SiteRoutes[],
+  roadMaxGradePct: number,
+  routing: RoutingOpts = {},
+): PracticalAlternatives[] {
+  const ent = entranceCandidates(roads, parcel, ctx.dFine).entrances.slice(0, K.entrancesRouted);
+  const steeper =
+    ent.length && toLLs.length
+      ? cheapestFrom(ctx, ent, toLLs, styles(K.practicalMaxPct).map(keptOpts), routing)
+      : toLLs.map(() => null);
+  return toLLs.map((_, i) => {
+    const f = steeper[i];
+    const w = routes[i]?.withinLimit;
+    return {
+      steeper: f
+        ? {
+            route: overLimitRoute(f.rt, f.entranceIndex, roadMaxGradePct),
+            legal: false,
+            entranceIndex: f.entranceIndex,
+          }
+        : null,
+      easement: w?.route?.needsEasement ? w : null,
+    };
+  });
 }
 
 /** The grade the least-steep route needs: its cap, the lowest whole percent that reaches the target. */
