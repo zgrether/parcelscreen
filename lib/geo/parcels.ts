@@ -6,7 +6,7 @@
 import { area, booleanPointInPolygon, destination, point, polygon } from "@turf/turf";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { CancelledError, type HttpClient } from "../http";
-import { recordOutFields } from "./parcelFields";
+import { isPlaceholderRecord, recordOutFields } from "./parcelFields";
 import { PARCEL_SERVICE_TIMEOUTS } from "./serviceStatus";
 import { M2_PER_ACRE, type LatLon } from "./types";
 
@@ -87,7 +87,7 @@ export async function pickParcelAt(
         report.push(`${short}: ${j.error.message || "error"}`);
         continue;
       }
-      const f = (j.features || [])[0];
+      const f = (j.features || []).find((x) => !isPlaceholderRecord(url, x.properties));
       if (!f) {
         report.push(`${short}: no parcel at this point`);
         continue;
