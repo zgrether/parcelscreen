@@ -37,6 +37,7 @@ import {
   decideTap,
   exploreReducer,
   INITIAL,
+  NO_PARCEL_HERE,
   type ExploreAction,
   type ExploreState,
   type Mode,
@@ -372,6 +373,9 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       if (o.kind !== "none") hint("");
       // An empty map because the parcel service isn't answering: say so, not nothing (owner, after 16b).
       else if (hit.serviceDown) hint(hit.serviceDown);
+      // No record under an empty spot where outlines are drawn (owner, 2026-10-11).
+      else if (hit.linesShown && !hit.insideOpen && !hit.outline && !hit.savedKey)
+        flash(hint, NO_PARCEL_HERE, 4000);
     },
     close() {
       if (refuseBusy()) return;

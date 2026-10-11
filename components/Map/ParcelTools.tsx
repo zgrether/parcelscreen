@@ -12,6 +12,7 @@ import { snapCorner, type SnapRing } from "@/lib/geo/snap";
 import type { Side } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
 import { parcelFromLine } from "@/lib/geo/parcels";
+import { LINES_MIN_ZOOM } from "@/lib/geo/parcelTiles";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
 import { tipAt } from "./results/tooltip";
@@ -94,6 +95,7 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
           outline: line ? parcelFromLine(line) : null,
           savedKey: savedAt(map, e.point),
           serviceDown: parcelServiceDown(map),
+          linesShown: map.getZoom() >= LINES_MIN_ZOOM,
         });
       }
       if (mode === "house") c.setHouse(toLL(e));
