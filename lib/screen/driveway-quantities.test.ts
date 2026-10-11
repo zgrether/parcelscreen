@@ -7,7 +7,14 @@ import { runFixture } from "../../test/support/scenarios";
 import { SCREEN_CONSTANTS } from "./config";
 import { reliefCulverts, roadCut, type PracticalAlternatives, type SiteDriveway } from "./driveway";
 import { routeContext } from "./index";
-import { drivewayPoints, impracticalLine, isImpractical, practicalDriveway, withoutVetoed } from "./score";
+import {
+  drivewayPoints,
+  impracticalLine,
+  isImpractical,
+  overLimitPoints,
+  practicalDriveway,
+  withoutVetoed,
+} from "./score";
 import { M2FT } from "./util";
 
 const K = SCREEN_CONSTANTS.driveway;
@@ -111,6 +118,16 @@ describe('"no practical drive"', () => {
     expect(practicalDriveway(chosen, { steeper: null, easement })).toBe(easement);
     expect(practicalDriveway(chosen, { steeper: null, easement: null })).toBe(chosen);
     expect(practicalDriveway(chosen, null)).toBe(chosen);
+  });
+
+  it("the 15% alternative's over-limit term reads its design limit, not the ground (option C)", () => {
+    // Grayson's 15% route reads about 17.9% over 30 m on the ungraded ground: +13.7 by the ground, +5 by design.
+    const ground = dwOf({ mid: 166_000, ft: 2888, pct: 17.9, limitPct: 10 });
+    expect(overLimitPoints(ground)).toBeCloseTo(5 + (2.9 / 5) * 15, 9);
+    expect(overLimitPoints({ ...ground, designPct: K.practicalMaxPct })).toBe(5);
+    // The veto still reads the ground.
+    const steep = { ...dwOf({ mid: 120_000, ft: 2000, pct: 21, limitPct: 10 }), designPct: 15 };
+    expect(withoutVetoed({ steeper: steep, easement: null }, 20).steeper).toBeNull();
   });
 
   it("drops an alternative the veto (20%) rules out", () => {

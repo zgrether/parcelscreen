@@ -130,7 +130,8 @@ export function drivewayPoints(dw: SiteDriveway): number {
  */
 export function overLimitPoints(dw: SiteDriveway): number {
   if (dw.legal || !dw.route || !("limitPct" in dw.route)) return 0;
-  return overLimitTerm(dw.route.metrics.maxGradePct, dw.route.limitPct);
+  // A designed alignment reads its design grade, not the ungraded ground (owner, option C; follow-up 48).
+  return overLimitTerm(dw.designPct ?? dw.route.metrics.maxGradePct, dw.route.limitPct);
 }
 
 /** A candidate's grade over the headline window (30 m): what the over-limit term and the veto read (A4b). */

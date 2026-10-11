@@ -4,6 +4,7 @@
  * the alternative, "Within 10% only via neighbouring land — needs an easement". The title and card order change is
  * an approved exception to rule 7 (phase-0.md §9, decision 22).
  */
+import { fmt } from "@/lib/format";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { drivewayFeatures } from "@/lib/render/resultGeo";
@@ -39,8 +40,11 @@ describe("the scored route first (#88 follow-up)", () => {
     expect(d.overLimit!.track).toBeDefined(); // the pioneer track follows the scored route
     expect(d.routes.every((rt) => !rt.track)).toBe(true);
     expect(d.note!.endsWith(overLimitNote(d.overLimit!))).toBe(true);
-    // #1 is scored on that route.
-    expect(r.sites![0]!.driveFt).toBe(d.overLimit!.metrics.lengthFt);
+    // That route costs over $225k, so #1 is scored on its 15% alternative instead ("No practical drive", #99
+    // decisions), named in the paragraph the section now leads with.
+    expect(d.note!.startsWith("No practical drive at your 10% limit")).toBe(true);
+    expect(d.note).toContain(`At 15%: ${fmt(r.sites![0]!.driveFt!)} ft on your land`);
+    expect(r.sites![0]!.driveFt).toBeLessThan(d.overLimit!.metrics.lengthFt);
 
     const v = drivewayView(r)!;
     expect([v.overLimit!.title, ...v.routes.map((x) => x.title)]).toEqual(APPROVED.after);

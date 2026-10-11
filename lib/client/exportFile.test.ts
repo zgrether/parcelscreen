@@ -268,6 +268,12 @@ describe("a prototype export ({ cfg, saved[] }, L1605)", () => {
     );
   });
 
+  it("its culvert rate is also the relief culverts' (owner, 2026-10-11: their own rate defaults to it)", () => {
+    const dw = { ...(PROTO.dw as Record<string, number>), culvertEach: 4200 };
+    const p = plan(proto({ ...PROTO, dw }));
+    expect(p.settings!.config.dw).toMatchObject({ culvertEach: 4200, reliefCulvertEach: 4200 });
+  });
+
   it("its saved parcels become History parcels, with no result: house, name and notes kept", () => {
     const p = plan(
       proto(undefined, [

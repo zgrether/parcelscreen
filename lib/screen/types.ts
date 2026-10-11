@@ -77,6 +77,7 @@ export const DrivewayCostsSchema = z.strictObject({
   stonePerTon: num,
   fabricPerSf: num,
   culvertEach: num,
+  reliefCulvertEach: num,
   entrance: num,
   erosion: num,
   mobilize: num,

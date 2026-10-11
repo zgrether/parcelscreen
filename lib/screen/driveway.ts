@@ -234,7 +234,8 @@ export function roadCut(slopeDeg: number, bedrockCm: number): { m2: number; rock
 /**
  * Relief culverts (cross-drains) along a route, from its profile (owner, #99 decisions, 2026-10-11): at each 3 m
  * step, one per `reliefCulverts.everyFt` for the road's grade over 30 m there, rounded to a whole number. The
- * entrance's culvert and those at drainage crossings are counted apart (`metrics.culverts`).
+ * entrance's culvert and those at drainage crossings are counted apart (`metrics.culverts`). Priced at
+ * dw.reliefCulvertEach.
  */
 export function reliefCulverts(profile: readonly (readonly [number, number])[]): number {
   const C = K.reliefCulverts;
@@ -626,7 +627,8 @@ export function routeManyFrom(
       q.rockYd * u.earthRockPerYd +
       q.stoneTons * u.stonePerTon +
       q.fabricSf * u.fabricPerSf +
-      (q.culverts + reliefCulverts(prof)) * u.culvertEach;
+      q.culverts * u.culvertEach +
+      reliefCulverts(prof) * u.reliefCulvertEach;
     const R = K.costRange;
     const rt: RawRoute = {
       line,
@@ -752,6 +754,11 @@ export interface SiteDriveway {
   entranceIndex: number | null;
   /** Every candidate was vetoed and this is the least steep of them (A4b, chooseDriveway): "No practical route found". */
   noPractical?: true;
+  /**
+   * The grade the route was designed to, when the over-limit term should read it instead of the ground under it: the
+   * "no practical drive" rule's practicalMaxPct alternative (owner, option C, 2026-10-11).
+   */
+  designPct?: number;
 }
 
 /**
@@ -914,6 +921,7 @@ export function practicalAlternatives(
             route: overLimitRoute(f.rt, f.entranceIndex, roadMaxGradePct),
             legal: false,
             entranceIndex: f.entranceIndex,
+            designPct: K.practicalMaxPct,
           }
         : null,
       easement: w?.route?.needsEasement ? w : null,

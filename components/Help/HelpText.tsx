@@ -102,10 +102,7 @@ export function HelpText() {
         draws switchbacks on steep ground. It avoids wet soils and side-hill cuts, counts drainage crossings
         as culverts, and prices the result with the unit costs in Settings, shown as ±30%. Two routes: the
         shortest legal one and a gentler 8% one. Treat it as a quantity take-off to hand an excavator, not a
-        bid. It also counts relief culverts along the road (one every 150–400 ft, closer on steeper grades).
-        When the route costs more than three quarters of your ready-to-build budget (Settings), the section
-        says there is no practical drive at your grade limit and gives the alternatives a builder would price:
-        a 15% drive paved on its steep parts, and the route through the neighbours, if one exists.
+        bid.
       </p>
       <h3 id="h-soils">Soils</h3>
       <p>

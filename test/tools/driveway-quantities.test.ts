@@ -89,11 +89,11 @@ describe.runIf(import.meta.env.MODE === "dw-quant")("driveway quantities (#99 de
           .map(([upTo, ft], i, a) => `${i ? `${a[i - 1]![0]}–${upTo}%` : `≤ ${upTo}%`} every ${ft} ft`)
           .join(", ") +
         `, steeper every ${K.reliefCulverts.steeperFt} ft; on top of the entrance's and one at each drainage ` +
-        "crossing, all at the culvert rate.",
+        "crossing. They have their own rate, `dw.reliefCulvertEach`, the culvert rate until the quote.",
       `3. **"No practical drive"** when the route a site is scored on costs more than ` +
         `${Math.round(K.impracticalShareOfReadyToBuild * 100)}% of the ready-to-build budget ($300k by default, so ` +
         `$225k): the site is scored on the cheaper (in points) of its alternatives, the route kept to the parcel at ` +
-        `${K.practicalMaxPct}% and the route within the limit through the neighbours. The 20% veto still applies.`,
+        `${K.practicalMaxPct}% and the route within the limit through the neighbours. The 20% veto still applies. The 15% alternative is a designed alignment: its over-limit term reads its design limit (+5 under a 10% limit), not the ungraded ground under it (option C).`,
       "",
       "Unit rates are unchanged (follow-up 47 waits for the quote). Costs are the middle of the card's ±30% range.",
       "",
@@ -216,7 +216,7 @@ describe.runIf(import.meta.env.MODE === "dw-quant")("driveway quantities (#99 de
       "",
       "## 2. Sites that trip the rule",
       "",
-      `Over ${k$(K.impracticalShareOfReadyToBuild * 300_000)} (the default budget). Each is scored on the alternative with fewer points; the over-limit term (+1 a percent over the limit) applies to the ${K.practicalMaxPct}% route and the easement term (+10) to the route through the neighbours.`,
+      `Over ${k$(K.impracticalShareOfReadyToBuild * 300_000)} (the default budget). Each is scored on the alternative with fewer points; the ${K.practicalMaxPct}% route carries the over-limit term at its design limit (+5 under a 10% limit; option C), the route through the neighbours the easement term (+10). The over-limit terms in the table are those scored.`,
       "",
       "| Site (engine 10 rank) | Chosen route | Steeper alternative | Easement alternative | Score with the rule (rank) / without |",
       "|---|---|---|---|---|",

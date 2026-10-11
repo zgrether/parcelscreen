@@ -53,6 +53,7 @@ describe("config", () => {
           "erosion": 3000,
           "fabricPerSf": 0.75,
           "mobilize": 2500,
+          "reliefCulvertEach": 3500,
           "stonePerTon": 38,
           "woodedPct": 100,
         },

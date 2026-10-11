@@ -84,6 +84,7 @@ export const COST_FIELDS: readonly NumberField[] = [
   cost("stonePerTon", "Stone $/ton delivered"),
   cost("fabricPerSf", "Geotextile $/sq ft", 0.05),
   cost("culvertEach", "Culvert, each"),
+  cost("reliefCulvertEach", "Relief culvert (cross-drain), each"),
   cost("entrance", "VDOT entrance"),
   cost("erosion", "Erosion control (flat)"),
   cost("mobilize", "Mobilization"),

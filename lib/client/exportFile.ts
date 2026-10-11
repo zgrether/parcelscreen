@@ -168,7 +168,10 @@ function settingsForm(
   const groups: Record<string, Record<string, unknown>> = { dw, budget };
   for (const f of NUMBER_FIELDS) {
     const [group, key] = f.id.split(".");
-    const v = key ? groups[group!]?.[key] : raw[f.id];
+    // A file from before relief culverts had their own rate: its culvert rate (owner, 2026-10-11).
+    const v = key
+      ? (groups[group!]?.[key] ?? (f.id === "dw.reliefCulvertEach" ? dw.culvertEach : undefined))
+      : raw[f.id];
     numbers[f.id] = v === undefined ? String(f.get(DEFAULT_USER_CONFIG)) : String(v);
   }
 

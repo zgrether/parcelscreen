@@ -73,6 +73,9 @@ export const DEFAULT_USER_CONFIG: UserConfig = {
     stonePerTon: 38,
     fabricPerSf: 0.75,
     culvertEach: 3500,
+    // Relief culverts (cross-drains) along the road (owner, 2026-10-11): usually smaller pipes than a drainage
+    // crossing's; the same rate until Zach's quote (follow-up 47). A stored config without it takes its culvertEach.
+    reliefCulvertEach: 3500,
     entrance: 9000,
     erosion: 3000,
     mobilize: 2500,
@@ -390,7 +393,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
     fullBenchSlopeDeg: 30,
     // Relief culverts (cross-drains) along the road, one per everyFt by the road's grade over 30 m: [grade up to %,
     // every ft]; steeper than the last band, one every steeperFt. On top of one at each drainage crossing and the
-    // entrance's. Priced at dw.culvertEach.
+    // entrance's. Priced at dw.reliefCulvertEach.
     reliefCulverts: {
       everyFt: [
         [5, 400],
@@ -402,6 +405,10 @@ export const SCREEN_CONSTANTS = deepFreeze({
     // "No practical drive" (owner, #99 decisions): a site whose scored route costs more than this share of the
     // Settings' budget.readyToBuild is scored on its realistic alternatives instead: the route at practicalMaxPct,
     // or the cheapest one through the neighbours.
+    // Its practicalMaxPct alternative is a designed alignment: its over-limit term reads that design limit (+5 at 15%
+    // under a 10% limit), not the 30 m grade of the ungraded ground under it (17.9% on Grayson; the ground-vs-road
+    // gap is follow-up 48) (owner, option C, 2026-10-11). When follow-up 47 prices paving, the paving cost replaces
+    // this term.
     impracticalShareOfReadyToBuild: 0.75,
     // Above this grade a drive is normally paved (docs/studies/driveway-cost-check.md §5): the steeper alternative
     // gives its length over it. Paving has no rate yet (follow-up 47).
