@@ -241,7 +241,7 @@ describe("orchestration", () => {
     const again = deps.requests.slice(before);
     expect(again.some((k) => k.includes("exportImage"))).toBe(false);
     expect(again.some((k) => k.includes("binary_tile"))).toBe(false);
-  });
+  }, 120_000); // two whole screens of Macks: since A4b PR B the router takes ~5 s a run, more on a CI runner
 
   it("input.evaluateAt re-evaluates the finished run at that point", async () => {
     const fx = loadFixture("macks-mountain-35-3");
