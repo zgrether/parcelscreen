@@ -7,27 +7,15 @@
  *   new version takes over at the next launch;
  * - shows the offline state while the browser is offline.
  */
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useOnline } from "@/lib/client/useOnline";
 import { OFFLINE_TEXT, shouldRegister, showUpdateToast, UPDATE_TEXT } from "@/lib/client/pwa";
-
-const subscribeOnline = (changed: () => void) => {
-  window.addEventListener("online", changed);
-  window.addEventListener("offline", changed);
-  return () => {
-    window.removeEventListener("online", changed);
-    window.removeEventListener("offline", changed);
-  };
-};
 
 /** The ground viewer or a modal dialog (Settings, help) over the map. */
 const overlayOpen = () => !!document.querySelector(".ground-layer, dialog[open]");
 
 export function PwaShell({ running }: { running: boolean }) {
-  const online = useSyncExternalStore(
-    subscribeOnline,
-    () => navigator.onLine,
-    () => true,
-  );
+  const online = useOnline();
   const reg = useRef<ServiceWorkerRegistration | null>(null);
   const [waiting, setWaiting] = useState(false);
   const [overlay, setOverlay] = useState(false);

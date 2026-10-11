@@ -36,8 +36,15 @@ export const fromEarlierRules = (
   current: number = ENGINE_VERSION,
 ): boolean => engineOf(r) < current;
 
-/** What History and a reopened result say about such a screen (owner, 2026-10-08). */
-export const EARLIER_RULES = "Screened with earlier rules — run again for current results";
+/**
+ * What a result re-screened on open says (owner, #101, 2026-10-11: an approved replacement of "Screened with earlier
+ * rules — run again for current results", phase-0.md §9.27).
+ */
+export const RESCREENED = "Re-screened with the current rules";
+/** A History entry whose last screen is gone or from earlier rules (it replaces the "earlier rules" note there). */
+export const RESCREENS_ON_OPEN = "Re-screens with the current rules when opened";
+/** A parcel whose re-screen waits for the network (owner, #101). */
+export const RESCREEN_OFFLINE = "Will re-screen when you're back online";
 
 const DB_NAME = "parcelscreen";
 const STORE = "screens";
@@ -77,8 +84,19 @@ export async function addScreen(record: ScreenRecord): Promise<boolean> {
 
 /** A screen by id; null when it's missing, unreadable, or from an older result schema. */
 export async function getScreen(id: string): Promise<ScreenRecord | null> {
+  const r = await readScreen(id);
+  return r.kind === "ok" ? r.record : null;
+}
+
+/**
+ * A kept screen as read back: readable; gone (missing, or not the current result schema: v3's clean break, B2a);
+ * or this browser keeps nothing (no IndexedDB), when nothing can be said about it.
+ */
+export type ReadScreen = { kind: "ok"; record: ScreenRecord } | { kind: "gone" } | { kind: "unavailable" };
+
+export async function readScreen(id: string): Promise<ReadScreen> {
   const d = await open();
-  if (!d) return null;
+  if (!d) return { kind: "unavailable" };
   const raw = await new Promise<unknown>((resolve) => {
     try {
       const req = d.transaction(STORE, "readonly").objectStore(STORE).get(id);
@@ -89,7 +107,44 @@ export async function getScreen(id: string): Promise<ScreenRecord | null> {
     }
   });
   const r = ScreenRecordSchema.safeParse(raw);
-  return r.success ? (r.data as ScreenRecord) : null;
+  return r.success ? { kind: "ok", record: r.data as ScreenRecord } : { kind: "gone" };
+}
+
+/**
+ * Whether a parcel's last kept screen calls for a re-screen when the parcel is opened (owner, #101, 2026-10-11): it
+ * is gone, or from earlier rules. Only the parcel being opened, never a batch over History.
+ */
+export const needsRescreen = (r: ReadScreen): boolean =>
+  r.kind === "gone" || (r.kind === "ok" && fromEarlierRules(r.record));
+
+/**
+ * Deletes every kept screen that doesn't read as the current result schema (v3's clean break, B2a; phase-0.md
+ * §9.26): no migration. Resolves to their ids, for the one-time message; [] when there were none or nothing is kept.
+ */
+export async function clearUnreadableScreens(): Promise<string[]> {
+  const d = await open();
+  if (!d) return [];
+  return new Promise((resolve) => {
+    const ids: string[] = [];
+    try {
+      const tx = d.transaction(STORE, "readwrite");
+      const req = tx.objectStore(STORE).openCursor();
+      req.onsuccess = () => {
+        const c = req.result;
+        if (!c) return;
+        if (!ScreenRecordSchema.safeParse(c.value).success) {
+          ids.push(String(c.key));
+          c.delete();
+        }
+        c.continue();
+      };
+      tx.oncomplete = () => resolve(ids);
+      tx.onerror = () => resolve([]);
+      tx.onabort = () => resolve([]);
+    } catch {
+      resolve([]);
+    }
+  });
 }
 
 /** The screens with these ids that are kept and readable, in the same order (export, 16b). */

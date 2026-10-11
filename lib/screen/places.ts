@@ -317,6 +317,7 @@ export function trailheadsNear(
       name: p.name,
       ll: p.ll,
       km: distance([lon, lat], [p.ll[1], p.ll[0]], { units: "kilometers" }),
+      source: p.source,
     }))
     .sort((a, b) => a.km - b.km);
   return { trailheads: all.slice(0, K.maxTrailheads), trailheadCount: all.length };

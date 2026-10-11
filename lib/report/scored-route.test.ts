@@ -41,12 +41,15 @@ describe("the scored route first (#88 follow-up)", () => {
     expect(d.routes.every((rt) => !rt.track)).toBe(true);
     expect(d.note!.endsWith(overLimitNote(d.overLimit!))).toBe(true);
     // That route costs over $225k, so #1 is scored on its 15% alternative instead ("No practical drive", #99
-    // decisions), named in the paragraph the section now leads with.
-    expect(d.note!.startsWith("No practical drive at your 10% limit")).toBe(true);
-    expect(d.note).toContain(`At 15%: ${fmt(r.sites![0]!.driveFt!)} ft on your land`);
+    // decisions), named in the paragraph the section now leads with: stored since v3 (B2a), rendered first.
+    expect(d.practical?.scoredOn).toBe("steeper");
+    expect(r.sites![0]!.practical).toEqual(d.practical);
+    const v = drivewayView(r)!;
+    expect(v.note!.startsWith("No practical drive at your 10% limit")).toBe(true);
+    expect(v.note!.endsWith(d.note!)).toBe(true);
+    expect(v.note).toContain(`At 15%: ${fmt(r.sites![0]!.driveFt!)} ft on your land`);
     expect(r.sites![0]!.driveFt).toBeLessThan(d.overLimit!.metrics.lengthFt);
 
-    const v = drivewayView(r)!;
     expect([v.overLimit!.title, ...v.routes.map((x) => x.title)]).toEqual(APPROVED.after);
     expect(v.track!.rows[0]!.strong).toBe(
       `$${Math.round(d.overLimit!.track!.cost.low / 1000)}–${Math.round(d.overLimit!.track!.cost.high / 1000)}k`,

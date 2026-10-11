@@ -24,6 +24,12 @@ export interface WorkingParcel {
   house: LatLon | null;
   notes: string;
   notesAt: string | null;
+  /**
+   * The asking price in dollars, as the user entered it, and when (owner, #101, 2026-10-11): on the parcel, not in
+   * the screen result, since a price changes while the land doesn't. Phase 1 turns each into a price-history event.
+   */
+  askingPrice: number | null;
+  askingPriceAt: string | null;
   /** Layer ids hidden on the map, and results removed from the analysis. */
   hidden: string[];
   excluded: string[];
@@ -57,6 +63,8 @@ export function plainParcel(record: ParcelRecord, now: string): WorkingParcel {
     house: null,
     notes: "",
     notesAt: null,
+    askingPrice: null,
+    askingPriceAt: null,
     hidden: [],
     excluded: [],
     screenIds: [],
@@ -77,6 +85,7 @@ export function isBuilt(p: WorkingParcel | null): boolean {
     p.split !== null ||
     p.house !== null ||
     p.notes.trim() !== "" ||
+    p.askingPrice !== null ||
     p.screenIds.length > 0
   );
 }
@@ -131,6 +140,9 @@ const WorkingSchema = z.object({
   house: LatLonSchema.nullable(),
   notes: z.string(),
   notesAt: z.string().nullable(),
+  // Added after the store's v2 (B2a): a parcel kept before has no price.
+  askingPrice: z.number().nonnegative().nullable().default(null),
+  askingPriceAt: z.string().nullable().default(null),
   hidden: z.array(z.string()),
   excluded: z.array(z.string()),
   screenIds: z.array(z.string()),

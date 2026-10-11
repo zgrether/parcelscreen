@@ -13,7 +13,7 @@
  */
 import { z } from "zod";
 import { DEFAULT_ENDPOINTS, DEFAULT_USER_CONFIG } from "@/lib/screen/config";
-import { UserConfigSchema, type UserConfig } from "@/lib/screen/types";
+import { SCREEN_SCHEMA_VERSION, UserConfigSchema, type UserConfig } from "@/lib/screen/types";
 import { historyRows, parcelName } from "./historyRows";
 import { pieceDedupeKey } from "@/lib/geo/recipe";
 import type { ParcelRecord } from "@/lib/geo/parcels";
@@ -103,6 +103,11 @@ export interface ImportPlan {
   added: WorkingParcel[];
   /** The kept screens of the added parcels. */
   screens: ScreenRecord[];
+  /**
+   * The added parcels' kept results from an older result schema (v3's clean break, B2a): skipped, not imported; those
+   * parcels re-screen when opened.
+   */
+  olderResults: number;
   /** Names of the file's parcels whose History key is already there. */
   skipped: string[];
   /** Names of the file's parcels whose recipe (pieces, split, drawn geometry) is already there, any key. */
@@ -234,6 +239,8 @@ function fromPrototypeSaved(s: z.infer<typeof ProtoSavedSchema>, key: string, no
     house: s.house ?? null,
     notes: "",
     notesAt: null,
+    askingPrice: null,
+    askingPriceAt: null,
     hidden: [],
     excluded: [],
     screenIds: [],
@@ -267,6 +274,7 @@ export function planImport(
   let kind: ImportPlan["kind"];
   let incoming: WorkingParcel[];
   let fileScreens: ScreenRecord[] = [];
+  let olderIds: string[] = [];
   let rawCfg: unknown;
   if (json.format === EXPORT_FORMAT) {
     if (json.version !== EXPORT_VERSION)
@@ -274,7 +282,15 @@ export function planImport(
         ok: false,
         errors: [`This export is version ${String(json.version)}; this app reads version ${EXPORT_VERSION}.`],
       };
-    const f = PortFileSchema.safeParse(json);
+    // Results from an older schema are set aside before validating (v3's clean break): not an error, not imported.
+    const older = (x: unknown) =>
+      isRecord(x) &&
+      isRecord(x.result) &&
+      typeof x.result.schemaVersion === "number" &&
+      x.result.schemaVersion < SCREEN_SCHEMA_VERSION;
+    const all = Array.isArray(json.screens) ? json.screens : null;
+    olderIds = (all ?? []).filter(older).map((x) => String((x as { id?: unknown }).id));
+    const f = PortFileSchema.safeParse(all ? { ...json, screens: all.filter((x) => !older(x)) } : json);
     if (!f.success) return { ok: false, errors: issues("file", f.error) };
     kind = "port";
     incoming = f.data.parcels.built as WorkingParcel[];
@@ -319,6 +335,7 @@ export function planImport(
   }
   const wanted = new Set(added.flatMap((p) => p.screenIds));
   const screens = fileScreens.filter((s) => wanted.has(s.id));
+  const olderResults = olderIds.filter((id) => wanted.has(id)).length;
 
   // Settings: the same checks as Save.
   const errors: string[] = [];
@@ -339,7 +356,18 @@ export function planImport(
   if (errors.length) return { ok: false, errors };
   return {
     ok: true,
-    plan: { kind, added, screens, skipped, sameParcel, sameRecord, settings, ignored, endpointsReplaced },
+    plan: {
+      kind,
+      added,
+      screens,
+      olderResults,
+      skipped,
+      sameParcel,
+      sameRecord,
+      settings,
+      ignored,
+      endpointsReplaced,
+    },
   };
 }
 
@@ -362,6 +390,10 @@ export function importSummary(plan: ImportPlan, outcome: SettingsOutcome): strin
   if (plan.added.length)
     lines.push(
       `Added: ${names(plan.added)}${plan.screens.length ? ` (with ${plan.screens.length} kept result${plan.screens.length === 1 ? "" : "s"})` : ""}.`,
+    );
+  if (plan.olderResults)
+    lines.push(
+      `${plan.olderResults} saved result${plan.olderResults === 1 ? " was" : "s were"} from an older version and skipped; those parcels re-screen when opened.`,
     );
   if (plan.skipped.length) lines.push(`Skipped, already in History: ${plan.skipped.join(", ")}.`);
   if (plan.sameParcel.length)

@@ -1,11 +1,7 @@
 /**
- * Reading `ScreenResult.drives`. In schema v2 the list holds destinations (the hospital, the chain grocery, each
- * anchor) and, last, possibly one annotation of the grocery row: the closer non-chain grocery (owner, #81).
- * v2 is frozen, so the annotation is marked rather than given its own field (v3 will: phase-0.md §9 v3 list).
- *
- * The mark: label === CLOSER_GROCERY **and** a non-empty `name`. Anchors are always stored with name "" (drive.ts),
- * so an anchor the user happens to call "Closer grocery" is still a destination; the hospital and grocery labels
- * are fixed. Every consumer goes through `splitDrives`, never `drives` directly.
+ * Reading the drive times. `ScreenResult.drives` holds the destinations (the hospital, the chain grocery, each
+ * anchor); the closer non-chain grocery, an annotation of the grocery row (owner, #81), is `closerGrocery`. Schema
+ * v2 kept it last in `drives`, marked by its label; v3 gives it its own field (B2a; phase-0.md §9.20 (d)).
  */
 import type { ScreenResult } from "./types";
 
@@ -15,24 +11,23 @@ export type DriveEntry = NonNullable<ScreenResult["drives"]>[number];
 export const NEAREST_HOSPITAL = "Nearest hospital";
 /**
  * Appended to the chosen hospital's name when the snapshot doesn't list it with emergency=yes (owner, A2c;
- * rule 7, appended). v2 has no field for it, so it's stored in `name`; v3 gets one (phase-0.md §9.20).
+ * rule 7, appended). Since v3 the status is the row's `er` and the name is the hospital's own (phase-0.md §9.20
+ * (e)); the report appends this when `er` is "not-listed" (driveName).
  */
 export const ER_NOT_LISTED = " — emergency department not listed in OpenStreetMap";
 
+/** A drive's name as the report shows it: the hospital's with the ER note when it isn't listed. */
+export const driveName = (d: DriveEntry): string => (d.er === "not-listed" ? d.name + ER_NOT_LISTED : d.name);
+
 /** The `drives` label of the chain-preferring grocery drive time (proto L1141). */
 export const REAL_GROCERY = "Nearest real grocery";
-/** The `drives` label of the closer non-chain grocery: an annotation of the REAL_GROCERY row, not a destination. */
+/** The label of the closer non-chain grocery: an annotation of the REAL_GROCERY row, not a destination. */
 export const CLOSER_GROCERY = "Closer grocery";
 
-export const isCloserGrocery = (d: DriveEntry): boolean => d.label === CLOSER_GROCERY && d.name !== "";
-
 /** The destinations, in order, and the closer grocery if there is one. */
-export function splitDrives(drives: readonly DriveEntry[]): {
+export function splitDrives(r: Pick<ScreenResult, "drives" | "closerGrocery">): {
   destinations: DriveEntry[];
   closer: DriveEntry | null;
 } {
-  return {
-    destinations: drives.filter((d) => !isCloserGrocery(d)),
-    closer: drives.find(isCloserGrocery) ?? null,
-  };
+  return { destinations: r.drives ?? [], closer: r.closerGrocery ?? null };
 }

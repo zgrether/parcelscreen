@@ -14,7 +14,7 @@ import { overLimitSpans, type PracticalAlternatives, type SiteDriveway, type Sit
 import { NEEDS_EASEMENT } from "./routeLabel";
 import { bottomland, soilAt, type SoilLimits, type SoilUnit, type VettedBench } from "./soils";
 import { horizonProfile, sunHours } from "./sun";
-import type { Dem, ScreenResult, Site, SoilRow, UserConfig } from "./types";
+import type { Dem, Practical, ScreenResult, Site, SoilRow, UserConfig } from "./types";
 import { lerp, M2FT, type LatLon } from "./util";
 
 const K = SCREEN_CONSTANTS.score;
@@ -63,7 +63,7 @@ export interface SiteInput {
 
 type Scored = Omit<
   Site,
-  "rank" | "ll" | "acres" | "elevFt" | "aspectDeg" | "slopeDeg" | "compact" | "cell" | "grade"
+  "rank" | "ll" | "acres" | "elevFt" | "aspectDeg" | "slopeDeg" | "compact" | "cell" | "grade" | "practical"
 >;
 
 const rate = (r: string | null | undefined) => {
@@ -210,47 +210,71 @@ export function practicalDriveway(
 const k$ = (c: { low: number; high: number }) => `$${fmt(c.low / 1000)}–${fmt(c.high / 1000)}k`;
 
 /**
- * The paragraph a "no practical drive" target's driveway section leads with, and its site's reason (owner's wording,
- * #99 decisions): the limit, why, then the alternatives the veto allows.
+ * A "no practical drive" target's outcome, as stored (v3, B2a): the chosen route's cost, the alternatives the veto
+ * allows, and the one it's scored on.
  */
-export function impracticalLine(
-  dw: SiteDriveway,
+export function practicalOutcome(
+  chosen: SiteDriveway,
   alt: PracticalAlternatives,
   limitPct: number,
   readyToBuild: number,
-): string {
+): Practical {
   const D = SCREEN_CONSTANTS.driveway;
+  const summary = (d: SiteDriveway | null, paved: boolean): Practical["steeper"] => {
+    const r = d?.route;
+    if (!r) return null;
+    const pavedFt = paved
+      ? overLimitSpans(r.profile, D.pavedOverPct / 100).reduce((t, [a, b]) => t + (b - a), 0) * M2FT
+      : 0;
+    return { lengthFt: r.metrics.lengthFt, switchbacks: r.metrics.switchbacks, cost: r.cost, pavedFt };
+  };
+  const pick = practicalDriveway(chosen, alt);
+  return {
+    limitPct,
+    steeperPct: D.practicalMaxPct,
+    readyToBuild,
+    share: D.impracticalShareOfReadyToBuild,
+    cost: chosen.route!.cost,
+    steeper: summary(alt.steeper, true),
+    easement: summary(alt.easement, false),
+    scoredOn: pick === chosen ? null : pick === alt.steeper ? "steeper" : "easement",
+  };
+}
+
+/**
+ * The paragraph a "no practical drive" target's driveway section leads with, and its site's reason (owner's wording,
+ * #99 decisions): the limit, why, then the alternatives the veto allows. From the stored outcome alone, so a kept
+ * result reads as it was screened.
+ */
+export function impracticalLine(p: Practical): string {
   const lines = [
-    `No practical drive at your ${fmt(limitPct)}% limit: the best route found costs about ${k$(dw.route!.cost)}, ` +
-      `more than ${Math.round(D.impracticalShareOfReadyToBuild * 100)}% of your $${fmt(readyToBuild / 1000)}k ` +
+    `No practical drive at your ${fmt(p.limitPct)}% limit: the best route found costs about ${k$(p.cost)}, ` +
+      `more than ${Math.round(p.share * 100)}% of your $${fmt(p.readyToBuild / 1000)}k ` +
       `ready-to-build budget.`,
   ];
-  const s = alt.steeper?.route;
+  const s = p.steeper;
   if (s) {
-    const pavedFt =
-      overLimitSpans(s.profile, D.pavedOverPct / 100).reduce((t, [a, b]) => t + (b - a), 0) * M2FT;
-    const n = s.metrics.switchbacks;
+    const n = s.switchbacks;
     lines.push(
-      `At ${D.practicalMaxPct}%: ${fmt(s.metrics.lengthFt)} ft on your land, ${n} switchback${n === 1 ? "" : "s"}, ` +
-        `about ${k$(s.cost)} of gravel work${pavedFt >= 1 ? `, paving on ~${fmt(pavedFt)} ft (cost TBD)` : ""}; ` +
+      `At ${p.steeperPct}%: ${fmt(s.lengthFt)} ft on your land, ${n} switchback${n === 1 ? "" : "s"}, ` +
+        `about ${k$(s.cost)} of gravel work${s.pavedFt >= 1 ? `, paving on ~${fmt(s.pavedFt)} ft (cost TBD)` : ""}; ` +
         `county limit to check (follow-up 46).`,
     );
   }
-  const e = alt.easement?.route;
+  const e = p.easement;
   if (e)
     lines.push(
-      `Within ${fmt(limitPct)}% via neighbouring land (${NEEDS_EASEMENT}): ${fmt(e.metrics.lengthFt)} ft, about ${k$(e.cost)}.`,
+      `Within ${fmt(p.limitPct)}% via neighbouring land (${NEEDS_EASEMENT}): ${fmt(e.lengthFt)} ft, about ${k$(e.cost)}.`,
     );
-  const pick = practicalDriveway(dw, alt);
-  if (pick !== dw)
+  if (p.scoredOn)
     lines.push(
-      pick === alt.steeper
-        ? `Scored on the route at ${D.practicalMaxPct}%.`
+      p.scoredOn === "steeper"
+        ? `Scored on the route at ${p.steeperPct}%.`
         : "Scored on the route through the neighbours.",
     );
   if (!s && !e)
     lines.push(
-      `No route at ${D.practicalMaxPct}% on your land, or within ${fmt(limitPct)}% through the neighbours, was found.`,
+      `No route at ${p.steeperPct}% on your land, or within ${fmt(p.limitPct)}% through the neighbours, was found.`,
     );
   return lines.join(" ");
 }
@@ -430,6 +454,7 @@ export function rankSites(
       cell: { score: b.score, slope: b.slopeScore, aspect: b.aspectScore, thermal: b.thermalScore },
       ...s,
       grade: "F",
+      practical: null,
     });
   }
   // Compact sites: pad-sized shelves, ranked with a cut-pad penalty.
@@ -461,6 +486,7 @@ export function rankSites(
       cell: { score: sh.score, slope: sh.slopeScore, aspect: sh.aspectScore, thermal: sh.thermalScore },
       ...s,
       grade: "F",
+      practical: null,
     });
   }
   return { sites: rerank(sites), excluded };

@@ -15,8 +15,11 @@ import type { Feature, Geometry, LineString, MultiPolygon, Polygon } from "geojs
 import { z } from "zod";
 import type { STEPS } from "./config";
 
-/** Bumped when ScreenResult changes shape; stored with every result. */
-export const SCREEN_SCHEMA_VERSION = 2 as const;
+/**
+ * Bumped when ScreenResult changes shape; stored with every result. v3 (B2a, owner 2026-10-11) is a clean break: a
+ * stored v2 result isn't read or migrated, its parcel re-screens (docs/plans/b2.md §3; phase-0.md §9.26).
+ */
+export const SCREEN_SCHEMA_VERSION = 3 as const;
 
 // ---------- shared ----------
 
@@ -267,6 +270,36 @@ const ScoreFields = {
 };
 const CellSchema = z.strictObject({ score: num, slope: num, aspect: num, thermal: num });
 
+const CostRangeSchema = z.strictObject({ mid: num, low: num, high: num });
+
+/** One of a "no practical drive" target's alternatives, as the paragraph names it (v3, B2a). */
+const PracticalAltSchema = z.strictObject({
+  lengthFt: num,
+  switchbacks: num,
+  cost: CostRangeSchema,
+  /** The length steeper than driveway.pavedOverPct: paved, cost TBD (follow-up 47). 0 for the easement route. */
+  pavedFt: num,
+});
+
+/**
+ * "No practical drive" (owner, #99 decisions; stored in v3, B2a): the target's chosen route costs more than `share`
+ * of the ready-to-build budget, so it's scored on the alternative `scoredOn` (null: none found, the chosen route
+ * stands). The driveway section leads with its paragraph; VR2's gate panel warns from it.
+ */
+const PracticalSchema = z.strictObject({
+  limitPct: num,
+  /** The steeper alternative's design grade (driveway.practicalMaxPct when it ran). */
+  steeperPct: num,
+  readyToBuild: num,
+  share: num,
+  /** The chosen route's cost. */
+  cost: CostRangeSchema,
+  steeper: PracticalAltSchema.nullable(),
+  easement: PracticalAltSchema.nullable(),
+  scoredOn: z.enum(["steeper", "easement"]).nullable(),
+});
+export type Practical = z.infer<typeof PracticalSchema>;
+
 const SiteSchema = z.strictObject({
   rank: z.number().int(),
   ll: LatLonSchema,
@@ -277,6 +310,8 @@ const SiteSchema = z.strictObject({
   compact: z.literal(true).optional(),
   cell: CellSchema,
   ...ScoreFields,
+  /** "No practical drive" for this site (v3, B2a): null when its chosen route is within the budget share. */
+  practical: PracticalSchema.nullable(),
 });
 export type Site = z.infer<typeof SiteSchema>;
 
@@ -328,7 +363,7 @@ const RouteSchema = z.strictObject({
     culverts: num,
     outsideFt: num,
   }),
-  cost: z.strictObject({ mid: num, low: num, high: num }),
+  cost: CostRangeSchema,
   culverts: z.array(LatLonSchema),
   needsEasement: z.boolean(),
   maxGrade: num,
@@ -358,6 +393,15 @@ const DrivewaySchema = z.strictObject({
   }).optional(),
   /** Distance from the boundary to the nearest Census road, feet (feeds the "no frontage" note). */
   roadsNearestFt: maybeNum,
+  /** "No practical drive" for the target (v3, B2a): the paragraph the section leads with. */
+  practical: PracticalSchema.nullable(),
+  /**
+   * A switchback the router refused on a side slope over landingMaxSideSlopeDeg (owner, PR B decisions; filled by
+   * B2b): where, how far along, how steep, and whether a route went around it.
+   */
+  steepLanding: z
+    .strictObject({ ll: LatLonSchema, atFt: num, sideSlopeDeg: num, avoided: z.boolean() })
+    .nullable(),
 });
 
 const SkySchema = z.strictObject({
@@ -390,6 +434,18 @@ const SunSchema = z.strictObject({
 const PlaceSchema = z.strictObject({ name: z.string(), ll: LatLonSchema, km: num });
 
 /**
+ * A drive time. `er` (v3, B2a; phase-0.md §9.20 (e)): the hospital's emergency department as the snapshot lists it,
+ * null on every other row. v2 appended the note to the name instead.
+ */
+const DriveSchema = z.strictObject({
+  label: z.string(),
+  name: z.string(),
+  min: num,
+  mi: num,
+  er: z.enum(["yes", "not-listed", "unknown"]).nullable(),
+});
+
+/**
  * The settings a run used that its report shows (schema v2, step 14 plan Q1): the report renders from the
  * result alone, and a stored run keeps the thresholds it was screened with after Settings change.
  */
@@ -405,6 +461,8 @@ export type RunParams = z.infer<typeof RunParamsSchema>;
 
 export const ScreenResultSchema = z.strictObject({
   schemaVersion: z.literal(SCREEN_SCHEMA_VERSION),
+  /** The rules it was screened with (lib/screen/engine.ts; v3, B2a: was on the IndexedDB envelope only). */
+  engine: z.number().int().positive(),
   runAt: z.string(),
   acres: num,
   params: RunParamsSchema,
@@ -450,7 +508,8 @@ export const ScreenResultSchema = z.strictObject({
     .strictObject({
       hospitals: z.array(PlaceSchema),
       grocers: z.array(PlaceSchema.extend({ big: z.boolean() })),
-      trailheads: z.array(PlaceSchema),
+      /** `source` (v3, B2a; phase-0.md §9.20 (b)): which list the point came from (lib/screen/trailheads.ts). */
+      trailheads: z.array(PlaceSchema.extend({ source: z.enum(["usfs", "state", "osm"]) })),
       trailheadCount: z.number().int(),
     })
     .optional(),
@@ -458,11 +517,13 @@ export const ScreenResultSchema = z.strictObject({
   nearNote: z.string().optional(),
   road: z.strictObject({ name: z.string(), riseFt: num, runFt: num, gradePct: num }).optional(),
   roadNote: z.string().optional(),
+  /** Destinations: "Nearest hospital", "Nearest real grocery", each anchor. */
+  drives: z.array(DriveSchema).optional(),
   /**
-   * Destinations ("Nearest hospital", "Nearest real grocery", each anchor) and, last, possibly the closer
-   * non-chain grocery, which is not a destination. Read it only through `splitDrives` (driveList.ts).
+   * The closer non-chain grocery, an annotation of the grocery row, not a destination (owner, #81; v3, B2a: its own
+   * field, phase-0.md §9.20 (d); v2 kept it last in `drives`). Null when there's none; absent when drives didn't run.
    */
-  drives: z.array(z.strictObject({ label: z.string(), name: z.string(), min: num, mi: num })).optional(),
+  closerGrocery: DriveSchema.nullable().optional(),
   excluded: z.array(z.strictObject({ acres: num, ll: LatLonSchema, why: z.string() })).optional(),
   sites: z.array(SiteSchema).optional(),
   house: HouseSchema.nullable().optional(),

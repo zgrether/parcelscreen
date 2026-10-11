@@ -12,6 +12,7 @@ import { CancelledError, createHttpClient, type HttpClient } from "../http";
 import { STEPS } from "./config";
 import { DemCache, fetchDEM, fineResM, parcelBboxes, rcToLL } from "./dem";
 import { driveTimes } from "./drive";
+import { ENGINE_VERSION } from "./engine";
 import {
   bedrockDepth,
   buildDriveway,
@@ -38,6 +39,7 @@ import {
   chooseDriveway,
   grade,
   impracticalLine,
+  practicalOutcome,
   isImpractical,
   noPracticalLine,
   practicalDriveway,
@@ -70,6 +72,7 @@ import { insideMasks, slopeAspect, terrainFlags, terrainStats, valleyFloor } fro
 import type {
   Dem,
   PartialScreenResult,
+  Practical,
   ProgressEvent,
   ScreenInput,
   ScreenResult,
@@ -194,6 +197,7 @@ export async function screen(
   const snapshot = (): PartialScreenResult =>
     ({
       schemaVersion: SCREEN_SCHEMA_VERSION,
+      engine: ENGINE_VERSION,
       runAt: "",
       ...R,
       flags: [...R.flags],
@@ -374,11 +378,13 @@ export async function screen(
   });
 
   await step("drive", async () => {
-    R.drives = [];
-    R.drives = await driveTimes(s.centre, R.near, cfg.anchors, io, {
+    R.drives = []; // stays [] if nothing routes
+    const d = await driveTimes(s.centre, R.near, cfg.anchors, io, {
       ...(s.otherGrocers ? { otherGrocers: s.otherGrocers } : {}),
       ...(s.hospitalPool ? { hospitals: s.hospitalPool } : {}),
-    }); // stays [] if nothing routes
+    });
+    R.drives = d.drives;
+    R.closerGrocery = d.closerGrocery;
   });
 
   await step("rank", () => {
@@ -461,7 +467,7 @@ export async function screen(
       }
       // The section leads with "No practical drive" and the alternatives (owner, #99 decisions: placed first).
       const alt = house ? alternativesFor(rctx, s, [to.ll], [toRoutes], routing)[0] : altAt.get(at(to.ll));
-      if (alt) R.driveway = withImpracticalNote(R.driveway, scored, alt, cfg);
+      if (alt) R.driveway = { ...R.driveway, practical: outcome(scored, alt, cfg) };
     }
     const rt = R.driveway.routes[0];
     // Site #1 keeps the prototype's routed line in place of its straight-line one; every other site with a route
@@ -483,12 +489,9 @@ export async function screen(
           ? { ...z, why: [...z.why, noPracticalLine(chosen, cfg.roadVetoGradePct)] }
           : z;
         const alt = altAt.get(at(x.ll));
-        return alt
-          ? {
-              ...v,
-              why: [...v.why, impracticalLine(chosen, alt, cfg.roadMaxGradePct, cfg.budget.readyToBuild)],
-            }
-          : v;
+        if (!alt) return v;
+        const p = outcome(chosen, alt, cfg);
+        return { ...v, why: [...v.why, impracticalLine(p)], practical: p };
       });
     if (house && R.house && toRoutes)
       R.house = houseWithDriveway(sctx, R.house, toRoutes, alternativesFor(rctx, s, [house], [toRoutes])[0]);
@@ -500,6 +503,7 @@ export async function screen(
   const result: ScreenResult = {
     ...(R as Omit<ScreenResult, "schemaVersion" | "runAt" | "failed" | "cancelled" | "verdict">),
     schemaVersion: SCREEN_SCHEMA_VERSION,
+    engine: ENGINE_VERSION,
     runAt: (deps.now ?? (() => new Date()))().toISOString(),
     failed,
     cancelled: !!signal?.aborted,
@@ -543,16 +547,9 @@ function alternativesFor(
   return out;
 }
 
-/** The driveway section with the "No practical drive" paragraph first (owner, #99 decisions: it leads). */
-function withImpracticalNote(
-  dw: NonNullable<ScreenResult["driveway"]>,
-  scored: SiteDriveway,
-  alt: PracticalAlternatives,
-  cfg: UserConfig,
-): NonNullable<ScreenResult["driveway"]> {
-  const line = impracticalLine(scored, alt, cfg.roadMaxGradePct, cfg.budget.readyToBuild);
-  return { ...dw, note: dw.note ? `${line} ${dw.note}` : line };
-}
+/** The stored "no practical drive" outcome for a target's chosen route and its alternatives (owner, #99 decisions). */
+const outcome = (chosen: SiteDriveway, alt: PracticalAlternatives, cfg: UserConfig): Practical =>
+  practicalOutcome(chosen, alt, cfg.roadMaxGradePct, cfg.budget.readyToBuild);
 
 /** The driveway router's view of the session; the soil mask and flow accumulation are built once. */
 export function routeContext(s: ScreenSession): RouteContext {
@@ -609,7 +606,7 @@ export async function evaluateAt(out: ScreenOutput, ll: LatLon, label: string): 
         };
       }
       const alt = alternativesFor(ctx, session, [ll], [routes])[0];
-      if (alt) result.driveway = withImpracticalNote(result.driveway, scored, alt, s.config);
+      if (alt) result.driveway = { ...result.driveway, practical: outcome(scored, alt, s.config) };
     }
   } catch {
     /* keep the previous driveway */

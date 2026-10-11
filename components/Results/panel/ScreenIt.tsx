@@ -22,11 +22,13 @@ import { useScreen } from "@/lib/client/useScreen";
 import { freshness, runKeys, type RunKeys } from "@/lib/client/screenKeys";
 import {
   addScreen,
-  EARLIER_RULES,
-  fromEarlierRules,
-  getScreen,
+  needsRescreen,
+  readScreen,
+  RESCREEN_OFFLINE,
+  RESCREENED,
   type ScreenRecord,
 } from "@/lib/client/screenStore";
+import { useOnline } from "@/lib/client/useOnline";
 import { ENGINE_VERSION } from "@/lib/screen/engine";
 import { fmt } from "@/lib/format";
 import { verdictView } from "@/lib/report/verdict";
@@ -47,6 +49,8 @@ import { OFFLINE_SCREEN_TEXT } from "@/lib/client/pwa";
 interface LiveRun {
   serial: number;
   keys: RunKeys;
+  /** The re-screen on open (owner, #101), not the user's own run. */
+  auto?: true;
 }
 
 export type ScreenIt = ReturnType<typeof useScreenIt>;
@@ -78,15 +82,21 @@ export function useScreenIt(
     latest.current = { ctl, onFinished, hint };
   });
 
-  // The open parcel's last kept screen, read back when it opens (or when a new one is kept).
+  // The open parcel's last kept screen, read back when it opens (or when a new one is kept), and whether it calls
+  // for a re-screen (owner, #101): gone (v3's clean break) or from earlier rules. `rescreen` is the open it's for.
   const latestId = open?.screenIds.at(-1) ?? null;
+  const [rescreen, setRescreen] = useState<number | null>(null);
   useEffect(() => {
     if (!latestId) return;
     let gone = false;
-    void getScreen(latestId).then((record) => {
+    void readScreen(latestId).then((r) => {
+      if (gone) return;
       // Keyed by this open too: the same record reopened later (another parcel in between) is shown again.
-      if (!gone && record)
+      if (r.kind === "ok") {
+        const record = r.record;
         setStored((s) => (s?.record.id === record.id && s.serial === serial ? s : { serial, record }));
+      }
+      setRescreen((x) => (needsRescreen(r) ? serial : x === serial ? null : x));
     });
     return () => {
       gone = true;
@@ -98,6 +108,12 @@ export function useScreenIt(
   useEffect(() => {
     if (running && live && live.serial !== serial) screen.cancel();
   }, [running, live, serial, screen]);
+
+  // The re-screen on open (owner, #101): the open it was tried for (once per open), and the open whose result it
+  // replaced.
+  const autoTried = useRef<number | null>(null);
+  const [rescreened, setRescreened] = useState<number | null>(null);
+  const online = useOnline();
 
   // A finished run, or a re-assessed house, is kept as a new screen of the parcel it was for.
   const kept = useRef<unknown>(null);
@@ -133,7 +149,10 @@ export function useScreenIt(
       result: result as ScreenResult,
       engine: ENGINE_VERSION,
     };
-    void addScreen(record).then(() => setStored({ serial: live.serial, record }));
+    void addScreen(record).then(() => {
+      setStored({ serial: live.serial, record });
+      if (live.auto && reassessed === null) setRescreened(live.serial);
+    });
     latest.current.ctl.screened(record.id, live.serial);
     if (reassessed === null) latest.current.onFinished();
   }, [status, result, live, stored]);
@@ -214,7 +233,10 @@ export function useScreenIt(
       }
   }, [builtKeys, screen]);
 
-  const run = () => {
+  const autoRun = live?.serial === serial && !!live.auto;
+  const wantsRescreen = rescreen === serial && !autoRun;
+
+  const run = (auto = false) => {
     if (!parcel || !now) return;
     // Offline (17c): say so rather than start a run whose every request would fail.
     if (typeof navigator !== "undefined" && navigator.onLine === false) {
@@ -222,7 +244,7 @@ export function useScreenIt(
       setTimeout(() => hint((h) => (h === OFFLINE_SCREEN_TEXT ? "" : h)), 4000);
       return;
     }
-    setLive({ serial, keys: now });
+    setLive({ serial, keys: now, ...(auto ? { auto: true as const } : {}) });
     askedHouse.current = null;
     awaitingHouse.current = false;
     setShowParams(false);
@@ -238,6 +260,17 @@ export function useScreenIt(
       ...(house ? { house } : {}),
     });
   };
+
+  // Re-screen on open (owner, #101, 2026-10-11): only the parcel being opened, once per open, and only online;
+  // offline it waits, and says so, and runs when the browser is back online with the parcel still open. A failed
+  // run says why, with Run again; it isn't retried by itself.
+  const canRun = !!now;
+  useEffect(() => {
+    if (!wantsRescreen || running || !canRun || !online || autoTried.current === serial) return;
+    autoTried.current = serial;
+    run(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `run` is new each render
+  }, [wantsRescreen, running, canRun, online, serial]);
 
   // Re-evaluate at a pin (15b): only with this parcel's live session. The hint says what's happening, as the
   // prototype's setFocus did (L1279), until the answer arrives.
@@ -301,11 +334,17 @@ export function useScreenIt(
     showParams,
     toggleParams: () => setShowParams((v) => !v),
     copySummary,
-    run,
+    run: () => run(),
     cancel: screen.cancel,
     steps: screen.state.steps,
     showSteps: live?.serial === serial && status !== "idle" && !screen.state.restored,
     error: live?.serial === serial ? screen.state.error : null,
+    /** The re-screen on open is waiting for the network (owner, #101). */
+    rescreenOffline: wantsRescreen && !online,
+    /** This open's result came from a re-screen on open. */
+    rescreened: rescreened === serial,
+    /** The re-screen on open failed: its error comes with a Run again button. */
+    rescreenFailed: autoRun && !!screen.state.error,
     display,
     point,
     /** The worker's session for this parcel's shown run (surfaces, horizon…), or null after a reload. */
@@ -388,8 +427,28 @@ export function ScreenHeader({ s, desk = null }: { s: ScreenIt; desk?: DeskCard 
         </button>
       </span>
       {folded && <VerdictLine s={s} />}
+      {!s.display && <RescreenLine s={s} />}
     </>
   );
+}
+
+/**
+ * With nothing to show (the parcel's last result gone, v3's clean break), the re-screen's state goes in the header,
+ * which is always on screen: never a blank card (owner, #101 guard a).
+ */
+function RescreenLine({ s }: { s: ScreenIt }) {
+  if (s.rescreenOffline)
+    return <span className="sh-verdict sh-rescreen muted rescreen-note">{RESCREEN_OFFLINE}.</span>;
+  if (s.rescreenFailed)
+    return (
+      <span className="sh-verdict sh-rescreen fatal">
+        The screen stopped: {s.error}{" "}
+        <button className="btn small" disabled={s.running} onClick={s.run}>
+          Run again
+        </button>
+      </span>
+    );
+  return null;
 }
 
 /** The folded card's second line: the verdict's lead, or why the results no longer fit. */
@@ -425,10 +484,23 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
   if (!s.showSteps && !s.error && !notes && !display) return null;
   return (
     <>
-      {(s.showSteps || s.error || notes) && (
+      {(s.showSteps || s.error || notes || (s.rescreenOffline && display)) && (
         <section className="block">
+          {s.rescreenOffline && s.display && <p className="report-note rescreen-note">{RESCREEN_OFFLINE}.</p>}
           {s.showSteps && <StepList steps={s.steps} />}
-          {s.error && <p className="tiny text-steep">The screen stopped: {s.error}</p>}
+          {s.error && (
+            <p className="tiny text-steep">
+              The screen stopped: {s.error}
+              {s.rescreenFailed && s.display && (
+                <>
+                  {" "}
+                  <button className="btn small" disabled={s.running} onClick={s.run}>
+                    Run again
+                  </button>
+                </>
+              )}
+            </p>
+          )}
           {notes && !s.stale && (
             <div className="report-actions">
               <button className="btn secondary small" onClick={s.copySummary}>
@@ -442,7 +514,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
               houseChanged={!!s.fresh?.house}
               sessionLive={s.sessionLive}
               settingsChanged={!!s.fresh?.settings}
-              earlierRules={fromEarlierRules(shown)}
+              rescreened={s.rescreened}
               showParams={s.showParams}
               toggleParams={s.toggleParams}
               params={shown.result.params}
@@ -509,8 +581,8 @@ function Notices(p: {
   houseChanged: boolean;
   sessionLive: boolean;
   settingsChanged: boolean;
-  /** Screened with earlier rules than this build's (Batch A §6). */
-  earlierRules: boolean;
+  /** Re-screened on open, its last result gone or from earlier rules (owner, #101). */
+  rescreened: boolean;
   showParams: boolean;
   toggleParams(): void;
   params: ScreenResult["params"];
@@ -526,7 +598,7 @@ function Notices(p: {
         ) : (
           <p className="report-note">The house changed since this run — run again to assess it.</p>
         ))}
-      {p.earlierRules && <p className="report-note">{EARLIER_RULES}.</p>}
+      {p.rescreened && <p className="report-note">{RESCREENED}.</p>}
       {!p.sessionLive && !p.houseChanged && (
         <p className="tiny muted">Run again to restore the map overlays and horizon fan.</p>
       )}

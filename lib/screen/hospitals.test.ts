@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import type { HttpClient } from "../http";
 import { DEFAULT_ENDPOINTS, SCREEN_CONSTANTS } from "./config";
 import { driveTimes } from "./drive";
-import { ER_NOT_LISTED, NEAREST_HOSPITAL } from "./driveList";
+import { driveName, ER_NOT_LISTED, NEAREST_HOSPITAL } from "./driveList";
 import {
   hospitalCandidates,
   loadHospitalSnapshot,
@@ -122,8 +122,16 @@ describe("the hospital drive: emergency=yes preferred (A2c)", () => {
     ...(er === undefined ? {} : { er }),
   });
   const near = { hospitals: [], grocers: [], trailheads: [], trailheadCount: 0 };
-  const run = (pool: HospitalCandidate[], minutes: Record<string, number>) =>
-    driveTimes(GRAYSON, near, [], { http: osrm(minutes), endpoints: DEFAULT_ENDPOINTS }, { hospitals: pool });
+  const run = async (pool: HospitalCandidate[], minutes: Record<string, number>) =>
+    (
+      await driveTimes(
+        GRAYSON,
+        near,
+        [],
+        { http: osrm(minutes), endpoints: DEFAULT_ENDPOINTS },
+        { hospitals: pool },
+      )
+    ).drives;
 
   it("routes only the emergency hospitals when there are any, though a nearer one isn't", async () => {
     const d = await run([cand("Clinic", 1, false), cand("Ashe", 2, true), cand("Twin County", 3, true)], {
@@ -131,17 +139,20 @@ describe("the hospital drive: emergency=yes preferred (A2c)", () => {
       "2": 30,
       "3": 40,
     });
-    expect(d.map((x) => [x.label, x.name, x.min])).toEqual([[NEAREST_HOSPITAL, "Ashe", 30]]);
+    expect(d.map((x) => [x.label, x.name, x.min, x.er])).toEqual([[NEAREST_HOSPITAL, "Ashe", 30, "yes"]]);
   });
 
-  it("none listed with an emergency department: the quickest of the nearest, with the note appended", async () => {
+  it("none listed with an emergency department: the quickest of the nearest, with the note on the report", async () => {
     const d = await run([cand("Clinic", 1, false), cand("Annex", 2, false)], { "1": 15, "2": 12 });
     expect(ER_NOT_LISTED).toBe(" — emergency department not listed in OpenStreetMap");
-    expect(d.map((x) => x.name)).toEqual([`Annex${ER_NOT_LISTED}`]);
+    // v3 (B2a): the status is its own field; the report appends the note (driveName), as v2 stored it.
+    expect(d.map((x) => [x.name, x.er])).toEqual([["Annex", "not-listed"]]);
+    expect(d.map(driveName)).toEqual([`Annex${ER_NOT_LISTED}`]);
   });
 
   it("status unknown (no snapshot): by distance as before, nothing appended", async () => {
     const d = await run([cand("Clinic", 1, undefined), cand("Annex", 2, undefined)], { "1": 15, "2": 12 });
-    expect(d.map((x) => x.name)).toEqual(["Annex"]);
+    expect(d.map((x) => [x.name, x.er])).toEqual([["Annex", "unknown"]]);
+    expect(d.map(driveName)).toEqual(["Annex"]);
   });
 });
