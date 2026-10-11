@@ -19,7 +19,7 @@ const record = (engine?: number): ScreenRecord => ({
 
 describe("the engine stamp on a kept screen (Batch A §6)", () => {
   it("Phase 0's rules are version 1, A2a's 2, A2b's 3, A2c's 4, A3's 5, A3b's 6, and a screen kept before the stamp counts as 1", () => {
-    expect(ENGINE_VERSION).toBe(9); // A4b: grade over 30 m, the veto
+    expect(ENGINE_VERSION).toBe(10); // A4b PR B: the router (turns, landings, 32 directions)
     expect(engineOf(record())).toBe(1);
     expect(engineOf(record(3))).toBe(3);
   });
@@ -33,7 +33,8 @@ describe("the engine stamp on a kept screen (Batch A §6)", () => {
     expect(fromEarlierRules(record(6))).toBe(true); // A3b's rules, after A4's bump
     expect(fromEarlierRules(record(7))).toBe(true); // A4's rules, after the #88 follow-up's bump
     expect(fromEarlierRules(record(8))).toBe(true); // the #88 follow-up's rules, after A4b's bump
-    expect(fromEarlierRules(record(9))).toBe(false); // screened with A4b's rules
+    expect(fromEarlierRules(record(9))).toBe(true); // A4b's grade over 30 m, after the router's bump
+    expect(fromEarlierRules(record(10))).toBe(false); // screened with A4b PR B's router
     expect(fromEarlierRules(record(), 1)).toBe(false); // against Phase 0's rules
     expect(fromEarlierRules(record(2), 2)).toBe(false);
     expect(fromEarlierRules(record(1), 5)).toBe(true);

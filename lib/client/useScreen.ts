@@ -19,7 +19,14 @@ import type { FromWorker, SessionBytes, SessionView, ToWorker } from "@/lib/scre
 import { WorkerWatch } from "./workerWatch";
 import type { LatLon } from "@/lib/screen/util";
 
-export type StepStatus = { status: ProgressEvent["status"]; message?: string; link?: string };
+export type StepStatus = {
+  status: ProgressEvent["status"];
+  message?: string;
+  link?: string;
+  /** When the step started, and once it ended how long it took (ms, as the page saw it): debug mode shows it. */
+  startedAt?: number;
+  ms?: number;
+};
 
 export interface ScreenState {
   status: "idle" | "running" | "done" | "error";
@@ -42,7 +49,7 @@ export interface ScreenState {
   generation: number;
 }
 
-const initial: ScreenState = {
+export const initial: ScreenState = {
   status: "idle",
   steps: {},
   result: null,
@@ -56,15 +63,16 @@ const initial: ScreenState = {
   generation: 0,
 };
 
-type Action =
+export type Action =
   | { type: "start"; id: number }
   | { type: "activate"; id: number }
   | { type: "update-start" }
   /** The worker died or was replaced: nothing it held is live any more (no error: the page falls back). */
   | { type: "lost"; error?: string }
-  | { type: "message"; msg: FromWorker };
+  | { type: "message"; msg: FromWorker; at: number };
 
-function reducer(state: ScreenState, action: Action): ScreenState {
+/** The screen state from the worker's messages (exported for its test). */
+export function reducer(state: ScreenState, action: Action): ScreenState {
   switch (action.type) {
     case "start":
       return {
@@ -93,11 +101,19 @@ function reducer(state: ScreenState, action: Action): ScreenState {
       switch (m.type) {
         case "progress": {
           const { step, status, message, link, partial } = m.event;
+          const startedAt = state.steps[step]?.startedAt ?? action.at;
+          const ended = status === "done" || status === "fail";
           return {
             ...state,
             steps: {
               ...state.steps,
-              [step]: { status, ...(message ? { message } : {}), ...(link ? { link } : {}) },
+              [step]: {
+                status,
+                ...(message ? { message } : {}),
+                ...(link ? { link } : {}),
+                startedAt,
+                ...(ended ? { ms: action.at - startedAt } : {}),
+              },
             },
             ...(partial ? { result: partial } : {}),
           };
@@ -155,7 +171,8 @@ export function useScreen() {
         const m = e.data;
         if (!watch().message(m)) return; // a kept run it doesn't know: it was restarted, and is dropped
         if (m.type === "started" || m.type === "heartbeat") return;
-        if (m.type === "pong" || m.id === runId.current) dispatch({ type: "message", msg: m });
+        if (m.type === "pong" || m.id === runId.current)
+          dispatch({ type: "message", msg: m, at: performance.now() });
       };
       w.onerror = (e) => {
         e.preventDefault();

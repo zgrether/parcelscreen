@@ -26,6 +26,7 @@ import { PwaShell } from "@/components/Pwa/PwaShell";
 import { MapArea } from "./MapArea";
 import { HelpProvider } from "@/components/Help/HelpDialog";
 import { ScreenItContext } from "@/components/Results/ScreenItContext";
+import { debugFromUrl } from "@/lib/client/debugHandle";
 import { ScreenBody, ScreenHeader, useScreenIt } from "@/components/Results/panel/ScreenIt";
 import { useBottomSheet } from "./useBottomSheet";
 import { ExploreContext, useExploreController } from "./useExploreController";
@@ -84,6 +85,8 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, []);
+  // ?debug=1 / ?debug=0 (A4b PR B), before anything reads the setting.
+  useEffect(() => debugFromUrl(window.location.search), []);
   // The headless checks read the live session view, like window.__psMap (MapView): only with ps.debug set.
   useEffect(() => {
     try {

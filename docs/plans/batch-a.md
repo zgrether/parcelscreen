@@ -496,10 +496,26 @@ shows both penalty forms with the synthetic over-limit site; Grayson's #1 before
   chosen; when every one is, the least steep is shown under "No practical route found" (a flag, the driveway note,
   and the site's line). Approved text replacements: `phase-0.md` §9 decision 24. Follow-up 48: the veto moves to a
   designed road profile when the router designs one.
-- **PR B, the router:** 32 directions, a heading-aware turn cost (3 m per 45°), 30 m per switchback landing, a 100 ft
-  minimum leg (enforced), a 30 ft switchback radius to the road centre (placeholder until follow-up 46), the ground
-  under every multi-cell move checked, length and cost from the routed, smoothed and grade-rechecked path, within the
-  5 s budget.
+- **PR B, the router (ENGINE_VERSION 10; `lib/screen/router.ts`, report `docs/studies/a4b-router-pr-b.md`):** 32
+  directions with a heading per search state; a turn costs 3 m per 45°; the ground under a move longer than one cell
+  within 1 m of its straight line; length, cost and grade from the routed path simplified within 5 m, each leg's grade
+  re-checked. The owner's answers while it was built (2026-10-10):
+  - a switchback is a heading change of 100° or more between the road 15 m before a point and 15 m after it (a 30 ft
+    radius turns at most 94° in 15 m, so 15 m alone could never see one); ordinary bends stay under that, and every
+    switchback is built as a landing: a 30 ft arc at the road centre (placeholder until follow-up 46), then a straight
+    leg of at least 100 ft, with 30 m of search cost;
+  - a landing is a graded bench: the road holds the limit through the arc and the leg, with at most 3 m of cut or fill,
+    priced at the soil and rock rates (rock below the soils' depth to bedrock); none where the side slope under the arc
+    is over 35°;
+  - speed: desktop Node within 5 s per fixture (as A3 measured), with the A* estimate inflated 1.25× (each fixture's
+    cost difference against the exact search is in the report) and no reduction to 16 heading states; on a phone the
+    rest of the report shows first while the driveway section says it's routing, with a count of searches, and debug
+    mode (`?debug=1`) shows each step's time for the owner's phone check.
+- **PR B2 = VR1 + the steep-landing flag:** schema v3 as the clean break (old stored results re-screen on the engine
+  bump, or are dropped with a message; no migration), the asking price on the History record, the queued v3 items
+  (engine version, trailhead source), and the flag for a landing refused on a side slope over 35°: a warning flag on
+  the map at the spot, a line on the driveway card, and the gate panel's reason when it decides "No practical route
+  found". The clean-break decision goes in `phase-0.md` §9 with it.
 - **Then** `docs/plans/value-ranking.md` (written while PR B is in progress), then follow-up 47.
 
 ## 5b. A5: soil properties in place of NRCS's septic and foundation ratings (follow-up 45)

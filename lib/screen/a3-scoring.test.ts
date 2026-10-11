@@ -105,7 +105,9 @@ describe("NRCS's ratings without the map unit's slope (A3)", () => {
 });
 
 describe("routing many targets in one search (A3)", () => {
-  // A bumpy synthetic grid: grades from flat to steep, so some targets need more than a low cap.
+  // A bumpy synthetic grid: grades from flat to steep, so some targets need more than a low cap. The property holds for
+  // the exact search (A4b PR B): the screen's own search inflates its estimate for speed (estimateWeight), so there a
+  // site's route can depend on the other sites in the pass, within that factor of the cheapest.
   const W = 60,
     H = 60;
   const d: Dem = {
@@ -139,7 +141,7 @@ describe("routing many targets in one search (A3)", () => {
   it.each([0.05, 0.1, 0.2, 0.4])(
     "at a %s cap, each target's route is the one a search for it alone finds",
     (maxGrade) => {
-      const opts = { maxGrade, wGrade: 1, label: "x" };
+      const opts = { maxGrade, wGrade: 1, label: "x", exact: true };
       const many = routeMany(ctx, from, targets, opts);
       const one = targets.map((t) => routeDriveway(ctx, from, t, opts));
       expect(many).toEqual(one);
@@ -151,7 +153,7 @@ describe("routing many targets in one search (A3)", () => {
     const inside = new Uint8Array(W * H).fill(1);
     for (let r = 0; r < H; r++) for (let c = 25; c < 28; c++) if (r > 8) inside[r * W + c] = 0; // a wall, open at the top
     const walled = { ...ctx, inside };
-    const opts = { maxGrade: 0.3, wGrade: 1, label: "x", insideExceptNearStartM: 10 };
+    const opts = { maxGrade: 0.3, wGrade: 1, label: "x", insideExceptNearStartM: 10, exact: true };
     expect(routeMany(walled, from, targets, opts)).toEqual(
       targets.map((t) => routeDriveway(walled, from, t, opts)),
     );

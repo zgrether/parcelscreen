@@ -145,7 +145,6 @@ describe("config", () => {
         "driveway": {
           "benchWidthM": 3.66,
           "bottomlandFactor": 20,
-          "chaikinPasses": 1,
           "clearingWidthM": 7.3,
           "costRange": {
             "high": 1.3,
@@ -170,6 +169,7 @@ describe("config", () => {
             "grade": 2,
           },
           "entrancesRouted": 2,
+          "estimateWeight": 1.25,
           "fallbackMaxM": 400,
           "gentlest": {
             "label": "gentlest",
@@ -181,6 +181,9 @@ describe("config", () => {
             "long": 60,
             "short": 15,
           },
+          "landingCostM": 30,
+          "landingCutFillM": 3,
+          "landingMaxSideSlopeDeg": 35,
           "leastSteep": {
             "entranceM": 10,
             "label": "least steep",
@@ -192,7 +195,8 @@ describe("config", () => {
           "m2ToSf": 10.764,
           "m3ToYd3": 1.308,
           "maxEntrances": 3,
-          "neighbors16": true,
+          "minLegFt": 100,
+          "moveCutFillM": 1,
           "outsideFactor": 4,
           "overLimitMaxAtPct": 20,
           "overLimitMaxPts": 20,
@@ -205,9 +209,11 @@ describe("config", () => {
             "label": "shortest legal",
             "wGrade": 1,
           },
+          "smoothEpsM": 5,
           "stoneDepthM": 0.2,
           "stoneTPerM3": 1.8,
           "streamContributingM2": 20000,
+          "switchbackRadiusFt": 30,
           "switchbackTurnDeg": 100,
           "track": {
             "clearingRateShare": 0.5,
@@ -223,6 +229,7 @@ describe("config", () => {
             "waterBarEach": 150,
             "waterBarEveryM": 40,
           },
+          "turnCostPer45M": 3,
           "turnWindowM": 15,
         },
         "flood": {

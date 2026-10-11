@@ -10,6 +10,9 @@
  * Nothing in lib/ changes: the route quantities are re-measured by a copy of the router's own formula, checked
  * equal to the router's on every fixture route before anything else is reported.
  *
+ * It describes the engine-8 router (#91). A4b PR B replaced that router (lib/screen/router.ts, engine 10), so a run
+ * on a later engine fails its §0 check by design; check out #91's commit to run it again.
+ *
  *   pnpm a4b:realism
  */
 import { writeFileSync } from "node:fs";
@@ -45,6 +48,8 @@ const TURN_PER_45 = 3;
 const SWITCHBACK_COST = 30;
 const SWITCHBACK_DEG = 100;
 const MIN_LEG_FT = 100;
+/** The engine-8 router's smoothing and switchback count (driveway.ts before A4b PR B). */
+const ENGINE8 = { chaikinPasses: 1, turnWindowM: 15 };
 
 type Route = NonNullable<ScreenResult["driveway"]>["routes"][number];
 type XY = [number, number];
@@ -84,7 +89,7 @@ function zNearest(ctx: RouteContext, [x, y]: XY): number {
 /** The router's own cell path, recovered from its line: one Chaikin pass (driveway.ts finish) is invertible. */
 function cellPath(rt: Route): Position[] {
   const o = rt.line.geometry.coordinates;
-  if (K.chaikinPasses !== 1) throw new Error("cellPath assumes one Chaikin pass");
+  if (ENGINE8.chaikinPasses !== 1) throw new Error("cellPath assumes one Chaikin pass");
   const pts: Position[] = [o[0]!];
   for (let i = 0; 2 + 2 * i < o.length - 1; i++) {
     const a = o[1 + 2 * i]!,
@@ -179,8 +184,8 @@ function measureAlong(ctx: RouteContext, pts: Position[]): Measured {
     earth += ((W * W * cs) / 2) * step;
     if (acc[i]! >= streamCells && prevAcc < streamCells) culverts++;
     prevAcc = acc[i]!;
-    if (s >= K.turnWindowM) {
-      const q = along(line, s - K.turnWindowM, { units: "meters" }).geometry.coordinates;
+    if (s >= ENGINE8.turnWindowM) {
+      const q = along(line, s - ENGINE8.turnWindowM, { units: "meters" }).geometry.coordinates;
       const b = bearing(q, p);
       if (lastB != null) {
         let db = Math.abs(b - lastB);

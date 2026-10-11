@@ -331,7 +331,6 @@ export const SCREEN_CONSTANTS = deepFreeze({
   },
   driveway: {
     streamContributingM2: 20_000, // 2 ha D8 contributing area marks a drainage
-    neighbors16: true,
     crossSlopeFactor: 3, // cost × (1 + 3·tan(slope))
     bottomlandFactor: 20,
     rockFactor: 1.5,
@@ -356,10 +355,32 @@ export const SCREEN_CONSTANTS = deepFreeze({
     // gaps under 15 m.
     // entranceM: how far off the parcel the least-steep route may start, at its entrance (owner, after #52).
     leastSteep: { maxPct: 30, wGrade: 1, label: "least steep", windowM: 15, mergeM: 15, entranceM: 10 },
-    chaikinPasses: 1,
     profileStepM: 3,
+    // A4b PR B (owner, #91 review and its answers, 2026-10-10): the router (router.ts).
+    // - It moves in 32 directions. A turn costs turnCostPer45M metres of base cost per 45°.
+    // - A switchback is a heading change of switchbackTurnDeg or more between the road turnWindowM before a point
+    //   and turnWindowM after it. Ordinary bends stay under that; every switchback is built as a landing.
+    // - A landing: an arc of switchbackRadiusFt at the road's centreline (a placeholder until follow-up 46), then a
+    //   straight leg of at least minLegFt. It costs landingCostM more in the search, and is a graded bench: the
+    //   road holds the grade limit through it, with at most landingCutFillM of cut or fill, priced at the soil and
+    //   rock rates (rock below the bedrock depth). None where the natural side slope is over landingMaxSideSlopeDeg
+    //   (it would need retaining walls).
+    // - The ground under a move longer than one cell sits at most moveCutFillM off the move's straight line.
+    // - The routed path is simplified within smoothEpsM, each leg's grade re-checked, and measured on that.
     turnWindowM: 15,
     switchbackTurnDeg: 100,
+    turnCostPer45M: 3,
+    landingCostM: 30,
+    switchbackRadiusFt: 30,
+    minLegFt: 100,
+    landingCutFillM: 3,
+    landingMaxSideSlopeDeg: 35,
+    moveCutFillM: 1,
+    // The search's A* estimate is inflated this much for speed: each route is then within this factor of the cheapest
+    // (owner, 2026-10-10: desktop Node within 5 s per fixture; the router report gives each fixture's actual cost
+    // difference against the search without it).
+    estimateWeight: 1.25,
+    smoothEpsM: 5,
     benchWidthM: 3.66, // 12 ft
     m3ToYd3: 1.308,
     stoneDepthM: 0.2, // 8 in

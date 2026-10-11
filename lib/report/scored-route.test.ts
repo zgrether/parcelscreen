@@ -77,14 +77,13 @@ describe("the scored route first (#88 follow-up)", () => {
   );
 
   it("a scored route within the limit that isn't the cheapest goes first in routes (synthetic)", async () => {
-    // No fixture has the case (under an 11% limit Grayson's cheapest route already keeps to the parcel), so: the
-    // 10% driveway to Grayson's #1, with its 11% route kept to the parcel passed in as a scored route within the
-    // limit.
+    // No fixture has the case, so: the 10% driveway to Grayson's #1, with its 11% route kept to the parcel passed in
+    // as a scored route within the limit.
     const { result, session: s } = await runFixture("grayson-mud-creek-6273");
     const ctx = routeContext(s);
     const ll = result.sites![0]!.ll;
     const dw = buildDriveway(ctx, s.roads ?? [], s.parcel, ll, "site #1", 10);
-    const scored = { ...siteDriveways(ctx, s.roads ?? [], s.parcel, [ll], 11)[0]!.withinLimit!, legal: true };
+    const scored = { ...siteDriveways(ctx, s.roads ?? [], s.parcel, [ll], 11)[0]!.onParcel!, legal: true };
     expect(scored.route!.needsEasement).toBe(false);
     expect(dw.routes[0]!.needsEasement).toBe(true);
     const out = withScoredRoute(ctx, dw, scored, ll);

@@ -25,7 +25,15 @@ describe("ScreenWorkerCore", () => {
     const { c, posted } = core();
     await c.handle({ type: "run", id: 1, input });
     const progress = posted.filter((m) => m.type === "progress");
-    expect(progress).toHaveLength(22); // 11 steps × run + done
+    // 11 steps × run + done, and the driveway step's count of route searches while it runs (A4b PR B).
+    const counts = progress.filter((m) => m.event.status === "run" && m.event.message);
+    expect(counts.length).toBeGreaterThan(0);
+    expect(
+      counts.every(
+        (m) => m.event.step === "driveway" && /^\d+ route search(es)? done$/.test(m.event.message!),
+      ),
+    ).toBe(true);
+    expect(progress.length - counts.length).toBe(22);
     const done = posted.at(-1)!;
     expect(done.type).toBe("done");
     if (done.type !== "done") return;
