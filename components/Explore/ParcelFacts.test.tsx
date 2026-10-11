@@ -36,6 +36,16 @@ describe("the multi-part note", () => {
     expect(two).toContain("2.00 ac in 2 other parts not screened.");
   });
 
+  it("too complex to join (follow-up 51): the prototype's note, then why, then the parts left out", () => {
+    const html = renderToStaticMarkup(
+      <ParcelFacts
+        parcel={record({ parts: [square(-81.56), square(-81.5)] })}
+        unscreened={{ acres: 120.5, parts: 60, tooComplex: true }}
+      />,
+    );
+    expect(html).toContain(`${OLD_NOTE} (too complex to join). 120.50 ac in 60 other parts not screened.`);
+  });
+
   it("a record kept before every part was recorded keeps the prototype's note, word for word", () => {
     const html = renderToStaticMarkup(<ParcelFacts parcel={record({})} />);
     expect(html).toContain(`<td>${OLD_NOTE}</td>`);

@@ -38,7 +38,8 @@ export type DerivedParcel =
        */
       own: Feature<Polygon | MultiPolygon>;
       /** Parts of a multi-part county record too far from the rest to bridge: not screened (follow-up 29). */
-      unscreened?: { acres: number; parts: number };
+      /** Parts left out: too far to bridge, or (tooComplex) too many to join in time (follow-up 51). */
+      unscreened?: { acres: number; parts: number; tooComplex?: true };
       /** Acres of bridged strip inside the boundary. */
       bridgeAcres: number;
       /** The widest gap bridged, m; 0 when the parts touch. */
@@ -46,7 +47,7 @@ export type DerivedParcel =
       /** The split no longer cuts the boundary (a part was taken out, say): it was left off. */
       splitDropped: boolean;
     }
-  | { ok: false; reason: "no parts" | "too far apart" | "no single boundary"; gapM: number };
+  | { ok: false; reason: "no parts" | "too far apart" | "no single boundary" | "too complex"; gapM: number };
 
 /** True for a parcel from a county service (its source is the service URL). */
 export const isCountyRecord = (r: ParcelRecord): boolean => /^https?:\/\//.test(r.source);
@@ -107,6 +108,10 @@ const polygonsOf = (p: ParcelRecord): Feature<Polygon>[] => (p.parts?.length ? p
 const unionOf = (polys: Feature<Polygon>[]): Feature<Polygon | MultiPolygon> | null =>
   polys.length === 1 ? polys[0]! : union(featureCollection(polys));
 
+/** The largest of a record's polygons, by area. */
+const largestOf = (ps: Feature<Polygon>[]): Feature<Polygon> =>
+  ps.reduce((a, b) => (area(b) > area(a) ? b : a));
+
 /** The parts' own land: their union, without any bridged strip. */
 export function ownLand(parts: ParcelRecord[]): Feature<Polygon | MultiPolygon> | null {
   return unionOf(parts.flatMap(polygonsOf));
@@ -121,13 +126,20 @@ type Joined =
       gapM: number;
       own: Feature<Polygon | MultiPolygon>;
     }
-  | { ok: false; reason: "no parts" | "too far apart" | "no single boundary"; gapM: number };
+  | { ok: false; reason: "no parts" | "too far apart" | "no single boundary" | "too complex"; gapM: number };
 
 /** One boundary from these polygons of these parts (13b's rules), its own acres and land, and any strip. */
 function join(parts: ParcelRecord[], polys: Feature<Polygon>[], limits: CombineLimits): Joined {
   if (polys.length === 1) {
-    // A drawn piece never supplies facts, even if it carries stray properties.
-    const base = parts[0]!.source === "drawn" ? { ...parts[0]!, props: {} } : parts[0]!;
+    // A drawn piece never supplies facts, even if it carries stray properties. The polygon may be another of the
+    // record's parts than its first (a join too complex to run screens the largest).
+    const p = parts[0]!;
+    const base =
+      p.source === "drawn"
+        ? { ...p, geo: polys[0]!, props: {} }
+        : polys[0] === p.geo
+          ? p
+          : { ...p, geo: polys[0]! };
     return {
       ok: true,
       base,
@@ -192,19 +204,22 @@ export function deriveParcel(recipe: ParcelRecipe, limits: CombineLimits): Deriv
   if (!parts.length) return { ok: false, reason: "no parts", gapM: 0 };
 
   // Every part of every record (follow-up 29). If a multi-part record's other parts are too far to bridge,
-  // screen each record's first part, as before, and say what was left out.
+  // screen each record's first part, as before, and say what was left out. If they're too complex to join in time
+  // (follow-up 51's guard), each record's largest part, saying so.
   let joined = join(parts, parts.flatMap(polygonsOf), limits);
-  let unscreened: { acres: number; parts: number } | undefined;
-  const extra = parts.flatMap((p) => p.parts?.slice(1) ?? []);
-  if (!joined.ok && extra.length) {
-    const firsts = join(
-      parts,
-      parts.map((p) => p.geo),
-      limits,
-    );
-    if (firsts.ok) {
+  let unscreened: { acres: number; parts: number; tooComplex?: true } | undefined;
+  if (!joined.ok && parts.some((p) => (p.parts?.length ?? 0) > 1)) {
+    const tooComplex = joined.reason === "too complex";
+    const kept = parts.map((p) => (tooComplex ? largestOf(polygonsOf(p)) : p.geo));
+    const extra = parts.flatMap((p, i) => polygonsOf(p).filter((g) => g !== kept[i]));
+    const firsts = join(parts, kept, limits);
+    if (firsts.ok && extra.length) {
       joined = firsts;
-      unscreened = { acres: extra.reduce((n, g) => n + area(g), 0) / M2_PER_ACRE, parts: extra.length };
+      unscreened = {
+        acres: extra.reduce((n, g) => n + area(g), 0) / M2_PER_ACRE,
+        parts: extra.length,
+        ...(tooComplex ? { tooComplex: true as const } : {}),
+      };
     }
   }
   if (!joined.ok) return joined;

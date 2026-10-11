@@ -251,7 +251,13 @@ export const SCREEN_CONSTANTS = deepFreeze({
   },
   // Combining parcels (step 13b, new in the port): the widest gap bridged (a road right-of-way between
   // tracts sold together), and the gap below which parcels count as touching (digitizing slivers).
-  combine: { maxGapM: 30, touchM: 1 },
+  // The join guard (follow-up 51; owner, #105 review, 2026-10-11): joining parts measures every vertex of each part
+  // against the others' edges and unions them, which grows much faster than the vertex count. VGIN's placeholder for
+  // Grayson's unparceled land (61 parts, 14,126 vertices) never finished: 2 of its parts (3,199 vertices) took 1.4 s,
+  // 4 parts 13 s, 6 parts 48 s. The largest real fixture record is 2 parts and 116 vertices (Macks: 155 in one). Past
+  // these, or past the time budget, the join is skipped and the largest part screened. The real fix (a spatial
+  // index, or simplifying before the join) is follow-up 51.
+  combine: { maxGapM: 30, touchM: 1, maxJoinParts: 20, maxJoinVertices: 2500, joinBudgetMs: 2000 },
   near: {
     hospitalKm: 60, // L1114
     groceryKm: 40,

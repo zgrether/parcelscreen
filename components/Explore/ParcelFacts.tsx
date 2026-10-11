@@ -11,7 +11,7 @@ export function ParcelFacts({
   unscreened,
 }: {
   parcel: ParcelRecord;
-  unscreened?: { acres: number; parts: number } | undefined;
+  unscreened?: { acres: number; parts: number; tooComplex?: true } | undefined;
 }) {
   const f = parcelFacts(parcel.geo, parcel.props);
   return (
@@ -54,6 +54,7 @@ export function ParcelFacts({
             <td>Note</td>
             <td>
               Multi-part parcel: only the first part screened
+              {unscreened?.tooComplex && " (too complex to join)"}
               {unscreened &&
                 `. ${unscreened.acres.toFixed(2)} ac in ${unscreened.parts} other part${unscreened.parts === 1 ? "" : "s"} not screened.`}
             </td>

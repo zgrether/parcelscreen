@@ -24,6 +24,11 @@ export interface CombineLimits {
   maxGapM: number;
   /** Gaps narrower than this are digitizing slivers: the parcels count as touching, m. */
   touchM: number;
+  /** The join guard (follow-up 51): more parts, or vertices, than this is "too complex" and isn't joined. */
+  maxJoinParts?: number;
+  maxJoinVertices?: number;
+  /** A join still running after this long stops as "too complex", ms. */
+  joinBudgetMs?: number;
 }
 
 export type CombineResult =
@@ -37,7 +42,11 @@ export type CombineResult =
       /** Acres added by bridging (the strip and any notch the closing filled). */
       bridgeAcres: number;
     }
-  | { ok: false; reason: "fewer than two" | "too far apart" | "no single boundary"; gapM: number };
+  | {
+      ok: false;
+      reason: "fewer than two" | "too far apart" | "no single boundary" | "too complex";
+      gapM: number;
+    };
 
 const rings = (p: Feature<Polygon>) => p.geometry.coordinates.map((r) => lineString(r));
 
@@ -64,7 +73,7 @@ const pieces = (f: Feature<Polygon | MultiPolygon>): Feature<Polygon>[] =>
  * The widest gap that must be bridged to connect all pieces: the longest edge of the minimum spanning tree
  * over the pieces' pairwise gaps (Prim's; a handful of pieces).
  */
-function widestGap(ps: Feature<Polygon>[]): number {
+function widestGap(ps: Feature<Polygon>[], overBudget: () => boolean = () => false): number | null {
   const inTree = [0];
   let widest = 0;
   while (inTree.length < ps.length) {
@@ -72,6 +81,7 @@ function widestGap(ps: Feature<Polygon>[]): number {
     for (const i of inTree)
       for (let j = 0; j < ps.length; j++) {
         if (inTree.includes(j)) continue;
+        if (overBudget()) return null;
         const g = gapBetween(ps[i]!, ps[j]!);
         if (g < best.gap) best = { gap: g, j };
       }
@@ -81,15 +91,28 @@ function widestGap(ps: Feature<Polygon>[]): number {
   return widest;
 }
 
+/** The vertices of these polygons, every ring. */
+export const vertexCount = (ps: readonly Feature<Polygon>[]): number =>
+  ps.reduce((n, p) => n + p.geometry.coordinates.reduce((m, r) => m + r.length, 0), 0);
+
 export function combineParcels(parcels: Feature<Polygon>[], limits: CombineLimits): CombineResult {
   if (parcels.length < 2) return { ok: false, reason: "fewer than two", gapM: 0 };
+  // The join guard (follow-up 51): too many parts or vertices to join in time; or the time budget runs out.
+  if (
+    parcels.length > (limits.maxJoinParts ?? Infinity) ||
+    vertexCount(parcels) > (limits.maxJoinVertices ?? Infinity)
+  )
+    return { ok: false, reason: "too complex", gapM: 0 };
+  const t0 = performance.now();
+  const overBudget = () => performance.now() - t0 > (limits.joinBudgetMs ?? Infinity);
   const merged = union(featureCollection(parcels));
   if (!merged) return { ok: false, reason: "no single boundary", gapM: 0 };
   const acres = area(merged) / M2_PER_ACRE;
   if (merged.geometry.type === "Polygon")
     return { ok: true, geo: merged as Feature<Polygon>, acres, gapM: 0, bridgeAcres: 0 };
 
-  const gapM = widestGap(pieces(merged));
+  const gapM = widestGap(pieces(merged), overBudget);
+  if (gapM === null || overBudget()) return { ok: false, reason: "too complex", gapM: 0 };
   if (gapM > limits.maxGapM) return { ok: false, reason: "too far apart", gapM };
   // Close just enough to span the widest gap (half each side, plus half a metre so the buffers meet).
   const r = gapM / 2 + 0.5;
