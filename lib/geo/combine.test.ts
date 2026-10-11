@@ -1,7 +1,14 @@
 import { area, destination, polygon } from "@turf/turf";
 import type { Feature, Polygon } from "geojson";
 import { describe, expect, it } from "vitest";
-import { combinedRecord, combineParcels, memberLabel } from "./combine";
+import { SCREEN_CONSTANTS } from "@/lib/screen/config";
+import {
+  placeholderParts,
+  PLACEHOLDER_LARGEST,
+  PLACEHOLDER_PARTS,
+  PLACEHOLDER_VERTICES,
+} from "@/test/support/placeholder";
+import { combinedRecord, combineParcels, memberLabel, vertexCount } from "./combine";
 import { boundarySourceLabel, parcelFacts } from "./parcels";
 import { M2_PER_ACRE } from "./types";
 
@@ -74,6 +81,40 @@ describe("combineParcels", () => {
     const r = combineParcels([square(0), square(435), square(210)], LIMITS);
     expect(r).toMatchObject({ ok: true });
     expect(r.gapM).toBeCloseTo(25, 0);
+  });
+});
+
+describe("the join guard (follow-up 51)", () => {
+  const GUARDED = SCREEN_CONSTANTS.combine;
+
+  it("a record the placeholder's size is too complex to join, and says so at once", () => {
+    const parts = placeholderParts();
+    expect([parts.length, vertexCount(parts)]).toEqual([PLACEHOLDER_PARTS, PLACEHOLDER_VERTICES]);
+    const t = performance.now();
+    expect(combineParcels(parts, GUARDED)).toEqual({ ok: false, reason: "too complex", gapM: 0 });
+    expect(performance.now() - t).toBeLessThan(200);
+    // Either limit alone: its largest part with a neighbour is under the parts limit but over the vertices one.
+    expect(vertexCount(parts.slice(0, 2))).toBeGreaterThan(GUARDED.maxJoinVertices);
+    expect(combineParcels(parts.slice(0, 2), GUARDED).ok).toBe(false);
+  });
+
+  it("past the time budget, the join stops as too complex", () => {
+    const a = square(0),
+      b = square(218); // 18 m apart: needs the gap search
+    expect(combineParcels([a, b], GUARDED).ok).toBe(true);
+    expect(combineParcels([a, b], { ...GUARDED, joinBudgetMs: -1 })).toEqual({
+      ok: false,
+      reason: "too complex",
+      gapM: 0,
+    });
+  });
+
+  it("the limits sit far above the fixtures' records and below the placeholder", () => {
+    expect(GUARDED.maxJoinParts).toBeGreaterThanOrEqual(10);
+    expect(GUARDED.maxJoinParts).toBeLessThan(PLACEHOLDER_PARTS);
+    expect(GUARDED.maxJoinVertices).toBeGreaterThan(10 * 155); // Macks's record, the largest fixture's
+    expect(GUARDED.maxJoinVertices).toBeLessThan(PLACEHOLDER_LARGEST);
+    expect(GUARDED.joinBudgetMs).toBe(2000);
   });
 });
 

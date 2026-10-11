@@ -14,6 +14,8 @@ import {
   splitPreview,
 } from "./recipe";
 import { M2_PER_ACRE, type LatLon } from "./types";
+import { SCREEN_CONSTANTS } from "@/lib/screen/config";
+import { placeholderParts, PLACEHOLDER_PARTS } from "@/test/support/placeholder";
 
 const LIMITS = { maxGapM: 30, touchM: 1 };
 const ORIGIN = [-81.35, 36.63];
@@ -143,6 +145,28 @@ describe("deriveParcel", () => {
     expect(isCountyRecord(county(0, "x"))).toBe(true);
     expect(isCountyRecord(drawnPart(rect(0)))).toBe(false);
     expect(isCountyRecord({ ...county(0, "x"), source: "split" })).toBe(false);
+  });
+});
+
+describe("a record too complex to join (follow-up 51's guard)", () => {
+  it("the placeholder's size: the largest part is screened, the rest named as left out, too complex", () => {
+    const parts = placeholderParts();
+    const record: ParcelRecord = {
+      geo: parts[1]!, // a record's first part needn't be its largest
+      props: { PARCELID: "x" },
+      source: "https://example.test/parcels",
+      multiPart: true,
+      parts,
+    };
+    const t = performance.now();
+    const d = deriveParcel({ parts: [record] }, SCREEN_CONSTANTS.combine);
+    expect(performance.now() - t).toBeLessThan(1000);
+    expect(d.ok).toBe(true);
+    if (!d.ok) return;
+    expect(d.record.geo).toBe(parts[0]); // the largest
+    expect(d.unscreened).toMatchObject({ parts: PLACEHOLDER_PARTS - 1, tooComplex: true });
+    expect(d.unscreened!.acres).toBeCloseTo(parts.slice(1).reduce((n, g) => n + area(g), 0) / M2_PER_ACRE, 6);
+    expect(d.acres).toBeCloseTo(area(parts[0]!) / M2_PER_ACRE, 6);
   });
 });
 
