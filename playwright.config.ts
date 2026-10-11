@@ -15,8 +15,11 @@ export default defineConfig({
   // A screen with the volunteer services' 1 request/second throttle takes about a minute.
   timeout: 240_000,
   expect: { timeout: 30_000 },
-  fullyParallel: false,
-  workers: 1,
+  // The tests share no state: each replays its recordings in its own browser context, and the server only serves
+  // the build. So CI splits them across shards (`--shard`, test by test with fullyParallel) and runs two at a time
+  // on each; locally they run one at a time.
+  fullyParallel: true,
+  workers: process.env.CI ? 2 : 1,
   // Never retried, on CI or locally (owner, #68): a test that passes only on a retry is a bug to fix.
   retries: 0,
   forbidOnly: !!process.env.CI,

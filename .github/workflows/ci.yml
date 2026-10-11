@@ -9,8 +9,43 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  pull-requests: read
+
+# The lanes run in parallel (owner, 2026-10-11): typecheck | lint | unit (fast) | screens (four groups) |
+# build → e2e (four shards) | determinism. The main ruleset requires `typecheck`, `lint`, `test` and `e2e`.
+# `test` and `e2e` are small jobs that report their lanes' result. A docs-only change skips every lane, and the
+# skipped and summary checks report success, so the PR never waits on a check that didn't run (expected-guard,
+# its own workflow, still runs).
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.changes.outputs.code }}
+    steps:
+      - id: changes
+        name: Code or docs only?
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # The changed files from the API, without a checkout. When they can't be listed, run everything.
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            files=$(gh api --paginate "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" -q '.[].filename') || files=""
+          else
+            files=$(gh api "repos/${{ github.repository }}/compare/${{ github.event.before }}...${{ github.sha }}" -q '.files[].filename') || files=""
+          fi
+          echo "$files"
+          if [ -z "$files" ] || echo "$files" | grep -qvE '^docs/|\.md$'; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "code=false" >> "$GITHUB_OUTPUT"
+            echo "Docs-only change: every lane is skipped."
+          fi
+
   typecheck:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -25,6 +60,8 @@ jobs:
       - run: pnpm typecheck:pure
 
   lint:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -44,7 +81,10 @@ jobs:
       # A warning, never a failure, once the hospital snapshot is over 120 days old (phase-0.md §9.21).
       - run: pnpm check:hospitals-age
 
-  test:
+  # The unit tests that don't run a full screen (vitest.config.mts).
+  unit:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -55,51 +95,164 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
+        env:
+          UNIT_GROUP: fast
 
-  # The browser e2e (step 18a; docs/plans/phase-0-18-acceptance.md §1): a production build, the reference
-  # parcels' recorded traffic replayed, the Web Worker's result against expected.json. A docs-only change skips
-  # the work but still reports success, so the check never sits pending.
-  e2e:
+  # The test files that run full screens over the fixtures, in four groups of about equal time (vitest.config.mts).
+  screens:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    name: screens (${{ matrix.group }}/4)
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - id: changes
-        name: Code or docs only?
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then base="${{ github.event.pull_request.base.sha }}"; else base="${{ github.event.before }}"; fi
-          # When the changed files can't be listed (a new branch, a force-push), run.
-          files=$(git diff --name-only "$base" HEAD 2>/dev/null) || files=""
-          if [ -z "$files" ] || echo "$files" | grep -qvE '^docs/|\.md$'; then
-            echo "code=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "code=false" >> "$GITHUB_OUTPUT"
-            echo "Docs-only change: the e2e is skipped."
-          fi
       - uses: pnpm/action-setup@v6
-        if: steps.changes.outputs.code == 'true'
       - uses: actions/setup-node@v7
-        if: steps.changes.outputs.code == 'true'
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      - if: steps.changes.outputs.code == 'true'
-        run: pnpm install --frozen-lockfile
-      - if: steps.changes.outputs.code == 'true'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+        env:
+          UNIT_GROUP: screens-${{ matrix.group }}
+
+  # Required check: the unit tests and every screens group passed, or a docs-only change skipped them.
+  test:
+    needs: [changes, unit, screens]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Unit and screens
+        run: |
+          echo "changes: ${{ needs.changes.result }}, unit: ${{ needs.unit.result }}, screens: ${{ needs.screens.result }}"
+          [ "${{ needs.changes.result }}" = "success" ] || exit 1
+          for r in "${{ needs.unit.result }}" "${{ needs.screens.result }}"; do
+            case "$r" in success|skipped) ;; *) exit 1 ;; esac
+          done
+
+  # One production build for every e2e shard. The Next cache is kept between runs.
+  build:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v6
+        with:
+          path: .next/cache
+          key: nextjs-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('app/**', 'components/**', 'lib/**', 'next.config.*') }}
+          restore-keys: nextjs-${{ hashFiles('pnpm-lock.yaml') }}-
+      - run: pnpm build
+      - uses: actions/upload-artifact@v7
+        with:
+          name: next-build
+          # The build's output, and the MapLibre worker the build copies into public/.
+          path: |
+            .next
+            !.next/cache
+            public/maplibre
+          include-hidden-files: true
+          retention-days: 1
+
+  # The browser e2e (step 18a; docs/plans/phase-0-18-acceptance.md §1): the production build, the reference
+  # parcels' recorded traffic replayed, the Web Worker's result against expected.json. Four shards, each with its
+  # own server, two tests at a time (playwright.config.ts).
+  e2e-shard:
+    needs: build
+    name: e2e (${{ matrix.shard }}/4)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - id: pw
+        name: Playwright version
+        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+      - id: browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ steps.pw.outputs.version }}-chromium
+      - if: steps.browsers.outputs.cache-hit != 'true'
         run: pnpm exec playwright install --with-deps chromium
-      - if: steps.changes.outputs.code == 'true'
-        run: pnpm build
-      - if: steps.changes.outputs.code == 'true'
-        run: pnpm e2e
+      - if: steps.browsers.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+      - uses: actions/download-artifact@v8
+        with:
+          name: next-build
+      - run: pnpm e2e --shard=${{ matrix.shard }}/4
         env:
           E2E_SKIP_BUILD: "1"
-      - if: failure() && steps.changes.outputs.code == 'true'
+      - if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.shard }}
           path: |
             playwright-report/
             test-results/
           retention-days: 7
+
+  # Required check: the build and every e2e shard passed, or a docs-only change skipped them.
+  e2e:
+    needs: [changes, build, e2e-shard]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build and e2e shards
+        run: |
+          echo "changes: ${{ needs.changes.result }}, build: ${{ needs.build.result }}, e2e: ${{ needs.e2e-shard.result }}"
+          [ "${{ needs.changes.result }}" = "success" ] || exit 1
+          for r in "${{ needs.build.result }}" "${{ needs.e2e-shard.result }}"; do
+            case "$r" in success|skipped) ;; *) exit 1 ;; esac
+          done
+
+  # expected.json regenerated twice comes out byte-identical: the engine is deterministic. Moved here from the
+  # local routine (owner, 2026-10-11). It also warns when the output differs from the committed files; the unit
+  # suite's comparison (test/tools/expected.test.ts) is the gate for that.
+  determinism:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm expected
+      - name: Keep the first run's files
+        run: |
+          for f in test/fixtures/*/expected.json; do mkdir -p "$RUNNER_TEMP/first/$(dirname "$f")"; cp "$f" "$RUNNER_TEMP/first/$f"; done
+      - run: pnpm expected
+      - name: Byte-identical
+        run: |
+          status=0
+          for f in test/fixtures/*/expected.json; do
+            if cmp -s "$f" "$RUNNER_TEMP/first/$f"; then echo "same: $f"; else echo "::error file=$f::differs between two runs"; status=1; fi
+          done
+          if ! git diff --quiet -- test/fixtures; then
+            echo "::warning::the regenerated expected.json differs from the committed one"
+            git diff --stat -- test/fixtures
+          fi
+          exit $status

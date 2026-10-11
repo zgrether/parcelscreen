@@ -18,6 +18,7 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:changed": "vitest run --changed origin/main",
     "e2e": "playwright test",
     "expected": "vitest run test/tools/expected.test.ts --mode expected",
     "diff:prototype": "vitest run test/tools/diff-prototype.test.ts --mode diff-prototype",
