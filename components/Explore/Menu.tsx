@@ -6,6 +6,7 @@
  * It closes with ×, Esc, a tap on the scrim, opening a parcel from History, or opening the help.
  * The drawer is portalled to <body> so it sits above the bottom sheet on phones, not inside the map.
  */
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useHelp } from "@/components/Help/HelpDialog";
@@ -61,12 +62,11 @@ function Drawer({ close }: { close(): void }) {
           <ul className="menu-items">
             {/* VR6: History's parcels side by side (value-ranking.md §7). */}
             <li>
-              {/* A full page load: the explorer's map isn't built to unmount. */}
-              <a href="/compare">Compare parcels</a>
+              <Link href="/compare">Compare parcels</Link>
             </li>
             {/* VR7: the rules of both grades, and a parcel's breakdown (value-ranking.md §8). */}
             <li>
-              <a href="/rulebook">What the grade means</a>
+              <Link href="/rulebook">What the grade means</Link>
             </li>
             <li>
               <button

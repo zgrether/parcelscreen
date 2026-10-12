@@ -10,7 +10,7 @@ import { GeolocateControl, type Map as MlMap } from "maplibre-gl";
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { useExplore } from "@/components/Explore/useExploreController";
 import { MapPanelButton } from "./MapPanel";
-import { useMap } from "./MapView";
+import { mapGone, useMap } from "./MapView";
 import { SurfaceLegend } from "./results/SurfaceLegend";
 import { SurfaceButton } from "./results/SurfaceButton";
 import { noteViewReset } from "./useFlatForTools";
@@ -206,7 +206,8 @@ function LocateButton({ map, hint }: { map: MlMap; hint: Hint }) {
     gps.current = control;
     return () => {
       control.off("error", failed);
-      map.removeControl(control);
+      // Removed with the map already, when the explorer unmounts (follow-up 52).
+      if (!mapGone(map)) map.removeControl(control);
       gps.current = null;
     };
   }, [map, hint]);

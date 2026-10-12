@@ -1,6 +1,6 @@
 /**
  * Opens a History parcel on the map from another page (Compare, the rulebook): it becomes the store's open parcel, with
- * the view on it. The caller's link then loads the explorer, a full page load (follow-up 52).
+ * the view on it. The caller's link then goes to the explorer, which reads both when it mounts.
  */
 import { bbox } from "@turf/turf";
 import { deriveParcel } from "@/lib/geo/recipe";

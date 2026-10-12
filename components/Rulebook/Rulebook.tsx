@@ -2,9 +2,9 @@
 /**
  * "What the grade means" (value-ranking.md §8; VR7): the rulebook. At the top, the breakdown bar for a History parcel
  * (the open one, if it's screened), in the chosen person's weights; then the rules of both grades, from config and the
- * Settings. The weight switch is the sheet's (ps.person). Reached from the menu; a full page load each way, as
- * Compare (follow-up 52).
+ * Settings. The weight switch is the sheet's (ps.person). Reached from the menu.
  */
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { HelpProvider } from "@/components/Help/HelpDialog";
 import { parcelName } from "@/lib/client/historyRows";
@@ -56,9 +56,9 @@ export function Rulebook() {
     <HelpProvider>
       <main className="compare rulebook">
         <header className="compare-head">
-          <a className="link-btn" href="/explore">
+          <Link className="link-btn" href="/explore">
             ← Map
-          </a>
+          </Link>
           <h1>What the grade means</h1>
           <div className="card-person" role="group" aria-label="Whose weights grade the parcels">
             {PEOPLE.map((p) => (
@@ -87,9 +87,9 @@ export function Rulebook() {
                 <ul className="rule-stale">
                   {stale.map((b) => (
                     <li key={b.key}>
-                      <a className="link-btn" href="/explore" onClick={() => openOnMap(b)}>
+                      <Link className="link-btn" href="/explore" onClick={() => openOnMap(b)}>
                         {parcelName(b).name}
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>

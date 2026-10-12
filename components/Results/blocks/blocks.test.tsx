@@ -91,7 +91,7 @@ const APPROVED_PROTO: Record<string, (text: string) => string> = {
     t
       .replaceAll("Grade, max / average", "Grade over 30 m / average")
       .replace(/, max (\d+)% · /g, ", $1% over 30 m · "),
-  // #118 review (a replacement: owner's approval asked in the trail PR): the trailhead search reaches the Trails row's
+  // #119 (owner, 2026-10-12: an approved replacement, phase-0.md §9.33): the trailhead search reaches the Trails row's
   // last cutoff, 36 km, so the row's distance is the search's: "within 22 mi", not the prototype's 20 km "12 mi".
   "getting-there-and-getting-out": (t) => t.replace("Trailheads within 12 mi", "Trailheads within 22 mi"),
   "public-land-within-a-mile": (t) =>
