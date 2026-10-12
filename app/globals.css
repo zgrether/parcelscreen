@@ -3120,3 +3120,164 @@ button.cmp-cell:hover {
     min-width: 130px;
   }
 }
+
+/* The rulebook, "What the grade means" (VR7; value-ranking.md §8): the panels' pattern, every band shown. */
+.rulebook {
+  max-width: 860px;
+  margin: 0 auto;
+}
+.rulebook h2 {
+  margin: 22px 0 6px;
+  font: 600 20px/1.15 var(--font-cond);
+}
+.rulebook h3 {
+  margin: 18px 0 6px;
+  padding-top: 8px;
+  border-top: 2px solid var(--color-rule);
+  font: 600 13px/1 var(--font-cond);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.rule-panel {
+  padding: 10px 0 8px;
+  border-bottom: 1px solid var(--color-rule);
+  scroll-margin-top: 12px;
+}
+.rule-panel h4 {
+  margin: 0;
+  font: 600 17px/1.2 var(--font-cond);
+}
+.rule-meanings-head {
+  margin: 4px 0 0;
+  font: 600 13px/1.2 var(--font-cond);
+  color: var(--color-ink-2);
+}
+.rule-meanings {
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+.rule-meanings dt {
+  font-weight: 600;
+  margin-top: 6px;
+}
+.rule-meanings dd {
+  margin: 0;
+}
+.rule-meanings ul {
+  margin: 2px 0;
+  padding-left: 18px;
+}
+.rule-weights {
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.rule-weights th,
+.rule-weights td {
+  padding: 4px 12px 4px 0;
+  text-align: left;
+  border-bottom: 1px solid var(--color-rule);
+}
+.rule-weights td.current,
+.rule-weights th[aria-current] {
+  font-weight: 700;
+}
+.rule-parts {
+  padding-left: 18px;
+}
+.rule-parts li {
+  margin: 6px 0;
+}
+.rule-breakdown {
+  padding: 4px 0 12px;
+  border-bottom: 2px solid var(--color-rule);
+}
+/* The breakdown bar: earned segments by grade colour, lost hatched, the grade and verdict lines across it. */
+.breakdown {
+  margin: 10px 0 0;
+}
+.bd-track {
+  position: relative;
+  display: flex;
+  height: 30px;
+  margin: 22px 0 10px;
+  border: 1px solid var(--color-rule);
+  border-radius: 4px;
+  background: var(--color-paper-2);
+}
+.bd-seg {
+  height: 100%;
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.6);
+}
+.bd-seg.g-A,
+.bd-key.g-A {
+  background: var(--color-ok);
+}
+.bd-seg.g-B,
+.bd-key.g-B {
+  background: color-mix(in srgb, var(--color-ok) 70%, white);
+}
+.bd-seg.g-C,
+.bd-key.g-C {
+  background: var(--color-warn);
+}
+.bd-seg.g-D,
+.bd-key.g-D {
+  background: color-mix(in srgb, var(--color-steep) 70%, white);
+}
+.bd-seg.g-F,
+.bd-key.g-F {
+  background: var(--color-steep);
+}
+.bd-lost {
+  background: repeating-linear-gradient(135deg, transparent 0 4px, var(--color-rule) 4px 6px);
+}
+.bd-line {
+  position: absolute;
+  top: -18px;
+  bottom: -4px;
+  border-left: 1px dashed var(--color-ink);
+}
+.bd-line.bd-verdict {
+  border-left-style: dotted;
+  border-left-color: var(--color-ink-2);
+}
+.bd-line-label {
+  position: absolute;
+  top: 0;
+  left: 3px;
+  font-size: 11px;
+  white-space: nowrap;
+  color: var(--color-ink-2);
+}
+.bd-line.bd-verdict .bd-line-label {
+  top: auto;
+  bottom: -16px;
+}
+.bd-marker {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 3px;
+  margin-left: -1px;
+  background: var(--color-ink);
+}
+.bd-table {
+  border-collapse: collapse;
+  margin-top: 18px;
+  font-size: 14px;
+}
+.bd-table th,
+.bd-table td {
+  padding: 3px 12px 3px 0;
+  text-align: left;
+}
+.bd-table tfoot {
+  border-top: 1px solid var(--color-rule);
+  font-weight: 600;
+}
+.bd-key {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}

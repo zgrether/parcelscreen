@@ -166,8 +166,8 @@ export function CardPanel({
   );
 }
 
-/** A banded scale (§6.2 (b)): the bands in a row, this parcel's lit, and its value under it. */
-function ScaleBar({ scale }: { scale: Scale }) {
+/** A banded scale (§6.2 (b)): the bands in a row, this parcel's lit, and its value under it. The rulebook reuses it. */
+export function ScaleBar({ scale }: { scale: Scale }) {
   const n = scale.bands.length;
   return (
     <figure className="scale" style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>

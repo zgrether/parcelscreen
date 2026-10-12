@@ -109,6 +109,60 @@ function facingBand(aspectDeg: number, B: Bands): number {
 const byGrade = (g: Letter | null): number | null =>
   g === null ? null : g === "A" ? 0 : g === "B" ? 1 : g === "C" ? 2 : 3;
 
+/**
+ * Each scale's bands in words, with their edges from config, without a parcel (the rulebook, VR7). The panels'
+ * scales use the same labels.
+ */
+export function scaleBands(
+  name: ScaleName,
+  B: Bands = SCREEN_CONSTANTS.bands,
+  roomX = SCREEN_CONSTANTS.card.rows.roomX,
+): string[] {
+  switch (name) {
+    case "Winter sun":
+      return ranged(["Shaded", "Workable", "Good", "Excellent"], B.winterSunH, " h");
+    case "Facing":
+      return ["Ideal S–SE", "Fine", "Cool", "North-facing"];
+    case "Frost belt":
+      return [
+        "Pocket",
+        `Thermal belt ${range(fmt(B.frostAboveFloorFt[0]!), fmt(B.frostAboveFloorFt[1]!))}${NBSP}ft`,
+        "Exposed",
+        "Windy",
+      ];
+    case "Slope as foundation":
+      return ranged(["Slab or crawl", "Walkout", "Cut-fill and walls", "Engineered piers"], B.slopeDeg, "°");
+    case "Driveway":
+      return ranged(
+        ["Easy", "Good gravel", "Pave or regrade", "Ice, washouts, fire access"],
+        B.drivewayPct,
+        "%",
+        undefined,
+        "up to",
+      );
+    case "Elevation":
+      return ranged(["Valley", "Foothill", "Mountain", "High"], B.elevationFt, " ft");
+    case "Sky":
+      return ["Town glow", "Rural", "Dark"];
+    case "Room to build": {
+      // The card's own cutoffs, from Doesn't fit up (§6.2: the row's multiples, no acre bands).
+      const edges = [...roomX].reverse();
+      return [
+        "Doesn't fit",
+        ...ranged(["Tight", "Enough", "Roomy", "Spacious"], edges.slice(1), "×", String),
+      ];
+    }
+    case "Trails":
+      return ["At the edge", "A short drive", "A drive", "Far"];
+    case "Town and hospital":
+      return ["Close", "Practical", "A haul", "Remote"];
+    case "Garden":
+      return ["None", "Kitchen garden", "Market garden", "Small farm"];
+    case "Septic":
+      return [...SEPTIC_CLASSES];
+  }
+}
+
 export function scalesFor(
   panel: PanelKey,
   r: PartialScreenResult,
@@ -125,30 +179,25 @@ export function scalesFor(
       return [
         scale(
           "Winter sun",
-          ranged(["Shaded", "Workable", "Good", "Excellent"], B.winterSunH, " h"),
+          scaleBands("Winter sun", B),
           bandOf(site.sunH, B.winterSunH),
           `${fmt(site.sunH, 1)} h`,
         ),
         scale(
           "Facing",
-          ["Ideal S–SE", "Fine", "Cool", "North-facing"],
+          scaleBands("Facing", B),
           facingBand(site.aspectDeg, B),
           `faces ${compass(site.aspectDeg)}`,
         ),
         scale(
           "Frost belt",
-          [
-            "Pocket",
-            `Thermal belt ${range(fmt(B.frostAboveFloorFt[0]!), fmt(B.frostAboveFloorFt[1]!))}${NBSP}ft`,
-            "Exposed",
-            "Windy",
-          ],
+          scaleBands("Frost belt", B),
           above === null ? null : bandOf(above, B.frostAboveFloorFt),
           above === null ? "" : `${fmt(above)} ft above the valley floor`,
         ),
         scale(
           "Slope as foundation",
-          ranged(["Slab or crawl", "Walkout", "Cut-fill and walls", "Engineered piers"], B.slopeDeg, "°"),
+          scaleBands("Slope as foundation", B),
           bandOf(site.slopeDeg, B.slopeDeg),
           `${fmt(site.slopeDeg, 1)}°`,
         ),
@@ -160,13 +209,7 @@ export function scalesFor(
       const built = g.designPct < g.rawPct;
       const sc = scale(
         "Driveway",
-        ranged(
-          ["Easy", "Good gravel", "Pave or regrade", "Ice, washouts, fire access"],
-          B.drivewayPct,
-          "%",
-          undefined,
-          "up to",
-        ),
+        scaleBands("Driveway", B),
         bandUpTo(g.designPct, B.drivewayPct),
         built ? `built to ${fmt(g.designPct)}%` : `${fmt(g.rawPct, 1)}% over 30 m`,
       );
@@ -185,7 +228,7 @@ export function scalesFor(
       return [
         scale(
           "Elevation",
-          ranged(["Valley", "Foothill", "Mountain", "High"], B.elevationFt, " ft"),
+          scaleBands("Elevation", B),
           bandOf(s.elevFt, B.elevationFt),
           `${fmt(s.elevFt)} ft`,
         ),
@@ -196,7 +239,7 @@ export function scalesFor(
         ? [
             scale(
               "Sky",
-              ["Town glow", "Rural", "Dark"],
+              scaleBands("Sky", B),
               bandOf(r.sky.mag, B.skyMag),
               `${fmt(r.sky.mag, 2)} mag/arcsec²`,
             ),
@@ -207,12 +250,11 @@ export function scalesFor(
       const s = r.sites?.[0];
       if (!s) return [];
       const x = s.fit === "fits" ? s.gentleNearAc / (footprintFt2() / FT2_PER_ACRE) : 0;
-      // The card's own cutoffs, from Doesn't fit up (§6.2: the row's multiples, no acre bands).
       const edges = [...SCREEN_CONSTANTS.card.rows.roomX].reverse();
       return [
         scale(
           "Room to build",
-          ["Doesn't fit", ...ranged(["Tight", "Enough", "Roomy", "Spacious"], edges.slice(1), "×", String)],
+          scaleBands("Room to build", B),
           bandOf(x, edges),
           `${fmt(x, x < 10 ? 1 : 0)}×`,
         ),
@@ -225,7 +267,7 @@ export function scalesFor(
       if (!soil || !cls) return [];
       const sc = scale(
         "Septic",
-        ["Conventional", "Modified", "Alternative"],
+        scaleBands("Septic", B),
         SEPTIC_CLASSES.indexOf(cls),
         `${soil.compname}: ${(soil.septic || soil.engstafdcd || "").toLowerCase()}`,
       );
@@ -245,11 +287,11 @@ export function scalesFor(
     }
     case "trails": {
       const g = row("trails")?.grade ?? null;
-      return [scale("Trails", ["At the edge", "A short drive", "A drive", "Far"], byGrade(g), g ?? "")];
+      return [scale("Trails", scaleBands("Trails", B), byGrade(g), g ?? "")];
     }
     case "town": {
       const g = row("town")?.grade ?? null;
-      return [scale("Town and hospital", ["Close", "Practical", "A haul", "Remote"], byGrade(g), g ?? "")];
+      return [scale("Town and hospital", scaleBands("Town and hospital", B), byGrade(g), g ?? "")];
     }
     case "garden": {
       if (!r.gardens) return [];
@@ -257,7 +299,7 @@ export function scalesFor(
       return [
         scale(
           "Garden",
-          ["None", "Kitchen garden", "Market garden", "Small farm"],
+          scaleBands("Garden", B),
           r.gardens.length ? bandOf(largest, B.gardenAc.slice(1)) + 1 : 0,
           r.gardens.length ? `${fmt(largest, 2)} ac` : "no garden",
         ),
