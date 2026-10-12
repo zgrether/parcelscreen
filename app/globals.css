@@ -2870,3 +2870,51 @@ html:has(.explore) body {
 .panel-flags {
   margin: 10px 0;
 }
+/* The Notes tab's drawn lines (follow-up 34). */
+.ip-lines ul {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+}
+.ip-lines li {
+  padding: 6px 0;
+  border-bottom: 1px dotted var(--color-rule);
+}
+.ip-line-head {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.ip-line-head .ip-link {
+  margin-left: auto;
+}
+.ip-lines input:not(.ip-line-width) {
+  width: 100%;
+  margin: 4px 0;
+}
+.ip-line-width {
+  width: 4em;
+}
+/* The line tool's Track | Easement switch. */
+.tb-seg {
+  display: inline-flex;
+  border: 1px solid var(--tb-rule, var(--color-rule));
+  border-radius: 6px;
+  overflow: hidden;
+}
+.tb-seg button {
+  background: transparent;
+  color: inherit;
+  border: 0;
+  padding: 4px 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.tb-seg button[aria-pressed="true"] {
+  background: var(--tb-ink, var(--color-ink));
+  color: var(--tb-bg, var(--color-paper));
+}
+.tb-seg button:disabled:not([aria-pressed="true"]) {
+  opacity: 0.45;
+  cursor: default;
+}

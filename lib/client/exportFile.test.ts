@@ -389,4 +389,22 @@ describe("schema v3 (B2a): older results and the asking price", () => {
     const before = plan(file({ parcels: { ...STORE, built: [older as never] } }));
     expect(before.added[0]).toMatchObject({ askingPrice: null, askingPriceAt: null });
   });
+
+  it("drawn lines round-trip (follow-up 34); a parcel kept before them has none", () => {
+    const line = {
+      id: "t1",
+      kind: "track" as const,
+      line: [
+        [36.6, -81.5],
+        [36.61, -81.51],
+      ] as [number, number][],
+      widthFt: null,
+      note: "seen on the visit",
+      at: "2026-10-12T12:00:00.000Z",
+    };
+    const drawn: ParcelStore = { ...STORE, built: [{ ...STORE.built[0]!, markup: [line] }] };
+    expect(plan(file({}, drawn)).added[0]!.markup).toEqual([line]);
+    const { markup: _m, ...older } = STORE.built[0]!;
+    expect(plan(file({ parcels: { ...STORE, built: [older as never] } })).added[0]!.markup).toEqual([]);
+  });
 });

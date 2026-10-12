@@ -11,7 +11,9 @@
  */
 import { askingLine, parsePrice } from "@/lib/client/askingPrice";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { isBuilt } from "@/lib/client/parcelStore";
+import { length, lineString } from "@turf/turf";
+import { isBuilt, type Markup } from "@/lib/client/parcelStore";
+import { M2FT } from "@/lib/geo/types";
 import { getPref, setPref } from "@/lib/client/prefs";
 import type { ParcelRecord } from "@/lib/geo/parcels";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
@@ -471,6 +473,7 @@ function Notes({ ctl, name }: { ctl: ExploreController; name: string }) {
   return (
     <div className="ip-notes">
       <AskingPrice ctl={ctl} />
+      <DrawnLines ctl={ctl} />
       <div className="ip-notes-for">
         Notes <span>· {name}</span>
       </div>
@@ -543,6 +546,84 @@ function AskingPrice({ ctl }: { ctl: ExploreController }) {
             : ""}
       </span>
     </div>
+  );
+}
+
+/** What each drawn line is, as the map, the panel and (34-2) the report call it. */
+export const MARKUP_LABEL = {
+  track: "Existing track (user-drawn)",
+  easement: "Easement (user-drawn)",
+} as const;
+
+/**
+ * The parcel's drawn tracks and easements (follow-up 34): what each is, its length, a note saying where it came
+ * from (deed, plat, survey, a visit), an easement's width, and Remove. Drawn with the toolbar's Line button.
+ */
+function DrawnLines({ ctl }: { ctl: ExploreController }) {
+  const open = ctl.state.store.open!;
+  if (!open.markup.length) return null;
+  return (
+    <div className="ip-lines">
+      <div className="ip-notes-for">Drawn lines</div>
+      <ul>
+        {open.markup.map((m) => (
+          <DrawnLine key={m.id} ctl={ctl} m={m} />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function DrawnLine({ ctl, m }: { ctl: ExploreController; m: Markup }) {
+  const serial = ctl.state.serial;
+  const [note, setNote] = useState(m.note);
+  const [width, setWidth] = useState(m.widthFt !== null ? String(m.widthFt) : "");
+  const ft = length(lineString(m.line.map(([lat, lon]) => [lon, lat])), { units: "meters" }) * M2FT;
+  const saveNote = () => {
+    if (note !== m.note) ctl.saveMarkupNote(m.id, note, serial);
+  };
+  const saveWidth = () => {
+    const w = Number(width);
+    if (Number.isFinite(w) && w > 0 && w !== m.widthFt) ctl.saveMarkupWidth(m.id, w, serial);
+    else setWidth(m.widthFt !== null ? String(m.widthFt) : "");
+  };
+  return (
+    <li>
+      <div className="ip-line-head">
+        <b>{MARKUP_LABEL[m.kind]}</b>
+        <span className="tiny muted"> · {Math.round(ft).toLocaleString()} ft</span>
+        <button className="ip-link" onClick={() => ctl.deleteMarkup(m.id, serial)}>
+          Remove
+        </button>
+      </div>
+      <input
+        aria-label={`Note for the ${m.kind}`}
+        placeholder="Where it comes from: the deed, a plat, a survey, a visit…"
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        onBlur={saveNote}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") saveNote();
+        }}
+      />
+      {m.kind === "easement" && (
+        <label className="tiny">
+          Width{" "}
+          <input
+            inputMode="decimal"
+            aria-label="Easement width in feet"
+            className="ip-line-width"
+            value={width}
+            onChange={(e) => setWidth(e.target.value)}
+            onBlur={saveWidth}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") saveWidth();
+            }}
+          />{" "}
+          ft
+        </label>
+      )}
+    </li>
   );
 }
 

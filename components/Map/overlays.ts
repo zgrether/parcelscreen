@@ -9,6 +9,7 @@ import type { LayerId, ParcelShapes } from "@/components/Explore/layers";
 import type { ParcelRecord } from "@/lib/geo/parcels";
 import type { CombineResult } from "@/lib/geo/combine";
 import { sideName, type Side, type SplitPieces } from "@/lib/geo/split";
+import type { Markup } from "@/lib/client/parcelStore";
 import type { LatLon } from "@/lib/geo/types";
 
 const xy = ([lat, lon]: LatLon): [number, number] => [lon, lat];
@@ -30,6 +31,18 @@ export function draftData(pts: LatLon[]): FeatureCollection {
     }),
   );
   return { type: "FeatureCollection", features };
+}
+
+/** The parcel's drawn tracks and easements (follow-up 34): one line each, with its kind for the style. */
+export function markupData(markup: readonly Markup[]): FeatureCollection {
+  return {
+    type: "FeatureCollection",
+    features: markup.map((m) => ({
+      type: "Feature",
+      properties: { kind: m.kind, id: m.id },
+      geometry: { type: "LineString", coordinates: m.line.map(xy) },
+    })),
+  };
 }
 
 export const SPLIT_COLOR = { left: "#e0c43c", right: "#2b6f8f" } as const;

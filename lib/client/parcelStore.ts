@@ -14,6 +14,25 @@ import type { LatLon } from "@/lib/geo/types";
 import type { CurrentParcel } from "./currentParcel";
 import { LatLonSchema, RecordSchema } from "./currentParcel";
 
+/**
+ * A line the user drew with the parcel (follow-up 34, owner 2026-10-12), known from a deed, a plat, a survey or a
+ * visit: an existing track (a drive, a lane, an ATV path) or an easement or right-of-way to the parcel, with a note
+ * saying where it came from. The driveway router reads them (34-2).
+ */
+export interface Markup {
+  id: string;
+  kind: "track" | "easement";
+  /** At least two points, [lat, lon]. */
+  line: LatLon[];
+  /** An easement's width; null for a track. */
+  widthFt: number | null;
+  note: string;
+  at: string;
+}
+
+/** An easement's width until the user says otherwise: a common recorded right-of-way width. */
+export const EASEMENT_WIDTH_FT = 30;
+
 export interface WorkingParcel {
   /** Set once the parcel is built (saved); null for a plain parcel straight from a tap. */
   key: string | null;
@@ -30,6 +49,8 @@ export interface WorkingParcel {
    */
   askingPrice: number | null;
   askingPriceAt: string | null;
+  /** Drawn tracks and easements (follow-up 34). */
+  markup: Markup[];
   /** Layer ids hidden on the map, and results removed from the analysis. */
   hidden: string[];
   excluded: string[];
@@ -65,6 +86,7 @@ export function plainParcel(record: ParcelRecord, now: string): WorkingParcel {
     notesAt: null,
     askingPrice: null,
     askingPriceAt: null,
+    markup: [],
     hidden: [],
     excluded: [],
     screenIds: [],
@@ -86,6 +108,7 @@ export function isBuilt(p: WorkingParcel | null): boolean {
     p.house !== null ||
     p.notes.trim() !== "" ||
     p.askingPrice !== null ||
+    p.markup.length > 0 ||
     p.screenIds.length > 0
   );
 }
@@ -133,6 +156,14 @@ const SplitSchema = z.object({
   b: LatLonSchema,
   keep: z.union([z.literal(1), z.literal(-1)]),
 });
+const MarkupSchema = z.object({
+  id: z.string(),
+  kind: z.enum(["track", "easement"]),
+  line: z.array(LatLonSchema).min(2),
+  widthFt: z.number().positive().nullable(),
+  note: z.string(),
+  at: z.string(),
+});
 const WorkingSchema = z.object({
   key: z.string().nullable(),
   pieces: z.array(RecordSchema).min(1),
@@ -143,6 +174,8 @@ const WorkingSchema = z.object({
   // Added after the store's v2 (B2a): a parcel kept before has no price.
   askingPrice: z.number().nonnegative().nullable().default(null),
   askingPriceAt: z.string().nullable().default(null),
+  // Added with follow-up 34: a parcel kept before has none.
+  markup: z.array(MarkupSchema).default([]),
   hidden: z.array(z.string()),
   excluded: z.array(z.string()),
   screenIds: z.array(z.string()),
