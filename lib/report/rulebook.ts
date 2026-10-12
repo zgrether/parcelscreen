@@ -57,6 +57,8 @@ export interface Rulebook {
     weights: { key: RowKey; label: string; byPerson: Record<Person, number> }[];
     gates: RulePanel[];
     rows: RulePanel[];
+    /** Cost to enjoy: the card's last line, not graded; pending until the unit costs are calibrated. */
+    cost: RulePanel;
   };
   homesite: {
     intro: string;
@@ -243,6 +245,7 @@ export function rulebook(C: Constants = SCREEN_CONSTANTS, cfg: UserConfig = DEFA
       })),
       gates: GATES.map((k) => rulePanel(k, C)),
       rows: ROWS.map((k) => rulePanel(k, C)),
+      cost: rulePanel("cost", C),
     },
     homesite: {
       intro:

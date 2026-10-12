@@ -9,6 +9,28 @@ import { MAYBE_CAPS, footprintFt2, type CardConfig, type GateKey, type Person, t
 
 export type PanelKey = "verdict" | GateKey | RowKey | "cost";
 
+/** Every panel. A record, so a new PanelKey doesn't compile until it's listed, and the rulebook test then wants its section. */
+const PANELS: Record<PanelKey, true> = {
+  verdict: true,
+  floodplain: true,
+  access: true,
+  easement: true,
+  septic: true,
+  elevation: true,
+  homesite: true,
+  sky: true,
+  room: true,
+  trails: true,
+  town: true,
+  garden: true,
+  cost: true,
+};
+export const PANEL_KEYS = Object.keys(PANELS) as PanelKey[];
+
+/** The panel's section on the rulebook page: its id there, and the link from the panel's "How it's scored". */
+export const ruleAnchor = (key: PanelKey): string => `rule-${key}`;
+export const rulebookHref = (key: PanelKey): string => `/rulebook#${ruleAnchor(key)}`;
+
 export interface PanelText {
   title: string;
   question: string;

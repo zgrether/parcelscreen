@@ -2,10 +2,11 @@
 /**
  * "What the grade means" (value-ranking.md §8; VR7): the rulebook. At the top, the breakdown bar for a History parcel
  * (the open one, if it's screened), in the chosen person's weights; then the rules of both grades, from config and the
- * Settings. The weight switch is the sheet's (ps.person). Reached from the menu.
+ * Settings. The weight switch is the sheet's (ps.person). Reached from the menu, and from each report panel's "How it's
+ * scored" (its section, #rule-<panel>).
  */
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { HelpProvider } from "@/components/Help/HelpDialog";
 import { parcelName } from "@/lib/client/historyRows";
 import { openOnMap } from "@/lib/client/openOnMap";
@@ -36,6 +37,14 @@ export function Rulebook() {
   };
 
   const screens = useKeptScreens(built);
+  // A link to one panel's rules (a report panel's "How it's scored": /rulebook#rule-trails). The page is drawn in the
+  // browser, and the breakdown above the rules grows once the kept screens load, so it goes to the section itself,
+  // once they have (follow-up 52).
+  const loaded = screens.size === built.length;
+  useEffect(() => {
+    if (!loaded || !location.hash) return;
+    document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView();
+  }, [loaded]);
   const screened = built.filter((b) => screens.get(b.key!)?.state === "ok");
   // Kept screens from earlier rules (or gone): each parcel re-screens when it's opened (#118 review).
   const stale = built.filter((b) => screens.get(b.key!)?.state === "rescreen");

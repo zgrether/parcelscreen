@@ -2758,6 +2758,12 @@ html:has(.explore) body {
 .panel-reading .v-pass {
   background: var(--color-steep);
 }
+/* "How it's scored": a link to the panel's section of the rulebook (follow-up 52). */
+.panel-scored a {
+  color: var(--color-water);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 .panel-from {
   margin: 16px 0 0;
   padding-top: 10px;

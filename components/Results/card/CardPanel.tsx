@@ -5,6 +5,7 @@
  * "How it's scored" line (d); below, under "From the report", the report sections that moved here (§6.1), word for
  * word, each with its own heading and "?" help link.
  */
+import Link from "next/link";
 import { useEffect, useRef, type ReactNode } from "react";
 import { useHelp } from "@/components/Help/HelpDialog";
 import { fmt } from "@/lib/format";
@@ -12,7 +13,7 @@ import { digCost, foundationAt, soilUnder } from "@/lib/report/derived";
 import { DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { BOTTOMLAND_LEAD, bottomland } from "@/lib/screen/soils";
 import type { Card, GateStatus } from "@/lib/report/card";
-import { panelText, type PanelKey } from "@/lib/report/cardPanels";
+import { panelText, rulebookHref, type PanelKey } from "@/lib/report/cardPanels";
 import { meaningsFor } from "@/lib/report/meanings";
 import { scalesFor, type Scale } from "@/lib/report/scales";
 import type { PartialScreenResult, ScreenResult, Step, UserConfig } from "@/lib/screen/types";
@@ -134,7 +135,10 @@ export function CardPanel({
         <PanelFlags
           flags={(result.flags ?? []).filter((f) => panel !== "verdict" && panelOfFlag(f) === panel)}
         />
-        <p className="tiny muted panel-scored">How it&apos;s scored: {t.howScored}</p>
+        <p className="tiny muted panel-scored">
+          {/* To this panel's section of the rulebook, in the app: Back returns to the map with the report open. */}
+          <Link href={rulebookHref(panel)}>How it&apos;s scored</Link>: {t.howScored}
+        </p>
         <h3 className="panel-from">From the report</h3>
         {/* Owner's wording (#111): added above the moved sections, nothing replaced. */}
         <p className="tiny muted panel-from-note">{FROM_THE_REPORT_NOTE}</p>
