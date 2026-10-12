@@ -3,6 +3,10 @@ import { gettingThereView, NO_GROCER_CAVEAT } from "@/lib/report/surroundings";
 import { Note } from "./shared";
 import { showsMap, type BlockProps } from "./types";
 import { joinParts } from "@/lib/report/parts";
+import { fmt } from "@/lib/format";
+import { SCREEN_CONSTANTS } from "@/lib/screen/config";
+
+const KM_PER_MI = 1.609344;
 
 export function GettingThere({ result, variant }: BlockProps) {
   const v = gettingThereView(result);
@@ -44,7 +48,8 @@ export function GettingThere({ result, variant }: BlockProps) {
           )}
           {v.trailheads && (
             <tr>
-              <td>Trailheads within 12 mi</td>
+              {/* The search's own radius (#118 review: since it reaches the Trails row's last cutoff, 22 mi; was 12). */}
+              <td>Trailheads within {fmt(SCREEN_CONSTANTS.near.trailheadKm / KM_PER_MI)} mi</td>
               <td className="num">
                 {v.trailheads.count}
                 {v.trailheads.more.length > 0 && (

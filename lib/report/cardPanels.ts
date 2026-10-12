@@ -16,7 +16,8 @@ export interface PanelText {
 }
 
 const KM_PER_MI = 1.609344;
-const mi = (km: number) => fmt(km / KM_PER_MI, 1);
+/** Whole miles: the Trails cutoffs are round miles (owner, #118 review). */
+const mi = (km: number) => fmt(km / KM_PER_MI);
 const PEOPLE: Record<Person, string> = { zach: "Zach", julie: "Julie" };
 
 /** "weight 25 (Zach) / 10 (Julie)" */

@@ -45,7 +45,7 @@ describe("findPlaces asks Photon by tag, never by name", () => {
     );
     expect(tagsAsked(p.asked)).toEqual([
       ["/reverse", null, "shop:supermarket", "40"],
-      ["/reverse", null, "highway:trailhead", "20"],
+      ["/reverse", null, "highway:trailhead", "36"],
     ]);
     expect(r.near.hospitals.length).toBeGreaterThan(0); // from the snapshot
     expect(r.hospitalPool.every((h) => typeof h.er === "boolean")).toBe(true);
@@ -74,7 +74,7 @@ describe("findPlaces asks Photon by tag, never by name", () => {
     );
     expect(tagsAsked(p.asked)).toEqual([
       ["/reverse", null, "shop:supermarket", "40"],
-      ["/reverse", null, "highway:trailhead", "20"],
+      ["/reverse", null, "highway:trailhead", "36"],
       ["/reverse", null, "amenity:hospital", "60"],
       ["/reverse", null, "healthcare:hospital", "60"],
     ]);
