@@ -232,27 +232,27 @@ export const MEANINGS: Record<ScaleId, Meaning[][]> = {
       ),
     ],
   ],
-  // Drafted in VR3b for the owner's review; each ends with his "get a soil evaluation on the spot before an offer".
+  // The owner's wording (#114); each ends with "get a soil evaluation on the spot before an offer".
   septic: [
     // Conventional
     [
       m(
         undefined,
-        "A standard drainfield should work, the cheapest kind; a somewhat limited rating can mean a larger field. Get a soil evaluation on the spot before an offer.",
+        "A standard gravel drainfield should work, the cheapest kind; a ‘somewhat limited’ rating can mean a larger field. Get a soil evaluation on the spot before an offer.",
       ),
     ],
     // Modified
     [
       m(
         undefined,
-        "Slow-draining or sloping ground: plan on a low-pressure or shallow system, which costs more than a standard field. Get a soil evaluation on the spot before an offer.",
+        "The soil needs help (slow drainage, slope or rock within a few feet): plan on a low-pressure or shallow-placed system, which costs more than a standard field. Get a soil evaluation on the spot before an offer.",
       ),
     ],
     // Alternative
     [
       m(
         undefined,
-        "A high water table, shallow rock or flooding rules out a standard field: an engineered system costs much more and usually needs servicing every year. Get a soil evaluation on the spot before an offer.",
+        "A high water table, rock near the surface or flooding rules out a standard field: an engineered system (mound, drip or treatment unit) costs much more and usually needs servicing every year. Get a soil evaluation on the spot before an offer.",
       ),
     ],
   ],
