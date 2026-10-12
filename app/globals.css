@@ -972,6 +972,9 @@ html:has(.explore) body {
   .grade.F {
     background: var(--color-steep);
   }
+  .grade.fit {
+    background: var(--color-warn);
+  }
   .grade.cost {
     background: transparent;
     color: var(--color-ink);

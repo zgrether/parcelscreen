@@ -29,11 +29,12 @@ import {
   type SiteDriveway,
   type SiteRoutes,
 } from "./driveway";
-import { floodStep, type FloodFeature } from "./flood";
+import { floodStep, sfhaMask, type FloodFeature } from "./flood";
 import { nearStep } from "./near";
 import { padusStep } from "./padus";
 import type { HospitalCandidate, HospitalSource } from "./hospitals";
 import { OverpassMirrors, type OverpassFallback } from "./places";
+import type { OsmWay } from "./osmRoads";
 import type { RoadFeature } from "./roads";
 import {
   assessHouse,
@@ -76,6 +77,7 @@ import type {
   Practical,
   ProgressEvent,
   ScreenInput,
+  RawFlag,
   ScreenResult,
   SoilRow,
   Step,
@@ -100,6 +102,8 @@ export interface ScreenDeps {
   overpass?: OverpassFallback;
   /** The hospital snapshot (A2c); injectable so tests can make it fail. Defaults to the committed one. */
   hospitals?: HospitalSource;
+  /** The browser's OSM roads query (VR3a, through /api/places/overpass); Node calls the mirrors directly. */
+  osmRoads?: (centre: LatLon, signal?: AbortSignal) => Promise<OsmWay[]>;
 }
 
 /** Everything a run computed that isn't stored: rasters, raw features, caches. In memory only. */
@@ -136,7 +140,11 @@ export interface ScreenSession {
   horizon?: HorizonPoint[];
   decAltByAz?: (number | null)[];
   sfha?: FloodFeature[];
+  /** sfhaMask of `sfha` on the fine DEM (VR3a). */
+  sfhaGrid?: Uint8Array;
   roads?: RoadFeature[];
+  /** OpenStreetMap's tracks, service roads and unclassified ways near the parcel (VR3a); absent when Overpass didn't answer. */
+  osmRoads?: OsmWay[];
   /** Every non-chain supermarket the near step found, nearest first: the closer grocery's candidates (#81). */
   otherGrocers?: { name: string; ll: LatLon }[];
   /** Every candidate hospital, nearest first, with its emergency status when known (A2c). */
@@ -153,7 +161,11 @@ export interface ScreenOutput {
   session: ScreenSession;
 }
 
-type Building = Partial<ScreenResult> & { flags: ScreenResult["flags"] };
+type Building = Partial<ScreenResult> & { flags: ScreenResult["flags"]; noResponse: string[] };
+
+/** A step's flags with the step that raised them (v4), so the card shows each in its row's panel. */
+const tag = (step: Step, flags: readonly RawFlag[]): ScreenResult["flags"] =>
+  flags.map((f) => ({ ...f, step }));
 
 /** The settings the report shows with a run (ScreenResult.params). */
 export const runParams = (c: UserConfig): ScreenResult["params"] => ({
@@ -191,7 +203,7 @@ export async function screen(
   };
   const signal = deps.signal;
   const io = { http: s.deps.http, endpoints: cfg.endpoints, ...(signal ? { signal } : {}) };
-  const R: Building = { acres: s.acres, params: runParams(cfg), flags: [] };
+  const R: Building = { acres: s.acres, params: runParams(cfg), flags: [], noResponse: [] };
   const failed: Step[] = [];
   let best: (SiteSearch["benches"][number] & { veto?: string | null }) | null = null;
 
@@ -202,6 +214,7 @@ export async function screen(
       runAt: "",
       ...R,
       flags: [...R.flags],
+      noResponse: [...R.noResponse],
       failed: [...failed],
     }) as PartialScreenResult;
   const emit = (step: Step, status: ProgressEvent["status"], message?: string, link?: string) =>
@@ -267,7 +280,7 @@ export async function screen(
     s.bestId = best?.id ?? 0;
     R.terrain = { ...stats, diag: search.diag };
     Object.assign(R, siteResults(s.dFine, vf, search));
-    R.flags.push(...siteFlags(search, cfg, !!house), ...terrainFlags(stats.slopeP90Deg));
+    R.flags.push(...tag("terrain", [...siteFlags(search, cfg, !!house), ...terrainFlags(stats.slopeP90Deg)]));
   });
 
   await step("soils", async () => {
@@ -299,12 +312,12 @@ export async function screen(
       s.bestId = best?.id ?? 0;
       const pins = new Map(s.search.benches.map((b, i) => [b.id, R.benches![i]!]));
       R.benches = vet.benches.map((b) => ({ ...pins.get(b.id)!, veto: b.veto }));
-      R.flags.push(...vet.flags);
+      R.flags.push(...tag("soils", vet.flags));
     }
     // Gardens get their soil adjustment whether or not there's a house site (follow-up 20, A3b): the prototype
     // adjusted them only inside the bench block above.
     if (R.gardens && R.gardens.length) R.gardens = vetGardens(R.gardens, s.units, rows);
-    R.flags.push(...soilFlags(rows, s.units, s.acres, cfg.shallowBedrockCm));
+    R.flags.push(...tag("soils", soilFlags(rows, s.units, s.acres, cfg.shallowBedrockCm)));
   });
 
   await step("sun", () => {
@@ -328,27 +341,28 @@ export async function screen(
     R.sun = sun.sun;
     s.horizon = sun.horizon;
     s.decAltByAz = sun.decAltByAz;
-    R.flags.push(...sunFlags(sun.sun, focus.label, sun.worst, cfg.sunHoursWanted));
+    R.flags.push(...tag("sun", sunFlags(sun.sun, focus.label, sun.worst, cfg.sunHoursWanted)));
   });
 
   await step("sky", async () => {
     if (!R.focus) throw new Error("needs the December horizon step");
     const k = await computeSky(R.focus.ll, s.horizon ?? null, cfg.canopyDeg, { ...io, atlas: s.deps.atlas });
     R.sky = k.sky;
-    R.flags.push(...skyFlags(k.sky, k.zone, k.worst));
+    R.flags.push(...tag("sky", skyFlags(k.sky, k.zone, k.worst)));
   });
 
   await step("flood", async () => {
     const f = await floodStep(s.ownLand ?? parcel, s.acres, io);
     R.flood = f.flood;
     s.sfha = f.sfha;
-    R.flags.push(...f.flags);
+    R.flags.push(...tag("flood", f.flags));
   });
 
   await step("padus", async () => {
     const p = await padusStep(s.ownLand ?? parcel, io);
     R.protected = p.protected;
-    R.flags.push(...p.flags);
+    R.flags.push(...tag("padus", p.flags));
+    R.noResponse.push(...p.unanswered);
   });
 
   await step("near", async () => {
@@ -363,9 +377,12 @@ export async function screen(
         ...(s.deps.sleep ? { sleep: s.deps.sleep } : {}),
         ...(deps.overpass ? { overpass: deps.overpass } : {}),
         ...(deps.hospitals ? { hospitals: deps.hospitals } : {}),
+        ...(deps.osmRoads ? { osmRoads: deps.osmRoads } : {}),
       },
       new OverpassMirrors(),
     );
+    R.noResponse.push(...n.unanswered);
+    if (n.osmRoads) s.osmRoads = n.osmRoads;
     if (n.near) R.near = n.near;
     if (n.nearNote) R.nearNote = n.nearNote;
     s.roads = n.roads;
@@ -373,7 +390,7 @@ export async function screen(
     if (n.hospitalPool) s.hospitalPool = n.hospitalPool;
     if (n.road) R.road = n.road;
     if (n.roadNote) R.roadNote = n.roadNote;
-    R.flags.push(...n.flags);
+    R.flags.push(...tag("near", n.flags));
     // Places down (plan §9.11): the roads and grade are kept, but the step reports the failure.
     if (n.placesError) throw n.placesError;
   });
@@ -391,7 +408,11 @@ export async function screen(
   await step("rank", () => {
     if (!s.dFine || !s.dWide) throw new Error("needs elevation");
     const ctx = scoreContext();
-    const { sites, excluded } = rankSites(ctx, s.vetted ?? s.search?.benches ?? [], s.search?.shelves ?? []);
+    const { sites, excluded } = rankSites(ctx, s.vetted ?? s.search?.benches ?? [], s.search?.shelves ?? [], {
+      slope: s.slope!,
+      inside: s.inside!,
+      sfha: sfhaGrid(s),
+    });
     R.excluded = excluded;
     const message =
       !sites.length && !excluded.length
@@ -464,7 +485,7 @@ export async function screen(
       if (scored.noPractical) {
         const line = noPracticalLine(scored, cfg.roadVetoGradePct);
         R.driveway = { ...R.driveway, note: R.driveway.note ? `${R.driveway.note} ${line}` : line };
-        R.flags.push({ lvl: "warn", t: `Driveway to ${to.label}: ${line}` });
+        R.flags.push({ lvl: "warn", t: `Driveway to ${to.label}: ${line}`, step: "driveway" });
       }
       // A switchback refused on a side slope over 35° (owner, PR B decisions; B2b): stored, the card says so.
       R.driveway = {
@@ -570,9 +591,14 @@ export function routeContext(s: ScreenSession): RouteContext {
     flowAcc: () => (s.flowAcc ??= flowAccum(s.dFine!)),
     bedrockCm: () => (s.bedrockCm ??= bedrockDepth(s.units ?? null, s.rows ?? null, s.dFine!, inside)),
     wetSoil: () => (s.wetSoil ??= poorlyDrained(s.units ?? null, s.rows ?? null, s.dFine!, inside)),
+    sfhaMask: () => sfhaGrid(s),
+    ...(s.osmRoads ? { osmRoads: s.osmRoads } : {}),
     dw: s.config.dw,
   };
 }
+
+/** The flood zones on the fine DEM, built once per session (VR3a): sites and routes are read against it. */
+const sfhaGrid = (s: ScreenSession): Uint8Array => (s.sfhaGrid ??= sfhaMask(s.dFine!, s.sfha ?? null));
 
 /**
  * Re-evaluates the sun, sky and driveway at another point (the prototype's setFocus): site scores and flags

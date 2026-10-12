@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { differences } from "../../test/support/compare";
 import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
-import { expectedOf } from "../../test/support/expected";
+import { expectedOf, rawFlags } from "../../test/support/expected";
 import { throughSoils } from "../../test/support/pipeline";
 import { prototypeFn } from "../../test/support/prototypeFns";
 import { dayLimits, eqToHor, lstDeg, sunPos } from "./astro";
@@ -180,7 +180,7 @@ describe.each(FIXTURE_SLUGS)("sun and sky on %s vs the prototype", (slug) => {
       ...sunFlags(s.sun, focus.label, s.worst, DEFAULT_USER_CONFIG.sunHoursWanted),
       ...skyFlags(k.sky, k.zone, k.worst),
     ];
-    expect(golden.flags.slice(0, flags.length)).toEqual(flags);
+    expect(rawFlags(golden).slice(0, flags.length)).toEqual(flags);
 
     // 24 directions × 6 distances read the same few tiles: decoded once per session.
     const before = t.fetch.requests.length;

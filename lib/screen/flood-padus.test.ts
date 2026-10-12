@@ -2,7 +2,7 @@ import type { Feature, Polygon } from "geojson";
 import { describe, expect, it } from "vitest";
 import { differences } from "../../test/support/compare";
 import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
-import { expectedOf } from "../../test/support/expected";
+import { expectedOf, rawFlags } from "../../test/support/expected";
 import { instantClock, throughSites } from "../../test/support/pipeline";
 import { createHttpClient, TimeoutError, type HttpClient, type RequestOptions } from "../http";
 import { DEFAULT_ENDPOINTS } from "./config";
@@ -34,15 +34,15 @@ describe.each(FIXTURE_SLUGS)("flood and public land on %s vs the prototype", (sl
 
     const f = await floodStep(t.measured, t.acres, t.deps);
     expect(differences(f.flood, golden.flood)).toEqual([]);
-    for (const flag of f.flags) expect(golden.flags).toContainEqual(flag);
-    expect(golden.flags.filter((x) => /FEMA Special Flood Hazard Area/.test(x.t))).toHaveLength(
+    for (const flag of f.flags) expect(rawFlags(golden)).toContainEqual(flag);
+    expect(rawFlags(golden).filter((x) => /FEMA Special Flood Hazard Area/.test(x.t))).toHaveLength(
       f.flags.length,
     );
 
     const p = await padusStep(t.measured, t.deps);
     expect(differences(p.protected, golden.protected)).toEqual([]);
-    for (const flag of p.flags) expect(golden.flags).toContainEqual(flag);
-    expect(golden.flags.filter((x) => /^Adjoins/.test(x.t))).toHaveLength(p.flags.length);
+    for (const flag of p.flags) expect(rawFlags(golden)).toContainEqual(flag);
+    expect(rawFlags(golden).filter((x) => /^Adjoins/.test(x.t))).toHaveLength(p.flags.length);
   });
 });
 

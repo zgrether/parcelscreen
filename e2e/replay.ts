@@ -5,7 +5,8 @@
  * routeFromHAR matches them in recorded order, and the port doesn't send ArcGIS and SDA parameters in the
  * prototype's order.
  *
- * - localhost passes through (the app, its chunks, its own routes);
+ * - localhost passes through (the app, its chunks, its own routes), except the app's OSM roads route (VR3a), which
+ *   would ask Overpass from the server: it's answered from the HAR's recorded Overpass query, as the route would;
  * - a request found in the HAR is answered from it, repeats in recorded order (the last one repeats);
  * - a request to a host the HAR has data from, but not found in it, is a miss: aborted and listed, and the
  *   test fails on it, as ReplayMissError does in Node;
@@ -15,6 +16,7 @@
 import { test, type BrowserContext, type Route } from "@playwright/test";
 import { requestKey, type HarEntry } from "../test/support/replayFetch";
 import { DEFAULT_ENDPOINTS } from "../lib/screen/config";
+import { osmRoadsQuery } from "../lib/screen/osmRoads";
 import { loadFixture, type FixtureSlug } from "../test/support/fixtures";
 
 /**
@@ -91,7 +93,37 @@ export async function replayHar(
   await context.route("**/*", async (route) => {
     const req = route.request();
     const url = new URL(req.url());
-    if (url.hostname === "localhost" || url.hostname === "127.0.0.1") return route.continue();
+    if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+      // The OSM roads (VR3a): the server would ask Overpass live. Answer as the route does, from the recording of
+      // the same query on a mirror; a query the HAR doesn't have is a miss.
+      if (url.pathname === "/api/places/overpass" && url.searchParams.get("kind") === "roads") {
+        const centre: [number, number] = [
+          Number(url.searchParams.get("lat")),
+          Number(url.searchParams.get("lon")),
+        ];
+        const asked = DEFAULT_ENDPOINTS.overpass.map((m) =>
+          requestKey("GET", `${m}?data=${encodeURIComponent(osmRoadsQuery(centre))}`, null, undefined),
+        );
+        const key = asked.find((k) => queues.get(k)?.some((e) => e.response.status === 200));
+        if (!key) {
+          log.misses.push(asked[0]!);
+          return route.fulfill({ status: 502, body: JSON.stringify({ error: "not recorded" }) });
+        }
+        log.served.push(key);
+        const e = queues.get(key)!.find((x) => x.response.status === 200)!;
+        const text =
+          e.response.content.encoding === "base64"
+            ? Buffer.from(e.response.content.text ?? "", "base64").toString("utf8")
+            : (e.response.content.text ?? "");
+        const elements = (JSON.parse(text) as { elements?: unknown[] }).elements ?? [];
+        return route.fulfill({
+          status: 200,
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ elements }),
+        });
+      }
+      return route.continue();
+    }
     if (req.method() === "OPTIONS")
       return route.fulfill({
         status: 204,

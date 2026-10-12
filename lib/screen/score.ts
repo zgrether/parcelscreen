@@ -9,6 +9,7 @@ import { SCREEN_CONSTANTS } from "./config";
 import { at, inGrid, llToRC, rcToLL } from "./dem";
 import { inSfha, type FloodFeature } from "./flood";
 import { nearestRoad, type RoadFeature } from "./roads";
+import { siteFit } from "./footprint";
 import { frostCurve, type SiteSearch } from "./sites";
 import { overLimitSpans, type PracticalAlternatives, type SiteDriveway, type SiteRoutes } from "./driveway";
 import { NEEDS_EASEMENT } from "./routeLabel";
@@ -63,7 +64,20 @@ export interface SiteInput {
 
 type Scored = Omit<
   Site,
-  "rank" | "ll" | "acres" | "elevFt" | "aspectDeg" | "slopeDeg" | "compact" | "cell" | "grade" | "practical"
+  | "rank"
+  | "ll"
+  | "acres"
+  | "elevFt"
+  | "aspectDeg"
+  | "slopeDeg"
+  | "compact"
+  | "cell"
+  | "grade"
+  | "practical"
+  // The site's own ground, not its score (v4, VR3a).
+  | "fit"
+  | "gentleNearAc"
+  | "sfhaOnSite"
 >;
 
 const rate = (r: string | null | undefined) => {
@@ -429,11 +443,30 @@ export function scoreSiteDetailed(
   return { scored, raw: { quality, cost, overall } };
 }
 
+/** The ground a site sits on, beyond its score (v4, VR3a): the slope and parcel rasters, and the flood zones. */
+export interface SiteGround {
+  slope: Float32Array;
+  inside: Uint8Array;
+  /** sfhaMask (flood.ts) on the fine DEM. */
+  sfha: Uint8Array;
+}
+
+/** A site's fit for the build, its gentle ground, and whether a flood zone touches it (§5.4; owner, #109 review). */
+function onTheGround(
+  ctx: ScoreContext,
+  ground: SiteGround,
+  b: { cells: readonly number[]; acres: number; rc: [number, number] },
+): Pick<Site, "fit" | "gentleNearAc" | "sfhaOnSite"> {
+  const f = siteFit(ctx.dFine, b, ground.slope, ground.inside);
+  return { fit: f.fit, gentleNearAc: f.gentleNearAc, sfhaOnSite: b.cells.some((i) => ground.sfha[i] === 1) };
+}
+
 /** The rank step (proto L1147–1171): open house sites and compact shelves, scored and ordered. */
 export function rankSites(
   ctx: ScoreContext,
   benches: (VettedBench | (SiteSearch["benches"][number] & { soil?: undefined; veto?: undefined }))[],
   shelves: SiteSearch["shelves"],
+  ground: SiteGround,
 ): { sites: Site[]; excluded: NonNullable<ScreenResult["excluded"]> } {
   const pin = (rc: [number, number]) => rcToLL(ctx.dFine, rc[0], rc[1]);
   const excluded = benches
@@ -460,6 +493,7 @@ export function rankSites(
       ...s,
       grade: "F",
       practical: null,
+      ...onTheGround(ctx, ground, b),
     });
   }
   // Compact sites: pad-sized shelves, ranked with a cut-pad penalty.
@@ -492,16 +526,23 @@ export function rankSites(
       ...s,
       grade: "F",
       practical: null,
+      ...onTheGround(ctx, ground, sh),
     });
   }
   return { sites: rerank(sites), excluded };
 }
 
-/** Sort by overall score (stable) and renumber and regrade. */
+const FIT_ORDER: Record<Site["fit"], number> = { fits: 0, "house only": 1, "too small": 2 };
+
+/** Sort by fit, then overall score (stable), and renumber and regrade. */
 export function rerank(sites: Site[]): Site[] {
-  return [...sites]
-    .sort((a, b) => b.score - a.score)
-    .map((s, i) => ({ ...s, rank: i + 1, grade: grade(s.score) }));
+  return (
+    [...sites]
+      // A site the build doesn't fit on can't be #1 (owner, #94 review; value-ranking.md §5.4 (a)): the ones that fit
+      // first, in their own order, then the rest.
+      .sort((a, b) => FIT_ORDER[a.fit] - FIT_ORDER[b.fit] || b.score - a.score)
+      .map((s, i) => ({ ...s, rank: i + 1, grade: grade(s.score) }))
+  );
 }
 
 /** Shelf distance and drop from the current site #1 (proto finalizeRanking). */

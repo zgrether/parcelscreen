@@ -9,7 +9,7 @@ import type { Feature, LineString, MultiLineString } from "geojson";
 import { CancelledError, type HttpClient } from "../http";
 import { SCREEN_CONSTANTS } from "./config";
 import { at, llToRC } from "./dem";
-import type { Dem, Endpoints, ScreenResult } from "./types";
+import type { Dem, Endpoints, ScreenResult, RawFlag } from "./types";
 import { M2FT, type LatLon } from "./util";
 
 const K = SCREEN_CONSTANTS.roads;
@@ -102,8 +102,8 @@ export function roadToSite(
   siteLL: LatLon,
   dWide: Dem,
   roadMaxGradePct: number,
-): Pick<ScreenResult, "road" | "roadNote"> & { flags: ScreenResult["flags"] } {
-  const flags: ScreenResult["flags"] = [];
+): Pick<ScreenResult, "road" | "roadNote"> & { flags: RawFlag[] } {
+  const flags: RawFlag[] = [];
   const nr = nearestRoad(roads, siteLL);
   if (nr && nr.distM > K.minDistM) {
     const [rr, rc] = llToRC(dWide, nr.ll[0], nr.ll[1]);

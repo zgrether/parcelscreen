@@ -8,12 +8,13 @@
  * (8 MB for Grayson Mud Creek) and only their name was ever used. The parcel is its own land when its outline
  * bridges a strip between parts (follow-up 29).
  */
-import { area, booleanPointInPolygon, featureCollection, intersect } from "@turf/turf";
+import { area, bbox, booleanPointInPolygon, featureCollection, intersect } from "@turf/turf";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 import type { HttpClient } from "../http";
 import { arcQuery } from "./arcgis";
 import { SCREEN_CONSTANTS } from "./config";
-import type { Endpoints, ScreenResult } from "./types";
+import { llToRC, rcToLL } from "./dem";
+import type { Dem, Endpoints, ScreenResult, RawFlag } from "./types";
 import { M2_PER_ACRE, type LatLon } from "./util";
 
 export type FloodFeature = Feature<Polygon | MultiPolygon, { FLD_ZONE?: string; SFHA_TF?: string }>;
@@ -25,7 +26,7 @@ export async function floodStep(
 ): Promise<{
   flood: NonNullable<ScreenResult["flood"]>;
   sfha: FloodFeature[];
-  flags: ScreenResult["flags"];
+  flags: RawFlag[];
 }> {
   // NFHL timed out in two live runs (follow-up 22), and in 18b's live runs its fetch failed outright: one
   // retry, with a longer limit, after a timeout, a network failure or a 5xx. Never after a 4xx.
@@ -62,7 +63,7 @@ export async function floodStep(
       }
     }
   }
-  const flags: ScreenResult["flags"] = [];
+  const flags: RawFlag[] = [];
   if (sfha)
     flags.push({
       lvl: sfhaAcres > parcelAcres * SCREEN_CONSTANTS.flood.fatalShare ? "fatal" : "warn",
@@ -84,4 +85,33 @@ export function inSfha(sfha: FloodFeature[] | null | undefined, ll: LatLon): boo
       return false;
     }
   });
+}
+
+/**
+ * The SFHA on a DEM's grid (VR3a): 1 where a cell's centre is inside a Special Flood Hazard Area polygon. A site's
+ * cells and a route's path are read against it (owner, #109 review: a flood zone that touches the build footprint
+ * or the driveway warns).
+ */
+export function sfhaMask(d: Dem, sfha: FloodFeature[] | null | undefined): Uint8Array {
+  const out = new Uint8Array(d.w * d.h);
+  for (const f of sfha ?? []) {
+    const [w, s, e, n] = bbox(f);
+    const corners = [llToRC(d, s, w), llToRC(d, s, e), llToRC(d, n, w), llToRC(d, n, e)];
+    const r0 = Math.max(0, Math.floor(Math.min(...corners.map((x) => x[0])))),
+      r1 = Math.min(d.h - 1, Math.ceil(Math.max(...corners.map((x) => x[0])))),
+      c0 = Math.max(0, Math.floor(Math.min(...corners.map((x) => x[1])))),
+      c1 = Math.min(d.w - 1, Math.ceil(Math.max(...corners.map((x) => x[1]))));
+    for (let r = r0; r <= r1; r++)
+      for (let c = c0; c <= c1; c++) {
+        const i = r * d.w + c;
+        if (out[i]) continue;
+        const [lat, lon] = rcToLL(d, r, c);
+        try {
+          if (booleanPointInPolygon([lon, lat], f)) out[i] = 1;
+        } catch {
+          /* a malformed feature marks nothing */
+        }
+      }
+  }
+  return out;
 }

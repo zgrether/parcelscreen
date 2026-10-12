@@ -4,7 +4,7 @@
   "properties": {
     "schemaVersion": {
       "type": "number",
-      "const": 3
+      "const": 4
     },
     "engine": {
       "type": "integer",
@@ -1456,6 +1456,20 @@
                 "type": "null"
               }
             ]
+          },
+          "fit": {
+            "type": "string",
+            "enum": [
+              "fits",
+              "house only",
+              "too small"
+            ]
+          },
+          "gentleNearAc": {
+            "type": "number"
+          },
+          "sfhaOnSite": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -1478,7 +1492,10 @@
           "quality",
           "qGrade",
           "grade",
-          "practical"
+          "practical",
+          "fit",
+          "gentleNearAc",
+          "sfhaOnSite"
         ],
         "additionalProperties": false
       }
@@ -1813,6 +1830,36 @@
               },
               "gapFt": {
                 "type": "number"
+              },
+              "source": {
+                "type": "string",
+                "enum": [
+                  "tiger",
+                  "osm"
+                ]
+              },
+              "reaches": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "road": {
+                        "type": "string"
+                      },
+                      "ft": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "road",
+                      "ft"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "required": [
@@ -1821,7 +1868,9 @@
               "roadGrade",
               "bend",
               "bankFt",
-              "score"
+              "score",
+              "source",
+              "reaches"
             ],
             "additionalProperties": false
           }
@@ -1887,6 +1936,9 @@
                   },
                   "outsideFt": {
                     "type": "number"
+                  },
+                  "sfhaFt": {
+                    "type": "number"
                   }
                 },
                 "required": [
@@ -1901,7 +1953,8 @@
                   "fabricSf",
                   "clearAc",
                   "culverts",
-                  "outsideFt"
+                  "outsideFt",
+                  "sfhaFt"
                 ],
                 "additionalProperties": false
               },
@@ -2073,6 +2126,9 @@
                 },
                 "outsideFt": {
                   "type": "number"
+                },
+                "sfhaFt": {
+                  "type": "number"
                 }
               },
               "required": [
@@ -2087,7 +2143,8 @@
                 "fabricSf",
                 "clearAc",
                 "culverts",
-                "outsideFt"
+                "outsideFt",
+                "sfhaFt"
               ],
               "additionalProperties": false
             },
@@ -2252,6 +2309,9 @@
                 },
                 "outsideFt": {
                   "type": "number"
+                },
+                "sfhaFt": {
+                  "type": "number"
                 }
               },
               "required": [
@@ -2266,7 +2326,8 @@
                 "fabricSf",
                 "clearAc",
                 "culverts",
-                "outsideFt"
+                "outsideFt",
+                "sfhaFt"
               ],
               "additionalProperties": false
             },
@@ -2638,11 +2699,35 @@
           },
           "t": {
             "type": "string"
+          },
+          "step": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "dem",
+                  "terrain",
+                  "soils",
+                  "sun",
+                  "sky",
+                  "flood",
+                  "padus",
+                  "near",
+                  "drive",
+                  "rank",
+                  "driveway"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
           "lvl",
-          "t"
+          "t",
+          "step"
         ],
         "additionalProperties": false
       }
@@ -2666,6 +2751,12 @@
         ]
       }
     },
+    "noResponse": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "cancelled": {
       "type": "boolean"
     },
@@ -2686,6 +2777,7 @@
     "params",
     "flags",
     "failed",
+    "noResponse",
     "cancelled",
     "verdict"
   ],

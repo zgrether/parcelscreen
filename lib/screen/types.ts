@@ -16,10 +16,11 @@ import { z } from "zod";
 import type { STEPS } from "./config";
 
 /**
- * Bumped when ScreenResult changes shape; stored with every result. v3 (B2a, owner 2026-10-11) is a clean break: a
- * stored v2 result isn't read or migrated, its parcel re-screens (docs/plans/b2.md §3; phase-0.md §9.26).
+ * Bumped when ScreenResult changes shape; stored with every result. v3 (B2a, owner 2026-10-11) and v4 (VR3a, owner
+ * 2026-10-12) are clean breaks: an older stored result isn't read or migrated, its parcel re-screens when opened
+ * (phase-0.md §9.26, §9.30, §9.31).
  */
-export const SCREEN_SCHEMA_VERSION = 3 as const;
+export const SCREEN_SCHEMA_VERSION = 4 as const;
 
 // ---------- shared ----------
 
@@ -160,7 +161,12 @@ export interface ProgressEvent {
 
 // ---------- result ----------
 
-const FlagSchema = z.strictObject({ lvl: z.enum(["fatal", "warn", "good"]), t: z.string() });
+/** `step` (v4): the step that raised it, so the card can show it in its row's panel; null for the prototype's goldens. */
+const FlagSchema = z.strictObject({
+  lvl: z.enum(["fatal", "warn", "good"]),
+  t: z.string(),
+  step: StepSchema.nullable(),
+});
 const Grade = z.enum(["A", "B", "C", "D", "F"]);
 const CostTier = z.enum(["$", "$$", "$$$", "$$$$"]);
 
@@ -312,6 +318,12 @@ const SiteSchema = z.strictObject({
   ...ScoreFields,
   /** "No practical drive" for this site (v3, B2a): null when its chosen route is within the budget share. */
   practical: PracticalSchema.nullable(),
+  /** Whether the build fits on the site (v4, VR3a; value-ranking.md §5.4): a site that doesn't can't be #1. */
+  fit: z.enum(["fits", "house only", "too small"]),
+  /** Gentle ground (15% or less) within the drainfield distance of the placed house, acres (§5.4 (b)). */
+  gentleNearAc: num,
+  /** Whether a FEMA Special Flood Hazard Area touches the site's own ground (v4, VR3a). */
+  sfhaOnSite: z.boolean(),
 });
 export type Site = z.infer<typeof SiteSchema>;
 
@@ -344,6 +356,13 @@ const EntranceSchema = z.strictObject({
   /** No frontage: the nearest road point, `gapFt` off the line. */
   fallback: z.literal(true).optional(),
   gapFt: num.optional(),
+  /**
+   * Where the road came from (v4, VR3a): Census TIGER, or an OpenStreetMap track, service road or unclassified way
+   * when TIGER shows no frontage (owner, #110 follow-up: "possible frontage on an unmapped track").
+   */
+  source: z.enum(["tiger", "osm"]),
+  /** An OSM entrance's way to the nearest TIGER road along the OSM network, when it joins one; null otherwise. */
+  reaches: z.strictObject({ road: z.string(), ft: num }).nullable(),
 });
 
 const RouteSchema = z.strictObject({
@@ -362,6 +381,8 @@ const RouteSchema = z.strictObject({
     clearAc: num,
     culverts: num,
     outsideFt: num,
+    /** The length inside a FEMA Special Flood Hazard Area (v4, VR3a). */
+    sfhaFt: num,
   }),
   cost: CostRangeSchema,
   culverts: z.array(LatLonSchema),
@@ -530,10 +551,17 @@ export const ScreenResultSchema = z.strictObject({
   driveway: DrivewaySchema.optional(),
   flags: z.array(FlagSchema),
   failed: z.array(StepSchema),
+  /**
+   * Sources that didn't answer without failing their step (v4; phase-0.md §9.20 (c)): the wider public-land search,
+   * an official trailhead list, the OpenStreetMap roads. Their absence isn't evidence.
+   */
+  noResponse: z.array(z.string()),
   cancelled: z.boolean(),
   verdict: z.enum(["fatal", "marginal", "ok"]),
 });
 export type ScreenResult = z.infer<typeof ScreenResultSchema>;
+/** A flag as a step raises it; the screen records the step with it (v4). */
+export type RawFlag = Omit<ScreenResult["flags"][number], "step">;
 
 /** A snapshot during the run: no verdict yet, not yet known whether it was cancelled. */
 export const PartialScreenResultSchema = ScreenResultSchema.partial({ verdict: true, cancelled: true });

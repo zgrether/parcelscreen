@@ -63,3 +63,6 @@ export const EXPECTED_BROWSER: CompareOptions = {
     "driveway.roadsNearestFt": { rel: 1e-7 },
   },
 };
+
+/** A result's flags without the step that raised them (v4): what a step's own function returns, for comparing. */
+export const rawFlags = (r: Pick<ScreenResult, "flags">) => r.flags.map(({ step: _step, ...f }) => f);

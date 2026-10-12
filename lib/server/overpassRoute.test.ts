@@ -31,6 +31,27 @@ describe("GET /api/places/overpass", () => {
     expect(seen).toEqual([]);
   });
 
+  it("kind=roads asks for the OSM tracks and service roads near the point, once (VR3a); any other kind is refused", async () => {
+    const way = {
+      type: "way",
+      id: 1,
+      tags: { highway: "track" },
+      geometry: [
+        { lat: 36.3, lon: -81.6 },
+        { lat: 36.31, lon: -81.6 },
+      ],
+    };
+    const { http, seen } = fakeHttp(() => new Response(JSON.stringify({ elements: [way] })));
+    const r = await handleOverpass(get("?kind=roads&lat=36.326382&lon=-81.627171"), http);
+    expect(r.status).toBe(200);
+    expect(((await r.json()) as { elements: unknown[] }).elements).toEqual([way]);
+    expect(seen).toHaveLength(1);
+    expect(decodeURIComponent(seen[0]!.url)).toContain(
+      'way["highway"~"^(track|service|unclassified)$"](around:1500,36.326382,-81.627171)',
+    );
+    expect((await handleOverpass(get("?kind=anything&lat=36.3&lon=-81.6"), http)).status).toBe(400);
+  });
+
   it("runs the three prototype queries on the default mirrors with an identifying User-Agent", async () => {
     const { http, seen } = fakeHttp(() => new Response(JSON.stringify({ elements: [hospital] })));
     const r = await handleOverpass(get("?lat=36.9&lon=-80.5"), http);

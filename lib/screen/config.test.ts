@@ -159,6 +159,7 @@ describe("config", () => {
         },
         "build": {
           "bedrooms": 3,
+          "drainfieldWithinFt": 300,
           "garageFt": [
             30,
             40,
@@ -439,6 +440,15 @@ describe("config", () => {
           "photonTimeoutMs": 15000,
           "trailheadDedupeM": 300,
           "trailheadKm": 20,
+        },
+        "osmRoads": {
+          "highways": [
+            "track",
+            "service",
+            "unclassified",
+          ],
+          "joinM": 20,
+          "maxWalkM": 5000,
         },
         "padus": {
           "adjoinsBufferKm": 0.02,

@@ -11,9 +11,11 @@
   "flags": [
    {
     "lvl": "good",
-    "t": "9.0 acres of gentle ground with a workable NRCS septic rating (Glenelg). Site the drainfield there."
+    "t": "9.0 acres of gentle ground with a workable NRCS septic rating (Glenelg). Site the drainfield there.",
+    "step": "soils"
    }
   ],
+  "noResponse": [],
   "demSource": "USGS 3DEP",
   "demResM": 2.9939626380217406,
   "terrain": {
@@ -2016,6 +2018,9 @@
     "qGrade": "A",
     "grade": "A",
     "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 4.288248313496763,
+    "sfhaOnSite": false,
     "driveFt": 478.0716692682822
    },
    {
@@ -2068,7 +2073,10 @@
     "roadName": "unnamed road",
     "driveFt": 1985.2866327034553,
     "grade": "B",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 2.5095998652850375,
+    "sfhaOnSite": false
    },
    {
     "rank": 3,
@@ -2124,7 +2132,10 @@
     "roadName": "unnamed road",
     "driveFt": 1181.0896518703828,
     "grade": "B",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 1.0388370139617675,
+    "sfhaOnSite": false
    },
    {
     "rank": 4,
@@ -2178,7 +2189,10 @@
     "roadName": "unnamed road",
     "driveFt": 269.14711227469934,
     "grade": "B",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 2.467514783695968,
+    "sfhaOnSite": false
    },
    {
     "rank": 5,
@@ -2228,6 +2242,9 @@
     "qGrade": "B",
     "grade": "B",
     "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 1.6080931175612863,
+    "sfhaOnSite": false,
     "driveFt": 1431.634503350094
    }
   ],
@@ -2243,7 +2260,9 @@
      "roadGrade": 0.2450225497411649,
      "bend": 1.742717397874138,
      "bankFt": 0.8055919995117188,
-     "score": 2.569791797686977
+     "score": 2.569791797686977,
+     "source": "tiger",
+     "reaches": null
     },
     {
      "ll": [
@@ -2254,7 +2273,9 @@
      "roadGrade": 0.443501682358398,
      "bend": 1.7604936041163484,
      "bankFt": 2.153251496582031,
-     "score": 4.997127411648016
+     "score": 4.997127411648016,
+     "source": "tiger",
+     "reaches": null
     },
     {
      "ll": [
@@ -2265,7 +2286,9 @@
      "roadGrade": 2.4910642297504046,
      "bend": 2.0194103235993452,
      "bankFt": 0.9433616479492187,
-     "score": 7.4068760932243105
+     "score": 7.4068760932243105,
+     "source": "tiger",
+     "reaches": null
     }
    ],
    "routes": [
@@ -2505,7 +2528,8 @@
       "fabricSf": 0,
       "clearAc": 0.26285281748056144,
       "culverts": 1,
-      "outsideFt": 49.2126
+      "outsideFt": 49.2126,
+      "sfhaFt": 0
      },
      "cost": {
       "mid": 28829.026397469155,
@@ -2763,7 +2787,8 @@
       "fabricSf": 0,
       "clearAc": 0.2633528945502171,
       "culverts": 1,
-      "outsideFt": 9.84252
+      "outsideFt": 9.84252,
+      "sfhaFt": 0
      },
      "cost": {
       "mid": 28843.938329077755,
@@ -3017,7 +3042,8 @@
      "fabricSf": 0,
      "clearAc": 0.26285281748056144,
      "culverts": 1,
-     "outsideFt": 49.2126
+     "outsideFt": 49.2126,
+     "sfhaFt": 0
     },
     "cost": {
      "mid": 28829.026397469155,
@@ -3040,8 +3066,8 @@
     }
    }
   },
-  "schemaVersion": 3,
-  "engine": 13,
+  "schemaVersion": 4,
+  "engine": 14,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -3059,9 +3085,11 @@
   "flags": [
    {
     "lvl": "good",
-    "t": "9.0 acres of gentle ground with a workable NRCS septic rating (Glenelg). Site the drainfield there."
+    "t": "9.0 acres of gentle ground with a workable NRCS septic rating (Glenelg). Site the drainfield there.",
+    "step": "soils"
    }
   ],
+  "noResponse": [],
   "demSource": "USGS 3DEP",
   "demResM": 2.9939626380217406,
   "terrain": {
@@ -5064,6 +5092,9 @@
     "qGrade": "A",
     "grade": "A",
     "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 4.288248313496763,
+    "sfhaOnSite": false,
     "driveFt": 478.0716692682822
    },
    {
@@ -5116,7 +5147,10 @@
     "roadName": "unnamed road",
     "driveFt": 1985.2866327034553,
     "grade": "B",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 2.5095998652850375,
+    "sfhaOnSite": false
    },
    {
     "rank": 3,
@@ -5172,7 +5206,10 @@
     "roadName": "unnamed road",
     "driveFt": 1181.0896518703828,
     "grade": "B",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 1.0388370139617675,
+    "sfhaOnSite": false
    },
    {
     "rank": 4,
@@ -5226,7 +5263,10 @@
     "roadName": "unnamed road",
     "driveFt": 269.14711227469934,
     "grade": "B",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 2.467514783695968,
+    "sfhaOnSite": false
    },
    {
     "rank": 5,
@@ -5276,6 +5316,9 @@
     "qGrade": "B",
     "grade": "B",
     "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 1.6080931175612863,
+    "sfhaOnSite": false,
     "driveFt": 1431.634503350094
    }
   ],
@@ -5291,7 +5334,9 @@
      "roadGrade": 0.2450225497411649,
      "bend": 1.742717397874138,
      "bankFt": 0.8055919995117188,
-     "score": 2.569791797686977
+     "score": 2.569791797686977,
+     "source": "tiger",
+     "reaches": null
     },
     {
      "ll": [
@@ -5302,7 +5347,9 @@
      "roadGrade": 0.443501682358398,
      "bend": 1.7604936041163484,
      "bankFt": 2.153251496582031,
-     "score": 4.997127411648016
+     "score": 4.997127411648016,
+     "source": "tiger",
+     "reaches": null
     },
     {
      "ll": [
@@ -5313,7 +5360,9 @@
      "roadGrade": 2.4910642297504046,
      "bend": 2.0194103235993452,
      "bankFt": 0.9433616479492187,
-     "score": 7.4068760932243105
+     "score": 7.4068760932243105,
+     "source": "tiger",
+     "reaches": null
     }
    ],
    "routes": [
@@ -6061,7 +6110,8 @@
       "fabricSf": 0,
       "clearAc": 0.8178225154331297,
       "culverts": 1,
-      "outsideFt": 19.68504
+      "outsideFt": 19.68504,
+      "sfhaFt": 0
      },
      "cost": {
       "mid": 64411.50505943275,
@@ -6939,7 +6989,8 @@
       "fabricSf": 0,
       "clearAc": 0.9664347245267136,
       "culverts": 1,
-      "outsideFt": 137.79528
+      "outsideFt": 137.79528,
+      "sfhaFt": 0
      },
      "cost": {
       "mid": 68523.16041007295,
@@ -7541,7 +7592,8 @@
      "fabricSf": 0,
      "clearAc": 0.6912558862515374,
      "culverts": 1,
-     "outsideFt": 0
+     "outsideFt": 0,
+     "sfhaFt": 0
     },
     "cost": {
      "mid": 55963.68003943225,
@@ -7564,8 +7616,8 @@
     }
    }
   },
-  "schemaVersion": 3,
-  "engine": 13,
+  "schemaVersion": 4,
+  "engine": 14,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -7636,9 +7688,11 @@
   "flags": [
    {
     "lvl": "good",
-    "t": "9.0 acres of gentle ground with a workable NRCS septic rating (Glenelg). Site the drainfield there."
+    "t": "9.0 acres of gentle ground with a workable NRCS septic rating (Glenelg). Site the drainfield there.",
+    "step": "soils"
    }
   ],
+  "noResponse": [],
   "demSource": "USGS 3DEP",
   "demResM": 2.9939626380217406,
   "terrain": {
@@ -9694,6 +9748,9 @@
     "qGrade": "A",
     "grade": "A",
     "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 4.288248313496763,
+    "sfhaOnSite": false,
     "driveFt": 478.0716692682822
    },
    {
@@ -9746,7 +9803,10 @@
     "roadName": "unnamed road",
     "driveFt": 1985.2866327034553,
     "grade": "B",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 2.5095998652850375,
+    "sfhaOnSite": false
    },
    {
     "rank": 3,
@@ -9802,7 +9862,10 @@
     "roadName": "unnamed road",
     "driveFt": 1181.0896518703828,
     "grade": "B",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 1.0388370139617675,
+    "sfhaOnSite": false
    },
    {
     "rank": 4,
@@ -9856,7 +9919,10 @@
     "roadName": "unnamed road",
     "driveFt": 269.14711227469934,
     "grade": "B",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 2.467514783695968,
+    "sfhaOnSite": false
    },
    {
     "rank": 5,
@@ -9906,6 +9972,9 @@
     "qGrade": "B",
     "grade": "B",
     "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 1.6080931175612863,
+    "sfhaOnSite": false,
     "driveFt": 1431.634503350094
    }
   ],
@@ -9921,7 +9990,9 @@
      "roadGrade": 0.2450225497411649,
      "bend": 1.742717397874138,
      "bankFt": 0.8055919995117188,
-     "score": 2.569791797686977
+     "score": 2.569791797686977,
+     "source": "tiger",
+     "reaches": null
     },
     {
      "ll": [
@@ -9932,7 +10003,9 @@
      "roadGrade": 0.443501682358398,
      "bend": 1.7604936041163484,
      "bankFt": 2.153251496582031,
-     "score": 4.997127411648016
+     "score": 4.997127411648016,
+     "source": "tiger",
+     "reaches": null
     },
     {
      "ll": [
@@ -9943,7 +10016,9 @@
      "roadGrade": 2.4910642297504046,
      "bend": 2.0194103235993452,
      "bankFt": 0.9433616479492187,
-     "score": 7.4068760932243105
+     "score": 7.4068760932243105,
+     "source": "tiger",
+     "reaches": null
     }
    ],
    "routes": [
@@ -10691,7 +10766,8 @@
       "fabricSf": 0,
       "clearAc": 0.8178225154331297,
       "culverts": 1,
-      "outsideFt": 19.68504
+      "outsideFt": 19.68504,
+      "sfhaFt": 0
      },
      "cost": {
       "mid": 64411.50505943275,
@@ -11569,7 +11645,8 @@
       "fabricSf": 0,
       "clearAc": 0.9664347245267136,
       "culverts": 1,
-      "outsideFt": 137.79528
+      "outsideFt": 137.79528,
+      "sfhaFt": 0
      },
      "cost": {
       "mid": 68523.16041007295,
@@ -12171,7 +12248,8 @@
      "fabricSf": 0,
      "clearAc": 0.6912558862515374,
      "culverts": 1,
-     "outsideFt": 0
+     "outsideFt": 0,
+     "sfhaFt": 0
     },
     "cost": {
      "mid": 55963.68003943225,
@@ -12194,8 +12272,8 @@
     }
    }
   },
-  "schemaVersion": 3,
-  "engine": 13,
+  "schemaVersion": 4,
+  "engine": 14,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,

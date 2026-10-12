@@ -10,7 +10,7 @@ import { compass } from "../format";
 import type { HttpClient } from "../http";
 import { SCREEN_CONSTANTS } from "./config";
 import type { HorizonPoint } from "./sun";
-import type { Endpoints, ScreenResult } from "./types";
+import type { Endpoints, ScreenResult, RawFlag } from "./types";
 import type { LatLon } from "./util";
 
 const K = SCREEN_CONSTANTS.sky;
@@ -226,7 +226,7 @@ export function skyFlags(
   sky: NonNullable<ScreenResult["sky"]>,
   zone: [string, string],
   worst: { w: number },
-): ScreenResult["flags"] {
+): RawFlag[] {
   if (sky.mag < K.flagBrightMag)
     return [
       {
