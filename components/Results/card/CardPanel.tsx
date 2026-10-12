@@ -143,6 +143,7 @@ function ScaleBar({ scale }: { scale: Scale }) {
           ▲ {scale.value}
         </div>
       )}
+      {scale.note && <div className="scale-note">{scale.note}</div>}
     </figure>
   );
 }

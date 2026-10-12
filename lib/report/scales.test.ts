@@ -4,7 +4,7 @@ import { expectedOf } from "@/test/support/expected";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { reportCard } from "./card";
 import type { PanelKey } from "./cardPanels";
-import { scalesFor } from "./scales";
+import { drivewayDesign, scalesFor } from "./scales";
 
 const B = SCREEN_CONSTANTS.bands;
 const scales = (slug: Parameters<typeof expectedOf>[0], panel: PanelKey, bands = B) => {
@@ -50,11 +50,8 @@ describe("the banded scales", () => {
   });
 
   it("the driveway, the room, the elevation, the sky and the garden", () => {
-    expect(placed(scales("grayson-mud-creek-6273", "easement"))).toEqual([
-      ["Driveway", "Ice, washouts, fire access 15%+", "17.9% over 30 m"],
-    ]);
     expect(placed(scales("ferney-creek-52-47A", "easement"))).toEqual([
-      ["Driveway", "Easy under 8%", "5.3% over 30 m"],
+      ["Driveway", "Easy up to 8%", "5.3% over 30 m"],
     ]);
     const room = scales("grayson-mud-creek-6273", "room")[0]!;
     expect(labels(room)).toEqual([
@@ -74,6 +71,33 @@ describe("the banded scales", () => {
       ["Garden", "Kitchen garden", "0.10 ac"],
     ]);
     expect(placed(scales("ferney-creek-52-47A", "garden"))).toEqual([["Garden", "Small farm", "3.10 ac"]]);
+  });
+
+  it("the driveway sits at the grade it's built to, with the raw ground's reading as a note (owner, #111)", () => {
+    const [dw] = scales("grayson-mud-creek-6273", "easement");
+    expect([plain(dw!.bands[dw!.at!]!), dw!.value, dw!.note]).toEqual([
+      "Pave or regrade 12–15%",
+      "built to 15%",
+      "17.9% on the raw ground over 30 m; a built road grades out 1–4 points.",
+    ]);
+    expect(drivewayDesign(expectedOf("grayson-mud-creek-6273", "run"))).toEqual({
+      designPct: 15,
+      rawPct: expect.closeTo(17.877, 3),
+    });
+    // Scored on the "no practical drive" steeper alternative: its design grade.
+    const r = structuredClone(expectedOf("grayson-mud-creek-6273", "run"));
+    const cost = { low: 1, mid: 2, high: 3 };
+    r.driveway!.practical = {
+      limitPct: 10,
+      steeperPct: 12,
+      readyToBuild: 300_000,
+      share: 0.75,
+      cost,
+      steeper: null,
+      easement: null,
+      scoredOn: "steeper",
+    };
+    expect(drivewayDesign(r)!.designPct).toBe(12);
   });
 
   it("trails and town place the row's grade", () => {

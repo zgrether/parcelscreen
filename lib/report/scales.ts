@@ -36,6 +36,8 @@ export interface Scale {
   at: number | null;
   /** The value at the marker: "8.3 h", "faces SSE". */
   value: string;
+  /** A small note under the marker: the driveway's raw-ground reading when it's built to less (owner, #111). */
+  note?: string;
 }
 
 type Bands = typeof SCREEN_CONSTANTS.bands;
@@ -43,6 +45,22 @@ const FT2_PER_ACRE = M2_PER_ACRE * M2FT * M2FT;
 
 /** The band `v` falls in, given each band's lower edge after the first. */
 const bandOf = (v: number, edges: readonly number[]): number => edges.filter((e) => v >= e).length;
+/** The same, for bands that include their upper edge (§6.2's driveway: "Easy ≤ 8%"). */
+const bandUpTo = (v: number, edges: readonly number[]): number => edges.filter((e) => v > e).length;
+
+/**
+ * The grade the scored driveway is built to (owner, #111): the limit it was routed to (the "no practical drive"
+ * alternative's, when it's scored on that), or the ground's own reading over 30 m where that's gentler. The raw
+ * reading stays in the panel's detail.
+ */
+export function drivewayDesign(r: PartialScreenResult): { designPct: number; rawPct: number } | null {
+  const d = r.driveway;
+  const route = d && (d.overLimit ?? d.routes[0]);
+  if (!route) return null;
+  const limitPct = d.practical?.scoredOn === "steeper" ? d.practical.steeperPct : route.maxGrade * 100;
+  const rawPct = route.metrics.maxGradePct;
+  return { designPct: Math.min(rawPct, limitPct), rawPct };
+}
 
 /** A no-break space, and a word joiner either side of a range's dash: a label never wraps inside "3–5 h". */
 const NBSP = "\u00a0";
@@ -57,11 +75,12 @@ function ranged(
   edges: readonly number[],
   unit: string,
   f = (v: number) => fmt(v),
+  first = "under",
 ): string[] {
   unit = unit.replace(/^ /, NBSP);
   return words.map((w, i) =>
     i === 0
-      ? `${w} under ${f(edges[0]!)}${unit}`
+      ? `${w} ${first} ${f(edges[0]!)}${unit}`
       : i === words.length - 1
         ? `${w} ${f(edges[i - 1]!)}${unit.startsWith(NBSP) ? `+${unit}` : `${unit}+`}`
         : `${w} ${range(f(edges[i - 1]!), f(edges[i]!))}${unit}`,
@@ -132,21 +151,28 @@ export function scalesFor(
       ];
     }
     case "easement": {
-      const d = r.driveway;
-      const route = d && (d.overLimit ?? d.routes[0]);
-      if (!route) return [];
-      const pct = route.metrics.maxGradePct;
-      return [
-        scale(
-          "Driveway",
-          ranged(
-            ["Easy", "Good gravel", "Pave or regrade", "Ice, washouts, fire access"],
-            B.drivewayPct,
-            "%",
-          ),
-          bandOf(pct, B.drivewayPct),
-          `${fmt(pct, 1)}% over 30 m`,
+      const g = drivewayDesign(r);
+      if (!g) return [];
+      const built = g.designPct < g.rawPct;
+      const sc = scale(
+        "Driveway",
+        ranged(
+          ["Easy", "Good gravel", "Pave or regrade", "Ice, washouts, fire access"],
+          B.drivewayPct,
+          "%",
+          undefined,
+          "up to",
         ),
+        bandUpTo(g.designPct, B.drivewayPct),
+        built ? `built to ${fmt(g.designPct)}%` : `${fmt(g.rawPct, 1)}% over 30 m`,
+      );
+      return [
+        built
+          ? {
+              ...sc,
+              note: `${fmt(g.rawPct, 1)}% on the raw ground over 30 m; a built road grades out 1–4 points.`,
+            }
+          : sc,
       ];
     }
     case "elevation": {
