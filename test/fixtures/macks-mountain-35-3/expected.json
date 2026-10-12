@@ -11,25 +11,31 @@
   "flags": [
    {
     "lvl": "warn",
-    "t": "90th-percentile slope is 32°. The road will be the dominant site cost — get an excavator's number before offering."
+    "t": "90th-percentile slope is 32°. The road will be the dominant site cost — get an excavator's number before offering.",
+    "step": "terrain"
    },
    {
     "lvl": "warn",
-    "t": "Bedrock under 100 cm on 239.3 ac of Ramsey, Berks, Gilpin, Marbleyard, Unicoi. Budget rock excavation for septic, water line and footings."
+    "t": "Bedrock under 100 cm on 239.3 ac of Ramsey, Berks, Gilpin, Marbleyard, Unicoi. Budget rock excavation for septic, water line and footings.",
+    "step": "soils"
    },
    {
     "lvl": "warn",
-    "t": "Under an acre of gentle ground carries a workable NRCS septic rating (0.0 ac). Plan on an alternative system and get a soil scientist out before an offer."
+    "t": "Under an acre of gentle ground carries a workable NRCS septic rating (0.0 ac). Plan on an alternative system and get a soil scientist out before an offer.",
+    "step": "soils"
    },
    {
     "lvl": "warn",
-    "t": "Adjoins protected land, but it's restricted or closed to the public — a buffer, not a backyard."
+    "t": "Adjoins protected land, but it's restricted or closed to the public — a buffer, not a backyard.",
+    "step": "padus"
    },
    {
     "lvl": "warn",
-    "t": "Straight-line grade from unnamed road to the bench is 17% over 229 ft. A 15% driveway needs roughly 257 ft of road — switchbacks, culverts, and a bigger bill."
+    "t": "Straight-line grade from unnamed road to the bench is 17% over 229 ft. A 15% driveway needs roughly 257 ft of road — switchbacks, culverts, and a bigger bill.",
+    "step": "near"
    }
   ],
+  "noResponse": [],
   "demSource": "USGS 3DEP",
   "demResM": 2.996157719588535,
   "terrain": {
@@ -4017,7 +4023,10 @@
     "roadName": "unnamed road",
     "driveFt": 1135.1466120473292,
     "grade": "B",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 1.2644044557930019,
+    "sfhaOnSite": false
    },
    {
     "rank": 2,
@@ -4069,7 +4078,10 @@
     "roadName": "unnamed road",
     "driveFt": 3604.400930375693,
     "grade": "B",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 0.39263085732519537,
+    "sfhaOnSite": false
    },
    {
     "rank": 3,
@@ -4121,7 +4133,10 @@
     "roadName": "unnamed road",
     "driveFt": 1672.1978006361178,
     "grade": "C",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 1.6880908611552183,
+    "sfhaOnSite": false
    },
    {
     "rank": 4,
@@ -4173,7 +4188,10 @@
     "roadName": "State Rte 611",
     "driveFt": 4098.449953086412,
     "grade": "C",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 0.3793213367379005,
+    "sfhaOnSite": false
    },
    {
     "rank": 5,
@@ -4227,7 +4245,10 @@
     "roadName": "unnamed road",
     "driveFt": 690.6425072846655,
     "grade": "C",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 1.0115235646344014,
+    "sfhaOnSite": false
    },
    {
     "rank": 6,
@@ -4281,7 +4302,10 @@
     "roadName": "unnamed road",
     "driveFt": 505.59542956791387,
     "grade": "C",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 0.995995790615891,
+    "sfhaOnSite": false
    },
    {
     "rank": 7,
@@ -4333,7 +4357,10 @@
     "roadName": "unnamed road",
     "driveFt": 2035.873568722586,
     "grade": "C",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 0.523507809766927,
+    "sfhaOnSite": false
    },
    {
     "rank": 8,
@@ -4387,7 +4414,10 @@
     "roadName": "unnamed road",
     "driveFt": 2104.48812661335,
     "grade": "C",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 2.20938041749093,
+    "sfhaOnSite": false
    }
   ],
   "driveway": {
@@ -4402,7 +4432,9 @@
      "roadGrade": 0.7717386881565858,
      "bend": 0.00036662939557174923,
      "bankFt": 0.3432226416015625,
-     "score": 2.0584946534133013
+     "score": 2.0584946534133013,
+     "source": "tiger",
+     "reaches": null
     },
     {
      "ll": [
@@ -4413,7 +4445,9 @@
      "roadGrade": 0.8117545431859552,
      "bend": 1.2712491602471339,
      "bankFt": 2.5829806616210935,
-     "score": 6.133604658927117
+     "score": 6.133604658927117,
+     "source": "tiger",
+     "reaches": null
     },
     {
      "ll": [
@@ -4424,7 +4458,9 @@
      "roadGrade": 4.505265702442825,
      "bend": 1.685347616391823,
      "bankFt": 2.7427774340820315,
-     "score": 13.96737136420461
+     "score": 13.96737136420461,
+     "source": "tiger",
+     "reaches": null
     }
    ],
    "routes": [
@@ -4936,7 +4972,8 @@
       "fabricSf": 0,
       "clearAc": 0.6241250097225751,
       "culverts": 1,
-      "outsideFt": 0
+      "outsideFt": 0,
+      "sfhaFt": 0
      },
      "cost": {
       "mid": 46433.44842829424,
@@ -5466,7 +5503,8 @@
       "fabricSf": 0,
       "clearAc": 0.6246257017981951,
       "culverts": 1,
-      "outsideFt": 0
+      "outsideFt": 0,
+      "sfhaFt": 0
      },
      "cost": {
       "mid": 46430.71445688131,
@@ -5992,7 +6030,8 @@
      "fabricSf": 0,
      "clearAc": 0.6246257017981951,
      "culverts": 1,
-     "outsideFt": 0
+     "outsideFt": 0,
+     "sfhaFt": 0
     },
     "cost": {
      "mid": 46430.71445688131,
@@ -6015,8 +6054,8 @@
     }
    }
   },
-  "schemaVersion": 3,
-  "engine": 13,
+  "schemaVersion": 4,
+  "engine": 14,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -6034,25 +6073,31 @@
   "flags": [
    {
     "lvl": "warn",
-    "t": "90th-percentile slope is 32°. The road will be the dominant site cost — get an excavator's number before offering."
+    "t": "90th-percentile slope is 32°. The road will be the dominant site cost — get an excavator's number before offering.",
+    "step": "terrain"
    },
    {
     "lvl": "warn",
-    "t": "Bedrock under 100 cm on 239.3 ac of Ramsey, Berks, Gilpin, Marbleyard, Unicoi. Budget rock excavation for septic, water line and footings."
+    "t": "Bedrock under 100 cm on 239.3 ac of Ramsey, Berks, Gilpin, Marbleyard, Unicoi. Budget rock excavation for septic, water line and footings.",
+    "step": "soils"
    },
    {
     "lvl": "warn",
-    "t": "Under an acre of gentle ground carries a workable NRCS septic rating (0.0 ac). Plan on an alternative system and get a soil scientist out before an offer."
+    "t": "Under an acre of gentle ground carries a workable NRCS septic rating (0.0 ac). Plan on an alternative system and get a soil scientist out before an offer.",
+    "step": "soils"
    },
    {
     "lvl": "warn",
-    "t": "Adjoins protected land, but it's restricted or closed to the public — a buffer, not a backyard."
+    "t": "Adjoins protected land, but it's restricted or closed to the public — a buffer, not a backyard.",
+    "step": "padus"
    },
    {
     "lvl": "warn",
-    "t": "Straight-line grade from unnamed road to the bench is 17% over 229 ft. A 15% driveway needs roughly 257 ft of road — switchbacks, culverts, and a bigger bill."
+    "t": "Straight-line grade from unnamed road to the bench is 17% over 229 ft. A 15% driveway needs roughly 257 ft of road — switchbacks, culverts, and a bigger bill.",
+    "step": "near"
    }
   ],
+  "noResponse": [],
   "demSource": "USGS 3DEP",
   "demResM": 2.996157719588535,
   "terrain": {
@@ -10040,7 +10085,10 @@
     "roadName": "unnamed road",
     "driveFt": 1135.1466120473292,
     "grade": "B",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 1.2644044557930019,
+    "sfhaOnSite": false
    },
    {
     "rank": 2,
@@ -10092,7 +10140,10 @@
     "roadName": "unnamed road",
     "driveFt": 3604.400930375693,
     "grade": "B",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 0.39263085732519537,
+    "sfhaOnSite": false
    },
    {
     "rank": 3,
@@ -10144,7 +10195,10 @@
     "roadName": "unnamed road",
     "driveFt": 1672.1978006361178,
     "grade": "C",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 1.6880908611552183,
+    "sfhaOnSite": false
    },
    {
     "rank": 4,
@@ -10196,7 +10250,10 @@
     "roadName": "State Rte 611",
     "driveFt": 4098.449953086412,
     "grade": "C",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 0.3793213367379005,
+    "sfhaOnSite": false
    },
    {
     "rank": 5,
@@ -10250,7 +10307,10 @@
     "roadName": "unnamed road",
     "driveFt": 690.6425072846655,
     "grade": "C",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 1.0115235646344014,
+    "sfhaOnSite": false
    },
    {
     "rank": 6,
@@ -10304,7 +10364,10 @@
     "roadName": "unnamed road",
     "driveFt": 505.59542956791387,
     "grade": "C",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 0.995995790615891,
+    "sfhaOnSite": false
    },
    {
     "rank": 7,
@@ -10356,7 +10419,10 @@
     "roadName": "unnamed road",
     "driveFt": 2035.873568722586,
     "grade": "C",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 0.523507809766927,
+    "sfhaOnSite": false
    },
    {
     "rank": 8,
@@ -10410,7 +10476,10 @@
     "roadName": "unnamed road",
     "driveFt": 2104.48812661335,
     "grade": "C",
-    "practical": null
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 2.20938041749093,
+    "sfhaOnSite": false
    }
   ],
   "driveway": {
@@ -10425,7 +10494,9 @@
      "roadGrade": 0.7717386881565858,
      "bend": 0.00036662939557174923,
      "bankFt": 0.3432226416015625,
-     "score": 2.0584946534133013
+     "score": 2.0584946534133013,
+     "source": "tiger",
+     "reaches": null
     },
     {
      "ll": [
@@ -10436,7 +10507,9 @@
      "roadGrade": 0.8117545431859552,
      "bend": 1.2712491602471339,
      "bankFt": 2.5829806616210935,
-     "score": 6.133604658927117
+     "score": 6.133604658927117,
+     "source": "tiger",
+     "reaches": null
     },
     {
      "ll": [
@@ -10447,7 +10520,9 @@
      "roadGrade": 4.505265702442825,
      "bend": 1.685347616391823,
      "bankFt": 2.7427774340820315,
-     "score": 13.96737136420461
+     "score": 13.96737136420461,
+     "source": "tiger",
+     "reaches": null
     }
    ],
    "routes": [
@@ -10959,7 +11034,8 @@
       "fabricSf": 0,
       "clearAc": 0.6246257017981951,
       "culverts": 1,
-      "outsideFt": 0
+      "outsideFt": 0,
+      "sfhaFt": 0
      },
      "cost": {
       "mid": 46430.71445688131,
@@ -11509,7 +11585,8 @@
       "fabricSf": 0,
       "clearAc": 0.6396057900191479,
       "culverts": 1,
-      "outsideFt": 0
+      "outsideFt": 0,
+      "sfhaFt": 0
      },
      "cost": {
       "mid": 47339.99625248977,
@@ -12035,7 +12112,8 @@
      "fabricSf": 0,
      "clearAc": 0.6246257017981951,
      "culverts": 1,
-     "outsideFt": 0
+     "outsideFt": 0,
+     "sfhaFt": 0
     },
     "cost": {
      "mid": 46430.71445688131,
@@ -12058,8 +12136,8 @@
     }
    }
   },
-  "schemaVersion": 3,
-  "engine": 13,
+  "schemaVersion": 4,
+  "engine": 14,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,

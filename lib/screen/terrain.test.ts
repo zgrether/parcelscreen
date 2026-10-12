@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { differences } from "../../test/support/compare";
 import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
 import { fixtureParcel } from "../../test/support/scenarios";
-import { expectedOf } from "../../test/support/expected";
+import { expectedOf, rawFlags } from "../../test/support/expected";
 import { createHttpClient } from "../http";
 import { DEFAULT_ENDPOINTS } from "./config";
 import { inv } from "../geo/utm";
@@ -111,7 +111,7 @@ describe.each(FIXTURE_SLUGS)("terrain on %s vs the prototype", (slug) => {
     expect(golden.demSource).toBe(dFine.source);
 
     const p90Flag = terrainFlags(stats.slopeP90Deg)[0];
-    if (p90Flag) expect(golden.flags).toContainEqual(p90Flag);
-    else expect(golden.flags.some((f) => f.t.startsWith("90th-percentile slope"))).toBe(false);
+    if (p90Flag) expect(rawFlags(golden)).toContainEqual(p90Flag);
+    else expect(rawFlags(golden).some((f) => f.t.startsWith("90th-percentile slope"))).toBe(false);
   });
 });

@@ -12,6 +12,8 @@
 import { existsSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { createHttpClient, realClock } from "@/lib/http";
+import { DEFAULT_ENDPOINTS } from "@/lib/screen/config";
+import { SERVER_USER_AGENT } from "@/lib/server/http";
 import { FIXTURE_SLUGS, loadFixture } from "../support/fixtures";
 import {
   createReplayFetch,
@@ -24,9 +26,15 @@ import {
 import { portHarPath, writePortHar } from "../support/portHar";
 import { runScenario, SCENARIOS } from "../support/scenarios";
 
-/** Some services (the TN parcel WAF, Overpass) refuse a non-browser User-Agent. */
+/** Some services (the TN parcel WAF) refuse a non-browser User-Agent. */
 const BROWSER_UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36";
+/**
+ * Overpass, the other way round (checked 2026-10-12): overpass-api.de answers a browser User-Agent from a script with
+ * 406, and the app's own identifying one with the data. That's what the app's server route sends it in production.
+ */
+const uaFor = (url: string) =>
+  DEFAULT_ENDPOINTS.overpass.some((u) => url.startsWith(u)) ? SERVER_USER_AGENT : BROWSER_UA;
 const DROP = new Set(["content-encoding", "content-length", "transfer-encoding", "connection"]);
 
 const bodyOf = (b: BodyInit | null | undefined): string | null =>
@@ -61,7 +69,7 @@ describe.runIf(import.meta.env.MODE === "record-port")("record the port's own re
             method = init?.method ?? "GET",
             body = bodyOf(init?.body);
           const headers = new Headers(init?.headers);
-          headers.set("User-Agent", BROWSER_UA);
+          headers.set("User-Agent", uaFor(url));
           if (body && !headers.has("content-type"))
             headers.set("content-type", "application/x-www-form-urlencoded");
           const r = await live(url, {

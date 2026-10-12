@@ -2,7 +2,7 @@ import * as turf from "@turf/turf";
 import { describe, expect, it } from "vitest";
 import { differences } from "../../test/support/compare";
 import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
-import { expectedOf } from "../../test/support/expected";
+import { expectedOf, rawFlags } from "../../test/support/expected";
 import { instantClock, throughSoils } from "../../test/support/pipeline";
 import { prototypeFn } from "../../test/support/prototypeFns";
 import { createHttpClient, type HttpClient } from "../http";
@@ -70,7 +70,7 @@ describe.each(FIXTURE_SLUGS)("near, roads and drive times on %s vs the prototype
       ...(await padusStep(t.measured, t.deps)).flags,
       ...n.flags,
     ];
-    expect(golden.flags.slice(0, flags.length)).toEqual(flags);
+    expect(rawFlags(golden).slice(0, flags.length)).toEqual(flags);
   });
 });
 

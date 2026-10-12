@@ -4,7 +4,7 @@
  */
 import { SCREEN_CONSTANTS } from "./config";
 import { at, inGrid, llToRC, rcToLL } from "./dem";
-import type { Dem, ScreenResult } from "./types";
+import type { Dem, ScreenResult, RawFlag } from "./types";
 import { M2FT, type LatLon } from "./util";
 
 const K = SCREEN_CONSTANTS.sun;
@@ -181,7 +181,7 @@ export function sunFlags(
   focusLabel: string,
   worst: HorizonPoint,
   sunHoursWanted: number,
-): ScreenResult["flags"] {
+): RawFlag[] {
   if (sun.noonClearance <= 0)
     return [
       {

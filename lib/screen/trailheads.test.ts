@@ -95,9 +95,18 @@ describe("the official sources", () => {
     expect(pts[0]!.name).toBe("Apps.Fs.Usda.Gov"); // shouted names read in title case
   });
 
-  it("a source that fails is left out; the others stand", async () => {
-    const pts = await officialTrailheads(ELK, { http: layers("fs.usda").http, endpoints: DEFAULT_ENDPOINTS });
+  it("a source that fails is left out, and named as unanswered (v4); the others stand", async () => {
+    const unanswered: string[] = [];
+    const pts = await officialTrailheads(
+      ELK,
+      { http: layers("fs.usda").http, endpoints: DEFAULT_ENDPOINTS },
+      unanswered,
+    );
     expect(pts.map((x) => x.source)).toEqual(["state", "state", "state"]);
+    expect(unanswered).toEqual(["USFS recreation sites"]);
+    const none: string[] = [];
+    await officialTrailheads(ELK, { http: layers("arcgis.com").http, endpoints: DEFAULT_ENDPOINTS }, none);
+    expect(none).toEqual(["state parks (services6.arcgis.com)", "state parks (services5.arcgis.com)"]);
   });
 
   it("a cancel still cancels", async () => {

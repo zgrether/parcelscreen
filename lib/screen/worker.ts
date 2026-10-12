@@ -3,6 +3,7 @@
  * All logic is in worker-protocol.ts; this file only connects it to the worker scope.
  */
 import { createHttpClient } from "../http";
+import { osmRoadsViaRoute } from "./osmRoads";
 import { overpassViaRoute } from "./places";
 import { ScreenWorkerCore, type FromWorker, type ToWorker } from "./worker-protocol";
 
@@ -17,5 +18,7 @@ const core = new ScreenWorkerCore((m) => scope.postMessage(m), {
   http,
   // No Overpass mirror answers a browser, so the fallback runs on the server (see places.ts).
   overpass: overpassViaRoute(`${scope.location.origin}/api/places/overpass`, http),
+  // And the OSM roads (VR3a), the same way.
+  osmRoads: osmRoadsViaRoute(`${scope.location.origin}/api/places/overpass`, http),
 });
 scope.onmessage = (e) => void core.handle(e.data);

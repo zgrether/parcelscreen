@@ -28,7 +28,8 @@ function mapRoute(route: Loose, entrances: unknown[]): Loose {
   const { entrance, ...rest } = route;
   const entranceIndex = entrances.findIndex((e) => isDeepStrictEqual(e, entrance));
   if (entranceIndex < 0) throw new Error("fromPrototype: route entrance not among driveway.entrances");
-  return { ...rest, entranceIndex };
+  // v4 (VR3a): the prototype measured no route against the flood zones.
+  return { ...rest, metrics: { ...(rest.metrics as Loose), sfhaFt: 0 }, entranceIndex };
 }
 
 export function fromPrototype(R: PrototypeResult): ScreenResult {
@@ -73,12 +74,25 @@ export function fromPrototype(R: PrototypeResult): ScreenResult {
       // v3 (B2a): the prototype had neither rule.
       practical: null,
       steepLanding: null,
+      // v4 (VR3a): its entrances were all TIGER's.
+      entrances: (entrances as Loose[]).map((e) => ({ ...e, source: "tiger", reaches: null })),
     };
   }
 
-  // v3 (B2a): each site's "no practical drive" outcome (none in the prototype).
+  // v3 (B2a): each site's "no practical drive" outcome (none in the prototype). v4 (VR3a): it had no build
+  // footprint (every site counts as fitting, with no gentle ground measured) and tested only the pin for flooding.
   if (Array.isArray(result.sites))
-    result.sites = (result.sites as Loose[]).map((x) => ({ ...x, practical: null }));
+    result.sites = (result.sites as Loose[]).map((x) => ({
+      ...x,
+      practical: null,
+      fit: "fits",
+      gentleNearAc: 0,
+      sfhaOnSite: !!x.flood,
+    }));
+
+  // v4 (VR3a): no step on the prototype's flags, and no record of a source that didn't answer.
+  result.flags = ((result.flags as Loose[]) ?? []).map((f) => ({ ...f, step: null }));
+  result.noResponse = [];
 
   // v3 (B2a): the prototype's trailheads are all OpenStreetMap's; its hospital's emergency status is unknown, and it
   // had no closer grocery.

@@ -2,7 +2,7 @@ import type { Feature, Polygon } from "geojson";
 import { describe, expect, it } from "vitest";
 import { differences } from "../../test/support/compare";
 import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
-import { expectedOf } from "../../test/support/expected";
+import { expectedOf, rawFlags } from "../../test/support/expected";
 import { throughSites } from "../../test/support/pipeline";
 import { prototypeFn } from "../../test/support/prototypeFns";
 import { DEFAULT_USER_CONFIG } from "./config";
@@ -220,7 +220,7 @@ describe.each(FIXTURE_SLUGS)("soils on %s vs the prototype", (slug) => {
       ...vet.flags,
       ...soilFlags(rows, units, t.acres, DEFAULT_USER_CONFIG.shallowBedrockCm),
     ];
-    expect(golden.flags.slice(0, flags.length)).toEqual(flags);
+    expect(rawFlags(golden).slice(0, flags.length)).toEqual(flags);
   });
 });
 

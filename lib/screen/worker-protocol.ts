@@ -15,6 +15,7 @@ import type { Feature, Polygon } from "geojson";
 import { createHttpClient, type HttpClient } from "../http";
 import { DemCache } from "./dem";
 import { evaluateAt, screen, setHouse, type ScreenOutput, type ScreenSession } from "./index";
+import type { OsmWay } from "./osmRoads";
 import type { OverpassFallback } from "./places";
 import type { Surfaces } from "./sites";
 import { AtlasCache } from "./sky";
@@ -131,6 +132,8 @@ export interface WorkerCoreOptions {
   sleep?: (ms: number) => Promise<void>;
   /** The browser entry passes the server route (see places.ts); tests leave it unset. */
   overpass?: OverpassFallback;
+  /** The OSM roads query (VR3a), likewise through the server route in the browser. */
+  osmRoads?: (centre: LatLon, signal?: AbortSignal) => Promise<OsmWay[]>;
   /** Defaults to HEARTBEAT_MS; tests shorten it. */
   heartbeatMs?: number;
 }
@@ -191,6 +194,7 @@ export class ScreenWorkerCore {
         atlas: this.atlas,
         ...(this.opts.sleep ? { sleep: this.opts.sleep } : {}),
         ...(this.opts.overpass ? { overpass: this.opts.overpass } : {}),
+        ...(this.opts.osmRoads ? { osmRoads: this.opts.osmRoads } : {}),
       });
       if (!live()) return;
       this.keep(id, { base: out, current: out });

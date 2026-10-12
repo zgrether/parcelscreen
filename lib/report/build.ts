@@ -73,6 +73,12 @@ function compareRows(r: PartialScreenResult): CompareRow[] {
   }));
 }
 
+/** A site the build doesn't fit on, labelled (owner, #94 review): it ranks after the sites that fit. */
+export const FIT_LABEL = {
+  "house only": "fits house only",
+  "too small": "too small for your build",
+} as const;
+
 /** Null until there are ranked sites or excluded benches. */
 export function buildView(r: PartialScreenResult): BuildView | null {
   if (!r.sites || !(r.sites.length || r.excluded?.length)) return null;
@@ -87,6 +93,8 @@ export function buildView(r: PartialScreenResult): BuildView | null {
       chips: [
         { text: `${s.qGrade} site`, kind: s.qGrade, title: "Site quality" },
         { text: `${s.costTier} to build`, kind: "cost", title: "Build cost tier" },
+        // The build footprint (VR3a; value-ranking.md §5.4 (a)): appended when the build doesn't fit (rule 7).
+        ...(s.fit === "fits" ? [] : [{ text: FIT_LABEL[s.fit], kind: "fit", title: "Build footprint" }]),
       ],
       summary: `overall ${s.score} · ${fmt(s.elevFt)} ft · ${s.ll[0].toFixed(5)}, ${s.ll[1].toFixed(5)}`,
       factors: [

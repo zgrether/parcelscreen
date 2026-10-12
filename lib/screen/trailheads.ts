@@ -118,12 +118,15 @@ async function pointsNear(
 
 /**
  * The official trailheads within near.trailheadKm: USFS's and the state parks'. A source that fails is left
- * out (OpenStreetMap still answers, and the count says what was found); a cancel still cancels.
+ * out (OpenStreetMap still answers, and the count says what was found), and named in `unanswered` (v4; phase-0.md
+ * §9.20 (c)); a cancel still cancels.
  */
 export async function officialTrailheads(
   centre: LatLon,
   deps: { http: HttpClient; endpoints: Endpoints; signal?: AbortSignal },
+  unanswered: string[] = [],
 ): Promise<TrailheadPoint[]> {
+  const names = ["USFS recreation sites"];
   const asked: Promise<TrailheadPoint[]>[] = [
     pointsNear(
       deps.endpoints.usfsRecSites,
@@ -134,6 +137,7 @@ export async function officialTrailheads(
     ).then((ps) => ps.map((p) => ({ ...p, source: "usfs" as const }))),
     ...deps.endpoints.stateParks.flatMap((url) => {
       const fields = STATE_PARKS[new URL(url).host];
+      if (fields) names.push(`state parks (${new URL(url).host})`);
       return fields
         ? [
             pointsNear(url, centre, K.trailheadKm, fields, deps).then((ps) =>
@@ -146,5 +150,8 @@ export async function officialTrailheads(
   const settled = await Promise.allSettled(asked);
   const cancelled = settled.find((s) => s.status === "rejected" && s.reason instanceof CancelledError);
   if (cancelled) throw (cancelled as PromiseRejectedResult).reason;
+  settled.forEach((s, i) => {
+    if (s.status === "rejected") unanswered.push(names[i]!);
+  });
   return settled.flatMap((s) => (s.status === "fulfilled" ? s.value : []));
 }

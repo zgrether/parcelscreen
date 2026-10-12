@@ -290,6 +290,12 @@ export const SCREEN_CONSTANTS = deepFreeze({
     trailheadDedupeM: 300,
     officialTimeoutMs: 20_000,
   },
+  // OpenStreetMap roads TIGER leaves out (VR3a; owner, #110 follow-up): possible frontage when TIGER shows none.
+  osmRoads: {
+    highways: ["track", "service", "unclassified"] as const,
+    joinM: 20, // an OSM vertex this near a TIGER road joins it
+    maxWalkM: 5000, // how far along the OSM network to look for a TIGER road
+  },
   roads: {
     layers: [8, 6, 2] as const, // L843: local, secondary, primary
     radiusM: 1500, // L1131
@@ -475,6 +481,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
     trenchFt2PerBedroom: 452, // VT Extension SPES-580 Table 3, 60 min/in
     trenchSpacingFactor: 3, // 3 ft trenches on 9 ft centres
     reservePct: 100,
+    drainfieldWithinFt: 300, // the drainfield and its reserve go on gentle ground this near the house (VR3a)
   },
   // The parcel report card (value-ranking.md §3.2, approved #95; VR2). Every cutoff is a proposal for the
   // calibration (VR8). Cutoffs are each grade's lower edge, A then B, C, D; below the last is an F.

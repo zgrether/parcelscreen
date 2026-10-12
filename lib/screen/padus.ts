@@ -19,7 +19,7 @@ import type { Feature, LineString, MultiPolygon, Polygon } from "geojson";
 import type { HttpClient } from "../http";
 import { arcQuery } from "./arcgis";
 import { SCREEN_CONSTANTS } from "./config";
-import type { Endpoints, ScreenResult } from "./types";
+import type { Endpoints, ScreenResult, RawFlag } from "./types";
 import { M2FT } from "./util";
 
 const K = SCREEN_CONSTANTS.padus;
@@ -92,7 +92,12 @@ interface PadusProps {
 export async function padusStep(
   parcel: Feature<Polygon | MultiPolygon>,
   deps: { http: HttpClient; endpoints: Endpoints; signal?: AbortSignal },
-): Promise<{ protected: NonNullable<ScreenResult["protected"]>; flags: ScreenResult["flags"] }> {
+): Promise<{
+  protected: NonNullable<ScreenResult["protected"]>;
+  flags: RawFlag[];
+  /** The wider search for open land beyond the mile, when it didn't answer (v4; phase-0.md §9.20 (c)). */
+  unanswered: string[];
+}> {
   let feats: Feature<Polygon | MultiPolygon, PadusProps>[] | null = null;
   const errs: string[] = [];
   for (const u of deps.endpoints.padus) {
@@ -115,6 +120,7 @@ export async function padusStep(
   if (!feats) throw new Error(errs.join(" | "));
   const near = feats;
   const wide = await openBeyond(parcel, deps);
+  const unanswered = wide === null ? ["PAD-US (open land beyond a mile)"] : [];
   const buffered = buffer(parcel, K.adjoinsBufferKm, { units: "kilometers" })!;
   const edges = outerEdges(parcel);
   const unit = (p: PadusProps, adjoins: boolean, distFt: number | null) => ({
@@ -140,13 +146,13 @@ export async function padusStep(
   // Beyond the mile, open to visitors, from the wider query: never a unit the mile's query found (its
   // full-geometry copy stands), and only ones measured beyond the mile, nearest first.
   const beyondFt = K.searchM * M2FT;
-  const farther = wide
+  const farther = (wide ?? [])
     .filter((f) => !near.some((g) => sameUnit(f.properties, g.properties)))
     .map((f) => ({ p: f.properties, d: distanceFt(f, parcel, edges) }))
     .filter((x): x is { p: PadusProps; d: number } => x.d !== null && x.d > beyondFt)
     .sort((a, b) => a.d - b.d)
     .map((x) => unit(x.p, false, x.d));
-  const flags: ScreenResult["flags"] = [];
+  const flags: RawFlag[] = [];
   const adjOpen = units.filter((u) => u.access === "OA" && u.adjoins);
   if (adjOpen.length)
     flags.push({
@@ -158,17 +164,18 @@ export async function padusStep(
       lvl: "warn",
       t: "Adjoins protected land, but it's restricted or closed to the public — a buffer, not a backyard.",
     });
-  return { protected: [...units, ...farther], flags };
+  return { protected: [...units, ...farther], flags, unanswered };
 }
 
 /**
  * The wider query (follow-up 23): land open to visitors within padus.nearestOpenKm, outlines simplified. A
- * failure here never fails the step: the mile's units and flags stand, and the report has no "beyond" line.
+ * failure here never fails the step: the mile's units and flags stand, and the report has no "beyond" line. Null
+ * when no endpoint answered (v4: the result records it).
  */
 async function openBeyond(
   parcel: Feature<Polygon | MultiPolygon>,
   deps: { http: HttpClient; endpoints: Endpoints; signal?: AbortSignal },
-): Promise<Feature<Polygon | MultiPolygon, PadusProps>[]> {
+): Promise<Feature<Polygon | MultiPolygon, PadusProps>[] | null> {
   for (const u of deps.endpoints.padus) {
     try {
       return (await arcQuery(
@@ -187,5 +194,5 @@ async function openBeyond(
       if (deps.signal?.aborted) throw e;
     }
   }
-  return [];
+  return null;
 }

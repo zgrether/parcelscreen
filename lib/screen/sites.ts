@@ -5,7 +5,7 @@
  */
 import { SCREEN_CONSTANTS } from "./config";
 import { rcToLL } from "./dem";
-import type { Dem, ScreenResult, UserConfig } from "./types";
+import type { Dem, ScreenResult, UserConfig, RawFlag } from "./types";
 import { lerp, M2FT, M2_PER_ACRE, type Curve } from "./util";
 
 const S = SCREEN_CONSTANTS.suitability;
@@ -329,7 +329,7 @@ export function siteResults(
  * (fatal, or a warning when a house is marked), or the relaxed-threshold warning. The p90 slope flag
  * (terrain.ts) follows these.
  */
-export function siteFlags(search: SiteSearch, cfg: UserConfig, hasHouse: boolean): ScreenResult["flags"] {
+export function siteFlags(search: SiteSearch, cfg: UserConfig, hasHouse: boolean): RawFlag[] {
   const best = search.benches[0];
   const dg = search.diag;
   const compact = search.shelves.filter((s) => s.acres >= cfg.compactMinAcres);

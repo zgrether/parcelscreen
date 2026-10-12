@@ -25,6 +25,7 @@ import type { Feature, FeatureCollection, LineString, MultiLineString, Polygon, 
 import * as UTM from "../geo/utm";
 import { SCREEN_CONSTANTS } from "./config";
 import { rcToLL, utmToRC, zBilinear } from "./dem";
+import { osmRoadFeatures, reachesTiger, type OsmWay } from "./osmRoads";
 import type { RoadFeature } from "./roads";
 import { bottomland, type SoilUnit } from "./soils";
 import type { Dem, ScreenResult, SoilRow, UserConfig } from "./types";
@@ -296,33 +297,52 @@ function alongWalkerSeg(coords: Position[]): (d: number) => [Position, number, n
 }
 
 type Entrances = { entrances: Entrance[]; roadsNearestFt: number | null };
-const entranceCache = new WeakMap<RoadFeature[], WeakMap<Feature<Polygon>, WeakMap<Dem, Entrances>>>();
+const entranceCache = new WeakMap<
+  RoadFeature[],
+  WeakMap<readonly OsmWay[], WeakMap<Feature<Polygon>, WeakMap<Dem, Entrances>>>
+>();
+const NO_OSM: readonly OsmWay[] = [];
 
 /**
  * Entrance candidates (proto entrances), computed once per roads, parcel and DEM (A3b): the multi-site pass and
- * site #1's driveway both need them, and finding them is the slow part of routing.
+ * site #1's driveway both need them, and finding them is the slow part of routing. Census TIGER's frontage first;
+ * without any, OpenStreetMap's tracks and service roads along the boundary (VR3a), marked as such; then, as before,
+ * the nearest TIGER road point.
  */
-export function entranceCandidates(roads: RoadFeature[], parcel: Feature<Polygon>, d: Dem): Entrances {
-  let byParcel = entranceCache.get(roads);
-  if (!byParcel) entranceCache.set(roads, (byParcel = new WeakMap()));
+export function entranceCandidates(
+  roads: RoadFeature[],
+  parcel: Feature<Polygon>,
+  d: Dem,
+  osm: readonly OsmWay[] = NO_OSM,
+): Entrances {
+  let byOsm = entranceCache.get(roads);
+  if (!byOsm) entranceCache.set(roads, (byOsm = new WeakMap()));
+  let byParcel = byOsm.get(osm);
+  if (!byParcel) byOsm.set(osm, (byParcel = new WeakMap()));
   let byDem = byParcel.get(parcel);
   if (!byDem) byParcel.set(parcel, (byDem = new WeakMap()));
   let found = byDem.get(d);
-  if (!found) byDem.set(d, (found = findEntrances(roads, parcel, d)));
+  if (!found) byDem.set(d, (found = findEntrances(roads, parcel, d, osm)));
   return found;
 }
 
-function findEntrances(roads: RoadFeature[], parcel: Feature<Polygon>, d: Dem): Entrances {
-  if (!roads.length) return { entrances: [], roadsNearestFt: null };
-  const edgeLine = firstLine(polygonToLine(parcel)) as Feature<LineString>;
-  const out: Entrance[] = [];
+type Candidate = Omit<Entrance, "source" | "reaches"> & { roadIndex: number };
+
+/** Points on the given roads within entranceMaxDistM of the boundary, scored (lower is better), and the nearest. */
+function frontageCandidates(
+  roads: readonly RoadFeature[],
+  parcel: Feature<Polygon>,
+  edgeLine: Feature<LineString>,
+  d: Dem,
+): { out: Candidate[]; minDist: number } {
+  const out: Candidate[] = [];
   let minDist = Infinity;
   const z = (p: Position) => {
     const [x, y] = UTM.fwd(p[1]!, p[0]!);
     const [rr, cc] = utmToRC(d, x, y);
     return rr >= 0 && cc >= 0 && rr < d.h && cc < d.w ? d.z[rr * d.w + cc]! : NaN;
   };
-  for (const f of roads) {
+  roads.forEach((f, roadIndex) => {
     for (const ln of linesOf(f)) {
       const len = length(ln, { units: "meters" });
       for (let s = 0; s <= len; s += K.entranceSampleM) {
@@ -358,12 +378,18 @@ function findEntrances(roads: RoadFeature[], parcel: Feature<Polygon>, d: Dem): 
           bend,
           bankFt: bank * M2FT,
           score: roadGrade * S.grade + bend * S.bend + bank * M2FT * S.bankFt,
+          roadIndex,
         });
       }
     }
-  }
+  });
+  return { out, minDist };
+}
+
+/** The best candidates at least entranceMinSeparationM apart, up to maxEntrances. */
+function pick(out: Candidate[]): Candidate[] {
   out.sort((a, b) => a.score - b.score);
-  const picked: Entrance[] = [];
+  const picked: Candidate[] = [];
   for (const c of out) {
     if (
       picked.every(
@@ -373,6 +399,35 @@ function findEntrances(roads: RoadFeature[], parcel: Feature<Polygon>, d: Dem): 
     )
       picked.push(c);
     if (picked.length >= K.maxEntrances) break;
+  }
+  return picked;
+}
+
+function findEntrances(
+  roads: RoadFeature[],
+  parcel: Feature<Polygon>,
+  d: Dem,
+  osm: readonly OsmWay[],
+): Entrances {
+  if (!roads.length && !osm.length) return { entrances: [], roadsNearestFt: null };
+  const edgeLine = firstLine(polygonToLine(parcel)) as Feature<LineString>;
+  const tiger = frontageCandidates(roads, parcel, edgeLine, d);
+  const minDist = tiger.minDist;
+  const picked: Entrance[] = pick(tiger.out).map(({ roadIndex: _r, ...e }) => ({
+    ...e,
+    source: "tiger",
+    reaches: null,
+  }));
+  if (!picked.length && osm.length) {
+    // No TIGER frontage: an OSM track or service road along the boundary, with how far along the OSM network it
+    // reaches a TIGER road (owner, #110 follow-up). The deed or plat has to show it's a legal road or easement.
+    const ways = osmRoadFeatures(osm);
+    for (const { roadIndex, ...e } of pick(frontageCandidates(ways, parcel, edgeLine, d).out))
+      picked.push({
+        ...e,
+        source: "osm",
+        reaches: reachesTiger(osm, { wayIndex: roadIndex, ll: e.ll }, roads),
+      });
   }
   if (!picked.length && Number.isFinite(minDist) && minDist <= K.fallbackMaxM) {
     // No frontage: the nearest road point; the route will leave the boundary and be flagged.
@@ -394,6 +449,8 @@ function findEntrances(roads: RoadFeature[], parcel: Feature<Polygon>, d: Dem): 
         score: 0,
         fallback: true,
         gapFt: nearest.dd * M2FT,
+        source: "tiger",
+        reaches: null,
       });
   }
   return { entrances: picked, roadsNearestFt: Number.isFinite(minDist) ? minDist * M2FT : null };
@@ -410,6 +467,10 @@ export interface RouteContext {
   bedrockCm?: () => Float32Array;
   /** Poorly drained soils per cell (1): the road gets geotextile there. Absent: none. */
   wetSoil?: () => Uint8Array;
+  /** FEMA Special Flood Hazard Area per cell (1): each route's length inside it (VR3a). Absent: none. */
+  sfhaMask?: () => Uint8Array;
+  /** OpenStreetMap's tracks and service roads (VR3a): possible frontage when TIGER shows none. Absent: none. */
+  osmRoads?: readonly OsmWay[];
   dw: UserConfig["dw"];
 }
 
@@ -526,6 +587,18 @@ export function routeManyFrom(
     if (pts.length === 1) pts.push(pts[0]!.slice()); // the entrance is the site: a line needs two points
     const line = lineString(pts);
     const lenM = length(line, { units: "meters" });
+    // The length inside a flood zone (VR3a): each step of the smoothed path, by the cell at its middle.
+    const flood = ctx.sfhaMask?.();
+    let sfhaM = 0;
+    if (flood)
+      for (let k = 1; k < smoothed.length; k++) {
+        const a = smoothed[k - 1]!,
+          b = smoothed[k]!;
+        const mr = Math.round((a.r + b.r) / 2),
+          mc = Math.round((a.c + b.c) / 2);
+        if (inGrid(mr, mc) && flood[mr * w + mc])
+          sfhaM += Math.hypot((b.r - a.r) * d.resY, (b.c - a.c) * d.res);
+      }
     const prof: [number, number][] = [];
     const culverts: LatLon[] = [];
     let outside = 0,
@@ -615,6 +688,7 @@ export function routeManyFrom(
       clearAc: (K.clearingWidthM * lenM) / M2_PER_ACRE,
       culverts: culverts.length + 1,
       outsideFt: outside * M2FT,
+      sfhaFt: sfhaM * M2FT,
     };
     const u = ctx.dw;
     const wooded = Math.min(1, Math.max(0, (u.woodedPct || 100) / 100));
@@ -786,7 +860,7 @@ export function siteDriveways(
   roadMaxGradePct: number,
   routing: RoutingOpts = {},
 ): SiteRoutes[] {
-  const { entrances } = entranceCandidates(roads, parcel, ctx.dFine);
+  const { entrances } = entranceCandidates(roads, parcel, ctx.dFine, ctx.osmRoads);
   const ent = entrances.slice(0, K.entrancesRouted);
   if (!ent.length) return toLLs.map(() => ({ withinLimit: null, onParcel: null }));
   const cheapest = (ts: number[], opts: RouteOpts[]): (Found | null)[] =>
@@ -907,7 +981,10 @@ export function practicalAlternatives(
   roadMaxGradePct: number,
   routing: RoutingOpts = {},
 ): PracticalAlternatives[] {
-  const ent = entranceCandidates(roads, parcel, ctx.dFine).entrances.slice(0, K.entrancesRouted);
+  const ent = entranceCandidates(roads, parcel, ctx.dFine, ctx.osmRoads).entrances.slice(
+    0,
+    K.entrancesRouted,
+  );
   // The steeper alternative only when the limit is below it (#103 decisions: none at the 15% default).
   const steeper =
     ent.length && toLLs.length && K.practicalMaxPct > roadMaxGradePct
@@ -1036,7 +1113,7 @@ export function buildDriveway(
   routing: RoutingOpts = {},
 ): Driveway {
   const extra = { exact: routing.exact, landingMaxSideSlopeDeg: routing.landingMaxSideSlopeDeg };
-  const { entrances: ent, roadsNearestFt } = entranceCandidates(roads, parcel, ctx.dFine);
+  const { entrances: ent, roadsNearestFt } = entranceCandidates(roads, parcel, ctx.dFine, ctx.osmRoads);
   const dw: Driveway = {
     toLabel,
     entrances: ent,

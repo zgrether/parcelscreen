@@ -14,7 +14,7 @@ import { wktToGeo } from "../geo/wkt";
 import { SCREEN_CONSTANTS } from "./config";
 import { rcToLL } from "./dem";
 import type { Summary } from "./sites";
-import type { Dem, Endpoints, ScreenResult, SoilRow } from "./types";
+import type { Dem, Endpoints, ScreenResult, SoilRow, RawFlag } from "./types";
 import { M2_PER_ACRE, type LatLon } from "./util";
 
 const K = SCREEN_CONSTANTS.soils;
@@ -337,7 +337,7 @@ export function vetBenches(
   dFine: Dem,
   units: SoilUnit[] | null,
   rows: SoilRow[],
-): { benches: VettedBench[]; best: VettedBench | null; flags: ScreenResult["flags"] } {
+): { benches: VettedBench[]; best: VettedBench | null; flags: RawFlag[] } {
   const vetted: VettedBench[] = benches.map((b) => {
     const c = soilAt(units, rows, rcToLL(dFine, b.rc[0], b.rc[1]));
     return { ...b, soil: c, veto: c ? bottomland(c) : null };
@@ -349,7 +349,7 @@ export function vetBenches(
     best = ok[0]!;
     vetted.sort((a, b) => Number(!!a.veto) - Number(!!b.veto) || b.acres - a.acres);
   }
-  const flags: ScreenResult["flags"] = [];
+  const flags: RawFlag[] = [];
   if (best.veto)
     flags.push({
       lvl: "warn",
@@ -414,9 +414,9 @@ export function soilFlags(
   units: SoilUnit[] | null,
   parcelAcres: number,
   shallowBedrockCm: number,
-): ScreenResult["flags"] {
+): RawFlag[] {
   if (!rows.length) return [{ lvl: "warn", t: "NRCS returned no soil components for this polygon." }];
-  const flags: ScreenResult["flags"] = [];
+  const flags: RawFlag[] = [];
   // Weight every soil by the acres it actually covers: unit acres × component share.
   const unitAcres: Record<string, number> = {};
   if (units) for (const u of units) unitAcres[u.mukey] = u.acres;

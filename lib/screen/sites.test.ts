@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { differences } from "../../test/support/compare";
 import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
 import { fixtureParcel } from "../../test/support/scenarios";
-import { expectedOf } from "../../test/support/expected";
+import { expectedOf, rawFlags } from "../../test/support/expected";
 import { createHttpClient } from "../http";
 import { DEFAULT_ENDPOINTS, DEFAULT_USER_CONFIG } from "./config";
 import { DemCache, fetchParcelDems } from "./dem";
@@ -163,7 +163,7 @@ describe.each(FIXTURE_SLUGS)("site search on %s vs the prototype", (slug) => {
       ...siteFlags(search, DEFAULT_USER_CONFIG, false),
       ...terrainFlags(golden.terrain!.slopeP90Deg),
     ];
-    expect(golden.flags.slice(0, flags.length)).toEqual(flags);
+    expect(rawFlags(golden).slice(0, flags.length)).toEqual(flags);
   });
 });
 

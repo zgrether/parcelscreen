@@ -6,7 +6,7 @@ import { booleanPointInPolygon } from "@turf/turf";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { at, llToRC, rcToLL } from "./dem";
 import { SCREEN_CONSTANTS } from "./config";
-import type { Dem, ScreenResult } from "./types";
+import type { Dem, ScreenResult, RawFlag } from "./types";
 import { M2FT, M2_PER_ACRE, quantile, type LatLon } from "./util";
 
 const K = SCREEN_CONSTANTS.terrain;
@@ -128,7 +128,7 @@ export function terrainStats(
  * The terrain step's own flag (proto L1039). In the step it comes after the sites flags ("no house site" /
  * compact / relaxed), and flag order is part of parity.
  */
-export function terrainFlags(slopeP90Deg: number): ScreenResult["flags"] {
+export function terrainFlags(slopeP90Deg: number): RawFlag[] {
   return slopeP90Deg > K.steepP90FlagDeg
     ? [
         {
