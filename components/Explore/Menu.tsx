@@ -64,6 +64,10 @@ function Drawer({ close }: { close(): void }) {
               {/* A full page load: the explorer's map isn't built to unmount. */}
               <a href="/compare">Compare parcels</a>
             </li>
+            {/* VR7: the rules of both grades, and a parcel's breakdown (value-ranking.md §8). */}
+            <li>
+              <a href="/rulebook">What the grade means</a>
+            </li>
             <li>
               <button
                 onClick={() => {

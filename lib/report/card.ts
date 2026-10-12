@@ -460,6 +460,23 @@ const listOf = (xs: string[]): string =>
  * names the weakest row. A build that doesn't fit (Room to build's F) comes first after a fail, and caps the verdict at
  * Maybe (owner, #110). When something didn't load, the verdict is at most a Maybe and the line says what.
  */
+/**
+ * What holds a parcel at Maybe whatever its grade, besides its warnings (cardFor), in the words the Grade and verdict
+ * panel uses for them (#118 review): the two lists are one, so the panel can't fall out of step with the rule.
+ */
+export const MAYBE_CAPS = {
+  incomplete: "something didn't load (run it again)",
+  checkFirst: "there's a 'Check first' item, such as a build that doesn't fit (Room to build F)",
+} as const;
+
+/** Which of MAYBE_CAPS hold for these gates and rows. */
+export function maybeCaps(facts: CardFacts): Record<keyof typeof MAYBE_CAPS, boolean> {
+  return {
+    incomplete: [...facts.gates, ...facts.rows].some((x) => !!x.missing),
+    checkFirst: facts.rows.some((x) => !!x.checkFirst),
+  };
+}
+
 export function cardFor(facts: CardFacts, person: Person, K: CardConfig = SCREEN_CONSTANTS.card): Card {
   const w = K.weights[person];
   const graded = facts.rows.filter((x): x is Row & { grade: Letter } => x.grade !== null);
@@ -478,8 +495,7 @@ export function cardFor(facts: CardFacts, person: Person, K: CardConfig = SCREEN
       : points !== null &&
           points >= K.verdict.contender &&
           warns.length <= K.verdict.contenderMaxWarns &&
-          !incomplete.length &&
-          !check
+          !Object.values(maybeCaps(facts)).some(Boolean)
         ? "Contender"
         : "Maybe";
   // The lowest row; among equals, the one this person weighs most, then the card's order.

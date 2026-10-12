@@ -5,7 +5,7 @@
  */
 import { fmt } from "../format";
 import { SCREEN_CONSTANTS } from "../screen/config";
-import { footprintFt2, type CardConfig, type GateKey, type Person, type RowKey } from "./card";
+import { MAYBE_CAPS, footprintFt2, type CardConfig, type GateKey, type Person, type RowKey } from "./card";
 
 export type PanelKey = "verdict" | GateKey | RowKey | "cost";
 
@@ -31,8 +31,14 @@ export function panelText(
   key: PanelKey,
   K: CardConfig = SCREEN_CONSTANTS.card,
   build = SCREEN_CONSTANTS.build,
+  /** The rulebook's: slopes in both degrees and percent (#118 review). The report's panels keep one unit. */
+  opts: { bothSlopeUnits?: boolean } = {},
 ): PanelText {
   const R = K.rows;
+  const gentle = SCREEN_CONSTANTS.terrain.gentleGradePct;
+  const gentleText = opts.bothSlopeUnits
+    ? `${gentle}% (${fmt((Math.atan(gentle / 100) * 180) / Math.PI, 1)}°) or less`
+    : `${gentle}% or less`;
   switch (key) {
     case "verdict":
       return {
@@ -42,14 +48,18 @@ export function panelText(
           `The grade is the weighted average of the rows (A ${K.points.A}, B ${K.points.B}, C ${K.points.C}, D ${K.points.D}, F ${K.points.F}): ` +
           `A from ${K.gradeCutoffs[0]}, B from ${K.gradeCutoffs[1]}, C from ${K.gradeCutoffs[2]}, D from ${K.gradeCutoffs[3]}. ` +
           `Contender at ${K.verdict.contender} and up with at most ${K.verdict.contenderMaxWarns} warning; ` +
-          `Pass with any failed dealbreaker or a grade under ${K.verdict.pass}; Maybe otherwise.`,
+          `Pass with any failed dealbreaker or a grade under ${K.verdict.pass}; Maybe otherwise. ` +
+          // Appended (#118 review; rule 7): the caps cardFor applies, from the same list.
+          `A parcel is at most a Maybe when ${MAYBE_CAPS.incomplete} or when ${MAYBE_CAPS.checkFirst}.`,
       };
     case "floodplain":
       return {
         title: "Floodplain",
         question: "Could the house or the driveway flood?",
         howScored:
-          "Fails when the build site is in a FEMA Special Flood Hazard Area; a flood zone elsewhere on the parcel is noted.",
+          "Fails when the build site is in a FEMA Special Flood Hazard Area; a flood zone elsewhere on the parcel is noted. " +
+          // Appended (#118 review; rule 7): floodplain()'s warn and unknown cases (card.ts).
+          "Warns when a flood zone touches the build site's ground or the driveway's route. When FEMA has no flood mapping here, or the flood map didn't load, it's unknown, not a pass.",
       };
     case "access":
       return {
@@ -102,7 +112,7 @@ export function panelText(
         title: "Room to build",
         question:
           "Does the whole build fit on gentle ground: the house, the garage, the turnaround and the septic field with its reserve?",
-        howScored: `Gentle ground (15% or less) within ${fmt(build.drainfieldWithinFt)} ft of where the house goes on site #1, against the build footprint, ${fmt(footprintFt2(build))} ft²: ${ladder(
+        howScored: `Gentle ground (${gentleText}) within ${fmt(build.drainfieldWithinFt)} ft of where the house goes on site #1, against the build footprint, ${fmt(footprintFt2(build))} ft²: ${ladder(
           R.roomX.slice(0, 3).map((v) => `${v}×`),
           "at",
           "from",
