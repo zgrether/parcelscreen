@@ -65,6 +65,8 @@ export function MapView({
   const container = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<MlMap | null>(null);
   const padded = useRef<{ bottom: number; right: number; left: number } | null>(null);
+  /** The user has moved the map since it loaded: until then, the panels settling keep the restored centre. */
+  const moved = useRef(false);
 
   useEffect(() => {
     const view = getPref("ps.view") ?? START;
@@ -102,6 +104,9 @@ export function MapView({
     }
     const attribution = m.getContainer().querySelector<HTMLElement>(".maplibregl-ctrl-attrib");
     if (attribution && window.matchMedia(SHEET_QUERY).matches) startFolded(attribution);
+    m.on("movestart", (e: { originalEvent?: unknown }) => {
+      if (e.originalEvent) moved.current = true;
+    });
     m.on("moveend", () => {
       const c = m.getCenter();
       setPref("ps.view", { lat: c.lat, lon: c.lng, z: m.getZoom(), b: m.getBearing(), p: m.getPitch() });
@@ -112,6 +117,7 @@ export function MapView({
     return () => {
       setMap(null);
       padded.current = null;
+      moved.current = false;
       m.remove();
     };
   }, [lpAtlasTiles, lpYear]);
@@ -120,12 +126,16 @@ export function MapView({
   // eases into the visible part with the sheet's snap; at load, at once. When the Info panel docks or leaves
   // (owner, 13e-4 review), or the results card grows into the panel or folds back (owner, after 14d), nothing
   // on the map moves: the camera's centre, which is drawn in the middle of
-  // the padded area, jumps to the point already showing there. Later fits and fly-tos then use the padding.
+  // the padded area, jumps to the point already showing there. Later fits and fly-tos then use the padding. Until the
+  // user first moves the map, though, the restored centre stays put (below).
   useEffect(() => {
     if (!map) return;
     const prev = padded.current;
     const padding = { top: 0, left: leftInset, right: rightInset, bottom: bottomInset };
-    if (!prev) map.jumpTo({ padding });
+    // At load, and until the user first moves the map, the panels docking (the results card, the Info panel) keep the
+    // restored centre where it was saved: otherwise each reload, or a return from Compare, shifted the view by half
+    // the panel (owner, #117 review).
+    if (!prev || !moved.current) map.jumpTo({ padding });
     else if (prev.right !== rightInset || prev.left !== leftInset) {
       const { width, height } = map.getContainer().getBoundingClientRect();
       const x = (leftInset + width - rightInset) / 2;

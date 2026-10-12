@@ -71,6 +71,7 @@ export function CardPanel({
   running,
   noteFor,
   dw = DEFAULT_USER_CONFIG.dw,
+  about,
   onClose,
 }: {
   panel: PanelKey;
@@ -82,6 +83,8 @@ export function CardPanel({
   noteFor?(slug: string): ReactNode;
   /** The Settings' earthwork rates, for the dig cost; the defaults when absent. */
   dw?: UserConfig["dw"];
+  /** Which parcel, where several are in view (the comparison table, VR6). */
+  about?: string;
   onClose(): void;
 }) {
   const help = useHelp();
@@ -106,7 +109,10 @@ export function CardPanel({
   return (
     <div className="card-panel" role="dialog" aria-labelledby="card-panel-title" data-panel={panel}>
       <header className="card-panel-head">
-        <h2 id="card-panel-title">{t.title}</h2>
+        <h2 id="card-panel-title">
+          {t.title}
+          {about && <small className="card-panel-about"> · {about}</small>}
+        </h2>
         <button ref={close} className="icon-btn" aria-label="Close" onClick={onClose}>
           ✕
         </button>

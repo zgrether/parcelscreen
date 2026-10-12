@@ -1,7 +1,8 @@
 "use client";
 /**
  * The app menu (owner, after 14d): ☰ at the map's top left opens a drawer from the left with what isn't
- * about the open parcel — History with Export file / Import file (16b), How to read this, and Settings (16a).
+ * about the open parcel — History with Export file / Import file (16b), Compare parcels (VR6), How to read this, and
+ * Settings (16a).
  * It closes with ×, Esc, a tap on the scrim, opening a parcel from History, or opening the help.
  * The drawer is portalled to <body> so it sits above the bottom sheet on phones, not inside the map.
  */
@@ -58,6 +59,11 @@ function Drawer({ close }: { close(): void }) {
           <History onOpened={close} />
           <ExportImport />
           <ul className="menu-items">
+            {/* VR6: History's parcels side by side (value-ranking.md §7). */}
+            <li>
+              {/* A full page load: the explorer's map isn't built to unmount. */}
+              <a href="/compare">Compare parcels</a>
+            </li>
             <li>
               <button
                 onClick={() => {
