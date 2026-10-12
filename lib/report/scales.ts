@@ -223,13 +223,24 @@ export function scalesFor(
       const soil = site ? soilUnder(r, site.ll) : null;
       const cls = soil ? septicClass(soil) : null;
       if (!soil || !cls) return [];
+      const sc = scale(
+        "Septic",
+        ["Conventional", "Modified", "Alternative"],
+        SEPTIC_CLASSES.indexOf(cls),
+        `${soil.compname}: ${(soil.septic || soil.engstafdcd || "").toLowerCase()}`,
+      );
+      // Reconciles the class with the original reading, which says "alternative" for any very limited soil (owner,
+      // #114): a modified system may work, but budget for an alternative until the soil evaluation.
+      if (cls !== "Modified") return [sc];
+      const rock =
+        soil.brockdepmin != null && soil.brockdepmin !== ""
+          ? ` with rock at ${fmt(+soil.brockdepmin)} cm`
+          : "";
       return [
-        scale(
-          "Septic",
-          ["Conventional", "Modified", "Alternative"],
-          SEPTIC_CLASSES.indexOf(cls),
-          `${soil.compname}: ${(soil.septic || soil.engstafdcd || "").toLowerCase()}`,
-        ),
+        {
+          ...sc,
+          note: `NRCS rates this soil very limited;${rock ? `${rock},` : ""} a modified system (shallow-placed or low-pressure) may work. Budget for an alternative system until a soil evaluation on the spot says otherwise.`,
+        },
       ];
     }
     case "trails": {

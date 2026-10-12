@@ -10,6 +10,7 @@ import { useHelp } from "@/components/Help/HelpDialog";
 import { fmt } from "@/lib/format";
 import { digCost, foundationAt, soilUnder } from "@/lib/report/derived";
 import { DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "@/lib/screen/config";
+import { BOTTOMLAND_LEAD, bottomland } from "@/lib/screen/soils";
 import type { Card, GateStatus } from "@/lib/report/card";
 import { panelText, type PanelKey } from "@/lib/report/cardPanels";
 import { meaningsFor } from "@/lib/report/meanings";
@@ -45,6 +46,10 @@ const FLAG_PANEL: Record<Step, PanelKey> = {
   rank: "homesite",
   driveway: "easement",
 };
+
+/** A flag's panel: its step's, except the bottomland note, which is about where the house can't go (owner, #114). */
+const panelOfFlag = (f: { step: Step | null; t: string }): PanelKey | null =>
+  f.t.startsWith(BOTTOMLAND_LEAD) ? "homesite" : f.step ? FLAG_PANEL[f.step] : null;
 
 /** This parcel's reading on the panel's line of the card. */
 function reading(key: PanelKey, card: Card): { mark: string; tone: string; text: string } {
@@ -119,10 +124,9 @@ export function CardPanel({
           </div>
         ))}
         {panel === "homesite" && <BuildingHere result={result} dw={dw} />}
+        {panel === "septic" && <BottomlandHere result={result} />}
         <PanelFlags
-          flags={(result.flags ?? []).filter(
-            (f) => f.step && FLAG_PANEL[f.step] === panel && panel !== "verdict",
-          )}
+          flags={(result.flags ?? []).filter((f) => panel !== "verdict" && panelOfFlag(f) === panel)}
         />
         <p className="tiny muted panel-scored">How it&apos;s scored: {t.howScored}</p>
         <h3 className="panel-from">From the report</h3>
@@ -230,6 +234,17 @@ function BuildingHere({ result, dw }: { result: ScreenResult | PartialScreenResu
       </p>
     </section>
   );
+}
+
+/** The Septic panel's pointer when the build site's own soil is bottomland (owner, #114). */
+function BottomlandHere({ result }: { result: ScreenResult | PartialScreenResult }) {
+  const h = result.house;
+  const ll = h && !("outside" in h) ? h.ll : result.sites?.[0]?.ll;
+  const soil = ll ? soilUnder(result, ll) : null;
+  const why = soil ? bottomland(soil) : null;
+  return why ? (
+    <p className="panel-derived">The build site&apos;s own soil is bottomland ({why}): see Best homesite.</p>
+  ) : null;
 }
 
 /** The flags this row's step raised (owner, #110), as the Verdict section shows them. */

@@ -111,6 +111,30 @@ describe("the report card's panels (VR5)", () => {
     expect(septic.indexOf("panel-flags")).toBeGreaterThan(-1);
     expect(septic.indexOf(bedrock.t)).toBeLessThan(septic.indexOf("panel-from"));
     expect(panel("floodplain")).toContain("FEMA Special Flood Hazard Area");
+    // The bottomland note goes with the homesites, not the septic field (owner, #114).
+    const bottomland = result.flags.find((x) => x.t.startsWith("The largest flat ground is bottomland"))!;
+    expect(bottomland.step).toBe("soils");
+    const flagsOf = (html: string) => html.slice(html.indexOf("panel-flags"), html.indexOf('panel-from"'));
+    expect(flagsOf(septic)).not.toContain(bottomland.t);
+    expect(flagsOf(panel("homesite"))).toContain(bottomland.t);
+    // Site #1's own soil isn't bottomland here: no pointer.
+    expect(septic).not.toContain("own soil is bottomland");
+    // Moved onto the excluded Codorus bench, it is: one line, pointing to Best homesite.
+    const moved = structuredClone(result);
+    moved.sites![0] = { ...moved.sites![0]!, ll: moved.excluded![0]!.ll };
+    expect(
+      renderToStaticMarkup(
+        <CardPanel
+          panel="septic"
+          card={card}
+          result={moved}
+          point={evaluationPoint(moved)}
+          onClose={() => {}}
+        />,
+      ),
+    ).toContain(
+      "The build site&#x27;s own soil is bottomland (Codorus: frequently flooded): see Best homesite.",
+    );
     const home = panel("homesite");
     expect(home).toContain(
       "<b>Foundation at site #1:</b> walkout or garage-under; engineered design, since NRCS rates this soil very limited for houses.",

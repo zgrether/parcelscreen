@@ -115,6 +115,11 @@ describe("the banded scales", () => {
     expect(placed(scales("grayson-mud-creek-6273", "septic"))).toEqual([
       ["Septic", "Modified", "Pigeonroost: very limited"],
     ]);
+    // The owner's reconciliation with the original reading (#114), under a modified soil's scale only.
+    expect(scales("grayson-mud-creek-6273", "septic")[0]!.note).toBe(
+      "NRCS rates this soil very limited; with rock at 94 cm, a modified system (shallow-placed or low-pressure) may work. Budget for an alternative system until a soil evaluation on the spot says otherwise.",
+    );
+    expect(scales("macks-mountain-35-3", "septic")[0]!.note).toBeUndefined();
     expect(placed(scales("macks-mountain-35-3", "septic"))).toEqual([
       ["Septic", "Alternative", "Marbleyard: very limited"],
     ]);
