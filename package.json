@@ -30,6 +30,7 @@
     "geotiff-versions": "vitest run test/tools/geotiff-versions.test.ts --mode geotiff-versions",
     "record:fixtures": "node scripts/record-fixtures.mts",
     "data:hospitals": "node scripts/data-hospitals.mts",
+    "data:states": "node scripts/data-state-outlines.mts",
     "check:hospitals-age": "node scripts/check-hospitals-age.mts",
     "check:deployed": "node scripts/check-deployed.mts",
     "record:port": "vitest run test/tools/record-port.test.ts --mode record-port",

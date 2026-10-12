@@ -14,6 +14,7 @@ import { distance } from "@turf/turf";
 import { CancelledError, type HttpClient } from "../http";
 import { SCREEN_CONSTANTS } from "./config";
 import type { Endpoints } from "./types";
+import { stateWithinKm, type StateCode } from "./states";
 import type { LatLon } from "./util";
 
 const K = SCREEN_CONSTANTS.near;
@@ -30,14 +31,17 @@ export interface TrailheadPoint {
  * Each state's park layer: its name field and, where the layer holds more than parks, the filter; and what the report
  * calls it when it doesn't answer (follow-up 53).
  */
-const STATE_PARKS: Readonly<Record<string, { name: string; where?: string; label: string }>> = {
+const STATE_PARKS: Readonly<
+  Record<string, { state: StateCode; name: string; where?: string; label: string }>
+> = {
   "vginmaps.vdem.virginia.gov": {
+    state: "VA",
     name: "LandmkName",
     where: "PlaceType='State Park Points'",
     label: "VA state parks (VGIN)",
   },
-  "services6.arcgis.com": { name: "FullName", label: "NC state parks (DPR)" },
-  "services5.arcgis.com": { name: "PARK_NAME", label: "TN state parks (TDEC)" },
+  "services6.arcgis.com": { state: "NC", name: "FullName", label: "NC state parks (DPR)" },
+  "services5.arcgis.com": { state: "TN", name: "PARK_NAME", label: "TN state parks (TDEC)" },
 };
 
 const USFS = "USFS recreation sites";
@@ -138,9 +142,10 @@ async function pointsNear(
 }
 
 /**
- * The official trailheads within near.trailheadKm: USFS's and the state parks'. A source that fails is left
- * out (OpenStreetMap still answers, and the count says what was found), and named in `unanswered` (v4; phase-0.md
- * §9.20 (c)); a cancel still cancels.
+ * The official trailheads within near.trailheadKm: USFS's, and the parks of each state that comes that close (follow-up
+ * 53, #122 review: a state out of reach isn't asked, so it can't go unanswered). A source that fails is left out
+ * (OpenStreetMap still answers, and the count says what was found), and named in `unanswered` (v4; phase-0.md §9.20
+ * (c)); a cancel still cancels.
  */
 export async function officialTrailheads(
   centre: LatLon,
@@ -158,14 +163,14 @@ export async function officialTrailheads(
     ).then((ps) => ps.map((p) => ({ ...p, source: "usfs" as const }))),
     ...deps.endpoints.stateParks.flatMap((url) => {
       const fields = STATE_PARKS[new URL(url).host];
-      if (fields) names.push(`${STATE_PREFIX}${new URL(url).host})`);
-      return fields
-        ? [
-            pointsNear(url, centre, K.trailheadKm, fields, deps).then((ps) =>
-              ps.map((p) => ({ ...p, source: "state" as const })),
-            ),
-          ]
-        : [];
+      // An unknown layer, or a state out of reach: not asked, so never unanswered.
+      if (!fields || !stateWithinKm(fields.state, centre, K.trailheadKm + K.stateOutlineMarginKm)) return [];
+      names.push(`${STATE_PREFIX}${new URL(url).host})`);
+      return [
+        pointsNear(url, centre, K.trailheadKm, fields, deps).then((ps) =>
+          ps.map((p) => ({ ...p, source: "state" as const })),
+        ),
+      ];
     }),
   ];
   const settled = await Promise.allSettled(asked);

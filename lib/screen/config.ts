@@ -301,6 +301,10 @@ export const SCREEN_CONSTANTS = deepFreeze({
     // Follow-up 24 (owner, 2026-10-08): two trailheads are one only within this AND with matching names.
     trailheadDedupeM: 300,
     officialTimeoutMs: 20_000,
+    // A state's parks are asked for trailheads only when its outline comes within trailheadKm of the parcel, plus
+    // this for the outline's simplification (0.005°, about 0.55 km; scripts/data-state-outlines.mts). Follow-up 53,
+    // #122 review: a state out of reach can't have a trailhead in it, and its failure mustn't flag the row.
+    stateOutlineMarginKm: 1,
   },
   // OpenStreetMap roads TIGER leaves out (VR3a; owner, #110 follow-up): possible frontage when TIGER shows none.
   osmRoads: {
