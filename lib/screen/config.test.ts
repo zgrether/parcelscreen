@@ -55,6 +55,7 @@ describe("config", () => {
           "mobilize": 2500,
           "reliefCulvertEach": 3500,
           "stonePerTon": 38,
+          "upgradeStoneIn": 3,
           "woodedPct": 100,
         },
         "endpoints": {
@@ -322,6 +323,11 @@ describe("config", () => {
             "label": "direct track at 15%",
             "maxGrade": 0.15,
             "wGrade": 0.5,
+          },
+          "drawn": {
+            "minGradedM": 30,
+            "roadEndM": 30,
+            "trackFactor": 1,
           },
           "easementOutsideFt": 100,
           "entranceBendM": 60,

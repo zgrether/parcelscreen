@@ -20,7 +20,7 @@ import type { STEPS } from "./config";
  * 2026-10-12) are clean breaks: an older stored result isn't read or migrated, its parcel re-screens when opened
  * (phase-0.md §9.26, §9.30, §9.31).
  */
-export const SCREEN_SCHEMA_VERSION = 4 as const;
+export const SCREEN_SCHEMA_VERSION = 5 as const;
 
 // ---------- shared ----------
 
@@ -82,6 +82,8 @@ export const DrivewayCostsSchema = z.strictObject({
   fabricPerSf: num,
   culvertEach: num,
   reliefCulvertEach: num,
+  /** An existing drive's upgrade (follow-up 34, owner #116): the depth of stone laid over it, inches. */
+  upgradeStoneIn: num,
   entrance: num,
   erosion: num,
   mobilize: num,
@@ -120,6 +122,18 @@ export type UserConfig = z.infer<typeof UserConfigSchema>;
 
 // ---------- input and progress ----------
 
+/**
+ * A line drawn with the parcel (follow-up 34; lib/client/parcelStore.ts's Markup without its note): an existing drive
+ * or ATV trail, or an easement's centre line with its recorded width.
+ */
+export const DrawnInputSchema = z.strictObject({
+  id: z.string(),
+  kind: z.enum(["track", "easement"]),
+  line: z.array(LatLonSchema).min(2),
+  widthFt: num.nullable(),
+});
+export type DrawnInput = z.infer<typeof DrawnInputSchema>;
+
 export const ScreenInputSchema = z.strictObject({
   polygon: PolygonGeometrySchema, // WGS84
   /**
@@ -131,6 +145,8 @@ export const ScreenInputSchema = z.strictObject({
   config: UserConfigSchema,
   house: LatLonSchema.optional(),
   evaluateAt: LatLonSchema.optional(),
+  /** The lines drawn with the parcel (follow-up 34): a route may start from one's end or follow it. */
+  lines: z.array(DrawnInputSchema).optional(),
 });
 export type ScreenInput = z.infer<typeof ScreenInputSchema>;
 
@@ -360,9 +376,35 @@ const EntranceSchema = z.strictObject({
    * Where the road came from (v4, VR3a): Census TIGER, or an OpenStreetMap track, service road or unclassified way
    * when TIGER shows no frontage (owner, #110 follow-up: "possible frontage on an unmapped track").
    */
-  source: z.enum(["tiger", "osm"]),
+  source: z.enum(["tiger", "osm", "drawn"]),
   /** An OSM entrance's way to the nearest TIGER road along the OSM network, when it joins one; null otherwise. */
   reaches: z.strictObject({ road: z.string(), ft: num }).nullable(),
+  /** A drawn entrance's line (v5, follow-up 34): index into `lines`, the end away from the road; null otherwise. */
+  line: z.number().int().nullable(),
+});
+
+/**
+ * The existing drive a route starts from (v5, follow-up 34; owner, #116): the drawn line whose end is the route's
+ * entrance, priced as an upgrade, not new construction (dw.upgradeStoneIn of stone, relief culverts by its grade, and
+ * the length over driveway.paveAbovePct to pave, cost TBD until follow-up 47), and graded on its raw ground: over the
+ * grade limit it takes the over-limit term, over the veto a warning, never a veto. Included in the route's `cost`,
+ * which then has no entrance of its own (the drive's is shared).
+ */
+const ExistingDriveSchema = z.strictObject({
+  /** Index into `lines`. */
+  line: z.number().int(),
+  lengthFt: num,
+  maxGradePct: num,
+  avgGradePct: num,
+  /** The grade limit and the veto it was judged against (Settings' roadMaxGradePct and roadVetoGradePct when routed). */
+  limitPct: num,
+  vetoPct: num,
+  pavedFt: num,
+  reliefCulverts: z.number().int(),
+  stoneTons: num,
+  /** Its length on neighbouring land outside every drawn easement: it counts towards the easement need. */
+  outsideFt: num,
+  cost: CostRangeSchema,
 });
 
 const RouteSchema = z.strictObject({
@@ -383,6 +425,8 @@ const RouteSchema = z.strictObject({
     outsideFt: num,
     /** The length inside a FEMA Special Flood Hazard Area (v4, VR3a). */
     sfhaFt: num,
+    /** The length along a drawn track or inside a drawn easement (v5, follow-up 34). */
+    drawnFt: num,
   }),
   cost: CostRangeSchema,
   culverts: z.array(LatLonSchema),
@@ -391,6 +435,10 @@ const RouteSchema = z.strictObject({
   label: z.string(),
   /** Index into `driveway.entrances` (the prototype shared the object itself). */
   entranceIndex: z.number().int(),
+  /** The drawn lines it starts from or runs along (v5, follow-up 34): indices into `lines`. */
+  lines: z.array(z.number().int()),
+  /** The existing drive it starts from (v5, follow-up 34); null when it starts from a road. */
+  existing: ExistingDriveSchema.nullable(),
   track: z
     .strictObject({ hours: num, waterBars: num, cost: z.strictObject({ mid: num, low: num, high: num }) })
     .optional(),
@@ -424,6 +472,24 @@ const DrivewaySchema = z.strictObject({
     .strictObject({ ll: LatLonSchema, atFt: num, sideSlopeDeg: num, avoided: z.boolean() })
     .nullable(),
 });
+
+/**
+ * A line drawn with the parcel, measured (v5, follow-up 34): its length, and its grades on the fine DEM over the part
+ * the DEM covers (`gradedFt`), as a route's are measured: the mean of the 3 m steps, and the steepest over 30 m.
+ */
+const DrawnLineSchema = z.strictObject({
+  id: z.string(),
+  kind: z.enum(["track", "easement"]),
+  lengthFt: num,
+  widthFt: num.nullable(),
+  /** The length outside the parcel's outline. */
+  outsideFt: num,
+  gradedFt: num,
+  /** Null when the DEM didn't load or covers too little of the line. */
+  avgGradePct: maybeNum,
+  maxGradePct: maybeNum,
+});
+export type DrawnLine = z.infer<typeof DrawnLineSchema>;
 
 const SkySchema = z.strictObject({
   mag: num,
@@ -549,6 +615,8 @@ export const ScreenResultSchema = z.strictObject({
   sites: z.array(SiteSchema).optional(),
   house: HouseSchema.nullable().optional(),
   driveway: DrivewaySchema.optional(),
+  /** The lines drawn with the parcel, measured (v5, follow-up 34); [] when none were drawn. */
+  lines: z.array(DrawnLineSchema),
   flags: z.array(FlagSchema),
   failed: z.array(StepSchema),
   /**

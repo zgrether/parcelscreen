@@ -16,7 +16,7 @@ import { LINES_MIN_ZOOM } from "@/lib/geo/parcelTiles";
 import { DRAWING } from "@/components/Explore/exploreState";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
-import { tipAt } from "./results/tooltip";
+import { TIP_LAYERS, tipAt } from "./results/tooltip";
 import { installTiltRotate } from "./tiltRotate";
 import { useMap } from "./MapView";
 import {
@@ -30,6 +30,10 @@ import {
 } from "./overlays";
 import { LAYER, SOURCE } from "./style";
 import { outlineAt, parcelServiceDown } from "./useParcelLines";
+
+// A drawn line's tooltip: what it is, its length and grades (34-2).
+TIP_LAYERS.add(LAYER.markupEasement);
+TIP_LAYERS.add(LAYER.markupTrack);
 
 /** The saved parcel under a screen point, by its History key. */
 function savedAt(map: MlMap, p: { x: number; y: number }): string | null {
@@ -178,11 +182,13 @@ function useOverlays(map: MlMap | null, ctl: ExploreController) {
     map.getSource<GeoJSONSource>(SOURCE.parcel)?.setData(parcel && !parcelHidden ? parcel.geo : EMPTY);
   }, [map, parcel, parcelHidden]);
 
-  // Follow-up 34: the open parcel's drawn tracks and easements.
+  // Follow-up 34: the open parcel's drawn tracks and easements, with their grades from its screen (34-2).
   const markup = open?.markup;
+  const screen = useScreenItContext();
+  const measured = screen?.shown && !screen.stale ? screen.shown.result.lines : undefined;
   useEffect(() => {
-    map?.getSource<GeoJSONSource>(SOURCE.markup)?.setData(markupData(markup ?? []));
-  }, [map, markup]);
+    map?.getSource<GeoJSONSource>(SOURCE.markup)?.setData(markupData(markup ?? [], measured));
+  }, [map, markup, measured]);
 
   useEffect(() => {
     if (!map) return;

@@ -416,6 +416,8 @@ export interface SearchGrid {
   slope: Float32Array;
   soil: Uint8Array;
   acc: Float32Array;
+  /** A drawn track's cells (follow-up 34): they cost drawn.trackFactor, as flat ground on the parcel. */
+  track?: Uint8Array;
 }
 
 export interface SearchOpts {
@@ -470,7 +472,10 @@ interface CostField {
 }
 const costFields = new WeakMap<Uint8Array, WeakMap<Float32Array, CostField>>();
 
-/** Each cell's cost factor: steep ground, bottomland and rock cost more, land outside the parcel more again. */
+/**
+ * Each cell's cost factor: steep ground, bottomland and rock cost more, land outside the parcel more again. Along a
+ * drawn track (follow-up 34) none of that: the road is there. (The cache is by `inside`, which a drawn line changes.)
+ */
 function costField(g: SearchGrid): CostField {
   const byInside = costFields.get(g.inside) ?? new WeakMap<Float32Array, CostField>();
   costFields.set(g.inside, byInside);
@@ -483,7 +488,7 @@ function costField(g: SearchGrid): CostField {
     if (g.soil[i] === 1) f *= K.bottomlandFactor;
     else if (g.soil[i] === 2) f *= K.rockFactor;
     if (!g.inside[i]) f *= K.outsideFactor;
-    cellCost[i] = f;
+    cellCost[i] = g.track?.[i] ? K.drawn.trackFactor : f;
   }
   const field = { cellCost, toTarget: new Map<number, Float32Array>() };
   byInside.set(g.slope, field);

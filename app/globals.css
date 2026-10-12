@@ -2565,6 +2565,16 @@ html:has(.explore) body {
 .card-reason {
   margin: 8px 0 10px;
 }
+/* The drawn lines changed since the screen (owner, #116): prominent, in the card's header; the results stay. */
+.card-stale {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border: 1px solid var(--color-warn);
+  border-left-width: 4px;
+  border-radius: 4px;
+  background: var(--color-paper-2);
+  font-weight: 600;
+}
 .card-gates {
   display: flex;
   flex-wrap: wrap;
@@ -2887,6 +2897,10 @@ html:has(.explore) body {
 }
 .ip-line-head .ip-link {
   margin-left: auto;
+}
+.ip-line-grades {
+  color: var(--ip-ink-2);
+  font-size: 13px;
 }
 .ip-lines input:not(.ip-line-width) {
   width: 100%;

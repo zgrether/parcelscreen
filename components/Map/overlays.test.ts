@@ -193,5 +193,40 @@ describe("drawn lines (follow-up 34)", () => {
         },
       ],
     ]);
+    // The tooltip (34-2): what it is and its length, until a screen grades it.
+    expect(fc.features.map((f) => f.properties!.tip)).toEqual([
+      "Existing track (user-drawn): 4,678 ft",
+      "Easement (user-drawn): 3,648 ft",
+    ]);
+  });
+
+  it("a screened line's tooltip has its grades (owner, 34-1 answer 3)", () => {
+    const m = {
+      id: "a",
+      kind: "track" as const,
+      line: [
+        [36.6, -81.5],
+        [36.61, -81.51],
+      ] as [number, number][],
+      widthFt: null,
+      note: "",
+      at: "",
+    };
+    const measured = {
+      id: "a",
+      kind: "track" as const,
+      lengthFt: 938,
+      widthFt: null,
+      outsideFt: 0,
+      gradedFt: 938,
+      avgGradePct: 11.2,
+      maxGradePct: 16.6,
+    };
+    expect(markupData([m], [measured]).features[0]!.properties!.tip).toBe(
+      "Existing track (user-drawn): 938 ft · avg 11% · steepest 17% over 30 m",
+    );
+    expect(markupData([m], [{ ...measured, id: "other" }]).features[0]!.properties!.tip).toMatch(
+      /: 4,678 ft$/,
+    );
   });
 });

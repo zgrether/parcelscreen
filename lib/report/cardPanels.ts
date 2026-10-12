@@ -55,14 +55,14 @@ export function panelText(
       return {
         title: "Legal road access",
         question: "Can you drive onto the land from a public road?",
-        howScored: `Passes with frontage on a road; warns when the driveway has to start from the nearest road point; fails with no road within ${fmt(SCREEN_CONSTANTS.driveway.fallbackMaxM / 1000 / KM_PER_MI, 2)} mi of the boundary.`,
+        howScored: `Passes with frontage on a road; warns when the driveway has to start from the nearest road point; fails with no road within ${fmt(SCREEN_CONSTANTS.driveway.fallbackMaxM / 1000 / KM_PER_MI, 2)} mi of the boundary. A driveway that starts from a line you drew warns until it's verified as a legal right-of-way.`,
       };
     case "easement":
       return {
         title: "Easement needed",
         question: "Can the driveway stay on your own land?",
         howScored:
-          "Passes when the scored driveway stays on the parcel; warns when it needs an easement, or when no practical drive fits the budget; fails when no practical route is found.",
+          "Passes when the scored driveway stays on the parcel; warns when it needs an easement, or when no practical drive fits the budget; fails when no practical route is found. An easement you drew across neighbouring land that the driveway uses warns until it's verified as a legal right-of-way, and so does an existing drive it starts from that's steeper than your veto.",
       };
     case "septic":
       return {

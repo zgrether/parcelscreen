@@ -21,6 +21,9 @@ import { findLayer, type LayerId, type LayerNode } from "@/components/Explore/la
 import { ParcelFacts } from "@/components/Explore/ParcelFacts";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { AnalysisGroup } from "./results/AnalysisGroup";
+import { useScreenItContext } from "@/components/Results/ScreenItContext";
+import { LINE_LABEL, lineSummary } from "@/lib/report/lines";
+import type { DrawnLine as DrawnLineResult } from "@/lib/screen/types";
 import { RoadsToggle } from "./RoadsToggle";
 import { TerrainControls } from "./TerrainControls";
 
@@ -549,11 +552,8 @@ function AskingPrice({ ctl }: { ctl: ExploreController }) {
   );
 }
 
-/** What each drawn line is, as the map, the panel and (34-2) the report call it. */
-export const MARKUP_LABEL = {
-  track: "Existing track (user-drawn)",
-  easement: "Easement (user-drawn)",
-} as const;
+/** What each drawn line is, as the map, the panel and the report call it. */
+export const MARKUP_LABEL = LINE_LABEL;
 
 /**
  * The parcel's drawn tracks and easements (follow-up 34): what each is, its length, a note saying where it came
@@ -561,20 +561,40 @@ export const MARKUP_LABEL = {
  */
 function DrawnLines({ ctl }: { ctl: ExploreController }) {
   const open = ctl.state.store.open!;
+  // Each line's grades from the parcel's screen (34-2), by id: a line can't be redrawn, only removed.
+  const s = useScreenItContext();
+  const result = s?.shown && !s.stale ? s.shown.result : null;
   if (!open.markup.length) return null;
   return (
     <div className="ip-lines">
       <div className="ip-notes-for">Drawn lines</div>
       <ul>
         {open.markup.map((m) => (
-          <DrawnLine key={m.id} ctl={ctl} m={m} />
+          <DrawnLine
+            key={m.id}
+            ctl={ctl}
+            m={m}
+            measured={result?.lines.find((l) => l.id === m.id) ?? null}
+            screened={!!result}
+          />
         ))}
       </ul>
     </div>
   );
 }
 
-function DrawnLine({ ctl, m }: { ctl: ExploreController; m: Markup }) {
+function DrawnLine({
+  ctl,
+  m,
+  measured,
+  screened,
+}: {
+  ctl: ExploreController;
+  m: Markup;
+  /** The line as the parcel's screen measured it; null when it was drawn after the run, or there's none. */
+  measured: DrawnLineResult | null;
+  screened: boolean;
+}) {
   const serial = ctl.state.serial;
   const [note, setNote] = useState(m.note);
   const [width, setWidth] = useState(m.widthFt !== null ? String(m.widthFt) : "");
@@ -591,10 +611,14 @@ function DrawnLine({ ctl, m }: { ctl: ExploreController; m: Markup }) {
     <li>
       <div className="ip-line-head">
         <b>{MARKUP_LABEL[m.kind]}</b>
-        <span className="tiny muted"> · {Math.round(ft).toLocaleString()} ft</span>
         <button className="ip-link" onClick={() => ctl.deleteMarkup(m.id, serial)}>
           Remove
         </button>
+      </div>
+      {/* Its length, and its grades once a screen has measured it (34-2). */}
+      <div className="ip-line-grades">
+        {measured ? lineSummary(measured) : `${Math.round(ft).toLocaleString()} ft`}
+        {!measured && screened && " (run again to grade it)"}
       </div>
       <input
         aria-label={`Note for the ${m.kind}`}

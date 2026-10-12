@@ -9,11 +9,12 @@
 import { compass, fmt } from "../format";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { NEAREST_HOSPITAL, REAL_GROCERY, type DriveEntry } from "../screen/driveList";
-import { NO_PRACTICAL_ROUTE } from "../screen/score";
+import { NO_PRACTICAL_ROUTE, existingSteepLine } from "../screen/score";
 import { isPrimeFarmland, soilAt, type SoilUnit } from "../screen/soils";
 import type { PartialScreenResult } from "../screen/types";
 import { M2FT, M2_PER_ACRE } from "../screen/util";
 import { steepLandingLine } from "./driveway";
+import { LINE_LABEL, VERIFY_RIGHT_OF_WAY, routeLines, scoredRoute, startLine } from "./lines";
 
 export type CardConfig = typeof SCREEN_CONSTANTS.card;
 type BuildConfig = typeof SCREEN_CONSTANTS.build;
@@ -161,7 +162,24 @@ function floodplain(r: Result, site: BuildSite | null | undefined): Gate {
   return g("pass", "No FEMA flood zone on the parcel");
 }
 
+/**
+ * A drawn line the scored driveway starts from (follow-up 34): the Access gate asks that it be verified, after what it
+ * says of the frontage (rule 7: appended), and warns at least.
+ */
 function access(r: Result): Gate {
+  const frontage = accessByFrontage(r);
+  const rt = r.driveway && scoredRoute(r.driveway);
+  const line = rt ? startLine(r, rt) : null;
+  if (!line) return frontage;
+  const ask = `${LINE_LABEL[line.kind]}: ${VERIFY_RIGHT_OF_WAY}`;
+  return {
+    ...frontage,
+    status: frontage.status === "fail" ? "fail" : "warn",
+    reason: `${frontage.reason}; ${lowerFirst(ask)}`,
+  };
+}
+
+function accessByFrontage(r: Result): Gate {
   const g = gate("access", "Legal road access");
   const d = r.driveway;
   if (!d) return g("unknown", "The roads didn't load", "the roads");
@@ -170,7 +188,7 @@ function access(r: Result): Gate {
       "fail",
       `No road within ${miles(SCREEN_CONSTANTS.driveway.fallbackMaxM / 1000)} mi of the boundary (landlocked, or TIGER is wrong)`,
     );
-  const front = d.entrances.find((e) => !e.fallback);
+  const front = d.entrances.find((e) => !e.fallback && e.source !== "drawn");
   // An OpenStreetMap way TIGER doesn't show (v4): possible frontage, which the deed or plat must confirm.
   if (front?.source === "osm") {
     const what = front.name.startsWith("unmapped ")
@@ -205,6 +223,13 @@ function easement(r: Result): Gate {
     scored.needsEasement ? "The driveway needs an easement across neighbouring land" : null,
     // "No practical drive" (owner, #99 decisions): stored by B2a for this gate.
     d.practical ? "The drive needs a steeper paved alignment or an easement" : null,
+    // A drawn easement it uses across neighbouring land (follow-up 34): counted as the parcel's for the route, so asked.
+    // A drawn track there isn't legal access (owner, #116): the route needs an easement, said above.
+    ...routeLines(r, scored)
+      .filter((l) => l.kind === "easement" && l.outsideFt > 0)
+      .map((l) => `${LINE_LABEL[l.kind]}: ${VERIFY_RIGHT_OF_WAY}`),
+    // An existing drive it starts from, steeper than the veto (owner, #116): warned of here, as for any route.
+    existingSteepLine(scored.existing),
   ].filter((w): w is string => !!w);
   if (warns.length) return g("warn", warns.map((w, i) => (i ? lowerFirst(w) : w)).join("; "));
   return g("pass", "The driveway stays on the parcel");

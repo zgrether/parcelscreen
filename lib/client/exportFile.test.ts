@@ -26,7 +26,7 @@ const NOW = "2026-10-07T15:00:00.000Z";
 const RESULT = fromPrototype(loadFixture("ferney-creek-52-47A").goldens.run) as ScreenResult;
 const screen = (id: string): ScreenRecord => ({
   id,
-  keys: { boundary: "b", house: "", settings: "s" },
+  keys: { boundary: "b", house: "", settings: "s", lines: "" },
   result: RESULT,
 });
 const SPLIT = {

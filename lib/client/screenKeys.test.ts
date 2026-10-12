@@ -24,6 +24,7 @@ describe("run keys and freshness (14d)", () => {
       boundary: false,
       house: false,
       settings: false,
+      lines: false,
     });
   });
 
@@ -44,6 +45,29 @@ describe("run keys and freshness (14d)", () => {
       house: false,
       settings: true,
     });
+  });
+
+  it("tells drawn lines apart (follow-up 34): a line added, moved or widened; none drawn is the empty key", () => {
+    const track = {
+      id: "a",
+      kind: "track" as const,
+      line: [
+        [36.88, -80.455],
+        [36.881, -80.454],
+      ] as [number, number][],
+      widthFt: null,
+    };
+    expect(run.lines).toBe("");
+    const drawn = runKeys(square(-80.455), null, DEFAULT_USER_CONFIG, [track]);
+    expect(freshness(run, drawn)).toMatchObject({ boundary: false, settings: false, lines: true });
+    const easement = { ...track, kind: "easement" as const, widthFt: 30 };
+    const wider = runKeys(square(-80.455), null, DEFAULT_USER_CONFIG, [{ ...easement, widthFt: 40 }]);
+    expect(freshness(runKeys(square(-80.455), null, DEFAULT_USER_CONFIG, [easement]), wider).lines).toBe(
+      true,
+    );
+    // A key kept before follow-up 34 has no lines: the same as none drawn.
+    const { lines: _lines, ...older } = run;
+    expect(freshness(older as typeof run, run).lines).toBe(false);
   });
 
   it("settings ignore the service endpoints and the order of keys", () => {

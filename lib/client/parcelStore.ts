@@ -11,6 +11,7 @@ import { z } from "zod";
 import type { ParcelRecord } from "@/lib/geo/parcels";
 import { isCountyRecord, type ParcelRecipe, type SplitCut } from "@/lib/geo/recipe";
 import type { LatLon } from "@/lib/geo/types";
+import type { DrawnInput } from "@/lib/screen/types";
 import type { CurrentParcel } from "./currentParcel";
 import { LatLonSchema, RecordSchema } from "./currentParcel";
 
@@ -32,6 +33,10 @@ export interface Markup {
 
 /** An easement's width until the user says otherwise: a common recorded right-of-way width. */
 export const EASEMENT_WIDTH_FT = 30;
+
+/** The lines as the screen reads them (ScreenInput.lines): without their notes and times. */
+export const drawnInput = (markup: readonly Markup[]): DrawnInput[] =>
+  markup.map(({ id, kind, line, widthFt }) => ({ id, kind, line, widthFt }));
 
 export interface WorkingParcel {
   /** Set once the parcel is built (saved); null for a plain parcel straight from a tap. */

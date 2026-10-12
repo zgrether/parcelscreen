@@ -22,7 +22,13 @@ export interface ScreenRecord {
 
 export const ScreenRecordSchema = z.object({
   id: z.string(),
-  keys: z.object({ boundary: z.string(), house: z.string(), settings: z.string() }),
+  keys: z.object({
+    boundary: z.string(),
+    house: z.string(),
+    settings: z.string(),
+    // Follow-up 34 (v5): a key kept before it has no lines.
+    lines: z.string().default(""),
+  }),
   result: ScreenResultSchema,
   engine: z.number().int().positive().optional(),
 });

@@ -81,6 +81,8 @@ export const DEFAULT_USER_CONFIG: UserConfig = {
     // Relief culverts (cross-drains) along the road (owner, 2026-10-11): usually smaller pipes than a drainage
     // crossing's; the same rate until Zach's quote (follow-up 47). A stored config without it takes its culvertEach.
     reliefCulvertEach: 3500,
+    // An existing drive's upgrade (follow-up 34, owner #116): 3 in of stone over a drawn drive a route starts from.
+    upgradeStoneIn: 3,
     entrance: 9000,
     erosion: 3000,
     mobilize: 2500,
@@ -439,6 +441,14 @@ export const SCREEN_CONSTANTS = deepFreeze({
     m2ToSf: 10.764,
     clearingWidthM: 7.3, // 24 ft corridor
     easementOutsideFt: 100,
+    // Lines drawn with the parcel (follow-up 34): a line whose end is within roadEndM of a road gives an entrance at
+    // its other end. Along a drawn track a route's cells cost as flat ground (trackFactor: the road's cut is there; it
+    // is still held to the grade limit), with no earthwork or clearing. Only an easement's corridor counts as the
+    // parcel's own land (owner, #116). A line's grades need at least minGradedM of it on the fine DEM.
+    // A route from a line's end prices the line as an existing drive to upgrade (owner, #116): dw.upgradeStoneIn of
+    // stone (a Setting), relief culverts by its grade, and its length over paveAbovePct to pave (cost TBD until
+    // follow-up 47).
+    drawn: { roadEndM: 30, trackFactor: 1, minGradedM: 30 },
     // A4b (owner, 2026-10-10): a route's grade is measured over these windows of its profile, the ground between
     // the cells interpolated: 30 m is the headline (the card, the over-limit term, the veto), 15 and 60 m details.
     gradeWindowsM: { short: 15, headline: 30, long: 60 },

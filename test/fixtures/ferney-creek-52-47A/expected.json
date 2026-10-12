@@ -16,6 +16,7 @@
    }
   ],
   "noResponse": [],
+  "lines": [],
   "demSource": "USGS 3DEP",
   "demResM": 2.9939626380217406,
   "terrain": {
@@ -2262,7 +2263,8 @@
      "bankFt": 0.8055919995117188,
      "score": 2.569791797686977,
      "source": "tiger",
-     "reaches": null
+     "reaches": null,
+     "line": null
     },
     {
      "ll": [
@@ -2275,7 +2277,8 @@
      "bankFt": 2.153251496582031,
      "score": 4.997127411648016,
      "source": "tiger",
-     "reaches": null
+     "reaches": null,
+     "line": null
     },
     {
      "ll": [
@@ -2288,7 +2291,8 @@
      "bankFt": 0.9433616479492187,
      "score": 7.4068760932243105,
      "source": "tiger",
-     "reaches": null
+     "reaches": null,
+     "line": null
     }
    ],
    "routes": [
@@ -2529,7 +2533,8 @@
       "clearAc": 0.26285281748056144,
       "culverts": 1,
       "outsideFt": 49.2126,
-      "sfhaFt": 0
+      "sfhaFt": 0,
+      "drawnFt": 0
      },
      "cost": {
       "mid": 28829.026397469155,
@@ -2540,6 +2545,8 @@
      "needsEasement": false,
      "maxGrade": 0.15,
      "label": "shortest legal",
+     "lines": [],
+     "existing": null,
      "entranceIndex": 0,
      "track": {
       "hours": 2,
@@ -2788,7 +2795,8 @@
       "clearAc": 0.2633528945502171,
       "culverts": 1,
       "outsideFt": 9.84252,
-      "sfhaFt": 0
+      "sfhaFt": 0,
+      "drawnFt": 0
      },
      "cost": {
       "mid": 28843.938329077755,
@@ -2799,6 +2807,8 @@
      "needsEasement": false,
      "maxGrade": 0.15,
      "label": "shortest legal",
+     "lines": [],
+     "existing": null,
      "entranceIndex": 0
     }
    ],
@@ -3043,7 +3053,8 @@
      "clearAc": 0.26285281748056144,
      "culverts": 1,
      "outsideFt": 49.2126,
-     "sfhaFt": 0
+     "sfhaFt": 0,
+     "drawnFt": 0
     },
     "cost": {
      "mid": 28829.026397469155,
@@ -3054,6 +3065,8 @@
     "needsEasement": false,
     "maxGrade": 0.15,
     "label": "direct track at 15%",
+    "lines": [],
+    "existing": null,
     "entranceIndex": 0,
     "track": {
      "hours": 2,
@@ -3066,8 +3079,8 @@
     }
    }
   },
-  "schemaVersion": 4,
-  "engine": 14,
+  "schemaVersion": 5,
+  "engine": 15,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -3090,6 +3103,7 @@
    }
   ],
   "noResponse": [],
+  "lines": [],
   "demSource": "USGS 3DEP",
   "demResM": 2.9939626380217406,
   "terrain": {
@@ -5336,7 +5350,8 @@
      "bankFt": 0.8055919995117188,
      "score": 2.569791797686977,
      "source": "tiger",
-     "reaches": null
+     "reaches": null,
+     "line": null
     },
     {
      "ll": [
@@ -5349,7 +5364,8 @@
      "bankFt": 2.153251496582031,
      "score": 4.997127411648016,
      "source": "tiger",
-     "reaches": null
+     "reaches": null,
+     "line": null
     },
     {
      "ll": [
@@ -5362,7 +5378,8 @@
      "bankFt": 0.9433616479492187,
      "score": 7.4068760932243105,
      "source": "tiger",
-     "reaches": null
+     "reaches": null,
+     "line": null
     }
    ],
    "routes": [
@@ -6111,7 +6128,8 @@
       "clearAc": 0.8178225154331297,
       "culverts": 1,
       "outsideFt": 19.68504,
-      "sfhaFt": 0
+      "sfhaFt": 0,
+      "drawnFt": 0
      },
      "cost": {
       "mid": 64411.50505943275,
@@ -6122,6 +6140,8 @@
      "needsEasement": false,
      "maxGrade": 0.15,
      "label": "shortest legal",
+     "lines": [],
+     "existing": null,
      "entranceIndex": 0,
      "track": {
       "hours": 12,
@@ -6990,7 +7010,8 @@
       "clearAc": 0.9664347245267136,
       "culverts": 1,
       "outsideFt": 137.79528,
-      "sfhaFt": 0
+      "sfhaFt": 0,
+      "drawnFt": 0
      },
      "cost": {
       "mid": 68523.16041007295,
@@ -7001,6 +7022,8 @@
      "needsEasement": true,
      "maxGrade": 0.15,
      "label": "shortest legal",
+     "lines": [],
+     "existing": null,
      "entranceIndex": 1
     }
    ],
@@ -7593,7 +7616,8 @@
      "clearAc": 0.6912558862515374,
      "culverts": 1,
      "outsideFt": 0,
-     "sfhaFt": 0
+     "sfhaFt": 0,
+     "drawnFt": 0
     },
     "cost": {
      "mid": 55963.68003943225,
@@ -7604,6 +7628,8 @@
     "needsEasement": false,
     "maxGrade": 0.15,
     "label": "direct track at 15%",
+    "lines": [],
+    "existing": null,
     "entranceIndex": 0,
     "track": {
      "hours": 10,
@@ -7616,8 +7642,8 @@
     }
    }
   },
-  "schemaVersion": 4,
-  "engine": 14,
+  "schemaVersion": 5,
+  "engine": 15,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -7693,6 +7719,7 @@
    }
   ],
   "noResponse": [],
+  "lines": [],
   "demSource": "USGS 3DEP",
   "demResM": 2.9939626380217406,
   "terrain": {
@@ -9992,7 +10019,8 @@
      "bankFt": 0.8055919995117188,
      "score": 2.569791797686977,
      "source": "tiger",
-     "reaches": null
+     "reaches": null,
+     "line": null
     },
     {
      "ll": [
@@ -10005,7 +10033,8 @@
      "bankFt": 2.153251496582031,
      "score": 4.997127411648016,
      "source": "tiger",
-     "reaches": null
+     "reaches": null,
+     "line": null
     },
     {
      "ll": [
@@ -10018,7 +10047,8 @@
      "bankFt": 0.9433616479492187,
      "score": 7.4068760932243105,
      "source": "tiger",
-     "reaches": null
+     "reaches": null,
+     "line": null
     }
    ],
    "routes": [
@@ -10767,7 +10797,8 @@
       "clearAc": 0.8178225154331297,
       "culverts": 1,
       "outsideFt": 19.68504,
-      "sfhaFt": 0
+      "sfhaFt": 0,
+      "drawnFt": 0
      },
      "cost": {
       "mid": 64411.50505943275,
@@ -10778,6 +10809,8 @@
      "needsEasement": false,
      "maxGrade": 0.15,
      "label": "shortest legal",
+     "lines": [],
+     "existing": null,
      "entranceIndex": 0,
      "track": {
       "hours": 12,
@@ -11646,7 +11679,8 @@
       "clearAc": 0.9664347245267136,
       "culverts": 1,
       "outsideFt": 137.79528,
-      "sfhaFt": 0
+      "sfhaFt": 0,
+      "drawnFt": 0
      },
      "cost": {
       "mid": 68523.16041007295,
@@ -11657,6 +11691,8 @@
      "needsEasement": true,
      "maxGrade": 0.15,
      "label": "shortest legal",
+     "lines": [],
+     "existing": null,
      "entranceIndex": 1
     }
    ],
@@ -12249,7 +12285,8 @@
      "clearAc": 0.6912558862515374,
      "culverts": 1,
      "outsideFt": 0,
-     "sfhaFt": 0
+     "sfhaFt": 0,
+     "drawnFt": 0
     },
     "cost": {
      "mid": 55963.68003943225,
@@ -12260,6 +12297,8 @@
     "needsEasement": false,
     "maxGrade": 0.15,
     "label": "direct track at 15%",
+    "lines": [],
+    "existing": null,
     "entranceIndex": 0,
     "track": {
      "hours": 10,
@@ -12272,8 +12311,8 @@
     }
    }
   },
-  "schemaVersion": 4,
-  "engine": 14,
+  "schemaVersion": 5,
+  "engine": 15,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,

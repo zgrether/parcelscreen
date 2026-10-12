@@ -1,20 +1,23 @@
 /**
  * What a screen was run on, so the panel can tell whether its results still fit the open parcel (owner,
- * step 14d). Three cases, each handled differently:
+ * step 14d). Four cases, each handled differently:
  *   - boundary: the parcel's pieces or split changed: the results are stale, a re-run is required;
  *   - house: the house was added, moved or removed: re-assessed with the worker's setHouse, no notice;
- *   - settings: Settings changed since the run: a softer note that the results used earlier settings.
+ *   - settings: Settings changed since the run: a softer note that the results used earlier settings;
+ *   - lines: the drawn tracks or easements changed (follow-up 34): the same softer note, for the lines.
  * Pure: the keys are short hashes of the inputs.
  */
 import type { Polygon } from "geojson";
 import type { LatLon } from "../geo/types";
-import type { UserConfig } from "../screen/types";
+import type { DrawnInput, UserConfig } from "../screen/types";
 
 export interface RunKeys {
   boundary: string;
   /** "" when no house was marked. */
   house: string;
   settings: string;
+  /** "" when no line was drawn. A line's note doesn't count: the screen doesn't read it. */
+  lines: string;
 }
 
 /** 32-bit FNV-1a, as hex: enough to tell inputs apart, never stored as a secret. */
@@ -42,12 +45,18 @@ function stable(v: unknown): string {
  * The keys of a run's inputs. Settings leave out the service endpoints: where the data comes from doesn't
  * change what a screen means, and the endpoints migrate on their own.
  */
-export function runKeys(polygon: Polygon, house: LatLon | null, config: UserConfig): RunKeys {
+export function runKeys(
+  polygon: Polygon,
+  house: LatLon | null,
+  config: UserConfig,
+  lines: readonly DrawnInput[] = [],
+): RunKeys {
   const { endpoints: _endpoints, ...settings } = config;
   return {
     boundary: hash(stable(polygon.coordinates)),
     house: house ? `${house[0].toFixed(6)},${house[1].toFixed(6)}` : "",
     settings: hash(stable(settings)),
+    lines: lines.length ? hash(stable(lines)) : "",
   };
 }
 
@@ -58,10 +67,13 @@ export interface Freshness {
   house: boolean;
   /** Settings changed: the results used earlier settings. */
   settings: boolean;
+  /** The drawn lines changed: the results used earlier lines (follow-up 34). */
+  lines: boolean;
 }
 
 export const freshness = (run: RunKeys, now: RunKeys): Freshness => ({
   boundary: run.boundary !== now.boundary,
   house: run.house !== now.house,
   settings: run.settings !== now.settings,
+  lines: (run.lines ?? "") !== now.lines,
 });

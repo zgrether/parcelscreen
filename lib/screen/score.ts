@@ -140,12 +140,25 @@ export function drivewayPoints(dw: SiteDriveway): number {
 
 /**
  * The over-limit term for a driveway (A4): none within the limit, else overLimitTerm of its grade over 30 m (A4b,
- * owner 2026-10-10; it was the whole-percent cap the least-steep search needed).
+ * owner 2026-10-10; it was the whole-percent cap the least-steep search needed). An existing drive the route starts
+ * from (follow-up 34, owner #116) counts like any section of it, on its raw ground: the steeper of the two decides.
  */
 export function overLimitPoints(dw: SiteDriveway): number {
-  if (dw.legal || !dw.route || !("limitPct" in dw.route)) return 0;
+  const rt = dw.route;
+  if (!rt) return 0;
+  const existing = rt.existing ? overLimitTerm(rt.existing.maxGradePct, rt.existing.limitPct) : 0;
+  if (dw.legal || !("limitPct" in rt)) return existing;
   // A designed alignment reads its design grade, not the ungraded ground (owner, option C; follow-up 48).
-  return overLimitTerm(dw.designPct ?? dw.route.metrics.maxGradePct, dw.route.limitPct);
+  return Math.max(existing, overLimitTerm(dw.designPct ?? rt.metrics.maxGradePct, rt.limitPct));
+}
+
+/**
+ * The warning for an existing drive steeper than the veto (owner's wording, #116): it isn't vetoed, since it's a real
+ * road; the route is kept and the warning shown. Null when it isn't that steep.
+ */
+export function existingSteepLine(existing: NonNullable<Route["existing"]> | null): string | null {
+  if (!existing || existing.maxGradePct <= existing.vetoPct) return null;
+  return `The existing drive is steeper than your limit (${Math.round(existing.avgGradePct)}% avg, ${Math.round(existing.maxGradePct)}% steepest over 30 m on raw ground; a built road grades out 1–4 points)`;
 }
 
 /** A candidate's grade over the headline window (30 m): what the over-limit term and the veto read (A4b). */
@@ -173,8 +186,20 @@ export function overLimitTerm(neededPct: number, limitPct: number): number {
  *
  * The veto (A4b, owner 2026-10-10): a candidate steeper than `vetoPct` over 30 m (the ground under it) can't be
  * chosen, whatever its cost. When every candidate is, the least steep is returned, marked `noPractical`.
+ *
+ * A route from a drawn line's end (`drawn`, follow-up 34, owner #116) is chosen when it has fewer points than that, or
+ * when that is vetoed. The veto reads only its new part: the existing drive is a real road, warned of, never vetoed.
  */
 export function chooseDriveway(r: SiteRoutes, vetoPct = Infinity): SiteDriveway {
+  const front = chooseFrontage(r, vetoPct);
+  const d = r.drawn;
+  if (!d?.route || grade30(d) > vetoPct) return front;
+  if (!front.route || front.noPractical) return d;
+  return drivewayPoints(d) < drivewayPoints(front) ? d : front;
+}
+
+/** chooseDriveway between the frontage's two candidates. */
+function chooseFrontage(r: SiteRoutes, vetoPct: number): SiteDriveway {
   const none: SiteDriveway = { route: null, legal: false, entranceIndex: null };
   const all = [r.withinLimit, r.onParcel].filter(
     (d, i, a): d is SiteDriveway => !!d?.route && a.indexOf(d) === i,
