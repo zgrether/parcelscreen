@@ -6,6 +6,7 @@ import {
   normalizeTrailheadName,
   officialTrailheads,
   readableName,
+  trailheadSourceLabel,
   type TrailheadPoint,
 } from "./trailheads";
 
@@ -107,6 +108,50 @@ describe("the official sources", () => {
     const none: string[] = [];
     await officialTrailheads(ELK, { http: layers("arcgis.com").http, endpoints: DEFAULT_ENDPOINTS }, none);
     expect(none).toEqual(["state parks (services6.arcgis.com)", "state parks (services5.arcgis.com)"]);
+  });
+
+  it("each unanswered list has the report's name for it (follow-up 53); anything else isn't a trailhead list", async () => {
+    const unanswered: string[] = [];
+    const fails: HttpClient = { fetch: async () => new Response("down", { status: 503 }) };
+    await officialTrailheads(ELK, { http: fails, endpoints: DEFAULT_ENDPOINTS }, unanswered);
+    expect(unanswered.map(trailheadSourceLabel)).toEqual([
+      "USFS recreation sites",
+      "VA state parks (VGIN)",
+      "NC state parks (DPR)",
+      "TN state parks (TDEC)",
+    ]);
+    expect(trailheadSourceLabel("state parks (parks.example.gov)")).toBe("state parks (parks.example.gov)");
+    expect(trailheadSourceLabel("OpenStreetMap roads")).toBeNull();
+    expect(trailheadSourceLabel("PAD-US (open land beyond a mile)")).toBeNull();
+  });
+
+  it("asks a state's parks only when the state is within reach (#122 review): out of reach, its failure can't flag", async () => {
+    // Floyd County, VA (Ferney Creek): no NC or TN land within 36 km.
+    const FLOYD: [number, number] = [36.8874, -80.4546];
+    const q = layers("services5"); // TN would fail, if it were asked
+    const unanswered: string[] = [];
+    await officialTrailheads(FLOYD, { http: q.http, endpoints: DEFAULT_ENDPOINTS }, unanswered);
+    expect(q.asked.map((a) => a.host)).toEqual(["apps.fs.usda.gov", "vginmaps.vdem.virginia.gov"]);
+    expect(unanswered).toEqual([]);
+
+    // Raleigh, NC: only NC's, and USFS's, which is asked everywhere.
+    const r = layers();
+    await officialTrailheads([35.78, -78.64], { http: r.http, endpoints: DEFAULT_ENDPOINTS });
+    expect(r.asked.map((a) => a.host)).toEqual(["apps.fs.usda.gov", "services6.arcgis.com"]);
+  });
+
+  it("near a state line asks every state in reach: Grayson's Mud Creek, VA, NC and TN; a failure there is named", async () => {
+    const MUD_CREEK: [number, number] = [36.5854, -81.562];
+    const q = layers("services5");
+    const unanswered: string[] = [];
+    await officialTrailheads(MUD_CREEK, { http: q.http, endpoints: DEFAULT_ENDPOINTS }, unanswered);
+    expect(q.asked.map((a) => a.host)).toEqual([
+      "apps.fs.usda.gov",
+      "vginmaps.vdem.virginia.gov",
+      "services6.arcgis.com",
+      "services5.arcgis.com",
+    ]);
+    expect(unanswered).toEqual(["state parks (services5.arcgis.com)"]);
   });
 
   it("a cancel still cancels", async () => {

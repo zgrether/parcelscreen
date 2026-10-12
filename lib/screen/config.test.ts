@@ -451,6 +451,7 @@ describe("config", () => {
           "overpassTimeoutMs": 25000,
           "photonLimit": 40,
           "photonTimeoutMs": 15000,
+          "stateOutlineMarginKm": 1,
           "trailheadDedupeM": 300,
           "trailheadKm": 36,
         },

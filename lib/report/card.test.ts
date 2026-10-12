@@ -353,6 +353,49 @@ describe("the rows", () => {
     ]);
   });
 
+  it("trails with a trailhead list that didn't load: incomplete, the verdict held at Maybe (follow-up 53)", () => {
+    const r = ferney();
+    expect(reportCard(r, "zach")).toMatchObject({ grade: "B", verdict: "Contender" });
+    r.noResponse = ["state parks (vginmaps.vdem.virginia.gov)"];
+    // Graded on what did load, and marked.
+    expect(rowOf(r, "trails")).toMatchObject({
+      grade: "C",
+      detail:
+        "a trailhead 6.5 mi away in a straight line (Buffalo Mountain Trailhead); incomplete: VA state parks (VGIN) didn't load",
+      missing: "VA state parks (VGIN)",
+    });
+    const card = reportCard(r, "zach");
+    expect(card).toMatchObject({ grade: "B", verdict: "Maybe", incomplete: ["VA state parks (VGIN)"] });
+    expect(card.reason).toContain("(incomplete: VA state parks (VGIN) didn't load, run again).");
+
+    // Two lists: both named.
+    r.noResponse = ["USFS recreation sites", "state parks (services6.arcgis.com)"];
+    expect(rowOf(r, "trails").missing).toBe("USFS recreation sites and NC state parks (DPR)");
+
+    // Adjoining open public land is an A whatever the trailheads: not flagged.
+    r.protected = [{ ...r.protected![0]!, access: "OA", adjoins: true, distFt: null }];
+    expect(rowOf(r, "trails")).toMatchObject({ grade: "A" });
+    expect(rowOf(r, "trails").missing).toBeUndefined();
+
+    // What isn't a trailhead list leaves the row alone.
+    const s = ferney();
+    s.noResponse = ["OpenStreetMap roads"];
+    expect(rowOf(s, "trails").missing).toBeUndefined();
+
+    // OpenStreetMap's own search failing too (Photon, then Overpass): the near step fails and there's no \`near\`.
+    // The row isn't graded at all, and is incomplete; adjoining land doesn't change that (it's checked after).
+    const t = ferney();
+    delete t.near;
+    expect(rowOf(t, "trails")).toMatchObject({
+      grade: null,
+      detail: "the places didn't load",
+      missing: "the places",
+    });
+    expect(reportCard(t, "zach").verdict).toBe("Maybe");
+    t.protected = [{ ...t.protected![0]!, access: "OA", adjoins: true, distFt: null }];
+    expect(rowOf(t, "trails")).toMatchObject({ grade: null, missing: "the places" });
+  });
+
   it("Best homesite in plain words; the quality score is the panel's (owner, #110)", () => {
     const r = ferney();
     expect(rowOf(r, "homesite")).toMatchObject({

@@ -10,6 +10,7 @@ import { compass, fmt } from "../format";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { NEAREST_HOSPITAL, REAL_GROCERY, type DriveEntry } from "../screen/driveList";
 import { NO_PRACTICAL_ROUTE, existingSteepLine } from "../screen/score";
+import { trailheadSourceLabel } from "../screen/trailheads";
 import { isPrimeFarmland, soilAt, type SoilUnit } from "../screen/soils";
 import type { PartialScreenResult } from "../screen/types";
 import { M2FT, M2_PER_ACRE } from "../screen/util";
@@ -338,16 +339,23 @@ function room(r: Result, K: CardConfig, footprintAc: number): Row {
 }
 
 function trails(r: Result, K: CardConfig): Row {
-  const g = row("trails", "Trails and public land");
-  if (!r.protected) return notLoaded(g, "PAD-US");
-  if (!r.near) return notLoaded(g, "the places");
+  const g0 = row("trails", "Trails and public land");
+  if (!r.protected) return notLoaded(g0, "PAD-US");
+  if (!r.near) return notLoaded(g0, "the places");
   const open = r.protected.filter((p) => p.access === "OA");
   const adjoining = open.find((p) => p.adjoins);
   if (adjoining)
     return {
-      ...g("A", `adjoins open public land (${adjoining.name ?? "unnamed"})`),
+      ...g0("A", `adjoins open public land (${adjoining.name ?? "unnamed"})`),
       short: "adjoins public land",
     };
+  // An official trailhead list that didn't answer (follow-up 53): a nearer trailhead may be missing, so the row is
+  // incomplete, which holds the verdict at Maybe. Not when the parcel adjoins open public land: an A either way.
+  const unloaded = (r.noResponse ?? []).map(trailheadSourceLabel).filter((x): x is string => x !== null);
+  const g = (grade: Letter | null, detail: string): Row =>
+    unloaded.length
+      ? { ...g0(grade, `${detail}; incomplete: ${listOf(unloaded)} didn't load`), missing: listOf(unloaded) }
+      : g0(grade, detail);
   const head = [...r.near.trailheads].sort((a, b) => a.km - b.km)[0];
   const byHead = head ? atMost(head.km, K.rows.trailheadKm) : "F";
   const mile = open
