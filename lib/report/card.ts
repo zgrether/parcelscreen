@@ -341,14 +341,16 @@ function room(r: Result, K: CardConfig, footprintAc: number): Row {
 function trails(r: Result, K: CardConfig): Row {
   const g0 = row("trails", "Trails and public land");
   if (!r.protected) return notLoaded(g0, "PAD-US");
-  if (!r.near) return notLoaded(g0, "the places");
   const open = r.protected.filter((p) => p.access === "OA");
   const adjoining = open.find((p) => p.adjoins);
+  // Before the places: with PAD-US loaded, adjoining open land is an A whatever trailheads there are, so the places
+  // failing doesn't hold it back (owner, #122 review).
   if (adjoining)
     return {
       ...g0("A", `adjoins open public land (${adjoining.name ?? "unnamed"})`),
       short: "adjoins public land",
     };
+  if (!r.near) return notLoaded(g0, "the places");
   // An official trailhead list that didn't answer (follow-up 53): a nearer trailhead may be missing, so the row is
   // incomplete, which holds the verdict at Maybe. Not when the parcel adjoins open public land: an A either way.
   const unloaded = (r.noResponse ?? []).map(trailheadSourceLabel).filter((x): x is string => x !== null);

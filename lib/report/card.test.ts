@@ -381,9 +381,10 @@ describe("the rows", () => {
     const s = ferney();
     s.noResponse = ["OpenStreetMap roads"];
     expect(rowOf(s, "trails").missing).toBeUndefined();
+  });
 
-    // OpenStreetMap's own search failing too (Photon, then Overpass): the near step fails and there's no \`near\`.
-    // The row isn't graded at all, and is incomplete; adjoining land doesn't change that (it's checked after).
+  it("trails when the places failed (Photon, then Overpass): adjoining open land is still an A (#122 review)", () => {
+    // OpenStreetMap's own search failing too: the near step fails and there's no `near`. Ungraded and incomplete.
     const t = ferney();
     delete t.near;
     expect(rowOf(t, "trails")).toMatchObject({
@@ -392,8 +393,31 @@ describe("the rows", () => {
       missing: "the places",
     });
     expect(reportCard(t, "zach").verdict).toBe("Maybe");
-    t.protected = [{ ...t.protected![0]!, access: "OA", adjoins: true, distFt: null }];
-    expect(rowOf(t, "trails")).toMatchObject({ grade: null, missing: "the places" });
+
+    // Open land within a mile that doesn't adjoin: a trailhead might do better, so still not loaded, still Maybe.
+    const open = { ...t.protected![0]!, access: "OA" as const, adjoins: false, distFt: 2640 };
+    t.protected = [open];
+    expect(rowOf(t, "trails")).toMatchObject({
+      grade: null,
+      detail: "the places didn't load",
+      missing: "the places",
+    });
+    expect(reportCard(t, "zach").verdict).toBe("Maybe");
+
+    // Adjoining: PAD-US loaded, so the A is certain whatever trailheads there are. The existing sentence, not flagged.
+    t.protected = [{ ...open, adjoins: true, distFt: null }];
+    expect(rowOf(t, "trails")).toMatchObject({ grade: "A", short: "adjoins public land" });
+    expect(rowOf(t, "trails").detail).toMatch(/^adjoins open public land \(/);
+    expect(rowOf(t, "trails").missing).toBeUndefined();
+    expect(reportCard(t, "zach")).toMatchObject({ verdict: "Contender", incomplete: [] });
+
+    // PAD-US failed as well: nothing is certain, so the row didn't load.
+    delete t.protected;
+    expect(rowOf(t, "trails")).toMatchObject({
+      grade: null,
+      detail: "PAD-US didn't load",
+      missing: "PAD-US",
+    });
   });
 
   it("Best homesite in plain words; the quality score is the panel's (owner, #110)", () => {
