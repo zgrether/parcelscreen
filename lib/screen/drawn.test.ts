@@ -254,7 +254,7 @@ describe("a route from a drawn line's end: the line as an existing drive (owner,
   const opts = { maxGrade: 0.15, wGrade: 1, label: "x" };
   const route = (c: RouteContext) => routeManyFrom(c, [at(d, 70, 60)], [at(d, 20, 60)], opts, [0])[0]!.rt;
 
-  it("priced as an upgrade, in the route's cost: stone resurfacing, relief culverts by its grade", () => {
+  it("priced as an upgrade, in the route's cost: stone, relief culverts by its grade; no entrance of its own", () => {
     const rt = route(ctx);
     const bare = routeManyFrom(ctx, [at(d, 70, 60)], [at(d, 20, 60)], opts)[0]!.rt;
     const x = rt.existing!;
@@ -264,11 +264,14 @@ describe("a route from a drawn line's end: the line as an existing drive (owner,
     expect(x.avgGradePct).toBeCloseTo(6, 1);
     expect(x.pavedFt).toBe(0); // under 12%
     expect(x.outsideFt).toBe(0);
-    const W = K.benchWidthM;
-    expect(x.stoneTons).toBeCloseTo(W * K.drawn.resurfaceDepthM * (x.lengthFt / M2FT) * K.stoneTPerM3, 6);
     const dw = DEFAULT_USER_CONFIG.dw;
+    // The Settings' upgrade stone, 3 in by default (owner, #116), over the road's 12 ft.
+    expect(dw.upgradeStoneIn).toBe(3);
+    const W = K.benchWidthM;
+    expect(x.stoneTons).toBeCloseTo(W * 3 * 0.0254 * (x.lengthFt / M2FT) * K.stoneTPerM3, 6);
     expect(x.cost.mid).toBeCloseTo(x.stoneTons * dw.stonePerTon + x.reliefCulverts * dw.reliefCulvertEach, 6);
-    expect(rt.cost.mid).toBeCloseTo(bare.cost.mid + x.cost.mid, 6);
+    // In the route's cost, which has no entrance of its own (the drive's is shared); mobilization once.
+    expect(rt.cost.mid).toBeCloseTo(bare.cost.mid - dw.entrance + x.cost.mid, 6);
     expect(bare.existing).toBeNull();
   });
 

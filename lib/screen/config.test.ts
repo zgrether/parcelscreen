@@ -55,6 +55,7 @@ describe("config", () => {
           "mobilize": 2500,
           "reliefCulvertEach": 3500,
           "stonePerTon": 38,
+          "upgradeStoneIn": 3,
           "woodedPct": 100,
         },
         "endpoints": {
@@ -325,7 +326,6 @@ describe("config", () => {
           },
           "drawn": {
             "minGradedM": 30,
-            "resurfaceDepthM": 0.0508,
             "roadEndM": 30,
             "trackFactor": 1,
           },

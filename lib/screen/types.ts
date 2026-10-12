@@ -82,6 +82,8 @@ export const DrivewayCostsSchema = z.strictObject({
   fabricPerSf: num,
   culvertEach: num,
   reliefCulvertEach: num,
+  /** An existing drive's upgrade (follow-up 34, owner #116): the depth of stone laid over it, inches. */
+  upgradeStoneIn: num,
   entrance: num,
   erosion: num,
   mobilize: num,
@@ -383,9 +385,10 @@ const EntranceSchema = z.strictObject({
 
 /**
  * The existing drive a route starts from (v5, follow-up 34; owner, #116): the drawn line whose end is the route's
- * entrance, priced as an upgrade, not new construction (stone resurfacing, relief culverts by its grade, and the length
- * over driveway.paveAbovePct to pave, cost TBD until follow-up 47), and graded on its raw ground: over the grade limit
- * it takes the over-limit term, over the veto a warning, never a veto. Included in the route's `cost`.
+ * entrance, priced as an upgrade, not new construction (dw.upgradeStoneIn of stone, relief culverts by its grade, and
+ * the length over driveway.paveAbovePct to pave, cost TBD until follow-up 47), and graded on its raw ground: over the
+ * grade limit it takes the over-limit term, over the veto a warning, never a veto. Included in the route's `cost`,
+ * which then has no entrance of its own (the drive's is shared).
  */
 const ExistingDriveSchema = z.strictObject({
   /** Index into `lines`. */

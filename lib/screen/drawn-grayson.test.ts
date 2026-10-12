@@ -97,6 +97,10 @@ describe("the red-gate drive on Grayson 6273, drawn as an easement", () => {
       /^\d+ tons of stone resurfacing, \d+ relief culverts, ~\d+ ft over 12% to pave \(cost TBD\) · \$\d+–\d+k\. $/,
     );
     expect(upgrade.strong).toMatch(STEEP);
+    // No entrance of its own: the drive's is shared (owner, #116).
+    expect(fromE4.rows.find((row) => row.label === "Entrance")!.value).toBe(
+      "Shared entrance: confirm the neighbour's and the state's permission.",
+    );
     expect(fromE4.rows.find((row) => row.label === "Leaves the boundary")!.strong).toBe(
       "266 ft outside the line — needs an easement",
     );
@@ -112,7 +116,8 @@ describe("the red-gate drive on Grayson 6273, drawn as an easement", () => {
     expect(chosen.entranceIndex).not.toBe(drawn.entranceIndex);
     expect(drivewayPoints(chosen)).toBeLessThan(drivewayPoints(drawn));
 
-    // Were it scored (a gentler drive): both gates ask for it to be verified, appended to what they say.
+    // Were it scored: both gates ask for it to be verified, appended to what they say, and the Easement gate warns of
+    // the 41% drive, as for any route (owner, #116; Access stays about legal access).
     const d = result.driveway!;
     const asScored = d.routes.find((r) => r.entranceIndex === drawn.entranceIndex)!;
     const r: ScreenResult = { ...result, driveway: { ...d, routes: [asScored] } };
@@ -122,7 +127,8 @@ describe("the red-gate drive on Grayson 6273, drawn as an easement", () => {
     });
     expect(gate(r, "easement")).toMatchObject({
       status: "warn",
-      reason: "Easement (user-drawn): verify it's a legal right-of-way",
+      reason:
+        "Easement (user-drawn): verify it's a legal right-of-way; the existing drive is steeper than your limit (21% avg, 41% steepest over 30 m on raw ground; a built road grades out 1–4 points)",
     });
   });
 });

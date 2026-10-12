@@ -578,6 +578,7 @@ export interface DrawnSource {
 }
 
 type ExistingDrive = NonNullable<Route["existing"]>;
+const IN_TO_M = 0.0254;
 
 /** The mean grade of a profile's 3 m steps, percent: a route's avgGradePct, and a drawn line's. */
 export const meanGradePct = (prof: readonly (readonly [number, number])[]): number => {
@@ -589,14 +590,15 @@ export const meanGradePct = (prof: readonly (readonly [number, number])[]): numb
 
 /**
  * The drawn line a route starts from, as an existing drive to upgrade (owner, #116): a top course of stone over its
- * length, relief culverts by its grade, and the length over paveAbovePct to pave (cost TBD until follow-up 47), with
- * its grades on the raw ground and the grade limit they're judged against.
+ * length (the Settings' dw.upgradeStoneIn), relief culverts by its grade, and the length over paveAbovePct to pave
+ * (cost TBD until follow-up 47), with its grades on the raw ground and the limits they're judged against. No
+ * mobilization (once a driveway, in the route's own cost) and no entrance (the drive's is there).
  */
 export function existingDrive(ctx: RouteContext, line: number): ExistingDrive | null {
   const src = ctx.drawn?.sources[line];
   if (!src) return null;
   const prof = src.profile;
-  const stoneTons = K.benchWidthM * K.drawn.resurfaceDepthM * src.lengthM * K.stoneTPerM3;
+  const stoneTons = K.benchWidthM * ctx.dw.upgradeStoneIn * IN_TO_M * src.lengthM * K.stoneTPerM3;
   const relief = reliefCulverts(prof);
   const pavedM = overLimitSpans(prof, K.paveAbovePct / 100).reduce((t, [a, b]) => t + (b - a), 0);
   const mid = stoneTons * ctx.dw.stonePerTon + relief * ctx.dw.reliefCulvertEach;
@@ -853,11 +855,16 @@ export function routeManyFrom(
       sfhaFt: sfhaM * M2FT,
       drawnFt: drawnM * M2FT,
     };
+    // A drawn entrance (follow-up 34, owner #116): the line to it is an existing drive, priced as an upgrade and part of
+    // the route's cost; its stretch on neighbouring land outside the drawn easements counts towards the easement need.
+    // Its road end is an existing entrance, so the route has no entrance cost; mobilization stays, once a driveway.
+    const from = fromLines[path.source];
+    const existing = from != null ? existingDrive(ctx, from) : null;
     const u = ctx.dw;
     const wooded = Math.min(1, Math.max(0, (u.woodedPct || 100) / 100));
     const cost =
       u.mobilize +
-      u.entrance +
+      (existing ? 0 : u.entrance) +
       u.erosion +
       q.clearAc * wooded * u.clearPerAc +
       (q.earthYd - q.rockYd) * u.earthSoilPerYd +
@@ -867,10 +874,6 @@ export function routeManyFrom(
       q.culverts * u.culvertEach +
       reliefCulverts(prof) * u.reliefCulvertEach;
     const R = K.costRange;
-    // A drawn entrance (follow-up 34, owner #116): the line to it is an existing drive, priced as an upgrade and part of
-    // the route's cost; its stretch on neighbouring land outside the drawn easements counts towards the easement need.
-    const from = fromLines[path.source];
-    const existing = from != null ? existingDrive(ctx, from) : null;
     const rt: RawRoute = {
       line,
       profile: prof,

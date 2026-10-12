@@ -9,7 +9,7 @@
 import { compass, fmt } from "../format";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { NEAREST_HOSPITAL, REAL_GROCERY, type DriveEntry } from "../screen/driveList";
-import { NO_PRACTICAL_ROUTE } from "../screen/score";
+import { NO_PRACTICAL_ROUTE, existingSteepLine } from "../screen/score";
 import { isPrimeFarmland, soilAt, type SoilUnit } from "../screen/soils";
 import type { PartialScreenResult } from "../screen/types";
 import { M2FT, M2_PER_ACRE } from "../screen/util";
@@ -228,6 +228,8 @@ function easement(r: Result): Gate {
     ...routeLines(r, scored)
       .filter((l) => l.kind === "easement" && l.outsideFt > 0)
       .map((l) => `${LINE_LABEL[l.kind]}: ${VERIFY_RIGHT_OF_WAY}`),
+    // An existing drive it starts from, steeper than the veto (owner, #116): warned of here, as for any route.
+    existingSteepLine(scored.existing),
   ].filter((w): w is string => !!w);
   if (warns.length) return g("warn", warns.map((w, i) => (i ? lowerFirst(w) : w)).join("; "));
   return g("pass", "The driveway stays on the parcel");

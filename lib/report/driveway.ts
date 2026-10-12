@@ -144,7 +144,7 @@ function drawnRow(rt: Route, r: PartialScreenResult): FactRow | null {
 
 /**
  * The existing drive a route starts from, as its own line of the route's cost (owner, #116): an upgrade, not new
- * construction. Its paving has no rate until follow-up 47.
+ * construction. Its paving has no rate until follow-up 47. Its entrance is the drive's: shared, not priced.
  */
 function upgradeRow(rt: Route): FactRow | null {
   const x = rt.existing;
@@ -194,7 +194,11 @@ function routeView(
   const drawn = r ? drawnRow(rt, r) : null;
   if (drawn) rows.push(drawn);
   const upgrade = upgradeRow(rt);
-  if (upgrade) rows.push(upgrade);
+  if (upgrade)
+    rows.push(upgrade, {
+      label: "Entrance",
+      value: "Shared entrance: confirm the neighbour's and the state's permission.",
+    });
   if (rt.needsEasement)
     rows.push({
       label: "Leaves the boundary",

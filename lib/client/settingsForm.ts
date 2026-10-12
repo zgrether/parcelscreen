@@ -85,6 +85,8 @@ export const COST_FIELDS: readonly NumberField[] = [
   cost("fabricPerSf", "Geotextile $/sq ft", 0.05),
   cost("culvertEach", "Culvert, each"),
   cost("reliefCulvertEach", "Relief culvert (cross-drain), each"),
+  // Follow-up 34 (owner, #116): a drawn existing drive a route starts from is upgraded, not rebuilt.
+  cost("upgradeStoneIn", "Existing drive upgrade: stone, inches", 0.5),
   cost("entrance", "VDOT entrance"),
   cost("erosion", "Erosion control (flat)"),
   cost("mobilize", "Mobilization"),

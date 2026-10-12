@@ -62,7 +62,7 @@ export function panelText(
         title: "Easement needed",
         question: "Can the driveway stay on your own land?",
         howScored:
-          "Passes when the scored driveway stays on the parcel; warns when it needs an easement, or when no practical drive fits the budget; fails when no practical route is found. An easement you drew across neighbouring land that the driveway uses warns until it's verified as a legal right-of-way.",
+          "Passes when the scored driveway stays on the parcel; warns when it needs an easement, or when no practical drive fits the budget; fails when no practical route is found. An easement you drew across neighbouring land that the driveway uses warns until it's verified as a legal right-of-way, and so does an existing drive it starts from that's steeper than your veto.",
       };
     case "septic":
       return {

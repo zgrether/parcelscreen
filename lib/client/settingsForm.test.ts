@@ -54,8 +54,9 @@ describe("the defaults are the prototype's (owner, step 16)", () => {
     }
     // The prototype's costs, in its order, plus the relief culvert rate after the culvert's (owner, 2026-10-11).
     const protoDw = Object.keys(PROTO.dw);
+    // Added since: relief culverts' own rate (2026-10-11), and an existing drive's upgrade stone (follow-up 34, #116).
     const withRelief = (keys: string[]) =>
-      keys.flatMap((k) => (k === "culvertEach" ? [k, "reliefCulvertEach"] : [k]));
+      keys.flatMap((k) => (k === "culvertEach" ? [k, "reliefCulvertEach", "upgradeStoneIn"] : [k]));
     expect(Object.keys(DEFAULT_USER_CONFIG.dw)).toEqual(withRelief(protoDw));
     expect(DEFAULT_USER_CONFIG.dw.reliefCulvertEach).toBe(DEFAULT_USER_CONFIG.dw.culvertEach);
     for (const [k, v] of Object.entries(PROTO.dw)) {
@@ -109,7 +110,7 @@ describe("the defaults are the prototype's (owner, step 16)", () => {
     ]);
     expect(COST_FIELDS.map((f) => f.id)).toEqual(
       Object.keys(PROTO.dw)
-        .flatMap((k) => (k === "culvertEach" ? [k, "reliefCulvertEach"] : [k]))
+        .flatMap((k) => (k === "culvertEach" ? [k, "reliefCulvertEach", "upgradeStoneIn"] : [k]))
         .map((k) => `dw.${k}`),
     );
     // The ready-to-build budget (#99 decisions, owner 2026-10-11): the driveway's "no practical drive" rule reads it.
