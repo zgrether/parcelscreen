@@ -4,7 +4,7 @@ import { parseLatLon } from "@/lib/geo/coords";
 import { splitPieces } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
 import { combineParcels } from "@/lib/geo/combine";
-import { combineData, draftData, pieceLabels, selectionData, splitData } from "./overlays";
+import { combineData, draftData, markupData, pieceLabels, selectionData, splitData } from "./overlays";
 
 describe("map overlays", () => {
   it("draft: a line through the corners and a dot each, the first one larger and amber", () => {
@@ -142,5 +142,56 @@ describe("parseLatLon (proto L568)", () => {
     expect(parseLatLon("36,-81")).toEqual([36, -81]);
     expect(parseLatLon("36.6293")).toBeNull();
     expect(parseLatLon("Galax, VA")).toBeNull();
+  });
+});
+
+describe("drawn lines (follow-up 34)", () => {
+  it("one line feature per track or easement, with its kind for the style", () => {
+    const fc = markupData([
+      {
+        id: "a",
+        kind: "track",
+        line: [
+          [36.6, -81.5],
+          [36.61, -81.51],
+        ],
+        widthFt: null,
+        note: "",
+        at: "",
+      },
+      {
+        id: "b",
+        kind: "easement",
+        line: [
+          [36.62, -81.5],
+          [36.63, -81.5],
+        ],
+        widthFt: 30,
+        note: "deed",
+        at: "",
+      },
+    ]);
+    expect(fc.features.map((f) => [f.properties!.kind, f.geometry])).toEqual([
+      [
+        "track",
+        {
+          type: "LineString",
+          coordinates: [
+            [-81.5, 36.6],
+            [-81.51, 36.61],
+          ],
+        },
+      ],
+      [
+        "easement",
+        {
+          type: "LineString",
+          coordinates: [
+            [-81.5, 36.62],
+            [-81.5, 36.63],
+          ],
+        },
+      ],
+    ]);
   });
 });

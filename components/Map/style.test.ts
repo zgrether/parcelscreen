@@ -30,6 +30,9 @@ describe("map style", () => {
       LAYER.selLine,
       LAYER.leftFill,
       LAYER.leftLine,
+      LAYER.markupEasement, // follow-up 34: drawn lines over the parcel, under the results and tools
+      LAYER.markupTrackHalo,
+      LAYER.markupTrack,
       LAYER.fanHalo,
       LAYER.fanRay,
       LAYER.driveDirect,

@@ -7,10 +7,10 @@
  * The trash (built parcels only) asks inline before deleting. A tap refused because a built parcel is open
  * shows a brief note above the bar.
  */
-import { area, polygon } from "@turf/turf";
+import { area, length, lineString, polygon } from "@turf/turf";
 import { useState, type ReactNode } from "react";
 import { isBuilt } from "@/lib/client/parcelStore";
-import { M2_PER_ACRE } from "@/lib/geo/types";
+import { M2FT, M2_PER_ACRE } from "@/lib/geo/types";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 
@@ -151,6 +151,46 @@ function barBody(
       </>
     );
   }
+  if (mode === "track" || mode === "easement") {
+    // Follow-up 34: a line known from a deed, plat, survey or visit, kept with the parcel.
+    const n = draft.length;
+    const ft =
+      n >= 2 ? length(lineString(draft.map(([lat, lon]) => [lon, lat])), { units: "meters" }) * M2FT : 0;
+    return (
+      <>
+        <span className="tb-seg" role="group" aria-label="What the line is">
+          {(["track", "easement"] as const).map((k) => (
+            <button key={k} aria-pressed={mode === k} onClick={() => ctl.startLine(k)} disabled={n > 0}>
+              {k === "track" ? "Track" : "Easement"}
+            </button>
+          ))}
+        </span>
+        <Status>
+          {n === 0 ? (
+            mode === "track" ? (
+              "Tap along an existing drive or trail"
+            ) : (
+              "Tap along the easement or right-of-way"
+            )
+          ) : (
+            <>
+              <b>
+                {n} point{n > 1 ? "s" : ""}
+              </b>
+              {n >= 2 && <span className="sub"> · {Math.round(ft).toLocaleString()} ft</span>}
+            </>
+          )}
+        </Status>
+        <Btn kind="quiet" onClick={ctl.undoCorner} disabled={n === 0}>
+          Undo point
+        </Btn>
+        <Btn kind="go" onClick={ctl.finishLine} disabled={n < 2}>
+          Finish
+        </Btn>
+        {cancel}
+      </>
+    );
+  }
   if (mode === "house")
     return (
       <>
@@ -268,6 +308,12 @@ function barBody(
       >
         <HouseIcon />
         {open.house && <span className="tb-dot" />}
+      </Btn>
+      <Btn
+        onClick={() => ctl.startLine("track")}
+        title="Draw an existing track, or an easement or right-of-way, known from a deed, plat, survey or visit"
+      >
+        Line
       </Btn>
       <Sep />
       <Btn onClick={ctl.startSplit} disabled={!ctl.parcel}>

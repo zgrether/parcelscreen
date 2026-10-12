@@ -411,3 +411,99 @@ describe("import (16b)", () => {
     expect([t.serial, t.info, t.mode]).toEqual([s.serial, s.info, s.mode]);
   });
 });
+
+describe("drawn lines (follow-up 34)", () => {
+  const draw = (kind: "track" | "easement", pts: LatLon[]): ExploreAction[] => [
+    { type: "startLine", kind },
+    ...pts.map((ll): ExploreAction => ({ type: "draftAdd", ll })),
+    { type: "finishLine", id: `line-${kind}`, stamp: at() },
+  ];
+
+  it("a line needs a parcel open, and at least two different points", () => {
+    expect(run([{ type: "startLine", kind: "track" }]).mode).toBeNull();
+    const one = run([selectA(), ...draw("track", [[36.629, -81.354]])]);
+    expect(one.store.open!.markup).toEqual([]);
+    // A double-click to finish also taps twice: the repeat isn't a second point.
+    const twice = run([
+      selectA(),
+      ...draw("track", [
+        [36.629, -81.354],
+        [36.629, -81.354],
+      ]),
+    ]);
+    expect(twice.store.open!.markup).toEqual([]);
+  });
+
+  it("finishing keeps the line with the parcel, which makes it built; an easement gets the default width", () => {
+    const s = run([
+      selectA(),
+      ...draw("track", [
+        [36.629, -81.354],
+        [36.6295, -81.3535],
+        [36.6295, -81.3535],
+      ]),
+      ...draw("easement", [
+        [36.628, -81.356],
+        [36.6285, -81.3555],
+      ]),
+    ]);
+    expect(s.mode).toBeNull();
+    expect(s.draft).toEqual([]);
+    expect(s.store.open!.markup).toMatchObject([
+      {
+        id: "line-track",
+        kind: "track",
+        widthFt: null,
+        note: "",
+        line: [
+          [36.629, -81.354],
+          [36.6295, -81.3535],
+        ],
+      },
+      { id: "line-easement", kind: "easement", widthFt: 30 },
+    ]);
+    expect(s.store.open!.key).not.toBeNull();
+    expect(s.store.built).toHaveLength(1);
+  });
+
+  it("a note, a width and a removal; an edit after another parcel opened is dropped", () => {
+    const s = run([
+      selectA(),
+      ...draw("easement", [
+        [36.628, -81.356],
+        [36.6285, -81.3555],
+      ]),
+    ]);
+    const noted = exploreReducer(s, {
+      type: "markupNote",
+      id: "line-easement",
+      note: "Deed book 412, p. 88",
+      serial: s.serial,
+      stamp: at(),
+    });
+    const wide = exploreReducer(noted, {
+      type: "markupWidth",
+      id: "line-easement",
+      widthFt: 50,
+      serial: s.serial,
+      stamp: at(),
+    });
+    expect(wide.store.open!.markup[0]).toMatchObject({ note: "Deed book 412, p. 88", widthFt: 50 });
+    expect(
+      exploreReducer(wide, {
+        type: "markupNote",
+        id: "line-easement",
+        note: "late",
+        serial: s.serial - 1,
+        stamp: at(),
+      }),
+    ).toBe(wide);
+    const gone = exploreReducer(wide, {
+      type: "markupDelete",
+      id: "line-easement",
+      serial: s.serial,
+      stamp: at(),
+    });
+    expect(gone.store.open!.markup).toEqual([]);
+  });
+});

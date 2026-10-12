@@ -241,6 +241,7 @@ function fromPrototypeSaved(s: z.infer<typeof ProtoSavedSchema>, key: string, no
     notesAt: null,
     askingPrice: null,
     askingPriceAt: null,
+    markup: [],
     hidden: [],
     excluded: [],
     screenIds: [],

@@ -13,12 +13,21 @@ import type { Side } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
 import { parcelFromLine } from "@/lib/geo/parcels";
 import { LINES_MIN_ZOOM } from "@/lib/geo/parcelTiles";
+import { DRAWING } from "@/components/Explore/exploreState";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
 import { tipAt } from "./results/tooltip";
 import { installTiltRotate } from "./tiltRotate";
 import { useMap } from "./MapView";
-import { combineData, draftData, labelPoint, pieceLabels, selectionData, splitData } from "./overlays";
+import {
+  combineData,
+  draftData,
+  labelPoint,
+  markupData,
+  pieceLabels,
+  selectionData,
+  splitData,
+} from "./overlays";
 import { LAYER, SOURCE } from "./style";
 import { outlineAt, parcelServiceDown } from "./useParcelLines";
 
@@ -106,12 +115,14 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
           if (Math.hypot(p0.x - e.point.x, p0.y - e.point.y) < CLOSE_PX) return c.finishDraw();
         }
         c.addCorner(cornerAt(map, c, e));
-      }
+      } else if (mode === "track" || mode === "easement") c.addCorner(cornerAt(map, c, e)); // follow-up 34
     };
     const onDblClick = (e: MapMouseEvent) => {
-      if (ref.current.current().mode !== "draw") return;
+      const mode = ref.current.current().mode;
+      if (mode !== "draw" && mode !== "track" && mode !== "easement") return;
       e.preventDefault();
-      ref.current.finishDraw();
+      if (mode === "draw") ref.current.finishDraw();
+      else ref.current.finishLine();
     };
     const onKey = (e: KeyboardEvent) => {
       const c = ref.current,
@@ -124,6 +135,7 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
         c.cancelTool();
       }
       if (e.key === "Enter" && mode === "draw") c.finishDraw();
+      if (e.key === "Enter" && (mode === "track" || mode === "easement")) c.finishLine();
       if (e.key === "Enter" && mode === "combine" && c.combined?.ok) c.applyCombination();
     };
     map.on("click", onClick);
@@ -165,6 +177,12 @@ function useOverlays(map: MlMap | null, ctl: ExploreController) {
     if (!map) return;
     map.getSource<GeoJSONSource>(SOURCE.parcel)?.setData(parcel && !parcelHidden ? parcel.geo : EMPTY);
   }, [map, parcel, parcelHidden]);
+
+  // Follow-up 34: the open parcel's drawn tracks and easements.
+  const markup = open?.markup;
+  useEffect(() => {
+    map?.getSource<GeoJSONSource>(SOURCE.markup)?.setData(markupData(markup ?? []));
+  }, [map, markup]);
 
   useEffect(() => {
     if (!map) return;
@@ -389,7 +407,7 @@ function useSnapIndicator(map: MlMap | null, ctl: ExploreController) {
   useEffect(() => {
     ref.current = ctl;
   });
-  const drawing = ctl.state.mode === "draw" && !!ctl.state.store.open;
+  const drawing = DRAWING.includes(ctl.state.mode) && !!ctl.state.store.open;
 
   useEffect(() => {
     if (!map || !drawing) return;

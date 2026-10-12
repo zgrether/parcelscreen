@@ -13,6 +13,7 @@ import { StandHere } from "@/components/Map/results/StandHere";
 import { ResultTips } from "@/components/Map/results/ResultTips";
 import { SurfaceLayer } from "@/components/Map/results/SurfaceLayer";
 import { useFlatForTools } from "@/components/Map/useFlatForTools";
+import { DRAWING } from "./exploreState";
 import { Toolbar } from "@/components/Map/Toolbar";
 import type { UserConfig } from "@/lib/screen/types";
 import { Menu } from "./Menu";
@@ -37,7 +38,7 @@ export function MapArea({
   const { setMap, panelInset, map, state } = useExplore();
   // Draw, Combine and Split flatten the camera while they're open (13g).
   const { mode, split } = state;
-  useFlatForTools(map, mode === "draw" || mode === "split" || mode === "combine" || split !== null);
+  useFlatForTools(map, DRAWING.includes(mode) || mode === "split" || mode === "combine" || split !== null);
   return (
     <MapView
       lpAtlasTiles={config.endpoints.lpAtlasTiles}

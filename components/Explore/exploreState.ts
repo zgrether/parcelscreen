@@ -8,10 +8,12 @@ import { polygon } from "@turf/turf";
 import {
   closeOpen,
   commitOpen,
+  EASEMENT_WIDTH_FT,
   EMPTY_STORE,
   openBuilt,
   plainParcel,
   removeBuilt,
+  type Markup,
   type ParcelStore,
   type WorkingParcel,
 } from "@/lib/client/parcelStore";
@@ -22,7 +24,11 @@ import type { Side } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
 import type { LayerId } from "./layers";
 
-export type Mode = "draw" | "house" | "split" | "combine" | null;
+/** "track" and "easement" draw a line with the parcel (follow-up 34), with the Draw tool's corners. */
+export type Mode = "draw" | "house" | "split" | "combine" | "track" | "easement" | null;
+
+/** The modes that place corners on the map. */
+export const DRAWING: readonly Mode[] = ["draw", "track", "easement"];
 
 export interface SplitLine {
   a: LatLon;
@@ -120,6 +126,12 @@ export type ExploreAction =
   /** The Notes tab's text, for the parcel that was open when it was typed (`serial`). */
   | { type: "notes"; text: string; serial: number; stamp: Stamp }
   | { type: "askingPrice"; price: number | null; serial: number; stamp: Stamp }
+  /** Follow-up 34: start a drawn line, finish it (at least two points) into the open parcel, edit or delete one. */
+  | { type: "startLine"; kind: Markup["kind"] }
+  | { type: "finishLine"; id: string; stamp: Stamp }
+  | { type: "markupNote"; id: string; note: string; serial: number; stamp: Stamp }
+  | { type: "markupWidth"; id: string; widthFt: number; serial: number; stamp: Stamp }
+  | { type: "markupDelete"; id: string; serial: number; stamp: Stamp }
   /** A screen finished (or a house was re-assessed) for the parcel open when it started (`serial`). */
   | { type: "screened"; id: string; serial: number; stamp: Stamp };
 
@@ -278,6 +290,43 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
         ...s,
         store: save({ ...open, notes: a.text, notesAt: a.text.trim() ? a.stamp.now : null }, a.stamp),
       };
+    case "startLine":
+      // Only with a parcel open: a line belongs to one.
+      if (!open) return s;
+      return { ...s, draft: [], mode: a.kind, combine: null, split: null };
+    case "finishLine": {
+      if (!open || (s.mode !== "track" && s.mode !== "easement")) return s;
+      if (new Set(s.draft.map(roundLL).map((p) => p.join())).size < 2) return s;
+      const line: Markup = {
+        id: a.id,
+        kind: s.mode,
+        // A double-click to finish also taps twice: repeated points are dropped.
+        line: s.draft
+          .map(roundLL)
+          .filter((p, i, all) => i === 0 || p[0] !== all[i - 1]![0] || p[1] !== all[i - 1]![1]),
+        widthFt: s.mode === "easement" ? EASEMENT_WIDTH_FT : null,
+        note: "",
+        at: a.stamp.now,
+      };
+      return { ...s, ...NO_TOOL, store: save({ ...open, markup: [...open.markup, line] }, a.stamp) };
+    }
+    case "markupNote":
+    case "markupWidth":
+    case "markupDelete": {
+      // As notes: an edit after another parcel opened is dropped.
+      if (!open || a.serial !== s.serial || !open.markup.some((m) => m.id === a.id)) return s;
+      const markup =
+        a.type === "markupDelete"
+          ? open.markup.filter((m) => m.id !== a.id)
+          : open.markup.map((m) =>
+              m.id !== a.id
+                ? m
+                : a.type === "markupNote"
+                  ? { ...m, note: a.note }
+                  : { ...m, widthFt: a.widthFt },
+            );
+      return { ...s, store: save({ ...open, markup }, a.stamp) };
+    }
     case "askingPrice":
       // As notes: a save after another parcel opened is dropped. The date is the entry's (owner, #101).
       if (!open || a.serial !== s.serial || a.price === open.askingPrice) return s;

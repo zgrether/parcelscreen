@@ -129,6 +129,9 @@ export const LAYER = {
   combineResult: "combine-result",
   draftLine: "draft-line",
   draftPoints: "draft-points",
+  markupEasement: "markup-easement",
+  markupTrackHalo: "markup-track-halo",
+  markupTrack: "markup-track",
 } as const;
 
 export const SOURCE = {
@@ -144,6 +147,7 @@ export const SOURCE = {
   split: "split",
   combine: "combine",
   draft: "draft",
+  markup: "markup",
 } as const;
 
 const EMPTY_FC = { type: "FeatureCollection" as const, features: [] };
@@ -340,6 +344,35 @@ export function buildStyle(opts: {
       source: SOURCE.sel,
       filter: selKind("left"),
       paint: { "line-color": "#ffffff", "line-width": 1.5, "line-dasharray": [3, 2] },
+    },
+  );
+  // Follow-up 34: the parcel's drawn lines, over the parcel and under the tools. An easement is a wide translucent
+  // band (its width is a note, not drawn to scale); a track, a dashed brown line on a light casing, to read on the aerials.
+  sources[SOURCE.markup] = { type: "geojson", data: EMPTY_FC };
+  layers.push(
+    {
+      id: LAYER.markupEasement,
+      type: "line",
+      source: SOURCE.markup,
+      filter: ["==", ["get", "kind"], "easement"],
+      layout: { "line-cap": "round", "line-join": "round" },
+      paint: { "line-color": "#7a4fb0", "line-opacity": 0.35, "line-width": 10 },
+    },
+    {
+      id: LAYER.markupTrackHalo,
+      type: "line",
+      source: SOURCE.markup,
+      filter: ["==", ["get", "kind"], "track"],
+      layout: { "line-cap": "round", "line-join": "round" },
+      paint: { "line-color": "#fff4e0", "line-opacity": 0.85, "line-width": 6 },
+    },
+    {
+      id: LAYER.markupTrack,
+      type: "line",
+      source: SOURCE.markup,
+      filter: ["==", ["get", "kind"], "track"],
+      layout: { "line-cap": "round", "line-join": "round" },
+      paint: { "line-color": "#8a5a2b", "line-width": 3, "line-dasharray": [2, 1.5] },
     },
   );
   // Step 15b: the horizon fan over the parcel outline (proto drawHorizon, L1236–1242): a dark halo under

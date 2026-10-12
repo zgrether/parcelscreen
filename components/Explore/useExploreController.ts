@@ -20,7 +20,7 @@ import {
 import { browserHttp } from "@/lib/client/http";
 import { parcelName } from "@/lib/client/historyRows";
 import { clearUnreadableScreens } from "@/lib/client/screenStore";
-import { loadParcelStore, recipeOf, type WorkingParcel } from "@/lib/client/parcelStore";
+import { loadParcelStore, recipeOf, type Markup, type WorkingParcel } from "@/lib/client/parcelStore";
 import { getPref, setPref } from "@/lib/client/prefs";
 import { CancelledError } from "@/lib/http";
 import { unreachableMessage } from "@/lib/client/pwa";
@@ -37,6 +37,7 @@ import {
   decideTap,
   exploreReducer,
   INITIAL,
+  DRAWING,
   NO_PARCEL_HERE,
   type ExploreAction,
   type ExploreState,
@@ -120,6 +121,12 @@ export interface ExploreController {
   /** Esc or Cancel: whatever tool is in progress stops, nothing changes. */
   cancelTool(): void;
   finishDraw(): void;
+  /** Follow-up 34: draw a track or an easement with the open parcel; Finish (Enter, double-click) keeps it. */
+  startLine(kind: Markup["kind"]): void;
+  finishLine(): void;
+  saveMarkupNote(id: string, note: string, serial: number): void;
+  saveMarkupWidth(id: string, widthFt: number, serial: number): void;
+  deleteMarkup(id: string, serial: number): void;
   startSplit(): void;
   /** A tap while splitting: the line's two ends, then the piece to keep. */
   splitTap(ll: LatLon): void;
@@ -418,7 +425,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     cancelTool() {
       const m = latest.current.mode;
-      if (m === "draw") dispatch({ type: "draftCancel" });
+      if (DRAWING.includes(m)) dispatch({ type: "draftCancel" });
       else if (m === "split" || (!m && latest.current.split)) dispatch({ type: "splitCancel" });
       else if (m === "combine") dispatch({ type: "combineCancel" });
       else if (m) dispatch({ type: "mode", mode: null });
@@ -428,6 +435,24 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       if (latest.current.draft.length < 3) return hint("Need at least three corners");
       dispatch({ type: "finishDraw", stamp: stamp() });
       hint("");
+    },
+    startLine(kind) {
+      dispatch({ type: "startLine", kind });
+      hint("");
+    },
+    finishLine() {
+      if (latest.current.draft.length < 2) return hint("Need at least two points");
+      dispatch({ type: "finishLine", id: crypto.randomUUID(), stamp: stamp() });
+      hint("");
+    },
+    saveMarkupNote(id, note, serial) {
+      dispatch({ type: "markupNote", id, note, serial, stamp: stamp() });
+    },
+    saveMarkupWidth(id, widthFt, serial) {
+      dispatch({ type: "markupWidth", id, widthFt, serial, stamp: stamp() });
+    },
+    deleteMarkup(id, serial) {
+      dispatch({ type: "markupDelete", id, serial, stamp: stamp() });
     },
     startSplit() {
       dispatch({ type: "startSplit" });
