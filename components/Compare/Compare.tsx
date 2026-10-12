@@ -4,7 +4,8 @@
  * collapsible groups. The first column stays put while the parcels scroll sideways (on a phone). A cell holds a value
  * and a mark; a tap opens that line's slide-in panel for that parcel (the sheet's own, §6.2): a side panel on desktop,
  * a bottom sheet on a phone. The weight switch in the header is the sheet's (ps.person): it changes the grade and the
- * verdict, nothing else. Columns are added from History and removed here, remembered per browser (ps.compare).
+ * verdict, nothing else. The table starts with up to four parcels, the Contenders first, then the most recently screened
+ * (owner, #117 review); once columns are added or removed here, that choice is remembered per browser (ps.compare).
  */
 import { bbox } from "@turf/turf";
 import { useEffect, useMemo, useState } from "react";
@@ -19,7 +20,7 @@ import { loadUserConfig } from "@/lib/client/userConfig";
 import { deriveParcel } from "@/lib/geo/recipe";
 import type { Person } from "@/lib/report/card";
 import type { PanelKey } from "@/lib/report/cardPanels";
-import { compareTable, type Cell, type CompareParcel } from "@/lib/report/compare";
+import { compareTable, defaultColumns, type Cell, type CompareParcel } from "@/lib/report/compare";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 
 const PEOPLE: { key: Person; name: string }[] = [
@@ -77,16 +78,14 @@ function openOnMap(p: WorkingParcel): void {
 
 export function Compare() {
   const built = useMemo(() => getPref("ps.parcels")?.built ?? [], []);
-  const [chosen, setChosen] = useState<string[]>(() => {
+  // The user's columns, once picked (remembered per browser); null until then: the default (defaultColumns).
+  const [picked, setPicked] = useState<string[] | null>(() => {
     const kept = getPref("ps.compare");
     const keys = new Set(built.map((b) => b.key!));
-    // Until changed, every History parcel, newest first.
-    return kept
-      ? kept.filter((k) => keys.has(k))
-      : [...built].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).map((b) => b.key!);
+    return kept ? kept.filter((k) => keys.has(k)) : null;
   });
   const choose = (keys: string[]) => {
-    setChosen(keys);
+    setPicked(keys);
     setPref("ps.compare", keys);
   };
   const [person, setPersonState] = useState<Person>(() => getPref("ps.person"));
@@ -98,12 +97,9 @@ export function Compare() {
   const [closed, setClosed] = useState<ReadonlySet<string>>(new Set());
   const [panel, setPanel] = useState<{ col: number; key: PanelKey } | null>(null);
 
-  const columns = useMemo(
-    () => chosen.map((k) => built.find((b) => b.key === k)).filter((b): b is WorkingParcel => !!b),
-    [chosen, built],
-  );
-  const screens = useScreens(columns);
-  const parcels: CompareParcel[] = columns.map((b) => {
+  // Every History parcel's latest screen: the default columns need their verdicts and dates.
+  const screens = useScreens(built);
+  const all: CompareParcel[] = built.map((b) => {
     const { name, acres } = parcelName(b);
     const s = screens.get(b.key!);
     return {
@@ -115,6 +111,10 @@ export function Compare() {
       result: s?.result ?? null,
     };
   });
+  const loaded = screens.size === built.length;
+  const chosen = picked ?? (loaded ? defaultColumns(all, person) : []);
+  const columns = chosen.map((k) => built.find((b) => b.key === k)).filter((b): b is WorkingParcel => !!b);
+  const parcels = columns.map((b) => all.find((p) => p.key === b.key)!);
   const table = compareTable(parcels, person, config.budget.readyToBuild);
   const addable = built.filter((b) => !chosen.includes(b.key!));
   const opened = panel ? parcels[panel.col] : null;

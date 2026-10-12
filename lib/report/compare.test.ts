@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 import { expectedOf } from "@/test/support/expected";
 import { reportCard } from "./card";
-import { compareTable, type CompareParcel } from "./compare";
+import { DEFAULT_COLUMNS, compareTable, defaultColumns, type CompareParcel } from "./compare";
 
 const parcel = (
   slug: "ferney-creek-52-47A" | "macks-mountain-35-3" | "grayson-mud-creek-6273",
@@ -128,5 +128,36 @@ describe("the comparison table (VR6)", () => {
       300_000,
     );
     expect(never.head.cells[0]!.text).toBe("not screened");
+  });
+});
+
+describe("the columns the table starts with (owner, #117 review)", () => {
+  /** A fixture's run, screened at `runAt`, with its verdict forced (the card reads the flags' and gates' inputs). */
+  const at = (slug: Parameters<typeof parcel>[0], key: string, runAt: string): CompareParcel => {
+    const p = parcel(slug);
+    return { ...p, key, result: { ...p.result!, runAt } };
+  };
+
+  it("up to four, the Contenders first, then the most recently screened; never-screened last", () => {
+    const ps: CompareParcel[] = [
+      at("ferney-creek-52-47A", "f-old", "2026-10-01T00:00:00Z"),
+      at("macks-mountain-35-3", "m-new", "2026-10-11T00:00:00Z"),
+      at("grayson-mud-creek-6273", "g-mid", "2026-10-05T00:00:00Z"),
+      { ...parcel("ferney-creek-52-47A"), key: "never", state: "none", result: null },
+      at("ferney-creek-52-47A", "f-new", "2026-10-12T00:00:00Z"),
+    ];
+    const verdict = (p: CompareParcel) => (p.result ? reportCard(p.result, "zach").verdict : null);
+    const got = defaultColumns(ps, "zach");
+    expect(got).toHaveLength(DEFAULT_COLUMNS);
+    expect(got).not.toContain("never");
+    const byKey = new Map(ps.map((p) => [p.key, p]));
+    const contenders = got.filter((k) => verdict(byKey.get(k)!) === "Contender");
+    // The Contenders lead, newest first; then the rest, newest first.
+    expect(got.slice(0, contenders.length)).toEqual(contenders);
+    const dates = (ks: string[]) => ks.map((k) => byKey.get(k)!.result!.runAt);
+    const sortedDesc = (xs: string[]) => [...xs].sort().reverse();
+    expect(dates(contenders)).toEqual(sortedDesc(dates(contenders)));
+    const rest = got.slice(contenders.length);
+    expect(dates(rest)).toEqual(sortedDesc(dates(rest)));
   });
 });

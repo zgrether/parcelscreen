@@ -183,3 +183,20 @@ export function compareTable(
     ],
   };
 }
+
+/** How many columns the table starts with (owner, #117 review). */
+export const DEFAULT_COLUMNS = 4;
+
+/**
+ * The columns the table starts with, until the user picks (owner, #117 review): up to DEFAULT_COLUMNS, the
+ * Contenders first (in `person`'s weights), then the most recently screened; never-screened parcels last.
+ */
+export function defaultColumns(parcels: readonly CompareParcel[], person: Person): string[] {
+  const contender = (p: CompareParcel) =>
+    p.state === "ok" && !!p.result && reportCard(p.result, person).verdict === "Contender";
+  const screenedAt = (p: CompareParcel) => (p.state === "ok" && p.result ? p.result.runAt : "");
+  return [...parcels]
+    .sort((a, b) => Number(contender(b)) - Number(contender(a)) || screenedAt(b).localeCompare(screenedAt(a)))
+    .slice(0, DEFAULT_COLUMNS)
+    .map((p) => p.key);
+}
