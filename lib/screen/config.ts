@@ -138,6 +138,15 @@ const ASPECT_CURVE: Curve = [
   [180, 40],
 ];
 
+const KM_PER_MI = 1.609344;
+/**
+ * The Trails row's cutoffs, A to D (owner, #118 review: round miles; stored in km, shown as whole miles). The
+ * trailhead search reaches the last of them (near.trailheadKm), so a D can be found: it searched 20 km while D went
+ * to 35, so a trailhead between 12 and 22 mi scored F.
+ */
+const TRAILHEAD_MI = [3, 6, 12, 22] as const;
+const TRAILHEAD_KM = TRAILHEAD_MI.map((mi) => mi * KM_PER_MI);
+
 export const SCREEN_CONSTANTS = deepFreeze({
   dem: {
     fineBufferKm: 0.15, // L1011
@@ -268,7 +277,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
   near: {
     hospitalKm: 60, // L1114
     groceryKm: 40,
-    trailheadKm: 20,
+    // The search radius: the Trails row's last cutoff, rounded up (#118 review). Was 20 km.
+    trailheadKm: Math.ceil(TRAILHEAD_KM[TRAILHEAD_KM.length - 1]!),
     photonLimit: 40, // L876
     photonTimeoutMs: 15_000,
     overpassTimeoutMs: 25_000, // per mirror (was 20 s)
@@ -503,7 +513,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
       elevationFt: [3000, 2500, 2000, 1500],
       skyMag: [21.5, 21.2, 20.9, 20.5],
       roomX: [3, 2, 1.25, 1], // gentle ground over the whole footprint; under 1× doesn't fit
-      trailheadKm: [5, 10, 20, 35], // straight line until follow-up 39 adds drive times
+      trailheadKm: TRAILHEAD_KM, // 3 / 6 / 12 / 22 mi, straight line until follow-up 39 adds drive times
       openLandWithinFt: 5280, // open public land within a mile is a B
       erMin: [20, 30, 45, 60],
       groceryMin: [10, 20, 30, 45],

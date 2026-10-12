@@ -321,7 +321,36 @@ describe("the rows", () => {
     r.near!.trailheads = [];
     expect(rowOf(r, "trails").grade).toBe("A");
     r.protected = [];
-    expect(rowOf(r, "trails")).toMatchObject({ grade: "F", detail: "no trailhead found within 12.4 mi" });
+    expect(rowOf(r, "trails")).toMatchObject({ grade: "F", detail: "no trailhead found within 22.4 mi" });
+  });
+
+  it("trails by the nearest trailhead: 3 / 6 / 12 / 22 mi (#118 review); a D between 12 and 22 mi is now found", () => {
+    const r = ferney();
+    r.protected = [];
+    const MI = 1.609344;
+    const at = (mi: number) => {
+      r.near!.trailheads = [{ ...r.near!.trailheads[0]!, km: mi * MI }];
+      return rowOf(r, "trails").grade;
+    };
+    expect([2.9, 3, 5.9, 6, 11.9, 12, 15, 21.9, 22].map(at)).toEqual([
+      "A",
+      "A",
+      "B",
+      "B",
+      "C",
+      "C",
+      "D",
+      "D",
+      "D",
+    ]);
+    expect(at(22.1)).toBe("F");
+    // The search reaches the last cutoff, so a trailhead D grades can be found (it searched 20 km, 12.4 mi).
+    expect(SCREEN_CONSTANTS.near.trailheadKm).toBeGreaterThanOrEqual(
+      SCREEN_CONSTANTS.card.rows.trailheadKm.at(-1)!,
+    );
+    expect(SCREEN_CONSTANTS.card.rows.trailheadKm.map((km) => Math.round((km / MI) * 1e9) / 1e9)).toEqual([
+      3, 6, 12, 22,
+    ]);
   });
 
   it("Best homesite in plain words; the quality score is the panel's (owner, #110)", () => {
@@ -401,7 +430,7 @@ describe("config and weights", () => {
     expect([zach.verdict, julie.verdict]).toEqual(["Maybe", "Pass"]);
     // Trails and the garden are both F; the reason names the one this person weighs more (Julie: trails 25).
     expect(julie.reason).toBe(
-      "Pass. Weakest part: trails and public land (F, no trailhead found within 12.4 mi).",
+      "Pass. Weakest part: trails and public land (F, no trailhead found within 22.4 mi).",
     );
     expect(zach.gates).toEqual(julie.gates);
     expect(zach.rows).toEqual(julie.rows);

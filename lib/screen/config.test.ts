@@ -235,10 +235,10 @@ describe("config", () => {
               20.5,
             ],
             "trailheadKm": [
-              5,
-              10,
-              20,
-              35,
+              4.828032,
+              9.656064,
+              19.312128,
+              35.405568,
             ],
           },
           "verdict": {
@@ -452,7 +452,7 @@ describe("config", () => {
           "photonLimit": 40,
           "photonTimeoutMs": 15000,
           "trailheadDedupeM": 300,
-          "trailheadKm": 20,
+          "trailheadKm": 36,
         },
         "osmRoads": {
           "highways": [

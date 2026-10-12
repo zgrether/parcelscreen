@@ -1915,9 +1915,63 @@
      ],
      "km": 10.40258247406278,
      "source": "osm"
+    },
+    {
+     "name": "Claytor Lake State Park",
+     "ll": [
+      37.0571814551906,
+      -80.62026620568383
+     ],
+     "km": 24.017838686521923,
+     "source": "state"
+    },
+    {
+     "name": "Fairystone State Park",
+     "ll": [
+      36.79256091872532,
+      -80.11675955412751
+     ],
+     "km": 31.760838031893016,
+     "source": "state"
+    },
+    {
+     "name": "Heritage Park",
+     "ll": [
+      37.0441901,
+      -80.7619609
+     ],
+     "km": 32.49362784479305,
+     "source": "osm"
+    },
+    {
+     "name": "Cool Springs",
+     "ll": [
+      37.0439713,
+      -80.765408
+     ],
+     "km": 32.73939122549411,
+     "source": "osm"
+    },
+    {
+     "name": "Dora Highway Park",
+     "ll": [
+      37.0455888,
+      -80.7793751
+     ],
+     "km": 33.88900085294573,
+     "source": "osm"
+    },
+    {
+     "name": "New River Trail State Park",
+     "ll": [
+      36.88378269273087,
+      -80.85291403666032
+     ],
+     "km": 35.52353727193755,
+     "source": "state"
     }
    ],
-   "trailheadCount": 1
+   "trailheadCount": 7
   },
   "drives": [
    {
@@ -3080,7 +3134,7 @@
    }
   },
   "schemaVersion": 5,
-  "engine": 15,
+  "engine": 16,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -5002,9 +5056,63 @@
      ],
      "km": 10.40258247406278,
      "source": "osm"
+    },
+    {
+     "name": "Claytor Lake State Park",
+     "ll": [
+      37.0571814551906,
+      -80.62026620568383
+     ],
+     "km": 24.017838686521923,
+     "source": "state"
+    },
+    {
+     "name": "Fairystone State Park",
+     "ll": [
+      36.79256091872532,
+      -80.11675955412751
+     ],
+     "km": 31.760838031893016,
+     "source": "state"
+    },
+    {
+     "name": "Heritage Park",
+     "ll": [
+      37.0441901,
+      -80.7619609
+     ],
+     "km": 32.49362784479305,
+     "source": "osm"
+    },
+    {
+     "name": "Cool Springs",
+     "ll": [
+      37.0439713,
+      -80.765408
+     ],
+     "km": 32.73939122549411,
+     "source": "osm"
+    },
+    {
+     "name": "Dora Highway Park",
+     "ll": [
+      37.0455888,
+      -80.7793751
+     ],
+     "km": 33.88900085294573,
+     "source": "osm"
+    },
+    {
+     "name": "New River Trail State Park",
+     "ll": [
+      36.88378269273087,
+      -80.85291403666032
+     ],
+     "km": 35.52353727193755,
+     "source": "state"
     }
    ],
-   "trailheadCount": 1
+   "trailheadCount": 7
   },
   "drives": [
    {
@@ -7643,7 +7751,7 @@
    }
   },
   "schemaVersion": 5,
-  "engine": 15,
+  "engine": 16,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -9618,9 +9726,63 @@
      ],
      "km": 10.40258247406278,
      "source": "osm"
+    },
+    {
+     "name": "Claytor Lake State Park",
+     "ll": [
+      37.0571814551906,
+      -80.62026620568383
+     ],
+     "km": 24.017838686521923,
+     "source": "state"
+    },
+    {
+     "name": "Fairystone State Park",
+     "ll": [
+      36.79256091872532,
+      -80.11675955412751
+     ],
+     "km": 31.760838031893016,
+     "source": "state"
+    },
+    {
+     "name": "Heritage Park",
+     "ll": [
+      37.0441901,
+      -80.7619609
+     ],
+     "km": 32.49362784479305,
+     "source": "osm"
+    },
+    {
+     "name": "Cool Springs",
+     "ll": [
+      37.0439713,
+      -80.765408
+     ],
+     "km": 32.73939122549411,
+     "source": "osm"
+    },
+    {
+     "name": "Dora Highway Park",
+     "ll": [
+      37.0455888,
+      -80.7793751
+     ],
+     "km": 33.88900085294573,
+     "source": "osm"
+    },
+    {
+     "name": "New River Trail State Park",
+     "ll": [
+      36.88378269273087,
+      -80.85291403666032
+     ],
+     "km": 35.52353727193755,
+     "source": "state"
     }
    ],
-   "trailheadCount": 1
+   "trailheadCount": 7
   },
   "drives": [
    {
@@ -12312,7 +12474,7 @@
    }
   },
   "schemaVersion": 5,
-  "engine": 15,
+  "engine": 16,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,

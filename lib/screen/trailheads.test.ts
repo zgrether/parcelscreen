@@ -80,16 +80,16 @@ describe("the official sources", () => {
     return { http, asked };
   };
 
-  it("asks USFS for its trailheads and each state for its parks, within 20 km, for the name field only", async () => {
+  it("asks USFS for its trailheads and each state for its parks, within 36 km (22 mi, the Trails row's last cutoff), for the name field only", async () => {
     const q = layers();
     const pts = await officialTrailheads(ELK, { http: q.http, endpoints: DEFAULT_ENDPOINTS });
     expect(
       q.asked.map((a) => [a.host, a.body.get("outFields"), a.body.get("where"), a.body.get("distance")]),
     ).toEqual([
-      ["apps.fs.usda.gov", "site_name", "site_subtype='TRAILHEAD'", "20000"],
-      ["vginmaps.vdem.virginia.gov", "LandmkName", "PlaceType='State Park Points'", "20000"],
-      ["services6.arcgis.com", "FullName", "1=1", "20000"],
-      ["services5.arcgis.com", "PARK_NAME", "1=1", "20000"], // never the layer's staff contact fields
+      ["apps.fs.usda.gov", "site_name", "site_subtype='TRAILHEAD'", "36000"],
+      ["vginmaps.vdem.virginia.gov", "LandmkName", "PlaceType='State Park Points'", "36000"],
+      ["services6.arcgis.com", "FullName", "1=1", "36000"],
+      ["services5.arcgis.com", "PARK_NAME", "1=1", "36000"], // never the layer's staff contact fields
     ]);
     expect(pts.map((x) => x.source)).toEqual(["usfs", "state", "state", "state"]);
     expect(pts[0]!.name).toBe("Apps.Fs.Usda.Gov"); // shouted names read in title case

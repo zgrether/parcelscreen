@@ -3905,9 +3905,36 @@
      ],
      "km": 19.05310169893537,
      "source": "osm"
+    },
+    {
+     "name": "Buffalo Mountain Trailhead",
+     "ll": [
+      36.7941894,
+      -80.4665278
+     ],
+     "km": 20.390449565954164,
+     "source": "osm"
+    },
+    {
+     "name": "New River Trail State Park",
+     "ll": [
+      36.88378269273087,
+      -80.85291403666032
+     ],
+     "km": 20.895295313709084,
+     "source": "state"
+    },
+    {
+     "name": "Shot Tower State Park",
+     "ll": [
+      36.87019600396373,
+      -80.87029423371592
+     ],
+     "km": 22.77707658298025,
+     "source": "state"
     }
    ],
-   "trailheadCount": 4
+   "trailheadCount": 7
   },
   "road": {
    "name": "unnamed road",
@@ -6068,7 +6095,7 @@
    }
   },
   "schemaVersion": 5,
-  "engine": 15,
+  "engine": 16,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -9980,9 +10007,36 @@
      ],
      "km": 19.05310169893537,
      "source": "osm"
+    },
+    {
+     "name": "Buffalo Mountain Trailhead",
+     "ll": [
+      36.7941894,
+      -80.4665278
+     ],
+     "km": 20.390449565954164,
+     "source": "osm"
+    },
+    {
+     "name": "New River Trail State Park",
+     "ll": [
+      36.88378269273087,
+      -80.85291403666032
+     ],
+     "km": 20.895295313709084,
+     "source": "state"
+    },
+    {
+     "name": "Shot Tower State Park",
+     "ll": [
+      36.87019600396373,
+      -80.87029423371592
+     ],
+     "km": 22.77707658298025,
+     "source": "state"
     }
    ],
-   "trailheadCount": 4
+   "trailheadCount": 7
   },
   "road": {
    "name": "unnamed road",
@@ -12163,7 +12217,7 @@
    }
   },
   "schemaVersion": 5,
-  "engine": 15,
+  "engine": 16,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
