@@ -26,12 +26,33 @@ export interface TrailheadPoint {
   source: TrailheadSource;
 }
 
-/** Each state's park layer: its name field and, where the layer holds more than parks, the filter. */
-const STATE_PARKS: Readonly<Record<string, { name: string; where?: string }>> = {
-  "vginmaps.vdem.virginia.gov": { name: "LandmkName", where: "PlaceType='State Park Points'" },
-  "services6.arcgis.com": { name: "FullName" }, // NC DPR
-  "services5.arcgis.com": { name: "PARK_NAME" }, // TN TDEC
+/**
+ * Each state's park layer: its name field and, where the layer holds more than parks, the filter; and what the report
+ * calls it when it doesn't answer (follow-up 53).
+ */
+const STATE_PARKS: Readonly<Record<string, { name: string; where?: string; label: string }>> = {
+  "vginmaps.vdem.virginia.gov": {
+    name: "LandmkName",
+    where: "PlaceType='State Park Points'",
+    label: "VA state parks (VGIN)",
+  },
+  "services6.arcgis.com": { name: "FullName", label: "NC state parks (DPR)" },
+  "services5.arcgis.com": { name: "PARK_NAME", label: "TN state parks (TDEC)" },
 };
+
+const USFS = "USFS recreation sites";
+const STATE_PREFIX = "state parks (";
+
+/**
+ * An official trailhead list that didn't answer, as `unanswered` (a result's `noResponse`) names it, in the report's
+ * words: "VA state parks (VGIN)" for "state parks (vginmaps.vdem.virginia.gov)". Null for what isn't a trailhead list.
+ */
+export function trailheadSourceLabel(unanswered: string): string | null {
+  if (unanswered === USFS) return USFS;
+  if (!unanswered.startsWith(STATE_PREFIX) || !unanswered.endsWith(")")) return null;
+  const host = unanswered.slice(STATE_PREFIX.length, -1);
+  return STATE_PARKS[host]?.label ?? `state parks (${host})`;
+}
 
 /**
  * Name in title case when a source shouts it (USFS: "ELK GARDEN A.T."), else as given. "AT" keeps its capitals:
@@ -126,7 +147,7 @@ export async function officialTrailheads(
   deps: { http: HttpClient; endpoints: Endpoints; signal?: AbortSignal },
   unanswered: string[] = [],
 ): Promise<TrailheadPoint[]> {
-  const names = ["USFS recreation sites"];
+  const names = [USFS];
   const asked: Promise<TrailheadPoint[]>[] = [
     pointsNear(
       deps.endpoints.usfsRecSites,
@@ -137,7 +158,7 @@ export async function officialTrailheads(
     ).then((ps) => ps.map((p) => ({ ...p, source: "usfs" as const }))),
     ...deps.endpoints.stateParks.flatMap((url) => {
       const fields = STATE_PARKS[new URL(url).host];
-      if (fields) names.push(`state parks (${new URL(url).host})`);
+      if (fields) names.push(`${STATE_PREFIX}${new URL(url).host})`);
       return fields
         ? [
             pointsNear(url, centre, K.trailheadKm, fields, deps).then((ps) =>

@@ -6,6 +6,7 @@ import {
   normalizeTrailheadName,
   officialTrailheads,
   readableName,
+  trailheadSourceLabel,
   type TrailheadPoint,
 } from "./trailheads";
 
@@ -107,6 +108,21 @@ describe("the official sources", () => {
     const none: string[] = [];
     await officialTrailheads(ELK, { http: layers("arcgis.com").http, endpoints: DEFAULT_ENDPOINTS }, none);
     expect(none).toEqual(["state parks (services6.arcgis.com)", "state parks (services5.arcgis.com)"]);
+  });
+
+  it("each unanswered list has the report's name for it (follow-up 53); anything else isn't a trailhead list", async () => {
+    const unanswered: string[] = [];
+    const fails: HttpClient = { fetch: async () => new Response("down", { status: 503 }) };
+    await officialTrailheads(ELK, { http: fails, endpoints: DEFAULT_ENDPOINTS }, unanswered);
+    expect(unanswered.map(trailheadSourceLabel)).toEqual([
+      "USFS recreation sites",
+      "VA state parks (VGIN)",
+      "NC state parks (DPR)",
+      "TN state parks (TDEC)",
+    ]);
+    expect(trailheadSourceLabel("state parks (parks.example.gov)")).toBe("state parks (parks.example.gov)");
+    expect(trailheadSourceLabel("OpenStreetMap roads")).toBeNull();
+    expect(trailheadSourceLabel("PAD-US (open land beyond a mile)")).toBeNull();
   });
 
   it("a cancel still cancels", async () => {
