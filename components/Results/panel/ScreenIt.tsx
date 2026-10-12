@@ -492,12 +492,23 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
   const running = now ? { step: now[0], message: s.steps[now[0]]!.message } : undefined;
   const notes = !s.runningHere && shown;
   if (!s.showSteps && !s.error && !notes && !display) return null;
+  // The card is the first thing under the header (owner, #111): what's still running, failed or out of date stays
+  // above it; a finished run's folded steps, Copy summary and the notes go below the card's rows, unchanged.
+  const stepsDone =
+    !s.runningHere && STEPS.every(([id]) => s.steps[id]?.status === "done" || s.steps[id]?.status === "skip");
+  const below = !!display && !s.stale;
+  const top =
+    (s.showSteps && !(below && stepsDone)) ||
+    !!s.error ||
+    (notes && !below) ||
+    (s.rescreenOffline && !!display);
+  const footer = below && ((s.showSteps && stepsDone) || notes);
   return (
     <>
-      {(s.showSteps || s.error || notes || (s.rescreenOffline && display)) && (
+      {top && (
         <section className="block">
           {s.rescreenOffline && s.display && <p className="report-note rescreen-note">{RESCREEN_OFFLINE}.</p>}
-          {s.showSteps && <StepList steps={s.steps} running={s.runningHere} />}
+          {s.showSteps && !(below && stepsDone) && <StepList steps={s.steps} running={s.runningHere} />}
           {s.error && (
             <p className="tiny text-steep">
               The screen stopped: {s.error}
@@ -511,14 +522,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
               )}
             </p>
           )}
-          {notes && !s.stale && (
-            <div className="report-actions">
-              <button className="btn secondary small" onClick={s.copySummary}>
-                Copy summary
-              </button>
-            </div>
-          )}
-          {notes && (
+          {notes && !below && (
             <Notices
               stale={s.stale}
               houseChanged={!!s.fresh?.house}
@@ -541,6 +545,30 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             onOpen={(key) => setOpened({ key, serial })}
           />
         </div>
+      )}
+      {footer && (
+        <section className="block report-footer">
+          {s.showSteps && stepsDone && <StepList steps={s.steps} running={s.runningHere} />}
+          {notes && (
+            <div className="report-actions">
+              <button className="btn secondary small" onClick={s.copySummary}>
+                Copy summary
+              </button>
+            </div>
+          )}
+          {notes && (
+            <Notices
+              stale={s.stale}
+              houseChanged={!!s.fresh?.house}
+              sessionLive={s.sessionLive}
+              settingsChanged={!!s.fresh?.settings}
+              rescreened={s.rescreened}
+              showParams={s.showParams}
+              toggleParams={s.toggleParams}
+              params={shown.result.params}
+            />
+          )}
+        </section>
       )}
       {display && panel && (
         <CardPanel

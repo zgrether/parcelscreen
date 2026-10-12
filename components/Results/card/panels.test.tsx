@@ -10,7 +10,7 @@ import { reportCard } from "@/lib/report/card";
 import { panelText } from "@/lib/report/cardPanels";
 import { evaluationPoint } from "../blocks/types";
 import { REPORT } from "../report";
-import { CardPanel } from "./CardPanel";
+import { CardPanel, FROM_THE_REPORT_NOTE } from "./CardPanel";
 import { PANEL_KEYS, panelSections } from "./panelBlocks";
 
 const RUNS = [
@@ -70,6 +70,7 @@ describe("the report card's panels (VR5)", () => {
     expect(html).toContain(t.question);
     expect(html).toContain("rural dark sky (zone 3a).");
     expect(html).toContain(t.howScored);
+    expect(html).toContain(FROM_THE_REPORT_NOTE.replace("'overall'", "&#x27;overall&#x27;"));
   });
 
   it("the How it's scored lines come from the config", () => {

@@ -26,19 +26,27 @@ const FT2_PER_ACRE = M2_PER_ACRE * M2FT * M2FT;
 /** The band `v` falls in, given each band's lower edge after the first. */
 const bandOf = (v: number, edges: readonly number[]): number => edges.filter((e) => v >= e).length;
 
-/** Band labels with their edges from config: "Shaded under 3 h", "Workable 3–5 h", …, "Excellent 7+ h". */
+/** A no-break space, and a word joiner either side of a range's dash: a label never wraps inside "3–5 h". */
+const NBSP = "\u00a0";
+const range = (a: string, b: string) => `${a}\u2060–\u2060${b}`;
+
+/**
+ * Band labels with their edges from config: "Shaded under 3 h", "Workable 3–5 h", …, "Excellent 7+ h". A unit
+ * stays with its number (owner, #111).
+ */
 function ranged(
   words: readonly string[],
   edges: readonly number[],
   unit: string,
   f = (v: number) => fmt(v),
 ): string[] {
+  unit = unit.replace(/^ /, NBSP);
   return words.map((w, i) =>
     i === 0
       ? `${w} under ${f(edges[0]!)}${unit}`
       : i === words.length - 1
-        ? `${w} ${f(edges[i - 1]!)}${unit.startsWith(" ") ? `+${unit}` : `${unit}+`}`
-        : `${w} ${f(edges[i - 1]!)}–${f(edges[i]!)}${unit}`,
+        ? `${w} ${f(edges[i - 1]!)}${unit.startsWith(NBSP) ? `+${unit}` : `${unit}+`}`
+        : `${w} ${range(f(edges[i - 1]!), f(edges[i]!))}${unit}`,
   );
 }
 
@@ -89,7 +97,7 @@ export function scalesFor(
           "Frost belt",
           [
             "Pocket",
-            `Thermal belt ${fmt(B.frostAboveFloorFt[0]!)}–${fmt(B.frostAboveFloorFt[1]!)} ft`,
+            `Thermal belt ${range(fmt(B.frostAboveFloorFt[0]!), fmt(B.frostAboveFloorFt[1]!))}${NBSP}ft`,
             "Exposed",
             "Windy",
           ],

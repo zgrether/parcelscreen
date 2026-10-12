@@ -14,6 +14,9 @@ import type { PartialScreenResult, ScreenResult, Step } from "@/lib/screen/types
 import type { EvaluationPoint } from "../blocks/types";
 import { panelSections } from "./panelBlocks";
 
+export const FROM_THE_REPORT_NOTE =
+  "The original report, kept for reference. Its 'overall' score mixes site quality with build cost; the card above grades quality only.";
+
 const STATUS: Record<GateStatus, string> = {
   pass: "Pass",
   warn: "Warning",
@@ -88,6 +91,8 @@ export function CardPanel({
         ))}
         <p className="tiny muted panel-scored">How it&apos;s scored: {t.howScored}</p>
         <h3 className="panel-from">From the report</h3>
+        {/* Owner's wording (#111): added above the moved sections, nothing replaced. */}
+        <p className="tiny muted panel-from-note">{FROM_THE_REPORT_NOTE}</p>
         {panelSections(panel).map(({ Block, heading }) => {
           const body = Block({ result, point, variant: "panel", running });
           if (body === null) return null;
