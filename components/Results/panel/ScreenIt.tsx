@@ -43,6 +43,7 @@ import type { ExploreController, SetHint } from "@/components/Explore/useExplore
 import { evaluationPoint } from "../blocks/types";
 import { getPref, setPref } from "@/lib/client/prefs";
 import { reportCard, type Person } from "@/lib/report/card";
+import { panelFromSearch, replacePanelInUrl } from "@/lib/client/panelUrl";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import { CardPanel } from "../card/CardPanel";
 import { LINES_CHANGED, ReportCard } from "../card/ReportCard";
@@ -94,11 +95,14 @@ export function useScreenIt(
   // for a re-screen (owner, #101): gone (v3's clean break) or from earlier rules. `rescreen` is the open it's for.
   const latestId = open?.screenIds.at(-1) ?? null;
   const [rescreen, setRescreen] = useState<number | null>(null);
+  // Which open's kept screen has been read back, found or not (the URL's panel waits for it: #121 review).
+  const [read, setRead] = useState<{ serial: number; id: string } | null>(null);
   useEffect(() => {
     if (!latestId) return;
     let gone = false;
     void readScreen(latestId).then((r) => {
       if (gone) return;
+      setRead({ serial, id: latestId });
       // Keyed by this open too: the same record reopened later (another parcel in between) is shown again.
       if (r.kind === "ok") {
         const record = r.record;
@@ -330,6 +334,32 @@ export function useScreenIt(
     ? screen.state.result
     : (evaluated ?? shown?.result ?? null);
   const point = display ? evaluationPoint(display) : null;
+  const keptRead = !latestId || (read?.serial === serial && read.id === latestId);
+
+  // The report panel open, for the parcel it was opened on: another parcel closes it. Kept here, not in the body,
+  // which isn't drawn while the desktop panel is folded. It starts as the panel the URL names (?panel=sky; owner,
+  // #121 review), for the parcel open when the explorer mounts, and shows once that parcel's report is up. A name that
+  // isn't a panel is never read (panelFromSearch).
+  const [opened, setOpened] = useState<{ key: PanelKey; serial: number; fromUrl?: true } | null>(() => {
+    const key = panelFromSearch(window.location.search);
+    return key ? { key, serial, fromUrl: true } : null;
+  });
+  // The URL's panel for a parcel with no screen: dropped, once its kept screen has been looked for.
+  if (opened?.fromUrl && opened.serial === serial && keptRead && !display) setOpened(null);
+  const panel = opened && opened.serial === serial ? opened.key : null;
+  // Stable: CardPanel's focus handling runs again when its onClose changes.
+  const openPanel = useCallback((key: PanelKey) => setOpened({ key, serial }), [serial]);
+  const closePanel = useCallback(() => setOpened(null), []);
+  // Reopened from the URL (Back from the rulebook): on phones, the sheet comes up to show it.
+  const reopened = !!opened?.fromUrl && !!panel && !!display;
+  useEffect(() => {
+    if (reopened) latest.current.onFinished(); // ExploreShell's onFinished is the sheet's raise
+  }, [reopened]);
+  // The open panel goes into the URL, replacing its entry, except while the URL's own waits for the report.
+  const waiting = !!opened?.fromUrl && !!panel && !display;
+  useEffect(() => {
+    if (!waiting) replacePanelInUrl(display ? panel : null);
+  }, [panel, display, waiting]);
 
   return {
     ctl,
@@ -356,6 +386,10 @@ export function useScreenIt(
     rescreenFailed: autoRun && !!screen.state.error,
     display,
     point,
+    /** The card's open panel (VR5), shown with the report; it's in the URL (#121 review). */
+    panel: display ? panel : null,
+    openPanel,
+    closePanel,
     /** The worker's session for this parcel's shown run (surfaces, horizon…), or null after a reload. */
     view: sessionLive ? screen.state.view : null,
     /** Where the live session was last evaluated (the fan starts there), and the run's canopy allowance. */
@@ -489,12 +523,7 @@ function Chevron({ up }: { up: boolean }) {
 
 /** The panel's body: the run's steps, whether the results still fit, and the report. */
 export function ScreenBody({ s }: { s: ScreenIt }) {
-  const { display, point, shown } = s;
-  // The open panel, for the parcel it was opened on: another parcel closes it.
-  const [opened, setOpened] = useState<{ key: PanelKey; serial: number } | null>(null);
-  const serial = s.ctl.state.serial;
-  const panel = opened && opened.serial === serial ? opened.key : null;
-  const closePanel = useCallback(() => setOpened(null), []);
+  const { display, point, shown, panel, openPanel, closePanel } = s;
   const now = s.runningHere ? STEPS.find(([id]) => s.steps[id]?.status === "run") : undefined;
   const running = now ? { step: now[0], message: s.steps[now[0]]!.message } : undefined;
   const notes = !s.runningHere && shown;
@@ -549,7 +578,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             card={reportCard(display, s.person)}
             running={!!s.runningHere}
             setPerson={s.setPerson}
-            onOpen={(key) => setOpened({ key, serial })}
+            onOpen={openPanel}
             stale={s.fresh?.lines ? LINES_CHANGED : null}
           />
         </div>

@@ -7,6 +7,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { footprintFt2 } from "@/lib/report/card";
+import { PANEL_KEYS, ruleAnchor, rulebookHref } from "@/lib/report/cardPanels";
 import { rulebook } from "@/lib/report/rulebook";
 import { DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { M2FT } from "@/lib/screen/util";
@@ -130,5 +131,14 @@ describe("the rulebook (VR7)", () => {
     );
     expect(text).toContain("rising to 100 at 120 ft above it (Settings)");
     expect(text).toContain("the grade limit (Settings: 12% (6.8°))");
+  });
+
+  it('has a section for every report panel, where its "How it\'s scored" link goes (follow-up 52)', () => {
+    const html = renderToStaticMarkup(<RulebookRules rb={rulebook()} person="zach" />);
+    const ids = new Set([...html.matchAll(/ id="([^"]+)"/g)].map((m) => m[1]));
+    const missing = PANEL_KEYS.filter((k) => !ids.has(ruleAnchor(k)));
+    expect(missing, "panels with no section on the rulebook").toEqual([]);
+    expect(PANEL_KEYS).toContain("cost");
+    expect(rulebookHref("trails")).toBe("/rulebook#rule-trails");
   });
 });

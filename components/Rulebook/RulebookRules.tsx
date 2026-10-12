@@ -7,6 +7,7 @@
 import { ScaleBar } from "@/components/Results/card/CardPanel";
 import { fmt } from "@/lib/format";
 import type { Person } from "@/lib/report/card";
+import { ruleAnchor } from "@/lib/report/cardPanels";
 import type { RulePanel, RuleScale, Rulebook } from "@/lib/report/rulebook";
 
 const PEOPLE: { key: Person; name: string }[] = [
@@ -55,7 +56,7 @@ function RuleScaleView({ scale }: { scale: RuleScale }) {
 
 function RulePanelView({ panel }: { panel: RulePanel }) {
   return (
-    <section className="rule-panel" id={`rule-${panel.key}`}>
+    <section className="rule-panel" id={ruleAnchor(panel.key)}>
       <h4>{panel.title}</h4>
       <p className="panel-question">{panel.question}</p>
       {panel.scales.map((s) => (
@@ -119,6 +120,8 @@ export function RulebookRules({ rb, person }: { rb: Rulebook; person: Person }) 
         {rb.card.rows.map((r) => (
           <RulePanelView key={r.key} panel={r} />
         ))}
+        {/* The card's last line: every panel has its section here, for its "How it's scored" link (follow-up 52). */}
+        <RulePanelView panel={rb.card.cost} />
       </section>
 
       <section>
