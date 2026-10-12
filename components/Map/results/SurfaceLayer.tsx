@@ -10,7 +10,7 @@ import type { ImageSource, Map as MlMap } from "maplibre-gl";
 import { surfaceImage, type Corners, type SurfaceMode } from "@/lib/render/surface";
 import type { SessionView } from "@/lib/screen/worker-protocol";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
-import { useMap } from "../MapView";
+import { mapGone, useMap } from "../MapView";
 import { ROADS_LAYER } from "../roadsStyle";
 import { LAYER } from "../style";
 import { TERRAIN_LAYER } from "../terrainStyle";
@@ -52,6 +52,7 @@ export function SurfaceLayer() {
     if (!map) return;
     const ticket = ++shown.current;
     const clear = () => {
+      if (mapGone(map)) return;
       if (map.getLayer(SURFACE_LAYER)) map.removeLayer(SURFACE_LAYER);
       if (map.getSource(SURFACE_SOURCE)) map.removeSource(SURFACE_SOURCE);
     };
@@ -61,7 +62,7 @@ export function SurfaceLayer() {
     }
     if (!cache.urls.has(mode)) cache.urls.set(mode, build(view, mode));
     void cache.urls.get(mode)!.then((built) => {
-      if (ticket !== shown.current) return; // a newer view or mode took over
+      if (ticket !== shown.current || mapGone(map)) return; // a newer view or mode took over, or the map went
       if (!built) return clear();
       const { url, corners: coordinates } = built;
       const source = map.getSource<ImageSource>(SURFACE_SOURCE);
@@ -84,7 +85,7 @@ export function SurfaceLayer() {
   // Gone with the map's parcel: remove on unmount.
   useEffect(
     () => () => {
-      if (!map) return;
+      if (!map || mapGone(map)) return; // removed with the map (follow-up 52)
       if (map.getLayer(SURFACE_LAYER)) map.removeLayer(SURFACE_LAYER);
       if (map.getSource(SURFACE_SOURCE)) map.removeSource(SURFACE_SOURCE);
     },

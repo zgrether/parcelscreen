@@ -7,6 +7,7 @@
  * verdict, nothing else. The table starts with up to four parcels, the Contenders first, then the most recently screened
  * (owner, #117 review); once columns are added or removed here, that choice is remembered per browser (ps.compare).
  */
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { HelpProvider } from "@/components/Help/HelpDialog";
 import { CardPanel } from "@/components/Results/card/CardPanel";
@@ -120,9 +121,9 @@ export function Compare() {
     <HelpProvider>
       <main className="compare">
         <header className="compare-head">
-          <a className="link-btn" href="/explore">
+          <Link className="link-btn" href="/explore">
             ← Map
-          </a>
+          </Link>
           <h1>Compare</h1>
           <div className="card-person" role="group" aria-label="Whose weights grade the parcels">
             {PEOPLE.map((p) => (
@@ -157,10 +158,9 @@ export function Compare() {
                         <div className="cmp-name">{p.name}</div>
                         <div className="tiny muted">{p.acres !== null ? `${p.acres.toFixed(2)} ac` : ""}</div>
                         <div className="cmp-actions">
-                          {/* A full page load each way: the explorer's map isn't built to unmount. */}
-                          <a className="link-btn" href="/explore" onClick={() => openOnMap(columns[i]!)}>
+                          <Link className="link-btn" href="/explore" onClick={() => openOnMap(columns[i]!)}>
                             Open
-                          </a>
+                          </Link>
                           <button
                             className="link-btn"
                             aria-label={`Remove ${p.name} from the table`}

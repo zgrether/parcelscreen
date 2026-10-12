@@ -41,6 +41,14 @@ function startFolded(el: HTMLElement): void {
 /** The prototype's opening view: southwest Virginia, zoom 9. */
 const START: SavedView = { lat: 36.62, lon: -81.35, z: 9 };
 
+/**
+ * Maps MapView has removed (follow-up 52). React runs MapView's cleanup before its children's when the explorer
+ * unmounts (leaving /explore by a client-side navigation), so a child's cleanup can find its map already gone:
+ * MapLibre then throws on a control's or a layer's removal. Each such cleanup asks `mapGone` first.
+ */
+const removedMaps = new WeakSet<MlMap>();
+export const mapGone = (map: MlMap): boolean => removedMaps.has(map);
+
 export function MapView({
   lpAtlasTiles,
   lpYear,
@@ -118,6 +126,8 @@ export function MapView({
       setMap(null);
       padded.current = null;
       moved.current = false;
+      // Marked before it goes: the children's cleanups run after this one, and skip what a removed map can't do.
+      removedMaps.add(m);
       m.remove();
     };
   }, [lpAtlasTiles, lpYear]);
