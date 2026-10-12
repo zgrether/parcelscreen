@@ -11,8 +11,26 @@ import { buildSite, footprintFt2, type Card, type Letter } from "./card";
 import type { PanelKey } from "./cardPanels";
 import { M2FT, M2_PER_ACRE } from "../screen/util";
 
+/** Each scale's key, for the sentences that go with its bands (lib/report/meanings.ts). */
+export const SCALE_IDS = {
+  "Winter sun": "winterSun",
+  Facing: "facing",
+  "Frost belt": "frost",
+  "Slope as foundation": "slope",
+  Driveway: "driveway",
+  Elevation: "elevation",
+  Sky: "sky",
+  "Room to build": "room",
+  Trails: "trails",
+  "Town and hospital": "town",
+  Garden: "garden",
+} as const;
+export type ScaleName = keyof typeof SCALE_IDS;
+export type ScaleId = (typeof SCALE_IDS)[ScaleName];
+
 export interface Scale {
-  name: string;
+  id: ScaleId;
+  name: ScaleName;
   bands: string[];
   /** This parcel's band, or null when there's nothing to place on the scale. */
   at: number | null;
@@ -50,7 +68,8 @@ function ranged(
   );
 }
 
-const scale = (name: string, bands: string[], at: number | null, value: string): Scale => ({
+const scale = (name: ScaleName, bands: string[], at: number | null, value: string): Scale => ({
+  id: SCALE_IDS[name],
   name,
   bands,
   at,

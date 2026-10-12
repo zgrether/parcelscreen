@@ -9,6 +9,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { useHelp } from "@/components/Help/HelpDialog";
 import type { Card, GateStatus } from "@/lib/report/card";
 import { panelText, type PanelKey } from "@/lib/report/cardPanels";
+import { meaningsFor } from "@/lib/report/meanings";
 import { scalesFor, type Scale } from "@/lib/report/scales";
 import type { PartialScreenResult, ScreenResult, Step } from "@/lib/screen/types";
 import type { EvaluationPoint } from "../blocks/types";
@@ -89,6 +90,7 @@ export function CardPanel({
         {scalesFor(panel, result, card).map((sc) => (
           <ScaleBar key={sc.name} scale={sc} />
         ))}
+        <WhatItMeans scales={scalesFor(panel, result, card)} />
         <p className="tiny muted panel-scored">How it&apos;s scored: {t.howScored}</p>
         <h3 className="panel-from">From the report</h3>
         {/* Owner's wording (#111): added above the moved sections, nothing replaced. */}
@@ -142,5 +144,26 @@ function ScaleBar({ scale }: { scale: Scale }) {
         </div>
       )}
     </figure>
+  );
+}
+
+/** "What it means for you" (§6.2 (c)): each scale's sentences for this parcel's band, by what they touch. */
+function WhatItMeans({ scales }: { scales: Scale[] }) {
+  const lines = scales.flatMap((sc) =>
+    meaningsFor(sc.id, sc.at).map((m, i) => ({ key: `${sc.id}-${i}`, ...m })),
+  );
+  if (!lines.length) return null;
+  return (
+    <section className="panel-meaning">
+      <h3>What it means for you</h3>
+      <ul>
+        {lines.map((l) => (
+          <li key={l.key}>
+            {l.for && <b>{l.for}: </b>}
+            {l.text}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
