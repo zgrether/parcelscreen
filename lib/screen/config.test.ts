@@ -107,6 +107,56 @@ describe("config", () => {
   it("screen constants are unchanged", () => {
     expect(SCREEN_CONSTANTS).toMatchInlineSnapshot(`
       {
+        "bands": {
+          "drivewayPct": [
+            8,
+            12,
+            15,
+          ],
+          "elevationFt": [
+            1500,
+            2500,
+            3000,
+          ],
+          "facingDeg": {
+            "cool": [
+              45,
+              315,
+            ],
+            "fine": [
+              90,
+              225,
+            ],
+            "ideal": [
+              135,
+              195,
+            ],
+          },
+          "frostAboveFloorFt": [
+            80,
+            400,
+            1000,
+          ],
+          "gardenAc": [
+            0,
+            0.25,
+            1,
+          ],
+          "skyMag": [
+            20.5,
+            21.5,
+          ],
+          "slopeDeg": [
+            4,
+            10,
+            16,
+          ],
+          "winterSunH": [
+            3,
+            5,
+            7,
+          ],
+        },
         "build": {
           "bedrooms": 3,
           "garageFt": [

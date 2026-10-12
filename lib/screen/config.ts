@@ -498,6 +498,18 @@ export const SCREEN_CONSTANTS = deepFreeze({
       julie: { elevation: 10, homesite: 15, sky: 10, room: 10, trails: 25, town: 10, garden: 20 },
     },
   },
+  // The panels' banded scales (value-ranking.md §6.2 (b); VR5 part 2): each band's lower edge, in order. The owner's
+  // bands where §6.2 gives them; the rest are proposals for the calibration (VR8).
+  bands: {
+    winterSunH: [3, 5, 7], // Shaded · Workable · Good · Excellent
+    facingDeg: { ideal: [135, 195], fine: [90, 225], cool: [45, 315] }, // else north-facing
+    frostAboveFloorFt: [80, 400, 1000], // Pocket · Thermal belt (from thermalMinFt's default) · Exposed · Windy
+    slopeDeg: [4, 10, 16], // slab or crawl · walkout · cut-fill and walls · engineered piers
+    drivewayPct: [8, 12, 15], // easy · good gravel · pave or regrade (paveAbovePct) · ice, washouts, fire access
+    elevationFt: [1500, 2500, 3000], // Valley · Foothill · Mountain · High
+    skyMag: [20.5, 21.5], // Town glow · Rural · Dark
+    gardenAc: [0, 0.25, 1], // None · Kitchen garden · Market garden · Small farm
+  },
 });
 
 /** The step list and its labels, in run order (proto L990). */
