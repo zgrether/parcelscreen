@@ -8,6 +8,7 @@
 import { useMemo, useState } from "react";
 import { HelpProvider } from "@/components/Help/HelpDialog";
 import { parcelName } from "@/lib/client/historyRows";
+import { openOnMap } from "@/lib/client/openOnMap";
 import { getPref, setPref } from "@/lib/client/prefs";
 import { useKeptScreens } from "@/lib/client/useKeptScreens";
 import { loadUserConfig } from "@/lib/client/userConfig";
@@ -36,6 +37,8 @@ export function Rulebook() {
 
   const screens = useKeptScreens(built);
   const screened = built.filter((b) => screens.get(b.key!)?.state === "ok");
+  // Kept screens from earlier rules (or gone): each parcel re-screens when it's opened (#118 review).
+  const stale = built.filter((b) => screens.get(b.key!)?.state === "rescreen");
   const [picked, setPicked] = useState<string | null>(null);
   // The open parcel when it's screened, else the most recently changed screened one.
   const key =
@@ -74,7 +77,26 @@ export function Rulebook() {
         <section className="rule-breakdown">
           <h2>A parcel&apos;s grade, row by row</h2>
           {screened.length === 0 ? (
-            <p className="muted">Screen a parcel and it shows here: the points each row earns and loses.</p>
+            stale.length > 0 ? (
+              <div className="muted">
+                <p>
+                  {stale.length} parcel{stale.length === 1 ? "" : "s"} in History{" "}
+                  {stale.length === 1 ? "was" : "were"} screened under earlier rules. Open one to re-screen
+                  it.
+                </p>
+                <ul className="rule-stale">
+                  {stale.map((b) => (
+                    <li key={b.key}>
+                      <a className="link-btn" href="/explore" onClick={() => openOnMap(b)}>
+                        {parcelName(b).name}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="muted">Screen a parcel from the map and it shows here.</p>
+            )
           ) : (
             <>
               <label className="cmp-add">

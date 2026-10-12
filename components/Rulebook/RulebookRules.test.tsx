@@ -38,7 +38,21 @@ function allowed(): Set<string> {
   const { endpoints: _e, anchors: _a, ...settings } = DEFAULT_USER_CONFIG;
   // And what's computed from config alone: the build footprint (house, garage, turnaround and septic field).
   const base = [...numbersIn(SCREEN_CONSTANTS), ...numbersIn(settings), footprintFt2(SCREEN_CONSTANTS.build)];
-  const forms = base.flatMap((v) => [v, v * 100, v / 100, v * M2FT, v / KM_PER_MI, v / 1000 / KM_PER_MI]);
+  const RAD = Math.PI / 180;
+  const forms = base.flatMap((v) => [
+    v,
+    v * 100,
+    v / 100,
+    v * M2FT,
+    v / KM_PER_MI,
+    v / 1000 / KM_PER_MI,
+    // Slopes in the other unit (#118 review): degrees as a grade, a grade in degrees.
+    Math.tan(v * RAD) * 100,
+    Math.atan(v / 100) / RAD,
+    // Depths in cm as inches and feet.
+    v / 2.54,
+    v / 30.48,
+  ]);
   const out = new Set<string>();
   for (const f of forms) for (const d of [0, 1, 2]) out.add(String(Number(f.toFixed(d))));
   return out;
@@ -83,6 +97,12 @@ describe("the rulebook (VR7)", () => {
       "December sun (40%)",
       "Facing (15%)",
       "Build cost tiers",
+      // #118 review: where C starts on the Elevation scale, Julie's weights marked, build cost's points explained.
+      "C 2,000",
+      "Placeholder until Julie sets her own",
+      "Build cost is counted in points: higher means more expensive.",
+      "bedrock within about 20 in (50 cm)",
+      "has no real facing",
     ])
       expect(text).toContain(t);
   });
@@ -108,7 +128,7 @@ describe("the rulebook (VR7)", () => {
         />,
       ),
     );
-    expect(text).toContain("from 120 ft (Settings)");
-    expect(text).toContain("the grade limit (Settings: 12%)");
+    expect(text).toContain("rising to 100 at 120 ft above it (Settings)");
+    expect(text).toContain("the grade limit (Settings: 12% (6.8°))");
   });
 });

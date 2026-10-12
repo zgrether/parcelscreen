@@ -42,6 +42,36 @@ export interface Scale {
   value: string;
   /** A small note under the marker: the driveway's raw-ground reading when it's built to less (owner, #111). */
   note?: string;
+  /**
+   * Where the row's grades start along the scale (#118 review: Elevation's C sits inside Foothill): `at` in bands, 0 at
+   * the scale's left end, 1 at the first edge, 1.5 halfway across the second band.
+   */
+  marks?: { at: number; label: string }[];
+}
+
+/** A slope in degrees as a grade, and a grade as degrees (display only; scoring reads one or the other). */
+const RAD = Math.PI / 180;
+export const degToPct = (deg: number): number => Math.tan(deg * RAD) * 100;
+export const pctToDeg = (pct: number): number => Math.atan(pct / 100) / RAD;
+
+/** Where `v` sits along a scale with these edges, in bands (Scale.marks). */
+function positionOf(v: number, edges: readonly number[]): number {
+  const b = edges.filter((e) => v >= e).length;
+  const lower = edges[b - 1],
+    upper = edges[b];
+  if (lower === undefined) return upper === undefined ? 0 : Math.max(0, 1 - (upper - v) / upper);
+  return upper === undefined ? b : b + (v - lower) / (upper - lower);
+}
+
+/** The Elevation scale's grade marks: each grade's lower edge from the card's cutoffs (A, B, C, D). */
+export function elevationMarks(
+  B: Bands = SCREEN_CONSTANTS.bands,
+  cutoffs: readonly number[] = SCREEN_CONSTANTS.card.rows.elevationFt,
+): { at: number; label: string }[] {
+  return cutoffs.map((v, i) => ({
+    at: positionOf(v, B.elevationFt),
+    label: `${"ABCD"[i]} ${fmt(v)}${NBSP}ft`,
+  }));
 }
 
 type Bands = typeof SCREEN_CONSTANTS.bands;
@@ -109,6 +139,78 @@ function facingBand(aspectDeg: number, B: Bands): number {
 const byGrade = (g: Letter | null): number | null =>
   g === null ? null : g === "A" ? 0 : g === "B" ? 1 : g === "C" ? 2 : 3;
 
+/** Band labels in two units: "Walkout 4–10° (7–18%)", "Engineered piers 16°+ (29%+)". */
+function dualRanged(
+  words: readonly string[],
+  edges: readonly number[],
+  a: (v: number) => string,
+  aUnit: string,
+  b: (v: number) => string,
+  bUnit: string,
+  first = "under",
+): string[] {
+  return words.map((w, i) => {
+    if (i === 0) return `${w} ${first} ${a(edges[0]!)}${aUnit} (${b(edges[0]!)}${bUnit})`;
+    const lo = edges[i - 1]!;
+    if (i === words.length - 1) return `${w} ${a(lo)}${aUnit}+ (${b(lo)}${bUnit}+)`;
+    const hi = edges[i]!;
+    return `${w} ${range(a(lo), a(hi))}${aUnit} (${range(b(lo), b(hi))}${bUnit})`;
+  });
+}
+
+/** The rulebook's fuller labels (scaleBands' `detail`), or null where the short ones already carry the numbers. */
+function detailed(name: ScaleName, B: Bands, target: number): string[] | null {
+  const deg = (v: number) => fmt(v),
+    pct = (v: number) => fmt(v);
+  switch (name) {
+    case "Slope as foundation":
+      return dualRanged(
+        ["Slab or crawl", "Walkout", "Cut-fill and walls", "Engineered piers"],
+        B.slopeDeg,
+        deg,
+        "°",
+        (v) => fmt(degToPct(v)),
+        "%",
+      );
+    case "Driveway":
+      return dualRanged(
+        ["Easy", "Good gravel", "Pave or regrade", "Ice, washouts, fire access"],
+        B.drivewayPct,
+        pct,
+        "%",
+        (v) => fmt(pctToDeg(v), 1),
+        "°",
+        "up to",
+      );
+    case "Facing": {
+      // Degrees off the target the site's facing is scored from: lower bearings are east of it, higher west.
+      const off = ([lo, hi]: readonly number[]) => {
+        const east = target - lo!,
+          west = hi! - target;
+        return east === west
+          ? `within ${fmt(east)}° of ${fmt(target)}°`
+          : `to ${fmt(east)}° east or ${fmt(west)}° west of ${fmt(target)}°`;
+      };
+      return [
+        `Ideal S–SE: ${off(B.facingDeg.ideal)}`,
+        `Fine: ${off(B.facingDeg.fine)}`,
+        `Cool: ${off(B.facingDeg.cool)}`,
+        "North-facing: beyond that",
+      ];
+    }
+    case "Frost belt":
+      return ranged(
+        ["Pocket", "Thermal belt", "Exposed", "Windy"],
+        B.frostAboveFloorFt,
+        " ft above the valley floor",
+      );
+    case "Sky":
+      return ranged(["Town glow", "Rural", "Dark"], B.skyMag, " mag/arcsec²", (v) => fmt(v, 1));
+    default:
+      return null;
+  }
+}
+
 /**
  * Each scale's bands in words, with their edges from config, without a parcel (the rulebook, VR7). The panels'
  * scales use the same labels.
@@ -117,7 +219,17 @@ export function scaleBands(
   name: ScaleName,
   B: Bands = SCREEN_CONSTANTS.bands,
   roomX = SCREEN_CONSTANTS.card.rows.roomX,
+  /**
+   * The rulebook's fuller labels (#118 review): the numbers each band's scoring uses where the short labels have none
+   * (Facing in degrees off the target, Frost in feet above the valley floor, Sky in mag/arcsec²), and slopes in both
+   * degrees and percent. The report's panels keep the short labels.
+   */
+  detail?: { aspectTargetDeg: number },
 ): string[] {
+  if (detail) {
+    const d = detailed(name, B, detail.aspectTargetDeg);
+    if (d) return d;
+  }
   switch (name) {
     case "Winter sun":
       return ranged(["Shaded", "Workable", "Good", "Excellent"], B.winterSunH, " h");
@@ -226,12 +338,16 @@ export function scalesFor(
       const s = buildSite(r);
       if (!s || s.elevFt === null) return [];
       return [
-        scale(
-          "Elevation",
-          scaleBands("Elevation", B),
-          bandOf(s.elevFt, B.elevationFt),
-          `${fmt(s.elevFt)} ft`,
-        ),
+        {
+          ...scale(
+            "Elevation",
+            scaleBands("Elevation", B),
+            bandOf(s.elevFt, B.elevationFt),
+            `${fmt(s.elevFt)} ft`,
+          ),
+          // Where each grade starts (#118 review): C's 2,000 ft is inside Foothill.
+          marks: elevationMarks(B),
+        },
       ];
     }
     case "sky":

@@ -2877,6 +2877,24 @@ html:has(.explore) body {
   text-align: center;
 }
 /* VR3b: each scale with its own sentences; the foundation and dig cost at site #1; a row's flags. */
+/* A scale's grade marks (#118 review): a tick and its label where each grade starts. */
+.scale-marks {
+  grid-column: 1 / -1;
+  grid-row: 5;
+  position: relative;
+  height: 28px;
+  margin-top: 2px;
+}
+.scale-tick {
+  position: absolute;
+  top: 0;
+  padding: 6px 0 0 3px;
+  border-left: 1px solid var(--color-ink-2);
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--color-ink-2);
+}
 .scale-group + .scale-group {
   margin-top: 6px;
 }
@@ -3280,4 +3298,8 @@ button.cmp-cell:hover {
   width: 10px;
   height: 10px;
   border-radius: 2px;
+}
+.rule-stale {
+  margin: 4px 0 0;
+  padding-left: 18px;
 }

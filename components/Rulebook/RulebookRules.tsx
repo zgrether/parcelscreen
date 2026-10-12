@@ -24,6 +24,7 @@ function RuleScaleView({ scale }: { scale: RuleScale }) {
           bands: scale.bands.map((b) => b.label),
           at: null,
           value: "",
+          ...(scale.marks ? { marks: scale.marks } : {}),
         }}
       />
       {scale.bands.some((b) => b.meanings.length > 0) && (
@@ -102,6 +103,13 @@ export function RulebookRules({ rb, person }: { rb: Rulebook; person: Person }) 
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr>
+              <td />
+              <td />
+              <td className="tiny muted">Placeholder until Julie sets her own</td>
+            </tr>
+          </tfoot>
         </table>
         <h3>Dealbreakers</h3>
         {rb.card.gates.map((g) => (
@@ -130,6 +138,7 @@ export function RulebookRules({ rb, person }: { rb: Rulebook; person: Person }) 
         <p>{h.flood}</p>
         <p>{h.grades}</p>
         <h3>What it costs to build there</h3>
+        <p>{h.costIntro}</p>
         <ul className="rule-parts">
           {h.cost.map((c) => (
             <li key={c.key}>

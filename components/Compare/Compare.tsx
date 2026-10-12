@@ -7,21 +7,19 @@
  * verdict, nothing else. The table starts with up to four parcels, the Contenders first, then the most recently screened
  * (owner, #117 review); once columns are added or removed here, that choice is remembered per browser (ps.compare).
  */
-import { bbox } from "@turf/turf";
 import { useMemo, useState } from "react";
 import { HelpProvider } from "@/components/Help/HelpDialog";
 import { CardPanel } from "@/components/Results/card/CardPanel";
 import { evaluationPoint } from "@/components/Results/blocks/types";
 import { parcelName } from "@/lib/client/historyRows";
-import { openBuilt, recipeOf, type WorkingParcel } from "@/lib/client/parcelStore";
+import { openOnMap } from "@/lib/client/openOnMap";
+import type { WorkingParcel } from "@/lib/client/parcelStore";
 import { getPref, setPref } from "@/lib/client/prefs";
 import { useKeptScreens } from "@/lib/client/useKeptScreens";
 import { loadUserConfig } from "@/lib/client/userConfig";
-import { deriveParcel } from "@/lib/geo/recipe";
 import type { Person } from "@/lib/report/card";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import { compareTable, defaultColumns, type Cell, type CompareParcel } from "@/lib/report/compare";
-import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 
 const PEOPLE: { key: Person; name: string }[] = [
   { key: "zach", name: "Zach's grade" },
@@ -33,18 +31,6 @@ const STATUS: Record<NonNullable<Cell["status"]>, { mark: string; word: string }
   fail: { mark: "✗", word: "Fail" },
   unknown: { mark: "?", word: "Unknown" },
 };
-
-/** Opens a History parcel on the map: the store's open parcel and a view on it, before the link loads the explorer. */
-function openOnMap(p: WorkingParcel): void {
-  const store = getPref("ps.parcels");
-  if (!store || !p.key) return;
-  setPref("ps.parcels", openBuilt(store, p.key));
-  const d = deriveParcel(recipeOf(p), SCREEN_CONSTANTS.combine);
-  if (d.ok) {
-    const [w, s, e, n] = bbox(d.record.geo);
-    setPref("ps.view", { lat: (s + n) / 2, lon: (w + e) / 2, z: 15 });
-  }
-}
 
 export function Compare() {
   const built = useMemo(() => getPref("ps.parcels")?.built ?? [], []);

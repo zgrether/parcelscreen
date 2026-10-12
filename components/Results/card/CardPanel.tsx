@@ -187,6 +187,16 @@ export function ScaleBar({ scale }: { scale: Scale }) {
         </div>
       )}
       {scale.note && <div className="scale-note">{scale.note}</div>}
+      {scale.marks && (
+        // Where each grade starts along the scale (#118 review).
+        <div className="scale-marks" aria-label="Grades">
+          {scale.marks.map((m) => (
+            <span key={m.label} className="scale-tick" style={{ left: `${(m.at / n) * 100}%` }}>
+              {m.label}
+            </span>
+          ))}
+        </div>
+      )}
     </figure>
   );
 }

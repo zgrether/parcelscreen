@@ -12,7 +12,15 @@ import { DEFAULT_USER_CONFIG } from "../screen/config";
 import type { GateKey, Person, RowKey } from "./card";
 import { panelText, type PanelKey } from "./cardPanels";
 import { MEANINGS, type Meaning } from "./meanings";
-import { SCALE_IDS, scaleBands, type ScaleId, type ScaleName } from "./scales";
+import {
+  SCALE_IDS,
+  degToPct,
+  elevationMarks,
+  pctToDeg,
+  scaleBands,
+  type ScaleId,
+  type ScaleName,
+} from "./scales";
 
 type Constants = typeof SCREEN_CONSTANTS;
 
@@ -21,6 +29,8 @@ export interface RuleScale {
   name: ScaleName;
   /** Each band's label, and what it means for you there. */
   bands: { label: string; meanings: Meaning[] }[];
+  /** Where the row's grades start along it (Elevation). */
+  marks?: { at: number; label: string }[];
 }
 
 export interface RulePanel {
@@ -53,6 +63,8 @@ export interface Rulebook {
     quality: RulePart[];
     flood: string;
     grades: string;
+    /** What build cost points mean, before its parts. */
+    costIntro: string;
     cost: RulePart[];
     tiers: string;
     overall: string;
@@ -81,30 +93,62 @@ function ruleScale(name: ScaleName, C: Constants): RuleScale {
   return {
     id,
     name,
-    bands: scaleBands(name, C.bands, C.card.rows.roomX).map((label, i) => ({
-      label,
-      meanings: MEANINGS[id][i] ?? [],
-    })),
+    // The fuller labels: each band's numbers, and slopes in both units (#118 review).
+    bands: scaleBands(name, C.bands, C.card.rows.roomX, { aspectTargetDeg: C.score.siteAspectTargetDeg }).map(
+      (label, i) => ({ label, meanings: MEANINGS[id][i] ?? [] }),
+    ),
+    ...(name === "Elevation" ? { marks: elevationMarks(C.bands, C.card.rows.elevationFt) } : {}),
   };
 }
 
 function rulePanel(key: PanelKey, C: Constants): RulePanel {
-  const t = panelText(key, C.card, C.build);
+  const t = panelText(key, C.card, C.build, { bothSlopeUnits: true });
   return { key, ...t, scales: (PANEL_SCALES[key] ?? []).map((n) => ruleScale(n, C)) };
+}
+
+/** A slope in degrees, then as a grade: "10° (18%)"; a grade, then in degrees: "15% (8.5°)" (#118 review). */
+const deg = (d: number) => `${fmt(d)}° (${fmt(degToPct(d))}%)`;
+const pctGrade = (p: number) => `${fmt(p)}% (${fmt(pctToDeg(p), 1)}°)`;
+
+/** A depth in cm as inches or feet, with the cm: "about 20 in (50 cm)", "about 5 ft (150 cm)". */
+function depth(cm: number): string {
+  const inches = cm / 2.54;
+  return inches < 36
+    ? `about ${fmt(inches)} in (${fmt(cm)} cm)`
+    : `about ${fmt(inches / 12)} ft (${fmt(cm)} cm)`;
+}
+
+/**
+ * The over-limit term in words, from the same branches as overLimitTerm (score.ts; #118 review): points a percent over
+ * the limit up to the knee (practicalMaxPct, or the limit when it's higher), then a straight line to the most points
+ * at overLimitMaxAtPct; all at once when the knee is already there.
+ */
+export function overLimitWords(
+  limitPct: number,
+  D: Constants["driveway"] = SCREEN_CONSTANTS.driveway,
+): string {
+  const knee = Math.max(limitPct, D.practicalMaxPct);
+  const per = `${fmt(D.overLimitPtsPerPct)} point${D.overLimitPtsPerPct === 1 ? "" : "s"} a percent over the limit`;
+  const top = `${fmt(D.overLimitMaxPts)} at ${fmt(D.overLimitMaxAtPct)}% and steeper`;
+  if (knee >= D.overLimitMaxAtPct)
+    return knee > limitPct
+      ? `${per} up to ${fmt(knee)}%, then the full ${fmt(D.overLimitMaxPts)}`
+      : `the full ${fmt(D.overLimitMaxPts)} for any grade over the limit`;
+  if (knee > limitPct) return `${per} up to ${fmt(knee)}%, then rising to ${top}`;
+  return `rising in a straight line from 0 at ${fmt(limitPct)}% to ${top}`;
 }
 
 /**
  * "100 up to 6°, 75 at 10°, 50 at 14°, …": a curve's points in words, the leading points with the same value as one
  * ("100 up to 30° off", not "100 up to 0°, 100 at 30°"). Between the points the score runs in a straight line.
  */
-function curveWords(pts: Curve, unit: string): string {
+function curveWords(pts: Curve, x: (v: number) => string): string {
   let lead = 0;
   while (lead + 1 < pts.length && pts[lead + 1]![1] === pts[0]![1]) lead++;
   const [x0, y0] = pts[lead]!;
-  return [
-    `${fmt(y0)} up to ${fmt(x0)}${unit}`,
-    ...pts.slice(lead + 1).map(([x, y]) => `${fmt(y)} at ${fmt(x)}${unit}`),
-  ].join(", ");
+  return [`${fmt(y0)} up to ${x(x0)}`, ...pts.slice(lead + 1).map(([xi, y]) => `${fmt(y)} at ${x(xi)}`)].join(
+    ", ",
+  );
 }
 
 const pct = (share: number) => fmt(share * 100);
@@ -123,31 +167,32 @@ export function rulebook(C: Constants = SCREEN_CONSTANTS, cfg: UserConfig = DEFA
       key: "sun",
       label: "December sun",
       weightPct: W.sun * 100,
-      how: `The share of December's daylight with the sun above the skyline (after the Settings' ${fmt(cfg.canopyDeg)}° canopy allowance), from 0 to 100. Over ${pct(S.sunGoodShare)}% reads "good", over ${pct(S.sunOkShare)}% "acceptable".`,
+      how: `The share of December's daylight with the sun above the skyline, from 0 to 100; trees are counted as raising the skyline by ${fmt(cfg.canopyDeg)}° (Settings). Over ${pct(S.sunGoodShare)}% reads "good", over ${pct(S.sunOkShare)}% "acceptable".`,
     },
     {
       key: "aspect",
       label: "Facing",
       weightPct: W.aspect * 100,
-      how: `By how far the ground faces from ${fmt(S.siteAspectTargetDeg)}° (${compass(S.siteAspectTargetDeg)}): ${curveWords(aspect, "° off")}. Ground flatter than ${fmt(SU.flatBelowDeg)}° faces every way and scores ${fmt(aspect[0]![1])}.`,
+      how: `By how far the ground faces from ${fmt(S.siteAspectTargetDeg)}° (${compass(S.siteAspectTargetDeg)}): ${curveWords(aspect, (x) => `${fmt(x)}° off`)}, in a straight line between. Ground flatter than ${deg(SU.flatBelowDeg)} has no real facing and scores ${fmt(aspect[0]![1])}.`,
     },
     {
       key: "frost",
       label: "Frost position",
       weightPct: W.frost * 100,
-      how: `By height above the valley floor, where cold air pools: ${fmt(fr.atFloor)} on the floor, ${fmt(fr.full)} from ${fmt(cfg.thermalMinFt)} ft (Settings) to ${fmt(fr.beltTopFt)} ft above it, ${fmt(fr.exposed)} from ${fmt(fr.exposedFt)} ft, where it's exposed.`,
+      // frostCurve (sites.ts): straight lines between these points, level beyond the last.
+      how: `By height above the valley floor, where cold air pools on still nights: ${fmt(fr.atFloor)} on the valley floor, rising to ${fmt(fr.full)} at ${fmt(cfg.thermalMinFt)} ft above it (Settings), ${fmt(fr.full)} up to ${fmt(fr.beltTopFt)} ft, then easing to ${fmt(fr.exposed)} by ${fmt(fr.exposedFt)} ft and above, where it's exposed to wind.`,
     },
     {
       key: "slope",
       label: "Slope",
       weightPct: W.slope * 100,
-      how: `The cost of a level pad: ${curveWords(SU.slopeHouse, "°")}.`,
+      how: `How gentle the ground is under the house: ${curveWords(SU.slopeHouse, deg)}, in a straight line between. (What it costs to level the pad is counted separately, under build cost.)`,
     },
     {
       key: "sky",
       label: "Night sky",
       weightPct: W.sky * 100,
-      how: `From 0 at ${fmt(m0, 1)} to 100 at ${fmt(m1, 1)} mag/arcsec² overhead; up to ${fmt(C.sky.domePenaltyMax)} less for a light dome to the south; ${fmt(C.sky.coreBlockedPenalty)} less when a ridge hides the Milky Way's core, ${fmt(C.sky.coreLowPenalty)} less when it clears the ridge by under ${fmt(C.sky.coreLowDeg)}°; ${fmt(S.skyIfMissing)} when the sky didn't load.`,
+      how: `From 0 at ${fmt(m0, 1)} to 100 at ${fmt(m1, 1)} mag/arcsec² (a darkness reading; higher is darker) overhead; up to ${fmt(C.sky.domePenaltyMax)} less for a light dome to the south; ${fmt(C.sky.coreBlockedPenalty)} less when a ridge hides the Milky Way's core, ${fmt(C.sky.coreLowPenalty)} less when it clears the ridge by under ${fmt(C.sky.coreLowDeg)}°; ${fmt(S.skyIfMissing)} when the sky didn't load.`,
     },
   ];
   const DC = S.drivewayCost;
@@ -168,19 +213,19 @@ export function rulebook(C: Constants = SCREEN_CONSTANTS, cfg: UserConfig = DEFA
       key: "rock",
       label: "Rock",
       weightPct: null,
-      how: `Up to ${fmt(S.rock)}: in full with bedrock at ${fmt(S.rockDepthCm.full)} cm or shallower, none at ${fmt(S.rockDepthCm.none)} cm or deeper, or with no bedrock reported.`,
+      how: `Up to ${fmt(S.rock)} points: all of them with bedrock within ${depth(S.rockDepthCm.full)}, none with bedrock ${depth(S.rockDepthCm.none)} or deeper, in a straight line between. No bedrock reported counts as none: no points.`,
     },
     {
       key: "pad",
       label: "House pad",
       weightPct: null,
-      how: `By slope: ${curveWords(S.pad, "°")}; ${fmt(S.compactPad)} for a compact site's cut pad.`,
+      how: `What it costs to level the pad, by slope: ${curveWords(S.pad, deg)} and steeper, in a straight line between; ${fmt(S.compactPad)} for a compact site's cut pad.`,
     },
     {
       key: "driveway",
       label: "Driveway",
       weightPct: null,
-      how: `From the routed driveway's cost: ${fmt(DC.k)} × ln(1 + cost ÷ $${fmt(DC.c0)}); ${fmt(DC.easement)} more when it needs an easement; when it needs more than the grade limit (Settings: ${fmt(cfg.roadMaxGradePct)}%), ${fmt(D.overLimitPtsPerPct)} more a percent over it up to ${fmt(D.practicalMaxPct)}%, rising to ${fmt(D.overLimitMaxPts)} at ${fmt(D.overLimitMaxAtPct)}%; at most ${fmt(DC.max)}. A route steeper than the veto (Settings: ${fmt(cfg.roadVetoGradePct)}% over ${fmt(D.gradeWindowsM.headline)} m) can't be chosen.`,
+      how: `From the routed driveway's cost: ${fmt(DC.k)} × ln(1 + cost ÷ $${fmt(DC.c0)}); ${fmt(DC.easement)} more when it needs an easement; when it needs more than the grade limit (Settings: ${pctGrade(cfg.roadMaxGradePct)}), ${overLimitWords(cfg.roadMaxGradePct, D)}; at most ${fmt(DC.max)} in all. A route steeper than the veto (Settings: ${pctGrade(cfg.roadVetoGradePct)} over ${fmt(D.gradeWindowsM.headline)} m) can't be chosen.`,
     },
   ];
   const [gA, gB, gC, gD] = S.grades.map(([v]) => v);
@@ -206,7 +251,9 @@ export function rulebook(C: Constants = SCREEN_CONSTANTS, cfg: UserConfig = DEFA
       flood: `A site inside a FEMA flood zone keeps ${pct(S.sfhaQualityFactor)}% of its quality.`,
       grades: `Quality grades: A from ${fmt(gA!)}, B from ${fmt(gB!)}, C from ${fmt(gC!)}, D from ${fmt(gD!)}, F under that.`,
       cost,
-      tiers: `Build cost tiers: $ under ${fmt(t1!)}, $$ under ${fmt(t2!)}, $$$ under ${fmt(t3!)}, $$$$ above.`,
+      costIntro:
+        "Build cost is counted in points: higher means more expensive. The five parts below add up, capped at 100.",
+      tiers: `Build cost tiers: $ under ${fmt(t1!)} points, $$ under ${fmt(t2!)}, $$$ under ${fmt(t3!)}, $$$$ at ${fmt(t3!)} and over.`,
       overall: `The sites are ranked by ${pct(S.overall.quality)}% quality and ${pct(S.overall.cost)}% build cost (100 less its points).`,
     },
   };
