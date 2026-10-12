@@ -2833,3 +2833,22 @@ html:has(.explore) body {
   font-size: 12.5px;
   font-weight: 600;
 }
+/* "What it means for you" in a panel (value-ranking.md §6.2 (c)). */
+.panel-meaning h3 {
+  font: 600 15px/1.2 var(--font-cond);
+  margin: 12px 0 4px;
+}
+.panel-meaning ul {
+  margin: 0 0 10px;
+  padding-left: 18px;
+}
+.panel-meaning li {
+  margin: 3px 0;
+}
+.scale-note {
+  grid-column: 1 / -1;
+  grid-row: 4;
+  font-size: 12px;
+  color: var(--color-ink-2);
+  text-align: center;
+}
