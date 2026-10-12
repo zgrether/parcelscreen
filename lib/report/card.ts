@@ -49,6 +49,8 @@ export interface Row {
   checkFirst?: string;
   /** More for the row's panel than its one line holds (the homesite's quality grade). */
   panelNote?: string;
+  /** The value in a few words, for a comparison table's cell (VR6): "3,543 ft", "zone 3a", "38 min ER". */
+  short?: string;
 }
 
 /** What the card says regardless of whose weights are on. */
@@ -267,7 +269,10 @@ function elevation(site: BuildSite | null | undefined, K: CardConfig): Row {
   if (site === undefined) return notLoaded(g, "the homesite ranking");
   // No build site: left out, as the Best homesite row's F carries it (owner, #109 review).
   if (site === null || site.elevFt === null) return g(null, "no build site to measure");
-  return g(atLeast(site.elevFt, K.rows.elevationFt), `${fmt(site.elevFt)} ft at ${site.label}`);
+  return {
+    ...g(atLeast(site.elevFt, K.rows.elevationFt), `${fmt(site.elevFt)} ft at ${site.label}`),
+    short: `${fmt(site.elevFt)} ft`,
+  };
 }
 
 /**
@@ -285,6 +290,7 @@ function homesite(r: Result): Row {
       `faces ${compass(s.aspectDeg)}, ${fmt(s.sunH, 1)} h of December sun, ${fmt(s.slopeDeg)}° slope`,
     ),
     panelNote: `site #1's quality ${s.qGrade} (${fmt(s.quality)})`,
+    short: `${fmt(s.sunH, 1)} h sun, faces ${compass(s.aspectDeg)}`,
   };
 }
 
@@ -292,7 +298,10 @@ function homesite(r: Result): Row {
 function sky(r: Result, K: CardConfig): Row {
   const g = row("sky", "Night sky");
   if (!r.sky) return notLoaded(g, "the sky atlas");
-  return g(atLeast(r.sky.mag, K.rows.skyMag), `${r.sky.zoneWord} sky (zone ${r.sky.zone})`);
+  return {
+    ...g(atLeast(r.sky.mag, K.rows.skyMag), `${r.sky.zoneWord} sky (zone ${r.sky.zone})`),
+    short: `zone ${r.sky.zone}`,
+  };
 }
 
 /**
@@ -309,13 +318,17 @@ function room(r: Result, K: CardConfig, footprintAc: number): Row {
     return {
       ...g("F", `site #1 ${s.fit === "house only" ? "fits the house only" : "is too small for the house"}`),
       checkFirst: "your build doesn't fit on any homesite",
+      short: s.fit === "house only" ? "house only" : "too small",
     };
   const x = s.gentleNearAc / footprintAc;
   const grade = atLeast(x, K.rows.roomX);
-  const line = g(
-    grade,
-    `${fmt(s.gentleNearAc, 1)} ac of gentle ground near the house site, ${fmt(x, x < 10 ? 1 : 0)}× the build footprint`,
-  );
+  const line = {
+    ...g(
+      grade,
+      `${fmt(s.gentleNearAc, 1)} ac of gentle ground near the house site, ${fmt(x, x < 10 ? 1 : 0)}× the build footprint`,
+    ),
+    short: `${fmt(x, x < 10 ? 1 : 0)}× footprint`,
+  };
   return grade === "F"
     ? {
         ...line,
@@ -330,16 +343,30 @@ function trails(r: Result, K: CardConfig): Row {
   if (!r.near) return notLoaded(g, "the places");
   const open = r.protected.filter((p) => p.access === "OA");
   const adjoining = open.find((p) => p.adjoins);
-  if (adjoining) return g("A", `adjoins open public land (${adjoining.name ?? "unnamed"})`);
+  if (adjoining)
+    return {
+      ...g("A", `adjoins open public land (${adjoining.name ?? "unnamed"})`),
+      short: "adjoins public land",
+    };
   const head = [...r.near.trailheads].sort((a, b) => a.km - b.km)[0];
   const byHead = head ? atMost(head.km, K.rows.trailheadKm) : "F";
   const mile = open
     .filter((p) => p.distFt != null && p.distFt <= K.rows.openLandWithinFt)
     .sort((a, b) => a.distFt! - b.distFt!)[0];
   if (mile && better(byHead, "B") === "B")
-    return g("B", `open public land ${fmt(mile.distFt! / 5280, 1)} mi away (${mile.name ?? "unnamed"})`);
-  if (!head) return g("F", `no trailhead found within ${miles(SCREEN_CONSTANTS.near.trailheadKm)} mi`);
-  return g(byHead, `a trailhead ${miles(head.km)} mi away in a straight line (${head.name})`);
+    return {
+      ...g("B", `open public land ${fmt(mile.distFt! / 5280, 1)} mi away (${mile.name ?? "unnamed"})`),
+      short: `public land ${fmt(mile.distFt! / 5280, 1)} mi`,
+    };
+  if (!head)
+    return {
+      ...g("F", `no trailhead found within ${miles(SCREEN_CONSTANTS.near.trailheadKm)} mi`),
+      short: "no trailhead",
+    };
+  return {
+    ...g(byHead, `a trailhead ${miles(head.km)} mi away in a straight line (${head.name})`),
+    short: `trailhead ${miles(head.km)} mi`,
+  };
 }
 
 /** The worse of the ER's and the grocery's; the grocery is the nearer of the real one and the closer one. */
@@ -356,13 +383,16 @@ function town(r: Result, K: CardConfig): Row {
     ? `a ${fmt(h.min)}-minute drive to ${h.er === "yes" ? "an ER" : "the nearest hospital"}`
     : "no hospital found";
   const toG = gr ? `${fmt(gr.min)} to a grocery` : "no grocery found";
-  return g(grade, `${toH}, ${toG}`);
+  const short = [h ? `ER ${fmt(h.min)} min` : "no ER", gr ? `grocery ${fmt(gr.min)}` : "no grocery"].join(
+    ", ",
+  );
+  return { ...g(grade, `${toH}, ${toG}`), short };
 }
 
 function garden(r: Result, K: CardConfig): Row {
   const g = row("garden", "Garden ground");
   if (!r.gardens) return notLoaded(g, "the terrain");
-  if (!r.gardens.length) return g("F", "no garden ground found");
+  if (!r.gardens.length) return { ...g("F", "no garden ground found"), short: "none" };
   const units: SoilUnit[] | null = r.soilUnits
     ? r.soilUnits.map((u) => ({
         mukey: u.mukey,
@@ -385,11 +415,15 @@ function garden(r: Result, K: CardConfig): Row {
     .filter((x) => x.acres >= aAc!)
     .map((x) => ({ x, cls: classOf(x.ll) }))
     .find((y) => y.cls);
-  if (best) return g("A", `a ${fmt(best.x.acres, 2)} ac garden on ${best.cls}`);
+  if (best)
+    return {
+      ...g("A", `a ${fmt(best.x.acres, 2)} ac garden on ${best.cls}`),
+      short: `${fmt(best.x.acres, 2)} ac, ${best.cls}`,
+    };
   const largest = Math.max(...r.gardens.map((x) => x.acres));
   const i = rest.findIndex((c) => largest >= c);
   const grade = i < 0 ? "F" : LETTERS[i + 1]!;
-  return g(grade, `the largest garden is ${fmt(largest, 2)} ac`);
+  return { ...g(grade, `the largest garden is ${fmt(largest, 2)} ac`), short: `${fmt(largest, 2)} ac` };
 }
 
 // ---------- the card ----------

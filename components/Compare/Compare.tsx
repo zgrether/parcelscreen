@@ -1,0 +1,304 @@
+"use client";
+/**
+ * The comparison table (value-ranking.md §7; VR6): History's parcels as columns, the report card's lines as rows, in
+ * collapsible groups. The first column stays put while the parcels scroll sideways (on a phone). A cell holds a value
+ * and a mark; a tap opens that line's slide-in panel for that parcel (the sheet's own, §6.2): a side panel on desktop,
+ * a bottom sheet on a phone. The weight switch in the header is the sheet's (ps.person): it changes the grade and the
+ * verdict, nothing else. Columns are added from History and removed here, remembered per browser (ps.compare).
+ */
+import { bbox } from "@turf/turf";
+import { useEffect, useMemo, useState } from "react";
+import { HelpProvider } from "@/components/Help/HelpDialog";
+import { CardPanel } from "@/components/Results/card/CardPanel";
+import { evaluationPoint } from "@/components/Results/blocks/types";
+import { parcelName } from "@/lib/client/historyRows";
+import { openBuilt, recipeOf, type WorkingParcel } from "@/lib/client/parcelStore";
+import { getPref, setPref } from "@/lib/client/prefs";
+import { needsRescreen, readScreen } from "@/lib/client/screenStore";
+import { loadUserConfig } from "@/lib/client/userConfig";
+import { deriveParcel } from "@/lib/geo/recipe";
+import type { Person } from "@/lib/report/card";
+import type { PanelKey } from "@/lib/report/cardPanels";
+import { compareTable, type Cell, type CompareParcel } from "@/lib/report/compare";
+import { SCREEN_CONSTANTS } from "@/lib/screen/config";
+
+const PEOPLE: { key: Person; name: string }[] = [
+  { key: "zach", name: "Zach's grade" },
+  { key: "julie", name: "Julie's grade" },
+];
+const STATUS: Record<NonNullable<Cell["status"]>, { mark: string; word: string }> = {
+  pass: { mark: "✓", word: "Pass" },
+  warn: { mark: "!", word: "Warning" },
+  fail: { mark: "✗", word: "Fail" },
+  unknown: { mark: "?", word: "Unknown" },
+};
+
+type Kept = Pick<CompareParcel, "state" | "result">;
+
+/** The kept screens of these parcels, by History key: what each latest one says, once IndexedDB answers. */
+function useScreens(parcels: readonly WorkingParcel[]): ReadonlyMap<string, Kept> {
+  const [found, setFound] = useState<ReadonlyMap<string, Kept>>(new Map());
+  const sig = parcels.map((p) => `${p.key}:${p.screenIds.at(-1) ?? ""}`).join(",");
+  useEffect(() => {
+    let alive = true;
+    void Promise.all(
+      parcels.map(async (p): Promise<[string, Kept]> => {
+        const id = p.screenIds.at(-1);
+        if (!id) return [p.key!, { state: "none", result: null }];
+        const r = await readScreen(id);
+        return [
+          p.key!,
+          r.kind === "ok" && !needsRescreen(r)
+            ? { state: "ok", result: r.record.result }
+            : { state: "rescreen", result: null },
+        ];
+      }),
+    ).then((entries) => alive && setFound(new Map(entries)));
+    return () => {
+      alive = false;
+    };
+    // `sig` stands for `parcels`: re-read only when a column or its latest screen changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sig]);
+  return found;
+}
+
+/** Opens a History parcel on the map: the store's open parcel and a view on it, before the link loads the explorer. */
+function openOnMap(p: WorkingParcel): void {
+  const store = getPref("ps.parcels");
+  if (!store || !p.key) return;
+  setPref("ps.parcels", openBuilt(store, p.key));
+  const d = deriveParcel(recipeOf(p), SCREEN_CONSTANTS.combine);
+  if (d.ok) {
+    const [w, s, e, n] = bbox(d.record.geo);
+    setPref("ps.view", { lat: (s + n) / 2, lon: (w + e) / 2, z: 15 });
+  }
+}
+
+export function Compare() {
+  const built = useMemo(() => getPref("ps.parcels")?.built ?? [], []);
+  const [chosen, setChosen] = useState<string[]>(() => {
+    const kept = getPref("ps.compare");
+    const keys = new Set(built.map((b) => b.key!));
+    // Until changed, every History parcel, newest first.
+    return kept
+      ? kept.filter((k) => keys.has(k))
+      : [...built].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).map((b) => b.key!);
+  });
+  const choose = (keys: string[]) => {
+    setChosen(keys);
+    setPref("ps.compare", keys);
+  };
+  const [person, setPersonState] = useState<Person>(() => getPref("ps.person"));
+  const setPerson = (p: Person) => {
+    setPersonState(p);
+    setPref("ps.person", p);
+  };
+  const config = useMemo(() => loadUserConfig(), []);
+  const [closed, setClosed] = useState<ReadonlySet<string>>(new Set());
+  const [panel, setPanel] = useState<{ col: number; key: PanelKey } | null>(null);
+
+  const columns = useMemo(
+    () => chosen.map((k) => built.find((b) => b.key === k)).filter((b): b is WorkingParcel => !!b),
+    [chosen, built],
+  );
+  const screens = useScreens(columns);
+  const parcels: CompareParcel[] = columns.map((b) => {
+    const { name, acres } = parcelName(b);
+    const s = screens.get(b.key!);
+    return {
+      key: b.key!,
+      name,
+      acres,
+      askingPrice: b.askingPrice,
+      state: s?.state ?? "none",
+      result: s?.result ?? null,
+    };
+  });
+  const table = compareTable(parcels, person, config.budget.readyToBuild);
+  const addable = built.filter((b) => !chosen.includes(b.key!));
+  const opened = panel ? parcels[panel.col] : null;
+  const openedCard = panel ? table.cards[panel.col] : null;
+
+  const cell = (c: Cell, col: number, label: string) => {
+    const status = c.status ? STATUS[c.status] : null;
+    const body = (
+      <>
+        {status && (
+          <span className={`gate-mark ${c.status}`} aria-hidden="true">
+            {status.mark}
+          </span>
+        )}
+        {c.grade !== undefined && (
+          <span className={`card-grade small g-${c.grade ?? "none"}`}>{c.grade ?? "–"}</span>
+        )}
+        <span className="cmp-text">{status ? status.word : c.text}</span>
+        {c.mark && (
+          <span
+            className={`cmp-mark ${c.mark}`}
+            aria-label={c.mark === "best" ? "best in row" : "worst in row"}
+          >
+            {c.mark === "best" ? "↑" : "↓"}
+          </span>
+        )}
+      </>
+    );
+    return (
+      <td key={col} title={c.title}>
+        {c.panel ? (
+          <button
+            className="cmp-cell"
+            aria-label={`${parcels[col]!.name}, ${label}: ${status ? status.word : c.text}`}
+            onClick={() => setPanel({ col, key: c.panel! })}
+          >
+            {body}
+          </button>
+        ) : (
+          <span className="cmp-cell">{body}</span>
+        )}
+      </td>
+    );
+  };
+
+  return (
+    <HelpProvider>
+      <main className="compare">
+        <header className="compare-head">
+          <a className="link-btn" href="/explore">
+            ← Map
+          </a>
+          <h1>Compare</h1>
+          <div className="card-person" role="group" aria-label="Whose weights grade the parcels">
+            {PEOPLE.map((p) => (
+              <button
+                key={p.key}
+                className="chip"
+                aria-pressed={person === p.key}
+                onClick={() => setPerson(p.key)}
+              >
+                {p.name}
+              </button>
+            ))}
+          </div>
+        </header>
+
+        {built.length === 0 ? (
+          <p className="muted">
+            Nothing to compare yet. Parcels you keep in History (open one and screen it, or draw onto it) show
+            here.
+          </p>
+        ) : (
+          <>
+            <div className="compare-scroll">
+              <table className="compare-table">
+                <thead>
+                  <tr>
+                    <th scope="col" className="cmp-first">
+                      <span className="sr-only">Line</span>
+                    </th>
+                    {parcels.map((p, i) => (
+                      <th key={p.key} scope="col">
+                        <div className="cmp-name">{p.name}</div>
+                        <div className="tiny muted">{p.acres !== null ? `${p.acres.toFixed(2)} ac` : ""}</div>
+                        <div className="cmp-actions">
+                          {/* A full page load each way: the explorer's map isn't built to unmount. */}
+                          <a className="link-btn" href="/explore" onClick={() => openOnMap(columns[i]!)}>
+                            Open
+                          </a>
+                          <button
+                            className="link-btn"
+                            aria-label={`Remove ${p.name} from the table`}
+                            onClick={() => choose(chosen.filter((k) => k !== p.key))}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="cmp-headline">
+                    <th scope="row" className="cmp-first">
+                      {table.head.label}
+                    </th>
+                    {table.head.cells.map((c, i) => cell(c, i, table.head.label))}
+                  </tr>
+                </tbody>
+                {table.groups.map((g) => {
+                  const shut = closed.has(g.key);
+                  return (
+                    <tbody key={g.key}>
+                      <tr className="cmp-group">
+                        <th scope="rowgroup" className="cmp-first" colSpan={1}>
+                          <button
+                            className="cmp-toggle"
+                            aria-expanded={!shut}
+                            onClick={() => {
+                              const next = new Set(closed);
+                              if (shut) next.delete(g.key);
+                              else next.add(g.key);
+                              setClosed(next);
+                            }}
+                          >
+                            {shut ? "▸" : "▾"} {g.label}
+                          </button>
+                        </th>
+                        <td colSpan={parcels.length} />
+                      </tr>
+                      {!shut &&
+                        g.rows.map((r) => (
+                          <tr key={r.key}>
+                            <th scope="row" className="cmp-first cmp-label">
+                              {r.label}
+                            </th>
+                            {r.cells.map((c, i) => cell(c, i, r.label))}
+                          </tr>
+                        ))}
+                    </tbody>
+                  );
+                })}
+              </table>
+            </div>
+            <p className="tiny muted cmp-legend">
+              ✓ pass · ! warning · ✗ fail · ? unknown &nbsp; ↑ best in its row · ↓ worst in its row. Costs and
+              the budget are pending until the cost to enjoy is built.
+            </p>
+            {addable.length > 0 && (
+              <label className="cmp-add">
+                <span>Add from History</span>{" "}
+                <select
+                  value=""
+                  onChange={(e) => {
+                    if (e.target.value) choose([...chosen, e.target.value]);
+                  }}
+                >
+                  <option value="">Choose a parcel…</option>
+                  {addable.map((b) => (
+                    <option key={b.key} value={b.key!}>
+                      {parcelName(b).name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+          </>
+        )}
+
+        {panel && opened?.result && openedCard && (
+          <div className="compare-panel">
+            <CardPanel
+              panel={panel.key}
+              card={openedCard}
+              result={opened.result}
+              point={evaluationPoint(opened.result)}
+              dw={config.dw}
+              about={opened.name}
+              onClose={() => setPanel(null)}
+            />
+          </div>
+        )}
+      </main>
+    </HelpProvider>
+  );
+}

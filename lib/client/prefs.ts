@@ -59,6 +59,8 @@ export interface Prefs {
   "ps.tiltHint": boolean;
   /** Whose weights the report card grades with (VR5; value-ranking.md §3.2). UI only, never part of a run. */
   "ps.person": "zach" | "julie";
+  /** The comparison table's columns (VR6): History keys, in order; null until the table is first changed (all shown). */
+  "ps.compare": string[] | null;
 }
 
 const DEFAULTS: Prefs = {
@@ -78,6 +80,7 @@ const DEFAULTS: Prefs = {
   "ps.overlays": ALL_OVERLAYS,
   "ps.tiltHint": false,
   "ps.person": "zach",
+  "ps.compare": null,
 };
 
 /** How each key is stored: the prototype kept flags as "1"/"0" and the rest as plain strings or JSON. */
@@ -96,6 +99,13 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
   "ps.contours": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
   "ps.tiltHint": { read: (r) => r === "1", write: (v) => (v ? "1" : "0") },
   "ps.person": { read: (r) => (r === "julie" ? "julie" : "zach"), write: (v) => v },
+  "ps.compare": {
+    read: (r) => {
+      const v: unknown = JSON.parse(r);
+      return Array.isArray(v) ? v.filter((k): k is string => typeof k === "string") : null;
+    },
+    write: (v) => JSON.stringify(v),
+  },
   "ps.overlays": {
     // Unknown or missing keys read as shown, so an overlay added later starts visible.
     read: (r) => ({ ...ALL_OVERLAYS, ...(JSON.parse(r) as Partial<OverlayPrefs>) }),
