@@ -43,9 +43,9 @@ describe("What it means for you", () => {
         }
   });
 
-  it("the owner's tone example is the north-facing driveway's", () => {
+  it("the owner's tone example is the north-facing line, near the house (#112)", () => {
     expect(meaningsFor("facing", 3)).toContainEqual({
-      for: "Driveway",
+      for: "Near the house",
       text: "North-facing slopes keep ice on the driveway for days, which matters for whoever is home alone.",
     });
   });
@@ -55,10 +55,10 @@ describe("What it means for you", () => {
     const lines = scalesFor("homesite", r, reportCard(r, "zach")).flatMap((sc) => meaningsFor(sc.id, sc.at));
     expect(lines[0]).toEqual({
       for: "Solar",
-      text: "As good as it gets in these mountains; a modest array covers most of the year.",
+      text: "As good as it gets in these mountains; panels keep producing through December.",
     });
-    expect(lines.filter((l) => l.for === "Driveway").map((l) => l.text)).toEqual([
-      "Shady stretches hold ice after a storm; keep gravel and a spreader on hand.",
+    expect(lines.filter((l) => l.for === "Near the house").map((l) => l.text)).toEqual([
+      "Shady spots near the house hold ice after a storm; keep grit and a spreader on hand.",
     ]);
   });
 });

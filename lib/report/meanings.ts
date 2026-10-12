@@ -8,7 +8,8 @@
  */
 import type { ScaleId } from "./scales";
 
-export type MeaningFor = "Solar" | "Garden" | "House" | "Driveway";
+/** "Near the house" (owner, #112): the facing is the house site's; the drive itself may face another way. */
+export type MeaningFor = "Solar" | "Garden" | "House" | "Driveway" | "Near the house";
 
 export interface Meaning {
   for?: MeaningFor;
@@ -38,12 +39,12 @@ export const MEANINGS: Record<ScaleId, Meaning[][]> = {
     // Good
     [
       m("Solar", "A solid year-round array; winter output dips but holds up."),
-      m("Garden", "Beds warm early in spring and dry out quickly after rain."),
+      m("Garden", "Enough winter sun for a cold frame; beds warm early where the ground faces south."),
       m("House", "Passive-solar design pays here: south glass and thermal mass carry many winter days."),
     ],
     // Excellent
     [
-      m("Solar", "As good as it gets in these mountains; a modest array covers most of the year."),
+      m("Solar", "As good as it gets in these mountains; panels keep producing through December."),
       m("Garden", "Early springs and a long season, with room for a cold frame or a greenhouse."),
       m(
         "House",
@@ -59,26 +60,29 @@ export const MEANINGS: Record<ScaleId, Meaning[][]> = {
         "House",
         "Morning sun warms the house early; the hot summer afternoon sun comes in at a glancing angle.",
       ),
-      m("Driveway", "Snow and ice on the drive melt off in a day or two."),
+      m("Near the house", "Snow and ice around the house melt off in a day or two."),
     ],
     // Fine
     [
       m("Solar", "A little off south: panels lose a few percent, which a slightly bigger array makes up."),
       m("House", "Good light, with the house turned toward south on its pad."),
-      m("Driveway", "Snow clears off the drive within a few days."),
+      m("Near the house", "Snow clears around the house within a few days."),
     ],
     // Cool
     [
-      m("Solar", "Half the day in the slope's shadow; a ground mount aimed south beats the roof."),
-      m("House", "Mornings or evenings come late, and the rooms on the shady side run cool."),
-      m("Driveway", "Shady stretches hold ice after a storm; keep gravel and a spreader on hand."),
+      m("Solar", "The slope tilts away from the winter sun; a ground mount aimed south beats the roof."),
+      m("House", "Sun comes late on an east face and leaves early on a west one; the uphill rooms run cool."),
+      m(
+        "Near the house",
+        "Shady spots near the house hold ice after a storm; keep grit and a spreader on hand.",
+      ),
     ],
     // North-facing
     [
       m("Solar", "The slope hides the low winter sun; panels belong somewhere else on the land."),
       m("House", "Cool and damp, with little winter sun: pleasant in summer, costly to heat in winter."),
       m(
-        "Driveway",
+        "Near the house",
         "North-facing slopes keep ice on the driveway for days, which matters for whoever is home alone.",
       ),
     ],
@@ -118,7 +122,7 @@ export const MEANINGS: Record<ScaleId, Meaning[][]> = {
     [
       m(
         "House",
-        "The slope gives you a walkout basement, or a garage under the house, at little extra cost.",
+        "The slope gives you a walkout basement or a garage under the house: more usable space for less than building it separately.",
       ),
     ],
     // Cut-fill and walls
@@ -133,7 +137,7 @@ export const MEANINGS: Record<ScaleId, Meaning[][]> = {
   ],
   driveway: [
     // Easy
-    [m("Driveway", "Gravel stays put, and any car makes it up year-round.")],
+    [m("Driveway", "Gravel stays put, and most cars make it up year-round once it's plowed.")],
     // Good gravel
     [m("Driveway", "Gravel holds with water bars and culverts; plan on some grading every year or two.")],
     // Pave or regrade
@@ -161,8 +165,11 @@ export const MEANINGS: Record<ScaleId, Meaning[][]> = {
     ],
     // High
     [
-      m("House", "Summers without air conditioning; winters with snow on the drive."),
-      m("Garden", "A short season: greens, roots and cold-hardy fruit do best."),
+      m("House", "Summers where you rarely need air conditioning; winters with snow on the drive."),
+      m(
+        "Garden",
+        "A shorter season: set tomatoes and squash out late and pick quick varieties; greens, roots and apples thrive.",
+      ),
     ],
   ],
   sky: [
@@ -176,7 +183,7 @@ export const MEANINGS: Record<ScaleId, Meaning[][]> = {
       ),
     ],
     // Dark
-    [m(undefined, "A truly dark sky: the Milky Way is bright overhead on any clear, moonless night.")],
+    [m(undefined, "A truly dark sky: the Milky Way is bright overhead on clear, moonless nights.")],
   ],
   room: [
     // Doesn't fit
@@ -197,7 +204,7 @@ export const MEANINGS: Record<ScaleId, Meaning[][]> = {
   ],
   trails: [
     // At the edge
-    [m(undefined, "You can walk into the woods from the house.")],
+    [m(undefined, "Public land at your boundary, or a trailhead a few minutes away.")],
     // A short drive
     [m(undefined, "A trailhead a few minutes' drive away.")],
     // A drive
