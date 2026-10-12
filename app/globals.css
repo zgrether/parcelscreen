@@ -2855,3 +2855,18 @@ html:has(.explore) body {
   color: var(--color-ink-2);
   text-align: center;
 }
+/* VR3b: each scale with its own sentences; the foundation and dig cost at site #1; a row's flags. */
+.scale-group + .scale-group {
+  margin-top: 6px;
+}
+.panel-meaning h4 {
+  font: 600 13px/1.2 var(--font-cond);
+  color: var(--color-ink-2);
+  margin: 2px 0 2px;
+}
+.panel-derived p {
+  margin: 6px 0;
+}
+.panel-flags {
+  margin: 10px 0;
+}

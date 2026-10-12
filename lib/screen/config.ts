@@ -505,6 +505,10 @@ export const SCREEN_CONSTANTS = deepFreeze({
       julie: { elevation: 10, homesite: 15, sky: 10, room: 10, trails: 25, town: 10, garden: 20 },
     },
   },
+  // Derived for the card and Stage 3 (value-ranking.md §5.1–5.3; VR3b): proposals, calibrated in follow-up 47.
+  foundationType: { shallowRockCm: 50 }, // bedrock shallower than this moves the type one step toward piers
+  basement: { footprintSqFt: 1500, depthFt: 8 }, // the dig cost in rock (§5.2)
+  septicClass: { shallowCm: 50 }, // a water table, bedrock or restrictive layer this near the surface needs an alternative system
   // The panels' banded scales (value-ranking.md §6.2 (b); VR5 part 2): each band's lower edge, in order. The owner's
   // bands where §6.2 gives them; the rest are proposals for the calibration (VR8).
   bands: {

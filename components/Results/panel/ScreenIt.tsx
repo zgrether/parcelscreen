@@ -360,6 +360,8 @@ export function useScreenIt(
     /** The unsaved re-evaluation shown, if any (its label for the "not saved" note, 15b). */
     evaluated: evaluated ? { label: evalAsked!.label } : null,
     person,
+    /** The Settings' earthwork rates: the card's dig cost (VR3b). */
+    dw: config.dw,
     setPerson: (p: Person) => {
       setPersonState(p);
       setPref("ps.person", p);
@@ -583,6 +585,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
               <p className="report-note eval-note">{evaluatedNote(s.evaluated.label)}</p>
             )
           }
+          dw={s.dw}
           onClose={closePanel}
         />
       )}

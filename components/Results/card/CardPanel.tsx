@@ -7,11 +7,14 @@
  */
 import { useEffect, useRef, type ReactNode } from "react";
 import { useHelp } from "@/components/Help/HelpDialog";
+import { fmt } from "@/lib/format";
+import { digCost, foundationAt, soilUnder } from "@/lib/report/derived";
+import { DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "@/lib/screen/config";
 import type { Card, GateStatus } from "@/lib/report/card";
 import { panelText, type PanelKey } from "@/lib/report/cardPanels";
 import { meaningsFor } from "@/lib/report/meanings";
 import { scalesFor, type Scale } from "@/lib/report/scales";
-import type { PartialScreenResult, ScreenResult, Step } from "@/lib/screen/types";
+import type { PartialScreenResult, ScreenResult, Step, UserConfig } from "@/lib/screen/types";
 import type { EvaluationPoint } from "../blocks/types";
 import { panelSections } from "./panelBlocks";
 
@@ -23,6 +26,24 @@ const STATUS: Record<GateStatus, string> = {
   warn: "Warning",
   fail: "Fail",
   unknown: "Unknown",
+};
+
+/**
+ * Where each step's flags go (owner, #110; v4 records the step): the row or gate they're about. The Grade and verdict
+ * panel keeps the full list, in the Verdict section.
+ */
+const FLAG_PANEL: Record<Step, PanelKey> = {
+  dem: "verdict",
+  terrain: "homesite",
+  soils: "septic",
+  sun: "homesite",
+  sky: "sky",
+  flood: "floodplain",
+  padus: "trails",
+  near: "easement",
+  drive: "town",
+  rank: "homesite",
+  driveway: "easement",
 };
 
 /** This parcel's reading on the panel's line of the card. */
@@ -44,6 +65,7 @@ export function CardPanel({
   point,
   running,
   noteFor,
+  dw = DEFAULT_USER_CONFIG.dw,
   onClose,
 }: {
   panel: PanelKey;
@@ -53,6 +75,8 @@ export function CardPanel({
   running?: { step: Step; message?: string };
   /** A note to show above a section (the re-evaluation's), by its slug. */
   noteFor?(slug: string): ReactNode;
+  /** The Settings' earthwork rates, for the dig cost; the defaults when absent. */
+  dw?: UserConfig["dw"];
   onClose(): void;
 }) {
   const help = useHelp();
@@ -87,10 +111,19 @@ export function CardPanel({
         <p className="panel-reading">
           <span className={`card-grade small ${r.tone}`}>{r.mark}</span> {r.text}
         </p>
+        {/* Each scale with its own sentences under it (owner, #113 review). */}
         {scalesFor(panel, result, card).map((sc) => (
-          <ScaleBar key={sc.name} scale={sc} />
+          <div key={sc.name} className="scale-group">
+            <ScaleBar scale={sc} />
+            <WhatItMeans scale={sc} />
+          </div>
         ))}
-        <WhatItMeans scales={scalesFor(panel, result, card)} />
+        {panel === "homesite" && <BuildingHere result={result} dw={dw} />}
+        <PanelFlags
+          flags={(result.flags ?? []).filter(
+            (f) => f.step && FLAG_PANEL[f.step] === panel && panel !== "verdict",
+          )}
+        />
         <p className="tiny muted panel-scored">How it&apos;s scored: {t.howScored}</p>
         <h3 className="panel-from">From the report</h3>
         {/* Owner's wording (#111): added above the moved sections, nothing replaced. */}
@@ -148,23 +181,67 @@ function ScaleBar({ scale }: { scale: Scale }) {
   );
 }
 
-/** "What it means for you" (§6.2 (c)): each scale's sentences for this parcel's band, by what they touch. */
-function WhatItMeans({ scales }: { scales: Scale[] }) {
-  const lines = scales.flatMap((sc) =>
-    meaningsFor(sc.id, sc.at).map((m, i) => ({ key: `${sc.id}-${i}`, ...m })),
-  );
+/** "What it means for you" (§6.2 (c)): a scale's sentences for this parcel's band, by what they touch. */
+function WhatItMeans({ scale }: { scale: Scale }) {
+  const lines = meaningsFor(scale.id, scale.at);
   if (!lines.length) return null;
   return (
-    <section className="panel-meaning">
-      <h3>What it means for you</h3>
+    <section className="panel-meaning" aria-label={`What ${scale.name.toLowerCase()} means for you`}>
+      <h4>What it means for you</h4>
       <ul>
-        {lines.map((l) => (
-          <li key={l.key}>
+        {lines.map((l, i) => (
+          <li key={i}>
             {l.for && <b>{l.for}: </b>}
             {l.text}
           </li>
         ))}
       </ul>
+    </section>
+  );
+}
+
+/**
+ * At site #1 (value-ranking.md §5.1–5.2; VR3b): the foundation the ground calls for, and what a basement would cost
+ * to dig at the Settings' rates, in soil and with the rock where NRCS puts it. Stage 3 (VR4) prices both.
+ */
+function BuildingHere({ result, dw }: { result: ScreenResult | PartialScreenResult; dw: UserConfig["dw"] }) {
+  const site = result.sites?.[0];
+  if (!site) return null;
+  const soil = soilUnder(result, site.ll);
+  const f = foundationAt(site.slopeDeg, soil);
+  const dig = digCost(soil, dw);
+  const rockLine =
+    dig.rockCm === null
+      ? "NRCS doesn't give the depth to rock here"
+      : dig.withRock > dig.allSoil
+        ? `about $${fmt(dig.withRock)} with the rock at ${fmt(dig.rockCm)} cm, $${fmt(dig.withRock - dig.allSoil)} more`
+        : `the rock is below it (${fmt(dig.rockCm)} cm)`;
+  return (
+    <section className="panel-derived">
+      <p>
+        <b>Foundation at site #1:</b> {f.type.toLowerCase()}
+        {f.shallowRock && ` (rock within ${SCREEN_CONSTANTS.foundationType.shallowRockCm} cm)`}
+        {f.engineered && "; engineered design, since NRCS rates this soil very limited for houses"}.
+      </p>
+      <p>
+        <b>A basement there</b>
+        {` (${fmt(SCREEN_CONSTANTS.basement.footprintSqFt)} sq ft, ${SCREEN_CONSTANTS.basement.depthFt} ft deep): `}
+        {`about $${fmt(dig.allSoil)} to dig in soil; ${rockLine}.`}
+      </p>
+    </section>
+  );
+}
+
+/** The flags this row's step raised (owner, #110), as the Verdict section shows them. */
+function PanelFlags({ flags }: { flags: NonNullable<ScreenResult["flags"]> }) {
+  if (!flags.length) return null;
+  return (
+    <section className="panel-flags verdict">
+      {flags.map((f, i) => (
+        <div key={i} className={`flag ${f.lvl}`}>
+          {f.t}
+        </div>
+      ))}
     </section>
   );
 }

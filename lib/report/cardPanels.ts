@@ -102,11 +102,11 @@ export function panelText(
         title: "Room to build",
         question:
           "Does the whole build fit on gentle ground: the house, the garage, the turnaround and the septic field with its reserve?",
-        howScored: `Gentle ground (15% or less) against the build footprint, ${fmt(footprintFt2(build))} ft²: ${ladder(
+        howScored: `Gentle ground (15% or less) within ${fmt(build.drainfieldWithinFt)} ft of where the house goes on site #1, against the build footprint, ${fmt(footprintFt2(build))} ft²: ${ladder(
           R.roomX.slice(0, 3).map((v) => `${v}×`),
           "at",
           "from",
-        )}, D when it fits; ${weightOf(K, "room")}.`,
+        )}, D when it fits; an F when the build doesn't fit on any homesite; ${weightOf(K, "room")}.`,
       };
     case "trails":
       return {

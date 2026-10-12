@@ -12,6 +12,7 @@ const PANEL_KEYS_WITH_SCALES = [
   "elevation",
   "sky",
   "room",
+  "septic",
   "trails",
   "town",
   "garden",

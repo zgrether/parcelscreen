@@ -157,6 +157,10 @@ describe("config", () => {
             7,
           ],
         },
+        "basement": {
+          "depthFt": 8,
+          "footprintSqFt": 1500,
+        },
         "build": {
           "bedrooms": 3,
           "drainfieldWithinFt": 300,
@@ -419,6 +423,9 @@ describe("config", () => {
           "retryTimeoutMs": 45000,
           "timeoutMs": 30000,
         },
+        "foundationType": {
+          "shallowRockCm": 50,
+        },
         "grocery": {
           "closerMinMin": 10,
         },
@@ -557,6 +564,9 @@ describe("config", () => {
             "slope": 0.15,
             "sun": 0.4,
           },
+        },
+        "septicClass": {
+          "shallowCm": 50,
         },
         "sites": {
           "maxCompact": 3,
