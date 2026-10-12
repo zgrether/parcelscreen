@@ -23,14 +23,14 @@ import {
 } from "@turf/turf";
 import type { Feature, FeatureCollection, LineString, MultiLineString, Polygon, Position } from "geojson";
 import * as UTM from "../geo/utm";
-import { SCREEN_CONSTANTS } from "./config";
+import { DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "./config";
 import { rcToLL, utmToRC, zBilinear } from "./dem";
 import { osmRoadFeatures, reachesTiger, type OsmWay } from "./osmRoads";
 import type { RoadFeature } from "./roads";
 import { bottomland, type SoilUnit } from "./soils";
 import type { Dem, DrawnInput, ScreenResult, SoilRow, UserConfig } from "./types";
 import { M2FT, M2_PER_ACRE, type LatLon } from "./util";
-import { searchMany, smoothPath, type PathPoint, type RoutedPath } from "./router";
+import { searchMany, smoothPath, type PathPoint, type RoutedPath, type SearchResult } from "./router";
 
 export { MinHeap } from "./router";
 
@@ -547,10 +547,13 @@ export interface RouteContext {
   /** OpenStreetMap's tracks and service roads (VR3a): possible frontage when TIGER shows none. Absent: none. */
   osmRoads?: readonly OsmWay[];
   /**
-   * The lines drawn with the parcel, on the grid (follow-up 34; drawn.ts): `inside` already counts their cells as the
-   * parcel's own land. Absent: none.
+   * The lines drawn with the parcel, on the grid (follow-up 34; drawn.ts): `inside` already counts their easements'
+   * corridors as the parcel's own land. Absent: none.
    */
   drawn?: DrawnGrid;
+  /** The Settings' grade limit and veto, which an existing drive's grade is judged against (follow-up 34). Absent: the defaults. */
+  limitPct?: number;
+  vetoPct?: number;
   dw: UserConfig["dw"];
 }
 
@@ -561,6 +564,56 @@ export interface DrawnGrid {
   cell: Uint16Array;
   /** 1 on a drawn track's cells: the road's cut is there (no earthwork or clearing; it costs as flat ground). */
   track: Uint8Array;
+  /** 1 in a drawn easement's corridor: legal access, counted as the parcel's own land. */
+  easement: Uint8Array;
+  /** Each line as a route from its end reads it: an existing drive (existingDrive). */
+  sources: readonly DrawnSource[];
+}
+
+/** A drawn line as an existing drive (drawn.ts): its profile, length, and its length on unlicensed neighbouring land. */
+export interface DrawnSource {
+  profile: [number, number][];
+  lengthM: number;
+  offEasementM: number;
+}
+
+type ExistingDrive = NonNullable<Route["existing"]>;
+
+/** The mean grade of a profile's 3 m steps, percent: a route's avgGradePct, and a drawn line's. */
+export const meanGradePct = (prof: readonly (readonly [number, number])[]): number => {
+  let sum = 0;
+  for (let i = 1; i < prof.length; i++)
+    sum += Math.abs(prof[i]![1] - prof[i - 1]![1]) / (prof[i]![0] - prof[i - 1]![0]);
+  return prof.length > 1 ? (sum / (prof.length - 1)) * 100 : 0;
+};
+
+/**
+ * The drawn line a route starts from, as an existing drive to upgrade (owner, #116): a top course of stone over its
+ * length, relief culverts by its grade, and the length over paveAbovePct to pave (cost TBD until follow-up 47), with
+ * its grades on the raw ground and the grade limit they're judged against.
+ */
+export function existingDrive(ctx: RouteContext, line: number): ExistingDrive | null {
+  const src = ctx.drawn?.sources[line];
+  if (!src) return null;
+  const prof = src.profile;
+  const stoneTons = K.benchWidthM * K.drawn.resurfaceDepthM * src.lengthM * K.stoneTPerM3;
+  const relief = reliefCulverts(prof);
+  const pavedM = overLimitSpans(prof, K.paveAbovePct / 100).reduce((t, [a, b]) => t + (b - a), 0);
+  const mid = stoneTons * ctx.dw.stonePerTon + relief * ctx.dw.reliefCulvertEach;
+  const R = K.costRange;
+  return {
+    line,
+    lengthFt: src.lengthM * M2FT,
+    maxGradePct: prof.length > 1 ? gradeOver(prof, K.gradeWindowsM.headline) : 0,
+    avgGradePct: meanGradePct(prof),
+    limitPct: ctx.limitPct ?? DEFAULT_USER_CONFIG.roadMaxGradePct,
+    vetoPct: ctx.vetoPct ?? DEFAULT_USER_CONFIG.roadVetoGradePct,
+    pavedFt: pavedM * M2FT,
+    reliefCulverts: relief,
+    stoneTons,
+    outsideFt: src.offEasementM * M2FT,
+    cost: { mid, low: mid * R.low, high: mid * R.high },
+  };
 }
 
 interface RouteOpts {
@@ -632,6 +685,7 @@ export function routeMany(
   toLLs: readonly LatLon[],
   opts: RouteOpts,
 ): (RawRoute | null)[] {
+  // From a point, not an entrance: never an existing drive.
   return routeManyFrom(ctx, [fromLL], toLLs, opts).map((x) => x?.rt ?? null);
 }
 
@@ -640,13 +694,15 @@ export type Found = { rt: RawRoute; entranceIndex: number };
 
 /**
  * routeMany from several entrances at once (A4b PR B): each target's route is the cheapest from any of them, the
- * comparison buildDriveway makes between entrances, in one search.
+ * comparison buildDriveway makes between entrances, in one search. `fromLines` gives each start's drawn line, when
+ * it's a drawn entrance (follow-up 34): the route then includes that line as an existing drive (existingDrive).
  */
 export function routeManyFrom(
   ctx: RouteContext,
   fromLLs: readonly LatLon[],
   toLLs: readonly LatLon[],
   opts: RouteOpts,
+  fromLines: readonly (number | null)[] = [],
 ): (Found | null)[] {
   const d = ctx.dFine,
     { w, h, z } = d,
@@ -673,7 +729,7 @@ export function routeManyFrom(
     dsts,
     opts,
   );
-  const finish = (path: RoutedPath): RawRoute => {
+  const finish = (path: SearchResult): RawRoute => {
     const smoothed = smoothPath(path, maxG, d);
     const pts: Position[] = smoothed.map((p) => {
       const [lat, lon] = UTM.inv(d.x0 + (p.c + 0.5) * d.res, d.y0 - (p.r + 0.5) * d.resY);
@@ -811,16 +867,25 @@ export function routeManyFrom(
       q.culverts * u.culvertEach +
       reliefCulverts(prof) * u.reliefCulvertEach;
     const R = K.costRange;
+    // A drawn entrance (follow-up 34, owner #116): the line to it is an existing drive, priced as an upgrade and part of
+    // the route's cost; its stretch on neighbouring land outside the drawn easements counts towards the easement need.
+    const from = fromLines[path.source];
+    const existing = from != null ? existingDrive(ctx, from) : null;
     const rt: RawRoute = {
       line,
       profile: prof,
       metrics: q,
-      cost: { mid: cost, low: cost * R.low, high: cost * R.high },
+      cost: {
+        mid: cost + (existing?.cost.mid ?? 0),
+        low: cost * R.low + (existing?.cost.low ?? 0),
+        high: cost * R.high + (existing?.cost.high ?? 0),
+      },
       culverts,
-      needsEasement: q.outsideFt > K.easementOutsideFt,
+      needsEasement: q.outsideFt + (existing?.outsideFt ?? 0) > K.easementOutsideFt,
       maxGrade: maxG,
       label: opts.label,
       lines: [...usedLines].sort((a, b) => a - b),
+      existing,
     }; // the first ~50 ft from the road edge is normally outside the line
     details.set(rt, { path, smoothed, landings: landingDetails });
     return rt;
@@ -880,12 +945,13 @@ export function leastSteep(
         wGrade: L.wGrade,
         label: L.label,
         // Within the parcel: a route through the neighbours answers a different question, the easement one
-        // (owner, after #52; a drawn track or easement counts as the parcel's, follow-up 34). Only the entrance's own few
-        // cells may lie outside.
+        // (owner, after #52; a drawn easement counts as the parcel's, follow-up 34). Only the entrance's own few cells
+        // may lie outside.
         insideExceptNearStartM: L.entranceM,
         exact: routing.exact,
         landingMaxSideSlopeDeg: routing.landingMaxSideSlopeDeg,
       },
+      idx.map((i) => ent[i]!.line),
     )[0]!;
     routing.onProgress?.();
     return found && { ...found, entranceIndex: idx[found.entranceIndex]! };
@@ -952,15 +1018,21 @@ export interface SiteDriveway {
  * - `onParcel`: the cheapest route kept to the parcel (land outside only at the entrance, as leastSteep keeps it),
  *   within the limit when one is, else the least-steep one; null when none reaches. When `withinLimit` needs no
  *   easement it is on the owner's land already, and it is both candidates.
+ * Both come from the frontage's entrances. A third (follow-up 34, owner #116):
+ * - `drawn`: the cheapest route within the limit from a drawn line's end, with the line as an existing drive (its
+ *   upgrade in the cost, its raw grade in the over-limit term); weighed against the others on points, so a steep
+ *   existing drive doesn't win on price alone. Absent or null without one.
  */
 export interface SiteRoutes {
   withinLimit: SiteDriveway | null;
   onParcel: SiteDriveway | null;
+  drawn?: SiteDriveway | null;
 }
 
 /**
- * Both candidate driveways to every ranked site (A3, A4): one search per entrance and style for all the sites
- * together (routeMany), and for the least-steep routes one search per entrance and needed cap.
+ * The candidate driveways to every ranked site (A3, A4; follow-up 34): from the frontage, one search per entrance and
+ * style for all the sites together (routeMany), and for the least-steep routes one search per entrance and needed
+ * cap; from the drawn lines' ends, one search per style.
  */
 export function siteDriveways(
   ctx: RouteContext,
@@ -971,7 +1043,39 @@ export function siteDriveways(
   routing: RoutingOpts = {},
 ): SiteRoutes[] {
   const { entrances } = allEntrances(ctx, roads, parcel);
-  const idx = routedEntrances(entrances);
+  const routed = routedEntrances(entrances);
+  const frontage = frontageDriveways(
+    ctx,
+    entrances,
+    routed.filter((i) => entrances[i]!.source !== "drawn"),
+    toLLs,
+    roadMaxGradePct,
+    routing,
+  );
+  const dIdx = routed.filter((i) => entrances[i]!.source === "drawn");
+  if (!dIdx.length) return frontage;
+  const drawn = cheapestFrom(
+    ctx,
+    dIdx.map((i) => entrances[i]!),
+    toLLs,
+    styles(roadMaxGradePct),
+    routing,
+  );
+  return frontage.map((r, t) => {
+    const f = drawn[t];
+    return { ...r, drawn: f ? { route: f.rt, legal: true, entranceIndex: dIdx[f.entranceIndex]! } : null };
+  });
+}
+
+/** siteDriveways' two candidates, from the frontage's routed entrances (`idx`, into `entrances`). */
+function frontageDriveways(
+  ctx: RouteContext,
+  entrances: readonly Entrance[],
+  idx: readonly number[],
+  toLLs: readonly LatLon[],
+  roadMaxGradePct: number,
+  routing: RoutingOpts,
+): SiteRoutes[] {
   const ent = idx.map((i) => entrances[i]!);
   if (!ent.length) return toLLs.map(() => ({ withinLimit: null, onParcel: null }));
   // Each route's entranceIndex is into `entrances`, as buildDriveway's are.
@@ -1054,6 +1158,7 @@ function cheapestFrom(
       ent.map((e) => e.ll),
       toLLs,
       { ...o, ...extra },
+      ent.map((e) => e.line),
     ).forEach((f, i) => {
       const b = best[i];
       if (f && (!b || f.rt.cost.mid < b.rt.cost.mid)) best[i] = f;
@@ -1246,7 +1351,7 @@ export function buildDriveway(
   for (const entranceIndex of routedEntrances(ent)) {
     const e = ent[entranceIndex]!;
     for (const o of styles(roadMaxGradePct)) {
-      const rt = routeDriveway(ctx, e.ll, toLL, { ...o, ...extra });
+      const rt = routeManyFrom(ctx, [e.ll], [toLL], { ...o, ...extra }, [e.line])[0]?.rt ?? null;
       routing.onProgress?.();
       if (rt) found.push({ rt, entranceIndex });
     }

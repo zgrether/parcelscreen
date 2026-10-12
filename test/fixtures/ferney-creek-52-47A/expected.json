@@ -2546,6 +2546,7 @@
      "maxGrade": 0.15,
      "label": "shortest legal",
      "lines": [],
+     "existing": null,
      "entranceIndex": 0,
      "track": {
       "hours": 2,
@@ -2807,6 +2808,7 @@
      "maxGrade": 0.15,
      "label": "shortest legal",
      "lines": [],
+     "existing": null,
      "entranceIndex": 0
     }
    ],
@@ -3064,6 +3066,7 @@
     "maxGrade": 0.15,
     "label": "direct track at 15%",
     "lines": [],
+    "existing": null,
     "entranceIndex": 0,
     "track": {
      "hours": 2,
@@ -6138,6 +6141,7 @@
      "maxGrade": 0.15,
      "label": "shortest legal",
      "lines": [],
+     "existing": null,
      "entranceIndex": 0,
      "track": {
       "hours": 12,
@@ -7019,6 +7023,7 @@
      "maxGrade": 0.15,
      "label": "shortest legal",
      "lines": [],
+     "existing": null,
      "entranceIndex": 1
     }
    ],
@@ -7624,6 +7629,7 @@
     "maxGrade": 0.15,
     "label": "direct track at 15%",
     "lines": [],
+    "existing": null,
     "entranceIndex": 0,
     "track": {
      "hours": 10,
@@ -10804,6 +10810,7 @@
      "maxGrade": 0.15,
      "label": "shortest legal",
      "lines": [],
+     "existing": null,
      "entranceIndex": 0,
      "track": {
       "hours": 12,
@@ -11685,6 +11692,7 @@
      "maxGrade": 0.15,
      "label": "shortest legal",
      "lines": [],
+     "existing": null,
      "entranceIndex": 1
     }
    ],
@@ -12290,6 +12298,7 @@
     "maxGrade": 0.15,
     "label": "direct track at 15%",
     "lines": [],
+    "existing": null,
     "entranceIndex": 0,
     "track": {
      "hours": 10,

@@ -381,6 +381,29 @@ const EntranceSchema = z.strictObject({
   line: z.number().int().nullable(),
 });
 
+/**
+ * The existing drive a route starts from (v5, follow-up 34; owner, #116): the drawn line whose end is the route's
+ * entrance, priced as an upgrade, not new construction (stone resurfacing, relief culverts by its grade, and the length
+ * over driveway.paveAbovePct to pave, cost TBD until follow-up 47), and graded on its raw ground: over the grade limit
+ * it takes the over-limit term, over the veto a warning, never a veto. Included in the route's `cost`.
+ */
+const ExistingDriveSchema = z.strictObject({
+  /** Index into `lines`. */
+  line: z.number().int(),
+  lengthFt: num,
+  maxGradePct: num,
+  avgGradePct: num,
+  /** The grade limit and the veto it was judged against (Settings' roadMaxGradePct and roadVetoGradePct when routed). */
+  limitPct: num,
+  vetoPct: num,
+  pavedFt: num,
+  reliefCulverts: z.number().int(),
+  stoneTons: num,
+  /** Its length on neighbouring land outside every drawn easement: it counts towards the easement need. */
+  outsideFt: num,
+  cost: CostRangeSchema,
+});
+
 const RouteSchema = z.strictObject({
   line: featureOf<LineString>("LineString"),
   profile: z.array(z.tuple([num, num])), // [distance m, elevation m] every 3 m
@@ -411,6 +434,8 @@ const RouteSchema = z.strictObject({
   entranceIndex: z.number().int(),
   /** The drawn lines it starts from or runs along (v5, follow-up 34): indices into `lines`. */
   lines: z.array(z.number().int()),
+  /** The existing drive it starts from (v5, follow-up 34); null when it starts from a road. */
+  existing: ExistingDriveSchema.nullable(),
   track: z
     .strictObject({ hours: num, waterBars: num, cost: z.strictObject({ mid: num, low: num, high: num }) })
     .optional(),

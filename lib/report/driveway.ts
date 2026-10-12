@@ -3,7 +3,7 @@ import { fmt } from "../format";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { gradeOver, overLimitSpans, reliefCulverts } from "../screen/driveway";
 import { NEEDS_EASEMENT, routeLabel } from "../screen/routeLabel";
-import { impracticalLine } from "../screen/score";
+import { existingSteepLine, impracticalLine } from "../screen/score";
 import type { PartialScreenResult } from "../screen/types";
 import { M2FT } from "../screen/util";
 import type { FactRow } from "./facts";
@@ -132,7 +132,7 @@ function drawnRow(rt: Route, r: PartialScreenResult): FactRow | null {
   const start = startLine(r, rt);
   const along = used.filter((l) => l !== start);
   const parts = [
-    ...(start ? [`from the end of ${LINE_LABEL[start.kind]} (${lineSummary(start)}), not in this cost`] : []),
+    ...(start ? [`from the end of ${LINE_LABEL[start.kind]} (${lineSummary(start)})`] : []),
     ...along.map(
       (l) => `along ${LINE_LABEL[l.kind]}${l.kind === "track" ? " (no earthwork or clearing there)" : ""}`,
     ),
@@ -140,6 +140,23 @@ function drawnRow(rt: Route, r: PartialScreenResult): FactRow | null {
   const onThem =
     along.length && rt.metrics.drawnFt >= 1 ? ` · ${fmt(rt.metrics.drawnFt)} ft on drawn lines` : "";
   return { label: "Drawn lines", value: parts.join("; ") + onThem };
+}
+
+/**
+ * The existing drive a route starts from, as its own line of the route's cost (owner, #116): an upgrade, not new
+ * construction. Its paving has no rate until follow-up 47.
+ */
+function upgradeRow(rt: Route): FactRow | null {
+  const x = rt.existing;
+  if (!x) return null;
+  const paved = x.pavedFt >= 1 ? `, ~${fmt(x.pavedFt)} ft over ${DW.paveAbovePct}% to pave (cost TBD)` : "";
+  // Steeper than the veto: kept, with the owner's warning (#116).
+  const steep = existingSteepLine(x);
+  return {
+    label: `Upgrade existing drive: ${fmt(x.lengthFt)} ft`,
+    value: `${fmt(x.stoneTons)} tons of stone resurfacing, ${x.reliefCulverts} relief culvert${x.reliefCulverts === 1 ? "" : "s"}${paved} · ${k$(x.cost)}${steep ? ". " : ""}`,
+    ...(steep ? { strong: steep } : {}),
+  };
 }
 
 function routeView(
@@ -176,11 +193,14 @@ function routeView(
     rows.push({ label: `Paving (over ${DW.paveAbovePct}%)`, value: `~${fmt(pavedFt)} ft (cost TBD)` });
   const drawn = r ? drawnRow(rt, r) : null;
   if (drawn) rows.push(drawn);
+  const upgrade = upgradeRow(rt);
+  if (upgrade) rows.push(upgrade);
   if (rt.needsEasement)
     rows.push({
       label: "Leaves the boundary",
       value: "",
-      strong: `${fmt(m.outsideFt)} ft outside the line — needs an easement`,
+      // An existing drive's stretch on neighbouring land outside the drawn easements counts too (follow-up 34).
+      strong: `${fmt(m.outsideFt + (rt.existing?.outsideFt ?? 0))} ft outside the line — needs an easement`,
     });
   return {
     title:

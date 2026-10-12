@@ -2035,6 +2035,86 @@
                   "maximum": 9007199254740991
                 }
               },
+              "existing": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "line": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "lengthFt": {
+                        "type": "number"
+                      },
+                      "maxGradePct": {
+                        "type": "number"
+                      },
+                      "avgGradePct": {
+                        "type": "number"
+                      },
+                      "limitPct": {
+                        "type": "number"
+                      },
+                      "vetoPct": {
+                        "type": "number"
+                      },
+                      "pavedFt": {
+                        "type": "number"
+                      },
+                      "reliefCulverts": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "stoneTons": {
+                        "type": "number"
+                      },
+                      "outsideFt": {
+                        "type": "number"
+                      },
+                      "cost": {
+                        "type": "object",
+                        "properties": {
+                          "mid": {
+                            "type": "number"
+                          },
+                          "low": {
+                            "type": "number"
+                          },
+                          "high": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "mid",
+                          "low",
+                          "high"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "line",
+                      "lengthFt",
+                      "maxGradePct",
+                      "avgGradePct",
+                      "limitPct",
+                      "vetoPct",
+                      "pavedFt",
+                      "reliefCulverts",
+                      "stoneTons",
+                      "outsideFt",
+                      "cost"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
               "track": {
                 "type": "object",
                 "properties": {
@@ -2083,7 +2163,8 @@
               "maxGrade",
               "label",
               "entranceIndex",
-              "lines"
+              "lines",
+              "existing"
             ],
             "additionalProperties": false
           }
@@ -2238,6 +2319,86 @@
                 "maximum": 9007199254740991
               }
             },
+            "existing": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "line": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "lengthFt": {
+                      "type": "number"
+                    },
+                    "maxGradePct": {
+                      "type": "number"
+                    },
+                    "avgGradePct": {
+                      "type": "number"
+                    },
+                    "limitPct": {
+                      "type": "number"
+                    },
+                    "vetoPct": {
+                      "type": "number"
+                    },
+                    "pavedFt": {
+                      "type": "number"
+                    },
+                    "reliefCulverts": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "stoneTons": {
+                      "type": "number"
+                    },
+                    "outsideFt": {
+                      "type": "number"
+                    },
+                    "cost": {
+                      "type": "object",
+                      "properties": {
+                        "mid": {
+                          "type": "number"
+                        },
+                        "low": {
+                          "type": "number"
+                        },
+                        "high": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "mid",
+                        "low",
+                        "high"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "line",
+                    "lengthFt",
+                    "maxGradePct",
+                    "avgGradePct",
+                    "limitPct",
+                    "vetoPct",
+                    "pavedFt",
+                    "reliefCulverts",
+                    "stoneTons",
+                    "outsideFt",
+                    "cost"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "track": {
               "type": "object",
               "properties": {
@@ -2286,7 +2447,8 @@
             "maxGrade",
             "label",
             "entranceIndex",
-            "lines"
+            "lines",
+            "existing"
           ],
           "additionalProperties": false
         },
@@ -2434,6 +2596,86 @@
                 "maximum": 9007199254740991
               }
             },
+            "existing": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "line": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "lengthFt": {
+                      "type": "number"
+                    },
+                    "maxGradePct": {
+                      "type": "number"
+                    },
+                    "avgGradePct": {
+                      "type": "number"
+                    },
+                    "limitPct": {
+                      "type": "number"
+                    },
+                    "vetoPct": {
+                      "type": "number"
+                    },
+                    "pavedFt": {
+                      "type": "number"
+                    },
+                    "reliefCulverts": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "stoneTons": {
+                      "type": "number"
+                    },
+                    "outsideFt": {
+                      "type": "number"
+                    },
+                    "cost": {
+                      "type": "object",
+                      "properties": {
+                        "mid": {
+                          "type": "number"
+                        },
+                        "low": {
+                          "type": "number"
+                        },
+                        "high": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "mid",
+                        "low",
+                        "high"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "line",
+                    "lengthFt",
+                    "maxGradePct",
+                    "avgGradePct",
+                    "limitPct",
+                    "vetoPct",
+                    "pavedFt",
+                    "reliefCulverts",
+                    "stoneTons",
+                    "outsideFt",
+                    "cost"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "track": {
               "type": "object",
               "properties": {
@@ -2506,6 +2748,7 @@
             "label",
             "entranceIndex",
             "lines",
+            "existing",
             "limitPct",
             "overFt",
             "overSpans"

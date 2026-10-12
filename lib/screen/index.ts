@@ -45,6 +45,7 @@ import {
   impracticalLine,
   practicalOutcome,
   isImpractical,
+  existingSteepLine,
   noPracticalLine,
   practicalDriveway,
   rankSites,
@@ -134,7 +135,7 @@ export interface ScreenSession {
   lines: DrawnInput[];
   /** `lines` on the fine DEM (drawn.ts), when any were drawn. */
   drawn?: DrawnGrid;
-  /** The router's own land: `outlineInside` and the drawn lines' cells, when any were drawn. */
+  /** The router's own land: `outlineInside` and the drawn easements' corridors, when any were drawn. */
   routeInside?: Uint8Array;
   valleyFloorFt?: number;
   search?: SiteSearch;
@@ -293,7 +294,7 @@ export async function screen(
     s.outlineInside = masks.outline;
     s.inside = masks.own;
     if (s.lines.length) {
-      s.drawn = drawnGrid(s.dFine, s.lines);
+      s.drawn = drawnGrid(s.dFine, s.lines, parcel);
       R.lines = measureLines(s.lines, parcel, s.dFine);
     }
     const vf = valleyFloor(s.dWide!, s.centre);
@@ -512,6 +513,9 @@ export async function screen(
         R.driveway = { ...R.driveway, note: R.driveway.note ? `${R.driveway.note} ${line}` : line };
         R.flags.push({ lvl: "warn", t: `Driveway to ${to.label}: ${line}`, step: "driveway" });
       }
+      // An existing drive steeper than the veto (owner, #116): kept, with a warning, never vetoed.
+      const steep = existingSteepLine(scored.route?.existing ?? null);
+      if (steep) R.flags.push({ lvl: "warn", t: `Driveway to ${to.label}: ${steep}.`, step: "driveway" });
       // A switchback refused on a side slope over 35° (owner, PR B decisions; B2b): stored, the card says so.
       R.driveway = {
         ...R.driveway,
@@ -606,7 +610,7 @@ const outcome = (chosen: SiteDriveway, alt: PracticalAlternatives, cfg: UserConf
 /** The driveway router's view of the session; the soil mask and flow accumulation are built once. */
 export function routeContext(s: ScreenSession): RouteContext {
   // The router keeps the whole outline: a driveway may cross a bridged right-of-way (follow-up 29), and a drawn
-  // track or easement (follow-up 34).
+  // easement (follow-up 34).
   const inside = routeInside(s);
   return {
     dFine: s.dFine!,
@@ -620,11 +624,13 @@ export function routeContext(s: ScreenSession): RouteContext {
     sfhaMask: () => sfhaGrid(s),
     ...(s.osmRoads ? { osmRoads: s.osmRoads } : {}),
     ...(s.drawn ? { drawn: s.drawn } : {}),
+    limitPct: s.config.roadMaxGradePct,
+    vetoPct: s.config.roadVetoGradePct,
     dw: s.config.dw,
   };
 }
 
-/** The outline's cells and the drawn lines' (follow-up 34), built once per session. */
+/** The outline's cells and the drawn easements' (follow-up 34), built once per session. */
 function routeInside(s: ScreenSession): Uint8Array {
   const outline = s.outlineInside ?? s.inside!;
   if (!s.drawn) return outline;

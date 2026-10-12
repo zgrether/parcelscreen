@@ -1,8 +1,8 @@
 /**
  * Follow-up 34 (34-2): lines drawn with the parcel. Measured on the DEM (their length and grades, as a route's are),
- * laid on the grid for the router (a track's cells cost as flat ground, with no earthwork or clearing; an easement's
- * corridor counts as the parcel's own land), and an entrance at the end of a line that leaves a road. On synthetic
- * planes, so the numbers are known.
+ * laid on the grid for the router (a track's cells cost as flat ground, with no earthwork or clearing; only an easement's
+ * corridor counts as the parcel's own land), and an entrance at the end of a line that leaves a road, the line priced
+ * and graded as an existing drive (owner, #116). On synthetic planes, so the numbers are known.
  */
 import { lineString, polygon } from "@turf/turf";
 import { describe, expect, it } from "vitest";
@@ -10,7 +10,8 @@ import * as UTM from "../geo/utm";
 import { DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "./config";
 import { rcToLL } from "./dem";
 import { drawnGrid, insideWithLines, measureLines } from "./drawn";
-import { drawnEntrances, routeDriveway, type RouteContext } from "./driveway";
+import { drawnEntrances, routeDriveway, routeManyFrom, type RouteContext } from "./driveway";
+import { existingSteepLine, overLimitPoints } from "./score";
 import type { RoadFeature } from "./roads";
 import type { Dem, DrawnInput } from "./types";
 import { M2FT, type LatLon } from "./util";
@@ -50,9 +51,13 @@ function context(d: Dem, inside: (r: number, c: number) => boolean, sideDeg = 20
   };
 }
 
-/** The context with lines drawn: their grid, and their cells counted as the parcel's (as index.ts routeInside). */
-function withLines(ctx: RouteContext, lines: DrawnInput[]): RouteContext {
-  const drawn = drawnGrid(ctx.dFine, lines);
+/** The context with lines drawn: their grid, and their easements counted as the parcel's (as index.ts routeInside). */
+function withLines(
+  ctx: RouteContext,
+  lines: DrawnInput[],
+  outline: ReturnType<typeof gridPolygon> | null = null,
+): RouteContext {
+  const drawn = drawnGrid(ctx.dFine, lines, outline);
   return { ...ctx, inside: insideWithLines(ctx.inside, drawn), drawn };
 }
 
@@ -198,6 +203,114 @@ describe("routing with drawn lines (the follow-up's acceptance)", () => {
     expect(rt.metrics.outsideFt).toBe(0);
     expect(rt.lines).toEqual([0]);
     expect(rt.metrics.drawnFt).toBeGreaterThan(100 * M2FT);
+  });
+});
+
+describe("only an easement is legal access (owner, #116)", () => {
+  it("a track across neighbouring land is routable, but the route needs an easement there; inside a drawn easement it doesn't", () => {
+    // The parcel is the north half; a track runs from the entrance, 40 cells (120 m) south of it, up into it.
+    const d = plane(0.06);
+    const ctx = context(d, (r) => r < 60);
+    const from = at(d, 100, 60),
+      to = at(d, 20, 60);
+    const track = line(d, "track", [
+      [100, 60],
+      [55, 60],
+    ]);
+    const kept = { maxGrade: 0.15, wGrade: 1, label: "x", insideExceptNearStartM: K.leastSteep.entranceM };
+    expect(routeDriveway(withLines(ctx, [track]), from, to, kept)).toBeNull(); // not the parcel's land
+    const rt = routeDriveway(withLines(ctx, [track]), from, to, { maxGrade: 0.15, wGrade: 1, label: "x" })!;
+    expect(rt.lines).toEqual([0]);
+    expect(rt.needsEasement).toBe(true);
+    expect(rt.metrics.outsideFt).toBeGreaterThan(100 * M2FT);
+    const easement = line(
+      d,
+      "easement",
+      [
+        [100, 60],
+        [55, 60],
+      ],
+      30,
+    );
+    const legal = routeDriveway(withLines(ctx, [track, easement]), from, to, kept)!;
+    expect(legal.needsEasement).toBe(false);
+    expect(legal.metrics.outsideFt).toBe(0);
+  });
+});
+
+describe("a route from a drawn line's end: the line as an existing drive (owner, #116)", () => {
+  // A track up a 6% plane from a road at the south edge to row 70; the site at row 20.
+  const d = plane(0.06);
+  const half = gridPolygon(d);
+  const track = line(d, "track", [
+    [116, 60],
+    [70, 60],
+  ]);
+  const ctx = withLines(
+    context(d, () => true),
+    [track],
+    half,
+  );
+  const opts = { maxGrade: 0.15, wGrade: 1, label: "x" };
+  const route = (c: RouteContext) => routeManyFrom(c, [at(d, 70, 60)], [at(d, 20, 60)], opts, [0])[0]!.rt;
+
+  it("priced as an upgrade, in the route's cost: stone resurfacing, relief culverts by its grade", () => {
+    const rt = route(ctx);
+    const bare = routeManyFrom(ctx, [at(d, 70, 60)], [at(d, 20, 60)], opts)[0]!.rt;
+    const x = rt.existing!;
+    expect(x.line).toBe(0);
+    expect(x.lengthFt).toBeCloseTo(138 * M2FT, -1);
+    expect(x.maxGradePct).toBeCloseTo(6, 1);
+    expect(x.avgGradePct).toBeCloseTo(6, 1);
+    expect(x.pavedFt).toBe(0); // under 12%
+    expect(x.outsideFt).toBe(0);
+    const W = K.benchWidthM;
+    expect(x.stoneTons).toBeCloseTo(W * K.drawn.resurfaceDepthM * (x.lengthFt / M2FT) * K.stoneTPerM3, 6);
+    const dw = DEFAULT_USER_CONFIG.dw;
+    expect(x.cost.mid).toBeCloseTo(x.stoneTons * dw.stonePerTon + x.reliefCulverts * dw.reliefCulvertEach, 6);
+    expect(rt.cost.mid).toBeCloseTo(bare.cost.mid + x.cost.mid, 6);
+    expect(bare.existing).toBeNull();
+  });
+
+  it("graded on its raw ground like any section: over the limit, the over-limit term; over the veto, a warning", () => {
+    const at5 = route({ ...ctx, limitPct: 5, vetoPct: 5.5 });
+    const legal = { route: at5, legal: true, entranceIndex: 0 };
+    expect(overLimitPoints(legal)).toBeCloseTo(at5.existing!.maxGradePct - 5, 6); // +1 a percent over
+    expect(existingSteepLine(at5.existing)).toBe(
+      "The existing drive is steeper than your limit (6% avg, 6% steepest over 30 m on raw ground; a built road grades out 1–4 points)",
+    );
+    expect(overLimitPoints({ route: route(ctx), legal: true, entranceIndex: 0 })).toBe(0);
+    expect(existingSteepLine(route(ctx).existing)).toBeNull();
+  });
+
+  it("its stretch on neighbouring land outside every drawn easement counts towards the easement need", () => {
+    // The parcel is the north half (rows under 60): the whole track (rows 70–116) is on neighbouring land.
+    const north = context(d, (r) => r < 60);
+    const sw = UTM.inv(d.x0, d.y0 - 60 * 3),
+      ne = UTM.inv(d.x0 + W * 3, d.y0);
+    const parcel = polygon([
+      [
+        [sw[1], sw[0]],
+        [ne[1], sw[0]],
+        [ne[1], ne[0]],
+        [sw[1], ne[0]],
+        [sw[1], sw[0]],
+      ],
+    ]);
+    const rt = route(withLines(north, [track], parcel));
+    expect(rt.existing!.outsideFt).toBeCloseTo(rt.existing!.lengthFt, -1);
+    expect(rt.needsEasement).toBe(true);
+    const easement = line(
+      d,
+      "easement",
+      [
+        [116, 60],
+        [70, 60],
+      ],
+      30,
+    );
+    const licensed = route(withLines(north, [track, easement], parcel));
+    expect(licensed.existing!.outsideFt).toBe(0);
   });
 });
 

@@ -223,9 +223,10 @@ function easement(r: Result): Gate {
     scored.needsEasement ? "The driveway needs an easement across neighbouring land" : null,
     // "No practical drive" (owner, #99 decisions): stored by B2a for this gate.
     d.practical ? "The drive needs a steeper paved alignment or an easement" : null,
-    // A drawn line it uses across neighbouring land (follow-up 34): counted as the parcel's for the route, so asked.
+    // A drawn easement it uses across neighbouring land (follow-up 34): counted as the parcel's for the route, so asked.
+    // A drawn track there isn't legal access (owner, #116): the route needs an easement, said above.
     ...routeLines(r, scored)
-      .filter((l) => l.outsideFt > 0)
+      .filter((l) => l.kind === "easement" && l.outsideFt > 0)
       .map((l) => `${LINE_LABEL[l.kind]}: ${VERIFY_RIGHT_OF_WAY}`),
   ].filter((w): w is string => !!w);
   if (warns.length) return g("warn", warns.map((w, i) => (i ? lowerFirst(w) : w)).join("; "));

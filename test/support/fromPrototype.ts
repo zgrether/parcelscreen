@@ -34,6 +34,7 @@ function mapRoute(route: Loose, entrances: unknown[]): Loose {
     metrics: { ...(rest.metrics as Loose), sfhaFt: 0, drawnFt: 0 },
     entranceIndex,
     lines: [],
+    existing: null,
   };
 }
 

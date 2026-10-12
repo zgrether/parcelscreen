@@ -45,7 +45,7 @@ import { getPref, setPref } from "@/lib/client/prefs";
 import { reportCard, type Person } from "@/lib/report/card";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import { CardPanel } from "../card/CardPanel";
-import { ReportCard } from "../card/ReportCard";
+import { LINES_CHANGED, ReportCard } from "../card/ReportCard";
 import { OFFLINE_SCREEN_TEXT } from "@/lib/client/pwa";
 
 /** The run the worker's session holds: which parcel it was for (state.serial) and what it was run on. */
@@ -535,7 +535,6 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
               houseChanged={!!s.fresh?.house}
               sessionLive={s.sessionLive}
               settingsChanged={!!s.fresh?.settings}
-              linesChanged={!!s.fresh?.lines}
               rescreened={s.rescreened}
               showParams={s.showParams}
               toggleParams={s.toggleParams}
@@ -551,6 +550,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             running={!!s.runningHere}
             setPerson={s.setPerson}
             onOpen={(key) => setOpened({ key, serial })}
+            stale={s.fresh?.lines ? LINES_CHANGED : null}
           />
         </div>
       )}
@@ -570,7 +570,6 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
               houseChanged={!!s.fresh?.house}
               sessionLive={s.sessionLive}
               settingsChanged={!!s.fresh?.settings}
-              linesChanged={!!s.fresh?.lines}
               rescreened={s.rescreened}
               showParams={s.showParams}
               toggleParams={s.toggleParams}
@@ -657,8 +656,6 @@ function Notices(p: {
   houseChanged: boolean;
   sessionLive: boolean;
   settingsChanged: boolean;
-  /** The drawn lines changed since the run (follow-up 34). */
-  linesChanged: boolean;
   /** Re-screened on open, its last result gone or from earlier rules (owner, #101). */
   rescreened: boolean;
   showParams: boolean;
@@ -679,9 +676,6 @@ function Notices(p: {
       {p.rescreened && <p className="report-note">{RESCREENED}.</p>}
       {!p.sessionLive && !p.houseChanged && (
         <p className="tiny muted">Run again to restore the map overlays and horizon fan.</p>
-      )}
-      {p.linesChanged && (
-        <p className="tiny muted">These results used earlier drawn lines. Run again to route with them.</p>
       )}
       {p.settingsChanged && (
         <div className="tiny muted">

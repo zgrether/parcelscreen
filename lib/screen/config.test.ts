@@ -325,6 +325,7 @@ describe("config", () => {
           },
           "drawn": {
             "minGradedM": 30,
+            "resurfaceDepthM": 0.0508,
             "roadEndM": 30,
             "trackFactor": 1,
           },

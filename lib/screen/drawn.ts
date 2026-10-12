@@ -1,16 +1,17 @@
 /**
  * Lines drawn with the parcel (follow-up 34): an existing drive or ATV trail ("track"), or an easement's centre line
  * with its recorded width. The screen measures each one on the fine DEM (its length, and its grades as a route's are
- * measured), and lays them on the grid for the router: a track's cells and an easement's corridor count as the
- * parcel's own land, and a track's cells cost as flat ground (driveway.ts). Where a line's end meets a road, its other
- * end is an entrance (driveway.ts drawnEntrances).
+ * measured), and lays them on the grid for the router: an easement's corridor counts as the parcel's own land (only an
+ * easement is legal access: owner, #116), and a track's cells cost as flat ground (driveway.ts). Where a line's end
+ * meets a road, its other end is an entrance (driveway.ts drawnEntrances), and a route from it is priced as an upgrade
+ * of the line, an existing drive (driveway.ts existingDrive).
  */
 import { booleanPointInPolygon, distance, length, lineString } from "@turf/turf";
 import type { Feature, MultiPolygon, Polygon, Position } from "geojson";
 import * as UTM from "../geo/utm";
 import { SCREEN_CONSTANTS } from "./config";
 import { bilinear, inGrid, rcToUTM, utmToRC } from "./dem";
-import { gradeOver, type DrawnGrid } from "./driveway";
+import { gradeOver, meanGradePct, type DrawnGrid, type DrawnSource } from "./driveway";
 import type { Dem, DrawnInput, DrawnLine } from "./types";
 import { M2FT } from "./util";
 
@@ -27,14 +28,66 @@ const xy = (ll: readonly [number, number]): Position => [ll[1], ll[0]];
 const halfWidthM = (l: DrawnInput): number =>
   l.kind === "easement" ? (l.widthFt ?? DEFAULT_EASEMENT_FT) / M2FT / 2 : K.clearingWidthM / 2;
 
+/** The distance from a point to a segment, all in UTM metres. */
+function toSegmentM(x: number, y: number, [x0, y0]: number[], [x1, y1]: number[]): number {
+  const dx = x1! - x0!,
+    dy = y1! - y0!;
+  const L2 = dx * dx + dy * dy;
+  const t = L2 ? Math.max(0, Math.min(1, ((x - x0!) * dx + (y - y0!) * dy) / L2)) : 0;
+  return Math.hypot(x - (x0! + t * dx), y - (y0! + t * dy));
+}
+
+/**
+ * Each line as a route starting from its end reads it (follow-up 34, owner #116): its profile on the DEM, its length,
+ * and how much of it crosses neighbouring land outside every drawn easement (none without an outline).
+ */
+function sources(
+  d: Dem,
+  lines: readonly DrawnInput[],
+  outline: Feature<Polygon | MultiPolygon> | null,
+): DrawnSource[] {
+  const easements = lines
+    .filter((l) => l.kind === "easement")
+    .map((l) => ({ pts: l.line.map((ll) => UTM.fwd(ll[0], ll[1])), r: halfWidthM(l) }));
+  const inEasement = (x: number, y: number) =>
+    easements.some((e) => e.pts.some((p, i) => i > 0 && toSegmentM(x, y, e.pts[i - 1]!, p) <= e.r));
+  return lines.map((l) => {
+    const pts = l.line.map((ll) => UTM.fwd(ll[0], ll[1]));
+    // Its length as measureLines gives it, so the route's upgrade line and the line's own agree.
+    const lengthM = length(lineString(l.line.map(xy)), { units: "meters" });
+    let offEasementM = 0;
+    for (let s = 1; s < pts.length && outline; s++) {
+      const [x0, y0] = pts[s - 1]!,
+        [x1, y1] = pts[s]!;
+      const segM = Math.hypot(x1 - x0, y1 - y0);
+      const n = Math.max(1, Math.ceil(segM));
+      for (let t = 0; t < n; t++) {
+        const x = x0 + ((x1 - x0) * (t + 0.5)) / n,
+          y = y0 + ((y1 - y0) * (t + 0.5)) / n;
+        if (inEasement(x, y)) continue;
+        const [lat, lon] = UTM.inv(x, y);
+        if (!booleanPointInPolygon([lon, lat], outline)) offEasementM += segM / n;
+      }
+    }
+    return { profile: lineProfile(d, l.line), lengthM, offEasementM };
+  });
+}
+
 /**
  * The lines on the fine DEM's grid: each cell within a line's half width of it (and every cell the line passes
- * through) holds 1 + the line's index, the first line drawn winning where two overlap; `track` marks a track's cells.
+ * through) holds 1 + the line's index, the first line drawn winning where two overlap; `track` marks a track's cells,
+ * `easement` an easement's corridor. With the parcel's outline, each line's `sources` entry measures the part of it
+ * on neighbouring land outside the drawn easements.
  */
-export function drawnGrid(d: Dem, lines: readonly DrawnInput[]): DrawnGrid {
+export function drawnGrid(
+  d: Dem,
+  lines: readonly DrawnInput[],
+  outline: Feature<Polygon | MultiPolygon> | null = null,
+): DrawnGrid {
   const n = d.w * d.h;
   const cell = new Uint16Array(n),
-    track = new Uint8Array(n);
+    track = new Uint8Array(n),
+    easement = new Uint8Array(n);
   const step = Math.min(d.res, d.resY) / 2;
   lines.forEach((l, k) => {
     const r = halfWidthM(l);
@@ -43,6 +96,7 @@ export function drawnGrid(d: Dem, lines: readonly DrawnInput[]): DrawnGrid {
     const mark = (i: number) => {
       if (!cell[i]) cell[i] = k + 1;
       if (l.kind === "track" && cell[i] === k + 1) track[i] = 1;
+      if (l.kind === "easement") easement[i] = 1;
     };
     const pts = l.line.map((ll) => UTM.fwd(ll[0], ll[1]));
     for (let s = 1; s < pts.length; s++) {
@@ -66,12 +120,15 @@ export function drawnGrid(d: Dem, lines: readonly DrawnInput[]): DrawnGrid {
       }
     }
   });
-  return { lines, cell, track };
+  return { lines, cell, track, easement, sources: sources(d, lines, outline) };
 }
 
-/** The router's own land (follow-up 34): the outline's cells, and every drawn line's (a track's, an easement's corridor). */
+/**
+ * The router's own land (follow-up 34): the outline's cells, and every drawn easement's corridor. A track across
+ * neighbouring land isn't (owner, #116: only an easement is legal access): a route along it there needs an easement.
+ */
 export const insideWithLines = (inside: Uint8Array, g: DrawnGrid): Uint8Array =>
-  inside.map((v, i) => (v || g.cell[i] ? 1 : 0));
+  inside.map((v, i) => (v || g.easement[i] ? 1 : 0));
 
 /**
  * A line's profile on the DEM ([metres along, elevation], every profileStepM, the ground interpolated between the
@@ -96,14 +153,6 @@ export function lineProfile(d: Dem, line: readonly (readonly [number, number])[]
   }
   return prof;
 }
-
-/** The mean grade of a profile's steps, percent: a route's avgGradePct (driveway.ts). */
-const meanGradePct = (prof: readonly (readonly [number, number])[]): number => {
-  let sum = 0;
-  for (let i = 1; i < prof.length; i++)
-    sum += Math.abs(prof[i]![1] - prof[i - 1]![1]) / (prof[i]![0] - prof[i - 1]![0]);
-  return prof.length > 1 ? (sum / (prof.length - 1)) * 100 : 0;
-};
 
 /**
  * Each line measured: its length, how much of it lies outside the parcel's outline, and its grades on the fine DEM

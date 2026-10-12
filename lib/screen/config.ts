@@ -441,9 +441,12 @@ export const SCREEN_CONSTANTS = deepFreeze({
     easementOutsideFt: 100,
     // Lines drawn with the parcel (follow-up 34): a line whose end is within roadEndM of a road gives an entrance at
     // its other end. Along a drawn track a route's cells cost as flat ground (trackFactor: the road's cut is there; it
-    // is still held to the grade limit), with no earthwork or clearing. An easement's corridor, and a track's cells,
-    // count as the parcel's own land. A line's grades need at least minGradedM of it on the fine DEM.
-    drawn: { roadEndM: 30, trackFactor: 1, minGradedM: 30 },
+    // is still held to the grade limit), with no earthwork or clearing. Only an easement's corridor counts as the
+    // parcel's own land (owner, #116). A line's grades need at least minGradedM of it on the fine DEM.
+    // A route from a line's end prices the line as an existing drive to upgrade (owner, #116): a resurfaceDepthM top
+    // course of stone (2 in, the surface layer of the 6 in new-road spec: a proposal), relief culverts by its grade,
+    // and its length over paveAbovePct to pave (cost TBD until follow-up 47).
+    drawn: { roadEndM: 30, trackFactor: 1, minGradedM: 30, resurfaceDepthM: 0.0508 },
     // A4b (owner, 2026-10-10): a route's grade is measured over these windows of its profile, the ground between
     // the cells interpolated: 30 m is the headline (the card, the over-limit term, the veto), 15 and 60 m details.
     gradeWindowsM: { short: 15, headline: 30, long: 60 },

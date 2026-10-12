@@ -19,17 +19,23 @@ const PEOPLE: { key: Person; name: string }[] = [
   { key: "julie", name: "Julie's grade" },
 ];
 
+/** The banner when the drawn lines changed since the screen (owner's wording, #116): the results stay, no re-run. */
+export const LINES_CHANGED = "Your drawn lines changed since this screen. Run again.";
+
 export function ReportCard({
   card,
   running,
   setPerson,
   onOpen,
+  stale = null,
 }: {
   card: Card;
   /** A run in progress: data still to come reads "…", not "didn't load". */
   running: boolean;
   setPerson(p: Person): void;
   onOpen(key: PanelKey): void;
+  /** A banner under the header saying the results no longer match an input (LINES_CHANGED). */
+  stale?: string | null;
 }) {
   const pending = (missing: string | undefined) => running && !!missing;
   return (
@@ -54,6 +60,11 @@ export function ReportCard({
           ))}
         </div>
       </div>
+      {stale && !running && (
+        <p className="card-stale" role="status">
+          {stale}
+        </p>
+      )}
       {!running && <p className="card-reason">{card.reason}</p>}
       <div className="card-gates">
         <span className="card-sub">Dealbreakers</span>
