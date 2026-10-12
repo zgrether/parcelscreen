@@ -323,6 +323,11 @@ describe("config", () => {
             "maxGrade": 0.15,
             "wGrade": 0.5,
           },
+          "drawn": {
+            "minGradedM": 30,
+            "roadEndM": 30,
+            "trackFactor": 1,
+          },
           "easementOutsideFt": 100,
           "entranceBendM": 60,
           "entranceInwardM": 15,

@@ -8,6 +8,7 @@ import type { PartialScreenResult } from "../screen/types";
 import { M2FT } from "../screen/util";
 import type { FactRow } from "./facts";
 import { said, type Heading, type Part } from "./parts";
+import { LINE_LABEL, lineSummary, routeLines, startLine } from "./lines";
 
 export function drivewayHeading(r: PartialScreenResult): Heading {
   return {
@@ -83,8 +84,11 @@ export function profilePath(p: readonly (readonly [number, number])[]): string {
 }
 
 /** The least-steep route: the same facts as a route, its grade against the real limit, titled as suspect. */
-function overLimitView(o: NonNullable<NonNullable<PartialScreenResult["driveway"]>["overLimit"]>): RouteView {
-  const v = routeView(o, 0);
+function overLimitView(
+  o: NonNullable<NonNullable<PartialScreenResult["driveway"]>["overLimit"]>,
+  r: PartialScreenResult,
+): RouteView {
+  const v = routeView(o, 0, null, r);
   const m = o.metrics;
   return {
     ...v,
@@ -118,7 +122,32 @@ const DW = SCREEN_CONSTANTS.driveway;
 const stoneDepthIn = (m: Route["metrics"]): number =>
   m.lengthFt > 0 ? m.stoneTons / (DW.stoneTPerM3 * DW.benchWidthM * (m.lengthFt / M2FT)) / 0.0254 : 0;
 
-function routeView(rt: Route, i: number, overLimitPct: number | null = null): RouteView {
+/**
+ * The drawn lines a route uses (follow-up 34), appended to its facts: the line it starts from (its own length and
+ * grades; the route's cost starts at its end), and those it runs along (no earthwork or clearing on a track).
+ */
+function drawnRow(rt: Route, r: PartialScreenResult): FactRow | null {
+  const used = routeLines(r, rt);
+  if (!used.length) return null;
+  const start = startLine(r, rt);
+  const along = used.filter((l) => l !== start);
+  const parts = [
+    ...(start ? [`from the end of ${LINE_LABEL[start.kind]} (${lineSummary(start)}), not in this cost`] : []),
+    ...along.map(
+      (l) => `along ${LINE_LABEL[l.kind]}${l.kind === "track" ? " (no earthwork or clearing there)" : ""}`,
+    ),
+  ];
+  const onThem =
+    along.length && rt.metrics.drawnFt >= 1 ? ` · ${fmt(rt.metrics.drawnFt)} ft on drawn lines` : "";
+  return { label: "Drawn lines", value: parts.join("; ") + onThem };
+}
+
+function routeView(
+  rt: Route,
+  i: number,
+  overLimitPct: number | null = null,
+  r: PartialScreenResult | null = null,
+): RouteView {
   const m = rt.metrics;
   const rows: FactRow[] = [
     { label: "Length / rise", value: `${fmt(m.lengthFt)} ft / ${fmt(m.riseFt)} ft` },
@@ -145,6 +174,8 @@ function routeView(rt: Route, i: number, overLimitPct: number | null = null): Ro
     overLimitSpans(rt.profile, DW.paveAbovePct / 100).reduce((t, [a, b]) => t + (b - a), 0) * M2FT;
   if (pavedFt >= 1)
     rows.push({ label: `Paving (over ${DW.paveAbovePct}%)`, value: `~${fmt(pavedFt)} ft (cost TBD)` });
+  const drawn = r ? drawnRow(rt, r) : null;
+  if (drawn) rows.push(drawn);
   if (rt.needsEasement)
     rows.push({
       label: "Leaves the boundary",
@@ -177,6 +208,32 @@ export function steepLandingLine(
   );
 }
 
+/**
+ * The entrance candidates on the frontage, as the prototype listed them; then each drawn line's end (follow-up 34),
+ * appended, with the line's own length and grades.
+ */
+function entrancesLine(
+  d: NonNullable<PartialScreenResult["driveway"]>,
+  r: PartialScreenResult,
+): string | null {
+  const frontage = d.entrances.flatMap((e, i) =>
+    e.source === "drawn"
+      ? []
+      : [
+          `E${i + 1} ${e.name} — road ${e.roadGrade.toFixed(0)}%, bend ${e.bend.toFixed(0)}°, bank ${e.bankFt.toFixed(0)} ft`,
+        ],
+  );
+  const drawn = d.entrances.flatMap((e, i) => {
+    const l = e.source === "drawn" && e.line != null ? r.lines?.[e.line] : undefined;
+    return l ? [`E${i + 1} is the end of ${LINE_LABEL[l.kind]} (${lineSummary(l)}).`] : [];
+  });
+  const parts = [
+    frontage.length ? `Entrance candidates on the frontage (E1 best): ${frontage.join("; ")}.` : null,
+    ...drawn,
+  ].filter((x): x is string => !!x);
+  return parts.length ? parts.join(" ") : null;
+}
+
 /** Null until the driveway step has run. */
 export function drivewayView(r: PartialScreenResult): DrivewayView | null {
   const d = r.driveway;
@@ -190,16 +247,9 @@ export function drivewayView(r: PartialScreenResult): DrivewayView | null {
       [d.practical ? impracticalLine(d.practical) : null, d.note].filter((x): x is string => !!x).join(" ") ||
       null,
     steepLanding: d.steepLanding ? steepLandingLine(d.steepLanding) : null,
-    entrances: d.entrances.length
-      ? `Entrance candidates on the frontage (E1 best): ${d.entrances
-          .map(
-            (e, i) =>
-              `E${i + 1} ${e.name} — road ${e.roadGrade.toFixed(0)}%, bend ${e.bend.toFixed(0)}°, bank ${e.bankFt.toFixed(0)} ft`,
-          )
-          .join("; ")}.`
-      : null,
-    routes: d.routes.map((rt, i) => routeView(rt, i, overLimitPct)),
-    overLimit: d.overLimit ? overLimitView(d.overLimit) : null,
+    entrances: entrancesLine(d, r),
+    routes: d.routes.map((rt, i) => routeView(rt, i, overLimitPct, r)),
+    overLimit: d.overLimit ? overLimitView(d.overLimit, r) : null,
     track: first?.track
       ? {
           rows: [

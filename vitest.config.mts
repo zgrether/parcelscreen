@@ -24,6 +24,7 @@ const SCREEN_GROUPS: Record<string, string[]> = {
     "test/tools/expected.test.ts", // 138
     "lib/screen/driveway-limit.test.ts", // 64
     "lib/report/easement.test.ts", // 26
+    "lib/screen/drawn-grayson.test.ts", // 16
   ],
   "screens-4": [
     "lib/screen/a4-driveway.test.ts", // 82

@@ -17,9 +17,10 @@
  *     reload there's no session to do it with, and a short note asks for a run);
  *   - Settings changed since the run: a softer note, with the run's settings on request.
  */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useScreen } from "@/lib/client/useScreen";
 import { freshness, runKeys, type RunKeys } from "@/lib/client/screenKeys";
+import { drawnInput } from "@/lib/client/parcelStore";
 import {
   addScreen,
   needsRescreen,
@@ -68,6 +69,9 @@ export function useScreenIt(
   const open = ctl.state.store.open;
   const parcel = ctl.parcel;
   const house = open?.house ?? null;
+  // The lines drawn with the parcel, as the screen reads them (follow-up 34).
+  const markup = open?.markup;
+  const lines = useMemo(() => drawnInput(markup ?? []), [markup]);
   const [live, setLive] = useState<LiveRun | null>(null);
   const [stored, setStored] = useState<{ serial: number; record: ScreenRecord } | null>(null);
   const [showParams, setShowParams] = useState(false);
@@ -161,7 +165,7 @@ export function useScreenIt(
     if (reassessed === null) latest.current.onFinished();
   }, [status, result, live, stored]);
 
-  const now = parcel ? runKeys(parcel.geo.geometry, house, config) : null;
+  const now = parcel ? runKeys(parcel.geo.geometry, house, config, lines) : null;
   const shown = stored && stored.serial === serial ? stored.record : null;
   const fresh = shown && now ? freshness(shown.keys, now) : null;
   const stale = !!shown && (!now || !!fresh?.boundary);
@@ -207,7 +211,7 @@ export function useScreenIt(
     // reactivating also takes it back to the run's own point (18b, found in the live acceptance run).
     // (Not when it is already live for this open: a just-finished run getting its History key.)
     if (!kept || (live?.serial === serial && screen.state.runId === kept.runId)) return;
-    const nowKeys = runKeys(parcel.geo.geometry, open?.house ?? null, config);
+    const nowKeys = runKeys(parcel.geo.geometry, open?.house ?? null, config, lines);
     if (freshness(kept.keys, nowKeys).boundary) return; // its boundary changed since: the run no longer applies
     sessions.current.touch(openKey);
     setLive({ serial, keys: kept.keys });
@@ -262,6 +266,7 @@ export function useScreenIt(
       config,
       ...(ownLand ? { ownLand } : {}),
       ...(house ? { house } : {}),
+      ...(lines.length ? { lines } : {}),
     });
   };
 
@@ -530,6 +535,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
               houseChanged={!!s.fresh?.house}
               sessionLive={s.sessionLive}
               settingsChanged={!!s.fresh?.settings}
+              linesChanged={!!s.fresh?.lines}
               rescreened={s.rescreened}
               showParams={s.showParams}
               toggleParams={s.toggleParams}
@@ -564,6 +570,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
               houseChanged={!!s.fresh?.house}
               sessionLive={s.sessionLive}
               settingsChanged={!!s.fresh?.settings}
+              linesChanged={!!s.fresh?.lines}
               rescreened={s.rescreened}
               showParams={s.showParams}
               toggleParams={s.toggleParams}
@@ -650,6 +657,8 @@ function Notices(p: {
   houseChanged: boolean;
   sessionLive: boolean;
   settingsChanged: boolean;
+  /** The drawn lines changed since the run (follow-up 34). */
+  linesChanged: boolean;
   /** Re-screened on open, its last result gone or from earlier rules (owner, #101). */
   rescreened: boolean;
   showParams: boolean;
@@ -670,6 +679,9 @@ function Notices(p: {
       {p.rescreened && <p className="report-note">{RESCREENED}.</p>}
       {!p.sessionLive && !p.houseChanged && (
         <p className="tiny muted">Run again to restore the map overlays and horizon fan.</p>
+      )}
+      {p.linesChanged && (
+        <p className="tiny muted">These results used earlier drawn lines. Run again to route with them.</p>
       )}
       {p.settingsChanged && (
         <div className="tiny muted">

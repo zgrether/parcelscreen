@@ -4,7 +4,7 @@
   "properties": {
     "schemaVersion": {
       "type": "number",
-      "const": 4
+      "const": 5
     },
     "engine": {
       "type": "integer",
@@ -1835,7 +1835,8 @@
                 "type": "string",
                 "enum": [
                   "tiger",
-                  "osm"
+                  "osm",
+                  "drawn"
                 ]
               },
               "reaches": {
@@ -1860,6 +1861,18 @@
                     "type": "null"
                   }
                 ]
+              },
+              "line": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "required": [
@@ -1870,7 +1883,8 @@
               "bankFt",
               "score",
               "source",
-              "reaches"
+              "reaches",
+              "line"
             ],
             "additionalProperties": false
           }
@@ -1939,6 +1953,9 @@
                   },
                   "sfhaFt": {
                     "type": "number"
+                  },
+                  "drawnFt": {
+                    "type": "number"
                   }
                 },
                 "required": [
@@ -1954,7 +1971,8 @@
                   "clearAc",
                   "culverts",
                   "outsideFt",
-                  "sfhaFt"
+                  "sfhaFt",
+                  "drawnFt"
                 ],
                 "additionalProperties": false
               },
@@ -2009,6 +2027,14 @@
                 "minimum": -9007199254740991,
                 "maximum": 9007199254740991
               },
+              "lines": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                }
+              },
               "track": {
                 "type": "object",
                 "properties": {
@@ -2056,7 +2082,8 @@
               "needsEasement",
               "maxGrade",
               "label",
-              "entranceIndex"
+              "entranceIndex",
+              "lines"
             ],
             "additionalProperties": false
           }
@@ -2129,6 +2156,9 @@
                 },
                 "sfhaFt": {
                   "type": "number"
+                },
+                "drawnFt": {
+                  "type": "number"
                 }
               },
               "required": [
@@ -2144,7 +2174,8 @@
                 "clearAc",
                 "culverts",
                 "outsideFt",
-                "sfhaFt"
+                "sfhaFt",
+                "drawnFt"
               ],
               "additionalProperties": false
             },
@@ -2199,6 +2230,14 @@
               "minimum": -9007199254740991,
               "maximum": 9007199254740991
             },
+            "lines": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
             "track": {
               "type": "object",
               "properties": {
@@ -2246,7 +2285,8 @@
             "needsEasement",
             "maxGrade",
             "label",
-            "entranceIndex"
+            "entranceIndex",
+            "lines"
           ],
           "additionalProperties": false
         },
@@ -2312,6 +2352,9 @@
                 },
                 "sfhaFt": {
                   "type": "number"
+                },
+                "drawnFt": {
+                  "type": "number"
                 }
               },
               "required": [
@@ -2327,7 +2370,8 @@
                 "clearAc",
                 "culverts",
                 "outsideFt",
-                "sfhaFt"
+                "sfhaFt",
+                "drawnFt"
               ],
               "additionalProperties": false
             },
@@ -2381,6 +2425,14 @@
               "type": "integer",
               "minimum": -9007199254740991,
               "maximum": 9007199254740991
+            },
+            "lines": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
             },
             "track": {
               "type": "object",
@@ -2453,6 +2505,7 @@
             "maxGrade",
             "label",
             "entranceIndex",
+            "lines",
             "limitPct",
             "overFt",
             "overSpans"
@@ -2684,6 +2737,62 @@
       ],
       "additionalProperties": false
     },
+    "lines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "track",
+              "easement"
+            ]
+          },
+          "lengthFt": {
+            "type": "number"
+          },
+          "widthFt": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "outsideFt": {
+            "type": "number"
+          },
+          "gradedFt": {
+            "type": "number"
+          },
+          "avgGradePct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "maxGradePct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "lengthFt",
+          "widthFt",
+          "outsideFt",
+          "gradedFt",
+          "avgGradePct",
+          "maxGradePct"
+        ],
+        "additionalProperties": false
+      }
+    },
     "flags": {
       "type": "array",
       "items": {
@@ -2775,6 +2884,7 @@
     "runAt",
     "acres",
     "params",
+    "lines",
     "flags",
     "failed",
     "noResponse",

@@ -31,6 +31,7 @@
    }
   ],
   "noResponse": [],
+  "lines": [],
   "demSource": "USGS 3DEP",
   "demResM": 2.9973867846007027,
   "terrain": {
@@ -2317,7 +2318,8 @@
      "bankFt": 5.987973542480469,
      "score": 18.408431838394783,
      "source": "tiger",
-     "reaches": null
+     "reaches": null,
+     "line": null
     },
     {
      "ll": [
@@ -2330,7 +2332,8 @@
      "bankFt": 16.060777111816407,
      "score": 40.3937801180636,
      "source": "tiger",
-     "reaches": null
+     "reaches": null,
+     "line": null
     },
     {
      "ll": [
@@ -2343,7 +2346,8 @@
      "bankFt": 19.2268758203125,
      "score": 45.16241587547718,
      "source": "tiger",
-     "reaches": null
+     "reaches": null,
+     "line": null
     }
    ],
    "routes": [
@@ -4004,7 +4008,8 @@
       "clearAc": 1.5876668924760373,
       "culverts": 1,
       "outsideFt": 0,
-      "sfhaFt": 0
+      "sfhaFt": 0,
+      "drawnFt": 0
      },
      "cost": {
       "mid": 166340.59628051126,
@@ -4015,6 +4020,7 @@
      "needsEasement": false,
      "maxGrade": 0.15,
      "label": "shortest legal",
+     "lines": [],
      "entranceIndex": 1,
      "track": {
       "hours": 27,
@@ -5775,7 +5781,8 @@
       "clearAc": 1.7094294104976053,
       "culverts": 2,
       "outsideFt": 68.89764,
-      "sfhaFt": 0
+      "sfhaFt": 0,
+      "drawnFt": 0
      },
      "cost": {
       "mid": 172269.47209152995,
@@ -5791,6 +5798,7 @@
      "needsEasement": false,
      "maxGrade": 0.15,
      "label": "shortest legal",
+     "lines": [],
      "entranceIndex": 0
     }
    ],
@@ -7455,7 +7463,8 @@
      "clearAc": 1.5829337304345061,
      "culverts": 1,
      "outsideFt": 0,
-     "sfhaFt": 0
+     "sfhaFt": 0,
+     "drawnFt": 0
     },
     "cost": {
      "mid": 166561.43307034153,
@@ -7466,6 +7475,7 @@
     "needsEasement": false,
     "maxGrade": 0.15,
     "label": "direct track at 15%",
+    "lines": [],
     "entranceIndex": 1,
     "track": {
      "hours": 27,
@@ -7478,8 +7488,8 @@
     }
    }
   },
-  "schemaVersion": 4,
-  "engine": 14,
+  "schemaVersion": 5,
+  "engine": 15,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -7517,6 +7527,7 @@
    }
   ],
   "noResponse": [],
+  "lines": [],
   "demSource": "USGS 3DEP",
   "demResM": 2.9973867846007027,
   "terrain": {
@@ -9803,7 +9814,8 @@
      "bankFt": 5.987973542480469,
      "score": 18.408431838394783,
      "source": "tiger",
-     "reaches": null
+     "reaches": null,
+     "line": null
     },
     {
      "ll": [
@@ -9816,7 +9828,8 @@
      "bankFt": 16.060777111816407,
      "score": 40.3937801180636,
      "source": "tiger",
-     "reaches": null
+     "reaches": null,
+     "line": null
     },
     {
      "ll": [
@@ -9829,7 +9842,8 @@
      "bankFt": 19.2268758203125,
      "score": 45.16241587547718,
      "source": "tiger",
-     "reaches": null
+     "reaches": null,
+     "line": null
     }
    ],
    "routes": [
@@ -11490,7 +11504,8 @@
       "clearAc": 1.5876668924760373,
       "culverts": 1,
       "outsideFt": 0,
-      "sfhaFt": 0
+      "sfhaFt": 0,
+      "drawnFt": 0
      },
      "cost": {
       "mid": 166340.59628051126,
@@ -11501,6 +11516,7 @@
      "needsEasement": false,
      "maxGrade": 0.15,
      "label": "shortest legal",
+     "lines": [],
      "entranceIndex": 1,
      "track": {
       "hours": 27,
@@ -13261,7 +13277,8 @@
       "clearAc": 1.7094294104976053,
       "culverts": 2,
       "outsideFt": 68.89764,
-      "sfhaFt": 0
+      "sfhaFt": 0,
+      "drawnFt": 0
      },
      "cost": {
       "mid": 172269.47209152995,
@@ -13277,6 +13294,7 @@
      "needsEasement": false,
      "maxGrade": 0.15,
      "label": "shortest legal",
+     "lines": [],
      "entranceIndex": 0
     }
    ],
@@ -14941,7 +14959,8 @@
      "clearAc": 1.5829337304345061,
      "culverts": 1,
      "outsideFt": 0,
-     "sfhaFt": 0
+     "sfhaFt": 0,
+     "drawnFt": 0
     },
     "cost": {
      "mid": 166561.43307034153,
@@ -14952,6 +14971,7 @@
     "needsEasement": false,
     "maxGrade": 0.15,
     "label": "direct track at 15%",
+    "lines": [],
     "entranceIndex": 1,
     "track": {
      "hours": 27,
@@ -14964,8 +14984,8 @@
     }
    }
   },
-  "schemaVersion": 4,
-  "engine": 14,
+  "schemaVersion": 5,
+  "engine": 15,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,

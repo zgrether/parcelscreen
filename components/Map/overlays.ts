@@ -3,14 +3,16 @@
  * pieces, plus where the pieces' labels go. Pure, so the shapes are testable; the layers that draw them are in
  * style.ts, the labels are DOM markers (ParcelTools).
  */
-import { booleanPointInPolygon, centerOfMass, pointOnFeature } from "@turf/turf";
+import { booleanPointInPolygon, centerOfMass, length, lineString, pointOnFeature } from "@turf/turf";
 import type { Feature, FeatureCollection, MultiPolygon, Polygon } from "geojson";
 import type { LayerId, ParcelShapes } from "@/components/Explore/layers";
 import type { ParcelRecord } from "@/lib/geo/parcels";
 import type { CombineResult } from "@/lib/geo/combine";
 import { sideName, type Side, type SplitPieces } from "@/lib/geo/split";
 import type { Markup } from "@/lib/client/parcelStore";
-import type { LatLon } from "@/lib/geo/types";
+import { M2FT, type LatLon } from "@/lib/geo/types";
+import { LINE_LABEL, lineSummary } from "@/lib/report/lines";
+import type { DrawnLine } from "@/lib/screen/types";
 
 const xy = ([lat, lon]: LatLon): [number, number] => [lon, lat];
 
@@ -33,15 +35,28 @@ export function draftData(pts: LatLon[]): FeatureCollection {
   return { type: "FeatureCollection", features };
 }
 
-/** The parcel's drawn tracks and easements (follow-up 34): one line each, with its kind for the style. */
-export function markupData(markup: readonly Markup[]): FeatureCollection {
+/**
+ * The drawn tracks and easements, each with its tooltip (34-2): what it is, and its length and grades as the parcel's
+ * screen measured them (`measured`, by id), or its length alone before a run grades it.
+ */
+export function markupData(
+  markup: readonly Markup[],
+  measured: readonly DrawnLine[] = [],
+): FeatureCollection {
   return {
     type: "FeatureCollection",
-    features: markup.map((m) => ({
-      type: "Feature",
-      properties: { kind: m.kind, id: m.id },
-      geometry: { type: "LineString", coordinates: m.line.map(xy) },
-    })),
+    features: markup.map((m) => {
+      const coordinates = m.line.map(xy);
+      const got = measured.find((l) => l.id === m.id);
+      const summary = got
+        ? lineSummary(got)
+        : `${Math.round(length(lineString(coordinates), { units: "meters" }) * M2FT).toLocaleString()} ft`;
+      return {
+        type: "Feature",
+        properties: { kind: m.kind, id: m.id, tip: `${LINE_LABEL[m.kind]}: ${summary}` },
+        geometry: { type: "LineString", coordinates },
+      };
+    }),
   };
 }
 

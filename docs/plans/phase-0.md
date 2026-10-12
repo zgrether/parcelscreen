@@ -457,5 +457,11 @@ Supabase (auth, tables, Storage, atlas tile caching), API proxies (unless the CO
     - **`noResponse`**, the sources that didn't answer without failing their step: the wider public-land search, an official trailhead list, the OSM roads (§9.20 (c)).
 
     Open ground (NLCD, §4.2) waits for VR4 and its own clean break (owner, 2026-10-12).
+32. **Schema v5: a clean break** (owner, 2026-10-12; follow-up 34, part 2; as 26, 30 and 31). A kept v4 result is cleared at start-up and its parcel re-screens when opened; an export's v4 results are skipped on import. The lines drawn with a parcel (34-1) are screen input (`ScreenInput.lines`, without their notes), and a changed line marks a kept result as using earlier lines (a note, as for Settings). v5 adds:
+    - **`lines`**, each drawn line measured: its length, the part outside the outline, and its grades on the fine DEM as a route's are measured (the mean of the 3 m steps, the steepest over 30 m), over the part the DEM covers (owner, #115 answer 3: shown in the Notes tab and the line's tooltip, "938 ft · avg 11% · steepest 17% over 30 m");
+    - **an entrance's `source` "drawn" and its `line`**: a line whose one end is within 30 m of a Census road or an OSM way gives an entrance at its other end, listed after the frontage's (E1 best unchanged) and always routed. The route's cost starts there: the drawn line itself isn't priced (its grade is in `lines`);
+    - **each route's `metrics.drawnFt` and `lines`**: its length on drawn lines, and which ones it starts from or runs along. A track's cells (its 24 ft cleared corridor) cost as flat ground in the search and have no earthwork or clearing; the route is still held to the grade limit. A track's cells and an easement's corridor (its recorded width) count as the parcel's own land, so a route through them isn't penalised or called an easement need.
+
+    The Access gate warns "{line}: verify it's a legal right-of-way" when the scored route starts from a drawn line, and the Easement gate when it uses one that lies outside the outline (appended to what they said: rule 7). Decision 15's 100 ft entrance allowance waits (owner, 2026-10-12).
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

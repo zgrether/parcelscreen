@@ -2888,6 +2888,10 @@ html:has(.explore) body {
 .ip-line-head .ip-link {
   margin-left: auto;
 }
+.ip-line-grades {
+  color: var(--ip-ink-2);
+  font-size: 13px;
+}
 .ip-lines input:not(.ip-line-width) {
   width: 100%;
   margin: 4px 0;

@@ -23,6 +23,7 @@ import {
   soilMask,
   steepLanding,
   withScoredRoute,
+  type DrawnGrid,
   type PracticalAlternatives,
   type RouteContext,
   type RoutingOpts,
@@ -35,6 +36,7 @@ import { padusStep } from "./padus";
 import type { HospitalCandidate, HospitalSource } from "./hospitals";
 import { OverpassMirrors, type OverpassFallback } from "./places";
 import type { OsmWay } from "./osmRoads";
+import { drawnGrid, insideWithLines, measureLines } from "./drawn";
 import type { RoadFeature } from "./roads";
 import {
   assessHouse,
@@ -73,6 +75,7 @@ import { chooseFocus, computeSun, sunFlags, type HorizonPoint } from "./sun";
 import { insideMasks, slopeAspect, terrainFlags, terrainStats, valleyFloor } from "./terrain";
 import type {
   Dem,
+  DrawnInput,
   PartialScreenResult,
   Practical,
   ProgressEvent,
@@ -127,6 +130,12 @@ export interface ScreenSession {
   inside?: Uint8Array;
   /** Cells inside the outline, bridged strip included: only the driveway router (connectivity) uses it. */
   outlineInside?: Uint8Array;
+  /** The lines drawn with the parcel (follow-up 34; ScreenInput.lines). */
+  lines: DrawnInput[];
+  /** `lines` on the fine DEM (drawn.ts), when any were drawn. */
+  drawn?: DrawnGrid;
+  /** The router's own land: `outlineInside` and the drawn lines' cells, when any were drawn. */
+  routeInside?: Uint8Array;
   valleyFloorFt?: number;
   search?: SiteSearch;
   /** House sites after the soils step's bottomland check (absent if soils didn't run). */
@@ -161,7 +170,11 @@ export interface ScreenOutput {
   session: ScreenSession;
 }
 
-type Building = Partial<ScreenResult> & { flags: ScreenResult["flags"]; noResponse: string[] };
+type Building = Partial<ScreenResult> & {
+  flags: ScreenResult["flags"];
+  noResponse: string[];
+  lines: ScreenResult["lines"];
+};
 
 /** A step's flags with the step that raised them (v4), so the card shows each in its row's panel. */
 const tag = (step: Step, flags: readonly RawFlag[]): ScreenResult["flags"] =>
@@ -194,6 +207,7 @@ export async function screen(
     centre: [cLat, cLon],
     config: cfg,
     house,
+    lines: input.lines ?? [],
     deps: {
       http: deps.http ?? createHttpClient({ env: "browser" }),
       demCache: deps.demCache ?? new DemCache(),
@@ -203,7 +217,14 @@ export async function screen(
   };
   const signal = deps.signal;
   const io = { http: s.deps.http, endpoints: cfg.endpoints, ...(signal ? { signal } : {}) };
-  const R: Building = { acres: s.acres, params: runParams(cfg), flags: [], noResponse: [] };
+  // The drawn lines' lengths now; their grades once the DEM is in (the terrain step).
+  const R: Building = {
+    acres: s.acres,
+    params: runParams(cfg),
+    flags: [],
+    noResponse: [],
+    lines: measureLines(s.lines, parcel, null),
+  };
   const failed: Step[] = [];
   let best: (SiteSearch["benches"][number] & { veto?: string | null }) | null = null;
 
@@ -271,6 +292,10 @@ export async function screen(
     const masks = insideMasks(s.dFine, parcel, s.ownLand);
     s.outlineInside = masks.outline;
     s.inside = masks.own;
+    if (s.lines.length) {
+      s.drawn = drawnGrid(s.dFine, s.lines);
+      R.lines = measureLines(s.lines, parcel, s.dFine);
+    }
     const vf = valleyFloor(s.dWide!, s.centre);
     s.valleyFloorFt = vf * M2FT;
     const stats = terrainStats(s.dFine, slope, s.inside, vf);
@@ -580,8 +605,9 @@ const outcome = (chosen: SiteDriveway, alt: PracticalAlternatives, cfg: UserConf
 
 /** The driveway router's view of the session; the soil mask and flow accumulation are built once. */
 export function routeContext(s: ScreenSession): RouteContext {
-  // The router keeps the whole outline: a driveway may cross a bridged right-of-way (follow-up 29).
-  const inside = s.outlineInside ?? s.inside!;
+  // The router keeps the whole outline: a driveway may cross a bridged right-of-way (follow-up 29), and a drawn
+  // track or easement (follow-up 34).
+  const inside = routeInside(s);
   return {
     dFine: s.dFine!,
     inside,
@@ -593,8 +619,16 @@ export function routeContext(s: ScreenSession): RouteContext {
     wetSoil: () => (s.wetSoil ??= poorlyDrained(s.units ?? null, s.rows ?? null, s.dFine!, inside)),
     sfhaMask: () => sfhaGrid(s),
     ...(s.osmRoads ? { osmRoads: s.osmRoads } : {}),
+    ...(s.drawn ? { drawn: s.drawn } : {}),
     dw: s.config.dw,
   };
+}
+
+/** The outline's cells and the drawn lines' (follow-up 34), built once per session. */
+function routeInside(s: ScreenSession): Uint8Array {
+  const outline = s.outlineInside ?? s.inside!;
+  if (!s.drawn) return outline;
+  return (s.routeInside ??= insideWithLines(outline, s.drawn));
 }
 
 /** The flood zones on the fine DEM, built once per session (VR3a): sites and routes are read against it. */
