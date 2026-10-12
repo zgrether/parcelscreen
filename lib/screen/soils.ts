@@ -211,6 +211,9 @@ export function soilAt(units: SoilUnit[] | null, rows: SoilRow[] | null, ll: Lat
   );
 }
 
+/** How the bottomland flag starts: the card shows it in Best homesite, where the house can't go (owner, #114). */
+export const BOTTOMLAND_LEAD = "The largest flat ground is bottomland";
+
 /** A reason string if NRCS says this soil is no place for a house (bottomland), else null. */
 export function bottomland(c: SoilRow): string | null {
   const fl = (c.flodfreqdcd || "").toLowerCase(),
@@ -358,7 +361,7 @@ export function vetBenches(
   else if (vetted.some((b) => b.veto))
     flags.push({
       lvl: "warn",
-      t: `The largest flat ground is bottomland (${vetted.find((b) => b.veto)!.veto}) — excluded from the homesite ranking.`,
+      t: `${BOTTOMLAND_LEAD} (${vetted.find((b) => b.veto)!.veto}) — excluded from the homesite ranking.`,
     });
   return { benches: vetted, best, flags };
 }

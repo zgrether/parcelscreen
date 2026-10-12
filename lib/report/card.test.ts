@@ -39,7 +39,9 @@ describe("the report card on the fixtures (engine 13)", () => {
     expect(zach.incomplete).toEqual([]);
     expect(reportCard(r, "julie").points).toBeCloseTo(3.0, 9);
     expect(rowOf(r, "garden").detail).toBe("a 2.48 ac garden on prime farmland");
-    expect(rowOf(r, "room").detail).toBe("18.7 ac of gentle ground, 41× the build footprint");
+    expect(rowOf(r, "room").detail).toBe(
+      "4.3 ac of gentle ground near the house site, 9.4× the build footprint",
+    );
     expect(rowOf(r, "sky").detail).toBe("rural sky (zone 3b)");
     expect(rowOf(r, "trails").detail).toBe(
       "a trailhead 6.5 mi away in a straight line (Buffalo Mountain Trailhead)",
@@ -53,7 +55,7 @@ describe("the report card on the fixtures (engine 13)", () => {
       elevation: "A",
       homesite: "A",
       sky: "B",
-      room: "A",
+      room: "B", // VR3b: site #1's gentle ground near the house, 2.8× (it read 20.9 ac parcel-wide)
       trails: "C",
       town: "D",
       garden: "B",
@@ -62,9 +64,9 @@ describe("the report card on the fixtures (engine 13)", () => {
     expect(rowOf(r, "town").detail).toBe("a 48-minute drive to an ER, 42 to a grocery");
     const zach = reportCard(r, "zach"),
       julie = reportCard(r, "julie");
-    expect(zach.points).toBeCloseTo(3.45, 9);
+    expect(zach.points).toBeCloseTo(3.3, 9);
     expect([zach.grade, zach.verdict]).toEqual(["B", "Contender"]);
-    expect(julie.points).toBeCloseTo(2.9, 9);
+    expect(julie.points).toBeCloseTo(2.8, 9);
     expect(zach.reason).toBe(`Contender. Check first: ${SEPTIC_WARN}.`);
   });
 
@@ -72,7 +74,7 @@ describe("the report card on the fixtures (engine 13)", () => {
     const r = expectedOf("grayson-mud-creek-6273", "run");
     expect(gates(r)).toEqual({ floodplain: "pass", access: "pass", easement: "pass", septic: "warn" });
     expect(gateOf(r, "floodplain").reason).toBe(
-      "A FEMA flood zone covers 0.5 ac of the parcel, away from the build site; the driveway isn't checked yet",
+      "A FEMA flood zone covers 0.5 ac of the parcel, away from the build site and driveway",
     );
     expect(grades(r)).toEqual({
       elevation: "A",
@@ -88,7 +90,9 @@ describe("the report card on the fixtures (engine 13)", () => {
     expect([zach.grade, zach.verdict]).toEqual(["B", "Contender"]);
     expect(zach.reason).toBe(`Contender. Check first: ${SEPTIC_WARN}.`);
     expect(reportCard(r, "julie").verdict).toBe("Contender");
-    expect(rowOf(r, "room").detail).toBe("1.3 ac of gentle ground, 2.9× the build footprint");
+    expect(rowOf(r, "room").detail).toBe(
+      "1.0 ac of gentle ground near the house site, 2.1× the build footprint",
+    );
     expect(rowOf(r, "sky").detail).toBe("rural dark sky (zone 3a)");
   });
 });
@@ -146,6 +150,62 @@ describe("the gates", () => {
     expect(reportCard(r, "zach").reason).toBe(
       "Pass: the build site is in a FEMA flood zone (incomplete: the sky atlas didn't load, run again).",
     );
+  });
+
+  it("a flood zone touching the build site's ground or the driveway warns (owner, #109 review; v4)", () => {
+    const r = ferney();
+    r.flood = { zones: ["AE"], sfha: true, sfhaAcres: 2, mapped: true };
+    expect(gateOf(r, "floodplain")).toMatchObject({
+      status: "pass",
+      reason: "A FEMA flood zone covers 2.0 ac of the parcel, away from the build site and driveway",
+    });
+    r.sites![0] = { ...r.sites![0]!, sfhaOnSite: true };
+    expect(gateOf(r, "floodplain")).toMatchObject({
+      status: "warn",
+      reason: "A FEMA flood zone touches the build site's ground",
+    });
+    r.driveway!.routes[0] = {
+      ...r.driveway!.routes[0]!,
+      metrics: { ...r.driveway!.routes[0]!.metrics, sfhaFt: 212.4 },
+    };
+    expect(gateOf(r, "floodplain").reason).toBe(
+      "A FEMA flood zone touches the build site's ground; the driveway runs 212 ft through a FEMA flood zone",
+    );
+    r.sites![0] = { ...r.sites![0]!, sfhaOnSite: false };
+    expect(gateOf(r, "floodplain").reason).toBe("The driveway runs 212 ft through a FEMA flood zone");
+  });
+
+  it("an OpenStreetMap entrance is possible frontage, a warn, with the TIGER road it reaches (owner, after #110)", () => {
+    const r = ferney();
+    r.driveway!.entrances = r.driveway!.entrances.map((e) => ({
+      ...e,
+      name: "unmapped track",
+      source: "osm" as const,
+      reaches: { road: "Willet Miller Rd", ft: 1121.3 },
+    }));
+    expect(gateOf(r, "access")).toMatchObject({
+      status: "warn",
+      reason:
+        "Possible frontage on an unmapped track (verify it's a legal road or easement); it reaches Willet Miller Rd after 1,121 ft",
+    });
+    r.driveway!.entrances = r.driveway!.entrances.map((e) => ({
+      ...e,
+      name: "Henry Woodring Road",
+      reaches: null,
+    }));
+    expect(gateOf(r, "access").reason).toBe(
+      "Possible frontage on Henry Woodring Road, a road TIGER doesn't show (verify it's a legal road or easement)",
+    );
+  });
+
+  it("Room to build: an F, and the first thing to check, when the build fits on no homesite (v4)", () => {
+    const r = ferney();
+    r.sites = r.sites!.map((x) => ({ ...x, fit: "house only" as const }));
+    expect(rowOf(r, "room")).toMatchObject({
+      grade: "F",
+      detail: "site #1 fits the house only",
+      checkFirst: "your build doesn't fit on any homesite",
+    });
   });
 
   it("no frontage: routed from the nearest road point, a warn", () => {
@@ -275,7 +335,7 @@ describe("the rows", () => {
 
   it("a build that doesn't fit caps the verdict at Maybe and is the first thing to check (owner, #110)", () => {
     const r = ferney();
-    r.terrain = { ...r.terrain!, acresUnder15: 0.2 };
+    r.sites![0] = { ...r.sites![0]!, gentleNearAc: 0.2 };
     r.sky = { ...r.sky!, mag: 22 }; // an A, so the points alone would make a Contender
     expect(rowOf(r, "room")).toMatchObject({
       grade: "F",

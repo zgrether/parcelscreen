@@ -10,6 +10,9 @@ import type { PartialScreenResult } from "../screen/types";
 import { buildSite, footprintFt2, type Card, type Letter } from "./card";
 import type { PanelKey } from "./cardPanels";
 import { M2FT, M2_PER_ACRE } from "../screen/util";
+import { septicClass, soilUnder, type SepticClass } from "./derived";
+
+const SEPTIC_CLASSES: readonly SepticClass[] = ["Conventional", "Modified", "Alternative"];
 
 /** Each scale's key, for the sentences that go with its bands (lib/report/meanings.ts). */
 export const SCALE_IDS = {
@@ -24,6 +27,7 @@ export const SCALE_IDS = {
   Trails: "trails",
   "Town and hospital": "town",
   Garden: "garden",
+  Septic: "septic",
 } as const;
 export type ScaleName = keyof typeof SCALE_IDS;
 export type ScaleId = (typeof SCALE_IDS)[ScaleName];
@@ -199,8 +203,10 @@ export function scalesFor(
           ]
         : [];
     case "room": {
-      if (!r.terrain) return [];
-      const x = r.terrain.acresUnder15 / (footprintFt2() / FT2_PER_ACRE);
+      // Site #1's gentle ground near the house (v4), over the whole footprint: the row's own measure.
+      const s = r.sites?.[0];
+      if (!s) return [];
+      const x = s.fit === "fits" ? s.gentleNearAc / (footprintFt2() / FT2_PER_ACRE) : 0;
       // The card's own cutoffs, from Doesn't fit up (§6.2: the row's multiples, no acre bands).
       const edges = [...SCREEN_CONSTANTS.card.rows.roomX].reverse();
       return [
@@ -210,6 +216,31 @@ export function scalesFor(
           bandOf(x, edges),
           `${fmt(x, x < 10 ? 1 : 0)}×`,
         ),
+      ];
+    }
+    case "septic": {
+      // Site #1's own soil (§5.3); the gate is the parcel-wide rule.
+      const soil = site ? soilUnder(r, site.ll) : null;
+      const cls = soil ? septicClass(soil) : null;
+      if (!soil || !cls) return [];
+      const sc = scale(
+        "Septic",
+        ["Conventional", "Modified", "Alternative"],
+        SEPTIC_CLASSES.indexOf(cls),
+        `${soil.compname}: ${(soil.septic || soil.engstafdcd || "").toLowerCase()}`,
+      );
+      // Reconciles the class with the original reading, which says "alternative" for any very limited soil (owner,
+      // #114): a modified system may work, but budget for an alternative until the soil evaluation.
+      if (cls !== "Modified") return [sc];
+      const rock =
+        soil.brockdepmin != null && soil.brockdepmin !== ""
+          ? ` with rock at ${fmt(+soil.brockdepmin)} cm`
+          : "";
+      return [
+        {
+          ...sc,
+          note: `NRCS rates this soil very limited;${rock ? `${rock},` : ""} a modified system (shallow-placed or low-pressure) may work. Budget for an alternative system until a soil evaluation on the spot says otherwise.`,
+        },
       ];
     }
     case "trails": {

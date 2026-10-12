@@ -232,6 +232,30 @@ export const MEANINGS: Record<ScaleId, Meaning[][]> = {
       ),
     ],
   ],
+  // The owner's wording (#114); each ends with "get a soil evaluation on the spot before an offer".
+  septic: [
+    // Conventional
+    [
+      m(
+        undefined,
+        "A standard gravel drainfield should work, the cheapest kind; a ‘somewhat limited’ rating can mean a larger field. Get a soil evaluation on the spot before an offer.",
+      ),
+    ],
+    // Modified
+    [
+      m(
+        undefined,
+        "The soil needs help (slow drainage, slope or rock within a few feet): plan on a low-pressure or shallow-placed system, which costs more than a standard field. Get a soil evaluation on the spot before an offer.",
+      ),
+    ],
+    // Alternative
+    [
+      m(
+        undefined,
+        "A high water table, rock near the surface or flooding rules out a standard field: an engineered system (mound, drip or treatment unit) costs much more and usually needs servicing every year. Get a soil evaluation on the spot before an offer.",
+      ),
+    ],
+  ],
   garden: [
     // None
     [m("Garden", "No open, gentle, sunny ground for beds: terraces or raised beds on the slope.")],

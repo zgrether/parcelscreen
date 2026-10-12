@@ -112,13 +112,16 @@ export interface BuildSite {
   label: string;
   elevFt: number | null;
   inSfha: boolean;
+  /** A flood zone touches the site's own ground (v4); null for a placed house, which has no footprint. */
+  sfhaOnSite: boolean | null;
 }
 export function buildSite(r: Result): BuildSite | null | undefined {
   const h = r.house;
-  if (h && !("outside" in h)) return { label: "the marked house", elevFt: h.elevFt, inSfha: h.inSFHA };
+  if (h && !("outside" in h))
+    return { label: "the marked house", elevFt: h.elevFt, inSfha: h.inSFHA, sfhaOnSite: null };
   if (!r.sites) return undefined;
   const s = r.sites[0];
-  return s ? { label: "site #1", elevFt: s.elevFt, inSfha: !!s.flood } : null;
+  return s ? { label: "site #1", elevFt: s.elevFt, inSfha: !!s.flood, sfhaOnSite: s.sfhaOnSite } : null;
 }
 
 // ---------- the gates ----------
@@ -134,18 +137,26 @@ const gate =
   });
 
 /**
- * Until VR3 stores whether a flood zone touches the build footprint or the scored route (schema v4, owner #109
- * review), only the build site's own point can fail; a flood zone elsewhere is a pass with a note.
+ * The owner's rule (#109 review): a fail when the build site is in a flood zone; a warn when one touches the build
+ * site's ground or the scored driveway (schema v4); a flood zone elsewhere on the parcel is a pass, with a note.
  */
 function floodplain(r: Result, site: BuildSite | null | undefined): Gate {
   const g = gate("floodplain", "Floodplain");
   if (!r.flood) return g("unknown", "The FEMA flood map didn't load", "the FEMA flood map");
   if (!r.flood.mapped) return g("unknown", "FEMA has no flood mapping here");
   if (site?.inSfha) return g("fail", "The build site is in a FEMA flood zone");
+  const route = r.driveway && (r.driveway.overLimit ?? r.driveway.routes[0]);
+  const routeFt = route?.metrics.sfhaFt ?? 0;
+  const touches = [
+    site?.sfhaOnSite ? "A FEMA flood zone touches the build site's ground" : null,
+    routeFt > 0 ? `the driveway runs ${fmt(routeFt)} ft through a FEMA flood zone` : null,
+  ].filter((t): t is string => !!t);
+  if (touches.length)
+    return g("warn", touches.map((t, i) => (i ? t : t.charAt(0).toUpperCase() + t.slice(1))).join("; "));
   if (r.flood.sfha)
     return g(
       "pass",
-      `A FEMA flood zone covers ${fmt(r.flood.sfhaAcres, 1)} ac of the parcel, away from the build site; the driveway isn't checked yet`,
+      `A FEMA flood zone covers ${fmt(r.flood.sfhaAcres, 1)} ac of the parcel, away from the build site and driveway`,
     );
   return g("pass", "No FEMA flood zone on the parcel");
 }
@@ -160,6 +171,16 @@ function access(r: Result): Gate {
       `No road within ${miles(SCREEN_CONSTANTS.driveway.fallbackMaxM / 1000)} mi of the boundary (landlocked, or TIGER is wrong)`,
     );
   const front = d.entrances.find((e) => !e.fallback);
+  // An OpenStreetMap way TIGER doesn't show (v4): possible frontage, which the deed or plat must confirm.
+  if (front?.source === "osm") {
+    const what = front.name.startsWith("unmapped ")
+      ? "an unmapped track"
+      : `${front.name}, a road TIGER doesn't show`;
+    const reaches = front.reaches
+      ? `; it reaches ${front.reaches.road} after ${fmt(front.reaches.ft)} ft`
+      : "";
+    return g("warn", `Possible frontage on ${what} (verify it's a legal road or easement)${reaches}`);
+  }
   if (front) return g("pass", `Frontage on ${front.name === "road" ? "an unnamed road" : front.name}`);
   return g(
     "warn",
@@ -250,23 +271,30 @@ function sky(r: Result, K: CardConfig): Row {
 }
 
 /**
- * Until VR3 places the footprint on the site (§5.4 (b)), the gentle acres over the whole footprint's: the same
- * multiples as §3.2's illustration.
+ * Room to build (value-ranking.md §5.4 (b); v4): the pad on site #1, and the drainfield with its reserve on the gentle
+ * ground (15% or less) within 300 ft of where the house goes. Graded by that ground over the whole footprint; an F
+ * when the build doesn't fit, which is also the first thing to check (owner, #110).
  */
 function room(r: Result, K: CardConfig, footprintAc: number): Row {
   const g = row("room", "Room to build");
-  if (!r.terrain) return notLoaded(g, "the terrain");
-  const x = r.terrain.acresUnder15 / footprintAc;
+  if (!r.sites) return notLoaded(g, "the homesite ranking");
+  const s = r.sites[0];
+  if (!s) return g("F", "no build site to place the build on");
+  if (s.fit !== "fits")
+    return {
+      ...g("F", `site #1 ${s.fit === "house only" ? "fits the house only" : "is too small for the house"}`),
+      checkFirst: "your build doesn't fit on any homesite",
+    };
+  const x = s.gentleNearAc / footprintAc;
   const grade = atLeast(x, K.rows.roomX);
   const line = g(
     grade,
-    `${fmt(r.terrain.acresUnder15, 1)} ac of gentle ground, ${fmt(x, x < 10 ? 1 : 0)}× the build footprint`,
+    `${fmt(s.gentleNearAc, 1)} ac of gentle ground near the house site, ${fmt(x, x < 10 ? 1 : 0)}× the build footprint`,
   );
-  // The build doesn't fit: the first thing to check, and at best a Maybe (owner, #110).
   return grade === "F"
     ? {
         ...line,
-        checkFirst: `your build doesn't fit on the gentle ground (${fmt(r.terrain.acresUnder15, 1)} ac, ${fmt(x, 1)}× the footprint)`,
+        checkFirst: `your build doesn't fit on the gentle ground (${fmt(s.gentleNearAc, 1)} ac, ${fmt(x, 1)}× the footprint)`,
       }
     : line;
 }

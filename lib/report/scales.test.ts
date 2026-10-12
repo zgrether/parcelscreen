@@ -61,8 +61,10 @@ describe("the banded scales", () => {
       "Roomy 2–3×",
       "Spacious 3×+",
     ]);
-    expect([labels(room)[room.at!], room.value]).toEqual(["Roomy 2–3×", "2.9×"]);
-    expect(placed(scales("ferney-creek-52-47A", "room"))).toEqual([["Room to build", "Spacious 3×+", "41×"]]);
+    expect([labels(room)[room.at!], room.value]).toEqual(["Roomy 2–3×", "2.1×"]);
+    expect(placed(scales("ferney-creek-52-47A", "room"))).toEqual([
+      ["Room to build", "Spacious 3×+", "9.4×"],
+    ]);
     expect(placed(scales("ferney-creek-52-47A", "elevation"))).toEqual([
       ["Elevation", "Mountain 2,500–3,000 ft", "2,729 ft"],
     ]);
@@ -105,8 +107,26 @@ describe("the banded scales", () => {
     expect(placed(scales("macks-mountain-35-3", "town"))).toEqual([["Town and hospital", "Remote", "D"]]);
   });
 
+  it("septic: site #1's own soil, in §5.3's classes (VR3b)", () => {
+    expect(placed(scales("ferney-creek-52-47A", "septic"))).toEqual([
+      ["Septic", "Conventional", "Glenelg: somewhat limited"],
+    ]);
+    // Very limited, with rock at 94 cm: deeper than septicClass.shallowCm, so a modified system, not an alternative.
+    expect(placed(scales("grayson-mud-creek-6273", "septic"))).toEqual([
+      ["Septic", "Modified", "Pigeonroost: very limited"],
+    ]);
+    // The owner's reconciliation with the original reading (#114), under a modified soil's scale only.
+    expect(scales("grayson-mud-creek-6273", "septic")[0]!.note).toBe(
+      "NRCS rates this soil very limited; with rock at 94 cm, a modified system (shallow-placed or low-pressure) may work. Budget for an alternative system until a soil evaluation on the spot says otherwise.",
+    );
+    expect(scales("macks-mountain-35-3", "septic")[0]!.note).toBeUndefined();
+    expect(placed(scales("macks-mountain-35-3", "septic"))).toEqual([
+      ["Septic", "Alternative", "Marbleyard: very limited"],
+    ]);
+  });
+
   it("the panels without a scale yet", () => {
-    for (const p of ["verdict", "floodplain", "access", "septic", "cost"] as const)
+    for (const p of ["verdict", "floodplain", "access", "cost"] as const)
       expect(scales("ferney-creek-52-47A", p)).toEqual([]);
   });
 });
