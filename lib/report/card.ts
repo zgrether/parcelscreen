@@ -393,9 +393,7 @@ function trails(r: Result, K: CardConfig): Row {
   if (driven) {
     const d = driven.drive!;
     // An approved replacement under rule 7 (owner, #123; phase-0.md §9.35): the drive, then the straight line.
-    const track = r.driveFrom?.trackMi
-      ? ` (the first ${fmt(r.driveFrom.trackMi, 1)} mi on unnamed tracks)`
-      : "";
+    const track = trackNote(r);
     return {
       ...g(
         byHead,
@@ -421,14 +419,28 @@ function town(r: Result, K: CardConfig): Row {
   const gr = groceries.sort((a, b) => a.min - b.min)[0];
   const grade = worse(h ? atMost(h.min, K.rows.erMin) : "F", gr ? atMost(gr.min, K.rows.groceryMin) : "F");
   const toH = h
-    ? `a ${fmt(h.min)}-minute drive to ${h.er === "yes" ? "an ER" : "the nearest hospital"}`
+    ? `${articleFor(h.min)} ${fmt(h.min)}-minute drive to ${h.er === "yes" ? "an ER" : "the nearest hospital"}`
     : "no hospital found";
   const toG = gr ? `${fmt(gr.min)} to a grocery` : "no grocery found";
   const short = [h ? `ER ${fmt(h.min)} min` : "no ER", gr ? `grocery ${fmt(gr.min)}` : "no grocery"].join(
     ", ",
   );
-  return { ...g(grade, `${toH}, ${toG}`), short };
+  // Appended (rule 7; owner, #124): the drives start on tracks, as Trails says.
+  return { ...g(grade, `${toH}, ${toG}${trackNote(r)}`), short };
 }
+
+/**
+ * "an 82-minute drive", "a 48-minute drive": the article for a number said aloud (owner, #124: an approved correction,
+ * phase-0.md §9.36): "an" for 8, 11, 18 and 80–89.
+ */
+export const articleFor = (n: number): "a" | "an" => {
+  const r = Math.round(n);
+  return r === 8 || r === 11 || r === 18 || (r >= 80 && r <= 89) ? "an" : "a";
+};
+
+/** " (the first 2.6 mi on unnamed tracks)" when the drives from the entrance start on tracks (follow-up 54). */
+const trackNote = (r: Result): string =>
+  r.driveFrom?.trackMi ? ` (the first ${fmt(r.driveFrom.trackMi, 1)} mi on unnamed tracks)` : "";
 
 function garden(r: Result, K: CardConfig): Row {
   const g = row("garden", "Garden ground");

@@ -8,7 +8,16 @@ import { SCREEN_CONSTANTS } from "../screen/config";
 import { TRAILHEAD_DRIVES } from "../screen/driveList";
 import { NO_PRACTICAL_ROUTE } from "../screen/score";
 import type { ScreenResult } from "../screen/types";
-import { atLeast, atMost, cardFacts, cardFor, footprintFt2, reportCard, type CardConfig } from "./card";
+import {
+  articleFor,
+  atLeast,
+  atMost,
+  cardFacts,
+  cardFor,
+  footprintFt2,
+  reportCard,
+  type CardConfig,
+} from "./card";
 
 const K = SCREEN_CONSTANTS.card;
 const ferney = () => structuredClone(expectedOf("ferney-creek-52-47A", "run"));
@@ -65,7 +74,10 @@ describe("the report card on the fixtures (engine 13)", () => {
       garden: "B",
     });
     // The nearer grocery is the closer one, 76 min, but over every cutoff.
-    expect(rowOf(r, "town").detail).toBe("a 82-minute drive to an ER, 76 to a grocery");
+    // "an" (owner, #124: an approved correction), and the track note appended, as on Trails.
+    expect(rowOf(r, "town").detail).toBe(
+      "an 82-minute drive to an ER, 76 to a grocery (the first 2.6 mi on unnamed tracks)",
+    );
     expect(rowOf(r, "trails").detail).toBe(
       "a trailhead 92 min (17.4 mi) by road (the first 2.6 mi on unnamed tracks), 10.4 mi straight (Heritage Park)",
     );
@@ -533,6 +545,13 @@ describe("the rows", () => {
     expect(rowOf(r, "sky").grade).toBeNull();
     // Ferney's 320 points less the sky's 30, over 90 of weight.
     expect(c.points).toBeCloseTo(290 / 90, 9);
+  });
+
+  it("a number said aloud takes 'an' for 8, 11, 18 and 80–89 (owner, #124)", () => {
+    expect([8, 11, 18, 80, 82, 89].map(articleFor)).toEqual(["an", "an", "an", "an", "an", "an"]);
+    expect([1, 7, 9, 10, 12, 17, 19, 20, 48, 79, 90, 108, 180, 800].map(articleFor)).toEqual(
+      Array(14).fill("a"),
+    );
   });
 
   it("the footprint is §5.4's 19,860 ft² (0.46 ac)", () => {
