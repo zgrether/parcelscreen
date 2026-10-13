@@ -10,11 +10,37 @@ import type { LatLon } from "./util";
 type Near = NonNullable<ScreenResult["near"]>;
 const FROM: LatLon = [36.58, -81.56];
 
-/** OSRM answering each destination (by its longitude) with the minutes given; the asked longitudes kept. */
-function osrm(minutesByLon: Record<string, number>) {
+/**
+ * OSRM answering each destination (by its longitude) with the minutes given. Its table service (follow-up 54) answers
+ * only with `table`, else it's down and the drives fall back to a route request each, as the prototype's: `asked` keeps
+ * those requests' longitudes, `tabled` the table's. The route out's steps (the track reading) aren't counted.
+ */
+function osrm(minutesByLon: Record<string, number>, table = false) {
   const asked: string[] = [];
+  const tabled: string[][] = [];
   const http: HttpClient = {
     fetch: async (url) => {
+      if (url.includes("/table/v1/")) {
+        if (!table) return new Response("down", { status: 503 });
+        const lons = url
+          .split("/")
+          .pop()!
+          .split("?")[0]!
+          .split(";")
+          .slice(1)
+          .map((c) => c.split(",")[0]!);
+        tabled.push(lons);
+        const mins = lons.map((l) => minutesByLon[l] ?? null);
+        return new Response(
+          JSON.stringify({
+            code: "Ok",
+            durations: [mins.map((m) => (m === null ? null : m * 60))],
+            distances: [mins.map((m) => (m === null ? null : m * 1000))],
+            sources: [{ distance: 12 }],
+          }),
+        );
+      }
+      if (url.includes("steps=true")) return new Response(JSON.stringify({ code: "NoRoute" }));
       const lon = /;(-?[\d.]+),/.exec(url)![1]!;
       asked.push(lon);
       const min = minutesByLon[lon];
@@ -27,7 +53,7 @@ function osrm(minutesByLon: Record<string, number>) {
       );
     },
   };
-  return { http, asked };
+  return { http, asked, tabled };
 }
 
 const grocer = (name: string, lon: number, big: boolean): Near["grocers"][number] => ({
@@ -116,5 +142,22 @@ describe("the closer non-chain grocery (owner, #81)", () => {
   it("the chain can't be routed: no closer line", async () => {
     const { drives } = await run(G, { "-1": 5, "-80.2": 90 });
     expect(drives.map((d) => d.label)).toEqual(["Airport"]);
+  });
+
+  it("OSRM's table service (follow-up 54): one request for every destination, the same drives", async () => {
+    const o = osrm({ "-1": 28, "-2": 38, "-3": 25, "-80.2": 90 }, true);
+    const d = await driveTimes(FROM, near(G), [{ name: "Airport", lat: 36.1, lon: -80.2 }], {
+      http: o.http,
+      endpoints: DEFAULT_ENDPOINTS,
+    });
+    expect(listed(d).map((x) => [x.label, x.name, x.min])).toEqual([
+      [REAL_GROCERY, "Food Lion", 38],
+      ["Airport", "", 90],
+      [CLOSER_GROCERY, "Corner Market", 25],
+    ]);
+    // The chain, then the non-chain stores, then the airport: once each, in one request; no route request.
+    expect(o.tabled).toEqual([["-2", "-1", "-3", "-80.2"]]);
+    expect(o.asked).toEqual([]);
+    expect(d.snapM).toBe(12);
   });
 });

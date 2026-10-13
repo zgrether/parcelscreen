@@ -240,6 +240,12 @@ describe("config", () => {
               19.312128,
               35.405568,
             ],
+            "trailheadMin": [
+              10,
+              20,
+              35,
+              50,
+            ],
           },
           "verdict": {
             "contender": 2.75,
@@ -307,7 +313,12 @@ describe("config", () => {
         },
         "drive": {
           "candidates": 3,
+          "parkingWithinM": 300,
+          "snapNoteM": 100,
           "timeoutMs": 15000,
+          "trackMinMi": 0.5,
+          "trackMph": 12,
+          "trailheadCandidates": 5,
         },
         "driveway": {
           "benchWidthM": 3.66,
@@ -769,7 +780,7 @@ describe("config", () => {
     `);
   });
 
-  it("step order and labels match the prototype", () => {
+  it("step order and labels match the prototype, but the drives come last (follow-up 54: from the driveway entrance)", () => {
     expect(STEPS.map(([id]) => id)).toEqual([
       "dem",
       "terrain",
@@ -779,9 +790,9 @@ describe("config", () => {
       "flood",
       "padus",
       "near",
-      "drive",
       "rank",
       "driveway",
+      "drive",
     ]);
   });
 

@@ -4,7 +4,8 @@ import { SCREEN_SCHEMA_VERSION } from "./index";
 describe("lib/screen", () => {
   it("pins the result schema version", () => {
     // 2: the run's report settings (`params`), step 14 plan Q1. 3: the clean break (B2a, phase-0.md §9.26).
-    expect(SCREEN_SCHEMA_VERSION).toBe(5); // 4: VR3a (§9.31); 5: drawn lines, follow-up 34 (§9.32)
+    // 4: VR3a (§9.31); 5: drawn lines, follow-up 34 (§9.32); 6: drives from the driveway entrance, follow-up 54 (§9.34)
+    expect(SCREEN_SCHEMA_VERSION).toBe(6);
   });
 
   it("runs in Node, not a browser", () => {

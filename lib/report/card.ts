@@ -8,7 +8,7 @@
  */
 import { compass, fmt } from "../format";
 import { SCREEN_CONSTANTS } from "../screen/config";
-import { NEAREST_HOSPITAL, REAL_GROCERY, type DriveEntry } from "../screen/driveList";
+import { NEAREST_HOSPITAL, REAL_GROCERY, TRAILHEAD_DRIVES, type DriveEntry } from "../screen/driveList";
 import { NO_PRACTICAL_ROUTE, existingSteepLine } from "../screen/score";
 import { trailheadSourceLabel } from "../screen/trailheads";
 import { isPrimeFarmland, soilAt, type SoilUnit } from "../screen/soils";
@@ -351,15 +351,32 @@ function trails(r: Result, K: CardConfig): Row {
       short: "adjoins public land",
     };
   if (!r.near) return notLoaded(g0, "the places");
+  // Follow-up 54 (owner, #123): graded on the quickest drive to the nearest trailheads, at their parking. Without
+  // them, the straight-line cutoffs: marked incomplete only when the result says the drives failed (the drive step
+  // failed, or OSRM routed none of the trailheads), or while the run is still going. Never from their absence alone
+  // (#123 testing: a result screened before the drives were stored read "the drive times didn't load").
+  const driven = r.near.trailheads
+    .filter((t) => t.drive)
+    .sort((a, b) => a.drive!.min - b.drive!.min || a.drive!.km - b.drive!.km)[0];
+  const drivesFailed =
+    r.failed.includes("drive") || (r.noResponse ?? []).includes(TRAILHEAD_DRIVES) || r.verdict === undefined;
+  const noDrives = !driven && r.near.trailheads.length > 0 && drivesFailed;
   // An official trailhead list that didn't answer (follow-up 53): a nearer trailhead may be missing, so the row is
   // incomplete, which holds the verdict at Maybe. Not when the parcel adjoins open public land: an A either way.
-  const unloaded = (r.noResponse ?? []).map(trailheadSourceLabel).filter((x): x is string => x !== null);
+  const unloaded = [
+    ...(r.noResponse ?? []).map(trailheadSourceLabel).filter((x): x is string => x !== null),
+    ...(noDrives ? ["the drive times"] : []),
+  ];
   const g = (grade: Letter | null, detail: string): Row =>
     unloaded.length
       ? { ...g0(grade, `${detail}; incomplete: ${listOf(unloaded)} didn't load`), missing: listOf(unloaded) }
       : g0(grade, detail);
   const head = [...r.near.trailheads].sort((a, b) => a.km - b.km)[0];
-  const byHead = head ? atMost(head.km, K.rows.trailheadKm) : "F";
+  const byHead = driven
+    ? atMost(driven.drive!.min, K.rows.trailheadMin)
+    : head
+      ? atMost(head.km, K.rows.trailheadKm)
+      : "F";
   const mile = open
     .filter((p) => p.distFt != null && p.distFt <= K.rows.openLandWithinFt)
     .sort((a, b) => a.distFt! - b.distFt!)[0];
@@ -373,6 +390,20 @@ function trails(r: Result, K: CardConfig): Row {
       ...g("F", `no trailhead found within ${miles(SCREEN_CONSTANTS.near.trailheadKm)} mi`),
       short: "no trailhead",
     };
+  if (driven) {
+    const d = driven.drive!;
+    // An approved replacement under rule 7 (owner, #123; phase-0.md §9.35): the drive, then the straight line.
+    const track = r.driveFrom?.trackMi
+      ? ` (the first ${fmt(r.driveFrom.trackMi, 1)} mi on unnamed tracks)`
+      : "";
+    return {
+      ...g(
+        byHead,
+        `a trailhead ${fmt(d.min)} min (${fmt(d.mi, 1)} mi) by road${track}, ${miles(d.km)} mi straight (${driven.name})`,
+      ),
+      short: `trailhead ${fmt(d.min)} min`,
+    };
+  }
   return {
     ...g(byHead, `a trailhead ${miles(head.km)} mi away in a straight line (${head.name})`),
     short: `trailhead ${miles(head.km)} mi`,

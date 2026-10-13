@@ -11,7 +11,9 @@ import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { CancelledError, createHttpClient, type HttpClient } from "../http";
 import { STEPS } from "./config";
 import { DemCache, fetchDEM, fineResM, parcelBboxes, rcToLL } from "./dem";
-import { driveTimes } from "./drive";
+import { driveStart, driveTimes, trailCandidates } from "./drive";
+import { TRAILHEAD_DRIVES, TRAILHEAD_PARKING } from "./driveList";
+import { parkingFor, parkingFromMirrors, type ParkingLot, type ParkingSource } from "./trailheadParking";
 import { ENGINE_VERSION } from "./engine";
 import {
   bedrockDepth,
@@ -108,6 +110,8 @@ export interface ScreenDeps {
   hospitals?: HospitalSource;
   /** The browser's OSM roads query (VR3a, through /api/places/overpass); Node calls the mirrors directly. */
   osmRoads?: (centre: LatLon, signal?: AbortSignal) => Promise<OsmWay[]>;
+  /** The browser's trailhead parking query (follow-up 54, the same route); Node calls the mirrors directly. */
+  parking?: ParkingSource;
 }
 
 /** Everything a run computed that isn't stored: rasters, raw features, caches. In memory only. */
@@ -421,16 +425,6 @@ export async function screen(
     if (n.placesError) throw n.placesError;
   });
 
-  await step("drive", async () => {
-    R.drives = []; // stays [] if nothing routes
-    const d = await driveTimes(s.centre, R.near, cfg.anchors, io, {
-      ...(s.otherGrocers ? { otherGrocers: s.otherGrocers } : {}),
-      ...(s.hospitalPool ? { hospitals: s.hospitalPool } : {}),
-    });
-    R.drives = d.drives;
-    R.closerGrocery = d.closerGrocery;
-  });
-
   await step("rank", () => {
     if (!s.dFine || !s.dWide) throw new Error("needs elevation");
     const ctx = scoreContext();
@@ -555,6 +549,53 @@ export async function screen(
     return R.driveway.note ?? undefined;
   });
 
+  // Last (follow-up 54; owner, #123): the drives start where the scored driveway meets the road, and the nearest
+  // trailheads are driven to, at their parking.
+  await step("drive", async () => {
+    R.drives = []; // stays [] if nothing routes
+    const start = driveStart(R.driveway, s.lines, s.centre);
+    R.driveFrom = { ...start, snapM: null, trackMi: null, kept: false };
+    const candidates = trailCandidates(R.near?.trailheads ?? [], start.ll);
+    let lots: ParkingLot[] = [];
+    if (candidates.length)
+      try {
+        lots = await (
+          deps.parking ?? parkingFromMirrors({ ...io, ...(s.deps.sleep ? { sleep: s.deps.sleep } : {}) })
+        )(
+          candidates.map((c) => c.ll),
+          signal,
+        );
+      } catch (e) {
+        if (e instanceof CancelledError) throw e;
+        R.noResponse.push(TRAILHEAD_PARKING); // the drives go to the points: close enough, and not a flag
+      }
+    const trails = candidates.map((c) => ({
+      index: c.index,
+      ll: c.ll,
+      parkingLl: parkingFor(R.near!.trailheads[c.index]!, lots),
+    }));
+    const d = await driveTimes(
+      start.ll,
+      R.near,
+      cfg.anchors,
+      io,
+      {
+        ...(s.otherGrocers ? { otherGrocers: s.otherGrocers } : {}),
+        ...(s.hospitalPool ? { hospitals: s.hospitalPool } : {}),
+      },
+      trails,
+    );
+    R.drives = d.drives;
+    R.closerGrocery = d.closerGrocery;
+    R.driveFrom = { ...R.driveFrom, snapM: d.snapM, trackMi: d.trackMi };
+    if (trails.length && !d.trailDrives.size) R.noResponse.push(TRAILHEAD_DRIVES);
+    if (R.near)
+      R.near = {
+        ...R.near,
+        trailheads: R.near.trailheads.map((t, i) => ({ ...t, drive: d.trailDrives.get(i) ?? null })),
+      };
+  });
+
   if (house) for (const f of R.flags) if (f.lvl === "fatal" && /^No house site/.test(f.t)) f.lvl = "warn";
   const result: ScreenResult = {
     ...(R as Omit<ScreenResult, "schemaVersion" | "runAt" | "failed" | "cancelled" | "verdict">),
@@ -647,7 +688,12 @@ const sfhaGrid = (s: ScreenSession): Uint8Array => (s.sfhaGrid ??= sfhaMask(s.dF
 export async function evaluateAt(out: ScreenOutput, ll: LatLon, label: string): Promise<ScreenOutput> {
   const s = out.session;
   if (!s.dFine || !s.dWide || !s.slope || !s.aspect) return out;
-  const result: ScreenResult = { ...out.result, focus: { ll, label } };
+  const result: ScreenResult = {
+    ...out.result,
+    focus: { ll, label },
+    // The drives stay the full screen's (owner, #123): the report says so.
+    ...(out.result.driveFrom ? { driveFrom: { ...out.result.driveFrom, kept: true } } : {}),
+  };
   const sun = computeSun(
     { dFine: s.dFine, dWide: s.dWide, slope: s.slope, aspect: s.aspect },
     ll,

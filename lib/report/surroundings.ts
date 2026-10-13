@@ -6,7 +6,7 @@ import { fmt } from "../format";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { M2FT } from "../screen/util";
 import { driveName, REAL_GROCERY, splitDrives } from "../screen/driveList";
-import type { PartialScreenResult } from "../screen/types";
+import type { DriveFrom, PartialScreenResult } from "../screen/types";
 import type { RichItem } from "./facts";
 import { onMap, said, type Heading, type Part } from "./parts";
 
@@ -302,8 +302,36 @@ export function gettingThereView(r: PartialScreenResult): GettingThereView | nul
     caveat:
       "Drive times from OSRM's public router — fine for comparing parcels, not for catching a flight. Places come from OpenStreetMap data (via Photon); trailhead counts undercount national forest access. Roads from the Census Bureau's TIGER lines." +
       // Appended (rule 7; follow-up 24, Batch A plan §3): the prototype's sentence above stays word for word.
-      " Forest Service trailheads and state parks are included too.",
+      " Forest Service trailheads and state parks are included too." +
+      // Appended (rule 7; follow-up 54, owner #123): where the drives start.
+      (r.driveFrom ? ` ${driveFromSentence(r.driveFrom)}` : ""),
   };
+}
+
+/** The road at an entrance as a sentence reads it: TIGER's unnamed "road" is "an unnamed road". */
+const roadWords = (road: string | null): string => (!road || road === "road" ? "an unnamed road" : road);
+
+/**
+ * Where the drive times start (follow-up 54; owner, #123), with what OSRM made of it: how far its nearest road is when
+ * that's drive.snapNoteM or more, the route out's first miles on tracks, and, after a moved pin or house, that the
+ * drives are the last full screen's.
+ */
+export function driveFromSentence(f: DriveFrom): string {
+  const where =
+    f.kind === "entrance"
+      ? `Drive times start at the driveway's entrance on ${roadWords(f.road)}.`
+      : f.kind === "drawn"
+        ? `Drive times start where your drawn ${f.line ?? "line"} meets the road.`
+        : f.kind === "nearestRoad"
+          ? `Drive times start at the nearest road point, on ${roadWords(f.road)}${f.gapFt != null ? `, ${fmt(f.gapFt)} ft off the parcel` : ""}.`
+          : "Drive times start at the parcel's centre: no driveway was routed.";
+  const snap =
+    f.snapM != null && f.snapM >= SCREEN_CONSTANTS.drive.snapNoteM
+      ? ` OSRM's nearest road is ${fmt(Math.round((f.snapM * M2FT) / 10) * 10)} ft from there.`
+      : "";
+  const track = f.trackMi ? ` The route out starts with ${fmt(f.trackMi, 1)} mi on unnamed tracks.` : "";
+  const kept = f.kept ? " Drive times are from the last full screen; run again to update." : "";
+  return where + snap + track + kept;
 }
 
 /** With no grocer found, after "none in OSM" on its own line (follow-up 25; owner's wording, 2026-10-08). */

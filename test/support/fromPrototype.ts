@@ -106,7 +106,11 @@ export function fromPrototype(R: PrototypeResult): ScreenResult {
   // had no closer grocery.
   if (result.near) {
     const n = result.near as Loose;
-    result.near = { ...n, trailheads: (n.trailheads as Loose[]).map((t) => ({ ...t, source: "osm" })) };
+    // v6 (follow-up 54): and it drove to none of them.
+    result.near = {
+      ...n,
+      trailheads: (n.trailheads as Loose[]).map((t) => ({ ...t, source: "osm", drive: null })),
+    };
   }
   if (Array.isArray(result.drives)) {
     result.drives = (result.drives as Loose[]).map((d) => ({

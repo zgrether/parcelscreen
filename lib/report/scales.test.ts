@@ -104,7 +104,8 @@ describe("the banded scales", () => {
 
   it("trails and town place the row's grade", () => {
     expect(placed(scales("grayson-mud-creek-6273", "trails"))).toEqual([["Trails", "A short drive", "B"]]);
-    expect(placed(scales("macks-mountain-35-3", "town"))).toEqual([["Town and hospital", "Remote", "D"]]);
+    // Follow-up 54: from the entrance, an 82-minute drive to the ER and 76 to a grocery.
+    expect(placed(scales("macks-mountain-35-3", "town"))).toEqual([["Town and hospital", "Remote", "F"]]);
   });
 
   it("septic: site #1's own soil, in §5.3's classes (VR3b)", () => {

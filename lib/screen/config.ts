@@ -321,6 +321,17 @@ export const SCREEN_CONSTANTS = deepFreeze({
   drive: {
     candidates: 3, // L1141: try the nearest 3 hospitals / grocers
     timeoutMs: 15_000,
+    // Follow-up 54 (owner, #123): drives start at the scored driveway's road entrance; Trails is graded on the
+    // quickest drive to the nearest trailheads (by straight line from there), each to its parking.
+    trailheadCandidates: 5,
+    // follow-up 39's rule: an amenity=parking this near, tagged for the trailhead (name or trailhead/hiking tags).
+    parkingWithinM: 300,
+    // OSRM snapped the start this far or more from it: the start sentence says how far its nearest road is.
+    snapNoteM: 100,
+    // The route out starts on unnamed ways, or on ways without a route number at no more than trackMph: a track. Said
+    // ("the first 5.7 mi on unnamed tracks") from trackMinMi; OSRM's car profile drives Macks's at about 6 mph.
+    trackMph: 12,
+    trackMinMi: 0.5,
   },
   grocery: {
     // Owner, #81: "Closer: {name}, {N} min." after the chain grocery's drive time, when a non-chain grocery
@@ -517,7 +528,10 @@ export const SCREEN_CONSTANTS = deepFreeze({
       elevationFt: [3000, 2500, 2000, 1500],
       skyMag: [21.5, 21.2, 20.9, 20.5],
       roomX: [3, 2, 1.25, 1], // gentle ground over the whole footprint; under 1× doesn't fit
-      trailheadKm: TRAILHEAD_KM, // 3 / 6 / 12 / 22 mi, straight line until follow-up 39 adds drive times
+      trailheadKm: TRAILHEAD_KM, // 3 / 6 / 12 / 22 mi straight: the fallback when the drive times didn't load
+      // Follow-up 54 (owner, #123): the quickest drive to a trailhead's parking, in minutes. Provisional until Zach's
+      // Google column (followup-54-drive-times.md §4); changing them then is a "Numbers change:".
+      trailheadMin: [10, 20, 35, 50],
       openLandWithinFt: 5280, // open public land within a mile is a B
       erMin: [20, 30, 45, 60],
       groceryMin: [10, 20, 30, 45],
@@ -559,7 +573,8 @@ export const STEPS = [
   ["flood", "Check FEMA floodplain"],
   ["padus", "Check public land adjacency"],
   ["near", "Find hospitals, groceries, trailheads"],
-  ["drive", "Route drive times"],
   ["rank", "Rank the homesites"],
   ["driveway", "Route the driveway"],
+  // Last (follow-up 54): the drives start where the driveway meets the road.
+  ["drive", "Route drive times"],
 ] as const;

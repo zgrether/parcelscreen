@@ -3877,7 +3877,14 @@
       -80.62026620568383
      ],
      "km": 14.455504818847029,
-     "source": "state"
+     "source": "state",
+     "drive": {
+      "min": 99,
+      "mi": 36.3,
+      "km": 13.387147316396543,
+      "to": "point",
+      "parkingLl": null
+     }
     },
     {
      "name": "Heritage Park",
@@ -3886,7 +3893,14 @@
       -80.7619609
      ],
      "km": 17.853011988292334,
-     "source": "osm"
+     "source": "osm",
+     "drive": {
+      "min": 92,
+      "mi": 17.4,
+      "km": 16.805834311533502,
+      "to": "point",
+      "parkingLl": null
+     }
     },
     {
      "name": "Cool Springs",
@@ -3895,7 +3909,14 @@
       -80.765408
      ],
      "km": 18.046624215668757,
-     "source": "osm"
+     "source": "osm",
+     "drive": {
+      "min": 93,
+      "mi": 17.7,
+      "km": 17.005980970470148,
+      "to": "point",
+      "parkingLl": null
+     }
     },
     {
      "name": "Dora Highway Park",
@@ -3904,7 +3925,14 @@
       -80.7793751
      ],
      "km": 19.05310169893537,
-     "source": "osm"
+     "source": "osm",
+     "drive": {
+      "min": 94,
+      "mi": 18.5,
+      "km": 18.033218568863703,
+      "to": "point",
+      "parkingLl": null
+     }
     },
     {
      "name": "Buffalo Mountain Trailhead",
@@ -3913,7 +3941,8 @@
       -80.4665278
      ],
      "km": 20.390449565954164,
-     "source": "osm"
+     "source": "osm",
+     "drive": null
     },
     {
      "name": "New River Trail State Park",
@@ -3922,7 +3951,14 @@
       -80.85291403666032
      ],
      "km": 20.895295313709084,
-     "source": "state"
+     "source": "state",
+     "drive": {
+      "min": 99,
+      "mi": 36.5,
+      "km": 20.802308067362286,
+      "to": "point",
+      "parkingLl": null
+     }
     },
     {
      "name": "Shot Tower State Park",
@@ -3931,7 +3967,8 @@
       -80.87029423371592
      ],
      "km": 22.77707658298025,
-     "source": "state"
+     "source": "state",
+     "drive": null
     }
    ],
    "trailheadCount": 7
@@ -3941,64 +3978,6 @@
    "riseFt": -38.613348166503904,
    "runFt": 228.97064944805598,
    "gradePct": 16.86388550654117
-  },
-  "drives": [
-   {
-    "label": "Nearest hospital",
-    "name": "Carilion New River Valley Medical Center",
-    "min": 48,
-    "mi": 20.4,
-    "er": "yes"
-   },
-   {
-    "label": "Nearest real grocery",
-    "name": "Walmart Supercenter",
-    "min": 61,
-    "mi": 31.6,
-    "er": null
-   },
-   {
-    "label": "Asheville airport (AVL)",
-    "name": "",
-    "min": 260,
-    "mi": 203.2,
-    "er": null
-   },
-   {
-    "label": "Roanoke airport (ROA)",
-    "name": "",
-    "min": 97,
-    "mi": 57.1,
-    "er": null
-   },
-   {
-    "label": "Tri-Cities airport (TRI)",
-    "name": "",
-    "min": 176,
-    "mi": 139.3,
-    "er": null
-   },
-   {
-    "label": "Greenville-Spartanburg (GSP)",
-    "name": "",
-    "min": 276,
-    "mi": 217.1,
-    "er": null
-   },
-   {
-    "label": "Charlotte airport (CLT)",
-    "name": "",
-    "min": 189,
-    "mi": 141,
-    "er": null
-   }
-  ],
-  "closerGrocery": {
-   "label": "Closer grocery",
-   "name": "Slaughters' Supermarket",
-   "min": 42,
-   "mi": 22.5,
-   "er": null
   },
   "excluded": [],
   "sites": [
@@ -6094,8 +6073,79 @@
     }
    }
   },
-  "schemaVersion": 5,
-  "engine": 16,
+  "drives": [
+   {
+    "label": "Nearest hospital",
+    "name": "Carilion New River Valley Medical Center",
+    "min": 82,
+    "mi": 25,
+    "er": "yes"
+   },
+   {
+    "label": "Nearest real grocery",
+    "name": "Food City",
+    "min": 91,
+    "mi": 17,
+    "er": null
+   },
+   {
+    "label": "Asheville airport (AVL)",
+    "name": "",
+    "min": 287,
+    "mi": 202,
+    "er": null
+   },
+   {
+    "label": "Roanoke airport (ROA)",
+    "name": "",
+    "min": 131,
+    "mi": 61.7,
+    "er": null
+   },
+   {
+    "label": "Tri-Cities airport (TRI)",
+    "name": "",
+    "min": 204,
+    "mi": 138,
+    "er": null
+   },
+   {
+    "label": "Greenville-Spartanburg (GSP)",
+    "name": "",
+    "min": 303,
+    "mi": 215.9,
+    "er": null
+   },
+   {
+    "label": "Charlotte airport (CLT)",
+    "name": "",
+    "min": 216,
+    "mi": 139.7,
+    "er": null
+   }
+  ],
+  "driveFrom": {
+   "ll": [
+    36.936972085413736,
+    -80.62859651671185
+   ],
+   "kind": "entrance",
+   "road": "road",
+   "line": null,
+   "gapFt": null,
+   "snapM": 0,
+   "trackMi": 2.6,
+   "kept": false
+  },
+  "closerGrocery": {
+   "label": "Closer grocery",
+   "name": "Slaughters' Supermarket",
+   "min": 76,
+   "mi": 27.2,
+   "er": null
+  },
+  "schemaVersion": 6,
+  "engine": 17,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -9979,7 +10029,14 @@
       -80.62026620568383
      ],
      "km": 14.455504818847029,
-     "source": "state"
+     "source": "state",
+     "drive": {
+      "min": 99,
+      "mi": 36.3,
+      "km": 13.387147316396543,
+      "to": "point",
+      "parkingLl": null
+     }
     },
     {
      "name": "Heritage Park",
@@ -9988,7 +10045,14 @@
       -80.7619609
      ],
      "km": 17.853011988292334,
-     "source": "osm"
+     "source": "osm",
+     "drive": {
+      "min": 92,
+      "mi": 17.4,
+      "km": 16.805834311533502,
+      "to": "point",
+      "parkingLl": null
+     }
     },
     {
      "name": "Cool Springs",
@@ -9997,7 +10061,14 @@
       -80.765408
      ],
      "km": 18.046624215668757,
-     "source": "osm"
+     "source": "osm",
+     "drive": {
+      "min": 93,
+      "mi": 17.7,
+      "km": 17.005980970470148,
+      "to": "point",
+      "parkingLl": null
+     }
     },
     {
      "name": "Dora Highway Park",
@@ -10006,7 +10077,14 @@
       -80.7793751
      ],
      "km": 19.05310169893537,
-     "source": "osm"
+     "source": "osm",
+     "drive": {
+      "min": 94,
+      "mi": 18.5,
+      "km": 18.033218568863703,
+      "to": "point",
+      "parkingLl": null
+     }
     },
     {
      "name": "Buffalo Mountain Trailhead",
@@ -10015,7 +10093,8 @@
       -80.4665278
      ],
      "km": 20.390449565954164,
-     "source": "osm"
+     "source": "osm",
+     "drive": null
     },
     {
      "name": "New River Trail State Park",
@@ -10024,7 +10103,14 @@
       -80.85291403666032
      ],
      "km": 20.895295313709084,
-     "source": "state"
+     "source": "state",
+     "drive": {
+      "min": 99,
+      "mi": 36.5,
+      "km": 20.802308067362286,
+      "to": "point",
+      "parkingLl": null
+     }
     },
     {
      "name": "Shot Tower State Park",
@@ -10033,7 +10119,8 @@
       -80.87029423371592
      ],
      "km": 22.77707658298025,
-     "source": "state"
+     "source": "state",
+     "drive": null
     }
    ],
    "trailheadCount": 7
@@ -10043,64 +10130,6 @@
    "riseFt": -38.613348166503904,
    "runFt": 228.97064944805598,
    "gradePct": 16.86388550654117
-  },
-  "drives": [
-   {
-    "label": "Nearest hospital",
-    "name": "Carilion New River Valley Medical Center",
-    "min": 48,
-    "mi": 20.4,
-    "er": "yes"
-   },
-   {
-    "label": "Nearest real grocery",
-    "name": "Walmart Supercenter",
-    "min": 61,
-    "mi": 31.6,
-    "er": null
-   },
-   {
-    "label": "Asheville airport (AVL)",
-    "name": "",
-    "min": 260,
-    "mi": 203.2,
-    "er": null
-   },
-   {
-    "label": "Roanoke airport (ROA)",
-    "name": "",
-    "min": 97,
-    "mi": 57.1,
-    "er": null
-   },
-   {
-    "label": "Tri-Cities airport (TRI)",
-    "name": "",
-    "min": 176,
-    "mi": 139.3,
-    "er": null
-   },
-   {
-    "label": "Greenville-Spartanburg (GSP)",
-    "name": "",
-    "min": 276,
-    "mi": 217.1,
-    "er": null
-   },
-   {
-    "label": "Charlotte airport (CLT)",
-    "name": "",
-    "min": 189,
-    "mi": 141,
-    "er": null
-   }
-  ],
-  "closerGrocery": {
-   "label": "Closer grocery",
-   "name": "Slaughters' Supermarket",
-   "min": 42,
-   "mi": 22.5,
-   "er": null
   },
   "excluded": [],
   "sites": [
@@ -12216,8 +12245,79 @@
     }
    }
   },
-  "schemaVersion": 5,
-  "engine": 16,
+  "drives": [
+   {
+    "label": "Nearest hospital",
+    "name": "Carilion New River Valley Medical Center",
+    "min": 82,
+    "mi": 25,
+    "er": "yes"
+   },
+   {
+    "label": "Nearest real grocery",
+    "name": "Food City",
+    "min": 91,
+    "mi": 17,
+    "er": null
+   },
+   {
+    "label": "Asheville airport (AVL)",
+    "name": "",
+    "min": 287,
+    "mi": 202,
+    "er": null
+   },
+   {
+    "label": "Roanoke airport (ROA)",
+    "name": "",
+    "min": 131,
+    "mi": 61.7,
+    "er": null
+   },
+   {
+    "label": "Tri-Cities airport (TRI)",
+    "name": "",
+    "min": 204,
+    "mi": 138,
+    "er": null
+   },
+   {
+    "label": "Greenville-Spartanburg (GSP)",
+    "name": "",
+    "min": 303,
+    "mi": 215.9,
+    "er": null
+   },
+   {
+    "label": "Charlotte airport (CLT)",
+    "name": "",
+    "min": 216,
+    "mi": 139.7,
+    "er": null
+   }
+  ],
+  "driveFrom": {
+   "ll": [
+    36.936972085413736,
+    -80.62859651671185
+   ],
+   "kind": "entrance",
+   "road": "road",
+   "line": null,
+   "gapFt": null,
+   "snapM": 0,
+   "trackMi": 2.6,
+   "kept": true
+  },
+  "closerGrocery": {
+   "label": "Closer grocery",
+   "name": "Slaughters' Supermarket",
+   "min": 76,
+   "mi": 27.2,
+   "er": null
+  },
+  "schemaVersion": 6,
+  "engine": 17,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
