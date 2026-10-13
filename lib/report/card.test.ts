@@ -7,7 +7,7 @@ import { expectedOf } from "@/test/support/expected";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { TRAILHEAD_DRIVES } from "../screen/driveList";
 import { NO_PRACTICAL_ROUTE } from "../screen/score";
-import type { ScreenResult } from "../screen/types";
+import type { RoadClass, ScreenResult } from "../screen/types";
 import {
   articleFor,
   atLeast,
@@ -16,6 +16,7 @@ import {
   cardFor,
   footprintFt2,
   reportCard,
+  roadInWords,
   type CardConfig,
 } from "./card";
 
@@ -60,9 +61,13 @@ describe("the report card on the fixtures (engine 13)", () => {
     );
   });
 
-  it("Macks Mountain 35-3: the septic warn, the closer grocery", () => {
+  it("Macks Mountain 35-3: the septic warn, the road in a track, the closer grocery", () => {
     const r = expectedOf("macks-mountain-35-3", "run");
-    expect(gates(r)).toEqual({ floodplain: "pass", access: "pass", easement: "pass", septic: "warn" });
+    // Follow-up 55: its entrance road is an unnamed local road to the Census (S1400), a track to OpenStreetMap.
+    expect(gates(r)).toEqual({ floodplain: "pass", access: "warn", easement: "pass", septic: "warn" });
+    expect(gateOf(r, "access").reason).toBe(
+      "Frontage on an unnamed road; the road in is a track (OpenStreetMap); check that it's public and drivable year-round",
+    );
     expect(grades(r)).toEqual({
       elevation: "A",
       homesite: "A",
@@ -84,10 +89,46 @@ describe("the report card on the fixtures (engine 13)", () => {
     const zach = reportCard(r, "zach"),
       julie = reportCard(r, "julie");
     expect(zach.points).toBeCloseTo(3.05, 9);
-    expect([zach.grade, zach.verdict]).toEqual(["B", "Contender"]);
+    // Two warns (the road in, the septic) are a Maybe.
+    expect([zach.grade, zach.verdict]).toEqual(["B", "Maybe"]);
     expect(julie.points).toBeCloseTo(2.2, 9);
     expect([julie.grade, julie.verdict]).toEqual(["C", "Maybe"]);
-    expect(zach.reason).toBe(`Contender. Check first: ${SEPTIC_WARN}.`);
+    expect(zach.reason).toBe(
+      "Maybe. Check first: frontage on an unnamed road; the road in is a track (OpenStreetMap); check that it's public and drivable year-round.",
+    );
+  });
+
+  it("the road in (follow-up 55): a 4WD trail or private road to the Census, a track to OpenStreetMap", () => {
+    const words = (mtfcc: string | null, osm: Partial<NonNullable<RoadClass["osm"]>> | null = null) =>
+      roadInWords({
+        mtfcc,
+        osm: osm ? { highway: "unclassified", tracktype: null, access: null, service: null, ...osm } : null,
+      });
+    expect(words("S1500")).toBe("the road in is a 4WD trail (Census)");
+    expect(words("S1740")).toBe("the road in is a private road (Census)");
+    expect(words("S1400", { highway: "track" })).toBe("the road in is a track (OpenStreetMap)");
+    expect(words("S1400", { tracktype: "grade4" })).toBe("the road in is a track (OpenStreetMap)");
+    expect(words("S1740", { highway: "track" })).toBe(
+      "the road in is a private track (Census and OpenStreetMap)",
+    );
+    expect(words("S1500", { highway: "track" })).toBe(
+      "the road in is a 4WD trail (Census and OpenStreetMap)",
+    );
+    // An ordinary road says nothing; nor (until the owner says otherwise) does OSM's access=private: Ferney's.
+    expect(words("S1400")).toBeNull();
+    expect(words("S1400", { highway: "service", service: "driveway", access: "private" })).toBeNull();
+    expect(roadInWords(null)).toBeNull();
+    const f = expectedOf("ferney-creek-52-47A", "run");
+    expect(f.driveway!.entrances[f.driveway!.routes[0]!.entranceIndex]!.roadClass).toEqual({
+      mtfcc: "S1400",
+      osm: { highway: "service", tracktype: null, access: "private", service: "driveway" },
+    });
+    expect(gateOf(f, "access").status).toBe("pass");
+    // A drawn line's own sentence and the road in's, together.
+    const m = expectedOf("macks-mountain-35-3", "run");
+    expect(gateOf(m, "access").reason).toMatch(
+      /; the road in is a track \(OpenStreetMap\); check that it's public/,
+    );
   });
 
   it("Grayson Mud Creek 6273: the flood zone is away from the build site, so one warn: a Contender", () => {

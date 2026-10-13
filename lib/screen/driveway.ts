@@ -28,7 +28,7 @@ import { rcToLL, utmToRC, zBilinear } from "./dem";
 import { osmRoadFeatures, reachesTiger, type OsmWay } from "./osmRoads";
 import type { RoadFeature } from "./roads";
 import { bottomland, type SoilUnit } from "./soils";
-import type { Dem, DrawnInput, ScreenResult, SoilRow, UserConfig } from "./types";
+import type { Dem, DrawnInput, RoadClass, ScreenResult, SoilRow, UserConfig } from "./types";
 import { M2FT, M2_PER_ACRE, type LatLon } from "./util";
 import { searchMany, smoothPath, type PathPoint, type RoutedPath, type SearchResult } from "./router";
 
@@ -386,6 +386,7 @@ export function drawnEntrances(
       source: "drawn",
       reaches: null,
       line,
+      roadClass: null,
     });
   });
   return out;
@@ -398,7 +399,27 @@ export function drawnEntrances(
 export const routedEntrances = (entrances: readonly Entrance[]): number[] =>
   entrances.flatMap((e, i) => (e.source === "drawn" || i < K.entrancesRouted ? [i] : []));
 
-type Candidate = Omit<Entrance, "source" | "reaches" | "line"> & { roadIndex: number };
+type Candidate = Omit<Entrance, "source" | "reaches" | "line" | "roadClass"> & { roadIndex: number };
+
+/**
+ * The road an entrance is on (v7, follow-up 55): its Census class (MTFCC), and the OpenStreetMap way lying on it
+ * within osmRoads.onRoadM, whose tags say whether it's a track, private or a driveway.
+ */
+export function roadClassAt(ll: LatLon, mtfcc: string | null, osm: readonly OsmWay[]): RoadClass {
+  let best: { w: OsmWay; m: number } | null = null;
+  for (const w of osm) {
+    const m = pointToLineDistance([ll[1], ll[0]], lineString(w.coords), { units: "meters" });
+    if (m <= SCREEN_CONSTANTS.osmRoads.onRoadM && (!best || m < best.m)) best = { w, m };
+  }
+  return { mtfcc, osm: best ? osmTags(best.w) : null };
+}
+
+const osmTags = (w: OsmWay): NonNullable<RoadClass["osm"]> => ({
+  highway: w.highway,
+  tracktype: w.tracktype,
+  access: w.access,
+  service: w.service,
+});
 
 /** Points on the given roads within entranceMaxDistM of the boundary, scored (lower is better), and the nearest. */
 function frontageCandidates(
@@ -485,11 +506,12 @@ function findEntrances(
   const edgeLine = firstLine(polygonToLine(parcel)) as Feature<LineString>;
   const tiger = frontageCandidates(roads, parcel, edgeLine, d);
   const minDist = tiger.minDist;
-  const picked: Entrance[] = pick(tiger.out).map(({ roadIndex: _r, ...e }) => ({
+  const picked: Entrance[] = pick(tiger.out).map(({ roadIndex, ...e }) => ({
     ...e,
     source: "tiger",
     reaches: null,
     line: null,
+    roadClass: roadClassAt(e.ll, roads[roadIndex]?.properties.MTFCC ?? null, osm),
   }));
   if (!picked.length && osm.length) {
     // No TIGER frontage: an OSM track or service road along the boundary, with how far along the OSM network it
@@ -501,17 +523,23 @@ function findEntrances(
         source: "osm",
         reaches: reachesTiger(osm, { wayIndex: roadIndex, ll: e.ll }, roads),
         line: null,
+        roadClass: { mtfcc: null, osm: osmTags(osm[roadIndex]!) },
       });
   }
   if (!picked.length && Number.isFinite(minDist) && minDist <= K.fallbackMaxM) {
     // No frontage: the nearest road point; the route will leave the boundary and be flagged.
-    let nearest: { dd: number; p: Position; name: string } | null = null;
+    let nearest: { dd: number; p: Position; name: string; mtfcc: string | null } | null = null;
     for (const f of roads)
       for (const ln of linesOf(f)) {
         const np = nearestPointOnLine(ln, centroid(parcel), { units: "meters" });
         const dd = pointToLineDistance(np, edgeLine, { units: "meters" });
         if (!nearest || dd < nearest.dd)
-          nearest = { dd, p: np.geometry.coordinates, name: f.properties.NAME || "road" };
+          nearest = {
+            dd,
+            p: np.geometry.coordinates,
+            name: f.properties.NAME || "road",
+            mtfcc: f.properties.MTFCC ?? null,
+          };
       }
     if (nearest)
       picked.push({
@@ -526,6 +554,7 @@ function findEntrances(
         source: "tiger",
         reaches: null,
         line: null,
+        roadClass: roadClassAt([nearest.p[1]!, nearest.p[0]!], nearest.mtfcc, osm),
       });
   }
   return { entrances: picked, roadsNearestFt: Number.isFinite(minDist) ? minDist * M2FT : null };

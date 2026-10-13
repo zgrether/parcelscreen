@@ -12,7 +12,7 @@ import { NEAREST_HOSPITAL, REAL_GROCERY, TRAILHEAD_DRIVES, type DriveEntry } fro
 import { NO_PRACTICAL_ROUTE, existingSteepLine } from "../screen/score";
 import { trailheadSourceLabel } from "../screen/trailheads";
 import { isPrimeFarmland, soilAt, type SoilUnit } from "../screen/soils";
-import type { PartialScreenResult } from "../screen/types";
+import type { PartialScreenResult, RoadClass } from "../screen/types";
 import { M2FT, M2_PER_ACRE } from "../screen/util";
 import { steepLandingLine } from "./driveway";
 import { LINE_LABEL, VERIFY_RIGHT_OF_WAY, routeLines, scoredRoute, startLine } from "./lines";
@@ -173,13 +173,36 @@ function access(r: Result): Gate {
   const frontage = accessByFrontage(r);
   const rt = r.driveway && scoredRoute(r.driveway);
   const line = rt ? startLine(r, rt) : null;
-  if (!line) return frontage;
-  const ask = `${LINE_LABEL[line.kind]}: ${VERIFY_RIGHT_OF_WAY}`;
+  // The road in (follow-up 55; owner, #123): a 4WD trail, a track or a private road at the scored route's entrance.
+  const roadIn = rt ? roadInWords(r.driveway!.entrances[rt.entranceIndex]?.roadClass ?? null) : null;
+  const asks = [
+    ...(line ? [lowerFirst(`${LINE_LABEL[line.kind]}: ${VERIFY_RIGHT_OF_WAY}`)] : []),
+    ...(roadIn ? [`${roadIn}; check that it's public and drivable year-round`] : []),
+  ];
+  if (!asks.length) return frontage;
   return {
     ...frontage,
     status: frontage.status === "fail" ? "fail" : "warn",
-    reason: `${frontage.reason}; ${lowerFirst(ask)}`,
+    reason: [frontage.reason, ...asks].join("; "),
   };
+}
+
+/**
+ * "the road in is a track (OpenStreetMap)" (follow-up 55; owner, #123): from the entrance road's Census class (S1500
+ * a 4WD vehicular trail, S1740 a private road) and the OpenStreetMap way on it (highway=track, or a track grade).
+ * Null for an ordinary road, or when nothing is known. OSM's access and service tags are stored but not read here:
+ * whether access=private counts as a private road is the owner's call (Ferney's entrance road is tagged so).
+ */
+export function roadInWords(c: RoadClass | null): string | null {
+  if (!c) return null;
+  const trail4wd = c.mtfcc === "S1500";
+  const censusPrivate = c.mtfcc === "S1740";
+  const track = c.osm?.highway === "track" || !!c.osm?.tracktype;
+  if (!trail4wd && !censusPrivate && !track) return null;
+  const noun = trail4wd ? "4WD trail" : track ? "track" : "road";
+  const census = trail4wd || censusPrivate;
+  const source = census && track ? "Census and OpenStreetMap" : census ? "Census" : "OpenStreetMap";
+  return `the road in is a ${censusPrivate ? "private " : ""}${noun} (${source})`;
 }
 
 function accessByFrontage(r: Result): Gate {

@@ -4442,7 +4442,16 @@
      "score": 2.0584946534133013,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": {
+       "highway": "track",
+       "tracktype": null,
+       "access": null,
+       "service": null
+      }
+     }
     },
     {
      "ll": [
@@ -4456,7 +4465,16 @@
      "score": 6.133604658927117,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": {
+       "highway": "track",
+       "tracktype": null,
+       "access": null,
+       "service": null
+      }
+     }
     },
     {
      "ll": [
@@ -4470,7 +4488,16 @@
      "score": 13.96737136420461,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": {
+       "highway": "unclassified",
+       "tracktype": null,
+       "access": null,
+       "service": null
+      }
+     }
     }
    ],
    "routes": [
@@ -6144,8 +6171,8 @@
    "mi": 27.2,
    "er": null
   },
-  "schemaVersion": 6,
-  "engine": 17,
+  "schemaVersion": 7,
+  "engine": 18,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -10594,7 +10621,16 @@
      "score": 2.0584946534133013,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": {
+       "highway": "track",
+       "tracktype": null,
+       "access": null,
+       "service": null
+      }
+     }
     },
     {
      "ll": [
@@ -10608,7 +10644,16 @@
      "score": 6.133604658927117,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": {
+       "highway": "track",
+       "tracktype": null,
+       "access": null,
+       "service": null
+      }
+     }
     },
     {
      "ll": [
@@ -10622,7 +10667,16 @@
      "score": 13.96737136420461,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": {
+       "highway": "unclassified",
+       "tracktype": null,
+       "access": null,
+       "service": null
+      }
+     }
     }
    ],
    "routes": [
@@ -12316,8 +12370,8 @@
    "mi": 27.2,
    "er": null
   },
-  "schemaVersion": 6,
-  "engine": 17,
+  "schemaVersion": 7,
+  "engine": 18,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,

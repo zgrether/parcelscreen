@@ -81,7 +81,13 @@ export function fromPrototype(R: PrototypeResult): ScreenResult {
       practical: null,
       steepLanding: null,
       // v4 (VR3a): its entrances were all TIGER's.
-      entrances: (entrances as Loose[]).map((e) => ({ ...e, source: "tiger", reaches: null, line: null })),
+      entrances: (entrances as Loose[]).map((e) => ({
+        ...e,
+        source: "tiger",
+        reaches: null,
+        line: null,
+        roadClass: null,
+      })),
     };
   }
 

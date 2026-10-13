@@ -132,6 +132,9 @@ describe("OpenStreetMap frontage (where TIGER shows none)", () => {
     id: 651846930,
     highway: "track",
     name: null,
+    tracktype: null,
+    access: null,
+    service: null,
     coords: [ll(78, 170), ll(78, 120), ll(78, 60)],
   };
 
@@ -200,6 +203,10 @@ describe("OpenStreetMap frontage (where TIGER shows none)", () => {
         id: 651846930,
         highway: "track",
         name: null,
+        // Follow-up 55: what the road in is; none of them tagged here.
+        tracktype: null,
+        access: null,
+        service: null,
         coords: [
           [-81.6228, 36.32732],
           [-81.623, 36.3274],

@@ -20,7 +20,7 @@ import type { STEPS } from "./config";
  * 2026-10-12) are clean breaks: an older stored result isn't read or migrated, its parcel re-screens when opened
  * (phase-0.md §9.26, §9.30, §9.31).
  */
-export const SCREEN_SCHEMA_VERSION = 6 as const;
+export const SCREEN_SCHEMA_VERSION = 7 as const;
 
 // ---------- shared ----------
 
@@ -362,6 +362,24 @@ const HouseSchema = z.union([
   z.strictObject({ ll: LatLonSchema, outside: z.literal(true) }),
 ]);
 
+/**
+ * The road an entrance is on (v7, follow-up 55; owner, #123): its Census MTFCC (S1400 local road, S1500 4WD vehicular
+ * trail, S1740 private road…) and the OpenStreetMap way lying on it, when one does (the tracks, service roads and
+ * unclassified ways VR3a fetches): its highway, track grade, access and service tags. Either may be missing.
+ */
+const RoadClassSchema = z.strictObject({
+  mtfcc: z.string().nullable(),
+  osm: z
+    .strictObject({
+      highway: z.string(),
+      tracktype: z.string().nullable(),
+      access: z.string().nullable(),
+      service: z.string().nullable(),
+    })
+    .nullable(),
+});
+export type RoadClass = z.infer<typeof RoadClassSchema>;
+
 const EntranceSchema = z.strictObject({
   ll: LatLonSchema,
   name: z.string(),
@@ -381,6 +399,8 @@ const EntranceSchema = z.strictObject({
   reaches: z.strictObject({ road: z.string(), ft: num }).nullable(),
   /** A drawn entrance's line (v5, follow-up 34): index into `lines`, the end away from the road; null otherwise. */
   line: z.number().int().nullable(),
+  /** The road it's on (v7, follow-up 55); null for a drawn line's end. */
+  roadClass: RoadClassSchema.nullable(),
 });
 
 /**

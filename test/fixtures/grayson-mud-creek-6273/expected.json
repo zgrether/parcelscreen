@@ -2370,7 +2370,11 @@
      "score": 18.408431838394783,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": null
+     }
     },
     {
      "ll": [
@@ -2384,7 +2388,11 @@
      "score": 40.3937801180636,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": null
+     }
     },
     {
      "ll": [
@@ -2398,7 +2406,11 @@
      "score": 45.16241587547718,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": null
+     }
     }
    ],
    "routes": [
@@ -7613,8 +7625,8 @@
    "mi": 9,
    "er": null
   },
-  "schemaVersion": 6,
-  "engine": 17,
+  "schemaVersion": 7,
+  "engine": 18,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -9991,7 +10003,11 @@
      "score": 18.408431838394783,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": null
+     }
     },
     {
      "ll": [
@@ -10005,7 +10021,11 @@
      "score": 40.3937801180636,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": null
+     }
     },
     {
      "ll": [
@@ -10019,7 +10039,11 @@
      "score": 45.16241587547718,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": null
+     }
     }
    ],
    "routes": [
@@ -15234,8 +15258,8 @@
    "mi": 9,
    "er": null
   },
-  "schemaVersion": 6,
-  "engine": 17,
+  "schemaVersion": 7,
+  "engine": 18,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,

@@ -2306,7 +2306,16 @@
      "score": 2.569791797686977,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": {
+       "highway": "service",
+       "tracktype": null,
+       "access": "private",
+       "service": "driveway"
+      }
+     }
     },
     {
      "ll": [
@@ -2320,7 +2329,16 @@
      "score": 4.997127411648016,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": {
+       "highway": "service",
+       "tracktype": null,
+       "access": "private",
+       "service": "driveway"
+      }
+     }
     },
     {
      "ll": [
@@ -2334,7 +2352,16 @@
      "score": 7.4068760932243105,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": {
+       "highway": "service",
+       "tracktype": null,
+       "access": "private",
+       "service": "driveway"
+      }
+     }
     }
    ],
    "routes": [
@@ -3186,8 +3213,8 @@
    "kept": false
   },
   "closerGrocery": null,
-  "schemaVersion": 6,
-  "engine": 17,
+  "schemaVersion": 7,
+  "engine": 18,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -5500,7 +5527,16 @@
      "score": 2.569791797686977,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": {
+       "highway": "service",
+       "tracktype": null,
+       "access": "private",
+       "service": "driveway"
+      }
+     }
     },
     {
      "ll": [
@@ -5514,7 +5550,16 @@
      "score": 4.997127411648016,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": {
+       "highway": "service",
+       "tracktype": null,
+       "access": "private",
+       "service": "driveway"
+      }
+     }
     },
     {
      "ll": [
@@ -5528,7 +5573,16 @@
      "score": 7.4068760932243105,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": {
+       "highway": "service",
+       "tracktype": null,
+       "access": "private",
+       "service": "driveway"
+      }
+     }
     }
    ],
    "routes": [
@@ -7856,8 +7910,8 @@
    "kept": true
   },
   "closerGrocery": null,
-  "schemaVersion": 6,
-  "engine": 17,
+  "schemaVersion": 7,
+  "engine": 18,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -10276,7 +10330,16 @@
      "score": 2.569791797686977,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": {
+       "highway": "service",
+       "tracktype": null,
+       "access": "private",
+       "service": "driveway"
+      }
+     }
     },
     {
      "ll": [
@@ -10290,7 +10353,16 @@
      "score": 4.997127411648016,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": {
+       "highway": "service",
+       "tracktype": null,
+       "access": "private",
+       "service": "driveway"
+      }
+     }
     },
     {
      "ll": [
@@ -10304,7 +10376,16 @@
      "score": 7.4068760932243105,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": {
+       "highway": "service",
+       "tracktype": null,
+       "access": "private",
+       "service": "driveway"
+      }
+     }
     }
    ],
    "routes": [
@@ -12632,8 +12713,8 @@
    "kept": false
   },
   "closerGrocery": null,
-  "schemaVersion": 6,
-  "engine": 17,
+  "schemaVersion": 7,
+  "engine": 18,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
