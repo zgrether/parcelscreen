@@ -31,3 +31,13 @@ export function splitDrives(r: Pick<ScreenResult, "drives" | "closerGrocery">): 
 } {
   return { destinations: r.drives ?? [], closer: r.closerGrocery ?? null };
 }
+
+/** In `noResponse` when the parking query didn't answer (follow-up 54): the drives go to the trailhead points. */
+export const TRAILHEAD_PARKING = "Overpass (trailhead parking)";
+
+/**
+ * In `noResponse` when OSRM routed none of the trailheads it was asked for, though the drive step ran (follow-up 54,
+ * #123 testing): the Trails row falls back to the straight line, marked incomplete. Recorded, not inferred: a result
+ * with no record of it is never read as a failure.
+ */
+export const TRAILHEAD_DRIVES = "OSRM (trailhead drives)";

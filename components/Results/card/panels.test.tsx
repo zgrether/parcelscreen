@@ -152,7 +152,9 @@ describe("the report card's panels (VR5)", () => {
       "Gentle ground (15% or less) within 300 ft of where the house goes on site #1, against the build footprint, 19,856 ft²: A at 3×, B from 2×, C from 1.25×, D when it fits; an F when the build doesn't fit on any homesite; weight 15 (Zach) / 10 (Julie).",
     );
     expect(panelText("trails").howScored).toBe(
-      "A when the parcel adjoins open public land or a trailhead is within 3 mi; B with open public land within a mile, or a trailhead within 6 mi; C within 12 mi; D within 22 mi (straight line); weight 10 (Zach) / 25 (Julie).",
+      "A when the parcel adjoins open public land or a trailhead is within 3 mi; B with open public land within a mile, or a trailhead within 6 mi; C within 12 mi; D within 22 mi (straight line); weight 10 (Zach) / 25 (Julie). " +
+        // Appended (follow-up 54; rule 7).
+        "By road: the quickest drive from where the driveway meets the road to one of the 5 nearest trailheads, to its parking where OpenStreetMap tags one: A within 10 min, B within 20, C within 35, D within 50. The straight-line distances above count only when the drive times didn't load.",
     );
   });
 });

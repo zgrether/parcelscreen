@@ -142,12 +142,25 @@ describe("road-distance rounding vs cost index, tier and overall score", () => {
 
 describe("places outage (plan §9.11): roads, road grade and the driveway still come through", () => {
   it("Ferney Creek with Photon and every Overpass mirror down", async () => {
+    // The anchors' drives start at the entrance (follow-up 54), which no recording has without the places: OSRM's
+    // table answers every destination with an hour.
     const down =
       (f: typeof fetch): typeof fetch =>
-      async (input, init) =>
-        /photon\.komoot\.io|overpass/.test(String(input))
-          ? new Response("down", { status: 503 })
-          : f(input, init);
+      async (input, init) => {
+        const url = String(input);
+        if (/photon\.komoot\.io|overpass/.test(url)) return new Response("down", { status: 503 });
+        if (url.includes("/table/v1/")) {
+          const n = url.split("?")[0]!.split(";").length - 1;
+          return new Response(
+            JSON.stringify({
+              code: "Ok",
+              durations: [Array(n).fill(3600)],
+              distances: [Array(n).fill(80_000)],
+            }),
+          );
+        }
+        return f(input, init);
+      };
     const events: ProgressEvent[] = [];
     const out = await screen(
       { polygon: loadFixture("ferney-creek-52-47A").input.polygon.geometry, config: CFG },
@@ -187,9 +200,9 @@ describe("orchestration", () => {
       "flood",
       "padus",
       "near",
-      "drive",
       "rank",
       "driveway",
+      "drive", // last since follow-up 54: from where the driveway meets the road
     ];
     // The driveway step also counts its route searches while it runs (A4b PR B): those repeat its "run".
     const counts = events.filter((e) => e.step === "driveway" && e.status === "run" && e.message);
@@ -200,8 +213,8 @@ describe("orchestration", () => {
     const done = events.filter((e) => e.status === "done");
     expect(done.every((e) => e.partial && e.partial.verdict === undefined)).toBe(true);
     // The driveway step's message is the driveway's note (since A3 Macks's #1 has a legal route, and no note).
-    expect(done.at(-1)!.step).toBe("driveway");
-    expect(done.at(-1)!.message).toBe(out.result.driveway?.note ?? undefined);
+    expect(done.at(-1)!.step).toBe("drive");
+    expect(done.find((e) => e.step === "driveway")!.message).toBe(out.result.driveway?.note ?? undefined);
     expect(done.find((e) => e.step === "terrain")!.partial!.terrain).toBeDefined();
   });
 
@@ -225,9 +238,9 @@ describe("orchestration", () => {
       "flood",
       "padus",
       "near",
-      "drive",
       "rank",
       "driveway",
+      "drive",
     ]);
     expect(out.result.terrain).toBeDefined();
     expect(out.result.sites).toBeUndefined();

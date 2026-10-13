@@ -145,7 +145,10 @@ export function panelText(
       return {
         title: "Trails and public land",
         question: "How close is the woods we can walk in?",
-        howScored: `A when the parcel adjoins open public land or a trailhead is within ${mi(R.trailheadKm[0]!)} mi; B with open public land within a mile, or a trailhead within ${mi(R.trailheadKm[1]!)} mi; C within ${mi(R.trailheadKm[2]!)} mi; D within ${mi(R.trailheadKm[3]!)} mi (straight line); ${weightOf(K, "trails")}.`,
+        howScored:
+          `A when the parcel adjoins open public land or a trailhead is within ${mi(R.trailheadKm[0]!)} mi; B with open public land within a mile, or a trailhead within ${mi(R.trailheadKm[1]!)} mi; C within ${mi(R.trailheadKm[2]!)} mi; D within ${mi(R.trailheadKm[3]!)} mi (straight line); ${weightOf(K, "trails")}. ` +
+          // Appended (rule 7; follow-up 54, owner #123): the drive minutes, with the straight line as the fallback.
+          `By road: the quickest drive from where the driveway meets the road to one of the ${SCREEN_CONSTANTS.drive.trailheadCandidates} nearest trailheads, to its parking where OpenStreetMap tags one: A within ${R.trailheadMin[0]} min, B within ${R.trailheadMin[1]}, C within ${R.trailheadMin[2]}, D within ${R.trailheadMin[3]}. The straight-line distances above count only when the drive times didn't load.`,
       };
     case "town":
       return {

@@ -5,6 +5,7 @@
 import { createHttpClient } from "../http";
 import { osmRoadsViaRoute } from "./osmRoads";
 import { overpassViaRoute } from "./places";
+import { parkingViaRoute } from "./trailheadParking";
 import { ScreenWorkerCore, type FromWorker, type ToWorker } from "./worker-protocol";
 
 const scope = self as unknown as {
@@ -20,5 +21,7 @@ const core = new ScreenWorkerCore((m) => scope.postMessage(m), {
   overpass: overpassViaRoute(`${scope.location.origin}/api/places/overpass`, http),
   // And the OSM roads (VR3a), the same way.
   osmRoads: osmRoadsViaRoute(`${scope.location.origin}/api/places/overpass`, http),
+  // And the trailheads' parking (follow-up 54).
+  parking: parkingViaRoute(`${scope.location.origin}/api/places/overpass`, http),
 });
 scope.onmessage = (e) => void core.handle(e.data);

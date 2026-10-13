@@ -8,7 +8,7 @@ import { prototypeFn } from "../../test/support/prototypeFns";
 import { createHttpClient, type HttpClient } from "../http";
 import { DEFAULT_ENDPOINTS, DEFAULT_USER_CONFIG } from "./config";
 import { rcToLL } from "./dem";
-import { driveTimes, drive } from "./drive";
+import { driveTimes, drive, trailCandidates } from "./drive";
 import { floodStep } from "./flood";
 import { nearStep } from "./near";
 import { padusStep } from "./padus";
@@ -19,6 +19,7 @@ import { AtlasCache, computeSky, skyFlags } from "./sky";
 import { soilFlags } from "./soils";
 import { chooseFocus, computeSun, sunFlags } from "./sun";
 import { terrainFlags } from "./terrain";
+import { parkingFor, parkingFromMirrors } from "./trailheadParking";
 import type { Dem } from "./types";
 import { M2FT, type LatLon } from "./util";
 
@@ -32,7 +33,12 @@ describe.each(FIXTURE_SLUGS)("near, roads and drive times on %s vs the prototype
     const bestLL = best ? rcToLL(t.dFine, best.rc[0], best.rc[1]) : null;
 
     const n = await nearStep(t.centre, bestLL, t.dWide, CFG.roadMaxGradePct, t.deps);
-    expect(differences(n.near, golden.near)).toEqual([]);
+    // The trailheads' drives come later, from the drive step (follow-up 54).
+    const nearOnly = {
+      ...golden.near!,
+      trailheads: golden.near!.trailheads.map((x) => ({ ...x, drive: null })),
+    };
+    expect(differences(n.near, nearOnly)).toEqual([]);
     expect(n.nearNote).toBe(golden.nearNote);
     // Against the port's own expected.json, so no widened tolerance: the 1e-5 this needed against the prototype
     // was the Turf version, not the engines (plan §5, correction of 2026-10-08).
@@ -41,12 +47,33 @@ describe.each(FIXTURE_SLUGS)("near, roads and drive times on %s vs the prototype
     // The raw TIGER features in the prototype's order (local, secondary, primary): later steps depend on it.
     expect(n.roads).toEqual(t.fx.goldens.run._roads);
 
-    const d = await driveTimes(t.centre, n.near, CFG.anchors, t.deps, {
-      ...(n.otherGrocers ? { otherGrocers: n.otherGrocers } : {}),
-      ...(n.hospitalPool ? { hospitals: n.hospitalPool } : {}),
-    }); // as the engine does
+    // As the engine does (follow-up 54): from where the driveway meets the road, the nearest trailheads with them.
+    const from = golden.driveFrom!.ll;
+    const candidates = trailCandidates(n.near!.trailheads, from);
+    const lots = await parkingFromMirrors(t.deps)(candidates.map((c) => c.ll));
+    const d = await driveTimes(
+      from,
+      n.near,
+      CFG.anchors,
+      t.deps,
+      {
+        ...(n.otherGrocers ? { otherGrocers: n.otherGrocers } : {}),
+        ...(n.hospitalPool ? { hospitals: n.hospitalPool } : {}),
+      },
+      candidates.map((c) => ({
+        index: c.index,
+        ll: c.ll,
+        parkingLl: parkingFor(n.near!.trailheads[c.index]!, lots),
+      })),
+    );
     expect(differences(d.drives, golden.drives)).toEqual([]);
     expect(differences(d.closerGrocery, golden.closerGrocery ?? null)).toEqual([]);
+    expect(
+      differences(
+        golden.near!.trailheads.map((_, i) => d.trailDrives.get(i) ?? null),
+        golden.near!.trailheads.map((x) => x.drive),
+      ),
+    ).toEqual([]);
 
     // Every flag through the near step, in the prototype's order.
     const focus = chooseFocus({

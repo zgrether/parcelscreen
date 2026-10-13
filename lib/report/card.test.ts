@@ -5,6 +5,7 @@
 import { describe, expect, it } from "vitest";
 import { expectedOf } from "@/test/support/expected";
 import { SCREEN_CONSTANTS } from "../screen/config";
+import { TRAILHEAD_DRIVES } from "../screen/driveList";
 import { NO_PRACTICAL_ROUTE } from "../screen/score";
 import type { ScreenResult } from "../screen/types";
 import { atLeast, atMost, cardFacts, cardFor, footprintFt2, reportCard, type CardConfig } from "./card";
@@ -26,25 +27,27 @@ describe("the report card on the fixtures (engine 13)", () => {
       homesite: "A",
       sky: "B",
       room: "A",
-      trails: "C",
+      trails: "D", // follow-up 54: 47 min by road to Buffalo Mountain's parking (it read C, 6.5 mi straight)
       town: "D",
       garden: "A",
     });
     const zach = reportCard(r, "zach");
-    expect(zach.points).toBeCloseTo(3.3, 9);
+    expect(zach.points).toBeCloseTo(3.2, 9);
     expect([zach.grade, zach.verdict]).toEqual(["B", "Contender"]);
+    // Trails and Town are both D: Zach weighs Trails more.
     expect(zach.reason).toBe(
-      "Contender. Weakest part: town and hospital (D, a 48-minute drive to an ER, 16 to a grocery).",
+      "Contender. Weakest part: trails and public land (D, a trailhead 47 min (11.5 mi) by road, 6.4 mi straight (Buffalo Mountain Trailhead)).",
     );
     expect(zach.incomplete).toEqual([]);
-    expect(reportCard(r, "julie").points).toBeCloseTo(3.0, 9);
+    expect(rowOf(r, "town").detail).toBe("a 47-minute drive to an ER, 15 to a grocery"); // from the entrance
+    expect(reportCard(r, "julie").points).toBeCloseTo(2.75, 9);
     expect(rowOf(r, "garden").detail).toBe("a 2.48 ac garden on prime farmland");
     expect(rowOf(r, "room").detail).toBe(
       "4.3 ac of gentle ground near the house site, 9.4× the build footprint",
     );
     expect(rowOf(r, "sky").detail).toBe("rural sky (zone 3b)");
     expect(rowOf(r, "trails").detail).toBe(
-      "a trailhead 6.5 mi away in a straight line (Buffalo Mountain Trailhead)",
+      "a trailhead 47 min (11.5 mi) by road, 6.4 mi straight (Buffalo Mountain Trailhead)",
     );
   });
 
@@ -56,17 +59,22 @@ describe("the report card on the fixtures (engine 13)", () => {
       homesite: "A",
       sky: "B",
       room: "B", // VR3b: site #1's gentle ground near the house, 2.8× (it read 20.9 ac parcel-wide)
-      trails: "C",
-      town: "D",
+      // Follow-up 54: from the entrance, whose road OSRM drives as a track at about 6 mph (followup-54 plan §4).
+      trails: "F",
+      town: "F",
       garden: "B",
     });
-    // The nearer grocery is the closer one, 42 min (a D), not the Walmart at 61 (an F).
-    expect(rowOf(r, "town").detail).toBe("a 48-minute drive to an ER, 42 to a grocery");
+    // The nearer grocery is the closer one, 76 min, but over every cutoff.
+    expect(rowOf(r, "town").detail).toBe("a 82-minute drive to an ER, 76 to a grocery");
+    expect(rowOf(r, "trails").detail).toBe(
+      "a trailhead 92 min (17.4 mi) by road (the first 2.6 mi on unnamed tracks), 10.4 mi straight (Heritage Park)",
+    );
     const zach = reportCard(r, "zach"),
       julie = reportCard(r, "julie");
-    expect(zach.points).toBeCloseTo(3.3, 9);
+    expect(zach.points).toBeCloseTo(3.05, 9);
     expect([zach.grade, zach.verdict]).toEqual(["B", "Contender"]);
-    expect(julie.points).toBeCloseTo(2.8, 9);
+    expect(julie.points).toBeCloseTo(2.2, 9);
+    expect([julie.grade, julie.verdict]).toEqual(["C", "Maybe"]);
     expect(zach.reason).toBe(`Contender. Check first: ${SEPTIC_WARN}.`);
   });
 
@@ -142,7 +150,7 @@ describe("the gates", () => {
     expect(c.incomplete).toEqual(["the FEMA flood map", "the sky atlas"]);
     expect(c.verdict).toBe("Maybe");
     expect(c.reason).toBe(
-      "Maybe. Weakest part: town and hospital (D, a 48-minute drive to an ER, 16 to a grocery) (incomplete: the FEMA flood map and the sky atlas didn't load, run again).",
+      "Maybe. Weakest part: trails and public land (D, a trailhead 47 min (11.5 mi) by road, 6.4 mi straight (Buffalo Mountain Trailhead)) (incomplete: the FEMA flood map and the sky atlas didn't load, run again).",
     );
     // A Pass stays a Pass.
     r.sites![0]!.flood = true;
@@ -310,12 +318,14 @@ describe("the rows", () => {
     const r = ferney();
     const open = { ...r.protected![0]!, adjoins: false, distFt: 2640 };
     r.protected = [open];
-    expect(rowOf(r, "trails")).toMatchObject({ grade: "B" });
+    expect(rowOf(r, "trails")).toMatchObject({ grade: "B" }); // Buffalo Mountain is 47 min by road, a D
     expect(rowOf(r, "trails").detail).toMatch(/^open public land 0\.5 mi away/);
-    r.near!.trailheads = [{ ...r.near!.trailheads[0]!, km: 4 }];
+    const th = r.near!.trailheads[0]!;
+    r.near!.trailheads = [{ ...th, drive: { ...th.drive!, min: 8 } }];
     expect(rowOf(r, "trails")).toMatchObject({
       grade: "A",
-      detail: "a trailhead 2.5 mi away in a straight line (Buffalo Mountain Trailhead)",
+      detail: "a trailhead 8 min (11.5 mi) by road, 6.4 mi straight (Buffalo Mountain Trailhead)",
+      short: "trailhead 8 min",
     });
     r.protected = [{ ...open, adjoins: true, distFt: null }];
     r.near!.trailheads = [];
@@ -324,12 +334,34 @@ describe("the rows", () => {
     expect(rowOf(r, "trails")).toMatchObject({ grade: "F", detail: "no trailhead found within 22.4 mi" });
   });
 
-  it("trails by the nearest trailhead: 3 / 6 / 12 / 22 mi (#118 review); a D between 12 and 22 mi is now found", () => {
+  it("trails by the quickest drive to a trailhead's parking: 10 / 20 / 35 / 50 min (follow-up 54, provisional)", () => {
     const r = ferney();
     r.protected = [];
+    const [a, b] = r.near!.trailheads;
+    const at = (min: number) => {
+      r.near!.trailheads = [
+        { ...a!, drive: { ...a!.drive!, min } },
+        { ...b!, drive: { ...b!.drive!, min: 200 } }, // slower, but nearer by straight line: not the one graded
+      ];
+      return rowOf(r, "trails").grade;
+    };
+    expect([9, 10, 11, 20, 21, 35, 36, 50].map(at)).toEqual(["A", "A", "B", "B", "C", "C", "D", "D"]);
+    expect(at(51)).toBe("F");
+    expect(SCREEN_CONSTANTS.card.rows.trailheadMin).toEqual([10, 20, 35, 50]);
+    // The quickest is graded, not the nearest by straight line: Grayson's Scales Trailhead is 7.2 mi away and 118 min.
+    const g = expectedOf("grayson-mud-creek-6273", "run");
+    expect(rowOf(g, "trails").detail).toBe(
+      "a trailhead 17 min (6.7 mi) by road, 5.0 mi straight (Grayson Highlands State Park)",
+    );
+  });
+
+  it("trails with no drive times (OSRM didn't answer): the straight-line 3 / 6 / 12 / 22 mi, marked incomplete", () => {
+    const r = ferney();
+    r.protected = [];
+    r.noResponse = [TRAILHEAD_DRIVES]; // recorded by the drive step (follow-up 54)
     const MI = 1.609344;
     const at = (mi: number) => {
-      r.near!.trailheads = [{ ...r.near!.trailheads[0]!, km: mi * MI }];
+      r.near!.trailheads = [{ ...r.near!.trailheads[0]!, km: mi * MI, drive: null }];
       return rowOf(r, "trails").grade;
     };
     expect([2.9, 3, 5.9, 6, 11.9, 12, 15, 21.9, 22].map(at)).toEqual([
@@ -344,6 +376,18 @@ describe("the rows", () => {
       "D",
     ]);
     expect(at(22.1)).toBe("F");
+    at(6.5);
+    expect(rowOf(r, "trails")).toMatchObject({
+      grade: "C",
+      detail:
+        "a trailhead 6.5 mi away in a straight line (Buffalo Mountain Trailhead); incomplete: the drive times didn't load",
+      missing: "the drive times",
+    });
+    expect(reportCard(r, "zach").verdict).toBe("Maybe");
+    // Adjoining open land is still an A, not flagged.
+    r.protected = [{ ...ferney().protected![0]!, access: "OA", adjoins: true, distFt: null }];
+    expect(rowOf(r, "trails")).toMatchObject({ grade: "A" });
+    expect(rowOf(r, "trails").missing).toBeUndefined();
     // The search reaches the last cutoff, so a trailhead D grades can be found (it searched 20 km, 12.4 mi).
     expect(SCREEN_CONSTANTS.near.trailheadKm).toBeGreaterThanOrEqual(
       SCREEN_CONSTANTS.card.rows.trailheadKm.at(-1)!,
@@ -353,15 +397,37 @@ describe("the rows", () => {
     ]);
   });
 
+  it("trails without trailhead drives that aren't recorded as failed: no 'didn't load' (#123 testing, Grayson 6273)", () => {
+    // Zach's screen: the drives to the hospital and the grocery loaded, but the trailheads had none (a result screened
+    // before they were stored). Nothing in the result says they failed, so the row isn't called incomplete.
+    const r = expectedOf("grayson-mud-creek-6273", "run");
+    r.near = { ...r.near!, trailheads: r.near!.trailheads.map((t) => ({ ...t, drive: null })) };
+    delete r.driveFrom;
+    expect(rowOf(r, "town").detail).toBe("a 38-minute drive to an ER, 21 to a grocery");
+    expect(rowOf(r, "trails")).toMatchObject({
+      grade: "B",
+      detail: "a trailhead 4.9 mi away in a straight line (Grayson Highlands State Park)",
+    });
+    expect(rowOf(r, "trails").missing).toBeUndefined();
+    expect(reportCard(r, "zach").verdict).toBe("Contender");
+
+    // Recorded failures do flag it: the drive step failed, or OSRM routed none of the trailheads.
+    expect(rowOf({ ...r, failed: ["drive"] }, "trails").missing).toBe("the drive times");
+    expect(rowOf({ ...r, noResponse: [TRAILHEAD_DRIVES] }, "trails").missing).toBe("the drive times");
+    // And while the run is still going (no verdict yet), the row waits for them.
+    const { verdict: _v, ...running } = r;
+    expect(rowOf(running as typeof r, "trails").missing).toBe("the drive times");
+  });
+
   it("trails with a trailhead list that didn't load: incomplete, the verdict held at Maybe (follow-up 53)", () => {
     const r = ferney();
     expect(reportCard(r, "zach")).toMatchObject({ grade: "B", verdict: "Contender" });
     r.noResponse = ["state parks (vginmaps.vdem.virginia.gov)"];
     // Graded on what did load, and marked.
     expect(rowOf(r, "trails")).toMatchObject({
-      grade: "C",
+      grade: "D",
       detail:
-        "a trailhead 6.5 mi away in a straight line (Buffalo Mountain Trailhead); incomplete: VA state parks (VGIN) didn't load",
+        "a trailhead 47 min (11.5 mi) by road, 6.4 mi straight (Buffalo Mountain Trailhead); incomplete: VA state parks (VGIN) didn't load",
       missing: "VA state parks (VGIN)",
     });
     const card = reportCard(r, "zach");
@@ -377,13 +443,14 @@ describe("the rows", () => {
     expect(rowOf(r, "trails")).toMatchObject({ grade: "A" });
     expect(rowOf(r, "trails").missing).toBeUndefined();
 
-    // What isn't a trailhead list leaves the row alone.
+    // What isn't a trailhead list leaves the row alone; nor does the parking query failing (the drives go to the points).
     const s = ferney();
-    s.noResponse = ["OpenStreetMap roads"];
+    s.noResponse = ["OpenStreetMap roads", "Overpass (trailhead parking)"];
     expect(rowOf(s, "trails").missing).toBeUndefined();
+  });
 
-    // OpenStreetMap's own search failing too (Photon, then Overpass): the near step fails and there's no \`near\`.
-    // The row isn't graded at all, and is incomplete; adjoining land doesn't change that (it's checked after).
+  it("trails when the places failed (Photon, then Overpass): adjoining open land is still an A (#122 review)", () => {
+    // OpenStreetMap's own search failing too: the near step fails and there's no `near`. Ungraded and incomplete.
     const t = ferney();
     delete t.near;
     expect(rowOf(t, "trails")).toMatchObject({
@@ -392,8 +459,31 @@ describe("the rows", () => {
       missing: "the places",
     });
     expect(reportCard(t, "zach").verdict).toBe("Maybe");
-    t.protected = [{ ...t.protected![0]!, access: "OA", adjoins: true, distFt: null }];
-    expect(rowOf(t, "trails")).toMatchObject({ grade: null, missing: "the places" });
+
+    // Open land within a mile that doesn't adjoin: a trailhead might do better, so still not loaded, still Maybe.
+    const open = { ...t.protected![0]!, access: "OA" as const, adjoins: false, distFt: 2640 };
+    t.protected = [open];
+    expect(rowOf(t, "trails")).toMatchObject({
+      grade: null,
+      detail: "the places didn't load",
+      missing: "the places",
+    });
+    expect(reportCard(t, "zach").verdict).toBe("Maybe");
+
+    // Adjoining: PAD-US loaded, so the A is certain whatever trailheads there are. The existing sentence, not flagged.
+    t.protected = [{ ...open, adjoins: true, distFt: null }];
+    expect(rowOf(t, "trails")).toMatchObject({ grade: "A", short: "adjoins public land" });
+    expect(rowOf(t, "trails").detail).toMatch(/^adjoins open public land \(/);
+    expect(rowOf(t, "trails").missing).toBeUndefined();
+    expect(reportCard(t, "zach")).toMatchObject({ verdict: "Contender", incomplete: [] });
+
+    // PAD-US failed as well: nothing is certain, so the row didn't load.
+    delete t.protected;
+    expect(rowOf(t, "trails")).toMatchObject({
+      grade: null,
+      detail: "PAD-US didn't load",
+      missing: "PAD-US",
+    });
   });
 
   it("Best homesite in plain words; the quality score is the panel's (owner, #110)", () => {
@@ -408,7 +498,11 @@ describe("the rows", () => {
   it("a build that doesn't fit caps the verdict at Maybe and is the first thing to check (owner, #110)", () => {
     const r = ferney();
     r.sites![0] = { ...r.sites![0]!, gentleNearAc: 0.2 };
-    r.sky = { ...r.sky!, mag: 22 }; // an A, so the points alone would make a Contender
+    // An A sky and an A trailhead, so the points alone would make a Contender.
+    r.sky = { ...r.sky!, mag: 22 };
+    r.near!.trailheads = r.near!.trailheads.map((t, i) =>
+      i === 0 ? { ...t, drive: { ...t.drive!, min: 8 } } : t,
+    );
     expect(rowOf(r, "room")).toMatchObject({
       grade: "F",
       checkFirst: "your build doesn't fit on the gentle ground (0.2 ac, 0.4× the footprint)",
@@ -437,8 +531,8 @@ describe("the rows", () => {
     delete r.sky;
     const c = reportCard(r, "zach");
     expect(rowOf(r, "sky").grade).toBeNull();
-    // Ferney's 330 points less the sky's 30, over 90 of weight.
-    expect(c.points).toBeCloseTo(300 / 90, 9);
+    // Ferney's 320 points less the sky's 30, over 90 of weight.
+    expect(c.points).toBeCloseTo(290 / 90, 9);
   });
 
   it("the footprint is §5.4's 19,860 ft² (0.46 ac)", () => {
@@ -452,8 +546,14 @@ describe("config and weights", () => {
     const lower: CardConfig = { ...K, rows: { ...K.rows, elevationFt: [2700, 2500, 2000, 1500] } };
     const c = cardFor(cardFacts(r, lower), "zach", lower);
     expect(c.rows.find((x) => x.key === "elevation")!.grade).toBe("A");
-    expect(c.points).toBeCloseTo(3.55, 9);
-    expect(c.grade).toBe("A");
+    expect(c.points).toBeCloseTo(3.45, 9);
+    expect(c.grade).toBe("B");
+    // And the drive cutoffs (provisional until Zach's Google column): Buffalo Mountain's 47 min an A lifts it to an A.
+    const roomy: CardConfig = { ...lower, rows: { ...lower.rows, trailheadMin: [50, 60, 70, 80] } };
+    const d = cardFor(cardFacts(r, roomy), "zach", roomy);
+    expect(d.rows.find((x) => x.key === "trails")!.grade).toBe("A");
+    expect(d.points).toBeCloseTo(3.75, 9);
+    expect(d.grade).toBe("A");
   });
 
   it("each person's weights sum to 100", () => {

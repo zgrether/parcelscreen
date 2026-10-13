@@ -20,7 +20,7 @@ import type { STEPS } from "./config";
  * 2026-10-12) are clean breaks: an older stored result isn't read or migrated, its parcel re-screens when opened
  * (phase-0.md §9.26, §9.30, §9.31).
  */
-export const SCREEN_SCHEMA_VERSION = 5 as const;
+export const SCREEN_SCHEMA_VERSION = 6 as const;
 
 // ---------- shared ----------
 
@@ -521,6 +521,41 @@ const SunSchema = z.strictObject({
 const PlaceSchema = z.strictObject({ name: z.string(), ll: LatLonSchema, km: num });
 
 /**
+ * A trailhead's drive (v6, follow-up 54): by OSRM car from where the drives start (`driveFrom`) to its parking (an OSM
+ * amenity=parking within drive.parkingWithinM tagged for it), else to the point. `km` is the straight line from the
+ * start. Set for the nearest drive.trailheadCandidates; null for the rest, and when OSRM couldn't route it.
+ */
+const TrailDriveSchema = z.strictObject({
+  min: num,
+  mi: num,
+  km: num,
+  to: z.enum(["parking", "point"]),
+  parkingLl: LatLonSchema.nullable(),
+});
+
+/**
+ * Where the drives start (v6, follow-up 54; owner, #123): the scored driveway route's road entrance; a drawn line's
+ * road end; the nearest road point when there's no frontage; the parcel's centre when no driveway was routed.
+ */
+const DriveFromSchema = z.strictObject({
+  ll: LatLonSchema,
+  kind: z.enum(["entrance", "drawn", "nearestRoad", "centre"]),
+  /** The road at the entrance, as the driveway names it; null for a drawn line's end and the centre. */
+  road: z.string().nullable(),
+  /** A drawn line's kind (`drawn`); null otherwise. */
+  line: z.enum(["track", "easement"]).nullable(),
+  /** How far the nearest road point is off the parcel (`nearestRoad`); null otherwise. */
+  gapFt: maybeNum,
+  /** How far OSRM moved the start to its nearest road; null when OSRM didn't answer. */
+  snapM: maybeNum,
+  /** The route out's first miles on unnamed or track ways, from drive.trackMinMi; null below that or unknown. */
+  trackMi: maybeNum,
+  /** The drives are a full screen's, kept through a moved pin or house (owner, #123): the report says so. */
+  kept: z.boolean(),
+});
+export type DriveFrom = z.infer<typeof DriveFromSchema>;
+
+/**
  * A drive time. `er` (v3, B2a; phase-0.md §9.20 (e)): the hospital's emergency department as the snapshot lists it,
  * null on every other row. v2 appended the note to the name instead.
  */
@@ -596,7 +631,9 @@ export const ScreenResultSchema = z.strictObject({
       hospitals: z.array(PlaceSchema),
       grocers: z.array(PlaceSchema.extend({ big: z.boolean() })),
       /** `source` (v3, B2a; phase-0.md §9.20 (b)): which list the point came from (lib/screen/trailheads.ts). */
-      trailheads: z.array(PlaceSchema.extend({ source: z.enum(["usfs", "state", "osm"]) })),
+      trailheads: z.array(
+        PlaceSchema.extend({ source: z.enum(["usfs", "state", "osm"]), drive: TrailDriveSchema.nullable() }),
+      ),
       trailheadCount: z.number().int(),
     })
     .optional(),
@@ -606,6 +643,8 @@ export const ScreenResultSchema = z.strictObject({
   roadNote: z.string().optional(),
   /** Destinations: "Nearest hospital", "Nearest real grocery", each anchor. */
   drives: z.array(DriveSchema).optional(),
+  /** Where `drives` and the trailheads' drives start (v6, follow-up 54); absent until the drive step runs. */
+  driveFrom: DriveFromSchema.optional(),
   /**
    * The closer non-chain grocery, an annotation of the grocery row, not a destination (owner, #81; v3, B2a: its own
    * field, phase-0.md §9.20 (d); v2 kept it last in `drives`). Null when there's none; absent when drives didn't run.

@@ -52,6 +52,28 @@ describe("GET /api/places/overpass", () => {
     expect((await handleOverpass(get("?kind=anything&lat=36.3&lon=-81.6"), http)).status).toBe(400);
   });
 
+  it("kind=parking asks for the parking near up to five trailheads, once (follow-up 54); anything else is refused", async () => {
+    const lot = { type: "way", center: { lat: 36.79, lon: -80.47 }, tags: { amenity: "parking" } };
+    const { http, seen } = fakeHttp(() => new Response(JSON.stringify({ elements: [lot] })));
+    const r = await handleOverpass(get("?kind=parking&pts=36.794189,-80.466528;36.6,-81.5"), http);
+    expect(r.status).toBe(200);
+    expect(((await r.json()) as { elements: unknown[] }).elements).toEqual([lot]);
+    expect(seen).toHaveLength(1);
+    expect(decodeURIComponent(seen[0]!.url)).toContain(
+      'nwr["amenity"="parking"](around:300,36.794189,-80.466528);nwr["amenity"="parking"](around:300,36.600000,-81.500000);',
+    );
+    const six = Array(6).fill("36.6,-81.5").join(";");
+    for (const qs of [
+      "?kind=parking",
+      "?kind=parking&pts=",
+      "?kind=parking&pts=abc",
+      "?kind=parking&pts=91,-81",
+      `?kind=parking&pts=${six}`,
+    ])
+      expect((await handleOverpass(get(qs), http)).status).toBe(400);
+    expect(seen).toHaveLength(1);
+  });
+
   it("runs the three prototype queries on the default mirrors with an identifying User-Agent", async () => {
     const { http, seen } = fakeHttp(() => new Response(JSON.stringify({ elements: [hospital] })));
     const r = await handleOverpass(get("?lat=36.9&lon=-80.5"), http);

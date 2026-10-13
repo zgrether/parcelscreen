@@ -1914,7 +1914,17 @@
       -80.4665278
      ],
      "km": 10.40258247406278,
-     "source": "osm"
+     "source": "osm",
+     "drive": {
+      "min": 47,
+      "mi": 11.5,
+      "km": 10.363446125054022,
+      "to": "parking",
+      "parkingLl": [
+       36.7941266,
+       -80.4664231
+      ]
+     }
     },
     {
      "name": "Claytor Lake State Park",
@@ -1923,7 +1933,14 @@
       -80.62026620568383
      ],
      "km": 24.017838686521923,
-     "source": "state"
+     "source": "state",
+     "drive": {
+      "min": 63,
+      "mi": 32.8,
+      "km": 23.889026449153587,
+      "to": "point",
+      "parkingLl": null
+     }
     },
     {
      "name": "Fairystone State Park",
@@ -1932,7 +1949,14 @@
       -80.11675955412751
      ],
      "km": 31.760838031893016,
-     "source": "state"
+     "source": "state",
+     "drive": {
+      "min": 51,
+      "mi": 32.2,
+      "km": 31.973617443399267,
+      "to": "point",
+      "parkingLl": null
+     }
     },
     {
      "name": "Heritage Park",
@@ -1941,7 +1965,14 @@
       -80.7619609
      ],
      "km": 32.49362784479305,
-     "source": "osm"
+     "source": "osm",
+     "drive": {
+      "min": 63,
+      "mi": 32.9,
+      "km": 32.308092164852916,
+      "to": "point",
+      "parkingLl": null
+     }
     },
     {
      "name": "Cool Springs",
@@ -1950,7 +1981,14 @@
       -80.765408
      ],
      "km": 32.73939122549411,
-     "source": "osm"
+     "source": "osm",
+     "drive": {
+      "min": 63,
+      "mi": 33.2,
+      "km": 32.5530749119295,
+      "to": "point",
+      "parkingLl": null
+     }
     },
     {
      "name": "Dora Highway Park",
@@ -1959,7 +1997,8 @@
       -80.7793751
      ],
      "km": 33.88900085294573,
-     "source": "osm"
+     "source": "osm",
+     "drive": null
     },
     {
      "name": "New River Trail State Park",
@@ -1968,63 +2007,12 @@
       -80.85291403666032
      ],
      "km": 35.52353727193755,
-     "source": "state"
+     "source": "state",
+     "drive": null
     }
    ],
    "trailheadCount": 7
   },
-  "drives": [
-   {
-    "label": "Nearest hospital",
-    "name": "Carilion New River Valley Medical Center",
-    "min": 48,
-    "mi": 22,
-    "er": "yes"
-   },
-   {
-    "label": "Nearest real grocery",
-    "name": "Food Lion",
-    "min": 16,
-    "mi": 9.7,
-    "er": null
-   },
-   {
-    "label": "Asheville airport (AVL)",
-    "name": "",
-    "min": 246,
-    "mi": 201.5,
-    "er": null
-   },
-   {
-    "label": "Roanoke airport (ROA)",
-    "name": "",
-    "min": 89,
-    "mi": 55,
-    "er": null
-   },
-   {
-    "label": "Tri-Cities airport (TRI)",
-    "name": "",
-    "min": 162,
-    "mi": 137.6,
-    "er": null
-   },
-   {
-    "label": "Greenville-Spartanburg (GSP)",
-    "name": "",
-    "min": 261,
-    "mi": 215.4,
-    "er": null
-   },
-   {
-    "label": "Charlotte airport (CLT)",
-    "name": "",
-    "min": 174,
-    "mi": 139.3,
-    "er": null
-   }
-  ],
-  "closerGrocery": null,
   "excluded": [],
   "sites": [
    {
@@ -3133,8 +3121,73 @@
     }
    }
   },
-  "schemaVersion": 5,
-  "engine": 16,
+  "drives": [
+   {
+    "label": "Nearest hospital",
+    "name": "Carilion New River Valley Medical Center",
+    "min": 47,
+    "mi": 21.6,
+    "er": "yes"
+   },
+   {
+    "label": "Nearest real grocery",
+    "name": "Food Lion",
+    "min": 15,
+    "mi": 9.6,
+    "er": null
+   },
+   {
+    "label": "Asheville airport (AVL)",
+    "name": "",
+    "min": 245,
+    "mi": 201.3,
+    "er": null
+   },
+   {
+    "label": "Roanoke airport (ROA)",
+    "name": "",
+    "min": 88,
+    "mi": 54.6,
+    "er": null
+   },
+   {
+    "label": "Tri-Cities airport (TRI)",
+    "name": "",
+    "min": 161,
+    "mi": 137.4,
+    "er": null
+   },
+   {
+    "label": "Greenville-Spartanburg (GSP)",
+    "name": "",
+    "min": 261,
+    "mi": 215.3,
+    "er": null
+   },
+   {
+    "label": "Charlotte airport (CLT)",
+    "name": "",
+    "min": 174,
+    "mi": 139.1,
+    "er": null
+   }
+  ],
+  "driveFrom": {
+   "ll": [
+    36.887016456764776,
+    -80.45611201408092
+   ],
+   "kind": "entrance",
+   "road": "road",
+   "line": null,
+   "gapFt": null,
+   "snapM": 159.1992812,
+   "trackMi": null,
+   "kept": false
+  },
+  "closerGrocery": null,
+  "schemaVersion": 6,
+  "engine": 17,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -5055,7 +5108,17 @@
       -80.4665278
      ],
      "km": 10.40258247406278,
-     "source": "osm"
+     "source": "osm",
+     "drive": {
+      "min": 47,
+      "mi": 11.5,
+      "km": 10.363446125054022,
+      "to": "parking",
+      "parkingLl": [
+       36.7941266,
+       -80.4664231
+      ]
+     }
     },
     {
      "name": "Claytor Lake State Park",
@@ -5064,7 +5127,14 @@
       -80.62026620568383
      ],
      "km": 24.017838686521923,
-     "source": "state"
+     "source": "state",
+     "drive": {
+      "min": 63,
+      "mi": 32.8,
+      "km": 23.889026449153587,
+      "to": "point",
+      "parkingLl": null
+     }
     },
     {
      "name": "Fairystone State Park",
@@ -5073,7 +5143,14 @@
       -80.11675955412751
      ],
      "km": 31.760838031893016,
-     "source": "state"
+     "source": "state",
+     "drive": {
+      "min": 51,
+      "mi": 32.2,
+      "km": 31.973617443399267,
+      "to": "point",
+      "parkingLl": null
+     }
     },
     {
      "name": "Heritage Park",
@@ -5082,7 +5159,14 @@
       -80.7619609
      ],
      "km": 32.49362784479305,
-     "source": "osm"
+     "source": "osm",
+     "drive": {
+      "min": 63,
+      "mi": 32.9,
+      "km": 32.308092164852916,
+      "to": "point",
+      "parkingLl": null
+     }
     },
     {
      "name": "Cool Springs",
@@ -5091,7 +5175,14 @@
       -80.765408
      ],
      "km": 32.73939122549411,
-     "source": "osm"
+     "source": "osm",
+     "drive": {
+      "min": 63,
+      "mi": 33.2,
+      "km": 32.5530749119295,
+      "to": "point",
+      "parkingLl": null
+     }
     },
     {
      "name": "Dora Highway Park",
@@ -5100,7 +5191,8 @@
       -80.7793751
      ],
      "km": 33.88900085294573,
-     "source": "osm"
+     "source": "osm",
+     "drive": null
     },
     {
      "name": "New River Trail State Park",
@@ -5109,63 +5201,12 @@
       -80.85291403666032
      ],
      "km": 35.52353727193755,
-     "source": "state"
+     "source": "state",
+     "drive": null
     }
    ],
    "trailheadCount": 7
   },
-  "drives": [
-   {
-    "label": "Nearest hospital",
-    "name": "Carilion New River Valley Medical Center",
-    "min": 48,
-    "mi": 22,
-    "er": "yes"
-   },
-   {
-    "label": "Nearest real grocery",
-    "name": "Food Lion",
-    "min": 16,
-    "mi": 9.7,
-    "er": null
-   },
-   {
-    "label": "Asheville airport (AVL)",
-    "name": "",
-    "min": 246,
-    "mi": 201.5,
-    "er": null
-   },
-   {
-    "label": "Roanoke airport (ROA)",
-    "name": "",
-    "min": 89,
-    "mi": 55,
-    "er": null
-   },
-   {
-    "label": "Tri-Cities airport (TRI)",
-    "name": "",
-    "min": 162,
-    "mi": 137.6,
-    "er": null
-   },
-   {
-    "label": "Greenville-Spartanburg (GSP)",
-    "name": "",
-    "min": 261,
-    "mi": 215.4,
-    "er": null
-   },
-   {
-    "label": "Charlotte airport (CLT)",
-    "name": "",
-    "min": 174,
-    "mi": 139.3,
-    "er": null
-   }
-  ],
-  "closerGrocery": null,
   "excluded": [],
   "sites": [
    {
@@ -7750,8 +7791,73 @@
     }
    }
   },
-  "schemaVersion": 5,
-  "engine": 16,
+  "drives": [
+   {
+    "label": "Nearest hospital",
+    "name": "Carilion New River Valley Medical Center",
+    "min": 47,
+    "mi": 21.6,
+    "er": "yes"
+   },
+   {
+    "label": "Nearest real grocery",
+    "name": "Food Lion",
+    "min": 15,
+    "mi": 9.6,
+    "er": null
+   },
+   {
+    "label": "Asheville airport (AVL)",
+    "name": "",
+    "min": 245,
+    "mi": 201.3,
+    "er": null
+   },
+   {
+    "label": "Roanoke airport (ROA)",
+    "name": "",
+    "min": 88,
+    "mi": 54.6,
+    "er": null
+   },
+   {
+    "label": "Tri-Cities airport (TRI)",
+    "name": "",
+    "min": 161,
+    "mi": 137.4,
+    "er": null
+   },
+   {
+    "label": "Greenville-Spartanburg (GSP)",
+    "name": "",
+    "min": 261,
+    "mi": 215.3,
+    "er": null
+   },
+   {
+    "label": "Charlotte airport (CLT)",
+    "name": "",
+    "min": 174,
+    "mi": 139.1,
+    "er": null
+   }
+  ],
+  "driveFrom": {
+   "ll": [
+    36.887016456764776,
+    -80.45611201408092
+   ],
+   "kind": "entrance",
+   "road": "road",
+   "line": null,
+   "gapFt": null,
+   "snapM": 159.1992812,
+   "trackMi": null,
+   "kept": true
+  },
+  "closerGrocery": null,
+  "schemaVersion": 6,
+  "engine": 17,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -9725,7 +9831,17 @@
       -80.4665278
      ],
      "km": 10.40258247406278,
-     "source": "osm"
+     "source": "osm",
+     "drive": {
+      "min": 47,
+      "mi": 11.5,
+      "km": 10.363446125054022,
+      "to": "parking",
+      "parkingLl": [
+       36.7941266,
+       -80.4664231
+      ]
+     }
     },
     {
      "name": "Claytor Lake State Park",
@@ -9734,7 +9850,14 @@
       -80.62026620568383
      ],
      "km": 24.017838686521923,
-     "source": "state"
+     "source": "state",
+     "drive": {
+      "min": 63,
+      "mi": 32.8,
+      "km": 23.889026449153587,
+      "to": "point",
+      "parkingLl": null
+     }
     },
     {
      "name": "Fairystone State Park",
@@ -9743,7 +9866,14 @@
       -80.11675955412751
      ],
      "km": 31.760838031893016,
-     "source": "state"
+     "source": "state",
+     "drive": {
+      "min": 51,
+      "mi": 32.2,
+      "km": 31.973617443399267,
+      "to": "point",
+      "parkingLl": null
+     }
     },
     {
      "name": "Heritage Park",
@@ -9752,7 +9882,14 @@
       -80.7619609
      ],
      "km": 32.49362784479305,
-     "source": "osm"
+     "source": "osm",
+     "drive": {
+      "min": 63,
+      "mi": 32.9,
+      "km": 32.308092164852916,
+      "to": "point",
+      "parkingLl": null
+     }
     },
     {
      "name": "Cool Springs",
@@ -9761,7 +9898,14 @@
       -80.765408
      ],
      "km": 32.73939122549411,
-     "source": "osm"
+     "source": "osm",
+     "drive": {
+      "min": 63,
+      "mi": 33.2,
+      "km": 32.5530749119295,
+      "to": "point",
+      "parkingLl": null
+     }
     },
     {
      "name": "Dora Highway Park",
@@ -9770,7 +9914,8 @@
       -80.7793751
      ],
      "km": 33.88900085294573,
-     "source": "osm"
+     "source": "osm",
+     "drive": null
     },
     {
      "name": "New River Trail State Park",
@@ -9779,63 +9924,12 @@
       -80.85291403666032
      ],
      "km": 35.52353727193755,
-     "source": "state"
+     "source": "state",
+     "drive": null
     }
    ],
    "trailheadCount": 7
   },
-  "drives": [
-   {
-    "label": "Nearest hospital",
-    "name": "Carilion New River Valley Medical Center",
-    "min": 48,
-    "mi": 22,
-    "er": "yes"
-   },
-   {
-    "label": "Nearest real grocery",
-    "name": "Food Lion",
-    "min": 16,
-    "mi": 9.7,
-    "er": null
-   },
-   {
-    "label": "Asheville airport (AVL)",
-    "name": "",
-    "min": 246,
-    "mi": 201.5,
-    "er": null
-   },
-   {
-    "label": "Roanoke airport (ROA)",
-    "name": "",
-    "min": 89,
-    "mi": 55,
-    "er": null
-   },
-   {
-    "label": "Tri-Cities airport (TRI)",
-    "name": "",
-    "min": 162,
-    "mi": 137.6,
-    "er": null
-   },
-   {
-    "label": "Greenville-Spartanburg (GSP)",
-    "name": "",
-    "min": 261,
-    "mi": 215.4,
-    "er": null
-   },
-   {
-    "label": "Charlotte airport (CLT)",
-    "name": "",
-    "min": 174,
-    "mi": 139.3,
-    "er": null
-   }
-  ],
-  "closerGrocery": null,
   "excluded": [],
   "house": {
    "ll": [
@@ -12473,8 +12567,73 @@
     }
    }
   },
-  "schemaVersion": 5,
-  "engine": 16,
+  "drives": [
+   {
+    "label": "Nearest hospital",
+    "name": "Carilion New River Valley Medical Center",
+    "min": 47,
+    "mi": 21.6,
+    "er": "yes"
+   },
+   {
+    "label": "Nearest real grocery",
+    "name": "Food Lion",
+    "min": 15,
+    "mi": 9.6,
+    "er": null
+   },
+   {
+    "label": "Asheville airport (AVL)",
+    "name": "",
+    "min": 245,
+    "mi": 201.3,
+    "er": null
+   },
+   {
+    "label": "Roanoke airport (ROA)",
+    "name": "",
+    "min": 88,
+    "mi": 54.6,
+    "er": null
+   },
+   {
+    "label": "Tri-Cities airport (TRI)",
+    "name": "",
+    "min": 161,
+    "mi": 137.4,
+    "er": null
+   },
+   {
+    "label": "Greenville-Spartanburg (GSP)",
+    "name": "",
+    "min": 261,
+    "mi": 215.3,
+    "er": null
+   },
+   {
+    "label": "Charlotte airport (CLT)",
+    "name": "",
+    "min": 174,
+    "mi": 139.1,
+    "er": null
+   }
+  ],
+  "driveFrom": {
+   "ll": [
+    36.887016456764776,
+    -80.45611201408092
+   ],
+   "kind": "entrance",
+   "road": "road",
+   "line": null,
+   "gapFt": null,
+   "snapM": 159.1992812,
+   "trackMi": null,
+   "kept": false
+  },
+  "closerGrocery": null,
+  "schemaVersion": 6,
+  "engine": 17,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,

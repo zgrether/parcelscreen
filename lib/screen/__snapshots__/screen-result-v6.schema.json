@@ -4,7 +4,7 @@
   "properties": {
     "schemaVersion": {
       "type": "number",
-      "const": 5
+      "const": 6
     },
     "engine": {
       "type": "integer",
@@ -921,13 +921,71 @@
                   "state",
                   "osm"
                 ]
+              },
+              "drive": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "min": {
+                        "type": "number"
+                      },
+                      "mi": {
+                        "type": "number"
+                      },
+                      "km": {
+                        "type": "number"
+                      },
+                      "to": {
+                        "type": "string",
+                        "enum": [
+                          "parking",
+                          "point"
+                        ]
+                      },
+                      "parkingLl": {
+                        "anyOf": [
+                          {
+                            "type": "array",
+                            "prefixItems": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ],
+                            "items": false,
+                            "minItems": 2,
+                            "maxItems": 2
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "min",
+                      "mi",
+                      "km",
+                      "to",
+                      "parkingLl"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "required": [
               "name",
               "ll",
               "km",
-              "source"
+              "source",
+              "drive"
             ],
             "additionalProperties": false
           }
@@ -1018,6 +1076,86 @@
         ],
         "additionalProperties": false
       }
+    },
+    "driveFrom": {
+      "type": "object",
+      "properties": {
+        "ll": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "entrance",
+            "drawn",
+            "nearestRoad",
+            "centre"
+          ]
+        },
+        "road": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "line": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "track",
+                "easement"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "gapFt": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "snapM": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "trackMi": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "kept": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "ll",
+        "kind",
+        "road",
+        "line",
+        "gapFt",
+        "snapM",
+        "trackMi",
+        "kept"
+      ],
+      "additionalProperties": false
     },
     "closerGrocery": {
       "anyOf": [
