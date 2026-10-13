@@ -1,6 +1,6 @@
 # Follow-up 54: drive times that fit the mountains (plan)
 
-Status: **for approval.** Owner's scope (#119 review, 2026-10-12): drives start at the driveway's road entrance; Trails
+Status: **approved** (owner, #123, 2026-10-13), with the answers in §8. Owner's scope (#119 review, 2026-10-12): drives start at the driveway's road entrance; Trails
 is graded by drive minutes to the nearest trailheads' parking; an OSRM vs Google Maps table for the three fixtures,
 with a mountain factor only once Zach has filled it in; the public OSRM server's limits and the alternatives. No code
 until this is approved.
@@ -137,8 +137,10 @@ Please fill in the Google columns from the entrance point, for a weekday midday 
   drives **5.7 mi of unnamed ways and "Big Macks" at about 6 mph** (55 min) before reaching Max Creek Rd. From the
   centroid it snapped to a different road and went round, 33 mi in 68 min. Either may be right: it depends whether
   that track is drivable, which Zach's Google times and his knowledge of the road will tell (Q3).
-- **Grayson's Scales Trailhead:** OSRM reaches it by Forest Road 613 at 3 mph (76 min for its last 3.9 mi). OSRM's
-  car profile is slow on unpaved forest roads, which is where a mountain factor, if any, would come from.
+- **Grayson's Scales Trailhead:** OSRM reaches it by Forest Road 613 at 3 mph (76 min for its last 3.9 mi).
+- **No direction assumed** (owner, #123): OSRM's car profile is slow on unpaved and track ways (3–6 mph here), but it
+  may also be too fast on paved mountain curves. The Google column decides, possibly with separate factors by road
+  type.
 - **Ferney:** the entrance and the centroid agree within a minute.
 - **Parking:** only Buffalo Mountain's lot is tagged for its trailhead. The state parks' lots near their points are
   untagged, so those drives go to the point.
@@ -220,3 +222,27 @@ public app with many users wouldn't.
    requests, and a re-run does it properly.
 6. **Order:** this plan's PR first (docs only); then one implementation PR (schema v6 and engine together, since the
    shape and the numbers change at once). A mountain factor, if any, is its own PR after the Google column.
+
+## 8. The owner's answers (#123, 2026-10-13)
+
+1. **Cutoffs:** A ≤ 10 / B ≤ 20 / C ≤ 35 / D ≤ 50 min, as provisional config. The final values come after Zach's
+   Google column; changing them then is a config change plus a "Numbers change:" line.
+2. **The Trails sentence:** replaced with "a trailhead 14 min (6.2 mi) by road, 3.1 mi straight (Name)". It's recorded
+   in phase-0.md §9 as an approved replacement.
+3. **An entrance on a track:** start at the entrance, as specified. When OSRM's route starts on unnamed or track ways,
+   the row adds "(the first 5.7 mi on unnamed tracks)".
+4. **The table service:** yes. The per-route request is kept only for when the table call fails. The PR reports the
+   screen time before and after.
+5. **A moved pin or house:** the run's drives are kept, with "Drive times are from the last full screen; run again to
+   update."
+6. **Order:** agreed. This plan PR merges; then one implementation PR (schema v6 plus the engine); then a mountain
+   factor, if needed, as its own PR after the Google column.
+
+**Framing (corrected in §4):** OSRM may be too slow on unpaved and track ways and too fast on paved curves. No
+direction is assumed.
+
+**Follow-up 55** (after 54; phase-0.md's table): the entrance road's class. It's stored as Census MTFCC (S1400 local
+road, S1500 4WD vehicular trail, S1740 private road) or the OSM `highway` / `tracktype` tag. Legal road access warns
+"the road in is a 4WD trail / private road; check that it's public and drivable year-round" when the scored route's
+entrance is on one. Macks is the test case. Its PR carries a brief plan; it rides on 54's schema v6 if ready in time,
+else v7.
