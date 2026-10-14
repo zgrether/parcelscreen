@@ -25,7 +25,17 @@ export type ListingRead =
   | { kind: "notUrl" }
   /** A link without an address the app can read. */
   | { kind: "unreadable" }
-  | { kind: "address"; site: ListingSite; query: string; precision: ListingPrecision };
+  | {
+      kind: "address";
+      site: ListingSite;
+      /** What's geocoded. */
+      query: string;
+      precision: ListingPrecision;
+      /** The link, as a full https URL (a pasted "www." gains it). */
+      url: string;
+      /** The street as the listing writes it ("0 Ferney Creek Rd"), when the link has one that can be told apart. */
+      street: string | null;
+    };
 
 const STATES: Record<string, string> = {
   alabama: "AL",
@@ -91,6 +101,21 @@ function street(s: string): { text: string; precision: "street" | "road" } {
   return { text: s, precision: /^\d+[a-z]?\s/i.test(s) ? "street" : "road" };
 }
 
+/** The words a street name ends with, to tell a Zillow street from the town after it. */
+const SUFFIX =
+  /^(rd|road|st|street|ln|lane|dr|drive|ave|avenue|hwy|highway|trl|trail|way|ct|court|cir|circle|pike|pkwy|parkway|loop|run|blvd|tpke|turnpike|hollow|holw|ridge|xing|spur|path|rte|route)$/i;
+
+/** "123 Ferney Creek Rd Floyd" → "123 Ferney Creek Rd": up to the last street suffix; null when there's none. */
+function zillowStreet(s: string): string | null {
+  const t = s.split(" ");
+  for (let i = t.length - 1; i > 0; i--) {
+    if (SUFFIX.test(t[i]!)) return t.slice(0, i + 1).join(" ");
+    // "Route 8", "Hwy 221": a number after the suffix.
+    if (/^\d+$/.test(t[i]!) && SUFFIX.test(t[i - 1]!)) return t.slice(0, i + 1).join(" ");
+  }
+  return null;
+}
+
 /** "floyd-county-virginia" → "Floyd County, Virginia" (the state as the last words that name one). */
 function county(slug: string): string | null {
   const m = /^(.+)-county-([a-z-]+)$/.exec(slug.toLowerCase());
@@ -109,13 +134,15 @@ export function readListingUrl(text: string): ListingRead {
   }
   const host = url.hostname.toLowerCase().replace(/^www\./, "");
   const parts = url.pathname.split("/").filter(Boolean);
-  const address = (site: ListingSite, s: string, rest: string): ListingRead => {
+  const address = (site: ListingSite, s: string, rest: string, asWritten: string | null = s): ListingRead => {
     const st = street(s);
     return {
       kind: "address",
       site,
       query: [st.text, rest].filter(Boolean).join(", "),
       precision: st.precision,
+      url: url.href,
+      street: asWritten || null,
     };
   };
 
@@ -123,7 +150,7 @@ export function readListingUrl(text: string): ListingRead {
     // 123-Ferney-Creek-Rd-Floyd-VA-24091: the town can't be told from the street, so it all goes to the geocoder.
     const m = /^(.*)-([A-Z]{2})-(\d{5})$/.exec(parts[1]);
     if (!m) return { kind: "unreadable" };
-    return address("Zillow", words(m[1]!), `${m[2]} ${m[3]}`);
+    return address("Zillow", words(m[1]!), `${m[2]} ${m[3]}`, zillowStreet(words(m[1]!)));
   }
   if (host === "redfin.com" && parts.length >= 4 && parts[3] === "home" && /^[A-Z]{2}$/.test(parts[0]!)) {
     // /VA/Floyd/123-Ferney-Creek-Rd-24091/home/12345678
@@ -152,7 +179,7 @@ export function readListingUrl(text: string): ListingRead {
       const slug =
         /^(.+-county-[a-z-]+?)-land-for-sale$/.exec(p)?.[1] ?? /-in-(.+-county-[a-z-]+)$/.exec(p)?.[1];
       const c = slug && county(slug);
-      if (c) return { kind: "address", site, query: c, precision: "county" };
+      if (c) return { kind: "address", site, query: c, precision: "county", url: url.href, street: null };
     }
   }
   return { kind: "unreadable" };

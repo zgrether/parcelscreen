@@ -10,6 +10,8 @@ describe("the address in a listing's link (WF1)", () => {
       site: "Zillow",
       query: "123 Ferney Creek Rd Floyd, VA 24091",
       precision: "street",
+      url: "https://www.zillow.com/homedetails/123-Ferney-Creek-Rd-Floyd-VA-24091/12345678_zpid/",
+      street: "123 Ferney Creek Rd", // up to the street's suffix: the town follows it in Zillow's path
     });
     expect(readListingUrl("https://www.redfin.com/VA/Floyd/123-Ferney-Creek-Rd-24091/home/12345678")).toEqual(
       {
@@ -17,17 +19,24 @@ describe("the address in a listing's link (WF1)", () => {
         site: "Redfin",
         query: "123 Ferney Creek Rd, Floyd, VA 24091",
         precision: "street",
+        url: "https://www.redfin.com/VA/Floyd/123-Ferney-Creek-Rd-24091/home/12345678",
+        street: "123 Ferney Creek Rd",
       },
     );
     expect(
       readListingUrl(
         "https://www.realtor.com/realestateandhomes-detail/123-Ferney-Creek-Rd_Floyd_VA_24091_M12345-67890",
       ),
-    ).toEqual({
+    ).toMatchObject({
       kind: "address",
       site: "Realtor.com",
       query: "123 Ferney Creek Rd, Floyd, VA 24091",
       precision: "street",
+      street: "123 Ferney Creek Rd",
+    });
+    // A pasted "www." link gains https.
+    expect(readListingUrl("www.redfin.com/VA/Floyd/123-Ferney-Creek-Rd-24091/home/1")).toMatchObject({
+      url: "https://www.redfin.com/VA/Floyd/123-Ferney-Creek-Rd-24091/home/1",
     });
   });
 
@@ -38,10 +47,19 @@ describe("the address in a listing's link (WF1)", () => {
     ).toMatchObject({
       query: "Ferney Creek Rd Floyd, VA 24091",
       precision: "road",
+      street: "0 Ferney Creek Rd", // as the listing writes it: the name a parcel gets from it
+    });
+    expect(q("https://www.zillow.com/homedetails/4410-Route-8-Floyd-VA-24091/1_zpid/")).toMatchObject({
+      street: "4410 Route 8",
+    });
+    // No suffix to tell the street from the town: no street.
+    expect(q("https://www.zillow.com/homedetails/Ferney-Floyd-VA-24091/1_zpid/")).toMatchObject({
+      street: null,
     });
     expect(q("https://www.redfin.com/VA/Floyd/Lot-7-Ridge-Rd-24091/home/99")).toMatchObject({
       query: "Ridge Rd, Floyd, VA 24091",
       precision: "road",
+      street: "Lot 7 Ridge Rd",
     });
     expect(q("https://www.redfin.com/NC/Boone/TBD-Mud-Creek-Ln-28607/home/1")).toMatchObject({
       query: "Mud Creek Ln, Boone, NC 28607",
@@ -54,18 +72,26 @@ describe("the address in a listing's link (WF1)", () => {
     expect(q("https://www.realtor.com/realestateandhomes-detail/Floyd_VA_24091_M99-1")).toMatchObject({
       query: "Floyd, VA 24091",
       precision: "road",
+      street: null,
     });
   });
 
   it("the land sites: the county and state only", () => {
     expect(
       readListingUrl("https://www.landwatch.com/floyd-county-virginia-land-for-sale/pid/412345678"),
-    ).toEqual({ kind: "address", site: "LandWatch", query: "Floyd County, Virginia", precision: "county" });
+    ).toEqual({
+      kind: "address",
+      site: "LandWatch",
+      query: "Floyd County, Virginia",
+      precision: "county",
+      url: "https://www.landwatch.com/floyd-county-virginia-land-for-sale/pid/412345678",
+      street: null,
+    });
     expect(
       readListingUrl(
         "https://www.landsofamerica.com/property/43-acres-in-ashe-county-north-carolina/12345678",
       ),
-    ).toEqual({
+    ).toMatchObject({
       kind: "address",
       site: "Lands of America",
       query: "Ashe County, North Carolina",

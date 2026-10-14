@@ -19,6 +19,7 @@ import type { UserConfig } from "@/lib/screen/types";
 import { Menu } from "./Menu";
 import { SwitchToast } from "./SwitchToast";
 import { LineUndoToast } from "@/components/Map/LineUndoToast";
+import { AttachListingChip } from "@/components/Map/AttachListingChip";
 import { MapPanel } from "@/components/Map/MapPanel";
 import { useExplore, type SetHint } from "./useExploreController";
 
@@ -64,6 +65,7 @@ export function MapArea({
       <Hint text={hint} />
       <SwitchToast />
       <LineUndoToast />
+      <AttachListingChip />
       <Toolbar />
       <InfoPanel />
       <MapPanel />

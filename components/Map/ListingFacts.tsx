@@ -9,7 +9,7 @@ import { useState } from "react";
 import { askingLine, parsePrice } from "@/lib/client/askingPrice";
 import { safeListingHref } from "@/lib/client/listingUrl";
 import type { ListingField, WorkingParcel } from "@/lib/client/parcelStore";
-import { listingAcresNote } from "@/lib/report/listing";
+import { listingAcresNote, listingFolds, listingSummary } from "@/lib/report/listing";
 import type { ExploreController } from "@/components/Explore/useExploreController";
 
 export function ListingFacts({ ctl, derivedName }: { ctl: ExploreController; derivedName: string }) {
@@ -18,8 +18,21 @@ export function ListingFacts({ ctl, derivedName }: { ctl: ExploreController; der
   const save = (patch: Partial<Pick<WorkingParcel, ListingField>>) => ctl.saveListing(patch, serial);
   const href = safeListingHref(open.listingUrl);
   const acresNote = listingAcresNote(open.listingAcres, ctl.derived?.ok ? ctl.derived.acres : null);
+  // On a phone (owner, #130) the section folds to one line once it has a name or a price, as the tab opens; it stays
+  // open while empty, and doesn't fold under the fingers while it's being filled. Desktop always shows it (CSS).
+  const [expanded, setExpanded] = useState(() => !listingFolds(open));
   return (
-    <div className="ip-listing" role="group" aria-label="Listing">
+    <div className="ip-listing" role="group" aria-label="Listing" data-folded={expanded ? undefined : ""}>
+      {listingFolds(open) && (
+        <button
+          className="ip-listing-summary"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((e) => !e)}
+        >
+          <span>{listingSummary(open, derivedName)}</span>
+          <span aria-hidden="true">{expanded ? "▴" : "▾"}</span>
+        </button>
+      )}
       <TextField
         label="Name"
         value={open.name}

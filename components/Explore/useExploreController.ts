@@ -30,6 +30,7 @@ import {
   type WorkingParcel,
 } from "@/lib/client/parcelStore";
 import { getPref, setPref } from "@/lib/client/prefs";
+import { ATTACH_MS, attachPatch, type SearchedListing } from "@/lib/client/attachListing";
 import { CancelledError } from "@/lib/http";
 import { unreachableMessage } from "@/lib/client/pwa";
 import { isServiceDown, serviceDownMessage } from "@/lib/geo/serviceStatus";
@@ -154,6 +155,16 @@ export interface ExploreController {
   editLine(id: string): void;
   /** The line just deleted, for the Undo toast; null when there's none or it timed out. */
   lineUndo: LineUndo | null;
+  /**
+   * The last listing link searched (owner, #130), offered to the next parcel opened (lib/client/attachListing.ts);
+   * null once used, dismissed, replaced by another search, or ATTACH_MS after the search.
+   */
+  searchedListing: SearchedListing | null;
+  /** A listing link was searched: offered from the next parcel opened. */
+  listingSearched(l: Omit<SearchedListing, "afterSerial">): void;
+  /** Attaches it to the open parcel (the link, and the street as the name when it has none). */
+  attachSearchedListing(): void;
+  dismissSearchedListing(): void;
   undoLineDelete(): void;
   dismissLineUndo(): void;
   startSplit(): void;
@@ -246,6 +257,19 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
   const [map, setMap] = useState<MlMap | null>(null);
   const [toast, setToast] = useState<SwitchToast | null>(null);
   const [lineUndo, setLineUndo] = useState<LineUndo | null>(null);
+  const [searchedListing, setSearchedListing] = useState<SearchedListing | null>(null);
+  const listingTimer = useRef<number | null>(null);
+  const endListingOffer = () => {
+    if (listingTimer.current !== null) window.clearTimeout(listingTimer.current);
+    listingTimer.current = null;
+    setSearchedListing(null);
+  };
+  useEffect(
+    () => () => {
+      if (listingTimer.current !== null) window.clearTimeout(listingTimer.current);
+    },
+    [],
+  );
   const [hoverLine, setHoverLine] = useState<string | null>(null);
   const busy = useRef(false);
   /** About to leave the open parcel: if it has a screen, offer Back to it. */
@@ -521,6 +545,24 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       hint("Tap to add points; Undo takes the last off. Finish keeps the new path.");
     },
     lineUndo,
+    searchedListing,
+    listingSearched(l) {
+      endListingOffer();
+      setSearchedListing({ ...l, afterSerial: latest.current.serial });
+      listingTimer.current = window.setTimeout(endListingOffer, ATTACH_MS);
+    },
+    attachSearchedListing() {
+      const open = latest.current.store.open;
+      if (!searchedListing || !open) return;
+      dispatch({
+        type: "listing",
+        patch: attachPatch(searchedListing, open),
+        serial: latest.current.serial,
+        stamp: stamp(),
+      });
+      endListingOffer();
+    },
+    dismissSearchedListing: endListingOffer,
     undoLineDelete() {
       if (!lineUndo) return;
       dispatch({ type: "markupRestore", ...lineUndo, stamp: stamp() });

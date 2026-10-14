@@ -30,7 +30,7 @@ test("a terminated or crashed worker: kept parcels fall back to the re-run note,
     // Ferney screened, then left for Macks: Ferney's session is kept.
     if (
       (await page.locator(".sh-name").count()) === 0 ||
-      (await page.locator(".sh-name").first().innerText()) !== "52-47A"
+      !(await page.locator(".sh-name").first().innerText()).includes("52-47A")
     )
       await openFromHistory(page, "52-47A");
     expectAllDone(await screenIt(page));

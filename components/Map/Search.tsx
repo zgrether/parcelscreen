@@ -239,6 +239,8 @@ function SearchBox({ photonUrl, hint, close }: { photonUrl: string; hint: SetHin
   async function goToListing(l: Extract<ListingRead, { kind: "address" }>) {
     const map = ctl.map;
     if (!map) return;
+    // Offered to the next parcel opened, to attach with one tap (owner, #130).
+    ctl.listingSearched({ url: l.url, site: l.site, street: l.street, query: l.query });
     try {
       const c = map.getCenter();
       const [hit] = await searchPlaces(
