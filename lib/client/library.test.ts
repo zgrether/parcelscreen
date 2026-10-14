@@ -4,13 +4,17 @@ import { loadFixture } from "@/test/support/fixtures";
 import { built, county } from "@/test/support/parcels";
 import { drawnPart } from "@/lib/geo/recipe";
 import {
+  ALL_FILTERS,
   DEFAULT_FILTERS,
   DEFAULT_VIEW,
+  hiddenBy,
+  hiddenWords,
   householdVerdict,
   libraryRow,
   parcelState,
   passes,
   readLibraryView,
+  showHidden,
   sortRows,
   type LibraryRow,
 } from "./library";
@@ -125,5 +129,36 @@ describe("the remembered view (ps.library)", () => {
     const v = { ...DEFAULT_VIEW, sort: { key: "price" as const, reversed: true } };
     expect(readLibraryView(JSON.stringify(v))).toEqual(v);
     expect(readLibraryView(JSON.stringify({ filters: {} }))).toEqual(DEFAULT_VIEW);
+  });
+});
+
+describe("what the filters hide, at the list's end (owner, #132 review)", () => {
+  const archived = row({ key: "x", status: "archived", household: "Contender" });
+  const pass = row({ key: "p", household: "Pass" });
+  const live = row({ key: "l", household: "Contender" });
+  it("nothing hidden: no line", () => {
+    expect(hiddenBy([live], DEFAULT_FILTERS)).toBeNull();
+  });
+  it("only archived parcels the status filter hides: '2 archived parcels hidden', and Show adds Archived", () => {
+    const h = hiddenBy([live, archived, { ...archived, key: "y" }], DEFAULT_FILTERS)!;
+    expect(h).toEqual({ n: 2, onlyArchived: true });
+    expect(hiddenWords(h)).toBe("2 archived parcels hidden");
+    expect(hiddenWords({ n: 1, onlyArchived: true })).toBe("1 archived parcel hidden");
+    expect(showHidden(h, DEFAULT_FILTERS)).toEqual({
+      ...DEFAULT_FILTERS,
+      status: ["inProgress", "saved", "archived"],
+    });
+  });
+  it("anything else hidden: '{n} hidden by filters', and Show all shows everything", () => {
+    const h = hiddenBy([live, archived, pass], DEFAULT_FILTERS)!;
+    expect(h).toEqual({ n: 2, onlyArchived: false });
+    expect(hiddenWords(h)).toBe("2 hidden by filters");
+    expect(showHidden(h, DEFAULT_FILTERS)).toBe(ALL_FILTERS);
+    for (const r of [live, archived, pass]) expect(passes(r, ALL_FILTERS)).toBe(true);
+    // An archived parcel another filter hides too isn't "only archived".
+    expect(hiddenBy([{ ...archived, household: "Pass" }], DEFAULT_FILTERS)).toEqual({
+      n: 1,
+      onlyArchived: false,
+    });
   });
 });

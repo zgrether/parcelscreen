@@ -12,9 +12,11 @@ import { HelpProvider } from "@/components/Help/HelpDialog";
 import { LongName } from "@/components/LongName";
 import { shortPrice } from "@/lib/client/askingPrice";
 import {
-  DEFAULT_VIEW,
+  hiddenBy,
+  hiddenWords,
   libraryRow,
   passes,
+  showHidden,
   sortRows,
   type Graded,
   type LibraryRow,
@@ -50,6 +52,7 @@ export function Library() {
   const built = store.built;
   const screens = useKeptScreens(built);
   const rows = useMemo(() => built.map((p) => libraryRow(p, screens.get(p.key!))), [built, screens]);
+  const hidden = hiddenBy(rows, view.filters);
   const shown = sortRows(
     rows.filter((r) => passes(r, view.filters)),
     view.sort,
@@ -102,26 +105,28 @@ export function Library() {
         ) : (
           <>
             <LibraryControls view={view} setView={setView} rows={rows} />
-            <p className="tiny muted lib-count" role="status">
-              {shown.length === rows.length
-                ? `${rows.length} parcel${rows.length === 1 ? "" : "s"}`
-                : `Showing ${shown.length} of ${rows.length}: the filters hide ${rows.length - shown.length}.`}
+            <p className="tiny muted lib-count">
+              {shown.length} parcel{shown.length === 1 ? "" : "s"}
             </p>
             {shown.length === 0 ? (
-              <p className="muted">
-                No parcel matches these filters.{" "}
-                <button
-                  className="link-btn"
-                  onClick={() => setView({ ...view, filters: DEFAULT_VIEW.filters })}
-                >
-                  Reset the filters
-                </button>
-              </p>
+              <p className="muted">No parcel matches these filters.</p>
             ) : (
               <>
                 <LibraryTable rows={shown} ticked={ticked} toggle={toggle} open={setOpened} />
                 <LibraryCards rows={shown} ticked={ticked} toggle={toggle} open={setOpened} />
               </>
+            )}
+            {/* What the filters hide, last (owner, #132): its button shows them; desktop and phone alike. */}
+            {hidden && (
+              <p className="tiny muted lib-hidden" role="status">
+                {hiddenWords(hidden)} ·{" "}
+                <button
+                  className="link-btn"
+                  onClick={() => setView({ ...view, filters: showHidden(hidden, view.filters) })}
+                >
+                  {hidden.onlyArchived ? "Show" : "Show all"}
+                </button>
+              </p>
             )}
           </>
         )}

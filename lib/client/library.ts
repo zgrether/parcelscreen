@@ -217,3 +217,41 @@ export function readLibraryView(raw: string): LibraryView {
   const v = ViewSchema.safeParse(JSON.parse(raw));
   return v.success ? v.data : DEFAULT_VIEW;
 }
+
+// ---------- what the filters hide (owner, #132) ----------
+
+/** Everything shown: every status and verdict, no milestone, price or state limit ("Show all"). */
+export const ALL_FILTERS: LibraryFilters = {
+  status: ["inProgress", "saved", "archived"],
+  household: [...VERDICT_CHOICES],
+  zach: [...VERDICT_CHOICES],
+  julie: [...VERDICT_CHOICES],
+  milestones: [],
+  priceMin: null,
+  priceMax: null,
+  state: null,
+};
+
+/** The parcels the filters hide, and whether they're all archived ones only the status filter hides. */
+export interface Hidden {
+  n: number;
+  onlyArchived: boolean;
+}
+
+export function hiddenBy(rows: readonly LibraryRow[], f: LibraryFilters): Hidden | null {
+  const hidden = rows.filter((r) => !passes(r, f));
+  if (!hidden.length) return null;
+  const withArchived: LibraryFilters = { ...f, status: [...f.status, "archived"] };
+  return {
+    n: hidden.length,
+    onlyArchived: hidden.every((r) => r.status === "archived" && passes(r, withArchived)),
+  };
+}
+
+/** The list's last line: "3 hidden by filters", or "2 archived parcels hidden". */
+export const hiddenWords = (h: Hidden): string =>
+  h.onlyArchived ? `${h.n} archived parcel${h.n === 1 ? "" : "s"} hidden` : `${h.n} hidden by filters`;
+
+/** What its button shows: the archived parcels (the status filter only), or everything. */
+export const showHidden = (h: Hidden, f: LibraryFilters): LibraryFilters =>
+  h.onlyArchived ? { ...f, status: [...f.status, "archived"] } : ALL_FILTERS;

@@ -1,3 +1,8 @@
-/** Where the app opens (owner, #128; docs/plans/parcel-workflow.md §5): the list when it has parcels, else the map. */
-export const openingPage = (builtCount: number): "/library" | "/explore" =>
-  builtCount > 0 ? "/library" : "/explore";
+import type { ParcelStatus } from "./parcelStore";
+
+/**
+ * Where the app opens (owner, #128; #132 review): the list when at least one parcel isn't archived, else the map
+ * (a household whose parcels are all archived starts by finding new ones).
+ */
+export const openingPage = (built: readonly { status: ParcelStatus }[]): "/library" | "/explore" =>
+  built.some((p) => p.status !== "archived") ? "/library" : "/explore";
