@@ -27,6 +27,7 @@ import {
   type ParcelStore,
   type WorkingParcel,
 } from "./parcelStore";
+import { byRank, lastRank, rankBetween } from "./myOrder";
 import { ScreenRecordSchema, type ScreenRecord } from "./screenStore";
 import {
   ANCHORS_LABEL,
@@ -289,6 +290,7 @@ function fromPrototypeSaved(s: z.infer<typeof ProtoSavedSchema>, key: string, no
     askingPriceAt: null,
     ...NO_LISTING,
     ...NO_STATUS,
+    rank: null,
     markup: [],
     hidden: [],
     excluded: [],
@@ -428,11 +430,16 @@ export function planImport(
   };
 }
 
-/** History with the plan's parcels added; the open parcel isn't changed. */
-export const applyImport = (store: ParcelStore, plan: ImportPlan): ParcelStore => ({
-  ...store,
-  built: [...store.built, ...plan.added],
-});
+/**
+ * History with the plan's parcels added; the open parcel isn't changed. They go to the bottom of My order (WF3), in the
+ * file's own My order (its History's order, for a file without one): ranks from another browser's list would land
+ * among this one's.
+ */
+export function applyImport(store: ParcelStore, plan: ImportPlan): ParcelStore {
+  let prev = lastRank(store.built);
+  const ranks = new Map([...plan.added].sort(byRank).map((p) => [p.key, (prev = rankBetween(prev, null))]));
+  return { ...store, built: [...store.built, ...plan.added.map((p) => ({ ...p, rank: ranks.get(p.key)! }))] };
+}
 
 /** The question before the settings are replaced, listing what changes. */
 export const settingsQuestion = (s: SettingsChange): string =>

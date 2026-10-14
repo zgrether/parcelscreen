@@ -24,6 +24,7 @@ import {
   settingsQuestion,
   type ImportPlan,
 } from "./exportFile";
+import { byRank, withRanks } from "./myOrder";
 import { EMPTY_STORE, type ParcelStore } from "./parcelStore";
 import type { ScreenRecord } from "./screenStore";
 
@@ -44,12 +45,12 @@ const keys = () => {
   return () => `new${++n}`;
 };
 
-/** History with two parcels, one screened. */
-const STORE: ParcelStore = {
+/** History with two parcels, one screened, ranked in My order as a read store is (WF3). */
+const STORE: ParcelStore = withRanks({
   v: 2,
   open: null,
   built: [built("a", { screenIds: ["s1"] }), built("b", { pieces: [county(-81.351, "52-48")] })],
-};
+});
 const file = (over: Partial<ReturnType<typeof buildExport>> = {}, store = STORE, cfg = DEFAULT_USER_CONFIG) =>
   JSON.stringify({ ...buildExport(cfg, store, [screen("s1")], NOW), ...over });
 const plan = (
@@ -132,6 +133,7 @@ describe("version 2 (owner, after #131): every field written; a version 1 file c
       status: "archived" as const,
       archived: { reason: "Rejected: no winter sun", at: "2026-10-14T12:00:00.000Z", from: "saved" as const },
       milestones: { walked: "2026-10-01", offered: "2026-10-09" },
+      rank: "V",
     };
     const store: ParcelStore = { v: 2, open: null, built: [p] };
     const text = JSON.stringify(buildExport(DEFAULT_USER_CONFIG, store, [screen("s1")], NOW));
@@ -556,5 +558,30 @@ describe("schema v3 (B2a): older results and the asking price", () => {
     expect(plan(file({}, drawn)).added[0]!.markup).toEqual([line]);
     const { markup: _m, ...older } = STORE.built[0]!;
     expect(plan(file({ parcels: { ...STORE, built: [older as never] } })).added[0]!.markup).toEqual([]);
+  });
+});
+
+describe("My order (WF3)", () => {
+  it("round trip: the file's My order comes back; imported parcels go to the bottom, in the file's order", () => {
+    // The file's own order: b above a.
+    const store: ParcelStore = {
+      ...STORE,
+      built: [
+        { ...STORE.built[0]!, rank: "k" },
+        { ...STORE.built[1]!, rank: "V" },
+      ],
+    };
+    const order = (s: ParcelStore) => [...s.built].sort(byRank).map((p) => p.key);
+    expect(order(applyImport(EMPTY_STORE, plan(file({}, store))))).toEqual(["b", "a"]);
+    // Into a list that has one already: below it.
+    const mine: ParcelStore = {
+      v: 2,
+      open: null,
+      built: [built("m", { pieces: [county(-81.34, "60-1")], rank: "z" })],
+    };
+    expect(order(applyImport(mine, plan(file({}, store), mine)))).toEqual(["m", "b", "a"]);
+    // A file without ranks (exported before WF3): its History's order.
+    const unranked = { ...store, built: store.built.map((p) => ({ ...p, rank: null })) };
+    expect(order(applyImport(EMPTY_STORE, plan(file({}, unranked))))).toEqual(["a", "b"]);
   });
 });

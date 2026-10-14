@@ -135,3 +135,9 @@ overrides:
   "geotiff>lerc": 3.0.0
   "geotiff>zstddec": 0.1.0
   "geotiff>@petamoriken/float16": 3.9.3
+  # @dnd-kit, the list's My order drag (WF3; docs/plans/parcel-workflow.md §5, owner §10), every package exactly: its
+  # parts declare each other as ^ ranges, as Turf's do. `pnpm check:pins` checks them (test/tools/pins.ts).
+  "@dnd-kit/accessibility": 3.1.1
+  "@dnd-kit/core": 6.3.1
+  "@dnd-kit/sortable": 10.0.0
+  "@dnd-kit/utilities": 3.2.2

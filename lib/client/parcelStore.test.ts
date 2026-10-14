@@ -16,6 +16,7 @@ import {
   loadParcelStore,
   openBuilt,
   plainParcel,
+  rankBuilt,
   readParcelStore,
   removeBuilt,
   writeParcelStore,
@@ -24,6 +25,7 @@ import {
 import { getPref, setPref, type KeyValueStore } from "./prefs";
 import { libraryRow } from "./library";
 import { statusLine } from "./parcelStatus";
+import { byRank } from "./myOrder";
 
 const sq = (x0: number) =>
   polygon([
@@ -300,5 +302,56 @@ describe("storage (ps.parcels)", () => {
       ["c", "track", null, false],
       ["d", "easement", 45, false],
     ]);
+  });
+});
+
+describe("My order (WF3, docs/plans/parcel-workflow.md §5)", () => {
+  it("a parcel gets its rank when it's built, at the bottom; a plain one has none", () => {
+    expect(plain.rank).toBeNull();
+    const next = keys();
+    let s = commitOpen(EMPTY_STORE, { ...plain, notes: "first" }, T0, next);
+    s = commitOpen(closeOpen(s), { ...plainParcel(county(-81.351, "52-48"), T0), notes: "second" }, T0, next);
+    expect([...s.built].sort(byRank).map((p) => p.notes)).toEqual(["first", "second"]);
+    // An edit keeps it.
+    const r = s.built[1]!.rank;
+    s = commitOpen(s, { ...s.open!, notes: "second, edited" }, T1, next);
+    expect(s.built[1]!.rank).toBe(r);
+  });
+
+  it("a move writes the rank alone: not when it changed (the list's Last changed), and the open copy follows", () => {
+    const s = commitOpen(EMPTY_STORE, { ...plain, notes: "x" }, T0, keys());
+    const key = s.built[0]!.key!;
+    const moved = rankBuilt(s, key, "a");
+    expect(moved.built[0]).toEqual({ ...s.built[0], rank: "a" });
+    expect(moved.open!.rank).toBe("a");
+    expect(rankBuilt(moved, key, "a")).toBe(moved);
+  });
+
+  it("a store saved before WF3 loads with no ranks (prefs gives them, below); a malformed rank doesn't drop the store", () => {
+    const s = commitOpen(EMPTY_STORE, { ...plain, notes: "kept before WF3" }, T0, keys());
+    const raw = JSON.parse(writeParcelStore(s)) as {
+      open: Record<string, unknown>;
+      built: Record<string, unknown>[];
+    };
+    delete raw.open.rank;
+    delete raw.built[0]!.rank;
+    expect(readParcelStore(JSON.stringify(raw))!.built[0]!.rank).toBeNull();
+    raw.built[0]!.rank = "not a rank!";
+    expect(readParcelStore(JSON.stringify(raw))!.built[0]).toMatchObject({
+      rank: null,
+      notes: "kept before WF3",
+    });
+  });
+
+  it("read through prefs, every History parcel is ranked, and that's saved back", () => {
+    const data = new Map<string, string>();
+    const kv: KeyValueStore = { getItem: (k) => data.get(k) ?? null, setItem: (k, v) => void data.set(k, v) };
+    const s = commitOpen(EMPTY_STORE, { ...plain, notes: "kept before WF3" }, T0, keys());
+    const raw = JSON.parse(writeParcelStore(s)) as { built: Record<string, unknown>[] };
+    delete raw.built[0]!.rank;
+    kv.setItem("ps.parcels", JSON.stringify(raw));
+    const read = getPref("ps.parcels", kv)!;
+    expect(read.built[0]!.rank).toBe("V");
+    expect(readParcelStore(kv.getItem("ps.parcels")!)!.built[0]!.rank).toBe("V");
   });
 });

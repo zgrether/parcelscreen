@@ -4,6 +4,9 @@
  * state, status and milestones, the household verdict and both grades. Filters and sorts are views, remembered per
  * browser (ps.library); they never change a parcel. A tap on a name opens its detail: the report card, the status
  * controls, Open on the map, Remove. Ticked rows open in Compare. On a phone the table becomes cards.
+ *
+ * My order (WF3) is the default sort: rows move by their handle or their menu's Move up and Move down, and a move
+ * writes that one parcel's rank. Under another sort the handles hide, and the list says how to get them back.
  */
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -12,6 +15,7 @@ import { HelpProvider } from "@/components/Help/HelpDialog";
 import { LongName } from "@/components/LongName";
 import { shortPrice } from "@/lib/client/askingPrice";
 import {
+  DEFAULT_SORT,
   hiddenBy,
   hiddenWords,
   libraryRow,
@@ -22,10 +26,12 @@ import {
   type LibraryRow,
   type LibraryView,
 } from "@/lib/client/library";
+import { rankForMove } from "@/lib/client/myOrder";
 import { milestonesLine, STATUS_WORD } from "@/lib/client/parcelStatus";
 import {
   editBuilt,
   EMPTY_STORE,
+  rankBuilt,
   removeBuilt,
   type ParcelStore,
   type WorkingParcel,
@@ -34,6 +40,7 @@ import { getPref, setPref } from "@/lib/client/prefs";
 import { useKeptScreens } from "@/lib/client/useKeptScreens";
 import type { Verdict } from "@/lib/report/card";
 import { LibraryControls } from "./LibraryControls";
+import { DragHandle, OrderMenu, SortableRows, useSortableRow, type Mover } from "./MyOrder";
 import { ParcelDetail } from "./ParcelDetail";
 
 const when = (iso: string) => new Date(iso).toLocaleDateString([], { month: "short", day: "numeric" });
@@ -89,6 +96,21 @@ export function Library() {
     const next = editBuilt(latest.current, key, edit, new Date().toISOString());
     if (next !== latest.current) keep(next);
   };
+
+  /** My order (WF3): the parcel's new place among the rows shown, saved as its rank alone. */
+  const ordering = view.sort.key === "order" && !view.sort.reversed;
+  const shownKeys = shown.map((r) => r.key);
+  const names = new Map(shown.map((r) => [r.key, r.name]));
+  const [moved, setMoved] = useState("");
+  const mover: Mover = {
+    move: (key, to) => {
+      const rank = rankForMove(latest.current.built, shownKeys, key, to);
+      if (rank === null) return;
+      keep(rankBuilt(latest.current, key, rank));
+      setMoved(`${names.get(key) ?? "The parcel"} moved to ${to + 1} of ${shown.length}.`);
+    },
+  };
+
   const remove = (key: string) => {
     keep(removeBuilt(latest.current, key));
     setOpened(null);
@@ -103,6 +125,7 @@ export function Library() {
     setTicked(next);
   };
   const detail = opened ? built.find((p) => p.key === opened) : undefined;
+  const rowsProps = { rows: shown, ticked, toggle, open: setOpened, ordering, mover };
 
   return (
     <HelpProvider>
@@ -129,15 +152,32 @@ export function Library() {
             <LibraryControls view={view} setView={setView} rows={rows} />
             <p className="tiny muted lib-count">
               {shown.length} parcel{shown.length === 1 ? "" : "s"}
+              {/* Dragging works only in My order (§5): under another sort, the way back to it. */}
+              {!ordering && shown.length > 1 && (
+                <span className="lib-order-hint">
+                  {" · "}
+                  <button className="link-btn" onClick={() => setView({ ...view, sort: DEFAULT_SORT })}>
+                    Switch to My order
+                  </button>{" "}
+                  to rearrange
+                </span>
+              )}
             </p>
             {shown.length === 0 ? (
               <p className="muted">No parcel matches these filters.</p>
             ) : (
               <>
-                <LibraryTable rows={shown} ticked={ticked} toggle={toggle} open={setOpened} />
-                <LibraryCards rows={shown} ticked={ticked} toggle={toggle} open={setOpened} />
+                <SortableRows keys={shownKeys} names={names} mover={mover}>
+                  <LibraryTable {...rowsProps} />
+                </SortableRows>
+                <SortableRows keys={shownKeys} names={names} mover={mover}>
+                  <LibraryCards {...rowsProps} />
+                </SortableRows>
               </>
             )}
+            <p className="sr-only" role="status">
+              {moved}
+            </p>
             {/* What the filters hide, last (owner, #132): its button shows them; desktop and phone alike. */}
             {hidden && (
               <p className="tiny muted lib-hidden" role="status">
@@ -173,7 +213,22 @@ interface RowsProps {
   ticked: ReadonlySet<string>;
   toggle(key: string): void;
   open(key: string): void;
+  /** In My order: the handles and menus show, and rows move. */
+  ordering: boolean;
+  mover: Mover;
 }
+
+interface RowProps extends Omit<RowsProps, "rows"> {
+  r: LibraryRow;
+  /** Its place among the rows shown, and how many there are: Move up and Move down stop at the ends. */
+  index: number;
+  count: number;
+}
+
+const rowClass = (base: string, r: LibraryRow, dragging: boolean) =>
+  [base, "lib-row", r.status === "archived" && "lib-archived", dragging && "lib-dragging"]
+    .filter(Boolean)
+    .join(" ");
 
 const statusCell = (r: LibraryRow) => {
   const m = milestonesLine(r);
@@ -200,13 +255,18 @@ function Grade({ g, unscreened }: { g: Graded | null; unscreened: LibraryRow["un
   );
 }
 
-/** Desktop: one row per parcel. */
-function LibraryTable({ rows, ticked, toggle, open }: RowsProps) {
+/** Desktop: one row per parcel; in My order, the handle and the menu first. */
+function LibraryTable({ rows, ...rest }: RowsProps) {
   return (
     <div className="lib-scroll">
       <table className="lib-table">
         <thead>
           <tr>
+            {rest.ordering && (
+              <th scope="col">
+                <span className="sr-only">My order</span>
+              </th>
+            )}
             <th scope="col">
               <span className="sr-only">Compare</span>
             </th>
@@ -222,41 +282,8 @@ function LibraryTable({ rows, ticked, toggle, open }: RowsProps) {
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => (
-            <tr
-              key={r.key}
-              className={r.status === "archived" ? "lib-row lib-archived" : "lib-row"}
-              aria-label={`Open ${r.name}`}
-              {...opens(() => open(r.key))}
-            >
-              <td {...ownClick}>
-                <input
-                  type="checkbox"
-                  aria-label={`Compare ${r.name}`}
-                  checked={ticked.has(r.key)}
-                  onChange={() => toggle(r.key)}
-                />
-              </td>
-              <td className="lib-name">
-                <LongName name={r.name} className="lib-open" />
-              </td>
-              <td className="num">{r.acres !== null ? r.acres.toFixed(1) : "–"}</td>
-              <td className="num">{r.price !== null ? shortPrice(r.price) : "–"}</td>
-              <td>
-                <State r={r} />
-              </td>
-              <td>{statusCell(r)}</td>
-              <td>
-                <VerdictWord v={r.household} unscreened={r.unscreened} />
-              </td>
-              <td>
-                <Grade g={r.zach} unscreened={r.unscreened} />
-              </td>
-              <td>
-                <Grade g={r.julie} unscreened={r.unscreened} />
-              </td>
-              <td className="tiny muted">{when(r.updatedAt)}</td>
-            </tr>
+          {rows.map((r, i) => (
+            <TableRow key={r.key} r={r} index={i} count={rows.length} {...rest} />
           ))}
         </tbody>
       </table>
@@ -264,52 +291,114 @@ function LibraryTable({ rows, ticked, toggle, open }: RowsProps) {
   );
 }
 
-/** A phone: one card per parcel (the name, status and milestones; acres, price and state; the verdicts as chips). */
-function LibraryCards({ rows, ticked, toggle, open }: RowsProps) {
+function TableRow({ r, index, count, ticked, toggle, open, ordering, mover }: RowProps) {
+  const { nodeProps, dragging, handleProps } = useSortableRow(r.key, ordering);
+  return (
+    <tr
+      {...nodeProps}
+      className={rowClass("", r, dragging)}
+      aria-label={`Open ${r.name}`}
+      {...opens(() => open(r.key))}
+    >
+      {ordering && (
+        <td className="lib-order" {...ownClick}>
+          <DragHandle name={r.name} handle={handleProps} />
+          <OrderMenu name={r.name} index={index} count={count} move={(to) => mover.move(r.key, to)} />
+        </td>
+      )}
+      <td {...ownClick}>
+        <input
+          type="checkbox"
+          aria-label={`Compare ${r.name}`}
+          checked={ticked.has(r.key)}
+          onChange={() => toggle(r.key)}
+        />
+      </td>
+      <td className="lib-name">
+        <LongName name={r.name} className="lib-open" />
+      </td>
+      <td className="num">{r.acres !== null ? r.acres.toFixed(1) : "–"}</td>
+      <td className="num">{r.price !== null ? shortPrice(r.price) : "–"}</td>
+      <td>
+        <State r={r} />
+      </td>
+      <td>{statusCell(r)}</td>
+      <td>
+        <VerdictWord v={r.household} unscreened={r.unscreened} />
+      </td>
+      <td>
+        <Grade g={r.zach} unscreened={r.unscreened} />
+      </td>
+      <td>
+        <Grade g={r.julie} unscreened={r.unscreened} />
+      </td>
+      <td className="tiny muted">{when(r.updatedAt)}</td>
+    </tr>
+  );
+}
+
+/**
+ * A phone: one card per parcel (the name, status and milestones; acres, price and state; the verdicts as chips). In My
+ * order the handle is on the card's left (§5), and the menu beside the Compare tick.
+ */
+function LibraryCards({ rows, ...rest }: RowsProps) {
   return (
     <ul className="lib-cards">
-      {rows.map((r) => (
-        <li
-          key={r.key}
-          className={r.status === "archived" ? "lib-card lib-row lib-archived" : "lib-card lib-row"}
-          aria-label={`Open ${r.name}`}
-          {...opens(() => open(r.key))}
-        >
-          <div className="lib-card-head">
-            <LongName name={r.name} className="lib-open" />
-            <input
-              {...ownClick}
-              type="checkbox"
-              aria-label={`Compare ${r.name}`}
-              checked={ticked.has(r.key)}
-              onChange={() => toggle(r.key)}
-            />
-          </div>
-          <div className="tiny">{statusCell(r)}</div>
-          <div className="tiny muted lib-card-facts">
-            {[
-              r.acres !== null ? `${r.acres.toFixed(1)} ac` : null,
-              r.price !== null ? shortPrice(r.price) : null,
-            ]
-              .filter(Boolean)
-              .map((t) => `${t} · `)
-              .join("")}
-            <State r={r} />
-          </div>
-          <div className="lib-chips">
-            <span className="lib-chip">
-              <span className="tiny muted">Household</span>{" "}
-              <VerdictWord v={r.household} unscreened={r.unscreened} />
-            </span>
-            <span className="lib-chip">
-              <span className="tiny muted">Zach</span> <Grade g={r.zach} unscreened={r.unscreened} />
-            </span>
-            <span className="lib-chip">
-              <span className="tiny muted">Julie</span> <Grade g={r.julie} unscreened={r.unscreened} />
-            </span>
-          </div>
-        </li>
+      {rows.map((r, i) => (
+        <Card key={r.key} r={r} index={i} count={rows.length} {...rest} />
       ))}
     </ul>
+  );
+}
+
+function Card({ r, index, count, ticked, toggle, open, ordering, mover }: RowProps) {
+  const { nodeProps, dragging, handleProps } = useSortableRow(r.key, ordering);
+  return (
+    <li
+      {...nodeProps}
+      className={rowClass(ordering ? "lib-card lib-card-ordered" : "lib-card", r, dragging)}
+      aria-label={`Open ${r.name}`}
+      {...opens(() => open(r.key))}
+    >
+      {ordering && <DragHandle name={r.name} handle={handleProps} />}
+      <div className="lib-card-body">
+        <div className="lib-card-head">
+          <LongName name={r.name} className="lib-open" />
+          {ordering && (
+            <OrderMenu name={r.name} index={index} count={count} move={(to) => mover.move(r.key, to)} />
+          )}
+          <input
+            {...ownClick}
+            type="checkbox"
+            aria-label={`Compare ${r.name}`}
+            checked={ticked.has(r.key)}
+            onChange={() => toggle(r.key)}
+          />
+        </div>
+        <div className="tiny">{statusCell(r)}</div>
+        <div className="tiny muted lib-card-facts">
+          {[
+            r.acres !== null ? `${r.acres.toFixed(1)} ac` : null,
+            r.price !== null ? shortPrice(r.price) : null,
+          ]
+            .filter(Boolean)
+            .map((t) => `${t} · `)
+            .join("")}
+          <State r={r} />
+        </div>
+        <div className="lib-chips">
+          <span className="lib-chip">
+            <span className="tiny muted">Household</span>{" "}
+            <VerdictWord v={r.household} unscreened={r.unscreened} />
+          </span>
+          <span className="lib-chip">
+            <span className="tiny muted">Zach</span> <Grade g={r.zach} unscreened={r.unscreened} />
+          </span>
+          <span className="lib-chip">
+            <span className="tiny muted">Julie</span> <Grade g={r.julie} unscreened={r.unscreened} />
+          </span>
+        </div>
+      </div>
+    </li>
   );
 }

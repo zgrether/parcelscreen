@@ -15,6 +15,10 @@ const OVERRIDES = [
   "  geotiff>lerc: 3.0.0",
   "  geotiff>zstddec: 0.1.0",
   "  geotiff>@petamoriken/float16: 3.9.3",
+  "  '@dnd-kit/accessibility': 3.1.1",
+  "  '@dnd-kit/core': 6.3.1",
+  "  '@dnd-kit/sortable': 10.0.0",
+  "  '@dnd-kit/utilities': 3.2.2",
 ];
 const PACKAGES = [
   "'@turf/along@7.4.0'",
@@ -22,6 +26,10 @@ const PACKAGES = [
   "'@turf/jsts@2.7.2'",
   "geotiff@2.1.3",
   "pako@2.2.0",
+  "'@dnd-kit/accessibility@3.1.1'",
+  "'@dnd-kit/core@6.3.1'",
+  "'@dnd-kit/sortable@10.0.0'",
+  "'@dnd-kit/utilities@3.2.2'",
 ];
 const GEOTIFF_DEPS = [
   "      '@petamoriken/float16': 3.9.3",
@@ -91,6 +99,15 @@ describe("the pin rule", () => {
     expect(pinProblems(unpinned)[0]).toMatch(/^geotiff>lerc has no exact override \(none\)/);
   });
 
+  it("fails when a @dnd-kit part moves, or loses its override (WF3)", () => {
+    const moved = lock({
+      packages: PACKAGES.map((p) => p.replace("'@dnd-kit/core@6.3.1'", "'@dnd-kit/core@6.3.2'")),
+    });
+    expect(pinProblems(moved)).toEqual(["@dnd-kit/core resolves to 6.3.2, not 6.3.1"]);
+    const unpinned = lock({ overrides: OVERRIDES.filter((o) => !o.includes("@dnd-kit/sortable")) });
+    expect(pinProblems(unpinned)[0]).toMatch(/^@dnd-kit\/sortable has no exact override \(none\)/);
+  });
+
   it("fails when geotiff itself moves", () => {
     const l = lock({ packages: PACKAGES.map((p) => p.replace("geotiff@2.1.3", "geotiff@2.1.4")) });
     expect(pinProblems(l)).toContain("geotiff resolves to 2.1.4, not 2.1.3");
@@ -98,7 +115,7 @@ describe("the pin rule", () => {
 });
 
 describe("pnpm-lock.yaml", () => {
-  it("pins every @turf package to 7.4.0 (@turf/jsts 2.7.2), and geotiff 2.1.3 with its decoders", () => {
+  it("pins every @turf package to 7.4.0 (@turf/jsts 2.7.2), geotiff 2.1.3 with its decoders, and @dnd-kit", () => {
     expect(pinProblems(readFileSync("pnpm-lock.yaml", "utf8"))).toEqual([]);
   });
 });

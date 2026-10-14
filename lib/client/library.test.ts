@@ -35,6 +35,7 @@ const row = (over: Partial<LibraryRow>): LibraryRow => ({
   household: null,
   unscreened: "none",
   updatedAt: "2026-10-14T12:00:00.000Z",
+  rank: null,
   ...over,
 });
 
@@ -143,6 +144,29 @@ describe("sorts: views only", () => {
     expect(keys(sortRows([a, b, c], { key: "zach", reversed: false }))).toEqual(["c", "b", "a"]);
     expect(keys(sortRows([a, b, c], { key: "julie", reversed: true }))).toEqual(["b", "c", "a"]);
   });
+
+  it("My order (WF3) is the default: by rank, then key; one without a rank last", () => {
+    expect(DEFAULT_VIEW.sort).toEqual({ key: "order", reversed: false });
+    const ranked = [
+      { ...a, rank: "k" },
+      { ...b, rank: null },
+      { ...c, rank: "V" },
+    ];
+    expect(keys(sortRows(ranked, DEFAULT_VIEW.sort))).toEqual(["c", "a", "b"]);
+    expect(
+      keys(
+        sortRows(
+          [
+            { ...a, rank: "V" },
+            { ...c, rank: "V" },
+          ],
+          DEFAULT_VIEW.sort,
+        ),
+      ),
+    ).toEqual(["a", "c"]);
+    // Another sort is a view: the rows keep their ranks.
+    expect(sortRows(ranked, { key: "price", reversed: false }).map((r) => r.rank)).toEqual([null, "k", "V"]);
+  });
 });
 
 describe("the remembered view (ps.library)", () => {
@@ -150,6 +174,9 @@ describe("the remembered view (ps.library)", () => {
     const v = { ...DEFAULT_VIEW, sort: { key: "price" as const, reversed: true } };
     expect(readLibraryView(JSON.stringify(v))).toEqual(v);
     expect(readLibraryView(JSON.stringify({ filters: {} }))).toEqual(DEFAULT_VIEW);
+    // A view saved before WF3 keeps its sort.
+    const before = { ...DEFAULT_VIEW, sort: { key: "updated" as const, reversed: false } };
+    expect(readLibraryView(JSON.stringify(before))).toEqual(before);
   });
 });
 

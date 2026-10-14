@@ -12,6 +12,7 @@ import { lineNamesOf } from "@/lib/report/lines";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { kmToState, type StateCode } from "@/lib/screen/states";
 import { parcelName } from "./historyRows";
+import { byRank } from "./myOrder";
 import { recipeOf, type Milestone, type ParcelStatus, type WorkingParcel } from "./parcelStore";
 import type { KeptScreen } from "./useKeptScreens";
 
@@ -47,6 +48,8 @@ export interface LibraryRow {
   /** Why there's no grade, when there isn't. */
   unscreened: Unscreened | null;
   updatedAt: string;
+  /** Its place in My order (WF3, lib/client/myOrder.ts). */
+  rank: string | null;
 }
 
 const STATES: readonly StateCode[] = ["VA", "NC", "TN"];
@@ -106,6 +109,7 @@ export function libraryRow(p: WorkingParcel, kept: KeptScreen | undefined): Libr
     household: zach && julie ? householdVerdict(zach.verdict, julie.verdict) : null,
     unscreened: result ? null : kept?.state === "rescreen" ? "rescreen" : "none",
     updatedAt: p.updatedAt,
+    rank: p.rank,
   };
 }
 
@@ -162,13 +166,14 @@ export function passes(r: LibraryRow, f: LibraryFilters): boolean {
 
 // ---------- sorts ----------
 
-export type SortKey = "updated" | "price" | "acres" | "household" | "zach" | "julie";
+export type SortKey = "order" | "updated" | "price" | "acres" | "household" | "zach" | "julie";
 export interface LibrarySort {
   key: SortKey;
   /** Each key's natural order (the newest, the cheapest, the largest, the best), or its reverse. */
   reversed: boolean;
 }
-export const DEFAULT_SORT: LibrarySort = { key: "updated", reversed: false };
+/** My order (WF3, docs/plans/parcel-workflow.md §5): the household's own, the only order a drag changes. */
+export const DEFAULT_SORT: LibrarySort = { key: "order", reversed: false };
 
 const LETTER_RANK: Record<Letter, number> = { A: 0, B: 1, C: 2, D: 3, F: 4 };
 /** Best first: the verdict, then the grade. */
@@ -176,7 +181,7 @@ const gradedRank = (g: Graded | null): number | null =>
   g ? (2 - rank(g.verdict)) * 10 + (g.grade === null ? 5 : LETTER_RANK[g.grade]) : null;
 
 /** Each key's value in its natural order (smaller first); null (no price, no screen) always sorts last. */
-const sortValue = (r: LibraryRow, k: SortKey): number | string | null => {
+const sortValue = (r: LibraryRow, k: Exclude<SortKey, "order">): number | string | null => {
   switch (k) {
     case "updated":
       return r.updatedAt === "" ? null : -Date.parse(r.updatedAt);
@@ -194,9 +199,14 @@ const sortValue = (r: LibraryRow, k: SortKey): number | string | null => {
 };
 
 export function sortRows(rows: readonly LibraryRow[], s: LibrarySort): LibraryRow[] {
+  if (s.key === "order") {
+    const ordered = [...rows].sort(byRank);
+    return s.reversed ? ordered.reverse() : ordered;
+  }
+  const key = s.key;
   return [...rows].sort((a, b) => {
-    const x = sortValue(a, s.key),
-      y = sortValue(b, s.key);
+    const x = sortValue(a, key),
+      y = sortValue(b, key);
     if (x === null || y === null) return x === y ? a.name.localeCompare(b.name) : x === null ? 1 : -1;
     const d = x < y ? -1 : x > y ? 1 : 0;
     return (s.reversed ? -d : d) || a.name.localeCompare(b.name);
@@ -224,7 +234,7 @@ const ViewSchema = z.object({
     state: z.enum(["VA", "NC", "TN"]).nullable(),
   }),
   sort: z.object({
-    key: z.enum(["updated", "price", "acres", "household", "zach", "julie"]),
+    key: z.enum(["order", "updated", "price", "acres", "household", "zach", "julie"]),
     reversed: z.boolean(),
   }),
 });
