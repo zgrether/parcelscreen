@@ -3429,6 +3429,26 @@ button.cmp-cell:hover {
   text-align: left;
   cursor: pointer;
 }
+/* A whole row or card opens its parcel (owner, after #133): it shows it can, and takes the keyboard. */
+.lib-row {
+  cursor: pointer;
+}
+.lib-table .lib-row:hover td,
+.lib-table .lib-row:focus-visible td {
+  background: rgba(28, 38, 32, 0.05);
+}
+.lib-card.lib-row:hover {
+  border-color: var(--color-ink-2);
+}
+.lib-row:focus-visible {
+  outline: 2px solid var(--color-water);
+  outline-offset: -2px;
+}
+.lib-card-facts .long-name,
+.lib-state {
+  display: inline-block;
+  vertical-align: bottom;
+}
 .lib-grade {
   display: inline-flex;
   align-items: center;
@@ -3506,7 +3526,19 @@ button.cmp-cell:hover {
   align-items: center;
   gap: 8px;
 }
-/* The status controls are the Info panel's, on its dark ground. */
+.lib-detail-title {
+  flex: 1;
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+}
+/* The status controls, the listing's facts and the notes are the Info panel's, on its dark ground. */
+.lib-notes .ip-notes {
+  border: 0;
+  padding: 0;
+  overflow: visible;
+}
+.lib-notes,
 .lib-standing {
   padding: 10px 12px;
   border-radius: 8px;

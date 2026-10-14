@@ -25,7 +25,7 @@ import type { ParcelRecord } from "@/lib/geo/parcels";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { findLayer, layerLine, type LayerId, type LayerNode } from "@/components/Explore/layers";
 import { ParcelFacts } from "@/components/Explore/ParcelFacts";
-import { ListingFacts } from "./ListingFacts";
+import { ParcelNotes } from "./ParcelNotes";
 import { ParcelStanding } from "./ParcelStanding";
 import { parcelDisplayName } from "@/lib/client/historyRows";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
@@ -537,84 +537,25 @@ function ParcelActions({ ctl }: { ctl: ExploreController }) {
   );
 }
 
-/** Notes save this long after the last keystroke (and at once when the box loses focus). */
-const NOTES_DEBOUNCE_MS = 600;
-
-const savedAt = (iso: string) =>
-  new Date(iso).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
-
 /**
- * The Notes tab: the parcel's notes, saved as you type. The box keeps its own text; a save changes only the
- * "Saved" line and the tab's dot (and, the first time, makes the parcel built), so nothing around the box
- * redraws under the cursor. On phones the sheet and the toolbar step aside while it has focus.
+ * The Notes tab: the parcel's listing facts and notes (ParcelNotes, shared with the list's detail), each saved for the
+ * parcel open when it was typed (`serial`): the panel is keyed by it, so a late save is dropped, not misfiled.
  */
 function Notes({ ctl, name }: { ctl: ExploreController; name: string }) {
-  // The name the parcel has until one is typed (WF1).
-  const derivedName = ctl.derived ? parcelDisplayName(ctl.derived) : name;
-  const open = ctl.state.store.open!;
-  const [text, setText] = useState(open.notes);
-  const save = useRef({ ctl, serial: ctl.state.serial, text, timer: null as number | null });
-  useEffect(() => {
-    save.current.ctl = ctl;
-  });
-  const flush = () => {
-    const s = save.current;
-    if (s.timer === null) return;
-    window.clearTimeout(s.timer);
-    s.timer = null;
-    s.ctl.saveNotes(s.text, s.serial);
-  };
-  const change = (v: string) => {
-    setText(v);
-    const s = save.current;
-    s.text = v;
-    if (s.timer !== null) window.clearTimeout(s.timer);
-    s.timer = window.setTimeout(flush, NOTES_DEBOUNCE_MS);
-  };
-  // Leaving the tab or the panel saves what's pending; so does leaving the box (onBlur).
-  useEffect(
-    () => () => {
-      flush();
-      document.documentElement.classList.remove("note-typing");
-    },
-    [],
-  );
-
-  const pending = text !== open.notes;
+  const serial = ctl.state.serial;
   return (
-    <div className="ip-notes">
-      <ListingFacts ctl={ctl} derivedName={derivedName} />
-      <div className="ip-notes-for">
-        Notes <span>· {name}</span>
-      </div>
-      <textarea
-        aria-label={`Notes for ${name}`}
-        placeholder="What you learned: the listing, a call with the agent, what to check on the visit…"
-        value={text}
-        onChange={(e) => change(e.target.value)}
-        onFocus={() => document.documentElement.classList.add("note-typing")}
-        onBlur={() => {
-          flush();
-          document.documentElement.classList.remove("note-typing");
-        }}
-      />
-      <div className="ip-notes-foot">
-        <span>
-          {pending ? "Saving…" : open.notesAt ? `Saved ${savedAt(open.notesAt)}` : "Notes save as you type."}
-        </span>
-        {text !== "" && (
-          <button
-            className="ip-link"
-            onClick={() => {
-              change("");
-              flush();
-            }}
-          >
-            Clear
-          </button>
-        )}
-      </div>
-    </div>
+    <ParcelNotes
+      parcel={ctl.state.store.open!}
+      name={name}
+      // The name the parcel has until one is typed (WF1).
+      derivedName={ctl.derived ? parcelDisplayName(ctl.derived) : name}
+      acres={ctl.derived?.ok ? ctl.derived.acres : null}
+      save={{
+        notes: (text) => ctl.saveNotes(text, serial),
+        askingPrice: (price) => ctl.saveAskingPrice(price, serial),
+        listing: (patch) => ctl.saveListing(patch, serial),
+      }}
+    />
   );
 }
 

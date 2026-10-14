@@ -1,18 +1,19 @@
 "use client";
 /**
- * A parcel opened from the list (WF2b, docs/plans/parcel-workflow.md §5): its full name, Open on the map, its status
- * and milestones (the explorer's controls), its listing facts, its report card (each line opening its panel, as in
- * Compare), and Remove. A side panel on desktop, a sheet on a phone.
+ * A parcel opened from the list (WF2b, docs/plans/parcel-workflow.md §5): its full name ("Add a name" when it has none),
+ * Open on the map, its status and milestones, its listing's facts and notes (the explorer's own components, editable
+ * here: owner, after #133), its report card (each line opening its panel, as in Compare), and Remove. A side panel on
+ * desktop, a sheet on a phone.
  */
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { ParcelNotes } from "@/components/Map/ParcelNotes";
 import { ParcelStanding } from "@/components/Map/ParcelStanding";
+import { withAskingPrice, withListing, withNotes } from "@/lib/client/parcelEdits";
 import { CardPanel } from "@/components/Results/card/CardPanel";
 import { ReportCard } from "@/components/Results/card/ReportCard";
 import { evaluationPoint } from "@/components/Results/blocks/types";
-import { askingLine } from "@/lib/client/askingPrice";
 import { parcelName } from "@/lib/client/historyRows";
-import { safeListingHref } from "@/lib/client/listingUrl";
 import { openOnMap } from "@/lib/client/openOnMap";
 import { withArchive, withMilestone, withRestore, withStatus } from "@/lib/client/parcelStatus";
 import type { WorkingParcel } from "@/lib/client/parcelStore";
@@ -33,7 +34,7 @@ export function ParcelDetail({
 }: {
   parcel: WorkingParcel;
   kept: KeptScreen | undefined;
-  /** A change to this parcel (its status, a milestone), saved by the list. */
+  /** A change to this parcel (its status, a milestone, its listing's facts, its notes), saved by the list. */
   change(edit: (p: WorkingParcel) => WorkingParcel): void;
   remove(): void;
   onClose(): void;
@@ -50,20 +51,23 @@ export function ParcelDetail({
   const result = kept?.state === "ok" ? kept.result : null;
   const names = lineNamesOf(parcel.markup);
   const card = result ? reportCard(result, person, names) : null;
-  const href = safeListingHref(parcel.listingUrl);
   const acresNote = listingAcresNote(parcel.listingAcres, acres);
-  const facts = [
-    parcel.askingPrice !== null && parcel.askingPriceAt
-      ? askingLine(parcel.askingPrice, parcel.askingPriceAt)
-      : null,
-    parcel.listingAcres !== null ? `${parcel.listingAcres} ac listed` : null,
-    parcel.agent.trim() ? `Agent: ${parcel.agent.trim()}` : null,
-  ].filter((x): x is string => !!x);
+  // The name it has until one is typed, and "Add a name": the Name box, unfolded and focused.
+  const derivedName = parcelName({ ...parcel, name: "" }).name;
+  const [focusName, setFocusName] = useState(0);
+  const now = () => new Date().toISOString();
 
   return (
     <aside className="lib-detail" role="dialog" aria-label={name}>
       <header className="lib-detail-head">
-        <h2>{name}</h2>
+        <div className="lib-detail-title">
+          <h2>{name}</h2>
+          {!parcel.name.trim() && (
+            <button className="link-btn tiny" onClick={() => setFocusName((n) => n + 1)}>
+              Add a name
+            </button>
+          )}
+        </div>
         <button className="ip-x" aria-label="Close" onClick={onClose}>
           ×
         </button>
@@ -74,11 +78,6 @@ export function ParcelDetail({
           <Link className="btn small" href="/explore" onClick={() => openOnMap(parcel)}>
             Open on the map
           </Link>
-          {href && (
-            <a className="btn small secondary" href={href} target="_blank" rel="noopener noreferrer">
-              Open listing ↗
-            </a>
-          )}
         </div>
         <div className="lib-standing">
           <ParcelStanding
@@ -91,7 +90,20 @@ export function ParcelDetail({
             }}
           />
         </div>
-        {facts.length > 0 && <p className="tiny">{facts.join(" · ")}</p>}
+        <div className="lib-notes">
+          <ParcelNotes
+            parcel={parcel}
+            name={name}
+            derivedName={derivedName}
+            acres={acres}
+            focusName={focusName}
+            save={{
+              notes: (text) => change((p) => withNotes(p, text, now())),
+              askingPrice: (price) => change((p) => withAskingPrice(p, price, now())),
+              listing: (patch) => change((p) => withListing(p, patch)),
+            }}
+          />
+        </div>
         {card ? (
           <ReportCard card={card} running={false} setPerson={setPerson} onOpen={setPanel} note={acresNote} />
         ) : (

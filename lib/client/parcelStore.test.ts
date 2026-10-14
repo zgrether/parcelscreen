@@ -20,6 +20,8 @@ import {
   type WorkingParcel,
 } from "./parcelStore";
 import { getPref, setPref, type KeyValueStore } from "./prefs";
+import { libraryRow } from "./library";
+import { statusLine } from "./parcelStatus";
 
 const sq = (x0: number) =>
   polygon([
@@ -178,6 +180,30 @@ describe("storage (ps.parcels)", () => {
       null,
     ])
       expect(readParcelStore(JSON.stringify(bad))).toBeNull();
+  });
+
+  it("a store saved before WF2a (no status, archive or milestones) loads every parcel in progress (owner, #133)", () => {
+    const s = commitOpen(EMPTY_STORE, { ...plain, notes: "kept before WF2a" }, T0, keys());
+    const raw = JSON.parse(writeParcelStore(s)) as {
+      open: Record<string, unknown>;
+      built: Record<string, unknown>[];
+    };
+    for (const p of [raw.open, ...raw.built]) {
+      delete p.status;
+      delete p.archived;
+      delete p.milestones;
+    }
+    const back = readParcelStore(JSON.stringify(raw))!;
+    for (const p of [back.open!, ...back.built])
+      expect(p).toMatchObject({
+        status: "inProgress",
+        archived: null,
+        milestones: { walked: null, offered: null },
+        notes: "kept before WF2a",
+      });
+    // And on the list it reads "In progress".
+    expect(statusLine(back.built[0]!)).toBe("In progress");
+    expect(libraryRow(back.built[0]!, undefined).status).toBe("inProgress");
   });
 
   it("a parcel kept before the asking price existed loads with none (B2a)", () => {

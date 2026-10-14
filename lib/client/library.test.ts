@@ -8,8 +8,10 @@ import {
   DEFAULT_FILTERS,
   DEFAULT_VIEW,
   hiddenBy,
+  countyShort,
   hiddenWords,
   householdVerdict,
+  listName,
   libraryRow,
   parcelState,
   passes,
@@ -64,6 +66,25 @@ describe("a parcel's row", () => {
     const ferney = loadFixture("ferney-creek-52-47A").input.polygon;
     expect(parcelState(built("d", { pieces: [drawnPart(ferney as never)] }))).toBe("VA");
     expect(parcelState(built("c", { pieces: [{ ...county(-81.355, "x"), source: "saved" }] }))).toBe("VA");
+  });
+});
+
+describe("an unnamed parcel's name on the list (owner, after #133)", () => {
+  it("'{parcel ID} · {County} Co.'; a typed name as typed", () => {
+    expect(countyShort("Floyd County")).toBe("Floyd Co.");
+    expect(countyShort("ASHE")).toBe("Ashe Co.");
+    expect(countyShort("johnson")).toBe("Johnson Co.");
+    const floyd = built("f", {
+      pieces: [{ ...county(-81.355, "52-47A"), props: { PARCELID: "52-47A", LOCALITY: "Floyd County" } }],
+    });
+    expect(listName(floyd, "Floyd County")).toBe("52-47A · Floyd Co.");
+    expect(libraryRow(floyd, undefined)).toMatchObject({
+      name: "52-47A · Floyd Co.",
+      county: "Floyd County",
+    });
+    expect(libraryRow({ ...floyd, name: "Ferney Creek" }, undefined).name).toBe("Ferney Creek");
+    // No county known: the parcel ID alone.
+    expect(listName(built("n"), null)).toBe("52-47A");
   });
 });
 

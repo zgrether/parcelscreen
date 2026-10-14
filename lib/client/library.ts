@@ -65,8 +65,25 @@ export function parcelState(p: WorkingParcel): StateCode | null {
   return STATES.find((s) => kmToState(s, [lat, lon]) <= 0) ?? null;
 }
 
+/** "Floyd Co." from a county record's "Floyd County", "FLOYD" or "Floyd". */
+export function countyShort(county: string): string {
+  const c = county.trim().replace(/\s+county$/i, "");
+  return `${c.toLowerCase().replace(/\b[a-z]/g, (x) => x.toUpperCase())} Co.`;
+}
+
+/**
+ * The name a row shows (owner, after #133): the household's name for the parcel, else "{parcel ID} · {County} Co.",
+ * so two parcels with the same number in different counties read apart.
+ */
+export function listName(p: WorkingParcel, county: string | null): string {
+  const { name } = parcelName(p);
+  if (p.name.trim() || !county) return name;
+  return `${name} · ${countyShort(county)}`;
+}
+
 export function libraryRow(p: WorkingParcel, kept: KeptScreen | undefined): LibraryRow {
-  const { name, acres } = parcelName(p);
+  const { acres } = parcelName(p);
+  const county = p.pieces.map((x) => parcelFacts(x.geo, x.props).county).find((c) => !!c) ?? null;
   const result = kept?.state === "ok" ? kept.result : null;
   const graded = (person: "zach" | "julie"): Graded | null => {
     if (!result) return null;
@@ -77,11 +94,11 @@ export function libraryRow(p: WorkingParcel, kept: KeptScreen | undefined): Libr
     julie = graded("julie");
   return {
     key: p.key!,
-    name,
+    name: listName(p, county),
     acres,
     price: p.askingPrice,
     state: parcelState(p),
-    county: p.pieces.map((x) => parcelFacts(x.geo, x.props).county).find((c) => !!c) ?? null,
+    county,
     status: p.status,
     milestones: p.milestones,
     zach,
