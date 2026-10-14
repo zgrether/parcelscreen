@@ -139,6 +139,11 @@ export interface ExploreController {
   startLine(kind: "track" | "easement"): void;
   finishLine(): void;
   saveMarkupNote(id: string, note: string, serial: number): void;
+  /** Owner, #127: a line's name (a blank one is ignored). */
+  renameMarkup(id: string, name: string, serial: number): void;
+  /** The line whose Layers row is under the pointer, highlighted on the map (owner, #127); null when none. */
+  hoverLine: string | null;
+  setHoverLine(id: string | null): void;
   saveMarkupWidth(id: string, widthFt: number, serial: number): void;
   /** Deletes the line; `lineUndo` offers it back for a few seconds (owner, A). */
   deleteMarkup(id: string, serial: number): void;
@@ -238,6 +243,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
   const [map, setMap] = useState<MlMap | null>(null);
   const [toast, setToast] = useState<SwitchToast | null>(null);
   const [lineUndo, setLineUndo] = useState<LineUndo | null>(null);
+  const [hoverLine, setHoverLine] = useState<string | null>(null);
   const busy = useRef(false);
   /** About to leave the open parcel: if it has a screen, offer Back to it. */
   const leaving = () => {
@@ -492,6 +498,11 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     saveMarkupNote(id, note, serial) {
       dispatch({ type: "markupNote", id, note, serial, stamp: stamp() });
     },
+    renameMarkup(id, name, serial) {
+      dispatch({ type: "markupName", id, name, serial, stamp: stamp() });
+    },
+    hoverLine,
+    setHoverLine,
     saveMarkupWidth(id, widthFt, serial) {
       dispatch({ type: "markupWidth", id, widthFt, serial, stamp: stamp() });
     },

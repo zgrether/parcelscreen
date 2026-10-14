@@ -6,22 +6,13 @@ import { fmt } from "../format";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import type { DrawnLine, PartialScreenResult } from "../screen/types";
 
+/**
+ * A drawn line in the report's sentences. The kinds are Track, Easement and Existing drive (owner, #127: no "Existing
+ * track" anywhere; phase-0.md §9.38); the screen sees an existing drive as a track, so the report says "Track" for it.
+ */
 export const LINE_LABEL: Record<DrawnLine["kind"], string> = {
-  track: "Existing track (user-drawn)",
+  track: "Track (user-drawn)",
   easement: "Easement (user-drawn)",
-};
-
-/** What the user calls a line they drew (owner, A): an existing drive is screened as a track until it's priced. */
-export type DrawnKind = "track" | "easement" | "drive";
-export const DRAWN_LABEL: Record<DrawnKind, string> = {
-  ...LINE_LABEL,
-  drive: "Existing drive (user-drawn)",
-};
-/** The kind in a sentence or a switch: "track", "easement", "existing drive". */
-export const DRAWN_WORD: Record<DrawnKind, string> = {
-  track: "track",
-  easement: "easement",
-  drive: "existing drive",
 };
 
 /** What the Access and Easement gates say of a drawn line the driveway uses (owner, #110). */
@@ -56,18 +47,16 @@ export const routeLines = (r: PartialScreenResult, rt: ScoredRoute): DrawnLine[]
 const dollars = (n: number): string => `$${fmt(Math.round(n / 100) * 100)}`;
 
 /**
- * What the run made of a drawn line (owner, A, 2026-10-13: the Easement panel says it after every run): "Your line
- * (track, 868 ft) was used: …" or "Your line (track, 868 ft) was considered but not used: …". `index` is the line's
- * place in the result's `lines`; `word` what the user calls it (DRAWN_WORD: an existing drive is screened as a track).
- * Null when the result doesn't have the line (drawn after the screen).
+ * What the run made of a drawn line (owner, A, 2026-10-13: the Easement panel says it after every run): "Track 2 was
+ * used: …" or "Track 2 was considered but not used: …". `index` is the line's place in the result's `lines`; `name`
+ * what the user calls it (owner, #127). Null when the result doesn't have the line (drawn after the screen).
  */
-export function lineOutcome(r: PartialScreenResult, index: number, word: string): string | null {
+export function lineOutcome(r: PartialScreenResult, index: number, name: string): string | null {
   const line = r.lines?.[index];
   if (!line) return null;
-  const head = `Your line (${word}, ${fmt(line.lengthFt)} ft)`;
   const d = r.driveway;
   const rt = d ? scoredRoute(d) : undefined;
-  if (!d || !rt) return `${head} was considered but not used: no driveway was routed.`;
+  if (!d || !rt) return `${name} was considered but not used: no driveway was routed.`;
   if (rt.lines.includes(index)) {
     const from = startLine(r, rt)?.id === line.id;
     const how = from
@@ -75,16 +64,16 @@ export function lineOutcome(r: PartialScreenResult, index: number, word: string)
       : line.kind === "easement" && rt.metrics.outsideFt > 0
         ? "the driveway crosses the neighbouring land inside it"
         : "the driveway runs along it";
-    return `${head} was used: ${how}.`;
+    return `${name} was used: ${how}.`;
   }
   // The route the router found from the line's own entrance (its end away from the road), if it had one.
   const at = d.entrances.findIndex((e) => e.source === "drawn" && e.line === index);
   if (at < 0)
-    return `${head} was considered but not used: neither end comes within ${fmt(
+    return `${name} was considered but not used: neither end comes within ${fmt(
       Math.round(SCREEN_CONSTANTS.driveway.drawn.roadEndM * 3.28084),
     )} ft of a road, so the driveway can't start from it, and the app's route doesn't follow it.`;
   const mine = d.routes.find((x) => x.entranceIndex === at);
-  if (!mine) return `${head} was considered but not used: no route from it reached the site.`;
+  if (!mine) return `${name} was considered but not used: no route from it reached the site.`;
   const why: string[] = [];
   const ex = mine.existing;
   if (ex && ex.maxGradePct > ex.vetoPct)
@@ -95,5 +84,5 @@ export function lineOutcome(r: PartialScreenResult, index: number, word: string)
       `${mine.metrics.lengthFt > rt.metrics.lengthFt ? "longer and " : ""}costlier than the app's pick by ${dollars(extra)}`,
     );
   if (!why.length) why.push("the app's pick scores better on its grade and cost");
-  return `${head} was considered but not used: ${why.join("; ")}.`;
+  return `${name} was considered but not used: ${why.join("; ")}.`;
 }

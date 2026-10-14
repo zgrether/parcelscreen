@@ -34,6 +34,7 @@ describe("map style", () => {
       LAYER.markupEasement, // follow-up 34: drawn lines over the parcel, under the results and tools
       LAYER.markupTrackHalo,
       LAYER.markupTrack,
+      LAYER.markupPoints, // #127: the selected line's points
       LAYER.fanHalo,
       LAYER.fanRay,
       LAYER.driveDirect,

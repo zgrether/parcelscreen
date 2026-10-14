@@ -36,14 +36,12 @@ describe("what the run made of a drawn line", () => {
     // Make the line's route the scored one (first).
     const d = r.driveway!;
     d.routes.unshift(d.routes.pop()!);
-    expect(lineOutcome(r, 0, "existing drive")).toBe(
-      "Your line (existing drive, 868 ft) was used: the driveway starts from its far end, and follows it to the road.",
+    expect(lineOutcome(r, 0, "Existing drive 1")).toBe(
+      "Existing drive 1 was used: the driveway starts from its far end, and follows it to the road.",
     );
     const along = withLine();
     along.driveway!.routes[0] = { ...along.driveway!.routes[0]!, lines: [0] };
-    expect(lineOutcome(along, 0, "track")).toBe(
-      "Your line (track, 868 ft) was used: the driveway runs along it.",
-    );
+    expect(lineOutcome(along, 0, "Track 2")).toBe("Track 2 was used: the driveway runs along it.");
   });
 
   it("considered but not used: steeper than the veto on the raw ground, and costlier, both said", () => {
@@ -64,8 +62,8 @@ describe("what the run made of a drawn line", () => {
         cost: { low: 9000, mid: 11000, high: 14000 },
       },
     }));
-    expect(lineOutcome(r, 0, "track")).toBe(
-      "Your line (track, 868 ft) was considered but not used: 41% on the raw ground is over the 25% veto; longer and costlier than the app's pick by $12,400.",
+    expect(lineOutcome(r, 0, "Track 2")).toBe(
+      "Track 2 was considered but not used: 41% on the raw ground is over the 25% veto; longer and costlier than the app's pick by $12,400.",
     );
   });
 
@@ -74,27 +72,25 @@ describe("what the run made of a drawn line", () => {
       lineOutcome(
         withLine((s) => ({ cost: { ...s.cost, mid: s.cost.mid + 3_000 } })),
         0,
-        "track",
+        "Track 2",
       ),
-    ).toBe("Your line (track, 868 ft) was considered but not used: costlier than the app's pick by $3,000.");
+    ).toBe("Track 2 was considered but not used: costlier than the app's pick by $3,000.");
     expect(
       lineOutcome(
         withLine((s) => ({ cost: s.cost })),
         0,
-        "track",
+        "Track 2",
       ),
-    ).toBe(
-      "Your line (track, 868 ft) was considered but not used: the app's pick scores better on its grade and cost.",
-    );
+    ).toBe("Track 2 was considered but not used: the app's pick scores better on its grade and cost.");
   });
 
   it("not near a road, and not followed: why the driveway didn't start from it", () => {
-    expect(lineOutcome(withLine(), 0, "easement")).toBe(
-      "Your line (easement, 868 ft) was considered but not used: neither end comes within 98 ft of a road, so the driveway can't start from it, and the app's route doesn't follow it.",
+    expect(lineOutcome(withLine(), 0, "Easement 1")).toBe(
+      "Easement 1 was considered but not used: neither end comes within 98 ft of a road, so the driveway can't start from it, and the app's route doesn't follow it.",
     );
   });
 
   it("drawn after the screen: nothing to say yet", () => {
-    expect(lineOutcome(withLine(), 1, "track")).toBeNull();
+    expect(lineOutcome(withLine(), 1, "Track 2")).toBeNull();
   });
 });

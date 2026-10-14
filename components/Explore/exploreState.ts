@@ -10,6 +10,8 @@ import {
   commitOpen,
   DEFAULT_CONDITION,
   DEFAULT_WIDTH_FT,
+  isDefaultName,
+  nextLineName,
   EMPTY_STORE,
   openBuilt,
   plainParcel,
@@ -136,6 +138,8 @@ export type ExploreAction =
   | { type: "startLine"; kind: "track" | "easement" }
   | { type: "finishLine"; id: string; stamp: Stamp }
   | { type: "markupNote"; id: string; note: string; serial: number; stamp: Stamp }
+  /** Owner, #127: a line's name; a blank one is ignored. */
+  | { type: "markupName"; id: string; name: string; serial: number; stamp: Stamp }
   | { type: "markupWidth"; id: string; widthFt: number; serial: number; stamp: Stamp }
   | { type: "markupDelete"; id: string; serial: number; stamp: Stamp }
   /** Owner, A: a line's kind and condition; its path redrawn; a deleted line put back (Undo). */
@@ -168,16 +172,22 @@ const NO_TOOL: Pick<ExploreState, "mode" | "draft" | "split" | "combine" | "edit
 };
 
 /**
- * A drawn line with one edit applied. A new kind brings its own width and condition when the old ones were still the
- * old kind's defaults (a width or condition the user chose is kept).
+ * A drawn line with one edit applied. A new kind brings its own name, width and condition when the old ones were still
+ * the old kind's defaults (a name, width or condition the user chose is kept). `others` are the parcel's other lines.
  */
 function edited(
   m: Markup,
-  a: Extract<ExploreAction, { type: "markupNote" | "markupWidth" | "markupKind" | "markupCondition" }>,
+  a: Extract<
+    ExploreAction,
+    { type: "markupNote" | "markupName" | "markupWidth" | "markupKind" | "markupCondition" }
+  >,
+  others: readonly Markup[],
 ): Markup {
   switch (a.type) {
     case "markupNote":
       return { ...m, note: a.note };
+    case "markupName":
+      return a.name.trim() ? { ...m, name: a.name.trim() } : m;
     case "markupWidth":
       return { ...m, widthFt: a.widthFt };
     case "markupCondition":
@@ -186,6 +196,7 @@ function edited(
       return {
         ...m,
         kind: a.kind,
+        name: a.kind !== m.kind && isDefaultName(m.name, m.kind) ? nextLineName(others, a.kind) : m.name,
         widthFt:
           m.widthFt === null || m.widthFt === DEFAULT_WIDTH_FT[m.kind] ? DEFAULT_WIDTH_FT[a.kind] : m.widthFt,
         condition: m.condition === DEFAULT_CONDITION[m.kind] ? DEFAULT_CONDITION[a.kind] : m.condition,
@@ -361,6 +372,7 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       const line: Markup = {
         id: a.id,
         kind: s.mode,
+        name: nextLineName(open.markup, s.mode),
         condition: DEFAULT_CONDITION[s.mode],
         line: points,
         widthFt: DEFAULT_WIDTH_FT[s.mode],
@@ -390,6 +402,7 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       return { ...s, store: save({ ...open, markup }, a.stamp) };
     }
     case "markupNote":
+    case "markupName":
     case "markupWidth":
     case "markupKind":
     case "markupCondition":
@@ -399,7 +412,17 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       const markup =
         a.type === "markupDelete"
           ? open.markup.filter((m) => m.id !== a.id)
-          : open.markup.map((m) => (m.id !== a.id ? m : edited(m, a)));
+          : open.markup.map((m) =>
+              m.id !== a.id
+                ? m
+                : edited(
+                    m,
+                    a,
+                    open.markup.filter((x) => x.id !== a.id),
+                  ),
+            );
+      // An edit that changes nothing (a blank name) saves nothing.
+      if (markup.every((m, i) => m === open.markup[i]) && markup.length === open.markup.length) return s;
       const layer = a.type === "markupDelete" && s.layer === lineLayer(a.id) ? null : s.layer;
       return { ...s, layer, store: save({ ...open, markup }, a.stamp) };
     }

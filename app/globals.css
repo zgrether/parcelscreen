@@ -392,6 +392,10 @@ html:has(.explore) body {
   background: rgba(28, 38, 32, 0.92);
   box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
 }
+/* A line's Undo stays above the Info panel, whose Delete and × it answers (owner, #127). */
+.switch-toast.line-undo {
+  z-index: 17;
+}
 .switch-toast button {
   border: 0;
   border-radius: 5px;
@@ -2962,7 +2966,9 @@ html:has(.explore) body {
   border-color: var(--ip-ink);
 }
 .ip-line-width,
-.ip-line-note {
+.ip-line-note,
+.ip-line-name,
+.ip-row-name {
   padding: 4px 8px;
   border: 1px solid var(--ip-rule);
   border-radius: 6px;
@@ -2972,6 +2978,20 @@ html:has(.explore) body {
 }
 .ip-line-width {
   width: 4.5em;
+}
+/* The details' heading is the line's name, typed over (owner, #127). */
+.ip-line-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+.ip-row-name {
+  min-width: 0;
+  padding: 1px 6px;
+}
+/* A long press renames a line's row on a phone: no callout or text selection in the way. */
+.ip-row {
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 .ip-line-note::placeholder {
   color: var(--ip-ink-2);

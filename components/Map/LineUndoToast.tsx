@@ -1,12 +1,11 @@
 "use client";
 /**
- * "Existing drive deleted — Undo" (owner, A, 2026-10-13): a deleted line can be put back for TOAST_MS, as the
+ * "Track 2 deleted — Undo" (owner, A, 2026-10-13): a deleted line can be put back for TOAST_MS, as the
  * parcel-switch toast. The line's own details live in the Info panel's Layers tree (owner, #127).
  */
 import { useEffect } from "react";
 import { useExplore } from "@/components/Explore/useExploreController";
 import { TOAST_MS } from "@/components/Explore/SwitchToast";
-import { DRAWN_WORD } from "@/lib/report/lines";
 
 export function LineUndoToast() {
   const ctl = useExplore();
@@ -21,7 +20,7 @@ export function LineUndoToast() {
   if (!u) return null;
   return (
     <div className="switch-toast line-undo" role="status">
-      <span>{DRAWN_WORD[u.markup.kind].replace(/^./, (c) => c.toUpperCase())} deleted —</span>
+      <span>{u.markup.name} deleted —</span>
       <button onClick={ctl.undoLineDelete}>Undo</button>
     </div>
   );

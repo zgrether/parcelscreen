@@ -42,6 +42,8 @@ export const DEFAULT_CONDITION: Record<MarkupKind, LineCondition> = {
 
 export interface Markup {
   id: string;
+  /** What the user calls it (owner, #127): "Track 2" until renamed. Separate from the note. */
+  name: string;
   kind: MarkupKind;
   condition: LineCondition;
   /** At least two points, [lat, lon]. */
@@ -53,6 +55,26 @@ export interface Markup {
   widthFt: number | null;
   note: string;
   at: string;
+}
+
+/** Each kind as the app names it (owner, #127): the layer, the chips and a line's default name. */
+export const KIND_NAME: Record<MarkupKind, string> = {
+  track: "Track",
+  easement: "Easement",
+  drive: "Existing drive",
+};
+
+const defaultNumber = (name: string, kind: MarkupKind): number | null => {
+  const m = new RegExp(`^${KIND_NAME[kind]} (\\d+)$`).exec(name);
+  return m ? Number(m[1]) : null;
+};
+/** A default name, "Track 2", as opposed to one the user typed. */
+export const isDefaultName = (name: string, kind: MarkupKind): boolean => defaultNumber(name, kind) !== null;
+
+/** The next default name for a kind (owner, #127): numbered per kind, one past the highest in use. */
+export function nextLineName(markup: readonly Pick<Markup, "name" | "kind">[], kind: MarkupKind): string {
+  const used = markup.map((m) => defaultNumber(m.name, kind) ?? 0);
+  return `${KIND_NAME[kind]} ${Math.max(0, ...used) + 1}`;
 }
 
 /** An easement's width until the user says otherwise: a common recorded right-of-way width. */
@@ -201,6 +223,8 @@ const SplitSchema = z.object({
 const MarkupSchema = z
   .object({
     id: z.string(),
+    // Added with #127: a line kept before has none, and gets its kind's default in the order drawn (below).
+    name: z.string().optional(),
     kind: z.enum(["track", "easement", "drive"]),
     // Added with A (owner, 2026-10-13): a line kept before has none, and gets its kind's default.
     condition: z.enum(["uncleared", "pioneer", "improved", "paved"]).optional(),
@@ -209,7 +233,7 @@ const MarkupSchema = z
     note: z.string(),
     at: z.string(),
   })
-  .transform((m): Markup => ({
+  .transform((m): Omit<Markup, "name"> & { name?: string } => ({
     ...m,
     condition: m.condition ?? DEFAULT_CONDITION[m.kind],
     // Owner, #127: every kind has a width now; a line kept before gets its kind's.
@@ -226,7 +250,15 @@ const WorkingSchema = z.object({
   askingPrice: z.number().nonnegative().nullable().default(null),
   askingPriceAt: z.string().nullable().default(null),
   // Added with follow-up 34: a parcel kept before has none.
-  markup: z.array(MarkupSchema).default([]),
+  markup: z
+    .array(MarkupSchema)
+    .default([])
+    .transform((lines) =>
+      lines.reduce<Markup[]>(
+        (named, m) => [...named, { ...m, name: m.name ?? nextLineName(named, m.kind) }],
+        [],
+      ),
+    ),
   hidden: z.array(z.string()),
   excluded: z.array(z.string()),
   screenIds: z.array(z.string()),

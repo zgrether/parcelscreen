@@ -191,7 +191,7 @@ describe("storage (ps.parcels)", () => {
     });
   });
 
-  it("a line kept before its condition or width existed loads with its kind's (owner, A; #127); a drive is screened as a track", () => {
+  it("a line kept before its condition, width or name existed loads with its kind's (owner, A; #127); a drive is screened as a track", () => {
     const line = (kind: string, id: string) => ({
       id,
       kind,
@@ -209,15 +209,17 @@ describe("storage (ps.parcels)", () => {
       line("track", "a"),
       line("easement", "b"),
       { ...line("drive", "c"), condition: "paved" },
-      { ...line("easement", "d"), widthFt: 45 },
+      { ...line("easement", "d"), widthFt: 45, note: "Deed book 412" },
     ];
     const back = readParcelStore(JSON.stringify(raw))!.open!.markup;
-    expect(back.map((m) => [m.kind, m.condition, m.widthFt])).toEqual([
-      ["track", "pioneer", 10],
-      ["easement", "uncleared", 30],
-      ["drive", "paved", 12], // the condition chosen: kept
-      ["easement", "uncleared", 45], // the width chosen: kept
+    expect(back.map((m) => [m.name, m.kind, m.condition, m.widthFt])).toEqual([
+      ["Track 1", "track", "pioneer", 10],
+      ["Easement 1", "easement", "uncleared", 30],
+      ["Existing drive 1", "drive", "paved", 12], // the condition chosen: kept
+      ["Easement 2", "easement", "uncleared", 45], // the width chosen: kept
     ]);
+    // Names come in the order drawn, numbered per kind (owner, #127); a note stays a note.
+    expect(back[3]!.note).toBe("Deed book 412");
     expect(DEFAULT_CONDITION).toEqual({ track: "pioneer", drive: "improved", easement: "uncleared" });
     expect(DEFAULT_WIDTH_FT).toEqual({ track: 10, drive: 12, easement: 30 });
     // The screen doesn't know an existing drive yet, nor any condition, nor a track's width: no pricing change.

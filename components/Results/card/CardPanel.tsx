@@ -9,14 +9,14 @@ import { length, lineString } from "@turf/turf";
 import Link from "next/link";
 import { useEffect, useRef, type ReactNode } from "react";
 import { useHelp } from "@/components/Help/HelpDialog";
-import type { Markup } from "@/lib/client/parcelStore";
+import { KIND_NAME, type Markup } from "@/lib/client/parcelStore";
 import { fmt } from "@/lib/format";
 import { digCost, foundationAt, soilUnder } from "@/lib/report/derived";
 import { DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { BOTTOMLAND_LEAD, bottomland } from "@/lib/screen/soils";
 import type { Card, GateStatus } from "@/lib/report/card";
 import { panelText, rulebookHref, type PanelKey } from "@/lib/report/cardPanels";
-import { DRAWN_WORD, lineOutcome } from "@/lib/report/lines";
+import { lineOutcome } from "@/lib/report/lines";
 import { meaningsFor } from "@/lib/report/meanings";
 import { scalesFor, type Scale } from "@/lib/report/scales";
 import type { PartialScreenResult, ScreenResult, Step, UserConfig } from "@/lib/screen/types";
@@ -140,7 +140,7 @@ export function CardPanel({
         {panel === "homesite" && <BuildingHere result={result} dw={dw} />}
         {panel === "septic" && <BottomlandHere result={result} />}
         {panel === "easement" && lines && lines.markup.length > 0 && (
-          <YourLinesList result={result} lines={lines} />
+          <YourLinesList result={result} lines={lines} routing={!!running && !result.driveway} />
         )}
         <PanelFlags
           flags={(result.flags ?? []).filter((f) => panel !== "verdict" && panelOfFlag(f) === panel)}
@@ -299,25 +299,39 @@ export interface YourLines {
 }
 
 /**
- * "Your lines" (owner, A, 2026-10-13): each drawn line with its kind, condition and length, what the run made of it
+ * "Your lines" (owner, A, 2026-10-13): each drawn line by name (#127), with its kind, condition and length, what the run made of it
  * (lineOutcome: used, or considered and why not), and Edit (selects it in the Layers tree) and Delete.
  */
-function YourLinesList({ result, lines }: { result: ScreenResult | PartialScreenResult; lines: YourLines }) {
+/** "Your lines" while a run is still routing the driveway (owner, #127 testing). */
+export const WAITING_FOR_THE_DRIVEWAY = "Waiting for the driveway route…";
+
+function YourLinesList({
+  result,
+  lines,
+  routing,
+}: {
+  result: ScreenResult | PartialScreenResult;
+  lines: YourLines;
+  /** A run is in progress and hasn't routed the driveway yet: no outcome to say. */
+  routing: boolean;
+}) {
   return (
     <section className="block panel-block your-lines">
       <h3>Your lines</h3>
       <ul>
         {lines.markup.map((m) => {
           const at = result.lines?.findIndex((l) => l.id === m.id) ?? -1;
-          const outcome = at >= 0 ? lineOutcome(result, at, DRAWN_WORD[m.kind]) : null;
+          const outcome = at >= 0 ? lineOutcome(result, at, m.name) : null;
           const ft = length(lineString(m.line.map(([lat, lon]) => [lon, lat])), { units: "meters" }) * M2FT;
           return (
             <li key={m.id}>
               <div className="your-line-head">
-                <b>
-                  {DRAWN_WORD[m.kind].replace(/^./, (c) => c.toUpperCase())}, {m.condition},{" "}
-                  {Math.round(ft).toLocaleString()} ft
-                </b>
+                <span>
+                  <b>{m.name}</b>{" "}
+                  <span className="tiny">
+                    {KIND_NAME[m.kind]}, {m.condition}, {Math.round(ft).toLocaleString()} ft
+                  </span>
+                </span>
                 <span>
                   <button className="btn small secondary" onClick={() => lines.onEdit(m.id)}>
                     Edit
@@ -328,7 +342,9 @@ function YourLinesList({ result, lines }: { result: ScreenResult | PartialScreen
                 </span>
               </div>
               <p className="tiny">
-                {outcome ?? "Drawn after this screen: run again to see what the app makes of it."}
+                {routing
+                  ? WAITING_FOR_THE_DRIVEWAY
+                  : (outcome ?? "Drawn after this screen: run again to see what the app makes of it.")}
               </p>
             </li>
           );

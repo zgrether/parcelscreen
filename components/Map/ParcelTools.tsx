@@ -207,9 +207,12 @@ function useOverlays(map: MlMap | null, ctl: ExploreController) {
   const screen = useScreenItContext();
   const measured = screen?.shown && !screen.stale ? screen.shown.result.lines : undefined;
   const selectedLine = layerLine(layer);
+  const hoverLine = ctl.hoverLine;
   useEffect(() => {
-    map?.getSource<GeoJSONSource>(SOURCE.markup)?.setData(markupData(markup ?? [], measured, selectedLine));
-  }, [map, markup, measured, selectedLine]);
+    map
+      ?.getSource<GeoJSONSource>(SOURCE.markup)
+      ?.setData(markupData(markup ?? [], measured, selectedLine, hoverLine));
+  }, [map, markup, measured, selectedLine, hoverLine]);
 
   useEffect(() => {
     if (!map) return;

@@ -526,6 +526,33 @@ describe("a drawn line's layer, kind, condition, width, path and undo (owner, A;
     expect(withTrack().store.open!.markup[0]).toMatchObject({ kind: "track", condition: "pioneer" });
   });
 
+  it("names: numbered per kind; renamed (a blank name is ignored); a new kind renumbers a default name only", () => {
+    const more = (s: ExploreState, kind: "track" | "easement", id: string) =>
+      run(
+        [
+          { type: "startLine", kind },
+          ...two.map((ll): ExploreAction => ({ type: "draftAdd", ll })),
+          { type: "finishLine", id, stamp: at() },
+        ],
+        s,
+      );
+    const s = more(more(withTrack(), "track", "t2"), "easement", "e");
+    expect(s.store.open!.markup.map((m) => m.name)).toEqual(["Track 1", "Track 2", "Easement 1"]);
+    const name = (st: ExploreState, id: string, n: string) =>
+      exploreReducer(st, { type: "markupName", id, name: n, serial: st.serial, stamp: at() });
+    const kind = (st: ExploreState, id: string, k: "track" | "easement" | "drive") =>
+      exploreReducer(st, { type: "markupKind", id, kind: k, serial: st.serial, stamp: at() });
+    const renamed = name(s, "t", "  Logging road ");
+    expect(renamed.store.open!.markup[0]!.name).toBe("Logging road");
+    expect(name(renamed, "t", "   ")).toBe(renamed);
+    // A default name follows the kind; a typed one stays. The numbers count up past the highest in use.
+    expect(kind(s, "t2", "drive").store.open!.markup[1]!.name).toBe("Existing drive 1");
+    expect(kind(s, "t", "easement").store.open!.markup[0]!.name).toBe("Easement 2");
+    expect(kind(renamed, "t", "drive").store.open!.markup[0]!.name).toBe("Logging road");
+    // The note is separate.
+    expect(renamed.store.open!.markup[0]!.note).toBe("");
+  });
+
   it("a line is a layer: selecting it opens the Info panel; deleting it clears the selection", () => {
     const s = withTrack();
     const p = exploreReducer(s, { type: "layer", id: lineLayer("t") });
