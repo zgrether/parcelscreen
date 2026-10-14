@@ -15,7 +15,15 @@ import { isPrimeFarmland, soilAt, type SoilUnit } from "../screen/soils";
 import type { PartialScreenResult, RoadClass } from "../screen/types";
 import { M2FT, M2_PER_ACRE } from "../screen/util";
 import { steepLandingLine } from "./driveway";
-import { LINE_LABEL, VERIFY_RIGHT_OF_WAY, routeLines, scoredRoute, startLine } from "./lines";
+import {
+  isUserName,
+  lineLabel,
+  VERIFY_RIGHT_OF_WAY,
+  routeLines,
+  scoredRoute,
+  startLine,
+  type LineNames,
+} from "./lines";
 
 export type CardConfig = typeof SCREEN_CONSTANTS.card;
 type BuildConfig = typeof SCREEN_CONSTANTS.build;
@@ -169,7 +177,7 @@ function floodplain(r: Result, site: BuildSite | null | undefined): Gate {
  * A drawn line the scored driveway starts from (follow-up 34): the Access gate asks that it be verified, after what it
  * says of the frontage (rule 7: appended), and warns at least.
  */
-function access(r: Result): Gate {
+function access(r: Result, names?: LineNames): Gate {
   const frontage = accessByFrontage(r);
   const rt = r.driveway && scoredRoute(r.driveway);
   const line = rt ? startLine(r, rt) : null;
@@ -177,7 +185,14 @@ function access(r: Result): Gate {
   const roadClass = rt ? (r.driveway!.entrances[rt.entranceIndex]?.roadClass ?? null) : null;
   const roadIn = roadInWords(roadClass);
   const asks = [
-    ...(line ? [lowerFirst(`${LINE_LABEL[line.kind]}: ${VERIFY_RIGHT_OF_WAY}`)] : []),
+    // The line by its current name (owner, 2026-10-14), kept as typed; the kind's label otherwise, in the sentence.
+    ...(line
+      ? [
+          isUserName(line, names)
+            ? `${lineLabel(line, names)}: ${VERIFY_RIGHT_OF_WAY}`
+            : lowerFirst(`${lineLabel(line, names)}: ${VERIFY_RIGHT_OF_WAY}`),
+        ]
+      : []),
     ...(roadIn ? [`${roadIn}; check that it's public and drivable year-round`] : []),
     ...(rt && markedPrivateOutside(roadClass, rt.metrics.privateFt) ? [MARKED_PRIVATE] : []),
   ];
@@ -248,7 +263,7 @@ function accessByFrontage(r: Result): Gate {
   );
 }
 
-function easement(r: Result): Gate {
+function easement(r: Result, names?: LineNames): Gate {
   const g = gate("easement", "Easement needed");
   const d = r.driveway;
   if (!d) return g("unknown", "The driveway wasn't routed", "the roads");
@@ -269,7 +284,7 @@ function easement(r: Result): Gate {
     // A drawn track there isn't legal access (owner, #116): the route needs an easement, said above.
     ...routeLines(r, scored)
       .filter((l) => l.kind === "easement" && l.outsideFt > 0)
-      .map((l) => `${LINE_LABEL[l.kind]}: ${VERIFY_RIGHT_OF_WAY}`),
+      .map((l) => `${lineLabel(l, names)}: ${VERIFY_RIGHT_OF_WAY}`),
     // An existing drive it starts from, steeper than the veto (owner, #116): warned of here, as for any route.
     existingSteepLine(scored.existing),
   ].filter((w): w is string => !!w);
@@ -520,16 +535,20 @@ function garden(r: Result, K: CardConfig): Row {
 
 // ---------- the card ----------
 
-/** The gates and rows: the same for everyone. */
+/**
+ * The gates and rows: the same for everyone. `names`: the parcel's names for its drawn lines (lines.ts), when the
+ * report is drawn with the parcel; without them a line reads by its kind.
+ */
 export function cardFacts(
   r: Result,
   K: CardConfig = SCREEN_CONSTANTS.card,
   build: BuildConfig = SCREEN_CONSTANTS.build,
+  names?: LineNames,
 ): CardFacts {
   const footprintAc = footprintFt2(build) / FT2_PER_ACRE;
   const site = buildSite(r);
   return {
-    gates: [floodplain(r, site), access(r), easement(r), septic(r)],
+    gates: [floodplain(r, site), access(r, names), easement(r, names), septic(r)],
     rows: [
       elevation(site, K),
       homesite(r),
@@ -606,5 +625,9 @@ export function cardFor(facts: CardFacts, person: Person, K: CardConfig = SCREEN
 }
 
 /** The card for a result and a person. */
-export const reportCard = (r: Result, person: Person, K: CardConfig = SCREEN_CONSTANTS.card): Card =>
-  cardFor(cardFacts(r, K), person, K);
+export const reportCard = (
+  r: Result,
+  person: Person,
+  names?: LineNames,
+  K: CardConfig = SCREEN_CONSTANTS.card,
+): Card => cardFor(cardFacts(r, K, SCREEN_CONSTANTS.build, names), person, K);

@@ -15,6 +15,33 @@ export const LINE_LABEL: Record<DrawnLine["kind"], string> = {
   easement: "Easement (user-drawn)",
 };
 
+/** A line the result has that the parcel no longer does (owner, 2026-10-14): by its kind. */
+export const DELETED_LINE_LABEL: Record<DrawnLine["kind"], string> = {
+  track: "Track (user-drawn, since deleted)",
+  easement: "Easement (user-drawn, since deleted)",
+};
+
+/**
+ * The user's names for the parcel's lines, by id (owner, 2026-10-14): read from the parcel when the report is drawn, so a
+ * line renamed after the screen reads by its new name. The screen result keeps only the id; no saved data changes.
+ */
+export type LineNames = ReadonlyMap<string, string>;
+
+export const lineNamesOf = (markup: readonly { id: string; name: string }[]): LineNames =>
+  new Map(markup.map((m) => [m.id, m.name]));
+
+/**
+ * A drawn line in a sentence: its current name; "Track (user-drawn, since deleted)" when the parcel no longer has it;
+ * "Track (user-drawn)" when the report is drawn without the parcel's lines (`names` absent).
+ */
+export function lineLabel(l: DrawnLine, names?: LineNames): string {
+  if (!names) return LINE_LABEL[l.kind];
+  return names.get(l.id) ?? DELETED_LINE_LABEL[l.kind];
+}
+
+/** Whether `lineLabel` gives the user's own name, which a sentence keeps as typed (no lower-casing). */
+export const isUserName = (l: DrawnLine, names?: LineNames): boolean => !!names?.has(l.id);
+
 /** What the Access and Easement gates say of a drawn line the driveway uses (owner, #110). */
 export const VERIFY_RIGHT_OF_WAY = "verify it's a legal right-of-way";
 

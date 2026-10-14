@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { HelpProvider } from "@/components/Help/HelpDialog";
 import { CardPanel } from "@/components/Results/card/CardPanel";
+import { lineNamesOf } from "@/lib/report/lines";
 import { evaluationPoint } from "@/components/Results/blocks/types";
 import { parcelName } from "@/lib/client/historyRows";
 import { openOnMap } from "@/lib/client/openOnMap";
@@ -66,6 +67,7 @@ export function Compare() {
       askingPrice: b.askingPrice,
       state: s?.state ?? "none",
       result: s?.result ?? null,
+      lineNames: lineNamesOf(b.markup),
     };
   });
   const loaded = screens.size === built.length;
@@ -250,6 +252,7 @@ export function Compare() {
               point={evaluationPoint(opened.result)}
               dw={config.dw}
               about={opened.name}
+              lineNames={opened.lineNames}
               onClose={() => setPanel(null)}
             />
           </div>

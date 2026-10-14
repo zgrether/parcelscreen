@@ -16,7 +16,7 @@ import { DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { BOTTOMLAND_LEAD, bottomland } from "@/lib/screen/soils";
 import type { Card, GateStatus } from "@/lib/report/card";
 import { panelText, rulebookHref, type PanelKey } from "@/lib/report/cardPanels";
-import { lineOutcome } from "@/lib/report/lines";
+import { lineOutcome, type LineNames } from "@/lib/report/lines";
 import { meaningsFor } from "@/lib/report/meanings";
 import { scalesFor, type Scale } from "@/lib/report/scales";
 import type { PartialScreenResult, ScreenResult, Step, UserConfig } from "@/lib/screen/types";
@@ -78,6 +78,7 @@ export function CardPanel({
   dw = DEFAULT_USER_CONFIG.dw,
   about,
   lines,
+  lineNames,
   onClose,
 }: {
   panel: PanelKey;
@@ -93,6 +94,8 @@ export function CardPanel({
   about?: string;
   /** The parcel's drawn lines, for the Easement panel's "Your lines" (owner, A); the explorer's, not Compare's. */
   lines?: YourLines;
+  /** The parcel's names for its drawn lines, for the report's sentences (owner, 2026-10-14); `card` uses the same. */
+  lineNames?: LineNames;
   onClose(): void;
 }) {
   const help = useHelp();
@@ -153,7 +156,7 @@ export function CardPanel({
         {/* Owner's wording (#111): added above the moved sections, nothing replaced. */}
         <p className="tiny muted panel-from-note">{FROM_THE_REPORT_NOTE}</p>
         {panelSections(panel).map(({ Block, heading }) => {
-          const body = Block({ result, point, variant: "panel", running });
+          const body = Block({ result, point, variant: "panel", running, lineNames });
           if (body === null) return null;
           const h = heading(result, point);
           return (

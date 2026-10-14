@@ -15,6 +15,7 @@ import { useKeptScreens } from "@/lib/client/useKeptScreens";
 import { loadUserConfig } from "@/lib/client/userConfig";
 import { breakdown } from "@/lib/report/breakdown";
 import { reportCard, type Person } from "@/lib/report/card";
+import { lineNamesOf } from "@/lib/report/lines";
 import { rulebook } from "@/lib/report/rulebook";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { BreakdownBar } from "./BreakdownBar";
@@ -58,7 +59,8 @@ export function Rulebook() {
     )?.key ??
     null;
   const result = key ? (screens.get(key)?.result ?? null) : null;
-  const card = result ? reportCard(result, person) : null;
+  const lines = built.find((b) => b.key === key)?.markup;
+  const card = result ? reportCard(result, person, lines && lineNamesOf(lines)) : null;
   const bd = card ? breakdown(card) : null;
 
   return (

@@ -5,6 +5,7 @@
  */
 import type { PartialScreenResult, ScreenResult, Step } from "@/lib/screen/types";
 import type { LatLon } from "@/lib/screen/util";
+import type { LineNames } from "@/lib/report/lines";
 import type { EvaluationPoint } from "@/lib/report/point";
 
 export type { EvaluationPoint };
@@ -25,6 +26,8 @@ export interface BlockProps {
   actions?: BlockActions;
   /** While a run is in progress (panel only): the step running now, and its progress message if it sends one. */
   running?: { step: Step; message?: string };
+  /** The parcel's names for its drawn lines (owner, 2026-10-14); a line reads by its kind without them. */
+  lineNames?: LineNames;
 }
 
 export interface BlockActions {

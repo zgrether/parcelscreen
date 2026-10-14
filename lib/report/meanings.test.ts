@@ -51,6 +51,17 @@ describe("What it means for you", () => {
     });
   });
 
+  it("the Garden's None band doesn't say wooded ground is ruled out: the search reads lidar and soil (#128; §9.39)", () => {
+    expect(meaningsFor("garden", 0)).toEqual([
+      {
+        for: "Garden",
+        text: "No gentle, sunny ground for beds, even after clearing: terraces or raised beds on the slope.",
+      },
+    ]);
+    const garden = MEANINGS.garden.flat().map((m) => m.text);
+    for (const t of garden) expect(t, t).not.toMatch(/\bopen\b|\bcleared\b/i);
+  });
+
   it("Grayson 6273's homesite reads its own bands", () => {
     const r = expectedOf("grayson-mud-creek-6273", "run");
     const lines = scalesFor("homesite", r, reportCard(r, "zach")).flatMap((sc) => meaningsFor(sc.id, sc.at));
