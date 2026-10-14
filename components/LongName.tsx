@@ -2,13 +2,22 @@
 /**
  * A parcel's name where there's little room (owner, after #130): cut short with an ellipsis, the whole name on hover
  * (its title) or on a long press on a phone (a tooltip, until the next tap). The parcel's own pages show the full name.
+ * With `full`, the text shown is short and `full` is what hover and a long press tell (a state, and its county).
  */
 import { useEffect, useRef, useState, type MouseEvent, type PointerEvent } from "react";
 
 /** A press this long shows the whole name, ms. */
 const LONG_PRESS_MS = 500;
 
-export function LongName({ name, className = "" }: { name: string; className?: string }) {
+export function LongName({
+  name,
+  full = name,
+  className = "",
+}: {
+  name: string;
+  full?: string;
+  className?: string;
+}) {
   const [shown, setShown] = useState(false);
   const timer = useRef<number | null>(null);
   // The click a long press ends with isn't a tap on whatever holds the name (a row, a button).
@@ -32,7 +41,7 @@ export function LongName({ name, className = "" }: { name: string; className?: s
   return (
     <span
       className={`long-name ${className}`}
-      title={name}
+      title={full}
       onPointerDown={(e: PointerEvent) => {
         if (e.pointerType !== "touch") return;
         stop();
@@ -60,7 +69,7 @@ export function LongName({ name, className = "" }: { name: string; className?: s
       <span className="long-name-text">{name}</span>
       {shown && (
         <span className="long-name-tip" role="tooltip">
-          {name}
+          {full}
         </span>
       )}
     </span>

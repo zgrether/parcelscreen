@@ -65,8 +65,25 @@ export function parcelState(p: WorkingParcel): StateCode | null {
   return STATES.find((s) => kmToState(s, [lat, lon]) <= 0) ?? null;
 }
 
+/** "Floyd Co." from a county record's "Floyd County", "FLOYD" or "Floyd". */
+export function countyShort(county: string): string {
+  const c = county.trim().replace(/\s+county$/i, "");
+  return `${c.toLowerCase().replace(/\b[a-z]/g, (x) => x.toUpperCase())} Co.`;
+}
+
+/**
+ * The name a row shows (owner, after #133): the household's name for the parcel, else "{parcel ID} · {County} Co.",
+ * so two parcels with the same number in different counties read apart.
+ */
+export function listName(p: WorkingParcel, county: string | null): string {
+  const { name } = parcelName(p);
+  if (p.name.trim() || !county) return name;
+  return `${name} · ${countyShort(county)}`;
+}
+
 export function libraryRow(p: WorkingParcel, kept: KeptScreen | undefined): LibraryRow {
-  const { name, acres } = parcelName(p);
+  const { acres } = parcelName(p);
+  const county = p.pieces.map((x) => parcelFacts(x.geo, x.props).county).find((c) => !!c) ?? null;
   const result = kept?.state === "ok" ? kept.result : null;
   const graded = (person: "zach" | "julie"): Graded | null => {
     if (!result) return null;
@@ -77,11 +94,11 @@ export function libraryRow(p: WorkingParcel, kept: KeptScreen | undefined): Libr
     julie = graded("julie");
   return {
     key: p.key!,
-    name,
+    name: listName(p, county),
     acres,
     price: p.askingPrice,
     state: parcelState(p),
-    county: p.pieces.map((x) => parcelFacts(x.geo, x.props).county).find((c) => !!c) ?? null,
+    county,
     status: p.status,
     milestones: p.milestones,
     zach,
@@ -217,3 +234,41 @@ export function readLibraryView(raw: string): LibraryView {
   const v = ViewSchema.safeParse(JSON.parse(raw));
   return v.success ? v.data : DEFAULT_VIEW;
 }
+
+// ---------- what the filters hide (owner, #132) ----------
+
+/** Everything shown: every status and verdict, no milestone, price or state limit ("Show all"). */
+export const ALL_FILTERS: LibraryFilters = {
+  status: ["inProgress", "saved", "archived"],
+  household: [...VERDICT_CHOICES],
+  zach: [...VERDICT_CHOICES],
+  julie: [...VERDICT_CHOICES],
+  milestones: [],
+  priceMin: null,
+  priceMax: null,
+  state: null,
+};
+
+/** The parcels the filters hide, and whether they're all archived ones only the status filter hides. */
+export interface Hidden {
+  n: number;
+  onlyArchived: boolean;
+}
+
+export function hiddenBy(rows: readonly LibraryRow[], f: LibraryFilters): Hidden | null {
+  const hidden = rows.filter((r) => !passes(r, f));
+  if (!hidden.length) return null;
+  const withArchived: LibraryFilters = { ...f, status: [...f.status, "archived"] };
+  return {
+    n: hidden.length,
+    onlyArchived: hidden.every((r) => r.status === "archived" && passes(r, withArchived)),
+  };
+}
+
+/** The list's last line: "3 hidden by filters", or "2 archived parcels hidden". */
+export const hiddenWords = (h: Hidden): string =>
+  h.onlyArchived ? `${h.n} archived parcel${h.n === 1 ? "" : "s"} hidden` : `${h.n} hidden by filters`;
+
+/** What its button shows: the archived parcels (the status filter only), or everything. */
+export const showHidden = (h: Hidden, f: LibraryFilters): LibraryFilters =>
+  h.onlyArchived ? { ...f, status: [...f.status, "archived"] } : ALL_FILTERS;

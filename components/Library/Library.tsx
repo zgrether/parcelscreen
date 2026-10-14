@@ -7,14 +7,16 @@
  */
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import { HelpProvider } from "@/components/Help/HelpDialog";
 import { LongName } from "@/components/LongName";
 import { shortPrice } from "@/lib/client/askingPrice";
 import {
-  DEFAULT_VIEW,
+  hiddenBy,
+  hiddenWords,
   libraryRow,
   passes,
+  showHidden,
   sortRows,
   type Graded,
   type LibraryRow,
@@ -36,6 +38,25 @@ import { ParcelDetail } from "./ParcelDetail";
 
 const when = (iso: string) => new Date(iso).toLocaleDateString([], { month: "short", day: "numeric" });
 
+/**
+ * A row or card opens its parcel: a click anywhere on it, or Enter or Space when it has focus (owner, after #133). The
+ * Compare tick is its own: its clicks don't reach the row.
+ */
+const opens = (open: () => void) => ({
+  tabIndex: 0,
+  onClick: open,
+  onKeyDown: (e: KeyboardEvent) => {
+    if (e.target !== e.currentTarget || (e.key !== "Enter" && e.key !== " ")) return;
+    e.preventDefault();
+    open();
+  },
+});
+const ownClick = { onClick: (e: MouseEvent) => e.stopPropagation() };
+
+/** The state, with its county on hover or a long press. */
+const State = ({ r }: { r: LibraryRow }) =>
+  r.state ? <LongName name={r.state} full={r.county ?? r.state} className="lib-state" /> : <>–</>;
+
 export function Library() {
   const router = useRouter();
   const [store, setStore] = useState<ParcelStore>(() => getPref("ps.parcels") ?? EMPTY_STORE);
@@ -50,22 +71,26 @@ export function Library() {
   const built = store.built;
   const screens = useKeptScreens(built);
   const rows = useMemo(() => built.map((p) => libraryRow(p, screens.get(p.key!))), [built, screens]);
+  const hidden = hiddenBy(rows, view.filters);
   const shown = sortRows(
     rows.filter((r) => passes(r, view.filters)),
     view.sort,
   );
 
   /** A parcel changed here (its status, a milestone): saved in place, as the explorer would. */
-  const change = (key: string, edit: (p: WorkingParcel) => WorkingParcel) => {
-    const next = editBuilt(store, key, edit, new Date().toISOString());
-    if (next === store) return;
+  // Changes save from the latest store, not this render's: a debounced note can land after another change.
+  const latest = useRef(store);
+  const keep = (next: ParcelStore) => {
+    latest.current = next;
     setStore(next);
     setPref("ps.parcels", next);
   };
+  const change = (key: string, edit: (p: WorkingParcel) => WorkingParcel) => {
+    const next = editBuilt(latest.current, key, edit, new Date().toISOString());
+    if (next !== latest.current) keep(next);
+  };
   const remove = (key: string) => {
-    const next = removeBuilt(store, key);
-    setStore(next);
-    setPref("ps.parcels", next);
+    keep(removeBuilt(latest.current, key));
     setOpened(null);
   };
   const compare = () => {
@@ -102,26 +127,28 @@ export function Library() {
         ) : (
           <>
             <LibraryControls view={view} setView={setView} rows={rows} />
-            <p className="tiny muted lib-count" role="status">
-              {shown.length === rows.length
-                ? `${rows.length} parcel${rows.length === 1 ? "" : "s"}`
-                : `Showing ${shown.length} of ${rows.length}: the filters hide ${rows.length - shown.length}.`}
+            <p className="tiny muted lib-count">
+              {shown.length} parcel{shown.length === 1 ? "" : "s"}
             </p>
             {shown.length === 0 ? (
-              <p className="muted">
-                No parcel matches these filters.{" "}
-                <button
-                  className="link-btn"
-                  onClick={() => setView({ ...view, filters: DEFAULT_VIEW.filters })}
-                >
-                  Reset the filters
-                </button>
-              </p>
+              <p className="muted">No parcel matches these filters.</p>
             ) : (
               <>
                 <LibraryTable rows={shown} ticked={ticked} toggle={toggle} open={setOpened} />
                 <LibraryCards rows={shown} ticked={ticked} toggle={toggle} open={setOpened} />
               </>
+            )}
+            {/* What the filters hide, last (owner, #132): its button shows them; desktop and phone alike. */}
+            {hidden && (
+              <p className="tiny muted lib-hidden" role="status">
+                {hiddenWords(hidden)} ·{" "}
+                <button
+                  className="link-btn"
+                  onClick={() => setView({ ...view, filters: showHidden(hidden, view.filters) })}
+                >
+                  {hidden.onlyArchived ? "Show" : "Show all"}
+                </button>
+              </p>
             )}
           </>
         )}
@@ -196,8 +223,13 @@ function LibraryTable({ rows, ticked, toggle, open }: RowsProps) {
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.key} className={r.status === "archived" ? "lib-archived" : undefined}>
-              <td>
+            <tr
+              key={r.key}
+              className={r.status === "archived" ? "lib-row lib-archived" : "lib-row"}
+              aria-label={`Open ${r.name}`}
+              {...opens(() => open(r.key))}
+            >
+              <td {...ownClick}>
                 <input
                   type="checkbox"
                   aria-label={`Compare ${r.name}`}
@@ -206,13 +238,13 @@ function LibraryTable({ rows, ticked, toggle, open }: RowsProps) {
                 />
               </td>
               <td className="lib-name">
-                <button className="lib-open" onClick={() => open(r.key)}>
-                  <LongName name={r.name} />
-                </button>
+                <LongName name={r.name} className="lib-open" />
               </td>
               <td className="num">{r.acres !== null ? r.acres.toFixed(1) : "–"}</td>
               <td className="num">{r.price !== null ? shortPrice(r.price) : "–"}</td>
-              <td title={r.county ?? undefined}>{r.state ?? "–"}</td>
+              <td>
+                <State r={r} />
+              </td>
               <td>{statusCell(r)}</td>
               <td>
                 <VerdictWord v={r.household} unscreened={r.unscreened} />
@@ -237,12 +269,16 @@ function LibraryCards({ rows, ticked, toggle, open }: RowsProps) {
   return (
     <ul className="lib-cards">
       {rows.map((r) => (
-        <li key={r.key} className={r.status === "archived" ? "lib-card lib-archived" : "lib-card"}>
+        <li
+          key={r.key}
+          className={r.status === "archived" ? "lib-card lib-row lib-archived" : "lib-card lib-row"}
+          aria-label={`Open ${r.name}`}
+          {...opens(() => open(r.key))}
+        >
           <div className="lib-card-head">
-            <button className="lib-open" onClick={() => open(r.key)}>
-              <LongName name={r.name} />
-            </button>
+            <LongName name={r.name} className="lib-open" />
             <input
+              {...ownClick}
               type="checkbox"
               aria-label={`Compare ${r.name}`}
               checked={ticked.has(r.key)}
@@ -250,14 +286,15 @@ function LibraryCards({ rows, ticked, toggle, open }: RowsProps) {
             />
           </div>
           <div className="tiny">{statusCell(r)}</div>
-          <div className="tiny muted">
+          <div className="tiny muted lib-card-facts">
             {[
               r.acres !== null ? `${r.acres.toFixed(1)} ac` : null,
               r.price !== null ? shortPrice(r.price) : null,
-              r.state,
             ]
               .filter(Boolean)
-              .join(" · ")}
+              .map((t) => `${t} · `)
+              .join("")}
+            <State r={r} />
           </div>
           <div className="lib-chips">
             <span className="lib-chip">

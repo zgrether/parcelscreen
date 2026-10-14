@@ -32,6 +32,7 @@ import type { Side } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
 import { lineLayer, type LayerId } from "./layers";
 import { withArchive, withMilestone, withRestore, withStatus } from "@/lib/client/parcelStatus";
+import { withAskingPrice, withListing, withNotes } from "@/lib/client/parcelEdits";
 
 /** "track" and "easement" draw a line with the parcel (follow-up 34), with the Draw tool's corners. */
 export type Mode = "draw" | "house" | "split" | "combine" | "track" | "easement" | null;
@@ -354,12 +355,19 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       if (!open || a.serial !== s.serial || open.screenIds.includes(a.id)) return s;
       return { ...s, store: save({ ...open, screenIds: [...open.screenIds, a.id] }, a.stamp) };
     case "notes":
-      // A save that lands after another parcel opened (a debounce, a blur) is dropped, not misfiled.
-      if (!open || a.serial !== s.serial || a.text === open.notes) return s;
-      return {
-        ...s,
-        store: save({ ...open, notes: a.text, notesAt: a.text.trim() ? a.stamp.now : null }, a.stamp),
-      };
+    case "askingPrice":
+    case "listing": {
+      // A save that lands after another parcel opened (a debounce, a blur) is dropped, not misfiled; one that
+      // changes nothing saves nothing. The price's date is the entry's (owner, #101).
+      if (!open || a.serial !== s.serial) return s;
+      const next =
+        a.type === "notes"
+          ? withNotes(open, a.text, a.stamp.now)
+          : a.type === "askingPrice"
+            ? withAskingPrice(open, a.price, a.stamp.now)
+            : withListing(open, a.patch);
+      return next === open ? s : { ...s, store: save(next, a.stamp) };
+    }
     case "startLine":
       // Only with a parcel open: a line belongs to one.
       if (!open) return s;
@@ -440,16 +448,6 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       const layer = a.type === "markupDelete" && s.layer === lineLayer(a.id) ? null : s.layer;
       return { ...s, layer, store: save({ ...open, markup }, a.stamp) };
     }
-    case "askingPrice":
-      // As notes: a save after another parcel opened is dropped. The date is the entry's (owner, #101).
-      if (!open || a.serial !== s.serial || a.price === open.askingPrice) return s;
-      return {
-        ...s,
-        store: save(
-          { ...open, askingPrice: a.price, askingPriceAt: a.price === null ? null : a.stamp.now },
-          a.stamp,
-        ),
-      };
     case "status":
     case "archive":
     case "restore":
@@ -465,13 +463,6 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
               ? withRestore(open)
               : withMilestone(open, a.which, a.date);
       return next === open ? s : { ...s, store: save(next, a.stamp) };
-    }
-    case "listing": {
-      // As notes: a save after another parcel opened is dropped; one that changes nothing saves nothing.
-      if (!open || a.serial !== s.serial) return s;
-      const next = { ...open, ...a.patch };
-      if ((Object.keys(a.patch) as ListingField[]).every((k) => next[k] === open[k])) return s;
-      return { ...s, store: save(next, a.stamp) };
     }
     case "toggleHidden": {
       if (!open) return s;

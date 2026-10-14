@@ -19,9 +19,11 @@ import { pieceDedupeKey } from "@/lib/geo/recipe";
 import type { ParcelRecord } from "@/lib/geo/parcels";
 import { LatLonSchema, RecordSchema } from "./currentParcel";
 import {
+  nameFromNotes,
   NO_LISTING,
   NO_STATUS,
   ParcelStoreSchema,
+  withNameFromNotes,
   type ParcelStore,
   type WorkingParcel,
 } from "./parcelStore";
@@ -300,18 +302,8 @@ function fromPrototypeSaved(s: z.infer<typeof ProtoSavedSchema>, key: string, no
   return notes ? { ...p, notes, notesAt: at, name: nameFromNotes(notes) } : p;
 }
 
-/** A name read from the notes is used only this short (owner, #130). */
-export const NOTES_NAME_MAX = 60;
-
-/**
- * The parcel's name from its notes' first line (owner, #130): the prototype's saved name ("Name: {name}", without the
- * label), else the line itself, when it's NOTES_NAME_MAX characters or less; otherwise none. The notes are unchanged.
- */
-export function nameFromNotes(notes: string): string {
-  const first = (notes.split("\n")[0] ?? "").trim();
-  const name = first.startsWith("Name: ") ? first.slice("Name: ".length).trim() : first;
-  return name.length <= NOTES_NAME_MAX ? name : "";
-}
+// The name read from the notes' first line lives with the store (it also runs once on load): re-exported here.
+export { nameFromNotes, NOTES_NAME_MAX } from "./parcelStore";
 
 /**
  * Reads a file against the current History and settings. Nothing is written: the result is the whole plan,
@@ -357,7 +349,8 @@ export function planImport(
     const f = PortFileSchema.safeParse(all ? { ...json, screens: all.filter((x) => !older(x)) } : json);
     if (!f.success) return { ok: false, errors: issues("file", f.error) };
     kind = "port";
-    incoming = f.data.parcels.built as WorkingParcel[];
+    // A parcel exported before it had a name takes one from its notes' "Name:" line (owner, #133).
+    incoming = (f.data.parcels.built as WorkingParcel[]).map(withNameFromNotes);
     fileScreens = f.data.screens as ScreenRecord[];
     rawCfg = f.data.cfg;
   } else if ("saved" in json || "cfg" in json) {

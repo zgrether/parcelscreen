@@ -4,13 +4,19 @@ import { loadFixture } from "@/test/support/fixtures";
 import { built, county } from "@/test/support/parcels";
 import { drawnPart } from "@/lib/geo/recipe";
 import {
+  ALL_FILTERS,
   DEFAULT_FILTERS,
   DEFAULT_VIEW,
+  hiddenBy,
+  countyShort,
+  hiddenWords,
   householdVerdict,
+  listName,
   libraryRow,
   parcelState,
   passes,
   readLibraryView,
+  showHidden,
   sortRows,
   type LibraryRow,
 } from "./library";
@@ -60,6 +66,25 @@ describe("a parcel's row", () => {
     const ferney = loadFixture("ferney-creek-52-47A").input.polygon;
     expect(parcelState(built("d", { pieces: [drawnPart(ferney as never)] }))).toBe("VA");
     expect(parcelState(built("c", { pieces: [{ ...county(-81.355, "x"), source: "saved" }] }))).toBe("VA");
+  });
+});
+
+describe("an unnamed parcel's name on the list (owner, after #133)", () => {
+  it("'{parcel ID} · {County} Co.'; a typed name as typed", () => {
+    expect(countyShort("Floyd County")).toBe("Floyd Co.");
+    expect(countyShort("ASHE")).toBe("Ashe Co.");
+    expect(countyShort("johnson")).toBe("Johnson Co.");
+    const floyd = built("f", {
+      pieces: [{ ...county(-81.355, "52-47A"), props: { PARCELID: "52-47A", LOCALITY: "Floyd County" } }],
+    });
+    expect(listName(floyd, "Floyd County")).toBe("52-47A · Floyd Co.");
+    expect(libraryRow(floyd, undefined)).toMatchObject({
+      name: "52-47A · Floyd Co.",
+      county: "Floyd County",
+    });
+    expect(libraryRow({ ...floyd, name: "Ferney Creek" }, undefined).name).toBe("Ferney Creek");
+    // No county known: the parcel ID alone.
+    expect(listName(built("n"), null)).toBe("52-47A");
   });
 });
 
@@ -125,5 +150,36 @@ describe("the remembered view (ps.library)", () => {
     const v = { ...DEFAULT_VIEW, sort: { key: "price" as const, reversed: true } };
     expect(readLibraryView(JSON.stringify(v))).toEqual(v);
     expect(readLibraryView(JSON.stringify({ filters: {} }))).toEqual(DEFAULT_VIEW);
+  });
+});
+
+describe("what the filters hide, at the list's end (owner, #132 review)", () => {
+  const archived = row({ key: "x", status: "archived", household: "Contender" });
+  const pass = row({ key: "p", household: "Pass" });
+  const live = row({ key: "l", household: "Contender" });
+  it("nothing hidden: no line", () => {
+    expect(hiddenBy([live], DEFAULT_FILTERS)).toBeNull();
+  });
+  it("only archived parcels the status filter hides: '2 archived parcels hidden', and Show adds Archived", () => {
+    const h = hiddenBy([live, archived, { ...archived, key: "y" }], DEFAULT_FILTERS)!;
+    expect(h).toEqual({ n: 2, onlyArchived: true });
+    expect(hiddenWords(h)).toBe("2 archived parcels hidden");
+    expect(hiddenWords({ n: 1, onlyArchived: true })).toBe("1 archived parcel hidden");
+    expect(showHidden(h, DEFAULT_FILTERS)).toEqual({
+      ...DEFAULT_FILTERS,
+      status: ["inProgress", "saved", "archived"],
+    });
+  });
+  it("anything else hidden: '{n} hidden by filters', and Show all shows everything", () => {
+    const h = hiddenBy([live, archived, pass], DEFAULT_FILTERS)!;
+    expect(h).toEqual({ n: 2, onlyArchived: false });
+    expect(hiddenWords(h)).toBe("2 hidden by filters");
+    expect(showHidden(h, DEFAULT_FILTERS)).toBe(ALL_FILTERS);
+    for (const r of [live, archived, pass]) expect(passes(r, ALL_FILTERS)).toBe(true);
+    // An archived parcel another filter hides too isn't "only archived".
+    expect(hiddenBy([{ ...archived, household: "Pass" }], DEFAULT_FILTERS)).toEqual({
+      n: 1,
+      onlyArchived: false,
+    });
   });
 });

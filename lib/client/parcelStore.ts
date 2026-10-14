@@ -196,6 +196,39 @@ export const NO_LISTING: Pick<WorkingParcel, ListingField> = {
 };
 export type ListingField = "name" | "listingUrl" | "listingAcres" | "agent";
 
+/** A name read from the notes is used only this short (owner, #130). */
+export const NOTES_NAME_MAX = 60;
+
+const short = (name: string) => (name.length <= NOTES_NAME_MAX ? name : "");
+/** The text after "Name:" on the notes' first line (any case, spaces or none), or null when it doesn't start so. */
+const nameLine = (notes: string): string | null =>
+  /^name\s*:\s*(.*)$/i.exec((notes.split("\n")[0] ?? "").trim())?.[1]?.trim() ?? null;
+
+/**
+ * A prototype import's name (owner, #130, #133): the text after "Name:" on the notes' first line (the prototype's
+ * saved name), else the line itself, when it's NOTES_NAME_MAX characters or less; otherwise none.
+ */
+export function nameFromNotes(notes: string): string {
+  return short(nameLine(notes) ?? (notes.split("\n")[0] ?? "").trim());
+}
+
+/**
+ * A parcel with no name whose notes start with "Name: …" takes that name (owner, #133: an import, and once on load for
+ * parcels imported before names existed). The notes stay as they are; a parcel with a name is left alone.
+ */
+export function withNameFromNotes(p: WorkingParcel): WorkingParcel {
+  if (p.name.trim()) return p;
+  const name = short(nameLine(p.notes) ?? "");
+  return name ? { ...p, name } : p;
+}
+
+/** Every parcel in the store, as withNameFromNotes (run once per browser on load, owner #133: prefs.ts). */
+export const withNamesFromNotes = (s: ParcelStore): ParcelStore => ({
+  ...s,
+  open: s.open && withNameFromNotes(s.open),
+  built: s.built.map(withNameFromNotes),
+});
+
 /** A plain parcel: one county record, nothing else yet. */
 export function plainParcel(record: ParcelRecord, now: string): WorkingParcel {
   return {

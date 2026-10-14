@@ -395,6 +395,17 @@ describe("a prototype export ({ cfg, saved[] }, L1605)", () => {
     expect(p.sameRecord).toEqual([]);
   });
 
+  it("a port file's unnamed parcel takes its name from its notes' 'Name:' line on import; a named one keeps its own (#133)", () => {
+    const notes = "name : Ferney Creek, Floyd County VA, parcel 52-47A\n\nSpring.";
+    const unnamed = { ...STORE.built[0]!, name: "", notes };
+    const named = { ...STORE.built[1]!, name: "Macks", notes: "Name: something else" };
+    const added = plan(file({}, { ...STORE, built: [unnamed, named] })).added;
+    expect(added.map((p) => [p.name, p.notes])).toEqual([
+      ["Ferney Creek, Floyd County VA, parcel 52-47A", notes],
+      ["Macks", "Name: something else"],
+    ]);
+  });
+
   it("the notes' first line names the parcel when it's 60 characters or less; the notes stay (owner, #130)", () => {
     const named = plan(proto(undefined, [saved()])).added[0]!;
     expect(named).toMatchObject({

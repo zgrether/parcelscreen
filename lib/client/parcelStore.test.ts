@@ -10,6 +10,8 @@ import {
   drawnInput,
   EMPTY_STORE,
   fromV1,
+  nameFromNotes,
+  withNameFromNotes,
   isBuilt,
   loadParcelStore,
   openBuilt,
@@ -20,6 +22,8 @@ import {
   type WorkingParcel,
 } from "./parcelStore";
 import { getPref, setPref, type KeyValueStore } from "./prefs";
+import { libraryRow } from "./library";
+import { statusLine } from "./parcelStatus";
 
 const sq = (x0: number) =>
   polygon([
@@ -157,6 +161,42 @@ describe("storage (ps.parcels)", () => {
     return { data, getItem: (k) => data.get(k) ?? null, setItem: (k, v) => void data.set(k, v) };
   };
 
+  it("once per browser (owner, #133): an unnamed parcel takes its name from its notes' 'Name:' line on load", () => {
+    const kv = memory();
+    const notes = "Name: Ferney Creek, Floyd County VA, parcel 52-47A\n\nSpring on the north line.";
+    const s = commitOpen(EMPTY_STORE, { ...plain, notes }, T0, keys());
+    const named = { ...s.built[0]!, key: "named", name: "Kept as typed", notes };
+    kv.setItem("ps.parcels", writeParcelStore({ ...s, built: [...s.built, named] }));
+    const first = getPref("ps.parcels", kv)!;
+    expect(first.built.map((b) => b.name)).toEqual([
+      "Ferney Creek, Floyd County VA, parcel 52-47A",
+      "Kept as typed", // a name already there is left alone
+    ]);
+    expect(first.open!.name).toBe("Ferney Creek, Floyd County VA, parcel 52-47A");
+    expect(first.built[0]!.notes).toBe(notes); // the notes stay
+    expect(getPref("ps.namesFromNotes", kv)).toBe(true);
+    // Saved back: and a name cleared on purpose afterwards isn't filled again.
+    expect(readParcelStore(kv.getItem("ps.parcels")!)!.built[0]!.name).toBe(first.built[0]!.name);
+    setPref(
+      "ps.parcels",
+      { ...first, open: { ...first.open!, name: "" }, built: [{ ...first.built[0]!, name: "" }] },
+      kv,
+    );
+    expect(getPref("ps.parcels", kv)!.built[0]!.name).toBe("");
+  });
+
+  it("the 'Name:' line in any case, with or without spaces; 60 characters at most (owner, #130, #133)", () => {
+    expect(nameFromNotes("Name: Ferney Creek")).toBe("Ferney Creek");
+    expect(nameFromNotes("name:Ferney Creek\nmore")).toBe("Ferney Creek");
+    expect(nameFromNotes("  NAME :   Ferney Creek  ")).toBe("Ferney Creek");
+    expect(nameFromNotes("Gate code 1234\nName: later")).toBe("Gate code 1234"); // only the first line
+    expect(nameFromNotes(`Name: ${"A".repeat(61)}`)).toBe("");
+    expect(nameFromNotes("")).toBe("");
+    // On import and load only a "Name:" line names a parcel; a plain first line is for prototype imports (#130).
+    expect(withNameFromNotes({ ...plain, notes: "Gate code 1234" }).name).toBe("");
+    expect(withNameFromNotes({ ...plain, notes: "NAME: Ridge tract" }).name).toBe("Ridge tract");
+  });
+
   it("round-trips through prefs", () => {
     const kv = memory();
     expect(getPref("ps.parcels", kv)).toBeNull();
@@ -178,6 +218,30 @@ describe("storage (ps.parcels)", () => {
       null,
     ])
       expect(readParcelStore(JSON.stringify(bad))).toBeNull();
+  });
+
+  it("a store saved before WF2a (no status, archive or milestones) loads every parcel in progress (owner, #133)", () => {
+    const s = commitOpen(EMPTY_STORE, { ...plain, notes: "kept before WF2a" }, T0, keys());
+    const raw = JSON.parse(writeParcelStore(s)) as {
+      open: Record<string, unknown>;
+      built: Record<string, unknown>[];
+    };
+    for (const p of [raw.open, ...raw.built]) {
+      delete p.status;
+      delete p.archived;
+      delete p.milestones;
+    }
+    const back = readParcelStore(JSON.stringify(raw))!;
+    for (const p of [back.open!, ...back.built])
+      expect(p).toMatchObject({
+        status: "inProgress",
+        archived: null,
+        milestones: { walked: null, offered: null },
+        notes: "kept before WF2a",
+      });
+    // And on the list it reads "In progress".
+    expect(statusLine(back.built[0]!)).toBe("In progress");
+    expect(libraryRow(back.built[0]!, undefined).status).toBe("inProgress");
   });
 
   it("a parcel kept before the asking price existed loads with none (B2a)", () => {
