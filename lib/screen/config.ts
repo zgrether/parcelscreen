@@ -548,6 +548,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
       zach: { elevation: 25, homesite: 25, sky: 10, room: 15, trails: 10, town: 5, garden: 10 },
       julie: { elevation: 10, homesite: 15, sky: 10, room: 10, trails: 25, town: 10, garden: 20 },
     },
+    // WF1 (owner, #128): the card says so when the listing's acres differ from the boundary's by more than this.
+    listingAcresPct: 10,
   },
   // Derived for the card and Stage 3 (value-ranking.md §5.1–5.3; VR3b): proposals, calibrated in follow-up 47.
   foundationType: { shallowRockCm: 50 }, // bedrock shallower than this moves the type one step toward piers

@@ -55,7 +55,7 @@ test("switching keeps screened parcels live: back to one with no re-run and no n
     .getByRole("button", { name: "Open", exact: true })
     .click();
   await expect(page.locator(".map-hint")).toHaveText(BUSY_TEXT);
-  await expect(page.locator(".sh-name").first()).toHaveText("35-3");
+  await expect(page.locator(".sh-name").first()).toContainText("35-3");
   await expect(page.locator("button", { hasText: /^Run again$/ }).first()).toBeVisible({ timeout: 200_000 });
   expect(net.misses, "data requests the HAR doesn't have").toEqual([]);
 
@@ -67,7 +67,7 @@ test("switching keeps screened parcels live: back to one with no re-run and no n
   expect(againstExpected(await postedResult(page), FERNEY, "run"), EXPECTED_MSG).toEqual([]);
   // The toast's Back: Macks again, live, still nothing asked of the network.
   await toast(page).getByRole("button", { name: "Back" }).click();
-  await expect(page.locator(".sh-name").first()).toHaveText("35-3");
+  await expect(page.locator(".sh-name").first()).toContainText("35-3");
   await expect.poll(() => live(page)).toBe(true);
   expect(againstExpected(await postedResult(page), MACKS, "run"), EXPECTED_MSG).toEqual([]);
   // Only map tiles may be asked for (aborted) as the map moves; no data request is answered from the HAR.
@@ -78,7 +78,7 @@ test("switching keeps screened parcels live: back to one with no re-run and no n
   await expect(page.locator(".sh-name")).toHaveCount(0);
   await expect(toast(page)).toContainText("35-3 kept in History");
   await toast(page).getByRole("button", { name: "Back" }).click();
-  await expect(page.locator(".sh-name").first()).toHaveText("35-3");
+  await expect(page.locator(".sh-name").first()).toContainText("35-3");
   // Nothing else ran since: still the worker's current run, and live again for this new open (18b).
   await expect.poll(() => live(page)).toBe(true);
 

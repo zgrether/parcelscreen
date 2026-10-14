@@ -45,6 +45,7 @@ import { evaluationPoint } from "../blocks/types";
 import { getPref, setPref } from "@/lib/client/prefs";
 import { reportCard, type Person } from "@/lib/report/card";
 import { lineNamesOf, type LineNames } from "@/lib/report/lines";
+import { listingAcresNote } from "@/lib/report/listing";
 import { panelFromSearch, replacePanelInUrl } from "@/lib/client/panelUrl";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import { CardPanel } from "../card/CardPanel";
@@ -589,6 +590,10 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
           <ReportCard
             card={reportCard(display, s.person, namesOf(s))}
             running={!!s.runningHere}
+            note={listingAcresNote(
+              s.ctl.state.store.open?.listingAcres ?? null,
+              s.ctl.derived?.ok ? s.ctl.derived.acres : null,
+            )}
             setPerson={s.setPerson}
             onOpen={openPanel}
             stale={

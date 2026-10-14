@@ -62,11 +62,16 @@ describe("built parcels", () => {
       ],
       ["a house", { ...plain, house: [36.629, -81.354] }],
       ["notes", { ...plain, notes: "Ask about the spring." }],
+      ["a name (WF1)", { ...plain, name: "Ferney Creek" }],
+      ["a listing link", { ...plain, listingUrl: "https://x.test/l" }],
+      ["listing acres", { ...plain, listingAcres: 52 }],
+      ["an agent", { ...plain, agent: "A. Agent" }],
       ["results", { ...plain, screenIds: ["screen-1"] }],
       ["a key (it was built before)", { ...plain, key: "k9" }],
     ];
     for (const [why, p] of changed) expect(isBuilt(p), why).toBe(true);
     expect(isBuilt({ ...plain, notes: "   " })).toBe(false);
+    expect(isBuilt({ ...plain, name: " ", agent: "" })).toBe(false);
   });
 
   it("saving: a plain parcel stays out of History; a built one gets a key and an entry, updated in place", () => {

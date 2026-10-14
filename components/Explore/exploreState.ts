@@ -17,6 +17,7 @@ import {
   plainParcel,
   removeBuilt,
   type LineCondition,
+  type ListingField,
   type Markup,
   type MarkupKind,
   type ParcelStore,
@@ -134,6 +135,8 @@ export type ExploreAction =
   /** The Notes tab's text, for the parcel that was open when it was typed (`serial`). */
   | { type: "notes"; text: string; serial: number; stamp: Stamp }
   | { type: "askingPrice"; price: number | null; serial: number; stamp: Stamp }
+  /** WF1: the listing's facts (name, link, acres, agent), for the parcel open when they were typed. */
+  | { type: "listing"; patch: Partial<Pick<WorkingParcel, ListingField>>; serial: number; stamp: Stamp }
   /** Follow-up 34: start a drawn line, finish it (at least two points) into the open parcel, edit or delete one. */
   | { type: "startLine"; kind: "track" | "easement" }
   | { type: "finishLine"; id: string; stamp: Stamp }
@@ -436,6 +439,13 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
           a.stamp,
         ),
       };
+    case "listing": {
+      // As notes: a save after another parcel opened is dropped; one that changes nothing saves nothing.
+      if (!open || a.serial !== s.serial) return s;
+      const next = { ...open, ...a.patch };
+      if ((Object.keys(a.patch) as ListingField[]).every((k) => next[k] === open[k])) return s;
+      return { ...s, store: save(next, a.stamp) };
+    }
     case "toggleHidden": {
       if (!open) return s;
       const hidden = open.hidden.includes(a.id)

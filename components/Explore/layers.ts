@@ -190,7 +190,8 @@ export function layerTree(p: WorkingParcel, derived: DerivedParcel, shapes: Parc
     {
       id: "parcel",
       kind: "parcel",
-      name: parcelDisplayName(derived),
+      // The household's name for it (WF1), else the derived one.
+      name: p.name.trim() || parcelDisplayName(derived),
       acres: derived.ok ? derived.acres : null,
       hideable: true,
       deletable: false,

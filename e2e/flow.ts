@@ -72,14 +72,15 @@ export async function importParcels(page: Page, slugs: readonly FixtureSlug[]): 
   await page.keyboard.press("Escape");
 }
 
-/** Opens a History parcel by the name its row shows (☰ → History → Open). */
+/** Opens a History parcel by (part of) the name its row shows (☰ → History → Open). */
 export async function openFromHistory(page: Page, name: string): Promise<void> {
   await page.getByRole("button", { name: "Menu", exact: true }).click();
   await page
     .locator(".menu-drawer li", { hasText: name })
     .getByRole("button", { name: "Open", exact: true })
     .click();
-  await expect(page.locator(".sh-name").first()).toHaveText(name);
+  // An imported prototype parcel is named after its saved name (owner, #130), which holds the parcel ID.
+  await expect(page.locator(".sh-name").first()).toContainText(name);
 }
 
 /** Screen it, wait for the run to finish, and return each step's final status. */

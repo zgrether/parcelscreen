@@ -189,6 +189,7 @@ describe("config", () => {
             1.5,
             0.5,
           ],
+          "listingAcresPct": 10,
           "points": {
             "A": 4,
             "B": 3,

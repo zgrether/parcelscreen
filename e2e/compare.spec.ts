@@ -66,7 +66,11 @@ test("compare: two screened parcels as columns, best and worst marked, a cell op
   await page.goto("/compare");
   const names = page.locator(".compare-table thead .cmp-name");
   await expect(names).toHaveCount(2);
-  expect((await names.allTextContents()).sort()).toEqual(["35-3", "52-47A"]);
+  // Named after their prototype names (owner, #130).
+  expect((await names.allTextContents()).sort()).toEqual([
+    "Ferney Creek, Floyd County VA, parcel 52-47A",
+    "Macks Mountain, Floyd County VA, parcel 35-3",
+  ]);
   // Both are screened: each column has its grade and verdict, not "re-screens when opened".
   await expect(page.locator(".cmp-headline td .card-grade")).toHaveCount(2);
   // Where the parcels differ, the better is marked ↑ and the worse ↓.
@@ -74,10 +78,12 @@ test("compare: two screened parcels as columns, best and worst marked, a cell op
   await expect(page.locator(".cmp-mark.worst").first()).toBeVisible();
 
   // A cell opens that line's panel, for that parcel.
-  await page.getByRole("button", { name: /^35-3, Night sky: / }).click();
+  await page.getByRole("button", { name: /parcel 35-3, Night sky: / }).click();
   const panel = page.locator(".card-panel");
   await expect(panel).toBeVisible();
-  await expect(panel.locator("#card-panel-title")).toHaveText("Night sky · 35-3");
+  await expect(panel.locator("#card-panel-title")).toHaveText(
+    "Night sky · Macks Mountain, Floyd County VA, parcel 35-3",
+  );
   await expect(panel.locator(".panel-question")).toHaveText("How dark is it overhead?");
   await panel.getByRole("button", { name: "Close" }).click();
   await expect(panel).toHaveCount(0);

@@ -18,7 +18,7 @@ import { historyRows, parcelName } from "./historyRows";
 import { pieceDedupeKey } from "@/lib/geo/recipe";
 import type { ParcelRecord } from "@/lib/geo/parcels";
 import { LatLonSchema, RecordSchema } from "./currentParcel";
-import { ParcelStoreSchema, type ParcelStore, type WorkingParcel } from "./parcelStore";
+import { NO_LISTING, ParcelStoreSchema, type ParcelStore, type WorkingParcel } from "./parcelStore";
 import { ScreenRecordSchema, type ScreenRecord } from "./screenStore";
 import {
   ANCHORS_LABEL,
@@ -241,6 +241,7 @@ function fromPrototypeSaved(s: z.infer<typeof ProtoSavedSchema>, key: string, no
     notesAt: null,
     askingPrice: null,
     askingPriceAt: null,
+    ...NO_LISTING,
     markup: [],
     hidden: [],
     excluded: [],
@@ -251,7 +252,20 @@ function fromPrototypeSaved(s: z.infer<typeof ProtoSavedSchema>, key: string, no
   // then a blank line and any notes. Phase 1 lifts it into the parcel's name (REQUIREMENTS §3a).
   const name = s.name?.trim() ?? "";
   const notes = [name ? `Name: ${name}` : "", s.notes?.trim() ?? ""].filter((x) => x !== "").join("\n\n");
-  return notes ? { ...p, notes, notesAt: at } : p;
+  return notes ? { ...p, notes, notesAt: at, name: nameFromNotes(notes) } : p;
+}
+
+/** A name read from the notes is used only this short (owner, #130). */
+export const NOTES_NAME_MAX = 60;
+
+/**
+ * The parcel's name from its notes' first line (owner, #130): the prototype's saved name ("Name: {name}", without the
+ * label), else the line itself, when it's NOTES_NAME_MAX characters or less; otherwise none. The notes are unchanged.
+ */
+export function nameFromNotes(notes: string): string {
+  const first = (notes.split("\n")[0] ?? "").trim();
+  const name = first.startsWith("Name: ") ? first.slice("Name: ".length).trim() : first;
+  return name.length <= NOTES_NAME_MAX ? name : "";
 }
 
 /**

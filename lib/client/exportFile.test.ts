@@ -14,6 +14,8 @@ import {
   exportFileName,
   importSummary,
   keptScreenIds,
+  nameFromNotes,
+  NOTES_NAME_MAX,
   NOT_AN_EXPORT,
   planImport,
   settingsQuestion,
@@ -316,15 +318,39 @@ describe("a prototype export ({ cfg, saved[] }, L1605)", () => {
     expect(p.sameRecord).toEqual([]);
   });
 
+  it("the notes' first line names the parcel when it's 60 characters or less; the notes stay (owner, #130)", () => {
+    const named = plan(proto(undefined, [saved()])).added[0]!;
+    expect(named).toMatchObject({
+      name: "Ridge tract", // the saved name, from its "Name:" line
+      notes: "Name: Ridge tract\n\nSpring on the north line.",
+    });
+    const long = "A".repeat(61);
+    const tooLong = plan(proto(undefined, [saved({ name: long })])).added[0]!;
+    expect(tooLong).toMatchObject({ name: "", notes: `Name: ${long}\n\nSpring on the north line.` });
+    expect(plan(proto(undefined, [saved({ name: "A".repeat(60) })])).added[0]!.name).toBe("A".repeat(60));
+    // No saved name: the notes' own first line.
+    const unnamed = plan(
+      proto(undefined, [saved({ name: "", notes: "Gate code 1234\nAsk about the spring." })]),
+    );
+    expect(unnamed.added[0]).toMatchObject({
+      name: "Gate code 1234",
+      notes: "Gate code 1234\nAsk about the spring.",
+    });
+    expect(nameFromNotes(`${"x".repeat(80)}\nmore`)).toBe("");
+    expect(NOTES_NAME_MAX).toBe(60);
+  });
+
   it("the same saved parcel twice: the second is the same parcel, skipped", () => {
     const p = plan(proto(undefined, [saved(), saved({ name: "Again" })]));
     expect(p.added.map((x) => x.notes)).toEqual(["Name: Ridge tract\n\nSpring on the north line."]);
-    expect(p.sameParcel).toEqual(["52-47A"]);
+    // Named by its saved name, now that an imported parcel has one (owner, #130).
+    expect(p.sameParcel).toEqual(["Again"]);
   });
 
   it("is noted as the same county record as a port parcel from that record", () => {
     const p = plan(proto(undefined), STORE);
-    expect(p.sameRecord).toEqual([expect.stringMatching(/^52-47A \(/)]);
+    // By its saved name (owner, #130): unique, so nothing more is needed to tell it from the port parcel.
+    expect(p.sameRecord).toEqual(["Ridge tract"]);
   });
 
   it("a NaN the prototype stored (null in JSON) is named", () => {
@@ -376,6 +402,24 @@ describe("schema v3 (B2a): older results and the asking price", () => {
     expect(
       errors(file({ screens: [{ ...screen("s1"), result: { ...RESULT, verdict: 42 } }] as never })),
     ).not.toEqual([]);
+  });
+
+  it("the listing's facts round-trip (WF1); a parcel kept before them has none", () => {
+    const facts = {
+      name: "Ferney Creek",
+      listingUrl: "https://x.test/l",
+      listingAcres: 52,
+      agent: "A. Agent",
+    };
+    const named: ParcelStore = { ...STORE, built: [{ ...STORE.built[0]!, ...facts }] };
+    expect(plan(file({}, named)).added[0]).toMatchObject(facts);
+    const { name: _n, listingUrl: _u, listingAcres: _a, agent: _g, ...older } = STORE.built[0]!;
+    expect(plan(file({ parcels: { ...STORE, built: [older as never] } })).added[0]).toMatchObject({
+      name: "",
+      listingUrl: "",
+      listingAcres: null,
+      agent: "",
+    });
   });
 
   it("the asking price and its date round-trip; a parcel kept before the price has none", () => {

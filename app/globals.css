@@ -392,6 +392,18 @@ html:has(.explore) body {
   background: rgba(28, 38, 32, 0.92);
   box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
 }
+/* The searched listing's chip (owner, #130): above the parcel-switch toast, which opening a parcel can show too. */
+.switch-toast.attach-listing {
+  z-index: 17;
+  bottom: calc(var(--sheet-h, 0px) + 74px + 44px);
+  padding: 4px;
+}
+.switch-toast.attach-listing .attach-x {
+  background: transparent;
+  color: inherit;
+  font-size: 16px;
+  padding: 2px 8px;
+}
 /* A line's Undo stays above the Info panel, whose Delete and × it answers (owner, #127). */
 .switch-toast.line-undo {
   z-index: 17;
@@ -782,14 +794,61 @@ html:has(.explore) body {
   font-weight: 600;
 }
 /* The asking price, above the notes (owner, #101). */
-.ip-price {
+/* The listing's facts at the top of the Notes tab (WF1): one row each, as the asking price. On a phone (owner, #130)
+   they fold to a one-line summary once there's a name or a price; the summary is a phone's only. */
+.ip-listing-summary {
+  display: none;
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  .ip-listing-summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--ip-rule);
+    border-radius: 6px;
+    background: rgba(238, 241, 234, 0.08);
+    color: var(--ip-ink);
+    font: inherit;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+  }
+  .ip-listing[data-folded] > :not(.ip-listing-summary) {
+    display: none;
+  }
+}
+.ip-listing {
+  display: grid;
+  gap: 6px;
+}
+.ip-listing .ip-price label,
+.ip-listing .ip-field label {
+  flex: 1 1 100%;
+  display: grid;
+  grid-template-columns: 6.5em minmax(0, 1fr);
+  align-items: baseline;
+  gap: 8px;
+}
+.ip-listing .ip-price input,
+.ip-listing .ip-field input {
+  width: 100%;
+}
+.ip-listing .ip-price > :not(label),
+.ip-listing .ip-field > :not(label) {
+  margin-left: calc(6.5em + 8px);
+}
+.ip-price,
+.ip-field {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 4px 10px;
   font-size: 13px;
 }
-.ip-price input {
+.ip-price input,
+.ip-field input {
   width: 9em;
   padding: 4px 8px;
   border: 1px solid var(--ip-rule);
@@ -798,7 +857,8 @@ html:has(.explore) body {
   color: var(--ip-ink);
   font: inherit;
 }
-.ip-price .tiny {
+.ip-price .tiny,
+.ip-field .tiny {
   color: var(--ip-ink-2);
 }
 .ip-notes-for span {
@@ -2591,6 +2651,11 @@ html:has(.explore) body {
 }
 .card-reason {
   margin: 8px 0 10px;
+}
+/* A line from the parcel's own facts under the reason (WF1: the listing's acres when they differ). */
+.card-note {
+  margin: -4px 0 10px;
+  color: var(--color-ink-2);
 }
 /* The drawn lines changed since the screen (owner, #116): prominent, in the card's header; the results stay. */
 .card-stale {

@@ -39,6 +39,7 @@ export function ReportCard({
   setPerson,
   onOpen,
   stale = null,
+  note = null,
 }: {
   card: Card;
   /** A run in progress: data still to come reads "…", not "didn't load". */
@@ -47,6 +48,8 @@ export function ReportCard({
   onOpen(key: PanelKey): void;
   /** A banner under the header saying the results no longer match an input (LINES_CHANGED). */
   stale?: StaleBanner | null;
+  /** A line from the parcel's own facts, under the reason (WF1: the listing's acres when they differ). Appended. */
+  note?: string | null;
 }) {
   const pending = (missing: string | undefined) => running && !!missing;
   return (
@@ -82,6 +85,7 @@ export function ReportCard({
         </div>
       )}
       {!running && <p className="card-reason">{card.reason}</p>}
+      {!running && note && <p className="card-note tiny">{note}</p>}
       <div className="card-gates">
         <span className="card-sub">Dealbreakers</span>
         {card.gates.map((g) => (
