@@ -6,6 +6,7 @@ import {
   closeOpen,
   commitOpen,
   DEFAULT_CONDITION,
+  DEFAULT_WIDTH_FT,
   drawnInput,
   EMPTY_STORE,
   fromV1,
@@ -190,7 +191,7 @@ describe("storage (ps.parcels)", () => {
     });
   });
 
-  it("a line kept before its condition existed loads with its kind's (owner, A); a drive is screened as a track", () => {
+  it("a line kept before its condition or width existed loads with its kind's (owner, A; #127); a drive is screened as a track", () => {
     const line = (kind: string, id: string) => ({
       id,
       kind,
@@ -208,19 +209,23 @@ describe("storage (ps.parcels)", () => {
       line("track", "a"),
       line("easement", "b"),
       { ...line("drive", "c"), condition: "paved" },
+      { ...line("easement", "d"), widthFt: 45 },
     ];
     const back = readParcelStore(JSON.stringify(raw))!.open!.markup;
-    expect(back.map((m) => [m.kind, m.condition])).toEqual([
-      ["track", "pioneer"],
-      ["easement", "uncleared"],
-      ["drive", "paved"], // chosen: kept
+    expect(back.map((m) => [m.kind, m.condition, m.widthFt])).toEqual([
+      ["track", "pioneer", 10],
+      ["easement", "uncleared", 30],
+      ["drive", "paved", 12], // the condition chosen: kept
+      ["easement", "uncleared", 45], // the width chosen: kept
     ]);
     expect(DEFAULT_CONDITION).toEqual({ track: "pioneer", drive: "improved", easement: "uncleared" });
-    // The screen doesn't know an existing drive yet, nor any condition: no pricing change (owner, A).
-    expect(drawnInput(back).map((d) => [d.id, d.kind, "condition" in d])).toEqual([
-      ["a", "track", false],
-      ["b", "easement", false],
-      ["c", "track", false],
+    expect(DEFAULT_WIDTH_FT).toEqual({ track: 10, drive: 12, easement: 30 });
+    // The screen doesn't know an existing drive yet, nor any condition, nor a track's width: no pricing change.
+    expect(drawnInput(back).map((d) => [d.id, d.kind, d.widthFt, "condition" in d])).toEqual([
+      ["a", "track", null, false],
+      ["b", "easement", 30, false],
+      ["c", "track", null, false],
+      ["d", "easement", 45, false],
     ]);
   });
 });

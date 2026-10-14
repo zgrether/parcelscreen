@@ -5,7 +5,8 @@
  *
  * Before a split, the parts sit directly under the parcel. After one, the parcel shows "Made from" (its
  * parts and the road strip) and "Split into 2 pieces" (● the piece kept, ○ the other). Steps 14–15 add an
- * Analysis group after the house.
+ * Analysis group after the house. Drawn lines come last (owner, #127): Track, Easement or Existing drive, with
+ * their details below the tree.
  */
 import { difference, featureCollection } from "@turf/turf";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
@@ -16,8 +17,15 @@ import { parcelFacts } from "@/lib/geo/parcels";
 import { parcelDisplayName } from "@/lib/client/historyRows";
 import { deriveParcel, ownLand, splitPreview, type DerivedParcel } from "@/lib/geo/recipe";
 import { sideName, type Side, type SplitPieces } from "@/lib/geo/split";
+import { DRAWN_WORD } from "@/lib/report/lines";
 
-export type LayerId = "parcel" | "parts" | `part:${number}` | "strip" | "split" | `piece:${Side}` | "house";
+export type LayerId =
+  "parcel" | "parts" | `part:${number}` | "strip" | "split" | `piece:${Side}` | "house" | `line:${string}`;
+
+/** A drawn line's layer (owner, #127), and the line a layer names, if it is one. */
+export const lineLayer = (id: string): LayerId => `line:${id}`;
+export const layerLine = (id: LayerId | null): string | null =>
+  id?.startsWith("line:") ? id.slice("line:".length) : null;
 
 /** The open parcel's shapes besides its boundary: what the tree measures and the map highlights. */
 export interface ParcelShapes {
@@ -51,13 +59,13 @@ export function parcelShapes(p: WorkingParcel, limits: CombineLimits): ParcelSha
 
 export interface LayerNode {
   id: LayerId;
-  kind: "parcel" | "group" | "part" | "strip" | "split" | "piece" | "house";
+  kind: "parcel" | "group" | "part" | "strip" | "split" | "piece" | "house" | "line";
   name: string;
   acres: number | null;
   /** Has an eye: it can be hidden on the map. */
   hideable: boolean;
   hidden: boolean;
-  /** Has a ×: what it does is deleteLayer's (take a part out, remove the cut, remove the house). */
+  /** Has a ×: what it does is deleteLayer's (take a part out, remove the cut, remove the house, delete a line). */
   deletable: boolean;
   /** For a split piece: the one kept. */
   kept?: boolean;
@@ -152,6 +160,21 @@ export function layerTree(p: WorkingParcel, derived: DerivedParcel, shapes: Parc
     children.push(
       node(
         { id: "house", kind: "house", name: "Existing house", acres: null, hideable: true, deletable: true },
+        h,
+      ),
+    );
+
+  for (const m of p.markup)
+    children.push(
+      node(
+        {
+          id: lineLayer(m.id),
+          kind: "line",
+          name: DRAWN_WORD[m.kind].replace(/^./, (c) => c.toUpperCase()),
+          acres: null,
+          hideable: false,
+          deletable: true,
+        },
         h,
       ),
     );

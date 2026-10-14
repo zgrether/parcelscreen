@@ -53,7 +53,14 @@ import {
   type TapHit,
 } from "./exploreState";
 import { SHEET_QUERY } from "./useBottomSheet";
-import { layerTree, parcelShapes, type LayerId, type LayerNode, type ParcelShapes } from "./layers";
+import {
+  layerLine,
+  layerTree,
+  parcelShapes,
+  type LayerId,
+  type LayerNode,
+  type ParcelShapes,
+} from "./layers";
 
 export type SetHint = (text: string | ((prev: string) => string)) => void;
 
@@ -135,8 +142,7 @@ export interface ExploreController {
   saveMarkupWidth(id: string, widthFt: number, serial: number): void;
   /** Deletes the line; `lineUndo` offers it back for a few seconds (owner, A). */
   deleteMarkup(id: string, serial: number): void;
-  /** Owner, A: a line's panel (null closes it), its kind and condition, and its path redrawn with the line tool. */
-  openLine(id: string | null): void;
+  /** Owner, A: a line's kind and condition, and its path redrawn with the line tool. */
   setMarkupKind(id: string, kind: MarkupKind, serial: number): void;
   setMarkupCondition(id: string, condition: LineCondition, serial: number): void;
   editLine(id: string): void;
@@ -155,7 +161,10 @@ export interface ExploreController {
   applyCombination(): void;
   setInfo(open: boolean): void;
   selectLayer(id: LayerId | null): void;
-  /** The layer's ×: take a part out, remove the cut, remove the house. Returns why it can't, if it can't. */
+  /**
+   * The layer's ×: take a part out, remove the cut, remove the house, delete a line (with Undo). Returns why it can't,
+   * if it can't.
+   */
   deleteLayer(id: LayerId): string | null;
   toggleHidden(id: LayerId): void;
   /** Keep the other piece of the saved split. */
@@ -354,6 +363,15 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     [dispatch, hint],
   );
 
+  /** Deletes a drawn line, keeping it for the Undo toast (owner, A). */
+  const deleteLine = (id: string, serial: number) => {
+    const open = latest.current.store.open;
+    const index = open?.markup.findIndex((m) => m.id === id) ?? -1;
+    if (!open || index < 0 || serial !== latest.current.serial) return;
+    setLineUndo({ markup: open.markup[index]!, index, serial, at: Date.now() });
+    dispatch({ type: "markupDelete", id, serial, stamp: stamp() });
+  };
+
   return {
     state,
     cleared,
@@ -477,16 +495,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     saveMarkupWidth(id, widthFt, serial) {
       dispatch({ type: "markupWidth", id, widthFt, serial, stamp: stamp() });
     },
-    deleteMarkup(id, serial) {
-      const open = latest.current.store.open;
-      const index = open?.markup.findIndex((m) => m.id === id) ?? -1;
-      if (!open || index < 0 || serial !== latest.current.serial) return;
-      setLineUndo({ markup: open.markup[index]!, index, serial, at: Date.now() });
-      dispatch({ type: "markupDelete", id, serial, stamp: stamp() });
-    },
-    openLine(id) {
-      dispatch({ type: "lineOpen", id });
-    },
+    deleteMarkup: deleteLine,
     setMarkupKind(id, kind, serial) {
       dispatch({ type: "markupKind", id, kind, serial, stamp: stamp() });
     },
@@ -566,7 +575,9 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     deleteLayer(id) {
       const open = latest.current.store.open;
       if (!open) return null;
-      if (id.startsWith("part:")) {
+      const line = layerLine(id);
+      if (line) deleteLine(line, latest.current.serial);
+      else if (id.startsWith("part:")) {
         const index = Number(id.slice("part:".length));
         const rest = open.pieces.filter((_, i) => i !== index);
         if (!rest.length) return null;

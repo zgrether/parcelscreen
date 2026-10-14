@@ -300,7 +300,7 @@ export interface YourLines {
 
 /**
  * "Your lines" (owner, A, 2026-10-13): each drawn line with its kind, condition and length, what the run made of it
- * (lineOutcome: used, or considered and why not), and Edit (its panel on the map) and Delete.
+ * (lineOutcome: used, or considered and why not), and Edit (selects it in the Layers tree) and Delete.
  */
 function YourLinesList({ result, lines }: { result: ScreenResult | PartialScreenResult; lines: YourLines }) {
   return (

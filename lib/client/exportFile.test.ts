@@ -399,7 +399,7 @@ describe("schema v3 (B2a): older results and the asking price", () => {
         [36.6, -81.5],
         [36.61, -81.51],
       ] as [number, number][],
-      widthFt: null,
+      widthFt: 10,
       note: "seen on the visit",
       at: "2026-10-12T12:00:00.000Z",
     };

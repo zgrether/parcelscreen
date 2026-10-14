@@ -42,6 +42,8 @@ export function draftData(pts: LatLon[]): FeatureCollection {
 export function markupData(
   markup: readonly Markup[],
   measured: readonly DrawnLine[] = [],
+  /** The line selected in the Layers tree, highlighted (owner, #127). */
+  selected: string | null = null,
 ): FeatureCollection {
   return {
     type: "FeatureCollection",
@@ -59,6 +61,7 @@ export function markupData(
           drawn: m.kind,
           id: m.id,
           tip: `${DRAWN_LABEL[m.kind]}: ${summary}`,
+          selected: m.id === selected,
         },
         geometry: { type: "LineString", coordinates },
       };

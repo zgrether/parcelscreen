@@ -14,6 +14,7 @@ import type { LatLon } from "@/lib/geo/types";
 import { parcelFromLine } from "@/lib/geo/parcels";
 import { LINES_MIN_ZOOM } from "@/lib/geo/parcelTiles";
 import { DRAWING } from "@/components/Explore/exploreState";
+import { layerLine, lineLayer } from "@/components/Explore/layers";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
 import { TIP_LAYERS, tipAt } from "./results/tooltip";
@@ -82,7 +83,7 @@ export function ParcelTools() {
   return null;
 }
 
-/** How near a tap must be to a drawn line to open its panel, in pixels. */
+/** How near a tap must be to a drawn line to select it in Layers, in pixels. */
 const LINE_TAP_PX = 8;
 const MARKUP_LAYERS = [LAYER.markupTrack, LAYER.markupTrackHalo, LAYER.markupEasement];
 
@@ -116,9 +117,9 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
       // No tool waiting: select, swap or unselect (13e rules, exploreState.decideTap). A tap on a result
       // overlay (a fan ray) only shows its text (step 15b).
       if (!mode) {
-        // A drawn line opens its panel (owner, A); its tooltip shows on hover.
+        // A drawn line is selected in the Layers tree (owner, #127); its tooltip shows on hover.
         const drawn = markupAt(map, e.point);
-        if (drawn) return c.openLine(drawn);
+        if (drawn) return c.selectLayer(lineLayer(drawn));
         if (tipAt(map, e.point)) return;
         const geo = c.parcel?.geo;
         const line = outlineAt(map, e.point);
@@ -205,9 +206,10 @@ function useOverlays(map: MlMap | null, ctl: ExploreController) {
   const markup = open?.markup;
   const screen = useScreenItContext();
   const measured = screen?.shown && !screen.stale ? screen.shown.result.lines : undefined;
+  const selectedLine = layerLine(layer);
   useEffect(() => {
-    map?.getSource<GeoJSONSource>(SOURCE.markup)?.setData(markupData(markup ?? [], measured));
-  }, [map, markup, measured]);
+    map?.getSource<GeoJSONSource>(SOURCE.markup)?.setData(markupData(markup ?? [], measured, selectedLine));
+  }, [map, markup, measured, selectedLine]);
 
   useEffect(() => {
     if (!map) return;

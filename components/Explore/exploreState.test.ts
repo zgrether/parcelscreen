@@ -10,6 +10,7 @@ import {
   type ExploreState,
   type Stamp,
 } from "./exploreState";
+import { lineLayer } from "./layers";
 
 const run = (actions: ExploreAction[], from: ExploreState = INITIAL) => actions.reduce(exploreReducer, from);
 let n = 0;
@@ -453,7 +454,7 @@ describe("drawn lines (follow-up 34)", () => {
       {
         id: "line-track",
         kind: "track",
-        widthFt: null,
+        widthFt: 10, // owner, #127: every kind has a width; not used in costs yet but an easement's
         note: "",
         line: [
           [36.629, -81.354],
@@ -508,7 +509,7 @@ describe("drawn lines (follow-up 34)", () => {
   });
 });
 
-describe("a drawn line's panel, kind, condition, path and undo (owner, A)", () => {
+describe("a drawn line's layer, kind, condition, width, path and undo (owner, A; #127)", () => {
   const two: LatLon[] = [
     [36.629, -81.354],
     [36.6295, -81.3535],
@@ -525,17 +526,21 @@ describe("a drawn line's panel, kind, condition, path and undo (owner, A)", () =
     expect(withTrack().store.open!.markup[0]).toMatchObject({ kind: "track", condition: "pioneer" });
   });
 
-  it("the panel opens on a line of the open parcel, and closes when the parcel changes or the line goes", () => {
+  it("a line is a layer: selecting it opens the Info panel; deleting it clears the selection", () => {
     const s = withTrack();
-    const p = exploreReducer(s, { type: "lineOpen", id: "t" });
-    expect(p.lineOpen).toBe("t");
-    expect(exploreReducer(s, { type: "lineOpen", id: "nope" }).lineOpen).toBeNull();
-    expect(exploreReducer(p, { type: "close" }).lineOpen).toBeNull();
+    const p = exploreReducer(s, { type: "layer", id: lineLayer("t") });
+    expect([p.layer, p.info]).toEqual(["line:t", true]);
+    expect(exploreReducer(p, { type: "close" }).layer).toBeNull();
     const gone = exploreReducer(p, { type: "markupDelete", id: "t", serial: p.serial, stamp: at() });
-    expect(gone.lineOpen).toBeNull();
+    expect(gone.layer).toBeNull();
+    // Another layer stays selected when a line goes.
+    const house = exploreReducer(s, { type: "layer", id: "house" });
+    expect(
+      exploreReducer(house, { type: "markupDelete", id: "t", serial: s.serial, stamp: at() }).layer,
+    ).toBe("house");
   });
 
-  it("a new kind: an easement gets the default width, and the kind's condition unless the user chose one", () => {
+  it("a new kind brings its own width and condition, unless the user chose them", () => {
     const s = withTrack();
     const k = (st: typeof s, kind: "track" | "easement" | "drive") =>
       exploreReducer(st, { type: "markupKind", id: "t", kind, serial: st.serial, stamp: at() });
@@ -543,7 +548,7 @@ describe("a drawn line's panel, kind, condition, path and undo (owner, A)", () =
     expect(drive.store.open!.markup[0]).toMatchObject({
       kind: "drive",
       condition: "improved",
-      widthFt: null,
+      widthFt: 12,
     });
     const easement = k(drive, "easement");
     expect(easement.store.open!.markup[0]).toMatchObject({
@@ -558,12 +563,20 @@ describe("a drawn line's panel, kind, condition, path and undo (owner, A)", () =
       serial: easement.serial,
       stamp: at(),
     });
-    // Chosen, so kept through a change of kind.
-    expect(k(paved, "track").store.open!.markup[0]).toMatchObject({
+    // Chosen, so kept through a change of kind; the width too.
+    const wide = exploreReducer(paved, {
+      type: "markupWidth",
+      id: "t",
+      widthFt: 40,
+      serial: paved.serial,
+      stamp: at(),
+    });
+    expect(k(wide, "track").store.open!.markup[0]).toMatchObject({
       kind: "track",
       condition: "paved",
-      widthFt: null,
+      widthFt: 40,
     });
+    expect(k(paved, "track").store.open!.markup[0]).toMatchObject({ widthFt: 10 });
   });
 
   it("Edit redraws the path: the line tool opens with its points; Finish keeps its id, kind, note and condition", () => {
@@ -578,8 +591,11 @@ describe("a drawn line's panel, kind, condition, path and undo (owner, A)", () =
       serial: s.serial,
       stamp: at(),
     });
-    const e = exploreReducer(noted, { type: "editLine", id: "t" });
-    expect([e.mode, e.editing, e.draft]).toEqual(["track", "t", two]);
+    const e = exploreReducer(exploreReducer(noted, { type: "layer", id: lineLayer("t") }), {
+      type: "editLine",
+      id: "t",
+    });
+    expect([e.mode, e.editing, e.draft, e.layer]).toEqual(["track", "t", two, null]);
     const longer = exploreReducer(exploreReducer(e, { type: "draftAdd", ll: [36.63, -81.353] }), {
       type: "finishLine",
       id: "ignored",
@@ -591,9 +607,12 @@ describe("a drawn line's panel, kind, condition, path and undo (owner, A)", () =
       note: "seen",
       line: [...two, [36.63, -81.353]],
     });
-    expect([longer.mode, longer.editing, longer.lineOpen]).toEqual([null, null, "t"]);
-    // Cancelled: nothing changes.
-    expect(exploreReducer(e, { type: "draftCancel" }).store).toBe(e.store);
+    // Back to its details in Layers.
+    expect([longer.mode, longer.editing, longer.layer, longer.info]).toEqual([null, null, "line:t", true]);
+    // Cancelled: nothing changes, and its details come back.
+    const cancelled = exploreReducer(e, { type: "draftCancel" });
+    expect(cancelled.store).toBe(e.store);
+    expect([cancelled.mode, cancelled.layer]).toEqual([null, "line:t"]);
   });
 
   it("Undo puts a deleted line back where it was, only on the same parcel and only once", () => {

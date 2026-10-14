@@ -40,6 +40,7 @@ import { evaluatedNote } from "@/lib/render/pins";
 import type { LatLon } from "@/lib/geo/types";
 import type { PartialScreenResult, ScreenResult, UserConfig } from "@/lib/screen/types";
 import type { ExploreController, SetHint } from "@/components/Explore/useExploreController";
+import { lineLayer } from "@/components/Explore/layers";
 import { evaluationPoint } from "../blocks/types";
 import { getPref, setPref } from "@/lib/client/prefs";
 import { reportCard, type Person } from "@/lib/report/card";
@@ -629,7 +630,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             s.ctl.state.store.open
               ? {
                   markup: s.ctl.state.store.open.markup,
-                  onEdit: (id) => s.ctl.openLine(id),
+                  onEdit: (id) => s.ctl.selectLayer(lineLayer(id)),
                   onDelete: (id) => s.ctl.deleteMarkup(id, s.ctl.state.serial),
                 }
               : undefined

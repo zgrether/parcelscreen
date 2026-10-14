@@ -232,5 +232,9 @@ describe("drawn lines (follow-up 34)", () => {
     expect(markupData([m], [{ ...measured, id: "other" }]).features[0]!.properties!.tip).toMatch(
       /: 4,678 ft$/,
     );
+    // The line selected in Layers glows (owner, #127).
+    const both = [m, { ...m, id: "b" }];
+    expect(markupData(both, [], "b").features.map((f) => f.properties!.selected)).toEqual([false, true]);
+    expect(markupData(both).features.map((f) => f.properties!.selected)).toEqual([false, false]);
   });
 });

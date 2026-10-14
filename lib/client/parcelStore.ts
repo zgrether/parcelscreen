@@ -46,7 +46,10 @@ export interface Markup {
   condition: LineCondition;
   /** At least two points, [lat, lon]. */
   line: LatLon[];
-  /** An easement's width; null for a track. */
+  /**
+   * Its width, ft (owner, #127: on every kind). The screen reads an easement's only: a track's or a drive's isn't used
+   * in costs yet. Null only for a line made before #127, which gets its kind's default when it loads.
+   */
   widthFt: number | null;
   note: string;
   at: string;
@@ -55,17 +58,22 @@ export interface Markup {
 /** An easement's width until the user says otherwise: a common recorded right-of-way width. */
 export const EASEMENT_WIDTH_FT = 30;
 
+/** A line's width until the user says otherwise (owner, #127): an easement's as before, a track 10 ft, a drive 12 ft. */
+export const DEFAULT_WIDTH_FT: Record<MarkupKind, number> = {
+  easement: EASEMENT_WIDTH_FT,
+  track: 10,
+  drive: 12,
+};
+
 /**
  * The lines as the screen reads them (ScreenInput.lines): without their notes, times and conditions, and an existing
  * drive as a track (owner, A: no pricing change until the parcel-workflow plan).
  */
 export const drawnInput = (markup: readonly Markup[]): DrawnInput[] =>
-  markup.map(({ id, kind, line, widthFt }) => ({
-    id,
-    kind: kind === "drive" ? "track" : kind,
-    line,
-    widthFt,
-  }));
+  // A track's or a drive's width isn't used in costs yet (owner, #127): the screen sees an easement's only, as before.
+  markup.map(({ id, kind, line, widthFt }) =>
+    kind === "easement" ? { id, kind, line, widthFt } : { id, kind: "track", line, widthFt: null },
+  );
 
 export interface WorkingParcel {
   /** Set once the parcel is built (saved); null for a plain parcel straight from a tap. */
@@ -201,7 +209,12 @@ const MarkupSchema = z
     note: z.string(),
     at: z.string(),
   })
-  .transform((m): Markup => ({ ...m, condition: m.condition ?? DEFAULT_CONDITION[m.kind] }));
+  .transform((m): Markup => ({
+    ...m,
+    condition: m.condition ?? DEFAULT_CONDITION[m.kind],
+    // Owner, #127: every kind has a width now; a line kept before gets its kind's.
+    widthFt: m.widthFt ?? DEFAULT_WIDTH_FT[m.kind],
+  }));
 const WorkingSchema = z.object({
   key: z.string().nullable(),
   pieces: z.array(RecordSchema).min(1),

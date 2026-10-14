@@ -129,6 +129,7 @@ export const LAYER = {
   combineResult: "combine-result",
   draftLine: "draft-line",
   draftPoints: "draft-points",
+  markupSelected: "markup-selected",
   markupEasement: "markup-easement",
   markupTrackHalo: "markup-track-halo",
   markupTrack: "markup-track",
@@ -350,6 +351,15 @@ export function buildStyle(opts: {
   // band (its width is a note, not drawn to scale); a track, a dashed brown line on a light casing, to read on the aerials.
   sources[SOURCE.markup] = { type: "geojson", data: EMPTY_FC };
   layers.push(
+    // The line selected in the Layers tree (owner, #127): an amber glow under it, as the panel's selected row.
+    {
+      id: LAYER.markupSelected,
+      type: "line",
+      source: SOURCE.markup,
+      filter: ["==", ["get", "selected"], true],
+      layout: { "line-cap": "round", "line-join": "round" },
+      paint: { "line-color": "#f0a030", "line-opacity": 0.8, "line-width": 14, "line-blur": 2 },
+    },
     {
       id: LAYER.markupEasement,
       type: "line",

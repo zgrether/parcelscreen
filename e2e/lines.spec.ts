@@ -1,6 +1,7 @@
 /**
  * A drawn line after a screen (owner, A, 2026-10-13): the banner says so, with "Let the app consider it"; a tap on the
- * line opens its panel (kind, condition, Edit, Delete); Delete offers Undo; the Easement panel lists "Your lines".
+ * line selects it in the Layers tree, with its details (kind, condition, width, note, Edit, Delete; owner, #127);
+ * Delete offers Undo; the Easement panel lists "Your lines", whose Edit selects the line in Layers.
  */
 import { centroid } from "@turf/turf";
 import { expect, test, type Page } from "@playwright/test";
@@ -23,7 +24,7 @@ async function at(page: Page, dLat: number, dLon: number): Promise<{ x: number; 
   return { x: box.x + p.x, y: box.y + p.y };
 }
 
-test("a drawn line: the banner, its panel (kind, condition, delete and undo), and Your lines", async ({
+test("a drawn line: the banner, its layer and details (kind, condition, width, note, delete and undo), and Your lines", async ({
   page,
   context,
 }) => {
@@ -47,34 +48,59 @@ test("a drawn line: the banner, its panel (kind, condition, delete and undo), an
   await expect(banner).toContainText("You drew or changed a line after this screen.");
   await expect(banner.getByRole("button", { name: "Let the app consider it" })).toBeVisible();
 
-  // A tap on the line opens its panel: a track, pioneer by default.
+  // A tap on the line selects it in the Layers tree (owner, #127), with its details below: a track, pioneer, 10 ft.
   const mid = await at(page, 0, 0);
   await page.mouse.click(mid.x, mid.y);
-  const panel = page.locator(".line-panel");
-  await expect(panel).toBeVisible();
-  await expect(panel.getByRole("button", { name: "Track", exact: true })).toHaveAttribute(
+  const info = page.locator(".info-panel");
+  await expect(info.getByRole("treeitem", { name: /Track/ })).toHaveAttribute("aria-selected", "true");
+  const details = info.locator(".ip-details");
+  await expect(details.getByRole("heading", { name: "Existing track (user-drawn)" })).toBeVisible();
+  await expect(details.getByRole("button", { name: "Track", exact: true })).toHaveAttribute(
     "aria-pressed",
     "true",
   );
-  await expect(panel.getByRole("button", { name: "Pioneer" })).toHaveAttribute("aria-pressed", "true");
+  await expect(details.getByRole("button", { name: "Pioneer" })).toHaveAttribute("aria-pressed", "true");
+  await expect(details.getByLabel("Width in feet")).toHaveValue("10");
+  await expect(details).toContainText("not used in costs yet");
+  await expect(page.locator(".line-panel")).toHaveCount(0); // the floating panel is gone
 
-  // An existing drive: improved by default; then paved, chosen.
-  await panel.getByRole("button", { name: "Existing drive" }).click();
-  await expect(panel.getByRole("button", { name: "Improved" })).toHaveAttribute("aria-pressed", "true");
-  await panel.getByRole("button", { name: "Paved" }).click();
-  await expect(panel.getByRole("button", { name: "Paved" })).toHaveAttribute("aria-pressed", "true");
+  // An existing drive: improved and 12 ft by default; then paved, chosen; and a note.
+  await details.getByRole("button", { name: "Existing drive" }).click();
+  await expect(info.getByRole("treeitem", { name: /Existing drive/ })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  await expect(details.getByRole("button", { name: "Improved" })).toHaveAttribute("aria-pressed", "true");
+  await expect(details.getByLabel("Width in feet")).toHaveValue("12");
+  await details.getByRole("button", { name: "Paved" }).click();
+  await expect(details.getByRole("button", { name: "Paved" })).toHaveAttribute("aria-pressed", "true");
+  await details.getByLabel("Note for the existing drive").fill("The gravel lane from the gate");
+  await details.getByLabel("Note for the existing drive").press("Enter");
 
   // Delete, then Undo: the line is back, as it was.
-  await panel.getByRole("button", { name: "Delete" }).click();
-  await expect(panel).toHaveCount(0);
+  await info.locator(".ip-actions").getByRole("button", { name: "Delete" }).click();
+  await expect(info.getByRole("treeitem", { name: /Existing drive/ })).toHaveCount(0);
   const toast = page.locator(".line-undo");
   await expect(toast).toContainText("Existing drive deleted");
   await toast.getByRole("button", { name: "Undo" }).click();
   await expect(toast).toHaveCount(0);
+  await expect(info.getByRole("treeitem", { name: /Existing drive/ })).toHaveCount(1);
   const markup = await page.evaluate(
     () => (JSON.parse(localStorage.getItem("ps.parcels")!) as { open: { markup: unknown[] } }).open.markup,
   );
-  expect(markup).toEqual([expect.objectContaining({ kind: "drive", condition: "paved" })]);
+  expect(markup).toEqual([
+    expect.objectContaining({
+      kind: "drive",
+      condition: "paved",
+      widthFt: 12,
+      note: "The gravel lane from the gate",
+    }),
+  ]);
+  // The Notes tab no longer lists the lines.
+  await info.getByRole("tab", { name: /Notes/ }).click();
+  await expect(info.getByText("Drawn lines")).toHaveCount(0);
+  await info.getByRole("tab", { name: "Layers" }).click();
+  await info.getByRole("button", { name: "Close the Info panel" }).click();
 
   // The Easement panel lists it: drawn after the screen, so nothing to say of it yet.
   await page.getByRole("button", { name: /^Easement needed:/ }).click();
@@ -84,9 +110,12 @@ test("a drawn line: the banner, its panel (kind, condition, delete and undo), an
   await expect(yours.locator("li")).toHaveCount(1);
   await expect(yours.locator("li b")).toHaveText(/^Existing drive, paved, [\d,]+ ft$/);
   await expect(yours).toContainText("Drawn after this screen: run again to see what the app makes of it.");
-  // Edit opens the line's panel on the map.
+  // Edit selects the line in Layers.
   await yours.getByRole("button", { name: "Edit" }).click();
-  await expect(panel).toBeVisible();
+  await expect(info.getByRole("treeitem", { name: /Existing drive/ })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
 
   expect(net.misses, "data requests the HAR doesn't have").toEqual([]);
   expect(errors).toEqual([]);

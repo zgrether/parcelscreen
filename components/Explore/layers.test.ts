@@ -5,7 +5,7 @@ import { plainParcel, type WorkingParcel } from "@/lib/client/parcelStore";
 import type { ParcelRecord } from "@/lib/geo/parcels";
 import { deriveParcel, drawnPart } from "@/lib/geo/recipe";
 import type { LatLon } from "@/lib/geo/types";
-import { findLayer, layerTree, parcelShapes, type LayerNode } from "./layers";
+import { findLayer, layerLine, layerTree, lineLayer, parcelShapes, type LayerNode } from "./layers";
 
 const LIMITS = { maxGapM: 30, touchM: 1 };
 const ORIGIN = [-81.35, 36.63];
@@ -87,6 +87,34 @@ describe("layerTree", () => {
       "    52-47A 9.9",
       "  Split (no longer crosses) (×)",
     ]);
+  });
+
+  it("drawn lines come last, by what they are, each deletable (owner, #127)", () => {
+    const line = (id: string, kind: "track" | "easement" | "drive") => ({
+      id,
+      kind,
+      condition: "pioneer" as const,
+      line: [ll(10, 10), ll(50, 50)],
+      widthFt: 10,
+      note: "",
+      at: NOW,
+    });
+    const t = tree(
+      working({
+        house: ll(100, 100),
+        markup: [line("a", "track"), line("b", "easement"), line("c", "drive")],
+      }),
+    );
+    expect(outline(t)).toEqual([
+      "52-47A 9.9 (eye)",
+      "  52-47A 9.9",
+      "  Existing house (eye) (×)",
+      "  Track (×)",
+      "  Easement (×)",
+      "  Existing drive (×)",
+    ]);
+    expect(findLayer(t, lineLayer("c"))?.kind).toBe("line");
+    expect([layerLine(lineLayer("c")), layerLine("house"), layerLine(null)]).toEqual(["c", null, null]);
   });
 
   it("marks hidden layers", () => {
