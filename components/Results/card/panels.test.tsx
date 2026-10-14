@@ -10,7 +10,8 @@ import { reportCard } from "@/lib/report/card";
 import { panelText } from "@/lib/report/cardPanels";
 import { evaluationPoint } from "../blocks/types";
 import { REPORT } from "../report";
-import { CardPanel, FROM_THE_REPORT_NOTE } from "./CardPanel";
+import type { Markup } from "@/lib/client/parcelStore";
+import { CardPanel, FROM_THE_REPORT_NOTE, WAITING_FOR_THE_DRIVEWAY } from "./CardPanel";
 import { PANEL_KEYS, panelSections } from "./panelBlocks";
 
 const RUNS = [
@@ -71,6 +72,40 @@ describe("the report card's panels (VR5)", () => {
     expect(html).toContain("rural dark sky (zone 3a).");
     expect(html).toContain(t.howScored);
     expect(html).toContain(FROM_THE_REPORT_NOTE.replace("'overall'", "&#x27;overall&#x27;"));
+  });
+
+  it("Your lines: each line by its name; waiting while a run routes the driveway (owner, #127)", () => {
+    const result = expectedOf("grayson-mud-creek-6273", "run");
+    const line: Markup = {
+      id: "t",
+      name: "Track 2",
+      kind: "track",
+      condition: "pioneer",
+      line: [
+        [36.6, -81.5],
+        [36.601, -81.501],
+      ],
+      widthFt: 10,
+      note: "",
+      at: "",
+    };
+    const panel = (r: typeof result, running?: { step: "driveway" }) =>
+      renderToStaticMarkup(
+        <CardPanel
+          panel="easement"
+          card={reportCard(r, "zach")}
+          result={r}
+          point={evaluationPoint(r)}
+          running={running}
+          lines={{ markup: [line], onEdit: () => {}, onDelete: () => {} }}
+          onClose={() => {}}
+        />,
+      );
+    const done = panel(result);
+    expect(done).toContain("<b>Track 2</b>");
+    expect(done).toContain("Drawn after this screen: run again to see what the app makes of it.");
+    const { driveway: _d, ...routing } = result;
+    expect(panel(routing as typeof result, { step: "driveway" })).toContain(WAITING_FOR_THE_DRIVEWAY);
   });
 
   it("each scale's sentences sit under its own bar, not merged (owner, #113 review)", () => {

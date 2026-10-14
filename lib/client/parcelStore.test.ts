@@ -5,6 +5,9 @@ import { drawnPart } from "@/lib/geo/recipe";
 import {
   closeOpen,
   commitOpen,
+  DEFAULT_CONDITION,
+  DEFAULT_WIDTH_FT,
+  drawnInput,
   EMPTY_STORE,
   fromV1,
   isBuilt,
@@ -186,5 +189,45 @@ describe("storage (ps.parcels)", () => {
       askingPrice: null,
       askingPriceAt: null,
     });
+  });
+
+  it("a line kept before its condition, width or name existed loads with its kind's (owner, A; #127); a drive is screened as a track", () => {
+    const line = (kind: string, id: string) => ({
+      id,
+      kind,
+      line: [
+        [36.629, -81.354],
+        [36.6295, -81.3535],
+      ],
+      widthFt: kind === "easement" ? 30 : null,
+      note: "",
+      at: T0,
+    });
+    const s = commitOpen(EMPTY_STORE, plain, T0, keys());
+    const raw = JSON.parse(writeParcelStore(s)) as { open: Record<string, unknown> };
+    raw.open.markup = [
+      line("track", "a"),
+      line("easement", "b"),
+      { ...line("drive", "c"), condition: "paved" },
+      { ...line("easement", "d"), widthFt: 45, note: "Deed book 412" },
+    ];
+    const back = readParcelStore(JSON.stringify(raw))!.open!.markup;
+    expect(back.map((m) => [m.name, m.kind, m.condition, m.widthFt])).toEqual([
+      ["Track 1", "track", "pioneer", 10],
+      ["Easement 1", "easement", "uncleared", 30],
+      ["Existing drive 1", "drive", "paved", 12], // the condition chosen: kept
+      ["Easement 2", "easement", "uncleared", 45], // the width chosen: kept
+    ]);
+    // Names come in the order drawn, numbered per kind (owner, #127); a note stays a note.
+    expect(back[3]!.note).toBe("Deed book 412");
+    expect(DEFAULT_CONDITION).toEqual({ track: "pioneer", drive: "improved", easement: "uncleared" });
+    expect(DEFAULT_WIDTH_FT).toEqual({ track: 10, drive: 12, easement: 30 });
+    // The screen doesn't know an existing drive yet, nor any condition, nor a track's width: no pricing change.
+    expect(drawnInput(back).map((d) => [d.id, d.kind, d.widthFt, "condition" in d])).toEqual([
+      ["a", "track", null, false],
+      ["b", "easement", 30, false],
+      ["c", "track", null, false],
+      ["d", "easement", 45, false],
+    ]);
   });
 });

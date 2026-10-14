@@ -9,9 +9,9 @@ import type { LayerId, ParcelShapes } from "@/components/Explore/layers";
 import type { ParcelRecord } from "@/lib/geo/parcels";
 import type { CombineResult } from "@/lib/geo/combine";
 import { sideName, type Side, type SplitPieces } from "@/lib/geo/split";
-import type { Markup } from "@/lib/client/parcelStore";
+import { KIND_NAME, type Markup } from "@/lib/client/parcelStore";
 import { M2FT, type LatLon } from "@/lib/geo/types";
-import { LINE_LABEL, lineSummary } from "@/lib/report/lines";
+import { lineSummary } from "@/lib/report/lines";
 import type { DrawnLine } from "@/lib/screen/types";
 
 const xy = ([lat, lon]: LatLon): [number, number] => [lon, lat];
@@ -35,28 +35,51 @@ export function draftData(pts: LatLon[]): FeatureCollection {
   return { type: "FeatureCollection", features };
 }
 
+/** How a drawn line is highlighted (owner, #127): selected in Layers, its row under the pointer, or neither. */
+export type LineHighlight = "selected" | "hover" | "none";
+
 /**
- * The drawn tracks and easements, each with its tooltip (34-2): what it is, and its length and grades as the parcel's
- * screen measured them (`measured`, by id), or its length alone before a run grades it.
+ * The drawn tracks and easements, each with its tooltip (34-2): its name (and its kind, when the name doesn't say it),
+ * and its length and grades as the parcel's screen measured them (`measured`, by id), or its length alone before a
+ * run grades it. The line selected in Layers is highlighted with its points; the one whose row is hovered, lightly.
  */
 export function markupData(
   markup: readonly Markup[],
   measured: readonly DrawnLine[] = [],
+  selected: string | null = null,
+  hovered: string | null = null,
 ): FeatureCollection {
+  const points: Feature[] = (markup.find((m) => m.id === selected)?.line ?? []).map((p) => ({
+    type: "Feature",
+    properties: { kind: "point" },
+    geometry: { type: "Point", coordinates: xy(p) },
+  }));
   return {
     type: "FeatureCollection",
-    features: markup.map((m) => {
-      const coordinates = m.line.map(xy);
-      const got = measured.find((l) => l.id === m.id);
-      const summary = got
-        ? lineSummary(got)
-        : `${Math.round(length(lineString(coordinates), { units: "meters" }) * M2FT).toLocaleString()} ft`;
-      return {
-        type: "Feature",
-        properties: { kind: m.kind, id: m.id, tip: `${LINE_LABEL[m.kind]}: ${summary}` },
-        geometry: { type: "LineString", coordinates },
-      };
-    }),
+    features: markup
+      .map((m): Feature => {
+        const coordinates = m.line.map(xy);
+        const got = measured.find((l) => l.id === m.id);
+        const summary = got
+          ? lineSummary(got)
+          : `${Math.round(length(lineString(coordinates), { units: "meters" }) * M2FT).toLocaleString()} ft`;
+        const kind = KIND_NAME[m.kind];
+        const name = m.name.startsWith(kind) ? m.name : `${m.name} (${kind})`;
+        const hl: LineHighlight = m.id === selected ? "selected" : m.id === hovered ? "hover" : "none";
+        return {
+          type: "Feature",
+          // An existing drive is drawn as a track (style.ts filters on `kind`); `drawn` is what the user called it.
+          properties: {
+            kind: m.kind === "drive" ? "track" : m.kind,
+            drawn: m.kind,
+            id: m.id,
+            tip: `${name}: ${summary}`,
+            hl,
+          },
+          geometry: { type: "LineString", coordinates },
+        };
+      })
+      .concat(points),
   };
 }
 

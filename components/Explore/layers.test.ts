@@ -5,7 +5,7 @@ import { plainParcel, type WorkingParcel } from "@/lib/client/parcelStore";
 import type { ParcelRecord } from "@/lib/geo/parcels";
 import { deriveParcel, drawnPart } from "@/lib/geo/recipe";
 import type { LatLon } from "@/lib/geo/types";
-import { findLayer, layerTree, parcelShapes, type LayerNode } from "./layers";
+import { findLayer, layerLine, layerTree, lineLayer, parcelShapes, type LayerNode } from "./layers";
 
 const LIMITS = { maxGapM: 30, touchM: 1 };
 const ORIGIN = [-81.35, 36.63];
@@ -87,6 +87,41 @@ describe("layerTree", () => {
       "    52-47A 9.9",
       "  Split (no longer crosses) (×)",
     ]);
+  });
+
+  it("drawn lines come last, by name, with condition and length, each deletable (owner, #127)", () => {
+    const line = (id: string, kind: "track" | "easement" | "drive", name: string) => ({
+      id,
+      name,
+      kind,
+      condition: "pioneer" as const,
+      line: [ll(10, 10), ll(50, 50)],
+      widthFt: 10,
+      note: "",
+      at: NOW,
+    });
+    const t = tree(
+      working({
+        house: ll(100, 100),
+        markup: [
+          line("a", "track", "Track 1"),
+          line("b", "easement", "Easement 1"),
+          line("c", "drive", "Old lane"),
+        ],
+      }),
+    );
+    expect(outline(t)).toEqual([
+      "52-47A 9.9 (eye)",
+      "  52-47A 9.9",
+      "  Existing house (eye) (×)",
+      "  Track 1 (×)",
+      "  Easement 1 (×)",
+      "  Old lane (×)",
+    ]);
+    // Where a part has its acres: "pioneer · 186 ft" (40 m east and 40 m north, 56.6 m).
+    expect(findLayer(t, lineLayer("c"))?.meta).toBe("pioneer · 186 ft");
+    expect(findLayer(t, lineLayer("c"))?.kind).toBe("line");
+    expect([layerLine(lineLayer("c")), layerLine("house"), layerLine(null)]).toEqual(["c", null, null]);
   });
 
   it("marks hidden layers", () => {

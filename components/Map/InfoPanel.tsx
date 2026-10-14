@@ -12,18 +12,24 @@
 import { askingLine, parsePrice } from "@/lib/client/askingPrice";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { length, lineString } from "@turf/turf";
-import { isBuilt, type Markup } from "@/lib/client/parcelStore";
+import {
+  isBuilt,
+  KIND_NAME,
+  LINE_CONDITIONS,
+  type LineCondition,
+  type Markup,
+  type MarkupKind,
+} from "@/lib/client/parcelStore";
 import { M2FT } from "@/lib/geo/types";
 import { getPref, setPref } from "@/lib/client/prefs";
 import type { ParcelRecord } from "@/lib/geo/parcels";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
-import { findLayer, type LayerId, type LayerNode } from "@/components/Explore/layers";
+import { findLayer, layerLine, type LayerId, type LayerNode } from "@/components/Explore/layers";
 import { ParcelFacts } from "@/components/Explore/ParcelFacts";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { AnalysisGroup } from "./results/AnalysisGroup";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
-import { LINE_LABEL, lineSummary } from "@/lib/report/lines";
-import type { DrawnLine as DrawnLineResult } from "@/lib/screen/types";
+import { lineSummary } from "@/lib/report/lines";
 import { RoadsToggle } from "./RoadsToggle";
 import { TerrainControls } from "./TerrainControls";
 
@@ -57,6 +63,16 @@ function Panel({ ctl, root }: { ctl: ExploreController; root: LayerNode }) {
     if (layer) setTab("layers");
   }
   const hasNotes = (ctl.state.store.open?.notes ?? "").trim() !== "";
+  // Owner, #127: a line's name is edited in place (double-click, or a long press on a phone).
+  const [renaming, setRenaming] = useState<LayerId | null>(null);
+  const tree = useRef<HTMLDivElement>(null);
+  // A line tapped on the map: its row scrolls into view.
+  useEffect(() => {
+    tree.current?.querySelector<HTMLElement>(".ip-row.sel")?.scrollIntoView?.({ block: "nearest" });
+  }, [layer, tab]);
+  // A hovered row's line stops glowing when the panel goes.
+  const { setHoverLine } = ctl;
+  useEffect(() => () => setHoverLine(null), [setHoverLine]);
 
   const remove = (id: LayerId) => setError(ctl.deleteLayer(id));
   const select = (id: LayerId | null) => {
@@ -117,7 +133,7 @@ function Panel({ ctl, root }: { ctl: ExploreController; root: LayerNode }) {
       {tab === "notes" ? (
         <Notes ctl={ctl} name={root.name} />
       ) : (
-        <div className="ip-tree" role="tree" aria-label="Layers">
+        <div className="ip-tree" role="tree" aria-label="Layers" ref={tree}>
           <Rows
             nodes={[root]}
             depth={0}
@@ -133,6 +149,8 @@ function Panel({ ctl, root }: { ctl: ExploreController; root: LayerNode }) {
             }
             select={select}
             remove={remove}
+            renaming={renaming}
+            setRenaming={setRenaming}
           />
           <AnalysisGroup />
           <RoadsToggle variant="info" />
@@ -157,8 +175,15 @@ function Rows(props: {
   toggle(id: LayerId): void;
   select(id: LayerId | null): void;
   remove(id: LayerId): void;
+  renaming: LayerId | null;
+  setRenaming(id: LayerId | null): void;
 }) {
-  const { nodes, depth, ctl, layer, collapsed, toggle, select, remove } = props;
+  const { nodes, depth, ctl, layer, collapsed, toggle, select, remove, renaming, setRenaming } = props;
+  const press = useRef<number | null>(null);
+  const endPress = () => {
+    if (press.current !== null) window.clearTimeout(press.current);
+    press.current = null;
+  };
   return (
     <>
       {nodes.map((n) => {
@@ -177,6 +202,19 @@ function Rows(props: {
               className={cls.join(" ")}
               style={{ "--d": depth } as CSSProperties}
               onClick={() => (heading ? toggle(n.id) : select(n.id))}
+              {...(n.kind === "line" && {
+                onDoubleClick: () => setRenaming(n.id),
+                onMouseEnter: () => ctl.setHoverLine(layerLine(n.id)),
+                onMouseLeave: () => ctl.setHoverLine(null),
+                onPointerDown: (e) => {
+                  if (e.pointerType !== "touch") return;
+                  endPress();
+                  press.current = window.setTimeout(() => setRenaming(n.id), LONG_PRESS_MS);
+                },
+                onPointerUp: endPress,
+                onPointerMove: endPress,
+                onPointerCancel: endPress,
+              })}
             >
               {kids ? (
                 <button
@@ -225,8 +263,19 @@ function Rows(props: {
               ) : (
                 <span />
               )}
-              <span className="nm">{n.name}</span>
-              <span className="mt">{n.acres !== null ? ac(n.acres) : ""}</span>
+              {renaming === n.id ? (
+                <RowName
+                  name={n.name}
+                  done={(name) => {
+                    const line = layerLine(n.id);
+                    if (line && name !== null) ctl.renameMarkup(line, name, ctl.state.serial);
+                    setRenaming(null);
+                  }}
+                />
+              ) : (
+                <span className="nm">{n.name}</span>
+              )}
+              <span className="mt">{n.acres !== null ? ac(n.acres) : (n.meta ?? "")}</span>
               {n.deletable ? (
                 <button
                   className="del"
@@ -247,6 +296,37 @@ function Rows(props: {
         );
       })}
     </>
+  );
+}
+
+/** A press this long on a phone renames a line's row (owner, #127), ms. */
+const LONG_PRESS_MS = 500;
+
+/** A line's name, edited in its row: kept on Enter or leaving the box, dropped on Esc (`done(null)`). */
+function RowName({ name, done }: { name: string; done(name: string | null): void }) {
+  const [text, setText] = useState(name);
+  const finished = useRef(false);
+  const finish = (v: string | null) => {
+    if (finished.current) return;
+    finished.current = true;
+    done(v);
+  };
+  return (
+    <input
+      className="ip-row-name"
+      aria-label="Name"
+      autoFocus
+      value={text}
+      onChange={(e) => setText(e.target.value)}
+      onClick={(e) => e.stopPropagation()}
+      onDoubleClick={(e) => e.stopPropagation()}
+      onBlur={() => finish(text)}
+      onKeyDown={(e) => {
+        e.stopPropagation();
+        if (e.key === "Enter") finish(text);
+        else if (e.key === "Escape") finish(null);
+      }}
+    />
   );
 }
 
@@ -381,6 +461,21 @@ function details(
           </>
         ),
       };
+    case "line": {
+      const m = open.markup.find((x) => x.id === layerLine(n.id));
+      if (!m) return { body: null, actions: null };
+      return {
+        body: <LineDetails key={m.id} ctl={ctl} m={m} />,
+        actions: (
+          <>
+            <Btn onClick={() => ctl.editLine(m.id)}>Edit</Btn>
+            <Btn kind="danger" onClick={() => remove(n.id)}>
+              Delete
+            </Btn>
+          </>
+        ),
+      };
+    }
     default:
       return { body: <ParcelDetails ctl={ctl} name={n.name} />, actions: <ParcelActions ctl={ctl} /> };
   }
@@ -476,7 +571,6 @@ function Notes({ ctl, name }: { ctl: ExploreController; name: string }) {
   return (
     <div className="ip-notes">
       <AskingPrice ctl={ctl} />
-      <DrawnLines ctl={ctl} />
       <div className="ip-notes-for">
         Notes <span>· {name}</span>
       </div>
@@ -552,76 +646,72 @@ function AskingPrice({ ctl }: { ctl: ExploreController }) {
   );
 }
 
-/** What each drawn line is, as the map, the panel and the report call it. */
-export const MARKUP_LABEL = LINE_LABEL;
+const KINDS: MarkupKind[] = ["track", "easement", "drive"];
+const CONDITION_WORD: Record<LineCondition, string> = {
+  uncleared: "Uncleared",
+  pioneer: "Pioneer",
+  improved: "Improved",
+  paved: "Paved",
+};
 
 /**
- * The parcel's drawn tracks and easements (follow-up 34): what each is, its length, a note saying where it came
- * from (deed, plat, survey, a visit), an easement's width, and Remove. Drawn with the toolbar's Line button.
+ * A drawn line's details (owner, #127: in the Layers tree, where a tap on the line selects it): its name, what it is,
+ * its ground's condition, its width, a note saying where it came from (deed, plat, survey, a visit), and its length
+ * and grades once a screen has measured it (34-2). Keyed by the line, so the boxes start from its own values.
  */
-function DrawnLines({ ctl }: { ctl: ExploreController }) {
-  const open = ctl.state.store.open!;
-  // Each line's grades from the parcel's screen (34-2), by id: a line can't be redrawn, only removed.
+function LineDetails({ ctl, m }: { ctl: ExploreController; m: Markup }) {
+  const serial = ctl.state.serial;
   const s = useScreenItContext();
   const result = s?.shown && !s.stale ? s.shown.result : null;
-  if (!open.markup.length) return null;
-  return (
-    <div className="ip-lines">
-      <div className="ip-notes-for">Drawn lines</div>
-      <ul>
-        {open.markup.map((m) => (
-          <DrawnLine
-            key={m.id}
-            ctl={ctl}
-            m={m}
-            measured={result?.lines.find((l) => l.id === m.id) ?? null}
-            screened={!!result}
-          />
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function DrawnLine({
-  ctl,
-  m,
-  measured,
-  screened,
-}: {
-  ctl: ExploreController;
-  m: Markup;
-  /** The line as the parcel's screen measured it; null when it was drawn after the run, or there's none. */
-  measured: DrawnLineResult | null;
-  screened: boolean;
-}) {
-  const serial = ctl.state.serial;
+  const measured = result?.lines.find((l) => l.id === m.id);
   const [note, setNote] = useState(m.note);
-  const [width, setWidth] = useState(m.widthFt !== null ? String(m.widthFt) : "");
   const ft = length(lineString(m.line.map(([lat, lon]) => [lon, lat])), { units: "meters" }) * M2FT;
   const saveNote = () => {
     if (note !== m.note) ctl.saveMarkupNote(m.id, note, serial);
   };
-  const saveWidth = () => {
-    const w = Number(width);
-    if (Number.isFinite(w) && w > 0 && w !== m.widthFt) ctl.saveMarkupWidth(m.id, w, serial);
-    else setWidth(m.widthFt !== null ? String(m.widthFt) : "");
-  };
   return (
-    <li>
-      <div className="ip-line-head">
-        <b>{MARKUP_LABEL[m.kind]}</b>
-        <button className="ip-link" onClick={() => ctl.deleteMarkup(m.id, serial)}>
-          Remove
-        </button>
-      </div>
-      {/* Its length, and its grades once a screen has measured it (34-2). */}
-      <div className="ip-line-grades">
+    <>
+      <LineName key={m.name} name={m.name} save={(name) => ctl.renameMarkup(m.id, name, serial)} />
+      <p className="ip-note">
         {measured ? lineSummary(measured) : `${Math.round(ft).toLocaleString()} ft`}
-        {!measured && screened && " (run again to grade it)"}
+        {!measured && result && " (run again to grade it)"}
+      </p>
+      <div className="ip-line-row" role="group" aria-label="What it is">
+        {KINDS.map((k) => (
+          <button
+            key={k}
+            className="chip"
+            aria-pressed={m.kind === k}
+            onClick={() => ctl.setMarkupKind(m.id, k, serial)}
+          >
+            {KIND_NAME[k]}
+          </button>
+        ))}
       </div>
+      <div className="ip-line-row" role="group" aria-label="Its condition">
+        {LINE_CONDITIONS.map((c) => (
+          <button
+            key={c}
+            className="chip"
+            aria-pressed={m.condition === c}
+            onClick={() => ctl.setMarkupCondition(m.id, c, serial)}
+          >
+            {CONDITION_WORD[c]}
+          </button>
+        ))}
+      </div>
+      {/* Stored now; the parcel-workflow plan prices it (owner, A). */}
+      <p className="ip-note">The condition doesn&apos;t change the cost yet.</p>
+      <Width
+        key={`${m.id} ${m.widthFt}`}
+        widthFt={m.widthFt}
+        // The screen reads an easement's width only (owner, #127).
+        unused={m.kind !== "easement"}
+        save={(w) => ctl.saveMarkupWidth(m.id, w, serial)}
+      />
       <input
-        aria-label={`Note for the ${m.kind}`}
+        className="ip-line-note"
+        aria-label={`Note for ${m.name}`}
         placeholder="Where it comes from: the deed, a plat, a survey, a visit…"
         value={note}
         onChange={(e) => setNote(e.target.value)}
@@ -630,24 +720,63 @@ function DrawnLine({
           if (e.key === "Enter") saveNote();
         }}
       />
-      {m.kind === "easement" && (
-        <label className="tiny">
-          Width{" "}
-          <input
-            inputMode="decimal"
-            aria-label="Easement width in feet"
-            className="ip-line-width"
-            value={width}
-            onChange={(e) => setWidth(e.target.value)}
-            onBlur={saveWidth}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") saveWidth();
-            }}
-          />{" "}
-          ft
-        </label>
-      )}
-    </li>
+    </>
+  );
+}
+
+/** The details' heading: the line's name, typed over (owner, #127); kept on Enter or leaving the box, unless blank. */
+function LineName({ name, save }: { name: string; save(name: string): void }) {
+  const [text, setText] = useState(name);
+  const keep = () => {
+    if (text.trim() && text.trim() !== name) save(text);
+    else setText(name);
+  };
+  return (
+    <input
+      className="ip-line-name"
+      aria-label="Name"
+      value={text}
+      onChange={(e) => setText(e.target.value)}
+      onBlur={keep}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") keep();
+      }}
+    />
+  );
+}
+
+/** A line's width, typed: kept on Enter or leaving the box when it's a positive number, else put back. */
+function Width({
+  widthFt,
+  unused,
+  save,
+}: {
+  widthFt: number | null;
+  unused: boolean;
+  save(w: number): void;
+}) {
+  const [width, setWidth] = useState(widthFt != null ? String(widthFt) : "");
+  const keep = () => {
+    const w = Number(width);
+    if (Number.isFinite(w) && w > 0 && w !== widthFt) save(w);
+    else setWidth(widthFt != null ? String(widthFt) : "");
+  };
+  return (
+    <label className="ip-line-row ip-note">
+      Width
+      <input
+        inputMode="decimal"
+        aria-label="Width in feet"
+        className="ip-line-width"
+        value={width}
+        onChange={(e) => setWidth(e.target.value)}
+        onBlur={keep}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") keep();
+        }}
+      />
+      ft{unused && <span> · not used in costs yet</span>}
+    </label>
   );
 }
 

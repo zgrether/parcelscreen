@@ -14,6 +14,7 @@ import type { LatLon } from "@/lib/geo/types";
 import { parcelFromLine } from "@/lib/geo/parcels";
 import { LINES_MIN_ZOOM } from "@/lib/geo/parcelTiles";
 import { DRAWING } from "@/components/Explore/exploreState";
+import { layerLine, lineLayer } from "@/components/Explore/layers";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
 import { TIP_LAYERS, tipAt } from "./results/tooltip";
@@ -82,6 +83,22 @@ export function ParcelTools() {
   return null;
 }
 
+/** How near a tap must be to a drawn line to select it in Layers, in pixels. */
+const LINE_TAP_PX = 8;
+const MARKUP_LAYERS = [LAYER.markupTrack, LAYER.markupTrackHalo, LAYER.markupEasement];
+
+/** The drawn line under a tap, by id (owner, A), or null. */
+function markupAt(map: MlMap, p: { x: number; y: number }): string | null {
+  const layers = MARKUP_LAYERS.filter((id) => map.getLayer(id));
+  if (!layers.length) return null;
+  const box: [[number, number], [number, number]] = [
+    [p.x - LINE_TAP_PX, p.y - LINE_TAP_PX],
+    [p.x + LINE_TAP_PX, p.y + LINE_TAP_PX],
+  ];
+  const id = map.queryRenderedFeatures(box, { layers })[0]?.properties?.id;
+  return typeof id === "string" ? id : null;
+}
+
 function useMapTaps(map: MlMap | null, ctl: ExploreController) {
   const ref = useRef(ctl);
   useEffect(() => {
@@ -100,6 +117,9 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
       // No tool waiting: select, swap or unselect (13e rules, exploreState.decideTap). A tap on a result
       // overlay (a fan ray) only shows its text (step 15b).
       if (!mode) {
+        // A drawn line is selected in the Layers tree (owner, #127); its tooltip shows on hover.
+        const drawn = markupAt(map, e.point);
+        if (drawn) return c.selectLayer(lineLayer(drawn));
         if (tipAt(map, e.point)) return;
         const geo = c.parcel?.geo;
         const line = outlineAt(map, e.point);
@@ -186,9 +206,13 @@ function useOverlays(map: MlMap | null, ctl: ExploreController) {
   const markup = open?.markup;
   const screen = useScreenItContext();
   const measured = screen?.shown && !screen.stale ? screen.shown.result.lines : undefined;
+  const selectedLine = layerLine(layer);
+  const hoverLine = ctl.hoverLine;
   useEffect(() => {
-    map?.getSource<GeoJSONSource>(SOURCE.markup)?.setData(markupData(markup ?? [], measured));
-  }, [map, markup, measured]);
+    map
+      ?.getSource<GeoJSONSource>(SOURCE.markup)
+      ?.setData(markupData(markup ?? [], measured, selectedLine, hoverLine));
+  }, [map, markup, measured, selectedLine, hoverLine]);
 
   useEffect(() => {
     if (!map) return;

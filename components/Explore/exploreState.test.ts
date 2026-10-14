@@ -10,6 +10,7 @@ import {
   type ExploreState,
   type Stamp,
 } from "./exploreState";
+import { lineLayer } from "./layers";
 
 const run = (actions: ExploreAction[], from: ExploreState = INITIAL) => actions.reduce(exploreReducer, from);
 let n = 0;
@@ -453,7 +454,7 @@ describe("drawn lines (follow-up 34)", () => {
       {
         id: "line-track",
         kind: "track",
-        widthFt: null,
+        widthFt: 10, // owner, #127: every kind has a width; not used in costs yet but an easement's
         note: "",
         line: [
           [36.629, -81.354],
@@ -505,5 +506,159 @@ describe("drawn lines (follow-up 34)", () => {
       stamp: at(),
     });
     expect(gone.store.open!.markup).toEqual([]);
+  });
+});
+
+describe("a drawn line's layer, kind, condition, width, path and undo (owner, A; #127)", () => {
+  const two: LatLon[] = [
+    [36.629, -81.354],
+    [36.6295, -81.3535],
+  ];
+  const withTrack = () =>
+    run([
+      selectA(),
+      { type: "startLine", kind: "track" },
+      ...two.map((ll): ExploreAction => ({ type: "draftAdd", ll })),
+      { type: "finishLine", id: "t", stamp: at() },
+    ]);
+
+  it("a new line gets its kind's condition: a track pioneer, an easement uncleared", () => {
+    expect(withTrack().store.open!.markup[0]).toMatchObject({ kind: "track", condition: "pioneer" });
+  });
+
+  it("names: numbered per kind; renamed (a blank name is ignored); a new kind renumbers a default name only", () => {
+    const more = (s: ExploreState, kind: "track" | "easement", id: string) =>
+      run(
+        [
+          { type: "startLine", kind },
+          ...two.map((ll): ExploreAction => ({ type: "draftAdd", ll })),
+          { type: "finishLine", id, stamp: at() },
+        ],
+        s,
+      );
+    const s = more(more(withTrack(), "track", "t2"), "easement", "e");
+    expect(s.store.open!.markup.map((m) => m.name)).toEqual(["Track 1", "Track 2", "Easement 1"]);
+    const name = (st: ExploreState, id: string, n: string) =>
+      exploreReducer(st, { type: "markupName", id, name: n, serial: st.serial, stamp: at() });
+    const kind = (st: ExploreState, id: string, k: "track" | "easement" | "drive") =>
+      exploreReducer(st, { type: "markupKind", id, kind: k, serial: st.serial, stamp: at() });
+    const renamed = name(s, "t", "  Logging road ");
+    expect(renamed.store.open!.markup[0]!.name).toBe("Logging road");
+    expect(name(renamed, "t", "   ")).toBe(renamed);
+    // A default name follows the kind; a typed one stays. The numbers count up past the highest in use.
+    expect(kind(s, "t2", "drive").store.open!.markup[1]!.name).toBe("Existing drive 1");
+    expect(kind(s, "t", "easement").store.open!.markup[0]!.name).toBe("Easement 2");
+    expect(kind(renamed, "t", "drive").store.open!.markup[0]!.name).toBe("Logging road");
+    // The note is separate.
+    expect(renamed.store.open!.markup[0]!.note).toBe("");
+  });
+
+  it("a line is a layer: selecting it opens the Info panel; deleting it clears the selection", () => {
+    const s = withTrack();
+    const p = exploreReducer(s, { type: "layer", id: lineLayer("t") });
+    expect([p.layer, p.info]).toEqual(["line:t", true]);
+    expect(exploreReducer(p, { type: "close" }).layer).toBeNull();
+    const gone = exploreReducer(p, { type: "markupDelete", id: "t", serial: p.serial, stamp: at() });
+    expect(gone.layer).toBeNull();
+    // Another layer stays selected when a line goes.
+    const house = exploreReducer(s, { type: "layer", id: "house" });
+    expect(
+      exploreReducer(house, { type: "markupDelete", id: "t", serial: s.serial, stamp: at() }).layer,
+    ).toBe("house");
+  });
+
+  it("a new kind brings its own width and condition, unless the user chose them", () => {
+    const s = withTrack();
+    const k = (st: typeof s, kind: "track" | "easement" | "drive") =>
+      exploreReducer(st, { type: "markupKind", id: "t", kind, serial: st.serial, stamp: at() });
+    const drive = k(s, "drive");
+    expect(drive.store.open!.markup[0]).toMatchObject({
+      kind: "drive",
+      condition: "improved",
+      widthFt: 12,
+    });
+    const easement = k(drive, "easement");
+    expect(easement.store.open!.markup[0]).toMatchObject({
+      kind: "easement",
+      condition: "uncleared",
+      widthFt: 30,
+    });
+    const paved = exploreReducer(easement, {
+      type: "markupCondition",
+      id: "t",
+      condition: "paved",
+      serial: easement.serial,
+      stamp: at(),
+    });
+    // Chosen, so kept through a change of kind; the width too.
+    const wide = exploreReducer(paved, {
+      type: "markupWidth",
+      id: "t",
+      widthFt: 40,
+      serial: paved.serial,
+      stamp: at(),
+    });
+    expect(k(wide, "track").store.open!.markup[0]).toMatchObject({
+      kind: "track",
+      condition: "paved",
+      widthFt: 40,
+    });
+    expect(k(paved, "track").store.open!.markup[0]).toMatchObject({ widthFt: 10 });
+  });
+
+  it("Edit redraws the path: the line tool opens with its points; Finish keeps its id, kind, note and condition", () => {
+    const s = exploreReducer(
+      exploreReducer(withTrack(), { type: "markupNote", id: "t", note: "seen", serial: 0, stamp: at() }),
+      { type: "markupCondition", id: "t", condition: "improved", serial: 0, stamp: at() },
+    );
+    const noted = exploreReducer(s, {
+      type: "markupNote",
+      id: "t",
+      note: "seen",
+      serial: s.serial,
+      stamp: at(),
+    });
+    const e = exploreReducer(exploreReducer(noted, { type: "layer", id: lineLayer("t") }), {
+      type: "editLine",
+      id: "t",
+    });
+    expect([e.mode, e.editing, e.draft, e.layer]).toEqual(["track", "t", two, null]);
+    const longer = exploreReducer(exploreReducer(e, { type: "draftAdd", ll: [36.63, -81.353] }), {
+      type: "finishLine",
+      id: "ignored",
+      stamp: at(),
+    });
+    expect(longer.store.open!.markup).toHaveLength(1);
+    expect(longer.store.open!.markup[0]).toMatchObject({
+      id: "t",
+      note: "seen",
+      line: [...two, [36.63, -81.353]],
+    });
+    // Back to its details in Layers.
+    expect([longer.mode, longer.editing, longer.layer, longer.info]).toEqual([null, null, "line:t", true]);
+    // Cancelled: nothing changes, and its details come back.
+    const cancelled = exploreReducer(e, { type: "draftCancel" });
+    expect(cancelled.store).toBe(e.store);
+    expect([cancelled.mode, cancelled.layer]).toEqual([null, "line:t"]);
+  });
+
+  it("Undo puts a deleted line back where it was, only on the same parcel and only once", () => {
+    const s = withTrack();
+    const m = s.store.open!.markup[0]!;
+    const gone = exploreReducer(s, { type: "markupDelete", id: "t", serial: s.serial, stamp: at() });
+    const back = exploreReducer(gone, {
+      type: "markupRestore",
+      markup: m,
+      index: 0,
+      serial: s.serial,
+      stamp: at(),
+    });
+    expect(back.store.open!.markup).toEqual([m]);
+    expect(
+      exploreReducer(back, { type: "markupRestore", markup: m, index: 0, serial: s.serial, stamp: at() }),
+    ).toBe(back);
+    expect(
+      exploreReducer(gone, { type: "markupRestore", markup: m, index: 0, serial: s.serial + 1, stamp: at() }),
+    ).toBe(gone);
   });
 });

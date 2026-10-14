@@ -393,12 +393,14 @@ describe("schema v3 (B2a): older results and the asking price", () => {
   it("drawn lines round-trip (follow-up 34); a parcel kept before them has none", () => {
     const line = {
       id: "t1",
+      name: "Track 1",
       kind: "track" as const,
+      condition: "pioneer" as const,
       line: [
         [36.6, -81.5],
         [36.61, -81.51],
       ] as [number, number][],
-      widthFt: null,
+      widthFt: 10,
       note: "seen on the visit",
       at: "2026-10-12T12:00:00.000Z",
     };

@@ -392,6 +392,10 @@ html:has(.explore) body {
   background: rgba(28, 38, 32, 0.92);
   box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
 }
+/* A line's Undo stays above the Info panel, whose Delete and × it answers (owner, #127). */
+.switch-toast.line-undo {
+  z-index: 17;
+}
 .switch-toast button {
   border: 0;
   border-radius: 5px;
@@ -401,6 +405,26 @@ html:has(.explore) body {
   color: #1c2620;
   background: #f0a030;
   cursor: pointer;
+}
+/* The Easement panel's "Your lines" (owner, A): each line, Edit and Delete at its right. */
+.your-lines ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.your-lines li + li {
+  margin-top: 8px;
+}
+.your-line-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 8px;
+}
+.your-line-head span {
+  display: flex;
+  gap: 6px;
 }
 /* The attribution sits alone in the top-right corner (owner, 17e: the Map menu became the map panel). */
 .explore-map .maplibregl-ctrl-top-right {
@@ -2570,6 +2594,10 @@ html:has(.explore) body {
 }
 /* The drawn lines changed since the screen (owner, #116): prominent, in the card's header; the results stay. */
 .card-stale {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
   margin: 8px 0 0;
   padding: 8px 10px;
   border: 1px solid var(--color-warn);
@@ -2666,7 +2694,8 @@ html:has(.explore) body {
 .card-row:focus-visible,
 .card-verdict:focus-visible,
 .gate:focus-visible,
-.card-person .chip:focus-visible {
+.card-person .chip:focus-visible,
+.ip-line-row .chip:focus-visible {
   outline: 2px solid var(--color-water);
   outline-offset: 2px;
 }
@@ -2915,34 +2944,57 @@ html:has(.explore) body {
 .panel-flags {
   margin: 10px 0;
 }
-/* The Notes tab's drawn lines (follow-up 34). */
-.ip-lines ul {
-  list-style: none;
-  margin: 0 0 10px;
-  padding: 0;
-}
-.ip-lines li {
-  padding: 6px 0;
-  border-bottom: 1px dotted var(--color-rule);
-}
-.ip-line-head {
+/* A drawn line's details in the Layers tree (owner, #127): its kind and condition as chips, its width and note. */
+.ip-line-row {
   display: flex;
-  align-items: baseline;
-  gap: 4px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
 }
-.ip-line-head .ip-link {
-  margin-left: auto;
-}
-.ip-line-grades {
-  color: var(--ip-ink-2);
+.ip-line-row .chip {
+  border: 1px solid rgba(238, 241, 234, 0.35);
+  background: transparent;
+  color: var(--ip-ink);
+  border-radius: 999px;
+  padding: 3px 10px;
   font-size: 13px;
+  cursor: pointer;
 }
-.ip-lines input:not(.ip-line-width) {
-  width: 100%;
-  margin: 4px 0;
+.ip-line-row .chip[aria-pressed="true"] {
+  background: var(--ip-ink);
+  color: #18201b;
+  border-color: var(--ip-ink);
+}
+.ip-line-width,
+.ip-line-note,
+.ip-line-name,
+.ip-row-name {
+  padding: 4px 8px;
+  border: 1px solid var(--ip-rule);
+  border-radius: 6px;
+  background: rgba(238, 241, 234, 0.08);
+  color: var(--ip-ink);
+  font: inherit;
 }
 .ip-line-width {
-  width: 4em;
+  width: 4.5em;
+}
+/* The details' heading is the line's name, typed over (owner, #127). */
+.ip-line-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+.ip-row-name {
+  min-width: 0;
+  padding: 1px 6px;
+}
+/* A long press renames a line's row on a phone: no callout or text selection in the way. */
+.ip-row {
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+.ip-line-note::placeholder {
+  color: var(--ip-ink-2);
 }
 /* The line tool's Track | Easement switch. */
 .tb-seg {

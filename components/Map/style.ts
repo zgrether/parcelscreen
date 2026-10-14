@@ -129,9 +129,11 @@ export const LAYER = {
   combineResult: "combine-result",
   draftLine: "draft-line",
   draftPoints: "draft-points",
+  markupSelected: "markup-selected",
   markupEasement: "markup-easement",
   markupTrackHalo: "markup-track-halo",
   markupTrack: "markup-track",
+  markupPoints: "markup-points",
 } as const;
 
 export const SOURCE = {
@@ -349,14 +351,34 @@ export function buildStyle(opts: {
   // Follow-up 34: the parcel's drawn lines, over the parcel and under the tools. An easement is a wide translucent
   // band (its width is a note, not drawn to scale); a track, a dashed brown line on a light casing, to read on the aerials.
   sources[SOURCE.markup] = { type: "geojson", data: EMPTY_FC };
+  const selectedLine: ExpressionSpecification = ["==", ["get", "hl"], "selected"];
   layers.push(
+    // Owner, #127: an amber glow under the line selected in the Layers tree (as its selected row), fainter under the
+    // one whose row is hovered; the selected line itself draws brighter and thicker, with its points.
+    {
+      id: LAYER.markupSelected,
+      type: "line",
+      source: SOURCE.markup,
+      filter: ["!=", ["get", "hl"], "none"],
+      layout: { "line-cap": "round", "line-join": "round" },
+      paint: {
+        "line-color": "#f0a030",
+        "line-opacity": ["case", ["==", ["get", "hl"], "selected"], 0.85, 0.6],
+        "line-width": ["case", ["==", ["get", "hl"], "selected"], 18, 12],
+        "line-blur": 2,
+      },
+    },
     {
       id: LAYER.markupEasement,
       type: "line",
       source: SOURCE.markup,
       filter: ["==", ["get", "kind"], "easement"],
       layout: { "line-cap": "round", "line-join": "round" },
-      paint: { "line-color": "#7a4fb0", "line-opacity": 0.35, "line-width": 10 },
+      paint: {
+        "line-color": ["case", selectedLine, "#9a6ad6", "#7a4fb0"],
+        "line-opacity": ["case", selectedLine, 0.6, 0.35],
+        "line-width": ["case", selectedLine, 14, 10],
+      },
     },
     {
       id: LAYER.markupTrackHalo,
@@ -364,7 +386,7 @@ export function buildStyle(opts: {
       source: SOURCE.markup,
       filter: ["==", ["get", "kind"], "track"],
       layout: { "line-cap": "round", "line-join": "round" },
-      paint: { "line-color": "#fff4e0", "line-opacity": 0.85, "line-width": 6 },
+      paint: { "line-color": "#fff4e0", "line-opacity": 0.85, "line-width": ["case", selectedLine, 9, 6] },
     },
     {
       id: LAYER.markupTrack,
@@ -372,7 +394,23 @@ export function buildStyle(opts: {
       source: SOURCE.markup,
       filter: ["==", ["get", "kind"], "track"],
       layout: { "line-cap": "round", "line-join": "round" },
-      paint: { "line-color": "#8a5a2b", "line-width": 3, "line-dasharray": [2, 1.5] },
+      paint: {
+        "line-color": ["case", selectedLine, "#c0762c", "#8a5a2b"],
+        "line-width": ["case", selectedLine, 5, 3],
+        "line-dasharray": [2, 1.5],
+      },
+    },
+    {
+      id: LAYER.markupPoints,
+      type: "circle",
+      source: SOURCE.markup,
+      filter: ["==", ["get", "kind"], "point"],
+      paint: {
+        "circle-radius": 4.5,
+        "circle-color": "#ffffff",
+        "circle-stroke-color": "#1c2620",
+        "circle-stroke-width": 1.5,
+      },
     },
   );
   // Step 15b: the horizon fan over the parcel outline (proto drawHorizon, L1236–1242): a dark halo under

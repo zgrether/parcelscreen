@@ -150,7 +150,9 @@ describe("drawn lines (follow-up 34)", () => {
     const fc = markupData([
       {
         id: "a",
+        name: "Track 1",
         kind: "track",
+        condition: "pioneer",
         line: [
           [36.6, -81.5],
           [36.61, -81.51],
@@ -161,7 +163,9 @@ describe("drawn lines (follow-up 34)", () => {
       },
       {
         id: "b",
+        name: "Deeded right-of-way",
         kind: "easement",
+        condition: "uncleared",
         line: [
           [36.62, -81.5],
           [36.63, -81.5],
@@ -193,17 +197,20 @@ describe("drawn lines (follow-up 34)", () => {
         },
       ],
     ]);
-    // The tooltip (34-2): what it is and its length, until a screen grades it.
+    // The tooltip (34-2): its name (#127; with its kind when the name doesn't say it) and its length, until a
+    // screen grades it.
     expect(fc.features.map((f) => f.properties!.tip)).toEqual([
-      "Existing track (user-drawn): 4,678 ft",
-      "Easement (user-drawn): 3,648 ft",
+      "Track 1: 4,678 ft",
+      "Deeded right-of-way (Easement): 3,648 ft",
     ]);
   });
 
   it("a screened line's tooltip has its grades (owner, 34-1 answer 3)", () => {
     const m = {
       id: "a",
+      name: "Track 1",
       kind: "track" as const,
+      condition: "pioneer" as const,
       line: [
         [36.6, -81.5],
         [36.61, -81.51],
@@ -215,6 +222,7 @@ describe("drawn lines (follow-up 34)", () => {
     const measured = {
       id: "a",
       kind: "track" as const,
+      condition: "pioneer" as const,
       lengthFt: 938,
       widthFt: null,
       outsideFt: 0,
@@ -223,10 +231,20 @@ describe("drawn lines (follow-up 34)", () => {
       maxGradePct: 16.6,
     };
     expect(markupData([m], [measured]).features[0]!.properties!.tip).toBe(
-      "Existing track (user-drawn): 938 ft · avg 11% · steepest 17% over 30 m",
+      "Track 1: 938 ft · avg 11% · steepest 17% over 30 m",
     );
     expect(markupData([m], [{ ...measured, id: "other" }]).features[0]!.properties!.tip).toMatch(
       /: 4,678 ft$/,
     );
+    // The line selected in Layers is highlighted, with its points; a hovered row's line lightly (owner, #127).
+    const both = [m, { ...m, id: "b" }];
+    const sel = markupData(both, [], "b", "a").features;
+    expect(sel.map((f) => [f.geometry.type, f.properties!.kind, f.properties!.hl])).toEqual([
+      ["LineString", "track", "hover"],
+      ["LineString", "track", "selected"],
+      ["Point", "point", undefined],
+      ["Point", "point", undefined],
+    ]);
+    expect(markupData(both).features.map((f) => f.properties!.hl)).toEqual(["none", "none"]);
   });
 });

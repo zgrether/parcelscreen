@@ -30,9 +30,11 @@ describe("map style", () => {
       LAYER.selLine,
       LAYER.leftFill,
       LAYER.leftLine,
+      LAYER.markupSelected, // #127: the line selected in Layers, glowing under it
       LAYER.markupEasement, // follow-up 34: drawn lines over the parcel, under the results and tools
       LAYER.markupTrackHalo,
       LAYER.markupTrack,
+      LAYER.markupPoints, // #127: the selected line's points
       LAYER.fanHalo,
       LAYER.fanRay,
       LAYER.driveDirect,
