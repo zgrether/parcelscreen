@@ -18,7 +18,13 @@ import { historyRows, parcelName } from "./historyRows";
 import { pieceDedupeKey } from "@/lib/geo/recipe";
 import type { ParcelRecord } from "@/lib/geo/parcels";
 import { LatLonSchema, RecordSchema } from "./currentParcel";
-import { NO_LISTING, ParcelStoreSchema, type ParcelStore, type WorkingParcel } from "./parcelStore";
+import {
+  NO_LISTING,
+  NO_STATUS,
+  ParcelStoreSchema,
+  type ParcelStore,
+  type WorkingParcel,
+} from "./parcelStore";
 import { ScreenRecordSchema, type ScreenRecord } from "./screenStore";
 import {
   ANCHORS_LABEL,
@@ -242,6 +248,7 @@ function fromPrototypeSaved(s: z.infer<typeof ProtoSavedSchema>, key: string, no
     askingPrice: null,
     askingPriceAt: null,
     ...NO_LISTING,
+    ...NO_STATUS,
     markup: [],
     hidden: [],
     excluded: [],

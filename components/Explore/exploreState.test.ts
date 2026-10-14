@@ -342,6 +342,67 @@ describe("notes (13e-5)", () => {
     expect(justAName.store.built).toHaveLength(1);
   });
 
+  it("the status (WF2): saved; archived with a reason (blank or 'Rejected:' alone refused); restored to what it was", () => {
+    const s = run([selectA()]);
+    const go = (st: ExploreState, a: ExploreAction) => exploreReducer(st, a);
+    const saved = go(s, { type: "status", status: "saved", serial: s.serial, stamp: at() });
+    expect(saved.store.open).toMatchObject({ status: "saved", archived: null });
+    expect(saved.store.built).toHaveLength(1); // a status builds the parcel
+    for (const reason of ["", "   ", "Rejected: ", "rejected"])
+      expect(go(saved, { type: "archive", reason, serial: s.serial, stamp: at() }), reason).toBe(saved);
+    const archived = go(saved, {
+      type: "archive",
+      reason: "  Rejected: no winter sun ",
+      serial: s.serial,
+      stamp: at(),
+    });
+    expect(archived.store.open).toMatchObject({
+      status: "archived",
+      archived: { reason: "Rejected: no winter sun", from: "saved" },
+    });
+    expect(archived.store.open!.archived!.at).toMatch(/^2026-/);
+    // Archived: a status change waits for Restore; archiving again does nothing.
+    expect(go(archived, { type: "status", status: "inProgress", serial: s.serial, stamp: at() })).toBe(
+      archived,
+    );
+    expect(go(archived, { type: "archive", reason: "Sold", serial: s.serial, stamp: at() })).toBe(archived);
+    const restored = go(archived, { type: "restore", serial: s.serial, stamp: at() });
+    expect(restored.store.open).toMatchObject({ status: "saved", archived: null });
+    // Late, from another parcel: dropped.
+    const other = go(s, { type: "select", record: b, stamp: at() });
+    expect(go(other, { type: "status", status: "saved", serial: s.serial, stamp: at() })).toBe(other);
+  });
+
+  it("milestones (WF2): a date each, changed or cleared; the same date again saves nothing", () => {
+    const s = run([selectA()]);
+    const walked = exploreReducer(s, {
+      type: "milestone",
+      which: "walked",
+      date: "2026-10-20",
+      serial: s.serial,
+      stamp: at(),
+    });
+    expect(walked.store.open!.milestones).toEqual({ walked: "2026-10-20", offered: null });
+    expect(walked.store.built).toHaveLength(1);
+    expect(
+      exploreReducer(walked, {
+        type: "milestone",
+        which: "walked",
+        date: "2026-10-20",
+        serial: s.serial,
+        stamp: at(),
+      }),
+    ).toBe(walked);
+    const cleared = exploreReducer(walked, {
+      type: "milestone",
+      which: "walked",
+      date: null,
+      serial: s.serial,
+      stamp: at(),
+    });
+    expect(cleared.store.open!.milestones).toEqual({ walked: null, offered: null });
+  });
+
   it("serial: opening, closing or switching parcels bumps it; editing the open one doesn't", () => {
     const s = run([selectA()]);
     expect(run([house(), { type: "toggleHidden", id: "house", stamp: at() }], s).serial).toBe(s.serial);

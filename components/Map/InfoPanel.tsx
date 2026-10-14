@@ -26,6 +26,7 @@ import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { findLayer, layerLine, type LayerId, type LayerNode } from "@/components/Explore/layers";
 import { ParcelFacts } from "@/components/Explore/ParcelFacts";
 import { ListingFacts } from "./ListingFacts";
+import { ParcelStanding } from "./ParcelStanding";
 import { parcelDisplayName } from "@/lib/client/historyRows";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { AnalysisGroup } from "./results/AnalysisGroup";
@@ -487,6 +488,7 @@ function ParcelDetails({ ctl, name }: { ctl: ExploreController; name: string }) 
   return (
     <>
       <h3>{name}</h3>
+      <ParcelStanding ctl={ctl} />
       {ctl.parcel && <ParcelFacts parcel={ctl.parcel} unscreened={d?.ok ? d.unscreened : undefined} />}
       {d?.ok && d.splitDropped && (
         <p className="ip-note">The split no longer crosses the boundary, so it&apos;s left off.</p>

@@ -7,6 +7,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { shortPrice } from "@/lib/client/askingPrice";
+import { milestonesLine, statusLine } from "@/lib/client/parcelStatus";
 import { historyRows } from "@/lib/client/historyRows";
 import type { WorkingParcel } from "@/lib/client/parcelStore";
 import { getPref } from "@/lib/client/prefs";
@@ -114,6 +115,11 @@ export function History({ onOpened }: { onOpened?: () => void }) {
                   <span className="tiny muted">
                     {when(b.updatedAt)}
                     {latest.get(b.key!)?.rescreen && ` · ${RESCREENS_ON_OPEN}`}
+                    {/* Its standing (WF2): Saved or archived, and the milestones; in progress goes unsaid. */}
+                    {[b.status !== "inProgress" ? statusLine(b) : "", milestonesLine(b)]
+                      .filter(Boolean)
+                      .map((t) => ` · ${t}`)
+                      .join("")}
                   </span>
                 </li>
               );

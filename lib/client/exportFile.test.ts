@@ -404,6 +404,22 @@ describe("schema v3 (B2a): older results and the asking price", () => {
     ).not.toEqual([]);
   });
 
+  it("the status, archive and milestones round-trip (WF2); a parcel kept before them is in progress", () => {
+    const standing = {
+      status: "archived" as const,
+      archived: { reason: "Sold", at: "2026-10-14T12:00:00.000Z", from: "saved" as const },
+      milestones: { walked: "2026-10-01", offered: null },
+    };
+    const kept: ParcelStore = { ...STORE, built: [{ ...STORE.built[0]!, ...standing }] };
+    expect(plan(file({}, kept)).added[0]).toMatchObject(standing);
+    const { status: _s, archived: _a, milestones: _m, ...older } = STORE.built[0]!;
+    expect(plan(file({ parcels: { ...STORE, built: [older as never] } })).added[0]).toMatchObject({
+      status: "inProgress",
+      archived: null,
+      milestones: { walked: null, offered: null },
+    });
+  });
+
   it("the listing's facts round-trip (WF1); a parcel kept before them has none", () => {
     const facts = {
       name: "Ferney Creek",

@@ -122,6 +122,15 @@ export interface WorkingParcel {
   listingUrl: string;
   listingAcres: number | null;
   agent: string;
+  /**
+   * Where the household stands on it (WF2, docs/plans/parcel-workflow.md §4): in progress (the default), saved (a
+   * contender to keep), or archived, with the reason and what it was before (Restore puts that back). Archiving keeps
+   * everything; Remove is still the only delete.
+   */
+  status: ParcelStatus;
+  archived: Archived | null;
+  /** Walked and Offered (owner, #128): tags beside the status, each with its date ("2026-10-20"), or null. */
+  milestones: Milestones;
   /** Drawn tracks and easements (follow-up 34). */
   markup: Markup[];
   /** Layer ids hidden on the map, and results removed from the analysis. */
@@ -148,6 +157,36 @@ export const recipeOf = (p: WorkingParcel): ParcelRecipe => ({
   ...(p.split ? { split: p.split } : {}),
 });
 
+export type ParcelStatus = "inProgress" | "saved" | "archived";
+export type ActiveStatus = Exclude<ParcelStatus, "archived">;
+
+export interface Archived {
+  /** "Not for us", "Sold", "Rejected: the septic test failed", or the household's own words. */
+  reason: string;
+  at: string;
+  /** The status it had: Restore returns to it. */
+  from: ActiveStatus;
+}
+
+export type Milestone = "walked" | "offered";
+export type Milestones = Record<Milestone, string | null>;
+
+/** The quick picks for an archive's reason (owner, #128); "Rejected: " opens the box for the rest. */
+export const ARCHIVE_PICKS = ["Not for us", "Sold", "Rejected: "] as const;
+
+/** A reason that says something: not blank, and not "Rejected:" alone. */
+export const reasonGiven = (reason: string): boolean => {
+  const r = reason.trim();
+  return r !== "" && r.replace(/:$/, "").toLowerCase() !== "rejected";
+};
+
+/** A parcel's standing before any is set (WF2). */
+export const NO_STATUS: Pick<WorkingParcel, "status" | "archived" | "milestones"> = {
+  status: "inProgress",
+  archived: null,
+  milestones: { walked: null, offered: null },
+};
+
 /** The listing facts of a parcel that has none (WF1). */
 export const NO_LISTING: Pick<WorkingParcel, ListingField> = {
   name: "",
@@ -169,6 +208,7 @@ export function plainParcel(record: ParcelRecord, now: string): WorkingParcel {
     askingPrice: null,
     askingPriceAt: null,
     ...NO_LISTING,
+    ...NO_STATUS,
     markup: [],
     hidden: [],
     excluded: [],
@@ -179,7 +219,8 @@ export function plainParcel(record: ParcelRecord, now: string): WorkingParcel {
 
 /**
  * Built = changed: more than one piece, a drawn or derived piece (anything but a county record), a split, a
- * house, notes, a price or a listing fact, a drawn line, or a screen. Once built, it stays built (it has a key).
+ * house, notes, a price or a listing fact, a status or milestone, a drawn line, or a screen. Once built, it stays built
+ * (it has a key).
  */
 export function isBuilt(p: WorkingParcel | null): boolean {
   if (!p) return false;
@@ -195,6 +236,9 @@ export function isBuilt(p: WorkingParcel | null): boolean {
     p.listingUrl.trim() !== "" ||
     p.listingAcres !== null ||
     p.agent.trim() !== "" ||
+    p.status !== "inProgress" ||
+    p.milestones.walked !== null ||
+    p.milestones.offered !== null ||
     p.markup.length > 0 ||
     p.screenIds.length > 0
   );
@@ -277,6 +321,15 @@ const WorkingSchema = z.object({
   listingUrl: z.string().default(""),
   listingAcres: z.number().positive().nullable().default(null),
   agent: z.string().default(""),
+  // Added with WF2: a parcel kept before is in progress, with no milestones.
+  status: z.enum(["inProgress", "saved", "archived"]).default("inProgress"),
+  archived: z
+    .object({ reason: z.string(), at: z.string(), from: z.enum(["inProgress", "saved"]) })
+    .nullable()
+    .default(null),
+  milestones: z
+    .object({ walked: z.string().nullable(), offered: z.string().nullable() })
+    .default({ walked: null, offered: null }),
   // Added with follow-up 34: a parcel kept before has none.
   markup: z
     .array(MarkupSchema)
