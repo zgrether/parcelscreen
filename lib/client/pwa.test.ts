@@ -3,12 +3,13 @@ import manifest, { BACKGROUND_COLOR, THEME_COLOR } from "@/app/manifest";
 import { OFFLINE_TEXT, shouldRegister, showUpdateToast, unreachableMessage } from "./pwa";
 
 describe("the manifest (step 17c)", () => {
-  it("is installable: name, standalone, the explorer, and any and maskable icons at 192 and 512", () => {
+  it("is installable: name, standalone, opening at / (the list or the map), and any and maskable icons", () => {
     const m = manifest();
     expect(m).toMatchObject({
       name: "Parcel Screen",
       short_name: "Parcel Screen",
-      start_url: "/explore",
+      id: "/explore", // the installed app's identity, unchanged since step 17c
+      start_url: "/",
       display: "standalone",
       theme_color: "#1c2620",
       background_color: "#e7eae3",

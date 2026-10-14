@@ -14,6 +14,9 @@ import {
   exportFileName,
   importSummary,
   keptScreenIds,
+  fromV1,
+  READS_VERSIONS,
+  V1_DEFAULTS,
   nameFromNotes,
   NOTES_NAME_MAX,
   NOT_AN_EXPORT,
@@ -66,7 +69,7 @@ const errors = (text: string, store: ParcelStore = EMPTY_STORE) => {
 describe("export (owner, 16b): versioned by format and version", () => {
   it("holds the settings, the parcel store and History's kept screens", () => {
     const f = buildExport(DEFAULT_USER_CONFIG, STORE, [screen("s1")], NOW);
-    expect(f).toMatchObject({ format: EXPORT_FORMAT, version: 1, exportedAt: NOW, parcels: STORE });
+    expect(f).toMatchObject({ format: EXPORT_FORMAT, version: 2, exportedAt: NOW, parcels: STORE });
     expect(f.cfg).toBe(DEFAULT_USER_CONFIG);
     expect(keptScreenIds(STORE)).toEqual(["s1"]);
     expect(exportFileName(NOW)).toBe("parcelscreen-2026-10-07.json");
@@ -113,9 +116,83 @@ describe("import: validate all, then all or nothing", () => {
     expect(errors("not json")).toEqual([NOT_AN_EXPORT]);
     expect(errors(JSON.stringify({ hello: 1 }))).toEqual([NOT_AN_EXPORT]);
     expect(errors(JSON.stringify([1]))).toEqual([NOT_AN_EXPORT]);
-    expect(errors(file({ version: 2 as never }))).toEqual([
-      "This export is version 2; this app reads version 1.",
+    expect(errors(file({ version: 3 as never }))).toEqual([
+      "This export is version 3; this app reads versions 1 and 2.",
     ]);
+  });
+});
+
+describe("version 2 (owner, after #131): every field written; a version 1 file converted", () => {
+  it("round trip: an archived parcel with both milestones, exported and imported into an empty store, is the same", () => {
+    const p = {
+      ...built("k1", { screenIds: ["s1"] }),
+      name: "Ferney Creek 43 ac",
+      askingPrice: 185_000,
+      askingPriceAt: "2026-10-11T12:00:00.000Z",
+      status: "archived" as const,
+      archived: { reason: "Rejected: no winter sun", at: "2026-10-14T12:00:00.000Z", from: "saved" as const },
+      milestones: { walked: "2026-10-01", offered: "2026-10-09" },
+    };
+    const store: ParcelStore = { v: 2, open: null, built: [p] };
+    const text = JSON.stringify(buildExport(DEFAULT_USER_CONFIG, store, [screen("s1")], NOW));
+    expect(JSON.parse(text)).toMatchObject({ version: 2 });
+    const after = applyImport(EMPTY_STORE, plan(text));
+    expect(after.built).toEqual([p]);
+    // Each field the owner named, one by one.
+    expect(after.built[0]).toMatchObject({
+      status: "archived",
+      archived: { reason: "Rejected: no winter sun", at: "2026-10-14T12:00:00.000Z", from: "saved" },
+      milestones: { walked: "2026-10-01", offered: "2026-10-09" },
+    });
+  });
+
+  it("a version 1 file: each parcel gets the defaults for what it lacks, and keeps what it has", () => {
+    const v1Parcel = (key: string) => {
+      const {
+        askingPrice: _p,
+        askingPriceAt: _pa,
+        markup: _m,
+        name: _n,
+        listingUrl: _u,
+        listingAcres: _a,
+        agent: _g,
+        status: _s,
+        archived: _ar,
+        milestones: _mi,
+        ...v1
+      } = built(key);
+      return v1;
+    };
+    const v1 = {
+      ...JSON.parse(file()),
+      version: 1,
+      parcels: {
+        v: 2,
+        open: null,
+        built: [
+          v1Parcel("old"),
+          { ...v1Parcel("priced"), pieces: [county(-81.351, "52-48")], askingPrice: 99_000 },
+        ],
+      },
+    };
+    expect(Object.keys(fromV1(v1).parcels as object)).toEqual(["v", "open", "built"]);
+    const added = plan(JSON.stringify(v1)).added;
+    expect(added).toHaveLength(2);
+    expect(added[0]).toMatchObject({ key: "old", ...V1_DEFAULTS, askingPrice: null });
+    expect(added[1]).toMatchObject({ key: "priced", askingPrice: 99_000, status: "inProgress" });
+    expect(V1_DEFAULTS).toEqual({
+      askingPrice: null,
+      askingPriceAt: null,
+      markup: [],
+      name: "",
+      listingUrl: "",
+      listingAcres: null,
+      agent: "",
+      status: "inProgress",
+      archived: null,
+      milestones: { walked: null, offered: null },
+    });
+    expect(READS_VERSIONS).toEqual([1, 2]);
   });
 });
 

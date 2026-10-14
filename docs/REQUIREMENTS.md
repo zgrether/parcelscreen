@@ -268,7 +268,7 @@ Phase 1 imports it into Supabase the same way as the `ps.parcels` store. It's ve
 ```jsonc
 {
   "format": "parcelscreen-export",
-  "version": 1,
+  "version": 2,
   "exportedAt": "2026-10-07T15:00:00.000Z",
   "cfg": { /* UserConfig (lib/screen/types.ts), as stored in ps.cfg */ },
   "parcels": { "v": 2, "open": null, "built": [ /* exactly the ps.parcels store above */ ] },
@@ -276,6 +276,11 @@ Phase 1 imports it into Supabase the same way as the `ps.parcels` store. It's ve
 }
 ```
 
+- **Version 2** (owner, after #131): every parcel field above is written. A version 1 file (before the asking
+  price, the drawn lines, the listing's facts and the status) still imports: `fromV1` (`lib/client/exportFile.ts`) gives
+  each parcel the defaults for what it lacks (`V1_DEFAULTS`: no price, no lines, no listing facts, in progress, no
+  milestones), and the lines inside `markup` get their kind's name, condition and width as the store's loader gives
+  them. This app reads versions 1 and 2; an older app can't read version 2.
 - **Phase 1 import:**
   - `parcels.built[]` become `parcels` rows as above;
   - `screens` become `screens` rows (version 1 each, immutable), linked through `screenIds`;

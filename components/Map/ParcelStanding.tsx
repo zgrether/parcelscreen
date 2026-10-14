@@ -6,29 +6,40 @@
  * delete.
  */
 import { useRef, useState } from "react";
-import type { ExploreController } from "@/components/Explore/useExploreController";
-import { ARCHIVE_PICKS, reasonGiven, type ActiveStatus } from "@/lib/client/parcelStore";
+import {
+  ARCHIVE_PICKS,
+  reasonGiven,
+  type ActiveStatus,
+  type Milestone,
+  type WorkingParcel,
+} from "@/lib/client/parcelStore";
 import { localDay, MILESTONE_WORD, MILESTONES, STATUS_WORD, statusLine } from "@/lib/client/parcelStatus";
 
 const ACTIVE: ActiveStatus[] = ["inProgress", "saved"];
 
-export function ParcelStanding({ ctl }: { ctl: ExploreController }) {
-  const open = ctl.state.store.open!;
-  const serial = ctl.state.serial;
+/** What the controls change: the explorer's open parcel, or a parcel on the list (WF2b). */
+export interface StandingActions {
+  setStatus(status: ActiveStatus): void;
+  archive(reason: string): void;
+  restore(): void;
+  setMilestone(which: Milestone, date: string | null): void;
+}
+
+export function ParcelStanding({ parcel: open, act }: { parcel: WorkingParcel; act: StandingActions }) {
   const [asking, setAsking] = useState(false);
   return (
     <div className="ip-standing" role="group" aria-label="Status">
       {open.status === "archived" ? (
         <div className="ip-chips">
           <span className="ip-note">{statusLine(open)}</span>
-          <button className="ip-btn sec" onClick={() => ctl.restore(serial)}>
+          <button className="ip-btn sec" onClick={act.restore}>
             Restore
           </button>
         </div>
       ) : asking ? (
         <ArchiveReason
           archive={(reason) => {
-            ctl.archive(reason, serial);
+            act.archive(reason);
             setAsking(false);
           }}
           cancel={() => setAsking(false)}
@@ -40,7 +51,7 @@ export function ParcelStanding({ ctl }: { ctl: ExploreController }) {
               key={st}
               className="chip"
               aria-pressed={open.status === st}
-              onClick={() => ctl.setStatus(st, serial)}
+              onClick={() => act.setStatus(st)}
             >
               {STATUS_WORD[st]}
             </button>
@@ -59,7 +70,7 @@ export function ParcelStanding({ ctl }: { ctl: ExploreController }) {
                 key={m}
                 className="chip"
                 aria-pressed={false}
-                onClick={() => ctl.setMilestone(m, localDay(new Date()), serial)}
+                onClick={() => act.setMilestone(m, localDay(new Date()))}
               >
                 + {MILESTONE_WORD[m]}
               </button>
@@ -72,13 +83,13 @@ export function ParcelStanding({ ctl }: { ctl: ExploreController }) {
                   type="date"
                   aria-label={`${MILESTONE_WORD[m]} on`}
                   value={date}
-                  onChange={(e) => e.target.value && ctl.setMilestone(m, e.target.value, serial)}
+                  onChange={(e) => e.target.value && act.setMilestone(m, e.target.value)}
                 />
               </label>
               <button
                 className="ip-milestone-x"
                 aria-label={`Clear ${MILESTONE_WORD[m]}`}
-                onClick={() => ctl.setMilestone(m, null, serial)}
+                onClick={() => act.setMilestone(m, null)}
               >
                 ×
               </button>

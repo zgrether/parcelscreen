@@ -18,7 +18,6 @@ import {
   removeBuilt,
   type LineCondition,
   type ListingField,
-  reasonGiven,
   type ActiveStatus,
   type Milestone,
   type Markup,
@@ -32,6 +31,7 @@ import { drawnPart } from "@/lib/geo/recipe";
 import type { Side } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
 import { lineLayer, type LayerId } from "./layers";
+import { withArchive, withMilestone, withRestore, withStatus } from "@/lib/client/parcelStatus";
 
 /** "track" and "easement" draw a line with the parcel (follow-up 34), with the Draw tool's corners. */
 export type Mode = "draw" | "house" | "split" | "combine" | "track" | "easement" | null;
@@ -451,24 +451,21 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
         ),
       };
     case "status":
-      // Archived parcels come back through Restore, which knows what they were.
-      if (!open || a.serial !== s.serial || open.status === a.status || open.status === "archived") return s;
-      return { ...s, store: save({ ...open, status: a.status }, a.stamp) };
-    case "archive": {
-      const reason = a.reason.trim();
-      if (!open || a.serial !== s.serial || open.status === "archived" || !reasonGiven(reason)) return s;
-      const archived = { reason, at: a.stamp.now, from: open.status };
-      return { ...s, store: save({ ...open, status: "archived", archived }, a.stamp) };
-    }
+    case "archive":
     case "restore":
-      if (!open || a.serial !== s.serial || !open.archived) return s;
-      return { ...s, store: save({ ...open, status: open.archived.from, archived: null }, a.stamp) };
-    case "milestone":
-      if (!open || a.serial !== s.serial || open.milestones[a.which] === a.date) return s;
-      return {
-        ...s,
-        store: save({ ...open, milestones: { ...open.milestones, [a.which]: a.date } }, a.stamp),
-      };
+    case "milestone": {
+      // As notes: a change after another parcel opened is dropped; one that changes nothing saves nothing.
+      if (!open || a.serial !== s.serial) return s;
+      const next =
+        a.type === "status"
+          ? withStatus(open, a.status)
+          : a.type === "archive"
+            ? withArchive(open, a.reason, a.stamp.now)
+            : a.type === "restore"
+              ? withRestore(open)
+              : withMilestone(open, a.which, a.date);
+      return next === open ? s : { ...s, store: save(next, a.stamp) };
+    }
     case "listing": {
       // As notes: a save after another parcel opened is dropped; one that changes nothing saves nothing.
       if (!open || a.serial !== s.serial) return s;

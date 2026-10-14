@@ -488,7 +488,15 @@ function ParcelDetails({ ctl, name }: { ctl: ExploreController; name: string }) 
   return (
     <>
       <h3>{name}</h3>
-      <ParcelStanding ctl={ctl} />
+      <ParcelStanding
+        parcel={ctl.state.store.open!}
+        act={{
+          setStatus: (st) => ctl.setStatus(st, ctl.state.serial),
+          archive: (reason) => ctl.archive(reason, ctl.state.serial),
+          restore: () => ctl.restore(ctl.state.serial),
+          setMilestone: (m, date) => ctl.setMilestone(m, date, ctl.state.serial),
+        }}
+      />
       {ctl.parcel && <ParcelFacts parcel={ctl.parcel} unscreened={d?.ok ? d.unscreened : undefined} />}
       {d?.ok && d.splitDropped && (
         <p className="ip-note">The split no longer crosses the boundary, so it&apos;s left off.</p>

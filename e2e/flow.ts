@@ -3,6 +3,7 @@
  * screened, and its result read back as the page shows it. Plan phase-0-18-acceptance.md §1.
  */
 import { expect, type Page } from "@playwright/test";
+import { ENGINE_VERSION } from "@/lib/screen/engine";
 import type { PartialScreenResult, ScreenResult } from "@/lib/screen/types";
 import { differences } from "../test/support/compare";
 import { loadFixture, type FixtureSlug } from "../test/support/fixtures";
@@ -161,4 +162,48 @@ export const EXPECTED_MSG = "differences from expected.json (path: actual vs exp
  */
 export function againstExpected(result: unknown, slug: FixtureSlug, scenario: Scenario): string[] {
   return differences(result as ScreenResult, expectedOf(slug, scenario), EXPECTED_BROWSER);
+}
+
+/**
+ * Gives each imported fixture parcel its fixture's expected result as its kept screen, as a run would leave it:
+ * straight into IndexedDB, no screening (VR6's compare, WF2b's list).
+ */
+export async function seedScreens(page: Page, slugs: readonly FixtureSlug[]): Promise<void> {
+  const seeds = slugs.map((slug) => ({
+    name: loadFixture(slug).input.name,
+    result: expectedOf(slug, "run"),
+  }));
+  await page.evaluate(
+    async ({ seeds, engine }: { seeds: { name: string; result: ScreenResult }[]; engine: number }) => {
+      const store = JSON.parse(localStorage.getItem("ps.parcels")!) as {
+        built: { notes: string; screenIds: string[] }[];
+      };
+      const db = await new Promise<IDBDatabase>((resolve, reject) => {
+        const req = indexedDB.open("parcelscreen", 1);
+        req.onupgradeneeded = () => req.result.createObjectStore("screens", { keyPath: "id" });
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+      const tx = db.transaction("screens", "readwrite");
+      for (const s of seeds) {
+        // The imported name is the notes' first line (lib/client/exportFile.ts).
+        const b = store.built.find((x) => x.notes.split("\n")[0] === `Name: ${s.name}`)!;
+        const id = `e2e-${s.name}`;
+        tx.objectStore("screens").put({
+          id,
+          keys: { boundary: "e2e", house: "", settings: "e2e", lines: "" },
+          result: s.result,
+          engine,
+        });
+        b.screenIds = [id];
+      }
+      await new Promise<void>((resolve, reject) => {
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+      db.close();
+      localStorage.setItem("ps.parcels", JSON.stringify(store));
+    },
+    { seeds, engine: ENGINE_VERSION },
+  );
 }

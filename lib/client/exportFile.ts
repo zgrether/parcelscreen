@@ -36,7 +36,45 @@ import {
 } from "./settingsForm";
 
 export const EXPORT_FORMAT = "parcelscreen-export";
-export const EXPORT_VERSION = 1;
+/**
+ * Version 2 (owner, after #131): every field a parcel has gained since version 1 (the asking price, B2a; drawn lines,
+ * 34 and #127; the listing's facts, WF1; the status, archive and milestones, WF2a) is written, and a version 1 file is
+ * read through `fromV1`, which fills each with its default.
+ */
+export const EXPORT_VERSION = 2;
+/** The versions this app reads. */
+export const READS_VERSIONS: readonly number[] = [1, EXPORT_VERSION];
+
+/** What a version 1 file's parcel lacks, and its value there: the defaults the app gives a parcel kept before. */
+export const V1_DEFAULTS = {
+  askingPrice: null,
+  askingPriceAt: null,
+  markup: [],
+  ...NO_LISTING,
+  ...NO_STATUS,
+} as const;
+
+/**
+ * A version 1 file as version 2: each parcel (open and History) gets V1_DEFAULTS for the fields it lacks; a field it
+ * has is kept. Lines inside `markup` get their kind's name, condition and width as the store's loader gives them.
+ */
+export function fromV1(json: Record<string, unknown>): Record<string, unknown> {
+  const parcel = (p: unknown) => (isRecord(p) ? { ...V1_DEFAULTS, ...p } : p);
+  const parcels = isRecord(json.parcels) ? json.parcels : null;
+  return {
+    ...json,
+    version: 2,
+    ...(parcels
+      ? {
+          parcels: {
+            ...parcels,
+            open: parcels.open == null ? parcels.open : parcel(parcels.open),
+            built: Array.isArray(parcels.built) ? parcels.built.map(parcel) : parcels.built,
+          },
+        }
+      : {}),
+  };
+}
 /** The prototype's hint for a file it can't read (L1611), verbatim. */
 export const NOT_AN_EXPORT = "That file isn't a Parcel Screen export";
 
@@ -299,11 +337,15 @@ export function planImport(
   let olderIds: string[] = [];
   let rawCfg: unknown;
   if (json.format === EXPORT_FORMAT) {
-    if (json.version !== EXPORT_VERSION)
+    if (!READS_VERSIONS.includes(json.version as number))
       return {
         ok: false,
-        errors: [`This export is version ${String(json.version)}; this app reads version ${EXPORT_VERSION}.`],
+        errors: [
+          `This export is version ${String(json.version)}; this app reads versions ${READS_VERSIONS.join(" and ")}.`,
+        ],
       };
+    if (json.version === 1) json = fromV1(json);
+    if (!isRecord(json)) return { ok: false, errors: [NOT_AN_EXPORT] };
     // Results from an older schema are set aside before validating (v3's clean break): not an error, not imported.
     const older = (x: unknown) =>
       isRecord(x) &&
