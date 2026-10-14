@@ -5,6 +5,8 @@ import { drawnPart } from "@/lib/geo/recipe";
 import {
   closeOpen,
   commitOpen,
+  DEFAULT_CONDITION,
+  drawnInput,
   EMPTY_STORE,
   fromV1,
   isBuilt,
@@ -186,5 +188,39 @@ describe("storage (ps.parcels)", () => {
       askingPrice: null,
       askingPriceAt: null,
     });
+  });
+
+  it("a line kept before its condition existed loads with its kind's (owner, A); a drive is screened as a track", () => {
+    const line = (kind: string, id: string) => ({
+      id,
+      kind,
+      line: [
+        [36.629, -81.354],
+        [36.6295, -81.3535],
+      ],
+      widthFt: kind === "easement" ? 30 : null,
+      note: "",
+      at: T0,
+    });
+    const s = commitOpen(EMPTY_STORE, plain, T0, keys());
+    const raw = JSON.parse(writeParcelStore(s)) as { open: Record<string, unknown> };
+    raw.open.markup = [
+      line("track", "a"),
+      line("easement", "b"),
+      { ...line("drive", "c"), condition: "paved" },
+    ];
+    const back = readParcelStore(JSON.stringify(raw))!.open!.markup;
+    expect(back.map((m) => [m.kind, m.condition])).toEqual([
+      ["track", "pioneer"],
+      ["easement", "uncleared"],
+      ["drive", "paved"], // chosen: kept
+    ]);
+    expect(DEFAULT_CONDITION).toEqual({ track: "pioneer", drive: "improved", easement: "uncleared" });
+    // The screen doesn't know an existing drive yet, nor any condition: no pricing change (owner, A).
+    expect(drawnInput(back).map((d) => [d.id, d.kind, "condition" in d])).toEqual([
+      ["a", "track", false],
+      ["b", "easement", false],
+      ["c", "track", false],
+    ]);
   });
 });

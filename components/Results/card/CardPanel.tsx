@@ -5,18 +5,22 @@
  * "How it's scored" line (d); below, under "From the report", the report sections that moved here (§6.1), word for
  * word, each with its own heading and "?" help link.
  */
+import { length, lineString } from "@turf/turf";
 import Link from "next/link";
 import { useEffect, useRef, type ReactNode } from "react";
 import { useHelp } from "@/components/Help/HelpDialog";
+import type { Markup } from "@/lib/client/parcelStore";
 import { fmt } from "@/lib/format";
 import { digCost, foundationAt, soilUnder } from "@/lib/report/derived";
 import { DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { BOTTOMLAND_LEAD, bottomland } from "@/lib/screen/soils";
 import type { Card, GateStatus } from "@/lib/report/card";
 import { panelText, rulebookHref, type PanelKey } from "@/lib/report/cardPanels";
+import { DRAWN_WORD, lineOutcome } from "@/lib/report/lines";
 import { meaningsFor } from "@/lib/report/meanings";
 import { scalesFor, type Scale } from "@/lib/report/scales";
 import type { PartialScreenResult, ScreenResult, Step, UserConfig } from "@/lib/screen/types";
+import { M2FT } from "@/lib/screen/util";
 import type { EvaluationPoint } from "../blocks/types";
 import { panelSections } from "./panelBlocks";
 
@@ -73,6 +77,7 @@ export function CardPanel({
   noteFor,
   dw = DEFAULT_USER_CONFIG.dw,
   about,
+  lines,
   onClose,
 }: {
   panel: PanelKey;
@@ -86,6 +91,8 @@ export function CardPanel({
   dw?: UserConfig["dw"];
   /** Which parcel, where several are in view (the comparison table, VR6). */
   about?: string;
+  /** The parcel's drawn lines, for the Easement panel's "Your lines" (owner, A); the explorer's, not Compare's. */
+  lines?: YourLines;
   onClose(): void;
 }) {
   const help = useHelp();
@@ -132,6 +139,9 @@ export function CardPanel({
         ))}
         {panel === "homesite" && <BuildingHere result={result} dw={dw} />}
         {panel === "septic" && <BottomlandHere result={result} />}
+        {panel === "easement" && lines && lines.markup.length > 0 && (
+          <YourLinesList result={result} lines={lines} />
+        )}
         <PanelFlags
           flags={(result.flags ?? []).filter((f) => panel !== "verdict" && panelOfFlag(f) === panel)}
         />
@@ -277,6 +287,53 @@ function PanelFlags({ flags }: { flags: NonNullable<ScreenResult["flags"]> }) {
           {f.t}
         </div>
       ))}
+    </section>
+  );
+}
+
+/** The parcel's drawn lines, with what can be done to each (owner, A). */
+export interface YourLines {
+  markup: readonly Markup[];
+  onEdit(id: string): void;
+  onDelete(id: string): void;
+}
+
+/**
+ * "Your lines" (owner, A, 2026-10-13): each drawn line with its kind, condition and length, what the run made of it
+ * (lineOutcome: used, or considered and why not), and Edit (its panel on the map) and Delete.
+ */
+function YourLinesList({ result, lines }: { result: ScreenResult | PartialScreenResult; lines: YourLines }) {
+  return (
+    <section className="block panel-block your-lines">
+      <h3>Your lines</h3>
+      <ul>
+        {lines.markup.map((m) => {
+          const at = result.lines?.findIndex((l) => l.id === m.id) ?? -1;
+          const outcome = at >= 0 ? lineOutcome(result, at, DRAWN_WORD[m.kind]) : null;
+          const ft = length(lineString(m.line.map(([lat, lon]) => [lon, lat])), { units: "meters" }) * M2FT;
+          return (
+            <li key={m.id}>
+              <div className="your-line-head">
+                <b>
+                  {DRAWN_WORD[m.kind].replace(/^./, (c) => c.toUpperCase())}, {m.condition},{" "}
+                  {Math.round(ft).toLocaleString()} ft
+                </b>
+                <span>
+                  <button className="btn small secondary" onClick={() => lines.onEdit(m.id)}>
+                    Edit
+                  </button>{" "}
+                  <button className="btn small secondary" onClick={() => lines.onDelete(m.id)}>
+                    Delete
+                  </button>
+                </span>
+              </div>
+              <p className="tiny">
+                {outcome ?? "Drawn after this screen: run again to see what the app makes of it."}
+              </p>
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }

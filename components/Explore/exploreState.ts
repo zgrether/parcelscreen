@@ -8,12 +8,15 @@ import { polygon } from "@turf/turf";
 import {
   closeOpen,
   commitOpen,
+  DEFAULT_CONDITION,
   EASEMENT_WIDTH_FT,
   EMPTY_STORE,
   openBuilt,
   plainParcel,
   removeBuilt,
+  type LineCondition,
   type Markup,
+  type MarkupKind,
   type ParcelStore,
   type WorkingParcel,
 } from "@/lib/client/parcelStore";
@@ -58,6 +61,10 @@ export interface ExploreState {
    * doesn't remount the box being typed in.
    */
   serial: number;
+  /** The drawn line whose path is being redrawn (owner, A): Finish replaces it, keeping what else it holds. */
+  editing: string | null;
+  /** The drawn line whose panel is open (owner, A: a tap on the line, or Edit in the report's list). */
+  lineOpen: string | null;
 }
 
 export const INITIAL: ExploreState = {
@@ -70,6 +77,8 @@ export const INITIAL: ExploreState = {
   mapPanel: false,
   layer: null,
   serial: 0,
+  editing: null,
+  lineOpen: null,
 };
 
 /** The time and a fresh key for a change that may save a parcel (the reducer stays pure). */
@@ -127,11 +136,17 @@ export type ExploreAction =
   | { type: "notes"; text: string; serial: number; stamp: Stamp }
   | { type: "askingPrice"; price: number | null; serial: number; stamp: Stamp }
   /** Follow-up 34: start a drawn line, finish it (at least two points) into the open parcel, edit or delete one. */
-  | { type: "startLine"; kind: Markup["kind"] }
+  | { type: "startLine"; kind: "track" | "easement" }
   | { type: "finishLine"; id: string; stamp: Stamp }
   | { type: "markupNote"; id: string; note: string; serial: number; stamp: Stamp }
   | { type: "markupWidth"; id: string; widthFt: number; serial: number; stamp: Stamp }
   | { type: "markupDelete"; id: string; serial: number; stamp: Stamp }
+  /** Owner, A: a line's panel; its kind and condition; its path redrawn; a deleted line put back (Undo). */
+  | { type: "lineOpen"; id: string | null }
+  | { type: "markupKind"; id: string; kind: MarkupKind; serial: number; stamp: Stamp }
+  | { type: "markupCondition"; id: string; condition: LineCondition; serial: number; stamp: Stamp }
+  | { type: "editLine"; id: string }
+  | { type: "markupRestore"; markup: Markup; index: number; serial: number; stamp: Stamp }
   /** A screen finished (or a house was re-assessed) for the parcel open when it started (`serial`). */
   | { type: "screened"; id: string; serial: number; stamp: Stamp };
 
@@ -148,12 +163,39 @@ const switched = (s: ExploreState, keepPanel?: boolean): Pick<ExploreState, "inf
 });
 
 /** Tools in progress end when the parcel changes underneath them. */
-const NO_TOOL: Pick<ExploreState, "mode" | "draft" | "split" | "combine"> = {
+const NO_TOOL: Pick<ExploreState, "mode" | "draft" | "split" | "combine" | "editing" | "lineOpen"> = {
   mode: null,
   draft: [],
   split: null,
   combine: null,
+  editing: null,
+  lineOpen: null,
 };
+
+/**
+ * A drawn line with one edit applied. A new kind brings an easement's width in or takes it out, and the new kind's
+ * condition when the old one was still its kind's default (a condition the user chose is kept).
+ */
+function edited(
+  m: Markup,
+  a: Extract<ExploreAction, { type: "markupNote" | "markupWidth" | "markupKind" | "markupCondition" }>,
+): Markup {
+  switch (a.type) {
+    case "markupNote":
+      return { ...m, note: a.note };
+    case "markupWidth":
+      return { ...m, widthFt: a.widthFt };
+    case "markupCondition":
+      return { ...m, condition: a.condition };
+    case "markupKind":
+      return {
+        ...m,
+        kind: a.kind,
+        widthFt: a.kind === "easement" ? (m.widthFt ?? EASEMENT_WIDTH_FT) : null,
+        condition: m.condition === DEFAULT_CONDITION[m.kind] ? DEFAULT_CONDITION[a.kind] : m.condition,
+      };
+  }
+}
 
 export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState {
   const save = (p: WorkingParcel, st: Stamp) => commitOpen(s.store, p, st.now, () => st.key);
@@ -195,7 +237,7 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
     case "draftUndo":
       return { ...s, draft: s.draft.slice(0, -1) };
     case "draftCancel":
-      return { ...s, draft: [], mode: null };
+      return { ...s, draft: [], mode: null, editing: null };
     case "finishDraw": {
       if (s.draft.length < 3) return s;
       const ring = s.draft.map(([lat, lon]) => [lon, lat]);
@@ -293,39 +335,64 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
     case "startLine":
       // Only with a parcel open: a line belongs to one.
       if (!open) return s;
-      return { ...s, draft: [], mode: a.kind, combine: null, split: null };
+      return { ...s, draft: [], mode: a.kind, combine: null, split: null, editing: null, lineOpen: null };
     case "finishLine": {
       if (!open || (s.mode !== "track" && s.mode !== "easement")) return s;
       if (new Set(s.draft.map(roundLL).map((p) => p.join())).size < 2) return s;
+      // A double-click to finish also taps twice: repeated points are dropped.
+      const points = s.draft
+        .map(roundLL)
+        .filter((p, i, all) => i === 0 || p[0] !== all[i - 1]![0] || p[1] !== all[i - 1]![1]);
+      // A redrawn line (owner, A) keeps its id, kind, condition, width and note: only its path changes.
+      if (s.editing && open.markup.some((m) => m.id === s.editing)) {
+        const markup = open.markup.map((m) => (m.id === s.editing ? { ...m, line: points } : m));
+        return { ...s, ...NO_TOOL, lineOpen: s.editing, store: save({ ...open, markup }, a.stamp) };
+      }
       const line: Markup = {
         id: a.id,
         kind: s.mode,
-        // A double-click to finish also taps twice: repeated points are dropped.
-        line: s.draft
-          .map(roundLL)
-          .filter((p, i, all) => i === 0 || p[0] !== all[i - 1]![0] || p[1] !== all[i - 1]![1]),
+        condition: DEFAULT_CONDITION[s.mode],
+        line: points,
         widthFt: s.mode === "easement" ? EASEMENT_WIDTH_FT : null,
         note: "",
         at: a.stamp.now,
       };
       return { ...s, ...NO_TOOL, store: save({ ...open, markup: [...open.markup, line] }, a.stamp) };
     }
+    case "lineOpen":
+      if (a.id !== null && !open?.markup.some((m) => m.id === a.id)) return s;
+      return { ...s, lineOpen: a.id };
+    case "editLine": {
+      const m = open?.markup.find((x) => x.id === a.id);
+      if (!m) return s;
+      return {
+        ...s,
+        ...NO_TOOL,
+        mode: m.kind === "easement" ? "easement" : "track",
+        draft: m.line,
+        editing: m.id,
+      };
+    }
+    case "markupRestore": {
+      // Undo of a delete (owner, A): back where it was, if it's still gone and the parcel is the same.
+      if (!open || a.serial !== s.serial || open.markup.some((m) => m.id === a.markup.id)) return s;
+      const markup = [...open.markup];
+      markup.splice(Math.min(a.index, markup.length), 0, a.markup);
+      return { ...s, store: save({ ...open, markup }, a.stamp) };
+    }
     case "markupNote":
     case "markupWidth":
+    case "markupKind":
+    case "markupCondition":
     case "markupDelete": {
       // As notes: an edit after another parcel opened is dropped.
       if (!open || a.serial !== s.serial || !open.markup.some((m) => m.id === a.id)) return s;
       const markup =
         a.type === "markupDelete"
           ? open.markup.filter((m) => m.id !== a.id)
-          : open.markup.map((m) =>
-              m.id !== a.id
-                ? m
-                : a.type === "markupNote"
-                  ? { ...m, note: a.note }
-                  : { ...m, widthFt: a.widthFt },
-            );
-      return { ...s, store: save({ ...open, markup }, a.stamp) };
+          : open.markup.map((m) => (m.id !== a.id ? m : edited(m, a)));
+      const lineOpen = a.type === "markupDelete" && s.lineOpen === a.id ? null : s.lineOpen;
+      return { ...s, lineOpen, store: save({ ...open, markup }, a.stamp) };
     }
     case "askingPrice":
       // As notes: a save after another parcel opened is dropped. The date is the entry's (owner, #101).

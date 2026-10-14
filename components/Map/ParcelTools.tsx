@@ -82,6 +82,22 @@ export function ParcelTools() {
   return null;
 }
 
+/** How near a tap must be to a drawn line to open its panel, in pixels. */
+const LINE_TAP_PX = 8;
+const MARKUP_LAYERS = [LAYER.markupTrack, LAYER.markupTrackHalo, LAYER.markupEasement];
+
+/** The drawn line under a tap, by id (owner, A), or null. */
+function markupAt(map: MlMap, p: { x: number; y: number }): string | null {
+  const layers = MARKUP_LAYERS.filter((id) => map.getLayer(id));
+  if (!layers.length) return null;
+  const box: [[number, number], [number, number]] = [
+    [p.x - LINE_TAP_PX, p.y - LINE_TAP_PX],
+    [p.x + LINE_TAP_PX, p.y + LINE_TAP_PX],
+  ];
+  const id = map.queryRenderedFeatures(box, { layers })[0]?.properties?.id;
+  return typeof id === "string" ? id : null;
+}
+
 function useMapTaps(map: MlMap | null, ctl: ExploreController) {
   const ref = useRef(ctl);
   useEffect(() => {
@@ -100,6 +116,9 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
       // No tool waiting: select, swap or unselect (13e rules, exploreState.decideTap). A tap on a result
       // overlay (a fan ray) only shows its text (step 15b).
       if (!mode) {
+        // A drawn line opens its panel (owner, A); its tooltip shows on hover.
+        const drawn = markupAt(map, e.point);
+        if (drawn) return c.openLine(drawn);
         if (tipAt(map, e.point)) return;
         const geo = c.parcel?.geo;
         const line = outlineAt(map, e.point);

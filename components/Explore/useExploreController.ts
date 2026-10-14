@@ -20,7 +20,14 @@ import {
 import { browserHttp } from "@/lib/client/http";
 import { parcelName } from "@/lib/client/historyRows";
 import { clearUnreadableScreens } from "@/lib/client/screenStore";
-import { loadParcelStore, recipeOf, type Markup, type WorkingParcel } from "@/lib/client/parcelStore";
+import {
+  loadParcelStore,
+  recipeOf,
+  type LineCondition,
+  type Markup,
+  type MarkupKind,
+  type WorkingParcel,
+} from "@/lib/client/parcelStore";
 import { getPref, setPref } from "@/lib/client/prefs";
 import { CancelledError } from "@/lib/http";
 import { unreachableMessage } from "@/lib/client/pwa";
@@ -122,11 +129,21 @@ export interface ExploreController {
   cancelTool(): void;
   finishDraw(): void;
   /** Follow-up 34: draw a track or an easement with the open parcel; Finish (Enter, double-click) keeps it. */
-  startLine(kind: Markup["kind"]): void;
+  startLine(kind: "track" | "easement"): void;
   finishLine(): void;
   saveMarkupNote(id: string, note: string, serial: number): void;
   saveMarkupWidth(id: string, widthFt: number, serial: number): void;
+  /** Deletes the line; `lineUndo` offers it back for a few seconds (owner, A). */
   deleteMarkup(id: string, serial: number): void;
+  /** Owner, A: a line's panel (null closes it), its kind and condition, and its path redrawn with the line tool. */
+  openLine(id: string | null): void;
+  setMarkupKind(id: string, kind: MarkupKind, serial: number): void;
+  setMarkupCondition(id: string, condition: LineCondition, serial: number): void;
+  editLine(id: string): void;
+  /** The line just deleted, for the Undo toast; null when there's none or it timed out. */
+  lineUndo: LineUndo | null;
+  undoLineDelete(): void;
+  dismissLineUndo(): void;
   startSplit(): void;
   /** A tap while splitting: the line's two ends, then the piece to keep. */
   splitTap(ll: LatLon): void;
@@ -155,6 +172,14 @@ export interface ExploreController {
 export interface SwitchToast {
   key: string;
   name: string;
+  at: number;
+}
+
+/** A drawn line just deleted (owner, A): what it was, where in the list, for which open parcel, and when. */
+export interface LineUndo {
+  markup: Markup;
+  index: number;
+  serial: number;
   at: number;
 }
 
@@ -203,6 +228,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
   }, []);
   const [map, setMap] = useState<MlMap | null>(null);
   const [toast, setToast] = useState<SwitchToast | null>(null);
+  const [lineUndo, setLineUndo] = useState<LineUndo | null>(null);
   const busy = useRef(false);
   /** About to leave the open parcel: if it has a screen, offer Back to it. */
   const leaving = () => {
@@ -452,7 +478,33 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       dispatch({ type: "markupWidth", id, widthFt, serial, stamp: stamp() });
     },
     deleteMarkup(id, serial) {
+      const open = latest.current.store.open;
+      const index = open?.markup.findIndex((m) => m.id === id) ?? -1;
+      if (!open || index < 0 || serial !== latest.current.serial) return;
+      setLineUndo({ markup: open.markup[index]!, index, serial, at: Date.now() });
       dispatch({ type: "markupDelete", id, serial, stamp: stamp() });
+    },
+    openLine(id) {
+      dispatch({ type: "lineOpen", id });
+    },
+    setMarkupKind(id, kind, serial) {
+      dispatch({ type: "markupKind", id, kind, serial, stamp: stamp() });
+    },
+    setMarkupCondition(id, condition, serial) {
+      dispatch({ type: "markupCondition", id, condition, serial, stamp: stamp() });
+    },
+    editLine(id) {
+      dispatch({ type: "editLine", id });
+      hint("Tap to add points; Undo takes the last off. Finish keeps the new path.");
+    },
+    lineUndo,
+    undoLineDelete() {
+      if (!lineUndo) return;
+      dispatch({ type: "markupRestore", ...lineUndo, stamp: stamp() });
+      setLineUndo(null);
+    },
+    dismissLineUndo() {
+      setLineUndo(null);
     },
     startSplit() {
       dispatch({ type: "startSplit" });

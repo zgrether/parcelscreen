@@ -151,6 +151,7 @@ describe("drawn lines (follow-up 34)", () => {
       {
         id: "a",
         kind: "track",
+        condition: "pioneer",
         line: [
           [36.6, -81.5],
           [36.61, -81.51],
@@ -162,6 +163,7 @@ describe("drawn lines (follow-up 34)", () => {
       {
         id: "b",
         kind: "easement",
+        condition: "uncleared",
         line: [
           [36.62, -81.5],
           [36.63, -81.5],
@@ -204,6 +206,7 @@ describe("drawn lines (follow-up 34)", () => {
     const m = {
       id: "a",
       kind: "track" as const,
+      condition: "pioneer" as const,
       line: [
         [36.6, -81.5],
         [36.61, -81.51],
@@ -215,6 +218,7 @@ describe("drawn lines (follow-up 34)", () => {
     const measured = {
       id: "a",
       kind: "track" as const,
+      condition: "pioneer" as const,
       lengthFt: 938,
       widthFt: null,
       outsideFt: 0,

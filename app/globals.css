@@ -402,6 +402,63 @@ html:has(.explore) body {
   background: #f0a030;
   cursor: pointer;
 }
+/* The Easement panel's "Your lines" (owner, A): each line, Edit and Delete at its right. */
+.your-lines ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.your-lines li + li {
+  margin-top: 8px;
+}
+.your-line-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 8px;
+}
+.your-line-head span {
+  display: flex;
+  gap: 6px;
+}
+/* A drawn line's panel (owner, A): where the toasts sit, above the toolbar, the width of a phone's screen at most. */
+.line-panel {
+  position: absolute;
+  z-index: 15;
+  left: calc(var(--float-l, 0px) + 12px);
+  right: 12px;
+  bottom: calc(var(--sheet-h, 0px) + 74px);
+  margin-inline: auto;
+  width: min(360px, calc(100% - 24px));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px 10px;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+  background: var(--color-paper);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+.line-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.line-panel-head .icon-btn {
+  background: none;
+  border: 0;
+  font-size: 16px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+}
+.line-panel-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
 /* The attribution sits alone in the top-right corner (owner, 17e: the Map menu became the map panel). */
 .explore-map .maplibregl-ctrl-top-right {
   top: 1px;
@@ -2551,7 +2608,8 @@ html:has(.explore) body {
   align-items: center;
   gap: 4px;
 }
-.card-person .chip {
+.card-person .chip,
+.line-panel .chip {
   border: 1px solid var(--color-rule);
   background: transparent;
   color: var(--color-ink);
@@ -2560,7 +2618,8 @@ html:has(.explore) body {
   font-size: 13px;
   cursor: pointer;
 }
-.card-person .chip[aria-pressed="true"] {
+.card-person .chip[aria-pressed="true"],
+.line-panel .chip[aria-pressed="true"] {
   background: var(--color-ink);
   color: var(--color-paper);
   border-color: var(--color-ink);
@@ -2570,6 +2629,10 @@ html:has(.explore) body {
 }
 /* The drawn lines changed since the screen (owner, #116): prominent, in the card's header; the results stay. */
 .card-stale {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
   margin: 8px 0 0;
   padding: 8px 10px;
   border: 1px solid var(--color-warn);
@@ -2666,7 +2729,8 @@ html:has(.explore) body {
 .card-row:focus-visible,
 .card-verdict:focus-visible,
 .gate:focus-visible,
-.card-person .chip:focus-visible {
+.card-person .chip:focus-visible,
+.line-panel .chip:focus-visible {
   outline: 2px solid var(--color-water);
   outline-offset: 2px;
 }

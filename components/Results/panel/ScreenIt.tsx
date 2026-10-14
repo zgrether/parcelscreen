@@ -46,7 +46,7 @@ import { reportCard, type Person } from "@/lib/report/card";
 import { panelFromSearch, replacePanelInUrl } from "@/lib/client/panelUrl";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import { CardPanel } from "../card/CardPanel";
-import { LINES_CHANGED, ReportCard } from "../card/ReportCard";
+import { LET_THE_APP_CONSIDER_IT, LINES_CHANGED, ReportCard } from "../card/ReportCard";
 import { OFFLINE_SCREEN_TEXT } from "@/lib/client/pwa";
 
 /** The run the worker's session holds: which parcel it was for (state.serial) and what it was run on. */
@@ -579,7 +579,11 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             running={!!s.runningHere}
             setPerson={s.setPerson}
             onOpen={openPanel}
-            stale={s.fresh?.lines ? LINES_CHANGED : null}
+            stale={
+              s.fresh?.lines
+                ? { text: LINES_CHANGED, actions: [{ label: LET_THE_APP_CONSIDER_IT, onClick: s.run }] }
+                : null
+            }
           />
         </div>
       )}
@@ -621,6 +625,15 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             )
           }
           dw={s.dw}
+          lines={
+            s.ctl.state.store.open
+              ? {
+                  markup: s.ctl.state.store.open.markup,
+                  onEdit: (id) => s.ctl.openLine(id),
+                  onDelete: (id) => s.ctl.deleteMarkup(id, s.ctl.state.serial),
+                }
+              : undefined
+          }
           onClose={closePanel}
         />
       )}

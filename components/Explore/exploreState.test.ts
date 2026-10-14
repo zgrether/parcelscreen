@@ -507,3 +507,112 @@ describe("drawn lines (follow-up 34)", () => {
     expect(gone.store.open!.markup).toEqual([]);
   });
 });
+
+describe("a drawn line's panel, kind, condition, path and undo (owner, A)", () => {
+  const two: LatLon[] = [
+    [36.629, -81.354],
+    [36.6295, -81.3535],
+  ];
+  const withTrack = () =>
+    run([
+      selectA(),
+      { type: "startLine", kind: "track" },
+      ...two.map((ll): ExploreAction => ({ type: "draftAdd", ll })),
+      { type: "finishLine", id: "t", stamp: at() },
+    ]);
+
+  it("a new line gets its kind's condition: a track pioneer, an easement uncleared", () => {
+    expect(withTrack().store.open!.markup[0]).toMatchObject({ kind: "track", condition: "pioneer" });
+  });
+
+  it("the panel opens on a line of the open parcel, and closes when the parcel changes or the line goes", () => {
+    const s = withTrack();
+    const p = exploreReducer(s, { type: "lineOpen", id: "t" });
+    expect(p.lineOpen).toBe("t");
+    expect(exploreReducer(s, { type: "lineOpen", id: "nope" }).lineOpen).toBeNull();
+    expect(exploreReducer(p, { type: "close" }).lineOpen).toBeNull();
+    const gone = exploreReducer(p, { type: "markupDelete", id: "t", serial: p.serial, stamp: at() });
+    expect(gone.lineOpen).toBeNull();
+  });
+
+  it("a new kind: an easement gets the default width, and the kind's condition unless the user chose one", () => {
+    const s = withTrack();
+    const k = (st: typeof s, kind: "track" | "easement" | "drive") =>
+      exploreReducer(st, { type: "markupKind", id: "t", kind, serial: st.serial, stamp: at() });
+    const drive = k(s, "drive");
+    expect(drive.store.open!.markup[0]).toMatchObject({
+      kind: "drive",
+      condition: "improved",
+      widthFt: null,
+    });
+    const easement = k(drive, "easement");
+    expect(easement.store.open!.markup[0]).toMatchObject({
+      kind: "easement",
+      condition: "uncleared",
+      widthFt: 30,
+    });
+    const paved = exploreReducer(easement, {
+      type: "markupCondition",
+      id: "t",
+      condition: "paved",
+      serial: easement.serial,
+      stamp: at(),
+    });
+    // Chosen, so kept through a change of kind.
+    expect(k(paved, "track").store.open!.markup[0]).toMatchObject({
+      kind: "track",
+      condition: "paved",
+      widthFt: null,
+    });
+  });
+
+  it("Edit redraws the path: the line tool opens with its points; Finish keeps its id, kind, note and condition", () => {
+    const s = exploreReducer(
+      exploreReducer(withTrack(), { type: "markupNote", id: "t", note: "seen", serial: 0, stamp: at() }),
+      { type: "markupCondition", id: "t", condition: "improved", serial: 0, stamp: at() },
+    );
+    const noted = exploreReducer(s, {
+      type: "markupNote",
+      id: "t",
+      note: "seen",
+      serial: s.serial,
+      stamp: at(),
+    });
+    const e = exploreReducer(noted, { type: "editLine", id: "t" });
+    expect([e.mode, e.editing, e.draft]).toEqual(["track", "t", two]);
+    const longer = exploreReducer(exploreReducer(e, { type: "draftAdd", ll: [36.63, -81.353] }), {
+      type: "finishLine",
+      id: "ignored",
+      stamp: at(),
+    });
+    expect(longer.store.open!.markup).toHaveLength(1);
+    expect(longer.store.open!.markup[0]).toMatchObject({
+      id: "t",
+      note: "seen",
+      line: [...two, [36.63, -81.353]],
+    });
+    expect([longer.mode, longer.editing, longer.lineOpen]).toEqual([null, null, "t"]);
+    // Cancelled: nothing changes.
+    expect(exploreReducer(e, { type: "draftCancel" }).store).toBe(e.store);
+  });
+
+  it("Undo puts a deleted line back where it was, only on the same parcel and only once", () => {
+    const s = withTrack();
+    const m = s.store.open!.markup[0]!;
+    const gone = exploreReducer(s, { type: "markupDelete", id: "t", serial: s.serial, stamp: at() });
+    const back = exploreReducer(gone, {
+      type: "markupRestore",
+      markup: m,
+      index: 0,
+      serial: s.serial,
+      stamp: at(),
+    });
+    expect(back.store.open!.markup).toEqual([m]);
+    expect(
+      exploreReducer(back, { type: "markupRestore", markup: m, index: 0, serial: s.serial, stamp: at() }),
+    ).toBe(back);
+    expect(
+      exploreReducer(gone, { type: "markupRestore", markup: m, index: 0, serial: s.serial + 1, stamp: at() }),
+    ).toBe(gone);
+  });
+});

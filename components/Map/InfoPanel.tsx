@@ -22,7 +22,7 @@ import { ParcelFacts } from "@/components/Explore/ParcelFacts";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { AnalysisGroup } from "./results/AnalysisGroup";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
-import { LINE_LABEL, lineSummary } from "@/lib/report/lines";
+import { DRAWN_LABEL, lineSummary } from "@/lib/report/lines";
 import type { DrawnLine as DrawnLineResult } from "@/lib/screen/types";
 import { RoadsToggle } from "./RoadsToggle";
 import { TerrainControls } from "./TerrainControls";
@@ -553,7 +553,7 @@ function AskingPrice({ ctl }: { ctl: ExploreController }) {
 }
 
 /** What each drawn line is, as the map, the panel and the report call it. */
-export const MARKUP_LABEL = LINE_LABEL;
+export const MARKUP_LABEL = DRAWN_LABEL;
 
 /**
  * The parcel's drawn tracks and easements (follow-up 34): what each is, its length, a note saying where it came

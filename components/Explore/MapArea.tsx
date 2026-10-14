@@ -18,6 +18,7 @@ import { Toolbar } from "@/components/Map/Toolbar";
 import type { UserConfig } from "@/lib/screen/types";
 import { Menu } from "./Menu";
 import { SwitchToast } from "./SwitchToast";
+import { LinePanel, LineUndoToast } from "@/components/Map/LinePanel";
 import { MapPanel } from "@/components/Map/MapPanel";
 import { useExplore, type SetHint } from "./useExploreController";
 
@@ -62,6 +63,8 @@ export function MapArea({
       <Search photonUrl={config.endpoints.photon} />
       <Hint text={hint} />
       <SwitchToast />
+      <LinePanel />
+      <LineUndoToast />
       <Toolbar />
       <InfoPanel />
       <MapPanel />

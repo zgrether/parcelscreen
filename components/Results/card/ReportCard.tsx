@@ -19,8 +19,19 @@ const PEOPLE: { key: Person; name: string }[] = [
   { key: "julie", name: "Julie's grade" },
 ];
 
-/** The banner when the drawn lines changed since the screen (owner's wording, #116): the results stay, no re-run. */
-export const LINES_CHANGED = "Your drawn lines changed since this screen. Run again.";
+/**
+ * The banner when the drawn lines changed since the screen: the results stay, no re-run. The owner's wording (A,
+ * 2026-10-13; an approved replacement of #116's "Your drawn lines changed since this screen. Run again.").
+ */
+export const LINES_CHANGED = "You drew or changed a line after this screen.";
+/** Its action until follow-up 56's "Score it as the driveway" exists: today's Run again (owner, A). */
+export const LET_THE_APP_CONSIDER_IT = "Let the app consider it";
+
+/** A banner saying the results no longer match an input, with what can be done about it. */
+export interface StaleBanner {
+  text: string;
+  actions: { label: string; onClick(): void }[];
+}
 
 export function ReportCard({
   card,
@@ -35,7 +46,7 @@ export function ReportCard({
   setPerson(p: Person): void;
   onOpen(key: PanelKey): void;
   /** A banner under the header saying the results no longer match an input (LINES_CHANGED). */
-  stale?: string | null;
+  stale?: StaleBanner | null;
 }) {
   const pending = (missing: string | undefined) => running && !!missing;
   return (
@@ -61,9 +72,14 @@ export function ReportCard({
         </div>
       </div>
       {stale && !running && (
-        <p className="card-stale" role="status">
-          {stale}
-        </p>
+        <div className="card-stale" role="status">
+          <span>{stale.text}</span>
+          {stale.actions.map((a) => (
+            <button key={a.label} className="btn small" onClick={a.onClick}>
+              {a.label}
+            </button>
+          ))}
+        </div>
       )}
       {!running && <p className="card-reason">{card.reason}</p>}
       <div className="card-gates">

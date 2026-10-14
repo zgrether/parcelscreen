@@ -11,7 +11,7 @@ import type { CombineResult } from "@/lib/geo/combine";
 import { sideName, type Side, type SplitPieces } from "@/lib/geo/split";
 import type { Markup } from "@/lib/client/parcelStore";
 import { M2FT, type LatLon } from "@/lib/geo/types";
-import { LINE_LABEL, lineSummary } from "@/lib/report/lines";
+import { DRAWN_LABEL, lineSummary } from "@/lib/report/lines";
 import type { DrawnLine } from "@/lib/screen/types";
 
 const xy = ([lat, lon]: LatLon): [number, number] => [lon, lat];
@@ -53,7 +53,13 @@ export function markupData(
         : `${Math.round(length(lineString(coordinates), { units: "meters" }) * M2FT).toLocaleString()} ft`;
       return {
         type: "Feature",
-        properties: { kind: m.kind, id: m.id, tip: `${LINE_LABEL[m.kind]}: ${summary}` },
+        // An existing drive is drawn as a track (style.ts filters on `kind`); `drawn` is what the user called it.
+        properties: {
+          kind: m.kind === "drive" ? "track" : m.kind,
+          drawn: m.kind,
+          id: m.id,
+          tip: `${DRAWN_LABEL[m.kind]}: ${summary}`,
+        },
         geometry: { type: "LineString", coordinates },
       };
     }),

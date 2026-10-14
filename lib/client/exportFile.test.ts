@@ -394,6 +394,7 @@ describe("schema v3 (B2a): older results and the asking price", () => {
     const line = {
       id: "t1",
       kind: "track" as const,
+      condition: "pioneer" as const,
       line: [
         [36.6, -81.5],
         [36.61, -81.51],
