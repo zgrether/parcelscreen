@@ -111,25 +111,35 @@ Goal: the prototype, as a Next.js app, with the pipeline isolated from the DOM.
   produce the same verdicts, site rankings, sun hours (±0.1 h) and sky numbers as the prototype;
   recorded fixtures for both live in `test/fixtures` and the pipeline tests run offline.
 
-### Phase 1 — Accounts and Library
-Goal: save a contender; the parcel page is the document.
-- Supabase Auth (magic link). RLS on every table from the first migration.
-- Tables: `households`, `memberships`, `parcels`, `screens`, `attachments`, `price_events`,
-  `comments`, `parcel_shares` (see REQUIREMENTS).
+### Phase 1 — Accounts, the household's list, and sync
+Goal: Zach and Julie open the same list on their own phones; a parcel's page is the document.
+- Supabase Auth (magic link). RLS on every table, scoped to the household, from the first migration.
+- Household invite: Julie joins the household and sees its whole list. `parcel_shares` is for people outside it.
+- Tables: `households`, `memberships`, `parcels`, `markers`, `screens`, `attachments`, `price_events`,
+  `status_events`, `comments`, `parcel_shares` (see REQUIREMENTS).
+- `parcels` gains the listing facts (`listing_url`, `listing_acres`, `agent`), `status` (in progress, saved,
+  archived, discarded) with `archived_reason`, and `list_rank` (My order, a fractional index).
+- `markers`: the drawn lines and points (kind, geometry, name, condition, width, note), one row each.
+- Screens are versioned and immutable: a re-run inserts `version = max + 1`, never an update. Screens computed by
+  an older engine (`ENGINE_VERSION`) re-run automatically (`docs/plans/batch-a.md` §6).
+- Price history as events: each asking price entered becomes a `price_events` row; a reduction is a new event.
+- The list (`/library`) reads from Supabase; the explorer saves to it. The browser's store and export file import
+  on first sign-in (REQUIREMENTS §3a), and the store stays as the offline cache.
 - Parcel page = computed blocks (from `screens.result`) + placeholders + user blocks.
-- Attachments upload to Storage (PDF, images, links). Price history editor.
-- Migrate the prototype's saved-parcels JSON export via an import screen.
-- Screens computed by an older engine (`ENGINE_VERSION`) are re-run automatically: a new `screens` row
-  (version = max + 1), never an update (owner, 2026-10-09; `docs/plans/batch-a.md` §6).
-- **Acceptance:** save Macks Mountain as a contender with the plat PDF attached and two price
-  events; reload shows everything without re-running the screen.
+- The prototype's saved-parcels JSON export imports through the same import screen.
+- Comments thread per parcel (pinned "why I shared this", resolved flag). Attachments to Storage (PDF, images,
+  links).
+- `parcel_shares`: share a parcel outside the household.
+- Shareable parcel links: the parcel, map view and open panel in the URL, opening the sender's screen.
+- The weight switch defaults to the signed-in person.
+- **Acceptance:** Zach saves Macks Mountain with its listing URL, a spring marker, the plat PDF and two price events;
+  Julie signs in on her phone and sees it on the list in Zach's order, with both grades; she archives another
+  parcel as "Rejected: no winter sun", and Zach sees why. A reload shows everything without re-running the screen.
 
 ### Phase 2 — Share and export
-- Household invite; Julie's login sees only shared parcels; comments thread with pinned "why I
-  shared this" and resolved flag.
 - Export: PDF of the parcel page (print stylesheet, images inlined, three captured 3D frames)
   with two presets (full; attorney/evaluator subset). Public read-only share link with opaque ID.
-- **Acceptance:** share Macks Mountain to a second account; comment from it; export the PDF.
+- **Acceptance:** export Macks Mountain's PDF in both presets; open its public link signed out.
 
 ### Phase 2.5 — Driveway router and build-cost estimator
 - `lib/screen/driveway.ts` per REQUIREMENTS §2a; entrance candidates, two routes, quantities, cost range.
