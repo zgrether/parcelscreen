@@ -115,11 +115,14 @@ Goal: the prototype, as a Next.js app, with the pipeline isolated from the DOM.
 Goal: Zach and Julie open the same list on their own phones; a parcel's page is the document.
 - Supabase Auth (magic link). RLS on every table, scoped to the household, from the first migration.
 - Household invite: Julie joins the household and sees its whole list. `parcel_shares` is for people outside it.
-- Tables: `households`, `memberships`, `parcels`, `markers`, `screens`, `attachments`, `price_events`,
-  `status_events`, `comments`, `parcel_shares` (see REQUIREMENTS).
+- Tables: `households`, `memberships`, `parcels`, `markers`, `overrides`, `screens`, `attachments`,
+  `price_events`, `status_events`, `comments`, `parcel_shares` (see REQUIREMENTS).
 - `parcels` gains the listing facts (`listing_url`, `listing_acres`, `agent`), `status` (in progress, saved,
-  archived, discarded) with `archived_reason`, and `list_rank` (My order, a fractional index).
+  archived) with `archived_reason`, the milestones `walked_at` and `offered_at`, and `list_rank` (My order, one per
+  household, a fractional index).
 - `markers`: the drawn lines and points (kind, geometry, name, condition, width, note), one row each.
+- `overrides`: the household's grade overrides, one per row per parcel, each with its required comment; every
+  change is an event (who, when).
 - Screens are versioned and immutable: a re-run inserts `version = max + 1`, never an update. Screens computed by
   an older engine (`ENGINE_VERSION`) re-run automatically (`docs/plans/batch-a.md` §6).
 - Price history as events: each asking price entered becomes a `price_events` row; a reduction is a new event.

@@ -3,7 +3,7 @@
 The owner asked for this plan on 2026-10-13: the flow Zach and Julie want, from a parcel (often a Redfin or Zillow
 listing) to a shared, ordered list of the land they're weighing. It replaces follow-up 56's separate plan ("use a
 drawn line as my driveway"), which is §3.4 here, and it carries the pricing of a line by its condition. Docs only:
-nothing is built until it's approved.
+**Approved** by the owner on #128 (2026-10-14), with the answers in §10 applied below.
 
 It spans two phases. What can run on this device, in the browser's store and the export file, comes first (§7).
 Accounts, sync and Julie's own login are Phase 1, and §8 rewrites PLAN.md's Phase 1 section to match.
@@ -28,8 +28,8 @@ Accounts, sync and Julie's own login are Phase 1, and §8 rewrites PLAN.md's Pha
 - **Listing URL:** stored as typed, shown as a link (opens in a new tab, `rel="noopener noreferrer"`).
 - **Price:** today's asking price, with its date. In Phase 1 each entry becomes a `price_events` row (`listed`, source
   `me`), so a reduction is a new event, not an overwrite.
-- **Listing acres:** what the listing claims. When it differs from the parcel's acres by more than 5% (a proposed
-  threshold), the card says so: "The listing says 52 ac; this boundary is 43.9 ac." Listings round, include
+- **Listing acres:** what the listing claims. When it differs from the parcel's acres by more than 10% (owner, §10),
+  the card says so: "The listing says 52 ac; this boundary is 43.9 ac." Listings round, include
   neighbouring lots, or describe a parcel that has since been split.
 - **Agent:** free text (name, phone, email). It's a third party's contact, kept with the parcel only: never put in a
   URL, never sent to a service.
@@ -75,18 +75,20 @@ edit it, with Delete and its 5-second Undo. Points drag on the map like the hous
 | **Track** (an ATV track, a logging road) | line | as today: a route can start from its end, or follow it at a reduced cost | by condition (§3.3) | driveway re-run |
 | **Existing drive** | line | as today; screened as a track | by condition (§3.3) | driveway re-run |
 | **Easement** | line | as today: land inside it counts as legal access, "verify it's a legal right-of-way" | by condition (§3.3) | driveway re-run |
-| **Spring or well** | point | none (water is money, not a quality) | Stage 2's well: an existing well becomes "pump, tank and line" instead of a drilled well's range; a spring adds "develop the spring" as an option beside the drilled well | instant |
-| **Septic permit or system** | point, or an area for the field | the Septic gate passes, appending "a septic permit is on file (your marker): get a copy, and check it hasn't expired" | Stage 2's septic: the permit's class (conventional, modified, alternative) if typed, else the soil's | instant |
+| **Spring or well** | point | none (water is money, not a quality), except that the Garden row appends "a spring is marked (your marker)" when a spring is within 300 ft of the garden ground | Stage 2's well: an existing well becomes "pump, tank and line" instead of a drilled well's range; a spring adds "develop the spring" as an option beside the drilled well | instant |
+| **Septic permit or system** | point, or an area for the field | the Septic gate passes, appending "a septic permit is on file (your marker): get a copy, and check it hasn't expired"; when the permit's point or area is more than 200 ft from site #1, it also appends "the permit is {n} ft from site #1; it covers the spot that was tested" | Stage 2's septic: the permit's class (conventional, modified, alternative) if typed, else the soil's | instant |
 | **Building or cabin** | point | none | Stage 1a: a shelter on site, so "camp today" needs only the access | instant |
 | **Power** (a pole or line) | point | none | Stage 2's power: priced by the distance from the pole to the build site, instead of an unknown range | instant |
-| **Clearing** | area | none | Stage 1a's open ground: overrides NLCD's guess (value-ranking §4.2) | instant |
+| **Clearing** | area | none | Stage 1a's open ground: overrides NLCD's guess (value-ranking §4.2); garden ground inside it is open, so it has no clearing cost (§3.7) | instant |
 | **Campsite** | point | none | Stage 1a: the camp, instead of the nearest open patch | instant |
 | **Gate** | point | none (a note on the map) | none | instant |
 | **Note pin** | point | none: anything else (a spring seep, a dump, a survey pin, a view) | none | instant |
 
 "Road", in the owner's list, is covered by Existing drive with the condition improved or paved. An **unmapped public
-road** is different: it would make frontage, and pass the Access gate. That needs its own kind and an engine change,
-so it's a question (§10).
+road** (a kind that would make frontage and pass the Access gate) is not now (owner, §10): Existing drive covers it.
+
+Both appended sentences, on the Garden row and the Septic gate, are report text: WF4 opens with its rule 7 paragraph,
+and they go after the existing text.
 
 The existing house stays the bulls-eye it is today: it moves the build site to the house and re-evaluates there.
 
@@ -119,8 +121,8 @@ along it), its condition sets the cost:
 - **The driveway section says it:** "Gate lane: 868 ft, pioneer track. Bringing it up to gravel standard costs
   $X–Y." (Appended, rule 7.)
 - **Steepness is unchanged by condition:** the raw-ground grade, the limit and the veto read the same.
-- **The width** of an uncleared line sets its clearing area (length × width). It's the first use of a track's or a
-  drive's width. A question (§10).
+- **The width** of an uncleared line sets its clearing area (length × width) (owner, §10). It's the first use of a
+  track's or a drive's width.
 - **Schema:** the condition reaches the screen, so `DrawnInput` and the stored line gain it. That's schema v8, a clean
   break (older results clear and re-screen when opened, as v3 to v7 did), recorded in phase-0.md §9. Lines saved
   before already have their kind's default condition (#127).
@@ -145,7 +147,7 @@ route from the line's entrance in `driveway.routes`. So choosing it is a **card-
 
 | Change | What runs | Network |
 |---|---|---|
-| A name, a note, a condition (until v8), a point or area marker, listing facts, the status, the driveway choice | nothing: the card re-renders | none |
+| A name, a note, a condition (until v8), a point or area marker, listing facts, the status, the driveway choice, an override | nothing: the card re-renders | none |
 | The house moved | the re-evaluation at the house (today) | none, while the session is live |
 | A line added, redrawn, deleted, or made an easement or not | the **driveway and drive steps only**, from the parcel's live session (new) | the drive-time services, only when the scored entrance moved |
 | A boundary change (a part, a split); Settings the screen reads | a full run | all |
@@ -155,42 +157,101 @@ The DEM is never persisted (CLAUDE.md), so the live session is the only cache fo
 worker message, "reroute", that re-runs the driveway step and the steps after it from the session, like today's
 `evaluateAt`.
 
+### 3.6 Your overrides (owner, #128 review)
+
+When the household knows better than the data, a grade can be overridden, with a reason.
+
+**What can be overridden:**
+- **any graded row**, to any letter;
+- **a dealbreaker that warns**, to pass.
+
+**What can't:** a dealbreaker that **fails**. The fix is the input it reads: draw the easement, correct a line, add a
+marker. The override control says so on a failed gate: "A failed dealbreaker can't be overridden. Fix what it reads
+instead: draw the easement, correct a line, or add a marker."
+
+**How it's stored:**
+- With the parcel, not the screen result: no schema change. One override per row (or gate) per parcel, for the
+  household: a row's letter is the same in Zach's weights and Julie's, so one override serves both.
+- Each holds the letter (or "pass"), a **required** comment, when it was made, and the app's own grade at that time.
+- **Phase 1:** each override, change and removal is an event recording who made it and when.
+
+**The card:**
+- The row reads "A (yours) · app says D", with the comment under it and a small override icon on the row.
+- The parcel grade, the verdict and the breakdown bar use the override.
+- When an override changed the verdict, the verdict line says so: "Contender, with 1 override".
+- **After a re-screen** the override stays. When the app's own grade has changed since it was made, the row says "app
+  now says B".
+- **Remove override** returns the row to the app's grade, with the 5-second Undo.
+
+**Elsewhere:**
+- **The list:** an overridden grade (Zach's, Julie's, or the household verdict it changed) carries the same icon.
+- **VR8:** the calibration report lists every override, with its comment, as a disagreement to look at.
+- **The rulebook:** a short section, "Your overrides", explaining the rules above.
+
+All of this is new card text: WF4b opens with its rule 7 paragraph, and nothing replaces existing text.
+
+### 3.7 The garden: wooded ground counts, and clearing it is a cost (owner, #128 review)
+
+The garden search reads the bare-earth lidar and the soil, not tree cover, so wooded flat ground already counts as
+garden ground. Wording that implies otherwise is corrected:
+- The Garden scale's **None** band: "No open, gentle, sunny ground for beds: terraces or raised beds on the slope."
+  becomes "No gentle, sunny ground for beds, even after clearing: terraces or raised beds on the slope."
+- That is the only such wording: the Garden row's detail, its "How it's scored", the panel's other bands and the
+  rulebook don't say "open" or "cleared".
+- An approved correction, recorded in phase-0.md §9. No numbers change. It lands in the line-names PR, the next code
+  PR (after #127, which adds §9.38), so the two §9 entries don't collide.
+
+**Clearing a garden is a cost** (VR4, with WF7's provisional rates until 47): "clear the garden ground (wooded)", a
+line item in Stage 3 (home), for the garden patch the Garden row grades. Wooded or open is read from NLCD's tree canopy
+(value-ranking §4.2, the same source as Stage 1a's open ground), and a Clearing marker over the patch overrides it
+(open: no cost). Priced per acre at the clearing rate the driveway corridor uses.
+
 ## 4. Status
+
+Three statuses (owner, §10: Discard merges into Archive):
 
 | Status | Meaning | On the list | In History |
 |---|---|---|---|
 | **In progress** | the default for a built parcel: being looked at | shown | yes |
 | **Saved** | a contender the household is keeping | shown | yes |
-| **Archived** | sold, or rejected, with a reason and a note ("Sold 2026-11-02", "Rejected: the septic test failed") | hidden by default; a filter shows it | yes |
-| **Discarded** | not worth keeping on the list | hidden; a filter shows it | yes, until removed |
+| **Archived** | done with it, for a reason | hidden by default; a filter shows it | yes |
 
-- **Archive keeps everything:** the screens, markers, notes and price history. It's reversible.
-- **Discard** keeps the owner's rule that nothing expires (13e): a discarded parcel stays in History until Remove,
-  which stays the only way out, with its Undo.
+- **Archive asks for a reason:** quick picks "Not for us", "Sold" and "Rejected: …" (which opens the text box), plus
+  free text, e.g. "Rejected: the septic test failed". The reason and its date show on the list's archived rows.
+- **Archive keeps everything:** the screens, markers, notes and price history. It's reversible: Restore puts the
+  parcel back as it was (In progress or Saved).
+- **Remove stays the only delete**, with its Undo, as today. Nothing expires (13e).
 - A plain parcel (tapped, never changed) has no status: it isn't built, so it's in neither the list nor History.
-- **Phase 1:** a status change is an event (who, when, the reason), so the household sees why a parcel left the list.
-  REQUIREMENTS' `parcels.status` enum (watching, contender, walked, offered, passed, ignored) is replaced (§8). Its
-  "contender" is the card's verdict now. "Walked" and "offered" are milestones, a question (§10).
+
+**Milestones** (owner, §10): **Walked** and **Offered** are tags beside the status, each with its date ("Walked Oct 20",
+"Offered Nov 2"). Set from the parcel's controls, removable, and shown on the list. They don't change the status.
+
+**Phase 1:** a status change, a milestone, and an archive reason are events (who, when), so the household sees why a
+parcel left the list. REQUIREMENTS' `parcels.status` enum (watching, contender, walked, offered, passed, ignored) is
+replaced (§8): "contender" is the card's verdict now, and "walked" and "offered" are the milestones.
 
 ## 5. The list
 
 **The page:** `/library`, the route CLAUDE.md already plans. The app opens to it when it has parcels, else to the
-map (§10). Tapping a row opens the parcel's report card with its controls: Open on the map, the status, the listing
+map (owner, §10). Tapping a row opens the parcel's report card with its controls: Open on the map, the status, the listing
 facts, Archive, Remove.
 
 **Columns (desktop):**
 
-| My order | Name | Acres | Price | State | Status | Zach's grade | Julie's grade | Updated |
-|---|---|---|---|---|---|---|---|---|
-| ⠿ | Ferney Creek 43 ac | 43.9 | $185k | VA | Saved | B Contender | C Maybe | Oct 13 |
+| My order | Name | Acres | Price | State | Status | Household | Zach's grade | Julie's grade | Updated |
+|---|---|---|---|---|---|---|---|---|---|
+| ⠿ | Ferney Creek 43 ac | 43.9 | $185k | VA | Saved · Walked Oct 20 | Maybe | B Contender | C Maybe | Oct 13 |
 
-"State" is the US state, with the county in a tooltip. A grade cell shows the letter and the verdict, as the card does,
-with "–" when there's no current screen and "re-screen" when its screen is from older rules.
+"State" is the US state, with the county in a tooltip. The Status cell carries the milestones (§4). An overridden
+grade carries the override icon (§3.6). **Household** is
+the household verdict (§6). A grade cell shows the letter and the verdict, as the card does, with "–" when there's
+no current screen and "re-screen" when its screen is from older rules.
 
-**Filters:** status (default: In progress and Saved), each person's verdict, a price range, the state. They're
-remembered per browser.
+**Filters:** status (default: In progress and Saved; Archived shown by the filter), the household verdict (default:
+Contender and Maybe, so a parcel either of you would pass on drops off), each person's verdict, the milestones, a
+price range, the state. They're remembered per browser.
 
-**Sorts:** My order (the default), price, acres, Zach's grade, Julie's grade, updated.
+**Sorts:** My order (the default), price, acres, the household verdict, Zach's grade, Julie's grade, updated.
 - **My order** is a drag-and-drop rank, stored with each parcel. Another sort is only a view: it never rewrites it.
 - Dragging works only in My order; under another sort, the handles hide and "Switch to My order to rearrange" shows.
 - A new parcel goes to the bottom of My order.
@@ -198,20 +259,22 @@ remembered per browser.
   that matters once the list syncs (Phase 1).
 - **Drag on a phone:** a long press on the handle. Every row also has Move up and Move down in its menu, for the
   keyboard and for screen readers.
-- **The library:** `@dnd-kit` (well known, accessible, touch and keyboard sensors), or a small pointer-events module of
-  our own. A question (§10), since it's a new dependency.
+- **The library:** `@dnd-kit` (owner, §10): well known, accessible, with touch and keyboard sensors. Pinned to an exact
+  version in the pnpm-workspace overrides and `pnpm check:pins`, as Turf and geotiff are, with its one-line
+  justification in WF3's PR.
 
-**Phone:** the table becomes cards, one per parcel: the name and status on the first line; the acres, price and state
-on the second; the two grades as chips. The filter and sort controls fold into one bar at the top. Drag by the
+**Phone:** the table becomes cards, one per parcel: the name, status and milestones on the first line; the acres,
+price and state on the second; the household verdict and the two grades as chips. The filter and sort controls fold into one bar at the top. Drag by the
 handle on the card's left.
 
 **Compare** stays VR6's table, opened from the list: tick the rows, then Compare.
 
 **VR8, calibration, runs on the list** (§7): each person enters their own grade and a one-line reason per parcel,
 blind (the app's grade is hidden from them until both have entered one). The calibration report compares those with
-the card's grades, and the list's columns show the disagreements.
+the card's grades, and the list's columns show the disagreements. It also lists every override (§3.6), with its
+comment.
 
-## 6. A household grade, or both? (a question for Zach)
+## 6. A household verdict, and both grades
 
 The card grades each parcel twice, with Zach's weights and Julie's. The list could:
 
@@ -221,32 +284,39 @@ The card grades each parcel twice, with Zach's weights and Julie's. The list cou
 3. **A household grade: the mean of the two weighted scores**, as a letter. Simple to sort by, but a parcel one
    person loves and the other dislikes reads "C" for both.
 
-**Proposed:** 1 with 2's verdict as an extra column. The household verdict says what you'd both agree on, and the
-letters stay each person's.
+**Decided** (owner, §10): both grades, plus a **household verdict, the lower of the two** (Contender only when both
+say Contender; Pass when either says Pass), in its own column. The list's default filter uses it (§5). There's no
+blended letter: the letters stay each person's.
 
 ## 7. Phasing
 
+**Order** (owner, §10): #127 → the line-names PR (with the garden correction, §3.7) → WF1 → WF2 → WF3 → WF4 → WF4b →
+WF5 → WF6. WF7 waits for the builder
+quote, with follow-up 47 and VR4. VR8 starts once WF3 is in.
+
 **Before Phase 1, on this device** (the browser's store, and the export file between browsers):
 1. **WF1:** listing facts and a name (§2), with the URL's address centring the map.
-2. **WF2:** the status (§4), and the list at `/library` with its columns, filters and sorts; the app opens to it.
-3. **WF3:** My order, drag-and-drop, and the phone layout.
-4. **WF4:** point and area markers (§3.1) in the Layers tree, with their card-side effects on the gates. Their cost
-   effects wait for VR4.
-5. **WF5:** "Use as my driveway" (§3.4), card-side.
-6. **WF6:** the driveway re-run from the live session (§3.5).
-7. **WF7:** a line's cost by its condition (§3.3): schema v8, with follow-up 47's unit costs. It goes with 47 and VR4,
-   when the builder quote arrives.
-8. **VR8:** calibration, on the list, once WF3 is in. Zach and Julie can each enter blind grades on this device by
+2. **WF2:** the statuses, archive reasons and milestones (§4), and the list at `/library` with its columns (the
+   household verdict among them), filters and sorts; the app opens to it when it has parcels.
+3. **WF3:** My order, drag-and-drop (`@dnd-kit`, pinned), and the phone layout.
+4. **WF4:** point and area markers (§3.1) in the Layers tree, with their card-side effects: the Septic gate and the
+   Garden row (rule 7 paragraph first). Their cost effects wait for VR4.
+5. **WF4b:** your overrides (§3.6): the card, the list's icon, the rulebook section (rule 7 paragraph first).
+6. **WF5:** "Use as my driveway" (§3.4), card-side.
+7. **WF6:** the driveway re-run from the live session (§3.5).
+8. **WF7:** a line's cost by its condition (§3.3), and clearing the garden ground (§3.7): schema v8, with follow-up
+   47's unit costs. It goes with 47 and VR4, when the builder quote arrives.
+9. **VR8:** calibration, on the list, once WF3 is in. Zach and Julie can each enter blind grades on this device by
    switching the person, or on Julie's own phone once Phase 1 is in.
 
-Each status, order and marker is in the export file (a new `version` and a converter where its shape changes), so
+Each status, order, marker and override is in the export file (a new `version` and a converter where its shape changes), so
 nothing is lost before sync.
 
 **Needs Phase 1:**
-- Julie's own login, the household, and sync: the list, statuses and My order shared.
+- Julie's own login, the household, and sync: the list, statuses, milestones and My order shared. My order is one
+  per household (owner, §10).
 - Price history as events; comments; attachments (the plat, the listing's photos, a septic permit's scan).
 - Shareable parcel links (phase-0.md §8, #121).
-- Whether My order is the household's or each person's (§10).
 
 ## 8. PLAN.md's Phase 1, rewritten
 
@@ -260,11 +330,14 @@ wording); `parcel_shares` stays for sharing outside the household. Phase 2 keeps
 > Goal: Zach and Julie open the same list on their own phones; a parcel's page is the document.
 > - Supabase Auth (magic link). RLS on every table, scoped to the household, from the first migration.
 > - Household invite: Julie joins the household and sees its whole list. `parcel_shares` is for people outside it.
-> - Tables: `households`, `memberships`, `parcels`, `markers`, `screens`, `attachments`, `price_events`,
->   `status_events`, `comments`, `parcel_shares` (see REQUIREMENTS).
+> - Tables: `households`, `memberships`, `parcels`, `markers`, `overrides`, `screens`, `attachments`,
+>   `price_events`, `status_events`, `comments`, `parcel_shares` (see REQUIREMENTS).
 > - `parcels` gains the listing facts (`listing_url`, `listing_acres`, `agent`), `status` (in progress, saved,
->   archived, discarded) with `archived_reason`, and `list_rank` (My order, a fractional index).
+>   archived) with `archived_reason`, the milestones `walked_at` and `offered_at`, and `list_rank` (My order, one per
+>   household, a fractional index).
 > - `markers`: the drawn lines and points (kind, geometry, name, condition, width, note), one row each.
+> - `overrides`: the household's grade overrides, one per row per parcel, each with its required comment; every
+>   change is an event (who, when).
 > - Screens are versioned and immutable: a re-run inserts `version = max + 1`, never an update. Screens computed by
 >   an older engine (`ENGINE_VERSION`) re-run automatically (`docs/plans/batch-a.md` §6).
 > - Price history as events: each asking price entered becomes a `price_events` row; a reduction is a new event.
@@ -282,30 +355,51 @@ wording); `parcel_shares` stays for sharing outside the household. Phase 2 keeps
 >   parcel as "Rejected: no winter sun", and Zach sees why. A reload shows everything without re-running the screen.
 
 REQUIREMENTS §3's data model changes to match in Phase 1's own plan (`docs/plans/phase-1.md`): the `parcels`
-columns above, the `markers` and `status_events` tables, and `price_events.source` keeping `me` for typed prices.
+columns above, the `markers`, `overrides` and `status_events` tables, and `price_events.source` keeping `me` for typed prices.
 
-## 9. Files (WF1–WF6)
+## 9. Files (WF1–WF6, WF4b)
 
 - `lib/client/parcelStore.ts`: the listing fields, status, rank; marker geometry types; their defaults on load.
 - `lib/client/listingUrl.ts` (new, pure): the URL patterns of §2, tested on examples of each.
 - `components/Library/` (new): the list, its filters and sorts, the rows and cards, the drag.
 - `app/library/page.tsx` (new); `app/page.tsx` opens to it.
 - `components/Explore/layers.ts`, `components/Map/InfoPanel.tsx`: point and area markers in the tree.
-- `lib/report/card.ts`: the gates read markers; the chosen driveway (§3.4).
+- `lib/report/card.ts`: the gates read markers; the chosen driveway (§3.4); overrides applied to the rows, gates,
+  grade and verdict (§3.6).
+- `components/Results/card/`, `components/Rulebook/`: the override control, the row's "(yours) · app says", and the
+  rulebook's "Your overrides".
 - `lib/screen/worker.ts`, `lib/client/useScreen.ts`: the "reroute" message (§3.5).
 - `lib/client/exportFile.ts`: the new fields, with a version and converter if the shape changes.
 - `docs/REQUIREMENTS.md` §3a; `docs/plans/phase-0.md` §9 for each decision.
 
-## 10. Questions
+## 10. Questions, and the owner's answers (#128, 2026-10-14)
 
-1. **A household grade** (§6): both grades, plus the lower of the two verdicts?
-2. **An unmapped public road** (§3.1): a marker kind that makes frontage and passes the Access gate (an engine
-   change, "verify it's state-maintained"), or is Existing drive enough?
-3. **Discard** (§4): hidden from the list but kept in History until Remove, or the same as Remove?
-4. **Milestones:** "walked" and "offered" (REQUIREMENTS' old statuses): wanted, as tags beside the status?
-5. **My order in Phase 1:** one order for the household, or one each?
-6. **The app opens to the list:** always, or only when the list has parcels (proposed)?
-7. **Drag library:** `@dnd-kit`, or our own small module?
-8. **A line's width:** use an uncleared line's width for its clearing area (§3.3)?
-9. **The listing-acres warning:** at a 5% difference, or another threshold?
+1. **A household grade** (§6): both grades, plus a household verdict that is the lower of the two, in its own column;
+   the list's default filter uses it.
+2. **An unmapped public road** (§3.1): not now. Existing drive covers it.
+3. **Discard** (§4): merged into Archive. The statuses are In progress, Saved and Archived. Archive asks for a reason,
+   with quick picks ("Not for us", "Sold", "Rejected: …") plus free text. Archived parcels are hidden by default,
+   shown by a filter, and reversible. Remove stays the only delete.
+4. **Milestones:** "Walked" and "Offered", as tags beside the status, each with a date, shown on the list.
+5. **My order in Phase 1:** one per household.
+6. **The opening page:** the list when it has parcels, otherwise the map.
+7. **Drag library:** `@dnd-kit`, pinned per CLAUDE.md.
+8. **A line's width:** yes, an uncleared line's width sets its clearing area (§3.3).
+9. **The listing-acres warning:** when the difference is over 10%.
 
+**Two changes to §3.1** (owner, same review), applied there:
+- **Spring or well:** cost-only, but the Garden row appends "a spring is marked (your marker)" when a spring is within
+  300 ft of the garden ground.
+- **Septic permit:** when the permit's point or area is more than 200 ft from site #1, the Septic gate appends "the
+  permit is {n} ft from site #1; it covers the spot that was tested".
+
+**Two additions** (owner, #128, before merge), applied as §3.6 and §3.7:
+- **Your overrides** (§3.6, WF4b after WF4): any graded row to any letter, a warning dealbreaker to pass, never a
+  failing one; a required comment; stored with the parcel, one per row per parcel for the household; shown as "A
+  (yours) · app says D"; kept after a re-screen ("app now says B"); Remove override; an icon on the list; listed by
+  VR8; explained in the rulebook.
+- **The garden** (§3.7): the None band's wording corrected (wooded flat ground already counts), recorded in §9; clearing
+  a wooded garden is a Stage 3 cost, wooded or open from NLCD or a Clearing marker.
+
+**Order:** #127 → the line-names PR (with the garden correction) → WF1 → WF2 → WF3 → WF4 → WF4b → WF5 → WF6. WF7 waits
+for the builder quote, with 47 and VR4. VR8 calibration starts once WF3 is in.
