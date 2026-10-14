@@ -8,6 +8,7 @@ import { shortPrice } from "../client/askingPrice";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import type { ScreenResult } from "../screen/types";
 import { reportCard, type Card, type GateStatus, type Letter, type Person } from "./card";
+import type { LineNames } from "./lines";
 import type { PanelKey } from "./cardPanels";
 
 /** A History parcel as the table reads it: its name, asking price, and its latest kept screen. */
@@ -19,6 +20,8 @@ export interface CompareParcel {
   /** "ok" with a result; "rescreen" when its screen is from earlier rules or gone; "none" when never screened. */
   state: "ok" | "rescreen" | "none";
   result: ScreenResult | null;
+  /** Its names for its drawn lines (owner, 2026-10-14), for the card's sentences. */
+  lineNames?: LineNames;
 }
 
 /** Best or worst in its row, when the parcels differ there. */
@@ -95,7 +98,9 @@ export function compareTable(
   person: Person,
   readyToBuild: number,
 ): CompareTable {
-  const cards = parcels.map((p) => (p.state === "ok" && p.result ? reportCard(p.result, person) : null));
+  const cards = parcels.map((p) =>
+    p.state === "ok" && p.result ? reportCard(p.result, person, p.lineNames) : null,
+  );
   const blank = (p: CompareParcel): Cell => ({
     text: p.state === "ok" ? "–" : NO_SCREEN[p.state],
     mark: null,
@@ -193,7 +198,7 @@ export const DEFAULT_COLUMNS = 4;
  */
 export function defaultColumns(parcels: readonly CompareParcel[], person: Person): string[] {
   const contender = (p: CompareParcel) =>
-    p.state === "ok" && !!p.result && reportCard(p.result, person).verdict === "Contender";
+    p.state === "ok" && !!p.result && reportCard(p.result, person, p.lineNames).verdict === "Contender";
   const screenedAt = (p: CompareParcel) => (p.state === "ok" && p.result ? p.result.runAt : "");
   return [...parcels]
     .sort((a, b) => Number(contender(b)) - Number(contender(a)) || screenedAt(b).localeCompare(screenedAt(a)))

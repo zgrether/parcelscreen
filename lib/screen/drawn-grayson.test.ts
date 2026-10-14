@@ -16,6 +16,7 @@ import { runFixture } from "../../test/support/scenarios";
 import roads from "../../test/tools/driveway-validation.roads.json";
 import { reportCard } from "../report/card";
 import { drivewayView } from "../report/driveway";
+import { lineNamesOf, type LineNames } from "../report/lines";
 import { siteDriveways } from "./driveway";
 import { routeContext } from "./index";
 import { chooseDriveway, drivewayPoints, overLimitPoints } from "./score";
@@ -106,7 +107,7 @@ describe("the red-gate drive on Grayson 6273, drawn as an easement", () => {
     );
   });
 
-  it("carried on to the boundary: no easement need, but the 41% drive still loses on points", async () => {
+  it("carried on to the boundary: no easement need, but the 41% drive still loses on points; by its name, renamed or deleted after the run", async () => {
     const { result, routes, chosen } = await screened(toTheBoundary(redGate));
     const drawn = routes.drawn!;
     expect(drawn.route!.needsEasement).toBe(false);
@@ -130,5 +131,43 @@ describe("the red-gate drive on Grayson 6273, drawn as an easement", () => {
       reason:
         "Easement (user-drawn): verify it's a legal right-of-way; the existing drive is steeper than your limit (21% avg, 41% steepest over 30 m on raw ground; a built road grades out 1–4 points)",
     });
+
+    // Drawn with the parcel, the sentences read the line by its current name, looked up by the id the result keeps
+    // (owner, 2026-10-14): as named at the run; renamed after it; deleted after it, by its kind.
+    // Up to the line's length and grades: " (872 ft · …".
+    const named = (text: string) => text.replace(/ \(\d[\d,]* ft.*$/, "");
+    const said = (names: LineNames) => {
+      const card = reportCard(r, "zach", names);
+      const v = drivewayView(r, names)!;
+      return {
+        access: card.gates.find((g) => g.key === "access")!.reason,
+        easement: card.gates.find((g) => g.key === "easement")!.reason.split(";")[0],
+        entrance: named(v.entrances!.split(". ").at(-1)!),
+        route: named(v.routes[0]!.rows.find((row) => row.label === "Drawn lines")!.value),
+      };
+    };
+    const markup = [{ id: "red-gate", name: "Easement 1" }];
+    expect(said(lineNamesOf(markup))).toEqual({
+      access: "Frontage on Mud Creek Ln; Easement 1: verify it's a legal right-of-way",
+      easement: "Easement 1: verify it's a legal right-of-way",
+      entrance: "E4 is the end of Easement 1",
+      route: "from the end of Easement 1",
+    });
+    const renamed = markup.map((m) => ({ ...m, name: "Red gate drive" }));
+    expect(said(lineNamesOf(renamed))).toEqual({
+      access: "Frontage on Mud Creek Ln; Red gate drive: verify it's a legal right-of-way",
+      easement: "Red gate drive: verify it's a legal right-of-way",
+      entrance: "E4 is the end of Red gate drive",
+      route: "from the end of Red gate drive",
+    });
+    expect(said(lineNamesOf([]))).toEqual({
+      access:
+        "Frontage on Mud Creek Ln; easement (user-drawn, since deleted): verify it's a legal right-of-way",
+      easement: "Easement (user-drawn, since deleted): verify it's a legal right-of-way",
+      entrance: "E4 is the end of Easement (user-drawn, since deleted)",
+      route: "from the end of Easement (user-drawn, since deleted)",
+    });
+    // The saved result is untouched: drawn without the parcel's lines, it reads as before.
+    expect(drivewayView(r)!.entrances).toMatch(/E4 is the end of Easement \(user-drawn\) \(/);
   });
 });

@@ -7,8 +7,8 @@ import { drivewayView, type RouteView } from "@/lib/report/driveway";
 import { Facts, Note } from "./shared";
 import type { BlockProps } from "./types";
 
-export function Driveway({ result, variant, running }: BlockProps) {
-  const v = drivewayView(result);
+export function Driveway({ result, variant, running, lineNames }: BlockProps) {
+  const v = drivewayView(result, lineNames);
   // The router can take seconds (A4b PR B): the rest of the report is already shown while it works.
   if (!v)
     return running?.step === "driveway" ? (

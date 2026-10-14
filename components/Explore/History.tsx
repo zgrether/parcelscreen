@@ -12,6 +12,7 @@ import type { WorkingParcel } from "@/lib/client/parcelStore";
 import { getPref } from "@/lib/client/prefs";
 import { needsRescreen, readScreen, RESCREENS_ON_OPEN } from "@/lib/client/screenStore";
 import { reportCard, type Card } from "@/lib/report/card";
+import { lineNamesOf } from "@/lib/report/lines";
 import { useExplore } from "./useExploreController";
 
 const when = (iso: string) =>
@@ -144,18 +145,19 @@ function useLatest(
   built: readonly WorkingParcel[],
 ): ReadonlyMap<string, { rescreen: boolean; card: Card | null }> {
   const [keys, setKeys] = useState<ReadonlyMap<string, { rescreen: boolean; card: Card | null }>>(new Map());
+  // With each entry's names for its drawn lines (owner, 2026-10-14): the card's sentences read a line by its name.
   const latest = built.flatMap((b) =>
-    b.key && b.screenIds.length ? [[b.key, b.screenIds.at(-1)!] as const] : [],
+    b.key && b.screenIds.length ? [[b.key, b.screenIds.at(-1)!, lineNamesOf(b.markup)] as const] : [],
   );
-  const sig = latest.map(([k, id]) => `${k}:${id}`).join(",");
+  const sig = latest.map(([k, id, names]) => `${k}:${id}:${[...names].join(";")}`).join(",");
   useEffect(() => {
     let alive = true;
     const person = getPref("ps.person");
     void Promise.all(
-      latest.map(async ([k, id]) => {
+      latest.map(async ([k, id, names]) => {
         const r = await readScreen(id);
         const rescreen = needsRescreen(r);
-        const card = r.kind === "ok" && !rescreen ? reportCard(r.record.result, person) : null;
+        const card = r.kind === "ok" && !rescreen ? reportCard(r.record.result, person, names) : null;
         return [k, { rescreen, card }] as const;
       }),
     ).then((entries) => {
@@ -164,7 +166,7 @@ function useLatest(
     return () => {
       alive = false;
     };
-    // `sig` stands for `latest`: the effect re-reads only when an entry's latest screen changes.
+    // `sig` stands for `latest`: the effect re-reads only when an entry's latest screen or its lines' names change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sig]);
   return keys;

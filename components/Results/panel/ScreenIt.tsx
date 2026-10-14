@@ -44,6 +44,7 @@ import { lineLayer } from "@/components/Explore/layers";
 import { evaluationPoint } from "../blocks/types";
 import { getPref, setPref } from "@/lib/client/prefs";
 import { reportCard, type Person } from "@/lib/report/card";
+import { lineNamesOf, type LineNames } from "@/lib/report/lines";
 import { panelFromSearch, replacePanelInUrl } from "@/lib/client/panelUrl";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import { CardPanel } from "../card/CardPanel";
@@ -418,6 +419,15 @@ export interface DeskCard {
   fold: (() => void) | null;
 }
 
+/**
+ * The open parcel's names for its drawn lines (owner, 2026-10-14): the report reads a line by its current name, or as
+ * since deleted, looked up by the id its result keeps.
+ */
+const namesOf = (s: ScreenIt): LineNames | undefined => {
+  const open = s.ctl.state.store.open;
+  return open ? lineNamesOf(open.markup) : undefined;
+};
+
 /** The panel's one-line header: the parcel, its acres, the verdict's dot, and the screen button. */
 export function ScreenHeader({ s, desk = null }: { s: ScreenIt; desk?: DeskCard | null }) {
   const d = s.ctl.derived;
@@ -425,7 +435,8 @@ export function ScreenHeader({ s, desk = null }: { s: ScreenIt; desk?: DeskCard 
     return <span className="sh-empty">{desk ? "Tap a parcel to begin" : "Tap a parcel to screen it"}</span>;
   const name = s.ctl.layers?.name ?? "Parcel";
   // The card's grade and verdict for the kept run (owner, #110), in whoever's grade is on.
-  const card = !s.runningHere && !s.stale && s.shown ? reportCard(s.shown.result, s.person) : null;
+  const card =
+    !s.runningHere && !s.stale && s.shown ? reportCard(s.shown.result, s.person, namesOf(s)) : null;
   const label = s.running ? "Running…" : s.shown ? "Run again" : "Screen it";
   const folded = desk && !desk.expanded && desk.fold && s.display;
   return (
@@ -504,7 +515,7 @@ function VerdictLine({ s }: { s: ScreenIt }) {
   if (s.stale && !s.runningHere)
     return <span className="sh-verdict muted">These results are for an earlier boundary. Run again.</span>;
   if (s.runningHere) return <span className="sh-verdict muted">Screening…</span>;
-  return <span className="sh-verdict">{reportCard(s.display, s.person).reason}</span>;
+  return <span className="sh-verdict">{reportCard(s.display, s.person, namesOf(s)).reason}</span>;
 }
 
 function Chevron({ up }: { up: boolean }) {
@@ -576,7 +587,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
       {display && (
         <div className={s.stale && !s.runningHere ? "report stale" : "report"}>
           <ReportCard
-            card={reportCard(display, s.person)}
+            card={reportCard(display, s.person, namesOf(s))}
             running={!!s.runningHere}
             setPerson={s.setPerson}
             onOpen={openPanel}
@@ -615,8 +626,9 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
       {display && panel && (
         <CardPanel
           panel={panel}
-          card={reportCard(display, s.person)}
+          card={reportCard(display, s.person, namesOf(s))}
           result={display}
+          lineNames={namesOf(s)}
           point={point}
           running={running}
           noteFor={(slug) =>
