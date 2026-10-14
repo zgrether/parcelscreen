@@ -258,7 +258,13 @@ export const MEANINGS: Record<ScaleId, Meaning[][]> = {
   ],
   garden: [
     // None
-    [m("Garden", "No open, gentle, sunny ground for beds: terraces or raised beds on the slope.")],
+    // Wooded flat ground counts: the search reads the bare-earth lidar and the soil, not tree cover (owner, #128; §9.39).
+    [
+      m(
+        "Garden",
+        "No gentle, sunny ground for beds, even after clearing: terraces or raised beds on the slope.",
+      ),
+    ],
     // Kitchen garden
     [m("Garden", "Room for a kitchen garden: salad, herbs and a few rows.")],
     // Market garden
