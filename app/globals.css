@@ -3507,9 +3507,10 @@ button.cmp-cell:hover {
   --ip-chip-line: var(--color-rule);
   --ip-btn-line: var(--color-ink-2);
   --ip-on-ink: var(--color-paper);
-  --ip-bad: #fff;
-  --ip-bad-bg: var(--color-steep);
-  --ip-bad-line: var(--color-steep);
+  /* Archive is reversible, so here it's the neutral outline button; only Remove, and its confirm, is red (#133). */
+  --ip-bad: var(--color-ink);
+  --ip-bad-bg: transparent;
+  --ip-bad-line: var(--color-ink-2);
   --ip-scheme: light;
   position: fixed;
   z-index: 35;
