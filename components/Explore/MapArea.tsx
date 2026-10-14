@@ -60,7 +60,7 @@ export function MapArea({
       <MapControls hint={setHint} />
       <ParcelTools />
       <Menu />
-      <Search photonUrl={config.endpoints.photon} />
+      <Search photonUrl={config.endpoints.photon} hint={setHint} />
       <Hint text={hint} />
       <SwitchToast />
       <LineUndoToast />

@@ -9,7 +9,6 @@
  *
  * Keys: Delete or Backspace deletes the selected layer; Esc clears the selection, then closes the panel.
  */
-import { askingLine, parsePrice } from "@/lib/client/askingPrice";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { length, lineString } from "@turf/turf";
 import {
@@ -26,6 +25,8 @@ import type { ParcelRecord } from "@/lib/geo/parcels";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { findLayer, layerLine, type LayerId, type LayerNode } from "@/components/Explore/layers";
 import { ParcelFacts } from "@/components/Explore/ParcelFacts";
+import { ListingFacts } from "./ListingFacts";
+import { parcelDisplayName } from "@/lib/client/historyRows";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { AnalysisGroup } from "./results/AnalysisGroup";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
@@ -538,6 +539,8 @@ const savedAt = (iso: string) =>
  * redraws under the cursor. On phones the sheet and the toolbar step aside while it has focus.
  */
 function Notes({ ctl, name }: { ctl: ExploreController; name: string }) {
+  // The name the parcel has until one is typed (WF1).
+  const derivedName = ctl.derived ? parcelDisplayName(ctl.derived) : name;
   const open = ctl.state.store.open!;
   const [text, setText] = useState(open.notes);
   const save = useRef({ ctl, serial: ctl.state.serial, text, timer: null as number | null });
@@ -570,7 +573,7 @@ function Notes({ ctl, name }: { ctl: ExploreController; name: string }) {
   const pending = text !== open.notes;
   return (
     <div className="ip-notes">
-      <AskingPrice ctl={ctl} />
+      <ListingFacts ctl={ctl} derivedName={derivedName} />
       <div className="ip-notes-for">
         Notes <span>· {name}</span>
       </div>
@@ -601,47 +604,6 @@ function Notes({ ctl, name }: { ctl: ExploreController; name: string }) {
           </button>
         )}
       </div>
-    </div>
-  );
-}
-
-/**
- * The asking price (owner, #101, 2026-10-11): entered by hand, saved when the box loses focus or on Enter, with the
- * date it was entered ("asking $X as of [date]"). Nothing reads it yet: the cost-to-enjoy stages will (VR4).
- */
-function AskingPrice({ ctl }: { ctl: ExploreController }) {
-  const open = ctl.state.store.open!;
-  const serial = ctl.state.serial;
-  const [text, setText] = useState(open.askingPrice !== null ? String(open.askingPrice) : "");
-  const [bad, setBad] = useState(false);
-  const commit = () => {
-    const v = parsePrice(text);
-    setBad(v === undefined);
-    if (v !== undefined) ctl.saveAskingPrice(v, serial);
-  };
-  return (
-    <div className="ip-price">
-      <label>
-        Asking price
-        <input
-          inputMode="decimal"
-          aria-label="Asking price"
-          placeholder="e.g. 185,000"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onBlur={commit}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") commit();
-          }}
-        />
-      </label>
-      <span className="tiny muted">
-        {bad
-          ? "Enter dollars, like 185,000 or 185k."
-          : open.askingPrice !== null && open.askingPriceAt
-            ? askingLine(open.askingPrice, open.askingPriceAt)
-            : ""}
-      </span>
     </div>
   );
 }

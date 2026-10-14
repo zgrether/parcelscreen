@@ -378,6 +378,24 @@ describe("schema v3 (B2a): older results and the asking price", () => {
     ).not.toEqual([]);
   });
 
+  it("the listing's facts round-trip (WF1); a parcel kept before them has none", () => {
+    const facts = {
+      name: "Ferney Creek",
+      listingUrl: "https://x.test/l",
+      listingAcres: 52,
+      agent: "A. Agent",
+    };
+    const named: ParcelStore = { ...STORE, built: [{ ...STORE.built[0]!, ...facts }] };
+    expect(plan(file({}, named)).added[0]).toMatchObject(facts);
+    const { name: _n, listingUrl: _u, listingAcres: _a, agent: _g, ...older } = STORE.built[0]!;
+    expect(plan(file({ parcels: { ...STORE, built: [older as never] } })).added[0]).toMatchObject({
+      name: "",
+      listingUrl: "",
+      listingAcres: null,
+      agent: "",
+    });
+  });
+
   it("the asking price and its date round-trip; a parcel kept before the price has none", () => {
     const at = "2026-10-11T12:00:00.000Z";
     const priced: ParcelStore = {

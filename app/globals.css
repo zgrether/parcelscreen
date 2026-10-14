@@ -782,14 +782,37 @@ html:has(.explore) body {
   font-weight: 600;
 }
 /* The asking price, above the notes (owner, #101). */
-.ip-price {
+/* The listing's facts at the top of the Notes tab (WF1): one row each, as the asking price. */
+.ip-listing {
+  display: grid;
+  gap: 6px;
+}
+.ip-listing .ip-price label,
+.ip-listing .ip-field label {
+  flex: 1 1 100%;
+  display: grid;
+  grid-template-columns: 6.5em minmax(0, 1fr);
+  align-items: baseline;
+  gap: 8px;
+}
+.ip-listing .ip-price input,
+.ip-listing .ip-field input {
+  width: 100%;
+}
+.ip-listing .ip-price > :not(label),
+.ip-listing .ip-field > :not(label) {
+  margin-left: calc(6.5em + 8px);
+}
+.ip-price,
+.ip-field {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 4px 10px;
   font-size: 13px;
 }
-.ip-price input {
+.ip-price input,
+.ip-field input {
   width: 9em;
   padding: 4px 8px;
   border: 1px solid var(--ip-rule);
@@ -798,7 +821,8 @@ html:has(.explore) body {
   color: var(--ip-ink);
   font: inherit;
 }
-.ip-price .tiny {
+.ip-price .tiny,
+.ip-field .tiny {
   color: var(--ip-ink-2);
 }
 .ip-notes-for span {
@@ -2591,6 +2615,11 @@ html:has(.explore) body {
 }
 .card-reason {
   margin: 8px 0 10px;
+}
+/* A line from the parcel's own facts under the reason (WF1: the listing's acres when they differ). */
+.card-note {
+  margin: -4px 0 10px;
+  color: var(--color-ink-2);
 }
 /* The drawn lines changed since the screen (owner, #116): prominent, in the card's header; the results stay. */
 .card-stale {

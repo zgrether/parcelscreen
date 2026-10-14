@@ -16,6 +16,13 @@ describe("History rows (owner, 16b)", () => {
     expect(r!.acres).toBeGreaterThan(0);
   });
 
+  it("a typed name (WF1) is the name; blank, the derived one", () => {
+    expect(historyRows([built("a", { name: "Ferney Creek 43 ac" })])[0]).toMatchObject({
+      name: "Ferney Creek 43 ac",
+    });
+    expect(historyRows([built("a", { name: "  " })])[0]).toMatchObject({ name: "52-47A" });
+  });
+
   it("two recipes of one record say what tells them apart: acres, and split or the piece count", () => {
     const rows = historyRows([
       built("whole"),

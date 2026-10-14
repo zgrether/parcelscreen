@@ -4,6 +4,9 @@
  * coordinates (parsed here), saved parcels by name, parcel numbers within the counties in view, and places
  * from Photon. Esc, a tap outside, or picking a result closes it. The combobox pattern: arrows move through
  * the options, Enter picks.
+ *
+ * A pasted listing link (WF1, parcel-workflow.md §2) offers "Go to {its address}": the address is read from the
+ * link's path, and only that is geocoded, when it's picked. The link itself never reaches Photon or a parcel service.
  */
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { browserHttp } from "@/lib/client/http";
@@ -11,7 +14,8 @@ import { CancelledError } from "@/lib/http";
 import { coordinatesIn, idPattern, matchesName } from "@/lib/search/query";
 import { searchParcelNumbers, searchPlaces, type ParcelHit, type PlaceHit } from "@/lib/search/sources";
 import { historyRows } from "@/lib/client/historyRows";
-import { useExplore } from "@/components/Explore/useExploreController";
+import { flash, useExplore, type SetHint } from "@/components/Explore/useExploreController";
+import { PRECISION_ZOOM, readListingUrl, type ListingRead } from "@/lib/client/listingUrl";
 import { countiesShown, parcelServiceDown } from "./useParcelLines";
 
 /** Network searches wait this long after the last keystroke. */
@@ -29,7 +33,7 @@ interface Option {
   pick(): void;
 }
 
-export function Search({ photonUrl }: { photonUrl: string }) {
+export function Search({ photonUrl, hint }: { photonUrl: string; hint: SetHint }) {
   const [open, setOpen] = useState(false);
   if (!open)
     return (
@@ -42,10 +46,10 @@ export function Search({ photonUrl }: { photonUrl: string }) {
         <SearchIcon />
       </button>
     );
-  return <SearchBox photonUrl={photonUrl} close={() => setOpen(false)} />;
+  return <SearchBox photonUrl={photonUrl} hint={hint} close={() => setOpen(false)} />;
 }
 
-function SearchBox({ photonUrl, close }: { photonUrl: string; close(): void }) {
+function SearchBox({ photonUrl, hint, close }: { photonUrl: string; hint: SetHint; close(): void }) {
   const ctl = useExplore();
   const id = useId();
   const box = useRef<HTMLDivElement>(null);
@@ -75,8 +79,17 @@ function SearchBox({ photonUrl, close }: { photonUrl: string; close(): void }) {
   useEffect(() => {
     const q = text.trim();
     const map = ctl.map;
+    // A listing link is read here, not searched: it must not leave the device (WF1).
+    const isLink = readListingUrl(q).kind !== "notUrl";
+    if (isLink) searching.current?.abort();
     const timer = setTimeout(() => {
       searching.current?.abort();
+      if (isLink) {
+        setParcels({ state: "idle" });
+        setPlaces({ state: "idle" });
+        setNoCounties(false);
+        return;
+      }
       const abort = new AbortController();
       searching.current = abort;
       const counties = map ? countiesShown(map) : new Map();
@@ -115,6 +128,21 @@ function SearchBox({ photonUrl, close }: { photonUrl: string; close(): void }) {
   const q = text.trim();
   const coords = coordinatesIn(q);
   const groups: { title: string; options: Option[]; note?: string }[] = [];
+  const listing = readListingUrl(q);
+  if (listing.kind === "address")
+    groups.push({
+      title: "Listing link",
+      options: [
+        {
+          key: "listing",
+          label: `Go to ${listing.query}`,
+          detail: listing.site,
+          pick: done(() => void goToListing(listing)),
+        },
+      ],
+    });
+  else if (listing.kind === "unreadable")
+    groups.push({ title: "Listing link", options: [], note: "Couldn't read an address from this link." });
   if (coords)
     groups.push({
       title: "Coordinates",
@@ -141,13 +169,15 @@ function SearchBox({ photonUrl, close }: { photonUrl: string; close(): void }) {
         pick: done(() => ctl.openSaved(s.key)),
       })),
     });
-  if (noCounties)
+  // Until the debounce clears them, results from before a link was pasted aren't shown with it.
+  const searched = listing.kind === "notUrl";
+  if (searched && noCounties)
     groups.push({
       title: "Parcel numbers",
       options: [],
       note: serviceDown ?? "Zoom in on the county to search its parcel numbers.",
     });
-  else if (parcels.state !== "idle")
+  else if (searched && parcels.state !== "idle")
     groups.push({
       title: "Parcel numbers",
       options:
@@ -170,7 +200,7 @@ function SearchBox({ photonUrl, close }: { photonUrl: string; close(): void }) {
             ? { note: `No parcel numbers start with “${q}” in the counties in view.` }
             : {}),
     });
-  if (places.state !== "idle")
+  if (searched && places.state !== "idle")
     groups.push({
       title: "Places",
       options:
@@ -200,6 +230,37 @@ function SearchBox({ photonUrl, close }: { photonUrl: string; close(): void }) {
             ? { note: "No places found." }
             : {}),
     });
+
+  /**
+   * Centres the map on a listing's address, at a zoom that matches what the link told (a street number, a road, a
+   * county), and says to tap the parcel: nothing is selected for you, since a vacant lot's "0 Ferney Creek Rd" is
+   * somewhere on a road that may run for miles.
+   */
+  async function goToListing(l: Extract<ListingRead, { kind: "address" }>) {
+    const map = ctl.map;
+    if (!map) return;
+    try {
+      const c = map.getCenter();
+      const [hit] = await searchPlaces(
+        browserHttp,
+        photonUrl,
+        l.query,
+        [c.lat, c.lng],
+        new AbortController().signal,
+      );
+      if (!hit) return flash(hint, `Couldn't find ${l.query} on the map.`, 4000);
+      map.jumpTo({ center: [hit.ll[1], hit.ll[0]], zoom: PRECISION_ZOOM[l.precision] });
+      flash(
+        hint,
+        l.precision === "county"
+          ? `Centred on ${l.query}: the link names only the county. Zoom in and tap the parcel.`
+          : `Centred on ${l.query}: tap the parcel.`,
+        6000,
+      );
+    } catch (e) {
+      if (!(e instanceof CancelledError)) flash(hint, "Places search is unavailable right now.", 4000);
+    }
+  }
 
   const options = groups.flatMap((g) => g.options);
   const current = Math.min(active, options.length - 1);
@@ -256,12 +317,12 @@ function SearchBox({ photonUrl, close }: { photonUrl: string; close(): void }) {
           autoFocus
           type="text"
           role="combobox"
-          aria-label="Search coordinates, saved parcels, parcel numbers or places"
+          aria-label="Search coordinates, saved parcels, parcel numbers, places or a listing link"
           aria-expanded={groups.length > 0}
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={options.length ? optionId(current) : undefined}
-          placeholder="Coordinates, parcel number, place…"
+          placeholder="Coordinates, parcel number, place, listing link…"
           value={text}
           onChange={(e) => {
             setText(e.target.value);

@@ -58,8 +58,8 @@ The app parses these patterns locally, then geocodes the parsed text through Pho
 - Vacant land is often listed as "0 Ferney Creek Rd", "Lot 7 Ridge Rd" or "TBD Mud Creek Ln". Those geocode to
   somewhere on the road, which can run for miles, or to the ZIP's centre.
 - The land sites give only the county.
-- So the map centres at a zoom that matches what was found: a street number at z15, a road or ZIP at z13, a county
-  at z10. A hint says "Centred on 0 Ferney Creek Rd: tap the parcel." The user still taps the parcel; nothing is
+- So the map centres at a zoom that matches what was found: a street number at z15, a road or ZIP at z14 (where
+  the parcel outlines appear, so it can be tapped; z13 in the first draft, changed in WF1), a county at z10. A hint says "Centred on 0 Ferney Creek Rd: tap the parcel." The user still taps the parcel; nothing is
   selected automatically.
 - An unrecognised URL is stored and linked, with "Couldn't read an address from this link."
 

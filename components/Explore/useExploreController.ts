@@ -24,6 +24,7 @@ import {
   loadParcelStore,
   recipeOf,
   type LineCondition,
+  type ListingField,
   type Markup,
   type MarkupKind,
   type WorkingParcel,
@@ -178,6 +179,8 @@ export interface ExploreController {
   saveNotes(text: string, serial: number): void;
   /** The open parcel's asking price, in dollars (null clears it), for the parcel open as `serial`. */
   saveAskingPrice(price: number | null, serial: number): void;
+  /** WF1: the listing's facts, for the parcel open as `serial`. */
+  saveListing(patch: Partial<Pick<WorkingParcel, ListingField>>, serial: number): void;
   /** A screen finished (kept under `id`) for the parcel open when it started (state.serial then). */
   screened(id: string, serial: number): void;
 }
@@ -198,7 +201,7 @@ export interface LineUndo {
 }
 
 /** Shows a hint for a while, unless something else replaced it meanwhile. */
-function flash(hint: SetHint, text: string, ms: number): void {
+export function flash(hint: SetHint, text: string, ms: number): void {
   hint(text);
   setTimeout(() => hint((h) => (h === text ? "" : h)), ms);
 }
@@ -614,6 +617,9 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     saveAskingPrice(price, serial) {
       dispatch({ type: "askingPrice", price, serial, stamp: stamp() });
+    },
+    saveListing(patch, serial) {
+      dispatch({ type: "listing", patch, serial, stamp: stamp() });
     },
     screened(id, serial) {
       dispatch({ type: "screened", id, serial, stamp: stamp() });

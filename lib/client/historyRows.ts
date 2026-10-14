@@ -24,9 +24,10 @@ export interface HistoryRow {
 }
 
 /** The name History shows, and the acres. */
+/** The parcel's name: the one the household typed (WF1), else the derived one. */
 export function parcelName(p: WorkingParcel): { name: string; acres: number | null } {
   const d = deriveParcel(recipeOf(p), SCREEN_CONSTANTS.combine);
-  return { name: parcelDisplayName(d), acres: d.ok ? d.acres : null };
+  return { name: p.name.trim() || parcelDisplayName(d), acres: d.ok ? d.acres : null };
 }
 
 function tellApart(p: WorkingParcel, acres: number | null): string {

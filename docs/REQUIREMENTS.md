@@ -217,6 +217,13 @@ already converts 13d's `ps.current`, which had no `v` field at the parcel level)
       "house": [36.629, -81.354],    // [lat, lon] or null
       "notes": "Ask whether the spring is shared.",
       "notesAt": "2026-10-05T15:47:00.000Z",                                  // or null
+      "askingPrice": 185000,         // dollars, as typed (B2a), or null; "askingPriceAt": when it was entered, or null
+      "askingPriceAt": "2026-10-11T12:00:00.000Z",
+      "name": "Ferney Creek 43 ac",  // WF1: the household's name for it; "" shows the derived one (the parcel ID)
+      "listingUrl": "https://www.redfin.com/VA/Floyd/0-Ferney-Creek-Rd-24091/home/12345678",  // as typed; never fetched
+      "listingAcres": 52,            // what the listing claims, or null
+      "agent": "A. Agent, 540-555-0100",                                      // free text; a third party's contact
+      "markup": [ /* drawn lines (follow-up 34, #127): { id, name, kind, condition, line, widthFt, note, at } */ ],
       "hidden": ["an:horizon"],      // layer ids hidden on the map
       "excluded": ["an:site2"],      // results removed from the analysis
       "screenIds": [],               // screens run on it (step 14 fills this in; `screens.id` in Phase 1)
@@ -237,6 +244,10 @@ already converts 13d's `ps.current`, which had no `v` field at the parcel level)
 - **Import (Phase 1), one `parcels` row per built parcel:**
   - `recipe` = `{ pieces, split, house, hidden, excluded }`, as stored;
   - `notes` = `notes`;
+  - `name` = `name` when it isn't blank (else the derived name, or the prototype's "Name:" line, below);
+    `listing_url`, `listing_acres` and `agent` as stored (WF1, `docs/plans/parcel-workflow.md` §2); the asking
+    price becomes a `price_events` row (`listed`, source `me`, dated `askingPriceAt`); each drawn line a
+    `markers` row;
   - the cached columns (`geometry`, `acres`, `source`, `dedupe_key`, `state`, `county`, `parcel_number`)
     derived from the recipe, as for any edit (§3). The dedupe key uses the county FIPS rule in §3; it's
     computed from the stored pieces' attributes at import, never stored locally, so that rule needed no

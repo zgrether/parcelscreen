@@ -313,6 +313,35 @@ describe("notes (13e-5)", () => {
     );
   });
 
+  it("the listing's facts (WF1): saved, and the parcel built; an edit that changes nothing, or late, saves nothing", () => {
+    const s = run([selectA()]);
+    const facts = {
+      name: "Ferney Creek 43 ac",
+      listingUrl: "https://www.redfin.com/VA/Floyd/0-Ferney-Creek-Rd-24091/home/1",
+      listingAcres: 52,
+      agent: "A. Agent, 540-555-0100",
+    };
+    const named = exploreReducer(s, { type: "listing", patch: facts, serial: s.serial, stamp: at() });
+    expect(named.store.open).toMatchObject(facts);
+    expect(named.store.built).toHaveLength(1);
+    expect(named.store.built[0]).toMatchObject(facts);
+    expect(
+      exploreReducer(named, { type: "listing", patch: { name: facts.name }, serial: s.serial, stamp: at() }),
+    ).toBe(named);
+    const other = exploreReducer(named, { type: "select", record: b, stamp: at() });
+    expect(
+      exploreReducer(other, { type: "listing", patch: { name: "late" }, serial: s.serial, stamp: at() }),
+    ).toBe(other);
+    // Each field alone: a name only builds the parcel too.
+    const justAName = exploreReducer(s, {
+      type: "listing",
+      patch: { name: "X" },
+      serial: s.serial,
+      stamp: at(),
+    });
+    expect(justAName.store.built).toHaveLength(1);
+  });
+
   it("serial: opening, closing or switching parcels bumps it; editing the open one doesn't", () => {
     const s = run([selectA()]);
     expect(run([house(), { type: "toggleHidden", id: "house", stamp: at() }], s).serial).toBe(s.serial);

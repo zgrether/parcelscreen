@@ -113,6 +113,15 @@ export interface WorkingParcel {
    */
   askingPrice: number | null;
   askingPriceAt: string | null;
+  /**
+   * The listing's facts, as the user typed them (WF1, docs/plans/parcel-workflow.md §2): a name of the household's own
+   * ("" until typed: the derived name shows), the listing's link (never fetched), the acres it claims, and the agent
+   * (a third party's contact: kept with the parcel, never put in a URL or sent anywhere).
+   */
+  name: string;
+  listingUrl: string;
+  listingAcres: number | null;
+  agent: string;
   /** Drawn tracks and easements (follow-up 34). */
   markup: Markup[];
   /** Layer ids hidden on the map, and results removed from the analysis. */
@@ -139,6 +148,15 @@ export const recipeOf = (p: WorkingParcel): ParcelRecipe => ({
   ...(p.split ? { split: p.split } : {}),
 });
 
+/** The listing facts of a parcel that has none (WF1). */
+export const NO_LISTING: Pick<WorkingParcel, ListingField> = {
+  name: "",
+  listingUrl: "",
+  listingAcres: null,
+  agent: "",
+};
+export type ListingField = "name" | "listingUrl" | "listingAcres" | "agent";
+
 /** A plain parcel: one county record, nothing else yet. */
 export function plainParcel(record: ParcelRecord, now: string): WorkingParcel {
   return {
@@ -150,6 +168,7 @@ export function plainParcel(record: ParcelRecord, now: string): WorkingParcel {
     notesAt: null,
     askingPrice: null,
     askingPriceAt: null,
+    ...NO_LISTING,
     markup: [],
     hidden: [],
     excluded: [],
@@ -160,7 +179,7 @@ export function plainParcel(record: ParcelRecord, now: string): WorkingParcel {
 
 /**
  * Built = changed: more than one piece, a drawn or derived piece (anything but a county record), a split, a
- * house, notes, or a screen. Once built, it stays built (it has a key).
+ * house, notes, a price or a listing fact, a drawn line, or a screen. Once built, it stays built (it has a key).
  */
 export function isBuilt(p: WorkingParcel | null): boolean {
   if (!p) return false;
@@ -172,6 +191,10 @@ export function isBuilt(p: WorkingParcel | null): boolean {
     p.house !== null ||
     p.notes.trim() !== "" ||
     p.askingPrice !== null ||
+    p.name.trim() !== "" ||
+    p.listingUrl.trim() !== "" ||
+    p.listingAcres !== null ||
+    p.agent.trim() !== "" ||
     p.markup.length > 0 ||
     p.screenIds.length > 0
   );
@@ -249,6 +272,11 @@ const WorkingSchema = z.object({
   // Added after the store's v2 (B2a): a parcel kept before has no price.
   askingPrice: z.number().nonnegative().nullable().default(null),
   askingPriceAt: z.string().nullable().default(null),
+  // Added with WF1: a parcel kept before has none.
+  name: z.string().default(""),
+  listingUrl: z.string().default(""),
+  listingAcres: z.number().positive().nullable().default(null),
+  agent: z.string().default(""),
   // Added with follow-up 34: a parcel kept before has none.
   markup: z
     .array(MarkupSchema)
