@@ -36,9 +36,9 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   const macks = rows.filter({ hasText: "parcel 35-3" });
   // The whole name on hover; the cell cuts it short (one line, an ellipsis).
   await expect(macks.locator(".lib-open")).toHaveAttribute("title", MACKS_NAME);
-  expect(await macks.locator(".lib-open .long-name-text").evaluate((el) => getComputedStyle(el).textOverflow)).toBe(
-    "ellipsis",
-  );
+  expect(
+    await macks.locator(".lib-open .long-name-text").evaluate((el) => getComputedStyle(el).textOverflow),
+  ).toBe("ellipsis");
   await expect(macks.locator("td").nth(4)).toHaveText("VA");
   // The state's county on hover (and a long press, on a phone).
   await expect(macks.locator(".lib-state")).toHaveAttribute("title", "Floyd County");
