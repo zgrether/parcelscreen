@@ -177,11 +177,14 @@ describe("places outage (plan §9.11): roads, road grade and the driveway still 
     expect(out.result.road).toEqual(normal.road);
     expect(out.result.sites!.map((s) => s.c.driveway)).toEqual(normal.sites!.map((s) => s.c.driveway));
     expect(out.result.driveway!.routes).toHaveLength(2);
-    // The same, but what OpenStreetMap says the road in is (follow-up 55): Overpass was down, so nothing.
+    // The same, but what OpenStreetMap says the road in is (follow-up 55), and the routes' stretch along its private
+    // ways (#126): Overpass was down, so nothing.
     expect(out.result.driveway!.entrances.every((e) => e.roadClass?.osm === null)).toBe(true);
     const sansOsm = (d: typeof normal.driveway) => ({
       ...d!,
       entrances: d!.entrances.map((e) => ({ ...e, roadClass: e.roadClass && { ...e.roadClass, osm: null } })),
+      routes: d!.routes.map((rt) => ({ ...rt, metrics: { ...rt.metrics, privateFt: 0 } })),
+      direct: d!.direct && { ...d!.direct, metrics: { ...d!.direct.metrics, privateFt: 0 } },
     });
     expect(differences(out.result.driveway, sansOsm(normal.driveway))).toEqual([]);
     // Drive times still route the anchors; there are no hospitals or groceries to try.
