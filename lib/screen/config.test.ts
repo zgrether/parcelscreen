@@ -475,6 +475,7 @@ describe("config", () => {
           "joinM": 20,
           "maxWalkM": 5000,
           "onRoadM": 15,
+          "privateOutsideMinM": 15,
         },
         "padus": {
           "adjoinsBufferKm": 0.02,

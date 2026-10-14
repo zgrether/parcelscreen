@@ -4449,7 +4449,8 @@
        "highway": "track",
        "tracktype": null,
        "access": null,
-       "service": null
+       "service": null,
+       "outsideFt": 4675.197
       }
      }
     },
@@ -4472,7 +4473,8 @@
        "highway": "track",
        "tracktype": null,
        "access": null,
-       "service": null
+       "service": null,
+       "outsideFt": 4675.197
       }
      }
     },
@@ -4495,7 +4497,8 @@
        "highway": "unclassified",
        "tracktype": null,
        "access": null,
-       "service": null
+       "service": null,
+       "outsideFt": 8311.24261565655
       }
      }
     }
@@ -5011,7 +5014,8 @@
       "culverts": 1,
       "outsideFt": 0,
       "sfhaFt": 0,
-      "drawnFt": 0
+      "drawnFt": 0,
+      "privateFt": 0
      },
      "cost": {
       "mid": 46433.44842829424,
@@ -5545,7 +5549,8 @@
       "culverts": 1,
       "outsideFt": 0,
       "sfhaFt": 0,
-      "drawnFt": 0
+      "drawnFt": 0,
+      "privateFt": 0
      },
      "cost": {
       "mid": 46430.71445688131,
@@ -6075,7 +6080,8 @@
      "culverts": 1,
      "outsideFt": 0,
      "sfhaFt": 0,
-     "drawnFt": 0
+     "drawnFt": 0,
+     "privateFt": 0
     },
     "cost": {
      "mid": 46430.71445688131,
@@ -10628,7 +10634,8 @@
        "highway": "track",
        "tracktype": null,
        "access": null,
-       "service": null
+       "service": null,
+       "outsideFt": 4675.197
       }
      }
     },
@@ -10651,7 +10658,8 @@
        "highway": "track",
        "tracktype": null,
        "access": null,
-       "service": null
+       "service": null,
+       "outsideFt": 4675.197
       }
      }
     },
@@ -10674,7 +10682,8 @@
        "highway": "unclassified",
        "tracktype": null,
        "access": null,
-       "service": null
+       "service": null,
+       "outsideFt": 8311.24261565655
       }
      }
     }
@@ -11190,7 +11199,8 @@
       "culverts": 1,
       "outsideFt": 0,
       "sfhaFt": 0,
-      "drawnFt": 0
+      "drawnFt": 0,
+      "privateFt": 0
      },
      "cost": {
       "mid": 46430.71445688131,
@@ -11744,7 +11754,8 @@
       "culverts": 1,
       "outsideFt": 0,
       "sfhaFt": 0,
-      "drawnFt": 0
+      "drawnFt": 0,
+      "privateFt": 0
      },
      "cost": {
       "mid": 47339.99625248977,
@@ -12274,7 +12285,8 @@
      "culverts": 1,
      "outsideFt": 0,
      "sfhaFt": 0,
-     "drawnFt": 0
+     "drawnFt": 0,
+     "privateFt": 0
     },
     "cost": {
      "mid": 46430.71445688131,

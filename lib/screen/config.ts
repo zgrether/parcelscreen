@@ -313,6 +313,9 @@ export const SCREEN_CONSTANTS = deepFreeze({
     // Follow-up 55: an OSM way this near a TIGER entrance is the same road (OSM's rural roads are TIGER imports, on
     // the same line); its tags say what the road in is.
     onRoadM: 15,
+    // A private way (access=private or no) this long or more outside the parcel, at the entrance or along the route
+    // before the boundary, isn't the parcel's own drive: Legal road access asks for a recorded right (owner, #126).
+    privateOutsideMinM: 15,
     maxWalkM: 5000, // how far along the OSM network to look for a TIGER road
   },
   roads: {

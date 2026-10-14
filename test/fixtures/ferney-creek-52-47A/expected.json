@@ -2313,7 +2313,8 @@
        "highway": "service",
        "tracktype": null,
        "access": "private",
-       "service": "driveway"
+       "service": "driveway",
+       "outsideFt": 639.7638
       }
      }
     },
@@ -2336,7 +2337,8 @@
        "highway": "service",
        "tracktype": null,
        "access": "private",
-       "service": "driveway"
+       "service": "driveway",
+       "outsideFt": 639.7638
       }
      }
     },
@@ -2359,7 +2361,8 @@
        "highway": "service",
        "tracktype": null,
        "access": "private",
-       "service": "driveway"
+       "service": "driveway",
+       "outsideFt": 639.7638
       }
      }
     }
@@ -2603,7 +2606,8 @@
       "culverts": 1,
       "outsideFt": 49.2126,
       "sfhaFt": 0,
-      "drawnFt": 0
+      "drawnFt": 0,
+      "privateFt": 49.2126
      },
      "cost": {
       "mid": 28829.026397469155,
@@ -2865,7 +2869,8 @@
       "culverts": 1,
       "outsideFt": 9.84252,
       "sfhaFt": 0,
-      "drawnFt": 0
+      "drawnFt": 0,
+      "privateFt": 9.84252
      },
      "cost": {
       "mid": 28843.938329077755,
@@ -3123,7 +3128,8 @@
      "culverts": 1,
      "outsideFt": 49.2126,
      "sfhaFt": 0,
-     "drawnFt": 0
+     "drawnFt": 0,
+     "privateFt": 49.2126
     },
     "cost": {
      "mid": 28829.026397469155,
@@ -5534,7 +5540,8 @@
        "highway": "service",
        "tracktype": null,
        "access": "private",
-       "service": "driveway"
+       "service": "driveway",
+       "outsideFt": 639.7638
       }
      }
     },
@@ -5557,7 +5564,8 @@
        "highway": "service",
        "tracktype": null,
        "access": "private",
-       "service": "driveway"
+       "service": "driveway",
+       "outsideFt": 639.7638
       }
      }
     },
@@ -5580,7 +5588,8 @@
        "highway": "service",
        "tracktype": null,
        "access": "private",
-       "service": "driveway"
+       "service": "driveway",
+       "outsideFt": 639.7638
       }
      }
     }
@@ -6332,7 +6341,8 @@
       "culverts": 1,
       "outsideFt": 19.68504,
       "sfhaFt": 0,
-      "drawnFt": 0
+      "drawnFt": 0,
+      "privateFt": 19.68504
      },
      "cost": {
       "mid": 64411.50505943275,
@@ -7214,7 +7224,8 @@
       "culverts": 1,
       "outsideFt": 137.79528,
       "sfhaFt": 0,
-      "drawnFt": 0
+      "drawnFt": 0,
+      "privateFt": 137.79528
      },
      "cost": {
       "mid": 68523.16041007295,
@@ -7820,7 +7831,8 @@
      "culverts": 1,
      "outsideFt": 0,
      "sfhaFt": 0,
-     "drawnFt": 0
+     "drawnFt": 0,
+     "privateFt": 0
     },
     "cost": {
      "mid": 55963.68003943225,
@@ -10337,7 +10349,8 @@
        "highway": "service",
        "tracktype": null,
        "access": "private",
-       "service": "driveway"
+       "service": "driveway",
+       "outsideFt": 639.7638
       }
      }
     },
@@ -10360,7 +10373,8 @@
        "highway": "service",
        "tracktype": null,
        "access": "private",
-       "service": "driveway"
+       "service": "driveway",
+       "outsideFt": 639.7638
       }
      }
     },
@@ -10383,7 +10397,8 @@
        "highway": "service",
        "tracktype": null,
        "access": "private",
-       "service": "driveway"
+       "service": "driveway",
+       "outsideFt": 639.7638
       }
      }
     }
@@ -11135,7 +11150,8 @@
       "culverts": 1,
       "outsideFt": 19.68504,
       "sfhaFt": 0,
-      "drawnFt": 0
+      "drawnFt": 0,
+      "privateFt": 19.68504
      },
      "cost": {
       "mid": 64411.50505943275,
@@ -12017,7 +12033,8 @@
       "culverts": 1,
       "outsideFt": 137.79528,
       "sfhaFt": 0,
-      "drawnFt": 0
+      "drawnFt": 0,
+      "privateFt": 137.79528
      },
      "cost": {
       "mid": 68523.16041007295,
@@ -12623,7 +12640,8 @@
      "culverts": 1,
      "outsideFt": 0,
      "sfhaFt": 0,
-     "drawnFt": 0
+     "drawnFt": 0,
+     "privateFt": 0
     },
     "cost": {
      "mid": 55963.68003943225,

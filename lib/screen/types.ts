@@ -375,6 +375,8 @@ const RoadClassSchema = z.strictObject({
       tracktype: z.string().nullable(),
       access: z.string().nullable(),
       service: z.string().nullable(),
+      /** How much of that way lies outside the parcel's outline: a private way inside it is the parcel's own drive. */
+      outsideFt: num,
     })
     .nullable(),
 });
@@ -447,6 +449,11 @@ const RouteSchema = z.strictObject({
     sfhaFt: num,
     /** The length along a drawn track or inside a drawn easement (v5, follow-up 34). */
     drawnFt: num,
+    /**
+     * The length outside the parcel along an OpenStreetMap way marked private (access=private or no) (v7, follow-up
+     * 55; owner, #126): the route uses someone's private road before reaching the boundary.
+     */
+    privateFt: num,
   }),
   cost: CostRangeSchema,
   culverts: z.array(LatLonSchema),

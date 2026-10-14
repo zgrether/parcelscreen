@@ -174,10 +174,12 @@ function access(r: Result): Gate {
   const rt = r.driveway && scoredRoute(r.driveway);
   const line = rt ? startLine(r, rt) : null;
   // The road in (follow-up 55; owner, #123): a 4WD trail, a track or a private road at the scored route's entrance.
-  const roadIn = rt ? roadInWords(r.driveway!.entrances[rt.entranceIndex]?.roadClass ?? null) : null;
+  const roadClass = rt ? (r.driveway!.entrances[rt.entranceIndex]?.roadClass ?? null) : null;
+  const roadIn = roadInWords(roadClass);
   const asks = [
     ...(line ? [lowerFirst(`${LINE_LABEL[line.kind]}: ${VERIFY_RIGHT_OF_WAY}`)] : []),
     ...(roadIn ? [`${roadIn}; check that it's public and drivable year-round`] : []),
+    ...(rt && markedPrivateOutside(roadClass, rt.metrics.privateFt) ? [MARKED_PRIVATE] : []),
   ];
   if (!asks.length) return frontage;
   return {
@@ -187,11 +189,25 @@ function access(r: Result): Gate {
   };
 }
 
+/** The owner's wording (#126), appended to Legal road access. */
+export const MARKED_PRIVATE =
+  "the road in is marked private (OpenStreetMap); if it isn't this parcel's own drive, you need a recorded right to use it";
+
+/**
+ * A way OpenStreetMap marks private (access=private or no) outside the parcel (owner, #126): the entrance is on one
+ * that runs osmRoads.privateOutsideMinM or more outside the outline, or the route runs that far along one before it
+ * reaches the boundary. One inside the parcel is the parcel's own drive.
+ */
+export function markedPrivateOutside(c: RoadClass | null, routePrivateFt: number): boolean {
+  const minFt = SCREEN_CONSTANTS.osmRoads.privateOutsideMinM * M2FT;
+  const entrance = (c?.osm?.access === "private" || c?.osm?.access === "no") && c.osm.outsideFt >= minFt;
+  return entrance || routePrivateFt >= minFt;
+}
+
 /**
  * "the road in is a track (OpenStreetMap)" (follow-up 55; owner, #123): from the entrance road's Census class (S1500
  * a 4WD vehicular trail, S1740 a private road) and the OpenStreetMap way on it (highway=track, or a track grade).
- * Null for an ordinary road, or when nothing is known. OSM's access and service tags are stored but not read here:
- * whether access=private counts as a private road is the owner's call (Ferney's entrance road is tagged so).
+ * Null for an ordinary road, or when nothing is known. OSM's access=private is markedPrivateOutside's (owner, #126).
  */
 export function roadInWords(c: RoadClass | null): string | null {
   if (!c) return null;

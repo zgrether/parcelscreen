@@ -2048,13 +2048,17 @@
                                   "string",
                                   "null"
                                 ]
+                              },
+                              "outsideFt": {
+                                "type": "number"
                               }
                             },
                             "required": [
                               "highway",
                               "tracktype",
                               "access",
-                              "service"
+                              "service",
+                              "outsideFt"
                             ],
                             "additionalProperties": false
                           },
@@ -2158,6 +2162,9 @@
                   },
                   "drawnFt": {
                     "type": "number"
+                  },
+                  "privateFt": {
+                    "type": "number"
                   }
                 },
                 "required": [
@@ -2174,7 +2181,8 @@
                   "culverts",
                   "outsideFt",
                   "sfhaFt",
-                  "drawnFt"
+                  "drawnFt",
+                  "privateFt"
                 ],
                 "additionalProperties": false
               },
@@ -2442,6 +2450,9 @@
                 },
                 "drawnFt": {
                   "type": "number"
+                },
+                "privateFt": {
+                  "type": "number"
                 }
               },
               "required": [
@@ -2458,7 +2469,8 @@
                 "culverts",
                 "outsideFt",
                 "sfhaFt",
-                "drawnFt"
+                "drawnFt",
+                "privateFt"
               ],
               "additionalProperties": false
             },
@@ -2719,6 +2731,9 @@
                 },
                 "drawnFt": {
                   "type": "number"
+                },
+                "privateFt": {
+                  "type": "number"
                 }
               },
               "required": [
@@ -2735,7 +2750,8 @@
                 "culverts",
                 "outsideFt",
                 "sfhaFt",
-                "drawnFt"
+                "drawnFt",
+                "privateFt"
               ],
               "additionalProperties": false
             },

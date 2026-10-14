@@ -405,21 +405,42 @@ type Candidate = Omit<Entrance, "source" | "reaches" | "line" | "roadClass"> & {
  * The road an entrance is on (v7, follow-up 55): its Census class (MTFCC), and the OpenStreetMap way lying on it
  * within osmRoads.onRoadM, whose tags say whether it's a track, private or a driveway.
  */
-export function roadClassAt(ll: LatLon, mtfcc: string | null, osm: readonly OsmWay[]): RoadClass {
+export function roadClassAt(
+  ll: LatLon,
+  mtfcc: string | null,
+  osm: readonly OsmWay[],
+  parcel: Feature<Polygon>,
+): RoadClass {
   let best: { w: OsmWay; m: number } | null = null;
   for (const w of osm) {
     const m = pointToLineDistance([ll[1], ll[0]], lineString(w.coords), { units: "meters" });
     if (m <= SCREEN_CONSTANTS.osmRoads.onRoadM && (!best || m < best.m)) best = { w, m };
   }
-  return { mtfcc, osm: best ? osmTags(best.w) : null };
+  return { mtfcc, osm: best ? osmTags(best.w, parcel) : null };
 }
 
-const osmTags = (w: OsmWay): NonNullable<RoadClass["osm"]> => ({
+const osmTags = (w: OsmWay, parcel: Feature<Polygon>): NonNullable<RoadClass["osm"]> => ({
   highway: w.highway,
   tracktype: w.tracktype,
   access: w.access,
   service: w.service,
+  outsideFt: outsideM(w.coords, parcel) * M2FT,
 });
+
+/** How much of a line lies outside the polygon, in metres: sampled every OUTSIDE_STEP_M along it. */
+const OUTSIDE_STEP_M = 5;
+function outsideM(coords: [number, number][], parcel: Feature<Polygon>): number {
+  const line = lineString(coords);
+  const len = length(line, { units: "meters" });
+  let out = 0;
+  for (let at = OUTSIDE_STEP_M / 2; at < len; at += OUTSIDE_STEP_M)
+    if (!booleanPointInPolygon(along(line, at, { units: "meters" }), parcel)) out += OUTSIDE_STEP_M;
+  return Math.min(out, len);
+}
+
+/** OpenStreetMap ways marked private (access=private or no), as lines: a route along one outside the parcel is noted. */
+const privateWays = (osm: readonly OsmWay[] | undefined): Feature<LineString>[] =>
+  (osm ?? []).filter((w) => w.access === "private" || w.access === "no").map((w) => lineString(w.coords));
 
 /** Points on the given roads within entranceMaxDistM of the boundary, scored (lower is better), and the nearest. */
 function frontageCandidates(
@@ -511,7 +532,7 @@ function findEntrances(
     source: "tiger",
     reaches: null,
     line: null,
-    roadClass: roadClassAt(e.ll, roads[roadIndex]?.properties.MTFCC ?? null, osm),
+    roadClass: roadClassAt(e.ll, roads[roadIndex]?.properties.MTFCC ?? null, osm, parcel),
   }));
   if (!picked.length && osm.length) {
     // No TIGER frontage: an OSM track or service road along the boundary, with how far along the OSM network it
@@ -523,7 +544,7 @@ function findEntrances(
         source: "osm",
         reaches: reachesTiger(osm, { wayIndex: roadIndex, ll: e.ll }, roads),
         line: null,
-        roadClass: { mtfcc: null, osm: osmTags(osm[roadIndex]!) },
+        roadClass: { mtfcc: null, osm: osmTags(osm[roadIndex]!, parcel) },
       });
   }
   if (!picked.length && Number.isFinite(minDist) && minDist <= K.fallbackMaxM) {
@@ -554,7 +575,7 @@ function findEntrances(
         source: "tiger",
         reaches: null,
         line: null,
-        roadClass: roadClassAt([nearest.p[1]!, nearest.p[0]!], nearest.mtfcc, osm),
+        roadClass: roadClassAt([nearest.p[1]!, nearest.p[0]!], nearest.mtfcc, osm, parcel),
       });
   }
   return { entrances: picked, roadsNearestFt: Number.isFinite(minDist) ? minDist * M2FT : null };
@@ -783,6 +804,9 @@ export function routeManyFrom(
       }
     const prof: [number, number][] = [];
     const culverts: LatLon[] = [];
+    // The route's length outside the parcel along a way marked private (follow-up 55; owner, #126).
+    const priv = privateWays(ctx.osmRoads);
+    let privateM = 0;
     let outside = 0,
       drawnM = 0,
       trackM = 0,
@@ -812,7 +836,15 @@ export function routeManyFrom(
       const zd = a?.zd !== undefined && b?.zd !== undefined ? a.zd + (b.zd - a.zd) * f : NaN;
       const zb = Number.isNaN(zd) ? zBilinear(d, x, y) : zd;
       prof.push([s, Number.isNaN(zb) ? zz : zb]);
-      if (!inside[i]) outside += step;
+      if (!inside[i]) {
+        outside += step;
+        if (
+          priv.some(
+            (l) => pointToLineDistance(p, l, { units: "meters" }) <= SCREEN_CONSTANTS.osmRoads.onRoadM,
+          )
+        )
+          privateM += step;
+      }
       const onLine = drawn?.cell[i] ?? 0;
       if (onLine) {
         drawnM += step;
@@ -883,6 +915,7 @@ export function routeManyFrom(
       outsideFt: outside * M2FT,
       sfhaFt: sfhaM * M2FT,
       drawnFt: drawnM * M2FT,
+      privateFt: privateM * M2FT,
     };
     // A drawn entrance (follow-up 34, owner #116): the line to it is an existing drive, priced as an upgrade and part of
     // the route's cost; its stretch on neighbouring land outside the drawn easements counts towards the easement need.
