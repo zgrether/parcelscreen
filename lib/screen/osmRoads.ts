@@ -18,6 +18,10 @@ export interface OsmWay {
   id: number;
   highway: string;
   name: string | null;
+  /** Follow-up 55: what the road in is (a track's grade, private access, a driveway). */
+  tracktype: string | null;
+  access: string | null;
+  service: string | null;
   /** [lon, lat] */
   coords: [number, number][];
 }
@@ -25,7 +29,13 @@ export interface OsmWay {
 const WaySchema = z.looseObject({
   type: z.literal("way"),
   id: z.number(),
-  tags: z.looseObject({ highway: z.string(), name: z.string().optional() }),
+  tags: z.looseObject({
+    highway: z.string(),
+    name: z.string().optional(),
+    tracktype: z.string().optional(),
+    access: z.string().optional(),
+    service: z.string().optional(),
+  }),
   geometry: z.array(z.strictObject({ lat: z.number(), lon: z.number() })),
 });
 const AnswerSchema = z.looseObject({ elements: z.array(z.unknown()) });
@@ -47,6 +57,9 @@ export function parseOsmWays(json: unknown): OsmWay[] {
         id: w.data.id,
         highway: w.data.tags.highway,
         name: w.data.tags.name ?? null,
+        tracktype: w.data.tags.tracktype ?? null,
+        access: w.data.tags.access ?? null,
+        service: w.data.tags.service ?? null,
         coords: w.data.geometry.map((g) => [g.lon, g.lat] as [number, number]),
       },
     ];

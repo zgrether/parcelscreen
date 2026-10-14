@@ -2370,7 +2370,11 @@
      "score": 18.408431838394783,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": null
+     }
     },
     {
      "ll": [
@@ -2384,7 +2388,11 @@
      "score": 40.3937801180636,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": null
+     }
     },
     {
      "ll": [
@@ -2398,7 +2406,11 @@
      "score": 45.16241587547718,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": null
+     }
     }
    ],
    "routes": [
@@ -4060,7 +4072,8 @@
       "culverts": 1,
       "outsideFt": 0,
       "sfhaFt": 0,
-      "drawnFt": 0
+      "drawnFt": 0,
+      "privateFt": 0
      },
      "cost": {
       "mid": 166340.59628051126,
@@ -5834,7 +5847,8 @@
       "culverts": 2,
       "outsideFt": 68.89764,
       "sfhaFt": 0,
-      "drawnFt": 0
+      "drawnFt": 0,
+      "privateFt": 0
      },
      "cost": {
       "mid": 172269.47209152995,
@@ -7517,7 +7531,8 @@
      "culverts": 1,
      "outsideFt": 0,
      "sfhaFt": 0,
-     "drawnFt": 0
+     "drawnFt": 0,
+     "privateFt": 0
     },
     "cost": {
      "mid": 166561.43307034153,
@@ -7613,8 +7628,8 @@
    "mi": 9,
    "er": null
   },
-  "schemaVersion": 6,
-  "engine": 17,
+  "schemaVersion": 7,
+  "engine": 18,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -9991,7 +10006,11 @@
      "score": 18.408431838394783,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": null
+     }
     },
     {
      "ll": [
@@ -10005,7 +10024,11 @@
      "score": 40.3937801180636,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": null
+     }
     },
     {
      "ll": [
@@ -10019,7 +10042,11 @@
      "score": 45.16241587547718,
      "source": "tiger",
      "reaches": null,
-     "line": null
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1400",
+      "osm": null
+     }
     }
    ],
    "routes": [
@@ -11681,7 +11708,8 @@
       "culverts": 1,
       "outsideFt": 0,
       "sfhaFt": 0,
-      "drawnFt": 0
+      "drawnFt": 0,
+      "privateFt": 0
      },
      "cost": {
       "mid": 166340.59628051126,
@@ -13455,7 +13483,8 @@
       "culverts": 2,
       "outsideFt": 68.89764,
       "sfhaFt": 0,
-      "drawnFt": 0
+      "drawnFt": 0,
+      "privateFt": 0
      },
      "cost": {
       "mid": 172269.47209152995,
@@ -15138,7 +15167,8 @@
      "culverts": 1,
      "outsideFt": 0,
      "sfhaFt": 0,
-     "drawnFt": 0
+     "drawnFt": 0,
+     "privateFt": 0
     },
     "cost": {
      "mid": 166561.43307034153,
@@ -15234,8 +15264,8 @@
    "mi": 9,
    "er": null
   },
-  "schemaVersion": 6,
-  "engine": 17,
+  "schemaVersion": 7,
+  "engine": 18,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,

@@ -31,7 +31,7 @@ function mapRoute(route: Loose, entrances: unknown[]): Loose {
   // v4 (VR3a): the prototype measured no route against the flood zones. v5 (follow-up 34): nor had drawn lines.
   return {
     ...rest,
-    metrics: { ...(rest.metrics as Loose), sfhaFt: 0, drawnFt: 0 },
+    metrics: { ...(rest.metrics as Loose), sfhaFt: 0, drawnFt: 0, privateFt: 0 },
     entranceIndex,
     lines: [],
     existing: null,
@@ -81,7 +81,13 @@ export function fromPrototype(R: PrototypeResult): ScreenResult {
       practical: null,
       steepLanding: null,
       // v4 (VR3a): its entrances were all TIGER's.
-      entrances: (entrances as Loose[]).map((e) => ({ ...e, source: "tiger", reaches: null, line: null })),
+      entrances: (entrances as Loose[]).map((e) => ({
+        ...e,
+        source: "tiger",
+        reaches: null,
+        line: null,
+        roadClass: null,
+      })),
     };
   }
 

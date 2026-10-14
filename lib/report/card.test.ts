@@ -7,7 +7,7 @@ import { expectedOf } from "@/test/support/expected";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { TRAILHEAD_DRIVES } from "../screen/driveList";
 import { NO_PRACTICAL_ROUTE } from "../screen/score";
-import type { ScreenResult } from "../screen/types";
+import type { RoadClass, ScreenResult } from "../screen/types";
 import {
   articleFor,
   atLeast,
@@ -15,12 +15,27 @@ import {
   cardFacts,
   cardFor,
   footprintFt2,
+  markedPrivateOutside,
+  MARKED_PRIVATE,
   reportCard,
+  roadInWords,
   type CardConfig,
 } from "./card";
 
 const K = SCREEN_CONSTANTS.card;
-const ferney = () => structuredClone(expectedOf("ferney-creek-52-47A", "run"));
+/**
+ * Ferney, for the tests of the other gates and rows: its entrance road (a private driveway, 640 ft of it off the
+ * parcel, owner #126) taken as its own drive, so the Access gate passes as it did before follow-up 55. The fixture's
+ * own test and the private-road test read the real result.
+ */
+const ferney = () => {
+  const r = structuredClone(expectedOf("ferney-creek-52-47A", "run"));
+  const d = r.driveway!;
+  const e = d.entrances[d.routes[0]!.entranceIndex]!;
+  e.roadClass = { ...e.roadClass!, osm: { ...e.roadClass!.osm!, outsideFt: 0 } };
+  for (const rt of d.routes) rt.metrics.privateFt = 0;
+  return r;
+};
 const gates = (r: ScreenResult) => Object.fromEntries(cardFacts(r).gates.map((g) => [g.key, g.status]));
 const grades = (r: ScreenResult) => Object.fromEntries(cardFacts(r).rows.map((x) => [x.key, x.grade]));
 const gateOf = (r: ScreenResult, key: string) => cardFacts(r).gates.find((g) => g.key === key)!;
@@ -28,9 +43,10 @@ const rowOf = (r: ScreenResult, key: string) => cardFacts(r).rows.find((x) => x.
 const SEPTIC_WARN = "no soil on the parcel rates better than very limited for a septic field";
 
 describe("the report card on the fixtures (engine 13)", () => {
-  it("Ferney Creek 52-47A: every gate passes; a Contender for both", () => {
+  it("Ferney Creek 52-47A: the road in is marked private; a Contender for both", () => {
     const r = expectedOf("ferney-creek-52-47A", "run");
-    expect(gates(r)).toEqual({ floodplain: "pass", access: "pass", easement: "pass", septic: "pass" });
+    // Follow-up 55 (owner, #126): its entrance road is a private driveway, most of it off the parcel.
+    expect(gates(r)).toEqual({ floodplain: "pass", access: "warn", easement: "pass", septic: "pass" });
     expect(grades(r)).toEqual({
       elevation: "B",
       homesite: "A",
@@ -43,10 +59,8 @@ describe("the report card on the fixtures (engine 13)", () => {
     const zach = reportCard(r, "zach");
     expect(zach.points).toBeCloseTo(3.2, 9);
     expect([zach.grade, zach.verdict]).toEqual(["B", "Contender"]);
-    // Trails and Town are both D: Zach weighs Trails more.
-    expect(zach.reason).toBe(
-      "Contender. Weakest part: trails and public land (D, a trailhead 47 min (11.5 mi) by road, 6.4 mi straight (Buffalo Mountain Trailhead)).",
-    );
+    // One warn: the first thing to check (it read: the weakest part, trails and public land).
+    expect(zach.reason).toBe(`Contender. Check first: frontage on an unnamed road; ${MARKED_PRIVATE}.`);
     expect(zach.incomplete).toEqual([]);
     expect(rowOf(r, "town").detail).toBe("a 47-minute drive to an ER, 15 to a grocery"); // from the entrance
     expect(reportCard(r, "julie").points).toBeCloseTo(2.75, 9);
@@ -60,9 +74,13 @@ describe("the report card on the fixtures (engine 13)", () => {
     );
   });
 
-  it("Macks Mountain 35-3: the septic warn, the closer grocery", () => {
+  it("Macks Mountain 35-3: the septic warn, the road in a track, the closer grocery", () => {
     const r = expectedOf("macks-mountain-35-3", "run");
-    expect(gates(r)).toEqual({ floodplain: "pass", access: "pass", easement: "pass", septic: "warn" });
+    // Follow-up 55: its entrance road is an unnamed local road to the Census (S1400), a track to OpenStreetMap.
+    expect(gates(r)).toEqual({ floodplain: "pass", access: "warn", easement: "pass", septic: "warn" });
+    expect(gateOf(r, "access").reason).toBe(
+      "Frontage on an unnamed road; the road in is a track (OpenStreetMap); check that it's public and drivable year-round",
+    );
     expect(grades(r)).toEqual({
       elevation: "A",
       homesite: "A",
@@ -84,10 +102,96 @@ describe("the report card on the fixtures (engine 13)", () => {
     const zach = reportCard(r, "zach"),
       julie = reportCard(r, "julie");
     expect(zach.points).toBeCloseTo(3.05, 9);
-    expect([zach.grade, zach.verdict]).toEqual(["B", "Contender"]);
+    // Two warns (the road in, the septic) are a Maybe.
+    expect([zach.grade, zach.verdict]).toEqual(["B", "Maybe"]);
     expect(julie.points).toBeCloseTo(2.2, 9);
     expect([julie.grade, julie.verdict]).toEqual(["C", "Maybe"]);
-    expect(zach.reason).toBe(`Contender. Check first: ${SEPTIC_WARN}.`);
+    expect(zach.reason).toBe(
+      "Maybe. Check first: frontage on an unnamed road; the road in is a track (OpenStreetMap); check that it's public and drivable year-round.",
+    );
+  });
+
+  it("the road in (follow-up 55): a 4WD trail or private road to the Census, a track to OpenStreetMap", () => {
+    const words = (mtfcc: string | null, osm: Partial<NonNullable<RoadClass["osm"]>> | null = null) =>
+      roadInWords({
+        mtfcc,
+        osm: osm
+          ? { highway: "unclassified", tracktype: null, access: null, service: null, outsideFt: 0, ...osm }
+          : null,
+      });
+    expect(words("S1500")).toBe("the road in is a 4WD trail (Census)");
+    expect(words("S1740")).toBe("the road in is a private road (Census)");
+    expect(words("S1400", { highway: "track" })).toBe("the road in is a track (OpenStreetMap)");
+    expect(words("S1400", { tracktype: "grade4" })).toBe("the road in is a track (OpenStreetMap)");
+    expect(words("S1740", { highway: "track" })).toBe(
+      "the road in is a private track (Census and OpenStreetMap)",
+    );
+    expect(words("S1500", { highway: "track" })).toBe(
+      "the road in is a 4WD trail (Census and OpenStreetMap)",
+    );
+    // An ordinary road says nothing here; OSM's access=private is markedPrivateOutside's (owner, #126).
+    expect(words("S1400")).toBeNull();
+    expect(words("S1400", { highway: "service", service: "driveway", access: "private" })).toBeNull();
+    expect(roadInWords(null)).toBeNull();
+    const m = expectedOf("macks-mountain-35-3", "run");
+    expect(gateOf(m, "access").reason).toMatch(
+      /; the road in is a track \(OpenStreetMap\); check that it's public/,
+    );
+  });
+
+  it("a road marked private outside the parcel asks for a recorded right; one inside is its own drive (owner, #126)", () => {
+    // Ferney: its entrance road is OSM's way 19995821, a private driveway from State Rte 750, 640 ft of it outside the
+    // parcel; the scored route runs 49 ft along it before the boundary.
+    const f = expectedOf("ferney-creek-52-47A", "run");
+    const at = f.driveway!.routes[0]!.entranceIndex;
+    expect(f.driveway!.entrances[at]!.roadClass).toEqual({
+      mtfcc: "S1400",
+      osm: {
+        highway: "service",
+        tracktype: null,
+        access: "private",
+        service: "driveway",
+        outsideFt: expect.closeTo(640, 0),
+      },
+    });
+    expect(f.driveway!.routes[0]!.metrics.privateFt).toBeCloseTo(49, 0);
+    expect(gateOf(f, "access")).toMatchObject({
+      status: "warn",
+      reason: `Frontage on an unnamed road; ${MARKED_PRIVATE}`,
+    });
+    expect(MARKED_PRIVATE).toBe(
+      "the road in is marked private (OpenStreetMap); if it isn't this parcel's own drive, you need a recorded right to use it",
+    );
+    // One warn: still a Contender, and the warn is the first thing to check.
+    expect(reportCard(f, "zach")).toMatchObject({ verdict: "Contender", grade: "B" });
+    expect(reportCard(f, "zach").reason).toBe(
+      `Contender. Check first: frontage on an unnamed road; ${MARKED_PRIVATE}.`,
+    );
+
+    // The same parcel with the private drive inside it (all of it on its own land, the route never off it): its own
+    // drive, no warn.
+    const own = structuredClone(f);
+    const e = own.driveway!.entrances[at]!;
+    e.roadClass = { ...e.roadClass!, osm: { ...e.roadClass!.osm!, outsideFt: 0 } };
+    own.driveway!.routes[0]!.metrics.privateFt = 0;
+    expect(gateOf(own, "access")).toMatchObject({ status: "pass", reason: "Frontage on an unnamed road" });
+
+    // Either one alone is enough: the entrance road outside, or the route along a private way before the boundary.
+    expect(markedPrivateOutside({ ...e.roadClass!, osm: { ...e.roadClass!.osm!, outsideFt: 60 } }, 0)).toBe(
+      true,
+    );
+    expect(markedPrivateOutside(e.roadClass, 60)).toBe(true);
+    // Under osmRoads.privateOutsideMinM (15 m, 49 ft): geometry's slop, not a road across someone's land.
+    expect(markedPrivateOutside({ ...e.roadClass!, osm: { ...e.roadClass!.osm!, outsideFt: 40 } }, 40)).toBe(
+      false,
+    );
+    // access=no counts; an untagged way doesn't.
+    const tag = (access: string | null) => ({
+      ...e.roadClass!,
+      osm: { ...e.roadClass!.osm!, access, outsideFt: 600 },
+    });
+    expect(markedPrivateOutside(tag("no"), 0)).toBe(true);
+    expect(markedPrivateOutside(tag(null), 0)).toBe(false);
   });
 
   it("Grayson Mud Creek 6273: the flood zone is away from the build site, so one warn: a Contender", () => {
