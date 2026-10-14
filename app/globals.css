@@ -520,6 +520,18 @@ html:has(.explore) body {
   --ip-rule: rgba(238, 241, 234, 0.14);
   --ip-hover: rgba(238, 241, 234, 0.07);
   --ip-sel: rgba(240, 160, 48, 0.26);
+  /*
+   * The rest of a surface's colours (owner, #133: one style per surface). The Info panel's controls, which the list's
+   * light detail panel shares, take them from their container: these are the map panel's; .lib-detail sets its own.
+   */
+  --ip-field-bg: rgba(238, 241, 234, 0.08);
+  --ip-chip-line: rgba(238, 241, 234, 0.35);
+  --ip-btn-line: rgba(238, 241, 234, 0.35);
+  --ip-on-ink: #18201b;
+  --ip-bad: var(--tb-bad);
+  --ip-bad-bg: transparent;
+  --ip-bad-line: rgba(255, 180, 166, 0.55);
+  --ip-scheme: dark;
 }
 .info-panel {
   position: absolute;
@@ -553,7 +565,7 @@ html:has(.explore) body {
   gap: 2px;
   padding: 2px;
   border-radius: 7px;
-  background: rgba(238, 241, 234, 0.08);
+  background: var(--ip-field-bg);
 }
 .ip-tab {
   display: flex;
@@ -726,10 +738,10 @@ html:has(.explore) body {
 .ip-btn.go {
   border: 0;
   background: var(--ip-ink);
-  color: #18201b;
+  color: var(--ip-on-ink);
 }
 .ip-btn.sec {
-  border: 1px solid rgba(238, 241, 234, 0.35);
+  border: 1px solid var(--ip-btn-line);
   background: transparent;
   color: var(--ip-ink);
 }
@@ -737,9 +749,9 @@ html:has(.explore) body {
   border-color: var(--ip-ink);
 }
 .ip-btn.danger {
-  border: 1px solid rgba(255, 180, 166, 0.55);
-  background: transparent;
-  color: var(--tb-bad);
+  border: 1px solid var(--ip-bad-line);
+  background: var(--ip-bad-bg);
+  color: var(--ip-bad);
 }
 .bullseye.selected {
   box-shadow:
@@ -813,7 +825,7 @@ html:has(.explore) body {
     padding: 6px 8px;
     border: 1px solid var(--ip-rule);
     border-radius: 6px;
-    background: rgba(238, 241, 234, 0.08);
+    background: var(--ip-field-bg);
     color: var(--ip-ink);
     font: inherit;
     font-size: 13px;
@@ -858,7 +870,7 @@ html:has(.explore) body {
   padding: 4px 8px;
   border: 1px solid var(--ip-rule);
   border-radius: 6px;
-  background: rgba(238, 241, 234, 0.08);
+  background: var(--ip-field-bg);
   color: var(--ip-ink);
   font: inherit;
 }
@@ -879,7 +891,7 @@ html:has(.explore) body {
   padding: 8px 10px;
   border: 1px solid var(--ip-rule);
   border-radius: 6px;
-  background: rgba(238, 241, 234, 0.08);
+  background: var(--ip-field-bg);
   color: var(--ip-ink);
   font: inherit;
   font-size: 13.5px;
@@ -3038,10 +3050,10 @@ html:has(.explore) body {
   padding: 4px 8px;
   border: 1px solid var(--ip-rule);
   border-radius: 6px;
-  background: rgba(238, 241, 234, 0.08);
+  background: var(--ip-field-bg);
   color: var(--ip-ink);
   font: inherit;
-  color-scheme: dark;
+  color-scheme: var(--ip-scheme);
 }
 .ip-milestone {
   display: inline-flex;
@@ -3062,7 +3074,7 @@ html:has(.explore) body {
 }
 .ip-chips .chip,
 .ip-line-row .chip {
-  border: 1px solid rgba(238, 241, 234, 0.35);
+  border: 1px solid var(--ip-chip-line);
   background: transparent;
   color: var(--ip-ink);
   border-radius: 999px;
@@ -3073,7 +3085,7 @@ html:has(.explore) body {
 .ip-chips .chip[aria-pressed="true"],
 .ip-line-row .chip[aria-pressed="true"] {
   background: var(--ip-ink);
-  color: #18201b;
+  color: var(--ip-on-ink);
   border-color: var(--ip-ink);
 }
 .ip-line-width,
@@ -3083,7 +3095,7 @@ html:has(.explore) body {
   padding: 4px 8px;
   border: 1px solid var(--ip-rule);
   border-radius: 6px;
-  background: rgba(238, 241, 234, 0.08);
+  background: var(--ip-field-bg);
   color: var(--ip-ink);
   font: inherit;
 }
@@ -3487,6 +3499,18 @@ button.cmp-cell:hover {
   gap: 4px 6px;
 }
 .lib-detail {
+  /* The report card's light style for the Info panel's shared controls (owner, #133). */
+  --ip-ink: var(--color-ink);
+  --ip-ink-2: var(--color-ink-2);
+  --ip-rule: var(--color-rule);
+  --ip-field-bg: rgba(255, 255, 255, 0.55);
+  --ip-chip-line: var(--color-rule);
+  --ip-btn-line: var(--color-ink-2);
+  --ip-on-ink: var(--color-paper);
+  --ip-bad: #fff;
+  --ip-bad-bg: var(--color-steep);
+  --ip-bad-line: var(--color-steep);
+  --ip-scheme: light;
   position: fixed;
   z-index: 35;
   top: 0;
@@ -3532,7 +3556,7 @@ button.cmp-cell:hover {
   gap: 2px;
   justify-items: start;
 }
-/* The status controls, the listing's facts and the notes are the Info panel's, on its dark ground. */
+/* The status controls, the listing's facts and the notes: the Info panel's, drawn in this panel's light style. */
 .lib-notes .ip-notes {
   border: 0;
   padding: 0;
@@ -3541,9 +3565,9 @@ button.cmp-cell:hover {
 .lib-notes,
 .lib-standing {
   padding: 10px 12px;
+  border: 1px solid var(--color-rule);
   border-radius: 8px;
-  background: #1c2620;
-  color: var(--ip-ink);
+  color: var(--color-ink);
 }
 @media (max-width: 700px) {
   .lib-scroll {

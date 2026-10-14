@@ -97,6 +97,8 @@ export function ParcelDetail({
             derivedName={derivedName}
             acres={acres}
             focusName={focusName}
+            // The panel's title names the parcel already (owner, #133).
+            nameInHeading={false}
             save={{
               notes: (text) => change((p) => withNotes(p, text, now())),
               askingPrice: (price) => change((p) => withAskingPrice(p, price, now())),

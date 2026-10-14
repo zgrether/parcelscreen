@@ -5,7 +5,7 @@
  */
 import { readCurrentParcel, writeCurrentParcel, type CurrentParcel } from "./currentParcel";
 import { DEFAULT_VIEW, readLibraryView, type LibraryView } from "./library";
-import { readParcelStore, writeParcelStore, type ParcelStore } from "./parcelStore";
+import { readParcelStore, withNamesFromNotes, writeParcelStore, type ParcelStore } from "./parcelStore";
 
 export interface MapView {
   lat: number;
@@ -64,6 +64,11 @@ export interface Prefs {
   "ps.compare": string[] | null;
   /** The list's filters and sort (WF2b), remembered per browser. */
   "ps.library": LibraryView;
+  /**
+   * The parcels kept before they had names have taken theirs from their notes (owner, #133): done once per browser,
+   * so a name cleared on purpose isn't filled again.
+   */
+  "ps.namesFromNotes": boolean;
 }
 
 const DEFAULTS: Prefs = {
@@ -85,6 +90,7 @@ const DEFAULTS: Prefs = {
   "ps.person": "zach",
   "ps.compare": null,
   "ps.library": DEFAULT_VIEW,
+  "ps.namesFromNotes": false,
 };
 
 /** How each key is stored: the prototype kept flags as "1"/"0" and the rest as plain strings or JSON. */
@@ -111,6 +117,7 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
     write: (v) => JSON.stringify(v),
   },
   "ps.library": { read: readLibraryView, write: (v) => JSON.stringify(v) },
+  "ps.namesFromNotes": { read: (r) => r === "1", write: (v) => (v ? "1" : "0") },
   "ps.overlays": {
     // Unknown or missing keys read as shown, so an overlay added later starts visible.
     read: (r) => ({ ...ALL_OVERLAYS, ...(JSON.parse(r) as Partial<OverlayPrefs>) }),
@@ -140,10 +147,24 @@ function store(): KeyValueStore | null {
 export function getPref<K extends keyof Prefs>(key: K, from: KeyValueStore | null = store()): Prefs[K] {
   try {
     const raw = from?.getItem(key);
-    return raw == null ? DEFAULTS[key] : CODEC[key].read(raw);
+    const value = raw == null ? DEFAULTS[key] : CODEC[key].read(raw);
+    return key === "ps.parcels" ? (namesOnce(value as Prefs["ps.parcels"], from) as Prefs[K]) : value;
   } catch {
     return DEFAULTS[key];
   }
+}
+
+/**
+ * Once per browser (owner, #133), the first time the store is read: parcels kept before they had names take theirs
+ * from their notes ("Name: …", lib/client/parcelStore.ts nameFromNotes), where their name is empty. Saved back with a
+ * flag, so a name cleared on purpose later isn't filled again. Here, so it runs before any page reads the parcels.
+ */
+function namesOnce(s: ParcelStore | null, kv: KeyValueStore | null): ParcelStore | null {
+  if (getPref("ps.namesFromNotes", kv)) return s;
+  const next = s && withNamesFromNotes(s);
+  if (next && next !== s) setPref("ps.parcels", next, kv);
+  setPref("ps.namesFromNotes", true, kv);
+  return next;
 }
 
 export function setPref<K extends keyof Prefs>(

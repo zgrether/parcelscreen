@@ -26,6 +26,7 @@ export function ParcelNotes({
   acres,
   save,
   focusName,
+  nameInHeading = true,
 }: {
   parcel: WorkingParcel;
   /** The parcel's name as shown: the typed one, else the derived one. */
@@ -36,6 +37,8 @@ export function ParcelNotes({
   save: NotesSaves;
   /** Bumped to unfold the listing and put the cursor in Name. */
   focusName?: number;
+  /** "Notes · 52-47A" in the map's panel; just "Notes" where the panel's title already names it (the list's detail). */
+  nameInHeading?: boolean;
 }) {
   const [text, setText] = useState(parcel.notes);
   // The latest save: a debounced one that lands after the parcel changed is the caller's to drop (by its serial).
@@ -76,9 +79,7 @@ export function ParcelNotes({
         save={save}
         focusName={focusName}
       />
-      <div className="ip-notes-for">
-        Notes <span>· {name}</span>
-      </div>
+      <div className="ip-notes-for">Notes {nameInHeading && <span>· {name}</span>}</div>
       <textarea
         aria-label={`Notes for ${name}`}
         placeholder="What you learned: the listing, a call with the agent, what to check on the visit…"
