@@ -10,6 +10,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { HelpProvider } from "@/components/Help/HelpDialog";
+import { LongName } from "@/components/LongName";
 import { CardPanel } from "@/components/Results/card/CardPanel";
 import { lineNamesOf } from "@/lib/report/lines";
 import { evaluationPoint } from "@/components/Results/blocks/types";
@@ -157,7 +158,7 @@ export function Compare() {
                     </th>
                     {parcels.map((p, i) => (
                       <th key={p.key} scope="col">
-                        <div className="cmp-name">{p.name}</div>
+                        <LongName name={p.name} className="cmp-name" />
                         <div className="tiny muted">{p.acres !== null ? `${p.acres.toFixed(2)} ac` : ""}</div>
                         <div className="cmp-actions">
                           <Link className="link-btn" href="/explore" onClick={() => openOnMap(columns[i]!)}>

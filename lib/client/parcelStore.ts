@@ -257,6 +257,28 @@ export function commitOpen(s: ParcelStore, p: WorkingParcel, now: string, newKey
   return { ...s, open: next, built };
 }
 
+/**
+ * A History entry changed somewhere other than the explorer (WF2b: the list): replaced in place, and as the open
+ * parcel too when it's the one open. Unchanged (`edit` returns it as it was) saves nothing.
+ */
+export function editBuilt(
+  s: ParcelStore,
+  key: string,
+  edit: (p: WorkingParcel) => WorkingParcel,
+  now: string,
+): ParcelStore {
+  const b = s.built.find((x) => x.key === key);
+  if (!b) return s;
+  const changed = edit(b);
+  if (changed === b) return s;
+  const next = { ...changed, updatedAt: now };
+  return {
+    ...s,
+    built: s.built.map((x) => (x.key === key ? next : x)),
+    open: s.open?.key === key ? next : s.open,
+  };
+}
+
 /** Unselect: the open parcel closes; a built one stays in History. */
 export const closeOpen = (s: ParcelStore): ParcelStore => ({ ...s, open: null });
 

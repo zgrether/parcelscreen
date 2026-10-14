@@ -4,11 +4,7 @@
  * mark, and a cell opening its slide-in panel for its parcel.
  */
 import { expect, test } from "@playwright/test";
-import { ENGINE_VERSION } from "@/lib/screen/engine";
-import type { ScreenResult } from "@/lib/screen/types";
-import { expectedOf } from "../test/support/expected";
-import { loadFixture } from "../test/support/fixtures";
-import { importParcels, openExplorer } from "./flow";
+import { importParcels, openExplorer, seedScreens } from "./flow";
 import { replayHar } from "./replay";
 
 const FERNEY = "ferney-creek-52-47A" as const;
@@ -24,44 +20,7 @@ test("compare: two screened parcels as columns, best and worst marked, a cell op
   await openExplorer(page, FERNEY);
   await importParcels(page, [FERNEY, MACKS]);
 
-  // Each imported parcel gets its fixture's expected result as its kept screen, as a run would leave it.
-  const seeds = [FERNEY, MACKS].map((slug) => ({
-    name: loadFixture(slug).input.name,
-    result: expectedOf(slug, "run"),
-  }));
-  await page.evaluate(
-    async ({ seeds, engine }: { seeds: { name: string; result: ScreenResult }[]; engine: number }) => {
-      const store = JSON.parse(localStorage.getItem("ps.parcels")!) as {
-        built: { notes: string; screenIds: string[] }[];
-      };
-      const db = await new Promise<IDBDatabase>((resolve, reject) => {
-        const req = indexedDB.open("parcelscreen", 1);
-        req.onupgradeneeded = () => req.result.createObjectStore("screens", { keyPath: "id" });
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => reject(req.error);
-      });
-      const tx = db.transaction("screens", "readwrite");
-      for (const s of seeds) {
-        // The imported name is the notes' first line (lib/client/exportFile.ts).
-        const b = store.built.find((x) => x.notes.split("\n")[0] === `Name: ${s.name}`)!;
-        const id = `e2e-${s.name}`;
-        tx.objectStore("screens").put({
-          id,
-          keys: { boundary: "e2e", house: "", settings: "e2e", lines: "" },
-          result: s.result,
-          engine,
-        });
-        b.screenIds = [id];
-      }
-      await new Promise<void>((resolve, reject) => {
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => reject(tx.error);
-      });
-      db.close();
-      localStorage.setItem("ps.parcels", JSON.stringify(store));
-    },
-    { seeds, engine: ENGINE_VERSION },
-  );
+  await seedScreens(page, [FERNEY, MACKS]);
 
   await page.goto("/compare");
   const names = page.locator(".compare-table thead .cmp-name");

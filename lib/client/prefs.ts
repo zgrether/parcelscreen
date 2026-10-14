@@ -4,6 +4,7 @@
  * best-effort.
  */
 import { readCurrentParcel, writeCurrentParcel, type CurrentParcel } from "./currentParcel";
+import { DEFAULT_VIEW, readLibraryView, type LibraryView } from "./library";
 import { readParcelStore, writeParcelStore, type ParcelStore } from "./parcelStore";
 
 export interface MapView {
@@ -61,6 +62,8 @@ export interface Prefs {
   "ps.person": "zach" | "julie";
   /** The comparison table's columns (VR6): History keys, in order; null until the table is first changed (all shown). */
   "ps.compare": string[] | null;
+  /** The list's filters and sort (WF2b), remembered per browser. */
+  "ps.library": LibraryView;
 }
 
 const DEFAULTS: Prefs = {
@@ -81,6 +84,7 @@ const DEFAULTS: Prefs = {
   "ps.tiltHint": false,
   "ps.person": "zach",
   "ps.compare": null,
+  "ps.library": DEFAULT_VIEW,
 };
 
 /** How each key is stored: the prototype kept flags as "1"/"0" and the rest as plain strings or JSON. */
@@ -106,6 +110,7 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
     },
     write: (v) => JSON.stringify(v),
   },
+  "ps.library": { read: readLibraryView, write: (v) => JSON.stringify(v) },
   "ps.overlays": {
     // Unknown or missing keys read as shown, so an overlay added later starts visible.
     read: (r) => ({ ...ALL_OVERLAYS, ...(JSON.parse(r) as Partial<OverlayPrefs>) }),

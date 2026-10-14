@@ -171,6 +171,11 @@ html:has(.explore) body {
     padding: 5px 10px;
     font-size: 13px;
   }
+  /* A delete (WF2b: Remove on the list). */
+  .btn.danger {
+    background: var(--color-steep);
+    color: #fff;
+  }
   .btn:disabled {
     opacity: 0.45;
     cursor: default;
@@ -3194,6 +3199,35 @@ html:has(.explore) body {
 }
 .cmp-name {
   font: 600 16px/1.15 var(--font-cond);
+  max-width: 13em;
+}
+/* A name where there's little room (owner, after #130): one line, an ellipsis; the whole name on hover or a long press. */
+.long-name {
+  position: relative;
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+}
+.long-name-text {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.long-name-tip {
+  position: absolute;
+  z-index: 40;
+  left: 0;
+  top: calc(100% + 4px);
+  width: max-content;
+  max-width: min(80vw, 28em);
+  padding: 5px 9px;
+  border-radius: 6px;
+  background: #1c2620;
+  color: #fff;
+  font: 400 13px/1.3 var(--font-sans, inherit);
+  white-space: normal;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 .cmp-actions {
   display: flex;
@@ -3300,6 +3334,199 @@ button.cmp-cell:hover {
   }
   .compare-table thead th {
     min-width: 130px;
+  }
+}
+
+/* The household's list (WF2b): a table on desktop, cards on a phone; a parcel's detail slides in at the side. */
+.lib-controls {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.lib-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.lib-filters {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+  justify-items: start;
+}
+.lib-filter .chip {
+  border: 1px solid var(--color-rule);
+  background: transparent;
+  color: var(--color-ink);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.lib-filter .chip[aria-pressed="true"] {
+  background: var(--color-ink);
+  color: var(--color-paper);
+  border-color: var(--color-ink);
+}
+.lib-filter-label {
+  min-width: 6.5em;
+}
+.lib-price {
+  width: 7em;
+  padding: 3px 6px;
+  border: 1px solid var(--color-rule);
+  border-radius: 4px;
+  background: transparent;
+  font: inherit;
+}
+.lib-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  margin-right: 8px;
+}
+.lib-count {
+  margin: 4px 0 8px;
+}
+.lib-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+}
+.lib-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.lib-table th,
+.lib-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--color-rule);
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.lib-table thead th {
+  font: 600 13px/1.2 var(--font-cond);
+  color: var(--color-ink-2);
+}
+.lib-table .lib-name {
+  max-width: 18em;
+  white-space: normal;
+}
+.lib-open {
+  display: block;
+  max-width: 100%;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--color-water);
+  font: 600 15px/1.3 var(--font-cond);
+  text-align: left;
+  cursor: pointer;
+}
+.lib-grade {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.card-word.small {
+  font-size: 13px;
+}
+.lib-archived {
+  opacity: 0.6;
+}
+.lib-cards {
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.lib-card {
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+.lib-card-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+.lib-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+}
+.lib-detail {
+  position: fixed;
+  z-index: 35;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(460px, 100%);
+  display: flex;
+  flex-direction: column;
+  background: var(--color-paper);
+  box-shadow: -4px 0 18px rgba(0, 0, 0, 0.18);
+}
+.lib-detail-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 14px 4px;
+}
+.lib-detail-head h2 {
+  flex: 1;
+  margin: 0;
+  font: 600 20px/1.15 var(--font-cond);
+}
+.lib-detail-head .ip-x {
+  color: var(--color-ink);
+}
+.lib-detail-body {
+  flex: 1;
+  overflow: auto;
+  padding: 0 14px 16px;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+.lib-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+/* The status controls are the Info panel's, on its dark ground. */
+.lib-standing {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #1c2620;
+  color: var(--ip-ink);
+}
+@media (max-width: 700px) {
+  .lib-scroll {
+    display: none;
+  }
+  .lib-cards {
+    display: block;
+  }
+  .lib-detail {
+    top: auto;
+    left: 0;
+    width: 100%;
+    height: 85vh;
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.18);
   }
 }
 

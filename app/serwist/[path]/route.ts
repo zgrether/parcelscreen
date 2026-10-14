@@ -8,7 +8,7 @@ import { join } from "node:path";
 import { createSerwistRoute } from "@serwist/turbopack";
 import { HOSPITAL_SNAPSHOT_MARKER } from "@/lib/screen/hospitalsMarker";
 
-// The app shell's revision: a new deploy re-fetches /explore. Vercel gives the commit; locally, git.
+// The app shell's revision: a new deploy re-fetches its pages. Vercel gives the commit; locally, git.
 const revision =
   process.env.VERCEL_GIT_COMMIT_SHA ||
   spawnSync("git", ["rev-parse", "HEAD"], { encoding: "utf-8" }).stdout?.trim() ||
@@ -33,7 +33,12 @@ function isHospitalSnapshot(url: string): boolean {
 
 export const { dynamic, dynamicParams, revalidate, generateStaticParams, GET } = createSerwistRoute({
   swSrc: "app/sw.ts",
-  additionalPrecacheEntries: [{ url: "/explore", revision }],
+  // The opening page and the list (WF2b) as well as the explorer: an installed app opens at "/", offline too.
+  additionalPrecacheEntries: [
+    { url: "/explore", revision },
+    { url: "/", revision },
+    { url: "/library", revision },
+  ],
   // Left out: notes in public/ (fonts/README.md) aren't app assets; and Turbopack's Web Worker entry, which
   // reads its bootstrap config from its own URL's #params= hash. A worker started from a cached response gets
   // the cache's URL, without the hash, and fails ("Missing worker bootstrap config"), so the screen's worker

@@ -2,7 +2,13 @@
  * A parcel's standing in words (WF2, docs/plans/parcel-workflow.md §4): its status, why it was archived and when,
  * and its milestones. Pure; the Info panel, History and the list show these.
  */
-import type { Milestone, ParcelStatus, WorkingParcel } from "./parcelStore";
+import {
+  reasonGiven,
+  type ActiveStatus,
+  type Milestone,
+  type ParcelStatus,
+  type WorkingParcel,
+} from "./parcelStore";
 
 export const STATUS_WORD: Record<ParcelStatus, string> = {
   inProgress: "In progress",
@@ -40,3 +46,25 @@ export function milestonesLine(p: Pick<WorkingParcel, "milestones">): string {
     return d ? [`${MILESTONE_WORD[k]} ${dayWord(d)}`] : [];
   }).join(" · ");
 }
+
+// ---------- the changes (WF2): the explorer's reducer and the list both make them ----------
+// Each returns the parcel itself when nothing changes, so a caller can tell and save nothing.
+
+/** In progress or Saved. An archived parcel comes back through Restore, which knows what it was. */
+export const withStatus = (p: WorkingParcel, status: ActiveStatus): WorkingParcel =>
+  p.status === status || p.status === "archived" ? p : { ...p, status };
+
+/** Archived for a reason that says something (not blank, not "Rejected:" alone), with when and what it was. */
+export function withArchive(p: WorkingParcel, reason: string, now: string): WorkingParcel {
+  const r = reason.trim();
+  if (p.status === "archived" || !reasonGiven(r)) return p;
+  return { ...p, status: "archived", archived: { reason: r, at: now, from: p.status } };
+}
+
+/** Back to what it was before it was archived. */
+export const withRestore = (p: WorkingParcel): WorkingParcel =>
+  p.archived ? { ...p, status: p.archived.from, archived: null } : p;
+
+/** A milestone's date ("2026-10-20"), or null to clear it. */
+export const withMilestone = (p: WorkingParcel, which: Milestone, date: string | null): WorkingParcel =>
+  p.milestones[which] === date ? p : { ...p, milestones: { ...p.milestones, [which]: date } };

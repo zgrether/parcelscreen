@@ -1,8 +1,8 @@
 "use client";
 /**
  * The app menu (owner, after 14d): ☰ at the map's top left opens a drawer from the left with what isn't
- * about the open parcel — History with Export file / Import file (16b), Compare parcels (VR6), How to read this, and
- * Settings (16a).
+ * about the open parcel — History with Export file / Import file (16b), Your list (WF2b), Compare parcels (VR6), How
+ * to read this, and Settings (16a).
  * It closes with ×, Esc, a tap on the scrim, opening a parcel from History, or opening the help.
  * The drawer is portalled to <body> so it sits above the bottom sheet on phones, not inside the map.
  */
@@ -60,6 +60,10 @@ function Drawer({ close }: { close(): void }) {
           <History onOpened={close} />
           <ExportImport />
           <ul className="menu-items">
+            {/* WF2b: the household's list (docs/plans/parcel-workflow.md §5). */}
+            <li>
+              <Link href="/library">Your list</Link>
+            </li>
             {/* VR6: History's parcels side by side (value-ranking.md §7). */}
             <li>
               <Link href="/compare">Compare parcels</Link>
