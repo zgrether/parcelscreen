@@ -66,6 +66,8 @@ describe("built parcels", () => {
       ["a listing link", { ...plain, listingUrl: "https://x.test/l" }],
       ["listing acres", { ...plain, listingAcres: 52 }],
       ["an agent", { ...plain, agent: "A. Agent" }],
+      ["a status (WF2)", { ...plain, status: "saved" }],
+      ["a milestone", { ...plain, milestones: { walked: "2026-10-20", offered: null } }],
       ["results", { ...plain, screenIds: ["screen-1"] }],
       ["a key (it was built before)", { ...plain, key: "k9" }],
     ];

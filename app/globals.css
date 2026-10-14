@@ -3016,6 +3016,46 @@ html:has(.explore) body {
   align-items: center;
   gap: 6px;
 }
+/* The parcel's standing (WF2): status chips, Archive and its reason, the milestones. */
+.ip-standing,
+.ip-archive {
+  display: grid;
+  gap: 6px;
+}
+.ip-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.ip-archive input,
+.ip-milestone input {
+  padding: 4px 8px;
+  border: 1px solid var(--ip-rule);
+  border-radius: 6px;
+  background: rgba(238, 241, 234, 0.08);
+  color: var(--ip-ink);
+  font: inherit;
+  color-scheme: dark;
+}
+.ip-milestone {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 13px;
+}
+.ip-milestone-x {
+  border: 0;
+  background: transparent;
+  color: var(--ip-ink-2);
+  font-size: 16px;
+  cursor: pointer;
+}
+.ip-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.ip-chips .chip,
 .ip-line-row .chip {
   border: 1px solid rgba(238, 241, 234, 0.35);
   background: transparent;
@@ -3025,6 +3065,7 @@ html:has(.explore) body {
   font-size: 13px;
   cursor: pointer;
 }
+.ip-chips .chip[aria-pressed="true"],
 .ip-line-row .chip[aria-pressed="true"] {
   background: var(--ip-ink);
   color: #18201b;

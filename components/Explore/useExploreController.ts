@@ -25,6 +25,8 @@ import {
   recipeOf,
   type LineCondition,
   type ListingField,
+  type ActiveStatus,
+  type Milestone,
   type Markup,
   type MarkupKind,
   type WorkingParcel,
@@ -192,6 +194,11 @@ export interface ExploreController {
   saveAskingPrice(price: number | null, serial: number): void;
   /** WF1: the listing's facts, for the parcel open as `serial`. */
   saveListing(patch: Partial<Pick<WorkingParcel, ListingField>>, serial: number): void;
+  /** WF2: the status, archiving with a reason, restoring, and a milestone's date (null clears it). */
+  setStatus(status: ActiveStatus, serial: number): void;
+  archive(reason: string, serial: number): void;
+  restore(serial: number): void;
+  setMilestone(which: Milestone, date: string | null, serial: number): void;
   /** A screen finished (kept under `id`) for the parcel open when it started (state.serial then). */
   screened(id: string, serial: number): void;
 }
@@ -662,6 +669,18 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     saveListing(patch, serial) {
       dispatch({ type: "listing", patch, serial, stamp: stamp() });
+    },
+    setStatus(status, serial) {
+      dispatch({ type: "status", status, serial, stamp: stamp() });
+    },
+    archive(reason, serial) {
+      dispatch({ type: "archive", reason, serial, stamp: stamp() });
+    },
+    restore(serial) {
+      dispatch({ type: "restore", serial, stamp: stamp() });
+    },
+    setMilestone(which, date, serial) {
+      dispatch({ type: "milestone", which, date, serial, stamp: stamp() });
     },
     screened(id, serial) {
       dispatch({ type: "screened", id, serial, stamp: stamp() });

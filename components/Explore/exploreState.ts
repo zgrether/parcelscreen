@@ -18,6 +18,9 @@ import {
   removeBuilt,
   type LineCondition,
   type ListingField,
+  reasonGiven,
+  type ActiveStatus,
+  type Milestone,
   type Markup,
   type MarkupKind,
   type ParcelStore,
@@ -137,6 +140,14 @@ export type ExploreAction =
   | { type: "askingPrice"; price: number | null; serial: number; stamp: Stamp }
   /** WF1: the listing's facts (name, link, acres, agent), for the parcel open when they were typed. */
   | { type: "listing"; patch: Partial<Pick<WorkingParcel, ListingField>>; serial: number; stamp: Stamp }
+  /**
+   * WF2: the parcel's status (in progress or saved); archiving it with a reason (blank is refused); restoring it to
+   * what it was; a milestone's date ("2026-10-20"), or null to clear it. Each for the parcel open as `serial`.
+   */
+  | { type: "status"; status: ActiveStatus; serial: number; stamp: Stamp }
+  | { type: "archive"; reason: string; serial: number; stamp: Stamp }
+  | { type: "restore"; serial: number; stamp: Stamp }
+  | { type: "milestone"; which: Milestone; date: string | null; serial: number; stamp: Stamp }
   /** Follow-up 34: start a drawn line, finish it (at least two points) into the open parcel, edit or delete one. */
   | { type: "startLine"; kind: "track" | "easement" }
   | { type: "finishLine"; id: string; stamp: Stamp }
@@ -438,6 +449,25 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
           { ...open, askingPrice: a.price, askingPriceAt: a.price === null ? null : a.stamp.now },
           a.stamp,
         ),
+      };
+    case "status":
+      // Archived parcels come back through Restore, which knows what they were.
+      if (!open || a.serial !== s.serial || open.status === a.status || open.status === "archived") return s;
+      return { ...s, store: save({ ...open, status: a.status }, a.stamp) };
+    case "archive": {
+      const reason = a.reason.trim();
+      if (!open || a.serial !== s.serial || open.status === "archived" || !reasonGiven(reason)) return s;
+      const archived = { reason, at: a.stamp.now, from: open.status };
+      return { ...s, store: save({ ...open, status: "archived", archived }, a.stamp) };
+    }
+    case "restore":
+      if (!open || a.serial !== s.serial || !open.archived) return s;
+      return { ...s, store: save({ ...open, status: open.archived.from, archived: null }, a.stamp) };
+    case "milestone":
+      if (!open || a.serial !== s.serial || open.milestones[a.which] === a.date) return s;
+      return {
+        ...s,
+        store: save({ ...open, milestones: { ...open.milestones, [a.which]: a.date } }, a.stamp),
       };
     case "listing": {
       // As notes: a save after another parcel opened is dropped; one that changes nothing saves nothing.

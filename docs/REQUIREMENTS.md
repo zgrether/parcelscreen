@@ -223,6 +223,9 @@ already converts 13d's `ps.current`, which had no `v` field at the parcel level)
       "listingUrl": "https://www.redfin.com/VA/Floyd/0-Ferney-Creek-Rd-24091/home/12345678",  // as typed; never fetched
       "listingAcres": 52,            // what the listing claims, or null
       "agent": "A. Agent, 540-555-0100",                                      // free text; a third party's contact
+      "status": "archived",          // WF2: "inProgress" (the default) | "saved" | "archived"
+      "archived": { "reason": "Sold", "at": "2026-10-14T12:00:00.000Z", "from": "saved" },  // or null; Restore → from
+      "milestones": { "walked": "2026-10-01", "offered": null },               // calendar dates, or null
       "markup": [ /* drawn lines (follow-up 34, #127): { id, name, kind, condition, line, widthFt, note, at } */ ],
       "hidden": ["an:horizon"],      // layer ids hidden on the map
       "excluded": ["an:site2"],      // results removed from the analysis
@@ -248,6 +251,8 @@ already converts 13d's `ps.current`, which had no `v` field at the parcel level)
     `listing_url`, `listing_acres` and `agent` as stored (WF1, `docs/plans/parcel-workflow.md` §2); the asking
     price becomes a `price_events` row (`listed`, source `me`, dated `askingPriceAt`); each drawn line a
     `markers` row;
+  - `status` as stored, `archived_reason` from `archived.reason`, the milestones as `walked_at` and `offered_at`
+    (WF2, `docs/plans/parcel-workflow.md` §4); the archive, and each milestone set, also become `status_events`;
   - the cached columns (`geometry`, `acres`, `source`, `dedupe_key`, `state`, `county`, `parcel_number`)
     derived from the recipe, as for any edit (§3). The dedupe key uses the county FIPS rule in §3; it's
     computed from the stored pieces' attributes at import, never stored locally, so that rule needed no
