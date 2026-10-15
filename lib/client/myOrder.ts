@@ -34,20 +34,25 @@ export function rankBetween(a: string | null, b: string | null): string {
   return midpoint(a ?? "", b);
 }
 
-/** Lower rank first; a tie (two browsers' ranks, before withRanks runs) by key, so the order is the same everywhere. */
+/**
+ * Lower rank first; a tie (two browsers' ranks, before withRanks runs) by key, so the order is the same everywhere.
+ * Parcels without a rank go last and keep their order (a stable sort: History's, oldest first).
+ */
 export const byRank = (
   a: Pick<WorkingParcel, "rank" | "key">,
   b: Pick<WorkingParcel, "rank" | "key">,
 ): number =>
-  a.rank === b.rank
-    ? (a.key ?? "").localeCompare(b.key ?? "")
-    : a.rank === null
-      ? 1
-      : b.rank === null
-        ? -1
-        : a.rank < b.rank
+  a.rank === null && b.rank === null
+    ? 0
+    : a.rank === b.rank
+      ? (a.key ?? "").localeCompare(b.key ?? "")
+      : a.rank === null
+        ? 1
+        : b.rank === null
           ? -1
-          : 1;
+          : a.rank < b.rank
+            ? -1
+            : 1;
 
 /** The highest rank in History, or null when nothing has one. */
 export const lastRank = (built: readonly WorkingParcel[]): string | null =>
