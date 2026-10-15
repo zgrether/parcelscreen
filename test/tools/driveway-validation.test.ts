@@ -748,6 +748,9 @@ describe.runIf(import.meta.env.MODE === "dw-val")("driveway validation against r
       }
     }
     out.push("", ...conclusions(summary.c!, summary.ab!), "", ...atDefaults(summary.c!, summary.ab!), "");
-    writeFileSync(DOC, out.join("\n"));
+    // Sections after the tool's own, from "## 8.", are written by hand (the drift test, owner 2026-10-15): kept.
+    const old = readFileSync(DOC, "utf8");
+    const at = old.indexOf("\n## 8.");
+    writeFileSync(DOC, out.join("\n") + (at >= 0 ? old.slice(at) : ""));
   }, 900_000);
 });

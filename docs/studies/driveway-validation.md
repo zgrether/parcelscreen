@@ -129,3 +129,43 @@ The router is unchanged, so its routes at the default are the 15% rows above; wh
 - **Landing share:** 23% of C's route and 35% of A+B's, both under the owner's ~40% threshold.
 - **The veto:** both real roads still exceed 25% over 30 m on the ground (C 41.0%, A+B 34.5%); the gap between ground and road grade is follow-up 48's.
 - **The owner's rule** (#103 decisions): the router still builds ladders, so landing and pitch changes are proposed as a follow-up (in the PR).
+
+## 8. Drift test on C's steepest stretch (owner, 2026-10-15)
+
+Written by hand, not by `pnpm dw:val` (which keeps this section when it rewrites the file). The question: is C's 41% over 30 m the drive, or the hand-drawn line drifting off the roadbed onto the slope beside it? Measured offline on the Grayson fixture's 3 m lidar (cells 3.0 m, the screen's own), along the trace in `driveway-validation.roads.json`. Distances are from the gate.
+
+**The trace there.** Its 30 m grade is over 25% from 325 to 463 ft, peaking at 40.8% at 374 ft.
+- **The ground across the line**, over ±2 m, falls 30–51% sideways from 335 to 425 ft. A flat strip (5% or less across) lies 4–8 m to the right of the trace from 385 ft on, and 3–5 m to the left before 345 ft.
+- **The trace turns about 100° between 413 and 512 ft**: the hairpin §2 counts. It comes right after the steep pitch, and the flat strip is on its inside.
+- **Along the whole trace,** the ground falls more than 20% sideways for 758 of its 866 ft (39% on average). The 3 m lidar barely resolves a 12 ft roadbed, so this finds the bench only where it's wide. It doesn't mean the trace misses the road everywhere.
+
+**The line shifted sideways.** The whole trace was moved perpendicular to itself; plus is left of the line, travelling from the gate.
+
+| Shift | Steepest 30 m | Length over 25% |
+|---|---|---|
+| −6 m | 37.7% | 374 ft |
+| −4 m | 37.9% | 423 ft |
+| −2 m | 38.7% | 433 ft |
+| 0 (the trace) | 40.8% | 423 ft |
+| +2 m | 42.0% | 413 ft |
+| +4 m | 41.4% | 423 ft |
+| +6 m | 39.4% | 374 ft |
+
+**The best-fitting line.** At every 3 m, the middle of the flattest 4 m band across, smoothed over 15 m. It sits on the flat strip from 385 ft on (1–5% across), but has to cross the slope where the strip changes sides, at 345–385 ft.
+
+| Fit | Steepest 30 m | Over 25% in one run | Over 25% in all | Over 30% in all |
+|---|---|---|---|---|
+| band within ±10 m | 39.5% | 98 ft | 394 ft | 187 ft |
+| within ±10 m, held near the trace | 39.3% | 89 ft | 404 ft | 197 ft |
+| band within ±6 m | 40.1% | 138 ft | 364 ft | 207 ft |
+
+**Answers.**
+- **Does the line sit on the roadbed there?** Not from 335 to 425 ft. It runs on a 30–50% side slope, with a flat strip a few metres to one side. **But drift isn't what makes it steep.** On that strip, or shifted either way, the steepest 30 m stays at 38–42%.
+- **The steepest 30 m grade to trust: about 38%,** give or take 2 points (the lowest honest fit). Not the teens, and not under 25%.
+- **Over 25%:** one pitch of about 90–140 ft, just below the hairpin; about 360–420 ft in all along the drive. Over 30%: about 190–210 ft.
+- **Why it can't come down much:** C's 20% average is set by its two ends, a 173 ft climb from the gate to the pad over the trace's 866 ft. A line on the bed can only read lower if the real drive is longer than the trace.
+- **What would lower it, and what to look at in person:**
+  - **The hairpin swings wider than the trace,** making the drive longer through the bend. Hillshade at full zoom would show it.
+  - **The lidar predates a regrade.**
+  - **Or it really is that steep.** §1 noted that C's steepest stretches look dark in the orthophoto, as if paved. A 35–40% pitch would need that. A phone inclinometer on the pitch just below the hairpin settles it.
+- **For the app:** this is the case for snapping a drawn drive onto the roadbed the lidar shows (owner, 2026-10-15: kept for later). Here it would tidy the line, not the grade.
