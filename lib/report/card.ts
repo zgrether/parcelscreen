@@ -17,12 +17,17 @@ import type { LatLon } from "../geo/types";
 import { M2FT, M2_PER_ACRE } from "../screen/util";
 import { steepLandingLine } from "./driveway";
 import {
+  DRIVES_FROM_PICK,
+  drivenRoute,
   isUserName,
   lineLabel,
+  recordedIn,
+  routeLost,
+  steeperThanVeto,
   VERIFY_RIGHT_OF_WAY,
   routeLines,
-  scoredRoute,
   startLine,
+  type Driven,
   type LineNames,
 } from "./lines";
 import { nearestFt, PERMIT_ON_FILE, permitFar, SPRING_MARKED, type Drawn, type Mark } from "./marks";
@@ -68,6 +73,10 @@ export interface Row {
 export interface CardFacts {
   gates: Gate[];
   rows: Row[];
+  /** The household chose a line as its driveway and this screen has no route from it (WF5): said under the reason. */
+  routeNote?: string;
+  /** The line whose route the card scores (WF5), when the household chose one and this screen routed it. */
+  drivewayLine?: string;
 }
 
 export interface Card extends CardFacts {
@@ -158,13 +167,13 @@ const gate =
  * The owner's rule (#109 review): a fail when the build site is in a flood zone; a warn when one touches the build
  * site's ground or the scored driveway (schema v4); a flood zone elsewhere on the parcel is a pass, with a note.
  */
-function floodplain(r: Result, site: BuildSite | null | undefined): Gate {
+function floodplain(r: Result, site: BuildSite | null | undefined, driven: Driven): Gate {
   const g = gate("floodplain", "Floodplain");
   if (!r.flood) return g("unknown", "The FEMA flood map didn't load", "the FEMA flood map");
   if (!r.flood.mapped) return g("unknown", "FEMA has no flood mapping here");
   if (site?.inSfha) return g("fail", "The build site is in a FEMA flood zone");
-  const route = r.driveway && (r.driveway.overLimit ?? r.driveway.routes[0]);
-  const routeFt = route?.metrics.sfhaFt ?? 0;
+  // The scored driveway: the household's route when it chose one (WF5).
+  const routeFt = driven.route?.metrics.sfhaFt ?? 0;
   const touches = [
     site?.sfhaOnSite ? "A FEMA flood zone touches the build site's ground" : null,
     routeFt > 0 ? `the driveway runs ${fmt(routeFt)} ft through a FEMA flood zone` : null,
@@ -181,18 +190,21 @@ function floodplain(r: Result, site: BuildSite | null | undefined): Gate {
 
 /**
  * A drawn line the scored driveway starts from (follow-up 34): the Access gate asks that it be verified, after what it
- * says of the frontage (rule 7: appended), and warns at least.
+ * says of the frontage (rule 7: appended), and warns at least. An easement whose record the household typed (WF5) isn't
+ * asked about: the gate says where it's recorded instead, and doesn't warn for it. The household's route, steeper than
+ * its veto, warns (WF5).
  */
-function access(r: Result, names?: LineNames): Gate {
+function access(r: Result, driven: Driven, names?: LineNames, records?: ReadonlyMap<string, string>): Gate {
   const frontage = accessByFrontage(r);
-  const rt = r.driveway && scoredRoute(r.driveway);
+  const rt = driven.route;
   const line = rt ? startLine(r, rt) : null;
+  const record = line?.kind === "easement" ? records?.get(line.id) : undefined;
   // The road in (follow-up 55; owner, #123): a 4WD trail, a track or a private road at the scored route's entrance.
   const roadClass = rt ? (r.driveway!.entrances[rt.entranceIndex]?.roadClass ?? null) : null;
   const roadIn = roadInWords(roadClass);
   const asks = [
     // The line by its current name (owner, 2026-10-14), kept as typed; the kind's label otherwise, in the sentence.
-    ...(line
+    ...(line && !record
       ? [
           isUserName(line, names)
             ? `${lineLabel(line, names)}: ${VERIFY_RIGHT_OF_WAY}`
@@ -201,12 +213,17 @@ function access(r: Result, names?: LineNames): Gate {
       : []),
     ...(roadIn ? [`${roadIn}; check that it's public and drivable year-round`] : []),
     ...(rt && markedPrivateOutside(roadClass, rt.metrics.privateFt) ? [MARKED_PRIVATE] : []),
+    ...(driven.yours && rt?.existing && rt.existing.maxGradePct > rt.existing.vetoPct
+      ? [steeperThanVeto(rt.existing)]
+      : []),
   ];
-  if (!asks.length) return frontage;
+  // Where the easement is recorded (owner, WF5): appended, after any warnings, and not one itself.
+  const notes = record ? [recordedIn(record)] : [];
+  if (!asks.length && !notes.length) return frontage;
   return {
     ...frontage,
-    status: frontage.status === "fail" ? "fail" : "warn",
-    reason: [frontage.reason, ...asks].join("; "),
+    status: frontage.status === "fail" ? "fail" : asks.length ? "warn" : frontage.status,
+    reason: [frontage.reason, ...asks, ...notes].join("; "),
   };
 }
 
@@ -269,7 +286,12 @@ function accessByFrontage(r: Result): Gate {
   );
 }
 
-function easement(r: Result, names?: LineNames): Gate {
+/**
+ * As the prototype's driveway and follow-up 34's lines: the scored route (the household's, WF5) on neighbouring land,
+ * with no practical drive, a drawn easement it uses there, or a steep existing drive. A drawn easement whose record the
+ * household typed (WF5) isn't asked about: its record is appended instead, and it doesn't warn for it.
+ */
+function easement(r: Result, driven: Driven, names?: LineNames, records?: ReadonlyMap<string, string>): Gate {
   const g = gate("easement", "Easement needed");
   const d = r.driveway;
   if (!d) return g("unknown", "The driveway wasn't routed", "the roads");
@@ -279,7 +301,7 @@ function easement(r: Result, names?: LineNames): Gate {
       d.steepLanding && !d.steepLanding.avoided ? `: ${lowerFirst(steepLandingLine(d.steepLanding))}` : "";
     return g("fail", NO_PRACTICAL_ROUTE + steep);
   }
-  const scored = d.overLimit ?? d.routes[0];
+  const scored = driven.route;
   if (!scored)
     return g("fail", d.entrances.length ? "No driveway route found" : "No road to route a driveway from");
   const warns = [
@@ -288,15 +310,28 @@ function easement(r: Result, names?: LineNames): Gate {
     d.practical ? "The drive needs a steeper paved alignment or an easement" : null,
     // A drawn easement it uses across neighbouring land (follow-up 34): counted as the parcel's for the route, so asked.
     // A drawn track there isn't legal access (owner, #116): the route needs an easement, said above.
-    ...routeLines(r, scored)
-      .filter((l) => l.kind === "easement" && l.outsideFt > 0)
+    ...outsideEasements(r, scored)
+      .filter((l) => !records?.get(l.id))
       .map((l) => `${lineLabel(l, names)}: ${VERIFY_RIGHT_OF_WAY}`),
     // An existing drive it starts from, steeper than the veto (owner, #116): warned of here, as for any route.
     existingSteepLine(scored.existing),
+    // The household's route, steeper than its veto (owner, WF5): it can still be chosen.
+    driven.yours && scored.existing && scored.existing.maxGradePct > scored.existing.vetoPct
+      ? steeperThanVeto(scored.existing)
+      : null,
   ].filter((w): w is string => !!w);
-  if (warns.length) return g("warn", warns.map((w, i) => (i ? lowerFirst(w) : w)).join("; "));
-  return g("pass", "The driveway stays on the parcel");
+  // Where the easements it uses are recorded (owner, WF5): appended, after any warnings, and not warnings.
+  const notes = outsideEasements(r, scored).flatMap((l) => {
+    const ref = records?.get(l.id);
+    return ref ? [recordedIn(ref)] : [];
+  });
+  if (warns.length) return g("warn", [...warns.map((w, i) => (i ? lowerFirst(w) : w)), ...notes].join("; "));
+  return g("pass", ["The driveway stays on the parcel", ...notes].join("; "));
 }
+
+/** The drawn easements a route uses that lie on neighbouring land (follow-up 34): what the Easement gate asks about. */
+const outsideEasements = (r: Result, rt: NonNullable<Driven["route"]>) =>
+  routeLines(r, rt).filter((l) => l.kind === "easement" && l.outsideFt > 0);
 
 /**
  * The owner's rule: a warn when no soil on the parcel rates better than "very limited" (never a fail). A septic permit
@@ -595,9 +630,17 @@ export function cardFacts(
   const footprintAc = footprintFt2(build) / FT2_PER_ACRE;
   const site = buildSite(r);
   const names = drawn?.names,
-    marks = drawn?.marks ?? [];
-  return {
-    gates: [floodplain(r, site), access(r, names), easement(r, names), septic(r, site, marks, K)],
+    marks = drawn?.marks ?? [],
+    records = drawn?.records;
+  // The route scored: the household's when it chose a line and this screen has a route from it (WF5).
+  const driven = drivenRoute(r, drawn?.driveway);
+  const facts = {
+    gates: [
+      floodplain(r, site, driven),
+      access(r, driven, names, records),
+      easement(r, driven, names, records),
+      septic(r, site, marks, K),
+    ],
     rows: [
       elevation(site, K),
       homesite(r),
@@ -607,6 +650,30 @@ export function cardFacts(
       town(r, K),
       garden(r, K, marks),
     ],
+  };
+  return withYourRoute(facts, r, driven, drawn);
+}
+
+/**
+ * The household's route (WF5): the Town and Trails panels say their drive times start where the app's pick meets the
+ * road, when the chosen route meets it elsewhere (the drives are timed from there until WF6 re-times them); and the card
+ * says so when a line was chosen and this screen has no route from it.
+ */
+function withYourRoute(facts: CardFacts, r: Result, driven: Driven, drawn?: Drawn): CardFacts {
+  const moved = !!driven.yours && !!driven.pick && driven.route?.entranceIndex !== driven.pick.entranceIndex;
+  const rows = moved
+    ? facts.rows.map((x) =>
+        x.key === "town" || x.key === "trails"
+          ? { ...x, panelNote: [x.panelNote, DRIVES_FROM_PICK].filter(Boolean).join(" ") }
+          : x,
+      )
+    : facts.rows;
+  const lostName = driven.lost && drawn?.driveway ? (drawn.names.get(drawn.driveway) ?? "your line") : null;
+  return {
+    ...facts,
+    rows,
+    ...(lostName ? { routeNote: routeLost(lostName) } : {}),
+    ...(driven.yours ? { drivewayLine: driven.yours.id } : {}),
   };
 }
 

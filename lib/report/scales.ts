@@ -11,6 +11,7 @@ import { buildSite, footprintFt2, type Card, type Letter } from "./card";
 import type { PanelKey } from "./cardPanels";
 import { M2FT, M2_PER_ACRE } from "../screen/util";
 import { septicClass, soilUnder, type SepticClass } from "./derived";
+import { drivenRoute } from "./lines";
 
 const SEPTIC_CLASSES: readonly SepticClass[] = ["Conventional", "Modified", "Alternative"];
 
@@ -87,11 +88,17 @@ const bandUpTo = (v: number, edges: readonly number[]): number => edges.filter((
  * alternative's, when it's scored on that), or the ground's own reading over 30 m where that's gentler. The raw
  * reading stays in the panel's detail.
  */
-export function drivewayDesign(r: PartialScreenResult): { designPct: number; rawPct: number } | null {
+export function drivewayDesign(
+  r: PartialScreenResult,
+  drivewayLine: string | null = null,
+): { designPct: number; rawPct: number } | null {
   const d = r.driveway;
-  const route = d && (d.overLimit ?? d.routes[0]);
-  if (!route) return null;
-  const limitPct = d.practical?.scoredOn === "steeper" ? d.practical.steeperPct : route.maxGrade * 100;
+  // The household's route when it chose one (WF5); "no practical drive" is about the app's pick.
+  const driven = drivenRoute(r, drivewayLine);
+  const route = driven.route;
+  if (!d || !route) return null;
+  const limitPct =
+    !driven.yours && d.practical?.scoredOn === "steeper" ? d.practical.steeperPct : route.maxGrade * 100;
   const rawPct = route.metrics.maxGradePct;
   return { designPct: Math.min(rawPct, limitPct), rawPct };
 }
@@ -316,7 +323,7 @@ export function scalesFor(
       ];
     }
     case "easement": {
-      const g = drivewayDesign(r);
+      const g = drivewayDesign(r, card.drivewayLine ?? null);
       if (!g) return [];
       const built = g.designPct < g.rawPct;
       const sc = scale(

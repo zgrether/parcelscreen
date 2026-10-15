@@ -94,6 +94,7 @@ describe("layerTree", () => {
       id,
       name,
       shape: "line" as const,
+      recordedIn: "",
       kind,
       condition: "pioneer" as const,
       line: [ll(10, 10), ll(50, 50)],

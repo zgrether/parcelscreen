@@ -68,7 +68,7 @@ export function Compare() {
       askingPrice: b.askingPrice,
       state: s?.state ?? "none",
       result: s?.result ?? null,
-      drawn: drawnOf(b.markup),
+      drawn: drawnOf(b.markup, b.drivewayLine),
     };
   });
   const loaded = screens.size === built.length;
@@ -252,6 +252,7 @@ export function Compare() {
               result={opened.result}
               point={evaluationPoint(opened.result)}
               dw={config.dw}
+              vetoPct={config.roadVetoGradePct}
               about={opened.name}
               lineNames={opened.drawn?.names}
               onClose={() => setPanel(null)}

@@ -86,6 +86,8 @@ export function ReportCard({
       )}
       {!running && <p className="card-reason">{card.reason}</p>}
       {!running && note && <p className="card-note tiny">{note}</p>}
+      {/* WF5: a route chosen from a line this screen has no route from. */}
+      {!running && card.routeNote && <p className="card-note tiny">{card.routeNote}</p>}
       <div className="card-gates">
         <span className="card-sub">Dealbreakers</span>
         {card.gates.map((g) => (

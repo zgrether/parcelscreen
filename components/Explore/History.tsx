@@ -154,10 +154,15 @@ function useLatest(
   // With each entry's names for its drawn lines (owner, 2026-10-14): the card's sentences read a line by its name; and
   // its markers (WF4), which the card reads too.
   const latest = built.flatMap((b) =>
-    b.key && b.screenIds.length ? [[b.key, b.screenIds.at(-1)!, drawnOf(b.markup)] as const] : [],
+    b.key && b.screenIds.length
+      ? [[b.key, b.screenIds.at(-1)!, drawnOf(b.markup, b.drivewayLine)] as const]
+      : [],
   );
   const sig = latest
-    .map(([k, id, d]) => `${k}:${id}:${[...d.names].join(";")}:${JSON.stringify(d.marks)}`)
+    .map(
+      ([k, id, d]) =>
+        `${k}:${id}:${[...d.names].join(";")}:${JSON.stringify(d.marks)}:${d.driveway}:${[...(d.records ?? [])].join(";")}`,
+    )
     .join(",");
   useEffect(() => {
     let alive = true;

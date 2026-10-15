@@ -425,6 +425,39 @@ html:has(.explore) body {
   cursor: pointer;
 }
 /* The Easement panel's "Your lines" (owner, A): each line, Edit and Delete at its right. */
+/* WF5: "Your route and the app's pick" side by side (stacked on a phone); the one the card scores outlined. */
+.route-choice-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+.route-choice-col {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+}
+.route-choice-col.scored {
+  border-color: var(--color-ink);
+  box-shadow: inset 0 0 0 1px var(--color-ink);
+}
+@media (max-width: 700px) {
+  .route-choice-cols {
+    grid-template-columns: 1fr;
+  }
+}
+/* The route the household chose, in the Driveway section (WF5). */
+.your-route {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #e0c43c;
+  color: #1c2620;
+  font-size: 12px;
+  font-weight: 600;
+}
 .your-lines ul {
   list-style: none;
   margin: 0;

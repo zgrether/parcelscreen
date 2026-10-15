@@ -60,6 +60,55 @@ type ScoredRoute = Driveway["routes"][number];
 /** The route the card reads: the over-limit one when it is scored, else the first. */
 export const scoredRoute = (d: Driveway): ScoredRoute | undefined => d.overLimit ?? d.routes[0];
 
+/** The route the router found from a drawn line's end (its entrance away from the road), by the line's id. */
+export function routeFromLine(r: PartialScreenResult, lineId: string): ScoredRoute | undefined {
+  const d = r.driveway;
+  const index = r.lines?.findIndex((l) => l.id === lineId) ?? -1;
+  if (!d || index < 0) return undefined;
+  const at = d.entrances.findIndex((e) => e.source === "drawn" && e.line === index);
+  return at < 0 ? undefined : d.routes.find((x) => x.entranceIndex === at);
+}
+
+/**
+ * The route the card scores (WF5, docs/plans/parcel-workflow.md §3.4): the one from the line the household chose as
+ * its driveway, when this screen has a route from it; else the app's pick (`scoredRoute`). `yours` is the chosen
+ * line when its route is scored; `lost`, that a line was chosen and this screen has no route from it.
+ */
+export interface Driven {
+  route: ScoredRoute | undefined;
+  pick: ScoredRoute | undefined;
+  yours: DrawnLine | null;
+  lost: boolean;
+}
+
+export function drivenRoute(r: PartialScreenResult, lineId: string | null | undefined): Driven {
+  const pick = r.driveway ? scoredRoute(r.driveway) : undefined;
+  if (!lineId) return { route: pick, pick, yours: null, lost: false };
+  const mine = routeFromLine(r, lineId);
+  const line = r.lines?.find((l) => l.id === lineId) ?? null;
+  return mine && line
+    ? { route: mine, pick, yours: line, lost: false }
+    : { route: pick, pick, yours: null, lost: true };
+}
+
+/**
+ * Appended where an easement's "verify it's a legal right-of-way" was, when the household says where the easement is
+ * recorded (owner, WF5; rule 7): it's no longer a warning, but it's still not the parcel's own land.
+ */
+export const recordedIn = (ref: string): string =>
+  `recorded in ${ref} (your entry): make sure your deed includes this right-of-way`;
+
+/** Appended to Legal road access and Easement needed when the chosen route's raw grade is over the veto (owner, WF5). */
+export const steeperThanVeto = (e: NonNullable<ScoredRoute["existing"]>): string =>
+  `your route is steeper than your veto (${Math.round(e.maxGradePct)}% vs ${fmt(e.vetoPct)}%)`;
+
+/** The card's note when the chosen route isn't in this screen (owner, WF5). */
+export const routeLost = (name: string): string =>
+  `Your route from ${name} isn't in this screen: scored on the app's pick.`;
+
+/** Appended to the Town and Trails panels when the chosen route meets the road elsewhere (owner, WF5): until WF6. */
+export const DRIVES_FROM_PICK = "Drive times start where the app's pick meets the road.";
+
 /** The drawn line a route starts from (its entrance is a line's end), if any. */
 export function startLine(r: PartialScreenResult, rt: ScoredRoute): DrawnLine | null {
   const e = r.driveway?.entrances[rt.entranceIndex];
@@ -78,11 +127,17 @@ const dollars = (n: number): string => `$${fmt(Math.round(n / 100) * 100)}`;
  * used: …" or "Track 2 was considered but not used: …". `index` is the line's place in the result's `lines`; `name`
  * what the user calls it (owner, #127). Null when the result doesn't have the line (drawn after the screen).
  */
-export function lineOutcome(r: PartialScreenResult, index: number, name: string): string | null {
+export function lineOutcome(
+  r: PartialScreenResult,
+  index: number,
+  name: string,
+  chosen: string | null = null,
+): string | null {
   const line = r.lines?.[index];
   if (!line) return null;
   const d = r.driveway;
-  const rt = d ? scoredRoute(d) : undefined;
+  // The route the card scores: the chosen line's (WF5), when there's one.
+  const rt = drivenRoute(r, chosen).route;
   if (!d || !rt) return `${name} was considered but not used: no driveway was routed.`;
   if (rt.lines.includes(index)) {
     const from = startLine(r, rt)?.id === line.id;

@@ -90,7 +90,7 @@ export function libraryRow(p: WorkingParcel, kept: KeptScreen | undefined): Libr
   const result = kept?.state === "ok" ? kept.result : null;
   const graded = (person: "zach" | "julie"): Graded | null => {
     if (!result) return null;
-    const c = reportCard(result, person, drawnOf(p.markup));
+    const c = reportCard(result, person, drawnOf(p.markup, p.drivewayLine));
     return { grade: c.grade, verdict: c.verdict };
   };
   const zach = graded("zach"),

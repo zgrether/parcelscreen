@@ -40,6 +40,10 @@ import {
 
 export const EXPORT_FORMAT = "parcelscreen-export";
 /**
+ * Version 5 (owner, WF5): each parcel's driveway choice (`drivewayLine`, the line whose route the card scores, or null
+ * for the app's pick) and each line's `recordedIn` (where an easement is recorded). A version 4 file is read through
+ * `fromV4`, which gives every parcel the app's pick and every line no record.
+ *
  * Version 4 (owner, WF4): a parcel's `markup` holds point and area markers besides its lines, each with its `shape`.
  * A version 3 file is read through `fromV3`, which gives each of its lines `shape: "line"`.
  *
@@ -51,9 +55,9 @@ export const EXPORT_FORMAT = "parcelscreen-export";
  * 34 and #127; the listing's facts, WF1; the status, archive and milestones, WF2a) is written, and a version 1 file is
  * read through `fromV1`, which fills each with its default.
  */
-export const EXPORT_VERSION = 4;
+export const EXPORT_VERSION = 5;
 /** The versions this app reads. */
-export const READS_VERSIONS: readonly number[] = [1, 2, 3, EXPORT_VERSION];
+export const READS_VERSIONS: readonly number[] = [1, 2, 3, 4, EXPORT_VERSION];
 
 /** What a version 1 file's parcel lacks, and its value there: the defaults the app gives a parcel kept before. */
 export const V1_DEFAULTS = {
@@ -126,6 +130,34 @@ export function fromV3(json: Record<string, unknown>): Record<string, unknown> {
   return {
     ...json,
     version: 4,
+    parcels: {
+      ...parcels,
+      open: parcel(parcels.open),
+      built: Array.isArray(parcels.built) ? parcels.built.map(parcel) : parcels.built,
+    },
+  };
+}
+
+/**
+ * A version 4 file as version 5 (owner, WF5): every parcel scores the app's pick (`drivewayLine: null`), and every line
+ * has no record (`recordedIn: ""`). What an entry already has, it keeps.
+ */
+export function fromV4(json: Record<string, unknown>): Record<string, unknown> {
+  const parcels = isRecord(json.parcels) ? json.parcels : null;
+  const line = (m: unknown) =>
+    isRecord(m) && m.shape === "line" && !("recordedIn" in m) ? { ...m, recordedIn: "" } : m;
+  const parcel = (p: unknown) =>
+    isRecord(p)
+      ? {
+          ...p,
+          drivewayLine: p.drivewayLine ?? null,
+          ...(Array.isArray(p.markup) ? { markup: p.markup.map(line) } : {}),
+        }
+      : p;
+  if (!parcels) return { ...json, version: 5 };
+  return {
+    ...json,
+    version: 5,
     parcels: {
       ...parcels,
       open: parcel(parcels.open),
@@ -354,6 +386,7 @@ function fromPrototypeSaved(s: z.infer<typeof ProtoSavedSchema>, key: string, no
     ...NO_STATUS,
     rank: null,
     markup: [],
+    drivewayLine: null,
     hidden: [],
     excluded: [],
     screenIds: [],
@@ -403,6 +436,7 @@ export function planImport(
     if (json.version === 1) json = fromV1(json);
     if (isRecord(json) && json.version === 2) json = fromV2(json);
     if (isRecord(json) && json.version === 3) json = fromV3(json);
+    if (isRecord(json) && json.version === 4) json = fromV4(json);
     if (!isRecord(json)) return { ok: false, errors: [NOT_AN_EXPORT] };
     // Results from an older schema are set aside before validating (v3's clean break): not an error, not imported.
     const older = (x: unknown) =>

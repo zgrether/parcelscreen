@@ -170,6 +170,9 @@ export interface ExploreController {
   movePoint(id: string, ll: LatLon, serial: number): void;
   /** A septic permit's class, or null to clear it. */
   setMarkupSeptic(id: string, septicClass: SepticClass | null, serial: number): void;
+  /** WF5: where an easement is recorded ("" clears it); the line scored as the driveway, or null for the app's pick. */
+  saveRecordedIn(id: string, recordedIn: string, serial: number): void;
+  setDrivewayLine(line: string | null, serial: number): void;
   /**
    * The Mark picker (owner, after #136): open from + Mark, or from a long press (a right-click on a desktop) on the
    * map, which gives where. Null when closed.
@@ -247,6 +250,8 @@ export interface MarkPickerState {
 export interface LineUndo {
   markup: Markup;
   index: number;
+  /** It was the line chosen as the driveway (WF5): Undo chooses it again. */
+  driveway: boolean;
   serial: number;
   at: number;
 }
@@ -443,7 +448,13 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     const open = latest.current.store.open;
     const index = open?.markup.findIndex((m) => m.id === id) ?? -1;
     if (!open || index < 0 || serial !== latest.current.serial) return;
-    setLineUndo({ markup: open.markup[index]!, index, serial, at: Date.now() });
+    setLineUndo({
+      markup: open.markup[index]!,
+      index,
+      driveway: open.drivewayLine === id,
+      serial,
+      at: Date.now(),
+    });
     dispatch({ type: "markupDelete", id, serial, stamp: stamp() });
   };
 
@@ -615,6 +626,12 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     setMarkupSeptic(id, septicClass, serial) {
       dispatch({ type: "markupSeptic", id, septicClass, serial, stamp: stamp() });
+    },
+    saveRecordedIn(id, recordedIn, serial) {
+      dispatch({ type: "markupRecorded", id, recordedIn, serial, stamp: stamp() });
+    },
+    setDrivewayLine(line, serial) {
+      dispatch({ type: "drivewayLine", line, serial, stamp: stamp() });
     },
     picker,
     openPicker(at = null, point) {

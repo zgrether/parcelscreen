@@ -68,6 +68,11 @@ export interface LineMarkup {
    */
   widthFt: number | null;
   note: string;
+  /**
+   * Where an easement is recorded, as typed (owner, WF5): "Ashe Co. Plat Bk 574 Pg 1132". Filled, the card no longer asks
+   * that the easement be verified; it says where it's recorded. "" when not given; offered on easements only.
+   */
+  recordedIn: string;
   at: string;
 }
 
@@ -183,6 +188,11 @@ export interface WorkingParcel {
   rank: string | null;
   /** Drawn tracks and easements (follow-up 34). */
   markup: Markup[];
+  /**
+   * The drawn line the household chose as its driveway (WF5, docs/plans/parcel-workflow.md §3.4), by id: the card
+   * scores the route the screen found from its end. Null for the app's pick.
+   */
+  drivewayLine: string | null;
   /** Layer ids hidden on the map, and results removed from the analysis. */
   hidden: string[];
   excluded: string[];
@@ -294,6 +304,7 @@ export function plainParcel(record: ParcelRecord, now: string): WorkingParcel {
     ...NO_STATUS,
     rank: null,
     markup: [],
+    drivewayLine: null,
     hidden: [],
     excluded: [],
     screenIds: [],
@@ -424,6 +435,8 @@ const LineSchema = z
     line: z.array(LatLonSchema).min(2),
     widthFt: z.number().positive().nullable(),
     note: z.string(),
+    // Added with WF5: a line kept before has no record.
+    recordedIn: z.string().default(""),
     at: z.string(),
   })
   .transform((m): Omit<LineMarkup, "name"> & { name?: string } => ({
@@ -496,6 +509,8 @@ const WorkingSchema = z.object({
         [],
       ),
     ),
+  // Added with WF5: a parcel kept before scores the app's pick.
+  drivewayLine: z.string().nullable().default(null),
   hidden: z.array(z.string()),
   excluded: z.array(z.string()),
   screenIds: z.array(z.string()),

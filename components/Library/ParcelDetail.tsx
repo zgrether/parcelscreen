@@ -49,7 +49,7 @@ export function ParcelDetail({
   const [confirming, setConfirming] = useState(false);
   const config = useMemo(() => loadUserConfig(), []);
   const result = kept?.state === "ok" ? kept.result : null;
-  const drawn = drawnOf(parcel.markup);
+  const drawn = drawnOf(parcel.markup, parcel.drivewayLine);
   const card = result ? reportCard(result, person, drawn) : null;
   const acresNote = listingAcresNote(parcel.listingAcres, acres);
   // The name it has until one is typed, and "Add a name": the Name box, unfolded and focused.
@@ -141,6 +141,7 @@ export function ParcelDetail({
             result={result}
             point={evaluationPoint(result)}
             dw={config.dw}
+            vetoPct={config.roadVetoGradePct}
             about={name}
             lineNames={drawn.names}
             onClose={() => setPanel(null)}
