@@ -15,6 +15,7 @@ import { SurfaceLayer } from "@/components/Map/results/SurfaceLayer";
 import { useFlatForTools } from "@/components/Map/useFlatForTools";
 import { DRAWING } from "./exploreState";
 import { Toolbar } from "@/components/Map/Toolbar";
+import { MarkPicker } from "@/components/Map/MarkPicker";
 import type { UserConfig } from "@/lib/screen/types";
 import { Menu } from "./Menu";
 import { SwitchToast } from "./SwitchToast";
@@ -67,6 +68,7 @@ export function MapArea({
       <LineUndoToast />
       <AttachListingChip />
       <Toolbar />
+      <MarkPicker />
       <InfoPanel />
       <MapPanel />
     </MapView>

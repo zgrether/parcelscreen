@@ -5,6 +5,7 @@
  */
 import { readCurrentParcel, writeCurrentParcel, type CurrentParcel } from "./currentParcel";
 import { DEFAULT_VIEW, readLibraryView, type LibraryView } from "./library";
+import { readRecent, type MarkChoice } from "./markChoices";
 import { withRanks } from "./myOrder";
 import { readParcelStore, withNamesFromNotes, writeParcelStore, type ParcelStore } from "./parcelStore";
 
@@ -70,6 +71,8 @@ export interface Prefs {
    * so a name cleared on purpose isn't filled again.
    */
   "ps.namesFromNotes": boolean;
+  /** The Mark picker's Recent row (owner, after #136): the last kinds marked, newest first, per browser. */
+  "ps.recentMarks": MarkChoice[];
 }
 
 const DEFAULTS: Prefs = {
@@ -92,6 +95,7 @@ const DEFAULTS: Prefs = {
   "ps.compare": null,
   "ps.library": DEFAULT_VIEW,
   "ps.namesFromNotes": false,
+  "ps.recentMarks": [],
 };
 
 /** How each key is stored: the prototype kept flags as "1"/"0" and the rest as plain strings or JSON. */
@@ -119,6 +123,7 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
   },
   "ps.library": { read: readLibraryView, write: (v) => JSON.stringify(v) },
   "ps.namesFromNotes": { read: (r) => r === "1", write: (v) => (v ? "1" : "0") },
+  "ps.recentMarks": { read: readRecent, write: (v) => JSON.stringify(v) },
   "ps.overlays": {
     // Unknown or missing keys read as shown, so an overlay added later starts visible.
     read: (r) => ({ ...ALL_OVERLAYS, ...(JSON.parse(r) as Partial<OverlayPrefs>) }),

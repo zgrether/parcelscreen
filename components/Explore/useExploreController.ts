@@ -28,6 +28,7 @@ import {
   type ActiveStatus,
   type Milestone,
   type Markup,
+  type LineKind,
   type MarkupKind,
   type WorkingParcel,
 } from "@/lib/client/parcelStore";
@@ -44,6 +45,7 @@ import { pieceAt, type Side, type SplitPieces } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import type { MarkKind, SepticClass } from "@/lib/report/marks";
+import { TOOL, withRecent, type MarkChoice } from "@/lib/client/markChoices";
 import {
   BUSY_TEXT,
   decideTap,
@@ -141,7 +143,7 @@ export interface ExploreController {
   cancelTool(): void;
   finishDraw(): void;
   /** Follow-up 34: draw a track or an easement with the open parcel; Finish (Enter, double-click) keeps it. */
-  startLine(kind: "track" | "easement"): void;
+  startLine(kind: LineKind): void;
   finishLine(): void;
   saveMarkupNote(id: string, note: string, serial: number): void;
   /** Owner, #127: a line's name (a blank one is ignored). */
@@ -168,6 +170,18 @@ export interface ExploreController {
   movePoint(id: string, ll: LatLon, serial: number): void;
   /** A septic permit's class, or null to clear it. */
   setMarkupSeptic(id: string, septicClass: SepticClass | null, serial: number): void;
+  /**
+   * The Mark picker (owner, after #136): open from + Mark, or from a long press (a right-click on a desktop) on the
+   * map, which gives where. Null when closed.
+   */
+  picker: MarkPickerState | null;
+  /** Opens the picker; from the map, with where (`at`) and the page point it opens beside (`point`). */
+  openPicker(at?: LatLon | null, point?: { x: number; y: number }): void;
+  closePicker(): void;
+  /** The kinds picked last, newest first (ps.recentMarks): the picker's Recent row. */
+  recentMarks: MarkChoice[];
+  /** A kind picked: remembered as recent, and its tool started; opened at a place, the first point goes there. */
+  pickMark(c: MarkChoice): void;
   /** The line just deleted, for the Undo toast; null when there's none or it timed out. */
   lineUndo: LineUndo | null;
   /**
@@ -221,6 +235,12 @@ export interface SwitchToast {
   key: string;
   name: string;
   at: number;
+}
+
+/** The Mark picker, open: where on the map it was opened (a long press, a right-click), and at which page point. */
+export interface MarkPickerState {
+  at: LatLon | null;
+  point: { x: number; y: number } | null;
 }
 
 /** A drawn line just deleted (owner, A): what it was, where in the list, for which open parcel, and when. */
@@ -277,6 +297,8 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
   const [map, setMap] = useState<MlMap | null>(null);
   const [toast, setToast] = useState<SwitchToast | null>(null);
   const [lineUndo, setLineUndo] = useState<LineUndo | null>(null);
+  const [picker, setPicker] = useState<MarkPickerState | null>(null);
+  const [recentMarks, setRecentMarks] = useState<MarkChoice[]>(() => getPref("ps.recentMarks"));
   const [searchedListing, setSearchedListing] = useState<SearchedListing | null>(null);
   const listingTimer = useRef<number | null>(null);
   const endListingOffer = () => {
@@ -581,7 +603,10 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       hint("");
     },
     finishArea() {
-      if (latest.current.draft.length < 3) return hint("Need at least three corners");
+      const { draft, markKind } = latest.current;
+      // A septic permit is its point with one tap (owner, after #136); any area needs three corners.
+      const point = markKind === "septic" && draft.length === 1;
+      if (!point && draft.length < 3) return hint("Need at least three corners");
       dispatch({ type: "finishArea", id: crypto.randomUUID(), stamp: stamp() });
       hint("");
     },
@@ -590,6 +615,43 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     setMarkupSeptic(id, septicClass, serial) {
       dispatch({ type: "markupSeptic", id, septicClass, serial, stamp: stamp() });
+    },
+    picker,
+    openPicker(at = null, point) {
+      // Marks belong to a parcel: none to place without one open.
+      if (latest.current.store.open) setPicker({ at, point: point ?? null });
+    },
+    closePicker() {
+      setPicker(null);
+    },
+    recentMarks,
+    pickMark(c) {
+      const at = picker?.at ?? null;
+      setPicker(null);
+      const recent = withRecent(recentMarks, c);
+      setRecentMarks(recent);
+      setPref("ps.recentMarks", recent);
+      hint("");
+      setToast(null);
+      switch (TOOL[c]) {
+        case "house":
+          if (at) dispatch({ type: "house", ll: at, stamp: stamp() });
+          else dispatch({ type: "mode", mode: "house" });
+          return;
+        case "line":
+          dispatch({ type: "startLine", kind: c as LineKind });
+          if (at) dispatch({ type: "draftAdd", ll: at });
+          return;
+        case "point":
+          dispatch({ type: "startMark", kind: c as MarkKind, shape: "point" });
+          if (at) dispatch({ type: "placePoint", id: crypto.randomUUID(), ll: at, stamp: stamp() });
+          return;
+        case "area":
+        case "septic":
+          dispatch({ type: "startMark", kind: c as MarkKind, shape: "area" });
+          if (at) dispatch({ type: "draftAdd", ll: at });
+          return;
+      }
     },
     lineUndo,
     searchedListing,

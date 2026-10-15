@@ -38,6 +38,7 @@ import { AnalysisGroup } from "./results/AnalysisGroup";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
 import { lineSummary } from "@/lib/report/lines";
 import { RoadsToggle } from "./RoadsToggle";
+import { MarkIcon } from "./markIcons";
 import { TerrainControls } from "./TerrainControls";
 
 const ac = (n: number) => `${n.toFixed(2)} ac`;
@@ -209,7 +210,7 @@ function Rows(props: {
               className={cls.join(" ")}
               style={{ "--d": depth } as CSSProperties}
               onClick={() => (heading ? toggle(n.id) : select(n.id))}
-              {...(n.kind === "line" && {
+              {...((n.kind === "line" || n.kind === "mark") && {
                 onDoubleClick: () => setRenaming(n.id),
                 onMouseEnter: () => ctl.setHoverLine(layerLine(n.id)),
                 onMouseLeave: () => ctl.setHoverLine(null),
@@ -280,7 +281,10 @@ function Rows(props: {
                   }}
                 />
               ) : (
-                <span className="nm">{n.name}</span>
+                <span className="nm">
+                  {n.icon && <MarkIcon kind={n.icon} px={18} />}
+                  {n.name}
+                </span>
               )}
               <span className="mt">{n.acres !== null ? ac(n.acres) : (n.meta ?? "")}</span>
               {n.deletable ? (

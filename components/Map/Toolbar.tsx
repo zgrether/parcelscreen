@@ -2,23 +2,22 @@
 /**
  * The parcel toolbar on the map (13e): always one line.
  *   nothing open:  "Tap a parcel to select it or Draw a custom parcel" (no rule: the "or" separates them)
- *   a parcel open: "Add: Parcel · Custom · ⌂ · Line · Mark │ Split │ 🗑   12.34 ac ▾" (the acres open the Info panel)
+ *   a parcel open: "Boundary ▾ · + Mark │ 🗑   12.34 ac ▾" (owner, after #136: Boundary holds Parcel, Custom and
+ *                  Split; + Mark opens the Mark picker, which holds the house site and the lines; the acres open Info)
  *   a tool in use: what to do next, and its controls (Finish, Done, Keep…, Cancel)
  * The trash (built parcels only) asks inline before deleting. A tap refused because a built parcel is open
  * shows a brief note above the bar.
  */
 import { area, length, lineString, polygon } from "@turf/turf";
-import { useState, type ReactNode } from "react";
-import { isBuilt, KIND_NAME } from "@/lib/client/parcelStore";
-import { AREA_KINDS, POINT_KINDS, type AreaKind } from "@/lib/report/marks";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { isBuilt } from "@/lib/client/parcelStore";
+import { CHOICE_LABEL, type MarkChoice } from "@/lib/client/markChoices";
+import { MarkIcon } from "./markIcons";
 import { M2FT, M2_PER_ACRE } from "@/lib/geo/types";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 
 const ac = (n: number) => n.toFixed(2);
-
-/** An area marker's chip (WF4): a septic permit drawn as an area is its field. */
-const AREA_CHIP: Record<AreaKind, string> = { septic: "Septic field", clearing: "Clearing" };
 
 function Btn({
   kind = "tool",
@@ -52,18 +51,6 @@ const Status = ({ children, bad }: { children: ReactNode; bad?: boolean }) => (
   <span className={`tb-status${bad ? " bad" : ""}`}>{children}</span>
 );
 
-const HouseIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-    <path
-      d="M2.5 8.5 9 3l6.5 5.5M4.5 7v7.5h3.5v-4h2v4h3.5V7"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinejoin="round"
-      strokeLinecap="round"
-    />
-  </svg>
-);
 const TrashIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
     <path
@@ -155,7 +142,7 @@ function barBody(
       </>
     );
   }
-  if (mode === "track" || mode === "easement") {
+  if (mode === "track" || mode === "easement" || mode === "drive") {
     // Follow-up 34: a line known from a deed, plat, survey or visit, kept with the parcel.
     const n = draft.length;
     const ft =
@@ -163,18 +150,18 @@ function barBody(
     return (
       <>
         <span className="tb-seg" role="group" aria-label="What the line is">
-          {(["track", "easement"] as const).map((k) => (
+          {(["track", "drive", "easement"] as const).map((k) => (
             <button key={k} aria-pressed={mode === k} onClick={() => ctl.startLine(k)} disabled={n > 0}>
-              {k === "track" ? "Track" : "Easement"}
+              {CHOICE_LABEL[k]}
             </button>
           ))}
         </span>
         <Status>
           {n === 0 ? (
-            mode === "track" ? (
-              "Tap along an existing drive or trail"
-            ) : (
+            mode === "easement" ? (
               "Tap along the easement or right-of-way"
+            ) : (
+              "Tap along the drive or trail"
             )
           ) : (
             <>
@@ -196,28 +183,17 @@ function barBody(
     );
   }
   if (mode === "point" || mode === "area") {
-    // WF4: first what's being marked, then where. The bar stays one line: the kinds scroll sideways on a phone.
-    const kind = ctl.state.markKind;
+    // The Mark picker chose the kind (owner, after #136); here, where it goes.
+    const kind = ctl.state.markKind as MarkChoice | null;
     const n = draft.length;
     if (!kind)
       return (
         <>
-          <span className="tb-seg tb-marks" role="group" aria-label="What you're marking">
-            {POINT_KINDS.map((k) => (
-              <button key={k} onClick={() => ctl.startMark(k, "point")}>
-                {KIND_NAME[k]}
-              </button>
-            ))}
-            {AREA_KINDS.map((k) => (
-              <button key={k} className="tb-area" onClick={() => ctl.startMark(k, "area")}>
-                {AREA_CHIP[k]}
-              </button>
-            ))}
-          </span>
+          <Btn onClick={() => ctl.openPicker()}>Pick what to mark</Btn>
           {cancel}
         </>
       );
-    const word = mode === "area" ? AREA_CHIP[kind as AreaKind] : KIND_NAME[kind];
+    const septic = kind === "septic" && mode === "area";
     const acres =
       mode === "area" && n >= 3
         ? area(polygon([[...draft.map(([lat, lon]) => [lon, lat]), [draft[0]![1], draft[0]![0]]]])) /
@@ -225,15 +201,9 @@ function barBody(
         : null;
     return (
       <>
-        {/* The kind picked; tapped, the kinds again (not once an area has corners, or while one is moved). */}
-        <Btn
-          kind="quiet"
-          onClick={() => ctl.startMark(null, mode)}
-          disabled={n > 0 || !!ctl.state.editing}
-          label={`Marking: ${word}. Change it`}
-        >
-          {word} ▾
-        </Btn>
+        <span className="tb-kind">
+          <MarkIcon kind={kind} px={20} /> {CHOICE_LABEL[kind]}
+        </span>
         <Status>
           {mode === "point" ? (
             ctl.state.editing ? (
@@ -242,7 +212,16 @@ function barBody(
               "Tap where it is"
             )
           ) : n === 0 ? (
-            "Tap its corners"
+            septic ? (
+              "Tap the permit's spot, or its field's corners"
+            ) : (
+              "Tap its corners"
+            )
+          ) : septic && n === 1 ? (
+            <>
+              <b>Its spot</b>
+              <span className="sub long"> · or tap on to outline its field</span>
+            </>
           ) : (
             <>
               <b>
@@ -255,10 +234,11 @@ function barBody(
         {mode === "area" && (
           <>
             <Btn kind="quiet" onClick={ctl.undoCorner} disabled={n === 0}>
-              Undo corner
+              Undo
             </Btn>
-            <Btn kind="go" onClick={ctl.finishArea} disabled={n < 3}>
-              Finish
+            {/* A septic permit: one tap is its point (Done), three or more its field (owner, after #136). */}
+            <Btn kind="go" onClick={ctl.finishArea} disabled={septic ? n === 0 || n === 2 : n < 3}>
+              {septic && n === 1 ? "Done" : "Finish"}
             </Btn>
           </>
         )}
@@ -368,37 +348,13 @@ function barBody(
   const acres = ctl.derived?.ok ? ctl.derived.acres : null;
   return (
     <>
-      <span className="tb-lbl">Add:</span>
-      <Btn onClick={ctl.startCombine} title="Add county parcels (or take one out)">
-        Parcel
-      </Btn>
-      <Btn onClick={ctl.startDraw} title="Draw a custom shape to add, like a corner with no county record">
-        Custom
-      </Btn>
+      <BoundaryMenu ctl={ctl} />
       <Btn
-        kind="icon"
-        onClick={() => ctl.setMode("house")}
-        label={open.house ? "House (marked)" : "House"}
-        title={open.house ? "House marked; tap to move it" : "Mark the existing house"}
+        kind="go"
+        onClick={() => ctl.openPicker()}
+        title="Mark the house site, a way in, water and utilities, or something on the land"
       >
-        <HouseIcon />
-        {open.house && <span className="tb-dot" />}
-      </Btn>
-      <Btn
-        onClick={() => ctl.startLine("track")}
-        title="Draw an existing track, or an easement or right-of-way, known from a deed, plat, survey or visit"
-      >
-        Line
-      </Btn>
-      <Btn
-        onClick={() => ctl.startMark(null, "point")}
-        title="Mark a spring, a well, a septic permit, a building, power, a campsite, a gate or a note; or a septic field or a clearing as an area"
-      >
-        Mark
-      </Btn>
-      <Sep />
-      <Btn onClick={ctl.startSplit} disabled={!ctl.parcel}>
-        Split
+        + Mark
       </Btn>
       {built && (
         <>
@@ -425,5 +381,70 @@ function barBody(
         </button>
       )}
     </>
+  );
+}
+
+/**
+ * Boundary ▾ (owner, after #136): the tools that change the parcel's boundary, Parcel (add or take out county
+ * parcels), Custom (a drawn shape) and Split. Its menu opens above the bar, placed against the window: the bar
+ * scrolls sideways on a phone, and would cut it off.
+ */
+function BoundaryMenu({ ctl }: { ctl: ExploreController }) {
+  const [at, setAt] = useState<CSSProperties | null>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const open = at !== null;
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setAt(null);
+    window.addEventListener("resize", close);
+    return () => window.removeEventListener("resize", close);
+  }, [open]);
+  const toggle = () => {
+    const r = button.current?.getBoundingClientRect();
+    setAt(open || !r ? null : { position: "fixed", left: r.left, bottom: window.innerHeight - r.top + 6 });
+  };
+  const go = (f: () => void) => {
+    setAt(null);
+    f();
+  };
+  return (
+    <span
+      className="tb-menu"
+      onKeyDown={(e) => {
+        if (e.key === "Escape" && open) {
+          e.preventDefault();
+          setAt(null);
+          button.current?.focus();
+        }
+      }}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setAt(null);
+      }}
+    >
+      <button ref={button} className="tb-btn tool" aria-haspopup="menu" aria-expanded={open} onClick={toggle}>
+        Boundary ▾
+      </button>
+      {open && (
+        <span className="tb-menu-list" role="menu" style={at}>
+          <button
+            role="menuitem"
+            onClick={() => go(ctl.startCombine)}
+            title="Add county parcels (or take one out)"
+          >
+            Parcel
+          </button>
+          <button
+            role="menuitem"
+            onClick={() => go(ctl.startDraw)}
+            title="Draw a custom shape to add, like a corner with no county record"
+          >
+            Custom
+          </button>
+          <button role="menuitem" onClick={() => go(ctl.startSplit)} disabled={!ctl.parcel}>
+            Split
+          </button>
+        </span>
+      )}
+    </span>
   );
 }

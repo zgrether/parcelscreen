@@ -13,6 +13,7 @@ import {
   nameFromNotes,
   withNameFromNotes,
   isBuilt,
+  KIND_NAME,
   linesOf,
   loadParcelStore,
   openBuilt,
@@ -397,5 +398,31 @@ describe("point and area markers (WF4)", () => {
     expect(readParcelStore(JSON.stringify(raw))).toBeNull();
     // Only lines reach the screen.
     expect(drawnInput(markers)).toEqual([]);
+  });
+});
+
+describe("a Septic field saved by #136 (owner, after #136: no separate kind)", () => {
+  it("loads as a Septic permit drawn as an area, and imports so", () => {
+    // How #136 kept one: the "Septic field" chip made an area of kind "septic", named "Septic permit 1".
+    const s = commitOpen(EMPTY_STORE, { ...plain, notes: "x" }, T0, keys());
+    const raw = JSON.parse(writeParcelStore(s)) as { built: Record<string, unknown>[] };
+    raw.built[0]!.markup = [
+      {
+        id: "f",
+        name: "Septic permit 1",
+        shape: "area",
+        kind: "septic",
+        ring: [
+          [36.6285, -81.3545],
+          [36.6285, -81.354],
+          [36.629, -81.354],
+        ],
+        note: "",
+        at: T0,
+      },
+    ];
+    const m = readParcelStore(JSON.stringify(raw))!.built[0]!.markup[0]!;
+    expect(m).toMatchObject({ shape: "area", kind: "septic", name: "Septic permit 1", septicClass: null });
+    expect(KIND_NAME[m.kind]).toBe("Septic permit");
   });
 });
