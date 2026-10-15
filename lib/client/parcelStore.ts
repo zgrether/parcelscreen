@@ -12,6 +12,15 @@ import type { ParcelRecord } from "@/lib/geo/parcels";
 import { isCountyRecord, type ParcelRecipe, type SplitCut } from "@/lib/geo/recipe";
 import type { LatLon } from "@/lib/geo/types";
 import type { DrawnInput } from "@/lib/screen/types";
+import {
+  AREA_KINDS,
+  POINT_KINDS,
+  SEPTIC_CLASSES,
+  type AreaMark,
+  type MarkKind,
+  type PointMark,
+  type SepticClass,
+} from "@/lib/report/marks";
 import type { CurrentParcel } from "./currentParcel";
 import { LatLonSchema, RecordSchema } from "./currentParcel";
 import { lastRank, RANK_PATTERN, rankBetween } from "./myOrder";
@@ -25,7 +34,9 @@ import { lastRank, RANK_PATTERN, rankBetween } from "./myOrder";
  * What a drawn line is (owner, A, 2026-10-13): an existing track, an easement, or an existing drive. The screen reads
  * an existing drive as a track until its pricing comes with the parcel-workflow plan (drawnInput).
  */
-export type MarkupKind = "track" | "easement" | "drive";
+export type LineKind = "track" | "easement" | "drive";
+/** Every kind of markup: a line's, and a point's or an area's (WF4, lib/report/marks.ts). */
+export type MarkupKind = LineKind | MarkKind;
 
 /**
  * What state the line's ground is in (owner, A addition, 2026-10-13): stored and edited now; it changes no cost until
@@ -35,17 +46,19 @@ export type LineCondition = "uncleared" | "pioneer" | "improved" | "paved";
 export const LINE_CONDITIONS: readonly LineCondition[] = ["uncleared", "pioneer", "improved", "paved"];
 
 /** A line's condition until the user says otherwise (owner): a track is a pioneer cut, a drive improved. */
-export const DEFAULT_CONDITION: Record<MarkupKind, LineCondition> = {
+export const DEFAULT_CONDITION: Record<LineKind, LineCondition> = {
   track: "pioneer",
   drive: "improved",
   easement: "uncleared",
 };
 
-export interface Markup {
+export interface LineMarkup {
   id: string;
   /** What the user calls it (owner, #127): "Track 2" until renamed. Separate from the note. */
   name: string;
-  kind: MarkupKind;
+  /** A line (follow-up 34); points and areas came with WF4. */
+  shape: "line";
+  kind: LineKind;
   condition: LineCondition;
   /** At least two points, [lat, lon]. */
   line: LatLon[];
@@ -58,11 +71,41 @@ export interface Markup {
   at: string;
 }
 
-/** Each kind as the app names it (owner, #127): the layer, the chips and a line's default name. */
+/**
+ * A point or area marker (WF4, docs/plans/parcel-workflow.md §3.1–3.2): a spring, a well, a septic permit, a building,
+ * power, a campsite, a gate or a note at a point; a septic permit's field or a clearing as an area. Named per kind
+ * ("Spring 1") with a note, as lines are. Never sent to the screen: the card reads them (lib/report/marks.ts).
+ */
+interface MarkFields {
+  name: string;
+  /** A septic permit's class, as typed from the permit (owner, WF4: stored now; VR4 prices it). Null for others. */
+  septicClass: SepticClass | null;
+  note: string;
+  at: string;
+}
+export type PointMarkup = PointMark & MarkFields;
+export type AreaMarkup = AreaMark & MarkFields;
+
+/** What the user drew with the parcel: lines (follow-up 34), and points and areas (WF4). */
+export type Markup = LineMarkup | PointMarkup | AreaMarkup;
+export const isLine = (m: Markup): m is LineMarkup => m.shape === "line";
+/** The drawn lines alone: the only markup the screen reads. */
+export const linesOf = (markup: readonly Markup[]): LineMarkup[] => markup.filter(isLine);
+
+/** Each kind as the app names it (owner, #127; WF4): the layer, the chips and a default name. */
 export const KIND_NAME: Record<MarkupKind, string> = {
   track: "Track",
   easement: "Easement",
   drive: "Existing drive",
+  spring: "Spring",
+  well: "Well",
+  septic: "Septic permit",
+  building: "Building",
+  power: "Power",
+  campsite: "Campsite",
+  gate: "Gate",
+  note: "Note",
+  clearing: "Clearing",
 };
 
 const defaultNumber = (name: string, kind: MarkupKind): number | null => {
@@ -72,8 +115,8 @@ const defaultNumber = (name: string, kind: MarkupKind): number | null => {
 /** A default name, "Track 2", as opposed to one the user typed. */
 export const isDefaultName = (name: string, kind: MarkupKind): boolean => defaultNumber(name, kind) !== null;
 
-/** The next default name for a kind (owner, #127): numbered per kind, one past the highest in use. */
-export function nextLineName(markup: readonly Pick<Markup, "name" | "kind">[], kind: MarkupKind): string {
+/** The next default name for a kind (owner, #127; WF4 for markers): numbered per kind, one past the highest in use. */
+export function nextMarkupName(markup: readonly Pick<Markup, "name" | "kind">[], kind: MarkupKind): string {
   const used = markup.map((m) => defaultNumber(m.name, kind) ?? 0);
   return `${KIND_NAME[kind]} ${Math.max(0, ...used) + 1}`;
 }
@@ -82,7 +125,7 @@ export function nextLineName(markup: readonly Pick<Markup, "name" | "kind">[], k
 export const EASEMENT_WIDTH_FT = 30;
 
 /** A line's width until the user says otherwise (owner, #127): an easement's as before, a track 10 ft, a drive 12 ft. */
-export const DEFAULT_WIDTH_FT: Record<MarkupKind, number> = {
+export const DEFAULT_WIDTH_FT: Record<LineKind, number> = {
   easement: EASEMENT_WIDTH_FT,
   track: 10,
   drive: 12,
@@ -94,7 +137,8 @@ export const DEFAULT_WIDTH_FT: Record<MarkupKind, number> = {
  */
 export const drawnInput = (markup: readonly Markup[]): DrawnInput[] =>
   // A track's or a drive's width isn't used in costs yet (owner, #127): the screen sees an easement's only, as before.
-  markup.map(({ id, kind, line, widthFt }) =>
+  // Points and areas (WF4) never reach it: the card reads them.
+  linesOf(markup).map(({ id, kind, line, widthFt }) =>
     kind === "easement" ? { id, kind, line, widthFt } : { id, kind: "track", line, widthFt: null },
   );
 
@@ -368,11 +412,12 @@ const SplitSchema = z.object({
   b: LatLonSchema,
   keep: z.union([z.literal(1), z.literal(-1)]),
 });
-const MarkupSchema = z
+const LineSchema = z
   .object({
     id: z.string(),
     // Added with #127: a line kept before has none, and gets its kind's default in the order drawn (below).
     name: z.string().optional(),
+    shape: z.literal("line"),
     kind: z.enum(["track", "easement", "drive"]),
     // Added with A (owner, 2026-10-13): a line kept before has none, and gets its kind's default.
     condition: z.enum(["uncleared", "pioneer", "improved", "paved"]).optional(),
@@ -381,12 +426,36 @@ const MarkupSchema = z
     note: z.string(),
     at: z.string(),
   })
-  .transform((m): Omit<Markup, "name"> & { name?: string } => ({
+  .transform((m): Omit<LineMarkup, "name"> & { name?: string } => ({
     ...m,
     condition: m.condition ?? DEFAULT_CONDITION[m.kind],
     // Owner, #127: every kind has a width now; a line kept before gets its kind's.
     widthFt: m.widthFt ?? DEFAULT_WIDTH_FT[m.kind],
   }));
+const markFields = {
+  id: z.string(),
+  name: z.string(),
+  septicClass: z.enum(SEPTIC_CLASSES).nullable().default(null),
+  note: z.string(),
+  at: z.string(),
+};
+const PointSchema = z.object({
+  ...markFields,
+  shape: z.literal("point"),
+  kind: z.enum(POINT_KINDS),
+  ll: LatLonSchema,
+});
+const AreaSchema = z.object({
+  ...markFields,
+  shape: z.literal("area"),
+  kind: z.enum(AREA_KINDS),
+  ring: z.array(LatLonSchema).min(3),
+});
+/** A line kept before WF4 has no shape: it's a line. */
+const MarkupSchema = z.preprocess(
+  (m) => (typeof m === "object" && m !== null && !("shape" in m) ? { ...m, shape: "line" } : m),
+  z.union([LineSchema, PointSchema, AreaSchema]),
+);
 const WorkingSchema = z.object({
   key: z.string().nullable(),
   pieces: z.array(RecordSchema).min(1),
@@ -420,7 +489,10 @@ const WorkingSchema = z.object({
     .default([])
     .transform((lines) =>
       lines.reduce<Markup[]>(
-        (named, m) => [...named, { ...m, name: m.name ?? nextLineName(named, m.kind) }],
+        (named, m) => [
+          ...named,
+          m.shape === "line" ? { ...m, name: m.name ?? nextMarkupName(named, m.kind) } : m,
+        ],
         [],
       ),
     ),

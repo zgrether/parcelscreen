@@ -151,6 +151,7 @@ describe("drawn lines (follow-up 34)", () => {
       {
         id: "a",
         name: "Track 1",
+        shape: "line" as const,
         kind: "track",
         condition: "pioneer",
         line: [
@@ -164,6 +165,7 @@ describe("drawn lines (follow-up 34)", () => {
       {
         id: "b",
         name: "Deeded right-of-way",
+        shape: "line" as const,
         kind: "easement",
         condition: "uncleared",
         line: [
@@ -209,6 +211,7 @@ describe("drawn lines (follow-up 34)", () => {
     const m = {
       id: "a",
       name: "Track 1",
+      shape: "line" as const,
       kind: "track" as const,
       condition: "pioneer" as const,
       line: [
@@ -221,6 +224,7 @@ describe("drawn lines (follow-up 34)", () => {
     };
     const measured = {
       id: "a",
+      shape: "line" as const,
       kind: "track" as const,
       condition: "pioneer" as const,
       lengthFt: 938,
@@ -246,5 +250,49 @@ describe("drawn lines (follow-up 34)", () => {
       ["Point", "point", undefined],
     ]);
     expect(markupData(both).features.map((f) => f.properties!.hl)).toEqual(["none", "none"]);
+  });
+});
+
+describe("area markers (WF4)", () => {
+  it("an area is a polygon with its name and acres; a point isn't in the source (it's a pin); a selected area shows its corners", () => {
+    const ring: [number, number][] = [
+      [36.6, -81.5],
+      [36.6, -81.499],
+      [36.601, -81.499],
+    ];
+    const fc = markupData(
+      [
+        {
+          id: "c",
+          name: "Clearing 1",
+          shape: "area",
+          kind: "clearing",
+          ring,
+          septicClass: null,
+          note: "",
+          at: "",
+        },
+        {
+          id: "s",
+          name: "Spring 1",
+          shape: "point",
+          kind: "spring",
+          ll: [36.6, -81.5],
+          septicClass: null,
+          note: "",
+          at: "",
+        },
+      ],
+      [],
+      "c",
+    );
+    expect(fc.features.map((f) => [f.geometry.type, f.properties!.kind])).toEqual([
+      ["Polygon", "area"],
+      ["Point", "point"],
+      ["Point", "point"],
+      ["Point", "point"],
+    ]);
+    expect(fc.features[0]!.properties).toMatchObject({ drawn: "clearing", id: "c", hl: "selected" });
+    expect(fc.features[0]!.properties!.tip).toMatch(/^Clearing 1: \d\.\d\d ac$/);
   });
 });

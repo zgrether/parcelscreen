@@ -13,6 +13,7 @@ import {
   nameFromNotes,
   withNameFromNotes,
   isBuilt,
+  linesOf,
   loadParcelStore,
   openBuilt,
   plainParcel,
@@ -285,7 +286,7 @@ describe("storage (ps.parcels)", () => {
       { ...line("easement", "d"), widthFt: 45, note: "Deed book 412" },
     ];
     const back = readParcelStore(JSON.stringify(raw))!.open!.markup;
-    expect(back.map((m) => [m.name, m.kind, m.condition, m.widthFt])).toEqual([
+    expect(linesOf(back).map((m) => [m.name, m.kind, m.condition, m.widthFt])).toEqual([
       ["Track 1", "track", "pioneer", 10],
       ["Easement 1", "easement", "uncleared", 30],
       ["Existing drive 1", "drive", "paved", 12], // the condition chosen: kept
@@ -353,5 +354,48 @@ describe("My order (WF3, docs/plans/parcel-workflow.md §5)", () => {
     const read = getPref("ps.parcels", kv)!;
     expect(read.built[0]!.rank).toBe("V");
     expect(readParcelStore(kv.getItem("ps.parcels")!)!.built[0]!.rank).toBe("V");
+  });
+});
+
+describe("point and area markers (WF4)", () => {
+  it("round-trip through the store; a line kept before WF4 (no shape) loads as a line; a malformed marker fails the read", () => {
+    const s = commitOpen(EMPTY_STORE, { ...plain, notes: "x" }, T0, keys());
+    const markers: WorkingParcel["markup"] = [
+      {
+        id: "s",
+        name: "Spring 1",
+        shape: "point",
+        kind: "spring",
+        ll: [36.629, -81.354],
+        septicClass: null,
+        note: "",
+        at: T0,
+      },
+      {
+        id: "p",
+        name: "Septic permit 1",
+        shape: "area",
+        kind: "septic",
+        ring: [
+          [36.6285, -81.3545],
+          [36.6285, -81.354],
+          [36.629, -81.354],
+        ],
+        septicClass: "alternative",
+        note: "on file at the county",
+        at: T0,
+      },
+    ];
+    const withMarks = { ...s, open: { ...s.open!, markup: markers } };
+    expect(readParcelStore(writeParcelStore(withMarks))!.open!.markup).toEqual(markers);
+    // A permit's class is optional: one written without it reads as none.
+    const raw = JSON.parse(writeParcelStore(withMarks)) as { open: { markup: Record<string, unknown>[] } };
+    delete raw.open.markup[0]!.septicClass;
+    expect(readParcelStore(JSON.stringify(raw))!.open!.markup[0]).toMatchObject({ septicClass: null });
+    // An area needs three corners.
+    raw.open.markup[1]!.ring = [[36.6285, -81.3545]];
+    expect(readParcelStore(JSON.stringify(raw))).toBeNull();
+    // Only lines reach the screen.
+    expect(drawnInput(markers)).toEqual([]);
   });
 });

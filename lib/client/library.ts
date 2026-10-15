@@ -8,7 +8,7 @@ import { z } from "zod";
 import { deriveParcel, STATE_BY_HOST } from "@/lib/geo/recipe";
 import { parcelFacts } from "@/lib/geo/parcels";
 import { reportCard, type Letter, type Verdict } from "@/lib/report/card";
-import { lineNamesOf } from "@/lib/report/lines";
+import { drawnOf } from "@/lib/report/marks";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { kmToState, type StateCode } from "@/lib/screen/states";
 import { parcelName } from "./historyRows";
@@ -90,7 +90,7 @@ export function libraryRow(p: WorkingParcel, kept: KeptScreen | undefined): Libr
   const result = kept?.state === "ok" ? kept.result : null;
   const graded = (person: "zach" | "julie"): Graded | null => {
     if (!result) return null;
-    const c = reportCard(result, person, lineNamesOf(p.markup));
+    const c = reportCard(result, person, drawnOf(p.markup));
     return { grade: c.grade, verdict: c.verdict };
   };
   const zach = graded("zach"),

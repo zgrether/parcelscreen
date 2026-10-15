@@ -15,10 +15,15 @@ import {
   isBuilt,
   KIND_NAME,
   LINE_CONDITIONS,
+  type AreaMarkup,
   type LineCondition,
-  type Markup,
-  type MarkupKind,
+  type LineKind,
+  type LineMarkup,
+  type PointMarkup,
 } from "@/lib/client/parcelStore";
+import { area } from "@turf/turf";
+import { M2_PER_ACRE } from "@/lib/geo/types";
+import { AREA_KINDS, areaPolygon, POINT_KINDS, SEPTIC_CLASSES, type SepticClass } from "@/lib/report/marks";
 import { M2FT } from "@/lib/geo/types";
 import { getPref, setPref } from "@/lib/client/prefs";
 import type { ParcelRecord } from "@/lib/geo/parcels";
@@ -463,9 +468,24 @@ function details(
           </>
         ),
       };
+    case "mark": {
+      const m = open.markup.find((x) => x.id === layerLine(n.id));
+      if (!m || m.shape === "line") return { body: null, actions: null };
+      return {
+        body: <MarkDetails key={m.id} ctl={ctl} m={m} />,
+        actions: (
+          <>
+            <Btn onClick={() => ctl.editLine(m.id)}>{m.shape === "point" ? "Move it" : "Redraw"}</Btn>
+            <Btn kind="danger" onClick={() => remove(n.id)}>
+              Delete
+            </Btn>
+          </>
+        ),
+      };
+    }
     case "line": {
       const m = open.markup.find((x) => x.id === layerLine(n.id));
-      if (!m) return { body: null, actions: null };
+      if (!m || m.shape !== "line") return { body: null, actions: null };
       return {
         body: <LineDetails key={m.id} ctl={ctl} m={m} />,
         actions: (
@@ -559,7 +579,7 @@ function Notes({ ctl, name }: { ctl: ExploreController; name: string }) {
   );
 }
 
-const KINDS: MarkupKind[] = ["track", "easement", "drive"];
+const KINDS: LineKind[] = ["track", "easement", "drive"];
 const CONDITION_WORD: Record<LineCondition, string> = {
   uncleared: "Uncleared",
   pioneer: "Pioneer",
@@ -572,7 +592,7 @@ const CONDITION_WORD: Record<LineCondition, string> = {
  * its ground's condition, its width, a note saying where it came from (deed, plat, survey, a visit), and its length
  * and grades once a screen has measured it (34-2). Keyed by the line, so the boxes start from its own values.
  */
-function LineDetails({ ctl, m }: { ctl: ExploreController; m: Markup }) {
+function LineDetails({ ctl, m }: { ctl: ExploreController; m: LineMarkup }) {
   const serial = ctl.state.serial;
   const s = useScreenItContext();
   const result = s?.shown && !s.stale ? s.shown.result : null;
@@ -626,6 +646,78 @@ function LineDetails({ ctl, m }: { ctl: ExploreController; m: Markup }) {
         className="ip-line-note"
         aria-label={`Note for ${m.name}`}
         placeholder="Where it comes from: the deed, a plat, a survey, a visit…"
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        onBlur={saveNote}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") saveNote();
+        }}
+      />
+    </>
+  );
+}
+
+const CLASS_WORD: Record<SepticClass, string> = {
+  conventional: "Conventional",
+  modified: "Modified",
+  alternative: "Alternative",
+};
+
+/**
+ * A marker's details (WF4, docs/plans/parcel-workflow.md §3.1): its name, what it is (another kind of its shape), a septic
+ * permit's class as typed from the permit (stored now, priced with VR4), and a note. A point drags on the map; an area
+ * is redrawn. Keyed by the marker, so the boxes start from its own values.
+ */
+function MarkDetails({ ctl, m }: { ctl: ExploreController; m: PointMarkup | AreaMarkup }) {
+  const serial = ctl.state.serial;
+  const [note, setNote] = useState(m.note);
+  const saveNote = () => {
+    if (note !== m.note) ctl.saveMarkupNote(m.id, note, serial);
+  };
+  const kinds = m.shape === "point" ? POINT_KINDS : AREA_KINDS;
+  return (
+    <>
+      <LineName key={m.name} name={m.name} save={(name) => ctl.renameMarkup(m.id, name, serial)} />
+      <p className="ip-note">
+        {m.shape === "point"
+          ? "Drag it on the map to move it."
+          : `${(area(areaPolygon(m.ring)) / M2_PER_ACRE).toFixed(2)} ac. Redraw it to change its shape.`}
+      </p>
+      <div className="ip-line-row" role="group" aria-label="What it is">
+        {kinds.map((k) => (
+          <button
+            key={k}
+            className="chip"
+            aria-pressed={m.kind === k}
+            onClick={() => ctl.setMarkupKind(m.id, k, serial)}
+          >
+            {KIND_NAME[k]}
+          </button>
+        ))}
+      </div>
+      {m.kind === "septic" && (
+        <>
+          <div className="ip-line-row" role="group" aria-label="The permit's class">
+            {SEPTIC_CLASSES.map((c) => (
+              <button
+                key={c}
+                className="chip"
+                aria-pressed={m.septicClass === c}
+                // A second tap clears it: the class is optional.
+                onClick={() => ctl.setMarkupSeptic(m.id, m.septicClass === c ? null : c, serial)}
+              >
+                {CLASS_WORD[c]}
+              </button>
+            ))}
+          </div>
+          {/* Stored now; VR4 prices it (owner, WF4). */}
+          <p className="ip-note">The class doesn&apos;t change the cost yet.</p>
+        </>
+      )}
+      <input
+        className="ip-line-note"
+        aria-label={`Note for ${m.name}`}
+        placeholder="What it is, and how you know: a visit, the listing, the seller…"
         value={note}
         onChange={(e) => setNote(e.target.value)}
         onBlur={saveNote}

@@ -16,6 +16,7 @@ import {
   keptScreenIds,
   fromV1,
   fromV2,
+  fromV3,
   READS_VERSIONS,
   V1_DEFAULTS,
   nameFromNotes,
@@ -71,7 +72,7 @@ const errors = (text: string, store: ParcelStore = EMPTY_STORE) => {
 describe("export (owner, 16b): versioned by format and version", () => {
   it("holds the settings, the parcel store and History's kept screens", () => {
     const f = buildExport(DEFAULT_USER_CONFIG, STORE, [screen("s1")], NOW);
-    expect(f).toMatchObject({ format: EXPORT_FORMAT, version: 3, exportedAt: NOW, parcels: STORE });
+    expect(f).toMatchObject({ format: EXPORT_FORMAT, version: 4, exportedAt: NOW, parcels: STORE });
     expect(f.cfg).toBe(DEFAULT_USER_CONFIG);
     expect(keptScreenIds(STORE)).toEqual(["s1"]);
     expect(exportFileName(NOW)).toBe("parcelscreen-2026-10-07.json");
@@ -118,8 +119,8 @@ describe("import: validate all, then all or nothing", () => {
     expect(errors("not json")).toEqual([NOT_AN_EXPORT]);
     expect(errors(JSON.stringify({ hello: 1 }))).toEqual([NOT_AN_EXPORT]);
     expect(errors(JSON.stringify([1]))).toEqual([NOT_AN_EXPORT]);
-    expect(errors(file({ version: 4 as never }))).toEqual([
-      "This export is version 4; this app reads versions 1, 2 and 3.",
+    expect(errors(file({ version: 5 as never }))).toEqual([
+      "This export is version 5; this app reads versions 1, 2, 3 and 4.",
     ]);
   });
 });
@@ -138,7 +139,7 @@ describe("version 2 (owner, after #131): every field written; a version 1 file c
     };
     const store: ParcelStore = { v: 2, open: null, built: [p] };
     const text = JSON.stringify(buildExport(DEFAULT_USER_CONFIG, store, [screen("s1")], NOW));
-    expect(JSON.parse(text)).toMatchObject({ version: 3 }); // the current version: version 2's fields, and the rank
+    expect(JSON.parse(text)).toMatchObject({ version: 4 }); // the current version: version 2's fields, and more
     const after = applyImport(EMPTY_STORE, plan(text));
     expect(after.built).toEqual([p]);
     // Each field the owner named, one by one.
@@ -195,7 +196,7 @@ describe("version 2 (owner, after #131): every field written; a version 1 file c
       archived: null,
       milestones: { walked: null, offered: null },
     });
-    expect(READS_VERSIONS).toEqual([1, 2, 3]);
+    expect(READS_VERSIONS).toEqual([1, 2, 3, 4]);
   });
 });
 
@@ -545,6 +546,7 @@ describe("schema v3 (B2a): older results and the asking price", () => {
     const line = {
       id: "t1",
       name: "Track 1",
+      shape: "line" as const,
       kind: "track" as const,
       condition: "pioneer" as const,
       line: [
@@ -585,7 +587,7 @@ describe("version 3 (owner, #135): My order", () => {
       version: number;
       parcels: { built: { key: string; rank: string }[] };
     };
-    expect(f.version).toBe(3);
+    expect(f.version).toBe(4);
     expect(f.parcels.built.map((b) => [b.key, b.rank])).toEqual([
       ["b", "V"],
       ["a", "k"],
@@ -637,5 +639,70 @@ describe("version 3 (owner, #135): My order", () => {
   it("a version 1 file goes through both converters", () => {
     const v1 = JSON.stringify({ ...JSON.parse(v2File([unranked("old", -81.355, "52-47A")])), version: 1 });
     expect(plan(v1).added[0]).toMatchObject({ key: "old", rank: "V", status: "inProgress" });
+  });
+});
+
+describe("version 4 (owner, WF4): point and area markers", () => {
+  const spring = {
+    id: "m1",
+    name: "Spring 1",
+    shape: "point" as const,
+    kind: "spring" as const,
+    ll: [36.629, -81.354] as [number, number],
+    septicClass: null,
+    note: "runs in August",
+    at: "2026-10-14T12:00:00.000Z",
+  };
+  const field = {
+    id: "m2",
+    name: "Septic permit 1",
+    shape: "area" as const,
+    kind: "septic" as const,
+    ring: [
+      [36.6285, -81.3545],
+      [36.6285, -81.354],
+      [36.629, -81.354],
+    ] as [number, number][],
+    septicClass: "conventional" as const,
+    note: "",
+    at: "2026-10-14T12:00:00.000Z",
+  };
+
+  it("round trip: a point and an area marker come back as they were", () => {
+    const store: ParcelStore = {
+      ...STORE,
+      built: [{ ...STORE.built[0]!, markup: [spring, field] }, STORE.built[1]!],
+    };
+    expect(JSON.parse(file({}, store))).toMatchObject({ version: 4 });
+    expect(plan(file({}, store)).added[0]!.markup).toEqual([spring, field]);
+  });
+
+  it("a version 3 file: its lines, which have no shape, import as lines", () => {
+    const v3Line = {
+      id: "t1",
+      name: "Gate lane",
+      kind: "track",
+      condition: "pioneer",
+      line: [
+        [36.6, -81.5],
+        [36.61, -81.51],
+      ],
+      widthFt: 10,
+      note: "",
+      at: "2026-10-12T12:00:00.000Z",
+    };
+    const v4 = JSON.parse(file()) as { parcels: { built: Record<string, unknown>[] } };
+    const v3 = {
+      ...v4,
+      version: 3,
+      parcels: { ...v4.parcels, built: v4.parcels.built.map((b, i) => (i ? b : { ...b, markup: [v3Line] })) },
+    };
+    const converted = fromV3(v3) as {
+      version: number;
+      parcels: { built: { markup: { shape: string }[] }[] };
+    };
+    expect(converted.version).toBe(4);
+    expect(converted.parcels.built[0]!.markup[0]!.shape).toBe("line");
+    expect(plan(JSON.stringify(v3)).added[0]!.markup).toEqual([{ ...v3Line, shape: "line" }]);
   });
 });

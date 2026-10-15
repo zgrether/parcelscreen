@@ -43,6 +43,7 @@ import { deriveParcel, ownLand, splitPreview, type DerivedParcel } from "@/lib/g
 import { pieceAt, type Side, type SplitPieces } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
+import type { MarkKind, SepticClass } from "@/lib/report/marks";
 import {
   BUSY_TEXT,
   decideTap,
@@ -154,7 +155,19 @@ export interface ExploreController {
   /** Owner, A: a line's kind and condition, and its path redrawn with the line tool. */
   setMarkupKind(id: string, kind: MarkupKind, serial: number): void;
   setMarkupCondition(id: string, condition: LineCondition, serial: number): void;
+  /** A line's path, or an area's (WF4), redrawn with its tool; a point moved by the next tap. */
   editLine(id: string): void;
+  /**
+   * WF4: the Mark tool, for a point (one tap places it) or an area (corners, then Finish); `kind` null until one is
+   * picked. Placing or finishing opens the marker's details.
+   */
+  startMark(kind: MarkKind | null, shape: "point" | "area"): void;
+  placePoint(ll: LatLon): void;
+  finishArea(): void;
+  /** A point marker dragged on the map, for the parcel open as `serial`. */
+  movePoint(id: string, ll: LatLon, serial: number): void;
+  /** A septic permit's class, or null to clear it. */
+  setMarkupSeptic(id: string, septicClass: SepticClass | null, serial: number): void;
   /** The line just deleted, for the Undo toast; null when there's none or it timed out. */
   lineUndo: LineUndo | null;
   /**
@@ -548,8 +561,35 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       dispatch({ type: "markupCondition", id, condition, serial, stamp: stamp() });
     },
     editLine(id) {
+      const m = latest.current.store.open?.markup.find((x) => x.id === id);
       dispatch({ type: "editLine", id });
-      hint("Tap to add points; Undo takes the last off. Finish keeps the new path.");
+      hint(
+        m?.shape === "point"
+          ? "Tap where it goes."
+          : m?.shape === "area"
+            ? "Tap its corners again; Undo takes the last off. Finish keeps the new shape."
+            : "Tap to add points; Undo takes the last off. Finish keeps the new path.",
+      );
+    },
+    startMark(kind, shape) {
+      dispatch({ type: "startMark", kind, shape });
+      hint("");
+    },
+    placePoint(ll) {
+      if (!latest.current.markKind) return hint("Pick what you're marking first");
+      dispatch({ type: "placePoint", id: crypto.randomUUID(), ll, stamp: stamp() });
+      hint("");
+    },
+    finishArea() {
+      if (latest.current.draft.length < 3) return hint("Need at least three corners");
+      dispatch({ type: "finishArea", id: crypto.randomUUID(), stamp: stamp() });
+      hint("");
+    },
+    movePoint(id, ll, serial) {
+      dispatch({ type: "movePoint", id, ll, serial, stamp: stamp() });
+    },
+    setMarkupSeptic(id, septicClass, serial) {
+      dispatch({ type: "markupSeptic", id, septicClass, serial, stamp: stamp() });
     },
     lineUndo,
     searchedListing,

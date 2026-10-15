@@ -13,6 +13,7 @@ import { NO_PRACTICAL_ROUTE, existingSteepLine } from "../screen/score";
 import { trailheadSourceLabel } from "../screen/trailheads";
 import { isPrimeFarmland, soilAt, type SoilUnit } from "../screen/soils";
 import type { PartialScreenResult, RoadClass } from "../screen/types";
+import type { LatLon } from "../geo/types";
 import { M2FT, M2_PER_ACRE } from "../screen/util";
 import { steepLandingLine } from "./driveway";
 import {
@@ -24,6 +25,7 @@ import {
   startLine,
   type LineNames,
 } from "./lines";
+import { nearestFt, PERMIT_ON_FILE, permitFar, SPRING_MARKED, type Drawn, type Mark } from "./marks";
 
 export type CardConfig = typeof SCREEN_CONSTANTS.card;
 type BuildConfig = typeof SCREEN_CONSTANTS.build;
@@ -126,14 +128,18 @@ export interface BuildSite {
   inSfha: boolean;
   /** A flood zone touches the site's own ground (v4); null for a placed house, which has no footprint. */
   sfhaOnSite: boolean | null;
+  /** Where it is, [lat, lon]: what a marker's distance is measured from (WF4). */
+  ll: LatLon;
 }
 export function buildSite(r: Result): BuildSite | null | undefined {
   const h = r.house;
   if (h && !("outside" in h))
-    return { label: "the marked house", elevFt: h.elevFt, inSfha: h.inSFHA, sfhaOnSite: null };
+    return { label: "the marked house", elevFt: h.elevFt, inSfha: h.inSFHA, sfhaOnSite: null, ll: h.ll };
   if (!r.sites) return undefined;
   const s = r.sites[0];
-  return s ? { label: "site #1", elevFt: s.elevFt, inSfha: !!s.flood, sfhaOnSite: s.sfhaOnSite } : null;
+  return s
+    ? { label: "site #1", elevFt: s.elevFt, inSfha: !!s.flood, sfhaOnSite: s.sfhaOnSite, ll: s.ll }
+    : null;
 }
 
 // ---------- the gates ----------
@@ -292,8 +298,25 @@ function easement(r: Result, names?: LineNames): Gate {
   return g("pass", "The driveway stays on the parcel");
 }
 
-/** The owner's rule: a warn when no soil on the parcel rates better than "very limited" (never a fail). */
-function septic(r: Result): Gate {
+/**
+ * The owner's rule: a warn when no soil on the parcel rates better than "very limited" (never a fail). A septic permit
+ * you marked (WF4, owner #128) passes it, whatever the soils say, with a reminder appended (rule 7), and where the
+ * permit is when it's farther than K.marks.permitFarFt from the build site: it covers the spot that was tested.
+ */
+function septic(r: Result, site: BuildSite | null | undefined, marks: readonly Mark[], K: CardConfig): Gate {
+  const soils = septicBySoils(r);
+  const permits = marks.filter((m) => m.kind === "septic");
+  if (!permits.length) return soils;
+  const ft = site ? nearestFt(permits, site.ll) : null;
+  const far = site && ft !== null && ft > K.marks.permitFarFt ? permitFar(ft, site.label) : null;
+  return {
+    ...soils,
+    status: "pass",
+    reason: [soils.reason, PERMIT_ON_FILE, ...(far ? [far] : [])].join("; "),
+  };
+}
+
+function septicBySoils(r: Result): Gate {
   const g = gate("septic", "Septic");
   if (!r.soils) return g("unknown", "The NRCS soils didn't load", "the NRCS soils");
   if (!r.soils.length) return g("unknown", "NRCS returned no soils for the parcel");
@@ -496,7 +519,23 @@ export const articleFor = (n: number): "a" | "an" => {
 const trackNote = (r: Result): string =>
   r.driveFrom?.trackMi ? ` (the first ${fmt(r.driveFrom.trackMi, 1)} mi on unnamed tracks)` : "";
 
-function garden(r: Result, K: CardConfig): Row {
+/**
+ * The garden the row names (its best, or its largest), with "a spring is marked" appended (WF4, owner #128; rule 7)
+ * when a spring you marked is within K.marks.springNearFt of it. Measured to the garden's centre: the result keeps no
+ * outline (WF7 adds them).
+ */
+function garden(r: Result, K: CardConfig, marks: readonly Mark[]): Row {
+  const springs = marks.filter((m) => m.kind === "spring");
+  const spring = (row: Row, ll: LatLon): Row => {
+    const ft = nearestFt(springs, ll);
+    return ft !== null && ft <= K.marks.springNearFt
+      ? { ...row, detail: `${row.detail}; ${SPRING_MARKED}` }
+      : row;
+  };
+  return gardenRow(r, K, spring);
+}
+
+function gardenRow(r: Result, K: CardConfig, spring: (row: Row, ll: LatLon) => Row): Row {
   const g = row("garden", "Garden ground");
   if (!r.gardens) return notLoaded(g, "the terrain");
   if (!r.gardens.length) return { ...g("F", "no garden ground found"), short: "none" };
@@ -523,32 +562,42 @@ function garden(r: Result, K: CardConfig): Row {
     .map((x) => ({ x, cls: classOf(x.ll) }))
     .find((y) => y.cls);
   if (best)
-    return {
-      ...g("A", `a ${fmt(best.x.acres, 2)} ac garden on ${best.cls}`),
-      short: `${fmt(best.x.acres, 2)} ac, ${best.cls}`,
-    };
-  const largest = Math.max(...r.gardens.map((x) => x.acres));
+    return spring(
+      {
+        ...g("A", `a ${fmt(best.x.acres, 2)} ac garden on ${best.cls}`),
+        short: `${fmt(best.x.acres, 2)} ac, ${best.cls}`,
+      },
+      best.x.ll,
+    );
+  const big = r.gardens.reduce((a, x) => (x.acres > a.acres ? x : a));
+  const largest = big.acres;
   const i = rest.findIndex((c) => largest >= c);
   const grade = i < 0 ? "F" : LETTERS[i + 1]!;
-  return { ...g(grade, `the largest garden is ${fmt(largest, 2)} ac`), short: `${fmt(largest, 2)} ac` };
+  return spring(
+    { ...g(grade, `the largest garden is ${fmt(largest, 2)} ac`), short: `${fmt(largest, 2)} ac` },
+    big.ll,
+  );
 }
 
 // ---------- the card ----------
 
 /**
- * The gates and rows: the same for everyone. `names`: the parcel's names for its drawn lines (lines.ts), when the
- * report is drawn with the parcel; without them a line reads by its kind.
+ * The gates and rows: the same for everyone. `drawn`: what the parcel holds besides its result (marks.ts), when the
+ * report is drawn with the parcel: its names for its drawn lines (without them a line reads by its kind), and its
+ * markers (WF4).
  */
 export function cardFacts(
   r: Result,
   K: CardConfig = SCREEN_CONSTANTS.card,
   build: BuildConfig = SCREEN_CONSTANTS.build,
-  names?: LineNames,
+  drawn?: Drawn,
 ): CardFacts {
   const footprintAc = footprintFt2(build) / FT2_PER_ACRE;
   const site = buildSite(r);
+  const names = drawn?.names,
+    marks = drawn?.marks ?? [];
   return {
-    gates: [floodplain(r, site), access(r, names), easement(r, names), septic(r)],
+    gates: [floodplain(r, site), access(r, names), easement(r, names), septic(r, site, marks, K)],
     rows: [
       elevation(site, K),
       homesite(r),
@@ -556,7 +605,7 @@ export function cardFacts(
       room(r, K, footprintAc),
       trails(r, K),
       town(r, K),
-      garden(r, K),
+      garden(r, K, marks),
     ],
   };
 }
@@ -628,6 +677,6 @@ export function cardFor(facts: CardFacts, person: Person, K: CardConfig = SCREEN
 export const reportCard = (
   r: Result,
   person: Person,
-  names?: LineNames,
+  drawn?: Drawn,
   K: CardConfig = SCREEN_CONSTANTS.card,
-): Card => cardFor(cardFacts(r, K, SCREEN_CONSTANTS.build, names), person, K);
+): Card => cardFor(cardFacts(r, K, SCREEN_CONSTANTS.build, drawn), person, K);

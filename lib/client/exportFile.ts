@@ -40,6 +40,9 @@ import {
 
 export const EXPORT_FORMAT = "parcelscreen-export";
 /**
+ * Version 4 (owner, WF4): a parcel's `markup` holds point and area markers besides its lines, each with its `shape`.
+ * A version 3 file is read through `fromV3`, which gives each of its lines `shape: "line"`.
+ *
  * Version 3 (owner, #135): each parcel's place in My order (`rank`, WF3), and History written in My order, so a backup
  * restored into an empty browser keeps the ranking. A version 2 file is read through `fromV2`, which ranks its parcels
  * in the file's order; a version 1 file through `fromV1` first.
@@ -48,9 +51,9 @@ export const EXPORT_FORMAT = "parcelscreen-export";
  * 34 and #127; the listing's facts, WF1; the status, archive and milestones, WF2a) is written, and a version 1 file is
  * read through `fromV1`, which fills each with its default.
  */
-export const EXPORT_VERSION = 3;
+export const EXPORT_VERSION = 4;
 /** The versions this app reads. */
-export const READS_VERSIONS: readonly number[] = [1, 2, EXPORT_VERSION];
+export const READS_VERSIONS: readonly number[] = [1, 2, 3, EXPORT_VERSION];
 
 /** What a version 1 file's parcel lacks, and its value there: the defaults the app gives a parcel kept before. */
 export const V1_DEFAULTS = {
@@ -108,6 +111,27 @@ export function fromV2(json: Record<string, unknown>): Record<string, unknown> {
       }
     : parcels.open;
   return { ...json, version: 3, parcels: { ...parcels, open, built } };
+}
+
+/**
+ * A version 3 file as version 4 (owner, WF4): every markup entry it has is a line, so each gets `shape: "line"`. An
+ * entry that already says its shape keeps it.
+ */
+export function fromV3(json: Record<string, unknown>): Record<string, unknown> {
+  const parcels = isRecord(json.parcels) ? json.parcels : null;
+  const lines = (m: unknown) => (isRecord(m) && !("shape" in m) ? { ...m, shape: "line" } : m);
+  const parcel = (p: unknown) =>
+    isRecord(p) && Array.isArray(p.markup) ? { ...p, markup: p.markup.map(lines) } : p;
+  if (!parcels) return { ...json, version: 4 };
+  return {
+    ...json,
+    version: 4,
+    parcels: {
+      ...parcels,
+      open: parcel(parcels.open),
+      built: Array.isArray(parcels.built) ? parcels.built.map(parcel) : parcels.built,
+    },
+  };
 }
 
 /** "1, 2 and 3". */
@@ -378,6 +402,7 @@ export function planImport(
       };
     if (json.version === 1) json = fromV1(json);
     if (isRecord(json) && json.version === 2) json = fromV2(json);
+    if (isRecord(json) && json.version === 3) json = fromV3(json);
     if (!isRecord(json)) return { ok: false, errors: [NOT_AN_EXPORT] };
     // Results from an older schema are set aside before validating (v3's clean break): not an error, not imported.
     const older = (x: unknown) =>

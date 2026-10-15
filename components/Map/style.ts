@@ -130,6 +130,8 @@ export const LAYER = {
   draftLine: "draft-line",
   draftPoints: "draft-points",
   markupSelected: "markup-selected",
+  markupAreaFill: "markup-area-fill",
+  markupAreaLine: "markup-area-line",
   markupEasement: "markup-easement",
   markupTrackHalo: "markup-track-halo",
   markupTrack: "markup-track",
@@ -366,6 +368,28 @@ export function buildStyle(opts: {
         "line-opacity": ["case", ["==", ["get", "hl"], "selected"], 0.85, 0.6],
         "line-width": ["case", ["==", ["get", "hl"], "selected"], 18, 12],
         "line-blur": 2,
+      },
+    },
+    // WF4: an area marker, a septic permit's field (brown) or a clearing (green), under the lines.
+    {
+      id: LAYER.markupAreaFill,
+      type: "fill",
+      source: SOURCE.markup,
+      filter: ["==", ["get", "kind"], "area"],
+      paint: {
+        "fill-color": ["case", ["==", ["get", "drawn"], "septic"], "#a8743c", "#5f9e3a"],
+        "fill-opacity": ["case", selectedLine, 0.4, 0.25],
+      },
+    },
+    {
+      id: LAYER.markupAreaLine,
+      type: "line",
+      source: SOURCE.markup,
+      filter: ["==", ["get", "kind"], "area"],
+      paint: {
+        "line-color": ["case", ["==", ["get", "drawn"], "septic"], "#7a4f22", "#3d6e22"],
+        "line-width": ["case", selectedLine, 2.5, 1.5],
+        "line-dasharray": [3, 2],
       },
     },
     {

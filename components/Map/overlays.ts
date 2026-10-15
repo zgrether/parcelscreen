@@ -3,14 +3,15 @@
  * pieces, plus where the pieces' labels go. Pure, so the shapes are testable; the layers that draw them are in
  * style.ts, the labels are DOM markers (ParcelTools).
  */
-import { booleanPointInPolygon, centerOfMass, length, lineString, pointOnFeature } from "@turf/turf";
+import { area, booleanPointInPolygon, centerOfMass, length, lineString, pointOnFeature } from "@turf/turf";
 import type { Feature, FeatureCollection, MultiPolygon, Polygon } from "geojson";
 import type { LayerId, ParcelShapes } from "@/components/Explore/layers";
 import type { ParcelRecord } from "@/lib/geo/parcels";
 import type { CombineResult } from "@/lib/geo/combine";
 import { sideName, type Side, type SplitPieces } from "@/lib/geo/split";
-import { KIND_NAME, type Markup } from "@/lib/client/parcelStore";
-import { M2FT, type LatLon } from "@/lib/geo/types";
+import { KIND_NAME, type Markup, type PointMarkup } from "@/lib/client/parcelStore";
+import { M2FT, M2_PER_ACRE, type LatLon } from "@/lib/geo/types";
+import { areaPolygon } from "@/lib/report/marks";
 import { lineSummary } from "@/lib/report/lines";
 import type { DrawnLine } from "@/lib/screen/types";
 
@@ -42,6 +43,7 @@ export type LineHighlight = "selected" | "hover" | "none";
  * The drawn tracks and easements, each with its tooltip (34-2): its name (and its kind, when the name doesn't say it),
  * and its length and grades as the parcel's screen measured them (`measured`, by id), or its length alone before a
  * run grades it. The line selected in Layers is highlighted with its points; the one whose row is hovered, lightly.
+ * Area markers (WF4) come as polygons (`kind: "area"`), with their acres; point markers are DOM pins (ParcelTools).
  */
 export function markupData(
   markup: readonly Markup[],
@@ -49,7 +51,9 @@ export function markupData(
   selected: string | null = null,
   hovered: string | null = null,
 ): FeatureCollection {
-  const points: Feature[] = (markup.find((m) => m.id === selected)?.line ?? []).map((p) => ({
+  const sel = markup.find((m) => m.id === selected);
+  const corners = sel?.shape === "line" ? sel.line : sel?.shape === "area" ? sel.ring : [];
+  const points: Feature[] = corners.map((p) => ({
     type: "Feature",
     properties: { kind: "point" },
     geometry: { type: "Point", coordinates: xy(p) },
@@ -57,15 +61,29 @@ export function markupData(
   return {
     type: "FeatureCollection",
     features: markup
+      .filter((m): m is Exclude<Markup, PointMarkup> => m.shape !== "point")
       .map((m): Feature => {
+        const name = (kind: string) => (m.name.startsWith(kind) ? m.name : `${m.name} (${kind})`);
+        const hl: LineHighlight = m.id === selected ? "selected" : m.id === hovered ? "hover" : "none";
+        if (m.shape === "area") {
+          const geo = areaPolygon(m.ring);
+          const ac = (area(geo) / M2_PER_ACRE).toFixed(2);
+          return {
+            ...geo,
+            properties: {
+              kind: "area",
+              drawn: m.kind,
+              id: m.id,
+              tip: `${name(KIND_NAME[m.kind])}: ${ac} ac`,
+              hl,
+            },
+          };
+        }
         const coordinates = m.line.map(xy);
         const got = measured.find((l) => l.id === m.id);
         const summary = got
           ? lineSummary(got)
           : `${Math.round(length(lineString(coordinates), { units: "meters" }) * M2FT).toLocaleString()} ft`;
-        const kind = KIND_NAME[m.kind];
-        const name = m.name.startsWith(kind) ? m.name : `${m.name} (${kind})`;
-        const hl: LineHighlight = m.id === selected ? "selected" : m.id === hovered ? "hover" : "none";
         return {
           type: "Feature",
           // An existing drive is drawn as a track (style.ts filters on `kind`); `drawn` is what the user called it.
@@ -73,7 +91,7 @@ export function markupData(
             kind: m.kind === "drive" ? "track" : m.kind,
             drawn: m.kind,
             id: m.id,
-            tip: `${name}: ${summary}`,
+            tip: `${name(KIND_NAME[m.kind])}: ${summary}`,
             hl,
           },
           geometry: { type: "LineString", coordinates },

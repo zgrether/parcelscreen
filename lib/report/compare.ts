@@ -8,7 +8,7 @@ import { shortPrice } from "../client/askingPrice";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import type { ScreenResult } from "../screen/types";
 import { reportCard, type Card, type GateStatus, type Letter, type Person } from "./card";
-import type { LineNames } from "./lines";
+import type { Drawn } from "./marks";
 import type { PanelKey } from "./cardPanels";
 
 /** A History parcel as the table reads it: its name, asking price, and its latest kept screen. */
@@ -20,8 +20,8 @@ export interface CompareParcel {
   /** "ok" with a result; "rescreen" when its screen is from earlier rules or gone; "none" when never screened. */
   state: "ok" | "rescreen" | "none";
   result: ScreenResult | null;
-  /** Its names for its drawn lines (owner, 2026-10-14), for the card's sentences. */
-  lineNames?: LineNames;
+  /** Its names for its drawn lines (owner, 2026-10-14) and its markers (WF4), for the card. */
+  drawn?: Drawn;
 }
 
 /** Best or worst in its row, when the parcels differ there. */
@@ -99,7 +99,7 @@ export function compareTable(
   readyToBuild: number,
 ): CompareTable {
   const cards = parcels.map((p) =>
-    p.state === "ok" && p.result ? reportCard(p.result, person, p.lineNames) : null,
+    p.state === "ok" && p.result ? reportCard(p.result, person, p.drawn) : null,
   );
   const blank = (p: CompareParcel): Cell => ({
     text: p.state === "ok" ? "–" : NO_SCREEN[p.state],
@@ -198,7 +198,7 @@ export const DEFAULT_COLUMNS = 4;
  */
 export function defaultColumns(parcels: readonly CompareParcel[], person: Person): string[] {
   const contender = (p: CompareParcel) =>
-    p.state === "ok" && !!p.result && reportCard(p.result, person, p.lineNames).verdict === "Contender";
+    p.state === "ok" && !!p.result && reportCard(p.result, person, p.drawn).verdict === "Contender";
   const screenedAt = (p: CompareParcel) => (p.state === "ok" && p.result ? p.result.runAt : "");
   return [...parcels]
     .sort((a, b) => Number(contender(b)) - Number(contender(a)) || screenedAt(b).localeCompare(screenedAt(a)))

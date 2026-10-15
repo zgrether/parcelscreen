@@ -13,7 +13,7 @@ import type { WorkingParcel } from "@/lib/client/parcelStore";
 import { getPref } from "@/lib/client/prefs";
 import { needsRescreen, readScreen, RESCREENS_ON_OPEN } from "@/lib/client/screenStore";
 import { reportCard, type Card } from "@/lib/report/card";
-import { lineNamesOf } from "@/lib/report/lines";
+import { drawnOf } from "@/lib/report/marks";
 import { useExplore } from "./useExploreController";
 
 const when = (iso: string) =>
@@ -151,11 +151,14 @@ function useLatest(
   built: readonly WorkingParcel[],
 ): ReadonlyMap<string, { rescreen: boolean; card: Card | null }> {
   const [keys, setKeys] = useState<ReadonlyMap<string, { rescreen: boolean; card: Card | null }>>(new Map());
-  // With each entry's names for its drawn lines (owner, 2026-10-14): the card's sentences read a line by its name.
+  // With each entry's names for its drawn lines (owner, 2026-10-14): the card's sentences read a line by its name; and
+  // its markers (WF4), which the card reads too.
   const latest = built.flatMap((b) =>
-    b.key && b.screenIds.length ? [[b.key, b.screenIds.at(-1)!, lineNamesOf(b.markup)] as const] : [],
+    b.key && b.screenIds.length ? [[b.key, b.screenIds.at(-1)!, drawnOf(b.markup)] as const] : [],
   );
-  const sig = latest.map(([k, id, names]) => `${k}:${id}:${[...names].join(";")}`).join(",");
+  const sig = latest
+    .map(([k, id, d]) => `${k}:${id}:${[...d.names].join(";")}:${JSON.stringify(d.marks)}`)
+    .join(",");
   useEffect(() => {
     let alive = true;
     const person = getPref("ps.person");
