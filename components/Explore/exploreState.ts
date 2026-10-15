@@ -48,10 +48,14 @@ import {
  * "track" and "easement" draw a line with the parcel (follow-up 34), with the Draw tool's corners. "point" and "area"
  * mark something on it (WF4): a point with one tap, an area with corners; `markKind` says what.
  */
-export type Mode = "draw" | "house" | "split" | "combine" | "track" | "easement" | "point" | "area" | null;
+export type Mode =
+  "draw" | "house" | "split" | "combine" | "track" | "easement" | "drive" | "point" | "area" | null;
 
 /** The modes that place corners on the map. */
-export const DRAWING: readonly Mode[] = ["draw", "track", "easement", "area"];
+export const DRAWING: readonly Mode[] = ["draw", "track", "easement", "drive", "area"];
+
+/** The modes that draw a line: one per line kind (an existing drive since the Mark picker, owner after #136). */
+export const LINE_MODES: readonly Mode[] = ["track", "easement", "drive"];
 
 export interface SplitLine {
   a: LatLon;
@@ -169,7 +173,7 @@ export type ExploreAction =
   | { type: "restore"; serial: number; stamp: Stamp }
   | { type: "milestone"; which: Milestone; date: string | null; serial: number; stamp: Stamp }
   /** Follow-up 34: start a drawn line, finish it (at least two points) into the open parcel, edit or delete one. */
-  | { type: "startLine"; kind: "track" | "easement" }
+  | { type: "startLine"; kind: LineKind }
   | { type: "finishLine"; id: string; stamp: Stamp }
   | { type: "markupNote"; id: string; note: string; serial: number; stamp: Stamp }
   /** Owner, #127: a line's name; a blank one is ignored. */
@@ -470,7 +474,29 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
     case "finishArea": {
       if (!open || s.mode !== "area" || !s.markKind || !isAreaKind(s.markKind)) return s;
       const ring = cleanDraft(s.draft);
-      if (new Set(ring.map((p) => p.join())).size < 3) return s;
+      const distinct = new Set(ring.map((p) => p.join())).size;
+      // A septic permit (owner, after #136): one tap is the permit's point; three or more outline its field.
+      if (distinct === 1 && s.markKind === "septic" && !s.editing) {
+        const mark: Markup = {
+          id: a.id,
+          shape: "point",
+          kind: "septic",
+          name: nextMarkupName(open.markup, "septic"),
+          ll: ring[0]!,
+          septicClass: null,
+          note: "",
+          at: a.stamp.now,
+        };
+        return {
+          ...s,
+          ...NO_TOOL,
+          layer: lineLayer(a.id),
+          info: true,
+          mapPanel: false,
+          store: save({ ...open, markup: [...open.markup, mark] }, a.stamp),
+        };
+      }
+      if (distinct < 3) return s;
       if (s.editing && open.markup.some((m) => m.id === s.editing)) {
         const markup = open.markup.map((m) =>
           m.id === s.editing && m.shape === "area" ? { ...m, ring } : m,
@@ -512,7 +538,7 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       return { ...s, store: save({ ...open, markup }, a.stamp) };
     }
     case "finishLine": {
-      if (!open || (s.mode !== "track" && s.mode !== "easement")) return s;
+      if (!open || (s.mode !== "track" && s.mode !== "easement" && s.mode !== "drive")) return s;
       if (new Set(s.draft.map(roundLL).map((p) => p.join())).size < 2) return s;
       // A double-click to finish also taps twice: repeated points are dropped.
       const points = cleanDraft(s.draft);
@@ -560,7 +586,7 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       return {
         ...s,
         ...NO_TOOL,
-        mode: m.kind === "easement" ? "easement" : "track",
+        mode: m.kind,
         draft: m.line,
         editing: m.id,
         // The line tool needs the map: its details come back on Finish or Cancel.

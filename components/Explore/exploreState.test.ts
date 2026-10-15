@@ -924,3 +924,61 @@ describe("point and area markers (WF4)", () => {
     expect(card(deleted).reason).toBe(card(plain).reason);
   });
 });
+
+describe("the Mark picker's tools (owner, after #136)", () => {
+  const corners: LatLon[] = [
+    [36.6285, -81.3545],
+    [36.6285, -81.354],
+    [36.629, -81.354],
+  ];
+  const septic = (taps: LatLon[]) =>
+    run([
+      selectA(),
+      { type: "startMark", kind: "septic", shape: "area" },
+      ...taps.map((ll): ExploreAction => ({ type: "draftAdd", ll })),
+      { type: "finishArea", id: "p", stamp: at() },
+    ]);
+
+  it("a septic permit: one tap is its point; three or more its field; two aren't either", () => {
+    expect(septic(corners.slice(0, 1)).store.open!.markup).toEqual([
+      expect.objectContaining({
+        id: "p",
+        shape: "point",
+        kind: "septic",
+        name: "Septic permit 1",
+        ll: corners[0],
+      }),
+    ]);
+    expect(septic(corners).store.open!.markup).toEqual([
+      expect.objectContaining({
+        id: "p",
+        shape: "area",
+        kind: "septic",
+        name: "Septic permit 1",
+        ring: corners,
+      }),
+    ]);
+    const two = septic(corners.slice(0, 2));
+    expect(two.store.open!.markup).toEqual([]);
+    expect(two.mode).toBe("area");
+  });
+
+  it("an existing drive is drawn as its own kind", () => {
+    const s = run([
+      selectA(),
+      { type: "startLine", kind: "drive" },
+      { type: "draftAdd", ll: corners[0]! },
+      { type: "draftAdd", ll: corners[2]! },
+      { type: "finishLine", id: "d", stamp: at() },
+    ]);
+    expect(s.store.open!.markup[0]).toMatchObject({
+      shape: "line",
+      kind: "drive",
+      name: "Existing drive 1",
+      condition: "improved",
+      widthFt: 12,
+    });
+    // Its Edit redraws it as a drive.
+    expect(exploreReducer(s, { type: "editLine", id: "d" }).mode).toBe("drive");
+  });
+});

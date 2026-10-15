@@ -7,7 +7,13 @@
  * markers (WF4), which drag like the house.
  */
 import { bbox, booleanPointInPolygon, point } from "@turf/turf";
-import { Marker, type GeoJSONSource, type Map as MlMap, type MapMouseEvent } from "maplibre-gl";
+import {
+  Marker,
+  type GeoJSONSource,
+  type Map as MlMap,
+  type MapMouseEvent,
+  type MapTouchEvent,
+} from "maplibre-gl";
 import { useEffect, useMemo, useRef } from "react";
 import { snapCorner, type SnapRing } from "@/lib/geo/snap";
 import type { Side } from "@/lib/geo/split";
@@ -18,7 +24,10 @@ import { DRAWING } from "@/components/Explore/exploreState";
 import { layerLine, lineLayer } from "@/components/Explore/layers";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { KIND_NAME, type PointMarkup } from "@/lib/client/parcelStore";
-import type { PointKind } from "@/lib/report/marks";
+import { markIconSvg } from "./markIcons";
+
+/** A point marker's pin, px across: the kind's icon (owner, after #136). */
+const PIN_PX = 28;
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
 import { TIP_LAYERS, tipAt } from "./results/tooltip";
 import { installTiltRotate } from "./tiltRotate";
@@ -88,6 +97,11 @@ export function ParcelTools() {
   return null;
 }
 
+/** A press on the map this long opens the Mark picker on a phone, ms (as a name's long press, LongName). */
+const LONG_PRESS_MS = 500;
+/** How far a finger may move during it, px, before it's a pan instead. */
+const PRESS_SLOP_PX = 10;
+
 /** How near a tap must be to a drawn line to select it in Layers, in pixels. */
 const LINE_TAP_PX = 8;
 const MARKUP_LAYERS = [LAYER.markupTrack, LAYER.markupTrackHalo, LAYER.markupEasement, LAYER.markupAreaFill];
@@ -115,6 +129,8 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
     // As in the prototype: a double-click finishes a drawn boundary instead of zooming.
     map.doubleClickZoom.disable();
     const onClick = (e: MapMouseEvent) => {
+      // The tap that ended a long press opened the picker: it isn't a tap on the map too.
+      if (pressed) return void (pressed = false);
       const c = ref.current;
       const { mode, draft } = c.current();
       // Combining: each tap adds or removes the parcel under it (step 13b).
@@ -144,7 +160,7 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
           if (Math.hypot(p0.x - e.point.x, p0.y - e.point.y) < CLOSE_PX) return c.finishDraw();
         }
         c.addCorner(cornerAt(map, c, e));
-      } else if (mode === "track" || mode === "easement")
+      } else if (mode === "track" || mode === "easement" || mode === "drive")
         c.addCorner(cornerAt(map, c, e)); // follow-up 34
       else if (mode === "point")
         c.placePoint(toLL(e)); // WF4
@@ -152,7 +168,8 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
     };
     const onDblClick = (e: MapMouseEvent) => {
       const mode = ref.current.current().mode;
-      if (mode !== "draw" && mode !== "track" && mode !== "easement" && mode !== "area") return;
+      if (mode !== "draw" && mode !== "track" && mode !== "easement" && mode !== "drive" && mode !== "area")
+        return;
       e.preventDefault();
       if (mode === "draw") ref.current.finishDraw();
       else if (mode === "area") ref.current.finishArea();
@@ -169,10 +186,54 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
         c.cancelTool();
       }
       if (e.key === "Enter" && mode === "draw") c.finishDraw();
-      if (e.key === "Enter" && (mode === "track" || mode === "easement")) c.finishLine();
+      if (e.key === "Enter" && (mode === "track" || mode === "easement" || mode === "drive")) c.finishLine();
       if (e.key === "Enter" && mode === "area") c.finishArea();
       if (e.key === "Enter" && mode === "combine" && c.combined?.ok) c.applyCombination();
     };
+    // A long press on a phone, or a right-click on a desktop, opens the Mark picker there (owner, after #136): with a
+    // parcel open and no tool in use. The picker puts the mark, or a line's first point, where it was opened.
+    let press: { timer: number; x: number; y: number } | null = null;
+    let pressed = false;
+    const endPress = () => {
+      if (press) window.clearTimeout(press.timer);
+      press = null;
+    };
+    const pickerAt = (lngLat: { lat: number; lng: number }, x: number, y: number) => {
+      const c = ref.current;
+      const { mode, split, store } = c.current();
+      if (mode || split || !store.open) return false;
+      c.openPicker([lngLat.lat, lngLat.lng], { x, y });
+      return true;
+    };
+    const onTouchStart = (e: MapTouchEvent) => {
+      endPress();
+      pressed = false;
+      if (e.points.length !== 1) return;
+      const { lngLat, point } = e;
+      const box = map.getCanvas().getBoundingClientRect();
+      press = {
+        x: point.x,
+        y: point.y,
+        timer: window.setTimeout(() => {
+          press = null;
+          pressed = pickerAt(lngLat, box.left + point.x, box.top + point.y);
+        }, LONG_PRESS_MS),
+      };
+    };
+    const onTouchMove = (e: MapTouchEvent) => {
+      if (press && Math.hypot(e.point.x - press.x, e.point.y - press.y) > PRESS_SLOP_PX) endPress();
+    };
+    const onContextMenu = (e: MapMouseEvent) => {
+      e.preventDefault();
+      // A phone's own long-press menu event comes too: the timer already opened the picker.
+      if (pressed) return;
+      pickerAt(e.lngLat, e.originalEvent.clientX, e.originalEvent.clientY);
+    };
+    map.on("touchstart", onTouchStart);
+    map.on("touchmove", onTouchMove);
+    map.on("touchend", endPress);
+    map.on("touchcancel", endPress);
+    map.on("contextmenu", onContextMenu);
     map.on("click", onClick);
     map.on("dblclick", onDblClick);
     document.addEventListener("keydown", onKey);
@@ -183,6 +244,12 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
       return !!mode || !!split;
     });
     return () => {
+      endPress();
+      map.off("touchstart", onTouchStart);
+      map.off("touchmove", onTouchMove);
+      map.off("touchend", endPress);
+      map.off("touchcancel", endPress);
+      map.off("contextmenu", onContextMenu);
       map.off("click", onClick);
       map.off("dblclick", onDblClick);
       document.removeEventListener("keydown", onKey);
@@ -310,6 +377,7 @@ function useHouseMarker(map: MlMap | null, ctl: ExploreController) {
       return;
     }
     if (!marker.current) {
+      // The house keeps its bulls-eye: the report's prototype sentences name it so ("…or the bulls-eye on the map").
       const m = domMarker("bullseye", "Existing house — tap for its layer, drag to adjust");
       // A tap selects its layer (and opens the Info panel); the click that ends a drag doesn't.
       let dragged = false;
@@ -345,18 +413,6 @@ function useHouseMarker(map: MlMap | null, ctl: ExploreController) {
     [map],
   );
 }
-
-/** Each point marker's sign on the map (WF4); its name and kind are in its title. */
-const MARK_GLYPH: Record<PointKind, string> = {
-  spring: "💧",
-  well: "🪣",
-  septic: "🚽",
-  building: "🛖",
-  power: "⚡",
-  campsite: "⛺",
-  gate: "🚧",
-  note: "📍",
-};
 
 /**
  * The open parcel's point markers (WF4), as DOM pins: a tap selects one in the Layers tree, a drag moves it, as the
@@ -400,7 +456,7 @@ function usePointMarkers(map: MlMap | null, ctl: ExploreController) {
         pins.current.set(m.id, pin.setLngLat([m.ll[1], m.ll[0]]).addTo(map));
       } else pin.setLngLat([m.ll[1], m.ll[0]]);
       const el = pin.getElement();
-      el.textContent = MARK_GLYPH[m.kind];
+      el.innerHTML = markIconSvg(m.kind, PIN_PX);
       el.title = `${m.name} (${KIND_NAME[m.kind].toLowerCase()}): tap for its details, drag to move it`;
       el.setAttribute("aria-label", m.name);
     }

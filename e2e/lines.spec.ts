@@ -26,7 +26,13 @@ async function at(page: Page, dLat: number, dLon: number): Promise<{ x: number; 
 
 /** Draws a track across Ferney's middle: three points, Finish. */
 async function drawTrack(page: Page): Promise<void> {
-  await page.getByRole("button", { name: "Line", exact: true }).click();
+  // + Mark → Track (owner, after #136: the lines are in the Mark picker).
+  await page.getByRole("button", { name: "+ Mark", exact: true }).click();
+  await page
+    .getByRole("dialog", { name: "Mark on the parcel" })
+    .getByRole("group", { name: "Ways in" })
+    .getByRole("button", { name: "Track" })
+    .click();
   for (const d of [-0.0004, 0, 0.0004]) {
     const p = await at(page, d / 2, d);
     await page.mouse.click(p.x, p.y);

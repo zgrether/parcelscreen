@@ -12,6 +12,7 @@ import { area, difference, featureCollection, length, lineString } from "@turf/t
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { KIND_NAME, type LineMarkup, type Markup, type WorkingParcel } from "@/lib/client/parcelStore";
 import { areaPolygon } from "@/lib/report/marks";
+import type { MarkChoice } from "@/lib/client/markChoices";
 import type { CombineLimits } from "@/lib/geo/combine";
 import { memberLabel } from "@/lib/geo/combine";
 import { parcelFacts } from "@/lib/geo/parcels";
@@ -70,6 +71,8 @@ export interface LayerNode {
   hidden: boolean;
   /** Has a ×: what it does is deleteLayer's (take a part out, remove the cut, remove the house, delete a line). */
   deletable: boolean;
+  /** The kind's icon, for the house and what's drawn or marked (owner, after #136). */
+  icon?: MarkChoice;
   /** For a split piece: the one kept. */
   kept?: boolean;
   children: LayerNode[];
@@ -174,7 +177,15 @@ export function layerTree(p: WorkingParcel, derived: DerivedParcel, shapes: Parc
   if (p.house)
     children.push(
       node(
-        { id: "house", kind: "house", name: "Existing house", acres: null, hideable: true, deletable: true },
+        {
+          id: "house",
+          kind: "house",
+          name: "Existing house",
+          acres: null,
+          icon: "house",
+          hideable: true,
+          deletable: true,
+        },
         h,
       ),
     );
@@ -188,6 +199,7 @@ export function layerTree(p: WorkingParcel, derived: DerivedParcel, shapes: Parc
           name: m.name,
           acres: null,
           meta: markupMeta(m),
+          icon: m.kind,
           hideable: false,
           deletable: true,
         },
