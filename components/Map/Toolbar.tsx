@@ -2,19 +2,23 @@
 /**
  * The parcel toolbar on the map (13e): always one line.
  *   nothing open:  "Tap a parcel to select it or Draw a custom parcel" (no rule: the "or" separates them)
- *   a parcel open: "Add: Parcel · Custom · ⌂ │ Split │ 🗑   12.34 ac ▾" (the acres open the Info panel)
+ *   a parcel open: "Add: Parcel · Custom · ⌂ · Line · Mark │ Split │ 🗑   12.34 ac ▾" (the acres open the Info panel)
  *   a tool in use: what to do next, and its controls (Finish, Done, Keep…, Cancel)
  * The trash (built parcels only) asks inline before deleting. A tap refused because a built parcel is open
  * shows a brief note above the bar.
  */
 import { area, length, lineString, polygon } from "@turf/turf";
 import { useState, type ReactNode } from "react";
-import { isBuilt } from "@/lib/client/parcelStore";
+import { isBuilt, KIND_NAME } from "@/lib/client/parcelStore";
+import { AREA_KINDS, POINT_KINDS, type AreaKind } from "@/lib/report/marks";
 import { M2FT, M2_PER_ACRE } from "@/lib/geo/types";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 
 const ac = (n: number) => n.toFixed(2);
+
+/** An area marker's chip (WF4): a septic permit drawn as an area is its field. */
+const AREA_CHIP: Record<AreaKind, string> = { septic: "Septic field", clearing: "Clearing" };
 
 function Btn({
   kind = "tool",
@@ -191,6 +195,77 @@ function barBody(
       </>
     );
   }
+  if (mode === "point" || mode === "area") {
+    // WF4: first what's being marked, then where. The bar stays one line: the kinds scroll sideways on a phone.
+    const kind = ctl.state.markKind;
+    const n = draft.length;
+    if (!kind)
+      return (
+        <>
+          <span className="tb-seg tb-marks" role="group" aria-label="What you're marking">
+            {POINT_KINDS.map((k) => (
+              <button key={k} onClick={() => ctl.startMark(k, "point")}>
+                {KIND_NAME[k]}
+              </button>
+            ))}
+            {AREA_KINDS.map((k) => (
+              <button key={k} className="tb-area" onClick={() => ctl.startMark(k, "area")}>
+                {AREA_CHIP[k]}
+              </button>
+            ))}
+          </span>
+          {cancel}
+        </>
+      );
+    const word = mode === "area" ? AREA_CHIP[kind as AreaKind] : KIND_NAME[kind];
+    const acres =
+      mode === "area" && n >= 3
+        ? area(polygon([[...draft.map(([lat, lon]) => [lon, lat]), [draft[0]![1], draft[0]![0]]]])) /
+          M2_PER_ACRE
+        : null;
+    return (
+      <>
+        {/* The kind picked; tapped, the kinds again (not once an area has corners, or while one is moved). */}
+        <Btn
+          kind="quiet"
+          onClick={() => ctl.startMark(null, mode)}
+          disabled={n > 0 || !!ctl.state.editing}
+          label={`Marking: ${word}. Change it`}
+        >
+          {word} ▾
+        </Btn>
+        <Status>
+          {mode === "point" ? (
+            ctl.state.editing ? (
+              "Tap where it goes"
+            ) : (
+              "Tap where it is"
+            )
+          ) : n === 0 ? (
+            "Tap its corners"
+          ) : (
+            <>
+              <b>
+                {n} corner{n > 1 ? "s" : ""}
+              </b>
+              {acres !== null && <span className="sub"> · {ac(acres)} ac</span>}
+            </>
+          )}
+        </Status>
+        {mode === "area" && (
+          <>
+            <Btn kind="quiet" onClick={ctl.undoCorner} disabled={n === 0}>
+              Undo corner
+            </Btn>
+            <Btn kind="go" onClick={ctl.finishArea} disabled={n < 3}>
+              Finish
+            </Btn>
+          </>
+        )}
+        {cancel}
+      </>
+    );
+  }
   if (mode === "house")
     return (
       <>
@@ -314,6 +389,12 @@ function barBody(
         title="Draw an existing track, or an easement or right-of-way, known from a deed, plat, survey or visit"
       >
         Line
+      </Btn>
+      <Btn
+        onClick={() => ctl.startMark(null, "point")}
+        title="Mark a spring, a well, a septic permit, a building, power, a campsite, a gate or a note; or a septic field or a clearing as an area"
+      >
+        Mark
       </Btn>
       <Sep />
       <Btn onClick={ctl.startSplit} disabled={!ctl.parcel}>

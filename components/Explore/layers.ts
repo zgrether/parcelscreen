@@ -8,21 +8,22 @@
  * Analysis group after the house. Drawn lines come last (owner, #127): each by its name ("Track 2"), with its
  * condition and length where a part has its acres, and its details below the tree.
  */
-import { difference, featureCollection, length, lineString } from "@turf/turf";
+import { area, difference, featureCollection, length, lineString } from "@turf/turf";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
-import type { Markup, WorkingParcel } from "@/lib/client/parcelStore";
+import { KIND_NAME, type LineMarkup, type Markup, type WorkingParcel } from "@/lib/client/parcelStore";
+import { areaPolygon } from "@/lib/report/marks";
 import type { CombineLimits } from "@/lib/geo/combine";
 import { memberLabel } from "@/lib/geo/combine";
 import { parcelFacts } from "@/lib/geo/parcels";
 import { parcelDisplayName } from "@/lib/client/historyRows";
 import { deriveParcel, ownLand, splitPreview, type DerivedParcel } from "@/lib/geo/recipe";
 import { sideName, type Side, type SplitPieces } from "@/lib/geo/split";
-import { M2FT } from "@/lib/geo/types";
+import { M2FT, M2_PER_ACRE } from "@/lib/geo/types";
 
 export type LayerId =
   "parcel" | "parts" | `part:${number}` | "strip" | "split" | `piece:${Side}` | "house" | `line:${string}`;
 
-/** A drawn line's layer (owner, #127), and the line a layer names, if it is one. */
+/** A drawn line's layer (owner, #127), or a marker's (WF4), and the markup a layer names, if it is one. */
 export const lineLayer = (id: string): LayerId => `line:${id}`;
 export const layerLine = (id: LayerId | null): string | null =>
   id?.startsWith("line:") ? id.slice("line:".length) : null;
@@ -59,10 +60,10 @@ export function parcelShapes(p: WorkingParcel, limits: CombineLimits): ParcelSha
 
 export interface LayerNode {
   id: LayerId;
-  kind: "parcel" | "group" | "part" | "strip" | "split" | "piece" | "house" | "line";
+  kind: "parcel" | "group" | "part" | "strip" | "split" | "piece" | "house" | "line" | "mark";
   name: string;
   acres: number | null;
-  /** What shows in place of acres, for a drawn line: "pioneer · 849 ft". */
+  /** What shows in place of acres, for a drawn line ("pioneer · 849 ft") or a marker ("spring", "clearing · 0.42 ac"). */
   meta?: string;
   /** Has an eye: it can be hidden on the map. */
   hideable: boolean;
@@ -81,8 +82,16 @@ const node = (n: Omit<LayerNode, "hidden" | "children"> & { children?: LayerNode
 });
 
 /** A drawn line's length on the ground's plan, ft. */
-export const lineFt = (m: Pick<Markup, "line">): number =>
+export const lineFt = (m: Pick<LineMarkup, "line">): number =>
   length(lineString(m.line.map(([lat, lon]) => [lon, lat])), { units: "meters" }) * M2FT;
+
+/** A markup's line in the tree: a line's condition and length; a marker's kind, a permit's class, an area's acres. */
+function markupMeta(m: Markup): string {
+  if (m.shape === "line") return `${m.condition} · ${Math.round(lineFt(m)).toLocaleString("en-US")} ft`;
+  const what = [KIND_NAME[m.kind].toLowerCase(), ...(m.septicClass ? [m.septicClass] : [])];
+  if (m.shape === "area") what.push(`${(area(areaPolygon(m.ring)) / M2_PER_ACRE).toFixed(2)} ac`);
+  return what.join(" · ");
+}
 
 export function layerTree(p: WorkingParcel, derived: DerivedParcel, shapes: ParcelShapes): LayerNode {
   const h = p.hidden;
@@ -175,10 +184,10 @@ export function layerTree(p: WorkingParcel, derived: DerivedParcel, shapes: Parc
       node(
         {
           id: lineLayer(m.id),
-          kind: "line",
+          kind: m.shape === "line" ? "line" : "mark",
           name: m.name,
           acres: null,
-          meta: `${m.condition} · ${Math.round(lineFt(m)).toLocaleString("en-US")} ft`,
+          meta: markupMeta(m),
           hideable: false,
           deletable: true,
         },

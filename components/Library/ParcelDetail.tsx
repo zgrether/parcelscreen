@@ -22,7 +22,7 @@ import type { KeptScreen } from "@/lib/client/useKeptScreens";
 import { loadUserConfig } from "@/lib/client/userConfig";
 import { reportCard, type Person } from "@/lib/report/card";
 import type { PanelKey } from "@/lib/report/cardPanels";
-import { lineNamesOf } from "@/lib/report/lines";
+import { drawnOf } from "@/lib/report/marks";
 import { listingAcresNote } from "@/lib/report/listing";
 
 export function ParcelDetail({
@@ -49,8 +49,8 @@ export function ParcelDetail({
   const [confirming, setConfirming] = useState(false);
   const config = useMemo(() => loadUserConfig(), []);
   const result = kept?.state === "ok" ? kept.result : null;
-  const names = lineNamesOf(parcel.markup);
-  const card = result ? reportCard(result, person, names) : null;
+  const drawn = drawnOf(parcel.markup);
+  const card = result ? reportCard(result, person, drawn) : null;
   const acresNote = listingAcresNote(parcel.listingAcres, acres);
   // The name it has until one is typed, and "Add a name": the Name box, unfolded and focused.
   const derivedName = parcelName({ ...parcel, name: "" }).name;
@@ -142,7 +142,7 @@ export function ParcelDetail({
             point={evaluationPoint(result)}
             dw={config.dw}
             about={name}
-            lineNames={names}
+            lineNames={drawn.names}
             onClose={() => setPanel(null)}
           />
         </div>

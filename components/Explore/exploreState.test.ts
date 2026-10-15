@@ -11,6 +11,9 @@ import {
   type Stamp,
 } from "./exploreState";
 import { lineLayer } from "./layers";
+import { reportCard } from "@/lib/report/card";
+import { drawnOf } from "@/lib/report/marks";
+import { expectedOf } from "@/test/support/expected";
 
 const run = (actions: ExploreAction[], from: ExploreState = INITIAL) => actions.reduce(exploreReducer, from);
 let n = 0;
@@ -750,5 +753,174 @@ describe("a drawn line's layer, kind, condition, width, path and undo (owner, A;
     expect(
       exploreReducer(gone, { type: "markupRestore", markup: m, index: 0, serial: s.serial + 1, stamp: at() }),
     ).toBe(gone);
+  });
+});
+
+describe("point and area markers (WF4)", () => {
+  const spot: LatLon = [36.629, -81.354];
+  const corners: LatLon[] = [
+    [36.6285, -81.3545],
+    [36.6285, -81.354],
+    [36.629, -81.354],
+  ];
+  const withSpring = () =>
+    run([
+      selectA(),
+      { type: "startMark", kind: null, shape: "point" },
+      { type: "startMark", kind: "spring", shape: "point" },
+      { type: "placePoint", id: "s", ll: spot, stamp: at() },
+    ]);
+
+  it("a point: the kind first, then one tap; named per kind, its details open, the tool done", () => {
+    // No kind yet: a tap places nothing.
+    const none = run([selectA(), { type: "startMark", kind: null, shape: "point" }]);
+    expect(exploreReducer(none, { type: "placePoint", id: "x", ll: spot, stamp: at() })).toBe(none);
+    const s = withSpring();
+    expect(s.store.open!.markup).toEqual([
+      expect.objectContaining({
+        id: "s",
+        shape: "point",
+        kind: "spring",
+        name: "Spring 1",
+        ll: spot,
+        septicClass: null,
+      }),
+    ]);
+    expect([s.mode, s.markKind, s.layer, s.info]).toEqual([null, null, lineLayer("s"), true]);
+    // Built, so kept in History.
+    expect(s.store.built[0]!.markup).toHaveLength(1);
+  });
+
+  it("an area: three corners or more, then Finish; redrawn, it keeps its name and note", () => {
+    const start = run([selectA(), { type: "startMark", kind: "clearing", shape: "area" }]);
+    expect(start.mode).toBe("area");
+    const two = run(
+      corners.slice(0, 2).map((ll): ExploreAction => ({ type: "draftAdd", ll })),
+      start,
+    );
+    expect(exploreReducer(two, { type: "finishArea", id: "c", stamp: at() })).toBe(two);
+    const s = run(
+      [
+        { type: "draftAdd", ll: corners[2]! },
+        { type: "finishArea", id: "c", stamp: at() },
+      ],
+      two,
+    );
+    expect(s.store.open!.markup[0]).toMatchObject({
+      shape: "area",
+      kind: "clearing",
+      name: "Clearing 1",
+      ring: corners,
+    });
+    const noted = exploreReducer(s, {
+      type: "markupNote",
+      id: "c",
+      note: "cut in 2019",
+      serial: s.serial,
+      stamp: at(),
+    });
+    const redrawing = exploreReducer(noted, { type: "editLine", id: "c" });
+    expect([redrawing.mode, redrawing.markKind, redrawing.draft, redrawing.editing]).toEqual([
+      "area",
+      "clearing",
+      corners,
+      "c",
+    ]);
+    const bigger: LatLon = [36.629, -81.3545];
+    const redrawn = run(
+      [
+        { type: "draftAdd", ll: bigger },
+        { type: "finishArea", id: "unused", stamp: at() },
+      ],
+      redrawing,
+    );
+    expect(redrawn.store.open!.markup).toEqual([
+      expect.objectContaining({
+        id: "c",
+        name: "Clearing 1",
+        note: "cut in 2019",
+        ring: [...corners, bigger],
+      }),
+    ]);
+  });
+
+  it("a point moves by a drag, or by Move it and a tap", () => {
+    const s = withSpring();
+    const to: LatLon = [36.6292, -81.3538];
+    const dragged = exploreReducer(s, { type: "movePoint", id: "s", ll: to, serial: s.serial, stamp: at() });
+    expect(dragged.store.open!.markup[0]).toMatchObject({ ll: to });
+    // A drag for a parcel no longer open is dropped.
+    expect(exploreReducer(s, { type: "movePoint", id: "s", ll: to, serial: s.serial + 1, stamp: at() })).toBe(
+      s,
+    );
+    const moving = exploreReducer(s, { type: "editLine", id: "s" });
+    expect([moving.mode, moving.markKind, moving.editing]).toEqual(["point", "spring", "s"]);
+    const moved = exploreReducer(moving, { type: "placePoint", id: "unused", ll: to, stamp: at() });
+    expect(moved.store.open!.markup).toEqual([
+      expect.objectContaining({ id: "s", name: "Spring 1", ll: to }),
+    ]);
+  });
+
+  it("another kind of its shape (the default name follows); a class on a septic permit only, optional", () => {
+    const s = withSpring();
+    const kind = (st: ExploreState, k: "septic" | "clearing" | "track" | "well") =>
+      exploreReducer(st, { type: "markupKind", id: "s", kind: k, serial: st.serial, stamp: at() });
+    const septicClass = (st: ExploreState, c: "conventional" | null) =>
+      exploreReducer(st, { type: "markupSeptic", id: "s", septicClass: c, serial: st.serial, stamp: at() });
+    // A spring isn't a permit: no class.
+    expect(septicClass(s, "conventional")).toBe(s);
+    const permit = septicClass(kind(s, "septic"), "conventional");
+    expect(permit.store.open!.markup[0]).toMatchObject({
+      kind: "septic",
+      name: "Septic permit 1",
+      septicClass: "conventional",
+    });
+    expect(septicClass(permit, null).store.open!.markup[0]).toMatchObject({ septicClass: null });
+    // A point can't become an area's kind or a line's; another point kind drops the class.
+    expect(kind(permit, "clearing")).toBe(permit);
+    expect(kind(permit, "track")).toBe(permit);
+    expect(kind(permit, "well").store.open!.markup[0]).toMatchObject({
+      kind: "well",
+      name: "Well 1",
+      septicClass: null,
+    });
+  });
+
+  it("deleting a septic permit brings back the Septic warn and its 'Check first' line (owner, WF4 review)", () => {
+    // Ferney, its road in taken as its own drive (as card.test's ferney()), with every soil very limited: the septic
+    // warn is the card's only warn, so its reason line quotes it.
+    const r = structuredClone(expectedOf("ferney-creek-52-47A", "run"));
+    const d = r.driveway!;
+    const e = d.entrances[d.routes[0]!.entranceIndex]!;
+    e.roadClass = { ...e.roadClass!, osm: { ...e.roadClass!.osm!, outsideFt: 0 } };
+    for (const rt of d.routes) rt.metrics.privateFt = 0;
+    r.soils = r.soils!.map((x) => ({ ...x, septic: "Very limited" }));
+    const CHECK_FIRST =
+      "Check first: no soil on the parcel rates better than very limited for a septic field";
+    const card = (st: ExploreState) => reportCard(r, "zach", drawnOf(st.store.open!.markup));
+    const septic = (st: ExploreState) => card(st).gates.find((g) => g.key === "septic")!;
+
+    const plain = run([selectA()]);
+    expect(septic(plain).status).toBe("warn");
+    expect(card(plain).reason).toContain(CHECK_FIRST);
+
+    const marked = run(
+      [
+        { type: "startMark", kind: "septic", shape: "point" },
+        { type: "placePoint", id: "p", ll: r.sites![0]!.ll, stamp: at() },
+      ],
+      plain,
+    );
+    expect(septic(marked).status).toBe("pass");
+    expect(card(marked).reason).not.toContain(CHECK_FIRST);
+
+    const deleted = exploreReducer(marked, {
+      type: "markupDelete",
+      id: "p",
+      serial: marked.serial,
+      stamp: at(),
+    });
+    expect(septic(deleted)).toEqual(septic(plain));
+    expect(card(deleted).reason).toBe(card(plain).reason);
   });
 });

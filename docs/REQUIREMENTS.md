@@ -227,7 +227,9 @@ already converts 13d's `ps.current`, which had no `v` field at the parcel level)
       "archived": { "reason": "Sold", "at": "2026-10-14T12:00:00.000Z", "from": "saved" },  // or null; Restore → from
       "milestones": { "walked": "2026-10-01", "offered": null },               // calendar dates, or null
       "rank": "V",                   // WF3: its place in My order, a fractional index (lib/client/myOrder.ts)
-      "markup": [ /* drawn lines (follow-up 34, #127): { id, name, kind, condition, line, widthFt, note, at } */ ],
+      "markup": [ /* drawn lines (follow-up 34, #127): { id, name, shape: "line", kind, condition, line, widthFt, note, at };
+                    WF4's point markers { id, name, shape: "point", kind, ll, septicClass, note, at } and area markers
+                    { id, name, shape: "area", kind, ring, septicClass, note, at } */ ],
       "hidden": ["an:horizon"],      // layer ids hidden on the map
       "excluded": ["an:site2"],      // results removed from the analysis
       "screenIds": [],               // screens run on it (step 14 fills this in; `screens.id` in Phase 1)
@@ -248,13 +250,19 @@ already converts 13d's `ps.current`, which had no `v` field at the parcel level)
 - **My order** (WF3, `docs/plans/parcel-workflow.md` §5): `rank` is a string that sorts between its neighbours, so
   a move writes one parcel. A parcel gets one when it's built, at the bottom. A parcel stored before WF3 has none
   (or a malformed one) and gets one the first time the store is read, at the bottom, in History's order.
+- **Markers** (WF4, `docs/plans/parcel-workflow.md` §3.1–3.2): a point (`ll`, [lat, lon]) marks a spring, a well, a
+  septic permit, a building, power, a campsite, a gate or a note; an area (`ring`, three corners or more, not closed)
+  marks a septic permit's field or a clearing. Each has a name numbered per kind ("Spring 1"), a note, and a septic
+  permit's class as typed (`septicClass`: conventional, modified, alternative, or null). Only lines reach the screen;
+  the card reads the markers when it's drawn. A line kept before WF4 has no `shape`, and loads as a line; a marker
+  needs no new `v`.
 - **Import (Phase 1), one `parcels` row per built parcel:**
   - `recipe` = `{ pieces, split, house, hidden, excluded }`, as stored;
   - `notes` = `notes`;
   - `name` = `name` when it isn't blank (else the derived name, or the prototype's "Name:" line, below);
     `listing_url`, `listing_acres` and `agent` as stored (WF1, `docs/plans/parcel-workflow.md` §2); the asking
-    price becomes a `price_events` row (`listed`, source `me`, dated `askingPriceAt`); each drawn line a
-    `markers` row;
+    price becomes a `price_events` row (`listed`, source `me`, dated `askingPriceAt`); each drawn line, and each
+    point or area marker (WF4), a `markers` row with its geometry;
   - `status` as stored, `archived_reason` from `archived.reason`, the milestones as `walked_at` and `offered_at`
     (WF2, `docs/plans/parcel-workflow.md` §4); the archive, and each milestone set, also become `status_events`;
   - `list_rank` = `rank` (WF3: My order, one per household);
@@ -273,7 +281,7 @@ Phase 1 imports it into Supabase the same way as the `ps.parcels` store. It's ve
 ```jsonc
 {
   "format": "parcelscreen-export",
-  "version": 3,
+  "version": 4,
   "exportedAt": "2026-10-07T15:00:00.000Z",
   "cfg": { /* UserConfig (lib/screen/types.ts), as stored in ps.cfg */ },
   "parcels": { "v": 2, "open": null, "built": [ /* the ps.parcels store above, written in My order */ ] },
@@ -281,6 +289,10 @@ Phase 1 imports it into Supabase the same way as the `ps.parcels` store. It's ve
 }
 ```
 
+- **Version 4** (owner, WF4): a parcel's `markup` holds point and area markers besides its lines (below), each entry
+  with its `shape`. A version 3 file still imports: `fromV3` (`lib/client/exportFile.ts`) gives each of its lines
+  `shape: "line"` (version 2 and 1 files go through their converters first). This app reads versions 1 to 4; an older
+  app can't read version 4.
 - **Version 3** (owner, #135): each parcel's `rank` (My order, WF3) is written, and `built` is written in My order,
   so a backup restored into an empty browser keeps the ranking. A version 2 file still imports: `fromV2`
   (`lib/client/exportFile.ts`) keeps each rank it has, and appends every parcel without one at the bottom, in the

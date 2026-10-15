@@ -137,7 +137,7 @@ describe("the red-gate drive on Grayson 6273, drawn as an easement", () => {
     // Up to the line's length and grades: " (872 ft · …".
     const named = (text: string) => text.replace(/ \(\d[\d,]* ft.*$/, "");
     const said = (names: LineNames) => {
-      const card = reportCard(r, "zach", names);
+      const card = reportCard(r, "zach", { names, marks: [] });
       const v = drivewayView(r, names)!;
       return {
         access: card.gates.find((g) => g.key === "access")!.reason,

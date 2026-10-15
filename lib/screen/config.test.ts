@@ -190,6 +190,10 @@ describe("config", () => {
             0.5,
           ],
           "listingAcresPct": 10,
+          "marks": {
+            "permitFarFt": 200,
+            "springNearFt": 300,
+          },
           "points": {
             "A": 4,
             "B": 3,

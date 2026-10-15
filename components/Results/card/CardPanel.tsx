@@ -9,7 +9,7 @@ import { length, lineString } from "@turf/turf";
 import Link from "next/link";
 import { useEffect, useRef, type ReactNode } from "react";
 import { useHelp } from "@/components/Help/HelpDialog";
-import { KIND_NAME, type Markup } from "@/lib/client/parcelStore";
+import { KIND_NAME, type LineMarkup } from "@/lib/client/parcelStore";
 import { fmt } from "@/lib/format";
 import { digCost, foundationAt, soilUnder } from "@/lib/report/derived";
 import { DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "@/lib/screen/config";
@@ -294,9 +294,9 @@ function PanelFlags({ flags }: { flags: NonNullable<ScreenResult["flags"]> }) {
   );
 }
 
-/** The parcel's drawn lines, with what can be done to each (owner, A). */
+/** The parcel's drawn lines, with what can be done to each (owner, A). Its markers (WF4) aren't lines: not listed. */
 export interface YourLines {
-  markup: readonly Markup[];
+  markup: readonly LineMarkup[];
   onEdit(id: string): void;
   onDelete(id: string): void;
 }

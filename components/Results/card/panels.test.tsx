@@ -10,7 +10,7 @@ import { reportCard } from "@/lib/report/card";
 import { panelText } from "@/lib/report/cardPanels";
 import { evaluationPoint } from "../blocks/types";
 import { REPORT } from "../report";
-import type { Markup } from "@/lib/client/parcelStore";
+import type { LineMarkup } from "@/lib/client/parcelStore";
 import { CardPanel, FROM_THE_REPORT_NOTE, WAITING_FOR_THE_DRIVEWAY } from "./CardPanel";
 import { PANEL_KEYS, panelSections } from "./panelBlocks";
 
@@ -76,9 +76,10 @@ describe("the report card's panels (VR5)", () => {
 
   it("Your lines: each line by its name; waiting while a run routes the driveway (owner, #127)", () => {
     const result = expectedOf("grayson-mud-creek-6273", "run");
-    const line: Markup = {
+    const line: LineMarkup = {
       id: "t",
       name: "Track 2",
+      shape: "line" as const,
       kind: "track",
       condition: "pioneer",
       line: [

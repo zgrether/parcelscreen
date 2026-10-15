@@ -93,6 +93,7 @@ describe("layerTree", () => {
     const line = (id: string, kind: "track" | "easement" | "drive", name: string) => ({
       id,
       name,
+      shape: "line" as const,
       kind,
       condition: "pioneer" as const,
       line: [ll(10, 10), ll(50, 50)],
@@ -122,6 +123,53 @@ describe("layerTree", () => {
     expect(findLayer(t, lineLayer("c"))?.meta).toBe("pioneer · 186 ft");
     expect(findLayer(t, lineLayer("c"))?.kind).toBe("line");
     expect([layerLine(lineLayer("c")), layerLine("house"), layerLine(null)]).toEqual(["c", null, null]);
+  });
+
+  it("markers come with the lines (WF4): what each is, a permit's class, an area's acres", () => {
+    const t = tree(
+      working({
+        markup: [
+          {
+            id: "s",
+            name: "Upper spring",
+            shape: "point",
+            kind: "spring",
+            ll: ll(10, 10),
+            septicClass: null,
+            note: "",
+            at: NOW,
+          },
+          {
+            id: "p",
+            name: "Septic permit 1",
+            shape: "point",
+            kind: "septic",
+            ll: ll(20, 20),
+            septicClass: "modified",
+            note: "",
+            at: NOW,
+          },
+          // 40 m by 40 m: 0.40 ac.
+          {
+            id: "c",
+            name: "Clearing 1",
+            shape: "area",
+            kind: "clearing",
+            ring: [ll(0, 0), ll(40, 0), ll(40, 40), ll(0, 40)],
+            septicClass: null,
+            note: "",
+            at: NOW,
+          },
+        ],
+      }),
+    );
+    expect(outline(t).slice(-3)).toEqual(["  Upper spring (×)", "  Septic permit 1 (×)", "  Clearing 1 (×)"]);
+    expect([findLayer(t, lineLayer("s"))?.kind, findLayer(t, lineLayer("s"))?.meta]).toEqual([
+      "mark",
+      "spring",
+    ]);
+    expect(findLayer(t, lineLayer("p"))?.meta).toBe("septic permit · modified");
+    expect(findLayer(t, lineLayer("c"))?.meta).toBe("clearing · 0.40 ac");
   });
 
   it("marks hidden layers", () => {

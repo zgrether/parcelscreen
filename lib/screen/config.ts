@@ -550,6 +550,9 @@ export const SCREEN_CONSTANTS = deepFreeze({
     },
     // WF1 (owner, #128): the card says so when the listing's acres differ from the boundary's by more than this.
     listingAcresPct: 10,
+    // WF4 (owner, #128): the markers the card reads. A septic permit farther than this from the build site covers
+    // another spot; a spring within this of the garden is noted on its row.
+    marks: { permitFarFt: 200, springNearFt: 300 },
   },
   // Derived for the card and Stage 3 (value-ranking.md §5.1–5.3; VR3b): proposals, calibrated in follow-up 47.
   foundationType: { shallowRockCm: 50 }, // bedrock shallower than this moves the type one step toward piers

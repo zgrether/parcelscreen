@@ -3,7 +3,8 @@
  * The parcel tools on the map (proto L561–707, 13e): taps per tool mode, selecting and unselecting parcels,
  * the draw keys, snapping drawn corners to the open parcel, and the overlays: the selected parcel, saved
  * parcels and their labels, the layer selected in the Info panel, the draft, the split pieces and their
- * labels, and the house and split-end markers (DOM markers, as CLAUDE.md asks, not canvas sprites).
+ * labels, and the house and split-end markers (DOM markers, as CLAUDE.md asks, not canvas sprites), and the point
+ * markers (WF4), which drag like the house.
  */
 import { bbox, booleanPointInPolygon, point } from "@turf/turf";
 import { Marker, type GeoJSONSource, type Map as MlMap, type MapMouseEvent } from "maplibre-gl";
@@ -16,6 +17,8 @@ import { LINES_MIN_ZOOM } from "@/lib/geo/parcelTiles";
 import { DRAWING } from "@/components/Explore/exploreState";
 import { layerLine, lineLayer } from "@/components/Explore/layers";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
+import { KIND_NAME, type PointMarkup } from "@/lib/client/parcelStore";
+import type { PointKind } from "@/lib/report/marks";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
 import { TIP_LAYERS, tipAt } from "./results/tooltip";
 import { installTiltRotate } from "./tiltRotate";
@@ -32,9 +35,10 @@ import {
 import { LAYER, SOURCE } from "./style";
 import { outlineAt, parcelServiceDown } from "./useParcelLines";
 
-// A drawn line's tooltip: what it is, its length and grades (34-2).
+// A drawn line's tooltip: what it is, its length and grades (34-2); an area marker's, its acres (WF4).
 TIP_LAYERS.add(LAYER.markupEasement);
 TIP_LAYERS.add(LAYER.markupTrack);
+TIP_LAYERS.add(LAYER.markupAreaFill);
 
 /** The saved parcel under a screen point, by its History key. */
 function savedAt(map: MlMap, p: { x: number; y: number }): string | null {
@@ -76,6 +80,7 @@ export function ParcelTools() {
   useMapTaps(map, ctl);
   useOverlays(map, ctl);
   useHouseMarker(map, ctl);
+  usePointMarkers(map, ctl);
   useSplitMarkers(map, ctl);
   usePieceLabels(map, ctl);
   useSnapIndicator(map, ctl);
@@ -85,9 +90,9 @@ export function ParcelTools() {
 
 /** How near a tap must be to a drawn line to select it in Layers, in pixels. */
 const LINE_TAP_PX = 8;
-const MARKUP_LAYERS = [LAYER.markupTrack, LAYER.markupTrackHalo, LAYER.markupEasement];
+const MARKUP_LAYERS = [LAYER.markupTrack, LAYER.markupTrackHalo, LAYER.markupEasement, LAYER.markupAreaFill];
 
-/** The drawn line under a tap, by id (owner, A), or null. */
+/** The drawn line, or area marker (WF4), under a tap, by id (owner, A), or null. */
 function markupAt(map: MlMap, p: { x: number; y: number }): string | null {
   const layers = MARKUP_LAYERS.filter((id) => map.getLayer(id));
   if (!layers.length) return null;
@@ -139,13 +144,18 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
           if (Math.hypot(p0.x - e.point.x, p0.y - e.point.y) < CLOSE_PX) return c.finishDraw();
         }
         c.addCorner(cornerAt(map, c, e));
-      } else if (mode === "track" || mode === "easement") c.addCorner(cornerAt(map, c, e)); // follow-up 34
+      } else if (mode === "track" || mode === "easement")
+        c.addCorner(cornerAt(map, c, e)); // follow-up 34
+      else if (mode === "point")
+        c.placePoint(toLL(e)); // WF4
+      else if (mode === "area") c.addCorner(cornerAt(map, c, e));
     };
     const onDblClick = (e: MapMouseEvent) => {
       const mode = ref.current.current().mode;
-      if (mode !== "draw" && mode !== "track" && mode !== "easement") return;
+      if (mode !== "draw" && mode !== "track" && mode !== "easement" && mode !== "area") return;
       e.preventDefault();
       if (mode === "draw") ref.current.finishDraw();
+      else if (mode === "area") ref.current.finishArea();
       else ref.current.finishLine();
     };
     const onKey = (e: KeyboardEvent) => {
@@ -160,6 +170,7 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
       }
       if (e.key === "Enter" && mode === "draw") c.finishDraw();
       if (e.key === "Enter" && (mode === "track" || mode === "easement")) c.finishLine();
+      if (e.key === "Enter" && mode === "area") c.finishArea();
       if (e.key === "Enter" && mode === "combine" && c.combined?.ok) c.applyCombination();
     };
     map.on("click", onClick);
@@ -330,6 +341,79 @@ function useHouseMarker(map: MlMap | null, ctl: ExploreController) {
     () => () => {
       marker.current?.remove();
       marker.current = null;
+    },
+    [map],
+  );
+}
+
+/** Each point marker's sign on the map (WF4); its name and kind are in its title. */
+const MARK_GLYPH: Record<PointKind, string> = {
+  spring: "💧",
+  well: "🪣",
+  septic: "🚽",
+  building: "🛖",
+  power: "⚡",
+  campsite: "⛺",
+  gate: "🚧",
+  note: "📍",
+};
+
+/**
+ * The open parcel's point markers (WF4), as DOM pins: a tap selects one in the Layers tree, a drag moves it, as the
+ * house's bulls-eye does. One pin per marker, kept by id, so a pin being dragged isn't rebuilt under the finger.
+ */
+function usePointMarkers(map: MlMap | null, ctl: ExploreController) {
+  const ref = useRef(ctl);
+  useEffect(() => {
+    ref.current = ctl;
+  });
+  const pins = useRef(new Map<string, Marker>());
+  const open = ctl.state.store.open;
+  const points = useMemo(
+    () => (open?.markup ?? []).filter((m): m is PointMarkup => m.shape === "point"),
+    [open?.markup],
+  );
+  const selected = layerLine(ctl.state.layer);
+
+  useEffect(() => {
+    if (!map) return;
+    const keep = new Set(points.map((m) => m.id));
+    for (const [id, pin] of pins.current)
+      if (!keep.has(id)) {
+        pin.remove();
+        pins.current.delete(id);
+      }
+    for (const m of points) {
+      let pin = pins.current.get(m.id);
+      if (!pin) {
+        pin = domMarker("mark-pin", "");
+        let dragged = false;
+        pin.on("dragstart", () => (dragged = true));
+        pin.on("dragend", () => {
+          const p = pin!.getLngLat();
+          ref.current.movePoint(m.id, [p.lat, p.lng], ref.current.state.serial);
+        });
+        pin.getElement().addEventListener("click", () => {
+          if (!dragged) ref.current.selectLayer(lineLayer(m.id));
+          dragged = false;
+        });
+        pins.current.set(m.id, pin.setLngLat([m.ll[1], m.ll[0]]).addTo(map));
+      } else pin.setLngLat([m.ll[1], m.ll[0]]);
+      const el = pin.getElement();
+      el.textContent = MARK_GLYPH[m.kind];
+      el.title = `${m.name} (${KIND_NAME[m.kind].toLowerCase()}): tap for its details, drag to move it`;
+      el.setAttribute("aria-label", m.name);
+    }
+  }, [map, points]);
+
+  useEffect(() => {
+    for (const [id, pin] of pins.current) pin.getElement().classList.toggle("selected", id === selected);
+  }, [points, selected]);
+
+  useEffect(
+    () => () => {
+      for (const pin of pins.current.values()) pin.remove();
+      pins.current.clear();
     },
     [map],
   );

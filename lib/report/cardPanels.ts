@@ -102,7 +102,7 @@ export function panelText(
         title: "Septic",
         question: "Will the ground take a septic field?",
         howScored:
-          "Warns when no soil on the parcel rates better than very limited; never fails, because a soil evaluation on the spot decides.",
+          "Warns when no soil on the parcel rates better than very limited; never fails, because a soil evaluation on the spot decides. A septic permit you mark passes it, with a reminder to get a copy.",
       };
     case "elevation":
       return {

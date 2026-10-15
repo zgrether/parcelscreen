@@ -11,7 +11,7 @@ import {
   DEFAULT_CONDITION,
   DEFAULT_WIDTH_FT,
   isDefaultName,
-  nextLineName,
+  nextMarkupName,
   EMPTY_STORE,
   openBuilt,
   plainParcel,
@@ -20,6 +20,8 @@ import {
   type ListingField,
   type ActiveStatus,
   type Milestone,
+  type LineKind,
+  type LineMarkup,
   type Markup,
   type MarkupKind,
   type ParcelStore,
@@ -33,12 +35,23 @@ import type { LatLon } from "@/lib/geo/types";
 import { lineLayer, type LayerId } from "./layers";
 import { withArchive, withMilestone, withRestore, withStatus } from "@/lib/client/parcelStatus";
 import { withAskingPrice, withListing, withNotes } from "@/lib/client/parcelEdits";
+import {
+  AREA_KINDS,
+  POINT_KINDS,
+  type AreaKind,
+  type MarkKind,
+  type PointKind,
+  type SepticClass,
+} from "@/lib/report/marks";
 
-/** "track" and "easement" draw a line with the parcel (follow-up 34), with the Draw tool's corners. */
-export type Mode = "draw" | "house" | "split" | "combine" | "track" | "easement" | null;
+/**
+ * "track" and "easement" draw a line with the parcel (follow-up 34), with the Draw tool's corners. "point" and "area"
+ * mark something on it (WF4): a point with one tap, an area with corners; `markKind` says what.
+ */
+export type Mode = "draw" | "house" | "split" | "combine" | "track" | "easement" | "point" | "area" | null;
 
 /** The modes that place corners on the map. */
-export const DRAWING: readonly Mode[] = ["draw", "track", "easement"];
+export const DRAWING: readonly Mode[] = ["draw", "track", "easement", "area"];
 
 export interface SplitLine {
   a: LatLon;
@@ -68,8 +81,13 @@ export interface ExploreState {
    * doesn't remount the box being typed in.
    */
   serial: number;
-  /** The drawn line whose path is being redrawn (owner, A): Finish replaces it, keeping what else it holds. */
+  /**
+   * The drawn line whose path is being redrawn (owner, A), or the area (WF4): Finish replaces it, keeping what else it
+   * holds. For a point, the next tap moves it.
+   */
   editing: string | null;
+  /** What the Mark tool marks next (WF4); null until a kind is picked. */
+  markKind: MarkKind | null;
 }
 
 export const INITIAL: ExploreState = {
@@ -83,6 +101,7 @@ export const INITIAL: ExploreState = {
   layer: null,
   serial: 0,
   editing: null,
+  markKind: null,
 };
 
 /** The time and a fresh key for a change that may save a parcel (the reducer stays pure). */
@@ -161,6 +180,15 @@ export type ExploreAction =
   | { type: "markupKind"; id: string; kind: MarkupKind; serial: number; stamp: Stamp }
   | { type: "markupCondition"; id: string; condition: LineCondition; serial: number; stamp: Stamp }
   | { type: "editLine"; id: string }
+  /**
+   * WF4: the Mark tool with a kind (a point, or an area's corners); a point placed (or the one being moved, moved);
+   * an area finished (at least three corners); a point dragged; a septic permit's class.
+   */
+  | { type: "startMark"; kind: MarkKind | null; shape: "point" | "area" }
+  | { type: "placePoint"; id: string; ll: LatLon; stamp: Stamp }
+  | { type: "finishArea"; id: string; stamp: Stamp }
+  | { type: "movePoint"; id: string; ll: LatLon; serial: number; stamp: Stamp }
+  | { type: "markupSeptic"; id: string; septicClass: SepticClass | null; serial: number; stamp: Stamp }
   | { type: "markupRestore"; markup: Markup; index: number; serial: number; stamp: Stamp }
   /** A screen finished (or a house was re-assessed) for the parcel open when it started (`serial`). */
   | { type: "screened"; id: string; serial: number; stamp: Stamp };
@@ -178,23 +206,34 @@ const switched = (s: ExploreState, keepPanel?: boolean): Pick<ExploreState, "inf
 });
 
 /** Tools in progress end when the parcel changes underneath them. */
-const NO_TOOL: Pick<ExploreState, "mode" | "draft" | "split" | "combine" | "editing"> = {
+const NO_TOOL: Pick<ExploreState, "mode" | "draft" | "split" | "combine" | "editing" | "markKind"> = {
   mode: null,
   draft: [],
   split: null,
   combine: null,
   editing: null,
+  markKind: null,
 };
 
+const LINE_KINDS: readonly MarkupKind[] = ["track", "easement", "drive"];
+const isLineKind = (k: MarkupKind): k is LineKind => LINE_KINDS.includes(k);
+const isPointKind = (k: MarkupKind): k is PointKind => (POINT_KINDS as readonly MarkupKind[]).includes(k);
+const isAreaKind = (k: MarkupKind): k is AreaKind => (AREA_KINDS as readonly MarkupKind[]).includes(k);
+
+/** The corners drawn, rounded, with repeats in a row dropped (a double-click to finish taps twice). */
+const cleanDraft = (draft: readonly LatLon[]): LatLon[] =>
+  draft.map(roundLL).filter((p, i, all) => i === 0 || p[0] !== all[i - 1]![0] || p[1] !== all[i - 1]![1]);
+
 /**
- * A drawn line with one edit applied. A new kind brings its own name, width and condition when the old ones were still
- * the old kind's defaults (a name, width or condition the user chose is kept). `others` are the parcel's other lines.
+ * A drawn line or marker with one edit applied. A new kind brings its own name, width and condition when the old ones
+ * were still the old kind's defaults (a name, width or condition the user chose is kept). `others` are the parcel's
+ * other lines and markers.
  */
 function edited(
   m: Markup,
   a: Extract<
     ExploreAction,
-    { type: "markupNote" | "markupName" | "markupWidth" | "markupKind" | "markupCondition" }
+    { type: "markupNote" | "markupName" | "markupWidth" | "markupKind" | "markupCondition" | "markupSeptic" }
   >,
   others: readonly Markup[],
 ): Markup {
@@ -204,19 +243,34 @@ function edited(
     case "markupName":
       return a.name.trim() ? { ...m, name: a.name.trim() } : m;
     case "markupWidth":
-      return { ...m, widthFt: a.widthFt };
+      return m.shape === "line" ? { ...m, widthFt: a.widthFt } : m;
     case "markupCondition":
-      return { ...m, condition: a.condition };
+      return m.shape === "line" ? { ...m, condition: a.condition } : m;
+    case "markupSeptic":
+      return m.shape !== "line" && m.kind === "septic" ? { ...m, septicClass: a.septicClass } : m;
     case "markupKind":
-      return {
-        ...m,
-        kind: a.kind,
-        name: a.kind !== m.kind && isDefaultName(m.name, m.kind) ? nextLineName(others, a.kind) : m.name,
-        widthFt:
-          m.widthFt === null || m.widthFt === DEFAULT_WIDTH_FT[m.kind] ? DEFAULT_WIDTH_FT[a.kind] : m.widthFt,
-        condition: m.condition === DEFAULT_CONDITION[m.kind] ? DEFAULT_CONDITION[a.kind] : m.condition,
-      };
+      return m.shape === "line" ? lineKind(m, a.kind, others) : markKind(m, a.kind, others);
   }
+}
+
+/** A marker of another kind of its shape (WF4): its default name follows, as a line's does; a class only on a permit. */
+function markKind(m: Exclude<Markup, LineMarkup>, kind: MarkupKind, others: readonly Markup[]): Markup {
+  const name = kind !== m.kind && isDefaultName(m.name, m.kind) ? nextMarkupName(others, kind) : m.name;
+  const septicClass = kind === "septic" ? m.septicClass : null;
+  if (m.shape === "point") return isPointKind(kind) ? { ...m, kind, name, septicClass } : m;
+  return isAreaKind(kind) ? { ...m, kind, name, septicClass } : m;
+}
+
+function lineKind(m: LineMarkup, kind: MarkupKind, others: readonly Markup[]): Markup {
+  if (!isLineKind(kind)) return m;
+  return {
+    ...m,
+    kind,
+    name: kind !== m.kind && isDefaultName(m.name, m.kind) ? nextMarkupName(others, kind) : m.name,
+    widthFt:
+      m.widthFt === null || m.widthFt === DEFAULT_WIDTH_FT[m.kind] ? DEFAULT_WIDTH_FT[kind] : m.widthFt,
+    condition: m.condition === DEFAULT_CONDITION[m.kind] ? DEFAULT_CONDITION[kind] : m.condition,
+  };
 }
 
 export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState {
@@ -371,17 +425,102 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
     case "startLine":
       // Only with a parcel open: a line belongs to one.
       if (!open) return s;
-      return { ...s, draft: [], mode: a.kind, combine: null, split: null, editing: null };
+      return { ...s, draft: [], mode: a.kind, combine: null, split: null, editing: null, markKind: null };
+    case "startMark":
+      // As a line: with a parcel open. Changing the kind mid-way keeps an area's corners and what's being edited.
+      if (!open) return s;
+      return s.mode === a.shape
+        ? { ...s, markKind: a.kind }
+        : { ...s, draft: [], mode: a.shape, combine: null, split: null, editing: null, markKind: a.kind };
+    case "placePoint": {
+      if (!open || s.mode !== "point" || !s.markKind || !isPointKind(s.markKind)) return s;
+      const ll = roundLL(a.ll);
+      // "Move it": the point being edited goes where the tap was.
+      if (s.editing && open.markup.some((m) => m.id === s.editing)) {
+        const markup = open.markup.map((m) => (m.id === s.editing && m.shape === "point" ? { ...m, ll } : m));
+        return {
+          ...s,
+          ...NO_TOOL,
+          layer: lineLayer(s.editing),
+          info: true,
+          mapPanel: false,
+          store: save({ ...open, markup }, a.stamp),
+        };
+      }
+      const mark: Markup = {
+        id: a.id,
+        shape: "point",
+        kind: s.markKind,
+        name: nextMarkupName(open.markup, s.markKind),
+        ll,
+        septicClass: null,
+        note: "",
+        at: a.stamp.now,
+      };
+      // Its details open, to name it or add a note.
+      return {
+        ...s,
+        ...NO_TOOL,
+        layer: lineLayer(a.id),
+        info: true,
+        mapPanel: false,
+        store: save({ ...open, markup: [...open.markup, mark] }, a.stamp),
+      };
+    }
+    case "finishArea": {
+      if (!open || s.mode !== "area" || !s.markKind || !isAreaKind(s.markKind)) return s;
+      const ring = cleanDraft(s.draft);
+      if (new Set(ring.map((p) => p.join())).size < 3) return s;
+      if (s.editing && open.markup.some((m) => m.id === s.editing)) {
+        const markup = open.markup.map((m) =>
+          m.id === s.editing && m.shape === "area" ? { ...m, ring } : m,
+        );
+        return {
+          ...s,
+          ...NO_TOOL,
+          layer: lineLayer(s.editing),
+          info: true,
+          mapPanel: false,
+          store: save({ ...open, markup }, a.stamp),
+        };
+      }
+      const mark: Markup = {
+        id: a.id,
+        shape: "area",
+        kind: s.markKind,
+        name: nextMarkupName(open.markup, s.markKind),
+        ring,
+        septicClass: null,
+        note: "",
+        at: a.stamp.now,
+      };
+      return {
+        ...s,
+        ...NO_TOOL,
+        layer: lineLayer(a.id),
+        info: true,
+        mapPanel: false,
+        store: save({ ...open, markup: [...open.markup, mark] }, a.stamp),
+      };
+    }
+    case "movePoint": {
+      // A point dragged on the map (WF4), as the house is: for the parcel open when it was dragged.
+      if (!open || a.serial !== s.serial) return s;
+      const ll = roundLL(a.ll);
+      const markup = open.markup.map((m) => (m.id === a.id && m.shape === "point" ? { ...m, ll } : m));
+      if (markup.every((m, i) => m === open.markup[i])) return s;
+      return { ...s, store: save({ ...open, markup }, a.stamp) };
+    }
     case "finishLine": {
       if (!open || (s.mode !== "track" && s.mode !== "easement")) return s;
       if (new Set(s.draft.map(roundLL).map((p) => p.join())).size < 2) return s;
       // A double-click to finish also taps twice: repeated points are dropped.
-      const points = s.draft
-        .map(roundLL)
-        .filter((p, i, all) => i === 0 || p[0] !== all[i - 1]![0] || p[1] !== all[i - 1]![1]);
+      const points = cleanDraft(s.draft);
       // A redrawn line (owner, A) keeps its id, kind, condition, width and note: only its path changes.
       if (s.editing && open.markup.some((m) => m.id === s.editing)) {
-        const markup = open.markup.map((m) => (m.id === s.editing ? { ...m, line: points } : m));
+        const markup = open.markup.map((m) =>
+          m.id === s.editing && m.shape === "line" ? { ...m, line: points } : m,
+        );
         return {
           ...s,
           ...NO_TOOL,
@@ -393,8 +532,9 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       }
       const line: Markup = {
         id: a.id,
+        shape: "line",
         kind: s.mode,
-        name: nextLineName(open.markup, s.mode),
+        name: nextMarkupName(open.markup, s.mode),
         condition: DEFAULT_CONDITION[s.mode],
         line: points,
         widthFt: DEFAULT_WIDTH_FT[s.mode],
@@ -406,6 +546,17 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
     case "editLine": {
       const m = open?.markup.find((x) => x.id === a.id);
       if (!m) return s;
+      // An area is redrawn from its corners (owner, WF4: no corner editing yet); a point moves to the next tap.
+      if (m.shape !== "line")
+        return {
+          ...s,
+          ...NO_TOOL,
+          mode: m.shape,
+          markKind: m.kind,
+          draft: m.shape === "area" ? m.ring : [],
+          editing: m.id,
+          layer: null,
+        };
       return {
         ...s,
         ...NO_TOOL,
@@ -428,6 +579,7 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
     case "markupWidth":
     case "markupKind":
     case "markupCondition":
+    case "markupSeptic":
     case "markupDelete": {
       // As notes: an edit after another parcel opened is dropped.
       if (!open || a.serial !== s.serial || !open.markup.some((m) => m.id === a.id)) return s;

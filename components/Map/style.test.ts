@@ -31,6 +31,8 @@ describe("map style", () => {
       LAYER.leftFill,
       LAYER.leftLine,
       LAYER.markupSelected, // #127: the line selected in Layers, glowing under it
+      LAYER.markupAreaFill, // WF4: area markers under the lines
+      LAYER.markupAreaLine,
       LAYER.markupEasement, // follow-up 34: drawn lines over the parcel, under the results and tools
       LAYER.markupTrackHalo,
       LAYER.markupTrack,

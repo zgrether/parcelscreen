@@ -758,6 +758,41 @@ html:has(.explore) body {
     0 0 0 3px var(--tb-amber),
     0 1px 4px rgba(0, 0, 0, 0.5);
 }
+/* A point marker (WF4): its sign in a white disc; it drags like the bulls-eye. */
+.mark-pin {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #1c2620;
+  background: #fff;
+  font-size: 15px;
+  line-height: 1;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.mark-pin.selected {
+  box-shadow:
+    0 0 0 3px var(--tb-amber),
+    0 1px 4px rgba(0, 0, 0, 0.5);
+}
+/* The Mark tool's kinds (WF4): one line, scrolling sideways when the bar is narrow; the areas after a rule. */
+.tb-marks {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.tb-marks button {
+  flex: none;
+  white-space: nowrap;
+}
+.tb-marks button.tb-area {
+  border-left: 1px solid var(--tb-rule, var(--color-rule));
+}
 .saved-label {
   padding: 2px 7px;
   border: 0;
