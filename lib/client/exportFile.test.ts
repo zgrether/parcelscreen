@@ -15,6 +15,7 @@ import {
   importSummary,
   keptScreenIds,
   fromV1,
+  fromV2,
   READS_VERSIONS,
   V1_DEFAULTS,
   nameFromNotes,
@@ -24,6 +25,7 @@ import {
   settingsQuestion,
   type ImportPlan,
 } from "./exportFile";
+import { byRank, withRanks } from "./myOrder";
 import { EMPTY_STORE, type ParcelStore } from "./parcelStore";
 import type { ScreenRecord } from "./screenStore";
 
@@ -44,12 +46,12 @@ const keys = () => {
   return () => `new${++n}`;
 };
 
-/** History with two parcels, one screened. */
-const STORE: ParcelStore = {
+/** History with two parcels, one screened, ranked in My order as a read store is (WF3). */
+const STORE: ParcelStore = withRanks({
   v: 2,
   open: null,
   built: [built("a", { screenIds: ["s1"] }), built("b", { pieces: [county(-81.351, "52-48")] })],
-};
+});
 const file = (over: Partial<ReturnType<typeof buildExport>> = {}, store = STORE, cfg = DEFAULT_USER_CONFIG) =>
   JSON.stringify({ ...buildExport(cfg, store, [screen("s1")], NOW), ...over });
 const plan = (
@@ -69,7 +71,7 @@ const errors = (text: string, store: ParcelStore = EMPTY_STORE) => {
 describe("export (owner, 16b): versioned by format and version", () => {
   it("holds the settings, the parcel store and History's kept screens", () => {
     const f = buildExport(DEFAULT_USER_CONFIG, STORE, [screen("s1")], NOW);
-    expect(f).toMatchObject({ format: EXPORT_FORMAT, version: 2, exportedAt: NOW, parcels: STORE });
+    expect(f).toMatchObject({ format: EXPORT_FORMAT, version: 3, exportedAt: NOW, parcels: STORE });
     expect(f.cfg).toBe(DEFAULT_USER_CONFIG);
     expect(keptScreenIds(STORE)).toEqual(["s1"]);
     expect(exportFileName(NOW)).toBe("parcelscreen-2026-10-07.json");
@@ -116,8 +118,8 @@ describe("import: validate all, then all or nothing", () => {
     expect(errors("not json")).toEqual([NOT_AN_EXPORT]);
     expect(errors(JSON.stringify({ hello: 1 }))).toEqual([NOT_AN_EXPORT]);
     expect(errors(JSON.stringify([1]))).toEqual([NOT_AN_EXPORT]);
-    expect(errors(file({ version: 3 as never }))).toEqual([
-      "This export is version 3; this app reads versions 1 and 2.",
+    expect(errors(file({ version: 4 as never }))).toEqual([
+      "This export is version 4; this app reads versions 1, 2 and 3.",
     ]);
   });
 });
@@ -132,10 +134,11 @@ describe("version 2 (owner, after #131): every field written; a version 1 file c
       status: "archived" as const,
       archived: { reason: "Rejected: no winter sun", at: "2026-10-14T12:00:00.000Z", from: "saved" as const },
       milestones: { walked: "2026-10-01", offered: "2026-10-09" },
+      rank: "V",
     };
     const store: ParcelStore = { v: 2, open: null, built: [p] };
     const text = JSON.stringify(buildExport(DEFAULT_USER_CONFIG, store, [screen("s1")], NOW));
-    expect(JSON.parse(text)).toMatchObject({ version: 2 });
+    expect(JSON.parse(text)).toMatchObject({ version: 3 }); // the current version: version 2's fields, and the rank
     const after = applyImport(EMPTY_STORE, plan(text));
     expect(after.built).toEqual([p]);
     // Each field the owner named, one by one.
@@ -192,7 +195,7 @@ describe("version 2 (owner, after #131): every field written; a version 1 file c
       archived: null,
       milestones: { walked: null, offered: null },
     });
-    expect(READS_VERSIONS).toEqual([1, 2]);
+    expect(READS_VERSIONS).toEqual([1, 2, 3]);
   });
 });
 
@@ -556,5 +559,83 @@ describe("schema v3 (B2a): older results and the asking price", () => {
     expect(plan(file({}, drawn)).added[0]!.markup).toEqual([line]);
     const { markup: _m, ...older } = STORE.built[0]!;
     expect(plan(file({ parcels: { ...STORE, built: [older as never] } })).added[0]!.markup).toEqual([]);
+  });
+});
+
+describe("version 3 (owner, #135): My order", () => {
+  const order = (st: ParcelStore) => [...st.built].sort(byRank).map((x) => x.key);
+  /** The file's own order: b above a. */
+  const ranked: ParcelStore = {
+    ...STORE,
+    built: [
+      { ...STORE.built[0]!, rank: "k" },
+      { ...STORE.built[1]!, rank: "V" },
+    ],
+  };
+  /** A version 2 file: no ranks, History oldest first. */
+  const v2File = (built: unknown[]) =>
+    JSON.stringify({ ...JSON.parse(file()), version: 2, parcels: { v: 2, open: null, built } });
+  const unranked = (key: string, x0: number, id: string) => {
+    const { rank: _r, ...p } = built(key, { pieces: [county(x0, id)] });
+    return p;
+  };
+
+  it("the export writes History in My order, each parcel with its rank", () => {
+    const f = JSON.parse(file({}, ranked)) as {
+      version: number;
+      parcels: { built: { key: string; rank: string }[] };
+    };
+    expect(f.version).toBe(3);
+    expect(f.parcels.built.map((b) => [b.key, b.rank])).toEqual([
+      ["b", "V"],
+      ["a", "k"],
+    ]);
+  });
+
+  it("round trip: a backup restored into an empty browser keeps My order; into a list, below what's there", () => {
+    expect(order(applyImport(EMPTY_STORE, plan(file({}, ranked))))).toEqual(["b", "a"]);
+    const mine: ParcelStore = {
+      v: 2,
+      open: null,
+      built: [built("m", { pieces: [county(-81.34, "60-1")], rank: "z" })],
+    };
+    expect(order(applyImport(mine, plan(file({}, ranked), mine)))).toEqual(["m", "b", "a"]);
+  });
+
+  it("a version 2 file without ranks: ranked at the bottom in the file's order, and imported that way", () => {
+    const v2 = v2File([unranked("old", -81.355, "52-47A"), unranked("new", -81.351, "52-48")]);
+    const converted = fromV2(JSON.parse(v2) as Record<string, unknown>) as {
+      version: number;
+      parcels: { built: { key: string; rank: string }[] };
+    };
+    expect(converted.version).toBe(3);
+    expect(converted.parcels.built.map((b) => [b.key, b.rank])).toEqual([
+      ["old", "V"],
+      ["new", "l"],
+    ]);
+    expect(order(applyImport(EMPTY_STORE, plan(v2)))).toEqual(["old", "new"]);
+    // Into a list that has one: appended below it, still in the file's order.
+    const mine: ParcelStore = {
+      v: 2,
+      open: null,
+      built: [built("m", { pieces: [county(-81.34, "60-1")], rank: "z" })],
+    };
+    expect(order(applyImport(mine, plan(v2, mine)))).toEqual(["m", "old", "new"]);
+  });
+
+  it("a version 2 file with some ranks keeps them; the rest go after the highest, in the file's order", () => {
+    const v2 = v2File([
+      unranked("x", -81.355, "52-47A"),
+      { ...unranked("y", -81.351, "52-48"), rank: "k" },
+      { ...unranked("z", -81.347, "52-49"), rank: "not a rank!" },
+    ]);
+    const c = fromV2(JSON.parse(v2) as Record<string, unknown>) as { parcels: { built: { rank: string }[] } };
+    expect(c.parcels.built[1]!.rank).toBe("k");
+    expect(order(applyImport(EMPTY_STORE, plan(v2)))).toEqual(["y", "x", "z"]);
+  });
+
+  it("a version 1 file goes through both converters", () => {
+    const v1 = JSON.stringify({ ...JSON.parse(v2File([unranked("old", -81.355, "52-47A")])), version: 1 });
+    expect(plan(v1).added[0]).toMatchObject({ key: "old", rank: "V", status: "inProgress" });
   });
 });

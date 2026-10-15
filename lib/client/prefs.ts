@@ -5,6 +5,7 @@
  */
 import { readCurrentParcel, writeCurrentParcel, type CurrentParcel } from "./currentParcel";
 import { DEFAULT_VIEW, readLibraryView, type LibraryView } from "./library";
+import { withRanks } from "./myOrder";
 import { readParcelStore, withNamesFromNotes, writeParcelStore, type ParcelStore } from "./parcelStore";
 
 export interface MapView {
@@ -148,7 +149,9 @@ export function getPref<K extends keyof Prefs>(key: K, from: KeyValueStore | nul
   try {
     const raw = from?.getItem(key);
     const value = raw == null ? DEFAULTS[key] : CODEC[key].read(raw);
-    return key === "ps.parcels" ? (namesOnce(value as Prefs["ps.parcels"], from) as Prefs[K]) : value;
+    return key === "ps.parcels"
+      ? (ranked(namesOnce(value as Prefs["ps.parcels"], from), from) as Prefs[K])
+      : value;
   } catch {
     return DEFAULTS[key];
   }
@@ -164,6 +167,16 @@ function namesOnce(s: ParcelStore | null, kv: KeyValueStore | null): ParcelStore
   const next = s && withNamesFromNotes(s);
   if (next && next !== s) setPref("ps.parcels", next, kv);
   setPref("ps.namesFromNotes", true, kv);
+  return next;
+}
+
+/**
+ * Every History parcel ranked in My order (WF3; lib/client/myOrder.ts withRanks), on every read: one kept before WF3
+ * goes to the bottom. Saved back when that changed anything.
+ */
+function ranked(s: ParcelStore | null, kv: KeyValueStore | null): ParcelStore | null {
+  const next = s && withRanks(s);
+  if (next && next !== s) setPref("ps.parcels", next, kv);
   return next;
 }
 

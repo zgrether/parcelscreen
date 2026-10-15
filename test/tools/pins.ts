@@ -1,6 +1,6 @@
 /**
  * The exact pins (owner, 2026-10-08; docs/plans/phase-0.md §4): every Turf package, and geotiff with the
- * packages it decodes with. Pure: it reads the text of pnpm-lock.yaml, so its rule is unit-tested and CI runs it
+ * packages it decodes with; and every @dnd-kit package (WF3, docs/plans/parcel-workflow.md §5). Pure: it reads the text of pnpm-lock.yaml, so its rule is unit-tested and CI runs it
  * on the real lockfile (test/tools/pins.test.ts, `pnpm check:pins`).
  *
  * Why a check and not just the pins: @turf/turf and geotiff both declare their parts as ^ ranges, so an exact
@@ -23,6 +23,14 @@ export const GEOTIFF_DECODERS: Readonly<Record<string, string>> = {
   lerc: "3.0.0",
   zstddec: "0.1.0",
   "@petamoriken/float16": "3.9.3",
+};
+
+/** The list's drag (WF3): each part at one exact version, overridden as Turf's are. */
+export const DND_KIT: Readonly<Record<string, string>> = {
+  "@dnd-kit/accessibility": "3.1.1",
+  "@dnd-kit/core": "6.3.1",
+  "@dnd-kit/sortable": "10.0.0",
+  "@dnd-kit/utilities": "3.2.2",
 };
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
@@ -85,5 +93,6 @@ export function pinProblems(lock: string): string[] {
         `geotiff>${name} has no exact override (${overrides[`geotiff>${name}`] ?? "none"}): add "geotiff>${name}": ${want} to pnpm-workspace.yaml`,
       );
   }
+  for (const [name, want] of Object.entries(DND_KIT)) expectOnly(name, want, name);
   return problems;
 }

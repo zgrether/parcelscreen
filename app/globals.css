@@ -3498,6 +3498,93 @@ button.cmp-cell:hover {
   align-items: center;
   gap: 4px 6px;
 }
+/* My order (WF3): the grip, the Move up / Move down menu, and the row while it's carried. */
+.lib-table .lib-order {
+  padding-right: 0;
+}
+.lib-handle {
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--color-ink-2);
+  font-size: 16px;
+  line-height: 1;
+  cursor: grab;
+  /* The grip alone takes the touch: a long press picks the card up, and the rest of the card still scrolls. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.lib-handle[aria-haspopup] {
+  cursor: pointer;
+}
+.lib-handle:hover,
+.lib-handle[aria-expanded="true"] {
+  background: rgba(28, 38, 32, 0.08);
+  color: var(--color-ink);
+}
+.lib-order-menu {
+  display: inline-block;
+}
+/* Placed against the window by OrderMenu (fixed), so the table's scroll box doesn't cut it off. */
+.lib-menu {
+  z-index: 30;
+  display: grid;
+  min-width: 9em;
+  padding: 4px;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+  background: var(--color-paper);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+}
+.lib-menu button {
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.lib-menu button:hover:not(:disabled),
+.lib-menu button:focus-visible {
+  background: rgba(28, 38, 32, 0.08);
+}
+.lib-menu button:disabled {
+  color: var(--color-ink-2);
+  opacity: 0.6;
+  cursor: default;
+}
+.lib-dragging {
+  position: relative;
+  z-index: 4;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+.lib-table .lib-dragging td {
+  background: var(--color-paper);
+}
+.lib-dragging .lib-handle {
+  cursor: grabbing;
+}
+.lib-card-ordered {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  column-gap: 6px;
+  padding-left: 4px;
+}
+.lib-card-body {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.lib-card-ordered .lib-card-head {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
 .lib-detail {
   /* The report card's light style for the Info panel's shared controls (owner, #133). */
   --ip-ink: var(--color-ink);

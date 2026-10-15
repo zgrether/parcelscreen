@@ -226,6 +226,7 @@ already converts 13d's `ps.current`, which had no `v` field at the parcel level)
       "status": "archived",          // WF2: "inProgress" (the default) | "saved" | "archived"
       "archived": { "reason": "Sold", "at": "2026-10-14T12:00:00.000Z", "from": "saved" },  // or null; Restore → from
       "milestones": { "walked": "2026-10-01", "offered": null },               // calendar dates, or null
+      "rank": "V",                   // WF3: its place in My order, a fractional index (lib/client/myOrder.ts)
       "markup": [ /* drawn lines (follow-up 34, #127): { id, name, kind, condition, line, widthFt, note, at } */ ],
       "hidden": ["an:horizon"],      // layer ids hidden on the map
       "excluded": ["an:site2"],      // results removed from the analysis
@@ -244,6 +245,9 @@ already converts 13d's `ps.current`, which had no `v` field at the parcel level)
   road strip out.
 - **Drawn pieces** carry no facts and no identity: owners, IDs and counties come from the county records
   only.
+- **My order** (WF3, `docs/plans/parcel-workflow.md` §5): `rank` is a string that sorts between its neighbours, so
+  a move writes one parcel. A parcel gets one when it's built, at the bottom. A parcel stored before WF3 has none
+  (or a malformed one) and gets one the first time the store is read, at the bottom, in History's order.
 - **Import (Phase 1), one `parcels` row per built parcel:**
   - `recipe` = `{ pieces, split, house, hidden, excluded }`, as stored;
   - `notes` = `notes`;
@@ -253,6 +257,7 @@ already converts 13d's `ps.current`, which had no `v` field at the parcel level)
     `markers` row;
   - `status` as stored, `archived_reason` from `archived.reason`, the milestones as `walked_at` and `offered_at`
     (WF2, `docs/plans/parcel-workflow.md` §4); the archive, and each milestone set, also become `status_events`;
+  - `list_rank` = `rank` (WF3: My order, one per household);
   - the cached columns (`geometry`, `acres`, `source`, `dedupe_key`, `state`, `county`, `parcel_number`)
     derived from the recipe, as for any edit (§3). The dedupe key uses the county FIPS rule in §3; it's
     computed from the stored pieces' attributes at import, never stored locally, so that rule needed no
@@ -268,14 +273,20 @@ Phase 1 imports it into Supabase the same way as the `ps.parcels` store. It's ve
 ```jsonc
 {
   "format": "parcelscreen-export",
-  "version": 2,
+  "version": 3,
   "exportedAt": "2026-10-07T15:00:00.000Z",
   "cfg": { /* UserConfig (lib/screen/types.ts), as stored in ps.cfg */ },
-  "parcels": { "v": 2, "open": null, "built": [ /* exactly the ps.parcels store above */ ] },
+  "parcels": { "v": 2, "open": null, "built": [ /* the ps.parcels store above, written in My order */ ] },
   "screens": [ /* the kept screen records named in built[].screenIds: { id, keys: { boundary, house, settings }, result } */ ]
 }
 ```
 
+- **Version 3** (owner, #135): each parcel's `rank` (My order, WF3) is written, and `built` is written in My order,
+  so a backup restored into an empty browser keeps the ranking. A version 2 file still imports: `fromV2`
+  (`lib/client/exportFile.ts`) keeps each rank it has, and appends every parcel without one at the bottom, in the
+  file's order (a version 1 file goes through `fromV1`, then `fromV2`). On import, the file's parcels go to the bottom
+  of this browser's My order, in the file's own My order. This app reads versions 1, 2 and 3; an older app can't
+  read version 3.
 - **Version 2** (owner, after #131): every parcel field above is written. A version 1 file (before the asking
   price, the drawn lines, the listing's facts and the status) still imports: `fromV1` (`lib/client/exportFile.ts`) gives
   each parcel the defaults for what it lacks (`V1_DEFAULTS`: no price, no lines, no listing facts, in progress, no

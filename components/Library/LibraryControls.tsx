@@ -1,8 +1,8 @@
 "use client";
 /**
  * The list's filters and sort (WF2b, docs/plans/parcel-workflow.md §5): status, the household verdict (the default
- * filter, owner #128), each person's verdict, milestones, a price range and the state; sorted by when it changed,
- * price, acres, the household verdict or either grade. Views only: they never change a parcel. Folded behind one
+ * filter, owner #128), each person's verdict, milestones, a price range and the state; sorted in My order (WF3, the
+ * default), or by when it changed, price, acres, the household verdict or either grade. Views only: they never change a parcel. Folded behind one
  * "Filters" button, which says how many differ from the defaults.
  */
 import { useState } from "react";
@@ -27,6 +27,7 @@ const CHOICE_WORD: Record<VerdictChoice, string> = {
   unscreened: "Not screened",
 };
 const SORTS: { key: SortKey; label: string }[] = [
+  { key: "order", label: "My order" },
   { key: "updated", label: "Last changed" },
   { key: "price", label: "Price" },
   { key: "acres", label: "Acres" },
@@ -100,14 +101,17 @@ export function LibraryControls({
             ))}
           </select>
         </label>
-        <button
-          className="btn small secondary"
-          aria-label="Reverse the order"
-          aria-pressed={view.sort.reversed}
-          onClick={() => setView({ ...view, sort: { ...view.sort, reversed: !view.sort.reversed } })}
-        >
-          ⇅
-        </button>
+        {/* My order is the household's own (WF3): it's rearranged, not turned around. */}
+        {view.sort.key !== "order" && (
+          <button
+            className="btn small secondary"
+            aria-label="Reverse the order"
+            aria-pressed={view.sort.reversed}
+            onClick={() => setView({ ...view, sort: { ...view.sort, reversed: !view.sort.reversed } })}
+          >
+            ⇅
+          </button>
+        )}
       </div>
       {open && (
         <div className="lib-filters">

@@ -27,6 +27,7 @@ import {
   type ParcelStore,
   type WorkingParcel,
 } from "./parcelStore";
+import { byRank, lastRank, RANK_PATTERN, rankBetween } from "./myOrder";
 import { ScreenRecordSchema, type ScreenRecord } from "./screenStore";
 import {
   ANCHORS_LABEL,
@@ -39,13 +40,17 @@ import {
 
 export const EXPORT_FORMAT = "parcelscreen-export";
 /**
+ * Version 3 (owner, #135): each parcel's place in My order (`rank`, WF3), and History written in My order, so a backup
+ * restored into an empty browser keeps the ranking. A version 2 file is read through `fromV2`, which ranks its parcels
+ * in the file's order; a version 1 file through `fromV1` first.
+ *
  * Version 2 (owner, after #131): every field a parcel has gained since version 1 (the asking price, B2a; drawn lines,
  * 34 and #127; the listing's facts, WF1; the status, archive and milestones, WF2a) is written, and a version 1 file is
  * read through `fromV1`, which fills each with its default.
  */
-export const EXPORT_VERSION = 2;
+export const EXPORT_VERSION = 3;
 /** The versions this app reads. */
-export const READS_VERSIONS: readonly number[] = [1, EXPORT_VERSION];
+export const READS_VERSIONS: readonly number[] = [1, 2, EXPORT_VERSION];
 
 /** What a version 1 file's parcel lacks, and its value there: the defaults the app gives a parcel kept before. */
 export const V1_DEFAULTS = {
@@ -77,6 +82,38 @@ export function fromV1(json: Record<string, unknown>): Record<string, unknown> {
       : {}),
   };
 }
+/**
+ * A version 2 file as version 3 (owner, #135): a parcel without a rank (every one, in a file written before WF3) is
+ * appended at the bottom of My order, in the file's order, after any the file already ranks; a rank is kept. The open
+ * parcel takes its History entry's rank, or none.
+ */
+export function fromV2(json: Record<string, unknown>): Record<string, unknown> {
+  const parcels = isRecord(json.parcels) ? json.parcels : null;
+  if (!parcels || !Array.isArray(parcels.built)) return { ...json, version: 3 };
+  const rankOf = (p: unknown): string | null =>
+    isRecord(p) && typeof p.rank === "string" && RANK_PATTERN.test(p.rank) ? p.rank : null;
+  let last = parcels.built.reduce<string | null>((m, p) => {
+    const r = rankOf(p);
+    return r !== null && (m === null || r > m) ? r : m;
+  }, null);
+  const built = parcels.built.map((p) =>
+    isRecord(p) && rankOf(p) === null ? { ...p, rank: (last = rankBetween(last, null)) } : p,
+  );
+  const open = isRecord(parcels.open)
+    ? {
+        ...parcels.open,
+        rank:
+          rankOf(built.find((b) => isRecord(b) && isRecord(parcels.open) && b.key === parcels.open.key)) ??
+          null,
+      }
+    : parcels.open;
+  return { ...json, version: 3, parcels: { ...parcels, open, built } };
+}
+
+/** "1, 2 and 3". */
+const listed = (xs: readonly number[]): string =>
+  xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
+
 /** The prototype's hint for a file it can't read (L1611), verbatim. */
 export const NOT_AN_EXPORT = "That file isn't a Parcel Screen export";
 
@@ -100,7 +137,9 @@ export function buildExport(
   screens: ScreenRecord[],
   now: string,
 ): ExportFile {
-  return { format: EXPORT_FORMAT, version: EXPORT_VERSION, exportedAt: now, cfg, parcels: store, screens };
+  // History in My order (version 3): a backup restored into an empty browser keeps the ranking.
+  const parcels = { ...store, built: [...store.built].sort(byRank) };
+  return { format: EXPORT_FORMAT, version: EXPORT_VERSION, exportedAt: now, cfg, parcels, screens };
 }
 
 /** `parcelscreen-YYYY-MM-DD.json`, as the prototype named its export (L1606). */
@@ -289,6 +328,7 @@ function fromPrototypeSaved(s: z.infer<typeof ProtoSavedSchema>, key: string, no
     askingPriceAt: null,
     ...NO_LISTING,
     ...NO_STATUS,
+    rank: null,
     markup: [],
     hidden: [],
     excluded: [],
@@ -333,10 +373,11 @@ export function planImport(
       return {
         ok: false,
         errors: [
-          `This export is version ${String(json.version)}; this app reads versions ${READS_VERSIONS.join(" and ")}.`,
+          `This export is version ${String(json.version)}; this app reads versions ${listed(READS_VERSIONS)}.`,
         ],
       };
     if (json.version === 1) json = fromV1(json);
+    if (isRecord(json) && json.version === 2) json = fromV2(json);
     if (!isRecord(json)) return { ok: false, errors: [NOT_AN_EXPORT] };
     // Results from an older schema are set aside before validating (v3's clean break): not an error, not imported.
     const older = (x: unknown) =>
@@ -428,11 +469,16 @@ export function planImport(
   };
 }
 
-/** History with the plan's parcels added; the open parcel isn't changed. */
-export const applyImport = (store: ParcelStore, plan: ImportPlan): ParcelStore => ({
-  ...store,
-  built: [...store.built, ...plan.added],
-});
+/**
+ * History with the plan's parcels added; the open parcel isn't changed. They go to the bottom of My order (WF3), in the
+ * file's own My order (its History's order, for a file without one): ranks from another browser's list would land
+ * among this one's.
+ */
+export function applyImport(store: ParcelStore, plan: ImportPlan): ParcelStore {
+  let prev = lastRank(store.built);
+  const ranks = new Map([...plan.added].sort(byRank).map((p) => [p.key, (prev = rankBetween(prev, null))]));
+  return { ...store, built: [...store.built, ...plan.added.map((p) => ({ ...p, rank: ranks.get(p.key)! }))] };
+}
 
 /** The question before the settings are replaced, listing what changes. */
 export const settingsQuestion = (s: SettingsChange): string =>

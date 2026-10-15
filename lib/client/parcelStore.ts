@@ -14,6 +14,7 @@ import type { LatLon } from "@/lib/geo/types";
 import type { DrawnInput } from "@/lib/screen/types";
 import type { CurrentParcel } from "./currentParcel";
 import { LatLonSchema, RecordSchema } from "./currentParcel";
+import { lastRank, RANK_PATTERN, rankBetween } from "./myOrder";
 
 /**
  * A line the user drew with the parcel (follow-up 34, owner 2026-10-12), known from a deed, a plat, a survey or a
@@ -131,6 +132,11 @@ export interface WorkingParcel {
   archived: Archived | null;
   /** Walked and Offered (owner, #128): tags beside the status, each with its date ("2026-10-20"), or null. */
   milestones: Milestones;
+  /**
+   * Its place in My order (WF3, docs/plans/parcel-workflow.md §5): a fractional index (lib/client/myOrder.ts), given
+   * when the parcel is built, at the bottom. Null until then; a parcel kept before WF3 gets one when the store is read.
+   */
+  rank: string | null;
   /** Drawn tracks and easements (follow-up 34). */
   markup: Markup[];
   /** Layer ids hidden on the map, and results removed from the analysis. */
@@ -242,6 +248,7 @@ export function plainParcel(record: ParcelRecord, now: string): WorkingParcel {
     askingPriceAt: null,
     ...NO_LISTING,
     ...NO_STATUS,
+    rank: null,
     markup: [],
     hidden: [],
     excluded: [],
@@ -284,7 +291,11 @@ export function isBuilt(p: WorkingParcel | null): boolean {
 export function commitOpen(s: ParcelStore, p: WorkingParcel, now: string, newKey: () => string): ParcelStore {
   const next: WorkingParcel = { ...p, updatedAt: now };
   if (!isBuilt(next)) return { ...s, open: next };
-  if (next.key === null) next.key = newKey();
+  if (next.key === null) {
+    next.key = newKey();
+    // A new parcel goes to the bottom of My order (WF3).
+    next.rank = rankBetween(lastRank(s.built), null);
+  }
   const i = s.built.findIndex((b) => b.key === next.key);
   const built = i >= 0 ? s.built.map((b, j) => (j === i ? next : b)) : [...s.built, next];
   return { ...s, open: next, built };
@@ -309,6 +320,21 @@ export function editBuilt(
     ...s,
     built: s.built.map((x) => (x.key === key ? next : x)),
     open: s.open?.key === key ? next : s.open,
+  };
+}
+
+/**
+ * A History parcel moved in My order (WF3): its rank only. Not a change to the parcel itself, so its updatedAt (the
+ * list's "Last changed") stays.
+ */
+export function rankBuilt(s: ParcelStore, key: string, rank: string): ParcelStore {
+  const b = s.built.find((x) => x.key === key);
+  if (!b || b.rank === rank) return s;
+  const next = { ...b, rank };
+  return {
+    ...s,
+    built: s.built.map((x) => (x.key === key ? next : x)),
+    open: s.open?.key === key ? { ...s.open, rank } : s.open,
   };
 }
 
@@ -385,6 +411,9 @@ const WorkingSchema = z.object({
   milestones: z
     .object({ walked: z.string().nullable(), offered: z.string().nullable() })
     .default({ walked: null, offered: null }),
+  // Added with WF3: a parcel kept before has none, and goes to the bottom of My order when read (myOrder.ts withRanks);
+  // so does one whose rank isn't well formed, rather than the whole store being dropped.
+  rank: z.string().regex(RANK_PATTERN).nullable().catch(null),
   // Added with follow-up 34: a parcel kept before has none.
   markup: z
     .array(MarkupSchema)
