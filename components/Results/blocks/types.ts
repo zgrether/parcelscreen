@@ -28,6 +28,8 @@ export interface BlockProps {
   running?: { step: Step; message?: string };
   /** The parcel's names for its drawn lines (owner, 2026-10-14); a line reads by its kind without them. */
   lineNames?: LineNames;
+  /** The line the household chose as its driveway (WF5), by id; absent or null for the app's pick. */
+  drivewayLine?: string | null;
 }
 
 export interface BlockActions {

@@ -15,8 +15,10 @@ import input from "../../test/fixtures/grayson-mud-creek-6273/input.json";
 import { runFixture } from "../../test/support/scenarios";
 import roads from "../../test/tools/driveway-validation.roads.json";
 import { reportCard } from "../report/card";
-import { drivewayView } from "../report/driveway";
-import { lineNamesOf, type LineNames } from "../report/lines";
+import { drivewayView, routeChoices } from "../report/driveway";
+import { drivewayFeatures } from "../render/resultGeo";
+import { lineNamesOf, lineOutcome, type LineNames } from "../report/lines";
+import { DEFAULT_USER_CONFIG } from "./config";
 import { siteDriveways } from "./driveway";
 import { routeContext } from "./index";
 import { chooseDriveway, drivewayPoints, overLimitPoints } from "./score";
@@ -169,5 +171,126 @@ describe("the red-gate drive on Grayson 6273, drawn as an easement", () => {
     });
     // The saved result is untouched: drawn without the parcel's lines, it reads as before.
     expect(drivewayView(r)!.entrances).toMatch(/E4 is the end of Easement \(user-drawn\) \(/);
+  });
+});
+
+describe("WF5: the red-gate easement as the driveway, and where it's recorded (owner, WF5 review)", () => {
+  const REF = "Ashe Co. Plat Bk 574 Pg 1132";
+  const RECORDED = `recorded in ${REF} (your entry): make sure your deed includes this right-of-way`;
+  const names = new Map([["red-gate", "Red gate"]]);
+  const drawn = (driveway: string | null, record = "") => ({
+    names,
+    marks: [],
+    driveway,
+    records: new Map(record.trim() ? [["red-gate", record.trim()]] : []),
+  });
+  const gates = (r: ScreenResult, d: ReturnType<typeof drawn>) =>
+    Object.fromEntries(
+      reportCard(r, "zach", d).gates.map((g) => [g.key, { status: g.status, reason: g.reason }]),
+    );
+
+  it("chosen: the card scores its route, says so, warns it's over the veto, and compares it with the app's pick", async () => {
+    const { result } = await runFixture("grayson-mud-creek-6273", { lines: [toTheBoundary(redGate)] });
+    // The app's pick, from Mud Creek Ln: both gates pass.
+    expect(gates(result, drawn(null))).toMatchObject({
+      access: { status: "pass", reason: "Frontage on Mud Creek Ln" },
+      easement: { status: "pass", reason: "The driveway stays on the parcel" },
+    });
+    // Chosen: what each gate said of this route before (#116), then the veto, appended (WF5).
+    const g = gates(result, drawn("red-gate"));
+    expect(g.access).toEqual({
+      status: "warn",
+      reason:
+        "Frontage on Mud Creek Ln; Red gate: verify it's a legal right-of-way; your route is steeper than your veto (41% vs 25%)",
+    });
+    expect(g.easement).toEqual({
+      status: "warn",
+      reason:
+        "Red gate: verify it's a legal right-of-way; the existing drive is steeper than your limit (21% avg, 41% steepest over 30 m on raw ground; a built road grades out 1–4 points); your route is steeper than your veto (41% vs 25%)",
+    });
+    const card = reportCard(result, "zach", drawn("red-gate"));
+    expect(card.drivewayLine).toBe("red-gate");
+    // Drive times are still from Mud Creek Ln's end (until WF6): the Town and Trails panels say so.
+    for (const key of ["town", "trails"])
+      expect(card.rows.find((x) => x.key === key)!.panelNote).toMatch(
+        /Drive times start where the app's pick meets the road\.$/,
+      );
+
+    // The Driveway section marks it and says it, after the routes.
+    const v = drivewayView(result, names, "red-gate")!;
+    expect(v.routes.filter((rv) => rv.yours).map((rv) => rv.from)).toEqual(["from E4"]);
+    expect(v.chosen).toMatch(
+      /^You chose this route, from Red gate; the app's pick starts from E\d, Mud Creek Ln\.$/,
+    );
+    expect(drivewayView(result, names)!.chosen).toBeNull();
+
+    // The Easement panel's comparison: the app's pick and the line's route, the scored one marked.
+    const cols = routeChoices(result, names, "red-gate", 25)!;
+    expect(cols.map((c) => [c.title, c.line, c.scored])).toEqual([
+      ["The app's pick", null, false],
+      ["Red gate", "red-gate", true],
+    ]);
+    const row = (i: number, label: string) => cols[i]!.rows.find((x) => x.label === label)!.value;
+    expect(row(1, "Steepest, raw ground")).toBe("41%");
+    expect(row(1, "Veto")).toBe("over 25%");
+    expect(row(0, "Veto")).toBe("within 25%");
+
+    // On the map: your route is the driveway (drawn bold, i 0); the app's pick drops among the alternatives.
+    const routes = drivewayFeatures(result, "red-gate").lines.features.filter(
+      (f) => f.properties.kind === "route",
+    );
+    const bold = routes.filter((f) => f.properties.i === 0);
+    expect(bold.map((f) => f.properties.tip)).toEqual([expect.stringMatching(/^Your route: /)]);
+    expect(
+      routes.filter((f) => /^The app's pick: /.test(f.properties.tip)).map((f) => f.properties.i),
+    ).toEqual([1]);
+    expect(drivewayFeatures(result).lines.features.some((f) => /^Your route/.test(f.properties.tip))).toBe(
+      false,
+    );
+
+    // What the run made of the line, with it chosen: used.
+    expect(lineOutcome(result, 0, "Red gate", "red-gate")).toBe(
+      "Red gate was used: the driveway starts from its far end, and follows it to the road.",
+    );
+    // A chosen line this screen has no route from: the app's pick, and the card says so.
+    const lost = reportCard(result, "zach", {
+      ...drawn("gate-2"),
+      names: new Map([["gate-2", "Gate lane"]]),
+    });
+    expect(lost.routeNote).toBe("Your route from Gate lane isn't in this screen: scored on the app's pick.");
+    expect(lost.drivewayLine).toBeUndefined();
+  });
+
+  it("Recorded in: no longer asked to be verified, said where it's recorded instead; cleared, the warning is back", async () => {
+    const { result } = await runFixture("grayson-mud-creek-6273", { lines: [toTheBoundary(redGate)] });
+    const g = gates(result, drawn("red-gate", REF));
+    // The veto's warning still applies (owner): the gate warns for that alone, with the record after it.
+    expect(g.access).toEqual({
+      status: "warn",
+      reason: `Frontage on Mud Creek Ln; your route is steeper than your veto (41% vs 25%); ${RECORDED}`,
+    });
+    expect(g.easement!.reason).not.toMatch(/verify it's a legal right-of-way/);
+    expect(g.easement!.reason.endsWith(`; ${RECORDED}`)).toBe(true);
+    // Cleared (or only spaces): today's warning, unchanged.
+    expect(gates(result, drawn("red-gate", "   "))).toEqual(gates(result, drawn("red-gate")));
+    expect(gates(result, drawn("red-gate", "")).access!.reason).toMatch(
+      /Red gate: verify it's a legal right-of-way/,
+    );
+  });
+
+  it("the Mud Creek shape, within the veto: the chosen red-gate route with its record reads pass, with the reminder", async () => {
+    const { result } = await runFixture("grayson-mud-creek-6273", {
+      lines: [toTheBoundary(redGate)],
+      config: { ...DEFAULT_USER_CONFIG, roadVetoGradePct: 45 },
+    });
+    expect(gates(result, drawn("red-gate", REF)).access).toEqual({
+      status: "pass",
+      reason: `Frontage on Mud Creek Ln; ${RECORDED}`,
+    });
+    // Without the record, the same route is asked to be verified.
+    expect(gates(result, drawn("red-gate")).access).toEqual({
+      status: "warn",
+      reason: "Frontage on Mud Creek Ln; Red gate: verify it's a legal right-of-way",
+    });
   });
 });

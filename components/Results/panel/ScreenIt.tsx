@@ -405,6 +405,8 @@ export function useScreenIt(
     person,
     /** The Settings' earthwork rates: the card's dig cost (VR3b). */
     dw: config.dw,
+    /** The Settings' driveway veto: the Easement panel's comparison of routes (WF5). */
+    vetoPct: config.roadVetoGradePct,
     setPerson: (p: Person) => {
       setPersonState(p);
       setPref("ps.person", p);
@@ -433,7 +435,7 @@ const namesOf = (s: ScreenIt): LineNames | undefined => {
 /** What the open parcel holds for its card: those names, and its markers (WF4). */
 const drawnFor = (s: ScreenIt): Drawn | undefined => {
   const open = s.ctl.state.store.open;
-  return open ? drawnOf(open.markup) : undefined;
+  return open ? drawnOf(open.markup, open.drivewayLine) : undefined;
 };
 
 /** The panel's one-line header: the parcel, its acres, the verdict's dot, and the screen button. */
@@ -650,12 +652,14 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             )
           }
           dw={s.dw}
+          vetoPct={s.vetoPct}
           lines={
             s.ctl.state.store.open
               ? {
                   markup: linesOf(s.ctl.state.store.open.markup),
                   onEdit: (id) => s.ctl.selectLayer(lineLayer(id)),
                   onDelete: (id) => s.ctl.deleteMarkup(id, s.ctl.state.serial),
+                  choose: (id) => s.ctl.setDrivewayLine(id, s.ctl.state.serial),
                 }
               : undefined
           }

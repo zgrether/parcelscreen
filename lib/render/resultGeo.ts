@@ -9,6 +9,7 @@ import { fmt } from "../format";
 import { routeLabel } from "../screen/routeLabel";
 import type { LatLon } from "../geo/types";
 import { steepLandingLine } from "../report/driveway";
+import { drivenRoute } from "../report/lines";
 import type { PartialScreenResult } from "../screen/types";
 
 type FC<G extends Polygon | MultiPolygon | LineString | Point, P> = FeatureCollection<G, P>;
@@ -66,7 +67,11 @@ export interface EntrancePin {
  * plus the entrance pins. Nothing when no route was found (the prototype drew nothing then either). B1: the
  * prototype's first builds never put these on the map; the port does.
  */
-export function drivewayFeatures(r: PartialScreenResult): {
+export function drivewayFeatures(
+  r: PartialScreenResult,
+  /** The line chosen as the driveway (WF5): its route is drawn as the driveway, "Your route"; the app's pick as an alternative. */
+  drivewayLine: string | null = null,
+): {
   lines: FC<LineString | Point, DrivewayProps>;
   entrances: EntrancePin[];
 } {
@@ -94,13 +99,18 @@ export function drivewayFeatures(r: PartialScreenResult): {
   // No route: no entrance pins (as the prototype drew nothing), but a refused switchback's flag says why (B2b).
   if (!d || !d.routes.length)
     return { lines: { type: "FeatureCollection", features }, entrances: d ? steepPin(d) : [] };
+  const driven = drivenRoute(r, drivewayLine);
+  const yours = driven.yours ? driven.route : undefined;
   d.routes.forEach((rt, i) => {
+    const tip = `${routeLabel(rt)}: ${fmt(rt.metrics.lengthFt)} ft, ${rt.metrics.maxGradePct.toFixed(0)}% over 30 m, ~$${fmt(rt.cost.mid / 1000)}k`;
+    // Your route is drawn as the driveway (the bold one, i 0); the app's pick drops among the alternatives.
+    const at = o ? i + 1 : i;
     features.push({
       type: "Feature",
       properties: {
         kind: "route",
-        i: o ? i + 1 : i,
-        tip: `${routeLabel(rt)}: ${fmt(rt.metrics.lengthFt)} ft, ${rt.metrics.maxGradePct.toFixed(0)}% over 30 m, ~$${fmt(rt.cost.mid / 1000)}k`,
+        i: !yours ? at : rt === yours ? 0 : at + 1,
+        tip: rt === yours ? `Your route: ${tip}` : yours && at === 0 ? `The app's pick: ${tip}` : tip,
       },
       geometry: rt.line.geometry,
     });

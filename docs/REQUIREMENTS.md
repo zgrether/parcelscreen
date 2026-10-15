@@ -227,7 +227,8 @@ already converts 13d's `ps.current`, which had no `v` field at the parcel level)
       "archived": { "reason": "Sold", "at": "2026-10-14T12:00:00.000Z", "from": "saved" },  // or null; Restore → from
       "milestones": { "walked": "2026-10-01", "offered": null },               // calendar dates, or null
       "rank": "V",                   // WF3: its place in My order, a fractional index (lib/client/myOrder.ts)
-      "markup": [ /* drawn lines (follow-up 34, #127): { id, name, shape: "line", kind, condition, line, widthFt, note, at };
+      "drivewayLine": null,          // WF5: the line chosen as the driveway (by id), or null for the app's pick
+      "markup": [ /* drawn lines (follow-up 34, #127): { id, name, shape: "line", kind, condition, line, widthFt, note, recordedIn, at };
                     WF4's point markers { id, name, shape: "point", kind, ll, septicClass, note, at } and area markers
                     { id, name, shape: "area", kind, ring, septicClass, note, at } */ ],
       "hidden": ["an:horizon"],      // layer ids hidden on the map
@@ -250,6 +251,11 @@ already converts 13d's `ps.current`, which had no `v` field at the parcel level)
 - **My order** (WF3, `docs/plans/parcel-workflow.md` §5): `rank` is a string that sorts between its neighbours, so
   a move writes one parcel. A parcel gets one when it's built, at the bottom. A parcel stored before WF3 has none
   (or a malformed one) and gets one the first time the store is read, at the bottom, in History's order.
+- **The driveway choice** (WF5, `docs/plans/parcel-workflow.md` §3.4): `drivewayLine` is a drawn line's id; the card
+  scores the route the screen found from that line's end instead of the app's pick (no screen data changes). Deleting the
+  line clears it. A line's `recordedIn` is where an easement is recorded, as typed ("Ashe Co. Plat Bk 574 Pg 1132"), or
+  "": filled, the card stops asking that the easement be verified and says where it's recorded. A parcel or line kept
+  before WF5 gets null and "", with no new `v`.
 - **Markers** (WF4, `docs/plans/parcel-workflow.md` §3.1–3.2): a point (`ll`, [lat, lon]) marks a spring, a well, a
   septic permit, a building, power, a campsite, a gate or a note; an area (`ring`, three corners or more, not closed)
   marks a septic permit's field or a clearing. Each has a name numbered per kind ("Spring 1"), a note, and a septic
@@ -281,7 +287,7 @@ Phase 1 imports it into Supabase the same way as the `ps.parcels` store. It's ve
 ```jsonc
 {
   "format": "parcelscreen-export",
-  "version": 4,
+  "version": 5,
   "exportedAt": "2026-10-07T15:00:00.000Z",
   "cfg": { /* UserConfig (lib/screen/types.ts), as stored in ps.cfg */ },
   "parcels": { "v": 2, "open": null, "built": [ /* the ps.parcels store above, written in My order */ ] },
@@ -289,6 +295,9 @@ Phase 1 imports it into Supabase the same way as the `ps.parcels` store. It's ve
 }
 ```
 
+- **Version 5** (owner, WF5): each parcel's `drivewayLine` and each line's `recordedIn` (below). A version 4 file
+  still imports: `fromV4` gives every parcel the app's pick (`drivewayLine: null`) and every line no record
+  (`recordedIn: ""`). This app reads versions 1 to 5; an older app can't read version 5.
 - **Version 4** (owner, WF4): a parcel's `markup` holds point and area markers besides its lines (below), each entry
   with its `shape`. A version 3 file still imports: `fromV3` (`lib/client/exportFile.ts`) gives each of its lines
   `shape: "line"` (version 2 and 1 files go through their converters first). This app reads versions 1 to 4; an older

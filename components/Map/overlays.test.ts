@@ -152,6 +152,7 @@ describe("drawn lines (follow-up 34)", () => {
         id: "a",
         name: "Track 1",
         shape: "line" as const,
+        recordedIn: "",
         kind: "track",
         condition: "pioneer",
         line: [
@@ -166,6 +167,7 @@ describe("drawn lines (follow-up 34)", () => {
         id: "b",
         name: "Deeded right-of-way",
         shape: "line" as const,
+        recordedIn: "",
         kind: "easement",
         condition: "uncleared",
         line: [
@@ -212,6 +214,7 @@ describe("drawn lines (follow-up 34)", () => {
       id: "a",
       name: "Track 1",
       shape: "line" as const,
+      recordedIn: "",
       kind: "track" as const,
       condition: "pioneer" as const,
       line: [
@@ -225,6 +228,7 @@ describe("drawn lines (follow-up 34)", () => {
     const measured = {
       id: "a",
       shape: "line" as const,
+      recordedIn: "",
       kind: "track" as const,
       condition: "pioneer" as const,
       lengthFt: 938,

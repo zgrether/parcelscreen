@@ -8,7 +8,15 @@ import type { PartialScreenResult } from "../screen/types";
 import { M2FT } from "../screen/util";
 import type { FactRow } from "./facts";
 import { said, type Heading, type Part } from "./parts";
-import { lineLabel, lineSummary, routeLines, startLine, type LineNames } from "./lines";
+import {
+  drivenRoute,
+  lineLabel,
+  lineSummary,
+  routeFromLine,
+  routeLines,
+  startLine,
+  type LineNames,
+} from "./lines";
 
 export function drivewayHeading(r: PartialScreenResult): Heading {
   return {
@@ -32,6 +40,8 @@ export interface RouteView {
   profile: string;
   /** The grade over the shorter and longer windows, and how the ground reads against a road (A4b), behind a disclosure. */
   details: { rows: FactRow[]; note: string };
+  /** The household chose this route as its driveway (WF5): marked "Your route". */
+  yours?: boolean;
 }
 
 const WIN = SCREEN_CONSTANTS.driveway.gradeWindowsM;
@@ -64,6 +74,8 @@ export interface DrivewayView {
   overLimit: RouteView | null;
   track: { rows: FactRow[]; note: string } | null;
   caveat: Part[];
+  /** "You chose this route, from Gate lane; the app's pick starts from E1, Mud Creek Ln." (WF5), after the routes. */
+  chosen: string | null;
 }
 
 const k$ = (c: { low: number; high: number }) => `$${fmt(c.low / 1000)}–${fmt(c.high / 1000)}k`;
@@ -221,6 +233,24 @@ function routeView(
   };
 }
 
+/** Appended to the Driveway section when the household chose a line's route (owner, WF5; rule 7). */
+export const youChose = (name: string, from: string): string =>
+  `You chose this route, from ${name}; the app's pick starts from ${from}.`;
+
+/** Where the app's pick starts: "E1, Mud Creek Ln", or "the end of Gate lane" for a drawn line's. */
+function pickFrom(
+  r: PartialScreenResult,
+  pick: NonNullable<ReturnType<typeof drivenRoute>["pick"]>,
+  names?: LineNames,
+): string {
+  const e = r.driveway!.entrances[pick.entranceIndex];
+  const l = e?.source === "drawn" && e.line != null ? r.lines?.[e.line] : undefined;
+  if (l) return `the end of ${lineLabel(l, names)}`;
+  return e
+    ? `E${pick.entranceIndex + 1}, ${e.name === "road" ? "an unnamed road" : e.name}`
+    : `E${pick.entranceIndex + 1}`;
+}
+
 /**
  * The card's line, and the map flag's tip, for a switchback refused on a steep side slope (owner's wording, PR B
  * decisions, 2026-10-10).
@@ -265,9 +295,15 @@ function entrancesLine(
  * Null until the driveway step has run. `names`: the parcel's names for its drawn lines (lines.ts), when the report is
  * drawn with the parcel; without them a line reads by its kind.
  */
-export function drivewayView(r: PartialScreenResult, names?: LineNames): DrivewayView | null {
+export function drivewayView(
+  r: PartialScreenResult,
+  names?: LineNames,
+  drivewayLine: string | null = null,
+): DrivewayView | null {
   const d = r.driveway;
   if (!d) return null;
+  // The household's route (WF5): marked where it's listed, and said after the routes.
+  const driven = drivenRoute(r, drivewayLine);
   // The pioneer track follows the scored route: the over-limit one when it is scored (it then carries the track).
   const first = d.overLimit?.track ? d.overLimit : d.routes[0];
   const overLimitPct = d.overLimit && d.routes.length ? d.overLimit.limitPct : null;
@@ -278,7 +314,14 @@ export function drivewayView(r: PartialScreenResult, names?: LineNames): Drivewa
       null,
     steepLanding: d.steepLanding ? steepLandingLine(d.steepLanding) : null,
     entrances: entrancesLine(d, r, names),
-    routes: d.routes.map((rt, i) => routeView(rt, i, overLimitPct, r, names)),
+    routes: d.routes.map((rt, i) => ({
+      ...routeView(rt, i, overLimitPct, r, names),
+      ...(driven.yours && rt === driven.route ? { yours: true } : {}),
+    })),
+    chosen:
+      driven.yours && driven.pick
+        ? youChose(lineLabel(driven.yours, names), pickFrom(r, driven.pick, names))
+        : null,
     overLimit: d.overLimit ? overLimitView(d.overLimit, r, names) : null,
     track: first?.track
       ? {
@@ -308,4 +351,57 @@ export function drivewayView(r: PartialScreenResult, names?: LineNames): Drivewa
       ),
     ],
   };
+}
+
+/** A column of the Easement panel's comparison (WF5): the app's pick, or a drawn line's route. */
+export interface RouteChoice {
+  /** The line's id; null for the app's pick. */
+  line: string | null;
+  title: string;
+  rows: FactRow[];
+  /** The card scores this one. */
+  scored: boolean;
+}
+
+/**
+ * "Your route and the app's pick" (owner, WF5; docs/plans/parcel-workflow.md §3.4): the app's pick beside each route the
+ * screen found from a drawn line's end, by its length, cost, steepest grade as built and on the raw ground, landings, and
+ * whether it's within the veto. Null when no drawn line has a route of its own.
+ */
+export function routeChoices(
+  r: PartialScreenResult,
+  names: LineNames | undefined,
+  drivewayLine: string | null,
+  vetoPct: number,
+): RouteChoice[] | null {
+  const d = r.driveway;
+  const driven = drivenRoute(r, drivewayLine);
+  if (!d || !driven.pick) return null;
+  const mine = (r.lines ?? []).flatMap((l) => {
+    const rt = routeFromLine(r, l.id);
+    return rt && rt !== driven.pick ? [{ l, rt }] : [];
+  });
+  if (!mine.length) return null;
+  const column = (rt: Route, line: string | null, title: string): RouteChoice => {
+    const m = rt.metrics;
+    const raw = Math.max(m.maxGradePct, rt.existing?.maxGradePct ?? 0);
+    const veto = rt.existing?.vetoPct ?? vetoPct;
+    return {
+      line,
+      title,
+      scored: rt === driven.route,
+      rows: [
+        { label: "Length", value: `${fmt(m.lengthFt)} ft` },
+        { label: "Cost", value: k$(rt.cost) },
+        { label: "Steepest, built", value: `${fmt(Math.min(raw, rt.maxGrade * 100))}%` },
+        { label: "Steepest, raw ground", value: `${fmt(raw)}%` },
+        { label: "Landings", value: String(m.switchbacks) },
+        { label: "Veto", value: raw > veto ? `over ${fmt(veto)}%` : `within ${fmt(veto)}%` },
+      ],
+    };
+  };
+  return [
+    column(driven.pick, null, "The app's pick"),
+    ...mine.map(({ l, rt }) => column(rt, l.id, lineLabel(l, names))),
+  ];
 }

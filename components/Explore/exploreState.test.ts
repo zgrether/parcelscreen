@@ -982,3 +982,77 @@ describe("the Mark picker's tools (owner, after #136)", () => {
     expect(exploreReducer(s, { type: "editLine", id: "d" }).mode).toBe("drive");
   });
 });
+
+describe("WF5: a line as the driveway, and where an easement is recorded", () => {
+  const two: LatLon[] = [
+    [36.629, -81.354],
+    [36.6295, -81.3535],
+  ];
+  const withEasement = () =>
+    run([
+      selectA(),
+      { type: "startLine", kind: "easement" },
+      ...two.map((ll): ExploreAction => ({ type: "draftAdd", ll })),
+      { type: "finishLine", id: "e", stamp: at() },
+    ]);
+
+  it("chosen, and the app's pick again; only a line of the parcel, for the parcel open", () => {
+    const s = withEasement();
+    expect(s.store.open!.drivewayLine).toBeNull();
+    const chosen = exploreReducer(s, { type: "drivewayLine", line: "e", serial: s.serial, stamp: at() });
+    expect(chosen.store.open!.drivewayLine).toBe("e");
+    expect(chosen.store.built[0]!.drivewayLine).toBe("e");
+    expect(
+      exploreReducer(chosen, { type: "drivewayLine", line: null, serial: s.serial, stamp: at() }).store.open!
+        .drivewayLine,
+    ).toBeNull();
+    // Not one of its lines, or another parcel's choice: nothing.
+    expect(exploreReducer(s, { type: "drivewayLine", line: "nope", serial: s.serial, stamp: at() })).toBe(s);
+    expect(exploreReducer(s, { type: "drivewayLine", line: "e", serial: s.serial + 1, stamp: at() })).toBe(s);
+  });
+
+  it("deleting the chosen line returns to the app's pick; Undo restores both", () => {
+    const base = withEasement();
+    const chosen = exploreReducer(base, {
+      type: "drivewayLine",
+      line: "e",
+      serial: base.serial,
+      stamp: at(),
+    });
+    const line = chosen.store.open!.markup[0]!;
+    const gone = exploreReducer(chosen, {
+      type: "markupDelete",
+      id: "e",
+      serial: chosen.serial,
+      stamp: at(),
+    });
+    expect(gone.store.open!.drivewayLine).toBeNull();
+    const back = exploreReducer(gone, {
+      type: "markupRestore",
+      markup: line,
+      index: 0,
+      driveway: true,
+      serial: chosen.serial,
+      stamp: at(),
+    });
+    expect(back.store.open!.markup).toEqual([line]);
+    expect(back.store.open!.drivewayLine).toBe("e");
+  });
+
+  it("Recorded in: kept trimmed; blank clears it; only on a line", () => {
+    const s = withEasement();
+    const rec = (st: ExploreState, text: string) =>
+      exploreReducer(st, {
+        type: "markupRecorded",
+        id: "e",
+        recordedIn: text,
+        serial: st.serial,
+        stamp: at(),
+      });
+    expect(s.store.open!.markup[0]).toMatchObject({ recordedIn: "" });
+    const typed = rec(s, "  Ashe Co. Plat Bk 574 Pg 1132 ");
+    expect(typed.store.open!.markup[0]).toMatchObject({ recordedIn: "Ashe Co. Plat Bk 574 Pg 1132" });
+    expect(rec(typed, "Ashe Co. Plat Bk 574 Pg 1132")).toBe(typed);
+    expect(rec(typed, "   ").store.open!.markup[0]).toMatchObject({ recordedIn: "" });
+  });
+});

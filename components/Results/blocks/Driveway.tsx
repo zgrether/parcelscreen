@@ -7,8 +7,8 @@ import { drivewayView, type RouteView } from "@/lib/report/driveway";
 import { Facts, Note } from "./shared";
 import type { BlockProps } from "./types";
 
-export function Driveway({ result, variant, running, lineNames }: BlockProps) {
-  const v = drivewayView(result, lineNames);
+export function Driveway({ result, variant, running, lineNames, drivewayLine }: BlockProps) {
+  const v = drivewayView(result, lineNames, drivewayLine);
   // The router can take seconds (A4b PR B): the rest of the report is already shown while it works.
   if (!v)
     return running?.step === "driveway" ? (
@@ -35,6 +35,8 @@ export function Driveway({ result, variant, running, lineNames }: BlockProps) {
         <div key={rt.title} className="site">
           <div>
             <b className="font-semibold">{rt.title}</b> <span className="muted">{rt.from}</span>
+            {/* WF5: the route the household chose, which the card scores. */}
+            {rt.yours && <span className="your-route">Your route</span>}
             <span className="grade cost">{rt.cost}</span>
           </div>
           <Facts rows={rt.rows} />
@@ -49,6 +51,7 @@ export function Driveway({ result, variant, running, lineNames }: BlockProps) {
           <p className="tiny muted">{v.track.note}</p>
         </div>
       )}
+      {v.chosen && <p>{v.chosen}</p>}
       <Note parts={v.caveat} variant={variant} />
     </>
   );

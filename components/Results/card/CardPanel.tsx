@@ -16,11 +16,13 @@ import { DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { BOTTOMLAND_LEAD, bottomland } from "@/lib/screen/soils";
 import type { Card, GateStatus } from "@/lib/report/card";
 import { panelText, rulebookHref, type PanelKey } from "@/lib/report/cardPanels";
+import { routeChoices } from "@/lib/report/driveway";
 import { lineOutcome, type LineNames } from "@/lib/report/lines";
 import { meaningsFor } from "@/lib/report/meanings";
 import { scalesFor, type Scale } from "@/lib/report/scales";
 import type { PartialScreenResult, ScreenResult, Step, UserConfig } from "@/lib/screen/types";
 import { M2FT } from "@/lib/screen/util";
+import { Facts } from "../blocks/shared";
 import type { EvaluationPoint } from "../blocks/types";
 import { panelSections } from "./panelBlocks";
 
@@ -76,6 +78,7 @@ export function CardPanel({
   running,
   noteFor,
   dw = DEFAULT_USER_CONFIG.dw,
+  vetoPct = DEFAULT_USER_CONFIG.roadVetoGradePct,
   about,
   lines,
   lineNames,
@@ -90,6 +93,8 @@ export function CardPanel({
   noteFor?(slug: string): ReactNode;
   /** The Settings' earthwork rates, for the dig cost; the defaults when absent. */
   dw?: UserConfig["dw"];
+  /** The Settings' driveway veto, for the Easement panel's comparison (WF5); the default when absent. */
+  vetoPct?: number;
   /** Which parcel, where several are in view (the comparison table, VR6). */
   about?: string;
   /** The parcel's drawn lines, for the Easement panel's "Your lines" (owner, A); the explorer's, not Compare's. */
@@ -142,8 +147,22 @@ export function CardPanel({
         ))}
         {panel === "homesite" && <BuildingHere result={result} dw={dw} />}
         {panel === "septic" && <BottomlandHere result={result} />}
+        {panel === "easement" && (
+          <YourRouteChoice
+            result={result}
+            names={lineNames}
+            scored={card.drivewayLine ?? null}
+            vetoPct={vetoPct}
+            choose={lines?.choose}
+          />
+        )}
         {panel === "easement" && lines && lines.markup.length > 0 && (
-          <YourLinesList result={result} lines={lines} routing={!!running && !result.driveway} />
+          <YourLinesList
+            result={result}
+            lines={lines}
+            chosen={card.drivewayLine ?? null}
+            routing={!!running && !result.driveway}
+          />
         )}
         <PanelFlags
           flags={(result.flags ?? []).filter((f) => panel !== "verdict" && panelOfFlag(f) === panel)}
@@ -156,7 +175,14 @@ export function CardPanel({
         {/* Owner's wording (#111): added above the moved sections, nothing replaced. */}
         <p className="tiny muted panel-from-note">{FROM_THE_REPORT_NOTE}</p>
         {panelSections(panel).map(({ Block, heading }) => {
-          const body = Block({ result, point, variant: "panel", running, lineNames });
+          const body = Block({
+            result,
+            point,
+            variant: "panel",
+            running,
+            lineNames,
+            drivewayLine: card.drivewayLine ?? null,
+          });
           if (body === null) return null;
           const h = heading(result, point);
           return (
@@ -299,6 +325,51 @@ export interface YourLines {
   markup: readonly LineMarkup[];
   onEdit(id: string): void;
   onDelete(id: string): void;
+  /** Scores a line's route as the driveway, or the app's pick again (null) (WF5). */
+  choose?(lineId: string | null): void;
+}
+
+/**
+ * "Your route and the app's pick" (owner, WF5; docs/plans/parcel-workflow.md §3.4): side by side (stacked on a phone),
+ * with a button under each to score it, where the parcel's lines can be changed. Nothing when no drawn line has a route.
+ */
+function YourRouteChoice({
+  result,
+  names,
+  scored,
+  vetoPct,
+  choose,
+}: {
+  result: ScreenResult | PartialScreenResult;
+  names?: LineNames;
+  scored: string | null;
+  vetoPct: number;
+  choose?(lineId: string | null): void;
+}) {
+  const cols = routeChoices(result, names, scored, vetoPct);
+  if (!cols) return null;
+  return (
+    <section className="block panel-block route-choice">
+      <h3>Your route and the app&apos;s pick</h3>
+      <div className="route-choice-cols">
+        {cols.map((c) => (
+          <div key={c.line ?? "pick"} className={c.scored ? "route-choice-col scored" : "route-choice-col"}>
+            <b>{c.title}</b>
+            <Facts rows={c.rows} />
+            {c.scored ? (
+              <span className="tiny muted">Scored on the card</span>
+            ) : (
+              choose && (
+                <button className="btn small" onClick={() => choose(c.line)}>
+                  {c.line ? "Use as my driveway" : "Use the app's pick"}
+                </button>
+              )
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 /**
@@ -311,10 +382,13 @@ export const WAITING_FOR_THE_DRIVEWAY = "Waiting for the driveway route…";
 function YourLinesList({
   result,
   lines,
+  chosen,
   routing,
 }: {
   result: ScreenResult | PartialScreenResult;
   lines: YourLines;
+  /** The line whose route the card scores (WF5): its outcome is "used". */
+  chosen: string | null;
   /** A run is in progress and hasn't routed the driveway yet: no outcome to say. */
   routing: boolean;
 }) {
@@ -324,7 +398,7 @@ function YourLinesList({
       <ul>
         {lines.markup.map((m) => {
           const at = result.lines?.findIndex((l) => l.id === m.id) ?? -1;
-          const outcome = at >= 0 ? lineOutcome(result, at, m.name) : null;
+          const outcome = at >= 0 ? lineOutcome(result, at, m.name, chosen) : null;
           const ft = length(lineString(m.line.map(([lat, lon]) => [lon, lat])), { units: "meters" }) * M2FT;
           return (
             <li key={m.id}>

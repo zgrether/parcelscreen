@@ -59,8 +59,10 @@ export function Rulebook() {
     )?.key ??
     null;
   const result = key ? (screens.get(key)?.result ?? null) : null;
-  const lines = built.find((b) => b.key === key)?.markup;
-  const card = result ? reportCard(result, person, lines && drawnOf(lines)) : null;
+  const parcel = built.find((b) => b.key === key);
+  const card = result
+    ? reportCard(result, person, parcel && drawnOf(parcel.markup, parcel.drivewayLine))
+    : null;
   const bd = card ? breakdown(card) : null;
 
   return (

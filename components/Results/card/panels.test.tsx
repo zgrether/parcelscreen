@@ -80,6 +80,7 @@ describe("the report card's panels (VR5)", () => {
       id: "t",
       name: "Track 2",
       shape: "line" as const,
+      recordedIn: "",
       kind: "track",
       condition: "pioneer",
       line: [

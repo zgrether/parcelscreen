@@ -193,7 +193,11 @@ export type ExploreAction =
   | { type: "finishArea"; id: string; stamp: Stamp }
   | { type: "movePoint"; id: string; ll: LatLon; serial: number; stamp: Stamp }
   | { type: "markupSeptic"; id: string; septicClass: SepticClass | null; serial: number; stamp: Stamp }
-  | { type: "markupRestore"; markup: Markup; index: number; serial: number; stamp: Stamp }
+  /** WF5: an easement's "Recorded in"; the line scored as the driveway (null: the app's pick). */
+  | { type: "markupRecorded"; id: string; recordedIn: string; serial: number; stamp: Stamp }
+  | { type: "drivewayLine"; line: string | null; serial: number; stamp: Stamp }
+  /** Undo of a delete: the line back where it was, and the driveway choice too when it was the line's (WF5). */
+  | { type: "markupRestore"; markup: Markup; index: number; driveway?: boolean; serial: number; stamp: Stamp }
   /** A screen finished (or a house was re-assessed) for the parcel open when it started (`serial`). */
   | { type: "screened"; id: string; serial: number; stamp: Stamp };
 
@@ -237,7 +241,16 @@ function edited(
   m: Markup,
   a: Extract<
     ExploreAction,
-    { type: "markupNote" | "markupName" | "markupWidth" | "markupKind" | "markupCondition" | "markupSeptic" }
+    {
+      type:
+        | "markupNote"
+        | "markupName"
+        | "markupWidth"
+        | "markupKind"
+        | "markupCondition"
+        | "markupSeptic"
+        | "markupRecorded";
+    }
   >,
   others: readonly Markup[],
 ): Markup {
@@ -252,6 +265,10 @@ function edited(
       return m.shape === "line" ? { ...m, condition: a.condition } : m;
     case "markupSeptic":
       return m.shape !== "line" && m.kind === "septic" ? { ...m, septicClass: a.septicClass } : m;
+    case "markupRecorded":
+      return m.shape === "line" && m.recordedIn !== a.recordedIn.trim()
+        ? { ...m, recordedIn: a.recordedIn.trim() }
+        : m;
     case "markupKind":
       return m.shape === "line" ? lineKind(m, a.kind, others) : markKind(m, a.kind, others);
   }
@@ -559,6 +576,7 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       const line: Markup = {
         id: a.id,
         shape: "line",
+        recordedIn: "",
         kind: s.mode,
         name: nextMarkupName(open.markup, s.mode),
         condition: DEFAULT_CONDITION[s.mode],
@@ -598,7 +616,14 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       if (!open || a.serial !== s.serial || open.markup.some((m) => m.id === a.markup.id)) return s;
       const markup = [...open.markup];
       markup.splice(Math.min(a.index, markup.length), 0, a.markup);
-      return { ...s, store: save({ ...open, markup }, a.stamp) };
+      const drivewayLine = a.driveway ? a.markup.id : open.drivewayLine;
+      return { ...s, store: save({ ...open, markup, drivewayLine }, a.stamp) };
+    }
+    case "drivewayLine": {
+      // As notes: a choice made after another parcel opened is dropped; the same choice saves nothing.
+      if (!open || a.serial !== s.serial || open.drivewayLine === a.line) return s;
+      if (a.line && !open.markup.some((m) => m.id === a.line && m.shape === "line")) return s;
+      return { ...s, store: save({ ...open, drivewayLine: a.line }, a.stamp) };
     }
     case "markupNote":
     case "markupName":
@@ -606,6 +631,7 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
     case "markupKind":
     case "markupCondition":
     case "markupSeptic":
+    case "markupRecorded":
     case "markupDelete": {
       // As notes: an edit after another parcel opened is dropped.
       if (!open || a.serial !== s.serial || !open.markup.some((m) => m.id === a.id)) return s;
@@ -624,7 +650,9 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       // An edit that changes nothing (a blank name) saves nothing.
       if (markup.every((m, i) => m === open.markup[i]) && markup.length === open.markup.length) return s;
       const layer = a.type === "markupDelete" && s.layer === lineLayer(a.id) ? null : s.layer;
-      return { ...s, layer, store: save({ ...open, markup }, a.stamp) };
+      // A line chosen as the driveway, deleted: the card scores the app's pick again (WF5; Undo restores both).
+      const drivewayLine = a.type === "markupDelete" && open.drivewayLine === a.id ? null : open.drivewayLine;
+      return { ...s, layer, store: save({ ...open, markup, drivewayLine }, a.stamp) };
     }
     case "status":
     case "archive":

@@ -36,7 +36,7 @@ import { parcelDisplayName } from "@/lib/client/historyRows";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { AnalysisGroup } from "./results/AnalysisGroup";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
-import { lineSummary } from "@/lib/report/lines";
+import { lineSummary, routeFromLine } from "@/lib/report/lines";
 import { RoadsToggle } from "./RoadsToggle";
 import { MarkIcon } from "./markIcons";
 import { TerrainControls } from "./TerrainControls";
@@ -606,6 +606,9 @@ function LineDetails({ ctl, m }: { ctl: ExploreController; m: LineMarkup }) {
   const saveNote = () => {
     if (note !== m.note) ctl.saveMarkupNote(m.id, note, serial);
   };
+  // WF5: the screen found a route from this line's end, which the card can score as the driveway.
+  const routed = !!result && !!routeFromLine(result, m.id);
+  const chosen = ctl.state.store.open?.drivewayLine === m.id;
   return (
     <>
       <LineName key={m.name} name={m.name} save={(name) => ctl.renameMarkup(m.id, name, serial)} />
@@ -613,6 +616,18 @@ function LineDetails({ ctl, m }: { ctl: ExploreController; m: LineMarkup }) {
         {measured ? lineSummary(measured) : `${Math.round(ft).toLocaleString()} ft`}
         {!measured && result && " (run again to grade it)"}
       </p>
+      {routed && (
+        <div className="ip-line-row">
+          {chosen ? (
+            <>
+              <span className="ip-note">The card scores its route as your driveway.</span>
+              <Btn onClick={() => ctl.setDrivewayLine(null, serial)}>Use the app&apos;s pick</Btn>
+            </>
+          ) : (
+            <Btn onClick={() => ctl.setDrivewayLine(m.id, serial)}>Use as my driveway</Btn>
+          )}
+        </div>
+      )}
       <div className="ip-line-row" role="group" aria-label="What it is">
         {KINDS.map((k) => (
           <button
@@ -646,6 +661,13 @@ function LineDetails({ ctl, m }: { ctl: ExploreController; m: LineMarkup }) {
         unused={m.kind !== "easement"}
         save={(w) => ctl.saveMarkupWidth(m.id, w, serial)}
       />
+      {m.kind === "easement" && (
+        <RecordedIn
+          key={`${m.id} ${m.recordedIn}`}
+          value={m.recordedIn}
+          save={(text) => ctl.saveRecordedIn(m.id, text, serial)}
+        />
+      )}
       <input
         className="ip-line-note"
         aria-label={`Note for ${m.name}`}
@@ -730,6 +752,33 @@ function MarkDetails({ ctl, m }: { ctl: ExploreController; m: PointMarkup | Area
         }}
       />
     </>
+  );
+}
+
+/**
+ * Where an easement is recorded (owner, WF5): "Ashe Co. Plat Bk 574 Pg 1132". Kept on Enter or leaving the box; blank
+ * clears it, and the card asks again that the easement be verified.
+ */
+function RecordedIn({ value, save }: { value: string; save(text: string): void }) {
+  const [text, setText] = useState(value);
+  const keep = () => {
+    if (text.trim() !== value) save(text);
+  };
+  return (
+    <label className="ip-line-row ip-note">
+      Recorded in
+      <input
+        className="ip-line-note"
+        aria-label="Recorded in"
+        placeholder="e.g. Ashe Co. Plat Bk 574 Pg 1132"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onBlur={keep}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") keep();
+        }}
+      />
+    </label>
   );
 }
 

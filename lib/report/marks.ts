@@ -50,18 +50,31 @@ export interface AreaMark {
 
 export type Mark = PointMark | AreaMark;
 
-/** What the card reads from the parcel besides its result: the drawn lines' names, and the markers. */
+/**
+ * What the card reads from the parcel besides its result: the drawn lines' names, the markers, the line chosen as the
+ * driveway (WF5, by id; null or absent for the app's pick), and where each easement is recorded, as typed (WF5).
+ */
 export interface Drawn {
   names: LineNames;
   marks: readonly Mark[];
+  driveway?: string | null;
+  records?: ReadonlyMap<string, string>;
 }
 
-/** The card's view of a parcel's markup (parcelStore's lines and markers): every name, and the markers. */
+/**
+ * The card's view of a parcel (parcelStore's lines and markers, and its driveway choice): every name, the markers, the
+ * choice, and each line's "Recorded in" when it says something.
+ */
 export const drawnOf = (
-  markup: readonly ({ id: string; name: string } & ({ shape: "line" } | Mark))[],
+  markup: readonly ({ id: string; name: string } & ({ shape: "line"; recordedIn?: string } | Mark))[],
+  driveway: string | null = null,
 ): Drawn => ({
   names: lineNamesOf(markup),
   marks: markup.filter((m): m is typeof m & Mark => m.shape !== "line"),
+  driveway,
+  records: new Map(
+    markup.flatMap((m) => (m.shape === "line" && m.recordedIn?.trim() ? [[m.id, m.recordedIn.trim()]] : [])),
+  ),
 });
 
 const xy = ([lat, lon]: LatLon): [number, number] => [lon, lat];

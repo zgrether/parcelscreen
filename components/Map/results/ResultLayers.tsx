@@ -55,7 +55,12 @@ export function ResultLayers() {
       ?.setData(r && on.trailheads ? trailheadFeatures(r) : EMPTY);
   }, [map, r, on.trailheads]);
 
-  const drive = useMemo(() => (r && on.driveway ? drivewayFeatures(r) : null), [r, on.driveway]);
+  // The route the card scores: the household's when it chose a line (WF5).
+  const drivewayLine = s?.ctl.state.store.open?.drivewayLine ?? null;
+  const drive = useMemo(
+    () => (r && on.driveway ? drivewayFeatures(r, drivewayLine) : null),
+    [r, on.driveway, drivewayLine],
+  );
   useEffect(() => {
     map?.getSource<GeoJSONSource>(SOURCE.driveway)?.setData(drive ? drive.lines : EMPTY);
   }, [map, drive]);
