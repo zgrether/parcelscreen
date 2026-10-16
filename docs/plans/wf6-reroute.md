@@ -121,6 +121,10 @@ A house move uses WF6a's rule for the drives:
 - **Parity test:** a house move then the re-time = a full run with that house, on the drive minutes and on the card's
   Trails and Town rows, on all three fixtures.
 - Follow-up 58's `driveFrom.kept` item is updated when WF6b lands.
+- **Run time** (owner, #143 review): measure a house move on Macks Mountain on the desktop and on Zach's phone, in
+  both cases: the driveway step only (the entrance didn't move), and the driveway plus the re-timed drives. The earlier
+  "no extra progress UI" decision assumed 5 s or less. If either case takes more than about 5 s, the plan proposes the
+  progress UI (for example the header line with elapsed seconds, or the step names) before it's coded.
 
 ## 5. Numbers (WF6b's PR)
 
