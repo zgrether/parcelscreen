@@ -8,12 +8,9 @@
  * route (owner, #116): at 41% it takes the whole over-limit term, so the route from Mud Creek Ln is scored, as drawn
  * and carried on to the boundary alike. The route from it stays listed, with the warning.
  */
-import { bearing, destination, nearestPointOnLine, polygon, polygonToLine } from "@turf/turf";
-import type { Feature, LineString } from "geojson";
 import { describe, expect, it } from "vitest";
-import input from "../../test/fixtures/grayson-mud-creek-6273/input.json";
+import { redGate, toTheBoundary } from "../../test/support/redGate";
 import { runFixture } from "../../test/support/scenarios";
-import roads from "../../test/tools/driveway-validation.roads.json";
 import { reportCard } from "../report/card";
 import { drivewayView, routeChoices } from "../report/driveway";
 import { drivewayFeatures } from "../render/resultGeo";
@@ -23,26 +20,6 @@ import { siteDriveways } from "./driveway";
 import { routeContext } from "./index";
 import { chooseDriveway, drivewayPoints, overLimitPoints } from "./score";
 import type { DrawnInput, ScreenResult } from "./types";
-import type { LatLon } from "./util";
-
-const redGate: DrawnInput = {
-  id: "red-gate",
-  kind: "easement",
-  line: (roads.c.coordinates as [number, number][]).map(([lon, lat]) => [lat, lon]),
-  widthFt: 30,
-};
-
-/** The same line carried on from the pad to 5 m inside 6273's boundary, at the nearest point: had the right-of-way gone on. */
-function toTheBoundary(l: DrawnInput): DrawnInput {
-  const end = l.line[l.line.length - 1]!;
-  const ring = polygonToLine(
-    polygon(input.polygon.geometry.coordinates as number[][][]),
-  ) as Feature<LineString>;
-  const np = nearestPointOnLine(ring, [end[1], end[0]]).geometry.coordinates;
-  const [lon, lat] = destination(np, 5, bearing([end[1], end[0]], np), { units: "meters" }).geometry
-    .coordinates;
-  return { ...l, line: [...l.line, [lat!, lon!] as LatLon] };
-}
 
 const gate = (r: ScreenResult, key: string) => reportCard(r, "zach").gates.find((g) => g.key === key)!;
 const STEEP =

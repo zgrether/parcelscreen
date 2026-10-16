@@ -10,11 +10,16 @@
  * size budget, and says which to drop with `release`; the worker also caps itself at MAX_SESSIONS). Each
  * keeps its run's own result (`base`: the run, or its last house re-assessment) and the current one (a pin
  * re-evaluation moves it). `activate` reopens a kept run at its own point, with no network.
+ *
+ * WF6: `reroute` re-runs a kept run's driveway for other drawn lines or another driveway choice
+ * (docs/plans/wf6-reroute.md). It reroutes the run itself (`run`: the full run, or its last reroute), then re-applies
+ * the house moved since, so the result is the one the run and the move would give with those lines. A newer reroute
+ * of the same run supersedes one still going: only the latest is posted.
  */
 import type { Feature, Polygon } from "geojson";
-import { createHttpClient, type HttpClient } from "../http";
+import { CancelledError, createHttpClient, type HttpClient } from "../http";
 import { DemCache } from "./dem";
-import { evaluateAt, screen, setHouse, type ScreenOutput, type ScreenSession } from "./index";
+import { evaluateAt, reroute, screen, setHouse, type ScreenOutput, type ScreenSession } from "./index";
 import type { OsmWay } from "./osmRoads";
 import type { ParkingSource } from "./trailheadParking";
 import type { OverpassFallback } from "./places";
@@ -22,7 +27,7 @@ import type { Surfaces } from "./sites";
 import { AtlasCache } from "./sky";
 import type { SoilUnit } from "./soils";
 import type { HorizonPoint } from "./sun";
-import type { Dem, ProgressEvent, ScreenInput, ScreenResult } from "./types";
+import type { Dem, DrawnInput, ProgressEvent, ScreenInput, ScreenResult } from "./types";
 import type { LatLon } from "./util";
 
 export type ToWorker =
@@ -30,6 +35,8 @@ export type ToWorker =
   | { type: "cancel"; id: number }
   | { type: "evaluateAt"; id: number; ll: LatLon; label: string }
   | { type: "setHouse"; id: number; ll: LatLon | null }
+  /** WF6: the kept run's driveway re-routed for these lines and this choice; answered as `updated`. */
+  | { type: "reroute"; id: number; lines: DrawnInput[]; drivewayLine: string | null }
   /** Reopen a kept run at its own point (an unsaved re-evaluation is dropped): answered as `updated`. */
   | { type: "activate"; id: number }
   /** The page no longer needs this run's session. */
@@ -141,11 +148,24 @@ export interface WorkerCoreOptions {
   heartbeatMs?: number;
 }
 
+/**
+ * A kept run: its own result (`base`), the one showing (`current`), the run a reroute starts from (`run`: the full
+ * run, or its last reroute, WF6), and the house moved since (`house`), which a reroute re-applies.
+ */
+interface Kept {
+  base: ScreenOutput;
+  current: ScreenOutput;
+  run: ScreenOutput;
+  house?: { ll: LatLon | null };
+}
+
 /** The worker's state machine. One instance per worker; caches live for the worker's lifetime (the session). */
 export class ScreenWorkerCore {
   private current: { id: number; abort: AbortController } | null = null;
   /** Kept runs, least recently used first. */
-  private readonly sessions = new Map<number, { base: ScreenOutput; current: ScreenOutput }>();
+  private readonly sessions = new Map<number, Kept>();
+  /** The reroute going for each kept run (WF6): a newer one aborts it. */
+  private readonly rerouting = new Map<number, AbortController>();
   private readonly demCache = new DemCache();
   private readonly atlas = new AtlasCache();
   private readonly http: HttpClient;
@@ -167,11 +187,14 @@ export class ScreenWorkerCore {
       case "evaluateAt":
         return this.update(msg.id, (out) => evaluateAt(out, msg.ll, msg.label), false);
       case "setHouse":
-        // A house re-assessment is kept as a new screen: it becomes the run's own result.
-        return this.update(msg.id, (out) => setHouse(out, msg.ll), true);
+        // A house re-assessment is kept as a new screen: it becomes the run's own result. A reroute re-applies it.
+        return this.update(msg.id, (out) => setHouse(out, msg.ll), true, { ll: msg.ll });
+      case "reroute":
+        return this.reroute(msg.id, msg.lines, msg.drivewayLine);
       case "activate":
         return this.activate(msg.id);
       case "release":
+        this.rerouting.get(msg.id)?.abort();
         this.sessions.delete(msg.id);
         return;
       case "ping":
@@ -201,7 +224,7 @@ export class ScreenWorkerCore {
         ...(this.opts.parking ? { parking: this.opts.parking } : {}),
       });
       if (!live()) return;
-      this.keep(id, { base: out, current: out });
+      this.keep(id, { base: out, current: out, run: out });
       this.post({
         type: "done",
         id,
@@ -217,7 +240,7 @@ export class ScreenWorkerCore {
   }
 
   /** Keeps a run's session as the most recently used, dropping the oldest above MAX_SESSIONS. */
-  private keep(id: number, s: { base: ScreenOutput; current: ScreenOutput }): void {
+  private keep(id: number, s: Kept): void {
     this.sessions.delete(id);
     this.sessions.set(id, s);
     for (const old of this.sessions.keys()) {
@@ -234,12 +257,18 @@ export class ScreenWorkerCore {
     id: number,
     fn: (out: ScreenOutput) => Promise<ScreenOutput>,
     keepAsBase: boolean,
+    house?: { ll: LatLon | null },
   ): Promise<void> {
     const s = this.sessions.get(id);
     if (!s) return this.gone(id);
     try {
       const next = await fn(s.current);
-      this.keep(id, { base: keepAsBase ? next : s.base, current: next });
+      this.keep(id, {
+        ...s,
+        base: keepAsBase ? next : s.base,
+        current: next,
+        ...(house ? { house } : {}),
+      });
       this.post({
         type: "updated",
         id,
@@ -252,10 +281,50 @@ export class ScreenWorkerCore {
     }
   }
 
+  /**
+   * WF6: the kept run rerouted for these lines and this choice, then the house moved since re-applied; kept as the
+   * run's own result. Superseded by a newer reroute of the same run, it posts nothing.
+   */
+  private async reroute(id: number, lines: DrawnInput[], drivewayLine: string | null): Promise<void> {
+    const s = this.sessions.get(id);
+    if (!s) return this.gone(id);
+    this.rerouting.get(id)?.abort();
+    const abort = new AbortController();
+    this.rerouting.set(id, abort);
+    const live = () => !abort.signal.aborted;
+    try {
+      const run = await reroute(
+        s.run,
+        lines,
+        drivewayLine,
+        { signal: abort.signal, ...(this.opts.parking ? { parking: this.opts.parking } : {}) },
+        (event) => live() && this.post({ type: "progress", id, event }),
+      );
+      if (!live()) return;
+      // The house moved since the run, as it stands now (a move may have come in while this rerouted).
+      const house = this.sessions.get(id)?.house ?? s.house;
+      const next = house ? await setHouse(run, house.ll) : run;
+      if (!live()) return;
+      this.keep(id, { base: next, current: next, run, ...(house ? { house } : {}) });
+      this.post({
+        type: "updated",
+        id,
+        result: next.result,
+        view: sessionView(next.session),
+        bytes: sessionBytes(next),
+      });
+    } catch (e) {
+      if (e instanceof CancelledError || !live()) return;
+      this.post({ type: "error", id, message: (e as Error).message || String(e) });
+    } finally {
+      if (this.rerouting.get(id) === abort) this.rerouting.delete(id);
+    }
+  }
+
   private activate(id: number): void {
     const s = this.sessions.get(id);
     if (!s) return this.gone(id);
-    this.keep(id, { base: s.base, current: s.base });
+    this.keep(id, { ...s, base: s.base, current: s.base });
     const out = s.base;
     this.post({
       type: "updated",

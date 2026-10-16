@@ -31,6 +31,7 @@ import {
   type RoutingOpts,
   type SiteDriveway,
   type SiteRoutes,
+  trackCost,
 } from "./driveway";
 import { floodStep, sfhaMask, type FloodFeature } from "./flood";
 import { nearStep } from "./near";
@@ -137,6 +138,10 @@ export interface ScreenSession {
   outlineInside?: Uint8Array;
   /** The lines drawn with the parcel (follow-up 34; ScreenInput.lines). */
   lines: DrawnInput[];
+  /** The line chosen as the driveway (WF6; ScreenInput.drivewayLine), by id; null or absent for the app's pick. */
+  drivewayLine?: string | null;
+  /** The result as it stood after the rank step, and the steps failed by then (WF6): where a reroute starts. */
+  ranked?: { R: Building; failed: Step[] };
   /** `lines` on the fine DEM (drawn.ts), when any were drawn. */
   drawn?: DrawnGrid;
   /** The router's own land: `outlineInside` and the drawn easements' corridors, when any were drawn. */
@@ -213,6 +218,7 @@ export async function screen(
     config: cfg,
     house,
     lines: input.lines ?? [],
+    drivewayLine: input.drivewayLine ?? null,
     deps: {
       http: deps.http ?? createHttpClient({ env: "browser" }),
       demCache: deps.demCache ?? new DemCache(),
@@ -266,18 +272,7 @@ export async function screen(
     }
   };
 
-  const scoreContext = (): ScoreContext => ({
-    dFine: s.dFine!,
-    dWide: s.dWide!,
-    valleyFloorFt: s.valleyFloorFt ?? NaN,
-    skyScore: R.sky?.score,
-    roads: s.roads ?? null,
-    sfha: s.sfha ?? null,
-    units: s.units ?? null,
-    rows: s.rows ?? null,
-    limits: s.limits ?? null,
-    cfg,
-  });
+  const scoreContext = (): ScoreContext => scoreContextOf(s, R);
 
   await step("dem", async () => {
     // Fine, then wide, as in the prototype: a wide-DEM failure leaves the fine DEM in place.
@@ -450,151 +445,20 @@ export async function screen(
     return message;
   });
 
+  // The rank step's result, kept for a reroute (WF6): no step before the driveway reads the drawn lines but terrain's
+  // line grid and measures, which a reroute rebuilds.
+  s.ranked = { R: { ...R, flags: [...R.flags], noResponse: [...R.noResponse] }, failed: [...failed] };
+
   await step("driveway", () => {
     if (!s.dFine) throw new Error("needs elevation");
-    const rctx = routeContext(s);
-    // Progress while the router works (A4b PR B; the step can take seconds): a count of its searches.
-    let searches = 0;
-    const routing = {
-      onProgress: () => {
-        searches++;
-        emit("driveway", "run", `${searches} route search${searches === 1 ? "" : "es"} done`);
-      },
-    };
-    const sctx = scoreContext();
-    // A3 (owner, 2026-10-09): every ranked site re-costed from its own routed driveway, all in one search per
-    // entrance (siteDriveways), so the ranking compares like with like. A4: from the candidate with fewer points.
-    // Each site's routes, by position (rerank copies the sites).
-    const routeAt = new Map<string, SiteRoutes>();
-    // "No practical drive" (owner, #99 decisions): the alternatives of each site whose chosen route is impractical.
-    const altAt = new Map<string, PracticalAlternatives>();
-    const at = (ll: LatLon) => `${ll[0]},${ll[1]}`;
-    if (R.sites && R.sites.length) {
-      const lls = R.sites.map((x) => x.ll);
-      const est = siteDriveways(rctx, s.roads ?? [], parcel, lls, cfg.roadMaxGradePct, routing);
-      const alts = alternativesFor(rctx, s, lls, est, routing);
-      R.sites.forEach((x, i) => {
-        routeAt.set(at(x.ll), est[i]!);
-        if (alts[i]) altAt.set(at(x.ll), alts[i]);
-      });
-      R.sites = rerank(
-        R.sites.map((x, i) =>
-          withDrivewayCost(
-            sctx,
-            x,
-            practicalDriveway(chooseDriveway(est[i]!, cfg.roadVetoGradePct), alts[i]),
-          ),
-        ),
-      );
-    }
-    const to = house
-      ? { ll: house, label: "the existing house" }
-      : R.sites && R.sites[0]
-        ? { ll: R.sites[0].ll, label: "site #1" }
-        : null;
-    if (!to) throw new Error("no site to route to");
-    const toRoutes = house
-      ? houseRoutes(rctx, s.roads ?? [], parcel, house, cfg.roadMaxGradePct)
-      : routeAt.get(at(to.ll));
-    R.driveway = buildDriveway(rctx, s.roads ?? [], parcel, to.ll, to.label, cfg.roadMaxGradePct, routing);
-    // The route the target is scored on, first in the section and on the map (owner, #88 review).
-    if (toRoutes) {
-      const scored = chooseDriveway(toRoutes, cfg.roadVetoGradePct);
-      R.driveway = withScoredRoute(rctx, R.driveway, scored, to.ll);
-      // Every candidate vetoed (A4b): the least steep is shown, under a flag and a sentence appended to the note.
-      if (scored.noPractical) {
-        const line = noPracticalLine(scored, cfg.roadVetoGradePct);
-        R.driveway = { ...R.driveway, note: R.driveway.note ? `${R.driveway.note} ${line}` : line };
-        R.flags.push({ lvl: "warn", t: `Driveway to ${to.label}: ${line}`, step: "driveway" });
-      }
-      // An existing drive steeper than the veto (owner, #116): kept, with a warning, never vetoed.
-      const steep = existingSteepLine(scored.route?.existing ?? null);
-      if (steep) R.flags.push({ lvl: "warn", t: `Driveway to ${to.label}: ${steep}.`, step: "driveway" });
-      // A switchback refused on a side slope over 35° (owner, PR B decisions; B2b): stored, the card says so.
-      R.driveway = {
-        ...R.driveway,
-        steepLanding: steepLanding(rctx, R.driveway.entrances, to.ll, scored, cfg.roadMaxGradePct, routing),
-      };
-      // The section leads with "No practical drive" and the alternatives (owner, #99 decisions: placed first).
-      const alt = house ? alternativesFor(rctx, s, [to.ll], [toRoutes], routing)[0] : altAt.get(at(to.ll));
-      if (alt) R.driveway = { ...R.driveway, practical: outcome(scored, alt, cfg) };
-    }
-    const rt = R.driveway.routes[0];
-    // Site #1 keeps the prototype's routed line in place of its straight-line one; every other site with a route
-    // within the limit gets the same line appended (A3b, owner 2026-10-09). Then, where its two candidates differ,
-    // both, the scored one first (A4).
-    if (R.sites)
-      R.sites = R.sites.map((x, i) => {
-        const r = routeAt.get(at(x.ll));
-        const y =
-          i === 0 && rt && !house
-            ? withRoutedWhy(x, rt)
-            : r?.withinLimit
-              ? withRoutedLineAppended(x, r.withinLimit)
-              : x;
-        if (!r) return y;
-        const z = withDrivewayChoice(y, r, cfg.roadMaxGradePct, cfg.roadVetoGradePct);
-        const chosen = chooseDriveway(r, cfg.roadVetoGradePct);
-        const v = chosen.noPractical
-          ? { ...z, why: [...z.why, noPracticalLine(chosen, cfg.roadVetoGradePct)] }
-          : z;
-        const alt = altAt.get(at(x.ll));
-        if (!alt) return v;
-        const p = outcome(chosen, alt, cfg);
-        return { ...v, why: [...v.why, impracticalLine(p)], practical: p };
-      });
-    if (house && R.house && toRoutes)
-      R.house = houseWithDriveway(sctx, R.house, toRoutes, alternativesFor(rctx, s, [house], [toRoutes])[0]);
-    if (R.shelves && R.sites) R.shelves = shelvesFromBest(R.shelves, R.sites);
-    return R.driveway.note ?? undefined;
+    return drivewayStep(s, R, scoreContext(), (n) =>
+      emit("driveway", "run", `${n} route search${n === 1 ? "" : "es"} done`),
+    );
   });
 
-  // Last (follow-up 54; owner, #123): the drives start where the scored driveway meets the road, and the nearest
-  // trailheads are driven to, at their parking.
-  await step("drive", async () => {
-    R.drives = []; // stays [] if nothing routes
-    const start = driveStart(R.driveway, s.lines, s.centre);
-    R.driveFrom = { ...start, snapM: null, trackMi: null, kept: false };
-    const candidates = trailCandidates(R.near?.trailheads ?? [], start.ll);
-    let lots: ParkingLot[] = [];
-    if (candidates.length)
-      try {
-        lots = await (
-          deps.parking ?? parkingFromMirrors({ ...io, ...(s.deps.sleep ? { sleep: s.deps.sleep } : {}) })
-        )(
-          candidates.map((c) => c.ll),
-          signal,
-        );
-      } catch (e) {
-        if (e instanceof CancelledError) throw e;
-        R.noResponse.push(TRAILHEAD_PARKING); // the drives go to the points: close enough, and not a flag
-      }
-    const trails = candidates.map((c) => ({
-      index: c.index,
-      ll: c.ll,
-      parkingLl: parkingFor(R.near!.trailheads[c.index]!, lots),
-    }));
-    const d = await driveTimes(
-      start.ll,
-      R.near,
-      cfg.anchors,
-      io,
-      {
-        ...(s.otherGrocers ? { otherGrocers: s.otherGrocers } : {}),
-        ...(s.hospitalPool ? { hospitals: s.hospitalPool } : {}),
-      },
-      trails,
-    );
-    R.drives = d.drives;
-    R.closerGrocery = d.closerGrocery;
-    R.driveFrom = { ...R.driveFrom, snapM: d.snapM, trackMi: d.trackMi };
-    if (trails.length && !d.trailDrives.size) R.noResponse.push(TRAILHEAD_DRIVES);
-    if (R.near)
-      R.near = {
-        ...R.near,
-        trailheads: R.near.trailheads.map((t, i) => ({ ...t, drive: d.trailDrives.get(i) ?? null })),
-      };
-  });
+  // Last (follow-up 54; owner, #123): the drives start where the scored driveway meets the road (or the chosen line's
+  // route does, WF6), and the nearest trailheads are driven to, at their parking.
+  await step("drive", () => driveStep(s, R, io, deps.parking, signal));
 
   if (house) for (const f of R.flags) if (f.lvl === "fatal" && /^No house site/.test(f.t)) f.lvl = "warn";
   const result: ScreenResult = {
@@ -604,15 +468,316 @@ export async function screen(
     runAt: (deps.now ?? (() => new Date()))().toISOString(),
     failed,
     cancelled: !!signal?.aborted,
-    verdict: R.flags.some((f) => f.lvl === "fatal")
-      ? "fatal"
-      : R.flags.some((f) => f.lvl === "warn")
-        ? "marginal"
-        : "ok",
+    verdict: verdictOf(R.flags),
   };
   let out: ScreenOutput = { result, session: s };
   if (input.evaluateAt) out = await evaluateAt(out, input.evaluateAt, "the evaluation point");
   return out;
+}
+
+/** The scoring's view of the session and the result so far (the sky's score once the sky step has run). */
+const scoreContextOf = (s: ScreenSession, R: Building): ScoreContext => ({
+  dFine: s.dFine!,
+  dWide: s.dWide!,
+  valleyFloorFt: s.valleyFloorFt ?? NaN,
+  skyScore: R.sky?.score,
+  roads: s.roads ?? null,
+  sfha: s.sfha ?? null,
+  units: s.units ?? null,
+  rows: s.rows ?? null,
+  limits: s.limits ?? null,
+  cfg: s.config,
+});
+
+/** The prototype's verdict, from every step's flags: any fatal, else any warning, else ok. */
+const verdictOf = (flags: ScreenResult["flags"]): ScreenResult["verdict"] =>
+  flags.some((f) => f.lvl === "fatal") ? "fatal" : flags.some((f) => f.lvl === "warn") ? "marginal" : "ok";
+
+/**
+ * Re-routes a finished run for other drawn lines or another driveway choice (WF6, docs/plans/wf6-reroute.md §2): what a
+ * full run would give with them, from its session. What the lines touch is rebuilt (the line grid, the router's own
+ * land and the masks built on it, the lines' measures), the driveway step runs again from the rank step's result, and
+ * the drive step only when the drive start moved: that's the only part that makes a request. Throws when the run can't
+ * be rerouted (a step before the driveway didn't finish), and a CancelledError when `deps.signal` aborts.
+ */
+export async function reroute(
+  out: ScreenOutput,
+  lines: DrawnInput[],
+  drivewayLine: string | null,
+  deps: Pick<ScreenDeps, "signal" | "now" | "parking"> = {},
+  onProgress?: (e: ProgressEvent) => void,
+): Promise<ScreenOutput> {
+  const s0 = out.session;
+  if (!s0.ranked || !s0.dFine || !s0.slope) throw new Error("This screen can't be rerouted; run it again.");
+  const signal = deps.signal;
+  const stop = () => {
+    if (signal?.aborted) throw new CancelledError();
+  };
+  stop();
+  // The session with the new lines: what was built on the old ones is dropped, to be built again on demand.
+  const { drawn: _d, routeInside: _r, soilMask: _m, bedrockCm: _b, wetSoil: _w, ...kept } = s0;
+  const s: ScreenSession = { ...kept, lines, drivewayLine };
+  if (lines.length) s.drawn = drawnGrid(s0.dFine, lines, s0.parcel);
+  const R: Building = {
+    ...s0.ranked.R,
+    flags: [...s0.ranked.R.flags],
+    noResponse: [...s0.ranked.R.noResponse],
+    // As the terrain step measures them.
+    lines: measureLines(lines, s0.parcel, lines.length ? s0.dFine : null),
+  };
+  const failed = [...s0.ranked.failed];
+  const io: StepIo = {
+    http: s.deps.http,
+    endpoints: s.config.endpoints,
+    ...(signal ? { signal } : {}),
+  };
+
+  onProgress?.({ step: "driveway", status: "run" });
+  try {
+    const message = drivewayStep(s, R, scoreContextOf(s, R), (n) =>
+      onProgress?.({
+        step: "driveway",
+        status: "run",
+        message: `${n} route search${n === 1 ? "" : "es"} done`,
+      }),
+    );
+    onProgress?.({ step: "driveway", status: "done", ...(message ? { message } : {}) });
+  } catch (e) {
+    failed.push("driveway");
+    onProgress?.({ step: "driveway", status: "fail", message: (e as Error).message || String(e) });
+  }
+  stop();
+
+  // The drive step again only when its start moved (a full run's drives from the same start are the same).
+  const before = out.result;
+  const start = driveStart(R.driveway, s.lines, s.centre, s.drivewayLine);
+  const was = before.driveFrom;
+  const same =
+    !before.failed.includes("drive") &&
+    !!was &&
+    was.ll[0] === start.ll[0] &&
+    was.ll[1] === start.ll[1] &&
+    was.kind === start.kind &&
+    was.road === start.road &&
+    was.line === start.line &&
+    was.gapFt === start.gapFt;
+  if (same) {
+    // What the drive step wrote, carried over, in the order it writes it.
+    R.drives = before.drives;
+    R.driveFrom = { ...was, kept: false };
+    if (before.closerGrocery !== undefined) R.closerGrocery = before.closerGrocery;
+    if (before.near) R.near = before.near;
+    for (const n of before.noResponse)
+      if (n === TRAILHEAD_PARKING || n === TRAILHEAD_DRIVES) R.noResponse.push(n);
+  } else {
+    onProgress?.({ step: "drive", status: "run" });
+    try {
+      await driveStep(s, R, io, deps.parking, signal);
+      onProgress?.({ step: "drive", status: "done" });
+    } catch (e) {
+      if (e instanceof CancelledError) throw e;
+      failed.push("drive");
+      onProgress?.({ step: "drive", status: "fail", message: (e as Error).message || String(e) });
+    }
+  }
+  stop();
+
+  if (s.house) for (const f of R.flags) if (f.lvl === "fatal" && /^No house site/.test(f.t)) f.lvl = "warn";
+  const result: ScreenResult = {
+    ...(R as Omit<ScreenResult, "schemaVersion" | "runAt" | "failed" | "cancelled" | "verdict">),
+    schemaVersion: SCREEN_SCHEMA_VERSION,
+    engine: ENGINE_VERSION,
+    runAt: (deps.now ?? (() => new Date()))().toISOString(),
+    failed,
+    cancelled: false,
+    verdict: verdictOf(R.flags),
+  };
+  return { result, session: s };
+}
+
+/** What a step's requests need: the client, the endpoints, and the run's cancellation. */
+type StepIo = { http: HttpClient; endpoints: UserConfig["endpoints"]; signal?: AbortSignal };
+
+/**
+ * The driveway step (a full run's, and a reroute's: WF6): every ranked site re-costed from its own routed driveway, the
+ * driveway built to the house or site #1 with the route it's scored on, and its flags. Writes R; returns the step's
+ * message. `onSearch` counts the router's searches (the step can take seconds).
+ */
+function drivewayStep(
+  s: ScreenSession,
+  R: Building,
+  sctx: ScoreContext,
+  onSearch: (n: number) => void,
+): string | undefined {
+  const cfg = s.config,
+    parcel = s.parcel,
+    house = s.house;
+  const rctx = routeContext(s);
+  // Progress while the router works (A4b PR B): a count of its searches.
+  let searches = 0;
+  const routing = { onProgress: () => onSearch(++searches) };
+  // A3 (owner, 2026-10-09): every ranked site re-costed from its own routed driveway, all in one search per
+  // entrance (siteDriveways), so the ranking compares like with like. A4: from the candidate with fewer points.
+  // Each site's routes, by position (rerank copies the sites).
+  const routeAt = new Map<string, SiteRoutes>();
+  // "No practical drive" (owner, #99 decisions): the alternatives of each site whose chosen route is impractical.
+  const altAt = new Map<string, PracticalAlternatives>();
+  const at = (ll: LatLon) => `${ll[0]},${ll[1]}`;
+  if (R.sites && R.sites.length) {
+    const lls = R.sites.map((x) => x.ll);
+    const est = siteDriveways(rctx, s.roads ?? [], parcel, lls, cfg.roadMaxGradePct, routing);
+    const alts = alternativesFor(rctx, s, lls, est, routing);
+    R.sites.forEach((x, i) => {
+      routeAt.set(at(x.ll), est[i]!);
+      if (alts[i]) altAt.set(at(x.ll), alts[i]);
+    });
+    R.sites = rerank(
+      R.sites.map((x, i) =>
+        withDrivewayCost(sctx, x, practicalDriveway(chooseDriveway(est[i]!, cfg.roadVetoGradePct), alts[i])),
+      ),
+    );
+  }
+  const to = house
+    ? { ll: house, label: "the existing house" }
+    : R.sites && R.sites[0]
+      ? { ll: R.sites[0].ll, label: "site #1" }
+      : null;
+  if (!to) throw new Error("no site to route to");
+  const toRoutes = house
+    ? houseRoutes(rctx, s.roads ?? [], parcel, house, cfg.roadMaxGradePct)
+    : routeAt.get(at(to.ll));
+  R.driveway = buildDriveway(rctx, s.roads ?? [], parcel, to.ll, to.label, cfg.roadMaxGradePct, routing);
+  // The route the target is scored on, first in the section and on the map (owner, #88 review).
+  if (toRoutes) {
+    const scored = chooseDriveway(toRoutes, cfg.roadVetoGradePct);
+    R.driveway = withScoredRoute(rctx, R.driveway, scored, to.ll);
+    // Every candidate vetoed (A4b): the least steep is shown, under a flag and a sentence appended to the note.
+    if (scored.noPractical) {
+      const line = noPracticalLine(scored, cfg.roadVetoGradePct);
+      R.driveway = { ...R.driveway, note: R.driveway.note ? `${R.driveway.note} ${line}` : line };
+      R.flags.push({ lvl: "warn", t: `Driveway to ${to.label}: ${line}`, step: "driveway" });
+    }
+    // An existing drive steeper than the veto (owner, #116): kept, with a warning, never vetoed.
+    const steep = existingSteepLine(scored.route?.existing ?? null);
+    if (steep) R.flags.push({ lvl: "warn", t: `Driveway to ${to.label}: ${steep}.`, step: "driveway" });
+    // A switchback refused on a side slope over 35° (owner, PR B decisions; B2b): stored, the card says so.
+    R.driveway = {
+      ...R.driveway,
+      steepLanding: steepLanding(rctx, R.driveway.entrances, to.ll, scored, cfg.roadMaxGradePct, routing),
+    };
+    // The section leads with "No practical drive" and the alternatives (owner, #99 decisions: placed first).
+    const alt = house ? alternativesFor(rctx, s, [to.ll], [toRoutes], routing)[0] : altAt.get(at(to.ll));
+    if (alt) R.driveway = { ...R.driveway, practical: outcome(scored, alt, cfg) };
+  }
+  // The household's chosen line (WF6): its route gets its pioneer-track estimate, as the app's pick has; the same
+  // function and rates. The route over the line itself stays an existing drive to upgrade (#116).
+  const mine = chosenRoute(R.driveway, s.lines, s.drivewayLine);
+  if (mine && !mine.track)
+    R.driveway = {
+      ...R.driveway,
+      routes: R.driveway.routes.map((r) => (r === mine ? { ...r, track: trackCost(r, cfg.dw) } : r)),
+    };
+  const rt = R.driveway.routes[0];
+  // Site #1 keeps the prototype's routed line in place of its straight-line one; every other site with a route
+  // within the limit gets the same line appended (A3b, owner 2026-10-09). Then, where its two candidates differ,
+  // both, the scored one first (A4).
+  if (R.sites)
+    R.sites = R.sites.map((x, i) => {
+      const r = routeAt.get(at(x.ll));
+      const y =
+        i === 0 && rt && !house
+          ? withRoutedWhy(x, rt)
+          : r?.withinLimit
+            ? withRoutedLineAppended(x, r.withinLimit)
+            : x;
+      if (!r) return y;
+      const z = withDrivewayChoice(y, r, cfg.roadMaxGradePct, cfg.roadVetoGradePct);
+      const chosen = chooseDriveway(r, cfg.roadVetoGradePct);
+      const v = chosen.noPractical
+        ? { ...z, why: [...z.why, noPracticalLine(chosen, cfg.roadVetoGradePct)] }
+        : z;
+      const alt = altAt.get(at(x.ll));
+      if (!alt) return v;
+      const p = outcome(chosen, alt, cfg);
+      return { ...v, why: [...v.why, impracticalLine(p)], practical: p };
+    });
+  if (house && R.house && toRoutes)
+    R.house = houseWithDriveway(sctx, R.house, toRoutes, alternativesFor(rctx, s, [house], [toRoutes])[0]);
+  if (R.shelves && R.sites) R.shelves = shelvesFromBest(R.shelves, R.sites);
+  return R.driveway.note ?? undefined;
+}
+
+/**
+ * The route the router found from the household's chosen line's end (WF6), among the driveway's routes; undefined
+ * without a choice, or when this run has no route from that line.
+ */
+function chosenRoute(
+  dw: NonNullable<Building["driveway"]>,
+  lines: readonly DrawnInput[],
+  lineId: string | null | undefined,
+): NonNullable<Building["driveway"]>["routes"][number] | undefined {
+  const index = lineId ? lines.findIndex((l) => l.id === lineId) : -1;
+  if (index < 0) return undefined;
+  return dw.routes.find((r) => {
+    const e = dw.entrances[r.entranceIndex];
+    return e?.source === "drawn" && e.line === index;
+  });
+}
+
+/**
+ * The drive step (a full run's, and a reroute's when the start moved: WF6): where the drives start, then the drives,
+ * the closer grocery and the nearest trailheads', at their parking. The step's only requests: Overpass for the
+ * parking, OSRM for the drives.
+ */
+async function driveStep(
+  s: ScreenSession,
+  R: Building,
+  io: StepIo,
+  parking: ParkingSource | undefined,
+  signal: AbortSignal | undefined,
+): Promise<void> {
+  R.drives = []; // stays [] if nothing routes
+  const start = driveStart(R.driveway, s.lines, s.centre, s.drivewayLine);
+  R.driveFrom = { ...start, snapM: null, trackMi: null, kept: false };
+  const candidates = trailCandidates(R.near?.trailheads ?? [], start.ll);
+  let lots: ParkingLot[] = [];
+  if (candidates.length)
+    try {
+      lots = await (
+        parking ?? parkingFromMirrors({ ...io, ...(s.deps.sleep ? { sleep: s.deps.sleep } : {}) })
+      )(
+        candidates.map((c) => c.ll),
+        signal,
+      );
+    } catch (e) {
+      if (e instanceof CancelledError) throw e;
+      R.noResponse.push(TRAILHEAD_PARKING); // the drives go to the points: close enough, and not a flag
+    }
+  const trails = candidates.map((c) => ({
+    index: c.index,
+    ll: c.ll,
+    parkingLl: parkingFor(R.near!.trailheads[c.index]!, lots),
+  }));
+  const d = await driveTimes(
+    start.ll,
+    R.near,
+    s.config.anchors,
+    io,
+    {
+      ...(s.otherGrocers ? { otherGrocers: s.otherGrocers } : {}),
+      ...(s.hospitalPool ? { hospitals: s.hospitalPool } : {}),
+    },
+    trails,
+  );
+  R.drives = d.drives;
+  R.closerGrocery = d.closerGrocery;
+  R.driveFrom = { ...R.driveFrom, snapM: d.snapM, trackMi: d.trackMi };
+  if (trails.length && !d.trailDrives.size) R.noResponse.push(TRAILHEAD_DRIVES);
+  if (R.near)
+    R.near = {
+      ...R.near,
+      trailheads: R.near.trailheads.map((t, i) => ({ ...t, drive: d.trailDrives.get(i) ?? null })),
+    };
 }
 
 /**
