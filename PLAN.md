@@ -109,11 +109,11 @@ on main.
 | # | Step | What it delivers |
 |---|---|---|
 | 1 | **Profiles and the grading split** | Anyone opening the link creates a local profile; profiles can be added, switched, renamed and deleted, and all data is scoped to a profile. Today's data moves into a first profile. Saved screens store raw measurements; grades are computed on display from measurements plus the profile's rubric. The default rubric reproduces today's grades exactly on every fixture, so nothing visible changes except the profile picker. |
-| 2 | **Tennessee** | Statewide parcel lines through the state's parcel program (the service, its fields and its terms confirmed first), Tennessee imagery, Tennessee trailhead sources, and a recorded fixture near Roan Mountain. |
-| 3 | **Rubric editor** | Four columns (Must, Should, Could, Won't); drag between and within; threshold sliders; a live preview on the open parcel; "Reset to my answers". |
+| 2 | **Tennessee** | Statewide parcel lines through the state's parcel program (the service, its fields and its terms confirmed first), Tennessee imagery, Tennessee trailhead sources, and a recorded fixture near Roan Mountain. Its first PR deletes the `ps.legacy.*` keys step 1's migration left behind. |
+| 3 | **Rubric editor** | Four columns (Must, Should, Could, Won't); drag between and within; threshold sliders; a live preview on the open parcel; "Reset to my answers". When the editor first switches a rubric from its explicit default weights to rank-sum, it shows the points before and after (owner, step 1 plan §8). |
 | 4 | **Interview** | The 14 forced-choice screens, the rubric generator, first-launch onboarding for a new profile, and "Redo the interview". |
-| 5 | **Household** | Members by name, rubric import by code or file, "How would Julie rate this?" as a prediction from her rubric, and "Send to confirm" as a shared file or link. No combined grade. |
-| 6 | **Screening results** | The answer first (grade, verdict, one line of reason), the best site plus up to two alternatives, the report card in rubric order, unknowns as questions for the agent. |
+| 5 | **Household** | Members by name, rubric import by code or file, "How would Julie rate this?" as a prediction from her rubric, and "Send to confirm" as a shared file or link. No combined grade. Deletes `LEGACY_SECOND_WEIGHTS` and its name (step 1's migration of today's second weight set) once rubric import exists. |
+| 6 | **Screening results** | The answer first (grade, verdict, one line of reason), the best site plus up to two alternatives, the report card in rubric order, unknowns as questions for the agent. Revisits whether a site's `why` lines stay stored (step 1 plan §8). |
 | 7 | **Favorites** | A star, a plain name field, History and Favorites split; "In progress" goes away. |
 | 8 | **Report card export** | A print-ready page the browser saves as PDF, with One page and Full presets. |
 | 9 | **Cost to enjoy** | Cost to camp and cost to build from the parcel's state and markers, graded against the two budgets from the interview. |
@@ -123,7 +123,7 @@ on main.
 | 13 | **Accounts and attachments** | Sign-in that adopts existing local profiles, file storage for photos and PDFs, and in-app "Send to confirm". |
 
 **Paused (10/16):** WF6b (the engine half is merged; the app side waits), follow-up 57 (snap lines to lidar),
-follow-up 46 (county grade limits), the cost-label PR, VR8 calibration and Batch B. Their branches and plans
+follow-up 46 (county grade limits), the cost-label PR (proposed 10/16, never started), VR8 calibration and Batch B. Their branches and plans
 stay as they are (`docs/plans/phase-0.md` §6). VR8's weight calibration is replaced by the interview and the
 editor; its band cutoffs get a lighter sanity check after step 10.
 
