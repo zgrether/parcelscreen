@@ -34,6 +34,7 @@ const SCREEN_GROUPS: Record<string, string[]> = {
     "lib/render/surface.test.ts", // 59
     "lib/render/pins.test.ts", // 59
     "lib/screen/sky-per-site.test.ts", // follow-up 58: about ten full runs
+    "lib/screen/site1-card.test.ts", // §9.43: six full runs
   ],
 };
 

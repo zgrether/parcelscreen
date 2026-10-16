@@ -696,19 +696,16 @@ function drivewayStep(
       ...R.driveway,
       routes: R.driveway.routes.map((r) => (r === mine ? { ...r, track: trackCost(r, cfg.dw) } : r)),
     };
-  const rt = R.driveway.routes[0];
   // Site #1 keeps the prototype's routed line in place of its straight-line one; every other site with a route
   // within the limit gets the same line appended (A3b, owner 2026-10-09). Then, where its two candidates differ,
-  // both, the scored one first (A4).
+  // both, the scored one first (A4). With a house, the driveway above is the house's: site #1's line is the route
+  // its own driveway would lead with (owner, #142; §9.43), so its card is the same either way.
+  const rt = house ? site1Route(R.sites?.[0], routeAt, at, cfg.roadVetoGradePct) : R.driveway.routes[0];
   if (R.sites)
     R.sites = R.sites.map((x, i) => {
       const r = routeAt.get(at(x.ll));
       const y =
-        i === 0 && rt && !house
-          ? withRoutedWhy(x, rt)
-          : r?.withinLimit
-            ? withRoutedLineAppended(x, r.withinLimit)
-            : x;
+        i === 0 && rt ? withRoutedWhy(x, rt) : r?.withinLimit ? withRoutedLineAppended(x, r.withinLimit) : x;
       if (!r) return y;
       const z = withDrivewayChoice(y, r, cfg.roadMaxGradePct, cfg.roadVetoGradePct);
       const chosen = chooseDriveway(r, cfg.roadVetoGradePct);
@@ -724,6 +721,26 @@ function drivewayStep(
     R.house = houseWithDriveway(sctx, R.house, toRoutes, alternativesFor(rctx, s, [house], [toRoutes])[0]);
   if (R.shelves && R.sites) R.shelves = shelvesFromBest(R.shelves, R.sites);
   return R.driveway.note ?? undefined;
+}
+
+/**
+ * The route site #1's own driveway leads with (withScoredRoute on buildDriveway to it), from the routes already found
+ * to it: the scored one when it's within the limit, else the cheapest within the limit, which is buildDriveway's first
+ * (siteDriveways and buildDriveway find the same routes, A3). Used with a house (§9.43): no route search of its own.
+ */
+function site1Route(
+  site: NonNullable<ScreenResult["sites"]>[number] | undefined,
+  routeAt: Map<string, SiteRoutes>,
+  at: (ll: LatLon) => string,
+  vetoPct: number,
+): Parameters<typeof withRoutedWhy>[1] | undefined {
+  const r = site && routeAt.get(at(site.ll));
+  if (!r) return undefined;
+  const scored = chooseDriveway(r, vetoPct);
+  const lead = scored.legal ? scored : r.withinLimit;
+  return lead?.route && lead.entranceIndex != null
+    ? { ...lead.route, entranceIndex: lead.entranceIndex }
+    : undefined;
 }
 
 /**
