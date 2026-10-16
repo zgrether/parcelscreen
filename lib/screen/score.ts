@@ -569,7 +569,7 @@ export async function rankSites(
 const FIT_ORDER: Record<Site["fit"], number> = { fits: 0, "house only": 1, "too small": 2 };
 
 /**
- * Sort by fit, then overall score, then a tie-break that never depends on the order the sites came in (owner, #142):
+ * Sort by fit, then overall score (whole points: a site's score is stored rounded), then a tie-break that never depends on the order the sites came in (owner, #142):
  * the larger site first, then the one further north, then further west. Renumber and regrade.
  */
 export function rerank(sites: Site[]): Site[] {

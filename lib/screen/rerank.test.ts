@@ -1,5 +1,8 @@
 /** The site ranking's order (owner, #142): fit, then score, then an explicit tie-break, never the input order. */
 import { describe, expect, it } from "vitest";
+import { expectedOf } from "@/test/support/expected";
+import { FIXTURE_SLUGS } from "@/test/support/fixtures";
+import { SCENARIOS } from "@/test/support/scenarios";
 import { rerank } from "./score";
 import type { Site } from "./types";
 
@@ -25,6 +28,19 @@ describe("rerank", () => {
     ];
     expect(order(sites)).toEqual(expected);
     expect(order([...sites].reverse())).toEqual(expected);
+  });
+
+  it("compares scores at whole points: a difference under a point falls through to the size tie-break", () => {
+    // A site's score is stored rounded (Math.round of the overall, scoreSiteDetailed and withDrivewayCost): 70.4 and
+    // 69.6 are both 70, so the larger site goes first even though its unrounded overall is lower.
+    const r = rerank([site(0.5, Math.round(70.4), [36.9, -80.4]), site(2, Math.round(69.6), [36.8, -80.5])]);
+    expect(r.map((x) => x.acres)).toEqual([2, 0.5]);
+  });
+
+  it("every recorded site score is a whole number, the precision rerank compares at", () => {
+    for (const slug of FIXTURE_SLUGS)
+      for (const sc of SCENARIOS[slug])
+        for (const x of expectedOf(slug, sc).sites ?? []) expect(Number.isInteger(x.score)).toBe(true);
   });
 
   it("keeps fit first: a site the build doesn't fit on ranks after every one it does, whatever its score", () => {
