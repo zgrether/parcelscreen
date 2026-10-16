@@ -22,7 +22,7 @@ const record = (engine?: number): ScreenRecord => ({
 
 describe("the engine stamp on a kept screen (Batch A §6)", () => {
   it("Phase 0's rules are version 1, A2a's 2, A2b's 3, A2c's 4, A3's 5, A3b's 6, and a screen kept before the stamp counts as 1", () => {
-    expect(ENGINE_VERSION).toBe(19); // the sky read at each site and the house (follow-up 58)
+    expect(ENGINE_VERSION).toBe(20); // site #1's card the same with and without a house (§9.43)
     expect(engineOf(record())).toBe(1);
     expect(engineOf(record(3))).toBe(3);
   });
@@ -46,7 +46,8 @@ describe("the engine stamp on a kept screen (Batch A §6)", () => {
     expect(fromEarlierRules(record(16))).toBe(true); // the trailhead search out to 36 km (#118 review), before v6
     expect(fromEarlierRules(record(17))).toBe(true); // schema v6 (follow-up 54), before v7
     expect(fromEarlierRules(record(18))).toBe(true); // schema v7 (follow-up 55), before each site's own sky
-    expect(fromEarlierRules(record(19))).toBe(false); // the sky at each site and the house (follow-up 58)
+    expect(fromEarlierRules(record(19))).toBe(true); // the sky at each site and the house (follow-up 58), before §9.43
+    expect(fromEarlierRules(record(20))).toBe(false); // site #1's card with a house (§9.43)
     expect(fromEarlierRules(record(), 1)).toBe(false); // against Phase 0's rules
     expect(fromEarlierRules(record(2), 2)).toBe(false);
     expect(fromEarlierRules(record(1), 5)).toBe(true);
