@@ -15,7 +15,8 @@ meets the road, and the route gets its own pioneer-track estimate.
   - the saved screen's driveway key;
   - the card header's two lines and the banner's "Score it as the driveway" (rule 7, §7);
   - export version 6;
-  - §9's entry (§7).
+  - §9's entry (§7);
+  - a house move re-times the drives as a reroute does (§4a).
 
 ## 2. What a reroute does
 
@@ -105,6 +106,22 @@ Points and areas never reach the screen.
 Without a live session (after a reload, more than `SESSION_LIMIT` (3) parcels opened since, or a worker restart),
 today's banner shows (§7).
 
+## 4a. A house move re-times the drives (WF6b; owner, #142)
+
+A house move uses WF6a's rule for the drives:
+- **When the driveway's road entrance moves** (the drive start the moved house's driveway gives differs from the
+  run's), the drive step runs again from the new start. Its only network is OSRM (the table and the route out) and
+  Overpass (the trailheads' parking): recorded in the fixtures (`pnpm record:port`), with a request-count test as
+  WF6a's §6.5/§6.7.
+- **When it doesn't move,** the drives are kept, with no request.
+- **"Drive times are from the last full screen; run again to update."** (`driveFrom.kept`) no longer appears when the
+  drives were re-timed. It stays only when the drives weren't re-timed and the start did move: the drive step failed
+  (OSRM didn't answer), handled as follow-up 53 handles a failure (Trails and Town marked incomplete, the verdict held
+  at Maybe or below).
+- **Parity test:** a house move then the re-time = a full run with that house, on the drive minutes and on the card's
+  Trails and Town rows, on all three fixtures.
+- Follow-up 58's `driveFrom.kept` item is updated when WF6b lands.
+
 ## 5. Numbers (WF6b's PR)
 
 A reroute with a choice re-times the drives, so the Town and Trails minutes, their grades, and possibly the parcel's
@@ -143,7 +160,8 @@ follow-up 58.
 - **The sky, Ferney Creek:** a full run with a house reads the sky at the house, and rank scores every site with that
   sky score; a move keeps the score read at site #1. So `sites[].q.sky` is 67 vs 57 on all five sites, and their
   `quality` and `score` differ by 1 or 2; the house's too (sky 67 vs 57, quality 70 vs 69, score 68 vs 67). On Macks
-  and Grayson site #1's sky and the house's sky score are the same, so nothing follows.
+  and Grayson site #1's sky and the house's sky score are the same, so nothing follows. **Closed** by the sky-per-site PR (follow-up 58, ENGINE_VERSION 19): each site and the
+  house read their own sky.
 - **The house's rounding, Macks and Grayson:** `setHouse` rounds the house to 6 decimals; a full run uses the input as
   given. So `focus.ll`, `point.ll` and `house.ll` differ by under 5e-7°, the sun's `noonAlt` and `noonClearance` and
   the sky's `coreAlt` and `coreClear` by under 5e-7°, and `house.roadGrade` and `house.roadRunFt` slightly (0.001

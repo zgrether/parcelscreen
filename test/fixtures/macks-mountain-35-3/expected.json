@@ -4066,7 +4066,7 @@
      "aspect": 99,
      "frost": 89,
      "slope": 86,
-     "sky": 65
+     "sky": 62
     },
     "soil": "Marbleyard",
     "c": {
@@ -4176,7 +4176,7 @@
      "aspect": 100,
      "frost": 93,
      "slope": 89,
-     "sky": 65
+     "sky": 62
     },
     "soil": "Unicoi",
     "c": {
@@ -4330,7 +4330,7 @@
      "aspect": 75.74200965033637,
      "thermal": 88.74311961824932
     },
-    "score": 54,
+    "score": 53,
     "why": [
      "6.5 h of December sun — acceptable",
      "0.7 ac, faces E, 7.2° slope, 625 ft above the valley floor",
@@ -4345,7 +4345,7 @@
      "aspect": 76,
      "frost": 89,
      "slope": 93,
-     "sky": 65
+     "sky": 55
     },
     "soil": "Unicoi",
     "c": {
@@ -4357,7 +4357,7 @@
     },
     "costIdx": 97,
     "costTier": "$$$$",
-    "quality": 76,
+    "quality": 75,
     "qGrade": "B",
     "roadGrade": 20.78966260974282,
     "roadRunFt": 1065.9946781203896,
@@ -6178,7 +6178,7 @@
    "er": null
   },
   "schemaVersion": 7,
-  "engine": 18,
+  "engine": 19,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -10251,7 +10251,7 @@
      "aspect": 99,
      "frost": 89,
      "slope": 86,
-     "sky": 65
+     "sky": 62
     },
     "soil": "Marbleyard",
     "c": {
@@ -10361,7 +10361,7 @@
      "aspect": 100,
      "frost": 93,
      "slope": 89,
-     "sky": 65
+     "sky": 62
     },
     "soil": "Unicoi",
     "c": {
@@ -10515,7 +10515,7 @@
      "aspect": 75.74200965033637,
      "thermal": 88.74311961824932
     },
-    "score": 54,
+    "score": 53,
     "why": [
      "6.5 h of December sun — acceptable",
      "0.7 ac, faces E, 7.2° slope, 625 ft above the valley floor",
@@ -10530,7 +10530,7 @@
      "aspect": 76,
      "frost": 89,
      "slope": 93,
-     "sky": 65
+     "sky": 55
     },
     "soil": "Unicoi",
     "c": {
@@ -10542,7 +10542,7 @@
     },
     "costIdx": 97,
     "costTier": "$$$$",
-    "quality": 76,
+    "quality": 75,
     "qGrade": "B",
     "roadGrade": 20.78966260974282,
     "roadRunFt": 1065.9946781203896,
@@ -12383,7 +12383,7 @@
    "er": null
   },
   "schemaVersion": 7,
-  "engine": 18,
+  "engine": 19,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,

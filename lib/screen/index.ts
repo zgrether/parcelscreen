@@ -420,14 +420,19 @@ export async function screen(
     if (n.placesError) throw n.placesError;
   });
 
-  await step("rank", () => {
+  await step("rank", async () => {
     if (!s.dFine || !s.dWide) throw new Error("needs elevation");
     const ctx = scoreContext();
-    const { sites, excluded } = rankSites(ctx, s.vetted ?? s.search?.benches ?? [], s.search?.shelves ?? [], {
-      slope: s.slope!,
-      inside: s.inside!,
-      sfha: sfhaGrid(s),
-    });
+    const { sites, excluded } = await rankSites(
+      ctx,
+      s.vetted ?? s.search?.benches ?? [],
+      s.search?.shelves ?? [],
+      {
+        slope: s.slope!,
+        inside: s.inside!,
+        sfha: sfhaGrid(s),
+      },
+    );
     R.excluded = excluded;
     const message =
       !sites.length && !excluded.length
@@ -436,7 +441,7 @@ export async function screen(
           : "nothing to rank — see the terrain diagnostics"
         : undefined;
     if (house)
-      R.house = assessHouse(
+      R.house = await assessHouse(
         { ...ctx, slope: s.slope!, aspect: s.aspect!, inside: s.inside!, search: s.search ?? null },
         house,
       );
@@ -475,12 +480,12 @@ export async function screen(
   return out;
 }
 
-/** The scoring's view of the session and the result so far (the sky's score once the sky step has run). */
-const scoreContextOf = (s: ScreenSession, R: Building): ScoreContext => ({
+/** The scoring's view of the session and the result so far (each spot's sky once the sky step has run). */
+export const scoreContextOf = (s: ScreenSession, R: Pick<Building, "sky">): ScoreContext => ({
   dFine: s.dFine!,
   dWide: s.dWide!,
   valleyFloorFt: s.valleyFloorFt ?? NaN,
-  skyScore: R.sky?.score,
+  skyAt: skyAtOf(s, R.sky),
   roads: s.roads ?? null,
   sfha: s.sfha ?? null,
   units: s.units ?? null,
@@ -488,6 +493,20 @@ const scoreContextOf = (s: ScreenSession, R: Building): ScoreContext => ({
   limits: s.limits ?? null,
   cfg: s.config,
 });
+
+/**
+ * The sky score at a spot (follow-up 58): the sky step's reading, taken there with the spot's own skyline. Only once
+ * the sky step has run (its atlas tiles are cached by then); where a spot's reading fails, the sky step's score.
+ */
+function skyAtOf(s: ScreenSession, sky: ScreenResult["sky"] | undefined): ScoreContext["skyAt"] {
+  if (!sky) return undefined;
+  const io = { http: s.deps.http, endpoints: s.config.endpoints, atlas: s.deps.atlas };
+  return (ll, horizon) =>
+    computeSky(ll, horizon, s.config.canopyDeg, io).then(
+      (k) => k.sky.score,
+      () => sky.score,
+    );
+}
 
 /** The prototype's verdict, from every step's flags: any fatal, else any warning, else ok. */
 const verdictOf = (flags: ScreenResult["flags"]): ScreenResult["verdict"] =>
@@ -903,26 +922,16 @@ export async function evaluateAt(out: ScreenOutput, ll: LatLon, label: string): 
 
 /**
  * Marks (or clears) the existing house on a finished run (the prototype's setHouse): the house is assessed
- * with the sky as it stands, then the sun, sky and driveway are re-evaluated at the house.
+ * with its own sky (follow-up 58; the prototype used the sky as it stood), then the sun, sky and driveway are
+ * re-evaluated at the house.
  */
 export async function setHouse(out: ScreenOutput, ll: LatLon | null): Promise<ScreenOutput> {
   const house: LatLon | null = ll ? [+ll[0].toFixed(6), +ll[1].toFixed(6)] : null;
   const s = out.session;
   if (!house || !s.dFine || !s.dWide || !s.slope || !s.aspect || !s.inside)
     return { result: { ...out.result, house: null }, session: { ...s, house } };
-  const ctx: ScoreContext = {
-    dFine: s.dFine,
-    dWide: s.dWide,
-    valleyFloorFt: s.valleyFloorFt ?? NaN,
-    skyScore: out.result.sky?.score,
-    roads: s.roads ?? null,
-    sfha: s.sfha ?? null,
-    units: s.units ?? null,
-    rows: s.rows ?? null,
-    limits: s.limits ?? null,
-    cfg: s.config,
-  };
-  const assessed = assessHouse(
+  const ctx = scoreContextOf(s, out.result);
+  const assessed = await assessHouse(
     { ...ctx, slope: s.slope, aspect: s.aspect, inside: s.inside, search: s.search ?? null },
     house,
   );
@@ -951,7 +960,7 @@ function houseRoutes(
 
 /** The existing house re-costed from its driveway (A3), the candidate with fewer points (A4), when it can be scored. */
 function houseWithDriveway(
-  ctx: Pick<ScoreContext, "valleyFloorFt" | "skyScore" | "cfg">,
+  ctx: Pick<ScoreContext, "valleyFloorFt" | "cfg">,
   h: NonNullable<ScreenResult["house"]>,
   routes: SiteRoutes,
   alt: PracticalAlternatives | null | undefined,

@@ -2097,7 +2097,7 @@
      "aspect": 100,
      "frost": 100,
      "slope": 100,
-     "sky": 67
+     "sky": 68
     },
     "soil": "Glenelg",
     "c": {
@@ -2109,7 +2109,7 @@
     },
     "costIdx": 35,
     "costTier": "$$",
-    "quality": 85,
+    "quality": 86,
     "qGrade": "A",
     "roadGrade": 2.797786146484147,
     "roadRunFt": 128.61708832262076,
@@ -2156,7 +2156,7 @@
      "aspect": 65,
      "frost": 100,
      "slope": 64,
-     "sky": 67
+     "sky": 68
     },
     "soil": "Glenelg",
     "c": {
@@ -2254,7 +2254,7 @@
      "aspect": 59.982139426541615,
      "thermal": 100
     },
-    "score": 69,
+    "score": 70,
     "why": [
      "compact site: 0.37 ac shelf — needs a cut pad and probably a retaining wall",
      "7.8 h of December sun — good",
@@ -2269,7 +2269,7 @@
      "aspect": 59,
      "frost": 100,
      "slope": 65,
-     "sky": 67
+     "sky": 68
     },
     "soil": "Glenelg",
     "c": {
@@ -3220,7 +3220,7 @@
   },
   "closerGrocery": null,
   "schemaVersion": 7,
-  "engine": 18,
+  "engine": 19,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -5324,7 +5324,7 @@
      "aspect": 100,
      "frost": 100,
      "slope": 100,
-     "sky": 67
+     "sky": 68
     },
     "soil": "Glenelg",
     "c": {
@@ -5336,7 +5336,7 @@
     },
     "costIdx": 35,
     "costTier": "$$",
-    "quality": 85,
+    "quality": 86,
     "qGrade": "A",
     "roadGrade": 2.797786146484147,
     "roadRunFt": 128.61708832262076,
@@ -5383,7 +5383,7 @@
      "aspect": 65,
      "frost": 100,
      "slope": 64,
-     "sky": 67
+     "sky": 68
     },
     "soil": "Glenelg",
     "c": {
@@ -5481,7 +5481,7 @@
      "aspect": 59.982139426541615,
      "thermal": 100
     },
-    "score": 69,
+    "score": 70,
     "why": [
      "compact site: 0.37 ac shelf — needs a cut pad and probably a retaining wall",
      "7.8 h of December sun — good",
@@ -5496,7 +5496,7 @@
      "aspect": 59,
      "frost": 100,
      "slope": 65,
-     "sky": 67
+     "sky": 68
     },
     "soil": "Glenelg",
     "c": {
@@ -7923,7 +7923,7 @@
   },
   "closerGrocery": null,
   "schemaVersion": 7,
-  "engine": 18,
+  "engine": 19,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -7947,7 +7947,7 @@
     "aspect": 40.51739501953125,
     "thermal": 100
    },
-   "score": 68,
+   "score": 67,
    "why": [
     "6.5 h of December sun — acceptable",
     "0.3 ac, faces NNW, 9.8° slope, 172 ft above the valley floor",
@@ -7961,7 +7961,7 @@
     "aspect": 41,
     "frost": 100,
     "slope": 76,
-    "sky": 67
+    "sky": 57
    },
    "soil": "Glenelg",
    "c": {
@@ -7973,7 +7973,7 @@
    },
    "costIdx": 38,
    "costTier": "$$",
-   "quality": 70,
+   "quality": 69,
    "qGrade": "B",
    "roadGrade": 15.089900268508277,
    "roadRunFt": 292.97635408085887,
@@ -10067,7 +10067,7 @@
      "aspect": 76.01444012892281,
      "thermal": 100
     },
-    "score": 82,
+    "score": 83,
     "why": [
      "8.7 h of December sun — good",
      "18.8 ac, faces E, 6.6° slope, 248 ft above the valley floor",
@@ -10081,7 +10081,7 @@
      "aspect": 76,
      "frost": 100,
      "slope": 96,
-     "sky": 57
+     "sky": 67
     },
     "soil": "Glenelg",
     "c": {
@@ -10093,7 +10093,7 @@
     },
     "costIdx": 29,
     "costTier": "$$",
-    "quality": 86,
+    "quality": 88,
     "qGrade": "A",
     "grade": "A",
     "practical": null,
@@ -10118,7 +10118,7 @@
      "aspect": 85.80999510429511,
      "thermal": 100
     },
-    "score": 78,
+    "score": 79,
     "why": [
      "7.2 h of December sun — good",
      "6.1 ac, faces SE, 5.2° slope, 130 ft above the valley floor",
@@ -10133,7 +10133,7 @@
      "aspect": 100,
      "frost": 100,
      "slope": 100,
-     "sky": 57
+     "sky": 68
     },
     "soil": "Glenelg",
     "c": {
@@ -10145,7 +10145,7 @@
     },
     "costIdx": 35,
     "costTier": "$$",
-    "quality": 84,
+    "quality": 86,
     "qGrade": "A",
     "roadGrade": 2.797786146484147,
     "roadRunFt": 128.61708832262076,
@@ -10174,7 +10174,7 @@
      "aspect": 66.90859727169008,
      "thermal": 100
     },
-    "score": 69,
+    "score": 70,
     "why": [
      "compact site: 2.11 ac shelf — needs a cut pad and probably a retaining wall",
      "7.7 h of December sun — good",
@@ -10192,7 +10192,7 @@
      "aspect": 65,
      "frost": 100,
      "slope": 64,
-     "sky": 57
+     "sky": 68
     },
     "soil": "Glenelg",
     "c": {
@@ -10204,7 +10204,7 @@
     },
     "costIdx": 46,
     "costTier": "$$$",
-    "quality": 75,
+    "quality": 77,
     "qGrade": "B",
     "roadGrade": 2.489218365519043,
     "roadRunFt": 212.1108256935515,
@@ -10233,7 +10233,7 @@
      "aspect": 45.12513318894401,
      "thermal": 100
     },
-    "score": 69,
+    "score": 70,
     "why": [
      "compact site: 1.12 ac shelf — needs a cut pad and probably a retaining wall",
      "7.8 h of December sun — good",
@@ -10249,7 +10249,7 @@
      "aspect": 42,
      "frost": 100,
      "slope": 72,
-     "sky": 57
+     "sky": 67
     },
     "soil": "Glenelg",
     "c": {
@@ -10261,7 +10261,7 @@
     },
     "costIdx": 42,
     "costTier": "$$$",
-    "quality": 74,
+    "quality": 75,
     "qGrade": "B",
     "roadGrade": 7.88603202979003,
     "roadRunFt": 236.3286037800262,
@@ -10290,7 +10290,7 @@
      "aspect": 59.982139426541615,
      "thermal": 100
     },
-    "score": 68,
+    "score": 70,
     "why": [
      "compact site: 0.37 ac shelf — needs a cut pad and probably a retaining wall",
      "7.8 h of December sun — good",
@@ -10305,7 +10305,7 @@
      "aspect": 59,
      "frost": 100,
      "slope": 65,
-     "sky": 57
+     "sky": 68
     },
     "soil": "Glenelg",
     "c": {
@@ -10317,7 +10317,7 @@
     },
     "costIdx": 47,
     "costTier": "$$$",
-    "quality": 75,
+    "quality": 77,
     "qGrade": "B",
     "grade": "B",
     "practical": null,
@@ -12732,7 +12732,7 @@
   },
   "closerGrocery": null,
   "schemaVersion": 7,
-  "engine": 18,
+  "engine": 19,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
