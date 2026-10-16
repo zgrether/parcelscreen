@@ -1,0 +1,351 @@
+{
+ "recordedAt": "engine 20, card.ts before the rubric (step 1, PR 1)",
+ "run": {
+  "zach": {
+   "gates": [
+    {
+     "key": "floodplain",
+     "label": "Floodplain",
+     "status": "pass",
+     "reason": "No FEMA flood zone on the parcel"
+    },
+    {
+     "key": "access",
+     "label": "Legal road access",
+     "status": "warn",
+     "reason": "Frontage on an unnamed road; the road in is a track (OpenStreetMap); check that it's public and drivable year-round"
+    },
+    {
+     "key": "easement",
+     "label": "Easement needed",
+     "status": "pass",
+     "reason": "The driveway stays on the parcel"
+    },
+    {
+     "key": "septic",
+     "label": "Septic",
+     "status": "warn",
+     "reason": "No soil on the parcel rates better than very limited for a septic field"
+    }
+   ],
+   "rows": [
+    {
+     "key": "elevation",
+     "label": "Elevation at the build site",
+     "grade": "A",
+     "detail": "3,251 ft at site #1",
+     "short": "3,251 ft"
+    },
+    {
+     "key": "homesite",
+     "label": "Best homesite",
+     "grade": "A",
+     "detail": "faces ESE, 8.3 h of December sun, 6° slope",
+     "panelNote": "site #1's quality A (84)",
+     "short": "8.3 h sun, faces ESE"
+    },
+    {
+     "key": "sky",
+     "label": "Night sky",
+     "grade": "B",
+     "detail": "rural sky (zone 3b)",
+     "short": "zone 3b"
+    },
+    {
+     "key": "room",
+     "label": "Room to build",
+     "grade": "B",
+     "detail": "1.3 ac of gentle ground near the house site, 2.8× the build footprint",
+     "short": "2.8× footprint"
+    },
+    {
+     "key": "trails",
+     "label": "Trails and public land",
+     "grade": "F",
+     "detail": "a trailhead 92 min (17.4 mi) by road (the first 2.6 mi on unnamed tracks), 10.4 mi straight (Heritage Park)",
+     "short": "trailhead 92 min"
+    },
+    {
+     "key": "town",
+     "label": "Town and hospital",
+     "grade": "F",
+     "detail": "an 82-minute drive to an ER, 76 to a grocery (the first 2.6 mi on unnamed tracks)",
+     "short": "ER 82 min, grocery 76"
+    },
+    {
+     "key": "garden",
+     "label": "Garden ground",
+     "grade": "B",
+     "detail": "the largest garden is 0.34 ac",
+     "short": "0.34 ac"
+    }
+   ],
+   "person": "zach",
+   "points": 3.05,
+   "grade": "B",
+   "verdict": "Maybe",
+   "reason": "Maybe. Check first: frontage on an unnamed road; the road in is a track (OpenStreetMap); check that it's public and drivable year-round.",
+   "incomplete": []
+  },
+  "julie": {
+   "gates": [
+    {
+     "key": "floodplain",
+     "label": "Floodplain",
+     "status": "pass",
+     "reason": "No FEMA flood zone on the parcel"
+    },
+    {
+     "key": "access",
+     "label": "Legal road access",
+     "status": "warn",
+     "reason": "Frontage on an unnamed road; the road in is a track (OpenStreetMap); check that it's public and drivable year-round"
+    },
+    {
+     "key": "easement",
+     "label": "Easement needed",
+     "status": "pass",
+     "reason": "The driveway stays on the parcel"
+    },
+    {
+     "key": "septic",
+     "label": "Septic",
+     "status": "warn",
+     "reason": "No soil on the parcel rates better than very limited for a septic field"
+    }
+   ],
+   "rows": [
+    {
+     "key": "elevation",
+     "label": "Elevation at the build site",
+     "grade": "A",
+     "detail": "3,251 ft at site #1",
+     "short": "3,251 ft"
+    },
+    {
+     "key": "homesite",
+     "label": "Best homesite",
+     "grade": "A",
+     "detail": "faces ESE, 8.3 h of December sun, 6° slope",
+     "panelNote": "site #1's quality A (84)",
+     "short": "8.3 h sun, faces ESE"
+    },
+    {
+     "key": "sky",
+     "label": "Night sky",
+     "grade": "B",
+     "detail": "rural sky (zone 3b)",
+     "short": "zone 3b"
+    },
+    {
+     "key": "room",
+     "label": "Room to build",
+     "grade": "B",
+     "detail": "1.3 ac of gentle ground near the house site, 2.8× the build footprint",
+     "short": "2.8× footprint"
+    },
+    {
+     "key": "trails",
+     "label": "Trails and public land",
+     "grade": "F",
+     "detail": "a trailhead 92 min (17.4 mi) by road (the first 2.6 mi on unnamed tracks), 10.4 mi straight (Heritage Park)",
+     "short": "trailhead 92 min"
+    },
+    {
+     "key": "town",
+     "label": "Town and hospital",
+     "grade": "F",
+     "detail": "an 82-minute drive to an ER, 76 to a grocery (the first 2.6 mi on unnamed tracks)",
+     "short": "ER 82 min, grocery 76"
+    },
+    {
+     "key": "garden",
+     "label": "Garden ground",
+     "grade": "B",
+     "detail": "the largest garden is 0.34 ac",
+     "short": "0.34 ac"
+    }
+   ],
+   "person": "julie",
+   "points": 2.2,
+   "grade": "C",
+   "verdict": "Maybe",
+   "reason": "Maybe. Check first: frontage on an unnamed road; the road in is a track (OpenStreetMap); check that it's public and drivable year-round.",
+   "incomplete": []
+  }
+ },
+ "evaluateSite2": {
+  "zach": {
+   "gates": [
+    {
+     "key": "floodplain",
+     "label": "Floodplain",
+     "status": "pass",
+     "reason": "No FEMA flood zone on the parcel"
+    },
+    {
+     "key": "access",
+     "label": "Legal road access",
+     "status": "warn",
+     "reason": "Frontage on an unnamed road; the road in is a track (OpenStreetMap); check that it's public and drivable year-round"
+    },
+    {
+     "key": "easement",
+     "label": "Easement needed",
+     "status": "pass",
+     "reason": "The driveway stays on the parcel"
+    },
+    {
+     "key": "septic",
+     "label": "Septic",
+     "status": "warn",
+     "reason": "No soil on the parcel rates better than very limited for a septic field"
+    }
+   ],
+   "rows": [
+    {
+     "key": "elevation",
+     "label": "Elevation at the build site",
+     "grade": "A",
+     "detail": "3,251 ft at site #1",
+     "short": "3,251 ft"
+    },
+    {
+     "key": "homesite",
+     "label": "Best homesite",
+     "grade": "A",
+     "detail": "faces ESE, 8.3 h of December sun, 6° slope",
+     "panelNote": "site #1's quality A (84)",
+     "short": "8.3 h sun, faces ESE"
+    },
+    {
+     "key": "sky",
+     "label": "Night sky",
+     "grade": "B",
+     "detail": "rural sky (zone 3b)",
+     "short": "zone 3b"
+    },
+    {
+     "key": "room",
+     "label": "Room to build",
+     "grade": "B",
+     "detail": "1.3 ac of gentle ground near the house site, 2.8× the build footprint",
+     "short": "2.8× footprint"
+    },
+    {
+     "key": "trails",
+     "label": "Trails and public land",
+     "grade": "F",
+     "detail": "a trailhead 92 min (17.4 mi) by road (the first 2.6 mi on unnamed tracks), 10.4 mi straight (Heritage Park)",
+     "short": "trailhead 92 min"
+    },
+    {
+     "key": "town",
+     "label": "Town and hospital",
+     "grade": "F",
+     "detail": "an 82-minute drive to an ER, 76 to a grocery (the first 2.6 mi on unnamed tracks)",
+     "short": "ER 82 min, grocery 76"
+    },
+    {
+     "key": "garden",
+     "label": "Garden ground",
+     "grade": "B",
+     "detail": "the largest garden is 0.34 ac",
+     "short": "0.34 ac"
+    }
+   ],
+   "person": "zach",
+   "points": 3.05,
+   "grade": "B",
+   "verdict": "Maybe",
+   "reason": "Maybe. Check first: frontage on an unnamed road; the road in is a track (OpenStreetMap); check that it's public and drivable year-round.",
+   "incomplete": []
+  },
+  "julie": {
+   "gates": [
+    {
+     "key": "floodplain",
+     "label": "Floodplain",
+     "status": "pass",
+     "reason": "No FEMA flood zone on the parcel"
+    },
+    {
+     "key": "access",
+     "label": "Legal road access",
+     "status": "warn",
+     "reason": "Frontage on an unnamed road; the road in is a track (OpenStreetMap); check that it's public and drivable year-round"
+    },
+    {
+     "key": "easement",
+     "label": "Easement needed",
+     "status": "pass",
+     "reason": "The driveway stays on the parcel"
+    },
+    {
+     "key": "septic",
+     "label": "Septic",
+     "status": "warn",
+     "reason": "No soil on the parcel rates better than very limited for a septic field"
+    }
+   ],
+   "rows": [
+    {
+     "key": "elevation",
+     "label": "Elevation at the build site",
+     "grade": "A",
+     "detail": "3,251 ft at site #1",
+     "short": "3,251 ft"
+    },
+    {
+     "key": "homesite",
+     "label": "Best homesite",
+     "grade": "A",
+     "detail": "faces ESE, 8.3 h of December sun, 6° slope",
+     "panelNote": "site #1's quality A (84)",
+     "short": "8.3 h sun, faces ESE"
+    },
+    {
+     "key": "sky",
+     "label": "Night sky",
+     "grade": "B",
+     "detail": "rural sky (zone 3b)",
+     "short": "zone 3b"
+    },
+    {
+     "key": "room",
+     "label": "Room to build",
+     "grade": "B",
+     "detail": "1.3 ac of gentle ground near the house site, 2.8× the build footprint",
+     "short": "2.8× footprint"
+    },
+    {
+     "key": "trails",
+     "label": "Trails and public land",
+     "grade": "F",
+     "detail": "a trailhead 92 min (17.4 mi) by road (the first 2.6 mi on unnamed tracks), 10.4 mi straight (Heritage Park)",
+     "short": "trailhead 92 min"
+    },
+    {
+     "key": "town",
+     "label": "Town and hospital",
+     "grade": "F",
+     "detail": "an 82-minute drive to an ER, 76 to a grocery (the first 2.6 mi on unnamed tracks)",
+     "short": "ER 82 min, grocery 76"
+    },
+    {
+     "key": "garden",
+     "label": "Garden ground",
+     "grade": "B",
+     "detail": "the largest garden is 0.34 ac",
+     "short": "0.34 ac"
+    }
+   ],
+   "person": "julie",
+   "points": 2.2,
+   "grade": "C",
+   "verdict": "Maybe",
+   "reason": "Maybe. Check first: frontage on an unnamed road; the road in is a track (OpenStreetMap); check that it's public and drivable year-round.",
+   "incomplete": []
+  }
+ }
+}

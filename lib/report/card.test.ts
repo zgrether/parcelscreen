@@ -667,13 +667,13 @@ describe("config and weights", () => {
   it("a changed cutoff changes the grade", () => {
     const r = expectedOf("ferney-creek-52-47A", "run");
     const lower: CardConfig = { ...K, rows: { ...K.rows, elevationFt: [2700, 2500, 2000, 1500] } };
-    const c = cardFor(cardFacts(r, lower), "zach", lower);
+    const c = cardFor(cardFacts(r, lower), "zach");
     expect(c.rows.find((x) => x.key === "elevation")!.grade).toBe("A");
     expect(c.points).toBeCloseTo(3.45, 9);
     expect(c.grade).toBe("B");
     // And the drive cutoffs (provisional until Zach's Google column): Buffalo Mountain's 47 min an A lifts it to an A.
     const roomy: CardConfig = { ...lower, rows: { ...lower.rows, trailheadMin: [50, 60, 70, 80] } };
-    const d = cardFor(cardFacts(r, roomy), "zach", roomy);
+    const d = cardFor(cardFacts(r, roomy), "zach");
     expect(d.rows.find((x) => x.key === "trails")!.grade).toBe("A");
     expect(d.points).toBeCloseTo(3.75, 9);
     expect(d.grade).toBe("A");

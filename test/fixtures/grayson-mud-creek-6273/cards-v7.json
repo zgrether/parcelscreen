@@ -1,0 +1,351 @@
+{
+ "recordedAt": "engine 20, card.ts before the rubric (step 1, PR 1)",
+ "run": {
+  "zach": {
+   "gates": [
+    {
+     "key": "floodplain",
+     "label": "Floodplain",
+     "status": "pass",
+     "reason": "A FEMA flood zone covers 0.5 ac of the parcel, away from the build site and driveway"
+    },
+    {
+     "key": "access",
+     "label": "Legal road access",
+     "status": "pass",
+     "reason": "Frontage on Mud Creek Ln"
+    },
+    {
+     "key": "easement",
+     "label": "Easement needed",
+     "status": "pass",
+     "reason": "The driveway stays on the parcel"
+    },
+    {
+     "key": "septic",
+     "label": "Septic",
+     "status": "warn",
+     "reason": "No soil on the parcel rates better than very limited for a septic field"
+    }
+   ],
+   "rows": [
+    {
+     "key": "elevation",
+     "label": "Elevation at the build site",
+     "grade": "A",
+     "detail": "3,543 ft at site #1",
+     "short": "3,543 ft"
+    },
+    {
+     "key": "homesite",
+     "label": "Best homesite",
+     "grade": "A",
+     "detail": "faces W, 8.3 h of December sun, 7° slope",
+     "panelNote": "site #1's quality A (82)",
+     "short": "8.3 h sun, faces W"
+    },
+    {
+     "key": "sky",
+     "label": "Night sky",
+     "grade": "A",
+     "detail": "rural dark sky (zone 3a)",
+     "short": "zone 3a"
+    },
+    {
+     "key": "room",
+     "label": "Room to build",
+     "grade": "B",
+     "detail": "1.0 ac of gentle ground near the house site, 2.1× the build footprint",
+     "short": "2.1× footprint"
+    },
+    {
+     "key": "trails",
+     "label": "Trails and public land",
+     "grade": "B",
+     "detail": "a trailhead 17 min (6.7 mi) by road, 5.0 mi straight (Grayson Highlands State Park)",
+     "short": "trailhead 17 min"
+    },
+    {
+     "key": "town",
+     "label": "Town and hospital",
+     "grade": "C",
+     "detail": "a 38-minute drive to an ER, 21 to a grocery",
+     "short": "ER 38 min, grocery 21"
+    },
+    {
+     "key": "garden",
+     "label": "Garden ground",
+     "grade": "C",
+     "detail": "the largest garden is 0.10 ac",
+     "short": "0.10 ac"
+    }
+   ],
+   "person": "zach",
+   "points": 3.45,
+   "grade": "B",
+   "verdict": "Contender",
+   "reason": "Contender. Check first: no soil on the parcel rates better than very limited for a septic field.",
+   "incomplete": []
+  },
+  "julie": {
+   "gates": [
+    {
+     "key": "floodplain",
+     "label": "Floodplain",
+     "status": "pass",
+     "reason": "A FEMA flood zone covers 0.5 ac of the parcel, away from the build site and driveway"
+    },
+    {
+     "key": "access",
+     "label": "Legal road access",
+     "status": "pass",
+     "reason": "Frontage on Mud Creek Ln"
+    },
+    {
+     "key": "easement",
+     "label": "Easement needed",
+     "status": "pass",
+     "reason": "The driveway stays on the parcel"
+    },
+    {
+     "key": "septic",
+     "label": "Septic",
+     "status": "warn",
+     "reason": "No soil on the parcel rates better than very limited for a septic field"
+    }
+   ],
+   "rows": [
+    {
+     "key": "elevation",
+     "label": "Elevation at the build site",
+     "grade": "A",
+     "detail": "3,543 ft at site #1",
+     "short": "3,543 ft"
+    },
+    {
+     "key": "homesite",
+     "label": "Best homesite",
+     "grade": "A",
+     "detail": "faces W, 8.3 h of December sun, 7° slope",
+     "panelNote": "site #1's quality A (82)",
+     "short": "8.3 h sun, faces W"
+    },
+    {
+     "key": "sky",
+     "label": "Night sky",
+     "grade": "A",
+     "detail": "rural dark sky (zone 3a)",
+     "short": "zone 3a"
+    },
+    {
+     "key": "room",
+     "label": "Room to build",
+     "grade": "B",
+     "detail": "1.0 ac of gentle ground near the house site, 2.1× the build footprint",
+     "short": "2.1× footprint"
+    },
+    {
+     "key": "trails",
+     "label": "Trails and public land",
+     "grade": "B",
+     "detail": "a trailhead 17 min (6.7 mi) by road, 5.0 mi straight (Grayson Highlands State Park)",
+     "short": "trailhead 17 min"
+    },
+    {
+     "key": "town",
+     "label": "Town and hospital",
+     "grade": "C",
+     "detail": "a 38-minute drive to an ER, 21 to a grocery",
+     "short": "ER 38 min, grocery 21"
+    },
+    {
+     "key": "garden",
+     "label": "Garden ground",
+     "grade": "C",
+     "detail": "the largest garden is 0.10 ac",
+     "short": "0.10 ac"
+    }
+   ],
+   "person": "julie",
+   "points": 3.05,
+   "grade": "B",
+   "verdict": "Contender",
+   "reason": "Contender. Check first: no soil on the parcel rates better than very limited for a septic field.",
+   "incomplete": []
+  }
+ },
+ "evaluateSite2": {
+  "zach": {
+   "gates": [
+    {
+     "key": "floodplain",
+     "label": "Floodplain",
+     "status": "pass",
+     "reason": "A FEMA flood zone covers 0.5 ac of the parcel, away from the build site and driveway"
+    },
+    {
+     "key": "access",
+     "label": "Legal road access",
+     "status": "pass",
+     "reason": "Frontage on Mud Creek Ln"
+    },
+    {
+     "key": "easement",
+     "label": "Easement needed",
+     "status": "pass",
+     "reason": "The driveway stays on the parcel"
+    },
+    {
+     "key": "septic",
+     "label": "Septic",
+     "status": "warn",
+     "reason": "No soil on the parcel rates better than very limited for a septic field"
+    }
+   ],
+   "rows": [
+    {
+     "key": "elevation",
+     "label": "Elevation at the build site",
+     "grade": "A",
+     "detail": "3,543 ft at site #1",
+     "short": "3,543 ft"
+    },
+    {
+     "key": "homesite",
+     "label": "Best homesite",
+     "grade": "A",
+     "detail": "faces W, 8.3 h of December sun, 7° slope",
+     "panelNote": "site #1's quality A (82)",
+     "short": "8.3 h sun, faces W"
+    },
+    {
+     "key": "sky",
+     "label": "Night sky",
+     "grade": "A",
+     "detail": "rural dark sky (zone 3a)",
+     "short": "zone 3a"
+    },
+    {
+     "key": "room",
+     "label": "Room to build",
+     "grade": "B",
+     "detail": "1.0 ac of gentle ground near the house site, 2.1× the build footprint",
+     "short": "2.1× footprint"
+    },
+    {
+     "key": "trails",
+     "label": "Trails and public land",
+     "grade": "B",
+     "detail": "a trailhead 17 min (6.7 mi) by road, 5.0 mi straight (Grayson Highlands State Park)",
+     "short": "trailhead 17 min"
+    },
+    {
+     "key": "town",
+     "label": "Town and hospital",
+     "grade": "C",
+     "detail": "a 38-minute drive to an ER, 21 to a grocery",
+     "short": "ER 38 min, grocery 21"
+    },
+    {
+     "key": "garden",
+     "label": "Garden ground",
+     "grade": "C",
+     "detail": "the largest garden is 0.10 ac",
+     "short": "0.10 ac"
+    }
+   ],
+   "person": "zach",
+   "points": 3.45,
+   "grade": "B",
+   "verdict": "Contender",
+   "reason": "Contender. Check first: no soil on the parcel rates better than very limited for a septic field.",
+   "incomplete": []
+  },
+  "julie": {
+   "gates": [
+    {
+     "key": "floodplain",
+     "label": "Floodplain",
+     "status": "pass",
+     "reason": "A FEMA flood zone covers 0.5 ac of the parcel, away from the build site and driveway"
+    },
+    {
+     "key": "access",
+     "label": "Legal road access",
+     "status": "pass",
+     "reason": "Frontage on Mud Creek Ln"
+    },
+    {
+     "key": "easement",
+     "label": "Easement needed",
+     "status": "pass",
+     "reason": "The driveway stays on the parcel"
+    },
+    {
+     "key": "septic",
+     "label": "Septic",
+     "status": "warn",
+     "reason": "No soil on the parcel rates better than very limited for a septic field"
+    }
+   ],
+   "rows": [
+    {
+     "key": "elevation",
+     "label": "Elevation at the build site",
+     "grade": "A",
+     "detail": "3,543 ft at site #1",
+     "short": "3,543 ft"
+    },
+    {
+     "key": "homesite",
+     "label": "Best homesite",
+     "grade": "A",
+     "detail": "faces W, 8.3 h of December sun, 7° slope",
+     "panelNote": "site #1's quality A (82)",
+     "short": "8.3 h sun, faces W"
+    },
+    {
+     "key": "sky",
+     "label": "Night sky",
+     "grade": "A",
+     "detail": "rural dark sky (zone 3a)",
+     "short": "zone 3a"
+    },
+    {
+     "key": "room",
+     "label": "Room to build",
+     "grade": "B",
+     "detail": "1.0 ac of gentle ground near the house site, 2.1× the build footprint",
+     "short": "2.1× footprint"
+    },
+    {
+     "key": "trails",
+     "label": "Trails and public land",
+     "grade": "B",
+     "detail": "a trailhead 17 min (6.7 mi) by road, 5.0 mi straight (Grayson Highlands State Park)",
+     "short": "trailhead 17 min"
+    },
+    {
+     "key": "town",
+     "label": "Town and hospital",
+     "grade": "C",
+     "detail": "a 38-minute drive to an ER, 21 to a grocery",
+     "short": "ER 38 min, grocery 21"
+    },
+    {
+     "key": "garden",
+     "label": "Garden ground",
+     "grade": "C",
+     "detail": "the largest garden is 0.10 ac",
+     "short": "0.10 ac"
+    }
+   ],
+   "person": "julie",
+   "points": 3.05,
+   "grade": "B",
+   "verdict": "Contender",
+   "reason": "Contender. Check first: no soil on the parcel rates better than very limited for a septic field.",
+   "incomplete": []
+  }
+ }
+}

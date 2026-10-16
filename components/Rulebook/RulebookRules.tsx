@@ -6,14 +6,8 @@
  */
 import { ScaleBar } from "@/components/Results/card/CardPanel";
 import { fmt } from "@/lib/format";
-import type { Person } from "@/lib/report/card";
 import { ruleAnchor } from "@/lib/report/cardPanels";
 import type { RulePanel, RuleScale, Rulebook } from "@/lib/report/rulebook";
-
-const PEOPLE: { key: Person; name: string }[] = [
-  { key: "zach", name: "Zach" },
-  { key: "julie", name: "Julie" },
-];
 
 function RuleScaleView({ scale }: { scale: RuleScale }) {
   return (
@@ -67,7 +61,8 @@ function RulePanelView({ panel }: { panel: RulePanel }) {
   );
 }
 
-export function RulebookRules({ rb, person }: { rb: Rulebook; person: Person }) {
+/** `current`: the rubric whose column is marked (the sheet's switch). */
+export function RulebookRules({ rb, current }: { rb: Rulebook; current: string }) {
   const h = rb.homesite;
   return (
     <div className="rulebook-rules">
@@ -83,9 +78,9 @@ export function RulebookRules({ rb, person }: { rb: Rulebook; person: Person }) 
           <thead>
             <tr>
               <th scope="col">Row</th>
-              {PEOPLE.map((p) => (
-                <th key={p.key} scope="col" aria-current={p.key === person ? "true" : undefined}>
-                  {p.name}
+              {rb.card.rubrics.map((nr) => (
+                <th key={nr.id} scope="col" aria-current={nr.id === current ? "true" : undefined}>
+                  {nr.name}
                 </th>
               ))}
             </tr>
@@ -96,9 +91,9 @@ export function RulebookRules({ rb, person }: { rb: Rulebook; person: Person }) 
                 <th scope="row">
                   <a href={`#rule-${w.key}`}>{w.label}</a>
                 </th>
-                {PEOPLE.map((p) => (
-                  <td key={p.key} className={p.key === person ? "current" : undefined}>
-                    {w.byPerson[p.key]}
+                {rb.card.rubrics.map((nr) => (
+                  <td key={nr.id} className={nr.id === current ? "current" : undefined}>
+                    {w.byRubric[nr.id]}
                   </td>
                 ))}
               </tr>
