@@ -20,6 +20,11 @@ then hand the repo to Claude Code with the phase you want.
 | Screens are immutable | A screen result is stored once; re-running creates a new version | Inputs (lidar, soils, atlas) don't change; the expensive part runs once |
 | Sharing | Household + comments thread (no voting) + per-parcel share | Decided |
 | Prices | Price history table, not a single field | Decided |
+| Users (10/16) | No accounts yet: anyone with the link creates a local profile that holds their data in that browser; nothing hard-coded to Zach and Julie; accounts later adopt the profiles | `docs/design/workflow-review.md`, Roadmap |
+| Grading (10/16) | Grades are computed at display time from stored measurements plus the viewer's rubric; a saved screen stores raw values and no grades | One change unlocks the interview, the editor, the previews and household predictions without re-screening |
+| Household grades (10/16) | Each person grades for themselves; others' grades are predictions from their rubrics, with a prompt to send for confirmation; no combined grade | Decided |
+| Cost to enjoy (10/16) | Stays, as cost to camp and cost to build, driven by the parcel's state; phasing isn't asked | Decided |
+| Tennessee (10/16) | In, for parcels (step 2) and the area catalog | So many saved parcels sit around Roan Mountain |
 
 ## Free vs Pro
 
@@ -91,89 +96,48 @@ needs the keys).
 
 ---
 
-## Phases
+## Roadmap (owner, 2026-10-16; the spec is `docs/design/workflow-review.md`)
 
-Each phase ends with a deployable app and a short acceptance list. Don't start the next phase
-until the current one is merged and deployed.
+Phase 0, the port, is merged and deployed. The phases that were to follow it (accounts and sync, share and
+export, the driveway router, rules, Watch) are superseded by the thirteen steps below, from the workflow
+review: the parcel tools, the screen and the library are built, and what's missing is the part that makes the
+grade the viewer's own. Each step is one unattended Claude Code mission (CLAUDE.md, "Mission mode"): a plan
+approved once, PRs into a `step/<n>-<name>` branch merged by Claude Code on green CI, and one final PR to
+main that Zach merges after running the step's test plan on its preview. Don't start step N+1 until step N is
+on main.
 
-### Phase 0 — Port the Explorer (feature-identical to the prototype)
-Goal: the prototype, as a Next.js app, with the pipeline isolated from the DOM.
-- Next.js + TS + Tailwind scaffold; CI (typecheck, lint, test) on PRs.
-- `lib/screen/*`: dem, terrain, suitability/sites, sun, sky (atlas), soils, flood, padus,
-  places/roads, scoring — ported from the prototype, **no `document`/`window`/Leaflet** inside.
-- `lib/geo/*`: UTM, parcel services (NC/VA/TN), split, WKT.
-- Web Worker that runs `screen(polygon, config)` and posts progress per step.
-- Map with MapLibre: basemaps, parcel outlines at z≥15, tap-to-select, draw, split, house marker.
-- Results panel: one React component per section, rendered from the result JSON.
-- Ground viewer (step 17, replacing the 3D walkthrough): stand at the evaluation point; skyline, sun path and night sky on a 2D canvas.
-- Settings persisted in localStorage (no accounts yet).
-- **Acceptance:** the Ferney Creek parent parcel (52-47A) and the Macks Mountain parent (35-3)
-  produce the same verdicts, site rankings, sun hours (±0.1 h) and sky numbers as the prototype;
-  recorded fixtures for both live in `test/fixtures` and the pipeline tests run offline.
+| # | Step | What it delivers |
+|---|---|---|
+| 1 | **Profiles and the grading split** | Anyone opening the link creates a local profile; profiles can be added, switched, renamed and deleted, and all data is scoped to a profile. Today's data moves into a first profile. Saved screens store raw measurements; grades are computed on display from measurements plus the profile's rubric. The default rubric reproduces today's grades exactly on every fixture, so nothing visible changes except the profile picker. |
+| 2 | **Tennessee** | Statewide parcel lines through the state's parcel program (the service, its fields and its terms confirmed first), Tennessee imagery, Tennessee trailhead sources, and a recorded fixture near Roan Mountain. |
+| 3 | **Rubric editor** | Four columns (Must, Should, Could, Won't); drag between and within; threshold sliders; a live preview on the open parcel; "Reset to my answers". |
+| 4 | **Interview** | The 14 forced-choice screens, the rubric generator, first-launch onboarding for a new profile, and "Redo the interview". |
+| 5 | **Household** | Members by name, rubric import by code or file, "How would Julie rate this?" as a prediction from her rubric, and "Send to confirm" as a shared file or link. No combined grade. |
+| 6 | **Screening results** | The answer first (grade, verdict, one line of reason), the best site plus up to two alternatives, the report card in rubric order, unknowns as questions for the agent. |
+| 7 | **Favorites** | A star, a plain name field, History and Favorites split; "In progress" goes away. |
+| 8 | **Report card export** | A print-ready page the browser saves as PDF, with One page and Full presets. |
+| 9 | **Cost to enjoy** | Cost to camp and cost to build from the parcel's state and markers, graded against the two budgets from the interview. |
+| 10 | **New data points**, one PR each | Climate and Privacy first, then Long view, Airport, Bike to a long trail, Internet. Hospital becomes its own factor in the first. |
+| 11 | **Ways to raise the grade** | Homesite, access, septic and combine first; tree clearing after canopy heights are confirmed. |
+| 12 | **Area catalog** | The 30 areas, area profiling run headless on a schedule, scoring by the user's rubric, the suggestion box, sample parcels. |
+| 13 | **Accounts and attachments** | Sign-in that adopts existing local profiles, file storage for photos and PDFs, and in-app "Send to confirm". |
 
-### Phase 1 — Accounts, the household's list, and sync
-Goal: Zach and Julie open the same list on their own phones; a parcel's page is the document.
-- Supabase Auth (magic link). RLS on every table, scoped to the household, from the first migration.
-- Household invite: Julie joins the household and sees its whole list. `parcel_shares` is for people outside it.
-- Tables: `households`, `memberships`, `parcels`, `markers`, `overrides`, `screens`, `attachments`,
-  `price_events`, `status_events`, `comments`, `parcel_shares` (see REQUIREMENTS).
-- `parcels` gains the listing facts (`listing_url`, `listing_acres`, `agent`), `status` (in progress, saved,
-  archived) with `archived_reason`, the milestones `walked_at` and `offered_at`, and `list_rank` (My order, one per
-  household, a fractional index).
-- `markers`: the drawn lines and points (kind, geometry, name, condition, width, note), one row each.
-- `overrides`: the household's grade overrides, one per row per parcel, each with its required comment; every
-  change is an event (who, when).
-- Screens are versioned and immutable: a re-run inserts `version = max + 1`, never an update. Screens computed by
-  an older engine (`ENGINE_VERSION`) re-run automatically (`docs/plans/batch-a.md` §6).
-- Price history as events: each asking price entered becomes a `price_events` row; a reduction is a new event.
-- The list (`/library`) reads from Supabase; the explorer saves to it. The browser's store and export file import
-  on first sign-in (REQUIREMENTS §3a), and the store stays as the offline cache.
-- Parcel page = computed blocks (from `screens.result`) + placeholders + user blocks.
-- The prototype's saved-parcels JSON export imports through the same import screen.
-- Comments thread per parcel (pinned "why I shared this", resolved flag). Attachments to Storage (PDF, images,
-  links).
-- `parcel_shares`: share a parcel outside the household.
-- Shareable parcel links: the parcel, map view and open panel in the URL, opening the sender's screen.
-- The weight switch defaults to the signed-in person.
-- **Acceptance:** Zach saves Macks Mountain with its listing URL, a spring marker, the plat PDF and two price events;
-  Julie signs in on her phone and sees it on the list in Zach's order, with both grades; she archives another
-  parcel as "Rejected: no winter sun", and Zach sees why. A reload shows everything without re-running the screen.
+**Paused (10/16):** WF6b (the engine half is merged; the app side waits), follow-up 57 (snap lines to lidar),
+follow-up 46 (county grade limits), the cost-label PR, VR8 calibration and Batch B. Their branches and plans
+stay as they are (`docs/plans/phase-0.md` §6). VR8's weight calibration is replaced by the interview and the
+editor; its band cutoffs get a lighter sanity check after step 10.
 
-### Phase 2 — Share and export
-- Export: PDF of the parcel page (print stylesheet, images inlined, three captured 3D frames)
-  with two presets (full; attorney/evaluator subset). Public read-only share link with opaque ID.
-- **Acceptance:** export Macks Mountain's PDF in both presets; open its public link signed out.
-
-### Phase 2.5 — Driveway router and build-cost estimator
-- `lib/screen/driveway.ts` per REQUIREMENTS §2a; entrance candidates, two routes, quantities, cost range.
-- Route drawn on the map and draped on the 3D block; cost replaces the straight-line term.
-- **Acceptance:** on the Macks Mountain parent, the routed driveway to site #1 obeys the 10% limit
-  at every 3 m station and the cost range brackets a hand estimate within ±30%.
-
-### Phase 3 — Rules and priority list
-- `rules` table (JSON rule set per household) and the evaluator over screen results + listing
-  fields; `ignored` status with dedupe keys; the Library sorted by tier.
-- Import the Mountain Town Assessment as `regions` (county → scores).
-- **Acceptance:** the three example rules in REQUIREMENTS order the saved parcels as expected.
-
-### Phase 4 — Watch (first connector: Gmail)
-- `sources`, `searches`, `listings` tables; connector interface with per-connector cadence floor;
-  throttled HTTP client; `/api/watch/tick` protected by `CRON_SECRET`, called by Vercel cron
-  (daily on Hobby).
-- Gmail connector (your own mail from auction firms) → listings → parcel-ID extraction → parcel
-  polygon lookup → promote to contender.
-- **Acceptance:** an auction-announcement email becomes a listing with a parcel polygon attached.
-
-### Phase 5 — Headless pre-screen, HiBid connector, notifications
-- Run `lib/screen` in Node for listings matched by rules; store the screen; email digest.
-- HiBid GraphQL connector behind a nightly floor and a `tos_note`.
-- Neighbors fan-out (buffer query + per-state attribute adapters) with letter draft.
-- This is where Supabase Pro and the Vercel Pro team start to matter.
+**Not scheduled:** Watch (listing sources, connectors, the headless pre-screen and the digest: the old Phases 4
+and 5) stays in `docs/REQUIREMENTS.md` §6–§7 for after the roadmap, and the Supabase data model there (§3) is
+step 13's starting point. Georgia and West Virginia parcels come after the catalog ships.
 
 ---
 
 ## Working agreement with Claude Code (summary; full version in CLAUDE.md)
-- Plan before code: every phase begins with `docs/plans/phase-N.md` that you approve.
+- Plan before code: every phase begins with `docs/plans/phase-N.md` that you approve; every roadmap step with
+  `docs/plans/step-<n>-<name>.md`, approved once.
+- Mission mode (CLAUDE.md): each roadmap step runs on a `step/<n>-<name>` branch; Claude Code merges the PRs into
+  it on green CI, and Zach merges the one PR from the step branch to main after running the step's test plan.
 - One PR per plan step, small enough to read. CI green before merge.
 - The prototype is the behavioral spec. Deviations are listed in the PR description.
 - Scoring, thresholds and unit costs live in `lib/screen/config.ts`; changing them requires
