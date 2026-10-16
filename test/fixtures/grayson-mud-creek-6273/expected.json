@@ -2216,7 +2216,7 @@
      "aspect": 90,
      "frost": 89,
      "slope": 56,
-     "sky": 73
+     "sky": 75
     },
     "soil": "Pigeonroost",
     "c": {
@@ -2228,7 +2228,7 @@
     },
     "costIdx": 83,
     "costTier": "$$$$",
-    "quality": 81,
+    "quality": 82,
     "qGrade": "A",
     "roadGrade": 34.8957316910476,
     "roadRunFt": 803.8875228422704,
@@ -2314,7 +2314,7 @@
      "aspect": 97.68368007518627,
      "thermal": 99.64654682300709
     },
-    "score": 66,
+    "score": 67,
     "why": [
      "compact site: 0.24 ac shelf — needs a cut pad and probably a retaining wall",
      "7.9 h of December sun — good",
@@ -2330,7 +2330,7 @@
      "aspect": 100,
      "frost": 100,
      "slope": 67,
-     "sky": 73
+     "sky": 75
     },
     "soil": "Pigeonroost",
     "c": {
@@ -2342,7 +2342,7 @@
     },
     "costIdx": 76,
     "costTier": "$$$$",
-    "quality": 84,
+    "quality": 85,
     "qGrade": "A",
     "roadGrade": 36.099887730928245,
     "roadRunFt": 294.53867668222597,
@@ -7629,7 +7629,7 @@
    "er": null
   },
   "schemaVersion": 7,
-  "engine": 18,
+  "engine": 19,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -9852,7 +9852,7 @@
      "aspect": 90,
      "frost": 89,
      "slope": 56,
-     "sky": 73
+     "sky": 75
     },
     "soil": "Pigeonroost",
     "c": {
@@ -9864,7 +9864,7 @@
     },
     "costIdx": 83,
     "costTier": "$$$$",
-    "quality": 81,
+    "quality": 82,
     "qGrade": "A",
     "roadGrade": 34.8957316910476,
     "roadRunFt": 803.8875228422704,
@@ -9950,7 +9950,7 @@
      "aspect": 97.68368007518627,
      "thermal": 99.64654682300709
     },
-    "score": 66,
+    "score": 67,
     "why": [
      "compact site: 0.24 ac shelf — needs a cut pad and probably a retaining wall",
      "7.9 h of December sun — good",
@@ -9966,7 +9966,7 @@
      "aspect": 100,
      "frost": 100,
      "slope": 67,
-     "sky": 73
+     "sky": 75
     },
     "soil": "Pigeonroost",
     "c": {
@@ -9978,7 +9978,7 @@
     },
     "costIdx": 76,
     "costTier": "$$$$",
-    "quality": 84,
+    "quality": 85,
     "qGrade": "A",
     "roadGrade": 36.099887730928245,
     "roadRunFt": 294.53867668222597,
@@ -15265,7 +15265,7 @@
    "er": null
   },
   "schemaVersion": 7,
-  "engine": 18,
+  "engine": 19,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,

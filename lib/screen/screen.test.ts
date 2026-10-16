@@ -9,7 +9,7 @@ import * as format from "../format";
 import { DEFAULT_USER_CONFIG } from "./config";
 import { DemCache } from "./dem";
 import { siteDriveways, type SiteDriveway } from "./driveway";
-import { routeContext, screen, setHouse, type ScreenOutput } from "./index";
+import { routeContext, scoreContextOf, screen, setHouse, type ScreenOutput } from "./index";
 import {
   chooseDriveway,
   scoreSiteDetailed,
@@ -49,18 +49,7 @@ describe("road-distance rounding vs cost index, tier and overall score", () => {
       const fx = loadFixture(slug);
       const out = await run(slug, withHouse ? { house: fx.input.house!.ll } : {});
       const s = out.session;
-      const ctx: ScoreContext = {
-        dFine: s.dFine!,
-        dWide: s.dWide!,
-        valleyFloorFt: s.valleyFloorFt!,
-        skyScore: out.result.sky?.score,
-        roads: s.roads ?? null,
-        sfha: s.sfha ?? null,
-        units: s.units ?? null,
-        rows: s.rows ?? null,
-        limits: s.limits ?? null,
-        cfg: CFG,
-      };
+      const ctx: ScoreContext = { ...scoreContextOf(s, out.result), cfg: CFG };
       // Since A3 every ranked site is re-costed from its routed driveway (and the house from the route to it):
       // rebuild each the way the pipeline does, then measure the same margins on those numbers.
       const sites = out.result.sites ?? [];
@@ -107,7 +96,7 @@ describe("road-distance rounding vs cost index, tier and overall score", () => {
           dw: toHouse!,
         });
       for (const sp of spots) {
-        const { scored } = scoreSiteDetailed(ctx, sp.ll, {
+        const { scored } = await scoreSiteDetailed(ctx, sp.ll, {
           ...sp.b,
           soil: soilAt(ctx.units, ctx.rows, sp.ll),
         });

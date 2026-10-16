@@ -14,7 +14,7 @@ import { frostCurve, type SiteSearch } from "./sites";
 import { overLimitSpans, type PracticalAlternatives, type SiteDriveway, type SiteRoutes } from "./driveway";
 import { NEEDS_EASEMENT } from "./routeLabel";
 import { bottomland, soilAt, type SoilLimits, type SoilUnit, type VettedBench } from "./soils";
-import { horizonProfile, sunHours } from "./sun";
+import { horizonProfile, sunHours, type HorizonPoint } from "./sun";
 import type { Dem, Practical, ScreenResult, Site, SoilRow, UserConfig } from "./types";
 import { lerp, M2FT, type LatLon } from "./util";
 
@@ -41,8 +41,12 @@ export interface ScoreContext {
   dFine: Dem;
   dWide: Dem;
   valleyFloorFt: number;
-  /** The sky score at the current evaluation point, if the sky step ran (prototype: R.sky.score, else 60). */
-  skyScore: number | undefined;
+  /**
+   * The sky score at a spot, read with the skyline its sun is measured on (follow-up 58): every site and the house
+   * get their own, so none depends on where the sky step read it or on a house being marked. Absent, or undefined
+   * for a spot, when the sky step didn't run: the prototype's 60. (The prototype gave every spot R.sky.score.)
+   */
+  skyAt?: ((ll: LatLon, horizon: HorizonPoint[]) => Promise<number | undefined>) | undefined;
   roads: RoadFeature[] | null;
   sfha: FloodFeature[] | null;
   units: SoilUnit[] | null;
@@ -97,9 +101,10 @@ const rate = (r: string | null | undefined) => {
  * needs the unrounded quality back from a site's stored fields.
  */
 export function qualityParts(
-  ctx: Pick<ScoreContext, "valleyFloorFt" | "skyScore" | "cfg">,
+  ctx: Pick<ScoreContext, "valleyFloorFt" | "cfg">,
   sunShare: number,
   b: Pick<SiteInput, "aspectDeg" | "slopeDeg" | "elevFt">,
+  skyScore: number | undefined,
 ): { aspectS: number; above: number; frostS: number; slopeS: number; skyS: number; quality: number } {
   const adiff = Math.min(
     Math.abs(b.aspectDeg - K.siteAspectTargetDeg),
@@ -109,7 +114,7 @@ export function qualityParts(
   const above = b.elevFt - ctx.valleyFloorFt;
   const frostS = lerp(above, frostCurve(SU.frostHouse, ctx.cfg.thermalMinFt));
   const slopeS = lerp(b.slopeDeg, SU.slopeHouse);
-  const skyS = ctx.skyScore ?? K.skyIfMissing;
+  const skyS = skyScore ?? K.skyIfMissing;
   const W = K.weights;
   const quality =
     W.sun * 100 * sunShare + W.aspect * aspectS + W.frost * frostS + W.slope * slopeS + W.sky * skyS;
@@ -329,7 +334,7 @@ export function impracticalLine(p: Practical): string {
  * rerank.
  */
 export function withDrivewayCost<T extends Scored & Pick<Site, "aspectDeg" | "slopeDeg" | "elevFt">>(
-  ctx: Pick<ScoreContext, "valleyFloorFt" | "skyScore" | "cfg">,
+  ctx: Pick<ScoreContext, "valleyFloorFt" | "cfg">,
   s: T,
   dw: SiteDriveway,
 ): T {
@@ -346,18 +351,21 @@ export function withDrivewayCost<T extends Scored & Pick<Site, "aspectDeg" | "sl
   };
 }
 
-/** A site's unrounded quality from its stored fields: qualityParts, then the flood veto. */
+/**
+ * A site's unrounded quality from its stored fields: qualityParts, then the flood veto. Its stored sky part is exact:
+ * the sky score is a whole number.
+ */
 export function storedQuality(
-  ctx: Pick<ScoreContext, "valleyFloorFt" | "skyScore" | "cfg">,
-  s: Pick<Site, "sunH" | "daylightH" | "aspectDeg" | "slopeDeg" | "elevFt" | "flood">,
+  ctx: Pick<ScoreContext, "valleyFloorFt" | "cfg">,
+  s: Pick<Site, "sunH" | "daylightH" | "aspectDeg" | "slopeDeg" | "elevFt" | "flood" | "q">,
 ): number {
-  const q = qualityParts(ctx, s.daylightH ? s.sunH / s.daylightH : 0, s).quality;
+  const q = qualityParts(ctx, s.daylightH ? s.sunH / s.daylightH : 0, s, s.q.sky).quality;
   return s.flood ? q * K.sfhaQualityFactor : q;
 }
 
 /** Quality, cost and overall score for a spot (proto scoreSite). */
-export function scoreSite(ctx: ScoreContext, ll: LatLon, b: SiteInput): Scored {
-  return scoreSiteDetailed(ctx, ll, b).scored;
+export async function scoreSite(ctx: ScoreContext, ll: LatLon, b: SiteInput): Promise<Scored> {
+  return (await scoreSiteDetailed(ctx, ll, b)).scored;
 }
 
 /** The unrounded numbers behind a score, for checking how close a result sits to a rounding boundary. */
@@ -368,11 +376,11 @@ export interface RawScore {
 }
 
 /** scoreSite, plus the unrounded quality, cost and overall it rounded. */
-export function scoreSiteDetailed(
+export async function scoreSiteDetailed(
   ctx: ScoreContext,
   ll: LatLon,
   b: SiteInput,
-): { scored: Scored; raw: RawScore } {
+): Promise<{ scored: Scored; raw: RawScore }> {
   const cfg = ctx.cfg;
   const why: string[] = [];
   // --- quality ---
@@ -380,7 +388,8 @@ export function scoreSiteDetailed(
   const hz = horizonProfile(ctx.dWide, r0, c0, 5, 6000);
   const sun = sunHours(ll[0], hz, SCREEN_CONSTANTS.sun.decemberDoy, cfg.canopyDeg);
   const sunShare = sun.daylightH ? sun.directH / sun.daylightH : 0;
-  const parts = qualityParts(ctx, sunShare, b);
+  // The sky read here, on the same skyline (follow-up 58).
+  const parts = qualityParts(ctx, sunShare, b, await ctx.skyAt?.(ll, hz));
   const { aspectS, above, frostS, slopeS, skyS } = parts;
   const q = {
     sun: Math.round(100 * sunShare),
@@ -487,12 +496,12 @@ function onTheGround(
 }
 
 /** The rank step (proto L1147–1171): open house sites and compact shelves, scored and ordered. */
-export function rankSites(
+export async function rankSites(
   ctx: ScoreContext,
   benches: (VettedBench | (SiteSearch["benches"][number] & { soil?: undefined; veto?: undefined }))[],
   shelves: SiteSearch["shelves"],
   ground: SiteGround,
-): { sites: Site[]; excluded: NonNullable<ScreenResult["excluded"]> } {
+): Promise<{ sites: Site[]; excluded: NonNullable<ScreenResult["excluded"]> }> {
   const pin = (rc: [number, number]) => rcToLL(ctx.dFine, rc[0], rc[1]);
   const excluded = benches
     .filter((b) => b.veto)
@@ -500,7 +509,7 @@ export function rankSites(
   const sites: Site[] = [];
   for (const b of benches.filter((b) => !b.veto).slice(0, SCREEN_CONSTANTS.sites.maxRankedBenches)) {
     const ll = pin(b.rc);
-    const s = scoreSite(ctx, ll, {
+    const s = await scoreSite(ctx, ll, {
       acres: b.acres,
       elevFt: b.elevFt,
       aspectDeg: b.aspectDeg,
@@ -528,7 +537,7 @@ export function rankSites(
     const ll = pin(sh.rc);
     const soil = soilAt(ctx.units, ctx.rows, ll);
     if (soil && bottomland(soil)) continue;
-    const s = scoreSite(ctx, ll, {
+    const s = await scoreSite(ctx, ll, {
       acres: sh.acres,
       elevFt: sh.elevFt,
       aspectDeg: sh.aspectDeg,
@@ -585,7 +594,7 @@ export function shelvesFromBest(
 }
 
 /** The existing house, scored by the same rubric plus the checks only a known house has (proto assessHouse). */
-export function assessHouse(
+export async function assessHouse(
   ctx: ScoreContext & {
     slope: Float32Array;
     aspect: Float32Array;
@@ -593,7 +602,7 @@ export function assessHouse(
     search: SiteSearch | null;
   },
   house: LatLon,
-): NonNullable<ScreenResult["house"]> {
+): Promise<NonNullable<ScreenResult["house"]>> {
   const [r, c] = llToRC(ctx.dFine, house[0], house[1]);
   if (!inGrid(ctx.dFine, r, c)) return { ll: house, outside: true };
   const i = r * ctx.dFine.w + c,
@@ -615,7 +624,7 @@ export function assessHouse(
   const bench = lab > 0 ? ctx.search!.benches.find((b) => b.id === lab) : undefined;
   const soil = soilAt(ctx.units, ctx.rows, house),
     veto = soil ? bottomland(soil) : null;
-  const s = scoreSite(ctx, house, {
+  const s = await scoreSite(ctx, house, {
     acres: bench ? bench.acres : SCREEN_CONSTANTS.score.houseDefaultAcres,
     elevFt,
     aspectDeg,

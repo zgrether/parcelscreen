@@ -143,7 +143,8 @@ follow-up 58.
 - **The sky, Ferney Creek:** a full run with a house reads the sky at the house, and rank scores every site with that
   sky score; a move keeps the score read at site #1. So `sites[].q.sky` is 67 vs 57 on all five sites, and their
   `quality` and `score` differ by 1 or 2; the house's too (sky 67 vs 57, quality 70 vs 69, score 68 vs 67). On Macks
-  and Grayson site #1's sky and the house's sky score are the same, so nothing follows.
+  and Grayson site #1's sky and the house's sky score are the same, so nothing follows. **Closed** by the sky-per-site PR (follow-up 58, ENGINE_VERSION 19): each site and the
+  house read their own sky.
 - **The house's rounding, Macks and Grayson:** `setHouse` rounds the house to 6 decimals; a full run uses the input as
   given. So `focus.ll`, `point.ll` and `house.ll` differ by under 5e-7°, the sun's `noonAlt` and `noonClearance` and
   the sky's `coreAlt` and `coreClear` by under 5e-7°, and `house.roadGrade` and `house.roadRunFt` slightly (0.001

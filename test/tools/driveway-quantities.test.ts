@@ -166,7 +166,7 @@ describe.runIf(import.meta.env.MODE === "dw-quant")("driveway quantities (#99 de
             : "none";
         const c = chosen[i]!;
         // The site's score without the rule: re-costed on the chosen route instead.
-        const sctx = { valleyFloorFt: s.valleyFloorFt ?? NaN, skyScore: result.sky?.score, cfg: s.config };
+        const sctx = { valleyFloorFt: s.valleyFloorFt ?? NaN, cfg: s.config };
         const without = withDrivewayCost(sctx, sites[i]!, c).score;
         trips.push(
           `| ${name} #${b.rank} (${fmt(b.acres, 2)} ac) | ${k$(c.route!.cost.mid)}, ${fmt(drivewayPoints(c), 1)} points ` +
