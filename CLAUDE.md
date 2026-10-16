@@ -20,7 +20,8 @@ isn't obvious.
 
 1. **Plan first.** Each phase starts with `docs/plans/phase-N.md`: the files you will create or
    change, module boundaries, what is ported verbatim vs. restructured, open questions, and the
-   acceptance checks you will run. Stop and wait for approval before writing application code.
+   acceptance checks you will run. Stop and wait for approval before writing application code. In
+   mission mode (below), each roadmap step starts with `docs/plans/step-<n>-<name>.md` instead, approved once.
 2. **One PR per plan step.** Keep PRs small enough to review in ten minutes. The PR description
    lists any behavior that differs from the prototype and why. Fold trivial follow-ups (wording, one-line
    fixes) into the next substantive PR instead of opening their own.
@@ -31,13 +32,43 @@ isn't obvious.
    CI (typecheck, lint, the full unit suite, e2e, determinism, expected-guard) is the full gate, and
    Auto-fix handles its failures. The report is ten lines or fewer; the details go in the PR description.
    **Zach merges every PR.** Never merge one yourself or enable auto-merge, whatever the wording: "merge
-   when…" or "merge on green" means "ready for Zach to merge". Say it's ready, and pause.
+   when…" or "merge on green" means "ready for Zach to merge". Say it's ready, and pause. In mission mode
+   (below), the PRs into a step branch are the one exception: merge each yourself when CI is green on its
+   head; the step's single PR into main is still Zach's.
 4. **Don't change the numbers silently.** Thresholds, weights and unit costs live in
    `lib/screen/config.ts`. If you change one, update the fixture test and say so in the PR.
 5. **Ask when the spec is silent;** don't invent product behavior. Ask in the PR or the plan.
 6. Prefer boring, well-known libraries. No new dependency without a one-line justification.
 7. **Report text changes are additive.** Any scope that adds or changes report text gets a one-paragraph plan
    first. Golden diffs must be purely additive: new text goes after existing text, never in place of it.
+
+## Mission mode (standing rule; owner, 2026-10-16)
+
+The roadmap in PLAN.md (the thirteen steps of `docs/design/workflow-review.md`) runs as missions, one per
+step. Mission mode changes rules 1 and 3 above as written here; everything else in this file still holds.
+
+- **One plan per roadmap step** at `docs/plans/step-<n>-<name>.md`. Each plan states the scope, which
+  numbers or verdict text may change, the stop conditions, and the outline of the test plan. Zach approves
+  the plan once; no application code before that.
+- **A step branch.** Work on `step/<n>-<name>`, branched from main. Open each PR into the step branch and
+  merge it yourself when CI is green on its head. Never merge to main. The step ends with one PR from the
+  step branch to main, which Zach merges after running the test plan on its preview.
+- **Stop and wait** (push what you have, say why) if:
+  - a change would alter expected.json or verdict/flag text beyond what the plan declared;
+  - a product decision is needed;
+  - the same CI failure survives 3 attempts;
+  - the plan turns out wrong.
+- **The hand-back**, in the final PR's description:
+  - what shipped and the PR list;
+  - any numbers change with its `pnpm diff:prototype` summary line;
+  - deviations from the plan, and questions you parked;
+  - a manual test plan on the preview URL: numbered "do → expect" steps with pass/fail boxes, desktop then
+    phone, using fixture parcels by name (Mud Creek, Macks, Ferney, and a Roan Mountain one once it exists),
+    about 15–30 minutes.
+- **CI on step branches.** Check first that the full CI (typecheck, lint, test, e2e, determinism, expected
+  guard) runs on PRs into `step/*` branches, and fix the workflow triggers if not. (Checked 2026-10-16:
+  `ci.yml` and `expected-guard.yml` run on every pull request whatever its base branch, so it does, and
+  `deployed-check.yml` runs on every Vercel deployment.)
 
 ## Hard rules
 
@@ -81,7 +112,8 @@ lib/http.ts               throttled fetch
 lib/db/                   Supabase clients (browser, server, service) and typed queries
 supabase/migrations/      SQL migrations; apply with the Supabase CLI
 test/fixtures/            recorded service responses for two real parcels (offline tests)
-docs/plans/               one file per phase, approved before code
+docs/plans/               one file per phase or roadmap step (step-<n>-<name>.md), approved before code
+docs/design/              the workflow review: the roadmap's spec
 legacy/parcelscreen.html  the prototype — read-only reference
 ```
 
@@ -124,6 +156,7 @@ against them, then the UI.
   re-evaluating a different site doesn't refetch it.
 - The sky step samples the atlas 24×6 times; memoize tile decoding per session.
 
-## Later phases
-Follow PLAN.md. Data model and rule DSL are in docs/REQUIREMENTS.md. Do not start Phase N+1
-until Phase N is merged and deployed.
+## The roadmap
+Follow PLAN.md's roadmap in mission mode, one step at a time; the spec for every step is
+`docs/design/workflow-review.md`. The Supabase data model for step 13 and the rest of the long-range
+requirements are in docs/REQUIREMENTS.md. Do not start step N+1 until step N is merged to main.
