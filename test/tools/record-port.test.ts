@@ -5,7 +5,7 @@
  * network.har (loadFixture's replayHar), offline as ever.
  *
  *   pnpm record:port            records what's missing (never re-records what's there), and drops what no
- *                               scenario asks for any more (a request the port has since changed)
+ *                               scenario (or PORT_RUNS run) asks for any more (a request the port has since changed)
  *
  * Run by hand, never in CI: it reaches the public services. The prototype's network.har is never touched.
  */
@@ -24,7 +24,27 @@ import {
   type HarEntry,
 } from "../support/replayFetch";
 import { portHarPath, writePortHar } from "../support/portHar";
-import { runScenario, SCENARIOS } from "../support/scenarios";
+import { redGate, toTheBoundary } from "../support/redGate";
+import { runFixture, runScenario, SCENARIOS } from "../support/scenarios";
+import type { ScreenDeps } from "@/lib/screen";
+
+/**
+ * Runs besides the golden scenarios whose requests the tests replay (they have no expected.json entry). WF6 (#140
+ * review): Grayson with the red-gate easement chosen as the driveway, so the drives timed from its road end (a moved
+ * drive start: OSRM's table and route out, Overpass's parking) replay offline (lib/screen/reroute.test.ts).
+ */
+const PORT_RUNS: Partial<
+  Record<(typeof FIXTURE_SLUGS)[number], ((deps: () => ScreenDeps) => Promise<unknown>)[]>
+> = {
+  "grayson-mud-creek-6273": [
+    (deps) =>
+      runFixture(
+        "grayson-mud-creek-6273",
+        { lines: [toTheBoundary(redGate)], drivewayLine: "red-gate" },
+        deps(),
+      ),
+  ],
+};
 
 /** Some services (the TN parcel WAF) refuse a non-browser User-Agent. */
 const BROWSER_UA =
@@ -113,6 +133,7 @@ describe.runIf(import.meta.env.MODE === "record-port")("record the port's own re
         http: createHttpClient({ env: "node", fetchImpl: recording(), clock: realClock }),
       });
       for (const scenario of SCENARIOS[slug]) await runScenario(slug, scenario, deps);
+      for (const run of PORT_RUNS[slug] ?? []) await run(deps);
 
       // Keep only what this run asked for: a request the port no longer makes is dropped.
       for (const a of answers) for (const k of a.requests) asked.add(k);

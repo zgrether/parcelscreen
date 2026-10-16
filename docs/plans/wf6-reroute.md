@@ -34,12 +34,18 @@ would with those lines and that choice. The run time aside, the result is byte-i
   network: OSRM's table (or its per-destination fallback), the route out, and Overpass for trailhead parking.
   - When the start is unchanged, the drives, the closer grocery, the trailheads' drives, `driveFrom`'s snap and track
     miles, and the drive step's `noResponse` entries are carried over from the run.
-  - Nothing else in a reroute makes a request.
+  - Nothing else in a reroute makes a request. Tests count the requests: none when the start is unchanged (§6.5), and
+    only OSRM and Overpass when it moves (§6.7), on recorded traffic (`pnpm record:port` records the red gate's start
+    into Mud Creek's `network-port.har`).
 - **Failures are handled as a full run handles them,** because it's the same step code. If OSRM or Overpass doesn't
   answer:
   - Trails is marked incomplete and the verdict is held at Maybe or below (follow-up 53);
   - `noResponse` gets the same entries;
   - `failed` lists `drive` if the step itself fails.
+  - When only Overpass's parking lookup fails, the drives still run, timed to the trailhead points instead of their
+    parking: `noResponse` gets `TRAILHEAD_PARKING`, Trails isn't marked incomplete, and the Trails row's detail gains
+    "; timed to the trailhead, not its parking (the parking lookup didn't answer)" (#140 review). Before WF6a this was
+    silent on the card. The note is appended (rule 7), and is the same in a reroute and a full run (a test).
 - **The flags:** the driveway and drive steps' flags, and their `failed` and `noResponse` entries, are replaced. The
   others are kept in order. The verdict is recomputed from the flags, and the house's "No house site" rewrite is
   applied again, as at the end of `screen()`.
@@ -130,6 +136,25 @@ R(lines, choice) for a reroute:
 7. **With a choice:** R(L1, red-gate) = F(L1, red-gate); every drive comes from the red-gate road end; every engine
    driveway field equals F(L1, null)'s.
 
+**What differs between "move the house after a full run" and "a full run with that house"** (#140 review; measured
+on each fixture with its own house; H(h) after F([]) on the left, F([], house h) on the right). Not fixed here:
+follow-up 58.
+
+- **The sky, Ferney Creek:** a full run with a house reads the sky at the house, and rank scores every site with that
+  sky score; a move keeps the score read at site #1. So `sites[].q.sky` is 67 vs 57 on all five sites, and their
+  `quality` and `score` differ by 1 or 2; the house's too (sky 67 vs 57, quality 70 vs 69, score 68 vs 67). On Macks
+  and Grayson site #1's sky and the house's sky score are the same, so nothing follows.
+- **The house's rounding, Macks and Grayson:** `setHouse` rounds the house to 6 decimals; a full run uses the input as
+  given. So `focus.ll`, `point.ll` and `house.ll` differ by under 5e-7°, the sun's `noonAlt` and `noonClearance` and
+  the sky's `coreAlt` and `coreClear` by under 5e-7°, and `house.roadGrade` and `house.roadRunFt` slightly (0.001
+  points and 0.02 ft on Macks; 0.0004 and 0.02 ft on Grayson). Ferney's house is already at 6 decimals.
+- **Site #1's `why`, Macks and Grayson:** a full run with a house appends site #1's routed-driveway line after the
+  others (A3b's rewrite runs only without a house); a move rewrites it in place. 4 lines vs 5.
+- **`driveFrom.kept`, all three:** true after a move (the drives were kept from the run), false in a full run.
+
+That's why the parity tests compare a reroute with the operations the app performs, and keep `setHouse` and
+`houseRun` apart.
+
 ## 7. Report and card text (rule 7, approved)
 
 1. **The card header, while it works:** "Rerouting the driveway…".
@@ -168,6 +193,6 @@ screen, the last per key, or a capped history is its question (`screens` rows ar
 - `components/Results/panel/ScreenIt.tsx` and `components/Results/card/ReportCard.tsx`: the automatic reroute, the
   header lines, the banner's button.
 - `lib/report/card.ts` and `lib/report/driveway.ts`: the drive-times note read from `keys.driveway`, and your route's
-  pioneer track.
+  pioneer track. In WF6a, `card.ts`'s Trails row says when the parking lookup didn't answer (§2).
 - Tests: `lib/screen/reroute.test.ts` (new; §6.1–5, 7), `lib/screen/worker-protocol.test.ts` (§6.3, 6), and the client
   and e2e tests for the triggers and the header.

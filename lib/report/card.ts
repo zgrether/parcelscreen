@@ -8,7 +8,13 @@
  */
 import { compass, fmt } from "../format";
 import { SCREEN_CONSTANTS } from "../screen/config";
-import { NEAREST_HOSPITAL, REAL_GROCERY, TRAILHEAD_DRIVES, type DriveEntry } from "../screen/driveList";
+import {
+  NEAREST_HOSPITAL,
+  REAL_GROCERY,
+  TRAILHEAD_DRIVES,
+  TRAILHEAD_PARKING,
+  type DriveEntry,
+} from "../screen/driveList";
 import { NO_PRACTICAL_ROUTE, existingSteepLine } from "../screen/score";
 import { trailheadSourceLabel } from "../screen/trailheads";
 import { isPrimeFarmland, soilAt, type SoilUnit } from "../screen/soils";
@@ -450,6 +456,10 @@ function room(r: Result, K: CardConfig, footprintAc: number): Row {
     : line;
 }
 
+/** Appended to the Trails row when the drives went to the trailhead points, the parking lookup unanswered (#140). */
+export const TIMED_TO_THE_TRAILHEAD =
+  "timed to the trailhead, not its parking (the parking lookup didn't answer)";
+
 function trails(r: Result, K: CardConfig): Row {
   const g0 = row("trails", "Trails and public land");
   if (!r.protected) return notLoaded(g0, "PAD-US");
@@ -506,10 +516,12 @@ function trails(r: Result, K: CardConfig): Row {
     const d = driven.drive!;
     // An approved replacement under rule 7 (owner, #123; phase-0.md §9.35): the drive, then the straight line.
     const track = trackNote(r);
+    // The parking lookup didn't answer (owner, #140 review): the drive went to the trailhead itself. Said, appended.
+    const parking = (r.noResponse ?? []).includes(TRAILHEAD_PARKING) ? `; ${TIMED_TO_THE_TRAILHEAD}` : "";
     return {
       ...g(
         byHead,
-        `a trailhead ${fmt(d.min)} min (${fmt(d.mi, 1)} mi) by road${track}, ${miles(d.km)} mi straight (${driven.name})`,
+        `a trailhead ${fmt(d.min)} min (${fmt(d.mi, 1)} mi) by road${track}, ${miles(d.km)} mi straight (${driven.name})${parking}`,
       ),
       short: `trailhead ${fmt(d.min)} min`,
     };
