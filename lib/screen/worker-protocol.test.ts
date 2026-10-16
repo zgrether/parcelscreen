@@ -4,7 +4,10 @@ import { loadFixture } from "../../test/support/fixtures";
 import { instantClock } from "../../test/support/pipeline";
 import { createHttpClient } from "../http";
 import { DEFAULT_USER_CONFIG } from "./config";
-import { screen } from "./index";
+import { centroid } from "@turf/turf";
+import { screen, setHouse } from "./index";
+import type { ScreenResult } from "./types";
+import type { LatLon } from "./util";
 import { ScreenWorkerCore, type FromWorker } from "./worker-protocol";
 
 const fx = loadFixture("macks-mountain-35-3");
@@ -186,5 +189,55 @@ describe("session sizes (for the 17e PR)", () => {
     if (done.type !== "done") throw new Error("no done");
     const mb = (n: number) => (n / 1048576).toFixed(1);
     console.log(`${slug}: worker session ${mb(done.bytes.session)} MB, page view ${mb(done.bytes.view)} MB`);
+  });
+});
+
+describe("reroute (WF6; docs/plans/wf6-reroute.md §6.3, §6.6)", { timeout: 240_000 }, () => {
+  /** A 60 m track through Macks's middle. */
+  const track = (id: string, dLon = 0) => {
+    const [lon, lat] = centroid(fx.input.polygon).geometry.coordinates as [number, number];
+    return {
+      id,
+      kind: "track" as const,
+      line: [
+        [lat - 0.0002, lon - 0.0003 + dLon],
+        [lat + 0.0002, lon + 0.0003 + dLon],
+      ] as LatLon[],
+      widthFt: null,
+    };
+  };
+  const plain = (r: ScreenResult) => JSON.parse(JSON.stringify({ ...r, runAt: "" })) as unknown;
+  const direct = (lines: ReturnType<typeof track>[]) =>
+    screen({ ...input, lines }, undefined, {
+      http: createHttpClient({ env: "node", fetchImpl: fx.replayFetch(), clock: instantClock() }),
+      sleep: async () => {},
+    });
+
+  it("move the house, then reroute: the house is re-applied after it, as the run and the move with those lines give", async () => {
+    const { c, posted } = core();
+    const h = fx.input.evaluateSite2!.ll;
+    await c.handle({ type: "run", id: 1, input });
+    await c.handle({ type: "setHouse", id: 1, ll: h });
+    await c.handle({ type: "reroute", id: 1, lines: [track("a")], drivewayLine: null });
+    const upd = posted.at(-1)!;
+    expect(upd.type).toBe("updated");
+    if (upd.type !== "updated") return;
+    const expected = await setHouse(await direct([track("a")]), h);
+    expect(plain(upd.result)).toEqual(plain(expected.result));
+  });
+
+  it("two reroutes in quick succession: the first is superseded, and only the latest is posted", async () => {
+    const { c, posted } = core();
+    await c.handle({ type: "run", id: 2, input });
+    const from = posted.length;
+    const first = c.handle({ type: "reroute", id: 2, lines: [track("first")], drivewayLine: null });
+    const second = c.handle({ type: "reroute", id: 2, lines: [track("second", 0.0001)], drivewayLine: null });
+    await Promise.all([first, second]);
+    const answers = posted.slice(from).filter((m) => m.type === "updated" || m.type === "error");
+    expect(answers).toHaveLength(1);
+    const [only] = answers;
+    expect(only!.type === "updated" && only!.result.lines.map((l) => l.id)).toEqual(["second"]);
+    if (only!.type === "updated")
+      expect(plain(only!.result)).toEqual(plain((await direct([track("second", 0.0001)])).result));
   });
 });

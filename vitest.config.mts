@@ -18,6 +18,7 @@ const SCREEN_GROUPS: Record<string, string[]> = {
     "lib/screen/screen.test.ts", // 226
     "lib/report/scored-route.test.ts", // 78
     "lib/screen/config-effect.test.ts", // 39
+    "lib/screen/reroute.test.ts", // WF6: about a dozen full runs
   ],
   "screens-3": [
     "lib/screen/worker-protocol.test.ts", // 155

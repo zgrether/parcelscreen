@@ -147,6 +147,12 @@ export const ScreenInputSchema = z.strictObject({
   evaluateAt: LatLonSchema.optional(),
   /** The lines drawn with the parcel (follow-up 34): a route may start from one's end or follow it. */
   lines: z.array(DrawnInputSchema).optional(),
+  /**
+   * The line chosen as the driveway (WF6, docs/plans/wf6-reroute.md §3), by id: the drives start from its route's road
+   * end, and its route gets a pioneer-track estimate. The engine's own driveway fields, flags and verdict stay on the
+   * app's pick. Absent or null: the app's pick.
+   */
+  drivewayLine: z.string().nullable().optional(),
 });
 export type ScreenInput = z.infer<typeof ScreenInputSchema>;
 

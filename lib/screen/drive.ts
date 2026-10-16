@@ -307,14 +307,23 @@ export async function driveTimes(
 /**
  * Where the drives start (follow-up 54; owner, #123): the scored route's road entrance; a drawn line's road end (its
  * entrance is the end away from the road); the nearest road point when there's no frontage; the parcel's centre when
- * no driveway was routed.
+ * no driveway was routed. With a line chosen as the driveway (WF6), its route's: the line's road end.
  */
 export function driveStart(
   driveway: ScreenResult["driveway"] | undefined,
   lines: readonly DrawnInput[],
   centre: LatLon,
+  chosenLine: string | null = null,
 ): Omit<DriveFrom, "snapM" | "trackMi" | "kept"> {
-  const rt = driveway?.routes[0];
+  const chosenAt = chosenLine ? lines.findIndex((l) => l.id === chosenLine) : -1;
+  const mine =
+    chosenAt >= 0
+      ? driveway?.routes.find((r) => {
+          const e = driveway.entrances[r.entranceIndex];
+          return e?.source === "drawn" && e.line === chosenAt;
+        })
+      : undefined;
+  const rt = mine ?? driveway?.routes[0];
   const e = rt ? driveway!.entrances[rt.entranceIndex] : undefined;
   if (!e) return { ll: centre, kind: "centre", road: null, line: null, gapFt: null };
   if (e.source === "drawn" && e.line != null && lines[e.line]) {
