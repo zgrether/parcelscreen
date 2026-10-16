@@ -1,15 +1,17 @@
 # Step 1 — Profiles and the grading split
 
 Roadmap step 1 (`PLAN.md`, Roadmap; the spec is `docs/design/workflow-review.md`). Written 2026-10-16 under
-mission mode (`CLAUDE.md`). **Draft for the owner's approval: no application code until it's approved.** The
-mission then runs on `step/1-profiles-grading`, branched from main, with the PRs in §6.
+mission mode (`CLAUDE.md`). **Approved by the owner on 2026-10-16 with the changes listed in §8, folded in.**
+The mission runs on `step/1-profiles-grading`, branched from main, with the PRs in §6, once this plan and the
+mission-mode docs (#144) are on main.
 
 Done when: anyone opening the link gets a local profile; profiles can be added, switched, renamed and deleted;
 every piece of the household's data is scoped to a profile; today's data has moved into a first profile; a saved
 screen stores measurements and no grades; every grade, verdict and reason on screen is computed when it's shown,
 from the stored measurements and the profile's rubric; and the default rubric reproduces today's output
-exactly, so the only visible changes are the profile picker and the switch's wording ("My grade" for "Zach's
-grade").
+exactly, so the only visible changes are the profile picker, the switch's wording ("My grade" for "Zach's
+grade") and, after the update, the Library's "Needs a re-screen" rows until "Re-screen all saved parcels" has
+run (the clean break, §3.3).
 
 ## 1. Scope
 
@@ -166,10 +168,12 @@ Measured on 2026-10-16 with a scratch test over every fixture and scenario (7 sc
 So rank-sum weights happen to keep every letter on the fixtures, but the points (the breakdown bar, the
 rulebook's weights table) would change, equal-grade rows could pick a different "Weakest part", and a saved
 parcel near a cutoff could flip. The default therefore carries explicit weights; rank-sum is what the editor
-(step 3) and the interview (step 4) write when a person first orders their cards. **To confirm (§8 Q1).**
+(step 3) and the interview (step 4) write when a person first orders their cards. **Agreed (§8 Q1). When step
+3's editor first switches a rubric from explicit weights to rank-sum, it shows the points before and after.**
 
 Three places where today's rules differ from the design doc's Rubric algorithm, kept as today so nothing
-changes, each to be decided in step 3 or 6 (§8 Q2):
+changes (§8 Q2: warn gates will probably stay for good, since "verify the easement" is a real third state; the
+rest is decided in step 3 or 6):
 
 - a Must can **warn** (the doc has pass / fail / unknown), and a Contender allows one warn;
 - the verdict lines are points (2.75 and 1.75), not letter edges ("A or B → Contender", 2.5; "D or F → Pass", 1.5);
@@ -233,6 +237,13 @@ surface that located the sites, an engine intermediate, not a grade of the parce
 - A result is partial (its run still going) when `cancelled` is undefined, which the run sets only at its end;
   `isPartial()` (`lib/report/verdict.ts`) and `card.ts` `trails()` read that instead of `verdict === undefined`.
 
+**Derivations are engine code (owner, 2026-10-16).** Every display-time derivation (`storedScore`, `flagsOf`,
+`verdictOf`, `skyScore`, the card's gates and rows) counts as engine code: changing one is a numbers change,
+declared in its PR with the `pnpm diff:prototype` summary line and an `ENGINE_VERSION` bump. `grades-v7.json`
+(below) and `cards-v7.json` (§3.2) stay as the guard. An invariant test over every scenario applies `rerank()`
+to the derived scores and checks that it reproduces the stored `rank` order exactly, so a scoring change that
+breaks it fails CI instead of showing site #2 scoring above site #1.
+
 **The proof.** Before the cut, a one-off script records every removed field from today's `expected.json` into
 `test/fixtures/<slug>/grades-v7.json` (verdict, flags, each site's and the house's score fields, `sky.score`).
 A test derives them from the v8 expected result for every scenario and compares: zero differences (flags as
@@ -242,7 +253,11 @@ derivations run inside the engine's parity test (`lib/screen/screen.test.ts`) so
 **Versioning.** `SCREEN_SCHEMA_VERSION` 8; `lib/screen/schema-v8.test.ts` with its JSON Schema snapshot;
 `ENGINE_VERSION` 21 (the convention since v3: a schema change re-screens kept screens). A **clean break**, as v3
 to v7 were: v7 results aren't read or migrated; their parcels re-screen when opened (`screenStore.ts`
-`readScreen` already treats another schema as gone). Recorded as phase-0.md §9.44 in the PR (§9). `CLAUDE.md`'s
+`readScreen` already treats another schema as gone). So after the update every Library row's grade is gone until
+its parcel is re-screened: a row whose screen is from an earlier schema reads "Needs a re-screen" rather than a
+blank grade, and the Library's "Re-screen all saved parcels" action (PR 5, §6) re-screens them one after another
+in the background, with a progress line and Cancel; after it, the grades and household verdicts are what they
+were (§7, manual step 4). Recorded as phase-0.md §9.44 in the PR (§9). `CLAUDE.md`'s
 "Schema v7 is frozen" rule moves to v8. `expected.json` is regenerated (`pnpm expected`): fields leave and
 arrive, **no recorded number moves**; the PR declares it under the expected guard with the `pnpm
 diff:prototype` summary line, which must read zero differences once the prototype diff derives the removed
@@ -285,21 +300,24 @@ holds pre-profile data. Nothing in code names Zach or Julie.
 **Today's data moves into the first profile**, once, on the first open after the update: `ps.parcels` (converting
 `ps.current` first if it's still there, as `readParcelStore` does), `ps.cfg`, `ps.compare`, `ps.library`,
 `ps.recentMarks`, `ps.namesFromNotes` become that profile's docs; every record in `screens` gets its id as
-`profile`; the localStorage keys are removed only after the IndexedDB transaction completes, so a failure leaves
-today's data in place and the migration retries next open. Tested on a recorded copy of a real `ps.parcels`
-(the e2e fixtures' import gives one) in `lib/client/migrateProfiles.test.ts`.
+`profile`; after the IndexedDB transaction completes, the localStorage keys are **renamed** to `ps.legacy.*`,
+never deleted here (step 2's first PR deletes them), so a failure part-way leaves the original keys untouched
+and the migration retries next open, and a second run finds the profile's docs and the `ps.legacy.*` keys and
+does nothing. Tested on a recorded copy of a real `ps.parcels` (the e2e fixtures' import gives one) in
+`lib/client/migrateProfiles.test.ts`: the move; running it twice duplicates nothing; a failure part-way (a
+rejected transaction) leaves the original keys untouched.
 
 **Today's two weight sets.** The first profile's `rubrics` document is `{ mine, others }`: `mine` is the default
 rubric (today's `card.weights.zach` numbers, which become `card.weights.default` in `config.ts`, the same
 numbers under a name that isn't a person's), and `others` holds one entry, `{ id, name: "Julie", rubric }` built
 from today's `card.weights.julie`, which leaves `config.ts` for the migration module (`lib/client/migrateProfiles.ts`,
-`LEGACY_SECOND_WEIGHTS`, with a comment saying why it exists). A new profile starts with `mine` and an empty
-`others`. **Julie's weights are not a profile**: in step 5 the `others` entries become the household's members
+`LEGACY_SECOND_WEIGHTS`, with a comment saying why it exists; step 5 deletes it and its name once rubric import
+exists). A new profile starts with `mine` and an empty `others`. **Julie's weights are not a profile**: in step 5 the `others` entries become the household's members
 (rubric import by code or file, predictions, "send to confirm"); until then they only keep today's screen the
 same: the card's switch reads "My grade" and, when `others` isn't empty, each other's name ("Julie's grade"); the
 Library's columns, its household verdict (the lowest across `mine` and `others`, today's lower of two), Compare's
 switch and the Rulebook's weights table follow the same list. A fresh profile shows no switch and no second
-column. **To confirm (§8 Q3).**
+column. **Agreed (§8 Q3).**
 
 **Export v6.** The file gains `profile: { name }` and `rubrics`; the parcels and screens are the current
 profile's. `fromV5()` converts a version 5 file (`profile: null`, `rubrics: null`), and the import goes into the
@@ -315,8 +333,9 @@ Copy summary, the rulebook's rules and bands, the comparison table's cells.
 
 Changed wording, not hard-coded to anyone: "Zach's grade" → "My grade"; "Julie's grade" → "{name}'s grade" from
 the profile's `others` (so "Julie's grade" after the migration, nothing on a fresh profile); the Library's
-"Household / Zach's grade / Julie's grade" columns and filters follow. New: the profile picker and its dialogs.
-No report text changes (rule 7).
+"Household / Zach's grade / Julie's grade" columns and filters follow. New: the profile picker and its dialogs;
+the Library's "Needs a re-screen" row state and its "Re-screen all saved parcels" action with its progress line
+and Cancel. No report text changes (rule 7).
 
 ## 4. Numbers and text that may change (the declaration)
 
@@ -325,7 +344,7 @@ No report text changes (rule 7).
 - **No verdict or flag text changes.** Grades, verdicts, reasons, Check-first lines, flags and Copy summary are
   byte-identical on every fixture and scenario (the two proofs in §3.2 and §3.3 are CI tests).
 - **UI text:** the switch and column names above; the picker's labels; the menu's "nothing is kept" line on a
-  device without IndexedDB.
+  device without IndexedDB; "Needs a re-screen" and the re-screen action's lines.
 - `ENGINE_VERSION` 20 → 21, `SCREEN_SCHEMA_VERSION` 7 → 8, export version 5 → 6, IndexedDB version 1 → 2.
 
 ## 5. Stop conditions (push, say why, wait)
@@ -345,10 +364,10 @@ No report text changes (rule 7).
 | # | PR | Checks |
 |---|---|---|
 | 1 | **The rubric module and the card on a rubric.** `lib/rubric/*`, `cards-v7.json` recorded, `card.ts` / `breakdown.ts` / `compare.ts` / `rulebook.ts` / `cardPanels.ts` / `library.ts` on rubrics; the two persons become two rubrics from config; no UI change. | The §3.2 proof; the rank-sum table; `card.test.ts` green unchanged in its expectations. |
-| 2 | **Derivations.** `flags.ts`, `storedScore()`, `skyScore()`; `grades-v7.json` recorded; the readers switched to the derived values, with the stored fields still present. | The §3.3 proof passes against the stored fields (both exist, so the test runs before the cut). |
+| 2 | **Derivations.** `flags.ts`, `storedScore()`, `skyScore()`; `grades-v7.json` recorded; the readers switched to the derived values, with the stored fields still present. | The §3.3 proof passes against the stored fields (both exist, so the test runs before the cut); the `rerank()` invariant over every scenario. |
 | 3 | **The v8 cut.** Schema v8 and its snapshot test; the added measurements; the removed fields; ENGINE 21; the clean break in `screenStore.ts`; `pnpm expected`; the prototype diff derives; §9.44; CLAUDE.md's frozen-schema rule. | Expected guard declaration; `diff:prototype` zero; schema snapshot; determinism. |
-| 4 | **Profile storage.** `profileStore.ts`, the DB upgrade, `ProfileGate`, the prefs cache, the screen store's `profile`, the migration from localStorage with its test. No picker yet: one profile, created on first visit. | Unit tests over an in-memory `ProfileStorage` implementation (no new dependency: the store is written behind an interface, IndexedDB and memory both implement it); the e2e seeding (`e2e/flow.ts`) moved to IndexedDB. |
-| 5 | **The picker and the names.** Menu, Library, Compare, Rulebook; "My grade"; `rubrics` with `others` from the migration; `rubricView` per profile. | e2e: add, switch, rename, delete; a parcel saved in one profile isn't in another; the Library's columns. |
+| 4 | **Profile storage.** `profileStore.ts`, the DB upgrade, `ProfileGate`, the prefs cache, the screen store's `profile`, the migration from localStorage (its keys renamed to `ps.legacy.*`) with its tests (the move; twice duplicates nothing; a failure part-way leaves the keys). No picker yet: one profile, created on first visit. | Unit tests over an in-memory `ProfileStorage` implementation (no new dependency: the store is written behind an interface, IndexedDB and memory both implement it); the e2e seeding (`e2e/flow.ts`) moved to IndexedDB. |
+| 5 | **The picker and the names.** Menu, Library, Compare, Rulebook; "My grade"; `rubrics` with `others` from the migration; `rubricView` per profile. The Library's "Needs a re-screen" rows and its "Re-screen all saved parcels" action: sequential, in the background, a progress line, Cancel. | e2e: add, switch, rename, delete; a parcel saved in one profile isn't in another; the Library's columns; a seeded earlier-schema screen's row reads "Needs a re-screen", and Re-screen all gives it its grade. |
 | 6 | **Export v6** with `fromV5()`, the import summary's profile line and the rubric tick. | Round trip; a v5 file imports; `exportFile.test.ts`. |
 | 7 | **Docs and the hand-back**: REQUIREMENTS §3a (the local store lives in IndexedDB per profile), `docs/plans/README.md`, the final PR from the step branch to main with the test plan. | Full CI on the step branch's head. |
 
@@ -361,53 +380,77 @@ only hours; otherwise they stay apart for review size.
 edited copies; the derivation proof over `ALL_SCENARIOS`; Musts with thresholds on edited results; the
 migration from a recorded `ps.parcels` and `ps.cfg` (plus `ps.current`); profile add / switch / rename / delete
 on the in-memory storage, with a delete removing the profile's screens and nothing else; export v6 round trip
-and `fromV5()`; the schema v8 snapshot; the engine's parity tests unchanged.
+and `fromV5()`; the schema v8 snapshot; the `rerank()` invariant over every scenario; the engine's parity tests
+unchanged.
 
 **e2e (CI).** The existing specs with their seeding on IndexedDB (`flow.ts`); a new `profiles.spec.ts`: first
 visit creates "Profile 1"; add "Visitor" and switch (empty History, default Settings); import Ferney into
 Visitor, screen it, switch back (Ferney isn't there), switch again (it is); rename; delete with its screens;
 the card reads "My grade"; after a seeded pre-profile store, the migration shows the parcels under Profile 1
-and the switch offers "Julie's grade".
+and the switch offers "Julie's grade"; a seeded earlier-schema screen's row reads "Needs a re-screen", and
+"Re-screen all saved parcels" (over the HAR replay) gives it its grade and can be cancelled part-way.
 
-**Manual, on the preview (the hand-back; about 20 minutes, desktop then phone).** Numbered "do → expect" steps
-with pass/fail boxes, using the fixture parcels by name: (1) open the preview in a fresh browser profile →
+**Manual, on the preview (the hand-back; about 20 minutes, desktop then phone).** It opens with "Before merging,
+screenshot your Library." Then numbered "do → expect" steps with pass/fail boxes, using the fixture parcels by
+name: (1) open the preview in a fresh browser profile →
 Profile 1 exists, the menu shows it; (2) import Macks Mountain and screen it → the card reads B, Maybe, "Check
 first: no soil on the parcel rates better than very limited…", the Verdict block's flags as before; (3) open
 "Julie's grade" → not offered (fresh profile); (4) in your own browser, after the update → your History, Settings
-and lines are under Profile 1, the switch offers "My grade" and "Julie's grade", the Library shows the same
-grades and household verdicts as before the update; (5) add a profile "Visitor", switch → an empty History,
+and lines are under Profile 1, the switch offers "My grade" and "Julie's grade", and the Library's rows read
+"Needs a re-screen"; run "Re-screen all saved parcels" → a progress line, Cancel available, and when it's done
+the grades and household verdicts match the screenshot taken before merging; (5) add a profile "Visitor", switch → an empty History,
 default Settings, no second grade; (6) screen Ferney Creek there → Contender for "My grade"; (7) switch back →
 Ferney isn't in Profile 1's History; (8) rename Visitor, delete it → gone, with its screen; (9) export from
 Profile 1 → a version 6 file; import a version 5 file from before the update → its parcels appear, your rubric
 untouched; (10) the rulebook and Compare show "My grade"; then the same on the phone, with the picker in the
 sheet's menu. The full list lands in the final PR.
 
-## 8. Questions for the owner (answers go in §9 or in the PRs)
+## 8. Questions for the owner, answered (2026-10-16)
+
+The owner approved the plan with four changes, folded in above: **A** the Library after the clean break ("Needs
+a re-screen" rows, "Re-screen all saved parcels", the screenshot before merging: §1, §3.3, §3.6, §6 PR 5, §7);
+**B** derivations are engine code, with the `rerank()` invariant (§3.3, §6 PR 2, §7, §9.44); **C** migration
+safety (`ps.legacy.*`, the two extra tests: §3.5, §6 PR 4); **D** the answers below.
 
 1. **Explicit default weights** (§3.2): the default rubric keeps today's weights explicitly, and rank-sum applies
    when the editor or the interview first orders the cards. Agreed? (The alternative, rank-sum from the start,
    keeps every letter on the fixtures but moves the points and the rulebook's numbers.)
+   **Answer:** agreed. When step 3's editor first switches a rubric to rank-sum, it shows the before and after
+   points (noted on step 3 in PLAN.md).
 2. **The three deviations from the doc's Rubric algorithm** (§3.2: warn gates and one warn allowed; verdict lines
    at 2.75 / 1.75; unknown and Room to build as today): kept as today in this step; decided in step 3 (editor)
    or 6 (results). Agreed?
+   **Answer:** keep them as today. Warn gates will probably stay permanently, since "verify the easement" is a
+   real third state; the rest is decided in steps 3 and 6.
 3. **The second grade until step 5** (§3.5): today's Julie weights ride along as an "other" rubric of the first
    profile, so the switch and the Library's second column keep working from data; a fresh profile has none.
    Or drop the second grade until step 5 (a visible change)?
+   **Answer:** agreed. `LEGACY_SECOND_WEIGHTS` and its name are deleted in step 5, once rubric import exists (a
+   step 5 item in PLAN.md).
 4. **The first profile's name**: "Profile 1", renamed from the picker (step 4 asks the name with the interview).
    Or ask for a name on first visit now?
+   **Answer:** "Profile 1", agreed.
 5. **Devices without IndexedDB**: today History persists in localStorage even where IndexedDB is refused and
    screens aren't kept; after this step nothing persists there, said in the menu. Acceptable?
+   **Answer:** acceptable, with the menu line.
 6. **Switching reloads the page** (§3.4). Acceptable, or should it re-hydrate in place?
+   **Answer:** acceptable.
 7. **`why` stays stored** (the site's reason lines, text with "— good" / "— acceptable" from `score.sunGoodShare`).
    Agreed, or derive those too (then rule 7's wording tests cover them)?
+   **Answer:** agreed; revisited in step 6.
 8. **The cost-label PR**: which branch is it (`dw-cost`?), so phase-0.md §6's paused line can point to it.
+   **Answer:** no branch exists; it was proposed in a block that was never sent. phase-0.md §6 marks it "proposed
+   10/16, not started, paused" (in #144).
 
 ## 9. Decisions to record in `phase-0.md` §9 (in the PRs)
 
 - **§9.44 Schema v8: a clean break.** Every stored grade, score and verdict leaves `ScreenResult`; the raw sky at
   each site and the house, the soil key and NRCS's slope-free ratings, and the run's thresholds arrive; v7
-  results aren't read, their parcels re-screen when opened (ENGINE 21). Grades are display-time arithmetic over
-  measurements and the viewer's rubric (workflow-review.md).
+  results aren't read, their parcels re-screen when opened (ENGINE 21); the Library offers "Re-screen all saved
+  parcels". Grades are display-time arithmetic over measurements and the viewer's rubric (workflow-review.md).
+  Every display-time derivation (`storedScore`, `flagsOf`, `verdictOf`, `skyScore`, the card's gates and rows) is
+  engine code: changing one is a numbers change, declared, with an ENGINE_VERSION bump; `grades-v7.json` and
+  `cards-v7.json` are the guard, and the `rerank()` invariant holds the stored site order.
 - **§9.45 Profiles.** All per-person data is scoped by profile id in IndexedDB; the device keeps the map and
   layer prefs; nothing in code names a person; today's two weight sets became the first profile's own rubric and
-  one "other" rubric (if Q3 is agreed).
+  one "other" rubric (§8 Q3); the pre-profile localStorage keys stay as `ps.legacy.*` until step 2's first PR.
