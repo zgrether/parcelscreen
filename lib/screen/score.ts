@@ -568,13 +568,23 @@ export async function rankSites(
 
 const FIT_ORDER: Record<Site["fit"], number> = { fits: 0, "house only": 1, "too small": 2 };
 
-/** Sort by fit, then overall score (stable), and renumber and regrade. */
+/**
+ * Sort by fit, then overall score, then a tie-break that never depends on the order the sites came in (owner, #142):
+ * the larger site first, then the one further north, then further west. Renumber and regrade.
+ */
 export function rerank(sites: Site[]): Site[] {
   return (
     [...sites]
       // A site the build doesn't fit on can't be #1 (owner, #94 review; value-ranking.md §5.4 (a)): the ones that fit
       // first, in their own order, then the rest.
-      .sort((a, b) => FIT_ORDER[a.fit] - FIT_ORDER[b.fit] || b.score - a.score)
+      .sort(
+        (a, b) =>
+          FIT_ORDER[a.fit] - FIT_ORDER[b.fit] ||
+          b.score - a.score ||
+          b.acres - a.acres ||
+          b.ll[0] - a.ll[0] ||
+          a.ll[1] - b.ll[1],
+      )
       .map((s, i) => ({ ...s, rank: i + 1, grade: grade(s.score) }))
   );
 }
