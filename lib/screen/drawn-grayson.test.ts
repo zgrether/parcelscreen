@@ -9,6 +9,7 @@
  * and carried on to the boundary alike. The route from it stays listed, with the warning.
  */
 import { describe, expect, it } from "vitest";
+import { flagsOf } from "./flags";
 import { redGate, toTheBoundary } from "../../test/support/redGate";
 import { runFixture } from "../../test/support/scenarios";
 import { reportCard } from "../report/card";
@@ -64,7 +65,7 @@ describe("the red-gate drive on Grayson 6273, drawn as an easement", () => {
     expect(d.routes[0]!.entranceIndex).toBe(chosen.entranceIndex);
     expect(gate(result, "access").status).toBe("pass");
     expect(gate(result, "easement").status).toBe("pass");
-    expect(result.flags.some((f) => /existing drive/.test(f.t))).toBe(false); // the scored route doesn't use it
+    expect(flagsOf(result).some((f) => /existing drive/.test(f.t))).toBe(false); // the scored route doesn't use it
 
     // The driveway section: the entrance, and the route from it with its upgrade and the warning (appended).
     const v = drivewayView(result)!;

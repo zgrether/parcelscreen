@@ -26,7 +26,11 @@ describe.runIf(import.meta.env.MODE === "diff-prototype")("diff:prototype", () =
         const golden = loadFixture(slug).goldens[scenario]!;
         let found: string[];
         try {
-          found = differences(asPrototype(expectedOf(slug, scenario), golden), fromPrototype(golden), PARITY);
+          found = differences(
+            asPrototype(expectedOf(slug, scenario), golden),
+            fromPrototype(golden, { grades: true }),
+            PARITY,
+          );
         } catch (e) {
           found = [`(asPrototype) ${(e as Error).message.split("\n")[0]}`];
         }

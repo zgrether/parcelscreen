@@ -232,7 +232,6 @@ export async function computeSky(
       coreClear,
       dome: worst.w >= 0 ? (worst as Sample) : null,
       domes,
-      score: skyScore(spot),
       notes,
     },
     zone,

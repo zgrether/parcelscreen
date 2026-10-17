@@ -14,28 +14,6 @@
    "roadMaxGradePct": 15,
    "roadVetoGradePct": 25
   },
-  "flags": [
-   {
-    "lvl": "warn",
-    "t": "The largest flat ground is bottomland (Codorus: frequently flooded) — excluded from the homesite ranking.",
-    "step": "soils"
-   },
-   {
-    "lvl": "warn",
-    "t": "Bedrock under 100 cm on 24.5 ac of Pigeonroost. Budget rock excavation for septic, water line and footings.",
-    "step": "soils"
-   },
-   {
-    "lvl": "warn",
-    "t": "Under an acre of gentle ground carries a workable NRCS septic rating (0.0 ac). Plan on an alternative system and get a soil scientist out before an offer.",
-    "step": "soils"
-   },
-   {
-    "lvl": "warn",
-    "t": "0.5 of 30.1 acres are in a FEMA Special Flood Hazard Area (A, X). Post-Helene, treat mapped floodplain as unbuildable and plan the driveway around it.",
-    "step": "flood"
-   }
-  ],
   "noResponse": [],
   "lines": [],
   "demSource": "USGS 3DEP",
@@ -1704,7 +1682,6 @@
      "ratio": 1.671488575155758
     }
    ],
-   "score": 73,
    "notes": [
     "The core peaks 24° above due south; the ridge there is 3° — 18° of clear sky under it.",
     "Bright patch toward SSE at 15 mi (ratio 3.5): expect a light dome low in the SSE exactly where the core sits."
@@ -2183,7 +2160,6 @@
      "aspect": 64.40832727425651,
      "thermal": 87.5092623093549
     },
-    "score": 66,
     "why": [
      "8.3 h of December sun — good",
      "1.3 ac, faces W, 7.0° slope, 650 ft above the valley floor",
@@ -2192,25 +2168,7 @@
     ],
     "sunH": 8.25,
     "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 87,
-     "aspect": 57,
-     "frost": 88,
-     "slope": 94,
-     "sky": 73
-    },
     "soil": "Pigeonroost",
-    "c": {
-     "septic": 40,
-     "foundation": 0,
-     "rock": 8.4,
-     "pad": 1.2062970820853047,
-     "driveway": 20.086594995806816
-    },
-    "costIdx": 70,
-    "costTier": "$$$$",
-    "quality": 82,
-    "qGrade": "A",
     "soilKey": "27884414",
     "sky": {
      "mag": 21.520649316922533,
@@ -2221,7 +2179,6 @@
     "roadRunFt": 614.3255830669212,
     "roadName": "unnamed road",
     "driveFt": 2887.618130949411,
-    "grade": "B",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.9546316998100731,
@@ -2259,7 +2216,6 @@
      "aspect": 89.35933709030516,
      "thermal": 89.27450608979001
     },
-    "score": 62,
     "why": [
      "compact site: 0.46 ac shelf — needs a cut pad and probably a retaining wall",
      "8.3 h of December sun — good",
@@ -2270,25 +2226,7 @@
     ],
     "sunH": 8.283333333333333,
     "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 87,
-     "aspect": 90,
-     "frost": 89,
-     "slope": 56,
-     "sky": 75
-    },
     "soil": "Pigeonroost",
-    "c": {
-     "septic": 40,
-     "foundation": 0,
-     "rock": 8.4,
-     "pad": 15,
-     "driveway": 19.903180449388213
-    },
-    "costIdx": 83,
-    "costTier": "$$$$",
-    "quality": 82,
-    "qGrade": "A",
     "soilKey": "27884478",
     "sky": {
      "mag": 21.520649316922533,
@@ -2299,7 +2237,6 @@
     "roadRunFt": 803.8875228422704,
     "roadName": "Mud Creek Ln",
     "driveFt": 2578.0350724695954,
-    "grade": "C",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.32413076319132716,
@@ -2337,7 +2274,6 @@
      "aspect": 45.843962016858555,
      "thermal": 88.07492611533718
     },
-    "score": 58,
     "why": [
      "compact site: 0.63 ac shelf — needs a cut pad and probably a retaining wall",
      "8.0 h of December sun — good",
@@ -2348,25 +2284,7 @@
     ],
     "sunH": 8.033333333333333,
     "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 85,
-     "aspect": 44,
-     "frost": 88,
-     "slope": 71,
-     "sky": 73
-    },
     "soil": "Pigeonroost",
-    "c": {
-     "septic": 40,
-     "foundation": 0,
-     "rock": 8.4,
-     "pad": 15,
-     "driveway": 19.886953296118943
-    },
-    "costIdx": 83,
-    "costTier": "$$$$",
-    "quality": 75,
-    "qGrade": "B",
     "soilKey": "27884478",
     "sky": {
      "mag": 21.520649316922533,
@@ -2377,7 +2295,6 @@
     "roadRunFt": 556.1445489110306,
     "roadName": "unnamed road",
     "driveFt": 2844.855485397168,
-    "grade": "C",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.9568517735305616,
@@ -2415,7 +2332,6 @@
      "aspect": 97.68368007518627,
      "thermal": 99.64654682300709
     },
-    "score": 67,
     "why": [
      "compact site: 0.24 ac shelf — needs a cut pad and probably a retaining wall",
      "7.9 h of December sun — good",
@@ -2426,25 +2342,7 @@
     ],
     "sunH": 7.933333333333334,
     "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 84,
-     "aspect": 100,
-     "frost": 100,
-     "slope": 67,
-     "sky": 75
-    },
     "soil": "Pigeonroost",
-    "c": {
-     "septic": 40,
-     "foundation": 0,
-     "rock": 8.4,
-     "pad": 15,
-     "driveway": 12.326336761308458
-    },
-    "costIdx": 76,
-    "costTier": "$$$$",
-    "quality": 85,
-    "qGrade": "A",
     "soilKey": "27884415",
     "sky": {
      "mag": 21.520649316922533,
@@ -2455,7 +2353,6 @@
     "roadRunFt": 294.53867668222597,
     "roadName": "Mud Creek Rd",
     "driveFt": 905.0394175824515,
-    "grade": "B",
     "practical": null,
     "fit": "house only",
     "gentleNearAc": 0.06438213789416773,
@@ -7754,8 +7651,7 @@
   "engine": 21,
   "runAt": "(not compared)",
   "failed": [],
-  "cancelled": false,
-  "verdict": "marginal"
+  "cancelled": false
  },
  "evaluateSite2": {
   "acres": 30.147247542619837,
@@ -7772,28 +7668,6 @@
    "roadMaxGradePct": 15,
    "roadVetoGradePct": 25
   },
-  "flags": [
-   {
-    "lvl": "warn",
-    "t": "The largest flat ground is bottomland (Codorus: frequently flooded) — excluded from the homesite ranking.",
-    "step": "soils"
-   },
-   {
-    "lvl": "warn",
-    "t": "Bedrock under 100 cm on 24.5 ac of Pigeonroost. Budget rock excavation for septic, water line and footings.",
-    "step": "soils"
-   },
-   {
-    "lvl": "warn",
-    "t": "Under an acre of gentle ground carries a workable NRCS septic rating (0.0 ac). Plan on an alternative system and get a soil scientist out before an offer.",
-    "step": "soils"
-   },
-   {
-    "lvl": "warn",
-    "t": "0.5 of 30.1 acres are in a FEMA Special Flood Hazard Area (A, X). Post-Helene, treat mapped floodplain as unbuildable and plan the driveway around it.",
-    "step": "flood"
-   }
-  ],
   "noResponse": [],
   "lines": [],
   "demSource": "USGS 3DEP",
@@ -9462,7 +9336,6 @@
      "ratio": 1.671488575155758
     }
    ],
-   "score": 73,
    "notes": [
     "The core peaks 24° above due south; the ridge there is 3° — 18° of clear sky under it.",
     "Bright patch toward SSE at 15 mi (ratio 3.5): expect a light dome low in the SSE exactly where the core sits."
@@ -9941,7 +9814,6 @@
      "aspect": 64.40832727425651,
      "thermal": 87.5092623093549
     },
-    "score": 66,
     "why": [
      "8.3 h of December sun — good",
      "1.3 ac, faces W, 7.0° slope, 650 ft above the valley floor",
@@ -9950,25 +9822,7 @@
     ],
     "sunH": 8.25,
     "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 87,
-     "aspect": 57,
-     "frost": 88,
-     "slope": 94,
-     "sky": 73
-    },
     "soil": "Pigeonroost",
-    "c": {
-     "septic": 40,
-     "foundation": 0,
-     "rock": 8.4,
-     "pad": 1.2062970820853047,
-     "driveway": 20.086594995806816
-    },
-    "costIdx": 70,
-    "costTier": "$$$$",
-    "quality": 82,
-    "qGrade": "A",
     "soilKey": "27884414",
     "sky": {
      "mag": 21.520649316922533,
@@ -9979,7 +9833,6 @@
     "roadRunFt": 614.3255830669212,
     "roadName": "unnamed road",
     "driveFt": 2887.618130949411,
-    "grade": "B",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.9546316998100731,
@@ -10017,7 +9870,6 @@
      "aspect": 89.35933709030516,
      "thermal": 89.27450608979001
     },
-    "score": 62,
     "why": [
      "compact site: 0.46 ac shelf — needs a cut pad and probably a retaining wall",
      "8.3 h of December sun — good",
@@ -10028,25 +9880,7 @@
     ],
     "sunH": 8.283333333333333,
     "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 87,
-     "aspect": 90,
-     "frost": 89,
-     "slope": 56,
-     "sky": 75
-    },
     "soil": "Pigeonroost",
-    "c": {
-     "septic": 40,
-     "foundation": 0,
-     "rock": 8.4,
-     "pad": 15,
-     "driveway": 19.903180449388213
-    },
-    "costIdx": 83,
-    "costTier": "$$$$",
-    "quality": 82,
-    "qGrade": "A",
     "soilKey": "27884478",
     "sky": {
      "mag": 21.520649316922533,
@@ -10057,7 +9891,6 @@
     "roadRunFt": 803.8875228422704,
     "roadName": "Mud Creek Ln",
     "driveFt": 2578.0350724695954,
-    "grade": "C",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.32413076319132716,
@@ -10095,7 +9928,6 @@
      "aspect": 45.843962016858555,
      "thermal": 88.07492611533718
     },
-    "score": 58,
     "why": [
      "compact site: 0.63 ac shelf — needs a cut pad and probably a retaining wall",
      "8.0 h of December sun — good",
@@ -10106,25 +9938,7 @@
     ],
     "sunH": 8.033333333333333,
     "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 85,
-     "aspect": 44,
-     "frost": 88,
-     "slope": 71,
-     "sky": 73
-    },
     "soil": "Pigeonroost",
-    "c": {
-     "septic": 40,
-     "foundation": 0,
-     "rock": 8.4,
-     "pad": 15,
-     "driveway": 19.886953296118943
-    },
-    "costIdx": 83,
-    "costTier": "$$$$",
-    "quality": 75,
-    "qGrade": "B",
     "soilKey": "27884478",
     "sky": {
      "mag": 21.520649316922533,
@@ -10135,7 +9949,6 @@
     "roadRunFt": 556.1445489110306,
     "roadName": "unnamed road",
     "driveFt": 2844.855485397168,
-    "grade": "C",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.9568517735305616,
@@ -10173,7 +9986,6 @@
      "aspect": 97.68368007518627,
      "thermal": 99.64654682300709
     },
-    "score": 67,
     "why": [
      "compact site: 0.24 ac shelf — needs a cut pad and probably a retaining wall",
      "7.9 h of December sun — good",
@@ -10184,25 +9996,7 @@
     ],
     "sunH": 7.933333333333334,
     "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 84,
-     "aspect": 100,
-     "frost": 100,
-     "slope": 67,
-     "sky": 75
-    },
     "soil": "Pigeonroost",
-    "c": {
-     "septic": 40,
-     "foundation": 0,
-     "rock": 8.4,
-     "pad": 15,
-     "driveway": 12.326336761308458
-    },
-    "costIdx": 76,
-    "costTier": "$$$$",
-    "quality": 85,
-    "qGrade": "A",
     "soilKey": "27884415",
     "sky": {
      "mag": 21.520649316922533,
@@ -10213,7 +10007,6 @@
     "roadRunFt": 294.53867668222597,
     "roadName": "Mud Creek Rd",
     "driveFt": 905.0394175824515,
-    "grade": "B",
     "practical": null,
     "fit": "house only",
     "gentleNearAc": 0.06438213789416773,
@@ -15512,7 +15305,6 @@
   "engine": 21,
   "runAt": "(not compared)",
   "failed": [],
-  "cancelled": false,
-  "verdict": "marginal"
+  "cancelled": false
  }
 }

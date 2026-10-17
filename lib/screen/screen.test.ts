@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { derivedHouse, derivedSites } from "./derive";
 import { differences } from "../../test/support/compare";
 import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
 import { fromPrototype } from "../../test/support/fromPrototype";
@@ -52,7 +53,7 @@ describe("road-distance rounding vs cost index, tier and overall score", () => {
       const ctx: ScoreContext = { ...scoreContextOf(s, out.result), cfg: CFG };
       // Since A3 every ranked site is re-costed from its routed driveway (and the house from the route to it):
       // rebuild each the way the pipeline does, then measure the same margins on those numbers.
-      const sites = out.result.sites ?? [];
+      const sites = derivedSites(out.result) ?? [];
       const routed = siteDriveways(
         routeContext(s),
         s.roads ?? [],
@@ -80,7 +81,7 @@ describe("road-distance rounding vs cost index, tier and overall score", () => {
         shown: x,
         dw: chooseDriveway(routed[i]!),
       }));
-      const h = out.result.house;
+      const h = derivedHouse(out.result);
       if (h && !("outside" in h))
         spots.push({
           name: "house",
@@ -164,7 +165,9 @@ describe("places outage (plan §9.11): roads, road grade and the driveway still 
     expect(out.result.near).toBeUndefined();
     // …but the roads and everything downstream of them survive:
     expect(out.result.road).toEqual(normal.road);
-    expect(out.result.sites!.map((s) => s.c.driveway)).toEqual(normal.sites!.map((s) => s.c.driveway));
+    expect(derivedSites(out.result)!.map((s) => s.c.driveway)).toEqual(
+      derivedSites(normal)!.map((s) => s.c.driveway),
+    );
     expect(out.result.driveway!.routes).toHaveLength(2);
     // The same, but what OpenStreetMap says the road in is (follow-up 55), and the routes' stretch along its private
     // ways (#126): Overpass was down, so nothing.
@@ -209,7 +212,7 @@ describe("orchestration", () => {
       steps.flatMap((k) => [`${k}:run`, `${k}:done`]),
     );
     const done = events.filter((e) => e.status === "done");
-    expect(done.every((e) => e.partial && e.partial.verdict === undefined)).toBe(true);
+    expect(done.every((e) => e.partial && e.partial.cancelled === undefined)).toBe(true);
     // The driveway step's message is the driveway's note (since A3 Macks's #1 has a legal route, and no note).
     expect(done.at(-1)!.step).toBe("drive");
     expect(done.find((e) => e.step === "driveway")!.message).toBe(out.result.driveway?.note ?? undefined);
@@ -282,7 +285,7 @@ describe("summary text vs the prototype's own functions", () => {
     FIXTURE_SLUGS.flatMap((slug) => Object.keys(loadFixture(slug).goldens).map((k) => [slug, k] as const)),
   )("%s %s", (slug, key) => {
     const R = loadFixture(slug).goldens[key as "run"]!;
-    expect(summaryText(fromPrototype(R) as ScreenResult)).toBe(protoSummary(R));
+    expect(summaryText(fromPrototype(R, { grades: true }) as ScreenResult)).toBe(protoSummary(R));
     expect(defaultName((R.parcel as { props: Record<string, unknown> }).props, fromPrototype(R))).toBe(
       protoName(R),
     );

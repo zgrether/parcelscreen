@@ -62,7 +62,7 @@ describe("pins (15b) vs the prototype's finalizeRanking", () => {
       setFocus: (_R: unknown, _ll: unknown, label: string) => void (focus.last = label),
     });
     finalize(R);
-    const ours = pinSpecs(fromPrototype(R) as ScreenResult);
+    const ours = pinSpecs(fromPrototype(R, { grades: true }) as ScreenResult);
     expect(ours.length).toBe(drawn.length);
     ours.forEach((p, i) => {
       const d = drawn[i]!;
@@ -75,7 +75,9 @@ describe("pins (15b) vs the prototype's finalizeRanking", () => {
   });
 
   it("says 'Run again to evaluate here.' without a session; gardens keep their tooltip", () => {
-    const pins = pinSpecs(fromPrototype(loadFixture("ferney-creek-52-47A").goldens.run) as ScreenResult);
+    const pins = pinSpecs(
+      fromPrototype(loadFixture("ferney-creek-52-47A").goldens.run, { grades: true }) as ScreenResult,
+    );
     for (const p of pins) {
       const t = inertTip(p);
       if (p.evalLabel) expect(t.endsWith("Run again to evaluate here.")).toBe(true);

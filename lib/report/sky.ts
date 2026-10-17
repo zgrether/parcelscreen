@@ -1,5 +1,6 @@
 /** The Dark skies section (proto L1492–1499). */
 import { compass, fmt } from "../format";
+import { skyScoreOf } from "../screen/derive";
 import type { PartialScreenResult } from "../screen/types";
 import type { FactRow } from "./facts";
 import { onMap, said, type Heading, type Part } from "./parts";
@@ -8,7 +9,7 @@ import type { EvaluationPoint } from "./point";
 export function skyHeading(r: PartialScreenResult, p: EvaluationPoint | null): Heading {
   return {
     title: "Dark skies",
-    ...(r.sky ? { sub: `score ${r.sky.score}/100 at ${p?.label ?? "the largest house site"}` } : {}),
+    ...(r.sky ? { sub: `score ${skyScoreOf(r.sky)}/100 at ${p?.label ?? "the largest house site"}` } : {}),
     slug: "dark-skies",
     help: "h-sky",
   };

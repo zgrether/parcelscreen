@@ -14,13 +14,6 @@
    "roadMaxGradePct": 15,
    "roadVetoGradePct": 25
   },
-  "flags": [
-   {
-    "lvl": "good",
-    "t": "9.0 acres of gentle ground with a workable NRCS septic rating (Glenelg). Site the drainfield there.",
-    "step": "soils"
-   }
-  ],
   "noResponse": [],
   "lines": [],
   "demSource": "USGS 3DEP",
@@ -1806,7 +1799,6 @@
      "ratio": 4.934520738139017
     }
    ],
-   "score": 67,
    "notes": [
     "The core peaks 24° above due south; the ridge there is 3° — 18° of clear sky under it.",
     "Bright patch toward SSW at 30 mi (ratio 6.8): expect a light dome low in the SSW exactly where the core sits."
@@ -2074,7 +2066,6 @@
      "aspect": 76.01444012892281,
      "thermal": 100
     },
-    "score": 83,
     "why": [
      "8.7 h of December sun — good",
      "18.8 ac, faces E, 6.6° slope, 248 ft above the valley floor",
@@ -2083,32 +2074,13 @@
     ],
     "sunH": 8.7,
     "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 92,
-     "aspect": 76,
-     "frost": 100,
-     "slope": 96,
-     "sky": 67
-    },
     "soil": "Glenelg",
-    "c": {
-     "septic": 20,
-     "foundation": 0,
-     "rock": 0,
-     "pad": 0.7903281040607801,
-     "driveway": 8.033333991359509
-    },
-    "costIdx": 29,
-    "costTier": "$$",
-    "quality": 88,
-    "qGrade": "A",
     "soilKey": "27882211",
     "sky": {
      "mag": 21.39095816203732,
      "coreClear": 18.048232341042148,
      "domeW": 4.219192028832789
     },
-    "grade": "A",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 4.288248313496763,
@@ -2146,7 +2118,6 @@
      "aspect": 85.80999510429511,
      "thermal": 100
     },
-    "score": 79,
     "why": [
      "7.2 h of December sun — good",
      "6.1 ac, faces SE, 5.2° slope, 130 ft above the valley floor",
@@ -2156,25 +2127,7 @@
     ],
     "sunH": 7.2,
     "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 76,
-     "aspect": 100,
-     "frost": 100,
-     "slope": 100,
-     "sky": 68
-    },
     "soil": "Glenelg",
-    "c": {
-     "septic": 20,
-     "foundation": 0,
-     "rock": 0,
-     "pad": 0,
-     "driveway": 14.74083345067562
-    },
-    "costIdx": 35,
-    "costTier": "$$",
-    "quality": 86,
-    "qGrade": "A",
     "soilKey": "27882213",
     "sky": {
      "mag": 21.39095816203732,
@@ -2185,7 +2138,6 @@
     "roadRunFt": 128.61708832262076,
     "roadName": "unnamed road",
     "driveFt": 1985.2866327034553,
-    "grade": "B",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 2.5095998652850375,
@@ -2223,7 +2175,6 @@
      "aspect": 66.90859727169008,
      "thermal": 100
     },
-    "score": 70,
     "why": [
      "compact site: 2.11 ac shelf — needs a cut pad and probably a retaining wall",
      "7.7 h of December sun — good",
@@ -2236,25 +2187,7 @@
     ],
     "sunH": 7.7,
     "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 81,
-     "aspect": 65,
-     "frost": 100,
-     "slope": 64,
-     "sky": 68
-    },
     "soil": "Glenelg",
-    "c": {
-     "septic": 20,
-     "foundation": 0,
-     "rock": 0,
-     "pad": 15,
-     "driveway": 11.354524627666999
-    },
-    "costIdx": 46,
-    "costTier": "$$$",
-    "quality": 77,
-    "qGrade": "B",
     "soilKey": "27882212",
     "sky": {
      "mag": 21.39095816203732,
@@ -2265,7 +2198,6 @@
     "roadRunFt": 212.1108256935515,
     "roadName": "unnamed road",
     "driveFt": 1181.0896518703828,
-    "grade": "B",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 1.0388370139617675,
@@ -2303,7 +2235,6 @@
      "aspect": 45.12513318894401,
      "thermal": 100
     },
-    "score": 70,
     "why": [
      "compact site: 1.12 ac shelf — needs a cut pad and probably a retaining wall",
      "7.8 h of December sun — good",
@@ -2314,25 +2245,7 @@
     ],
     "sunH": 7.816666666666666,
     "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 82,
-     "aspect": 42,
-     "frost": 100,
-     "slope": 72,
-     "sky": 67
-    },
     "soil": "Glenelg",
-    "c": {
-     "septic": 20,
-     "foundation": 0,
-     "rock": 0,
-     "pad": 15,
-     "driveway": 7.450554905804645
-    },
-    "costIdx": 42,
-    "costTier": "$$$",
-    "quality": 75,
-    "qGrade": "B",
     "soilKey": "27882213",
     "sky": {
      "mag": 21.39095816203732,
@@ -2343,7 +2256,6 @@
     "roadRunFt": 236.3286037800262,
     "roadName": "unnamed road",
     "driveFt": 269.14711227469934,
-    "grade": "B",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 2.467514783695968,
@@ -2381,7 +2293,6 @@
      "aspect": 59.982139426541615,
      "thermal": 100
     },
-    "score": 70,
     "why": [
      "compact site: 0.37 ac shelf — needs a cut pad and probably a retaining wall",
      "7.8 h of December sun — good",
@@ -2391,32 +2302,13 @@
     ],
     "sunH": 7.85,
     "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 83,
-     "aspect": 59,
-     "frost": 100,
-     "slope": 65,
-     "sky": 68
-    },
     "soil": "Glenelg",
-    "c": {
-     "septic": 20,
-     "foundation": 0,
-     "rock": 0,
-     "pad": 15,
-     "driveway": 12.298452294255751
-    },
-    "costIdx": 47,
-    "costTier": "$$$",
-    "quality": 77,
-    "qGrade": "B",
     "soilKey": "27882213",
     "sky": {
      "mag": 21.39095816203732,
      "coreClear": 15.782850147689057,
      "domeW": 3.751561287904464
     },
-    "grade": "B",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 1.6080931175612863,
@@ -3371,8 +3263,7 @@
   "engine": 21,
   "runAt": "(not compared)",
   "failed": [],
-  "cancelled": false,
-  "verdict": "ok"
+  "cancelled": false
  },
  "setHouse": {
   "acres": 43.88147152884043,
@@ -3389,13 +3280,6 @@
    "roadMaxGradePct": 15,
    "roadVetoGradePct": 25
   },
-  "flags": [
-   {
-    "lvl": "good",
-    "t": "9.0 acres of gentle ground with a workable NRCS septic rating (Glenelg). Site the drainfield there.",
-    "step": "soils"
-   }
-  ],
   "noResponse": [],
   "lines": [],
   "demSource": "USGS 3DEP",
@@ -5181,7 +5065,6 @@
      "ratio": 5.131788770467572
     }
    ],
-   "score": 57,
    "notes": [
     "Only 6° between the core's peak and the southern ridge; you'll be shooting it low.",
     "Bright patch toward SSW at 30 mi (ratio 6.8): expect a light dome low in the SSW exactly where the core sits."
@@ -5449,7 +5332,6 @@
      "aspect": 76.01444012892281,
      "thermal": 100
     },
-    "score": 83,
     "why": [
      "8.7 h of December sun — good",
      "18.8 ac, faces E, 6.6° slope, 248 ft above the valley floor",
@@ -5458,32 +5340,13 @@
     ],
     "sunH": 8.7,
     "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 92,
-     "aspect": 76,
-     "frost": 100,
-     "slope": 96,
-     "sky": 67
-    },
     "soil": "Glenelg",
-    "c": {
-     "septic": 20,
-     "foundation": 0,
-     "rock": 0,
-     "pad": 0.7903281040607801,
-     "driveway": 8.033333991359509
-    },
-    "costIdx": 29,
-    "costTier": "$$",
-    "quality": 88,
-    "qGrade": "A",
     "soilKey": "27882211",
     "sky": {
      "mag": 21.39095816203732,
      "coreClear": 18.048232341042148,
      "domeW": 4.219192028832789
     },
-    "grade": "A",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 4.288248313496763,
@@ -5521,7 +5384,6 @@
      "aspect": 85.80999510429511,
      "thermal": 100
     },
-    "score": 79,
     "why": [
      "7.2 h of December sun — good",
      "6.1 ac, faces SE, 5.2° slope, 130 ft above the valley floor",
@@ -5531,25 +5393,7 @@
     ],
     "sunH": 7.2,
     "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 76,
-     "aspect": 100,
-     "frost": 100,
-     "slope": 100,
-     "sky": 68
-    },
     "soil": "Glenelg",
-    "c": {
-     "septic": 20,
-     "foundation": 0,
-     "rock": 0,
-     "pad": 0,
-     "driveway": 14.74083345067562
-    },
-    "costIdx": 35,
-    "costTier": "$$",
-    "quality": 86,
-    "qGrade": "A",
     "soilKey": "27882213",
     "sky": {
      "mag": 21.39095816203732,
@@ -5560,7 +5404,6 @@
     "roadRunFt": 128.61708832262076,
     "roadName": "unnamed road",
     "driveFt": 1985.2866327034553,
-    "grade": "B",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 2.5095998652850375,
@@ -5598,7 +5441,6 @@
      "aspect": 66.90859727169008,
      "thermal": 100
     },
-    "score": 70,
     "why": [
      "compact site: 2.11 ac shelf — needs a cut pad and probably a retaining wall",
      "7.7 h of December sun — good",
@@ -5611,25 +5453,7 @@
     ],
     "sunH": 7.7,
     "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 81,
-     "aspect": 65,
-     "frost": 100,
-     "slope": 64,
-     "sky": 68
-    },
     "soil": "Glenelg",
-    "c": {
-     "septic": 20,
-     "foundation": 0,
-     "rock": 0,
-     "pad": 15,
-     "driveway": 11.354524627666999
-    },
-    "costIdx": 46,
-    "costTier": "$$$",
-    "quality": 77,
-    "qGrade": "B",
     "soilKey": "27882212",
     "sky": {
      "mag": 21.39095816203732,
@@ -5640,7 +5464,6 @@
     "roadRunFt": 212.1108256935515,
     "roadName": "unnamed road",
     "driveFt": 1181.0896518703828,
-    "grade": "B",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 1.0388370139617675,
@@ -5678,7 +5501,6 @@
      "aspect": 45.12513318894401,
      "thermal": 100
     },
-    "score": 70,
     "why": [
      "compact site: 1.12 ac shelf — needs a cut pad and probably a retaining wall",
      "7.8 h of December sun — good",
@@ -5689,25 +5511,7 @@
     ],
     "sunH": 7.816666666666666,
     "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 82,
-     "aspect": 42,
-     "frost": 100,
-     "slope": 72,
-     "sky": 67
-    },
     "soil": "Glenelg",
-    "c": {
-     "septic": 20,
-     "foundation": 0,
-     "rock": 0,
-     "pad": 15,
-     "driveway": 7.450554905804645
-    },
-    "costIdx": 42,
-    "costTier": "$$$",
-    "quality": 75,
-    "qGrade": "B",
     "soilKey": "27882213",
     "sky": {
      "mag": 21.39095816203732,
@@ -5718,7 +5522,6 @@
     "roadRunFt": 236.3286037800262,
     "roadName": "unnamed road",
     "driveFt": 269.14711227469934,
-    "grade": "B",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 2.467514783695968,
@@ -5756,7 +5559,6 @@
      "aspect": 59.982139426541615,
      "thermal": 100
     },
-    "score": 70,
     "why": [
      "compact site: 0.37 ac shelf — needs a cut pad and probably a retaining wall",
      "7.8 h of December sun — good",
@@ -5766,32 +5568,13 @@
     ],
     "sunH": 7.85,
     "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 83,
-     "aspect": 59,
-     "frost": 100,
-     "slope": 65,
-     "sky": 68
-    },
     "soil": "Glenelg",
-    "c": {
-     "septic": 20,
-     "foundation": 0,
-     "rock": 0,
-     "pad": 15,
-     "driveway": 12.298452294255751
-    },
-    "costIdx": 47,
-    "costTier": "$$$",
-    "quality": 77,
-    "qGrade": "B",
     "soilKey": "27882213",
     "sky": {
      "mag": 21.39095816203732,
      "coreClear": 15.782850147689057,
      "domeW": 3.751561287904464
     },
-    "grade": "B",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 1.6080931175612863,
@@ -8223,7 +8006,6 @@
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
-  "verdict": "ok",
   "house": {
    "ll": [
     36.888925,
@@ -8243,7 +8025,6 @@
     "aspect": 40.51739501953125,
     "thermal": 100
    },
-   "score": 67,
    "why": [
     "6.5 h of December sun — acceptable",
     "0.3 ac, faces NNW, 9.8° slope, 172 ft above the valley floor",
@@ -8252,25 +8033,7 @@
    ],
    "sunH": 6.55,
    "daylightH": 9.483333333333333,
-   "q": {
-    "sun": 69,
-    "aspect": 41,
-    "frost": 100,
-    "slope": 76,
-    "sky": 57
-   },
    "soil": "Glenelg",
-   "c": {
-    "septic": 20,
-    "foundation": 0,
-    "rock": 0,
-    "pad": 4.787353277206421,
-    "driveway": 12.959742911650315
-   },
-   "costIdx": 38,
-   "costTier": "$$",
-   "quality": 69,
-   "qGrade": "B",
    "soilKey": "27882213",
    "sky": {
     "mag": 21.39095816203732,
@@ -8281,7 +8044,6 @@
    "roadRunFt": 292.97635408085887,
    "roadName": "unnamed road",
    "driveFt": 1487.4399249961073,
-   "grade": "B",
    "driveway": {
     "lengthFt": 1487.4399249961073,
     "cost": {
@@ -8314,13 +8076,6 @@
    "roadMaxGradePct": 15,
    "roadVetoGradePct": 25
   },
-  "flags": [
-   {
-    "lvl": "good",
-    "t": "9.0 acres of gentle ground with a workable NRCS septic rating (Glenelg). Site the drainfield there.",
-    "step": "soils"
-   }
-  ],
   "noResponse": [],
   "lines": [],
   "demSource": "USGS 3DEP",
@@ -10106,7 +9861,6 @@
      "ratio": 5.131788770467572
     }
    ],
-   "score": 57,
    "notes": [
     "Only 6° between the core's peak and the southern ridge; you'll be shooting it low.",
     "Bright patch toward SSW at 30 mi (ratio 6.8): expect a light dome low in the SSW exactly where the core sits."
@@ -10376,7 +10130,6 @@
     "aspect": 40.51739501953125,
     "thermal": 100
    },
-   "score": 67,
    "why": [
     "6.5 h of December sun — acceptable",
     "0.3 ac, faces NNW, 9.8° slope, 172 ft above the valley floor",
@@ -10385,25 +10138,7 @@
    ],
    "sunH": 6.55,
    "daylightH": 9.483333333333333,
-   "q": {
-    "sun": 69,
-    "aspect": 41,
-    "frost": 100,
-    "slope": 76,
-    "sky": 57
-   },
    "soil": "Glenelg",
-   "c": {
-    "septic": 20,
-    "foundation": 0,
-    "rock": 0,
-    "pad": 4.787353277206421,
-    "driveway": 12.959742911650315
-   },
-   "costIdx": 38,
-   "costTier": "$$",
-   "quality": 69,
-   "qGrade": "B",
    "soilKey": "27882213",
    "sky": {
     "mag": 21.39095816203732,
@@ -10414,7 +10149,6 @@
    "roadRunFt": 292.97635408085887,
    "roadName": "unnamed road",
    "driveFt": 1487.4399249961073,
-   "grade": "B",
    "driveway": {
     "lengthFt": 1487.4399249961073,
     "cost": {
@@ -10448,7 +10182,6 @@
      "aspect": 76.01444012892281,
      "thermal": 100
     },
-    "score": 83,
     "why": [
      "8.7 h of December sun — good",
      "18.8 ac, faces E, 6.6° slope, 248 ft above the valley floor",
@@ -10457,32 +10190,13 @@
     ],
     "sunH": 8.7,
     "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 92,
-     "aspect": 76,
-     "frost": 100,
-     "slope": 96,
-     "sky": 67
-    },
     "soil": "Glenelg",
-    "c": {
-     "septic": 20,
-     "foundation": 0,
-     "rock": 0,
-     "pad": 0.7903281040607801,
-     "driveway": 8.033333991359509
-    },
-    "costIdx": 29,
-    "costTier": "$$",
-    "quality": 88,
-    "qGrade": "A",
     "soilKey": "27882211",
     "sky": {
      "mag": 21.39095816203732,
      "coreClear": 18.048232341042148,
      "domeW": 4.219192028832789
     },
-    "grade": "A",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 4.288248313496763,
@@ -10520,7 +10234,6 @@
      "aspect": 85.80999510429511,
      "thermal": 100
     },
-    "score": 79,
     "why": [
      "7.2 h of December sun — good",
      "6.1 ac, faces SE, 5.2° slope, 130 ft above the valley floor",
@@ -10530,25 +10243,7 @@
     ],
     "sunH": 7.2,
     "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 76,
-     "aspect": 100,
-     "frost": 100,
-     "slope": 100,
-     "sky": 68
-    },
     "soil": "Glenelg",
-    "c": {
-     "septic": 20,
-     "foundation": 0,
-     "rock": 0,
-     "pad": 0,
-     "driveway": 14.74083345067562
-    },
-    "costIdx": 35,
-    "costTier": "$$",
-    "quality": 86,
-    "qGrade": "A",
     "soilKey": "27882213",
     "sky": {
      "mag": 21.39095816203732,
@@ -10559,7 +10254,6 @@
     "roadRunFt": 128.61708832262076,
     "roadName": "unnamed road",
     "driveFt": 1985.2866327034553,
-    "grade": "B",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 2.5095998652850375,
@@ -10597,7 +10291,6 @@
      "aspect": 66.90859727169008,
      "thermal": 100
     },
-    "score": 70,
     "why": [
      "compact site: 2.11 ac shelf — needs a cut pad and probably a retaining wall",
      "7.7 h of December sun — good",
@@ -10610,25 +10303,7 @@
     ],
     "sunH": 7.7,
     "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 81,
-     "aspect": 65,
-     "frost": 100,
-     "slope": 64,
-     "sky": 68
-    },
     "soil": "Glenelg",
-    "c": {
-     "septic": 20,
-     "foundation": 0,
-     "rock": 0,
-     "pad": 15,
-     "driveway": 11.354524627666999
-    },
-    "costIdx": 46,
-    "costTier": "$$$",
-    "quality": 77,
-    "qGrade": "B",
     "soilKey": "27882212",
     "sky": {
      "mag": 21.39095816203732,
@@ -10639,7 +10314,6 @@
     "roadRunFt": 212.1108256935515,
     "roadName": "unnamed road",
     "driveFt": 1181.0896518703828,
-    "grade": "B",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 1.0388370139617675,
@@ -10677,7 +10351,6 @@
      "aspect": 45.12513318894401,
      "thermal": 100
     },
-    "score": 70,
     "why": [
      "compact site: 1.12 ac shelf — needs a cut pad and probably a retaining wall",
      "7.8 h of December sun — good",
@@ -10688,25 +10361,7 @@
     ],
     "sunH": 7.816666666666666,
     "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 82,
-     "aspect": 42,
-     "frost": 100,
-     "slope": 72,
-     "sky": 67
-    },
     "soil": "Glenelg",
-    "c": {
-     "septic": 20,
-     "foundation": 0,
-     "rock": 0,
-     "pad": 15,
-     "driveway": 7.450554905804645
-    },
-    "costIdx": 42,
-    "costTier": "$$$",
-    "quality": 75,
-    "qGrade": "B",
     "soilKey": "27882213",
     "sky": {
      "mag": 21.39095816203732,
@@ -10717,7 +10372,6 @@
     "roadRunFt": 236.3286037800262,
     "roadName": "unnamed road",
     "driveFt": 269.14711227469934,
-    "grade": "B",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 2.467514783695968,
@@ -10755,7 +10409,6 @@
      "aspect": 59.982139426541615,
      "thermal": 100
     },
-    "score": 70,
     "why": [
      "compact site: 0.37 ac shelf — needs a cut pad and probably a retaining wall",
      "7.8 h of December sun — good",
@@ -10765,32 +10418,13 @@
     ],
     "sunH": 7.85,
     "daylightH": 9.483333333333333,
-    "q": {
-     "sun": 83,
-     "aspect": 59,
-     "frost": 100,
-     "slope": 65,
-     "sky": 68
-    },
     "soil": "Glenelg",
-    "c": {
-     "septic": 20,
-     "foundation": 0,
-     "rock": 0,
-     "pad": 15,
-     "driveway": 12.298452294255751
-    },
-    "costIdx": 47,
-    "costTier": "$$$",
-    "quality": 77,
-    "qGrade": "B",
     "soilKey": "27882213",
     "sky": {
      "mag": 21.39095816203732,
      "coreClear": 15.782850147689057,
      "domeW": 3.751561287904464
     },
-    "grade": "B",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 1.6080931175612863,
@@ -13221,7 +12855,6 @@
   "engine": 21,
   "runAt": "(not compared)",
   "failed": [],
-  "cancelled": false,
-  "verdict": "ok"
+  "cancelled": false
  }
 }

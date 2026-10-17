@@ -530,8 +530,8 @@ describe("the rows", () => {
     // Recorded failures do flag it: the drive step failed, or OSRM routed none of the trailheads.
     expect(rowOf({ ...r, failed: ["drive"] }, "trails").missing).toBe("the drive times");
     expect(rowOf({ ...r, noResponse: [TRAILHEAD_DRIVES] }, "trails").missing).toBe("the drive times");
-    // And while the run is still going (no verdict yet), the row waits for them.
-    const { verdict: _v, ...running } = r;
+    // And while the run is still going (not yet finished or cancelled), the row waits for them.
+    const { cancelled: _c, ...running } = r;
     expect(rowOf(running as typeof r, "trails").missing).toBe("the drive times");
   });
 

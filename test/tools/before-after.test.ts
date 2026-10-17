@@ -11,7 +11,8 @@
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { describe, it } from "vitest";
-import type { ScreenResult } from "@/lib/screen/types";
+import { scored, type ScoredResult } from "@/lib/screen/derive";
+import type { ScoredSite, ScreenResult } from "@/lib/screen/types";
 import { ER_NOT_LISTED, NEAREST_HOSPITAL } from "@/lib/screen/driveList";
 import SNAPSHOT from "@/lib/screen/data/hospitals.json";
 import { publicLandView } from "@/lib/report/surroundings";
@@ -47,7 +48,7 @@ const mi = (km: number | undefined) => (km == null ? "—" : `${(km * 0.621371).
  * The hospital drive and the chosen hospital's emergency tag, looked up by name in the committed snapshot so
  * both columns are read the same way (A2c; main's results carry no status of their own).
  */
-function hospitalDrive(r: ScreenResult): string {
+function hospitalDrive(r: ScoredResult): string {
   const d = r.drives?.find((x) => x.label === NEAREST_HOSPITAL);
   if (!d) return "—";
   const name = d.name.endsWith(ER_NOT_LISTED) ? d.name.slice(0, -ER_NOT_LISTED.length) : d.name;
@@ -57,8 +58,9 @@ function hospitalDrive(r: ScreenResult): string {
 }
 
 /** The headline rows, in the plan's order. */
-export function headlines(r: ScreenResult | undefined): Record<string, string> {
-  if (!r) return {};
+export function headlines(r0: ScreenResult | undefined): Record<string, string> {
+  if (!r0) return {};
+  const r = scored(r0);
   const top = (r.sites ?? []).slice(0, 3);
   // Through the report's own view, so the table and the report agree on what's within the mile (follow-up 23).
   const pl = r.protected ? publicLandView(r) : null;
@@ -98,10 +100,12 @@ export function headlines(r: ScreenResult | undefined): Record<string, string> {
  * Every ranked site of a fixture's run, before and after, matched by position (the same benches and shelves,
  * re-ranked): rank, grade, score, cost index, driveway points and driveway length. Sorted by the new rank.
  */
-export function rankingTable(before: ScreenResult | undefined, after: ScreenResult): string {
+export function rankingTable(before0: ScreenResult | undefined, after0: ScreenResult): string {
+  const before = before0 && scored(before0),
+    after = scored(after0);
   const key = (s: { ll: [number, number] }) => `${s.ll[0].toFixed(6)},${s.ll[1].toFixed(6)}`;
   const was = new Map((before?.sites ?? []).map((s) => [key(s), s] as const));
-  const cell = (s: NonNullable<ScreenResult["sites"]>[number] | undefined) =>
+  const cell = (s: ScoredSite | undefined) =>
     s
       ? `#${s.rank} ${s.grade} ${s.score} | ${s.costIdx} | ${s.c.driveway.toFixed(1)} | ${s.driveFt == null ? "—" : Math.round(s.driveFt)}`
       : "— | — | — | —";

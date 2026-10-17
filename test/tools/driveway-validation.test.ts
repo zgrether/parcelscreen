@@ -18,6 +18,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { along, featureCollection, length as turfLength, lineString, polygon, union } from "@turf/turf";
 import type { Feature, LineString, Polygon, Position } from "geojson";
 import { describe, it } from "vitest";
+import { scored } from "@/lib/screen/derive";
 import * as UTM from "@/lib/geo/utm";
 import { createHttpClient, realClock } from "@/lib/http";
 import { drivewayView } from "@/lib/report/driveway";
@@ -713,8 +714,8 @@ describe.runIf(import.meta.env.MODE === "dw-val")("driveway validation against r
     );
 
     // The neighbour, screened.
-    const nr = neighbour.result;
-    const v = drivewayView(nr);
+    const nr = scored(neighbour.result);
+    const v = drivewayView(neighbour.result);
     out.push(
       "## 5. The neighbour parcel, screened",
       "",

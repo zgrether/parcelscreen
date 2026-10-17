@@ -4,6 +4,7 @@
  * tooltip and the label a tap evaluates under ("site #2"); gardens aren't tappable. Pure, from a result.
  */
 import type { LatLon } from "../geo/types";
+import { derivedSites } from "../screen/derive";
 import type { PartialScreenResult } from "../screen/types";
 
 export type PinKind = "site" | "shelf" | "garden" | "excluded";
@@ -63,7 +64,7 @@ export function pinSpecs(r: PartialScreenResult): PinSpec[] {
       evalLabel: "the excluded bench",
     }),
   );
-  (r.sites ?? []).forEach((s) =>
+  (derivedSites(r) ?? []).forEach((s) =>
     pins.push({
       key: `site-${s.rank}`,
       kind: "site",

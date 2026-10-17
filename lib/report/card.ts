@@ -15,6 +15,7 @@ import {
   TRAILHEAD_PARKING,
   type DriveEntry,
 } from "../screen/driveList";
+import { derivedSites } from "../screen/derive";
 import { NO_PRACTICAL_ROUTE, existingSteepLine } from "../screen/score";
 import { trailheadSourceLabel } from "../screen/trailheads";
 import { isPrimeFarmland, soilAt, type SoilUnit } from "../screen/soils";
@@ -402,7 +403,8 @@ function elevation(site: BuildSite | null | undefined, K: CardConfig): Row {
 function homesite(r: Result): Row {
   const g = row("homesite", "Best homesite");
   if (!r.sites) return notLoaded(g, "the homesite ranking");
-  const s = r.sites[0];
+  // Site #1's quality derives from its measurements (v8; lib/screen/derive.ts).
+  const s = derivedSites(r)![0];
   if (!s) return g("F", "no build site found");
   return {
     ...g(
@@ -484,7 +486,9 @@ function trails(r: Result, K: CardConfig): Row {
     .filter((t) => t.drive)
     .sort((a, b) => a.drive!.min - b.drive!.min || a.drive!.km - b.drive!.km)[0];
   const drivesFailed =
-    r.failed.includes("drive") || (r.noResponse ?? []).includes(TRAILHEAD_DRIVES) || r.verdict === undefined;
+    r.failed.includes("drive") ||
+    (r.noResponse ?? []).includes(TRAILHEAD_DRIVES) ||
+    r.cancelled === undefined;
   const noDrives = !driven && r.near.trailheads.length > 0 && drivesFailed;
   // An official trailhead list that didn't answer (follow-up 53): a nearer trailhead may be missing, so the row is
   // incomplete, which holds the verdict at Maybe. Not when the parcel adjoins open public land: an A either way.

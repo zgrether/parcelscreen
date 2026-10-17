@@ -46,11 +46,10 @@ describe("ScreenResult schema against the prototype goldens", () => {
     );
   });
 
-  it("accepts a partial result mid-run (no verdict yet)", () => {
+  it("accepts a partial result mid-run (not yet cancelled or finished)", () => {
     const mid: Partial<ReturnType<typeof fromPrototype>> = {
       ...fromPrototype(loadFixture("macks-mountain-35-3").goldens.run),
     };
-    delete mid.verdict;
     delete mid.cancelled;
     expect(PartialScreenResultSchema.safeParse(mid).success).toBe(true);
     expect(ScreenResultSchema.safeParse(mid).success).toBe(false);

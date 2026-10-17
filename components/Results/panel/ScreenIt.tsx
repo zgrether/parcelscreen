@@ -142,7 +142,7 @@ export function useScreenIt(
   // The test-only debug handle (window.__psDebug.posted, with ps.debug): written here, never read by the app.
   useEffect(() => publishPosted(result), [result]);
   useEffect(() => {
-    if (status !== "done" || !live || !result || kept.current === result || result.verdict === undefined)
+    if (status !== "done" || !live || !result || kept.current === result || result.cancelled === undefined)
       return;
     kept.current = result;
     if (awaitingRestore.current) {

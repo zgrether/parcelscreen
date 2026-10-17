@@ -782,9 +782,6 @@
             "additionalProperties": false
           }
         },
-        "score": {
-          "type": "number"
-        },
         "notes": {
           "type": "array",
           "items": {
@@ -803,7 +800,6 @@
         "coreClear",
         "dome",
         "domes",
-        "score",
         "notes"
       ],
       "additionalProperties": false
@@ -1380,9 +1376,6 @@
             ],
             "additionalProperties": false
           },
-          "score": {
-            "type": "number"
-          },
           "why": {
             "type": "array",
             "items": {
@@ -1395,101 +1388,10 @@
           "daylightH": {
             "type": "number"
           },
-          "q": {
-            "type": "object",
-            "properties": {
-              "sun": {
-                "type": "number"
-              },
-              "aspect": {
-                "type": "number"
-              },
-              "frost": {
-                "type": "number"
-              },
-              "slope": {
-                "type": "number"
-              },
-              "sky": {
-                "type": "number"
-              }
-            },
-            "required": [
-              "sun",
-              "aspect",
-              "frost",
-              "slope",
-              "sky"
-            ],
-            "additionalProperties": false
-          },
           "soil": {
             "type": [
               "string",
               "null"
-            ]
-          },
-          "c": {
-            "type": "object",
-            "properties": {
-              "septic": {
-                "type": "number"
-              },
-              "foundation": {
-                "type": "number"
-              },
-              "rock": {
-                "type": "number"
-              },
-              "pad": {
-                "type": "number"
-              },
-              "driveway": {
-                "type": "number"
-              }
-            },
-            "required": [
-              "septic",
-              "foundation",
-              "rock",
-              "pad",
-              "driveway"
-            ],
-            "additionalProperties": false
-          },
-          "costIdx": {
-            "type": "number"
-          },
-          "costTier": {
-            "type": "string",
-            "enum": [
-              "$",
-              "$$",
-              "$$$",
-              "$$$$"
-            ]
-          },
-          "quality": {
-            "type": "number"
-          },
-          "qGrade": {
-            "type": "string",
-            "enum": [
-              "A",
-              "B",
-              "C",
-              "D",
-              "F"
-            ]
-          },
-          "grade": {
-            "type": "string",
-            "enum": [
-              "A",
-              "B",
-              "C",
-              "D",
-              "F"
             ]
           },
           "driveFt": {
@@ -1816,18 +1718,10 @@
           "aspectDeg",
           "slopeDeg",
           "cell",
-          "score",
           "why",
           "sunH",
           "daylightH",
-          "q",
           "soil",
-          "c",
-          "costIdx",
-          "costTier",
-          "quality",
-          "qGrade",
-          "grade",
           "soilKey",
           "practical",
           "fit",
@@ -1931,9 +1825,6 @@
                     }
                   ]
                 },
-                "score": {
-                  "type": "number"
-                },
                 "why": {
                   "type": "array",
                   "items": {
@@ -1946,101 +1837,10 @@
                 "daylightH": {
                   "type": "number"
                 },
-                "q": {
-                  "type": "object",
-                  "properties": {
-                    "sun": {
-                      "type": "number"
-                    },
-                    "aspect": {
-                      "type": "number"
-                    },
-                    "frost": {
-                      "type": "number"
-                    },
-                    "slope": {
-                      "type": "number"
-                    },
-                    "sky": {
-                      "type": "number"
-                    }
-                  },
-                  "required": [
-                    "sun",
-                    "aspect",
-                    "frost",
-                    "slope",
-                    "sky"
-                  ],
-                  "additionalProperties": false
-                },
                 "soil": {
                   "type": [
                     "string",
                     "null"
-                  ]
-                },
-                "c": {
-                  "type": "object",
-                  "properties": {
-                    "septic": {
-                      "type": "number"
-                    },
-                    "foundation": {
-                      "type": "number"
-                    },
-                    "rock": {
-                      "type": "number"
-                    },
-                    "pad": {
-                      "type": "number"
-                    },
-                    "driveway": {
-                      "type": "number"
-                    }
-                  },
-                  "required": [
-                    "septic",
-                    "foundation",
-                    "rock",
-                    "pad",
-                    "driveway"
-                  ],
-                  "additionalProperties": false
-                },
-                "costIdx": {
-                  "type": "number"
-                },
-                "costTier": {
-                  "type": "string",
-                  "enum": [
-                    "$",
-                    "$$",
-                    "$$$",
-                    "$$$$"
-                  ]
-                },
-                "quality": {
-                  "type": "number"
-                },
-                "qGrade": {
-                  "type": "string",
-                  "enum": [
-                    "A",
-                    "B",
-                    "C",
-                    "D",
-                    "F"
-                  ]
-                },
-                "grade": {
-                  "type": "string",
-                  "enum": [
-                    "A",
-                    "B",
-                    "C",
-                    "D",
-                    "F"
                   ]
                 },
                 "driveFt": {
@@ -2191,18 +1991,10 @@
                 "veto",
                 "inSFHA",
                 "cell",
-                "score",
                 "why",
                 "sunH",
                 "daylightH",
-                "q",
                 "soil",
-                "c",
-                "costIdx",
-                "costTier",
-                "quality",
-                "qGrade",
-                "grade",
                 "soilKey"
               ],
               "additionalProperties": false
@@ -3574,54 +3366,6 @@
         "additionalProperties": false
       }
     },
-    "flags": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "lvl": {
-            "type": "string",
-            "enum": [
-              "fatal",
-              "warn",
-              "good"
-            ]
-          },
-          "t": {
-            "type": "string"
-          },
-          "step": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "dem",
-                  "terrain",
-                  "soils",
-                  "sun",
-                  "sky",
-                  "flood",
-                  "padus",
-                  "near",
-                  "drive",
-                  "rank",
-                  "driveway"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "required": [
-          "lvl",
-          "t",
-          "step"
-        ],
-        "additionalProperties": false
-      }
-    },
     "failed": {
       "type": "array",
       "items": {
@@ -3649,14 +3393,6 @@
     },
     "cancelled": {
       "type": "boolean"
-    },
-    "verdict": {
-      "type": "string",
-      "enum": [
-        "fatal",
-        "marginal",
-        "ok"
-      ]
     }
   },
   "required": [
@@ -3666,11 +3402,9 @@
     "acres",
     "params",
     "lines",
-    "flags",
     "failed",
     "noResponse",
-    "cancelled",
-    "verdict"
+    "cancelled"
   ],
   "additionalProperties": false
 }

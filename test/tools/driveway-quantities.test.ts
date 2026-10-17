@@ -12,6 +12,7 @@
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { describe, it } from "vitest";
+import { derivedSites } from "@/lib/screen/derive";
 import { fmt } from "@/lib/format";
 import { drivewayView } from "@/lib/report/driveway";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
@@ -115,7 +116,7 @@ describe.runIf(import.meta.env.MODE === "dw-quant")("driveway quantities (#99 de
       const run = await runFixture(slug);
       const { result, session: s } = run;
       const ctx = routeContext(s);
-      const sites = result.sites ?? [];
+      const sites = derivedSites(result) ?? [];
       const lls = sites.map((x) => x.ll);
       const routes = siteDriveways(ctx, s.roads ?? [], s.parcel, lls, s.config.roadMaxGradePct);
       const before = BEFORE[slug]!;

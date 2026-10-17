@@ -142,7 +142,7 @@ function expectParity(R: PrototypeResult, ours: PartialScreenResult, partial: bo
   }
 }
 
-const withoutVerdict = ({ verdict: _v, cancelled: _c, ...rest }: ScreenResult): PartialScreenResult => rest;
+const withoutVerdict = ({ cancelled: _c, ...rest }: ScreenResult): PartialScreenResult => rest;
 
 /**
  * The goldens don't record the DEM cell size (the prototype kept it in the session). The reference parcels
@@ -153,12 +153,13 @@ const at3m = (R: PrototypeResult): PrototypeResult => ({ ...R, demResM: 3 });
 describe.each(RUNS)("report blocks vs the prototype: %s %s", (slug, key) => {
   const R = at3m(loadFixture(slug).goldens[key]!);
 
-  it("finished run", () => expectParity(R, fromPrototype(R), false));
+  it("finished run", () => expectParity(R, fromPrototype(R, { grades: true }), false));
 
-  it("while running (partial)", () => expectParity(R, withoutVerdict(fromPrototype(R)), true));
+  it("while running (partial)", () =>
+    expectParity(R, withoutVerdict(fromPrototype(R, { grades: true })), true));
 
   it("draws the same horizon and sun path, labelled N/E/S/W (B11)", () => {
-    const ours = fromPrototype(R);
+    const ours = fromPrototype(R, { grades: true });
     const body = prototypeSections(R, DEFAULT_USER_CONFIG).get("december-sun")!.body;
     const [skyline, sun] = [...body.matchAll(/<path d="([^"]*)"/g)].map((m) => m[1]);
     const chart = horizonChart(ours.sun!.profile, evaluationPoint(ours)!.ll[0]);
@@ -175,12 +176,16 @@ describe("report blocks: runs the goldens don't cover", () => {
 
   it("a cancelled run with failed steps", () => {
     const cancelled = { ...R, cancelled: true, failed: [label("near"), label("drive")] };
-    expectParity(cancelled, fromPrototype(cancelled), false);
+    expectParity(cancelled, fromPrototype(cancelled, { grades: true }), false);
   });
 
   it("early in a run: before the sun and sky steps, those blocks render nothing", () => {
     const { sun: _s, sky: _k, point: _p, focus: _f, sunAt: _a, ...early } = R;
-    expectParity(early as PrototypeResult, withoutVerdict(fromPrototype(early as PrototypeResult)), true);
+    expectParity(
+      early as PrototypeResult,
+      withoutVerdict(fromPrototype(early as PrototypeResult, { grades: true })),
+      true,
+    );
   });
 });
 
@@ -189,7 +194,9 @@ describe("driveway", () => {
     const R = at3m(loadFixture("ferney-creek-52-47A").goldens.run);
     const body = prototypeSections(R, DEFAULT_USER_CONFIG).get("driveway")!.body;
     const theirs = [...body.matchAll(/<path d="([^"]*)"/g)].map((m) => m[1]);
-    expect(fromPrototype(R).driveway!.routes.map((rt) => profilePath(rt.profile))).toEqual(theirs);
+    expect(fromPrototype(R, { grades: true }).driveway!.routes.map((rt) => profilePath(rt.profile))).toEqual(
+      theirs,
+    );
     expect(theirs.length).toBeGreaterThan(0);
   });
 
