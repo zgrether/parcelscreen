@@ -9,7 +9,7 @@ import { compass } from "../format";
 import { rcToLL } from "../screen/dem";
 import { DEFAULT_USER_CONFIG } from "../screen/config";
 import type { ScreenResult } from "../screen/types";
-import { FIXTURE_SLUGS, loadFixture } from "@/test/support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, loadFixture } from "@/test/support/fixtures";
 import { fromPrototype } from "@/test/support/fromPrototype";
 import { prototypeFn } from "@/test/support/prototypeFns";
 import { replayRun } from "@/test/support/session";
@@ -49,7 +49,9 @@ function fakeLeaflet(out: Drawn[], setFocusLabel: { last: string | null }) {
 
 describe("pins (15b) vs the prototype's finalizeRanking", () => {
   it.each(
-    FIXTURE_SLUGS.flatMap((slug) => Object.keys(loadFixture(slug).goldens).map((k) => [slug, k] as const)),
+    PROTOTYPE_FIXTURE_SLUGS.flatMap((slug) =>
+      Object.keys(loadFixture(slug).goldens).map((k) => [slug, k] as const),
+    ),
   )("%s %s: the same pins, texts, tooltips and evaluation labels, in the same order", (slug, key) => {
     const R = structuredClone(loadFixture(slug).goldens[key as "run"]!);
     const drawn: Drawn[] = [];
@@ -94,7 +96,7 @@ describe("pins (15b) vs the prototype's finalizeRanking", () => {
 });
 
 describe("horizon fan (15b) vs the prototype's drawHorizon", () => {
-  it.each(FIXTURE_SLUGS)(
+  it.each(PROTOTYPE_FIXTURE_SLUGS)(
     "%s: the same rays, ends, colours and tooltips",
     async (slug) => {
       const { result, view } = await replayRun(slug);

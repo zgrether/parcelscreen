@@ -29,19 +29,19 @@ import { routeContext } from "@/lib/screen/index";
 import { chooseDriveway } from "@/lib/screen/score";
 import type { LatLon } from "@/lib/screen/util";
 import { M2FT } from "@/lib/screen/util";
-import { FIXTURE_SLUGS, type FixtureSlug } from "../support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, type PrototypeSlug } from "../support/fixtures";
 import { runFixture } from "../support/scenarios";
 
 const K = SCREEN_CONSTANTS.driveway;
 const DOC = "docs/studies/a4b-router-pr-b.md";
 const BEFORE = "docs/studies/a4b-router-before.json";
-const SHORT: Record<FixtureSlug, string> = {
+const SHORT: Record<PrototypeSlug, string> = {
   "ferney-creek-52-47A": "ferney",
   "macks-mountain-35-3": "macks",
   "grayson-mud-creek-6273": "grayson",
 };
 /** Engine 9's ranks drawn (the owner's list). */
-const DRAWN: Partial<Record<FixtureSlug, number[]>> = {
+const DRAWN: Partial<Record<PrototypeSlug, number[]>> = {
   "grayson-mud-creek-6273": [1, 2],
   "macks-mountain-35-3": [2],
 };
@@ -224,7 +224,7 @@ describe.runIf(import.meta.env.MODE === "a4b-router")("A4b PR B router report", 
     const drawingsMd: string[] = [];
     let movedMost = { pct: 0, what: "" };
 
-    for (const slug of FIXTURE_SLUGS) {
+    for (const slug of PROTOTYPE_FIXTURE_SLUGS) {
       const { result, session: s } = await runFixture(slug);
       const sites = result.sites ?? [];
       const limit = s.config.roadMaxGradePct;

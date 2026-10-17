@@ -5,6 +5,7 @@
  */
 import { createHttpClient, type HttpClient } from "@/lib/http";
 import { pickParcelAt } from "@/lib/geo/parcels";
+import { fieldsFor, fullRecord } from "@/lib/geo/parcelTiles";
 import { deriveParcel } from "@/lib/geo/recipe";
 import { DEFAULT_ENDPOINTS, DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { evaluateAt, screen, setHouse, type ScreenDeps, type ScreenOutput } from "@/lib/screen";
@@ -14,11 +15,15 @@ import { instantClock } from "./pipeline";
 
 export type Scenario = keyof FixtureGoldens;
 
-/** Which scenarios each fixture recorded (test/fixtures/README.md, "Scenarios in golden.json"). */
+/**
+ * Which scenarios each fixture runs: for the prototype-backed ones, what the prototype recorded (test/fixtures/README.md,
+ * "Scenarios in golden.json"); a port-only one (step 2) has no golden, only expected.json.
+ */
 export const SCENARIOS: Readonly<Record<FixtureSlug, readonly Scenario[]>> = {
   "ferney-creek-52-47A": ["run", "setHouse", "houseRun"],
   "macks-mountain-35-3": ["run", "evaluateSite2"],
   "grayson-mud-creek-6273": ["run", "evaluateSite2"],
+  "roan-hwy-143-099-046-02": ["run", "evaluateSite2"],
 };
 
 export const ALL_SCENARIOS: readonly { slug: FixtureSlug; scenario: Scenario }[] = FIXTURE_SLUGS.flatMap(
@@ -55,11 +60,14 @@ export function fixtureParcel(
   if (!p) {
     p = (async () => {
       const { point } = loadFixture(slug).input;
-      const { parcel, report } = await pickParcelAt(http ?? depsFor(slug).http!, DEFAULT_ENDPOINTS.parcels, [
+      const client = http ?? depsFor(slug).http!;
+      const { parcel: picked, report } = await pickParcelAt(client, DEFAULT_ENDPOINTS.parcels, [
         point.lat,
         point.lon,
       ]);
-      if (!parcel) throw new Error(`${slug}: no parcel in the HAR at its point (${report.join("; ")})`);
+      if (!picked) throw new Error(`${slug}: no parcel in the HAR at its point (${report.join("; ")})`);
+      // Where a parcel can be several features (Tennessee, step 2) the app takes the full record, as a tap does.
+      const parcel = fieldsFor(picked.source).groupById ? await fullRecord(client, picked) : picked;
       const d = deriveParcel({ parts: [parcel] }, SCREEN_CONSTANTS.combine);
       if (!d.ok) throw new Error(`${slug}: the recipe failed (${d.reason})`);
       return { polygon: d.record.geo.geometry, ...(d.bridgeAcres > 0 ? { ownLand: d.own.geometry } : {}) };

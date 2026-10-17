@@ -13,7 +13,7 @@ import { siteDriveways } from "@/lib/screen/driveway";
 import { routeContext } from "@/lib/screen/index";
 import { chooseDriveway, drivewayPoints } from "@/lib/screen/score";
 import { ENGINE_VERSION } from "@/lib/screen/engine";
-import { FIXTURE_SLUGS } from "../support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS } from "../support/fixtures";
 import { runFixture } from "../support/scenarios";
 
 const C = SCREEN_CONSTANTS.score.drivewayCost;
@@ -94,7 +94,7 @@ describe.runIf(import.meta.env.MODE === "a3-curve")("A3 driveway curve", () => {
     "places every fixture site on the curve",
     async () => {
       const points: Point[] = [];
-      for (const slug of FIXTURE_SLUGS) {
+      for (const slug of PROTOTYPE_FIXTURE_SLUGS) {
         const { result, session: s } = await runFixture(slug);
         const sites = result.sites ?? [];
         const dw = siteDriveways(

@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { horizonProfile } from "@/lib/screen/sun";
 import { llToRC } from "@/lib/screen/dem";
-import { FIXTURE_SLUGS } from "@/test/support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS } from "@/test/support/fixtures";
 import { expectedOf } from "@/test/support/expected";
 import { throughSites } from "@/test/support/pipeline";
 import { envelope, ridgeBands, RIDGE_BANDS_M } from "./ridges";
 
-describe.each(FIXTURE_SLUGS)("ridges by distance on %s", (slug) => {
+describe.each(PROTOTYPE_FIXTURE_SLUGS)("ridges by distance on %s", (slug) => {
   it("their envelope at the report's 5° points is the report's skyline, from the same 30 m DEM", async () => {
     const t = await throughSites(slug);
     const r = expectedOf(slug, "run");

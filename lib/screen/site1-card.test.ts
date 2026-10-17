@@ -5,18 +5,18 @@
  */
 import { describe, expect, it } from "vitest";
 import { buildView } from "../report/build";
-import { FIXTURE_SLUGS, loadFixture, type FixtureSlug } from "@/test/support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, loadFixture, type PrototypeSlug } from "@/test/support/fixtures";
 import { runFixture } from "@/test/support/scenarios";
 import type { LatLon } from "./util";
 
 /** Ferney Creek's recorded house; Macks Mountain and Mud Creek have none, so the prototype's site #2 point. */
-function houseOf(slug: FixtureSlug): LatLon {
+function houseOf(slug: PrototypeSlug): LatLon {
   const input = loadFixture(slug).input;
   return (input.house?.ll ?? input.evaluateSite2!.ll) as LatLon;
 }
 
 describe("site #1's card, with and without a house (§9.43)", () => {
-  for (const slug of FIXTURE_SLUGS)
+  for (const slug of PROTOTYPE_FIXTURE_SLUGS)
     it(slug, async () => {
       const without = await runFixture(slug, {});
       const withHouse = await runFixture(slug, { house: houseOf(slug) });

@@ -1,0 +1,9797 @@
+{
+ "run": {
+  "acres": 13.286211242376313,
+  "params": {
+   "houseMin": 60,
+   "shelfMin": 45,
+   "gardenMin": 60,
+   "canopyDeg": 3,
+   "shallowBedrockCm": 100,
+   "benchMinAcres": 0.3,
+   "compactMinAcres": 0.15,
+   "sunHoursWanted": 5,
+   "thermalMinFt": 80,
+   "roadMaxGradePct": 15,
+   "roadVetoGradePct": 25
+  },
+  "noResponse": [],
+  "lines": [],
+  "demSource": "USGS 3DEP",
+  "demResM": 2.991185238151524,
+  "terrain": {
+   "elevMinFt": 2666.483486328125,
+   "elevMaxFt": 3160.7349035498046,
+   "elevMeanFt": 2842.2602466557073,
+   "reliefFt": 494.2514172216797,
+   "slopeMedDeg": 24.743623733520508,
+   "slopeP90Deg": 32.90503692626953,
+   "acresUnder15": 0.8069772693053734,
+   "acresOver25": 10.592405745868614,
+   "heightAboveValleyFt": 268.22308775390627,
+   "valleyFloorFt": 2551.3302876049806,
+   "diag": {
+    "houseAc": 1.903581996909388,
+    "shelfAc": 0.9418419636276414,
+    "gardenAc": 0.5460914671737732,
+    "totalAc": 13.280856045801036
+   }
+  },
+  "benches": [
+   {
+    "acres": 0.9484746535123431,
+    "elevFt": 2709.7354429432776,
+    "slopeDeg": 7.751909407528686,
+    "aspectDeg": 172.55980672040914,
+    "score": 82.50098022603211,
+    "ll": [
+     36.18505293216952,
+     -82.07373497167423
+    ],
+    "veto": null
+   },
+   {
+    "acres": 0.32279090772214936,
+    "elevFt": 2734.706336493238,
+    "slopeDeg": 9.442171993320935,
+    "aspectDeg": 195.97448866385466,
+    "score": 76.25203796282206,
+    "ll": [
+     36.18587832976166,
+     -82.07491050597642
+    ],
+    "veto": null
+   }
+  ],
+  "shelves": [
+   {
+    "acres": 0.4841863615832241,
+    "elevFt": 2751.906298122871,
+    "slopeDeg": 13.256549774239597,
+    "aspectDeg": 187.47735546432762,
+    "score": 53.91077376065189,
+    "ll": [
+     36.18556074844089,
+     -82.07424087318732
+    ],
+    "distFt": 237.7177145423475,
+    "dropFt": 42.17085517959322
+   },
+   {
+    "acres": 0.198980696541051,
+    "elevFt": 2920.425252622043,
+    "slopeDeg": 7.747315420707067,
+    "aspectDeg": 134.12932422738652,
+    "score": 80.42808998955621,
+    "ll": [
+     36.187052735753305,
+     -82.07625716612674
+    ],
+    "distFt": 1041.040566591515,
+    "dropFt": 210.6898096787654
+   },
+   {
+    "acres": 0.1459191774634374,
+    "elevFt": 2776.4330045536667,
+    "slopeDeg": 11.441348278161252,
+    "aspectDeg": 160.35149888283945,
+    "score": 65.44933353770863,
+    "ll": [
+     36.18652453988051,
+     -82.07501913194324
+    ],
+    "distFt": 656.6504122805916,
+    "dropFt": 66.69756161038913
+   },
+   {
+    "acres": 0.14370828083520348,
+    "elevFt": 2741.5237949762995,
+    "slopeDeg": 11.075990075331468,
+    "aspectDeg": 102.59199527975949,
+    "score": 62.330011279766374,
+    "ll": [
+     36.18584748328812,
+     -82.07534252643806
+    ],
+    "distFt": 555.037955823336,
+    "dropFt": 31.788352033021965
+   }
+  ],
+  "gardens": [
+   {
+    "acres": 0.3382671841197867,
+    "elevFt": 2706.2919139489986,
+    "slopeDeg": 3.7463278048763087,
+    "aspectDeg": 169.45581122462,
+    "score": 87.28237947451522,
+    "aboveFt": 154.961626344018,
+    "ll": [
+     36.18508108829194,
+     -82.07360229820829
+    ],
+    "soil": "Tusquitee",
+    "soilNote": "well drained",
+    "adj": 1,
+    "finalScore": 87.28237947451522
+   },
+   {
+    "acres": 0.0641160022187831,
+    "elevFt": 2921.55906710626,
+    "slopeDeg": 4.121424165265314,
+    "aspectDeg": 135.25319290809477,
+    "score": 83.91280785922346,
+    "aboveFt": 370.2287795012794,
+    "ll": [
+     36.187133923052016,
+     -82.07622501170773
+    ],
+    "soil": "Porters",
+    "soilNote": "well drained",
+    "adj": 1,
+    "finalScore": 83.91280785922346
+   }
+  ],
+  "houseMinUsed": 60,
+  "soils": [
+   {
+    "mukey": "526479",
+    "muname": "Porters gravelly loam, 30 to 50 percent slopes, stony",
+    "farmlndcl": "Not prime farmland",
+    "cokey": "27885642",
+    "compname": "Porters",
+    "comppct_r": "100",
+    "drainagecl": "Well drained",
+    "hydricrating": "No",
+    "slope_l": "30",
+    "slope_h": "50",
+    "brockdepmin": "137",
+    "drclassdcd": "Well drained",
+    "hydgrpdcd": "B",
+    "wtdepannmin": null,
+    "flodfreqdcd": "None",
+    "engdwbdcd": "Very limited",
+    "engdwobdcd": "Very limited",
+    "engstafdcd": "Very limited",
+    "englrsdcd": "Very limited",
+    "septic": "Very limited"
+   },
+   {
+    "mukey": "526480",
+    "muname": "Porters gravelly loam, 50 to 80 percent slopes, stony",
+    "farmlndcl": "Not prime farmland",
+    "cokey": "27885543",
+    "compname": "Porters",
+    "comppct_r": "100",
+    "drainagecl": "Well drained",
+    "hydricrating": "No",
+    "slope_l": "50",
+    "slope_h": "80",
+    "brockdepmin": "137",
+    "drclassdcd": "Well drained",
+    "hydgrpdcd": "B",
+    "wtdepannmin": null,
+    "flodfreqdcd": "None",
+    "engdwbdcd": "Very limited",
+    "engdwobdcd": "Very limited",
+    "engstafdcd": "Very limited",
+    "englrsdcd": "Very limited",
+    "septic": "Very limited"
+   },
+   {
+    "mukey": "526491",
+    "muname": "Tusquitee loam, 20 to 35 percent slopes",
+    "farmlndcl": "Not prime farmland",
+    "cokey": "27885551",
+    "compname": "Tusquitee",
+    "comppct_r": "100",
+    "drainagecl": "Well drained",
+    "hydricrating": "No",
+    "slope_l": "20",
+    "slope_h": "35",
+    "brockdepmin": null,
+    "drclassdcd": "Well drained",
+    "hydgrpdcd": "A",
+    "wtdepannmin": null,
+    "flodfreqdcd": "None",
+    "engdwbdcd": "Very limited",
+    "engdwobdcd": "Very limited",
+    "engstafdcd": "Very limited",
+    "englrsdcd": "Very limited",
+    "septic": "Very limited"
+   }
+  ],
+  "soilLimits": [
+   {
+    "cokey": "27885642",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27885543",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27885551",
+    "septic": "poor",
+    "foundation": "fine"
+   }
+  ],
+  "soilUnits": [
+   {
+    "mukey": "526491",
+    "muname": "Tusquitee loam, 20 to 35 percent slopes",
+    "acres": 5.776094598695296,
+    "color": "#c2803a",
+    "geometries": [
+     {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+       "type": "Polygon",
+       "coordinates": [
+        [
+         [
+          -82.0737243261992,
+          36.1844777274898
+         ],
+         [
+          -82.0731613097898,
+          36.1850335107125
+         ],
+         [
+          -82.07353644650429,
+          36.18531298726521
+         ],
+         [
+          -82.073542405717,
+          36.1853066843633
+         ],
+         [
+          -82.0736338347838,
+          36.1852479264715
+         ],
+         [
+          -82.0737385269912,
+          36.1852277308597
+         ],
+         [
+          -82.0738900213223,
+          36.1852364983572
+         ],
+         [
+          -82.0740159275673,
+          36.1852792649394
+         ],
+         [
+          -82.0741972554375,
+          36.1854512872255
+         ],
+         [
+          -82.0743496290866,
+          36.185663230972
+         ],
+         [
+          -82.074511983975,
+          36.1860415130773
+         ],
+         [
+          -82.07462394781203,
+          36.18624211793679
+         ],
+         [
+          -82.07542613270911,
+          36.18704993547139
+         ],
+         [
+          -82.0754488671486,
+          36.1870261075717
+         ],
+         [
+          -82.0754589142007,
+          36.1869902830009
+         ],
+         [
+          -82.0754490954324,
+          36.186823061295
+         ],
+         [
+          -82.0753850159818,
+          36.1865447720267
+         ],
+         [
+          -82.0754022005935,
+          36.1864276538356
+         ],
+         [
+          -82.0754361972181,
+          36.1863666627924
+         ],
+         [
+          -82.0755228581986,
+          36.1863091486768
+         ],
+         [
+          -82.0756021470643,
+          36.1862913834076
+         ],
+         [
+          -82.0761141794819,
+          36.1863009691207
+         ],
+         [
+          -82.0761493200067,
+          36.1862888497793
+         ],
+         [
+          -82.0761757632291,
+          36.1862441199967
+         ],
+         [
+          -82.0761808242517,
+          36.1861923666087
+         ],
+         [
+          -82.0761349518066,
+          36.186084992122
+         ],
+         [
+          -82.0760672566684,
+          36.1860142081669
+         ],
+         [
+          -82.0757924195614,
+          36.1859726689524
+         ],
+         [
+          -82.07530070785843,
+          36.18546299202055
+         ],
+         [
+          -82.0752585249991,
+          36.1854288091423
+         ],
+         [
+          -82.07521124891602,
+          36.185370264597104
+         ],
+         [
+          -82.0747208767512,
+          36.1848619761449
+         ],
+         [
+          -82.0743246918631,
+          36.185077805773
+         ],
+         [
+          -82.0737243261992,
+          36.1844777274898
+         ]
+        ]
+       ]
+      }
+     }
+    ]
+   },
+   {
+    "mukey": "526480",
+    "muname": "Porters gravelly loam, 50 to 80 percent slopes, stony",
+    "acres": 4.089598913853047,
+    "color": "#4a7c9e",
+    "geometries": [
+     {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+       "type": "Polygon",
+       "coordinates": [
+        [
+         [
+          -82.07692616284037,
+          36.1865074347076
+         ],
+         [
+          -82.0768195395154,
+          36.186521885781
+         ],
+         [
+          -82.0766339733629,
+          36.1865867404368
+         ],
+         [
+          -82.0764759215763,
+          36.1866683638989
+         ],
+         [
+          -82.0762191767317,
+          36.1868846104664
+         ],
+         [
+          -82.0759252971263,
+          36.1873194248486
+         ],
+         [
+          -82.07579448790135,
+          36.18742087711381
+         ],
+         [
+          -82.0772817544373,
+          36.1889185866702
+         ],
+         [
+          -82.07692616284037,
+          36.1865074347076
+         ]
+        ]
+       ]
+      }
+     }
+    ]
+   },
+   {
+    "mukey": "526479",
+    "muname": "Porters gravelly loam, 30 to 50 percent slopes, stony",
+    "acres": 3.420567528103802,
+    "color": "#8a5ea8",
+    "geometries": [
+     {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+       "type": "MultiPolygon",
+       "coordinates": [
+        [
+         [
+          [
+           -82.0760672566684,
+           36.1860142081669
+          ],
+          [
+           -82.0761349518066,
+           36.186084992122
+          ],
+          [
+           -82.0761808242517,
+           36.1861923666087
+          ],
+          [
+           -82.0761757632291,
+           36.1862441199967
+          ],
+          [
+           -82.0761493200067,
+           36.1862888497793
+          ],
+          [
+           -82.0761141794819,
+           36.1863009691207
+          ],
+          [
+           -82.0756021470643,
+           36.1862913834076
+          ],
+          [
+           -82.0755228581986,
+           36.1863091486768
+          ],
+          [
+           -82.0754361972181,
+           36.1863666627924
+          ],
+          [
+           -82.0754022005935,
+           36.1864276538356
+          ],
+          [
+           -82.0753850159818,
+           36.1865447720267
+          ],
+          [
+           -82.0754490954324,
+           36.186823061295
+          ],
+          [
+           -82.0754589142007,
+           36.1869902830009
+          ],
+          [
+           -82.0754488671486,
+           36.1870261075717
+          ],
+          [
+           -82.07542613270911,
+           36.18704993547139
+          ],
+          [
+           -82.07579448790135,
+           36.18742087711381
+          ],
+          [
+           -82.0759252971263,
+           36.1873194248486
+          ],
+          [
+           -82.0762191767317,
+           36.1868846104664
+          ],
+          [
+           -82.0764759215763,
+           36.1866683638989
+          ],
+          [
+           -82.0766339733629,
+           36.1865867404368
+          ],
+          [
+           -82.0768195395154,
+           36.186521885781
+          ],
+          [
+           -82.07692616284037,
+           36.1865074347076
+          ],
+          [
+           -82.0768973222081,
+           36.1863118756795
+          ],
+          [
+           -82.07675115104,
+           36.1861175727937
+          ],
+          [
+           -82.0760672566684,
+           36.1860142081669
+          ]
+         ]
+        ],
+        [
+         [
+          [
+           -82.07521124891602,
+           36.185370264597104
+          ],
+          [
+           -82.0752585249991,
+           36.1854288091423
+          ],
+          [
+           -82.07530070785843,
+           36.18546299202055
+          ],
+          [
+           -82.07521124891602,
+           36.185370264597104
+          ]
+         ]
+        ],
+        [
+         [
+          [
+           -82.0737385269912,
+           36.1852277308597
+          ],
+          [
+           -82.0736338347838,
+           36.1852479264715
+          ],
+          [
+           -82.073542405717,
+           36.1853066843633
+          ],
+          [
+           -82.07353644650429,
+           36.18531298726521
+          ],
+          [
+           -82.0739653855124,
+           36.1856325464837
+          ],
+          [
+           -82.0743983941406,
+           36.1860149805132
+          ],
+          [
+           -82.07462394781203,
+           36.18624211793679
+          ],
+          [
+           -82.074511983975,
+           36.1860415130773
+          ],
+          [
+           -82.0743496290866,
+           36.185663230972
+          ],
+          [
+           -82.0741972554375,
+           36.1854512872255
+          ],
+          [
+           -82.0740159275673,
+           36.1852792649394
+          ],
+          [
+           -82.0738900213223,
+           36.1852364983572
+          ],
+          [
+           -82.0737385269912,
+           36.1852277308597
+          ]
+         ]
+        ]
+       ]
+      }
+     }
+    ]
+   }
+  ],
+  "focus": {
+   "ll": [
+    36.18505293216952,
+    -82.07373497167423
+   ],
+   "label": "the largest house site"
+  },
+  "point": {
+   "ll": [
+    36.18505293216952,
+    -82.07373497167423
+   ],
+   "elevFt": 2706.436884621582,
+   "aboveFloorFt": 155.10659701660143,
+   "slopeDeg": 2.9955193996429443,
+   "aspectDeg": 171.90780639648438
+  },
+  "sun": {
+   "decDirectH": 7.283333333333333,
+   "decDaylightH": 9.55,
+   "noonAlt": 30.374947067830483,
+   "noonClearance": 18.716289298732576,
+   "worstAz": 150,
+   "worstAngle": 8.658657769097907,
+   "junDirectH": 12.6,
+   "junDaylightH": 14.45,
+   "profile": [
+    [
+     0,
+     10.8
+    ],
+    [
+     5,
+     10.8
+    ],
+    [
+     10,
+     8.9
+    ],
+    [
+     15,
+     5.9
+    ],
+    [
+     20,
+     5.2
+    ],
+    [
+     25,
+     5
+    ],
+    [
+     30,
+     4.2
+    ],
+    [
+     35,
+     4.5
+    ],
+    [
+     40,
+     3.9
+    ],
+    [
+     45,
+     3.4
+    ],
+    [
+     50,
+     3.2
+    ],
+    [
+     55,
+     3.1
+    ],
+    [
+     60,
+     2.8
+    ],
+    [
+     65,
+     2.6
+    ],
+    [
+     70,
+     2.6
+    ],
+    [
+     75,
+     2.8
+    ],
+    [
+     80,
+     3.4
+    ],
+    [
+     85,
+     4.6
+    ],
+    [
+     90,
+     4.8
+    ],
+    [
+     95,
+     4.3
+    ],
+    [
+     100,
+     6.6
+    ],
+    [
+     105,
+     6.6
+    ],
+    [
+     110,
+     7.2
+    ],
+    [
+     115,
+     7.2
+    ],
+    [
+     120,
+     7.6
+    ],
+    [
+     125,
+     7.9
+    ],
+    [
+     130,
+     8.2
+    ],
+    [
+     135,
+     7.9
+    ],
+    [
+     140,
+     7.3
+    ],
+    [
+     145,
+     6.9
+    ],
+    [
+     150,
+     8.7
+    ],
+    [
+     155,
+     7.2
+    ],
+    [
+     160,
+     6.7
+    ],
+    [
+     165,
+     7.9
+    ],
+    [
+     170,
+     7.2
+    ],
+    [
+     175,
+     5.8
+    ],
+    [
+     180,
+     6.9
+    ],
+    [
+     185,
+     5.5
+    ],
+    [
+     190,
+     3.8
+    ],
+    [
+     195,
+     2.9
+    ],
+    [
+     200,
+     2.7
+    ],
+    [
+     205,
+     3.2
+    ],
+    [
+     210,
+     3.9
+    ],
+    [
+     215,
+     3.5
+    ],
+    [
+     220,
+     4.7
+    ],
+    [
+     225,
+     6.2
+    ],
+    [
+     230,
+     8.1
+    ],
+    [
+     235,
+     7.5
+    ],
+    [
+     240,
+     5.9
+    ],
+    [
+     245,
+     7.1
+    ],
+    [
+     250,
+     8.7
+    ],
+    [
+     255,
+     8.7
+    ],
+    [
+     260,
+     9.1
+    ],
+    [
+     265,
+     11
+    ],
+    [
+     270,
+     11.8
+    ],
+    [
+     275,
+     12.4
+    ],
+    [
+     280,
+     12.4
+    ],
+    [
+     285,
+     11.9
+    ],
+    [
+     290,
+     11.8
+    ],
+    [
+     295,
+     12.2
+    ],
+    [
+     300,
+     12.5
+    ],
+    [
+     305,
+     12.8
+    ],
+    [
+     310,
+     13.8
+    ],
+    [
+     315,
+     14.9
+    ],
+    [
+     320,
+     15.3
+    ],
+    [
+     325,
+     14.5
+    ],
+    [
+     330,
+     12.5
+    ],
+    [
+     335,
+     12.5
+    ],
+    [
+     340,
+     12.5
+    ],
+    [
+     345,
+     12.5
+    ],
+    [
+     350,
+     12.5
+    ],
+    [
+     355,
+     10.8
+    ]
+   ]
+  },
+  "sky": {
+   "mag": 20.91961900426926,
+   "ratio": 1.7049073767351297,
+   "zone": "4a",
+   "zoneWord": "rural–suburban",
+   "year": 2025,
+   "coreAlt": 24.81494706783048,
+   "ridgeS": 8.658657769097907,
+   "coreClear": 13.156289298732574,
+   "dome": {
+    "az": 180,
+    "km": 32,
+    "ratio": 2.737694168497448,
+    "w": 2.5665882829663573
+   },
+   "domes": [
+    {
+     "az": 0,
+     "w": 2.8514575973481087,
+     "km": 48,
+     "ratio": 4.562332155756974
+    },
+    {
+     "az": 15,
+     "w": 1.657027514391422,
+     "km": 64,
+     "ratio": 3.5349920307017
+    },
+    {
+     "az": 30,
+     "w": 2.1495942592188264,
+     "km": 32,
+     "ratio": 2.2929005431667484
+    },
+    {
+     "az": 45,
+     "w": 1.310919541197701,
+     "km": 32,
+     "ratio": 1.3983141772775478
+    },
+    {
+     "az": 60,
+     "w": 1.1691106415073853,
+     "km": 16,
+     "ratio": 1.1691106415073853
+    },
+    {
+     "az": 75,
+     "w": 1.7389842401964446,
+     "km": 16,
+     "ratio": 1.7389842401964446
+    },
+    {
+     "az": 90,
+     "w": 2.9041712577376986,
+     "km": 16,
+     "ratio": 2.9041712577376986
+    },
+    {
+     "az": 105,
+     "w": 2.1611569315205723,
+     "km": 24,
+     "ratio": 2.1611569315205723
+    },
+    {
+     "az": 120,
+     "w": 1.9580085218097032,
+     "km": 16,
+     "ratio": 1.9580085218097032
+    },
+    {
+     "az": 135,
+     "w": 1.8641886445276106,
+     "km": 64,
+     "ratio": 3.976935774992236
+    },
+    {
+     "az": 150,
+     "w": 1.8641886445276106,
+     "km": 64,
+     "ratio": 3.976935774992236
+    },
+    {
+     "az": 165,
+     "w": 1.4192148835925618,
+     "km": 32,
+     "ratio": 1.5138292091653993
+    },
+    {
+     "az": 180,
+     "w": 2.5665882829663573,
+     "km": 32,
+     "ratio": 2.737694168497448
+    },
+    {
+     "az": 195,
+     "w": 1.074411250162094,
+     "km": 32,
+     "ratio": 1.1460386668395668
+    },
+    {
+     "az": 210,
+     "w": 1.0119954047107893,
+     "km": 32,
+     "ratio": 1.079461765024842
+    },
+    {
+     "az": 225,
+     "w": 0.9965397433988933,
+     "km": 8,
+     "ratio": 0.9965397433988933
+    },
+    {
+     "az": 240,
+     "w": 0.9965397433988933,
+     "km": 8,
+     "ratio": 0.9965397433988933
+    },
+    {
+     "az": 255,
+     "w": 2.9454800808465427,
+     "km": 32,
+     "ratio": 3.1418454195696457
+    },
+    {
+     "az": 270,
+     "w": 5.4715304990694245,
+     "km": 64,
+     "ratio": 11.672598398014772
+    },
+    {
+     "az": 285,
+     "w": 4.906261511850784,
+     "km": 32,
+     "ratio": 5.233345612640836
+    },
+    {
+     "az": 300,
+     "w": 16.818366865015776,
+     "km": 32,
+     "ratio": 17.939591322683494
+    },
+    {
+     "az": 315,
+     "w": 7.7417812343867265,
+     "km": 24,
+     "ratio": 7.7417812343867265
+    },
+    {
+     "az": 330,
+     "w": 5.771926015429553,
+     "km": 24,
+     "ratio": 5.771926015429553
+    },
+    {
+     "az": 345,
+     "w": 7.1541827939977995,
+     "km": 48,
+     "ratio": 11.44669247039648
+    }
+   ],
+   "notes": [
+    "The core peaks 25° above due south; the ridge there is 9° — 13° of clear sky under it.",
+    "Bright patch toward S at 20 mi (ratio 2.7): expect a light dome low in the S exactly where the core sits."
+   ]
+  },
+  "flood": {
+   "zones": [
+    "X"
+   ],
+   "sfha": false,
+   "sfhaAcres": 0,
+   "mapped": true
+  },
+  "protected": [
+   {
+    "name": "Cherokee National Forest",
+    "manager": "USFS",
+    "type": "NF",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 4939.0767942577395
+   },
+   {
+    "name": "Pisgah National Forest",
+    "manager": "USFS",
+    "type": "NF",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 21688.191358310094
+   },
+   {
+    "name": "Pisgah National Forest",
+    "manager": "USFS",
+    "type": "NF",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 21688.191358310094
+   },
+   {
+    "name": "Pisgah Game Land",
+    "manager": "UNK",
+    "type": "SCA",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 27886.39943932646
+   },
+   {
+    "name": "Roan Mountain",
+    "manager": "NC DENR, Division of Parks and Recreation",
+    "type": "SRMA",
+    "access": "OA",
+    "gap": "1",
+    "adjoins": false,
+    "distFt": 38737.78629154712
+   },
+   {
+    "name": "City Of Elizabethton",
+    "manager": "Unknown",
+    "type": "LOTH",
+    "access": "OA",
+    "gap": "4",
+    "adjoins": false,
+    "distFt": 40041.41884754708
+   },
+   {
+    "name": "Mitchell County Open Space",
+    "manager": "Mitchell County: multiple municipal",
+    "type": "LP",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 42624.23143436265
+   },
+   {
+    "name": "Buckeye Creek Recreation Area",
+    "manager": "Town of Beech Mountain",
+    "type": "LREC",
+    "access": "OA",
+    "gap": "4",
+    "adjoins": false,
+    "distFt": 49684.723308822904
+   }
+  ],
+  "near": {
+   "hospitals": [
+    {
+     "name": "Cannon Memorial Hospital",
+     "ll": [
+      36.06082,
+      -81.889239
+     ],
+     "km": 21.724245443873503
+    },
+    {
+     "name": "Sycamore Shoals Hospital",
+     "ll": [
+      36.345806,
+      -82.249541
+     ],
+     "km": 23.68483134143345
+    },
+    {
+     "name": "James H. Quillen VA Medical Center",
+     "ll": [
+      36.307494,
+      -82.376171
+     ],
+     "km": 30.19798856386202
+    },
+    {
+     "name": "Blue Ridge Regional Hospital",
+     "ll": [
+      35.911492,
+      -82.062287
+     ],
+     "km": 30.528108656006154
+    }
+   ],
+   "grocers": [
+    {
+     "name": "RediMart Supermarket",
+     "ll": [
+      36.1964506,
+      -82.0659361
+     ],
+     "km": 1.4380838697991303,
+     "big": false
+    },
+    {
+     "name": "RediMart Supermarket",
+     "ll": [
+      36.2813237,
+      -82.1777591
+     ],
+     "km": 14.053495230605366,
+     "big": false
+    },
+    {
+     "name": "Thomas Grocery",
+     "ll": [
+      36.0628548,
+      -82.1164291
+     ],
+     "km": 14.170359602587297,
+     "big": false
+    },
+    {
+     "name": "Ingles",
+     "ll": [
+      36.1019815,
+      -81.9314851
+     ],
+     "km": 15.91410119642191,
+     "big": true
+    },
+    {
+     "name": "Just Local Market",
+     "ll": [
+      36.0156761,
+      -82.158075
+     ],
+     "km": 20.337115054991372,
+     "big": false
+    },
+    {
+     "name": "Food Lion",
+     "ll": [
+      36.1298484,
+      -81.8471967
+     ],
+     "km": 21.38726397632775,
+     "big": true
+    }
+   ],
+   "trailheads": [
+    {
+     "name": "Roan Mountain State Park",
+     "ll": [
+      36.17642799840283,
+      -82.0795879181747
+     ],
+     "km": 1.1215489406020025,
+     "source": "state",
+     "serves": [
+      "Peg Leg Mine Trail"
+     ],
+     "drive": {
+      "min": 3,
+      "mi": 1,
+      "km": 1.098759620289628,
+      "to": "point",
+      "parkingLl": null
+     }
+    },
+    {
+     "name": "Rosebay Ridge Trail",
+     "ll": [
+      36.1739326,
+      -82.07097335
+     ],
+     "km": 1.375121238022024,
+     "source": "state",
+     "serves": [
+      "Rosebay Ridge Trail"
+     ],
+     "drive": {
+      "min": 10,
+      "mi": 2.5,
+      "km": 1.4649751240916025,
+      "to": "point",
+      "parkingLl": null
+     }
+    },
+    {
+     "name": "Moonshiners Run",
+     "ll": [
+      36.17246228,
+      -82.09450689
+     ],
+     "km": 2.2906051732049497,
+     "source": "state",
+     "serves": [
+      "Moonshiners Run"
+     ],
+     "drive": {
+      "min": 5,
+      "mi": 2.1,
+      "km": 2.1732444937501207,
+      "to": "point",
+      "parkingLl": null
+     }
+    },
+    {
+     "name": "Turkey Trot Trail",
+     "ll": [
+      36.16871324,
+      -82.09316585
+     ],
+     "km": 2.501281730529417,
+     "source": "state",
+     "serves": [
+      "Turkey Trot Trail"
+     ],
+     "drive": {
+      "min": 8,
+      "mi": 3.1,
+      "km": 2.408931643724456,
+      "to": "point",
+      "parkingLl": null
+     }
+    },
+    {
+     "name": "Blue 2 Trail",
+     "ll": [
+      36.16714669,
+      -82.10089754
+     ],
+     "km": 3.1116445457057598,
+     "source": "state",
+     "serves": [
+      "Blue 2 Trail"
+     ],
+     "drive": {
+      "min": 7,
+      "mi": 2.9,
+      "km": 2.996705753164041,
+      "to": "point",
+      "parkingLl": null
+     }
+    },
+    {
+     "name": "Riverside Trail",
+     "ll": [
+      36.163201,
+      -82.09703
+     ],
+     "km": 3.195646717332582,
+     "source": "state",
+     "serves": [
+      "Riverside Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Forest Road Trail",
+     "ll": [
+      36.16026003,
+      -82.09174358
+     ],
+     "km": 3.2129475684590543,
+     "source": "state",
+     "serves": [
+      "Forest Road Trail",
+      "Raven Rock Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Bearwallow Trail",
+     "ll": [
+      36.15820058,
+      -82.10015406
+     ],
+     "km": 3.8083805958093584,
+     "source": "state",
+     "serves": [
+      "Bearwallow Trail",
+      "Tom Gray Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Elm Hollow Trail",
+     "ll": [
+      36.15209063,
+      -82.05433034
+     ],
+     "km": 4.19063510886349,
+     "source": "state",
+     "serves": [
+      "Elm Hollow Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Overmountain Victory Trail",
+     "ll": [
+      36.15232324,
+      -82.05129314
+     ],
+     "km": 4.2963889294672954,
+     "source": "state",
+     "serves": [
+      "Overmountain Victory Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Shell Hollow Trail",
+     "ll": [
+      36.14913439,
+      -82.04900263
+     ],
+     "km": 4.706292440520201,
+     "source": "state",
+     "serves": [
+      "Shell Hollow Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Lucy Trap Trail",
+     "ll": [
+      36.24229788,
+      -82.082814
+     ],
+     "km": 6.315638269540572,
+     "source": "state",
+     "serves": [
+      "Lucy Trap Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Hack Line Trail",
+     "ll": [
+      36.1244647,
+      -82.101213
+     ],
+     "km": 7.216250537656535,
+     "source": "state",
+     "serves": [
+      "Hack Line Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Omv Trailhead",
+     "ll": [
+      36.116608313032835,
+      -82.049614441399
+     ],
+     "km": 8.031358193834224,
+     "source": "usfs",
+     "drive": null
+    },
+    {
+     "name": "Appalachian National Scenic Trail",
+     "ll": [
+      36.1328598,
+      -82.1388966
+     ],
+     "km": 8.216433762215265,
+     "source": "state",
+     "serves": [
+      "Appalachian National Scenic Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Coon Den Falls",
+     "ll": [
+      36.256842,
+      -82.111484
+     ],
+     "km": 8.542860057140459,
+     "source": "state",
+     "serves": [
+      "Coon Den Falls",
+      "Laurel Fork Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Appalachian National Scenic Trail",
+     "ll": [
+      36.2187504,
+      -81.9796418
+     ],
+     "km": 9.314278723036365,
+     "source": "state",
+     "serves": [
+      "Appalachian National Scenic Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Carvers Gap Trailhead",
+     "ll": [
+      36.106407018509444,
+      -82.11110366904902
+     ],
+     "km": 9.405743616477201,
+     "source": "usfs",
+     "drive": null
+    },
+    {
+     "name": "Carver Gap Trailhead",
+     "ll": [
+      36.10564247838373,
+      -82.11025966875302
+     ],
+     "km": 9.460069331968269,
+     "source": "usfs",
+     "drive": null
+    },
+    {
+     "name": "Elk River Falls Trailhead",
+     "ll": [
+      36.19899697324829,
+      -81.96992222262259
+     ],
+     "km": 9.551350963393245,
+     "source": "usfs",
+     "drive": null
+    },
+    {
+     "name": "Dennis Cove Trailhead",
+     "ll": [
+      36.26427884075393,
+      -82.12309818204545
+     ],
+     "km": 9.726547588776201,
+     "source": "usfs",
+     "drive": null
+    },
+    {
+     "name": "Little Pond Mountain",
+     "ll": [
+      36.276518,
+      -82.056788
+     ],
+     "km": 10.215663285922686,
+     "source": "state",
+     "serves": [
+      "Little Pond Mountain"
+     ],
+     "drive": null
+    },
+    {
+     "name": "High Water Alternate Trail",
+     "ll": [
+      36.27251099,
+      -82.13497
+     ],
+     "km": 11.032304042278597,
+     "source": "state",
+     "serves": [
+      "High Water Alternate Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Hampton Trailhead",
+     "ll": [
+      36.285338053966115,
+      -82.1520726919183
+     ],
+     "km": 13.040641747172277,
+     "source": "usfs",
+     "drive": null
+    },
+    {
+     "name": "Laurel Fork Trailhead",
+     "ll": [
+      36.285403,
+      -82.1521241
+     ],
+     "km": 13.049207828130529,
+     "source": "osm",
+     "serves": [
+      "Hampton-Blueline Trail"
+     ],
+     "drive": null
+    }
+   ],
+   "trailheadCount": 124
+  },
+  "road": {
+   "name": "State Rte 143",
+   "riseFt": 40.62061990478516,
+   "runFt": 439.1243620218932,
+   "gradePct": 9.250368100223954
+  },
+  "excluded": [],
+  "sites": [
+   {
+    "rank": 1,
+    "ll": [
+     36.18505293216952,
+     -82.07373497167423
+    ],
+    "acres": 0.9484746535123431,
+    "elevFt": 2709.7354429432776,
+    "aspectDeg": 172.55980672040914,
+    "slopeDeg": 7.751909407528686,
+    "cell": {
+     "score": 82.50098022603211,
+     "slope": 83.63057488216943,
+     "aspect": 97.08919807914253,
+     "thermal": 100
+    },
+    "why": [
+     "7.3 h of December sun — good",
+     "0.9 ac, faces S, 7.8° slope, 158 ft above the valley floor",
+     "Tusquitee: septic rated very limited — alternative system",
+     "routed driveway: 2367 ft at ≤15%, 6 switchbacks, ~$80–148k, needs an easement",
+     "Within 15% only via neighbouring land (needs an easement): 2367 ft"
+    ],
+    "sunH": 7.283333333333333,
+    "daylightH": 9.55,
+    "soil": "Tusquitee",
+    "soilKey": "27885551",
+    "sky": {
+     "mag": 20.91961900426926,
+     "coreClear": 13.156289298732574,
+     "domeW": 2.5665882829663573
+    },
+    "roadGrade": 9.250368100223954,
+    "roadRunFt": 439.1243620218932,
+    "roadName": "State Rte 143",
+    "driveFt": 2367.2349613551137,
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 0.5416696739173056,
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 2367.2349613551137,
+     "cost": {
+      "mid": 113573.909490068,
+      "low": 79501.7366430476,
+      "high": 147646.08233708842
+     },
+     "needsEasement": true,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 15.990050084888404,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
+   },
+   {
+    "rank": 2,
+    "ll": [
+     36.18587832976166,
+     -82.07491050597642
+    ],
+    "acres": 0.32279090772214936,
+    "elevFt": 2734.706336493238,
+    "aspectDeg": 195.97448866385466,
+    "slopeDeg": 9.442171993320935,
+    "cell": {
+     "score": 76.25203796282206,
+     "slope": 78.09416742194189,
+     "aspect": 94.670559608773,
+     "thermal": 100
+    },
+    "why": [
+     "6.9 h of December sun — acceptable",
+     "0.3 ac, faces SSW, 9.4° slope, 183 ft above the valley floor",
+     "Tusquitee: septic rated very limited — alternative system",
+     "649 ft to unnamed road at 23% straight-line — about 979 ft of driveway with switchbacks",
+     "routed driveway: 2012 ft at ≤15%, 6 switchbacks, ~$75–140k, needs an easement",
+     "Within 15% only via neighbouring land (needs an easement): 2012 ft"
+    ],
+    "sunH": 6.9,
+    "daylightH": 9.55,
+    "soil": "Tusquitee",
+    "soilKey": "27885551",
+    "sky": {
+     "mag": 20.91961900426926,
+     "coreClear": 11.913878570323636,
+     "domeW": 2.5665882829663573
+    },
+    "roadGrade": 22.610203623127614,
+    "roadRunFt": 649.4360625195619,
+    "roadName": "unnamed road",
+    "driveFt": 2011.932616977945,
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 0.12381021118109842,
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 2011.932616977945,
+     "cost": {
+      "mid": 107470.33470492103,
+      "low": 75229.23429344471,
+      "high": 139711.43511639733
+     },
+     "needsEasement": true,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 15.990050084888404,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
+   },
+   {
+    "rank": 3,
+    "ll": [
+     36.18556074844089,
+     -82.07424087318732
+    ],
+    "acres": 0.4841863615832241,
+    "elevFt": 2751.906298122871,
+    "aspectDeg": 187.47735546432762,
+    "slopeDeg": 13.256549774239597,
+    "compact": true,
+    "cell": {
+     "score": 53.91077376065189,
+     "slope": 54.64656389140647,
+     "aspect": 96.97201241967885,
+     "thermal": 100
+    },
+    "why": [
+     "compact site: 0.48 ac shelf — needs a cut pad and probably a retaining wall",
+     "7.6 h of December sun — good",
+     "0.5 ac, faces S, 13.3° slope, 201 ft above the valley floor",
+     "Porters: septic rated very limited — alternative system",
+     "591 ft to State Rte 143 at 17% straight-line — about 663 ft of driveway with switchbacks",
+     "routed driveway: 2185 ft at ≤15%, 6 switchbacks, ~$78–144k, needs an easement",
+     "Within 15% only via neighbouring land (needs an easement): 2185 ft"
+    ],
+    "sunH": 7.566666666666666,
+    "daylightH": 9.55,
+    "soil": "Porters",
+    "soilKey": "27885642",
+    "sky": {
+     "mag": 20.91961900426926,
+     "coreClear": 14.59151381446889,
+     "domeW": 2.5665882829663573
+    },
+    "roadGrade": 16.80938643793915,
+    "roadRunFt": 591.1909434958761,
+    "roadName": "State Rte 143",
+    "driveFt": 2185.121387261132,
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 0.4819754649549902,
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 2185.121387261132,
+     "cost": {
+      "mid": 111119.44994678664,
+      "low": 77783.61496275064,
+      "high": 144455.28493082264
+     },
+     "needsEasement": true,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 15.990050084888404,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
+   },
+   {
+    "rank": 4,
+    "ll": [
+     36.187052735753305,
+     -82.07625716612674
+    ],
+    "acres": 0.198980696541051,
+    "elevFt": 2920.425252622043,
+    "aspectDeg": 134.12932422738652,
+    "slopeDeg": 7.747315420707067,
+    "compact": true,
+    "cell": {
+     "score": 80.42808998955621,
+     "slope": 83.91706212361653,
+     "aspect": 90.21976492140028,
+     "thermal": 100
+    },
+    "why": [
+     "compact site: 0.20 ac shelf — needs a cut pad and probably a retaining wall",
+     "7.9 h of December sun — good",
+     "0.2 ac, faces SE, 7.7° slope, 369 ft above the valley floor",
+     "Porters: septic rated very limited — alternative system",
+     "417 ft to unnamed road at 5% straight-line",
+     "routed driveway: 652 ft at ≤15%, 1 switchback, ~$33–62k, needs an easement",
+     "Within 15% only via neighbouring land (needs an easement): 652 ft"
+    ],
+    "sunH": 7.883333333333334,
+    "daylightH": 9.55,
+    "soil": "Porters",
+    "soilKey": "27885543",
+    "sky": {
+     "mag": 20.986145998452336,
+     "coreClear": 17.469459403616657,
+     "domeW": 2.192396058543589
+    },
+    "roadGrade": 5.275165732431242,
+    "roadRunFt": 417.16790514492305,
+    "roadName": "unnamed road",
+    "driveFt": 652.0596821640069,
+    "practical": null,
+    "fit": "house only",
+    "gentleNearAc": 0.1569736606046069,
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 652.0596821640069,
+     "cost": {
+      "mid": 47679.14831609359,
+      "low": 33375.403821265514,
+      "high": 61982.892810921665
+     },
+     "needsEasement": true,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 12.580700539112968,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
+   }
+  ],
+  "driveway": {
+   "toLabel": "site #1",
+   "entrances": [
+    {
+     "ll": [
+      36.18611680335525,
+      -82.07718284148568
+     ],
+     "name": "road",
+     "roadGrade": 37.967389431714636,
+     "bend": 12.276521172659415,
+     "bankFt": 0.9503702783203125,
+     "score": 83.49859486723945,
+     "source": "tiger",
+     "reaches": null,
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1750",
+      "osm": null
+     }
+    }
+   ],
+   "routes": [
+    {
+     "line": {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+       "type": "LineString",
+       "coordinates": [
+        [
+         -82.07717592478951,
+         36.18612762507501
+        ],
+        [
+         -82.0770051907864,
+         36.185805568640134
+        ],
+        [
+         -82.07698227478937,
+         36.18578613652068
+        ],
+        [
+         -82.07695286437135,
+         36.18577371530128
+        ],
+        [
+         -82.0769200877361,
+         36.18576962614928
+        ],
+        [
+         -82.07688743112786,
+         36.18577430400219
+        ],
+        [
+         -82.07685836802466,
+         36.18578725130644
+        ],
+        [
+         -82.07683598968922,
+         36.18580709093846
+        ],
+        [
+         -82.07681841295542,
+         36.18582931220676
+        ],
+        [
+         -82.07680083621182,
+         36.18585153347253
+        ],
+        [
+         -82.07678325945835,
+         36.18587375473582
+        ],
+        [
+         -82.07676568269505,
+         36.18589597599662
+        ],
+        [
+         -82.07674810592192,
+         36.18591819725492
+        ],
+        [
+         -82.07673052913896,
+         36.18594041851074
+        ],
+        [
+         -82.07671295234616,
+         36.18596263976404
+        ],
+        [
+         -82.07669537554351,
+         36.185984861014866
+        ],
+        [
+         -82.07667779873104,
+         36.186007082263195
+        ],
+        [
+         -82.07666022190871,
+         36.18602930350902
+        ],
+        [
+         -82.07664264507656,
+         36.18605152475236
+        ],
+        [
+         -82.07668070367623,
+         36.1864017412552
+        ],
+        [
+         -82.07648556628652,
+         36.18672708912122
+        ],
+        [
+         -82.07647169470084,
+         36.186749573422695
+        ],
+        [
+         -82.07645010807731,
+         36.18676762270145
+        ],
+        [
+         -82.07642281425076,
+         36.18677955813759
+        ],
+        [
+         -82.0763923519048,
+         36.18678426957814
+        ],
+        [
+         -82.07636155443969,
+         36.18678131879677
+        ],
+        [
+         -82.07633328642662,
+         36.186770980255
+        ],
+        [
+         -82.07630701812349,
+         36.18675643712551
+        ],
+        [
+         -82.07628074982999,
+         36.18674189399004
+        ],
+        [
+         -82.07625448154613,
+         36.18672735084863
+        ],
+        [
+         -82.07622821327192,
+         36.18671280770123
+        ],
+        [
+         -82.07620194500734,
+         36.18669826454788
+        ],
+        [
+         -82.07617567675237,
+         36.186683721388576
+        ],
+        [
+         -82.07614940850708,
+         36.18666917822329
+        ],
+        [
+         -82.07612314027139,
+         36.18665463505205
+        ],
+        [
+         -82.07609687204534,
+         36.18664009187485
+        ],
+        [
+         -82.07607060382895,
+         36.18662554869168
+        ],
+        [
+         -82.07604433562219,
+         36.18661100550254
+        ],
+        [
+         -82.07601806742505,
+         36.18659646230745
+        ],
+        [
+         -82.07588354826478,
+         36.18648980723395
+        ],
+        [
+         -82.07585936890123,
+         36.18647560699804
+        ],
+        [
+         -82.07583114401153,
+         36.18646771202264
+        ],
+        [
+         -82.07580130715553,
+         36.18646680301524
+        ],
+        [
+         -82.07577243087628,
+         36.18647295835086
+        ],
+        [
+         -82.07574700489643,
+         36.18648564731459
+        ],
+        [
+         -82.07572722145513,
+         36.18650377585955
+        ],
+        [
+         -82.07571006676318,
+         36.186525354783114
+        ],
+        [
+         -82.07569291206191,
+         36.18654693370431
+        ],
+        [
+         -82.07567575735132,
+         36.18656851262312
+        ],
+        [
+         -82.07565860263142,
+         36.18659009153955
+        ],
+        [
+         -82.07564144790219,
+         36.1866116704536
+        ],
+        [
+         -82.0756242931636,
+         36.186633249365286
+        ],
+        [
+         -82.0756071384157,
+         36.186654828274584
+        ],
+        [
+         -82.07558998365849,
+         36.1866764071815
+        ],
+        [
+         -82.07557282889196,
+         36.18669798608606
+        ],
+        [
+         -82.07555567411607,
+         36.18671956498824
+        ],
+        [
+         -82.0755385193309,
+         36.18674114388803
+        ],
+        [
+         -82.07552136453639,
+         36.18676272278545
+        ],
+        [
+         -82.07539053205143,
+         36.18692569468293
+        ],
+        [
+         -82.0753733097076,
+         36.186945990304935
+        ],
+        [
+         -82.07534945831752,
+         36.18696125425365
+        ],
+        [
+         -82.07532110802754,
+         36.18697012331736
+        ],
+        [
+         -82.07529079078047,
+         36.18697180540626
+        ],
+        [
+         -82.07526121418842,
+         36.18696615029406
+        ],
+        [
+         -82.07523501971555,
+         36.18695366303469
+        ],
+        [
+         -82.07521454676898,
+         36.18693545885596
+        ],
+        [
+         -82.07520162376716,
+         36.186913163558735
+        ],
+        [
+         -82.07519740484577,
+         36.18688876831701
+        ],
+        [
+         -82.07520226678476,
+         36.186864451847235
+        ],
+        [
+         -82.07521293224366,
+         36.18684065979967
+        ],
+        [
+         -82.07522359769622,
+         36.18681686775116
+        ],
+        [
+         -82.07523426314253,
+         36.186793075701736
+        ],
+        [
+         -82.07524492858253,
+         36.18676928365136
+        ],
+        [
+         -82.07525559401626,
+         36.186745491600064
+        ],
+        [
+         -82.07526625944368,
+         36.186721699547824
+        ],
+        [
+         -82.0752769248648,
+         36.186697907494654
+        ],
+        [
+         -82.07528759027964,
+         36.18667411544054
+        ],
+        [
+         -82.07529825568818,
+         36.18665032338551
+        ],
+        [
+         -82.07530892109042,
+         36.18662653132953
+        ],
+        [
+         -82.07531958648639,
+         36.18660273927261
+        ],
+        [
+         -82.07525011584377,
+         36.186387634819624
+        ],
+        [
+         -82.07534768691521,
+         36.186224961887255
+        ],
+        [
+         -82.07574571075138,
+         36.18614048722872
+        ],
+        [
+         -82.07577707570825,
+         36.18613617069624
+        ],
+        [
+         -82.07580526009286,
+         36.186124208389806
+        ],
+        [
+         -82.07582750501615,
+         36.186105771266504
+        ],
+        [
+         -82.07584163299039,
+         36.18608266408416
+        ],
+        [
+         -82.07584626107685,
+         36.18605714873766
+        ],
+        [
+         -82.07584093625522,
+         36.186031722847815
+        ],
+        [
+         -82.07582617976489,
+         36.18600887527652
+        ],
+        [
+         -82.07580343607911,
+         36.18599084250003
+        ],
+        [
+         -82.07577493150794,
+         36.18597938968845
+        ],
+        [
+         -82.07574345627158,
+         36.185975637919874
+        ],
+        [
+         -82.07571019935905,
+         36.185976216179064
+        ],
+        [
+         -82.07567694244581,
+         36.18597679442901
+        ],
+        [
+         -82.07564368553186,
+         36.18597737266973
+        ],
+        [
+         -82.07561042861717,
+         36.18597795090123
+        ],
+        [
+         -82.07557717170174,
+         36.18597852912348
+        ],
+        [
+         -82.0755439147856,
+         36.185979107336514
+        ],
+        [
+         -82.07551065786872,
+         36.1859796855403
+        ],
+        [
+         -82.07547740095113,
+         36.18598026373487
+        ],
+        [
+         -82.0754441440328,
+         36.185980841920184
+        ],
+        [
+         -82.07541088711376,
+         36.185981420096276
+        ],
+        [
+         -82.07537763019397,
+         36.18598199826313
+        ],
+        [
+         -82.0750793890642,
+         36.186065575527834
+        ],
+        [
+         -82.075051410982,
+         36.18607641955129
+        ],
+        [
+         -82.07502070205088,
+         36.186079923085366
+        ],
+        [
+         -82.07499011860705,
+         36.186075760254944
+        ],
+        [
+         -82.07496250531472,
+         36.18606431825811
+        ],
+        [
+         -82.07494043057251,
+         36.186046661351334
+        ],
+        [
+         -82.07492594761739,
+         36.18602443185885
+        ],
+        [
+         -82.07491530523296,
+         36.18599897551096
+        ],
+        [
+         -82.07490466285562,
+         36.18597351916191
+        ],
+        [
+         -82.07489402048535,
+         36.18594806281169
+        ],
+        [
+         -82.07488337812214,
+         36.1859226064603
+        ],
+        [
+         -82.07487273576602,
+         36.185897150107735
+        ],
+        [
+         -82.074862093417,
+         36.185871693754
+        ],
+        [
+         -82.07485145107502,
+         36.18584623739911
+        ],
+        [
+         -82.07484080874012,
+         36.18582078104304
+        ],
+        [
+         -82.0748301664123,
+         36.18579532468581
+        ],
+        [
+         -82.07481952409155,
+         36.1857698683274
+        ],
+        [
+         -82.0748088817779,
+         36.185744411967825
+        ],
+        [
+         -82.0746060027747,
+         36.185503538861035
+        ],
+        [
+         -82.0739005372957,
+         36.184997514730874
+        ],
+        [
+         -82.07387205215878,
+         36.18498712672782
+        ],
+        [
+         -82.07384102136649,
+         36.184984237947965
+        ],
+        [
+         -82.07381037294522,
+         36.18498912097306
+        ],
+        [
+         -82.07378299884182,
+         36.18500131504711
+        ],
+        [
+         -82.07376148204517,
+         36.18501966955238
+        ],
+        [
+         -82.07374785285974,
+         36.18504245257929
+        ]
+       ]
+      }
+     },
+     "profile": [
+      [
+       0,
+       880.7701458974084
+      ],
+      [
+       3,
+       881.1142903529241
+      ],
+      [
+       6,
+       881.3354183556836
+      ],
+      [
+       9,
+       881.900793146383
+      ],
+      [
+       12,
+       882.2559722177299
+      ],
+      [
+       15,
+       882.5400950024155
+      ],
+      [
+       18,
+       882.8069397607605
+      ],
+      [
+       21,
+       882.9353427043492
+      ],
+      [
+       24,
+       883.0059732734439
+      ],
+      [
+       27,
+       883.085160449238
+      ],
+      [
+       30,
+       883.0827824363411
+      ],
+      [
+       33,
+       883.0405391172196
+      ],
+      [
+       36,
+       882.9285361142764
+      ],
+      [
+       39,
+       882.6048879261879
+      ],
+      [
+       42,
+       882.8370409446334
+      ],
+      [
+       45,
+       883.0695075180516
+      ],
+      [
+       48,
+       883.3021627828967
+      ],
+      [
+       51,
+       883.5348018463936
+      ],
+      [
+       54,
+       883.7672276038168
+      ],
+      [
+       57,
+       883.9884843603919
+      ],
+      [
+       60,
+       884.0296524655224
+      ],
+      [
+       63,
+       884.0708205706962
+      ],
+      [
+       66,
+       884.1119886758312
+      ],
+      [
+       69,
+       884.1531567809626
+      ],
+      [
+       72,
+       884.1943248860939
+      ],
+      [
+       75,
+       884.2354929912101
+      ],
+      [
+       78,
+       884.2766610963381
+      ],
+      [
+       81,
+       884.3178292014412
+      ],
+      [
+       84,
+       884.3589973065466
+      ],
+      [
+       87,
+       884.4001654116441
+      ],
+      [
+       90,
+       884.5622331189949
+      ],
+      [
+       93,
+       884.9229643978728
+      ],
+      [
+       96,
+       885.0636405136236
+      ],
+      [
+       99,
+       885.124585593767
+      ],
+      [
+       102,
+       885.2803595723904
+      ],
+      [
+       105,
+       885.394440695384
+      ],
+      [
+       108,
+       885.2847820032628
+      ],
+      [
+       111,
+       884.8716365004161
+      ],
+      [
+       114,
+       884.2519444188263
+      ],
+      [
+       117,
+       883.4964398743964
+      ],
+      [
+       120,
+       882.8242581122595
+      ],
+      [
+       123,
+       882.4509670535674
+      ],
+      [
+       126,
+       882.615409715453
+      ],
+      [
+       129,
+       882.4404391375765
+      ],
+      [
+       132,
+       881.7077951017095
+      ],
+      [
+       135,
+       881.1341356276271
+      ],
+      [
+       138,
+       880.4877669777962
+      ],
+      [
+       141,
+       880.5173050279311
+      ],
+      [
+       144,
+       880.2638716854951
+      ],
+      [
+       147,
+       880.1370604898666
+      ],
+      [
+       150,
+       880.0753416444342
+      ],
+      [
+       153,
+       879.8703636961359
+      ],
+      [
+       156,
+       879.6291479173315
+      ],
+      [
+       159,
+       879.3845356185952
+      ],
+      [
+       162,
+       879.0358942618451
+      ],
+      [
+       165,
+       878.4530588510694
+      ],
+      [
+       168,
+       877.9347772103935
+      ],
+      [
+       171,
+       877.5193070944407
+      ],
+      [
+       174,
+       877.1317637615184
+      ],
+      [
+       177,
+       876.7436824861425
+      ],
+      [
+       180,
+       876.3552999836172
+      ],
+      [
+       183,
+       875.9669491860166
+      ],
+      [
+       186,
+       875.5597713888045
+      ],
+      [
+       189,
+       875.1094993950978
+      ],
+      [
+       192,
+       874.6592274052183
+      ],
+      [
+       195,
+       874.2089554190394
+      ],
+      [
+       198,
+       873.75868343663
+      ],
+      [
+       201,
+       873.308411458066
+      ],
+      [
+       204,
+       872.8581394832283
+      ],
+      [
+       207,
+       872.4078675122144
+      ],
+      [
+       210,
+       871.9575955450706
+      ],
+      [
+       213,
+       871.5073235815116
+      ],
+      [
+       216,
+       871.0570516218407
+      ],
+      [
+       219,
+       870.6067796659395
+      ],
+      [
+       222,
+       870.2089950157444
+      ],
+      [
+       225,
+       869.8189728919334
+      ],
+      [
+       228,
+       869.4289507681223
+      ],
+      [
+       231,
+       869.0389286443112
+      ],
+      [
+       234,
+       868.6489065205001
+      ],
+      [
+       237,
+       868.2492187124316
+      ],
+      [
+       240,
+       867.817040703562
+      ],
+      [
+       243,
+       867.384474523767
+      ],
+      [
+       246,
+       866.9518629462818
+      ],
+      [
+       249,
+       866.5195672744454
+      ],
+      [
+       252,
+       866.0878214777529
+      ],
+      [
+       255,
+       865.6663451916755
+      ],
+      [
+       258,
+       865.2464437197465
+      ],
+      [
+       261,
+       864.8265422478205
+      ],
+      [
+       264,
+       864.4066407757974
+      ],
+      [
+       267,
+       863.9867393039108
+      ],
+      [
+       270,
+       863.5668378323411
+      ],
+      [
+       273,
+       863.1469363606009
+      ],
+      [
+       276,
+       862.7270348889072
+      ],
+      [
+       279,
+       862.3071334174466
+      ],
+      [
+       282,
+       861.8872319460454
+      ],
+      [
+       285,
+       861.4673304745481
+      ],
+      [
+       288,
+       861.1639766869697
+      ],
+      [
+       291,
+       860.9963812185382
+      ],
+      [
+       294,
+       860.8287857501068
+      ],
+      [
+       297,
+       860.6611902816753
+      ],
+      [
+       300,
+       860.4935948132439
+      ],
+      [
+       303,
+       860.3259993448124
+      ],
+      [
+       306,
+       860.158403876381
+      ],
+      [
+       309,
+       859.916299521953
+      ],
+      [
+       312,
+       859.4665338119879
+      ],
+      [
+       315,
+       859.0161697864002
+      ],
+      [
+       318,
+       858.5653932777974
+      ],
+      [
+       321,
+       858.114560298677
+      ],
+      [
+       324,
+       857.6640519373174
+      ],
+      [
+       327,
+       857.21411793857
+      ],
+      [
+       330,
+       856.7647750448481
+      ],
+      [
+       333,
+       856.3157994940308
+      ],
+      [
+       336,
+       855.8956546972496
+      ],
+      [
+       339,
+       855.6334896595799
+      ],
+      [
+       342,
+       855.371324622318
+      ],
+      [
+       345,
+       855.1091595854996
+      ],
+      [
+       348,
+       854.8469945491511
+      ],
+      [
+       351,
+       854.5848295132074
+      ],
+      [
+       354,
+       854.3226644777155
+      ],
+      [
+       357,
+       854.0604994427327
+      ],
+      [
+       360,
+       853.7983344081223
+      ],
+      [
+       363,
+       853.5361693739474
+      ],
+      [
+       366,
+       853.27400434035
+      ],
+      [
+       369,
+       853.1945749834346
+      ],
+      [
+       372,
+       853.3552334886643
+      ],
+      [
+       375,
+       853.6833135913273
+      ],
+      [
+       378,
+       854.0791000148729
+      ],
+      [
+       381,
+       854.392233182098
+      ],
+      [
+       384,
+       854.5901819113865
+      ],
+      [
+       387,
+       854.5012405864659
+      ],
+      [
+       390,
+       854.1217524630549
+      ],
+      [
+       393,
+       853.8672516638196
+      ],
+      [
+       396,
+       853.719388424407
+      ],
+      [
+       399,
+       853.4160568642131
+      ],
+      [
+       402,
+       852.9980001254307
+      ],
+      [
+       405,
+       852.5807074857814
+      ],
+      [
+       408,
+       852.0726819427778
+      ],
+      [
+       411,
+       851.4808107504792
+      ],
+      [
+       414,
+       851.6812549288609
+      ],
+      [
+       417,
+       851.8579367190129
+      ],
+      [
+       420,
+       851.9633163827694
+      ],
+      [
+       423,
+       851.9362502662825
+      ],
+      [
+       426,
+       851.8446425410583
+      ],
+      [
+       429,
+       851.6610037605168
+      ],
+      [
+       432,
+       851.3335456231493
+      ],
+      [
+       435,
+       850.9237883945432
+      ],
+      [
+       438,
+       850.5303945900514
+      ],
+      [
+       441,
+       850.2028025802799
+      ],
+      [
+       444,
+       849.806478872456
+      ],
+      [
+       447,
+       849.2779608187986
+      ],
+      [
+       450,
+       848.7715050025433
+      ],
+      [
+       453,
+       848.3208950087335
+      ],
+      [
+       456,
+       847.8708194280147
+      ],
+      [
+       459,
+       847.421347390283
+      ],
+      [
+       462,
+       846.9722976671741
+      ],
+      [
+       465,
+       846.5233145007902
+      ],
+      [
+       468,
+       846.0740119249592
+      ],
+      [
+       471,
+       845.6241302642993
+      ],
+      [
+       474,
+       845.1736444573893
+      ],
+      [
+       477,
+       844.7289052999278
+      ],
+      [
+       480,
+       844.3989092983076
+      ],
+      [
+       483,
+       844.068913298863
+      ],
+      [
+       486,
+       843.7389173016181
+      ],
+      [
+       489,
+       843.4089213068371
+      ],
+      [
+       492,
+       843.0789253144927
+      ],
+      [
+       495,
+       842.7489293243533
+      ],
+      [
+       498,
+       842.4189333366497
+      ],
+      [
+       501,
+       842.0889373511523
+      ],
+      [
+       504,
+       841.7589413680861
+      ],
+      [
+       507,
+       841.4289453872432
+      ],
+      [
+       510,
+       841.1076173880825
+      ],
+      [
+       513,
+       840.8607425429219
+      ],
+      [
+       516,
+       840.6138676977613
+      ],
+      [
+       519,
+       840.3669928526007
+      ],
+      [
+       522,
+       840.12011800744
+      ],
+      [
+       525,
+       839.8732431622796
+      ],
+      [
+       528,
+       839.6263683171189
+      ],
+      [
+       531,
+       839.3794934719583
+      ],
+      [
+       534,
+       839.1326186267977
+      ],
+      [
+       537,
+       838.8857437816371
+      ],
+      [
+       540,
+       838.5044946673399
+      ],
+      [
+       543,
+       838.0537203454378
+      ],
+      [
+       546,
+       837.6028700654527
+      ],
+      [
+       549,
+       837.1523346706842
+      ],
+      [
+       552,
+       836.702388619273
+      ],
+      [
+       555,
+       836.2575109745369
+      ],
+      [
+       558,
+       835.859961717695
+      ],
+      [
+       561,
+       835.462412463396
+      ],
+      [
+       564,
+       835.0648632117262
+      ],
+      [
+       567,
+       834.6673139626538
+      ],
+      [
+       570,
+       834.2697647162391
+      ],
+      [
+       573,
+       833.8722154723106
+      ],
+      [
+       576,
+       833.4746662309465
+      ],
+      [
+       579,
+       833.0771169922799
+      ],
+      [
+       582,
+       832.6795677560963
+      ],
+      [
+       585,
+       832.2820185226881
+      ],
+      [
+       588,
+       831.9756095395197
+      ],
+      [
+       591,
+       832.2344039784491
+      ],
+      [
+       594,
+       832.3578372671616
+      ],
+      [
+       597,
+       832.2838826826784
+      ],
+      [
+       600,
+       832.2294427242126
+      ],
+      [
+       603,
+       832.277461173962
+      ],
+      [
+       606,
+       832.4693251154328
+      ],
+      [
+       609,
+       832.5715113459551
+      ],
+      [
+       612,
+       832.5346791038056
+      ],
+      [
+       615,
+       832.7175522161454
+      ],
+      [
+       618,
+       832.8923596518317
+      ],
+      [
+       621,
+       833.0581650967313
+      ],
+      [
+       624,
+       833.4082373499045
+      ],
+      [
+       627,
+       833.5342903417163
+      ],
+      [
+       630,
+       833.5680389074835
+      ],
+      [
+       633,
+       833.577468723079
+      ],
+      [
+       636,
+       833.4830668005964
+      ],
+      [
+       639,
+       833.4349106735104
+      ],
+      [
+       642,
+       833.4210049212045
+      ],
+      [
+       645,
+       833.2306777787361
+      ],
+      [
+       648,
+       833.018064310023
+      ],
+      [
+       651,
+       832.7609849168862
+      ],
+      [
+       654,
+       832.5159939991715
+      ],
+      [
+       657,
+       832.1595310310465
+      ],
+      [
+       660,
+       831.8728199114106
+      ],
+      [
+       663,
+       831.5862370337995
+      ],
+      [
+       666,
+       831.301173510195
+      ],
+      [
+       669,
+       830.9761939767201
+      ],
+      [
+       672,
+       830.6718137683174
+      ],
+      [
+       675,
+       830.3022351992046
+      ],
+      [
+       678,
+       829.9627958435515
+      ],
+      [
+       681,
+       829.3092361023455
+      ],
+      [
+       684,
+       828.8671807524805
+      ],
+      [
+       687,
+       828.4428837015053
+      ],
+      [
+       690,
+       828.0310461786934
+      ],
+      [
+       693,
+       827.6481986041978
+      ],
+      [
+       696,
+       827.2555557787624
+      ],
+      [
+       699,
+       826.8093151308751
+      ],
+      [
+       702,
+       826.38855628692
+      ],
+      [
+       705,
+       825.9858002218405
+      ],
+      [
+       708,
+       825.8315146112449
+      ],
+      [
+       711,
+       825.6771451283146
+      ],
+      [
+       714,
+       825.5228276628387
+      ],
+      [
+       717,
+       825.3686748783186
+      ],
+      [
+       720,
+       825.2147300586429
+      ]
+     ],
+     "metrics": {
+      "lengthFt": 2367.2349613551137,
+      "riseFt": 182.2684305004554,
+      "maxGradePct": 15.990050084888404,
+      "avgGradePct": 10.200404022591323,
+      "switchbacks": 6,
+      "earthYd": 2125.0775725188278,
+      "rockYd": 41.4799315996698,
+      "stoneTons": 724.4274070762675,
+      "fabricSf": 0,
+      "clearAc": 1.3015504143616106,
+      "culverts": 1,
+      "outsideFt": 403.54332,
+      "sfhaFt": 0,
+      "drawnFt": 0,
+      "privateFt": 0
+     },
+     "cost": {
+      "mid": 113573.909490068,
+      "low": 79501.7366430476,
+      "high": 147646.08233708842
+     },
+     "culverts": [],
+     "needsEasement": true,
+     "maxGrade": 0.15,
+     "label": "shortest legal",
+     "lines": [],
+     "existing": null,
+     "entranceIndex": 0,
+     "track": {
+      "hours": 25,
+      "waterBars": 13,
+      "cost": {
+       "mid": 16156.906398112995,
+       "low": 11309.834478679095,
+       "high": 21003.978317546895
+      }
+     }
+    }
+   ],
+   "note": null,
+   "roadsNearestFt": 108.79440058265438,
+   "practical": null,
+   "steepLanding": null,
+   "direct": {
+    "line": {
+     "type": "Feature",
+     "properties": {},
+     "geometry": {
+      "type": "LineString",
+      "coordinates": [
+       [
+        -82.07717592478951,
+        36.18612762507501
+       ],
+       [
+        -82.07700555995801,
+        36.185832531383475
+       ],
+       [
+        -82.07698264395287,
+        36.185813099264315
+       ],
+       [
+        -82.07695323352459,
+        36.185800678045226
+       ],
+       [
+        -82.07692045687804,
+        36.18579658889353
+       ],
+       [
+        -82.0768878002587,
+        36.185801266746715
+       ],
+       [
+        -82.0768587371457,
+        36.18581421405116
+       ],
+       [
+        -82.07683635880286,
+        36.1858340536833
+       ],
+       [
+        -82.07681878206336,
+        36.18585627495165
+       ],
+       [
+        -82.076801205314,
+        36.185878496217484
+       ],
+       [
+        -82.07678362855484,
+        36.18590071748083
+       ],
+       [
+        -82.07676605178581,
+        36.185922938741676
+       ],
+       [
+        -82.07674847500695,
+        36.18594516000004
+       ],
+       [
+        -82.07673089821824,
+        36.185967381255914
+       ],
+       [
+        -82.07671332141973,
+        36.18598960250927
+       ],
+       [
+        -82.07669574461134,
+        36.18601182376015
+       ],
+       [
+        -82.07667816779315,
+        36.186034045008526
+       ],
+       [
+        -82.07666059096513,
+        36.18605626625441
+       ],
+       [
+        -82.07664301412724,
+        36.18607848749779
+       ],
+       [
+        -82.07668070367623,
+        36.1864017412552
+       ],
+       [
+        -82.07648556628652,
+        36.18672708912122
+       ],
+       [
+        -82.07647169470084,
+        36.186749573422695
+       ],
+       [
+        -82.07645010807731,
+        36.18676762270145
+       ],
+       [
+        -82.07642281425076,
+        36.18677955813759
+       ],
+       [
+        -82.0763923519048,
+        36.18678426957814
+       ],
+       [
+        -82.07636155443969,
+        36.18678131879677
+       ],
+       [
+        -82.07633328642662,
+        36.186770980255
+       ],
+       [
+        -82.07630701812349,
+        36.18675643712551
+       ],
+       [
+        -82.07628074982999,
+        36.18674189399004
+       ],
+       [
+        -82.07625448154613,
+        36.18672735084863
+       ],
+       [
+        -82.07622821327192,
+        36.18671280770123
+       ],
+       [
+        -82.07620194500734,
+        36.18669826454788
+       ],
+       [
+        -82.07617567675237,
+        36.186683721388576
+       ],
+       [
+        -82.07614940850708,
+        36.18666917822329
+       ],
+       [
+        -82.07612314027139,
+        36.18665463505205
+       ],
+       [
+        -82.07609687204534,
+        36.18664009187485
+       ],
+       [
+        -82.07607060382895,
+        36.18662554869168
+       ],
+       [
+        -82.07604433562219,
+        36.18661100550254
+       ],
+       [
+        -82.07601806742505,
+        36.18659646230745
+       ],
+       [
+        -82.07588354826478,
+        36.18648980723395
+       ],
+       [
+        -82.07585936890123,
+        36.18647560699804
+       ],
+       [
+        -82.07583114401153,
+        36.18646771202264
+       ],
+       [
+        -82.07580130715553,
+        36.18646680301524
+       ],
+       [
+        -82.07577243087628,
+        36.18647295835086
+       ],
+       [
+        -82.07574700489643,
+        36.18648564731459
+       ],
+       [
+        -82.07572722145513,
+        36.18650377585955
+       ],
+       [
+        -82.07571006676318,
+        36.186525354783114
+       ],
+       [
+        -82.07569291206191,
+        36.18654693370431
+       ],
+       [
+        -82.07567575735132,
+        36.18656851262312
+       ],
+       [
+        -82.07565860263142,
+        36.18659009153955
+       ],
+       [
+        -82.07564144790219,
+        36.1866116704536
+       ],
+       [
+        -82.0756242931636,
+        36.186633249365286
+       ],
+       [
+        -82.0756071384157,
+        36.186654828274584
+       ],
+       [
+        -82.07558998365849,
+        36.1866764071815
+       ],
+       [
+        -82.07557282889196,
+        36.18669798608606
+       ],
+       [
+        -82.07555567411607,
+        36.18671956498824
+       ],
+       [
+        -82.0755385193309,
+        36.18674114388803
+       ],
+       [
+        -82.07552136453639,
+        36.18676272278545
+       ],
+       [
+        -82.07539053205143,
+        36.18692569468293
+       ],
+       [
+        -82.0753733097076,
+        36.186945990304935
+       ],
+       [
+        -82.07534945831752,
+        36.18696125425365
+       ],
+       [
+        -82.07532110802754,
+        36.18697012331736
+       ],
+       [
+        -82.07529079078047,
+        36.18697180540626
+       ],
+       [
+        -82.07526121418842,
+        36.18696615029406
+       ],
+       [
+        -82.07523501971555,
+        36.18695366303469
+       ],
+       [
+        -82.07521454676898,
+        36.18693545885596
+       ],
+       [
+        -82.07520162376716,
+        36.186913163558735
+       ],
+       [
+        -82.07519740484577,
+        36.18688876831701
+       ],
+       [
+        -82.07520226678476,
+        36.186864451847235
+       ],
+       [
+        -82.07521293224366,
+        36.18684065979967
+       ],
+       [
+        -82.07522359769622,
+        36.18681686775116
+       ],
+       [
+        -82.07523426314253,
+        36.186793075701736
+       ],
+       [
+        -82.07524492858253,
+        36.18676928365136
+       ],
+       [
+        -82.07525559401626,
+        36.186745491600064
+       ],
+       [
+        -82.07526625944368,
+        36.186721699547824
+       ],
+       [
+        -82.0752769248648,
+        36.186697907494654
+       ],
+       [
+        -82.07528759027964,
+        36.18667411544054
+       ],
+       [
+        -82.07529825568818,
+        36.18665032338551
+       ],
+       [
+        -82.07530892109042,
+        36.18662653132953
+       ],
+       [
+        -82.07531958648639,
+        36.18660273927261
+       ],
+       [
+        -82.07528374534489,
+        36.18641429878571
+       ],
+       [
+        -82.07538131637774,
+        36.18625162582726
+       ],
+       [
+        -82.07574571075138,
+        36.18614048722872
+       ],
+       [
+        -82.07577707570825,
+        36.18613617069624
+       ],
+       [
+        -82.07580526009286,
+        36.186124208389806
+       ],
+       [
+        -82.07582750501615,
+        36.186105771266504
+       ],
+       [
+        -82.07584163299039,
+        36.18608266408416
+       ],
+       [
+        -82.07584626107685,
+        36.18605714873766
+       ],
+       [
+        -82.07584093625522,
+        36.186031722847815
+       ],
+       [
+        -82.07582617976489,
+        36.18600887527652
+       ],
+       [
+        -82.07580343607911,
+        36.18599084250003
+       ],
+       [
+        -82.07577493150794,
+        36.18597938968845
+       ],
+       [
+        -82.07574345627158,
+        36.185975637919874
+       ],
+       [
+        -82.07571019935905,
+        36.185976216179064
+       ],
+       [
+        -82.07567694244581,
+        36.18597679442901
+       ],
+       [
+        -82.07564368553186,
+        36.18597737266973
+       ],
+       [
+        -82.07561042861717,
+        36.18597795090123
+       ],
+       [
+        -82.07557717170174,
+        36.18597852912348
+       ],
+       [
+        -82.0755439147856,
+        36.185979107336514
+       ],
+       [
+        -82.07551065786872,
+        36.1859796855403
+       ],
+       [
+        -82.07547740095113,
+        36.18598026373487
+       ],
+       [
+        -82.0754441440328,
+        36.185980841920184
+       ],
+       [
+        -82.07541088711376,
+        36.185981420096276
+       ],
+       [
+        -82.07537763019397,
+        36.18598199826313
+       ],
+       [
+        -82.0750793890642,
+        36.186065575527834
+       ],
+       [
+        -82.075051410982,
+        36.18607641955129
+       ],
+       [
+        -82.07502070205088,
+        36.186079923085366
+       ],
+       [
+        -82.07499011860705,
+        36.186075760254944
+       ],
+       [
+        -82.07496250531472,
+        36.18606431825811
+       ],
+       [
+        -82.07494043057251,
+        36.186046661351334
+       ],
+       [
+        -82.07492594761739,
+        36.18602443185885
+       ],
+       [
+        -82.07491530523296,
+        36.18599897551096
+       ],
+       [
+        -82.07490466285562,
+        36.18597351916191
+       ],
+       [
+        -82.07489402048535,
+        36.18594806281169
+       ],
+       [
+        -82.07488337812214,
+        36.1859226064603
+       ],
+       [
+        -82.07487273576602,
+        36.185897150107735
+       ],
+       [
+        -82.074862093417,
+        36.185871693754
+       ],
+       [
+        -82.07485145107502,
+        36.18584623739911
+       ],
+       [
+        -82.07484080874012,
+        36.18582078104304
+       ],
+       [
+        -82.0748301664123,
+        36.18579532468581
+       ],
+       [
+        -82.07481952409155,
+        36.1857698683274
+       ],
+       [
+        -82.0748088817779,
+        36.185744411967825
+       ],
+       [
+        -82.0746060027747,
+        36.185503538861035
+       ],
+       [
+        -82.0739005372957,
+        36.184997514730874
+       ],
+       [
+        -82.07387227023837,
+        36.18498717558856
+       ],
+       [
+        -82.07384147355657,
+        36.184984224144394
+       ],
+       [
+        -82.07381101173172,
+        36.18498893492023
+       ],
+       [
+        -82.0737837180996,
+        36.18500086975436
+       ],
+       [
+        -82.07376213131647,
+        36.185018918555805
+       ],
+       [
+        -82.07374825923287,
+        36.18504140255598
+       ]
+      ]
+     }
+    },
+    "profile": [
+     [
+      0,
+      880.7701458974084
+     ],
+     [
+      3,
+      881.1649705495374
+     ],
+     [
+      6,
+      881.4264510501469
+     ],
+     [
+      9,
+      882.0096407200878
+     ],
+     [
+      12,
+      882.4213745962355
+     ],
+     [
+      15,
+      882.7473740056373
+     ],
+     [
+      18,
+      883.044097309944
+     ],
+     [
+      21,
+      883.2080047232677
+     ],
+     [
+      24,
+      883.3476042180057
+     ],
+     [
+      27,
+      883.4765098552725
+     ],
+     [
+      30,
+      883.5223381921023
+     ],
+     [
+      33,
+      883.5224485833979
+     ],
+     [
+      36,
+      883.3946370330358
+     ],
+     [
+      39,
+      883.6639614755134
+     ],
+     [
+      42,
+      883.9703891073439
+     ],
+     [
+      45,
+      884.2770847176624
+     ],
+     [
+      48,
+      884.5837850187582
+     ],
+     [
+      51,
+      884.8902236190634
+     ],
+     [
+      54,
+      885.1962451654341
+     ],
+     [
+      57,
+      885.1633451743648
+     ],
+     [
+      60,
+      885.1213894663504
+     ],
+     [
+      63,
+      885.0794337583225
+     ],
+     [
+      66,
+      885.0374780503189
+     ],
+     [
+      69,
+      884.995522342331
+     ],
+     [
+      72,
+      884.9535666343592
+     ],
+     [
+      75,
+      884.9116109263489
+     ],
+     [
+      78,
+      884.8696552183893
+     ],
+     [
+      81,
+      884.8276995104083
+     ],
+     [
+      84,
+      884.7857438024263
+     ],
+     [
+      87,
+      884.8007959259194
+     ],
+     [
+      90,
+      884.9681983201614
+     ],
+     [
+      93,
+      885.0276557881732
+     ],
+     [
+      96,
+      885.1871984224285
+     ],
+     [
+      99,
+      885.3268362717947
+     ],
+     [
+      102,
+      885.2479821432789
+     ],
+     [
+      105,
+      884.859472934196
+     ],
+     [
+      108,
+      884.2732909392525
+     ],
+     [
+      111,
+      883.5202911644556
+     ],
+     [
+      114,
+      882.8448638464648
+     ],
+     [
+      117,
+      882.4188345039299
+     ],
+     [
+      120,
+      882.5908209193898
+     ],
+     [
+      123,
+      882.5258622893033
+     ],
+     [
+      126,
+      881.7704090296419
+     ],
+     [
+      129,
+      881.1827648055068
+     ],
+     [
+      132,
+      880.541084096215
+     ],
+     [
+      135,
+      880.4851905012705
+     ],
+     [
+      138,
+      880.2882474965093
+     ],
+     [
+      141,
+      880.1346068788553
+     ],
+     [
+      144,
+      880.088751901018
+     ],
+     [
+      147,
+      879.8940793710835
+     ],
+     [
+      150,
+      879.6585187953625
+     ],
+     [
+      153,
+      879.4280264146548
+     ],
+     [
+      156,
+      879.0993138627667
+     ],
+     [
+      159,
+      878.4927125136745
+     ],
+     [
+      162,
+      877.9871185574573
+     ],
+     [
+      165,
+      877.5528500765239
+     ],
+     [
+      168,
+      877.1653578868222
+     ],
+     [
+      171,
+      876.7773381142586
+     ],
+     [
+      174,
+      876.3889587718423
+     ],
+     [
+      177,
+      876.0005849947371
+     ],
+     [
+      180,
+      875.598790700832
+     ],
+     [
+      183,
+      875.1485187067944
+     ],
+     [
+      186,
+      874.6982467166208
+     ],
+     [
+      189,
+      874.2479747301194
+     ],
+     [
+      192,
+      873.7977027474097
+     ],
+     [
+      195,
+      873.3474307685107
+     ],
+     [
+      198,
+      872.8971587933854
+     ],
+     [
+      201,
+      872.4468868220364
+     ],
+     [
+      204,
+      871.9966148545801
+     ],
+     [
+      207,
+      871.5463428907314
+     ],
+     [
+      210,
+      871.0960709307275
+     ],
+     [
+      213,
+      870.6457989745201
+     ],
+     [
+      216,
+      870.2427932424023
+     ],
+     [
+      219,
+      869.8527711185912
+     ],
+     [
+      222,
+      869.4627489947801
+     ],
+     [
+      225,
+      869.0727268709691
+     ],
+     [
+      228,
+      868.6827047471579
+     ],
+     [
+      231,
+      868.2866569252037
+     ],
+     [
+      234,
+      867.8545180307137
+     ],
+     [
+      237,
+      867.4219691577479
+     ],
+     [
+      240,
+      866.9893471480834
+     ],
+     [
+      243,
+      866.5570168829482
+     ],
+     [
+      246,
+      866.1252241400463
+     ],
+     [
+      249,
+      865.7027326790992
+     ],
+     [
+      252,
+      865.2828312071621
+     ],
+     [
+      255,
+      864.8629297352379
+     ],
+     [
+      258,
+      864.443028263216
+     ],
+     [
+      261,
+      864.023126791293
+     ],
+     [
+      264,
+      863.6032253197409
+     ],
+     [
+      267,
+      863.1833238480009
+     ],
+     [
+      270,
+      862.7634223762909
+     ],
+     [
+      273,
+      862.3435209048043
+     ],
+     [
+      276,
+      861.9236194334384
+     ],
+     [
+      279,
+      861.5037179619069
+     ],
+     [
+      282,
+      861.1785000416285
+     ],
+     [
+      285,
+      861.010904573197
+     ],
+     [
+      288,
+      860.8433091047656
+     ],
+     [
+      291,
+      860.6757136363341
+     ],
+     [
+      294,
+      860.5081181679027
+     ],
+     [
+      297,
+      860.3405226994712
+     ],
+     [
+      300,
+      860.1729272310398
+     ],
+     [
+      303,
+      859.9552572184044
+     ],
+     [
+      306,
+      859.5055418447624
+     ],
+     [
+      309,
+      859.0552213929553
+     ],
+     [
+      312,
+      858.6044663482196
+     ],
+     [
+      315,
+      858.1536251134404
+     ],
+     [
+      318,
+      857.7030817075939
+     ],
+     [
+      321,
+      857.2530982622043
+     ],
+     [
+      324,
+      856.8037088479088
+     ],
+     [
+      327,
+      856.3547066797664
+     ],
+     [
+      330,
+      855.9183731863476
+     ],
+     [
+      333,
+      855.6562081486439
+     ],
+     [
+      336,
+      855.3940431113508
+     ],
+     [
+      339,
+      855.1318780744855
+     ],
+     [
+      342,
+      854.8697130381129
+     ],
+     [
+      345,
+      854.6075480021246
+     ],
+     [
+      348,
+      854.3453829666037
+     ],
+     [
+      351,
+      854.0832179315695
+     ],
+     [
+      354,
+      853.821052896942
+     ],
+     [
+      357,
+      853.5588878627225
+     ],
+     [
+      360,
+      853.296722829077
+     ],
+     [
+      363,
+      853.2682031725885
+     ],
+     [
+      366,
+      853.5078136218594
+     ],
+     [
+      369,
+      853.9140659624067
+     ],
+     [
+      372,
+      854.3913754158835
+     ],
+     [
+      375,
+      854.7830289678307
+     ],
+     [
+      378,
+      855.0442422422734
+     ],
+     [
+      381,
+      855.0480573376085
+     ],
+     [
+      384,
+      855.0733454427289
+     ],
+     [
+      387,
+      855.0779987714939
+     ],
+     [
+      390,
+      854.9138793801792
+     ],
+     [
+      393,
+      854.6167775083807
+     ],
+     [
+      396,
+      854.1617043755414
+     ],
+     [
+      399,
+      853.6423228401469
+     ],
+     [
+      402,
+      853.0279482403082
+     ],
+     [
+      405,
+      853.1289972081826
+     ],
+     [
+      408,
+      853.1665624544274
+     ],
+     [
+      411,
+      853.0945889766333
+     ],
+     [
+      414,
+      852.8836399703955
+     ],
+     [
+      417,
+      852.5882820071026
+     ],
+     [
+      420,
+      852.1886632835741
+     ],
+     [
+      423,
+      851.6986122098847
+     ],
+     [
+      426,
+      851.1607475437071
+     ],
+     [
+      429,
+      850.6313346849827
+     ],
+     [
+      432,
+      850.1251662708262
+     ],
+     [
+      435,
+      849.5056121336004
+     ],
+     [
+      438,
+      848.886608785242
+     ],
+     [
+      441,
+      848.4359041603201
+     ],
+     [
+      444,
+      847.9856794023195
+     ],
+     [
+      447,
+      847.5360608882136
+     ],
+     [
+      450,
+      847.0869230344168
+     ],
+     [
+      453,
+      846.6379432936548
+     ],
+     [
+      456,
+      846.1887344127363
+     ],
+     [
+      459,
+      845.7390013933635
+     ],
+     [
+      462,
+      845.2886635209599
+     ],
+     [
+      465,
+      844.8378920654123
+     ],
+     [
+      468,
+      844.4831593150029
+     ],
+     [
+      471,
+      844.1531633149948
+     ],
+     [
+      474,
+      843.8231673171666
+     ],
+     [
+      477,
+      843.4931713217482
+     ],
+     [
+      480,
+      843.1631753287879
+     ],
+     [
+      483,
+      842.8331793380614
+     ],
+     [
+      486,
+      842.5031833497445
+     ],
+     [
+      489,
+      842.1731873636576
+     ],
+     [
+      492,
+      841.8431913799811
+     ],
+     [
+      495,
+      841.5131953985317
+     ],
+     [
+      498,
+      841.1831994196178
+     ],
+     [
+      501,
+      840.9237712152283
+     ],
+     [
+      504,
+      840.6768963700677
+     ],
+     [
+      507,
+      840.430021524907
+     ],
+     [
+      510,
+      840.1831466797464
+     ],
+     [
+      513,
+      839.9362718345859
+     ],
+     [
+      516,
+      839.6893969894253
+     ],
+     [
+      519,
+      839.4425221442647
+     ],
+     [
+      522,
+      839.195647299104
+     ],
+     [
+      525,
+      838.9487724539434
+     ],
+     [
+      528,
+      838.6195184910807
+     ],
+     [
+      531,
+      838.1688284601726
+     ],
+     [
+      534,
+      837.7179741299425
+     ],
+     [
+      537,
+      837.2673478395765
+     ],
+     [
+      540,
+      836.8172476429203
+     ],
+     [
+      543,
+      836.3677542681977
+     ],
+     [
+      546,
+      835.9614584974773
+     ],
+     [
+      549,
+      835.5639092425142
+     ],
+     [
+      552,
+      835.1663599901684
+     ],
+     [
+      555,
+      834.7688107404178
+     ],
+     [
+      558,
+      834.3712614933322
+     ],
+     [
+      561,
+      833.973712248756
+     ],
+     [
+      564,
+      833.5761630067127
+     ],
+     [
+      567,
+      833.1786137673757
+     ],
+     [
+      570,
+      832.7810645305137
+     ],
+     [
+      573,
+      832.3835152964315
+     ],
+     [
+      576,
+      831.9859660647874
+     ],
+     [
+      579,
+      832.1734831181558
+     ],
+     [
+      582,
+      832.3560094245441
+     ],
+     [
+      585,
+      832.3141297074744
+     ],
+     [
+      588,
+      832.222716689295
+     ],
+     [
+      591,
+      832.2455174284402
+     ],
+     [
+      594,
+      832.4457186203408
+     ],
+     [
+      597,
+      832.5217432174375
+     ],
+     [
+      600,
+      832.544579853449
+     ],
+     [
+      603,
+      832.6737752902942
+     ],
+     [
+      606,
+      832.8251241301998
+     ],
+     [
+      609,
+      833.021462861196
+     ],
+     [
+      612,
+      833.287613959516
+     ],
+     [
+      615,
+      833.4846083465771
+     ],
+     [
+      618,
+      833.6141696605396
+     ],
+     [
+      621,
+      833.5725237076074
+     ],
+     [
+      624,
+      833.4595292848053
+     ],
+     [
+      627,
+      833.4442944480202
+     ],
+     [
+      630,
+      833.45711371016
+     ],
+     [
+      633,
+      833.2822451624614
+     ],
+     [
+      636,
+      833.0626484191796
+     ],
+     [
+      639,
+      832.8392480193595
+     ],
+     [
+      642,
+      832.5864862219423
+     ],
+     [
+      645,
+      832.2359514250126
+     ],
+     [
+      648,
+      831.9455021059837
+     ],
+     [
+      651,
+      831.6535812401756
+     ],
+     [
+      654,
+      831.3820210620598
+     ],
+     [
+      657,
+      831.0675132818421
+     ],
+     [
+      660,
+      830.7179047642123
+     ],
+     [
+      663,
+      830.3913835820404
+     ],
+     [
+      666,
+      830.0932831638515
+     ],
+     [
+      669,
+      829.4448532518614
+     ],
+     [
+      672,
+      828.9714771861469
+     ],
+     [
+      675,
+      828.5482984906356
+     ],
+     [
+      678,
+      828.1392860475054
+     ],
+     [
+      681,
+      827.7489082217928
+     ],
+     [
+      684,
+      827.3494732850907
+     ],
+     [
+      687,
+      826.9196007201418
+     ],
+     [
+      690,
+      826.5064197627065
+     ],
+     [
+      693,
+      826.064442836154
+     ],
+     [
+      696,
+      825.8247023423854
+     ],
+     [
+      699,
+      825.6157667348175
+     ],
+     [
+      702,
+      825.4068500734529
+     ],
+     [
+      705,
+      825.1981329116134
+     ],
+     [
+      708,
+      824.9896985147694
+     ]
+    ],
+    "metrics": {
+     "lengthFt": 2329.9811380141077,
+     "riseFt": 183.00672299085718,
+     "maxGradePct": 17.005800830524244,
+     "avgGradePct": 10.418061808107723,
+     "switchbacks": 7,
+     "earthYd": 2137.8998434475593,
+     "rockYd": 43.960730293633205,
+     "stoneTons": 713.0268950497161,
+     "fabricSf": 0,
+     "clearAc": 1.2810675598931707,
+     "culverts": 2,
+     "outsideFt": 383.85828,
+     "sfhaFt": 0,
+     "drawnFt": 0,
+     "privateFt": 0
+    },
+    "cost": {
+     "mid": 120365.16245552234,
+     "low": 84255.61371886563,
+     "high": 156474.71119217903
+    },
+    "culverts": [
+     [
+      36.18602846322828,
+      -82.0749285741338
+     ]
+    ],
+    "needsEasement": true,
+    "maxGrade": 0.15,
+    "label": "direct track at 15%",
+    "lines": [],
+    "existing": null,
+    "entranceIndex": 0,
+    "track": {
+     "hours": 27,
+     "waterBars": 13,
+     "cost": {
+      "mid": 17383.762451330123,
+      "low": 12168.633715931086,
+      "high": 22598.89118672916
+     }
+    }
+   }
+  },
+  "drives": [
+   {
+    "label": "Nearest hospital",
+    "name": "Cannon Memorial Hospital",
+    "min": 32,
+    "mi": 18.2,
+    "er": "yes"
+   },
+   {
+    "label": "Nearest real grocery",
+    "name": "Ingles",
+    "min": 23,
+    "mi": 13.3,
+    "er": null
+   },
+   {
+    "label": "Asheville airport (AVL)",
+    "name": "",
+    "min": 118,
+    "mi": 86.4,
+    "er": null
+   },
+   {
+    "label": "Roanoke airport (ROA)",
+    "name": "",
+    "min": 228,
+    "mi": 188.6,
+    "er": null
+   },
+   {
+    "label": "Tri-Cities airport (TRI)",
+    "name": "",
+    "min": 64,
+    "mi": 41.8,
+    "er": null
+   },
+   {
+    "label": "Greenville-Spartanburg (GSP)",
+    "name": "",
+    "min": 183,
+    "mi": 124.6,
+    "er": null
+   },
+   {
+    "label": "Charlotte airport (CLT)",
+    "name": "",
+    "min": 179,
+    "mi": 119.9,
+    "er": null
+   }
+  ],
+  "driveFrom": {
+   "ll": [
+    36.18611680335525,
+    -82.07718284148568
+   ],
+   "kind": "entrance",
+   "road": "road",
+   "line": null,
+   "gapFt": null,
+   "snapM": 19.88930562,
+   "trackMi": null,
+   "kept": false
+  },
+  "closerGrocery": {
+   "label": "Closer grocery",
+   "name": "RediMart Supermarket",
+   "min": 5,
+   "mi": 2.2,
+   "er": null
+  },
+  "schemaVersion": 9,
+  "engine": 22,
+  "runAt": "(not compared)",
+  "failed": [],
+  "cancelled": false
+ },
+ "evaluateSite2": {
+  "acres": 13.286211242376313,
+  "params": {
+   "houseMin": 60,
+   "shelfMin": 45,
+   "gardenMin": 60,
+   "canopyDeg": 3,
+   "shallowBedrockCm": 100,
+   "benchMinAcres": 0.3,
+   "compactMinAcres": 0.15,
+   "sunHoursWanted": 5,
+   "thermalMinFt": 80,
+   "roadMaxGradePct": 15,
+   "roadVetoGradePct": 25
+  },
+  "noResponse": [],
+  "lines": [],
+  "demSource": "USGS 3DEP",
+  "demResM": 2.991185238151524,
+  "terrain": {
+   "elevMinFt": 2666.483486328125,
+   "elevMaxFt": 3160.7349035498046,
+   "elevMeanFt": 2842.2602466557073,
+   "reliefFt": 494.2514172216797,
+   "slopeMedDeg": 24.743623733520508,
+   "slopeP90Deg": 32.90503692626953,
+   "acresUnder15": 0.8069772693053734,
+   "acresOver25": 10.592405745868614,
+   "heightAboveValleyFt": 268.22308775390627,
+   "valleyFloorFt": 2551.3302876049806,
+   "diag": {
+    "houseAc": 1.903581996909388,
+    "shelfAc": 0.9418419636276414,
+    "gardenAc": 0.5460914671737732,
+    "totalAc": 13.280856045801036
+   }
+  },
+  "benches": [
+   {
+    "acres": 0.9484746535123431,
+    "elevFt": 2709.7354429432776,
+    "slopeDeg": 7.751909407528686,
+    "aspectDeg": 172.55980672040914,
+    "score": 82.50098022603211,
+    "ll": [
+     36.18505293216952,
+     -82.07373497167423
+    ],
+    "veto": null
+   },
+   {
+    "acres": 0.32279090772214936,
+    "elevFt": 2734.706336493238,
+    "slopeDeg": 9.442171993320935,
+    "aspectDeg": 195.97448866385466,
+    "score": 76.25203796282206,
+    "ll": [
+     36.18587832976166,
+     -82.07491050597642
+    ],
+    "veto": null
+   }
+  ],
+  "shelves": [
+   {
+    "acres": 0.4841863615832241,
+    "elevFt": 2751.906298122871,
+    "slopeDeg": 13.256549774239597,
+    "aspectDeg": 187.47735546432762,
+    "score": 53.91077376065189,
+    "ll": [
+     36.18556074844089,
+     -82.07424087318732
+    ],
+    "distFt": 237.7177145423475,
+    "dropFt": 42.17085517959322
+   },
+   {
+    "acres": 0.198980696541051,
+    "elevFt": 2920.425252622043,
+    "slopeDeg": 7.747315420707067,
+    "aspectDeg": 134.12932422738652,
+    "score": 80.42808998955621,
+    "ll": [
+     36.187052735753305,
+     -82.07625716612674
+    ],
+    "distFt": 1041.040566591515,
+    "dropFt": 210.6898096787654
+   },
+   {
+    "acres": 0.1459191774634374,
+    "elevFt": 2776.4330045536667,
+    "slopeDeg": 11.441348278161252,
+    "aspectDeg": 160.35149888283945,
+    "score": 65.44933353770863,
+    "ll": [
+     36.18652453988051,
+     -82.07501913194324
+    ],
+    "distFt": 656.6504122805916,
+    "dropFt": 66.69756161038913
+   },
+   {
+    "acres": 0.14370828083520348,
+    "elevFt": 2741.5237949762995,
+    "slopeDeg": 11.075990075331468,
+    "aspectDeg": 102.59199527975949,
+    "score": 62.330011279766374,
+    "ll": [
+     36.18584748328812,
+     -82.07534252643806
+    ],
+    "distFt": 555.037955823336,
+    "dropFt": 31.788352033021965
+   }
+  ],
+  "gardens": [
+   {
+    "acres": 0.3382671841197867,
+    "elevFt": 2706.2919139489986,
+    "slopeDeg": 3.7463278048763087,
+    "aspectDeg": 169.45581122462,
+    "score": 87.28237947451522,
+    "aboveFt": 154.961626344018,
+    "ll": [
+     36.18508108829194,
+     -82.07360229820829
+    ],
+    "soil": "Tusquitee",
+    "soilNote": "well drained",
+    "adj": 1,
+    "finalScore": 87.28237947451522
+   },
+   {
+    "acres": 0.0641160022187831,
+    "elevFt": 2921.55906710626,
+    "slopeDeg": 4.121424165265314,
+    "aspectDeg": 135.25319290809477,
+    "score": 83.91280785922346,
+    "aboveFt": 370.2287795012794,
+    "ll": [
+     36.187133923052016,
+     -82.07622501170773
+    ],
+    "soil": "Porters",
+    "soilNote": "well drained",
+    "adj": 1,
+    "finalScore": 83.91280785922346
+   }
+  ],
+  "houseMinUsed": 60,
+  "soils": [
+   {
+    "mukey": "526479",
+    "muname": "Porters gravelly loam, 30 to 50 percent slopes, stony",
+    "farmlndcl": "Not prime farmland",
+    "cokey": "27885642",
+    "compname": "Porters",
+    "comppct_r": "100",
+    "drainagecl": "Well drained",
+    "hydricrating": "No",
+    "slope_l": "30",
+    "slope_h": "50",
+    "brockdepmin": "137",
+    "drclassdcd": "Well drained",
+    "hydgrpdcd": "B",
+    "wtdepannmin": null,
+    "flodfreqdcd": "None",
+    "engdwbdcd": "Very limited",
+    "engdwobdcd": "Very limited",
+    "engstafdcd": "Very limited",
+    "englrsdcd": "Very limited",
+    "septic": "Very limited"
+   },
+   {
+    "mukey": "526480",
+    "muname": "Porters gravelly loam, 50 to 80 percent slopes, stony",
+    "farmlndcl": "Not prime farmland",
+    "cokey": "27885543",
+    "compname": "Porters",
+    "comppct_r": "100",
+    "drainagecl": "Well drained",
+    "hydricrating": "No",
+    "slope_l": "50",
+    "slope_h": "80",
+    "brockdepmin": "137",
+    "drclassdcd": "Well drained",
+    "hydgrpdcd": "B",
+    "wtdepannmin": null,
+    "flodfreqdcd": "None",
+    "engdwbdcd": "Very limited",
+    "engdwobdcd": "Very limited",
+    "engstafdcd": "Very limited",
+    "englrsdcd": "Very limited",
+    "septic": "Very limited"
+   },
+   {
+    "mukey": "526491",
+    "muname": "Tusquitee loam, 20 to 35 percent slopes",
+    "farmlndcl": "Not prime farmland",
+    "cokey": "27885551",
+    "compname": "Tusquitee",
+    "comppct_r": "100",
+    "drainagecl": "Well drained",
+    "hydricrating": "No",
+    "slope_l": "20",
+    "slope_h": "35",
+    "brockdepmin": null,
+    "drclassdcd": "Well drained",
+    "hydgrpdcd": "A",
+    "wtdepannmin": null,
+    "flodfreqdcd": "None",
+    "engdwbdcd": "Very limited",
+    "engdwobdcd": "Very limited",
+    "engstafdcd": "Very limited",
+    "englrsdcd": "Very limited",
+    "septic": "Very limited"
+   }
+  ],
+  "soilLimits": [
+   {
+    "cokey": "27885642",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27885543",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27885551",
+    "septic": "poor",
+    "foundation": "fine"
+   }
+  ],
+  "soilUnits": [
+   {
+    "mukey": "526491",
+    "muname": "Tusquitee loam, 20 to 35 percent slopes",
+    "acres": 5.776094598695296,
+    "color": "#c2803a",
+    "geometries": [
+     {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+       "type": "Polygon",
+       "coordinates": [
+        [
+         [
+          -82.0737243261992,
+          36.1844777274898
+         ],
+         [
+          -82.0731613097898,
+          36.1850335107125
+         ],
+         [
+          -82.07353644650429,
+          36.18531298726521
+         ],
+         [
+          -82.073542405717,
+          36.1853066843633
+         ],
+         [
+          -82.0736338347838,
+          36.1852479264715
+         ],
+         [
+          -82.0737385269912,
+          36.1852277308597
+         ],
+         [
+          -82.0738900213223,
+          36.1852364983572
+         ],
+         [
+          -82.0740159275673,
+          36.1852792649394
+         ],
+         [
+          -82.0741972554375,
+          36.1854512872255
+         ],
+         [
+          -82.0743496290866,
+          36.185663230972
+         ],
+         [
+          -82.074511983975,
+          36.1860415130773
+         ],
+         [
+          -82.07462394781203,
+          36.18624211793679
+         ],
+         [
+          -82.07542613270911,
+          36.18704993547139
+         ],
+         [
+          -82.0754488671486,
+          36.1870261075717
+         ],
+         [
+          -82.0754589142007,
+          36.1869902830009
+         ],
+         [
+          -82.0754490954324,
+          36.186823061295
+         ],
+         [
+          -82.0753850159818,
+          36.1865447720267
+         ],
+         [
+          -82.0754022005935,
+          36.1864276538356
+         ],
+         [
+          -82.0754361972181,
+          36.1863666627924
+         ],
+         [
+          -82.0755228581986,
+          36.1863091486768
+         ],
+         [
+          -82.0756021470643,
+          36.1862913834076
+         ],
+         [
+          -82.0761141794819,
+          36.1863009691207
+         ],
+         [
+          -82.0761493200067,
+          36.1862888497793
+         ],
+         [
+          -82.0761757632291,
+          36.1862441199967
+         ],
+         [
+          -82.0761808242517,
+          36.1861923666087
+         ],
+         [
+          -82.0761349518066,
+          36.186084992122
+         ],
+         [
+          -82.0760672566684,
+          36.1860142081669
+         ],
+         [
+          -82.0757924195614,
+          36.1859726689524
+         ],
+         [
+          -82.07530070785843,
+          36.18546299202055
+         ],
+         [
+          -82.0752585249991,
+          36.1854288091423
+         ],
+         [
+          -82.07521124891602,
+          36.185370264597104
+         ],
+         [
+          -82.0747208767512,
+          36.1848619761449
+         ],
+         [
+          -82.0743246918631,
+          36.185077805773
+         ],
+         [
+          -82.0737243261992,
+          36.1844777274898
+         ]
+        ]
+       ]
+      }
+     }
+    ]
+   },
+   {
+    "mukey": "526480",
+    "muname": "Porters gravelly loam, 50 to 80 percent slopes, stony",
+    "acres": 4.089598913853047,
+    "color": "#4a7c9e",
+    "geometries": [
+     {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+       "type": "Polygon",
+       "coordinates": [
+        [
+         [
+          -82.07692616284037,
+          36.1865074347076
+         ],
+         [
+          -82.0768195395154,
+          36.186521885781
+         ],
+         [
+          -82.0766339733629,
+          36.1865867404368
+         ],
+         [
+          -82.0764759215763,
+          36.1866683638989
+         ],
+         [
+          -82.0762191767317,
+          36.1868846104664
+         ],
+         [
+          -82.0759252971263,
+          36.1873194248486
+         ],
+         [
+          -82.07579448790135,
+          36.18742087711381
+         ],
+         [
+          -82.0772817544373,
+          36.1889185866702
+         ],
+         [
+          -82.07692616284037,
+          36.1865074347076
+         ]
+        ]
+       ]
+      }
+     }
+    ]
+   },
+   {
+    "mukey": "526479",
+    "muname": "Porters gravelly loam, 30 to 50 percent slopes, stony",
+    "acres": 3.420567528103802,
+    "color": "#8a5ea8",
+    "geometries": [
+     {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+       "type": "MultiPolygon",
+       "coordinates": [
+        [
+         [
+          [
+           -82.0760672566684,
+           36.1860142081669
+          ],
+          [
+           -82.0761349518066,
+           36.186084992122
+          ],
+          [
+           -82.0761808242517,
+           36.1861923666087
+          ],
+          [
+           -82.0761757632291,
+           36.1862441199967
+          ],
+          [
+           -82.0761493200067,
+           36.1862888497793
+          ],
+          [
+           -82.0761141794819,
+           36.1863009691207
+          ],
+          [
+           -82.0756021470643,
+           36.1862913834076
+          ],
+          [
+           -82.0755228581986,
+           36.1863091486768
+          ],
+          [
+           -82.0754361972181,
+           36.1863666627924
+          ],
+          [
+           -82.0754022005935,
+           36.1864276538356
+          ],
+          [
+           -82.0753850159818,
+           36.1865447720267
+          ],
+          [
+           -82.0754490954324,
+           36.186823061295
+          ],
+          [
+           -82.0754589142007,
+           36.1869902830009
+          ],
+          [
+           -82.0754488671486,
+           36.1870261075717
+          ],
+          [
+           -82.07542613270911,
+           36.18704993547139
+          ],
+          [
+           -82.07579448790135,
+           36.18742087711381
+          ],
+          [
+           -82.0759252971263,
+           36.1873194248486
+          ],
+          [
+           -82.0762191767317,
+           36.1868846104664
+          ],
+          [
+           -82.0764759215763,
+           36.1866683638989
+          ],
+          [
+           -82.0766339733629,
+           36.1865867404368
+          ],
+          [
+           -82.0768195395154,
+           36.186521885781
+          ],
+          [
+           -82.07692616284037,
+           36.1865074347076
+          ],
+          [
+           -82.0768973222081,
+           36.1863118756795
+          ],
+          [
+           -82.07675115104,
+           36.1861175727937
+          ],
+          [
+           -82.0760672566684,
+           36.1860142081669
+          ]
+         ]
+        ],
+        [
+         [
+          [
+           -82.07521124891602,
+           36.185370264597104
+          ],
+          [
+           -82.0752585249991,
+           36.1854288091423
+          ],
+          [
+           -82.07530070785843,
+           36.18546299202055
+          ],
+          [
+           -82.07521124891602,
+           36.185370264597104
+          ]
+         ]
+        ],
+        [
+         [
+          [
+           -82.0737385269912,
+           36.1852277308597
+          ],
+          [
+           -82.0736338347838,
+           36.1852479264715
+          ],
+          [
+           -82.073542405717,
+           36.1853066843633
+          ],
+          [
+           -82.07353644650429,
+           36.18531298726521
+          ],
+          [
+           -82.0739653855124,
+           36.1856325464837
+          ],
+          [
+           -82.0743983941406,
+           36.1860149805132
+          ],
+          [
+           -82.07462394781203,
+           36.18624211793679
+          ],
+          [
+           -82.074511983975,
+           36.1860415130773
+          ],
+          [
+           -82.0743496290866,
+           36.185663230972
+          ],
+          [
+           -82.0741972554375,
+           36.1854512872255
+          ],
+          [
+           -82.0740159275673,
+           36.1852792649394
+          ],
+          [
+           -82.0738900213223,
+           36.1852364983572
+          ],
+          [
+           -82.0737385269912,
+           36.1852277308597
+          ]
+         ]
+        ]
+       ]
+      }
+     }
+    ]
+   }
+  ],
+  "focus": {
+   "ll": [
+    36.185878,
+    -82.074911
+   ],
+   "label": "site #2"
+  },
+  "point": {
+   "ll": [
+    36.185878,
+    -82.074911
+   ],
+   "elevFt": 2734.119572861328,
+   "aboveFloorFt": 182.78928525634728,
+   "slopeDeg": 10.511670112609863,
+   "aspectDeg": 216.69284057617188
+  },
+  "sun": {
+   "decDirectH": 6.9,
+   "decDaylightH": 9.55,
+   "noonAlt": 30.374122000000007,
+   "noonClearance": 9.733629150027845,
+   "worstAz": 240,
+   "worstAngle": 17.640492849972162,
+   "junDirectH": 11.033333333333333,
+   "junDaylightH": 14.45,
+   "profile": [
+    [
+     0,
+     10.9
+    ],
+    [
+     5,
+     10.9
+    ],
+    [
+     10,
+     10.8
+    ],
+    [
+     15,
+     14.1
+    ],
+    [
+     20,
+     14.1
+    ],
+    [
+     25,
+     14.1
+    ],
+    [
+     30,
+     18.9
+    ],
+    [
+     35,
+     18.9
+    ],
+    [
+     40,
+     18.9
+    ],
+    [
+     45,
+     18.9
+    ],
+    [
+     50,
+     18.9
+    ],
+    [
+     55,
+     18.9
+    ],
+    [
+     60,
+     15.9
+    ],
+    [
+     65,
+     15.9
+    ],
+    [
+     70,
+     15.9
+    ],
+    [
+     75,
+     15.9
+    ],
+    [
+     80,
+     13.6
+    ],
+    [
+     85,
+     13.6
+    ],
+    [
+     90,
+     13.6
+    ],
+    [
+     95,
+     13.6
+    ],
+    [
+     100,
+     13.6
+    ],
+    [
+     105,
+     13.6
+    ],
+    [
+     110,
+     13.6
+    ],
+    [
+     115,
+     13.6
+    ],
+    [
+     120,
+     6.4
+    ],
+    [
+     125,
+     7.2
+    ],
+    [
+     130,
+     5.8
+    ],
+    [
+     135,
+     5.8
+    ],
+    [
+     140,
+     4.9
+    ],
+    [
+     145,
+     6.1
+    ],
+    [
+     150,
+     6.5
+    ],
+    [
+     155,
+     5.1
+    ],
+    [
+     160,
+     6.1
+    ],
+    [
+     165,
+     7
+    ],
+    [
+     170,
+     4.9
+    ],
+    [
+     175,
+     6.4
+    ],
+    [
+     180,
+     4.8
+    ],
+    [
+     185,
+     3.3
+    ],
+    [
+     190,
+     6.5
+    ],
+    [
+     195,
+     6.5
+    ],
+    [
+     200,
+     6.5
+    ],
+    [
+     205,
+     6.8
+    ],
+    [
+     210,
+     9.9
+    ],
+    [
+     215,
+     10.8
+    ],
+    [
+     220,
+     13.7
+    ],
+    [
+     225,
+     13.7
+    ],
+    [
+     230,
+     13.7
+    ],
+    [
+     235,
+     13.4
+    ],
+    [
+     240,
+     17.6
+    ],
+    [
+     245,
+     17.6
+    ],
+    [
+     250,
+     15.8
+    ],
+    [
+     255,
+     15.7
+    ],
+    [
+     260,
+     15.7
+    ],
+    [
+     265,
+     15.7
+    ],
+    [
+     270,
+     15.7
+    ],
+    [
+     275,
+     16.3
+    ],
+    [
+     280,
+     16.3
+    ],
+    [
+     285,
+     16.4
+    ],
+    [
+     290,
+     16.4
+    ],
+    [
+     295,
+     15.2
+    ],
+    [
+     300,
+     15.1
+    ],
+    [
+     305,
+     17.2
+    ],
+    [
+     310,
+     17.9
+    ],
+    [
+     315,
+     19
+    ],
+    [
+     320,
+     18.8
+    ],
+    [
+     325,
+     19
+    ],
+    [
+     330,
+     17.7
+    ],
+    [
+     335,
+     16.6
+    ],
+    [
+     340,
+     15.7
+    ],
+    [
+     345,
+     14
+    ],
+    [
+     350,
+     13.3
+    ],
+    [
+     355,
+     13.3
+    ]
+   ]
+  },
+  "sky": {
+   "mag": 20.91961900426926,
+   "ratio": 1.7049073767351297,
+   "zone": "4a",
+   "zoneWord": "rural–suburban",
+   "year": 2025,
+   "coreAlt": 24.814121999999998,
+   "ridgeS": 9.900243099914707,
+   "coreClear": 11.91387890008529,
+   "dome": {
+    "az": 180,
+    "km": 32,
+    "ratio": 2.737694168497448,
+    "w": 2.5665882829663573
+   },
+   "domes": [
+    {
+     "az": 0,
+     "w": 2.8514575973481087,
+     "km": 48,
+     "ratio": 4.562332155756974
+    },
+    {
+     "az": 15,
+     "w": 1.5019769799320877,
+     "km": 64,
+     "ratio": 3.204217557188454
+    },
+    {
+     "az": 30,
+     "w": 2.1495942592188264,
+     "km": 32,
+     "ratio": 2.2929005431667484
+    },
+    {
+     "az": 45,
+     "w": 1.310919541197701,
+     "km": 32,
+     "ratio": 1.3983141772775478
+    },
+    {
+     "az": 60,
+     "w": 1.1691106415073853,
+     "km": 16,
+     "ratio": 1.1691106415073853
+    },
+    {
+     "az": 75,
+     "w": 1.7389842401964446,
+     "km": 16,
+     "ratio": 1.7389842401964446
+    },
+    {
+     "az": 90,
+     "w": 2.9041712577376986,
+     "km": 16,
+     "ratio": 2.9041712577376986
+    },
+    {
+     "az": 105,
+     "w": 2.338555795779828,
+     "km": 24,
+     "ratio": 2.338555795779828
+    },
+    {
+     "az": 120,
+     "w": 1.9580085218097032,
+     "km": 16,
+     "ratio": 1.9580085218097032
+    },
+    {
+     "az": 135,
+     "w": 1.8641886445276106,
+     "km": 64,
+     "ratio": 3.976935774992236
+    },
+    {
+     "az": 150,
+     "w": 1.8641886445276106,
+     "km": 64,
+     "ratio": 3.976935774992236
+    },
+    {
+     "az": 165,
+     "w": 1.4192148835925618,
+     "km": 32,
+     "ratio": 1.5138292091653993
+    },
+    {
+     "az": 180,
+     "w": 2.5665882829663573,
+     "km": 32,
+     "ratio": 2.737694168497448
+    },
+    {
+     "az": 195,
+     "w": 1.074411250162094,
+     "km": 32,
+     "ratio": 1.1460386668395668
+    },
+    {
+     "az": 210,
+     "w": 1.0119954047107893,
+     "km": 32,
+     "ratio": 1.079461765024842
+    },
+    {
+     "az": 225,
+     "w": 0.9965397433988933,
+     "km": 8,
+     "ratio": 0.9965397433988933
+    },
+    {
+     "az": 240,
+     "w": 0.9965397433988933,
+     "km": 8,
+     "ratio": 0.9965397433988933
+    },
+    {
+     "az": 255,
+     "w": 2.9454800808465427,
+     "km": 32,
+     "ratio": 3.1418454195696457
+    },
+    {
+     "az": 270,
+     "w": 4.771864210999956,
+     "km": 64,
+     "ratio": 10.179976983466572
+    },
+    {
+     "az": 285,
+     "w": 4.906261511850784,
+     "km": 32,
+     "ratio": 5.233345612640836
+    },
+    {
+     "az": 300,
+     "w": 16.174156805005627,
+     "km": 32,
+     "ratio": 17.252433925339336
+    },
+    {
+     "az": 315,
+     "w": 7.7417812343867265,
+     "km": 24,
+     "ratio": 7.7417812343867265
+    },
+    {
+     "az": 330,
+     "w": 6.0024980606471425,
+     "km": 24,
+     "ratio": 6.0024980606471425
+    },
+    {
+     "az": 345,
+     "w": 7.1541827939977995,
+     "km": 48,
+     "ratio": 11.44669247039648
+    }
+   ],
+   "notes": [
+    "The core peaks 25° above due south; the ridge there is 10° — 12° of clear sky under it.",
+    "Bright patch toward S at 20 mi (ratio 2.7): expect a light dome low in the S exactly where the core sits."
+   ]
+  },
+  "flood": {
+   "zones": [
+    "X"
+   ],
+   "sfha": false,
+   "sfhaAcres": 0,
+   "mapped": true
+  },
+  "protected": [
+   {
+    "name": "Cherokee National Forest",
+    "manager": "USFS",
+    "type": "NF",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 4939.0767942577395
+   },
+   {
+    "name": "Pisgah National Forest",
+    "manager": "USFS",
+    "type": "NF",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 21688.191358310094
+   },
+   {
+    "name": "Pisgah National Forest",
+    "manager": "USFS",
+    "type": "NF",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 21688.191358310094
+   },
+   {
+    "name": "Pisgah Game Land",
+    "manager": "UNK",
+    "type": "SCA",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 27886.39943932646
+   },
+   {
+    "name": "Roan Mountain",
+    "manager": "NC DENR, Division of Parks and Recreation",
+    "type": "SRMA",
+    "access": "OA",
+    "gap": "1",
+    "adjoins": false,
+    "distFt": 38737.78629154712
+   },
+   {
+    "name": "City Of Elizabethton",
+    "manager": "Unknown",
+    "type": "LOTH",
+    "access": "OA",
+    "gap": "4",
+    "adjoins": false,
+    "distFt": 40041.41884754708
+   },
+   {
+    "name": "Mitchell County Open Space",
+    "manager": "Mitchell County: multiple municipal",
+    "type": "LP",
+    "access": "OA",
+    "gap": "3",
+    "adjoins": false,
+    "distFt": 42624.23143436265
+   },
+   {
+    "name": "Buckeye Creek Recreation Area",
+    "manager": "Town of Beech Mountain",
+    "type": "LREC",
+    "access": "OA",
+    "gap": "4",
+    "adjoins": false,
+    "distFt": 49684.723308822904
+   }
+  ],
+  "near": {
+   "hospitals": [
+    {
+     "name": "Cannon Memorial Hospital",
+     "ll": [
+      36.06082,
+      -81.889239
+     ],
+     "km": 21.724245443873503
+    },
+    {
+     "name": "Sycamore Shoals Hospital",
+     "ll": [
+      36.345806,
+      -82.249541
+     ],
+     "km": 23.68483134143345
+    },
+    {
+     "name": "James H. Quillen VA Medical Center",
+     "ll": [
+      36.307494,
+      -82.376171
+     ],
+     "km": 30.19798856386202
+    },
+    {
+     "name": "Blue Ridge Regional Hospital",
+     "ll": [
+      35.911492,
+      -82.062287
+     ],
+     "km": 30.528108656006154
+    }
+   ],
+   "grocers": [
+    {
+     "name": "RediMart Supermarket",
+     "ll": [
+      36.1964506,
+      -82.0659361
+     ],
+     "km": 1.4380838697991303,
+     "big": false
+    },
+    {
+     "name": "RediMart Supermarket",
+     "ll": [
+      36.2813237,
+      -82.1777591
+     ],
+     "km": 14.053495230605366,
+     "big": false
+    },
+    {
+     "name": "Thomas Grocery",
+     "ll": [
+      36.0628548,
+      -82.1164291
+     ],
+     "km": 14.170359602587297,
+     "big": false
+    },
+    {
+     "name": "Ingles",
+     "ll": [
+      36.1019815,
+      -81.9314851
+     ],
+     "km": 15.91410119642191,
+     "big": true
+    },
+    {
+     "name": "Just Local Market",
+     "ll": [
+      36.0156761,
+      -82.158075
+     ],
+     "km": 20.337115054991372,
+     "big": false
+    },
+    {
+     "name": "Food Lion",
+     "ll": [
+      36.1298484,
+      -81.8471967
+     ],
+     "km": 21.38726397632775,
+     "big": true
+    }
+   ],
+   "trailheads": [
+    {
+     "name": "Roan Mountain State Park",
+     "ll": [
+      36.17642799840283,
+      -82.0795879181747
+     ],
+     "km": 1.1215489406020025,
+     "source": "state",
+     "serves": [
+      "Peg Leg Mine Trail"
+     ],
+     "drive": {
+      "min": 3,
+      "mi": 1,
+      "km": 1.098759620289628,
+      "to": "point",
+      "parkingLl": null
+     }
+    },
+    {
+     "name": "Rosebay Ridge Trail",
+     "ll": [
+      36.1739326,
+      -82.07097335
+     ],
+     "km": 1.375121238022024,
+     "source": "state",
+     "serves": [
+      "Rosebay Ridge Trail"
+     ],
+     "drive": {
+      "min": 10,
+      "mi": 2.5,
+      "km": 1.4649751240916025,
+      "to": "point",
+      "parkingLl": null
+     }
+    },
+    {
+     "name": "Moonshiners Run",
+     "ll": [
+      36.17246228,
+      -82.09450689
+     ],
+     "km": 2.2906051732049497,
+     "source": "state",
+     "serves": [
+      "Moonshiners Run"
+     ],
+     "drive": {
+      "min": 5,
+      "mi": 2.1,
+      "km": 2.1732444937501207,
+      "to": "point",
+      "parkingLl": null
+     }
+    },
+    {
+     "name": "Turkey Trot Trail",
+     "ll": [
+      36.16871324,
+      -82.09316585
+     ],
+     "km": 2.501281730529417,
+     "source": "state",
+     "serves": [
+      "Turkey Trot Trail"
+     ],
+     "drive": {
+      "min": 8,
+      "mi": 3.1,
+      "km": 2.408931643724456,
+      "to": "point",
+      "parkingLl": null
+     }
+    },
+    {
+     "name": "Blue 2 Trail",
+     "ll": [
+      36.16714669,
+      -82.10089754
+     ],
+     "km": 3.1116445457057598,
+     "source": "state",
+     "serves": [
+      "Blue 2 Trail"
+     ],
+     "drive": {
+      "min": 7,
+      "mi": 2.9,
+      "km": 2.996705753164041,
+      "to": "point",
+      "parkingLl": null
+     }
+    },
+    {
+     "name": "Riverside Trail",
+     "ll": [
+      36.163201,
+      -82.09703
+     ],
+     "km": 3.195646717332582,
+     "source": "state",
+     "serves": [
+      "Riverside Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Forest Road Trail",
+     "ll": [
+      36.16026003,
+      -82.09174358
+     ],
+     "km": 3.2129475684590543,
+     "source": "state",
+     "serves": [
+      "Forest Road Trail",
+      "Raven Rock Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Bearwallow Trail",
+     "ll": [
+      36.15820058,
+      -82.10015406
+     ],
+     "km": 3.8083805958093584,
+     "source": "state",
+     "serves": [
+      "Bearwallow Trail",
+      "Tom Gray Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Elm Hollow Trail",
+     "ll": [
+      36.15209063,
+      -82.05433034
+     ],
+     "km": 4.19063510886349,
+     "source": "state",
+     "serves": [
+      "Elm Hollow Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Overmountain Victory Trail",
+     "ll": [
+      36.15232324,
+      -82.05129314
+     ],
+     "km": 4.2963889294672954,
+     "source": "state",
+     "serves": [
+      "Overmountain Victory Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Shell Hollow Trail",
+     "ll": [
+      36.14913439,
+      -82.04900263
+     ],
+     "km": 4.706292440520201,
+     "source": "state",
+     "serves": [
+      "Shell Hollow Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Lucy Trap Trail",
+     "ll": [
+      36.24229788,
+      -82.082814
+     ],
+     "km": 6.315638269540572,
+     "source": "state",
+     "serves": [
+      "Lucy Trap Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Hack Line Trail",
+     "ll": [
+      36.1244647,
+      -82.101213
+     ],
+     "km": 7.216250537656535,
+     "source": "state",
+     "serves": [
+      "Hack Line Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Omv Trailhead",
+     "ll": [
+      36.116608313032835,
+      -82.049614441399
+     ],
+     "km": 8.031358193834224,
+     "source": "usfs",
+     "drive": null
+    },
+    {
+     "name": "Appalachian National Scenic Trail",
+     "ll": [
+      36.1328598,
+      -82.1388966
+     ],
+     "km": 8.216433762215265,
+     "source": "state",
+     "serves": [
+      "Appalachian National Scenic Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Coon Den Falls",
+     "ll": [
+      36.256842,
+      -82.111484
+     ],
+     "km": 8.542860057140459,
+     "source": "state",
+     "serves": [
+      "Coon Den Falls",
+      "Laurel Fork Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Appalachian National Scenic Trail",
+     "ll": [
+      36.2187504,
+      -81.9796418
+     ],
+     "km": 9.314278723036365,
+     "source": "state",
+     "serves": [
+      "Appalachian National Scenic Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Carvers Gap Trailhead",
+     "ll": [
+      36.106407018509444,
+      -82.11110366904902
+     ],
+     "km": 9.405743616477201,
+     "source": "usfs",
+     "drive": null
+    },
+    {
+     "name": "Carver Gap Trailhead",
+     "ll": [
+      36.10564247838373,
+      -82.11025966875302
+     ],
+     "km": 9.460069331968269,
+     "source": "usfs",
+     "drive": null
+    },
+    {
+     "name": "Elk River Falls Trailhead",
+     "ll": [
+      36.19899697324829,
+      -81.96992222262259
+     ],
+     "km": 9.551350963393245,
+     "source": "usfs",
+     "drive": null
+    },
+    {
+     "name": "Dennis Cove Trailhead",
+     "ll": [
+      36.26427884075393,
+      -82.12309818204545
+     ],
+     "km": 9.726547588776201,
+     "source": "usfs",
+     "drive": null
+    },
+    {
+     "name": "Little Pond Mountain",
+     "ll": [
+      36.276518,
+      -82.056788
+     ],
+     "km": 10.215663285922686,
+     "source": "state",
+     "serves": [
+      "Little Pond Mountain"
+     ],
+     "drive": null
+    },
+    {
+     "name": "High Water Alternate Trail",
+     "ll": [
+      36.27251099,
+      -82.13497
+     ],
+     "km": 11.032304042278597,
+     "source": "state",
+     "serves": [
+      "High Water Alternate Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Hampton Trailhead",
+     "ll": [
+      36.285338053966115,
+      -82.1520726919183
+     ],
+     "km": 13.040641747172277,
+     "source": "usfs",
+     "drive": null
+    },
+    {
+     "name": "Laurel Fork Trailhead",
+     "ll": [
+      36.285403,
+      -82.1521241
+     ],
+     "km": 13.049207828130529,
+     "source": "osm",
+     "serves": [
+      "Hampton-Blueline Trail"
+     ],
+     "drive": null
+    }
+   ],
+   "trailheadCount": 124
+  },
+  "road": {
+   "name": "State Rte 143",
+   "riseFt": 40.62061990478516,
+   "runFt": 439.1243620218932,
+   "gradePct": 9.250368100223954
+  },
+  "excluded": [],
+  "sites": [
+   {
+    "rank": 1,
+    "ll": [
+     36.18505293216952,
+     -82.07373497167423
+    ],
+    "acres": 0.9484746535123431,
+    "elevFt": 2709.7354429432776,
+    "aspectDeg": 172.55980672040914,
+    "slopeDeg": 7.751909407528686,
+    "cell": {
+     "score": 82.50098022603211,
+     "slope": 83.63057488216943,
+     "aspect": 97.08919807914253,
+     "thermal": 100
+    },
+    "why": [
+     "7.3 h of December sun — good",
+     "0.9 ac, faces S, 7.8° slope, 158 ft above the valley floor",
+     "Tusquitee: septic rated very limited — alternative system",
+     "routed driveway: 2367 ft at ≤15%, 6 switchbacks, ~$80–148k, needs an easement",
+     "Within 15% only via neighbouring land (needs an easement): 2367 ft"
+    ],
+    "sunH": 7.283333333333333,
+    "daylightH": 9.55,
+    "soil": "Tusquitee",
+    "soilKey": "27885551",
+    "sky": {
+     "mag": 20.91961900426926,
+     "coreClear": 13.156289298732574,
+     "domeW": 2.5665882829663573
+    },
+    "roadGrade": 9.250368100223954,
+    "roadRunFt": 439.1243620218932,
+    "roadName": "State Rte 143",
+    "driveFt": 2367.2349613551137,
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 0.5416696739173056,
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 2367.2349613551137,
+     "cost": {
+      "mid": 113573.909490068,
+      "low": 79501.7366430476,
+      "high": 147646.08233708842
+     },
+     "needsEasement": true,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 15.990050084888404,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
+   },
+   {
+    "rank": 2,
+    "ll": [
+     36.18587832976166,
+     -82.07491050597642
+    ],
+    "acres": 0.32279090772214936,
+    "elevFt": 2734.706336493238,
+    "aspectDeg": 195.97448866385466,
+    "slopeDeg": 9.442171993320935,
+    "cell": {
+     "score": 76.25203796282206,
+     "slope": 78.09416742194189,
+     "aspect": 94.670559608773,
+     "thermal": 100
+    },
+    "why": [
+     "6.9 h of December sun — acceptable",
+     "0.3 ac, faces SSW, 9.4° slope, 183 ft above the valley floor",
+     "Tusquitee: septic rated very limited — alternative system",
+     "649 ft to unnamed road at 23% straight-line — about 979 ft of driveway with switchbacks",
+     "routed driveway: 2012 ft at ≤15%, 6 switchbacks, ~$75–140k, needs an easement",
+     "Within 15% only via neighbouring land (needs an easement): 2012 ft"
+    ],
+    "sunH": 6.9,
+    "daylightH": 9.55,
+    "soil": "Tusquitee",
+    "soilKey": "27885551",
+    "sky": {
+     "mag": 20.91961900426926,
+     "coreClear": 11.913878570323636,
+     "domeW": 2.5665882829663573
+    },
+    "roadGrade": 22.610203623127614,
+    "roadRunFt": 649.4360625195619,
+    "roadName": "unnamed road",
+    "driveFt": 2011.932616977945,
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 0.12381021118109842,
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 2011.932616977945,
+     "cost": {
+      "mid": 107470.33470492103,
+      "low": 75229.23429344471,
+      "high": 139711.43511639733
+     },
+     "needsEasement": true,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 15.990050084888404,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
+   },
+   {
+    "rank": 3,
+    "ll": [
+     36.18556074844089,
+     -82.07424087318732
+    ],
+    "acres": 0.4841863615832241,
+    "elevFt": 2751.906298122871,
+    "aspectDeg": 187.47735546432762,
+    "slopeDeg": 13.256549774239597,
+    "compact": true,
+    "cell": {
+     "score": 53.91077376065189,
+     "slope": 54.64656389140647,
+     "aspect": 96.97201241967885,
+     "thermal": 100
+    },
+    "why": [
+     "compact site: 0.48 ac shelf — needs a cut pad and probably a retaining wall",
+     "7.6 h of December sun — good",
+     "0.5 ac, faces S, 13.3° slope, 201 ft above the valley floor",
+     "Porters: septic rated very limited — alternative system",
+     "591 ft to State Rte 143 at 17% straight-line — about 663 ft of driveway with switchbacks",
+     "routed driveway: 2185 ft at ≤15%, 6 switchbacks, ~$78–144k, needs an easement",
+     "Within 15% only via neighbouring land (needs an easement): 2185 ft"
+    ],
+    "sunH": 7.566666666666666,
+    "daylightH": 9.55,
+    "soil": "Porters",
+    "soilKey": "27885642",
+    "sky": {
+     "mag": 20.91961900426926,
+     "coreClear": 14.59151381446889,
+     "domeW": 2.5665882829663573
+    },
+    "roadGrade": 16.80938643793915,
+    "roadRunFt": 591.1909434958761,
+    "roadName": "State Rte 143",
+    "driveFt": 2185.121387261132,
+    "practical": null,
+    "fit": "fits",
+    "gentleNearAc": 0.4819754649549902,
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 2185.121387261132,
+     "cost": {
+      "mid": 111119.44994678664,
+      "low": 77783.61496275064,
+      "high": 144455.28493082264
+     },
+     "needsEasement": true,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 15.990050084888404,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
+   },
+   {
+    "rank": 4,
+    "ll": [
+     36.187052735753305,
+     -82.07625716612674
+    ],
+    "acres": 0.198980696541051,
+    "elevFt": 2920.425252622043,
+    "aspectDeg": 134.12932422738652,
+    "slopeDeg": 7.747315420707067,
+    "compact": true,
+    "cell": {
+     "score": 80.42808998955621,
+     "slope": 83.91706212361653,
+     "aspect": 90.21976492140028,
+     "thermal": 100
+    },
+    "why": [
+     "compact site: 0.20 ac shelf — needs a cut pad and probably a retaining wall",
+     "7.9 h of December sun — good",
+     "0.2 ac, faces SE, 7.7° slope, 369 ft above the valley floor",
+     "Porters: septic rated very limited — alternative system",
+     "417 ft to unnamed road at 5% straight-line",
+     "routed driveway: 652 ft at ≤15%, 1 switchback, ~$33–62k, needs an easement",
+     "Within 15% only via neighbouring land (needs an easement): 652 ft"
+    ],
+    "sunH": 7.883333333333334,
+    "daylightH": 9.55,
+    "soil": "Porters",
+    "soilKey": "27885543",
+    "sky": {
+     "mag": 20.986145998452336,
+     "coreClear": 17.469459403616657,
+     "domeW": 2.192396058543589
+    },
+    "roadGrade": 5.275165732431242,
+    "roadRunFt": 417.16790514492305,
+    "roadName": "unnamed road",
+    "driveFt": 652.0596821640069,
+    "practical": null,
+    "fit": "house only",
+    "gentleNearAc": 0.1569736606046069,
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 652.0596821640069,
+     "cost": {
+      "mid": 47679.14831609359,
+      "low": 33375.403821265514,
+      "high": 61982.892810921665
+     },
+     "needsEasement": true,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 12.580700539112968,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
+   }
+  ],
+  "driveway": {
+   "toLabel": "site #2",
+   "entrances": [
+    {
+     "ll": [
+      36.18611680335525,
+      -82.07718284148568
+     ],
+     "name": "road",
+     "roadGrade": 37.967389431714636,
+     "bend": 12.276521172659415,
+     "bankFt": 0.9503702783203125,
+     "score": 83.49859486723945,
+     "source": "tiger",
+     "reaches": null,
+     "line": null,
+     "roadClass": {
+      "mtfcc": "S1750",
+      "osm": null
+     }
+    }
+   ],
+   "routes": [
+    {
+     "line": {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+       "type": "LineString",
+       "coordinates": [
+        [
+         -82.07717592478951,
+         36.18612762507501
+        ],
+        [
+         -82.0770051907864,
+         36.185805568640134
+        ],
+        [
+         -82.07698227478937,
+         36.18578613652068
+        ],
+        [
+         -82.07695286437135,
+         36.18577371530128
+        ],
+        [
+         -82.0769200877361,
+         36.18576962614928
+        ],
+        [
+         -82.07688743112786,
+         36.18577430400219
+        ],
+        [
+         -82.07685836802466,
+         36.18578725130644
+        ],
+        [
+         -82.07683598968922,
+         36.18580709093846
+        ],
+        [
+         -82.07681841295542,
+         36.18582931220676
+        ],
+        [
+         -82.07680083621182,
+         36.18585153347253
+        ],
+        [
+         -82.07678325945835,
+         36.18587375473582
+        ],
+        [
+         -82.07676568269505,
+         36.18589597599662
+        ],
+        [
+         -82.07674810592192,
+         36.18591819725492
+        ],
+        [
+         -82.07673052913896,
+         36.18594041851074
+        ],
+        [
+         -82.07671295234616,
+         36.18596263976404
+        ],
+        [
+         -82.07669537554351,
+         36.185984861014866
+        ],
+        [
+         -82.07667779873104,
+         36.186007082263195
+        ],
+        [
+         -82.07666022190871,
+         36.18602930350902
+        ],
+        [
+         -82.07664264507656,
+         36.18605152475236
+        ],
+        [
+         -82.07668070367623,
+         36.1864017412552
+        ],
+        [
+         -82.07648556628652,
+         36.18672708912122
+        ],
+        [
+         -82.07647169470084,
+         36.186749573422695
+        ],
+        [
+         -82.07645010807731,
+         36.18676762270145
+        ],
+        [
+         -82.07642281425076,
+         36.18677955813759
+        ],
+        [
+         -82.0763923519048,
+         36.18678426957814
+        ],
+        [
+         -82.07636155443969,
+         36.18678131879677
+        ],
+        [
+         -82.07633328642662,
+         36.186770980255
+        ],
+        [
+         -82.07630701812349,
+         36.18675643712551
+        ],
+        [
+         -82.07628074982999,
+         36.18674189399004
+        ],
+        [
+         -82.07625448154613,
+         36.18672735084863
+        ],
+        [
+         -82.07622821327192,
+         36.18671280770123
+        ],
+        [
+         -82.07620194500734,
+         36.18669826454788
+        ],
+        [
+         -82.07617567675237,
+         36.186683721388576
+        ],
+        [
+         -82.07614940850708,
+         36.18666917822329
+        ],
+        [
+         -82.07612314027139,
+         36.18665463505205
+        ],
+        [
+         -82.07609687204534,
+         36.18664009187485
+        ],
+        [
+         -82.07607060382895,
+         36.18662554869168
+        ],
+        [
+         -82.07604433562219,
+         36.18661100550254
+        ],
+        [
+         -82.07601806742505,
+         36.18659646230745
+        ],
+        [
+         -82.07588354826478,
+         36.18648980723395
+        ],
+        [
+         -82.07585936890123,
+         36.18647560699804
+        ],
+        [
+         -82.07583114401153,
+         36.18646771202264
+        ],
+        [
+         -82.07580130715553,
+         36.18646680301524
+        ],
+        [
+         -82.07577243087628,
+         36.18647295835086
+        ],
+        [
+         -82.07574700489643,
+         36.18648564731459
+        ],
+        [
+         -82.07572722145513,
+         36.18650377585955
+        ],
+        [
+         -82.07571006676318,
+         36.186525354783114
+        ],
+        [
+         -82.07569291206191,
+         36.18654693370431
+        ],
+        [
+         -82.07567575735132,
+         36.18656851262312
+        ],
+        [
+         -82.07565860263142,
+         36.18659009153955
+        ],
+        [
+         -82.07564144790219,
+         36.1866116704536
+        ],
+        [
+         -82.0756242931636,
+         36.186633249365286
+        ],
+        [
+         -82.0756071384157,
+         36.186654828274584
+        ],
+        [
+         -82.07558998365849,
+         36.1866764071815
+        ],
+        [
+         -82.07557282889196,
+         36.18669798608606
+        ],
+        [
+         -82.07555567411607,
+         36.18671956498824
+        ],
+        [
+         -82.0755385193309,
+         36.18674114388803
+        ],
+        [
+         -82.07552136453639,
+         36.18676272278545
+        ],
+        [
+         -82.07539053205143,
+         36.18692569468293
+        ],
+        [
+         -82.0753733097076,
+         36.186945990304935
+        ],
+        [
+         -82.07534945831752,
+         36.18696125425365
+        ],
+        [
+         -82.07532110802754,
+         36.18697012331736
+        ],
+        [
+         -82.07529079078047,
+         36.18697180540626
+        ],
+        [
+         -82.07526121418842,
+         36.18696615029406
+        ],
+        [
+         -82.07523501971555,
+         36.18695366303469
+        ],
+        [
+         -82.07521454676898,
+         36.18693545885596
+        ],
+        [
+         -82.07520162376716,
+         36.186913163558735
+        ],
+        [
+         -82.07519740484577,
+         36.18688876831701
+        ],
+        [
+         -82.07520226678476,
+         36.186864451847235
+        ],
+        [
+         -82.07521293224366,
+         36.18684065979967
+        ],
+        [
+         -82.07522359769622,
+         36.18681686775116
+        ],
+        [
+         -82.07523426314253,
+         36.186793075701736
+        ],
+        [
+         -82.07524492858253,
+         36.18676928365136
+        ],
+        [
+         -82.07525559401626,
+         36.186745491600064
+        ],
+        [
+         -82.07526625944368,
+         36.186721699547824
+        ],
+        [
+         -82.0752769248648,
+         36.186697907494654
+        ],
+        [
+         -82.07528759027964,
+         36.18667411544054
+        ],
+        [
+         -82.07529825568818,
+         36.18665032338551
+        ],
+        [
+         -82.07530892109042,
+         36.18662653132953
+        ],
+        [
+         -82.07531958648639,
+         36.18660273927261
+        ],
+        [
+         -82.07528374534489,
+         36.18641429878571
+        ],
+        [
+         -82.07538131637774,
+         36.18625162582726
+        ],
+        [
+         -82.07577934030911,
+         36.1861671510556
+        ],
+        [
+         -82.07581070527452,
+         36.18616283451418
+        ],
+        [
+         -82.07583888966326,
+         36.186150872199796
+        ],
+        [
+         -82.07586113458589,
+         36.186132435070334
+        ],
+        [
+         -82.07587526255475,
+         36.18610932788421
+        ],
+        [
+         -82.07587989063161,
+         36.18608381253667
+        ],
+        [
+         -82.07587456579711,
+         36.18605838664866
+        ],
+        [
+         -82.07585980929191,
+         36.18603553908185
+        ],
+        [
+         -82.07583706559075,
+         36.18601750631209
+        ],
+        [
+         -82.0758085610051,
+         36.18600605350882
+        ],
+        [
+         -82.07577708575664,
+         36.186002301749305
+        ],
+        [
+         -82.07574382883334,
+         36.18600288001801
+        ],
+        [
+         -82.07571057190933,
+         36.186003458277504
+        ],
+        [
+         -82.07567731498457,
+         36.18600403652775
+        ],
+        [
+         -82.07564405805911,
+         36.18600461476876
+        ],
+        [
+         -82.0756108011329,
+         36.186005193000554
+        ],
+        [
+         -82.07557754420597,
+         36.18600577122312
+        ],
+        [
+         -82.07554428727832,
+         36.186006349436425
+        ],
+        [
+         -82.07551103034994,
+         36.18600692764052
+        ],
+        [
+         -82.07547777342081,
+         36.18600750583537
+        ],
+        [
+         -82.075444516491,
+         36.18600808402099
+        ],
+        [
+         -82.07541125956045,
+         36.186008662197374
+        ],
+        [
+         -82.07524532437517,
+         36.186037118976685
+        ],
+        [
+         -82.07494892524609,
+         36.18625550971639
+        ],
+        [
+         -82.0749205677672,
+         36.18626644578944
+        ],
+        [
+         -82.07488944627819,
+         36.186269846194584
+        ],
+        [
+         -82.07485852899265,
+         36.18626538661783
+        ],
+        [
+         -82.07483076464807,
+         36.18625349239141
+        ],
+        [
+         -82.07480880126774,
+         36.18623529792731
+        ],
+        [
+         -82.074794733604,
+         36.186212538522014
+        ],
+        [
+         -82.07478990335179,
+         36.18618738485156
+        ],
+        [
+         -82.07479477118683,
+         36.18616223594274
+        ],
+        [
+         -82.07480441578365,
+         36.186138577098546
+        ],
+        [
+         -82.07481406037483,
+         36.186114918253594
+        ],
+        [
+         -82.07482370496035,
+         36.18609125940788
+        ],
+        [
+         -82.07483334954027,
+         36.186067600561394
+        ],
+        [
+         -82.07484299411452,
+         36.186043941714125
+        ],
+        [
+         -82.07485263868314,
+         36.18602028286609
+        ],
+        [
+         -82.07486228324612,
+         36.185996624017285
+        ],
+        [
+         -82.07487192780346,
+         36.18597296516771
+        ],
+        [
+         -82.07488157235515,
+         36.18594930631735
+        ],
+        [
+         -82.07489121690122,
+         36.18592564746623
+        ],
+        [
+         -82.07490086144165,
+         36.18590198861434
+        ],
+        [
+         -82.07491050597642,
+         36.18587832976166
+        ]
+       ]
+      }
+     },
+     "profile": [
+      [
+       0,
+       880.7701458974084
+      ],
+      [
+       3,
+       881.1142903529241
+      ],
+      [
+       6,
+       881.3354183556836
+      ],
+      [
+       9,
+       881.900793146383
+      ],
+      [
+       12,
+       882.2559722177299
+      ],
+      [
+       15,
+       882.5400950024155
+      ],
+      [
+       18,
+       882.8069397607605
+      ],
+      [
+       21,
+       882.9353427043492
+      ],
+      [
+       24,
+       883.0059732734439
+      ],
+      [
+       27,
+       883.085160449238
+      ],
+      [
+       30,
+       883.0827824363411
+      ],
+      [
+       33,
+       883.0405391172196
+      ],
+      [
+       36,
+       882.9285361142764
+      ],
+      [
+       39,
+       882.6048879261879
+      ],
+      [
+       42,
+       882.8370409446334
+      ],
+      [
+       45,
+       883.0695075180516
+      ],
+      [
+       48,
+       883.3021627828967
+      ],
+      [
+       51,
+       883.5348018463936
+      ],
+      [
+       54,
+       883.7672276038168
+      ],
+      [
+       57,
+       883.9884843603919
+      ],
+      [
+       60,
+       884.0296524655224
+      ],
+      [
+       63,
+       884.0708205706962
+      ],
+      [
+       66,
+       884.1119886758312
+      ],
+      [
+       69,
+       884.1531567809626
+      ],
+      [
+       72,
+       884.1943248860939
+      ],
+      [
+       75,
+       884.2354929912101
+      ],
+      [
+       78,
+       884.2766610963381
+      ],
+      [
+       81,
+       884.3178292014412
+      ],
+      [
+       84,
+       884.3589973065466
+      ],
+      [
+       87,
+       884.4001654116441
+      ],
+      [
+       90,
+       884.5622331189949
+      ],
+      [
+       93,
+       884.9229643978728
+      ],
+      [
+       96,
+       885.0636405136236
+      ],
+      [
+       99,
+       885.124585593767
+      ],
+      [
+       102,
+       885.2803595723904
+      ],
+      [
+       105,
+       885.394440695384
+      ],
+      [
+       108,
+       885.2847820032628
+      ],
+      [
+       111,
+       884.8716365004161
+      ],
+      [
+       114,
+       884.2519444188263
+      ],
+      [
+       117,
+       883.4964398743964
+      ],
+      [
+       120,
+       882.8242581122595
+      ],
+      [
+       123,
+       882.4509670535674
+      ],
+      [
+       126,
+       882.615409715453
+      ],
+      [
+       129,
+       882.4404391375765
+      ],
+      [
+       132,
+       881.7077951017095
+      ],
+      [
+       135,
+       881.1341356276271
+      ],
+      [
+       138,
+       880.4877669777962
+      ],
+      [
+       141,
+       880.5173050279311
+      ],
+      [
+       144,
+       880.2638716854951
+      ],
+      [
+       147,
+       880.1370604898666
+      ],
+      [
+       150,
+       880.0753416444342
+      ],
+      [
+       153,
+       879.8703636961359
+      ],
+      [
+       156,
+       879.6291479173315
+      ],
+      [
+       159,
+       879.3845356185952
+      ],
+      [
+       162,
+       879.0358942618451
+      ],
+      [
+       165,
+       878.4530588510694
+      ],
+      [
+       168,
+       877.9347772103935
+      ],
+      [
+       171,
+       877.5193070944407
+      ],
+      [
+       174,
+       877.1317637615184
+      ],
+      [
+       177,
+       876.7436824861425
+      ],
+      [
+       180,
+       876.3552999836172
+      ],
+      [
+       183,
+       875.9669491860166
+      ],
+      [
+       186,
+       875.5597713888045
+      ],
+      [
+       189,
+       875.1094993950978
+      ],
+      [
+       192,
+       874.6592274052183
+      ],
+      [
+       195,
+       874.2089554190394
+      ],
+      [
+       198,
+       873.75868343663
+      ],
+      [
+       201,
+       873.308411458066
+      ],
+      [
+       204,
+       872.8581394832283
+      ],
+      [
+       207,
+       872.4078675122144
+      ],
+      [
+       210,
+       871.9575955450706
+      ],
+      [
+       213,
+       871.5073235815116
+      ],
+      [
+       216,
+       871.0570516218407
+      ],
+      [
+       219,
+       870.6067796659395
+      ],
+      [
+       222,
+       870.2089950157444
+      ],
+      [
+       225,
+       869.8189728919334
+      ],
+      [
+       228,
+       869.4289507681223
+      ],
+      [
+       231,
+       869.0389286443112
+      ],
+      [
+       234,
+       868.6489065205001
+      ],
+      [
+       237,
+       868.2492187124316
+      ],
+      [
+       240,
+       867.817040703562
+      ],
+      [
+       243,
+       867.384474523767
+      ],
+      [
+       246,
+       866.9518629462818
+      ],
+      [
+       249,
+       866.5195672744454
+      ],
+      [
+       252,
+       866.0878214777529
+      ],
+      [
+       255,
+       865.6663451916755
+      ],
+      [
+       258,
+       865.2464437197465
+      ],
+      [
+       261,
+       864.8265422478205
+      ],
+      [
+       264,
+       864.4066407757974
+      ],
+      [
+       267,
+       863.9867393039108
+      ],
+      [
+       270,
+       863.5668378323411
+      ],
+      [
+       273,
+       863.1469363606009
+      ],
+      [
+       276,
+       862.7270348889072
+      ],
+      [
+       279,
+       862.3071334174466
+      ],
+      [
+       282,
+       861.8872319460454
+      ],
+      [
+       285,
+       861.4673304745481
+      ],
+      [
+       288,
+       861.1639766869697
+      ],
+      [
+       291,
+       860.9963812185382
+      ],
+      [
+       294,
+       860.8287857501068
+      ],
+      [
+       297,
+       860.6611902816753
+      ],
+      [
+       300,
+       860.4935948132439
+      ],
+      [
+       303,
+       860.3259993448124
+      ],
+      [
+       306,
+       860.158403876381
+      ],
+      [
+       309,
+       859.916299521953
+      ],
+      [
+       312,
+       859.4665338119879
+      ],
+      [
+       315,
+       859.0161697864002
+      ],
+      [
+       318,
+       858.5653932777974
+      ],
+      [
+       321,
+       858.114560298677
+      ],
+      [
+       324,
+       857.6640519373174
+      ],
+      [
+       327,
+       857.21411793857
+      ],
+      [
+       330,
+       856.7647750448481
+      ],
+      [
+       333,
+       856.3157994940308
+      ],
+      [
+       336,
+       855.8956546972496
+      ],
+      [
+       339,
+       855.6334896595799
+      ],
+      [
+       342,
+       855.371324622318
+      ],
+      [
+       345,
+       855.1091595854996
+      ],
+      [
+       348,
+       854.8469945491511
+      ],
+      [
+       351,
+       854.5848295132074
+      ],
+      [
+       354,
+       854.3226644777155
+      ],
+      [
+       357,
+       854.0604994427327
+      ],
+      [
+       360,
+       853.7983344081223
+      ],
+      [
+       363,
+       853.5361693739474
+      ],
+      [
+       366,
+       853.27400434035
+      ],
+      [
+       369,
+       853.2730603840898
+      ],
+      [
+       372,
+       853.5340485931067
+      ],
+      [
+       375,
+       853.9531898982227
+      ],
+      [
+       378,
+       854.4337651418934
+      ],
+      [
+       381,
+       854.8139217614264
+      ],
+      [
+       384,
+       855.0638312580211
+      ],
+      [
+       387,
+       855.039629784068
+      ],
+      [
+       390,
+       855.0823073062741
+      ],
+      [
+       393,
+       855.070186966215
+      ],
+      [
+       396,
+       854.893533532136
+      ],
+      [
+       399,
+       854.5783682366452
+      ],
+      [
+       402,
+       854.1205318562145
+      ],
+      [
+       405,
+       853.5911911046583
+      ],
+      [
+       408,
+       853.0378285591311
+      ],
+      [
+       411,
+       853.2681467846235
+      ],
+      [
+       414,
+       853.4258817563887
+      ],
+      [
+       417,
+       853.4685216647948
+      ],
+      [
+       420,
+       853.4106790025128
+      ],
+      [
+       423,
+       853.2644394595408
+      ],
+      [
+       426,
+       852.9786254690074
+      ],
+      [
+       429,
+       852.6570452908511
+      ],
+      [
+       432,
+       852.3072913542662
+      ],
+      [
+       435,
+       851.8640149586794
+      ],
+      [
+       438,
+       851.4030936723002
+      ],
+      [
+       441,
+       850.8668217109165
+      ],
+      [
+       444,
+       850.3036566681628
+      ],
+      [
+       447,
+       849.8250884080417
+      ],
+      [
+       450,
+       849.3745424940286
+      ],
+      [
+       453,
+       848.9245679311703
+      ],
+      [
+       456,
+       848.4751950817385
+      ],
+      [
+       459,
+       848.0262050351959
+      ],
+      [
+       462,
+       847.5772060964484
+      ],
+      [
+       465,
+       847.1278059797108
+      ],
+      [
+       468,
+       846.6777975165172
+      ],
+      [
+       471,
+       846.227225477077
+      ],
+      [
+       474,
+       845.8117893850304
+      ],
+      [
+       477,
+       845.5194024317501
+      ],
+      [
+       480,
+       845.2270154804615
+      ],
+      [
+       483,
+       844.9346285312914
+      ],
+      [
+       486,
+       844.6422415841437
+      ],
+      [
+       489,
+       844.3498546392121
+      ],
+      [
+       492,
+       844.0574676962424
+      ],
+      [
+       495,
+       843.7650807553243
+      ],
+      [
+       498,
+       843.4726938165312
+      ],
+      [
+       501,
+       843.1803068798764
+      ],
+      [
+       504,
+       842.8879199450375
+      ],
+      [
+       507,
+       842.7370794944445
+      ],
+      [
+       510,
+       842.8746882568771
+      ],
+      [
+       513,
+       842.8222300818804
+      ],
+      [
+       516,
+       842.690975366422
+      ],
+      [
+       519,
+       842.5625690212172
+      ],
+      [
+       522,
+       842.3983213740503
+      ],
+      [
+       525,
+       842.5280841182043
+      ],
+      [
+       528,
+       842.5859926240495
+      ],
+      [
+       531,
+       842.4422936360843
+      ],
+      [
+       534,
+       842.240891916291
+      ],
+      [
+       537,
+       841.8438954759256
+      ],
+      [
+       540,
+       841.3611997370756
+      ],
+      [
+       543,
+       840.7799567988258
+      ],
+      [
+       546,
+       840.2749846756049
+      ],
+      [
+       549,
+       839.9273125331258
+      ],
+      [
+       552,
+       839.7680489160755
+      ],
+      [
+       555,
+       839.79879674124
+      ],
+      [
+       558,
+       839.880040941176
+      ],
+      [
+       561,
+       839.6690767203294
+      ],
+      [
+       564,
+       839.4580012503662
+      ],
+      [
+       567,
+       839.2469995330622
+      ],
+      [
+       570,
+       839.0362242804746
+      ],
+      [
+       573,
+       838.8257328772199
+      ],
+      [
+       576,
+       838.6154653531781
+      ],
+      [
+       579,
+       838.4052703482809
+      ],
+      [
+       582,
+       838.0360492784754
+      ],
+      [
+       585,
+       837.5869257498784
+      ],
+      [
+       588,
+       837.1378022218516
+      ],
+      [
+       591,
+       836.6886786948525
+      ],
+      [
+       594,
+       836.2395551688269
+      ],
+      [
+       597,
+       835.790431643676
+      ],
+      [
+       600,
+       835.34130811934
+      ],
+      [
+       603,
+       834.8921845959594
+      ],
+      [
+       606,
+       834.4430610735237
+      ],
+      [
+       609,
+       833.9939375518414
+      ],
+      [
+       612,
+       833.5448140311648
+      ]
+     ],
+     "metrics": {
+      "lengthFt": 2011.932616977945,
+      "riseFt": 154.9387578000465,
+      "maxGradePct": 15.990050084888404,
+      "avgGradePct": 10.330924021405668,
+      "switchbacks": 6,
+      "earthYd": 2058.4357083544114,
+      "rockYd": 41.4799315996698,
+      "stoneTons": 615.6968584542883,
+      "fabricSf": 0,
+      "clearAc": 1.1061984864384815,
+      "culverts": 2,
+      "outsideFt": 403.54332,
+      "sfhaFt": 0,
+      "drawnFt": 0,
+      "privateFt": 0
+     },
+     "cost": {
+      "mid": 107470.33470492103,
+      "low": 75229.23429344471,
+      "high": 139711.43511639733
+     },
+     "culverts": [
+      [
+       36.18626834334744,
+       -82.07487902735589
+      ]
+     ],
+     "needsEasement": true,
+     "maxGrade": 0.15,
+     "label": "shortest legal",
+     "lines": [],
+     "existing": null,
+     "entranceIndex": 0,
+     "track": {
+      "hours": 23,
+      "waterBars": 10,
+      "cost": {
+       "mid": 15894.285757515747,
+       "low": 11126.000030261022,
+       "high": 20662.571484770473
+      }
+     }
+    }
+   ],
+   "note": null,
+   "roadsNearestFt": 108.79440058265438,
+   "practical": null,
+   "steepLanding": null,
+   "direct": {
+    "line": {
+     "type": "Feature",
+     "properties": {},
+     "geometry": {
+      "type": "LineString",
+      "coordinates": [
+       [
+        -82.07717592478951,
+        36.18612762507501
+       ],
+       [
+        -82.07700555995801,
+        36.185832531383475
+       ],
+       [
+        -82.07698264395287,
+        36.185813099264315
+       ],
+       [
+        -82.07695323352459,
+        36.185800678045226
+       ],
+       [
+        -82.07692045687804,
+        36.18579658889353
+       ],
+       [
+        -82.0768878002587,
+        36.185801266746715
+       ],
+       [
+        -82.0768587371457,
+        36.18581421405116
+       ],
+       [
+        -82.07683635880286,
+        36.1858340536833
+       ],
+       [
+        -82.07681878206336,
+        36.18585627495165
+       ],
+       [
+        -82.076801205314,
+        36.185878496217484
+       ],
+       [
+        -82.07678362855484,
+        36.18590071748083
+       ],
+       [
+        -82.07676605178581,
+        36.185922938741676
+       ],
+       [
+        -82.07674847500695,
+        36.18594516000004
+       ],
+       [
+        -82.07673089821824,
+        36.185967381255914
+       ],
+       [
+        -82.07671332141973,
+        36.18598960250927
+       ],
+       [
+        -82.07669574461134,
+        36.18601182376015
+       ],
+       [
+        -82.07667816779315,
+        36.186034045008526
+       ],
+       [
+        -82.07666059096513,
+        36.18605626625441
+       ],
+       [
+        -82.07664301412724,
+        36.18607848749779
+       ],
+       [
+        -82.07668070367623,
+        36.1864017412552
+       ],
+       [
+        -82.07648556628652,
+        36.18672708912122
+       ],
+       [
+        -82.07647169470084,
+        36.186749573422695
+       ],
+       [
+        -82.07645010807731,
+        36.18676762270145
+       ],
+       [
+        -82.07642281425076,
+        36.18677955813759
+       ],
+       [
+        -82.0763923519048,
+        36.18678426957814
+       ],
+       [
+        -82.07636155443969,
+        36.18678131879677
+       ],
+       [
+        -82.07633328642662,
+        36.186770980255
+       ],
+       [
+        -82.07630701812349,
+        36.18675643712551
+       ],
+       [
+        -82.07628074982999,
+        36.18674189399004
+       ],
+       [
+        -82.07625448154613,
+        36.18672735084863
+       ],
+       [
+        -82.07622821327192,
+        36.18671280770123
+       ],
+       [
+        -82.07620194500734,
+        36.18669826454788
+       ],
+       [
+        -82.07617567675237,
+        36.186683721388576
+       ],
+       [
+        -82.07614940850708,
+        36.18666917822329
+       ],
+       [
+        -82.07612314027139,
+        36.18665463505205
+       ],
+       [
+        -82.07609687204534,
+        36.18664009187485
+       ],
+       [
+        -82.07607060382895,
+        36.18662554869168
+       ],
+       [
+        -82.07604433562219,
+        36.18661100550254
+       ],
+       [
+        -82.07601806742505,
+        36.18659646230745
+       ],
+       [
+        -82.07588354826478,
+        36.18648980723395
+       ],
+       [
+        -82.07585936890123,
+        36.18647560699804
+       ],
+       [
+        -82.07583114401153,
+        36.18646771202264
+       ],
+       [
+        -82.07580130715553,
+        36.18646680301524
+       ],
+       [
+        -82.07577243087628,
+        36.18647295835086
+       ],
+       [
+        -82.07574700489643,
+        36.18648564731459
+       ],
+       [
+        -82.07572722145513,
+        36.18650377585955
+       ],
+       [
+        -82.07571006676318,
+        36.186525354783114
+       ],
+       [
+        -82.07569291206191,
+        36.18654693370431
+       ],
+       [
+        -82.07567575735132,
+        36.18656851262312
+       ],
+       [
+        -82.07565860263142,
+        36.18659009153955
+       ],
+       [
+        -82.07564144790219,
+        36.1866116704536
+       ],
+       [
+        -82.0756242931636,
+        36.186633249365286
+       ],
+       [
+        -82.0756071384157,
+        36.186654828274584
+       ],
+       [
+        -82.07558998365849,
+        36.1866764071815
+       ],
+       [
+        -82.07557282889196,
+        36.18669798608606
+       ],
+       [
+        -82.07555567411607,
+        36.18671956498824
+       ],
+       [
+        -82.0755385193309,
+        36.18674114388803
+       ],
+       [
+        -82.07552136453639,
+        36.18676272278545
+       ],
+       [
+        -82.07539053205143,
+        36.18692569468293
+       ],
+       [
+        -82.0753733097076,
+        36.186945990304935
+       ],
+       [
+        -82.07534945831752,
+        36.18696125425365
+       ],
+       [
+        -82.07532110802754,
+        36.18697012331736
+       ],
+       [
+        -82.07529079078047,
+        36.18697180540626
+       ],
+       [
+        -82.07526121418842,
+        36.18696615029406
+       ],
+       [
+        -82.07523501971555,
+        36.18695366303469
+       ],
+       [
+        -82.07521454676898,
+        36.18693545885596
+       ],
+       [
+        -82.07520162376716,
+        36.186913163558735
+       ],
+       [
+        -82.07519740484577,
+        36.18688876831701
+       ],
+       [
+        -82.07520226678476,
+        36.186864451847235
+       ],
+       [
+        -82.07521293224366,
+        36.18684065979967
+       ],
+       [
+        -82.07522359769622,
+        36.18681686775116
+       ],
+       [
+        -82.07523426314253,
+        36.186793075701736
+       ],
+       [
+        -82.07524492858253,
+        36.18676928365136
+       ],
+       [
+        -82.07525559401626,
+        36.186745491600064
+       ],
+       [
+        -82.07526625944368,
+        36.186721699547824
+       ],
+       [
+        -82.0752769248648,
+        36.186697907494654
+       ],
+       [
+        -82.07528759027964,
+        36.18667411544054
+       ],
+       [
+        -82.07529825568818,
+        36.18665032338551
+       ],
+       [
+        -82.07530892109042,
+        36.18662653132953
+       ],
+       [
+        -82.07531958648639,
+        36.18660273927261
+       ],
+       [
+        -82.07528374534489,
+        36.18641429878571
+       ],
+       [
+        -82.07538131637774,
+        36.18625162582726
+       ],
+       [
+        -82.07577934030911,
+        36.1861671510556
+       ],
+       [
+        -82.07581070527452,
+        36.18616283451418
+       ],
+       [
+        -82.07583888966326,
+        36.186150872199796
+       ],
+       [
+        -82.07586113458589,
+        36.186132435070334
+       ],
+       [
+        -82.07587526255475,
+        36.18610932788421
+       ],
+       [
+        -82.07587989063161,
+        36.18608381253667
+       ],
+       [
+        -82.07587456579711,
+        36.18605838664866
+       ],
+       [
+        -82.07585980929191,
+        36.18603553908185
+       ],
+       [
+        -82.07583706559075,
+        36.18601750631209
+       ],
+       [
+        -82.0758085610051,
+        36.18600605350882
+       ],
+       [
+        -82.07577708575664,
+        36.186002301749305
+       ],
+       [
+        -82.07574382883334,
+        36.18600288001801
+       ],
+       [
+        -82.07571057190933,
+        36.186003458277504
+       ],
+       [
+        -82.07567731498457,
+        36.18600403652775
+       ],
+       [
+        -82.07564405805911,
+        36.18600461476876
+       ],
+       [
+        -82.0756108011329,
+        36.186005193000554
+       ],
+       [
+        -82.07557754420597,
+        36.18600577122312
+       ],
+       [
+        -82.07554428727832,
+        36.186006349436425
+       ],
+       [
+        -82.07551103034994,
+        36.18600692764052
+       ],
+       [
+        -82.07547777342081,
+        36.18600750583537
+       ],
+       [
+        -82.075444516491,
+        36.18600808402099
+       ],
+       [
+        -82.07541125956045,
+        36.186008662197374
+       ],
+       [
+        -82.07524532437517,
+        36.186037118976685
+       ],
+       [
+        -82.07494892524609,
+        36.18625550971639
+       ],
+       [
+        -82.0749205677672,
+        36.18626644578944
+       ],
+       [
+        -82.07488944627819,
+        36.186269846194584
+       ],
+       [
+        -82.07485852899265,
+        36.18626538661783
+       ],
+       [
+        -82.07483076464807,
+        36.18625349239141
+       ],
+       [
+        -82.07480880126774,
+        36.18623529792731
+       ],
+       [
+        -82.074794733604,
+        36.186212538522014
+       ],
+       [
+        -82.07478990335179,
+        36.18618738485156
+       ],
+       [
+        -82.07479477118683,
+        36.18616223594274
+       ],
+       [
+        -82.07480441578365,
+        36.186138577098546
+       ],
+       [
+        -82.07481406037483,
+        36.186114918253594
+       ],
+       [
+        -82.07482370496035,
+        36.18609125940788
+       ],
+       [
+        -82.07483334954027,
+        36.186067600561394
+       ],
+       [
+        -82.07484299411452,
+        36.186043941714125
+       ],
+       [
+        -82.07485263868314,
+        36.18602028286609
+       ],
+       [
+        -82.07486228324612,
+        36.185996624017285
+       ],
+       [
+        -82.07487192780346,
+        36.18597296516771
+       ],
+       [
+        -82.07488157235515,
+        36.18594930631735
+       ],
+       [
+        -82.07489121690122,
+        36.18592564746623
+       ],
+       [
+        -82.07490086144165,
+        36.18590198861434
+       ],
+       [
+        -82.07491050597642,
+        36.18587832976166
+       ]
+      ]
+     }
+    },
+    "profile": [
+     [
+      0,
+      880.7701458974084
+     ],
+     [
+      3,
+      881.1649705495374
+     ],
+     [
+      6,
+      881.4264510501469
+     ],
+     [
+      9,
+      882.0096407200878
+     ],
+     [
+      12,
+      882.4213745962355
+     ],
+     [
+      15,
+      882.7473740056373
+     ],
+     [
+      18,
+      883.044097309944
+     ],
+     [
+      21,
+      883.2080047232677
+     ],
+     [
+      24,
+      883.3476042180057
+     ],
+     [
+      27,
+      883.4765098552725
+     ],
+     [
+      30,
+      883.5223381921023
+     ],
+     [
+      33,
+      883.5224485833979
+     ],
+     [
+      36,
+      883.3946370330358
+     ],
+     [
+      39,
+      883.6639614755134
+     ],
+     [
+      42,
+      883.9703891073439
+     ],
+     [
+      45,
+      884.2770847176624
+     ],
+     [
+      48,
+      884.5837850187582
+     ],
+     [
+      51,
+      884.8902236190634
+     ],
+     [
+      54,
+      885.1962451654341
+     ],
+     [
+      57,
+      885.1633451743648
+     ],
+     [
+      60,
+      885.1213894663504
+     ],
+     [
+      63,
+      885.0794337583225
+     ],
+     [
+      66,
+      885.0374780503189
+     ],
+     [
+      69,
+      884.995522342331
+     ],
+     [
+      72,
+      884.9535666343592
+     ],
+     [
+      75,
+      884.9116109263489
+     ],
+     [
+      78,
+      884.8696552183893
+     ],
+     [
+      81,
+      884.8276995104083
+     ],
+     [
+      84,
+      884.7857438024263
+     ],
+     [
+      87,
+      884.8007959259194
+     ],
+     [
+      90,
+      884.9681983201614
+     ],
+     [
+      93,
+      885.0276557881732
+     ],
+     [
+      96,
+      885.1871984224285
+     ],
+     [
+      99,
+      885.3268362717947
+     ],
+     [
+      102,
+      885.2479821432789
+     ],
+     [
+      105,
+      884.859472934196
+     ],
+     [
+      108,
+      884.2732909392525
+     ],
+     [
+      111,
+      883.5202911644556
+     ],
+     [
+      114,
+      882.8448638464648
+     ],
+     [
+      117,
+      882.4188345039299
+     ],
+     [
+      120,
+      882.5908209193898
+     ],
+     [
+      123,
+      882.5258622893033
+     ],
+     [
+      126,
+      881.7704090296419
+     ],
+     [
+      129,
+      881.1827648055068
+     ],
+     [
+      132,
+      880.541084096215
+     ],
+     [
+      135,
+      880.4851905012705
+     ],
+     [
+      138,
+      880.2882474965093
+     ],
+     [
+      141,
+      880.1346068788553
+     ],
+     [
+      144,
+      880.088751901018
+     ],
+     [
+      147,
+      879.8940793710835
+     ],
+     [
+      150,
+      879.6585187953625
+     ],
+     [
+      153,
+      879.4280264146548
+     ],
+     [
+      156,
+      879.0993138627667
+     ],
+     [
+      159,
+      878.4927125136745
+     ],
+     [
+      162,
+      877.9871185574573
+     ],
+     [
+      165,
+      877.5528500765239
+     ],
+     [
+      168,
+      877.1653578868222
+     ],
+     [
+      171,
+      876.7773381142586
+     ],
+     [
+      174,
+      876.3889587718423
+     ],
+     [
+      177,
+      876.0005849947371
+     ],
+     [
+      180,
+      875.598790700832
+     ],
+     [
+      183,
+      875.1485187067944
+     ],
+     [
+      186,
+      874.6982467166208
+     ],
+     [
+      189,
+      874.2479747301194
+     ],
+     [
+      192,
+      873.7977027474097
+     ],
+     [
+      195,
+      873.3474307685107
+     ],
+     [
+      198,
+      872.8971587933854
+     ],
+     [
+      201,
+      872.4468868220364
+     ],
+     [
+      204,
+      871.9966148545801
+     ],
+     [
+      207,
+      871.5463428907314
+     ],
+     [
+      210,
+      871.0960709307275
+     ],
+     [
+      213,
+      870.6457989745201
+     ],
+     [
+      216,
+      870.2427932424023
+     ],
+     [
+      219,
+      869.8527711185912
+     ],
+     [
+      222,
+      869.4627489947801
+     ],
+     [
+      225,
+      869.0727268709691
+     ],
+     [
+      228,
+      868.6827047471579
+     ],
+     [
+      231,
+      868.2866569252037
+     ],
+     [
+      234,
+      867.8545180307137
+     ],
+     [
+      237,
+      867.4219691577479
+     ],
+     [
+      240,
+      866.9893471480834
+     ],
+     [
+      243,
+      866.5570168829482
+     ],
+     [
+      246,
+      866.1252241400463
+     ],
+     [
+      249,
+      865.7027326790992
+     ],
+     [
+      252,
+      865.2828312071621
+     ],
+     [
+      255,
+      864.8629297352379
+     ],
+     [
+      258,
+      864.443028263216
+     ],
+     [
+      261,
+      864.023126791293
+     ],
+     [
+      264,
+      863.6032253197409
+     ],
+     [
+      267,
+      863.1833238480009
+     ],
+     [
+      270,
+      862.7634223762909
+     ],
+     [
+      273,
+      862.3435209048043
+     ],
+     [
+      276,
+      861.9236194334384
+     ],
+     [
+      279,
+      861.5037179619069
+     ],
+     [
+      282,
+      861.1785000416285
+     ],
+     [
+      285,
+      861.010904573197
+     ],
+     [
+      288,
+      860.8433091047656
+     ],
+     [
+      291,
+      860.6757136363341
+     ],
+     [
+      294,
+      860.5081181679027
+     ],
+     [
+      297,
+      860.3405226994712
+     ],
+     [
+      300,
+      860.1729272310398
+     ],
+     [
+      303,
+      859.9552572184044
+     ],
+     [
+      306,
+      859.5055418447624
+     ],
+     [
+      309,
+      859.0552213929553
+     ],
+     [
+      312,
+      858.6044663482196
+     ],
+     [
+      315,
+      858.1536251134404
+     ],
+     [
+      318,
+      857.7030817075939
+     ],
+     [
+      321,
+      857.2530982622043
+     ],
+     [
+      324,
+      856.8037088479088
+     ],
+     [
+      327,
+      856.3547066797664
+     ],
+     [
+      330,
+      855.9183731863476
+     ],
+     [
+      333,
+      855.6562081486439
+     ],
+     [
+      336,
+      855.3940431113508
+     ],
+     [
+      339,
+      855.1318780744855
+     ],
+     [
+      342,
+      854.8697130381129
+     ],
+     [
+      345,
+      854.6075480021246
+     ],
+     [
+      348,
+      854.3453829666037
+     ],
+     [
+      351,
+      854.0832179315695
+     ],
+     [
+      354,
+      853.821052896942
+     ],
+     [
+      357,
+      853.5588878627225
+     ],
+     [
+      360,
+      853.296722829077
+     ],
+     [
+      363,
+      853.2682031725885
+     ],
+     [
+      366,
+      853.5078136218594
+     ],
+     [
+      369,
+      853.9140659624067
+     ],
+     [
+      372,
+      854.3913754158835
+     ],
+     [
+      375,
+      854.7830289678307
+     ],
+     [
+      378,
+      855.0442422422734
+     ],
+     [
+      381,
+      855.0480573376085
+     ],
+     [
+      384,
+      855.0733454427289
+     ],
+     [
+      387,
+      855.0779987714939
+     ],
+     [
+      390,
+      854.9138793801792
+     ],
+     [
+      393,
+      854.6167775083807
+     ],
+     [
+      396,
+      854.1617043755414
+     ],
+     [
+      399,
+      853.6423228401469
+     ],
+     [
+      402,
+      853.0279482403082
+     ],
+     [
+      405,
+      853.2517318689157
+     ],
+     [
+      408,
+      853.4147292804786
+     ],
+     [
+      411,
+      853.4651742427513
+     ],
+     [
+      414,
+      853.416615423956
+     ],
+     [
+      417,
+      853.2786462163284
+     ],
+     [
+      420,
+      853.0039108072757
+     ],
+     [
+      423,
+      852.685450207489
+     ],
+     [
+      426,
+      852.3383083218339
+     ],
+     [
+      429,
+      851.9024060562658
+     ],
+     [
+      432,
+      851.4440006645816
+     ],
+     [
+      435,
+      850.9142806114193
+     ],
+     [
+      438,
+      850.3528054643077
+     ],
+     [
+      441,
+      849.8641574671703
+     ],
+     [
+      444,
+      849.4135794330446
+     ],
+     [
+      447,
+      848.9635542357559
+     ],
+     [
+      450,
+      848.514131668684
+     ],
+     [
+      453,
+      848.0651117084561
+     ],
+     [
+      456,
+      847.6161273795116
+     ],
+     [
+      459,
+      847.1667931512633
+     ],
+     [
+      462,
+      846.7168375304597
+     ],
+     [
+      465,
+      846.266295713317
+     ],
+     [
+      468,
+      845.8371268208585
+     ],
+     [
+      471,
+      845.5447398674114
+     ],
+     [
+      474,
+      845.2523529159351
+     ],
+     [
+      477,
+      844.9599659665985
+     ],
+     [
+      480,
+      844.6675790192515
+     ],
+     [
+      483,
+      844.3751920741535
+     ],
+     [
+      486,
+      844.082805131007
+     ],
+     [
+      489,
+      843.7904181899112
+     ],
+     [
+      492,
+      843.4980312509193
+     ],
+     [
+      495,
+      843.2056443141196
+     ],
+     [
+      498,
+      842.9132573790927
+     ],
+     [
+      501,
+      842.7184870754957
+     ],
+     [
+      504,
+      842.8776271426583
+     ],
+     [
+      507,
+      842.8334245223165
+     ],
+     [
+      510,
+      842.7000864921545
+     ],
+     [
+      513,
+      842.583790940919
+     ],
+     [
+      516,
+      842.3849664218727
+     ],
+     [
+      519,
+      842.5186127752534
+     ],
+     [
+      522,
+      842.5877976825184
+     ],
+     [
+      525,
+      842.4565398973767
+     ],
+     [
+      528,
+      842.2706117662119
+     ],
+     [
+      531,
+      841.8809298122585
+     ],
+     [
+      534,
+      841.4093860359978
+     ],
+     [
+      537,
+      840.8301768157004
+     ],
+     [
+      540,
+      840.3078620222648
+     ],
+     [
+      543,
+      839.9531420199806
+     ],
+     [
+      546,
+      839.784445661198
+     ],
+     [
+      549,
+      839.7803734501604
+     ],
+     [
+      552,
+      839.8983190786449
+     ],
+     [
+      555,
+      839.6873682576494
+     ],
+     [
+      558,
+      839.4762917539379
+     ],
+     [
+      561,
+      839.2652749605119
+     ],
+     [
+      564,
+      839.0544762766515
+     ],
+     [
+      567,
+      838.8439618532545
+     ],
+     [
+      570,
+      838.6336802467065
+     ],
+     [
+      573,
+      838.4234852711056
+     ],
+     [
+      576,
+      838.0749690676544
+     ],
+     [
+      579,
+      837.6258455389989
+     ],
+     [
+      582,
+      837.1767220109301
+     ],
+     [
+      585,
+      836.72759848384
+     ],
+     [
+      588,
+      836.2784749577012
+     ],
+     [
+      591,
+      835.8293514324573
+     ],
+     [
+      594,
+      835.3802279080472
+     ],
+     [
+      597,
+      834.9311043845819
+     ],
+     [
+      600,
+      834.4819808620875
+     ],
+     [
+      603,
+      834.0328573403417
+     ],
+     [
+      606,
+      833.5837338195649
+     ]
+    ],
+    "metrics": {
+     "lengthFt": 1993.1005022391937,
+     "riseFt": 154.81106820147187,
+     "maxGradePct": 15.785376350008468,
+     "avgGradePct": 10.42479679860701,
+     "switchbacks": 6,
+     "earthYd": 2042.6293030778404,
+     "rockYd": 43.960730293633205,
+     "stoneTons": 609.933805663725,
+     "fabricSf": 0,
+     "clearAc": 1.095844234688374,
+     "culverts": 2,
+     "outsideFt": 383.85828,
+     "sfhaFt": 0,
+     "drawnFt": 0,
+     "privateFt": 0
+    },
+    "cost": {
+     "mid": 107193.03862318928,
+     "low": 75035.12703623249,
+     "high": 139350.95021014605
+    },
+    "culverts": [
+     [
+      36.18626875466478,
+      -82.07488187893163
+     ]
+    ],
+    "needsEasement": true,
+    "maxGrade": 0.15,
+    "label": "direct track at 15%",
+    "lines": [],
+    "existing": null,
+    "entranceIndex": 0,
+    "track": {
+     "hours": 23,
+     "waterBars": 10,
+     "cost": {
+      "mid": 15836.047302915258,
+      "low": 11085.23311204068,
+      "high": 20586.861493789835
+     }
+    }
+   }
+  },
+  "drives": [
+   {
+    "label": "Nearest hospital",
+    "name": "Cannon Memorial Hospital",
+    "min": 32,
+    "mi": 18.2,
+    "er": "yes"
+   },
+   {
+    "label": "Nearest real grocery",
+    "name": "Ingles",
+    "min": 23,
+    "mi": 13.3,
+    "er": null
+   },
+   {
+    "label": "Asheville airport (AVL)",
+    "name": "",
+    "min": 118,
+    "mi": 86.4,
+    "er": null
+   },
+   {
+    "label": "Roanoke airport (ROA)",
+    "name": "",
+    "min": 228,
+    "mi": 188.6,
+    "er": null
+   },
+   {
+    "label": "Tri-Cities airport (TRI)",
+    "name": "",
+    "min": 64,
+    "mi": 41.8,
+    "er": null
+   },
+   {
+    "label": "Greenville-Spartanburg (GSP)",
+    "name": "",
+    "min": 183,
+    "mi": 124.6,
+    "er": null
+   },
+   {
+    "label": "Charlotte airport (CLT)",
+    "name": "",
+    "min": 179,
+    "mi": 119.9,
+    "er": null
+   }
+  ],
+  "driveFrom": {
+   "ll": [
+    36.18611680335525,
+    -82.07718284148568
+   ],
+   "kind": "entrance",
+   "road": "road",
+   "line": null,
+   "gapFt": null,
+   "snapM": 19.88930562,
+   "trackMi": null,
+   "kept": true
+  },
+  "closerGrocery": {
+   "label": "Closer grocery",
+   "name": "RediMart Supermarket",
+   "min": 5,
+   "mi": 2.2,
+   "er": null
+  },
+  "schemaVersion": 9,
+  "engine": 22,
+  "runAt": "(not compared)",
+  "failed": [],
+  "cancelled": false
+ }
+}

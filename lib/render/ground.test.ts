@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { sunHours } from "@/lib/screen/sun";
 import type { ScreenResult } from "@/lib/screen/types";
-import { loadFixture, type FixtureSlug } from "@/test/support/fixtures";
+import { loadFixture, type PrototypeSlug } from "@/test/support/fixtures";
 import { fromPrototype } from "@/test/support/fromPrototype";
 import {
   canopyVertices,
@@ -32,14 +32,14 @@ import {
 } from "./ground";
 
 const K = SCREEN_CONSTANTS.sun;
-const GOLDENS: [FixtureSlug, string][] = [
+const GOLDENS: [PrototypeSlug, string][] = [
   ["ferney-creek-52-47A", "run"],
   ["ferney-creek-52-47A", "setHouse"],
   ["ferney-creek-52-47A", "houseRun"],
   ["macks-mountain-35-3", "run"],
   ["macks-mountain-35-3", "evaluateSite2"],
 ];
-const result = (slug: FixtureSlug, key: string) =>
+const result = (slug: PrototypeSlug, key: string) =>
   fromPrototype((loadFixture(slug).goldens as unknown as Record<string, never>)[key]!) as ScreenResult;
 
 describe.each(GOLDENS)("the viewer's numbers on %s %s (plan §3)", (slug, key) => {

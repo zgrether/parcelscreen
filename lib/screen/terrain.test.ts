@@ -1,7 +1,7 @@
 import { centroid, polygon, feature } from "@turf/turf";
 import { describe, expect, it } from "vitest";
 import { differences } from "../../test/support/compare";
-import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
 import { fixtureParcel } from "../../test/support/scenarios";
 import { expectedOf, rawFlags } from "../../test/support/expected";
 import { createHttpClient } from "../http";
@@ -86,7 +86,7 @@ describe("insideMask and valleyFloor", () => {
 });
 
 // The fixture check: DEMs replayed from the recording, run through the port, against the prototype.
-describe.each(FIXTURE_SLUGS)("terrain on %s vs the prototype", (slug) => {
+describe.each(PROTOTYPE_FIXTURE_SLUGS)("terrain on %s vs the prototype", (slug) => {
   it("matches terrain.*, valley floor and the slope flag", async () => {
     const fx = loadFixture(slug);
     const golden = expectedOf(fx.slug, "run");

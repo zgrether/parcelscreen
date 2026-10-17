@@ -1,6 +1,6 @@
 import { bbox, buffer, distance } from "@turf/turf";
 import { describe, expect, it } from "vitest";
-import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
 import { fwd, inv } from "./utm";
 
 describe("UTM zone 17N", () => {
@@ -29,7 +29,7 @@ describe("UTM zone 17N", () => {
   // bit-for-bit; Macks Mountain differs in the last bits (~1e-9 m) because turf.buffer and fwd() call
   // Math.sin/atan2/…, whose last-bit rounding differs between Chromium's V8 (where the prototype was
   // recorded) and Node's (docs/plans/phase-0.md §5). So: 1 µm, which is still a verbatim-port check.
-  it.each(FIXTURE_SLUGS)("reproduces the recorded 3DEP request bboxes to 1 µm (%s)", (slug) => {
+  it.each(PROTOTYPE_FIXTURE_SLUGS)("reproduces the recorded 3DEP request bboxes to 1 µm (%s)", (slug) => {
     const fx = loadFixture(slug);
     const recorded = fx.har.log.entries
       .filter((e) => e.request.url.includes("/3DEPElevation/ImageServer/exportImage"))

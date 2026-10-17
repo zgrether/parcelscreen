@@ -1,6 +1,6 @@
 import { area } from "@turf/turf";
 import { describe, expect, it } from "vitest";
-import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
 import { M2_PER_ACRE } from "./types";
 import { wktToGeo } from "./wkt";
 
@@ -46,7 +46,7 @@ describe("wktToGeo", () => {
   });
 
   // Real SDA output: every clipped map-unit polygon the prototype kept must come out identical.
-  it.each(FIXTURE_SLUGS)(
+  it.each(PROTOTYPE_FIXTURE_SLUGS)(
     "reproduces the prototype's map-unit polygons from the recorded SDA response (%s)",
     (slug) => {
       const fx = loadFixture(slug);

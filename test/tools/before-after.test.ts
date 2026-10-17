@@ -18,14 +18,14 @@ import SNAPSHOT from "@/lib/screen/data/hospitals.json";
 import { publicLandView } from "@/lib/report/surroundings";
 import { differences } from "../support/compare";
 import { EXPECTED, expectedPath, type ExpectedResults } from "../support/expected";
-import { FIXTURE_SLUGS, type FixtureSlug } from "../support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, type PrototypeSlug } from "../support/fixtures";
 import { SCENARIOS } from "../support/scenarios";
 import { shortName } from "./diffReport";
 
 const OUT = "test-results/before-after.md";
 
 /** A fixture's expected.json at a git ref, or null where it didn't exist yet. */
-function expectedAt(ref: string, slug: FixtureSlug): ExpectedResults | null {
+function expectedAt(ref: string, slug: PrototypeSlug): ExpectedResults | null {
   const path = expectedPath(slug).replace(/\\/g, "/").split("/test/fixtures/")[1];
   try {
     return JSON.parse(
@@ -127,22 +127,22 @@ describe.runIf(import.meta.env.MODE === "before-after")("before-after", () => {
   it("writes the table", () => {
     const base = process.env.BASE ?? "origin/main";
     const head = execFileSync("git", ["rev-parse", "--short", "HEAD"], { encoding: "utf8" }).trim();
-    const before = new Map(FIXTURE_SLUGS.map((s) => [s, expectedAt(base, s)] as const));
+    const before = new Map(PROTOTYPE_FIXTURE_SLUGS.map((s) => [s, expectedAt(base, s)] as const));
     const after = new Map(
-      FIXTURE_SLUGS.map(
+      PROTOTYPE_FIXTURE_SLUGS.map(
         (s) => [s, JSON.parse(readFileSync(expectedPath(s), "utf8")) as ExpectedResults] as const,
       ),
     );
 
-    const rows = Object.keys(headlines(after.get(FIXTURE_SLUGS[0])!.run));
-    const cols = FIXTURE_SLUGS.flatMap((s) => [`${shortName(s)} before`, `${shortName(s)} after`]);
+    const rows = Object.keys(headlines(after.get(PROTOTYPE_FIXTURE_SLUGS[0])!.run));
+    const cols = PROTOTYPE_FIXTURE_SLUGS.flatMap((s) => [`${shortName(s)} before`, `${shortName(s)} after`]);
     const lines = [
       `Before: \`${base}\`; after: this checkout (\`${head}\`, working tree). Run scenario only; — where a fixture had no expected.json yet.`,
       "",
       `| | ${cols.join(" | ")} |`,
       `|---|${cols.map(() => "---").join("|")}|`,
       ...rows.map((row) => {
-        const cells = FIXTURE_SLUGS.flatMap((s) => {
+        const cells = PROTOTYPE_FIXTURE_SLUGS.flatMap((s) => {
           const b = headlines(before.get(s)?.run)[row] ?? "—",
             a = headlines(after.get(s)!.run)[row] ?? "—";
           return [b, a === b ? a : `**${a}**`];
@@ -152,7 +152,7 @@ describe.runIf(import.meta.env.MODE === "before-after")("before-after", () => {
       "",
       "**Ranking** (run scenario; every ranked site, before and after; bold where its rank or grade moved):",
       "",
-      ...FIXTURE_SLUGS.flatMap((s) => [
+      ...PROTOTYPE_FIXTURE_SLUGS.flatMap((s) => [
         `*${shortName(s)}*`,
         "",
         rankingTable(before.get(s)?.run, after.get(s)!.run!),
@@ -162,7 +162,7 @@ describe.runIf(import.meta.env.MODE === "before-after")("before-after", () => {
       "",
     ];
     const detail: string[] = [];
-    for (const s of FIXTURE_SLUGS)
+    for (const s of PROTOTYPE_FIXTURE_SLUGS)
       for (const sc of SCENARIOS[s]) {
         const b = before.get(s)?.[sc],
           a = after.get(s)![sc];

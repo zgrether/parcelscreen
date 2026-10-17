@@ -4,11 +4,11 @@ import { DEFAULT_USER_CONFIG } from "@/lib/screen/config";
 import { screen, type ScreenOutput } from "@/lib/screen";
 import type { LatLon } from "@/lib/geo/types";
 import { sessionView, type SessionView } from "@/lib/screen/worker-protocol";
-import { loadFixture, type FixtureSlug } from "./fixtures";
+import { loadFixture, type PrototypeSlug } from "./fixtures";
 import { instantClock } from "./pipeline";
 
 export async function replayRun(
-  slug: FixtureSlug,
+  slug: PrototypeSlug,
   extra: { house?: LatLon } = {},
 ): Promise<ScreenOutput & { view: SessionView }> {
   const replay = loadFixture(slug).replayFetch();

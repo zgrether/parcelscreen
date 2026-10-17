@@ -145,6 +145,25 @@ the Turf version, not the port: the prototype loads Turf 7.1.0 from a CDN, while
 resolves its parts at 7.4.0, whose `pointToLineDistance` agrees with a brute-force distance (18.262 ft). It's
 approved as row 17 of `docs/plans/phase-0-18-acceptance.md` §5 (owner, 2026-10-08).
 
+## Port-only fixtures (step 2 on)
+
+From roadmap step 2 (owner, 2026-10-17) every new fixture is **port-only**: recorded by `pnpm record:port` alone, with
+no `golden.json`, no prototype `network.har` and no part in `pnpm diff:prototype`. `test/support/fixtures.ts` keeps two
+lists: `PROTOTYPE_FIXTURE_SLUGS` (Ferney, Macks, Mud Creek) and `FIXTURE_SLUGS` (all of them). A port-only fixture has:
+
+| File | Contents |
+|---|---|
+| `input.json` | The parcel as the county service returns it (owner and address left out), a point inside it, the point its `evaluateSite2` is taken at (the port's own site #2), and when it was recorded. |
+| `network-port.har` | Every request its scenarios make, and the map's line tiles and parcel-number search around it for the browser tests (`PORT_RUNS` in `record-port.test.ts`). |
+| `expected.json` | `pnpm expected`, as for the others. |
+| `cards-v8.json`, `grades-v8.json` | `pnpm record:oracles`, once: the derivations' cards and grades, a regression snapshot (the prototype-backed fixtures keep their v7 oracles). |
+
+| Directory | Parcel | Reference point |
+|---|---|---|
+| `roan-hwy-143-099-046-02/` | Roan Mountain, Carter County TN, control map 099 parcel 046.02, State Hwy 143 (12.71 deeded acres, 13.29 from the boundary): wooded, old logging tracks and a clearing, no house; faces south-east; about 1.2 km from the town (plan §7.1). | `36.186698, -82.075222` |
+
+Recorded 2026-10-17 with `PORT_APPEND=roan-hwy-143-099-046-02 pnpm record:port`. Scenarios: `run`, `evaluateSite2`.
+
 ## Terrarium tile (DEM fallback)
 
 `terrarium/14/4530/6383.png` (103,098 bytes) is the one AWS terrain tile covering Ferney Creek's fine-DEM

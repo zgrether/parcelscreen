@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { derivedHouse, derivedSites } from "./derive";
 import { differences } from "../../test/support/compare";
-import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
 import { fromPrototype } from "../../test/support/fromPrototype";
 import { expectedOf } from "../../test/support/expected";
 import { depsFor, runFixture } from "../../test/support/scenarios";
@@ -282,7 +282,9 @@ describe("summary text vs the prototype's own functions", () => {
   const protoSummary = prototypeFn<(R: unknown) => string>("summaryText", { fmt: format.fmt });
   const protoName = prototypeFn<(R: unknown) => string>("defaultName");
   it.each(
-    FIXTURE_SLUGS.flatMap((slug) => Object.keys(loadFixture(slug).goldens).map((k) => [slug, k] as const)),
+    PROTOTYPE_FIXTURE_SLUGS.flatMap((slug) =>
+      Object.keys(loadFixture(slug).goldens).map((k) => [slug, k] as const),
+    ),
   )("%s %s", (slug, key) => {
     const R = loadFixture(slug).goldens[key as "run"]!;
     expect(summaryText(fromPrototype(R, { grades: true }) as ScreenResult)).toBe(protoSummary(R));

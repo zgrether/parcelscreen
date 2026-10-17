@@ -1,6 +1,6 @@
 import { polygon } from "@turf/turf";
 import { describe, expect, it } from "vitest";
-import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
 import { createHttpClient, type HttpClient } from "../http";
 import { arcQuery } from "./arcgis";
 import { DEFAULT_ENDPOINTS } from "./config";
@@ -9,7 +9,7 @@ const respond = (body: string, status = 200): HttpClient => ({
   fetch: async () => new Response(body, { status }),
 });
 
-describe.each(FIXTURE_SLUGS)("arcQuery replaying the prototype's queries (%s)", (slug) => {
+describe.each(PROTOTYPE_FIXTURE_SLUGS)("arcQuery replaying the prototype's queries (%s)", (slug) => {
   const fx = loadFixture(slug);
   const parcel = polygon(fx.input.polygon.geometry.coordinates);
   const http = createHttpClient({ env: "node", fetchImpl: fx.replayFetch() });

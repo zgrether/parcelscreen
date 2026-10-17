@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import type { ScreenResult } from "../screen/types";
-import { FIXTURE_SLUGS, loadFixture } from "@/test/support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, loadFixture } from "@/test/support/fixtures";
 import { fromPrototype } from "@/test/support/fromPrototype";
 import { prototypeFn } from "@/test/support/prototypeFns";
 import { drivewayFeatures, soilFeatures, trailheadFeatures } from "./resultGeo";
@@ -32,7 +32,7 @@ function fakeLeaflet(out: Drawn[]) {
   };
 }
 
-const runs = FIXTURE_SLUGS.flatMap((slug) =>
+const runs = PROTOTYPE_FIXTURE_SLUGS.flatMap((slug) =>
   Object.keys(loadFixture(slug).goldens).map((k) => [slug, k] as const),
 );
 const golden = (slug: (typeof runs)[number][0], key: string) =>

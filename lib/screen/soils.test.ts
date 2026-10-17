@@ -1,7 +1,7 @@
 import type { Feature, Polygon } from "geojson";
 import { describe, expect, it } from "vitest";
 import { differences } from "../../test/support/compare";
-import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
 import { expectedOf, rawFlags } from "../../test/support/expected";
 import { throughSites } from "../../test/support/pipeline";
 import { prototypeFn } from "../../test/support/prototypeFns";
@@ -51,7 +51,7 @@ const row = (o: Partial<SoilRow>): SoilRow => ({
 });
 
 describe("SDA queries", () => {
-  it.each(FIXTURE_SLUGS)("are byte-identical to the prototype's (%s)", (slug) => {
+  it.each(PROTOTYPE_FIXTURE_SLUGS)("are byte-identical to the prototype's (%s)", (slug) => {
     const fx = loadFixture(slug);
     const recorded = fx.har.log.entries
       .filter((e) => /sdmdataaccess/i.test(e.request.url))
@@ -66,7 +66,7 @@ describe("SDA queries", () => {
 describe("soilRead and bottomland vs the prototype's functions", () => {
   const protoRead = prototypeFn<(x: SoilRow) => unknown>("soilRead", { CFG: { shallowBedrockCm: 100 } });
   const protoBottom = prototypeFn<(x: SoilRow) => string | null>("bottomland");
-  const real = FIXTURE_SLUGS.flatMap((s) => expectedOf(s, "run").soils!);
+  const real = PROTOTYPE_FIXTURE_SLUGS.flatMap((s) => expectedOf(s, "run").soils!);
   let seed = 7;
   const rand = () => (seed = (seed * 1103515245 + 12345) % 2 ** 31) / 2 ** 31;
   const pick = <T>(xs: readonly T[]): T => xs[Math.floor(rand() * xs.length)]!;
@@ -185,7 +185,7 @@ describe("bench vetting (synthetic: neither golden has a bottomland bench)", () 
   });
 });
 
-describe.each(FIXTURE_SLUGS)("soils on %s vs the prototype", (slug) => {
+describe.each(PROTOTYPE_FIXTURE_SLUGS)("soils on %s vs the prototype", (slug) => {
   it("matches soils, soil units, bench vetoes, gardens and the flags so far", async () => {
     const t = await throughSites(slug);
     const golden = expectedOf(t.fx.slug, "run");

@@ -22,7 +22,7 @@ import { splitPieces } from "@/lib/geo/split";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { differences } from "../support/compare";
 import { EXPECTED, expectedOf } from "../support/expected";
-import { FIXTURE_SLUGS, loadFixture } from "../support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, loadFixture } from "../support/fixtures";
 import { fromPrototype } from "../support/fromPrototype";
 import { asPrototype, PARITY } from "../support/parity";
 import { runScenario, SCENARIOS } from "../support/scenarios";
@@ -173,7 +173,7 @@ describe.runIf(import.meta.env.MODE === "turf-versions")("Turf 7.1.0 vs 7.4.0", 
         `The whole pipeline on Turf 7.1.0 (\`${shared.bundle}\`) against expected.json (7.4.0), default tolerance:`,
         "",
       ];
-      for (const slug of FIXTURE_SLUGS)
+      for (const slug of PROTOTYPE_FIXTURE_SLUGS)
         for (const scenario of SCENARIOS[slug]) {
           const d = differences(await runScenario(slug, scenario), expectedOf(slug, scenario), EXPECTED);
           lines.push(
@@ -188,7 +188,7 @@ describe.runIf(import.meta.env.MODE === "turf-versions")("Turf 7.1.0 vs 7.4.0", 
         "The same run against the prototype's goldens (Chromium), default tolerance, no road widenings:",
         "",
       );
-      for (const slug of FIXTURE_SLUGS)
+      for (const slug of PROTOTYPE_FIXTURE_SLUGS)
         for (const scenario of SCENARIOS[slug]) {
           const golden = loadFixture(slug).goldens[scenario]!;
           const r = await runScenario(slug, scenario);
@@ -204,12 +204,12 @@ describe.runIf(import.meta.env.MODE === "turf-versions")("Turf 7.1.0 vs 7.4.0", 
       return;
     }
 
-    for (const slug of FIXTURE_SLUGS)
+    for (const slug of PROTOTYPE_FIXTURE_SLUGS)
       for (const scenario of SCENARIOS[slug]) await runScenario(slug, scenario);
     // lib/geo on real parcels: each fixture split north–south at its centre and combined back, and Grayson's two
     // parts combined across their 12.1 m gap (union, then the two buffers that bridge it).
     const limits = SCREEN_CONSTANTS.combine;
-    for (const slug of FIXTURE_SLUGS) {
+    for (const slug of PROTOTYPE_FIXTURE_SLUGS) {
       const p = loadFixture(slug).input.polygon;
       const ring = p.geometry.coordinates[0]!;
       const lat = ring.reduce((s, c) => s + c[1]!, 0) / ring.length,

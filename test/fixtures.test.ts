@@ -1,11 +1,19 @@
 // Integrity of the recorded fixtures: they come from the committed prototype build, every recorded run
 // completed, and the HAR can answer the prototype's own requests offline.
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { FIXTURE_SLUGS, loadFixture, type FixtureSlug } from "./support/fixtures";
+import { stateOf } from "@/lib/geo/parcelFields";
+import {
+  FIXTURE_SLUGS,
+  isPrototypeSlug,
+  loadFixture,
+  PROTOTYPE_FIXTURE_SLUGS,
+  type PrototypeSlug,
+} from "./support/fixtures";
+import { SCENARIOS } from "./support/scenarios";
 
-const PARCEL_IDS: Record<FixtureSlug, string> = {
+const PARCEL_IDS: Record<PrototypeSlug, string> = {
   "ferney-creek-52-47A": "52-47A",
   "macks-mountain-35-3": "35-3",
   "grayson-mud-creek-6273": "6273",
@@ -14,7 +22,7 @@ const PARCEL_IDS: Record<FixtureSlug, string> = {
 const legacy = readFileSync(resolve(import.meta.dirname, "..", "legacy", "parcelscreen.html"), "utf8");
 const legacyBuild = /name="parcelscreen-build" content="([^"]+)"/.exec(legacy)?.[1];
 
-describe.each(FIXTURE_SLUGS)("fixture %s", (slug) => {
+describe.each(PROTOTYPE_FIXTURE_SLUGS)("fixture %s", (slug) => {
   const fx = loadFixture(slug);
 
   it("was recorded from the committed prototype build", () => {
@@ -98,5 +106,51 @@ describe("golden coverage", () => {
     expect(input.evaluateSite2?.label).toBe("site #2");
     // The county record has two parts (29.31 + 0.84 ac); the prototype screens the first only (B7).
     expect(goldens.run.acres).toBeCloseTo(29.31, 2);
+  });
+});
+
+// The port-only fixtures (step 2, owner 2026-10-17): recorded by `pnpm record:port` alone, with no golden. Each has its
+// county record (owner and address left out), a port recording holding every service a screen calls, expected.json for
+// its scenarios, and the v8 oracles (`pnpm record:oracles`).
+describe.each(FIXTURE_SLUGS.filter((s) => !isPrototypeSlug(s)))("port-only fixture %s", (slug) => {
+  const fx = loadFixture(slug);
+  const dir = resolve(import.meta.dirname, "fixtures", slug);
+  const count = (re: RegExp) => fx.replayHar.log.entries.filter((e) => re.test(e.request.url)).length;
+
+  it("has its county record from the state's service, with no owner or address", () => {
+    expect(fx.input.polygon.geometry.type).toBe("Polygon");
+    expect(stateOf(fx.input.source)).not.toBeNull();
+    expect(Object.keys(fx.input.props).filter((k) => /owner|address/i.test(k))).toEqual([]);
+  });
+
+  it("has no golden and no prototype recording, only the port's", () => {
+    expect(existsSync(resolve(dir, "golden.json"))).toBe(false);
+    expect(existsSync(resolve(dir, "network.har"))).toBe(false);
+    expect(fx.replayHar.log.entries.length).toBeGreaterThan(0);
+  });
+
+  it("contains every service a screen calls", () => {
+    const services: [string, RegExp][] = [
+      ["the county parcel lookup", /Tennessee_Property_Boundaries_Public_Use\/FeatureServer\/0\/query/],
+      ["3DEP exportImage", /3DEPElevation\/ImageServer\/exportImage/],
+      ["NRCS SDA", /sdmdataaccess\.sc\.egov\.usda\.gov/i],
+      ["FEMA NFHL", /hazards\.fema\.gov\/.*NFHL\/MapServer\/28\/query/],
+      ["PAD-US", /Fee_Managers_PADUS\/FeatureServer\/0\/query/],
+      ["TIGERweb roads", /Transportation\/MapServer\/[862]\/query/],
+      ["OSRM", /router\.project-osrm\.org/],
+      ["TREC trails", /Tennessee_Statewide_Trails_Lines_Public\/FeatureServer\/0\/query/],
+      ["Lorenz atlas tiles", /binary_tiles\/\d+\/binary_tile_/],
+    ];
+    for (const [name, re] of services) expect(count(re), name).toBeGreaterThanOrEqual(1);
+  });
+
+  it("has expected.json for its scenarios, and its v8 oracles", () => {
+    const expected = JSON.parse(readFileSync(resolve(dir, "expected.json"), "utf8")) as Record<
+      string,
+      unknown
+    >;
+    expect(Object.keys(expected).sort()).toEqual([...SCENARIOS[slug]].sort());
+    expect(existsSync(resolve(dir, "cards-v8.json"))).toBe(true);
+    expect(existsSync(resolve(dir, "grades-v8.json"))).toBe(true);
   });
 });

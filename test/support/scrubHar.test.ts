@@ -6,7 +6,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { fieldsFor, recordOutFields } from "@/lib/geo/parcelFields";
 import { DEFAULT_ENDPOINTS } from "@/lib/screen/config";
-import { FIXTURE_SLUGS } from "./fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS } from "./fixtures";
 import { portHarPath } from "./portHar";
 import type { HarEntry } from "./replayFetch";
 import { OWNER_FIELD, PARCEL_HOSTS, scrubEntry } from "./scrubHar";
@@ -119,7 +119,7 @@ describe("scrubHar", () => {
       expect(OWNER_FIELD.test(k), k).toBe(false);
   });
 
-  it.each(FIXTURE_SLUGS)("%s: the committed port recording is scrubbed", (slug) => {
+  it.each(PROTOTYPE_FIXTURE_SLUGS)("%s: the committed port recording is scrubbed", (slug) => {
     const path = portHarPath(slug);
     if (!existsSync(path)) return;
     const har = JSON.parse(readFileSync(path, "utf8")) as { log: { entries: HarEntry[] } };

@@ -1,0 +1,229 @@
+{
+ "recordedAt": "schema v9, engine 22: recorded once from the derivations (step 2, PR 5); a regression snapshot",
+ "run": {
+  "verdict": "marginal",
+  "flags": [
+   {
+    "lvl": "warn",
+    "t": "90th-percentile slope is 33°. The road will be the dominant site cost — get an excavator's number before offering.",
+    "step": "terrain"
+   },
+   {
+    "lvl": "warn",
+    "t": "Under an acre of gentle ground carries a workable NRCS septic rating (0.0 ac). Plan on an alternative system and get a soil scientist out before an offer.",
+    "step": "soils"
+   }
+  ],
+  "sky": {
+   "score": 56
+  },
+  "sites": [
+   {
+    "rank": 1,
+    "score": 67,
+    "grade": "B",
+    "quality": 82,
+    "qGrade": "A",
+    "q": {
+     "sun": 76,
+     "aspect": 100,
+     "frost": 100,
+     "slope": 89,
+     "sky": 56
+    },
+    "c": {
+     "septic": 40,
+     "foundation": 0,
+     "rock": 0,
+     "pad": 2.1898867594108573,
+     "driveway": 27.090304122063948
+    },
+    "costIdx": 69,
+    "costTier": "$$$$"
+   },
+   {
+    "rank": 2,
+    "score": 64,
+    "grade": "C",
+    "quality": 79,
+    "qGrade": "B",
+    "q": {
+     "sun": 72,
+     "aspect": 100,
+     "frost": 100,
+     "slope": 78,
+     "sky": 56
+    },
+    "c": {
+     "septic": 40,
+     "foundation": 0,
+     "rock": 0,
+     "pad": 4.302714991651168,
+     "driveway": 26.669362554926664
+    },
+    "costIdx": 71,
+    "costTier": "$$$$"
+   },
+   {
+    "rank": 3,
+    "score": 60,
+    "grade": "C",
+    "quality": 78,
+    "qGrade": "B",
+    "q": {
+     "sun": 79,
+     "aspect": 100,
+     "frost": 100,
+     "slope": 55,
+     "sky": 56
+    },
+    "c": {
+     "septic": 40,
+     "foundation": 0,
+     "rock": 1.9500000000000002,
+     "pad": 15,
+     "driveway": 26.92338819252467
+    },
+    "costIdx": 84,
+    "costTier": "$$$$"
+   },
+   {
+    "rank": 4,
+    "score": 66,
+    "grade": "B",
+    "quality": 85,
+    "qGrade": "A",
+    "q": {
+     "sun": 83,
+     "aspect": 100,
+     "frost": 100,
+     "slope": 89,
+     "sky": 59
+    },
+    "c": {
+     "septic": 40,
+     "foundation": 0,
+     "rock": 1.9500000000000002,
+     "pad": 15,
+     "driveway": 20.971412719144563
+    },
+    "costIdx": 78,
+    "costTier": "$$$$"
+   }
+  ],
+  "house": null
+ },
+ "evaluateSite2": {
+  "verdict": "marginal",
+  "flags": [
+   {
+    "lvl": "warn",
+    "t": "90th-percentile slope is 33°. The road will be the dominant site cost — get an excavator's number before offering.",
+    "step": "terrain"
+   },
+   {
+    "lvl": "warn",
+    "t": "Under an acre of gentle ground carries a workable NRCS septic rating (0.0 ac). Plan on an alternative system and get a soil scientist out before an offer.",
+    "step": "soils"
+   }
+  ],
+  "sky": {
+   "score": 56
+  },
+  "sites": [
+   {
+    "rank": 1,
+    "score": 67,
+    "grade": "B",
+    "quality": 82,
+    "qGrade": "A",
+    "q": {
+     "sun": 76,
+     "aspect": 100,
+     "frost": 100,
+     "slope": 89,
+     "sky": 56
+    },
+    "c": {
+     "septic": 40,
+     "foundation": 0,
+     "rock": 0,
+     "pad": 2.1898867594108573,
+     "driveway": 27.090304122063948
+    },
+    "costIdx": 69,
+    "costTier": "$$$$"
+   },
+   {
+    "rank": 2,
+    "score": 64,
+    "grade": "C",
+    "quality": 79,
+    "qGrade": "B",
+    "q": {
+     "sun": 72,
+     "aspect": 100,
+     "frost": 100,
+     "slope": 78,
+     "sky": 56
+    },
+    "c": {
+     "septic": 40,
+     "foundation": 0,
+     "rock": 0,
+     "pad": 4.302714991651168,
+     "driveway": 26.669362554926664
+    },
+    "costIdx": 71,
+    "costTier": "$$$$"
+   },
+   {
+    "rank": 3,
+    "score": 60,
+    "grade": "C",
+    "quality": 78,
+    "qGrade": "B",
+    "q": {
+     "sun": 79,
+     "aspect": 100,
+     "frost": 100,
+     "slope": 55,
+     "sky": 56
+    },
+    "c": {
+     "septic": 40,
+     "foundation": 0,
+     "rock": 1.9500000000000002,
+     "pad": 15,
+     "driveway": 26.92338819252467
+    },
+    "costIdx": 84,
+    "costTier": "$$$$"
+   },
+   {
+    "rank": 4,
+    "score": 66,
+    "grade": "B",
+    "quality": 85,
+    "qGrade": "A",
+    "q": {
+     "sun": 83,
+     "aspect": 100,
+     "frost": 100,
+     "slope": 89,
+     "sky": 59
+    },
+    "c": {
+     "septic": 40,
+     "foundation": 0,
+     "rock": 1.9500000000000002,
+     "pad": 15,
+     "driveway": 20.971412719144563
+    },
+    "costIdx": 78,
+    "costTier": "$$$$"
+   }
+  ],
+  "house": null
+ }
+}
