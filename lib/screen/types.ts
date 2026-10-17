@@ -184,13 +184,29 @@ export interface ProgressEvent {
 // ---------- result ----------
 
 /** `step` (v4): the step that raised it, so the card can show it in its row's panel; null for the prototype's goldens. */
-const FlagSchema = z.strictObject({
+export const FlagSchema = z.strictObject({
   lvl: z.enum(["fatal", "warn", "good"]),
   t: z.string(),
   step: StepSchema.nullable(),
 });
-const Grade = z.enum(["A", "B", "C", "D", "F"]);
-const CostTier = z.enum(["$", "$$", "$$$", "$$$$"]);
+export type SiteGrade = "A" | "B" | "C" | "D" | "F";
+export type CostTier = "$" | "$$" | "$$$" | "$$$$";
+
+/**
+ * The scores a spot's measurements give (lib/screen/derive.ts spotScores): the engine ranks the sites with them, and
+ * the display derives them again; the saved screen holds none of them (v8, phase-0.md §9.44).
+ */
+export interface SpotScores {
+  /** overall = 0.7·quality + 0.3·(100 − cost) */
+  score: number;
+  grade: SiteGrade;
+  quality: number;
+  qGrade: SiteGrade;
+  q: { sun: number; aspect: number; frost: number; slope: number; sky: number };
+  c: { septic: number; foundation: number; rock: number; pad: number; driveway: number };
+  costIdx: number;
+  costTier: CostTier;
+}
 
 const TerrainSchema = z.strictObject({
   elevMinFt: num,
@@ -304,19 +320,12 @@ const ScoredDrivewaySchema = z.strictObject({
 });
 export type ScoredDriveway = z.infer<typeof ScoredDrivewaySchema>;
 
+/** What a scored spot stores (v8): its measurements and reasons; its scores derive from them (SpotScores, derive.ts). */
 const ScoreFields = {
-  score: num, // overall = 0.7·quality + 0.3·(100 − cost)
   why: z.array(z.string()),
   sunH: num,
   daylightH: num,
-  q: z.strictObject({ sun: num, aspect: num, frost: num, slope: num, sky: num }),
   soil: z.string().nullable(),
-  c: z.strictObject({ septic: num, foundation: num, rock: num, pad: num, driveway: num }),
-  costIdx: num,
-  costTier: CostTier,
-  quality: num,
-  qGrade: Grade,
-  grade: Grade,
   driveFt: num.optional(),
   roadGrade: num.optional(),
   roadRunFt: num.optional(),
@@ -572,7 +581,6 @@ const SkySchema = z.strictObject({
   coreClear: num,
   dome: z.strictObject({ az: num, km: num, ratio: num, w: num }).nullable(),
   domes: z.array(z.strictObject({ az: num, w: num, km: maybeNum, ratio: num })),
-  score: num,
   notes: z.array(z.string()),
 });
 
@@ -747,7 +755,6 @@ export const ScreenResultSchema = z.strictObject({
   driveway: DrivewaySchema.optional(),
   /** The lines drawn with the parcel, measured (v5, follow-up 34); [] when none were drawn. */
   lines: z.array(DrawnLineSchema),
-  flags: z.array(FlagSchema),
   failed: z.array(StepSchema),
   /**
    * Sources that didn't answer without failing their step (v4; phase-0.md §9.20 (c)): the wider public-land search,
@@ -755,14 +762,22 @@ export const ScreenResultSchema = z.strictObject({
    */
   noResponse: z.array(z.string()),
   cancelled: z.boolean(),
-  verdict: z.enum(["fatal", "marginal", "ok"]),
 });
 export type ScreenResult = z.infer<typeof ScreenResultSchema>;
 /** A flag as a step raises it; the screen records the step with it (v4). */
-export type RawFlag = Omit<ScreenResult["flags"][number], "step">;
+/** A step's flag (v8: derived on display by lib/screen/flags.ts, not stored). */
+export type Flag = z.infer<typeof FlagSchema>;
+export type RawFlag = Omit<Flag, "step">;
+/** The prototype's verdict, from the flags (flags.ts verdictOf). */
+export type Verdict = "fatal" | "marginal" | "ok";
 
-/** A snapshot during the run: no verdict yet, not yet known whether it was cancelled. */
-export const PartialScreenResultSchema = ScreenResultSchema.partial({ verdict: true, cancelled: true });
+/** A site, or the house, with its scores: the engine's view while it ranks, and the display's once it derives. */
+export type ScoredSite = Site & SpotScores;
+export type HouseAssessed = Exclude<NonNullable<ScreenResult["house"]>, { outside: true }>;
+export type ScoredHouse = HouseAssessed & SpotScores;
+
+/** A snapshot during the run: not yet known whether it was cancelled (set only when the run ends). */
+export const PartialScreenResultSchema = ScreenResultSchema.partial({ cancelled: true });
 export type PartialScreenResult = z.infer<typeof PartialScreenResultSchema>;
 
 // ---------- rasters (session-only, never persisted) ----------

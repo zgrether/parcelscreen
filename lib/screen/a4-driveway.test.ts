@@ -4,6 +4,7 @@
  * the limit and the one kept to the parcel, with both shown on the site when they differ.
  */
 import { describe, expect, it } from "vitest";
+import { derivedSites } from "./derive";
 import { RULES_AT_10, runFixture } from "../../test/support/scenarios";
 import { SCREEN_CONSTANTS } from "./config";
 import {
@@ -129,7 +130,7 @@ describe("Grayson's sites, scored on the route kept to the parcel (A4)", () => {
     const { result, session: s } = await runFixture("grayson-mud-creek-6273", { config: RULES_AT_10 });
     const ctx = routeContext(s);
     const limit = s.config.roadMaxGradePct;
-    const sites = result.sites!;
+    const sites = derivedSites(result)!;
     const routes = siteDriveways(
       ctx,
       s.roads ?? [],

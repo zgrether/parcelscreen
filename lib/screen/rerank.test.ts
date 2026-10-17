@@ -1,14 +1,19 @@
 /** The site ranking's order (owner, #142): fit, then score, then an explicit tie-break, never the input order. */
 import { describe, expect, it } from "vitest";
+import { derivedSites } from "./derive";
 import { expectedOf } from "@/test/support/expected";
 import { FIXTURE_SLUGS } from "@/test/support/fixtures";
 import { SCENARIOS } from "@/test/support/scenarios";
 import { rerank } from "./score";
-import type { Site } from "./types";
+import type { ScoredSite } from "./types";
 
-const site = (acres: number, score: number, ll: [number, number], fit: Site["fit"] = "fits"): Site =>
-  ({ acres, score, ll, fit, rank: 0, grade: "F" }) as unknown as Site;
-const order = (sites: Site[]) => rerank(sites).map((s) => `${s.acres}@${s.ll.join(",")}`);
+const site = (
+  acres: number,
+  score: number,
+  ll: [number, number],
+  fit: ScoredSite["fit"] = "fits",
+): ScoredSite => ({ acres, score, ll, fit, rank: 0, grade: "F" }) as unknown as ScoredSite;
+const order = (sites: ScoredSite[]) => rerank(sites).map((s) => `${s.acres}@${s.ll.join(",")}`);
 
 describe("rerank", () => {
   it("ties at a score go to the larger site, then the one further north, then further west", () => {
@@ -37,10 +42,11 @@ describe("rerank", () => {
     expect(r.map((x) => x.acres)).toEqual([2, 0.5]);
   });
 
-  it("every recorded site score is a whole number, the precision rerank compares at", () => {
+  it("every derived site score is a whole number, the precision rerank compares at", () => {
     for (const slug of FIXTURE_SLUGS)
       for (const sc of SCENARIOS[slug])
-        for (const x of expectedOf(slug, sc).sites ?? []) expect(Number.isInteger(x.score)).toBe(true);
+        for (const x of derivedSites(expectedOf(slug, sc)) ?? [])
+          expect(Number.isInteger(x.score)).toBe(true);
   });
 
   it("keeps fit first: a site the build doesn't fit on ranks after every one it does, whatever its score", () => {

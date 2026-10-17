@@ -3,6 +3,7 @@
  * and the one addition the port makes to a result. Shared by the Node goldens (lib/screen/screen.test.ts)
  * and the browser e2e (e2e/), so both hold the same line.
  */
+import { scored, type ScoredResult } from "@/lib/screen/derive";
 import { overLimitNote } from "@/lib/screen/driveway";
 import type { ScreenResult } from "@/lib/screen/types";
 import type { CompareOptions } from "./compare";
@@ -48,7 +49,12 @@ export const PARITY: CompareOptions = {
  * the golden's note is the prefix, then exactly the appended sentence. For parity both additions are taken off
  * again. Throws when the note isn't the prototype's plus that sentence.
  */
-export function asPrototype(r: ScreenResult, golden: unknown): ScreenResult {
+export function asPrototype(r: ScreenResult, golden: unknown): ScoredResult {
+  return scored(asPrototypeShape(r, golden));
+}
+
+/** The driveway as the prototype stored it (above); the grades the prototype stored come back derived (scored, v8). */
+function asPrototypeShape(r: ScreenResult, golden: unknown): ScreenResult {
   const d = r.driveway;
   if (!d?.overLimit) return r;
   const sentence = overLimitNote(d.overLimit);

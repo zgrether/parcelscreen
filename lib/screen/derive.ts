@@ -18,13 +18,22 @@ import {
   soilRatings,
   straightDrivewayPoints,
 } from "./score";
+import { flagsOf, verdictOf } from "./flags";
 import { skyScore, spotSkyOf } from "./sky";
-import type { PartialScreenResult, Site, SoilRow } from "./types";
+import type {
+  Flag,
+  HouseAssessed,
+  PartialScreenResult,
+  ScoredHouse,
+  ScoredSite,
+  ScreenResult,
+  Site,
+  SoilRow,
+  SpotScores,
+  Verdict,
+} from "./types";
 
 const K = SCREEN_CONSTANTS.score;
-
-/** The score fields a spot's measurements give back. */
-export type SpotScores = Pick<Site, "quality" | "qGrade" | "q" | "c" | "costIdx" | "costTier" | "score">;
 
 /** What a scored spot (a site, or the house) stores that its scores derive from. */
 export type Spot = Pick<Site, "sunH" | "daylightH" | "aspectDeg" | "slopeDeg" | "elevFt" | "soilKey"> &
@@ -49,7 +58,7 @@ function contextOf(R: PartialScreenResult) {
  * the pad and the driveway (its chosen route's facts once the driveway step has run, the straight line to the road
  * before it, the maximum when no route reaches it); the overall score from both.
  */
-export function spotScores(R: PartialScreenResult, s: Spot): SpotScores {
+export function spotScores(R: PartialScreenResult, s: Spot): Omit<SpotScores, "grade"> {
   const ctx = contextOf(R);
   const sunShare = s.daylightH ? s.sunH / s.daylightH : 0;
   const skyS = skyPart(s.sky);
@@ -84,8 +93,12 @@ export function spotScores(R: PartialScreenResult, s: Spot): SpotScores {
   };
 }
 
-/** Each ranked site with its scores derived; the stored order (rank) stands. */
-export function derivedSites(R: PartialScreenResult): Site[] | undefined {
+/** Whether a result still carries its stored grades: a v7 result, or a prototype golden kept with them (tests). */
+const carriesGrades = (R: PartialScreenResult): boolean => "verdict" in R || "score" in (R.sites?.[0] ?? {});
+
+/** Each ranked site with its scores derived; the stored order (rank) stands. A result kept with its grades reads them. */
+export function derivedSites(R: PartialScreenResult): ScoredSite[] | undefined {
+  if (carriesGrades(R)) return R.sites as ScoredSite[] | undefined;
   return R.sites?.map((s) => {
     const d = spotScores(R, s);
     return { ...s, ...d, grade: grade(d.score) };
@@ -93,9 +106,12 @@ export function derivedSites(R: PartialScreenResult): Site[] | undefined {
 }
 
 /** The house with its scores derived; null or outside as stored. */
-export function derivedHouse(R: PartialScreenResult): PartialScreenResult["house"] {
+export function derivedHouse(
+  R: PartialScreenResult,
+): ScoredHouse | { ll: Site["ll"]; outside: true } | null | undefined {
   const h = R.house;
   if (!h || "outside" in h) return h;
+  if (carriesGrades(R)) return h as ScoredHouse;
   const d = spotScores(R, {
     ...h,
     elevFt: h.elevFt ?? NaN,
@@ -107,5 +123,75 @@ export function derivedHouse(R: PartialScreenResult): PartialScreenResult["house
 
 /** The sky score at the focus, from the stored reading (mag, the brightest southern dome, the core's clearance). */
 export function skyScoreOf(sky: NonNullable<PartialScreenResult["sky"]>): number {
+  if ("score" in sky) return (sky as { score: number }).score;
   return skyScore(spotSkyOf(sky));
+}
+
+/** Everything the display derives from a result, at once: the report blocks, Copy summary and the tools read this. */
+export interface Derived {
+  sites: ScoredSite[] | undefined;
+  house: ScoredHouse | { ll: Site["ll"]; outside: true } | null | undefined;
+  sky: (NonNullable<ScreenResult["sky"]> & { score: number }) | undefined;
+  flags: Flag[];
+  verdict: Verdict;
+}
+
+export function derived(R: PartialScreenResult): Derived {
+  const flags = flagsOf(R);
+  return {
+    sites: derivedSites(R),
+    house: derivedHouse(R),
+    sky: R.sky ? { ...R.sky, score: skyScoreOf(R.sky) } : undefined,
+    flags,
+    verdict: verdictOf(flags),
+  };
+}
+
+/**
+ * A result with its derived grades beside its measurements: the shape the study tools and the prototype diff read.
+ * A result that still carries stored grades (a v7 expected.json from an older commit, or a prototype golden kept
+ * with them) is returned as it is, so a before/after comparison reads each side's own numbers.
+ */
+export type ScoredResult = Omit<ScreenResult, "sites" | "house" | "sky"> & {
+  sites?: ScoredSite[];
+  house?: Derived["house"];
+  sky?: Derived["sky"];
+  flags: Flag[];
+  verdict: Verdict;
+};
+
+export function scored(R: ScreenResult): ScoredResult {
+  if ("verdict" in R) return R as unknown as ScoredResult;
+  const x = derived(R);
+  return {
+    ...R,
+    ...(R.sites ? { sites: x.sites } : {}),
+    ...(R.house !== undefined ? { house: x.house } : {}),
+    ...(R.sky ? { sky: x.sky } : {}),
+    flags: x.flags,
+    verdict: x.verdict,
+  } as ScoredResult;
+}
+
+/** A scored site as the saved screen holds it (v8): its measurements and reasons, without the scores. */
+export function storedSite<T extends SpotScores>(s: T): Omit<T, keyof SpotScores> {
+  const {
+    score: _s,
+    grade: _g,
+    quality: _q,
+    qGrade: _qg,
+    q: _qp,
+    c: _c,
+    costIdx: _ci,
+    costTier: _ct,
+    ...rest
+  } = s;
+  return rest;
+}
+
+/** The house as the saved screen holds it (v8). */
+export function storedHouse(
+  h: ScoredHouse | { ll: Site["ll"]; outside: true } | null | undefined,
+): HouseAssessed | { ll: Site["ll"]; outside: true } | null | undefined {
+  return h && !("outside" in h) ? storedSite(h) : h;
 }

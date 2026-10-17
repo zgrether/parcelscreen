@@ -192,7 +192,9 @@ describe.runIf(import.meta.env.MODE === "turf-versions")("Turf 7.1.0 vs 7.4.0", 
         for (const scenario of SCENARIOS[slug]) {
           const golden = loadFixture(slug).goldens[scenario]!;
           const r = await runScenario(slug, scenario);
-          const d = differences(asPrototype(r, golden), fromPrototype(golden), { ignore: PARITY.ignore });
+          const d = differences(asPrototype(r, golden), fromPrototype(golden, { grades: true }), {
+            ignore: PARITY.ignore,
+          });
           lines.push(
             `- ${slug} ${scenario}: ${d.length} difference${d.length === 1 ? "" : "s"}`,
             ...d.map((x) => `  - \`${x}\``),

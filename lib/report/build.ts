@@ -1,6 +1,10 @@
-/** Where to build (proto L1506–1514) and its side-by-side table (proto compareTable, L1568–1575). */
+/**
+ * Where to build (proto L1506–1514) and its side-by-side table (proto compareTable, L1568–1575). Every score here is
+ * derived from the stored measurements (v8; lib/screen/derive.ts).
+ */
 import { compass, fmt } from "../format";
-import type { PartialScreenResult } from "../screen/types";
+import { derivedHouse, derivedSites } from "../screen/derive";
+import type { PartialScreenResult, ScoredSite } from "../screen/types";
 import { factorsOf, type RichItem, type SiteCard } from "./facts";
 import { onMap, said, type Heading, type Part } from "./parts";
 
@@ -47,12 +51,12 @@ export interface BuildView {
 const cell = (v: number | null | undefined) => (v == null ? "—" : String(v));
 
 function compareRows(r: PartialScreenResult): CompareRow[] {
-  type Scored = NonNullable<PartialScreenResult["sites"]>[number];
-  const rows: (Partial<Scored> & { name: string })[] = (r.sites ?? []).map((s) => ({
+  const rows: (Partial<ScoredSite> & { name: string })[] = (derivedSites(r) ?? []).map((s) => ({
     name: `#${s.rank}${s.compact ? " compact" : ""}`,
     ...s,
   }));
-  if (r.house && !("outside" in r.house)) rows.push({ ...(r.house as Partial<Scored>), name: "House" });
+  const h = derivedHouse(r);
+  if (h && !("outside" in h)) rows.push({ ...(h as Partial<ScoredSite>), name: "House" });
   return rows.map((x) => ({
     cells: [
       { text: x.name },
@@ -83,11 +87,12 @@ export const FIT_LABEL = {
 export function buildView(r: PartialScreenResult): BuildView | null {
   if (!r.sites || !(r.sites.length || r.excluded?.length)) return null;
   const titles = ["Best site", "Runner-up", "Third"];
+  const sites = derivedSites(r) ?? [];
   return {
-    none: r.sites.length
+    none: sites.length
       ? null
       : "No bench survived the soil veto. The flat ground here is floodplain; a homesite would have to be cut into the slope.",
-    sites: r.sites.slice(0, 3).map((s) => ({
+    sites: sites.slice(0, 3).map((s) => ({
       marker: { text: String(s.rank), style: s.rank === 1 ? "top" : "alt" },
       title: `${titles[s.rank - 1] ?? "Third"}${s.compact ? " (compact)" : ""}`,
       chips: [

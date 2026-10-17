@@ -112,8 +112,8 @@ describe("import: validate all, then all or nothing", () => {
   });
 
   it("one bad screen record: nothing at all", () => {
-    const bad = { ...screen("s1"), result: { ...RESULT, verdict: 42 } };
-    expect(errors(file({ screens: [bad] as never }))[0]).toMatch(/^file\.screens\.0\.result\.verdict: /);
+    const bad = { ...screen("s1"), result: { ...RESULT, acres: "x" } };
+    expect(errors(file({ screens: [bad] as never }))[0]).toMatch(/^file[.]screens[.]0[.]result[.]acres: /);
   });
 
   it("not an export: the prototype's hint, verbatim", () => {

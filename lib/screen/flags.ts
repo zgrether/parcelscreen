@@ -18,13 +18,13 @@ import { skyFlags } from "./sky";
 import { bottomlandFlags, soilFlags } from "./soils";
 import { sunFlags } from "./sun";
 import { terrainFlags } from "./terrain";
-import type { PartialScreenResult, RawFlag, ScreenResult, Step } from "./types";
-
-type Flag = ScreenResult["flags"][number];
+import type { Flag, PartialScreenResult, RawFlag, Step, Verdict } from "./types";
 
 const tag = (step: Step, flags: readonly RawFlag[]): Flag[] => flags.map((f) => ({ ...f, step }));
 
 export function flagsOf(R: PartialScreenResult): Flag[] {
+  // A result kept with its flags (a v7 result, or a prototype golden kept with them in a test) reads them.
+  if ("flags" in R) return (R as { flags: Flag[] }).flags;
   const ran = (step: Step) => !R.failed.includes(step);
   const P = R.params;
   const out: Flag[] = [];
@@ -85,5 +85,5 @@ export function flagsOf(R: PartialScreenResult): Flag[] {
 }
 
 /** The prototype's verdict, from every step's flags: any fatal, else any warning, else ok. */
-export const verdictOf = (flags: readonly { lvl: RawFlag["lvl"] }[]): ScreenResult["verdict"] =>
+export const verdictOf = (flags: readonly { lvl: RawFlag["lvl"] }[]): Verdict =>
   flags.some((f) => f.lvl === "fatal") ? "fatal" : flags.some((f) => f.lvl === "warn") ? "marginal" : "ok";

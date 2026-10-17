@@ -1,5 +1,9 @@
-/** The existing house section (proto L1500–1505): the house scored like a site, and how it compares. */
+/**
+ * The existing house section (proto L1500–1505): the house scored like a site, and how it compares. Its scores and
+ * site #1's are derived from the stored measurements (v8; lib/screen/derive.ts).
+ */
 import { compass, fmt } from "../format";
+import { derivedHouse, derivedSites } from "../screen/derive";
 import type { PartialScreenResult } from "../screen/types";
 import { factorsOf, type RichItem, type SiteCard } from "./facts";
 import type { Heading } from "./parts";
@@ -17,7 +21,7 @@ export type HouseView =
 
 /** Null when no house is marked. */
 export function houseView(r: PartialScreenResult): HouseView | null {
-  const x = r.house;
+  const x = derivedHouse(r);
   if (!x) return null;
   if ("outside" in x) return { outside: true };
   const items: RichItem[] = [];
@@ -37,7 +41,7 @@ export function houseView(r: PartialScreenResult): HouseView | null {
       x.onBench ? `, on a ${fmt(x.benchAcres ?? NaN, 1)}-ac bench` : ", not on a bench the terrain scan found"
     }`,
   });
-  const best = r.sites?.[0];
+  const best = derivedSites(r)?.[0];
   return {
     outside: false,
     card: {

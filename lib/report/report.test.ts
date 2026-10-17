@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { flagsOf, verdictOf } from "../screen/flags";
 import { fromPrototype } from "@/test/support/fromPrototype";
 import { loadFixture } from "@/test/support/fixtures";
 import type { PartialScreenResult } from "../screen/types";
@@ -43,16 +44,22 @@ describe("evaluationPoint", () => {
 });
 
 describe("verdictView", () => {
+  // The verdict and the flags derive from the result (v8): while it runs, from the steps so far.
+  const tone = verdictOf(flagsOf(golden));
+
   it("while running: 'Screening…' and the worst flag so far", () => {
-    const { verdict, cancelled, ...partial } = golden;
-    const v = verdictView({ ...partial, flags: [{ lvl: "warn", t: "x" }] } as PartialScreenResult);
-    expect(v).toMatchObject({ lead: "Screening…", tone: "marginal" });
-    expect([verdict, cancelled]).toBeDefined();
+    const { cancelled, ...partial } = golden;
+    const v = verdictView(partial as PartialScreenResult);
+    expect(v).toMatchObject({ lead: "Screening…", tone });
+    expect(v.flags).toEqual(flagsOf(golden));
+    expect(cancelled).toBeDefined();
   });
 
   it("after a cancelled run with failed steps", () => {
-    const v = verdictView({ ...golden, verdict: "marginal", cancelled: true, failed: ["near", "drive"] });
-    expect(v.lead).toBe("Worth a drive, eyes open. (run cancelled)");
+    const v = verdictView({ ...golden, cancelled: true, failed: ["near", "drive"] });
+    expect(v.lead).toBe(
+      `${{ fatal: "Walk away.", marginal: "Worth a drive, eyes open.", ok: "Nothing in the data kills it." }[tone]} (run cancelled)`,
+    );
     expect(v.incomplete).toBe(
       "Incomplete: find hospitals, groceries, trailheads, route drive times didn't run, so this verdict is missing that evidence.",
     );

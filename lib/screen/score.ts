@@ -17,12 +17,17 @@ import { bottomland, soilAt, type SoilLimits, type SoilUnit, type VettedBench } 
 import { skyScore } from "./sky";
 import { horizonProfile, sunHours, type HorizonPoint } from "./sun";
 import type {
+  CostTier as Tier,
   Dem,
   Practical,
   ScoredDriveway,
+  ScoredHouse,
+  ScoredSite,
   ScreenResult,
   Site,
+  SiteGrade as Grade,
   SoilRow,
+  SpotScores,
   SpotSky,
   UserConfig,
 } from "./types";
@@ -30,9 +35,6 @@ import { lerp, M2FT, type LatLon } from "./util";
 
 const K = SCREEN_CONSTANTS.score;
 const SU = SCREEN_CONSTANTS.suitability;
-
-type Grade = Site["grade"];
-type Tier = Site["costTier"];
 
 /** A ≥ 80, B ≥ 65, C ≥ 50, D ≥ 35, else F. */
 export function grade(s: number): Grade {
@@ -79,7 +81,7 @@ export interface SiteInput {
 }
 
 type Scored = Omit<
-  Site,
+  ScoredSite,
   | "rank"
   | "ll"
   | "acres"
@@ -125,7 +127,7 @@ export function costParts(
   depthCm: number | null,
   compact: boolean,
   slopeDeg: number,
-): Pick<Site["c"], "septic" | "foundation" | "rock" | "pad"> {
+): Pick<SpotScores["c"], "septic" | "foundation" | "rock" | "pad"> {
   return {
     septic: K.septic[sep],
     foundation: K.foundation[dw],
@@ -416,7 +418,7 @@ export function impracticalLine(p: Practical): string {
  * route was found, and the cost, tier and score again from the unrounded quality. The rank and grade follow in
  * rerank.
  */
-export function withDrivewayCost<T extends Scored & Pick<Site, "aspectDeg" | "slopeDeg" | "elevFt">>(
+export function withDrivewayCost<T extends Scored & Pick<ScoredSite, "aspectDeg" | "slopeDeg" | "elevFt">>(
   ctx: Pick<ScoreContext, "valleyFloorFt" | "cfg">,
   s: T,
   dw: SiteDriveway,
@@ -580,12 +582,12 @@ export async function rankSites(
   benches: (VettedBench | (SiteSearch["benches"][number] & { soil?: undefined; veto?: undefined }))[],
   shelves: SiteSearch["shelves"],
   ground: SiteGround,
-): Promise<{ sites: Site[]; excluded: NonNullable<ScreenResult["excluded"]> }> {
+): Promise<{ sites: ScoredSite[]; excluded: NonNullable<ScreenResult["excluded"]> }> {
   const pin = (rc: [number, number]) => rcToLL(ctx.dFine, rc[0], rc[1]);
   const excluded = benches
     .filter((b) => b.veto)
     .map((b) => ({ acres: b.acres, ll: pin(b.rc), why: b.veto! }));
-  const sites: Site[] = [];
+  const sites: ScoredSite[] = [];
   for (const b of benches.filter((b) => !b.veto).slice(0, SCREEN_CONSTANTS.sites.maxRankedBenches)) {
     const ll = pin(b.rc);
     const s = await scoreSite(ctx, ll, {
@@ -645,14 +647,14 @@ export async function rankSites(
   return { sites: rerank(sites), excluded };
 }
 
-const FIT_ORDER: Record<Site["fit"], number> = { fits: 0, "house only": 1, "too small": 2 };
+const FIT_ORDER: Record<ScoredSite["fit"], number> = { fits: 0, "house only": 1, "too small": 2 };
 
 /**
  * Sort by fit, then overall score (whole points: a site's score is stored rounded), then a tie-break that never
  * depends on the order the sites came in (owner, #142): the larger site first, then the one further north, then
  * further west. Renumber and regrade.
  */
-export function rerank(sites: Site[]): Site[] {
+export function rerank(sites: ScoredSite[]): ScoredSite[] {
   return (
     [...sites]
       // A site the build doesn't fit on can't be #1 (owner, #94 review; value-ranking.md §5.4 (a)): the ones that fit
@@ -672,7 +674,7 @@ export function rerank(sites: Site[]): Site[] {
 /** Shelf distance and drop from the current site #1 (proto finalizeRanking). */
 export function shelvesFromBest(
   shelves: NonNullable<ScreenResult["shelves"]>,
-  sites: Site[],
+  sites: readonly Pick<Site, "ll" | "elevFt">[],
 ): NonNullable<ScreenResult["shelves"]> {
   const top = sites[0];
   if (!top) return shelves;
@@ -692,7 +694,7 @@ export async function assessHouse(
     search: SiteSearch | null;
   },
   house: LatLon,
-): Promise<NonNullable<ScreenResult["house"]>> {
+): Promise<ScoredHouse | { ll: LatLon; outside: true }> {
   const [r, c] = llToRC(ctx.dFine, house[0], house[1]);
   if (!inGrid(ctx.dFine, r, c)) return { ll: house, outside: true };
   const i = r * ctx.dFine.w + c,
@@ -749,7 +751,7 @@ export function routedLine(rt: Pick<Route, "metrics" | "maxGrade" | "cost" | "ne
  * Since A3 the driveway points and score come from withDrivewayCost, for every ranked site; this keeps #1's
  * wording as it was.
  */
-export function withRoutedWhy(site: Site, rt: Route): Site {
+export function withRoutedWhy<T extends Pick<Site, "why">>(site: T, rt: Route): T {
   return {
     ...site,
     why: [...site.why.filter((x) => !/ft to .* at .*straight-line/.test(x)), routedLine(rt)],
@@ -760,7 +762,7 @@ export function withRoutedWhy(site: Site, rt: Route): Site {
  * Any other ranked site with a route within the grade limit: the same line, appended after its own (A3b, owner
  * 2026-10-09; rule 7: added, nothing replaced). A least-steep route gets no line: its "≤ N%" would read as legal.
  */
-export function withRoutedLineAppended(site: Site, dw: SiteDriveway): Site {
+export function withRoutedLineAppended<T extends Pick<Site, "why">>(site: T, dw: SiteDriveway): T {
   return dw.legal && dw.route ? { ...site, why: [...site.why, routedLine(dw.route)] } : site;
 }
 
@@ -782,7 +784,12 @@ export function drivewayChoiceLines(r: SiteRoutes, limitPct: number, vetoPct = I
 }
 
 /** The site with its candidate lines appended. */
-export function withDrivewayChoice(site: Site, r: SiteRoutes, limitPct: number, vetoPct = Infinity): Site {
+export function withDrivewayChoice<T extends Pick<Site, "why">>(
+  site: T,
+  r: SiteRoutes,
+  limitPct: number,
+  vetoPct = Infinity,
+): T {
   const lines = drivewayChoiceLines(r, limitPct, vetoPct);
   return lines.length ? { ...site, why: [...site.why, ...lines] } : site;
 }

@@ -5,6 +5,7 @@
  */
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { flagsOf as resultFlags } from "@/lib/screen/flags";
 import { expectedOf } from "@/test/support/expected";
 import { reportCard } from "@/lib/report/card";
 import { panelText } from "@/lib/report/cardPanels";
@@ -144,12 +145,14 @@ describe("the report card's panels (VR5)", () => {
       );
     // The soils step's flags in the Septic panel, above the moved sections.
     const septic = panel("septic");
-    const bedrock = result.flags.find((x) => x.step === "soils" && /^Bedrock under/.test(x.t))!;
+    const bedrock = resultFlags(result).find((x) => x.step === "soils" && /^Bedrock under/.test(x.t))!;
     expect(septic.indexOf("panel-flags")).toBeGreaterThan(-1);
     expect(septic.indexOf(bedrock.t)).toBeLessThan(septic.indexOf("panel-from"));
     expect(panel("floodplain")).toContain("FEMA Special Flood Hazard Area");
     // The bottomland note goes with the homesites, not the septic field (owner, #114).
-    const bottomland = result.flags.find((x) => x.t.startsWith("The largest flat ground is bottomland"))!;
+    const bottomland = resultFlags(result).find((x) =>
+      x.t.startsWith("The largest flat ground is bottomland"),
+    )!;
     expect(bottomland.step).toBe("soils");
     const flagsOf = (html: string) => html.slice(html.indexOf("panel-flags"), html.indexOf('panel-from"'));
     expect(flagsOf(septic)).not.toContain(bottomland.t);

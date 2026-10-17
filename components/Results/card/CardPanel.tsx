@@ -20,7 +20,8 @@ import { routeChoices } from "@/lib/report/driveway";
 import { lineOutcome, type LineNames } from "@/lib/report/lines";
 import { meaningsFor } from "@/lib/report/meanings";
 import { scalesFor, type Scale } from "@/lib/report/scales";
-import type { PartialScreenResult, ScreenResult, Step, UserConfig } from "@/lib/screen/types";
+import { flagsOf } from "@/lib/screen/flags";
+import type { Flag, PartialScreenResult, ScreenResult, Step, UserConfig } from "@/lib/screen/types";
 import { M2FT } from "@/lib/screen/util";
 import { Facts } from "../blocks/shared";
 import type { EvaluationPoint } from "../blocks/types";
@@ -164,9 +165,7 @@ export function CardPanel({
             routing={!!running && !result.driveway}
           />
         )}
-        <PanelFlags
-          flags={(result.flags ?? []).filter((f) => panel !== "verdict" && panelOfFlag(f) === panel)}
-        />
+        <PanelFlags flags={flagsOf(result).filter((f) => panel !== "verdict" && panelOfFlag(f) === panel)} />
         <p className="tiny muted panel-scored">
           {/* To this panel's section of the rulebook, in the app: Back returns to the map with the report open. */}
           <Link href={rulebookHref(panel)}>How it&apos;s scored</Link>: {t.howScored}
@@ -307,7 +306,7 @@ function BottomlandHere({ result }: { result: ScreenResult | PartialScreenResult
 }
 
 /** The flags this row's step raised (owner, #110), as the Verdict section shows them. */
-function PanelFlags({ flags }: { flags: NonNullable<ScreenResult["flags"]> }) {
+function PanelFlags({ flags }: { flags: Flag[] }) {
   if (!flags.length) return null;
   return (
     <section className="panel-flags verdict">
