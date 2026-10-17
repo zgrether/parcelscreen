@@ -6,7 +6,7 @@ A desk-screening tool for rural mountain land. Give it a parcel boundary, from a
 - How much sun does it get?
 - How dark is the sky?
 
-**The data sources:** USGS 3DEP lidar elevation, NRCS soils, FEMA flood maps, USGS PAD-US public land, the Lorenz light-pollution atlas, Census TIGER roads, OpenStreetMap places and OSRM drive times.
+**The data sources:** USGS 3DEP lidar elevation, NRCS soils, FEMA flood maps, USGS PAD-US public land, the Lorenz light-pollution atlas, Census TIGER roads, OpenStreetMap places and OSRM drive times; for trailheads, the Forest Service's recreation sites, each state's parks and Tennessee's TREC trails; and each state's parcel lines and aerial photo (VGIN, NC OneMap, the Tennessee Comptroller and TDOT).
 
 Phase 0 is a port of the single-file prototype (`legacy/parcelscreen.html`) to Next.js. The prototype is the behavioural reference. The plans are in `PLAN.md` and `docs/plans/`; how to work in this repo is in `CLAUDE.md`.
 
@@ -37,10 +37,12 @@ There are no environment variables to set for Phase 0. Every service is public a
 | `pnpm typecheck` | The app with the DOM types, then the pipeline (`lib/screen`, `lib/geo`, …) **without** them, so the screen can run in a Web Worker and in Node. |
 | `pnpm lint` | ESLint, including the pipeline's import rules and the rule against async predicates in Playwright's `waitForFunction`. |
 | `pnpm format:check` | Prettier. |
-| `pnpm test` | Vitest, fully offline. The pipeline is held against **golden results** recorded from the prototype for two Floyd County, VA parcels (`test/fixtures/`): each one's network traffic as a HAR, plus the prototype's results. |
+| `pnpm test` | Vitest, fully offline. The pipeline is held against **golden results** recorded from the prototype for three Virginia parcels (`test/fixtures/`): each one's network traffic as a HAR, plus the prototype's results. Fixtures from step 2 on (Roan Mountain, TN) are port-only: their recording and `expected.json`, no golden. |
 | `pnpm e2e` | Playwright on a production build (port 3100). The same fixtures are replayed in the browser, and the result the **Web Worker** posts must match the goldens. One test runs with the service worker installed. First run on a machine: `pnpm exec playwright install chromium`. |
 
 CI runs all of these on every PR. The e2e job skips its work for docs-only changes.
+
+**Screenshots** (`pnpm screenshots`): the step's views at 1280 × 800 and 375 × 812, over the fixtures' recordings with the aerial live, into `test-results/screenshots/` (step 2 on; never in CI).
 
 **Re-recording the fixtures** (`pnpm record:fixtures`) runs the prototype against the live services and rewrites the goldens. Read `test/fixtures/README.md` first: the goldens are the parity baseline, and a re-recording has to be explained in its PR.
 

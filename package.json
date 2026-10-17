@@ -37,6 +37,7 @@
     "record:port": "vitest run test/tools/record-port.test.ts --mode record-port",
     "record:tn": "vitest run test/tools/record-tn.test.ts --mode record-tn",
     "record:oracles": "vitest run test/tools/record-oracles.test.ts --mode record-oracles",
+    "screenshots": "playwright test -c playwright.screenshots.config.ts",
     "study:grades": "vitest run test/tools/grade-study.test.ts --mode grade-study",
     "study:drift": "node scripts/study-drift.mjs",
     "a3:analysis": "vitest run test/tools/a3-analysis.test.ts --mode a3",

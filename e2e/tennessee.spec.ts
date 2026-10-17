@@ -118,6 +118,8 @@ for (const phone of [false, true]) {
       const box = (await draw.boundingBox())!;
       expect(box.width).toBeGreaterThanOrEqual(44);
       expect(box.height).toBeGreaterThanOrEqual(44);
+      // Two lines at most (plan §6.7): the words beside a 44 px button.
+      expect((await hint.boundingBox())!.height).toBeLessThanOrEqual(100);
       // Nothing scrolls sideways.
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
       await draw.click();
