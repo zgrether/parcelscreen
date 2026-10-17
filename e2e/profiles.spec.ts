@@ -1,8 +1,8 @@
 /**
  * Local profiles (roadmap step 1, PR 5b; docs/plans/step-1-profiles-grading.md §3.4, §7): the first visit's
  * "Profile 1" and the picker (add, switch, rename, delete with its screens; a parcel kept in one profile isn't in
- * another); the migration of a pre-profile store into Profile 1, with the second weight set as "Julie's grade"; and
- * the Library after a clean break: rows reading "Needs a re-screen", and "Re-screen all saved parcels" with Cancel.
+ * another); a pre-profile store dropped, with the menu's one-time line (step 2 plan §9); and the Library after a clean
+ * break: rows reading "Needs a re-screen", and "Re-screen all saved parcels" with Cancel.
  * A production build, the fixtures' HARs replayed.
  */
 import { expect, test, type Page } from "@playwright/test";
@@ -17,7 +17,7 @@ import {
   importParcels,
   keptScreenCount,
   openExplorer,
-  openFromHistory,
+  reload,
   screenIt,
   seedScreens,
   visit,
@@ -119,40 +119,38 @@ test("the first visit's Profile 1; add Visitor and switch; a parcel kept in one 
   expect(errors).toEqual([]);
 });
 
-test("the migration: a pre-profile store becomes Profile 1's, with the second weight set as Julie's grade", async ({
+test("a pre-profile store is dropped: an empty Profile 1, the menu's line once, and no old keys", async ({
   page,
   context,
 }) => {
   await replayHar(context, FERNEY);
-  // What a browser held before profiles: History with Ferney (a drawn boundary), and the weight switch on Julie.
+  // What a browser held before profiles (one that never opened step 1): History with Ferney, the weight switch on Julie,
+  // and step 1's renamed copy of a key.
   const ferney = loadFixture(FERNEY).input.polygon;
   const store = {
     v: 2,
     open: null,
     built: [built("legacy-1", { pieces: [drawnPart(ferney as never)], name: "Ferney Creek", notes: "" })],
   };
-  await openExplorer(page, FERNEY, { "ps.parcels": JSON.stringify(store), "ps.person": "julie" });
+  await openExplorer(page, FERNEY, {
+    "ps.parcels": JSON.stringify(store),
+    "ps.person": "julie",
+    "ps.legacy.ps.cfg": "{}",
+  });
   await menu(page);
   await expect(currentName(page)).toHaveText(/Profile 1/);
-  await expect(page.locator(".menu-drawer li", { hasText: "Ferney Creek" })).toHaveCount(1);
-  await page.keyboard.press("Escape"); // openFromHistory opens the menu itself
-  await openFromHistory(page, "Ferney Creek");
-  expectAllDone(await screenIt(page));
-  // The switch offers both, with Julie's grade on (ps.person became the rubric view).
-  const chips = page.locator(".card-person .chip");
-  await expect(chips).toHaveText(["My grade", "Julie's grade"]);
-  await expect(chips.nth(1)).toHaveAttribute("aria-pressed", "true");
-  await chips.nth(0).click();
-  await expect(chips.nth(0)).toHaveAttribute("aria-pressed", "true");
-  // The Library's columns follow: the household verdict and a grade per rubric.
-  await visit(page, "/library");
-  const head = page.locator(".lib-table thead");
-  await expect(head).toContainText("Household");
-  await expect(head).toContainText("My grade");
-  await expect(head).toContainText("Julie's grade");
-  // The keys were renamed, not deleted (approval C).
-  expect(await page.evaluate(() => localStorage.getItem("ps.legacy.ps.person"))).toBe("julie");
-  expect(await page.evaluate(() => localStorage.getItem("ps.person"))).toBeNull();
+  await expect(page.locator(".old-data-note")).toHaveText("Saved with an older version; screen it again.");
+  await expect(page.locator(".menu-drawer li", { hasText: "Ferney Creek" })).toHaveCount(0);
+  const left = await page.evaluate(() =>
+    Object.keys(localStorage).filter(
+      (k) => k.startsWith("ps.legacy.") || k === "ps.parcels" || k === "ps.person",
+    ),
+  );
+  expect(left).toEqual([]);
+  // Once: the next boot finds nothing to drop.
+  await reload(page);
+  await menu(page);
+  await expect(page.locator(".old-data-note")).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 

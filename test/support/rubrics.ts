@@ -1,12 +1,25 @@
 /**
  * The two weight sets the app shipped with, as named rubrics, for the tests that were written against them (step 1,
- * PR 5): the default rubric (`card.weights.default`, Zach's numbers) and the second set the migration carries as
- * "Julie" (lib/client/migrateProfiles.ts). The app itself names nobody.
+ * PR 5): the default rubric (`card.weights.default`, Zach's numbers) and the second set step 1's migration carried as
+ * "Julie". The app itself names nobody.
  */
-import { LEGACY_SECOND_WEIGHTS } from "@/lib/client/migrateProfiles";
 import { defaultRubric, rubricFromWeights, type CardNumbers } from "@/lib/rubric/default";
-import type { NamedRubric } from "@/lib/rubric/types";
+import type { NamedRubric, RowKey } from "@/lib/rubric/types";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
+
+/**
+ * The second weight set the app shipped with (config `card.weights.julie` until step 1). Step 1's migration carried it
+ * into the first profile as another's rubric; step 2 removed the migration, and the step 1 card oracle still needs it.
+ */
+export const LEGACY_SECOND_WEIGHTS: Record<RowKey, number> = {
+  elevation: 10,
+  homesite: 15,
+  sky: 10,
+  room: 10,
+  trails: 25,
+  town: 10,
+  garden: 20,
+};
 
 export const ZACH: NamedRubric = { id: "zach", name: "Zach", rubric: defaultRubric() };
 export const JULIE: NamedRubric = {

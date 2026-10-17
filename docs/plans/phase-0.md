@@ -502,9 +502,11 @@ profile; the device alone keeps the map, basemap and layer prefs, `ps.debug`, an
 current). The prefs stay synchronous: the profile's documents are hydrated before the app renders
 (`components/Profile/ProfileGate.tsx`) and written through at once, every write's transaction started on the spot and
 `flush` waiting for all in flight; a page unloaded within milliseconds of a write can still lose it, which the e2e
-avoids by flushing before every reload (a localStorage journal would close the window: step 2's call). The first boot
-moves the pre-profile localStorage keys into "Profile 1" in one transaction and renames them to `ps.legacy.*` (step
-2's first PR deletes them); a refused move leaves them untouched. Today's two weight sets became data: the first
+avoids by flushing before every reload (no localStorage journal: owner, 10/17, not coming back unless lost work is
+reported). Step 1's first boot moved the pre-profile localStorage keys into "Profile 1" and renamed them to
+`ps.legacy.*`; step 2's first PR deleted the move: the boot now drops both kinds of key, and the kept screens without
+a profile, and says once "Saved with an older version; screen it again." when pre-profile keys were there (step 2
+plan §9; the clean-break rule). Today's two weight sets became data: the first
 profile's own rubric is the default (`card.weights.default`, the same numbers), and the second rides along as an
 "other" rubric named "Julie" (`LEGACY_SECOND_WEIGHTS`, deleted in step 5 with its name); a fresh profile holds its own
 alone, so it shows no switch, no Household column and no second grade. The switch reads "My grade" and "{name}'s
@@ -515,8 +517,7 @@ in place, and deletes with a confirm naming what goes; deleting the current prof
 opened one left, or a new "Profile 1". After the v8 clean break a Library row reads "Needs a re-screen" and "Re-screen
 all saved parcels" screens those rows one after another in the page's worker, with progress and Cancel. Export
 version 6 carries the profile's name and rubrics; a version 5 file imports with neither, and the file's rubrics
-replace the profile's only through the summary's "Replace my rubric too" tick. Parked for the owner: the journal
-above; "(Mine)" on a lone rubric's weight line; whether Add should only list the new profile; `why` stays stored
+replace the profile's only through the summary's "Replace my rubric too" tick. Parked for the owner: "(Mine)" on a lone rubric's weight line; whether Add should only list the new profile; `why` stays stored
 (§8 Q8, revisited in step 6); the sun, sky and driveway flags follow the current focus (§9.44).
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

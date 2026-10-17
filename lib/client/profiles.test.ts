@@ -1,21 +1,13 @@
 /**
- * Local profiles (roadmap step 1, PR 4; docs/plans/step-1-profiles-grading.md §3.4–§3.5): the boot creates a first
- * profile and remembers it, picks the remembered one next time, moves the browser's pre-profile data into the first
- * profile once (renaming the keys to ps.legacy.*, never deleting them), does nothing the second time, leaves the keys
- * untouched when storage refuses the move, and makes the profile's documents the prefs' store; the key-value store
- * writes through in order and flushes.
+ * Local profiles (roadmap step 1, PR 4; docs/plans/step-1-profiles-grading.md §3.4): the boot creates a first profile
+ * and remembers it, picks the remembered one next time, drops the data from before profiles (step 2 plan §9: step 1's
+ * ps.legacy.* copies silently; pre-profile keys and screens with the menu's one-time line), and makes the profile's
+ * documents the prefs' store; the key-value store writes through in order and flushes.
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { DEFAULT_USER_CONFIG } from "../screen/config";
 import { MINE } from "../rubric/types";
-import {
-  LEGACY_PREFIX,
-  LEGACY_SECOND_ID,
-  LEGACY_SECOND_NAME,
-  legacyDocs,
-  migrateLegacy,
-  type LegacyStore,
-} from "./migrateProfiles";
+import { MOVED_PREFIX, PRE_PROFILE_KEYS, type DeviceStore } from "./oldData";
 import { getPref, setPref } from "./prefs";
 import { activeKv, PROFILE_KEYS, ProfileKv } from "./profileKv";
 import { memoryProfileStorage } from "./profileStore";
@@ -25,12 +17,13 @@ import {
   currentProfile,
   FIRST_PROFILE_NAME,
   newProfile,
+  oldDataDropped,
   resetProfilesForTests,
 } from "./profiles";
 import { loadUserConfig, saveUserConfig } from "./userConfig";
 
 /** A localStorage stand-in. */
-const fakeLs = (init: Record<string, string> = {}): LegacyStore & { data: Map<string, string> } => {
+const fakeLs = (init: Record<string, string> = {}): DeviceStore & { data: Map<string, string> } => {
   const data = new Map(Object.entries(init));
   return {
     data,
@@ -55,7 +48,8 @@ describe("the boot", () => {
     expect(ls.getItem(CURRENT_PROFILE_KEY)).toBe(b.profile.id);
     expect(currentProfile()?.id).toBe(b.profile.id);
     expect(await storage.profiles()).toEqual([b.profile]);
-    expect(b.migrated).toBe(false);
+    expect(b.droppedOld).toBe(false);
+    expect(oldDataDropped()).toBe(false);
   });
 
   it("picks the most recently opened profile without a memory, the remembered one with; opening moves it to the front", async () => {
@@ -86,72 +80,59 @@ describe("the boot", () => {
   });
 });
 
-describe("the move into the first profile (approval C)", () => {
-  it("moves every pre-profile key into the profile's documents, stamps the kept screens, and renames the keys", async () => {
+describe("data from before profiles is dropped (step 2 plan §9)", () => {
+  it("step 1's ps.legacy.* copies go without a word; the profile's documents and the device keys stay", async () => {
+    const storage = memoryProfileStorage();
+    const existing = newProfile("Mine");
+    await storage.putProfile(existing);
+    await storage.putDoc({ profile: existing.id, key: "ps.parcels", value: PARCELS });
+    const ls = fakeLs({
+      [CURRENT_PROFILE_KEY]: existing.id,
+      [MOVED_PREFIX + "ps.parcels"]: PARCELS,
+      [MOVED_PREFIX + "ps.cfg"]: CFG,
+      [MOVED_PREFIX + "ps.person"]: "julie",
+      "ps.view": "{}",
+    });
+    const b = await bootProfiles({ storage, ls });
+    expect(b.profile.id).toBe(existing.id);
+    expect(b.droppedOld).toBe(false);
+    expect(oldDataDropped()).toBe(false);
+    expect([...ls.data.keys()].filter((k) => k.startsWith(MOVED_PREFIX))).toEqual([]);
+    expect(ls.getItem("ps.view")).toBe("{}");
+    expect((await storage.docs(existing.id)).map((d) => d.key)).toEqual(["ps.parcels"]);
+  });
+
+  it("a browser that never opened step 1: its keys and unstamped screens go, nothing moves, and the menu says so", async () => {
     const storage = memoryProfileStorage();
     storage.state.screens.set("s1", {});
     storage.state.screens.set("s2", { profile: "other" });
     const ls = fakeLs({ "ps.parcels": PARCELS, "ps.cfg": CFG, "ps.person": "julie", "ps.view": "{}" });
     const b = await bootProfiles({ storage, ls });
-    expect(b.migrated).toBe(true);
-    const docs = await storage.docs(b.profile.id);
-    // The weight switch (ps.person) becomes the rubric view, and the profile gets its rubrics: its own (the default)
-    // and the second weight set the app shipped with, as another's (plan §8 Q3).
-    expect(docs.map((d) => d.key).sort()).toEqual(["ps.cfg", "ps.parcels", "ps.rubricView", "ps.rubrics"]);
-    expect(docs.find((d) => d.key === "ps.parcels")?.value).toBe(PARCELS);
-    // The keys are renamed, not deleted (step 2's first PR deletes them); a device key stays.
-    expect(ls.getItem("ps.parcels")).toBeNull();
-    expect(ls.getItem(LEGACY_PREFIX + "ps.parcels")).toBe(PARCELS);
-    expect(ls.getItem(LEGACY_PREFIX + "ps.cfg")).toBe(CFG);
+    expect(b.droppedOld).toBe(true);
+    expect(oldDataDropped()).toBe(true);
+    for (const key of PRE_PROFILE_KEYS) expect(ls.getItem(key)).toBeNull();
     expect(ls.getItem("ps.view")).toBe("{}");
-    // Unstamped screens are the profile's; one another profile holds stays its.
-    expect(storage.state.screens.get("s1")).toEqual({ profile: b.profile.id });
-    expect(storage.state.screens.get("s2")).toEqual({ profile: "other" });
-    // The documents are what the prefs read now.
-    expect(getPref("ps.rubricView")).toBe(LEGACY_SECOND_ID);
-    expect(getPref("ps.rubrics")?.others.map((o) => [o.id, o.name])).toEqual([
-      [LEGACY_SECOND_ID, LEGACY_SECOND_NAME],
-    ]);
-    expect(ls.getItem(LEGACY_PREFIX + "ps.person")).toBe("julie");
-    expect(loadUserConfig().sunHoursWanted).toBe(5);
+    expect(await storage.docs(b.profile.id)).toEqual([]);
+    expect(loadUserConfig().sunHoursWanted).toBe(DEFAULT_USER_CONFIG.sunHoursWanted);
+    expect([...storage.state.screens.keys()]).toEqual(["s2"]);
   });
 
-  it("runs once: a second boot finds no pre-profile key and changes nothing", async () => {
+  it("says so once: the next boot finds nothing to drop", async () => {
     const storage = memoryProfileStorage();
     const ls = fakeLs({ "ps.parcels": PARCELS });
-    const first = await bootProfiles({ storage, ls });
-    const docsAfterFirst = JSON.stringify(await storage.docs(first.profile.id));
+    expect((await bootProfiles({ storage, ls })).droppedOld).toBe(true);
     resetProfilesForTests();
-    const second = await bootProfiles({ storage, ls });
-    expect(second.migrated).toBe(false);
-    expect(second.profile.id).toBe(first.profile.id);
-    expect(JSON.stringify(await storage.docs(first.profile.id))).toBe(docsAfterFirst);
-    expect([...ls.data.keys()].filter((k) => k.startsWith(LEGACY_PREFIX))).toEqual([
-      LEGACY_PREFIX + "ps.parcels",
-    ]);
+    expect((await bootProfiles({ storage, ls })).droppedOld).toBe(false);
+    expect(oldDataDropped()).toBe(false);
   });
 
-  it("a move that storage refuses leaves the keys untouched, and the boot still completes", async () => {
-    const storage = memoryProfileStorage({ failAdopt: true });
-    const ls = fakeLs({ "ps.parcels": PARCELS, "ps.cfg": CFG });
-    const b = await bootProfiles({ storage, ls });
-    expect(b.migrated).toBe(false);
-    expect(ls.getItem("ps.parcels")).toBe(PARCELS);
-    expect(ls.getItem("ps.cfg")).toBe(CFG);
-    expect(ls.getItem(LEGACY_PREFIX + "ps.parcels")).toBeNull();
-    expect(await storage.docs(b.profile.id)).toEqual([]);
-    await expect(migrateLegacy(storage, b.profile.id, ls)).rejects.toThrow("adopt failed");
-  });
-
-  it("legacyDocs lists exactly the profile-scoped keys the browser holds, in a fixed order", () => {
-    const ls = fakeLs({ "ps.cfg": CFG, "ps.parcels": PARCELS, "ps.debug": "1" });
-    const docs = legacyDocs(ls, "p");
-    expect(docs.map((d) => d.key)).toEqual(["ps.parcels", "ps.cfg", "ps.rubrics", "ps.rubricView"]);
-    // No weight switch kept: the profile's own rubric is on show.
-    expect(docs.find((d) => d.key === "ps.rubricView")?.value).toBe(MINE);
-    expect(legacyDocs(fakeLs({ "ps.debug": "1" }), "p")).toEqual([]);
+  it("the pre-profile keys are the profile keys of the time and the weight switch, never a device key", () => {
+    expect(PRE_PROFILE_KEYS).toContain("ps.parcels");
+    expect(PRE_PROFILE_KEYS).toContain("ps.person");
+    expect(PRE_PROFILE_KEYS).not.toContain("ps.rubrics");
+    expect(PRE_PROFILE_KEYS).not.toContain("ps.view");
+    expect(PRE_PROFILE_KEYS).not.toContain(CURRENT_PROFILE_KEY);
     expect([...PROFILE_KEYS]).toContain("ps.library");
-    expect([...PROFILE_KEYS]).not.toContain("ps.view");
   });
 });
 

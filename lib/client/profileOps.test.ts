@@ -3,7 +3,7 @@
  * over the in-memory storage. Switching reloads the page, so it isn't tested here (e2e/profiles.spec.ts).
  */
 import { afterEach, describe, expect, it } from "vitest";
-import type { LegacyStore } from "./migrateProfiles";
+import type { DeviceStore } from "./oldData";
 import {
   addProfile,
   bootProfiles,
@@ -20,7 +20,7 @@ import {
 import { getPref, setPref } from "./prefs";
 import { memoryProfileStorage } from "./profileStore";
 
-const fakeLs = (init: Record<string, string> = {}): LegacyStore & { data: Map<string, string> } => {
+const fakeLs = (init: Record<string, string> = {}): DeviceStore & { data: Map<string, string> } => {
   const data = new Map<string, string>(Object.entries(init));
   return {
     data,
