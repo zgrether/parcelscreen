@@ -5,8 +5,22 @@
  * one on show is the profile's `ps.rubricView`. Nothing here names a person.
  */
 import { defaultRubric } from "@/lib/rubric/default";
+import type { ProfileRubrics } from "@/lib/rubric/schema";
 import { MINE, type NamedRubric } from "@/lib/rubric/types";
 import { getPref, setPref } from "./prefs";
+
+/** The window event after the profile's rubrics change (an import's "Replace my rubric too"): the pages re-read. */
+export const RUBRICS_CHANGED = "ps:rubrics";
+
+/** The profile's rubrics as kept, or the default alone before it has its own (what an export writes). */
+export const effectiveRubrics = (): ProfileRubrics =>
+  getPref("ps.rubrics") ?? { mine: defaultRubric(), others: [] };
+
+/** Replaces the profile's rubrics (null: back to the default alone) and tells the open pages. */
+export function setProfileRubrics(r: ProfileRubrics | null): void {
+  setPref("ps.rubrics", r);
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(RUBRICS_CHANGED));
+}
 
 /** The profile's own rubric, named: the first choice everywhere. */
 export const mineNamed = (rubric = defaultRubric()): NamedRubric => ({ id: MINE, name: "Mine", rubric });

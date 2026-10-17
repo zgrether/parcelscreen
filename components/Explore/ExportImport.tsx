@@ -4,7 +4,9 @@
  * import plan are lib/client/exportFile.ts; this reads and writes storage around them.
  *
  * Import applies all of the file or none of it: the plan is checked whole first; the settings question comes
- * before anything is written; the screens are kept in one transaction before the parcels are added.
+ * before anything is written; the screens are kept in one transaction before the parcels are added. The export
+ * carries the current profile's name and rubrics (version 6, step 1); on import the file's rubrics replace the
+ * profile's only through the summary's "Replace my rubric too" tick, off by default.
  */
 import { useRef, useState } from "react";
 import {
@@ -17,13 +19,19 @@ import {
   settingsQuestion,
   type SettingsOutcome,
 } from "@/lib/client/exportFile";
+import { getPref } from "@/lib/client/prefs";
+import { currentProfile, FIRST_PROFILE_NAME } from "@/lib/client/profiles";
+import { effectiveRubrics, setProfileRubrics } from "@/lib/client/rubrics";
 import { getScreens, putScreens } from "@/lib/client/screenStore";
+import type { ProfileRubrics } from "@/lib/rubric/schema";
 import { useSettings } from "@/components/Settings/SettingsDialog";
 import { useExplore } from "./useExploreController";
 
 interface Summary {
   ok: boolean;
   lines: string[];
+  /** A version 6 file's rubrics, offered by the tick; what the profile had, for unticking. */
+  rubrics?: { file: ProfileRubrics; before: ProfileRubrics | null; on: boolean };
 }
 
 export function ExportImport() {
@@ -36,9 +44,16 @@ export function ExportImport() {
     const now = new Date().toISOString();
     const { store } = ctl.state;
     const screens = await getScreens(keptScreenIds(store));
-    const blob = new Blob([JSON.stringify(buildExport(settings.config, store, screens, now), null, 1)], {
-      type: "application/json",
-    });
+    const from = {
+      profile: { name: currentProfile()?.name ?? FIRST_PROFILE_NAME },
+      rubrics: effectiveRubrics(),
+    };
+    const blob = new Blob(
+      [JSON.stringify(buildExport(settings.config, store, screens, now, from), null, 1)],
+      {
+        type: "application/json",
+      },
+    );
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = exportFileName(now);
@@ -78,7 +93,17 @@ export function ExportImport() {
     }
     if (plan.added.length) ctl.importParcels(plan.added);
     if (outcome === "replaced") settings.save(plan.settings!.config);
-    setSummary({ ok: true, lines: importSummary(plan, outcome) });
+    setSummary({
+      ok: true,
+      lines: importSummary(plan, outcome),
+      ...(plan.rubrics ? { rubrics: { file: plan.rubrics, before: getPref("ps.rubrics"), on: false } } : {}),
+    });
+  };
+  /** The tick: the file's rubrics replace the profile's; unticked, what the profile had comes back. */
+  const tickRubrics = (on: boolean) => {
+    if (!summary?.rubrics) return;
+    setProfileRubrics(on ? summary.rubrics.file : summary.rubrics.before);
+    setSummary({ ...summary, rubrics: { ...summary.rubrics, on } });
   };
 
   return (
@@ -108,6 +133,19 @@ export function ExportImport() {
           {summary.lines.map((l, i) => (
             <li key={i}>{l}</li>
           ))}
+          {summary.rubrics && (
+            <li>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={summary.rubrics.on}
+                  onChange={(e) => tickRubrics(e.target.checked)}
+                />{" "}
+                Replace my rubric too
+              </label>
+              {summary.rubrics.on && " Your rubric is now the file's."}
+            </li>
+          )}
         </ul>
       )}
     </section>
