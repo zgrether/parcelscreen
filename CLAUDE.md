@@ -47,6 +47,8 @@ isn't obvious.
 The roadmap in PLAN.md (the fifteen steps of `docs/design/workflow-review.md`) runs as missions, one per
 step. Mission mode changes rules 1 and 3 above as written here; everything else in this file still holds.
 
+- **Move from PR to PR without asking** (owner, 2026-10-17). Only the stop conditions in the plan and in this file
+  pause the work.
 - **One plan per roadmap step** at `docs/plans/step-<n>-<name>.md`. Each plan states the scope, which
   numbers or verdict text may change, the stop conditions, the outline of the test plan, and a UX section
   (below). Zach approves the plan once; no application code before that.
