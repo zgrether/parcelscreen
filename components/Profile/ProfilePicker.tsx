@@ -12,6 +12,7 @@ import {
   currentProfile,
   deleteProfile,
   listProfiles,
+  reloadAfterWrites,
   renameProfile,
   storageUnavailable,
   switchProfile,
@@ -55,7 +56,7 @@ export function ProfilePicker() {
     if (busy) return;
     setBusy(true);
     const p = await addProfile(added.trim() || placeholder);
-    switchProfile(p.id);
+    await switchProfile(p.id);
   };
   const rename = async (e: FormEvent, p: Profile) => {
     e.preventDefault();
@@ -71,7 +72,7 @@ export function ProfilePicker() {
     setBusy(true);
     const { wasCurrent } = await deleteProfile(p.id);
     if (wasCurrent) {
-      location.reload();
+      await reloadAfterWrites();
       return;
     }
     setDeleting(null);
@@ -119,7 +120,7 @@ export function ProfilePicker() {
                       className="profile-name"
                       disabled={current}
                       aria-current={current ? "true" : undefined}
-                      onClick={() => switchProfile(p.id)}
+                      onClick={() => void switchProfile(p.id)}
                     >
                       {p.name}
                       {current && <span className="tiny muted"> · current</span>}

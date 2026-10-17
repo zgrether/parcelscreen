@@ -5,7 +5,8 @@
  *
  * It is a report, not a check: the differences are the deliberate departures from the prototype, and a PR
  * that changes expected.json quotes this output (the expected-guard CI job looks for its summary line). The
- * comparison holds the port to the prototype exactly as Phase 0 did: asPrototype() and the PARITY tolerances.
+ * comparison holds the port to the prototype exactly as Phase 0 did: asPrototype() and the PARITY tolerances, with
+ * the v8 measurements the prototype never stored taken off both sides (withoutMeasurements; #154 review).
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { describe, it } from "vitest";
@@ -13,7 +14,7 @@ import { differences } from "../support/compare";
 import { expectedOf } from "../support/expected";
 import { FIXTURE_SLUGS, loadFixture, type FixtureSlug } from "../support/fixtures";
 import { fromPrototype } from "../support/fromPrototype";
-import { asPrototype, PARITY } from "../support/parity";
+import { asPrototype, PARITY, withoutMeasurements } from "../support/parity";
 import { SCENARIOS } from "../support/scenarios";
 import { prototypeDiffReport, REPORT_FILE } from "./diffReport";
 
@@ -27,8 +28,8 @@ describe.runIf(import.meta.env.MODE === "diff-prototype")("diff:prototype", () =
         let found: string[];
         try {
           found = differences(
-            asPrototype(expectedOf(slug, scenario), golden),
-            fromPrototype(golden, { grades: true }),
+            withoutMeasurements(asPrototype(expectedOf(slug, scenario), golden)),
+            withoutMeasurements(fromPrototype(golden, { grades: true })),
             PARITY,
           );
         } catch (e) {
