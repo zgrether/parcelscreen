@@ -539,7 +539,9 @@ export const SCREEN_CONSTANTS = deepFreeze({
   card: {
     points: { A: 4, B: 3, C: 2, D: 1, F: 0 },
     gradeCutoffs: [3.5, 2.5, 1.5, 0.5], // the parcel grade from the weighted average of the rows' points
-    verdict: { contender: 2.75, pass: 1.75, contenderMaxWarns: 1 },
+    // Step 3 (owner, 2026-10-17; §9.51): the verdict lines are letter edges, the B and C cutoffs above. The card reads
+    // them from a rubric's grade cutoffs (lib/rubric/grade.ts verdictLines); these keep a new rubric's copy in step.
+    verdict: { contender: 2.5, pass: 1.5, contenderMaxWarns: 1 },
     rows: {
       elevationFt: [3000, 2500, 2000, 1500],
       skyMag: [21.5, 21.2, 20.9, 20.5],
@@ -557,6 +559,17 @@ export const SCREEN_CONSTANTS = deepFreeze({
     // app shipped with is test/support/rubrics.ts LEGACY_SECOND_WEIGHTS, kept for the step 1 card oracle).
     weights: {
       default: { elevation: 25, homesite: 25, sky: 10, room: 15, trails: 10, town: 5, garden: 10 },
+    },
+    // Step 3 (rubric editor, plan §2): each band's slider, over its B/C edge (the edge of "acceptable"; the band's other
+    // edges shift with it) and a minimum's value, in the band's unit. Ranges a person might want, not limits on the data.
+    editor: {
+      elevationFt: { min: 1000, max: 4500, step: 100 },
+      skyMag: { min: 19.5, max: 22, step: 0.1 },
+      roomX: { min: 1, max: 5, step: 0.25 },
+      trailheadMin: { min: 5, max: 60, step: 5 },
+      erMin: { min: 10, max: 90, step: 5 },
+      groceryMin: { min: 5, max: 60, step: 5 },
+      gardenAc: { min: 0.05, max: 2, step: 0.05 },
     },
     // WF1 (owner, #128): the card says so when the listing's acres differ from the boundary's by more than this.
     listingAcresPct: 10,

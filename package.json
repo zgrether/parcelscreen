@@ -32,6 +32,7 @@
     "data:hospitals": "node scripts/data-hospitals.mts",
     "data:states": "node scripts/data-state-outlines.mts",
     "data:tn-counties": "node scripts/data-tn-own-records.mts",
+    "data:sample": "node scripts/data-sample.mts",
     "check:hospitals-age": "node scripts/check-hospitals-age.mts",
     "check:deployed": "node scripts/check-deployed.mts",
     "record:port": "vitest run test/tools/record-port.test.ts --mode record-port",
