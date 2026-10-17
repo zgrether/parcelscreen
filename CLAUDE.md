@@ -44,7 +44,7 @@ isn't obvious.
 
 ## Mission mode (standing rule; owner, 2026-10-16)
 
-The roadmap in PLAN.md (the thirteen steps of `docs/design/workflow-review.md`) runs as missions, one per
+The roadmap in PLAN.md (the fifteen steps of `docs/design/workflow-review.md`) runs as missions, one per
 step. Mission mode changes rules 1 and 3 above as written here; everything else in this file still holds.
 
 - **One plan per roadmap step** at `docs/plans/step-<n>-<name>.md`. Each plan states the scope, which

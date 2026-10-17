@@ -262,9 +262,47 @@ This is mostly renaming and simplifying what's built. History keeps every screen
 
 The map image needs one technical choice: capture the live map canvas, or render a static map for print. Claude Code should pick in the plan.
 
+## What the land can do, and what it can pay
+
+Two panels on every screened parcel, next to the report card but outside the grade. The grade answers "is this right for us?"; these answer "what could we do here?" and "how could it pay us back?". Money never enters the grade, as the value-ranking rule already says.
+
+**Panel 1: What you can do here.** Uses the screen already supports, each with a yes, a maybe with its reason, or a no:
+
+| Use | What decides it | Data |
+| --- | --- | --- |
+| Camp now | A clearing or open ground the 4x4 can reach; cost to camp | Lidar, canopy, router, step 9 |
+| Build | Best site, septic class, room to build | The screen today |
+| Trails and walking woods | Gentle ground under mature canopy, total trail length possible at ≤ 15% | Lidar slope and canopy height |
+| Garden, orchard, animals | Garden ground, frost position, water | The screen today |
+| Hunt | Acreage, forest cover, adjoining public land, county and state rules | PAD-US, acreage |
+| Ride, ski, snowshoe from home | Bike distance to a long trail; adjoining corridors, which are private unless the neighbors agree | OSM, PAD-US |
+| Divide | How many lots the county's rules allow: standard lots by frontage, large lots by easement | A county rules table, the Split tool |
+| What limits you | Easements of record you enter (ROW, scenic, utility), the deed restrictions field, a power line's distance to the house | Listing fields, OSM power lines |
+
+**Panel 2: How it could pay.** Each option shows eligibility from the screen, a range with its source and as-of date, and what it costs you in use. Each also gets the one question for the agent or professional that turns the range into a number.
+
+| Option | Eligibility from the screen | The number shown | What it costs you |
+| --- | --- | --- | --- |
+| Conservation easement and Virginia tax credit | Divisible lots given up, Parkway or public-land viewshed, stream, forest | 40% state credit on an appraised value the app can't know; shows the formula and an "if the easement value were X" slider, not a figure | Permanent: lower resale value and limited building rights |
+| Use-value (land use) tax | 20+ acres of forest; whether the county takes part | Today's tax vs the use-value tax, from county rates | A rollback tax if the use changes |
+| Forest carbon | 30+ acres of naturally regenerating forest in an eligible region (Family Forest Carbon Program) | Eligible yes or no; the program quotes payment | A practice contract, often on harvesting |
+| Hunting lease | Acreage, forest, access | A regional per-acre range, low confidence, dated | Your own use in season; liability and a lease |
+| Selective timber | Mature hardwood from canopy height | Only from a timber cruise you enter; otherwise "ask for the cruise" | Woods look different for some years |
+| Split and resell | Lots the county allows, frontage per lot, each piece screened on its own | The break-even price per acre for the piece sold, with price, years held, interest rate and costs as inputs | Less land, a neighbor; covenants or an easement can protect your side |
+| Camp sites | Clearings, access, county rules | No number; links to the county's rules | Visitors on the land |
+
+Rules for both panels:
+
+- **Ranges, not promises.** Every dollar figure carries its source, date and a confidence word. Anything that needs an appraisal, cruise or quote says so instead of guessing.
+- **Location-specific tables live in config with dates:** county division rules, use-value participation and rates, program eligibility. Starting with Floyd, Grayson and Carroll (VA), Ashe and Alleghany (NC), and Carter and Johnson (TN). Outside them, a panel row says "not covered here yet".
+- **Not advice.** One line on each panel: talk to a tax advisor, a land trust or a forester before acting.
+- **The Split tool becomes a scenario.** "Keep this piece, sell that one" screens both pieces and shows each panel for each.
+
+Both panels go into the Full report card export.
+
 ## Roadmap
 
-Each step is one unattended mission for Claude Code. You approve its plan once; it runs as many PRs as it needs while you're away; it hands back a report and a test plan you can run by hand. Thirteen steps; the first is the foundation for the rest.
+Each step is one unattended mission for Claude Code. You approve its plan once; it runs as many PRs as it needs while you're away; it hands back a report and a test plan you can run by hand. Fifteen steps; the first is the foundation for the rest.
 
 **How a mission runs:**
 
@@ -289,6 +327,8 @@ Each step is one unattended mission for Claude Code. You approve its plan once; 
 11. **Ways to raise the grade.** Homesite, access, septic and combine first; tree clearing after canopy heights are confirmed.
 12. **Area catalog.** The 30 areas, area profiling run headless on a schedule, scoring, the suggestion box, sample parcels.
 13. **Accounts and attachments.** Sign-in that adopts existing local profiles, file storage for photos and PDFs, and in-app "Send to confirm".
+14. **What the land can do.** Panel 1, the county rules table, power-line distance, and the Split tool as a keep / sell scenario. Can run any time after step 9.
+15. **How it could pay.** Panel 2 with dated, sourced ranges; the easement slider; use-value tax; carbon eligibility; split break-even. After step 14.
 
 **Paused:** WF6b (the engine half is merged; the app side waits), 57 (snap lines to lidar), 46 (county grade limits), the cost-label PR, VR8 calibration and Batch B. VR8's weight calibration is replaced by the interview and editor; its band cutoffs get a lighter sanity check after step 10.
 
