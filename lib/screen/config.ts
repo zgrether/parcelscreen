@@ -544,7 +544,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
       gardenAc: [0.5, 0.25, 0.1, 0], // an A also needs prime or statewide-important soil; any garden is a D
     },
     // The default rubric's weights, summing to 100 (roadmap step 1: a profile's rubric replaces them; the second set the
-    // app shipped with is lib/client/migrateProfiles.ts LEGACY_SECOND_WEIGHTS, carried by the migration as another's).
+    // app shipped with is test/support/rubrics.ts LEGACY_SECOND_WEIGHTS, kept for the step 1 card oracle).
     weights: {
       default: { elevation: 25, homesite: 25, sky: 10, room: 15, trails: 10, town: 5, garden: 10 },
     },

@@ -201,8 +201,10 @@ document of the current local profile (`lib/client/parcelStore.ts`, `lib/client/
 phase-0.md §9.45): IndexedDB `parcelscreen`, store `docs`, keyed by [profile, key], holds each profile's parcels,
 settings (`ps.cfg`), rubrics (`ps.rubrics`, `{ mine, others }` as `lib/rubric/schema.ts` validates them) and views, each
 as the JSON string the prefs module writes; the kept screens carry their profile's id. Until step 1 the store was
-localStorage `ps.parcels`; the first boot after it moved those keys into "Profile 1" and renamed them `ps.legacy.*`.
-Accounts (step 13) adopt a profile's documents when a user first signs in, so the shape is a contract. It's versioned
+localStorage `ps.parcels`; step 1's first boot moved those keys into "Profile 1" and renamed them `ps.legacy.*`. Step 2
+dropped both under the clean-break rule: the boot deletes them and moves nothing, and a browser that still held
+pre-profile keys says once "Saved with an older version; screen it again." (`lib/client/oldData.ts`). Accounts
+(step 13) start empty; parcels come over with an export file (owner, 10/17). It's versioned
 by `v`: any change takes a new `v` and a converter (the store already converts 13d's `ps.current`, which had no `v`
 field at the parcel level).
 

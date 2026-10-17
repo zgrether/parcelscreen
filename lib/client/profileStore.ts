@@ -32,11 +32,8 @@ export interface ProfileStorage {
   docs(profile: string): Promise<ProfileDoc[]>;
   putDoc(doc: ProfileDoc): Promise<void>;
   deleteDoc(profile: string, key: string): Promise<void>;
-  /**
-   * The migration's one transaction (step 1 plan §3.5): the browser's pre-profile documents become this profile's, and
-   * every kept screen without a profile is stamped with it. Either all of it happens or none of it.
-   */
-  adopt(profile: string, docs: readonly ProfileDoc[]): Promise<void>;
+  /** Deletes every kept screen without a profile stamp: screens kept before profiles (step 2 plan §9). */
+  dropUnstamped(): Promise<void>;
   /** The ids of the kept screens stamped with this profile. */
   screenIds(profile: string): Promise<string[]>;
 }
@@ -93,17 +90,14 @@ export function idbProfileStorage(): ProfileStorage {
       tx.objectStore(DOCS).delete([profile, key]);
       await done(tx);
     },
-    async adopt(profile, docs) {
+    async dropUnstamped() {
       const d = await need();
-      const tx = d.transaction([DOCS, SCREENS], "readwrite");
-      for (const doc of docs) tx.objectStore(DOCS).put(doc);
-      const screens = tx.objectStore(SCREENS);
-      const cursor = screens.openCursor();
+      const tx = d.transaction(SCREENS, "readwrite");
+      const cursor = tx.objectStore(SCREENS).openCursor();
       cursor.onsuccess = () => {
         const c = cursor.result;
         if (!c) return;
-        const record = c.value as { profile?: string };
-        if (record.profile === undefined) c.update({ ...record, profile });
+        if ((c.value as { profile?: string }).profile === undefined) c.delete();
         c.continue();
       };
       await done(tx);
@@ -124,7 +118,7 @@ export function idbProfileStorage(): ProfileStorage {
  * between a write and what follows it.
  */
 export function memoryProfileStorage(
-  opts: { failAdopt?: boolean; delayWrites?: number } = {},
+  opts: { delayWrites?: number } = {},
 ): ProfileStorage & {
   readonly state: {
     profiles: Map<string, Profile>;
@@ -162,11 +156,8 @@ export function memoryProfileStorage(
       if (opts.delayWrites) await new Promise((r) => setTimeout(r, opts.delayWrites));
       state.docs.delete(dk(profile, key));
     },
-    async adopt(profile, docs) {
-      if (opts.failAdopt) throw new Error("adopt failed (test)");
-      for (const doc of docs) state.docs.set(dk(doc.profile, doc.key), { ...doc });
-      for (const [k, s] of state.screens)
-        if (s.profile === undefined) state.screens.set(k, { ...s, profile });
+    async dropUnstamped() {
+      for (const [k, s] of state.screens) if (s.profile === undefined) state.screens.delete(k);
     },
     async screenIds(profile) {
       return [...state.screens].filter(([, s]) => s.profile === profile).map(([k]) => k);
