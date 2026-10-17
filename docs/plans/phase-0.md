@@ -600,6 +600,25 @@ read or migrated, and their parcels read "Needs a re-screen" and re-screen when 
 "; serves: A, B" to the trailhead it names (after the existing text; rule 7). Neither shows when a trailhead serves only
 the trail it's named after.
 
+50. **The rubric editor: "My rubric"** (owner, 2026-10-17; step 3 plan §1–§4, §6 and §8; roadmap step 3, PRs 1–4).
+`/rubric`, from the ☰ menu, the rulebook's header and each card panel's "How it's scored" line ("Change it in My
+rubric", added after it). The profile's own rubric in four columns, Must, Should, Could and Won't; others' rubrics stay
+read-only until step 5. **The columns' rules** (`lib/rubric/edit.ts`): a dealbreaker is a Must or a Won't (it has no
+letter to rank); a row dropped on Must becomes a minimum at its B/C edge and keeps its ranked card, marked "min", and
+the drop says so; homesite (graded by the site's quality) can't be a minimum; Won't takes a row out of the grade with
+its minimum; a minimum stays in Must. **Each card** says what it asks for at its B/C edge, in plain words
+(`lib/rubric/words.ts`, which the card's labels now come from too); its sheet adds why it's there ("From the default
+card" or "You changed it"), the rulebook's words for it, its slider and "Move to…" (the full set of moves without
+dragging). **A slider** moves a band's B/C edge and the band's other edges by the same amount, within
+`card.editor`'s ranges; a minimum's slider sets its value. **The weights** stay explicit until the first change to the
+ranked order or a tier, which applies at once and switches the rubric to rank-sum (owner: no confirm); a notice above the
+columns says "Your order now sets the weights. See what changed · Undo", its table shows each row's weight before and
+after, and its Undo restores both the order and the explicit weights; it stays until it's dismissed or the next change.
+**Every change saves at once** (the profile's `ps.rubrics`), so every page re-grades without a re-screen; Undo takes
+back the last ten; "Reset to default" is behind a confirm. Dragging is by the handle (a mouse after 4 px, a 250 ms long
+press on a phone, or the keyboard), through @dnd-kit as My order's is, with no drop animation. **Warn gates stay**: a
+dealbreaker passes, warns or fails, and a Contender has at most one warning ("verify the easement" is a warning).
+
 51. **The verdict lines are letter edges** (owner, 2026-10-17; step 3 plan §5 and §8 Q1; roadmap step 3, PR 1). A or B
 is a Contender, C a Maybe, D or F a Pass, with the dealbreakers, the warnings (at most one for a Contender) and the
 caps as before. Step 1 kept today's point lines (2.75 and 1.75), so a B between 2.50 and 2.75 read Maybe, and a C

@@ -97,7 +97,7 @@ export function cardLine(r: Rubric, factor: Factor): string {
     case "floodplain":
       return "No FEMA flood zone at the build site or on the driveway";
     case "access":
-      return "Legal road access: frontage, or a recorded right-of-way";
+      return "Frontage on a public road, or a recorded right-of-way";
     case "easement":
       return "The driveway stays on your land, or its easement is recorded";
     case "septic":
