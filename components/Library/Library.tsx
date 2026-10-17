@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import { HelpProvider } from "@/components/Help/HelpDialog";
+import { ProfilePicker } from "@/components/Profile/ProfilePicker";
 import { LongName } from "@/components/LongName";
 import { shortPrice } from "@/lib/client/askingPrice";
 import {
@@ -42,6 +43,7 @@ import { useKeptScreens } from "@/lib/client/useKeptScreens";
 import type { Verdict } from "@/lib/report/card";
 import type { NamedRubric } from "@/lib/rubric/types";
 import { LibraryControls } from "./LibraryControls";
+import { RescreenAll } from "./RescreenAll";
 import { DragHandle, OrderMenu, SortableRows, useSortableRow, type Mover } from "./MyOrder";
 import { ParcelDetail } from "./ParcelDetail";
 
@@ -131,6 +133,11 @@ export function Library() {
     setTicked(next);
   };
   const detail = opened ? built.find((p) => p.key === opened) : undefined;
+  // The parcels whose grades are gone (approval A): "Re-screen all saved parcels" screens them one after another.
+  const needing = rows
+    .filter((r) => r.unscreened === "rescreen")
+    .map((r) => built.find((p) => p.key === r.key)!);
+  const nameOf = new Map(rows.map((r) => [r.key, r.name]));
   const rowsProps = { rows: shown, rubrics, ticked, toggle, open: setOpened, ordering, mover };
 
   return (
@@ -141,6 +148,7 @@ export function Library() {
             ← Map
           </Link>
           <h1>Your list</h1>
+          <ProfilePicker />
           {ticked.size > 0 && (
             <button className="btn small" onClick={compare}>
               Compare {ticked.size}
@@ -156,6 +164,11 @@ export function Library() {
         ) : (
           <>
             <LibraryControls view={view} setView={setView} rows={rows} rubrics={rubrics} />
+            <RescreenAll
+              parcels={needing}
+              nameOf={(key) => nameOf.get(key) ?? "the parcel"}
+              onKept={(key, id) => change(key, (p) => ({ ...p, screenIds: [...p.screenIds, id] }))}
+            />
             <p className="tiny muted lib-count">
               {shown.length} parcel{shown.length === 1 ? "" : "s"}
               {/* Dragging works only in My order (§5): under another sort, the way back to it. */}
@@ -233,6 +246,10 @@ interface RowProps extends Omit<RowsProps, "rows"> {
   count: number;
 }
 
+/** "Needs a re-screen" once per row: on the one grade when it's the only column, else on the Household cell. */
+const noteOn = (r: LibraryRow, i: number): LibraryRow["unscreened"] =>
+  r.grades.length > 1 || i > 0 ? null : r.unscreened;
+
 const rowClass = (base: string, r: LibraryRow, dragging: boolean) =>
   [base, "lib-row", r.status === "archived" && "lib-archived", dragging && "lib-dragging"]
     .filter(Boolean)
@@ -250,7 +267,8 @@ const statusCell = (r: LibraryRow) => {
 
 function VerdictWord({ v, unscreened }: { v: Verdict | null; unscreened: LibraryRow["unscreened"] }) {
   if (v) return <span className={`card-word small v-${v.toLowerCase()}`}>{v}</span>;
-  return <span className="tiny muted">{unscreened === "rescreen" ? "re-screen" : "–"}</span>;
+  // Screened under earlier rules, or its result is gone (a clean break): the Library's own words (approval A).
+  return <span className="tiny muted">{unscreened === "rescreen" ? "Needs a re-screen" : "–"}</span>;
 }
 
 function Grade({ g, unscreened }: { g: Graded | null; unscreened: LibraryRow["unscreened"] }) {
@@ -339,9 +357,9 @@ function TableRow({ r, index, count, ticked, toggle, open, ordering, mover }: Ro
           <VerdictWord v={r.household} unscreened={r.unscreened} />
         </td>
       )}
-      {r.grades.map((g) => (
+      {r.grades.map((g, i) => (
         <td key={g.id}>
-          <Grade g={g.graded} unscreened={r.unscreened} />
+          <Grade g={g.graded} unscreened={noteOn(r, i)} />
         </td>
       ))}
       <td className="tiny muted">{when(r.updatedAt)}</td>
@@ -405,10 +423,10 @@ function Card({ r, index, count, ticked, toggle, open, ordering, mover }: RowPro
               <VerdictWord v={r.household} unscreened={r.unscreened} />
             </span>
           )}
-          {r.grades.map((g) => (
+          {r.grades.map((g, i) => (
             <span key={g.id} className="lib-chip">
               <span className="tiny muted">{shortLabel(g)}</span>{" "}
-              <Grade g={g.graded} unscreened={r.unscreened} />
+              <Grade g={g.graded} unscreened={noteOn(r, i)} />
             </span>
           ))}
         </div>

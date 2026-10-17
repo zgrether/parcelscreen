@@ -10,6 +10,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { HelpProvider } from "@/components/Help/HelpDialog";
+import { ProfilePicker } from "@/components/Profile/ProfilePicker";
 import { LongName } from "@/components/LongName";
 import { CardPanel } from "@/components/Results/card/CardPanel";
 import { drawnOf } from "@/lib/report/marks";
@@ -121,6 +122,7 @@ export function Compare() {
             ← Map
           </Link>
           <h1>Compare</h1>
+          <ProfilePicker />
           <RubricSwitch
             rubrics={rubrics}
             current={rubric.id}

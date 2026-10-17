@@ -8,6 +8,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { HelpProvider } from "@/components/Help/HelpDialog";
+import { ProfilePicker } from "@/components/Profile/ProfilePicker";
 import { parcelName } from "@/lib/client/historyRows";
 import { openOnMap } from "@/lib/client/openOnMap";
 import { getPref } from "@/lib/client/prefs";
@@ -66,6 +67,7 @@ export function Rulebook() {
             ← Map
           </Link>
           <h1>What the grade means</h1>
+          <ProfilePicker />
           <RubricSwitch
             rubrics={rubrics}
             current={rubric.id}

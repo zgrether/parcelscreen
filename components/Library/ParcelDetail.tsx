@@ -114,7 +114,7 @@ export function ParcelDetail({
         ) : (
           <p className="tiny muted">
             {kept?.state === "rescreen"
-              ? "Screened under earlier rules: it re-screens when you open it on the map."
+              ? "Needs a re-screen: open it on the map, or use the list's Re-screen all saved parcels."
               : "Not screened yet: open it on the map and screen it."}
           </p>
         )}
