@@ -63,17 +63,26 @@ export async function floodStep(
       }
     }
   }
-  const flags: RawFlag[] = [];
-  if (sfha)
-    flags.push({
-      lvl: sfhaAcres > parcelAcres * SCREEN_CONSTANTS.flood.fatalShare ? "fatal" : "warn",
-      t: `${sfhaAcres.toFixed(1)} of ${parcelAcres.toFixed(1)} acres are in a FEMA Special Flood Hazard Area (${zones.join(", ")}). Post-Helene, treat mapped floodplain as unbuildable and plan the driveway around it.`,
-    });
+  const flood = { zones, sfha, sfhaAcres, mapped: all.length > 0 };
   return {
-    flood: { zones, sfha, sfhaAcres, mapped: all.length > 0 },
+    flood,
     sfha: feats.filter((f) => f.properties.SFHA_TF === "T"),
-    flags,
+    flags: floodFlags(flood, parcelAcres),
   };
+}
+
+/** The flood step's flag (v8: also from a stored result): the SFHA acres, fatal over flood.fatalShare of the parcel. */
+export function floodFlags(
+  flood: Pick<NonNullable<ScreenResult["flood"]>, "zones" | "sfha" | "sfhaAcres">,
+  parcelAcres: number,
+): RawFlag[] {
+  if (!flood.sfha) return [];
+  return [
+    {
+      lvl: flood.sfhaAcres > parcelAcres * SCREEN_CONSTANTS.flood.fatalShare ? "fatal" : "warn",
+      t: `${flood.sfhaAcres.toFixed(1)} of ${parcelAcres.toFixed(1)} acres are in a FEMA Special Flood Hazard Area (${flood.zones.join(", ")}). Post-Helene, treat mapped floodplain as unbuildable and plan the driveway around it.`,
+    },
+  ];
 }
 
 /** Whether a point is inside any SFHA polygon (site scoring and the existing-house check). */

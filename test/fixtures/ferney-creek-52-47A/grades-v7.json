@@ -1,0 +1,438 @@
+{
+ "recordedAt": "schema v7, engine 20: the stored grades before the derivations (step 1, PR 2)",
+ "run": {
+  "verdict": "ok",
+  "flags": [
+   {
+    "lvl": "good",
+    "t": "9.0 acres of gentle ground with a workable NRCS septic rating (Glenelg). Site the drainfield there.",
+    "step": "soils"
+   }
+  ],
+  "sky": {
+   "score": 67
+  },
+  "sites": [
+   {
+    "rank": 1,
+    "score": 83,
+    "grade": "A",
+    "quality": 88,
+    "qGrade": "A",
+    "q": {
+     "sun": 92,
+     "aspect": 76,
+     "frost": 100,
+     "slope": 96,
+     "sky": 67
+    },
+    "c": {
+     "septic": 20,
+     "foundation": 0,
+     "rock": 0,
+     "pad": 0.7903281040607801,
+     "driveway": 8.033333991359509
+    },
+    "costIdx": 29,
+    "costTier": "$$"
+   },
+   {
+    "rank": 2,
+    "score": 79,
+    "grade": "B",
+    "quality": 86,
+    "qGrade": "A",
+    "q": {
+     "sun": 76,
+     "aspect": 100,
+     "frost": 100,
+     "slope": 100,
+     "sky": 68
+    },
+    "c": {
+     "septic": 20,
+     "foundation": 0,
+     "rock": 0,
+     "pad": 0,
+     "driveway": 14.74083345067562
+    },
+    "costIdx": 35,
+    "costTier": "$$"
+   },
+   {
+    "rank": 3,
+    "score": 70,
+    "grade": "B",
+    "quality": 77,
+    "qGrade": "B",
+    "q": {
+     "sun": 81,
+     "aspect": 65,
+     "frost": 100,
+     "slope": 64,
+     "sky": 68
+    },
+    "c": {
+     "septic": 20,
+     "foundation": 0,
+     "rock": 0,
+     "pad": 15,
+     "driveway": 11.354524627666999
+    },
+    "costIdx": 46,
+    "costTier": "$$$"
+   },
+   {
+    "rank": 4,
+    "score": 70,
+    "grade": "B",
+    "quality": 75,
+    "qGrade": "B",
+    "q": {
+     "sun": 82,
+     "aspect": 42,
+     "frost": 100,
+     "slope": 72,
+     "sky": 67
+    },
+    "c": {
+     "septic": 20,
+     "foundation": 0,
+     "rock": 0,
+     "pad": 15,
+     "driveway": 7.450554905804645
+    },
+    "costIdx": 42,
+    "costTier": "$$$"
+   },
+   {
+    "rank": 5,
+    "score": 70,
+    "grade": "B",
+    "quality": 77,
+    "qGrade": "B",
+    "q": {
+     "sun": 83,
+     "aspect": 59,
+     "frost": 100,
+     "slope": 65,
+     "sky": 68
+    },
+    "c": {
+     "septic": 20,
+     "foundation": 0,
+     "rock": 0,
+     "pad": 15,
+     "driveway": 12.298452294255751
+    },
+    "costIdx": 47,
+    "costTier": "$$$"
+   }
+  ],
+  "house": null
+ },
+ "setHouse": {
+  "verdict": "ok",
+  "flags": [
+   {
+    "lvl": "good",
+    "t": "9.0 acres of gentle ground with a workable NRCS septic rating (Glenelg). Site the drainfield there.",
+    "step": "soils"
+   }
+  ],
+  "sky": {
+   "score": 57
+  },
+  "sites": [
+   {
+    "rank": 1,
+    "score": 83,
+    "grade": "A",
+    "quality": 88,
+    "qGrade": "A",
+    "q": {
+     "sun": 92,
+     "aspect": 76,
+     "frost": 100,
+     "slope": 96,
+     "sky": 67
+    },
+    "c": {
+     "septic": 20,
+     "foundation": 0,
+     "rock": 0,
+     "pad": 0.7903281040607801,
+     "driveway": 8.033333991359509
+    },
+    "costIdx": 29,
+    "costTier": "$$"
+   },
+   {
+    "rank": 2,
+    "score": 79,
+    "grade": "B",
+    "quality": 86,
+    "qGrade": "A",
+    "q": {
+     "sun": 76,
+     "aspect": 100,
+     "frost": 100,
+     "slope": 100,
+     "sky": 68
+    },
+    "c": {
+     "septic": 20,
+     "foundation": 0,
+     "rock": 0,
+     "pad": 0,
+     "driveway": 14.74083345067562
+    },
+    "costIdx": 35,
+    "costTier": "$$"
+   },
+   {
+    "rank": 3,
+    "score": 70,
+    "grade": "B",
+    "quality": 77,
+    "qGrade": "B",
+    "q": {
+     "sun": 81,
+     "aspect": 65,
+     "frost": 100,
+     "slope": 64,
+     "sky": 68
+    },
+    "c": {
+     "septic": 20,
+     "foundation": 0,
+     "rock": 0,
+     "pad": 15,
+     "driveway": 11.354524627666999
+    },
+    "costIdx": 46,
+    "costTier": "$$$"
+   },
+   {
+    "rank": 4,
+    "score": 70,
+    "grade": "B",
+    "quality": 75,
+    "qGrade": "B",
+    "q": {
+     "sun": 82,
+     "aspect": 42,
+     "frost": 100,
+     "slope": 72,
+     "sky": 67
+    },
+    "c": {
+     "septic": 20,
+     "foundation": 0,
+     "rock": 0,
+     "pad": 15,
+     "driveway": 7.450554905804645
+    },
+    "costIdx": 42,
+    "costTier": "$$$"
+   },
+   {
+    "rank": 5,
+    "score": 70,
+    "grade": "B",
+    "quality": 77,
+    "qGrade": "B",
+    "q": {
+     "sun": 83,
+     "aspect": 59,
+     "frost": 100,
+     "slope": 65,
+     "sky": 68
+    },
+    "c": {
+     "septic": 20,
+     "foundation": 0,
+     "rock": 0,
+     "pad": 15,
+     "driveway": 12.298452294255751
+    },
+    "costIdx": 47,
+    "costTier": "$$$"
+   }
+  ],
+  "house": {
+   "score": 67,
+   "grade": "B",
+   "quality": 69,
+   "qGrade": "B",
+   "q": {
+    "sun": 69,
+    "aspect": 41,
+    "frost": 100,
+    "slope": 76,
+    "sky": 57
+   },
+   "c": {
+    "septic": 20,
+    "foundation": 0,
+    "rock": 0,
+    "pad": 4.787353277206421,
+    "driveway": 12.959742911650315
+   },
+   "costIdx": 38,
+   "costTier": "$$"
+  }
+ },
+ "houseRun": {
+  "verdict": "ok",
+  "flags": [
+   {
+    "lvl": "good",
+    "t": "9.0 acres of gentle ground with a workable NRCS septic rating (Glenelg). Site the drainfield there.",
+    "step": "soils"
+   }
+  ],
+  "sky": {
+   "score": 57
+  },
+  "sites": [
+   {
+    "rank": 1,
+    "score": 83,
+    "grade": "A",
+    "quality": 88,
+    "qGrade": "A",
+    "q": {
+     "sun": 92,
+     "aspect": 76,
+     "frost": 100,
+     "slope": 96,
+     "sky": 67
+    },
+    "c": {
+     "septic": 20,
+     "foundation": 0,
+     "rock": 0,
+     "pad": 0.7903281040607801,
+     "driveway": 8.033333991359509
+    },
+    "costIdx": 29,
+    "costTier": "$$"
+   },
+   {
+    "rank": 2,
+    "score": 79,
+    "grade": "B",
+    "quality": 86,
+    "qGrade": "A",
+    "q": {
+     "sun": 76,
+     "aspect": 100,
+     "frost": 100,
+     "slope": 100,
+     "sky": 68
+    },
+    "c": {
+     "septic": 20,
+     "foundation": 0,
+     "rock": 0,
+     "pad": 0,
+     "driveway": 14.74083345067562
+    },
+    "costIdx": 35,
+    "costTier": "$$"
+   },
+   {
+    "rank": 3,
+    "score": 70,
+    "grade": "B",
+    "quality": 77,
+    "qGrade": "B",
+    "q": {
+     "sun": 81,
+     "aspect": 65,
+     "frost": 100,
+     "slope": 64,
+     "sky": 68
+    },
+    "c": {
+     "septic": 20,
+     "foundation": 0,
+     "rock": 0,
+     "pad": 15,
+     "driveway": 11.354524627666999
+    },
+    "costIdx": 46,
+    "costTier": "$$$"
+   },
+   {
+    "rank": 4,
+    "score": 70,
+    "grade": "B",
+    "quality": 75,
+    "qGrade": "B",
+    "q": {
+     "sun": 82,
+     "aspect": 42,
+     "frost": 100,
+     "slope": 72,
+     "sky": 67
+    },
+    "c": {
+     "septic": 20,
+     "foundation": 0,
+     "rock": 0,
+     "pad": 15,
+     "driveway": 7.450554905804645
+    },
+    "costIdx": 42,
+    "costTier": "$$$"
+   },
+   {
+    "rank": 5,
+    "score": 70,
+    "grade": "B",
+    "quality": 77,
+    "qGrade": "B",
+    "q": {
+     "sun": 83,
+     "aspect": 59,
+     "frost": 100,
+     "slope": 65,
+     "sky": 68
+    },
+    "c": {
+     "septic": 20,
+     "foundation": 0,
+     "rock": 0,
+     "pad": 15,
+     "driveway": 12.298452294255751
+    },
+    "costIdx": 47,
+    "costTier": "$$$"
+   }
+  ],
+  "house": {
+   "score": 67,
+   "grade": "B",
+   "quality": 69,
+   "qGrade": "B",
+   "q": {
+    "sun": 69,
+    "aspect": 41,
+    "frost": 100,
+    "slope": 76,
+    "sky": 57
+   },
+   "c": {
+    "septic": 20,
+    "foundation": 0,
+    "rock": 0,
+    "pad": 4.787353277206421,
+    "driveway": 12.959742911650315
+   },
+   "costIdx": 38,
+   "costTier": "$$"
+  }
+ }
+}

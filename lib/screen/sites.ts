@@ -329,29 +329,48 @@ export function siteResults(
  * (fatal, or a warning when a house is marked), or the relaxed-threshold warning. The p90 slope flag
  * (terrain.ts) follows these.
  */
-export function siteFlags(search: SiteSearch, cfg: UserConfig, hasHouse: boolean): RawFlag[] {
-  const best = search.benches[0];
-  const dg = search.diag;
-  const compact = search.shelves.filter((s) => s.acres >= cfg.compactMinAcres);
+/** What the site flags read (v8: from the search, or from a stored result in lib/screen/flags.ts). */
+export interface SiteFlagsInput {
+  best: { relaxed: boolean } | undefined;
+  shelves: readonly { acres: number }[];
+  diag: SiteSearch["diag"];
+  houseMin: number;
+}
+export const siteFlagsInput = (search: SiteSearch): SiteFlagsInput => ({
+  best: search.benches[0],
+  shelves: search.shelves,
+  diag: search.diag,
+  houseMin: search.houseMin,
+});
+
+export function siteFlags(
+  search: SiteFlagsInput | SiteSearch,
+  cfg: Pick<UserConfig, "houseMin" | "shelfMin" | "benchMinAcres" | "compactMinAcres">,
+  hasHouse: boolean,
+): RawFlag[] {
+  const input = "benches" in search ? siteFlagsInput(search) : search;
+  const best = input.best;
+  const dg = input.diag;
+  const compact = input.shelves.filter((s) => s.acres >= cfg.compactMinAcres);
   if (!best && compact.length)
     return [
       {
         lvl: "warn",
-        t: `No natural house site (nothing reaches ${cfg.benchMinAcres} contiguous ac at ${search.houseMin}/100), but ${compact.length} pad-sized shelf${compact.length > 1 ? "s" : ""} of ${compact.map((s) => s.acres.toFixed(2)).join(", ")} ac could take a house with a cut pad and walls. If a house is already there, that's the earthwork paid for.`,
+        t: `No natural house site (nothing reaches ${cfg.benchMinAcres} contiguous ac at ${input.houseMin}/100), but ${compact.length} pad-sized shelf${compact.length > 1 ? "s" : ""} of ${compact.map((s) => s.acres.toFixed(2)).join(", ")} ac could take a house with a cut pad and walls. If a house is already there, that's the earthwork paid for.`,
       },
     ];
   if (!best)
     return [
       {
         lvl: hasHouse ? "warn" : "fatal",
-        t: `No house site: no contiguous ${cfg.benchMinAcres} ac scores even ${search.houseMin}/100 (${dg.houseAc.toFixed(1)} ac scores ≥${cfg.houseMin}, ${dg.shelfAc.toFixed(1)} ac more scores ≥${cfg.shelfMin}). If the imagery shows a flat pad, check the suitability overlay and the DEM cell size before believing this.`,
+        t: `No house site: no contiguous ${cfg.benchMinAcres} ac scores even ${input.houseMin}/100 (${dg.houseAc.toFixed(1)} ac scores ≥${cfg.houseMin}, ${dg.shelfAc.toFixed(1)} ac more scores ≥${cfg.shelfMin}). If the imagery shows a flat pad, check the suitability overlay and the DEM cell size before believing this.`,
       },
     ];
   if (best.relaxed)
     return [
       {
         lvl: "warn",
-        t: `Nothing reaches ${cfg.houseMin}/100 over ${cfg.benchMinAcres} contiguous acres; house sites below are at a relaxed ${search.houseMin}. Expect cut-and-fill for a pad.`,
+        t: `Nothing reaches ${cfg.houseMin}/100 over ${cfg.benchMinAcres} contiguous acres; house sites below are at a relaxed ${input.houseMin}. Expect cut-and-fill for a pad.`,
       },
     ];
   return [];

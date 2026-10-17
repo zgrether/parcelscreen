@@ -152,19 +152,29 @@ export async function padusStep(
     .filter((x): x is { p: PadusProps; d: number } => x.d !== null && x.d > beyondFt)
     .sort((a, b) => a.d - b.d)
     .map((x) => unit(x.p, false, x.d));
-  const flags: RawFlag[] = [];
+  return { protected: [...units, ...farther], flags: padusFlags(units), unanswered };
+}
+
+/** The PAD-US step's flag (v8: also from a stored result; the units beyond the mile never adjoin). */
+export function padusFlags(
+  units: readonly { name: string | null; access: string | null; adjoins: boolean }[],
+): RawFlag[] {
   const adjOpen = units.filter((u) => u.access === "OA" && u.adjoins);
   if (adjOpen.length)
-    flags.push({
-      lvl: "good",
-      t: `Adjoins publicly accessible protected land: ${adjOpen.map((u) => u.name).join("; ")}. That's the acre you never pay for.`,
-    });
-  else if (units.some((u) => u.adjoins))
-    flags.push({
-      lvl: "warn",
-      t: "Adjoins protected land, but it's restricted or closed to the public — a buffer, not a backyard.",
-    });
-  return { protected: [...units, ...farther], flags, unanswered };
+    return [
+      {
+        lvl: "good",
+        t: `Adjoins publicly accessible protected land: ${adjOpen.map((u) => u.name).join("; ")}. That's the acre you never pay for.`,
+      },
+    ];
+  if (units.some((u) => u.adjoins))
+    return [
+      {
+        lvl: "warn",
+        t: "Adjoins protected land, but it's restricted or closed to the public — a buffer, not a backyard.",
+      },
+    ];
+  return [];
 }
 
 /**

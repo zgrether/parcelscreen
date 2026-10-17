@@ -20,7 +20,7 @@ import type { STEPS } from "./config";
  * 2026-10-12) are clean breaks: an older stored result isn't read or migrated, its parcel re-screens when opened
  * (phase-0.md §9.26, §9.30, §9.31).
  */
-export const SCREEN_SCHEMA_VERSION = 7 as const;
+export const SCREEN_SCHEMA_VERSION = 8 as const;
 
 // ---------- shared ----------
 
@@ -277,6 +277,33 @@ const SoilUnitSchema = z.strictObject({
   geometries: z.array(featureOf<Polygon | MultiPolygon>("Polygon", "MultiPolygon")),
 });
 
+const CostRangeSchema = z.strictObject({ mid: num, low: num, high: num });
+
+/**
+ * The sky read at a spot with its own skyline (follow-up 58; v8): what its sky part derives from (sky.ts skyScore).
+ * `domeW` is the brightest southern dome's weight, −1 with none.
+ */
+const SpotSkySchema = z.strictObject({ mag: num, coreClear: num, domeW: num });
+export type SpotSky = z.infer<typeof SpotSkySchema>;
+
+/**
+ * The driveway candidate a spot is scored on (A4, chooseDriveway; v8): what its driveway points derive from
+ * (score.ts drivewayPointsFrom). `limitPct` is the grade limit a route kept to the parcel was judged against, null for
+ * a route within the limit; `designPct` the alternative's design grade when one is scored (follow-up 48).
+ */
+const ScoredDrivewaySchema = z.strictObject({
+  lengthFt: num,
+  cost: CostRangeSchema,
+  needsEasement: z.boolean(),
+  legal: z.boolean(),
+  limitPct: maybeNum,
+  maxGradePct: num,
+  designPct: maybeNum,
+  existing: z.strictObject({ maxGradePct: num, limitPct: num }).nullable(),
+  noPractical: z.boolean(),
+});
+export type ScoredDriveway = z.infer<typeof ScoredDrivewaySchema>;
+
 const ScoreFields = {
   score: num, // overall = 0.7·quality + 0.3·(100 − cost)
   why: z.array(z.string()),
@@ -295,10 +322,20 @@ const ScoreFields = {
   roadRunFt: num.optional(),
   roadName: z.string().optional(),
   flood: z.literal(true).optional(),
+  /**
+   * v8: the sky read at the spot (the focus's reading when the spot's own failed); absent until the sky step has run,
+   * when the part is score.skyIfMissing.
+   */
+  sky: SpotSkySchema.optional(),
+  /** v8: the NRCS component under the spot (its cokey), or null without a soil polygon: its soil ratings derive from it. */
+  soilKey: z.string().nullable(),
+  /**
+   * v8: the driveway candidate the spot is scored on. Null when no route reaches it; absent until the driveway step has
+   * run, when the straight line to the road scores it.
+   */
+  driveway: ScoredDrivewaySchema.nullable().optional(),
 };
 const CellSchema = z.strictObject({ score: num, slope: num, aspect: num, thermal: num });
-
-const CostRangeSchema = z.strictObject({ mid: num, low: num, high: num });
 
 /** One of a "no practical drive" target's alternatives, as the paragraph names it (v3, B2a). */
 const PracticalAltSchema = z.strictObject({
@@ -611,6 +648,13 @@ const RunParamsSchema = z.strictObject({
   canopyDeg: num,
   /** The Soils section's plain-language readings flag bedrock shallower than this (14c). */
   shallowBedrockCm: num,
+  /** v8: the thresholds the derived flags and scores read (lib/screen/flags.ts, derive.ts), kept with the run. */
+  benchMinAcres: num,
+  compactMinAcres: num,
+  sunHoursWanted: num,
+  thermalMinFt: num,
+  roadMaxGradePct: num,
+  roadVetoGradePct: num,
 });
 export type RunParams = z.infer<typeof RunParamsSchema>;
 
@@ -631,6 +675,20 @@ export const ScreenResultSchema = z.strictObject({
   soils: z.array(SoilRowSchema).optional(),
   /** null when the component query worked but the map-unit polygons didn't. */
   soilUnits: z.array(SoilUnitSchema).nullable().optional(),
+  /**
+   * v8: NRCS's septic and dwellings ratings without the map unit's slope (A3), by component: what a spot's cost parts
+   * derive from. Null when they didn't load (then NRCS's own classes score); absent until the soils step.
+   */
+  soilLimits: z
+    .array(
+      z.strictObject({
+        cokey: z.string(),
+        septic: z.enum(["fine", "workable", "poor"]).nullable(),
+        foundation: z.enum(["fine", "workable", "poor"]).nullable(),
+      }),
+    )
+    .nullable()
+    .optional(),
   focus: z.strictObject({ ll: LatLonSchema, label: z.string() }).optional(),
   point: z
     .strictObject({

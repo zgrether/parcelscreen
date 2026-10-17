@@ -41,6 +41,7 @@ import { OverpassMirrors, type OverpassFallback } from "./places";
 import type { OsmWay } from "./osmRoads";
 import { drawnGrid, insideWithLines, measureLines } from "./drawn";
 import type { RoadFeature } from "./roads";
+import { verdictOf } from "./flags";
 import {
   assessHouse,
   chooseDriveway,
@@ -61,8 +62,8 @@ import {
   withoutVetoed,
   type ScoreContext,
 } from "./score";
-import { findSites, siteFlags, siteResults, type SiteSearch } from "./sites";
-import { AtlasCache, computeSky, skyFlags } from "./sky";
+import { findSites, siteFlags, siteFlagsInput, siteResults, type SiteSearch } from "./sites";
+import { AtlasCache, computeSky, skyFlags, spotSkyOf } from "./sky";
 import {
   fetchSoilLimits,
   fetchSoilPolygons,
@@ -197,6 +198,13 @@ export const runParams = (c: UserConfig): ScreenResult["params"] => ({
   gardenMin: c.gardenMin,
   canopyDeg: c.canopyDeg,
   shallowBedrockCm: c.shallowBedrockCm,
+  // v8: what the derived flags and scores read (flags.ts, derive.ts).
+  benchMinAcres: c.benchMinAcres,
+  compactMinAcres: c.compactMinAcres,
+  sunHoursWanted: c.sunHoursWanted,
+  thermalMinFt: c.thermalMinFt,
+  roadMaxGradePct: c.roadMaxGradePct,
+  roadVetoGradePct: c.roadVetoGradePct,
 });
 
 /** Runs the screen on a parcel. Never throws for a failed step: failures are recorded in `failed`. */
@@ -305,7 +313,12 @@ export async function screen(
     s.bestId = best?.id ?? 0;
     R.terrain = { ...stats, diag: search.diag };
     Object.assign(R, siteResults(s.dFine, vf, search));
-    R.flags.push(...tag("terrain", [...siteFlags(search, cfg, !!house), ...terrainFlags(stats.slopeP90Deg)]));
+    R.flags.push(
+      ...tag("terrain", [
+        ...siteFlags(siteFlagsInput(search), cfg, !!house),
+        ...terrainFlags(stats.slopeP90Deg),
+      ]),
+    );
   });
 
   await step("soils", async () => {
@@ -323,6 +336,10 @@ export async function screen(
       if (e instanceof CancelledError) throw e;
       s.limits = null;
     }
+    // v8: the ratings a spot's cost parts derive from, by component; null when they didn't load.
+    R.soilLimits = s.limits
+      ? [...s.limits].map(([cokey, l]) => ({ cokey, septic: l.septic, foundation: l.foundation }))
+      : null;
     try {
       s.units = await fetchSoilPolygons(s.ownLand ?? parcel, io);
     } catch {
@@ -486,6 +503,7 @@ export const scoreContextOf = (s: ScreenSession, R: Pick<Building, "sky">): Scor
   dWide: s.dWide!,
   valleyFloorFt: s.valleyFloorFt ?? NaN,
   skyAt: skyAtOf(s, R.sky),
+  focusSky: R.sky ? spotSkyOf(R.sky) : null,
   roads: s.roads ?? null,
   sfha: s.sfha ?? null,
   units: s.units ?? null,
@@ -495,22 +513,19 @@ export const scoreContextOf = (s: ScreenSession, R: Pick<Building, "sky">): Scor
 });
 
 /**
- * The sky score at a spot (follow-up 58): the sky step's reading, taken there with the spot's own skyline. Only once
- * the sky step has run (its atlas tiles are cached by then); where a spot's reading fails, the sky step's score.
+ * The sky read at a spot (follow-up 58): the sky step's reading, taken there with the spot's own skyline. Only once
+ * the sky step has run (its atlas tiles are cached by then); null where a spot's reading fails, and the scoring then
+ * takes the focus's reading (v8: stored as the spot's).
  */
 function skyAtOf(s: ScreenSession, sky: ScreenResult["sky"] | undefined): ScoreContext["skyAt"] {
   if (!sky) return undefined;
   const io = { http: s.deps.http, endpoints: s.config.endpoints, atlas: s.deps.atlas };
   return (ll, horizon) =>
     computeSky(ll, horizon, s.config.canopyDeg, io).then(
-      (k) => k.sky.score,
-      () => sky.score,
+      (k) => k.spot,
+      () => null,
     );
 }
-
-/** The prototype's verdict, from every step's flags: any fatal, else any warning, else ok. */
-const verdictOf = (flags: ScreenResult["flags"]): ScreenResult["verdict"] =>
-  flags.some((f) => f.lvl === "fatal") ? "fatal" : flags.some((f) => f.lvl === "warn") ? "marginal" : "ok";
 
 /**
  * Re-routes a finished run for other drawn lines or another driveway choice (WF6, docs/plans/wf6-reroute.md §2): what a
