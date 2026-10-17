@@ -45,6 +45,7 @@ export function RubricPreview({
   const screens = useKeptScreens(built);
   const options = previewOptions(built, screens, store?.open?.key);
   const [picked, setPicked] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
   const key = picked && options.some((o) => o.key === picked) ? picked : options[0]!.key;
   const [sample, setSample] = useState<ScreenResult | null>(null);
   useEffect(() => {
@@ -72,50 +73,75 @@ export function RubricPreview({
   const now = held?.ok ? held.rubric : rubric;
   const p = result ? rubricPreview(result, baseline, now, drawn) : null;
 
+  const changed = !!p && (p.now.grade !== p.before.grade || p.now.verdict !== p.before.verdict);
   return (
-    <aside className="rubric-preview" aria-label="Preview">
-      <h2>Preview</h2>
-      <label className="rubric-preview-pick">
-        <span className="tiny muted">On</span>{" "}
-        <select value={key} onChange={(e) => setPicked(e.target.value)}>
-          {options.map((o) => (
-            <option key={o.key} value={o.key}>
-              {o.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      {!p ? (
-        <p className="muted">Loading…</p>
-      ) : (
-        <>
-          <p className="rubric-preview-grade" aria-live="polite">
+    <aside className={`rubric-preview${open ? " open" : ""}`} aria-label="Preview">
+      {/* A phone's sticky bar (plan §6.2): the grade before → now; a tap opens the factors and the picker. */}
+      <button
+        type="button"
+        className="rubric-preview-bar"
+        aria-expanded={open}
+        onClick={() => setOpen(!open)}
+      >
+        {p ? (
+          <>
             <Grade grade={p.before.grade} verdict={p.before.verdict} />
-            {(p.now.grade !== p.before.grade || p.now.verdict !== p.before.verdict) && (
+            {changed && (
               <>
                 {" "}
                 → <Grade grade={p.now.grade} verdict={p.now.verdict} />
               </>
             )}
-          </p>
-          <p className="tiny muted">
-            {fmt(p.before.points ?? NaN, 2)} → {fmt(p.now.points ?? NaN, 2)} points
-            {hover && held?.ok ? " (if you drop it here)" : ""}
-          </p>
-          {p.moved.length ? (
-            <ul className="rubric-moved">
-              {p.moved.map((m) => (
-                <li key={m.key}>
-                  <MovedLine m={m} />
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="tiny muted">Move a card, or a slider, to see what changes.</p>
-          )}
-          <p className="tiny muted">Before is your rubric as you opened this page.</p>
-        </>
-      )}
+          </>
+        ) : (
+          "Preview"
+        )}{" "}
+        <span aria-hidden="true">{open ? "▾" : "▴"}</span>
+      </button>
+      <div className="rubric-preview-body">
+        <h2>Preview</h2>
+        <label className="rubric-preview-pick">
+          <span className="tiny muted">On</span>{" "}
+          <select value={key} onChange={(e) => setPicked(e.target.value)}>
+            {options.map((o) => (
+              <option key={o.key} value={o.key}>
+                {o.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        {!p ? (
+          <p className="muted">Loading…</p>
+        ) : (
+          <>
+            <p className="rubric-preview-grade" aria-live="polite">
+              <Grade grade={p.before.grade} verdict={p.before.verdict} />
+              {changed && (
+                <>
+                  {" "}
+                  → <Grade grade={p.now.grade} verdict={p.now.verdict} />
+                </>
+              )}
+            </p>
+            <p className="tiny muted">
+              {fmt(p.before.points ?? NaN, 2)} → {fmt(p.now.points ?? NaN, 2)} points
+              {hover && held?.ok ? " (if you drop it here)" : ""}
+            </p>
+            {p.moved.length ? (
+              <ul className="rubric-moved">
+                {p.moved.map((m) => (
+                  <li key={m.key}>
+                    <MovedLine m={m} />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="tiny muted">Move a card, or a slider, to see what changes.</p>
+            )}
+            <p className="tiny muted">Before is your rubric as you opened this page.</p>
+          </>
+        )}
+      </div>
     </aside>
   );
 }
