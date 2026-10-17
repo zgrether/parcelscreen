@@ -48,8 +48,8 @@ The roadmap in PLAN.md (the fifteen steps of `docs/design/workflow-review.md`) r
 step. Mission mode changes rules 1 and 3 above as written here; everything else in this file still holds.
 
 - **One plan per roadmap step** at `docs/plans/step-<n>-<name>.md`. Each plan states the scope, which
-  numbers or verdict text may change, the stop conditions, and the outline of the test plan. Zach approves
-  the plan once; no application code before that.
+  numbers or verdict text may change, the stop conditions, the outline of the test plan, and a UX section
+  (below). Zach approves the plan once; no application code before that.
 - **A step branch.** Work on `step/<n>-<name>`, branched from main. Open each PR into the step branch and
   merge it yourself when CI is green on its head. Never merge to main. The step ends with one PR from the
   step branch to main, which Zach merges after running the test plan on its preview.
@@ -64,7 +64,25 @@ step. Mission mode changes rules 1 and 3 above as written here; everything else 
   - deviations from the plan, and questions you parked;
   - a manual test plan on the preview URL: numbered "do → expect" steps with pass/fail boxes, desktop then
     phone, using fixture parcels by name (Mud Creek, Macks, Ferney, and a Roan Mountain one once it exists),
-    about 15–30 minutes.
+    about 15–30 minutes;
+  - screenshots (below).
+- **Clean breaks, no migrations** (owner, 2026-10-17). Zach will redo every parcel from scratch.
+  - A schema, storage or export-format change drops the old data and shows one plain line in its place:
+    "Saved with an older version; screen it again." This replaces the hard rule's "a migration or a clean
+    break" below: it is always a clean break.
+  - Don't write converters, migration code, re-screen-all machinery or legacy fallbacks.
+  - Recorded fixtures and oracles stay: they are regression tests for the engine's numbers, not data to
+    preserve.
+  - Existing converters may stay until a step touches them; then remove them instead of extending them.
+- **Usability and presentation first** (owner, 2026-10-17). Every step's plan has a UX section covering:
+  - the main task flow, in the fewest steps;
+  - what the user sees first: the answer, then detail on demand;
+  - empty, loading, error and slow states;
+  - plain-language labels;
+  - the phone layout at 375 px, with tap targets of at least 44 px;
+  - contrast, and consistency with the existing components.
+- **Screenshots in every hand-back** (owner, 2026-10-17). Capture each new or changed screen with
+  Playwright at desktop width and at 375 px, and attach them to the final PR's description.
 - **CI on step branches.** Check first that the full CI (typecheck, lint, test, e2e, determinism, expected
   guard) runs on PRs into `step/*` branches, and fix the workflow triggers if not. (Checked 2026-10-16:
   `ci.yml` and `expected-guard.yml` run on every pull request whatever its base branch, so it does, and
