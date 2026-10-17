@@ -199,3 +199,71 @@ test("the preview on the open parcel: a dealbreaker that warned, moved to Won't,
   await expect(preview.locator(".rubric-moved li").first()).toHaveText(/Legal road access\s*\(now a Won't\)/);
   expect(errors).toEqual([]);
 });
+
+test("the keyboard: Space picks a card up, the arrows move it, Space puts it down", async ({ page }) => {
+  await openRubric(page);
+  const handle = card(page, "Night sky").locator(".rubric-handle");
+  await handle.focus();
+  await page.keyboard.press("Space");
+  // dnd-kit's keyboard sensor listens for the arrows only from the next task after the pick-up.
+  await expect(handle).toHaveAttribute("aria-pressed", "true");
+  await page.waitForTimeout(50);
+  await page.keyboard.press("ArrowUp");
+  await page.waitForTimeout(50);
+  await page.keyboard.press("Space");
+  await expect(names(column(page, "Should")).nth(2)).toHaveText("Night sky");
+  await expect(page.locator(".rubric-notice")).toContainText("Your order now sets the weights.");
+  expect(errors).toEqual([]);
+});
+
+test.describe("on a phone", () => {
+  test.use({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true });
+
+  test("stacked tiers; tap a card, Move to…; 44 px targets; nothing scrolls sideways; the preview bar opens", async ({
+    page,
+  }) => {
+    await openRubric(page);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    const must = (await column(page, "Must").boundingBox())!,
+      should = (await column(page, "Should").boundingBox())!;
+    expect(should.y).toBeGreaterThan(must.y + must.height - 1); // stacked, not side by side
+    for (const el of [
+      card(page, "Septic").locator(".rubric-handle"),
+      card(page, "Septic").locator(".rubric-card-body"),
+    ])
+      expect((await el.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await card(page, "Septic").locator(".rubric-card-body").tap();
+    for (const b of await sheet(page).locator(".rubric-moveto button").all())
+      expect((await b.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await sheet(page).getByRole("button", { name: "Won't" }).tap();
+    await page.keyboard.press("Escape");
+    await expect(names(column(page, "Won't"))).toHaveText(["Septic"]);
+    // The preview is a bar along the bottom; a tap opens it.
+    const bar = page.locator(".rubric-preview-bar");
+    await expect(bar).toBeVisible();
+    expect((await bar.boundingBox())!.y).toBeGreaterThan(700);
+    await bar.tap();
+    await expect(page.getByRole("complementary", { name: "Preview" }).locator("select")).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+
+  test("a swipe over the cards scrolls the page and never drags a card", async ({ page }) => {
+    await openRubric(page);
+    const before = await names(column(page, "Should")).allTextContents();
+    const box = (await card(page, "Best homesite").locator(".rubric-card-body").boundingBox())!;
+    const x = box.x + box.width / 2,
+      y = box.y + box.height / 2;
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y }] });
+    for (let i = 1; i <= 10; i++)
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x, y: y - i * 30 }] });
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    // The page scrolls inside its <main> (.compare), as the Library and the rulebook do.
+    await expect
+      .poll(() => page.evaluate(() => document.querySelector("main.rubric-editor")!.scrollTop))
+      .toBeGreaterThan(0);
+    expect(await names(column(page, "Should")).allTextContents()).toEqual(before);
+    await expect(page.locator(".rubric-notice")).toHaveCount(0);
+    expect(errors).toEqual([]);
+  });
+});
