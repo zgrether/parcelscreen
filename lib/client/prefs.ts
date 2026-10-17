@@ -7,6 +7,7 @@ import { readCurrentParcel, writeCurrentParcel, type CurrentParcel } from "./cur
 import { DEFAULT_VIEW, readLibraryView, type LibraryView } from "./library";
 import { readRecent, type MarkChoice } from "./markChoices";
 import { withRanks } from "./myOrder";
+import { activeKv, isProfileKey } from "./profileKv";
 import { readParcelStore, withNamesFromNotes, writeParcelStore, type ParcelStore } from "./parcelStore";
 
 export interface MapView {
@@ -140,9 +141,15 @@ function readTerrain(raw: string): TerrainPref {
 export interface KeyValueStore {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
+  removeItem?(key: string): void;
 }
 
-function store(): KeyValueStore | null {
+/**
+ * Where a pref lives (step 1, PR 4): a profile-scoped key (the parcels, settings, views: lib/client/profileKv.ts
+ * PROFILE_KEYS) in the current profile's documents, hydrated before the app renders; a device key in localStorage.
+ */
+function store(key: string): KeyValueStore | null {
+  if (isProfileKey(key)) return activeKv();
   try {
     return typeof localStorage === "undefined" ? null : localStorage;
   } catch {
@@ -150,7 +157,7 @@ function store(): KeyValueStore | null {
   }
 }
 
-export function getPref<K extends keyof Prefs>(key: K, from: KeyValueStore | null = store()): Prefs[K] {
+export function getPref<K extends keyof Prefs>(key: K, from: KeyValueStore | null = store(key)): Prefs[K] {
   try {
     const raw = from?.getItem(key);
     const value = raw == null ? DEFAULTS[key] : CODEC[key].read(raw);
@@ -188,7 +195,7 @@ function ranked(s: ParcelStore | null, kv: KeyValueStore | null): ParcelStore | 
 export function setPref<K extends keyof Prefs>(
   key: K,
   value: Prefs[K],
-  to: KeyValueStore | null = store(),
+  to: KeyValueStore | null = store(key),
 ): void {
   try {
     to?.setItem(key, CODEC[key].write(value));

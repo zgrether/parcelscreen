@@ -9,6 +9,8 @@
 import { z } from "zod";
 import { ENGINE_VERSION, UNSTAMPED_ENGINE } from "../screen/engine";
 import { ScreenResultSchema, type ScreenResult } from "../screen/types";
+import { openDb, SCREENS } from "./db";
+import { currentProfileId } from "./profiles";
 import type { RunKeys } from "./screenKeys";
 
 export interface ScreenRecord {
@@ -18,6 +20,8 @@ export interface ScreenRecord {
   result: ScreenResult;
   /** The rules it was screened with (lib/screen/engine.ts). Missing on screens kept before the stamp: 1. */
   engine?: number;
+  /** The profile it belongs to (step 1, PR 4); stamped when kept. Missing on a screen kept before profiles, until the migration stamps it. */
+  profile?: string;
 }
 
 export const ScreenRecordSchema = z.object({
@@ -31,6 +35,7 @@ export const ScreenRecordSchema = z.object({
   }),
   result: ScreenResultSchema,
   engine: z.number().int().positive().optional(),
+  profile: z.string().optional(),
 });
 
 /** The rules a kept screen was screened with; an unstamped one is Phase 0's. */
@@ -52,34 +57,20 @@ export const RESCREENS_ON_OPEN = "Re-screens with the current rules when opened"
 /** A parcel whose re-screen waits for the network (owner, #101). */
 export const RESCREEN_OFFLINE = "Will re-screen when you're back online";
 
-const DB_NAME = "parcelscreen";
-const STORE = "screens";
-const VERSION = 1;
-
-let db: Promise<IDBDatabase | null> | null = null;
-
-function open(): Promise<IDBDatabase | null> {
-  db ??= new Promise((resolve) => {
-    try {
-      const req = indexedDB.open(DB_NAME, VERSION);
-      req.onupgradeneeded = () => req.result.createObjectStore(STORE, { keyPath: "id" });
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => resolve(null);
-    } catch {
-      resolve(null);
-    }
-  });
-  return db;
-}
+/** The record stamped with the current profile (step 1, PR 4), unless it already names one (an import keeps its own). */
+const stamped = (r: ScreenRecord): ScreenRecord => {
+  const profile = r.profile ?? currentProfileId();
+  return profile ? { ...r, profile } : r;
+};
 
 /** Adds a screen. Resolves false when it couldn't be kept. */
 export async function addScreen(record: ScreenRecord): Promise<boolean> {
-  const d = await open();
+  const d = await openDb();
   if (!d) return false;
   return new Promise((resolve) => {
     try {
-      const tx = d.transaction(STORE, "readwrite");
-      tx.objectStore(STORE).add(record);
+      const tx = d.transaction(SCREENS, "readwrite");
+      tx.objectStore(SCREENS).add(stamped(record));
       tx.oncomplete = () => resolve(true);
       tx.onerror = () => resolve(false);
     } catch {
@@ -101,11 +92,11 @@ export async function getScreen(id: string): Promise<ScreenRecord | null> {
 export type ReadScreen = { kind: "ok"; record: ScreenRecord } | { kind: "gone" } | { kind: "unavailable" };
 
 export async function readScreen(id: string): Promise<ReadScreen> {
-  const d = await open();
+  const d = await openDb();
   if (!d) return { kind: "unavailable" };
   const raw = await new Promise<unknown>((resolve) => {
     try {
-      const req = d.transaction(STORE, "readonly").objectStore(STORE).get(id);
+      const req = d.transaction(SCREENS, "readonly").objectStore(SCREENS).get(id);
       req.onsuccess = () => resolve(req.result);
       req.onerror = () => resolve(null);
     } catch {
@@ -128,13 +119,13 @@ export const needsRescreen = (r: ReadScreen): boolean =>
  * §9.26): no migration. Resolves to their ids, for the one-time message; [] when there were none or nothing is kept.
  */
 export async function clearUnreadableScreens(): Promise<string[]> {
-  const d = await open();
+  const d = await openDb();
   if (!d) return [];
   return new Promise((resolve) => {
     const ids: string[] = [];
     try {
-      const tx = d.transaction(STORE, "readwrite");
-      const req = tx.objectStore(STORE).openCursor();
+      const tx = d.transaction(SCREENS, "readwrite");
+      const req = tx.objectStore(SCREENS).openCursor();
       req.onsuccess = () => {
         const c = req.result;
         if (!c) return;
@@ -165,13 +156,13 @@ export async function getScreens(ids: readonly string[]): Promise<ScreenRecord[]
  */
 export async function putScreens(records: readonly ScreenRecord[]): Promise<boolean> {
   if (records.length === 0) return true;
-  const d = await open();
+  const d = await openDb();
   if (!d) return false;
   return new Promise((resolve) => {
     try {
-      const tx = d.transaction(STORE, "readwrite");
-      const store = tx.objectStore(STORE);
-      for (const r of records) store.put(r);
+      const tx = d.transaction(SCREENS, "readwrite");
+      const store = tx.objectStore(SCREENS);
+      for (const r of records) store.put(stamped(r));
       tx.oncomplete = () => resolve(true);
       tx.onerror = () => resolve(false);
       tx.onabort = () => resolve(false);

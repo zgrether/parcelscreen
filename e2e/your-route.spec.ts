@@ -10,7 +10,7 @@ import type { Feature, LineString } from "geojson";
 import { expect, test, type Page } from "@playwright/test";
 import { loadFixture } from "../test/support/fixtures";
 import roads from "../test/tools/driveway-validation.roads.json";
-import { importParcel, openExplorer, screenIt } from "./flow";
+import { importParcel, openExplorer, reload, screenIt } from "./flow";
 import { replayHar } from "./replay";
 
 const GRAYSON = "grayson-mud-creek-6273" as const;
@@ -31,8 +31,8 @@ function redGateToTheBoundary(): [number, number][] {
 
 /** The parcel open, with the red-gate easement drawn (as the line tool keeps one), named "Red gate". */
 async function withRedGate(page: Page): Promise<void> {
-  await page.evaluate((line) => {
-    const s = JSON.parse(localStorage.getItem("ps.parcels")!) as {
+  await page.evaluate(async (line) => {
+    const s = JSON.parse(window.__psKv!.getItem("ps.parcels")!) as {
       open: { key: string; markup: unknown[] };
       built: { key: string; markup: unknown[] }[];
     };
@@ -50,9 +50,9 @@ async function withRedGate(page: Page): Promise<void> {
     };
     s.open.markup = [m];
     for (const b of s.built) if (b.key === s.open.key) b.markup = [m];
-    localStorage.setItem("ps.parcels", JSON.stringify(s));
+    await window.__psKv!.setItem("ps.parcels", JSON.stringify(s));
   }, redGateToTheBoundary());
-  await page.reload();
+  await reload(page);
 }
 
 test("Mud Creek: the red-gate route beside the app's pick; chosen as the driveway; its record", async ({
@@ -99,7 +99,7 @@ test("Mud Creek: the red-gate route beside the app's pick; chosen as the drivewa
   await expect(choice.getByRole("button", { name: "Use the app's pick" })).toBeVisible();
 
   // Kept with the parcel: still chosen after a reload.
-  await page.reload();
+  await reload(page);
   await expect(access).toHaveAttribute("aria-label", "Legal road access: warn");
   await expect(access).toHaveAttribute("title", /your route is steeper than your veto \(41% vs 25%\)$/);
 

@@ -5,7 +5,7 @@
  */
 import { expect, test, type Page } from "@playwright/test";
 import { BASEMAPS, basemapLayerIds } from "@/components/Map/style";
-import { openExplorer } from "./flow";
+import { openExplorer, reload } from "./flow";
 import { replayHar } from "./replay";
 
 const TOGGLES = ["3D terrain", "Hillshade", "Contours", "Dim map", "Parcel lines", "Light pollution"];
@@ -40,7 +40,7 @@ for (const device of ["desktop", "phone"] as const) {
         localStorage.setItem("ps.contours", "1");
         localStorage.setItem("ps.dim", "1");
       });
-      await page.reload();
+      await reload(page);
       await page.getByRole("button", { name: "Map layers" }).click();
       const panel = page.getByRole("region", { name: "Map layers" });
       await expect(panel).toBeVisible();
