@@ -6,6 +6,9 @@
  *
  *   pnpm record:port            records what's missing (never re-records what's there), and drops what no
  *                               scenario (or PORT_RUNS run) asks for any more (a request the port has since changed)
+ *   PORT_APPEND=<slug> pnpm record:port
+ *                               that fixture only, and append only: every entry already there is kept as it is,
+ *                               asked for or not (step 2: Mud Creek gains its TREC answers; owner, 2026-10-17)
  *
  * Run by hand, never in CI: it reaches the public services. The prototype's network.har is never touched.
  */
@@ -55,13 +58,15 @@ const BROWSER_UA =
  */
 const uaFor = (url: string) =>
   DEFAULT_ENDPOINTS.overpass.some((u) => url.startsWith(u)) ? SERVER_USER_AGENT : BROWSER_UA;
+/** PORT_APPEND=<slug>: record that fixture's missing requests only, keeping every entry already there. */
+const APPEND = process.env.PORT_APPEND ?? "";
 const DROP = new Set(["content-encoding", "content-length", "transfer-encoding", "connection"]);
 
 const bodyOf = (b: BodyInit | null | undefined): string | null =>
   b == null ? null : typeof b === "string" ? b : b instanceof URLSearchParams ? b.toString() : null;
 
 describe.runIf(import.meta.env.MODE === "record-port")("record the port's own requests", () => {
-  it.each(FIXTURE_SLUGS)(
+  it.each(APPEND ? FIXTURE_SLUGS.filter((s) => s === APPEND) : FIXTURE_SLUGS)(
     "%s",
     async (slug) => {
       const live = (globalThis as unknown as Record<symbol, typeof fetch>)[
@@ -144,7 +149,7 @@ describe.runIf(import.meta.env.MODE === "record-port")("record the port's own re
           e.request.postData?.text ?? null,
           e.request.postData?.mimeType,
         );
-      const used = kept.filter((e) => asked.has(keyOf(e)));
+      const used = APPEND ? kept : kept.filter((e) => asked.has(keyOf(e)));
       const dropped = kept.length - used.length;
       const har: Har = { log: { entries: [...used, ...added] } };
       writePortHar(path, har);

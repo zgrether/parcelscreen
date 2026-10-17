@@ -85,6 +85,7 @@ describe("config", () => {
             "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Landmarks/FeatureServer/1",
             "https://services6.arcgis.com/nRIB86xC7kq6wavB/arcgis/rest/services/NC_State_Parks_Points/FeatureServer/0",
             "https://services5.arcgis.com/bPacKTm9cauMXVfn/arcgis/rest/services/TN_State_Parks_Points/FeatureServer/0",
+            "https://services1.arcgis.com/YuVBSS7Y1of2Qud1/arcgis/rest/services/Tennessee_Statewide_Trails_Lines_Public/FeatureServer/0",
           ],
           "terrarium": "https://s3.amazonaws.com/elevation-tiles-prod/terrarium",
           "tiger": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer",
@@ -461,6 +462,9 @@ describe("config", () => {
           "stateOutlineMarginKm": 1,
           "trailheadDedupeM": 300,
           "trailheadKm": 36,
+          "trecMaxPages": 3,
+          "trecMergeM": 150,
+          "trecPageSize": 1000,
         },
         "osmRoads": {
           "highways": [

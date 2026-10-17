@@ -561,6 +561,36 @@ coverage is a 404, so USGS shows through in Kentucky, Georgia and the rest of th
 outward), and no `export` fallback is needed; edge tiles are PNG with transparency. Its flights reach past the state
 line (a tile on the TN/NC line at Roan is a full JPEG), so NC and VA are drawn over it where they have imagery: near a
 border each state's own photo shows on its side as far as that state flew. The menu label becomes "Aerial (state
-ortho: VA, NC, TN)": the resolutions differ by county and year, so it no longer quotes them.
+ortho: VA, NC, TN)": the resolutions differ by county and year, so it no longer quotes them. **Trailheads:** Tennessee's TREC
+trails (TDEC Recreation Resources) join the official sources as a Tennessee source, asked only when Tennessee is
+within reach (follow-up 53's outline check), from the **Lines** layer `Tennessee_Statewide_Trails_Lines_Public` (owner,
+2026-10-17): the plan's Points layer holds only 30 trails statewide, where the state has no lines; the Lines layer holds
+4,205, each with its primary and secondary trailheads' coordinates. It's asked by an envelope of near.trailheadKm around
+the parcel (never the whole layer) for the names and trailhead coordinates only, paged (1,000 a page, 3 pages at most);
+a trailhead counts by its own coordinates (not the line's), within near.trailheadKm, and 0,0 is dropped. A TREC point
+names a trail, not a trailhead, so it merges **by distance alone** (owner): TREC points within near.trecMergeM (150 m)
+of each other are one trailhead listing all their trails, named after the first alphabetically; one within 150 m of
+any other trailhead (USFS, state, OSM) joins the nearest, which keeps its name and lists the trail as "serves: …"
+(§9.49). The 300 m plus same-name rule stays for every other pair. The state sources are keyed by URL now (two layers
+share services1.arcgis.com); the parks' `noResponse` tokens are unchanged, and TREC's not answering reads "TN trails
+(TDEC)". Its license is an as-is disclaimer. Mud Creek isn't re-recorded (owner): `PORT_APPEND=grayson-mud-creek-6273
+pnpm record:port` appended the one new request, its 28 earlier entries pinned by test/tools/mud-creek-har.test.ts. Its
+trailheads within reach go from 16 to 20 (Gentry Creek Falls, Laurel Creek Trail, Backbone Falls Trail serving Backbone
+Rock too, Mountain City Park Trail; Rogers Ridge Trail joins the USFS Rogers Ridge Trailhead); its five nearest, and
+so its Trails row, are unchanged. `ENGINE_VERSION` 22.
+
+48. **The pre-profile data is dropped (the clean-break rule)** (owner, 2026-10-17; step 2 plan §9, §8 Q6; roadmap step
+2, PR 1). The boot deletes step 1's `ps.legacy.*` copies and any pre-profile key still present, and the kept screens
+without a profile; it moves nothing, and says once "Saved with an older version; screen it again." when there was
+pre-profile data. Detail in §9.45. The localStorage journal is off the parked list (§8 Q8).
+
+49. **Schema v9: a clean break; a trailhead lists the trails it serves** (owner, 2026-10-17; roadmap step 2, PR 4).
+`near.trailheads[]` gains an optional `serves: string[]`, the TREC trails merged into the trailhead (§9.47), so
+`SCREEN_SCHEMA_VERSION` is 9 (`lib/screen/schema-v9.test.ts`). A clean break like v3 to v8: stored v8 results aren't
+read or migrated, and their parcels read "Needs a re-screen" and re-screen when opened. Every fixture's
+`expected.json` changes its `schemaVersion` (8 → 9) and `engine` (21 → 22); Mud Creek's also its trailheads (§9.47).
+**Shown:** a trailhead's map tooltip lists them on a line under its name ("serves: A, B"), and the Trails row appends
+"; serves: A, B" to the trailhead it names (after the existing text; rule 7). Neither shows when a trailhead serves only
+the trail it's named after.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

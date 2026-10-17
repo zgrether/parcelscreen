@@ -636,6 +636,17 @@ describe("the rows", () => {
     expect(reportCard(r, ZACH).reason).toBe("Pass: the build site is in a FEMA flood zone.");
   });
 
+  it("a trailhead serving TREC trails says so after its name; none when it serves only its own (step 2, additive)", () => {
+    const r = ferney();
+    const plain = rowOf(r, "trails").detail;
+    const driven = r.near!.trailheads.findIndex((t) => t.drive);
+    const t = r.near!.trailheads[driven]!;
+    r.near!.trailheads[driven] = { ...t, serves: ["Appalachian Trail", "Iron Mountain Trail"] };
+    expect(rowOf(r, "trails").detail).toBe(`${plain}; serves: Appalachian Trail, Iron Mountain Trail`);
+    r.near!.trailheads[driven] = { ...t, serves: [t.name] };
+    expect(rowOf(r, "trails").detail).toBe(plain);
+  });
+
   it("no build site: the homesite is an F, and the elevation is left out (not incomplete)", () => {
     const r = ferney();
     r.sites = [];
