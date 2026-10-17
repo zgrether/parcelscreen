@@ -68,18 +68,29 @@ describe("map style", () => {
     expect(visible).toEqual(basemapLayerIds("state"));
   });
 
-  it("builds the state ortho from USGS, then NC, then VA, each bounded and capped at its native zoom", () => {
-    expect(basemapLayerIds("state")).toEqual(["base-state-usgs", "base-state-nc", "base-state-va"]);
+  it("builds the state ortho from USGS, then TN, NC and VA, each bounded and capped at its native zoom", () => {
+    expect(basemapLayerIds("state")).toEqual([
+      "base-state-usgs",
+      "base-state-tn",
+      "base-state-nc",
+      "base-state-va",
+    ]);
     const src = (id: string) => style.sources[id] as { maxzoom?: number; bounds?: number[]; tiles: string[] };
     expect(src("base-state-usgs").maxzoom).toBe(16);
     expect(src("base-state-nc").maxzoom).toBe(20);
     expect(src("base-state-va").maxzoom).toBe(19);
+    expect(src("base-state-tn").maxzoom).toBe(19);
     // Each box holds its whole state (TIGER extents, 2026-10-10): a box that cuts into the state leaves a strip of it
     // on the USGS fallback, as the prototype's 36.54° split did near Grayson.
     const holds = (b: number[] | undefined, [w, s, e, n]: number[]) =>
       !!b && b[0]! < w! && b[1]! < s! && b[2]! > e! && b[3]! > n!;
     expect(holds(src("base-state-nc").bounds, [-84.3218, 33.7529, -75.4001, 36.5881])).toBe(true);
     expect(holds(src("base-state-va").bounds, [-83.6754, 36.5409, -75.1664, 39.466])).toBe(true);
+    expect(holds(src("base-state-tn").bounds, [-90.3101, 34.983, -81.6469, 36.6783])).toBe(true);
+    // Tennessee's credit, as the cache's copyright names it (step 2 plan §6.6).
+    expect((style.sources["base-state-tn"] as { attribution?: string }).attribution).toBe(
+      "TDOT Aerial Surveys",
+    );
     expect(src("base-state-va").tiles[0]).toContain("bbox={bbox-epsg-3857}");
     expect(src("base-state-va").tiles[0]).toContain("transparent=true");
   });
