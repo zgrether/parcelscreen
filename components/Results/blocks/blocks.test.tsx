@@ -155,7 +155,8 @@ describe.each(RUNS)("report blocks vs the prototype: %s %s", (slug, key) => {
 
   it("finished run", () => expectParity(R, fromPrototype(R, { grades: true }), false));
 
-  it("while running (partial)", () => expectParity(R, withoutVerdict(fromPrototype(R, { grades: true })), true));
+  it("while running (partial)", () =>
+    expectParity(R, withoutVerdict(fromPrototype(R, { grades: true })), true));
 
   it("draws the same horizon and sun path, labelled N/E/S/W (B11)", () => {
     const ours = fromPrototype(R, { grades: true });
@@ -180,7 +181,11 @@ describe("report blocks: runs the goldens don't cover", () => {
 
   it("early in a run: before the sun and sky steps, those blocks render nothing", () => {
     const { sun: _s, sky: _k, point: _p, focus: _f, sunAt: _a, ...early } = R;
-    expectParity(early as PrototypeResult, withoutVerdict(fromPrototype(early as PrototypeResult, { grades: true })), true);
+    expectParity(
+      early as PrototypeResult,
+      withoutVerdict(fromPrototype(early as PrototypeResult, { grades: true })),
+      true,
+    );
   });
 });
 
@@ -189,7 +194,9 @@ describe("driveway", () => {
     const R = at3m(loadFixture("ferney-creek-52-47A").goldens.run);
     const body = prototypeSections(R, DEFAULT_USER_CONFIG).get("driveway")!.body;
     const theirs = [...body.matchAll(/<path d="([^"]*)"/g)].map((m) => m[1]);
-    expect(fromPrototype(R, { grades: true }).driveway!.routes.map((rt) => profilePath(rt.profile))).toEqual(theirs);
+    expect(fromPrototype(R, { grades: true }).driveway!.routes.map((rt) => profilePath(rt.profile))).toEqual(
+      theirs,
+    );
     expect(theirs.length).toBeGreaterThan(0);
   });
 
