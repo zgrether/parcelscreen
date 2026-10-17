@@ -120,7 +120,7 @@ on main.
 | 10 | **New data points**, one PR each | Climate and Privacy first, then Long view, Airport, Bike to a long trail, Internet. Hospital becomes its own factor in the first. |
 | 11 | **Ways to raise the grade** | Homesite, access, septic and combine first; tree clearing after canopy heights are confirmed. |
 | 12 | **Area catalog** | The 30 areas, area profiling run headless on a schedule, scoring by the user's rubric, the suggestion box, sample parcels. |
-| 13 | **Accounts and attachments** | Sign-in that adopts existing local profiles, file storage for photos and PDFs, and in-app "Send to confirm". |
+| 13 | **Accounts and attachments** | Sign-in, with accounts that start empty (no local profile is adopted: the clean-break rule, 10/17), file storage for photos and PDFs, and in-app "Send to confirm". |
 | 14 | **What the land can do** | Panel 1 (what you can do here: camp now, build, trails, garden, hunt, ride, divide, what limits you), the county rules table, power-line distance, and the Split tool as a keep / sell scenario. Can run any time after step 9. |
 | 15 | **How it could pay** | Panel 2 with dated, sourced ranges: the conservation-easement slider, use-value tax, forest-carbon eligibility, hunting lease, timber, split break-even, camp sites. After step 14. |
 
