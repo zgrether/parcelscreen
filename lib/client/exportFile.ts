@@ -14,6 +14,7 @@
 import { z } from "zod";
 import { DEFAULT_ENDPOINTS, DEFAULT_USER_CONFIG } from "@/lib/screen/config";
 import { SCREEN_SCHEMA_VERSION, UserConfigSchema, type UserConfig } from "@/lib/screen/types";
+import { ProfileRubricsSchema, type ProfileRubrics } from "@/lib/rubric/schema";
 import { historyRows, parcelName } from "./historyRows";
 import { pieceDedupeKey } from "@/lib/geo/recipe";
 import type { ParcelRecord } from "@/lib/geo/parcels";
@@ -40,6 +41,12 @@ import {
 
 export const EXPORT_FORMAT = "parcelscreen-export";
 /**
+ * Version 6 (roadmap step 1, PR 6): the profile the file came from (`profile: { name }`) and its rubrics (`rubrics`,
+ * `{ mine, others }` as lib/rubric/schema.ts validates them). A version 5 file is read through `fromV5`, which gives
+ * both null. An import goes into the current profile; the file's rubrics replace the current profile's only when the
+ * user ticks "Replace my rubric too" in the import summary (off by default: a backup never overwrites a rubric by
+ * accident).
+ *
  * Version 5 (owner, WF5): each parcel's driveway choice (`drivewayLine`, the line whose route the card scores, or null
  * for the app's pick) and each line's `recordedIn` (where an easement is recorded). A version 4 file is read through
  * `fromV4`, which gives every parcel the app's pick and every line no record.
@@ -55,9 +62,9 @@ export const EXPORT_FORMAT = "parcelscreen-export";
  * 34 and #127; the listing's facts, WF1; the status, archive and milestones, WF2a) is written, and a version 1 file is
  * read through `fromV1`, which fills each with its default.
  */
-export const EXPORT_VERSION = 5;
+export const EXPORT_VERSION = 6;
 /** The versions this app reads. */
-export const READS_VERSIONS: readonly number[] = [1, 2, 3, 4, EXPORT_VERSION];
+export const READS_VERSIONS: readonly number[] = [1, 2, 3, 4, 5, EXPORT_VERSION];
 
 /** What a version 1 file's parcel lacks, and its value there: the defaults the app gives a parcel kept before. */
 export const V1_DEFAULTS = {
@@ -166,6 +173,11 @@ export function fromV4(json: Record<string, unknown>): Record<string, unknown> {
   };
 }
 
+/** A version 5 file as version 6 (step 1): no profile and no rubrics are known; what it already says, it keeps. */
+export function fromV5(json: Record<string, unknown>): Record<string, unknown> {
+  return { ...json, version: 6, profile: json.profile ?? null, rubrics: json.rubrics ?? null };
+}
+
 /** "1, 2 and 3". */
 const listed = (xs: readonly number[]): string =>
   xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
@@ -180,6 +192,16 @@ export interface ExportFile {
   cfg: UserConfig;
   parcels: ParcelStore;
   screens: ScreenRecord[];
+  /** The profile it was exported from (version 6); null in a file converted from an earlier version. */
+  profile: { name: string } | null;
+  /** That profile's rubrics (version 6); null in a converted file. */
+  rubrics: ProfileRubrics | null;
+}
+
+/** Whose file it is (version 6): the current profile's name and rubrics. */
+export interface ExportFrom {
+  profile: { name: string } | null;
+  rubrics: ProfileRubrics | null;
 }
 
 /** The screen ids History's parcels keep, in order, each once. */
@@ -192,10 +214,11 @@ export function buildExport(
   store: ParcelStore,
   screens: ScreenRecord[],
   now: string,
+  from: ExportFrom = { profile: null, rubrics: null },
 ): ExportFile {
   // History in My order (version 3): a backup restored into an empty browser keeps the ranking.
   const parcels = { ...store, built: [...store.built].sort(byRank) };
-  return { format: EXPORT_FORMAT, version: EXPORT_VERSION, exportedAt: now, cfg, parcels, screens };
+  return { format: EXPORT_FORMAT, version: EXPORT_VERSION, exportedAt: now, cfg, parcels, screens, ...from };
 }
 
 /** `parcelscreen-YYYY-MM-DD.json`, as the prototype named its export (L1606). */
@@ -210,6 +233,8 @@ const PortFileSchema = z.object({
   cfg: z.unknown(),
   parcels: ParcelStoreSchema,
   screens: z.array(ScreenRecordSchema),
+  profile: z.object({ name: z.string() }).nullable(),
+  rubrics: ProfileRubricsSchema.nullable(),
 });
 
 /** A prototype saved parcel (L1590): the boundary, its county attributes, the house, the name and notes. */
@@ -261,6 +286,10 @@ export interface ImportPlan {
   ignored: string[];
   /** The file's endpoints were missing, unreadable or an older `_v`, so the defaults were used (L461). */
   endpointsReplaced: boolean;
+  /** The profile the file was exported from (version 6), for the summary; null when the file doesn't say. */
+  profileName: string | null;
+  /** The file's rubrics (version 6): they replace the current profile's only when the user asks. */
+  rubrics: ProfileRubrics | null;
 }
 
 export type ImportRead = { ok: true; plan: ImportPlan } | { ok: false; errors: string[] };
@@ -425,6 +454,8 @@ export function planImport(
   let fileScreens: ScreenRecord[] = [];
   let olderIds: string[] = [];
   let rawCfg: unknown;
+  let profileName: string | null = null;
+  let rubrics: ProfileRubrics | null = null;
   if (json.format === EXPORT_FORMAT) {
     if (!READS_VERSIONS.includes(json.version as number))
       return {
@@ -437,6 +468,7 @@ export function planImport(
     if (isRecord(json) && json.version === 2) json = fromV2(json);
     if (isRecord(json) && json.version === 3) json = fromV3(json);
     if (isRecord(json) && json.version === 4) json = fromV4(json);
+    if (isRecord(json) && json.version === 5) json = fromV5(json);
     if (!isRecord(json)) return { ok: false, errors: [NOT_AN_EXPORT] };
     // Results from an older schema are set aside before validating (v3's clean break): not an error, not imported.
     const older = (x: unknown) =>
@@ -453,6 +485,8 @@ export function planImport(
     incoming = (f.data.parcels.built as WorkingParcel[]).map(withNameFromNotes);
     fileScreens = f.data.screens as ScreenRecord[];
     rawCfg = f.data.cfg;
+    profileName = f.data.profile?.name ?? null;
+    rubrics = f.data.rubrics;
   } else if ("saved" in json || "cfg" in json) {
     const f = ProtoFileSchema.safeParse(json);
     if (!f.success) return { ok: false, errors: issues("file", f.error) };
@@ -524,6 +558,8 @@ export function planImport(
       settings,
       ignored,
       endpointsReplaced,
+      profileName,
+      rubrics,
     },
   };
 }
@@ -549,6 +585,7 @@ export type SettingsOutcome = "replaced" | "declined" | "unchanged" | "none";
 export function importSummary(plan: ImportPlan, outcome: SettingsOutcome): string[] {
   const names = (ps: WorkingParcel[]) => ps.map((p) => parcelName(p).name).join(", ");
   const lines = [`Imported ${plan.added.length} parcels`];
+  if (plan.profileName !== null) lines.push(`Exported from the profile ${plan.profileName}.`);
   if (plan.added.length)
     lines.push(
       `Added: ${names(plan.added)}${plan.screens.length ? ` (with ${plan.screens.length} kept result${plan.screens.length === 1 ? "" : "s"})` : ""}.`,
