@@ -99,7 +99,7 @@ needs the keys).
 ## Roadmap (owner, 2026-10-16; the spec is `docs/design/workflow-review.md`)
 
 Phase 0, the port, is merged and deployed. The phases that were to follow it (accounts and sync, share and
-export, the driveway router, rules, Watch) are superseded by the thirteen steps below, from the workflow
+export, the driveway router, rules, Watch) are superseded by the fifteen steps below, from the workflow
 review: the parcel tools, the screen and the library are built, and what's missing is the part that makes the
 grade the viewer's own. Each step is one unattended Claude Code mission (CLAUDE.md, "Mission mode"): a plan
 approved once, PRs into a `step/<n>-<name>` branch merged by Claude Code on green CI, and one final PR to
@@ -121,6 +121,8 @@ on main.
 | 11 | **Ways to raise the grade** | Homesite, access, septic and combine first; tree clearing after canopy heights are confirmed. |
 | 12 | **Area catalog** | The 30 areas, area profiling run headless on a schedule, scoring by the user's rubric, the suggestion box, sample parcels. |
 | 13 | **Accounts and attachments** | Sign-in that adopts existing local profiles, file storage for photos and PDFs, and in-app "Send to confirm". |
+| 14 | **What the land can do** | Panel 1 (what you can do here: camp now, build, trails, garden, hunt, ride, divide, what limits you), the county rules table, power-line distance, and the Split tool as a keep / sell scenario. Can run any time after step 9. |
+| 15 | **How it could pay** | Panel 2 with dated, sourced ranges: the conservation-easement slider, use-value tax, forest-carbon eligibility, hunting lease, timber, split break-even, camp sites. After step 14. |
 
 **Paused (10/16):** WF6b (the engine half is merged; the app side waits), follow-up 57 (snap lines to lidar),
 follow-up 46 (county grade limits), the cost-label PR, VR8 calibration and Batch B. Their branches and plans
