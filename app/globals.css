@@ -4198,6 +4198,41 @@ button.cmp-cell:hover {
   margin: 0;
   font-size: 13px;
 }
+/* The columns and, beside them, the preview (plan §4), which stays in view while the columns scroll. */
+.rubric-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 14px;
+  align-items: start;
+}
+.rubric-preview {
+  position: sticky;
+  top: 12px;
+  border: 1px solid var(--color-rule);
+  border-radius: 6px;
+  padding: 10px 12px;
+  background: var(--color-paper);
+  font-size: 13.5px;
+}
+.rubric-preview h2 {
+  margin: 0 0 6px;
+  font: 600 16px/1.2 var(--font-cond);
+}
+.rubric-preview-pick select {
+  max-width: 100%;
+  min-height: 32px;
+}
+.rubric-preview-grade {
+  margin: 10px 0 2px;
+  font-size: 15px;
+}
+.rubric-moved {
+  margin: 8px 0;
+  padding-left: 18px;
+}
+.rubric-moved li {
+  margin: 3px 0;
+}
 .rubric-columns {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -4416,6 +4451,13 @@ button.cmp-cell:hover {
   margin-top: 12px;
 }
 @media (max-width: 860px) {
+  .rubric-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rubric-preview {
+    order: -1;
+    position: static;
+  }
   .rubric-columns {
     grid-template-columns: minmax(0, 1fr);
   }

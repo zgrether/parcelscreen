@@ -20,6 +20,8 @@ export interface MyRubric {
   message: string | null;
   /** Set by the first reorder that switched the weights; cleared by Dismiss, Undo or the next change. */
   switched: WeightsSwitch | null;
+  /** The rubric just before that switch: the notice grades the preview parcel with it and with the one now. */
+  switchedFrom: Rubric | null;
   canUndo: boolean;
   /** Any change: a move's result, a slider, a minimum. */
   apply(next: Rubric, message?: string | null): void;
@@ -38,6 +40,7 @@ export function useMyRubric(): MyRubric {
   const [history, setHistory] = useState<Rubric[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [switched, setSwitched] = useState<WeightsSwitch | null>(null);
+  const [switchedFrom, setSwitchedFrom] = useState<Rubric | null>(null);
 
   const commit = useCallback(
     (next: Rubric, msg: string | null, sw: WeightsSwitch | null) => {
@@ -49,6 +52,7 @@ export function useMyRubric(): MyRubric {
       setRubric(next);
       setMessage(msg);
       setSwitched(sw);
+      setSwitchedFrom(sw ? rubric : null);
       save(next);
     },
     [rubric],
@@ -84,6 +88,7 @@ export function useMyRubric(): MyRubric {
     rubric,
     message,
     switched,
+    switchedFrom,
     canUndo: history.length > 0,
     apply,
     move,
