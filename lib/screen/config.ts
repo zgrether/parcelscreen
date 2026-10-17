@@ -543,10 +543,10 @@ export const SCREEN_CONSTANTS = deepFreeze({
       groceryMin: [10, 20, 30, 45],
       gardenAc: [0.5, 0.25, 0.1, 0], // an A also needs prime or statewide-important soil; any garden is a D
     },
-    // Each person's weights sum to 100 (follow-up 41's rubric replaces them).
+    // The default rubric's weights, summing to 100 (roadmap step 1: a profile's rubric replaces them; the second set the
+    // app shipped with is lib/client/migrateProfiles.ts LEGACY_SECOND_WEIGHTS, carried by the migration as another's).
     weights: {
-      zach: { elevation: 25, homesite: 25, sky: 10, room: 15, trails: 10, town: 5, garden: 10 },
-      julie: { elevation: 10, homesite: 15, sky: 10, room: 10, trails: 25, town: 10, garden: 20 },
+      default: { elevation: 25, homesite: 25, sky: 10, room: 15, trails: 10, town: 5, garden: 10 },
     },
     // WF1 (owner, #128): the card says so when the listing's acres differ from the boundary's by more than this.
     listingAcresPct: 10,

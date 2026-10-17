@@ -7,7 +7,8 @@ import { centroid } from "@turf/turf";
 import { z } from "zod";
 import { deriveParcel, STATE_BY_HOST } from "@/lib/geo/recipe";
 import { parcelFacts } from "@/lib/geo/parcels";
-import { reportCard, type Letter, type Verdict } from "@/lib/report/card";
+import { reportCard, type Letter, type NamedRubric, type Verdict } from "@/lib/report/card";
+import { defaultNamedRubric } from "@/lib/rubric/default";
 import { drawnOf } from "@/lib/report/marks";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { kmToState, type StateCode } from "@/lib/screen/states";
@@ -16,9 +17,13 @@ import { byRank } from "./myOrder";
 import { recipeOf, type Milestone, type ParcelStatus, type WorkingParcel } from "./parcelStore";
 import type { KeptScreen } from "./useKeptScreens";
 
-/** The verdicts, worst first: the household's is the lower of the two people's. */
+/** The verdicts, worst first: the household's is the lowest across the profile's rubrics. */
 export const VERDICTS: readonly Verdict[] = ["Pass", "Maybe", "Contender"];
 const rank = (v: Verdict) => VERDICTS.indexOf(v);
+
+/** The lowest of these verdicts: the household's (step 1: across the profile's own rubric and the others it holds). */
+export const lowestVerdict = (vs: readonly Verdict[]): Verdict =>
+  vs.reduce((a, b) => (rank(a) <= rank(b) ? a : b));
 
 /** Contender only when both say Contender; Pass when either says Pass (owner, #128). */
 export const householdVerdict = (a: Verdict, b: Verdict): Verdict => (rank(a) <= rank(b) ? a : b);
@@ -41,9 +46,12 @@ export interface LibraryRow {
   county: string | null;
   status: ParcelStatus;
   milestones: WorkingParcel["milestones"];
-  /** Each person's grade and verdict, and the household's verdict; null without a current screen. */
-  zach: Graded | null;
-  julie: Graded | null;
+  /**
+   * Each rubric's grade and verdict, the profile's own first (step 1), null without a current screen; and the
+   * household verdict, the lowest across them (its own alone, for a profile holding no other rubric: the list shows
+   * the column only when there are several).
+   */
+  grades: { id: string; name: string; graded: Graded | null }[];
   household: Verdict | null;
   /** Why there's no grade, when there isn't. */
   unscreened: Unscreened | null;
@@ -84,17 +92,21 @@ export function listName(p: WorkingParcel, county: string | null): string {
   return `${name} · ${countyShort(county)}`;
 }
 
-export function libraryRow(p: WorkingParcel, kept: KeptScreen | undefined): LibraryRow {
+export function libraryRow(
+  p: WorkingParcel,
+  kept: KeptScreen | undefined,
+  rubrics: readonly NamedRubric[] = [defaultNamedRubric()],
+): LibraryRow {
   const { acres } = parcelName(p);
   const county = p.pieces.map((x) => parcelFacts(x.geo, x.props).county).find((c) => !!c) ?? null;
   const result = kept?.state === "ok" ? kept.result : null;
-  const graded = (person: "zach" | "julie"): Graded | null => {
+  const graded = (nr: NamedRubric): Graded | null => {
     if (!result) return null;
-    const c = reportCard(result, person, drawnOf(p.markup, p.drivewayLine));
+    const c = reportCard(result, nr, drawnOf(p.markup, p.drivewayLine));
     return { grade: c.grade, verdict: c.verdict };
   };
-  const zach = graded("zach"),
-    julie = graded("julie");
+  const grades = rubrics.map((nr) => ({ id: nr.id, name: nr.name, graded: graded(nr) }));
+  const verdicts = grades.map((g) => g.graded?.verdict).filter((v): v is Verdict => !!v);
   return {
     key: p.key!,
     name: listName(p, county),
@@ -104,9 +116,8 @@ export function libraryRow(p: WorkingParcel, kept: KeptScreen | undefined): Libr
     county,
     status: p.status,
     milestones: p.milestones,
-    zach,
-    julie,
-    household: zach && julie ? householdVerdict(zach.verdict, julie.verdict) : null,
+    grades,
+    household: verdicts.length === rubrics.length && verdicts.length > 0 ? lowestVerdict(verdicts) : null,
     unscreened: result ? null : kept?.state === "rescreen" ? "rescreen" : "none",
     updatedAt: p.updatedAt,
     rank: p.rank,
@@ -123,8 +134,8 @@ export interface LibraryFilters {
   status: ParcelStatus[];
   /** The household verdict (owner, #128: the default filter uses it). */
   household: VerdictChoice[];
-  zach: VerdictChoice[];
-  julie: VerdictChoice[];
+  /** Each rubric's verdict, by rubric id (step 1); a rubric not listed passes every verdict. */
+  grades: Record<string, VerdictChoice[]>;
   /** Must have these milestones. */
   milestones: Milestone[];
   /** Asking price, dollars: a parcel without a price passes only when neither bound is set. */
@@ -140,8 +151,7 @@ export interface LibraryFilters {
 export const DEFAULT_FILTERS: LibraryFilters = {
   status: ["inProgress", "saved"],
   household: ["Contender", "Maybe", "unscreened"],
-  zach: [...VERDICT_CHOICES],
-  julie: [...VERDICT_CHOICES],
+  grades: {},
   milestones: [],
   priceMin: null,
   priceMax: null,
@@ -153,8 +163,10 @@ const choice = (v: Verdict | null): VerdictChoice => v ?? "unscreened";
 export function passes(r: LibraryRow, f: LibraryFilters): boolean {
   if (!f.status.includes(r.status)) return false;
   if (!f.household.includes(choice(r.household))) return false;
-  if (!f.zach.includes(choice(r.zach?.verdict ?? null))) return false;
-  if (!f.julie.includes(choice(r.julie?.verdict ?? null))) return false;
+  for (const [id, choices] of Object.entries(f.grades)) {
+    const g = r.grades.find((x) => x.id === id);
+    if (g && !choices.includes(choice(g.graded?.verdict ?? null))) return false;
+  }
   if (f.milestones.some((m) => r.milestones[m] === null)) return false;
   if (f.priceMin !== null || f.priceMax !== null) {
     if (r.price === null) return false;
@@ -166,7 +178,9 @@ export function passes(r: LibraryRow, f: LibraryFilters): boolean {
 
 // ---------- sorts ----------
 
-export type SortKey = "order" | "updated" | "price" | "acres" | "household" | "zach" | "julie";
+/** "grade:<rubric id>" sorts by that rubric's grade (step 1). */
+export type SortKey = "order" | "updated" | "price" | "acres" | "household" | `grade:${string}`;
+export const gradeSortKey = (id: string): SortKey => `grade:${id}`;
 export interface LibrarySort {
   key: SortKey;
   /** Each key's natural order (the newest, the cheapest, the largest, the best), or its reverse. */
@@ -191,10 +205,8 @@ const sortValue = (r: LibraryRow, k: Exclude<SortKey, "order">): number | string
       return r.acres === null ? null : -r.acres;
     case "household":
       return r.household === null ? null : 2 - rank(r.household);
-    case "zach":
-      return gradedRank(r.zach);
-    case "julie":
-      return gradedRank(r.julie);
+    default:
+      return gradedRank(r.grades.find((g) => g.id === k.slice("grade:".length))?.graded ?? null);
   }
 };
 
@@ -226,15 +238,19 @@ const ViewSchema = z.object({
   filters: z.object({
     status: z.array(z.enum(["inProgress", "saved", "archived"])),
     household: z.array(Choice),
-    zach: z.array(Choice),
-    julie: z.array(Choice),
+    grades: z.record(z.string(), z.array(Choice)),
     milestones: z.array(z.enum(["walked", "offered"])),
     priceMin: z.number().nullable(),
     priceMax: z.number().nullable(),
     state: z.enum(["VA", "NC", "TN"]).nullable(),
   }),
   sort: z.object({
-    key: z.enum(["order", "updated", "price", "acres", "household", "zach", "julie"]),
+    key: z
+      .string()
+      .refine(
+        (k): k is SortKey =>
+          ["order", "updated", "price", "acres", "household"].includes(k) || k.startsWith("grade:"),
+      ),
     reversed: z.boolean(),
   }),
 });
@@ -251,8 +267,7 @@ export function readLibraryView(raw: string): LibraryView {
 export const ALL_FILTERS: LibraryFilters = {
   status: ["inProgress", "saved", "archived"],
   household: [...VERDICT_CHOICES],
-  zach: [...VERDICT_CHOICES],
-  julie: [...VERDICT_CHOICES],
+  grades: {},
   milestones: [],
   priceMin: null,
   priceMax: null,

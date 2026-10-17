@@ -1,5 +1,6 @@
 /** The panels' banded scales (value-ranking.md §6.2 (b); VR5 part 2): this parcel's band, and labels from config. */
 import { describe, expect, it } from "vitest";
+import { ZACH } from "@/test/support/rubrics";
 import { expectedOf } from "@/test/support/expected";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { reportCard } from "./card";
@@ -9,7 +10,7 @@ import { drivewayDesign, scalesFor } from "./scales";
 const B = SCREEN_CONSTANTS.bands;
 const scales = (slug: Parameters<typeof expectedOf>[0], panel: PanelKey, bands = B) => {
   const r = expectedOf(slug, "run");
-  return scalesFor(panel, r, reportCard(r, "zach"), bands);
+  return scalesFor(panel, r, reportCard(r, ZACH), bands);
 };
 /** Labels as read: the no-break spaces and word joiners that keep "3–5 h" together are invisible. */
 const plain = (t: string) => t.replace(/⁠/g, "").replace(/ /g, " ");

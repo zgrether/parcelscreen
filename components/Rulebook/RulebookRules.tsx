@@ -99,13 +99,6 @@ export function RulebookRules({ rb, current }: { rb: Rulebook; current: string }
               </tr>
             ))}
           </tbody>
-          <tfoot>
-            <tr>
-              <td />
-              <td />
-              <td className="tiny muted">Placeholder until Julie sets her own</td>
-            </tr>
-          </tfoot>
         </table>
         <h3>Dealbreakers</h3>
         {rb.card.gates.map((g) => (

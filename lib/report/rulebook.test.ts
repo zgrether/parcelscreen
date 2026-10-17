@@ -4,6 +4,7 @@
  * the top of the curve; the verdict's Maybe caps against cardFor.
  */
 import { describe, expect, it } from "vitest";
+import { ZACH } from "@/test/support/rubrics";
 import { expectedOf } from "@/test/support/expected";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { overLimitTerm } from "../screen/score";
@@ -41,7 +42,7 @@ describe("the over-limit term in words (overLimitTerm's branches)", () => {
 describe("the verdict's Maybe caps (cardFor, and the panel's words)", () => {
   // Ferney's card under Zach's weights is a Contender with nothing missing and nothing to check first.
   const facts = cardFacts(expectedOf("ferney-creek-52-47A", "run"));
-  const base = cardFor(facts, "zach");
+  const base = cardFor(facts, ZACH);
 
   it("each cap holds an otherwise Contender at Maybe", () => {
     expect(base.verdict).toBe("Contender");
@@ -55,9 +56,9 @@ describe("the verdict's Maybe caps (cardFor, and the panel's words)", () => {
       rows: facts.rows.map((r, i) => (i === 3 ? { ...r, checkFirst: "it doesn't fit" } : r)),
     };
     expect(maybeCaps(missing).incomplete).toBe(true);
-    expect(cardFor(missing, "zach").verdict).toBe("Maybe");
+    expect(cardFor(missing, ZACH).verdict).toBe("Maybe");
     expect(maybeCaps(check).checkFirst).toBe(true);
-    expect(cardFor(check, "zach").verdict).toBe("Maybe");
+    expect(cardFor(check, ZACH).verdict).toBe("Maybe");
   });
 
   it("the Grade and verdict panel names every cap cardFor applies", () => {

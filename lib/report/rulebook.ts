@@ -9,10 +9,10 @@ import { SCREEN_CONSTANTS } from "../screen/config";
 import type { UserConfig } from "../screen/types";
 import type { Curve } from "../screen/util";
 import { DEFAULT_USER_CONFIG } from "../screen/config";
+import { defaultNamedRubric } from "../rubric/default";
 import type { NamedRubric } from "../rubric/types";
 import { weightsOf } from "../rubric/weights";
 import type { GateKey, RowKey } from "./card";
-import { personRubrics } from "./persons";
 import { panelText, type PanelKey } from "./cardPanels";
 import { MEANINGS, type Meaning } from "./meanings";
 import {
@@ -57,7 +57,7 @@ export interface Rulebook {
   card: {
     /** The verdict panel's rules: the points per letter, the grade's cutoffs, the verdict. */
     verdict: RulePanel;
-    /** The rubrics the weights table shows, in column order (step 1: the two in config). */
+    /** The rubrics the weights table shows, in column order. */
     rubrics: { id: string; name: string }[];
     weights: { key: RowKey; label: string; byRubric: Record<string, number> }[];
     gates: RulePanel[];
@@ -159,11 +159,11 @@ function curveWords(pts: Curve, x: (v: number) => string): string {
 
 const pct = (share: number) => fmt(share * 100);
 
-/** The rulebook for these constants, Settings and rubrics (the two in config, until PR 5). */
+/** The rulebook for these constants, Settings and rubrics (the profile's; the default rubric alone without them). */
 export function rulebook(
   C: Constants = SCREEN_CONSTANTS,
   cfg: UserConfig = DEFAULT_USER_CONFIG,
-  rubrics: readonly NamedRubric[] = Object.values(personRubrics(C.card)),
+  rubrics: readonly NamedRubric[] = [defaultNamedRubric(C.card)],
 ): Rulebook {
   const S = C.score,
     SU = C.suitability,

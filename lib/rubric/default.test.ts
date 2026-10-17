@@ -1,6 +1,6 @@
 /**
  * The default rubric reproduces today's card exactly (step 1 plan §3.2): on every fixture and scenario, for both of
- * today's weight sets, the card from the rubric equals the card recorded by the card code before it took a rubric
+ * the weight sets the app shipped with (test/support/rubrics.ts), the card from the rubric equals the card recorded by the card code before it took a rubric
  * (test/fixtures/<slug>/cards-v7.json, recorded once at engine 20; never regenerated: it is the oracle). Gates and
  * their reasons, rows with their letters and details, Check-first items, points, letter, verdict, the reason line and
  * what didn't load must all match. Any difference stops the mission (plan §5).
@@ -14,8 +14,9 @@ import { FIXTURE_SLUGS, type FixtureSlug } from "@/test/support/fixtures";
 import { SCENARIOS } from "@/test/support/scenarios";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { cardFor, cardFacts, reportCard, type Card } from "../report/card";
-import { PERSONS, personRubrics } from "../report/persons";
-import { rubricFromWeights } from "./default";
+import { PERSONS, ZACH } from "@/test/support/rubrics";
+import { defaultNamedRubric, rubricFromWeights } from "./default";
+import { MINE } from "./types";
 
 type Recorded = Record<string, Record<string, Omit<Card, "rubric"> & { person: string }>>;
 const recorded = (slug: FixtureSlug): Recorded =>
@@ -32,17 +33,17 @@ const comparable = (c: Card) => {
 describe("the default rubric reproduces today's cards (cards-v7.json)", () => {
   for (const slug of FIXTURE_SLUGS)
     for (const scenario of SCENARIOS[slug])
-      for (const person of PERSONS)
-        it(`${slug} ${scenario}, ${person}`, () => {
-          const want = recorded(slug)[scenario]![person]!;
+      for (const nr of PERSONS)
+        it(`${slug} ${scenario}, ${nr.id}`, () => {
+          const want = recorded(slug)[scenario]![nr.id]!;
           const { person: _p, ...wantRest } = want;
-          const got = comparable(reportCard(expectedOf(slug, scenario), person));
+          const got = comparable(reportCard(expectedOf(slug, scenario), nr));
           expect(differences(got, wantRest)).toEqual([]);
           expect(got.points).toBe(wantRest.points);
         });
 
   it("the default is explicit, the four gates are its Musts, every row is ranked Should, nothing is a Won't", () => {
-    for (const nr of Object.values(personRubrics())) {
+    for (const nr of PERSONS) {
       const r = nr.rubric;
       expect(r.weights.mode).toBe("explicit");
       expect(r.musts.map((m) => m.factor)).toEqual(["floodplain", "access", "easement", "septic"]);
@@ -54,16 +55,18 @@ describe("the default rubric reproduces today's cards (cards-v7.json)", () => {
       expect(r.gradeCutoffs).toEqual(SCREEN_CONSTANTS.card.gradeCutoffs);
       expect(r.verdict).toEqual(SCREEN_CONSTANTS.card.verdict);
     }
-    expect(personRubrics().zach.rubric.weights).toEqual({
+    expect(ZACH.rubric.weights).toEqual({
       mode: "explicit",
-      of: SCREEN_CONSTANTS.card.weights.zach,
+      of: SCREEN_CONSTANTS.card.weights.default,
     });
+    // A fresh profile's own rubric: the default, named "Mine".
+    expect(defaultNamedRubric()).toEqual({ id: MINE, name: "Mine", rubric: ZACH.rubric });
   });
 
   it("a Won't row leaves the card and the grade; the other rows keep their letters", () => {
     const facts = cardFacts(expectedOf("ferney-creek-52-47A", "run"));
-    const base = cardFor(facts, "zach");
-    const rubric = { ...personRubrics().zach.rubric, wonts: ["trails" as const] };
+    const base = cardFor(facts, ZACH);
+    const rubric = { ...ZACH.rubric, wonts: ["trails" as const] };
     const without = cardFor(facts, { id: "t", name: "Test", rubric });
     expect(without.rows.map((x) => x.key)).toEqual(base.rows.map((x) => x.key).filter((k) => k !== "trails"));
     // Trails was a D under a weight of 10 on a 3.2 card: without it the points rise.
@@ -74,7 +77,7 @@ describe("the default rubric reproduces today's cards (cards-v7.json)", () => {
   });
 
   it("rubricFromWeights copies the config's numbers, so a rubric edit never touches SCREEN_CONSTANTS", () => {
-    const r = rubricFromWeights(SCREEN_CONSTANTS.card.weights.zach);
+    const r = rubricFromWeights(SCREEN_CONSTANTS.card.weights.default);
     expect(r.bands).not.toBe(SCREEN_CONSTANTS.card.rows);
     expect(r.gradeCutoffs).not.toBe(SCREEN_CONSTANTS.card.gradeCutoffs);
     expect(r.verdict).not.toBe(SCREEN_CONSTANTS.card.verdict);

@@ -42,10 +42,8 @@ import { atLeast, atMost, gradedRows, parcelGrade } from "../rubric/grade";
 import { thresholdStatus, thresholdWords, type Measure } from "../rubric/musts";
 import type { GateKey, Letter, NamedRubric, RowKey } from "../rubric/types";
 import { weightsOf } from "../rubric/weights";
-import { toRubric, type RubricLike } from "./persons";
 
 export type { GateKey, Letter, NamedRubric, RowKey } from "../rubric/types";
-export type { Person, RubricLike } from "./persons";
 export { atLeast, atMost } from "../rubric/grade";
 
 export type CardConfig = typeof SCREEN_CONSTANTS.card;
@@ -735,8 +733,7 @@ export function maybeCaps(facts: CardFacts): Record<keyof typeof MAYBE_CAPS, boo
   };
 }
 
-export function cardFor(facts: CardFacts, rubric: RubricLike): Card {
-  const nr = toRubric(rubric);
+export function cardFor(facts: CardFacts, nr: NamedRubric): Card {
   const R = nr.rubric;
   const w = weightsOf(R);
   // Won't rows are hidden and left out of the grade; the gates the rubric keeps as Musts decide the verdict.
@@ -789,13 +786,12 @@ export function cardFor(facts: CardFacts, rubric: RubricLike): Card {
   return { ...facts, rows, rubric: nr, points, grade, verdict, reason: `${why}${more}.`, incomplete };
 }
 
-/** The card for a result and a rubric (a person's, until PR 5): the rubric's bands grade the rows. */
+/** The card for a result and a rubric: the rubric's bands grade the rows, its weights and lines grade the parcel. */
 export const reportCard = (
   r: Result,
-  rubric: RubricLike,
+  nr: NamedRubric,
   drawn?: Drawn,
   K: CardConfig = SCREEN_CONSTANTS.card,
 ): Card => {
-  const nr = toRubric(rubric, K);
   return cardFor(cardFacts(r, { ...K, rows: nr.rubric.bands }, SCREEN_CONSTANTS.build, drawn), nr);
 };

@@ -68,6 +68,9 @@ export interface Rubric {
   verdict: { contender: number; pass: number; contenderMaxWarns: number };
 }
 
+/** The id of a profile's own rubric (lib/client/rubrics.ts): the first choice everywhere. */
+export const MINE = "mine";
+
 /** A rubric with its identity: whose it is, for the card's switch and the list's columns. */
 export interface NamedRubric {
   id: string;

@@ -42,8 +42,8 @@ import type { PartialScreenResult, ScreenResult, UserConfig } from "@/lib/screen
 import type { ExploreController, SetHint } from "@/components/Explore/useExploreController";
 import { lineLayer } from "@/components/Explore/layers";
 import { evaluationPoint } from "../blocks/types";
-import { getPref, setPref } from "@/lib/client/prefs";
-import { reportCard, type Person } from "@/lib/report/card";
+import { useRubricView } from "@/lib/client/useRubricView";
+import { reportCard } from "@/lib/report/card";
 import { lineNamesOf, type LineNames } from "@/lib/report/lines";
 import { drawnOf, type Drawn } from "@/lib/report/marks";
 import { listingAcresNote } from "@/lib/report/listing";
@@ -80,8 +80,8 @@ export function useScreenIt(
   const [live, setLive] = useState<LiveRun | null>(null);
   const [stored, setStored] = useState<{ serial: number; record: ScreenRecord } | null>(null);
   const [showParams, setShowParams] = useState(false);
-  // Whose grade the card shows (VR5; owner #110: on the sheet, remembered per browser).
-  const [person, setPersonState] = useState<Person>(() => getPref("ps.person"));
+  // Whose rubric grades the card (VR5; owner #110: on the sheet; step 1: the profile's, remembered per profile).
+  const { rubrics, rubric, setRubric } = useRubricView();
   // A pin tap re-evaluates at another point (step 15): shown, never kept (owner, 15 plan Q1).
   const [evalAsked, setEvalAsked] = useState<{ serial: number; ll: LatLon; label: string } | null>(null);
   const awaitingEval = useRef(false);
@@ -402,15 +402,13 @@ export function useScreenIt(
     evaluateAt,
     /** The unsaved re-evaluation shown, if any (its label for the "not saved" note, 15b). */
     evaluated: evaluated ? { label: evalAsked!.label } : null,
-    person,
+    rubric,
+    rubrics,
     /** The Settings' earthwork rates: the card's dig cost (VR3b). */
     dw: config.dw,
     /** The Settings' driveway veto: the Easement panel's comparison of routes (WF5). */
     vetoPct: config.roadVetoGradePct,
-    setPerson: (p: Person) => {
-      setPersonState(p);
-      setPref("ps.person", p);
-    },
+    setRubric,
   };
 }
 
@@ -446,7 +444,7 @@ export function ScreenHeader({ s, desk = null }: { s: ScreenIt; desk?: DeskCard 
   const name = s.ctl.layers?.name ?? "Parcel";
   // The card's grade and verdict for the kept run (owner, #110), in whoever's grade is on.
   const card =
-    !s.runningHere && !s.stale && s.shown ? reportCard(s.shown.result, s.person, drawnFor(s)) : null;
+    !s.runningHere && !s.stale && s.shown ? reportCard(s.shown.result, s.rubric, drawnFor(s)) : null;
   const label = s.running ? "Running…" : s.shown ? "Run again" : "Screen it";
   const folded = desk && !desk.expanded && desk.fold && s.display;
   return (
@@ -525,7 +523,7 @@ function VerdictLine({ s }: { s: ScreenIt }) {
   if (s.stale && !s.runningHere)
     return <span className="sh-verdict muted">These results are for an earlier boundary. Run again.</span>;
   if (s.runningHere) return <span className="sh-verdict muted">Screening…</span>;
-  return <span className="sh-verdict">{reportCard(s.display, s.person, drawnFor(s)).reason}</span>;
+  return <span className="sh-verdict">{reportCard(s.display, s.rubric, drawnFor(s)).reason}</span>;
 }
 
 function Chevron({ up }: { up: boolean }) {
@@ -597,13 +595,14 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
       {display && (
         <div className={s.stale && !s.runningHere ? "report stale" : "report"}>
           <ReportCard
-            card={reportCard(display, s.person, drawnFor(s))}
+            card={reportCard(display, s.rubric, drawnFor(s))}
             running={!!s.runningHere}
             note={listingAcresNote(
               s.ctl.state.store.open?.listingAcres ?? null,
               s.ctl.derived?.ok ? s.ctl.derived.acres : null,
             )}
-            setPerson={s.setPerson}
+            rubrics={s.rubrics}
+            setRubric={s.setRubric}
             onOpen={openPanel}
             stale={
               s.fresh?.lines
@@ -640,7 +639,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
       {display && panel && (
         <CardPanel
           panel={panel}
-          card={reportCard(display, s.person, drawnFor(s))}
+          card={reportCard(display, s.rubric, drawnFor(s))}
           result={display}
           lineNames={namesOf(s)}
           point={point}

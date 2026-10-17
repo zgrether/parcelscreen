@@ -7,7 +7,15 @@
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { DEFAULT_USER_CONFIG } from "../screen/config";
-import { LEGACY_PREFIX, legacyDocs, migrateLegacy, type LegacyStore } from "./migrateProfiles";
+import { MINE } from "../rubric/types";
+import {
+  LEGACY_PREFIX,
+  LEGACY_SECOND_ID,
+  LEGACY_SECOND_NAME,
+  legacyDocs,
+  migrateLegacy,
+  type LegacyStore,
+} from "./migrateProfiles";
 import { getPref, setPref } from "./prefs";
 import { activeKv, PROFILE_KEYS, ProfileKv } from "./profileKv";
 import { memoryProfileStorage } from "./profileStore";
@@ -87,7 +95,9 @@ describe("the move into the first profile (approval C)", () => {
     const b = await bootProfiles({ storage, ls });
     expect(b.migrated).toBe(true);
     const docs = await storage.docs(b.profile.id);
-    expect(docs.map((d) => d.key).sort()).toEqual(["ps.cfg", "ps.parcels", "ps.person"]);
+    // The weight switch (ps.person) becomes the rubric view, and the profile gets its rubrics: its own (the default)
+    // and the second weight set the app shipped with, as another's (plan §8 Q3).
+    expect(docs.map((d) => d.key).sort()).toEqual(["ps.cfg", "ps.parcels", "ps.rubricView", "ps.rubrics"]);
     expect(docs.find((d) => d.key === "ps.parcels")?.value).toBe(PARCELS);
     // The keys are renamed, not deleted (step 2's first PR deletes them); a device key stays.
     expect(ls.getItem("ps.parcels")).toBeNull();
@@ -98,7 +108,11 @@ describe("the move into the first profile (approval C)", () => {
     expect(storage.state.screens.get("s1")).toEqual({ profile: b.profile.id });
     expect(storage.state.screens.get("s2")).toEqual({ profile: "other" });
     // The documents are what the prefs read now.
-    expect(getPref("ps.person")).toBe("julie");
+    expect(getPref("ps.rubricView")).toBe(LEGACY_SECOND_ID);
+    expect(getPref("ps.rubrics")?.others.map((o) => [o.id, o.name])).toEqual([
+      [LEGACY_SECOND_ID, LEGACY_SECOND_NAME],
+    ]);
+    expect(ls.getItem(LEGACY_PREFIX + "ps.person")).toBe("julie");
     expect(loadUserConfig().sunHoursWanted).toBe(5);
   });
 
@@ -131,7 +145,11 @@ describe("the move into the first profile (approval C)", () => {
 
   it("legacyDocs lists exactly the profile-scoped keys the browser holds, in a fixed order", () => {
     const ls = fakeLs({ "ps.cfg": CFG, "ps.parcels": PARCELS, "ps.debug": "1" });
-    expect(legacyDocs(ls, "p").map((d) => d.key)).toEqual(["ps.parcels", "ps.cfg"]);
+    const docs = legacyDocs(ls, "p");
+    expect(docs.map((d) => d.key)).toEqual(["ps.parcels", "ps.cfg", "ps.rubrics", "ps.rubricView"]);
+    // No weight switch kept: the profile's own rubric is on show.
+    expect(docs.find((d) => d.key === "ps.rubricView")?.value).toBe(MINE);
+    expect(legacyDocs(fakeLs({ "ps.debug": "1" }), "p")).toEqual([]);
     expect([...PROFILE_KEYS]).toContain("ps.library");
     expect([...PROFILE_KEYS]).not.toContain("ps.view");
   });
@@ -143,15 +161,15 @@ describe("the profile's key-value store", () => {
     const b = await bootProfiles({ storage, ls: fakeLs() });
     const kv = b.kv;
     expect(kv).toBeInstanceOf(ProfileKv);
-    setPref("ps.person", "julie");
+    setPref("ps.rubricView", "r2");
     saveUserConfig({ ...DEFAULT_USER_CONFIG, canopyDeg: 7 });
-    expect(getPref("ps.person")).toBe("julie");
+    expect(getPref("ps.rubricView")).toBe("r2");
     expect(loadUserConfig().canopyDeg).toBe(7);
     await kv.flush();
     const docs = await storage.docs(b.profile.id);
-    expect(docs.find((d) => d.key === "ps.person")?.value).toBe("julie");
+    expect(docs.find((d) => d.key === "ps.rubricView")?.value).toBe("r2");
     expect(JSON.parse(docs.find((d) => d.key === "ps.cfg")!.value).canopyDeg).toBe(7);
-    kv.removeItem("ps.person");
+    kv.removeItem("ps.rubricView");
     await kv.flush();
     expect((await storage.docs(b.profile.id)).map((d) => d.key)).toEqual(["ps.cfg"]);
     // A device key never reaches the profile's documents (no localStorage here: it reads as its default).
@@ -163,14 +181,14 @@ describe("the profile's key-value store", () => {
   it("a profile's documents are its own: another profile's store doesn't see them", async () => {
     const storage = memoryProfileStorage();
     const a = await bootProfiles({ storage, ls: fakeLs() });
-    setPref("ps.person", "julie");
+    setPref("ps.rubricView", "r2");
     await a.kv.flush();
     resetProfilesForTests();
     const other = newProfile("Visitor");
     await storage.putProfile(other);
     const b = await bootProfiles({ storage, ls: fakeLs({ [CURRENT_PROFILE_KEY]: other.id }) });
     expect(b.profile.id).toBe(other.id);
-    expect(getPref("ps.person")).toBe("zach"); // the default
+    expect(getPref("ps.rubricView")).toBe(MINE); // the default
     expect(getPref("ps.parcels")).toBeNull();
   });
 

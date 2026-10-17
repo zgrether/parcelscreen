@@ -5,10 +5,10 @@
  */
 import { fmt } from "../format";
 import { SCREEN_CONSTANTS } from "../screen/config";
+import { defaultNamedRubric } from "../rubric/default";
 import type { NamedRubric, Rubric } from "../rubric/types";
 import { weightsOf } from "../rubric/weights";
 import { MAYBE_CAPS, footprintFt2, type CardConfig, type GateKey, type RowKey } from "./card";
-import { personRubrics } from "./persons";
 
 export type PanelKey = "verdict" | GateKey | RowKey | "cost";
 
@@ -43,9 +43,11 @@ export interface PanelText {
 const KM_PER_MI = 1.609344;
 /** Whole miles: the Trails cutoffs are round miles (owner, #118 review). */
 const mi = (km: number) => fmt(km / KM_PER_MI);
-/** "weight 25 (Zach) / 10 (Julie)": each rubric's weight on the row (step 1: the rubrics' own, by name). */
+/** "weight 25" for one rubric; "weight 25 (Mine) / 10 (Julie)" for several: each rubric's weight on the row, by name. */
 const weightOf = (rubrics: readonly NamedRubric[], row: RowKey): string =>
-  "weight " + rubrics.map((nr) => `${weightsOf(nr.rubric)[row]} (${nr.name})`).join(" / ");
+  rubrics.length === 1
+    ? `weight ${weightsOf(rubrics[0]!.rubric)[row]}`
+    : "weight " + rubrics.map((nr) => `${weightsOf(nr.rubric)[row]} (${nr.name})`).join(" / ");
 
 /** "A at 3,000 ft and up, B from 2,500, C from 2,000, D from 1,500" */
 const ladder = (edges: readonly string[], first: string, then: string): string =>
@@ -58,13 +60,13 @@ export function panelText(
   /**
    * The rulebook's: slopes in both degrees and percent (#118 review). The report's panels keep one unit. `rubric`:
    * whose points, cutoffs and verdict lines the Grade and verdict panel quotes (the config's without one); `rubrics`:
-   * whose weights the rows quote (the two in config without them), step 1.
+   * whose weights the rows quote (the profile's; the default rubric alone without them).
    */
   opts: { bothSlopeUnits?: boolean; rubric?: Rubric; rubrics?: readonly NamedRubric[] } = {},
 ): PanelText {
   const R = K.rows;
   const V = opts.rubric ?? K;
-  const rubrics = opts.rubrics ?? Object.values(personRubrics(K));
+  const rubrics = opts.rubrics ?? [defaultNamedRubric(K)];
   const gentle = SCREEN_CONSTANTS.terrain.gentleGradePct;
   const gentleText = opts.bothSlopeUnits
     ? `${gentle}% (${fmt((Math.atan(gentle / 100) * 180) / Math.PI, 1)}°) or less`
