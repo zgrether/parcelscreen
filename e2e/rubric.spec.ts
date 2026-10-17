@@ -151,3 +151,51 @@ test("a change re-grades the Library at once, and nothing asks for a re-screen",
   await expect(page.locator(".lib-table")).not.toContainText("Needs a re-screen");
   expect(errors).toEqual([]);
 });
+
+test("the preview: the sample when nothing is screened, following a held card before it's dropped", async ({
+  page,
+}) => {
+  await openRubric(page);
+  const preview = page.getByRole("complementary", { name: "Preview" });
+  await expect(preview.locator("select")).toHaveValue("sample");
+  await expect(preview).toContainText(/B\s*Contender/);
+  // Held over Best homesite, not dropped: the preview already shows what the drop would make.
+  const a = (await card(page, "Night sky").locator(".rubric-handle").boundingBox())!;
+  const b = (await card(page, "Best homesite").boundingBox())!;
+  await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2 + 8, { steps: 4 });
+  await page.mouse.move(b.x + b.width / 2, b.y + 8, { steps: 12 });
+  await expect(preview).toContainText("(if you drop it here)");
+  await expect(preview).toContainText(/B\s*Contender\s*→\s*A\s*Contender/);
+  await page.mouse.up();
+  await page.waitForTimeout(100);
+  await expect(preview).not.toContainText("(if you drop it here)");
+  await expect(preview.locator(".rubric-moved li")).toHaveCount(2);
+  // The notice's table has the sample's points too.
+  await page.locator(".rubric-notice").getByRole("button", { name: "See what changed" }).click();
+  await expect(page.locator(".rubric-notice")).toContainText(
+    // Rank weights with Night sky moved up: 3.54 (the default order alone would be 3.50).
+    /Sample: Mud Creek.*3\.45 B · Contender → 3\.54 A · Contender/,
+  );
+  expect(errors).toEqual([]);
+});
+
+test("the preview on the open parcel: a dealbreaker that warned, moved to Won't, comes first", async ({
+  page,
+  context,
+}) => {
+  await replayHar(context, FERNEY);
+  await openExplorer(page, FERNEY);
+  await importParcels(page, [FERNEY]);
+  await seedScreens(page, [FERNEY]);
+  await visit(page, "/rubric");
+  const preview = page.getByRole("complementary", { name: "Preview" });
+  await expect(preview.locator("select option").first()).toContainText("Ferney");
+  await expect(preview.locator("select")).not.toHaveValue("sample");
+  await card(page, "Legal road access").locator(".rubric-card-body").click();
+  await sheet(page).getByRole("button", { name: "Won't" }).click();
+  await page.keyboard.press("Escape");
+  await expect(preview.locator(".rubric-moved li").first()).toHaveText(/Legal road access\s*\(now a Won't\)/);
+  expect(errors).toEqual([]);
+});
