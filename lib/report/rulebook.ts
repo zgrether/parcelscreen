@@ -9,7 +9,10 @@ import { SCREEN_CONSTANTS } from "../screen/config";
 import type { UserConfig } from "../screen/types";
 import type { Curve } from "../screen/util";
 import { DEFAULT_USER_CONFIG } from "../screen/config";
-import type { GateKey, Person, RowKey } from "./card";
+import type { NamedRubric } from "../rubric/types";
+import { weightsOf } from "../rubric/weights";
+import type { GateKey, RowKey } from "./card";
+import { personRubrics } from "./persons";
 import { panelText, type PanelKey } from "./cardPanels";
 import { MEANINGS, type Meaning } from "./meanings";
 import {
@@ -54,7 +57,9 @@ export interface Rulebook {
   card: {
     /** The verdict panel's rules: the points per letter, the grade's cutoffs, the verdict. */
     verdict: RulePanel;
-    weights: { key: RowKey; label: string; byPerson: Record<Person, number> }[];
+    /** The rubrics the weights table shows, in column order (step 1: the two in config). */
+    rubrics: { id: string; name: string }[];
+    weights: { key: RowKey; label: string; byRubric: Record<string, number> }[];
     gates: RulePanel[];
     rows: RulePanel[];
     /** Cost to enjoy: the card's last line, not graded; pending until the unit costs are calibrated. */
@@ -73,7 +78,6 @@ export interface Rulebook {
   };
 }
 
-const PEOPLE: Person[] = ["zach", "julie"];
 const GATES: GateKey[] = ["floodplain", "access", "easement", "septic"];
 const ROWS: RowKey[] = ["elevation", "homesite", "sky", "room", "trails", "town", "garden"];
 
@@ -103,8 +107,8 @@ function ruleScale(name: ScaleName, C: Constants): RuleScale {
   };
 }
 
-function rulePanel(key: PanelKey, C: Constants): RulePanel {
-  const t = panelText(key, C.card, C.build, { bothSlopeUnits: true });
+function rulePanel(key: PanelKey, C: Constants, rubrics: readonly NamedRubric[]): RulePanel {
+  const t = panelText(key, C.card, C.build, { bothSlopeUnits: true, rubrics });
   return { key, ...t, scales: (PANEL_SCALES[key] ?? []).map((n) => ruleScale(n, C)) };
 }
 
@@ -155,8 +159,12 @@ function curveWords(pts: Curve, x: (v: number) => string): string {
 
 const pct = (share: number) => fmt(share * 100);
 
-/** The rulebook for these constants and Settings. */
-export function rulebook(C: Constants = SCREEN_CONSTANTS, cfg: UserConfig = DEFAULT_USER_CONFIG): Rulebook {
+/** The rulebook for these constants, Settings and rubrics (the two in config, until PR 5). */
+export function rulebook(
+  C: Constants = SCREEN_CONSTANTS,
+  cfg: UserConfig = DEFAULT_USER_CONFIG,
+  rubrics: readonly NamedRubric[] = Object.values(personRubrics(C.card)),
+): Rulebook {
   const S = C.score,
     SU = C.suitability,
     D = C.driveway,
@@ -234,18 +242,16 @@ export function rulebook(C: Constants = SCREEN_CONSTANTS, cfg: UserConfig = DEFA
   const [t1, t2, t3] = S.costTiers.map(([v]) => v);
   return {
     card: {
-      verdict: rulePanel("verdict", C),
+      verdict: rulePanel("verdict", C, rubrics),
+      rubrics: rubrics.map(({ id, name }) => ({ id, name })),
       weights: ROWS.map((key) => ({
         key,
         label: panelText(key, C.card, C.build).title,
-        byPerson: Object.fromEntries(PEOPLE.map((p) => [p, C.card.weights[p][key]])) as Record<
-          Person,
-          number
-        >,
+        byRubric: Object.fromEntries(rubrics.map((nr) => [nr.id, weightsOf(nr.rubric)[key]])),
       })),
-      gates: GATES.map((k) => rulePanel(k, C)),
-      rows: ROWS.map((k) => rulePanel(k, C)),
-      cost: rulePanel("cost", C),
+      gates: GATES.map((k) => rulePanel(k, C, rubrics)),
+      rows: ROWS.map((k) => rulePanel(k, C, rubrics)),
+      cost: rulePanel("cost", C, rubrics),
     },
     homesite: {
       intro:

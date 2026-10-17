@@ -7,7 +7,7 @@
 import { shortPrice } from "../client/askingPrice";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import type { ScreenResult } from "../screen/types";
-import { reportCard, type Card, type GateStatus, type Letter, type Person } from "./card";
+import { reportCard, type Card, type GateStatus, type Letter, type RubricLike } from "./card";
 import type { Drawn } from "./marks";
 import type { PanelKey } from "./cardPanels";
 
@@ -92,14 +92,14 @@ const STAGES: { key: string; label: string }[] = [
   { key: "stage3", label: "Stage 3: home" },
 ];
 
-/** The table for these parcels, graded with `person`'s weights. */
+/** The table for these parcels, graded with `rubric` (a person's, until PR 5). */
 export function compareTable(
   parcels: readonly CompareParcel[],
-  person: Person,
+  rubric: RubricLike,
   readyToBuild: number,
 ): CompareTable {
   const cards = parcels.map((p) =>
-    p.state === "ok" && p.result ? reportCard(p.result, person, p.drawn) : null,
+    p.state === "ok" && p.result ? reportCard(p.result, rubric, p.drawn) : null,
   );
   const blank = (p: CompareParcel): Cell => ({
     text: p.state === "ok" ? "–" : NO_SCREEN[p.state],
@@ -194,11 +194,11 @@ export const DEFAULT_COLUMNS = 4;
 
 /**
  * The columns the table starts with, until the user picks (owner, #117 review): up to DEFAULT_COLUMNS, the
- * Contenders first (in `person`'s weights), then the most recently screened; never-screened parcels last.
+ * Contenders first (in `rubric`), then the most recently screened; never-screened parcels last.
  */
-export function defaultColumns(parcels: readonly CompareParcel[], person: Person): string[] {
+export function defaultColumns(parcels: readonly CompareParcel[], rubric: RubricLike): string[] {
   const contender = (p: CompareParcel) =>
-    p.state === "ok" && !!p.result && reportCard(p.result, person, p.drawn).verdict === "Contender";
+    p.state === "ok" && !!p.result && reportCard(p.result, rubric, p.drawn).verdict === "Contender";
   const screenedAt = (p: CompareParcel) => (p.state === "ok" && p.result ? p.result.runAt : "");
   return [...parcels]
     .sort((a, b) => Number(contender(b)) - Number(contender(a)) || screenedAt(b).localeCompare(screenedAt(a)))

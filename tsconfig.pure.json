@@ -15,6 +15,7 @@
     "lib/format.ts",
     "lib/render/**/*.ts",
     "lib/report/**/*.ts",
+    "lib/rubric/**/*.ts",
     "lib/search/**/*.ts"
   ],
   "exclude": ["**/*.test.ts"]

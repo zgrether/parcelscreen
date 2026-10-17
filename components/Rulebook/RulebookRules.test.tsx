@@ -59,7 +59,7 @@ function allowed(): Set<string> {
   return out;
 }
 
-const render = (rb = rulebook()) => textOf(renderToStaticMarkup(<RulebookRules rb={rb} person="zach" />));
+const render = (rb = rulebook()) => textOf(renderToStaticMarkup(<RulebookRules rb={rb} current="zach" />));
 
 describe("the rulebook (VR7)", () => {
   it("every number on the page comes from config", () => {
@@ -125,7 +125,7 @@ describe("the rulebook (VR7)", () => {
       renderToStaticMarkup(
         <RulebookRules
           rb={rulebook(SCREEN_CONSTANTS, { ...DEFAULT_USER_CONFIG, thermalMinFt: 120, roadMaxGradePct: 12 })}
-          person="zach"
+          current="zach"
         />,
       ),
     );
@@ -134,7 +134,7 @@ describe("the rulebook (VR7)", () => {
   });
 
   it('has a section for every report panel, where its "How it\'s scored" link goes (follow-up 52)', () => {
-    const html = renderToStaticMarkup(<RulebookRules rb={rulebook()} person="zach" />);
+    const html = renderToStaticMarkup(<RulebookRules rb={rulebook()} current="zach" />);
     const ids = new Set([...html.matchAll(/ id="([^"]+)"/g)].map((m) => m[1]));
     const missing = PANEL_KEYS.filter((k) => !ids.has(ruleAnchor(k)));
     expect(missing, "panels with no section on the rulebook").toEqual([]);

@@ -10,6 +10,7 @@ const PURE = [
   "lib/format.ts",
   "lib/render/**",
   "lib/report/**",
+  "lib/rubric/**",
   "lib/search/**",
 ];
 

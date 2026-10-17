@@ -66,7 +66,7 @@ export function ReportCard({
             <button
               key={p.key}
               className="chip"
-              aria-pressed={card.person === p.key}
+              aria-pressed={card.rubric.id === p.key}
               onClick={() => setPerson(p.key)}
             >
               {p.name}

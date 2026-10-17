@@ -133,7 +133,7 @@ export function Rulebook() {
           )}
         </section>
 
-        <RulebookRules rb={rb} person={person} />
+        <RulebookRules rb={rb} current={person} />
       </main>
     </HelpProvider>
   );
