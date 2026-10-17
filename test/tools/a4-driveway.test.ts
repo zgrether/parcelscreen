@@ -16,7 +16,7 @@ import { chooseDriveway, drivewayPoints, overLimitTerm } from "@/lib/screen/scor
 import { derivedSites, type ScoredResult } from "@/lib/screen/derive";
 import type { ScoredSite } from "@/lib/screen/types";
 import { expectedPath } from "../support/expected";
-import { FIXTURE_SLUGS, type FixtureSlug } from "../support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, type PrototypeSlug } from "../support/fixtures";
 import { runFixture } from "../support/scenarios";
 
 const C = SCREEN_CONSTANTS.score.drivewayCost;
@@ -54,7 +54,7 @@ interface Row {
 }
 
 /** The base commit's result: it stored its grades (schema v7), so they're read as they are (scored). */
-function baseRun(slug: FixtureSlug): ScoredResult | null {
+function baseRun(slug: PrototypeSlug): ScoredResult | null {
   const path = expectedPath(slug).replace(/\\/g, "/").split("/test/fixtures/")[1];
   try {
     return JSON.parse(
@@ -170,7 +170,7 @@ describe.runIf(import.meta.env.MODE === "a4-driveway")("A4 driveway study", () =
         lengthFt: number;
         cost: number;
       }[] = [];
-      for (const slug of FIXTURE_SLUGS) {
+      for (const slug of PROTOTYPE_FIXTURE_SLUGS) {
         const { result, session: s } = await runFixture(slug);
         const sites = derivedSites(result) ?? [];
         const t0 = performance.now();

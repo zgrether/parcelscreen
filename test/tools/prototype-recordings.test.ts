@@ -7,7 +7,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { FIXTURE_SLUGS } from "../support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS } from "../support/fixtures";
 import { assertPortHar, portHarPath } from "../support/portHar";
 
 const DIR = join(process.cwd(), "test", "fixtures");
@@ -18,7 +18,7 @@ const PINNED = JSON.parse(readFileSync(join(DIR, "prototype-recordings.sha256.js
 const PROTOTYPE_FILES = ["network.har", "golden.json", "input.json"] as const;
 
 describe("the prototype's recordings", () => {
-  it.each(FIXTURE_SLUGS.flatMap((s) => PROTOTYPE_FILES.map((f) => `${s}/${f}`)))(
+  it.each(PROTOTYPE_FIXTURE_SLUGS.flatMap((s) => PROTOTYPE_FILES.map((f) => `${s}/${f}`)))(
     "%s is byte for byte as recorded",
     (file) => {
       const sha = createHash("sha256")
@@ -32,14 +32,14 @@ describe("the prototype's recordings", () => {
 
 describe("pnpm record:port writes only network-port.har", () => {
   it("each fixture's port recording is network-port.har in its own directory", () => {
-    for (const slug of FIXTURE_SLUGS) {
+    for (const slug of PROTOTYPE_FIXTURE_SLUGS) {
       expect(portHarPath(slug)).toBe(join(DIR, slug, "network-port.har"));
       expect(() => assertPortHar(portHarPath(slug))).not.toThrow();
     }
   });
 
   it("refuses every other fixture file, and any path outside test/fixtures/<slug>/", () => {
-    for (const slug of FIXTURE_SLUGS)
+    for (const slug of PROTOTYPE_FIXTURE_SLUGS)
       for (const f of ["network.har", "golden.json", "input.json", "expected.json"])
         expect(() => assertPortHar(join(DIR, slug, f))).toThrow(/may write only/);
     expect(() => assertPortHar(join(DIR, "network-port.har"))).toThrow(); // not in a fixture's directory

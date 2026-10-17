@@ -45,11 +45,25 @@ export function MapTools({ parcelServices, hint }: { parcelServices: readonly st
   return null;
 }
 
-export function Hint({ text }: { text: string }) {
+/** The map's hint line; `action` puts a button beside it (Draw, over a Tennessee county with no lines: step 2). */
+export function Hint({
+  text,
+  action,
+}: {
+  text: string;
+  action?: { label: string; onClick: () => void } | null;
+}) {
   if (!text) return null;
   return (
-    <div className="map-hint absolute left-2.5 z-10 max-w-[70%] rounded bg-[rgba(28,38,32,.86)] px-2.5 py-1.5 text-[13px] text-white">
+    <div
+      className={`map-hint absolute left-2.5 z-10 ${action ? "map-hint--action" : "max-w-[70%]"} rounded bg-[rgba(28,38,32,.86)] px-2.5 py-1.5 text-[13px] text-white`}
+    >
       {text}
+      {action && (
+        <button type="button" className="map-hint-action" onClick={action.onClick}>
+          {action.label}
+        </button>
+      )}
     </div>
   );
 }

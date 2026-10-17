@@ -12,6 +12,8 @@ import { createPortal } from "react-dom";
 import { useHelp } from "@/components/Help/HelpDialog";
 import { ProfilePicker } from "@/components/Profile/ProfilePicker";
 import { useSettings } from "@/components/Settings/SettingsDialog";
+import { OLD_DATA_DROPPED } from "@/lib/client/oldData";
+import { oldDataDropped } from "@/lib/client/profiles";
 import { ExportImport } from "./ExportImport";
 import { History } from "./History";
 
@@ -62,6 +64,8 @@ function Drawer({ close }: { close(): void }) {
           <section className="block profile-block">
             <h2>Profile</h2>
             <ProfilePicker />
+            {/* Only on the boot that dropped data from before profiles (step 2 plan §9): the next one finds none. */}
+            {oldDataDropped() && <p className="tiny muted m-0 old-data-note">{OLD_DATA_DROPPED}</p>}
           </section>
           <History onOpened={close} />
           <ExportImport />

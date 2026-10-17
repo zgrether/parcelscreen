@@ -1,9 +1,13 @@
-/** The facts table's multi-part note (follow-up 29, owner 2026-10-08). */
+/**
+ * The facts table: its multi-part note (follow-up 29, owner 2026-10-08), and a Tennessee record's deeded acres,
+ * conflict line and County record link (step 2, PR 2).
+ */
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import type { ParcelRecord } from "@/lib/geo/parcels";
-import { square } from "@/test/support/parcels";
-import { ParcelFacts } from "./ParcelFacts";
+import { county as vaCounty, square } from "@/test/support/parcels";
+import { carterReplay, carterSamples } from "@/test/support/tnCarter";
+import { BOUNDARY_CONFLICT, ParcelFacts } from "./ParcelFacts";
 
 const record = (over: Partial<ParcelRecord>): ParcelRecord => ({
   geo: square(-81.56),
@@ -58,5 +62,40 @@ describe("the multi-part note", () => {
     expect(renderToStaticMarkup(<ParcelFacts parcel={record({ multiPart: false })} />)).not.toContain(
       "Multi-part",
     );
+  });
+});
+
+describe("a Tennessee record (step 2, PR 2; replayed from test/support/tnCarter.ts)", () => {
+  let got: Awaited<ReturnType<typeof carterSamples>>;
+  beforeAll(async () => {
+    got = await carterSamples(carterReplay());
+  });
+
+  it("shows the deeded acres, the conflict line and the County record link opening in a new tab", () => {
+    const html = renderToStaticMarkup(<ParcelFacts parcel={got.conflict} />);
+    expect(html).toContain("Deeded acres (county record)");
+    expect(html).toContain("67.18");
+    expect(html).toContain(BOUNDARY_CONFLICT);
+    expect(html).toContain("County record ↗");
+    expect(html).toMatch(
+      /href="https:\/\/assessment\.cot\.tn\.gov\/[^"]*" target="_blank" rel="noopener noreferrer"/,
+    );
+    expect(html).toContain("066 037.00");
+  });
+
+  it("a Virginia parcel shows none of them", () => {
+    const html = renderToStaticMarkup(<ParcelFacts parcel={vaCounty(-81.355, "52-47A")} />);
+    expect(html).not.toContain("Deeded acres");
+    expect(html).not.toContain(BOUNDARY_CONFLICT);
+    expect(html).not.toContain("County record");
+  });
+
+  it("a record link anywhere but the Comptroller's site isn't shown", () => {
+    const html = renderToStaticMarkup(
+      <ParcelFacts
+        parcel={{ ...got.twoPiece, props: { ...got.twoPiece.props, LINK_TPAD: "https://example.com/x" } }}
+      />,
+    );
+    expect(html).not.toContain("County record");
   });
 });

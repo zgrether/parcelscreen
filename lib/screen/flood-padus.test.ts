@@ -1,7 +1,7 @@
 import type { Feature, Polygon } from "geojson";
 import { describe, expect, it } from "vitest";
 import { differences } from "../../test/support/compare";
-import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
 import { expectedOf, rawFlags } from "../../test/support/expected";
 import { instantClock, throughSites } from "../../test/support/pipeline";
 import { createHttpClient, TimeoutError, type HttpClient, type RequestOptions } from "../http";
@@ -27,7 +27,7 @@ const square = (w: number, s: number, e: number, n: number): Feature<Polygon> =>
 });
 const serve = (body: unknown): HttpClient => ({ fetch: async () => new Response(JSON.stringify(body)) });
 
-describe.each(FIXTURE_SLUGS)("flood and public land on %s vs the prototype", (slug) => {
+describe.each(PROTOTYPE_FIXTURE_SLUGS)("flood and public land on %s vs the prototype", (slug) => {
   it("matches flood, protected land and their flags", async () => {
     const t = await throughSites(slug);
     const golden = expectedOf(slug, "run");

@@ -21,7 +21,7 @@ import { DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { zBilinear } from "@/lib/screen/dem";
 import type { Dem } from "@/lib/screen/types";
 import { routeContext } from "@/lib/screen/index";
-import { FIXTURE_SLUGS, type FixtureSlug } from "../support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, type PrototypeSlug } from "../support/fixtures";
 import { runFixture } from "../support/scenarios";
 import roads from "./driveway-validation.roads.json";
 
@@ -120,9 +120,10 @@ function overVeto(prof: Prof, g: number[]) {
 
 describe.runIf(import.meta.env.MODE === "study-drift")("the drift test", () => {
   it("writes tmp/study-drift/<fixture>-<line>.md", async () => {
-    const fixture = (process.env.FIXTURE ?? "grayson-mud-creek-6273") as FixtureSlug;
+    const fixture = (process.env.FIXTURE ?? "grayson-mud-creek-6273") as PrototypeSlug;
     const lineArg = process.env.LINE ?? "c";
-    if (!FIXTURE_SLUGS.includes(fixture)) throw new Error(`FIXTURE: one of ${FIXTURE_SLUGS.join(", ")}`);
+    if (!PROTOTYPE_FIXTURE_SLUGS.includes(fixture))
+      throw new Error(`FIXTURE: one of ${PROTOTYPE_FIXTURE_SLUGS.join(", ")}`);
     const coords = lineOf(lineArg);
     // The line drawn as an easement, so the screen's ground covers it; its lidar is the screen's fine DEM.
     const run = await runFixture(fixture, {

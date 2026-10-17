@@ -1,7 +1,8 @@
 /**
  * The default rubric reproduces today's card exactly (step 1 plan §3.2): on every fixture and scenario, for both of
  * the weight sets the app shipped with (test/support/rubrics.ts), the card from the rubric equals the card recorded by the card code before it took a rubric
- * (test/fixtures/<slug>/cards-v7.json, recorded once at engine 20; never regenerated: it is the oracle). Gates and
+ * (test/fixtures/<slug>/cards-v7.json, recorded once at engine 20; never regenerated: it is the oracle). A port-only
+ * fixture (Roan, step 2) has cards-v8.json instead (`pnpm record:oracles`): a regression snapshot. Gates and
  * their reasons, rows with their letters and details, Check-first items, points, letter, verdict, the reason line and
  * what didn't load must all match. Any difference stops the mission (plan §5).
  */
@@ -10,7 +11,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { differences } from "@/test/support/compare";
 import { expectedOf } from "@/test/support/expected";
-import { FIXTURE_SLUGS, type FixtureSlug } from "@/test/support/fixtures";
+import { FIXTURE_SLUGS, isPrototypeSlug, type FixtureSlug } from "@/test/support/fixtures";
 import { SCENARIOS } from "@/test/support/scenarios";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { cardFor, cardFacts, reportCard, type Card } from "../report/card";
@@ -21,7 +22,16 @@ import { MINE } from "./types";
 type Recorded = Record<string, Record<string, Omit<Card, "rubric"> & { person: string }>>;
 const recorded = (slug: FixtureSlug): Recorded =>
   JSON.parse(
-    readFileSync(join(process.cwd(), "test", "fixtures", slug, "cards-v7.json"), "utf8"),
+    readFileSync(
+      join(
+        process.cwd(),
+        "test",
+        "fixtures",
+        slug,
+        isPrototypeSlug(slug) ? "cards-v7.json" : "cards-v8.json",
+      ),
+      "utf8",
+    ),
   ) as Recorded;
 
 /** The card without what step 1 added to it: the rubric, and each row's measure. */
@@ -30,7 +40,7 @@ const comparable = (c: Card) => {
   return { ...rest, rows: rest.rows.map(({ measure: _m, ...row }) => row) };
 };
 
-describe("the default rubric reproduces today's cards (cards-v7.json)", () => {
+describe("the default rubric reproduces today's cards (cards-v7.json; a port-only fixture's cards-v8.json)", () => {
   for (const slug of FIXTURE_SLUGS)
     for (const scenario of SCENARIOS[slug])
       for (const nr of PERSONS)

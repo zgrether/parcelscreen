@@ -5,8 +5,8 @@
  * the terrain preview: a hillshade over the basemaps and contours under the parcel lines (terrainStyle.ts).
  *
  * The prototype's "state ortho" basemap picked VA, NC or USGS imagery per tile from the tile's centre and
- * drew the parent tile, unscaled, past each service's native zoom (plan B2). Here it is three stacked sources
- * with `bounds` and `maxzoom`, so MapLibre overzooms each one correctly.
+ * drew the parent tile, unscaled, past each service's native zoom (plan B2). Here it is stacked sources (USGS, then
+ * TN, NC and VA since step 2) with `bounds` and `maxzoom`, so MapLibre overzooms each one correctly.
  */
 import type {
   ExpressionSpecification,
@@ -23,7 +23,8 @@ export type BasemapId = "state" | "imagery" | "esri" | "topo" | "streets";
 
 /** The basemap menu, labels verbatim from the prototype. */
 export const BASEMAPS: { id: BasemapId; label: string }[] = [
-  { id: "state", label: "Aerial (state ortho: VA 1 ft / NC 6 in)" },
+  // Step 2: Tennessee joins; the resolutions differ by county and year, so the label stops quoting them.
+  { id: "state", label: "Aerial (state ortho: VA, NC, TN)" },
   { id: "imagery", label: "Aerial (USGS)" },
   { id: "esri", label: "Aerial (Esri)" },
   { id: "topo", label: "Topo (USGS)" },
@@ -47,6 +48,14 @@ const VA_ORTHO =
   "?bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=256,256&format=png32&transparent=true&f=image";
 const NC_ORTHO =
   "https://services.nconemap.gov/secure/rest/services/Imagery/Orthoimagery_Latest_cached/ImageServer/tile/{z}/{y}/{x}";
+/**
+ * Tennessee's statewide leaf-off orthophoto (TDOT Aerial Surveys; 6 in since 2022, 1 ft before), TNMap's public
+ * Web Mercator cache (step 2 plan §2; owner, §8 Q3). Checked 2026-10-17: data to zoom 19; a tile outside its coverage
+ * is a 404, so USGS shows through; edge tiles are PNG with transparency. Its flights reach past the state line (a
+ * tile on the TN/NC line at Roan is a full JPEG), so it sits under NC and VA.
+ */
+const TN_ORTHO =
+  "https://tnmap.tn.gov/arcgis/rest/services/BASEMAPS/IMAGERY_WEB_MERCATOR/MapServer/tile/{z}/{y}/{x}";
 
 const raster = (
   tiles: string,
@@ -71,7 +80,9 @@ const BASEMAP_SOURCES: Record<BasemapId, [string, RasterSourceSpecification][]> 
     // asked for. The bounds are each state's whole extent (TIGER, 2026-10-10: NC −84.32…−75.40, 33.75…36.59;
     // VA −83.68…−75.17, 36.54…39.47), rounded outward. The prototype's boxes (orthoFor, proto L511) split at
     // 36.54°, south of the VA–NC line near Grayson (~36.59°), and that strip of NC got the USGS fallback; they
-    // also cut NC's imagery offshore at 33.8° and VA's at −75.2°. VA is drawn over NC where both have imagery.
+    // also cut NC's imagery offshore at 33.8° and VA's at −75.2°. VA is drawn over NC where both have imagery, and
+    // both over TN (TIGER −90.31…−81.65, 34.98…36.68), whose flights cross its lines.
+    ["base-state-tn", raster(TN_ORTHO, 19, "TDOT Aerial Surveys", { bounds: [-90.4, 34.9, -81.6, 36.75] })],
     ["base-state-nc", raster(NC_ORTHO, 20, "NC OneMap", { bounds: [-84.4, 33.7, -75.3, 36.65] })],
     ["base-state-va", raster(VA_ORTHO, 19, "VGIN VBMP", { bounds: [-83.75, 36.5, -75.1, 39.5] })],
   ],
@@ -163,6 +174,10 @@ export const PARCEL_FILL_OPACITY = 0.16;
 /** The selected parcel, and saved parcels (thinner, unfilled). */
 export const SELECTED_COLOR = "#f0a030";
 
+/** Who the parcel lines come from (step 2 plan §6.6): each state's service, by its publisher's name. */
+export const PARCEL_LINES_ATTRIBUTION =
+  "Parcels: VGIN (Virginia), NC OneMap, Tennessee Comptroller of the Treasury";
+
 /** The whole style. Basemaps other than `base` start hidden; overlays start hidden. */
 export function buildStyle(opts: {
   base: BasemapId;
@@ -244,7 +259,7 @@ export function buildStyle(opts: {
     paint: { "fill-color": ["get", "color"], "fill-opacity": 0.14 },
   });
   if (opts.terrain) layers.push(...contourLayers());
-  sources[SOURCE.parcelLines] = { type: "geojson", data: EMPTY_FC };
+  sources[SOURCE.parcelLines] = { type: "geojson", data: EMPTY_FC, attribution: PARCEL_LINES_ATTRIBUTION };
   layers.push(
     // Nearly transparent fill so a tap anywhere inside an outline hits it (step 13 selects on tap).
     {

@@ -6,7 +6,7 @@
 import { area, booleanPointInPolygon, destination, point, polygon } from "@turf/turf";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { CancelledError, type HttpClient } from "../http";
-import { isPlaceholderRecord, recordOutFields } from "./parcelFields";
+import { isPlaceholderRecord, recordOutFields, whereParam } from "./parcelFields";
 import { PARCEL_SERVICE_TIMEOUTS } from "./serviceStatus";
 import { M2_PER_ACRE, type LatLon } from "./types";
 
@@ -69,6 +69,7 @@ export async function pickParcelAt(
         geometryType: "esriGeometryPoint",
         inSR: "4326",
         spatialRel: "esriSpatialRelIntersects",
+        ...whereParam(url),
         outFields: recordOutFields(url),
         returnGeometry: "true",
         outSR: "4326",
@@ -152,12 +153,54 @@ export function parcelFromLine(line: ParcelLine): ParcelRecord {
   };
 }
 
+/**
+ * One parcel from the features that share its record (Tennessee: a tract drawn as two polygons with the same GISLINK,
+ * step 2): every polygon of every feature is a part, the first feature's first polygon its identity, its properties
+ * the record's. One feature is parcelFromLine.
+ */
+export function parcelFromFeatures(
+  features: readonly Feature<Polygon | MultiPolygon>[],
+  source: string,
+): ParcelRecord {
+  const first = parcelFromLine({ feature: features[0]!, source });
+  if (features.length === 1) return first;
+  const parts = features.flatMap((f) => {
+    const p = firstPolygon(f);
+    return p.parts ?? [p.geo];
+  });
+  return { ...first, geo: parts[0]!, multiPart: true, parts };
+}
+
 export interface ParcelFacts {
   acres: number;
   owner: string | null;
+  /** As the county's tax card reads it: Tennessee's control map, group and parcel ("011B A 001.00"). */
   parcelId: string | null;
   address: string | null;
   county: string | null;
+  /**
+   * What the dedupe key names the parcel by: Tennessee's GISLINK (county, map, group and parcel; stable across tax
+   * years, step 2), else the parcel ID.
+   */
+  keyId: string | null;
+  /** The deed's acreage as the county records it (Tennessee DEEDAC), when it's given. */
+  deededAcres: number | null;
+  /** The state's assessment record for the parcel (Tennessee LINK_TPAD), only on the Comptroller's own site. */
+  countyRecordUrl: string | null;
+  /** Part of the parcel lies under a polygon the county map marks as a boundary conflict (Tennessee, step 2). */
+  boundaryConflict: boolean;
+}
+
+/** Where Tennessee's assessment records live: a LINK_TPAD anywhere else isn't linked. */
+const TPAD_PREFIX = "https://assessment.cot.tn.gov/";
+
+/** Tennessee's tax-card parcel number from its parts: control map, group (often blank) and parcel. */
+export function taxCardId(props: Record<string, unknown>): string | null {
+  const map = typeof props.CMAP === "string" ? props.CMAP.trim() : "";
+  const parcel = typeof props.PARCEL === "string" ? props.PARCEL.trim() : "";
+  if (!map || !parcel) return null;
+  const group = typeof props.GP === "string" ? props.GP.trim() : "";
+  return [map, group, parcel].filter(Boolean).join(" ");
 }
 
 /** Case-insensitive lookup over the services' differing attribute names (proto L695–696). */
@@ -170,14 +213,20 @@ export function parcelFacts(geo: Feature<Polygon>, props: Record<string, unknown
     }
     return null;
   };
+  const parcelId = taxCardId(props) ?? pick("parno", "parcelid", "pin", "gispin", "PARCEL_ID", "parid");
+  const link = typeof props.LINK_TPAD === "string" ? props.LINK_TPAD.trim() : "";
   return {
     // A combined boundary may include a bridged strip that isn't part of the listing (lib/geo/combine.ts).
     acres: typeof props.combined_acres === "number" ? props.combined_acres : area(geo) / M2_PER_ACRE,
     owner: pick("ownname", "owner", "ownername", "owner1", "OWNER_NAME"),
-    parcelId: pick("parno", "parcelid", "pin", "gispin", "PARCEL_ID", "parid"),
+    parcelId,
     address: pick("siteadd", "situs", "address", "SITE_ADDRESS"),
     // LOCALITY is VA's (e.g. "Floyd County"); the prototype left the county blank for VA parcels.
     county: pick("county", "cntyname", "COUNTY_NAME", "LOCALITY"),
+    keyId: pick("gislink") ?? parcelId,
+    deededAcres: typeof props.DEEDAC === "number" && props.DEEDAC > 0 ? props.DEEDAC : null,
+    countyRecordUrl: link.startsWith(TPAD_PREFIX) ? link : null,
+    boundaryConflict: props.boundary_conflict === true,
   };
 }
 

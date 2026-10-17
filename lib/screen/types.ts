@@ -18,9 +18,10 @@ import type { STEPS } from "./config";
 /**
  * Bumped when ScreenResult changes shape; stored with every result. v3 (B2a, owner 2026-10-11) and v4 (VR3a, owner
  * 2026-10-12) are clean breaks: an older stored result isn't read or migrated, its parcel re-screens when opened
- * (phase-0.md §9.26, §9.30, §9.31).
+ * (phase-0.md §9.26, §9.30, §9.31). v9 (step 2, owner 2026-10-17; §9.49) is a clean break too: a trailhead lists the
+ * Tennessee TREC trails it serves.
  */
-export const SCREEN_SCHEMA_VERSION = 8 as const;
+export const SCREEN_SCHEMA_VERSION = 9 as const;
 
 // ---------- shared ----------
 
@@ -731,7 +732,12 @@ export const ScreenResultSchema = z.strictObject({
       grocers: z.array(PlaceSchema.extend({ big: z.boolean() })),
       /** `source` (v3, B2a; phase-0.md §9.20 (b)): which list the point came from (lib/screen/trailheads.ts). */
       trailheads: z.array(
-        PlaceSchema.extend({ source: z.enum(["usfs", "state", "osm"]), drive: TrailDriveSchema.nullable() }),
+        PlaceSchema.extend({
+          source: z.enum(["usfs", "state", "osm"]),
+          /** v9 (step 2; §9.49): the TREC trails it serves, by name, when any merged into it. */
+          serves: z.array(z.string()).optional(),
+          drive: TrailDriveSchema.nullable(),
+        }),
       ),
       trailheadCount: z.number().int(),
     })

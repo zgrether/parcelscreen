@@ -23,7 +23,7 @@ const SECRET_HEADER = /^(cookie|set-cookie|authorization|proxy-authorization|x-a
 export const PARCEL_HOSTS = new Set([
   "services.nconemap.gov",
   "vginmaps.vdem.virginia.gov",
-  "geoviewer.cot.tn.gov",
+  "services1.arcgis.com",
 ]);
 
 /**

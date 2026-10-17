@@ -116,8 +116,32 @@ FEMA NFHL layer 28, PAD-US `Fee_Managers_PADUS/FeatureServer/0`, TIGERweb Transp
 Photon (komoot) with Overpass mirrors as fallback (from the browser through `GET /api/places/overpass?lat&lon`,
 which runs the three place queries server-side with an identifying User-Agent: no mirror answers a browser),
 OSRM public router (replace before any commercial use),
-Lorenz atlas binary tiles (GitHub Pages), parcel services: NC OneMap `NC1Map_Parcels/FeatureServer/1`,
-VGIN `VA_Parcels/FeatureServer/0`, TN Comptroller `GeoViewer/Parcels_View/MapServer/0`.
+Lorenz atlas binary tiles (GitHub Pages), trailheads: USFS INFRA recreation sites, the state parks' points (VGIN, NC
+DPR, TN TDEC) and Tennessee's TREC trails (`Tennessee_Statewide_Trails_Lines_Public`, step 2; phase-0.md §9.47); the
+state aerial: VGIN VBMP, NC OneMap and TNMap's TDOT orthophoto (step 2); parcel services: NC OneMap `NC1Map_Parcels/FeatureServer/1`,
+VGIN `VA_Parcels/FeatureServer/0`, TN Comptroller "Tennessee Property Boundaries (Public Use)"
+`Tennessee_Property_Boundaries_Public_Use/FeatureServer/0` (below).
+
+**Tennessee's parcel layer** (step 2; checked live 2026-10-17; phase-0.md §9.46). Published on ArcGIS Online by the
+state's GIS office (account `tnmap_oir`, item `e356f1a241844d6f9025f2fa4e977df3`) for the Comptroller of the
+Treasury, Division of Property Assessments, which the layer credits. Polygons in Web Mercator, asked in 4326;
+`maxRecordCount` 2,000 with pagination; JSON, GeoJSON and PBF. Updated monthly. 86 of 95 counties: Chester,
+Davidson, Hamilton, Hickman, Knox, Montgomery, Rutherford, Shelby and Williamson keep their own assessment systems
+and have no lines (the map says so over them). Fields read: `OBJECTID`, `GISLINK` (the parcel: county, control map,
+group, parcel), `COUNTY_NAME`, `CMAP`, `GP`, `PARCEL` (the tax card's number), `OWNER` and `ADDRESS` (shown live),
+`DEEDAC` (deeded acres), `LINK_TPAD` (the state's assessment record), and `PARCEL_TYPE` in queries: 4 (railroad
+right-of-way) and 5 (parcel conflict) are never lines or taps. `PARCELID` isn't read: it ends in the tax year.
+
+Its terms, as published:
+- The item (public): "This dataset is intended for public use" and "This service is not intended for commercial
+  use", with the download from the Comptroller's site recommended for commercial purposes. Its license text is an
+  as-is disclaimer: the maps are "for graphical reference only", are not legal descriptions and don't establish
+  boundary lines, and carry no warranty.
+- The layer's own description: "This data is intended for use by state agencies with approved access." It also says
+  "all 95 counties", which the layer doesn't hold (86): it's carried over from the state's restricted statewide
+  dataset.
+- **The item's text governs** (owner, 2026-10-17): a free, non-commercial public app is its intended use. If the app
+  ever charges, it switches to the Comptroller's downloadable data per their commercial-use note.
 
 ## 2a. Driveway router (`lib/screen/driveway.ts`)
 
@@ -189,10 +213,11 @@ their keys sorted and joined with ` & `. Drawn pieces never contribute; a parcel
 no key (`lib/geo/recipe.ts` `pieceDedupeKey` / `recipeDedupeKey`).
 
 `county` in the key is the record's **5-digit county FIPS code** where the service provides one (VA `FIPS`,
-e.g. `51063`; NC `stcntyfips`), else the county name in lower case (TN `COUNTY`; `countyKey`). Parcel
+e.g. `51063`; NC `stcntyfips`), else the county name in lower case (TN `COUNTY_NAME`; `countyKey`). Parcel
 numbers repeat across counties: VA's `52-44` exists in Dinwiddie, Floyd, Wythe and King William, and before
 this rule VA records, which carry no county name field the key read, all keyed as `VA::52-44`. Examples:
-`VA:51063:52-47A`, `NC:37005:1234`, `TN:johnson:045 012.00`.
+`VA:51063:52-47A`, `NC:37005:1234`, `TN:carter:010066    03700`. Tennessee's parcel number in the key is its
+`GISLINK`, stable across tax years (`PARCELID` ends in the tax year); a parcel drawn as several polygons shares it.
 
 ### 3a. The local parcel store (Phase 0) and its Phase 1 import
 
@@ -201,8 +226,10 @@ document of the current local profile (`lib/client/parcelStore.ts`, `lib/client/
 phase-0.md §9.45): IndexedDB `parcelscreen`, store `docs`, keyed by [profile, key], holds each profile's parcels,
 settings (`ps.cfg`), rubrics (`ps.rubrics`, `{ mine, others }` as `lib/rubric/schema.ts` validates them) and views, each
 as the JSON string the prefs module writes; the kept screens carry their profile's id. Until step 1 the store was
-localStorage `ps.parcels`; the first boot after it moved those keys into "Profile 1" and renamed them `ps.legacy.*`.
-Accounts (step 13) adopt a profile's documents when a user first signs in, so the shape is a contract. It's versioned
+localStorage `ps.parcels`; step 1's first boot moved those keys into "Profile 1" and renamed them `ps.legacy.*`. Step 2
+dropped both under the clean-break rule: the boot deletes them and moves nothing, and a browser that still held
+pre-profile keys says once "Saved with an older version; screen it again." (`lib/client/oldData.ts`). Accounts
+(step 13) start empty; parcels come over with an export file (owner, 10/17). It's versioned
 by `v`: any change takes a new `v` and a converter (the store already converts 13d's `ps.current`, which had no `v`
 field at the parcel level).
 

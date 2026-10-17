@@ -4,10 +4,12 @@
  */
 import { z } from "zod";
 import { CancelledError, type HttpClient } from "../http";
+import { whereFor } from "../geo/parcelFields";
+import { taxCardId } from "../geo/parcels";
 import { fieldsFor } from "../geo/parcelTiles";
 import type { LatLon } from "../geo/types";
 import { PARCEL_SERVICE_TIMEOUTS } from "@/lib/geo/serviceStatus";
-import { idPattern, matchesId, parcelNumberWhere } from "./query";
+import { idPattern, matchesId, parcelNumberWhere, taxCardQuery, taxCardWhere } from "./query";
 
 export interface ParcelHit {
   source: string;
@@ -56,7 +58,9 @@ function middle(coords: unknown): LatLon | null {
 
 /**
  * Parcel numbers starting with the query (separators ignored) in the given counties: one query per county
- * per service, run in parallel. A county that fails is skipped. Sorted by number, at most MAX_PARCEL_HITS.
+ * per service, run in parallel. Tennessee's are asked by control map, group and parcel (taxCardQuery) and named in
+ * the tax card's form; a parcel drawn as several features is listed once. A county that fails is skipped. Sorted by
+ * number, at most MAX_PARCEL_HITS.
  */
 export async function searchParcelNumbers(
   http: HttpClient,
@@ -66,12 +70,17 @@ export async function searchParcelNumbers(
 ): Promise<ParcelHit[]> {
   const pattern = idPattern(query);
   if (!pattern) return [];
+  const taxCard = taxCardQuery(query);
   const jobs = [...counties].flatMap(([source, codes]) =>
     [...codes].map(async (code): Promise<ParcelHit[]> => {
       const f = fieldsFor(source);
+      const byMap = f.search === "mapGroupParcel";
+      if (byMap && !taxCard) return [];
       const q = new URLSearchParams({
-        where: parcelNumberWhere(f, code, pattern),
-        outFields: [f.oid, f.id, f.county].join(","),
+        where: byMap
+          ? whereFor(source, taxCardWhere(f.county, code, taxCard!))
+          : whereFor(source, parcelNumberWhere(f, code, pattern)),
+        outFields: [f.oid, f.id, f.county, ...(byMap ? ["CMAP", "GP", "PARCEL"] : [])].join(","),
         returnGeometry: "true",
         outSR: "4326",
         maxAllowableOffset: "0.0002",
@@ -92,9 +101,10 @@ export async function searchParcelNumbers(
         if (!page.success || page.data.error) return [];
         return (page.data.features ?? []).flatMap((ft) => {
           const props = ft.properties ?? {};
-          const id = String(props[f.id] ?? "");
+          const id = byMap ? (taxCardId(props) ?? "") : String(props[f.id] ?? "");
           const centre = middle(ft.geometry?.coordinates);
-          if (!id || !centre || !matchesId(id, query)) return [];
+          // Tennessee's where clause is exact; the others' LIKE pattern over-matches.
+          if (!id || !centre || (!byMap && !matchesId(id, query))) return [];
           return [{ source, props, id, county: String(props[f.county] ?? code), centre }];
         });
       } catch (e) {
@@ -103,7 +113,14 @@ export async function searchParcelNumbers(
       }
     }),
   );
-  const hits = (await Promise.all(jobs)).flat();
+  // A parcel drawn as several features (Tennessee, step 2) is one hit: the first by object id.
+  const seen = new Set<string>();
+  const hits = (await Promise.all(jobs)).flat().filter((h) => {
+    const k = `${h.source}|${String(h.props[fieldsFor(h.source).id] ?? h.id)}`;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
   return hits
     .sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }))
     .slice(0, MAX_PARCEL_HITS);

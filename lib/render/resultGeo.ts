@@ -7,6 +7,7 @@ import type { Feature, FeatureCollection, LineString, MultiPolygon, Point, Polyg
 import { lineSliceAlong } from "@turf/turf";
 import { fmt } from "../format";
 import { routeLabel } from "../screen/routeLabel";
+import { servesLine } from "../screen/trailheads";
 import type { LatLon } from "../geo/types";
 import { steepLandingLine } from "../report/driveway";
 import { drivenRoute } from "../report/lines";
@@ -39,7 +40,8 @@ export function trailheadFeatures(r: PartialScreenResult): FC<Point, { tip: stri
     type: "FeatureCollection",
     features: (r.near?.trailheads ?? []).map((t) => ({
       type: "Feature",
-      properties: { tip: t.name },
+      // The trails it serves on a line under its name (step 2).
+      properties: { tip: [t.name, servesLine(t)].filter(Boolean).join("\n") },
       geometry: point(t.ll),
     })),
   };

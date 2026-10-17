@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { fromPrototype } from "../../test/support/fromPrototype";
-import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
 import { DEFAULT_USER_CONFIG } from "./config";
 import { PartialScreenResultSchema, ScreenInputSchema, ScreenResultSchema, UserConfigSchema } from "./types";
 
-const scenarios = FIXTURE_SLUGS.flatMap((slug) =>
+const scenarios = PROTOTYPE_FIXTURE_SLUGS.flatMap((slug) =>
   Object.entries(loadFixture(slug).goldens).map(([name, R]) => ({ label: `${slug} ${name}`, R: R! })),
 );
 

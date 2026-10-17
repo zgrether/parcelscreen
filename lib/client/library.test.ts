@@ -5,6 +5,7 @@ import { expectedOf } from "@/test/support/expected";
 import { loadFixture } from "@/test/support/fixtures";
 import { built, county } from "@/test/support/parcels";
 import { drawnPart } from "@/lib/geo/recipe";
+import { DEFAULT_ENDPOINTS } from "@/lib/screen/config";
 import {
   ALL_FILTERS,
   DEFAULT_FILTERS,
@@ -15,7 +16,7 @@ import {
   householdVerdict,
   listName,
   libraryRow,
-  parcelState,
+  parcelStates,
   passes,
   readLibraryView,
   showHidden,
@@ -23,12 +24,15 @@ import {
   type LibraryRow,
 } from "./library";
 
+const TN_SOURCE = DEFAULT_ENDPOINTS.parcels.find((u) => u.includes("Tennessee"))!;
+const NC_SOURCE = DEFAULT_ENDPOINTS.parcels.find((u) => u.includes("nconemap"))!;
+
 const row = (over: Partial<LibraryRow>): LibraryRow => ({
   key: "k",
   name: "P",
   acres: 10,
   price: null,
-  state: "VA",
+  states: ["VA"],
   county: null,
   status: "inProgress",
   milestones: { walked: null, offered: null },
@@ -69,11 +73,24 @@ describe("a parcel's row", () => {
     expect(libraryRow(built("o"), { state: "rescreen", result: null }).unscreened).toBe("rescreen");
   });
 
-  it("its state: the county service's, else where its boundary lies", () => {
-    expect(parcelState(built("va"))).toBe("VA"); // a VGIN record
+  it("its states: the county services', else where its boundary lies", () => {
+    expect(parcelStates(built("va"))).toEqual(["VA"]); // a VGIN record
     const ferney = loadFixture("ferney-creek-52-47A").input.polygon;
-    expect(parcelState(built("d", { pieces: [drawnPart(ferney as never)] }))).toBe("VA");
-    expect(parcelState(built("c", { pieces: [{ ...county(-81.355, "x"), source: "saved" }] }))).toBe("VA");
+    expect(parcelStates(built("d", { pieces: [drawnPart(ferney as never)] }))).toEqual(["VA"]);
+    expect(parcelStates(built("c", { pieces: [{ ...county(-81.355, "x"), source: "saved" }] }))).toEqual([
+      "VA",
+    ]);
+  });
+
+  it("a parcel combined across the TN/NC line has both states, in piece order (step 2 plan §6.5)", () => {
+    const tn = { ...county(-81.355, "x"), source: TN_SOURCE, props: { GISLINK: "010066    03700" } };
+    const nc = { ...county(-81.353, "y"), source: NC_SOURCE, props: { parno: "1", stcntyfips: "37121" } };
+    const both = built("tn-nc", { pieces: [tn, nc] });
+    expect(parcelStates(both)).toEqual(["TN", "NC"]);
+    expect(libraryRow(both, undefined).states).toEqual(["TN", "NC"]);
+    expect(passes(row({ states: ["TN", "NC"] }), { ...DEFAULT_FILTERS, state: "NC" })).toBe(true);
+    expect(passes(row({ states: ["TN", "NC"] }), { ...DEFAULT_FILTERS, state: "TN" })).toBe(true);
+    expect(passes(row({ states: ["TN", "NC"] }), { ...DEFAULT_FILTERS, state: "VA" })).toBe(false);
   });
 });
 
@@ -117,7 +134,7 @@ describe("filters: views only", () => {
     expect(passes(priced, { ...DEFAULT_FILTERS, priceMax: 200_000 })).toBe(true);
     expect(passes(priced, { ...DEFAULT_FILTERS, priceMin: 190_000 })).toBe(false);
     expect(passes(row({}), { ...DEFAULT_FILTERS, priceMax: 200_000 })).toBe(false); // no price, a bound set
-    expect(passes(row({ state: "NC" }), { ...DEFAULT_FILTERS, state: "VA" })).toBe(false);
+    expect(passes(row({ states: ["NC"] }), { ...DEFAULT_FILTERS, state: "VA" })).toBe(false);
   });
 });
 

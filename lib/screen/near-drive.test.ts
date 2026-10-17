@@ -1,7 +1,7 @@
 import * as turf from "@turf/turf";
 import { describe, expect, it } from "vitest";
 import { differences } from "../../test/support/compare";
-import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
 import { expectedOf, rawFlags } from "../../test/support/expected";
 import { instantClock, throughSoils } from "../../test/support/pipeline";
 import { prototypeFn } from "../../test/support/prototypeFns";
@@ -25,7 +25,7 @@ import { M2FT, type LatLon } from "./util";
 
 const CFG = DEFAULT_USER_CONFIG;
 
-describe.each(FIXTURE_SLUGS)("near, roads and drive times on %s vs the prototype", (slug) => {
+describe.each(PROTOTYPE_FIXTURE_SLUGS)("near, roads and drive times on %s vs the prototype", (slug) => {
   it("matches places, roads (in layer order), the road grade, drive times and every flag so far", async () => {
     const t = await throughSoils(slug);
     const golden = expectedOf(t.fx.slug, "run");
@@ -103,7 +103,7 @@ describe.each(FIXTURE_SLUGS)("near, roads and drive times on %s vs the prototype
 
 describe("nearestRoad vs the prototype's function (exact)", () => {
   const proto = prototypeFn<typeof nearestRoad>("nearestRoad", { turf });
-  it.each(FIXTURE_SLUGS)("on the recorded roads at 300 points around %s", (slug) => {
+  it.each(PROTOTYPE_FIXTURE_SLUGS)("on the recorded roads at 300 points around %s", (slug) => {
     const fx = loadFixture(slug);
     const roads = fx.goldens.run._roads as RoadFeature[];
     const [lon, lat] = turf.centroid(fx.input.polygon).geometry.coordinates as [number, number];

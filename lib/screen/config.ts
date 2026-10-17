@@ -13,7 +13,7 @@ import type { Curve } from "./util";
 
 /** Service endpoints. `_v` bumps when a default moves, so stale stored copies are replaced. */
 export const DEFAULT_ENDPOINTS: Endpoints = {
-  _v: 12,
+  _v: 13,
   dem: "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
   terrarium: "https://s3.amazonaws.com/elevation-tiles-prod/terrarium",
   sda: "https://SDMDataAccess.sc.egov.usda.gov/Tabular/post.rest",
@@ -36,6 +36,8 @@ export const DEFAULT_ENDPOINTS: Endpoints = {
     "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Landmarks/FeatureServer/1",
     "https://services6.arcgis.com/nRIB86xC7kq6wavB/arcgis/rest/services/NC_State_Parks_Points/FeatureServer/0",
     "https://services5.arcgis.com/bPacKTm9cauMXVfn/arcgis/rest/services/TN_State_Parks_Points/FeatureServer/0",
+    // Step 2: Tennessee's TREC trails (TDEC), whose trails carry their trailheads (lib/screen/trailheads.ts).
+    "https://services1.arcgis.com/YuVBSS7Y1of2Qud1/arcgis/rest/services/Tennessee_Statewide_Trails_Lines_Public/FeatureServer/0",
   ],
   tiger: "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer",
   lpAtlasYear: 2025,
@@ -45,7 +47,9 @@ export const DEFAULT_ENDPOINTS: Endpoints = {
   parcels: [
     "https://services.nconemap.gov/secure/rest/services/NC1Map_Parcels/FeatureServer/1",
     "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Parcels/FeatureServer/0",
-    "https://geoviewer.cot.tn.gov/arcgis/rest/services/GeoViewer/Parcels_View/MapServer/0",
+    // Step 2 (_v 13): the Comptroller's public-use layer, which the state publishes for public use; the GeoViewer
+    // service it replaces is the back end of the Comptroller's own viewer (docs/plans/phase-0.md §9.46).
+    "https://services1.arcgis.com/YuVBSS7Y1of2Qud1/arcgis/rest/services/Tennessee_Property_Boundaries_Public_Use/FeatureServer/0",
   ],
 };
 
@@ -300,6 +304,12 @@ export const SCREEN_CONSTANTS = deepFreeze({
     maxTrailheads: 25,
     // Follow-up 24 (owner, 2026-10-08): two trailheads are one only within this AND with matching names.
     trailheadDedupeM: 300,
+    // Step 2 (owner, 2026-10-17): a TREC point names a trail, not a trailhead, so it joins any trailhead (or another TREC
+    // point) within this, whatever the names; the trailhead then lists the trails it serves.
+    trecMergeM: 150,
+    // TREC trails asked per page, and pages at most (the layer's maxRecordCount is 2,000).
+    trecPageSize: 1000,
+    trecMaxPages: 3,
     officialTimeoutMs: 20_000,
     // A state's parks are asked for trailheads only when its outline comes within trailheadKm of the parcel, plus
     // this for the outline's simplification (0.005°, about 0.55 km; scripts/data-state-outlines.mts). Follow-up 53,
@@ -544,7 +554,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
       gardenAc: [0.5, 0.25, 0.1, 0], // an A also needs prime or statewide-important soil; any garden is a D
     },
     // The default rubric's weights, summing to 100 (roadmap step 1: a profile's rubric replaces them; the second set the
-    // app shipped with is lib/client/migrateProfiles.ts LEGACY_SECOND_WEIGHTS, carried by the migration as another's).
+    // app shipped with is test/support/rubrics.ts LEGACY_SECOND_WEIGHTS, kept for the step 1 card oracle).
     weights: {
       default: { elevation: 25, homesite: 25, sky: 10, room: 15, trails: 10, town: 5, garden: 10 },
     },

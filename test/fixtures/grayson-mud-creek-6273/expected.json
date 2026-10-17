@@ -2025,6 +2025,19 @@
      "drive": null
     },
     {
+     "name": "Gentry Creek Falls",
+     "ll": [
+      36.54240988,
+      -81.72400742
+     ],
+     "km": 15.141555020367864,
+     "source": "state",
+     "serves": [
+      "Gentry Creek Falls"
+     ],
+     "drive": null
+    },
+    {
      "name": "Rogers Ridge Trailhead",
      "ll": [
       36.544954123883215,
@@ -2032,6 +2045,22 @@
      ],
      "km": 16.308985288814437,
      "source": "usfs",
+     "serves": [
+      "Rogers Ridge Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Laurel Creek Trail",
+     "ll": [
+      36.5986485,
+      -81.7527132
+     ],
+     "km": 16.986685848573487,
+     "source": "state",
+     "serves": [
+      "Laurel Creek Trail"
+     ],
      "drive": null
     },
     {
@@ -2065,6 +2094,20 @@
      "drive": null
     },
     {
+     "name": "Backbone Falls Trail",
+     "ll": [
+      36.593362,
+      -81.815187
+     ],
+     "km": 22.51866745561256,
+     "source": "state",
+     "serves": [
+      "Backbone Falls Trail",
+      "Backbone Rock"
+     ],
+     "drive": null
+    },
+    {
      "name": "Mount Jefferson State Natural Area",
      "ll": [
       36.39307845032486,
@@ -2082,6 +2125,19 @@
      ],
      "km": 23.89878008175713,
      "source": "state",
+     "drive": null
+    },
+    {
+     "name": "Mountain City Park Trail",
+     "ll": [
+      36.4793,
+      -81.80837
+     ],
+     "km": 24.88588373576684,
+     "source": "state",
+     "serves": [
+      "Mountain City Park Trail"
+     ],
      "drive": null
     },
     {
@@ -2125,7 +2181,7 @@
      "drive": null
     }
    ],
-   "trailheadCount": 16
+   "trailheadCount": 20
   },
   "road": {
    "name": "unnamed road",
@@ -7647,8 +7703,8 @@
    "mi": 9,
    "er": null
   },
-  "schemaVersion": 8,
-  "engine": 21,
+  "schemaVersion": 9,
+  "engine": 22,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -9679,6 +9735,19 @@
      "drive": null
     },
     {
+     "name": "Gentry Creek Falls",
+     "ll": [
+      36.54240988,
+      -81.72400742
+     ],
+     "km": 15.141555020367864,
+     "source": "state",
+     "serves": [
+      "Gentry Creek Falls"
+     ],
+     "drive": null
+    },
+    {
      "name": "Rogers Ridge Trailhead",
      "ll": [
       36.544954123883215,
@@ -9686,6 +9755,22 @@
      ],
      "km": 16.308985288814437,
      "source": "usfs",
+     "serves": [
+      "Rogers Ridge Trail"
+     ],
+     "drive": null
+    },
+    {
+     "name": "Laurel Creek Trail",
+     "ll": [
+      36.5986485,
+      -81.7527132
+     ],
+     "km": 16.986685848573487,
+     "source": "state",
+     "serves": [
+      "Laurel Creek Trail"
+     ],
      "drive": null
     },
     {
@@ -9719,6 +9804,20 @@
      "drive": null
     },
     {
+     "name": "Backbone Falls Trail",
+     "ll": [
+      36.593362,
+      -81.815187
+     ],
+     "km": 22.51866745561256,
+     "source": "state",
+     "serves": [
+      "Backbone Falls Trail",
+      "Backbone Rock"
+     ],
+     "drive": null
+    },
+    {
      "name": "Mount Jefferson State Natural Area",
      "ll": [
       36.39307845032486,
@@ -9736,6 +9835,19 @@
      ],
      "km": 23.89878008175713,
      "source": "state",
+     "drive": null
+    },
+    {
+     "name": "Mountain City Park Trail",
+     "ll": [
+      36.4793,
+      -81.80837
+     ],
+     "km": 24.88588373576684,
+     "source": "state",
+     "serves": [
+      "Mountain City Park Trail"
+     ],
      "drive": null
     },
     {
@@ -9779,7 +9891,7 @@
      "drive": null
     }
    ],
-   "trailheadCount": 16
+   "trailheadCount": 20
   },
   "road": {
    "name": "unnamed road",
@@ -15301,8 +15413,8 @@
    "mi": 9,
    "er": null
   },
-  "schemaVersion": 8,
-  "engine": 21,
+  "schemaVersion": 9,
+  "engine": 22,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

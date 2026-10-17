@@ -23,6 +23,7 @@ import { LineUndoToast } from "@/components/Map/LineUndoToast";
 import { AttachListingChip } from "@/components/Map/AttachListingChip";
 import { MapPanel } from "@/components/Map/MapPanel";
 import { useExplore, type SetHint } from "./useExploreController";
+import { OWN_RECORDS_HINT } from "@/lib/geo/ownRecords";
 
 /** The map with its tools and hint. Loaded client-side only (MapLibre needs the browser). */
 export function MapArea({
@@ -38,7 +39,7 @@ export function MapArea({
   bottomInset: number;
   leftInset: number;
 }) {
-  const { setMap, panelInset, map, state } = useExplore();
+  const { setMap, panelInset, map, state, startDraw } = useExplore();
   // Draw, Combine and Split flatten the camera while they're open (13g).
   const { mode, split } = state;
   useFlatForTools(map, DRAWING.includes(mode) || mode === "split" || mode === "combine" || split !== null);
@@ -63,7 +64,7 @@ export function MapArea({
       <ParcelTools />
       <Menu />
       <Search photonUrl={config.endpoints.photon} hint={setHint} />
-      <Hint text={hint} />
+      <Hint text={hint} action={hint === OWN_RECORDS_HINT ? { label: "Draw", onClick: startDraw } : null} />
       <SwitchToast />
       <LineUndoToast />
       <AttachListingChip />

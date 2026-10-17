@@ -6,7 +6,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { fieldsFor, recordOutFields } from "@/lib/geo/parcelFields";
 import { DEFAULT_ENDPOINTS } from "@/lib/screen/config";
-import { FIXTURE_SLUGS } from "./fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS } from "./fixtures";
 import { portHarPath } from "./portHar";
 import type { HarEntry } from "./replayFetch";
 import { OWNER_FIELD, PARCEL_HOSTS, scrubEntry } from "./scrubHar";
@@ -119,7 +119,7 @@ describe("scrubHar", () => {
       expect(OWNER_FIELD.test(k), k).toBe(false);
   });
 
-  it.each(FIXTURE_SLUGS)("%s: the committed port recording is scrubbed", (slug) => {
+  it.each(PROTOTYPE_FIXTURE_SLUGS)("%s: the committed port recording is scrubbed", (slug) => {
     const path = portHarPath(slug);
     if (!existsSync(path)) return;
     const har = JSON.parse(readFileSync(path, "utf8")) as { log: { entries: HarEntry[] } };
@@ -134,7 +134,10 @@ describe("the parcel services are asked for the fields the app reads", () => {
   it.each([
     [DEFAULT_ENDPOINTS.parcels[0]!, "objectid,parno,ownname,siteadd,cntyname,stcntyfips"],
     [DEFAULT_ENDPOINTS.parcels[1]!, "OBJECTID,PARCELID,FIPS,LOCALITY"],
-    [DEFAULT_ENDPOINTS.parcels[2]!, "OBJECTID,PARCELID,OWNER,ADDRESS,COUNTY"],
+    [
+      DEFAULT_ENDPOINTS.parcels[2]!,
+      "OBJECTID,GISLINK,COUNTY_NAME,CMAP,GP,PARCEL,OWNER,ADDRESS,DEEDAC,LINK_TPAD",
+    ],
     ["https://example.org/arcgis/rest/services/Parcels/FeatureServer/0", "*"],
   ])("%s", (url, want) => {
     expect(recordOutFields(url)).toBe(want);

@@ -11,17 +11,17 @@ import { EXPECTED_BROWSER, expectedOf } from "../test/support/expected";
 import type { Scenario } from "../test/support/scenarios";
 
 /**
- * An empty profile with the debug handles on (window.__psScreen, __psMap), opened at the parcel. `legacy`: localStorage
- * keys from before profiles (`ps.parcels`, `ps.person`…), set before the first load so the boot's migration finds them.
+ * An empty profile with the debug handles on (window.__psScreen, __psMap), opened at the parcel. `preProfile`:
+ * localStorage keys from before profiles (`ps.parcels`, `ps.person`…), set before the first load, which drops them.
  */
 export async function openExplorer(
   page: Page,
   slug: FixtureSlug,
-  legacy: Record<string, string> = {},
+  preProfile: Record<string, string> = {},
 ): Promise<void> {
   const { point } = loadFixture(slug).input;
   await page.addInitScript(
-    ({ view, legacy }) => {
+    ({ view, preProfile }) => {
       if (sessionStorage.getItem("e2e")) return; // a reload keeps what the test did
       sessionStorage.setItem("e2e", "1");
       localStorage.clear();
@@ -29,9 +29,9 @@ export async function openExplorer(
       // No roads & labels (17d): their tiles aren't in the fixtures, and no rendered check should see them.
       localStorage.setItem("ps.roads", "0");
       localStorage.setItem("ps.view", JSON.stringify(view));
-      for (const [k, v] of Object.entries(legacy)) localStorage.setItem(k, v);
+      for (const [k, v] of Object.entries(preProfile)) localStorage.setItem(k, v);
     },
-    { view: { lat: point.lat, lon: point.lon, z: 15 }, legacy },
+    { view: { lat: point.lat, lon: point.lon, z: 15 }, preProfile },
   );
   await page.goto("/explore");
 }

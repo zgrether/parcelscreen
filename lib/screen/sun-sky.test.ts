@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { differences } from "../../test/support/compare";
-import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
 import { expectedOf, rawFlags } from "../../test/support/expected";
 import { throughSoils } from "../../test/support/pipeline";
 import { prototypeFn } from "../../test/support/prototypeFns";
@@ -148,7 +148,7 @@ describe("horizon and sun (synthetic)", () => {
   });
 });
 
-describe.each(FIXTURE_SLUGS)("sun and sky on %s vs the prototype", (slug) => {
+describe.each(PROTOTYPE_FIXTURE_SLUGS)("sun and sky on %s vs the prototype", (slug) => {
   it("matches focus, point, sun, sky and every flag so far, then serves the atlas from the cache", async () => {
     const t = await throughSoils(slug);
     const golden = expectedOf(t.fx.slug, "run");

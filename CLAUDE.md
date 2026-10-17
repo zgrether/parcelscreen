@@ -98,10 +98,10 @@ step. Mission mode changes rules 1 and 3 above as written here; everything else 
 - Secrets never reach the client. `SUPABASE_SERVICE_ROLE_KEY` and `CRON_SECRET` are server-only.
 - Screen results are **immutable**: `screens` rows are inserted, never updated. A re-run inserts a
   new row with `version = max+1`.
-- **Schema v8 is frozen** (roadmap step 1: measurements, no grades; v7 at follow-up 55, v6 at follow-up 54, v5 at follow-up 34, v4 at VR3a, v3 at B2a, v2 at step 18b):
-  `SCREEN_SCHEMA_VERSION` is 8, and `lib/screen/schema-v8.test.ts` snapshots the stored `ScreenResult` shape. Any change to that shape (a field added,
+- **Schema v9 is frozen** (roadmap step 2: the TREC trails a trailhead serves; v8 at step 1, v7 at follow-up 55, v6 at follow-up 54, v5 at follow-up 34, v4 at VR3a, v3 at B2a, v2 at step 18b):
+  `SCREEN_SCHEMA_VERSION` is 9, and `lib/screen/schema-v9.test.ts` snapshots the stored `ScreenResult` shape. Any change to that shape (a field added,
   removed or retyped) requires **a new version and a clean break** (older results are dropped, never migrated: Mission
-  mode's clean-break rule, 2026-10-17), in the same PR, recorded in `docs/plans/phase-0.md` §9 (owner, #109 review; v3's to v8's clean breaks are §9.26, §9.31, §9.32, §9.34, §9.37 and §9.44).
+  mode's clean-break rule, 2026-10-17), in the same PR, recorded in `docs/plans/phase-0.md` §9 (owner, #109 review; v3's to v9's clean breaks are §9.26, §9.31, §9.32, §9.34, §9.37, §9.44 and §9.49).
 - External fetches go through `lib/http.ts`: one throttled client with a per-host queue,
   identifying User-Agent, conditional requests, and 429 backoff. Connectors declare a minimum
   cadence and the scheduler cannot run them faster.

@@ -73,6 +73,24 @@ html:has(.explore) body {
 }
 /* The map's hint: above the bottom sheet when there is one. */
 /* The map's status hint (zoom in, looking up…): centred just above the parcel toolbar (13e). */
+/* A hint with a button (Draw, step 2) takes the width it needs, so it stays on two lines at 375 px. */
+.map-hint--action {
+  max-width: calc(100% - 24px);
+}
+/* The hint's one button (Draw, step 2): a full tap target beside the words. */
+.map-hint-action {
+  min-height: 44px;
+  min-width: 44px;
+  margin-left: 10px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 4px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
 .map-hint {
   bottom: calc(76px + env(safe-area-inset-bottom, 0px));
   left: calc(var(--float-l, 0px) + 12px);
@@ -209,6 +227,21 @@ html:has(.explore) body {
   }
   table.facts td.num {
     font-variant-numeric: tabular-nums;
+  }
+  /* Tennessee's assessment record (step 2): a full-height tap target on a phone. */
+  .facts-link {
+    margin: 0;
+  }
+  .facts-link a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--color-ink-2);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .facts-flag {
+    font-size: 13px;
   }
   ul.plain {
     padding-left: 18px;
@@ -2567,6 +2600,8 @@ html:has(.explore) body {
   pointer-events: none;
 }
 .result-tip .maplibregl-popup-content {
+  /* A trailhead's "serves:" line sits under its name (step 2). */
+  white-space: pre-line;
   padding: 5px 8px;
   border-radius: 6px;
   background: rgba(28, 38, 32, 0.92);

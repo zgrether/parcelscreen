@@ -59,7 +59,7 @@ describe("config", () => {
           "woodedPct": 100,
         },
         "endpoints": {
-          "_v": 12,
+          "_v": 13,
           "dem": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
           "lpAtlasBinary": "https://djlorenz.github.io/astronomy/binary_tiles",
           "lpAtlasTiles": "https://djlorenz.github.io/astronomy/image_tiles",
@@ -77,7 +77,7 @@ describe("config", () => {
           "parcels": [
             "https://services.nconemap.gov/secure/rest/services/NC1Map_Parcels/FeatureServer/1",
             "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Parcels/FeatureServer/0",
-            "https://geoviewer.cot.tn.gov/arcgis/rest/services/GeoViewer/Parcels_View/MapServer/0",
+            "https://services1.arcgis.com/YuVBSS7Y1of2Qud1/arcgis/rest/services/Tennessee_Property_Boundaries_Public_Use/FeatureServer/0",
           ],
           "photon": "https://photon.komoot.io/api/",
           "sda": "https://SDMDataAccess.sc.egov.usda.gov/Tabular/post.rest",
@@ -85,6 +85,7 @@ describe("config", () => {
             "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Landmarks/FeatureServer/1",
             "https://services6.arcgis.com/nRIB86xC7kq6wavB/arcgis/rest/services/NC_State_Parks_Points/FeatureServer/0",
             "https://services5.arcgis.com/bPacKTm9cauMXVfn/arcgis/rest/services/TN_State_Parks_Points/FeatureServer/0",
+            "https://services1.arcgis.com/YuVBSS7Y1of2Qud1/arcgis/rest/services/Tennessee_Statewide_Trails_Lines_Public/FeatureServer/0",
           ],
           "terrarium": "https://s3.amazonaws.com/elevation-tiles-prod/terrarium",
           "tiger": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer",
@@ -461,6 +462,9 @@ describe("config", () => {
           "stateOutlineMarginKm": 1,
           "trailheadDedupeM": 300,
           "trailheadKm": 36,
+          "trecMaxPages": 3,
+          "trecMergeM": 150,
+          "trecPageSize": 1000,
         },
         "osmRoads": {
           "highways": [

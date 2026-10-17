@@ -6,6 +6,9 @@
  *
  *   pnpm record:port            records what's missing (never re-records what's there), and drops what no
  *                               scenario (or PORT_RUNS run) asks for any more (a request the port has since changed)
+ *   PORT_APPEND=<slug> pnpm record:port
+ *                               that fixture only, and append only: every entry already there is kept as it is,
+ *                               asked for or not (step 2: Mud Creek gains its TREC answers; owner, 2026-10-17)
  *
  * Run by hand, never in CI: it reaches the public services. The prototype's network.har is never touched.
  */
@@ -13,8 +16,10 @@ import { existsSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { createHttpClient, realClock } from "@/lib/http";
 import { DEFAULT_ENDPOINTS } from "@/lib/screen/config";
+import { fetchTile, tilesFor } from "@/lib/geo/parcelTiles";
+import { searchParcelNumbers } from "@/lib/search/sources";
 import { SERVER_USER_AGENT } from "@/lib/server/http";
-import { FIXTURE_SLUGS, loadFixture } from "../support/fixtures";
+import { FIXTURE_SLUGS, loadFixture, ROAN_SEARCH } from "../support/fixtures";
 import {
   createReplayFetch,
   loadHar,
@@ -44,6 +49,18 @@ const PORT_RUNS: Partial<
         deps(),
       ),
   ],
+  // Step 2 (e2e/tennessee.spec.ts): the Tennessee parcel lines around Roan at zoom 15 and up, and its parcel-number
+  // search, as the browser asks them, so the map's tap and search replay offline.
+  "roan-hwy-143-099-046-02": [
+    async (deps) => {
+      const { point } = loadFixture("roan-hwy-143-099-046-02").input;
+      const http = deps().http!;
+      const d = 0.03;
+      const box = { west: point.lon - d, east: point.lon + d, south: point.lat - d, north: point.lat + d };
+      for (const tile of tilesFor(box)) await fetchTile(http, ROAN_PARCELS, tile, "fine");
+      await searchParcelNumbers(http, new Map([[ROAN_PARCELS, new Set(["Carter"])]]), ROAN_SEARCH);
+    },
+  ],
 };
 
 /** Some services (the TN parcel WAF) refuse a non-browser User-Agent. */
@@ -55,13 +72,17 @@ const BROWSER_UA =
  */
 const uaFor = (url: string) =>
   DEFAULT_ENDPOINTS.overpass.some((u) => url.startsWith(u)) ? SERVER_USER_AGENT : BROWSER_UA;
+const ROAN_PARCELS = DEFAULT_ENDPOINTS.parcels.find((u) => u.includes("Tennessee_Property_Boundaries"))!;
+
+/** PORT_APPEND=<slug>: record that fixture's missing requests only, keeping every entry already there. */
+const APPEND = process.env.PORT_APPEND ?? "";
 const DROP = new Set(["content-encoding", "content-length", "transfer-encoding", "connection"]);
 
 const bodyOf = (b: BodyInit | null | undefined): string | null =>
   b == null ? null : typeof b === "string" ? b : b instanceof URLSearchParams ? b.toString() : null;
 
 describe.runIf(import.meta.env.MODE === "record-port")("record the port's own requests", () => {
-  it.each(FIXTURE_SLUGS)(
+  it.each(APPEND ? FIXTURE_SLUGS.filter((s) => s === APPEND) : FIXTURE_SLUGS)(
     "%s",
     async (slug) => {
       const live = (globalThis as unknown as Record<symbol, typeof fetch>)[
@@ -144,7 +165,7 @@ describe.runIf(import.meta.env.MODE === "record-port")("record the port's own re
           e.request.postData?.text ?? null,
           e.request.postData?.mimeType,
         );
-      const used = kept.filter((e) => asked.has(keyOf(e)));
+      const used = APPEND ? kept : kept.filter((e) => asked.has(keyOf(e)));
       const dropped = kept.length - used.length;
       const har: Har = { log: { entries: [...used, ...added] } };
       writePortHar(path, har);

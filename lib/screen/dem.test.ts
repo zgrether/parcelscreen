@@ -2,7 +2,7 @@ import { polygon } from "@turf/turf";
 import { encode } from "fast-png";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { loadFixture, FIXTURE_SLUGS } from "../../test/support/fixtures";
+import { loadFixture, PROTOTYPE_FIXTURE_SLUGS } from "../../test/support/fixtures";
 import { createHttpClient, type HttpClient } from "../http";
 import { DEFAULT_ENDPOINTS } from "./config";
 import {
@@ -91,33 +91,36 @@ describe("DemCache", () => {
 });
 
 describe("fetchDEM from the recorded 3DEP responses", () => {
-  it.each(FIXTURE_SLUGS)("%s: fine (3 m) and wide (30 m) grids, then served from the cache", async (slug) => {
-    const fx = loadFixture(slug);
-    const fetch = fx.replayFetch();
-    const cache = new DemCache();
-    const deps = {
-      http: createHttpClient({ env: "node", fetchImpl: fetch }),
-      endpoints: DEFAULT_ENDPOINTS,
-      cache,
-    };
-    const parcel = polygon(fx.input.polygon.geometry.coordinates);
-    const { dFine, dWide } = await fetchParcelDems(parcel, 3, deps);
-    expect(dFine.source).toBe("USGS 3DEP");
-    expect(dFine.res).toBeCloseTo(3, 1);
-    expect(dWide.res).toBeCloseTo(30, 1);
-    // The grid the prototype asked for: size from the request URL.
-    const sizes = fx.har.log.entries
-      .filter((e) => e.request.url.includes("exportImage"))
-      .map((e) => new URL(e.request.url).searchParams.get("size"));
-    expect(sizes).toContain(`${dFine.w},${dFine.h}`);
-    expect(sizes).toContain(`${dWide.w},${dWide.h}`);
-    // Real elevations, no-data mapped to NaN.
-    expect(dFine.z.some(Number.isNaN)).toBe(false);
-    expect(dFine.z.reduce((m, v) => Math.min(m, v), Infinity)).toBeGreaterThan(400); // metres; Floyd County is ~2,500 ft up
-    const before = fetch.requests.length;
-    await fetchParcelDems(parcel, 3, deps);
-    expect(fetch.requests.length).toBe(before); // second run: zero DEM requests
-  });
+  it.each(PROTOTYPE_FIXTURE_SLUGS)(
+    "%s: fine (3 m) and wide (30 m) grids, then served from the cache",
+    async (slug) => {
+      const fx = loadFixture(slug);
+      const fetch = fx.replayFetch();
+      const cache = new DemCache();
+      const deps = {
+        http: createHttpClient({ env: "node", fetchImpl: fetch }),
+        endpoints: DEFAULT_ENDPOINTS,
+        cache,
+      };
+      const parcel = polygon(fx.input.polygon.geometry.coordinates);
+      const { dFine, dWide } = await fetchParcelDems(parcel, 3, deps);
+      expect(dFine.source).toBe("USGS 3DEP");
+      expect(dFine.res).toBeCloseTo(3, 1);
+      expect(dWide.res).toBeCloseTo(30, 1);
+      // The grid the prototype asked for: size from the request URL.
+      const sizes = fx.har.log.entries
+        .filter((e) => e.request.url.includes("exportImage"))
+        .map((e) => new URL(e.request.url).searchParams.get("size"));
+      expect(sizes).toContain(`${dFine.w},${dFine.h}`);
+      expect(sizes).toContain(`${dWide.w},${dWide.h}`);
+      // Real elevations, no-data mapped to NaN.
+      expect(dFine.z.some(Number.isNaN)).toBe(false);
+      expect(dFine.z.reduce((m, v) => Math.min(m, v), Infinity)).toBeGreaterThan(400); // metres; Floyd County is ~2,500 ft up
+      const before = fetch.requests.length;
+      await fetchParcelDems(parcel, 3, deps);
+      expect(fetch.requests.length).toBe(before); // second run: zero DEM requests
+    },
+  );
 
   it("clamps the cell size setting to 1–30 m, defaulting to 3", () => {
     expect([fineResM(0.5), fineResM(3), fineResM(50), fineResM(NaN)]).toEqual([1, 3, 30, 3]);

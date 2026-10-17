@@ -17,7 +17,8 @@ import { M2_PER_ACRE } from "./types";
 const NC = "https://services.nconemap.gov/secure/rest/services/NC1Map_Parcels/FeatureServer/1";
 const VA =
   "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Parcels/FeatureServer/0";
-const TN = "https://geoviewer.cot.tn.gov/arcgis/rest/services/GeoViewer/Parcels_View/MapServer/0";
+const TN =
+  "https://services1.arcgis.com/YuVBSS7Y1of2Qud1/arcgis/rest/services/Tennessee_Property_Boundaries_Public_Use/FeatureServer/0";
 const SERVICES = [NC, VA, TN];
 
 describe("pickParcelAt (recorded services)", () => {
@@ -59,7 +60,7 @@ describe("pickParcelAt (failure reporting)", () => {
     expect(r.report).toEqual([
       "services.nconemap.gov: HTTP 500",
       "vginmaps.vdem.virginia.gov: Invalid query",
-      "geoviewer.cot.tn.gov: Failed to fetch",
+      "services1.arcgis.com: Failed to fetch",
     ]);
   });
 
@@ -89,7 +90,7 @@ describe("pickParcelAt (failure reporting)", () => {
     expect(r.report).toEqual([
       "services.nconemap.gov: no parcel at this point",
       "vginmaps.vdem.virginia.gov: no parcel at this point",
-      "geoviewer.cot.tn.gov: no parcel at this point",
+      "services1.arcgis.com: no parcel at this point",
     ]);
   });
 

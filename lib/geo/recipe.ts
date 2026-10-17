@@ -9,6 +9,7 @@
 import { area, centroid, featureCollection, intersect, union } from "@turf/turf";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { combinedRecord, combineParcels, memberKey, type CombineLimits } from "./combine";
+import { stateOf } from "./parcelFields";
 import { parcelFacts, type ParcelRecord } from "./parcels";
 import { halfPlane, splitFromLabel, splitPieces, type Side, type SplitPieces } from "./split";
 import { M2_PER_ACRE, type LatLon } from "./types";
@@ -52,16 +53,9 @@ export type DerivedParcel =
 /** True for a parcel from a county service (its source is the service URL). */
 export const isCountyRecord = (r: ParcelRecord): boolean => /^https?:\/\//.test(r.source);
 
-/** The state a county record comes from, by its parcel service's host. */
-export const STATE_BY_HOST: Readonly<Record<string, string>> = {
-  "services.nconemap.gov": "NC",
-  "vginmaps.vdem.virginia.gov": "VA",
-  "geoviewer.cot.tn.gov": "TN",
-};
-
 /**
  * The county part of a dedupe key: the record's 5-digit county FIPS code where it carries one (VA `FIPS`,
- * NC `stcntyfips`), else its county name in lower case (TN `COUNTY`). Parcel numbers repeat across
+ * NC `stcntyfips`), else its county name in lower case (TN `COUNTY_NAME`). Parcel numbers repeat across
  * counties (VA's 52-44 exists in four), so the key must name the county, and a code doesn't vary in spelling.
  */
 export function countyKey(r: ParcelRecord): string {
@@ -74,15 +68,14 @@ export function countyKey(r: ParcelRecord): string {
 /**
  * One recorded parcel's dedupe key, as REQUIREMENTS §3 defines it: `state:county:parcel_number` when the
  * record has a number, else `state:county:centroid (4 decimals):acres (rounded)`, with the county as
- * countyKey gives it. Null for a drawn piece.
+ * countyKey gives it and the number as parcelFacts' keyId (Tennessee's GISLINK, step 2). Null for a drawn piece.
  */
 export function pieceDedupeKey(r: ParcelRecord): string | null {
   if (memberKey(r) === null) return null; // drawn: no identity
-  const host = /^https?:\/\/([^/]+)/.exec(r.source)?.[1] ?? "";
-  const state = STATE_BY_HOST[host] ?? "??";
+  const state = stateOf(r.source) ?? "??";
   const f = parcelFacts(r.geo, r.props);
   const county = countyKey(r);
-  if (f.parcelId) return `${state}:${county}:${f.parcelId.trim()}`;
+  if (f.keyId) return `${state}:${county}:${f.keyId.trim()}`;
   const [lon, lat] = centroid(r.geo).geometry.coordinates as [number, number];
   return `${state}:${county}:${lat.toFixed(4)},${lon.toFixed(4)}:${Math.round(f.acres)}`;
 }

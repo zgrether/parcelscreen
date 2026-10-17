@@ -502,9 +502,11 @@ profile; the device alone keeps the map, basemap and layer prefs, `ps.debug`, an
 current). The prefs stay synchronous: the profile's documents are hydrated before the app renders
 (`components/Profile/ProfileGate.tsx`) and written through at once, every write's transaction started on the spot and
 `flush` waiting for all in flight; a page unloaded within milliseconds of a write can still lose it, which the e2e
-avoids by flushing before every reload (a localStorage journal would close the window: step 2's call). The first boot
-moves the pre-profile localStorage keys into "Profile 1" in one transaction and renames them to `ps.legacy.*` (step
-2's first PR deletes them); a refused move leaves them untouched. Today's two weight sets became data: the first
+avoids by flushing before every reload (no localStorage journal: owner, 10/17, not coming back unless lost work is
+reported). Step 1's first boot moved the pre-profile localStorage keys into "Profile 1" and renamed them to
+`ps.legacy.*`; step 2's first PR deleted the move: the boot now drops both kinds of key, and the kept screens without
+a profile, and says once "Saved with an older version; screen it again." when pre-profile keys were there (step 2
+plan §9; the clean-break rule). Today's two weight sets became data: the first
 profile's own rubric is the default (`card.weights.default`, the same numbers), and the second rides along as an
 "other" rubric named "Julie" (`LEGACY_SECOND_WEIGHTS`, deleted in step 5 with its name); a fresh profile holds its own
 alone, so it shows no switch, no Household column and no second grade. The switch reads "My grade" and "{name}'s
@@ -515,8 +517,87 @@ in place, and deletes with a confirm naming what goes; deleting the current prof
 opened one left, or a new "Profile 1". After the v8 clean break a Library row reads "Needs a re-screen" and "Re-screen
 all saved parcels" screens those rows one after another in the page's worker, with progress and Cancel. Export
 version 6 carries the profile's name and rubrics; a version 5 file imports with neither, and the file's rubrics
-replace the profile's only through the summary's "Replace my rubric too" tick. Parked for the owner: the journal
-above; "(Mine)" on a lone rubric's weight line; whether Add should only list the new profile; `why` stays stored
+replace the profile's only through the summary's "Replace my rubric too" tick. Parked for the owner: "(Mine)" on a lone rubric's weight line; whether Add should only list the new profile; `why` stays stored
 (§8 Q8, revisited in step 6); the sun, sky and driveway flags follow the current focus (§9.44).
+
+46. **Tennessee parcels from the Comptroller's public-use layer** (owner, 2026-10-17; step 2 plan §1 and §8; roadmap
+step 2, PR 2). The parcel endpoint moves from the GeoViewer `Parcels_View` service (still answering on 2026-10-17, but
+the back end of the Comptroller's own viewer, with no published terms) to "Tennessee Property Boundaries (Public
+Use)", the layer the state publishes; `endpoints._v` 12 → 13. Its fields, limits, counties and terms are in
+REQUIREMENTS §2 as checked live. **Terms:** the public item says "This dataset is intended for public use" and "This
+service is not intended for commercial use"; the layer's own description says "This data is intended for use by state
+agencies with approved access", and also "all 95 counties", which it doesn't hold (86), so it's read as carried over
+from the restricted statewide dataset. The item's text governs (owner). If the app ever charges, it switches to the
+Comptroller's downloadable data per their commercial-use note. No email to the Comptroller (§8 Q2).
+**The parcel is its GISLINK.** `PARCELID` ends in the tax year ("010 011B A 00100 000 2026"; GeoViewer's copy already
+read 2027), so a key on it would change every January: the dedupe key is `TN:<county>:<GISLINK>`, and the facts card
+and search name the parcel by its tax card ("011B A 001.00", from `CMAP`, `GP`, `PARCEL`). **GISLINK isn't unique per
+feature** (Carter County, 2026-10-17: 32,016 features, 32,007 distinct GISLINKs; none empty). The 9 shared GISLINKs all
+have special-interest code 000: 7 are one parcel drawn as two polygons with the same record, and 2 pair a parcel with a
+"Parcel Conflict" polygon (`PARCEL_TYPE` 5). So (owner): a tap on either piece of a two-piece parcel selects both as
+one multi-part record; railroad right-of-way (type 4) is never a line or a tap; a conflict polygon (type 5) isn't
+either, but when one touches the selected parcel its facts card says "The county map shows a boundary conflict on
+part of this parcel — ask for a survey." The county draws the disputed land beside the parcels it's between, sharing
+their edges (Carter's 010066 03700: the conflict lies outside the tract, three of its corners on the tract's line),
+so "touches" is an overlap, a shared edge or a corner within 1 m, and both neighbours of a disputed strip see the line.
+If the conflict lookup doesn't answer, the parcel is selected without it. **Search** asks Tennessee by control map,
+group and parcel ("63D A 15" finds 063D A 015.00 and 015.01), not by an id prefix. **The facts card** adds "Deeded
+acres (county record)" (`DEEDAC`, when above 0) and "County record ↗" (`LINK_TPAD`, only on
+assessment.cot.tn.gov, in a new tab; §8 Q9). Owner and address stay live-only (decision 23; scrubbed from the
+recordings, now including services1.arcgis.com). **The nine counties with no lines** are found from their outlines
+(`lib/geo/data/tn-own-records.json`, `pnpm data:tn-counties`, TIGERweb): from zoom 14 over one of them the map says
+"No Tennessee parcel lines here; this county keeps its own records. Draw the boundary instead." with a Draw button.
+That replaces the plan's count-of-zero rule, which would also have fired over a national park or a lake. A parcel's
+states (the Library's State column and filter) are all of its records' ("TN · NC" across the line). The map credits
+"Parcels: VGIN (Virginia), NC OneMap, Tennessee Comptroller of the Treasury". Recorded Carter answers for the unit
+tests: `test/fixtures/tn-carter/parcels.har` (`pnpm record:tn`).
+
+47. **State imagery and trailheads for Tennessee** (owner, 2026-10-17; step 2 plan §2–§3 and §8 Q3–Q4; roadmap step 2,
+PRs 3–4). **Imagery:** the "state ortho" basemap stacks USGS, then Tennessee, then North Carolina, then Virginia.
+Tennessee's is TNMap's public Web Mercator cache of the TDOT Aerial Surveys leaf-off orthophoto (6 in since 2022,
+1 ft before), credited "TDOT Aerial Surveys" as its copyright text reads; no license is stated, and the owner chose to
+use it with its attribution (§8 Q3). Checked live 2026-10-17: data to zoom 19 (the source's `maxzoom`); a tile with no
+coverage is a 404, so USGS shows through in Kentucky, Georgia and the rest of the bounds (TIGER's TN extent rounded
+outward), and no `export` fallback is needed; edge tiles are PNG with transparency. Its flights reach past the state
+line (a tile on the TN/NC line at Roan is a full JPEG), so NC and VA are drawn over it where they have imagery: near a
+border each state's own photo shows on its side as far as that state flew. The menu label becomes "Aerial (state
+ortho: VA, NC, TN)": the resolutions differ by county and year, so it no longer quotes them. **Trailheads:** Tennessee's TREC
+trails (TDEC Recreation Resources) join the official sources as a Tennessee source, asked only when Tennessee is
+within reach (follow-up 53's outline check), from the **Lines** layer `Tennessee_Statewide_Trails_Lines_Public` (owner,
+2026-10-17): the plan's Points layer holds only 30 trails statewide, where the state has no lines; the Lines layer holds
+4,205, each with its primary and secondary trailheads' coordinates. It's asked by an envelope of near.trailheadKm around
+the parcel (never the whole layer) for the names and trailhead coordinates only, paged (1,000 a page, 3 pages at most);
+a trailhead counts by its own coordinates (not the line's), within near.trailheadKm, and 0,0 is dropped. A TREC point
+names a trail, not a trailhead, so it merges **by distance alone** (owner): TREC points within near.trecMergeM (150 m)
+of each other are one trailhead listing all their trails, named after the first alphabetically; one within 150 m of
+any other trailhead (USFS, state, OSM) joins the nearest, which keeps its name and lists the trail as "serves: …"
+(§9.49). The 300 m plus same-name rule stays for every other pair. The state sources are keyed by URL now (two layers
+share services1.arcgis.com); the parks' `noResponse` tokens are unchanged, and TREC's not answering reads "TN trails
+(TDEC)". Its license is an as-is disclaimer. Mud Creek isn't re-recorded (owner): `PORT_APPEND=grayson-mud-creek-6273
+pnpm record:port` appended the one new request, its 28 earlier entries pinned by test/tools/mud-creek-har.test.ts. Its
+trailheads within reach go from 16 to 20 (Gentry Creek Falls, Laurel Creek Trail, Backbone Falls Trail serving Backbone
+Rock too, Mountain City Park Trail; Rogers Ridge Trail joins the USFS Rogers Ridge Trailhead); its five nearest, and
+so its Trails row, are unchanged. `ENGINE_VERSION` 22. **The Roan Mountain fixture** (PR 5; owner §8 Q5): port-only, so the fixture list splits once in
+`test/support/fixtures.ts`: `PROTOTYPE_FIXTURE_SLUGS` (Ferney, Macks, Mud Creek: golden.json, network.har, the v7
+oracles, `diff:prototype`) and `FIXTURE_SLUGS` (all, Roan and every later fixture). Every test that read the list kept
+the prototype-backed one, except those that are about every fixture: expected.json, the recorder, the scenarios, the
+states a search reaches, the fixtures' own checks and the oracle tests (Roan's `cards-v8.json` and `grades-v8.json`,
+`pnpm record:oracles`, a regression snapshot). Roan is Carter County's 099 046.02 on State Hwy 143, picked by plan §7.1
+(no parcel was named): 12.71 deeded acres, wooded with old logging tracks and a clearing, no house, facing south-east,
+about 1.2 km from the town; its run finds 124 trailheads within reach, many of them TREC's.
+
+48. **The pre-profile data is dropped (the clean-break rule)** (owner, 2026-10-17; step 2 plan §9, §8 Q6; roadmap step
+2, PR 1). The boot deletes step 1's `ps.legacy.*` copies and any pre-profile key still present, and the kept screens
+without a profile; it moves nothing, and says once "Saved with an older version; screen it again." when there was
+pre-profile data. Detail in §9.45. The localStorage journal is off the parked list (§8 Q8).
+
+49. **Schema v9: a clean break; a trailhead lists the trails it serves** (owner, 2026-10-17; roadmap step 2, PR 4).
+`near.trailheads[]` gains an optional `serves: string[]`, the TREC trails merged into the trailhead (§9.47), so
+`SCREEN_SCHEMA_VERSION` is 9 (`lib/screen/schema-v9.test.ts`). A clean break like v3 to v8: stored v8 results aren't
+read or migrated, and their parcels read "Needs a re-screen" and re-screen when opened. Every fixture's
+`expected.json` changes its `schemaVersion` (8 → 9) and `engine` (21 → 22); Mud Creek's also its trailheads (§9.47).
+**Shown:** a trailhead's map tooltip lists them on a line under its name ("serves: A, B"), and the Trails row appends
+"; serves: A, B" to the trailhead it names (after the existing text; rule 7). Neither shows when a trailhead serves only
+the trail it's named after.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

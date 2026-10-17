@@ -22,7 +22,7 @@ import { soilAt } from "@/lib/screen/soils";
 import { derivedSites, scored, type ScoredResult } from "@/lib/screen/derive";
 import type { ScoredSite as Site, SoilRow } from "@/lib/screen/types";
 import { lerp } from "@/lib/screen/util";
-import { FIXTURE_SLUGS, type FixtureSlug } from "../support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, type PrototypeSlug } from "../support/fixtures";
 import { fixtureParcel, runFixture } from "../support/scenarios";
 
 const DIR = "tmp/a3";
@@ -56,7 +56,7 @@ interface Routed {
   costMid: number | null;
 }
 interface FixtureData {
-  slug: FixtureSlug;
+  slug: PrototypeSlug;
   sites: Site[];
   valleyFloorFt: number;
   sky: NonNullable<ScoredResult["sky"]>;
@@ -89,7 +89,7 @@ async function nrcsReasons(cokey: string): Promise<Reason[]> {
   }));
 }
 
-async function gather(slug: FixtureSlug, cache: Record<string, Reason[]>): Promise<FixtureData> {
+async function gather(slug: PrototypeSlug, cache: Record<string, Reason[]>): Promise<FixtureData> {
   const out = await runFixture(slug);
   const { result, session: s } = out;
   const sites = derivedSites(result) ?? [];
@@ -446,7 +446,7 @@ describe.runIf(import.meta.env.MODE === "a3")("A3 analysis", () => {
         ? JSON.parse(readFileSync(cachePath, "utf8"))
         : {};
       const data: FixtureData[] = [];
-      for (const slug of FIXTURE_SLUGS) data.push(await gather(slug, cache));
+      for (const slug of PROTOTYPE_FIXTURE_SLUGS) data.push(await gather(slug, cache));
       writeFileSync(cachePath, JSON.stringify(cache, null, 1));
       writeFileSync(DOC, report(data));
     },

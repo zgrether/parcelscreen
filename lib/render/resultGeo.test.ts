@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import type { ScreenResult } from "../screen/types";
-import { FIXTURE_SLUGS, loadFixture } from "@/test/support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, loadFixture } from "@/test/support/fixtures";
 import { fromPrototype } from "@/test/support/fromPrototype";
 import { prototypeFn } from "@/test/support/prototypeFns";
 import { drivewayFeatures, soilFeatures, trailheadFeatures } from "./resultGeo";
@@ -32,7 +32,7 @@ function fakeLeaflet(out: Drawn[]) {
   };
 }
 
-const runs = FIXTURE_SLUGS.flatMap((slug) =>
+const runs = PROTOTYPE_FIXTURE_SLUGS.flatMap((slug) =>
   Object.keys(loadFixture(slug).goldens).map((k) => [slug, k] as const),
 );
 const golden = (slug: (typeof runs)[number][0], key: string) =>
@@ -69,6 +69,19 @@ describe("trailheads (15c)", () => {
     const want = R.near?.trailheads ?? [];
     expect(ours.map((f) => f.properties.tip)).toEqual(want.map((t) => t.name));
     expect(ours.map((f) => f.geometry.coordinates)).toEqual(want.map((t) => [t.ll[1], t.ll[0]]));
+  });
+
+  it("a trailhead serving TREC trails lists them on a line under its name (step 2)", () => {
+    const r = fromPrototype(golden(runs[0]![0], runs[0]![1]) as never) as ScreenResult;
+    const t = r.near!.trailheads[0]!;
+    r.near!.trailheads = [
+      { ...t, name: "Carvers Gap", serves: ["Appalachian Trail", "Grassy Ridge Trail"] },
+      { ...t, name: "Iron Mountain Trail", serves: ["Iron Mountain Trail"] },
+    ];
+    expect(trailheadFeatures(r).features.map((f) => f.properties.tip)).toEqual([
+      "Carvers Gap\nserves: Appalachian Trail, Grassy Ridge Trail",
+      "Iron Mountain Trail",
+    ]);
   });
 });
 
