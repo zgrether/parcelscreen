@@ -2,7 +2,9 @@
  * The current profile's documents as a key-value store (step 1, PR 4): the prefs module reads and writes the
  * profile-scoped keys through it, synchronously, as it did localStorage. The values are hydrated from IndexedDB once,
  * before the app renders (components/Profile/ProfileGate.tsx), and every write goes to memory and then to storage,
- * best-effort and in order. `flush` waits for the writes so far (the e2e seeds a store and reloads).
+ * best-effort. Each write's transaction starts at once, so a burst of writes is in flight together and a page unloaded
+ * right after a click has the least to lose (IndexedDB runs same-store readwrite transactions in the order they were
+ * created, so later writes still win). `flush` waits for every write in flight (the e2e flushes before a reload).
  */
 import type { ProfileDoc, ProfileStorage } from "./profileStore";
 
@@ -27,7 +29,7 @@ export interface KvHandle {
 
 export class ProfileKv implements KvHandle {
   private readonly data: Map<string, string>;
-  private pending: Promise<unknown> = Promise.resolve();
+  private readonly inFlight = new Set<Promise<void>>();
 
   constructor(
     readonly profile: string,
@@ -43,18 +45,22 @@ export class ProfileKv implements KvHandle {
 
   setItem(key: string, value: string): void {
     this.data.set(key, value);
-    const doc: ProfileDoc = { profile: this.profile, key, value };
-    this.pending = this.pending.then(() => this.storage.putDoc(doc)).catch(() => undefined);
+    this.track(this.storage.putDoc({ profile: this.profile, key, value }));
   }
 
   removeItem(key: string): void {
     this.data.delete(key);
-    this.pending = this.pending.then(() => this.storage.deleteDoc(this.profile, key)).catch(() => undefined);
+    this.track(this.storage.deleteDoc(this.profile, key));
+  }
+
+  private track(write: Promise<void>): void {
+    const settled: Promise<void> = write.catch(() => undefined).finally(() => this.inFlight.delete(settled));
+    this.inFlight.add(settled);
   }
 
   /** Resolves once every write so far has reached storage (or failed). */
   flush(): Promise<void> {
-    return this.pending.then(() => undefined);
+    return Promise.all([...this.inFlight]).then(() => undefined);
   }
 
   /** Every key held, for tests and the export. */

@@ -6,7 +6,7 @@
  * shown and the touch gestures are MapLibre's own.
  */
 import { expect, test, type Page } from "@playwright/test";
-import { openExplorer } from "./flow";
+import { openExplorer, reload } from "./flow";
 import { replayHar } from "./replay";
 
 const SLUG = "ferney-creek-52-47A";
@@ -113,7 +113,7 @@ test.describe("desktop", () => {
     await page.mouse.up({ button: "middle" });
     expect((await camera(page)).pitch).toBe(0);
 
-    await page.reload();
+    await reload(page);
     await settle(page);
     await expect(page.locator(".tilt-hint")).toHaveCount(0);
   });

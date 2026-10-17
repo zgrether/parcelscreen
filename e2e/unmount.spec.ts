@@ -6,7 +6,7 @@
  * and Back returns to the map with the report and that panel open (it's in the URL, ?panel=trails: #121 review).
  */
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
-import { expectAllDone, importParcel, openExplorer, screenIt } from "./flow";
+import { expectAllDone, importParcel, openExplorer, screenIt, visit } from "./flow";
 import { replayHar, type ReplayLog } from "./replay";
 
 const FERNEY = "ferney-creek-52-47A" as const;
@@ -152,19 +152,19 @@ test("a URL that names a panel opens it; one that isn't a panel, or a parcel wit
   const panel = page.locator(".card-panel");
 
   // Ferney open, not screened yet: the panel is dropped, and so is the parameter.
-  await page.goto("/explore?panel=sky");
+  await visit(page, "/explore?panel=sky");
   await expect(page.locator(".sh-name").first()).toBeVisible();
   await expect(page).toHaveURL(/\/explore$/);
   await expect(panel).toHaveCount(0);
 
   expectAllDone(await screenIt(page));
-  await page.goto("/explore?panel=sky");
+  await visit(page, "/explore?panel=sky");
   await expect(panel.locator("#card-panel-title")).toHaveText("Night sky");
   await expect(panel).toBeInViewport();
   await expect(page).toHaveURL(/\/explore\?panel=sky$/);
 
   // Not a panel: the report, no panel, and the parameter gone.
-  await page.goto("/explore?panel=moon");
+  await visit(page, "/explore?panel=moon");
   await expect(page.locator(".report .card-row").first()).toBeVisible();
   await expect(page).toHaveURL(/\/explore$/);
   await expect(panel).toHaveCount(0);

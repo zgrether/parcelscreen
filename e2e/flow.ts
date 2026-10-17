@@ -73,6 +73,31 @@ export async function importParcels(page: Page, slugs: readonly FixtureSlug[]): 
   await page.keyboard.press("Escape");
 }
 
+/**
+ * Waits for the profile's writes so far to reach IndexedDB (step 1, PR 4: the store writes through asynchronously, and
+ * a page unloaded a moment after a click could lose its last write). Before a reload or a navigation that follows an
+ * edit.
+ */
+export const settled = (page: Page): Promise<void> => page.evaluate(() => window.__psKv?.flush());
+
+/** Waits for the profile to boot after a load: until then the app renders nothing and the store handle isn't there. */
+export const booted = (page: Page): Promise<unknown> =>
+  page.waitForFunction(() => !!window.__psKv || !localStorage.getItem("ps.debug"));
+
+/** A reload as a user would do it, once the profile's writes are kept; returns after the profile has booted again. */
+export async function reload(page: Page): Promise<void> {
+  await settled(page);
+  await page.reload();
+  await booted(page);
+}
+
+/** A navigation once the profile's writes are kept; returns after the profile has booted on the new page. */
+export async function visit(page: Page, url: string): Promise<void> {
+  await settled(page);
+  await page.goto(url);
+  await booted(page);
+}
+
 /** Opens a History parcel by (part of) the name its row shows (☰ → History → Open). */
 export async function openFromHistory(page: Page, name: string): Promise<void> {
   await page.getByRole("button", { name: "Menu", exact: true }).click();

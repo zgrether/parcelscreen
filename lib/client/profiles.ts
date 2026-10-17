@@ -113,6 +113,8 @@ export interface KvDebugHandle {
   getItem(key: string): string | null;
   setItem(key: string, value: string): Promise<void>;
   removeItem(key: string): Promise<void>;
+  /** Resolves once the app's own writes so far are in storage: the e2e flushes before it reloads. */
+  flush(): Promise<void>;
 }
 
 declare global {
@@ -134,6 +136,7 @@ function publishKv(kv: ProfileKv): void {
       kv.removeItem(k);
       await kv.flush();
     },
+    flush: () => kv.flush(),
   };
   window.__psKv = handle;
 }
