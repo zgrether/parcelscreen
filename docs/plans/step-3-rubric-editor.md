@@ -2,8 +2,9 @@
 
 Roadmap step 3 (`PLAN.md`, Roadmap). The spec is `docs/design/workflow-review.md`, Rubric algorithm §6, with step 1's
 plan §3.2 (the default rubric, and the promise that the first reorder shows the points before and after). Written
-2026-10-17 under mission mode (`CLAUDE.md`). **Awaiting the owner's approval. No application code until then.** The
-mission runs on `step/3-rubric-editor`, branched from main after this plan is merged. Step 2 (#166) is on main.
+2026-10-17 under mission mode (`CLAUDE.md`). **Approved 2026-10-17 with the answers in §8 and one change (the first
+reorder applies at once, with an inline notice: §3).** The mission runs on `step/3-rubric-editor`, branched from main
+after this plan is merged. Step 2 (#166) is on main.
 
 Done when:
 - A person can see and change their own rubric in four columns (Must, Should, Could, Won't): by dragging between
@@ -11,7 +12,8 @@ Done when:
 - Tapping a card shows what it measures and why it's there, and adjusts its threshold.
 - A preview shows the grade, the verdict and the two factors that moved most, on the open parcel when it's screened,
   else on another screened parcel or a sample, and updates as the cards move.
-- The first reorder of the default rubric shows the points before and after, and switches it to rank-sum weights.
+- The first reorder of the default rubric switches it to rank-sum weights at once, and a notice above the columns
+  shows the points before and after, with Undo.
 - "Reset to default" puts today's card back.
 - A rubric change never asks for a re-screen.
 - §9 records that warn gates stay, and the verdict lines' decision (§5).
@@ -53,9 +55,14 @@ Done when:
 - **A dealbreaker** can be Must or Won't only. It has no letter, so it can't rank. Dropping one on Should or Could
   is refused with "A dealbreaker is a Must or a Won't."
 - **A row dropped on Must becomes a minimum, and keeps its ranked place too** (the design doc: "Elevation at least
-  3,000 ft" gates, "higher is better" ranks). The drop says so: "Elevation is now a minimum too (at least 2,500 ft).
-  It still counts at #1." The minimum starts at the row's B/C edge (§2), the edge of "acceptable".
-  A Must card's ⋯ → "Remove the minimum" deletes it, and so does dropping it on Won't. (§8 Q2.)
+  3,000 ft" gates, "higher is better" ranks; §8 Q2):
+  - the ranked card stays where it was, with a small **"min"** badge;
+  - the Must column shows the minimum card;
+  - the drop message says so: "Elevation is now a minimum too (at least 2,500 ft): its card stays at #1 in Should,
+    marked min."
+
+  The minimum starts at the row's B/C edge (§2), the edge of "acceptable". A Must card's ⋯ → "Remove the minimum"
+  deletes it (and the badge), and so does dropping it on Won't.
 - **A row moved to Won't** leaves the ranked list; its minimum, if any, goes too. Moved back, it lands at the end of
   the column it's dropped on.
 - **Homesite** has no measure (its letter is the site's quality), so it can't be a minimum. "Move to… Must" is
@@ -106,14 +113,16 @@ since its `measure` is the ER minutes, as step 1 set it.
 
 - **The default keeps today's explicit weights.** Moving cards to Won't, adding minimums and moving thresholds don't
   change the weight mode.
-- **The first change to the ranked order or a tier while the weights are explicit** opens a confirm sheet before it
-  applies: "Ordering your cards switches to rank weights."
-  - **A table, row by row:** today's weight → the rank-sum weight after this move. For the default order:
-    elevation 25 → 25.0, homesite 25 → 21.4, room 15 → 17.9, sky 10 → 14.3, trails 10 → 10.7, garden 10 → 7.1,
-    town 5 → 3.6.
-  - **The preview parcel's points, letter and verdict, before → after.**
-  - **"Switch and move"** applies both; **"Cancel"** puts the card back.
-  - Once on rank-sum, moves apply without asking.
+- **The first change to the ranked order or a tier while the weights are explicit applies at once, with no blocking
+  confirm** (owner, 10/17). The move lands, the rubric switches to rank-sum, and an inline notice shows above the
+  columns: **"Your order now sets the weights. See what changed · Undo"**.
+  - **"See what changed"** expands the before/after table in the notice:
+    - row by row, the explicit weight → the rank-sum weight after this move. For the default order: elevation
+      25 → 25.0, homesite 25 → 21.4, room 15 → 17.9, sky 10 → 14.3, trails 10 → 10.7, garden 10 → 7.1, town 5 → 3.6;
+    - the preview parcel's points, letter and verdict, before → after.
+  - **"Undo"** restores both the order and the explicit weights.
+  - The notice stays until it's dismissed (its ×) or until the next move.
+  - Once on rank-sum, moves apply with no notice.
 - **Measured on the fixtures** (default rubric, run scenario), the switch alone:
 
 | Fixture | Explicit | Rank-sum (default order) | Verdict |
@@ -173,15 +182,14 @@ F → Pass (with the same gates, warns and caps).
 **No fixture's verdict changes.** Ferney's second card sits exactly on today's 2.75 line, and is a Contender either
 way. A saved parcel changes only if it scores 2.50–2.75 (Maybe → Contender) or 1.50–1.75 (Pass → Maybe).
 
-**Recommended: move to letter edges** (§8 Q1):
+**Decided: letter edges** (owner, §8 Q1):
 - the editor can explain the verdict in one line: "A or B is a Contender";
 - the letter and the verdict never disagree;
 - nothing on the fixtures moves.
 
 The change is `card.verdict` 2.75 / 1.75 → 2.5 / 1.5 in `config.ts`, with the config snapshot updated. The Grade
-and verdict panel's sentence quotes those numbers, so its text changes. That's a replacement, not an addition, so it
-needs rule 7's approval, given here: "Contender at 2.5 and up …" in place of "2.75". Recorded as §9.51. If you'd rather
-keep points, nothing changes and §9.51 records that.
+and verdict panel's sentence quotes those numbers, so its text changes: "Contender at 2.5 and up …" in place of
+"2.75". That replaces existing text; the owner gave rule 7's approval for it (10/17). Recorded as §9.51.
 
 ## 6. UX
 
@@ -192,6 +200,7 @@ keep points, nothing changes and §9.51 records that.
   tap target for its sheet.
 - **Dragging:** the card lifts and the drop targets show. A refused drop (a dealbreaker onto Should) shows the
   reason in place.
+- **The weights notice** (§3) sits above the columns, full width, collapsed to one line until "See what changed".
 - **The header:** "My rubric", the profile picker, "Reset to default", and a link to the rulebook.
 
 ### 6.2 Phone (375 px): stacked tiers, tap to move first
@@ -203,6 +212,7 @@ keep points, nothing changes and §9.51 records that.
 - **Dragging is the shortcut, by the handle only:** a 250 ms long press on the handle (dnd-kit `TouchSensor`,
   `delay: 250, tolerance: 6`), so a swipe over a card scrolls the page and never starts a drag. While dragging near
   the top or bottom edge, the list auto-scrolls.
+- **The weights notice** sits above the Must tier; its table, expanded, scrolls with the page.
 - **The preview is a sticky bar** at the bottom: "B · Contender → A · Contender ▴". Tapping it opens the two
   factors and the parcel picker.
 - **Tap targets:** at least 44 × 44 px. Nothing scrolls sideways (the e2e checks both).
@@ -233,35 +243,37 @@ Each empty column keeps a dashed drop target with one line:
 
 - **`expected.json`:** no change on any fixture. The engine, schema and results are untouched, and `ENGINE_VERSION`
   stays 22.
-- **`card.verdict`:** 2.75 / 1.75 → 2.5 / 1.5, **only if Q1 is approved.** No fixture's verdict changes (§5);
+- **`card.verdict`:** 2.75 / 1.75 → 2.5 / 1.5 (approved, Q1). No fixture's verdict changes (§5);
   `cards-v7.json` and `cards-v8.json` stay as they are.
 - **`card.editor`** (new): each row's slider range and step.
 - **Text:**
-  - new: the editor's own text (cards, sheets, empty states, the confirm, the preview);
-  - changed: the Grade and verdict panel's verdict sentence (Q1);
+  - new: the editor's own text (cards, sheets, empty states, the weights notice, the preview);
+  - changed: the Grade and verdict panel's verdict sentence (Q1; rule 7 approval given);
   - added: a "My rubric" link in the menu and the rulebook.
 - **No export, storage or rubric-version change.**
 
-## 8. Questions for the owner
+## 8. The owner's answers (Zach, 2026-10-17)
 
-1. **The verdict lines:** move to letter edges (recommended, §5), or keep points?
-2. **A row dropped on Must** becomes a minimum and keeps its ranked place (recommended, the doc's model). Or should it
-   move out of Should and Could?
-3. **Dealbreakers** can be Must or Won't only (they have no letter to rank). Agreed?
-4. **Saving:** every change saves at once, with Undo and "Reset to default" (recommended). Or a draft with Save and
-   Cancel?
-5. **A ranked row's slider** moves its B/C edge and shifts the other edges by the same amount (recommended). Or a
-   slider for each edge?
-6. **Phone:** stacked tiers (recommended) or a tier switcher?
-7. **The preview's fallback sample** is Mud Creek's result, bundled (21 KB gzipped, loaded on demand). OK, or Roan?
-8. **The editor on its own page** `/rubric` ("My rubric": the menu, the rulebook, the card's weight line), or inside
-   the rulebook?
-9. **Other people's rubrics** (the "Julie" one, a household's) stay read-only until step 5. Agreed?
+1. **Verdict lines:** letter edges (A/B Contender, C Maybe, D/F Pass), as recommended. Rule 7 approval is given for
+   the replaced sentence in the Grade and verdict panel (§5).
+2. **A row dropped on Must** becomes a minimum and keeps its ranked place. The ranked card stays where it was with a
+   small "min" badge, the Must column shows the minimum card, and the drop message says so (§1).
+3. **Dealbreakers:** Must or Won't only.
+4. **Saving:** every change saves at once, with Undo (the last ten) and Reset behind a confirm.
+5. **Slider:** it moves the B/C edge and shifts the band.
+6. **Phone:** stacked tiers.
+7. **Sample:** Mud Creek.
+8. **Page:** `/rubric`, linked from the menu, the rulebook and the card's weight line.
+9. **Others' rubrics:** read-only until step 5.
+
+**One change (owner): the first reorder has no blocking confirm.** The move applies, the weights switch to rank-sum,
+and an inline notice shows above the columns: "Your order now sets the weights. See what changed · Undo". The notice
+expands into the same before/after table, and Undo restores both the order and the explicit weights (§3).
 
 ## 9. Stop conditions (push what's there, say why, wait)
 
 1. Any change to a fixture's `expected.json`, or to `cards-v7.json` / `cards-v8.json` beyond what §7 declares.
-2. A verdict or reason line changing on a fixture (even with Q1 approved, none should).
+2. A verdict or reason line changing on a fixture: with letter edges, none should (§5).
 3. The rubric shape needing a change (a version bump, or an export or storage change).
 4. The general ones (CLAUDE.md): a product decision, the same CI failure three times, or the plan turning out wrong.
 
@@ -269,11 +281,11 @@ Each empty column keeps a dashed drop target with one line:
 
 | # | PR | Checks |
 |---|---|---|
-| 1 | **Rubric edits, pure** (`lib/rubric/edit.ts`): `moveCard` (the rules of §1), `setBandEdge` (shift), `setMinimum`, `removeMinimum`, `switchToRankSum` (with the before/after table), `resetToDefault`, `movedMost(before, after, result)`; `cardWords` (§2, from bands); `card.editor` ranges; the verdict lines (if Q1). | Unit tests for every rule, including refused moves; rank-sum before/after on the fixtures (the §3 table); `movedMost` on Mud Creek; the oracles unchanged; the config snapshot. |
-| 2 | **The editor, desktop:** `/rubric`, columns with dnd-kit (sortable within, droppable between), cards, the sheet (words, why, slider, Move to…), saving, Undo, Reset, the weights confirm; menu, rulebook and card links. | Component tests (render, Move to…, the confirm); e2e: drag between and within columns, Move to…, slider, Reset, the switch's confirm (Cancel reverts), and Library grades updating with no "Needs a re-screen". |
+| 1 | **Rubric edits, pure** (`lib/rubric/edit.ts`): `moveCard` (the rules of §1), `setBandEdge` (shift), `setMinimum`, `removeMinimum`, `switchToRankSum` (and the before/after table), `resetToDefault`, `movedMost(before, after, result)`; `cardWords` (§2, from bands); `card.editor` ranges; the verdict lines at letter edges, and the Grade and verdict panel's sentence. | Unit tests for every rule, including refused moves; rank-sum before/after on the fixtures (the §3 table); `movedMost` on Mud Creek; the oracles unchanged; the config snapshot. |
+| 2 | **The editor, desktop:** `/rubric`, columns with dnd-kit (sortable within, droppable between), cards with the "min" badge, the sheet (words, why, slider, Move to…), saving, Undo (last ten), Reset behind a confirm, the weights notice (§3); menu, rulebook and card links. | Component tests (render, Move to…, the notice); e2e: drag between and within columns; Move to…; slider; Reset; the first reorder: it applies at once, the notice expands to the table, Undo restores the order and the explicit weights, the next move hides it; Library grades updating with no "Needs a re-screen". |
 | 3 | **The preview:** the parcel order and picker, the sample (`pnpm data:sample`, lazy), before → now, the two factors, live while dragging. | Unit: the parcel choice; e2e: the preview follows a drag on the sample and on an open parcel. |
-| 4 | **The phone layout:** stacked tiers, sticky headers, the bottom sheet as the primary move, handle-only long-press drag, the sticky preview bar, empty states, keyboard and announcements. | e2e at 375 × 812: tap → Move to…, no sideways scroll, 44 px targets, a swipe scrolls and doesn't drag; keyboard moves. |
-| 5 | **Screenshots and docs:** `pnpm screenshots` gains the editor at 1280 and 375, with a drag in progress (the lifted card over another column; on the phone, the handle's drag mid-move) and the weights confirm; REQUIREMENTS (rubric editing), phase-0.md §9.50–§9.51; the hand-back PR to main. | Full CI on the step branch's head. |
+| 4 | **The phone layout:** stacked tiers, sticky headers, the bottom sheet as the primary move, handle-only long-press drag, the sticky preview bar, the notice above the Must tier, empty states, keyboard and announcements. | e2e at 375 × 812: tap → Move to…, no sideways scroll, 44 px targets, a swipe scrolls and doesn't drag; keyboard moves. |
+| 5 | **Screenshots and docs:** `pnpm screenshots` gains the editor at 1280 and 375, with a drag in progress (the lifted card over another column; on the phone, the handle's drag mid-move) and the weights notice expanded; REQUIREMENTS (rubric editing), phase-0.md §9.50–§9.51; the hand-back PR to main. | Full CI on the step branch's head. |
 
 ## 11. Test plan outline
 
@@ -283,12 +295,12 @@ Each empty column keeps a dashed drop target with one line:
 - rank-sum on the first reorder, with the before/after table;
 - `movedMost`;
 - the card words;
-- the verdict lines (Q1);
+- the verdict lines at letter edges;
 - the oracles (`cards-v7`, `cards-v8`, `grades-*`) unchanged;
 - the rubric never in `RunKeys`.
 
 **e2e (CI):**
-- desktop: drag, Move to…, slider, confirm, Reset, Undo;
+- desktop: drag, Move to…, slider, the first reorder's notice (expand, Undo, gone after the next move), Reset, Undo;
 - phone: stacked, tap to move, scroll vs drag;
 - keyboard moves;
 - the Library re-grading with no re-screen.
@@ -297,26 +309,36 @@ Each empty column keeps a dashed drop target with one line:
 - the editor at rest;
 - a drag in progress;
 - a card's sheet with its slider;
-- the weights confirm;
+- the weights notice expanded (the before/after table);
+- a row with its "min" badge and its minimum card;
 - the preview after a move;
 - an empty column.
 
 **Manual, on the preview (about 20 minutes, desktop then phone), using the fixture parcels by name:**
 1. Open **Mud Creek** (screen it) → ☰ → My rubric → the preview shows Mud Creek: B · Contender.
-2. Drag Night sky above Homesite → the weights confirm shows today's and the rank-sum weights, and Mud Creek's points
-   3.450 → after. Cancel puts the card back; do it again and Switch → the preview updates.
+2. Drag Night sky above Homesite → it moves at once, and the notice reads "Your order now sets the weights. See what
+   changed · Undo". See what changed → the table shows today's and the rank-sum weights, and Mud Creek's points,
+   letter and verdict before → after. Undo → the order and the explicit weights are back, and the notice is gone. Drag
+   again, then move another card → the notice goes; the preview has updated.
 3. Move Septic to Won't → the preview's two factors name it; the card hides the septic gate.
-4. Drag Town and hospital onto Must → "now a minimum too (ER within 30 min)". Set the minimum to 20 min → open **Macks
-   Mountain** → its verdict reads against the minimum.
+4. Drag Town and hospital onto Must → the message says it's a minimum too (ER within 30 min) and its card stays in
+   place with a "min" badge. Set the minimum to 20 min → open **Macks Mountain** → its verdict reads against the
+   minimum.
 5. Tap Elevation → slide its edge to 3,000 ft → the band words update; the preview moves.
 6. Your list → every grade has updated, and nothing reads "Needs a re-screen".
-7. Reset to default → today's card is back; **Ferney**, **Macks**, **Mud Creek** and **Roan** show their grades as before.
+7. Reset to default (confirm) → today's card is back; **Ferney**, **Macks**, **Mud Creek** and **Roan** show their
+   grades as before.
 8. Phone: stacked tiers; tap a card → Move to… Could; long-press the handle and drag; a swipe over the cards scrolls.
 
 ## 12. Decisions to record in `phase-0.md` §9 (in the PRs)
 
-- **§9.50 The rubric editor.** The columns' rules (dealbreakers Must or Won't, a row on Must as a minimum too,
-  homesite never a minimum); the threshold as the B/C edge shifting the band; explicit weights until the first
-  reorder, then rank-sum, with the confirm; saving and Undo; the preview's parcel order and the sample. Warn gates
-  stay, a real third state.
-- **§9.51 The verdict lines:** letter edges or points, as Q1 answers, with the fixture table of §5.
+- **§9.50 The rubric editor.**
+  - The columns' rules: dealbreakers Must or Won't; a row on Must becomes a minimum and keeps its ranked card, marked
+    "min"; homesite is never a minimum.
+  - The threshold is the B/C edge, shifting the band.
+  - Explicit weights until the first reorder, then rank-sum, applied at once with the inline notice and its Undo.
+  - Saving at once, Undo (last ten), Reset behind a confirm.
+  - The preview's parcel order and the Mud Creek sample; others' rubrics read-only until step 5.
+  - Warn gates stay: a real third state.
+- **§9.51 The verdict lines are letter edges** (A/B Contender, C Maybe, D/F Pass; `card.verdict` 2.5 / 1.5), with
+  the fixture table of §5; the Grade and verdict panel's sentence replaced under rule 7's approval.
