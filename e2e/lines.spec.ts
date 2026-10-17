@@ -114,7 +114,7 @@ test("a drawn line: the banner, its layer and details (name, kind, condition, wi
     await row("Gravel lane").click();
   }
   const markup = await page.evaluate(
-    () => (JSON.parse(localStorage.getItem("ps.parcels")!) as { open: { markup: unknown[] } }).open.markup,
+    () => (JSON.parse(window.__psKv!.getItem("ps.parcels")!) as { open: { markup: unknown[] } }).open.markup,
   );
   expect(markup).toEqual([
     expect.objectContaining({

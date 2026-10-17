@@ -11,7 +11,7 @@ const FERNEY = "ferney-creek-52-47A" as const;
 
 const stored = (page: Page) =>
   page.evaluate(
-    () => (JSON.parse(localStorage.getItem("ps.parcels")!) as { open: Record<string, unknown> }).open,
+    () => (JSON.parse(window.__psKv!.getItem("ps.parcels")!) as { open: Record<string, unknown> }).open,
   );
 
 test("the parcel's standing: saved, archived with a reason, restored; milestones; in History and after a reload", async ({

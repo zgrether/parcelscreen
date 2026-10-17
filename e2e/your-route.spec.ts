@@ -31,8 +31,8 @@ function redGateToTheBoundary(): [number, number][] {
 
 /** The parcel open, with the red-gate easement drawn (as the line tool keeps one), named "Red gate". */
 async function withRedGate(page: Page): Promise<void> {
-  await page.evaluate((line) => {
-    const s = JSON.parse(localStorage.getItem("ps.parcels")!) as {
+  await page.evaluate(async (line) => {
+    const s = JSON.parse(window.__psKv!.getItem("ps.parcels")!) as {
       open: { key: string; markup: unknown[] };
       built: { key: string; markup: unknown[] }[];
     };
@@ -50,7 +50,7 @@ async function withRedGate(page: Page): Promise<void> {
     };
     s.open.markup = [m];
     for (const b of s.built) if (b.key === s.open.key) b.markup = [m];
-    localStorage.setItem("ps.parcels", JSON.stringify(s));
+    await window.__psKv!.setItem("ps.parcels", JSON.stringify(s));
   }, redGateToTheBoundary());
   await page.reload();
 }

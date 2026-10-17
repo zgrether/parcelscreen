@@ -77,7 +77,7 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   await expect(rows).toHaveCount(2);
   expect(
     await page.evaluate(
-      () => (JSON.parse(localStorage.getItem("ps.parcels")!) as { built: { status: string }[] }).built,
+      () => (JSON.parse(window.__psKv!.getItem("ps.parcels")!) as { built: { status: string }[] }).built,
     ),
   ).toEqual(expect.arrayContaining([expect.objectContaining({ status: "archived" })]));
 
@@ -123,7 +123,7 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   await expect(ferneyRow.locator("td").nth(4)).toHaveText("$185k");
   expect(
     await page.evaluate(() =>
-      (JSON.parse(localStorage.getItem("ps.parcels")!) as { built: Record<string, unknown>[] }).built.find(
+      (JSON.parse(window.__psKv!.getItem("ps.parcels")!) as { built: Record<string, unknown>[] }).built.find(
         (b) => b.askingPrice === 185000,
       ),
     ),
@@ -159,14 +159,14 @@ test.describe("on a phone", () => {
     await openExplorer(page, FERNEY);
     await importParcels(page, [FERNEY, MACKS]);
     // Macks archived: the cards end with the hidden line, as the table does.
-    await page.evaluate(() => {
-      const s = JSON.parse(localStorage.getItem("ps.parcels")!) as {
+    await page.evaluate(async () => {
+      const s = JSON.parse(window.__psKv!.getItem("ps.parcels")!) as {
         built: { notes: string; status: string; archived: unknown }[];
       };
       const m = s.built.find((b) => b.notes.includes("35-3"))!;
       m.status = "archived";
       m.archived = { reason: "Sold", at: "2026-10-14T12:00:00.000Z", from: "inProgress" };
-      localStorage.setItem("ps.parcels", JSON.stringify(s));
+      await window.__psKv!.setItem("ps.parcels", JSON.stringify(s));
     });
     await page.goto("/library");
     await expect(page.locator(".lib-cards .lib-card")).toHaveCount(1);

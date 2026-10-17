@@ -19,7 +19,7 @@ const stored = (page: Page) =>
   page.evaluate(
     () =>
       (
-        JSON.parse(localStorage.getItem("ps.parcels")!) as {
+        JSON.parse(window.__psKv!.getItem("ps.parcels")!) as {
           built: { notes: string; rank: string; updatedAt: string }[];
         }
       ).built,

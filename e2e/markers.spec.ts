@@ -151,7 +151,7 @@ test("the Mark picker: a septic permit (a point, then a field), its gate, a drag
   const kept = await page.evaluate(
     () =>
       (
-        JSON.parse(localStorage.getItem("ps.parcels")!) as {
+        JSON.parse(window.__psKv!.getItem("ps.parcels")!) as {
           open: { markup: { shape: string; name: string }[] };
         }
       ).open.markup,
@@ -214,8 +214,8 @@ test("a Septic field saved by #136 reads as a Septic permit drawn as an area", a
   await openExplorer(page, MACKS);
   await importParcel(page, MACKS);
   const site = expectedOf(MACKS, "run").sites![0]!.ll;
-  await page.evaluate((s) => {
-    const store = JSON.parse(localStorage.getItem("ps.parcels")!) as {
+  await page.evaluate(async (s) => {
+    const store = JSON.parse(window.__psKv!.getItem("ps.parcels")!) as {
       open: { markup: unknown[] };
       built: { markup: unknown[] }[];
     };
@@ -235,7 +235,7 @@ test("a Septic field saved by #136 reads as a Septic permit drawn as an area", a
     };
     store.open.markup = [field];
     store.built[0]!.markup = [field];
-    localStorage.setItem("ps.parcels", JSON.stringify(store));
+    await window.__psKv!.setItem("ps.parcels", JSON.stringify(store));
   }, site);
   await page.reload();
   const info = page.locator(".info-panel");

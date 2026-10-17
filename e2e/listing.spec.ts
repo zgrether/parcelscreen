@@ -60,7 +60,7 @@ async function goToLink(page: Page): Promise<void> {
 
 const stored = (page: Page) =>
   page.evaluate(
-    () => (JSON.parse(localStorage.getItem("ps.parcels")!) as { open: Record<string, unknown> }).open,
+    () => (JSON.parse(window.__psKv!.getItem("ps.parcels")!) as { open: Record<string, unknown> }).open,
   );
 
 test("the listing's facts: typed, the name shown, the acres compared on the card; a link centres the map", async ({

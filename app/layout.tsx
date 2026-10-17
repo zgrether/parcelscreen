@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Barlow, Barlow_Condensed } from "next/font/google";
 import "./globals.css";
+import { ProfileGate } from "@/components/Profile/ProfileGate";
 import { THEME_COLOR } from "./manifest";
 
 const barlow = Barlow({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-barlow" });
@@ -28,7 +29,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${barlow.variable} ${barlowCondensed.variable}`}>
-      <body>{children}</body>
+      <body>
+        {/* The current profile boots before any page reads its parcels, settings or views (step 1, PR 4). */}
+        <ProfileGate>{children}</ProfileGate>
+      </body>
     </html>
   );
 }
