@@ -100,8 +100,13 @@ export function fromPrototype(R: PrototypeResult): ScreenResult {
       fit: "fits",
       gentleNearAc: 0,
       sfhaOnSite: !!x.flood,
+      // v8: the prototype kept no soil key (the soil under the pin is named in soil only).
+      soilKey: null,
     }));
 
+  // v8: nor did its house.
+  if (result.house && !("outside" in (result.house as Loose)))
+    result.house = { ...(result.house as Loose), soilKey: null };
   // v4 (VR3a): no step on the prototype's flags, and no record of a source that didn't answer.
   result.flags = ((result.flags as Loose[]) ?? []).map((f) => ({ ...f, step: null }));
   result.noResponse = [];

@@ -6,7 +6,13 @@
    "shelfMin": 45,
    "gardenMin": 60,
    "canopyDeg": 3,
-   "shallowBedrockCm": 100
+   "shallowBedrockCm": 100,
+   "benchMinAcres": 0.3,
+   "compactMinAcres": 0.15,
+   "sunHoursWanted": 5,
+   "thermalMinFt": 80,
+   "roadMaxGradePct": 15,
+   "roadVetoGradePct": 25
   },
   "flags": [
    {
@@ -296,6 +302,38 @@
     "engstafdcd": "Very limited",
     "englrsdcd": "Very limited",
     "septic": "Very limited"
+   }
+  ],
+  "soilLimits": [
+   {
+    "cokey": "27884443",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "29143263",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27884386",
+    "septic": "poor",
+    "foundation": "poor"
+   },
+   {
+    "cokey": "27884414",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27884415",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27884478",
+    "septic": "poor",
+    "foundation": "fine"
    }
   ],
   "soilUnits": [
@@ -2173,6 +2211,12 @@
     "costTier": "$$$$",
     "quality": 82,
     "qGrade": "A",
+    "soilKey": "27884414",
+    "sky": {
+     "mag": 21.520649316922533,
+     "coreClear": 18.025468968264335,
+     "domeW": 3.466232272555967
+    },
     "roadGrade": 11.660691375667428,
     "roadRunFt": 614.3255830669212,
     "roadName": "unnamed road",
@@ -2181,7 +2225,22 @@
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.9546316998100731,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 2887.618130949411,
+     "cost": {
+      "mid": 166340.59628051126,
+      "low": 116438.41739635788,
+      "high": 216242.77516466466
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 17.877068992858465,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 2,
@@ -2230,6 +2289,12 @@
     "costTier": "$$$$",
     "quality": 82,
     "qGrade": "A",
+    "soilKey": "27884478",
+    "sky": {
+     "mag": 21.520649316922533,
+     "coreClear": 17.409277170308954,
+     "domeW": 3.0206913092518426
+    },
     "roadGrade": 34.8957316910476,
     "roadRunFt": 803.8875228422704,
     "roadName": "Mud Creek Ln",
@@ -2238,7 +2303,22 @@
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.32413076319132716,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 2578.0350724695954,
+     "cost": {
+      "mid": 162581.5217729435,
+      "low": 113807.06524106044,
+      "high": 211355.97830482654
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 17.877068992858465,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 3,
@@ -2287,6 +2367,12 @@
     "costTier": "$$$$",
     "quality": 75,
     "qGrade": "B",
+    "soilKey": "27884478",
+    "sky": {
+     "mag": 21.520649316922533,
+     "coreClear": 14.825850599465078,
+     "domeW": 3.466232272555967
+    },
     "roadGrade": 15.213416457767547,
     "roadRunFt": 556.1445489110306,
     "roadName": "unnamed road",
@@ -2295,7 +2381,22 @@
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.9568517735305616,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 2844.855485397168,
+     "cost": {
+      "mid": 162252.6207759889,
+      "low": 113576.83454319224,
+      "high": 210928.40700878558
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 17.877068992858465,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 4,
@@ -2344,6 +2445,12 @@
     "costTier": "$$$$",
     "quality": 85,
     "qGrade": "A",
+    "soilKey": "27884415",
+    "sky": {
+     "mag": 21.520649316922533,
+     "coreClear": 15.473682258520036,
+     "domeW": 3.0206913092518426
+    },
     "roadGrade": 36.099887730928245,
     "roadRunFt": 294.53867668222597,
     "roadName": "Mud Creek Rd",
@@ -2352,7 +2459,22 @@
     "practical": null,
     "fit": "house only",
     "gentleNearAc": 0.06438213789416773,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 905.0394175824515,
+     "cost": {
+      "mid": 58674.98458617159,
+      "low": 41072.489210320105,
+      "high": 76277.47996202306
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 17.510087689153885,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    }
   ],
   "driveway": {
@@ -7628,8 +7750,8 @@
    "mi": 9,
    "er": null
   },
-  "schemaVersion": 7,
-  "engine": 20,
+  "schemaVersion": 8,
+  "engine": 21,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -7642,7 +7764,13 @@
    "shelfMin": 45,
    "gardenMin": 60,
    "canopyDeg": 3,
-   "shallowBedrockCm": 100
+   "shallowBedrockCm": 100,
+   "benchMinAcres": 0.3,
+   "compactMinAcres": 0.15,
+   "sunHoursWanted": 5,
+   "thermalMinFt": 80,
+   "roadMaxGradePct": 15,
+   "roadVetoGradePct": 25
   },
   "flags": [
    {
@@ -7932,6 +8060,38 @@
     "engstafdcd": "Very limited",
     "englrsdcd": "Very limited",
     "septic": "Very limited"
+   }
+  ],
+  "soilLimits": [
+   {
+    "cokey": "27884443",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "29143263",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27884386",
+    "septic": "poor",
+    "foundation": "poor"
+   },
+   {
+    "cokey": "27884414",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27884415",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27884478",
+    "septic": "poor",
+    "foundation": "fine"
    }
   ],
   "soilUnits": [
@@ -9809,6 +9969,12 @@
     "costTier": "$$$$",
     "quality": 82,
     "qGrade": "A",
+    "soilKey": "27884414",
+    "sky": {
+     "mag": 21.520649316922533,
+     "coreClear": 18.025468968264335,
+     "domeW": 3.466232272555967
+    },
     "roadGrade": 11.660691375667428,
     "roadRunFt": 614.3255830669212,
     "roadName": "unnamed road",
@@ -9817,7 +9983,22 @@
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.9546316998100731,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 2887.618130949411,
+     "cost": {
+      "mid": 166340.59628051126,
+      "low": 116438.41739635788,
+      "high": 216242.77516466466
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 17.877068992858465,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 2,
@@ -9866,6 +10047,12 @@
     "costTier": "$$$$",
     "quality": 82,
     "qGrade": "A",
+    "soilKey": "27884478",
+    "sky": {
+     "mag": 21.520649316922533,
+     "coreClear": 17.409277170308954,
+     "domeW": 3.0206913092518426
+    },
     "roadGrade": 34.8957316910476,
     "roadRunFt": 803.8875228422704,
     "roadName": "Mud Creek Ln",
@@ -9874,7 +10061,22 @@
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.32413076319132716,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 2578.0350724695954,
+     "cost": {
+      "mid": 162581.5217729435,
+      "low": 113807.06524106044,
+      "high": 211355.97830482654
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 17.877068992858465,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 3,
@@ -9923,6 +10125,12 @@
     "costTier": "$$$$",
     "quality": 75,
     "qGrade": "B",
+    "soilKey": "27884478",
+    "sky": {
+     "mag": 21.520649316922533,
+     "coreClear": 14.825850599465078,
+     "domeW": 3.466232272555967
+    },
     "roadGrade": 15.213416457767547,
     "roadRunFt": 556.1445489110306,
     "roadName": "unnamed road",
@@ -9931,7 +10139,22 @@
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.9568517735305616,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 2844.855485397168,
+     "cost": {
+      "mid": 162252.6207759889,
+      "low": 113576.83454319224,
+      "high": 210928.40700878558
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 17.877068992858465,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 4,
@@ -9980,6 +10203,12 @@
     "costTier": "$$$$",
     "quality": 85,
     "qGrade": "A",
+    "soilKey": "27884415",
+    "sky": {
+     "mag": 21.520649316922533,
+     "coreClear": 15.473682258520036,
+     "domeW": 3.0206913092518426
+    },
     "roadGrade": 36.099887730928245,
     "roadRunFt": 294.53867668222597,
     "roadName": "Mud Creek Rd",
@@ -9988,7 +10217,22 @@
     "practical": null,
     "fit": "house only",
     "gentleNearAc": 0.06438213789416773,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 905.0394175824515,
+     "cost": {
+      "mid": 58674.98458617159,
+      "low": 41072.489210320105,
+      "high": 76277.47996202306
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 17.510087689153885,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    }
   ],
   "driveway": {
@@ -15264,8 +15508,8 @@
    "mi": 9,
    "er": null
   },
-  "schemaVersion": 7,
-  "engine": 20,
+  "schemaVersion": 8,
+  "engine": 21,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,

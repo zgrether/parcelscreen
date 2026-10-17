@@ -179,7 +179,7 @@ export function computeSun(ctx: SunContext, ll: LatLon, valleyFloorFt: number, c
 export function sunFlags(
   sun: NonNullable<ScreenResult["sun"]>,
   focusLabel: string,
-  worst: HorizonPoint,
+  worst: { az: number },
   sunHoursWanted: number,
 ): RawFlag[] {
   if (sun.noonClearance <= 0)

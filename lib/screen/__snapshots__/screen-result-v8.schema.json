@@ -4,7 +4,7 @@
   "properties": {
     "schemaVersion": {
       "type": "number",
-      "const": 7
+      "const": 8
     },
     "engine": {
       "type": "integer",
@@ -34,6 +34,24 @@
         },
         "shallowBedrockCm": {
           "type": "number"
+        },
+        "benchMinAcres": {
+          "type": "number"
+        },
+        "compactMinAcres": {
+          "type": "number"
+        },
+        "sunHoursWanted": {
+          "type": "number"
+        },
+        "thermalMinFt": {
+          "type": "number"
+        },
+        "roadMaxGradePct": {
+          "type": "number"
+        },
+        "roadVetoGradePct": {
+          "type": "number"
         }
       },
       "required": [
@@ -41,7 +59,13 @@
         "shelfMin",
         "gardenMin",
         "canopyDeg",
-        "shallowBedrockCm"
+        "shallowBedrockCm",
+        "benchMinAcres",
+        "compactMinAcres",
+        "sunHoursWanted",
+        "thermalMinFt",
+        "roadMaxGradePct",
+        "roadVetoGradePct"
       ],
       "additionalProperties": false
     },
@@ -477,6 +501,60 @@
               "acres",
               "color",
               "geometries"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "soilLimits": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "cokey": {
+                "type": "string"
+              },
+              "septic": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "fine",
+                      "workable",
+                      "poor"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "foundation": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "fine",
+                      "workable",
+                      "poor"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "cokey",
+              "septic",
+              "foundation"
             ],
             "additionalProperties": false
           }
@@ -1430,6 +1508,126 @@
             "type": "boolean",
             "const": true
           },
+          "sky": {
+            "type": "object",
+            "properties": {
+              "mag": {
+                "type": "number"
+              },
+              "coreClear": {
+                "type": "number"
+              },
+              "domeW": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "mag",
+              "coreClear",
+              "domeW"
+            ],
+            "additionalProperties": false
+          },
+          "soilKey": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "driveway": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "lengthFt": {
+                    "type": "number"
+                  },
+                  "cost": {
+                    "type": "object",
+                    "properties": {
+                      "mid": {
+                        "type": "number"
+                      },
+                      "low": {
+                        "type": "number"
+                      },
+                      "high": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "mid",
+                      "low",
+                      "high"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "needsEasement": {
+                    "type": "boolean"
+                  },
+                  "legal": {
+                    "type": "boolean"
+                  },
+                  "limitPct": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "maxGradePct": {
+                    "type": "number"
+                  },
+                  "designPct": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "existing": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "maxGradePct": {
+                            "type": "number"
+                          },
+                          "limitPct": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "maxGradePct",
+                          "limitPct"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "noPractical": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "lengthFt",
+                  "cost",
+                  "needsEasement",
+                  "legal",
+                  "limitPct",
+                  "maxGradePct",
+                  "designPct",
+                  "existing",
+                  "noPractical"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "practical": {
             "anyOf": [
               {
@@ -1630,6 +1828,7 @@
           "quality",
           "qGrade",
           "grade",
+          "soilKey",
           "practical",
           "fit",
           "gentleNearAc",
@@ -1859,6 +2058,126 @@
                 "flood": {
                   "type": "boolean",
                   "const": true
+                },
+                "sky": {
+                  "type": "object",
+                  "properties": {
+                    "mag": {
+                      "type": "number"
+                    },
+                    "coreClear": {
+                      "type": "number"
+                    },
+                    "domeW": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "mag",
+                    "coreClear",
+                    "domeW"
+                  ],
+                  "additionalProperties": false
+                },
+                "soilKey": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "driveway": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "lengthFt": {
+                          "type": "number"
+                        },
+                        "cost": {
+                          "type": "object",
+                          "properties": {
+                            "mid": {
+                              "type": "number"
+                            },
+                            "low": {
+                              "type": "number"
+                            },
+                            "high": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "mid",
+                            "low",
+                            "high"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "needsEasement": {
+                          "type": "boolean"
+                        },
+                        "legal": {
+                          "type": "boolean"
+                        },
+                        "limitPct": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "maxGradePct": {
+                          "type": "number"
+                        },
+                        "designPct": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "existing": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "maxGradePct": {
+                                  "type": "number"
+                                },
+                                "limitPct": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "maxGradePct",
+                                "limitPct"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "noPractical": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "lengthFt",
+                        "cost",
+                        "needsEasement",
+                        "legal",
+                        "limitPct",
+                        "maxGradePct",
+                        "designPct",
+                        "existing",
+                        "noPractical"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -1883,7 +2202,8 @@
                 "costTier",
                 "quality",
                 "qGrade",
-                "grade"
+                "grade",
+                "soilKey"
               ],
               "additionalProperties": false
             },

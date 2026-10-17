@@ -6,7 +6,13 @@
    "shelfMin": 45,
    "gardenMin": 60,
    "canopyDeg": 3,
-   "shallowBedrockCm": 100
+   "shallowBedrockCm": 100,
+   "benchMinAcres": 0.3,
+   "compactMinAcres": 0.15,
+   "sunHoursWanted": 5,
+   "thermalMinFt": 80,
+   "roadMaxGradePct": 15,
+   "roadVetoGradePct": 25
   },
   "flags": [
    {
@@ -588,6 +594,53 @@
     "engstafdcd": "Very limited",
     "englrsdcd": "Very limited",
     "septic": "Very limited"
+   }
+  ],
+  "soilLimits": [
+   {
+    "cokey": "27876670",
+    "septic": "poor",
+    "foundation": "poor"
+   },
+   {
+    "cokey": "27998408",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27998409",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27998406",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27998407",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27882285",
+    "septic": "poor",
+    "foundation": "workable"
+   },
+   {
+    "cokey": "27882286",
+    "septic": "poor",
+    "foundation": "poor"
+   },
+   {
+    "cokey": "27882287",
+    "septic": "poor",
+    "foundation": "poor"
+   },
+   {
+    "cokey": "27882288",
+    "septic": "poor",
+    "foundation": "workable"
    }
   ],
   "soilUnits": [
@@ -4025,6 +4078,12 @@
     "costTier": "$$$$",
     "quality": 84,
     "qGrade": "A",
+    "soilKey": "27882285",
+    "sky": {
+     "mag": 21.371954925288968,
+     "coreClear": 18.021124887011347,
+     "domeW": 4.6529267757374635
+    },
     "roadGrade": 16.86388550654117,
     "roadRunFt": 228.97064944805598,
     "roadName": "unnamed road",
@@ -4033,7 +4092,22 @@
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 1.2644044557930019,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 1135.1466120473292,
+     "cost": {
+      "mid": 46433.44842829424,
+      "low": 32503.413899805968,
+      "high": 60363.482956782515
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 8.0793121335887,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 2,
@@ -4080,6 +4154,12 @@
     "costTier": "$$$$",
     "quality": 87,
     "qGrade": "A",
+    "soilKey": "27882285",
+    "sky": {
+     "mag": 21.381507607802142,
+     "coreClear": 21.068586456286184,
+     "domeW": 5.658203526464341
+    },
     "roadGrade": 0.345660883182147,
     "roadRunFt": 1180.586318488471,
     "roadName": "unnamed road",
@@ -4088,7 +4168,22 @@
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.39263085732519537,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 3604.400930375693,
+     "cost": {
+      "mid": 125773.2812470511,
+      "low": 88041.29687293577,
+      "high": 163505.26562116644
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 16.701772687138902,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 3,
@@ -4135,6 +4230,12 @@
     "costTier": "$$$$",
     "quality": 83,
     "qGrade": "A",
+    "soilKey": "27882285",
+    "sky": {
+     "mag": 21.39095816203732,
+     "coreClear": 20.278225463560027,
+     "domeW": 4.6529267757374635
+    },
     "roadGrade": 6.620740018353626,
     "roadRunFt": 1331.0553964588214,
     "roadName": "unnamed road",
@@ -4143,7 +4244,22 @@
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 1.6880908611552183,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 1672.1978006361178,
+     "cost": {
+      "mid": 66280.79912112054,
+      "low": 46396.55938478437,
+      "high": 86165.0388574567
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 15.300191004560398,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 4,
@@ -4190,6 +4306,12 @@
     "costTier": "$$$$",
     "quality": 87,
     "qGrade": "A",
+    "soilKey": "27882287",
+    "sky": {
+     "mag": 21.381507607802142,
+     "coreClear": 21.070392717337633,
+     "domeW": 5.658203526464341
+    },
     "roadGrade": 29.83936284383694,
     "roadRunFt": 1101.9266500925148,
     "roadName": "State Rte 611",
@@ -4198,7 +4320,22 @@
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.3793213367379005,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 4098.449953086412,
+     "cost": {
+      "mid": 161613.65372740198,
+      "low": 113129.55760918139,
+      "high": 210097.74984562257
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 16.494061165868366,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 5,
@@ -4247,6 +4384,12 @@
     "costTier": "$$$$",
     "quality": 81,
     "qGrade": "A",
+    "soilKey": "27882287",
+    "sky": {
+     "mag": 21.371954925288968,
+     "coreClear": 19.739854572798336,
+     "domeW": 4.6529267757374635
+    },
     "roadGrade": 16.024205964612964,
     "roadRunFt": 297.2506334055836,
     "roadName": "unnamed road",
@@ -4255,7 +4398,22 @@
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 1.0115235646344014,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 690.6425072846655,
+     "cost": {
+      "mid": 39571.927843464364,
+      "low": 27700.349490425055,
+      "high": 51443.50619650367
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 14.401905101353805,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 6,
@@ -4304,6 +4462,12 @@
     "costTier": "$$$$",
     "quality": 74,
     "qGrade": "B",
+    "soilKey": "27882285",
+    "sky": {
+     "mag": 21.39095816203732,
+     "coreClear": 15.600414719115797,
+     "domeW": 4.6529267757374635
+    },
     "roadGrade": 14.44394640917219,
     "roadRunFt": 356.38450641170306,
     "roadName": "unnamed road",
@@ -4312,7 +4476,22 @@
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.995995790615891,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 505.59542956791387,
+     "cost": {
+      "mid": 33796.61373773008,
+      "low": 23657.629616411054,
+      "high": 43935.5978590491
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 14.683630320347826,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 7,
@@ -4359,6 +4538,12 @@
     "costTier": "$$$$",
     "quality": 75,
     "qGrade": "B",
+    "soilKey": "27882287",
+    "sky": {
+     "mag": 21.371954925288968,
+     "coreClear": 7.73032873155095,
+     "domeW": 4.6529267757374635
+    },
     "roadGrade": 20.78966260974282,
     "roadRunFt": 1065.9946781203896,
     "roadName": "unnamed road",
@@ -4367,7 +4552,22 @@
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.523507809766927,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 2035.873568722586,
+     "cost": {
+      "mid": 98448.81407350651,
+      "low": 68914.16985145456,
+      "high": 127983.45829555846
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 16.43413318215342,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 8,
@@ -4416,6 +4616,12 @@
     "costTier": "$$$$",
     "quality": 72,
     "qGrade": "B",
+    "soilKey": "27882285",
+    "sky": {
+     "mag": 21.39095816203732,
+     "coreClear": 14.428333682745901,
+     "domeW": 4.6529267757374635
+    },
     "roadGrade": 5.93470733329961,
     "roadRunFt": 1540.0480735452827,
     "roadName": "unnamed road",
@@ -4424,7 +4630,22 @@
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 2.20938041749093,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 2104.48812661335,
+     "cost": {
+      "mid": 76775.63506234477,
+      "low": 53742.94454364133,
+      "high": 99808.3255810482
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 15.300191004560398,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    }
   ],
   "driveway": {
@@ -6177,8 +6398,8 @@
    "mi": 27.2,
    "er": null
   },
-  "schemaVersion": 7,
-  "engine": 20,
+  "schemaVersion": 8,
+  "engine": 21,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -6191,7 +6412,13 @@
    "shelfMin": 45,
    "gardenMin": 60,
    "canopyDeg": 3,
-   "shallowBedrockCm": 100
+   "shallowBedrockCm": 100,
+   "benchMinAcres": 0.3,
+   "compactMinAcres": 0.15,
+   "sunHoursWanted": 5,
+   "thermalMinFt": 80,
+   "roadMaxGradePct": 15,
+   "roadVetoGradePct": 25
   },
   "flags": [
    {
@@ -6773,6 +7000,53 @@
     "engstafdcd": "Very limited",
     "englrsdcd": "Very limited",
     "septic": "Very limited"
+   }
+  ],
+  "soilLimits": [
+   {
+    "cokey": "27876670",
+    "septic": "poor",
+    "foundation": "poor"
+   },
+   {
+    "cokey": "27998408",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27998409",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27998406",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27998407",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27882285",
+    "septic": "poor",
+    "foundation": "workable"
+   },
+   {
+    "cokey": "27882286",
+    "septic": "poor",
+    "foundation": "poor"
+   },
+   {
+    "cokey": "27882287",
+    "septic": "poor",
+    "foundation": "poor"
+   },
+   {
+    "cokey": "27882288",
+    "septic": "poor",
+    "foundation": "workable"
    }
   ],
   "soilUnits": [
@@ -10210,6 +10484,12 @@
     "costTier": "$$$$",
     "quality": 84,
     "qGrade": "A",
+    "soilKey": "27882285",
+    "sky": {
+     "mag": 21.371954925288968,
+     "coreClear": 18.021124887011347,
+     "domeW": 4.6529267757374635
+    },
     "roadGrade": 16.86388550654117,
     "roadRunFt": 228.97064944805598,
     "roadName": "unnamed road",
@@ -10218,7 +10498,22 @@
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 1.2644044557930019,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 1135.1466120473292,
+     "cost": {
+      "mid": 46433.44842829424,
+      "low": 32503.413899805968,
+      "high": 60363.482956782515
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 8.0793121335887,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 2,
@@ -10265,6 +10560,12 @@
     "costTier": "$$$$",
     "quality": 87,
     "qGrade": "A",
+    "soilKey": "27882285",
+    "sky": {
+     "mag": 21.381507607802142,
+     "coreClear": 21.068586456286184,
+     "domeW": 5.658203526464341
+    },
     "roadGrade": 0.345660883182147,
     "roadRunFt": 1180.586318488471,
     "roadName": "unnamed road",
@@ -10273,7 +10574,22 @@
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.39263085732519537,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 3604.400930375693,
+     "cost": {
+      "mid": 125773.2812470511,
+      "low": 88041.29687293577,
+      "high": 163505.26562116644
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 16.701772687138902,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 3,
@@ -10320,6 +10636,12 @@
     "costTier": "$$$$",
     "quality": 83,
     "qGrade": "A",
+    "soilKey": "27882285",
+    "sky": {
+     "mag": 21.39095816203732,
+     "coreClear": 20.278225463560027,
+     "domeW": 4.6529267757374635
+    },
     "roadGrade": 6.620740018353626,
     "roadRunFt": 1331.0553964588214,
     "roadName": "unnamed road",
@@ -10328,7 +10650,22 @@
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 1.6880908611552183,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 1672.1978006361178,
+     "cost": {
+      "mid": 66280.79912112054,
+      "low": 46396.55938478437,
+      "high": 86165.0388574567
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 15.300191004560398,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 4,
@@ -10375,6 +10712,12 @@
     "costTier": "$$$$",
     "quality": 87,
     "qGrade": "A",
+    "soilKey": "27882287",
+    "sky": {
+     "mag": 21.381507607802142,
+     "coreClear": 21.070392717337633,
+     "domeW": 5.658203526464341
+    },
     "roadGrade": 29.83936284383694,
     "roadRunFt": 1101.9266500925148,
     "roadName": "State Rte 611",
@@ -10383,7 +10726,22 @@
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.3793213367379005,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 4098.449953086412,
+     "cost": {
+      "mid": 161613.65372740198,
+      "low": 113129.55760918139,
+      "high": 210097.74984562257
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 16.494061165868366,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 5,
@@ -10432,6 +10790,12 @@
     "costTier": "$$$$",
     "quality": 81,
     "qGrade": "A",
+    "soilKey": "27882287",
+    "sky": {
+     "mag": 21.371954925288968,
+     "coreClear": 19.739854572798336,
+     "domeW": 4.6529267757374635
+    },
     "roadGrade": 16.024205964612964,
     "roadRunFt": 297.2506334055836,
     "roadName": "unnamed road",
@@ -10440,7 +10804,22 @@
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 1.0115235646344014,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 690.6425072846655,
+     "cost": {
+      "mid": 39571.927843464364,
+      "low": 27700.349490425055,
+      "high": 51443.50619650367
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 14.401905101353805,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 6,
@@ -10489,6 +10868,12 @@
     "costTier": "$$$$",
     "quality": 74,
     "qGrade": "B",
+    "soilKey": "27882285",
+    "sky": {
+     "mag": 21.39095816203732,
+     "coreClear": 15.600414719115797,
+     "domeW": 4.6529267757374635
+    },
     "roadGrade": 14.44394640917219,
     "roadRunFt": 356.38450641170306,
     "roadName": "unnamed road",
@@ -10497,7 +10882,22 @@
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.995995790615891,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 505.59542956791387,
+     "cost": {
+      "mid": 33796.61373773008,
+      "low": 23657.629616411054,
+      "high": 43935.5978590491
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 14.683630320347826,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 7,
@@ -10544,6 +10944,12 @@
     "costTier": "$$$$",
     "quality": 75,
     "qGrade": "B",
+    "soilKey": "27882287",
+    "sky": {
+     "mag": 21.371954925288968,
+     "coreClear": 7.73032873155095,
+     "domeW": 4.6529267757374635
+    },
     "roadGrade": 20.78966260974282,
     "roadRunFt": 1065.9946781203896,
     "roadName": "unnamed road",
@@ -10552,7 +10958,22 @@
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.523507809766927,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 2035.873568722586,
+     "cost": {
+      "mid": 98448.81407350651,
+      "low": 68914.16985145456,
+      "high": 127983.45829555846
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 16.43413318215342,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 8,
@@ -10601,6 +11022,12 @@
     "costTier": "$$$$",
     "quality": 72,
     "qGrade": "B",
+    "soilKey": "27882285",
+    "sky": {
+     "mag": 21.39095816203732,
+     "coreClear": 14.428333682745901,
+     "domeW": 4.6529267757374635
+    },
     "roadGrade": 5.93470733329961,
     "roadRunFt": 1540.0480735452827,
     "roadName": "unnamed road",
@@ -10609,7 +11036,22 @@
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 2.20938041749093,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 2104.48812661335,
+     "cost": {
+      "mid": 76775.63506234477,
+      "low": 53742.94454364133,
+      "high": 99808.3255810482
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 15.300191004560398,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    }
   ],
   "driveway": {
@@ -12382,8 +12824,8 @@
    "mi": 27.2,
    "er": null
   },
-  "schemaVersion": 7,
-  "engine": 20,
+  "schemaVersion": 8,
+  "engine": 21,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,

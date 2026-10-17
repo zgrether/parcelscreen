@@ -1,0 +1,249 @@
+{
+ "recordedAt": "schema v7, engine 20: the stored grades before the derivations (step 1, PR 2)",
+ "run": {
+  "verdict": "marginal",
+  "flags": [
+   {
+    "lvl": "warn",
+    "t": "The largest flat ground is bottomland (Codorus: frequently flooded) — excluded from the homesite ranking.",
+    "step": "soils"
+   },
+   {
+    "lvl": "warn",
+    "t": "Bedrock under 100 cm on 24.5 ac of Pigeonroost. Budget rock excavation for septic, water line and footings.",
+    "step": "soils"
+   },
+   {
+    "lvl": "warn",
+    "t": "Under an acre of gentle ground carries a workable NRCS septic rating (0.0 ac). Plan on an alternative system and get a soil scientist out before an offer.",
+    "step": "soils"
+   },
+   {
+    "lvl": "warn",
+    "t": "0.5 of 30.1 acres are in a FEMA Special Flood Hazard Area (A, X). Post-Helene, treat mapped floodplain as unbuildable and plan the driveway around it.",
+    "step": "flood"
+   }
+  ],
+  "sky": {
+   "score": 73
+  },
+  "sites": [
+   {
+    "rank": 1,
+    "score": 66,
+    "grade": "B",
+    "quality": 82,
+    "qGrade": "A",
+    "q": {
+     "sun": 87,
+     "aspect": 57,
+     "frost": 88,
+     "slope": 94,
+     "sky": 73
+    },
+    "c": {
+     "septic": 40,
+     "foundation": 0,
+     "rock": 8.4,
+     "pad": 1.2062970820853047,
+     "driveway": 20.086594995806816
+    },
+    "costIdx": 70,
+    "costTier": "$$$$"
+   },
+   {
+    "rank": 2,
+    "score": 62,
+    "grade": "C",
+    "quality": 82,
+    "qGrade": "A",
+    "q": {
+     "sun": 87,
+     "aspect": 90,
+     "frost": 89,
+     "slope": 56,
+     "sky": 75
+    },
+    "c": {
+     "septic": 40,
+     "foundation": 0,
+     "rock": 8.4,
+     "pad": 15,
+     "driveway": 19.903180449388213
+    },
+    "costIdx": 83,
+    "costTier": "$$$$"
+   },
+   {
+    "rank": 3,
+    "score": 58,
+    "grade": "C",
+    "quality": 75,
+    "qGrade": "B",
+    "q": {
+     "sun": 85,
+     "aspect": 44,
+     "frost": 88,
+     "slope": 71,
+     "sky": 73
+    },
+    "c": {
+     "septic": 40,
+     "foundation": 0,
+     "rock": 8.4,
+     "pad": 15,
+     "driveway": 19.886953296118943
+    },
+    "costIdx": 83,
+    "costTier": "$$$$"
+   },
+   {
+    "rank": 4,
+    "score": 67,
+    "grade": "B",
+    "quality": 85,
+    "qGrade": "A",
+    "q": {
+     "sun": 84,
+     "aspect": 100,
+     "frost": 100,
+     "slope": 67,
+     "sky": 75
+    },
+    "c": {
+     "septic": 40,
+     "foundation": 0,
+     "rock": 8.4,
+     "pad": 15,
+     "driveway": 12.326336761308458
+    },
+    "costIdx": 76,
+    "costTier": "$$$$"
+   }
+  ],
+  "house": null
+ },
+ "evaluateSite2": {
+  "verdict": "marginal",
+  "flags": [
+   {
+    "lvl": "warn",
+    "t": "The largest flat ground is bottomland (Codorus: frequently flooded) — excluded from the homesite ranking.",
+    "step": "soils"
+   },
+   {
+    "lvl": "warn",
+    "t": "Bedrock under 100 cm on 24.5 ac of Pigeonroost. Budget rock excavation for septic, water line and footings.",
+    "step": "soils"
+   },
+   {
+    "lvl": "warn",
+    "t": "Under an acre of gentle ground carries a workable NRCS septic rating (0.0 ac). Plan on an alternative system and get a soil scientist out before an offer.",
+    "step": "soils"
+   },
+   {
+    "lvl": "warn",
+    "t": "0.5 of 30.1 acres are in a FEMA Special Flood Hazard Area (A, X). Post-Helene, treat mapped floodplain as unbuildable and plan the driveway around it.",
+    "step": "flood"
+   }
+  ],
+  "sky": {
+   "score": 73
+  },
+  "sites": [
+   {
+    "rank": 1,
+    "score": 66,
+    "grade": "B",
+    "quality": 82,
+    "qGrade": "A",
+    "q": {
+     "sun": 87,
+     "aspect": 57,
+     "frost": 88,
+     "slope": 94,
+     "sky": 73
+    },
+    "c": {
+     "septic": 40,
+     "foundation": 0,
+     "rock": 8.4,
+     "pad": 1.2062970820853047,
+     "driveway": 20.086594995806816
+    },
+    "costIdx": 70,
+    "costTier": "$$$$"
+   },
+   {
+    "rank": 2,
+    "score": 62,
+    "grade": "C",
+    "quality": 82,
+    "qGrade": "A",
+    "q": {
+     "sun": 87,
+     "aspect": 90,
+     "frost": 89,
+     "slope": 56,
+     "sky": 75
+    },
+    "c": {
+     "septic": 40,
+     "foundation": 0,
+     "rock": 8.4,
+     "pad": 15,
+     "driveway": 19.903180449388213
+    },
+    "costIdx": 83,
+    "costTier": "$$$$"
+   },
+   {
+    "rank": 3,
+    "score": 58,
+    "grade": "C",
+    "quality": 75,
+    "qGrade": "B",
+    "q": {
+     "sun": 85,
+     "aspect": 44,
+     "frost": 88,
+     "slope": 71,
+     "sky": 73
+    },
+    "c": {
+     "septic": 40,
+     "foundation": 0,
+     "rock": 8.4,
+     "pad": 15,
+     "driveway": 19.886953296118943
+    },
+    "costIdx": 83,
+    "costTier": "$$$$"
+   },
+   {
+    "rank": 4,
+    "score": 67,
+    "grade": "B",
+    "quality": 85,
+    "qGrade": "A",
+    "q": {
+     "sun": 84,
+     "aspect": 100,
+     "frost": 100,
+     "slope": 67,
+     "sky": 75
+    },
+    "c": {
+     "septic": 40,
+     "foundation": 0,
+     "rock": 8.4,
+     "pad": 15,
+     "driveway": 12.326336761308458
+    },
+    "costIdx": 76,
+    "costTier": "$$$$"
+   }
+  ],
+  "house": null
+ }
+}

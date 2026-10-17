@@ -93,6 +93,15 @@ export function nearestRoad(roads: RoadFeature[], ll: LatLon): NearestRoad | nul
   return best;
 }
 
+/** The near step's road flag (v8: also from a stored result): the straight line steeper than the grade limit. */
+export function roadFlag(road: NonNullable<ScreenResult["road"]>, roadMaxGradePct: number): RawFlag | null {
+  if (road.gradePct <= roadMaxGradePct) return null;
+  return {
+    lvl: "warn",
+    t: `Straight-line grade from ${road.name} to the bench is ${road.gradePct.toFixed(0)}% over ${Math.round(road.runFt)} ft. A ${roadMaxGradePct}% driveway needs roughly ${Math.round(Math.abs(road.riseFt) / (roadMaxGradePct / 100))} ft of road — switchbacks, culverts, and a bigger bill.`,
+  };
+}
+
 /**
  * The straight-line driveway from the nearest road to the best site (proto L1132–1136): rise over run on
  * the wide DEM, and a warning when it's steeper than the grade limit.
@@ -117,11 +126,8 @@ export function roadToSite(
         runFt: nr.distM * M2FT,
         gradePct: (Math.abs(zb - zr) / nr.distM) * 100,
       };
-      if (road.gradePct > roadMaxGradePct)
-        flags.push({
-          lvl: "warn",
-          t: `Straight-line grade from ${road.name} to the bench is ${road.gradePct.toFixed(0)}% over ${Math.round(road.runFt)} ft. A ${roadMaxGradePct}% driveway needs roughly ${Math.round(Math.abs(road.riseFt) / (roadMaxGradePct / 100))} ft of road — switchbacks, culverts, and a bigger bill.`,
-        });
+      const flag = roadFlag(road, roadMaxGradePct);
+      if (flag) flags.push(flag);
       return { road, flags };
     }
     return { flags };

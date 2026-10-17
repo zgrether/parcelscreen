@@ -352,18 +352,28 @@ export function vetBenches(
     best = ok[0]!;
     vetted.sort((a, b) => Number(!!a.veto) - Number(!!b.veto) || b.acres - a.acres);
   }
-  const flags: RawFlag[] = [];
+  return { benches: vetted, best, flags: bottomlandFlags(vetted) };
+}
+
+/** The bottomland flags from the vetted benches in their stored order (v8: also from a result's benches). */
+export function bottomlandFlags(vetted: readonly { veto: string | null }[]): RawFlag[] {
+  if (!vetted.length) return [];
+  const best = vetted.find((b) => !b.veto) ?? vetted[0]!;
   if (best.veto)
-    flags.push({
-      lvl: "warn",
-      t: `Every bench sits on bottomland (${best.veto}). Nothing flat here is a homesite; the buildable ground is on the slopes.`,
-    });
-  else if (vetted.some((b) => b.veto))
-    flags.push({
-      lvl: "warn",
-      t: `${BOTTOMLAND_LEAD} (${vetted.find((b) => b.veto)!.veto}) — excluded from the homesite ranking.`,
-    });
-  return { benches: vetted, best, flags };
+    return [
+      {
+        lvl: "warn",
+        t: `Every bench sits on bottomland (${best.veto}). Nothing flat here is a homesite; the buildable ground is on the slopes.`,
+      },
+    ];
+  if (vetted.some((b) => b.veto))
+    return [
+      {
+        lvl: "warn",
+        t: `${BOTTOMLAND_LEAD} (${vetted.find((b) => b.veto)!.veto}) — excluded from the homesite ranking.`,
+      },
+    ];
+  return [];
 }
 
 /** NRCS farmland class: prime ("Prime farmland if drained" included, "Not prime" not), as the garden reading has it. */
@@ -414,7 +424,7 @@ export function vetGardens(gardens: Garden[], units: SoilUnit[] | null, rows: So
 /** The soils step's own flags: rock, poor drainage, septic (proto L1058–1073). */
 export function soilFlags(
   rows: SoilRow[],
-  units: SoilUnit[] | null,
+  units: readonly { mukey: string; acres: number }[] | null,
   parcelAcres: number,
   shallowBedrockCm: number,
 ): RawFlag[] {
