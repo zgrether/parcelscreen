@@ -318,6 +318,7 @@ export function trailheadsNear(
       ll: p.ll,
       km: distance([lon, lat], [p.ll[1], p.ll[0]], { units: "kilometers" }),
       source: p.source,
+      ...(p.serves?.length ? { serves: p.serves } : {}),
       drive: null, // the drive step sets it for the nearest few (follow-up 54)
     }))
     .sort((a, b) => a.km - b.km);

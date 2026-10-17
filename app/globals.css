@@ -2596,6 +2596,8 @@ html:has(.explore) body {
   pointer-events: none;
 }
 .result-tip .maplibregl-popup-content {
+  /* A trailhead's "serves:" line sits under its name (step 2). */
+  white-space: pre-line;
   padding: 5px 8px;
   border-radius: 6px;
   background: rgba(28, 38, 32, 0.92);

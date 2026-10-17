@@ -17,7 +17,7 @@ import {
 } from "../screen/driveList";
 import { derivedSites } from "../screen/derive";
 import { NO_PRACTICAL_ROUTE, existingSteepLine } from "../screen/score";
-import { trailheadSourceLabel } from "../screen/trailheads";
+import { servesLine, trailheadSourceLabel } from "../screen/trailheads";
 import { isPrimeFarmland, soilAt, type SoilUnit } from "../screen/soils";
 import type { PartialScreenResult, RoadClass } from "../screen/types";
 import type { LatLon } from "../geo/types";
@@ -526,17 +526,23 @@ function trails(r: Result, K: CardConfig): Row {
     return {
       ...g(
         byHead,
-        `a trailhead ${fmt(d.min)} min (${fmt(d.mi, 1)} mi) by road${track}, ${miles(d.km)} mi straight (${driven.name})${parking}`,
+        `a trailhead ${fmt(d.min)} min (${fmt(d.mi, 1)} mi) by road${track}, ${miles(d.km)} mi straight (${driven.name})${parking}${serves(driven)}`,
       ),
       short: `trailhead ${fmt(d.min)} min`,
       measure: { value: d.min, unit: "min" },
     };
   }
   return {
-    ...g(byHead, `a trailhead ${miles(head.km)} mi away in a straight line (${head.name})`),
+    ...g(byHead, `a trailhead ${miles(head.km)} mi away in a straight line (${head.name})${serves(head)}`),
     short: `trailhead ${miles(head.km)} mi`,
     measure: { value: head.km, unit: "km" },
   };
+}
+
+/** The TREC trails the named trailhead serves (step 2), appended: "; serves: A, B". Empty when none. */
+function serves(t: { name: string; serves?: readonly string[] | undefined }): string {
+  const line = servesLine(t);
+  return line ? `; ${line}` : "";
 }
 
 /** The worse of the ER's and the grocery's; the grocery is the nearer of the real one and the closer one. */

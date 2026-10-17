@@ -36,6 +36,8 @@ export const DEFAULT_ENDPOINTS: Endpoints = {
     "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Landmarks/FeatureServer/1",
     "https://services6.arcgis.com/nRIB86xC7kq6wavB/arcgis/rest/services/NC_State_Parks_Points/FeatureServer/0",
     "https://services5.arcgis.com/bPacKTm9cauMXVfn/arcgis/rest/services/TN_State_Parks_Points/FeatureServer/0",
+    // Step 2: Tennessee's TREC trails (TDEC), whose trails carry their trailheads (lib/screen/trailheads.ts).
+    "https://services1.arcgis.com/YuVBSS7Y1of2Qud1/arcgis/rest/services/Tennessee_Statewide_Trails_Lines_Public/FeatureServer/0",
   ],
   tiger: "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer",
   lpAtlasYear: 2025,
@@ -302,6 +304,12 @@ export const SCREEN_CONSTANTS = deepFreeze({
     maxTrailheads: 25,
     // Follow-up 24 (owner, 2026-10-08): two trailheads are one only within this AND with matching names.
     trailheadDedupeM: 300,
+    // Step 2 (owner, 2026-10-17): a TREC point names a trail, not a trailhead, so it joins any trailhead (or another TREC
+    // point) within this, whatever the names; the trailhead then lists the trails it serves.
+    trecMergeM: 150,
+    // TREC trails asked per page, and pages at most (the layer's maxRecordCount is 2,000).
+    trecPageSize: 1000,
+    trecMaxPages: 3,
     officialTimeoutMs: 20_000,
     // A state's parks are asked for trailheads only when its outline comes within trailheadKm of the parcel, plus
     // this for the outline's simplification (0.005°, about 0.55 km; scripts/data-state-outlines.mts). Follow-up 53,
