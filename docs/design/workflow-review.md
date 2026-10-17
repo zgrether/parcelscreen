@@ -336,7 +336,7 @@ Each step is one unattended mission for Claude Code. You approve its plan once; 
 
 **Decided 10/16:**
 
-- **Users.** No accounts yet. Anyone with the link creates a local profile that holds their data in that browser. Nothing is hard-coded to Zach and Julie; accounts later adopt the profiles.
+- **Users.** No accounts yet. Anyone with the link creates a local profile that holds their data in that browser. Nothing is hard-coded to Zach and Julie. Accounts (step 13) start empty; parcels come over with an export file if wanted.
 - **Cost to enjoy stays,** as cost to camp and cost to build, driven by the parcel's state (step 9). It's most sensitive to access: right-of-way, access work and the pioneer track.
 - **Tennessee is in,** for parcels (step 2) and the catalog.
 - **Household grades are predictions.** Each person grades for themselves; others' grades are predicted from their rubrics, with a prompt to send for confirmation. No combined household grade.
