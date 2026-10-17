@@ -5,7 +5,8 @@ import { searchParcelNumbers, searchPlaces } from "./sources";
 
 const VA =
   "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Parcels/FeatureServer/0";
-const TN = "https://geoviewer.cot.tn.gov/arcgis/rest/services/GeoViewer/Parcels_View/MapServer/0";
+const TN =
+  "https://services1.arcgis.com/YuVBSS7Y1of2Qud1/arcgis/rest/services/Tennessee_Property_Boundaries_Public_Use/FeatureServer/0";
 
 describe("coordinatesIn", () => {
   it("reads a pasted lat, lon pair", () => {
@@ -97,13 +98,16 @@ describe("searchParcelNumbers", () => {
       http,
       new Map([
         [VA, new Set(["51063"])],
-        [TN, new Set(["JOHNSON"])],
+        [TN, new Set(["Johnson"])],
       ]),
       "52 47",
     );
     expect(asked).toHaveLength(2);
     expect(asked[0]!.body!.get("where")).toBe("FIPS='51063' AND UPPER(PARCELID) LIKE '5%2%4%7%'");
-    expect(asked[1]!.body!.get("where")).toBe("COUNTY='JOHNSON' AND UPPER(PARCELID) LIKE '5%2%4%7%'");
+    // Tennessee is asked by control map and parcel ("52 47" reads as map 052, parcel 047…), railroads and conflicts left out.
+    expect(asked[1]!.body!.get("where")).toBe(
+      "(PARCEL_TYPE NOT IN (4,5)) AND (COUNTY_NAME='Johnson' AND CMAP='052' AND PARCEL LIKE '047%')",
+    );
     expect(hits.map((h) => h.id)).toEqual(["52-47A"]);
     expect(hits[0]!.centre[0]).toBeCloseTo(36.881, 6);
     expect(hits[0]!.props.OBJECTID).toBe(1);

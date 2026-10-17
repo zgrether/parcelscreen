@@ -66,7 +66,11 @@ const ownClick = { onClick: (e: MouseEvent) => e.stopPropagation() };
 
 /** The state, with its county on hover or a long press. */
 const State = ({ r }: { r: LibraryRow }) =>
-  r.state ? <LongName name={r.state} full={r.county ?? r.state} className="lib-state" /> : <>–</>;
+  r.states.length ? (
+    <LongName name={r.states.join(" · ")} full={r.county ?? r.states.join(" · ")} className="lib-state" />
+  ) : (
+    <>–</>
+  );
 
 export function Library() {
   const router = useRouter();

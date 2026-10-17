@@ -59,7 +59,7 @@ describe("config", () => {
           "woodedPct": 100,
         },
         "endpoints": {
-          "_v": 12,
+          "_v": 13,
           "dem": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
           "lpAtlasBinary": "https://djlorenz.github.io/astronomy/binary_tiles",
           "lpAtlasTiles": "https://djlorenz.github.io/astronomy/image_tiles",
@@ -77,7 +77,7 @@ describe("config", () => {
           "parcels": [
             "https://services.nconemap.gov/secure/rest/services/NC1Map_Parcels/FeatureServer/1",
             "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Parcels/FeatureServer/0",
-            "https://geoviewer.cot.tn.gov/arcgis/rest/services/GeoViewer/Parcels_View/MapServer/0",
+            "https://services1.arcgis.com/YuVBSS7Y1of2Qud1/arcgis/rest/services/Tennessee_Property_Boundaries_Public_Use/FeatureServer/0",
           ],
           "photon": "https://photon.komoot.io/api/",
           "sda": "https://SDMDataAccess.sc.egov.usda.gov/Tabular/post.rest",

@@ -57,3 +57,48 @@ export function matchesName(name: string, query: string): boolean {
   if (!q) return false;
   return name.toLowerCase().includes(q) || (normalizeId(query).length > 0 && matchesId(name, query));
 }
+
+/**
+ * A Tennessee tax-card parcel number as typed (step 2): control map, then group, then parcel, e.g. "063D A 015.00",
+ * "63D A 15", "040 037.01". The map is up to three digits and an optional letter (zero-padded as the county stores
+ * it: "63D" is "063D"); the group a single letter, often absent; the parcel up to three digits with optional
+ * decimals, matched as a prefix ("15" finds 015.00 and 015.01). Separators are spaces or dashes. Null when the
+ * query isn't one.
+ */
+export interface TaxCardQuery {
+  map: string;
+  group: string | null;
+  /** The stored PARCEL's start, e.g. "015" or "037.0". */
+  parcel: string | null;
+}
+
+export function taxCardQuery(text: string): TaxCardQuery | null {
+  const tokens = text
+    .trim()
+    .toUpperCase()
+    .split(/[\s-]+/)
+    .filter(Boolean);
+  const map = /^(\d{1,3})([A-Z]?)$/.exec(tokens[0] ?? "");
+  if (!map || tokens.length > 3) return null;
+  let i = 1;
+  const group = /^[A-Z]$/.test(tokens[i] ?? "") ? tokens[i++]! : null;
+  const parcel = /^(\d{1,3})(\.\d{0,2})?$/.exec(tokens[i] ?? "");
+  if (tokens[i] !== undefined && !parcel) return null;
+  if (parcel) i++;
+  if (i !== tokens.length) return null;
+  return {
+    map: map[1]!.padStart(3, "0") + map[2]!,
+    group,
+    parcel: parcel ? parcel[1]!.padStart(3, "0") + (parcel[2] ?? "") : null,
+  };
+}
+
+/** The where clause for one county of Tennessee's service: its map, and the group and parcel when typed. */
+export function taxCardWhere(countyField: string, county: string, q: TaxCardQuery): string {
+  return [
+    `${countyField}=${sqlString(county)}`,
+    `CMAP=${sqlString(q.map)}`,
+    ...(q.group ? [`GP=${sqlString(q.group)}`] : []),
+    ...(q.parcel ? [`PARCEL LIKE ${sqlString(`${q.parcel}%`)}`] : []),
+  ].join(" AND ");
+}

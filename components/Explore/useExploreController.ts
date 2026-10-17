@@ -39,7 +39,7 @@ import { unreachableMessage } from "@/lib/client/pwa";
 import { isServiceDown, serviceDownMessage } from "@/lib/geo/serviceStatus";
 import { combineParcels, type CombineResult } from "@/lib/geo/combine";
 import { parcelFromLine, pickParcelAt, type ParcelLine, type ParcelRecord } from "@/lib/geo/parcels";
-import { fullRecord } from "@/lib/geo/parcelTiles";
+import { fieldsFor, fullRecord } from "@/lib/geo/parcelTiles";
 import { deriveParcel, ownLand, splitPreview, type DerivedParcel } from "@/lib/geo/recipe";
 import { pieceAt, type Side, type SplitPieces } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
@@ -728,7 +728,9 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       lookup.current = ctl;
       hint("Looking up parcel…");
       try {
-        const { parcel } = await pickParcelAt(browserHttp, parcelServices, ll, ctl.signal);
+        const { parcel: picked } = await pickParcelAt(browserHttp, parcelServices, ll, ctl.signal);
+        // Where a parcel can be several features (Tennessee, step 2), the record is all of them, conflicts checked.
+        const parcel = picked && fieldsFor(picked.source).groupById ? await full(picked) : picked;
         if (parcel) {
           dispatch({ type: "combineToggle", parcel });
           hint("");

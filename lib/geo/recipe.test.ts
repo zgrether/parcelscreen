@@ -217,11 +217,13 @@ describe("drawn pieces never supply facts or identity", () => {
     };
     const tn: ParcelRecord = {
       ...county(0, "x"),
-      source: "https://geoviewer.cot.tn.gov/arcgis/rest/services/GeoViewer/Parcels_View/MapServer/0",
-      props: { PARCELID: "045 012.00", COUNTY: "Johnson" },
+      source:
+        "https://services1.arcgis.com/YuVBSS7Y1of2Qud1/arcgis/rest/services/Tennessee_Property_Boundaries_Public_Use/FeatureServer/0",
+      // Step 2: the key names GISLINK (stable across tax years), not the tax card's parcel number.
+      props: { GISLINK: "046045    01200", CMAP: "045", GP: " ", PARCEL: "012.00", COUNTY_NAME: "Johnson" },
     };
     expect(pieceDedupeKey(nc)).toBe("NC:37005:1234");
-    expect(pieceDedupeKey(tn)).toBe("TN:johnson:045 012.00");
+    expect(pieceDedupeKey(tn)).toBe("TN:johnson:046045    01200");
   });
 
   it("the same parcel number in two counties makes two keys (VA's 52-44 is in Floyd, Wythe and more)", () => {

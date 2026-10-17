@@ -41,13 +41,15 @@ import {
 } from "@/lib/geo/parcelTiles";
 import { unreachableMessage } from "@/lib/client/pwa";
 import { isServiceDownMessage, serviceDownMessage } from "@/lib/geo/serviceStatus";
+import { stateOf } from "@/lib/geo/parcelFields";
+import { OWN_RECORDS_HINT, ownRecordsCountyAt } from "@/lib/geo/ownRecords";
 import { LAYER, SOURCE } from "./style";
 
 export { LINES_MIN_ZOOM };
 export const ZOOM_HINT = "Zoom in to see parcel lines";
 export const INCOMPLETE_HINT = "Some parcel lines didn't load here — zoom in.";
 export const DENSE_HINT = "Dense area — zoom in to see all parcel lines";
-const OUR_HINTS = new Set([ZOOM_HINT, INCOMPLETE_HINT, DENSE_HINT]);
+const OUR_HINTS = new Set([ZOOM_HINT, INCOMPLETE_HINT, DENSE_HINT, OWN_RECORDS_HINT]);
 /** Below this, the zoom hint isn't shown either: the view is too wide for parcels to mean anything. */
 const HINT_FROM_ZOOM = LINES_MIN_ZOOM - 1.5;
 /** The map redraws at most this often while tiles arrive. */
@@ -214,6 +216,8 @@ export function useParcelLines(
         north: b.getNorth(),
       });
       const detail = detailFor(zoom);
+      const centre = map.getCenter();
+      const askTennessee = serviceUrls.some((u) => stateOf(u) === "TN");
       const done: TileResult[] = [];
       const failed = new Set<string>();
       let dense = false;
@@ -249,6 +253,9 @@ export function useParcelLines(
           const message = unreachableMessage(serviceDownMessage([...failed][0]!), online);
           downInView.set(map, message);
           if (online) hint(message);
+        } else if (askTennessee && ownRecordsCountyAt([centre.lat, centre.lng])) {
+          // One of the nine counties outside the state's system (step 2 plan §6.4): no lines will ever draw here.
+          hint(OWN_RECORDS_HINT);
         } else if (dense) hint(DENSE_HINT);
         else if (done.some((t) => !t.complete && !t.failed)) hint(INCOMPLETE_HINT);
       });

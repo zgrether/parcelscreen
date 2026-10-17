@@ -13,7 +13,7 @@ import type { Curve } from "./util";
 
 /** Service endpoints. `_v` bumps when a default moves, so stale stored copies are replaced. */
 export const DEFAULT_ENDPOINTS: Endpoints = {
-  _v: 12,
+  _v: 13,
   dem: "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
   terrarium: "https://s3.amazonaws.com/elevation-tiles-prod/terrarium",
   sda: "https://SDMDataAccess.sc.egov.usda.gov/Tabular/post.rest",
@@ -45,7 +45,9 @@ export const DEFAULT_ENDPOINTS: Endpoints = {
   parcels: [
     "https://services.nconemap.gov/secure/rest/services/NC1Map_Parcels/FeatureServer/1",
     "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Parcels/FeatureServer/0",
-    "https://geoviewer.cot.tn.gov/arcgis/rest/services/GeoViewer/Parcels_View/MapServer/0",
+    // Step 2 (_v 13): the Comptroller's public-use layer, which the state publishes for public use; the GeoViewer
+    // service it replaces is the back end of the Comptroller's own viewer (docs/plans/phase-0.md §9.46).
+    "https://services1.arcgis.com/YuVBSS7Y1of2Qud1/arcgis/rest/services/Tennessee_Property_Boundaries_Public_Use/FeatureServer/0",
   ],
 };
 

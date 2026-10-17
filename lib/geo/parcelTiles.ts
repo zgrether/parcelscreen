@@ -4,11 +4,25 @@
  * allows. The outlines are for drawing and picking only; a selection fetches the parcel's full record by its
  * object id (`fullRecord`), so screening, acres and the dedupe key never see simplified geometry.
  */
+import { bbox, booleanIntersects, featureCollection, point, pointToPolygonDistance } from "@turf/turf";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { CancelledError, HttpError, type HttpClient } from "../http";
-import { fieldsFor, isPlaceholderRecord, recordOutFields } from "./parcelFields";
+import {
+  fieldsFor,
+  isPlaceholderRecord,
+  recordOutFields,
+  sqlString,
+  whereFor,
+  whereParam,
+} from "./parcelFields";
 import { PARCEL_SERVICE_TIMEOUTS } from "./serviceStatus";
-import { parcelFromLine, type Bounds, type ParcelLine, type ParcelRecord } from "./parcels";
+import {
+  parcelFromFeatures,
+  parcelFromLine,
+  type Bounds,
+  type ParcelLine,
+  type ParcelRecord,
+} from "./parcels";
 
 /**
  * Outlines are fetched and drawn from this zoom up (the prototype used 15). 13f first went to 13.5, which
@@ -108,6 +122,7 @@ export async function fetchTile(
         geometryType: "esriGeometryEnvelope",
         inSR: "4326",
         spatialRel: "esriSpatialRelIntersects",
+        ...whereParam(serviceUrl),
         outFields: [f.oid, f.id, f.county].join(","),
         returnGeometry: "true",
         outSR: "4326",
@@ -162,6 +177,7 @@ export async function countTile(
     geometryType: "esriGeometryEnvelope",
     inSR: "4326",
     spatialRel: "esriSpatialRelIntersects",
+    ...whereParam(serviceUrl),
     returnCountOnly: "true",
     f: "json",
   });
@@ -187,8 +203,10 @@ export const drawsAt = (zoom: number, count: number | null): boolean =>
 
 /**
  * The full county record behind a drawn outline (the fields the app reads, full geometry), by the object id in its
- * properties. Throws when there's no object id or the service doesn't return the record: a simplified
- * outline is never used in its place. A service that fails (an HTTP error, or an ArcGIS error in the body)
+ * properties, or for a service whose parcels can be several features (Tennessee, step 2) by its id: every feature of
+ * the record, as one multi-part parcel. Where the service marks boundary conflicts, the record says whether one
+ * overlaps it (`boundary_conflict`). Throws when there's no id or the service doesn't return the record: a
+ * simplified outline is never used in its place. A service that fails (an HTTP error, or an ArcGIS error in the body)
  * throws HttpError, so the explorer can name it (serviceStatus isServiceDown).
  */
 export async function fullRecord(
@@ -197,10 +215,12 @@ export async function fullRecord(
   signal?: AbortSignal,
 ): Promise<ParcelRecord> {
   const f = fieldsFor(outline.source);
-  const oid = outline.props[f.oid];
-  if (oid == null) throw new Error("This outline has no record id");
+  const key = f.groupById ? outline.props[f.id] : outline.props[f.oid];
+  if (key == null || key === "") throw new Error("This outline has no record id");
   const q = new URLSearchParams({
-    objectIds: String(oid),
+    ...(f.groupById
+      ? { where: whereFor(outline.source, `${f.id}=${sqlString(String(key))}`), orderByFields: f.oid }
+      : { objectIds: String(key) }),
     outFields: recordOutFields(outline.source),
     returnGeometry: "true",
     outSR: "4326",
@@ -214,9 +234,75 @@ export async function fullRecord(
   if (!r.ok) throw new HttpError(r.status, host);
   const j = (await r.json()) as Page;
   if (j.error) throw new HttpError(500, host, j.error.message || `${host} error`);
-  const feature = j.features?.[0];
-  if (!feature) throw new Error("The record wasn't found");
-  return parcelFromLine({ feature, source: outline.source });
+  const features = j.features ?? [];
+  if (!features.length) throw new Error("The record wasn't found");
+  const record = f.groupById
+    ? parcelFromFeatures(features, outline.source)
+    : parcelFromLine({ feature: features[0]!, source: outline.source });
+  return f.conflictWhere ? withConflicts(http, record, f.conflictWhere, signal) : record;
+}
+
+/** A conflict this close to a parcel's edge, m, touches it: county lines don't always meet exactly. */
+export const CONFLICT_NEAR_M = 1;
+
+/**
+ * The record, with `boundary_conflict: true` when a conflict polygon touches or overlaps any part of it. The county
+ * draws the disputed land as its own polygon beside the parcels it's between, sharing their edges (Carter's 010066
+ * 03700, checked 2026-10-17: the conflict lies outside the tract, three of its corners on the tract's line), so a
+ * conflict touching the parcel concerns it. The service is asked for the conflicts in the record's bounding box; if it
+ * doesn't answer, the record is returned as it is, because a missing warning shouldn't stop a selection.
+ */
+async function withConflicts(
+  http: HttpClient,
+  record: ParcelRecord,
+  conflictWhere: string,
+  signal?: AbortSignal,
+): Promise<ParcelRecord> {
+  const parts = record.parts?.length ? record.parts : [record.geo];
+  const [west, south, east, north] = bbox(featureCollection(parts));
+  const q = new URLSearchParams({
+    where: conflictWhere,
+    geometry: JSON.stringify({
+      xmin: west,
+      ymin: south,
+      xmax: east,
+      ymax: north,
+      spatialReference: { wkid: 4326 },
+    }),
+    geometryType: "esriGeometryEnvelope",
+    inSR: "4326",
+    spatialRel: "esriSpatialRelIntersects",
+    outFields: "OBJECTID",
+    returnGeometry: "true",
+    outSR: "4326",
+    f: "geojson",
+  });
+  try {
+    const r = await http.fetch(`${record.source}/query`, {
+      method: "POST",
+      body: q,
+      ...PARCEL_SERVICE_TIMEOUTS,
+      ...(signal ? { signal } : {}),
+    });
+    if (!r.ok) return record;
+    const j = (await r.json()) as Page;
+    if (j.error) return record;
+    const touches = (j.features ?? []).some((c) => parts.some((part) => conflictTouches(c, part)));
+    return touches ? { ...record, props: { ...record.props, boundary_conflict: true } } : record;
+  } catch (err) {
+    if (err instanceof CancelledError) throw err;
+    return record;
+  }
+}
+
+/** Whether a conflict polygon overlaps the parcel's part, shares its edge, or has a corner within CONFLICT_NEAR_M of it. */
+export function conflictTouches(conflict: Feature<Polygon | MultiPolygon>, part: Feature<Polygon>): boolean {
+  if (booleanIntersects(conflict, part)) return true;
+  const rings =
+    conflict.geometry.type === "Polygon" ? [conflict.geometry.coordinates] : conflict.geometry.coordinates;
+  return rings.some((poly) =>
+    poly[0]!.some((c) => pointToPolygonDistance(point(c), part, { units: "meters" }) <= CONFLICT_NEAR_M),
+  );
 }
 
 /** Tiles already fetched this session, least recently used dropped first (memory only, never persisted). */

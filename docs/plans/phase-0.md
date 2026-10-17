@@ -520,4 +520,36 @@ version 6 carries the profile's name and rubrics; a version 5 file imports with 
 replace the profile's only through the summary's "Replace my rubric too" tick. Parked for the owner: "(Mine)" on a lone rubric's weight line; whether Add should only list the new profile; `why` stays stored
 (§8 Q8, revisited in step 6); the sun, sky and driveway flags follow the current focus (§9.44).
 
+46. **Tennessee parcels from the Comptroller's public-use layer** (owner, 2026-10-17; step 2 plan §1 and §8; roadmap
+step 2, PR 2). The parcel endpoint moves from the GeoViewer `Parcels_View` service (still answering on 2026-10-17, but
+the back end of the Comptroller's own viewer, with no published terms) to "Tennessee Property Boundaries (Public
+Use)", the layer the state publishes; `endpoints._v` 12 → 13. Its fields, limits, counties and terms are in
+REQUIREMENTS §2 as checked live. **Terms:** the public item says "This dataset is intended for public use" and "This
+service is not intended for commercial use"; the layer's own description says "This data is intended for use by state
+agencies with approved access", and also "all 95 counties", which it doesn't hold (86), so it's read as carried over
+from the restricted statewide dataset. The item's text governs (owner). If the app ever charges, it switches to the
+Comptroller's downloadable data per their commercial-use note. No email to the Comptroller (§8 Q2).
+**The parcel is its GISLINK.** `PARCELID` ends in the tax year ("010 011B A 00100 000 2026"; GeoViewer's copy already
+read 2027), so a key on it would change every January: the dedupe key is `TN:<county>:<GISLINK>`, and the facts card
+and search name the parcel by its tax card ("011B A 001.00", from `CMAP`, `GP`, `PARCEL`). **GISLINK isn't unique per
+feature** (Carter County, 2026-10-17: 32,016 features, 32,007 distinct GISLINKs; none empty). The 9 shared GISLINKs all
+have special-interest code 000: 7 are one parcel drawn as two polygons with the same record, and 2 pair a parcel with a
+"Parcel Conflict" polygon (`PARCEL_TYPE` 5). So (owner): a tap on either piece of a two-piece parcel selects both as
+one multi-part record; railroad right-of-way (type 4) is never a line or a tap; a conflict polygon (type 5) isn't
+either, but when one touches the selected parcel its facts card says "The county map shows a boundary conflict on
+part of this parcel — ask for a survey." The county draws the disputed land beside the parcels it's between, sharing
+their edges (Carter's 010066 03700: the conflict lies outside the tract, three of its corners on the tract's line),
+so "touches" is an overlap, a shared edge or a corner within 1 m, and both neighbours of a disputed strip see the line.
+If the conflict lookup doesn't answer, the parcel is selected without it. **Search** asks Tennessee by control map,
+group and parcel ("63D A 15" finds 063D A 015.00 and 015.01), not by an id prefix. **The facts card** adds "Deeded
+acres (county record)" (`DEEDAC`, when above 0) and "County record ↗" (`LINK_TPAD`, only on
+assessment.cot.tn.gov, in a new tab; §8 Q9). Owner and address stay live-only (decision 23; scrubbed from the
+recordings, now including services1.arcgis.com). **The nine counties with no lines** are found from their outlines
+(`lib/geo/data/tn-own-records.json`, `pnpm data:tn-counties`, TIGERweb): from zoom 14 over one of them the map says
+"No Tennessee parcel lines here; this county keeps its own records. Draw the boundary instead." with a Draw button.
+That replaces the plan's count-of-zero rule, which would also have fired over a national park or a lake. A parcel's
+states (the Library's State column and filter) are all of its records' ("TN · NC" across the line). The map credits
+"Parcels: VGIN (Virginia), NC OneMap, Tennessee Comptroller of the Treasury". Recorded Carter answers for the unit
+tests: `test/fixtures/tn-carter/parcels.har` (`pnpm record:tn`).
+
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

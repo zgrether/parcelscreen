@@ -7,7 +7,7 @@
  * longer limit. An HTTP error or a refused request isn't retried; moving the map asks again.
  */
 import { HttpError, TimeoutError } from "../http";
-import { STATE_BY_HOST } from "./recipe";
+import { stateOf } from "./parcelFields";
 
 /** Per attempt (the client's default), and the one longer retry after a timeout. */
 export const PARCEL_SERVICE_TIMEOUTS = { timeoutMs: 30_000, retryTimeoutMs: 45_000 } as const;
@@ -22,13 +22,8 @@ const TAIL = "isn't responding — try again shortly, or draw the boundary";
 
 /** "Virginia parcel service isn't responding — try again shortly, or draw the boundary". */
 export function serviceDownMessage(serviceUrl: string): string {
-  let host = "";
-  try {
-    host = new URL(serviceUrl).host;
-  } catch {
-    /* an edited endpoint that isn't a URL: no state to name */
-  }
-  const name = STATE_NAMES[STATE_BY_HOST[host] ?? ""];
+  // An edited endpoint that isn't a known service names no state.
+  const name = STATE_NAMES[stateOf(serviceUrl) ?? ""];
   return `${name ? `${name} parcel service` : "The parcel service"} ${TAIL}`;
 }
 
