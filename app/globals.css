@@ -1731,6 +1731,12 @@ html:has(.explore) body {
     text-decoration: underline;
     cursor: pointer;
   }
+  /* Nothing to do yet (the rubric editor's Undo at rest): plain text, not a link. */
+  .link-btn:disabled {
+    color: var(--color-ink-2);
+    text-decoration: none;
+    cursor: default;
+  }
 }
 @keyframes step-pulse {
   to {
