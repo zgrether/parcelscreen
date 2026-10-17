@@ -104,8 +104,21 @@ export async function bootProfiles(opts: BootOptions = {}): Promise<Booted> {
   return { profile, kv, migrated, created };
 }
 
-/** Makes another profile current and starts over (the picker, PR 5): the page reloads, so no state carries over. */
-export function switchProfile(id: string): void {
+/**
+ * Reloads the page once every write queued so far has reached storage (#154 review): a switch, an add or a delete
+ * right after an edit must not lose it. In Node (the tests) there is no page to reload; the wait still happens.
+ */
+export async function reloadAfterWrites(): Promise<void> {
+  await activeKv()?.flush();
+  if (typeof location !== "undefined") location.reload();
+}
+
+/**
+ * Makes another profile current and starts over (the picker, PR 5): the page reloads, so no state carries over. The
+ * current profile's pending writes land first, then the device's choice is written, then the reload.
+ */
+export async function switchProfile(id: string): Promise<void> {
+  await activeKv()?.flush();
   try {
     (device ?? localStore())?.setItem(CURRENT_PROFILE_KEY, id);
   } catch {

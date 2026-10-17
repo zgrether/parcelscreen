@@ -12,13 +12,16 @@ import {
   deleteProfile,
   FIRST_PROFILE_NAME,
   listProfiles,
+  reloadAfterWrites,
   renameProfile,
   resetProfilesForTests,
+  switchProfile,
 } from "./profiles";
+import { getPref, setPref } from "./prefs";
 import { memoryProfileStorage } from "./profileStore";
 
-const fakeLs = (): LegacyStore & { data: Map<string, string> } => {
-  const data = new Map<string, string>();
+const fakeLs = (init: Record<string, string> = {}): LegacyStore & { data: Map<string, string> } => {
+  const data = new Map<string, string>(Object.entries(init));
   return {
     data,
     getItem: (k) => data.get(k) ?? null,
@@ -69,5 +72,40 @@ describe("the picker's operations", () => {
     expect(await deleteProfile(b.profile.id)).toEqual({ wasCurrent: true });
     expect(ls.getItem(CURRENT_PROFILE_KEY)).toBeNull();
     expect(await listProfiles()).toEqual([]);
+  });
+});
+
+describe("a reload waits for the writes (#154 review)", () => {
+  it("a write queued just before a switch is in storage after it, and before the device's choice changes", async () => {
+    const storage = memoryProfileStorage({ delayWrites: 20 });
+    const ls = fakeLs();
+    const a = await bootProfiles({ storage, ls });
+    const other = await addProfile("Visitor");
+    // The device's choice is written only once the queued write has landed.
+    let docsWhenSwitched: string[] | null = null;
+    const setItem = ls.setItem;
+    ls.setItem = (k, v) => {
+      if (k === CURRENT_PROFILE_KEY) docsWhenSwitched = [...storage.state.docs.values()].map((d) => d.key);
+      setItem(k, v);
+    };
+    setPref("ps.rubricView", "r2"); // queued: lands 20 ms later
+    expect([...storage.state.docs.values()]).toEqual([]);
+    await switchProfile(other.id);
+    expect(docsWhenSwitched).toEqual(["ps.rubricView"]);
+    expect(ls.getItem(CURRENT_PROFILE_KEY)).toBe(other.id);
+    // Booted again as the first profile, the write is there.
+    resetProfilesForTests();
+    const again = await bootProfiles({ storage, ls: fakeLs({ [CURRENT_PROFILE_KEY]: a.profile.id }) });
+    expect(again.profile.id).toBe(a.profile.id);
+    expect(getPref("ps.rubricView")).toBe("r2");
+  });
+
+  it("reloadAfterWrites (a delete of the current profile) waits the same way", async () => {
+    const storage = memoryProfileStorage({ delayWrites: 20 });
+    await bootProfiles({ storage, ls: fakeLs() });
+    setPref("ps.rubricView", "r3");
+    expect([...storage.state.docs.values()]).toEqual([]);
+    await reloadAfterWrites();
+    expect([...storage.state.docs.values()].map((d) => d.value)).toEqual(["r3"]);
   });
 });

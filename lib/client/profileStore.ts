@@ -118,8 +118,14 @@ export function idbProfileStorage(): ProfileStorage {
   };
 }
 
-/** Storage in memory: for tests, and for a browser that refuses IndexedDB (then nothing outlives the page). */
-export function memoryProfileStorage(opts: { failAdopt?: boolean } = {}): ProfileStorage & {
+/**
+ * Storage in memory: for tests, and for a browser that refuses IndexedDB (then nothing outlives the page).
+ * `delayWrites`: each document write lands after that many milliseconds, as IndexedDB's do, for tests of the order
+ * between a write and what follows it.
+ */
+export function memoryProfileStorage(
+  opts: { failAdopt?: boolean; delayWrites?: number } = {},
+): ProfileStorage & {
   readonly state: {
     profiles: Map<string, Profile>;
     docs: Map<string, ProfileDoc>;
@@ -149,9 +155,11 @@ export function memoryProfileStorage(opts: { failAdopt?: boolean } = {}): Profil
       return [...state.docs.values()].filter((d) => d.profile === profile).map((d) => ({ ...d }));
     },
     async putDoc(doc) {
+      if (opts.delayWrites) await new Promise((r) => setTimeout(r, opts.delayWrites));
       state.docs.set(dk(doc.profile, doc.key), { ...doc });
     },
     async deleteDoc(profile, key) {
+      if (opts.delayWrites) await new Promise((r) => setTimeout(r, opts.delayWrites));
       state.docs.delete(dk(profile, key));
     },
     async adopt(profile, docs) {
