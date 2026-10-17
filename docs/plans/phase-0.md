@@ -600,4 +600,16 @@ read or migrated, and their parcels read "Needs a re-screen" and re-screen when 
 "; serves: A, B" to the trailhead it names (after the existing text; rule 7). Neither shows when a trailhead serves only
 the trail it's named after.
 
+51. **The verdict lines are letter edges** (owner, 2026-10-17; step 3 plan §5 and §8 Q1; roadmap step 3, PR 1). A or B
+is a Contender, C a Maybe, D or F a Pass, with the dealbreakers, the warnings (at most one for a Contender) and the
+caps as before. Step 1 kept today's point lines (2.75 and 1.75), so a B between 2.50 and 2.75 read Maybe, and a C
+between 1.50 and 1.75 read Pass: the letter and the verdict disagreed. The card reads the lines from a rubric's own
+grade cutoffs (`lib/rubric/grade.ts` `verdictLines`: the B and C edges), not from its `verdict.contender` and
+`verdict.pass`, so the rubrics profiles saved in step 1 (2.75 / 1.75) grade at letter edges too, with no change to the
+rubric's shape; `card.verdict` is 2.5 / 1.5 so a new rubric's copy says the same. Measured on every fixture, scenario and
+weight set (18 cards): no verdict changes (Ferney's second card sits exactly on 2.75, a Contender either way). The
+breakdown bar's verdict marks moved with them, and the Grade and verdict panel's sentence now quotes 2.5 and 1.5 (a
+replacement, approved under rule 7). A synthetic card in `card.test.ts` (2.7 and 1.7) was the case that moved: it
+gained an F sky to keep testing a Maybe and a Pass, and a new test pins the rule on the 2.7 / 1.7 case.
+
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

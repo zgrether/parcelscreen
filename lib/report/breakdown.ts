@@ -4,6 +4,7 @@
  * lines marked. A row's share is its weight over the graded rows' weights, so the earned parts add up to the parcel's
  * points.
  */
+import { verdictLines } from "../rubric/grade";
 import { weightsOf } from "../rubric/weights";
 import type { Card, Letter, RowKey } from "./card";
 
@@ -56,8 +57,8 @@ export function breakdown(card: Card): Breakdown | null {
     max,
     lines: [
       ...K.gradeCutoffs.map((at, i) => ({ at, label: "ABCD"[i]!, kind: "grade" as const })),
-      { at: K.verdict.contender, label: "Contender", kind: "verdict" },
-      { at: K.verdict.pass, label: "Pass below", kind: "verdict" },
+      { at: verdictLines(K).contender, label: "Contender", kind: "verdict" },
+      { at: verdictLines(K).pass, label: "Pass below", kind: "verdict" },
     ],
   };
 }

@@ -7,6 +7,7 @@ import { fmt } from "../format";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { defaultNamedRubric } from "../rubric/default";
 import type { NamedRubric, Rubric } from "../rubric/types";
+import { verdictLines } from "../rubric/grade";
 import { weightsOf } from "../rubric/weights";
 import { MAYBE_CAPS, footprintFt2, type CardConfig, type GateKey, type RowKey } from "./card";
 
@@ -79,8 +80,9 @@ export function panelText(
         howScored:
           `The grade is the weighted average of the rows (A ${V.points.A}, B ${V.points.B}, C ${V.points.C}, D ${V.points.D}, F ${V.points.F}): ` +
           `A from ${V.gradeCutoffs[0]}, B from ${V.gradeCutoffs[1]}, C from ${V.gradeCutoffs[2]}, D from ${V.gradeCutoffs[3]}. ` +
-          `Contender at ${V.verdict.contender} and up with at most ${V.verdict.contenderMaxWarns} warning; ` +
-          `Pass with any failed dealbreaker or a grade under ${V.verdict.pass}; Maybe otherwise. ` +
+          // The verdict lines are letter edges (step 3, §9.51; the numbers replaced under rule 7, owner 10/17).
+          `Contender at ${verdictLines(V).contender} and up with at most ${V.verdict.contenderMaxWarns} warning; ` +
+          `Pass with any failed dealbreaker or a grade under ${verdictLines(V).pass}; Maybe otherwise. ` +
           // Appended (#118 review; rule 7): the caps cardFor applies, from the same list.
           `A parcel is at most a Maybe when ${MAYBE_CAPS.incomplete} or when ${MAYBE_CAPS.checkFirst}.`,
       };

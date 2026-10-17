@@ -16,6 +16,19 @@ export const atLeast = (v: number, cutoffs: readonly number[]): Letter =>
 export const atMost = (v: number, cutoffs: readonly number[]): Letter =>
   LETTERS[cutoffs.findIndex((c) => v <= c)] ?? "F";
 
+/**
+ * The verdict lines (step 3, owner 2026-10-17; phase-0.md §9.51): letter edges. A or B is a Contender (from the B edge),
+ * C a Maybe, D or F a Pass (below the C edge), with the gates, warnings and caps as before. They're read from the
+ * rubric's grade cutoffs, not its `verdict.contender` and `verdict.pass`, so a rubric saved before step 3 (2.75 and
+ * 1.75) grades at letter edges too, and the letter and the verdict never disagree.
+ */
+export const verdictLines = (r: {
+  gradeCutoffs: readonly number[];
+}): { contender: number; pass: number } => ({
+  contender: r.gradeCutoffs[1]!,
+  pass: r.gradeCutoffs[2]!,
+});
+
 export interface GradedRow {
   key: RowKey;
   grade: Letter;
