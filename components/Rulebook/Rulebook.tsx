@@ -2,7 +2,7 @@
 /**
  * "What the grade means" (value-ranking.md §8; VR7): the rulebook. At the top, the breakdown bar for a History parcel
  * (the open one, if it's screened), in the chosen person's weights; then the rules of both grades, from config and the
- * Settings. The weight switch is the sheet's (ps.person). Reached from the menu, and from each report panel's "How it's
+ * Settings. The rubric switch is the sheet's (ps.rubricView). Reached from the menu, and from each report panel's "How it's
  * scored" (its section, #rule-<panel>).
  */
 import Link from "next/link";
@@ -10,32 +10,25 @@ import { useEffect, useMemo, useState } from "react";
 import { HelpProvider } from "@/components/Help/HelpDialog";
 import { parcelName } from "@/lib/client/historyRows";
 import { openOnMap } from "@/lib/client/openOnMap";
-import { getPref, setPref } from "@/lib/client/prefs";
+import { getPref } from "@/lib/client/prefs";
 import { useKeptScreens } from "@/lib/client/useKeptScreens";
 import { loadUserConfig } from "@/lib/client/userConfig";
 import { breakdown } from "@/lib/report/breakdown";
-import { reportCard, type Person } from "@/lib/report/card";
+import { useRubricView } from "@/lib/client/useRubricView";
+import { reportCard } from "@/lib/report/card";
 import { drawnOf } from "@/lib/report/marks";
 import { rulebook } from "@/lib/report/rulebook";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
+import { RubricSwitch } from "@/components/Results/card/RubricSwitch";
 import { BreakdownBar } from "./BreakdownBar";
 import { RulebookRules } from "./RulebookRules";
-
-const PEOPLE: { key: Person; name: string }[] = [
-  { key: "zach", name: "Zach's grade" },
-  { key: "julie", name: "Julie's grade" },
-];
 
 export function Rulebook() {
   const store = useMemo(() => getPref("ps.parcels"), []);
   const built = useMemo(() => store?.built ?? [], [store]);
   const config = useMemo(() => loadUserConfig(), []);
-  const rb = useMemo(() => rulebook(SCREEN_CONSTANTS, config), [config]);
-  const [person, setPersonState] = useState<Person>(() => getPref("ps.person"));
-  const setPerson = (p: Person) => {
-    setPersonState(p);
-    setPref("ps.person", p);
-  };
+  const { rubrics, rubric, setRubric } = useRubricView();
+  const rb = useMemo(() => rulebook(SCREEN_CONSTANTS, config, rubrics), [config, rubrics]);
 
   const screens = useKeptScreens(built);
   // A link to one panel's rules (a report panel's "How it's scored": /rulebook#rule-trails). The page is drawn in the
@@ -61,7 +54,7 @@ export function Rulebook() {
   const result = key ? (screens.get(key)?.result ?? null) : null;
   const parcel = built.find((b) => b.key === key);
   const card = result
-    ? reportCard(result, person, parcel && drawnOf(parcel.markup, parcel.drivewayLine))
+    ? reportCard(result, rubric, parcel && drawnOf(parcel.markup, parcel.drivewayLine))
     : null;
   const bd = card ? breakdown(card) : null;
 
@@ -73,18 +66,12 @@ export function Rulebook() {
             ← Map
           </Link>
           <h1>What the grade means</h1>
-          <div className="card-person" role="group" aria-label="Whose weights grade the parcels">
-            {PEOPLE.map((p) => (
-              <button
-                key={p.key}
-                className="chip"
-                aria-pressed={person === p.key}
-                onClick={() => setPerson(p.key)}
-              >
-                {p.name}
-              </button>
-            ))}
-          </div>
+          <RubricSwitch
+            rubrics={rubrics}
+            current={rubric.id}
+            setRubric={setRubric}
+            label="Whose weights grade the parcels"
+          />
         </header>
 
         <section className="rule-breakdown">
@@ -133,7 +120,7 @@ export function Rulebook() {
           )}
         </section>
 
-        <RulebookRules rb={rb} current={person} />
+        <RulebookRules rb={rb} current={rubric.id} />
       </main>
     </HelpProvider>
   );

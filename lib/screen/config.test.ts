@@ -258,16 +258,7 @@ describe("config", () => {
             "pass": 1.75,
           },
           "weights": {
-            "julie": {
-              "elevation": 10,
-              "garden": 20,
-              "homesite": 15,
-              "room": 10,
-              "sky": 10,
-              "town": 10,
-              "trails": 25,
-            },
-            "zach": {
+            "default": {
               "elevation": 25,
               "garden": 10,
               "homesite": 25,

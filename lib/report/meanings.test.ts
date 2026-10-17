@@ -1,5 +1,6 @@
 /** "What it means for you" (value-ranking.md §6.2 (c); VR5 part 3): one set of sentences per band of every scale. */
 import { describe, expect, it } from "vitest";
+import { ZACH } from "@/test/support/rubrics";
 import { expectedOf } from "@/test/support/expected";
 import { reportCard } from "./card";
 import { MEANINGS, meaningsFor } from "./meanings";
@@ -23,7 +24,7 @@ describe("What it means for you", () => {
     const seen = new Map<string, number>();
     for (const slug of ["ferney-creek-52-47A", "grayson-mud-creek-6273"] as const) {
       const r = expectedOf(slug, "run");
-      const card = reportCard(r, "zach");
+      const card = reportCard(r, ZACH);
       for (const p of PANEL_KEYS_WITH_SCALES)
         for (const sc of scalesFor(p, r, card)) seen.set(sc.id, sc.bands.length);
     }
@@ -64,7 +65,7 @@ describe("What it means for you", () => {
 
   it("Grayson 6273's homesite reads its own bands", () => {
     const r = expectedOf("grayson-mud-creek-6273", "run");
-    const lines = scalesFor("homesite", r, reportCard(r, "zach")).flatMap((sc) => meaningsFor(sc.id, sc.at));
+    const lines = scalesFor("homesite", r, reportCard(r, ZACH)).flatMap((sc) => meaningsFor(sc.id, sc.at));
     expect(lines[0]).toEqual({
       for: "Solar",
       text: "As good as it gets in these mountains; panels keep producing through December.",

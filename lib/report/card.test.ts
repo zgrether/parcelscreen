@@ -3,6 +3,7 @@
  * edited copies of Ferney Creek, config-driven cutoffs, and each person's weights.
  */
 import { describe, expect, it } from "vitest";
+import { ZACH, JULIE } from "@/test/support/rubrics";
 import { expectedOf } from "@/test/support/expected";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { TRAILHEAD_DRIVES } from "../screen/driveList";
@@ -56,14 +57,14 @@ describe("the report card on the fixtures (engine 13)", () => {
       town: "D",
       garden: "A",
     });
-    const zach = reportCard(r, "zach");
+    const zach = reportCard(r, ZACH);
     expect(zach.points).toBeCloseTo(3.2, 9);
     expect([zach.grade, zach.verdict]).toEqual(["B", "Contender"]);
     // One warn: the first thing to check (it read: the weakest part, trails and public land).
     expect(zach.reason).toBe(`Contender. Check first: frontage on an unnamed road; ${MARKED_PRIVATE}.`);
     expect(zach.incomplete).toEqual([]);
     expect(rowOf(r, "town").detail).toBe("a 47-minute drive to an ER, 15 to a grocery"); // from the entrance
-    expect(reportCard(r, "julie").points).toBeCloseTo(2.75, 9);
+    expect(reportCard(r, JULIE).points).toBeCloseTo(2.75, 9);
     expect(rowOf(r, "garden").detail).toBe("a 2.48 ac garden on prime farmland");
     expect(rowOf(r, "room").detail).toBe(
       "4.3 ac of gentle ground near the house site, 9.4× the build footprint",
@@ -99,8 +100,8 @@ describe("the report card on the fixtures (engine 13)", () => {
     expect(rowOf(r, "trails").detail).toBe(
       "a trailhead 92 min (17.4 mi) by road (the first 2.6 mi on unnamed tracks), 10.4 mi straight (Heritage Park)",
     );
-    const zach = reportCard(r, "zach"),
-      julie = reportCard(r, "julie");
+    const zach = reportCard(r, ZACH),
+      julie = reportCard(r, JULIE);
     expect(zach.points).toBeCloseTo(3.05, 9);
     // Two warns (the road in, the septic) are a Maybe.
     expect([zach.grade, zach.verdict]).toEqual(["B", "Maybe"]);
@@ -163,8 +164,8 @@ describe("the report card on the fixtures (engine 13)", () => {
       "the road in is marked private (OpenStreetMap); if it isn't this parcel's own drive, you need a recorded right to use it",
     );
     // One warn: still a Contender, and the warn is the first thing to check.
-    expect(reportCard(f, "zach")).toMatchObject({ verdict: "Contender", grade: "B" });
-    expect(reportCard(f, "zach").reason).toBe(
+    expect(reportCard(f, ZACH)).toMatchObject({ verdict: "Contender", grade: "B" });
+    expect(reportCard(f, ZACH).reason).toBe(
       `Contender. Check first: frontage on an unnamed road; ${MARKED_PRIVATE}.`,
     );
 
@@ -209,11 +210,11 @@ describe("the report card on the fixtures (engine 13)", () => {
       town: "C",
       garden: "C",
     });
-    const zach = reportCard(r, "zach");
+    const zach = reportCard(r, ZACH);
     expect(zach.points).toBeCloseTo(3.45, 9);
     expect([zach.grade, zach.verdict]).toEqual(["B", "Contender"]);
     expect(zach.reason).toBe(`Contender. Check first: ${SEPTIC_WARN}.`);
-    expect(reportCard(r, "julie").verdict).toBe("Contender");
+    expect(reportCard(r, JULIE).verdict).toBe("Contender");
     expect(rowOf(r, "room").detail).toBe(
       "1.0 ac of gentle ground near the house site, 2.1× the build footprint",
     );
@@ -226,7 +227,7 @@ describe("the gates", () => {
     const r = ferney();
     r.flood = { zones: ["AE"], sfha: true, sfhaAcres: 3, mapped: true };
     r.sites![0]!.flood = true;
-    const c = reportCard(r, "zach");
+    const c = reportCard(r, ZACH);
     expect(c.verdict).toBe("Pass");
     expect(c.reason).toBe("Pass: the build site is in a FEMA flood zone.");
   });
@@ -251,7 +252,7 @@ describe("the gates", () => {
       reason: "FEMA has no flood mapping here",
     });
     r.soils = r.soils!.map((x) => ({ ...x, septic: "Very limited" }));
-    const c = reportCard(r, "zach");
+    const c = reportCard(r, ZACH);
     expect(c.verdict).toBe("Contender"); // the septic warn is its only warn
     expect(c.incomplete).toEqual([]);
   });
@@ -262,7 +263,7 @@ describe("the gates", () => {
     delete r.sky;
     expect(gateOf(r, "floodplain")).toMatchObject({ status: "unknown", missing: "the FEMA flood map" });
     expect(rowOf(r, "sky")).toMatchObject({ grade: null, detail: "the sky atlas didn't load" });
-    const c = reportCard(r, "zach");
+    const c = reportCard(r, ZACH);
     expect(c.incomplete).toEqual(["the FEMA flood map", "the sky atlas"]);
     expect(c.verdict).toBe("Maybe");
     expect(c.reason).toBe(
@@ -271,7 +272,7 @@ describe("the gates", () => {
     // A Pass stays a Pass.
     r.sites![0]!.flood = true;
     r.flood = { zones: ["AE"], sfha: true, sfhaAcres: 3, mapped: true };
-    expect(reportCard(r, "zach").reason).toBe(
+    expect(reportCard(r, ZACH).reason).toBe(
       "Pass: the build site is in a FEMA flood zone (incomplete: the sky atlas didn't load, run again).",
     );
   });
@@ -346,7 +347,7 @@ describe("the gates", () => {
     const r = ferney();
     r.driveway = { ...r.driveway!, entrances: [], routes: [] };
     expect(gates(r)).toMatchObject({ access: "fail", easement: "fail" });
-    expect(reportCard(r, "julie").reason).toBe(
+    expect(reportCard(r, JULIE).reason).toBe(
       "Pass: no road within 0.25 mi of the boundary (landlocked, or TIGER is wrong).",
     );
   });
@@ -385,7 +386,7 @@ describe("the gates", () => {
       "The driveway needs an easement across neighbouring land; the drive needs a steeper paved alignment or an easement",
     );
     r.soils = r.soils!.map((x) => ({ ...x, septic: "Very limited" }));
-    expect(reportCard(r, "zach").reason).toBe(
+    expect(reportCard(r, ZACH).reason).toBe(
       "Maybe. Check first: the driveway needs an easement across neighbouring land; the drive needs a steeper paved alignment or an easement.",
     );
   });
@@ -499,7 +500,7 @@ describe("the rows", () => {
         "a trailhead 6.5 mi away in a straight line (Buffalo Mountain Trailhead); incomplete: the drive times didn't load",
       missing: "the drive times",
     });
-    expect(reportCard(r, "zach").verdict).toBe("Maybe");
+    expect(reportCard(r, ZACH).verdict).toBe("Maybe");
     // Adjoining open land is still an A, not flagged.
     r.protected = [{ ...ferney().protected![0]!, access: "OA", adjoins: true, distFt: null }];
     expect(rowOf(r, "trails")).toMatchObject({ grade: "A" });
@@ -525,7 +526,7 @@ describe("the rows", () => {
       detail: "a trailhead 4.9 mi away in a straight line (Grayson Highlands State Park)",
     });
     expect(rowOf(r, "trails").missing).toBeUndefined();
-    expect(reportCard(r, "zach").verdict).toBe("Contender");
+    expect(reportCard(r, ZACH).verdict).toBe("Contender");
 
     // Recorded failures do flag it: the drive step failed, or OSRM routed none of the trailheads.
     expect(rowOf({ ...r, failed: ["drive"] }, "trails").missing).toBe("the drive times");
@@ -537,7 +538,7 @@ describe("the rows", () => {
 
   it("trails with a trailhead list that didn't load: incomplete, the verdict held at Maybe (follow-up 53)", () => {
     const r = ferney();
-    expect(reportCard(r, "zach")).toMatchObject({ grade: "B", verdict: "Contender" });
+    expect(reportCard(r, ZACH)).toMatchObject({ grade: "B", verdict: "Contender" });
     r.noResponse = ["state parks (vginmaps.vdem.virginia.gov)"];
     // Graded on what did load, and marked.
     expect(rowOf(r, "trails")).toMatchObject({
@@ -546,7 +547,7 @@ describe("the rows", () => {
         "a trailhead 47 min (11.5 mi) by road, 6.4 mi straight (Buffalo Mountain Trailhead); incomplete: VA state parks (VGIN) didn't load",
       missing: "VA state parks (VGIN)",
     });
-    const card = reportCard(r, "zach");
+    const card = reportCard(r, ZACH);
     expect(card).toMatchObject({ grade: "B", verdict: "Maybe", incomplete: ["VA state parks (VGIN)"] });
     expect(card.reason).toContain("(incomplete: VA state parks (VGIN) didn't load, run again).");
 
@@ -574,7 +575,7 @@ describe("the rows", () => {
       detail: "the places didn't load",
       missing: "the places",
     });
-    expect(reportCard(t, "zach").verdict).toBe("Maybe");
+    expect(reportCard(t, ZACH).verdict).toBe("Maybe");
 
     // Open land within a mile that doesn't adjoin: a trailhead might do better, so still not loaded, still Maybe.
     const open = { ...t.protected![0]!, access: "OA" as const, adjoins: false, distFt: 2640 };
@@ -584,14 +585,14 @@ describe("the rows", () => {
       detail: "the places didn't load",
       missing: "the places",
     });
-    expect(reportCard(t, "zach").verdict).toBe("Maybe");
+    expect(reportCard(t, ZACH).verdict).toBe("Maybe");
 
     // Adjoining: PAD-US loaded, so the A is certain whatever trailheads there are. The existing sentence, not flagged.
     t.protected = [{ ...open, adjoins: true, distFt: null }];
     expect(rowOf(t, "trails")).toMatchObject({ grade: "A", short: "adjoins public land" });
     expect(rowOf(t, "trails").detail).toMatch(/^adjoins open public land \(/);
     expect(rowOf(t, "trails").missing).toBeUndefined();
-    expect(reportCard(t, "zach")).toMatchObject({ verdict: "Contender", incomplete: [] });
+    expect(reportCard(t, ZACH)).toMatchObject({ verdict: "Contender", incomplete: [] });
 
     // PAD-US failed as well: nothing is certain, so the row didn't load.
     delete t.protected;
@@ -623,7 +624,7 @@ describe("the rows", () => {
       grade: "F",
       checkFirst: "your build doesn't fit on the gentle ground (0.2 ac, 0.4× the footprint)",
     });
-    const c = reportCard(r, "zach");
+    const c = reportCard(r, ZACH);
     expect(c.points).toBeGreaterThan(K.verdict.contender); // a Contender on points alone
     expect(c.verdict).toBe("Maybe");
     expect(c.reason).toBe(
@@ -632,20 +633,20 @@ describe("the rows", () => {
     // A fail still comes first.
     r.sites![0]!.flood = true;
     r.flood = { zones: ["AE"], sfha: true, sfhaAcres: 3, mapped: true };
-    expect(reportCard(r, "zach").reason).toBe("Pass: the build site is in a FEMA flood zone.");
+    expect(reportCard(r, ZACH).reason).toBe("Pass: the build site is in a FEMA flood zone.");
   });
 
   it("no build site: the homesite is an F, and the elevation is left out (not incomplete)", () => {
     const r = ferney();
     r.sites = [];
     expect(grades(r)).toMatchObject({ homesite: "F", elevation: null });
-    expect(reportCard(r, "zach").incomplete).toEqual([]);
+    expect(reportCard(r, ZACH).incomplete).toEqual([]);
   });
 
   it("a row whose data didn't load is left out of the grade", () => {
     const r = ferney();
     delete r.sky;
-    const c = reportCard(r, "zach");
+    const c = reportCard(r, ZACH);
     expect(rowOf(r, "sky").grade).toBeNull();
     // Ferney's 320 points less the sky's 30, over 90 of weight.
     expect(c.points).toBeCloseTo(290 / 90, 9);
@@ -667,13 +668,13 @@ describe("config and weights", () => {
   it("a changed cutoff changes the grade", () => {
     const r = expectedOf("ferney-creek-52-47A", "run");
     const lower: CardConfig = { ...K, rows: { ...K.rows, elevationFt: [2700, 2500, 2000, 1500] } };
-    const c = cardFor(cardFacts(r, lower), "zach");
+    const c = cardFor(cardFacts(r, lower), ZACH);
     expect(c.rows.find((x) => x.key === "elevation")!.grade).toBe("A");
     expect(c.points).toBeCloseTo(3.45, 9);
     expect(c.grade).toBe("B");
     // And the drive cutoffs (provisional until Zach's Google column): Buffalo Mountain's 47 min an A lifts it to an A.
     const roomy: CardConfig = { ...lower, rows: { ...lower.rows, trailheadMin: [50, 60, 70, 80] } };
-    const d = cardFor(cardFacts(r, roomy), "zach");
+    const d = cardFor(cardFacts(r, roomy), ZACH);
     expect(d.rows.find((x) => x.key === "trails")!.grade).toBe("A");
     expect(d.points).toBeCloseTo(3.75, 9);
     expect(d.grade).toBe("A");
@@ -689,8 +690,8 @@ describe("config and weights", () => {
     r.near!.trailheads = [];
     r.protected = [];
     const facts = cardFacts(r);
-    const zach = cardFor(facts, "zach"),
-      julie = cardFor(facts, "julie");
+    const zach = cardFor(facts, ZACH),
+      julie = cardFor(facts, JULIE);
     expect(zach.points).toBeCloseTo(2.7, 9);
     expect(julie.points).toBeCloseTo(1.7, 9);
     expect([zach.verdict, julie.verdict]).toEqual(["Maybe", "Pass"]);

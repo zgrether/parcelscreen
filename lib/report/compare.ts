@@ -7,7 +7,7 @@
 import { shortPrice } from "../client/askingPrice";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import type { ScreenResult } from "../screen/types";
-import { reportCard, type Card, type GateStatus, type Letter, type RubricLike } from "./card";
+import { reportCard, type Card, type GateStatus, type Letter, type NamedRubric } from "./card";
 import type { Drawn } from "./marks";
 import type { PanelKey } from "./cardPanels";
 
@@ -92,10 +92,10 @@ const STAGES: { key: string; label: string }[] = [
   { key: "stage3", label: "Stage 3: home" },
 ];
 
-/** The table for these parcels, graded with `rubric` (a person's, until PR 5). */
+/** The table for these parcels, graded with `rubric`. */
 export function compareTable(
   parcels: readonly CompareParcel[],
-  rubric: RubricLike,
+  rubric: NamedRubric,
   readyToBuild: number,
 ): CompareTable {
   const cards = parcels.map((p) =>
@@ -196,7 +196,7 @@ export const DEFAULT_COLUMNS = 4;
  * The columns the table starts with, until the user picks (owner, #117 review): up to DEFAULT_COLUMNS, the
  * Contenders first (in `rubric`), then the most recently screened; never-screened parcels last.
  */
-export function defaultColumns(parcels: readonly CompareParcel[], rubric: RubricLike): string[] {
+export function defaultColumns(parcels: readonly CompareParcel[], rubric: NamedRubric): string[] {
   const contender = (p: CompareParcel) =>
     p.state === "ok" && !!p.result && reportCard(p.result, rubric, p.drawn).verdict === "Contender";
   const screenedAt = (p: CompareParcel) => (p.state === "ok" && p.result ? p.result.runAt : "");

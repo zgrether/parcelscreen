@@ -4,6 +4,7 @@
  * and a parcel without a current screen saying so in every cell.
  */
 import { describe, expect, it } from "vitest";
+import { ZACH, JULIE } from "@/test/support/rubrics";
 import { expectedOf } from "@/test/support/expected";
 import { reportCard } from "./card";
 import { DEFAULT_COLUMNS, compareTable, defaultColumns, type CompareParcel } from "./compare";
@@ -28,7 +29,7 @@ describe("the comparison table (VR6)", () => {
   ];
 
   it("one column per parcel; the head row is each card's grade and verdict, in the chosen person's weights", () => {
-    for (const person of ["zach", "julie"] as const) {
+    for (const person of [ZACH, JULIE] as const) {
       const t = compareTable(three, person, 300_000);
       expect(t.head.cells.map((c) => [c.grade, c.text])).toEqual(
         three.map((p) => {
@@ -41,7 +42,7 @@ describe("the comparison table (VR6)", () => {
   });
 
   it("the groups and their rows: costs pending but Stage 0, the budget pending, the gates, the can't-add rows", () => {
-    const t = compareTable(three, "zach", 300_000);
+    const t = compareTable(three, ZACH, 300_000);
     expect(t.groups.map((g) => [g.label, g.rows.map((r) => r.label)])).toEqual([
       [
         "Costs",
@@ -78,12 +79,12 @@ describe("the comparison table (VR6)", () => {
       expect(r.cells.map((c) => c.text)).toEqual(["pending", "pending", "pending"]);
     const septic = t.groups[2]!.rows.find((r) => r.key === "septic")!;
     expect(septic.cells.map((c) => c.status)).toEqual(
-      three.map((p) => reportCard(p.result!, "zach").gates.find((g) => g.key === "septic")!.status),
+      three.map((p) => reportCard(p.result!, ZACH).gates.find((g) => g.key === "septic")!.status),
     );
   });
 
   it("a can't-add cell is its grade and short value; best and worst only where the grades differ", () => {
-    const t = compareTable(three, "zach", 300_000);
+    const t = compareTable(three, ZACH, 300_000);
     const rows = t.groups[3]!.rows;
     for (const r of rows) {
       const grades = r.cells.map((c) => c.grade);
@@ -114,7 +115,7 @@ describe("the comparison table (VR6)", () => {
   it("a parcel without a current screen says so in each cell, with no panel and no mark", () => {
     const t = compareTable(
       [parcel("ferney-creek-52-47A"), { ...parcel("macks-mountain-35-3"), state: "rescreen", result: null }],
-      "zach",
+      ZACH,
       300_000,
     );
     expect(t.cards[1]).toBeNull();
@@ -124,7 +125,7 @@ describe("the comparison table (VR6)", () => {
     }
     const never = compareTable(
       [{ ...parcel("macks-mountain-35-3"), state: "none", result: null }],
-      "zach",
+      ZACH,
       300_000,
     );
     expect(never.head.cells[0]!.text).toBe("not screened");
@@ -146,8 +147,8 @@ describe("the columns the table starts with (owner, #117 review)", () => {
       { ...parcel("ferney-creek-52-47A"), key: "never", state: "none", result: null },
       at("ferney-creek-52-47A", "f-new", "2026-10-12T00:00:00Z"),
     ];
-    const verdict = (p: CompareParcel) => (p.result ? reportCard(p.result, "zach").verdict : null);
-    const got = defaultColumns(ps, "zach");
+    const verdict = (p: CompareParcel) => (p.result ? reportCard(p.result, ZACH).verdict : null);
+    const got = defaultColumns(ps, ZACH);
     expect(got).toHaveLength(DEFAULT_COLUMNS);
     expect(got).not.toContain("never");
     const byKey = new Map(ps.map((p) => [p.key, p]));

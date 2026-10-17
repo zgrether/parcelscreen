@@ -6,7 +6,16 @@
  * The numbers come from `SCREEN_CONSTANTS.card` (CLAUDE.md rule 4), never from here.
  */
 import { SCREEN_CONSTANTS } from "../screen/config";
-import { GATE_KEYS, ROW_KEYS, type Bands, type Letter, type Rubric, type RowKey } from "./types";
+import {
+  GATE_KEYS,
+  MINE,
+  ROW_KEYS,
+  type Bands,
+  type Letter,
+  type NamedRubric,
+  type Rubric,
+  type RowKey,
+} from "./types";
 
 /** What the default rubric takes from the card's config. */
 export interface CardNumbers {
@@ -15,6 +24,20 @@ export interface CardNumbers {
   gradeCutoffs: readonly number[];
   verdict: { contender: number; pass: number; contenderMaxWarns: number };
 }
+
+/** The card's config with the default rubric's weights (`card.weights.default`). */
+export type CardConfigNumbers = CardNumbers & { weights: { default: Record<RowKey, number> } };
+
+/** The default rubric: today's card with its default weights, explicit (owner, step 1 plan §8 Q1). */
+export const defaultRubric = (K: CardConfigNumbers = SCREEN_CONSTANTS.card): Rubric =>
+  rubricFromWeights(K.weights.default, K);
+
+/** The default rubric as a profile's own, named "Mine": what a fresh profile grades with. */
+export const defaultNamedRubric = (K: CardConfigNumbers = SCREEN_CONSTANTS.card): NamedRubric => ({
+  id: MINE,
+  name: "Mine",
+  rubric: defaultRubric(K),
+});
 
 export function rubricFromWeights(
   weights: Record<RowKey, number>,

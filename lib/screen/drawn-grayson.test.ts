@@ -9,6 +9,7 @@
  * and carried on to the boundary alike. The route from it stays listed, with the warning.
  */
 import { describe, expect, it } from "vitest";
+import { ZACH } from "@/test/support/rubrics";
 import { flagsOf } from "./flags";
 import { redGate, toTheBoundary } from "../../test/support/redGate";
 import { runFixture } from "../../test/support/scenarios";
@@ -22,7 +23,7 @@ import { routeContext } from "./index";
 import { chooseDriveway, drivewayPoints, overLimitPoints } from "./score";
 import type { DrawnInput, ScreenResult } from "./types";
 
-const gate = (r: ScreenResult, key: string) => reportCard(r, "zach").gates.find((g) => g.key === key)!;
+const gate = (r: ScreenResult, key: string) => reportCard(r, ZACH).gates.find((g) => g.key === key)!;
 const STEEP =
   /^The existing drive is steeper than your limit \(2\d% avg, 41% steepest over 30 m on raw ground; a built road grades out 1–4 points\)$/;
 
@@ -117,7 +118,7 @@ describe("the red-gate drive on Grayson 6273, drawn as an easement", () => {
     // Up to the line's length and grades: " (872 ft · …".
     const named = (text: string) => text.replace(/ \(\d[\d,]* ft.*$/, "");
     const said = (names: LineNames) => {
-      const card = reportCard(r, "zach", { names, marks: [] });
+      const card = reportCard(r, ZACH, { names, marks: [] });
       const v = drivewayView(r, names)!;
       return {
         access: card.gates.find((g) => g.key === "access")!.reason,
@@ -164,7 +165,7 @@ describe("WF5: the red-gate easement as the driveway, and where it's recorded (o
   });
   const gates = (r: ScreenResult, d: ReturnType<typeof drawn>) =>
     Object.fromEntries(
-      reportCard(r, "zach", d).gates.map((g) => [g.key, { status: g.status, reason: g.reason }]),
+      reportCard(r, ZACH, d).gates.map((g) => [g.key, { status: g.status, reason: g.reason }]),
     );
 
   it("chosen: the card scores its route, says so, warns it's over the veto, and compares it with the app's pick", async () => {
@@ -186,7 +187,7 @@ describe("WF5: the red-gate easement as the driveway, and where it's recorded (o
       reason:
         "Red gate: verify it's a legal right-of-way; the existing drive is steeper than your limit (21% avg, 41% steepest over 30 m on raw ground; a built road grades out 1–4 points); your route is steeper than your veto (41% vs 25%)",
     });
-    const card = reportCard(result, "zach", drawn("red-gate"));
+    const card = reportCard(result, ZACH, drawn("red-gate"));
     expect(card.drivewayLine).toBe("red-gate");
     // Drive times are still from Mud Creek Ln's end (until WF6): the Town and Trails panels say so.
     for (const key of ["town", "trails"])
@@ -231,7 +232,7 @@ describe("WF5: the red-gate easement as the driveway, and where it's recorded (o
       "Red gate was used: the driveway starts from its far end, and follows it to the road.",
     );
     // A chosen line this screen has no route from: the app's pick, and the card says so.
-    const lost = reportCard(result, "zach", {
+    const lost = reportCard(result, ZACH, {
       ...drawn("gate-2"),
       names: new Map([["gate-2", "Gate lane"]]),
     });

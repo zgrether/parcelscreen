@@ -1,6 +1,6 @@
 /**
  * The household's list (WF2b, docs/plans/parcel-workflow.md §5): the app opens to it once there are parcels; each
- * row's name (cut short, whole on hover), state, status, household verdict and both grades; archiving from a parcel's
+ * row's name (cut short, whole on hover), state, status and grade; archiving from a parcel's
  * detail drops it from the default view, and the list's last line says so and shows it again (owner, #132), remembered
  * after a reload; ticked rows open in Compare; Open on the map; all archived, the app opens on the map. On a phone:
  * cards, the same last line, and a long press shows a whole name.
@@ -44,10 +44,11 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   // The state's county on hover (and a long press, on a phone).
   await expect(macks.locator(".lib-state")).toHaveAttribute("title", "Floyd County");
   await expect(macks.locator("td").nth(6)).toHaveText("In progress");
-  // The household verdict and both grades, from the kept screens.
-  await expect(macks.locator("td").nth(7)).toHaveText(/^(Contender|Maybe|Pass)$/);
-  await expect(macks.locator("td").nth(8)).toHaveText(/^[A-F](Contender|Maybe|Pass)$/);
-  await expect(macks.locator("td").nth(9)).toHaveText(/^[A-F](Contender|Maybe|Pass)$/);
+  // The grade from the kept screen, in the profile's own rubric (step 1): a fresh profile holds no other, so there is
+  // no Household column and no second grade.
+  await expect(macks.locator("td").nth(7)).toHaveText(/^[A-F](Contender|Maybe|Pass)$/);
+  await expect(macks.locator("td")).toHaveCount(9);
+  await expect(page.locator(".lib-table thead")).not.toContainText("Household");
 
   // A click anywhere on the row opens its detail (owner, after #133): the full name, the card; archived as sold.
   await macks.locator("td").nth(4).click();

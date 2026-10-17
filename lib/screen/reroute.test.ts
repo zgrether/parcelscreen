@@ -6,6 +6,7 @@
  */
 import { centroid, destination, lineOffset, lineString } from "@turf/turf";
 import { describe, expect, it } from "vitest";
+import { ZACH } from "@/test/support/rubrics";
 import { flagsOf } from "./flags";
 import { expectedOf } from "@/test/support/expected";
 import { loadFixture, type FixtureSlug } from "@/test/support/fixtures";
@@ -177,7 +178,7 @@ describe("the parking lookup failing (#140 review)", () => {
     expect(plain(rerouted.result)).toEqual(plain(full.result));
     expect(full.result.noResponse).toContain(TRAILHEAD_PARKING);
     // The drives still ran, to the trailhead points: the row says so, appended (rule 7), and isn't incomplete.
-    const trails = reportCard(full.result, "zach").rows.find((x) => x.key === "trails")!;
+    const trails = reportCard(full.result, ZACH).rows.find((x) => x.key === "trails")!;
     expect(trails.detail.endsWith(`; ${TIMED_TO_THE_TRAILHEAD}`)).toBe(true);
     expect(trails.missing).toBeUndefined();
   });

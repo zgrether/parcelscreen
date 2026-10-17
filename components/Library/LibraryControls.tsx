@@ -1,13 +1,15 @@
 "use client";
 /**
  * The list's filters and sort (WF2b, docs/plans/parcel-workflow.md §5): status, the household verdict (the default
- * filter, owner #128), each person's verdict, milestones, a price range and the state; sorted in My order (WF3, the
- * default), or by when it changed, price, acres, the household verdict or either grade. Views only: they never change a parcel. Folded behind one
- * "Filters" button, which says how many differ from the defaults.
+ * filter, owner #128), each rubric's verdict (step 1: when the profile holds more than its own), milestones, a price
+ * range and the state; sorted in My order (WF3, the default), or by when it changed, price, acres, the household
+ * verdict or any grade. Views only: they never change a parcel. Folded behind one "Filters" button, which says how
+ * many differ from the defaults.
  */
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import {
   DEFAULT_VIEW,
+  gradeSortKey,
   VERDICT_CHOICES,
   type LibraryFilters,
   type LibraryRow,
@@ -18,6 +20,8 @@ import {
 import { parsePrice } from "@/lib/client/askingPrice";
 import { MILESTONE_WORD, MILESTONES, STATUS_WORD } from "@/lib/client/parcelStatus";
 import type { ParcelStatus } from "@/lib/client/parcelStore";
+import { switchLabel } from "@/lib/client/rubrics";
+import type { NamedRubric } from "@/lib/rubric/types";
 
 const STATUSES: ParcelStatus[] = ["inProgress", "saved", "archived"];
 const CHOICE_WORD: Record<VerdictChoice, string> = {
@@ -31,9 +35,12 @@ const SORTS: { key: SortKey; label: string }[] = [
   { key: "updated", label: "Last changed" },
   { key: "price", label: "Price" },
   { key: "acres", label: "Acres" },
-  { key: "household", label: "Household verdict" },
-  { key: "zach", label: "Zach's grade" },
-  { key: "julie", label: "Julie's grade" },
+];
+/** The sorts for a profile's rubrics: the household verdict when it holds several, then each grade. */
+const sortsFor = (rubrics: readonly NamedRubric[]): { key: SortKey; label: string }[] => [
+  ...SORTS,
+  ...(rubrics.length > 1 ? [{ key: "household" as const, label: "Household verdict" }] : []),
+  ...rubrics.map((nr) => ({ key: gradeSortKey(nr.id), label: switchLabel(nr) })),
 ];
 
 /** How many filters differ from the defaults. */
@@ -43,8 +50,7 @@ function changedFilters(f: LibraryFilters): number {
   return [
     !same(f.status, d.status),
     !same(f.household, d.household),
-    !same(f.zach, d.zach),
-    !same(f.julie, d.julie),
+    ...Object.values(f.grades).map((g) => !same(g, [...VERDICT_CHOICES])),
     f.milestones.length > 0,
     f.priceMin !== null || f.priceMax !== null,
     f.state !== null,
@@ -55,10 +61,12 @@ export function LibraryControls({
   view,
   setView,
   rows,
+  rubrics,
 }: {
   view: LibraryView;
   setView(v: LibraryView): void;
   rows: LibraryRow[];
+  rubrics: readonly NamedRubric[];
 }) {
   const [open, setOpen] = useState(false);
   const f = view.filters;
@@ -66,6 +74,8 @@ export function LibraryControls({
   const flip = <T,>(list: T[], x: T): T[] => (list.includes(x) ? list.filter((y) => y !== x) : [...list, x]);
   const states = [...new Set(rows.map((r) => r.state).filter((s): s is NonNullable<typeof s> => !!s))].sort();
   const n = changedFilters(f);
+  const several = rubrics.length > 1;
+  const sorts = sortsFor(rubrics);
   const chips = <T extends string>(
     label: string,
     all: readonly T[],
@@ -94,7 +104,7 @@ export function LibraryControls({
             value={view.sort.key}
             onChange={(e) => setView({ ...view, sort: { key: e.target.value as SortKey, reversed: false } })}
           >
-            {SORTS.map((s) => (
+            {sorts.map((s) => (
               <option key={s.key} value={s.key}>
                 {s.label}
               </option>
@@ -122,27 +132,26 @@ export function LibraryControls({
             (s) => STATUS_WORD[s],
             (status) => setF({ status }),
           )}
+          {/* With one rubric the household verdict is its own: one "Verdict" filter, no column per rubric. */}
           {chips(
-            "Household",
+            several ? "Household" : "Verdict",
             VERDICT_CHOICES,
             f.household,
             (c) => CHOICE_WORD[c],
             (household) => setF({ household }),
           )}
-          {chips(
-            "Zach",
-            VERDICT_CHOICES,
-            f.zach,
-            (c) => CHOICE_WORD[c],
-            (zach) => setF({ zach }),
-          )}
-          {chips(
-            "Julie",
-            VERDICT_CHOICES,
-            f.julie,
-            (c) => CHOICE_WORD[c],
-            (julie) => setF({ julie }),
-          )}
+          {several &&
+            rubrics.map((nr) => (
+              <Fragment key={nr.id}>
+                {chips(
+                  switchLabel(nr),
+                  VERDICT_CHOICES,
+                  f.grades[nr.id] ?? [...VERDICT_CHOICES],
+                  (c) => CHOICE_WORD[c],
+                  (on) => setF({ grades: { ...f.grades, [nr.id]: on } }),
+                )}
+              </Fragment>
+            ))}
           {chips(
             "Milestones",
             MILESTONES,

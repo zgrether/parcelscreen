@@ -10,7 +10,7 @@ import { shortPrice } from "@/lib/client/askingPrice";
 import { milestonesLine, statusLine } from "@/lib/client/parcelStatus";
 import { historyRows } from "@/lib/client/historyRows";
 import type { WorkingParcel } from "@/lib/client/parcelStore";
-import { getPref } from "@/lib/client/prefs";
+import { viewedRubric } from "@/lib/client/rubrics";
 import { needsRescreen, readScreen, RESCREENS_ON_OPEN } from "@/lib/client/screenStore";
 import { reportCard, type Card } from "@/lib/report/card";
 import { drawnOf } from "@/lib/report/marks";
@@ -166,12 +166,12 @@ function useLatest(
     .join(",");
   useEffect(() => {
     let alive = true;
-    const person = getPref("ps.person");
+    const rubric = viewedRubric();
     void Promise.all(
       latest.map(async ([k, id, names]) => {
         const r = await readScreen(id);
         const rescreen = needsRescreen(r);
-        const card = r.kind === "ok" && !rescreen ? reportCard(r.record.result, person, names) : null;
+        const card = r.kind === "ok" && !rescreen ? reportCard(r.record.result, rubric, names) : null;
         return [k, { rescreen, card }] as const;
       }),
     ).then((entries) => {

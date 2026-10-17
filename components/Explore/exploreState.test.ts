@@ -1,5 +1,6 @@
 import { polygon } from "@turf/turf";
 import { describe, expect, it } from "vitest";
+import { ZACH } from "@/test/support/rubrics";
 import type { ParcelRecord } from "@/lib/geo/parcels";
 import type { LatLon } from "@/lib/geo/types";
 import {
@@ -897,7 +898,7 @@ describe("point and area markers (WF4)", () => {
     r.soils = r.soils!.map((x) => ({ ...x, septic: "Very limited" }));
     const CHECK_FIRST =
       "Check first: no soil on the parcel rates better than very limited for a septic field";
-    const card = (st: ExploreState) => reportCard(r, "zach", drawnOf(st.store.open!.markup));
+    const card = (st: ExploreState) => reportCard(r, ZACH, drawnOf(st.store.open!.markup));
     const septic = (st: ExploreState) => card(st).gates.find((g) => g.key === "septic")!;
 
     const plain = run([selectA()]);

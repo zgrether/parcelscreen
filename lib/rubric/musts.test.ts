@@ -4,14 +4,14 @@
  * at Maybe. None in the default rubric, so nothing on screen changes in step 1.
  */
 import { describe, expect, it } from "vitest";
+import { ZACH } from "@/test/support/rubrics";
 import { expectedOf } from "@/test/support/expected";
 import { cardFacts, cardFor } from "../report/card";
-import { personRubrics } from "../report/persons";
 import { thresholdStatus, thresholdWords } from "./musts";
 import type { MustCard, Rubric } from "./types";
 
 const withMusts = (musts: MustCard[]): Rubric => {
-  const base = personRubrics().zach.rubric;
+  const base = ZACH.rubric;
   return { ...base, musts: [...base.musts, ...musts] };
 };
 
@@ -43,7 +43,7 @@ describe("thresholdStatus", () => {
 
 describe("a threshold Must on the card", () => {
   const facts = cardFacts(expectedOf("ferney-creek-52-47A", "run"));
-  const base = cardFor(facts, "zach");
+  const base = cardFor(facts, ZACH);
 
   it("Ferney is a Contender at 2,640 ft; 'at least 3,000 ft' makes it a Pass that names the row", () => {
     expect(base.verdict).toBe("Contender");
