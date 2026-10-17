@@ -4,6 +4,8 @@
  * and the verdict's cutoffs from config.
  */
 import { describe, expect, it } from "vitest";
+import { weightsOf } from "../rubric/weights";
+import { ZACH, JULIE } from "@/test/support/rubrics";
 import { expectedOf } from "@/test/support/expected";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { breakdown } from "./breakdown";
@@ -14,7 +16,7 @@ const slugs = ["ferney-creek-52-47A", "macks-mountain-35-3", "grayson-mud-creek-
 
 describe("the breakdown bar (VR7)", () => {
   for (const slug of slugs)
-    for (const person of ["zach", "julie"] as const)
+    for (const person of [ZACH, JULIE] as const)
       it(`${slug}, ${person}: earned adds up to the card's points; earned and lost make each row's share of an A`, () => {
         const card = reportCard(expectedOf(slug, "run"), person);
         const b = breakdown(card)!;
@@ -28,7 +30,7 @@ describe("the breakdown bar (VR7)", () => {
       });
 
   it("the lines: each grade's lower edge, then Contender and Pass", () => {
-    const b = breakdown(reportCard(expectedOf("ferney-creek-52-47A", "run"), "zach"))!;
+    const b = breakdown(reportCard(expectedOf("ferney-creek-52-47A", "run"), ZACH))!;
     expect(b.max).toBe(K.points.A);
     expect(b.lines).toEqual([
       ...K.gradeCutoffs.map((at, i) => ({ at, label: "ABCD"[i], kind: "grade" })),
@@ -38,11 +40,11 @@ describe("the breakdown bar (VR7)", () => {
   });
 
   it("an ungraded row is left out, and the shares are of the graded rows' weights", () => {
-    const card = reportCard(expectedOf("ferney-creek-52-47A", "run"), "zach");
+    const card = reportCard(expectedOf("ferney-creek-52-47A", "run"), ZACH);
     const without = { ...card, rows: card.rows.map((r) => (r.key === "sky" ? { ...r, grade: null } : r)) };
     const b = breakdown(without)!;
     expect(b.ungraded.map((u) => u.key)).toEqual(["sky"]);
-    const w = K.weights.zach;
+    const w = weightsOf(ZACH.rubric);
     const total = Object.entries(w).reduce((a, [k, v]) => a + (k === "sky" ? 0 : v), 0);
     expect(b.rows.find((r) => r.key === "elevation")!.share).toBeCloseTo(w.elevation / total, 9);
     expect(breakdown({ ...card, rows: card.rows.map((r) => ({ ...r, grade: null })) })).toBeNull();

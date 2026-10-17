@@ -5,7 +5,10 @@
  */
 import { fmt } from "../format";
 import { SCREEN_CONSTANTS } from "../screen/config";
-import { MAYBE_CAPS, footprintFt2, type CardConfig, type GateKey, type Person, type RowKey } from "./card";
+import { defaultNamedRubric } from "../rubric/default";
+import type { NamedRubric, Rubric } from "../rubric/types";
+import { weightsOf } from "../rubric/weights";
+import { MAYBE_CAPS, footprintFt2, type CardConfig, type GateKey, type RowKey } from "./card";
 
 export type PanelKey = "verdict" | GateKey | RowKey | "cost";
 
@@ -40,11 +43,11 @@ export interface PanelText {
 const KM_PER_MI = 1.609344;
 /** Whole miles: the Trails cutoffs are round miles (owner, #118 review). */
 const mi = (km: number) => fmt(km / KM_PER_MI);
-const PEOPLE: Record<Person, string> = { zach: "Zach", julie: "Julie" };
-
-/** "weight 25 (Zach) / 10 (Julie)" */
-const weightOf = (K: CardConfig, row: RowKey): string =>
-  "weight " + (Object.keys(PEOPLE) as Person[]).map((p) => `${K.weights[p][row]} (${PEOPLE[p]})`).join(" / ");
+/** "weight 25" for one rubric; "weight 25 (Mine) / 10 (Julie)" for several: each rubric's weight on the row, by name. */
+const weightOf = (rubrics: readonly NamedRubric[], row: RowKey): string =>
+  rubrics.length === 1
+    ? `weight ${weightsOf(rubrics[0]!.rubric)[row]}`
+    : "weight " + rubrics.map((nr) => `${weightsOf(nr.rubric)[row]} (${nr.name})`).join(" / ");
 
 /** "A at 3,000 ft and up, B from 2,500, C from 2,000, D from 1,500" */
 const ladder = (edges: readonly string[], first: string, then: string): string =>
@@ -54,10 +57,16 @@ export function panelText(
   key: PanelKey,
   K: CardConfig = SCREEN_CONSTANTS.card,
   build = SCREEN_CONSTANTS.build,
-  /** The rulebook's: slopes in both degrees and percent (#118 review). The report's panels keep one unit. */
-  opts: { bothSlopeUnits?: boolean } = {},
+  /**
+   * The rulebook's: slopes in both degrees and percent (#118 review). The report's panels keep one unit. `rubric`:
+   * whose points, cutoffs and verdict lines the Grade and verdict panel quotes (the config's without one); `rubrics`:
+   * whose weights the rows quote (the profile's; the default rubric alone without them).
+   */
+  opts: { bothSlopeUnits?: boolean; rubric?: Rubric; rubrics?: readonly NamedRubric[] } = {},
 ): PanelText {
   const R = K.rows;
+  const V = opts.rubric ?? K;
+  const rubrics = opts.rubrics ?? [defaultNamedRubric(K)];
   const gentle = SCREEN_CONSTANTS.terrain.gentleGradePct;
   const gentleText = opts.bothSlopeUnits
     ? `${gentle}% (${fmt((Math.atan(gentle / 100) * 180) / Math.PI, 1)}°) or less`
@@ -68,10 +77,10 @@ export function panelText(
         title: "Grade and verdict",
         question: "Is this parcel worth a closer look?",
         howScored:
-          `The grade is the weighted average of the rows (A ${K.points.A}, B ${K.points.B}, C ${K.points.C}, D ${K.points.D}, F ${K.points.F}): ` +
-          `A from ${K.gradeCutoffs[0]}, B from ${K.gradeCutoffs[1]}, C from ${K.gradeCutoffs[2]}, D from ${K.gradeCutoffs[3]}. ` +
-          `Contender at ${K.verdict.contender} and up with at most ${K.verdict.contenderMaxWarns} warning; ` +
-          `Pass with any failed dealbreaker or a grade under ${K.verdict.pass}; Maybe otherwise. ` +
+          `The grade is the weighted average of the rows (A ${V.points.A}, B ${V.points.B}, C ${V.points.C}, D ${V.points.D}, F ${V.points.F}): ` +
+          `A from ${V.gradeCutoffs[0]}, B from ${V.gradeCutoffs[1]}, C from ${V.gradeCutoffs[2]}, D from ${V.gradeCutoffs[3]}. ` +
+          `Contender at ${V.verdict.contender} and up with at most ${V.verdict.contenderMaxWarns} warning; ` +
+          `Pass with any failed dealbreaker or a grade under ${V.verdict.pass}; Maybe otherwise. ` +
           // Appended (#118 review; rule 7): the caps cardFor applies, from the same list.
           `A parcel is at most a Maybe when ${MAYBE_CAPS.incomplete} or when ${MAYBE_CAPS.checkFirst}.`,
       };
@@ -112,13 +121,13 @@ export function panelText(
           R.elevationFt.map((v) => `${fmt(v)} ft`),
           "at",
           "from",
-        ).replace(" ft,", " ft and up,")}; ${weightOf(K, "elevation")}.`,
+        ).replace(" ft,", " ft and up,")}; ${weightOf(rubrics, "elevation")}.`,
       };
     case "homesite":
       return {
         title: "Best homesite",
         question: "Is there a good place to build?",
-        howScored: `Site #1's quality grade, from its sun, facing, frost, slope and sky; what it costs to build there picks the site but isn't graded here; ${weightOf(K, "homesite")}.`,
+        howScored: `Site #1's quality grade, from its sun, facing, frost, slope and sky; what it costs to build there picks the site but isn't graded here; ${weightOf(rubrics, "homesite")}.`,
       };
     case "sky":
       return {
@@ -128,7 +137,7 @@ export function panelText(
           R.skyMag.map((v) => `${fmt(v, 1)}`),
           "at",
           "from",
-        )} mag/arcsec² at the zenith (higher is darker); ${weightOf(K, "sky")}.`,
+        )} mag/arcsec² at the zenith (higher is darker); ${weightOf(rubrics, "sky")}.`,
       };
     case "room":
       return {
@@ -139,14 +148,14 @@ export function panelText(
           R.roomX.slice(0, 3).map((v) => `${v}×`),
           "at",
           "from",
-        )}, D when it fits; an F when the build doesn't fit on any homesite; ${weightOf(K, "room")}.`,
+        )}, D when it fits; an F when the build doesn't fit on any homesite; ${weightOf(rubrics, "room")}.`,
       };
     case "trails":
       return {
         title: "Trails and public land",
         question: "How close is the woods we can walk in?",
         howScored:
-          `A when the parcel adjoins open public land or a trailhead is within ${mi(R.trailheadKm[0]!)} mi; B with open public land within a mile, or a trailhead within ${mi(R.trailheadKm[1]!)} mi; C within ${mi(R.trailheadKm[2]!)} mi; D within ${mi(R.trailheadKm[3]!)} mi (straight line); ${weightOf(K, "trails")}. ` +
+          `A when the parcel adjoins open public land or a trailhead is within ${mi(R.trailheadKm[0]!)} mi; B with open public land within a mile, or a trailhead within ${mi(R.trailheadKm[1]!)} mi; C within ${mi(R.trailheadKm[2]!)} mi; D within ${mi(R.trailheadKm[3]!)} mi (straight line); ${weightOf(rubrics, "trails")}. ` +
           // Appended (rule 7; follow-up 54, owner #123): the drive minutes, with the straight line as the fallback.
           `By road: the quickest drive from where the driveway meets the road to one of the ${SCREEN_CONSTANTS.drive.trailheadCandidates} nearest trailheads, to its parking where OpenStreetMap tags one: A within ${R.trailheadMin[0]} min, B within ${R.trailheadMin[1]}, C within ${R.trailheadMin[2]}, D within ${R.trailheadMin[3]}. The straight-line distances above count only when the drive times didn't load.`,
       };
@@ -154,13 +163,13 @@ export function panelText(
       return {
         title: "Town and hospital",
         question: "How far to groceries, and to an emergency room?",
-        howScored: `The worse of the two drives: an ER within ${R.erMin[0]} min and a grocery within ${R.groceryMin[0]} for an A; ${R.erMin[1]} and ${R.groceryMin[1]} for a B; ${R.erMin[2]} and ${R.groceryMin[2]} for a C; ${R.erMin[3]} and ${R.groceryMin[3]} for a D; ${weightOf(K, "town")}.`,
+        howScored: `The worse of the two drives: an ER within ${R.erMin[0]} min and a grocery within ${R.groceryMin[0]} for an A; ${R.erMin[1]} and ${R.groceryMin[1]} for a B; ${R.erMin[2]} and ${R.groceryMin[2]} for a C; ${R.erMin[3]} and ${R.groceryMin[3]} for a D; ${weightOf(rubrics, "town")}.`,
       };
     case "garden":
       return {
         title: "Garden ground",
         question: "Is there ground to grow food on?",
-        howScored: `A for a garden of ${fmt(R.gardenAc[0]!, 2)} ac or more on prime or statewide-important farmland; B from ${fmt(R.gardenAc[1]!, 2)} ac, C from ${fmt(R.gardenAc[2]!, 2)} ac, D for any garden; ${weightOf(K, "garden")}.`,
+        howScored: `A for a garden of ${fmt(R.gardenAc[0]!, 2)} ac or more on prime or statewide-important farmland; B from ${fmt(R.gardenAc[1]!, 2)} ac, C from ${fmt(R.gardenAc[2]!, 2)} ac, D for any garden; ${weightOf(rubrics, "garden")}.`,
       };
     case "cost":
       return {

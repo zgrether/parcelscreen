@@ -13,7 +13,8 @@ import { neededPct, siteDriveways, type OverLimitRoute, type SiteDriveway } from
 import { ENGINE_VERSION } from "@/lib/screen/engine";
 import { routeContext } from "@/lib/screen/index";
 import { chooseDriveway, drivewayPoints, overLimitTerm } from "@/lib/screen/score";
-import type { ScreenResult } from "@/lib/screen/types";
+import { derivedSites, type ScoredResult } from "@/lib/screen/derive";
+import type { ScoredSite } from "@/lib/screen/types";
 import { expectedPath } from "../support/expected";
 import { FIXTURE_SLUGS, type FixtureSlug } from "../support/fixtures";
 import { runFixture } from "../support/scenarios";
@@ -42,7 +43,7 @@ const ENGINE5_GRAYSON = [
   { rank: 4, needed: 22, overFt: 1939, lengthFt: 2101, cost: 227_000 },
 ];
 
-type Site = NonNullable<ScreenResult["sites"]>[number];
+type Site = ScoredSite;
 interface Row {
   slug: string;
   site: Site;
@@ -52,12 +53,13 @@ interface Row {
   chosen: SiteDriveway;
 }
 
-function baseRun(slug: FixtureSlug): ScreenResult | null {
+/** The base commit's result: it stored its grades (schema v7), so they're read as they are (scored). */
+function baseRun(slug: FixtureSlug): ScoredResult | null {
   const path = expectedPath(slug).replace(/\\/g, "/").split("/test/fixtures/")[1];
   try {
     return JSON.parse(
       execFileSync("git", ["show", `${BASE}:test/fixtures/${path}`], { encoding: "utf8", maxBuffer: 1e9 }),
-    ).run as ScreenResult;
+    ).run as ScoredResult;
   } catch {
     return null;
   }
@@ -170,7 +172,7 @@ describe.runIf(import.meta.env.MODE === "a4-driveway")("A4 driveway study", () =
       }[] = [];
       for (const slug of FIXTURE_SLUGS) {
         const { result, session: s } = await runFixture(slug);
-        const sites = result.sites ?? [];
+        const sites = derivedSites(result) ?? [];
         const t0 = performance.now();
         const routes = siteDriveways(
           routeContext(s),

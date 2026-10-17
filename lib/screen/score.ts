@@ -14,15 +14,27 @@ import { frostCurve, type SiteSearch } from "./sites";
 import { overLimitSpans, type PracticalAlternatives, type SiteDriveway, type SiteRoutes } from "./driveway";
 import { NEEDS_EASEMENT } from "./routeLabel";
 import { bottomland, soilAt, type SoilLimits, type SoilUnit, type VettedBench } from "./soils";
+import { skyScore } from "./sky";
 import { horizonProfile, sunHours, type HorizonPoint } from "./sun";
-import type { Dem, Practical, ScreenResult, Site, SoilRow, UserConfig } from "./types";
+import type {
+  CostTier as Tier,
+  Dem,
+  Practical,
+  ScoredDriveway,
+  ScoredHouse,
+  ScoredSite,
+  ScreenResult,
+  Site,
+  SiteGrade as Grade,
+  SoilRow,
+  SpotScores,
+  SpotSky,
+  UserConfig,
+} from "./types";
 import { lerp, M2FT, type LatLon } from "./util";
 
 const K = SCREEN_CONSTANTS.score;
 const SU = SCREEN_CONSTANTS.suitability;
-
-type Grade = Site["grade"];
-type Tier = Site["costTier"];
 
 /** A ≥ 80, B ≥ 65, C ≥ 50, D ≥ 35, else F. */
 export function grade(s: number): Grade {
@@ -46,7 +58,9 @@ export interface ScoreContext {
    * get their own, so none depends on where the sky step read it or on a house being marked. Absent, or undefined
    * for a spot, when the sky step didn't run: the prototype's 60. (The prototype gave every spot R.sky.score.)
    */
-  skyAt?: ((ll: LatLon, horizon: HorizonPoint[]) => Promise<number | undefined>) | undefined;
+  skyAt?: ((ll: LatLon, horizon: HorizonPoint[]) => Promise<SpotSky | null>) | undefined;
+  /** The focus's reading (v8): what a spot takes when its own reading fails; null before the sky step. */
+  focusSky: SpotSky | null;
   roads: RoadFeature[] | null;
   sfha: FloodFeature[] | null;
   units: SoilUnit[] | null;
@@ -67,7 +81,7 @@ export interface SiteInput {
 }
 
 type Scored = Omit<
-  Site,
+  ScoredSite,
   | "rank"
   | "ll"
   | "acres"
@@ -95,13 +109,55 @@ const rate = (r: string | null | undefined) => {
         : "unrated";
 };
 
+/** The soil's ratings for a spot (A3): NRCS's slope-free ratings when the soils step has them, else NRCS's own classes. */
+export function soilRatings(
+  comp: SoilRow | null | undefined,
+  lim: SoilLimits | undefined,
+): { sep: ReturnType<typeof rate>; dw: ReturnType<typeof rate>; depthCm: number | null } {
+  const sep = lim?.septic ?? rate(comp && (comp.septic || comp.engstafdcd)),
+    dw = lim?.foundation ?? rate(comp && comp.engdwobdcd);
+  const depthCm = comp && comp.brockdepmin != null && comp.brockdepmin !== "" ? +comp.brockdepmin : null;
+  return { sep, dw, depthCm };
+}
+
+/** The cost parts a spot's ground sets: septic and foundation ratings, rock by depth, the pad by slope. */
+export function costParts(
+  sep: ReturnType<typeof rate>,
+  dw: ReturnType<typeof rate>,
+  depthCm: number | null,
+  compact: boolean,
+  slopeDeg: number,
+): Pick<SpotScores["c"], "septic" | "foundation" | "rock" | "pad"> {
+  return {
+    septic: K.septic[sep],
+    foundation: K.foundation[dw],
+    rock: rockPoints(depthCm),
+    pad: compact ? K.compactPad : lerp(slopeDeg, K.pad),
+  };
+}
+
+/** The straight-line driveway's points, before the router (proto scoreSite): by length, more over the grade limit. */
+export function straightDrivewayPoints(gradePct: number, needFt: number, roadMaxGradePct: number): number {
+  return (
+    Math.min(K.drivewayMax, needFt / K.drivewayFtPerPoint) +
+    (gradePct > roadMaxGradePct ? K.drivewayOverGrade : 0)
+  );
+}
+
+/** The overall score: quality and the build cost's complement, weighted (proto scoreSite). */
+export const overallScore = (quality: number, cost: number): number =>
+  K.overall.quality * quality + K.overall.cost * (100 - cost);
+
+/** A spot's sky part (v8): its reading's score, or score.skyIfMissing before the sky step. */
+export const skyPart = (spot: SpotSky | undefined): number => (spot ? skyScore(spot) : K.skyIfMissing);
+
 /**
  * Quality's parts and their weighted sum for a spot, before the flood veto (proto scoreSite). The December sun
  * share is measured by the caller. Shared with the driveway step, which re-costs every ranked site (A3) and
  * needs the unrounded quality back from a site's stored fields.
  */
 export function qualityParts(
-  ctx: Pick<ScoreContext, "valleyFloorFt" | "cfg">,
+  ctx: { valleyFloorFt: number; cfg: Pick<UserConfig, "thermalMinFt"> },
   sunShare: number,
   b: Pick<SiteInput, "aspectDeg" | "slopeDeg" | "elevFt">,
   skyScore: number | undefined,
@@ -134,12 +190,32 @@ export function rockPoints(depthCm: number | null): number {
  * one, capped at max. A site no route reaches at all takes max.
  */
 export function drivewayPoints(dw: SiteDriveway): number {
+  return drivewayPointsFrom(drivewayFactsOf(dw));
+}
+
+/** The chosen candidate's facts (v8, ScoredDriveway): what its points derive from, stored with the spot. */
+export function drivewayFactsOf(dw: SiteDriveway): ScoredDriveway | null {
+  const rt = dw.route;
+  if (!rt) return null;
+  return {
+    lengthFt: rt.metrics.lengthFt,
+    cost: { mid: rt.cost.mid, low: rt.cost.low, high: rt.cost.high },
+    needsEasement: rt.needsEasement,
+    legal: dw.legal,
+    limitPct: "limitPct" in rt ? rt.limitPct : null,
+    maxGradePct: rt.metrics.maxGradePct,
+    designPct: dw.designPct ?? null,
+    existing: rt.existing ? { maxGradePct: rt.existing.maxGradePct, limitPct: rt.existing.limitPct } : null,
+    noPractical: !!dw.noPractical,
+  };
+}
+
+/** drivewayPoints from the stored facts (v8): the same arithmetic, so the display and the ranking agree. */
+export function drivewayPointsFrom(f: ScoredDriveway | null): number {
   const C = K.drivewayCost;
-  if (!dw.route) return C.max;
+  if (!f) return C.max;
   const p =
-    C.k * Math.log(1 + dw.route.cost.mid / C.c0) +
-    overLimitPoints(dw) +
-    (dw.route.needsEasement ? C.easement : 0);
+    C.k * Math.log(1 + f.cost.mid / C.c0) + overLimitPointsFrom(f) + (f.needsEasement ? C.easement : 0);
   return Math.min(C.max, p);
 }
 
@@ -149,12 +225,16 @@ export function drivewayPoints(dw: SiteDriveway): number {
  * from (follow-up 34, owner #116) counts like any section of it, on its raw ground: the steeper of the two decides.
  */
 export function overLimitPoints(dw: SiteDriveway): number {
-  const rt = dw.route;
-  if (!rt) return 0;
-  const existing = rt.existing ? overLimitTerm(rt.existing.maxGradePct, rt.existing.limitPct) : 0;
-  if (dw.legal || !("limitPct" in rt)) return existing;
+  return overLimitPointsFrom(drivewayFactsOf(dw));
+}
+
+/** overLimitPoints from the stored facts (v8). */
+export function overLimitPointsFrom(f: ScoredDriveway | null): number {
+  if (!f) return 0;
+  const existing = f.existing ? overLimitTerm(f.existing.maxGradePct, f.existing.limitPct) : 0;
+  if (f.legal || f.limitPct === null) return existing;
   // A designed alignment reads its design grade, not the ungraded ground (owner, option C; follow-up 48).
-  return Math.max(existing, overLimitTerm(dw.designPct ?? rt.metrics.maxGradePct, rt.limitPct));
+  return Math.max(existing, overLimitTerm(f.designPct ?? f.maxGradePct, f.limitPct));
 }
 
 /**
@@ -222,7 +302,12 @@ export const NO_PRACTICAL_ROUTE = "No practical route found";
 
 /** The sentence for a target whose every driveway candidate is vetoed (A4b; owner's wording, "No practical route found"). */
 export function noPracticalLine(dw: SiteDriveway, vetoPct: number): string {
-  return `${NO_PRACTICAL_ROUTE}: every driveway route is steeper than ${vetoPct}% over 30 m; the least steep (${grade30(dw).toFixed(0)}% over 30 m) is shown.`;
+  return noPracticalLineFor(grade30(dw), vetoPct);
+}
+
+/** The same sentence from the shown route's grade over 30 m (v8: the flag derives from the stored route). */
+export function noPracticalLineFor(maxGradePct: number, vetoPct: number): string {
+  return `${NO_PRACTICAL_ROUTE}: every driveway route is steeper than ${vetoPct}% over 30 m; the least steep (${maxGradePct.toFixed(0)}% over 30 m) is shown.`;
 }
 
 /**
@@ -333,17 +418,19 @@ export function impracticalLine(p: Practical): string {
  * route was found, and the cost, tier and score again from the unrounded quality. The rank and grade follow in
  * rerank.
  */
-export function withDrivewayCost<T extends Scored & Pick<Site, "aspectDeg" | "slopeDeg" | "elevFt">>(
+export function withDrivewayCost<T extends Scored & Pick<ScoredSite, "aspectDeg" | "slopeDeg" | "elevFt">>(
   ctx: Pick<ScoreContext, "valleyFloorFt" | "cfg">,
   s: T,
   dw: SiteDriveway,
 ): T {
-  const c = { ...s.c, driveway: drivewayPoints(dw) };
+  const facts = drivewayFactsOf(dw);
+  const c = { ...s.c, driveway: drivewayPointsFrom(facts) };
   const cost = Math.min(100, c.septic + c.foundation + c.rock + c.pad + c.driveway);
-  const score = Math.round(K.overall.quality * storedQuality(ctx, s) + K.overall.cost * (100 - cost));
+  const score = Math.round(overallScore(storedQuality(ctx, s), cost));
   return {
     ...s,
     c,
+    driveway: facts,
     ...(dw.route ? { driveFt: dw.route.metrics.lengthFt } : {}),
     costIdx: Math.round(cost),
     costTier: costTier(cost),
@@ -352,14 +439,14 @@ export function withDrivewayCost<T extends Scored & Pick<Site, "aspectDeg" | "sl
 }
 
 /**
- * A site's unrounded quality from its stored fields: qualityParts, then the flood veto. Its stored sky part is exact:
- * the sky score is a whole number.
+ * A site's unrounded quality from its stored fields: qualityParts, then the flood veto. Its sky part comes from the
+ * reading stored with it (v8), a whole number either way.
  */
 export function storedQuality(
-  ctx: Pick<ScoreContext, "valleyFloorFt" | "cfg">,
-  s: Pick<Site, "sunH" | "daylightH" | "aspectDeg" | "slopeDeg" | "elevFt" | "flood" | "q">,
+  ctx: { valleyFloorFt: number; cfg: Pick<UserConfig, "thermalMinFt"> },
+  s: Pick<Site, "sunH" | "daylightH" | "aspectDeg" | "slopeDeg" | "elevFt" | "flood" | "sky">,
 ): number {
-  const q = qualityParts(ctx, s.daylightH ? s.sunH / s.daylightH : 0, s, s.q.sky).quality;
+  const q = qualityParts(ctx, s.daylightH ? s.sunH / s.daylightH : 0, s, skyPart(s.sky)).quality;
   return s.flood ? q * K.sfhaQualityFactor : q;
 }
 
@@ -388,8 +475,10 @@ export async function scoreSiteDetailed(
   const hz = horizonProfile(ctx.dWide, r0, c0, 5, 6000);
   const sun = sunHours(ll[0], hz, SCREEN_CONSTANTS.sun.decemberDoy, cfg.canopyDeg);
   const sunShare = sun.daylightH ? sun.directH / sun.daylightH : 0;
-  // The sky read here, on the same skyline (follow-up 58).
-  const parts = qualityParts(ctx, sunShare, b, await ctx.skyAt?.(ll, hz));
+  // The sky read here, on the same skyline (follow-up 58); the focus's reading when it fails, stored as the spot's (v8).
+  const read = await ctx.skyAt?.(ll, hz);
+  const spot = read === undefined ? undefined : (read ?? ctx.focusSky ?? undefined);
+  const parts = qualityParts(ctx, sunShare, b, skyPart(spot));
   const { aspectS, above, frostS, slopeS, skyS } = parts;
   const q = {
     sun: Math.round(100 * sunShare),
@@ -413,18 +502,10 @@ export async function scoreSiteDetailed(
   const comp = b.soil || soilAt(ctx.units, ctx.rows, ll);
   // A3: NRCS's ratings without the map unit's slope when the soils step has them (else NRCS's own classes).
   const lim = comp && ctx.limits ? ctx.limits.get(String(comp.cokey)) : undefined;
-  const sep = lim?.septic ?? rate(comp && (comp.septic || comp.engstafdcd)),
-    dw = lim?.foundation ?? rate(comp && comp.engdwobdcd);
-  const depthCm = comp && comp.brockdepmin != null && comp.brockdepmin !== "" ? +comp.brockdepmin : null;
+  const { sep, dw, depthCm } = soilRatings(comp, lim);
   // The wording keeps the user's shallow-bedrock setting; the points scale with depth (A3).
   const rock = depthCm != null && depthCm < cfg.shallowBedrockCm;
-  const c = {
-    septic: K.septic[sep],
-    foundation: K.foundation[dw],
-    rock: rockPoints(depthCm),
-    pad: b.compact ? K.compactPad : lerp(b.slopeDeg, K.pad),
-    driveway: 0,
-  };
+  const c = { ...costParts(sep, dw, depthCm, !!b.compact, b.slopeDeg), driveway: 0 };
   if (comp)
     why.push(
       `${comp.compname}: septic ${sep === "fine" ? "should work conventionally" : sep === "workable" ? "needs an engineered design" : sep === "poor" ? "rated very limited — alternative system" : "unrated"}${dw === "poor" ? ", foundation rated very limited" : ""}${rock ? ", rock near the surface" : ""}`,
@@ -442,9 +523,7 @@ export async function scoreSiteDetailed(
         runFt = nr.distM * M2FT;
       const needFt = Math.max(runFt, (Math.abs(zb - zr) * M2FT) / (cfg.roadMaxGradePct / 100));
       Object.assign(road, { roadGrade: g, roadRunFt: runFt, roadName: nr.name, driveFt: needFt });
-      c.driveway =
-        Math.min(K.drivewayMax, needFt / K.drivewayFtPerPoint) +
-        (g > cfg.roadMaxGradePct ? K.drivewayOverGrade : 0);
+      c.driveway = straightDrivewayPoints(g, needFt, cfg.roadMaxGradePct);
       why.push(
         `${Math.round(runFt)} ft to ${nr.name} at ${g.toFixed(0)}% straight-line${g > cfg.roadMaxGradePct ? ` — about ${Math.round(needFt)} ft of driveway with switchbacks` : ""}`,
       );
@@ -458,7 +537,7 @@ export async function scoreSiteDetailed(
     why.push("inside a FEMA flood zone");
     flood = true;
   }
-  const overall = K.overall.quality * quality + K.overall.cost * (100 - cost);
+  const overall = overallScore(quality, cost);
   const scored: Scored = {
     score: Math.round(overall),
     why,
@@ -471,6 +550,8 @@ export async function scoreSiteDetailed(
     costTier: costTier(cost),
     quality: Math.round(quality),
     qGrade: grade(quality),
+    soilKey: comp ? (comp.cokey ?? null) : null,
+    ...(spot !== undefined ? { sky: spot } : {}),
     ...road,
     ...(flood ? { flood } : {}),
   };
@@ -501,12 +582,12 @@ export async function rankSites(
   benches: (VettedBench | (SiteSearch["benches"][number] & { soil?: undefined; veto?: undefined }))[],
   shelves: SiteSearch["shelves"],
   ground: SiteGround,
-): Promise<{ sites: Site[]; excluded: NonNullable<ScreenResult["excluded"]> }> {
+): Promise<{ sites: ScoredSite[]; excluded: NonNullable<ScreenResult["excluded"]> }> {
   const pin = (rc: [number, number]) => rcToLL(ctx.dFine, rc[0], rc[1]);
   const excluded = benches
     .filter((b) => b.veto)
     .map((b) => ({ acres: b.acres, ll: pin(b.rc), why: b.veto! }));
-  const sites: Site[] = [];
+  const sites: ScoredSite[] = [];
   for (const b of benches.filter((b) => !b.veto).slice(0, SCREEN_CONSTANTS.sites.maxRankedBenches)) {
     const ll = pin(b.rc);
     const s = await scoreSite(ctx, ll, {
@@ -566,14 +647,14 @@ export async function rankSites(
   return { sites: rerank(sites), excluded };
 }
 
-const FIT_ORDER: Record<Site["fit"], number> = { fits: 0, "house only": 1, "too small": 2 };
+const FIT_ORDER: Record<ScoredSite["fit"], number> = { fits: 0, "house only": 1, "too small": 2 };
 
 /**
  * Sort by fit, then overall score (whole points: a site's score is stored rounded), then a tie-break that never
  * depends on the order the sites came in (owner, #142): the larger site first, then the one further north, then
  * further west. Renumber and regrade.
  */
-export function rerank(sites: Site[]): Site[] {
+export function rerank(sites: ScoredSite[]): ScoredSite[] {
   return (
     [...sites]
       // A site the build doesn't fit on can't be #1 (owner, #94 review; value-ranking.md §5.4 (a)): the ones that fit
@@ -593,7 +674,7 @@ export function rerank(sites: Site[]): Site[] {
 /** Shelf distance and drop from the current site #1 (proto finalizeRanking). */
 export function shelvesFromBest(
   shelves: NonNullable<ScreenResult["shelves"]>,
-  sites: Site[],
+  sites: readonly Pick<Site, "ll" | "elevFt">[],
 ): NonNullable<ScreenResult["shelves"]> {
   const top = sites[0];
   if (!top) return shelves;
@@ -613,7 +694,7 @@ export async function assessHouse(
     search: SiteSearch | null;
   },
   house: LatLon,
-): Promise<NonNullable<ScreenResult["house"]>> {
+): Promise<ScoredHouse | { ll: LatLon; outside: true }> {
   const [r, c] = llToRC(ctx.dFine, house[0], house[1]);
   if (!inGrid(ctx.dFine, r, c)) return { ll: house, outside: true };
   const i = r * ctx.dFine.w + c,
@@ -670,7 +751,7 @@ export function routedLine(rt: Pick<Route, "metrics" | "maxGrade" | "cost" | "ne
  * Since A3 the driveway points and score come from withDrivewayCost, for every ranked site; this keeps #1's
  * wording as it was.
  */
-export function withRoutedWhy(site: Site, rt: Route): Site {
+export function withRoutedWhy<T extends Pick<Site, "why">>(site: T, rt: Route): T {
   return {
     ...site,
     why: [...site.why.filter((x) => !/ft to .* at .*straight-line/.test(x)), routedLine(rt)],
@@ -681,7 +762,7 @@ export function withRoutedWhy(site: Site, rt: Route): Site {
  * Any other ranked site with a route within the grade limit: the same line, appended after its own (A3b, owner
  * 2026-10-09; rule 7: added, nothing replaced). A least-steep route gets no line: its "≤ N%" would read as legal.
  */
-export function withRoutedLineAppended(site: Site, dw: SiteDriveway): Site {
+export function withRoutedLineAppended<T extends Pick<Site, "why">>(site: T, dw: SiteDriveway): T {
   return dw.legal && dw.route ? { ...site, why: [...site.why, routedLine(dw.route)] } : site;
 }
 
@@ -703,7 +784,12 @@ export function drivewayChoiceLines(r: SiteRoutes, limitPct: number, vetoPct = I
 }
 
 /** The site with its candidate lines appended. */
-export function withDrivewayChoice(site: Site, r: SiteRoutes, limitPct: number, vetoPct = Infinity): Site {
+export function withDrivewayChoice<T extends Pick<Site, "why">>(
+  site: T,
+  r: SiteRoutes,
+  limitPct: number,
+  vetoPct = Infinity,
+): T {
   const lines = drivewayChoiceLines(r, limitPct, vetoPct);
   return lines.length ? { ...site, why: [...site.why, ...lines] } : site;
 }

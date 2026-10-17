@@ -38,7 +38,7 @@ function mapRoute(route: Loose, entrances: unknown[]): Loose {
   };
 }
 
-export function fromPrototype(R: PrototypeResult): ScreenResult {
+export function fromPrototype(R: PrototypeResult, opts: { grades?: boolean } = {}): ScreenResult {
   const r: Loose = { ...R };
   for (const k of SESSION_ONLY) delete r[k];
 
@@ -100,8 +100,13 @@ export function fromPrototype(R: PrototypeResult): ScreenResult {
       fit: "fits",
       gentleNearAc: 0,
       sfhaOnSite: !!x.flood,
+      // v8: the prototype kept no soil key (the soil under the pin is named in soil only).
+      soilKey: null,
     }));
 
+  // v8: nor did its house.
+  if (result.house && !("outside" in (result.house as Loose)))
+    result.house = { ...(result.house as Loose), soilKey: null };
   // v4 (VR3a): no step on the prototype's flags, and no record of a source that didn't answer.
   result.flags = ((result.flags as Loose[]) ?? []).map((f) => ({ ...f, step: null }));
   result.noResponse = [];
@@ -124,6 +129,21 @@ export function fromPrototype(R: PrototypeResult): ScreenResult {
       er: d.label === NEAREST_HOSPITAL ? "unknown" : null,
     }));
     result.closerGrocery = null;
+  }
+
+  // v8: the saved screen holds no grades. The prototype's stay only for the parity diff (opts.grades), which compares
+  // them with the port's derived ones (test/support/parity.ts).
+  if (!opts.grades) {
+    delete result.verdict;
+    delete result.flags;
+    if (result.sky) delete (result.sky as Loose).score;
+    const strip = (x: Loose): Loose => {
+      const y = { ...x };
+      for (const k of ["score", "grade", "quality", "qGrade", "q", "c", "costIdx", "costTier"]) delete y[k];
+      return y;
+    };
+    if (Array.isArray(result.sites)) result.sites = (result.sites as Loose[]).map(strip);
+    if (result.house && !("outside" in (result.house as Loose))) result.house = strip(result.house as Loose);
   }
 
   return result as ScreenResult;

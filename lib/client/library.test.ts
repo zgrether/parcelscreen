@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { PERSONS } from "@/test/support/rubrics";
+import { MINE } from "@/lib/rubric/types";
 import { expectedOf } from "@/test/support/expected";
 import { loadFixture } from "@/test/support/fixtures";
 import { built, county } from "@/test/support/parcels";
@@ -30,8 +32,7 @@ const row = (over: Partial<LibraryRow>): LibraryRow => ({
   county: null,
   status: "inProgress",
   milestones: { walked: null, offered: null },
-  zach: null,
-  julie: null,
+  grades: [],
   household: null,
   unscreened: "none",
   updatedAt: "2026-10-14T12:00:00.000Z",
@@ -49,13 +50,19 @@ describe("the household verdict (owner, #128): the lower of the two", () => {
 });
 
 describe("a parcel's row", () => {
-  it("from its screen: both people's grades and the household verdict", () => {
-    const r = libraryRow(built("g"), { state: "ok", result: expectedOf("grayson-mud-creek-6273", "run") });
-    expect(r.zach?.verdict).toBeDefined();
-    expect(r.household).toBe(householdVerdict(r.zach!.verdict, r.julie!.verdict));
+  it("from its screen: each rubric's grade, in order, and the household verdict (the lowest)", () => {
+    const kept = { state: "ok" as const, result: expectedOf("grayson-mud-creek-6273", "run") };
+    const r = libraryRow(built("g"), kept, PERSONS);
+    expect(r.grades.map((g) => g.id)).toEqual(["zach", "julie"]);
+    expect(r.grades[0]!.graded?.verdict).toBeDefined();
+    expect(r.household).toBe(householdVerdict(r.grades[0]!.graded!.verdict, r.grades[1]!.graded!.verdict));
     expect(r.unscreened).toBeNull();
+    // A profile with its own rubric alone (the default): one grade, and the household verdict is its own.
+    const alone = libraryRow(built("g"), kept);
+    expect(alone.grades.map((g) => g.id)).toEqual([MINE]);
+    expect(alone.household).toBe(alone.grades[0]!.graded!.verdict);
     expect(libraryRow(built("n"), { state: "none", result: null })).toMatchObject({
-      zach: null,
+      grades: [{ id: MINE, graded: null }],
       household: null,
       unscreened: "none",
     });
@@ -98,10 +105,11 @@ describe("filters: views only", () => {
     expect(passes(row({ status: "archived" }), { ...DEFAULT_FILTERS, status: ["archived"] })).toBe(true);
   });
 
-  it("each person's verdict, milestones, a price range, the state", () => {
-    const z = { grade: "B" as const, verdict: "Maybe" as const };
-    expect(passes(row({ zach: z }), { ...DEFAULT_FILTERS, zach: ["Contender"] })).toBe(false);
-    expect(passes(row({ zach: z }), { ...DEFAULT_FILTERS, zach: ["Maybe"] })).toBe(true);
+  it("each rubric's verdict (by its id; one not listed passes), milestones, a price range, the state", () => {
+    const z = row({ grades: [{ id: "zach", name: "Zach", graded: { grade: "B", verdict: "Maybe" } }] });
+    expect(passes(z, { ...DEFAULT_FILTERS, grades: { zach: ["Contender"] } })).toBe(false);
+    expect(passes(z, { ...DEFAULT_FILTERS, grades: { zach: ["Maybe"] } })).toBe(true);
+    expect(passes(z, { ...DEFAULT_FILTERS, grades: { julie: ["Contender"] } })).toBe(true);
     const walked = row({ milestones: { walked: "2026-10-01", offered: null } });
     expect(passes(walked, { ...DEFAULT_FILTERS, milestones: ["walked"] })).toBe(true);
     expect(passes(walked, { ...DEFAULT_FILTERS, milestones: ["walked", "offered"] })).toBe(false);
@@ -121,8 +129,10 @@ describe("sorts: views only", () => {
     price: 150_000,
     acres: 40,
     updatedAt: "2026-10-12T00:00:00Z",
-    zach: { grade: "B", verdict: "Contender" },
-    julie: { grade: "C", verdict: "Maybe" },
+    grades: [
+      { id: "zach", name: "Zach", graded: { grade: "B", verdict: "Contender" } },
+      { id: "julie", name: "Julie", graded: { grade: "C", verdict: "Maybe" } },
+    ],
     household: "Maybe",
   });
   const c = row({
@@ -130,8 +140,10 @@ describe("sorts: views only", () => {
     name: "C",
     acres: 20,
     updatedAt: "2026-10-05T00:00:00Z",
-    zach: { grade: "A", verdict: "Contender" },
-    julie: { grade: "A", verdict: "Contender" },
+    grades: [
+      { id: "zach", name: "Zach", graded: { grade: "A", verdict: "Contender" } },
+      { id: "julie", name: "Julie", graded: { grade: "A", verdict: "Contender" } },
+    ],
     household: "Contender",
   });
   const keys = (rs: LibraryRow[]) => rs.map((r) => r.key);
@@ -141,8 +153,8 @@ describe("sorts: views only", () => {
     expect(keys(sortRows([a, b, c], { key: "price", reversed: true }))).toEqual(["a", "b", "c"]);
     expect(keys(sortRows([a, b, c], { key: "acres", reversed: false }))).toEqual(["b", "c", "a"]);
     expect(keys(sortRows([a, b, c], { key: "household", reversed: false }))).toEqual(["c", "b", "a"]);
-    expect(keys(sortRows([a, b, c], { key: "zach", reversed: false }))).toEqual(["c", "b", "a"]);
-    expect(keys(sortRows([a, b, c], { key: "julie", reversed: true }))).toEqual(["b", "c", "a"]);
+    expect(keys(sortRows([a, b, c], { key: "grade:zach", reversed: false }))).toEqual(["c", "b", "a"]);
+    expect(keys(sortRows([a, b, c], { key: "grade:julie", reversed: true }))).toEqual(["b", "c", "a"]);
   });
 
   it("My order (WF3) is the default: by rank, then key; one without a rank last", () => {

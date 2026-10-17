@@ -18,6 +18,7 @@ import {
   fromV2,
   fromV3,
   fromV4,
+  fromV5,
   READS_VERSIONS,
   V1_DEFAULTS,
   nameFromNotes,
@@ -27,6 +28,8 @@ import {
   settingsQuestion,
   type ImportPlan,
 } from "./exportFile";
+import { JULIE } from "@/test/support/rubrics";
+import { defaultRubric } from "@/lib/rubric/default";
 import { byRank, withRanks } from "./myOrder";
 import { EMPTY_STORE, type ParcelStore } from "./parcelStore";
 import type { ScreenRecord } from "./screenStore";
@@ -73,7 +76,7 @@ const errors = (text: string, store: ParcelStore = EMPTY_STORE) => {
 describe("export (owner, 16b): versioned by format and version", () => {
   it("holds the settings, the parcel store and History's kept screens", () => {
     const f = buildExport(DEFAULT_USER_CONFIG, STORE, [screen("s1")], NOW);
-    expect(f).toMatchObject({ format: EXPORT_FORMAT, version: 5, exportedAt: NOW, parcels: STORE });
+    expect(f).toMatchObject({ format: EXPORT_FORMAT, version: 6, exportedAt: NOW, parcels: STORE });
     expect(f.cfg).toBe(DEFAULT_USER_CONFIG);
     expect(keptScreenIds(STORE)).toEqual(["s1"]);
     expect(exportFileName(NOW)).toBe("parcelscreen-2026-10-07.json");
@@ -112,16 +115,16 @@ describe("import: validate all, then all or nothing", () => {
   });
 
   it("one bad screen record: nothing at all", () => {
-    const bad = { ...screen("s1"), result: { ...RESULT, verdict: 42 } };
-    expect(errors(file({ screens: [bad] as never }))[0]).toMatch(/^file\.screens\.0\.result\.verdict: /);
+    const bad = { ...screen("s1"), result: { ...RESULT, acres: "x" } };
+    expect(errors(file({ screens: [bad] as never }))[0]).toMatch(/^file[.]screens[.]0[.]result[.]acres: /);
   });
 
   it("not an export: the prototype's hint, verbatim", () => {
     expect(errors("not json")).toEqual([NOT_AN_EXPORT]);
     expect(errors(JSON.stringify({ hello: 1 }))).toEqual([NOT_AN_EXPORT]);
     expect(errors(JSON.stringify([1]))).toEqual([NOT_AN_EXPORT]);
-    expect(errors(file({ version: 6 as never }))).toEqual([
-      "This export is version 6; this app reads versions 1, 2, 3, 4 and 5.",
+    expect(errors(file({ version: 7 as never }))).toEqual([
+      "This export is version 7; this app reads versions 1, 2, 3, 4, 5 and 6.",
     ]);
   });
 });
@@ -140,7 +143,7 @@ describe("version 2 (owner, after #131): every field written; a version 1 file c
     };
     const store: ParcelStore = { v: 2, open: null, built: [p] };
     const text = JSON.stringify(buildExport(DEFAULT_USER_CONFIG, store, [screen("s1")], NOW));
-    expect(JSON.parse(text)).toMatchObject({ version: 5 }); // the current version: version 2's fields, and more
+    expect(JSON.parse(text)).toMatchObject({ version: 6 }); // the current version: version 2's fields, and more
     const after = applyImport(EMPTY_STORE, plan(text));
     expect(after.built).toEqual([p]);
     // Each field the owner named, one by one.
@@ -197,7 +200,7 @@ describe("version 2 (owner, after #131): every field written; a version 1 file c
       archived: null,
       milestones: { walked: null, offered: null },
     });
-    expect(READS_VERSIONS).toEqual([1, 2, 3, 4, 5]);
+    expect(READS_VERSIONS).toEqual([1, 2, 3, 4, 5, 6]);
   });
 });
 
@@ -466,6 +469,8 @@ describe("the summary", () => {
       settings: { config: DEFAULT_USER_CONFIG, changed: ["Data endpoints"] },
       ignored: ["extra"],
       endpointsReplaced: false,
+      profileName: null,
+      rubrics: null,
     };
     expect(importSummary(p, "replaced")).toEqual([
       "Imported 1 parcels",
@@ -475,6 +480,8 @@ describe("the summary", () => {
       "Ignored (not in Settings): extra.",
     ]);
     expect(importSummary(p, "declined")[3]).toBe("Settings kept (you declined).");
+    // A version 6 file says whose it was (step 1), right after the count.
+    expect(importSummary({ ...p, profileName: "Zach" }, "none")[1]).toBe("Exported from the profile Zach.");
     expect(T0 < NOW).toBe(true);
     expect(importSummary({ ...p, olderResults: 2 }, "none")[2]).toBe(
       "2 saved results were from an older version and skipped; those parcels re-screen when opened.",
@@ -589,7 +596,7 @@ describe("version 3 (owner, #135): My order", () => {
       version: number;
       parcels: { built: { key: string; rank: string }[] };
     };
-    expect(f.version).toBe(5);
+    expect(f.version).toBe(6);
     expect(f.parcels.built.map((b) => [b.key, b.rank])).toEqual([
       ["b", "V"],
       ["a", "k"],
@@ -675,7 +682,7 @@ describe("version 4 (owner, WF4): point and area markers", () => {
       ...STORE,
       built: [{ ...STORE.built[0]!, markup: [spring, field] }, STORE.built[1]!],
     };
-    expect(JSON.parse(file({}, store))).toMatchObject({ version: 5 });
+    expect(JSON.parse(file({}, store))).toMatchObject({ version: 6 });
     expect(plan(file({}, store)).added[0]!.markup).toEqual([spring, field]);
   });
 
@@ -731,7 +738,7 @@ describe("version 5 (owner, WF5): the driveway choice and where an easement is r
       ...STORE,
       built: [{ ...STORE.built[0]!, markup: [easement], drivewayLine: "e1" }, STORE.built[1]!],
     };
-    expect(JSON.parse(file({}, store))).toMatchObject({ version: 5 });
+    expect(JSON.parse(file({}, store))).toMatchObject({ version: 6 });
     expect(plan(file({}, store)).added[0]).toMatchObject({ drivewayLine: "e1", markup: [easement] });
   });
 
@@ -759,5 +766,44 @@ describe("version 5 (owner, WF5): the driveway choice and where an easement is r
       drivewayLine: null,
       markup: [{ recordedIn: "" }],
     });
+  });
+});
+
+describe("version 6 (roadmap step 1, PR 6): the profile and its rubrics", () => {
+  const RUBRICS = { mine: defaultRubric(), others: [JULIE] };
+  const from = { profile: { name: "Zach" }, rubrics: RUBRICS };
+
+  it("writes whose file it is and its rubrics; without them, null", () => {
+    expect(buildExport(DEFAULT_USER_CONFIG, STORE, [], NOW, from)).toMatchObject({ version: 6, ...from });
+    expect(buildExport(DEFAULT_USER_CONFIG, STORE, [], NOW)).toMatchObject({ profile: null, rubrics: null });
+  });
+
+  it("round trip: the plan carries the profile's name and the rubrics; the summary names the profile", () => {
+    const text = JSON.stringify(buildExport(DEFAULT_USER_CONFIG, STORE, [screen("s1")], NOW, from));
+    const p = plan(text);
+    expect(p.profileName).toBe("Zach");
+    expect(p.rubrics).toEqual(RUBRICS);
+    expect(p.added).toHaveLength(2);
+    expect(importSummary(p, "none")[1]).toBe("Exported from the profile Zach.");
+  });
+
+  it("a version 5 file: no profile and no rubrics, and it imports as before", () => {
+    const v6 = JSON.parse(file()) as Record<string, unknown>;
+    const { profile: _p, rubrics: _r, ...rest } = v6;
+    const v5 = { ...rest, version: 5 };
+    expect(fromV5(v5)).toMatchObject({ version: 6, profile: null, rubrics: null });
+    const p = plan(JSON.stringify(v5));
+    expect(p.profileName).toBeNull();
+    expect(p.rubrics).toBeNull();
+    expect(p.added).toHaveLength(2);
+    expect(importSummary(p, "none")[1]).toMatch(/^Added: /);
+  });
+
+  it("rubrics that aren't a rubric fail the whole import", () => {
+    const text = JSON.stringify({
+      ...buildExport(DEFAULT_USER_CONFIG, STORE, [], NOW, from),
+      rubrics: { mine: {} },
+    });
+    expect(errors(text).some((e) => e.startsWith("file.rubrics"))).toBe(true);
   });
 });

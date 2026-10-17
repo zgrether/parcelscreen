@@ -9,6 +9,7 @@
  */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { describe, it } from "vitest";
+import { derivedSites } from "@/lib/screen/derive";
 import { entranceCandidates, leastSteep, routeDriveway, siteDriveways } from "@/lib/screen/driveway";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { routeContext } from "@/lib/screen/index";
@@ -50,7 +51,7 @@ async function capture(): Promise<Capture[]> {
     const t0 = performance.now();
     const { result, session: s } = await runFixture(slug);
     const screenMs = performance.now() - t0;
-    const sites = result.sites ?? [];
+    const sites = derivedSites(result) ?? [];
     const p0 = performance.now();
     const dw = siteDriveways(
       routeContext(s),

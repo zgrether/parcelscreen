@@ -5,7 +5,7 @@
  * get them back.
  */
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { importParcels, openExplorer } from "./flow";
+import { importParcels, openExplorer, reload, visit } from "./flow";
 import { replayHar } from "./replay";
 
 const FERNEY = "ferney-creek-52-47A" as const;
@@ -19,7 +19,7 @@ const stored = (page: Page) =>
   page.evaluate(
     () =>
       (
-        JSON.parse(localStorage.getItem("ps.parcels")!) as {
+        JSON.parse(window.__psKv!.getItem("ps.parcels")!) as {
           built: { notes: string; rank: string; updatedAt: string }[];
         }
       ).built,
@@ -29,7 +29,7 @@ async function twoParcels(page: Page, context: Parameters<typeof replayHar>[0]) 
   await replayHar(context, [FERNEY, MACKS]);
   await openExplorer(page, FERNEY);
   await importParcels(page, [FERNEY, MACKS]);
-  await page.goto("/library");
+  await visit(page, "/library");
 }
 
 test("desktop: My order by default; a mouse drag, the keyboard and the menu move a row; other sorts are views", async ({
@@ -61,7 +61,7 @@ test("desktop: My order by default; a mouse drag, the keyboard and the menu move
   // Not a tap on the row: no detail opened.
   await expect(page.getByRole("dialog")).toHaveCount(0);
   // It keeps after a reload; the move wrote a rank, not when the parcel changed.
-  await page.reload();
+  await reload(page);
   await expect.poll(() => order(names)).toEqual([second, first]);
   const after = await stored(page);
   expect(after.map((b) => b.updatedAt)).toEqual(before.map((b) => b.updatedAt));

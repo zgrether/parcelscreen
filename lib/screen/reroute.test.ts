@@ -6,6 +6,8 @@
  */
 import { centroid, destination, lineOffset, lineString } from "@turf/turf";
 import { describe, expect, it } from "vitest";
+import { ZACH } from "@/test/support/rubrics";
+import { flagsOf } from "./flags";
 import { expectedOf } from "@/test/support/expected";
 import { loadFixture, type FixtureSlug } from "@/test/support/fixtures";
 import { redGate, toTheBoundary } from "@/test/support/redGate";
@@ -155,8 +157,8 @@ describe("with a choice (§6.7)", () => {
       JSON.parse(JSON.stringify(none.result.driveway)),
     );
     expect(r.sites).toEqual(none.result.sites);
-    expect(r.flags.filter((f) => f.step !== "drive")).toEqual(
-      none.result.flags.filter((f) => f.step !== "drive"),
+    expect(flagsOf(r).filter((f) => f.step !== "drive")).toEqual(
+      flagsOf(none.result).filter((f) => f.step !== "drive"),
     );
     expect(r.driveway!.routes[0]).toEqual(none.result.driveway!.routes[0]);
   });
@@ -176,7 +178,7 @@ describe("the parking lookup failing (#140 review)", () => {
     expect(plain(rerouted.result)).toEqual(plain(full.result));
     expect(full.result.noResponse).toContain(TRAILHEAD_PARKING);
     // The drives still ran, to the trailhead points: the row says so, appended (rule 7), and isn't incomplete.
-    const trails = reportCard(full.result, "zach").rows.find((x) => x.key === "trails")!;
+    const trails = reportCard(full.result, ZACH).rows.find((x) => x.key === "trails")!;
     expect(trails.detail.endsWith(`; ${TIMED_TO_THE_TRAILHEAD}`)).toBe(true);
     expect(trails.missing).toBeUndefined();
   });

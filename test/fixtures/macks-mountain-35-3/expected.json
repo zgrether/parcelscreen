@@ -6,35 +6,14 @@
    "shelfMin": 45,
    "gardenMin": 60,
    "canopyDeg": 3,
-   "shallowBedrockCm": 100
+   "shallowBedrockCm": 100,
+   "benchMinAcres": 0.3,
+   "compactMinAcres": 0.15,
+   "sunHoursWanted": 5,
+   "thermalMinFt": 80,
+   "roadMaxGradePct": 15,
+   "roadVetoGradePct": 25
   },
-  "flags": [
-   {
-    "lvl": "warn",
-    "t": "90th-percentile slope is 32°. The road will be the dominant site cost — get an excavator's number before offering.",
-    "step": "terrain"
-   },
-   {
-    "lvl": "warn",
-    "t": "Bedrock under 100 cm on 239.3 ac of Ramsey, Berks, Gilpin, Marbleyard, Unicoi. Budget rock excavation for septic, water line and footings.",
-    "step": "soils"
-   },
-   {
-    "lvl": "warn",
-    "t": "Under an acre of gentle ground carries a workable NRCS septic rating (0.0 ac). Plan on an alternative system and get a soil scientist out before an offer.",
-    "step": "soils"
-   },
-   {
-    "lvl": "warn",
-    "t": "Adjoins protected land, but it's restricted or closed to the public — a buffer, not a backyard.",
-    "step": "padus"
-   },
-   {
-    "lvl": "warn",
-    "t": "Straight-line grade from unnamed road to the bench is 17% over 229 ft. A 15% driveway needs roughly 257 ft of road — switchbacks, culverts, and a bigger bill.",
-    "step": "near"
-   }
-  ],
   "noResponse": [],
   "lines": [],
   "demSource": "USGS 3DEP",
@@ -588,6 +567,53 @@
     "engstafdcd": "Very limited",
     "englrsdcd": "Very limited",
     "septic": "Very limited"
+   }
+  ],
+  "soilLimits": [
+   {
+    "cokey": "27876670",
+    "septic": "poor",
+    "foundation": "poor"
+   },
+   {
+    "cokey": "27998408",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27998409",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27998406",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27998407",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27882285",
+    "septic": "poor",
+    "foundation": "workable"
+   },
+   {
+    "cokey": "27882286",
+    "septic": "poor",
+    "foundation": "poor"
+   },
+   {
+    "cokey": "27882287",
+    "septic": "poor",
+    "foundation": "poor"
+   },
+   {
+    "cokey": "27882288",
+    "septic": "poor",
+    "foundation": "workable"
    }
   ],
   "soilUnits": [
@@ -3573,7 +3599,6 @@
      "ratio": 4.83873453443749
     }
    ],
-   "score": 65,
    "notes": [
     "The core peaks 24° above due south; the ridge there is 3° — 18° of clear sky under it.",
     "Bright patch toward S at 30 mi (ratio 7.4): expect a light dome low in the S exactly where the core sits."
@@ -3997,7 +4022,6 @@
      "aspect": 80.2839159342213,
      "thermal": 75.97558413675145
     },
-    "score": 66,
     "why": [
      "8.3 h of December sun — good",
      "9.6 ac, faces ESE, 6.1° slope, 888 ft above the valley floor",
@@ -4006,34 +4030,36 @@
     ],
     "sunH": 8.333333333333334,
     "daylightH": 9.45,
-    "q": {
-     "sun": 88,
-     "aspect": 86,
-     "frost": 76,
-     "slope": 100,
-     "sky": 65
-    },
     "soil": "Marbleyard",
-    "c": {
-     "septic": 40,
-     "foundation": 10,
-     "rock": 15,
-     "pad": 0.08369684414658463,
-     "driveway": 10.804215577349428
+    "soilKey": "27882285",
+    "sky": {
+     "mag": 21.371954925288968,
+     "coreClear": 18.021124887011347,
+     "domeW": 4.6529267757374635
     },
-    "costIdx": 76,
-    "costTier": "$$$$",
-    "quality": 84,
-    "qGrade": "A",
     "roadGrade": 16.86388550654117,
     "roadRunFt": 228.97064944805598,
     "roadName": "unnamed road",
     "driveFt": 1135.1466120473292,
-    "grade": "B",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 1.2644044557930019,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 1135.1466120473292,
+     "cost": {
+      "mid": 46433.44842829424,
+      "low": 32503.413899805968,
+      "high": 60363.482956782515
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 8.0793121335887,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 2,
@@ -4051,7 +4077,6 @@
      "aspect": 88.90101571062246,
      "thermal": 88.80872108426156
     },
-    "score": 65,
     "why": [
      "8.6 h of December sun — good",
      "1.0 ac, faces SE, 8.2° slope, 624 ft above the valley floor",
@@ -4061,34 +4086,36 @@
     ],
     "sunH": 8.6,
     "daylightH": 9.45,
-    "q": {
-     "sun": 91,
-     "aspect": 99,
-     "frost": 89,
-     "slope": 86,
-     "sky": 62
-    },
     "soil": "Marbleyard",
-    "c": {
-     "septic": 40,
-     "foundation": 10,
-     "rock": 15,
-     "pad": 2.7669160830987583,
-     "driveway": 17.8768824573063
+    "soilKey": "27882285",
+    "sky": {
+     "mag": 21.381507607802142,
+     "coreClear": 21.068586456286184,
+     "domeW": 5.658203526464341
     },
-    "costIdx": 86,
-    "costTier": "$$$$",
-    "quality": 87,
-    "qGrade": "A",
     "roadGrade": 0.345660883182147,
     "roadRunFt": 1180.586318488471,
     "roadName": "unnamed road",
     "driveFt": 3604.400930375693,
-    "grade": "B",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.39263085732519537,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 3604.400930375693,
+     "cost": {
+      "mid": 125773.2812470511,
+      "low": 88041.29687293577,
+      "high": 163505.26562116644
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 16.701772687138902,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 3,
@@ -4106,7 +4133,6 @@
      "aspect": 71.43975314284333,
      "thermal": 79.8847499060758
     },
-    "score": 64,
     "why": [
      "8.8 h of December sun — good",
      "9.6 ac, faces ENE, 6.5° slope, 802 ft above the valley floor",
@@ -4116,34 +4142,36 @@
     ],
     "sunH": 8.75,
     "daylightH": 9.45,
-    "q": {
-     "sun": 93,
-     "aspect": 65,
-     "frost": 80,
-     "slope": 97,
-     "sky": 65
-    },
     "soil": "Marbleyard",
-    "c": {
-     "septic": 40,
-     "foundation": 10,
-     "rock": 15,
-     "pad": 0.60410851192501,
-     "driveway": 13.156873288874431
+    "soilKey": "27882285",
+    "sky": {
+     "mag": 21.39095816203732,
+     "coreClear": 20.278225463560027,
+     "domeW": 4.6529267757374635
     },
-    "costIdx": 79,
-    "costTier": "$$$$",
-    "quality": 83,
-    "qGrade": "A",
     "roadGrade": 6.620740018353626,
     "roadRunFt": 1331.0553964588214,
     "roadName": "unnamed road",
     "driveFt": 1672.1978006361178,
-    "grade": "C",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 1.6880908611552183,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 1672.1978006361178,
+     "cost": {
+      "mid": 66280.79912112054,
+      "low": 46396.55938478437,
+      "high": 86165.0388574567
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 15.300191004560398,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 4,
@@ -4161,7 +4189,6 @@
      "aspect": 88.92108428768995,
      "thermal": 92.66416670636433
     },
-    "score": 61,
     "why": [
      "8.4 h of December sun — good",
      "0.7 ac, faces S, 7.7° slope, 547 ft above the valley floor",
@@ -4171,34 +4198,36 @@
     ],
     "sunH": 8.366666666666667,
     "daylightH": 9.45,
-    "q": {
-     "sun": 89,
-     "aspect": 100,
-     "frost": 93,
-     "slope": 89,
-     "sky": 62
-    },
     "soil": "Unicoi",
-    "c": {
-     "septic": 40,
-     "foundation": 25,
-     "rock": 15,
-     "pad": 2.148270430696402,
-     "driveway": 19.85534437959429
+    "soilKey": "27882287",
+    "sky": {
+     "mag": 21.381507607802142,
+     "coreClear": 21.070392717337633,
+     "domeW": 5.658203526464341
     },
-    "costIdx": 100,
-    "costTier": "$$$$",
-    "quality": 87,
-    "qGrade": "A",
     "roadGrade": 29.83936284383694,
     "roadRunFt": 1101.9266500925148,
     "roadName": "State Rte 611",
     "driveFt": 4098.449953086412,
-    "grade": "C",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.3793213367379005,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 4098.449953086412,
+     "cost": {
+      "mid": 161613.65372740198,
+      "low": 113129.55760918139,
+      "high": 210097.74984562257
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 16.494061165868366,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 5,
@@ -4217,7 +4246,6 @@
      "aspect": 98.49417100999781,
      "thermal": 78.47846575672216
     },
-    "score": 57,
     "why": [
      "compact site: 2.81 ac shelf — needs a cut pad and probably a retaining wall",
      "8.5 h of December sun — good",
@@ -4228,34 +4256,36 @@
     ],
     "sunH": 8.483333333333333,
     "daylightH": 9.45,
-    "q": {
-     "sun": 90,
-     "aspect": 100,
-     "frost": 78,
-     "slope": 58,
-     "sky": 65
-    },
     "soil": "Unicoi",
-    "c": {
-     "septic": 40,
-     "foundation": 25,
-     "rock": 15,
-     "pad": 15,
-     "driveway": 9.823069621977528
+    "soilKey": "27882287",
+    "sky": {
+     "mag": 21.371954925288968,
+     "coreClear": 19.739854572798336,
+     "domeW": 4.6529267757374635
     },
-    "costIdx": 100,
-    "costTier": "$$$$",
-    "quality": 81,
-    "qGrade": "A",
     "roadGrade": 16.024205964612964,
     "roadRunFt": 297.2506334055836,
     "roadName": "unnamed road",
     "driveFt": 690.6425072846655,
-    "grade": "C",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 1.0115235646344014,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 690.6425072846655,
+     "cost": {
+      "mid": 39571.927843464364,
+      "low": 27700.349490425055,
+      "high": 51443.50619650367
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 14.401905101353805,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 6,
@@ -4274,7 +4304,6 @@
      "aspect": 64.01993204256067,
      "thermal": 76.3167868583433
     },
-    "score": 55,
     "why": [
      "compact site: 2.61 ac shelf — needs a cut pad and probably a retaining wall",
      "7.8 h of December sun — good",
@@ -4285,34 +4314,36 @@
     ],
     "sunH": 7.816666666666666,
     "daylightH": 9.45,
-    "q": {
-     "sun": 83,
-     "aspect": 62,
-     "frost": 76,
-     "slope": 69,
-     "sky": 65
-    },
     "soil": "Marbleyard",
-    "c": {
-     "septic": 40,
-     "foundation": 10,
-     "rock": 15,
-     "pad": 15,
-     "driveway": 8.905304249594618
+    "soilKey": "27882285",
+    "sky": {
+     "mag": 21.39095816203732,
+     "coreClear": 15.600414719115797,
+     "domeW": 4.6529267757374635
     },
-    "costIdx": 89,
-    "costTier": "$$$$",
-    "quality": 74,
-    "qGrade": "B",
     "roadGrade": 14.44394640917219,
     "roadRunFt": 356.38450641170306,
     "roadName": "unnamed road",
     "driveFt": 505.59542956791387,
-    "grade": "C",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.995995790615891,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 505.59542956791387,
+     "cost": {
+      "mid": 33796.61373773008,
+      "low": 23657.629616411054,
+      "high": 43935.5978590491
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 14.683630320347826,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 7,
@@ -4330,7 +4361,6 @@
      "aspect": 75.74200965033637,
      "thermal": 88.74311961824932
     },
-    "score": 53,
     "why": [
      "6.5 h of December sun — acceptable",
      "0.7 ac, faces E, 7.2° slope, 625 ft above the valley floor",
@@ -4340,34 +4370,36 @@
     ],
     "sunH": 6.516666666666667,
     "daylightH": 9.45,
-    "q": {
-     "sun": 69,
-     "aspect": 76,
-     "frost": 89,
-     "slope": 93,
-     "sky": 55
-    },
     "soil": "Unicoi",
-    "c": {
-     "septic": 40,
-     "foundation": 25,
-     "rock": 15,
-     "pad": 1.442344367977173,
-     "driveway": 16.008737804619134
+    "soilKey": "27882287",
+    "sky": {
+     "mag": 21.371954925288968,
+     "coreClear": 7.73032873155095,
+     "domeW": 4.6529267757374635
     },
-    "costIdx": 97,
-    "costTier": "$$$$",
-    "quality": 75,
-    "qGrade": "B",
     "roadGrade": 20.78966260974282,
     "roadRunFt": 1065.9946781203896,
     "roadName": "unnamed road",
     "driveFt": 2035.873568722586,
-    "grade": "C",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.523507809766927,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 2035.873568722586,
+     "cost": {
+      "mid": 98448.81407350651,
+      "low": 68914.16985145456,
+      "high": 127983.45829555846
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 16.43413318215342,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 8,
@@ -4386,7 +4418,6 @@
      "aspect": 51.94457867060186,
      "thermal": 81.66628137556636
     },
-    "score": 52,
     "why": [
      "compact site: 4.65 ac shelf — needs a cut pad and probably a retaining wall",
      "7.8 h of December sun — good",
@@ -4397,34 +4428,36 @@
     ],
     "sunH": 7.783333333333333,
     "daylightH": 9.45,
-    "q": {
-     "sun": 82,
-     "aspect": 45,
-     "frost": 82,
-     "slope": 72,
-     "sky": 65
-    },
     "soil": "Marbleyard",
-    "c": {
-     "septic": 40,
-     "foundation": 10,
-     "rock": 15,
-     "pad": 15,
-     "driveway": 14.1899668662996
+    "soilKey": "27882285",
+    "sky": {
+     "mag": 21.39095816203732,
+     "coreClear": 14.428333682745901,
+     "domeW": 4.6529267757374635
     },
-    "costIdx": 94,
-    "costTier": "$$$$",
-    "quality": 72,
-    "qGrade": "B",
     "roadGrade": 5.93470733329961,
     "roadRunFt": 1540.0480735452827,
     "roadName": "unnamed road",
     "driveFt": 2104.48812661335,
-    "grade": "C",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 2.20938041749093,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 2104.48812661335,
+     "cost": {
+      "mid": 76775.63506234477,
+      "low": 53742.94454364133,
+      "high": 99808.3255810482
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 15.300191004560398,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    }
   ],
   "driveway": {
@@ -6177,12 +6210,11 @@
    "mi": 27.2,
    "er": null
   },
-  "schemaVersion": 7,
-  "engine": 20,
+  "schemaVersion": 8,
+  "engine": 21,
   "runAt": "(not compared)",
   "failed": [],
-  "cancelled": false,
-  "verdict": "marginal"
+  "cancelled": false
  },
  "evaluateSite2": {
   "acres": 292.009627901683,
@@ -6191,35 +6223,14 @@
    "shelfMin": 45,
    "gardenMin": 60,
    "canopyDeg": 3,
-   "shallowBedrockCm": 100
+   "shallowBedrockCm": 100,
+   "benchMinAcres": 0.3,
+   "compactMinAcres": 0.15,
+   "sunHoursWanted": 5,
+   "thermalMinFt": 80,
+   "roadMaxGradePct": 15,
+   "roadVetoGradePct": 25
   },
-  "flags": [
-   {
-    "lvl": "warn",
-    "t": "90th-percentile slope is 32°. The road will be the dominant site cost — get an excavator's number before offering.",
-    "step": "terrain"
-   },
-   {
-    "lvl": "warn",
-    "t": "Bedrock under 100 cm on 239.3 ac of Ramsey, Berks, Gilpin, Marbleyard, Unicoi. Budget rock excavation for septic, water line and footings.",
-    "step": "soils"
-   },
-   {
-    "lvl": "warn",
-    "t": "Under an acre of gentle ground carries a workable NRCS septic rating (0.0 ac). Plan on an alternative system and get a soil scientist out before an offer.",
-    "step": "soils"
-   },
-   {
-    "lvl": "warn",
-    "t": "Adjoins protected land, but it's restricted or closed to the public — a buffer, not a backyard.",
-    "step": "padus"
-   },
-   {
-    "lvl": "warn",
-    "t": "Straight-line grade from unnamed road to the bench is 17% over 229 ft. A 15% driveway needs roughly 257 ft of road — switchbacks, culverts, and a bigger bill.",
-    "step": "near"
-   }
-  ],
   "noResponse": [],
   "lines": [],
   "demSource": "USGS 3DEP",
@@ -6773,6 +6784,53 @@
     "engstafdcd": "Very limited",
     "englrsdcd": "Very limited",
     "septic": "Very limited"
+   }
+  ],
+  "soilLimits": [
+   {
+    "cokey": "27876670",
+    "septic": "poor",
+    "foundation": "poor"
+   },
+   {
+    "cokey": "27998408",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27998409",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27998406",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27998407",
+    "septic": "poor",
+    "foundation": "fine"
+   },
+   {
+    "cokey": "27882285",
+    "septic": "poor",
+    "foundation": "workable"
+   },
+   {
+    "cokey": "27882286",
+    "septic": "poor",
+    "foundation": "poor"
+   },
+   {
+    "cokey": "27882287",
+    "septic": "poor",
+    "foundation": "poor"
+   },
+   {
+    "cokey": "27882288",
+    "septic": "poor",
+    "foundation": "workable"
    }
   ],
   "soilUnits": [
@@ -9758,7 +9816,6 @@
      "ratio": 4.83873453443749
     }
    ],
-   "score": 65,
    "notes": [
     "The core peaks 24° above due south; the ridge there is 3° — 18° of clear sky under it.",
     "Bright patch toward S at 30 mi (ratio 7.4): expect a light dome low in the S exactly where the core sits."
@@ -10182,7 +10239,6 @@
      "aspect": 80.2839159342213,
      "thermal": 75.97558413675145
     },
-    "score": 66,
     "why": [
      "8.3 h of December sun — good",
      "9.6 ac, faces ESE, 6.1° slope, 888 ft above the valley floor",
@@ -10191,34 +10247,36 @@
     ],
     "sunH": 8.333333333333334,
     "daylightH": 9.45,
-    "q": {
-     "sun": 88,
-     "aspect": 86,
-     "frost": 76,
-     "slope": 100,
-     "sky": 65
-    },
     "soil": "Marbleyard",
-    "c": {
-     "septic": 40,
-     "foundation": 10,
-     "rock": 15,
-     "pad": 0.08369684414658463,
-     "driveway": 10.804215577349428
+    "soilKey": "27882285",
+    "sky": {
+     "mag": 21.371954925288968,
+     "coreClear": 18.021124887011347,
+     "domeW": 4.6529267757374635
     },
-    "costIdx": 76,
-    "costTier": "$$$$",
-    "quality": 84,
-    "qGrade": "A",
     "roadGrade": 16.86388550654117,
     "roadRunFt": 228.97064944805598,
     "roadName": "unnamed road",
     "driveFt": 1135.1466120473292,
-    "grade": "B",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 1.2644044557930019,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 1135.1466120473292,
+     "cost": {
+      "mid": 46433.44842829424,
+      "low": 32503.413899805968,
+      "high": 60363.482956782515
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 8.0793121335887,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 2,
@@ -10236,7 +10294,6 @@
      "aspect": 88.90101571062246,
      "thermal": 88.80872108426156
     },
-    "score": 65,
     "why": [
      "8.6 h of December sun — good",
      "1.0 ac, faces SE, 8.2° slope, 624 ft above the valley floor",
@@ -10246,34 +10303,36 @@
     ],
     "sunH": 8.6,
     "daylightH": 9.45,
-    "q": {
-     "sun": 91,
-     "aspect": 99,
-     "frost": 89,
-     "slope": 86,
-     "sky": 62
-    },
     "soil": "Marbleyard",
-    "c": {
-     "septic": 40,
-     "foundation": 10,
-     "rock": 15,
-     "pad": 2.7669160830987583,
-     "driveway": 17.8768824573063
+    "soilKey": "27882285",
+    "sky": {
+     "mag": 21.381507607802142,
+     "coreClear": 21.068586456286184,
+     "domeW": 5.658203526464341
     },
-    "costIdx": 86,
-    "costTier": "$$$$",
-    "quality": 87,
-    "qGrade": "A",
     "roadGrade": 0.345660883182147,
     "roadRunFt": 1180.586318488471,
     "roadName": "unnamed road",
     "driveFt": 3604.400930375693,
-    "grade": "B",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.39263085732519537,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 3604.400930375693,
+     "cost": {
+      "mid": 125773.2812470511,
+      "low": 88041.29687293577,
+      "high": 163505.26562116644
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 16.701772687138902,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 3,
@@ -10291,7 +10350,6 @@
      "aspect": 71.43975314284333,
      "thermal": 79.8847499060758
     },
-    "score": 64,
     "why": [
      "8.8 h of December sun — good",
      "9.6 ac, faces ENE, 6.5° slope, 802 ft above the valley floor",
@@ -10301,34 +10359,36 @@
     ],
     "sunH": 8.75,
     "daylightH": 9.45,
-    "q": {
-     "sun": 93,
-     "aspect": 65,
-     "frost": 80,
-     "slope": 97,
-     "sky": 65
-    },
     "soil": "Marbleyard",
-    "c": {
-     "septic": 40,
-     "foundation": 10,
-     "rock": 15,
-     "pad": 0.60410851192501,
-     "driveway": 13.156873288874431
+    "soilKey": "27882285",
+    "sky": {
+     "mag": 21.39095816203732,
+     "coreClear": 20.278225463560027,
+     "domeW": 4.6529267757374635
     },
-    "costIdx": 79,
-    "costTier": "$$$$",
-    "quality": 83,
-    "qGrade": "A",
     "roadGrade": 6.620740018353626,
     "roadRunFt": 1331.0553964588214,
     "roadName": "unnamed road",
     "driveFt": 1672.1978006361178,
-    "grade": "C",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 1.6880908611552183,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 1672.1978006361178,
+     "cost": {
+      "mid": 66280.79912112054,
+      "low": 46396.55938478437,
+      "high": 86165.0388574567
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 15.300191004560398,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 4,
@@ -10346,7 +10406,6 @@
      "aspect": 88.92108428768995,
      "thermal": 92.66416670636433
     },
-    "score": 61,
     "why": [
      "8.4 h of December sun — good",
      "0.7 ac, faces S, 7.7° slope, 547 ft above the valley floor",
@@ -10356,34 +10415,36 @@
     ],
     "sunH": 8.366666666666667,
     "daylightH": 9.45,
-    "q": {
-     "sun": 89,
-     "aspect": 100,
-     "frost": 93,
-     "slope": 89,
-     "sky": 62
-    },
     "soil": "Unicoi",
-    "c": {
-     "septic": 40,
-     "foundation": 25,
-     "rock": 15,
-     "pad": 2.148270430696402,
-     "driveway": 19.85534437959429
+    "soilKey": "27882287",
+    "sky": {
+     "mag": 21.381507607802142,
+     "coreClear": 21.070392717337633,
+     "domeW": 5.658203526464341
     },
-    "costIdx": 100,
-    "costTier": "$$$$",
-    "quality": 87,
-    "qGrade": "A",
     "roadGrade": 29.83936284383694,
     "roadRunFt": 1101.9266500925148,
     "roadName": "State Rte 611",
     "driveFt": 4098.449953086412,
-    "grade": "C",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.3793213367379005,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 4098.449953086412,
+     "cost": {
+      "mid": 161613.65372740198,
+      "low": 113129.55760918139,
+      "high": 210097.74984562257
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 16.494061165868366,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 5,
@@ -10402,7 +10463,6 @@
      "aspect": 98.49417100999781,
      "thermal": 78.47846575672216
     },
-    "score": 57,
     "why": [
      "compact site: 2.81 ac shelf — needs a cut pad and probably a retaining wall",
      "8.5 h of December sun — good",
@@ -10413,34 +10473,36 @@
     ],
     "sunH": 8.483333333333333,
     "daylightH": 9.45,
-    "q": {
-     "sun": 90,
-     "aspect": 100,
-     "frost": 78,
-     "slope": 58,
-     "sky": 65
-    },
     "soil": "Unicoi",
-    "c": {
-     "septic": 40,
-     "foundation": 25,
-     "rock": 15,
-     "pad": 15,
-     "driveway": 9.823069621977528
+    "soilKey": "27882287",
+    "sky": {
+     "mag": 21.371954925288968,
+     "coreClear": 19.739854572798336,
+     "domeW": 4.6529267757374635
     },
-    "costIdx": 100,
-    "costTier": "$$$$",
-    "quality": 81,
-    "qGrade": "A",
     "roadGrade": 16.024205964612964,
     "roadRunFt": 297.2506334055836,
     "roadName": "unnamed road",
     "driveFt": 690.6425072846655,
-    "grade": "C",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 1.0115235646344014,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 690.6425072846655,
+     "cost": {
+      "mid": 39571.927843464364,
+      "low": 27700.349490425055,
+      "high": 51443.50619650367
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 14.401905101353805,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 6,
@@ -10459,7 +10521,6 @@
      "aspect": 64.01993204256067,
      "thermal": 76.3167868583433
     },
-    "score": 55,
     "why": [
      "compact site: 2.61 ac shelf — needs a cut pad and probably a retaining wall",
      "7.8 h of December sun — good",
@@ -10470,34 +10531,36 @@
     ],
     "sunH": 7.816666666666666,
     "daylightH": 9.45,
-    "q": {
-     "sun": 83,
-     "aspect": 62,
-     "frost": 76,
-     "slope": 69,
-     "sky": 65
-    },
     "soil": "Marbleyard",
-    "c": {
-     "septic": 40,
-     "foundation": 10,
-     "rock": 15,
-     "pad": 15,
-     "driveway": 8.905304249594618
+    "soilKey": "27882285",
+    "sky": {
+     "mag": 21.39095816203732,
+     "coreClear": 15.600414719115797,
+     "domeW": 4.6529267757374635
     },
-    "costIdx": 89,
-    "costTier": "$$$$",
-    "quality": 74,
-    "qGrade": "B",
     "roadGrade": 14.44394640917219,
     "roadRunFt": 356.38450641170306,
     "roadName": "unnamed road",
     "driveFt": 505.59542956791387,
-    "grade": "C",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.995995790615891,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 505.59542956791387,
+     "cost": {
+      "mid": 33796.61373773008,
+      "low": 23657.629616411054,
+      "high": 43935.5978590491
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 14.683630320347826,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 7,
@@ -10515,7 +10578,6 @@
      "aspect": 75.74200965033637,
      "thermal": 88.74311961824932
     },
-    "score": 53,
     "why": [
      "6.5 h of December sun — acceptable",
      "0.7 ac, faces E, 7.2° slope, 625 ft above the valley floor",
@@ -10525,34 +10587,36 @@
     ],
     "sunH": 6.516666666666667,
     "daylightH": 9.45,
-    "q": {
-     "sun": 69,
-     "aspect": 76,
-     "frost": 89,
-     "slope": 93,
-     "sky": 55
-    },
     "soil": "Unicoi",
-    "c": {
-     "septic": 40,
-     "foundation": 25,
-     "rock": 15,
-     "pad": 1.442344367977173,
-     "driveway": 16.008737804619134
+    "soilKey": "27882287",
+    "sky": {
+     "mag": 21.371954925288968,
+     "coreClear": 7.73032873155095,
+     "domeW": 4.6529267757374635
     },
-    "costIdx": 97,
-    "costTier": "$$$$",
-    "quality": 75,
-    "qGrade": "B",
     "roadGrade": 20.78966260974282,
     "roadRunFt": 1065.9946781203896,
     "roadName": "unnamed road",
     "driveFt": 2035.873568722586,
-    "grade": "C",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 0.523507809766927,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 2035.873568722586,
+     "cost": {
+      "mid": 98448.81407350651,
+      "low": 68914.16985145456,
+      "high": 127983.45829555846
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 16.43413318215342,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    },
    {
     "rank": 8,
@@ -10571,7 +10635,6 @@
      "aspect": 51.94457867060186,
      "thermal": 81.66628137556636
     },
-    "score": 52,
     "why": [
      "compact site: 4.65 ac shelf — needs a cut pad and probably a retaining wall",
      "7.8 h of December sun — good",
@@ -10582,34 +10645,36 @@
     ],
     "sunH": 7.783333333333333,
     "daylightH": 9.45,
-    "q": {
-     "sun": 82,
-     "aspect": 45,
-     "frost": 82,
-     "slope": 72,
-     "sky": 65
-    },
     "soil": "Marbleyard",
-    "c": {
-     "septic": 40,
-     "foundation": 10,
-     "rock": 15,
-     "pad": 15,
-     "driveway": 14.1899668662996
+    "soilKey": "27882285",
+    "sky": {
+     "mag": 21.39095816203732,
+     "coreClear": 14.428333682745901,
+     "domeW": 4.6529267757374635
     },
-    "costIdx": 94,
-    "costTier": "$$$$",
-    "quality": 72,
-    "qGrade": "B",
     "roadGrade": 5.93470733329961,
     "roadRunFt": 1540.0480735452827,
     "roadName": "unnamed road",
     "driveFt": 2104.48812661335,
-    "grade": "C",
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 2.20938041749093,
-    "sfhaOnSite": false
+    "sfhaOnSite": false,
+    "driveway": {
+     "lengthFt": 2104.48812661335,
+     "cost": {
+      "mid": 76775.63506234477,
+      "low": 53742.94454364133,
+      "high": 99808.3255810482
+     },
+     "needsEasement": false,
+     "legal": true,
+     "limitPct": null,
+     "maxGradePct": 15.300191004560398,
+     "designPct": null,
+     "existing": null,
+     "noPractical": false
+    }
    }
   ],
   "driveway": {
@@ -12382,11 +12447,10 @@
    "mi": 27.2,
    "er": null
   },
-  "schemaVersion": 7,
-  "engine": 20,
+  "schemaVersion": 8,
+  "engine": 21,
   "runAt": "(not compared)",
   "failed": [],
-  "cancelled": false,
-  "verdict": "marginal"
+  "cancelled": false
  }
 }

@@ -6,7 +6,8 @@
 import { expect, test, type Page } from "@playwright/test";
 import { reportCard } from "@/lib/report/card";
 import { expectedOf } from "../test/support/expected";
-import { expectAllDone, importParcel, openExplorer, screenIt } from "./flow";
+import { ZACH } from "../test/support/rubrics";
+import { expectAllDone, importParcel, openExplorer, reload, screenIt } from "./flow";
 import { replayHar } from "./replay";
 
 const FERNEY = "ferney-creek-52-47A" as const;
@@ -51,14 +52,14 @@ test("the rulebook: from the menu, every section, a screened parcel's breakdown,
   await importParcel(page, FERNEY);
   expectAllDone(await screenIt(page));
   await openRulebook(page);
-  const grade = reportCard(expectedOf(FERNEY, "run"), "zach").grade!;
+  const grade = reportCard(expectedOf(FERNEY, "run"), ZACH).grade!;
   await expect(page.locator(".rule-breakdown > p .card-grade")).toHaveText(grade);
   await expect(page.locator(".bd-track")).toBeVisible();
   await expect(page.locator(".bd-table tbody tr")).toHaveCount(7);
 
   // A phone: nothing wider than the screen.
   await page.setViewportSize({ width: 375, height: 812 });
-  await page.reload();
+  await reload(page);
   await expect(page.locator(".bd-track")).toBeVisible();
   const overflow = await page.evaluate(() => {
     const main = document.querySelector("main")!;

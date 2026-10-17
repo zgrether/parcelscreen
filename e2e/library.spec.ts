@@ -1,12 +1,12 @@
 /**
  * The household's list (WF2b, docs/plans/parcel-workflow.md §5): the app opens to it once there are parcels; each
- * row's name (cut short, whole on hover), state, status, household verdict and both grades; archiving from a parcel's
+ * row's name (cut short, whole on hover), state, status and grade; archiving from a parcel's
  * detail drops it from the default view, and the list's last line says so and shows it again (owner, #132), remembered
  * after a reload; ticked rows open in Compare; Open on the map; all archived, the app opens on the map. On a phone:
  * cards, the same last line, and a long press shows a whole name.
  */
 import { expect, test } from "@playwright/test";
-import { importParcels, openExplorer, seedScreens } from "./flow";
+import { importParcels, openExplorer, reload, seedScreens, visit } from "./flow";
 import { replayHar } from "./replay";
 
 const FERNEY = "ferney-creek-52-47A" as const;
@@ -22,14 +22,14 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   await replayHar(context, [FERNEY, MACKS]);
 
   // No parcels yet: the app opens on the map.
-  await page.goto("/");
+  await visit(page, "/");
   await expect(page).toHaveURL(/\/explore$/);
   await openExplorer(page, FERNEY);
   await importParcels(page, [FERNEY, MACKS]);
   await seedScreens(page, [FERNEY, MACKS]);
 
   // With parcels: on the list.
-  await page.goto("/");
+  await visit(page, "/");
   await expect(page).toHaveURL(/\/library$/);
   const rows = page.locator(".lib-table tbody tr");
   await expect(rows).toHaveCount(2);
@@ -44,10 +44,11 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   // The state's county on hover (and a long press, on a phone).
   await expect(macks.locator(".lib-state")).toHaveAttribute("title", "Floyd County");
   await expect(macks.locator("td").nth(6)).toHaveText("In progress");
-  // The household verdict and both grades, from the kept screens.
-  await expect(macks.locator("td").nth(7)).toHaveText(/^(Contender|Maybe|Pass)$/);
-  await expect(macks.locator("td").nth(8)).toHaveText(/^[A-F](Contender|Maybe|Pass)$/);
-  await expect(macks.locator("td").nth(9)).toHaveText(/^[A-F](Contender|Maybe|Pass)$/);
+  // The grade from the kept screen, in the profile's own rubric (step 1): a fresh profile holds no other, so there is
+  // no Household column and no second grade.
+  await expect(macks.locator("td").nth(7)).toHaveText(/^[A-F](Contender|Maybe|Pass)$/);
+  await expect(macks.locator("td")).toHaveCount(9);
+  await expect(page.locator(".lib-table thead")).not.toContainText("Household");
 
   // A click anywhere on the row opens its detail (owner, after #133): the full name, the card; archived as sold.
   await macks.locator("td").nth(4).click();
@@ -72,12 +73,12 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
     page.getByRole("button", { name: "Filters (1)" }), // the Status filter now includes Archived
   ).toBeVisible();
   await expect(rows.filter({ hasText: "parcel 35-3" })).toHaveClass(/lib-archived/);
-  await page.reload();
+  await reload(page);
   await expect(page.getByRole("button", { name: "Filters (1)" })).toBeVisible();
   await expect(rows).toHaveCount(2);
   expect(
     await page.evaluate(
-      () => (JSON.parse(localStorage.getItem("ps.parcels")!) as { built: { status: string }[] }).built,
+      () => (JSON.parse(window.__psKv!.getItem("ps.parcels")!) as { built: { status: string }[] }).built,
     ),
   ).toEqual(expect.arrayContaining([expect.objectContaining({ status: "archived" })]));
 
@@ -98,7 +99,7 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   await expect(page.locator(".compare-table thead .cmp-name").first()).toHaveAttribute("title", /parcel /);
 
   // The keyboard: a row takes focus, and Enter opens it.
-  await page.goto("/library");
+  await visit(page, "/library");
   await rows.filter({ hasText: "parcel 52-47A" }).focus();
   await page.keyboard.press("Enter");
   const ferneyDetail = page.getByRole("dialog");
@@ -123,7 +124,7 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   await expect(ferneyRow.locator("td").nth(4)).toHaveText("$185k");
   expect(
     await page.evaluate(() =>
-      (JSON.parse(localStorage.getItem("ps.parcels")!) as { built: Record<string, unknown>[] }).built.find(
+      (JSON.parse(window.__psKv!.getItem("ps.parcels")!) as { built: Record<string, unknown>[] }).built.find(
         (b) => b.askingPrice === 185000,
       ),
     ),
@@ -136,14 +137,14 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   await expect(page.locator(".sh-name").first()).toContainText("52-47A");
 
   // Every parcel archived: the app opens on the map (owner, #132), to find new ones.
-  await page.goto("/library");
+  await visit(page, "/library");
   await rows.filter({ hasText: "52-47A" }).click();
   const ferney = page.getByRole("dialog", { name: /52-47A/ });
   await ferney.getByRole("button", { name: "Archive…" }).click();
   await ferney.getByRole("button", { name: "Not for us" }).click();
   await ferney.getByRole("button", { name: "Archive", exact: true }).click();
   await expect(ferney).toContainText("Archived");
-  await page.goto("/");
+  await visit(page, "/");
   await expect(page).toHaveURL(/\/explore$/);
   expect(errors).toEqual([]);
 });
@@ -159,16 +160,16 @@ test.describe("on a phone", () => {
     await openExplorer(page, FERNEY);
     await importParcels(page, [FERNEY, MACKS]);
     // Macks archived: the cards end with the hidden line, as the table does.
-    await page.evaluate(() => {
-      const s = JSON.parse(localStorage.getItem("ps.parcels")!) as {
+    await page.evaluate(async () => {
+      const s = JSON.parse(window.__psKv!.getItem("ps.parcels")!) as {
         built: { notes: string; status: string; archived: unknown }[];
       };
       const m = s.built.find((b) => b.notes.includes("35-3"))!;
       m.status = "archived";
       m.archived = { reason: "Sold", at: "2026-10-14T12:00:00.000Z", from: "inProgress" };
-      localStorage.setItem("ps.parcels", JSON.stringify(s));
+      await window.__psKv!.setItem("ps.parcels", JSON.stringify(s));
     });
-    await page.goto("/library");
+    await visit(page, "/library");
     await expect(page.locator(".lib-cards .lib-card")).toHaveCount(1);
     await expect(page.locator(".lib-hidden")).toHaveText("1 archived parcel hidden · Show");
     await page.locator(".lib-hidden").getByRole("button", { name: "Show" }).tap();

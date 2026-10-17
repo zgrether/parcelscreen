@@ -4,8 +4,8 @@
  * lines marked. A row's share is its weight over the graded rows' weights, so the earned parts add up to the parcel's
  * points.
  */
-import { SCREEN_CONSTANTS } from "../screen/config";
-import type { Card, CardConfig, Letter, RowKey } from "./card";
+import { weightsOf } from "../rubric/weights";
+import type { Card, Letter, RowKey } from "./card";
 
 export interface BreakdownRow {
   key: RowKey;
@@ -30,8 +30,9 @@ export interface Breakdown {
 }
 
 /** Null when no row is graded. */
-export function breakdown(card: Card, K: CardConfig = SCREEN_CONSTANTS.card): Breakdown | null {
-  const w = K.weights[card.person];
+export function breakdown(card: Card): Breakdown | null {
+  const K = card.rubric.rubric;
+  const w = weightsOf(K);
   const graded = card.rows.filter((r): r is typeof r & { grade: Letter } => r.grade !== null);
   const total = graded.reduce((a, r) => a + w[r.key], 0);
   if (!graded.length || total <= 0) return null;

@@ -1,9 +1,10 @@
 /**
  * The plain-text summary ("Copy summary") and the default name for saving a parcel. Ported verbatim
  * (proto summaryText, defaultName). Also used by Phase 5's email digest, which is why it lives in the
- * pipeline and not the UI.
+ * pipeline and not the UI. The verdict, the flags and every score are derived from the stored measurements (v8).
  */
 import { fmt } from "../format";
+import { derived } from "./derive";
 import { splitDrives } from "./driveList";
 import type { ScreenResult } from "./types";
 
@@ -18,9 +19,10 @@ export function defaultName(props: Record<string, unknown>, result: Pick<ScreenR
 export function summaryText(R: ScreenResult): string {
   const t = R.terrain,
     s = R.sun;
+  const d = derived(R);
   const lines = [
-    `PARCEL SCREEN — ${fmt(R.acres, 1)} ac — ${R.verdict.toUpperCase()}`,
-    ...R.flags.map((f) => `! ${f.t}`),
+    `PARCEL SCREEN — ${fmt(R.acres, 1)} ac — ${d.verdict.toUpperCase()}`,
+    ...d.flags.map((f) => `! ${f.t}`),
   ];
   if (t)
     lines.push(
@@ -30,14 +32,14 @@ export function summaryText(R: ScreenResult): string {
     lines.push(
       `At ${R.focus ? R.focus.label : "best bench"}${R.point ? ` (${fmt(R.point.elevFt)} ft)` : ""}: Dec 21 direct sun ${fmt(s.decDirectH, 1)} h, noon clearance ${fmt(s.noonClearance, 1)}°`,
     );
-  if (R.house && !("outside" in R.house))
-    lines.push(`Existing house scores ${R.house.score}${R.house.veto ? " — " + R.house.veto : ""}`);
-  if (R.sky)
+  if (d.house && !("outside" in d.house))
+    lines.push(`Existing house scores ${d.house.score}${d.house.veto ? " — " + d.house.veto : ""}`);
+  if (d.sky)
     lines.push(
-      `Dark sky ${R.sky.score}/100: ${R.sky.mag.toFixed(2)} mag/arcsec² zone ${R.sky.zone}; core clearance ${R.sky.coreClear.toFixed(0)}°`,
+      `Dark sky ${d.sky.score}/100: ${d.sky.mag.toFixed(2)} mag/arcsec² zone ${d.sky.zone}; core clearance ${d.sky.coreClear.toFixed(0)}°`,
     );
-  if (R.sites)
-    for (const x of R.sites.slice(0, 2))
+  if (d.sites)
+    for (const x of d.sites.slice(0, 2))
       lines.push(
         `Site #${x.rank} (${x.score}): ${x.ll[0].toFixed(5)}, ${x.ll[1].toFixed(5)} — ${x.why.join("; ")}`,
       );

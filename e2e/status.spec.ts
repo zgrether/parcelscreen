@@ -4,14 +4,14 @@
  * their dates; and all of it in History and kept across a reload.
  */
 import { expect, test, type Page } from "@playwright/test";
-import { importParcel, openExplorer } from "./flow";
+import { importParcel, openExplorer, reload } from "./flow";
 import { replayHar } from "./replay";
 
 const FERNEY = "ferney-creek-52-47A" as const;
 
 const stored = (page: Page) =>
   page.evaluate(
-    () => (JSON.parse(localStorage.getItem("ps.parcels")!) as { open: Record<string, unknown> }).open,
+    () => (JSON.parse(window.__psKv!.getItem("ps.parcels")!) as { open: Record<string, unknown> }).open,
   );
 
 test("the parcel's standing: saved, archived with a reason, restored; milestones; in History and after a reload", async ({
@@ -64,7 +64,7 @@ test("the parcel's standing: saved, archived with a reason, restored; milestones
   await page.getByRole("button", { name: "Menu", exact: true }).click();
   const row = page.locator(".menu-drawer li", { hasText: "52-47A" });
   await expect(row).toContainText("Saved · Walked Oct 20");
-  await page.reload();
+  await reload(page);
   expect(await stored(page)).toMatchObject({ status: "saved", milestones: { walked: "2026-10-20" } });
   expect(errors).toEqual([]);
 });

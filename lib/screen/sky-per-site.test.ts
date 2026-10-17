@@ -4,6 +4,7 @@
  * ran, or on which pin was tapped last.
  */
 import { describe, expect, it } from "vitest";
+import { derivedHouse, derivedSites, skyScoreOf } from "./derive";
 import { loadFixture, FIXTURE_SLUGS, type FixtureSlug } from "@/test/support/fixtures";
 import { runFixture } from "@/test/support/scenarios";
 import { evaluateAt, setHouse, type ScreenOutput } from "./index";
@@ -17,17 +18,17 @@ import type { LatLon } from "./util";
 function houseOf(slug: FixtureSlug, run: ScreenResult): LatLon {
   const h = loadFixture(slug).input.house;
   if (h) return h.ll as LatLon;
-  const sites = run.sites!;
+  const sites = derivedSites(run)!;
   const away = (x: (typeof sites)[number]) => Math.abs(x.q.sky - sites[0]!.q.sky);
   const far = sites.reduce((a, b) => (away(b) > away(a) ? b : a));
   expect(away(far)).toBeGreaterThan(0);
   return far.ll as LatLon;
 }
 const skyBySite = (r: ScreenResult) =>
-  new Map((r.sites ?? []).map((s) => [`${s.ll[0]},${s.ll[1]}`, s.q.sky]));
+  new Map((derivedSites(r) ?? []).map((s) => [`${s.ll[0]},${s.ll[1]}`, s.q.sky]));
 const houseSky = (out: ScreenOutput) => {
-  const h = out.result.house;
-  if (!h || !("q" in h)) throw new Error("no house assessment");
+  const h = derivedHouse(out.result);
+  if (!h || "outside" in h) throw new Error("no house assessment");
   return h.q.sky;
 };
 
@@ -47,11 +48,11 @@ describe("the sky at each site and at the house (follow-up 58)", () => {
 
       // A moved house's sky = a full run's with that house, and the Dark skies section's reading at the house.
       expect(houseSky(moved)).toBe(houseSky(houseRun));
-      expect(houseSky(houseRun)).toBe(houseRun.result.sky!.score);
+      expect(houseSky(houseRun)).toBe(skyScoreOf(houseRun.result.sky!));
 
       // Site #1's is the Dark skies section's reading there (the focus without a house).
       expect(run.result.focus!.ll).toEqual(run.result.sites![0]!.ll);
-      expect(run.result.sites![0]!.q.sky).toBe(run.result.sky!.score);
+      expect(derivedSites(run.result)![0]!.q.sky).toBe(skyScoreOf(run.result.sky!));
     });
 });
 

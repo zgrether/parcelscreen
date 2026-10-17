@@ -41,6 +41,8 @@ import { OverpassMirrors, type OverpassFallback } from "./places";
 import type { OsmWay } from "./osmRoads";
 import { drawnGrid, insideWithLines, measureLines } from "./drawn";
 import type { RoadFeature } from "./roads";
+import { storedHouse, storedSite } from "./derive";
+import type { ScoredHouse, ScoredSite } from "./types";
 import {
   assessHouse,
   chooseDriveway,
@@ -48,7 +50,6 @@ import {
   impracticalLine,
   practicalOutcome,
   isImpractical,
-  existingSteepLine,
   noPracticalLine,
   practicalDriveway,
   rankSites,
@@ -61,22 +62,21 @@ import {
   withoutVetoed,
   type ScoreContext,
 } from "./score";
-import { findSites, siteFlags, siteResults, type SiteSearch } from "./sites";
-import { AtlasCache, computeSky, skyFlags } from "./sky";
+import { findSites, siteResults, type SiteSearch } from "./sites";
+import { AtlasCache, computeSky, spotSkyOf } from "./sky";
 import {
   fetchSoilLimits,
   fetchSoilPolygons,
   fetchSoils,
   screenableRows,
-  soilFlags,
   vetBenches,
   vetGardens,
   type SoilLimits,
   type SoilUnit,
   type VettedBench,
 } from "./soils";
-import { chooseFocus, computeSun, sunFlags, type HorizonPoint } from "./sun";
-import { insideMasks, slopeAspect, terrainFlags, terrainStats, valleyFloor } from "./terrain";
+import { chooseFocus, computeSun, type HorizonPoint } from "./sun";
+import { insideMasks, slopeAspect, terrainStats, valleyFloor } from "./terrain";
 import type {
   Dem,
   DrawnInput,
@@ -84,7 +84,6 @@ import type {
   Practical,
   ProgressEvent,
   ScreenInput,
-  RawFlag,
   ScreenResult,
   SoilRow,
   Step,
@@ -180,15 +179,34 @@ export interface ScreenOutput {
   session: ScreenSession;
 }
 
-type Building = Partial<ScreenResult> & {
-  flags: ScreenResult["flags"];
+/**
+ * The result while it's built: the engine's view, with each site's and the house's scores (it ranks with them). The
+ * saved result leaves the scores out (v8; finish, derive.ts storedSite): the display derives them, and the flags.
+ */
+type Building = Partial<Omit<ScreenResult, "sites" | "house">> & {
+  sites?: ScoredSite[];
+  house?: ScoredHouse | { ll: LatLon; outside: true } | null;
   noResponse: string[];
   lines: ScreenResult["lines"];
 };
 
-/** A step's flags with the step that raised them (v4), so the card shows each in its row's panel. */
-const tag = (step: Step, flags: readonly RawFlag[]): ScreenResult["flags"] =>
-  flags.map((f) => ({ ...f, step }));
+/** The result as saved (v8): every field as built, each spot without its scores. */
+function finish(
+  R: Building,
+  stamp: Pick<ScreenResult, "schemaVersion" | "engine" | "runAt" | "failed"> & { cancelled?: boolean },
+): ScreenResult {
+  const stored = Object.fromEntries(
+    Object.entries(R).map(([k, v]) => [
+      k,
+      k === "sites"
+        ? (v as ScoredSite[] | undefined)?.map(storedSite)
+        : k === "house"
+          ? storedHouse(v as Building["house"])
+          : v,
+    ]),
+  );
+  return { ...stored, ...stamp } as ScreenResult;
+}
 
 /** The settings the report shows with a run (ScreenResult.params). */
 export const runParams = (c: UserConfig): ScreenResult["params"] => ({
@@ -197,6 +215,13 @@ export const runParams = (c: UserConfig): ScreenResult["params"] => ({
   gardenMin: c.gardenMin,
   canopyDeg: c.canopyDeg,
   shallowBedrockCm: c.shallowBedrockCm,
+  // v8: what the derived flags and scores read (flags.ts, derive.ts).
+  benchMinAcres: c.benchMinAcres,
+  compactMinAcres: c.compactMinAcres,
+  sunHoursWanted: c.sunHoursWanted,
+  thermalMinFt: c.thermalMinFt,
+  roadMaxGradePct: c.roadMaxGradePct,
+  roadVetoGradePct: c.roadVetoGradePct,
 });
 
 /** Runs the screen on a parcel. Never throws for a failed step: failures are recorded in `failed`. */
@@ -232,22 +257,22 @@ export async function screen(
   const R: Building = {
     acres: s.acres,
     params: runParams(cfg),
-    flags: [],
     noResponse: [],
     lines: measureLines(s.lines, parcel, null),
   };
   const failed: Step[] = [];
   let best: (SiteSearch["benches"][number] & { veto?: string | null }) | null = null;
 
+  // No `cancelled` while the run is going: that's how a partial result is told from a finished one (v8).
   const snapshot = (): PartialScreenResult =>
     ({
-      schemaVersion: SCREEN_SCHEMA_VERSION,
-      engine: ENGINE_VERSION,
-      runAt: "",
-      ...R,
-      flags: [...R.flags],
+      ...finish(R, {
+        schemaVersion: SCREEN_SCHEMA_VERSION,
+        engine: ENGINE_VERSION,
+        runAt: "",
+        failed: [...failed],
+      }),
       noResponse: [...R.noResponse],
-      failed: [...failed],
     }) as PartialScreenResult;
   const emit = (step: Step, status: ProgressEvent["status"], message?: string, link?: string) =>
     onProgress?.({
@@ -305,7 +330,6 @@ export async function screen(
     s.bestId = best?.id ?? 0;
     R.terrain = { ...stats, diag: search.diag };
     Object.assign(R, siteResults(s.dFine, vf, search));
-    R.flags.push(...tag("terrain", [...siteFlags(search, cfg, !!house), ...terrainFlags(stats.slopeP90Deg)]));
   });
 
   await step("soils", async () => {
@@ -323,6 +347,10 @@ export async function screen(
       if (e instanceof CancelledError) throw e;
       s.limits = null;
     }
+    // v8: the ratings a spot's cost parts derive from, by component; null when they didn't load.
+    R.soilLimits = s.limits
+      ? [...s.limits].map(([cokey, l]) => ({ cokey, septic: l.septic, foundation: l.foundation }))
+      : null;
     try {
       s.units = await fetchSoilPolygons(s.ownLand ?? parcel, io);
     } catch {
@@ -337,12 +365,10 @@ export async function screen(
       s.bestId = best?.id ?? 0;
       const pins = new Map(s.search.benches.map((b, i) => [b.id, R.benches![i]!]));
       R.benches = vet.benches.map((b) => ({ ...pins.get(b.id)!, veto: b.veto }));
-      R.flags.push(...tag("soils", vet.flags));
     }
     // Gardens get their soil adjustment whether or not there's a house site (follow-up 20, A3b): the prototype
     // adjusted them only inside the bench block above.
     if (R.gardens && R.gardens.length) R.gardens = vetGardens(R.gardens, s.units, rows);
-    R.flags.push(...tag("soils", soilFlags(rows, s.units, s.acres, cfg.shallowBedrockCm)));
   });
 
   await step("sun", () => {
@@ -366,27 +392,23 @@ export async function screen(
     R.sun = sun.sun;
     s.horizon = sun.horizon;
     s.decAltByAz = sun.decAltByAz;
-    R.flags.push(...tag("sun", sunFlags(sun.sun, focus.label, sun.worst, cfg.sunHoursWanted)));
   });
 
   await step("sky", async () => {
     if (!R.focus) throw new Error("needs the December horizon step");
     const k = await computeSky(R.focus.ll, s.horizon ?? null, cfg.canopyDeg, { ...io, atlas: s.deps.atlas });
     R.sky = k.sky;
-    R.flags.push(...tag("sky", skyFlags(k.sky, k.zone, k.worst)));
   });
 
   await step("flood", async () => {
     const f = await floodStep(s.ownLand ?? parcel, s.acres, io);
     R.flood = f.flood;
     s.sfha = f.sfha;
-    R.flags.push(...tag("flood", f.flags));
   });
 
   await step("padus", async () => {
     const p = await padusStep(s.ownLand ?? parcel, io);
     R.protected = p.protected;
-    R.flags.push(...tag("padus", p.flags));
     R.noResponse.push(...p.unanswered);
   });
 
@@ -415,7 +437,6 @@ export async function screen(
     if (n.hospitalPool) s.hospitalPool = n.hospitalPool;
     if (n.road) R.road = n.road;
     if (n.roadNote) R.roadNote = n.roadNote;
-    R.flags.push(...tag("near", n.flags));
     // Places down (plan §9.11): the roads and grade are kept, but the step reports the failure.
     if (n.placesError) throw n.placesError;
   });
@@ -452,7 +473,7 @@ export async function screen(
 
   // The rank step's result, kept for a reroute (WF6): no step before the driveway reads the drawn lines but terrain's
   // line grid and measures, which a reroute rebuilds.
-  s.ranked = { R: { ...R, flags: [...R.flags], noResponse: [...R.noResponse] }, failed: [...failed] };
+  s.ranked = { R: { ...R, noResponse: [...R.noResponse] }, failed: [...failed] };
 
   await step("driveway", () => {
     if (!s.dFine) throw new Error("needs elevation");
@@ -465,16 +486,13 @@ export async function screen(
   // route does, WF6), and the nearest trailheads are driven to, at their parking.
   await step("drive", () => driveStep(s, R, io, deps.parking, signal));
 
-  if (house) for (const f of R.flags) if (f.lvl === "fatal" && /^No house site/.test(f.t)) f.lvl = "warn";
-  const result: ScreenResult = {
-    ...(R as Omit<ScreenResult, "schemaVersion" | "runAt" | "failed" | "cancelled" | "verdict">),
+  const result = finish(R, {
     schemaVersion: SCREEN_SCHEMA_VERSION,
     engine: ENGINE_VERSION,
     runAt: (deps.now ?? (() => new Date()))().toISOString(),
     failed,
     cancelled: !!signal?.aborted,
-    verdict: verdictOf(R.flags),
-  };
+  });
   let out: ScreenOutput = { result, session: s };
   if (input.evaluateAt) out = await evaluateAt(out, input.evaluateAt, "the evaluation point");
   return out;
@@ -486,6 +504,7 @@ export const scoreContextOf = (s: ScreenSession, R: Pick<Building, "sky">): Scor
   dWide: s.dWide!,
   valleyFloorFt: s.valleyFloorFt ?? NaN,
   skyAt: skyAtOf(s, R.sky),
+  focusSky: R.sky ? spotSkyOf(R.sky) : null,
   roads: s.roads ?? null,
   sfha: s.sfha ?? null,
   units: s.units ?? null,
@@ -495,22 +514,19 @@ export const scoreContextOf = (s: ScreenSession, R: Pick<Building, "sky">): Scor
 });
 
 /**
- * The sky score at a spot (follow-up 58): the sky step's reading, taken there with the spot's own skyline. Only once
- * the sky step has run (its atlas tiles are cached by then); where a spot's reading fails, the sky step's score.
+ * The sky read at a spot (follow-up 58): the sky step's reading, taken there with the spot's own skyline. Only once
+ * the sky step has run (its atlas tiles are cached by then); null where a spot's reading fails, and the scoring then
+ * takes the focus's reading (v8: stored as the spot's).
  */
 function skyAtOf(s: ScreenSession, sky: ScreenResult["sky"] | undefined): ScoreContext["skyAt"] {
   if (!sky) return undefined;
   const io = { http: s.deps.http, endpoints: s.config.endpoints, atlas: s.deps.atlas };
   return (ll, horizon) =>
     computeSky(ll, horizon, s.config.canopyDeg, io).then(
-      (k) => k.sky.score,
-      () => sky.score,
+      (k) => k.spot,
+      () => null,
     );
 }
-
-/** The prototype's verdict, from every step's flags: any fatal, else any warning, else ok. */
-const verdictOf = (flags: ScreenResult["flags"]): ScreenResult["verdict"] =>
-  flags.some((f) => f.lvl === "fatal") ? "fatal" : flags.some((f) => f.lvl === "warn") ? "marginal" : "ok";
 
 /**
  * Re-routes a finished run for other drawn lines or another driveway choice (WF6, docs/plans/wf6-reroute.md §2): what a
@@ -539,7 +555,6 @@ export async function reroute(
   if (lines.length) s.drawn = drawnGrid(s0.dFine, lines, s0.parcel);
   const R: Building = {
     ...s0.ranked.R,
-    flags: [...s0.ranked.R.flags],
     noResponse: [...s0.ranked.R.noResponse],
     // As the terrain step measures them.
     lines: measureLines(lines, s0.parcel, lines.length ? s0.dFine : null),
@@ -601,16 +616,13 @@ export async function reroute(
   }
   stop();
 
-  if (s.house) for (const f of R.flags) if (f.lvl === "fatal" && /^No house site/.test(f.t)) f.lvl = "warn";
-  const result: ScreenResult = {
-    ...(R as Omit<ScreenResult, "schemaVersion" | "runAt" | "failed" | "cancelled" | "verdict">),
+  const result = finish(R, {
     schemaVersion: SCREEN_SCHEMA_VERSION,
     engine: ENGINE_VERSION,
     runAt: (deps.now ?? (() => new Date()))().toISOString(),
     failed,
     cancelled: false,
-    verdict: verdictOf(R.flags),
-  };
+  });
   return { result, session: s };
 }
 
@@ -674,11 +686,7 @@ function drivewayStep(
     if (scored.noPractical) {
       const line = noPracticalLine(scored, cfg.roadVetoGradePct);
       R.driveway = { ...R.driveway, note: R.driveway.note ? `${R.driveway.note} ${line}` : line };
-      R.flags.push({ lvl: "warn", t: `Driveway to ${to.label}: ${line}`, step: "driveway" });
     }
-    // An existing drive steeper than the veto (owner, #116): kept, with a warning, never vetoed.
-    const steep = existingSteepLine(scored.route?.existing ?? null);
-    if (steep) R.flags.push({ lvl: "warn", t: `Driveway to ${to.label}: ${steep}.`, step: "driveway" });
     // A switchback refused on a side slope over 35° (owner, PR B decisions; B2b): stored, the card says so.
     R.driveway = {
       ...R.driveway,
@@ -953,15 +961,18 @@ export async function setHouse(out: ScreenOutput, ll: LatLon | null): Promise<Sc
     house,
   );
   const done = await evaluateAt(
-    { result: { ...out.result, house: assessed }, session: { ...s, house } },
+    { result: { ...out.result, house: storedHouse(assessed) }, session: { ...s, house } },
     house,
     "the existing house",
   );
-  if (!done.result.driveway || !done.result.house) return done;
+  if (!done.result.driveway || "outside" in assessed) return done;
   const rc = routeContext(done.session);
   const hr = houseRoutes(rc, s.roads ?? [], s.parcel, house, s.config.roadMaxGradePct);
   const alt = alternativesFor(rc, done.session, [house], [hr])[0];
-  return { ...done, result: { ...done.result, house: houseWithDriveway(ctx, done.result.house, hr, alt) } };
+  return {
+    ...done,
+    result: { ...done.result, house: storedHouse(houseWithDriveway(ctx, assessed, hr, alt)) },
+  };
 }
 
 /** The existing house's two candidate driveways (A4), as every ranked site's. */
@@ -978,10 +989,10 @@ function houseRoutes(
 /** The existing house re-costed from its driveway (A3), the candidate with fewer points (A4), when it can be scored. */
 function houseWithDriveway(
   ctx: Pick<ScoreContext, "valleyFloorFt" | "cfg">,
-  h: NonNullable<ScreenResult["house"]>,
+  h: ScoredHouse | { ll: LatLon; outside: true },
   routes: SiteRoutes,
   alt: PracticalAlternatives | null | undefined,
-): NonNullable<ScreenResult["house"]> {
+): ScoredHouse | { ll: LatLon; outside: true } {
   if ("outside" in h || h.elevFt == null || h.slopeDeg == null || h.aspectDeg == null) return h;
   const scored = withDrivewayCost(
     ctx,

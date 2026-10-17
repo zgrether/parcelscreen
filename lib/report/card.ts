@@ -1,7 +1,7 @@
 /**
  * The parcel report card (value-ranking.md §3.2, approved #95; VR2): the dealbreaker gates, the graded rows, and,
  * per person, the parcel grade, the verdict and its one-line reason. Pure, from a result and the card's config.
- * It isn't stored: the weights switch per person, and the result's shape is frozen. VR5 renders it.
+ * It isn't stored: the rubric switches per person (step 1: lib/rubric), and the result's shape is frozen. VR5 renders it.
  *
  * Money can fix the driveway, clearing, septic, the well and power, so they never reach the grade (§3.3): the
  * gates only warn or fail, and the rows are the qualities money can't add.
@@ -15,6 +15,7 @@ import {
   TRAILHEAD_PARKING,
   type DriveEntry,
 } from "../screen/driveList";
+import { derivedSites } from "../screen/derive";
 import { NO_PRACTICAL_ROUTE, existingSteepLine } from "../screen/score";
 import { trailheadSourceLabel } from "../screen/trailheads";
 import { isPrimeFarmland, soilAt, type SoilUnit } from "../screen/soils";
@@ -37,14 +38,17 @@ import {
   type LineNames,
 } from "./lines";
 import { nearestFt, PERMIT_ON_FILE, permitFar, SPRING_MARKED, type Drawn, type Mark } from "./marks";
+import { atLeast, atMost, gradedRows, parcelGrade } from "../rubric/grade";
+import { thresholdStatus, thresholdWords, type Measure } from "../rubric/musts";
+import type { GateKey, Letter, NamedRubric, RowKey } from "../rubric/types";
+import { weightsOf } from "../rubric/weights";
+
+export type { GateKey, Letter, NamedRubric, RowKey } from "../rubric/types";
+export { atLeast, atMost } from "../rubric/grade";
 
 export type CardConfig = typeof SCREEN_CONSTANTS.card;
 type BuildConfig = typeof SCREEN_CONSTANTS.build;
 
-export type Letter = "A" | "B" | "C" | "D" | "F";
-export type Person = keyof CardConfig["weights"];
-export type RowKey = keyof CardConfig["weights"][Person];
-export type GateKey = "floodplain" | "access" | "easement" | "septic";
 /** "unknown": the data can't say (FEMA hasn't mapped the area, or the data didn't load). Never a warn. */
 export type GateStatus = "pass" | "warn" | "fail" | "unknown";
 export type Verdict = "Contender" | "Maybe" | "Pass";
@@ -73,6 +77,8 @@ export interface Row {
   panelNote?: string;
   /** The value in a few words, for a comparison table's cell (VR6): "3,543 ft", "zone 3a", "38 min ER". */
   short?: string;
+  /** The number the band graded, in its unit (step 1): what a threshold Must is compared with (lib/rubric/musts.ts). */
+  measure?: Measure;
 }
 
 /** What the card says regardless of whose weights are on. */
@@ -86,7 +92,8 @@ export interface CardFacts {
 }
 
 export interface Card extends CardFacts {
-  person: Person;
+  /** The rubric that graded it (step 1): whose grade this is. */
+  rubric: NamedRubric;
   /** The weighted average of the graded rows' points (A 4 … F 0); null when no row is graded. */
   points: number | null;
   grade: Letter | null;
@@ -99,14 +106,6 @@ export interface Card extends CardFacts {
 }
 
 const LETTERS: readonly Letter[] = ["A", "B", "C", "D"];
-
-/** The grade whose lower edge `v` reaches, cutoffs best first; below the last, an F. */
-export const atLeast = (v: number, cutoffs: readonly number[]): Letter =>
-  LETTERS[cutoffs.findIndex((c) => v >= c)] ?? "F";
-
-/** The grade whose upper edge `v` is within, cutoffs best first; beyond the last, an F. */
-export const atMost = (v: number, cutoffs: readonly number[]): Letter =>
-  LETTERS[cutoffs.findIndex((c) => v <= c)] ?? "F";
 
 const worse = (a: Letter, b: Letter): Letter => (a > b ? a : b);
 const better = (a: Letter, b: Letter): Letter => (a < b ? a : b);
@@ -391,6 +390,7 @@ function elevation(site: BuildSite | null | undefined, K: CardConfig): Row {
   return {
     ...g(atLeast(site.elevFt, K.rows.elevationFt), `${fmt(site.elevFt)} ft at ${site.label}`),
     short: `${fmt(site.elevFt)} ft`,
+    measure: { value: site.elevFt, unit: "ft" },
   };
 }
 
@@ -401,7 +401,8 @@ function elevation(site: BuildSite | null | undefined, K: CardConfig): Row {
 function homesite(r: Result): Row {
   const g = row("homesite", "Best homesite");
   if (!r.sites) return notLoaded(g, "the homesite ranking");
-  const s = r.sites[0];
+  // Site #1's quality derives from its measurements (v8; lib/screen/derive.ts).
+  const s = derivedSites(r)![0];
   if (!s) return g("F", "no build site found");
   return {
     ...g(
@@ -420,6 +421,7 @@ function sky(r: Result, K: CardConfig): Row {
   return {
     ...g(atLeast(r.sky.mag, K.rows.skyMag), `${r.sky.zoneWord} sky (zone ${r.sky.zone})`),
     short: `zone ${r.sky.zone}`,
+    measure: { value: r.sky.mag, unit: "mag" },
   };
 }
 
@@ -447,6 +449,7 @@ function room(r: Result, K: CardConfig, footprintAc: number): Row {
       `${fmt(s.gentleNearAc, 1)} ac of gentle ground near the house site, ${fmt(x, x < 10 ? 1 : 0)}× the build footprint`,
     ),
     short: `${fmt(x, x < 10 ? 1 : 0)}× footprint`,
+    measure: { value: x, unit: "x" },
   };
   return grade === "F"
     ? {
@@ -481,7 +484,9 @@ function trails(r: Result, K: CardConfig): Row {
     .filter((t) => t.drive)
     .sort((a, b) => a.drive!.min - b.drive!.min || a.drive!.km - b.drive!.km)[0];
   const drivesFailed =
-    r.failed.includes("drive") || (r.noResponse ?? []).includes(TRAILHEAD_DRIVES) || r.verdict === undefined;
+    r.failed.includes("drive") ||
+    (r.noResponse ?? []).includes(TRAILHEAD_DRIVES) ||
+    r.cancelled === undefined;
   const noDrives = !driven && r.near.trailheads.length > 0 && drivesFailed;
   // An official trailhead list that didn't answer (follow-up 53): a nearer trailhead may be missing, so the row is
   // incomplete, which holds the verdict at Maybe. Not when the parcel adjoins open public land: an A either way.
@@ -524,11 +529,13 @@ function trails(r: Result, K: CardConfig): Row {
         `a trailhead ${fmt(d.min)} min (${fmt(d.mi, 1)} mi) by road${track}, ${miles(d.km)} mi straight (${driven.name})${parking}`,
       ),
       short: `trailhead ${fmt(d.min)} min`,
+      measure: { value: d.min, unit: "min" },
     };
   }
   return {
     ...g(byHead, `a trailhead ${miles(head.km)} mi away in a straight line (${head.name})`),
     short: `trailhead ${miles(head.km)} mi`,
+    measure: { value: head.km, unit: "km" },
   };
 }
 
@@ -550,7 +557,12 @@ function town(r: Result, K: CardConfig): Row {
     ", ",
   );
   // Appended (rule 7; owner, #124): the drives start on tracks, as Trails says.
-  return { ...g(grade, `${toH}, ${toG}${trackNote(r)}`), short };
+  // The ER drive is the measure a threshold Must reads ("over 30 min to an ER"); the grocery's is the row's own.
+  return {
+    ...g(grade, `${toH}, ${toG}${trackNote(r)}`),
+    short,
+    ...(h ? { measure: { value: h.min, unit: "min" } } : {}),
+  };
 }
 
 /**
@@ -613,6 +625,7 @@ function gardenRow(r: Result, K: CardConfig, spring: (row: Row, ll: LatLon) => R
       {
         ...g("A", `a ${fmt(best.x.acres, 2)} ac garden on ${best.cls}`),
         short: `${fmt(best.x.acres, 2)} ac, ${best.cls}`,
+        measure: { value: best.x.acres, unit: "ac" },
       },
       best.x.ll,
     );
@@ -621,7 +634,11 @@ function gardenRow(r: Result, K: CardConfig, spring: (row: Row, ll: LatLon) => R
   const i = rest.findIndex((c) => largest >= c);
   const grade = i < 0 ? "F" : LETTERS[i + 1]!;
   return spring(
-    { ...g(grade, `the largest garden is ${fmt(largest, 2)} ac`), short: `${fmt(largest, 2)} ac` },
+    {
+      ...g(grade, `the largest garden is ${fmt(largest, 2)} ac`),
+      short: `${fmt(largest, 2)} ac`,
+      measure: { value: largest, unit: "ac" },
+    },
     big.ll,
   );
 }
@@ -716,46 +733,65 @@ export function maybeCaps(facts: CardFacts): Record<keyof typeof MAYBE_CAPS, boo
   };
 }
 
-export function cardFor(facts: CardFacts, person: Person, K: CardConfig = SCREEN_CONSTANTS.card): Card {
-  const w = K.weights[person];
-  const graded = facts.rows.filter((x): x is Row & { grade: Letter } => x.grade !== null);
-  const weight = graded.reduce((a, x) => a + w[x.key], 0);
-  const points = weight > 0 ? graded.reduce((a, x) => a + w[x.key] * K.points[x.grade], 0) / weight : null;
-  const grade = points === null ? null : atLeast(points, K.gradeCutoffs);
-  const fail = facts.gates.find((x) => x.status === "fail");
-  const warns = facts.gates.filter((x) => x.status === "warn");
-  const check = facts.rows.find((x) => x.checkFirst)?.checkFirst;
+export function cardFor(facts: CardFacts, nr: NamedRubric): Card {
+  const R = nr.rubric;
+  const w = weightsOf(R);
+  // Won't rows are hidden and left out of the grade; the gates the rubric keeps as Musts decide the verdict.
+  const rows = facts.rows.filter((x) => !R.wonts.includes(x.key));
+  const graded = gradedRows(rows, R);
+  const { points, grade } = parcelGrade(graded, R, w);
+  const gates = facts.gates.filter((g) =>
+    R.musts.some((m) => m.factor === g.key && m.threshold === undefined),
+  );
+  const fail = gates.find((x) => x.status === "fail");
+  const warns = gates.filter((x) => x.status === "warn");
+  // A threshold Must on a ranked row (lib/rubric/musts.ts): a fail is a Pass that names the row; an unknown holds
+  // the verdict at Maybe. None in the default rubric.
+  const thresholds = R.musts
+    .filter((m) => m.threshold !== undefined)
+    .flatMap((must) => {
+      const row = facts.rows.find((x) => x.key === must.factor);
+      return row ? [{ must, row, status: thresholdStatus(must, row.measure) }] : [];
+    });
+  const thresholdFail = thresholds.find((t) => t.status === "fail");
+  const thresholdUnknown = thresholds.some((t) => t.status === "unknown");
+  const check = rows.find((x) => x.checkFirst)?.checkFirst;
   const incomplete = [
     ...new Set([...facts.gates, ...facts.rows].map((x) => x.missing).filter((m): m is string => !!m)),
   ];
   const verdict: Verdict =
-    fail || (points !== null && points < K.verdict.pass)
+    fail || thresholdFail || (points !== null && points < R.verdict.pass)
       ? "Pass"
       : points !== null &&
-          points >= K.verdict.contender &&
-          warns.length <= K.verdict.contenderMaxWarns &&
+          points >= R.verdict.contender &&
+          warns.length <= R.verdict.contenderMaxWarns &&
+          !thresholdUnknown &&
           !Object.values(maybeCaps(facts)).some(Boolean)
         ? "Contender"
         : "Maybe";
-  // The lowest row; among equals, the one this person weighs most, then the card's order.
-  const weakest = [...graded].sort((a, b) => K.points[a.grade] - K.points[b.grade] || w[b.key] - w[a.key])[0];
+  // The lowest row; among equals, the one this rubric weighs most, then the card's order.
+  const weakest = [...graded].sort((a, b) => R.points[a.grade] - R.points[b.grade] || w[b.key] - w[a.key])[0];
   const why = fail
     ? `${verdict}: ${lowerFirst(fail.reason)}`
-    : check && verdict !== "Pass"
-      ? `${verdict}. Check first: ${check}`
-      : warns[0] && verdict !== "Pass"
-        ? `${verdict}. Check first: ${lowerFirst(warns[0].reason)}`
-        : weakest
-          ? `${verdict}. Weakest part: ${lowerFirst(weakest.label)} (${weakest.grade}, ${weakest.detail})`
-          : `${verdict}. Not enough of the screen ran to grade the land`;
+    : thresholdFail
+      ? `${verdict}: ${lowerFirst(thresholdFail.row.label)} fails your must (${thresholdFail.row.short ?? thresholdFail.row.detail}; you asked for ${thresholdWords(thresholdFail.must, (n) => fmt(n))})`
+      : check && verdict !== "Pass"
+        ? `${verdict}. Check first: ${check}`
+        : warns[0] && verdict !== "Pass"
+          ? `${verdict}. Check first: ${lowerFirst(warns[0].reason)}`
+          : weakest
+            ? `${verdict}. Weakest part: ${lowerFirst(weakest.label)} (${weakest.grade}, ${weakest.detail})`
+            : `${verdict}. Not enough of the screen ran to grade the land`;
   const more = incomplete.length ? ` (incomplete: ${listOf(incomplete)} didn't load, run again)` : "";
-  return { ...facts, person, points, grade, verdict, reason: `${why}${more}.`, incomplete };
+  return { ...facts, rows, rubric: nr, points, grade, verdict, reason: `${why}${more}.`, incomplete };
 }
 
-/** The card for a result and a person. */
+/** The card for a result and a rubric: the rubric's bands grade the rows, its weights and lines grade the parcel. */
 export const reportCard = (
   r: Result,
-  person: Person,
+  nr: NamedRubric,
   drawn?: Drawn,
   K: CardConfig = SCREEN_CONSTANTS.card,
-): Card => cardFor(cardFacts(r, K, SCREEN_CONSTANTS.build, drawn), person, K);
+): Card => {
+  return cardFor(cardFacts(r, { ...K, rows: nr.rubric.bands }, SCREEN_CONSTANTS.build, drawn), nr);
+};

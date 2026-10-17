@@ -3,6 +3,7 @@
  * and the one addition the port makes to a result. Shared by the Node goldens (lib/screen/screen.test.ts)
  * and the browser e2e (e2e/), so both hold the same line.
  */
+import { scored, type ScoredResult } from "@/lib/screen/derive";
 import { overLimitNote } from "@/lib/screen/driveway";
 import type { ScreenResult } from "@/lib/screen/types";
 import type { CompareOptions } from "./compare";
@@ -48,7 +49,34 @@ export const PARITY: CompareOptions = {
  * the golden's note is the prefix, then exactly the appended sentence. For parity both additions are taken off
  * again. Throws when the note isn't the prototype's plus that sentence.
  */
-export function asPrototype(r: ScreenResult, golden: unknown): ScreenResult {
+export function asPrototype(r: ScreenResult, golden: unknown): ScoredResult {
+  return scored(asPrototypeShape(r, golden));
+}
+
+/**
+ * The v8 measurements the prototype never stored (step 1, PR 2; #154 review): each site's and the house's `sky`
+ * (the raw reading), `driveway` (the chosen route's facts) and `soilKey` (the NRCS map unit), and the run's
+ * `soilLimits`. The parity diff compares what they feed, the derived scores, grades and verdict (`scored`), so they
+ * are taken off both sides before comparing, as `runAt` and `demResM` are ignored. Nothing shown comes from them
+ * except through those derivations.
+ */
+export function withoutMeasurements<T>(r: T): T {
+  const x = JSON.parse(JSON.stringify(r)) as Record<string, unknown>;
+  delete x.soilLimits;
+  const spot = (s: unknown) => {
+    if (!s || typeof s !== "object") return;
+    const o = s as Record<string, unknown>;
+    delete o.sky;
+    delete o.driveway;
+    delete o.soilKey;
+  };
+  if (Array.isArray(x.sites)) x.sites.forEach(spot);
+  spot(x.house);
+  return x as T;
+}
+
+/** The driveway as the prototype stored it (above); the grades the prototype stored come back derived (scored, v8). */
+function asPrototypeShape(r: ScreenResult, golden: unknown): ScreenResult {
   const d = r.driveway;
   if (!d?.overLimit) return r;
   const sentence = overLimitNote(d.overLimit);

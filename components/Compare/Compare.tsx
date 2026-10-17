@@ -3,13 +3,14 @@
  * The comparison table (value-ranking.md §7; VR6): History's parcels as columns, the report card's lines as rows, in
  * collapsible groups. The first column stays put while the parcels scroll sideways (on a phone). A cell holds a value
  * and a mark; a tap opens that line's slide-in panel for that parcel (the sheet's own, §6.2): a side panel on desktop,
- * a bottom sheet on a phone. The weight switch in the header is the sheet's (ps.person): it changes the grade and the
+ * a bottom sheet on a phone. The rubric switch in the header is the sheet's (ps.rubricView): it changes the grade and the
  * verdict, nothing else. The table starts with up to four parcels, the Contenders first, then the most recently screened
  * (owner, #117 review); once columns are added or removed here, that choice is remembered per browser (ps.compare).
  */
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { HelpProvider } from "@/components/Help/HelpDialog";
+import { ProfilePicker } from "@/components/Profile/ProfilePicker";
 import { LongName } from "@/components/LongName";
 import { CardPanel } from "@/components/Results/card/CardPanel";
 import { drawnOf } from "@/lib/report/marks";
@@ -20,14 +21,11 @@ import type { WorkingParcel } from "@/lib/client/parcelStore";
 import { getPref, setPref } from "@/lib/client/prefs";
 import { useKeptScreens } from "@/lib/client/useKeptScreens";
 import { loadUserConfig } from "@/lib/client/userConfig";
-import type { Person } from "@/lib/report/card";
+import { useRubricView } from "@/lib/client/useRubricView";
+import { RubricSwitch } from "@/components/Results/card/RubricSwitch";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import { compareTable, defaultColumns, type Cell, type CompareParcel } from "@/lib/report/compare";
 
-const PEOPLE: { key: Person; name: string }[] = [
-  { key: "zach", name: "Zach's grade" },
-  { key: "julie", name: "Julie's grade" },
-];
 const STATUS: Record<NonNullable<Cell["status"]>, { mark: string; word: string }> = {
   pass: { mark: "✓", word: "Pass" },
   warn: { mark: "!", word: "Warning" },
@@ -47,11 +45,7 @@ export function Compare() {
     setPicked(keys);
     setPref("ps.compare", keys);
   };
-  const [person, setPersonState] = useState<Person>(() => getPref("ps.person"));
-  const setPerson = (p: Person) => {
-    setPersonState(p);
-    setPref("ps.person", p);
-  };
+  const { rubrics, rubric, setRubric } = useRubricView();
   const config = useMemo(() => loadUserConfig(), []);
   const [closed, setClosed] = useState<ReadonlySet<string>>(new Set());
   const [panel, setPanel] = useState<{ col: number; key: PanelKey } | null>(null);
@@ -72,10 +66,10 @@ export function Compare() {
     };
   });
   const loaded = screens.size === built.length;
-  const chosen = picked ?? (loaded ? defaultColumns(all, person) : []);
+  const chosen = picked ?? (loaded ? defaultColumns(all, rubric) : []);
   const columns = chosen.map((k) => built.find((b) => b.key === k)).filter((b): b is WorkingParcel => !!b);
   const parcels = columns.map((b) => all.find((p) => p.key === b.key)!);
-  const table = compareTable(parcels, person, config.budget.readyToBuild);
+  const table = compareTable(parcels, rubric, config.budget.readyToBuild);
   const addable = built.filter((b) => !chosen.includes(b.key!));
   const opened = panel ? parcels[panel.col] : null;
   const openedCard = panel ? table.cards[panel.col] : null;
@@ -128,18 +122,13 @@ export function Compare() {
             ← Map
           </Link>
           <h1>Compare</h1>
-          <div className="card-person" role="group" aria-label="Whose weights grade the parcels">
-            {PEOPLE.map((p) => (
-              <button
-                key={p.key}
-                className="chip"
-                aria-pressed={person === p.key}
-                onClick={() => setPerson(p.key)}
-              >
-                {p.name}
-              </button>
-            ))}
-          </div>
+          <ProfilePicker />
+          <RubricSwitch
+            rubrics={rubrics}
+            current={rubric.id}
+            setRubric={setRubric}
+            label="Whose weights grade the parcels"
+          />
         </header>
 
         {built.length === 0 ? (

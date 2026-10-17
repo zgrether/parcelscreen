@@ -8,6 +8,7 @@
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { describe, it } from "vitest";
+import { derivedSites } from "@/lib/screen/derive";
 import { DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { overLimitSpans, siteDriveways, type SiteDriveway } from "@/lib/screen/driveway";
 import { ENGINE_VERSION } from "@/lib/screen/engine";
@@ -93,7 +94,7 @@ describe.runIf(import.meta.env.MODE === "dw-defaults")("the 15% grade limit and 
     const trips: string[] = [];
     for (const [slug, name] of SLUGS) {
       const { result, session: s } = await runFixture(slug);
-      const sites = result.sites ?? [];
+      const sites = derivedSites(result) ?? [];
       const routes = siteDriveways(
         routeContext(s),
         s.roads ?? [],

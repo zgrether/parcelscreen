@@ -196,10 +196,15 @@ this rule VA records, which carry no county name field the key read, all keyed a
 
 ### 3a. The local parcel store (Phase 0) and its Phase 1 import
 
-Before accounts exist, the explorer keeps the open parcel and History in the browser, under localStorage
-`ps.parcels` (`lib/client/parcelStore.ts`). Phase 1's importer reads this JSON when a user first signs in,
-so its shape is a contract. It's versioned by `v`: any change takes a new `v` and a converter (the store
-already converts 13d's `ps.current`, which had no `v` field at the parcel level).
+Before accounts exist, the explorer keeps the open parcel and History in the browser, as the `ps.parcels`
+document of the current local profile (`lib/client/parcelStore.ts`, `lib/client/profileStore.ts`; roadmap step 1,
+phase-0.md §9.45): IndexedDB `parcelscreen`, store `docs`, keyed by [profile, key], holds each profile's parcels,
+settings (`ps.cfg`), rubrics (`ps.rubrics`, `{ mine, others }` as `lib/rubric/schema.ts` validates them) and views, each
+as the JSON string the prefs module writes; the kept screens carry their profile's id. Until step 1 the store was
+localStorage `ps.parcels`; the first boot after it moved those keys into "Profile 1" and renamed them `ps.legacy.*`.
+Accounts (step 13) adopt a profile's documents when a user first signs in, so the shape is a contract. It's versioned
+by `v`: any change takes a new `v` and a converter (the store already converts 13d's `ps.current`, which had no `v`
+field at the parcel level).
 
 ```jsonc
 {
@@ -287,14 +292,21 @@ Phase 1 imports it into Supabase the same way as the `ps.parcels` store. It's ve
 ```jsonc
 {
   "format": "parcelscreen-export",
-  "version": 5,
+  "version": 6,
   "exportedAt": "2026-10-07T15:00:00.000Z",
   "cfg": { /* UserConfig (lib/screen/types.ts), as stored in ps.cfg */ },
   "parcels": { "v": 2, "open": null, "built": [ /* the ps.parcels store above, written in My order */ ] },
-  "screens": [ /* the kept screen records named in built[].screenIds: { id, keys: { boundary, house, settings }, result } */ ]
+  "screens": [ /* the kept screen records named in built[].screenIds: { id, keys: { boundary, house, settings }, result } */ ],
+  "profile": { "name": "Profile 1" },   // version 6: the profile it was exported from
+  "rubrics": { "mine": { /* Rubric */ }, "others": [ { "id": "…", "name": "Julie", "rubric": { /* Rubric */ } } ] }
 }
 ```
 
+- **Version 6** (roadmap step 1): the profile the file came from (`profile: { name }`) and its rubrics (`rubrics`,
+  `{ mine, others }`). A version 5 file still imports: `fromV5` (`lib/client/exportFile.ts`) gives it null for both.
+  An import goes into the current profile; the file's rubrics replace the profile's only when the user ticks
+  "Replace my rubric too" in the import summary (off by default). This app reads versions 1 to 6; an older app can't
+  read version 6.
 - **Version 5** (owner, WF5): each parcel's `drivewayLine` and each line's `recordedIn` (below). A version 4 file
   still imports: `fromV4` gives every parcel the app's pick (`drivewayLine: null`) and every line no record
   (`recordedIn: ""`). This app reads versions 1 to 5; an older app can't read version 5.
@@ -317,6 +329,8 @@ Phase 1 imports it into Supabase the same way as the `ps.parcels` store. It's ve
   - `parcels.built[]` become `parcels` rows as above;
   - `screens` become `screens` rows (version 1 each, immutable), linked through `screenIds`;
   - `cfg` becomes the user's settings;
+  - `profile` names the local profile the account adopts (step 13), and `rubrics.mine` becomes the user's rubric,
+    `rubrics.others` the household members' (step 5);
   - `open` is ignored.
 - **Duplicates:** the Phase 0 import matches every parcel on its `key`:
   - an identical key is skipped, never overwritten;

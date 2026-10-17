@@ -6,6 +6,7 @@
  */
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { PERSONS, personsFrom } from "@/test/support/rubrics";
 import { footprintFt2 } from "@/lib/report/card";
 import { PANEL_KEYS, ruleAnchor, rulebookHref } from "@/lib/report/cardPanels";
 import { rulebook } from "@/lib/report/rulebook";
@@ -59,7 +60,9 @@ function allowed(): Set<string> {
   return out;
 }
 
-const render = (rb = rulebook()) => textOf(renderToStaticMarkup(<RulebookRules rb={rb} person="zach" />));
+// The two weight sets the app shipped with, as the rulebook's columns (test/support/rubrics.ts).
+const render = (rb = rulebook(SCREEN_CONSTANTS, DEFAULT_USER_CONFIG, PERSONS)) =>
+  textOf(renderToStaticMarkup(<RulebookRules rb={rb} current="zach" />));
 
 describe("the rulebook (VR7)", () => {
   it("every number on the page comes from config", () => {
@@ -98,9 +101,8 @@ describe("the rulebook (VR7)", () => {
       "December sun (40%)",
       "Facing (15%)",
       "Build cost tiers",
-      // #118 review: where C starts on the Elevation scale, Julie's weights marked, build cost's points explained.
+      // #118 review: where C starts on the Elevation scale, build cost's points explained.
       "C 2,000",
-      "Placeholder until Julie sets her own",
       "Build cost is counted in points: higher means more expensive.",
       "bedrock within about 20 in (50 cm)",
       "has no real facing",
@@ -111,13 +113,15 @@ describe("the rulebook (VR7)", () => {
   it("follows config: a changed cutoff or weight changes the page", () => {
     const C = structuredClone(SCREEN_CONSTANTS) as typeof SCREEN_CONSTANTS;
     (C.card.rows.elevationFt as number[])[0] = 3_100;
-    (C.card.weights.zach as Record<string, number>).elevation = 30;
+    (C.card.weights.default as Record<string, number>).elevation = 30;
     (C.score.weights as Record<string, number>).sun = 0.45;
-    const text = render(rulebook(C));
+    const text = render(rulebook(C, DEFAULT_USER_CONFIG, personsFrom(C.card)));
     expect(text).toContain("A at 3,100 ft");
     expect(text).not.toContain("A at 3,000 ft");
     expect(text).toContain("December sun (45%)");
-    expect(text).toMatch(/Elevation at the build site 30 10/); // the weights table: Zach, Julie
+    expect(text).toMatch(/Elevation at the build site 30 10/); // the weights table: both columns
+    // The default alone (a fresh profile): one column, the first with "Mine".
+    expect(render(rulebook(C))).toMatch(/Mine.*Elevation at the build site 30 Best homesite/);
   });
 
   it("reads the Settings: the frost belt's start and the grade limit", () => {
@@ -125,7 +129,7 @@ describe("the rulebook (VR7)", () => {
       renderToStaticMarkup(
         <RulebookRules
           rb={rulebook(SCREEN_CONSTANTS, { ...DEFAULT_USER_CONFIG, thermalMinFt: 120, roadMaxGradePct: 12 })}
-          person="zach"
+          current="zach"
         />,
       ),
     );
@@ -134,7 +138,7 @@ describe("the rulebook (VR7)", () => {
   });
 
   it('has a section for every report panel, where its "How it\'s scored" link goes (follow-up 52)', () => {
-    const html = renderToStaticMarkup(<RulebookRules rb={rulebook()} person="zach" />);
+    const html = renderToStaticMarkup(<RulebookRules rb={rulebook()} current="zach" />);
     const ids = new Set([...html.matchAll(/ id="([^"]+)"/g)].map((m) => m[1]));
     const missing = PANEL_KEYS.filter((k) => !ids.has(ruleAnchor(k)));
     expect(missing, "panels with no section on the rulebook").toEqual([]);

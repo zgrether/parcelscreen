@@ -10,7 +10,7 @@ import { compass } from "../format";
 import type { HttpClient } from "../http";
 import { SCREEN_CONSTANTS } from "./config";
 import type { HorizonPoint } from "./sun";
-import type { Endpoints, ScreenResult, RawFlag } from "./types";
+import type { Endpoints, ScreenResult, RawFlag, SpotSky } from "./types";
 import type { LatLon } from "./util";
 
 const K = SCREEN_CONSTANTS.sky;
@@ -139,13 +139,36 @@ interface Sample {
   w: number;
 }
 
+/** The sky score, 0–100 (proto L1270–1276): darkness at the zenith, less the southern dome and the core's clearance. */
+export function skyScore(s: SpotSky): number {
+  const [m0, m1] = K.magRange;
+  let score = Math.max(0, Math.min(1, (s.mag - m0) / (m1 - m0))) * 100;
+  score -= Math.min(K.domePenaltyMax, K.domePenaltyMax * Math.min(1, s.domeW / K.domePenaltyFullW));
+  if (s.coreClear <= 0) score -= K.coreBlockedPenalty;
+  else if (s.coreClear < K.coreLowDeg) score -= K.coreLowPenalty;
+  return Math.round(Math.max(0, score));
+}
+
+/** The focus's reading as a spot's (v8): the stored sky's zenith, brightest southern dome and core clearance. */
+export const spotSkyOf = (sky: NonNullable<ScreenResult["sky"]>): SpotSky => ({
+  mag: sky.mag,
+  coreClear: sky.coreClear,
+  domeW: sky.dome?.w ?? -1,
+});
+
 /** The sky at a point, given the skyline traced there (proto computeSky, L1262–1277). */
 export async function computeSky(
   ll: LatLon,
   horizon: HorizonPoint[] | null,
   canopyDeg: number,
   deps: SkyDeps,
-): Promise<{ sky: NonNullable<ScreenResult["sky"]>; zone: [string, string]; worst: Sample | { w: -1 } }> {
+): Promise<{
+  sky: NonNullable<ScreenResult["sky"]>;
+  zone: [string, string];
+  worst: Sample | { w: -1 };
+  /** The reading as a spot's (v8): what the score derives from. */
+  spot: SpotSky;
+}> {
   const lat = ll[0],
     lon = ll[1];
   const z = await lpRatioAt(lat, lon, deps);
@@ -173,17 +196,13 @@ export async function computeSky(
   const south = (horizon || []).filter((h) => h.az >= c0 && h.az <= c1);
   const ridge = south.length ? Math.max(...south.map((h) => h.angle)) : 0;
   const coreClear = coreAlt - ridge - canopyDeg;
-  const [m0, m1] = K.magRange;
-  let score = Math.max(0, Math.min(1, (mag - m0) / (m1 - m0))) * 100;
+  const spot: SpotSky = { mag, coreClear, domeW: worst.w };
   const notes: string[] = [];
-  score -= Math.min(K.domePenaltyMax, K.domePenaltyMax * Math.min(1, worst.w / K.domePenaltyFullW));
   if (coreClear <= 0) {
-    score -= K.coreBlockedPenalty;
     notes.push(
       `A ridge to the south rises ${ridge.toFixed(0)}° — the galactic core (max ${coreAlt.toFixed(0)}° up) never clears it from this point.`,
     );
   } else if (coreClear < K.coreLowDeg) {
-    score -= K.coreLowPenalty;
     notes.push(
       `Only ${coreClear.toFixed(0)}° between the core's peak and the southern ridge; you'll be shooting it low.`,
     );
@@ -213,11 +232,11 @@ export async function computeSky(
       coreClear,
       dome: worst.w >= 0 ? (worst as Sample) : null,
       domes,
-      score: Math.round(Math.max(0, score)),
       notes,
     },
     zone,
     worst,
+    spot,
   };
 }
 

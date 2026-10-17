@@ -81,11 +81,11 @@ step. Mission mode changes rules 1 and 3 above as written here; everything else 
 - Secrets never reach the client. `SUPABASE_SERVICE_ROLE_KEY` and `CRON_SECRET` are server-only.
 - Screen results are **immutable**: `screens` rows are inserted, never updated. A re-run inserts a
   new row with `version = max+1`.
-- **Schema v7 is frozen** (follow-up 55; v6 at follow-up 54, v5 at follow-up 34, v4 at VR3a, v3 at B2a, v2 at step 18b):
-  `SCREEN_SCHEMA_VERSION` is 7, and `lib/screen/schema-v7.test.ts` snapshots the stored `ScreenResult` shape. Any change to that shape (a field added,
+- **Schema v8 is frozen** (roadmap step 1: measurements, no grades; v7 at follow-up 55, v6 at follow-up 54, v5 at follow-up 34, v4 at VR3a, v3 at B2a, v2 at step 18b):
+  `SCREEN_SCHEMA_VERSION` is 8, and `lib/screen/schema-v8.test.ts` snapshots the stored `ScreenResult` shape. Any change to that shape (a field added,
   removed or retyped) requires **a new version plus either a migration** of the results already stored **or a clean
   break** (older results are cleared, and their parcels re-screen when opened, as v3 did), in the same PR, with the
-  choice recorded in `docs/plans/phase-0.md` §9 (owner, #109 review; v3's to v7's clean breaks are §9.26, §9.31, §9.32, §9.34 and §9.37).
+  choice recorded in `docs/plans/phase-0.md` §9 (owner, #109 review; v3's to v8's clean breaks are §9.26, §9.31, §9.32, §9.34, §9.37 and §9.44).
 - External fetches go through `lib/http.ts`: one throttled client with a per-host queue,
   identifying User-Agent, conditional requests, and 429 backoff. Connectors declare a minimum
   cadence and the scheduler cannot run them faster.

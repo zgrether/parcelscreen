@@ -15,11 +15,12 @@ import { describe, it } from "vitest";
 import { createHttpClient, realClock } from "@/lib/http";
 import { DEFAULT_ENDPOINTS, DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { buildDriveway, siteDriveways } from "@/lib/screen/driveway";
-import { routeContext, type ScreenOutput } from "@/lib/screen/index";
+import { routeContext } from "@/lib/screen/index";
 import { grade } from "@/lib/screen/score";
 import { frostCurve } from "@/lib/screen/sites";
 import { soilAt } from "@/lib/screen/soils";
-import type { Site, SoilRow } from "@/lib/screen/types";
+import { derivedSites, scored, type ScoredResult } from "@/lib/screen/derive";
+import type { ScoredSite as Site, SoilRow } from "@/lib/screen/types";
 import { lerp } from "@/lib/screen/util";
 import { FIXTURE_SLUGS, type FixtureSlug } from "../support/fixtures";
 import { fixtureParcel, runFixture } from "../support/scenarios";
@@ -58,7 +59,7 @@ interface FixtureData {
   slug: FixtureSlug;
   sites: Site[];
   valleyFloorFt: number;
-  sky: NonNullable<ScreenOutput["result"]["sky"]>;
+  sky: NonNullable<ScoredResult["sky"]>;
   /** Per site (by today's rank): the soil row score.ts used, and NRCS's reasons under its component. */
   soils: { rank: number; row: SoilRow | null; reasons: Reason[] | null }[];
   routed: (Routed & { rank: number })[];
@@ -91,7 +92,7 @@ async function nrcsReasons(cokey: string): Promise<Reason[]> {
 async function gather(slug: FixtureSlug, cache: Record<string, Reason[]>): Promise<FixtureData> {
   const out = await runFixture(slug);
   const { result, session: s } = out;
-  const sites = result.sites ?? [];
+  const sites = derivedSites(result) ?? [];
   const soils = [];
   for (const site of sites) {
     const row = soilAt(s.units ?? null, s.rows ?? [], site.ll);
@@ -155,7 +156,7 @@ async function gather(slug: FixtureSlug, cache: Record<string, Reason[]>): Promi
     slug,
     sites,
     valleyFloorFt: result.terrain!.valleyFloorFt,
-    sky: result.sky!,
+    sky: scored(result).sky!,
     soils,
     routed,
     firstRouted: !!result.driveway?.routes.length && !result.house,

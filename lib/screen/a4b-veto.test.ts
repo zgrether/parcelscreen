@@ -4,6 +4,7 @@
  * least steep is shown under "No practical route found".
  */
 import { describe, expect, it } from "vitest";
+import { flagsOf } from "./flags";
 import { drivewayView, GROUND_GRADE_NOTE } from "@/lib/report/driveway";
 import { runFixture } from "../../test/support/scenarios";
 import { DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "./config";
@@ -116,7 +117,7 @@ describe("the veto (driveway.vetoGradePct, Settings)", () => {
     const { result } = await runFixture("ferney-creek-52-47A", {
       config: { ...DEFAULT_USER_CONFIG, roadVetoGradePct: 3 },
     });
-    const flag = result.flags.find((f) => f.t.startsWith("Driveway to site #1: No practical route found"));
+    const flag = flagsOf(result).find((f) => f.t.startsWith("Driveway to site #1: No practical route found"));
     expect(flag?.lvl).toBe("warn");
     expect(result.driveway!.note).toMatch(
       /No practical route found: every driveway route is steeper than 3% over 30 m/,
@@ -127,7 +128,7 @@ describe("the veto (driveway.vetoGradePct, Settings)", () => {
   it("at the default 20% no fixture site is vetoed (the A4b study's finding)", async () => {
     for (const slug of ["ferney-creek-52-47A", "macks-mountain-35-3", "grayson-mud-creek-6273"] as const) {
       const { result } = await runFixture(slug);
-      expect(result.flags.some((f) => /No practical route found/.test(f.t))).toBe(false);
+      expect(flagsOf(result).some((f) => /No practical route found/.test(f.t))).toBe(false);
     }
   }, 300_000);
 });

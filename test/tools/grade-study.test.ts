@@ -21,6 +21,7 @@ import { deriveParcel } from "@/lib/geo/recipe";
 import { DEFAULT_ENDPOINTS, DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { screen } from "@/lib/screen/index";
 import { defaultName } from "@/lib/screen/summary";
+import { scored, type ScoredResult } from "@/lib/screen/derive";
 import type { ScreenResult } from "@/lib/screen/types";
 import type { LatLon } from "@/lib/screen/util";
 import { FIXTURE_SLUGS, loadFixture } from "../support/fixtures";
@@ -71,7 +72,7 @@ export interface StudyParcel {
   multiPart: boolean;
   fixture?: string;
   result: Pick<
-    ScreenResult,
+    ScoredResult,
     | "acres"
     | "verdict"
     | "sites"
@@ -214,19 +215,23 @@ export async function soilUnder(http: HttpClient, ll: LatLon): Promise<SoilExtra
   };
 }
 
-const keep = (r: ScreenResult): StudyParcel["result"] => ({
-  acres: r.acres,
-  verdict: r.verdict,
-  sites: r.sites,
-  excluded: r.excluded,
-  sky: r.sky,
-  terrain: r.terrain,
-  soils: r.soils,
-  flags: r.flags,
-  failed: r.failed,
-  drives: r.drives,
-  driveway: r.driveway,
-});
+/** The parcel's result as the study keeps it: with its grades derived (v8), so the study reads them as before. */
+const keep = (r0: ScreenResult): StudyParcel["result"] => {
+  const r = scored(r0);
+  return {
+    acres: r.acres,
+    verdict: r.verdict,
+    sites: r.sites,
+    excluded: r.excluded,
+    sky: r.sky,
+    terrain: r.terrain,
+    soils: r.soils,
+    flags: r.flags,
+    failed: r.failed,
+    drives: r.drives,
+    driveway: r.driveway,
+  };
+};
 
 const polyAcres = (g: Feature<Polygon>[]): number => g.reduce((s, p) => s + area(p), 0) / M2_PER_ACRE;
 
@@ -334,7 +339,7 @@ describe.runIf(import.meta.env.MODE === "grade-study" && (process.env.STAGE ?? "
               undefined,
               { http },
             );
-            const best = out.result.sites?.[0];
+            const best = scored(out.result).sites?.[0];
             let soilExtra: SoilExtra | null = null;
             try {
               soilExtra = best ? await soilUnder(http, best.ll) : null;

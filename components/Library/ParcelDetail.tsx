@@ -17,10 +17,10 @@ import { parcelName } from "@/lib/client/historyRows";
 import { openOnMap } from "@/lib/client/openOnMap";
 import { withArchive, withMilestone, withRestore, withStatus } from "@/lib/client/parcelStatus";
 import type { WorkingParcel } from "@/lib/client/parcelStore";
-import { getPref, setPref } from "@/lib/client/prefs";
 import type { KeptScreen } from "@/lib/client/useKeptScreens";
 import { loadUserConfig } from "@/lib/client/userConfig";
-import { reportCard, type Person } from "@/lib/report/card";
+import { useRubricView } from "@/lib/client/useRubricView";
+import { reportCard } from "@/lib/report/card";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import { drawnOf } from "@/lib/report/marks";
 import { listingAcresNote } from "@/lib/report/listing";
@@ -40,17 +40,13 @@ export function ParcelDetail({
   onClose(): void;
 }) {
   const { name, acres } = parcelName(parcel);
-  const [person, setPersonState] = useState<Person>(() => getPref("ps.person"));
-  const setPerson = (p: Person) => {
-    setPersonState(p);
-    setPref("ps.person", p);
-  };
+  const { rubrics, rubric, setRubric } = useRubricView();
   const [panel, setPanel] = useState<PanelKey | null>(null);
   const [confirming, setConfirming] = useState(false);
   const config = useMemo(() => loadUserConfig(), []);
   const result = kept?.state === "ok" ? kept.result : null;
   const drawn = drawnOf(parcel.markup, parcel.drivewayLine);
-  const card = result ? reportCard(result, person, drawn) : null;
+  const card = result ? reportCard(result, rubric, drawn) : null;
   const acresNote = listingAcresNote(parcel.listingAcres, acres);
   // The name it has until one is typed, and "Add a name": the Name box, unfolded and focused.
   const derivedName = parcelName({ ...parcel, name: "" }).name;
@@ -107,11 +103,18 @@ export function ParcelDetail({
           />
         </div>
         {card ? (
-          <ReportCard card={card} running={false} setPerson={setPerson} onOpen={setPanel} note={acresNote} />
+          <ReportCard
+            card={card}
+            running={false}
+            rubrics={rubrics}
+            setRubric={setRubric}
+            onOpen={setPanel}
+            note={acresNote}
+          />
         ) : (
           <p className="tiny muted">
             {kept?.state === "rescreen"
-              ? "Screened under earlier rules: it re-screens when you open it on the map."
+              ? "Needs a re-screen: open it on the map, or use the list's Re-screen all saved parcels."
               : "Not screened yet: open it on the map and screen it."}
           </p>
         )}

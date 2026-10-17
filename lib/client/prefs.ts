@@ -7,6 +7,9 @@ import { readCurrentParcel, writeCurrentParcel, type CurrentParcel } from "./cur
 import { DEFAULT_VIEW, readLibraryView, type LibraryView } from "./library";
 import { readRecent, type MarkChoice } from "./markChoices";
 import { withRanks } from "./myOrder";
+import { ProfileRubricsSchema, type ProfileRubrics } from "@/lib/rubric/schema";
+import { MINE } from "@/lib/rubric/types";
+import { activeKv, isProfileKey } from "./profileKv";
 import { readParcelStore, withNamesFromNotes, writeParcelStore, type ParcelStore } from "./parcelStore";
 
 export interface MapView {
@@ -60,8 +63,10 @@ export interface Prefs {
   "ps.overlays": OverlayPrefs;
   /** The one-time desktop hint for tilting and rotating has been seen (owner, map UX 2026-10-10). */
   "ps.tiltHint": boolean;
-  /** Whose weights the report card grades with (VR5; value-ranking.md §3.2). UI only, never part of a run. */
-  "ps.person": "zach" | "julie";
+  /** The rubric on show (step 1): "mine", or one of the profile's other rubrics by id. UI only, never part of a run. */
+  "ps.rubricView": string;
+  /** The profile's rubrics (step 1; lib/client/rubrics.ts): null until it has its own. */
+  "ps.rubrics": ProfileRubrics | null;
   /** The comparison table's columns (VR6): History keys, in order; null until the table is first changed (all shown). */
   "ps.compare": string[] | null;
   /** The list's filters and sort (WF2b), remembered per browser. */
@@ -91,7 +96,8 @@ const DEFAULTS: Prefs = {
   "ps.contours": null,
   "ps.overlays": ALL_OVERLAYS,
   "ps.tiltHint": false,
-  "ps.person": "zach",
+  "ps.rubricView": MINE,
+  "ps.rubrics": null,
   "ps.compare": null,
   "ps.library": DEFAULT_VIEW,
   "ps.namesFromNotes": false,
@@ -113,7 +119,14 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
   "ps.hillshade": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
   "ps.contours": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
   "ps.tiltHint": { read: (r) => r === "1", write: (v) => (v ? "1" : "0") },
-  "ps.person": { read: (r) => (r === "julie" ? "julie" : "zach"), write: (v) => v },
+  "ps.rubricView": { read: (r) => r, write: (v) => v },
+  "ps.rubrics": {
+    read: (r) => {
+      const parsed = ProfileRubricsSchema.safeParse(JSON.parse(r));
+      return parsed.success ? parsed.data : null;
+    },
+    write: (v) => JSON.stringify(v),
+  },
   "ps.compare": {
     read: (r) => {
       const v: unknown = JSON.parse(r);
@@ -140,9 +153,15 @@ function readTerrain(raw: string): TerrainPref {
 export interface KeyValueStore {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
+  removeItem?(key: string): void;
 }
 
-function store(): KeyValueStore | null {
+/**
+ * Where a pref lives (step 1, PR 4): a profile-scoped key (the parcels, settings, views: lib/client/profileKv.ts
+ * PROFILE_KEYS) in the current profile's documents, hydrated before the app renders; a device key in localStorage.
+ */
+function store(key: string): KeyValueStore | null {
+  if (isProfileKey(key)) return activeKv();
   try {
     return typeof localStorage === "undefined" ? null : localStorage;
   } catch {
@@ -150,7 +169,7 @@ function store(): KeyValueStore | null {
   }
 }
 
-export function getPref<K extends keyof Prefs>(key: K, from: KeyValueStore | null = store()): Prefs[K] {
+export function getPref<K extends keyof Prefs>(key: K, from: KeyValueStore | null = store(key)): Prefs[K] {
   try {
     const raw = from?.getItem(key);
     const value = raw == null ? DEFAULTS[key] : CODEC[key].read(raw);
@@ -188,7 +207,7 @@ function ranked(s: ParcelStore | null, kv: KeyValueStore | null): ParcelStore | 
 export function setPref<K extends keyof Prefs>(
   key: K,
   value: Prefs[K],
-  to: KeyValueStore | null = store(),
+  to: KeyValueStore | null = store(key),
 ): void {
   try {
     to?.setItem(key, CODEC[key].write(value));

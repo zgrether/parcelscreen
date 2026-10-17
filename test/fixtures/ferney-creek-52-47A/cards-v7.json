@@ -1,0 +1,525 @@
+{
+ "recordedAt": "engine 20, card.ts before the rubric (step 1, PR 1)",
+ "run": {
+  "zach": {
+   "gates": [
+    {
+     "key": "floodplain",
+     "label": "Floodplain",
+     "status": "pass",
+     "reason": "No FEMA flood zone on the parcel"
+    },
+    {
+     "key": "access",
+     "label": "Legal road access",
+     "status": "warn",
+     "reason": "Frontage on an unnamed road; the road in is marked private (OpenStreetMap); if it isn't this parcel's own drive, you need a recorded right to use it"
+    },
+    {
+     "key": "easement",
+     "label": "Easement needed",
+     "status": "pass",
+     "reason": "The driveway stays on the parcel"
+    },
+    {
+     "key": "septic",
+     "label": "Septic",
+     "status": "pass",
+     "reason": "Some soil on the parcel rates better than very limited for a septic field (Glenelg)"
+    }
+   ],
+   "rows": [
+    {
+     "key": "elevation",
+     "label": "Elevation at the build site",
+     "grade": "B",
+     "detail": "2,729 ft at site #1",
+     "short": "2,729 ft"
+    },
+    {
+     "key": "homesite",
+     "label": "Best homesite",
+     "grade": "A",
+     "detail": "faces E, 8.7 h of December sun, 7° slope",
+     "panelNote": "site #1's quality A (88)",
+     "short": "8.7 h sun, faces E"
+    },
+    {
+     "key": "sky",
+     "label": "Night sky",
+     "grade": "B",
+     "detail": "rural sky (zone 3b)",
+     "short": "zone 3b"
+    },
+    {
+     "key": "room",
+     "label": "Room to build",
+     "grade": "A",
+     "detail": "4.3 ac of gentle ground near the house site, 9.4× the build footprint",
+     "short": "9.4× footprint"
+    },
+    {
+     "key": "trails",
+     "label": "Trails and public land",
+     "grade": "D",
+     "detail": "a trailhead 47 min (11.5 mi) by road, 6.4 mi straight (Buffalo Mountain Trailhead)",
+     "short": "trailhead 47 min"
+    },
+    {
+     "key": "town",
+     "label": "Town and hospital",
+     "grade": "D",
+     "detail": "a 47-minute drive to an ER, 15 to a grocery",
+     "short": "ER 47 min, grocery 15"
+    },
+    {
+     "key": "garden",
+     "label": "Garden ground",
+     "grade": "A",
+     "detail": "a 2.48 ac garden on prime farmland",
+     "short": "2.48 ac, prime farmland"
+    }
+   ],
+   "person": "zach",
+   "points": 3.2,
+   "grade": "B",
+   "verdict": "Contender",
+   "reason": "Contender. Check first: frontage on an unnamed road; the road in is marked private (OpenStreetMap); if it isn't this parcel's own drive, you need a recorded right to use it.",
+   "incomplete": []
+  },
+  "julie": {
+   "gates": [
+    {
+     "key": "floodplain",
+     "label": "Floodplain",
+     "status": "pass",
+     "reason": "No FEMA flood zone on the parcel"
+    },
+    {
+     "key": "access",
+     "label": "Legal road access",
+     "status": "warn",
+     "reason": "Frontage on an unnamed road; the road in is marked private (OpenStreetMap); if it isn't this parcel's own drive, you need a recorded right to use it"
+    },
+    {
+     "key": "easement",
+     "label": "Easement needed",
+     "status": "pass",
+     "reason": "The driveway stays on the parcel"
+    },
+    {
+     "key": "septic",
+     "label": "Septic",
+     "status": "pass",
+     "reason": "Some soil on the parcel rates better than very limited for a septic field (Glenelg)"
+    }
+   ],
+   "rows": [
+    {
+     "key": "elevation",
+     "label": "Elevation at the build site",
+     "grade": "B",
+     "detail": "2,729 ft at site #1",
+     "short": "2,729 ft"
+    },
+    {
+     "key": "homesite",
+     "label": "Best homesite",
+     "grade": "A",
+     "detail": "faces E, 8.7 h of December sun, 7° slope",
+     "panelNote": "site #1's quality A (88)",
+     "short": "8.7 h sun, faces E"
+    },
+    {
+     "key": "sky",
+     "label": "Night sky",
+     "grade": "B",
+     "detail": "rural sky (zone 3b)",
+     "short": "zone 3b"
+    },
+    {
+     "key": "room",
+     "label": "Room to build",
+     "grade": "A",
+     "detail": "4.3 ac of gentle ground near the house site, 9.4× the build footprint",
+     "short": "9.4× footprint"
+    },
+    {
+     "key": "trails",
+     "label": "Trails and public land",
+     "grade": "D",
+     "detail": "a trailhead 47 min (11.5 mi) by road, 6.4 mi straight (Buffalo Mountain Trailhead)",
+     "short": "trailhead 47 min"
+    },
+    {
+     "key": "town",
+     "label": "Town and hospital",
+     "grade": "D",
+     "detail": "a 47-minute drive to an ER, 15 to a grocery",
+     "short": "ER 47 min, grocery 15"
+    },
+    {
+     "key": "garden",
+     "label": "Garden ground",
+     "grade": "A",
+     "detail": "a 2.48 ac garden on prime farmland",
+     "short": "2.48 ac, prime farmland"
+    }
+   ],
+   "person": "julie",
+   "points": 2.75,
+   "grade": "B",
+   "verdict": "Contender",
+   "reason": "Contender. Check first: frontage on an unnamed road; the road in is marked private (OpenStreetMap); if it isn't this parcel's own drive, you need a recorded right to use it.",
+   "incomplete": []
+  }
+ },
+ "setHouse": {
+  "zach": {
+   "gates": [
+    {
+     "key": "floodplain",
+     "label": "Floodplain",
+     "status": "pass",
+     "reason": "No FEMA flood zone on the parcel"
+    },
+    {
+     "key": "access",
+     "label": "Legal road access",
+     "status": "warn",
+     "reason": "Frontage on an unnamed road; the road in is marked private (OpenStreetMap); if it isn't this parcel's own drive, you need a recorded right to use it"
+    },
+    {
+     "key": "easement",
+     "label": "Easement needed",
+     "status": "pass",
+     "reason": "The driveway stays on the parcel"
+    },
+    {
+     "key": "septic",
+     "label": "Septic",
+     "status": "pass",
+     "reason": "Some soil on the parcel rates better than very limited for a septic field (Glenelg)"
+    }
+   ],
+   "rows": [
+    {
+     "key": "elevation",
+     "label": "Elevation at the build site",
+     "grade": "B",
+     "detail": "2,654 ft at the marked house",
+     "short": "2,654 ft"
+    },
+    {
+     "key": "homesite",
+     "label": "Best homesite",
+     "grade": "A",
+     "detail": "faces E, 8.7 h of December sun, 7° slope",
+     "panelNote": "site #1's quality A (88)",
+     "short": "8.7 h sun, faces E"
+    },
+    {
+     "key": "sky",
+     "label": "Night sky",
+     "grade": "B",
+     "detail": "rural sky (zone 3b)",
+     "short": "zone 3b"
+    },
+    {
+     "key": "room",
+     "label": "Room to build",
+     "grade": "A",
+     "detail": "4.3 ac of gentle ground near the house site, 9.4× the build footprint",
+     "short": "9.4× footprint"
+    },
+    {
+     "key": "trails",
+     "label": "Trails and public land",
+     "grade": "D",
+     "detail": "a trailhead 47 min (11.5 mi) by road, 6.4 mi straight (Buffalo Mountain Trailhead)",
+     "short": "trailhead 47 min"
+    },
+    {
+     "key": "town",
+     "label": "Town and hospital",
+     "grade": "D",
+     "detail": "a 47-minute drive to an ER, 15 to a grocery",
+     "short": "ER 47 min, grocery 15"
+    },
+    {
+     "key": "garden",
+     "label": "Garden ground",
+     "grade": "A",
+     "detail": "a 2.48 ac garden on prime farmland",
+     "short": "2.48 ac, prime farmland"
+    }
+   ],
+   "person": "zach",
+   "points": 3.2,
+   "grade": "B",
+   "verdict": "Contender",
+   "reason": "Contender. Check first: frontage on an unnamed road; the road in is marked private (OpenStreetMap); if it isn't this parcel's own drive, you need a recorded right to use it.",
+   "incomplete": []
+  },
+  "julie": {
+   "gates": [
+    {
+     "key": "floodplain",
+     "label": "Floodplain",
+     "status": "pass",
+     "reason": "No FEMA flood zone on the parcel"
+    },
+    {
+     "key": "access",
+     "label": "Legal road access",
+     "status": "warn",
+     "reason": "Frontage on an unnamed road; the road in is marked private (OpenStreetMap); if it isn't this parcel's own drive, you need a recorded right to use it"
+    },
+    {
+     "key": "easement",
+     "label": "Easement needed",
+     "status": "pass",
+     "reason": "The driveway stays on the parcel"
+    },
+    {
+     "key": "septic",
+     "label": "Septic",
+     "status": "pass",
+     "reason": "Some soil on the parcel rates better than very limited for a septic field (Glenelg)"
+    }
+   ],
+   "rows": [
+    {
+     "key": "elevation",
+     "label": "Elevation at the build site",
+     "grade": "B",
+     "detail": "2,654 ft at the marked house",
+     "short": "2,654 ft"
+    },
+    {
+     "key": "homesite",
+     "label": "Best homesite",
+     "grade": "A",
+     "detail": "faces E, 8.7 h of December sun, 7° slope",
+     "panelNote": "site #1's quality A (88)",
+     "short": "8.7 h sun, faces E"
+    },
+    {
+     "key": "sky",
+     "label": "Night sky",
+     "grade": "B",
+     "detail": "rural sky (zone 3b)",
+     "short": "zone 3b"
+    },
+    {
+     "key": "room",
+     "label": "Room to build",
+     "grade": "A",
+     "detail": "4.3 ac of gentle ground near the house site, 9.4× the build footprint",
+     "short": "9.4× footprint"
+    },
+    {
+     "key": "trails",
+     "label": "Trails and public land",
+     "grade": "D",
+     "detail": "a trailhead 47 min (11.5 mi) by road, 6.4 mi straight (Buffalo Mountain Trailhead)",
+     "short": "trailhead 47 min"
+    },
+    {
+     "key": "town",
+     "label": "Town and hospital",
+     "grade": "D",
+     "detail": "a 47-minute drive to an ER, 15 to a grocery",
+     "short": "ER 47 min, grocery 15"
+    },
+    {
+     "key": "garden",
+     "label": "Garden ground",
+     "grade": "A",
+     "detail": "a 2.48 ac garden on prime farmland",
+     "short": "2.48 ac, prime farmland"
+    }
+   ],
+   "person": "julie",
+   "points": 2.75,
+   "grade": "B",
+   "verdict": "Contender",
+   "reason": "Contender. Check first: frontage on an unnamed road; the road in is marked private (OpenStreetMap); if it isn't this parcel's own drive, you need a recorded right to use it.",
+   "incomplete": []
+  }
+ },
+ "houseRun": {
+  "zach": {
+   "gates": [
+    {
+     "key": "floodplain",
+     "label": "Floodplain",
+     "status": "pass",
+     "reason": "No FEMA flood zone on the parcel"
+    },
+    {
+     "key": "access",
+     "label": "Legal road access",
+     "status": "warn",
+     "reason": "Frontage on an unnamed road; the road in is marked private (OpenStreetMap); if it isn't this parcel's own drive, you need a recorded right to use it"
+    },
+    {
+     "key": "easement",
+     "label": "Easement needed",
+     "status": "pass",
+     "reason": "The driveway stays on the parcel"
+    },
+    {
+     "key": "septic",
+     "label": "Septic",
+     "status": "pass",
+     "reason": "Some soil on the parcel rates better than very limited for a septic field (Glenelg)"
+    }
+   ],
+   "rows": [
+    {
+     "key": "elevation",
+     "label": "Elevation at the build site",
+     "grade": "B",
+     "detail": "2,654 ft at the marked house",
+     "short": "2,654 ft"
+    },
+    {
+     "key": "homesite",
+     "label": "Best homesite",
+     "grade": "A",
+     "detail": "faces E, 8.7 h of December sun, 7° slope",
+     "panelNote": "site #1's quality A (88)",
+     "short": "8.7 h sun, faces E"
+    },
+    {
+     "key": "sky",
+     "label": "Night sky",
+     "grade": "B",
+     "detail": "rural sky (zone 3b)",
+     "short": "zone 3b"
+    },
+    {
+     "key": "room",
+     "label": "Room to build",
+     "grade": "A",
+     "detail": "4.3 ac of gentle ground near the house site, 9.4× the build footprint",
+     "short": "9.4× footprint"
+    },
+    {
+     "key": "trails",
+     "label": "Trails and public land",
+     "grade": "D",
+     "detail": "a trailhead 47 min (11.5 mi) by road, 6.4 mi straight (Buffalo Mountain Trailhead)",
+     "short": "trailhead 47 min"
+    },
+    {
+     "key": "town",
+     "label": "Town and hospital",
+     "grade": "D",
+     "detail": "a 47-minute drive to an ER, 15 to a grocery",
+     "short": "ER 47 min, grocery 15"
+    },
+    {
+     "key": "garden",
+     "label": "Garden ground",
+     "grade": "A",
+     "detail": "a 2.48 ac garden on prime farmland",
+     "short": "2.48 ac, prime farmland"
+    }
+   ],
+   "person": "zach",
+   "points": 3.2,
+   "grade": "B",
+   "verdict": "Contender",
+   "reason": "Contender. Check first: frontage on an unnamed road; the road in is marked private (OpenStreetMap); if it isn't this parcel's own drive, you need a recorded right to use it.",
+   "incomplete": []
+  },
+  "julie": {
+   "gates": [
+    {
+     "key": "floodplain",
+     "label": "Floodplain",
+     "status": "pass",
+     "reason": "No FEMA flood zone on the parcel"
+    },
+    {
+     "key": "access",
+     "label": "Legal road access",
+     "status": "warn",
+     "reason": "Frontage on an unnamed road; the road in is marked private (OpenStreetMap); if it isn't this parcel's own drive, you need a recorded right to use it"
+    },
+    {
+     "key": "easement",
+     "label": "Easement needed",
+     "status": "pass",
+     "reason": "The driveway stays on the parcel"
+    },
+    {
+     "key": "septic",
+     "label": "Septic",
+     "status": "pass",
+     "reason": "Some soil on the parcel rates better than very limited for a septic field (Glenelg)"
+    }
+   ],
+   "rows": [
+    {
+     "key": "elevation",
+     "label": "Elevation at the build site",
+     "grade": "B",
+     "detail": "2,654 ft at the marked house",
+     "short": "2,654 ft"
+    },
+    {
+     "key": "homesite",
+     "label": "Best homesite",
+     "grade": "A",
+     "detail": "faces E, 8.7 h of December sun, 7° slope",
+     "panelNote": "site #1's quality A (88)",
+     "short": "8.7 h sun, faces E"
+    },
+    {
+     "key": "sky",
+     "label": "Night sky",
+     "grade": "B",
+     "detail": "rural sky (zone 3b)",
+     "short": "zone 3b"
+    },
+    {
+     "key": "room",
+     "label": "Room to build",
+     "grade": "A",
+     "detail": "4.3 ac of gentle ground near the house site, 9.4× the build footprint",
+     "short": "9.4× footprint"
+    },
+    {
+     "key": "trails",
+     "label": "Trails and public land",
+     "grade": "D",
+     "detail": "a trailhead 47 min (11.5 mi) by road, 6.4 mi straight (Buffalo Mountain Trailhead)",
+     "short": "trailhead 47 min"
+    },
+    {
+     "key": "town",
+     "label": "Town and hospital",
+     "grade": "D",
+     "detail": "a 47-minute drive to an ER, 15 to a grocery",
+     "short": "ER 47 min, grocery 15"
+    },
+    {
+     "key": "garden",
+     "label": "Garden ground",
+     "grade": "A",
+     "detail": "a 2.48 ac garden on prime farmland",
+     "short": "2.48 ac, prime farmland"
+    }
+   ],
+   "person": "julie",
+   "points": 2.75,
+   "grade": "B",
+   "verdict": "Contender",
+   "reason": "Contender. Check first: frontage on an unnamed road; the road in is marked private (OpenStreetMap); if it isn't this parcel's own drive, you need a recorded right to use it.",
+   "incomplete": []
+  }
+ }
+}

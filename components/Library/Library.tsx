@@ -1,7 +1,7 @@
 "use client";
 /**
  * The household's list (WF2b, docs/plans/parcel-workflow.md §5): every History parcel with its name, acres, price,
- * state, status and milestones, the household verdict and both grades. Filters and sorts are views, remembered per
+ * state, status and milestones, the household verdict and each rubric's grade (step 1). Filters and sorts are views, remembered per
  * browser (ps.library); they never change a parcel. A tap on a name opens its detail: the report card, the status
  * controls, Open on the map, Remove. Ticked rows open in Compare. On a phone the table becomes cards.
  *
@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import { HelpProvider } from "@/components/Help/HelpDialog";
+import { ProfilePicker } from "@/components/Profile/ProfilePicker";
 import { LongName } from "@/components/LongName";
 import { shortPrice } from "@/lib/client/askingPrice";
 import {
@@ -37,9 +38,12 @@ import {
   type WorkingParcel,
 } from "@/lib/client/parcelStore";
 import { getPref, setPref } from "@/lib/client/prefs";
+import { profileRubrics, shortLabel, switchLabel } from "@/lib/client/rubrics";
 import { useKeptScreens } from "@/lib/client/useKeptScreens";
 import type { Verdict } from "@/lib/report/card";
+import type { NamedRubric } from "@/lib/rubric/types";
 import { LibraryControls } from "./LibraryControls";
+import { RescreenAll } from "./RescreenAll";
 import { DragHandle, OrderMenu, SortableRows, useSortableRow, type Mover } from "./MyOrder";
 import { ParcelDetail } from "./ParcelDetail";
 
@@ -77,7 +81,11 @@ export function Library() {
 
   const built = store.built;
   const screens = useKeptScreens(built);
-  const rows = useMemo(() => built.map((p) => libraryRow(p, screens.get(p.key!))), [built, screens]);
+  const rubrics = useMemo(() => profileRubrics(), []);
+  const rows = useMemo(
+    () => built.map((p) => libraryRow(p, screens.get(p.key!), rubrics)),
+    [built, screens, rubrics],
+  );
   const hidden = hiddenBy(rows, view.filters);
   const shown = sortRows(
     rows.filter((r) => passes(r, view.filters)),
@@ -125,7 +133,12 @@ export function Library() {
     setTicked(next);
   };
   const detail = opened ? built.find((p) => p.key === opened) : undefined;
-  const rowsProps = { rows: shown, ticked, toggle, open: setOpened, ordering, mover };
+  // The parcels whose grades are gone (approval A): "Re-screen all saved parcels" screens them one after another.
+  const needing = rows
+    .filter((r) => r.unscreened === "rescreen")
+    .map((r) => built.find((p) => p.key === r.key)!);
+  const nameOf = new Map(rows.map((r) => [r.key, r.name]));
+  const rowsProps = { rows: shown, rubrics, ticked, toggle, open: setOpened, ordering, mover };
 
   return (
     <HelpProvider>
@@ -135,6 +148,7 @@ export function Library() {
             ← Map
           </Link>
           <h1>Your list</h1>
+          <ProfilePicker />
           {ticked.size > 0 && (
             <button className="btn small" onClick={compare}>
               Compare {ticked.size}
@@ -149,7 +163,12 @@ export function Library() {
           </p>
         ) : (
           <>
-            <LibraryControls view={view} setView={setView} rows={rows} />
+            <LibraryControls view={view} setView={setView} rows={rows} rubrics={rubrics} />
+            <RescreenAll
+              parcels={needing}
+              nameOf={(key) => nameOf.get(key) ?? "the parcel"}
+              onKept={(key, id) => change(key, (p) => ({ ...p, screenIds: [...p.screenIds, id] }))}
+            />
             <p className="tiny muted lib-count">
               {shown.length} parcel{shown.length === 1 ? "" : "s"}
               {/* Dragging works only in My order (§5): under another sort, the way back to it. */}
@@ -210,6 +229,8 @@ export function Library() {
 
 interface RowsProps {
   rows: LibraryRow[];
+  /** The profile's rubrics, a grade column each; the Household column only when there are several. */
+  rubrics: readonly NamedRubric[];
   ticked: ReadonlySet<string>;
   toggle(key: string): void;
   open(key: string): void;
@@ -224,6 +245,10 @@ interface RowProps extends Omit<RowsProps, "rows"> {
   index: number;
   count: number;
 }
+
+/** "Needs a re-screen" once per row: on the one grade when it's the only column, else on the Household cell. */
+const noteOn = (r: LibraryRow, i: number): LibraryRow["unscreened"] =>
+  r.grades.length > 1 || i > 0 ? null : r.unscreened;
 
 const rowClass = (base: string, r: LibraryRow, dragging: boolean) =>
   [base, "lib-row", r.status === "archived" && "lib-archived", dragging && "lib-dragging"]
@@ -242,7 +267,8 @@ const statusCell = (r: LibraryRow) => {
 
 function VerdictWord({ v, unscreened }: { v: Verdict | null; unscreened: LibraryRow["unscreened"] }) {
   if (v) return <span className={`card-word small v-${v.toLowerCase()}`}>{v}</span>;
-  return <span className="tiny muted">{unscreened === "rescreen" ? "re-screen" : "–"}</span>;
+  // Screened under earlier rules, or its result is gone (a clean break): the Library's own words (approval A).
+  return <span className="tiny muted">{unscreened === "rescreen" ? "Needs a re-screen" : "–"}</span>;
 }
 
 function Grade({ g, unscreened }: { g: Graded | null; unscreened: LibraryRow["unscreened"] }) {
@@ -256,7 +282,7 @@ function Grade({ g, unscreened }: { g: Graded | null; unscreened: LibraryRow["un
 }
 
 /** Desktop: one row per parcel; in My order, the handle and the menu first. */
-function LibraryTable({ rows, ...rest }: RowsProps) {
+function LibraryTable({ rows, rubrics, ...rest }: RowsProps) {
   return (
     <div className="lib-scroll">
       <table className="lib-table">
@@ -275,15 +301,18 @@ function LibraryTable({ rows, ...rest }: RowsProps) {
             <th scope="col">Price</th>
             <th scope="col">State</th>
             <th scope="col">Status</th>
-            <th scope="col">Household</th>
-            <th scope="col">Zach&apos;s grade</th>
-            <th scope="col">Julie&apos;s grade</th>
+            {rubrics.length > 1 && <th scope="col">Household</th>}
+            {rubrics.map((nr) => (
+              <th key={nr.id} scope="col">
+                {switchLabel(nr)}
+              </th>
+            ))}
             <th scope="col">Updated</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((r, i) => (
-            <TableRow key={r.key} r={r} index={i} count={rows.length} {...rest} />
+            <TableRow key={r.key} r={r} index={i} count={rows.length} rubrics={rubrics} {...rest} />
           ))}
         </tbody>
       </table>
@@ -323,15 +352,16 @@ function TableRow({ r, index, count, ticked, toggle, open, ordering, mover }: Ro
         <State r={r} />
       </td>
       <td>{statusCell(r)}</td>
-      <td>
-        <VerdictWord v={r.household} unscreened={r.unscreened} />
-      </td>
-      <td>
-        <Grade g={r.zach} unscreened={r.unscreened} />
-      </td>
-      <td>
-        <Grade g={r.julie} unscreened={r.unscreened} />
-      </td>
+      {r.grades.length > 1 && (
+        <td>
+          <VerdictWord v={r.household} unscreened={r.unscreened} />
+        </td>
+      )}
+      {r.grades.map((g, i) => (
+        <td key={g.id}>
+          <Grade g={g.graded} unscreened={noteOn(r, i)} />
+        </td>
+      ))}
       <td className="tiny muted">{when(r.updatedAt)}</td>
     </tr>
   );
@@ -341,11 +371,11 @@ function TableRow({ r, index, count, ticked, toggle, open, ordering, mover }: Ro
  * A phone: one card per parcel (the name, status and milestones; acres, price and state; the verdicts as chips). In My
  * order the handle is on the card's left (§5), and the menu beside the Compare tick.
  */
-function LibraryCards({ rows, ...rest }: RowsProps) {
+function LibraryCards({ rows, rubrics, ...rest }: RowsProps) {
   return (
     <ul className="lib-cards">
       {rows.map((r, i) => (
-        <Card key={r.key} r={r} index={i} count={rows.length} {...rest} />
+        <Card key={r.key} r={r} index={i} count={rows.length} rubrics={rubrics} {...rest} />
       ))}
     </ul>
   );
@@ -387,16 +417,18 @@ function Card({ r, index, count, ticked, toggle, open, ordering, mover }: RowPro
           <State r={r} />
         </div>
         <div className="lib-chips">
-          <span className="lib-chip">
-            <span className="tiny muted">Household</span>{" "}
-            <VerdictWord v={r.household} unscreened={r.unscreened} />
-          </span>
-          <span className="lib-chip">
-            <span className="tiny muted">Zach</span> <Grade g={r.zach} unscreened={r.unscreened} />
-          </span>
-          <span className="lib-chip">
-            <span className="tiny muted">Julie</span> <Grade g={r.julie} unscreened={r.unscreened} />
-          </span>
+          {r.grades.length > 1 && (
+            <span className="lib-chip">
+              <span className="tiny muted">Household</span>{" "}
+              <VerdictWord v={r.household} unscreened={r.unscreened} />
+            </span>
+          )}
+          {r.grades.map((g, i) => (
+            <span key={g.id} className="lib-chip">
+              <span className="tiny muted">{shortLabel(g)}</span>{" "}
+              <Grade g={g.graded} unscreened={noteOn(r, i)} />
+            </span>
+          ))}
         </div>
       </div>
     </li>

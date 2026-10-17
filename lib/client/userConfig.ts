@@ -1,21 +1,17 @@
 /**
- * The user's Settings (thresholds, unit costs, anchors, endpoints, time zone) in localStorage under
- * "ps.cfg", merged over the defaults and validated. The Settings dialog (step 16a, lib/client/settingsForm.ts)
+ * The user's Settings (thresholds, unit costs, anchors, endpoints, time zone) under
+ * "ps.cfg" in the current profile's documents (step 1, PR 4), merged over the defaults and validated. The Settings dialog (step 16a, lib/client/settingsForm.ts)
  * edits it; ExploreShell holds the live copy.
  */
 import { DEFAULT_USER_CONFIG, migrateEndpoints } from "@/lib/screen/config";
 import { UserConfigSchema, type UserConfig } from "@/lib/screen/types";
 import type { KeyValueStore } from "./prefs";
+import { activeKv } from "./profileKv";
 
 const KEY = "ps.cfg";
 
-function store(): KeyValueStore | null {
-  try {
-    return typeof localStorage === "undefined" ? null : localStorage;
-  } catch {
-    return null;
-  }
-}
+/** The current profile's documents (step 1, PR 4): the settings are the profile's. */
+const store = (): KeyValueStore | null => activeKv();
 
 /** Stored settings over the defaults; anything unreadable or invalid falls back to the defaults. */
 export function loadUserConfig(from: KeyValueStore | null = store()): UserConfig {

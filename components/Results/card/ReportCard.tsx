@@ -3,8 +3,10 @@
  * dealbreakers, the graded rows one line each, and the cost to enjoy (pending until VR4). Every line opens its
  * slide-in panel, where today's report sections now live.
  */
-import type { Card, GateStatus, Person } from "@/lib/report/card";
+import type { Card, GateStatus } from "@/lib/report/card";
 import type { PanelKey } from "@/lib/report/cardPanels";
+import type { NamedRubric } from "@/lib/rubric/types";
+import { RubricSwitch } from "./RubricSwitch";
 
 const MARK: Record<GateStatus, string> = { pass: "✓", warn: "!", fail: "✗", unknown: "?" };
 const SHORT: Record<string, string> = {
@@ -13,12 +15,6 @@ const SHORT: Record<string, string> = {
   easement: "Easement",
   septic: "Septic",
 };
-/** The switch's labels (owner, #110). Phase 1 defaults it to the signed-in person. */
-const PEOPLE: { key: Person; name: string }[] = [
-  { key: "zach", name: "Zach's grade" },
-  { key: "julie", name: "Julie's grade" },
-];
-
 /**
  * The banner when the drawn lines changed since the screen: the results stay, no re-run. The owner's wording (A,
  * 2026-10-13; an approved replacement of #116's "Your drawn lines changed since this screen. Run again.").
@@ -36,7 +32,8 @@ export interface StaleBanner {
 export function ReportCard({
   card,
   running,
-  setPerson,
+  rubrics,
+  setRubric,
   onOpen,
   stale = null,
   note = null,
@@ -44,7 +41,9 @@ export function ReportCard({
   card: Card;
   /** A run in progress: data still to come reads "…", not "didn't load". */
   running: boolean;
-  setPerson(p: Person): void;
+  /** The profile's rubrics (step 1): the switch shows only when it holds more than its own. */
+  rubrics: readonly NamedRubric[];
+  setRubric(id: string): void;
   onOpen(key: PanelKey): void;
   /** A banner under the header saying the results no longer match an input (LINES_CHANGED). */
   stale?: StaleBanner | null;
@@ -61,18 +60,12 @@ export function ReportCard({
             {running ? "Screening…" : card.verdict}
           </span>
         </button>
-        <div className="card-person" role="group" aria-label="Whose weights grade the parcel">
-          {PEOPLE.map((p) => (
-            <button
-              key={p.key}
-              className="chip"
-              aria-pressed={card.person === p.key}
-              onClick={() => setPerson(p.key)}
-            >
-              {p.name}
-            </button>
-          ))}
-        </div>
+        <RubricSwitch
+          rubrics={rubrics}
+          current={card.rubric.id}
+          setRubric={setRubric}
+          label="Whose weights grade the parcel"
+        />
       </div>
       {stale && !running && (
         <div className="card-stale" role="status">

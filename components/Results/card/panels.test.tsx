@@ -5,9 +5,11 @@
  */
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { PERSONS, ZACH } from "@/test/support/rubrics";
+import { flagsOf as resultFlags } from "@/lib/screen/flags";
 import { expectedOf } from "@/test/support/expected";
 import { reportCard } from "@/lib/report/card";
-import { panelText } from "@/lib/report/cardPanels";
+import { panelText, type PanelKey } from "@/lib/report/cardPanels";
 import { evaluationPoint } from "../blocks/types";
 import { REPORT } from "../report";
 import type { LineMarkup } from "@/lib/client/parcelStore";
@@ -35,7 +37,7 @@ describe("the report card's panels (VR5)", () => {
     (slug, scenario) => {
       const result = expectedOf(slug, scenario);
       const point = evaluationPoint(result);
-      const card = reportCard(result, "zach");
+      const card = reportCard(result, ZACH);
       const panels = PANEL_KEYS.map((k) =>
         renderToStaticMarkup(
           <CardPanel panel={k} card={card} result={result} point={point} onClose={() => {}} />,
@@ -61,7 +63,7 @@ describe("the report card's panels (VR5)", () => {
     const html = renderToStaticMarkup(
       <CardPanel
         panel="sky"
-        card={reportCard(result, "zach")}
+        card={reportCard(result, ZACH)}
         result={result}
         point={evaluationPoint(result)}
         onClose={() => {}}
@@ -95,7 +97,7 @@ describe("the report card's panels (VR5)", () => {
       renderToStaticMarkup(
         <CardPanel
           panel="easement"
-          card={reportCard(r, "zach")}
+          card={reportCard(r, ZACH)}
           result={r}
           point={evaluationPoint(r)}
           running={running}
@@ -115,7 +117,7 @@ describe("the report card's panels (VR5)", () => {
     const html = renderToStaticMarkup(
       <CardPanel
         panel="homesite"
-        card={reportCard(result, "zach")}
+        card={reportCard(result, ZACH)}
         result={result}
         point={evaluationPoint(result)}
         onClose={() => {}}
@@ -131,7 +133,7 @@ describe("the report card's panels (VR5)", () => {
 
   it("a row's own flags, and the foundation and basement at site #1 (VR3b)", () => {
     const result = expectedOf("grayson-mud-creek-6273", "run");
-    const card = reportCard(result, "zach");
+    const card = reportCard(result, ZACH);
     const panel = (p: "septic" | "homesite" | "floodplain") =>
       renderToStaticMarkup(
         <CardPanel
@@ -144,12 +146,14 @@ describe("the report card's panels (VR5)", () => {
       );
     // The soils step's flags in the Septic panel, above the moved sections.
     const septic = panel("septic");
-    const bedrock = result.flags.find((x) => x.step === "soils" && /^Bedrock under/.test(x.t))!;
+    const bedrock = resultFlags(result).find((x) => x.step === "soils" && /^Bedrock under/.test(x.t))!;
     expect(septic.indexOf("panel-flags")).toBeGreaterThan(-1);
     expect(septic.indexOf(bedrock.t)).toBeLessThan(septic.indexOf("panel-from"));
     expect(panel("floodplain")).toContain("FEMA Special Flood Hazard Area");
     // The bottomland note goes with the homesites, not the septic field (owner, #114).
-    const bottomland = result.flags.find((x) => x.t.startsWith("The largest flat ground is bottomland"))!;
+    const bottomland = resultFlags(result).find((x) =>
+      x.t.startsWith("The largest flat ground is bottomland"),
+    )!;
     expect(bottomland.step).toBe("soils");
     const flagsOf = (html: string) => html.slice(html.indexOf("panel-flags"), html.indexOf('panel-from"'));
     expect(flagsOf(septic)).not.toContain(bottomland.t);
@@ -182,13 +186,16 @@ describe("the report card's panels (VR5)", () => {
   });
 
   it("the How it's scored lines come from the config", () => {
-    expect(panelText("elevation").howScored).toBe(
+    // The two weight sets the app shipped with, both named; one rubric alone names nobody (step 1).
+    const how = (k: PanelKey) => panelText(k, undefined, undefined, { rubrics: PERSONS }).howScored;
+    expect(panelText("elevation").howScored).toMatch(/ft; weight 25.$/);
+    expect(how("elevation")).toBe(
       "A at 3,000 ft and up, B from 2,500 ft, C from 2,000 ft, D from 1,500 ft; weight 25 (Zach) / 10 (Julie).",
     );
-    expect(panelText("room").howScored).toBe(
+    expect(how("room")).toBe(
       "Gentle ground (15% or less) within 300 ft of where the house goes on site #1, against the build footprint, 19,856 ft²: A at 3×, B from 2×, C from 1.25×, D when it fits; an F when the build doesn't fit on any homesite; weight 15 (Zach) / 10 (Julie).",
     );
-    expect(panelText("trails").howScored).toBe(
+    expect(how("trails")).toBe(
       "A when the parcel adjoins open public land or a trailhead is within 3 mi; B with open public land within a mile, or a trailhead within 6 mi; C within 12 mi; D within 22 mi (straight line); weight 10 (Zach) / 25 (Julie). " +
         // Appended (follow-up 54; rule 7).
         "By road: the quickest drive from where the driveway meets the road to one of the 5 nearest trailheads, to its parking where OpenStreetMap tags one: A within 10 min, B within 20, C within 35, D within 50. The straight-line distances above count only when the drive times didn't load.",

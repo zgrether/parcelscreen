@@ -6,7 +6,8 @@
  */
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import type { ScreenResult } from "@/lib/screen/types";
+import { flagsOf } from "@/lib/screen/flags";
+import type { PartialScreenResult, ScreenResult } from "@/lib/screen/types";
 import type { CompareOptions } from "./compare";
 import type { FixtureSlug } from "./fixtures";
 import type { Scenario } from "./scenarios";
@@ -64,5 +65,8 @@ export const EXPECTED_BROWSER: CompareOptions = {
   },
 };
 
-/** A result's flags without the step that raised them (v4): what a step's own function returns, for comparing. */
-export const rawFlags = (r: Pick<ScreenResult, "flags">) => r.flags.map(({ step: _step, ...f }) => f);
+/**
+ * A result's flags without the step that raised them (v4): what a step's own function returns, for comparing. The
+ * flags derive from the stored result (v8; lib/screen/flags.ts).
+ */
+export const rawFlags = (r: PartialScreenResult) => flagsOf(r).map(({ step: _step, ...f }) => f);
