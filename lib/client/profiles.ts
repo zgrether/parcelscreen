@@ -19,6 +19,8 @@ export const FIRST_PROFILE_NAME = "Profile 1";
 let current: Profile | null = null;
 let storage: ProfileStorage | null = null;
 let unavailable = false;
+/** The device's store the boot read `ps.profile` from: what a switch or a delete writes (tests pass a fake). */
+let device: LegacyStore | null = null;
 
 export const currentProfile = (): Profile | null => current;
 export const currentProfileId = (): string | null => current?.id ?? null;
@@ -65,6 +67,7 @@ export interface Booted {
 export async function bootProfiles(opts: BootOptions = {}): Promise<Booted> {
   const now = opts.now ?? new Date().toISOString();
   const ls = opts.ls === undefined ? localStore() : opts.ls;
+  device = ls;
   if (opts.storage) storage = opts.storage;
   else {
     const db = typeof indexedDB === "undefined" ? null : await openDb();
@@ -103,8 +106,56 @@ export async function bootProfiles(opts: BootOptions = {}): Promise<Booted> {
 
 /** Makes another profile current and starts over (the picker, PR 5): the page reloads, so no state carries over. */
 export function switchProfile(id: string): void {
-  localStore()?.setItem(CURRENT_PROFILE_KEY, id);
+  try {
+    (device ?? localStore())?.setItem(CURRENT_PROFILE_KEY, id);
+  } catch {
+    /* the device won't remember it: the boot then opens the most recently opened profile */
+  }
   if (typeof location !== "undefined") location.reload();
+}
+
+/** Every profile, the most recently opened first: the picker's order. The current one alone before the boot. */
+export async function listProfiles(): Promise<Profile[]> {
+  const s = storage;
+  if (!s) return current ? [current] : [];
+  const all = await s.profiles().catch((): Profile[] => []);
+  return all.sort((a, b) => b.openedAt.localeCompare(a.openedAt));
+}
+
+/** A new profile, kept but not current: the picker switches to it next. */
+export async function addProfile(name: string, now: string = new Date().toISOString()): Promise<Profile> {
+  const p = newProfile(name, now);
+  await storage?.putProfile(p);
+  return p;
+}
+
+export async function renameProfile(id: string, name: string): Promise<void> {
+  const s = storage;
+  if (!s) return;
+  const p = (await s.profiles()).find((x) => x.id === id);
+  if (!p) return;
+  const next = { ...p, name };
+  await s.putProfile(next);
+  if (current?.id === id) current = next;
+}
+
+/**
+ * Deletes a profile with its documents and its kept screens. Deleting the current one forgets the device's choice;
+ * the caller reloads, and the boot opens the most recently opened profile left, or creates a first one again.
+ */
+export async function deleteProfile(id: string): Promise<{ wasCurrent: boolean }> {
+  const s = storage;
+  if (!s) return { wasCurrent: false };
+  await s.deleteProfile(id);
+  const wasCurrent = current?.id === id;
+  if (wasCurrent) {
+    try {
+      (device ?? localStore())?.removeItem(CURRENT_PROFILE_KEY);
+    } catch {
+      /* the stale choice is harmless: the boot falls back when it finds no such profile */
+    }
+  }
+  return { wasCurrent };
 }
 
 /** The e2e's handle on the current profile's documents (debug mode only): a write resolves once it's in storage. */
@@ -146,6 +197,7 @@ export function resetProfilesForTests(): void {
   current = null;
   storage = null;
   unavailable = false;
+  device = null;
   setActiveKv(null);
 }
 

@@ -10,11 +10,18 @@ import { loadFixture, type FixtureSlug } from "../test/support/fixtures";
 import { EXPECTED_BROWSER, expectedOf } from "../test/support/expected";
 import type { Scenario } from "../test/support/scenarios";
 
-/** An empty profile with the debug handles on (window.__psScreen, __psMap), opened at the parcel. */
-export async function openExplorer(page: Page, slug: FixtureSlug): Promise<void> {
+/**
+ * An empty profile with the debug handles on (window.__psScreen, __psMap), opened at the parcel. `legacy`: localStorage
+ * keys from before profiles (`ps.parcels`, `ps.person`…), set before the first load so the boot's migration finds them.
+ */
+export async function openExplorer(
+  page: Page,
+  slug: FixtureSlug,
+  legacy: Record<string, string> = {},
+): Promise<void> {
   const { point } = loadFixture(slug).input;
   await page.addInitScript(
-    (view) => {
+    ({ view, legacy }) => {
       if (sessionStorage.getItem("e2e")) return; // a reload keeps what the test did
       sessionStorage.setItem("e2e", "1");
       localStorage.clear();
@@ -22,8 +29,9 @@ export async function openExplorer(page: Page, slug: FixtureSlug): Promise<void>
       // No roads & labels (17d): their tiles aren't in the fixtures, and no rendered check should see them.
       localStorage.setItem("ps.roads", "0");
       localStorage.setItem("ps.view", JSON.stringify(view));
+      for (const [k, v] of Object.entries(legacy)) localStorage.setItem(k, v);
     },
-    { lat: point.lat, lon: point.lon, z: 15 },
+    { view: { lat: point.lat, lon: point.lon, z: 15 }, legacy },
   );
   await page.goto("/explore");
 }
@@ -97,6 +105,35 @@ export async function visit(page: Page, url: string): Promise<void> {
   await page.goto(url);
   await booted(page);
 }
+
+/** Rewrites every kept screen: as a v2 result kept before this release, or as one from Phase 0's rules. */
+export const ageKept = (page: Page, how: "v2" | "earlier rules"): Promise<void> =>
+  page.evaluate(
+    (how) =>
+      new Promise<void>((resolve, reject) => {
+        const open = indexedDB.open("parcelscreen");
+        open.onerror = () => reject(open.error);
+        open.onsuccess = () => {
+          const tx = open.result.transaction("screens", "readwrite");
+          const req = tx.objectStore("screens").openCursor();
+          req.onsuccess = () => {
+            const c = req.result;
+            if (!c) return;
+            const v = c.value as { engine?: number; result: { schemaVersion: number } };
+            if (how === "v2") v.result.schemaVersion = 2;
+            else v.engine = 1;
+            c.update(v);
+            c.continue();
+          };
+          tx.oncomplete = () => {
+            open.result.close();
+            resolve();
+          };
+          tx.onerror = () => reject(tx.error);
+        };
+      }),
+    how,
+  );
 
 /** Opens a History parcel by (part of) the name its row shows (☰ → History → Open). */
 export async function openFromHistory(page: Page, name: string): Promise<void> {

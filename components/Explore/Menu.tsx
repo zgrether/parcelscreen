@@ -1,8 +1,8 @@
 "use client";
 /**
  * The app menu (owner, after 14d): ☰ at the map's top left opens a drawer from the left with what isn't
- * about the open parcel — History with Export file / Import file (16b), Your list (WF2b), Compare parcels (VR6), How
- * to read this, and Settings (16a).
+ * about the open parcel — the profile and its picker (step 1), History with Export file / Import file (16b), Your list
+ * (WF2b), Compare parcels (VR6), How to read this, and Settings (16a).
  * It closes with ×, Esc, a tap on the scrim, opening a parcel from History, or opening the help.
  * The drawer is portalled to <body> so it sits above the bottom sheet on phones, not inside the map.
  */
@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useHelp } from "@/components/Help/HelpDialog";
+import { ProfilePicker } from "@/components/Profile/ProfilePicker";
 import { useSettings } from "@/components/Settings/SettingsDialog";
 import { ExportImport } from "./ExportImport";
 import { History } from "./History";
@@ -57,6 +58,11 @@ function Drawer({ close }: { close(): void }) {
           </button>
         </header>
         <div className="menu-body">
+          {/* Whose data this is (step 1, plan §3.4): the current profile, and the others to switch to. */}
+          <section className="block profile-block">
+            <h2>Profile</h2>
+            <ProfilePicker />
+          </section>
           <History onOpened={close} />
           <ExportImport />
           <ul className="menu-items">
