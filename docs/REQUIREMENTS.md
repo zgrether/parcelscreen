@@ -116,7 +116,9 @@ FEMA NFHL layer 28, PAD-US `Fee_Managers_PADUS/FeatureServer/0`, TIGERweb Transp
 Photon (komoot) with Overpass mirrors as fallback (from the browser through `GET /api/places/overpass?lat&lon`,
 which runs the three place queries server-side with an identifying User-Agent: no mirror answers a browser),
 OSRM public router (replace before any commercial use),
-Lorenz atlas binary tiles (GitHub Pages), parcel services: NC OneMap `NC1Map_Parcels/FeatureServer/1`,
+Lorenz atlas binary tiles (GitHub Pages), trailheads: USFS INFRA recreation sites, the state parks' points (VGIN, NC
+DPR, TN TDEC) and Tennessee's TREC trails (`Tennessee_Statewide_Trails_Lines_Public`, step 2; phase-0.md §9.47); the
+state aerial: VGIN VBMP, NC OneMap and TNMap's TDOT orthophoto (step 2); parcel services: NC OneMap `NC1Map_Parcels/FeatureServer/1`,
 VGIN `VA_Parcels/FeatureServer/0`, TN Comptroller "Tennessee Property Boundaries (Public Use)"
 `Tennessee_Property_Boundaries_Public_Use/FeatureServer/0` (below).
 
