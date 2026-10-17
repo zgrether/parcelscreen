@@ -142,7 +142,9 @@ test("a pre-profile store is dropped: an empty Profile 1, the menu's line once, 
   await expect(page.locator(".old-data-note")).toHaveText("Saved with an older version; screen it again.");
   await expect(page.locator(".menu-drawer li", { hasText: "Ferney Creek" })).toHaveCount(0);
   const left = await page.evaluate(() =>
-    Object.keys(localStorage).filter((k) => k.startsWith("ps.legacy.") || k === "ps.parcels" || k === "ps.person"),
+    Object.keys(localStorage).filter(
+      (k) => k.startsWith("ps.legacy.") || k === "ps.parcels" || k === "ps.person",
+    ),
   );
   expect(left).toEqual([]);
   // Once: the next boot finds nothing to drop.

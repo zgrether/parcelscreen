@@ -117,9 +117,7 @@ export function idbProfileStorage(): ProfileStorage {
  * `delayWrites`: each document write lands after that many milliseconds, as IndexedDB's do, for tests of the order
  * between a write and what follows it.
  */
-export function memoryProfileStorage(
-  opts: { delayWrites?: number } = {},
-): ProfileStorage & {
+export function memoryProfileStorage(opts: { delayWrites?: number } = {}): ProfileStorage & {
   readonly state: {
     profiles: Map<string, Profile>;
     docs: Map<string, ProfileDoc>;
