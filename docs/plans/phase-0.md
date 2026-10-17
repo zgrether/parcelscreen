@@ -552,4 +552,15 @@ states (the Library's State column and filter) are all of its records' ("TN · N
 "Parcels: VGIN (Virginia), NC OneMap, Tennessee Comptroller of the Treasury". Recorded Carter answers for the unit
 tests: `test/fixtures/tn-carter/parcels.har` (`pnpm record:tn`).
 
+47. **State imagery and trailheads for Tennessee** (owner, 2026-10-17; step 2 plan §2–§3 and §8 Q3–Q4; roadmap step 2,
+PRs 3–4). **Imagery:** the "state ortho" basemap stacks USGS, then Tennessee, then North Carolina, then Virginia.
+Tennessee's is TNMap's public Web Mercator cache of the TDOT Aerial Surveys leaf-off orthophoto (6 in since 2022,
+1 ft before), credited "TDOT Aerial Surveys" as its copyright text reads; no license is stated, and the owner chose to
+use it with its attribution (§8 Q3). Checked live 2026-10-17: data to zoom 19 (the source's `maxzoom`); a tile with no
+coverage is a 404, so USGS shows through in Kentucky, Georgia and the rest of the bounds (TIGER's TN extent rounded
+outward), and no `export` fallback is needed; edge tiles are PNG with transparency. Its flights reach past the state
+line (a tile on the TN/NC line at Roan is a full JPEG), so NC and VA are drawn over it where they have imagery: near a
+border each state's own photo shows on its side as far as that state flew. The menu label becomes "Aerial (state
+ortho: VA, NC, TN)": the resolutions differ by county and year, so it no longer quotes them.
+
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.
