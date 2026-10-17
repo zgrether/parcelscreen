@@ -68,8 +68,7 @@ step. Mission mode changes rules 1 and 3 above as written here; everything else 
   - screenshots (below).
 - **Clean breaks, no migrations** (owner, 2026-10-17). Zach will redo every parcel from scratch.
   - A schema, storage or export-format change drops the old data and shows one plain line in its place:
-    "Saved with an older version; screen it again." This replaces the hard rule's "a migration or a clean
-    break" below: it is always a clean break.
+    "Saved with an older version; screen it again." The frozen-schema hard rule below follows it.
   - Don't write converters, migration code, re-screen-all machinery or legacy fallbacks.
   - Recorded fixtures and oracles stay: they are regression tests for the engine's numbers, not data to
     preserve.
@@ -101,9 +100,8 @@ step. Mission mode changes rules 1 and 3 above as written here; everything else 
   new row with `version = max+1`.
 - **Schema v8 is frozen** (roadmap step 1: measurements, no grades; v7 at follow-up 55, v6 at follow-up 54, v5 at follow-up 34, v4 at VR3a, v3 at B2a, v2 at step 18b):
   `SCREEN_SCHEMA_VERSION` is 8, and `lib/screen/schema-v8.test.ts` snapshots the stored `ScreenResult` shape. Any change to that shape (a field added,
-  removed or retyped) requires **a new version plus either a migration** of the results already stored **or a clean
-  break** (older results are cleared, and their parcels re-screen when opened, as v3 did), in the same PR, with the
-  choice recorded in `docs/plans/phase-0.md` §9 (owner, #109 review; v3's to v8's clean breaks are §9.26, §9.31, §9.32, §9.34, §9.37 and §9.44).
+  removed or retyped) requires **a new version and a clean break** (older results are dropped, never migrated: Mission
+  mode's clean-break rule, 2026-10-17), in the same PR, recorded in `docs/plans/phase-0.md` §9 (owner, #109 review; v3's to v8's clean breaks are §9.26, §9.31, §9.32, §9.34, §9.37 and §9.44).
 - External fetches go through `lib/http.ts`: one throttled client with a per-host queue,
   identifying User-Agent, conditional requests, and 429 backoff. Connectors declare a minimum
   cadence and the scheduler cannot run them faster.
