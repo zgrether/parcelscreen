@@ -33,7 +33,7 @@ import { routeContext } from "@/lib/screen/index";
 import { chooseDriveway, drivewayPoints } from "@/lib/screen/score";
 import type { ScreenResult } from "@/lib/screen/types";
 import { M2FT, M2_PER_ACRE } from "@/lib/screen/util";
-import { FIXTURE_SLUGS } from "../support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS } from "../support/fixtures";
 import { runFixture } from "../support/scenarios";
 
 const K = SCREEN_CONSTANTS.driveway;
@@ -530,7 +530,7 @@ describe.runIf(import.meta.env.MODE === "a4b-realism")("A4b router realism", () 
           result: ScreenResult;
         }
       >();
-      for (const slug of FIXTURE_SLUGS) {
+      for (const slug of PROTOTYPE_FIXTURE_SLUGS) {
         const { result, session: s } = await runFixture(slug);
         const ctx = routeContext(s);
         const limit = s.config.roadMaxGradePct;
@@ -732,7 +732,7 @@ describe.runIf(import.meta.env.MODE === "a4b-realism")("A4b router realism", () 
         [...protos[key].entries()]
           .filter(([c, p]) => c.slug === slug && p)
           .reduce((t, [, p]) => t + p!.ms, 0) / 1000;
-      const timing = FIXTURE_SLUGS.map(
+      const timing = PROTOTYPE_FIXTURE_SLUGS.map(
         (slug) =>
           `${slug.split("-")[0]} ${sum("m16", slug).toFixed(1)} s (16 moves) / ${sum("m32", slug).toFixed(1)} s (32)`,
       ).join(", ");
@@ -766,7 +766,7 @@ describe.runIf(import.meta.env.MODE === "a4b-realism")("A4b router realism", () 
         return l != null && l < MIN_LEG_FT;
       });
       const win32 = cands.map((c) => protos.m32.get(c)?.win[1]).filter((x): x is number => x != null);
-      const maxSum32 = Math.max(...FIXTURE_SLUGS.map((s) => sum("m32", s)));
+      const maxSum32 = Math.max(...PROTOTYPE_FIXTURE_SLUGS.map((s) => sum("m32", s)));
 
       const md = `# A4b: the driveway router's realism (report only)
 

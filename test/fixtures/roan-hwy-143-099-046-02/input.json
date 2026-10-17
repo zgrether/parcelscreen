@@ -1,0 +1,85 @@
+{
+ "name": "Roan Mountain, State Hwy 143 (Carter 099 046.02)",
+ "point": {
+  "lat": 36.186698,
+  "lon": -82.075222
+ },
+ "polygon": {
+  "type": "Feature",
+  "properties": {},
+  "geometry": {
+   "type": "Polygon",
+   "coordinates": [
+    [
+     [
+      -82.0731613097898,
+      36.1850335107125
+     ],
+     [
+      -82.0737243261992,
+      36.1844777274898
+     ],
+     [
+      -82.0743246918631,
+      36.185077805773
+     ],
+     [
+      -82.0747208767512,
+      36.1848619761449
+     ],
+     [
+      -82.0757924195614,
+      36.1859726689524
+     ],
+     [
+      -82.07675115104,
+      36.1861175727937
+     ],
+     [
+      -82.0768973222081,
+      36.1863118756795
+     ],
+     [
+      -82.0772817544373,
+      36.1889185866702
+     ],
+     [
+      -82.0743983941406,
+      36.1860149805132
+     ],
+     [
+      -82.0739653855124,
+      36.1856325464837
+     ],
+     [
+      -82.0731613097898,
+      36.1850335107125
+     ]
+    ]
+   ]
+  }
+ },
+ "props": {
+  "OBJECTID": 294252,
+  "GISLINK": "010099    04602",
+  "COUNTY_NAME": "Carter",
+  "CMAP": "099",
+  "GP": " ",
+  "PARCEL": "046.02",
+  "DEEDAC": 12.71,
+  "LINK_TPAD": "https://assessment.cot.tn.gov/TPAD/Parcel/GIS?gislink=010099%20%20%20%2004602"
+ },
+ "source": "https://services1.arcgis.com/YuVBSS7Y1of2Qud1/arcgis/rest/services/Tennessee_Property_Boundaries_Public_Use/FeatureServer/0",
+ "recorded": {
+  "startedAt": "2026-10-17T18:46:37.956Z",
+  "runAt": "2026-10-17T18:46:37.956Z",
+  "finishedAt": "2026-10-17T18:46:59.620Z"
+ },
+ "evaluateSite2": {
+  "ll": [
+   36.185878,
+   -82.074911
+  ],
+  "label": "site #2"
+ }
+}

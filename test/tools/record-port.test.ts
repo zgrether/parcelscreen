@@ -16,8 +16,10 @@ import { existsSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { createHttpClient, realClock } from "@/lib/http";
 import { DEFAULT_ENDPOINTS } from "@/lib/screen/config";
+import { fetchTile, tilesFor } from "@/lib/geo/parcelTiles";
+import { searchParcelNumbers } from "@/lib/search/sources";
 import { SERVER_USER_AGENT } from "@/lib/server/http";
-import { FIXTURE_SLUGS, loadFixture } from "../support/fixtures";
+import { FIXTURE_SLUGS, loadFixture, ROAN_SEARCH } from "../support/fixtures";
 import {
   createReplayFetch,
   loadHar,
@@ -47,6 +49,18 @@ const PORT_RUNS: Partial<
         deps(),
       ),
   ],
+  // Step 2 (e2e/tennessee.spec.ts): the Tennessee parcel lines around Roan at zoom 15 and up, and its parcel-number
+  // search, as the browser asks them, so the map's tap and search replay offline.
+  "roan-hwy-143-099-046-02": [
+    async (deps) => {
+      const { point } = loadFixture("roan-hwy-143-099-046-02").input;
+      const http = deps().http!;
+      const d = 0.03;
+      const box = { west: point.lon - d, east: point.lon + d, south: point.lat - d, north: point.lat + d };
+      for (const tile of tilesFor(box)) await fetchTile(http, ROAN_PARCELS, tile, "fine");
+      await searchParcelNumbers(http, new Map([[ROAN_PARCELS, new Set(["Carter"])]]), ROAN_SEARCH);
+    },
+  ],
 };
 
 /** Some services (the TN parcel WAF) refuse a non-browser User-Agent. */
@@ -58,6 +72,8 @@ const BROWSER_UA =
  */
 const uaFor = (url: string) =>
   DEFAULT_ENDPOINTS.overpass.some((u) => url.startsWith(u)) ? SERVER_USER_AGENT : BROWSER_UA;
+const ROAN_PARCELS = DEFAULT_ENDPOINTS.parcels.find((u) => u.includes("Tennessee_Property_Boundaries"))!;
+
 /** PORT_APPEND=<slug>: record that fixture's missing requests only, keeping every entry already there. */
 const APPEND = process.env.PORT_APPEND ?? "";
 const DROP = new Set(["content-encoding", "content-length", "transfer-encoding", "connection"]);

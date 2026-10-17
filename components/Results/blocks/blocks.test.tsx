@@ -14,7 +14,7 @@ import { terrainHeading } from "@/lib/report/terrain";
 import { verdictHeading } from "@/lib/report/verdict";
 import { DEFAULT_USER_CONFIG, STEPS } from "@/lib/screen/config";
 import type { PartialScreenResult, ScreenResult } from "@/lib/screen/types";
-import { loadFixture, type FixtureSlug, type PrototypeResult } from "@/test/support/fixtures";
+import { loadFixture, type PrototypeSlug, type PrototypeResult } from "@/test/support/fixtures";
 import { fromPrototype } from "@/test/support/fromPrototype";
 import { prototypeSections, visibleText } from "@/test/support/prototypeReport";
 import { buildHeading } from "@/lib/report/build";
@@ -113,7 +113,7 @@ const RELIEF_ROW = /Reliefculverts\d+\(oneevery150–400ft,bygrade\)/g;
 const render = (Block: ComponentType<BlockProps>, result: PartialScreenResult) =>
   renderToStaticMarkup(<Block result={result} point={evaluationPoint(result)} variant="panel" />);
 
-const RUNS: [FixtureSlug, "run" | "setHouse" | "houseRun" | "evaluateSite2"][] = [
+const RUNS: [PrototypeSlug, "run" | "setHouse" | "houseRun" | "evaluateSite2"][] = [
   ["ferney-creek-52-47A", "run"],
   ["ferney-creek-52-47A", "setHouse"],
   ["ferney-creek-52-47A", "houseRun"],

@@ -577,7 +577,14 @@ share services1.arcgis.com); the parks' `noResponse` tokens are unchanged, and T
 pnpm record:port` appended the one new request, its 28 earlier entries pinned by test/tools/mud-creek-har.test.ts. Its
 trailheads within reach go from 16 to 20 (Gentry Creek Falls, Laurel Creek Trail, Backbone Falls Trail serving Backbone
 Rock too, Mountain City Park Trail; Rogers Ridge Trail joins the USFS Rogers Ridge Trailhead); its five nearest, and
-so its Trails row, are unchanged. `ENGINE_VERSION` 22.
+so its Trails row, are unchanged. `ENGINE_VERSION` 22. **The Roan Mountain fixture** (PR 5; owner §8 Q5): port-only, so the fixture list splits once in
+`test/support/fixtures.ts`: `PROTOTYPE_FIXTURE_SLUGS` (Ferney, Macks, Mud Creek: golden.json, network.har, the v7
+oracles, `diff:prototype`) and `FIXTURE_SLUGS` (all, Roan and every later fixture). Every test that read the list kept
+the prototype-backed one, except those that are about every fixture: expected.json, the recorder, the scenarios, the
+states a search reaches, the fixtures' own checks and the oracle tests (Roan's `cards-v8.json` and `grades-v8.json`,
+`pnpm record:oracles`, a regression snapshot). Roan is Carter County's 099 046.02 on State Hwy 143, picked by plan §7.1
+(no parcel was named): 12.71 deeded acres, wooded with old logging tracks and a clearing, no house, facing south-east,
+about 1.2 km from the town; its run finds 124 trailheads within reach, many of them TREC's.
 
 48. **The pre-profile data is dropped (the clean-break rule)** (owner, 2026-10-17; step 2 plan §9, §8 Q6; roadmap step
 2, PR 1). The boot deletes step 1's `ps.legacy.*` copies and any pre-profile key still present, and the kept screens

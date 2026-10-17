@@ -12,7 +12,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { describe, it } from "vitest";
 import { differences } from "../support/compare";
 import { expectedOf } from "../support/expected";
-import { FIXTURE_SLUGS, loadFixture, type FixtureSlug } from "../support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, loadFixture, type PrototypeSlug } from "../support/fixtures";
 import { fromPrototype } from "../support/fromPrototype";
 import { asPrototype, PARITY, withoutMeasurements } from "../support/parity";
 import { SCENARIOS } from "../support/scenarios";
@@ -20,8 +20,8 @@ import { prototypeDiffReport, REPORT_FILE } from "./diffReport";
 
 describe.runIf(import.meta.env.MODE === "diff-prototype")("diff:prototype", () => {
   it("writes the report", () => {
-    const perFixture = new Map<FixtureSlug, string[]>();
-    for (const slug of FIXTURE_SLUGS) {
+    const perFixture = new Map<PrototypeSlug, string[]>();
+    for (const slug of PROTOTYPE_FIXTURE_SLUGS) {
       const lines: string[] = [];
       for (const scenario of SCENARIOS[slug]) {
         const golden = loadFixture(slug).goldens[scenario]!;

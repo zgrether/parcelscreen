@@ -24,7 +24,7 @@ import { defaultName } from "@/lib/screen/summary";
 import { scored, type ScoredResult } from "@/lib/screen/derive";
 import type { ScreenResult } from "@/lib/screen/types";
 import type { LatLon } from "@/lib/screen/util";
-import { FIXTURE_SLUGS, loadFixture } from "../support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, loadFixture } from "../support/fixtures";
 import { runFixture } from "../support/scenarios";
 import { writeReport } from "./gradeStudyDoc";
 
@@ -270,7 +270,7 @@ describe.runIf(import.meta.env.MODE === "grade-study" && (process.env.STAGE ?? "
             ?.name ?? "outside the six counties";
 
         // The fixtures, from their recordings.
-        for (const slug of FIXTURE_SLUGS) {
+        for (const slug of PROTOTYPE_FIXTURE_SLUGS) {
           if (done.some((p) => p.key === slug)) continue;
           const { point } = loadFixture(slug).input;
           const ll: LatLon = [point.lat, point.lon];

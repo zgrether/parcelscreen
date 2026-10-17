@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { derivedSites } from "./derive";
 import { expectedOf } from "@/test/support/expected";
-import { FIXTURE_SLUGS } from "@/test/support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS } from "@/test/support/fixtures";
 import { SCENARIOS } from "@/test/support/scenarios";
 import { rerank } from "./score";
 import type { ScoredSite } from "./types";
@@ -43,7 +43,7 @@ describe("rerank", () => {
   });
 
   it("every derived site score is a whole number, the precision rerank compares at", () => {
-    for (const slug of FIXTURE_SLUGS)
+    for (const slug of PROTOTYPE_FIXTURE_SLUGS)
       for (const sc of SCENARIOS[slug])
         for (const x of derivedSites(expectedOf(slug, sc)) ?? [])
           expect(Number.isInteger(x.score)).toBe(true);

@@ -1,7 +1,7 @@
 import { centroid, polygon, feature } from "@turf/turf";
 import { describe, expect, it } from "vitest";
 import { differences } from "../../test/support/compare";
-import { FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, loadFixture } from "../../test/support/fixtures";
 import { fixtureParcel } from "../../test/support/scenarios";
 import { expectedOf, rawFlags } from "../../test/support/expected";
 import { createHttpClient } from "../http";
@@ -111,7 +111,7 @@ describe("site flags", () => {
 });
 
 // The fixture check: replayed DEMs through the port's site search, against the prototype.
-describe.each(FIXTURE_SLUGS)("site search on %s vs the prototype", (slug) => {
+describe.each(PROTOTYPE_FIXTURE_SLUGS)("site search on %s vs the prototype", (slug) => {
   it("finds the same benches, shelves, gardens, diagnostics and flags", async () => {
     const fx = loadFixture(slug);
     const golden = expectedOf(fx.slug, "run");

@@ -5,12 +5,12 @@
 import { describe, expect, it } from "vitest";
 import { fwd } from "../geo/utm";
 import type { SessionView } from "../screen/worker-protocol";
-import type { FixtureSlug } from "@/test/support/fixtures";
+import type { PrototypeSlug } from "@/test/support/fixtures";
 import { replayRun } from "@/test/support/session";
 import { prototypeFn } from "@/test/support/prototypeFns";
 import { heat, SURFACE_MODES, surfaceCorners, surfaceImage, type SurfaceMode } from "./surface";
 
-const viewOf = async (slug: FixtureSlug): Promise<SessionView> => (await replayRun(slug)).view;
+const viewOf = async (slug: PrototypeSlug): Promise<SessionView> => (await replayRun(slug)).view;
 
 /** The prototype's three images for a session: drawTerrainOverlay with a canvas that keeps the pixels. */
 function prototypeImages(v: SessionView): Record<SurfaceMode, Uint8ClampedArray> {

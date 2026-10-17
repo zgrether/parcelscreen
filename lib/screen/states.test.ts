@@ -21,11 +21,12 @@ function centreOf(slug: (typeof FIXTURE_SLUGS)[number]): LatLon {
 }
 
 describe("the states a trailhead search reaches", () => {
-  it("each fixture: Ferney and Macks (Floyd County VA) reach only Virginia; Grayson, at the state line, all three", () => {
+  it("each fixture: Ferney and Macks (Floyd County VA) reach only Virginia; Grayson, at the state line, all three; Roan, TN and NC", () => {
     expect(Object.fromEntries(FIXTURE_SLUGS.map((slug) => [slug, reached(centreOf(slug))]))).toEqual({
       "ferney-creek-52-47A": ["VA"],
       "grayson-mud-creek-6273": ["VA", "NC", "TN"],
       "macks-mountain-35-3": ["VA"],
+      "roan-hwy-143-099-046-02": ["NC", "TN"],
     });
   });
 

@@ -11,7 +11,7 @@ import { findSites, siteResults } from "@/lib/screen/sites";
 import { fetchSoilPolygons, fetchSoils, screenableRows, vetBenches, vetGardens } from "@/lib/screen/soils";
 import { insideMasks, slopeAspect, valleyFloor } from "@/lib/screen/terrain";
 import { M2_PER_ACRE, type LatLon } from "@/lib/screen/util";
-import { loadFixture, type FixtureSlug } from "./fixtures";
+import { loadFixture, type PrototypeSlug } from "./fixtures";
 import { fixtureParcel } from "./scenarios";
 
 /** Virtual time: the per-host throttle (1 req/s to OSRM and Photon) advances it instead of waiting. */
@@ -20,7 +20,7 @@ export function instantClock(): Clock {
   return { now: () => t, sleep: async (ms) => void (t += ms) };
 }
 
-export async function throughSites(slug: FixtureSlug) {
+export async function throughSites(slug: PrototypeSlug) {
   const fx = loadFixture(slug);
   const fetch = fx.replayFetch();
   const deps = {
@@ -61,7 +61,7 @@ export async function throughSites(slug: FixtureSlug) {
 }
 
 /** …then the soils step: rows, map units, vetted benches (with the re-picked best) and gardens. */
-export async function throughSoils(slug: FixtureSlug) {
+export async function throughSoils(slug: PrototypeSlug) {
   const t = await throughSites(slug);
   const rows = screenableRows(await fetchSoils(t.measured, t.deps));
   const units = await fetchSoilPolygons(t.measured, t.deps);

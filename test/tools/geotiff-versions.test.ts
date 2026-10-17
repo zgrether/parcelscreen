@@ -18,7 +18,7 @@ import { runInNewContext } from "node:vm";
 import { deflateSync } from "node:zlib";
 import { fromArrayBuffer } from "geotiff";
 import { describe, expect, it } from "vitest";
-import { FIXTURE_SLUGS, loadFixture } from "../support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS, loadFixture } from "../support/fixtures";
 
 const DIR = "tmp/geotiff-cdn";
 const FILES = ["geotiff.js", "pako-2.0.4.min.js", "float16-3.4.7.js"];
@@ -62,7 +62,7 @@ describe.runIf(import.meta.env.MODE === "geotiff-versions")(
       let rasters = 0,
         cells = 0,
         differ = 0;
-      for (const slug of FIXTURE_SLUGS)
+      for (const slug of PROTOTYPE_FIXTURE_SLUGS)
         for (const e of loadFixture(slug).har.log.entries.filter((x) => /exportImage/.test(x.request.url))) {
           const c = e.response.content as { text?: string; encoding?: string };
           if (!c.text) continue;
@@ -90,7 +90,7 @@ describe.runIf(import.meta.env.MODE === "geotiff-versions")(
       const newPako = fromGeotiff("pako") as { inflate(b: Uint8Array): Uint8Array };
       let streams = 0,
         pakoDiffer = 0;
-      for (const slug of FIXTURE_SLUGS)
+      for (const slug of PROTOTYPE_FIXTURE_SLUGS)
         for (const e of loadFixture(slug).har.log.entries.filter((x) => /exportImage/.test(x.request.url))) {
           const c = e.response.content as { text?: string; encoding?: string };
           if (!c.text) continue;

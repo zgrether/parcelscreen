@@ -9,7 +9,7 @@ import { drivewayView } from "@/lib/report/driveway";
 import { routeLabel } from "@/lib/screen/routeLabel";
 import { routedLine } from "@/lib/screen/score";
 import type { ScreenResult } from "@/lib/screen/types";
-import { FIXTURE_SLUGS } from "@/test/support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS } from "@/test/support/fixtures";
 import { expectedPath } from "@/test/support/expected";
 import { RULES_AT_10, runScenario } from "@/test/support/scenarios";
 
@@ -17,7 +17,7 @@ const run = (slug: string): ScreenResult =>
   (JSON.parse(readFileSync(expectedPath(slug as never), "utf8")) as { run: ScreenResult }).run;
 
 describe("routes that need an easement say so (owner, #87)", () => {
-  it.each(FIXTURE_SLUGS)(
+  it.each(PROTOTYPE_FIXTURE_SLUGS)(
     "%s: every route out of the parcel is labelled so on its card and on the map",
     (slug) => {
       const r = run(slug);

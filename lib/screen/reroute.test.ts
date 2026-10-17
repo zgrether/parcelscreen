@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 import { ZACH } from "@/test/support/rubrics";
 import { flagsOf } from "./flags";
 import { expectedOf } from "@/test/support/expected";
-import { loadFixture, type FixtureSlug } from "@/test/support/fixtures";
+import { loadFixture, type PrototypeSlug } from "@/test/support/fixtures";
 import { redGate, toTheBoundary } from "@/test/support/redGate";
 import { depsFor, runFixture } from "@/test/support/scenarios";
 import { reportCard, TIMED_TO_THE_TRAILHEAD } from "../report/card";
@@ -21,11 +21,11 @@ import type { LatLon } from "./util";
 
 /** A result as JSON, its run time aside: what parity compares. */
 const plain = (r: ScreenResult) => JSON.parse(JSON.stringify({ ...r, runAt: "" })) as unknown;
-const F = async (slug: FixtureSlug, lines: DrawnInput[], drivewayLine: string | null = null) =>
+const F = async (slug: PrototypeSlug, lines: DrawnInput[], drivewayLine: string | null = null) =>
   runFixture(slug, { lines, ...(drivewayLine ? { drivewayLine } : {}) });
 
 /** The fixture's offline deps, with every request's host noted from `reset()` on (#140 review: what a reroute asks). */
-function counted(slug: FixtureSlug, extra: Partial<ScreenDeps> = {}) {
+function counted(slug: PrototypeSlug, extra: Partial<ScreenDeps> = {}) {
   let hosts: string[] = [];
   const deps = {
     ...depsFor(
@@ -47,7 +47,7 @@ const failingParking = async (): Promise<never> => {
 };
 
 /** A 60 m track through the parcel's middle, off any road: a line the driveway may follow but can't start from. */
-function middleTrack(slug: FixtureSlug, id = "mid"): DrawnInput {
+function middleTrack(slug: PrototypeSlug, id = "mid"): DrawnInput {
   const c = centroid(loadFixture(slug).input.polygon).geometry.coordinates as [number, number];
   const a = destination(c, 30, -60, { units: "meters" }).geometry.coordinates;
   const b = destination(c, 30, 120, { units: "meters" }).geometry.coordinates;
@@ -62,14 +62,14 @@ const shifted = (l: DrawnInput, m: number): DrawnInput => ({
   ).map(([lon, lat]): LatLon => [lat, lon]),
 });
 
-const LINES: Record<FixtureSlug, DrawnInput> = {
+const LINES: Record<PrototypeSlug, DrawnInput> = {
   "ferney-creek-52-47A": middleTrack("ferney-creek-52-47A"),
   "macks-mountain-35-3": middleTrack("macks-mountain-35-3"),
   "grayson-mud-creek-6273": toTheBoundary(redGate),
 };
 
 describe("a reroute = a full run with the same lines (§6.1)", () => {
-  for (const slug of Object.keys(LINES) as FixtureSlug[])
+  for (const slug of Object.keys(LINES) as PrototypeSlug[])
     it(slug, async () => {
       const before = await F(slug, []);
       const after = await reroute(before, [LINES[slug]], null);

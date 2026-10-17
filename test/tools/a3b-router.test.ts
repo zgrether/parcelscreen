@@ -14,7 +14,7 @@ import { entranceCandidates, leastSteep, routeDriveway, siteDriveways } from "@/
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { routeContext } from "@/lib/screen/index";
 import { drivewayPoints } from "@/lib/screen/score";
-import { FIXTURE_SLUGS } from "../support/fixtures";
+import { PROTOTYPE_FIXTURE_SLUGS } from "../support/fixtures";
 import { runFixture } from "../support/scenarios";
 
 const DIR = "tmp/a3b";
@@ -47,7 +47,7 @@ const keyOf = (ll: [number, number]) => `${ll[0].toFixed(6)},${ll[1].toFixed(6)}
 
 async function capture(): Promise<Capture[]> {
   const out: Capture[] = [];
-  for (const slug of FIXTURE_SLUGS) {
+  for (const slug of PROTOTYPE_FIXTURE_SLUGS) {
     const t0 = performance.now();
     const { result, session: s } = await runFixture(slug);
     const screenMs = performance.now() - t0;

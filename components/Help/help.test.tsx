@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 import type { ScreenResult } from "@/lib/screen/types";
 import { evaluationPoint } from "@/components/Results/blocks/types";
 import { REPORT } from "@/components/Results/report";
-import { loadFixture, FIXTURE_SLUGS } from "@/test/support/fixtures";
+import { loadFixture, PROTOTYPE_FIXTURE_SLUGS } from "@/test/support/fixtures";
 import { fromPrototype } from "@/test/support/fromPrototype";
 import { visibleText } from "@/test/support/prototypeReport";
 import { HelpText } from "./HelpText";
@@ -53,7 +53,7 @@ describe("help (14e)", () => {
 
   it("has an anchor for every report section's ? link", () => {
     const anchors = new Set([...ours.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
-    for (const slug of FIXTURE_SLUGS)
+    for (const slug of PROTOTYPE_FIXTURE_SLUGS)
       for (const R of Object.values(loadFixture(slug).goldens)) {
         const result = fromPrototype(R!) as ScreenResult;
         for (const { heading } of REPORT)

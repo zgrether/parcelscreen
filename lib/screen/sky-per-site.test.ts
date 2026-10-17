@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { derivedHouse, derivedSites, skyScoreOf } from "./derive";
-import { loadFixture, FIXTURE_SLUGS, type FixtureSlug } from "@/test/support/fixtures";
+import { loadFixture, PROTOTYPE_FIXTURE_SLUGS, type PrototypeSlug } from "@/test/support/fixtures";
 import { runFixture } from "@/test/support/scenarios";
 import { evaluateAt, setHouse, type ScreenOutput } from "./index";
 import type { ScreenResult } from "./types";
@@ -15,7 +15,7 @@ import type { LatLon } from "./util";
  * The fixture's recorded house (Ferney Creek's), else one marked at the ranked site whose sky reads furthest from
  * site #1's (Macks Mountain's 0.70 ac site, Mud Creek's 0.46 ac shelf): a house whose sky isn't the focus's.
  */
-function houseOf(slug: FixtureSlug, run: ScreenResult): LatLon {
+function houseOf(slug: PrototypeSlug, run: ScreenResult): LatLon {
   const h = loadFixture(slug).input.house;
   if (h) return h.ll as LatLon;
   const sites = derivedSites(run)!;
@@ -33,7 +33,7 @@ const houseSky = (out: ScreenOutput) => {
 };
 
 describe("the sky at each site and at the house (follow-up 58)", () => {
-  for (const slug of FIXTURE_SLUGS)
+  for (const slug of PROTOTYPE_FIXTURE_SLUGS)
     it(slug, async () => {
       const run = await runFixture(slug, {});
       const h = houseOf(slug, run.result);
