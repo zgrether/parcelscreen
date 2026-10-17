@@ -20,7 +20,7 @@ then hand the repo to Claude Code with the phase you want.
 | Screens are immutable | A screen result is stored once; re-running creates a new version | Inputs (lidar, soils, atlas) don't change; the expensive part runs once |
 | Sharing | Household + comments thread (no voting) + per-parcel share | Decided |
 | Prices | Price history table, not a single field | Decided |
-| Users (10/16) | No accounts yet: anyone with the link creates a local profile that holds their data in that browser; nothing hard-coded to Zach and Julie; accounts later adopt the profiles | `docs/design/workflow-review.md`, Roadmap |
+| Users (10/16) | No accounts yet: anyone with the link creates a local profile that holds their data in that browser; nothing hard-coded to Zach and Julie; accounts (step 13) start empty, and parcels come over with an export file if wanted | `docs/design/workflow-review.md`, Roadmap |
 | Grading (10/16) | Grades are computed at display time from stored measurements plus the viewer's rubric; a saved screen stores raw values and no grades | One change unlocks the interview, the editor, the previews and household predictions without re-screening |
 | Household grades (10/16) | Each person grades for themselves; others' grades are predictions from their rubrics, with a prompt to send for confirmation; no combined grade | Decided |
 | Cost to enjoy (10/16) | Stays, as cost to camp and cost to build, driven by the parcel's state; phasing isn't asked | Decided |
