@@ -494,4 +494,29 @@ Supabase (auth, tables, Storage, atlas tile caching), API proxies (unless the CO
 
 44. **Schema v8: a clean break; derivations are engine code** (owner, 2026-10-16; step 1 plan §3.3, approval B; roadmap step 1). A saved screen stores measurements and no grades: every stored grade, score and verdict leaves `ScreenResult` (each site's and the house's `score`, `grade`, `quality`, `qGrade`, `q`, `c`, `costIdx`, `costTier`; `sky.score`; `verdict`; `flags`), and the raw values they derive from arrive: the sky read at each spot (`sky`: mag, the core's clearance, the brightest southern dome), the NRCS component under it (`soilKey`) with NRCS's slope-free ratings by component (`soilLimits`), the driveway candidate it's scored on (`driveway`: length, cost, easement, legality, limit, grade over 30 m, design grade, the existing drive's grade and limit, the veto), and the run's thresholds in `params`. The display derives the rest (`lib/screen/derive.ts`, `flags.ts`) by the same pure functions the engine ranks with. v7 results aren't read or migrated; their parcels re-screen when opened (ENGINE_VERSION 21), and the Library offers "Re-screen all saved parcels" (step 1, PR 5). Every display-time derivation (`storedScore` / `spotScores`, `flagsOf`, `verdictOf`, `skyScore`, the card's gates and rows) is engine code: changing one is a numbers change, declared, with an ENGINE_VERSION bump; `test/fixtures/<slug>/grades-v7.json` and `cards-v7.json` are the guard, and the `rerank()` invariant holds the stored site order. One deviation, declared: the sun, sky and driveway flags derive from what the result holds, so after a re-evaluation or a marked house they describe that point, as the sections beside them do (the engine kept the run's own; no fixture or scenario shows the difference).
 
+45. **Profiles: every person's data under a local profile; nothing in code names a person** (owner, 2026-10-16;
+step 1 plan §3.4–§3.5 and §8; roadmap step 1, PRs #149–#152). Anyone opening the link gets a profile. IndexedDB
+`parcelscreen` (version 2) holds `profiles`, `docs` (a profile's documents, keyed by [profile, key]: its parcels,
+settings, rubrics and views, each the string the prefs module writes) and the kept `screens`, stamped with their
+profile; the device alone keeps the map, basemap and layer prefs, `ps.debug`, and `ps.profile` (which profile is
+current). The prefs stay synchronous: the profile's documents are hydrated before the app renders
+(`components/Profile/ProfileGate.tsx`) and written through at once, every write's transaction started on the spot and
+`flush` waiting for all in flight; a page unloaded within milliseconds of a write can still lose it, which the e2e
+avoids by flushing before every reload (a localStorage journal would close the window: step 2's call). The first boot
+moves the pre-profile localStorage keys into "Profile 1" in one transaction and renames them to `ps.legacy.*` (step
+2's first PR deletes them); a refused move leaves them untouched. Today's two weight sets became data: the first
+profile's own rubric is the default (`card.weights.default`, the same numbers), and the second rides along as an
+"other" rubric named "Julie" (`LEGACY_SECOND_WEIGHTS`, deleted in step 5 with its name); a fresh profile holds its own
+alone, so it shows no switch, no Household column and no second grade. The switch reads "My grade" and "{name}'s
+grade"; the Library, Compare and the rulebook follow the same list, and the panels' weight line names the rubrics
+only when there are several ("weight 25" alone with one: a wording call, not the plan's). The picker (the ☰ menu,
+and the Library, Compare and Rulebook headers) switches by a reload, adds a profile and switches to it at once, renames
+in place, and deletes with a confirm naming what goes; deleting the current profile reloads into the most recently
+opened one left, or a new "Profile 1". After the v8 clean break a Library row reads "Needs a re-screen" and "Re-screen
+all saved parcels" screens those rows one after another in the page's worker, with progress and Cancel. Export
+version 6 carries the profile's name and rubrics; a version 5 file imports with neither, and the file's rubrics
+replace the profile's only through the summary's "Replace my rubric too" tick. Parked for the owner: the journal
+above; "(Mine)" on a lone rubric's weight line; whether Add should only list the new profile; `why` stays stored
+(§8 Q8, revisited in step 6); the sun, sky and driveway flags follow the current focus (§9.44).
+
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.
