@@ -312,6 +312,8 @@ Each step is one unattended mission for Claude Code. You approve its plan once; 
 - **The hand-back:** what shipped, the PR list, any numbers change with its `diff:prototype` summary, deviations from the plan, questions it parked, and the test plan.
 - **The test plan:** numbered steps on the preview URL, each "do this → expect that" with a pass/fail box, desktop first and then phone, using the fixture parcels by name (Mud Creek, Macks, Ferney, and a Roan Mountain one once it exists). About 15–30 minutes.
 
+**Priorities (Zach, 10/17):** Usability and presentation come first: each step is judged by how it looks and works for someone using it, on desktop and phone, not only by whether the numbers match. Clean breaks, no migrations: saved parcels and screens are expected to be redone from scratch once these features land; recorded fixtures stay as regression tests for the engine's numbers.
+
 **The steps:**
 
 1. **Profiles and the grading split.** Anyone opening the link creates a local profile; profiles can be added, switched and renamed, and all data is scoped to a profile. Today's data moves into a first profile. Saved screens store raw measurements; grades are computed on display from measurements plus the profile's rubric. The default rubric reproduces today's grades exactly on every fixture, so nothing visible changes except the profile picker.
@@ -326,7 +328,7 @@ Each step is one unattended mission for Claude Code. You approve its plan once; 
 10. **New data points,** one PR each: Climate and Privacy first, then Long view, Airport, Bike to a long trail, Internet. Hospital becomes its own factor in the first.
 11. **Ways to raise the grade.** Homesite, access, septic and combine first; tree clearing after canopy heights are confirmed.
 12. **Area catalog.** The 30 areas, area profiling run headless on a schedule, scoring, the suggestion box, sample parcels.
-13. **Accounts and attachments.** Sign-in that adopts existing local profiles, file storage for photos and PDFs, and in-app "Send to confirm".
+13. **Accounts and attachments.** Sign-in, file storage for photos and PDFs, and in-app "Send to confirm". Accounts start empty; bring parcels over with an export file if wanted.
 14. **What the land can do.** Panel 1, the county rules table, power-line distance, and the Split tool as a keep / sell scenario. Can run any time after step 9.
 15. **How it could pay.** Panel 2 with dated, sourced ranges; the easement slider; use-value tax; carbon eligibility; split break-even. After step 14.
 
