@@ -134,7 +134,10 @@ describe("the parcel services are asked for the fields the app reads", () => {
   it.each([
     [DEFAULT_ENDPOINTS.parcels[0]!, "objectid,parno,ownname,siteadd,cntyname,stcntyfips"],
     [DEFAULT_ENDPOINTS.parcels[1]!, "OBJECTID,PARCELID,FIPS,LOCALITY"],
-    [DEFAULT_ENDPOINTS.parcels[2]!, "OBJECTID,PARCELID,OWNER,ADDRESS,COUNTY"],
+    [
+      DEFAULT_ENDPOINTS.parcels[2]!,
+      "OBJECTID,GISLINK,COUNTY_NAME,CMAP,GP,PARCEL,OWNER,ADDRESS,DEEDAC,LINK_TPAD",
+    ],
     ["https://example.org/arcgis/rest/services/Parcels/FeatureServer/0", "*"],
   ])("%s", (url, want) => {
     expect(recordOutFields(url)).toBe(want);

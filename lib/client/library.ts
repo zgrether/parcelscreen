@@ -5,7 +5,8 @@
  */
 import { centroid } from "@turf/turf";
 import { z } from "zod";
-import { deriveParcel, STATE_BY_HOST } from "@/lib/geo/recipe";
+import { stateOf } from "@/lib/geo/parcelFields";
+import { deriveParcel } from "@/lib/geo/recipe";
 import { parcelFacts } from "@/lib/geo/parcels";
 import { reportCard, type Letter, type NamedRubric, type Verdict } from "@/lib/report/card";
 import { defaultNamedRubric } from "@/lib/rubric/default";
@@ -41,8 +42,11 @@ export interface LibraryRow {
   name: string;
   acres: number | null;
   price: number | null;
-  /** The US state, from the county service or else where the parcel lies; null when neither tells. */
-  state: StateCode | null;
+  /**
+   * The US states, from the county services ("TN · NC" for a parcel combined across the line, step 2) or else where
+   * the parcel lies; empty when neither tells.
+   */
+  states: StateCode[];
   county: string | null;
   status: ParcelStatus;
   milestones: WorkingParcel["milestones"];
@@ -62,18 +66,19 @@ export interface LibraryRow {
 
 const STATES: readonly StateCode[] = ["VA", "NC", "TN"];
 
-/** The parcel's state: its county records' service, else the state its boundary's centre lies in. */
-export function parcelState(p: WorkingParcel): StateCode | null {
-  for (const piece of p.pieces) {
-    const host = /^https?:\/\/([^/]+)/.exec(piece.source)?.[1] ?? "";
-    const s = STATE_BY_HOST[host];
-    if (s) return s as StateCode;
-  }
+/**
+ * The parcel's states: those of its county records' services, in piece order (a parcel combined across the TN/NC
+ * line has both, step 2), else the state its boundary's centre lies in; empty when that's none of the three.
+ */
+export function parcelStates(p: WorkingParcel): StateCode[] {
+  const own = [...new Set(p.pieces.map((x) => stateOf(x.source)).filter((s): s is StateCode => s !== null))];
+  if (own.length) return own;
   const d = deriveParcel(recipeOf(p), SCREEN_CONSTANTS.combine);
   const geo = d.ok ? d.record.geo : p.pieces[0]?.geo;
-  if (!geo) return null;
+  if (!geo) return [];
   const [lon, lat] = centroid(geo).geometry.coordinates as [number, number];
-  return STATES.find((s) => kmToState(s, [lat, lon]) <= 0) ?? null;
+  const s = STATES.find((x) => kmToState(x, [lat, lon]) <= 0);
+  return s ? [s] : [];
 }
 
 /** "Floyd Co." from a county record's "Floyd County", "FLOYD" or "Floyd". */
@@ -112,7 +117,7 @@ export function libraryRow(
     name: listName(p, county),
     acres,
     price: p.askingPrice,
-    state: parcelState(p),
+    states: parcelStates(p),
     county,
     status: p.status,
     milestones: p.milestones,
@@ -173,7 +178,7 @@ export function passes(r: LibraryRow, f: LibraryFilters): boolean {
     if (f.priceMin !== null && r.price < f.priceMin) return false;
     if (f.priceMax !== null && r.price > f.priceMax) return false;
   }
-  return f.state === null || r.state === f.state;
+  return f.state === null || r.states.includes(f.state);
 }
 
 // ---------- sorts ----------

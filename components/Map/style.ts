@@ -163,6 +163,10 @@ export const PARCEL_FILL_OPACITY = 0.16;
 /** The selected parcel, and saved parcels (thinner, unfilled). */
 export const SELECTED_COLOR = "#f0a030";
 
+/** Who the parcel lines come from (step 2 plan §6.6): each state's service, by its publisher's name. */
+export const PARCEL_LINES_ATTRIBUTION =
+  "Parcels: VGIN (Virginia), NC OneMap, Tennessee Comptroller of the Treasury";
+
 /** The whole style. Basemaps other than `base` start hidden; overlays start hidden. */
 export function buildStyle(opts: {
   base: BasemapId;
@@ -244,7 +248,7 @@ export function buildStyle(opts: {
     paint: { "fill-color": ["get", "color"], "fill-opacity": 0.14 },
   });
   if (opts.terrain) layers.push(...contourLayers());
-  sources[SOURCE.parcelLines] = { type: "geojson", data: EMPTY_FC };
+  sources[SOURCE.parcelLines] = { type: "geojson", data: EMPTY_FC, attribution: PARCEL_LINES_ATTRIBUTION };
   layers.push(
     // Nearly transparent fill so a tap anywhere inside an outline hits it (step 13 selects on tap).
     {

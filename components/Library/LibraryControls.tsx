@@ -72,7 +72,7 @@ export function LibraryControls({
   const f = view.filters;
   const setF = (patch: Partial<LibraryFilters>) => setView({ ...view, filters: { ...f, ...patch } });
   const flip = <T,>(list: T[], x: T): T[] => (list.includes(x) ? list.filter((y) => y !== x) : [...list, x]);
-  const states = [...new Set(rows.map((r) => r.state).filter((s): s is NonNullable<typeof s> => !!s))].sort();
+  const states = [...new Set(rows.flatMap((r) => r.states))].sort();
   const n = changedFilters(f);
   const several = rubrics.length > 1;
   const sorts = sortsFor(rubrics);
