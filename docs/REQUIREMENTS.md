@@ -371,6 +371,25 @@ Phase 1 imports it into Supabase the same way as the `ps.parcels` store. It's ve
   Phase 1's import lifts that line into the parcel's name and keeps the rest as `notes`.
 - **All or nothing:** the whole file is validated before anything is written.
 
+### 3b. The rubric editor (roadmap step 3)
+
+"My rubric" (`/rubric`, linked from the menu, the rulebook and each card's weight line; phase-0.md §9.50) edits the
+current profile's `ps.rubrics.mine` in place. The rubric's stored shape is step 1's (`lib/rubric/schema.ts`); the
+editor adds nothing to it.
+
+- **Four columns:** Must, Should, Could, Won't. Dealbreakers go only to Must or Won't. A row dropped on Must becomes a
+  minimum at its B/C edge and keeps its ranked card, marked "min". Homesite is never a minimum.
+- **Moves:** by drag (mouse, touch after a 250 ms hold, keyboard) or a card's Move to…. A card's sheet sets its band's
+  B/C edge with a slider, which shifts the band (`card.editor` holds the ranges).
+- **Weights** stay explicit until the first reorder. After that the order sets them (rank-sum, Could ×0.75), applied
+  at once with an inline notice: the before/after table, and an Undo.
+- **Saving:** every change saves at once. Undo covers the last ten changes; Reset to default asks first.
+- **The preview** grades one parcel before → now, and follows a held card before it drops. The parcel is the open
+  one, else the latest screened saved one, else the Mud Creek sample (`lib/rubric/sample`).
+- **No re-screen:** a change re-grades every parcel at once, because the rubric isn't part of a screen's run keys.
+- **The verdict lines are letter edges** (§9.51): A or B is a Contender, C a Maybe, D or F a Pass.
+- **Others' rubrics** stay read-only until step 5.
+
 ## 4. The parcel page (the export)
 
 Blocks, in order; each is computed, placeholder, or user-authored:

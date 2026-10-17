@@ -249,8 +249,9 @@ test.describe("on a phone", () => {
 
   test("a swipe over the cards scrolls the page and never drags a card", async ({ page }) => {
     await openRubric(page);
-    const before = await names(column(page, "Should")).allTextContents();
-    const box = (await card(page, "Best homesite").locator(".rubric-card-body").boundingBox())!;
+    const before = await names(page.locator(".rubric-columns")).allTextContents();
+    // A card well above the preview bar along the bottom.
+    const box = (await card(page, "Easement needed").locator(".rubric-card-body").boundingBox())!;
     const x = box.x + box.width / 2,
       y = box.y + box.height / 2;
     const cdp = await page.context().newCDPSession(page);
@@ -262,7 +263,7 @@ test.describe("on a phone", () => {
     await expect
       .poll(() => page.evaluate(() => document.querySelector("main.rubric-editor")!.scrollTop))
       .toBeGreaterThan(0);
-    expect(await names(column(page, "Should")).allTextContents()).toEqual(before);
+    expect(await names(page.locator(".rubric-columns")).allTextContents()).toEqual(before);
     await expect(page.locator(".rubric-notice")).toHaveCount(0);
     expect(errors).toEqual([]);
   });
