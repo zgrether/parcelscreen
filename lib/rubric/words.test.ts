@@ -11,7 +11,7 @@ describe("the cards' words", () => {
   it("say what each factor asks for at its B/C edge", () => {
     expect(Object.fromEntries([...GATE_KEYS, ...ROW_KEYS].map((f) => [f, cardLine(D, f)]))).toEqual({
       floodplain: "No FEMA flood zone at the build site or on the driveway",
-      access: "Legal road access: frontage, or a recorded right-of-way",
+      access: "Frontage on a public road, or a recorded right-of-way",
       easement: "The driveway stays on your land, or its easement is recorded",
       septic: 'A septic field fits: a soil rates better than "very limited"',
       elevation: "Build site at 2,500 ft or higher",
