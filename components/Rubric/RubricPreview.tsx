@@ -1,19 +1,20 @@
 "use client";
 /**
- * The rubric editor's preview (step 3, docs/plans/step-3-rubric-editor.md §4): one parcel's grade and verdict under the
- * rubric as it was when the editor opened and as it is now, and the two factors that moved most. While a card is held
- * over a column, "now" is what that drop would make it, so the preview follows the drag. The parcel: the open one when
- * it's screened, else the latest screened saved parcel, else the sample (Mud Creek, loaded only then); a picker
- * switches between them. Pure arithmetic over stored screens: nothing is fetched and nothing re-screens.
+ * "Try it" (step 3, docs/plans/step-3-rubric-editor.md §4; a slim strip since the owner's UX round, 10/18): one parcel's
+ * grade and verdict under the list, "Try it on [parcel ▾]: B · Contender", and after a change "B → A · Contender" with
+ * up to two plain reasons ("Night sky now counts more"). No points or decimals. "Before" is the list as the page
+ * opened with it. While a card is held over a column, "now" is what that drop would make it, so the strip follows the
+ * drag. The parcel: the open one when it's screened, else the latest screened saved parcel, else the sample (Mud Creek,
+ * loaded only then). Pure arithmetic over stored screens: nothing is fetched and nothing re-screens. On a phone the
+ * strip is a bar along the bottom, with the same words.
  */
 import { useEffect, useMemo, useState } from "react";
 import { getPref } from "@/lib/client/prefs";
 import { previewOptions, SAMPLE_KEY, SAMPLE_NAME } from "@/lib/client/previewParcels";
 import { useKeptScreens } from "@/lib/client/useKeptScreens";
-import { fmt } from "@/lib/format";
 import { drawnOf } from "@/lib/report/marks";
 import type { Drawn } from "@/lib/report/marks";
-import { rubricPreview, type Moved } from "@/lib/report/rubricPreview";
+import { rubricPreview } from "@/lib/report/rubricPreview";
 import { moveCard, type EditorCard } from "@/lib/rubric/edit";
 import type { Rubric } from "@/lib/rubric/types";
 import type { Tier } from "@/lib/rubric/words";
@@ -34,10 +35,10 @@ export function RubricPreview({
   onParcel,
 }: {
   rubric: Rubric;
-  /** The rubric as the editor opened with it: "before". */
+  /** The list as the page opened with it: "before". */
   baseline: Rubric;
   hover: Hover;
-  /** The parcel on show, for the weights notice's points. */
+  /** The parcel on show, for the weights notice's line. */
   onParcel?: (p: PreviewParcel | null) => void;
 }) {
   const store = useMemo(() => getPref("ps.parcels"), []);
@@ -45,7 +46,6 @@ export function RubricPreview({
   const screens = useKeptScreens(built);
   const options = previewOptions(built, screens, store?.open?.key);
   const [picked, setPicked] = useState<string | null>(null);
-  const [open, setOpen] = useState(false);
   const key = picked && options.some((o) => o.key === picked) ? picked : options[0]!.key;
   const [sample, setSample] = useState<ScreenResult | null>(null);
   useEffect(() => {
@@ -73,35 +73,11 @@ export function RubricPreview({
   const now = held?.ok ? held.rubric : rubric;
   const p = result ? rubricPreview(result, baseline, now, drawn) : null;
 
-  const changed = !!p && (p.now.grade !== p.before.grade || p.now.verdict !== p.before.verdict);
   return (
-    <aside className={`rubric-preview${open ? " open" : ""}`} aria-label="Preview">
-      {/* A phone's sticky bar (plan §6.2): the grade before → now; a tap opens the factors and the picker. */}
-      <button
-        type="button"
-        className="rubric-preview-bar"
-        aria-expanded={open}
-        onClick={() => setOpen(!open)}
-      >
-        {p ? (
-          <>
-            <Grade grade={p.before.grade} verdict={p.before.verdict} />
-            {changed && (
-              <>
-                {" "}
-                → <Grade grade={p.now.grade} verdict={p.now.verdict} />
-              </>
-            )}
-          </>
-        ) : (
-          "Preview"
-        )}{" "}
-        <span aria-hidden="true">{open ? "▾" : "▴"}</span>
-      </button>
-      <div className="rubric-preview-body">
-        <h2>Preview</h2>
-        <label className="rubric-preview-pick">
-          <span className="tiny muted">On</span>{" "}
+    <section className="rubric-strip" aria-label="Try it">
+      <p className="rubric-strip-line" aria-live="polite">
+        <label>
+          Try it on{" "}
           <select value={key} onChange={(e) => setPicked(e.target.value)}>
             {options.map((o) => (
               <option key={o.key} value={o.key}>
@@ -110,62 +86,61 @@ export function RubricPreview({
             ))}
           </select>
         </label>
-        {!p ? (
-          <p className="muted">Loading…</p>
+        <span className="rubric-strip-colon">:</span>{" "}
+        {p ? (
+          <span className="rubric-strip-grade">
+            {hover && held?.ok && <span className="muted">If you drop it here: </span>}
+            <GradeChange
+              before={{ grade: p.before.grade, verdict: p.before.verdict }}
+              now={{ grade: p.now.grade, verdict: p.now.verdict }}
+            />
+          </span>
         ) : (
-          <>
-            <p className="rubric-preview-grade" aria-live="polite">
-              <Grade grade={p.before.grade} verdict={p.before.verdict} />
-              {changed && (
-                <>
-                  {" "}
-                  → <Grade grade={p.now.grade} verdict={p.now.verdict} />
-                </>
-              )}
-            </p>
-            <p className="tiny muted">
-              {fmt(p.before.points ?? NaN, 2)} → {fmt(p.now.points ?? NaN, 2)} points
-              {hover && held?.ok ? " (if you drop it here)" : ""}
-            </p>
-            {p.moved.length ? (
-              <ul className="rubric-moved">
-                {p.moved.map((m) => (
-                  <li key={m.key}>
-                    <MovedLine m={m} />
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="tiny muted">Move a card, or a slider, to see what changes.</p>
-            )}
-            <p className="tiny muted">Before is your rubric as you opened this page.</p>
-          </>
+          <span className="muted">…</span>
         )}
-      </div>
-    </aside>
+      </p>
+      {p && p.moved.length > 0 && (
+        <ul className="rubric-reasons">
+          {p.moved.map((m) => (
+            <li key={m.key}>{m.why}</li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 
-function Grade({ grade, verdict }: { grade: string | null; verdict: string }) {
-  return (
-    <span className="rubric-preview-card">
-      <span className={`card-grade small g-${grade ?? "none"}`}>{grade ?? "–"}</span>{" "}
-      <span className={`v-${verdict.toLowerCase()}`}>{verdict}</span>
-    </span>
-  );
+interface GradeVerdict {
+  grade: string | null;
+  verdict: string;
 }
 
-function MovedLine({ m }: { m: Moved }) {
+/** "B · Contender"; "B → A · Contender" when only the letter moved; "C · Maybe → B · Contender" when both did. */
+function GradeChange({ before, now }: { before: GradeVerdict; now: GradeVerdict }) {
+  const letterMoved = before.grade !== now.grade,
+    verdictMoved = before.verdict !== now.verdict;
+  if (!letterMoved && !verdictMoved) return <Grade {...now} />;
+  if (!verdictMoved)
+    return (
+      <>
+        <Letter grade={before.grade} /> → <Grade {...now} />
+      </>
+    );
   return (
     <>
-      <strong>{m.label}</strong>{" "}
-      {m.delta !== 0 && (
-        <span className="num">
-          {m.delta > 0 ? "+" : "−"}
-          {fmt(Math.abs(m.delta), 2)}
-        </span>
-      )}{" "}
-      <span className="muted">({m.why})</span>
+      <Grade {...before} /> → <Grade {...now} />
     </>
+  );
+}
+
+function Letter({ grade }: { grade: string | null }) {
+  return <span className={`card-grade small g-${grade ?? "none"}`}>{grade ?? "–"}</span>;
+}
+
+function Grade({ grade, verdict }: GradeVerdict) {
+  return (
+    <span className="rubric-strip-card">
+      <Letter grade={grade} /> · <span className={`v-${verdict.toLowerCase()}`}>{verdict}</span>
+    </span>
   );
 }

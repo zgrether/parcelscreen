@@ -82,6 +82,8 @@ export function RubricEditor() {
           <p className="muted">{HOW_TO}</p>
         </section>
 
+        <RubricPreview rubric={my.rubric} baseline={baseline} hover={hover} onParcel={setParcel} />
+
         <div className="rubric-bar">
           <p className="rubric-status" role="status" aria-live="polite">
             {my.message}
@@ -112,10 +114,7 @@ export function RubricEditor() {
           />
         )}
 
-        <div className="rubric-body">
-          <RubricColumns rubric={my.rubric} move={my.move} open={setSheet} onHover={setHover} />
-          <RubricPreview rubric={my.rubric} baseline={baseline} hover={hover} onParcel={setParcel} />
-        </div>
+        <RubricColumns rubric={my.rubric} move={my.move} open={setSheet} onHover={setHover} />
 
         {others.length > 0 && (
           <p className="tiny muted">

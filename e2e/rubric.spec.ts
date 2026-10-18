@@ -153,26 +153,29 @@ test("a change re-grades the Library at once, and nothing asks for a re-screen",
   expect(errors).toEqual([]);
 });
 
-test("the preview: the sample when nothing is screened, following a held card before it's dropped", async ({
+test("Try it: the sample when nothing is screened, following a held card before it's dropped; no points", async ({
   page,
 }) => {
   await openRubric(page);
-  const preview = page.getByRole("complementary", { name: "Preview" });
+  const preview = page.getByRole("region", { name: "Try it" });
   await expect(preview.locator("select")).toHaveValue("sample");
-  await expect(preview).toContainText(/B\s*Contender/);
-  // Held over Best homesite, not dropped: the preview already shows what the drop would make.
+  await expect(preview).toContainText(/B\s*·\s*Contender/);
+  await expect(preview).toContainText("Try it on");
+  // Held over Best homesite, not dropped: the strip already shows what the drop would make.
   const a = (await card(page, "Night sky").locator(".rubric-handle").boundingBox())!;
   const b = (await card(page, "Best homesite").boundingBox())!;
   await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2);
   await page.mouse.down();
   await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2 + 8, { steps: 4 });
   await page.mouse.move(b.x + b.width / 2, b.y + 8, { steps: 12 });
-  await expect(preview).toContainText("(if you drop it here)");
-  await expect(preview).toContainText(/B\s*Contender\s*→\s*A\s*Contender/);
+  await expect(preview).toContainText("If you drop it here");
+  await expect(preview).toContainText(/B\s*→\s*A\s*·\s*Contender/);
   await page.mouse.up();
   await page.waitForTimeout(100);
-  await expect(preview).not.toContainText("(if you drop it here)");
-  await expect(preview.locator(".rubric-moved li")).toHaveCount(2);
+  await expect(preview).not.toContainText("If you drop it here");
+  await expect(preview.locator(".rubric-reasons li")).toHaveCount(2);
+  await expect(preview.locator(".rubric-reasons")).toContainText("Night sky now counts more");
+  await expect(preview).not.toContainText(/\d\.\d/);
   // The notice's table has the sample's letter and verdict too, and no points (owner, 10/18).
   await page.locator(".rubric-notice").getByRole("button", { name: "See what changed" }).click();
   const notice = page.locator(".rubric-notice");
@@ -181,7 +184,7 @@ test("the preview: the sample when nothing is screened, following a held card be
   expect(errors).toEqual([]);
 });
 
-test("the preview on the open parcel: a dealbreaker that warned, moved to Won't, comes first", async ({
+test("Try it on the open parcel: a dealbreaker that warned, no longer checked, comes first", async ({
   page,
   context,
 }) => {
@@ -190,13 +193,15 @@ test("the preview on the open parcel: a dealbreaker that warned, moved to Won't,
   await importParcels(page, [FERNEY]);
   await seedScreens(page, [FERNEY]);
   await visit(page, "/priorities");
-  const preview = page.getByRole("complementary", { name: "Preview" });
+  const preview = page.getByRole("region", { name: "Try it" });
   await expect(preview.locator("select option").first()).toContainText("Ferney");
   await expect(preview.locator("select")).not.toHaveValue("sample");
   await card(page, "Legal road access").locator(".rubric-card-body").click();
   await sheet(page).getByRole("button", { name: "Don't care" }).click();
   await page.keyboard.press("Escape");
-  await expect(preview.locator(".rubric-moved li").first()).toHaveText(/Legal road access\s*\(now a Won't\)/);
+  await expect(preview.locator(".rubric-reasons li").first()).toHaveText(
+    "Legal road access no longer checked",
+  );
   expect(errors).toEqual([]);
 });
 
@@ -219,7 +224,7 @@ test("the keyboard: Space picks a card up, the arrows move it, Space puts it dow
 test.describe("on a phone", () => {
   test.use({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true });
 
-  test("stacked tiers; tap a card, Move to…; 44 px targets; nothing scrolls sideways; the preview bar opens", async ({
+  test("stacked tiers; tap a card, Move to…; 44 px targets; nothing scrolls sideways; Try it along the bottom", async ({
     page,
   }) => {
     await openRubric(page);
@@ -238,12 +243,14 @@ test.describe("on a phone", () => {
     await sheet(page).getByRole("button", { name: "Don't care" }).tap();
     await page.keyboard.press("Escape");
     await expect(names(column(page, "Don't care"))).toHaveText(["Septic"]);
-    // The preview is a bar along the bottom; a tap opens it.
-    const bar = page.locator(".rubric-preview-bar");
+    // Try it is a bar along the bottom, with the same words as on a desktop.
+    const bar = page.getByRole("region", { name: "Try it" });
     await expect(bar).toBeVisible();
-    expect((await bar.boundingBox())!.y).toBeGreaterThan(700);
-    await bar.tap();
-    await expect(page.getByRole("complementary", { name: "Preview" }).locator("select")).toBeVisible();
+    const box = (await bar.boundingBox())!;
+    expect(box.y + box.height).toBeGreaterThan(800);
+    await expect(bar.locator("select")).toBeVisible();
+    expect((await bar.locator("select").boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await expect(bar).toContainText("Septic no longer checked");
     expect(errors).toEqual([]);
   });
 

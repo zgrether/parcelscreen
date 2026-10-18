@@ -21,7 +21,7 @@ async function openRubric(page: Page): Promise<void> {
   });
   await page.goto("/priorities");
   await expect(column(page, "Really want").locator(".rubric-card")).toHaveCount(7);
-  await expect(page.getByRole("complementary", { name: "Preview" })).toContainText(/B\s*Contender/);
+  await expect(page.getByRole("region", { name: "Try it" })).toContainText(/B\s*·\s*Contender/);
 }
 
 /** Scrolls the editor (its <main> scrolls, not the window) so `el` sits near the top. */
@@ -71,9 +71,7 @@ for (const phone of [false, true]) {
         await page.mouse.down();
         await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2 + 8, { steps: 4 });
         await page.mouse.move(b.x + b.width / 2, b.y + 120, { steps: 16 });
-        await expect(page.getByRole("complementary", { name: "Preview" })).toContainText(
-          "(if you drop it here)",
-        );
+        await expect(page.getByRole("region", { name: "Try it" })).toContainText("If you drop it here");
         await shot(page, "3-drag");
         await page.keyboard.press("Escape");
         await page.mouse.up();
@@ -108,10 +106,9 @@ for (const phone of [false, true]) {
       if (phone) await scrollTo(page, notice);
       await shot(page, "5-notice");
       await notice.getByRole("button", { name: "Dismiss" }).click();
-      const preview = page.getByRole("complementary", { name: "Preview" });
-      if (phone) await page.locator(".rubric-preview-bar").tap();
-      else await scrollTo(page, page.locator(".rubric-body"));
-      await expect(preview.locator(".rubric-moved li")).toHaveCount(2);
+      const preview = page.getByRole("region", { name: "Try it" });
+      if (!phone) await scrollTo(page, preview);
+      await expect(preview.locator(".rubric-reasons li")).toHaveCount(2);
       await shot(page, "6-preview");
     });
 
