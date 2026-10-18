@@ -666,8 +666,8 @@ and "Small and close" use 15 min, not 10, so the A edge stays reachable (Q11). *
 unless 14b says they don't matter; 14a's limits on elevation (starting 500 ft under question 1's edge), the ER (one
 step past question 6's answer) and winter sun (§9.50, amended). 14b's ER moves its edge to 90 min until Hospital is
 its own factor (Q12); "Warm and mild" puts Elevation in Don't care (Q13). "That will rule out most land." shows above
-five 14a chips (Q6). **Why lines** quote the person, never a question number ("You said an ER more than 30 minutes
-away feels too far"), one per choice in `questions.ts`. **The quiet list** ("Counts once the app measures it: …")
+five 14a chips (Q6). **Why lines** quote the person, never a question number ("You'd want an ER within 30
+minutes"; question 6 reworded 10/18 so every choice is a comfort limit, its edges unchanged), one per choice in `questions.ts`. **The quiet list** ("Counts once the app measures it: …")
 holds the answers about factors the app doesn't measure yet: climate, long view, privacy, bike, airport, internet,
 the driveway (a row in step 6, Q5), HOA, the creek, acreage, the budgets and the shared driveway (Q4). **Skipping
 everything** keeps the starting list unchanged (Q8).
@@ -682,8 +682,8 @@ the priorities page's header. Automated browsers (`navigator.webdriver`) aren't 
 `ps.onboard`, so the e2e that open pages on a fresh profile keep testing them; the plan's `ps.debug` wasn't set by
 most of them. **Every answer saves** to the profile's `ps.interview` as it's picked, so leaving halfway resumes on
 the same screen. **The result** saves the list the answers make, unless the profile's list was changed since (it's
-neither the starting list nor the last interview's): then "Replace the priorities you changed?" asks, with "Use my
-answers" and "Keep mine" (Q7). **On the priorities page,** "Reset to my answers" (beside "Reset to the starting list",
+neither the starting list nor the last interview's): then "Replace the priorities you changed?" asks, with "Replace with
+the new list" and "Keep my changes" (Q7; the owner's labels after step 4's fresh-eyes review). **On the priorities page,** "Reset to my answers" (beside "Reset to the starting list",
 behind the same kind of dialog) sets the list to the answers' again; a card's why quotes the answer that put it there
 while it's in the interview's column with its band, and otherwise reads "You moved this here." or "On the starting
 list." (in place of step 3's "You changed it" and "From the starting list"; rank isn't compared, so one card's move

@@ -16,9 +16,9 @@ import { EDITOR_TITLES, minimumLine, plainLine, TIER_NAMES } from "@/lib/rubric/
 export const LATER_LEAD = "Counts once the app measures it:";
 export const MUST_NOTE = "That will rule out most land.";
 export const REPLACE_QUESTION = "Replace the priorities you changed?";
-/** Under it (the fresh-eyes review: both buttons sounded like "mine"). */
-export const REPLACE_WHY =
-  "You changed your list on the priorities page since your last answers. Use my answers: the list below replaces it. Keep mine: your list stays as it is, and these answers are saved for later.";
+/** Its buttons (owner, 10/18, after the fresh-eyes review: "Use my answers" and "Keep mine" both read as "mine"). */
+export const REPLACE_YES = "Replace with the new list";
+export const REPLACE_NO = "Keep my changes";
 export const TRY_IT_HINT =
   "Try it grades a sample parcel with these priorities: its letter, and whether it's a Contender, a Maybe or a Pass.";
 
@@ -43,7 +43,6 @@ export function InterviewResult({ iv }: { iv: Interview }) {
       {status === "ask" && (
         <section className="iv-ask" role="alertdialog" aria-labelledby="iv-ask-q">
           <p id="iv-ask-q">{REPLACE_QUESTION}</p>
-          <p className="iv-ask-why">{REPLACE_WHY}</p>
           <div className="iv-ask-actions">
             <button
               type="button"
@@ -52,7 +51,7 @@ export function InterviewResult({ iv }: { iv: Interview }) {
                 iv.decide(true);
               }}
             >
-              Use my answers
+              {REPLACE_YES}
             </button>
             <button
               type="button"
@@ -61,7 +60,7 @@ export function InterviewResult({ iv }: { iv: Interview }) {
                 iv.decide(false);
               }}
             >
-              Keep mine
+              {REPLACE_NO}
             </button>
           </div>
         </section>

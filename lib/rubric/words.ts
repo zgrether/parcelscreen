@@ -229,7 +229,7 @@ export interface WhyContext {
 /**
  * Why a card is where it is (owner, 10/18: the person's terms, never a question number). Against the interview's list
  * when there is one, else the starting list: a card in the same column with the same band quotes the answer that put
- * it there ("You said an ER more than 30 minutes away feels too far"), or "On the starting list." when no answer did;
+ * it there ("You'd want an ER within 30 minutes"), or "On the starting list." when no answer did;
  * any other reads "You moved this here.". Rank isn't compared: moving one card would mark every card below it.
  */
 export function whyLine(r: Rubric, factor: Factor, ctx?: WhyContext | null): string {

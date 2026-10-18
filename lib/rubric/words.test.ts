@@ -76,7 +76,7 @@ describe("the cards' words", () => {
   it("after the interview: the answer that put it there, in the person's terms (owner, 10/18)", () => {
     const g = rubricFromAnswers({ er: "30", sunView: "sun", walkAway: { chips: ["erOver"], erOverMin: 45 } });
     const ctx = { base: g.rubric, why: g.why };
-    expect(whyLine(g.rubric, "town", ctx)).toBe("You said an ER more than 30 minutes away feels too far");
+    expect(whyLine(g.rubric, "town", ctx)).toBe("You'd want an ER within 30 minutes");
     expect(whyLine(g.rubric, "room", ctx)).toBe("On the starting list.");
     expect(limitWhy(g.rubric, "town", ctx)).toBe("You'd walk away from an ER more than 45 minutes away");
     const slid = setBandEdge(g.rubric, "erMin", 20);

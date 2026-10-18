@@ -418,9 +418,8 @@ A few questions, about four minutes, that make a person's priorities (`/intervie
   "Not now" on every screen; the app sends it there until it's finished or put off. The menu and the priorities page
   offer "Answer a few questions (about 4 min)", or "Finish your questions (6 of 14)".
 - **The result,** "Your priorities", with Try it: saved, unless the list was changed since, when it asks "Replace the
-  priorities you changed?" ("Use my answers", "Keep mine").
-- **On the priorities page:** "Reset to my answers", and each card's why in the person's own terms ("You said an ER
-  more than 30 minutes away feels too far"; else "You moved this here." or "On the starting list.").
+  priorities you changed?" ("Replace with the new list", "Keep my changes").
+- **On the priorities page:** "Reset to my answers", and each card's why in the person's own terms ("You'd want an ER within 30 minutes"; else "You moved this here." or "On the starting list.").
 
 ## 4. The parcel page (the export)
 
