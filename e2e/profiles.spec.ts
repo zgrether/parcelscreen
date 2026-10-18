@@ -236,6 +236,8 @@ for (const size of [
       });
       for (const path of ["/priorities", "/library", "/rulebook", "/explore"]) {
         await page.goto(path);
+        // What matters' Try it bar is up first: on a phone it sits along the bottom, where More's sheet opens.
+        if (path === "/priorities") await expect(page.getByRole("region", { name: "Try it" })).toBeVisible();
         const panel = await openMenu(page);
         // The menu has placed itself (useKeepInView runs after layout), and nothing clips it: each of its corners (12 px
         // in, past the rounding) is inside the window and is the menu itself where a click would land there, not the
