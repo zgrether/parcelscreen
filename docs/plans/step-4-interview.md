@@ -24,7 +24,7 @@ Done when:
   page as a quiet list ("Counts once the app measures it: Climate (cool and snowy)"), and §5 says how a later step adds such
   a factor without overwriting the editor's changes.
 - The result screen shows the priorities it made and Try it, then "Fine-tune in My priorities".
-- An existing profile gets "Take the interview" in the menu and on /priorities. The page gets "Reset to my answers",
+- An existing profile gets "Answer a few questions (about 4 min)" in the menu and on /priorities. The page gets "Reset to my answers",
   next to "Reset to the starting list".
 - Nothing asks about health, income, age or family.
 
@@ -106,7 +106,8 @@ It runs in Node and in the browser, and it never sees a parcel.
    - Each walk-away chip in 14a becomes a Must, with its threshold where it has one (§3, question 14).
    - **`mustNote`:** true when 14a has more than five chips picked (§9 Q6). The result screen then says "That will
      rule out most land."
-6. **`why`:** each card's reason, such as "Question 6: 30 minutes". The editor's card sheet shows it.
+6. **`why`:** each card's reason, quoting the person, never a question number: "You said an ER more than 30 minutes
+   away feels too far" (the why column in §3). The card's sheet on the priorities page shows it.
 7. **`later`:** the answers about factors the app doesn't measure yet, in words (§5).
 
 **Skip everything,** and the generator returns the starting list unchanged, explicit weights and all (§9 Q8).
@@ -128,148 +129,154 @@ C / D) → what's stored for a later factor. "—" means nothing. Today's bands,
 
 Open public land within 1 mi earns Trails a B.
 
+**The why column** is what a card's sheet says about why the card is where it is, in the person's own terms, never a
+question number (owner, 10/18). A card two answers touch (Town and hospital: questions 5 and 6; Night sky: 2 and 8)
+shows both, the one that set its place first. A card no answer placed reads "On the starting list."; one the person
+moved or changed on the priorities page reads "You moved this here.". The examples in quotes with "(the number
+entered)" or "(the range picked)" show the person's own value.
+
 ### Question 1: "Which year sounds better…"
 
-| Choice | Points | Edge it sets | Later |
-| --- | --- | --- | --- |
-| Cool and snowy | Elevation 3 | Elevation B at 3,000 ft (3,500 / 3,000 / 2,500 / 2,000) | Climate (cool and snowy) |
-| In between | Elevation 2 | Today's (B at 2,500 ft) | Climate (in between) |
-| Warm and mild | Elevation 0 → Don't care | — | Climate (warm and mild) |
-| Either | Elevation 1 | Today's | — |
+| Choice | Points | Edge it sets | Later | Why (the card's sheet) |
+| --- | --- | --- | --- | --- |
+| Cool and snowy | Elevation 3 | Elevation B at 3,000 ft (3,500 / 3,000 / 2,500 / 2,000) | Climate (cool and snowy) | "You'd like cool summer days and snowy winters" |
+| In between | Elevation 2 | Today's (B at 2,500 ft) | Climate (in between) | "You'd like a climate in between" |
+| Warm and mild | Elevation 0 → Don't care | — | Climate (warm and mild) | "You'd like hot summers and snow that rarely sticks" |
+| Either | Elevation 1 | Today's | — | "You said either climate is fine" |
 
 "Warm and mild" puts Elevation in Don't care, since the card has no "lower is better", and Climate (warm and mild)
 goes on the quiet list (§9 Q13).
 
 ### Question 2: "It's a clear January night. Where are you?"
 
-| Choice | Points | Edge it sets | Later |
-| --- | --- | --- | --- |
-| Out with a camera, then "shrug" at a town's glow | Night sky 3 | Today's (B at 21.2) | — |
-| Out with a camera, then "spoils it" | Night sky 3 | Night sky B at 21.5 (21.8 / 21.5 / 21.2 / 20.8) | — |
-| Out for a minute to look | Night sky 1 | Night sky B at 20.9 (21.2 / 20.9 / 20.6 / 20.2) | — |
-| Inside by the fire | Night sky 0 | — | — |
+| Choice | Points | Edge it sets | Later | Why (the card's sheet) |
+| --- | --- | --- | --- | --- |
+| Out with a camera, then "shrug" at a town's glow | Night sky 3 | Today's (B at 21.2) | — | "You'd be out with a camera on a clear January night" |
+| Out with a camera, then "spoils it" | Night sky 3 | Night sky B at 21.5 (21.8 / 21.5 / 21.2 / 20.8) | — | "You'd be out with a camera, and a town's glow would spoil it" |
+| Out for a minute to look | Night sky 1 | Night sky B at 20.9 (21.2 / 20.9 / 20.6 / 20.2) | — | "You'd step out for a minute to look at the stars" |
+| Inside by the fire | Night sky 0 | — | — | "You'd rather be inside by the fire" |
 
 The glow answer folds into the sky's band, since the card grades the zenith and a town's dome brightens it. With the
 follow-up skipped, "Out with a camera" reads as "shrug".
 
 ### Question 3: "December morning: sun across the breakfast table, or a long view down the valley?"
 
-| Choice | Points | Edge it sets | Later |
-| --- | --- | --- | --- |
-| Sun | Best homesite 3 | — (a letter, no band) | — |
-| View | Best homesite 1 | — | Long view (over winter sun) |
-| Both | Best homesite 2 | — | Long view (as much as winter sun) |
-| Neither | Best homesite 1 | — | — |
+| Choice | Points | Edge it sets | Later | Why (the card's sheet) |
+| --- | --- | --- | --- | --- |
+| Sun | Best homesite 3 | — (a letter, no band) | — | "You'd rather have sun at breakfast than a long view" |
+| View | Best homesite 1 | — | Long view (over winter sun) | "You'd rather have a long view than sun at breakfast" |
+| Both | Best homesite 2 | — | Long view (as much as winter sun) | "You want both sun at breakfast and a long view" |
+| Neither | Best homesite 1 | — | — | "You said neither morning sun nor a long view matters much" |
 
 "Neither" still gives Best homesite 1, because the row also grades the site's slope and facing.
 
 ### Question 4: "Saturday morning. What's the plan?"
 
-| Choice | Points | Edge it sets | Later |
-| --- | --- | --- | --- |
-| Walk out the door into the woods | Trails 3 | Trailhead B at 15 min (5 / 15 / 30 / 45); public land within ¼ mi for a B | — |
-| Bike from home to a long trail | Trails 2 | Today's (B at 20 min) | Bike to a long trail |
-| Drive 20 min to the best trail | Trails 2 | Today's (B at 20 min) | — |
-| Not trail people | Trails 0 | — | — |
+| Choice | Points | Edge it sets | Later | Why (the card's sheet) |
+| --- | --- | --- | --- | --- |
+| Walk out the door into the woods | Trails 3 | Trailhead B at 15 min (5 / 15 / 30 / 45); public land within ¼ mi for a B | — | "You'd like to walk out the door into the woods" |
+| Bike from home to a long trail | Trails 2 | Today's (B at 20 min) | Bike to a long trail | "You'd like to bike from home to a long trail" |
+| Drive 20 min to the best trail | Trails 2 | Today's (B at 20 min) | — | "You'd drive 20 minutes to the best trail" |
+| Not trail people | Trails 0 | — | — | "You said you're not trail people" |
 
 "Walk out the door" puts the edge at 15 min rather than 10. A 10-minute edge would shift the A edge to 0 min, which
 no parcel can reach. The same holds for question 5's "small and close".
 
 ### Question 5: "Groceries: a small market 10 minutes away, or a big store 40 minutes away once a week?"
 
-| Choice | Points | Edge it sets | Later |
-| --- | --- | --- | --- |
-| Small and close | Town and hospital 2 | Groceries B at 15 min (5 / 15 / 25 / 40) | — |
-| Big and far | Town and hospital 1 | Groceries B at 40 min (30 / 40 / 50 / 65) | — |
-| Either | Town and hospital 0 | Groceries B at 40 min | — |
+| Choice | Points | Edge it sets | Later | Why (the card's sheet) |
+| --- | --- | --- | --- | --- |
+| Small and close | Town and hospital 2 | Groceries B at 15 min (5 / 15 / 25 / 40) | — | "You'd rather have a small market 10 minutes away" |
+| Big and far | Town and hospital 1 | Groceries B at 40 min (30 / 40 / 50 / 65) | — | "You'd rather drive 40 minutes to a big store once a week" |
+| Either | Town and hospital 0 | Groceries B at 40 min | — | "You said either store is fine" |
 
 ### Question 6: "Someone gets hurt on a Sunday afternoon. How far to the ER would feel too far?"
 
-| Choice | Points | Edge it sets | Later |
-| --- | --- | --- | --- |
-| 15 min | Town and hospital 3 | ER B at 15 min (5 / 15 / 30 / 45) | — |
-| 30 min | Town and hospital 2 | Today's (B at 30 min) | — |
-| 45 min | Town and hospital 1 | ER B at 45 min (35 / 45 / 60 / 75) | — |
-| An hour is fine | Town and hospital 0 | ER B at 60 min (50 / 60 / 75 / 90) | — |
+| Choice | Points | Edge it sets | Later | Why (the card's sheet) |
+| --- | --- | --- | --- | --- |
+| 15 min | Town and hospital 3 | ER B at 15 min (5 / 15 / 30 / 45) | — | "You said an ER more than 15 minutes away feels too far" |
+| 30 min | Town and hospital 2 | Today's (B at 30 min) | — | "You said an ER more than 30 minutes away feels too far" |
+| 45 min | Town and hospital 1 | ER B at 45 min (35 / 45 / 60 / 75) | — | "You said an ER more than 45 minutes away feels too far" |
+| An hour is fine | Town and hospital 0 | ER B at 60 min (50 / 60 / 75 / 90) | — | "You said an hour to the ER is fine" |
 
 It asks how far feels too far, never why.
 
 ### Question 7: "Work and travel: what applies? (pick any)"
 
-| Choice | Points | Edge it sets | Later |
-| --- | --- | --- | --- |
-| Video calls from home | — | — | Internet for video calls |
-| Fly a few times a year | — | — | Airport (a few times a year) |
-| Fly monthly or more | — | — | Airport (monthly or more) |
-| Neither | — | — | — |
+| Choice | Points | Edge it sets | Later | Why (the card's sheet) |
+| --- | --- | --- | --- | --- |
+| Video calls from home | — | — | Internet for video calls | "You work on video calls from home" |
+| Fly a few times a year | — | — | Airport (a few times a year) | "You fly a few times a year" |
+| Fly monthly or more | — | — | Airport (monthly or more) | "You fly monthly or more" |
+| Neither | — | — | — | — |
 
 ### Question 8: "Neighbors: wave from the porch, see their lights at night, or never know they're there?"
 
-| Choice | Points | Edge it sets | Later |
-| --- | --- | --- | --- |
-| Wave | — | — | Privacy (close enough to wave) |
-| See lights | — | — | Privacy (lights at night are fine) |
-| Never know | Night sky at least 1 | — | Privacy (never know they're there) |
+| Choice | Points | Edge it sets | Later | Why (the card's sheet) |
+| --- | --- | --- | --- | --- |
+| Wave | — | — | Privacy (close enough to wave) | "You'd like neighbors close enough to wave to" |
+| See lights | — | — | Privacy (lights at night are fine) | "You don't mind seeing the neighbors' lights at night" |
+| Never know | Night sky at least 1 | — | Privacy (never know they're there) | "You'd rather never know the neighbors are there" |
 
 ### Question 9: "It's August. What's on your table from your own ground?"
 
-| Choice | Points | Edge it sets | Later |
-| --- | --- | --- | --- |
-| Nothing | Garden 0 | — | — |
-| Herbs and tomatoes | Garden 1 | Garden B at 0.1 ac (0.35 / 0.1 / 0 / 0) | — |
-| A real kitchen garden | Garden 2 | Today's (B at 0.25 ac) | Frost-free season |
-| Most of our produce, maybe chickens | Garden 3 | Garden B at 1 ac (1.25 / 1 / 0.85 / 0.75) | Frost-free season |
+| Choice | Points | Edge it sets | Later | Why (the card's sheet) |
+| --- | --- | --- | --- | --- |
+| Nothing | Garden 0 | — | — | "You don't plan to grow food" |
+| Herbs and tomatoes | Garden 1 | Garden B at 0.1 ac (0.35 / 0.1 / 0 / 0) | — | "You'd grow herbs and tomatoes" |
+| A real kitchen garden | Garden 2 | Today's (B at 0.25 ac) | Frost-free season | "You'd like a real kitchen garden" |
+| Most of our produce, maybe chickens | Garden 3 | Garden B at 1 ac (1.25 / 1 / 0.85 / 0.75) | Frost-free season | "You'd grow most of your produce, maybe keep chickens" |
 
 ### Question 10: "Snowy morning. Which driveway would you happily live with?"
 
-| Choice | Points | Edge it sets | Later |
-| --- | --- | --- | --- |
-| Short and steep: 4WD some days | — | — | Driveway (steep is fine, up to 20%) |
-| Long and gentle | — | — | Driveway (gentle, up to 15%) |
-| Whatever it takes, we'll build it | — | — | Driveway (we'll build it, up to 12%) |
+| Choice | Points | Edge it sets | Later | Why (the card's sheet) |
+| --- | --- | --- | --- | --- |
+| Short and steep: 4WD some days | — | — | Driveway (steep is fine, up to 20%) | "You'd live with a short, steep driveway and 4WD some days" |
+| Long and gentle | — | — | Driveway (gentle, up to 15%) | "You'd rather have a long, gentle driveway" |
+| Whatever it takes, we'll build it | — | — | Driveway (we'll build it, up to 12%) | "You'd build whatever driveway it takes" |
 
 The router's 20% limit is part of the screen (engine config), not the rubric, so this answer doesn't change it (§9 Q5).
 
 ### Question 11: "An HOA that stops neighbors clear-cutting, or no rules at all?"
 
-| Choice | Points | Edge it sets | Later |
-| --- | --- | --- | --- |
-| Rules that protect views are welcome | — | — | HOA (welcome) |
-| Light rules are OK | — | — | HOA (light rules) |
-| No HOA or restrictions | — | — | No HOA (a must) |
+| Choice | Points | Edge it sets | Later | Why (the card's sheet) |
+| --- | --- | --- | --- | --- |
+| Rules that protect views are welcome | — | — | HOA (welcome) | "You'd welcome rules that protect the views" |
+| Light rules are OK | — | — | HOA (light rules) | "You said light rules are OK" |
+| No HOA or restrictions | — | — | No HOA (a must) | "You want no HOA and no restrictions" |
 
 ### Question 12: "A creek on the land: the best feature, or something to keep away from the house?"
 
-| Choice | Points | Edge it sets | Later |
-| --- | --- | --- | --- |
-| Best feature | — | — | A creek (the best feature) |
-| Nice, not near the house | — | — | A creek (not near the house) |
-| Rather not | — | — | No creek |
-| Either | — | — | — |
+| Choice | Points | Edge it sets | Later | Why (the card's sheet) |
+| --- | --- | --- | --- | --- |
+| Best feature | — | — | A creek (the best feature) | "You said a creek would be the best feature" |
+| Nice, not near the house | — | — | A creek (not near the house) | "You'd like a creek, just not near the house" |
+| Rather not | — | — | No creek | "You'd rather not have a creek" |
+| Either | — | — | — | — |
 
 The Floodplain gate already keeps the house and the driveway out of the flood zone.
 
 ### Question 13: "How much land, and how much money?"
 
-| Choice | Points | Edge it sets | Later |
-| --- | --- | --- | --- |
-| Under 5 · 5–20 · 20–50 · 50+ acres | — | — | Acreage (the range) |
-| The most you'd spend to start camping on it (optional) | — | — | Camp budget |
-| …and to be ready to build (optional) | — | — | Build budget |
+| Choice | Points | Edge it sets | Later | Why (the card's sheet) |
+| --- | --- | --- | --- | --- |
+| Under 5 · 5–20 · 20–50 · 50+ acres | — | — | Acreage (the range) | "You're looking for 20–50 acres (the range picked)" |
+| The most you'd spend to start camping on it (optional) | — | — | Camp budget | "You'd spend up to $40,000 to start camping on it (the number entered)" |
+| …and to be ready to build (optional) | — | — | Build budget | "You'd spend up to $250,000 to be ready to build (the number entered)" |
 
 ### Question 14a: "Which of these would make you walk away from an otherwise perfect place?"
 
-| Chip | Becomes |
-| --- | --- |
-| Flood zone | Floodplain: Must have (already on the starting list; its reason becomes "Question 14") |
-| An HOA | Later: No HOA (a must) |
-| Shared driveway | Later: No shared driveway (a must) (§9 Q4) |
-| Below ___ ft | An Elevation limit at the number entered. It starts 500 ft under question 1's edge (2,500 ft after "Cool and snowy", else 2,000) |
-| Over ___ min to an ER | A Town and hospital limit (ER) at the number entered. It starts one step past question 6's answer (15 → 30, 30 → 45, 45 → 60, an hour → 75) |
-| Neighbor's house in view | Later: Privacy, no house in view (a must) |
-| No winter sun | A Best homesite limit: at least 3 h of December sun at the best site (§9 Q3) |
-| Alternative septic only | Septic: Must have (already on the starting list; reason "Question 14") |
-| Over budget | Later: within budget (a must) |
+| Chip | Becomes | Why (the card's sheet) |
+| --- | --- | --- |
+| Flood zone | Floodplain: Must have (already on the starting list; its why becomes the chip's) | "You'd walk away from a flood zone" |
+| An HOA | Later: No HOA (a must) | "You'd walk away from an HOA" |
+| Shared driveway | Later: No shared driveway (a must) (§9 Q4) | "You'd walk away from a shared driveway" |
+| Below ___ ft | An Elevation limit at the number entered. It starts 500 ft under question 1's edge (2,500 ft after "Cool and snowy", else 2,000) | "You'd walk away from land below 2,500 ft (the number entered)" |
+| Over ___ min to an ER | A Town and hospital limit (ER) at the number entered. It starts one step past question 6's answer (15 → 30, 30 → 45, 45 → 60, an hour → 75) | "You'd walk away from an ER more than 30 minutes away (the number entered)" |
+| Neighbor's house in view | Later: Privacy, no house in view (a must) | "You'd walk away from a neighbor's house in view" |
+| No winter sun | A Best homesite limit: at least 3 h of December sun at the best site (§9 Q3) | "You'd walk away from a place with no winter sun" |
+| Alternative septic only | Septic: Must have (already on the starting list; its why becomes the chip's) | "You'd walk away if only an alternative septic system would work" |
+| Over budget | Later: within budget (a must) | "You'd walk away from a place over budget" |
 
 The two numbers use a stepper: 100 ft or 5 min a tap, within the editor's slider ranges.
 
@@ -277,17 +284,17 @@ The two numbers use a stepper: 100 ft or 5 min a tap, within the editor's slider
 
 The same chips, without the ones picked in 14a:
 
-| Chip | Becomes |
-| --- | --- |
-| Flood zone | Floodplain → Don't care |
-| An HOA | Later: HOA (doesn't matter) |
-| Shared driveway | Driveway on your land (the easement gate) → Don't care |
-| Below ___ ft | Elevation → Don't care (0 points) |
-| Over ___ min to an ER | ER B at 90 min, the slider's end, so the ER barely counts. It goes to Don't care once Hospital is its own factor (§9 Q12) |
-| Neighbor's house in view | Later: Privacy (doesn't matter) |
-| No winter sun | Best homesite → Don't care (0 points) |
-| Alternative septic only | Septic → Don't care |
-| Over budget | Later: budgets (don't matter) |
+| Chip | Becomes | Why (the card's sheet) |
+| --- | --- | --- |
+| Flood zone | Floodplain → Don't care | "You said a flood zone doesn't matter" |
+| An HOA | Later: HOA (doesn't matter) | "You said an HOA doesn't matter" |
+| Shared driveway | Driveway on your land (the easement gate) → Don't care | "You said a shared driveway doesn't matter" |
+| Below ___ ft | Elevation → Don't care (0 points) | "You said elevation doesn't matter" |
+| Over ___ min to an ER | ER B at 90 min, the slider's end, so the ER barely counts. It goes to Don't care once Hospital is its own factor (§9 Q12) | "You said the drive to an ER doesn't matter" |
+| Neighbor's house in view | Later: Privacy (doesn't matter) | "You said a neighbor's house in view doesn't matter" |
+| No winter sun | Best homesite → Don't care (0 points) | "You said winter sun doesn't matter" |
+| Alternative septic only | Septic → Don't care | "You said an alternative septic system doesn't matter" |
+| Over budget | Later: budgets (don't matter) | "You said the budget doesn't matter" |
 
 Legal road access isn't a chip: it stays a Must have.
 
@@ -369,7 +376,7 @@ profile keeps `base`, the rubric the generator made from its answers. When step 
    gains the new factor is that step's own numbers decision.
 
 The rule a later step follows: add only, never touch an existing card. The editor's "why" stays true, because a card
-that matches `base` reads "From your answers" and any other reads "You changed it".
+that matches `base` quotes the answer that put it there, and any other reads "You moved this here.".
 
 ## 6. Onboarding, entry points and the editor
 
@@ -384,10 +391,10 @@ that matches `base` reads "From your answers" and any other reads "You changed i
   starting list and keeps the draft (`state: "notNow"`). The app doesn't push the interview again; the menu offers it.
 - **The e2e:** with `ps.debug` set, a new profile isn't sent to the interview, so today's specs keep working. The
   onboarding specs run without it.
-- **An existing profile:** "Take the interview" in the ☰ menu, and in the header of /priorities. A second run starts with
+- **An existing profile:** "Answer a few questions (about 4 min)" in the ☰ menu, and in the header of /priorities. A second run starts with
   the previous answers picked, so it reads as "redo".
 - **Halfway:** every answer is saved as it's picked. Leave, and the interview opens again on the screen you left
-  (`at`). The menu says "Finish the interview (6 of 14)".
+  (`at`). The menu says "Finish your questions (6 of 14)".
 
 ### 6.2 The result screen
 - **Your priorities, the answer first:**
@@ -413,9 +420,12 @@ that matches `base` reads "From your answers" and any other reads "You changed i
   in the same kind of dialog ("Reset to your answers? This undoes the changes you made since."), then sets the list to
   `rubricFromAnswers(answers)` and `base` to the same.
 - **The card sheet's "why":**
-  - "From your answers: Question 6, 30 min" when the card matches `base`;
-  - "You changed it" when it doesn't;
-  - "From the starting list" when there are no answers.
+  - the answer that put it there, in the person's terms, when the card matches `base`: "You said an ER more than
+    30 minutes away feels too far" (§3's why column; never a question number);
+  - "You moved this here." when it doesn't;
+  - "On the starting list." when there are no answers.
+
+  These two replace step 3's "You changed it" and "From the starting list" (page text, not the report).
 - **The quiet list** sits under the columns (§5).
 - **Best homesite can have a limit** (§9 Q3): dragging it onto Must have makes "Best homesite: at least 3 h of December
   sun", as the 14a chip does, with its slider in hours.
@@ -472,8 +482,10 @@ later without moving anything.
   - no change to the rubric's stored shape: the limit is a `threshold` on a Must card, like every other limit, and
     Best homesite's ranked card keeps no band.
 - **Text:**
-  - new: the interview's screens, the result screen, the quiet list, "Take the interview", "Finish the interview",
-    "Reset to my answers", the "From your answers" why line;
+  - new: the interview's screens, the result screen, the quiet list, "Answer a few questions (about 4 min)", "Finish
+    your questions (6 of 14)", "Reset to my answers", and the why strings in §3's why column;
+  - changed on the priorities page: the why lines "You changed it" → "You moved this here." and "From the starting
+    list" → "On the starting list.";
   - nothing in the report or the card changes.
 - **Storage:** one new per-profile document, `ps.interview`. No change to the rubric's shape, the profile record or
   the export file.
@@ -528,7 +540,9 @@ later without moving anything.
 
 **e2e (CI):**
 - desktop: name, the 14 screens, the result; Back keeps the pick; Skip; question 2's follow-up; the chips' steppers;
-- resuming after a reload;
+- resuming after a reload, with the menu's "Finish your questions (6 of 14)";
+- the menu's "Answer a few questions (about 4 min)" on an existing profile;
+- the why lines quote the answers, and no sheet shows a question number;
 - Reset to my answers;
 - a changed list asks "Replace the priorities you changed?" before it's replaced;
 - phone: one question per screen, 44 px targets, nothing scrolls sideways.
@@ -548,14 +562,14 @@ later without moving anything.
 1. Open the preview in a private window → the name screen. Type a name → question 1, "1 of 14".
 2. Answer as §4's Person A, using Back once and Skip once → the result shows their priorities, the quiet list and
    Try it on the sample (Mud Creek).
-3. "Fine-tune in My priorities" → the columns match the result; a card's sheet says "From your answers: Question 6,
-   30 min"; Must have holds "Best homesite: at least 3 h of December sun".
+3. "Fine-tune in My priorities" → the columns match the result; a card's sheet says "You said an ER more than
+   30 minutes away feels too far"; Must have holds "Best homesite: at least 3 h of December sun".
 4. Drag a card, then "Reset to my answers" → the interview's list is back.
 5. Open **Mud Creek**, **Macks Mountain**, **Ferney Creek** and **Roan Mountain** → each grades by the new list;
    nothing asks for a re-screen.
 6. Close the tab on question 7, open the app again → it resumes on question 7.
 7. Add a second profile → its name screen, then "Not now" → the map, with the starting list on all four fixtures.
-8. Back in the first profile, drag a card, then ☰ → Take the interview → finish it → the result asks "Replace the
+8. Back in the first profile, drag a card, then ☰ → Answer a few questions (about 4 min) → finish it → the result asks "Replace the
    priorities you changed?"; "Keep mine" keeps the dragged card.
 9. Phone: steps 1, 2 and 6 at 375 px. One question per screen, the choices easy to tap, nothing scrolls sideways.
 
