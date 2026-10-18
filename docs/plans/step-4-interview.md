@@ -1,8 +1,12 @@
 # Step 4: The interview
 
 Roadmap step 4 (`PLAN.md`, Roadmap). The spec is `docs/design/workflow-review.md`: The interview, and Rubric
-algorithm §1–4. Written 2026-10-18 under mission mode (`CLAUDE.md`). **Waiting for approval: no code until then.**
-The mission runs on `step/4-interview`, branched from main once this plan is approved and step 3 (#173) is on main.
+algorithm §1–4. Written 2026-10-18 under mission mode (`CLAUDE.md`). **Approved 2026-10-18 with the answers in §9.**
+Step 3 (#173, with its UX round) is on main, so this plan uses its words: the page is "What matters to you" at
+`/priorities` ("My priorities" in the menu), its columns are Must have, Really want, Nice to have and Don't care (Must,
+Should, Could and Won't in the code, and in this plan's generator sections), a threshold is a "limit", the default
+rubric is the "starting list", and its preview is the "Try it" strip. The mission runs on `step/4-interview`, branched
+from main once this plan is merged.
 
 Done when:
 - A new profile starts with the interview: its name, then 14 screens, about four minutes, then a result screen.
@@ -10,18 +14,18 @@ Done when:
   has Skip and Back and shows progress. Question 14 (walk away / doesn't matter) comes last.
 - A pure function, `rubricFromAnswers(answers)`, turns the answers into a rubric:
   - answers → importance points (0–3 per factor);
-  - points → tiers (Should 3–6, then Could, then Won't);
-  - tiers → rank-sum weights (Could ×0.75);
+  - points → tiers (Really want 3–6, then Nice to have, then Don't care);
+  - tiers → rank-sum weights (Nice to have ×0.75);
   - each answer marks its factor's B/C edge, which places the bands;
-  - question 14's walk-away chips become Musts with thresholds.
+  - question 14's walk-away chips become Must haves, with limits where they have one.
 
-  More than five Musts shows "That will rule out most land."
-- Every answer is stored raw on the profile. Answers about factors the app doesn't measure yet show on the rubric as
-  a quiet list ("Counts once the app measures it: Climate (cool and snowy)"), and §5 says how a later step adds such
+  More than five walk-away chips shows "That will rule out most land."
+- Every answer is stored raw on the profile. Answers about factors the app doesn't measure yet show on the priorities
+  page as a quiet list ("Counts once the app measures it: Climate (cool and snowy)"), and §5 says how a later step adds such
   a factor without overwriting the editor's changes.
-- The result screen shows the rubric's summary and the live preview, then "Fine-tune in My rubric".
-- An existing profile gets "Take the interview" in the menu and on /rubric. The editor gets "Reset to my answers",
-  next to "Reset to default".
+- The result screen shows the priorities it made and Try it, then "Fine-tune in My priorities".
+- An existing profile gets "Take the interview" in the menu and on /priorities. The page gets "Reset to my answers",
+  next to "Reset to the starting list".
 - Nothing asks about health, income, age or family.
 
 ## 0. What's already there (found while planning)
@@ -31,15 +35,17 @@ Done when:
   `rankSumShares` (Could ×0.75) is in `lib/rubric/weights.ts`, and `setBandEdge` in `lib/rubric/edit.ts` moves a
   band's B/C edge and shifts its other edges by the same amount. The generator reuses both.
 - **The factors the card grades today:**
-  - **Gates (Must or Won't):** Floodplain, Legal road access, Easement needed, Septic.
+  - **Gates (Must have or Don't care):** Floodplain, Legal road access, Easement needed ("Driveway on your land" on
+    the priorities page), Septic.
   - **Rows (ranked):** Elevation, Best homesite (winter sun, facing, slope), Night sky, Room to build, Trails and
     public land, Town and hospital (the ER and groceries, each with its own band), Garden ground.
 - **What the design calls a factor but the card doesn't have yet:**
   - Hospital sits inside Town and hospital until step 10 splits it out. Its band (`erMin`) is already separate, so
     question 6 sets it today.
-  - **Driveway:** the router measures the driveway, but no card row grades it (§9 Q5).
-  - **Winter sun** is part of Best homesite, which grades a letter and has no number for a minimum: the editor says
-    "Best homesite … has no number to set a minimum on" (§9 Q3).
+  - **Driveway:** the router measures the driveway, but no card row grades it. A Driveway row comes in step 6, fed by
+    question 10's answer then (§9 Q5).
+  - **Winter sun** is part of Best homesite, which grades a letter and had no number for a limit ("Best homesite …
+    has no number to set a limit on"). This step gives it one: at least 3 h of December sun at the best site (§9 Q3).
   - Climate, Long view, Privacy, Bike to a long trail, Airport, Internet, HOA, the creek, Acreage and the budgets
     arrive in steps 9–10.
 - **Profiles:** each profile's documents live in IndexedDB through the prefs module (`ps.rubrics`, `ps.parcels`…).
@@ -58,7 +64,7 @@ The order is fixed. One screen per question, apart from 14, which is two:
 | Questions 1–13 | Everyone |
 | 14a: "Which of these would make you walk away from an otherwise perfect place?" | Everyone |
 | 14b: "Which don't matter at all?" | Everyone |
-| Result: your rubric and the preview | Everyone |
+| Result: your priorities and Try it | Everyone |
 
 The scenes are as written in the design doc's table. The choices are its choices, in its order. Every screen has
 **Back**, **Skip** and a progress line ("4 of 14").
@@ -103,8 +109,8 @@ It runs in Node and in the browser, and it never sees a parcel.
 6. **`why`:** each card's reason, such as "Question 6: 30 minutes". The editor's card sheet shows it.
 7. **`later`:** the answers about factors the app doesn't measure yet, in words (§5).
 
-**Skip everything,** and the generator returns today's default card unchanged, explicit weights and all (§9 Q8).
-Nobody loses the card they had by skipping.
+**Skip everything,** and the generator returns the starting list unchanged, explicit weights and all (§9 Q8).
+Nobody loses the list they had by skipping.
 
 ## 3. The answer table (every choice of every question)
 
@@ -128,10 +134,11 @@ Open public land within 1 mi earns Trails a B.
 | --- | --- | --- | --- |
 | Cool and snowy | Elevation 3 | Elevation B at 3,000 ft (3,500 / 3,000 / 2,500 / 2,000) | Climate (cool and snowy) |
 | In between | Elevation 2 | Today's (B at 2,500 ft) | Climate (in between) |
-| Warm and mild | Elevation 0 → Won't | — | Climate (warm and mild) |
+| Warm and mild | Elevation 0 → Don't care | — | Climate (warm and mild) |
 | Either | Elevation 1 | Today's | — |
 
-"Warm and mild" puts Elevation in Won't: the card has no "lower is better" (§9 Q13).
+"Warm and mild" puts Elevation in Don't care, since the card has no "lower is better", and Climate (warm and mild)
+goes on the quiet list (§9 Q13).
 
 ### Question 2: "It's a clear January night. Where are you?"
 
@@ -254,14 +261,14 @@ The Floodplain gate already keeps the house and the driveway out of the flood zo
 
 | Chip | Becomes |
 | --- | --- |
-| Flood zone | Floodplain gate: Must (already a default Must; its reason becomes "Question 14") |
+| Flood zone | Floodplain: Must have (already on the starting list; its reason becomes "Question 14") |
 | An HOA | Later: No HOA (a must) |
 | Shared driveway | Later: No shared driveway (a must) (§9 Q4) |
-| Below ___ ft | Elevation minimum at the number entered. It starts 500 ft under question 1's edge (2,500 ft after "Cool and snowy", else 2,000) |
-| Over ___ min to an ER | Town and hospital minimum (ER) at the number entered. It starts one step past question 6's answer (15 → 30, 30 → 45, 45 → 60, an hour → 75) |
+| Below ___ ft | An Elevation limit at the number entered. It starts 500 ft under question 1's edge (2,500 ft after "Cool and snowy", else 2,000) |
+| Over ___ min to an ER | A Town and hospital limit (ER) at the number entered. It starts one step past question 6's answer (15 → 30, 30 → 45, 45 → 60, an hour → 75) |
 | Neighbor's house in view | Later: Privacy, no house in view (a must) |
-| No winter sun | Best homesite minimum: at least 3 h of December sun at the best site (§9 Q3) |
-| Alternative septic only | Septic gate: Must (already a default Must; reason "Question 14") |
+| No winter sun | A Best homesite limit: at least 3 h of December sun at the best site (§9 Q3) |
+| Alternative septic only | Septic: Must have (already on the starting list; reason "Question 14") |
 | Over budget | Later: within budget (a must) |
 
 The two numbers use a stepper: 100 ft or 5 min a tap, within the editor's slider ranges.
@@ -272,17 +279,17 @@ The same chips, without the ones picked in 14a:
 
 | Chip | Becomes |
 | --- | --- |
-| Flood zone | Floodplain gate → Won't |
+| Flood zone | Floodplain → Don't care |
 | An HOA | Later: HOA (doesn't matter) |
-| Shared driveway | Easement gate → Won't |
-| Below ___ ft | Elevation → Won't (0 points) |
-| Over ___ min to an ER | ER B at 90 min, the slider's end, so the ER barely counts. It goes to Won't once Hospital is its own factor (§9 Q12) |
+| Shared driveway | Driveway on your land (the easement gate) → Don't care |
+| Below ___ ft | Elevation → Don't care (0 points) |
+| Over ___ min to an ER | ER B at 90 min, the slider's end, so the ER barely counts. It goes to Don't care once Hospital is its own factor (§9 Q12) |
 | Neighbor's house in view | Later: Privacy (doesn't matter) |
-| No winter sun | Best homesite → Won't (0 points) |
-| Alternative septic only | Septic gate → Won't |
+| No winter sun | Best homesite → Don't care (0 points) |
+| Alternative septic only | Septic → Don't care |
 | Over budget | Later: budgets (don't matter) |
 
-Legal road access isn't a chip: it stays a Must.
+Legal road access isn't a chip: it stays a Must have.
 
 ## 4. Two worked examples
 
@@ -292,15 +299,16 @@ pick Flood zone, An HOA, Below 2,500 ft and No winter sun.
 
 | Rank | Card | Tier | Points | Weight | Band (B/C edge) |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Elevation | Should | 3 | 25.2% | 3,000 ft |
-| 2 | Best homesite | Should | 3 | 21.6% | — |
-| 3 | Trails and public land | Should | 3 | 18.0% | 15 min; public land within ¼ mi |
-| 4 | Night sky | Should | 3 | 14.4% | 21.5 |
-| 5 | Room to build | Should | 2 (default) | 10.8% | 2× |
-| 6 | Town and hospital | Should | 2 | 7.2% | ER 30 min, groceries 15 min |
-| 7 | Garden ground | Could | 2 | 2.7% | 0.25 ac |
+| 1 | Elevation | Really want | 3 | 25.2% | 3,000 ft |
+| 2 | Best homesite | Really want | 3 | 21.6% | — |
+| 3 | Trails and public land | Really want | 3 | 18.0% | 15 min; public land within ¼ mi |
+| 4 | Night sky | Really want | 3 | 14.4% | 21.5 |
+| 5 | Room to build | Really want | 2 (default) | 10.8% | 2× |
+| 6 | Town and hospital | Really want | 2 | 7.2% | ER 30 min, groceries 15 min |
+| 7 | Garden ground | Nice to have | 2 | 2.7% | 0.25 ac |
 
-- **Musts:** the four gates, plus the minimums Elevation at least 2,500 ft and At least 3 h of December sun.
+- **Must have:** the four gates, plus the limits Elevation at least 2,500 ft and Best homesite at least 3 h of
+  December sun.
 - **Later:** Climate (cool and snowy) · Internet for video calls · Privacy (never know they're there) · Frost-free season · Driveway
   (gentle) · No HOA (a must) · A creek (the best feature) · Acreage (20–50 ac).
 - Three walk-away chips, so no "rule out most land" note.
@@ -311,14 +319,14 @@ Below ___ ft.
 
 | Rank | Card | Tier | Points | Weight | Band (B/C edge) |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Town and hospital | Should | 3 | 35.1% | ER 15 min, groceries 15 min |
-| 2 | Room to build | Should | 2 (default) | 28.1% | 2× |
-| 3 | Trails and public land | Should | 2 | 21.1% | 20 min |
-| 4 | Best homesite | Could | 1 | 10.5% | — |
-| 5 | Garden ground | Could | 1 | 5.3% | 0.1 ac |
+| 1 | Town and hospital | Really want | 3 | 35.1% | ER 15 min, groceries 15 min |
+| 2 | Room to build | Really want | 2 (default) | 28.1% | 2× |
+| 3 | Trails and public land | Really want | 2 | 21.1% | 20 min |
+| 4 | Best homesite | Nice to have | 1 | 10.5% | — |
+| 5 | Garden ground | Nice to have | 1 | 5.3% | 0.1 ac |
 
-- **Won't:** Elevation, Night sky.
-- **Musts:** the four gates, plus ER within 30 min.
+- **Don't care:** Elevation, Night sky.
+- **Must have:** the four gates, plus the limit ER within 30 min.
 - **Later:** Climate (warm and mild) · Long view (over winter sun) · Privacy (close enough to wave).
 
 ## 5. Factors that don't exist yet
@@ -355,10 +363,10 @@ profile keeps `base`, the rubric the generator made from its answers. When step 
    - with `next`'s bands and any Must from the walk-away chips.
 3. Nothing else changes: the cards the person moved, the bands they slid, and the factors they dropped stay as they
    are. Rank-sum recomputes the weights.
-4. `base` becomes `next`, and a one-time notice says what joined: "Climate now counts: added to Should at #2, from
-   your answer 'Cool and snowy'. Undo".
-5. A profile that never took the interview has no answers, so nothing is added for it. Whether a default card gains
-   the new factor is that step's own numbers decision.
+4. `base` becomes `next`, and a one-time notice says what joined: "Climate now counts: added to Really want at #2,
+   from your answer 'Cool and snowy'. Undo".
+5. A profile that never took the interview has no answers, so nothing is added for it. Whether the starting list
+   gains the new factor is that step's own numbers decision.
 
 The rule a later step follows: add only, never touch an existing card. The editor's "why" stays true, because a card
 that matches `base` reads "From your answers" and any other reads "You changed it".
@@ -372,41 +380,45 @@ that matches `base` reads "From your answers" and any other reads "You changed i
     "Profile 1".
   - "Add a profile" in the picker no longer asks for the name inline. It creates the profile and opens `/interview`
     on the name screen.
-- **"Not now"** sits on every screen of a new profile's interview, under Skip. It goes to the map with today's
-  default card and keeps the draft (`state: "notNow"`). The app doesn't push the interview again; the menu offers it.
+- **"Not now"** sits on every screen of a new profile's interview, under Skip. It goes to the map with the
+  starting list and keeps the draft (`state: "notNow"`). The app doesn't push the interview again; the menu offers it.
 - **The e2e:** with `ps.debug` set, a new profile isn't sent to the interview, so today's specs keep working. The
   onboarding specs run without it.
-- **An existing profile:** "Take the interview" in the ☰ menu, and in the header of /rubric. A second run starts with
+- **An existing profile:** "Take the interview" in the ☰ menu, and in the header of /priorities. A second run starts with
   the previous answers picked, so it reads as "redo".
 - **Halfway:** every answer is saved as it's picked. Leave, and the interview opens again on the screen you left
   (`at`). The menu says "Finish the interview (6 of 14)".
 
 ### 6.2 The result screen
-- **Your rubric, the answer first:**
-  - the Musts as plain lines ("No flood zone at the house or the driveway", "Elevation at least 2,500 ft");
-  - the Should and Could cards in rank order, each with its weight;
-  - Won't in one line;
+- **Your priorities, the answer first:**
+  - Must have as plain lines ("No flood zone at the house or the driveway", "Elevation: at least 2,500 ft");
+  - Really want and Nice to have in rank order, as the priorities page shows them (no weights: they're in the
+    rulebook);
+  - Don't care in one line;
   - the quiet list;
   - "That will rule out most land." when `mustNote`.
-- **The live preview** beside it (below it on a phone): step 3's `RubricPreview` on the sample (Mud Creek) or the
-  open parcel. Before is the rubric the profile had (today's default card for a new profile), and now is the result.
+- **Try it** above it, as on the priorities page (the bottom bar on a phone), on the sample (Mud Creek) or the open
+  parcel. Before is the list the profile had (the starting list for a new profile), and now is the result.
 - **The buttons:**
-  - "Fine-tune in My rubric" (primary) and "Done" (to the map);
+  - "Fine-tune in My priorities" (primary) and "Done" (to the map);
   - Back returns to 14b.
-- **When the rubric is saved** (§9 Q7):
-  - A new profile, or a profile whose rubric is still the default card or still its last `base`: saved on reaching
+- **When the list is saved** (§9 Q7):
+  - A new profile, or a profile whose list is still the starting list or still its last `base`: saved on reaching
     the result screen.
-  - A profile whose rubric was changed in the editor: the result screen asks "Replace the rubric you edited?" with
-    "Use my answers" and "Keep my rubric". Either way the answers are stored.
+  - A profile whose list was changed on the priorities page: the result screen asks "Replace the priorities you
+    changed?" with "Use my answers" and "Keep mine". Either way the answers are stored.
 
-### 6.3 The editor
-- **"Reset to my answers"**, next to "Reset to default" and only when the profile has answers. It asks first, the way
-  Reset does, then sets the rubric to `rubricFromAnswers(answers)` and `base` to the same.
+### 6.3 The priorities page
+- **"Reset to my answers"**, next to "Reset to the starting list" and only when the profile has answers. It asks first
+  in the same kind of dialog ("Reset to your answers? This undoes the changes you made since."), then sets the list to
+  `rubricFromAnswers(answers)` and `base` to the same.
 - **The card sheet's "why":**
   - "From your answers: Question 6, 30 min" when the card matches `base`;
   - "You changed it" when it doesn't;
-  - "From the default card" when there are no answers.
+  - "From the starting list" when there are no answers.
 - **The quiet list** sits under the columns (§5).
+- **Best homesite can have a limit** (§9 Q3): dragging it onto Must have makes "Best homesite: at least 3 h of December
+  sun", as the 14a chip does, with its slider in hours.
 
 ## 7. UX
 
@@ -417,8 +429,8 @@ that matches `base` reads "From your answers" and any other reads "You changed i
   - the choices as full-width buttons at least 56 px tall;
   - Back, Skip and (for a new profile) "Not now" along the bottom, at least 44 px.
 - **No scrolling** on any question at 375 × 667, except 14a and 14b's chips, which wrap.
-- **Desktop:** the same column, 560 px wide and centred. The result screen puts the preview beside the summary, as on
-  /rubric.
+- **Desktop:** the same column, 560 px wide and centred. The result screen puts Try it above the summary, as on
+  /priorities.
 
 ### 7.2 Scenes, not pictures
 **No illustrations in this step** (§9 Q10). The scenes are short sentences, as the design writes them, and the
@@ -434,28 +446,31 @@ later without moving anything.
 
 ### 7.4 States
 - **Loading:** the interview reads `ps.interview` after the profile boot, as other pages do. Nothing is fetched.
-- **The preview's sample** loads on the result screen only (step 3's lazy import).
+- **Try it's sample** loads on the result screen only (step 3's lazy import).
 - **Storage refused** (the in-memory profile): the interview still runs. The menu's existing line says nothing will
   be kept.
 
 ### 7.5 Words
 - Plain, short and second person.
-- The result screen's heading is "Your rubric".
+- The result screen's heading is "Your priorities".
 - The quiet list's lead-in is "Counts once the app measures it:".
 - The note is "That will rule out most land."
 
 ## 8. Numbers and text that may change (the declaration)
 
 - **`expected.json`, the screen schema (v9) and `ENGINE_VERSION`:** no change.
-- **No grade changes** for a profile that doesn't take the interview: the default card is untouched.
+- **No grade changes** for a profile that doesn't take the interview: the starting list is untouched.
 - **`config.ts`:**
   - gains `card.interview`: the points and the B/C edge for each choice in §3, so rule 4 holds (the numbers live in
     config, with the snapshot updated);
   - and the default points for skipped screens.
-- **If §9 Q3 is yes:**
-  - Best homesite's row gains a measure (December sun hours at site #1) and a minimum band;
-  - the editor's "has no number to set a minimum on" message goes, which amends §9.50;
-  - no card's grade or verdict changes unless a profile has that Must.
+- **Best homesite's limit** (§9 Q3):
+  - its row gains a measure (December sun hours at site #1, in hours) and a limit band (`card.editor` gains its
+    slider range);
+  - the priorities page's "has no number to set a limit on" message goes, which amends §9.50;
+  - no card's grade or verdict changes unless a profile has that limit.
+  - no change to the rubric's stored shape: the limit is a `threshold` on a Must card, like every other limit, and
+    Best homesite's ranked card keeps no band.
 - **Text:**
   - new: the interview's screens, the result screen, the quiet list, "Take the interview", "Finish the interview",
     "Reset to my answers", the "From your answers" why line;
@@ -463,34 +478,24 @@ later without moving anything.
 - **Storage:** one new per-profile document, `ps.interview`. No change to the rubric's shape, the profile record or
   the export file.
 
-## 9. Questions for Zach
+## 9. The owner's answers (Zach, 2026-10-18)
 
-1. **Points per factor:** the highest answer (recommended), or the sum, as the design says? Summing favours factors
-   two screens touch. Town and hospital (questions 5 and 6) would then outrank Elevation for someone who answered
-   "Cool and snowy" and was only mildly picky about groceries and the ER.
-2. **The Should cut:** rows with 2 or more points, kept to 3–6 (recommended)? Or a fixed top half?
-3. **"No winter sun" (14a):** make it a Best homesite minimum on December sun hours (at least 3 h, the "Workable"
-   edge in `bands.winterSunH`)? The editor would follow: dragging Best homesite onto Must makes the same minimum.
-   Recommended, given passive solar. The alternative is the quiet list until Winter sun is its own factor.
-4. **"Shared driveway" (14a):** the quiet list as "No shared driveway (a must)" until a listing field knows it
-   (recommended)? The Easement gate passes a recorded shared easement, which is exactly what this person wants to
-   avoid.
-5. **Driveway (question 10):** the router measures it, but the card has no Driveway row. Stored and in the quiet list
-   for now (recommended). Which step adds a Driveway row: 6 (screening results) or 10?
-6. **"That will rule out most land":** count only the 14a chips the person picks, and show it above five
-   (recommended)? Counting every Must, the four default gates included, would show it after two picks. The design
-   expects 2–4 Musts from the walk-away question.
-7. **An existing profile with an edited rubric:** ask "Replace the rubric you edited?" on the result screen
-   (recommended), or replace it and offer Undo?
-8. **Skip every screen:** keep today's default card unchanged (recommended)?
-9. **The first visit:** the interview first, with "Not now" on every screen (recommended), or the map first with a
-   banner offering it?
-10. **Illustrations:** none in this step (recommended)?
-11. **15-minute edges** for "Walk out the door" and "Small and close", not 10, so the A edge stays reachable (§3)?
-12. **"Over ___ min to an ER" in 14b:** the ER's edge moves to 90 min until Hospital is its own factor (recommended),
-    or no effect today?
-13. **"Warm and mild":** Elevation in Won't, since the card has no "lower is better" (recommended)?
-14. **The export file:** leave the answers out until step 5 (recommended)?
+1. **Points per factor:** the highest answer.
+2. **The Should cut (Really want):** rows with 2 or more points, kept to 3–6.
+3. **"No winter sun":** yes, a Best homesite limit of at least 3 h of December sun. Dragging Best homesite onto Must
+   have makes the same limit. §9.50 is amended.
+4. **Shared driveway:** the quiet list, as proposed ("No shared driveway (a must)").
+5. **The Driveway row:** added in step 6 (screening results), since the router already measures it; question 10's
+   answer feeds it then. Noted in `PLAN.md`'s step 6. Until then, question 10's answer is on the quiet list.
+6. **The note:** count only the 14a chips, and show it above five.
+7. **A changed list:** ask "Replace the priorities you changed?" with "Use my answers" and "Keep mine".
+8. **Skip everything:** keep the starting list unchanged.
+9. **The first visit:** the interview first, with "Not now" on every screen.
+10. **Illustrations:** none in this step.
+11. **15-minute edges** for "Walk out the door" and "Small and close": yes.
+12. **"Over ___ min to an ER" in 14b:** the ER's edge moves to 90 min until Hospital is its own factor.
+13. **"Warm and mild":** Elevation goes to Don't care, and Climate (warm and mild) goes on the quiet list.
+14. **The export file:** the answers stay out until step 5.
 
 ## 10. Stop conditions (push what's there, say why, wait)
 
@@ -503,20 +508,21 @@ later without moving anything.
 
 | PR | What | Checks |
 | --- | --- | --- |
-| 1 | **The generator (pure):** `lib/rubric/interview/` (the questions and choices, the answer types and their Zod schema, `rubricFromAnswers`, the later list); `card.interview` in config; the homesite sun minimum if Q3 is yes; §9.52 | Unit tests, one for every choice in §3, plus §4's two people; the config snapshot |
-| 2 | **The interview (`/interview`):** the screens, Back and Skip, progress, auto-advance, the keyboard, saving and resuming through `ps.interview`, the result screen with the preview | e2e: a full run, a skip, Back, resume after a reload, the keyboard |
-| 3 | **Onboarding and the editor:** a new profile starts with the interview; the picker's Add; the menu and /rubric entries; "Reset to my answers"; the why lines; the quiet list; §9.53 | e2e: the first visit, Add a profile, "Not now", Reset to my answers |
-| 4 | **The phone, the screenshots and the docs:** the 375 px pass, `pnpm screenshots` for the interview, REQUIREMENTS §3c, the hand-back | Full CI on the step branch's head |
+| 1 | **The generator (pure):** `lib/rubric/interview/` (the questions and choices, the answer types and their Zod schema, `rubricFromAnswers`, the later list); `card.interview` in config; Best homesite's sun limit (§9.50 amended); §9.53 | Unit tests, one for every choice in §3, plus §4's two people; the config snapshot |
+| 2 | **The interview (`/interview`):** the screens, Back and Skip, progress, auto-advance, the keyboard, saving and resuming through `ps.interview`, the result screen with Try it | e2e: a full run, a skip, Back, resume after a reload, the keyboard |
+| 3 | **Onboarding and the editor:** a new profile starts with the interview; the picker's Add; the menu and /priorities entries; "Reset to my answers"; the why lines; the quiet list; §9.54 | e2e: the first visit, Add a profile, "Not now", Reset to my answers |
+| 4 | **The phone, the screenshots and the docs:** the 375 px pass, `pnpm screenshots` for the interview, the fresh-eyes review (CLAUDE.md), REQUIREMENTS §3c, the hand-back | Full CI on the step branch's head |
 
 ## 12. Test plan outline
 
 **Unit (CI):**
 - every choice of every question gives the points, the edge and the later entry in §3;
 - §4's two people give §4's rubrics, weights included;
-- skipping everything gives the default card;
+- skipping everything gives the starting list;
 - ties follow the default order;
 - the Should cut holds at 3–6;
-- a walk-away chip on a 0-point row lifts it to Could;
+- a walk-away chip on a 0-point row lifts it to Nice to have;
+- Best homesite's limit passes, fails or is unknown by December sun hours;
 - `mustNote` turns on above five chips;
 - the stored answers' schema accepts every choice and rejects a stranger.
 
@@ -524,7 +530,7 @@ later without moving anything.
 - desktop: name, the 14 screens, the result; Back keeps the pick; Skip; question 2's follow-up; the chips' steppers;
 - resuming after a reload;
 - Reset to my answers;
-- an edited rubric asks before it's replaced;
+- a changed list asks "Replace the priorities you changed?" before it's replaced;
 - phone: one question per screen, 44 px targets, nothing scrolls sideways.
 
 **Screenshots (the hand-back), each at 1280 and 375 px:**
@@ -534,32 +540,37 @@ later without moving anything.
 - question 13;
 - 14a's chips with a stepper;
 - 14b's chips;
-- the result screen with the quiet list and the preview;
-- the editor with "Reset to my answers" and the why line.
+- the result screen with the quiet list and Try it;
+- the priorities page with "Reset to my answers" and the why line;
+- the "Replace the priorities you changed?" question.
 
 **Manual, on the preview (about 20 minutes, desktop then phone):**
 1. Open the preview in a private window → the name screen. Type a name → question 1, "1 of 14".
-2. Answer as §4's Person A, using Back once and Skip once → the result shows their rubric, the quiet list and the
-   preview on the sample (Mud Creek).
-3. "Fine-tune in My rubric" → the columns match the result; a card's sheet says "From your answers: Question 6, 30 min".
-4. Drag a card, then "Reset to my answers" → the interview's rubric is back.
-5. Open **Mud Creek**, **Macks Mountain**, **Ferney Creek** and **Roan Mountain** → each grades by the new rubric;
+2. Answer as §4's Person A, using Back once and Skip once → the result shows their priorities, the quiet list and
+   Try it on the sample (Mud Creek).
+3. "Fine-tune in My priorities" → the columns match the result; a card's sheet says "From your answers: Question 6,
+   30 min"; Must have holds "Best homesite: at least 3 h of December sun".
+4. Drag a card, then "Reset to my answers" → the interview's list is back.
+5. Open **Mud Creek**, **Macks Mountain**, **Ferney Creek** and **Roan Mountain** → each grades by the new list;
    nothing asks for a re-screen.
 6. Close the tab on question 7, open the app again → it resumes on question 7.
-7. Add a second profile → its name screen, then "Not now" → the map, with the default card on all four fixtures.
-8. Phone: steps 1, 2 and 6 at 375 px. One question per screen, the choices easy to tap, nothing scrolls sideways.
+7. Add a second profile → its name screen, then "Not now" → the map, with the starting list on all four fixtures.
+8. Back in the first profile, drag a card, then ☰ → Take the interview → finish it → the result asks "Replace the
+   priorities you changed?"; "Keep mine" keeps the dragged card.
+9. Phone: steps 1, 2 and 6 at 375 px. One question per screen, the choices easy to tap, nothing scrolls sideways.
 
 ## 13. Decisions to record in `phase-0.md` §9 (in the PRs)
 
-- **§9.52 The interview's generator:**
-  - points by the highest answer (or the sum, per Q1);
+- **§9.50, amended:** Best homesite can have a limit, at least N h of December sun at the best site (Q3).
+- **§9.53 The interview's generator:**
+  - points by the highest answer (Q1);
   - the Should cut;
   - default points for skipped screens;
   - the edges in §3;
   - the walk-away and doesn't-matter mappings;
   - the later list and `ps.interview`;
   - the add-only rule for later factors (§5).
-- **§9.53 Onboarding:**
+- **§9.54 Onboarding:**
   - a new profile starts with the interview (name first), with "Not now";
-  - a rubric is replaced only with a confirm once edited;
+  - a changed list is replaced only after "Replace the priorities you changed?";
   - "Reset to my answers".

@@ -113,7 +113,7 @@ on main.
 | 3 | **Rubric editor** | Four columns (Must, Should, Could, Won't); drag between and within; threshold sliders; a live preview on the open parcel; "Reset to my answers". |
 | 4 | **Interview** | The 14 forced-choice screens, the rubric generator, first-launch onboarding for a new profile, and "Redo the interview". |
 | 5 | **Household** | Members by name, rubric import by code or file, "How would Julie rate this?" as a prediction from her rubric, and "Send to confirm" as a shared file or link. No combined grade. |
-| 6 | **Screening results** | The answer first (grade, verdict, one line of reason), the best site plus up to two alternatives, the report card in rubric order, unknowns as questions for the agent. |
+| 6 | **Screening results** | The answer first (grade, verdict, one line of reason), the best site plus up to two alternatives, the report card in rubric order, unknowns as questions for the agent. A **Driveway** row joins the card here, graded from the router's measurements, and the interview's question 10 feeds it (owner, 10/18; step 4 plan §9 Q5). |
 | 7 | **Favorites** | A star, a plain name field, History and Favorites split; "In progress" goes away. |
 | 8 | **Report card export** | A print-ready page the browser saves as PDF, with One page and Full presets. |
 | 9 | **Cost to enjoy** | Cost to camp and cost to build from the parcel's state and markers, graded against the two budgets from the interview. |
