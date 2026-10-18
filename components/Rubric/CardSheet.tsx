@@ -16,7 +16,7 @@ import {
   setMinimum,
   type EditorCard,
 } from "@/lib/rubric/edit";
-import type { Rubric } from "@/lib/rubric/types";
+import type { Rubric, RowKey } from "@/lib/rubric/types";
 import {
   bandLine,
   bandValue,
@@ -28,7 +28,9 @@ import {
   minimumLine,
   ROW_BANDS,
   tierOf,
+  limitWhy,
   whyLine,
+  type WhyContext,
   type LimitKey,
   type Tier,
 } from "@/lib/rubric/words";
@@ -52,9 +54,12 @@ export function CardSheet({
   apply,
   move,
   close,
+  why,
 }: {
   card: EditorCard;
   rubric: Rubric;
+  /** The interview's list and its why lines, when the profile has answered (step 4). */
+  why?: WhyContext | null;
   apply(next: Rubric, message?: string | null): void;
   move(card: EditorCard, to: Tier, index?: number): void;
   close(): void;
@@ -107,7 +112,7 @@ export function CardSheet({
         <p className="tiny muted">
           {TIER_NAMES[here]}
           {ranked && `, #${rubric.ranked.findIndex((c) => c.factor === f) + 1} in the list`} ·{" "}
-          {whyLine(rubric, f)}
+          {card.kind === "minimum" ? limitWhy(rubric, f as RowKey, why) : whyLine(rubric, f, why)}
         </p>
 
         {card.kind === "factor" && !isGate(f) && ROW_BANDS[f].length > 0 && (

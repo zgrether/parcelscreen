@@ -2,7 +2,8 @@
 import { describe, expect, it } from "vitest";
 import { defaultRubric } from "./default";
 import { moveCard, setBandEdge } from "./edit";
-import { bandLine, cardLine, minimumLine, plainLine, whyLine } from "./words";
+import { bandLine, cardLine, limitWhy, minimumLine, plainLine, whyLine } from "./words";
+import { rubricFromAnswers } from "./interview/generate";
 import { GATE_KEYS, ROW_KEYS } from "./types";
 
 const D = defaultRubric();
@@ -65,10 +66,27 @@ describe("the cards' words", () => {
   });
 
   it("say why a card is there: the starting list's, or yours", () => {
-    expect(whyLine(D, "elevation")).toBe("From the starting list");
-    expect(whyLine(setBandEdge(D, "elevationFt", 3000), "elevation")).toBe("You changed it");
+    expect(whyLine(D, "elevation")).toBe("On the starting list.");
+    expect(whyLine(setBandEdge(D, "elevationFt", 3000), "elevation")).toBe("You moved this here.");
     const moved = moveCard(D, { kind: "factor", factor: "septic" }, "wont");
-    expect(moved.ok && whyLine(moved.rubric, "septic")).toBe("You changed it");
-    expect(moved.ok && whyLine(moved.rubric, "access")).toBe("From the starting list");
+    expect(moved.ok && whyLine(moved.rubric, "septic")).toBe("You moved this here.");
+    expect(moved.ok && whyLine(moved.rubric, "access")).toBe("On the starting list.");
+  });
+
+  it("after the interview: the answer that put it there, in the person's terms (owner, 10/18)", () => {
+    const g = rubricFromAnswers({ er: "30", sunView: "sun", walkAway: { chips: ["erOver"], erOverMin: 45 } });
+    const ctx = { base: g.rubric, why: g.why };
+    expect(whyLine(g.rubric, "town", ctx)).toBe("You said an ER more than 30 minutes away feels too far");
+    expect(whyLine(g.rubric, "room", ctx)).toBe("On the starting list.");
+    expect(limitWhy(g.rubric, "town", ctx)).toBe("You'd walk away from an ER more than 45 minutes away");
+    const slid = setBandEdge(g.rubric, "erMin", 20);
+    expect(whyLine(slid, "town", ctx)).toBe("You moved this here.");
+    const off = moveCard(g.rubric, { kind: "factor", factor: "homesite" }, "wont");
+    expect(off.ok && whyLine(off.rubric, "homesite", ctx)).toBe("You moved this here.");
+    // Another card's move doesn't move this one.
+    const up = moveCard(g.rubric, { kind: "factor", factor: "garden" }, "should", 0);
+    expect(up.ok && whyLine(up.rubric, "homesite", ctx)).toBe(
+      "You'd rather have sun at breakfast than a long view",
+    );
   });
 });

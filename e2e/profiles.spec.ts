@@ -69,12 +69,16 @@ test("the first visit's Profile 1; add Visitor and switch; a parcel kept in one 
   await menu(page);
   await expect(currentName(page)).toHaveText(/Profile 1/);
 
-  // Add Visitor: the app switches to it (a reload), with an empty History.
+  // Add Visitor: the app switches to it and opens its interview, its name first (step 4); "Not now" goes to the map,
+  // with an empty History.
   let list = await openPicker(page);
-  await list.getByLabel("New profile's name").fill("Visitor");
-  const loaded = page.waitForEvent("load");
   await list.getByRole("button", { name: "Add a profile" }).click();
-  await loaded;
+  await page.waitForURL("**/interview");
+  await page.getByPlaceholder("Your name or a nickname").fill("Visitor");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.locator(".iv-progress")).toHaveText("1 of 14");
+  await page.getByRole("button", { name: "Not now" }).click();
+  await page.waitForURL("**/explore");
   await booted(page);
   const drawer = await menu(page);
   await expect(currentName(page)).toHaveText(/Visitor/);

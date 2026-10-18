@@ -15,7 +15,12 @@ import { useMyRubric } from "@/lib/client/useMyRubric";
 import type { EditorCard } from "@/lib/rubric/edit";
 import { MINE } from "@/lib/rubric/types";
 import { CardSheet } from "./CardSheet";
-import { ResetConfirm } from "./ResetConfirm";
+import { RESET_QUESTION, RESET_TO_ANSWERS_QUESTION, ResetConfirm } from "./ResetConfirm";
+import { LATER_LEAD } from "@/components/Interview/Result";
+import { getPref, setPref } from "@/lib/client/prefs";
+import { hasAnswers, laterOf, whyContext } from "@/lib/client/myAnswers";
+import { interviewLabel } from "@/lib/rubric/interview/doc";
+import { rubricFromAnswers } from "@/lib/rubric/interview/generate";
 import { RubricColumns, TIER_NAMES } from "./RubricColumns";
 import { RubricPreview, type Hover, type PreviewParcel } from "./RubricPreview";
 import { WeightsNotice } from "./WeightsNotice";
@@ -36,7 +41,19 @@ export const HOW_TO =
 export function RubricEditor() {
   const my = useMyRubric();
   const [sheet, setSheet] = useState<EditorCard | null>(null);
-  const [confirmReset, setConfirmReset] = useState(false);
+  const [confirmReset, setConfirmReset] = useState<"start" | "answers" | null>(null);
+  // The profile's interview (step 4): its why lines, its quiet list, and "Reset to my answers".
+  const [answers, setAnswers] = useState(() => getPref("ps.interview"));
+  const why = whyContext(answers);
+  const later = laterOf(answers);
+  const resetToAnswers = () => {
+    if (!hasAnswers(answers)) return;
+    const made = rubricFromAnswers(answers.answers).rubric;
+    my.resetTo(made);
+    const next = { ...answers, base: made };
+    setPref("ps.interview", next);
+    setAnswers(next);
+  };
   // "Before" for the preview: the rubric as the page opened with it.
   const [baseline] = useState(() => effectiveRubrics().mine);
   const [hover, setHover] = useState<Hover>(null);
@@ -68,6 +85,9 @@ export function RubricEditor() {
           <Link className="link-btn" href="/rulebook">
             What the grade means
           </Link>
+          <Link className="link-btn" href="/interview">
+            {interviewLabel(answers)}
+          </Link>
         </header>
 
         <section className="rubric-intro" aria-label="How this page works">
@@ -92,18 +112,29 @@ export function RubricEditor() {
             <button type="button" className="btn secondary small" disabled={!my.canUndo} onClick={my.undo}>
               Undo
             </button>
-            <button type="button" className="btn secondary small" onClick={() => setConfirmReset(true)}>
+            {hasAnswers(answers) && (
+              <button
+                type="button"
+                className="btn secondary small"
+                onClick={() => setConfirmReset("answers")}
+              >
+                Reset to my answers
+              </button>
+            )}
+            <button type="button" className="btn secondary small" onClick={() => setConfirmReset("start")}>
               Reset to the starting list
             </button>
           </span>
         </div>
         {confirmReset && (
           <ResetConfirm
+            question={confirmReset === "answers" ? RESET_TO_ANSWERS_QUESTION : RESET_QUESTION}
             reset={() => {
-              my.reset();
-              setConfirmReset(false);
+              if (confirmReset === "answers") resetToAnswers();
+              else my.reset();
+              setConfirmReset(null);
             }}
-            cancel={() => setConfirmReset(false)}
+            cancel={() => setConfirmReset(null)}
           />
         )}
 
@@ -118,6 +149,12 @@ export function RubricEditor() {
 
         <RubricColumns rubric={my.rubric} move={my.move} open={setSheet} onHover={setHover} />
 
+        {later.length > 0 && (
+          <p className="rubric-later muted">
+            {LATER_LEAD} {later.join(" · ")}
+          </p>
+        )}
+
         {others.length > 0 && (
           <p className="tiny muted">
             {others.map((o) => o.name).join(", ")}: their lists are shown elsewhere and can&apos;t be edited
@@ -125,7 +162,16 @@ export function RubricEditor() {
           </p>
         )}
 
-        {sheet && <CardSheet card={sheet} rubric={my.rubric} apply={my.apply} move={my.move} close={close} />}
+        {sheet && (
+          <CardSheet
+            card={sheet}
+            rubric={my.rubric}
+            apply={my.apply}
+            move={my.move}
+            close={close}
+            why={why}
+          />
+        )}
       </main>
     </HelpProvider>
   );

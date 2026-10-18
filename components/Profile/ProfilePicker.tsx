@@ -31,7 +31,6 @@ export function ProfilePicker() {
   const [renaming, setRenaming] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [added, setAdded] = useState("");
   const [busy, setBusy] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -55,12 +54,12 @@ export function ProfilePicker() {
   }, [open]);
 
   const placeholder = `Profile ${profiles.length + 1}`;
-  const add = async (e: FormEvent) => {
-    e.preventDefault();
+  // A new profile starts with the interview, its name first (step 4, §6.1): no name asked here.
+  const add = async () => {
     if (busy) return;
     setBusy(true);
-    const p = await addProfile(added.trim() || placeholder);
-    await switchProfile(p.id);
+    const p = await addProfile(placeholder);
+    await switchProfile(p.id, "/interview");
   };
   const rename = async (e: FormEvent, p: Profile) => {
     e.preventDefault();
@@ -165,17 +164,11 @@ export function ProfilePicker() {
             })}
           </ul>
           {!unavailable && (
-            <form className="profile-form profile-add" onSubmit={(e) => void add(e)}>
-              <input
-                aria-label="New profile's name"
-                placeholder={placeholder}
-                value={added}
-                onChange={(e) => setAdded(e.target.value)}
-              />
-              <button className="btn small" type="submit" disabled={busy}>
+            <div className="profile-add">
+              <button className="btn small" type="button" disabled={busy} onClick={() => void add()}>
                 Add a profile
               </button>
-            </form>
+            </div>
           )}
         </div>
       )}

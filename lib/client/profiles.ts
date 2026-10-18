@@ -10,6 +10,7 @@ import { openDb } from "./db";
 import { dropOldData, type DeviceStore } from "./oldData";
 import { activeKv, ProfileKv, setActiveKv, type KvHandle } from "./profileKv";
 import { idbProfileStorage, memoryProfileStorage, type Profile, type ProfileStorage } from "./profileStore";
+import { onboardingDoc, onboardingOn } from "./onboarding";
 
 /** The device's current profile, by id. */
 export const CURRENT_PROFILE_KEY = "ps.profile";
@@ -105,6 +106,8 @@ export async function bootProfiles(opts: BootOptions = {}): Promise<Booted> {
   }
   const docs = await s.docs(profile.id).catch(() => []);
   const kv = new ProfileKv(profile.id, s, docs);
+  // A first visit's profile starts with the interview (step 4, owner Q9).
+  if (created && onboardingOn()) kv.setItem("ps.interview", JSON.stringify(onboardingDoc()));
   setActiveKv(kv);
   current = profile;
   publishKv(kv);
@@ -124,14 +127,18 @@ export async function reloadAfterWrites(): Promise<void> {
  * Makes another profile current and starts over (the picker, PR 5): the page reloads, so no state carries over. The
  * current profile's pending writes land first, then the device's choice is written, then the reload.
  */
-export async function switchProfile(id: string): Promise<void> {
+export async function switchProfile(id: string, to?: string): Promise<void> {
   await activeKv()?.flush();
   try {
     (device ?? localStore())?.setItem(CURRENT_PROFILE_KEY, id);
   } catch {
     /* the device won't remember it: the boot then opens the most recently opened profile */
   }
-  if (typeof location !== "undefined") location.reload();
+  // `to`: a page to open instead of reloading this one (a new profile goes to its interview).
+  if (typeof location !== "undefined") {
+    if (to) location.assign(to);
+    else location.reload();
+  }
 }
 
 /** Every profile, the most recently opened first: the picker's order. The current one alone before the boot. */
@@ -142,10 +149,11 @@ export async function listProfiles(): Promise<Profile[]> {
   return all.sort((a, b) => b.openedAt.localeCompare(a.openedAt));
 }
 
-/** A new profile, kept but not current: the picker switches to it next. */
+/** A new profile, kept but not current: the picker switches to it next, and it starts with the interview (step 4). */
 export async function addProfile(name: string, now: string = new Date().toISOString()): Promise<Profile> {
   const p = newProfile(name, now);
   await storage?.putProfile(p);
+  await storage?.putDoc({ profile: p.id, key: "ps.interview", value: JSON.stringify(onboardingDoc()) });
   return p;
 }
 
