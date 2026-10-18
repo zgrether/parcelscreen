@@ -28,7 +28,8 @@ for (const phone of [false, true]) {
   const device = phone ? "phone" : "desktop";
   test.describe(device, () => {
     if (phone) test.use({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true });
-    const shot = (page: Page, name: string) => page.screenshot({ path: `${OUT}/${device}-interview-${name}.png` });
+    const shot = (page: Page, name: string) =>
+      page.screenshot({ path: `${OUT}/${device}-interview-${name}.png` });
 
     test("the questions and the result", async ({ page }) => {
       await fresh(page);
