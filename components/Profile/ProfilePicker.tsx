@@ -17,6 +17,7 @@ import {
   storageUnavailable,
   switchProfile,
 } from "@/lib/client/profiles";
+import { useKeepInView } from "@/lib/client/keepInView";
 import type { Profile } from "@/lib/client/profileStore";
 
 /** The menu's line where IndexedDB is refused (owner, step 1 plan §8 Q5). */
@@ -33,6 +34,9 @@ export function ProfilePicker() {
   const [added, setAdded] = useState("");
   const [busy, setBusy] = useState(false);
   const box = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const pop = useRef<HTMLDivElement>(null);
+  useKeepInView(pop, open, trigger);
   const currentId = currentProfile()?.id ?? null;
   const unavailable = storageUnavailable();
 
@@ -83,6 +87,7 @@ export function ProfilePicker() {
   return (
     <div className="profile-picker" ref={box}>
       <button
+        ref={trigger}
         className="profile-btn"
         aria-label="Switch profile"
         aria-expanded={open}
@@ -93,7 +98,7 @@ export function ProfilePicker() {
         <span aria-hidden="true"> ▾</span>
       </button>
       {open && (
-        <div className="profile-pop" role="group" aria-label="Profiles">
+        <div ref={pop} className="profile-pop" role="group" aria-label="Profiles">
           {unavailable && <p className="tiny muted m-0">{NOTHING_KEPT}</p>}
           <ul className="profile-list">
             {profiles.map((p) => {
@@ -141,7 +146,7 @@ export function ProfilePicker() {
                     !unavailable && (
                       <>
                         <button
-                          className="link-btn tiny"
+                          className="btn secondary small"
                           onClick={() => {
                             setDraft(p.name);
                             setRenaming(p.id);
@@ -149,7 +154,7 @@ export function ProfilePicker() {
                         >
                           Rename
                         </button>
-                        <button className="link-btn tiny" onClick={() => setDeleting(p.id)}>
+                        <button className="btn secondary small" onClick={() => setDeleting(p.id)}>
                           Delete
                         </button>
                       </>

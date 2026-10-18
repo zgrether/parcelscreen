@@ -688,7 +688,11 @@ function StepList({
     !running && STEPS.every(([id]) => steps[id]?.status === "done" || steps[id]?.status === "skip");
   if (clean && !open)
     return (
-      <button className="link-btn steps-folded" aria-expanded={false} onClick={() => setOpen(true)}>
+      <button
+        className="btn secondary small steps-folded"
+        aria-expanded={false}
+        onClick={() => setOpen(true)}
+      >
         Screened ✓
       </button>
     );
@@ -750,7 +754,7 @@ function Notices(p: {
       {p.settingsChanged && (
         <div className="tiny muted">
           These results used earlier settings.{" "}
-          <button className="link-btn" aria-expanded={p.showParams} onClick={p.toggleParams}>
+          <button className="btn secondary small" aria-expanded={p.showParams} onClick={p.toggleParams}>
             {p.showParams ? "Hide them" : "Show them"}
           </button>
           {p.showParams && (

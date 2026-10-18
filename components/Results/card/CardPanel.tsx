@@ -169,6 +169,13 @@ export function CardPanel({
         <p className="tiny muted panel-scored">
           {/* To this panel's section of the rulebook, in the app: Back returns to the map with the report open. */}
           <Link href={rulebookHref(panel)}>How it&apos;s scored</Link>: {t.howScored}
+          {/* Step 3: after the weight line, where to change it (added, rule 7). */}
+          {panel !== "verdict" && panel !== "cost" && (
+            <>
+              {" "}
+              <Link href="/priorities">Change it in My priorities</Link>
+            </>
+          )}
         </p>
         <h3 className="panel-from">From the report</h3>
         {/* Owner's wording (#111): added above the moved sections, nothing replaced. */}

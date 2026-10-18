@@ -600,4 +600,51 @@ read or migrated, and their parcels read "Needs a re-screen" and re-screen when 
 "; serves: A, B" to the trailhead it names (after the existing text; rule 7). Neither shows when a trailhead serves only
 the trail it's named after.
 
+50. **The rubric editor: "My rubric"** (owner, 2026-10-17; step 3 plan §1–§4, §6 and §8; roadmap step 3, PRs 1–4).
+`/rubric`, from the ☰ menu, the rulebook's header and each card panel's "How it's scored" line ("Change it in My
+rubric", added after it). The profile's own rubric in four columns, Must, Should, Could and Won't; others' rubrics stay
+read-only until step 5. **The columns' rules** (`lib/rubric/edit.ts`): a dealbreaker is a Must or a Won't (it has no
+letter to rank); a row dropped on Must becomes a minimum at its B/C edge and keeps its ranked card, marked "min", and
+the drop says so; homesite (graded by the site's quality) can't be a minimum; Won't takes a row out of the grade with
+its minimum; a minimum stays in Must. **Each card** says what it asks for at its B/C edge, in plain words
+(`lib/rubric/words.ts`, which the card's labels now come from too); its sheet adds why it's there ("From the default
+card" or "You changed it"), the rulebook's words for it, its slider and "Move to…" (the full set of moves without
+dragging). **A slider** moves a band's B/C edge and the band's other edges by the same amount, within
+`card.editor`'s ranges; a minimum's slider sets its value. **The weights** stay explicit until the first change to the
+ranked order or a tier, which applies at once and switches the rubric to rank-sum (owner: no confirm); a notice above the
+columns says "Your order now sets the weights. See what changed · Undo", its table shows each row's weight before and
+after, and its Undo restores both the order and the explicit weights; it stays until it's dismissed or the next change.
+**Every change saves at once** (the profile's `ps.rubrics`), so every page re-grades without a re-screen; Undo takes
+back the last ten; "Reset to default" is behind a confirm. Dragging is by the handle (a mouse after 4 px, a 250 ms long
+press on a phone, or the keyboard), through @dnd-kit as My order's is, with no drop animation. **Warn gates stay**: a
+dealbreaker passes, warns or fails, and a Contender has at most one warning ("verify the easement" is a warning).
+
+51. **The verdict lines are letter edges** (owner, 2026-10-17; step 3 plan §5 and §8 Q1; roadmap step 3, PR 1). A or B
+is a Contender, C a Maybe, D or F a Pass, with the dealbreakers, the warnings (at most one for a Contender) and the
+caps as before. Step 1 kept today's point lines (2.75 and 1.75), so a B between 2.50 and 2.75 read Maybe, and a C
+between 1.50 and 1.75 read Pass: the letter and the verdict disagreed. The card reads the lines from a rubric's own
+grade cutoffs (`lib/rubric/grade.ts` `verdictLines`: the B and C edges), not from its `verdict.contender` and
+`verdict.pass`, so the rubrics profiles saved in step 1 (2.75 / 1.75) grade at letter edges too, with no change to the
+rubric's shape; `card.verdict` is 2.5 / 1.5 so a new rubric's copy says the same. Measured on every fixture, scenario and
+weight set (18 cards): no verdict changes (Ferney's second card sits exactly on 2.75, a Contender either way). The
+breakdown bar's verdict marks moved with them, and the Grade and verdict panel's sentence now quotes 2.5 and 1.5 (a
+replacement, approved under rule 7). A synthetic card in `card.test.ts` (2.7 and 1.7) was the case that moved: it
+gained an F sky to keep testing a Maybe and a Pass, and a new test pins the rule on the 2.7 / 1.7 case.
+
+52. **"What matters to you": the editor in a first-time user's words** (owner, 2026-10-18; step 3's UX round, PRs
+#175–#178). Zach found §9.50's page confusing for a first-time user. **The name:** the heading is "What matters to
+you", at `/priorities` (no redirect from `/rubric`), and "My priorities" in the menu and links; "rubric" stays the
+code's name. **An intro** says what the list is, each column in a line and how to use it; the column subtitles, the
+"Drag a card…" line and the footer went. **The columns** are Must have, Really want, Nice to have and Don't care, and a
+threshold is a "limit" ("…is now a must have too (ER within 30 min)"; the badge reads "limit"). **Cards** show a title
+and one plain line ("Dark enough to see the Milky Way"); Elevation, Trails and Town keep their numbers, and the exact
+number of the others is in the sheet. No "#1 · 25%" on the cards. "Easement needed" is "Driveway on your land" on this
+page only (`EDITOR_TITLES`): the report card keeps its label (rule 7). **Try it** replaces the preview panel: a strip
+under the intro, "Try it on [parcel ▾]: B → A · Contender", with up to two plain reasons ("Night sky now counts more",
+"Septic no longer checked") and no points anywhere; on a phone, the bottom bar. **Reset** is "Reset to the starting
+list", behind a dialog with Reset in the destructive style; Undo is a styled button. "Starting list" replaces "default
+card" in the UI. **App-wide:** no button looks like a link (every `link-btn` button became a small secondary button;
+the profile names are menu rows), and menus and popovers stay inside the window (`useKeepInView`: right-aligned to
+their button near the right edge, shifted or flipped on a collision).
+
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

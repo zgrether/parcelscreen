@@ -38,7 +38,8 @@ import {
   type LineNames,
 } from "./lines";
 import { nearestFt, PERMIT_ON_FILE, permitFar, SPRING_MARKED, type Drawn, type Mark } from "./marks";
-import { atLeast, atMost, gradedRows, parcelGrade } from "../rubric/grade";
+import { atLeast, atMost, gradedRows, parcelGrade, verdictLines } from "../rubric/grade";
+import { FACTOR_LABELS } from "../rubric/words";
 import { thresholdStatus, thresholdWords, type Measure } from "../rubric/musts";
 import type { GateKey, Letter, NamedRubric, RowKey } from "../rubric/types";
 import { weightsOf } from "../rubric/weights";
@@ -173,7 +174,7 @@ const gate =
  * site's ground or the scored driveway (schema v4); a flood zone elsewhere on the parcel is a pass, with a note.
  */
 function floodplain(r: Result, site: BuildSite | null | undefined, driven: Driven): Gate {
-  const g = gate("floodplain", "Floodplain");
+  const g = gate("floodplain", FACTOR_LABELS.floodplain);
   if (!r.flood) return g("unknown", "The FEMA flood map didn't load", "the FEMA flood map");
   if (!r.flood.mapped) return g("unknown", "FEMA has no flood mapping here");
   if (site?.inSfha) return g("fail", "The build site is in a FEMA flood zone");
@@ -265,7 +266,7 @@ export function roadInWords(c: RoadClass | null): string | null {
 }
 
 function accessByFrontage(r: Result): Gate {
-  const g = gate("access", "Legal road access");
+  const g = gate("access", FACTOR_LABELS.access);
   const d = r.driveway;
   if (!d) return g("unknown", "The roads didn't load", "the roads");
   if (!d.entrances.length)
@@ -297,7 +298,7 @@ function accessByFrontage(r: Result): Gate {
  * household typed (WF5) isn't asked about: its record is appended instead, and it doesn't warn for it.
  */
 function easement(r: Result, driven: Driven, names?: LineNames, records?: ReadonlyMap<string, string>): Gate {
-  const g = gate("easement", "Easement needed");
+  const g = gate("easement", FACTOR_LABELS.easement);
   const d = r.driveway;
   if (!d) return g("unknown", "The driveway wasn't routed", "the roads");
   if (d.note?.includes(NO_PRACTICAL_ROUTE)) {
@@ -357,7 +358,7 @@ function septic(r: Result, site: BuildSite | null | undefined, marks: readonly M
 }
 
 function septicBySoils(r: Result): Gate {
-  const g = gate("septic", "Septic");
+  const g = gate("septic", FACTOR_LABELS.septic);
   if (!r.soils) return g("unknown", "The NRCS soils didn't load", "the NRCS soils");
   if (!r.soils.length) return g("unknown", "NRCS returned no soils for the parcel");
   const better = r.soils.filter((x) => /not limited|somewhat/i.test(x.septic || x.engstafdcd || ""));
@@ -383,7 +384,7 @@ const notLoaded = (g: ReturnType<typeof row>, source: string): Row => ({
 });
 
 function elevation(site: BuildSite | null | undefined, K: CardConfig): Row {
-  const g = row("elevation", "Elevation at the build site");
+  const g = row("elevation", FACTOR_LABELS.elevation);
   if (site === undefined) return notLoaded(g, "the homesite ranking");
   // No build site: left out, as the Best homesite row's F carries it (owner, #109 review).
   if (site === null || site.elevFt === null) return g(null, "no build site to measure");
@@ -399,7 +400,7 @@ function elevation(site: BuildSite | null | undefined, K: CardConfig): Row {
  * line says it in plain words; the quality score is the panel's (owner, #110).
  */
 function homesite(r: Result): Row {
-  const g = row("homesite", "Best homesite");
+  const g = row("homesite", FACTOR_LABELS.homesite);
   if (!r.sites) return notLoaded(g, "the homesite ranking");
   // Site #1's quality derives from its measurements (v8; lib/screen/derive.ts).
   const s = derivedSites(r)![0];
@@ -416,7 +417,7 @@ function homesite(r: Result): Row {
 
 /** The zone in words (owner, #109 review); mag/arcsec² is the panel's. */
 function sky(r: Result, K: CardConfig): Row {
-  const g = row("sky", "Night sky");
+  const g = row("sky", FACTOR_LABELS.sky);
   if (!r.sky) return notLoaded(g, "the sky atlas");
   return {
     ...g(atLeast(r.sky.mag, K.rows.skyMag), `${r.sky.zoneWord} sky (zone ${r.sky.zone})`),
@@ -431,7 +432,7 @@ function sky(r: Result, K: CardConfig): Row {
  * when the build doesn't fit, which is also the first thing to check (owner, #110).
  */
 function room(r: Result, K: CardConfig, footprintAc: number): Row {
-  const g = row("room", "Room to build");
+  const g = row("room", FACTOR_LABELS.room);
   if (!r.sites) return notLoaded(g, "the homesite ranking");
   const s = r.sites[0];
   if (!s) return g("F", "no build site to place the build on");
@@ -464,7 +465,7 @@ export const TIMED_TO_THE_TRAILHEAD =
   "timed to the trailhead, not its parking (the parking lookup didn't answer)";
 
 function trails(r: Result, K: CardConfig): Row {
-  const g0 = row("trails", "Trails and public land");
+  const g0 = row("trails", FACTOR_LABELS.trails);
   if (!r.protected) return notLoaded(g0, "PAD-US");
   const open = r.protected.filter((p) => p.access === "OA");
   const adjoining = open.find((p) => p.adjoins);
@@ -547,7 +548,7 @@ function serves(t: { name: string; serves?: readonly string[] | undefined }): st
 
 /** The worse of the ER's and the grocery's; the grocery is the nearer of the real one and the closer one. */
 function town(r: Result, K: CardConfig): Row {
-  const g = row("town", "Town and hospital");
+  const g = row("town", FACTOR_LABELS.town);
   if (!r.drives) return notLoaded(g, "the drive times");
   const h = r.drives.find((d) => d.label === NEAREST_HOSPITAL);
   const groceries = [r.drives.find((d) => d.label === REAL_GROCERY), r.closerGrocery].filter(
@@ -601,7 +602,7 @@ function garden(r: Result, K: CardConfig, marks: readonly Mark[]): Row {
 }
 
 function gardenRow(r: Result, K: CardConfig, spring: (row: Row, ll: LatLon) => Row): Row {
-  const g = row("garden", "Garden ground");
+  const g = row("garden", FACTOR_LABELS.garden);
   if (!r.gardens) return notLoaded(g, "the terrain");
   if (!r.gardens.length) return { ...g("F", "no garden ground found"), short: "none" };
   const units: SoilUnit[] | null = r.soilUnits
@@ -765,11 +766,13 @@ export function cardFor(facts: CardFacts, nr: NamedRubric): Card {
   const incomplete = [
     ...new Set([...facts.gates, ...facts.rows].map((x) => x.missing).filter((m): m is string => !!m)),
   ];
+  // Letter edges (step 3, §9.51): A or B a Contender, D or F a Pass.
+  const lines = verdictLines(R);
   const verdict: Verdict =
-    fail || thresholdFail || (points !== null && points < R.verdict.pass)
+    fail || thresholdFail || (points !== null && points < lines.pass)
       ? "Pass"
       : points !== null &&
-          points >= R.verdict.contender &&
+          points >= lines.contender &&
           warns.length <= R.verdict.contenderMaxWarns &&
           !thresholdUnknown &&
           !Object.values(maybeCaps(facts)).some(Boolean)

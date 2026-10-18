@@ -184,6 +184,43 @@ describe("config", () => {
           ],
         },
         "card": {
+          "editor": {
+            "elevationFt": {
+              "max": 4500,
+              "min": 1000,
+              "step": 100,
+            },
+            "erMin": {
+              "max": 90,
+              "min": 10,
+              "step": 5,
+            },
+            "gardenAc": {
+              "max": 2,
+              "min": 0.05,
+              "step": 0.05,
+            },
+            "groceryMin": {
+              "max": 60,
+              "min": 5,
+              "step": 5,
+            },
+            "roomX": {
+              "max": 5,
+              "min": 1,
+              "step": 0.25,
+            },
+            "skyMag": {
+              "max": 22,
+              "min": 19.5,
+              "step": 0.1,
+            },
+            "trailheadMin": {
+              "max": 60,
+              "min": 5,
+              "step": 5,
+            },
+          },
           "gradeCutoffs": [
             3.5,
             2.5,
@@ -254,9 +291,9 @@ describe("config", () => {
             ],
           },
           "verdict": {
-            "contender": 2.75,
+            "contender": 2.5,
             "contenderMaxWarns": 1,
-            "pass": 1.75,
+            "pass": 1.5,
           },
           "weights": {
             "default": {

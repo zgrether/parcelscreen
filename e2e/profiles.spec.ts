@@ -188,3 +188,50 @@ test("after a clean break: rows read Needs a re-screen; Re-screen all saved parc
   await expect(line).not.toContainText("need a re-screen");
   expect(errors).toEqual([]);
 });
+
+/** Menus stay inside the window (owner, 10/18: the profile menu was cut off at the right edge). */
+for (const size of [
+  { width: 1280, height: 800 },
+  { width: 375, height: 812 },
+])
+  test.describe(`at ${size.width} px`, () => {
+    test.use({ viewport: size });
+
+    test("the profile menu is fully visible on every page that has one", async ({ page }) => {
+      await page.addInitScript(() => {
+        if (sessionStorage.getItem("e2e")) return;
+        sessionStorage.setItem("e2e", "1");
+        localStorage.clear();
+        localStorage.setItem("ps.debug", "1");
+      });
+      for (const path of ["/priorities", "/library", "/rulebook"]) {
+        await page.goto(path);
+        await page.locator(".compare-head").getByRole("button", { name: "Switch profile" }).click();
+        const pop = page.locator(".compare-head .profile-pop");
+        await expect(pop).toBeVisible();
+        await expect(pop.getByRole("button", { name: "Add a profile" })).toBeVisible();
+        // The menu has placed itself (useKeepInView runs after layout), and nothing clips it: each of its corners (12 px in, past the rounding) is
+        // inside the window and is the menu itself where a click would land there, not the page beneath or beyond a
+        // scrolling <main>'s edge (the first version of this check passed while <main> cut the menu off).
+        await expect
+          .poll(
+            () =>
+              pop.evaluate((el) => {
+                const r = el.getBoundingClientRect();
+                return [
+                  [r.left + 12, r.top + 12],
+                  [r.right - 12, r.top + 12],
+                  [r.left + 12, r.bottom - 12],
+                  [r.right - 12, r.bottom - 12],
+                ].every(([x, y]) => {
+                  const hit = document.elementFromPoint(x!, y!);
+                  return x! < window.innerWidth && y! < window.innerHeight && !!hit && el.contains(hit);
+                });
+              }),
+            { message: `the profile menu on ${path}` },
+          )
+          .toBe(true);
+      }
+      expect(errors).toEqual([]);
+    });
+  });

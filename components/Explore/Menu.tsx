@@ -82,6 +82,10 @@ function Drawer({ close }: { close(): void }) {
             <li>
               <Link href="/rulebook">What the grade means</Link>
             </li>
+            {/* Step 3: the profile's own rubric, in four columns. */}
+            <li>
+              <Link href="/priorities">My priorities</Link>
+            </li>
             <li>
               <button
                 onClick={() => {

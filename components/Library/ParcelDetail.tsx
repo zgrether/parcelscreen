@@ -59,7 +59,7 @@ export function ParcelDetail({
         <div className="lib-detail-title">
           <h2>{name}</h2>
           {!parcel.name.trim() && (
-            <button className="link-btn tiny" onClick={() => setFocusName((n) => n + 1)}>
+            <button className="btn secondary small" onClick={() => setFocusName((n) => n + 1)}>
               Add a name
             </button>
           )}
@@ -130,7 +130,7 @@ export function ParcelDetail({
               </button>
             </>
           ) : (
-            <button className="link-btn" onClick={() => setConfirming(true)}>
+            <button className="btn secondary small" onClick={() => setConfirming(true)}>
               Remove
             </button>
           )}

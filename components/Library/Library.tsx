@@ -179,7 +179,10 @@ export function Library() {
               {!ordering && shown.length > 1 && (
                 <span className="lib-order-hint">
                   {" · "}
-                  <button className="link-btn" onClick={() => setView({ ...view, sort: DEFAULT_SORT })}>
+                  <button
+                    className="btn secondary small"
+                    onClick={() => setView({ ...view, sort: DEFAULT_SORT })}
+                  >
                     Switch to My order
                   </button>{" "}
                   to rearrange
@@ -206,7 +209,7 @@ export function Library() {
               <p className="tiny muted lib-hidden" role="status">
                 {hiddenWords(hidden)} ·{" "}
                 <button
-                  className="link-btn"
+                  className="btn secondary small"
                   onClick={() => setView({ ...view, filters: showHidden(hidden, view.filters) })}
                 >
                   {hidden.onlyArchived ? "Show" : "Show all"}

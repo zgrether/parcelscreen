@@ -700,11 +700,13 @@ describe("config and weights", () => {
     r.gardens = [];
     r.near!.trailheads = [];
     r.protected = [];
+    // An F sky too, so the two land a Maybe (a C) and a Pass (a D) at the letter edges (step 3, §9.51).
+    r.sky = { ...r.sky!, mag: 19 };
     const facts = cardFacts(r);
     const zach = cardFor(facts, ZACH),
       julie = cardFor(facts, JULIE);
-    expect(zach.points).toBeCloseTo(2.7, 9);
-    expect(julie.points).toBeCloseTo(1.7, 9);
+    expect(zach.points).toBeCloseTo(2.4, 9);
+    expect(julie.points).toBeCloseTo(1.4, 9);
     expect([zach.verdict, julie.verdict]).toEqual(["Maybe", "Pass"]);
     // Trails and the garden are both F; the reason names the one this person weighs more (Julie: trails 25).
     expect(julie.reason).toBe(
@@ -712,5 +714,24 @@ describe("config and weights", () => {
     );
     expect(zach.gates).toEqual(julie.gates);
     expect(zach.rows).toEqual(julie.rows);
+  });
+
+  it("the verdict lines are letter edges (step 3, §9.51): a B is a Contender, a C a Maybe, whatever the points", () => {
+    const r = ferney();
+    r.gardens = [];
+    r.near!.trailheads = [];
+    r.protected = [];
+    const facts = cardFacts(r);
+    const zach = cardFor(facts, ZACH),
+      julie = cardFor(facts, JULIE);
+    // 2.7 and 1.7: a Maybe and a Pass at step 1's lines (2.75, 1.75); a B and a C now.
+    expect([zach.points, zach.grade, zach.verdict]).toEqual([expect.closeTo(2.7, 9), "B", "Contender"]);
+    expect([julie.points, julie.grade, julie.verdict]).toEqual([expect.closeTo(1.7, 9), "C", "Maybe"]);
+    // A rubric saved before step 3 still carries 2.75 / 1.75: its letter edges decide all the same.
+    const old = {
+      ...ZACH,
+      rubric: { ...ZACH.rubric, verdict: { contender: 2.75, pass: 1.75, contenderMaxWarns: 1 } },
+    };
+    expect(cardFor(facts, old).verdict).toBe("Contender");
   });
 });

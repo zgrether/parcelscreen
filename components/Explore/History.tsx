@@ -37,7 +37,7 @@ export function History({ onOpened }: { onOpened?: () => void }) {
             {ctl.cleared.dropped.length > 0 &&
               ` Dropped (couldn't be re-screened): ${ctl.cleared.dropped.length} parcel${ctl.cleared.dropped.length === 1 ? "" : "s"} (${ctl.cleared.dropped.join(", ")}).`}
           </p>
-          <button className="link-btn" onClick={ctl.dismissCleared}>
+          <button className="btn secondary small" onClick={ctl.dismissCleared}>
             OK
           </button>
         </div>

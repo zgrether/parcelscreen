@@ -101,7 +101,7 @@ export function ParcelNotes({
         </span>
         {text !== "" && (
           <button
-            className="ip-link"
+            className="ip-btn sec"
             onClick={() => {
               change("");
               flush();

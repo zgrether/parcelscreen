@@ -47,6 +47,8 @@ isn't obvious.
 The roadmap in PLAN.md (the fifteen steps of `docs/design/workflow-review.md`) runs as missions, one per
 step. Mission mode changes rules 1 and 3 above as written here; everything else in this file still holds.
 
+- **Move from PR to PR without asking** (owner, 2026-10-17). Only the stop conditions in the plan and in this file
+  pause the work.
 - **One plan per roadmap step** at `docs/plans/step-<n>-<name>.md`. Each plan states the scope, which
   numbers or verdict text may change, the stop conditions, the outline of the test plan, and a UX section
   (below). Zach approves the plan once; no application code before that.
@@ -65,7 +67,11 @@ step. Mission mode changes rules 1 and 3 above as written here; everything else 
   - a manual test plan on the preview URL: numbered "do → expect" steps with pass/fail boxes, desktop then
     phone, using fixture parcels by name (Mud Creek, Macks, Ferney, and a Roan Mountain one once it exists),
     about 15–30 minutes;
-  - screenshots (below).
+  - screenshots (below);
+  - the fresh-eyes review's findings (below), each with what you fixed, what you didn't, and why.
+- **A fresh-eyes review before each hand-back** (owner, 2026-10-18). A subagent that hasn't seen the code or the plan
+  gets only the hand-back's screenshots and the question "You've never used this app. What is this page for, and
+  what's confusing?" Fix what it finds where the fix is in scope, and list every finding in the hand-back.
 - **Clean breaks, no migrations** (owner, 2026-10-17). Zach will redo every parcel from scratch.
   - A schema, storage or export-format change drops the old data and shows one plain line in its place:
     "Saved with an older version; screen it again." The frozen-schema hard rule below follows it.
