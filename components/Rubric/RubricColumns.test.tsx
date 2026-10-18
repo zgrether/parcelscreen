@@ -1,6 +1,7 @@
 /**
- * "My rubric" rendered (step 3, PR 2): the default card in four columns, each card's words, rank and weight, the
- * empty columns' lines, the "min" badge, and the first reorder's notice.
+ * "What matters to you" rendered (step 3, PR 2; the owner's words, 10/18): the starting list in four columns, each
+ * card's title and plain line (no rank or weight), the empty columns' lines, the "limit" badge, and the first
+ * reorder's notice.
  */
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
@@ -13,19 +14,21 @@ const D = defaultRubric();
 const noop = () => {};
 
 describe("the columns", () => {
-  it("the default: four columns, the cards' words, ranks and weights, and the empty columns' lines", () => {
+  it("the starting list: four columns, each card's title and plain line, no rank or weight, the empty lines", () => {
     const html = renderToStaticMarkup(<RubricColumns rubric={D} move={noop} open={noop} />);
-    for (const name of ["Must", "Should", "Could", "Won&#x27;t"])
+    for (const name of ["Must have", "Really want", "Nice to have", "Don&#x27;t care"])
       expect(html).toContain(`aria-label="${name}"`);
-    expect(html).toContain("Build site at 2,500 ft or higher");
-    expect(html).toContain("#1 · 25%");
-    expect(html).toContain("#7 · 5%");
+    expect(html).toContain("2,500 ft or higher");
+    expect(html).toContain("Dark enough to see the Milky Way");
+    expect(html).toContain("Driveway on your land");
+    expect(html).not.toContain("Easement needed");
+    expect(html).not.toMatch(/#\d+ · \d+%/);
     expect(html).toContain(emptyLine("could", columnsOf(D)));
-    expect(html).toContain("Everything counts. Move a card here to leave it out of your grade.");
+    expect(html).toContain("Nothing ignored: everything counts. Move an item here to ignore it.");
     expect(html).not.toContain("rubric-min-badge");
   });
 
-  it("a row with a minimum: its card marked min, the minimum's card in Must", () => {
+  it("a row with a limit: its card marked limit, the limit's card in Must have", () => {
     const out = moveCard(D, { kind: "factor", factor: "town" }, "must");
     if (!out.ok) throw new Error(out.reason);
     const html = renderToStaticMarkup(<RubricColumns rubric={out.rubric} move={noop} open={noop} />);
@@ -33,9 +36,9 @@ describe("the columns", () => {
     expect(html).toContain("Town and hospital: ER within 30 min");
   });
 
-  it("Should's empty line says where the grade comes from", () => {
+  it("Really want's empty line says where the grade comes from", () => {
     const empty = { ...columnsOf(D), should: [], could: [] };
-    expect(emptyLine("should", empty)).toBe("Nothing counts toward a grade: move a card to Should.");
+    expect(emptyLine("should", empty)).toBe("Nothing counts toward the grade. Move an item here.");
   });
 });
 

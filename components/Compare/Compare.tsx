@@ -154,7 +154,7 @@ export function Compare() {
                             Open
                           </Link>
                           <button
-                            className="link-btn"
+                            className="btn secondary small"
                             aria-label={`Remove ${p.name} from the table`}
                             onClick={() => choose(chosen.filter((k) => k !== p.key))}
                           >

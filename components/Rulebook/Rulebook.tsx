@@ -68,8 +68,8 @@ export function Rulebook() {
           </Link>
           <h1>What the grade means</h1>
           <ProfilePicker />
-          <Link className="link-btn" href="/rubric">
-            My rubric
+          <Link className="link-btn" href="/priorities">
+            My priorities
           </Link>
           <RubricSwitch
             rubrics={rubrics}

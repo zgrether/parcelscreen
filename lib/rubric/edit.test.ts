@@ -68,12 +68,12 @@ describe("the columns", () => {
     expect(hasMinimum(out.rubric, "town")).toBe(true);
     expect(out.rubric.musts.at(-1)).toEqual({ factor: "town", threshold: 30 });
     expect(out.message).toBe(
-      "Town and hospital is now a minimum too (ER within 30 min): its card stays at #7 in Should, marked min.",
+      "Town and hospital is now a must have too (ER within 30 min): it stays at #7 in Really want, marked limit.",
     );
     expect(out.rubric.weights).toEqual(D.weights);
     const elevation = ok(moveCard(D, { kind: "factor", factor: "elevation" }, "must"));
     expect(elevation.message).toBe(
-      "Elevation at the build site is now a minimum too (at least 2,500 ft): its card stays at #1 in Should, marked min.",
+      "Elevation at the build site is now a must have too (at least 2,500 ft): it stays at #1 in Really want, marked limit.",
     );
   });
 

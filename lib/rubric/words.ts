@@ -22,6 +22,15 @@ export const FACTOR_LABELS: Record<Factor, string> = {
   garden: "Garden ground",
 };
 
+/**
+ * The priorities page's own titles (step 3 UX round, owner 10/18): the card's, except where a first-time reader needs
+ * plainer words. The report card keeps FACTOR_LABELS (CLAUDE.md rule 7).
+ */
+export const EDITOR_TITLES: Record<Factor, string> = {
+  ...FACTOR_LABELS,
+  easement: "Driveway on your land",
+};
+
 /** The bands a slider moves: each a list of A, B, C and D edges, best first. */
 export type BandKey =
   "elevationFt" | "skyMag" | "roomX" | "trailheadMin" | "erMin" | "groceryMin" | "gardenAc";
@@ -133,11 +142,60 @@ export function minimumWords(row: RowKey, v: number): string {
 /** A minimum in words: "Town and hospital: ER within 30 min", "Elevation at the build site: at least 3,000 ft". */
 export function minimumLine(must: MustCard): string {
   const key = must.factor as RowKey;
-  if (!MINIMUM_BAND[key] || must.threshold === undefined) return FACTOR_LABELS[must.factor];
-  return `${FACTOR_LABELS[key]}: ${minimumWords(key, must.threshold)}`;
+  if (!MINIMUM_BAND[key] || must.threshold === undefined) return EDITOR_TITLES[must.factor];
+  return `${EDITOR_TITLES[key]}: ${minimumWords(key, must.threshold)}`;
 }
 
 export type Tier = "must" | "should" | "could" | "wont";
+
+/** Each column's name on the priorities page (owner, 10/18); "rubric" stays the code's name for the list. */
+export const TIER_NAMES: Record<Tier, string> = {
+  must: "Must have",
+  should: "Really want",
+  could: "Nice to have",
+  wont: "Don't care",
+};
+
+/**
+ * A card's one plain line on the priorities page (owner, 10/18): what it asks for, without units a first-time reader
+ * has to look up. Elevation, Trails and Town keep their numbers, which are already plain; the exact number of every
+ * other row is in its sheet (cardLine).
+ */
+export function plainLine(r: Rubric, factor: Factor): string {
+  const b = r.bands;
+  switch (factor) {
+    case "floodplain":
+      return "No flood zone at the house or the driveway";
+    case "access":
+      return "Reachable by a public road, or a recorded right-of-way";
+    case "easement":
+      return "The driveway stays on your land, or its easement is recorded";
+    case "septic":
+      return "Soil that can take a septic field";
+    case "elevation":
+      return `${bandValue("elevationFt", bcEdge(b, "elevationFt"))} or higher`;
+    case "homesite":
+      return "A sunny, gentle spot for the house";
+    case "sky": {
+      const mag = bcEdge(b, "skyMag");
+      if (mag >= 21.2) return "Dark enough to see the Milky Way";
+      if (mag >= 20.9) return "Dark enough for plenty of stars";
+      return "Some stars, even with a town's glow";
+    }
+    case "room":
+      return "Enough gentle ground for the house";
+    case "trails":
+      return `A trailhead within ${bandValue("trailheadMin", bcEdge(b, "trailheadMin"))}, or public land within ${trim(fmt(b.openLandWithinFt / 5280, 1))} mi`;
+    case "town":
+      return `ER within ${bandValue("erMin", bcEdge(b, "erMin"))}, groceries within ${bandValue("groceryMin", bcEdge(b, "groceryMin"))}`;
+    case "garden": {
+      const ac = bcEdge(b, "gardenAc");
+      if (ac >= 1) return "Room for a big garden";
+      if (ac >= 0.25) return "Room for a kitchen garden";
+      return "Room for a small garden";
+    }
+  }
+}
 
 /** Where a factor's main card is: a gate in Must or Won't; a row in Should, Could or Won't. */
 export function tierOf(r: Rubric, factor: Factor): Tier {
@@ -151,7 +209,7 @@ export const isGate = (f: Factor): f is GateKey =>
   f === "floodplain" || f === "access" || f === "easement" || f === "septic";
 
 /**
- * Why a card is where it is: "From the default card", or "You changed it" when its column, its rank or its band differs
+ * Why a card is where it is: "From the starting list" (the default rubric), or "You changed it" when its column, its rank or its band differs
  * from the default rubric's. Step 4's interview adds the answer that put it there.
  */
 export function whyLine(r: Rubric, factor: Factor): string {
@@ -161,5 +219,5 @@ export function whyLine(r: Rubric, factor: Factor): string {
     r.ranked.findIndex((c) => c.factor === factor) === d.ranked.findIndex((c) => c.factor === factor) &&
     (isGate(factor) ||
       ROW_BANDS[factor].every((k) => JSON.stringify(r.bands[k]) === JSON.stringify(d.bands[k])));
-  return same ? "From the default card" : "You changed it";
+  return same ? "From the starting list" : "You changed it";
 }

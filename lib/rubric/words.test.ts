@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { defaultRubric } from "./default";
 import { moveCard, setBandEdge } from "./edit";
-import { bandLine, cardLine, minimumLine, whyLine } from "./words";
+import { bandLine, cardLine, minimumLine, plainLine, whyLine } from "./words";
 import { GATE_KEYS, ROW_KEYS } from "./types";
 
 const D = defaultRubric();
@@ -46,11 +46,29 @@ describe("the cards' words", () => {
     );
   });
 
-  it("say why a card is there: the default card's, or yours", () => {
-    expect(whyLine(D, "elevation")).toBe("From the default card");
+  it("in plain words on the priorities page, the exact number left to the sheet (owner, 10/18)", () => {
+    expect(Object.fromEntries([...GATE_KEYS, ...ROW_KEYS].map((f) => [f, plainLine(D, f)]))).toEqual({
+      floodplain: "No flood zone at the house or the driveway",
+      access: "Reachable by a public road, or a recorded right-of-way",
+      easement: "The driveway stays on your land, or its easement is recorded",
+      septic: "Soil that can take a septic field",
+      elevation: "2,500 ft or higher",
+      homesite: "A sunny, gentle spot for the house",
+      sky: "Dark enough to see the Milky Way",
+      room: "Enough gentle ground for the house",
+      trails: "A trailhead within 20 min, or public land within 1 mi",
+      town: "ER within 30 min, groceries within 20 min",
+      garden: "Room for a kitchen garden",
+    });
+    expect(plainLine(setBandEdge(D, "skyMag", 20.5), "sky")).toBe("Some stars, even with a town's glow");
+    expect(plainLine(setBandEdge(D, "gardenAc", 1), "garden")).toBe("Room for a big garden");
+  });
+
+  it("say why a card is there: the starting list's, or yours", () => {
+    expect(whyLine(D, "elevation")).toBe("From the starting list");
     expect(whyLine(setBandEdge(D, "elevationFt", 3000), "elevation")).toBe("You changed it");
     const moved = moveCard(D, { kind: "factor", factor: "septic" }, "wont");
     expect(moved.ok && whyLine(moved.rubric, "septic")).toBe("You changed it");
-    expect(moved.ok && whyLine(moved.rubric, "access")).toBe("From the default card");
+    expect(moved.ok && whyLine(moved.rubric, "access")).toBe("From the starting list");
   });
 });
