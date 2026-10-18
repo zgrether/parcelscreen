@@ -8,21 +8,22 @@
  */
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent, type RefObject } from "react";
 import { currentProfile, renameProfile } from "@/lib/client/profiles";
-import { useInterview } from "@/lib/client/useInterview";
+import { useInterview, type Interview } from "@/lib/client/useInterview";
 import { QUESTION_COUNT, QUESTIONS } from "@/lib/rubric/interview/questions";
 import { questionNumber, STEPS, type Step } from "@/lib/rubric/interview/doc";
 import type { InterviewAnswers } from "@/lib/rubric/interview/answers";
-import { ChipsScreen, ChoiceScreen, LandScreen, WorkScreen } from "./Screens";
+import { ChipsScreen, ChoiceScreen, LandScreen, PairScreen } from "./Screens";
 import { InterviewResult } from "./Result";
 
 /** The answers' fields a step sets: what Skip leaves out. */
 function keysOf(step: Step): (keyof InterviewAnswers)[] {
   switch (step.kind) {
     case "choice": {
-      const key = QUESTIONS[step.index]!.key;
-      return key === "sky" ? ["sky", "glow"] : [key];
+      const q = QUESTIONS[step.index]!;
+      if (q.key === "sky") return ["sky", "glow"];
+      return q.second ? [q.key, q.second.key] : [q.key];
     }
     case "land":
       return ["land"];
@@ -32,6 +33,25 @@ function keysOf(step: Step): (keyof InterviewAnswers)[] {
       return ["dontMatter"];
     case "result":
       return [];
+  }
+}
+
+/** Whether a screen holds an answer: then it opens with its pick shown, and Next in Skip's place (owner, 10/18). */
+export function isAnswered(step: Step, a: InterviewAnswers): boolean {
+  switch (step.kind) {
+    case "choice": {
+      const q = QUESTIONS[step.index]!;
+      if (q.second) return a[q.key] !== undefined && a[q.second.key] !== undefined;
+      return a[q.key] !== undefined;
+    }
+    case "land":
+      return a.land !== undefined;
+    case "walkAway":
+      return a.walkAway !== undefined;
+    case "dontMatter":
+      return a.dontMatter !== undefined;
+    case "result":
+      return false;
   }
 }
 
@@ -87,19 +107,50 @@ export function Interview() {
         </p>
       </header>
       <div className="iv-bar" aria-hidden="true">
-        <span style={{ width: `${(Math.max(0, n - 1) / QUESTION_COUNT) * 100}%` }} />
+        {/* 14b, the last screen: the bar full. */}
+        <span style={{ width: `${((step.kind === "dontMatter" ? n : n - 1) / QUESTION_COUNT) * 100}%` }} />
       </div>
 
-      <section className="iv-screen" key={iv.doc.at}>
+      <StepView key={iv.doc.at} iv={iv} step={step} heading={heading} n={n} notNow={notNow} />
+    </main>
+  );
+}
+
+/** One screen and its Back / Not now / Skip-or-Next row; remade for each screen, so it knows how it opened. */
+function StepView({
+  iv,
+  step,
+  heading,
+  n,
+  notNow,
+}: {
+  iv: Interview;
+  step: Step;
+  heading: RefObject<HTMLHeadingElement | null>;
+  n: number;
+  notNow(): void;
+}) {
+  // Held an answer when it opened (Back, or resuming): Next stands in Skip's place, and nothing moves on by itself.
+  const [revisit] = useState(() => isAnswered(step, iv.doc.answers));
+  // A screen with its own Continue tells Next how to save it; the others are saved as they're picked.
+  const saveRef = useRef<(() => void) | null>(null);
+  const bindNext = useCallback((save: () => void) => {
+    saveRef.current = save;
+  }, []);
+  const next = () => (saveRef.current ? saveRef.current() : iv.answer({}, true));
+  const props = { iv, heading, n, revisit, bindNext };
+  return (
+    <>
+      <section className="iv-screen">
         {step.kind === "choice" &&
-          (QUESTIONS[step.index]!.many ? (
-            <WorkScreen iv={iv} heading={heading} n={n} />
+          (QUESTIONS[step.index]!.second ? (
+            <PairScreen {...props} question={QUESTIONS[step.index]!} />
           ) : (
-            <ChoiceScreen iv={iv} question={QUESTIONS[step.index]!} heading={heading} n={n} />
+            <ChoiceScreen {...props} question={QUESTIONS[step.index]!} />
           ))}
-        {step.kind === "land" && <LandScreen iv={iv} heading={heading} n={n} />}
+        {step.kind === "land" && <LandScreen {...props} />}
         {(step.kind === "walkAway" || step.kind === "dontMatter") && (
-          <ChipsScreen iv={iv} half={step.kind} heading={heading} n={n} />
+          <ChipsScreen {...props} half={step.kind} />
         )}
       </section>
 
@@ -112,11 +163,17 @@ export function Interview() {
             {NOT_NOW}
           </button>
         )}
-        <button type="button" className="btn secondary" onClick={() => iv.skip(keysOf(step))}>
-          Skip
-        </button>
+        {revisit ? (
+          <button type="button" className="btn" onClick={next}>
+            Next
+          </button>
+        ) : (
+          <button type="button" className="btn secondary" onClick={() => iv.skip(keysOf(step))}>
+            Skip
+          </button>
+        )}
       </nav>
-    </main>
+    </>
   );
 }
 

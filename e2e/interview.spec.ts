@@ -1,6 +1,6 @@
 /**
  * The interview (step 4, docs/plans/step-4-interview.md §1, §6–§7, PR 2): a full run as §4's Person A, with Back once
- * and Skip once; question 2's follow-up; 14a's stepper; the result ("Your priorities", the quiet list, Try it) and the
+ * and Skip once; question 2's follow-up; 14a's stepper; the result ("What matters to you", Try it) and the
  * priorities page it saved; resuming after a reload; the keyboard; a changed list asks before it's replaced; and the
  * phone. A production build; no parcel is needed (Try it grades the Mud Creek sample).
  */
@@ -44,15 +44,25 @@ test("a full run as Person A, with Back and Skip: the result, and the priorities
   await expect(progress(page)).toHaveText("2 of 14");
   await pick(page, "Spoils it", 3);
   await pick(page, "Sun", 4);
-  // Back keeps the pick.
+  // Back keeps the pick, with Next in Skip's place; another pick waits, and the same pick again moves on.
   await page.getByRole("button", { name: "Back" }).click();
   await expect(progress(page)).toHaveText("3 of 14");
   await expect(choice(page, "Sun").first()).toHaveAttribute("aria-checked", "true");
+  await expect(page.getByRole("button", { name: "Next" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Skip" })).toHaveCount(0);
+  await choice(page, "View").first().click();
+  await page.waitForTimeout(500);
+  await expect(progress(page)).toHaveText("3 of 14");
+  await choice(page, "Sun").first().click();
+  await expect(progress(page)).toHaveText("3 of 14");
   await pick(page, "Sun", 4);
   await pick(page, "Walk out the door", 5);
   await pick(page, "Small and close", 6);
   await pick(page, "30 min", 7);
-  await page.getByRole("button", { name: "Video calls from home" }).click();
+  // Question 7: two rows; Continue once both are answered (owner, 10/18).
+  await expect(page.getByRole("button", { name: "Continue" })).toHaveCount(0);
+  await choice(page, "Rarely or never").click();
+  await choice(page, "Yes").click();
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(progress(page)).toHaveText("8 of 14");
   await pick(page, "Never know", 9);
@@ -76,17 +86,23 @@ test("a full run as Person A, with Back and Skip: the result, and the priorities
   await expect(page.getByRole("button", { name: "Flood zone", exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "See my priorities" }).click();
 
-  await expect(page.locator(".iv-scene")).toHaveText("Your priorities");
+  // Headed as the priorities page is (owner, 10/18), and no quiet list.
+  await expect(page.locator(".iv-scene")).toHaveText("What matters to you");
   const summary = page.getByRole("region", { name: "Your priorities" });
   await expect(summary).toContainText("Elevation at the build site: at least 2,500 ft");
   await expect(summary).toContainText("Best homesite: at least 3 h of December sun");
   await expect(summary.locator("ol").first().locator("li").first()).toContainText(
     "Elevation at the build site",
   );
-  await expect(summary).toContainText("Counts once the app measures it: Climate (cool and snowy)");
-  await expect(summary).toContainText("No HOA (a must)");
+  await expect(page.locator(".iv")).not.toContainText("Counts once the app measures it");
+  await expect(page.locator(".iv")).not.toContainText("Try it grades a sample parcel");
   await expect(page.getByRole("region", { name: "Try it" })).toContainText("Try it on");
   await expect(page.getByText("Replace the priorities you changed?")).toHaveCount(0);
+  // Back to 14b: it opens with its picks, Next in Skip's place, no Continue; Next comes back here.
+  await page.getByRole("button", { name: "Back" }).click();
+  await expect(page.getByRole("button", { name: "See my priorities" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Next" }).click();
+  await expect(page.locator(".iv-scene")).toHaveText("What matters to you");
 
   await page.getByRole("link", { name: "Fine-tune in My priorities" }).click();
   const should = page.getByRole("region", { name: "Really want", exact: true }).locator(".rubric-card-name");
@@ -122,6 +138,10 @@ test("the keyboard: 1–4 pick, the arrows move, Backspace goes back", async ({ 
   await choice(page, "In between").focus();
   await page.keyboard.press("ArrowDown");
   await expect(choice(page, "Warm and mild")).toBeFocused();
+  // A screen that held an answer waits: Enter changes the pick, Enter on it again moves on.
+  await page.keyboard.press("Enter");
+  await expect(choice(page, "Warm and mild")).toHaveAttribute("aria-checked", "true");
+  await expect(progress(page)).toHaveText("1 of 14");
   await page.keyboard.press("Enter");
   await expect(progress(page)).toHaveText("2 of 14");
   expect(errors).toEqual([]);

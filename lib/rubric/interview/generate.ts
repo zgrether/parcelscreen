@@ -77,7 +77,10 @@ export function walkAwayStarts(
 }
 
 const choiceOf = (key: keyof InterviewAnswers, id: string) =>
-  QUESTIONS.find((q) => q.key === key)?.choices.find((c) => c.id === id);
+  (
+    QUESTIONS.find((q) => q.key === key)?.choices ??
+    QUESTIONS.find((q) => q.second?.key === key)?.second?.choices
+  )?.find((c) => c.id === id);
 
 export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card): Generated {
   const I = C.interview;
@@ -125,7 +128,7 @@ export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card
   answer("trails", a.trails);
   answer("groceries", a.groceries);
   answer("er", a.er);
-  for (const w of a.work ?? []) note(choiceOf("work", w)?.later);
+  for (const key of ["fly", "calls"] as const) if (a[key]) note(choiceOf(key, a[key])?.later);
   answer("neighbors", a.neighbors);
   answer("garden", a.garden);
   for (const key of ["driveway", "hoa", "creek"] as const) if (a[key]) note(choiceOf(key, a[key])?.later);

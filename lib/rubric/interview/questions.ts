@@ -23,8 +23,12 @@ export interface Question {
   n: number;
   scene: string;
   choices: Choice[];
-  /** Pick any (question 7), then Continue. */
-  many?: boolean;
+  /**
+   * A second single-choice row on the same screen (question 7, owner 10/18): the screen's scene heads both rows, and
+   * `ask` is the first row's own question. Continue appears once both are answered.
+   */
+  ask?: string;
+  second?: { key: keyof InterviewAnswers; ask: string; choices: Choice[] };
 }
 
 export const QUESTIONS: readonly Question[] = [
@@ -141,30 +145,38 @@ export const QUESTIONS: readonly Question[] = [
     ],
   },
   {
-    key: "work",
+    key: "fly",
     n: 7,
-    scene: "Work and travel: what applies?",
-    many: true,
+    scene: "Work and travel.",
+    ask: "How often will you fly?",
     choices: [
+      { id: "rarely", label: "Rarely or never", why: "You rarely or never fly" },
       {
-        id: "calls",
-        label: "Video calls from home",
-        why: "You work on video calls from home",
-        later: "Internet for video calls",
-      },
-      {
-        id: "flyFew",
-        label: "Fly a few times a year",
+        id: "few",
+        label: "A few times a year",
         why: "You fly a few times a year",
         later: "Airport (a few times a year)",
       },
       {
-        id: "flyMonthly",
-        label: "Fly monthly or more",
+        id: "monthly",
+        label: "Monthly or more",
         why: "You fly monthly or more",
         later: "Airport (monthly or more)",
       },
     ],
+    second: {
+      key: "calls",
+      ask: "Do you need internet for video calls from home?",
+      choices: [
+        {
+          id: "yes",
+          label: "Yes",
+          why: "You need internet for video calls from home",
+          later: "Internet for video calls",
+        },
+        { id: "no", label: "Not really", why: "You don't need internet for video calls" },
+      ],
+    },
   },
   {
     key: "neighbors",
