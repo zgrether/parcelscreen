@@ -10,6 +10,7 @@
  */
 import { area, length, lineString, polygon } from "@turf/turf";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useKeepInView } from "@/lib/client/keepInView";
 import { isBuilt } from "@/lib/client/parcelStore";
 import { CHOICE_LABEL, type MarkChoice } from "@/lib/client/markChoices";
 import { MarkIcon } from "./markIcons";
@@ -392,7 +393,9 @@ function barBody(
 function BoundaryMenu({ ctl }: { ctl: ExploreController }) {
   const [at, setAt] = useState<CSSProperties | null>(null);
   const button = useRef<HTMLButtonElement>(null);
+  const list = useRef<HTMLSpanElement>(null);
   const open = at !== null;
+  useKeepInView(list, open, button);
   useEffect(() => {
     if (!open) return;
     const close = () => setAt(null);
@@ -425,7 +428,7 @@ function BoundaryMenu({ ctl }: { ctl: ExploreController }) {
         Boundary ▾
       </button>
       {open && (
-        <span className="tb-menu-list" role="menu" style={at}>
+        <span ref={list} className="tb-menu-list" role="menu" style={at}>
           <button
             role="menuitem"
             onClick={() => go(ctl.startCombine)}
