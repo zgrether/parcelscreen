@@ -107,7 +107,8 @@ export function Interview() {
         </p>
       </header>
       <div className="iv-bar" aria-hidden="true">
-        <span style={{ width: `${(Math.max(0, n - 1) / QUESTION_COUNT) * 100}%` }} />
+        {/* 14b, the last screen: the bar full. */}
+        <span style={{ width: `${((step.kind === "dontMatter" ? n : n - 1) / QUESTION_COUNT) * 100}%` }} />
       </div>
 
       <StepView key={iv.doc.at} iv={iv} step={step} heading={heading} n={n} notNow={notNow} />

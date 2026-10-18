@@ -159,7 +159,8 @@ export function ChoiceScreen({ iv, question, heading, n, revisit }: ScreenProps 
   return (
     <>
       <Scene heading={heading} n={n} text={question.scene} />
-      <p className="iv-hint">{hint(revisit)}</p>
+      {/* With question 2's follow-up showing, its own hint says how to go on. */}
+      {!showGlow && <p className="iv-hint">{hint(revisit)}</p>}
       <Choices choices={question.choices} value={value} pick={pick} label={question.scene} />
       {showGlow && (
         <div className="iv-follow">
