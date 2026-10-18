@@ -128,7 +128,7 @@ export function cardLine(r: Rubric, factor: Factor): string {
     case "room":
       return `Gentle ground of at least ${bandValue("roomX", bcEdge(b, "roomX"))} the build footprint`;
     case "trails":
-      return `A trailhead within a ${fmt(bcEdge(b, "trailheadMin"))}-minute drive (or public land within ${trim(fmt(b.openLandWithinFt / 5280, 1))} mi)`;
+      return `A trailhead within a ${fmt(bcEdge(b, "trailheadMin"))}-minute drive (or public land within ${trim(fmt(b.openLandWithinFt / 5280, 2))} mi)`;
     case "town":
       return `An ER within ${bandValue("erMin", bcEdge(b, "erMin"))} and groceries within ${fmt(bcEdge(b, "groceryMin"))}`;
     case "garden":
@@ -194,7 +194,7 @@ export function plainLine(r: Rubric, factor: Factor): string {
     case "room":
       return "Enough gentle ground for the house";
     case "trails":
-      return `A trailhead within ${bandValue("trailheadMin", bcEdge(b, "trailheadMin"))}, or public land within ${trim(fmt(b.openLandWithinFt / 5280, 1))} mi`;
+      return `A trailhead within ${bandValue("trailheadMin", bcEdge(b, "trailheadMin"))}, or public land within ${trim(fmt(b.openLandWithinFt / 5280, 2))} mi`;
     case "town":
       return `ER within ${bandValue("erMin", bcEdge(b, "erMin"))}, groceries within ${bandValue("groceryMin", bcEdge(b, "groceryMin"))}`;
     case "garden": {

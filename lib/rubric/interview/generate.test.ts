@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 import { defaultRubric } from "../default";
 import { weightsOf } from "../weights";
-import { bcEdge, type BandKey } from "../words";
+import { bcEdge, plainLine, type BandKey } from "../words";
 import type { RowKey } from "../types";
 import { InterviewAnswersSchema, type InterviewAnswers } from "./answers";
 import { rubricFromAnswers, walkAwayStarts } from "./generate";
@@ -60,6 +60,9 @@ describe("§3: every choice", () => {
 
   it("'Walk out the door' asks for public land within ¼ mi for a B", () => {
     expect(rubricFromAnswers({ trails: "door" }).rubric.bands.openLandWithinFt).toBe(1320);
+    expect(plainLine(rubricFromAnswers({ trails: "door" }).rubric, "trails")).toBe(
+      "A trailhead within 15 min, or public land within 0.25 mi",
+    );
   });
 
   it("the shifted bands keep their steps", () => {

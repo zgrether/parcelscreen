@@ -4566,3 +4566,242 @@ button.cmp-cell:hover {
     max-height: 85vh;
   }
 }
+
+/* The interview (step 4, docs/plans/step-4-interview.md §7): phone first, one question per screen in one column, the
+   choices at least 56 px tall, Back and Skip along the bottom; on a desktop the same column, 560 px wide. */
+.iv {
+  height: 100%;
+  overflow: auto;
+  box-sizing: border-box;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 12px 16px 24px;
+  display: flex;
+  flex-direction: column;
+}
+.iv-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+}
+.iv-progress {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-ink-2);
+}
+.iv-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-rule);
+  margin: 4px 0 18px;
+}
+.iv-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--color-ok);
+  transition: width 0.2s;
+}
+.iv-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.iv-scene {
+  margin: 0 0 6px;
+  font: 600 22px/1.3 var(--font-cond);
+  outline: none;
+}
+.iv-hint {
+  margin: -4px 0 0;
+  font-size: 14px;
+  color: var(--color-ink-2);
+}
+.iv-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.iv-choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-rule);
+  border-radius: 10px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 16px;
+  text-align: left;
+  cursor: pointer;
+}
+.iv-choice:hover {
+  background: var(--color-paper-2);
+}
+.iv-choice:focus-visible,
+.iv-chip:focus-visible {
+  outline: 2px solid var(--color-water);
+  outline-offset: 2px;
+}
+.iv-choice.picked {
+  border-color: var(--color-ok);
+  box-shadow: inset 0 0 0 2px var(--color-ok);
+  font-weight: 600;
+}
+.iv-key {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--color-rule);
+  border-radius: 50%;
+  font-size: 12px;
+  line-height: 22px;
+  text-align: center;
+  color: var(--color-ink-2);
+}
+.iv-follow {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-rule);
+}
+.iv-follow-q {
+  margin: 0 0 8px;
+  font-size: 17px;
+}
+.iv-field {
+  display: grid;
+  gap: 4px;
+  font-size: 14px;
+}
+.iv-field input {
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 1px solid var(--color-rule);
+  border-radius: 6px;
+  background: #fff;
+  font: inherit;
+  font-size: 16px;
+}
+.iv-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.iv-chip-wrap {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.iv-chip {
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--color-rule);
+  border-radius: 22px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+.iv-chip.picked {
+  border-color: var(--color-ok);
+  background: var(--color-ok);
+  color: #fff;
+}
+.iv-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.iv-stepper .btn {
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 18px;
+}
+.iv-stepper-value {
+  min-width: 7ch;
+  text-align: center;
+  font-weight: 600;
+}
+.iv-note {
+  margin: 0;
+  color: var(--color-warn);
+  font-weight: 600;
+}
+.iv-continue {
+  align-self: flex-start;
+  min-height: 48px;
+  margin-top: 6px;
+  padding: 10px 22px;
+  font-size: 16px;
+}
+.iv-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 20px;
+}
+.iv-nav .btn {
+  min-height: 44px;
+  min-width: 88px;
+}
+.iv-result .rubric-strip {
+  margin: 8px 0 14px;
+}
+/* On a phone Try it is the bottom bar, as on the priorities page: room for it under the buttons. */
+@media (max-width: 860px) {
+  .iv-result {
+    padding-bottom: 150px;
+  }
+}
+.iv-ask {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-warn);
+  border-radius: 8px;
+  background: var(--color-paper-2);
+}
+.iv-ask p {
+  margin: 0 0 10px;
+  font-weight: 600;
+}
+.iv-ask-actions,
+.iv-done {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.iv-done .btn {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+.iv-summary h2 {
+  margin: 14px 0 4px;
+  font: 600 17px/1.2 var(--font-cond);
+}
+.iv-summary ul,
+.iv-summary ol {
+  margin: 0;
+  padding-left: 22px;
+}
+.iv-summary ul {
+  list-style: disc;
+}
+/* Really want and Nice to have in rank order: the numbers say so. */
+.iv-summary ol {
+  list-style: decimal;
+}
+.iv-summary li {
+  margin: 3px 0;
+}
+.iv-later {
+  margin: 14px 0 16px;
+  font-size: 13.5px;
+}
