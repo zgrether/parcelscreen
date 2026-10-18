@@ -112,7 +112,8 @@ describe("data from before profiles is dropped (step 2 plan §9)", () => {
     expect(oldDataDropped()).toBe(true);
     for (const key of PRE_PROFILE_KEYS) expect(ls.getItem(key)).toBeNull();
     expect(ls.getItem("ps.view")).toBe("{}");
-    expect(await storage.docs(b.profile.id)).toEqual([]);
+    // Nothing moved: the new profile holds only the interview it starts with (step 4).
+    expect((await storage.docs(b.profile.id)).map((d) => d.key)).toEqual(["ps.interview"]);
     expect(loadUserConfig().sunHoursWanted).toBe(DEFAULT_USER_CONFIG.sunHoursWanted);
     expect([...storage.state.screens.keys()]).toEqual(["s2"]);
   });
@@ -152,10 +153,12 @@ describe("the profile's key-value store", () => {
     expect(JSON.parse(docs.find((d) => d.key === "ps.cfg")!.value).canopyDeg).toBe(7);
     kv.removeItem("ps.rubricView");
     await kv.flush();
-    expect((await storage.docs(b.profile.id)).map((d) => d.key)).toEqual(["ps.cfg"]);
+    // (The first profile also holds the interview it starts with: step 4.)
+    const others = (keys: string[]) => keys.filter((k) => k !== "ps.interview");
+    expect(others((await storage.docs(b.profile.id)).map((d) => d.key))).toEqual(["ps.cfg"]);
     // A device key never reaches the profile's documents (no localStorage here: it reads as its default).
     setPref("ps.dim", true);
-    expect(kv.keys()).toEqual(["ps.cfg"]);
+    expect(others(kv.keys())).toEqual(["ps.cfg"]);
     expect(getPref("ps.dim")).toBe(false);
   });
 

@@ -20,6 +20,8 @@ const same = (a: Rubric | null | undefined, b: Rubric | null | undefined): boole
 /** The doc as the interview opens it: begun, resuming where it was left, or a redo from question 1. */
 export function openDoc(stored: InterviewDoc | null): InterviewDoc {
   if (!stored) return freshDoc();
+  // A new profile's: its name first.
+  if (stored.state === "new") return { ...stored, at: 0 };
   if (stored.state === "done") return { ...stored, state: "inProgress", at: 0 };
   return { ...stored, state: "inProgress", at: Math.min(stored.at, RESULT_AT) };
 }
@@ -64,6 +66,10 @@ export interface Interview {
   back(): void;
   /** The answer to "Replace the priorities you changed?": "Use my answers" (true) or "Keep mine" (false). */
   decide(useAnswers: boolean): void;
+  /** Past a new profile's name screen: question 1. */
+  begin(): void;
+  /** "Not now": put off, answers kept; the app stops sending the profile here, and the menu offers it. */
+  notNow(): void;
   /** The list the profile had when the interview opened: "before" for Try it. */
   before: Rubric;
 }
@@ -123,5 +129,14 @@ export function useInterview(): Interview {
     setOutcome(useAnswers ? "saved" : "kept");
   }, []);
 
-  return { doc, outcome, answer, skip, back, decide, before };
+  const begin = useCallback(() => go({ ...latest.current, state: "inProgress", at: 0 }), [go]);
+
+  const notNow = useCallback(() => {
+    const d: InterviewDoc = { ...latest.current, state: "notNow", onboarding: false };
+    setPref("ps.interview", d);
+    latest.current = d;
+    setDoc(d);
+  }, []);
+
+  return { doc, outcome, answer, skip, back, decide, before, begin, notNow };
 }

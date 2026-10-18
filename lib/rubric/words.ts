@@ -217,16 +217,35 @@ export function tierOf(r: Rubric, factor: Factor): Tier {
 export const isGate = (f: Factor): f is GateKey =>
   f === "floodplain" || f === "access" || f === "easement" || f === "septic";
 
+export const WHY_STARTING = "On the starting list.";
+export const WHY_MOVED = "You moved this here.";
+
+/** The interview's list and its why lines (lib/rubric/interview/generate.ts): what a card's why reads against. */
+export interface WhyContext {
+  base: Rubric;
+  why: { cards: Partial<Record<Factor, string[]>>; limits: Partial<Record<RowKey, string>> };
+}
+
 /**
- * Why a card is where it is: "From the starting list" (the default rubric), or "You changed it" when its column, its rank or its band differs
- * from the default rubric's. Step 4's interview adds the answer that put it there.
+ * Why a card is where it is (owner, 10/18: the person's terms, never a question number). Against the interview's list
+ * when there is one, else the starting list: a card in the same column with the same band quotes the answer that put
+ * it there ("You said an ER more than 30 minutes away feels too far"), or "On the starting list." when no answer did;
+ * any other reads "You moved this here.". Rank isn't compared: moving one card would mark every card below it.
  */
-export function whyLine(r: Rubric, factor: Factor): string {
-  const d = defaultRubric();
+export function whyLine(r: Rubric, factor: Factor, ctx?: WhyContext | null): string {
+  const ref = ctx?.base ?? defaultRubric();
   const same =
-    tierOf(r, factor) === tierOf(d, factor) &&
-    r.ranked.findIndex((c) => c.factor === factor) === d.ranked.findIndex((c) => c.factor === factor) &&
+    tierOf(r, factor) === tierOf(ref, factor) &&
     (isGate(factor) ||
-      ROW_BANDS[factor].every((k) => JSON.stringify(r.bands[k]) === JSON.stringify(d.bands[k])));
-  return same ? "From the starting list" : "You changed it";
+      ROW_BANDS[factor].every((k) => JSON.stringify(r.bands[k]) === JSON.stringify(ref.bands[k])));
+  if (!same) return WHY_MOVED;
+  return ctx?.why.cards[factor]?.[0] ?? WHY_STARTING;
+}
+
+/** A limit's why: the walk-away answer that set it, while its value is the interview's; else as `whyLine`. */
+export function limitWhy(r: Rubric, row: RowKey, ctx?: WhyContext | null): string {
+  const at = (x: Rubric) => x.musts.find((m) => m.factor === row && m.threshold !== undefined)?.threshold;
+  const ref = ctx?.base ?? defaultRubric();
+  if (at(r) !== at(ref)) return WHY_MOVED;
+  return ctx?.why.limits[row] ?? WHY_STARTING;
 }

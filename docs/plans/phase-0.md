@@ -672,4 +672,22 @@ holds the answers about factors the app doesn't measure yet: climate, long view,
 the driveway (a row in step 6, Q5), HOA, the creek, acreage, the budgets and the shared driveway (Q4). **Skipping
 everything** keeps the starting list unchanged (Q8).
 
+54. **Onboarding, and the interview on the priorities page** (owner, 2026-10-18; step 4 plan §6 and §9 Q7, Q9;
+roadmap step 4, PRs 2–3). **A new profile starts with the interview:** a first visit's profile, and one made by "Add
+a profile" (which no longer asks for a name inline), hold an interview document marked `onboarding` in state "new".
+Its first screen asks the name (Skip keeps "Profile 1"), every screen offers "Not now", and any other page sends the
+profile to /interview until it's finished or put off. "Not now" keeps the answers and stops the sending; the menu
+then offers "Finish your questions (6 of 14)", else "Answer a few questions (about 4 min)" (owner, 10/18), and so does
+the priorities page's header. Automated browsers (`navigator.webdriver`) aren't sent unless they ask with
+`ps.onboard`, so the e2e that open pages on a fresh profile keep testing them; the plan's `ps.debug` wasn't set by
+most of them. **Every answer saves** to the profile's `ps.interview` as it's picked, so leaving halfway resumes on
+the same screen. **The result** saves the list the answers make, unless the profile's list was changed since (it's
+neither the starting list nor the last interview's): then "Replace the priorities you changed?" asks, with "Use my
+answers" and "Keep mine" (Q7). **On the priorities page,** "Reset to my answers" (beside "Reset to the starting list",
+behind the same kind of dialog) sets the list to the answers' again; a card's why quotes the answer that put it there
+while it's in the interview's column with its band, and otherwise reads "You moved this here." or "On the starting
+list." (in place of step 3's "You changed it" and "From the starting list"; rank isn't compared, so one card's move
+doesn't mark the cards below it); and the quiet list sits under the columns. The answers stay out of the export file
+until step 5 (Q14).
+
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

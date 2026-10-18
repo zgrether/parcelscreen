@@ -27,6 +27,9 @@ export interface InterviewDoc {
   /** The rubric the generator made from these answers when the interview was last finished. */
   base: Rubric | null;
   doneAt?: string;
+  /** A new profile's own start (§6.1): it opens with the name, every screen offers "Not now", and the app sends the
+   * profile here until it's finished or put off. */
+  onboarding?: boolean;
 }
 
 export const InterviewDocSchema: z.ZodType<InterviewDoc> = z.strictObject({
@@ -36,6 +39,7 @@ export const InterviewDocSchema: z.ZodType<InterviewDoc> = z.strictObject({
   answers: InterviewAnswersSchema,
   base: RubricSchema.nullable(),
   doneAt: z.string().optional(),
+  onboarding: z.boolean().optional(),
 }) as z.ZodType<InterviewDoc>;
 
 /**
@@ -79,3 +83,13 @@ export const freshDoc = (state: InterviewState = "inProgress"): InterviewDoc => 
   answers: {},
   base: null,
 });
+
+/**
+ * The menu's and the priorities page's link to the interview (owner, 10/18): "Answer a few questions (about 4 min)",
+ * or, begun and not finished, "Finish your questions (6 of 14)".
+ */
+export function interviewLabel(doc: InterviewDoc | null): string {
+  if (doc && (doc.state === "inProgress" || doc.state === "notNow") && doc.at > 0)
+    return `Finish your questions (${questionNumber(STEPS[Math.min(doc.at, RESULT_AT)]!)} of 14)`;
+  return "Answer a few questions (about 4 min)";
+}

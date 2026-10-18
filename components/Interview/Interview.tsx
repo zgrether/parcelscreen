@@ -7,7 +7,9 @@
  * keyboard: the arrows and 1–4 pick, Enter continues, Backspace or Alt+← goes back.
  */
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { currentProfile, renameProfile } from "@/lib/client/profiles";
 import { useInterview } from "@/lib/client/useInterview";
 import { QUESTION_COUNT, QUESTIONS } from "@/lib/rubric/interview/questions";
 import { questionNumber, STEPS, type Step } from "@/lib/rubric/interview/doc";
@@ -33,11 +35,19 @@ function keysOf(step: Step): (keyof InterviewAnswers)[] {
   }
 }
 
+/** "Not now": a new profile's way out, on every screen of its interview (§6.1). */
+export const NOT_NOW = "Not now";
+
 export function Interview() {
   const iv = useInterview();
+  const router = useRouter();
   const step = STEPS[iv.doc.at]!;
   const heading = useRef<HTMLHeadingElement>(null);
   const n = questionNumber(step);
+  const notNow = () => {
+    iv.notNow();
+    router.push("/explore");
+  };
 
   // Each screen starts with the focus on its question, which a screen reader announces with its number.
   useEffect(() => heading.current?.focus(), [iv.doc.at]);
@@ -55,6 +65,8 @@ export function Interview() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [iv]);
+
+  if (iv.doc.state === "new") return <NameScreen begin={iv.begin} notNow={notNow} />;
 
   if (step.kind === "result")
     return (
@@ -94,7 +106,62 @@ export function Interview() {
         <button type="button" className="btn secondary" disabled={iv.doc.at === 0} onClick={iv.back}>
           Back
         </button>
+        {iv.doc.onboarding && (
+          <button type="button" className="btn secondary" onClick={notNow}>
+            {NOT_NOW}
+          </button>
+        )}
         <button type="button" className="btn secondary" onClick={() => iv.skip(keysOf(step))}>
+          Skip
+        </button>
+      </nav>
+    </main>
+  );
+}
+
+/** A new profile's first screen: its name (Skip keeps "Profile 1"), then question 1. */
+function NameScreen({ begin, notNow }: { begin(): void; notNow(): void }) {
+  const [name, setName] = useState("");
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => heading.current?.focus(), []);
+  const go = async (e?: FormEvent) => {
+    e?.preventDefault();
+    const id = currentProfile()?.id;
+    if (id && name.trim()) await renameProfile(id, name.trim());
+    begin();
+  };
+  return (
+    <main className="iv">
+      <header className="iv-head">
+        <span />
+        <p className="iv-progress">About 4 minutes</p>
+      </header>
+      <form className="iv-screen" onSubmit={(e) => void go(e)}>
+        <h1 className="iv-scene" ref={heading} tabIndex={-1}>
+          What should we call this profile?
+        </h1>
+        <p className="iv-hint">
+          Then a few quick questions about how you&apos;d like to live on the land. Your answers set what
+          matters when a parcel is graded, and you can change any of it later.
+        </p>
+        <label className="iv-field">
+          <span>Name</span>
+          <input
+            autoComplete="nickname"
+            placeholder="Your name or a nickname"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </label>
+        <button type="submit" className="btn iv-continue">
+          Continue
+        </button>
+      </form>
+      <nav className="iv-nav" aria-label="Interview">
+        <button type="button" className="btn secondary" onClick={notNow}>
+          {NOT_NOW}
+        </button>
+        <button type="button" className="btn secondary" onClick={() => void go()}>
           Skip
         </button>
       </nav>

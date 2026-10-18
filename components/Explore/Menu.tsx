@@ -16,6 +16,8 @@ import { OLD_DATA_DROPPED } from "@/lib/client/oldData";
 import { oldDataDropped } from "@/lib/client/profiles";
 import { ExportImport } from "./ExportImport";
 import { History } from "./History";
+import { interviewLabel } from "@/lib/rubric/interview/doc";
+import { getPref } from "@/lib/client/prefs";
 
 export function Menu() {
   const [open, setOpen] = useState(false);
@@ -85,6 +87,10 @@ function Drawer({ close }: { close(): void }) {
             {/* Step 3: the profile's own rubric, in four columns. */}
             <li>
               <Link href="/priorities">My priorities</Link>
+            </li>
+            {/* Step 4: the interview, offered always; a begun one says how far it got. */}
+            <li>
+              <Link href="/interview">{interviewLabel(getPref("ps.interview"))}</Link>
             </li>
             <li>
               <button

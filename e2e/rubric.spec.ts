@@ -56,7 +56,7 @@ test("the columns, a card's Move to…, and Undo", async ({ page }) => {
   ]);
   await expect(column(page, "Don't care")).toContainText("Nothing ignored");
   await card(page, "Septic").locator(".rubric-card-body").click();
-  await expect(sheet(page)).toContainText("From the starting list");
+  await expect(sheet(page)).toContainText("On the starting list.");
   // A dealbreaker can't rank.
   await expect(sheet(page).getByRole("button", { name: "Really want" })).toBeDisabled();
   await sheet(page).getByRole("button", { name: "Don't care" }).click();
