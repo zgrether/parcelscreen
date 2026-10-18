@@ -35,7 +35,7 @@ export function WeightsNotice({
           aria-expanded={open}
           onClick={() => setOpen(!open)}
         >
-          See what changed
+          {open ? "Hide what changed" : "See what changed"}
         </button>{" "}
         <button type="button" className="btn secondary small" onClick={undo}>
           Undo
@@ -55,13 +55,16 @@ export function WeightsNotice({
               </tr>
             </thead>
             <tbody>
-              {weightsTable(switched).map((r) => (
-                <tr key={r.key}>
-                  <th scope="row">{r.label}</th>
-                  <td className="num">{fmt(r.before, 1)}%</td>
-                  <td className="num">{fmt(r.after, 1)}%</td>
-                </tr>
-              ))}
+              {/* In the list's order now: the weights fall with the rank, and Don't care's are 0. */}
+              {weightsTable(switched)
+                .sort((a, b) => b.after - a.after)
+                .map((r) => (
+                  <tr key={r.key}>
+                    <th scope="row">{r.label}</th>
+                    <td className="num">{fmt(r.before, 1)}%</td>
+                    <td className="num">{fmt(r.after, 1)}%</td>
+                  </tr>
+                ))}
             </tbody>
           </table>
           {parcel && (
@@ -71,8 +74,8 @@ export function WeightsNotice({
             </p>
           )}
           <p className="tiny muted">
-            How much each counts: the first item counts most and each one below counts less; Nice to have
-            items count three quarters.
+            How much each counts: the first item counts most and each one below counts less. An item in Nice
+            to have counts three quarters of what it would in Really want.
           </p>
         </div>
       )}

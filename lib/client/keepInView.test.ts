@@ -1,14 +1,14 @@
-/** Popovers inside the window (owner, 10/18): right-aligned to their button near the right edge, shifted or flipped. */
+/** Popovers in view (owner, 10/18): right-aligned to their button near the right edge, shifted or flipped. */
 import { describe, expect, it } from "vitest";
 import { keepInView } from "./keepInView";
 
-const view = { width: 1280, height: 800 };
 const box = (left: number, top: number, w: number, h: number) => ({
   left,
   top,
   right: left + w,
   bottom: top + h,
 });
+const view = box(0, 0, 1280, 800);
 
 describe("keepInView", () => {
   it("leaves a popover that fits alone", () => {
@@ -25,7 +25,7 @@ describe("keepInView", () => {
   });
 
   it("still too wide for that: shifts in with the margin", () => {
-    const { dx } = keepInView(box(300, 48, 360, 200), { width: 375, height: 812 }, box(300, 12, 60, 30));
+    const { dx } = keepInView(box(300, 48, 360, 200), box(0, 0, 375, 812), box(300, 12, 60, 30));
     expect(300 + dx).toBe(8);
   });
 
@@ -45,6 +45,17 @@ describe("keepInView", () => {
 
 describe("keepInView, against an edge", () => {
   it("leaves a full-width bottom sheet where it is", () => {
-    expect(keepInView(box(0, 500, 390, 344), { width: 390, height: 844 })).toEqual({ dx: 0, dy: 0 });
+    expect(keepInView(box(0, 500, 390, 344), box(0, 0, 390, 844))).toEqual({ dx: 0, dy: 0 });
+  });
+});
+
+describe("keepInView, inside a scrolling page", () => {
+  it("keeps the menu inside the <main> that clips it, not just the window (the profile menu's case)", () => {
+    // <main> is 1200 px wide on a 1280 px window; the menu opened under the profile button and ran past 1200.
+    const main = box(0, 0, 1200, 800);
+    const button = box(935, 12, 88, 30);
+    const pop = box(935, 48, 300, 110);
+    const { dx } = keepInView(pop, main, button);
+    expect(pop.right + dx).toBe(button.right);
   });
 });

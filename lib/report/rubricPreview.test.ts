@@ -56,7 +56,7 @@ describe("the preview", () => {
       key: "town",
       label: "Town and hospital",
       delta: 0,
-      why: "Town and hospital: ER within 30 min is now a must have",
+      why: "Out: Town and hospital misses its limit (ER within 30 min)",
     });
   });
 });

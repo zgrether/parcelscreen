@@ -137,9 +137,7 @@ function addMinimum(r: Rubric, row: RowKey): EditResult {
   const threshold = bcEdge(r.bands, band);
   const next = { ...r, musts: [...r.musts, { factor: row, threshold }] };
   const where =
-    tierOf(r, row) === "wont"
-      ? `it stays in ${TIER_NAMES.wont}`
-      : `it stays at ${placeWords(r, row)}, marked limit`;
+    tierOf(r, row) === "wont" ? `it stays in ${TIER_NAMES.wont}` : `it also stays at ${placeWords(r, row)}`;
   return {
     ok: true,
     rubric: next,

@@ -210,13 +210,24 @@ for (const size of [
         const pop = page.locator(".compare-head .profile-pop");
         await expect(pop).toBeVisible();
         await expect(pop.getByRole("button", { name: "Add a profile" })).toBeVisible();
-        // The menu has placed itself (useKeepInView runs after layout): every edge inside the window.
+        // The menu has placed itself (useKeepInView runs after layout), and nothing clips it: each of its corners (12 px in, past the rounding) is
+        // inside the window and is the menu itself where a click would land there, not the page beneath or beyond a
+        // scrolling <main>'s edge (the first version of this check passed while <main> cut the menu off).
         await expect
           .poll(
-            async () => {
-              const b = (await pop.boundingBox())!;
-              return b.x >= 0 && b.y >= 0 && b.x + b.width <= size.width && b.y + b.height <= size.height;
-            },
+            () =>
+              pop.evaluate((el) => {
+                const r = el.getBoundingClientRect();
+                return [
+                  [r.left + 12, r.top + 12],
+                  [r.right - 12, r.top + 12],
+                  [r.left + 12, r.bottom - 12],
+                  [r.right - 12, r.bottom - 12],
+                ].every(([x, y]) => {
+                  const hit = document.elementFromPoint(x!, y!);
+                  return x! < window.innerWidth && y! < window.innerHeight && !!hit && el.contains(hit);
+                });
+              }),
             { message: `the profile menu on ${path}` },
           )
           .toBe(true);

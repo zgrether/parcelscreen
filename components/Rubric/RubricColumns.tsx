@@ -32,7 +32,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useState } from "react";
 import { columnsOf, hasMinimum, type Columns, type EditorCard } from "@/lib/rubric/edit";
 import type { Factor, MustCard, RowKey, Rubric } from "@/lib/rubric/types";
-import { EDITOR_TITLES, isGate, minimumLine, plainLine, TIER_NAMES, type Tier } from "@/lib/rubric/words";
+import { EDITOR_TITLES, isGate, minimumWords, plainLine, TIER_NAMES, type Tier } from "@/lib/rubric/words";
 
 export { TIER_NAMES };
 
@@ -252,7 +252,9 @@ export function CardBody({
   lifted?: boolean;
 }) {
   const words =
-    card.kind === "minimum" ? minimumLine(minimumOf(rubric, card.factor)) : plainLine(rubric, card.factor);
+    card.kind === "minimum"
+      ? `Limit: ${minimumWords(card.factor, minimumOf(rubric, card.factor).threshold ?? 0)}`
+      : plainLine(rubric, card.factor);
   return (
     <div className={`rubric-card${lifted ? " lifted" : ""}${card.kind === "minimum" ? " minimum" : ""}`}>
       {handle ?? (
@@ -267,15 +269,19 @@ export function CardBody({
         aria-label={`${cardName(card)}: ${words}`}
       >
         <span className="rubric-card-name">
-          {card.kind === "minimum" ? "Limit" : EDITOR_TITLES[card.factor]}
+          {EDITOR_TITLES[card.factor]}
           {card.kind === "factor" && !isGate(card.factor) && hasMinimum(rubric, card.factor) && (
-            <span className="rubric-min-badge" title="Also a limit in Must have">
-              limit
+            <span className="rubric-min-badge" title="It also has a limit in Must have">
+              also a limit
             </span>
           )}
         </span>
         <span className="rubric-card-words">{words}</span>
       </button>
+      {/* Tapping a card opens it (the fresh-eyes review: nothing said a card could be tapped). */}
+      <span className="rubric-card-more" aria-hidden="true">
+        ›
+      </span>
     </div>
   );
 }

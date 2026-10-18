@@ -371,20 +371,27 @@ Phase 1 imports it into Supabase the same way as the `ps.parcels` store. It's ve
   Phase 1's import lifts that line into the parcel's name and keeps the rest as `notes`.
 - **All or nothing:** the whole file is validated before anything is written.
 
-### 3b. The rubric editor (roadmap step 3)
+### 3b. The rubric editor: "What matters to you" (roadmap step 3)
 
-"My rubric" (`/rubric`, linked from the menu, the rulebook and each card's weight line; phase-0.md §9.50) edits the
-current profile's `ps.rubrics.mine` in place. The rubric's stored shape is step 1's (`lib/rubric/schema.ts`); the
-editor adds nothing to it.
+"What matters to you" (`/priorities`; "My priorities" in the menu, the rulebook and each card panel; phase-0.md §9.50
+and §9.52) edits the current profile's `ps.rubrics.mine` in place. "Rubric" stays the code's name for it. The rubric's
+stored shape is step 1's (`lib/rubric/schema.ts`); the editor adds nothing to it.
 
-- **Four columns:** Must, Should, Could, Won't. Dealbreakers go only to Must or Won't. A row dropped on Must becomes a
-  minimum at its B/C edge and keeps its ranked card, marked "min". Homesite is never a minimum.
+- **The intro** says what the list is ("Every parcel you screen is graded against this list."), each column in a line,
+  and how to use it.
+- **Four columns:** Must have, Really want, Nice to have, Don't care (Must, Should, Could and Won't in the code).
+  Dealbreakers go only to Must have or Don't care. A row dropped on Must have becomes a limit at its B/C edge and keeps
+  its ranked card, marked "limit". Homesite is never a limit.
+- **Cards** show a title and one plain line; the exact number is in the card's sheet. No rank or weight on the cards:
+  the weights are in the notice's "See what changed" and the rulebook.
 - **Moves:** by drag (mouse, touch after a 250 ms hold, keyboard) or a card's Move to…. A card's sheet sets its band's
   B/C edge with a slider, which shifts the band (`card.editor` holds the ranges).
 - **Weights** stay explicit until the first reorder. After that the order sets them (rank-sum, Could ×0.75), applied
   at once with an inline notice: the before/after table, and an Undo.
-- **Saving:** every change saves at once. Undo covers the last ten changes; Reset to default asks first.
-- **The preview** grades one parcel before → now, and follows a held card before it drops. The parcel is the open
+- **Saving:** every change saves at once. Undo covers the last ten changes; "Reset to the starting list" asks first,
+  in a dialog.
+- **Try it,** a strip under the intro (the bottom bar on a phone), grades one parcel before → now ("B → A ·
+  Contender") with up to two plain reasons, and follows a held card before it drops. No points. The parcel is the open
   one, else the latest screened saved one, else the Mud Creek sample (`lib/rubric/sample`).
 - **No re-screen:** a change re-grades every parcel at once, because the rubric isn't part of a screen's run keys.
 - **The verdict lines are letter edges** (§9.51): A or B is a Contender, C a Maybe, D or F a Pass.

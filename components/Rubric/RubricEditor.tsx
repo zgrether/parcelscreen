@@ -88,12 +88,14 @@ export function RubricEditor() {
           <p className="rubric-status" role="status" aria-live="polite">
             {my.message}
           </p>
-          <button type="button" className="btn secondary small" disabled={!my.canUndo} onClick={my.undo}>
-            Undo
-          </button>
-          <button type="button" className="btn secondary small" onClick={() => setConfirmReset(true)}>
-            Reset to the starting list
-          </button>
+          <span className="rubric-bar-actions">
+            <button type="button" className="btn secondary small" disabled={!my.canUndo} onClick={my.undo}>
+              Undo
+            </button>
+            <button type="button" className="btn secondary small" onClick={() => setConfirmReset(true)}>
+              Reset to the starting list
+            </button>
+          </span>
         </div>
         {confirmReset && (
           <ResetConfirm
