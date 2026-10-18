@@ -105,7 +105,7 @@ describe("§3: every choice", () => {
   });
 
   it("why lines quote the person, never a question number (owner, 10/18)", () => {
-    expect(whyOf({ er: "30" }, "town")).toEqual(["You said an ER more than 30 minutes away feels too far"]);
+    expect(whyOf({ er: "30" }, "town")).toEqual(["You'd want an ER within 30 minutes"]);
     expect(whyOf({ sunView: "sun" }, "homesite")).toEqual([
       "You'd rather have sun at breakfast than a long view",
     ]);
@@ -114,7 +114,7 @@ describe("§3: every choice", () => {
     ]);
     // Two answers: the one that set the place first.
     expect(whyOf({ groceries: "far", er: "15" }, "town")).toEqual([
-      "You said an ER more than 15 minutes away feels too far",
+      "You'd want an ER within 15 minutes",
       "You'd rather drive 40 minutes to a big store once a week",
     ]);
     const all = JSON.stringify(rubricFromAnswers(PERSON_A).why);

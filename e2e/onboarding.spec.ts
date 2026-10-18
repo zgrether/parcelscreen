@@ -88,7 +88,7 @@ test("an existing profile: offered, never sent; the why lines, Reset to my answe
   const town = page.locator(".rubric-card", { hasText: "Town and hospital" }).first();
   await town.locator(".rubric-card-body").click();
   const sheet = page.getByRole("dialog");
-  await expect(sheet).toContainText("You said an ER more than 30 minutes away feels too far");
+  await expect(sheet).toContainText("You'd want an ER within 30 minutes");
   await expect(sheet).not.toContainText(/Question \d/);
   await sheet.getByRole("button", { name: "Nice to have" }).click();
   await expect(sheet).toContainText("You moved this here.");

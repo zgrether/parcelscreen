@@ -66,7 +66,7 @@ test("a full run as Person A, with Back and Skip: the result, and the priorities
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(progress(page)).toHaveText("14 of 14");
   // 14a: the elevation chip shows its number, 500 ft under question 1's edge.
-  for (const chip of ["Flood zone", "An HOA", "Below ___ ft", "No winter sun"])
+  for (const chip of ["Flood zone", "An HOA", "Elevation below ___ ft", "No winter sun"])
     await page.getByRole("button", { name: chip, exact: true }).click();
   await expect(page.locator(".iv-stepper-value")).toHaveText("2,500 ft");
   await expect(page.locator(".iv-note")).toHaveCount(0);
@@ -127,7 +127,7 @@ test("the keyboard: 1–4 pick, the arrows move, Backspace goes back", async ({ 
   expect(errors).toEqual([]);
 });
 
-test("a changed list: the result asks, and Keep mine keeps it", async ({ page }) => {
+test("a changed list: the result asks, and Keep my changes keeps it", async ({ page }) => {
   await fresh(page, "/priorities");
   // Change the list first: Septic to Don't care.
   await page.locator(".rubric-card", { hasText: "Septic" }).first().locator(".rubric-card-body").click();
@@ -142,7 +142,7 @@ test("a changed list: the result asks, and Keep mine keeps it", async ({ page })
   await page.getByRole("button", { name: "Skip" }).click(); // 14a
   await page.getByRole("button", { name: "Skip" }).click(); // 14b
   await expect(page.getByText("Replace the priorities you changed?")).toBeVisible();
-  await page.getByRole("button", { name: "Keep mine" }).click();
+  await page.getByRole("button", { name: "Keep my changes" }).click();
   await expect(page.getByText("Your priorities are as you left them.")).toBeVisible();
   await page.goto("/priorities");
   await expect(page.getByRole("region", { name: "Don't care", exact: true })).toContainText("Septic");

@@ -31,7 +31,7 @@ export function untouched(mine: Rubric, base: Rubric | null): boolean {
   return same(mine, defaultRubric()) || same(mine, base);
 }
 
-/** What arriving at the result did: saved the answers' list, asks first, or (after "Keep mine") kept the old one. */
+/** What arriving at the result did: saved the answers' list, asks first, or (after "Keep my changes") kept the old one. */
 export type Outcome = "saved" | "ask" | "kept";
 
 /** Finishes `d`: the answers' list saved as the profile's own (or not), and the doc marked done with its `base`. */
@@ -64,7 +64,7 @@ export interface Interview {
   /** Leaves this screen's answers out and moves on. */
   skip(keys: (keyof InterviewAnswers)[]): void;
   back(): void;
-  /** The answer to "Replace the priorities you changed?": "Use my answers" (true) or "Keep mine" (false). */
+  /** The answer to "Replace the priorities you changed?": "Replace with the new list" (true) or "Keep my changes" (false). */
   decide(useAnswers: boolean): void;
   /** Past a new profile's name screen: question 1. */
   begin(): void;

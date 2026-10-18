@@ -16,6 +16,11 @@ import { EDITOR_TITLES, minimumLine, plainLine, TIER_NAMES } from "@/lib/rubric/
 export const LATER_LEAD = "Counts once the app measures it:";
 export const MUST_NOTE = "That will rule out most land.";
 export const REPLACE_QUESTION = "Replace the priorities you changed?";
+/** Its buttons (owner, 10/18, after the fresh-eyes review: "Use my answers" and "Keep mine" both read as "mine"). */
+export const REPLACE_YES = "Replace with the new list";
+export const REPLACE_NO = "Keep my changes";
+export const TRY_IT_HINT =
+  "Try it grades a sample parcel with these priorities: its letter, and whether it's a Contender, a Maybe or a Pass.";
 
 export function InterviewResult({ iv }: { iv: Interview }) {
   const made = useMemo(() => rubricFromAnswers(iv.doc.answers), [iv.doc.answers]);
@@ -46,7 +51,7 @@ export function InterviewResult({ iv }: { iv: Interview }) {
                 iv.decide(true);
               }}
             >
-              Use my answers
+              {REPLACE_YES}
             </button>
             <button
               type="button"
@@ -55,7 +60,7 @@ export function InterviewResult({ iv }: { iv: Interview }) {
                 iv.decide(false);
               }}
             >
-              Keep mine
+              {REPLACE_NO}
             </button>
           </div>
         </section>
@@ -66,6 +71,7 @@ export function InterviewResult({ iv }: { iv: Interview }) {
         </p>
       )}
 
+      <p className="iv-hint">{TRY_IT_HINT}</p>
       <RubricPreview rubric={r} baseline={iv.before} hover={null} />
 
       <section className="iv-summary" aria-label="Your priorities">

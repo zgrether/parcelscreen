@@ -131,12 +131,13 @@ export const QUESTIONS: readonly Question[] = [
   {
     key: "er",
     n: 6,
-    scene: "Someone gets hurt on a Sunday afternoon. How far to the ER would feel too far?",
+    scene:
+      "Someone gets hurt on a Sunday afternoon. What's the longest drive to the ER you'd be comfortable with?",
     choices: [
-      { id: "15", label: "15 min", why: "You said an ER more than 15 minutes away feels too far" },
-      { id: "30", label: "30 min", why: "You said an ER more than 30 minutes away feels too far" },
-      { id: "45", label: "45 min", why: "You said an ER more than 45 minutes away feels too far" },
-      { id: "60", label: "An hour is fine", why: "You said an hour to the ER is fine" },
+      { id: "15", label: "15 min", why: "You'd want an ER within 15 minutes" },
+      { id: "30", label: "30 min", why: "You'd want an ER within 30 minutes" },
+      { id: "45", label: "45 min", why: "You'd want an ER within 45 minutes" },
+      { id: "60", label: "An hour or more", why: "You're fine with an hour or more to the ER" },
     ],
   },
   {
@@ -350,12 +351,12 @@ export const CHIP_WORDS: Record<Chip, ChipWords> = {
     laterWalkAway: "No shared driveway (a must)",
   },
   belowFt: {
-    label: "Below ___ ft",
+    label: "Elevation below ___ ft",
     walkAway: ({ belowFt }) => `You'd walk away from land below ${fmt(belowFt)} ft`,
     dontMatter: "You said elevation doesn't matter",
   },
   erOver: {
-    label: "Over ___ min to an ER",
+    label: "ER over ___ min away",
     walkAway: ({ erOverMin }) => `You'd walk away from an ER more than ${fmt(erOverMin)} minutes away`,
     dontMatter: "You said the drive to an ER doesn't matter",
   },

@@ -41,7 +41,7 @@ export interface InterviewAnswers {
   sunView?: (typeof SUN_VIEW)[number];
   trails?: (typeof TRAILS)[number];
   groceries?: (typeof GROCERIES)[number];
-  /** How far to the ER feels too far, minutes ("60": an hour is fine). */
+  /** The longest drive to the ER the person is comfortable with, minutes ("60": an hour or more). */
   er?: (typeof ER)[number];
   /** Pick any; empty is "Neither". */
   work?: (typeof WORK)[number][];

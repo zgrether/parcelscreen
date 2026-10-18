@@ -4750,14 +4750,22 @@ button.cmp-cell:hover {
   min-height: 44px;
   min-width: 88px;
 }
+/* On the result Try it stays in the page, phone too: as the bottom bar it covered the result's buttons (the
+   fresh-eyes review). */
 .iv-result .rubric-strip {
-  margin: 8px 0 14px;
+  position: static;
+  margin: 4px 0 14px;
+  border-radius: 6px;
+  border-bottom: 1px solid var(--color-rule);
+  box-shadow: none;
 }
-/* On a phone Try it is the bottom bar, as on the priorities page: room for it under the buttons. */
-@media (max-width: 860px) {
-  .iv-result {
-    padding-bottom: 150px;
-  }
+.iv-money {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.iv-money input {
+  flex: 1;
 }
 .iv-ask {
   margin: 0 0 12px;

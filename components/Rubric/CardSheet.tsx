@@ -111,7 +111,7 @@ export function CardSheet({
         </p>
         <p className="tiny muted">
           {TIER_NAMES[here]}
-          {ranked && `, #${rubric.ranked.findIndex((c) => c.factor === f) + 1} in the list`} ·{" "}
+          {ranked && `, #${rubric.ranked.findIndex((c) => c.factor === f) + 1} in the list`} · Why:{" "}
           {card.kind === "minimum" ? limitWhy(rubric, f as RowKey, why) : whyLine(rubric, f, why)}
         </p>
 

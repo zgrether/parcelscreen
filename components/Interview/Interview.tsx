@@ -83,6 +83,7 @@ export function Interview() {
         </Link>
         <p className="iv-progress" aria-hidden="true">
           {n} of {QUESTION_COUNT}
+          {step.kind === "dontMatter" && ", part 2"}
         </p>
       </header>
       <div className="iv-bar" aria-hidden="true">
@@ -162,7 +163,7 @@ function NameScreen({ begin, notNow }: { begin(): void; notNow(): void }) {
           {NOT_NOW}
         </button>
         <button type="button" className="btn secondary" onClick={() => void go()}>
-          Skip
+          Keep &ldquo;{currentProfile()?.name ?? "Profile 1"}&rdquo;
         </button>
       </nav>
     </main>
