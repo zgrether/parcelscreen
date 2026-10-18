@@ -1,9 +1,10 @@
 # Step 4b: Navigation
 
 A short step between 4 and 5 (owner, 10/18), added to `PLAN.md`'s roadmap as "4b. Navigation". Written 2026-10-18
-under mission mode (`CLAUDE.md`). **Waiting for approval: no code until then.** The mission runs on
-`step/4b-navigation`, branched from main once this plan is approved and step 4's fix round (#184) is on main: this
-step assumes that round's rule that the questions leave the menu once answered.
+under mission mode (`CLAUDE.md`). **Approved by Zach on 2026-10-18,** with every §11 question answered as recommended
+and one change: on a desktop, ☰ opens a small panel anchored under it, not the left-side drawer (§3, §4). The mission
+runs on `step/4b-navigation`, branched from main once this plan is merged. Step 4's fix round (#184), whose rule that
+the questions leave the menu once answered this step assumes, is on main.
 
 **The problem (Zach):** the ☰ menu lists Your list, Compare parcels, What the grade means, My priorities, Answer a few
 questions, How to read this and Settings, with History and Export/Import above them. That mixes places, actions, help
@@ -96,7 +97,8 @@ Done when:
 
 - **A slim top bar,** 44 px:
   - left: "Parcel Screen" (a link to the opening page), then the three places as text tabs;
-  - right: ☰, which opens the same menu as a small panel (§4).
+  - right: ☰, which opens the same menu as a **small panel anchored under it** (§4), not the left-side drawer of
+    today.
 - **The map gives up 44 px.** The side panel and the map keep their layout below it.
 - **The pages** lose "← Map" and their own profile picker, as on a phone.
 - **The interview** has no top bar.
@@ -105,8 +107,16 @@ Done when:
 
 - **Three things:** the profile (the current one and the picker: switch, rename, delete, Add a profile), **Help**, and
   **Settings**.
-- **On a phone** it's the More tab's sheet, rising from the bottom. On a desktop it's the drawer it is today, from the
-  top bar's ☰.
+- **On a phone** it's the More tab's sheet, rising from the bottom.
+- **On a desktop** it's a small panel anchored under the top bar's ☰ (owner, 10/18), not the left-side drawer of today:
+  - its right edge aligns with ☰'s, and it opens downward;
+  - it stays inside the viewport by step 3's collision rule (`useKeepInView`: shift, or flip, when it would cross an
+    edge), so a narrow or short window never clips it;
+  - it's as wide as its content needs (about 280 px), and scrolls inside itself if a long profile list makes it taller
+    than the window;
+  - it closes on Escape, on a click outside it, or on choosing an item, and focus returns to ☰.
+- **The drawer goes** (`components/Explore/Menu.tsx`'s slide-in panel and its backdrop); the menu's content is one
+  component that the phone's sheet and the desktop's panel both show.
 - **Gone from it:**
   - History: Your list holds the same parcels, with Open on the map and Remove (§11 Q4);
   - Export file and Import file: they move to Settings (§7);
@@ -175,7 +185,8 @@ Done when:
 - **Keyboard and screen readers:**
   - the tab bar and the top bar are a `<nav aria-label="Places">` of links, with `aria-current="page"` on the place
     you're in;
-  - More and ☰ are buttons with `aria-expanded`, and their menu traps focus, closing with Escape.
+  - More and ☰ are buttons with `aria-expanded`. More's sheet traps focus, as a dialog; the desktop's panel is a
+    popover that takes focus on opening and closes on Escape or a click outside, returning focus to ☰ (§4).
 - **States:** no profile data yet (a first visit) leaves the tabs as they are; a page loading shows its heading. The
   interview has no navigation (§2).
 - **Contrast and consistency:** the bars use the paper and ink colours and the rule line; the active marker is the
@@ -192,7 +203,15 @@ Done when:
     becomes "← Your list"), What matters to you's "What the grade means" link (it becomes "How grades work").
 - **Storage:** none. `ps.compare` stays as it is (the ticked parcels).
 
-## 11. Questions for Zach
+## 11. Questions for Zach (answered 10/18: all as recommended)
+
+**Zach's answers:** 1 More tab on phones, yes; 2 "What matters", yes; 3 open on Your list when there are parcels, else
+the map, yes; 4 History leaves the menu, yes; 5 Compare caps at 3, yes; 6 a report's "?" keeps its dialog with "All of
+Help", yes; 7 no tab bar in the interview, yes; 8 the tab bar steps aside for map tools, yes; 9 `/help` with the
+`/rulebook` redirect, yes. **One change:** the desktop's ☰ opens a small panel anchored under it, kept inside the
+viewport, not the left-side drawer (§3, §4).
+
+The questions as asked:
 
 1. **The phone's menu:** a fourth tab, **More** (☰), so the profile, Help and Settings are one tap from every page
    (recommended)? Or keep ☰ as a floating button on the map only, and give the other pages none?
@@ -219,7 +238,7 @@ Done when:
 | PR | What | Checks |
 | --- | --- | --- |
 | 1 | **The frame:** the phone's tab bar (with More) and the desktop's top bar; the map's frame ending at the tab bar; the floating ☰ gone; the pages losing "← Map" and their profile picker; no bar on the interview; the tab bar stepping aside for map tools. | e2e: each place one tap away at 1280 and 375; `aria-current`; **no overlap at 375 × 667** with Mud Creek screened, the sheet at its peek and at 46% (bounding boxes of the tab bar, the sheet, the toolbar and the map buttons); a map tool hides the tabs. The e2e that reached pages through the menu go through the tabs. |
-| 2 | **The menu and Settings:** ☰ / More with the profile, Help and Settings; Settings' Your data with Export and Import (moved from the menu); History gone (the profile e2e's History steps move to Your list). | e2e: the menu holds three things; Export and Import from Settings round-trip a profile; the profile picker from More. |
+| 2 | **The menu and Settings:** ☰ / More with the profile, Help and Settings (More's sheet on a phone; on a desktop, a small panel anchored under ☰, kept in the viewport, in place of the drawer); Settings' Your data with Export and Import (moved from the menu); History gone (the profile e2e's History steps move to Your list). | e2e: the menu holds three things; at 1280, and in a short window, the desktop panel opens under ☰ and lies wholly inside the viewport (its corners hit-tested, as step 3's menus are); Export and Import from Settings round-trip a profile; the profile picker from More. |
 | 3 | **Help, Compare and What matters to you:** `/help` with its two sections and the `/rulebook` redirect keeping fragments; the "?" dialog's "All of Help"; Compare from Your list's ticks (2–3), its "← Your list" and its empty line; the questions' line on What matters to you. | e2e: a "How it's scored" link and an old `/rulebook#rule-trails` land on the rule; Compare with 2 and 3 ticks, and no fourth; the questions' line. |
 | 4 | **The screenshots, the fresh-eyes review, the docs and the hand-back:** every page at 1280 and 375; the review (§14); REQUIREMENTS and §9.55. | Full CI on the step branch's head. |
 
@@ -244,7 +263,7 @@ Done when:
 - What matters to you;
 - Help, at the top and at a rule;
 - Settings with Your data;
-- the ☰ menu (More's sheet on a phone).
+- the ☰ menu (More's sheet on a phone; the panel under ☰ on a desktop).
 
 **Fresh-eyes review (CLAUDE.md):** a subagent that hasn't seen the code or the plan gets the screenshots and the
 question "Where would you go to (a) see parcels you saved, (b) change what you care about, (c) learn what a grade
@@ -267,7 +286,8 @@ means?". Its answers, and what was fixed, go in the hand-back.
 ## 15. Decisions to record in `phase-0.md` §9 (in the PRs)
 
 - **§9.55 Navigation:**
-  - three places as tabs (Map, Your list, What matters), plus More on a phone and ☰ on a desktop;
+  - three places as tabs (Map, Your list, What matters), plus More on a phone and ☰ on a desktop, which opens a
+    small panel anchored under it, kept in the viewport (the drawer gone);
   - the menu reduced to the profile, Help and Settings;
   - History gone, Your list in its place;
   - Compare from the list (2–3);
