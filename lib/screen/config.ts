@@ -570,6 +570,70 @@ export const SCREEN_CONSTANTS = deepFreeze({
       erMin: { min: 10, max: 90, step: 5 },
       groceryMin: { min: 5, max: 60, step: 5 },
       gardenAc: { min: 0.05, max: 2, step: 0.05 },
+      // Step 4 (owner, 10/18; phase-0.md §9.50 amended): Best homesite's limit, hours of December sun at the best site.
+      // A limit starts at bands.winterSunH's first edge ("Workable", 3 h).
+      sunH: { min: 1, max: 8, step: 0.5 },
+    },
+    // Step 4, the interview (docs/plans/step-4-interview.md §2–§3; owner, 10/18): what each answer gives a row, as
+    // importance points (0–3; a row takes its highest answer) and the B/C edge it sets, which shifts the row's band
+    // (setBandEdge). A choice that sets no edge keeps today's band.
+    interview: {
+      // A row no answer touches keeps these: the design's default tiers (Should 2, Could 1).
+      defaultPoints: { elevation: 2, homesite: 2, room: 2, trails: 2, town: 2, sky: 1, garden: 1 },
+      // Really want: the rows with at least minPoints, kept to min–max by rank.
+      should: { minPoints: 2, min: 3, max: 6 },
+      // "That will rule out most land." above this many walk-away chips.
+      mustNoteAbove: 5,
+      // The walk-away numbers' starting values: this far under question 1's elevation edge, and one step past
+      // question 6's answer.
+      walkAway: { belowFtUnderEdge: 500, erStepMin: 15 },
+      // 14b's "Over ___ min to an ER" doesn't matter: the ER's edge, the slider's end, until Hospital is its own factor.
+      dontMatterErMin: 90,
+      choices: {
+        climate: {
+          cool: { points: { elevation: 3 }, edges: { elevationFt: 3000 } },
+          between: { points: { elevation: 2 } },
+          warm: { points: { elevation: 0 } },
+          either: { points: { elevation: 1 } },
+        },
+        sky: {
+          camera: { points: { sky: 3 } },
+          look: { points: { sky: 1 }, edges: { skyMag: 20.9 } },
+          inside: { points: { sky: 0 } },
+        },
+        glow: { shrug: {}, spoils: { edges: { skyMag: 21.5 } } },
+        sunView: {
+          sun: { points: { homesite: 3 } },
+          view: { points: { homesite: 1 } },
+          both: { points: { homesite: 2 } },
+          neither: { points: { homesite: 1 } },
+        },
+        // 15 min, not 10: a 10-minute edge would put the A edge at 0 min (owner, 10/18, Q11).
+        trails: {
+          door: { points: { trails: 3 }, edges: { trailheadMin: 15 }, openLandWithinFt: 1320 },
+          bike: { points: { trails: 2 } },
+          drive: { points: { trails: 2 } },
+          none: { points: { trails: 0 } },
+        },
+        groceries: {
+          close: { points: { town: 2 }, edges: { groceryMin: 15 } },
+          far: { points: { town: 1 }, edges: { groceryMin: 40 } },
+          either: { points: { town: 0 }, edges: { groceryMin: 40 } },
+        },
+        er: {
+          "15": { points: { town: 3 }, edges: { erMin: 15 } },
+          "30": { points: { town: 2 } },
+          "45": { points: { town: 1 }, edges: { erMin: 45 } },
+          "60": { points: { town: 0 }, edges: { erMin: 60 } },
+        },
+        neighbors: { wave: {}, lights: {}, never: { points: { sky: 1 } } },
+        garden: {
+          none: { points: { garden: 0 } },
+          herbs: { points: { garden: 1 }, edges: { gardenAc: 0.1 } },
+          kitchen: { points: { garden: 2 } },
+          most: { points: { garden: 3 }, edges: { gardenAc: 1 } },
+        },
+      },
     },
     // WF1 (owner, #128): the card says so when the listing's acres differ from the boundary's by more than this.
     listingAcresPct: 10,

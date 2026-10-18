@@ -647,4 +647,29 @@ card" in the UI. **App-wide:** no button looks like a link (every `link-btn` but
 the profile names are menu rows), and menus and popovers stay inside the window (`useKeepInView`: right-aligned to
 their button near the right edge, shifted or flipped on a collision).
 
+**§9.50, amended** (owner, 2026-10-18; step 4 plan §9 Q3): **Best homesite can have a limit,** at least N hours of
+December sun at the best site (site #1's `sunH`), starting at `bands.winterSunH`'s first edge ("Workable", 3 h) and
+set on a slider of `card.editor.sunH` (1–8 h). The interview's "No winter sun" chip makes it, and so does dragging Best
+homesite onto Must have; "homesite can't be a minimum" no longer holds. The card's Best homesite row now carries that
+measure. It's a threshold on a Must card like every other limit, so the rubric's stored shape is unchanged, and no
+grade or verdict changes unless a profile sets the limit.
+
+53. **The interview's generator** (owner, 2026-10-18; step 4 plan §2–§4 and §9; roadmap step 4, PR 1).
+`rubricFromAnswers(answers)` (`lib/rubric/interview/`) is pure. **Points:** each answer gives the rows it touches
+0–3 points (`card.interview.choices`), and a row takes its highest answer, not the sum (Q1). A row no answer touches
+keeps `defaultPoints` (the design's default tiers: Should 2, Could 1). A walk-away chip lifts its row to at least 1,
+so its limit has a ranked card; a "doesn't matter" chip puts its row at 0. **Tiers:** Really want is the rows with 2+
+points, kept to 3–6 (Q2), Nice to have the rest with any points, Don't care the rest; ties go to the design's default
+order (Elevation, Best homesite, Room to build, Trails, Town and hospital, Night sky, Garden). **Weights:** rank-sum.
+**Bands:** each answer marks its row's B/C edge (the plan's §3 table), and the band shifts with it; "Walk out the door"
+and "Small and close" use 15 min, not 10, so the A edge stays reachable (Q11). **Must haves:** the four dealbreakers
+unless 14b says they don't matter; 14a's limits on elevation (starting 500 ft under question 1's edge), the ER (one
+step past question 6's answer) and winter sun (§9.50, amended). 14b's ER moves its edge to 90 min until Hospital is
+its own factor (Q12); "Warm and mild" puts Elevation in Don't care (Q13). "That will rule out most land." shows above
+five 14a chips (Q6). **Why lines** quote the person, never a question number ("You said an ER more than 30 minutes
+away feels too far"), one per choice in `questions.ts`. **The quiet list** ("Counts once the app measures it: …")
+holds the answers about factors the app doesn't measure yet: climate, long view, privacy, bike, airport, internet,
+the driveway (a row in step 6, Q5), HOA, the creek, acreage, the budgets and the shared driveway (Q4). **Skipping
+everything** keeps the starting list unchanged (Q8).
+
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.
