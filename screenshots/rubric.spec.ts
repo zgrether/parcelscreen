@@ -1,8 +1,9 @@
 /**
- * Step 3's screenshots (plan §11), desktop then phone: "My rubric" at rest (Could and Won't empty), a drag in
- * progress, a card's sheet with its slider, the weights notice expanded, a row on Must with its "min" badge and its
- * minimum card, and the preview after a move. Run by `pnpm screenshots`; the preview grades the Mud Creek sample, so
- * no parcel is replayed and no owner shows.
+ * Step 3's screenshots (plan §11, and the owner's UX round of 10/18), desktop then phone: "What matters to you" at rest
+ * (Nice to have and Don't care empty), a drag in progress, a card's sheet with its slider, the weights notice expanded,
+ * "Try it" after a move, a row on Must have with its "limit" badge and its limit card, Reset's confirm, and the profile
+ * menu inside the window. Run by `pnpm screenshots`; Try it grades the Mud Creek sample, so no parcel is replayed and
+ * no owner shows.
  */
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
@@ -112,7 +113,7 @@ for (const phone of [false, true]) {
       await shot(page, "6-preview");
     });
 
-    test("a row on Must: its min badge and its minimum card", async ({ page }) => {
+    test("a row on Must have: its limit badge and its limit card", async ({ page }) => {
       await openRubric(page);
       await card(page, "Town and hospital").locator(".rubric-card-body").click();
       await sheet(page).getByRole("button", { name: "Must have" }).click();
@@ -124,6 +125,18 @@ for (const phone of [false, true]) {
         await scrollTo(page, card(page, "Town and hospital").last());
         await shot(page, "8-min-badge");
       }
+    });
+
+    test("Reset's confirm, and the profile menu inside the window", async ({ page }) => {
+      await openRubric(page);
+      await page.getByRole("button", { name: "Reset to the starting list" }).click();
+      await expect(page.getByRole("alertdialog")).toBeVisible();
+      await shot(page, "9-reset");
+      await page.keyboard.press("Escape");
+      await page.locator(".compare-head").getByRole("button", { name: "Switch profile" }).click();
+      await expect(page.locator(".compare-head .profile-pop")).toBeVisible();
+      await page.waitForTimeout(100);
+      await shot(page, "10-profile-menu");
     });
   });
 }

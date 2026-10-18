@@ -4221,6 +4221,16 @@ button.cmp-cell:hover {
   margin: 0;
   font-size: 13px;
 }
+/* No message: Undo and Reset sit at the row's end. */
+.rubric-status:empty {
+  flex: 1 1 0;
+}
+/* Undo and Reset together, always (the fresh-eyes review saw them split on a phone). */
+.rubric-bar-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
 /* "Try it" (plan §4; a slim strip under the intro since the owner's UX round, 10/18): the parcel, its grade before → now,
    and up to two plain reasons. The columns take the full width below it. */
 .rubric-strip {
@@ -4341,6 +4351,14 @@ button.cmp-cell:hover {
   display: block;
   font-weight: 600;
   font-size: 13.5px;
+}
+.rubric-card-more {
+  flex: none;
+  align-self: center;
+  padding: 0 2px;
+  color: var(--color-ink-2);
+  font-size: 18px;
+  pointer-events: none;
 }
 .rubric-card-words {
   display: block;
@@ -4496,7 +4514,6 @@ button.cmp-cell:hover {
   }
   .rubric-strip-line select {
     min-height: 44px;
-    max-width: 200px;
   }
   .rubric-columns {
     grid-template-columns: minmax(0, 1fr);
@@ -4512,9 +4529,27 @@ button.cmp-cell:hover {
     z-index: 2;
     background: var(--color-paper);
     padding-top: 16px;
-    margin: 0 -8px;
+    padding-bottom: 2px;
+    margin: 0 -8px 6px;
     padding-left: 8px;
     padding-right: 8px;
+    /* An edge, so a card scrolling under the stuck header reads as passing beneath it, not cut. */
+    box-shadow: 0 1px 0 var(--color-rule);
+  }
+  /* Try it on a phone: the parcel picker takes the first line, the grade the second. */
+  .rubric-strip-line label {
+    display: flex;
+    flex: 1 1 100%;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+  .rubric-strip-line label select {
+    flex: 1;
+    min-width: 0;
+  }
+  .rubric-strip-colon {
+    display: none;
   }
   .rubric-sheet-head .btn,
   .rubric-notice .btn,

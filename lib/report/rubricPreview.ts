@@ -9,6 +9,7 @@ import { reportCard, type Card } from "./card";
 import type { Drawn } from "./marks";
 import type { PartialScreenResult as Result } from "../screen/types";
 import { EDITOR_TITLES, minimumWords, tierOf } from "../rubric/words";
+import { thresholdStatus } from "../rubric/musts";
 import { GATE_KEYS, ROW_KEYS, type Factor, type Rubric } from "../rubric/types";
 
 export interface Moved {
@@ -56,14 +57,23 @@ export function movedMost(b: Card, a: Card, before: Rubric, now: Rubric): Moved[
     const is = now.musts.find((m) => m.factor === row && m.threshold !== undefined)?.threshold;
     if (was === is) continue;
     const label = EDITOR_TITLES[row];
+    const words = is === undefined ? "" : minimumWords(row, is);
+    const status =
+      is === undefined
+        ? null
+        : thresholdStatus({ factor: row, threshold: is }, a.rows.find((x) => x.key === row)?.measure);
     musts.push({
       key: row,
       label,
       delta: 0,
       why:
-        is === undefined
+        status === null
           ? `${label}: limit removed`
-          : `${label}: ${minimumWords(row, is)} is now a must have`,
+          : status === "fail"
+            ? `Out: ${label} misses its limit (${words})`
+            : status === "pass"
+              ? `${label} meets its new limit (${words})`
+              : `${label}: new limit (${words}), not measured for this parcel`,
       decides: true,
     });
   }

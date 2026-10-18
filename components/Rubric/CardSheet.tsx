@@ -105,7 +105,8 @@ export function CardSheet({
         </p>
         <p className="tiny muted">
           {TIER_NAMES[here]}
-          {ranked && ` · #${rubric.ranked.findIndex((c) => c.factor === f) + 1}`} · {whyLine(rubric, f)}
+          {ranked && `, #${rubric.ranked.findIndex((c) => c.factor === f) + 1} in the list`} ·{" "}
+          {whyLine(rubric, f)}
         </p>
 
         {card.kind === "factor" && !isGate(f) && ROW_BANDS[f].length > 0 && (
@@ -116,7 +117,7 @@ export function CardSheet({
                 label={BAND_LABELS[band]}
                 band={band}
                 value={bcEdge(rubric.bands, band)}
-                hint={bandLine(rubric.bands, band)}
+                hint={`How this item is graded: ${bandLine(rubric.bands, band)}`}
                 onChange={(v) => apply(setBandEdge(rubric, band, v))}
               />
             ))}

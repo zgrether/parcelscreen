@@ -631,4 +631,20 @@ breakdown bar's verdict marks moved with them, and the Grade and verdict panel's
 replacement, approved under rule 7). A synthetic card in `card.test.ts` (2.7 and 1.7) was the case that moved: it
 gained an F sky to keep testing a Maybe and a Pass, and a new test pins the rule on the 2.7 / 1.7 case.
 
+52. **"What matters to you": the editor in a first-time user's words** (owner, 2026-10-18; step 3's UX round, PRs
+#175–#178). Zach found §9.50's page confusing for a first-time user. **The name:** the heading is "What matters to
+you", at `/priorities` (no redirect from `/rubric`), and "My priorities" in the menu and links; "rubric" stays the
+code's name. **An intro** says what the list is, each column in a line and how to use it; the column subtitles, the
+"Drag a card…" line and the footer went. **The columns** are Must have, Really want, Nice to have and Don't care, and a
+threshold is a "limit" ("…is now a must have too (ER within 30 min)"; the badge reads "limit"). **Cards** show a title
+and one plain line ("Dark enough to see the Milky Way"); Elevation, Trails and Town keep their numbers, and the exact
+number of the others is in the sheet. No "#1 · 25%" on the cards. "Easement needed" is "Driveway on your land" on this
+page only (`EDITOR_TITLES`): the report card keeps its label (rule 7). **Try it** replaces the preview panel: a strip
+under the intro, "Try it on [parcel ▾]: B → A · Contender", with up to two plain reasons ("Night sky now counts more",
+"Septic no longer checked") and no points anywhere; on a phone, the bottom bar. **Reset** is "Reset to the starting
+list", behind a dialog with Reset in the destructive style; Undo is a styled button. "Starting list" replaces "default
+card" in the UI. **App-wide:** no button looks like a link (every `link-btn` button became a small secondary button;
+the profile names are menu rows), and menus and popovers stay inside the window (`useKeepInView`: right-aligned to
+their button near the right edge, shifted or flipped on a collision).
+
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

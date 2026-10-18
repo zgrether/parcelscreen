@@ -33,7 +33,8 @@ describe("the columns", () => {
     if (!out.ok) throw new Error(out.reason);
     const html = renderToStaticMarkup(<RubricColumns rubric={out.rubric} move={noop} open={noop} />);
     expect(html).toContain('class="rubric-min-badge"');
-    expect(html).toContain("Town and hospital: ER within 30 min");
+    expect(html).toContain("Limit: ER within 30 min");
+    expect(html).toContain("also a limit");
   });
 
   it("Really want's empty line says where the grade comes from", () => {

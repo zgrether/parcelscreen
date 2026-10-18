@@ -90,10 +90,14 @@ export function RubricPreview({
         {p ? (
           <span className="rubric-strip-grade">
             {hover && held?.ok && <span className="muted">If you drop it here: </span>}
-            <GradeChange
-              before={{ grade: p.before.grade, verdict: p.before.verdict }}
-              now={{ grade: p.now.grade, verdict: p.now.verdict }}
-            />
+            {hover && held?.ok && p.now.grade === p.before.grade && p.now.verdict === p.before.verdict ? (
+              <span className="muted">no change</span>
+            ) : (
+              <GradeChange
+                before={{ grade: p.before.grade, verdict: p.before.verdict }}
+                now={{ grade: p.now.grade, verdict: p.now.verdict }}
+              />
+            )}
           </span>
         ) : (
           <span className="muted">…</span>

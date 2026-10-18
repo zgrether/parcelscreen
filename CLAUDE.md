@@ -67,7 +67,11 @@ step. Mission mode changes rules 1 and 3 above as written here; everything else 
   - a manual test plan on the preview URL: numbered "do → expect" steps with pass/fail boxes, desktop then
     phone, using fixture parcels by name (Mud Creek, Macks, Ferney, and a Roan Mountain one once it exists),
     about 15–30 minutes;
-  - screenshots (below).
+  - screenshots (below);
+  - the fresh-eyes review's findings (below), each with what you fixed, what you didn't, and why.
+- **A fresh-eyes review before each hand-back** (owner, 2026-10-18). A subagent that hasn't seen the code or the plan
+  gets only the hand-back's screenshots and the question "You've never used this app. What is this page for, and
+  what's confusing?" Fix what it finds where the fix is in scope, and list every finding in the hand-back.
 - **Clean breaks, no migrations** (owner, 2026-10-17). Zach will redo every parcel from scratch.
   - A schema, storage or export-format change drops the old data and shows one plain line in its place:
     "Saved with an older version; screen it again." The frozen-schema hard rule below follows it.

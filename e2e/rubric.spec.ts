@@ -73,11 +73,11 @@ test("a row on Must: a minimum too, its ranked card stays, marked min", async ({
   await card(page, "Town and hospital").locator(".rubric-card-body").click();
   await sheet(page).getByRole("button", { name: "Must have" }).click();
   await expect(page.locator(".rubric-status")).toHaveText(
-    "Town and hospital is now a must have too (ER within 30 min): it stays at #7 in Really want, marked limit.",
+    "Town and hospital is now a must have too (ER within 30 min): it also stays at #7 in Really want.",
   );
   await page.keyboard.press("Escape");
   await expect(column(page, "Must have").locator(".rubric-card.minimum")).toContainText("ER within 30 min");
-  await expect(card(page, "Town and hospital").locator(".rubric-min-badge")).toHaveText("limit");
+  await expect(column(page, "Really want").locator(".rubric-min-badge")).toHaveText("also a limit");
   await expect(names(column(page, "Really want"))).toHaveCount(7);
   expect(errors).toEqual([]);
 });
