@@ -1,6 +1,6 @@
 /**
- * The rubric editor's preview (step 3 plan §4) on Mud Creek, the editor's sample: the card before and now, and the two
- * factors that moved most.
+ * The priorities page's "Try it" strip (step 3 plan §4; the owner's words, 10/18) on Mud Creek, the page's sample: the
+ * card before and now, and the two factors that moved most, each as one plain sentence.
  */
 import { describe, expect, it } from "vitest";
 import { expectedOf } from "@/test/support/expected";
@@ -24,12 +24,13 @@ describe("the preview", () => {
     expect(p.moved).toEqual([]);
   });
 
-  it("the first reorder: Mud Creek moves B → A, and the two rows whose weight moved most are named", () => {
+  it("the first reorder: Mud Creek moves B → A, and the two rows whose weight moved most say they count more or less", () => {
     const now = after(moveCard(D, { kind: "factor", factor: "sky" }, "should", 1));
     const p = rubricPreview(MUD, D, now);
     expect(p.before.grade).toBe("B");
     expect(p.moved).toHaveLength(2);
-    for (const m of p.moved) expect(m.why).toMatch(/^weight \d+% → \d+%/);
+    for (const m of p.moved) expect(m.why).toMatch(/^.+ now counts (more|less)$/);
+    expect(p.moved.map((m) => m.why)).toContain("Night sky now counts more");
     expect(Math.abs(p.moved[0]!.delta)).toBeGreaterThanOrEqual(Math.abs(p.moved[1]!.delta));
   });
 
@@ -37,25 +38,25 @@ describe("the preview", () => {
     // Mud Creek's septic warns (no soil better than very limited).
     const now = after(moveCard(D, { kind: "factor", factor: "septic" }, "wont"));
     const p = rubricPreview(MUD, D, now);
-    expect(p.moved[0]).toEqual({ key: "septic", label: "Septic", delta: 0, why: "now a Won't" });
+    expect(p.moved[0]).toEqual({ key: "septic", label: "Septic", delta: 0, why: "Septic no longer checked" });
   });
 
   it("a band moved: the row's new letter is named", () => {
     const now = setBandEdge(D, "elevationFt", 4000);
     const p = rubricPreview(MUD, D, now);
     expect(p.moved[0]!.key).toBe("elevation");
-    expect(p.moved[0]!.why).toMatch(/^now a [A-F]/);
+    expect(p.moved[0]!.why).toMatch(/^Elevation at the build site now gets an? [A-F]$/);
     expect(p.moved[0]!.delta).toBeLessThan(0);
   });
 
-  it("a minimum added is named, with its words", () => {
+  it("a limit added is named, with its words", () => {
     const now = after(moveCard(D, { kind: "factor", factor: "town" }, "must"));
     const p = rubricPreview(MUD, D, now);
     expect(p.moved[0]).toEqual({
       key: "town",
       label: "Town and hospital",
       delta: 0,
-      why: "minimum: ER within 30 min",
+      why: "Town and hospital: ER within 30 min is now a must have",
     });
   });
 });
