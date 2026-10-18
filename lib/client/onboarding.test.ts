@@ -86,3 +86,14 @@ describe("the questions' entry (owner, 10/18)", () => {
     );
   });
 });
+
+describe("the stored interview's version (clean break, 10/18)", () => {
+  it("a version 1 document (question 7 as `work`) reads as none", async () => {
+    const { InterviewDocSchema } = await import("@/lib/rubric/interview/doc");
+    const v1 = { v: 1, state: "done", at: 15, answers: { work: ["calls"] }, base: null };
+    expect(InterviewDocSchema.safeParse(v1).success).toBe(false);
+    expect(
+      InterviewDocSchema.safeParse({ ...freshDoc(), answers: { fly: "few", calls: "yes" } }).success,
+    ).toBe(true);
+  });
+});

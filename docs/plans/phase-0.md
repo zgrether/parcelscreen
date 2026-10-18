@@ -672,7 +672,7 @@ factors the app doesn't measure yet** (the generator's `later` list: climate, lo
 internet, the driveway (a row in step 6, Q5), HOA, the creek, acreage, the budgets and the shared driveway, Q4) are
 stored but not shown: a quiet list showed them until the owner's fix round of 10/18, and they're kept for a later
 step's one-time notice when such a factor joins. **Question 7** is two single-choice rows (how often the person flies;
-internet for video calls), since that round. **Skipping
+internet for video calls), since that round. Its answers changed shape after step 4 reached main, so `ps.interview` is version 2 (a clean break: a version 1 document reads as none, and that profile is offered the questions again; its priorities are untouched). **Skipping
 everything** keeps the starting list unchanged (Q8).
 
 54. **Onboarding, and the interview on the priorities page** (owner, 2026-10-18; step 4 plan §6 and §9 Q7, Q9;
