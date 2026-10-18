@@ -29,13 +29,13 @@ import {
   ROW_BANDS,
   tierOf,
   whyLine,
-  type BandKey,
+  type LimitKey,
   type Tier,
 } from "@/lib/rubric/words";
 import { cardName, TIER_NAMES, TIERS } from "./RubricColumns";
 
 /** Each band's slider label, where a row has two (Town and hospital) or the unit needs a word. */
-const BAND_LABELS: Record<BandKey, string> = {
+const BAND_LABELS: Record<LimitKey, string> = {
   elevationFt: "Build site elevation",
   skyMag: "Sky brightness (mag/arcsec²)",
   roomX: "Gentle ground, × the footprint",
@@ -43,6 +43,7 @@ const BAND_LABELS: Record<BandKey, string> = {
   erMin: "Drive to an ER",
   groceryMin: "Drive to groceries",
   gardenAc: "Garden ground",
+  sunH: "December sun at the best site",
 };
 
 export function CardSheet({
@@ -141,7 +142,10 @@ export function CardSheet({
           </p>
         )}
         {f === "homesite" && card.kind === "factor" && (
-          <p className="tiny muted">Graded by the site&apos;s quality: it has no number to set.</p>
+          <p className="tiny muted">
+            Graded by the site&apos;s quality: it has no number to set. Move it to Must have to set a limit on
+            its December sun.
+          </p>
         )}
 
         <div className="rubric-moveto" role="group" aria-label="Move to">
@@ -198,7 +202,7 @@ function BandSlider({
   onChange,
 }: {
   label: string;
-  band: BandKey;
+  band: LimitKey;
   value: number;
   hint: string;
   onChange(v: number): void;

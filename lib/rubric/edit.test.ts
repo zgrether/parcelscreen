@@ -12,7 +12,6 @@ import {
   hasMinimum,
   MINIMUM_STAYS,
   moveCard,
-  NO_HOMESITE_MINIMUM,
   removeMinimum,
   resetToDefault,
   setBandEdge,
@@ -77,11 +76,12 @@ describe("the columns", () => {
     );
   });
 
-  it("homesite can't be a minimum; a minimum stays in Must, and Won't removes it", () => {
-    expect(moveCard(D, { kind: "factor", factor: "homesite" }, "must")).toEqual({
-      ok: false,
-      reason: NO_HOMESITE_MINIMUM,
-    });
+  it("Best homesite's limit is hours of December sun (§9.50 amended); a limit stays in Must, and Won't removes it", () => {
+    const sun = ok(moveCard(D, { kind: "factor", factor: "homesite" }, "must"));
+    expect(sun.rubric.musts.at(-1)).toEqual({ factor: "homesite", threshold: 3 });
+    expect(sun.message).toBe(
+      "Best homesite is now a must have too (at least 3 h of December sun): it also stays at #2 in Really want.",
+    );
     const withMin = ok(moveCard(D, { kind: "factor", factor: "sky" }, "must")).rubric;
     expect(moveCard(withMin, { kind: "minimum", factor: "sky" }, "could")).toEqual({
       ok: false,
@@ -180,7 +180,9 @@ describe("the sliders", () => {
     const withMin = ok(moveCard(D, { kind: "factor", factor: "town" }, "must")).rubric;
     expect(setMinimum(withMin, "town", 22).musts.at(-1)).toEqual({ factor: "town", threshold: 20 });
     expect(setMinimum(withMin, "town", 2).musts.at(-1)).toEqual({ factor: "town", threshold: 10 });
-    expect(setMinimum(withMin, "homesite", 5)).toBe(withMin);
+    const sun = ok(moveCard(D, { kind: "factor", factor: "homesite" }, "must")).rubric;
+    expect(setMinimum(sun, "homesite", 9).musts.at(-1)).toEqual({ factor: "homesite", threshold: 8 });
+    expect(setMinimum(sun, "homesite", 4.3).musts.at(-1)).toEqual({ factor: "homesite", threshold: 4.5 });
   });
 
   it("Reset puts today's card back", () => {

@@ -15,7 +15,7 @@ export interface Measure {
 /** Which way a row's band runs: a bigger number is better (at least), or worse (at most); null for a letter-only row. */
 export const BAND_DIRECTION: Record<RowKey, "atLeast" | "atMost" | null> = {
   elevation: "atLeast",
-  homesite: null,
+  homesite: "atLeast",
   sky: "atLeast",
   room: "atLeast",
   trails: "atMost",
@@ -26,7 +26,7 @@ export const BAND_DIRECTION: Record<RowKey, "atLeast" | "atMost" | null> = {
 /** The unit a threshold on each row is in; the row's measure must carry the same one, else the Must is unknown. */
 export const MEASURE_UNIT: Record<RowKey, string | null> = {
   elevation: "ft",
-  homesite: null,
+  homesite: "h",
   sky: "mag",
   room: "x",
   trails: "min",

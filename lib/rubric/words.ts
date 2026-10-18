@@ -35,6 +35,12 @@ export const EDITOR_TITLES: Record<Factor, string> = {
 export type BandKey =
   "elevationFt" | "skyMag" | "roomX" | "trailheadMin" | "erMin" | "groceryMin" | "gardenAc";
 
+/**
+ * What a limit is set in: a band, or (Best homesite, whose letter is the site's quality and has no band) hours of
+ * December sun at the best site (step 4, owner 10/18). Not part of the stored `Bands`: a limit is a threshold.
+ */
+export type LimitKey = BandKey | "sunH";
+
 /** Each row's bands, the editor's sliders (homesite's letter is the site's quality: none). */
 export const ROW_BANDS: Record<RowKey, readonly BandKey[]> = {
   elevation: ["elevationFt"],
@@ -46,10 +52,10 @@ export const ROW_BANDS: Record<RowKey, readonly BandKey[]> = {
   garden: ["gardenAc"],
 };
 
-/** The band a row's minimum is in: the unit of its `measure` (lib/rubric/musts.ts); null when it can't have one. */
-export const MINIMUM_BAND: Record<RowKey, BandKey | null> = {
+/** What a row's limit is set in: the unit of its `measure` (lib/rubric/musts.ts); null when it can't have one. */
+export const MINIMUM_BAND: Record<RowKey, LimitKey | null> = {
   elevation: "elevationFt",
-  homesite: null,
+  homesite: "sunH",
   sky: "skyMag",
   room: "roomX",
   trails: "trailheadMin",
@@ -72,8 +78,10 @@ export const BAND_RUNS: Record<BandKey, "atLeast" | "atMost"> = {
 const trim = (s: string): string => (s.includes(".") ? s.replace(/\.?0+$/, "") : s);
 
 /** A band's value in its unit: "2,500 ft", "21.2", "2×", "20 min", "0.25 ac". */
-export function bandValue(key: BandKey, v: number): string {
+export function bandValue(key: LimitKey, v: number): string {
   switch (key) {
+    case "sunH":
+      return `${trim(fmt(v, 1))} h`;
     case "elevationFt":
       return `${fmt(v)} ft`;
     case "skyMag":
@@ -136,6 +144,7 @@ export function minimumWords(row: RowKey, v: number): string {
   if (row === "town") return `ER within ${value}`;
   if (row === "trails") return `a trailhead within ${value}`;
   if (row === "room") return `at least ${value} the footprint`;
+  if (row === "homesite") return `at least ${value} of December sun`;
   return `at least ${value}`;
 }
 
