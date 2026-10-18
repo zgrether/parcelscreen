@@ -34,12 +34,13 @@ function isHospitalSnapshot(url: string): boolean {
 export const { dynamic, dynamicParams, revalidate, generateStaticParams, GET } = createSerwistRoute({
   swSrc: "app/sw.ts",
   // The opening page and the list (WF2b) as well as the explorer: an installed app opens at "/", offline too. And
-  // What matters, the third tab (step 4b): offline, a tab whose page the router hasn't kept loads from here.
+  // What matters, the third tab, and Help (step 4b): offline, a page the router hasn't kept loads from here.
   additionalPrecacheEntries: [
     { url: "/explore", revision },
     { url: "/", revision },
     { url: "/library", revision },
     { url: "/priorities", revision },
+    { url: "/help", revision },
   ],
   // Left out: notes in public/ (fonts/README.md) aren't app assets; and Turbopack's Web Worker entry, which
   // reads its bootstrap config from its own URL's #params= hash. A worker started from a cached response gets

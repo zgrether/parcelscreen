@@ -302,3 +302,26 @@ export const hiddenWords = (h: Hidden): string =>
 /** What its button shows: the archived parcels (the status filter only), or everything. */
 export const showHidden = (h: Hidden, f: LibraryFilters): LibraryFilters =>
   h.onlyArchived ? { ...f, status: [...f.status, "archived"] } : ALL_FILTERS;
+
+// ---------- Compare (step 4b) ----------
+
+/** Compare takes 2 or 3 parcels (owner, #185 Q5): the list's ticks stop at 3, and its button wants 2. */
+export const COMPARE_MIN = 2;
+export const COMPARE_MAX = 3;
+
+/** Your list with nothing on it (step 4b, plan §5): it points to the map. */
+export const LIST_EMPTY =
+  "Nothing on your list yet. Find a parcel on the map, screen it, and it's kept here.";
+/** How Compare is reached (step 4b): the ticks on Your list, 2 or 3. */
+export const COMPARE_HOW = "Tick 2 or 3 parcels on Your list to compare them.";
+/** A fourth tick isn't offered. */
+export const COMPARE_FULL = "Compare takes up to 3 parcels.";
+
+/** The ticks after one is toggled: a tick past the third isn't taken. */
+export function toggleTick(ticked: ReadonlySet<string>, key: string): ReadonlySet<string> {
+  const next = new Set(ticked);
+  if (next.delete(key)) return next;
+  if (next.size >= COMPARE_MAX) return ticked;
+  next.add(key);
+  return next;
+}

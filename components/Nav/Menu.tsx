@@ -12,7 +12,6 @@
  */
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { useHelp } from "@/components/Help/HelpDialog";
 import { ProfilePicker } from "@/components/Profile/ProfilePicker";
 import { useSettings } from "@/components/Settings/SettingsDialog";
 import { SHEET_QUERY } from "@/components/Explore/useBottomSheet";
@@ -30,7 +29,6 @@ export function Menu() {
   const box = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
-  const help = useHelp();
   const settings = useSettings();
   useKeepInView(panel, open, button);
 
@@ -109,14 +107,9 @@ export function Menu() {
                 </li>
               )}
               <li>
-                <button
-                  onClick={() => {
-                    close(false);
-                    help();
-                  }}
-                >
+                <Link href="/help" onClick={() => close(false)}>
                   Help
-                </button>
+                </Link>
               </li>
               <li>
                 <button

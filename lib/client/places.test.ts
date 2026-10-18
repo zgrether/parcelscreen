@@ -15,7 +15,6 @@ describe("the app's places (step 4b)", () => {
     expect(placeOf("/library")).toBe("list");
     expect(placeOf("/compare")).toBe("list");
     expect(placeOf("/priorities")).toBe("matters");
-    expect(placeOf("/rulebook")).toBeNull();
     expect(placeOf("/help")).toBeNull();
     expect(placeOf("/libraryx")).toBeNull();
   });
@@ -23,7 +22,7 @@ describe("the app's places (step 4b)", () => {
   it("no tabs on the opening redirect or in the interview", () => {
     expect(showsNav("/")).toBe(false);
     expect(showsNav("/interview")).toBe(false);
-    for (const p of ["/explore", "/library", "/compare", "/priorities", "/rulebook"])
+    for (const p of ["/explore", "/library", "/compare", "/priorities", "/help"])
       expect(showsNav(p)).toBe(true);
   });
 });

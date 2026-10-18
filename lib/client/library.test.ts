@@ -7,6 +7,9 @@ import { built, county } from "@/test/support/parcels";
 import { drawnPart } from "@/lib/geo/recipe";
 import { DEFAULT_ENDPOINTS } from "@/lib/screen/config";
 import {
+  COMPARE_MAX,
+  COMPARE_MIN,
+  toggleTick,
   ALL_FILTERS,
   DEFAULT_FILTERS,
   DEFAULT_VIEW,
@@ -237,5 +240,18 @@ describe("what the filters hide, at the list's end (owner, #132 review)", () => 
       n: 1,
       onlyArchived: false,
     });
+  });
+});
+
+describe("Compare's ticks (step 4b, owner #185 Q5): 2 or 3", () => {
+  it("ticks and unticks, and doesn't take a fourth", () => {
+    let t: ReadonlySet<string> = new Set();
+    for (const k of ["a", "b", "c"]) t = toggleTick(t, k);
+    expect([...t]).toEqual(["a", "b", "c"]);
+    expect(toggleTick(t, "d")).toBe(t);
+    t = toggleTick(t, "b");
+    expect([...t]).toEqual(["a", "c"]);
+    expect([...toggleTick(t, "d")]).toEqual(["a", "c", "d"]);
+    expect([COMPARE_MIN, COMPARE_MAX]).toEqual([2, 3]);
   });
 });

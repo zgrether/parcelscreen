@@ -175,7 +175,7 @@ export function CardPanel({
           {panel !== "verdict" && panel !== "cost" && (
             <>
               {" "}
-              <Link href="/priorities">Change it in My priorities</Link>
+              <Link href="/priorities">Change it in What matters to you</Link>
             </>
           )}
         </p>

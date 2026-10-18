@@ -86,7 +86,7 @@ for (const phone of [false, true]) {
       await page.getByRole("button", { name: "Next" }).click();
 
       // The priorities page after it: "Reset to my answers", "Answer the questions again", and a card's why.
-      await page.getByRole("link", { name: "Fine-tune in My priorities" }).click();
+      await page.getByRole("link", { name: "Fine-tune in What matters to you" }).click();
       await page.waitForURL("**/priorities");
       await expect(page.getByRole("button", { name: "Reset to my answers" })).toBeVisible();
       await shot(page, "09-priorities");
