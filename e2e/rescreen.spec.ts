@@ -116,6 +116,11 @@ test("a cleared result opened offline: the card says it will re-screen, never bl
   await page.getByRole("button", { name: "Close this parcel" }).first().click();
   await reload(page);
   await expect.poll(() => keptScreenCount(page)).toBe(0);
+  // Your list visited once while online, as it would be: the router keeps its page, so the tab opens offline too (the
+  // e2e blocks the service worker, which would otherwise load the precached page).
+  await page.getByRole("link", { name: "Your list", exact: true }).click();
+  await expect(listRow(page, "52-47A")).toBeVisible();
+  await page.getByRole("link", { name: "Map", exact: true }).click();
 
   await context.setOffline(true);
   await openFromList(page, "52-47A");

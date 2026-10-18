@@ -98,9 +98,9 @@ test("the first visit's Profile 1; add Visitor and switch; a parcel kept in one 
   await yourList(page);
   await switchTo(page, "Profile 1");
   await expect(currentName(page)).toHaveText(/Profile 1/);
-  await expect(page.locator(".lib-row", { hasText: "52-47A" })).toHaveCount(0);
+  await expect(page.locator(".lib-row:visible", { hasText: "52-47A" })).toHaveCount(0);
   await switchTo(page, "Visitor");
-  await expect(page.locator(".lib-row", { hasText: "52-47A" })).toHaveCount(1);
+  await expect(page.locator(".lib-row:visible", { hasText: "52-47A" })).toHaveCount(1);
 
   // Rename Visitor to Julie, in place; then delete it: its screen goes with it, and Profile 1 is current again.
   list = await openPicker(page);
@@ -150,7 +150,7 @@ test("a pre-profile store is dropped: an empty Profile 1, the menu's line once, 
   await expect(currentName(page)).toHaveText(/Profile 1/);
   await expect(page.locator(".old-data-note")).toHaveText("Saved with an older version; screen it again.");
   await yourList(page);
-  await expect(page.locator(".lib-row", { hasText: "Ferney Creek" })).toHaveCount(0);
+  await expect(page.locator(".lib-row:visible", { hasText: "Ferney Creek" })).toHaveCount(0);
   const left = await page.evaluate(() =>
     Object.keys(localStorage).filter(
       (k) => k.startsWith("ps.legacy.") || k === "ps.parcels" || k === "ps.person",
