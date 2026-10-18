@@ -11,7 +11,7 @@ One change unlocks almost everything: **grades must be computed at display time 
 Recommendation:
 
 - **Pause** driveway and data refinement (WF6b, 57, 46, cost labels, VR8). They polish numbers that move a grade by a point or two; the workflow moves grades by whole letters.
-- **Build rubric-first:** profiles and the grading split, then Tennessee parcels, the rubric editor, the interview, household predictions, simpler results, favorites, the report card export, cost to enjoy, new data points, ways to raise the grade, and the area catalog. Each step runs as one unattended Claude Code mission that ends in a manual test plan.
+- **Build rubric-first:** profiles and the grading split, then Tennessee parcels, the rubric editor, the interview, accounts and sync (moved up 10/18), household predictions, simpler results, favorites, the report card export, cost to enjoy, new data points, ways to raise the grade, and the area catalog. Each step runs as one unattended Claude Code mission that ends in a manual test plan.
 - **Product questions:** settled 10/16. Anyone with the link gets a local profile, with nothing hard-coded to you and Julie. Tennessee joins the map and the catalog. Cost to enjoy stays, as a cost to camp and a cost to build. A household member's grade is a prediction from their rubric, not a combined verdict. Details under Roadmap.
 
 ## Gap review
@@ -151,12 +151,12 @@ Should carries 78% of the grade and Could 22%. A steeper scheme (rank-order cent
 
 **6. The editor.** Four columns: Must, Should, Could, Won't. Drag a card between columns or up and down within one. Tap a card to see why it's there ("Question 6: 30 minutes") and move its threshold with a slider. A preview pane beside the columns shows one sample parcel's grade and verdict, updating as you drag. "Reset to my answers" undoes all edits.
 
-**7. Household.** Every grade is yours first. A household is a list of people whose rubrics you hold, so the app can answer "How would Julie rate this?" without asking her.
+**7. Household.** Every grade is yours first. A household is the people who share a list, each with their own account (roadmap step 5) and their own rubric, so the app can answer "How would Julie rate this?" without asking her. (Reworked 10/18, when accounts moved ahead of the household: no rubric import by code or file, and no shared file or link.)
 
-- **Adding a member.** You add a spouse, a child or anyone else by name. They take the interview on your device, or on theirs and send you their rubric as a short code or a small file. Nothing is assumed about who is in a household.
+- **Adding a member.** You invite a spouse, a child or anyone else by email (step 5). They sign in, take the interview on their own device, and their priorities live in their account. Nothing is assumed about who is in a household.
 - **The side-by-side.** A toggle on every grade shows each member's predicted grade and verdict beside yours, with the two or three factors that differ most ("HOA: your Could, her Must").
-- **Predictions say so.** Each is labelled "predicted from Julie's answers of 10/16", because her rubric may have moved since.
-- **Send to confirm.** Under a prediction: "Send to Julie to make sure she'd grade it an A?" Until accounts exist, that shares the parcel and its screen as a file or link she opens in her own profile. With accounts it becomes an in-app request she answers with her own grade and a comment.
+- **Predictions say so.** Each is labelled "predicted from Julie's priorities", with the date she last changed them. A member who hasn't answered her questions yet has no prediction, and the side-by-side says so.
+- **Send to confirm.** Under a prediction: "Send to Julie to confirm she'd grade it an A?" It's an in-app request: Julie sees it the next time she opens the app, opens the parcel with her own grade, and answers with her verdict and a comment, which you see under the prediction.
 - **No combined grade.** Favorites can still sort by the lowest predicted grade in the household, which is today's "lower of the two" as a sort rather than a verdict.
 
 All of this is display-time arithmetic over stored measurements. It needs the screen to store raw values (minutes, hours, feet, classes) for every factor, and no grades.
@@ -320,23 +320,23 @@ Each step is one unattended mission for Claude Code. You approve its plan once; 
 2. **Tennessee.** Statewide parcel lines through the state's parcel program ([Comptroller parcel data](https://comptroller.tn.gov/office-functions/pa/gisredistricting/parcel-data-stewardship.html), served on [TNMap](https://tnmap.tn.gov/arcgis/rest/services/ADMINISTRATIVE_BOUNDARIES/COUNTY_BOUNDARIES_AND_CITY_BOUNDARIES/MapServer)); Claude Code confirms the parcel service, its fields and its terms first. Tennessee imagery, Tennessee trailhead sources, and a recorded fixture near Roan Mountain.
 3. **Rubric editor.** The four columns, drag between and within, threshold sliders, live preview on the open parcel.
 4. **Interview.** The 14 screens, the rubric generator, first-launch onboarding for a new profile, and "Redo the interview".
-5. **Household.** Members, rubric import by code or file, "How would Julie rate this?", and "Send to confirm" as a shared file or link.
-6. **Screening results.** The answer first, best site plus up to two alternatives, report card in rubric order, unknowns as agent questions.
-7. **Favorites.** Star, name field, History and Favorites split.
-8. **Report card export.** The print page with One page and Full presets.
-9. **Cost to enjoy.** Cost to camp and cost to build from the parcel's state and markers, graded against the two budgets.
-10. **New data points,** one PR each: Climate and Privacy first, then Long view, Airport, Bike to a long trail, Internet. Hospital becomes its own factor in the first.
-11. **Ways to raise the grade.** Homesite, access, septic and combine first; tree clearing after canopy heights are confirmed.
-12. **Area catalog.** The 30 areas, area profiling run headless on a schedule, scoring, the suggestion box, sample parcels.
-13. **Accounts and attachments.** Sign-in, file storage for photos and PDFs, and in-app "Send to confirm". Accounts start empty; bring parcels over with an export file if wanted.
-14. **What the land can do.** Panel 1, the county rules table, power-line distance, and the Split tool as a keep / sell scenario. Can run any time after step 9.
+5. **Accounts and sync** (moved up from step 13, 10/18). Sign-in with an emailed link; a household you invite people to by email; profiles become the people in a household; parcels, screens and each person's priorities and answers sync, the server the source of truth and the browser a cache. Accounts start empty; Import file brings parcels in. Photos and PDFs on a parcel.
+6. **Household.** On step 5's accounts: "How would Julie rate this?" as a prediction from her own account's rubric, and "Send to Julie to confirm" as an in-app request. No combined grade.
+7. **Screening results.** The answer first, best site plus up to two alternatives, report card in rubric order, unknowns as agent questions.
+8. **Favorites.** Star, name field, History and Favorites split.
+9. **Report card export.** The print page with One page and Full presets.
+10. **Cost to enjoy.** Cost to camp and cost to build from the parcel's state and markers, graded against the two budgets.
+11. **New data points,** one PR each: Climate and Privacy first, then Long view, Airport, Bike to a long trail, Internet. Hospital becomes its own factor in the first.
+12. **Ways to raise the grade.** Homesite, access, septic and combine first; tree clearing after canopy heights are confirmed.
+13. **Area catalog.** The 30 areas, area profiling run headless on a schedule, scoring, the suggestion box, sample parcels.
+14. **What the land can do.** Panel 1, the county rules table, power-line distance, and the Split tool as a keep / sell scenario. Can run any time after step 10.
 15. **How it could pay.** Panel 2 with dated, sourced ranges; the easement slider; use-value tax; carbon eligibility; split break-even. After step 14.
 
-**Paused:** WF6b (the engine half is merged; the app side waits), 57 (snap lines to lidar), 46 (county grade limits), the cost-label PR, VR8 calibration and Batch B. VR8's weight calibration is replaced by the interview and editor; its band cutoffs get a lighter sanity check after step 10.
+**Paused:** WF6b (the engine half is merged; the app side waits), 57 (snap lines to lidar), 46 (county grade limits), the cost-label PR, VR8 calibration and Batch B. VR8's weight calibration is replaced by the interview and editor; its band cutoffs get a lighter sanity check after step 11.
 
 **Decided 10/16:**
 
-- **Users.** No accounts yet. Anyone with the link creates a local profile that holds their data in that browser. Nothing is hard-coded to Zach and Julie. Accounts (step 13) start empty; parcels come over with an export file if wanted.
+- **Users.** No accounts yet. Anyone with the link creates a local profile that holds their data in that browser. Nothing is hard-coded to Zach and Julie. Accounts (step 5 since 10/18, moved up from step 13) start empty; parcels come over with an export file if wanted.
 - **Cost to enjoy stays,** as cost to camp and cost to build, driven by the parcel's state (step 9). It's most sensitive to access: right-of-way, access work and the pioneer track.
 - **Tennessee is in,** for parcels (step 2) and the catalog.
 - **Household grades are predictions.** Each person grades for themselves; others' grades are predicted from their rubrics, with a prompt to send for confirmation. No combined household grade.

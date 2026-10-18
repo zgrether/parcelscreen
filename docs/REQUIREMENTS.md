@@ -229,7 +229,7 @@ as the JSON string the prefs module writes; the kept screens carry their profile
 localStorage `ps.parcels`; step 1's first boot moved those keys into "Profile 1" and renamed them `ps.legacy.*`. Step 2
 dropped both under the clean-break rule: the boot deletes them and moves nothing, and a browser that still held
 pre-profile keys says once "Saved with an older version; screen it again." (`lib/client/oldData.ts`). Accounts
-(step 13) start empty; parcels come over with an export file (owner, 10/17). It's versioned
+(step 5 since 10/18) start empty; parcels come over with an export file (owner, 10/17). It's versioned
 by `v`: any change takes a new `v` and a converter (the store already converts 13d's `ps.current`, which had no `v`
 field at the parcel level).
 
@@ -356,8 +356,9 @@ Phase 1 imports it into Supabase the same way as the `ps.parcels` store. It's ve
   - `parcels.built[]` become `parcels` rows as above;
   - `screens` become `screens` rows (version 1 each, immutable), linked through `screenIds`;
   - `cfg` becomes the user's settings;
-  - `profile` names the local profile the account adopts (step 13), and `rubrics.mine` becomes the user's rubric,
-    `rubrics.others` the household members' (step 5);
+  - `profile` is ignored: an account adopts no local profile (step 5, the clean-break rule); `rubrics.mine` becomes
+    the user's rubric through the summary's tick, and `rubrics.others` is ignored, since each household member's rubric
+    is in their own account (step 6);
   - `open` is ignored.
 - **Duplicates:** the Phase 0 import matches every parcel on its `key`:
   - an identical key is skipped, never overwritten;
@@ -395,7 +396,7 @@ stored shape is step 1's (`lib/rubric/schema.ts`); the editor adds nothing to it
   one, else the latest screened saved one, else the Mud Creek sample (`lib/rubric/sample`).
 - **No re-screen:** a change re-grades every parcel at once, because the rubric isn't part of a screen's run keys.
 - **The verdict lines are letter edges** (§9.51): A or B is a Contender, C a Maybe, D or F a Pass.
-- **Others' rubrics** stay read-only until step 5.
+- **Others' rubrics** stay read-only; with accounts (step 5), each household member's rubric is in their own account (step 6).
 
 ### 3c. The interview (roadmap step 4)
 
@@ -411,7 +412,7 @@ A few questions, about four minutes, that make a person's priorities (`/intervie
   Really want is the rows with 2+ points, kept to 3–6; rank-sum weights; each answer marks its row's B/C edge; 14a's
   chips add limits (elevation, the ER, December sun on Best homesite), 14b's drop dealbreakers or rows. Skipping
   everything keeps the starting list. The numbers are `card.interview` in `config.ts`.
-- **Stored raw,** in the profile's `ps.interview` (not in the export file until step 5), saved as each answer is
+- **Stored raw,** in the profile's `ps.interview` (not in the export file; accounts, step 5, sync it), saved as each answer is
   picked so a half-done interview resumes where it was left. Answers about factors the app doesn't measure yet are
   kept but not shown (owner, 10/18); a later step adds such a factor to the person's list without touching their
   changes, and says so once (the plan's §5).

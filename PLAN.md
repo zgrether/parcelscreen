@@ -20,7 +20,7 @@ then hand the repo to Claude Code with the phase you want.
 | Screens are immutable | A screen result is stored once; re-running creates a new version | Inputs (lidar, soils, atlas) don't change; the expensive part runs once |
 | Sharing | Household + comments thread (no voting) + per-parcel share | Decided |
 | Prices | Price history table, not a single field | Decided |
-| Users (10/16) | No accounts yet: anyone with the link creates a local profile that holds their data in that browser; nothing hard-coded to Zach and Julie; accounts (step 13) start empty, and parcels come over with an export file if wanted | `docs/design/workflow-review.md`, Roadmap |
+| Users (10/16; 10/18) | Until step 5, anyone with the link creates a local profile that holds their data in that browser; nothing hard-coded to Zach and Julie. Accounts (step 5 since 10/18, before the household) start empty, and parcels come over with an export file if wanted | `docs/design/workflow-review.md`, Roadmap |
 | Grading (10/16) | Grades are computed at display time from stored measurements plus the viewer's rubric; a saved screen stores raw values and no grades | One change unlocks the interview, the editor, the previews and household predictions without re-screening |
 | Household grades (10/16) | Each person grades for themselves; others' grades are predictions from their rubrics, with a prompt to send for confirmation; no combined grade | Decided |
 | Cost to enjoy (10/16) | Stays, as cost to camp and cost to build, driven by the parcel's state; phasing isn't asked | Decided |
@@ -106,6 +106,9 @@ approved once, PRs into a `step/<n>-<name>` branch merged by Claude Code on gree
 main that Zach merges after running the step's test plan on its preview. Don't start step N+1 until step N is
 on main.
 
+**Reordered 10/18 (Zach):** accounts and sync move up from step 13 to step 5, before the household, which becomes step 6
+and is built on them. The steps after it move down one; 14 and 15 keep their numbers.
+
 | # | Step | What it delivers |
 |---|---|---|
 | 1 | **Profiles and the grading split** | Anyone opening the link creates a local profile; profiles can be added, switched, renamed and deleted, and all data is scoped to a profile. Today's data moves into a first profile. Saved screens store raw measurements; grades are computed on display from measurements plus the profile's rubric. The default rubric reproduces today's grades exactly on every fixture, so nothing visible changes except the profile picker. |
@@ -113,26 +116,26 @@ on main.
 | 3 | **Rubric editor** | Four columns (Must, Should, Could, Won't); drag between and within; threshold sliders; a live preview on the open parcel; "Reset to my answers". |
 | 4 | **Interview** | The 14 forced-choice screens, the rubric generator, first-launch onboarding for a new profile, and "Redo the interview". |
 | 4b | **Navigation** | Three places as tabs (Map, Your list, What matters): a bottom tab bar on a phone, a slim top bar on a desktop. Compare as an action on Your list; one Help page (the report's notes, then how grades work; old `/rulebook` links still work); Settings gains Your data (Export, Import); the ☰ menu keeps only the profile, Help and Settings. Plan: `docs/plans/step-4b-navigation.md` (owner, 10/18). |
-| 5 | **Household** | Members by name, rubric import by code or file, "How would Julie rate this?" as a prediction from her rubric, and "Send to confirm" as a shared file or link. No combined grade. |
-| 6 | **Screening results** | The answer first (grade, verdict, one line of reason), the best site plus up to two alternatives, the report card in rubric order, unknowns as questions for the agent. A **Driveway** row joins the card here, graded from the router's measurements, and the interview's question 10 feeds it (owner, 10/18; step 4 plan §9 Q5). |
-| 7 | **Favorites** | A star, a plain name field, History and Favorites split; "In progress" goes away. |
-| 8 | **Report card export** | A print-ready page the browser saves as PDF, with One page and Full presets. |
-| 9 | **Cost to enjoy** | Cost to camp and cost to build from the parcel's state and markers, graded against the two budgets from the interview. |
-| 10 | **New data points**, one PR each | Climate and Privacy first, then Long view, Airport, Bike to a long trail, Internet. Hospital becomes its own factor in the first. |
-| 11 | **Ways to raise the grade** | Homesite, access, septic and combine first; tree clearing after canopy heights are confirmed. |
-| 12 | **Area catalog** | The 30 areas, area profiling run headless on a schedule, scoring by the user's rubric, the suggestion box, sample parcels. |
-| 13 | **Accounts and attachments** | Sign-in, with accounts that start empty (no local profile is adopted: the clean-break rule, 10/17), file storage for photos and PDFs, and in-app "Send to confirm". |
-| 14 | **What the land can do** | Panel 1 (what you can do here: camp now, build, trails, garden, hunt, ride, divide, what limits you), the county rules table, power-line distance, and the Split tool as a keep / sell scenario. Can run any time after step 9. |
+| 5 | **Accounts and sync** | Sign-in with an emailed link, in a `parcelscreen` Supabase project with row-level security on every table from the first migration. A household: invite someone by email, and members share the household's list. Profiles become the people in a household; parcels (recipe, notes, listing facts, lines, markers), screens (immutable, versioned) and each person's priorities and answers sync, with the server the source of truth and IndexedDB a cache (no offline editing). Accounts start empty; Import file brings parcels in. Photos and PDFs on a parcel, in Supabase Storage. Vercel preview protection back on, with a bypass token for CI. Plan: `docs/plans/step-5-accounts.md` (owner, 10/18: moved up from step 13). |
+| 6 | **Household** | Built on step 5's accounts: each member's priorities come from their own account, so "How would Julie rate this?" is a prediction from her current rubric, labelled as one. "Send to Julie to confirm" is an in-app request she answers with her own verdict and a comment. No combined grade. (Reworked 10/18: no rubric import by code or file, no shared file or link.) |
+| 7 | **Screening results** | The answer first (grade, verdict, one line of reason), the best site plus up to two alternatives, the report card in rubric order, unknowns as questions for the agent. A **Driveway** row joins the card here, graded from the router's measurements, and the interview's question 10 feeds it (owner, 10/18; step 4 plan §9 Q5). |
+| 8 | **Favorites** | A star, a plain name field, History and Favorites split; "In progress" goes away. |
+| 9 | **Report card export** | A print-ready page the browser saves as PDF, with One page and Full presets. |
+| 10 | **Cost to enjoy** | Cost to camp and cost to build from the parcel's state and markers, graded against the two budgets from the interview. |
+| 11 | **New data points**, one PR each | Climate and Privacy first, then Long view, Airport, Bike to a long trail, Internet. Hospital becomes its own factor in the first. |
+| 12 | **Ways to raise the grade** | Homesite, access, septic and combine first; tree clearing after canopy heights are confirmed. |
+| 13 | **Area catalog** | The 30 areas, area profiling run headless on a schedule, scoring by the user's rubric, the suggestion box, sample parcels. |
+| 14 | **What the land can do** | Panel 1 (what you can do here: camp now, build, trails, garden, hunt, ride, divide, what limits you), the county rules table, power-line distance, and the Split tool as a keep / sell scenario. Can run any time after step 10. |
 | 15 | **How it could pay** | Panel 2 with dated, sourced ranges: the conservation-easement slider, use-value tax, forest-carbon eligibility, hunting lease, timber, split break-even, camp sites. After step 14. |
 
 **Paused (10/16):** WF6b (the engine half is merged; the app side waits), follow-up 57 (snap lines to lidar),
 follow-up 46 (county grade limits), the cost-label PR, VR8 calibration and Batch B. Their branches and plans
 stay as they are (`docs/plans/phase-0.md` §6). VR8's weight calibration is replaced by the interview and the
-editor; its band cutoffs get a lighter sanity check after step 10.
+editor; its band cutoffs get a lighter sanity check after step 11.
 
 **Not scheduled:** Watch (listing sources, connectors, the headless pre-screen and the digest: the old Phases 4
 and 5) stays in `docs/REQUIREMENTS.md` §6–§7 for after the roadmap, and the Supabase data model there (§3) is
-step 13's starting point. Georgia and West Virginia parcels come after the catalog ships.
+step 5's starting point. Georgia and West Virginia parcels come after the catalog ships.
 
 ---
 
