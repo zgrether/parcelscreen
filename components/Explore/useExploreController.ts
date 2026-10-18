@@ -33,6 +33,7 @@ import {
   type WorkingParcel,
 } from "@/lib/client/parcelStore";
 import { getPref, setPref } from "@/lib/client/prefs";
+import { registerLiveParcels } from "@/lib/client/liveParcels";
 import { ATTACH_MS, attachPatch, type SearchedListing } from "@/lib/client/attachListing";
 import { CancelledError } from "@/lib/http";
 import { unreachableMessage } from "@/lib/client/pwa";
@@ -336,6 +337,15 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
 
   const { store } = state;
   useEffect(() => setPref("ps.parcels", store), [store]);
+  // Settings' Your data (step 4b) exports and imports through the explorer while it's mounted.
+  useEffect(
+    () =>
+      registerLiveParcels({
+        store: () => latest.current.store,
+        importParcels: (added) => dispatch({ type: "imported", added }),
+      }),
+    [dispatch],
+  );
 
   // v3's clean break (owner, #101, 2026-10-11): kept results that aren't the current schema are deleted, once, at
   // start-up (no network). Their parcels stay and re-screen when opened; one whose boundary no longer builds can't

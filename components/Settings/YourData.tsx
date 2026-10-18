@@ -1,7 +1,9 @@
 "use client";
 /**
- * Export file / Import file, under History in the ☰ menu (step 16b; proto L1603–1612). The file and the
- * import plan are lib/client/exportFile.ts; this reads and writes storage around them.
+ * Settings' "Your data" (step 4b, plan §7): Export file and Import file, which were under History in the ☰ menu (step
+ * 16b; proto L1603–1612). They act at once, outside the form's Save and Cancel. The file and the import plan are
+ * lib/client/exportFile.ts; this reads and writes storage around them, through the explorer while it's mounted
+ * (lib/client/liveParcels.ts).
  *
  * Import applies all of the file or none of it: the plan is checked whole first; the settings question comes
  * before anything is written; the screens are kept in one transaction before the parcels are added. The export
@@ -19,13 +21,19 @@ import {
   settingsQuestion,
   type SettingsOutcome,
 } from "@/lib/client/exportFile";
+import { addImportedParcels, currentParcels } from "@/lib/client/liveParcels";
 import { getPref } from "@/lib/client/prefs";
 import { currentProfile, FIRST_PROFILE_NAME } from "@/lib/client/profiles";
 import { effectiveRubrics, setProfileRubrics } from "@/lib/client/rubrics";
 import { getScreens, putScreens } from "@/lib/client/screenStore";
 import type { ProfileRubrics } from "@/lib/rubric/schema";
-import { useSettings } from "@/components/Settings/SettingsDialog";
-import { useExplore } from "./useExploreController";
+import type { UserConfig } from "@/lib/screen/types";
+
+export const YOUR_DATA = "Your data";
+export const YOUR_DATA_NOTE = "These don't wait for Save.";
+export const EXPORT_LINE =
+  "Save every parcel in this profile to a file: a backup, or to move them to another browser.";
+export const IMPORT_LINE = "Add the parcels from an export file to this profile.";
 
 interface Summary {
   ok: boolean;
@@ -34,26 +42,29 @@ interface Summary {
   rubrics?: { file: ProfileRubrics; before: ProfileRubrics | null; on: boolean };
 }
 
-export function ExportImport() {
-  const ctl = useExplore();
-  const settings = useSettings();
+export function YourData({
+  config,
+  save,
+}: {
+  /** The settings in use: exported with the parcels, and compared with a file's. */
+  config: UserConfig;
+  /** An import whose settings the person chose to take. */
+  save(c: UserConfig): void;
+}) {
   const input = useRef<HTMLInputElement>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
 
   const exportFile = async () => {
     const now = new Date().toISOString();
-    const { store } = ctl.state;
+    const store = currentParcels();
     const screens = await getScreens(keptScreenIds(store));
     const from = {
       profile: { name: currentProfile()?.name ?? FIRST_PROFILE_NAME },
       rubrics: effectiveRubrics(),
     };
-    const blob = new Blob(
-      [JSON.stringify(buildExport(settings.config, store, screens, now, from), null, 1)],
-      {
-        type: "application/json",
-      },
-    );
+    const blob = new Blob([JSON.stringify(buildExport(config, store, screens, now, from), null, 1)], {
+      type: "application/json",
+    });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = exportFileName(now);
@@ -64,7 +75,7 @@ export function ExportImport() {
   const importFile = async (file: File) => {
     const r = planImport(
       await file.text(),
-      { store: ctl.state.store, cfg: settings.config },
+      { store: currentParcels(), cfg: config },
       new Date().toISOString(),
       () => crypto.randomUUID(),
     );
@@ -91,8 +102,8 @@ export function ExportImport() {
       setSummary({ ok: false, lines: ["Nothing imported: this browser couldn't keep the file's results."] });
       return;
     }
-    if (plan.added.length) ctl.importParcels(plan.added);
-    if (outcome === "replaced") settings.save(plan.settings!.config);
+    addImportedParcels(plan.added);
+    if (outcome === "replaced") save(plan.settings!.config);
     setSummary({
       ok: true,
       lines: importSummary(plan, outcome),
@@ -107,14 +118,20 @@ export function ExportImport() {
   };
 
   return (
-    <section className="block menu-file">
-      <div className="row">
-        <button className="btn secondary small" onClick={() => void exportFile()}>
+    <section className="your-data" aria-labelledby="your-data-title">
+      <h3 id="your-data-title">{YOUR_DATA}</h3>
+      <p className="tiny muted">{YOUR_DATA_NOTE}</p>
+      <div className="your-data-row">
+        <button className="btn secondary" onClick={() => void exportFile()}>
           Export file
         </button>
-        <button className="btn secondary small" onClick={() => input.current?.click()}>
+        <span className="tiny muted">{EXPORT_LINE}</span>
+      </div>
+      <div className="your-data-row">
+        <button className="btn secondary" onClick={() => input.current?.click()}>
           Import file
         </button>
+        <span className="tiny muted">{IMPORT_LINE}</span>
         <input
           ref={input}
           type="file"
