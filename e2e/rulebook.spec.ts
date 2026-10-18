@@ -63,7 +63,11 @@ test("Help: from the menu, every section, a screened parcel's breakdown, no side
   // A report section's "?": its notes in the dialog, over the parcel; "All of Help" goes to the page.
   await page.getByRole("link", { name: "Map", exact: true }).click();
   await page.locator(".card-row", { hasText: "Night sky" }).click();
-  await page.locator(".card-panel").getByRole("button", { name: /^What does .* mean\?$/ }).first().click();
+  await page
+    .locator(".card-panel")
+    .getByRole("button", { name: /^What does .* mean\?$/ })
+    .first()
+    .click();
   const dialog = page.locator("dialog.help-dialog[open]");
   await expect(dialog).toBeVisible();
   await dialog.getByRole("link", { name: "All of Help" }).click();
