@@ -8,6 +8,7 @@ import { DEFAULT_VIEW, readLibraryView, type LibraryView } from "./library";
 import { readRecent, type MarkChoice } from "./markChoices";
 import { withRanks } from "./myOrder";
 import { ProfileRubricsSchema, type ProfileRubrics } from "@/lib/rubric/schema";
+import { InterviewDocSchema, type InterviewDoc } from "@/lib/rubric/interview/doc";
 import { MINE } from "@/lib/rubric/types";
 import { activeKv, isProfileKey } from "./profileKv";
 import { readParcelStore, withNamesFromNotes, writeParcelStore, type ParcelStore } from "./parcelStore";
@@ -67,6 +68,8 @@ export interface Prefs {
   "ps.rubricView": string;
   /** The profile's rubrics (step 1; lib/client/rubrics.ts): null until it has its own. */
   "ps.rubrics": ProfileRubrics | null;
+  /** The interview (step 4): its answers, where to resume, and the rubric it made; null until it's begun. */
+  "ps.interview": InterviewDoc | null;
   /** The comparison table's columns (VR6): History keys, in order; null until the table is first changed (all shown). */
   "ps.compare": string[] | null;
   /** The list's filters and sort (WF2b), remembered per browser. */
@@ -98,6 +101,7 @@ const DEFAULTS: Prefs = {
   "ps.tiltHint": false,
   "ps.rubricView": MINE,
   "ps.rubrics": null,
+  "ps.interview": null,
   "ps.compare": null,
   "ps.library": DEFAULT_VIEW,
   "ps.namesFromNotes": false,
@@ -123,6 +127,13 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
   "ps.rubrics": {
     read: (r) => {
       const parsed = ProfileRubricsSchema.safeParse(JSON.parse(r));
+      return parsed.success ? parsed.data : null;
+    },
+    write: (v) => JSON.stringify(v),
+  },
+  "ps.interview": {
+    read: (r) => {
+      const parsed = InterviewDocSchema.safeParse(JSON.parse(r));
       return parsed.success ? parsed.data : null;
     },
     write: (v) => JSON.stringify(v),
