@@ -15,7 +15,6 @@ import {
   GLOW_QUESTION,
   LAND_QUESTION,
   QUESTION_COUNT,
-  QUESTIONS,
   WALK_AWAY_SCENE,
   type Choice,
   type Question,
@@ -30,6 +29,13 @@ interface ScreenProps {
   iv: Interview;
   heading: RefObject<HTMLHeadingElement | null>;
   n: number;
+  /**
+   * The screen held an answer when it opened (Back, or resuming): its pick shows, Next stands in Skip's place, and
+   * nothing moves on by itself (owner, 10/18).
+   */
+  revisit: boolean;
+  /** A screen with its own Continue tells Next what to do there: save what's on it, and move on. */
+  bindNext(save: () => void): void;
 }
 
 function Scene({ heading, n, text }: { heading: ScreenProps["heading"]; n: number; text: string }) {
@@ -102,46 +108,63 @@ function useNumberKeys(choices: readonly { id: string }[], pick: (id: string) =>
   }, [choices, pick]);
 }
 
-export function ChoiceScreen({ iv, question, heading, n }: ScreenProps & { question: Question }) {
+/** The hint under a choice: a first answer moves on by itself; an answer already there waits (owner, 10/18). */
+const hint = (revisit: boolean) =>
+  revisit ? "Tap your pick again, or Next, to go on." : "Tap one to go on.";
+
+export function ChoiceScreen({ iv, question, heading, n, revisit }: ScreenProps & { question: Question }) {
   const sky = question.key === "sky";
   const [value, setValue] = useState(iv.doc.answers[question.key] as string | undefined);
   const [glow, setGlow] = useState(iv.doc.answers.glow);
   const timer = useRef<number | null>(null);
   useEffect(() => () => void (timer.current && clearTimeout(timer.current)), []);
+  const advance = () => iv.answer({}, true);
   const later = () => {
     if (timer.current) clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => iv.answer({}, true), BEAT_MS);
+    timer.current = window.setTimeout(advance, BEAT_MS);
   };
   const pick = (id: string) => {
+    // On a screen that held an answer, the same pick again moves on; another pick only changes it.
+    const again = revisit && id === value;
     setValue(id);
     if (sky) {
+      if (again) {
+        if (id !== "camera" || glow) advance();
+        return;
+      }
       // "Out with a camera" asks its follow-up on the same screen; the others clear it.
       iv.answer(
         id === "camera" ? { sky: "camera" } : { sky: id as InterviewAnswers["sky"], glow: undefined },
         false,
       );
-      if (id !== "camera") later();
+      if (id !== "camera") {
+        setGlow(undefined);
+        if (!revisit) later();
+      }
       return;
     }
+    if (again) return advance();
     iv.answer({ [question.key]: id } as Partial<InterviewAnswers>, false);
-    later();
+    if (!revisit) later();
   };
   const pickGlow = (id: string) => {
+    const first = glow === undefined;
+    if (revisit && id === glow) return advance();
     setGlow(id as InterviewAnswers["glow"]);
     iv.answer({ glow: id as InterviewAnswers["glow"] }, false);
-    later();
+    if (!revisit || first) later();
   };
   const showGlow = sky && value === "camera";
   useNumberKeys(showGlow ? GLOW_QUESTION.choices : question.choices, showGlow ? pickGlow : pick);
   return (
     <>
       <Scene heading={heading} n={n} text={question.scene} />
-      <p className="iv-hint">Tap one to go on.</p>
+      <p className="iv-hint">{hint(revisit)}</p>
       <Choices choices={question.choices} value={value} pick={pick} label={question.scene} />
       {showGlow && (
         <div className="iv-follow">
           <p className="iv-follow-q">{GLOW_QUESTION.scene}</p>
-          <p className="iv-hint">One more tap, then the next question.</p>
+          <p className="iv-hint">{revisit && glow ? hint(true) : "One more tap, then the next question."}</p>
           <Choices choices={GLOW_QUESTION.choices} value={glow} pick={pickGlow} label={GLOW_QUESTION.scene} />
         </div>
       )}
@@ -149,57 +172,46 @@ export function ChoiceScreen({ iv, question, heading, n }: ScreenProps & { quest
   );
 }
 
-/** Question 7: pick any, then Continue; "Neither" clears the rest. */
-export function WorkScreen({ iv, heading, n }: ScreenProps) {
-  const q = QUESTIONS.find((x) => x.key === "work")!;
-  const [picked, setPicked] = useState<string[]>(iv.doc.answers.work ?? []);
-  const [neither, setNeither] = useState(iv.doc.answers.work?.length === 0);
-  const toggle = (id: string) => {
-    setNeither(false);
-    setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
+/** Question 7 (owner, 10/18): two single-choice rows on one screen; Continue once both are answered. */
+export function PairScreen({ iv, question, heading, n, revisit }: ScreenProps & { question: Question }) {
+  const second = question.second!;
+  const [first, setFirst] = useState(iv.doc.answers[question.key] as string | undefined);
+  const [other, setOther] = useState(iv.doc.answers[second.key] as string | undefined);
+  const pickFirst = (id: string) => {
+    if (revisit && id === first && other) return iv.answer({}, true);
+    setFirst(id);
+    iv.answer({ [question.key]: id } as Partial<InterviewAnswers>, false);
+  };
+  const pickOther = (id: string) => {
+    if (revisit && id === other && first) return iv.answer({}, true);
+    setOther(id);
+    iv.answer({ [second.key]: id } as Partial<InterviewAnswers>, false);
   };
   return (
     <>
-      <Scene heading={heading} n={n} text={q.scene} />
-      <p className="iv-hint">Pick any.</p>
-      <div className="iv-choices" role="group" aria-label={q.scene}>
-        {q.choices.map((c) => (
-          <button
-            key={c.id}
-            type="button"
-            aria-pressed={picked.includes(c.id)}
-            className={`iv-choice${picked.includes(c.id) ? " picked" : ""}`}
-            onClick={() => toggle(c.id)}
-          >
-            {c.label}
-          </button>
-        ))}
-        <button
-          type="button"
-          aria-pressed={neither}
-          className={`iv-choice${neither ? " picked" : ""}`}
-          onClick={() => {
-            setPicked([]);
-            setNeither(true);
-          }}
-        >
-          Neither
-        </button>
+      <Scene heading={heading} n={n} text={question.scene} />
+      <p className="iv-follow-q">{question.ask}</p>
+      <Choices
+        choices={question.choices}
+        value={first}
+        pick={pickFirst}
+        label={question.ask ?? question.scene}
+      />
+      <div className="iv-follow">
+        <p className="iv-follow-q">{second.ask}</p>
+        <Choices choices={second.choices} value={other} pick={pickOther} label={second.ask} />
       </div>
-      <button
-        type="button"
-        className="btn iv-continue"
-        disabled={!picked.length && !neither}
-        onClick={() => iv.answer({ work: picked as NonNullable<InterviewAnswers["work"]> })}
-      >
-        Continue
-      </button>
+      {!revisit && first && other && (
+        <button type="button" className="btn iv-continue" onClick={() => iv.answer({}, true)}>
+          Continue
+        </button>
+      )}
     </>
   );
 }
 
 /** Question 13: the acres, and two optional budgets. */
-export function LandScreen({ iv, heading, n }: ScreenProps) {
+export function LandScreen({ iv, heading, n, revisit, bindNext }: ScreenProps) {
   const land = iv.doc.answers.land ?? {};
   const [acres, setAcres] = useState(land.acres);
   const [camp, setCamp] = useState(land.campBudget?.toString() ?? "");
@@ -216,6 +228,8 @@ export function LandScreen({ iv, heading, n }: ScreenProps) {
         ...(dollars(build) !== undefined ? { buildBudget: dollars(build) } : {}),
       },
     });
+  // Next, when the screen held an answer, saves what's on it now.
+  useEffect(() => bindNext(save));
   return (
     <>
       <Scene heading={heading} n={n} text={LAND_QUESTION.scene} />
@@ -239,9 +253,11 @@ export function LandScreen({ iv, heading, n }: ScreenProps) {
           <input inputMode="numeric" value={build} onChange={(e) => setBuild(e.target.value)} />
         </span>
       </label>
-      <button type="button" className="btn iv-continue" onClick={save}>
-        Continue
-      </button>
+      {!revisit && (
+        <button type="button" className="btn iv-continue" onClick={save}>
+          Continue
+        </button>
+      )}
     </>
   );
 }
@@ -287,7 +303,14 @@ function Stepper({
 }
 
 /** Question 14: walk away (14a), then doesn't matter (14b, without 14a's chips). */
-export function ChipsScreen({ iv, heading, n, half }: ScreenProps & { half: "walkAway" | "dontMatter" }) {
+export function ChipsScreen({
+  iv,
+  heading,
+  n,
+  half,
+  revisit,
+  bindNext,
+}: ScreenProps & { half: "walkAway" | "dontMatter" }) {
   const a = iv.doc.answers;
   const starts = walkAwayStarts(a);
   const walk = a.walkAway?.chips ?? [];
@@ -312,10 +335,11 @@ export function ChipsScreen({ iv, heading, n, half }: ScreenProps & { half: "wal
             ...(picked.includes("belowFt") ? { belowFt } : {}),
             ...(picked.includes("erOver") ? { erOverMin } : {}),
           },
-          // A chip can't be in both halves.
-          dontMatter: (a.dontMatter ?? []).filter((c) => !picked.includes(c)),
+          // A chip can't be in both halves; 14b stays unanswered until it's answered (so it opens with its Continue).
+          ...(a.dontMatter ? { dontMatter: a.dontMatter.filter((c) => !picked.includes(c)) } : {}),
         })
       : iv.answer({ dontMatter: CHIPS.filter((c) => picked.includes(c)) });
+  useEffect(() => bindNext(save));
   return (
     <>
       <Scene heading={heading} n={n} text={half === "walkAway" ? WALK_AWAY_SCENE : DONT_MATTER_SCENE} />
@@ -363,9 +387,11 @@ export function ChipsScreen({ iv, heading, n, half }: ScreenProps & { half: "wal
           That will rule out most land.
         </p>
       )}
-      <button type="button" className="btn iv-continue" onClick={save}>
-        {half === "walkAway" ? "Continue" : "See my priorities"}
-      </button>
+      {!revisit && (
+        <button type="button" className="btn iv-continue" onClick={save}>
+          {half === "walkAway" ? "Continue" : "See my priorities"}
+        </button>
+      )}
     </>
   );
 }

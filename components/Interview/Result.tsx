@@ -8,19 +8,17 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { RubricPreview } from "@/components/Rubric/RubricPreview";
+import { PAGE_TITLE } from "@/components/Rubric/RubricEditor";
 import type { Interview } from "@/lib/client/useInterview";
 import { columnsOf } from "@/lib/rubric/edit";
 import { rubricFromAnswers } from "@/lib/rubric/interview/generate";
 import { EDITOR_TITLES, minimumLine, plainLine, TIER_NAMES } from "@/lib/rubric/words";
 
-export const LATER_LEAD = "Counts once the app measures it:";
 export const MUST_NOTE = "That will rule out most land.";
 export const REPLACE_QUESTION = "Replace the priorities you changed?";
 /** Its buttons (owner, 10/18, after the fresh-eyes review: "Use my answers" and "Keep mine" both read as "mine"). */
 export const REPLACE_YES = "Replace with the new list";
 export const REPLACE_NO = "Keep my changes";
-export const TRY_IT_HINT =
-  "Try it grades a sample parcel with these priorities: its letter, and whether it's a Contender, a Maybe or a Pass.";
 
 export function InterviewResult({ iv }: { iv: Interview }) {
   const made = useMemo(() => rubricFromAnswers(iv.doc.answers), [iv.doc.answers]);
@@ -37,7 +35,7 @@ export function InterviewResult({ iv }: { iv: Interview }) {
         </Link>
       </header>
       <h1 className="iv-scene" tabIndex={-1}>
-        Your priorities
+        {PAGE_TITLE}
       </h1>
 
       {status === "ask" && (
@@ -71,7 +69,6 @@ export function InterviewResult({ iv }: { iv: Interview }) {
         </p>
       )}
 
-      <p className="iv-hint">{TRY_IT_HINT}</p>
       <RubricPreview rubric={r} baseline={iv.before} hover={null} />
 
       <section className="iv-summary" aria-label="Your priorities">
@@ -104,11 +101,6 @@ export function InterviewResult({ iv }: { iv: Interview }) {
         {cols.wont.length > 0 && (
           <p>
             <strong>{TIER_NAMES.wont}:</strong> {cols.wont.map((c) => EDITOR_TITLES[c.factor]).join(", ")}
-          </p>
-        )}
-        {made.later.length > 0 && (
-          <p className="iv-later muted">
-            {LATER_LEAD} {made.later.join(" · ")}
           </p>
         )}
       </section>

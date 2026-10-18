@@ -402,8 +402,9 @@ stored shape is step 1's (`lib/rubric/schema.ts`); the editor adds nothing to it
 A few questions, about four minutes, that make a person's priorities (`/interview`; phase-0.md §9.53–§9.54; the plan's
 §3 holds every choice's effect).
 
-- **The screens:** 14 forced-choice scenes, one per screen, with Back, Skip and the progress ("4 of 14"). A single
-  choice moves on by itself; question 7, 13 and both halves of 14 have Continue. Question 14 asks what would make the
+- **The screens:** 14 forced-choice scenes, one per screen, with Back, Skip and the progress ("4 of 14"). A first
+  answer moves on by itself; a screen that already holds one shows it, with Next in Skip's place. Question 7 is two
+  rows (flying, and internet for video calls); 7, 13 and both halves of 14 have Continue. Question 14 asks what would make the
   person walk away (limits, with their numbers) and what doesn't matter. Nothing asks about health, income, age or
   family.
 - **The generator,** `rubricFromAnswers` (`lib/rubric/interview/`): a row takes its highest answer's points (0–3);
@@ -411,13 +412,14 @@ A few questions, about four minutes, that make a person's priorities (`/intervie
   chips add limits (elevation, the ER, December sun on Best homesite), 14b's drop dealbreakers or rows. Skipping
   everything keeps the starting list. The numbers are `card.interview` in `config.ts`.
 - **Stored raw,** in the profile's `ps.interview` (not in the export file until step 5), saved as each answer is
-  picked so a half-done interview resumes where it was left. Answers about factors the app doesn't measure yet show
-  on the priorities page as a quiet list ("Counts once the app measures it: Climate (cool and snowy)"); a later step
-  adds such a factor to the person's list without touching their changes (the plan's §5).
+  picked so a half-done interview resumes where it was left. Answers about factors the app doesn't measure yet are
+  kept but not shown (owner, 10/18); a later step adds such a factor to the person's list without touching their
+  changes, and says so once (the plan's §5).
 - **Onboarding:** a new profile (a first visit, or "Add a profile") starts with its name, then the interview, with
-  "Not now" on every screen; the app sends it there until it's finished or put off. The menu and the priorities page
-  offer "Answer a few questions (about 4 min)", or "Finish your questions (6 of 14)".
-- **The result,** "Your priorities", with Try it: saved, unless the list was changed since, when it asks "Replace the
+  "Not now" on every screen; the app sends it there until it's finished or put off. The ☰ menu offers "Answer a few
+  questions (about 4 min)" while the profile has no answers; after that the priorities page alone offers "Finish your
+  questions (6 of 14)" or "Answer the questions again".
+- **The result,** headed "What matters to you" as the priorities page is, with Try it: saved, unless the list was changed since, when it asks "Replace the
   priorities you changed?" ("Replace with the new list", "Keep my changes").
 - **On the priorities page:** "Reset to my answers", and each card's why in the person's own terms ("You'd want an ER within 30 minutes"; else "You moved this here." or "On the starting list.").
 

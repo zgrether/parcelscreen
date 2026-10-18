@@ -4784,6 +4784,9 @@ button.cmp-cell:hover {
   flex-wrap: wrap;
   gap: 10px;
 }
+.iv-done {
+  margin-top: 18px;
+}
 .iv-done .btn {
   min-height: 44px;
   display: inline-flex;
@@ -4808,14 +4811,4 @@ button.cmp-cell:hover {
 }
 .iv-summary li {
   margin: 3px 0;
-}
-.iv-later {
-  margin: 14px 0 16px;
-  font-size: 13.5px;
-}
-/* The quiet list on the priorities page (step 4 plan §5): answers the app can't measure yet, under the columns. */
-.rubric-later {
-  max-width: 760px;
-  margin: 12px 0 4px;
-  font-size: 13.5px;
 }

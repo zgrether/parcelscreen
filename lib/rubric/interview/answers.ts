@@ -12,7 +12,8 @@ export const SUN_VIEW = ["sun", "view", "both", "neither"] as const;
 export const TRAILS = ["door", "bike", "drive", "none"] as const;
 export const GROCERIES = ["close", "far", "either"] as const;
 export const ER = ["15", "30", "45", "60"] as const;
-export const WORK = ["calls", "flyFew", "flyMonthly"] as const;
+export const FLY = ["rarely", "few", "monthly"] as const;
+export const CALLS = ["yes", "no"] as const;
 export const NEIGHBORS = ["wave", "lights", "never"] as const;
 export const GARDEN = ["none", "herbs", "kitchen", "most"] as const;
 export const DRIVEWAY = ["steep", "gentle", "build"] as const;
@@ -43,8 +44,10 @@ export interface InterviewAnswers {
   groceries?: (typeof GROCERIES)[number];
   /** The longest drive to the ER the person is comfortable with, minutes ("60": an hour or more). */
   er?: (typeof ER)[number];
-  /** Pick any; empty is "Neither". */
-  work?: (typeof WORK)[number][];
+  /** Question 7's first row: how often the person flies. */
+  fly?: (typeof FLY)[number];
+  /** Question 7's second row: internet for video calls from home. */
+  calls?: (typeof CALLS)[number];
   neighbors?: (typeof NEIGHBORS)[number];
   garden?: (typeof GARDEN)[number];
   driveway?: (typeof DRIVEWAY)[number];
@@ -68,7 +71,8 @@ export const InterviewAnswersSchema: z.ZodType<InterviewAnswers> = z.strictObjec
   trails: z.enum(TRAILS).optional(),
   groceries: z.enum(GROCERIES).optional(),
   er: z.enum(ER).optional(),
-  work: z.array(z.enum(WORK)).optional(),
+  fly: z.enum(FLY).optional(),
+  calls: z.enum(CALLS).optional(),
   neighbors: z.enum(NEIGHBORS).optional(),
   garden: z.enum(GARDEN).optional(),
   driveway: z.enum(DRIVEWAY).optional(),

@@ -1,6 +1,7 @@
 /**
  * What the priorities page takes from the profile's interview (step 4 plan §5, §6.3): the why context for its cards,
- * the quiet list, and the list the answers make, for "Reset to my answers".
+ * and whether there are answers to reset to. The answers about factors the app doesn't measure yet are kept (steps 9–10
+ * add those factors), not shown (owner, 10/18).
  */
 import { answeredNothing, rubricFromAnswers } from "@/lib/rubric/interview/generate";
 import type { InterviewDoc } from "@/lib/rubric/interview/doc";
@@ -14,7 +15,3 @@ export function whyContext(doc: InterviewDoc | null): WhyContext | null {
   if (!doc?.base) return null;
   return { base: doc.base, why: rubricFromAnswers(doc.answers).why };
 }
-
-/** "Counts once the app measures it: …": the answers about factors the app doesn't measure yet. */
-export const laterOf = (doc: InterviewDoc | null): string[] =>
-  hasAnswers(doc) ? rubricFromAnswers(doc.answers).later : [];

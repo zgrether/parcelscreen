@@ -3,7 +3,13 @@
  * given an onboarding interview; the app sends a profile there until it's finished or put off; the menu's words.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { freshDoc, interviewLabel, RESULT_AT, type InterviewDoc } from "@/lib/rubric/interview/doc";
+import {
+  freshDoc,
+  interviewLabel,
+  menuOffersInterview,
+  RESULT_AT,
+  type InterviewDoc,
+} from "@/lib/rubric/interview/doc";
 import { onboardingDoc, owesInterview } from "./onboarding";
 import { addProfile, bootProfiles, resetProfilesForTests } from "./profiles";
 import { memoryProfileStorage } from "./profileStore";
@@ -60,16 +66,23 @@ describe("a new profile starts with the interview", () => {
   });
 });
 
-describe("the menu's words (owner, 10/18)", () => {
-  it("Answer a few questions, or Finish your questions with the question it's on", () => {
+describe("the questions' entry (owner, 10/18)", () => {
+  it("the menu offers them only while there are no answers", () => {
+    expect(menuOffersInterview(null)).toBe(true);
+    expect(menuOffersInterview(freshDoc())).toBe(true);
+    expect(menuOffersInterview({ ...freshDoc(), at: 3, answers: { climate: "cool" } })).toBe(false);
+    expect(menuOffersInterview({ ...freshDoc(), state: "done", answers: { er: "30" } })).toBe(false);
+  });
+
+  it("the priorities page: Answer a few questions, Finish your questions, or Answer the questions again", () => {
     expect(interviewLabel(null)).toBe("Answer a few questions (about 4 min)");
     expect(interviewLabel(freshDoc())).toBe("Answer a few questions (about 4 min)");
     expect(interviewLabel({ ...freshDoc(), at: 5 })).toBe("Finish your questions (6 of 14)");
     expect(interviewLabel({ ...freshDoc(), state: "notNow", at: 13 })).toBe(
       "Finish your questions (14 of 14)",
     );
-    expect(interviewLabel({ ...freshDoc(), state: "done", at: RESULT_AT })).toBe(
-      "Answer a few questions (about 4 min)",
+    expect(interviewLabel({ ...freshDoc(), state: "done", at: RESULT_AT, answers: { er: "30" } })).toBe(
+      "Answer the questions again",
     );
   });
 });

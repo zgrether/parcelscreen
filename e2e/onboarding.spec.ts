@@ -1,7 +1,8 @@
 /**
  * A new profile starts with the interview (step 4, docs/plans/step-4-interview.md §6, PR 3): a first visit goes to
  * the name screen from any page, and back there until it's finished or put off with "Not now"; the menu offers
- * "Answer a few questions (about 4 min)" or "Finish your questions (n of 14)"; on the priorities page, the why lines
+ * "Answer a few questions (about 4 min)" while there are no answers, and the priorities page "Finish your questions (n of
+ * 14)" or "Answer the questions again" (owner, 10/18); on the priorities page, the why lines
  * quote the answers, "Reset to my answers" asks first, and the quiet list shows. A production build. These specs ask
  * to be sent to the interview (`ps.onboard`), as a person's browser always is.
  */
@@ -54,7 +55,13 @@ test("a first visit starts with the name, comes back until put off, and Not now 
   await expect(page).toHaveURL(/\/explore$/);
   const drawer = await openMenu(page);
   await expect(drawer.getByRole("button", { name: "Switch profile" })).toHaveText(/Sam/);
-  await expect(drawer.getByRole("link", { name: "Finish your questions (2 of 14)" })).toBeVisible();
+  // Answered in part: not in the menu, but on the priorities page.
+  await expect(drawer.getByRole("link", { name: /questions/ })).toHaveCount(0);
+  await drawer.getByRole("link", { name: "My priorities" }).click();
+  await page.waitForURL("**/priorities");
+  await expect(
+    page.locator(".compare-head").getByRole("link", { name: "Finish your questions (2 of 14)" }),
+  ).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -78,13 +85,11 @@ test("an existing profile: offered, never sent; the why lines, Reset to my answe
   await page.getByRole("radio", { name: "30 min" }).click();
   await expect(progress(page)).toHaveText("7 of 14");
   for (let i = 0; i < 9; i++) await page.getByRole("button", { name: "Skip" }).click();
-  await expect(page.locator(".iv-scene")).toHaveText("Your priorities");
+  await expect(page.locator(".iv-scene")).toHaveText("What matters to you");
 
   await page.getByRole("link", { name: "Fine-tune in My priorities" }).click();
   await page.waitForURL("**/priorities");
-  await expect(page.locator(".rubric-later")).toHaveText(
-    /Counts once the app measures it: Climate \(cool and snowy\)/,
-  );
+  await expect(page.locator("main")).not.toContainText("Counts once the app measures it");
   const town = page.locator(".rubric-card", { hasText: "Town and hospital" }).first();
   await town.locator(".rubric-card-body").click();
   const sheet = page.getByRole("dialog");
@@ -102,7 +107,11 @@ test("an existing profile: offered, never sent; the why lines, Reset to my answe
     page.getByRole("region", { name: "Really want", exact: true }).locator(".rubric-card-name"),
   ).toContainText(["Town and hospital"]);
   await expect(
-    page.locator(".compare-head").getByRole("link", { name: "Answer a few questions (about 4 min)" }),
+    page.locator(".compare-head").getByRole("link", { name: "Answer the questions again" }),
   ).toBeVisible();
+  // Answered: the menu no longer offers the questions.
+  await page.goto("/explore");
+  const menu = await openMenu(page);
+  await expect(menu.getByRole("link", { name: /questions/ })).toHaveCount(0);
   expect(errors).toEqual([]);
 });

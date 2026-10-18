@@ -9,6 +9,7 @@ import { bcEdge, plainLine, type BandKey } from "../words";
 import type { RowKey } from "../types";
 import { InterviewAnswersSchema, type InterviewAnswers } from "./answers";
 import { rubricFromAnswers, walkAwayStarts } from "./generate";
+import { QUESTIONS } from "./questions";
 
 const D = defaultRubric();
 const edge = (a: InterviewAnswers, band: BandKey) => bcEdge(rubricFromAnswers(a).rubric.bands, band);
@@ -74,17 +75,18 @@ describe("§3: every choice", () => {
     expect(b.gardenAc).toEqual([0.35, 0.1, 0, 0]);
   });
 
-  it("questions 7 and 10–13 only add to the quiet list", () => {
+  it("questions 7 and 10–13 only add to the stored list of later factors", () => {
     const a: InterviewAnswers = {
-      work: ["calls", "flyMonthly"],
+      fly: "monthly",
+      calls: "yes",
       driveway: "steep",
       hoa: "welcome",
       creek: "rather",
       land: { acres: "5to20", campBudget: 40000, buildBudget: 250000 },
     };
     expect(later(a)).toEqual([
-      "Internet for video calls",
       "Airport (monthly or more)",
+      "Internet for video calls",
       "Driveway (steep is fine, up to 20%)",
       "HOA (welcome)",
       "No creek",
@@ -101,7 +103,10 @@ describe("§3: every choice", () => {
       sky: 1,
       garden: 1,
     });
-    expect(later({ work: [], creek: "either", hoa: "light" })).toEqual(["HOA (light rules)"]);
+    expect(later({ fly: "rarely", calls: "no", creek: "either", hoa: "light" })).toEqual([
+      "HOA (light rules)",
+    ]);
+    expect(later({ fly: "few" })).toEqual(["Airport (a few times a year)"]);
   });
 
   it("why lines quote the person, never a question number (owner, 10/18)", () => {
@@ -216,7 +221,8 @@ const PERSON_A: InterviewAnswers = {
   trails: "door",
   groceries: "close",
   er: "30",
-  work: ["calls"],
+  fly: "rarely",
+  calls: "yes",
   neighbors: "never",
   garden: "kitchen",
   driveway: "gentle",
@@ -233,7 +239,8 @@ const PERSON_B: InterviewAnswers = {
   trails: "drive",
   groceries: "close",
   er: "15",
-  work: [],
+  fly: "rarely",
+  calls: "no",
   neighbors: "wave",
   garden: "herbs",
   walkAway: { chips: ["flood", "erOver"], erOverMin: 30 },
@@ -367,5 +374,22 @@ describe("the stored answers", () => {
     expect(InterviewAnswersSchema.safeParse(PERSON_B).success).toBe(true);
     expect(InterviewAnswersSchema.safeParse({ climate: "tropical" }).success).toBe(false);
     expect(InterviewAnswersSchema.safeParse({ age: 40 }).success).toBe(false);
+  });
+});
+
+describe("question 7 (owner, 10/18): two single-choice rows", () => {
+  it("each row's choice has its own why and later entry", () => {
+    const q7 = QUESTIONS.find((q) => q.key === "fly")!;
+    expect(q7.choices.map((c) => [c.label, c.why, c.later ?? null])).toEqual([
+      ["Rarely or never", "You rarely or never fly", null],
+      ["A few times a year", "You fly a few times a year", "Airport (a few times a year)"],
+      ["Monthly or more", "You fly monthly or more", "Airport (monthly or more)"],
+    ]);
+    expect(q7.second!.choices.map((c) => [c.label, c.why, c.later ?? null])).toEqual([
+      ["Yes", "You need internet for video calls from home", "Internet for video calls"],
+      ["Not really", "You don't need internet for video calls", null],
+    ]);
+    expect(InterviewAnswersSchema.safeParse({ fly: "few", calls: "no" }).success).toBe(true);
+    expect(InterviewAnswersSchema.safeParse({ work: ["calls"] }).success).toBe(false);
   });
 });

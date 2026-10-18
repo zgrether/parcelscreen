@@ -16,9 +16,8 @@ import type { EditorCard } from "@/lib/rubric/edit";
 import { MINE } from "@/lib/rubric/types";
 import { CardSheet } from "./CardSheet";
 import { RESET_QUESTION, RESET_TO_ANSWERS_QUESTION, ResetConfirm } from "./ResetConfirm";
-import { LATER_LEAD } from "@/components/Interview/Result";
 import { getPref, setPref } from "@/lib/client/prefs";
-import { hasAnswers, laterOf, whyContext } from "@/lib/client/myAnswers";
+import { hasAnswers, whyContext } from "@/lib/client/myAnswers";
 import { interviewLabel } from "@/lib/rubric/interview/doc";
 import { rubricFromAnswers } from "@/lib/rubric/interview/generate";
 import { RubricColumns, TIER_NAMES } from "./RubricColumns";
@@ -45,7 +44,6 @@ export function RubricEditor() {
   // The profile's interview (step 4): its why lines, its quiet list, and "Reset to my answers".
   const [answers, setAnswers] = useState(() => getPref("ps.interview"));
   const why = whyContext(answers);
-  const later = laterOf(answers);
   const resetToAnswers = () => {
     if (!hasAnswers(answers)) return;
     const made = rubricFromAnswers(answers.answers).rubric;
@@ -148,12 +146,6 @@ export function RubricEditor() {
         )}
 
         <RubricColumns rubric={my.rubric} move={my.move} open={setSheet} onHover={setHover} />
-
-        {later.length > 0 && (
-          <p className="rubric-later muted">
-            {LATER_LEAD} {later.join(" · ")}
-          </p>
-        )}
 
         {others.length > 0 && (
           <p className="tiny muted">

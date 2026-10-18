@@ -20,11 +20,11 @@ Done when:
   - question 14's walk-away chips become Must haves, with limits where they have one.
 
   More than five walk-away chips shows "That will rule out most land."
-- Every answer is stored raw on the profile. Answers about factors the app doesn't measure yet show on the priorities
-  page as a quiet list ("Counts once the app measures it: Climate (cool and snowy)"), and §5 says how a later step adds such
-  a factor without overwriting the editor's changes.
+- Every answer is stored raw on the profile, those about factors the app doesn't measure yet included (kept, not
+  shown: owner, 10/18), and §5 says how a later step adds such a factor without overwriting the editor's changes.
 - The result screen shows the priorities it made and Try it, then "Fine-tune in My priorities".
-- An existing profile gets "Answer a few questions (about 4 min)" in the menu and on /priorities. The page gets "Reset to my answers",
+- A profile with no answers gets "Answer a few questions (about 4 min)" in the menu and on /priorities; after that the
+  priorities page alone offers "Finish your questions (6 of 14)" or "Answer the questions again" (owner, 10/18). The page gets "Reset to my answers",
   next to "Reset to the starting list".
 - Nothing asks about health, income, age or family.
 
@@ -69,10 +69,12 @@ The order is fixed. One screen per question, apart from 14, which is two:
 The scenes are as written in the design doc's table. The choices are its choices, in its order. Every screen has
 **Back**, **Skip** and a progress line ("4 of 14").
 
-- **A single choice moves on by itself,** after a short beat that shows the pick. Back returns with the pick still
-  highlighted.
-- **Some screens need Continue:** question 7 (pick any), question 13 (acres plus two optional numbers) and the two
-  halves of 14 (chips).
+- **A first answer moves on by itself,** after a short beat that shows the pick.
+- **Back and Next** (owner, 10/18): a screen that already holds an answer (from Back, or resuming) opens with its pick
+  highlighted and Next in Skip's place. Another pick only changes it; the same pick again, or Next, moves on. This
+  holds on every screen: on the chip screens and question 13, Next saves what's on the screen.
+- **Some screens need Continue** the first time: question 7 (two rows, once both are answered), question 13 (acres
+  plus two optional numbers) and the two halves of 14 (chips).
 - **Question 2:** "Out with a camera" adds its follow-up on the same screen: "A town's glow on one horizon: shrug, or
   spoils it?"
 - **"Either is fine"** appears where the design lists "Either" (1, 5 and 12). The other screens' choices already
@@ -200,14 +202,25 @@ no parcel can reach. The same holds for question 5's "small and close".
 
 It asks for a comfort limit, never why. (Reworded 10/18 from "How far to the ER would feel too far?", whose last choice, "An hour is fine", answered a different question; the edges are unchanged.)
 
-### Question 7: "Work and travel: what applies? (pick any)"
+### Question 7: "Work and travel." Two single-choice rows on one screen (owner, 10/18)
+
+"How often will you fly?"
 
 | Choice | Points | Edge it sets | Later | Why (the card's sheet) |
 | --- | --- | --- | --- | --- |
-| Video calls from home | — | — | Internet for video calls | "You work on video calls from home" |
-| Fly a few times a year | — | — | Airport (a few times a year) | "You fly a few times a year" |
-| Fly monthly or more | — | — | Airport (monthly or more) | "You fly monthly or more" |
-| Neither | — | — | — | — |
+| Rarely or never | — | — | — | "You rarely or never fly" |
+| A few times a year | — | — | Airport (a few times a year) | "You fly a few times a year" |
+| Monthly or more | — | — | Airport (monthly or more) | "You fly monthly or more" |
+
+"Do you need internet for video calls from home?"
+
+| Choice | Points | Edge it sets | Later | Why (the card's sheet) |
+| --- | --- | --- | --- | --- |
+| Yes | — | — | Internet for video calls | "You need internet for video calls from home" |
+| Not really | — | — | — | "You don't need internet for video calls" |
+
+Continue appears once both rows are answered. (Until 10/18 this was one pick-any question, "Work and travel: what
+applies?", with "Neither".)
 
 ### Question 8: "Neighbors: wave from the porch, see their lights at night, or never know they're there?"
 
@@ -300,7 +313,7 @@ Legal road access isn't a chip: it stays a Must have.
 ## 4. Two worked examples
 
 **Person A** answers: Cool and snowy · camera, spoils it · Sun · Walk out the door · Small and close · 30 min ·
-Video calls · Never know · A real kitchen garden · Long and gentle · No HOA · Best feature · 20–50 ac. In 14a they
+Rarely or never, and Yes (video calls) · Never know · A real kitchen garden · Long and gentle · No HOA · Best feature · 20–50 ac. In 14a they
 pick Flood zone, An HOA, Below 2,500 ft and No winter sun.
 
 | Rank | Card | Tier | Points | Weight | Band (B/C edge) |
@@ -354,9 +367,10 @@ Below ___ ft.
 the screen schema and the export file don't change. The answers stay out of the export file until step 5, which
 imports rubrics by file (§9 Q14).
 
-**The quiet list.** Under the four columns in the editor, and on the result screen, in small muted text: "Counts once
-the app measures it: Climate (cool and snowy) · Long view (over winter sun) · No HOA (a must) · …". It shows only
-answers that express a preference: "Either", "Neither" and skipped screens add nothing.
+**Kept, not shown** (owner, 10/18). The answers about factors the app doesn't measure yet ("Climate (cool and snowy)",
+"No HOA (a must)", …; the generator's `later` list) are stored with the rest but shown nowhere: the result screen and
+the priorities page had them as a quiet list ("Counts once the app measures it: …") until the owner's fix round. They
+stay stored so that a later step's one-time arrival notice can say which factor joined and from which answer.
 
 **How a later step adds a factor without overwriting the editor's changes** (the proposal, for steps 9–10). The
 profile keeps `base`, the rubric the generator made from its answers. When step 10 adds Climate:
@@ -390,24 +404,27 @@ that matches `base` quotes the answer that put it there, and any other reads "Yo
   starting list and keeps the draft (`state: "notNow"`). The app doesn't push the interview again; the menu offers it.
 - **The e2e:** with `ps.debug` set, a new profile isn't sent to the interview, so today's specs keep working. The
   onboarding specs run without it.
-- **An existing profile:** "Answer a few questions (about 4 min)" in the ☰ menu, and in the header of /priorities. A second run starts with
-  the previous answers picked, so it reads as "redo".
+- **The way in** (owner, 10/18): the ☰ menu offers "Answer a few questions (about 4 min)" only while the profile has no
+  answers. After that the header of /priorities alone offers it: "Finish your questions (6 of 14)" while it's part
+  done, else "Answer the questions again". A second run starts with the previous answers picked, so it reads as
+  "redo".
 - **Halfway:** every answer is saved as it's picked. Leave, and the interview opens again on the screen you left
-  (`at`). The menu says "Finish your questions (6 of 14)".
+  (`at`).
 
 ### 6.2 The result screen
-- **Your priorities, the answer first:**
+- **Headed "What matters to you"**, as the priorities page is (owner, 10/18), **the answer first:**
   - Must have as plain lines ("No flood zone at the house or the driveway", "Elevation: at least 2,500 ft");
   - Really want and Nice to have in rank order, as the priorities page shows them (no weights: they're in the
     rulebook);
   - Don't care in one line;
-  - the quiet list;
   - "That will rule out most land." when `mustNote`.
+
+  No quiet list and no line about Try it under the heading (owner, 10/18): Try it keeps its own words.
 - **Try it** above it, as on the priorities page (the bottom bar on a phone), on the sample (Mud Creek) or the open
   parcel. Before is the list the profile had (the starting list for a new profile), and now is the result.
 - **The buttons:**
   - "Fine-tune in My priorities" (primary) and "Done" (to the map);
-  - Back returns to 14b.
+  - Back returns to 14b, with its picks and Next.
 - **When the list is saved** (§9 Q7):
   - A new profile, or a profile whose list is still the starting list or still its last `base`: saved on reaching
     the result screen.
@@ -424,7 +441,6 @@ that matches `base` quotes the answer that put it there, and any other reads "Yo
   - "On the starting list." when there are no answers.
 
   These two replace step 3's "You changed it" and "From the starting list" (page text, not the report).
-- **The quiet list** sits under the columns (§5).
 - **Best homesite can have a limit** (§9 Q3): dragging it onto Must have makes "Best homesite: at least 3 h of December
   sun", as the 14a chip does, with its slider in hours.
 
@@ -460,8 +476,7 @@ later without moving anything.
 
 ### 7.5 Words
 - Plain, short and second person.
-- The result screen's heading is "Your priorities".
-- The quiet list's lead-in is "Counts once the app measures it:".
+- The result screen's heading is "What matters to you", as the priorities page's.
 - The note is "That will rule out most land."
 
 ## 8. Numbers and text that may change (the declaration)
@@ -480,8 +495,8 @@ later without moving anything.
   - no change to the rubric's stored shape: the limit is a `threshold` on a Must card, like every other limit, and
     Best homesite's ranked card keeps no band.
 - **Text:**
-  - new: the interview's screens, the result screen, the quiet list, "Answer a few questions (about 4 min)", "Finish
-    your questions (6 of 14)", "Reset to my answers", and the why strings in §3's why column;
+  - new: the interview's screens, the result screen, "Answer a few questions (about 4 min)", "Finish your questions
+    (6 of 14)", "Answer the questions again", "Reset to my answers", and the why strings in §3's why column;
   - changed on the priorities page: the why lines "You changed it" → "You moved this here." and "From the starting
     list" → "On the starting list.";
   - nothing in the report or the card changes.
@@ -538,8 +553,9 @@ later without moving anything.
 
 **e2e (CI):**
 - desktop: name, the 14 screens, the result; Back keeps the pick; Skip; question 2's follow-up; the chips' steppers;
-- resuming after a reload, with the menu's "Finish your questions (6 of 14)";
-- the menu's "Answer a few questions (about 4 min)" on an existing profile;
+- resuming after a reload; Back and Next (another pick waits, the same pick moves on);
+- the menu's "Answer a few questions (about 4 min)" only without answers; the priorities page's "Finish your
+  questions (6 of 14)" and "Answer the questions again";
 - the why lines quote the answers, and no sheet shows a question number;
 - Reset to my answers;
 - a changed list asks "Replace the priorities you changed?" before it's replaced;
@@ -552,21 +568,22 @@ later without moving anything.
 - question 13;
 - 14a's chips with a stepper;
 - 14b's chips;
-- the result screen with the quiet list and Try it;
+- question 7's two rows; 14b back from the result, with Next;
+- the result screen with Try it;
 - the priorities page with "Reset to my answers" and the why line;
 - the "Replace the priorities you changed?" question.
 
 **Manual, on the preview (about 20 minutes, desktop then phone):**
 1. Open the preview in a private window → the name screen. Type a name → question 1, "1 of 14".
-2. Answer as §4's Person A, using Back once and Skip once → the result shows their priorities, the quiet list and
-   Try it on the sample (Mud Creek).
+2. Answer as §4's Person A, using Back once and Skip once → the result, "What matters to you", shows their
+   priorities and Try it on the sample (Mud Creek).
 3. "Fine-tune in My priorities" → the columns match the result; a card's sheet says "You'd want an ER within 30 minutes"; Must have holds "Best homesite: at least 3 h of December sun".
 4. Drag a card, then "Reset to my answers" → the interview's list is back.
 5. Open **Mud Creek**, **Macks Mountain**, **Ferney Creek** and **Roan Mountain** → each grades by the new list;
    nothing asks for a re-screen.
 6. Close the tab on question 7, open the app again → it resumes on question 7.
 7. Add a second profile → its name screen, then "Not now" → the map, with the starting list on all four fixtures.
-8. Back in the first profile, drag a card, then ☰ → Answer a few questions (about 4 min) → finish it → the result asks "Replace the
+8. Back in the first profile, drag a card, then on the priorities page "Answer the questions again" → finish it → the result asks "Replace the
    priorities you changed?"; "Keep my changes" keeps the dragged card.
 9. Phone: steps 1, 2 and 6 at 375 px. One question per screen, the choices easy to tap, nothing scrolls sideways.
 

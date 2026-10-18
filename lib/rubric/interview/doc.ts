@@ -8,6 +8,7 @@ import { z } from "zod";
 import { RubricSchema } from "../schema";
 import type { Rubric } from "../types";
 import { InterviewAnswersSchema, type InterviewAnswers } from "./answers";
+import { answeredNothing } from "./generate";
 import { QUESTIONS } from "./questions";
 
 /**
@@ -84,12 +85,20 @@ export const freshDoc = (state: InterviewState = "inProgress"): InterviewDoc => 
   base: null,
 });
 
+export const ANSWER_FIRST = "Answer a few questions (about 4 min)";
+export const ANSWER_AGAIN = "Answer the questions again";
+
 /**
- * The menu's and the priorities page's link to the interview (owner, 10/18): "Answer a few questions (about 4 min)",
- * or, begun and not finished, "Finish your questions (6 of 14)".
+ * The priorities page's link to the interview (owner, 10/18): begun and not finished, "Finish your questions (6 of
+ * 14)"; answered, "Answer the questions again"; else "Answer a few questions (about 4 min)".
  */
 export function interviewLabel(doc: InterviewDoc | null): string {
   if (doc && (doc.state === "inProgress" || doc.state === "notNow") && doc.at > 0)
     return `Finish your questions (${questionNumber(STEPS[Math.min(doc.at, RESULT_AT)]!)} of 14)`;
-  return "Answer a few questions (about 4 min)";
+  if (doc && (doc.state === "done" || !answeredNothing(doc.answers))) return ANSWER_AGAIN;
+  return ANSWER_FIRST;
 }
+
+/** The ☰ menu offers the questions only to a profile with no answers yet (owner, 10/18); the priorities page always. */
+export const menuOffersInterview = (doc: InterviewDoc | null): boolean =>
+  !doc || answeredNothing(doc.answers);
