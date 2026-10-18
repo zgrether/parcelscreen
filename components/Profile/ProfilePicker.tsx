@@ -141,7 +141,7 @@ export function ProfilePicker() {
                     !unavailable && (
                       <>
                         <button
-                          className="link-btn tiny"
+                          className="btn secondary small"
                           onClick={() => {
                             setDraft(p.name);
                             setRenaming(p.id);
@@ -149,7 +149,7 @@ export function ProfilePicker() {
                         >
                           Rename
                         </button>
-                        <button className="link-btn tiny" onClick={() => setDeleting(p.id)}>
+                        <button className="btn secondary small" onClick={() => setDeleting(p.id)}>
                           Delete
                         </button>
                       </>

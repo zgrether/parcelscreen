@@ -1,6 +1,7 @@
 "use client";
 /**
- * The rubric editor's four columns (step 3, docs/plans/step-3-rubric-editor.md §1, §6): Must, Should, Could and Won't,
+ * The priorities page's four columns (step 3, docs/plans/step-3-rubric-editor.md §1, §6; named by the owner, 10/18):
+ * Must have, Really want, Nice to have and Don't care (Must, Should, Could and Won't in the code),
  * each a sortable list, and each a drop target even when it's empty. A card moves by its handle, with a mouse, a long
  * press on a phone, or the keyboard (Space to pick up, the arrows, Space to drop), through @dnd-kit, as My order's rows
  * do (components/Library/MyOrder.tsx); a tap on the card opens its sheet, whose "Move to…" does the same without
@@ -31,8 +32,9 @@ import { CSS } from "@dnd-kit/utilities";
 import { useState } from "react";
 import { columnsOf, hasMinimum, type Columns, type EditorCard } from "@/lib/rubric/edit";
 import type { Factor, MustCard, RowKey, Rubric } from "@/lib/rubric/types";
-import { weightsOf } from "@/lib/rubric/weights";
-import { cardLine, FACTOR_LABELS, isGate, minimumLine, type Tier } from "@/lib/rubric/words";
+import { EDITOR_TITLES, isGate, minimumLine, plainLine, TIER_NAMES, type Tier } from "@/lib/rubric/words";
+
+export { TIER_NAMES };
 
 /** A press on a handle this long picks the card up on a phone, ms; a finger may wander this far, px (as My order). */
 const LONG_PRESS_MS = 250;
@@ -40,34 +42,19 @@ const PRESS_TOLERANCE_PX = 6;
 
 export const TIERS: readonly Tier[] = ["must", "should", "could", "wont"];
 
-export const TIER_NAMES: Record<Tier, string> = {
-  must: "Must",
-  should: "Should",
-  could: "Could",
-  wont: "Won't",
-};
-
-/** Each column's rule, in a few words, under its name. */
-export const TIER_RULES: Record<Tier, string> = {
-  must: "A fail is a Pass",
-  should: "Counts in your grade, by rank",
-  could: "Counts at three quarters",
-  wont: "Left out of your grade",
-};
-
-/** An empty column's line (plan §6.3). Should's depends on Could. */
+/** An empty column's line (plan §6.3), in the columns' own words. Really want's depends on Nice to have. */
 export function emptyLine(tier: Tier, columns: Columns): string {
   switch (tier) {
     case "must":
-      return "No dealbreakers: any parcel can be a Contender. Move a card here to make it one.";
+      return "Nothing is a must have, so no parcel is ruled out. Move an item here to make it one.";
     case "should":
       return columns.could.length
-        ? "Nothing ranked first. Your grade comes from Could alone."
-        : "Nothing counts toward a grade: move a card to Should.";
+        ? "Nothing here: your grade comes from Nice to have alone."
+        : "Nothing counts toward the grade. Move an item here.";
     case "could":
-      return "Nothing here. Drag a card here, or tap one and choose Move to… Could.";
+      return "Nothing here yet. Drag an item here, or tap one and choose Nice to have.";
     case "wont":
-      return "Everything counts. Move a card here to leave it out of your grade.";
+      return "Nothing ignored: everything counts. Move an item here to ignore it.";
   }
 }
 
@@ -82,7 +69,7 @@ export const cardFromId = (id: string): EditorCard => {
 
 /** The card's name for a screen reader and its title. */
 export const cardName = (c: EditorCard): string =>
-  c.kind === "minimum" ? `${FACTOR_LABELS[c.factor]} minimum` : FACTOR_LABELS[c.factor];
+  c.kind === "minimum" ? `${EDITOR_TITLES[c.factor]} limit` : EDITOR_TITLES[c.factor];
 
 /** Where a card or a column is: its tier, and its place in the tier's list (the end, for the column itself). */
 function placeOf(columns: Columns, id: string): { tier: Tier; index: number } | null {
@@ -141,8 +128,6 @@ export function RubricColumns({
     const at = placeOf(columns, String(over.id));
     if (at) move(cardFromId(String(a.id)), at.tier, at.index);
   };
-  const w = weightsOf(rubric);
-  const total = Object.values(w).reduce((x, y) => x + y, 0) || 1;
 
   return (
     <DndContext
@@ -171,12 +156,6 @@ export function RubricColumns({
                 key={cardId(card)}
                 card={card}
                 rubric={rubric}
-                rank={tier === "should" || tier === "could" ? rankOf(rubric, card) : null}
-                weight={
-                  card.kind === "factor" && !isGate(card.factor) && (tier === "should" || tier === "could")
-                    ? (w[card.factor] / total) * 100
-                    : null
-                }
                 open={() => open(card)}
                 index={i}
               />
@@ -186,19 +165,11 @@ export function RubricColumns({
       </div>
       {/* No drop animation: the card settles where it lands at once. */}
       <DragOverlay dropAnimation={null}>
-        {active ? (
-          <CardBody card={active} rubric={rubric} rank={rankOf(rubric, active)} weight={null} lifted />
-        ) : null}
+        {active ? <CardBody card={active} rubric={rubric} lifted /> : null}
       </DragOverlay>
     </DndContext>
   );
 }
-
-const rankOf = (r: Rubric, c: EditorCard): number | null => {
-  if (c.kind !== "factor") return null;
-  const i = r.ranked.findIndex((x) => x.factor === c.factor);
-  return i >= 0 ? i + 1 : null;
-};
 
 function Column({ tier, columns, children }: { tier: Tier; columns: Columns; children: React.ReactNode }) {
   const { setNodeRef, isOver } = useDroppable({ id: `col:${tier}` });
@@ -212,7 +183,6 @@ function Column({ tier, columns, children }: { tier: Tier; columns: Columns; chi
         <h2>
           {TIER_NAMES[tier]} <span className="muted">{cards.length}</span>
         </h2>
-        <p className="tiny muted">{TIER_RULES[tier]}</p>
       </header>
       <SortableContext items={cards.map(cardId)} strategy={verticalListSortingStrategy}>
         <ol ref={setNodeRef} className="rubric-list">
@@ -227,14 +197,10 @@ function Column({ tier, columns, children }: { tier: Tier; columns: Columns; chi
 function SortableCard({
   card,
   rubric,
-  rank,
-  weight,
   open,
 }: {
   card: EditorCard;
   rubric: Rubric;
-  rank: number | null;
-  weight: number | null;
   open(): void;
   index: number;
 }) {
@@ -249,8 +215,6 @@ function SortableCard({
       <CardBody
         card={card}
         rubric={rubric}
-        rank={rank}
-        weight={weight}
         open={open}
         handle={
           <button
@@ -269,26 +233,26 @@ function SortableCard({
   );
 }
 
-/** A card: its handle, its name and words, its rank and weight, and the "min" badge on a row with a minimum. */
+/**
+ * A card: its handle, its title and one plain line (the exact number is in its sheet), and the "limit" badge on a row
+ * that also has a limit in Must have. No rank or weight: the order shows the rank, and the weights are in "See what
+ * changed" and the rulebook (owner, 10/18).
+ */
 export function CardBody({
   card,
   rubric,
-  rank,
-  weight,
   open,
   handle,
   lifted,
 }: {
   card: EditorCard;
   rubric: Rubric;
-  rank: number | null;
-  weight: number | null;
   open?: () => void;
   handle?: React.ReactNode;
   lifted?: boolean;
 }) {
   const words =
-    card.kind === "minimum" ? minimumLine(minimumOf(rubric, card.factor)) : cardLine(rubric, card.factor);
+    card.kind === "minimum" ? minimumLine(minimumOf(rubric, card.factor)) : plainLine(rubric, card.factor);
   return (
     <div className={`rubric-card${lifted ? " lifted" : ""}${card.kind === "minimum" ? " minimum" : ""}`}>
       {handle ?? (
@@ -303,21 +267,15 @@ export function CardBody({
         aria-label={`${cardName(card)}: ${words}`}
       >
         <span className="rubric-card-name">
-          {card.kind === "minimum" ? "Minimum" : FACTOR_LABELS[card.factor]}
+          {card.kind === "minimum" ? "Limit" : EDITOR_TITLES[card.factor]}
           {card.kind === "factor" && !isGate(card.factor) && hasMinimum(rubric, card.factor) && (
-            <span className="rubric-min-badge" title="Also a minimum in Must">
-              min
+            <span className="rubric-min-badge" title="Also a limit in Must have">
+              limit
             </span>
           )}
         </span>
         <span className="rubric-card-words">{words}</span>
       </button>
-      {rank !== null && (
-        <span className="rubric-card-rank tiny muted">
-          #{rank}
-          {weight !== null && ` · ${Math.round(weight)}%`}
-        </span>
-      )}
     </div>
   );
 }

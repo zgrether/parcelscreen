@@ -180,7 +180,10 @@ export function LibraryControls({
               ))}
             </select>
           </label>
-          <button className="link-btn" onClick={() => setView({ ...view, filters: DEFAULT_VIEW.filters })}>
+          <button
+            className="btn secondary small"
+            onClick={() => setView({ ...view, filters: DEFAULT_VIEW.filters })}
+          >
             Reset the filters
           </button>
         </div>

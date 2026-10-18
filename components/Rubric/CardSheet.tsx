@@ -22,7 +22,7 @@ import {
   bandValue,
   bcEdge,
   cardLine,
-  FACTOR_LABELS,
+  EDITOR_TITLES,
   isGate,
   MINIMUM_BAND,
   minimumLine,
@@ -93,8 +93,8 @@ export function CardSheet({
         onClick={(e) => e.stopPropagation()}
       >
         <header className="rubric-sheet-head">
-          <h2>{card.kind === "minimum" ? `${FACTOR_LABELS[f]}: minimum` : FACTOR_LABELS[f]}</h2>
-          <button type="button" className="link-btn" onClick={close}>
+          <h2>{card.kind === "minimum" ? `${EDITOR_TITLES[f]}: limit` : EDITOR_TITLES[f]}</h2>
+          <button type="button" className="btn secondary small" onClick={close}>
             Close
           </button>
         </header>
@@ -125,7 +125,7 @@ export function CardSheet({
         {card.kind === "minimum" && MINIMUM_BAND[f as keyof typeof MINIMUM_BAND] && (
           <div className="rubric-sliders">
             <BandSlider
-              label={`Your minimum: ${BAND_LABELS[MINIMUM_BAND[f as keyof typeof MINIMUM_BAND]!].toLowerCase()}`}
+              label={`Your limit: ${BAND_LABELS[MINIMUM_BAND[f as keyof typeof MINIMUM_BAND]!].toLowerCase()}`}
               band={MINIMUM_BAND[f as keyof typeof MINIMUM_BAND]!}
               value={rubric.musts.find((m) => m.factor === f && m.threshold !== undefined)!.threshold!}
               hint="A parcel on the wrong side of it is a Pass; one with no number for it is at most a Maybe."
@@ -170,12 +170,12 @@ export function CardSheet({
               onClick={() => {
                 apply(
                   removeMinimum(rubric, f as keyof typeof MINIMUM_BAND),
-                  `${FACTOR_LABELS[f]}: minimum removed.`,
+                  `${EDITOR_TITLES[f]}: limit removed.`,
                 );
                 close();
               }}
             >
-              Remove the minimum
+              Remove the limit
             </button>
           )}
         </div>

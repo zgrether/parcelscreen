@@ -18,7 +18,7 @@ export function DecemberSun({ result, point, variant }: BlockProps) {
       {v.chart && <HorizonChart chart={v.chart} />}
       {openGround && showsMap(variant) && (
         <p className="tiny">
-          <button className="link-btn" onClick={openGround}>
+          <button className="btn secondary small" onClick={openGround}>
             See it from here
           </button>{" "}
           <span className="muted">— the skyline and the sun&apos;s path, standing at this point.</span>

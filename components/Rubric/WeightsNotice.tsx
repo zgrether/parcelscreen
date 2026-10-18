@@ -1,9 +1,9 @@
 "use client";
 /**
  * The first reorder's notice (step 3 plan §3; owner, 10/17): the move has applied and the weights are now rank-sum.
- * "See what changed" opens the before/after table (each row's weight, and the preview parcel's points, letter and
- * verdict when there is one); "Undo" restores the order and the explicit weights. It stays until it's dismissed or
- * the next change.
+ * "See what changed" opens the before/after table (each item's weight, and the preview parcel's letter and verdict
+ * when there is one; no points, owner 10/18); "Undo" restores the order and the explicit weights. It stays until it's
+ * dismissed or the next change.
  */
 import { useState } from "react";
 import type { Card } from "@/lib/report/card";
@@ -29,11 +29,15 @@ export function WeightsNotice({
     <section className="rubric-notice" role="status" aria-live="polite">
       <p>
         {NOTICE_TEXT}{" "}
-        <button type="button" className="link-btn" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <button
+          type="button"
+          className="btn secondary small"
+          aria-expanded={open}
+          onClick={() => setOpen(!open)}
+        >
           See what changed
         </button>{" "}
-        ·{" "}
-        <button type="button" className="link-btn" onClick={undo}>
+        <button type="button" className="btn secondary small" onClick={undo}>
           Undo
         </button>
         <button type="button" className="rubric-notice-x" aria-label="Dismiss" onClick={dismiss}>
@@ -45,7 +49,7 @@ export function WeightsNotice({
           <table>
             <thead>
               <tr>
-                <th scope="col">Row</th>
+                <th scope="col">Item</th>
                 <th scope="col">Before</th>
                 <th scope="col">Now</th>
               </tr>
@@ -62,14 +66,13 @@ export function WeightsNotice({
           </table>
           {parcel && (
             <p className="tiny">
-              {parcel.name}: {fmt(parcel.before.points ?? NaN, 2)} {parcel.before.grade ?? "–"} ·{" "}
-              {parcel.before.verdict} → {fmt(parcel.after.points ?? NaN, 2)} {parcel.after.grade ?? "–"} ·{" "}
-              {parcel.after.verdict}
+              {parcel.name}: {parcel.before.grade ?? "–"} · {parcel.before.verdict} →{" "}
+              {parcel.after.grade ?? "–"} · {parcel.after.verdict}
             </p>
           )}
           <p className="tiny muted">
-            Rank weights: your first card counts most and each one below counts less; Could cards count three
-            quarters.
+            How much each counts: the first item counts most and each one below counts less; Nice to have
+            items count three quarters.
           </p>
         </div>
       )}

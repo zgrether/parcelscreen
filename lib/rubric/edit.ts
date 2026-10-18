@@ -13,11 +13,12 @@ import { SCREEN_CONSTANTS } from "../screen/config";
 import { defaultRubric } from "./default";
 import {
   bcEdge,
-  FACTOR_LABELS,
+  EDITOR_TITLES,
   isGate,
   MINIMUM_BAND,
   minimumWords,
   tierOf,
+  TIER_NAMES,
   type BandKey,
   type Tier,
 } from "./words";
@@ -75,20 +76,18 @@ export type EditResult =
     }
   | { ok: false; reason: string };
 
-export const DEALBREAKER_ONLY = "A dealbreaker is a Must or a Won't.";
+export const DEALBREAKER_ONLY = "This one is either a Must have or a Don't care.";
 export const NO_HOMESITE_MINIMUM =
-  "Best homesite is graded by the site's quality: it has no number to set a minimum on.";
-export const MINIMUM_STAYS = "A minimum stays in Must. Move the row's own card to rank it.";
+  "Best homesite is graded by the site's quality: it has no number to set a limit on.";
+export const MINIMUM_STAYS = "A limit stays in Must have. Move the item itself to rank it.";
 
 const without = <T>(xs: readonly T[], x: T): T[] => xs.filter((y) => y !== x);
 
-/** A rank as words: "#1 in Should". */
+/** A rank as words: "#1 in Really want". */
 function placeWords(r: Rubric, row: RowKey): string {
   const tier = tierOf(r, row);
   const i = r.ranked.filter((c) => c.tier === tier).findIndex((c) => c.factor === row);
-  return tier === "should" || tier === "could"
-    ? `#${i + 1} in ${tier === "should" ? "Should" : "Could"}`
-    : "in Won't";
+  return tier === "should" || tier === "could" ? `#${i + 1} in ${TIER_NAMES[tier]}` : `in ${TIER_NAMES.wont}`;
 }
 
 /**
@@ -138,11 +137,13 @@ function addMinimum(r: Rubric, row: RowKey): EditResult {
   const threshold = bcEdge(r.bands, band);
   const next = { ...r, musts: [...r.musts, { factor: row, threshold }] };
   const where =
-    tierOf(r, row) === "wont" ? "it stays in Won't" : `its card stays at ${placeWords(r, row)}, marked min`;
+    tierOf(r, row) === "wont"
+      ? `it stays in ${TIER_NAMES.wont}`
+      : `it stays at ${placeWords(r, row)}, marked limit`;
   return {
     ok: true,
     rubric: next,
-    message: `${FACTOR_LABELS[row]} is now a minimum too (${minimumWords(row, threshold)}): ${where}.`,
+    message: `${EDITOR_TITLES[row]} is now a must have too (${minimumWords(row, threshold)}): ${where}.`,
   };
 }
 
@@ -207,7 +208,7 @@ export function weightsTable(
 ): { key: RowKey; label: string; before: number; after: number }[] {
   return ROW_KEYS.map((key) => ({
     key,
-    label: FACTOR_LABELS[key],
+    label: EDITOR_TITLES[key],
     before: s.before[key],
     after: s.after[key],
   }));

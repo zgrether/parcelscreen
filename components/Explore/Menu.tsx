@@ -84,7 +84,7 @@ function Drawer({ close }: { close(): void }) {
             </li>
             {/* Step 3: the profile's own rubric, in four columns. */}
             <li>
-              <Link href="/rubric">My rubric</Link>
+              <Link href="/priorities">My priorities</Link>
             </li>
             <li>
               <button

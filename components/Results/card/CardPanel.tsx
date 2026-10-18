@@ -173,7 +173,7 @@ export function CardPanel({
           {panel !== "verdict" && panel !== "cost" && (
             <>
               {" "}
-              <Link href="/rubric">Change it in My rubric</Link>
+              <Link href="/priorities">Change it in My priorities</Link>
             </>
           )}
         </p>

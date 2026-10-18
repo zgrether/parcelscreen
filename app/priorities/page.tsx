@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { RubricClient } from "@/components/Rubric/RubricClient";
 
-export const metadata: Metadata = { title: "My rubric · Parcel Screen" };
+export const metadata: Metadata = { title: "What matters to you · Parcel Screen" };
 
-export default function RubricPage() {
+export default function PrioritiesPage() {
   return <RubricClient />;
 }

@@ -19,8 +19,8 @@ async function openRubric(page: Page): Promise<void> {
     sessionStorage.setItem("e2e", "1");
     localStorage.clear();
   });
-  await page.goto("/rubric");
-  await expect(column(page, "Should").locator(".rubric-card")).toHaveCount(7);
+  await page.goto("/priorities");
+  await expect(column(page, "Really want").locator(".rubric-card")).toHaveCount(7);
   await expect(page.getByRole("complementary", { name: "Preview" })).toContainText(/B\s*Contender/);
 }
 
@@ -43,12 +43,12 @@ for (const phone of [false, true]) {
       await openRubric(page);
       await shot(page, "1-rest");
       if (phone) {
-        await scrollTo(page, column(page, "Could"));
+        await scrollTo(page, column(page, "Nice to have"));
         await shot(page, "2-empty");
-        await scrollTo(page, column(page, "Must"));
+        await scrollTo(page, column(page, "Must have"));
         // The handle held past the touch delay, then moved up over Must: CDP touches, as a finger sends them.
         const h = (await card(page, "Elevation at the build site").locator(".rubric-handle").boundingBox())!;
-        const to = (await column(page, "Must").boundingBox())!;
+        const to = (await column(page, "Must have").boundingBox())!;
         const x = h.x + h.width / 2,
           y = h.y + h.height / 2;
         const cdp = await page.context().newCDPSession(page);
@@ -66,7 +66,7 @@ for (const phone of [false, true]) {
       } else {
         // Night sky lifted from Should and held over the empty Could column.
         const a = (await card(page, "Night sky").locator(".rubric-handle").boundingBox())!;
-        const b = (await column(page, "Could").boundingBox())!;
+        const b = (await column(page, "Nice to have").boundingBox())!;
         await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2);
         await page.mouse.down();
         await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2 + 8, { steps: 4 });
@@ -118,10 +118,10 @@ for (const phone of [false, true]) {
     test("a row on Must: its min badge and its minimum card", async ({ page }) => {
       await openRubric(page);
       await card(page, "Town and hospital").locator(".rubric-card-body").click();
-      await sheet(page).getByRole("button", { name: "Must" }).click();
+      await sheet(page).getByRole("button", { name: "Must have" }).click();
       await page.keyboard.press("Escape");
       await expect(page.locator(".rubric-card .rubric-min-badge").first()).toBeVisible();
-      await scrollTo(page, phone ? column(page, "Must") : page.locator(".rubric-bar"));
+      await scrollTo(page, phone ? column(page, "Must have") : page.locator(".rubric-bar"));
       await shot(page, "7-min");
       if (phone) {
         await scrollTo(page, card(page, "Town and hospital").last());

@@ -82,7 +82,7 @@ export function useMyRubric(): MyRubric {
     save(prev);
   }, [history]);
 
-  const reset = useCallback(() => commit(resetToDefault(), "Back to the default card.", null), [commit]);
+  const reset = useCallback(() => commit(resetToDefault(), null, null), [commit]);
 
   return {
     rubric,

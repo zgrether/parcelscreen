@@ -1,5 +1,5 @@
 /**
- * "My rubric" (step 3, docs/plans/step-3-rubric-editor.md §10 PR 2): the four columns; a card's sheet and its Move to…;
+ * "What matters to you" (/priorities; "My rubric" until 10/18) (step 3, docs/plans/step-3-rubric-editor.md §10 PR 2): the four columns; a card's sheet and its Move to…;
  * a row on Must as a minimum, its ranked card marked "min"; the first reorder by dragging, which applies at once with
  * the notice (See what changed, Undo, gone at the next change); a slider; Reset; and the Library re-grading at once,
  * with nothing asking for a re-screen. A production build; the fixtures replayed where a parcel is needed.
@@ -23,8 +23,8 @@ async function openRubric(page: Page): Promise<void> {
     localStorage.clear();
     localStorage.setItem("ps.debug", "1");
   });
-  await page.goto("/rubric");
-  await expect(column(page, "Should").locator(".rubric-card")).toHaveCount(7);
+  await page.goto("/priorities");
+  await expect(column(page, "Really want").locator(".rubric-card")).toHaveCount(7);
 }
 
 const column = (page: Page, name: string): Locator => page.getByRole("region", { name, exact: true });
@@ -48,37 +48,37 @@ async function drag(page: Page, from: Locator, to: Locator): Promise<void> {
 
 test("the columns, a card's Move to…, and Undo", async ({ page }) => {
   await openRubric(page);
-  await expect(names(column(page, "Must"))).toHaveText([
+  await expect(names(column(page, "Must have"))).toHaveText([
     "Floodplain",
     "Legal road access",
-    "Easement needed",
+    "Driveway on your land",
     "Septic",
   ]);
-  await expect(column(page, "Won't")).toContainText("Everything counts.");
+  await expect(column(page, "Don't care")).toContainText("Nothing ignored");
   await card(page, "Septic").locator(".rubric-card-body").click();
-  await expect(sheet(page)).toContainText("From the default card");
+  await expect(sheet(page)).toContainText("From the starting list");
   // A dealbreaker can't rank.
-  await expect(sheet(page).getByRole("button", { name: "Should" })).toBeDisabled();
-  await sheet(page).getByRole("button", { name: "Won't" }).click();
-  await expect(names(column(page, "Won't"))).toHaveText(["Septic"]);
+  await expect(sheet(page).getByRole("button", { name: "Really want" })).toBeDisabled();
+  await sheet(page).getByRole("button", { name: "Don't care" }).click();
+  await expect(names(column(page, "Don't care"))).toHaveText(["Septic"]);
   await page.getByRole("button", { name: "Close" }).click();
   await page.getByRole("button", { name: "Undo" }).click();
-  await expect(names(column(page, "Must"))).toContainText(["Septic"]);
-  await expect(column(page, "Won't")).toContainText("Everything counts.");
+  await expect(names(column(page, "Must have"))).toContainText(["Septic"]);
+  await expect(column(page, "Don't care")).toContainText("Nothing ignored");
   expect(errors).toEqual([]);
 });
 
 test("a row on Must: a minimum too, its ranked card stays, marked min", async ({ page }) => {
   await openRubric(page);
   await card(page, "Town and hospital").locator(".rubric-card-body").click();
-  await sheet(page).getByRole("button", { name: "Must" }).click();
+  await sheet(page).getByRole("button", { name: "Must have" }).click();
   await expect(page.locator(".rubric-status")).toHaveText(
-    "Town and hospital is now a minimum too (ER within 30 min): its card stays at #7 in Should, marked min.",
+    "Town and hospital is now a must have too (ER within 30 min): it stays at #7 in Really want, marked limit.",
   );
   await page.keyboard.press("Escape");
-  await expect(column(page, "Must").locator(".rubric-card.minimum")).toContainText("ER within 30 min");
-  await expect(card(page, "Town and hospital").locator(".rubric-min-badge")).toHaveText("min");
-  await expect(names(column(page, "Should"))).toHaveCount(7);
+  await expect(column(page, "Must have").locator(".rubric-card.minimum")).toContainText("ER within 30 min");
+  await expect(card(page, "Town and hospital").locator(".rubric-min-badge")).toHaveText("limit");
+  await expect(names(column(page, "Really want"))).toHaveCount(7);
   expect(errors).toEqual([]);
 });
 
@@ -87,7 +87,7 @@ test("the first reorder by dragging: applied at once, the notice's table, its Un
 }) => {
   await openRubric(page);
   await drag(page, card(page, "Night sky"), card(page, "Best homesite"));
-  await expect(names(column(page, "Should"))).toHaveText([
+  await expect(names(column(page, "Really want"))).toHaveText([
     "Elevation at the build site",
     "Night sky",
     "Best homesite",
@@ -102,16 +102,15 @@ test("the first reorder by dragging: applied at once, the notice's table, its Un
   await expect(notice.locator("tr", { hasText: "Night sky" })).toContainText(/10(\.0)?%\s*21\.4%/);
   await notice.getByRole("button", { name: "Undo" }).click();
   await expect(notice).toHaveCount(0);
-  await expect(names(column(page, "Should")).nth(3)).toHaveText("Night sky");
-  await expect(card(page, "Night sky").locator(".rubric-card-rank")).toHaveText("#4 · 10%");
+  await expect(names(column(page, "Really want")).nth(3)).toHaveText("Night sky");
   // Again, then another change: the notice goes.
   await drag(page, card(page, "Night sky"), card(page, "Best homesite"));
   await expect(notice).toBeVisible();
   await card(page, "Town and hospital").locator(".rubric-card-body").click();
-  await sheet(page).getByRole("button", { name: "Could" }).click();
+  await sheet(page).getByRole("button", { name: "Nice to have" }).click();
   await page.keyboard.press("Escape");
   await expect(notice).toHaveCount(0);
-  await expect(names(column(page, "Could"))).toHaveText(["Town and hospital"]);
+  await expect(names(column(page, "Nice to have"))).toHaveText(["Town and hospital"]);
   expect(errors).toEqual([]);
 });
 
@@ -121,10 +120,12 @@ test("a slider moves the band and the words; Reset puts today's card back", asyn
   await sheet(page).getByRole("slider").fill("3000");
   await expect(sheet(page)).toContainText("A 3,500 ft+ · B 3,000 ft · C 2,500 ft · D 2,000 ft");
   await page.keyboard.press("Escape");
-  await expect(card(page, "Elevation at the build site")).toContainText("Build site at 3,000 ft or higher");
-  await page.getByRole("button", { name: "Reset to default" }).click();
-  await page.getByRole("button", { name: "Reset", exact: true }).click();
-  await expect(card(page, "Elevation at the build site")).toContainText("Build site at 2,500 ft or higher");
+  await expect(card(page, "Elevation at the build site")).toContainText("3,000 ft or higher");
+  await page.getByRole("button", { name: "Reset to the starting list" }).click();
+  const confirm = page.getByRole("alertdialog");
+  await expect(confirm).toContainText("Reset to the starting list? This undoes all your changes.");
+  await confirm.getByRole("button", { name: "Reset", exact: true }).click();
+  await expect(card(page, "Elevation at the build site")).toContainText("2,500 ft or higher");
   expect(errors).toEqual([]);
 });
 
@@ -140,10 +141,10 @@ test("a change re-grades the Library at once, and nothing asks for a re-screen",
   const grade = page.locator(".lib-table tbody tr").first().locator("td").nth(7);
   await expect(grade).toHaveText(/^[A-F]/);
   const before = await grade.textContent();
-  await visit(page, "/rubric");
+  await visit(page, "/priorities");
   for (const row of ["Elevation at the build site", "Best homesite", "Room to build"]) {
     await card(page, row).locator(".rubric-card-body").click();
-    await sheet(page).getByRole("button", { name: "Won't" }).click();
+    await sheet(page).getByRole("button", { name: "Don't care" }).click();
     await page.keyboard.press("Escape");
   }
   await visit(page, "/library");
@@ -172,12 +173,11 @@ test("the preview: the sample when nothing is screened, following a held card be
   await page.waitForTimeout(100);
   await expect(preview).not.toContainText("(if you drop it here)");
   await expect(preview.locator(".rubric-moved li")).toHaveCount(2);
-  // The notice's table has the sample's points too.
+  // The notice's table has the sample's letter and verdict too, and no points (owner, 10/18).
   await page.locator(".rubric-notice").getByRole("button", { name: "See what changed" }).click();
-  await expect(page.locator(".rubric-notice")).toContainText(
-    // Rank weights with Night sky moved up: 3.54 (the default order alone would be 3.50).
-    /Sample: Mud Creek.*3\.45 B · Contender → 3\.54 A · Contender/,
-  );
+  const notice = page.locator(".rubric-notice");
+  await expect(notice).toContainText(/Sample: Mud Creek.*B · Contender → A · Contender/);
+  await expect(notice).not.toContainText(/\d\.\d\d/);
   expect(errors).toEqual([]);
 });
 
@@ -189,12 +189,12 @@ test("the preview on the open parcel: a dealbreaker that warned, moved to Won't,
   await openExplorer(page, FERNEY);
   await importParcels(page, [FERNEY]);
   await seedScreens(page, [FERNEY]);
-  await visit(page, "/rubric");
+  await visit(page, "/priorities");
   const preview = page.getByRole("complementary", { name: "Preview" });
   await expect(preview.locator("select option").first()).toContainText("Ferney");
   await expect(preview.locator("select")).not.toHaveValue("sample");
   await card(page, "Legal road access").locator(".rubric-card-body").click();
-  await sheet(page).getByRole("button", { name: "Won't" }).click();
+  await sheet(page).getByRole("button", { name: "Don't care" }).click();
   await page.keyboard.press("Escape");
   await expect(preview.locator(".rubric-moved li").first()).toHaveText(/Legal road access\s*\(now a Won't\)/);
   expect(errors).toEqual([]);
@@ -211,7 +211,7 @@ test("the keyboard: Space picks a card up, the arrows move it, Space puts it dow
   await page.keyboard.press("ArrowUp");
   await page.waitForTimeout(50);
   await page.keyboard.press("Space");
-  await expect(names(column(page, "Should")).nth(2)).toHaveText("Night sky");
+  await expect(names(column(page, "Really want")).nth(2)).toHaveText("Night sky");
   await expect(page.locator(".rubric-notice")).toContainText("Your order now sets the weights.");
   expect(errors).toEqual([]);
 });
@@ -224,8 +224,8 @@ test.describe("on a phone", () => {
   }) => {
     await openRubric(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-    const must = (await column(page, "Must").boundingBox())!,
-      should = (await column(page, "Should").boundingBox())!;
+    const must = (await column(page, "Must have").boundingBox())!,
+      should = (await column(page, "Really want").boundingBox())!;
     expect(should.y).toBeGreaterThan(must.y + must.height - 1); // stacked, not side by side
     for (const el of [
       card(page, "Septic").locator(".rubric-handle"),
@@ -235,9 +235,9 @@ test.describe("on a phone", () => {
     await card(page, "Septic").locator(".rubric-card-body").tap();
     for (const b of await sheet(page).locator(".rubric-moveto button").all())
       expect((await b.boundingBox())!.height).toBeGreaterThanOrEqual(44);
-    await sheet(page).getByRole("button", { name: "Won't" }).tap();
+    await sheet(page).getByRole("button", { name: "Don't care" }).tap();
     await page.keyboard.press("Escape");
-    await expect(names(column(page, "Won't"))).toHaveText(["Septic"]);
+    await expect(names(column(page, "Don't care"))).toHaveText(["Septic"]);
     // The preview is a bar along the bottom; a tap opens it.
     const bar = page.locator(".rubric-preview-bar");
     await expect(bar).toBeVisible();
@@ -251,7 +251,7 @@ test.describe("on a phone", () => {
     await openRubric(page);
     const before = await names(page.locator(".rubric-columns")).allTextContents();
     // A card well above the preview bar along the bottom.
-    const box = (await card(page, "Easement needed").locator(".rubric-card-body").boundingBox())!;
+    const box = (await card(page, "Driveway on your land").locator(".rubric-card-body").boundingBox())!;
     const x = box.x + box.width / 2,
       y = box.y + box.height / 2;
     const cdp = await page.context().newCDPSession(page);
