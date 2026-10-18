@@ -350,12 +350,12 @@ export const CHIP_WORDS: Record<Chip, ChipWords> = {
     laterWalkAway: "No shared driveway (a must)",
   },
   belowFt: {
-    label: "Below ___ ft",
+    label: "Elevation below ___ ft",
     walkAway: ({ belowFt }) => `You'd walk away from land below ${fmt(belowFt)} ft`,
     dontMatter: "You said elevation doesn't matter",
   },
   erOver: {
-    label: "Over ___ min to an ER",
+    label: "ER over ___ min away",
     walkAway: ({ erOverMin }) => `You'd walk away from an ER more than ${fmt(erOverMin)} minutes away`,
     dontMatter: "You said the drive to an ER doesn't matter",
   },

@@ -136,10 +136,12 @@ export function ChoiceScreen({ iv, question, heading, n }: ScreenProps & { quest
   return (
     <>
       <Scene heading={heading} n={n} text={question.scene} />
+      <p className="iv-hint">Tap one to go on.</p>
       <Choices choices={question.choices} value={value} pick={pick} label={question.scene} />
       {showGlow && (
         <div className="iv-follow">
           <p className="iv-follow-q">{GLOW_QUESTION.scene}</p>
+          <p className="iv-hint">One more tap, then the next question.</p>
           <Choices choices={GLOW_QUESTION.choices} value={glow} pick={pickGlow} label={GLOW_QUESTION.scene} />
         </div>
       )}
@@ -225,11 +227,17 @@ export function LandScreen({ iv, heading, n }: ScreenProps) {
       />
       <label className="iv-field">
         <span>{LAND_QUESTION.camp}</span>
-        <input inputMode="numeric" placeholder="$" value={camp} onChange={(e) => setCamp(e.target.value)} />
+        <span className="iv-money">
+          <span aria-hidden="true">$</span>
+          <input inputMode="numeric" value={camp} onChange={(e) => setCamp(e.target.value)} />
+        </span>
       </label>
       <label className="iv-field">
         <span>{LAND_QUESTION.build}</span>
-        <input inputMode="numeric" placeholder="$" value={build} onChange={(e) => setBuild(e.target.value)} />
+        <span className="iv-money">
+          <span aria-hidden="true">$</span>
+          <input inputMode="numeric" value={build} onChange={(e) => setBuild(e.target.value)} />
+        </span>
       </label>
       <button type="button" className="btn iv-continue" onClick={save}>
         Continue
@@ -292,8 +300,8 @@ export function ChipsScreen({ iv, heading, n, half }: ScreenProps & { half: "wal
   const label = (c: Chip) => {
     if (half === "dontMatter")
       return c === "belowFt" ? "Elevation" : c === "erOver" ? "Drive to an ER" : CHIP_WORDS[c].label;
-    if (picked.includes(c) && c === "belowFt") return "Below";
-    if (picked.includes(c) && c === "erOver") return "Over";
+    if (picked.includes(c) && c === "belowFt") return "Elevation below";
+    if (picked.includes(c) && c === "erOver") return "ER over";
     return CHIP_WORDS[c].label;
   };
   const save = () =>

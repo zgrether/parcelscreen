@@ -66,7 +66,7 @@ test("a full run as Person A, with Back and Skip: the result, and the priorities
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(progress(page)).toHaveText("14 of 14");
   // 14a: the elevation chip shows its number, 500 ft under question 1's edge.
-  for (const chip of ["Flood zone", "An HOA", "Below ___ ft", "No winter sun"])
+  for (const chip of ["Flood zone", "An HOA", "Elevation below ___ ft", "No winter sun"])
     await page.getByRole("button", { name: chip, exact: true }).click();
   await expect(page.locator(".iv-stepper-value")).toHaveText("2,500 ft");
   await expect(page.locator(".iv-note")).toHaveCount(0);

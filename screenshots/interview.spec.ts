@@ -1,22 +1,25 @@
 /**
- * Step 4's screenshots (plan §12), desktop then phone: question 1, question 2 with its follow-up, question 6, question
- * 13, 14a's chips with a stepper, 14b's chips, and the result with the quiet list and Try it. Run by `pnpm
- * screenshots`; Try it grades the Mud Creek sample, so no parcel is replayed and no owner shows.
+ * Step 4's screenshots (plan §12), desktop then phone: a new profile's name screen, question 1, question 2 with its
+ * follow-up, question 6, question 13, 14a's chips with a stepper, 14b's chips, the result with the quiet list and Try
+ * it, the priorities page after it (the why line, "Reset to my answers", the quiet list), and "Replace the priorities
+ * you changed?". Run by `pnpm screenshots`; Try it grades the Mud Creek sample, so no parcel is replayed and no owner
+ * shows.
  */
 import { expect, test, type Page } from "@playwright/test";
 
 const OUT = "test-results/screenshots";
 const progress = (page: Page) => page.locator(".iv-progress");
 
-async function fresh(page: Page): Promise<void> {
-  await page.addInitScript(() => {
+async function fresh(page: Page, onboard = false): Promise<void> {
+  await page.addInitScript((onboard) => {
     if (sessionStorage.getItem("e2e")) return;
     sessionStorage.setItem("e2e", "1");
     localStorage.clear();
     localStorage.setItem("ps.debug", "1");
-  });
+    if (onboard) localStorage.setItem("ps.onboard", "1");
+  }, onboard);
   await page.goto("/interview");
-  await expect(progress(page)).toHaveText("1 of 14");
+  if (!onboard) await expect(progress(page)).toHaveText("1 of 14");
 }
 
 async function pick(page: Page, name: string, next: number): Promise<void> {
@@ -30,6 +33,12 @@ for (const phone of [false, true]) {
     if (phone) test.use({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true });
     const shot = (page: Page, name: string) =>
       page.screenshot({ path: `${OUT}/${device}-interview-${name}.png` });
+
+    test("a new profile's name screen", async ({ page }) => {
+      await fresh(page, true);
+      await expect(page.locator(".iv-scene")).toHaveText("What should we call this profile?");
+      await shot(page, "00-name");
+    });
 
     test("the questions and the result", async ({ page }) => {
       await fresh(page);
@@ -55,7 +64,7 @@ for (const phone of [false, true]) {
       await page.getByRole("textbox").first().fill("40,000");
       await shot(page, "04-q13");
       await page.getByRole("button", { name: "Continue" }).click();
-      for (const chip of ["Flood zone", "An HOA", "Below ___ ft", "No winter sun"])
+      for (const chip of ["Flood zone", "An HOA", "Elevation below ___ ft", "No winter sun"])
         await page.getByRole("button", { name: chip, exact: true }).click();
       await shot(page, "05-q14a");
       await page.getByRole("button", { name: "Continue" }).click();
@@ -67,6 +76,32 @@ for (const phone of [false, true]) {
       await shot(page, "07-result");
       await page.locator(".iv").evaluate((el) => el.scrollTo(0, el.scrollHeight));
       await shot(page, "08-result-end");
+
+      // The priorities page after it: "Reset to my answers", the quiet list, and a card's why.
+      await page.getByRole("link", { name: "Fine-tune in My priorities" }).click();
+      await page.waitForURL("**/priorities");
+      await expect(page.getByRole("button", { name: "Reset to my answers" })).toBeVisible();
+      await shot(page, "09-priorities");
+      await page.locator(".rubric-later").evaluate((el) => el.scrollIntoView({ block: "center" }));
+      await shot(page, "10-priorities-later");
+      await page
+        .locator(".rubric-card", { hasText: "Town and hospital" })
+        .first()
+        .locator(".rubric-card-body")
+        .click();
+      // Groceries and the ER both gave it 2 points: the earlier answer speaks first.
+      await expect(page.getByRole("dialog")).toContainText(
+        "You'd rather have a small market 10 minutes away",
+      );
+      await shot(page, "11-why");
+      await page.getByRole("dialog").getByRole("button", { name: "Nice to have" }).click();
+      await page.keyboard.press("Escape");
+
+      // Changed since: the interview again asks before replacing it.
+      await page.goto("/interview");
+      for (let i = 0; i < 15; i++) await page.getByRole("button", { name: "Skip" }).click();
+      await expect(page.getByText("Replace the priorities you changed?")).toBeVisible();
+      await shot(page, "12-replace");
     });
   });
 }
