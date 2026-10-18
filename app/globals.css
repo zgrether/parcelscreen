@@ -1731,6 +1731,12 @@ html:has(.explore) body {
     text-decoration: underline;
     cursor: pointer;
   }
+  /* Nothing to do yet (the rubric editor's Undo at rest): plain text, not a link. */
+  .link-btn:disabled {
+    color: var(--color-ink-2);
+    text-decoration: none;
+    cursor: default;
+  }
 }
 @keyframes step-pulse {
   to {
@@ -4497,6 +4503,10 @@ button.cmp-cell:hover {
   .rubric-preview:not(.open) .rubric-preview-body {
     display: none;
   }
+  /* The bar already says before → now. */
+  .rubric-preview-body .rubric-preview-grade {
+    display: none;
+  }
   .rubric-columns {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -4506,10 +4516,11 @@ button.cmp-cell:hover {
   }
   .rubric-col-head {
     position: sticky;
-    top: 0;
+    /* Stuck over <main>'s 12 px top padding too, so no card shows above it. */
+    top: -12px;
     z-index: 2;
     background: var(--color-paper);
-    padding-top: 8px;
+    padding-top: 16px;
     margin: 0 -8px;
     padding-left: 8px;
     padding-right: 8px;
