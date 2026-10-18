@@ -63,10 +63,16 @@ describe("a threshold Must on the card", () => {
   });
 
   it("a Must the measure can't answer holds the verdict at Maybe, with today's reason", () => {
-    const c = cardFor(facts, {
+    // The sky's measure missing, as when its atlas didn't load (Best homesite, the old letter-only case, has December
+    // sun hours since step 4).
+    const unmeasured = {
+      ...facts,
+      rows: facts.rows.map((x) => (x.key === "sky" ? { ...x, measure: undefined } : x)),
+    };
+    const c = cardFor(unmeasured, {
       id: "t",
       name: "Test",
-      rubric: withMusts([{ factor: "homesite", threshold: 80 }]),
+      rubric: withMusts([{ factor: "sky", threshold: 21 }]),
     });
     expect(c.verdict).toBe("Maybe");
     expect(c.reason).toBe(base.reason.replace("Contender", "Maybe"));

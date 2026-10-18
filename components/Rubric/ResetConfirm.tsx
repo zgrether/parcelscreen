@@ -6,8 +6,18 @@
 import { useEffect, useRef } from "react";
 
 export const RESET_QUESTION = "Reset to the starting list? This undoes all your changes.";
+/** "Reset to my answers" (step 4, §6.3): the same dialog. */
+export const RESET_TO_ANSWERS_QUESTION = "Reset to your answers? This undoes the changes you made since.";
 
-export function ResetConfirm({ reset, cancel }: { reset(): void; cancel(): void }) {
+export function ResetConfirm({
+  reset,
+  cancel,
+  question = RESET_QUESTION,
+}: {
+  reset(): void;
+  cancel(): void;
+  question?: string;
+}) {
   const cancelRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     cancelRef.current?.focus();
@@ -24,7 +34,7 @@ export function ResetConfirm({ reset, cancel }: { reset(): void; cancel(): void 
         aria-labelledby="reset-question"
         onClick={(e) => e.stopPropagation()}
       >
-        <p id="reset-question">{RESET_QUESTION}</p>
+        <p id="reset-question">{question}</p>
         <div className="rubric-confirm-actions">
           <button type="button" className="btn danger" onClick={reset}>
             Reset

@@ -75,6 +75,10 @@ describe("the picker's operations", () => {
   });
 });
 
+/** The documents written, but the interview a new profile starts with (step 4): these tests are about the others. */
+const written = (storage: ReturnType<typeof memoryProfileStorage>) =>
+  [...storage.state.docs.values()].filter((d) => d.key !== "ps.interview");
+
 describe("a reload waits for the writes (#154 review)", () => {
   it("a write queued just before a switch is in storage after it, and before the device's choice changes", async () => {
     const storage = memoryProfileStorage({ delayWrites: 20 });
@@ -85,11 +89,11 @@ describe("a reload waits for the writes (#154 review)", () => {
     let docsWhenSwitched: string[] | null = null;
     const setItem = ls.setItem;
     ls.setItem = (k, v) => {
-      if (k === CURRENT_PROFILE_KEY) docsWhenSwitched = [...storage.state.docs.values()].map((d) => d.key);
+      if (k === CURRENT_PROFILE_KEY) docsWhenSwitched = written(storage).map((d) => d.key);
       setItem(k, v);
     };
     setPref("ps.rubricView", "r2"); // queued: lands 20 ms later
-    expect([...storage.state.docs.values()]).toEqual([]);
+    expect(written(storage)).toEqual([]);
     await switchProfile(other.id);
     expect(docsWhenSwitched).toEqual(["ps.rubricView"]);
     expect(ls.getItem(CURRENT_PROFILE_KEY)).toBe(other.id);
@@ -104,8 +108,8 @@ describe("a reload waits for the writes (#154 review)", () => {
     const storage = memoryProfileStorage({ delayWrites: 20 });
     await bootProfiles({ storage, ls: fakeLs() });
     setPref("ps.rubricView", "r3");
-    expect([...storage.state.docs.values()]).toEqual([]);
+    expect(written(storage)).toEqual([]);
     await reloadAfterWrites();
-    expect([...storage.state.docs.values()].map((d) => d.value)).toEqual(["r3"]);
+    expect(written(storage).map((d) => d.value)).toEqual(["r3"]);
   });
 });

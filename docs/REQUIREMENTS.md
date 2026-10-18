@@ -397,6 +397,30 @@ stored shape is step 1's (`lib/rubric/schema.ts`); the editor adds nothing to it
 - **The verdict lines are letter edges** (§9.51): A or B is a Contender, C a Maybe, D or F a Pass.
 - **Others' rubrics** stay read-only until step 5.
 
+### 3c. The interview (roadmap step 4)
+
+A few questions, about four minutes, that make a person's priorities (`/interview`; phase-0.md §9.53–§9.54; the plan's
+§3 holds every choice's effect).
+
+- **The screens:** 14 forced-choice scenes, one per screen, with Back, Skip and the progress ("4 of 14"). A single
+  choice moves on by itself; question 7, 13 and both halves of 14 have Continue. Question 14 asks what would make the
+  person walk away (limits, with their numbers) and what doesn't matter. Nothing asks about health, income, age or
+  family.
+- **The generator,** `rubricFromAnswers` (`lib/rubric/interview/`): a row takes its highest answer's points (0–3);
+  Really want is the rows with 2+ points, kept to 3–6; rank-sum weights; each answer marks its row's B/C edge; 14a's
+  chips add limits (elevation, the ER, December sun on Best homesite), 14b's drop dealbreakers or rows. Skipping
+  everything keeps the starting list. The numbers are `card.interview` in `config.ts`.
+- **Stored raw,** in the profile's `ps.interview` (not in the export file until step 5), saved as each answer is
+  picked so a half-done interview resumes where it was left. Answers about factors the app doesn't measure yet show
+  on the priorities page as a quiet list ("Counts once the app measures it: Climate (cool and snowy)"); a later step
+  adds such a factor to the person's list without touching their changes (the plan's §5).
+- **Onboarding:** a new profile (a first visit, or "Add a profile") starts with its name, then the interview, with
+  "Not now" on every screen; the app sends it there until it's finished or put off. The menu and the priorities page
+  offer "Answer a few questions (about 4 min)", or "Finish your questions (6 of 14)".
+- **The result,** "Your priorities", with Try it: saved, unless the list was changed since, when it asks "Replace the
+  priorities you changed?" ("Replace with the new list", "Keep my changes").
+- **On the priorities page:** "Reset to my answers", and each card's why in the person's own terms ("You'd want an ER within 30 minutes"; else "You moved this here." or "On the starting list.").
+
 ## 4. The parcel page (the export)
 
 Blocks, in order; each is computed, placeholder, or user-authored:

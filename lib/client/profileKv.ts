@@ -15,6 +15,7 @@ export const PROFILE_KEYS: ReadonlySet<string> = new Set([
   "ps.cfg",
   "ps.rubricView",
   "ps.rubrics",
+  "ps.interview",
   "ps.compare",
   "ps.library",
   "ps.recentMarks",

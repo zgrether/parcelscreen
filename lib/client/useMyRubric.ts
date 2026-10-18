@@ -28,6 +28,8 @@ export interface MyRubric {
   move(card: EditorCard, to: Tier, index?: number): void;
   undo(): void;
   reset(): void;
+  /** Sets the list to `next` as one change, Undo-able ("Reset to my answers"). */
+  resetTo(next: Rubric): void;
   dismissNotice(): void;
 }
 
@@ -94,6 +96,7 @@ export function useMyRubric(): MyRubric {
     move,
     undo,
     reset,
+    resetTo: (next: Rubric) => commit(next, null, null),
     dismissNotice: () => setSwitched(null),
   };
 }

@@ -4,12 +4,19 @@
  * profile is chosen or created, the browser's pre-profile data moves into it on the first boot, and its documents are
  * loaded, so every page reads the profile's parcels, settings and views synchronously, as it read localStorage. Until
  * then nothing renders. A boot that fails still renders: the prefs then read as defaults.
+ *
+ * A new profile starts with the interview (step 4, owner Q9): until it's finished or put off with "Not now", any other
+ * page sends it to /interview (lib/client/onboarding.ts).
  */
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { owesInterview } from "@/lib/client/onboarding";
 import { bootProfiles } from "@/lib/client/profiles";
 
 export function ProfileGate({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
   useEffect(() => {
     let alive = true;
     const settle = () => alive && setReady(true);
@@ -18,6 +25,10 @@ export function ProfileGate({ children }: { children: ReactNode }) {
       alive = false;
     };
   }, []);
-  if (!ready) return null;
+  const away = ready && pathname !== "/interview" && owesInterview();
+  useEffect(() => {
+    if (away) router.replace("/interview");
+  }, [away, router]);
+  if (!ready || away) return null;
   return <>{children}</>;
 }

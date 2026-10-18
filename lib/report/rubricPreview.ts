@@ -68,7 +68,7 @@ export function movedMost(b: Card, a: Card, before: Rubric, now: Rubric): Moved[
       delta: 0,
       why:
         status === null
-          ? `${label}: limit removed`
+          ? `${label} no longer has a limit`
           : status === "fail"
             ? `Out: ${label} misses its limit (${words})`
             : status === "pass"

@@ -106,8 +106,7 @@ It runs in Node and in the browser, and it never sees a parcel.
    - Each walk-away chip in 14a becomes a Must, with its threshold where it has one (§3, question 14).
    - **`mustNote`:** true when 14a has more than five chips picked (§9 Q6). The result screen then says "That will
      rule out most land."
-6. **`why`:** each card's reason, quoting the person, never a question number: "You said an ER more than 30 minutes
-   away feels too far" (the why column in §3). The card's sheet on the priorities page shows it.
+6. **`why`:** each card's reason, quoting the person, never a question number: "You'd want an ER within 30 minutes" (the why column in §3). The card's sheet on the priorities page shows it.
 7. **`later`:** the answers about factors the app doesn't measure yet, in words (§5).
 
 **Skip everything,** and the generator returns the starting list unchanged, explicit weights and all (§9 Q8).
@@ -190,16 +189,16 @@ no parcel can reach. The same holds for question 5's "small and close".
 | Big and far | Town and hospital 1 | Groceries B at 40 min (30 / 40 / 50 / 65) | — | "You'd rather drive 40 minutes to a big store once a week" |
 | Either | Town and hospital 0 | Groceries B at 40 min | — | "You said either store is fine" |
 
-### Question 6: "Someone gets hurt on a Sunday afternoon. How far to the ER would feel too far?"
+### Question 6: "Someone gets hurt on a Sunday afternoon. What's the longest drive to the ER you'd be comfortable with?"
 
 | Choice | Points | Edge it sets | Later | Why (the card's sheet) |
 | --- | --- | --- | --- | --- |
-| 15 min | Town and hospital 3 | ER B at 15 min (5 / 15 / 30 / 45) | — | "You said an ER more than 15 minutes away feels too far" |
-| 30 min | Town and hospital 2 | Today's (B at 30 min) | — | "You said an ER more than 30 minutes away feels too far" |
-| 45 min | Town and hospital 1 | ER B at 45 min (35 / 45 / 60 / 75) | — | "You said an ER more than 45 minutes away feels too far" |
-| An hour is fine | Town and hospital 0 | ER B at 60 min (50 / 60 / 75 / 90) | — | "You said an hour to the ER is fine" |
+| 15 min | Town and hospital 3 | ER B at 15 min (5 / 15 / 30 / 45) | — | "You'd want an ER within 15 minutes" |
+| 30 min | Town and hospital 2 | Today's (B at 30 min) | — | "You'd want an ER within 30 minutes" |
+| 45 min | Town and hospital 1 | ER B at 45 min (35 / 45 / 60 / 75) | — | "You'd want an ER within 45 minutes" |
+| An hour or more | Town and hospital 0 | ER B at 60 min (50 / 60 / 75 / 90) | — | "You're fine with an hour or more to the ER" |
 
-It asks how far feels too far, never why.
+It asks for a comfort limit, never why. (Reworded 10/18 from "How far to the ER would feel too far?", whose last choice, "An hour is fine", answered a different question; the edges are unchanged.)
 
 ### Question 7: "Work and travel: what applies? (pick any)"
 
@@ -413,15 +412,14 @@ that matches `base` quotes the answer that put it there, and any other reads "Yo
   - A new profile, or a profile whose list is still the starting list or still its last `base`: saved on reaching
     the result screen.
   - A profile whose list was changed on the priorities page: the result screen asks "Replace the priorities you
-    changed?" with "Use my answers" and "Keep mine". Either way the answers are stored.
+    changed?" with "Replace with the new list" and "Keep my changes". Either way the answers are stored.
 
 ### 6.3 The priorities page
 - **"Reset to my answers"**, next to "Reset to the starting list" and only when the profile has answers. It asks first
   in the same kind of dialog ("Reset to your answers? This undoes the changes you made since."), then sets the list to
   `rubricFromAnswers(answers)` and `base` to the same.
 - **The card sheet's "why":**
-  - the answer that put it there, in the person's terms, when the card matches `base`: "You said an ER more than
-    30 minutes away feels too far" (§3's why column; never a question number);
+  - the answer that put it there, in the person's terms, when the card matches `base`: "You'd want an ER within 30 minutes" (§3's why column; never a question number);
   - "You moved this here." when it doesn't;
   - "On the starting list." when there are no answers.
 
@@ -500,7 +498,7 @@ later without moving anything.
 5. **The Driveway row:** added in step 6 (screening results), since the router already measures it; question 10's
    answer feeds it then. Noted in `PLAN.md`'s step 6. Until then, question 10's answer is on the quiet list.
 6. **The note:** count only the 14a chips, and show it above five.
-7. **A changed list:** ask "Replace the priorities you changed?" with "Use my answers" and "Keep mine".
+7. **A changed list:** ask "Replace the priorities you changed?" with "Replace with the new list" and "Keep my changes".
 8. **Skip everything:** keep the starting list unchanged.
 9. **The first visit:** the interview first, with "Not now" on every screen.
 10. **Illustrations:** none in this step.
@@ -562,15 +560,14 @@ later without moving anything.
 1. Open the preview in a private window → the name screen. Type a name → question 1, "1 of 14".
 2. Answer as §4's Person A, using Back once and Skip once → the result shows their priorities, the quiet list and
    Try it on the sample (Mud Creek).
-3. "Fine-tune in My priorities" → the columns match the result; a card's sheet says "You said an ER more than
-   30 minutes away feels too far"; Must have holds "Best homesite: at least 3 h of December sun".
+3. "Fine-tune in My priorities" → the columns match the result; a card's sheet says "You'd want an ER within 30 minutes"; Must have holds "Best homesite: at least 3 h of December sun".
 4. Drag a card, then "Reset to my answers" → the interview's list is back.
 5. Open **Mud Creek**, **Macks Mountain**, **Ferney Creek** and **Roan Mountain** → each grades by the new list;
    nothing asks for a re-screen.
 6. Close the tab on question 7, open the app again → it resumes on question 7.
 7. Add a second profile → its name screen, then "Not now" → the map, with the starting list on all four fixtures.
 8. Back in the first profile, drag a card, then ☰ → Answer a few questions (about 4 min) → finish it → the result asks "Replace the
-   priorities you changed?"; "Keep mine" keeps the dragged card.
+   priorities you changed?"; "Keep my changes" keeps the dragged card.
 9. Phone: steps 1, 2 and 6 at 375 px. One question per screen, the choices easy to tap, nothing scrolls sideways.
 
 ## 13. Decisions to record in `phase-0.md` §9 (in the PRs)

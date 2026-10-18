@@ -412,6 +412,8 @@ function homesite(r: Result): Row {
     ),
     panelNote: `site #1's quality ${s.qGrade} (${fmt(s.quality)})`,
     short: `${fmt(s.sunH, 1)} h sun, faces ${compass(s.aspectDeg)}`,
+    // What a Best homesite limit is checked against (step 4, §9.50 amended): December sun at site #1.
+    measure: { value: s.sunH, unit: "h" },
   };
 }
 

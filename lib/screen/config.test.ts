@@ -215,6 +215,11 @@ describe("config", () => {
               "min": 19.5,
               "step": 0.1,
             },
+            "sunH": {
+              "max": 8,
+              "min": 1,
+              "step": 0.5,
+            },
             "trailheadMin": {
               "max": 60,
               "min": 5,
@@ -227,6 +232,225 @@ describe("config", () => {
             1.5,
             0.5,
           ],
+          "interview": {
+            "choices": {
+              "climate": {
+                "between": {
+                  "points": {
+                    "elevation": 2,
+                  },
+                },
+                "cool": {
+                  "edges": {
+                    "elevationFt": 3000,
+                  },
+                  "points": {
+                    "elevation": 3,
+                  },
+                },
+                "either": {
+                  "points": {
+                    "elevation": 1,
+                  },
+                },
+                "warm": {
+                  "points": {
+                    "elevation": 0,
+                  },
+                },
+              },
+              "er": {
+                "15": {
+                  "edges": {
+                    "erMin": 15,
+                  },
+                  "points": {
+                    "town": 3,
+                  },
+                },
+                "30": {
+                  "points": {
+                    "town": 2,
+                  },
+                },
+                "45": {
+                  "edges": {
+                    "erMin": 45,
+                  },
+                  "points": {
+                    "town": 1,
+                  },
+                },
+                "60": {
+                  "edges": {
+                    "erMin": 60,
+                  },
+                  "points": {
+                    "town": 0,
+                  },
+                },
+              },
+              "garden": {
+                "herbs": {
+                  "edges": {
+                    "gardenAc": 0.1,
+                  },
+                  "points": {
+                    "garden": 1,
+                  },
+                },
+                "kitchen": {
+                  "points": {
+                    "garden": 2,
+                  },
+                },
+                "most": {
+                  "edges": {
+                    "gardenAc": 1,
+                  },
+                  "points": {
+                    "garden": 3,
+                  },
+                },
+                "none": {
+                  "points": {
+                    "garden": 0,
+                  },
+                },
+              },
+              "glow": {
+                "shrug": {},
+                "spoils": {
+                  "edges": {
+                    "skyMag": 21.5,
+                  },
+                },
+              },
+              "groceries": {
+                "close": {
+                  "edges": {
+                    "groceryMin": 15,
+                  },
+                  "points": {
+                    "town": 2,
+                  },
+                },
+                "either": {
+                  "edges": {
+                    "groceryMin": 40,
+                  },
+                  "points": {
+                    "town": 0,
+                  },
+                },
+                "far": {
+                  "edges": {
+                    "groceryMin": 40,
+                  },
+                  "points": {
+                    "town": 1,
+                  },
+                },
+              },
+              "neighbors": {
+                "lights": {},
+                "never": {
+                  "points": {
+                    "sky": 1,
+                  },
+                },
+                "wave": {},
+              },
+              "sky": {
+                "camera": {
+                  "points": {
+                    "sky": 3,
+                  },
+                },
+                "inside": {
+                  "points": {
+                    "sky": 0,
+                  },
+                },
+                "look": {
+                  "edges": {
+                    "skyMag": 20.9,
+                  },
+                  "points": {
+                    "sky": 1,
+                  },
+                },
+              },
+              "sunView": {
+                "both": {
+                  "points": {
+                    "homesite": 2,
+                  },
+                },
+                "neither": {
+                  "points": {
+                    "homesite": 1,
+                  },
+                },
+                "sun": {
+                  "points": {
+                    "homesite": 3,
+                  },
+                },
+                "view": {
+                  "points": {
+                    "homesite": 1,
+                  },
+                },
+              },
+              "trails": {
+                "bike": {
+                  "points": {
+                    "trails": 2,
+                  },
+                },
+                "door": {
+                  "edges": {
+                    "trailheadMin": 15,
+                  },
+                  "openLandWithinFt": 1320,
+                  "points": {
+                    "trails": 3,
+                  },
+                },
+                "drive": {
+                  "points": {
+                    "trails": 2,
+                  },
+                },
+                "none": {
+                  "points": {
+                    "trails": 0,
+                  },
+                },
+              },
+            },
+            "defaultPoints": {
+              "elevation": 2,
+              "garden": 1,
+              "homesite": 2,
+              "room": 2,
+              "sky": 1,
+              "town": 2,
+              "trails": 2,
+            },
+            "dontMatterErMin": 90,
+            "mustNoteAbove": 5,
+            "should": {
+              "max": 6,
+              "min": 3,
+              "minPoints": 2,
+            },
+            "walkAway": {
+              "belowFtUnderEdge": 500,
+              "erStepMin": 15,
+            },
+          },
           "listingAcresPct": 10,
           "marks": {
             "permitFarFt": 200,

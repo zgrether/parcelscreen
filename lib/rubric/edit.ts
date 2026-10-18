@@ -3,8 +3,9 @@
  * every operation takes a rubric and returns a new one, or the reason it's refused; the editor saves the result, and a
  * rubric change never asks for a re-screen.
  *
- * - The columns: a dealbreaker is a Must or a Won't; a row is ranked (Should, Could) or a Won't, and can hold a minimum
- *   in Must besides (its ranked card stays, marked "min"); homesite can't (it has no measure).
+ * - The columns: a dealbreaker is a Must or a Won't; a row is ranked (Should, Could) or a Won't, and can hold a limit
+ *   in Must besides (its ranked card stays, badged "also a limit"). Best homesite's limit is hours of December sun
+ *   (step 4, §9.50 amended).
  * - The weights stay explicit until the first change to the ranked order or a tier, which switches the rubric to
  *   rank-sum at once (owner, 10/17: no confirm; the editor shows what changed, with Undo).
  * - A slider moves a band's B/C edge, and the band's other edges move with it by the same amount.
@@ -20,6 +21,7 @@ import {
   tierOf,
   TIER_NAMES,
   type BandKey,
+  type LimitKey,
   type Tier,
 } from "./words";
 import {
@@ -77,8 +79,6 @@ export type EditResult =
   | { ok: false; reason: string };
 
 export const DEALBREAKER_ONLY = "This one is either a Must have or a Don't care.";
-export const NO_HOMESITE_MINIMUM =
-  "Best homesite is graded by the site's quality: it has no number to set a limit on.";
 export const MINIMUM_STAYS = "A limit stays in Must have. Move the item itself to rank it.";
 
 const without = <T>(xs: readonly T[], x: T): T[] => xs.filter((y) => y !== x);
@@ -132,9 +132,9 @@ function moveGate(r: Rubric, g: GateKey, to: Tier): EditResult {
 
 function addMinimum(r: Rubric, row: RowKey): EditResult {
   const band = MINIMUM_BAND[row];
-  if (!band) return { ok: false, reason: NO_HOMESITE_MINIMUM };
+  if (!band) return { ok: true, rubric: r };
   if (hasMinimum(r, row)) return { ok: true, rubric: r };
-  const threshold = bcEdge(r.bands, band);
+  const threshold = band === "sunH" ? SCREEN_CONSTANTS.bands.winterSunH[0]! : bcEdge(r.bands, band);
   const next = { ...r, musts: [...r.musts, { factor: row, threshold }] };
   const where =
     tierOf(r, row) === "wont" ? `it stays in ${TIER_NAMES.wont}` : `it also stays at ${placeWords(r, row)}`;
@@ -180,7 +180,7 @@ export function removeMinimum(r: Rubric, row: RowKey): Rubric {
 
 const EDITOR = SCREEN_CONSTANTS.card.editor;
 
-function clampTo(band: BandKey, v: number): number {
+function clampTo(band: LimitKey, v: number): number {
   const { min, max, step } = EDITOR[band];
   const snapped = Math.round((v - min) / step) * step + min;
   return Number(Math.min(max, Math.max(min, snapped)).toFixed(6));

@@ -16,7 +16,7 @@ import {
   setMinimum,
   type EditorCard,
 } from "@/lib/rubric/edit";
-import type { Rubric } from "@/lib/rubric/types";
+import type { Rubric, RowKey } from "@/lib/rubric/types";
 import {
   bandLine,
   bandValue,
@@ -28,14 +28,16 @@ import {
   minimumLine,
   ROW_BANDS,
   tierOf,
+  limitWhy,
   whyLine,
-  type BandKey,
+  type WhyContext,
+  type LimitKey,
   type Tier,
 } from "@/lib/rubric/words";
 import { cardName, TIER_NAMES, TIERS } from "./RubricColumns";
 
 /** Each band's slider label, where a row has two (Town and hospital) or the unit needs a word. */
-const BAND_LABELS: Record<BandKey, string> = {
+const BAND_LABELS: Record<LimitKey, string> = {
   elevationFt: "Build site elevation",
   skyMag: "Sky brightness (mag/arcsec²)",
   roomX: "Gentle ground, × the footprint",
@@ -43,6 +45,7 @@ const BAND_LABELS: Record<BandKey, string> = {
   erMin: "Drive to an ER",
   groceryMin: "Drive to groceries",
   gardenAc: "Garden ground",
+  sunH: "December sun at the best site",
 };
 
 export function CardSheet({
@@ -51,9 +54,12 @@ export function CardSheet({
   apply,
   move,
   close,
+  why,
 }: {
   card: EditorCard;
   rubric: Rubric;
+  /** The interview's list and its why lines, when the profile has answered (step 4). */
+  why?: WhyContext | null;
   apply(next: Rubric, message?: string | null): void;
   move(card: EditorCard, to: Tier, index?: number): void;
   close(): void;
@@ -105,8 +111,8 @@ export function CardSheet({
         </p>
         <p className="tiny muted">
           {TIER_NAMES[here]}
-          {ranked && `, #${rubric.ranked.findIndex((c) => c.factor === f) + 1} in the list`} ·{" "}
-          {whyLine(rubric, f)}
+          {ranked && `, #${rubric.ranked.findIndex((c) => c.factor === f) + 1} in the list`} · Why:{" "}
+          {card.kind === "minimum" ? limitWhy(rubric, f as RowKey, why) : whyLine(rubric, f, why)}
         </p>
 
         {card.kind === "factor" && !isGate(f) && ROW_BANDS[f].length > 0 && (
@@ -141,7 +147,10 @@ export function CardSheet({
           </p>
         )}
         {f === "homesite" && card.kind === "factor" && (
-          <p className="tiny muted">Graded by the site&apos;s quality: it has no number to set.</p>
+          <p className="tiny muted">
+            Graded by the site&apos;s quality: it has no number to set. Move it to Must have to set a limit on
+            its December sun.
+          </p>
         )}
 
         <div className="rubric-moveto" role="group" aria-label="Move to">
@@ -198,7 +207,7 @@ function BandSlider({
   onChange,
 }: {
   label: string;
-  band: BandKey;
+  band: LimitKey;
   value: number;
   hint: string;
   onChange(v: number): void;
