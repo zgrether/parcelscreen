@@ -225,4 +225,30 @@ export function setPref<K extends keyof Prefs>(
   } catch {
     /* storage unavailable: the preference just doesn't persist */
   }
+  if (key === "ps.parcels") {
+    parcelWrites++;
+    announceParcels(value as Prefs["ps.parcels"]);
+  }
+}
+
+let parcelWrites = 0;
+/** How many times the parcels have been written on this page: a holder that read them can tell it missed one. */
+export const parcelsWritten = (): number => parcelWrites;
+
+/**
+ * The parcels written, heard by whoever holds a copy (step 4b): the map stays mounted behind the other tabs, so Your
+ * list's edits reach it, and a run that finishes behind a tab reaches the list. After the write, in a microtask, so a
+ * write made while a page reads (the ranks and names above) doesn't set state in the middle of a render.
+ */
+const PARCELS_WRITTEN = "ps:parcels-written";
+
+function announceParcels(value: Prefs["ps.parcels"]): void {
+  if (typeof window === "undefined") return;
+  queueMicrotask(() => window.dispatchEvent(new CustomEvent(PARCELS_WRITTEN, { detail: value })));
+}
+
+export function onParcelsWritten(l: (store: Prefs["ps.parcels"]) => void): () => void {
+  const h = (e: Event) => l((e as CustomEvent<Prefs["ps.parcels"]>).detail);
+  window.addEventListener(PARCELS_WRITTEN, h);
+  return () => window.removeEventListener(PARCELS_WRITTEN, h);
 }

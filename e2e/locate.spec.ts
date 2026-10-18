@@ -30,16 +30,15 @@ async function centre(page: Page): Promise<{ lat: number; lon: number }> {
   });
 }
 
-/** To Compare by the menu, and back by its "← Map": no page error on the way out. */
+/** To Your list by its tab, and back by the Map tab (step 4b: the map stays mounted, hidden): no page error. */
 async function leaveAndReturn(page: Page, errors: string[]): Promise<void> {
-  await page.getByRole("button", { name: "Menu", exact: true }).click();
-  await page.getByRole("link", { name: "Compare parcels" }).click();
-  await expect(page).toHaveURL(/\/compare$/);
-  await expect(page.locator(".maplibregl-canvas")).toHaveCount(0);
-  expect(errors, "leaving the explorer").toEqual([]);
-  await page.getByRole("link", { name: "← Map" }).click();
+  await page.getByRole("link", { name: "Your list", exact: true }).click();
+  await expect(page).toHaveURL(/\/library$/);
+  await expect(page.locator(".app-map")).toBeHidden();
+  expect(errors, "leaving the map").toEqual([]);
+  await page.getByRole("link", { name: "Map", exact: true }).click();
   await expect(page).toHaveURL(/\/explore$/);
-  await expect(page.locator(".maplibregl-canvas")).toHaveCount(1);
+  await expect(page.locator(".maplibregl-canvas")).toBeVisible();
 }
 
 test("Locate with location access: the map goes there, and after leaving the map and coming back it still does", async ({

@@ -594,9 +594,9 @@ export function importSummary(plan: ImportPlan, outcome: SettingsOutcome): strin
     lines.push(
       `${plan.olderResults} saved result${plan.olderResults === 1 ? " was" : "s were"} from an older version and skipped; those parcels re-screen when opened.`,
     );
-  if (plan.skipped.length) lines.push(`Skipped, already in History: ${plan.skipped.join(", ")}.`);
+  if (plan.skipped.length) lines.push(`Skipped, already on your list: ${plan.skipped.join(", ")}.`);
   if (plan.sameParcel.length)
-    lines.push(`Skipped, same parcel already in History: ${plan.sameParcel.join(", ")}.`);
+    lines.push(`Skipped, same parcel already on your list: ${plan.sameParcel.join(", ")}.`);
   if (plan.sameRecord.length)
     lines.push(`Same county record, different recipe: ${plan.sameRecord.join(", ")}.`);
   if (outcome === "replaced" && plan.settings)

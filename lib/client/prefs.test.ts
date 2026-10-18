@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getPref, setPref, type KeyValueStore } from "./prefs";
+import { getPref, parcelsWritten, setPref, type KeyValueStore } from "./prefs";
 import { loadUserConfig, saveUserConfig } from "./userConfig";
 import { DEFAULT_USER_CONFIG } from "@/lib/screen/config";
 
@@ -128,5 +128,16 @@ describe("the working parcel (ps.current, step 13d)", () => {
     expect(getPref("ps.view", s)).toEqual({ lat: 36.9, lon: -80.4, z: 15 });
     setPref("ps.view", { lat: 36.9, lon: -80.4, z: 15, b: 30, p: 60 }, s);
     expect(getPref("ps.view", s)).toMatchObject({ b: 30, p: 60 });
+  });
+});
+
+describe("the parcels' writes (step 4b: the map stays mounted behind the tabs)", () => {
+  it("are counted, so a holder that read them can tell it missed one; other prefs aren't", () => {
+    const s = memory();
+    const before = parcelsWritten();
+    setPref("ps.dim", true, s);
+    expect(parcelsWritten()).toBe(before);
+    setPref("ps.parcels", { v: 2, open: null, built: [] }, s);
+    expect(parcelsWritten()).toBe(before + 1);
   });
 });

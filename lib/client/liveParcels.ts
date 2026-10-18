@@ -11,6 +11,8 @@ export interface LiveParcels {
   store(): ParcelStore;
   /** Adds an import's parcels; the open parcel isn't changed. */
   importParcels(added: WorkingParcel[]): void;
+  /** Opens a saved parcel, as a tap on its outline would ("Open on the map" from another page). */
+  open(key: string): void;
 }
 
 let live: LiveParcels | null = null;
@@ -24,6 +26,13 @@ export function registerLiveParcels(l: LiveParcels): () => void {
 }
 
 export const currentParcels = (): ParcelStore => live?.store() ?? getPref("ps.parcels") ?? EMPTY_STORE;
+
+/** "Open on the map": through the explorer when it's mounted (it stays mounted behind the tabs); false when it isn't. */
+export function openLive(key: string): boolean {
+  if (!live) return false;
+  live.open(key);
+  return true;
+}
 
 export function addImportedParcels(added: WorkingParcel[]): void {
   if (!added.length) return;

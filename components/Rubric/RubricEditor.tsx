@@ -7,8 +7,6 @@
  */
 import Link from "next/link";
 import { useCallback, useState } from "react";
-import { HelpProvider } from "@/components/Help/HelpDialog";
-import { ProfilePicker } from "@/components/Profile/ProfilePicker";
 import { effectiveRubrics, profileRubrics } from "@/lib/client/rubrics";
 import { reportCard } from "@/lib/report/card";
 import { useMyRubric } from "@/lib/client/useMyRubric";
@@ -72,14 +70,10 @@ export function RubricEditor() {
   const close = useCallback(() => setSheet(null), []);
 
   return (
-    <HelpProvider>
+    <>
       <main className="compare rubric-editor">
         <header className="compare-head">
-          <Link className="link-btn" href="/explore">
-            ← Map
-          </Link>
           <h1>{PAGE_TITLE}</h1>
-          <ProfilePicker />
           <Link className="link-btn" href="/rulebook">
             What the grade means
           </Link>
@@ -165,6 +159,6 @@ export function RubricEditor() {
           />
         )}
       </main>
-    </HelpProvider>
+    </>
   );
 }

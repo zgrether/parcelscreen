@@ -7,7 +7,7 @@ vi.mock("./prefs", () => ({
   setPref: (_key: string, v: unknown) => void (stored.parcels = v),
 }));
 
-const { addImportedParcels, currentParcels, registerLiveParcels } = await import("./liveParcels");
+const { addImportedParcels, currentParcels, openLive, registerLiveParcels } = await import("./liveParcels");
 
 const parcel = (key: string) => ({ key }) as WorkingParcel;
 
@@ -27,19 +27,23 @@ describe("the parcels Your data reads and adds to (step 4b)", () => {
   it("on the map: the explorer's parcels, and an import goes through it; after it unmounts, the stored ones", () => {
     const store: ParcelStore = { ...EMPTY_STORE, built: [parcel("live")] };
     const importParcels = vi.fn();
-    const unregister = registerLiveParcels({ store: () => store, importParcels });
+    const open = vi.fn();
+    const unregister = registerLiveParcels({ store: () => store, importParcels, open });
     expect(currentParcels()).toBe(store);
     addImportedParcels([parcel("x")]);
     expect(importParcels).toHaveBeenCalledWith([parcel("x")]);
     expect(stored.parcels).toBeNull();
+    expect(openLive("live")).toBe(true);
+    expect(open).toHaveBeenCalledWith("live");
     unregister();
     expect(currentParcels()).toEqual(EMPTY_STORE);
+    expect(openLive("live")).toBe(false);
   });
 
   it("an older explorer's unregister doesn't remove a newer one", () => {
-    const first = registerLiveParcels({ store: () => EMPTY_STORE, importParcels: vi.fn() });
+    const first = registerLiveParcels({ store: () => EMPTY_STORE, importParcels: vi.fn(), open: vi.fn() });
     const newer: ParcelStore = { ...EMPTY_STORE, built: [parcel("n")] };
-    const second = registerLiveParcels({ store: () => newer, importParcels: vi.fn() });
+    const second = registerLiveParcels({ store: () => newer, importParcels: vi.fn(), open: vi.fn() });
     first();
     expect(currentParcels()).toBe(newer);
     second();

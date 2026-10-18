@@ -25,12 +25,13 @@ const HEADINGS = [
 ];
 
 async function openRulebook(page: Page): Promise<void> {
-  await page.getByRole("button", { name: "Menu", exact: true }).click();
+  // Step 4b: from What matters to you, until Help takes it in (PR 3).
+  await page.getByRole("link", { name: "What matters", exact: true }).click();
   await page.getByRole("link", { name: "What the grade means" }).click();
   await expect(page).toHaveURL(/\/rulebook$/);
 }
 
-test("the rulebook: from the menu, every section, a screened parcel's breakdown, no sideways scroll at 375 px", async ({
+test("the rulebook: from What matters to you, every section, a screened parcel's breakdown, no sideways scroll at 375 px", async ({
   page,
   context,
 }) => {
@@ -39,7 +40,7 @@ test("the rulebook: from the menu, every section, a screened parcel's breakdown,
   const net = await replayHar(context, [FERNEY]);
   await openExplorer(page, FERNEY);
 
-  // Nothing in History yet: every section, and how to get a breakdown.
+  // Nothing on the list yet: every section, and how to get a breakdown.
   await openRulebook(page);
   for (const h of HEADINGS) await expect(page.getByRole("heading", { name: h, exact: true })).toBeVisible();
   await expect(page.locator(".rule-breakdown")).toContainText(
@@ -48,7 +49,7 @@ test("the rulebook: from the menu, every section, a screened parcel's breakdown,
   await expect(page.locator(".rule-panel")).toHaveCount(13); // the verdict, 4 dealbreakers, 7 rows, cost to enjoy
 
   // Screen Ferney on the map, then back: its breakdown, at its card's grade.
-  await page.getByRole("link", { name: "← Map" }).click();
+  await page.getByRole("link", { name: "Map", exact: true }).click();
   await importParcel(page, FERNEY);
   expectAllDone(await screenIt(page));
   await openRulebook(page);

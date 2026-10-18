@@ -13,6 +13,8 @@ import { buildStyle, isBasemapId } from "./style";
 import { terrainTiles } from "./terrain";
 import { mapLayerPrefs, roadsShown } from "./useMapLayerPrefs";
 import { MAX_PITCH } from "./terrainStyle";
+import { mapShowing, onMapShowing } from "@/lib/client/mapShowing";
+import { pauseMap, resumeMap } from "./pauseMap";
 
 // MapLibre's worker is served from public/ (scripts/copy-maplibre-worker.mjs copies it there).
 setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
@@ -156,10 +158,19 @@ export function MapView({
 
   useEffect(() => onMap?.(map), [map, onMap]);
 
+  // Behind another tab (step 4b) the map pauses: it draws nothing and fetches no tiles until it's back.
+  useEffect(() => {
+    if (!map) return;
+    const apply = (showing: boolean) => (showing ? resumeMap(map) : pauseMap(map));
+    apply(mapShowing());
+    return onMapShowing(apply);
+  }, [map]);
+
   return (
     <div className="absolute inset-0 bg-[#cfd6cb]">
       {/* MapLibre styles its container as position: relative, so it gets its own full-size element. */}
-      <div ref={container} className="h-full w-full" />
+      {/* map-canvas: on a phone it reaches under the tab bar, so the map never resizes when the tabs step aside. */}
+      <div ref={container} className="map-canvas h-full w-full" />
       <MapContext.Provider value={map}>{children}</MapContext.Provider>
     </div>
   );

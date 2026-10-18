@@ -133,8 +133,10 @@ for (const phone of [false, true]) {
       await expect(page.getByRole("alertdialog")).toBeVisible();
       await shot(page, "9-reset");
       await page.keyboard.press("Escape");
-      await page.locator(".compare-head").getByRole("button", { name: "Switch profile" }).click();
-      await expect(page.locator(".compare-head .profile-pop")).toBeVisible();
+      // The profile is in the menu since step 4b.
+      await page.locator(".app-more").click();
+      await page.locator(".menu-profile").getByRole("button", { name: "Switch profile" }).click();
+      await expect(page.locator(".menu-profile .profile-pop")).toBeVisible();
       await page.waitForTimeout(100);
       await shot(page, "10-profile-menu");
     });

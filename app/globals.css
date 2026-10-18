@@ -32,7 +32,9 @@ body {
 /* ---------- Explorer layout (proto L26–33, L129–148) ---------- */
 .explore {
   position: relative;
-  height: 100dvh;
+  /* The app frame's main area (step 4b): above the phone's tab bar, below the desktop's top bar. */
+  height: 100%;
+  box-sizing: border-box;
   padding-top: env(safe-area-inset-top, 0px);
 }
 .explore-panel {
@@ -1506,11 +1508,22 @@ html:has(.explore) body {
   outline-offset: 2px;
 }
 @media (max-width: 860px) and (orientation: portrait) {
+  /* The column ends above the sheet's peek (92 px), so the tab bar's 56 px (step 4b) don't push its last control under
+     the sheet: with a layer's legend in it on a short phone, the zoom slider gives up length first. */
+  .map-col {
+    max-height: calc(100% - 52px - 92px - 10px);
+  }
+  .map-col > :not(.zoom-box) {
+    flex-shrink: 0;
+  }
   .zoom-box {
+    flex: 0 1 160px;
     height: 160px;
+    min-height: 72px;
+    container-type: size;
   }
   .zoom-slider {
-    --len: 136px;
+    --len: calc(100cqh - 24px);
   }
 }
 
@@ -1519,7 +1532,7 @@ html:has(.explore) body {
   position: absolute;
   z-index: 25;
   top: 10px;
-  left: 62px; /* right of the menu button */
+  left: 10px; /* the map's ☰ left for the places' bar (step 4b) */
 }
 .search-box {
   position: absolute;
@@ -1804,104 +1817,298 @@ html:has(.explore) body {
   font-size: 14px;
 }
 
-/* ---------- The app menu (owner, after 14d): ☰ top left, a drawer from the left ---------- */
-.menu-btn {
-  position: absolute;
-  z-index: 25;
-  top: 10px;
-  left: 10px;
+/* ---------- The app's frame (step 4b): the places' bar, the page, and the map kept behind the tabs ---------- */
+/* --top-h: the desktop's top bar; --tabs-h: the phone's tab bar (0 while it steps aside for a map tool). Fixed panels
+   and the map's canvas use them; everything inside the explorer is laid out above the tab bar, as before. */
+:root {
+  --top-h: 0px;
+  --tabs-h: 0px;
 }
-.menu-layer {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
+html:has(.app-nav) {
+  --top-h: calc(44px + env(safe-area-inset-top, 0px));
 }
-.menu-scrim {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-}
-.menu-drawer {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: min(280px, 86vw);
+.app-frame {
   display: flex;
   flex-direction: column;
-  /* App navigation, not results: the toolbar's ink surface. The tokens are redrawn for it, so what's
-     inside (History's names, links and notes) reads light on dark without its own styles. */
-  --color-paper: rgb(28, 38, 32);
-  --color-paper-2: rgba(241, 243, 238, 0.08);
-  --color-ink: var(--tb-ink);
-  --color-ink-2: var(--tb-ink-2);
-  --color-rule: var(--tb-rule);
-  --color-water: #9fd3ea;
-  --color-steep: var(--tb-bad);
-  background: var(--color-paper);
-  color: var(--color-ink);
-  box-shadow: 6px 0 22px rgba(0, 0, 0, 0.4);
+  height: 100dvh;
+  /* The map's canvas reaches under the phone's tab bar; nothing scrolls the page past it, not even a focus (clip). */
+  overflow: clip;
 }
-.menu-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px 18px 12px;
-  border-bottom: 1px solid var(--color-rule);
-}
-.menu-title {
-  font: 600 19px/1.15 var(--font-cond);
-}
-.menu-close {
-  width: 36px;
-  height: 36px;
-  margin: -6px -8px 0 0;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--color-ink-2);
-  font-size: 26px;
-  line-height: 1;
-  cursor: pointer;
-}
-.menu-close:hover {
-  background: var(--color-paper-2);
-}
-.menu-body {
+.app-main {
+  position: relative;
   flex: 1;
   min-height: 0;
+}
+.app-map {
+  position: absolute;
+  inset: 0;
+}
+.app-nav {
+  position: relative;
+  z-index: 30;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: var(--top-h);
+  box-sizing: border-box;
+  padding: env(safe-area-inset-top, 0px) 8px 0 16px;
+  border-bottom: 1px solid var(--color-rule);
+  background: var(--color-paper);
+}
+.app-brand {
+  color: var(--color-ink);
+  font: 600 18px/1 var(--font-cond);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.app-tabs {
+  display: flex;
+  flex: 1;
+  align-self: stretch;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.app-tabs > li {
+  display: flex;
+}
+.app-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-top: 3px solid transparent;
+  border-bottom: 3px solid transparent;
+  color: var(--color-ink-2);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.app-tab:hover {
+  color: var(--color-ink);
+}
+.app-tab[aria-current="page"] {
+  border-bottom-color: var(--color-ok);
+  color: var(--color-ink);
+  font-weight: 600;
+}
+.app-tab-icon {
+  display: none;
+  flex: none;
+}
+.app-more-item {
+  margin-left: auto;
+}
+.menu-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.app-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  cursor: pointer;
+}
+.app-more:hover,
+.app-more[aria-expanded="true"] {
+  background: var(--color-paper-2);
+}
+.app-more .app-tab-icon {
+  display: block;
+}
+.app-more-label {
+  display: none;
+}
+.app-more-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+/* The menu: on a desktop, a small panel under ☰, right-aligned (and kept in the window by useKeepInView). */
+.menu-scrim {
+  display: none;
+}
+.menu-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 2;
+  width: 280px;
+  max-height: calc(100dvh - var(--top-h) - 16px);
   overflow-y: auto;
   overscroll-behavior: contain;
+  padding: 4px 0;
+  border: 1px solid var(--color-rule);
+  border-radius: 10px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+.menu-panel:focus {
+  outline: none;
+}
+.menu-panel .old-data-note {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--color-rule);
+}
+.menu-profile {
+  padding: 10px 16px 12px;
+}
+.menu-profile h2 {
+  margin: 0 0 6px;
+  color: var(--color-ink-2);
+  font: 600 12px/1.2 var(--font-cond);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 .menu-items {
   margin: 0;
-  padding: 6px 0;
+  padding: 4px 0;
   list-style: none;
   border-top: 1px solid var(--color-rule);
 }
 .menu-items button,
 .menu-items a {
-  display: block;
+  display: flex;
+  align-items: center;
   box-sizing: border-box;
-  text-decoration: none;
   width: 100%;
-  padding: 11px 18px;
+  min-height: 44px;
+  padding: 0 16px;
   border: 0;
   background: transparent;
   color: var(--color-ink);
   font: inherit;
   text-align: left;
+  text-decoration: none;
   cursor: pointer;
 }
-.menu-items button:disabled {
-  color: var(--color-ink-2);
-  cursor: default;
+.menu-items button:hover,
+.menu-items a:hover {
+  background: var(--color-paper-2);
 }
-/* History, in the drawer: the panel's block rule, with the drawer's side padding. */
-.menu-body .block {
-  padding: 14px 18px;
-  border-bottom: 0;
+/* With a top bar, it holds the safe area; the map's own padding for it goes. */
+html:has(.app-nav) .explore {
+  padding-top: 0;
+}
+/* The map's canvas: on a phone it reaches under the tab bar (--tabs-h), so stepping the tabs aside never resizes it. */
+.explore .map-canvas {
+  height: calc(100% + var(--tabs-h));
+}
+
+/* A phone: the places along the bottom, each a quarter of the width, an icon over its label; the menu as More. */
+@media (max-width: 860px) and (orientation: portrait) {
+  html:has(.app-nav) {
+    --top-h: 0px;
+    --tabs-h: calc(56px + env(safe-area-inset-bottom, 0px));
+  }
+  /* A map tool has the screen (the sheet steps aside too), and so does typing a note; only while the map shows. */
+  html.map-tool:has(.app-map:not([hidden])),
+  html.note-typing:has(.app-map:not([hidden])) {
+    --tabs-h: 0px;
+  }
+  html.map-tool:has(.app-map:not([hidden])) .app-nav,
+  html.note-typing:has(.app-map:not([hidden])) .app-nav {
+    display: none;
+  }
+  html:has(.app-nav) .explore {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  html:has(.app-nav) .explore-scroll {
+    padding-bottom: 24px;
+  }
+  .app-nav {
+    order: 2;
+    gap: 0;
+    height: var(--tabs-h);
+    padding: 0 0 env(safe-area-inset-bottom, 0px);
+    border-top: 1px solid var(--color-rule);
+    border-bottom: 0;
+  }
+  .app-brand {
+    display: none;
+  }
+  .app-tabs {
+    gap: 0;
+  }
+  .app-tabs > li {
+    flex: 1 1 25%;
+    min-width: 0;
+  }
+  .app-tab,
+  .app-more {
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    min-height: 56px;
+    padding: 0 2px;
+    border-top: 3px solid transparent;
+    border-bottom: 0;
+    border-radius: 0;
+    color: var(--color-ink-2);
+    font: 500 12px/1.1 var(--font-sans);
+  }
+  .app-tab[aria-current="page"] {
+    border-top-color: var(--color-ok);
+    color: var(--color-ink);
+    font-weight: 600;
+  }
+  .app-more:hover,
+  .app-more[aria-expanded="true"] {
+    background: transparent;
+    color: var(--color-ink);
+  }
+  .app-tab-icon {
+    display: block;
+  }
+  .app-more-item {
+    margin-left: 0;
+  }
+  .menu-box {
+    flex: 1;
+    align-self: stretch;
+  }
+  .app-more-label {
+    display: block;
+  }
+  .app-more-sr {
+    display: none;
+  }
+  /* More's sheet rises above the tabs, over a scrim; the tabs stay where they are. */
+  .menu-scrim {
+    display: block;
+    position: fixed;
+    z-index: 1;
+    inset: 0 0 var(--tabs-h);
+    background: rgba(0, 0, 0, 0.35);
+  }
+  .menu-panel {
+    position: fixed;
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: var(--tabs-h);
+    width: auto;
+    max-height: 75dvh;
+    border-bottom: 0;
+    border-radius: 14px 14px 0 0;
+    box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.2);
+  }
 }
 
 /* Settings' Your data (step 4b): Export file and Import file, each with its line, and what an import did. */
@@ -1933,7 +2140,7 @@ html:has(.explore) body {
 }
 
 /* ---------- Desktop: the results float at the map's top left, a card or a panel (owner, after 14d) ---------- */
-/* Below the ☰ and search buttons; --float-w is the card's or the panel's width (ExploreShell). */
+/* Below the search button; --float-w is the card's or the panel's width (ExploreShell). */
 .explore-panel.float {
   position: absolute;
   z-index: 18;
@@ -2731,7 +2938,7 @@ html:has(.explore) body {
 .pwa-offline {
   position: fixed;
   z-index: 40;
-  top: calc(env(safe-area-inset-top, 0px) + 58px);
+  top: calc(max(var(--top-h), env(safe-area-inset-top, 0px)) + 58px);
   left: 50%;
   transform: translateX(-50%);
   max-width: calc(100vw - 24px);
@@ -3566,7 +3773,8 @@ button.cmp-cell:hover {
 .compare-panel {
   position: fixed;
   z-index: 40;
-  top: 0;
+  /* Below the desktop's top bar (step 4b). */
+  top: var(--top-h);
   right: 0;
   bottom: 0;
   width: min(460px, 100%);
@@ -3843,7 +4051,8 @@ button.cmp-cell:hover {
   --ip-scheme: light;
   position: fixed;
   z-index: 35;
-  top: 0;
+  /* Below the desktop's top bar (step 4b). */
+  top: var(--top-h);
   right: 0;
   bottom: 0;
   width: min(460px, 100%);
@@ -4119,8 +4328,8 @@ button.cmp-cell:hover {
   background: var(--color-paper);
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.14);
 }
-/* In the menu drawer the list sits under the button, in the flow. */
-.profile-block .profile-pop {
+/* In the menu the list sits under the button, in the flow (step 4b: the panel or More's sheet). */
+.menu-profile .profile-pop {
   position: static;
   min-width: 0;
   margin-top: 8px;
@@ -4512,7 +4721,8 @@ button.cmp-cell:hover {
     position: fixed;
     left: 0;
     right: 0;
-    bottom: 0;
+    /* On the tab bar, as the map's sheet is (step 4b). */
+    bottom: var(--tabs-h);
     z-index: 40;
     margin: 0;
     border-radius: 12px 12px 0 0;

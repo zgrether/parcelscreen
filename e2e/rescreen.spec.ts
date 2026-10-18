@@ -8,9 +8,10 @@ import {
   importParcel,
   keptScreenCount,
   openExplorer,
-  openFromHistory,
+  openFromList,
   reload,
   screenIt,
+  listRow,
 } from "./flow";
 import { replayHar } from "./replay";
 
@@ -26,7 +27,7 @@ test.beforeEach(({ page }) => {
 const RESCREENED = (page: Page) =>
   page.locator(".report-note", { hasText: "Re-screened with the current rules." });
 
-test("a v2 result is cleared at start-up, its parcel kept; History says so, and the open parcel re-screens", async ({
+test("a v2 result is cleared at start-up, its parcel kept; the map says so, and the open parcel re-screens", async ({
   page,
   context,
 }) => {
@@ -42,13 +43,14 @@ test("a v2 result is cleared at start-up, its parcel kept; History says so, and 
   await expect(RESCREENED(page)).toBeVisible({ timeout: 200_000 });
   expect(await keptScreenCount(page)).toBe(1); // the old one deleted, the new one kept
 
-  await page.getByRole("button", { name: "Menu", exact: true }).click();
+  // Said on the map once (step 4b: it was History's), and the parcel is still on Your list.
   await expect(page.locator(".cleared-note")).toContainText(
     "Saved results from an older version of Parcel Screen were cleared. Your parcels, notes and houses are kept; each re-screens when you open it.",
   );
-  await expect(page.locator(".menu-drawer li", { hasText: "52-47A" })).toBeVisible();
   await page.locator(".cleared-note").getByRole("button", { name: "OK" }).click();
   await expect(page.locator(".cleared-note")).toHaveCount(0);
+  await page.getByRole("link", { name: "Your list", exact: true }).click();
+  await expect(listRow(page, "52-47A")).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -63,14 +65,11 @@ test("offline, a parcel from earlier rules shows its result and waits; back onli
   await ageKept(page, "earlier rules");
   await page.getByRole("button", { name: "Close this parcel" }).first().click();
 
-  await page.getByRole("button", { name: "Menu", exact: true }).click();
-  await expect(page.locator(".menu-drawer li", { hasText: "52-47A" })).toContainText(
-    "Re-screens with the current rules when opened",
-  );
-  await page.keyboard.press("Escape");
+  await page.getByRole("link", { name: "Your list", exact: true }).click();
+  await expect(listRow(page, "52-47A")).toContainText("Needs a re-screen");
 
   await context.setOffline(true);
-  await openFromHistory(page, "52-47A");
+  await openFromList(page, "52-47A");
   await expect(page.locator(".rescreen-note")).toHaveText("Will re-screen when you're back online.");
   // Never a blank report: the kept result is shown while it waits.
   await expect(page.locator(".card-verdict")).toBeVisible();
@@ -83,7 +82,7 @@ test("offline, a parcel from earlier rules shows its result and waits; back onli
   expect(errors).toEqual([]);
 });
 
-test("the asking price: entered in the parcel sheet with its date, shown in History, kept after a reload", async ({
+test("the asking price: entered in the parcel sheet with its date, shown on Your list, kept after a reload", async ({
   page,
   context,
 }) => {
@@ -100,8 +99,8 @@ test("the asking price: entered in the parcel sheet with its date, shown in Hist
   );
 
   await reload(page);
-  await page.getByRole("button", { name: "Menu", exact: true }).click();
-  await expect(page.locator(".menu-drawer li", { hasText: "52-47A" })).toContainText("$185k");
+  await page.getByRole("link", { name: "Your list", exact: true }).click();
+  await expect(listRow(page, "52-47A")).toContainText("$185k");
   expect(errors).toEqual([]);
 });
 
@@ -119,7 +118,7 @@ test("a cleared result opened offline: the card says it will re-screen, never bl
   await expect.poll(() => keptScreenCount(page)).toBe(0);
 
   await context.setOffline(true);
-  await openFromHistory(page, "52-47A");
+  await openFromList(page, "52-47A");
   // Nothing kept to show: the header, always on screen, says what will happen.
   await expect(page.locator(".rescreen-note")).toHaveText("Will re-screen when you're back online.");
   await context.setOffline(false);

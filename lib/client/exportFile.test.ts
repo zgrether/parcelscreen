@@ -109,7 +109,7 @@ describe("import: validate all, then all or nothing", () => {
     expect(applyImport(STORE, p)).toEqual(STORE);
     expect(importSummary(p, "unchanged")).toEqual([
       "Imported 0 parcels",
-      "Skipped, already in History: 52-47A, 52-48.",
+      "Skipped, already on your list: 52-47A, 52-48.",
       "Settings unchanged.",
     ]);
   });
@@ -249,7 +249,7 @@ describe("an identical recipe under another key is the same parcel (owner, #60)"
     expect(p.screens).toEqual([]);
     expect(importSummary(p, "unchanged")).toEqual([
       "Imported 0 parcels",
-      "Skipped, same parcel already in History: 52-47A.",
+      "Skipped, same parcel already on your list: 52-47A.",
       "Settings unchanged.",
     ]);
   });
@@ -475,7 +475,7 @@ describe("the summary", () => {
     expect(importSummary(p, "replaced")).toEqual([
       "Imported 1 parcels",
       "Added: 52-47A (with 2 kept results).",
-      "Skipped, already in History: 52-48.",
+      "Skipped, already on your list: 52-48.",
       "Settings replaced. Changed: Data endpoints.",
       "Ignored (not in Settings): extra.",
     ]);

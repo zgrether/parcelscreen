@@ -48,6 +48,7 @@ import { lineNamesOf, type LineNames } from "@/lib/report/lines";
 import { drawnOf, type Drawn } from "@/lib/report/marks";
 import { listingAcresNote } from "@/lib/report/listing";
 import { panelFromSearch, replacePanelInUrl } from "@/lib/client/panelUrl";
+import { mapShowing, onMapShowing } from "@/lib/client/mapShowing";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import { CardPanel } from "../card/CardPanel";
 import { LET_THE_APP_CONSIDER_IT, LINES_CHANGED, ReportCard } from "../card/ReportCard";
@@ -359,11 +360,14 @@ export function useScreenIt(
   useEffect(() => {
     if (reopened) latest.current.onFinished(); // ExploreShell's onFinished is the sheet's raise
   }, [reopened]);
-  // The open panel goes into the URL, replacing its entry, except while the URL's own waits for the report.
+  // The open panel goes into the URL, replacing its entry, except while the URL's own waits for the report. Only while
+  // the map is showing (step 4b: it stays mounted behind the other tabs, whose URLs aren't its), and again on return.
   const waiting = !!opened?.fromUrl && !!panel && !display;
+  const [showing, setShowing] = useState(mapShowing);
+  useEffect(() => onMapShowing(setShowing), []);
   useEffect(() => {
-    if (!waiting) replacePanelInUrl(display ? panel : null);
-  }, [panel, display, waiting]);
+    if (!waiting && showing) replacePanelInUrl(display ? panel : null);
+  }, [panel, display, waiting, showing]);
 
   return {
     ctl,

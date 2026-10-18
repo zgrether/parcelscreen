@@ -4,7 +4,7 @@
  * "Run again to restore…" note, with no error. A new run then works on a fresh worker.
  */
 import { expect, test, type Page } from "@playwright/test";
-import { expectAllDone, importParcels, openExplorer, openFromHistory, screenIt } from "./flow";
+import { expectAllDone, importParcels, openExplorer, openFromList, screenIt } from "./flow";
 import { replayHar } from "./replay";
 
 const FERNEY = "ferney-creek-52-47A";
@@ -32,10 +32,10 @@ test("a terminated or crashed worker: kept parcels fall back to the re-run note,
       (await page.locator(".sh-name").count()) === 0 ||
       !(await page.locator(".sh-name").first().innerText()).includes("52-47A")
     )
-      await openFromHistory(page, "52-47A");
+      await openFromList(page, "52-47A");
     expectAllDone(await screenIt(page));
     await expect.poll(() => live(page)).toBe(true);
-    await openFromHistory(page, "35-3");
+    await openFromList(page, "35-3");
 
     // The worker goes: closed from inside (as the OS would, with no event) or by an uncaught error.
     const w = screenWorker(page);
@@ -49,7 +49,7 @@ test("a terminated or crashed worker: kept parcels fall back to the re-run note,
       );
 
     // Reopen the kept parcel: the page finds the worker gone and falls back, quietly.
-    await openFromHistory(page, "52-47A");
+    await openFromList(page, "52-47A");
     await expect(page.getByText(NOTE).first(), `the re-run note after the worker ${how}`).toBeVisible({
       timeout: 10_000,
     });
@@ -77,7 +77,7 @@ test("a slow first step isn't a lost worker: the start is acknowledged at once, 
   });
   await openExplorer(page, FERNEY);
   await importParcels(page, [FERNEY]);
-  await openFromHistory(page, "52-47A");
+  await openFromList(page, "52-47A");
   const t0 = Date.now();
   expectAllDone(await screenIt(page));
   expect(Date.now() - t0, "the run waited for the slow response").toBeGreaterThan(30_000);

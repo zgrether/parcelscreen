@@ -6,6 +6,7 @@
  * labels, and the house and split-end markers (DOM markers, as CLAUDE.md asks, not canvas sprites), and the point
  * markers (WF4), which drag like the house.
  */
+import { mapShowing } from "@/lib/client/mapShowing";
 import { bbox, booleanPointInPolygon, point } from "@turf/turf";
 import {
   Marker,
@@ -178,7 +179,7 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
     const onKey = (e: KeyboardEvent) => {
       const c = ref.current,
         { mode, split } = c.current();
-      if (!mode && !split) return;
+      if ((!mode && !split) || !mapShowing()) return;
       if ((e.target as HTMLElement | null)?.closest("input,select,textarea")) return;
       // Handled keys are marked, so the Info panel doesn't act on the same press (Esc closes it otherwise).
       if (e.key === "Escape") {
