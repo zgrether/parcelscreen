@@ -8,6 +8,7 @@
 import { useEffect, useRef, type CSSProperties } from "react";
 import { CHOICE_GROUPS, CHOICE_LABEL, type MarkChoice } from "@/lib/client/markChoices";
 import { useExplore } from "@/components/Explore/useExploreController";
+import { useKeepInView } from "@/lib/client/keepInView";
 import { MarkIcon } from "./markIcons";
 
 export function MarkPicker() {
@@ -15,6 +16,7 @@ export function MarkPicker() {
   const p = ctl.picker;
   const box = useRef<HTMLDivElement>(null);
   const open = !!p;
+  useKeepInView(box, open);
   const close = useRef(ctl.closePicker);
   useEffect(() => {
     close.current = ctl.closePicker;

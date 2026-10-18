@@ -25,6 +25,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useKeepInView } from "@/lib/client/keepInView";
 
 /** A press on a handle this long picks the row up on a phone, ms: shorter than a name's long press (LongName). */
 const LONG_PRESS_MS = 250;
@@ -149,8 +150,10 @@ export function OrderMenu({
   move(to: number): void;
 }) {
   const button = useRef<HTMLButtonElement>(null);
+  const list = useRef<HTMLSpanElement>(null);
   const [at, setAt] = useState<CSSProperties | null>(null);
   const open = at !== null;
+  useKeepInView(list, open, button);
   const setOpen = (o: boolean) => setAt(o && button.current ? menuPlace(button.current) : null);
   // It stays where it opened: a scroll or a resize closes it rather than leave it behind.
   useEffect(() => {
@@ -196,7 +199,7 @@ export function OrderMenu({
         ⋯
       </button>
       {open && (
-        <span className="lib-menu" role="menu" style={at}>
+        <span ref={list} className="lib-menu" role="menu" style={at}>
           <button type="button" role="menuitem" disabled={index === 0} onClick={() => go(index - 1)}>
             Move up
           </button>

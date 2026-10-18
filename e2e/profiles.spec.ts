@@ -188,3 +188,39 @@ test("after a clean break: rows read Needs a re-screen; Re-screen all saved parc
   await expect(line).not.toContainText("need a re-screen");
   expect(errors).toEqual([]);
 });
+
+/** Menus stay inside the window (owner, 10/18: the profile menu was cut off at the right edge). */
+for (const size of [
+  { width: 1280, height: 800 },
+  { width: 375, height: 812 },
+])
+  test.describe(`at ${size.width} px`, () => {
+    test.use({ viewport: size });
+
+    test("the profile menu is fully visible on every page that has one", async ({ page }) => {
+      await page.addInitScript(() => {
+        if (sessionStorage.getItem("e2e")) return;
+        sessionStorage.setItem("e2e", "1");
+        localStorage.clear();
+        localStorage.setItem("ps.debug", "1");
+      });
+      for (const path of ["/priorities", "/library", "/rulebook"]) {
+        await page.goto(path);
+        await page.locator(".compare-head").getByRole("button", { name: "Switch profile" }).click();
+        const pop = page.locator(".compare-head .profile-pop");
+        await expect(pop).toBeVisible();
+        await expect(pop.getByRole("button", { name: "Add a profile" })).toBeVisible();
+        // The menu has placed itself (useKeepInView runs after layout): every edge inside the window.
+        await expect
+          .poll(
+            async () => {
+              const b = (await pop.boundingBox())!;
+              return b.x >= 0 && b.y >= 0 && b.x + b.width <= size.width && b.y + b.height <= size.height;
+            },
+            { message: `the profile menu on ${path}` },
+          )
+          .toBe(true);
+      }
+      expect(errors).toEqual([]);
+    });
+  });
