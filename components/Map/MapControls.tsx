@@ -1,13 +1,13 @@
 "use client";
 /**
- * The map's right-hand column (step 13f plan §2–3): the map panel's button at the top (17e), the GPS button
- * and a vertical zoom slider; above them, while the map is rotated or tilted, a compass that resets it to north and flat (13g), and
- * while a live result has one, the surface cycle button (15a). The slider replaces MapLibre's + / − buttons; its track is amber where parcel lines show. While the
- * Info panel is docked on the right, the column moves left of it (the map itself doesn't move). The track is
- * light amber from zoom 14 (parcel lines, but dense places wait) and amber from 15 (all of them).
+ * The map's right-hand column (step 13f plan §2–3): the map panel's button at the top (17e) and the GPS button; above
+ * them, while the map is rotated or tilted, a compass that resets it to north and flat (13g), and while a live result
+ * has one, the surface cycle button (15a). While the Info panel is docked on the right, the column moves left of it (the
+ * map itself doesn't move). No zoom control (owner, step 4c: the zoom slider went as superfluous): pinch, the wheel,
+ * double-click and the keyboard's + and − zoom the map.
  */
 import { GeolocateControl, type Map as MlMap } from "maplibre-gl";
-import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useExplore } from "@/components/Explore/useExploreController";
 import { MapPanelButton } from "./MapPanel";
 import { mapGone, useMap } from "./MapView";
@@ -20,13 +20,10 @@ import { canHover } from "./results/tooltip";
 import { FLAG_PITCH } from "./flags";
 import { MAX_PITCH } from "./terrainStyle";
 import { setTerrainPrefs, useTerrainPrefs } from "./useTerrainPrefs";
-import { DENSE_BELOW_ZOOM, LINES_MIN_ZOOM } from "@/lib/geo/parcelTiles";
 
 type Hint = (text: string | ((prev: string) => string)) => void;
 
 /** The slider's range (owner, 13f): the band where the map is useful for finding parcels. */
-const MIN_ZOOM = 5;
-const MAX_ZOOM = 20;
 const NO_LOCATION = "Couldn't get your location";
 
 export function MapControls({ hint }: { hint: Hint }) {
@@ -41,7 +38,6 @@ export function MapControls({ hint }: { hint: Hint }) {
       <SurfaceButton />
       <SurfaceLegend />
       {map && <LocateButton map={map} hint={hint} />}
-      {map && <ZoomSlider map={map} />}
     </div>
   );
 }
@@ -224,61 +220,5 @@ function LocateButton({ map, hint }: { map: MlMap; hint: Hint }) {
         <path d="M9 1v3M9 14v3M1 9h3M14 9h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
     </button>
-  );
-}
-
-const clamp = (z: number) => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, z));
-
-/**
- * A vertical range input: the thumb follows the map's zoom however it changed (pinch, scroll, a fit), and
- * dragging the thumb or tapping the track zooms there, around the view's centre. Arrow keys step a whole
- * zoom level.
- */
-function ZoomSlider({ map }: { map: MlMap }) {
-  const [zoom, setZoom] = useState(() => map.getZoom());
-  useEffect(() => {
-    let frame = 0;
-    const follow = () => {
-      if (!frame)
-        frame = requestAnimationFrame(() => {
-          frame = 0;
-          setZoom(map.getZoom());
-        });
-    };
-    map.on("zoom", follow);
-    return () => {
-      map.off("zoom", follow);
-      cancelAnimationFrame(frame);
-    };
-  }, [map]);
-
-  const zoomTo = (z: number) => map.jumpTo({ zoom: clamp(z) });
-  const onKey = (e: KeyboardEvent<HTMLInputElement>) => {
-    const step = { ArrowUp: 1, ArrowRight: 1, PageUp: 1, ArrowDown: -1, ArrowLeft: -1, PageDown: -1 }[e.key];
-    if (!step) return;
-    e.preventDefault();
-    // To the next whole level up or down, from the map's own zoom (the slider's state lags a frame).
-    const now = map.getZoom();
-    zoomTo(step > 0 ? Math.floor(now) + 1 : Math.ceil(now) - 1);
-  };
-  // Where the track's shading changes, from the bottom: lines from 14 (dense tiles wait), all lines from 15.
-  const at = (z: number) => `${((z - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM)) * 100}%`;
-  return (
-    <div className="zoom-box" title={`Zoom ${zoom.toFixed(1)}`}>
-      <input
-        type="range"
-        className="zoom-slider"
-        min={MIN_ZOOM}
-        max={MAX_ZOOM}
-        step={0.1}
-        value={clamp(zoom)}
-        aria-label="Zoom"
-        aria-orientation="vertical"
-        aria-valuetext={`Zoom ${zoom.toFixed(1)}`}
-        style={{ "--b14": at(LINES_MIN_ZOOM), "--b15": at(DENSE_BELOW_ZOOM) } as CSSProperties}
-        onChange={(e) => zoomTo(Number(e.target.value))}
-        onKeyDown={onKey}
-      />
-    </div>
   );
 }

@@ -2,7 +2,8 @@
 /**
  * The parcel toolbar on the map (13e): always one line.
  *   nothing open:  "Tap a parcel to select it or Draw a custom parcel" (no rule: the "or" separates them)
- *   a parcel open: "Boundary ▾ · + Mark │ 🗑   12.34 ac ▾" (owner, after #136: Boundary holds Parcel, Custom and
+ *   a parcel open: "Boundary ▾ · + Mark · Grade this parcel │ 🗑   12.34 ac ▾" (the grade button on a desktop only,
+ *                  step 4c; owner, after #136: Boundary holds Parcel, Custom and
  *                  Split; + Mark opens the Mark picker, which holds the house site and the lines; the acres open Info)
  *   a tool in use: what to do next, and its controls (Finish, Done, Keep…, Cancel)
  * The trash (built parcels only) asks inline before deleting. A tap refused because a built parcel is open
@@ -17,6 +18,7 @@ import { MarkIcon } from "./markIcons";
 import { M2FT, M2_PER_ACRE } from "@/lib/geo/types";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
+import { GradeAction } from "@/components/Results/panel/GradeAction";
 
 const ac = (n: number) => n.toFixed(2);
 
@@ -357,6 +359,8 @@ function barBody(
       >
         + Mark
       </Btn>
+      {/* The parcel's one action (step 4c): here on a desktop; under the sheet's header on a phone. */}
+      {ctl.docked && <GradeAction where="toolbar" />}
       {built && (
         <>
           <Sep />

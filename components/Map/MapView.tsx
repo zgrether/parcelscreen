@@ -101,7 +101,7 @@ export function MapView({
       aroundCenter: false,
       attributionControl: false,
     });
-    // No + / − buttons: the zoom slider in the right-hand column replaces them (13f).
+    // No + / − buttons, and no zoom slider since step 4c (owner): pinch, the wheel, double-click and the keyboard zoom.
     // Up top, beside the Map menu, rather than hanging over the toolbar (owner, 13e-5 review).
     m.addControl(new AttributionControl({ compact: true }), "top-right");
     // The headless checks (and step 18's e2e) read the map's camera and rendered features: with ps.debug set

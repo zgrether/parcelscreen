@@ -49,6 +49,7 @@ import { drawnOf, type Drawn } from "@/lib/report/marks";
 import { listingAcresNote } from "@/lib/report/listing";
 import { panelFromSearch, replacePanelInUrl } from "@/lib/client/panelUrl";
 import { mapShowing, onMapShowing } from "@/lib/client/mapShowing";
+import { gradeButton, logLine, runSeconds } from "@/lib/client/gradeButton";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import { CardPanel } from "../card/CardPanel";
 import { LET_THE_APP_CONSIDER_IT, LINES_CHANGED, ReportCard } from "../card/ReportCard";
@@ -369,11 +370,27 @@ export function useScreenIt(
     if (!waiting && showing) replacePanelInUrl(display ? panel : null);
   }, [panel, display, waiting, showing]);
 
+  // The one action and the folded log (step 4c, plan §2): the button only with a reason after a run.
+  const error = live?.serial === serial ? screen.state.error : null;
+  const failedSteps = shown?.result.failed.length ?? 0;
+  const grade = gradeButton({
+    running: runningHere,
+    graded: !!shown,
+    fresh,
+    sessionLive,
+    failed: failedSteps,
+    stopped: !!error && !runningHere,
+  });
+
   return {
     ctl,
     parcel,
     running,
     runningHere,
+    /** The grade button's state (lib/client/gradeButton.ts): null when there's no reason to run again. */
+    grade,
+    /** The finished run's folded log line: "Graded in 66 s", with the failed count unless the button has it. */
+    logLine: logLine(runSeconds(Object.values(screen.state.steps)), failedSteps, grade),
     shown,
     stale,
     fresh,
@@ -385,12 +402,12 @@ export function useScreenIt(
     cancel: screen.cancel,
     steps: screen.state.steps,
     showSteps: live?.serial === serial && status !== "idle" && !screen.state.restored,
-    error: live?.serial === serial ? screen.state.error : null,
+    error,
     /** The re-screen on open is waiting for the network (owner, #101). */
     rescreenOffline: wantsRescreen && !online,
     /** This open's result came from a re-screen on open. */
     rescreened: rescreened === serial,
-    /** The re-screen on open failed: its error comes with a Run again button. */
+    /** The re-screen on open failed: its error, with the grade button's Try again. */
     rescreenFailed: autoRun && !!screen.state.error,
     display,
     point,
@@ -434,7 +451,10 @@ const drawnFor = (s: ScreenIt): Drawn | undefined => {
   return open ? drawnOf(open.markup, open.drivewayLine) : undefined;
 };
 
-/** The panel's one-line header: the parcel, its acres, the verdict's dot, and the screen button. */
+/**
+ * The panel's header: the parcel's name on up to two lines, then its acres and its grade (step 4c, plan §2). The run
+ * button isn't here any more: it's GradeAction, in the toolbar on a desktop and under this header on a phone.
+ */
 export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean }) {
   const d = s.ctl.derived;
   if (!s.ctl.state.store.open)
@@ -444,28 +464,23 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
   // The card's grade and verdict for the kept run (owner, #110), in whoever's grade is on.
   const card =
     !s.runningHere && !s.stale && s.shown ? reportCard(s.shown.result, s.rubric, drawnFor(s)) : null;
-  const label = s.running ? "Running…" : s.shown ? "Run again" : "Screen it";
   return (
     <>
       <span className="sh-parcel">
-        <span className="sh-name">{name}</span>
-        {d?.ok && <span className="sh-acres"> · {fmt(d.acres, 2)} ac</span>}
-        {card && (
-          <span className={`sh-card v-${card.verdict.toLowerCase()}`} title={card.reason}>
-            <span className={`card-grade small g-${card.grade ?? "none"}`}>{card.grade ?? "–"}</span>
-            <span className="sh-word">{card.verdict}</span>
-          </span>
-        )}
+        <span className="sh-name" title={name}>
+          {name}
+        </span>
+        <span className="sh-sub">
+          {d?.ok && <span className="sh-acres">{fmt(d.acres, 2)} ac</span>}
+          {card && (
+            <span className={`sh-card v-${card.verdict.toLowerCase()}`} title={card.reason}>
+              <span className={`card-grade small g-${card.grade ?? "none"}`}>{card.grade ?? "–"}</span>
+              <span className="sh-word">{card.verdict}</span>
+            </span>
+          )}
+        </span>
       </span>
       <span className="sh-actions">
-        {s.runningHere && (
-          <button className="btn secondary small" onClick={s.cancel}>
-            Cancel
-          </button>
-        )}
-        <button className="btn small" disabled={!s.parcel || s.running} onClick={s.run}>
-          {label}
-        </button>
         {/* Deselect the parcel (17e); Esc does the same on desktop. A screened one stays in History. */}
         <button
           className="sh-x"
@@ -489,14 +504,7 @@ function RescreenLine({ s }: { s: ScreenIt }) {
   if (s.rescreenOffline)
     return <span className="sh-verdict sh-rescreen muted rescreen-note">{RESCREEN_OFFLINE}.</span>;
   if (s.rescreenFailed)
-    return (
-      <span className="sh-verdict sh-rescreen fatal">
-        The screen stopped: {s.error}{" "}
-        <button className="btn small" disabled={s.running} onClick={s.run}>
-          Run again
-        </button>
-      </span>
-    );
+    return <span className="sh-verdict sh-rescreen fatal">The screen stopped: {s.error}</span>;
   return null;
 }
 
@@ -530,36 +538,19 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
   const running = now ? { step: now[0], message: s.steps[now[0]]!.message } : undefined;
   const notes = !s.runningHere && shown;
   if (!s.showSteps && !s.error && !notes && !display) return null;
-  // The card is the first thing under the header (owner, #111): what's still running, failed or out of date stays
-  // above it; a finished run's folded steps, Copy summary and the notes go below the card's rows, unchanged.
-  const stepsDone =
-    !s.runningHere && STEPS.every(([id]) => s.steps[id]?.status === "done" || s.steps[id]?.status === "skip");
+  // The card comes right under the header (owner, #111), with the run's log above it: the live list while it runs,
+  // one line once it's done (step 4c). What failed or is out of date stays above the card too; Copy summary and the
+  // notes go below its rows.
   const below = !!display && !s.stale;
-  const top =
-    (s.showSteps && !(below && stepsDone)) ||
-    !!s.error ||
-    (notes && !below) ||
-    (s.rescreenOffline && !!display);
-  const footer = below && ((s.showSteps && stepsDone) || notes);
+  const top = s.showSteps || !!s.error || (notes && !below) || (s.rescreenOffline && !!display);
+  const footer = below && notes;
   return (
     <>
       {top && (
         <section className="block">
           {s.rescreenOffline && s.display && <p className="report-note rescreen-note">{RESCREEN_OFFLINE}.</p>}
-          {s.showSteps && !(below && stepsDone) && <StepList steps={s.steps} running={s.runningHere} />}
-          {s.error && (
-            <p className="tiny text-steep">
-              The screen stopped: {s.error}
-              {s.rescreenFailed && s.display && (
-                <>
-                  {" "}
-                  <button className="btn small" disabled={s.running} onClick={s.run}>
-                    Run again
-                  </button>
-                </>
-              )}
-            </p>
-          )}
+          {s.showSteps && <StepList steps={s.steps} running={s.runningHere} line={s.logLine} />}
+          {s.error && <p className="tiny text-steep">The screen stopped: {s.error}</p>}
           {notes && !below && (
             <Notices
               stale={s.stale}
@@ -570,6 +561,8 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
               showParams={s.showParams}
               toggleParams={s.toggleParams}
               params={shown.result.params}
+              grade={s.run}
+              grading={s.running}
             />
           )}
         </section>
@@ -596,7 +589,6 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
       )}
       {footer && (
         <section className="block report-footer">
-          {s.showSteps && stepsDone && <StepList steps={s.steps} running={s.runningHere} />}
           {notes && (
             <div className="report-actions">
               <button className="btn secondary small" onClick={s.copySummary}>
@@ -614,6 +606,8 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
               showParams={s.showParams}
               toggleParams={s.toggleParams}
               params={shown.result.params}
+              grade={s.run}
+              grading={s.running}
             />
           )}
         </section>
@@ -652,30 +646,28 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
 }
 
 /**
- * The run's steps (proto renderSteps, L991): a dot per step, with its message and the query link. A run that
- * finished with every step done folds to one line, "Screened ✓", which opens the list (owner, #110); a run in
- * progress, or one with a failed step, shows it all.
+ * The run's steps (proto renderSteps, L991): a dot per step, with its message and the query link. While a run is in
+ * progress it shows them all; once it's done it folds to one line, "Graded in 66 s ▸" (step 4c; it was "Screened ✓",
+ * and only for a run with every step done), which opens the list.
  */
 function StepList({
   steps,
   running,
+  line,
 }: {
   steps: ReturnType<typeof useScreen>["state"]["steps"];
   running: boolean;
+  /** The folded line's words (lib/client/gradeButton.ts logLine). */
+  line: string;
 }) {
   // Debug mode: how long each step took, as the page saw it (A4b PR B: the owner's phone timings).
   const timed = debugOn();
   const [open, setOpen] = useState(false);
-  const clean =
-    !running && STEPS.every(([id]) => steps[id]?.status === "done" || steps[id]?.status === "skip");
-  if (clean && !open)
+  if (!running && !open)
     return (
-      <button
-        className="btn secondary small steps-folded"
-        aria-expanded={false}
-        onClick={() => setOpen(true)}
-      >
-        Screened ✓
+      <button className="steps-folded" aria-expanded={false} onClick={() => setOpen(true)}>
+        <span>{line}</span>
+        <span aria-hidden="true">▸</span>
       </button>
     );
   return (
@@ -717,9 +709,12 @@ function Notices(p: {
   showParams: boolean;
   toggleParams(): void;
   params: ScreenResult["params"];
+  /** Runs it again: the overlays note's link. */
+  grade(): void;
+  grading: boolean;
 }) {
   if (p.stale)
-    return <p className="report-note stale-note">These results are for an earlier boundary. Run again.</p>;
+    return <p className="report-note stale-note">These results are for an earlier boundary. Grade again.</p>;
   return (
     <>
       {/* With a live session a changed house is being re-assessed; without one, it takes a run. */}
@@ -727,11 +722,17 @@ function Notices(p: {
         (p.sessionLive ? (
           <p className="tiny muted">Re-assessing the house…</p>
         ) : (
-          <p className="report-note">The house changed since this run — run again to assess it.</p>
+          <p className="report-note">The house changed since this run — grade again to assess it.</p>
         ))}
       {p.rescreened && <p className="report-note">{RESCREENED}.</p>}
       {!p.sessionLive && !p.houseChanged && (
-        <p className="tiny muted">Run again to restore the map overlays and horizon fan.</p>
+        // No toolbar button for this (owner, 4c Q5): the note's own words run it.
+        <p className="tiny muted">
+          <button className="link-btn grade-again-link" disabled={p.grading} onClick={p.grade}>
+            Grade again
+          </button>{" "}
+          to restore the map overlays and horizon fan.
+        </p>
       )}
       {p.settingsChanged && (
         <div className="tiny muted">
