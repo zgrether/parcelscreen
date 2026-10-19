@@ -7,6 +7,7 @@
  * to be sent to the interview (`ps.onboard`), as a person's browser always is.
  */
 import { expect, test, type Page } from "@playwright/test";
+import { openMenu } from "./flow";
 
 let errors: string[] = [];
 test.beforeEach(({ page }) => {
@@ -26,11 +27,6 @@ async function firstVisit(page: Page, path: string, onboard = true): Promise<voi
 }
 
 const progress = (page: Page) => page.locator(".iv-progress");
-
-async function openMenu(page: Page) {
-  await page.getByRole("button", { name: "Menu", exact: true }).click();
-  return page.locator(".menu-drawer");
-}
 
 test("a first visit starts with the name, comes back until put off, and Not now lets it go", async ({
   page,
@@ -57,7 +53,8 @@ test("a first visit starts with the name, comes back until put off, and Not now 
   await expect(drawer.getByRole("button", { name: "Switch profile" })).toHaveText(/Sam/);
   // Answered in part: not in the menu, but on the priorities page.
   await expect(drawer.getByRole("link", { name: /questions/ })).toHaveCount(0);
-  await drawer.getByRole("link", { name: "My priorities" }).click();
+  await page.keyboard.press("Escape");
+  await page.getByRole("link", { name: "What matters", exact: true }).click();
   await page.waitForURL("**/priorities");
   await expect(
     page.locator(".compare-head").getByRole("link", { name: "Finish your questions (2 of 14)" }),

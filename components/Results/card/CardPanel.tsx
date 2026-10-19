@@ -5,6 +5,7 @@
  * "How it's scored" line (d); below, under "From the report", the report sections that moved here (§6.1), word for
  * word, each with its own heading and "?" help link.
  */
+import { behindTabs } from "@/lib/client/mapShowing";
 import { length, lineString } from "@turf/turf";
 import Link from "next/link";
 import { useEffect, useRef, type ReactNode } from "react";
@@ -114,7 +115,8 @@ export function CardPanel({
     const before = document.activeElement as HTMLElement | null;
     close.current?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      // Not the map's panel while another tab is showing (step 4b): Compare's and the list's still close.
+      if (e.key === "Escape" && !behindTabs(close.current)) onClose();
     };
     document.addEventListener("keydown", onKey);
     return () => {

@@ -7,8 +7,6 @@
  */
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { HelpProvider } from "@/components/Help/HelpDialog";
-import { ProfilePicker } from "@/components/Profile/ProfilePicker";
 import { parcelName } from "@/lib/client/historyRows";
 import { openOnMap } from "@/lib/client/openOnMap";
 import { getPref } from "@/lib/client/prefs";
@@ -60,16 +58,12 @@ export function Rulebook() {
   const bd = card ? breakdown(card) : null;
 
   return (
-    <HelpProvider>
+    <>
       <main className="compare rulebook">
         <header className="compare-head">
-          <Link className="link-btn" href="/explore">
-            ← Map
-          </Link>
           <h1>What the grade means</h1>
-          <ProfilePicker />
           <Link className="link-btn" href="/priorities">
-            My priorities
+            What matters to you
           </Link>
           <RubricSwitch
             rubrics={rubrics}
@@ -85,7 +79,7 @@ export function Rulebook() {
             stale.length > 0 ? (
               <div className="muted">
                 <p>
-                  {stale.length} parcel{stale.length === 1 ? "" : "s"} in History{" "}
+                  {stale.length} parcel{stale.length === 1 ? "" : "s"} on your list{" "}
                   {stale.length === 1 ? "was" : "were"} screened under earlier rules. Open one to re-screen
                   it.
                 </p>
@@ -127,6 +121,6 @@ export function Rulebook() {
 
         <RulebookRules rb={rb} current={rubric.id} />
       </main>
-    </HelpProvider>
+    </>
   );
 }

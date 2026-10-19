@@ -3,7 +3,7 @@
  * The profile picker (step 1, PR 5b; docs/plans/step-1-profiles-grading.md §3.4): the current profile's name, and
  * under it the profiles to switch to (the most recently opened first), each with Rename and Delete (a confirm naming
  * what goes), and "Add a profile". Switching, adding and deleting the current profile reload the page, so nothing of
- * the previous profile survives. In the ☰ menu and in the Library, Compare and Rulebook headers. Where the browser
+ * the previous profile survives. In the menu (step 4b: it left the pages' headers). Where the browser
  * refused storage it says so instead: one profile, in memory, until the page closes.
  */
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -132,7 +132,7 @@ export function ProfilePicker() {
                   )}
                   {deleting === p.id ? (
                     <span className="tiny profile-confirm" role="alert">
-                      Delete {p.name}? Its History, screens and settings go with it.{" "}
+                      Delete {p.name}? Its parcels, screens and settings go with it.{" "}
                       <button className="btn small danger" disabled={busy} onClick={() => void remove(p)}>
                         Delete
                       </button>{" "}

@@ -16,7 +16,7 @@ export interface UpdateState {
 export const showUpdateToast = (s: UpdateState): boolean => s.waiting && !s.running && !s.overlayOpen;
 
 export const UPDATE_TEXT = "Updated — reload";
-export const OFFLINE_TEXT = "You're offline — saved parcels still open from History";
+export const OFFLINE_TEXT = "You're offline — saved parcels still open from Your list";
 export const OFFLINE_SCREEN_TEXT = "You're offline — screening needs the network.";
 
 /**

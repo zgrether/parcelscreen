@@ -121,7 +121,7 @@ export function ParcelDetail({
         <div className="lib-detail-actions">
           {confirming ? (
             <>
-              <span className="tiny">Remove it? It leaves your list, History and the map.</span>
+              <span className="tiny">Remove it? It leaves your list and the map.</span>
               <button className="btn small danger" onClick={remove}>
                 Remove
               </button>

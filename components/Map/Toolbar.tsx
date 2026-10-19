@@ -329,7 +329,7 @@ function barBody(
     return (
       <>
         <Status>
-          Delete this parcel? <span className="sub long">It leaves History and the map.</span>
+          Delete this parcel? <span className="sub long">It leaves your list and the map.</span>
         </Status>
         <Btn
           kind="danger"

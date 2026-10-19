@@ -2,7 +2,7 @@
  * The e2e's steps through the explorer (step 18a): a reference parcel brought in through History import,
  * screened, and its result read back as the page shows it. Plan phase-0-18-acceptance.md §1.
  */
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 import { ENGINE_VERSION } from "@/lib/screen/engine";
 import type { PartialScreenResult, ScreenResult } from "@/lib/screen/types";
 import { differences } from "../test/support/compare";
@@ -38,7 +38,7 @@ export async function openExplorer(
 
 /**
  * The parcel as a prototype export (`{ saved: [...] }`, proto L1605), imported through Settings' Your data (step 4b),
- * then opened from History. No `cfg`: the default settings stand, as in the goldens. `house` marks the bulls-eye.
+ * then opened from Your list. No `cfg`: the default settings stand, as in the goldens. `house` marks the bulls-eye.
  */
 export async function importParcel(page: Page, slug: FixtureSlug, house?: [number, number]): Promise<void> {
   const { input } = loadFixture(slug);
@@ -57,9 +57,7 @@ export async function importParcel(page: Page, slug: FixtureSlug, house?: [numbe
   });
   await expect(page.locator(".import-summary")).toContainText("Imported 1 parcel");
   await page.keyboard.press("Escape");
-  await page.getByRole("button", { name: "Menu", exact: true }).click();
-  await page.locator(".menu-drawer").getByRole("button", { name: "Open", exact: true }).first().click();
-  await expect(page.locator(".sh-name").first()).toBeVisible();
+  await openFromList(page, input.name);
 }
 
 /** Several parcels as one prototype export, imported into History without opening any (17e's switching). */
@@ -83,12 +81,23 @@ export async function importParcels(page: Page, slugs: readonly FixtureSlug[]): 
   await page.keyboard.press("Escape");
 }
 
-/** Settings, where Your data is (step 4b): ☰ → Settings. */
+/** The menu (step 4b): the places' bar's ☰ (More on a phone), opened if it isn't; its panel. */
+export async function openMenu(page: Page): Promise<Locator> {
+  const panel = page.locator(".menu-panel");
+  if (!(await panel.count())) await page.locator(".app-more").click();
+  await expect(panel).toBeVisible();
+  return panel;
+}
+
+/** Settings, where Your data is (step 4b): the menu → Settings. */
 export async function openYourData(page: Page): Promise<void> {
-  await page.getByRole("button", { name: "Menu", exact: true }).click();
-  await page.locator(".menu-drawer").getByRole("button", { name: "Settings", exact: true }).click();
+  await (await openMenu(page)).getByRole("button", { name: "Settings", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Your data" })).toBeVisible();
 }
+
+/** A parcel's row on Your list, by (part of) the name it shows: a table row on a desktop, a card on a phone. */
+export const listRow = (page: Page, name: string): Locator =>
+  page.locator(".lib-row:visible", { hasText: name }).first();
 
 /**
  * Waits for the profile's writes so far to reach IndexedDB (step 1, PR 4: the store writes through asynchronously, and
@@ -144,20 +153,23 @@ export const ageKept = (page: Page, how: "v2" | "earlier rules"): Promise<void> 
     how,
   );
 
-/** Opens a History parcel by (part of) the name its row shows (☰ → History → Open). */
-export async function openFromHistory(page: Page, name: string): Promise<void> {
-  await page.getByRole("button", { name: "Menu", exact: true }).click();
-  await page
-    .locator(".menu-drawer li", { hasText: name })
-    .getByRole("button", { name: "Open", exact: true })
-    .click();
+/**
+ * Opens a saved parcel on the map from Your list, by (part of) the name its row shows: the Your list tab, its row, then
+ * "Open on the map" in its detail (History went in step 4b). The map stays mounted behind the tab, so the parcels
+ * screened this session keep their sessions.
+ */
+export async function openFromList(page: Page, name: string): Promise<void> {
+  await page.getByRole("link", { name: "Your list", exact: true }).click();
+  await listRow(page, name).click();
+  await page.getByRole("link", { name: "Open on the map" }).click();
+  await expect(page).toHaveURL(/\/explore$/);
   // An imported prototype parcel is named after its saved name (owner, #130), which holds the parcel ID.
   await expect(page.locator(".sh-name").first()).toContainText(name);
 }
 
 /** Screen it, wait for the run to finish, and return each step's final status. */
 export async function screenIt(page: Page): Promise<Record<string, string>> {
-  if (await page.locator(".menu-scrim").count()) await page.keyboard.press("Escape");
+  if (await page.locator(".menu-panel").count()) await page.keyboard.press("Escape");
   // "Run again" when the parcel already has a result: wait for this run to start, then to finish.
   await page
     .locator("button", { hasText: /^(Screen it|Run again)$/ })

@@ -4,7 +4,7 @@
  * their dates; and all of it in History and kept across a reload.
  */
 import { expect, test, type Page } from "@playwright/test";
-import { importParcel, openExplorer, reload } from "./flow";
+import { importParcel, listRow, openExplorer, reload } from "./flow";
 import { replayHar } from "./replay";
 
 const FERNEY = "ferney-creek-52-47A" as const;
@@ -59,11 +59,12 @@ test("the parcel's standing: saved, archived with a reason, restored; milestones
   await milestones.getByRole("button", { name: "Clear Offered" }).click();
   expect(await stored(page)).toMatchObject({ milestones: { walked: "2026-10-20", offered: null } });
 
-  // History says so; a reload keeps it.
+  // Your list says so (step 4b: it was History); a reload keeps it.
   await page.getByRole("button", { name: "Close the Info panel" }).click();
-  await page.getByRole("button", { name: "Menu", exact: true }).click();
-  const row = page.locator(".menu-drawer li", { hasText: "52-47A" });
-  await expect(row).toContainText("Saved · Walked Oct 20");
+  await page.getByRole("link", { name: "Your list", exact: true }).click();
+  const row = listRow(page, "52-47A");
+  await expect(row).toContainText("Saved");
+  await expect(row).toContainText("Walked Oct 20");
   await reload(page);
   expect(await stored(page)).toMatchObject({ status: "saved", milestones: { walked: "2026-10-20" } });
   expect(errors).toEqual([]);

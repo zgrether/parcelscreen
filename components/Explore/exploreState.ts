@@ -127,6 +127,8 @@ export type ExploreAction =
   | { type: "removeSaved"; key: string }
   /** Parcels from an imported file, added to History (16b); the open parcel isn't changed. */
   | { type: "imported"; added: WorkingParcel[] }
+  /** The parcels as another page wrote them while the map was behind its tab (step 4b). */
+  | { type: "adopt"; store: ParcelStore }
   | { type: "house"; ll: LatLon | null; stamp: Stamp }
   | { type: "startDraw" }
   | { type: "draftAdd"; ll: LatLon }
@@ -313,6 +315,15 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       return { ...s, ...NO_TOOL, ...switched(s, a.keepPanel), store: openBuilt(s.store, a.key) };
     case "imported":
       return { ...s, store: { ...s.store, built: [...s.store.built, ...a.added] } };
+    case "adopt": {
+      // The same parcel open (or none): only the data changes. Another one: as a switch, tools and panel closed.
+      const was = s.store.open,
+        now = a.store.open;
+      const same = was === now || (!!was && !!now && was.key === now.key);
+      return same
+        ? { ...s, store: a.store }
+        : { ...s, ...NO_TOOL, ...PANEL_CLOSED, serial: s.serial + 1, store: a.store };
+    }
     case "removeSaved":
       return {
         ...s,

@@ -15,14 +15,23 @@
  * Stepping aside (13e-6): while a map tool is in use or the Info panel is open, the sheet shows at its peek
  * height with its content hidden, so the map and the panel have the room. Nothing is saved and the inset
  * doesn't change (the map doesn't move under a tool); afterwards the sheet is back where it was.
+ *
+ * Its snaps are shares of the explorer's own height, the space above the tab bar (step 4b), not of the window's.
  */
 import { useCallback, useEffect, useRef, useState, type PointerEvent, type RefObject } from "react";
 
 /** Where the panel becomes a bottom sheet; globals.css uses the same query. */
 export const SHEET_QUERY = "(max-width: 860px) and (orientation: portrait)";
 const isSheet = () => typeof window !== "undefined" && window.matchMedia(SHEET_QUERY).matches;
-const snaps = () => [92, Math.round(window.innerHeight * 0.46), Math.round(window.innerHeight * 0.88)];
-const clamp = (px: number) => Math.round(Math.max(72, Math.min(window.innerHeight * 0.92, px)));
+/** The space the sheet has: the explorer's height, above the tab bar. */
+const space = (root: HTMLElement | null) => root?.clientHeight || window.innerHeight;
+const snaps = (root: HTMLElement | null) => [
+  92,
+  Math.round(space(root) * 0.46),
+  Math.round(space(root) * 0.88),
+];
+const clamp = (px: number, root: HTMLElement | null) =>
+  Math.round(Math.max(72, Math.min(space(root) * 0.92, px)));
 const MAP_MODE_BELOW = 110;
 const SNAP_MS = 180;
 
@@ -33,7 +42,7 @@ export function useBottomSheet(
 ) {
   // The settled height: the peek at first. The explorer renders client-side only, so this runs in the
   // browser.
-  const [height, setHeight] = useState<number | null>(() => (isSheet() ? snaps()[0]! : null));
+  const [height, setHeight] = useState<number | null>(() => (isSheet() ? snaps(null)[0]! : null));
   const [dragMapMode, setDragMapMode] = useState<boolean | null>(null);
   const drag = useRef<{ startY: number; startH: number; moved: boolean; h: number } | null>(null);
 
@@ -49,7 +58,7 @@ export function useBottomSheet(
 
   const snapTo = useCallback(
     (px: number) => {
-      const s = snaps();
+      const s = snaps(root.current);
       const target = s.reduce((a, b) => (Math.abs(b - px) < Math.abs(a - px) ? b : a), s[0]!);
       // Written to the DOM as well as to state: when the drag ends where it started, the state doesn't
       // change and React wouldn't touch the dragged height.
@@ -60,12 +69,12 @@ export function useBottomSheet(
       setHeight(target);
       setTimeout(() => p?.style.removeProperty("transition"), SNAP_MS + 20);
     },
-    [paint, panel],
+    [paint, panel, root],
   );
 
   useEffect(() => {
     // Back to portrait (or narrow again): the height it had, else the peek.
-    const onResize = () => setHeight((h) => (isSheet() ? (h ?? snaps()[0]!) : null));
+    const onResize = () => setHeight((h) => (isSheet() ? (h ?? snaps(null)[0]!) : null));
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
@@ -94,7 +103,7 @@ export function useBottomSheet(
       if (!d) return;
       const dy = d.startY - e.clientY;
       if (Math.abs(dy) > 4) d.moved = true;
-      d.h = clamp(d.startH + dy);
+      d.h = clamp(d.startH + dy, root.current);
       paint(d.h);
     },
     onPointerUp: () => {
@@ -102,18 +111,18 @@ export function useBottomSheet(
       if (!d) return;
       drag.current = null;
       if (!d.moved) {
-        const s = snaps();
+        const s = snaps(root.current);
         snapTo(d.h < s[1]! * 0.8 ? s[1]! : d.h < s[2]! * 0.9 ? s[2]! : s[0]!);
       } else snapTo(d.h);
     },
   };
 
-  const shown = aside ? Math.min(height, snaps()[0]!) : height;
+  const shown = aside ? Math.min(height, snaps(null)[0]!) : height;
   const mapMode = dragMapMode ?? (shown != null && shown < MAP_MODE_BELOW);
   /** The header's Map / Panel button. */
   /** After a run, a sheet folded to map mode rises to its middle snap, once (proto L1566). */
   const raise = () => {
-    if (isSheet() && mapMode) snapTo(snaps()[1]!);
+    if (isSheet() && mapMode) snapTo(snaps(root.current)[1]!);
   };
 
   return {

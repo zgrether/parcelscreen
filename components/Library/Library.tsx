@@ -10,9 +10,7 @@
  */
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
-import { HelpProvider } from "@/components/Help/HelpDialog";
-import { ProfilePicker } from "@/components/Profile/ProfilePicker";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import { LongName } from "@/components/LongName";
 import { shortPrice } from "@/lib/client/askingPrice";
 import {
@@ -37,7 +35,7 @@ import {
   type ParcelStore,
   type WorkingParcel,
 } from "@/lib/client/parcelStore";
-import { getPref, setPref } from "@/lib/client/prefs";
+import { getPref, onParcelsWritten, setPref } from "@/lib/client/prefs";
 import { profileRubrics, shortLabel, switchLabel } from "@/lib/client/rubrics";
 import { useKeptScreens } from "@/lib/client/useKeptScreens";
 import type { Verdict } from "@/lib/report/card";
@@ -104,6 +102,17 @@ export function Library() {
     setStore(next);
     setPref("ps.parcels", next);
   };
+  // The map stays mounted behind this tab (step 4b): a run that finishes there, or a parcel opened from here, writes the
+  // parcels too, and the list takes that in rather than writing over it later.
+  useEffect(
+    () =>
+      onParcelsWritten((next) => {
+        if (!next || next === latest.current) return;
+        latest.current = next;
+        setStore(next);
+      }),
+    [],
+  );
   const change = (key: string, edit: (p: WorkingParcel) => WorkingParcel) => {
     const next = editBuilt(latest.current, key, edit, new Date().toISOString());
     if (next !== latest.current) keep(next);
@@ -145,14 +154,10 @@ export function Library() {
   const rowsProps = { rows: shown, rubrics, ticked, toggle, open: setOpened, ordering, mover };
 
   return (
-    <HelpProvider>
+    <>
       <main className="compare library">
         <header className="compare-head">
-          <Link className="link-btn" href="/explore">
-            ← Map
-          </Link>
           <h1>Your list</h1>
-          <ProfilePicker />
           {ticked.size > 0 && (
             <button className="btn small" onClick={compare}>
               Compare {ticked.size}
@@ -230,7 +235,7 @@ export function Library() {
           />
         )}
       </main>
-    </HelpProvider>
+    </>
   );
 }
 

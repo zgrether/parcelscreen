@@ -5,6 +5,7 @@
  * desktop: above the toolbar from + Mark, or beside the point a right-click opened it at. Picking a kind starts its
  * tool; opened from the map, the mark (or a line's first point) goes where it was opened.
  */
+import { mapShowing } from "@/lib/client/mapShowing";
 import { useEffect, useRef, type CSSProperties } from "react";
 import { CHOICE_GROUPS, CHOICE_LABEL, type MarkChoice } from "@/lib/client/markChoices";
 import { useExplore } from "@/components/Explore/useExploreController";
@@ -26,7 +27,7 @@ export function MarkPicker() {
     // The first choice takes the focus, for the keyboard; Esc closes.
     box.current?.querySelector<HTMLButtonElement>(".mark-choice")?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
+      if (e.key !== "Escape" || !mapShowing()) return;
       e.preventDefault();
       close.current();
     };

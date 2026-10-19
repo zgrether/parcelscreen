@@ -17,7 +17,7 @@ import { DRAWING } from "./exploreState";
 import { Toolbar } from "@/components/Map/Toolbar";
 import { MarkPicker } from "@/components/Map/MarkPicker";
 import type { UserConfig } from "@/lib/screen/types";
-import { Menu } from "./Menu";
+import { ClearedNote } from "./ClearedNote";
 import { SwitchToast } from "./SwitchToast";
 import { LineUndoToast } from "@/components/Map/LineUndoToast";
 import { AttachListingChip } from "@/components/Map/AttachListingChip";
@@ -62,10 +62,10 @@ export function MapArea({
       <MapTools parcelServices={config.endpoints.parcels} hint={setHint} />
       <MapControls hint={setHint} />
       <ParcelTools />
-      <Menu />
       <Search photonUrl={config.endpoints.photon} hint={setHint} />
       <Hint text={hint} action={hint === OWN_RECORDS_HINT ? { label: "Draw", onClick: startDraw } : null} />
       <SwitchToast />
+      <ClearedNote />
       <LineUndoToast />
       <AttachListingChip />
       <Toolbar />
