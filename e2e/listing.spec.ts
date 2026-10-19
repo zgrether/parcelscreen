@@ -7,7 +7,7 @@
 import { centroid } from "@turf/turf";
 import { expect, test, type Page } from "@playwright/test";
 import { loadFixture } from "../test/support/fixtures";
-import { expectAllDone, importParcel, openExplorer, openFromHistory, screenIt } from "./flow";
+import { expectAllDone, importParcel, openExplorer, openFromList, screenIt } from "./flow";
 import { replayHar } from "./replay";
 
 const FERNEY = "ferney-creek-52-47A" as const;
@@ -163,7 +163,7 @@ test("a searched link is offered to the next parcel opened, and attached only wi
   await expect(chip).toHaveCount(0);
   // The next parcel opened is.
   await page.getByRole("button", { name: "Close this parcel" }).first().click();
-  await openFromHistory(page, "52-47A");
+  await openFromList(page, "52-47A");
   await expect(chip).toContainText("Attach Redfin listing (0 Ferney Creek Rd)");
   expect(await stored(page)).toMatchObject({ listingUrl: "", name: "" }); // nothing without the tap
   await chip.getByRole("button", { name: /^Attach / }).click();
@@ -179,12 +179,12 @@ test("a searched link is offered to the next parcel opened, and attached only wi
   await page.getByRole("button", { name: "Close the Info panel" }).click();
   await goToLink(page);
   await page.getByRole("button", { name: "Close this parcel" }).first().click();
-  await openFromHistory(page, "0 Ferney Creek Rd");
+  await openFromList(page, "0 Ferney Creek Rd");
   await expect(chip).toBeVisible();
   await chip.getByRole("button", { name: "Dismiss the listing link" }).click();
   await expect(chip).toHaveCount(0);
   await page.getByRole("button", { name: "Close this parcel" }).first().click();
-  await openFromHistory(page, "0 Ferney Creek Rd");
+  await openFromList(page, "0 Ferney Creek Rd");
   await expect(chip).toHaveCount(0);
   expect(await stored(page)).toMatchObject({ listingUrl: "", name: "0 Ferney Creek Rd" });
   expect(errors).toEqual([]);

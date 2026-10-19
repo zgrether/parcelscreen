@@ -30,9 +30,11 @@ import {
   type Markup,
   type LineKind,
   type MarkupKind,
+  type ParcelStore,
   type WorkingParcel,
 } from "@/lib/client/parcelStore";
-import { getPref, setPref } from "@/lib/client/prefs";
+import { getPref, onParcelsWritten, parcelsWritten, setPref } from "@/lib/client/prefs";
+import { registerLiveParcels } from "@/lib/client/liveParcels";
 import { ATTACH_MS, attachPatch, type SearchedListing } from "@/lib/client/attachListing";
 import { CancelledError } from "@/lib/http";
 import { unreachableMessage } from "@/lib/client/pwa";
@@ -78,7 +80,7 @@ export interface SavedShape {
   acres: number;
 }
 
-/** What the start-up sweep cleared (v3's clean break, B2a): History says so once. */
+/** What the start-up sweep cleared (v3's clean break, B2a): the map says so once (ClearedNote). */
 export interface ClearedNotice {
   /** Kept results that weren't the current schema. */
   results: number;
@@ -111,7 +113,7 @@ export interface ExploreController {
   panelInset: number;
   /** Desktop (and phones on their side): panels float over the map rather than the bottom sheet. */
   docked: boolean;
-  /** "{parcel} kept in History — Back" after leaving a parcel with a screen (17e), until it times out. */
+  /** "{parcel} kept on Your list — Back" after leaving a parcel with a screen (17e), until it times out. */
   toast: SwitchToast | null;
   /** Reopen the parcel the toast names. */
   back(): void;
@@ -335,11 +337,50 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
   const lookup = useRef<AbortController | null>(null);
 
   const { store } = state;
-  useEffect(() => setPref("ps.parcels", store), [store]);
+  // The stores this explorer wrote: their echo (below) isn't someone else's change.
+  const written = useRef(new WeakSet<ParcelStore>());
+  // The explorer stays mounted behind the other tabs (step 4b): what Your list (or another page, or an import while it
+  // was loading) writes is taken in, so it isn't overwritten by this copy later. Before the first save below: a write
+  // made between reading the parcels and mounting would otherwise be lost.
+  const [writesAtLoad] = useState(parcelsWritten);
+  useEffect(() => {
+    if (parcelsWritten() !== writesAtLoad) {
+      const now = getPref("ps.parcels");
+      if (now) dispatch({ type: "adopt", store: now });
+    }
+    return onParcelsWritten((next) => {
+      if (next && next !== latest.current.store && !written.current.has(next))
+        dispatch({ type: "adopt", store: next });
+    });
+  }, [dispatch, writesAtLoad]);
+  useEffect(() => {
+    written.current.add(store);
+    setPref("ps.parcels", store);
+  }, [store]);
+  // "Open on the map" from Your list, Compare or the rulebook, while the explorer is mounted: opened here, as a tap on
+  // its outline would, so the parcel left keeps its session and its Back, and refused while a screen runs.
+  const opener = useRef({ leaving, docked, refuseBusy });
+  useEffect(() => {
+    opener.current = { leaving, docked, refuseBusy };
+  });
+  // Settings' Your data (step 4b) exports and imports through the explorer while it's mounted.
+  useEffect(
+    () =>
+      registerLiveParcels({
+        store: () => latest.current.store,
+        importParcels: (added) => dispatch({ type: "imported", added }),
+        open: (key) => {
+          if (key === latest.current.store.open?.key || opener.current.refuseBusy()) return;
+          opener.current.leaving();
+          dispatch({ type: "openSaved", key, keepPanel: opener.current.docked });
+        },
+      }),
+    [dispatch],
+  );
 
   // v3's clean break (owner, #101, 2026-10-11): kept results that aren't the current schema are deleted, once, at
   // start-up (no network). Their parcels stay and re-screen when opened; one whose boundary no longer builds can't
-  // be re-screened and is dropped. History says so.
+  // be re-screened and is dropped. The map says so (ClearedNote).
   const [cleared, setCleared] = useState<ClearedNotice | null>(null);
   useEffect(() => {
     let alive = true;

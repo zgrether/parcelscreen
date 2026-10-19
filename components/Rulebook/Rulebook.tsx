@@ -1,14 +1,13 @@
 "use client";
 /**
- * "What the grade means" (value-ranking.md §8; VR7): the rulebook. At the top, the breakdown bar for a History parcel
- * (the open one, if it's screened), in the chosen person's weights; then the rules of both grades, from config and the
- * Settings. The rubric switch is the sheet's (ps.rubricView). Reached from the menu, and from each report panel's "How it's
- * scored" (its section, #rule-<panel>).
+ * The rulebook (value-ranking.md §8; VR7), Help's "How grades work" since step 4b (it was the /rulebook page, "What the
+ * grade means"; /rulebook now redirects to /help, keeping its #rule-<panel>). At the top, the breakdown bar for a parcel
+ * on the list (the open one, if it's screened), in the chosen person's weights; then the rules of both grades, from
+ * config and the Settings. The rubric switch is the sheet's (ps.rubricView). Reached from the menu's Help, from What
+ * matters to you, and from each report panel's "How it's scored" (its section, #rule-<panel>).
  */
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { HelpProvider } from "@/components/Help/HelpDialog";
-import { ProfilePicker } from "@/components/Profile/ProfilePicker";
 import { parcelName } from "@/lib/client/historyRows";
 import { openOnMap } from "@/lib/client/openOnMap";
 import { getPref } from "@/lib/client/prefs";
@@ -32,7 +31,7 @@ export function Rulebook() {
   const rb = useMemo(() => rulebook(SCREEN_CONSTANTS, config, rubrics), [config, rubrics]);
 
   const screens = useKeptScreens(built);
-  // A link to one panel's rules (a report panel's "How it's scored": /rulebook#rule-trails). The page is drawn in the
+  // A link to one panel's rules (a report panel's "How it's scored": /help#rule-trails). The page is drawn in the
   // browser, and the breakdown above the rules grows once the kept screens load, so it goes to the section itself,
   // once they have (follow-up 52).
   const loaded = screens.size === built.length;
@@ -60,16 +59,11 @@ export function Rulebook() {
   const bd = card ? breakdown(card) : null;
 
   return (
-    <HelpProvider>
-      <main className="compare rulebook">
-        <header className="compare-head">
-          <Link className="link-btn" href="/explore">
-            ← Map
-          </Link>
-          <h1>What the grade means</h1>
-          <ProfilePicker />
+    <>
+      <div className="rulebook">
+        <div className="compare-head">
           <Link className="link-btn" href="/priorities">
-            My priorities
+            What matters to you
           </Link>
           <RubricSwitch
             rubrics={rubrics}
@@ -77,7 +71,7 @@ export function Rulebook() {
             setRubric={setRubric}
             label="Whose weights grade the parcels"
           />
-        </header>
+        </div>
 
         <section className="rule-breakdown">
           <h2>A parcel&apos;s grade, row by row</h2>
@@ -85,7 +79,7 @@ export function Rulebook() {
             stale.length > 0 ? (
               <div className="muted">
                 <p>
-                  {stale.length} parcel{stale.length === 1 ? "" : "s"} in History{" "}
+                  {stale.length} parcel{stale.length === 1 ? "" : "s"} on your list{" "}
                   {stale.length === 1 ? "was" : "were"} screened under earlier rules. Open one to re-screen
                   it.
                 </p>
@@ -126,7 +120,7 @@ export function Rulebook() {
         </section>
 
         <RulebookRules rb={rb} current={rubric.id} />
-      </main>
-    </HelpProvider>
+      </div>
+    </>
   );
 }

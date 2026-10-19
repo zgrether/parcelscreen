@@ -7,6 +7,7 @@
  * to be sent to the interview (`ps.onboard`), as a person's browser always is.
  */
 import { expect, test, type Page } from "@playwright/test";
+import { openMenu } from "./flow";
 
 let errors: string[] = [];
 test.beforeEach(({ page }) => {
@@ -26,11 +27,6 @@ async function firstVisit(page: Page, path: string, onboard = true): Promise<voi
 }
 
 const progress = (page: Page) => page.locator(".iv-progress");
-
-async function openMenu(page: Page) {
-  await page.getByRole("button", { name: "Menu", exact: true }).click();
-  return page.locator(".menu-drawer");
-}
 
 test("a first visit starts with the name, comes back until put off, and Not now lets it go", async ({
   page,
@@ -57,10 +53,11 @@ test("a first visit starts with the name, comes back until put off, and Not now 
   await expect(drawer.getByRole("button", { name: "Switch profile" })).toHaveText(/Sam/);
   // Answered in part: not in the menu, but on the priorities page.
   await expect(drawer.getByRole("link", { name: /questions/ })).toHaveCount(0);
-  await drawer.getByRole("link", { name: "My priorities" }).click();
+  await page.keyboard.press("Escape");
+  await page.getByRole("link", { name: "What matters", exact: true }).click();
   await page.waitForURL("**/priorities");
   await expect(
-    page.locator(".compare-head").getByRole("link", { name: "Finish your questions (2 of 14)" }),
+    page.locator(".rubric-bar-actions").getByRole("link", { name: "Finish your questions (2 of 14)" }),
   ).toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -87,7 +84,7 @@ test("an existing profile: offered, never sent; the why lines, Reset to my answe
   for (let i = 0; i < 9; i++) await page.getByRole("button", { name: "Skip" }).click();
   await expect(page.locator(".iv-scene")).toHaveText("What matters to you");
 
-  await page.getByRole("link", { name: "Fine-tune in My priorities" }).click();
+  await page.getByRole("link", { name: "Fine-tune in What matters to you" }).click();
   await page.waitForURL("**/priorities");
   await expect(page.locator("main")).not.toContainText("Counts once the app measures it");
   const town = page.locator(".rubric-card", { hasText: "Town and hospital" }).first();
@@ -107,7 +104,7 @@ test("an existing profile: offered, never sent; the why lines, Reset to my answe
     page.getByRole("region", { name: "Really want", exact: true }).locator(".rubric-card-name"),
   ).toContainText(["Town and hospital"]);
   await expect(
-    page.locator(".compare-head").getByRole("link", { name: "Answer the questions again" }),
+    page.locator(".rubric-bar-actions").getByRole("link", { name: "Answer the questions again" }),
   ).toBeVisible();
   // Answered: the menu no longer offers the questions.
   await page.goto("/explore");

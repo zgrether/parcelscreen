@@ -247,7 +247,9 @@ test.describe("on a phone", () => {
     const bar = page.getByRole("region", { name: "Try it" });
     await expect(bar).toBeVisible();
     const box = (await bar.boundingBox())!;
-    expect(box.y + box.height).toBeGreaterThan(800);
+    // Along the bottom, on the tab bar (step 4b), as the map's sheet is.
+    const tabs = (await page.locator(".app-nav").boundingBox())!;
+    expect(box.y + box.height).toBeCloseTo(tabs.y, 0);
     await expect(bar.locator("select")).toBeVisible();
     expect((await bar.locator("select").boundingBox())!.height).toBeGreaterThanOrEqual(44);
     await expect(bar).toContainText("Septic no longer checked");

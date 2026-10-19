@@ -6,9 +6,8 @@
  * the last ten changes and Reset behind a confirm. Other rubrics the profile holds are read-only until step 5.
  */
 import Link from "next/link";
+import { GRADES_ID, GRADES_TITLE } from "@/lib/client/help";
 import { useCallback, useState } from "react";
-import { HelpProvider } from "@/components/Help/HelpDialog";
-import { ProfilePicker } from "@/components/Profile/ProfilePicker";
 import { effectiveRubrics, profileRubrics } from "@/lib/client/rubrics";
 import { reportCard } from "@/lib/report/card";
 import { useMyRubric } from "@/lib/client/useMyRubric";
@@ -72,19 +71,12 @@ export function RubricEditor() {
   const close = useCallback(() => setSheet(null), []);
 
   return (
-    <HelpProvider>
+    <>
       <main className="compare rubric-editor">
         <header className="compare-head">
-          <Link className="link-btn" href="/explore">
-            ← Map
-          </Link>
           <h1>{PAGE_TITLE}</h1>
-          <ProfilePicker />
-          <Link className="link-btn" href="/rulebook">
-            What the grade means
-          </Link>
-          <Link className="link-btn" href="/interview">
-            {interviewLabel(answers)}
+          <Link className="link-btn" href={`/help#${GRADES_ID}`}>
+            {GRADES_TITLE}
           </Link>
         </header>
 
@@ -122,6 +114,10 @@ export function RubricEditor() {
             <button type="button" className="btn secondary small" onClick={() => setConfirmReset("start")}>
               Reset to the starting list
             </button>
+            {/* The questions, beside the Resets (step 4b, plan §8): out of the header, which holds the heading. */}
+            <Link className="link-btn rubric-questions" href="/interview">
+              {interviewLabel(answers)}
+            </Link>
           </span>
         </div>
         {confirmReset && (
@@ -165,6 +161,6 @@ export function RubricEditor() {
           />
         )}
       </main>
-    </HelpProvider>
+    </>
   );
 }

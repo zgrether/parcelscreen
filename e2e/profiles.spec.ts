@@ -5,7 +5,7 @@
  * break: rows reading "Needs a re-screen", and "Re-screen all saved parcels" with Cancel.
  * A production build, the fixtures' HARs replayed.
  */
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { drawnPart } from "@/lib/geo/recipe";
 import { built } from "../test/support/parcels";
 import { loadFixture } from "../test/support/fixtures";
@@ -21,6 +21,7 @@ import {
   screenIt,
   seedScreens,
   visit,
+  openMenu,
 } from "./flow";
 import { replayHar } from "./replay";
 
@@ -33,18 +34,20 @@ test.beforeEach(({ page }) => {
   page.on("pageerror", (e) => errors.push(e.message));
 });
 
-const menu = async (page: Page) => {
-  if (!(await page.locator(".menu-drawer").count()))
-    await page.getByRole("button", { name: "Menu", exact: true }).click();
-  return page.locator(".menu-drawer");
-};
+const menu = (page: Page) => openMenu(page);
+/** Your list, by its tab (step 4b: History's parcels are there). */
+async function yourList(page: Page): Promise<void> {
+  if (await page.locator(".menu-panel").count()) await page.keyboard.press("Escape");
+  await page.getByRole("link", { name: "Your list", exact: true }).click();
+  await expect(page).toHaveURL(/\/library$/);
+}
 /** The picker's button in the menu: it shows the current profile's name. */
 const currentName = (page: Page) =>
-  page.locator(".profile-block").getByRole("button", { name: "Switch profile" });
+  page.locator(".menu-profile").getByRole("button", { name: "Switch profile" });
 /** Opens the picker's list in the menu. */
 async function openPicker(page: Page) {
   await menu(page);
-  const list = page.locator(".profile-block .profile-pop");
+  const list = page.locator(".menu-profile .profile-pop");
   if (!(await list.count())) await currentName(page).click();
   await expect(list).toBeVisible();
   return list;
@@ -56,7 +59,7 @@ async function switchTo(page: Page, name: string): Promise<void> {
   await list.locator(".profile-name", { hasText: name }).click();
   await loaded;
   await booted(page);
-  await menu(page); // the reload closed the drawer: the checks that follow read the picker in it
+  await menu(page); // the reload closed the menu: the checks that follow read the picker in it
 }
 
 test("the first visit's Profile 1; add Visitor and switch; a parcel kept in one isn't in the other; rename; delete with its screens", async ({
@@ -70,7 +73,7 @@ test("the first visit's Profile 1; add Visitor and switch; a parcel kept in one 
   await expect(currentName(page)).toHaveText(/Profile 1/);
 
   // Add Visitor: the app switches to it and opens its interview, its name first (step 4); "Not now" goes to the map,
-  // with an empty History.
+  // with an empty list.
   let list = await openPicker(page);
   await list.getByRole("button", { name: "Add a profile" }).click();
   await page.waitForURL("**/interview");
@@ -80,10 +83,11 @@ test("the first visit's Profile 1; add Visitor and switch; a parcel kept in one 
   await page.getByRole("button", { name: "Not now" }).click();
   await page.waitForURL("**/explore");
   await booted(page);
-  const drawer = await menu(page);
+  await menu(page);
   await expect(currentName(page)).toHaveText(/Visitor/);
-  await expect(drawer).toContainText("Parcels you build");
-  await page.keyboard.press("Escape");
+  await yourList(page);
+  await expect(page.locator("main")).toContainText("Nothing on your list yet");
+  await page.getByRole("link", { name: "Map", exact: true }).click();
 
   // A parcel screened under Visitor: kept under Visitor alone. A fresh profile holds its own rubric alone: no switch.
   await importParcel(page, FERNEY);
@@ -91,11 +95,12 @@ test("the first visit's Profile 1; add Visitor and switch; a parcel kept in one 
   await expect(page.locator(".card-person")).toHaveCount(0);
   expect(await keptScreenCount(page)).toBe(1);
 
+  await yourList(page);
   await switchTo(page, "Profile 1");
   await expect(currentName(page)).toHaveText(/Profile 1/);
-  await expect(page.locator(".menu-drawer li", { hasText: "52-47A" })).toHaveCount(0);
+  await expect(page.locator(".lib-row:visible", { hasText: "52-47A" })).toHaveCount(0);
   await switchTo(page, "Visitor");
-  await expect(page.locator(".menu-drawer li", { hasText: "52-47A" })).toHaveCount(1);
+  await expect(page.locator(".lib-row:visible", { hasText: "52-47A" })).toHaveCount(1);
 
   // Rename Visitor to Julie, in place; then delete it: its screen goes with it, and Profile 1 is current again.
   list = await openPicker(page);
@@ -109,7 +114,7 @@ test("the first visit's Profile 1; add Visitor and switch; a parcel kept in one 
   const julie = list.locator("li", { hasText: "Julie" });
   await julie.getByRole("button", { name: "Delete" }).click();
   await expect(julie.getByRole("alert")).toContainText(
-    "Delete Julie? Its History, screens and settings go with it.",
+    "Delete Julie? Its parcels, screens and settings go with it.",
   );
   const reloaded = page.waitForEvent("load");
   await julie.getByRole("alert").getByRole("button", { name: "Delete" }).click();
@@ -144,7 +149,8 @@ test("a pre-profile store is dropped: an empty Profile 1, the menu's line once, 
   await menu(page);
   await expect(currentName(page)).toHaveText(/Profile 1/);
   await expect(page.locator(".old-data-note")).toHaveText("Saved with an older version; screen it again.");
-  await expect(page.locator(".menu-drawer li", { hasText: "Ferney Creek" })).toHaveCount(0);
+  await yourList(page);
+  await expect(page.locator(".lib-row:visible", { hasText: "Ferney Creek" })).toHaveCount(0);
   const left = await page.evaluate(() =>
     Object.keys(localStorage).filter(
       (k) => k.startsWith("ps.legacy.") || k === "ps.parcels" || k === "ps.person",
@@ -193,48 +199,59 @@ test("after a clean break: rows read Needs a re-screen; Re-screen all saved parc
   expect(errors).toEqual([]);
 });
 
-/** Menus stay inside the window (owner, 10/18: the profile menu was cut off at the right edge). */
+/** Every corner of `el` (12 px in) is inside the window, and is `el` where a click would land. */
+const fullyVisible = (el: Locator): Promise<boolean> =>
+  el.evaluate((e) => {
+    const r = e.getBoundingClientRect();
+    return [
+      [r.left + 12, r.top + 12],
+      [r.right - 12, r.top + 12],
+      [r.left + 12, r.bottom - 12],
+      [r.right - 12, r.bottom - 12],
+    ].every(([x, y]) => {
+      const hit = document.elementFromPoint(x!, y!);
+      return x! < window.innerWidth && y! < window.innerHeight && !!hit && e.contains(hit);
+    });
+  });
+
+/**
+ * Menus stay inside the window (owner, 10/18: the profile menu was cut off at the right edge): the menu (step 4b: a
+ * panel under ☰ on a desktop, More's sheet on a phone) and the profile list inside it, on every page, in a short window
+ * too.
+ */
 for (const size of [
   { width: 1280, height: 800 },
+  { width: 1280, height: 480 },
   { width: 375, height: 812 },
 ])
-  test.describe(`at ${size.width} px`, () => {
+  test.describe(`at ${size.width} × ${size.height}`, () => {
     test.use({ viewport: size });
 
-    test("the profile menu is fully visible on every page that has one", async ({ page }) => {
+    test("the menu, and the profile list in it, are fully visible on every page", async ({ page }) => {
       await page.addInitScript(() => {
         if (sessionStorage.getItem("e2e")) return;
         sessionStorage.setItem("e2e", "1");
         localStorage.clear();
         localStorage.setItem("ps.debug", "1");
       });
-      for (const path of ["/priorities", "/library", "/rulebook"]) {
+      for (const path of ["/priorities", "/library", "/rulebook", "/explore"]) {
         await page.goto(path);
-        await page.locator(".compare-head").getByRole("button", { name: "Switch profile" }).click();
-        const pop = page.locator(".compare-head .profile-pop");
-        await expect(pop).toBeVisible();
-        await expect(pop.getByRole("button", { name: "Add a profile" })).toBeVisible();
-        // The menu has placed itself (useKeepInView runs after layout), and nothing clips it: each of its corners (12 px in, past the rounding) is
-        // inside the window and is the menu itself where a click would land there, not the page beneath or beyond a
-        // scrolling <main>'s edge (the first version of this check passed while <main> cut the menu off).
+        // What matters' Try it bar is up first: on a phone it sits along the bottom, where More's sheet opens.
+        if (path === "/priorities") await expect(page.getByRole("region", { name: "Try it" })).toBeVisible();
+        const panel = await openMenu(page);
+        // The menu has placed itself (useKeepInView runs after layout), and nothing clips it: each of its corners (12 px
+        // in, past the rounding) is inside the window and is the menu itself where a click would land there, not the
+        // page beneath (the first version of this check passed while a scrolling <main> cut a menu off).
+        await expect.poll(() => fullyVisible(panel), { message: `the menu on ${path}` }).toBe(true);
+        // A short window: the menu scrolls inside itself, and the profile list's last item is reachable.
+        await currentName(page).click();
+        const add = page.locator(".menu-profile .profile-pop").getByRole("button", { name: "Add a profile" });
+        await add.scrollIntoViewIfNeeded();
+        await expect(add).toBeInViewport();
         await expect
-          .poll(
-            () =>
-              pop.evaluate((el) => {
-                const r = el.getBoundingClientRect();
-                return [
-                  [r.left + 12, r.top + 12],
-                  [r.right - 12, r.top + 12],
-                  [r.left + 12, r.bottom - 12],
-                  [r.right - 12, r.bottom - 12],
-                ].every(([x, y]) => {
-                  const hit = document.elementFromPoint(x!, y!);
-                  return x! < window.innerWidth && y! < window.innerHeight && !!hit && el.contains(hit);
-                });
-              }),
-            { message: `the profile menu on ${path}` },
-          )
+          .poll(() => fullyVisible(panel), { message: `the menu with its list on ${path}` })
           .toBe(true);
+        await page.keyboard.press("Escape");
       }
       expect(errors).toEqual([]);
     });

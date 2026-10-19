@@ -5,6 +5,7 @@
  * toggle beneath it. A slide-over like Info (one panel at a time): the basemaps as radio rows, the map layers,
  * then the terrain preview. Esc or × closes it.
  */
+import { mapShowing } from "@/lib/client/mapShowing";
 import { useEffect, useRef } from "react";
 import { useExplore } from "@/components/Explore/useExploreController";
 import { RoadsToggle } from "./RoadsToggle";
@@ -22,8 +23,8 @@ export function MapPanel() {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape" || e.defaultPrevented) return;
-      if (document.querySelector(".menu-layer, .ground-layer, dialog[open]")) return;
+      if (e.key !== "Escape" || e.defaultPrevented || !mapShowing()) return;
+      if (document.querySelector(".menu-panel, .ground-layer, dialog[open]")) return;
       e.preventDefault();
       close.current();
     };

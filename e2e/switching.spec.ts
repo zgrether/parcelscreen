@@ -1,6 +1,6 @@
 /**
  * Parcel switching and live sessions (step 17e; plan phase-0-17e-switching.md §1): switching is immediate,
- * with "{parcel} kept in History — Back" when the parcel left had a screen; a screened parcel reopened while
+ * with "{parcel} kept on Your list — Back" when the parcel left had a screen; a screened parcel reopened while
  * its session is kept comes back with its overlays live and no network; nothing switches while a screen runs;
  * the × and Esc close the parcel with the same toast.
  */
@@ -12,9 +12,10 @@ import {
   EXPECTED_MSG,
   importParcels,
   openExplorer,
-  openFromHistory,
+  openFromList,
   postedResult,
   screenIt,
+  listRow,
 } from "./flow";
 import { replayHar } from "./replay";
 
@@ -36,24 +37,23 @@ test("switching keeps screened parcels live: back to one with no re-run and no n
   await openExplorer(page, FERNEY);
   await importParcels(page, [FERNEY, MACKS]);
 
-  await openFromHistory(page, "52-47A");
+  await openFromList(page, "52-47A");
   expectAllDone(await screenIt(page));
   expect(await live(page)).toBe(true);
 
   // Another parcel: switches at once; the screened one is kept, with Back.
-  await openFromHistory(page, "35-3");
-  await expect(toast(page)).toContainText("52-47A kept in History");
+  await openFromList(page, "35-3");
+  await expect(toast(page)).toContainText("52-47A kept on Your list");
   await page
     .locator("button", { hasText: /^Screen it$/ })
     .first()
     .click();
   // While it runs, no switching (and no cancel).
   await expect(page.locator("button", { hasText: /^Running…$/ }).first()).toBeVisible();
-  await page.getByRole("button", { name: "Menu", exact: true }).click();
-  await page
-    .locator(".menu-drawer li", { hasText: "52-47A" })
-    .getByRole("button", { name: "Open", exact: true })
-    .click();
+  await page.getByRole("link", { name: "Your list", exact: true }).click();
+  await listRow(page, "52-47A").click();
+  await page.getByRole("link", { name: "Open on the map" }).click();
+  await expect(page).toHaveURL(/\/explore$/);
   await expect(page.locator(".map-hint")).toHaveText(BUSY_TEXT);
   await expect(page.locator(".sh-name").first()).toContainText("35-3");
   await expect(page.locator("button", { hasText: /^Run again$/ }).first()).toBeVisible({ timeout: 200_000 });
@@ -61,8 +61,8 @@ test("switching keeps screened parcels live: back to one with no re-run and no n
 
   // Back to Ferney: its session is still kept, so it's live again with no request at all.
   const servedBefore = net.served.length;
-  await openFromHistory(page, "52-47A");
-  await expect(toast(page)).toContainText("35-3 kept in History");
+  await openFromList(page, "52-47A");
+  await expect(toast(page)).toContainText("35-3 kept on Your list");
   await expect.poll(() => live(page)).toBe(true);
   expect(againstExpected(await postedResult(page), FERNEY, "run"), EXPECTED_MSG).toEqual([]);
   // The toast's Back: Macks again, live, still nothing asked of the network.
@@ -76,7 +76,7 @@ test("switching keeps screened parcels live: back to one with no re-run and no n
   // The ×: closes the parcel with the same toast; Back reopens it.
   await page.getByRole("button", { name: "Close this parcel" }).first().click();
   await expect(page.locator(".sh-name")).toHaveCount(0);
-  await expect(toast(page)).toContainText("35-3 kept in History");
+  await expect(toast(page)).toContainText("35-3 kept on Your list");
   await toast(page).getByRole("button", { name: "Back" }).click();
   await expect(page.locator(".sh-name").first()).toContainText("35-3");
   // Nothing else ran since: still the worker's current run, and live again for this new open (18b).

@@ -107,7 +107,7 @@ export function InterviewResult({ iv }: { iv: Interview }) {
 
       <nav className="iv-done">
         <Link className="btn" href="/priorities">
-          Fine-tune in My priorities
+          Fine-tune in What matters to you
         </Link>
         <Link className="btn secondary" href="/explore">
           Done

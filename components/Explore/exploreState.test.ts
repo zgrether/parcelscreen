@@ -507,6 +507,30 @@ describe("import (16b)", () => {
   });
 });
 
+describe("adopting what another page wrote (step 4b: the map stays mounted behind the tabs)", () => {
+  it("the same parcel open: its data changes, the tool and the panel stay", () => {
+    const s = run([selectA(), house(), { type: "info", open: true }]);
+    const renamed = { ...s.store.open!, name: "Renamed on Your list" };
+    const t = exploreReducer(s, {
+      type: "adopt",
+      store: {
+        ...s.store,
+        open: renamed,
+        built: s.store.built.map((b) => (b.key === renamed.key ? renamed : b)),
+      },
+    });
+    expect(t.store.open!.name).toBe("Renamed on Your list");
+    expect([t.serial, t.info, t.mode]).toEqual([s.serial, s.info, s.mode]);
+  });
+
+  it("another parcel open, or none: as a switch, the tool and the panel closed", () => {
+    const s = run([selectA(), house(), { type: "info", open: true }]);
+    const t = exploreReducer(s, { type: "adopt", store: { ...s.store, open: null } });
+    expect(t.store.open).toBeNull();
+    expect([t.serial, t.info, t.mode]).toEqual([s.serial + 1, false, null]);
+  });
+});
+
 describe("drawn lines (follow-up 34)", () => {
   const draw = (kind: "track" | "easement", pts: LatLon[]): ExploreAction[] => [
     { type: "startLine", kind },

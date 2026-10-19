@@ -5,6 +5,7 @@
  * phone. A production build; no parcel is needed (Try it grades the Mud Creek sample).
  */
 import { expect, test, type Page } from "@playwright/test";
+import { settled } from "./flow";
 
 let errors: string[] = [];
 test.beforeEach(({ page }) => {
@@ -104,7 +105,7 @@ test("a full run as Person A, with Back and Skip: the result, and the priorities
   await page.getByRole("button", { name: "Next" }).click();
   await expect(page.locator(".iv-scene")).toHaveText("What matters to you");
 
-  await page.getByRole("link", { name: "Fine-tune in My priorities" }).click();
+  await page.getByRole("link", { name: "Fine-tune in What matters to you" }).click();
   const should = page.getByRole("region", { name: "Really want", exact: true }).locator(".rubric-card-name");
   await expect(should.first()).toContainText("Elevation at the build site");
   await expect(should.first()).toContainText("also a limit");
@@ -153,6 +154,8 @@ test("a changed list: the result asks, and Keep my changes keeps it", async ({ p
   await page.locator(".rubric-card", { hasText: "Septic" }).first().locator(".rubric-card-body").click();
   await page.getByRole("dialog").getByRole("button", { name: "Don't care" }).click();
   await page.keyboard.press("Escape");
+  // The change kept before the page goes (the profile's store writes through asynchronously).
+  await settled(page);
   await page.goto("/interview");
   await pick(page, "Cool and snowy", 2);
   for (let n = 3; n <= 14; n++) {

@@ -9,6 +9,7 @@
  *
  * Keys: Delete or Backspace deletes the selected layer; Esc clears the selection, then closes the panel.
  */
+import { mapShowing } from "@/lib/client/mapShowing";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { length, lineString } from "@turf/turf";
 import {
@@ -97,7 +98,7 @@ function Panel({ ctl, root }: { ctl: ExploreController; root: LayerNode }) {
     const onKey = (e: KeyboardEvent) => {
       const k = keys.current;
       const s = k.ctl.current();
-      if (e.defaultPrevented || s.mode || s.split) return;
+      if (e.defaultPrevented || s.mode || s.split || !mapShowing()) return;
       if ((e.target as HTMLElement | null)?.closest("input,select,textarea")) return;
       if ((e.key === "Delete" || e.key === "Backspace") && s.layer && k.selected.deletable) {
         e.preventDefault();
@@ -542,7 +543,7 @@ function ParcelActions({ ctl }: { ctl: ExploreController }) {
   if (confirming)
     return (
       <>
-        <span className="ip-ask">Remove it? It leaves History and the map.</span>
+        <span className="ip-ask">Remove it? It leaves your list and the map.</span>
         <Btn kind="danger" onClick={() => ctl.removeSaved(open.key!)}>
           Remove
         </Btn>

@@ -33,7 +33,7 @@ export const PANEL_KEYS = Object.keys(PANELS) as PanelKey[];
 
 /** The panel's section on the rulebook page: its id there, and the link from the panel's "How it's scored". */
 export const ruleAnchor = (key: PanelKey): string => `rule-${key}`;
-export const rulebookHref = (key: PanelKey): string => `/rulebook#${ruleAnchor(key)}`;
+export const rulebookHref = (key: PanelKey): string => `/help#${ruleAnchor(key)}`;
 
 export interface PanelText {
   title: string;

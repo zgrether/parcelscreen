@@ -1,9 +1,11 @@
 "use client";
 /**
- * The help dialog (proto L286–339, L1617–1622): "How to read this" from the app menu, and each report
- * section's "?" link, which opens it at that section's notes. A native <dialog>, so Esc closes it and focus
+ * The help dialog (proto L286–339, L1617–1622): each report section's "?" link opens it at that section's notes, over
+ * the parcel. Since step 4b the menu's Help is a page (/help) holding these notes and how grades work; the dialog
+ * links to it at its foot ("All of Help"). A native <dialog>, so Esc closes it and focus
  * stays inside while it's open; a tap on the backdrop closes it too.
  */
+import Link from "next/link";
 import { createContext, useCallback, useContext, useRef, type ReactNode } from "react";
 import { HelpText } from "./HelpText";
 
@@ -50,6 +52,11 @@ export function HelpProvider({ children }: { children: ReactNode }) {
         </header>
         <div ref={body} className="help-body">
           <HelpText />
+          <p className="help-all">
+            <Link href="/help" onClick={() => dialog.current?.close()}>
+              All of Help
+            </Link>
+          </p>
         </div>
       </dialog>
     </HelpContext.Provider>

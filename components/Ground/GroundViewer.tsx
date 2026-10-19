@@ -14,6 +14,7 @@
  * Everything comes from the shown result (lib/render/ground, lib/render/night), plus the ridges by distance from
  * the screen's own 30 m DEM, fetched on open (useRidges).
  */
+import { mapShowing } from "@/lib/client/mapShowing";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -123,7 +124,7 @@ export function GroundViewer({
 
   // Esc closes.
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && mapShowing() && close();
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [close]);

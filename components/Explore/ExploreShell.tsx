@@ -7,6 +7,8 @@
  *     result, grows the card into a full-height panel. The panel folds back to the card, which then shows
  *     the verdict line. The map is padded by whichever is showing, and never moves when it changes.
  * The parcel tools' state is shared by the panel and the map through ExploreContext.
+ * It stays mounted behind the other tabs (step 4b, components/Nav/AppFrame.tsx); Settings and the help dialog are the
+ * frame's. On a phone the tab bar steps aside while a map tool is in use (html.map-tool).
  * Rendered client-side only (see ExploreClient): the map and the sheet need the browser.
  */
 import {
@@ -18,17 +20,15 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import { loadUserConfig, saveUserConfig } from "@/lib/client/userConfig";
-import type { UserConfig } from "@/lib/screen/types";
-import { SettingsProvider } from "@/components/Settings/SettingsDialog";
+import { useSettings } from "@/components/Settings/SettingsDialog";
 import { GroundProvider } from "@/components/Ground/GroundContext";
 import { PwaShell } from "@/components/Pwa/PwaShell";
 import { MapArea } from "./MapArea";
-import { HelpProvider } from "@/components/Help/HelpDialog";
+import { mapShowing } from "@/lib/client/mapShowing";
 import { ScreenItContext } from "@/components/Results/ScreenItContext";
 import { debugFromUrl } from "@/lib/client/debugHandle";
 import { ScreenBody, ScreenHeader, useScreenIt } from "@/components/Results/panel/ScreenIt";
-import { useBottomSheet } from "./useBottomSheet";
+import { SHEET_QUERY, useBottomSheet } from "./useBottomSheet";
 import { ExploreContext, useExploreController } from "./useExploreController";
 
 /** The floating card's and panel's widths, and their gap from the map's edge (desktop). */
@@ -50,21 +50,44 @@ function useFloatWidths(): { card: number; panel: number } {
   return { card: Math.min(CARD_W, panel), panel };
 }
 
+/**
+ * The phone's tab bar height, px: the map reaches under it (its canvas, .map-canvas), so the map's padding keeps the
+ * view's centre above it. Held while the bar steps aside for a tool, so the map doesn't move under the tool.
+ */
+function useTabsHeight(): number {
+  const [h, setH] = useState(0);
+  useEffect(() => {
+    const measure = () => {
+      if (!window.matchMedia(SHEET_QUERY).matches) return setH(0);
+      const nav = document.querySelector<HTMLElement>(".app-nav");
+      const px = nav?.offsetHeight ?? 0;
+      if (px > 0 || !nav) setH(px);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+  return h;
+}
+
 export function ExploreShell({ children }: { children?: ReactNode }) {
   const root = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLElement>(null);
   // Live (16a): a Settings save is used by the next run, and the open results get "used earlier settings".
-  const [config, setConfig] = useState(loadUserConfig);
-  const saveConfig = useCallback((c: UserConfig) => {
-    saveUserConfig(c);
-    setConfig(c);
-  }, []);
+  const { config } = useSettings();
   const [hint, setHintState] = useState("");
   const setHint = useCallback((t: string | ((prev: string) => string)) => setHintState(t), []);
   const explore = useExploreController(config.endpoints.parcels, setHint);
   // On phones the sheet steps aside to its peek while a map tool or the Info panel has the screen (13e-6).
   const { mode, split, info, store, serial } = explore.state;
   const sheet = useBottomSheet(root, panel, mode !== null || split !== null || (info && store.open !== null));
+  // A map tool has the screen: on a phone the tab bar steps aside too (step 4b; CSS, only while the map is showing).
+  const tool = mode !== null || split !== null;
+  useEffect(() => {
+    document.documentElement.classList.toggle("map-tool", tool);
+    return () => document.documentElement.classList.remove("map-tool");
+  }, [tool]);
+  const tabs = useTabsHeight();
   const screen = useScreenIt(explore, config, sheet.raise, setHint);
   // Esc on desktop closes the open parcel (17e), when nothing else should take it: no map tool, no panel, no
   // menu, viewer or dialog, no text field. Those keep their own Esc.
@@ -75,11 +98,11 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const { explore: x, docked: desk } = escape.current;
-      if (e.key !== "Escape" || e.defaultPrevented || !desk) return;
+      if (e.key !== "Escape" || e.defaultPrevented || !desk || !mapShowing()) return;
       const s = x.current();
       if (!s.store.open || s.mode || s.split || s.info || s.mapPanel) return;
       if ((e.target as HTMLElement | null)?.closest("input,select,textarea,[contenteditable]")) return;
-      if (document.querySelector(".menu-layer, .ground-layer, dialog[open]")) return;
+      if (document.querySelector(".menu-panel, .ground-layer, dialog[open]")) return;
       x.close();
     };
     document.addEventListener("keydown", onKey);
@@ -130,43 +153,39 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
 
   return (
     <ExploreContext.Provider value={explore}>
-      <HelpProvider>
-        <SettingsProvider config={config} onSave={saveConfig}>
-          <ScreenItContext.Provider value={screen}>
-            <GroundProvider timeZone={config.timeZone} endpoints={config.endpoints}>
-              <div ref={root} className="explore" style={vars as CSSProperties}>
-                <div className="explore-map">
-                  <MapArea
-                    config={config}
-                    hint={hint}
-                    setHint={setHint}
-                    bottomInset={sheet.inset}
-                    leftInset={leftInset}
-                  />
+      <ScreenItContext.Provider value={screen}>
+        <GroundProvider timeZone={config.timeZone} endpoints={config.endpoints}>
+          <div ref={root} className="explore" style={vars as CSSProperties}>
+            <div className="explore-map">
+              <MapArea
+                config={config}
+                hint={hint}
+                setHint={setHint}
+                bottomInset={sheet.inset + tabs}
+                leftInset={leftInset}
+              />
+            </div>
+            <aside
+              ref={panel}
+              className={panelClass}
+              style={sheet.height != null ? { height: sheet.height } : undefined}
+            >
+              <div className="sheet-handle" title="Drag or tap to resize" {...sheet.handlers} />
+              {/* One line, always: the parcel and the screen button (owner, after 14d). On phones it's the peek. */}
+              <header className="explore-header" {...sheet.handlers}>
+                <ScreenHeader s={screen} desk={docked ? { expanded, fold } : null} />
+              </header>
+              {(!docked || expanded) && (
+                <div className="explore-scroll">
+                  <ScreenBody s={screen} />
+                  {children}
                 </div>
-                <aside
-                  ref={panel}
-                  className={panelClass}
-                  style={sheet.height != null ? { height: sheet.height } : undefined}
-                >
-                  <div className="sheet-handle" title="Drag or tap to resize" {...sheet.handlers} />
-                  {/* One line, always: the parcel and the screen button (owner, after 14d). On phones it's the peek. */}
-                  <header className="explore-header" {...sheet.handlers}>
-                    <ScreenHeader s={screen} desk={docked ? { expanded, fold } : null} />
-                  </header>
-                  {(!docked || expanded) && (
-                    <div className="explore-scroll">
-                      <ScreenBody s={screen} />
-                      {children}
-                    </div>
-                  )}
-                </aside>
-              </div>
-              <PwaShell running={screen.running} />
-            </GroundProvider>
-          </ScreenItContext.Provider>
-        </SettingsProvider>
-      </HelpProvider>
+              )}
+            </aside>
+          </div>
+          <PwaShell running={screen.running} />
+        </GroundProvider>
+      </ScreenItContext.Provider>
     </ExploreContext.Provider>
   );
 }
