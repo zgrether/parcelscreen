@@ -8,6 +8,7 @@
 import Link from "next/link";
 import { PLACES, placeOf, type PlaceId } from "@/lib/client/places";
 import { Menu } from "./Menu";
+import { SyncIndicator } from "@/components/Sync/SyncStatus";
 
 export function Places({ pathname }: { pathname: string }) {
   const here = placeOf(pathname);
@@ -26,6 +27,8 @@ export function Places({ pathname }: { pathname: string }) {
           </li>
         ))}
         <li className="app-more-item">
+          {/* Step 5: Synced / Not saved, beside ☰ on a desktop (on a phone it's in More's sheet). */}
+          <SyncIndicator where="bar" />
           <Menu />
         </li>
       </ul>
