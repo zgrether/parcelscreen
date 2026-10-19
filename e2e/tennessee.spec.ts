@@ -97,6 +97,10 @@ async function openAt(page: import("@playwright/test").Page, view: typeof KNOXVI
     localStorage.clear();
     localStorage.setItem("ps.debug", "1");
     localStorage.setItem("ps.roads", "0");
+    // No hillshade or contours: their tiles aren't recorded, and the replay aborts them, whose "Terrain tiles didn't
+    // load" could take the one hint slot after the hint this reads (it did, in CI).
+    localStorage.setItem("ps.hillshade", "0");
+    localStorage.setItem("ps.contours", "0");
     localStorage.setItem("ps.view", JSON.stringify(v));
   }, view);
   await page.goto("/explore");
