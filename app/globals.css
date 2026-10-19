@@ -1511,7 +1511,7 @@ html:has(.explore) body {
   /* The column ends above the sheet's peek (92 px), so the tab bar's 56 px (step 4b) don't push its last control under
      the sheet: with a layer's legend in it on a short phone, the zoom slider gives up length first. */
   .map-col {
-    max-height: calc(100% - 52px - 92px - 10px);
+    max-height: calc(100% - 52px - var(--peek, 92px) - 10px);
   }
   .map-col > :not(.zoom-box) {
     flex-shrink: 0;

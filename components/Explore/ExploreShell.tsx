@@ -30,7 +30,7 @@ import { ScreenItContext } from "@/components/Results/ScreenItContext";
 import { debugFromUrl } from "@/lib/client/debugHandle";
 import { DockTab, ScreenBody, ScreenHeader, useScreenIt } from "@/components/Results/panel/ScreenIt";
 import { GradeAction } from "@/components/Results/panel/GradeAction";
-import { SHEET_QUERY, useBottomSheet } from "./useBottomSheet";
+import { PEEK, PEEK_WITH_ACTION, SHEET_QUERY, useBottomSheet } from "./useBottomSheet";
 import { ExploreContext, useExploreController } from "./useExploreController";
 
 /** The docked panel's width (desktop; step 4c). */
@@ -104,7 +104,21 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   const explore = useExploreController(config.endpoints.parcels, setHint);
   // On phones the sheet steps aside to its peek while a map tool or the Info panel has the screen (13e-6).
   const { mode, split, info, store } = explore.state;
-  const sheet = useBottomSheet(root, panel, mode !== null || split !== null || (info && store.open !== null));
+  // The screen's "after a run, rise" calls the sheet's, which is made below (the sheet's peek depends on the screen).
+  const raiseSheet = useRef<() => void>(() => {});
+  const raise = useCallback(() => raiseSheet.current(), []);
+  const screen = useScreenIt(explore, config, raise, setHint);
+  // The phone's peek holds the grade button under the header while it shows (owner, 4c: 148 px), else 92 px.
+  const peek = !explore.docked && store.open && screen.grade ? PEEK_WITH_ACTION : PEEK;
+  const sheet = useBottomSheet(
+    root,
+    panel,
+    mode !== null || split !== null || (info && store.open !== null),
+    peek,
+  );
+  useEffect(() => {
+    raiseSheet.current = sheet.raise;
+  });
   // A map tool has the screen: on a phone the tab bar steps aside too (step 4b; CSS, only while the map is showing).
   const tool = mode !== null || split !== null;
   useEffect(() => {
@@ -112,7 +126,6 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
     return () => document.documentElement.classList.remove("map-tool");
   }, [tool]);
   const tabs = useTabsHeight();
-  const screen = useScreenIt(explore, config, sheet.raise, setHint);
   // Esc on desktop closes the open parcel (17e), when nothing else should take it: no map tool, no panel, no
   // menu, viewer or dialog, no text field. Those keep their own Esc.
   const escape = useRef({ explore, docked: explore.docked });
@@ -160,6 +173,8 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   const vars: Record<string, string> = {};
   // The sheet's height, for what sits on the map above it (hint, attribution).
   if (sheet.height != null) vars["--sheet-h"] = sheetHidden ? "0px" : `${sheet.height}px`;
+  // The right-hand column ends above the peek, whichever it is (step 4c).
+  vars["--peek"] = `${peek}px`;
   if (docked) {
     vars["--dock-w"] = `${dockW}px`;
     // What's centred along the map's bottom (toolbar, hint) centres on the visible map: clear of the full panel on the

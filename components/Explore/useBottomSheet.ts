@@ -17,6 +17,9 @@
  * doesn't change (the map doesn't move under a tool); afterwards the sheet is back where it was.
  *
  * Its snaps are shares of the explorer's own height, the space above the tab bar (step 4b), not of the window's.
+ *
+ * The peek fits what the header holds (owner, step 4c): 92 px, or 148 px while the grade button shows under the header
+ * (the two-line name, its acres and the button). A sheet resting at its peek follows it; 46% and 88% don't change.
  */
 import { useCallback, useEffect, useRef, useState, type PointerEvent, type RefObject } from "react";
 
@@ -25,8 +28,11 @@ export const SHEET_QUERY = "(max-width: 860px) and (orientation: portrait)";
 const isSheet = () => typeof window !== "undefined" && window.matchMedia(SHEET_QUERY).matches;
 /** The space the sheet has: the explorer's height, above the tab bar. */
 const space = (root: HTMLElement | null) => root?.clientHeight || window.innerHeight;
-const snaps = (root: HTMLElement | null) => [
-  92,
+/** The peek: the header alone, or the header with the grade button under it (step 4c). */
+export const PEEK = 92;
+export const PEEK_WITH_ACTION = 148;
+const snaps = (root: HTMLElement | null, peek: number) => [
+  peek,
   Math.round(space(root) * 0.46),
   Math.round(space(root) * 0.88),
 ];
@@ -39,10 +45,12 @@ export function useBottomSheet(
   root: RefObject<HTMLElement | null>,
   panel: RefObject<HTMLElement | null>,
   stepAside = false,
+  peek = PEEK,
 ) {
-  // The settled height: the peek at first. The explorer renders client-side only, so this runs in the
-  // browser.
-  const [height, setHeight] = useState<number | null>(() => (isSheet() ? snaps(null)[0]! : null));
+  // The settled height: the peek at first. "peek" rather than its pixels, so a sheet resting there follows the peek as
+  // it changes (step 4c). The explorer renders client-side only, so this runs in the browser.
+  const [settled, setSettled] = useState<number | "peek" | null>(() => (isSheet() ? "peek" : null));
+  const height = settled === "peek" ? peek : settled;
   const [dragMapMode, setDragMapMode] = useState<boolean | null>(null);
   const drag = useRef<{ startY: number; startH: number; moved: boolean; h: number } | null>(null);
 
@@ -58,7 +66,7 @@ export function useBottomSheet(
 
   const snapTo = useCallback(
     (px: number) => {
-      const s = snaps(root.current);
+      const s = snaps(root.current, peek);
       const target = s.reduce((a, b) => (Math.abs(b - px) < Math.abs(a - px) ? b : a), s[0]!);
       // Written to the DOM as well as to state: when the drag ends where it started, the state doesn't
       // change and React wouldn't touch the dragged height.
@@ -66,15 +74,15 @@ export function useBottomSheet(
       p?.style.setProperty("transition", `height ${SNAP_MS}ms`);
       paint(target);
       setDragMapMode(null);
-      setHeight(target);
+      setSettled(target === s[0] ? "peek" : target);
       setTimeout(() => p?.style.removeProperty("transition"), SNAP_MS + 20);
     },
-    [paint, panel, root],
+    [paint, panel, root, peek],
   );
 
   useEffect(() => {
     // Back to portrait (or narrow again): the height it had, else the peek.
-    const onResize = () => setHeight((h) => (isSheet() ? (h ?? snaps(null)[0]!) : null));
+    const onResize = () => setSettled((h) => (isSheet() ? (h ?? "peek") : null));
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
@@ -89,6 +97,17 @@ export function useBottomSheet(
     const t = setTimeout(() => p?.style.removeProperty("transition"), SNAP_MS + 20);
     return () => clearTimeout(t);
   }, [aside, panel]);
+
+  const atPeek = settled === "peek";
+  const firstPeek = useRef(true);
+  useEffect(() => {
+    if (firstPeek.current) return void (firstPeek.current = false);
+    if (!atPeek) return;
+    const p = panel.current;
+    p?.style.setProperty("transition", `height ${SNAP_MS}ms`);
+    const t = setTimeout(() => p?.style.removeProperty("transition"), SNAP_MS + 20);
+    return () => clearTimeout(t);
+  }, [peek, atPeek, panel]);
 
   const handlers = {
     onPointerDown: (e: PointerEvent<HTMLElement>) => {
@@ -111,18 +130,19 @@ export function useBottomSheet(
       if (!d) return;
       drag.current = null;
       if (!d.moved) {
-        const s = snaps(root.current);
+        const s = snaps(root.current, peek);
         snapTo(d.h < s[1]! * 0.8 ? s[1]! : d.h < s[2]! * 0.9 ? s[2]! : s[0]!);
       } else snapTo(d.h);
     },
   };
 
-  const shown = aside ? Math.min(height, snaps(null)[0]!) : height;
+  // A tool or the Info panel has the screen: the plain peek, whatever the header holds.
+  const shown = aside ? Math.min(height, PEEK) : height;
   const mapMode = dragMapMode ?? (shown != null && shown < MAP_MODE_BELOW);
   /** The header's Map / Panel button. */
-  /** After a run, a sheet folded to map mode rises to its middle snap, once (proto L1566). */
+  /** After a run, a sheet at its peek (or folded to map mode) rises to its middle snap, once (proto L1566). */
   const raise = () => {
-    if (isSheet() && mapMode) snapTo(snaps(root.current)[1]!);
+    if (isSheet() && (settled === "peek" || mapMode)) snapTo(snaps(root.current, peek)[1]!);
   };
 
   return {

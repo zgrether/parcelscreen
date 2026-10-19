@@ -54,8 +54,10 @@ test("a drawn line: the banner, its layer and details (name, kind, condition, wi
   await importParcel(page, FERNEY);
   expectAllDone(await screenIt(page));
   await drawTrack(page);
+  // The grade button names the reason (step 4c).
+  await expect(page.locator(".grade-btn")).toHaveText("Grade again: lines changed");
 
-  // The results stay, under the owner's banner, with today's Run again as "Let the app consider it".
+  // The results stay, under the owner's banner, with "Let the app consider it" (it runs the grade again).
   const banner = page.locator(".card-stale");
   await expect(banner).toContainText("You drew or changed a line after this screen.");
   await expect(banner.getByRole("button", { name: "Let the app consider it" })).toBeVisible();

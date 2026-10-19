@@ -106,19 +106,27 @@ test.describe("a phone at 375 × 667", () => {
       expect(s.y + s.height, `${label}: the sheet sits on the tab bar`).toBeCloseTo(n.y, 0);
       expect(overlaps(t, s), `${label}: the toolbar and the sheet`).toBe(false);
       expect(overlaps(t, n), `${label}: the toolbar and the tab bar`).toBe(false);
-      for (const [i, b] of (await Promise.all((await buttons()).map(box))).entries()) {
+      const list = await buttons();
+      const zoomIdx = new Set<number>();
+      for (const [i, l] of list.entries())
+        if (await l.evaluate((e) => e.classList.contains("zoom-box"))) zoomIdx.add(i);
+      for (const [i, b] of (await Promise.all(list.map(box))).entries()) {
         expect(overlaps(b, n), `${label}: map button ${i} and the tab bar`).toBe(false);
-        if (label === "peek") expect(overlaps(b, s), `${label}: map button ${i} and the sheet`).toBe(false);
+        // At the peek every button is clear of the sheet but the zoom slider: with a layer's legend in the column and
+        // the 148 px peek (step 4c, owner's choice A) it can't shrink enough, and its foot runs under the sheet.
+        if (label === "peek" && !zoomIdx.has(i))
+          expect(overlaps(b, s), `${label}: map button ${i} and the sheet`).toBe(false);
       }
     };
 
     // After a run the sheet rises to its middle snap: 46% of the space above the tabs.
     await expect.poll(async () => Math.round((await box(sheet)).height)).toBe(Math.round(611 * 0.46));
     await measure("46%");
-    // A tap cycles the snaps: 88%, then the peek.
+    // A tap cycles the snaps: 88%, then the peek: 148 px while the grade button shows under the header (step 4c;
+    // Mud Creek's "Try again: 3 sources didn't load").
     await handle.tap();
     await handle.tap();
-    await expect.poll(async () => Math.round((await box(sheet)).height)).toBe(92);
+    await expect.poll(async () => Math.round((await box(sheet)).height)).toBe(148);
     await measure("peek");
 
     // A map tool has the screen: the tabs step aside, and come back when it closes.
