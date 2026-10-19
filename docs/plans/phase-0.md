@@ -745,6 +745,8 @@ until step 5 (Q14).
       line only when the button doesn't carry it.
     - **The phone's peek** is 148 px while the button shows, 92 px otherwise; 46% and 88% are unchanged, a tool still
       drops the sheet to 92 px, and a run's end lifts it to 46% from either peek.
-    - **No zoom slider** (owner: superfluous): pinch, the wheel, double-click and the keyboard zoom.
+    - **No zoom slider** (owner: superfluous): pinch, the wheel, double-click and the keyboard zoom. Its amber band
+      was the other cue for where parcel lines show, so "Zoom in to see parcel lines" now shows at every zoom below
+      14 (it showed from 12.5 only), unless another hint holds the bar.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

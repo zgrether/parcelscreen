@@ -50,8 +50,6 @@ export const ZOOM_HINT = "Zoom in to see parcel lines";
 export const INCOMPLETE_HINT = "Some parcel lines didn't load here — zoom in.";
 export const DENSE_HINT = "Dense area — zoom in to see all parcel lines";
 const OUR_HINTS = new Set([ZOOM_HINT, INCOMPLETE_HINT, DENSE_HINT, OWN_RECORDS_HINT]);
-/** Below this, the zoom hint isn't shown either: the view is too wide for parcels to mean anything. */
-const HINT_FROM_ZOOM = LINES_MIN_ZOOM - 1.5;
 /** The map redraws at most this often while tiles arrive. */
 const REDRAW_MS = 250;
 
@@ -204,7 +202,9 @@ export function useParcelLines(
       const zoom = map.getZoom();
       if (zoom < LINES_MIN_ZOOM) {
         show([]);
-        hint((h) => (zoom >= HINT_FROM_ZOOM ? ZOOM_HINT : clearOurHints(h)));
+        // At every zoom below the lines' (owner, step 4c: the zoom slider's amber band was the only other cue, and it
+        // went; it used to show only from 1.5 levels below), unless another hint holds the bar (a tool's, say).
+        hint((h) => (h && clearOurHints(h) ? h : ZOOM_HINT));
         return;
       }
       hint(clearOurHints);

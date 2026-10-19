@@ -37,6 +37,17 @@ for (const phone of [false, true]) {
       await openExplorer(page, MUD);
       await page.waitForTimeout(3000);
       await shot(page, "1-no-parcel");
+      // Zoomed out to about z11: "Zoom in to see parcel lines" (the zoom slider's amber band went).
+      await page.evaluate(() =>
+        (window as { __psMap?: { jumpTo(o: object): void } }).__psMap?.jumpTo({ zoom: 11 }),
+      );
+      await expect(page.locator(".map-hint")).toHaveText("Zoom in to see parcel lines");
+      await page.waitForTimeout(2500);
+      await shot(page, "0-zoomed-out");
+      await page.evaluate(() =>
+        (window as { __psMap?: { jumpTo(o: object): void } }).__psMap?.jumpTo({ zoom: 15 }),
+      );
+      await page.waitForTimeout(1500);
 
       await importParcel(page, MUD);
       await page.waitForTimeout(2000);

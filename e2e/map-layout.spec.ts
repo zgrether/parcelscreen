@@ -86,3 +86,28 @@ test("the docked panel: Search first, the empty state, full height with a parcel
   await expect(page.locator(".dock-tab")).toHaveCount(0);
   expect(errors).toEqual([]);
 });
+
+/** Below the parcel lines' zoom (14), the hint says so at any zoom (step 4c: the zoom slider was the other cue). */
+for (const size of [
+  { width: 1280, height: 800 },
+  { width: 375, height: 667 },
+])
+  test.describe(`at ${size.width} × ${size.height}`, () => {
+    test.use({ viewport: size, hasTouch: size.width < 768, isMobile: size.width < 768 });
+
+    test("zoomed out (z11): Zoom in to see parcel lines, clear of the toolbar", async ({ page, context }) => {
+      const errors: string[] = [];
+      page.on("pageerror", (e) => errors.push(e.message));
+      await replayHar(context, FERNEY);
+      const { lat, lon } = { lat: 36.92, lon: -80.32 };
+      await openExplorer(page, FERNEY, { "ps.view": JSON.stringify({ lat, lon, z: 11 }) });
+      const hint = page.locator(".map-hint");
+      await expect(hint).toHaveText("Zoom in to see parcel lines");
+      const toolbar = page.locator(".toolbar");
+      await expect(toolbar).toContainText("Tap a parcel to select it");
+      const h = await box(hint);
+      const t = await box(toolbar);
+      expect(h.y + h.height, "the hint above the toolbar").toBeLessThanOrEqual(t.y);
+      expect(errors).toEqual([]);
+    });
+  });
