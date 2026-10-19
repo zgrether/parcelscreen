@@ -11,7 +11,7 @@ import {
   PASSWORD_LEAD,
   START,
   SYNC_TITLE,
-  UNSAVED_AT_OPEN,
+  unsavedAtOpen,
   WRONG_CODE,
 } from "@/lib/sync/words";
 import { importParcels, listRow, openExplorer, openYourData } from "./flow";
@@ -156,9 +156,24 @@ test("offline: Not saved, then Try again; a change a closed page didn't save is 
   await expect(toast).toContainText(NOT_SAVED, { timeout: 15_000 });
   await context.setOffline(false);
   await a.reload();
-  await expect(a.locator(".sync-toast")).toContainText(UNSAVED_AT_OPEN);
+  await expect(a.locator(".sync-toast")).toContainText(unsavedAtOpen(["Ferney at next open"])); // names the change
   await a.locator(".sync-toast").getByRole("button", { name: "Try again" }).click();
   await expect(a.locator(".sync-toast")).toHaveCount(0);
+
+  // Discard, asked once: the space's copy comes back in place of this device's unsaved change.
+  await expect(listRow(a, "Ferney at next open")).toBeVisible();
+  await context.setOffline(true);
+  await rename(a, "Ferney at next open", "Ferney to discard");
+  await expect(toast).toContainText(NOT_SAVED, { timeout: 15_000 });
+  await context.setOffline(false);
+  await a.reload();
+  await expect(toast).toContainText(unsavedAtOpen(["Ferney to discard"]));
+  await toast.getByRole("button", { name: "Discard" }).click();
+  await expect(toast).toContainText("Your other devices' copy replaces it here.");
+  await toast.getByRole("button", { name: "Discard" }).click();
+  await expect(toast).toHaveCount(0);
+  await expect(listRow(a, "Ferney at next open")).toBeVisible();
+  await expect(a.locator(".lib-row:visible", { hasText: "Ferney to discard" })).toHaveCount(0);
 
   // Another device joining now gets the saved name.
   const code = (await a.evaluate(() => localStorage.getItem("ps.sync"))) ?? "";
@@ -173,7 +188,7 @@ test("a code no space has changes nothing", async ({ page }) => {
   await importParcels(page, [FERNEY]);
   await page.goto(`/link#${generateCode()}`);
   await expect(page.getByText(WRONG_CODE)).toBeVisible();
-  await page.getByRole("button", { name: "Back" }).click();
+  await page.getByRole("button", { name: "Go to Your list" }).click();
   await expect(listRow(page, "52-47A")).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem("ps.sync"))).toBeNull();
 });

@@ -22,6 +22,7 @@ import {
   PASSWORD_LEAD,
   PASSWORD_LINE,
   SCAN_LINE,
+  START_LINE,
   SHOW_CODE,
   START,
   SYNC_LINE,
@@ -114,7 +115,10 @@ function SyncView({ view, setView, joined }: { view: View; setView(v: View): voi
             </p>
           )}
           <div className="sync-buttons">
-            <button className="btn" onClick={() => setView({ kind: "code", code: readSyncState()!.code })}>
+            <button
+              className="btn secondary"
+              onClick={() => setView({ kind: "code", code: readSyncState()!.code })}
+            >
               {SHOW_CODE}
             </button>
             <button className="btn secondary" onClick={() => setView({ kind: "leave" })}>
@@ -125,6 +129,7 @@ function SyncView({ view, setView, joined }: { view: View; setView(v: View): voi
       ) : (
         <div className="sync-block">
           <p className="sync-line">{SYNC_LINE}</p>
+          <p className="tiny muted">{START_LINE}</p>
           <div className="sync-buttons">
             <button className="btn" onClick={() => void start()}>
               {START}
@@ -158,7 +163,7 @@ function SyncView({ view, setView, joined }: { view: View; setView(v: View): voi
         </p>
       );
     case "code":
-      return <CodeView code={view.code} />;
+      return <CodeView code={view.code} done={() => setView({ kind: "home" })} />;
     case "join": {
       const code = normalizeCode(typed);
       return (
@@ -222,7 +227,7 @@ function SyncView({ view, setView, joined }: { view: View; setView(v: View): voi
 const PLACEHOLDER = "XXXXXXXXXXXXXXXXXXXXXXXXXX";
 
 /** The code: the warning first, then the QR and the code in groups, with Copy. */
-export function CodeView({ code }: { code: string }) {
+export function CodeView({ code, done }: { code: string; done(): void }) {
   const [copied, setCopied] = useState(false);
   const link = `${location.origin}/link#${code}`;
   return (
@@ -258,6 +263,11 @@ export function CodeView({ code }: { code: string }) {
           </button>
           <p className="tiny muted">{SCAN_LINE}</p>
         </div>
+      </div>
+      <div className="sync-buttons">
+        <button className="btn" onClick={done}>
+          Done
+        </button>
       </div>
     </div>
   );

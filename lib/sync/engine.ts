@@ -54,6 +54,8 @@ export interface SyncView {
   status: SyncStatus;
   /** The failure was found when the app opened: changes from a page closed before they were saved. */
   atOpen: boolean;
+  /** At the open: the names of what wasn't saved (parcels by their name, profiles by theirs), for the line. */
+  names?: string[];
 }
 
 let view: SyncView = { status: "off", atOpen: false };
@@ -141,7 +143,11 @@ class Engine implements SyncHooks {
       this.dirtyParcels.set(key, profile);
     }
     for (const id of u.screens) this.dirtyScreens.add(id);
-    setView({ status: hasUnsaved(u) ? "failed" : "synced", atOpen: hasUnsaved(u) });
+    setView(
+      hasUnsaved(u)
+        ? { status: "failed", atOpen: true, names: await this.unsavedNames(u) }
+        : { status: "synced", atOpen: false },
+    );
     registerSyncHooks(this);
     addEventListener("visibilitychange", this.onVisibility);
     addEventListener("focus", this.onFocus);
@@ -161,6 +167,18 @@ class Engine implements SyncHooks {
     else void this.fetch();
   };
   private readonly onFocus = () => void this.fetch();
+
+  /** What wasn't saved, by name: each parcel's own name (or "a parcel"), each profile's. */
+  private async unsavedNames(u: Unsaved): Promise<string[]> {
+    const names: string[] = [];
+    for (const { key, profile } of u.parcels) {
+      const name = parcelOf(await this.doc(profile, PARCELS_DOC), key)?.name;
+      names.push(typeof name === "string" && name.trim() ? name.trim() : "a parcel");
+    }
+    const profiles = new Map((await this.profiles()).map((p) => [p.id, p.name]));
+    for (const id of u.profiles) names.push(profiles.get(id) ?? "a profile");
+    return names;
+  }
 
   // ---------- this device's writes (the hooks) ----------
 
