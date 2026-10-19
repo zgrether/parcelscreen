@@ -2,9 +2,11 @@
 
 Moved up from step 13 on 2026-10-18 (Zach), before the household, which becomes step 6 and is built on it (`PLAN.md`'s
 roadmap, `docs/design/workflow-review.md` "7. Household"). Written 2026-10-18 under mission mode (`CLAUDE.md`).
-**Waiting for approval: no code until then.** The mission runs on `step/5-accounts`, branched from main once step 4b is
-on main and this plan is approved. Before it starts, Zach does the setup in §13: the mission can't create the Supabase
-project or change Vercel's settings itself.
+**Approved by Zach on 2026-10-18,** with the §11 answers recorded there: every question as recommended, plus four
+additions (Resend's sending domain, markup as one field, a test account for previews, and additive-only migrations
+through the connector) and the inactivity rule (§8). The mission runs on `step/5-accounts`, branched from main once
+step 4b is on main **and** Zach has done the setup in §13: the mission can't create the Supabase project or change
+Vercel's settings itself.
 
 **What this step changes:** today every person's data lives in one browser, as local profiles. After it, a person signs
 in, belongs to a household, and the household's parcels, screens and photos live on a server. Any of their devices, and
@@ -45,8 +47,10 @@ Done when:
 - **The export file** is version 6 (`docs/REQUIREMENTS.md` §3a). It holds the parcels, their screens, the settings, the
   profile's name and its rubrics (`mine`, `others`).
 - **No Supabase code yet:** no `supabase/` folder, no `lib/db/`, no `@supabase/*` dependency.
-- **The Supabase account** has one project, `repcoach` (Zach's other product), in us-east-1. The free plan allows two
-  active projects, so `parcelscreen` fits, and a second one for previews wouldn't (§11 Q11).
+- **The Supabase account** has one project, `repcoach` (Zach's other product), in us-east-1. Its organization,
+  `zach-personal`, is on the **free plan** (checked 2026-10-18 with the connector's organization details). The free plan
+  allows two active projects, so `parcelscreen` fits, and a second one for previews wouldn't (§11 Q11). A free project
+  pauses after 7 days without activity (§8).
 - **Vercel:** the project is on Pro. Preview protection was turned off when the repo went public. The
   `deployed-check` workflow fetches each deployment's URL with no credentials.
 - **The data model** in `docs/REQUIREMENTS.md` §3 is this step's starting point, cut to what the app holds today (§3.1).
@@ -127,8 +131,9 @@ Each table has RLS enabled in the statement after its `create`, with its policie
 | `attachments` | `parcel_id` (cascade), `household_id`, `kind` (`image` \| `pdf`), `title`, `path`, `thumb_path`, `bytes`, `content_type`, `added_by` | members read, add, remove |
 
 - **Each parcel is one row,** not one document per household: two people editing different parcels never meet. Lines
-  and markers stay as `markup`, the jsonb list they are today, with the same shape (§11 Q6 covers two people on one
-  parcel).
+  and markers stay as `markup`, the jsonb list they are today, with the same shape. Saves are per field, the later one
+  winning (§11 Q6), and `markup` is **one field**: two people editing lines or markers on the same parcel at the same
+  moment lose one of the two edits. That's rare in a household and accepted (owner, 10/18; §17).
 - **The derived columns** (`acres`, `dedupe_key`, …) are computed from the recipe in the same write, as REQUIREMENTS §3
   says (`deriveParcel`, `recipeDedupeKey`). They're for later steps' queries. **No PostGIS yet:** no step before the
   catalog queries geometry, so there's no `geometry` column until one does.
@@ -243,8 +248,18 @@ Each table has RLS enabled in the statement after its `create`, with its policie
   **Protection Bypass for Automation** secret goes into GitHub as `VERCEL_AUTOMATION_BYPASS_SECRET`. The
   `deployed-check` workflow sends it as the `x-vercel-protection-bypass` header, read from the environment, never
   written into the script.
-- **Previews share the production Supabase project** (§11 Q11). Every migration is additive, so a preview and
-  production can run on the same schema. Zach applies each migration before the PR that needs it merges (§11 Q12).
+- **Previews share the production Supabase project** (§11 Q11), with one rule (owner, 10/18): **preview testing uses
+  a separate test account and household,** `zach+preview@…`, never Zach's own. The test plan's steps on the preview
+  (§15) all use it, and Zach's own export is imported on production after the merge.
+- **Migrations go through the Supabase connector** (`apply_migration`), to the `parcelscreen` project only, before
+  the PR that needs each one merges (§11 Q12). Every migration is **additive only**: it creates a table, function,
+  policy or index, or adds a column. A migration that would drop or rename anything, change a column's type or delete
+  data is a stop condition (§12). So a preview and production always run on the same schema.
+- **Inactivity:** the organization is on the free plan (§0), where a project with no activity for 7 days is paused. A
+  daily scheduled workflow, `.github/workflows/supabase-keepalive.yml`, makes one cheap read with the anon key (one
+  row of a table the anon role can query; no data written). The URL and key come from the GitHub secrets
+  `SUPABASE_URL` and `SUPABASE_ANON_KEY`, through the environment, never written into the workflow. If the project
+  pauses anyway, §13 says how to resume it.
 - **CI runs a local Supabase** (`supabase start` in GitHub Actions, Docker), applies the migrations, runs the pgTAP
   tests, and runs the e2e against it. The e2e never touches the real project.
   - **e2e sign-in:** a helper makes a fresh user and household through the local stack's admin API, and signs in with an
@@ -301,7 +316,33 @@ Each table has RLS enabled in the statement after its `create`, with its policie
 - **Storage:** the local profiles, documents and screens are dropped (§2.2), and IndexedDB becomes the account's cache
   in a new layout. The export file's format doesn't change (still version 6).
 
-## 11. Questions for Zach
+## 11. Questions for Zach (answered 10/18)
+
+**Zach's answers:**
+1. Invite-only: yes.
+2. The link plus a 6-digit code: yes.
+3. Resend: yes. It needs a verified sending domain to deliver to anyone but Zach: a subdomain he owns, for example
+   `mail.bbmi.app`, with its DNS records (§13 step 3).
+4. One household per person: yes.
+5. Roles: as recommended.
+6. Per-field saves, the later one winning: yes. **Lines and markers (`markup`) are one field,** so two people editing
+   lines or markers on the same parcel at once lose one edit. That's rare, and accepted (§3.1, §17).
+7. Fetching on open, on return and on a tab switch: yes. Realtime later.
+8. Offline read-only, with the screen exception: yes.
+9. Signing out clears the cache: yes.
+10. Attachments: as recommended.
+11. Previews on the production project: yes, with a rule: preview testing uses a separate test account and household
+    (`zach+preview@…`), never Zach's own. The test plan's steps 1–10 use the test account, and Zach's own export is
+    imported on production after the merge (§8, §15).
+12. Migrations through the connector: yes, to the `parcelscreen` project only, and additive only (create or add). A
+    migration that drops, renames, changes a type or deletes data is a stop condition (§8, §12).
+13. Skew Protection: yes.
+14. Signed-out visitors: the welcome page only.
+
+**Added by Zach:** inactivity. The organization is on the free plan (§0), so the keep-alive workflow (§8, §13) is in
+PR 1.
+
+The questions as asked:
 
 1. **Who can sign in:** only people invited (recommended; sign-ups closed, your account invited from Supabase's
    dashboard), or anyone with the link?
@@ -336,7 +377,10 @@ Each table has RLS enabled in the statement after its `create`, with its policie
 
 - A change would alter expected.json, a grade, a verdict or report text.
 - A table can't be given RLS that the pgTAP tests pass, or a Supabase security advisor finding can't be fixed in scope.
-- A setup step in §13 isn't done when a PR needs it (the project, the SMTP sender, the bypass secret).
+- A setup step in §13 isn't done when a PR needs it (the project, the SMTP sender and its domain, the bypass secret,
+  the keep-alive's secrets).
+- A migration would drop or rename anything, change a column's type or delete data (owner, 10/18: migrations are
+  additive only).
 - The same CI failure survives three attempts; the local Supabase in CI is new, so its first failures count.
 - The plan turns out wrong (for example, the prefs seam can't carry the sync without the pages changing how they read).
 
@@ -345,23 +389,33 @@ Each table has RLS enabled in the statement after its `create`, with its policie
 1. **Supabase:** a new project `parcelscreen` (free, us-east-1), separate from repcoach. Save its database password.
 2. **Auth → Providers → Email:** on, with "Confirm email". **Auth → Sign In / Up:** "Allow new users to sign up" off
    (Q1).
-3. **Auth → SMTP:** the sender from Q3 (Resend: an account, a verified sending domain or address, its SMTP details).
+3. **Resend, and Auth → SMTP:** a Resend account and its SMTP details in Supabase's Auth settings. **Resend needs a
+   verified sending domain** to deliver to anyone but you: use a subdomain you own, for example `mail.bbmi.app`, and
+   add the DNS records Resend lists for it (SPF, DKIM, and the return-path MX) at that domain's DNS host. The sender
+   address is on that subdomain (`signin@mail.bbmi.app`).
 4. **Auth → Email templates:** the mission writes the "Magic link" and "Invite" templates (the link and the code, Q2)
-   into `supabase/templates/`; you paste them in, or they're set with the project's config if Q12 goes to Claude Code.
+   into `supabase/templates/`, and you paste them in (the connector applies SQL migrations, not Auth settings).
 5. **Auth → URL configuration:** the site URL (production) and the redirect URLs in §8.
-6. **Auth → Users → Invite user:** your own email.
+6. **Auth → Users → Invite user:** your own email, and the preview test account, `zach+preview@…` (§8). The test
+   household's second member is invited from the app during the test plan.
 7. **Vercel → Environment variables** (Production and Preview): `NEXT_PUBLIC_SUPABASE_URL`,
    `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (server-only). `.env.local` gets the same.
 8. **Vercel → Deployment Protection:** Vercel Authentication on previews; Protection Bypass for Automation, its secret
    saved to GitHub as `VERCEL_AUTOMATION_BYPASS_SECRET`. Skew Protection on (Q13).
-9. **Before the step merges** (the test plan's step 0): Export file on production, to bring your parcels back after the
-   switch.
+9. **GitHub → Secrets:** `SUPABASE_URL` and `SUPABASE_ANON_KEY`, for the keep-alive workflow (§8).
+10. **Before the step merges** (the test plan's step 0): Export file on production, to bring your parcels back after the
+    switch. After the merge, you import it on production with your own account (§15, step 11).
+
+**If the project pauses anyway** (the keep-alive failed for a week, say): Supabase's dashboard → the `parcelscreen`
+project → **Restore project**. A paused free project can be restored for 90 days, and its data is kept. The app shows
+the failed-save toast and can't sign anyone in until it's back. The keep-alive's own failures show in GitHub's Actions
+tab and in its email, as any failed workflow does.
 
 ## 14. The PRs, into `step/5-accounts`
 
 | PR | What | Checks |
 | --- | --- | --- |
-| 1 | **The database:** `supabase/` (config, `0001_accounts.sql` with every table, RLS, the two functions, the screen trigger, the storage bucket and its policies), the pgTAP tests, CI's local Supabase job, `lib/db/` (browser, server and service clients; a Zod schema for the env), `@supabase/supabase-js` and `@supabase/ssr` (the stack in CLAUDE.md). Preview protection's bypass header in `deployed-check`. No UI. | `supabase test db` (§7's cases); the advisors; typecheck, lint |
+| 1 | **The database:** `supabase/` (config, `0001_accounts.sql` with every table, RLS, the two functions, the screen trigger, the storage bucket and its policies), applied to `parcelscreen` through the connector; the pgTAP tests, CI's local Supabase job, `lib/db/` (browser, server and service clients; a Zod schema for the env), `@supabase/supabase-js` and `@supabase/ssr` (the stack in CLAUDE.md). Preview protection's bypass header in `deployed-check`; the keep-alive workflow. No UI. | `supabase test db` (§7's cases); the advisors; typecheck, lint |
 | 2 | **Signing in:** the middleware, `/signin`, `/auth/callback`, the welcome page, the account gate in place of `ProfileGate`, the first sign-in (§2.1), the clean break (§2.2), Sign out; the profile picker and its pages go; the e2e sign-in helper, with every existing e2e signed in. | e2e: sign in by code and by link; the first sign-in to Your list; signed out → welcome → back; the old local data dropped with its line once |
 | 3 | **Sync:** the account store under the prefs seam; parcels by row (the pure diff), the person's row, screens with the cache; fetching others' changes; offline read-only and the failed-save toast. | unit: the diff, the merge; e2e: two browsers in one household (one adds and edits, the other sees it after a tab switch); a reload shows the cache first; offline disables saving; a failed insert's toast; an imported file's parcels on the server |
 | 4 | **The household:** `app/api/invite`, invitations, Join, the household panel (members, pending, Invite, Cancel, Remove, Leave). | e2e: invite → the invitee's first sign-in joins → both see the list; Remove; an invitee with a list isn't moved |
@@ -386,14 +440,17 @@ Each table has RLS enabled in the statement after its `create`, with its policie
 **Fresh-eyes review (CLAUDE.md):** the screenshots only, with "You've never used this app. What is this page for, and
 what's confusing?"
 
-**Manual, on the preview (about 30 minutes, desktop then phone), using the fixture parcels by name:**
-0. On production, before the merge: ☰ → Settings → Your data → Export file.
-1. Open the preview signed out → the welcome page; Sign in with your email → the email has a link and a code; tap the
-   link → signed in, the first sign-in's name screen, then the questions (Not now) → an empty Your list.
-2. Settings → Your data → Import the step 0 file → your parcels on Your list; open **Ferney Creek** on the map → its
-   report shows from its imported screen.
-3. Invite a second address of yours as "Julie" → sign in with it in a private window → "Zach invited you…" → Join →
-   her own questions → she sees Ferney Creek and the rest.
+**Manual, on the preview (about 30 minutes, desktop then phone), using the fixture parcels by name.** Steps 1–10 use
+the preview test account, `zach+preview@…`, and its own household, never your own account (§8). The hand-back attaches
+`preview-parcels.json`, an export file of the fixture parcels (Mud Creek, Macks, Ferney, Roan Mountain), for step 2.
+0. On production, before the merge, with your own data: ☰ → Settings → Your data → Export file. Keep the file for
+   step 11.
+1. Open the preview signed out → the welcome page; sign in as `zach+preview@…` → the email has a link and a code; tap
+   the link → signed in, the first sign-in's name screen, then the questions (Not now) → an empty Your list.
+2. Settings → Your data → Import `preview-parcels.json` → the fixture parcels on Your list; open **Ferney Creek** on the
+   map → its report shows from its imported screen.
+3. Invite a second test address (`zach+preview-julie@…`) as "Julie" → sign in with it in a private window → "Zach
+   invited you…" → Join → her own questions → she sees Ferney Creek and the rest.
 4. As Julie, rename **Macks Mountain** and add a line; in Zach's window, switch tabs → the new name and the line appear.
 5. As Zach, screen **Mud Creek**; as Julie, open it → the same result, with no run.
 6. On a phone, the installed app: sign in by typing the code from the email → your list.
@@ -403,6 +460,8 @@ what's confusing?"
    disabled.
 9. Sign out → the welcome page; sign in again → your list loads.
 10. As Zach, Remove Julie → in her window, the next sign-in starts her own empty list.
+11. **After the merge, on production:** sign in with your own email (the first sign-in), then Settings → Your data →
+    Import the step 0 file → your parcels are back, under your own household.
 
 ## 16. What step 6 (the household) takes from this step
 
@@ -421,4 +480,9 @@ what's confusing?"
   - the server the source of truth and IndexedDB a cache, read-only offline, with the one exception of a finished
     screen;
   - local profiles dropped (the clean break), the export file unchanged at version 6;
-  - preview protection with the bypass header; previews on the production project; CI on a local Supabase.
+  - per-field saves, with `markup` (lines and markers) one field: two people editing lines on one parcel at once lose
+    one edit, rare and accepted (owner, 10/18);
+  - preview protection with the bypass header; previews on the production project, tested only with a separate test
+    account and household; CI on a local Supabase;
+  - migrations applied through the Supabase connector to `parcelscreen` only, and additive only;
+  - the free plan's 7-day pause kept away by a daily keep-alive read.
