@@ -3413,7 +3413,13 @@ html:has(.app-nav) .explore {
 }
 .grade-action.sheet {
   display: flex;
-  padding: 8px 12px 0;
+  flex: none;
+  padding: 4px 12px 0;
+}
+/* The 148 px peek holds the handle, the two-line header and the button, none of them squeezed (step 4c). */
+.explore-header:has(+ .grade-action.sheet) {
+  flex: none;
+  padding-bottom: 4px;
 }
 .grade-action.sheet .grade-btn {
   flex: 1;
