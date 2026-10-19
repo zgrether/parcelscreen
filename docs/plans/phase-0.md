@@ -748,5 +748,29 @@ until step 5 (Q14).
     - **No zoom slider** (owner: superfluous): pinch, the wheel, double-click and the keyboard zoom. Its amber band
       was the other cue for where parcel lines show, so "Zoom in to see parcel lines" now shows at every zoom below
       14 (it showed from 12.5 only), unless another hint holds the bar.
+57. **Sync across devices** (owner, 2026-10-19; step 5 plan, `docs/plans/step-5-sync.md`, #187, its §11 answers and the
+    §5 note on which save is later; roadmap step 5, PRs 1–2; §9.56 is step 4c's, so this is 57).
+    - **A synced space,** keyed by a 130-bit code: 26 Crockford base32 characters, shown in groups of five and as a QR
+      that opens `/link#<code>`. The code travels in the URL's fragment and the `x-sync-code` header, never in a URL a
+      server sees. The server keys rows by its SHA-256. No rotation, and no accounts, sign-in or email.
+    - **Joining replaces** the device's profiles, documents and screens with the space's (a clean break; Export first is
+      offered when the device holds data). **Leaving** keeps the local copy and forgets the code.
+    - **The only path to the database** is `app/api/sync/*` and `app/api/health`, using the server-only
+      `SUPABASE_SECRET_KEY`. The four `sync_*` tables have RLS on with no policies: checked by hand on the real
+      project, the public keys read no rows, and their inserts are refused.
+    - **Whole records:** a profile (name, created, `ps.cfg`, `ps.rubrics`, `ps.interview`) and each built parcel. The
+      save that reaches the server last wins, whole, not the edit made last, so a Try again after a stretch offline can
+      overwrite a newer edit from another device (accepted, owner 10/19). Screens are inserted once, never changed, and
+      fetched when a parcel needs one. What stays on a device: the current profile, the open parcel, the map's views,
+      the list's sort, Compare's columns, the rubric switch, the recent marks.
+    - **Fetching** on open, on return to the front and on a tab switch, with 10 s of overlap; records changed here and
+      not yet saved are kept. **Saving** about a second after the last edit. A failure shows Not saved and the toast with
+      Try again, and no queue retries it. A change still unsaved when the page closed is offered once at the next open,
+      with Try again or Discard.
+    - **Before the first upload** each profile's parcels are ranked (My order), so the first read after starting doesn't
+      rewrite them all and undo another device's edit (found by the e2e).
+    - **A daily keep-alive** (`.github/workflows/supabase-keepalive.yml`) reads production's `/api/health` against the
+      free plan's 7-day pause. Export file is the backup: the free plan has none to restore. Migrations go through the
+      Supabase connector, to `parcelscreen` only, and are additive only. CI uses the memory store (`PS_SYNC_STORE=memory`).
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

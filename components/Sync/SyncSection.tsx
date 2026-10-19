@@ -18,6 +18,7 @@ import {
   LEAVE,
   LEAVE_QUESTION,
   NOT_SAVED,
+  NOT_SAVED_LINE,
   PASSWORD_LEAD,
   PASSWORD_LINE,
   SCAN_LINE,
@@ -25,7 +26,6 @@ import {
   START,
   SYNC_LINE,
   SYNC_TITLE,
-  SYNCED,
   uploading,
   WRONG_CODE,
 } from "@/lib/sync/words";
@@ -107,12 +107,12 @@ function SyncView({ view, setView, joined }: { view: View; setView(v: View): voi
     case "home":
       return joined ? (
         <div className="sync-block">
-          <p className="sync-line">
-            {JOINED}{" "}
-            <span className={status.status === "failed" ? "sync-state bad" : "sync-state"}>
-              {status.status === "failed" ? NOT_SAVED : SYNCED}
-            </span>
-          </p>
+          <p className="sync-line">{JOINED}</p>
+          {status.status === "failed" && (
+            <p className="sync-line bad">
+              {NOT_SAVED}: {NOT_SAVED_LINE}
+            </p>
+          )}
           <div className="sync-buttons">
             <button className="btn" onClick={() => setView({ kind: "code", code: readSyncState()!.code })}>
               {SHOW_CODE}
@@ -234,7 +234,16 @@ export function CodeView({ code }: { code: string }) {
         <QrCode text={link} label="QR code that opens the link to join this synced space" />
         <div className="sync-code-text">
           <code className="sync-code-value" aria-label="The code">
-            {groupCode(code)}
+            {/* Breaks only between groups, never inside one. */}
+            {groupCode(code)
+              .split("-")
+              .map((g, i, all) => (
+                <span key={i} className="sync-code-group">
+                  {g}
+                  {i < all.length - 1 ? "-" : ""}
+                  <wbr />
+                </span>
+              ))}
           </code>
           <button
             className="btn secondary"

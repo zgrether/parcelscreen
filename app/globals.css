@@ -5194,8 +5194,10 @@ button.cmp-cell:hover {
     Consolas,
     monospace;
   letter-spacing: 0.04em;
-  word-break: break-all;
   user-select: all;
+}
+.sync-code-group {
+  white-space: nowrap;
 }
 .sync-field {
   display: grid;
@@ -5307,7 +5309,12 @@ button.sync-ind.bad {
   }
   .sync-ind.menu {
     display: inline-flex;
+    align-items: center;
     margin-top: 8px;
+  }
+  button.sync-ind.menu {
+    min-height: 44px;
+    padding: 0 16px;
   }
   .app-more[data-unsaved]::after {
     content: "";

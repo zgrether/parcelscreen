@@ -21,6 +21,7 @@ export const JOIN_EMPTY =
 export const GETTING = "Getting your synced parcels…";
 export const SYNCED = "Synced";
 export const NOT_SAVED = "Not saved";
+export const NOT_SAVED_LINE = "a change here isn't on your other devices yet.";
 export const TRY_AGAIN = "Try again";
 export const DISCARD = "Discard";
 export const UNSAVED_AT_OPEN = "A change on this device wasn't saved.";
