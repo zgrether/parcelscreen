@@ -2,10 +2,10 @@
 /**
  * The explorer's layout (proto L26–33, L129–148): a full-screen map with the results over it.
  *   - Phones (narrow portrait): the results are a bottom sheet (useBottomSheet), hidden until a parcel is open.
- *   - Desktop, and phones on their side (owner, after 14d): the results float at the map's top left, as a
- *     compact card (the parcel, its acres, Screen it) until there's something to read; a run, or a kept
- *     result, grows the card into a full-height panel. The panel folds back to the card, which then shows
- *     the verdict line. The map is padded by whichever is showing, and never moves when it changes.
+ *   - Desktop, and phones on their side: one docked panel at the left edge (step 4c, plan §1), Search its first row.
+ *     With no parcel open it's that row alone; with one, it runs the window's height. It collapses to a slim tab
+ *     (DockTab), remembered for the session. The map is padded by the full panel, and never moves when it changes;
+ *     what's centred on the map's bottom (toolbar, hint) centres between the panel and the right-hand column.
  * The parcel tools' state is shared by the panel and the map through ExploreContext.
  * It stays mounted behind the other tabs (step 4b, components/Nav/AppFrame.tsx); Settings and the help dialog are the
  * frame's. On a phone the tab bar steps aside while a map tool is in use (html.map-tool).
@@ -24,20 +24,23 @@ import { useSettings } from "@/components/Settings/SettingsDialog";
 import { GroundProvider } from "@/components/Ground/GroundContext";
 import { PwaShell } from "@/components/Pwa/PwaShell";
 import { MapArea } from "./MapArea";
+import { Search } from "@/components/Map/Search";
 import { mapShowing } from "@/lib/client/mapShowing";
 import { ScreenItContext } from "@/components/Results/ScreenItContext";
 import { debugFromUrl } from "@/lib/client/debugHandle";
-import { ScreenBody, ScreenHeader, useScreenIt } from "@/components/Results/panel/ScreenIt";
-import { SHEET_QUERY, useBottomSheet } from "./useBottomSheet";
+import { DockTab, ScreenBody, ScreenHeader, useScreenIt } from "@/components/Results/panel/ScreenIt";
+import { GradeAction } from "@/components/Results/panel/GradeAction";
+import { PEEK, PEEK_WITH_ACTION, SHEET_QUERY, useBottomSheet } from "./useBottomSheet";
 import { ExploreContext, useExploreController } from "./useExploreController";
 
-/** The floating card's and panel's widths, and their gap from the map's edge (desktop). */
-const CARD_W = 340;
-const PANEL_W = 420;
-const EDGE = 10;
+/** The docked panel's width (desktop; step 4c). */
+const DOCK_W = 380;
+/** The right-hand column of map buttons: 44 px wide, 24 px from the edge (MapControls), or beside the Info panel. */
+const COLUMN_W = 44;
+const COLUMN_GAP = 24;
 
 /** Narrower on a phone on its side: the panel keeps under half the screen. */
-function useFloatWidths(): { card: number; panel: number } {
+function useDockWidth(): number {
   const vw = useSyncExternalStore(
     (changed) => {
       window.addEventListener("resize", changed);
@@ -46,8 +49,29 @@ function useFloatWidths(): { card: number; panel: number } {
     () => window.innerWidth,
     () => 1280,
   );
-  const panel = Math.min(PANEL_W, Math.round(vw * 0.48));
-  return { card: Math.min(CARD_W, panel), panel };
+  return Math.min(DOCK_W, Math.round(vw * 0.48));
+}
+
+/** The panel collapsed to its tab, for this tab's session (owner, 4c Q6): a new window starts with it open. */
+const COLLAPSED_KEY = "ps.dockCollapsed";
+function useDockCollapsed(): [boolean, (on: boolean) => void] {
+  const [on, setOn] = useState(() => {
+    try {
+      return sessionStorage.getItem(COLLAPSED_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const set = useCallback((next: boolean) => {
+    setOn(next);
+    try {
+      if (next) sessionStorage.setItem(COLLAPSED_KEY, "1");
+      else sessionStorage.removeItem(COLLAPSED_KEY);
+    } catch {
+      /* storage blocked: it lasts until the page closes */
+    }
+  }, []);
+  return [on, set];
 }
 
 /**
@@ -79,8 +103,22 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   const setHint = useCallback((t: string | ((prev: string) => string)) => setHintState(t), []);
   const explore = useExploreController(config.endpoints.parcels, setHint);
   // On phones the sheet steps aside to its peek while a map tool or the Info panel has the screen (13e-6).
-  const { mode, split, info, store, serial } = explore.state;
-  const sheet = useBottomSheet(root, panel, mode !== null || split !== null || (info && store.open !== null));
+  const { mode, split, info, store } = explore.state;
+  // The screen's "after a run, rise" calls the sheet's, which is made below (the sheet's peek depends on the screen).
+  const raiseSheet = useRef<() => void>(() => {});
+  const raise = useCallback(() => raiseSheet.current(), []);
+  const screen = useScreenIt(explore, config, raise, setHint);
+  // The phone's peek holds the grade button under the header while it shows (owner, 4c: 148 px), else 92 px.
+  const peek = !explore.docked && store.open && screen.grade ? PEEK_WITH_ACTION : PEEK;
+  const sheet = useBottomSheet(
+    root,
+    panel,
+    mode !== null || split !== null || (info && store.open !== null),
+    peek,
+  );
+  useEffect(() => {
+    raiseSheet.current = sheet.raise;
+  });
   // A map tool has the screen: on a phone the tab bar steps aside too (step 4b; CSS, only while the map is showing).
   const tool = mode !== null || split !== null;
   useEffect(() => {
@@ -88,7 +126,6 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
     return () => document.documentElement.classList.remove("map-tool");
   }, [tool]);
   const tabs = useTabsHeight();
-  const screen = useScreenIt(explore, config, sheet.raise, setHint);
   // Esc on desktop closes the open parcel (17e), when nothing else should take it: no map tool, no panel, no
   // menu, viewer or dialog, no text field. Those keep their own Esc.
   const escape = useRef({ explore, docked: explore.docked });
@@ -119,16 +156,15 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
     }
   });
 
-  // Desktop: card or panel. There's something to read once a run starts (its steps), or a result is kept.
-  // Folding is remembered for this parcel and this run; a new run, or another parcel, unfolds it.
+  // Desktop: the docked panel. No parcel open: Search alone. One open: the window's height, unless it's collapsed to
+  // its tab (which only a parcel has).
   const { docked } = explore;
-  const widths = useFloatWidths();
-  const readable = screen.showSteps || screen.display !== null || screen.error !== null;
-  const foldKey = `${serial}:${screen.runningHere ? "run" : "idle"}`;
-  const [foldedAt, setFoldedAt] = useState<string | null>(null);
-  const expanded = docked && readable && foldedAt !== foldKey;
-  const fold = docked && readable ? () => setFoldedAt(expanded ? foldKey : null) : null;
-  const leftInset = docked ? EDGE + (expanded ? widths.panel : widths.card) : 0;
+  const dockW = useDockWidth();
+  const [collapsedPref, setCollapsed] = useDockCollapsed();
+  const parcelOpen = store.open !== null;
+  const collapsed = docked && parcelOpen && collapsedPref;
+  const full = docked && parcelOpen && !collapsed;
+  const leftInset = full ? dockW : 0;
 
   // Phones: with no parcel open the sheet would only repeat the toolbar's "Tap a parcel…", so it's hidden
   // until one is (owner, #48). The map keeps its bottom padding, so nothing moves when the sheet comes in.
@@ -138,15 +174,18 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   // The sheet's height, for what sits on the map above it (hint, attribution).
   if (sheet.height != null) vars["--sheet-h"] = sheetHidden ? "0px" : `${sheet.height}px`;
   if (docked) {
-    vars["--float-w"] = `${expanded ? widths.panel : widths.card}px`;
-    // What's centred along the map's bottom (toolbar, hint) keeps clear of the full-height panel.
-    vars["--float-l"] = `${expanded ? EDGE + widths.panel : 0}px`;
+    vars["--dock-w"] = `${dockW}px`;
+    // What's centred along the map's bottom (toolbar, hint) centres on the visible map: clear of the full panel on the
+    // left and of the right-hand column (or the Info panel it sits beside) on the right.
+    vars["--float-l"] = `${leftInset}px`;
+    const columnRight = explore.panelInset ? explore.panelInset + 10 : COLUMN_GAP;
+    vars["--col-r"] = `${columnRight + COLUMN_W}px`;
   }
   const panelClass = [
     "explore-panel",
     sheet.mapMode ? "mapmode" : "",
     sheetHidden ? "sheet-hidden" : "",
-    docked ? (expanded ? "float expanded" : "float card") : "",
+    docked ? (collapsed ? "dock collapsed" : full ? "dock full" : "dock search-only") : "",
     // The phone sheet with a parcel open and nothing run yet: the header alone (17e).
     !docked && explore.state.store.open && !screen.display && !screen.showSteps ? "bare" : "",
   ].join(" ");
@@ -171,17 +210,39 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
               style={sheet.height != null ? { height: sheet.height } : undefined}
             >
               <div className="sheet-handle" title="Drag or tap to resize" {...sheet.handlers} />
-              {/* One line, always: the parcel and the screen button (owner, after 14d). On phones it's the peek. */}
-              <header className="explore-header" {...sheet.handlers}>
-                <ScreenHeader s={screen} desk={docked ? { expanded, fold } : null} />
-              </header>
-              {(!docked || expanded) && (
-                <div className="explore-scroll">
-                  <ScreenBody s={screen} />
-                  {children}
+              {/* The desktop panel's first row: Search (step 4c). */}
+              {docked && (
+                <div className="dock-search">
+                  <Search docked photonUrl={config.endpoints.photon} hint={setHint} />
                 </div>
               )}
+              {(!docked || parcelOpen) && (
+                <>
+                  {/* The parcel and the screen button (owner, after 14d). On phones it's the peek. */}
+                  <header className="explore-header" {...sheet.handlers}>
+                    <ScreenHeader s={screen} desk={docked} />
+                  </header>
+                  {/* The phone's grade button, under the header (owner, 4c Q1); the desktop's is the toolbar's. */}
+                  {!docked && <GradeAction where="sheet" />}
+                  <div className="explore-scroll">
+                    <ScreenBody s={screen} />
+                    {children}
+                  </div>
+                </>
+              )}
+              {full && (
+                <button
+                  className="dock-edge"
+                  aria-label="Collapse the panel"
+                  aria-expanded={true}
+                  title="Collapse the panel"
+                  onClick={() => setCollapsed(true)}
+                >
+                  ‹
+                </button>
+              )}
             </aside>
+            {collapsed && <DockTab s={screen} reopen={() => setCollapsed(false)} />}
           </div>
           <PwaShell running={screen.running} />
         </GroundProvider>

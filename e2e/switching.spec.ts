@@ -45,18 +45,18 @@ test("switching keeps screened parcels live: back to one with no re-run and no n
   await openFromList(page, "35-3");
   await expect(toast(page)).toContainText("52-47A kept on Your list");
   await page
-    .locator("button", { hasText: /^Screen it$/ })
+    .locator(".grade-btn", { hasText: /^Grade this parcel$/ })
     .first()
     .click();
   // While it runs, no switching (and no cancel).
-  await expect(page.locator("button", { hasText: /^Running…$/ }).first()).toBeVisible();
+  await expect(page.locator(".grade-btn", { hasText: /^Grading…$/ }).first()).toBeVisible();
   await page.getByRole("link", { name: "Your list", exact: true }).click();
   await listRow(page, "52-47A").click();
   await page.getByRole("link", { name: "Open on the map" }).click();
   await expect(page).toHaveURL(/\/explore$/);
   await expect(page.locator(".map-hint")).toHaveText(BUSY_TEXT);
   await expect(page.locator(".sh-name").first()).toContainText("35-3");
-  await expect(page.locator("button", { hasText: /^Run again$/ }).first()).toBeVisible({ timeout: 200_000 });
+  await expect(page.locator(".grade-btn", { hasText: /^Grading…$/ })).toHaveCount(0, { timeout: 200_000 });
   expect(net.misses, "data requests the HAR doesn't have").toEqual([]);
 
   // Back to Ferney: its session is still kept, so it's live again with no request at all.

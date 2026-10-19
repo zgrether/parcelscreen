@@ -9,7 +9,7 @@ import { replayHar } from "./replay";
 
 const FERNEY = "ferney-creek-52-47A";
 const MACKS = "macks-mountain-35-3";
-const NOTE = "Run again to restore the map overlays and horizon fan.";
+const NOTE = "Grade again to restore the map overlays and horizon fan.";
 
 const live = (page: Page) =>
   page.evaluate(() => !!(window as unknown as { __psScreen: { view: unknown } }).__psScreen.view);

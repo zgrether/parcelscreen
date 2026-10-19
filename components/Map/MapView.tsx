@@ -7,7 +7,6 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 import { AttributionControl, Map as MlMap, setWorkerUrl } from "maplibre-gl";
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { SHEET_QUERY } from "@/components/Explore/useBottomSheet";
 import { getPref, setPref, type MapView as SavedView } from "@/lib/client/prefs";
 import { buildStyle, isBasemapId } from "./style";
 import { terrainTiles } from "./terrain";
@@ -102,7 +101,7 @@ export function MapView({
       aroundCenter: false,
       attributionControl: false,
     });
-    // No + / − buttons: the zoom slider in the right-hand column replaces them (13f).
+    // No + / − buttons, and no zoom slider since step 4c (owner): pinch, the wheel, double-click and the keyboard zoom.
     // Up top, beside the Map menu, rather than hanging over the toolbar (owner, 13e-5 review).
     m.addControl(new AttributionControl({ compact: true }), "top-right");
     // The headless checks (and step 18's e2e) read the map's camera and rendered features: with ps.debug set
@@ -113,7 +112,8 @@ export function MapView({
       /* storage blocked: no debug handle */
     }
     const attribution = m.getContainer().querySelector<HTMLElement>(".maplibregl-ctrl-attrib");
-    if (attribution && window.matchMedia(SHEET_QUERY).matches) startFolded(attribution);
+    // Folded on every screen (step 4c: on a desktop the open pill crossed the top of the map).
+    if (attribution) startFolded(attribution);
     m.on("movestart", (e: { originalEvent?: unknown }) => {
       if (e.originalEvent) moved.current = true;
     });

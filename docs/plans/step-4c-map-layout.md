@@ -172,6 +172,7 @@ UI text only: no report or card text (rule 7 doesn't apply).
 | Notice, overlays | Run again to restore the map overlays and horizon fan. | Grade again to restore the map overlays and horizon fan. |
 | Error line's button | Run again | (gone: the toolbar's Try again) |
 | Folded card, running | Screening… | Grading… |
+| Map hint below z14 (owner, 10/19, with the zoom slider's removal) | "Zoom in to see parcel lines" from z12.5 to z14 only | the same words at every zoom below 14, unless another hint holds the bar |
 
 **Unchanged:** Cancel, Copy summary, "Let the app consider it" (the lines banner's action), the re-screen notes, and
 everything in §4.

@@ -95,6 +95,18 @@ export async function openYourData(page: Page): Promise<void> {
   await expect(page.getByRole("heading", { name: "Your data" })).toBeVisible();
 }
 
+/** Search's field: the docked panel's first row on a desktop (step 4c), opened by the map's Search button on a phone. */
+export const searchField = (page: Page): Locator =>
+  page.getByRole("combobox", { name: /^Search coordinates/ });
+
+/** Search, ready to type in (focused). */
+export async function openSearch(page: Page): Promise<Locator> {
+  const field = searchField(page);
+  if (!(await field.count())) await page.getByRole("button", { name: "Search" }).click();
+  await field.click();
+  return field;
+}
+
 /** A parcel's row on Your list, by (part of) the name it shows: a table row on a desktop, a card on a phone. */
 export const listRow = (page: Page, name: string): Locator =>
   page.locator(".lib-row:visible", { hasText: name }).first();
@@ -167,16 +179,17 @@ export async function openFromList(page: Page, name: string): Promise<void> {
   await expect(page.locator(".sh-name").first()).toContainText(name);
 }
 
-/** Screen it, wait for the run to finish, and return each step's final status. */
+/**
+ * Grade it (step 4c: the toolbar's button on a desktop, the sheet's on a phone; for a kept run with nothing changed, the
+ * overlays note's "Grade again"), wait for the run to finish, and return each step's final status.
+ */
 export async function screenIt(page: Page): Promise<Record<string, string>> {
   if (await page.locator(".menu-panel").count()) await page.keyboard.press("Escape");
-  // "Run again" when the parcel already has a result: wait for this run to start, then to finish.
-  await page
-    .locator("button", { hasText: /^(Screen it|Run again)$/ })
-    .first()
-    .click();
-  await expect(page.locator("button", { hasText: /^Running…$/ }).first()).toBeVisible();
-  await expect(page.locator("button", { hasText: /^Run again$/ }).first()).toBeVisible({ timeout: 200_000 });
+  // Wait for this run to start, then to finish.
+  await page.locator(".grade-btn:enabled, .grade-again-link:enabled").first().click();
+  const grading = page.locator(".grade-btn", { hasText: /^Grading…$/ });
+  await expect(grading.first()).toBeVisible();
+  await expect(grading).toHaveCount(0, { timeout: 200_000 });
   return page.evaluate(() => {
     const s = (
       window as unknown as { __psScreen: { steps: Record<string, { status: string; message?: string }> } }

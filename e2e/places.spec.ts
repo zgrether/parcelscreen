@@ -115,10 +115,11 @@ test.describe("a phone at 375 × 667", () => {
     // After a run the sheet rises to its middle snap: 46% of the space above the tabs.
     await expect.poll(async () => Math.round((await box(sheet)).height)).toBe(Math.round(611 * 0.46));
     await measure("46%");
-    // A tap cycles the snaps: 88%, then the peek.
+    // A tap cycles the snaps: 88%, then the peek: 148 px while the grade button shows under the header (step 4c;
+    // Mud Creek's "Try again: 3 sources didn't load").
     await handle.tap();
     await handle.tap();
-    await expect.poll(async () => Math.round((await box(sheet)).height)).toBe(92);
+    await expect.poll(async () => Math.round((await box(sheet)).height)).toBe(148);
     await measure("peek");
 
     // A map tool has the screen: the tabs step aside, and come back when it closes.

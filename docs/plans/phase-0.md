@@ -727,4 +727,26 @@ until step 5 (Q14).
     - **Offline,** a tab whose page the router already holds opens with the map still mounted; otherwise the service
       worker's precache (the map, Your list, What matters, Help) loads it, and the map restarts from storage.
 
+56. **The map's layout, and the parcel's one action** (owner, 2026-10-19; step 4c plan, #192, all eight §11 answers as
+    recommended, the log's count shown once, the phone's peek (A) and the zoom slider's removal; roadmap step 4c, PRs
+    1–2).
+    - **Desktop:** one panel docked at the left edge under the top bar, 380 px (under half the window on a phone on its
+      side), Search its first row; with no parcel open, that row alone (no "Tap a parcel to begin"). ‹ on its edge
+      collapses it to a slim tab at the top left (the grade and the name), remembered for the tab's session. The
+      toolbar, the hint and the toasts centre between the panel and the right-hand column; the credits are MapLibre's ⓘ,
+      folded, at the bottom right (at the top right on a phone).
+    - **The header:** the name on up to two lines, then its acres and grade.
+    - **"Grade this parcel"** replaces "Screen it" and the permanent "Run again": in the toolbar on a desktop, under the
+      sheet's header on a phone. "Grading…" with Cancel while it runs. After a run it shows only with a reason, the
+      first of: boundary changed, house moved (with no live session to re-assess it), lines changed, settings changed
+      ("Grade again: …"), or "Try again: N sources didn't load" (the kept run's failed steps); "Try again" for a run that
+      stopped on an error. The overlays note's "Grade again" runs it too (no button for that alone).
+    - **The step log** folds after every run to "Graded in 66 s ▸", which opens the list; the failed count joins the
+      line only when the button doesn't carry it.
+    - **The phone's peek** is 148 px while the button shows, 92 px otherwise; 46% and 88% are unchanged, a tool still
+      drops the sheet to 92 px, and a run's end lifts it to 46% from either peek.
+    - **No zoom slider** (owner: superfluous): pinch, the wheel, double-click and the keyboard zoom. Its amber band
+      was the other cue for where parcel lines show, so "Zoom in to see parcel lines" now shows at every zoom below
+      14 (it showed from 12.5 only), unless another hint holds the bar.
+
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

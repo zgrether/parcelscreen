@@ -96,7 +96,7 @@ async function backOnTheMap(
   expect(after.lon).toBeCloseTo(before.lon, 6);
   expect(after.z).toBeCloseTo(before.z, 3);
   expect(await live(page), "the overlays still live").toBe(true);
-  await expect(page.locator("button", { hasText: /^Running…$/ })).toHaveCount(0);
+  await expect(page.locator(".grade-btn", { hasText: /^Grading…$/ })).toHaveCount(0);
   expect(await keptScreenCount(page), "no new screen run").toBe(screens);
   // Drawing again: it resumed.
   await expect.poll(() => page.evaluate(() => (window as DebugWindow).__renders ?? 0)).toBeGreaterThan(0);
