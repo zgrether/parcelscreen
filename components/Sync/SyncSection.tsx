@@ -18,14 +18,15 @@ import {
   LEAVE,
   LEAVE_QUESTION,
   NOT_SAVED,
+  NOT_SAVED_LINE,
   PASSWORD_LEAD,
   PASSWORD_LINE,
   SCAN_LINE,
+  START_LINE,
   SHOW_CODE,
   START,
   SYNC_LINE,
   SYNC_TITLE,
-  SYNCED,
   uploading,
   WRONG_CODE,
 } from "@/lib/sync/words";
@@ -107,14 +108,17 @@ function SyncView({ view, setView, joined }: { view: View; setView(v: View): voi
     case "home":
       return joined ? (
         <div className="sync-block">
-          <p className="sync-line">
-            {JOINED}{" "}
-            <span className={status.status === "failed" ? "sync-state bad" : "sync-state"}>
-              {status.status === "failed" ? NOT_SAVED : SYNCED}
-            </span>
-          </p>
+          <p className="sync-line">{JOINED}</p>
+          {status.status === "failed" && (
+            <p className="sync-line bad">
+              {NOT_SAVED}: {NOT_SAVED_LINE}
+            </p>
+          )}
           <div className="sync-buttons">
-            <button className="btn" onClick={() => setView({ kind: "code", code: readSyncState()!.code })}>
+            <button
+              className="btn secondary"
+              onClick={() => setView({ kind: "code", code: readSyncState()!.code })}
+            >
               {SHOW_CODE}
             </button>
             <button className="btn secondary" onClick={() => setView({ kind: "leave" })}>
@@ -125,6 +129,7 @@ function SyncView({ view, setView, joined }: { view: View; setView(v: View): voi
       ) : (
         <div className="sync-block">
           <p className="sync-line">{SYNC_LINE}</p>
+          <p className="tiny muted">{START_LINE}</p>
           <div className="sync-buttons">
             <button className="btn" onClick={() => void start()}>
               {START}
@@ -158,7 +163,7 @@ function SyncView({ view, setView, joined }: { view: View; setView(v: View): voi
         </p>
       );
     case "code":
-      return <CodeView code={view.code} />;
+      return <CodeView code={view.code} done={() => setView({ kind: "home" })} />;
     case "join": {
       const code = normalizeCode(typed);
       return (
@@ -222,7 +227,7 @@ function SyncView({ view, setView, joined }: { view: View; setView(v: View): voi
 const PLACEHOLDER = "XXXXXXXXXXXXXXXXXXXXXXXXXX";
 
 /** The code: the warning first, then the QR and the code in groups, with Copy. */
-export function CodeView({ code }: { code: string }) {
+export function CodeView({ code, done }: { code: string; done(): void }) {
   const [copied, setCopied] = useState(false);
   const link = `${location.origin}/link#${code}`;
   return (
@@ -234,7 +239,16 @@ export function CodeView({ code }: { code: string }) {
         <QrCode text={link} label="QR code that opens the link to join this synced space" />
         <div className="sync-code-text">
           <code className="sync-code-value" aria-label="The code">
-            {groupCode(code)}
+            {/* Breaks only between groups, never inside one. */}
+            {groupCode(code)
+              .split("-")
+              .map((g, i, all) => (
+                <span key={i} className="sync-code-group">
+                  {g}
+                  {i < all.length - 1 ? "-" : ""}
+                  <wbr />
+                </span>
+              ))}
           </code>
           <button
             className="btn secondary"
@@ -249,6 +263,11 @@ export function CodeView({ code }: { code: string }) {
           </button>
           <p className="tiny muted">{SCAN_LINE}</p>
         </div>
+      </div>
+      <div className="sync-buttons">
+        <button className="btn" onClick={done}>
+          Done
+        </button>
       </div>
     </div>
   );

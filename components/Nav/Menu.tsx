@@ -94,11 +94,12 @@ export function Menu() {
           <div ref={panel} className="menu-panel" role="dialog" aria-label="Menu" tabIndex={-1}>
             {/* Only on the boot that dropped data from before profiles (step 2 plan §9): the next one finds none. */}
             {oldDataDropped() && <p className="tiny muted m-0 old-data-note">{OLD_DATA_DROPPED}</p>}
+            {/* Step 5: the sync's state, for every profile on this device (a phone; the desktop's is in the bar). */}
+            <SyncIndicator where="menu" />
             {/* Whose data this is (step 1, plan §3.4): the current profile, and the others to switch to. */}
             <section className="menu-profile">
               <h2>Profile</h2>
               <ProfilePicker />
-              <SyncIndicator where="menu" />
             </section>
             <ul className="menu-items">
               {/* Step 4: offered here only while the profile has no answers (owner, 10/18); after that it lives on

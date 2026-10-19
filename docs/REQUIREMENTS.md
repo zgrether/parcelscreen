@@ -432,6 +432,25 @@ list holds the same parcels. The map stays mounted behind the other tabs and pau
 (`/help`): reading a parcel's report, then how grades work; `/rulebook` redirects there. Compare is reached from Your
 list's ticks, 2 or 3. phase-0.md §9.55 has the details.
 
+### 3e. Sync across devices (roadmap step 5)
+
+Not the household data model above (§3): a much smaller synced space, so one person's phone and desktop hold the same
+data. Settings → Your data → Sync across devices makes a device's data (every profile, its parcels, screens, settings,
+priorities and answers) into a space with a 130-bit code, shown as a QR; another device joins by the QR or the code,
+and its own data is replaced. The Next.js routes `app/api/sync/*` are the only path to Supabase, with the server's
+secret key; the tables are keyed by the code's SHA-256 and have RLS on with no policies:
+
+```sql
+sync_spaces    space (sha-256 hex) primary key, created_at
+sync_profiles  space, id, record jsonb (name, createdAt, docs: { ps.cfg, ps.rubrics, ps.interview }), deleted, updated_at
+sync_parcels   space, key, profile, record jsonb (one built parcel, as §3a's store holds it), deleted, updated_at
+sync_screens   space, id, profile, schema_version, record jsonb (a kept screen), created_at   -- never updated
+```
+
+The device keeps its IndexedDB store (§3a) as the cache and syncs whole records under the prefs module; the save that
+reaches the server last wins. `docs/plans/step-5-sync.md` and phase-0.md §9.57 have the details. Julie joins the same
+space with her own profile in step 6.
+
 ## 4. The parcel page (the export)
 
 Blocks, in order; each is computed, placeholder, or user-authored:

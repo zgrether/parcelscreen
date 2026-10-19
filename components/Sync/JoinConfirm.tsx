@@ -19,7 +19,16 @@ type Phase =
   | { kind: "joining" }
   | { kind: "failed" };
 
-export function JoinConfirm({ code, onCancel }: { code: string; onCancel(): void }) {
+export function JoinConfirm({
+  code,
+  onCancel,
+  backLabel = "Back",
+}: {
+  code: string;
+  onCancel(): void;
+  /** Where Back goes, said plainly: "Back" in the Sync screen (to the code field), "Go to Your list" on /link. */
+  backLabel?: string;
+}) {
   const settings = useSettings();
   const [phase, setPhase] = useState<Phase>({ kind: "checking" });
 
@@ -57,7 +66,7 @@ export function JoinConfirm({ code, onCancel }: { code: string; onCancel(): void
           </p>
           <div className="sync-buttons">
             <button className="btn secondary" onClick={onCancel}>
-              Back
+              {backLabel}
             </button>
           </div>
         </div>
@@ -73,7 +82,7 @@ export function JoinConfirm({ code, onCancel }: { code: string; onCancel(): void
           </p>
           <div className="sync-buttons">
             <button className="btn secondary" onClick={onCancel}>
-              Back
+              {backLabel}
             </button>
           </div>
         </div>

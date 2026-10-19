@@ -9,7 +9,15 @@
  */
 import { useState, useSyncExternalStore } from "react";
 import { discardUnsaved, subscribeSync, syncView, trySaveAgain } from "@/lib/sync/engine";
-import { DISCARD, NOT_SAVED, SYNCED, TRY_AGAIN, UNSAVED_AT_OPEN } from "@/lib/sync/words";
+import {
+  DISCARD,
+  DISCARD_QUESTION,
+  KEPT_HERE,
+  NOT_SAVED,
+  SYNCED,
+  TRY_AGAIN,
+  unsavedAtOpen,
+} from "@/lib/sync/words";
 
 const useSync = () => useSyncExternalStore(subscribeSync, syncView, syncView);
 
@@ -29,8 +37,10 @@ export function SyncIndicator({ where }: { where: "bar" | "menu" }) {
 export const useUnsaved = (): boolean => useSync().status === "failed";
 
 export function SyncToast() {
-  const { status, atOpen } = useSync();
+  const { status, atOpen, names } = useSync();
   const [busy, setBusy] = useState(false);
+  // Discard asks once: it replaces this device's change with the other devices' copy.
+  const [discarding, setDiscarding] = useState(false);
   if (status !== "failed") return null;
   const run = (f: () => Promise<void>) => {
     setBusy(true);
@@ -38,14 +48,30 @@ export function SyncToast() {
   };
   return (
     <div className="sync-toast" role="status">
-      <span>{atOpen ? UNSAVED_AT_OPEN : `${NOT_SAVED} —`}</span>
-      <button disabled={busy} onClick={() => run(trySaveAgain)}>
-        {TRY_AGAIN}
-      </button>
-      {atOpen && (
-        <button className="quiet" disabled={busy} onClick={() => run(discardUnsaved)}>
-          {DISCARD}
-        </button>
+      {discarding ? (
+        <>
+          <span>{DISCARD_QUESTION}</span>
+          <button disabled={busy} onClick={() => run(discardUnsaved)}>
+            {DISCARD}
+          </button>
+          <button className="quiet" disabled={busy} onClick={() => setDiscarding(false)}>
+            Keep it
+          </button>
+        </>
+      ) : (
+        <>
+          <span>
+            {atOpen ? unsavedAtOpen(names ?? []) : `${NOT_SAVED}.`} {KEPT_HERE}
+          </span>
+          <button disabled={busy} onClick={() => run(trySaveAgain)}>
+            {TRY_AGAIN}
+          </button>
+          {atOpen && (
+            <button className="quiet" disabled={busy} onClick={() => setDiscarding(true)}>
+              {DISCARD}
+            </button>
+          )}
+        </>
       )}
     </div>
   );

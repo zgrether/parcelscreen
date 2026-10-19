@@ -21,9 +21,24 @@ export const JOIN_EMPTY =
 export const GETTING = "Getting your synced parcels…";
 export const SYNCED = "Synced";
 export const NOT_SAVED = "Not saved";
+export const NOT_SAVED_LINE = "a change here isn't on your other devices yet.";
 export const TRY_AGAIN = "Try again";
 export const DISCARD = "Discard";
 export const UNSAVED_AT_OPEN = "A change on this device wasn't saved.";
+/** Under "Not saved": the change isn't lost (fresh-eyes review, 10/19). */
+export const KEPT_HERE = "It's kept on this device.";
+/** The next-open line, naming what wasn't saved (fresh-eyes review): "…wasn't saved: Macks Mountain." */
+export function unsavedAtOpen(names: readonly string[]): string {
+  if (!names.length) return UNSAVED_AT_OPEN;
+  const shown = names.slice(0, 2).join(", ");
+  const more = names.length > 2 ? ` and ${names.length - 2} more` : "";
+  return names.length === 1
+    ? `A change on this device wasn't saved: ${shown}.`
+    : `Changes on this device weren't saved: ${shown}${more}.`;
+}
+export const DISCARD_QUESTION = "Discard it? Your other devices' copy replaces it here.";
+export const START_LINE =
+  "Start uploads this device's profiles, parcels and screens to Parcel Screen's server, then shows a code for your other devices.";
 
 const n = (count: number, one: string) => `${count} ${one}${count === 1 ? "" : "s"}`;
 

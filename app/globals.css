@@ -5153,7 +5153,9 @@ button.cmp-cell:hover {
   flex-wrap: wrap;
   gap: 10px;
 }
-.sync-buttons .btn {
+.sync-buttons .btn,
+.sync-code-text .btn,
+.sync-dialog .help-head .btn {
   min-height: 44px;
 }
 /* "This code works like a password": in the warning colour, above the code. */
@@ -5194,8 +5196,10 @@ button.cmp-cell:hover {
     Consolas,
     monospace;
   letter-spacing: 0.04em;
-  word-break: break-all;
   user-select: all;
+}
+.sync-code-group {
+  white-space: nowrap;
 }
 .sync-field {
   display: grid;
@@ -5267,7 +5271,7 @@ button.sync-ind.bad {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
 }
 .sync-toast button {
-  min-height: 36px;
+  min-height: 44px;
   padding: 0 12px;
   border: 0;
   border-radius: 5px;
@@ -5306,8 +5310,13 @@ button.sync-ind.bad {
     display: none;
   }
   .sync-ind.menu {
-    display: inline-flex;
-    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    margin: 0 16px 8px;
+  }
+  button.sync-ind.menu {
+    min-height: 44px;
+    padding: 0 16px;
   }
   .app-more[data-unsaved]::after {
     content: "";

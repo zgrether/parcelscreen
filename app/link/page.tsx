@@ -44,7 +44,7 @@ export default function LinkPage() {
       ) : already ? (
         <p className="sync-line">This device is already synced with that code.</p>
       ) : (
-        <JoinConfirm code={code} onCancel={() => router.replace("/library")} />
+        <JoinConfirm code={code} backLabel="Go to Your list" onCancel={() => router.replace("/library")} />
       )}
     </main>
   );
