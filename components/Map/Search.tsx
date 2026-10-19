@@ -1,6 +1,7 @@
 "use client";
 /**
- * Map search (step 13f plan §4): a search icon at the top left that opens one input, with grouped results:
+ * Map search (step 13f plan §4): on a phone, a search icon at the top left that opens one input; on a desktop, the
+ * docked panel's first row, always open (step 4c, plan §1). Grouped results:
  * coordinates (parsed here), saved parcels by name, parcel numbers within the counties in view, and places
  * from Photon. Esc, a tap outside, or picking a result closes it. The combobox pattern: arrows move through
  * the options, Enter picks.
@@ -33,8 +34,22 @@ interface Option {
   pick(): void;
 }
 
-export function Search({ photonUrl, hint }: { photonUrl: string; hint: SetHint }) {
+export function Search({
+  photonUrl,
+  hint,
+  docked = false,
+}: {
+  photonUrl: string;
+  hint: SetHint;
+  /** The desktop panel's first row: always there; closing it clears it (a new box, empty). */
+  docked?: boolean;
+}) {
   const [open, setOpen] = useState(false);
+  const [round, setRound] = useState(0);
+  if (docked)
+    return (
+      <SearchBox key={round} photonUrl={photonUrl} hint={hint} docked close={() => setRound((r) => r + 1)} />
+    );
   if (!open)
     return (
       <button
@@ -49,7 +64,17 @@ export function Search({ photonUrl, hint }: { photonUrl: string; hint: SetHint }
   return <SearchBox photonUrl={photonUrl} hint={hint} close={() => setOpen(false)} />;
 }
 
-function SearchBox({ photonUrl, hint, close }: { photonUrl: string; hint: SetHint; close(): void }) {
+function SearchBox({
+  photonUrl,
+  hint,
+  close,
+  docked = false,
+}: {
+  photonUrl: string;
+  hint: SetHint;
+  close(): void;
+  docked?: boolean;
+}) {
   const ctl = useExplore();
   const id = useId();
   const box = useRef<HTMLDivElement>(null);
@@ -63,7 +88,10 @@ function SearchBox({ photonUrl, hint, close }: { photonUrl: string; hint: SetHin
 
   // A tap anywhere outside closes it. On the map, that tap only closes it: the click it makes is swallowed,
   // so it doesn't also select the parcel under the finger.
+  // Docked, an empty box has nothing to close: a tap elsewhere is just a tap.
+  const idle = docked && !text;
   useEffect(() => {
+    if (idle) return;
     const onDown = (e: PointerEvent) => {
       if (box.current?.contains(e.target as Node)) return;
       if ((e.target as Element).closest?.(".maplibregl-canvas-container"))
@@ -72,7 +100,7 @@ function SearchBox({ photonUrl, hint, close }: { photonUrl: string; hint: SetHin
     };
     document.addEventListener("pointerdown", onDown);
     return () => document.removeEventListener("pointerdown", onDown);
-  }, [close]);
+  }, [close, idle]);
 
   // Parcel numbers and places, after a pause in typing; a newer query cancels the older requests.
   const searching = useRef<AbortController | null>(null);
@@ -312,11 +340,11 @@ function SearchBox({ photonUrl, hint, close }: { photonUrl: string; hint: SetHin
   ));
 
   return (
-    <div className="search-box" ref={box} role="search">
+    <div className={docked ? "search-box docked" : "search-box"} ref={box} role="search">
       <div className="search-field">
         <SearchIcon />
         <input
-          autoFocus
+          autoFocus={!docked}
           type="text"
           role="combobox"
           aria-label="Search coordinates, saved parcels, parcel numbers, places or a listing link"

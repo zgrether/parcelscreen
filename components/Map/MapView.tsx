@@ -7,7 +7,6 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 import { AttributionControl, Map as MlMap, setWorkerUrl } from "maplibre-gl";
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { SHEET_QUERY } from "@/components/Explore/useBottomSheet";
 import { getPref, setPref, type MapView as SavedView } from "@/lib/client/prefs";
 import { buildStyle, isBasemapId } from "./style";
 import { terrainTiles } from "./terrain";
@@ -113,7 +112,8 @@ export function MapView({
       /* storage blocked: no debug handle */
     }
     const attribution = m.getContainer().querySelector<HTMLElement>(".maplibregl-ctrl-attrib");
-    if (attribution && window.matchMedia(SHEET_QUERY).matches) startFolded(attribution);
+    // Folded on every screen (step 4c: on a desktop the open pill crossed the top of the map).
+    if (attribution) startFolded(attribution);
     m.on("movestart", (e: { originalEvent?: unknown }) => {
       if (e.originalEvent) moved.current = true;
     });

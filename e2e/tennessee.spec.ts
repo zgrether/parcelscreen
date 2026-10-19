@@ -6,7 +6,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { OWN_RECORDS_HINT } from "@/lib/geo/ownRecords";
 import { loadFixture, ROAN_SEARCH } from "../test/support/fixtures";
-import { expectAllDone, openExplorer, screenIt } from "./flow";
+import { expectAllDone, openExplorer, openSearch, screenIt } from "./flow";
 import { replayHar } from "./replay";
 
 const ROAN = "roan-hwy-143-099-046-02" as const;
@@ -63,7 +63,7 @@ test("Roan Mountain: found by its tax-card number in Search", async ({ page, con
   await replayHar(context, ROAN);
   await openExplorer(page, ROAN);
   await expect.poll(() => linesDrawn(page), { timeout: 30_000 }).toBeGreaterThan(0);
-  await page.getByRole("button", { name: "Search" }).click();
+  await openSearch(page);
   await page.keyboard.type(ROAN_SEARCH);
   await expect(page.getByText("099 046.02", { exact: true }).first()).toBeVisible({ timeout: 15_000 });
   expect(errors).toEqual([]);

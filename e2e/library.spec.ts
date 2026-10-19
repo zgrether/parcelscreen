@@ -6,7 +6,7 @@
  * cards, the same last line, and a long press shows a whole name.
  */
 import { expect, test } from "@playwright/test";
-import { importParcels, openExplorer, reload, seedScreens, visit } from "./flow";
+import { importParcels, openExplorer, reload, seedScreens, settled, visit } from "./flow";
 import { replayHar } from "./replay";
 
 const FERNEY = "ferney-creek-52-47A" as const;
@@ -159,6 +159,8 @@ test.describe("on a phone", () => {
     await replayHar(context, [FERNEY, MACKS]);
     await openExplorer(page, FERNEY);
     await importParcels(page, [FERNEY, MACKS]);
+    // The import's own writes kept first: the edit below reads and writes the store directly.
+    await settled(page);
     // Macks archived: the cards end with the hidden line, as the table does.
     await page.evaluate(async () => {
       const s = JSON.parse(window.__psKv!.getItem("ps.parcels")!) as {
