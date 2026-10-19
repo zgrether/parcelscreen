@@ -1,8 +1,9 @@
 # Step 4c: Map layout, desktop and phone
 
-A short step after 4b (owner, 10/19). Written 2026-10-19 under mission mode (`CLAUDE.md`). **Waiting for approval: no
-code until then.** The mission runs on `step/4c-map-layout`, branched from main once this plan is approved **and**
-step 4b's hand-back (#191) is on main: this step reworks 4b's frame.
+A short step after 4b (owner, 10/19). Written 2026-10-19 under mission mode (`CLAUDE.md`). **Approved by Zach on
+2026-10-19,** with every §11 question answered as recommended and one change: the one-line log doesn't repeat the
+button's count (§2, §8, §10). The mission runs on `step/4c-map-layout`, branched from main once step 4b's hand-back
+(#191) is on main: this step reworks 4b's frame. It runs before step 5's mission (owner).
 
 **The problem (Zach):** on a desktop the map's left side feels unbalanced. The search button floats alone above a card
 of a different width, while the right side is a tidy column. The parcel's run button sits in the panel's header as a
@@ -79,7 +80,9 @@ Done when:
 - **The header's permanent "Run again" goes.** So does the error line's "Run again", which becomes the toolbar's
   "Try again" (the re-screen-on-open failure keeps its message in the header).
 - **The step log collapses after a run** into one line that opens the list:
-  - "Graded in 66 s ▸", or "Graded in 66 s · 3 sources didn't load ▸".
+  - "Graded in 66 s ▸". **The count appears once, on the button** (owner, 10/19): while the button reads "Try again:
+    3 sources didn't load", the line doesn't repeat it. Only when the button names another reason (say, a changed
+    boundary) does the line carry the count: "Graded in 66 s · 3 sources didn't load ▸".
   - The time is the run's, measured by the page; a kept run opened later shows no line, as today.
   - While a run is in progress the live list shows as it does today, and so does a run's list once opened.
 - **The notes that say "Run again"** say "Grade again" (§10's list).
@@ -165,7 +168,7 @@ UI text only: no report or card text (rule 7 doesn't apply).
 | Run button, running | Running… | Grading… |
 | Run button, after a run | Run again (always) | none, or one of: Grade again: boundary changed · Grade again: house moved · Grade again: lines changed · Grade again: settings changed · Try again: N sources didn't load (1 source) |
 | Desktop card, no parcel | Tap a parcel to begin | (gone) |
-| Folded step log | Screened ✓ | Graded in 66 s ▸ · Graded in 66 s · N sources didn't load ▸ |
+| Folded step log | Screened ✓ | Graded in 66 s ▸ (also while the button reads "Try again: N sources didn't load") · Graded in 66 s · N sources didn't load ▸ (only when the button names another reason) |
 | Folded card's line, stale | These results are for an earlier boundary. Run again. | These results are for an earlier boundary. Grade again. |
 | Notice, stale | These results are for an earlier boundary. Run again. | These results are for an earlier boundary. Grade again. |
 | Notice, house | The house changed since this run — run again to assess it. | The house changed since this run — grade again to assess it. |
@@ -189,10 +192,18 @@ everything in §4.
 | PR | What | Checks |
 | --- | --- | --- |
 | 1 | **The desktop panel:** docked and full height, the search row first, the empty state, the collapse tab (remembered for the session), the map's padding, the toolbar and hint centred on the visible map, and the attribution's ⓘ at the bottom right on every screen. | e2e at 1280: the panel's box (left 0, top 44 px, 380 px wide, to the bottom); no parcel: only the search row; collapse and reopen, kept across a reload in the same tab; the toolbar's centre within 2 px of the visible map's; the ⓘ in the bottom-right corner, folded. |
-| 2 | **The main action:** the two-line header, "Grade this parcel" in the toolbar (under the sheet's header on a phone), its reasons, no "Run again" in the header, the one-line log, and §8's notices. | unit: the button's reason from freshness, the failed count and running (pure, `lib/client/gradeButton.ts`). e2e: each reason (move the boundary, the house without a session, a line, a setting), Mud Creek's "Try again: 3 sources didn't load", the log line and its ▸, and the phone's peek with the two-line name. The e2e helpers (`screenIt`) follow the new labels. |
-| 3 | **The screenshots, the fresh-eyes review and the hand-back:** each changed screen at 1280 and 375; the review's two questions (CLAUDE.md); §9.56. | Full CI on the step branch's head. |
+| 2 | **The main action:** the two-line header, "Grade this parcel" in the toolbar (under the sheet's header on a phone), its reasons, no "Run again" in the header, the one-line log, and §8's notices. | unit: the button's reason from freshness, the failed count and running (pure, `lib/client/gradeButton.ts`). e2e: each reason (move the boundary, the house without a session, a line, a setting), Mud Creek's "Try again: 3 sources didn't load" with the log line reading "Graded in … ▸" (no count; then a moved boundary turns the button to "Grade again: boundary changed" and the count joins the line), the line's ▸, and the phone's peek with the two-line name. The e2e helpers (`screenIt`) follow the new labels. |
+| 3 | **The screenshots, the fresh-eyes review and the hand-back:** each changed screen at 1280 and 375; the review's two questions (CLAUDE.md); the decision in `phase-0.md` §9 (§9.56, or §9.57 if step 5's lands first: checked then); 4c's row in PLAN.md, against the roadmap as step 5's docs have renumbered it. | Full CI on the step branch's head. |
 
-## 11. Questions for Zach
+## 11. Questions for Zach (answered 10/19: all as recommended)
+
+**Zach's answers:** Q1 the phone's button under the sheet's header; Q2 B, Search stays; Q3 "Grading…" with Cancel; Q4
+count the failed steps; Q5 no button for the overlays, the note stays; Q6 `sessionStorage`; Q7 the slim tab at the top
+left; Q8 the report's "run again" lines stay, reworded in a later plan. **One change:** while the button reads "Try again:
+N sources didn't load", the one-line log reads "Graded in 66 s ▸": the count appears only on the button, never twice
+(§2, §8, §10).
+
+The questions as asked:
 
 1. **The phone's button:** under the sheet's header, full width (recommended: the toolbar has no room at 375 px)? Or in
    the toolbar, with the acres moved out?
@@ -232,8 +243,8 @@ what's confusing?".
    right column; ⓘ at the bottom right.
 2. Search "Mud Creek" → its results under the search row; open it → its name on two lines, acres and no grade yet;
    "Grade this parcel" in the toolbar.
-3. Grade it → "Grading…" with Cancel, the live log; when it's done: "Graded in … · 3 sources didn't load ▸", and the
-   toolbar reads "Try again: 3 sources didn't load".
+3. Grade it → "Grading…" with Cancel, the live log; when it's done the toolbar reads "Try again: 3 sources didn't
+   load" and the log line "Graded in … ▸", with no count (the button has it).
 4. ▸ → the full log; collapse the panel (‹) → the slim tab with B and the name; reload → still collapsed; click the tab →
    open.
 5. Draw a line → "Grade again: lines changed"; change a setting → "Grade again: settings changed".
@@ -242,9 +253,12 @@ what's confusing?".
 
 ## 13. Decision to record in `phase-0.md` §9 (in PR 3)
 
-**§9.56 The map's layout:**
+Step 5's plan claims §9.56 too: whichever step's PR 3 merges second takes §9.57 (owner), so PR 3 checks `phase-0.md`
+on main before writing it.
+
+**§9.56 (or §9.57) The map's layout:**
 - the docked left panel with search first, collapsing to a tab;
 - the toolbar centred on the visible map;
 - the attribution's ⓘ at the bottom right;
 - "Grade this parcel" and its reasons in place of "Run again";
-- the one-line log.
+- the one-line log, whose count shows only when the button doesn't carry it.
