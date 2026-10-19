@@ -1759,28 +1759,37 @@ html:has(.explore) body {
   }
 }
 
-/* ---------- The panel's header: one line, the parcel and the screen button (owner, after 14d) ---------- */
+/* ---------- The panel's header: the parcel's name on up to two lines, then its acres and grade (step 4c) ---------- */
 .explore-header {
-  align-items: center;
+  align-items: flex-start;
   flex-wrap: nowrap;
   min-height: 56px;
 }
 .sh-parcel {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
   font: 600 18px/1.2 var(--font-cond);
 }
-/* A long name gives way; the acres always show. */
+/* Two lines, then it gives way (the whole name in its title); the acres and grade have a line of their own. */
 .sh-name {
-  min-width: 0;
+  display: -webkit-box;
   overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow-wrap: anywhere;
+}
+.sh-sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
 }
 .sh-acres {
   flex: none;
-  white-space: pre;
+  white-space: nowrap;
   color: var(--color-ink-2);
   font-weight: 500;
 }
@@ -1790,7 +1799,6 @@ html:has(.explore) body {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  margin-left: 8px;
   font: 600 14px/1 var(--font-cond);
 }
 .sh-card.v-contender {
@@ -3459,10 +3467,54 @@ html:has(.app-nav) .explore {
 .hist-dot.v-pass {
   background: var(--color-steep);
 }
-/* A finished run's steps, folded to one line (owner, #110). */
+/* A finished run's steps, folded to one line: "Graded in 66 s ▸" (step 4c; owner, #110). */
 .steps-folded {
-  font-size: 13px;
-  color: var(--color-ok);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--color-paper-2);
+  color: var(--color-ink-2);
+  font: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+}
+.steps-folded:hover {
+  color: var(--color-ink);
+}
+/* The parcel's one action (step 4c): amber in the toolbar; full width under the sheet's header on a phone. */
+.grade-action {
+  display: inline-flex;
+  gap: 6px;
+}
+.tb-btn.grade-btn {
+  background: var(--tb-amber);
+  color: #1c2620;
+  font-weight: 600;
+}
+.tb-btn.grade-btn:disabled {
+  opacity: 0.7;
+}
+.grade-action.sheet {
+  display: flex;
+  padding: 8px 12px 0;
+}
+.grade-action.sheet .grade-btn {
+  flex: 1;
+  min-height: 44px;
+  background: var(--tb-amber);
+  color: #1c2620;
+  border-color: transparent;
+  font-weight: 600;
+}
+.grade-action.sheet .btn.secondary {
+  min-height: 44px;
 }
 /* A panel's banded scale (value-ranking.md §6.2 (b)): this parcel's band lit, its value under it. */
 .scale {

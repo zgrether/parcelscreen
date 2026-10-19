@@ -29,6 +29,7 @@ import { mapShowing } from "@/lib/client/mapShowing";
 import { ScreenItContext } from "@/components/Results/ScreenItContext";
 import { debugFromUrl } from "@/lib/client/debugHandle";
 import { DockTab, ScreenBody, ScreenHeader, useScreenIt } from "@/components/Results/panel/ScreenIt";
+import { GradeAction } from "@/components/Results/panel/GradeAction";
 import { SHEET_QUERY, useBottomSheet } from "./useBottomSheet";
 import { ExploreContext, useExploreController } from "./useExploreController";
 
@@ -208,6 +209,8 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
                   <header className="explore-header" {...sheet.handlers}>
                     <ScreenHeader s={screen} desk={docked} />
                   </header>
+                  {/* The phone's grade button, under the header (owner, 4c Q1); the desktop's is the toolbar's. */}
+                  {!docked && <GradeAction where="sheet" />}
                   <div className="explore-scroll">
                     <ScreenBody s={screen} />
                     {children}
