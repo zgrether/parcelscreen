@@ -134,6 +134,8 @@ html:has(.explore) body {
     opacity: 0.5;
     margin: 8px auto 2px;
     touch-action: none;
+    /* Never squeezed: at the peek it's the report below that gives way (step 4c). */
+    flex: none;
   }
   .explore-header {
     touch-action: none;
@@ -3415,6 +3417,10 @@ html:has(.app-nav) .explore {
   display: flex;
   flex: none;
   padding: 4px 12px 0;
+}
+/* What doesn't fit the peek (the report's empty foot) is cut at the sheet's edge, not drawn over the tabs. */
+.explore-panel:has(> .grade-action.sheet) {
+  overflow: hidden;
 }
 /* The 148 px peek holds the handle, the two-line header and the button, none of them squeezed (step 4c). */
 .explore-header:has(+ .grade-action.sheet) {
