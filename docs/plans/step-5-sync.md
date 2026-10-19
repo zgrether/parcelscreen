@@ -1,8 +1,9 @@
 # Step 5: Sync across devices
 
 Rewritten 2026-10-19 (Zach), replacing the accounts plan that was drafted on 10/18 and never approved. Written under
-mission mode (`CLAUDE.md`). **Waiting for approval: no code until then.** The mission runs on `step/5-sync`, branched
-from main once step 4b is on main, this plan is approved, and Zach has done the setup in §13.
+mission mode (`CLAUDE.md`). **Approved by Zach on 2026-10-19,** with every §11 answer as recommended and one addition to
+§5 (which save is "later"). **Order:** step 4c's mission runs first. This step's mission starts on `step/5-sync`,
+branched from main, once 4c's hand-back is on main and Zach confirms §13 is done.
 
 **The problem:** Zach uses the app on his Android phone and in a desktop browser, and the two hold different data. This
 step makes them match. Later, Julie joins the same data to weigh in on parcels (step 6). This step doesn't block that,
@@ -143,6 +144,10 @@ Done when:
 - **The later save wins.** The server stamps each record's `updated_at` as it's saved. Two devices that edit the same
   parcel end with whichever saved last, whole. Saving whole records keeps this simple. The cost is that two edits to
   the same parcel within the same few seconds keep only one, which is rare and accepted for a personal tool.
+  - **"Later" means the save that reaches the server last, not the edit made last** (owner, 10/19). So a **Try again**
+    after a stretch offline can overwrite a newer edit made meanwhile on another device: the phone's older change,
+    saved when it's back online, replaces the desktop's newer one. This is accepted for a personal tool, and recorded
+    in the §9 decision (§17).
 - **Fetching:** when the app opens, when it comes back to the front (`visibilitychange`), and on a tab switch.
   - It asks for changes since the last fetch, with a few seconds' overlap so nothing is missed, and applies them
     idempotently.
@@ -257,7 +262,18 @@ syncing this device** and **Join with a code**.
     accounts, if they ever do.
   - The secret's name changes from `SUPABASE_SERVICE_ROLE_KEY` to `SUPABASE_SECRET_KEY` (Supabase's current secret key).
 
-## 11. Questions for Zach
+## 11. Questions for Zach (answered 10/19: all as recommended)
+
+**Zach's answers:**
+1. Rows keyed by the code's SHA-256: yes.
+2. A change not saved at close: Try again or Discard at the next open, yes.
+3. The per-device list: as proposed.
+4. The indicator's place: as proposed.
+5. Deleting a profile deletes it on every device: yes.
+
+**Added by Zach:** "later save wins" means the save that reaches the server last, not the edit made last (§5, §17).
+
+The questions as asked:
 
 1. **The rows are keyed by the code's SHA-256,** not the code itself (recommended: one line of code, and a copy of the
    database then holds no working code)? Or by the code as is?
@@ -347,12 +363,17 @@ Mountain), and step 9 is the one check that needs production.
 
 ## 17. Decisions to record in `phase-0.md` §9 (in PR 3)
 
-- **§9.56 Sync across devices:**
+Step 4c's plan claims §9.56 too. Whichever step's PR 3 merges second takes §9.57 (owner, 10/19): PR 3 checks
+`phase-0.md` for the next free number before writing it. Since 4c runs first, this is most likely §9.57.
+
+- **§9.56 (or the next free number) Sync across devices:**
   - a synced space keyed by a 130-bit code, shown as a QR and text, passed in a URL fragment and a request header, never
     a URL;
   - joining replaces the device's data (a clean break), and leaving keeps a local copy; no rotation;
   - the API routes with the secret key are the only path, behind RLS with no policies;
-  - whole records, the later save winning; screens immutable;
+  - whole records, the later save winning, where "later" is the save that reaches the server last, not the edit made
+    last: a Try again after a stretch offline can overwrite a newer edit from another device (accepted, owner 10/19);
+    screens immutable;
   - fetch on open, return and tab switch; no offline queue;
   - a daily keep-alive read; Export is the backup;
   - migrations through the connector, additive only; CI on the memory store.
