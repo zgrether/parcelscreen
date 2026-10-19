@@ -74,7 +74,8 @@ test("Tennessee's parcel service down: the hint names it, over Roan", async ({ p
   await context.route(/Tennessee_Property_Boundaries_Public_Use\/FeatureServer\/0\/query/, (route) =>
     route.fulfill({ status: 500, body: "down", headers: { "access-control-allow-origin": "*" } }),
   );
-  await openExplorer(page, ROAN);
+  // No hillshade or contours: their unrecorded tiles' "Terrain tiles didn't load" could take the hint slot (it did, in CI).
+  await openExplorer(page, ROAN, { "ps.hillshade": "0", "ps.contours": "0" });
   await expect(page.locator(".map-hint")).toContainText("Tennessee parcel service isn't responding", {
     timeout: 60_000,
   });
