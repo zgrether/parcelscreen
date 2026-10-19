@@ -180,5 +180,6 @@ against them, then the UI.
 
 ## The roadmap
 Follow PLAN.md's roadmap in mission mode, one step at a time; the spec for every step is
-`docs/design/workflow-review.md`. The Supabase data model for step 13 and the rest of the long-range
-requirements are in docs/REQUIREMENTS.md. Do not start step N+1 until step N is merged to main.
+`docs/design/workflow-review.md`. The long-range Supabase data model (accounts and households,
+not scheduled) and the rest of the long-range requirements are in docs/REQUIREMENTS.md; step 5's synced space is
+smaller, and is in `docs/plans/step-5-sync.md`. Do not start step N+1 until step N is merged to main.
