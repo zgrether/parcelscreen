@@ -99,9 +99,14 @@ step. Mission mode changes rules 1 and 3 above as written here; everything else 
   MapLibre or Three. It takes a GeoJSON polygon and a config and returns a result object. It must
   run in a Web Worker and in Node. Rendering (overlays, charts, 3D) is done by components from
   the result.
-- Every Supabase table has **row-level security enabled** in the same migration that creates it,
-  with policies scoped to the user's household. No table is created without RLS.
-- Secrets never reach the client. `SUPABASE_SERVICE_ROLE_KEY` and `CRON_SECRET` are server-only.
+- Every Supabase table has **row-level security enabled** in the same migration that creates it. No
+  table is created without RLS. Step 5's sync tables have **no policies**: the public key reads and
+  writes nothing, and the Next.js routes, with the secret key on the server, are the only way in
+  (`docs/plans/step-5-sync.md` §4). Policies scoped to a household come with accounts, if they come.
+- Migrations go through the Supabase connector to the `parcelscreen` project only, and are
+  **additive only** (create or add). One that drops, renames, retypes or deletes data is a stop condition.
+- Secrets never reach the client. `SUPABASE_SECRET_KEY` and `CRON_SECRET` are server-only, never
+  `NEXT_PUBLIC_`.
 - Screen results are **immutable**: `screens` rows are inserted, never updated. A re-run inserts a
   new row with `version = max+1`.
 - **Schema v9 is frozen** (roadmap step 2: the TREC trails a trailhead serves; v8 at step 1, v7 at follow-up 55, v6 at follow-up 54, v5 at follow-up 34, v4 at VR3a, v3 at B2a, v2 at step 18b):

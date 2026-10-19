@@ -57,6 +57,7 @@
     "@dnd-kit/sortable": "10.0.0",
     "@dnd-kit/utilities": "3.2.2",
     "@serwist/turbopack": "9.5.13",
+    "@supabase/supabase-js": "2.117.2",
     "@turf/turf": "7.4.0",
     "fast-png": "^8.0.0",
     "geotiff": "2.1.3",
