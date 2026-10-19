@@ -104,7 +104,7 @@ test("a full run as Person A, with Back and Skip: the result, and the priorities
   await page.getByRole("button", { name: "Next" }).click();
   await expect(page.locator(".iv-scene")).toHaveText("What matters to you");
 
-  await page.getByRole("link", { name: "Fine-tune in My priorities" }).click();
+  await page.getByRole("link", { name: "Fine-tune in What matters to you" }).click();
   const should = page.getByRole("region", { name: "Really want", exact: true }).locator(".rubric-card-name");
   await expect(should.first()).toContainText("Elevation at the build site");
   await expect(should.first()).toContainText("also a limit");

@@ -5035,3 +5035,44 @@ button.cmp-cell:hover {
 .iv-summary li {
   margin: 3px 0;
 }
+
+/* ---------- Help (step 4b): one page, the report's notes then how grades work ---------- */
+.help-page {
+  max-width: 860px;
+  margin: 0 auto;
+}
+.help-page .help-body {
+  overflow: visible;
+  padding: 0;
+}
+.help-toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin: 0 0 8px;
+}
+.help-toc a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.help-section {
+  scroll-margin-top: 12px;
+}
+.help-section + .help-section {
+  margin-top: 28px;
+  border-top: 2px solid var(--color-ink);
+}
+.help-section-title {
+  margin: 16px 0 4px;
+  font: 600 24px/1.15 var(--font-cond);
+}
+.help-page h3[id^="h-"] {
+  scroll-margin-top: 12px;
+}
+/* The dialog's link to all of it. */
+.help-all {
+  margin-top: 16px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-rule);
+}

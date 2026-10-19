@@ -8,6 +8,7 @@
  * (owner, #117 review); once columns are added or removed here, that choice is remembered per browser (ps.compare).
  */
 import Link from "next/link";
+import { COMPARE_HOW, COMPARE_MAX } from "@/lib/client/library";
 import { useMemo, useState } from "react";
 import { LongName } from "@/components/LongName";
 import { CardPanel } from "@/components/Results/card/CardPanel";
@@ -22,7 +23,7 @@ import { loadUserConfig } from "@/lib/client/userConfig";
 import { useRubricView } from "@/lib/client/useRubricView";
 import { RubricSwitch } from "@/components/Results/card/RubricSwitch";
 import type { PanelKey } from "@/lib/report/cardPanels";
-import { compareTable, defaultColumns, type Cell, type CompareParcel } from "@/lib/report/compare";
+import { compareTable, type Cell, type CompareParcel } from "@/lib/report/compare";
 
 const STATUS: Record<NonNullable<Cell["status"]>, { mark: string; word: string }> = {
   pass: { mark: "✓", word: "Pass" },
@@ -33,7 +34,7 @@ const STATUS: Record<NonNullable<Cell["status"]>, { mark: string; word: string }
 
 export function Compare() {
   const built = useMemo(() => getPref("ps.parcels")?.built ?? [], []);
-  // The user's columns, once picked (remembered per browser); null until then: the default (defaultColumns).
+  // The columns: the parcels ticked on Your list, then as changed here (remembered per browser); none until then.
   const [picked, setPicked] = useState<string[] | null>(() => {
     const kept = getPref("ps.compare");
     const keys = new Set(built.map((b) => b.key!));
@@ -63,12 +64,13 @@ export function Compare() {
       drawn: drawnOf(b.markup, b.drivewayLine),
     };
   });
-  const loaded = screens.size === built.length;
-  const chosen = picked ?? (loaded ? defaultColumns(all, rubric) : []);
+  // The parcels ticked on Your list (step 4b: Compare is reached from there, 2 or 3 of them).
+  const chosen = picked ?? [];
   const columns = chosen.map((k) => built.find((b) => b.key === k)).filter((b): b is WorkingParcel => !!b);
   const parcels = columns.map((b) => all.find((p) => p.key === b.key)!);
   const table = compareTable(parcels, rubric, config.budget.readyToBuild);
-  const addable = built.filter((b) => !chosen.includes(b.key!));
+  // Up to three columns, as on Your list.
+  const addable = chosen.length < COMPARE_MAX ? built.filter((b) => !chosen.includes(b.key!)) : [];
   const opened = panel ? parcels[panel.col] : null;
   const openedCard = panel ? table.cards[panel.col] : null;
 
@@ -128,10 +130,9 @@ export function Compare() {
           />
         </header>
 
-        {built.length === 0 ? (
+        {columns.length === 0 ? (
           <p className="muted">
-            Nothing to compare yet. Parcels you keep in History (open one and screen it, or draw onto it) show
-            here.
+            {COMPARE_HOW} <Link href="/library">Your list</Link>
           </p>
         ) : (
           <>

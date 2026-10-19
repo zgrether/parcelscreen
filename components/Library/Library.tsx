@@ -21,6 +21,12 @@ import {
   passes,
   showHidden,
   sortRows,
+  toggleTick,
+  COMPARE_FULL,
+  COMPARE_HOW,
+  COMPARE_MAX,
+  COMPARE_MIN,
+  LIST_EMPTY,
   type Graded,
   type LibraryRow,
   type LibraryView,
@@ -140,11 +146,7 @@ export function Library() {
     setPref("ps.compare", [...ticked]);
     router.push("/compare");
   };
-  const toggle = (key: string) => {
-    const next = new Set(ticked);
-    if (!next.delete(key)) next.add(key);
-    setTicked(next);
-  };
+  const toggle = (key: string) => setTicked(toggleTick(ticked, key));
   const detail = opened ? built.find((p) => p.key === opened) : undefined;
   // The parcels whose grades are gone (approval A): "Re-screen all saved parcels" screens them one after another.
   const needing = rows
@@ -158,8 +160,14 @@ export function Library() {
       <main className="compare library">
         <header className="compare-head">
           <h1>Your list</h1>
+          {/* Compare takes 2 or 3 (step 4b): with one ticked the button waits for another. */}
           {ticked.size > 0 && (
-            <button className="btn small" onClick={compare}>
+            <button
+              className="btn small"
+              disabled={ticked.size < COMPARE_MIN}
+              title={ticked.size < COMPARE_MIN ? COMPARE_HOW : undefined}
+              onClick={compare}
+            >
               Compare {ticked.size}
             </button>
           )}
@@ -167,8 +175,7 @@ export function Library() {
 
         {built.length === 0 ? (
           <p className="muted">
-            Nothing on your list yet. Open the map, pick a parcel and screen it, name it or give it a price:
-            it&apos;s kept here. <Link href="/explore">Go to the map</Link>
+            {LIST_EMPTY} <Link href="/explore">Go to the map</Link>
           </p>
         ) : (
           <>
@@ -352,6 +359,8 @@ function TableRow({ r, index, count, ticked, toggle, open, ordering, mover }: Ro
           type="checkbox"
           aria-label={`Compare ${r.name}`}
           checked={ticked.has(r.key)}
+          disabled={!ticked.has(r.key) && ticked.size >= COMPARE_MAX}
+          title={!ticked.has(r.key) && ticked.size >= COMPARE_MAX ? COMPARE_FULL : undefined}
           onChange={() => toggle(r.key)}
         />
       </td>
@@ -414,6 +423,8 @@ function Card({ r, index, count, ticked, toggle, open, ordering, mover }: RowPro
             type="checkbox"
             aria-label={`Compare ${r.name}`}
             checked={ticked.has(r.key)}
+            disabled={!ticked.has(r.key) && ticked.size >= COMPARE_MAX}
+            title={!ticked.has(r.key) && ticked.size >= COMPARE_MAX ? COMPARE_FULL : undefined}
             onChange={() => toggle(r.key)}
           />
         </div>

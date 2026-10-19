@@ -143,6 +143,6 @@ describe("the rulebook (VR7)", () => {
     const missing = PANEL_KEYS.filter((k) => !ids.has(ruleAnchor(k)));
     expect(missing, "panels with no section on the rulebook").toEqual([]);
     expect(PANEL_KEYS).toContain("cost");
-    expect(rulebookHref("trails")).toBe("/rulebook#rule-trails");
+    expect(rulebookHref("trails")).toBe("/help#rule-trails");
   });
 });

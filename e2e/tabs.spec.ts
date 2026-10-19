@@ -4,7 +4,7 @@
  * the same parcel with its overlays live, and no new screen run. While hidden it pauses: no frame drawn (not even when
  * asked for), no request off the site (tiles, services). If the browser drops the page anyway, the next load restores
  * the view and the open parcel from storage, and Run again restores the overlays: that fallback is the reload tests'.
- * A report panel's "How it's scored" goes to its section of the rulebook, and Back returns to the map with the report
+ * A report panel's "How it's scored" goes to its rule on Help (step 4b), and Back returns to the map with the report
  * and that panel open (it's in the URL, ?panel=trails: #121 review). Follow-up 52's unmount (the map's children
  * cleaning up after MapView removed the map) now happens only when the page goes.
  */
@@ -145,7 +145,7 @@ for (const [tab, path] of [
   }
 }
 
-test("a panel's “How it's scored” goes to its rulebook section; Back returns to the map with that panel open", async ({
+test("a panel's “How it's scored” goes to its rule on Help; Back returns to the map with that panel open", async ({
   page,
   context,
 }) => {
@@ -162,7 +162,7 @@ test("a panel's “How it's scored” goes to its rulebook section; Back returns
   expect(await page.evaluate(() => history.length)).toBe(entries);
 
   await page.locator(".card-panel").getByRole("link", { name: "How it's scored" }).click();
-  await expect(page).toHaveURL(/\/rulebook#rule-trails$/);
+  await expect(page).toHaveURL(/\/help#rule-trails$/);
   const section = page.locator("#rule-trails");
   await expect(section.locator("h4")).toHaveText("Trails and public land");
   // Scrolled to it: its top near the top of the page (below the top bar, step 4b), once the breakdown above it has
