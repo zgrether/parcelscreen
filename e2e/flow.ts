@@ -95,6 +95,18 @@ export async function openYourData(page: Page): Promise<void> {
   await expect(page.getByRole("heading", { name: "Your data" })).toBeVisible();
 }
 
+/** Search's field: the docked panel's first row on a desktop (step 4c), opened by the map's Search button on a phone. */
+export const searchField = (page: Page): Locator =>
+  page.getByRole("combobox", { name: /^Search coordinates/ });
+
+/** Search, ready to type in (focused). */
+export async function openSearch(page: Page): Promise<Locator> {
+  const field = searchField(page);
+  if (!(await field.count())) await page.getByRole("button", { name: "Search" }).click();
+  await field.click();
+  return field;
+}
+
 /** A parcel's row on Your list, by (part of) the name it shows: a table row on a desktop, a card on a phone. */
 export const listRow = (page: Page, name: string): Locator =>
   page.locator(".lib-row:visible", { hasText: name }).first();

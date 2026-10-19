@@ -39,7 +39,7 @@ export function MapArea({
   bottomInset: number;
   leftInset: number;
 }) {
-  const { setMap, panelInset, map, state, startDraw } = useExplore();
+  const { setMap, panelInset, map, state, startDraw, docked } = useExplore();
   // Draw, Combine and Split flatten the camera while they're open (13g).
   const { mode, split } = state;
   useFlatForTools(map, DRAWING.includes(mode) || mode === "split" || mode === "combine" || split !== null);
@@ -62,7 +62,8 @@ export function MapArea({
       <MapTools parcelServices={config.endpoints.parcels} hint={setHint} />
       <MapControls hint={setHint} />
       <ParcelTools />
-      <Search photonUrl={config.endpoints.photon} hint={setHint} />
+      {/* On a desktop Search is the docked panel's first row (step 4c). */}
+      {!docked && <Search photonUrl={config.endpoints.photon} hint={setHint} />}
       <Hint text={hint} action={hint === OWN_RECORDS_HINT ? { label: "Draw", onClick: startDraw } : null} />
       <SwitchToast />
       <ClearedNote />

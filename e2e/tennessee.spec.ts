@@ -6,7 +6,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { OWN_RECORDS_HINT } from "@/lib/geo/ownRecords";
 import { loadFixture, ROAN_SEARCH } from "../test/support/fixtures";
-import { expectAllDone, openExplorer, screenIt } from "./flow";
+import { expectAllDone, openExplorer, openSearch, screenIt } from "./flow";
 import { replayHar } from "./replay";
 
 const ROAN = "roan-hwy-143-099-046-02" as const;
@@ -63,7 +63,7 @@ test("Roan Mountain: found by its tax-card number in Search", async ({ page, con
   await replayHar(context, ROAN);
   await openExplorer(page, ROAN);
   await expect.poll(() => linesDrawn(page), { timeout: 30_000 }).toBeGreaterThan(0);
-  await page.getByRole("button", { name: "Search" }).click();
+  await openSearch(page);
   await page.keyboard.type(ROAN_SEARCH);
   await expect(page.getByText("099 046.02", { exact: true }).first()).toBeVisible({ timeout: 15_000 });
   expect(errors).toEqual([]);
@@ -74,7 +74,8 @@ test("Tennessee's parcel service down: the hint names it, over Roan", async ({ p
   await context.route(/Tennessee_Property_Boundaries_Public_Use\/FeatureServer\/0\/query/, (route) =>
     route.fulfill({ status: 500, body: "down", headers: { "access-control-allow-origin": "*" } }),
   );
-  await openExplorer(page, ROAN);
+  // No hillshade or contours: their unrecorded tiles' "Terrain tiles didn't load" could take the hint slot (it did, in CI).
+  await openExplorer(page, ROAN, { "ps.hillshade": "0", "ps.contours": "0" });
   await expect(page.locator(".map-hint")).toContainText("Tennessee parcel service isn't responding", {
     timeout: 60_000,
   });
@@ -97,6 +98,10 @@ async function openAt(page: import("@playwright/test").Page, view: typeof KNOXVI
     localStorage.clear();
     localStorage.setItem("ps.debug", "1");
     localStorage.setItem("ps.roads", "0");
+    // No hillshade or contours: their tiles aren't recorded, and the replay aborts them, whose "Terrain tiles didn't
+    // load" could take the one hint slot after the hint this reads (it did, in CI).
+    localStorage.setItem("ps.hillshade", "0");
+    localStorage.setItem("ps.contours", "0");
     localStorage.setItem("ps.view", JSON.stringify(v));
   }, view);
   await page.goto("/explore");

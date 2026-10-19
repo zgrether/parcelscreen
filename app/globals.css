@@ -96,7 +96,7 @@ html:has(.explore) body {
 .map-hint {
   bottom: calc(76px + env(safe-area-inset-bottom, 0px));
   left: calc(var(--float-l, 0px) + 12px);
-  right: 12px;
+  right: calc(var(--col-r, 0px) + 12px);
   margin-inline: auto;
   width: fit-content;
 }
@@ -294,7 +294,7 @@ html:has(.explore) body {
   position: absolute;
   z-index: 15;
   left: calc(var(--float-l, 0px) + 12px);
-  right: 12px;
+  right: calc(var(--col-r, 0px) + 12px);
   bottom: calc(var(--sheet-h, 0px) + 18px);
   margin-inline: auto;
   width: fit-content;
@@ -418,7 +418,7 @@ html:has(.explore) body {
   position: absolute;
   z-index: 15;
   left: calc(var(--float-l, 0px) + 12px);
-  right: 12px;
+  right: calc(var(--col-r, 0px) + 12px);
   bottom: calc(var(--sheet-h, 0px) + 74px);
   margin-inline: auto;
   width: fit-content;
@@ -2144,32 +2144,119 @@ html:has(.app-nav) .explore {
   color: var(--color-steep);
 }
 
-/* ---------- Desktop: the results float at the map's top left, a card or a panel (owner, after 14d) ---------- */
-/* Below the search button; --float-w is the card's or the panel's width (ExploreShell). */
-.explore-panel.float {
+/* ---------- Desktop: one docked panel at the left edge, Search its first row (step 4c, plan §1) ---------- */
+/* --dock-w is its width (ExploreShell). With no parcel open it's the search row alone; with one, the window's height. */
+.explore-panel.dock {
   position: absolute;
   z-index: 18;
-  top: calc(env(safe-area-inset-top, 0px) + 64px);
-  left: 10px;
-  width: var(--float-w);
-  border: 0;
-  border-radius: 10px;
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
-  overflow: hidden;
+  top: 0;
+  left: 0;
+  width: var(--dock-w);
+  border-right: 1px solid var(--color-rule);
+  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.18);
 }
-.explore-panel.float.expanded {
-  bottom: 10px;
+.explore-panel.dock.full {
+  bottom: 0;
 }
-.explore-panel.float .explore-header {
+.explore-panel.dock.search-only {
+  border-bottom: 1px solid var(--color-rule);
+  border-bottom-right-radius: 10px;
+}
+.explore-panel.dock.collapsed {
+  display: none;
+}
+.explore-panel.dock .explore-header {
   min-height: 52px;
-  padding: 8px 10px 8px 16px;
+  padding: 10px 10px 10px 16px;
 }
-.explore-panel.float.card .explore-header {
-  flex-wrap: wrap;
-  row-gap: 2px;
+.dock-search {
+  flex: none;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-rule);
+}
+.explore-panel.dock.search-only .dock-search {
   border-bottom: 0;
 }
-/* The folded card's verdict line, in the verdict's colour. */
+/* Docked, the box is the row's field, and its results drop over the panel below it. */
+.search-box.docked {
+  position: relative;
+  top: auto;
+  left: auto;
+  width: auto;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: none;
+  overflow: visible;
+}
+.search-box.docked .search-field input {
+  height: 38px;
+}
+.search-box.docked .search-results {
+  position: absolute;
+  z-index: 3;
+  top: calc(100% + 4px);
+  left: -1px;
+  right: -1px;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+  background: var(--color-paper);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.25);
+}
+/* The panel's edge: ‹ collapses it to its tab. */
+.dock-edge {
+  position: absolute;
+  top: 50%;
+  right: -23px;
+  width: 22px;
+  height: 48px;
+  margin-top: -24px;
+  border: 1px solid var(--color-rule);
+  border-left: 0;
+  border-radius: 0 8px 8px 0;
+  background: var(--color-paper);
+  color: var(--color-ink-2);
+  font-size: 16px;
+  cursor: pointer;
+}
+.dock-edge:hover {
+  color: var(--color-ink);
+}
+/* Collapsed: a slim tab at the top left, the grade and the name; a click reopens the panel. */
+.dock-tab {
+  position: absolute;
+  z-index: 18;
+  top: 12px;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(320px, 60%);
+  min-height: 44px;
+  padding: 0 12px 0 14px;
+  border: 1px solid var(--color-rule);
+  border-left: 0;
+  border-radius: 0 10px 10px 0;
+  background: var(--color-paper);
+  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.18);
+  color: var(--color-ink);
+  font: 600 15px/1.2 var(--font-cond);
+  cursor: pointer;
+}
+.dock-tab-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* The credits: MapLibre's ⓘ, folded, in the bottom-right corner (on a phone it stays at the top, clear of the sheet). */
+@media (min-width: 861px), (orientation: landscape) {
+  .explore-map .maplibregl-ctrl-top-right {
+    top: auto;
+    bottom: 4px;
+    right: 4px;
+  }
+}
+/* A line under the parcel in the header (the re-screen's state, B2a). */
 .sh-verdict {
   flex-basis: 100%;
   margin-top: -2px;
@@ -2187,21 +2274,6 @@ html:has(.app-nav) .explore {
 .explore-header:has(> .sh-rescreen) {
   flex-wrap: wrap;
   row-gap: 2px;
-}
-.sh-fold {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--color-ink-2);
-  cursor: pointer;
-}
-.sh-fold:hover {
-  background: var(--color-paper-2);
-  color: var(--color-ink);
 }
 /* The parcel's × (17e). */
 .sh-x {
@@ -2222,7 +2294,8 @@ html:has(.app-nav) .explore {
   color: var(--color-ink);
 }
 .sh-x:focus-visible,
-.sh-fold:focus-visible {
+.dock-edge:focus-visible,
+.dock-tab:focus-visible {
   outline: 2px solid var(--color-water);
   outline-offset: 1px;
 }

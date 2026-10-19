@@ -419,12 +419,6 @@ export function useScreenIt(
 /** The sections an evaluation point moves (proto setFocus: sun, sky, driveway), which carry the unsaved note. */
 const EVALUATED_SECTIONS = new Set(["december-sun", "dark-skies", "driveway"]);
 
-/** Desktop: whether the card is grown into the panel, and how to fold or unfold it (null: nothing to read). */
-export interface DeskCard {
-  expanded: boolean;
-  fold: (() => void) | null;
-}
-
 /**
  * The open parcel's names for its drawn lines (owner, 2026-10-14): the report reads a line by its current name, or as
  * since deleted, looked up by the id its result keeps.
@@ -441,16 +435,16 @@ const drawnFor = (s: ScreenIt): Drawn | undefined => {
 };
 
 /** The panel's one-line header: the parcel, its acres, the verdict's dot, and the screen button. */
-export function ScreenHeader({ s, desk = null }: { s: ScreenIt; desk?: DeskCard | null }) {
+export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean }) {
   const d = s.ctl.derived;
   if (!s.ctl.state.store.open)
-    return <span className="sh-empty">{desk ? "Tap a parcel to begin" : "Tap a parcel to screen it"}</span>;
+    // The phone's sheet (hidden until a parcel is open); the desktop's docked panel shows only Search then (step 4c).
+    return <span className="sh-empty">Tap a parcel to screen it</span>;
   const name = s.ctl.layers?.name ?? "Parcel";
   // The card's grade and verdict for the kept run (owner, #110), in whoever's grade is on.
   const card =
     !s.runningHere && !s.stale && s.shown ? reportCard(s.shown.result, s.rubric, drawnFor(s)) : null;
   const label = s.running ? "Running…" : s.shown ? "Run again" : "Screen it";
-  const folded = desk && !desk.expanded && desk.fold && s.display;
   return (
     <>
       <span className="sh-parcel">
@@ -472,17 +466,6 @@ export function ScreenHeader({ s, desk = null }: { s: ScreenIt; desk?: DeskCard 
         <button className="btn small" disabled={!s.parcel || s.running} onClick={s.run}>
           {label}
         </button>
-        {desk?.fold && (
-          <button
-            className="sh-fold"
-            aria-expanded={desk.expanded}
-            aria-label={desk.expanded ? "Fold the report to the card" : "Show the report"}
-            title={desk.expanded ? "Fold to the card" : "Show the report"}
-            onClick={desk.fold}
-          >
-            <Chevron up={desk.expanded} />
-          </button>
-        )}
         {/* Deselect the parcel (17e); Esc does the same on desktop. A screened one stays in History. */}
         <button
           className="sh-x"
@@ -493,7 +476,6 @@ export function ScreenHeader({ s, desk = null }: { s: ScreenIt; desk?: DeskCard 
           ×
         </button>
       </span>
-      {folded && <VerdictLine s={s} />}
       {!s.display && <RescreenLine s={s} />}
     </>
   );
@@ -519,29 +501,25 @@ function RescreenLine({ s }: { s: ScreenIt }) {
 }
 
 /**
- * The folded card's second line: the report card's reason (owner, #110; the prototype's lead is in the Grade and
- * verdict panel), or why the results no longer fit.
+ * The docked panel collapsed (desktop; step 4c, plan §1): a slim tab at the top left with the parcel's grade (when it
+ * has one) and its name; a click reopens the panel.
  */
-function VerdictLine({ s }: { s: ScreenIt }) {
-  if (!s.display) return null;
-  if (s.stale && !s.runningHere)
-    return <span className="sh-verdict muted">These results are for an earlier boundary. Run again.</span>;
-  if (s.runningHere) return <span className="sh-verdict muted">Screening…</span>;
-  return <span className="sh-verdict">{reportCard(s.display, s.rubric, drawnFor(s)).reason}</span>;
-}
-
-function Chevron({ up }: { up: boolean }) {
+export function DockTab({ s, reopen }: { s: ScreenIt; reopen(): void }) {
+  const name = s.ctl.layers?.name ?? "Parcel";
+  const card =
+    !s.runningHere && !s.stale && s.shown ? reportCard(s.shown.result, s.rubric, drawnFor(s)) : null;
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-      <path
-        d={up ? "M3.5 10 8 5.5 12.5 10" : "M3.5 6 8 10.5 12.5 6"}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <button
+      className="dock-tab"
+      aria-expanded={false}
+      aria-label={`Show the panel: ${name}${card ? `, grade ${card.grade ?? "none"}` : ""}`}
+      title={name}
+      onClick={reopen}
+    >
+      {card && <span className={`card-grade small g-${card.grade ?? "none"}`}>{card.grade ?? "–"}</span>}
+      <span className="dock-tab-name">{name}</span>
+      <span aria-hidden="true">›</span>
+    </button>
   );
 }
 

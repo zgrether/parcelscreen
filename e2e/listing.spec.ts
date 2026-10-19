@@ -7,7 +7,7 @@
 import { centroid } from "@turf/turf";
 import { expect, test, type Page } from "@playwright/test";
 import { loadFixture } from "../test/support/fixtures";
-import { expectAllDone, importParcel, openExplorer, openFromList, screenIt } from "./flow";
+import { expectAllDone, importParcel, openExplorer, openFromList, openSearch, screenIt } from "./flow";
 import { replayHar } from "./replay";
 
 const FERNEY = "ferney-creek-52-47A" as const;
@@ -52,8 +52,7 @@ async function geocoder(page: Page): Promise<{ asked: string[]; at: [number, num
 
 /** Search for the link and pick "Go to …". */
 async function goToLink(page: Page): Promise<void> {
-  await page.getByRole("button", { name: "Search" }).click();
-  await page.getByRole("combobox").fill(LINK);
+  await (await openSearch(page)).fill(LINK);
   await page.getByRole("option", { name: /^Go to / }).click();
   await expect(page.locator(".map-hint")).toContainText("tap the parcel");
 }
@@ -108,8 +107,7 @@ test("the listing's facts: typed, the name shown, the acres compared on the card
   await expect(page.locator(".card-note")).toHaveText("The listing says 52 ac; this boundary is 43.9 ac.");
 
   // A pasted link: "Go to" its address; the map centres there at a road's zoom, and nothing is selected.
-  await page.getByRole("button", { name: "Search" }).click();
-  const box = page.getByRole("combobox");
+  const box = await openSearch(page);
   await box.fill(LINK);
   const go = page.getByRole("option", { name: /^Go to Ferney Creek Rd, Floyd, VA 24091/ });
   await expect(go).toBeVisible();
@@ -131,8 +129,7 @@ test("the listing's facts: typed, the name shown, the acres compared on the card
   expect(view.lng).toBeCloseTo(lon + 0.004, 3);
 
   // A link the app can't read says so.
-  await page.getByRole("button", { name: "Search" }).click();
-  await page.getByRole("combobox").fill("https://example.com/listing/9");
+  await (await openSearch(page)).fill("https://example.com/listing/9");
   await expect(page.locator(".sr-note")).toHaveText("Couldn't read an address from this link.");
 
   expect(net.misses, "data requests the HAR doesn't have").toEqual([]);
