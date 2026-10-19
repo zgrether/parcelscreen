@@ -37,8 +37,8 @@ export async function openExplorer(
 }
 
 /**
- * The parcel as a prototype export (`{ saved: [...] }`, proto L1605), imported through ☰ → History → Import
- * file, then opened. No `cfg`: the default settings stand, as in the goldens. `house` marks the bulls-eye.
+ * The parcel as a prototype export (`{ saved: [...] }`, proto L1605), imported through Settings' Your data (step 4b),
+ * then opened from History. No `cfg`: the default settings stand, as in the goldens. `house` marks the bulls-eye.
  */
 export async function importParcel(page: Page, slug: FixtureSlug, house?: [number, number]): Promise<void> {
   const { input } = loadFixture(slug);
@@ -49,14 +49,16 @@ export async function importParcel(page: Page, slug: FixtureSlug, house?: [numbe
     props: input.props,
     ...(house ? { house } : {}), // [lat, lon], as the prototype kept it
   };
-  await page.getByRole("button", { name: "Menu", exact: true }).click();
+  await openYourData(page);
   await page.locator('input[aria-label="Import file"]').setInputFiles({
     name: `${slug}.json`,
     mimeType: "application/json",
     buffer: Buffer.from(JSON.stringify({ saved: [saved] })),
   });
   await expect(page.locator(".import-summary")).toContainText("Imported 1 parcel");
-  await page.getByRole("button", { name: "Open", exact: true }).first().click();
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Menu", exact: true }).click();
+  await page.locator(".menu-drawer").getByRole("button", { name: "Open", exact: true }).first().click();
   await expect(page.locator(".sh-name").first()).toBeVisible();
 }
 
@@ -71,7 +73,7 @@ export async function importParcels(page: Page, slugs: readonly FixtureSlug[]): 
       props: input.props,
     };
   });
-  await page.getByRole("button", { name: "Menu", exact: true }).click();
+  await openYourData(page);
   await page.locator('input[aria-label="Import file"]').setInputFiles({
     name: "parcels.json",
     mimeType: "application/json",
@@ -79,6 +81,13 @@ export async function importParcels(page: Page, slugs: readonly FixtureSlug[]): 
   });
   await expect(page.locator(".import-summary")).toContainText(`Imported ${slugs.length} parcels`);
   await page.keyboard.press("Escape");
+}
+
+/** Settings, where Your data is (step 4b): ☰ → Settings. */
+export async function openYourData(page: Page): Promise<void> {
+  await page.getByRole("button", { name: "Menu", exact: true }).click();
+  await page.locator(".menu-drawer").getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Your data" })).toBeVisible();
 }
 
 /**

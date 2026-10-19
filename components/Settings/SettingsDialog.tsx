@@ -7,6 +7,8 @@
  * one with its reason and stores nothing; Reset fills the form with the defaults and Save keeps them (the
  * prototype saved on Reset and left the cost fields stale); a Save with no edits writes nothing.
  * Cancel, Esc or a tap on the backdrop close without saving, as in the prototype.
+ *
+ * Its last section, Your data (step 4b), holds Export file and Import file, which act at once, outside Save.
  */
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
 import { DEFAULT_USER_CONFIG } from "@/lib/screen/config";
@@ -25,6 +27,7 @@ import {
   type NumberField,
   type SettingsForm,
 } from "@/lib/client/settingsForm";
+import { YourData } from "./YourData";
 
 interface SettingsApi {
   /** Opens the Settings dialog. */
@@ -62,10 +65,13 @@ export function SettingsProvider({
   const dialog = useRef<HTMLDialogElement>(null);
   const [form, setForm] = useState<SettingsForm>(() => toForm(config));
   const [errors, setErrors] = useState<FieldError[]>([]);
+  // Each opening starts Your data afresh, without the last import's summary.
+  const [opened, setOpened] = useState(0);
 
   const open = useCallback(() => {
     setForm(toForm(config));
     setErrors([]);
+    setOpened((n) => n + 1);
     dialog.current?.showModal();
   }, [config]);
   const close = () => dialog.current?.close();
@@ -78,6 +84,12 @@ export function SettingsProvider({
     }
     if (!sameConfig(r.config, config)) onSave(r.config);
     close();
+  };
+
+  // An import whose settings were taken: stored now, and shown in the form, so a later Save doesn't put back the old ones.
+  const imported = (c: UserConfig) => {
+    onSave(c);
+    setForm(toForm(c));
   };
 
   const bad = useMemo(() => new Set(errors.map((e) => e.id)), [errors]);
@@ -168,6 +180,8 @@ export function SettingsProvider({
               </option>
             ))}
           </select>
+
+          <YourData key={opened} config={config} save={imported} />
         </div>
         <footer className="settings-foot">
           {errors.length > 0 && (

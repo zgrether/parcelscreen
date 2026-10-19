@@ -1904,9 +1904,17 @@ html:has(.explore) body {
   border-bottom: 0;
 }
 
-/* Export file / Import file under History (16b), and what an import did. */
-.menu-body .menu-file {
-  padding-top: 0;
+/* Settings' Your data (step 4b): Export file and Import file, each with its line, and what an import did. */
+.your-data-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+.your-data-row .btn {
+  flex: none;
+  min-height: 44px;
+  min-width: 120px;
 }
 .import-summary {
   margin: 10px 0 0;

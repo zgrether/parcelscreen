@@ -1,8 +1,8 @@
 "use client";
 /**
  * The app menu (owner, after 14d): ☰ at the map's top left opens a drawer from the left with what isn't
- * about the open parcel — the profile and its picker (step 1), History with Export file / Import file (16b), Your list
- * (WF2b), Compare parcels (VR6), How to read this, and Settings (16a).
+ * about the open parcel — the profile and its picker (step 1), History (Export file and Import file moved to Settings'
+ * Your data in step 4b), Your list (WF2b), Compare parcels (VR6), How to read this, and Settings (16a).
  * It closes with ×, Esc, a tap on the scrim, opening a parcel from History, or opening the help.
  * The drawer is portalled to <body> so it sits above the bottom sheet on phones, not inside the map.
  */
@@ -14,7 +14,6 @@ import { ProfilePicker } from "@/components/Profile/ProfilePicker";
 import { useSettings } from "@/components/Settings/SettingsDialog";
 import { OLD_DATA_DROPPED } from "@/lib/client/oldData";
 import { oldDataDropped } from "@/lib/client/profiles";
-import { ExportImport } from "./ExportImport";
 import { History } from "./History";
 import { ANSWER_FIRST, menuOffersInterview } from "@/lib/rubric/interview/doc";
 import { getPref } from "@/lib/client/prefs";
@@ -70,7 +69,6 @@ function Drawer({ close }: { close(): void }) {
             {oldDataDropped() && <p className="tiny muted m-0 old-data-note">{OLD_DATA_DROPPED}</p>}
           </section>
           <History onOpened={close} />
-          <ExportImport />
           <ul className="menu-items">
             {/* WF2b: the household's list (docs/plans/parcel-workflow.md §5). */}
             <li>
