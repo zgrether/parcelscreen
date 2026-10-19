@@ -20,7 +20,7 @@ then hand the repo to Claude Code with the phase you want.
 | Screens are immutable | A screen result is stored once; re-running creates a new version | Inputs (lidar, soils, atlas) don't change; the expensive part runs once |
 | Sharing | Household + comments thread (no voting) + per-parcel share | Decided |
 | Prices | Price history table, not a single field | Decided |
-| Users (10/16; 10/18) | Until step 5, anyone with the link creates a local profile that holds their data in that browser; nothing hard-coded to Zach and Julie. Accounts (step 5 since 10/18, before the household) start empty, and parcels come over with an export file if wanted | `docs/design/workflow-review.md`, Roadmap |
+| Users (10/16; 10/19) | Anyone with the link creates a local profile that holds their data in that browser; nothing hard-coded to Zach and Julie. Step 5 lets one device's data sync to others through a code, with no accounts; accounts aren't scheduled | `docs/design/workflow-review.md`, Roadmap |
 | Grading (10/16) | Grades are computed at display time from stored measurements plus the viewer's rubric; a saved screen stores raw values and no grades | One change unlocks the interview, the editor, the previews and household predictions without re-screening |
 | Household grades (10/16) | Each person grades for themselves; others' grades are predictions from their rubrics, with a prompt to send for confirmation; no combined grade | Decided |
 | Cost to enjoy (10/16) | Stays, as cost to camp and cost to build, driven by the parcel's state; phasing isn't asked | Decided |
@@ -106,8 +106,9 @@ approved once, PRs into a `step/<n>-<name>` branch merged by Claude Code on gree
 main that Zach merges after running the step's test plan on its preview. Don't start step N+1 until step N is
 on main.
 
-**Reordered 10/18 (Zach):** accounts and sync move up from step 13 to step 5, before the household, which becomes step 6
-and is built on them. The steps after it move down one; 14 and 15 keep their numbers.
+**Reordered 10/18–19 (Zach):** sync across devices is step 5, before Julie's household step, which becomes step 6. The
+steps after it move down one; 14 and 15 keep their numbers. Accounts and attachments (formerly step 13) leave the
+roadmap for now (Not scheduled, below).
 
 | # | Step | What it delivers |
 |---|---|---|
@@ -116,8 +117,8 @@ and is built on them. The steps after it move down one; 14 and 15 keep their num
 | 3 | **Rubric editor** | Four columns (Must, Should, Could, Won't); drag between and within; threshold sliders; a live preview on the open parcel; "Reset to my answers". |
 | 4 | **Interview** | The 14 forced-choice screens, the rubric generator, first-launch onboarding for a new profile, and "Redo the interview". |
 | 4b | **Navigation** | Three places as tabs (Map, Your list, What matters): a bottom tab bar on a phone, a slim top bar on a desktop. Compare as an action on Your list; one Help page (the report's notes, then how grades work; old `/rulebook` links still work); Settings gains Your data (Export, Import); the ☰ menu keeps only the profile, Help and Settings. Plan: `docs/plans/step-4b-navigation.md` (owner, 10/18). |
-| 5 | **Accounts and sync** | Sign-in with an emailed link, in a `parcelscreen` Supabase project with row-level security on every table from the first migration. A household: invite someone by email, and members share the household's list. Profiles become the people in a household; parcels (recipe, notes, listing facts, lines, markers), screens (immutable, versioned) and each person's priorities and answers sync, with the server the source of truth and IndexedDB a cache (no offline editing). Accounts start empty; Import file brings parcels in. Photos and PDFs on a parcel, in Supabase Storage. Vercel preview protection back on, with a bypass token for CI. Plan: `docs/plans/step-5-accounts.md` (owner, 10/18: moved up from step 13). |
-| 6 | **Household** | Built on step 5's accounts: each member's priorities come from their own account, so "How would Julie rate this?" is a prediction from her current rubric, labelled as one. "Send to Julie to confirm" is an in-app request she answers with her own verdict and a comment. No combined grade. (Reworked 10/18: no rubric import by code or file, no shared file or link.) |
+| 5 | **Sync across devices** | Zach's phone and desktop show the same data. Settings → Your data → Sync across devices turns a device's data (profiles, parcels, screens, settings, priorities, answers) into a synced space with a random code, shown as a QR; another device joins by the QR or the code, replacing its own data. The server (Next.js API routes, the Supabase secret key, RLS with no policies) holds the truth for joined devices; fetch on open, return and tab switch; whole records, the later save winning; "Not saved — Try again" on a failure, no offline queue. No accounts, sign-in or email. A daily keep-alive for the free plan. Plan: `docs/plans/step-5-sync.md` (owner, 10/19). |
+| 6 | **Household** | Built on step 5's sync: Julie's device joins the same synced space, and her own profile there holds her priorities, so "How would Julie rate this?" is a prediction from her current rubric, labelled as one. "Send to Julie to confirm" is an in-app request she answers with her own verdict and a comment. No combined grade. (Reworked 10/18–19: no rubric import by code or file, no shared file or link.) |
 | 7 | **Screening results** | The answer first (grade, verdict, one line of reason), the best site plus up to two alternatives, the report card in rubric order, unknowns as questions for the agent. A **Driveway** row joins the card here, graded from the router's measurements, and the interview's question 10 feeds it (owner, 10/18; step 4 plan §9 Q5). |
 | 8 | **Favorites** | A star, a plain name field, History and Favorites split; "In progress" goes away. |
 | 9 | **Report card export** | A print-ready page the browser saves as PDF, with One page and Full presets. |
@@ -134,8 +135,9 @@ stay as they are (`docs/plans/phase-0.md` §6). VR8's weight calibration is repl
 editor; its band cutoffs get a lighter sanity check after step 11.
 
 **Not scheduled:** Watch (listing sources, connectors, the headless pre-screen and the digest: the old Phases 4
-and 5) stays in `docs/REQUIREMENTS.md` §6–§7 for after the roadmap, and the Supabase data model there (§3) is
-step 5's starting point. Georgia and West Virginia parcels come after the catalog ships.
+and 5) stays in `docs/REQUIREMENTS.md` §6–§7 for after the roadmap, and so do accounts, households by
+invitation and attachments (photos and PDFs on a parcel), with the Supabase data model there (§3): step 5's synced space
+is much smaller and is described in its own plan. Georgia and West Virginia parcels come after the catalog ships.
 
 ---
 

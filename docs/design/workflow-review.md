@@ -11,7 +11,7 @@ One change unlocks almost everything: **grades must be computed at display time 
 Recommendation:
 
 - **Pause** driveway and data refinement (WF6b, 57, 46, cost labels, VR8). They polish numbers that move a grade by a point or two; the workflow moves grades by whole letters.
-- **Build rubric-first:** profiles and the grading split, then Tennessee parcels, the rubric editor, the interview, accounts and sync (moved up 10/18), household predictions, simpler results, favorites, the report card export, cost to enjoy, new data points, ways to raise the grade, and the area catalog. Each step runs as one unattended Claude Code mission that ends in a manual test plan.
+- **Build rubric-first:** profiles and the grading split, then Tennessee parcels, the rubric editor, the interview, sync across devices (10/19), household predictions, simpler results, favorites, the report card export, cost to enjoy, new data points, ways to raise the grade, and the area catalog. Each step runs as one unattended Claude Code mission that ends in a manual test plan.
 - **Product questions:** settled 10/16. Anyone with the link gets a local profile, with nothing hard-coded to you and Julie. Tennessee joins the map and the catalog. Cost to enjoy stays, as a cost to camp and a cost to build. A household member's grade is a prediction from their rubric, not a combined verdict. Details under Roadmap.
 
 ## Gap review
@@ -151,9 +151,9 @@ Should carries 78% of the grade and Could 22%. A steeper scheme (rank-order cent
 
 **6. The editor.** Four columns: Must, Should, Could, Won't. Drag a card between columns or up and down within one. Tap a card to see why it's there ("Question 6: 30 minutes") and move its threshold with a slider. A preview pane beside the columns shows one sample parcel's grade and verdict, updating as you drag. "Reset to my answers" undoes all edits.
 
-**7. Household.** Every grade is yours first. A household is the people who share a list, each with their own account (roadmap step 5) and their own rubric, so the app can answer "How would Julie rate this?" without asking her. (Reworked 10/18, when accounts moved ahead of the household: no rubric import by code or file, and no shared file or link.)
+**7. Household.** Every grade is yours first. A household is the people who share one synced space (roadmap step 5), each with their own profile and rubric in it, so the app can answer "How would Julie rate this?" without asking her. (Reworked 10/18–19, when sync came ahead of the household: no rubric import by code or file, and no shared file or link.)
 
-- **Adding a member.** You invite a spouse, a child or anyone else by email (step 5). They sign in, take the interview on their own device, and their priorities live in their account. Nothing is assumed about who is in a household.
+- **Adding a member.** A spouse, a child or anyone else joins the space on their own device with its code (step 5's Show code), makes their own profile, and takes the interview there; their priorities live in that profile. Nothing is assumed about who is in a household.
 - **The side-by-side.** A toggle on every grade shows each member's predicted grade and verdict beside yours, with the two or three factors that differ most ("HOA: your Could, her Must").
 - **Predictions say so.** Each is labelled "predicted from Julie's priorities", with the date she last changed them. A member who hasn't answered her questions yet has no prediction, and the side-by-side says so.
 - **Send to confirm.** Under a prediction: "Send to Julie to confirm she'd grade it an A?" It's an in-app request: Julie sees it the next time she opens the app, opens the parcel with her own grade, and answers with her verdict and a comment, which you see under the prediction.
@@ -320,8 +320,8 @@ Each step is one unattended mission for Claude Code. You approve its plan once; 
 2. **Tennessee.** Statewide parcel lines through the state's parcel program ([Comptroller parcel data](https://comptroller.tn.gov/office-functions/pa/gisredistricting/parcel-data-stewardship.html), served on [TNMap](https://tnmap.tn.gov/arcgis/rest/services/ADMINISTRATIVE_BOUNDARIES/COUNTY_BOUNDARIES_AND_CITY_BOUNDARIES/MapServer)); Claude Code confirms the parcel service, its fields and its terms first. Tennessee imagery, Tennessee trailhead sources, and a recorded fixture near Roan Mountain.
 3. **Rubric editor.** The four columns, drag between and within, threshold sliders, live preview on the open parcel.
 4. **Interview.** The 14 screens, the rubric generator, first-launch onboarding for a new profile, and "Redo the interview".
-5. **Accounts and sync** (moved up from step 13, 10/18). Sign-in with an emailed link; a household you invite people to by email; profiles become the people in a household; parcels, screens and each person's priorities and answers sync, the server the source of truth and the browser a cache. Accounts start empty; Import file brings parcels in. Photos and PDFs on a parcel.
-6. **Household.** On step 5's accounts: "How would Julie rate this?" as a prediction from her own account's rubric, and "Send to Julie to confirm" as an in-app request. No combined grade.
+5. **Sync across devices** (10/19). A device's data becomes a synced space with a random code, shown as a QR; other devices join by the QR or the code. The server holds the truth for joined devices; no accounts, sign-in or email.
+6. **Household.** On step 5's sync: Julie joins the same space with her own profile; "How would Julie rate this?" as a prediction from her rubric, and "Send to Julie to confirm" as an in-app request. No combined grade.
 7. **Screening results.** The answer first, best site plus up to two alternatives, report card in rubric order, unknowns as agent questions.
 8. **Favorites.** Star, name field, History and Favorites split.
 9. **Report card export.** The print page with One page and Full presets.
@@ -336,7 +336,7 @@ Each step is one unattended mission for Claude Code. You approve its plan once; 
 
 **Decided 10/16:**
 
-- **Users.** No accounts yet. Anyone with the link creates a local profile that holds their data in that browser. Nothing is hard-coded to Zach and Julie. Accounts (step 5 since 10/18, moved up from step 13) start empty; parcels come over with an export file if wanted.
+- **Users.** No accounts yet. Anyone with the link creates a local profile that holds their data in that browser. Nothing is hard-coded to Zach and Julie. Accounts aren't scheduled (10/19): step 5 syncs a device's data to others through a code instead. Accounts, if they come later, start empty; parcels come over with an export file if wanted.
 - **Cost to enjoy stays,** as cost to camp and cost to build, driven by the parcel's state (step 9). It's most sensitive to access: right-of-way, access work and the pioneer track.
 - **Tennessee is in,** for parcels (step 2) and the catalog.
 - **Household grades are predictions.** Each person grades for themselves; others' grades are predicted from their rubrics, with a prompt to send for confirmation. No combined household grade.
