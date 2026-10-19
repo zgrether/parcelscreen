@@ -173,8 +173,6 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   const vars: Record<string, string> = {};
   // The sheet's height, for what sits on the map above it (hint, attribution).
   if (sheet.height != null) vars["--sheet-h"] = sheetHidden ? "0px" : `${sheet.height}px`;
-  // The right-hand column ends above the peek, whichever it is (step 4c).
-  vars["--peek"] = `${peek}px`;
   if (docked) {
     vars["--dock-w"] = `${dockW}px`;
     // What's centred along the map's bottom (toolbar, hint) centres on the visible map: clear of the full panel on the

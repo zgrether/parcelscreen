@@ -1368,8 +1368,7 @@ html:has(.explore) body {
   gap: 8px;
   transition: right 0.18s;
 }
-.map-ctl-btn,
-.zoom-box {
+.map-ctl-btn {
   background: var(--tb-bg);
   color: var(--tb-ink);
   border-radius: 10px;
@@ -1438,95 +1437,6 @@ html:has(.explore) body {
 .map-ctl-btn:hover {
   background: rgba(28, 38, 32, 1);
 }
-/*
- * The zoom slider: a horizontal range turned a quarter turn, so the thumb sits on the track the same way in
- * every browser (a writing-mode vertical range put it off the track on Android Chrome). Zoom 5 is at the
- * bottom, 20 at the top. The track: plain below 14, light amber 14–15 (lines there depend on density),
- * amber from 15 (--b14, --b15 set by MapControls). The box is 44 px wide: a wider grip, away from the edge.
- */
-.zoom-box {
-  position: relative;
-  width: 44px;
-  height: 200px;
-}
-.zoom-slider {
-  --len: 176px;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: var(--len);
-  height: 32px;
-  margin: 0;
-  transform: translate(-50%, -50%) rotate(-90deg);
-  appearance: none;
-  -webkit-appearance: none;
-  background: transparent;
-  cursor: pointer;
-  touch-action: none;
-}
-.zoom-slider::-webkit-slider-runnable-track {
-  height: 4px;
-  border-radius: 2px;
-  background: linear-gradient(
-    to right,
-    rgba(241, 243, 238, 0.35) 0 var(--b14),
-    rgba(240, 160, 48, 0.45) var(--b14) var(--b15),
-    var(--tb-amber) var(--b15) 100%
-  );
-}
-.zoom-slider::-moz-range-track {
-  height: 4px;
-  border-radius: 2px;
-  background: linear-gradient(
-    to right,
-    rgba(241, 243, 238, 0.35) 0 var(--b14),
-    rgba(240, 160, 48, 0.45) var(--b14) var(--b15),
-    var(--tb-amber) var(--b15) 100%
-  );
-}
-.zoom-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 20px;
-  height: 20px;
-  /* Centred on the 4 px track: (4 − 20) / 2. */
-  margin-top: -8px;
-  border-radius: 50%;
-  background: #fff;
-  border: 2px solid var(--tb-bg);
-  box-shadow: 0 0 0 1.5px var(--tb-ink);
-}
-.zoom-slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #fff;
-  border: 2px solid var(--tb-bg);
-  box-shadow: 0 0 0 1.5px var(--tb-ink);
-}
-.zoom-slider:focus-visible {
-  outline: 2px solid var(--tb-amber);
-  outline-offset: 2px;
-}
-@media (max-width: 860px) and (orientation: portrait) {
-  /* The column ends above the sheet's peek (92 px), so the tab bar's 56 px (step 4b) don't push its last control under
-     the sheet: with a layer's legend in it on a short phone, the zoom slider gives up length first. */
-  .map-col {
-    max-height: calc(100% - 52px - var(--peek, 92px) - 10px);
-  }
-  .map-col > :not(.zoom-box) {
-    flex-shrink: 0;
-  }
-  .zoom-box {
-    flex: 0 1 160px;
-    height: 160px;
-    min-height: 72px;
-    container-type: size;
-  }
-  .zoom-slider {
-    --len: calc(100cqh - 24px);
-  }
-}
-
 /* ---------- 13f-3: map search ---------- */
 .search-btn {
   position: absolute;
