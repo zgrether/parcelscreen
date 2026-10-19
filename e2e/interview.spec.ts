@@ -5,6 +5,7 @@
  * phone. A production build; no parcel is needed (Try it grades the Mud Creek sample).
  */
 import { expect, test, type Page } from "@playwright/test";
+import { settled } from "./flow";
 
 let errors: string[] = [];
 test.beforeEach(({ page }) => {
@@ -153,6 +154,8 @@ test("a changed list: the result asks, and Keep my changes keeps it", async ({ p
   await page.locator(".rubric-card", { hasText: "Septic" }).first().locator(".rubric-card-body").click();
   await page.getByRole("dialog").getByRole("button", { name: "Don't care" }).click();
   await page.keyboard.press("Escape");
+  // The change kept before the page goes (the profile's store writes through asynchronously).
+  await settled(page);
   await page.goto("/interview");
   await pick(page, "Cool and snowy", 2);
   for (let n = 3; n <= 14; n++) {
