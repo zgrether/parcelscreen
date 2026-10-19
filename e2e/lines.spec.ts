@@ -33,6 +33,9 @@ async function drawTrack(page: Page): Promise<void> {
     .getByRole("group", { name: "Ways in" })
     .getByRole("button", { name: "Track" })
     .click();
+  // The tool is up (and the picker gone) before the corners are tapped.
+  await expect(page.locator(".toolbar")).toHaveAttribute("data-mode", "track");
+  await expect(page.getByRole("dialog", { name: "Mark on the parcel" })).toHaveCount(0);
   for (const d of [-0.0004, 0, 0.0004]) {
     const p = await at(page, d / 2, d);
     await page.mouse.click(p.x, p.y);

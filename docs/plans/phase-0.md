@@ -696,4 +696,35 @@ list." (in place of step 3's "You changed it" and "From the starting list"; rank
 doesn't mark the cards below it). The answers stay out of the export file
 until step 5 (Q14).
 
+55. **Navigation: three places as tabs, the map kept behind them** (owner, 2026-10-18; step 4b plan, #185, with all
+    nine §11 answers as recommended, the desktop menu's panel, and answer A on the map; roadmap step 4b, PRs 1–3).
+    - **The places:** Map, Your list and What matters, one tap from every page but the opening redirect and the
+      interview: a 56 px bottom tab bar on a phone (portrait, ≤ 860 px), with More (☰) as its fourth item; a 44 px top
+      bar on a desktop, with ☰ at its right. The place you're in has a 3 px green bar and `aria-current`; Compare counts
+      as Your list. The app still opens on Your list when a parcel isn't archived, else on the map.
+    - **The menu** holds the profile, Help and Settings (and the questions while the profile has no answers). On a
+      phone it's More's sheet above the tabs; on a desktop a small panel under ☰, kept in the window by step 3's rule.
+      The left drawer went, and so did the map's floating ☰.
+    - **History went:** Your list holds the same parcels, with Open on the map. Export file and Import file moved to
+      Settings' **Your data**, and act at once. "History" left every line of the UI ("kept on Your list", "It leaves
+      your list and the map", …).
+    - **The map stays mounted behind the other tabs** (answer A): mounted on the first visit, then hidden, so coming
+      back is instant and the parcels screened this session keep their sessions. While hidden it pauses (no frame
+      drawn, no tile or other request), its keys stand down, and the report panel's `?panel=` stays out of other
+      pages' URLs. Every `ps.parcels` write is announced, so the map and Your list each take in the other's changes;
+      "Open on the map" opens the parcel in the mounted map, refused while a screen runs. If the browser drops the page
+      anyway, the next load restores the view and the open parcel from storage and Run again restores the overlays:
+      the fallback, not a bug. Saved parcels in the map's Search (the owner's C) is a follow-up for Favorites, step 8.
+    - **On a phone the tab bar steps aside** for a map tool and for typing a note; the map's canvas always reaches under
+      it, so it never resizes. The sheet's snaps (92 px, 46%, 88%) are shares of the space above the tabs; the
+      right-hand column ends above the peek, the zoom slider giving up length first.
+    - **Help is one page,** `/help`: "Reading a parcel's report" (the dialog's notes), then "How grades work" (the
+      rulebook). `/rulebook` redirects there, keeping `#rule-<panel>`. A report's "?" still opens the dialog, which
+      links to "All of Help".
+    - **Compare** is reached from Your list's ticks, 2 or 3; a fourth isn't offered, and the table takes no more.
+      `/compare` with none ticked says how. **What matters to you** holds the questions' line beside its Resets, and
+      links to "How grades work".
+    - **Offline,** a tab whose page the router already holds opens with the map still mounted; otherwise the service
+      worker's precache (the map, Your list, What matters, Help) loads it, and the map restarts from storage.
+
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

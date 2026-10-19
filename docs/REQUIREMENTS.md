@@ -311,8 +311,9 @@ field at the parcel level).
 
   `screenIds` link to `screens` rows once results are stored there.
 
-**The export file (Phase 0 step 16), Phase 1's other import source.** The explorer's ☰ → Export file writes
-`parcelscreen-YYYY-MM-DD.json`, so a household's History can move between browsers before accounts exist, and
+**The export file (Phase 0 step 16), Phase 1's other import source.** Settings → Your data → Export file (step 4b; it
+was the explorer's ☰ menu) writes `parcelscreen-YYYY-MM-DD.json`, so a household's parcels can move between browsers
+before accounts exist, and
 Phase 1 imports it into Supabase the same way as the `ps.parcels` store. It's versioned by `format` and
 `version`: any change to its shape takes a new `version` and a converter.
 
@@ -373,8 +374,7 @@ Phase 1 imports it into Supabase the same way as the `ps.parcels` store. It's ve
 
 ### 3b. The rubric editor: "What matters to you" (roadmap step 3)
 
-"What matters to you" (`/priorities`; "My priorities" in the menu, the rulebook and each card panel; phase-0.md §9.50
-and §9.52) edits the current profile's `ps.rubrics.mine` in place. "Rubric" stays the code's name for it. The rubric's
+"What matters to you" (`/priorities`; the "What matters" tab since step 4b, phase-0.md §9.55; §9.50 and §9.52) edits the current profile's `ps.rubrics.mine` in place. "Rubric" stays the code's name for it. The rubric's
 stored shape is step 1's (`lib/rubric/schema.ts`); the editor adds nothing to it.
 
 - **The intro** says what the list is ("Every parcel you screen is graded against this list."), each column in a line,
@@ -422,6 +422,15 @@ A few questions, about four minutes, that make a person's priorities (`/intervie
 - **The result,** headed "What matters to you" as the priorities page is, with Try it: saved, unless the list was changed since, when it asks "Replace the
   priorities you changed?" ("Replace with the new list", "Keep my changes").
 - **On the priorities page:** "Reset to my answers", and each card's why in the person's own terms ("You'd want an ER within 30 minutes"; else "You moved this here." or "On the starting list.").
+
+### 3d. Navigation (roadmap step 4b)
+
+Three places as tabs, Map, Your list and What matters, on every page but the opening redirect and the interview: a
+bottom tab bar on a phone, with More (the menu) as a fourth item; a slim top bar on a desktop, with ☰ at its right. The
+menu holds the profile, Help and Settings; Settings holds Your data (Export file, Import file). History is gone: Your
+list holds the same parcels. The map stays mounted behind the other tabs and pauses while hidden. Help is one page
+(`/help`): reading a parcel's report, then how grades work; `/rulebook` redirects there. Compare is reached from Your
+list's ticks, 2 or 3. phase-0.md §9.55 has the details.
 
 ## 4. The parcel page (the export)
 
