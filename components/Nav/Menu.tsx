@@ -21,6 +21,7 @@ import { oldDataDropped } from "@/lib/client/profiles";
 import { getPref } from "@/lib/client/prefs";
 import { MORE_LABEL } from "@/lib/client/places";
 import { ANSWER_FIRST, menuOffersInterview } from "@/lib/rubric/interview/doc";
+import { SyncIndicator, useUnsaved } from "@/components/Sync/SyncStatus";
 
 const FOCUSABLE = "a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex='-1'])";
 
@@ -30,6 +31,7 @@ export function Menu() {
   const button = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const settings = useSettings();
+  const unsaved = useUnsaved();
   useKeepInView(panel, open, button);
 
   const close = (refocus = true) => {
@@ -79,6 +81,7 @@ export function Menu() {
         className="app-more"
         aria-expanded={open}
         aria-haspopup="dialog"
+        data-unsaved={unsaved || undefined}
         onClick={() => setOpen((o) => !o)}
       >
         <MenuIcon />
@@ -95,6 +98,7 @@ export function Menu() {
             <section className="menu-profile">
               <h2>Profile</h2>
               <ProfilePicker />
+              <SyncIndicator where="menu" />
             </section>
             <ul className="menu-items">
               {/* Step 4: offered here only while the profile has no answers (owner, 10/18); after that it lives on

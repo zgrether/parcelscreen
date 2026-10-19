@@ -10,15 +10,17 @@
  * Settings and the help dialog are here, not in the map, so the menu opens them from any page.
  */
 import { usePathname } from "next/navigation";
-import { useCallback, useLayoutEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState, type ReactNode } from "react";
 import { ExploreClient } from "@/components/Explore/ExploreClient";
 import { HelpProvider } from "@/components/Help/HelpDialog";
 import { SettingsProvider } from "@/components/Settings/SettingsDialog";
 import { setMapShowing } from "@/lib/client/mapShowing";
+import { syncOnNavigate } from "@/lib/sync/engine";
 import { placeOf, showsNav } from "@/lib/client/places";
 import { loadUserConfig, saveUserConfig } from "@/lib/client/userConfig";
 import type { UserConfig } from "@/lib/screen/types";
 import { Places } from "./Places";
+import { SyncToast } from "@/components/Sync/SyncStatus";
 
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -27,6 +29,8 @@ export function AppFrame({ children }: { children: ReactNode }) {
   const [mapMounted, setMapMounted] = useState(onMap);
   if (onMap && !mapMounted) setMapMounted(true);
   useLayoutEffect(() => setMapShowing(onMap), [onMap]);
+  // A tab switch fetches the synced space's changes (step 5), as opening the app and coming back to it do.
+  useEffect(() => syncOnNavigate(), [pathname]);
 
   // Live (16a): a Settings save is used by the next run, and the open results get "used earlier settings".
   const [config, setConfig] = useState(loadUserConfig);
@@ -48,6 +52,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
             )}
             {children}
           </div>
+          <SyncToast />
         </div>
       </HelpProvider>
     </SettingsProvider>

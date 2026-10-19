@@ -6,12 +6,17 @@
  * then nothing renders. A boot that fails still renders: the prefs then read as defaults.
  *
  * A new profile starts with the interview (step 4, owner Q9): until it's finished or put off with "Not now", any other
- * page sends it to /interview (lib/client/onboarding.ts).
+ * page sends it to /interview (lib/client/onboarding.ts), except /link, which joins a synced space (step 5) whose
+ * profiles replace this one.
+ *
+ * On a device joined to a synced space (step 5), the sync starts once the profile has booted: the page shows the
+ * device's copy at once, and the space's changes follow.
  */
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { owesInterview } from "@/lib/client/onboarding";
 import { bootProfiles } from "@/lib/client/profiles";
+import { initSync } from "@/lib/sync/engine";
 
 export function ProfileGate({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
@@ -19,13 +24,17 @@ export function ProfileGate({ children }: { children: ReactNode }) {
   const router = useRouter();
   useEffect(() => {
     let alive = true;
-    const settle = () => alive && setReady(true);
+    const settle = () => {
+      if (!alive) return;
+      setReady(true);
+      void initSync();
+    };
     bootProfiles().then(settle, settle);
     return () => {
       alive = false;
     };
   }, []);
-  const away = ready && pathname !== "/interview" && owesInterview();
+  const away = ready && pathname !== "/interview" && pathname !== "/link" && owesInterview();
   useEffect(() => {
     if (away) router.replace("/interview");
   }, [away, router]);

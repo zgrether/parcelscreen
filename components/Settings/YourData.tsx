@@ -28,12 +28,32 @@ import { effectiveRubrics, setProfileRubrics } from "@/lib/client/rubrics";
 import { getScreens, putScreens } from "@/lib/client/screenStore";
 import type { ProfileRubrics } from "@/lib/rubric/schema";
 import type { UserConfig } from "@/lib/screen/types";
+import { SyncSection } from "@/components/Sync/SyncSection";
 
 export const YOUR_DATA = "Your data";
 export const YOUR_DATA_NOTE = "These don't wait for Save.";
 export const EXPORT_LINE =
   "Save every parcel in this profile to a file: a backup, or to move them to another browser.";
 export const IMPORT_LINE = "Add the parcels from an export file to this profile.";
+
+/** Export file: the current profile's parcels, their screens and the settings, downloaded (also the join's "Export first"). */
+export async function downloadExport(config: UserConfig): Promise<void> {
+  const now = new Date().toISOString();
+  const store = currentParcels();
+  const screens = await getScreens(keptScreenIds(store));
+  const from = {
+    profile: { name: currentProfile()?.name ?? FIRST_PROFILE_NAME },
+    rubrics: effectiveRubrics(),
+  };
+  const blob = new Blob([JSON.stringify(buildExport(config, store, screens, now, from), null, 1)], {
+    type: "application/json",
+  });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = exportFileName(now);
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
+}
 
 interface Summary {
   ok: boolean;
@@ -54,23 +74,7 @@ export function YourData({
   const input = useRef<HTMLInputElement>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
 
-  const exportFile = async () => {
-    const now = new Date().toISOString();
-    const store = currentParcels();
-    const screens = await getScreens(keptScreenIds(store));
-    const from = {
-      profile: { name: currentProfile()?.name ?? FIRST_PROFILE_NAME },
-      rubrics: effectiveRubrics(),
-    };
-    const blob = new Blob([JSON.stringify(buildExport(config, store, screens, now, from), null, 1)], {
-      type: "application/json",
-    });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = exportFileName(now);
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
-  };
+  const exportFile = () => downloadExport(config);
 
   const importFile = async (file: File) => {
     const r = planImport(
@@ -145,6 +149,8 @@ export function YourData({
           }}
         />
       </div>
+      {/* Step 5: this device's data synced with your others, by a code. */}
+      <SyncSection />
       {summary && (
         <ul className={`import-summary tiny${summary.ok ? "" : " bad"}`} role="status">
           {summary.lines.map((l, i) => (

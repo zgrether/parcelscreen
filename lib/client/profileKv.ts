@@ -7,6 +7,7 @@
  * created, so later writes still win). `flush` waits for every write in flight (the e2e flushes before a reload).
  */
 import type { ProfileDoc, ProfileStorage } from "./profileStore";
+import { syncHooks } from "./syncHooks";
 
 /** The prefs that belong to a profile, not the device (lib/client/prefs.ts has both). */
 export const PROFILE_KEYS: ReadonlySet<string> = new Set([
@@ -48,11 +49,13 @@ export class ProfileKv implements KvHandle {
   setItem(key: string, value: string): void {
     this.data.set(key, value);
     this.track(this.storage.putDoc({ profile: this.profile, key, value }));
+    syncHooks()?.docWritten(this.profile, key);
   }
 
   removeItem(key: string): void {
     this.data.delete(key);
     this.track(this.storage.deleteDoc(this.profile, key));
+    syncHooks()?.docWritten(this.profile, key);
   }
 
   private track(write: Promise<void>): void {
