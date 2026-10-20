@@ -9,32 +9,32 @@ that fixed it.
 
 - **What matters, Try it:** the verdict "Pass" can read as "passes" or "skip it". Fix: a clearer word (report text: a
   decision, rule 7).
-- **What matters, the order notice:** "Your order now sets the weights" implies another mode, and it has a second Undo.
-  Fix: reword it; drop its Undo.
+- ~~**What matters, the order notice:** "Your order now sets the weights" implies another mode, and it has a second Undo.
+  Fix: reword it; drop its Undo.~~ Done in #238. "Weights follow your order now"; the page's Undo is the one.
 - **What matters, phone:** the Try it bar takes about 100 px and covers cards (also #184, #191). Fix: a slimmer bar, or
   room kept above it.
 
 ## Step 4: the interview (#183, #184)
 
-- **Interview, budgets:** the budget questions are hard to parse. Fix: reword them.
-- **Interview 14b:** a "Drive to an ER" chip right after the ER question; "14 of 14, part 2" unexplained; the buttons
-  differ when reached by Back. Fix: hide or explain the chip; give part 2 its own heading. **Partly done in #233:** "part 2" now reads ": what doesn't matter"; the ER chip and the buttons reached by Back are left.
+- ~~**Interview, budgets:** the budget questions are hard to parse. Fix: reword them.~~ Done in #238. Drafted for Zach's approval in the hand-back: each says it's all in, the land too.
+- ~~**Interview 14b:** a "Drive to an ER" chip right after the ER question; "14 of 14, part 2" unexplained; the buttons
+  differ when reached by Back. Fix: hide or explain the chip; give part 2 its own heading.~~ Done in #238. Part 2 reads ": what doesn't matter" (#233); the ER chip hides once the ER question has an answer; 14b has one row however it's reached.
 - **Interview, moving on:** a tap, Continue, See my priorities, Next; whether Skip drops a pick is unclear. Fix: one
-  pattern, and "Skip leaves this one out". **Partly done in #233:** Skip's tooltip says it leaves the question out; one pattern for moving on is left.
-- **Interview 14b and the result:** "Shared driveway" shows as "Driveway on your land"; "Alternative septic only" is
-  jargon. Fix: matching words; a plain septic label. **Partly done in #233:** "Only an alternative septic system"; the shared-driveway words are left (a wording decision).
-- **Interview result:** Elevation twice (a limit and its card) unexplained; "B · Contender" and "meets its new limit"
+  pattern, and "Skip leaves this one out". **Partly done in #233 and #238:** Skip's tooltip says it leaves the question out (#233); 14b ends with one row, See my priorities (#238). One pattern for moving on is left.
+- ~~**Interview 14b and the result:** "Shared driveway" shows as "Driveway on your land"; "Alternative septic only" is
+  jargon. Fix: matching words; a plain septic label.~~ Done in #238. "Only an alternative septic system" (#233); the chip uses the card's words, "Driveway on your land".
+- ~~**Interview result:** Elevation twice (a limit and its card) unexplained; "B · Contender" and "meets its new limit"
   unexplained; the buttons don't say where they go. Fix: link the two cards; a one-line Try it explanation; name each
-  destination.
-- **What matters:** the "also a limit" badge wraps and says "tap" on a desktop; "Profile 1" and the two Resets unclear.
-  Fix: a badge that fits, device-fit words; clearer reset labels. **Partly done in #233:** the badge stays on one line and the hints say "select"; Profile 1 and the two Resets are left.
+  destination.~~ Done in #238. A line under each list says what it means, a limit says when it's also ranked, "passes its minimum", and the buttons say where they go.
+- ~~**What matters:** the "also a limit" badge wraps and says "tap" on a desktop; "Profile 1" and the two Resets unclear.
+  Fix: a badge that fits, device-fit words; clearer reset labels.~~ Done in #238. The badge and the hints (#233); the name is asked for at setup; a line says what each Reset puts back.
 - ~~**Replace prompt:** which list is shown is unclear. Fix: a heading such as "Your answers make this list".~~ Done in #233.
 
 ## Step 4b: Navigation (#191)
 
-- **Help, phone:** what a grade means is only under More. Fix: a link from the report and Your list.
-- **Settings:** "These don't wait for Save" reads oddly, and Your data is at the foot; Data endpoints is raw JSON. Fix:
-  reword; move Your data up; endpoints under Advanced or as a form. **Partly done in #233:** the note reworded and the endpoints folded as advanced; moving Your data up is left.
+- ~~**Help, phone:** what a grade means is only under More. Fix: a link from the report and Your list.~~ Done in #238. "How grades work" beside the card's grade and on Your list.
+- ~~**Settings:** "These don't wait for Save" reads oddly, and Your data is at the foot; Data endpoints is raw JSON. Fix:
+  reword; move Your data up; endpoints under Advanced or as a form.~~ Done in #238. The note and the endpoints (#233); Your data is first.
 - ~~**Map, phone:** "Stand here" against 3D, the legend under the 46% sheet, "No parcel record" over the slider. Fix:
   re-lay the phone map's controls.~~ Done in #237. The buttons lie in a row along the top, the legend on the left under Search.
 - ~~**Compare, phone:** the table is cut off with no sideways-scroll cue. Fix: a cue, or a stacked layout.~~ Done in #233.
@@ -53,10 +53,10 @@ that fixed it.
 
 ## Step 5: Sync across devices (#200)
 
-- **Sync screen:** "Leave sync on this device" can read as "keep sync on". Fix: "Stop syncing this device" (the owner's
-  wording was kept).
-- **Sync join question:** "synced space" is a new term; joining doesn't show what's there. Fix: count the space's
-  parcels on the question.
+- ~~**Sync screen:** "Leave sync on this device" can read as "keep sync on". Fix: "Stop syncing this device" (the owner's
+  wording was kept).~~ Done in #238.
+- ~~**Sync join question:** "synced space" is a new term; joining doesn't show what's there. Fix: count the space's
+  parcels on the question.~~ Done in #238. "It holds N parcels." follows the question; "synced space" stays.
 - ~~**Top bar, desktop:** "Synced" is low contrast (about 6:1). Fix: darker ink.~~ Done in #232.
 
 ## Step 6 and 6b: the household (#207, #209)
