@@ -112,3 +112,25 @@ that fixed it.
   in use.
 - **Your list, Favorites (phone):** a filled star on every row doesn't say what a tap does. Fix: done for the tooltip
   (#222); consider "Remove from favorites" in the row's "…" menu too.
+
+## Step 8b: the parcel panel (hand-back)
+
+- **Grade, stale results:** a red "earlier boundary" bar, the yellow "You drew or changed a line" box and the orange
+  Grade again at once; the stale card is pale and hard to read. Fix: one banner with one action; keep stale text at
+  readable contrast.
+- **Grade, phone:** with those warnings the answer (B Contender) sits below the sheet's fold. Fix: the answer above the
+  warnings.
+- **Grade:** "Site #1 · its pin is ringed on the map" with no ringed pin in view; "Site" and "spots" both used. Fix:
+  fit the map to the site, or say where; one word.
+- **Map layers:** on/off is a tan fill shared with the chosen basemap; "Terrain preview ≈10 m — screen uses 3 m lidar"
+  reads as jargon; on a phone the panel is clipped. Fix: switches or checkboxes; plainer words; a scrolling bottom sheet.
+- **Toolbar, desktop with Map layers open:** the bar narrows and the trash sits on the grade button; the trash and the
+  acres' ▾ don't say what they do. Fix: keep the bar's width or wrap it; labels or tooltips.
+- **Details › Notes:** an imported parcel's notes start "Name: …" (the import's), and Clear wipes them without asking.
+  Fix: no name in imported notes; confirm or undo Clear.
+- **Details › a line's row:** the condition and width read as unfinished ("doesn't change the cost yet", width of what);
+  the Recorded in and note boxes cut their text; the row's title updates only once the name is saved; × on the row and
+  Delete in it both delete. Fix: plain words for both; wider boxes or textareas; one delete control.
+- **Details › Listing, phone:** folded to a summary on a phone, open on a desktop. Fix: one behaviour.
+- **Header and icons:** "PTM 63-A-62", the ⓘ and map buttons, and the star have no visible labels. Fix: tooltips or short
+  labels.

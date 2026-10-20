@@ -1,8 +1,9 @@
 "use client";
 /**
  * The parcel panel's Details (step 8b, docs/plans/step-8b-parcel-panel.md §3): everything about the open parcel, under
- * the Grade | Details switch. A top line (who added it; Archive, Walked, Offered), then Listing, Notes, Lines & marks
- * and Boundary, and Remove this parcel at the end. It was the Info panel's Layers tree, details and Notes tab.
+ * the Grade | Details switch. A top line (who added it, and whether it's archived), then Listing, Notes, Lines & marks,
+ * Boundary and Status (Archive, Walked, Offered), and Remove this parcel at the end. It was the Info panel's Layers
+ * tree, details and Notes tab.
  *
  * Keys, with no field focused and no tool in use: Delete or Backspace deletes the open row's item; Esc closes the row
  * (the next Esc is the map's: it closes the parcel).
@@ -18,6 +19,7 @@ import { parcelDisplayName } from "@/lib/client/historyRows";
 import { members } from "@/lib/client/household";
 import { mapShowing } from "@/lib/client/mapShowing";
 import { isBuilt } from "@/lib/client/parcelStore";
+import { statusLine } from "@/lib/client/parcelStatus";
 import { Boundary } from "./Boundary";
 import { LinesMarks } from "./LinesMarks";
 import { Btn } from "./MarkupDetails";
@@ -51,16 +53,11 @@ function Body({ ctl, root }: { ctl: ExploreController; root: LayerNode }) {
   };
   return (
     <div className="parcel-details">
+      {/* Who added it, and that it's archived if it is; Archive and the milestones are in Status, near the end (the
+          fresh-eyes review: a rare action shouldn't lead). */}
       <div className="pd-top">
         <AddedBy addedBy={open.addedBy} />
-        <ParcelStanding
-          parcel={open}
-          act={{
-            archive: (reason) => ctl.archive(reason, serial),
-            restore: () => ctl.restore(serial),
-            setMilestone: (m, date) => ctl.setMilestone(m, date, serial),
-          }}
-        />
+        {open.status === "archived" && <p className="ip-note">{statusLine(open)}</p>}
       </div>
       {error && <p className="ip-error">{error}</p>}
       <Section title="Listing">
@@ -89,6 +86,16 @@ function Body({ ctl, root }: { ctl: ExploreController; root: LayerNode }) {
       </Section>
       <Section title="Boundary" boundary>
         <Boundary ctl={ctl} root={root} remove={remove} />
+      </Section>
+      <Section title="Status">
+        <ParcelStanding
+          parcel={open}
+          act={{
+            archive: (reason) => ctl.archive(reason, serial),
+            restore: () => ctl.restore(serial),
+            setMilestone: (m, date) => ctl.setMilestone(m, date, serial),
+          }}
+        />
       </Section>
       {isBuilt(open) && open.key && <RemoveParcel ctl={ctl} parcelKey={open.key} />}
     </div>
