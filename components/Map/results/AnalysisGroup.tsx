@@ -1,6 +1,7 @@
 "use client";
 /**
- * The Analysis group in Info › Layers (step 15 plan §3): what the map draws from the open parcel's screen.
+ * Results on the map, in Map layers (step 15 plan §3; step 8b, it was Info › Layers › Analysis): what the map draws from
+ * the open parcel's screen.
  * The Surface row (House / Garden / Slope / Off, the same setting as the map's cycle button, 15a), and an
  * eye per overlay: pins and the horizon fan (15b); soil units, trailheads and the driveway (15c). Hidden until the parcel
  * has been screened; after a reload the surface needs a run.
@@ -19,8 +20,8 @@ export function AnalysisGroup() {
   const shown = useOverlayPrefs();
   if (!s?.shown || s.stale) return null;
   return (
-    <div className="analysis-group" role="group" aria-label="Analysis">
-      <div className="ag-label">Analysis</div>
+    <div className="analysis-group" role="group" aria-label="Results on the map">
+      <div className="ag-label">Results on the map</div>
       <div className="ag-row">
         <span>Surface</span>
         {live ? (

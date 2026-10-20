@@ -483,6 +483,12 @@ History. One profile document is new, `ps.history` (`{ v: 1, graded: { [parcel k
 last graded each parcel. It syncs with the profile (SYNCED_DOCS) and isn't in the export file, which stays version 6.
 `docs/plans/step-8-favorites.md` and phase-0.md §9.60 have the details.
 
+### 3i. The parcel panel (roadmap step 8b)
+
+No stored-data change: UI moves and labels only. One device pref is new, `ps.marks` (Map layers' Your lines and marks,
+on by default), and the Info panel's `ps.infoTab` goes. `docs/plans/step-8b-parcel-panel.md` and phase-0.md §9.61 have
+the details.
+
 ## 4. The parcel page (the export)
 
 Blocks, in order; each is computed, placeholder, or user-authored:

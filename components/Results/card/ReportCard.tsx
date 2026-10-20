@@ -9,14 +9,12 @@ import type { ReactNode } from "react";
 import { answerReason, incompleteLine } from "@/lib/report/answer";
 import { lowerFirst, type Card, type GateStatus, type Row } from "@/lib/report/card";
 import type { PanelKey } from "@/lib/report/cardPanels";
-import { thresholdStatus, thresholdWords, type MustStatus } from "@/lib/rubric/musts";
+import { GATE_MARK as MARK, mustLines, rankedRows } from "@/lib/report/cardLines";
 import type { NamedRubric } from "@/lib/rubric/types";
-import { EDITOR_TITLES, TIER_NAMES } from "@/lib/rubric/words";
-import { fmt } from "@/lib/format";
+import { TIER_NAMES } from "@/lib/rubric/words";
 import type { PartialScreenResult } from "@/lib/screen/types";
 import { RubricSwitch } from "./RubricSwitch";
 
-const MARK: Record<GateStatus, string> = { pass: "✓", warn: "!", fail: "✗", unknown: "?" };
 /** A Must's status in words (plan §1.4): a warning is something to check first. */
 const STATUS_WORD: Record<GateStatus, string> = {
   pass: "Pass",
@@ -36,57 +34,6 @@ export const LET_THE_APP_CONSIDER_IT = "Let the app consider it";
 export interface StaleBanner {
   text: string;
   actions: { label: string; onClick(): void }[];
-}
-
-/** One Must on the card: a gate the person keeps, or a limit on a row with its measure. */
-interface MustLine {
-  key: PanelKey;
-  label: string;
-  status: GateStatus;
-  detail: string;
-  /** The data that didn't load, when that's why it's unknown. */
-  missing?: string;
-}
-
-const LIMIT_STATUS: Record<MustStatus, GateStatus> = { pass: "pass", fail: "fail", unknown: "unknown" };
-
-/** The card's Must have lines: the gates the person keeps, then each limit, in the rubric's order. */
-export function mustLines(card: Card): MustLine[] {
-  const R = card.rubric.rubric;
-  const gates = card.gates
-    .filter((g) => R.musts.some((m) => m.factor === g.key && m.threshold === undefined))
-    .map((g): MustLine => ({
-      key: g.key,
-      // The priorities page's own words for each factor (owner, #216): "Driveway on your land", not "Easement needed".
-      label: EDITOR_TITLES[g.key],
-      status: g.status,
-      detail: g.reason,
-      ...(g.missing ? { missing: g.missing } : {}),
-    }));
-  const limits = R.musts.flatMap((must): MustLine[] => {
-    if (must.threshold === undefined) return [];
-    const row = card.rows.find((x) => x.key === must.factor);
-    const measured = row?.short ?? row?.detail;
-    return [
-      {
-        key: must.factor,
-        label: EDITOR_TITLES[must.factor],
-        status: LIMIT_STATUS[thresholdStatus(must, row?.measure)],
-        detail: `${thresholdWords(must, (n) => fmt(n))}${measured ? ` · ${measured}` : ""}`,
-        ...(row?.missing ? { missing: row.missing } : {}),
-      },
-    ];
-  });
-  return [...gates, ...limits];
-}
-
-/** The ranked rows by tier, in rank order (plan §1.4). */
-export function rankedRows(card: Card): { should: Row[]; could: Row[] } {
-  const by = (tier: "should" | "could") =>
-    card.rubric.rubric.ranked
-      .filter((c) => c.tier === tier)
-      .flatMap((c) => card.rows.filter((x) => x.key === c.factor));
-  return { should: by("should"), could: by("could") };
 }
 
 export function ReportCard({
@@ -122,7 +69,7 @@ export function ReportCard({
   const { should, could } = rankedRows(card);
   const musts = mustLines(card);
   const rowButton = (r: Row) => (
-    <li key={r.key}>
+    <li key={r.key} data-card-key={r.key}>
       <button className="card-row" onClick={() => onOpen(r.key)}>
         <span className="row-label">{r.label}</span>
         <span className={`card-grade small g-${r.grade ?? "none"}`}>{r.grade ?? "–"}</span>
@@ -139,7 +86,7 @@ export function ReportCard({
     );
   return (
     <section className="card" aria-label="Report card">
-      <div className="card-answer">
+      <div className="card-answer" data-card-key="answer">
         <div className="card-head">
           <button className="card-verdict" onClick={() => onOpen("verdict")}>
             <span className={`card-grade g-${card.grade ?? "none"}`}>{card.grade ?? "–"}</span>
@@ -183,7 +130,7 @@ export function ReportCard({
             {musts.map((m) => {
               const wait = pending(m.missing);
               return (
-                <li key={`${m.key}-${m.label}`}>
+                <li key={`${m.key}-${m.label}`} data-card-key={m.key}>
                   <button
                     className={`card-row must-row ${wait ? "pending" : m.status}`}
                     title={m.detail}

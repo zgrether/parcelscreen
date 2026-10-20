@@ -6021,3 +6021,251 @@ button.sync-ind.bad {
     -webkit-box-orient: vertical;
   }
 }
+
+/* ---------- Step 8b: the parcel panel's Grade | Details (docs/plans/step-8b-parcel-panel.md §9) ---------- */
+/* The switch: step 8's segmented control, under the header, full width; each segment at least 44 px. */
+.parcel-switch {
+  display: flex;
+  margin: 0 16px 10px;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--color-paper);
+  flex: none;
+}
+.parcel-switch-seg {
+  flex: 1;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink-2);
+  font: 600 15px/1 var(--font-sans);
+  cursor: pointer;
+}
+.parcel-switch-seg + .parcel-switch-seg {
+  border-left: 1px solid var(--color-rule);
+}
+.parcel-switch-seg[aria-selected="true"] {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+.parcel-switch-seg:focus-visible {
+  outline: 2px solid var(--color-water);
+  outline-offset: -3px;
+}
+.parcel-ungraded {
+  margin: 4px 16px;
+}
+/* Details: the Info panel's controls in the panel's light style (as the list's detail, #133); Remove stays red. */
+.parcel-details {
+  --ip-ink: var(--color-ink);
+  --ip-ink-2: var(--color-ink-2);
+  --ip-rule: var(--color-rule);
+  --ip-field-bg: rgba(255, 255, 255, 0.55);
+  --ip-chip-line: var(--color-rule);
+  --ip-btn-line: var(--color-ink-2);
+  --ip-on-ink: var(--color-paper);
+  --ip-bad: var(--color-steep);
+  --ip-bad-bg: transparent;
+  --ip-bad-line: var(--color-steep);
+  --ip-scheme: light;
+  --tb-bad: var(--color-steep);
+  padding: 0 16px 24px;
+  font-size: 15px;
+  color: var(--color-ink);
+}
+.parcel-details .ip-note,
+.parcel-details .ip-ask {
+  font-size: 13.5px;
+}
+.parcel-details .ip-btn {
+  min-height: 36px;
+  font-size: 14px;
+}
+.pd-top {
+  display: grid;
+  gap: 6px;
+  padding-bottom: 10px;
+}
+.pd-sec {
+  border-top: 1px solid var(--color-rule);
+  padding: 10px 0;
+}
+.pd-sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.pd-sec-head h3 {
+  margin: 0;
+  font: 600 15px/1.2 var(--font-cond);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+}
+.pd-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.pd-empty {
+  margin: 0;
+}
+.parcel-details table.facts td {
+  color: var(--color-ink);
+  border-bottom: 1px solid var(--color-rule);
+}
+.parcel-details table.facts td:first-child {
+  color: var(--color-ink-2);
+}
+/* Lines & marks: a row per item (44 px), opened in place. */
+.pd-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.pd-rows > li + li {
+  border-top: 1px solid var(--color-paper-2);
+}
+.pd-row {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) 44px 44px;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 0 0 4px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.pd-row:hover,
+.pd-row:focus-visible {
+  background: var(--color-paper-2);
+}
+.pd-row:focus-visible {
+  outline: 2px solid var(--color-water);
+  outline-offset: -2px;
+}
+.pd-row.sel {
+  background: #d9e6ee;
+}
+.pd-row.off .pd-name,
+.pd-row.off .pd-ico {
+  opacity: 0.5;
+}
+.pd-ico {
+  display: grid;
+  place-items: center;
+}
+.pd-text {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+.pd-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pd-meta {
+  color: var(--color-ink-2);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.pd-eye,
+.pd-del {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-ink-2);
+  font-size: 22px;
+  cursor: pointer;
+}
+.pd-eye:hover,
+.pd-del:hover {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+.pd-eye.off {
+  color: var(--color-warn);
+}
+.pd-open {
+  display: grid;
+  gap: 8px;
+  margin: 2px 0 10px 30px;
+  padding: 8px 10px;
+  border-left: 3px solid var(--color-water);
+  border-radius: 0 6px 6px 0;
+  background: #f1f3ee;
+}
+/* Boundary. */
+.pd-bound {
+  list-style: none;
+  margin: 8px 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.pd-bound-item {
+  display: grid;
+  gap: 4px;
+}
+.pd-bound-name {
+  font-weight: 600;
+}
+@media (max-width: 860px) {
+  /* A phone: the kind and length under the name. */
+  .pd-text {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+  .pd-open {
+    margin-left: 0;
+  }
+}
+
+/* Step 8b: the grade note under the panel's header (owner on #228), and the row it points to, briefly marked. */
+.grade-note {
+  display: block;
+  margin: 0 16px 8px;
+  padding: 8px 12px;
+  min-height: 40px;
+  border: 1px solid var(--color-ok);
+  border-radius: 8px;
+  background: #e3efe6;
+  color: var(--color-ink);
+  font: 600 14px/1.3 var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+  animation: grade-note-in 0.2s ease-out;
+}
+.grade-note:focus-visible {
+  outline: 2px solid var(--color-water);
+  outline-offset: 1px;
+}
+@keyframes grade-note-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+.card-flash {
+  border-radius: 6px;
+  background: #fff3cf;
+  transition: background 0.6s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .grade-note {
+    animation: none;
+  }
+}

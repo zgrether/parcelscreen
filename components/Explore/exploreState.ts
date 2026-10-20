@@ -73,9 +73,9 @@ export interface ExploreState {
   split: SplitLine | null;
   /** Pieces picked to combine; null when not combining. */
   combine: ParcelRecord[] | null;
-  /** The Info panel is open (13e-4). */
+  /** The parcel panel shows Details (step 8b; it was the Info panel, 13e-4); Grade when false. */
   info: boolean;
-  /** The map panel is open (17e): basemaps, map layers, terrain. One panel at a time, with Info. */
+  /** Map layers is open (17e; step 8b: with the results on the map, and beside Details). */
   mapPanel: boolean;
   /** The layer selected in the panel or on the map. */
   layer: LayerId | null;
@@ -355,7 +355,7 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
         draft: [],
         mode: null,
         editing: null,
-        ...(s.editing ? { layer: lineLayer(s.editing), info: true, mapPanel: false } : {}),
+        ...(s.editing ? { layer: lineLayer(s.editing), info: true } : {}),
       };
     case "finishDraw": {
       if (s.draft.length < 3) return s;
@@ -421,11 +421,12 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       };
     }
     case "info":
-      return a.open ? { ...s, info: true, mapPanel: false } : { ...s, ...PANEL_CLOSED };
+      // Step 8b: `info` is the parcel panel on Details; Map layers is its own, and both can be open.
+      return a.open ? { ...s, info: true } : { ...s, ...PANEL_CLOSED };
     case "mapPanel":
-      return a.open ? { ...s, mapPanel: true, ...PANEL_CLOSED } : { ...s, mapPanel: false };
+      return { ...s, mapPanel: a.open };
     case "layer":
-      return { ...s, layer: a.id, info: a.id ? true : s.info, mapPanel: a.id ? false : s.mapPanel };
+      return { ...s, layer: a.id, info: a.id ? true : s.info };
     case "removePart":
       if (!open || open.pieces.length < 2) return s;
       // A split that no longer cuts what's left is left off when the parcel is derived, and says so.
@@ -479,7 +480,6 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
           ...NO_TOOL,
           layer: lineLayer(s.editing),
           info: true,
-          mapPanel: false,
           store: save({ ...open, markup }, a.stamp),
         };
       }
@@ -499,7 +499,6 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
         ...NO_TOOL,
         layer: lineLayer(a.id),
         info: true,
-        mapPanel: false,
         store: save({ ...open, markup: [...open.markup, mark] }, a.stamp),
       };
     }
@@ -524,7 +523,6 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
           ...NO_TOOL,
           layer: lineLayer(a.id),
           info: true,
-          mapPanel: false,
           store: save({ ...open, markup: [...open.markup, mark] }, a.stamp),
         };
       }
@@ -538,7 +536,6 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
           ...NO_TOOL,
           layer: lineLayer(s.editing),
           info: true,
-          mapPanel: false,
           store: save({ ...open, markup }, a.stamp),
         };
       }
@@ -557,7 +554,6 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
         ...NO_TOOL,
         layer: lineLayer(a.id),
         info: true,
-        mapPanel: false,
         store: save({ ...open, markup: [...open.markup, mark] }, a.stamp),
       };
     }
@@ -584,7 +580,6 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
           ...NO_TOOL,
           layer: lineLayer(s.editing),
           info: true,
-          mapPanel: false,
           store: save({ ...open, markup }, a.stamp),
         };
       }

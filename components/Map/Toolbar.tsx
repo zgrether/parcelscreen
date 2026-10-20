@@ -4,7 +4,8 @@
  *   nothing open:  "Tap a parcel to select it or Draw a custom parcel" (no rule: the "or" separates them)
  *   a parcel open: "Boundary ▾ · + Mark · Grade this parcel │ 🗑   12.34 ac ▾" (the grade button on a desktop only,
  *                  step 4c; owner, after #136: Boundary holds Parcel, Custom and
- *                  Split; + Mark opens the Mark picker, which holds the house site and the lines; the acres open Info)
+ *                  Split; + Mark opens the Mark picker, which holds the house site and the lines; the acres open the
+ *                  parcel panel's Details at Boundary, step 8b)
  *   a tool in use: what to do next, and its controls (Finish, Done, Keep…, Cancel)
  * The trash (built parcels only) asks inline before deleting. A tap refused because a built parcel is open
  * shows a brief note above the bar.
@@ -19,6 +20,7 @@ import { M2FT, M2_PER_ACRE } from "@/lib/geo/types";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { GradeAction } from "@/components/Results/panel/GradeAction";
+import { showBoundary } from "@/components/Parcel/ParcelSwitch";
 
 const ac = (n: number) => n.toFixed(2);
 
@@ -377,12 +379,15 @@ function barBody(
       {acres !== null && (
         <button
           className="tb-acres"
-          aria-label={`${ac(acres)} acres: parcel info`}
-          aria-expanded={ctl.state.info}
-          title="Layers and details"
-          onClick={() => ctl.setInfo(!ctl.state.info)}
+          aria-label={`${ac(acres)} acres: parcel details`}
+          title="The parcel's details and boundary"
+          onClick={() => {
+            // Step 8b: always Details at Boundary (it was a toggle for the Info panel).
+            ctl.setInfo(true);
+            showBoundary();
+          }}
         >
-          {ac(acres)} ac <span aria-hidden="true">{ctl.state.info ? "▴" : "▾"}</span>
+          {ac(acres)} ac <span aria-hidden="true">▾</span>
         </button>
       )}
     </>

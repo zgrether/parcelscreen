@@ -104,25 +104,36 @@ test("Mud Creek: the red-gate route beside the app's pick; chosen as the drivewa
   await expect(access).toHaveAttribute("aria-label", "Legal road access: warn");
   await expect(access).toHaveAttribute("title", /your route is steeper than your veto \(41% vs 25%\)$/);
 
-  // Its record, in the line's details: the "verify" warning gives way to the reminder; cleared, it's back.
-  await page.getByRole("button", { name: /acres: parcel info$/ }).click();
-  const info = page.locator(".info-panel");
-  await info.getByRole("treeitem").filter({ hasText: "Red gate" }).click();
-  const details = info.locator(".ip-details");
+  // Its record, in the line's open row in Details (step 8b): the "verify" warning gives way to the reminder; cleared,
+  // it's back. The card is on Grade, a tap away.
+  const info = page.locator(".parcel-details");
+  const details = info.locator(".pd-open");
+  const openRow = async () => {
+    await page.getByRole("tab", { name: "Details" }).click();
+    if (!(await details.count())) await info.locator(".pd-row").filter({ hasText: "Red gate" }).click();
+  };
+  const grade = () => page.getByRole("tab", { name: "Grade" }).click();
+  await page.getByRole("button", { name: /acres: parcel details$/ }).click();
+  await openRow();
   await expect(details.getByText("The card scores its route as your driveway.")).toBeVisible();
   const recorded = details.getByLabel("Recorded in");
   await recorded.fill(REF);
   await recorded.press("Enter");
+  await grade();
   await expect(access).toHaveAttribute(
     "title",
     `Frontage on Mud Creek Ln; your route is steeper than your veto (41% vs 25%); recorded in ${REF} (your entry): make sure your deed includes this right-of-way`,
   );
+  await openRow();
   await recorded.fill("");
   await recorded.press("Enter");
+  await grade();
   await expect(access).toHaveAttribute("title", /Red gate: verify it's a legal right-of-way/);
 
-  // The app's pick again, from the line's details.
+  // The app's pick again, from the line's open row.
+  await openRow();
   await details.getByRole("button", { name: "Use the app's pick" }).click();
+  await grade();
   await expect(access).toHaveAttribute("aria-label", "Legal road access: pass");
   expect(errors).toEqual([]);
 });

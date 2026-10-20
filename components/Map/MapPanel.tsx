@@ -2,16 +2,21 @@
 /**
  * The map panel (step 17e; plan phase-0-17e-switching.md §2), opened from the map button at the top of the
  * right column. It replaced the "Map ▾" menu, whose native basemap dropdown let a pick click through to the
- * toggle beneath it. A slide-over like Info (one panel at a time): the basemaps as radio rows, the map layers,
+ * toggle beneath it. A slide-over: the basemaps as radio rows, the map layers, the results on the map (step 8b: the Info
+ * panel's Analysis, merged here with the rest of how the map looks),
  * then the terrain preview. Esc or × closes it.
  */
 import { mapShowing } from "@/lib/client/mapShowing";
 import { useEffect, useRef } from "react";
 import { useExplore } from "@/components/Explore/useExploreController";
+import { AnalysisGroup } from "./results/AnalysisGroup";
 import { RoadsToggle } from "./RoadsToggle";
 import { BASEMAPS } from "./style";
 import { TerrainControls } from "./TerrainControls";
 import { setMapLayerPrefs, useMapLayerPrefs } from "./useMapLayerPrefs";
+
+/** Step 8b: the one show/hide for the open parcel's lines, marks and house site. */
+export const MARKS_LABEL = "Your lines and marks";
 
 export function MapPanel() {
   const ctl = useExplore();
@@ -45,7 +50,7 @@ function Panel({ onClose }: { onClose: () => void }) {
   return (
     <section className="info-panel map-panel" aria-label="Map layers">
       <header className="ip-head">
-        <h2 className="mp-title">Map</h2>
+        <h2 className="mp-title">Map layers</h2>
         <button className="ip-x" aria-label="Close the map panel" onClick={onClose}>
           ×
         </button>
@@ -66,15 +71,17 @@ function Panel({ onClose }: { onClose: () => void }) {
             </button>
           ))}
         </div>
-        <div className="terrain-controls info" role="group" aria-label="Map layers">
-          <div className="tc-label">Map layers</div>
+        <div className="terrain-controls info" role="group" aria-label="On the map">
+          <div className="tc-label">On the map</div>
           {toggle("Dim map", p.dim, () => setMapLayerPrefs({ dim: !p.dim }))}
           {toggle("Parcel lines", p.lines, () => setMapLayerPrefs({ lines: !p.lines }))}
           <RoadsToggle variant="row" />
           {toggle("Light pollution", p.lightPollution, () =>
             setMapLayerPrefs({ lightPollution: !p.lightPollution }),
           )}
+          {toggle(MARKS_LABEL, p.marks, () => setMapLayerPrefs({ marks: !p.marks }))}
         </div>
+        <AnalysisGroup />
         <TerrainControls variant="info" />
       </div>
     </section>

@@ -89,8 +89,7 @@ test("the asking price: entered in the parcel sheet with its date, shown on Your
   await replayHar(context, FERNEY);
   await openExplorer(page, FERNEY);
   await importParcel(page, FERNEY);
-  await page.locator('button[aria-label$="acres: parcel info"]').first().click();
-  await page.getByRole("tab", { name: "Notes" }).click();
+  await page.locator('button[aria-label$="acres: parcel details"]').first().click();
   const price = page.getByLabel("Asking price");
   await price.fill("185k");
   await price.press("Enter");

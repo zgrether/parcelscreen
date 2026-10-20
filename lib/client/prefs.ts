@@ -45,6 +45,8 @@ export interface Prefs {
   "ps.view": MapView | null;
   "ps.dim": boolean;
   "ps.lines": boolean;
+  /** Step 8b: the open parcel's lines, marks and house site drawn on the map (Map layers' Your lines and marks). */
+  "ps.marks": boolean;
   /** Roads & labels over the aerials (17d): a UI pref, never part of UserConfig or a run. */
   "ps.roads": boolean;
   "ps.omode": "house" | "garden" | "slope" | "off";
@@ -53,7 +55,6 @@ export interface Prefs {
   /** Step 13e: the open parcel and History. Replaces ps.current, which converts on first read. */
   "ps.parcels": ParcelStore | null;
   /** Step 13e-5: the Info panel's tab, so it reopens on the last one used. */
-  "ps.infoTab": "layers" | "notes";
   /**
    * Step 13g, the terrain preview: UI layers only, never in UserConfig or a run's settings, so they can't
    * mark a screen out of date. Hillshade and contours are null until first toggled: then the device decides
@@ -97,11 +98,11 @@ const DEFAULTS: Prefs = {
   // Off by default (owner, 13e-5 review); the prototype started dimmed.
   "ps.dim": false,
   "ps.lines": true,
+  "ps.marks": true,
   "ps.roads": true,
   "ps.omode": "house",
   "ps.current": null,
   "ps.parcels": null,
-  "ps.infoTab": "layers",
   "ps.terrain": { on: false, exaggeration: 1.5 },
   "ps.hillshade": null,
   "ps.contours": null,
@@ -125,11 +126,11 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
   "ps.view": { read: (r) => JSON.parse(r) as MapView, write: (v) => JSON.stringify(v) },
   "ps.dim": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
   "ps.lines": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
+  "ps.marks": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
   "ps.roads": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
   "ps.omode": { read: (r) => r as Prefs["ps.omode"], write: (v) => v },
   "ps.current": { read: readCurrentParcel, write: writeCurrentParcel },
   "ps.parcels": { read: readParcelStore, write: (v) => (v ? writeParcelStore(v) : "null") },
-  "ps.infoTab": { read: (r) => (r === "notes" ? "notes" : "layers"), write: (v) => v },
   "ps.terrain": { read: readTerrain, write: (v) => JSON.stringify(v) },
   "ps.hillshade": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
   "ps.contours": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
