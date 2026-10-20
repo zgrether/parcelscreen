@@ -96,7 +96,7 @@ export async function starFromHistory(page: Page, name: string): Promise<void> {
   await page.getByRole("tab", { name: "History" }).click();
   const add = page.locator(".hist-row", { hasText: name }).getByRole("button", { name: /^Add to favorites/ });
   await add.click();
-  await page.getByRole("dialog", { name: "Add to Favorites" }).getByRole("button", { name: "Add" }).click();
+  await page.getByRole("dialog", { name: "Add to favorites" }).getByRole("button", { name: "Add" }).click();
   await expect(add).toHaveCount(0);
   await page.getByRole("tab", { name: "Favorites" }).click();
 }

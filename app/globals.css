@@ -5651,6 +5651,8 @@ button.sync-ind.bad {
 .others-why {
   display: block;
   margin-top: 2px;
+  font-size: 13px;
+  color: var(--color-ink-2);
 }
 .others-none {
   margin: 0 0 4px;
@@ -5774,7 +5776,8 @@ button.sync-ind.bad {
   height: 8px;
   margin: 0 2px 0 6px;
   border-radius: 50%;
-  background: var(--color-steep);
+  /* Polish: blue, with "new" beside it; red read as a warning. */
+  background: var(--color-water);
   vertical-align: middle;
 }
 .app-badge {
@@ -6267,5 +6270,66 @@ button.sync-ind.bad {
 @media (prefers-reduced-motion: reduce) {
   .grade-note {
     animation: none;
+  }
+}
+
+/* ---------- Polish (docs/plans/polish.md, after step 8b) ---------- */
+/* Your list: "You" before the first grade; a new take says "new"; the ask says how to answer; Filters a pill. */
+.lib-you {
+  margin-right: 4px;
+}
+.new-take {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.new-word {
+  color: var(--color-water);
+  font-weight: 600;
+}
+.lib-ask-how {
+  color: var(--color-ink-2);
+}
+.lib-filters-btn {
+  border-radius: 999px;
+}
+/* Favorites cards on a phone: the name on up to two lines, so parcels that differ only in their numbers read apart. */
+@media (max-width: 860px) {
+  .lib-card .lib-open .long-name-text {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+}
+/* Who's this?: the new-profile button is the lesser choice. */
+.who-new {
+  border-style: dashed;
+}
+.take-sent {
+  color: var(--color-ok);
+  font-weight: 600;
+}
+/* A phone: the list's detail sheet ends above the tab bar and fades at its foot, so it shows there's more; it rises
+   over the list's controls so no chip peeks out behind it. The list's small controls get 44 px targets. */
+@media (max-width: 860px) {
+  .lib-detail {
+    bottom: var(--tabs-h);
+    height: calc(88vh - var(--tabs-h));
+    z-index: 45;
+  }
+  .lib-detail-body {
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+    padding-bottom: 28px;
+  }
+  .lib-detail .btn.small,
+  .lib-card .lib-handle {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .lib-card-head input[type="checkbox"] {
+    width: 24px;
+    height: 24px;
+    margin: 10px;
   }
 }

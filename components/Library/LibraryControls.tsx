@@ -50,7 +50,7 @@ const sortsFor = (rubrics: readonly NamedRubric[]): { key: SortKey; label: strin
   ...rubrics.map((nr) => ({ key: gradeSortKey(nr.id), label: switchLabel(nr) })),
 ];
 
-/** How many filters differ from the defaults. */
+/** How many of the fold's filters differ from the defaults; the quick ones beside it show as pressed (polish). */
 function changedFilters(f: LibraryFilters): number {
   const d = DEFAULT_VIEW.filters;
   const same = (a: unknown[], b: unknown[]) => a.length === b.length && a.every((x) => b.includes(x));
@@ -61,8 +61,6 @@ function changedFilters(f: LibraryFilters): number {
     f.milestones.length > 0,
     f.priceMin !== null || f.priceMax !== null,
     f.state !== null,
-    f.waiting,
-    f.bothLike,
   ].filter(Boolean).length;
 }
 
@@ -105,8 +103,13 @@ export function LibraryControls({
   return (
     <div className="lib-controls">
       <div className="lib-bar">
-        <button className="btn small secondary" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-          Filters{n ? ` (${n})` : ""}
+        <button
+          className="btn small secondary lib-filters-btn"
+          aria-expanded={open}
+          onClick={() => setOpen((o) => !o)}
+        >
+          {/* Polish: "· 1 on" counts filters, where Waiting for you (1) counts parcels. */}
+          Filters{n ? ` · ${n} on` : ""}
         </button>
         {/* Step 6: the household's two quick filters, beside Filters. */}
         {(several || waiting > 0) && (

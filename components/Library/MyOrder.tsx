@@ -116,6 +116,7 @@ export function DragHandle({ name, handle }: { name: string; handle: HandleProps
       type="button"
       className="lib-handle"
       aria-label={`Move ${name} in your order`}
+      title="Drag to reorder (My order)"
       {...handle}
       onClick={(e) => e.stopPropagation()}
     >
@@ -196,6 +197,7 @@ export function OrderMenu({
         type="button"
         className="lib-handle"
         aria-label={`Order: ${name}`}
+        title="Move up or down"
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
