@@ -73,6 +73,11 @@ export interface Gate {
   reason: string;
   /** The data that didn't load ("the FEMA flood map"): the card is incomplete (owner, #109 review). */
   missing?: string;
+  /**
+   * The reason's own first clause when more follows it ("Frontage on an unnamed road"): the card's row puts what follows,
+   * what made it a warning, on its own line (polish #7). The reason's words are the same.
+   */
+  first?: string;
 }
 
 export interface Row {
@@ -122,6 +127,11 @@ export interface Card extends CardFacts {
   lead: Lead;
   /** What didn't load, in the card's order: the reason line says so, and asks for a re-run. */
   incomplete: string[];
+  /**
+   * What holds a grade good enough for a Contender at Maybe, by name (polish #5, owner 2026-10-20): the line under the
+   * reason, "Held at Maybe by: Legal road access." Absent when nothing does.
+   */
+  heldBy?: string[];
   /** The homesites in this person's order (step 7, lib/report/sites.ts); empty before they're ranked. */
   sites: readonly RankedSite[];
 }
@@ -264,6 +274,7 @@ function access(r: Result, driven: Driven, names?: LineNames, records?: Readonly
     ...frontage,
     status: frontage.status === "fail" ? "fail" : asks.length ? "warn" : frontage.status,
     reason: [frontage.reason, ...asks, ...notes].join("; "),
+    first: frontage.reason,
   };
 }
 
@@ -836,7 +847,7 @@ function withYourRoute(facts: CardFacts, r: Result, driven: Driven, drawn?: Draw
 }
 
 /** "a", "a and b", "a, b and c". */
-const listOf = (xs: string[]): string =>
+export const listOf = (xs: string[]): string =>
   xs.length < 2 ? (xs[0] ?? "") : `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}`;
 
 /**
@@ -926,6 +937,17 @@ export function cardFor(facts: CardFacts, nr: NamedRubric): Card {
           ? `${VERDICT_WORD[verdict]}. Weakest part: ${lead.text}`
           : `${VERDICT_WORD[verdict]}. ${lead.text}`;
   const more = incomplete.length ? ` (incomplete: ${listOf(incomplete)} didn't load, run again)` : "";
+  // A Contender's grade held at Maybe (polish #5): the warnings past the allowance, a Must that couldn't be checked, a
+  // "Check first" item, and what didn't load, as MAYBE_CAPS and the verdict above count them.
+  const heldBy =
+    verdict === "Maybe" && points !== null && points >= lines.contender
+      ? [
+          ...(warns.length > R.verdict.contenderMaxWarns ? warns.map((g) => g.label) : []),
+          ...thresholds.filter((t) => t.status === "unknown").map((t) => t.row.label),
+          ...facts.rows.filter((x) => x.checkFirst).map((x) => x.label),
+          ...(incomplete.length ? ["something that didn't load"] : []),
+        ]
+      : [];
   return {
     ...facts,
     rows,
@@ -936,6 +958,7 @@ export function cardFor(facts: CardFacts, nr: NamedRubric): Card {
     reason: `${why}${more}.`,
     lead,
     incomplete,
+    ...(heldBy.length ? { heldBy: [...new Set(heldBy)] } : {}),
     sites: [],
   };
 }

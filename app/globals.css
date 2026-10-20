@@ -1633,19 +1633,12 @@ html:has(.explore) body {
   details.block > *:not(summary) {
     margin-top: 8px;
   }
-  /* Results for an earlier boundary stay readable but step back. */
-  .report.stale {
-    opacity: 0.55;
-  }
   .report-note {
     margin: 8px 0 0;
     padding: 6px 10px;
     border-left: 3px solid var(--color-warn);
     background: var(--color-paper-2);
     font-size: 13.5px;
-  }
-  .report-note.stale-note {
-    border-color: var(--color-steep);
   }
   .link-btn {
     padding: 0;
@@ -3121,6 +3114,12 @@ html:has(.app-nav) .explore {
   margin: -4px 0 10px;
   color: var(--color-ink-2);
 }
+/* What holds a Contender's grade at Maybe (polish #5), under the reason. */
+.card-held {
+  margin: -4px 0 10px;
+  color: var(--color-ink-2);
+  font-size: 14px;
+}
 /* The drawn lines changed since the screen (owner, #116): prominent, in the card's header; the results stay. */
 .card-stale {
   display: flex;
@@ -3215,6 +3214,11 @@ html:has(.app-nav) .explore {
 .card-row .row-detail {
   color: var(--color-ink-2);
   font-size: 13.5px;
+}
+/* What made a Must a warning, on its own line under its first clause (polish #7). */
+.card-row .row-why {
+  display: block;
+  color: var(--color-ink);
 }
 .card-row:hover .row-label,
 .card-verdict:hover .card-word {
@@ -3359,6 +3363,13 @@ html:has(.app-nav) .explore {
   align-items: baseline;
 }
 .spot-name {
+  font-weight: 600;
+}
+/* Its place in the person's order, apart from the pin's number (polish #8). */
+.spot-choice {
+  min-width: 2.2em;
+  color: var(--color-ink-2);
+  font-size: 13px;
   font-weight: 600;
 }
 .spot-behind {

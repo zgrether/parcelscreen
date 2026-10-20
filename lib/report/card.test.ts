@@ -265,6 +265,7 @@ describe("the gates", () => {
     const c = reportCard(r, ZACH);
     expect(c.verdict).toBe("Contender"); // the septic warn is its only warn
     expect(c.incomplete).toEqual([]);
+    expect(c.heldBy).toBeUndefined();
   });
 
   it("data that didn't load: not a warn; the verdict is at most a Maybe and says what to re-run", () => {
@@ -640,6 +641,8 @@ describe("the rows", () => {
     expect(c.reason).toBe(
       "Maybe. Check first: your build doesn't fit on the gentle ground (0.2 ac, 0.4× the footprint).",
     );
+    // Polish #5: the line under the reason names what holds it.
+    expect(c.heldBy).toEqual(["Room to build"]);
     // A fail still comes first.
     r.sites![0]!.flood = true;
     r.flood = { zones: ["AE"], sfha: true, sfhaAcres: 3, mapped: true };

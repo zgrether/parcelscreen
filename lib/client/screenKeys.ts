@@ -16,6 +16,11 @@ export interface RunKeys {
   /** "" when no house was marked. */
   house: string;
   settings: string;
+  /**
+   * Each setting's own key, by its name in the config (polish #10): which ones changed, for "Grade again: road veto
+   * changed". Missing on a screen kept before it: the button then says only "settings changed".
+   */
+  settingsBy?: Record<string, string>;
   /** "" when no line was drawn. A line's note doesn't count: the screen doesn't read it. */
   lines: string;
 }
@@ -56,6 +61,9 @@ export function runKeys(
     boundary: hash(stable(polygon.coordinates)),
     house: house ? `${house[0].toFixed(6)},${house[1].toFixed(6)}` : "",
     settings: hash(stable(settings)),
+    settingsBy: Object.fromEntries(
+      Object.entries(settings).map(([k, v]) => [k, hash(stable(v))] as const),
+    ),
     lines: lines.length ? hash(stable(lines)) : "",
   };
 }
@@ -67,6 +75,8 @@ export interface Freshness {
   house: boolean;
   /** Settings changed: the results used earlier settings. */
   settings: boolean;
+  /** The settings that changed, by their names in the config, in the config's order; empty when the run didn't keep them. */
+  settingsChanged?: string[];
   /** The drawn lines changed: the results used earlier lines (follow-up 34). */
   lines: boolean;
 }
@@ -75,5 +85,9 @@ export const freshness = (run: RunKeys, now: RunKeys): Freshness => ({
   boundary: run.boundary !== now.boundary,
   house: run.house !== now.house,
   settings: run.settings !== now.settings,
+  settingsChanged:
+    run.settings !== now.settings && run.settingsBy && now.settingsBy
+      ? Object.keys(now.settingsBy).filter((k) => run.settingsBy![k] !== now.settingsBy![k])
+      : [],
   lines: (run.lines ?? "") !== now.lines,
 });

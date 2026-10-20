@@ -77,12 +77,12 @@ for (const phone of [false, true]) {
       await page.locator("ul.steps").scrollIntoViewIfNeeded();
       await shot(page, "6-log-open");
 
-      // A setting changed: "Grade again: settings changed", and the count on the line (a fresh load folds the log).
+      // A setting changed: "Grade again: house site score changed", and the count on the line (a fresh load folds the log).
       await (await openMenu(page)).getByRole("button", { name: "Settings", exact: true }).click();
       const field = page.locator(".settings-grid input").first();
       await field.fill(String(Number(await field.inputValue()) + 1));
       await page.getByRole("button", { name: "Save", exact: true }).click();
-      await expect(grade).toHaveText("Grade again: settings changed");
+      await expect(grade).toHaveText("Grade again: house site score changed");
       await page.waitForTimeout(500);
       await shot(page, "7-reason");
 

@@ -9,7 +9,7 @@ import type { NamedRubric } from "@/lib/rubric/types";
 import { REPORT } from "../report";
 import { ReportCard } from "../card/ReportCard";
 import { AgentQuestions } from "./AgentQuestions";
-import { BestHomesite, topNumbers } from "./BestHomesite";
+import { BestHomesite, ordinal, topNumbers } from "./BestHomesite";
 import { FullReport } from "./FullReport";
 
 const FERNEY = expectedOf("ferney-creek-52-47A", "run");
@@ -90,6 +90,7 @@ describe("Best homesite (plan §1.2–§1.3)", () => {
         onOpen={noop}
         pick={noop}
         back={noop}
+        show={noop}
       />,
     );
 
@@ -107,10 +108,22 @@ describe("Best homesite (plan §1.2–§1.3)", () => {
     expect(t).toContain("Elevation 2,729 ft");
   });
 
-  it("the alternatives, then N more spots", () => {
+  it("the alternatives, then N more sites: each with its place in the order apart from its pin's number", () => {
     const t = text(html());
-    expect(t).toContain("Other spots");
-    expect(t).toMatch(/\d more spots/);
+    expect(t).toContain("Other sites");
+    expect(t).toMatch(/\d more sites/);
+    expect(t).toMatch(/2nd Site #\d/);
+    expect([1, 2, 3, 4, 11, 12, 13, 21, 22].map(ordinal)).toEqual([
+      "1st",
+      "2nd",
+      "3rd",
+      "4th",
+      "11th",
+      "12th",
+      "13th",
+      "21st",
+      "22nd",
+    ]);
   });
 
   it("says which site the map shows when it isn't the best", () => {
