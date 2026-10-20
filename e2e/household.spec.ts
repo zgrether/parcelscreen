@@ -228,7 +228,9 @@ test("polling (step 6b): a take saved on one device appears on the other within 
   await expect(yours).toContainText("Change");
 
   // Zach, untouched: her take arrives by the poll.
-  await expect(listRow(zach, "52-47A").locator(".take-chip")).toHaveText("Julie says Yes", { timeout: 35_000 });
+  await expect(listRow(zach, "52-47A").locator(".take-chip")).toHaveText("Julie says Yes", {
+    timeout: 35_000,
+  });
   // Held: the row above grows a pixel with the take's chip, and the browser's scroll anchoring keeps the view still.
   expect(Math.abs((await listScroll(zach)) - scrolled)).toBeLessThanOrEqual(2);
 });
