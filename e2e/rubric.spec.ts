@@ -138,7 +138,7 @@ test("a change re-grades the Library at once, and nothing asks for a re-screen",
   await importParcels(page, [FERNEY]);
   await seedScreens(page, [FERNEY]);
   await visit(page, "/library");
-  const grade = page.locator(".lib-table tbody tr").first().locator("td").nth(7);
+  const grade = page.locator(".lib-table tbody tr").first().locator(".lib-c-grade");
   await expect(grade).toHaveText(/^[A-F]/);
   const before = await grade.textContent();
   await visit(page, "/priorities");

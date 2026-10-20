@@ -79,6 +79,7 @@ export function LibraryControls({
   const f = view.filters;
   const setF = (patch: Partial<LibraryFilters>) => setView({ ...view, filters: { ...f, ...patch } });
   const waiting = rows.filter((r) => r.waiting).length;
+  const fresh = rows.filter((r) => r.newTakesBy.length > 0).length;
   const flip = <T,>(list: T[], x: T): T[] => (list.includes(x) ? list.filter((y) => y !== x) : [...list, x]);
   const states = [...new Set(rows.flatMap((r) => r.states))].sort();
   const n = changedFilters(f);
@@ -111,8 +112,8 @@ export function LibraryControls({
           {/* Polish: "· 1 on" counts filters, where Waiting for you (1) counts parcels. */}
           Filters{n ? ` · ${n} on` : ""}
         </button>
-        {/* Step 6: the household's two quick filters, beside Filters. */}
-        {(several || waiting > 0) && (
+        {/* Step 6: the household's quick filters, beside Filters; polish #14: New takes, what the tab's badge counts. */}
+        {(several || waiting > 0 || fresh > 0) && (
           <>
             <button
               className="chip lib-quick"
@@ -121,6 +122,15 @@ export function LibraryControls({
             >
               Waiting for you{waiting ? ` (${waiting})` : ""}
             </button>
+            {(fresh > 0 || f.newTakes) && (
+              <button
+                className="chip lib-quick"
+                aria-pressed={f.newTakes}
+                onClick={() => setF({ newTakes: !f.newTakes })}
+              >
+                New takes{fresh ? ` (${fresh})` : ""}
+              </button>
+            )}
             <button
               className="chip lib-quick"
               aria-pressed={f.bothLike}

@@ -69,14 +69,14 @@ that fixed it.
 - ~~**Your list:** "Filters (1)" counts filters, "Waiting for you (1)" parcels; Filters a rectangle, the quick filters
   pills. Fix: distinct words; one style.~~ Done in #231.
 - ~~**Take panel:** nothing shows Save my take answered the ask. Fix: "Sent to Zach".~~ Done in #231.
-- **Your list:** a take's comment isn't on the row. Fix: a comment snippet.
-- **Your list, desktop:** the detail panel covers Grades and Updated. Fix: shrink or push the table aside.
+- ~~**Your list:** a take's comment isn't on the row. Fix: a comment snippet.~~ Done in #236. Its first ~40 characters, after the take.
+- ~~**Your list, desktop:** the detail panel covers Grades and Updated. Fix: shrink or push the table aside.~~ Done in #236. The panel is 380 px and the list sits beside it.
 - ~~**Your list, phone:** names cut off on Favorites cards (History wraps since step 8); the tick, handle, ⋯ and Remove
   small and unlabelled. Fix: wrap to two lines; labels and 44 px targets.~~ Done in #231.
 - ~~**Phone sheet:** the bottom cut off with no scroll cue; the filter chips peek out behind it. Fix: a fade; hide the
   chips under it.~~ Done in #231.
 - ~~**Your list row:** the new-take dot has no label and reads as a warning. Fix: another colour, or "new" text.~~ Done in #231.
-- **Your list tab:** the badge's "1" matches nothing visible; what clears it is unclear. Fix: a "New takes" filter.
+- ~~**Your list tab:** the badge's "1" matches nothing visible; what clears it is unclear. Fix: a "New takes" filter.~~ Done in #236. New takes (n) beside Waiting for you.
 - ~~**Your list row:** the ask's note doesn't say how to answer, and is cut to one line on a phone. Fix: "open it to
   answer"; wrap or rely on the panel.~~ Done in #231.
 
@@ -96,8 +96,8 @@ that fixed it.
   tooltip or a line saying the verdict also reads Musts and edges.~~ Done in #231.
 - ~~**Your list, Favorites:** the row's drag handle, "…" and Compare tick have no column header, and on a phone the "…"
   and tick sit close. Fix: sr-and-visible headers or tooltips; 44 px apart on a phone.~~ Done in #231.
-- **Your list, Favorites:** Price and Status columns of "–" in every row; on a phone a lone "–" under the name. Fix:
-  hide a column when no row has a value; drop the lone "–" on cards. **Partly done in #231:** no lone "–" on phone cards; hiding an empty column on the desktop table is left.
+- ~~**Your list, Favorites:** Price and Status columns of "–" in every row; on a phone a lone "–" under the name. Fix:
+  hide a column when no row has a value; drop the lone "–" on cards.~~ Done in #236. The desktop's empty columns hide too.
 - **Your list:** Favorites is a table, History a list, with different date words ("Updated" vs "Graded"). Fix: one row
   style and date word, if it still reads oddly after a polish pass.
 - ~~**The name sheet and the tab:** "Add to Favorites" / "History" title case, "favorites" lower case elsewhere. Fix: one
@@ -110,8 +110,8 @@ that fixed it.
   map's centre.
 - **Your list (the tab):** "Your list" opens on two lists. Fix: a subtitle, or a name that covers both, if it confuses
   in use.
-- **Your list, Favorites (phone):** a filled star on every row doesn't say what a tap does. Fix: done for the tooltip
-  (#222); consider "Remove from favorites" in the row's "…" menu too.
+- ~~**Your list, Favorites (phone):** a filled star on every row doesn't say what a tap does. Fix: done for the tooltip
+  (#222); consider "Remove from favorites" in the row's "…" menu too.~~ Done in #236. Remove from favorites is in the ⋯ menu, with the star's question.
 
 ## Step 8b: the parcel panel (hand-back)
 

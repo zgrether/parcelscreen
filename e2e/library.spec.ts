@@ -40,18 +40,20 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
     await macks.locator(".lib-open .long-name-text").evaluate((el) => getComputedStyle(el).textOverflow),
   ).toBe("ellipsis");
   // My order's grip and menu come first (WF3), then the Compare tick.
-  await expect(macks.locator("td").nth(5)).toHaveText("VA");
+  await expect(macks.locator(".lib-c-state")).toHaveText("VA");
   // The state's county on hover (and a long press, on a phone).
   await expect(macks.locator(".lib-state")).toHaveAttribute("title", "Floyd County");
-  await expect(macks.locator("td").nth(6)).toHaveText("–"); // step 8: an active favorite has no status word
+  // Polish #12: no row has a price or a status yet (step 8: an active favorite has no status word), so neither column shows.
+  await expect(page.locator(".lib-table thead")).not.toContainText("Price");
+  await expect(page.locator(".lib-table thead")).not.toContainText("Status");
   // The grade from the kept screen, in the profile's own rubric (step 1): a fresh profile holds no other, so there is
   // no Household column and no second grade.
-  await expect(macks.locator("td").nth(7)).toHaveText(/^[A-F](Contender|Maybe|Not for us)$/);
-  await expect(macks.locator("td")).toHaveCount(9);
+  await expect(macks.locator(".lib-c-grade")).toHaveText(/^[A-F](Contender|Maybe|Not for us)$/);
+  await expect(macks.locator("td")).toHaveCount(7);
   await expect(page.locator(".lib-table thead")).not.toContainText("Household");
 
   // A click anywhere on the row opens its detail (owner, after #133): the full name, the card; archived as sold.
-  await macks.locator("td").nth(4).click();
+  await macks.locator(".lib-c-acres").click();
   const detail = page.getByRole("dialog", { name: MACKS_NAME });
   await expect(detail.getByRole("heading", { name: MACKS_NAME })).toBeVisible();
   await expect(detail.locator(".card")).toBeVisible();
@@ -121,7 +123,7 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   await ferneyDetail.getByRole("button", { name: "Close" }).click();
   const ferneyRow = rows.filter({ hasText: "52-47A · Floyd Co." });
   await expect(ferneyRow.locator(".lib-open")).toHaveText("52-47A · Floyd Co.");
-  await expect(ferneyRow.locator("td").nth(4)).toHaveText("$185k");
+  await expect(ferneyRow.locator(".lib-c-price")).toHaveText("$185k");
   expect(
     await page.evaluate(() =>
       (JSON.parse(window.__psKv!.getItem("ps.parcels")!) as { built: Record<string, unknown>[] }).built.find(
