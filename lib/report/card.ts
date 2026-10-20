@@ -55,6 +55,15 @@ type BuildConfig = typeof SCREEN_CONSTANTS.build;
 /** "unknown": the data can't say (FEMA hasn't mapped the area, or the data didn't load). Never a warn. */
 export type GateStatus = "pass" | "warn" | "fail" | "unknown";
 export type Verdict = "Contender" | "Maybe" | "Pass";
+/**
+ * The verdict as people read it (owner, 2026-10-20, polish #11): "Pass" read as "passes", so it says "Not for us".
+ * The stored and compared value stays "Pass"; every word on screen and in report text comes from here.
+ */
+export const VERDICT_WORD: Record<Verdict, string> = {
+  Contender: "Contender",
+  Maybe: "Maybe",
+  Pass: "Not for us",
+};
 
 export interface Gate {
   key: GateKey;
@@ -910,12 +919,12 @@ export function cardFor(facts: CardFacts, nr: NamedRubric): Card {
             : { kind: "none", text: "Not enough of the screen ran to grade the land" };
   const why =
     lead.kind === "fail" || lead.kind === "limit"
-      ? `${verdict}: ${lead.text}`
+      ? `${VERDICT_WORD[verdict]}: ${lead.text}`
       : lead.kind === "check"
-        ? `${verdict}. Check first: ${lead.text}`
+        ? `${VERDICT_WORD[verdict]}. Check first: ${lead.text}`
         : lead.kind === "weakest"
-          ? `${verdict}. Weakest part: ${lead.text}`
-          : `${verdict}. ${lead.text}`;
+          ? `${VERDICT_WORD[verdict]}. Weakest part: ${lead.text}`
+          : `${VERDICT_WORD[verdict]}. ${lead.text}`;
   const more = incomplete.length ? ` (incomplete: ${listOf(incomplete)} didn't load, run again)` : "";
   return {
     ...facts,

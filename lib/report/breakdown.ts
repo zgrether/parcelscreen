@@ -58,7 +58,7 @@ export function breakdown(card: Card): Breakdown | null {
     lines: [
       ...K.gradeCutoffs.map((at, i) => ({ at, label: "ABCD"[i]!, kind: "grade" as const })),
       { at: verdictLines(K).contender, label: "Contender", kind: "verdict" },
-      { at: verdictLines(K).pass, label: "Pass below", kind: "verdict" },
+      { at: verdictLines(K).pass, label: "Not for us below", kind: "verdict" },
     ],
   };
 }

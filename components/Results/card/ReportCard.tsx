@@ -7,7 +7,7 @@
  */
 import type { ReactNode } from "react";
 import { answerReason, incompleteLine } from "@/lib/report/answer";
-import { lowerFirst, type Card, type GateStatus, type Row } from "@/lib/report/card";
+import { lowerFirst, VERDICT_WORD, type Card, type GateStatus, type Row } from "@/lib/report/card";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import { GATE_MARK as MARK, mustLines, rankedRows } from "@/lib/report/cardLines";
 import type { NamedRubric } from "@/lib/rubric/types";
@@ -91,7 +91,7 @@ export function ReportCard({
           <button className="card-verdict" onClick={() => onOpen("verdict")}>
             <span className={`card-grade g-${card.grade ?? "none"}`}>{card.grade ?? "–"}</span>
             <span className={`card-word v-${running ? "running" : card.verdict.toLowerCase()}`}>
-              {running ? "Screening…" : card.verdict}
+              {running ? "Screening…" : VERDICT_WORD[card.verdict]}
             </span>
           </button>
           <RubricSwitch

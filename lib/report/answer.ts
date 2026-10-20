@@ -12,7 +12,7 @@ import type { PartialScreenResult } from "../screen/types";
 import { weightsOf } from "../rubric/weights";
 import type { RowKey } from "../rubric/types";
 import { EDITOR_TITLES } from "../rubric/words";
-import type { Card, Row } from "./card";
+import { VERDICT_WORD, type Card, type Row } from "./card";
 
 /** Each row as a strength, after "Strong". */
 export const STRENGTH: Record<RowKey, string> = {
@@ -157,7 +157,7 @@ export function answerReason(card: Card, r: PartialScreenResult): string {
 /** The answer, whole: "B, Contender. Strong winter sun and trails; 38 minutes to an ER is past your 30." */
 export function answerLine(card: Card, r: PartialScreenResult): string {
   const reason = answerReason(card, r);
-  return `${card.grade ?? "–"}, ${card.verdict}.${reason ? ` ${reason}` : ""}`;
+  return `${card.grade ?? "–"}, ${VERDICT_WORD[card.verdict]}.${reason ? ` ${reason}` : ""}`;
 }
 
 /** What didn't load, for the line under the answer: "Incomplete: the FEMA flood map didn't load." */

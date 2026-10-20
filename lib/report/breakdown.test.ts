@@ -35,7 +35,7 @@ describe("the breakdown bar (VR7)", () => {
     expect(b.lines).toEqual([
       ...K.gradeCutoffs.map((at, i) => ({ at, label: "ABCD"[i], kind: "grade" })),
       { at: K.verdict.contender, label: "Contender", kind: "verdict" },
-      { at: K.verdict.pass, label: "Pass below", kind: "verdict" },
+      { at: K.verdict.pass, label: "Not for us below", kind: "verdict" },
     ]);
   });
 

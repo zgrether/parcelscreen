@@ -43,7 +43,7 @@ import type { ExploreController, SetHint } from "@/components/Explore/useExplore
 import { lineLayer } from "@/components/Explore/layers";
 import { evaluationPoint } from "../blocks/types";
 import { useRubricView } from "@/lib/client/useRubricView";
-import { reportCard } from "@/lib/report/card";
+import { reportCard, VERDICT_WORD } from "@/lib/report/card";
 import { answerReason } from "@/lib/report/answer";
 import { lineNamesOf, type LineNames } from "@/lib/report/lines";
 import { drawnOf, type Drawn } from "@/lib/report/marks";
@@ -504,7 +504,7 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
           {card && (
             <span className={`sh-card v-${card.verdict.toLowerCase()}`} title={card.reason}>
               <span className={`card-grade small g-${card.grade ?? "none"}`}>{card.grade ?? "–"}</span>
-              <span className="sh-word">{card.verdict}</span>
+              <span className="sh-word">{VERDICT_WORD[card.verdict]}</span>
             </span>
           )}
         </span>

@@ -14,7 +14,7 @@ import { otherMembers, type Member } from "@/lib/client/household";
 import { RUBRICS_CHANGED } from "@/lib/client/profileEvents";
 import { switchProfile } from "@/lib/client/profiles";
 import { profileRubrics } from "@/lib/client/rubrics";
-import { reportCard } from "@/lib/report/card";
+import { reportCard, VERDICT_WORD } from "@/lib/report/card";
 import type { Drawn } from "@/lib/report/marks";
 import type { PartialScreenResult as Result } from "@/lib/screen/types";
 import { differences } from "@/lib/report/household";
@@ -61,10 +61,12 @@ function Rated({ m, result, drawn }: { m: Member; result: Result; drawn?: Drawn 
     <>
       <p className="others-grade">
         <span className={`card-grade small g-${theirs.grade ?? "none"}`}>{theirs.grade ?? "–"}</span>{" "}
-        <span className={`card-word small v-${theirs.verdict.toLowerCase()}`}>{theirs.verdict}</span>
+        <span className={`card-word small v-${theirs.verdict.toLowerCase()}`}>
+          {VERDICT_WORD[theirs.verdict]}
+        </span>
       </p>
       {/* Polish: the verdict is just above, so the reason starts after it ("Contender." once, not twice). */}
-      <p className="tiny others-reason">{withoutVerdict(theirs.reason, theirs.verdict)}</p>
+      <p className="tiny others-reason">{withoutVerdict(theirs.reason, VERDICT_WORD[theirs.verdict])}</p>
       {diffs.length > 0 ? (
         <ul className="others-diffs">
           {diffs.map((d) => (
