@@ -11,7 +11,7 @@ import type { Profile } from "@/lib/client/profileStore";
 
 const WHO_TITLE = "Who's this?";
 const WHO_LINE =
-  "Pick yourself, so this device opens as you. Your list is shared; your priorities are your own.";
+  "Pick yourself, so this device opens as you: one profile per person, the same on every device. Your list is shared; your priorities are your own.";
 const NEW_HERE = "I'm new here";
 /** A new member's name until the questions' first screen asks for it. */
 const NEW_NAME = "New member";

@@ -8,7 +8,7 @@
 import Link from "next/link";
 import { PLACES, placeOf, type PlaceId } from "@/lib/client/places";
 import { Menu } from "./Menu";
-import { useHousehold } from "@/lib/client/householdDoc";
+import { useHousehold, useNewTakes } from "@/lib/client/householdDoc";
 import { currentProfileId } from "@/lib/client/profiles";
 import { waitingFor } from "@/lib/client/takes";
 import { SyncIndicator } from "@/components/Sync/SyncStatus";
@@ -18,6 +18,15 @@ export function Places({ pathname }: { pathname: string }) {
   const household = useHousehold();
   const me = currentProfileId();
   const waiting = me ? waitingFor(household, me).size : 0;
+  const fresh = useNewTakes().length;
+  const count = waiting + fresh;
+  // The badge sums the parcels waiting for my take and the other members' takes I haven't seen (step 6b).
+  const said = [
+    waiting ? `${waiting} waiting for your take` : null,
+    fresh ? `${fresh} new take${fresh === 1 ? "" : "s"}` : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
   return (
     <nav className="app-nav" aria-label="Places">
       <Link className="app-brand" href="/">
@@ -29,10 +38,10 @@ export function Places({ pathname }: { pathname: string }) {
             <Link className="app-tab" href={p.href} aria-current={here === p.id ? "page" : undefined}>
               <PlaceIcon id={p.id} />
               <span>{p.label}</span>
-              {/* Step 6: parcels waiting for my take. */}
-              {p.id === "list" && waiting > 0 && (
-                <span className="app-badge" aria-label={`${waiting} waiting for your take`}>
-                  {waiting}
+              {/* Step 6: parcels waiting for my take; 6b: and new takes. */}
+              {p.id === "list" && count > 0 && (
+                <span className="app-badge" aria-label={said} title={said}>
+                  {count}
                 </span>
               )}
             </Link>

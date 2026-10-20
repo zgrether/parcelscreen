@@ -3,11 +3,14 @@ import {
   askOf,
   bothLikeIt,
   EMPTY_HOUSEHOLD,
+  newTakes,
   readHousehold,
+  readSeen,
   takeOf,
   waitingFor,
   withAsk,
   withoutParcel,
+  withSeen,
   withTake,
 } from "./takes";
 
@@ -67,5 +70,39 @@ describe("asks and takes (step 6 §4)", () => {
     expect(readHousehold(JSON.stringify(EMPTY_HOUSEHOLD))).toEqual(EMPTY_HOUSEHOLD);
     expect(readHousehold("{")).toBeNull();
     expect(readHousehold(JSON.stringify({ v: 2 }))).toBeNull();
+  });
+});
+
+describe("new takes (step 6b)", () => {
+  it("another member's take is new until I've seen that version; a changed take is new again; mine never are", () => {
+    let h = withTake(EMPTY_HOUSEHOLD, {
+      parcel: "ferney",
+      by: "julie",
+      answer: "maybe",
+      comment: "",
+      at: T(1),
+    });
+    h = withTake(h, { parcel: "ferney", by: "zach", answer: "yes", comment: "", at: T(2) });
+    h = withTake(h, { parcel: "macks", by: "julie", answer: "no", comment: "", at: T(3) });
+    expect(newTakes(h, "zach", {}).map((t) => t.key)).toEqual(["ferney:julie", "macks:julie"]);
+    // Opening Ferney sees its takes, as they stand.
+    let seen = withSeen({}, h, "ferney");
+    expect(newTakes(h, "zach", seen).map((t) => t.key)).toEqual(["macks:julie"]);
+    // Julie changes her take on Ferney: new again.
+    h = withTake(h, { parcel: "ferney", by: "julie", answer: "yes", comment: "Walked it", at: T(4) });
+    expect(
+      newTakes(h, "zach", seen)
+        .map((t) => t.key)
+        .sort(),
+    ).toEqual(["ferney:julie", "macks:julie"]);
+    seen = withSeen(withSeen(seen, h, "ferney"), h, "macks");
+    expect(newTakes(h, "zach", seen)).toEqual([]);
+    expect(newTakes(h, "julie", {}).map((t) => t.key)).toEqual(["ferney:zach"]);
+  });
+
+  it("reads what's stored, or nothing", () => {
+    expect(readSeen(JSON.stringify({ "ferney:julie": T(1) }))).toEqual({ "ferney:julie": T(1) });
+    expect(readSeen("not json")).toEqual({});
+    expect(readSeen(JSON.stringify({ a: 1 }))).toEqual({});
   });
 });

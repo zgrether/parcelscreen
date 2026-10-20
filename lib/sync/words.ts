@@ -15,6 +15,10 @@ export const SHOW_CODE = "Show code";
 export const LEAVE = "Leave sync on this device";
 export const LEAVE_QUESTION =
   "Stop syncing this device? It keeps a copy of everything as it is now, and stops getting your other devices' changes.";
+/** The first run's way to join instead of starting as someone new (after step 6). */
+export const ALREADY_USE = "I already use Parcel Screen on another device";
+export const JOIN_FIRST_LINE =
+  "On that device: Settings → Your data → Sync across devices → Show code. Scan its QR with this device's camera, or type the code here.";
 export const WRONG_CODE = "That code doesn't match a synced space. Check it and try again.";
 /** A sync route answered that the server's own setup is wrong: not the person's connection or code. */
 export const SERVER_SETUP = "The sync server isn't set up correctly. Nothing was synced; try again later.";

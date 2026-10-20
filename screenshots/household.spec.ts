@@ -1,7 +1,7 @@
 /**
  * Step 6's screenshots (plan §15), desktop (1280 × 800) then phone (375 × 812): Who's this?; a member without
  * priorities; the list with two grades; How Sam would rate it; Ask; Waiting for you with its badge; answering a
- * take; and Zach's list with her take. Two browser contexts are the two people's devices, over the memory store. The
+ * take; and Zach's list with her take, new (step 6b: the dot and the badge; the waiting row shows the ask's note). Two browser contexts are the two people's devices, over the memory store. The
  * names are "Alex" (the first device's profile, renamed) and "Sam", not the owners'; the code is a throwaway one.
  */
 import { expect, test, type Browser, type Page } from "@playwright/test";
@@ -143,6 +143,8 @@ for (const phone of [false, true]) {
         await expect(julie.locator(".app-badge")).toHaveText("1", { timeout: 1000 });
       });
       await julie.getByRole("button", { name: /^Waiting for you/ }).click();
+      // Step 6b: the ask's note on its row.
+      await expect(listRow(julie, "52-47A").locator(".lib-ask-note")).toContainText("The spring by the road");
       await shot(julie, "6-waiting");
       await open(julie, "52-47A");
       const yours = julie.getByRole("region", { name: "Your take" });
@@ -153,12 +155,14 @@ for (const phone of [false, true]) {
       await yours.getByRole("button", { name: "Save my take" }).click();
       await expect(yours).toContainText("Let's walk it in May.");
 
-      // Zach: her take beside her grade.
+      // Zach: her take beside her grade, new (step 6b: the dot and the badge).
       await afterTabSwitch(zach, async () => {
         await expect(listRow(zach, "52-47A").locator(".take-chip")).toHaveText("says Maybe", {
           timeout: 1000,
         });
       });
+      await expect(listRow(zach, "52-47A").locator(".new-dot")).toBeVisible();
+      await expect(zach.locator(".app-badge")).toHaveText("1");
       await shot(zach, "8-list-with-take");
     });
   });

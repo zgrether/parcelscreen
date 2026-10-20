@@ -6,6 +6,7 @@ import { loadFixture } from "@/test/support/fixtures";
 import { built, county } from "@/test/support/parcels";
 import { drawnPart } from "@/lib/geo/recipe";
 import { DEFAULT_ENDPOINTS } from "@/lib/screen/config";
+import { EMPTY_HOUSEHOLD, withAsk, withTake } from "./takes";
 import {
   COMPARE_MAX,
   COMPARE_MIN,
@@ -46,6 +47,8 @@ const row = (over: Partial<LibraryRow>): LibraryRow => ({
   rank: null,
   takes: {},
   waiting: false,
+  ask: null,
+  newTakesBy: [],
   bothLike: false,
   ...over,
 });
@@ -285,5 +288,32 @@ describe("step 6: Lowest of our grades, Waiting for you and Both like it", () =>
     expect([waiting, liked].filter((r) => passes(r, { ...all, bothLike: true })).map((r) => r.key)).toEqual([
       "l",
     ]);
+  });
+});
+
+describe("the household on a row (step 6b)", () => {
+  const at = (n: number) => `2026-10-20T12:0${n}:00.000Z`;
+  it("the ask waiting for me, for its note; the takes I haven't seen, by whom", () => {
+    let household = withAsk(EMPTY_HOUSEHOLD, {
+      parcel: "g",
+      from: "zach",
+      to: "julie",
+      note: "The spring?",
+      at: at(1),
+    });
+    household = withTake(household, { parcel: "g", by: "julie", answer: "maybe", comment: "", at: at(2) });
+    household = withAsk(household, { parcel: "g", from: "julie", to: "zach", note: "", at: at(3) });
+    // Julie: her ask was answered by her own take, so nothing waits, and her own take is never new.
+    const julie = libraryRow(built("g"), undefined, PERSONS, { household, me: "julie", seen: {} });
+    expect(julie).toMatchObject({ waiting: false, ask: null, newTakesBy: [] });
+    // Zach: Julie's ask waits, with its (empty) note, and her take is new until he's seen that version of it.
+    const zach = libraryRow(built("g"), undefined, PERSONS, { household, me: "zach", seen: {} });
+    expect(zach.waiting).toBe(true);
+    expect(zach.ask).toMatchObject({ from: "julie", note: "" });
+    expect(zach.newTakesBy).toEqual(["julie"]);
+    const seen = { "g:julie": at(2) };
+    expect(libraryRow(built("g"), undefined, PERSONS, { household, me: "zach", seen }).newTakesBy).toEqual(
+      [],
+    );
   });
 });
