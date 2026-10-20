@@ -105,7 +105,8 @@ export function Interview() {
         </Link>
         <p className="iv-progress" aria-hidden="true">
           {n} of {QUESTION_COUNT}
-          {step.kind === "dontMatter" && ", part 2"}
+          {/* Polish: "part 2" said nothing; this half asks what doesn't matter. */}
+          {step.kind === "dontMatter" && ": what doesn't matter"}
         </p>
       </header>
       <div className="iv-bar" aria-hidden="true">
@@ -170,7 +171,12 @@ function StepView({
             Next
           </button>
         ) : (
-          <button type="button" className="btn secondary" onClick={() => iv.skip(keysOf(step))}>
+          <button
+            type="button"
+            className="btn secondary"
+            title="Skip leaves this one out"
+            onClick={() => iv.skip(keysOf(step))}
+          >
             Skip
           </button>
         )}
