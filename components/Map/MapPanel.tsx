@@ -15,6 +15,9 @@ import { BASEMAPS } from "./style";
 import { TerrainControls } from "./TerrainControls";
 import { setMapLayerPrefs, useMapLayerPrefs } from "./useMapLayerPrefs";
 
+/** Step 8b: the one show/hide for the open parcel's lines, marks and house site. */
+export const MARKS_LABEL = "Your lines and marks";
+
 export function MapPanel() {
   const ctl = useExplore();
   const open = ctl.state.mapPanel;
@@ -76,6 +79,7 @@ function Panel({ onClose }: { onClose: () => void }) {
           {toggle("Light pollution", p.lightPollution, () =>
             setMapLayerPrefs({ lightPollution: !p.lightPollution }),
           )}
+          {toggle(MARKS_LABEL, p.marks, () => setMapLayerPrefs({ marks: !p.marks }))}
         </div>
         <AnalysisGroup />
         <TerrainControls variant="info" />
