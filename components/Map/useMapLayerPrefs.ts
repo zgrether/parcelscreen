@@ -1,7 +1,7 @@
 "use client";
 /**
  * The basemap and the map's layer toggles (dim, parcel lines, roads & labels, light pollution), shared by the
- * map panel (17e), Info › Layers and the map itself, like useTerrainPrefs. UI prefs per device, never part of
+ * map panel (17e; Map layers since step 8b) and the map itself, like useTerrainPrefs. UI prefs per device, never part of
  * UserConfig or a run's settings. The light-pollution overlay starts off each visit, as before.
  */
 import { useSyncExternalStore } from "react";
@@ -15,6 +15,8 @@ export interface MapLayerPrefs {
   roads: boolean;
   dim: boolean;
   lines: boolean;
+  /** Your lines and marks (step 8b): the open parcel's lines, marks and house site. */
+  marks: boolean;
   /** Not saved: off at each visit (13f). */
   lightPollution: boolean;
 }
@@ -31,6 +33,7 @@ function read(): MapLayerPrefs {
     roads: getPref("ps.roads"),
     dim: getPref("ps.dim"),
     lines: getPref("ps.lines"),
+    marks: getPref("ps.marks"),
     lightPollution: false,
   };
 }
@@ -45,6 +48,7 @@ export function setMapLayerPrefs(patch: Partial<MapLayerPrefs>): void {
   if (patch.roads !== undefined) setPref("ps.roads", patch.roads);
   if (patch.dim !== undefined) setPref("ps.dim", patch.dim);
   if (patch.lines !== undefined) setPref("ps.lines", patch.lines);
+  if (patch.marks !== undefined) setPref("ps.marks", patch.marks);
   listeners.forEach((l) => l());
 }
 

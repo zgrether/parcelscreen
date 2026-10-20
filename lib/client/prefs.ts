@@ -45,6 +45,8 @@ export interface Prefs {
   "ps.view": MapView | null;
   "ps.dim": boolean;
   "ps.lines": boolean;
+  /** Step 8b: the open parcel's lines, marks and house site drawn on the map (Map layers' Your lines and marks). */
+  "ps.marks": boolean;
   /** Roads & labels over the aerials (17d): a UI pref, never part of UserConfig or a run. */
   "ps.roads": boolean;
   "ps.omode": "house" | "garden" | "slope" | "off";
@@ -96,6 +98,7 @@ const DEFAULTS: Prefs = {
   // Off by default (owner, 13e-5 review); the prototype started dimmed.
   "ps.dim": false,
   "ps.lines": true,
+  "ps.marks": true,
   "ps.roads": true,
   "ps.omode": "house",
   "ps.current": null,
@@ -123,6 +126,7 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
   "ps.view": { read: (r) => JSON.parse(r) as MapView, write: (v) => JSON.stringify(v) },
   "ps.dim": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
   "ps.lines": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
+  "ps.marks": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
   "ps.roads": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
   "ps.omode": { read: (r) => r as Prefs["ps.omode"], write: (v) => v },
   "ps.current": { read: readCurrentParcel, write: writeCurrentParcel },

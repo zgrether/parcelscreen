@@ -2,7 +2,7 @@
 /**
  * The parcel tools on the map (proto L561–707, 13e): taps per tool mode, selecting and unselecting parcels,
  * the draw keys, snapping drawn corners to the open parcel, and the overlays: the selected parcel, saved
- * parcels and their labels, the layer selected in the Info panel, the draft, the split pieces and their
+ * parcels and their labels, the layer selected in Details (step 8b), the draft, the split pieces and their
  * labels, and the house and split-end markers (DOM markers, as CLAUDE.md asks, not canvas sprites), and the point
  * markers (WF4), which drag like the house.
  */
@@ -44,6 +44,7 @@ import {
 } from "./overlays";
 import { LAYER, SOURCE } from "./style";
 import { outlineAt, parcelServiceDown } from "./useParcelLines";
+import { useMapLayerPrefs } from "./useMapLayerPrefs";
 
 // A drawn line's tooltip: what it is, its length and grades (34-2); an area marker's, its acres (WF4).
 TIP_LAYERS.add(LAYER.markupEasement);
@@ -139,7 +140,7 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
       // No tool waiting: select, swap or unselect (13e rules, exploreState.decideTap). A tap on a result
       // overlay (a fan ray) only shows its text (step 15b).
       if (!mode) {
-        // A drawn line is selected in the Layers tree (owner, #127); its tooltip shows on hover.
+        // A drawn line opens its row in Details (owner, #127; step 8b); its tooltip shows on hover.
         const drawn = markupAt(map, e.point);
         if (drawn) return c.selectLayer(lineLayer(drawn));
         if (tipAt(map, e.point)) return;
@@ -181,7 +182,7 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
         { mode, split } = c.current();
       if ((!mode && !split) || !mapShowing()) return;
       if ((e.target as HTMLElement | null)?.closest("input,select,textarea")) return;
-      // Handled keys are marked, so the Info panel doesn't act on the same press (Esc closes it otherwise).
+      // Handled keys are marked, so Details doesn't act on the same press (its Esc closes the open row).
       if (e.key === "Escape") {
         e.preventDefault();
         c.cancelTool();
@@ -287,11 +288,13 @@ function useOverlays(map: MlMap | null, ctl: ExploreController) {
   const measured = screen?.shown && !screen.stale ? screen.shown.result.lines : undefined;
   const selectedLine = layerLine(layer);
   const hoverLine = ctl.hoverLine;
+  // Map layers' Your lines and marks (step 8b): off hides them all; each row's eye still works within it.
+  const marksShown = useMapLayerPrefs().marks;
   useEffect(() => {
     map
       ?.getSource<GeoJSONSource>(SOURCE.markup)
-      ?.setData(markupData(markup ?? [], measured, selectedLine, hoverLine));
-  }, [map, markup, measured, selectedLine, hoverLine]);
+      ?.setData(markupData(marksShown ? (markup ?? []) : [], measured, selectedLine, hoverLine));
+  }, [map, markup, marksShown, measured, selectedLine, hoverLine]);
 
   useEffect(() => {
     if (!map) return;
@@ -367,7 +370,8 @@ function useHouseMarker(map: MlMap | null, ctl: ExploreController) {
   });
   const marker = useRef<Marker | null>(null);
   const open = ctl.state.store.open;
-  const house = open && !open.hidden.includes("house") ? open.house : null;
+  const marksShown = useMapLayerPrefs().marks;
+  const house = marksShown && open && !open.hidden.includes("house") ? open.house : null;
   const selected = ctl.state.layer === "house";
 
   useEffect(() => {
@@ -380,7 +384,7 @@ function useHouseMarker(map: MlMap | null, ctl: ExploreController) {
     if (!marker.current) {
       // The house keeps its bulls-eye: the report's prototype sentences name it so ("…or the bulls-eye on the map").
       const m = domMarker("bullseye", "Existing house — tap for its layer, drag to adjust");
-      // A tap selects its layer (and opens the Info panel); the click that ends a drag doesn't.
+      // A tap opens its row in Details (step 8b); the click that ends a drag doesn't.
       let dragged = false;
       m.on("dragstart", () => (dragged = true));
       m.on("dragend", () => {
@@ -416,7 +420,7 @@ function useHouseMarker(map: MlMap | null, ctl: ExploreController) {
 }
 
 /**
- * The open parcel's point markers (WF4), as DOM pins: a tap selects one in the Layers tree, a drag moves it, as the
+ * The open parcel's point markers (WF4), as DOM pins: a tap opens its row in Details (step 8b), a drag moves it, as the
  * house's bulls-eye does. One pin per marker, kept by id, so a pin being dragged isn't rebuilt under the finger.
  */
 function usePointMarkers(map: MlMap | null, ctl: ExploreController) {
@@ -426,9 +430,10 @@ function usePointMarkers(map: MlMap | null, ctl: ExploreController) {
   });
   const pins = useRef(new Map<string, Marker>());
   const open = ctl.state.store.open;
+  const marksShown = useMapLayerPrefs().marks;
   const points = useMemo(
-    () => (open?.markup ?? []).filter((m): m is PointMarkup => m.shape === "point"),
-    [open?.markup],
+    () => (marksShown ? (open?.markup ?? []) : []).filter((m): m is PointMarkup => m.shape === "point"),
+    [open?.markup, marksShown],
   );
   const selected = layerLine(ctl.state.layer);
 

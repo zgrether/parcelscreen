@@ -9,9 +9,12 @@ import { useEffect, useRef } from "react";
 import { layerLine, type LayerId, type LayerNode } from "@/components/Explore/layers";
 import type { ExploreController } from "@/components/Explore/useExploreController";
 import { MarkIcon } from "@/components/Map/markIcons";
+import { useMapLayerPrefs } from "@/components/Map/useMapLayerPrefs";
 import { Btn, LineDetails, MarkDetails } from "./MarkupDetails";
 
 export const LINES_EMPTY = "Nothing drawn yet. Draw a line or add a mark, here or from the toolbar.";
+/** With Map layers' Your lines and marks off. */
+export const hiddenOnMap = (n: number): string => `${n} hidden on the map. Show them in Map layers.`;
 
 const ac = (n: number) => `${n.toFixed(2)} ac`;
 
@@ -36,6 +39,8 @@ export function LinesMarks({
   remove(id: LayerId): void;
 }) {
   const nodes = markupNodes(root);
+  // Map layers' Your lines and marks off: none is drawn, whatever its eye says (plan §4).
+  const shown = useMapLayerPrefs().marks;
   const layer = ctl.state.layer;
   const list = useRef<HTMLUListElement>(null);
   // A line or mark selected on the map: its row, open, comes into view.
@@ -44,6 +49,7 @@ export function LinesMarks({
   }, [layer]);
   return (
     <>
+      {!shown && nodes.length > 0 && <p className="ip-note pd-hidden">{hiddenOnMap(nodes.length)}</p>}
       {nodes.length === 0 ? (
         <p className="muted pd-empty">{LINES_EMPTY}</p>
       ) : (
@@ -87,8 +93,10 @@ function Row({
         onMouseLeave={() => ctl.setHoverLine(null)}
       >
         <span className="pd-ico">{n.icon && <MarkIcon kind={n.icon} px={22} />}</span>
-        <span className="pd-name">{n.name}</span>
-        <span className="pd-meta">{n.acres !== null ? ac(n.acres) : (n.meta ?? "")}</span>
+        <span className="pd-text">
+          <span className="pd-name">{n.name}</span>
+          <span className="pd-meta">{n.acres !== null ? ac(n.acres) : (n.meta ?? "")}</span>
+        </span>
         {n.hideable ? (
           <button
             className={`pd-eye${n.hidden ? " off" : ""}`}
