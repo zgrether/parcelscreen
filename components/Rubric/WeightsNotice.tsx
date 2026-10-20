@@ -2,26 +2,24 @@
 /**
  * The first reorder's notice (step 3 plan §3; owner, 10/17): the move has applied and the weights are now rank-sum.
  * "See what changed" opens the before/after table (each item's weight, and the preview parcel's letter and verdict
- * when there is one; no points, owner 10/18); "Undo" restores the order and the explicit weights. It stays until it's
- * dismissed or the next change.
+ * when there is one; no points, owner 10/18). The page's own Undo restores the order and the explicit weights (polish
+ * #25: the notice's second Undo went). It stays until it's dismissed or the next change.
  */
 import { useState } from "react";
 import { VERDICT_WORD, type Card } from "@/lib/report/card";
 import { fmt } from "@/lib/format";
 import { weightsTable, type WeightsSwitch } from "@/lib/rubric/edit";
 
-export const NOTICE_TEXT = "Your order now sets the weights.";
+export const NOTICE_TEXT = "Weights follow your order now.";
 
 export function WeightsNotice({
   switched,
   parcel,
-  undo,
   dismiss,
 }: {
   switched: WeightsSwitch;
   /** The preview parcel's card before and after the switch, with its name, when there is one (PR 3). */
   parcel?: { name: string; before: Card; after: Card } | null;
-  undo(): void;
   dismiss(): void;
 }) {
   const [open, setOpen] = useState(false);
@@ -36,9 +34,6 @@ export function WeightsNotice({
           onClick={() => setOpen(!open)}
         >
           {open ? "Hide what changed" : "See what changed"}
-        </button>{" "}
-        <button type="button" className="btn secondary small" onClick={undo}>
-          Undo
         </button>
         <button type="button" className="rubric-notice-x" aria-label="Dismiss" onClick={dismiss}>
           ×

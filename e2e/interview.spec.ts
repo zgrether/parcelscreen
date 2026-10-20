@@ -99,10 +99,11 @@ test("a full run as Person A, with Back and Skip: the result, and the priorities
   await expect(page.locator(".iv")).not.toContainText("Try it grades a sample parcel");
   await expect(page.getByRole("region", { name: "Try it" })).toContainText("Try it on");
   await expect(page.getByText("Replace the priorities you changed?")).toHaveCount(0);
-  // Back to 14b: it opens with its picks, Next in Skip's place, no Continue; Next comes back here.
+  // Back to 14b: it opens with its picks and the same one row (polish #27): See my priorities comes back here.
   await page.getByRole("button", { name: "Back" }).click();
-  await expect(page.getByRole("button", { name: "See my priorities" })).toHaveCount(0);
-  await page.getByRole("button", { name: "Next" }).click();
+  await expect(page.getByRole("button", { name: "Next" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "See my priorities" })).toHaveCount(1);
+  await page.getByRole("button", { name: "See my priorities" }).click();
   await expect(page.locator(".iv-scene")).toHaveText("What matters to you");
 
   await page.getByRole("link", { name: "Fine-tune in What matters to you" }).click();
@@ -163,7 +164,7 @@ test("a changed list: the result asks, and Keep my changes keeps it", async ({ p
     await expect(progress(page)).toHaveText(`${n} of 14`);
   }
   await page.getByRole("button", { name: "Skip" }).click(); // 14a
-  await page.getByRole("button", { name: "Skip" }).click(); // 14b
+  await page.getByRole("button", { name: "See my priorities" }).click(); // 14b
   await expect(page.getByText("Replace the priorities you changed?")).toBeVisible();
   await page.getByRole("button", { name: "Keep my changes" }).click();
   await expect(page.getByText("Your priorities are as you left them.")).toBeVisible();

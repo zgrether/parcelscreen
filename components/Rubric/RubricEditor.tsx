@@ -160,7 +160,6 @@ export function RubricEditor() {
           <WeightsNotice
             switched={my.switched}
             parcel={noticeParcel}
-            undo={my.undo}
             dismiss={my.dismissNotice}
           />
         )}

@@ -81,7 +81,8 @@ test("an existing profile: offered, never sent; the why lines, Reset to my answe
   }
   await page.getByRole("radio", { name: "30 min" }).click();
   await expect(progress(page)).toHaveText("7 of 14");
-  for (let i = 0; i < 9; i++) await page.getByRole("button", { name: "Skip" }).click();
+  for (let i = 0; i < 8; i++) await page.getByRole("button", { name: "Skip" }).click();
+  await page.getByRole("button", { name: "See my priorities" }).click(); // 14b (polish #27)
   await expect(page.locator(".iv-scene")).toHaveText("What matters to you");
 
   await page.getByRole("link", { name: "Fine-tune in What matters to you" }).click();

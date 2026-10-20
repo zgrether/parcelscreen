@@ -70,7 +70,7 @@ for (const phone of [false, true]) {
         await page.getByRole("button", { name: chip, exact: true }).click();
       await shot(page, "05-q14a");
       await page.getByRole("button", { name: "Continue" }).click();
-      await page.getByRole("button", { name: "Shared driveway", exact: true }).click();
+      await page.getByRole("button", { name: "Driveway on your land", exact: true }).click();
       await shot(page, "06-q14b");
       await page.getByRole("button", { name: "See my priorities" }).click();
       await expect(page.locator(".iv-scene")).toHaveText("What matters to you");
@@ -79,11 +79,11 @@ for (const phone of [false, true]) {
       await page.locator(".iv").evaluate((el) => el.scrollTo(0, el.scrollHeight));
       await shot(page, "08-result-end");
 
-      // Back to 14b: Next in Skip's place. Then the result again.
+      // Back to 14b: the same one row (polish #27). Then the result again.
       await page.getByRole("button", { name: "Back" }).click();
-      await expect(page.getByRole("button", { name: "Next" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "See my priorities" })).toBeVisible();
       await shot(page, "06b-q14b-back");
-      await page.getByRole("button", { name: "Next" }).click();
+      await page.getByRole("button", { name: "See my priorities" }).click();
 
       // The priorities page after it: "Reset to my answers", "Answer the questions again", and a card's why.
       await page.getByRole("link", { name: "Fine-tune in What matters to you" }).click();
@@ -113,7 +113,7 @@ for (const phone of [false, true]) {
       // Changed since: the interview again asks before replacing it.
       await page.goto("/interview");
       // A finished interview reopens with its answers: every screen shows Next.
-      for (let i = 0; i < 15; i++) await page.getByRole("button", { name: /^(Next|Skip)$/ }).click();
+      for (let i = 0; i < 15; i++) await page.getByRole("button", { name: /^(Next|Skip|See my priorities)$/ }).click();
       await expect(page.getByText("Replace the priorities you changed?")).toBeVisible();
       await shot(page, "12-replace");
     });

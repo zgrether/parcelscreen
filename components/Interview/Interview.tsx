@@ -166,7 +166,13 @@ function StepView({
             {NOT_NOW}
           </button>
         )}
-        {revisit ? (
+        {/* 14b, the last screen (polish #27): one row, the same however it was reached; Skip would only do what an
+            empty pick does. */}
+        {step.kind === "dontMatter" ? (
+          <button type="button" className="btn" onClick={next}>
+            See my priorities
+          </button>
+        ) : revisit ? (
           <button type="button" className="btn" onClick={next}>
             Next
           </button>

@@ -303,7 +303,10 @@ export const GLOW_QUESTION = {
   ] as Choice[],
 };
 
-/** Question 13: the acres, then two optional budgets. */
+/**
+ * Question 13: the acres, then two optional budgets. Polish #26 (draft for the owner's approval, 2026-10-20): each says
+ * it's all in, the land's price too, as the design's Cost to camp and Cost to build count them.
+ */
 export const LAND_QUESTION = {
   n: 13,
   scene: "How much land, and how much money?",
@@ -313,8 +316,8 @@ export const LAND_QUESTION = {
     { id: "20to50", label: "20–50 acres" },
     { id: "over50", label: "50+ acres" },
   ],
-  camp: "The most you'd spend to start camping on it: the land, access, a 4x4 track to a clearing (optional)",
-  build: "The most you'd spend to be ready to build (optional)",
+  camp: "Ready to camp, all in: the land, a way in, and a track to a clearing your 4x4 can reach. The most you'd spend (optional)",
+  build: "Ready to build, all in: the same, plus a finished driveway, well, septic and power. The most you'd spend (optional)",
 } as const;
 
 export const ACRES_WORDS: Record<string, string> = {
@@ -353,11 +356,12 @@ export const CHIP_WORDS: Record<Chip, ChipWords> = {
     laterWalkAway: "No HOA (a must)",
     laterDontMatter: "HOA (doesn't matter)",
   },
+  // Polish #28: the card's own words for it, "Driveway on your land" (lib/rubric/words.ts), in both halves.
   sharedDriveway: {
-    label: "Shared driveway",
-    walkAway: () => "You'd walk away from a shared driveway",
-    dontMatter: "You said a shared driveway doesn't matter",
-    laterWalkAway: "No shared driveway (a must)",
+    label: "Driveway not on your land",
+    walkAway: () => "You'd walk away from a driveway that isn't on your land",
+    dontMatter: "You said a driveway on your land doesn't matter",
+    laterWalkAway: "Driveway on your land (a must)",
   },
   belowFt: {
     label: "Elevation below ___ ft",
