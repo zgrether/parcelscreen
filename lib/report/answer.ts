@@ -126,7 +126,8 @@ export function checks(card: Card): string[] {
 /**
  * The answer's reason: strengths, then the miss, each optional (plan §1.1). The miss is, in order: a failed Must ("fails
  * your must: …") or a limit not met; what to check first, when that's what holds an A or B at Maybe; the row that costs
- * the grade most; else what to check first.
+ * the grade most; else what to check first. What to check first closes the line when the miss didn't say it (the
+ * fresh-eyes review: a Contender's warning was on its Must row alone), unless a Must already fails.
  */
 export function answerReason(card: Card, r: PartialScreenResult): string {
   const strong = strengths(card).map((x) => STRENGTH[x.key]);
@@ -145,7 +146,9 @@ export function answerReason(card: Card, r: PartialScreenResult): string {
           : m
             ? missLine(m, card, r)
             : checkFirst;
-  const parts = [strong.length ? `Strong ${and(strong)}` : null, miss].filter((x): x is string => !!x);
+  const failed = lead.kind === "fail" || lead.kind === "limit";
+  const also = !failed && checkFirst && miss !== checkFirst ? checkFirst : null;
+  const parts = [strong.length ? `Strong ${and(strong)}` : null, miss, also].filter((x): x is string => !!x);
   return parts.length ? `${cap(parts.join("; "))}.` : "";
 }
 

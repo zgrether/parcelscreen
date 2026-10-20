@@ -25,13 +25,19 @@ describe("the answer line", () => {
     expect(strengths(card).map((x) => x.key)).toEqual(["elevation", "homesite"]);
     expect(biggestMiss(card)!.key).toBe("trails");
     expect(answerLine(card, FERNEY)).toBe(
-      "B, Contender. Strong elevation and winter sun; the nearest trailhead is 47 minutes away, past your 20.",
+      "B, Contender. Strong elevation and winter sun; the nearest trailhead is 47 minutes away, past your 20; check first: legal road access.",
     );
   });
 
   it("measures the miss against the person's own edge", () => {
     const card = reportCard(FERNEY, ANSWERED);
-    expect(answerLine(card, FERNEY)).toMatch(/; the nearest trailhead is 47 minutes away, past your 15\.$/);
+    expect(answerLine(card, FERNEY)).toMatch(/; the nearest trailhead is 47 minutes away, past your 15; /);
+  });
+
+  it("ends with what to check first when the miss didn't say it (the fresh-eyes review)", () => {
+    expect(answerLine(reportCard(FERNEY, ZACH), FERNEY)).toMatch(/; check first: legal road access\.$/);
+    // Said once: where it's the miss itself, it isn't repeated.
+    expect(answerLine(reportCard(MACKS, ZACH), MACKS).match(/check first/g)).toHaveLength(1);
   });
 
   it("says what to check first when that's what holds an A or B at Maybe", () => {
@@ -55,7 +61,7 @@ describe("the answer line", () => {
   it("each row's miss in plain words", () => {
     const card = reportCard(MUD, ZACH);
     expect(answerLine(card, MUD)).toBe(
-      "B, Contender. Strong elevation and winter sun; 0.1 ac of garden ground, under your 0.25 ac.",
+      "B, Contender. Strong elevation and winter sun; 0.1 ac of garden ground, under your 0.25 ac; check first: septic.",
     );
     const r = structuredClone(MUD);
     const h = r.drives!.find((d) => d.er === "yes")!;
@@ -64,7 +70,9 @@ describe("the answer line", () => {
       ...defaultRubric(),
       weights: { mode: "explicit", of: { ...zeroWeights(), town: 100 } },
     });
-    expect(answerLine(reportCard(r, town), r)).toBe("C, Maybe. 38 minutes to an ER is past your 30.");
+    expect(answerLine(reportCard(r, town), r)).toBe(
+      "C, Maybe. 38 minutes to an ER is past your 30; check first: septic.",
+    );
   });
 
   it("with no strength and no miss, the grade and verdict alone", () => {

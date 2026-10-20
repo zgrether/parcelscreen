@@ -1,6 +1,7 @@
 /**
  * Still unknown (step 7 plan §1.5): each Must the screen couldn't settle as a plain question for the listing agent,
- * with Copy on each and Copy all. Data that didn't load isn't the agent's to answer: it's listed apart, with Try again.
+ * with Copy on each and Copy all. Data that didn't load isn't the agent's to answer: it's listed apart, and the grade
+ * button, always on screen, is its Try again (one Try again, not two: the fresh-eyes review).
  */
 "use client";
 import { useState } from "react";
@@ -14,17 +15,17 @@ const listOf = (xs: readonly string[]): string =>
 /** How long "Copied" shows, as Copy summary's hint does. */
 const SAID_MS = 1500;
 
+/** The link to Full report's checklist (renamed after the fresh-eyes review: "What no dataset answers"). */
+export const MORE_TO_CHECK = "More to check that no dataset covers";
+
 export function AgentQuestions({
   card,
   name,
-  onRetry,
   showChecklist,
 }: {
   card: Card;
   /** The parcel's name, for Copy all's first line. */
   name: string;
-  /** Runs the screen again, for what didn't load. */
-  onRetry?: () => void;
   /** Opens Full report at its Still unknown checklist. */
   showChecklist(): void;
 }) {
@@ -71,16 +72,11 @@ export function AgentQuestions({
       )}
       {card.incomplete.length > 0 && (
         <p className="ask-failed" role="status">
-          <span>Didn&apos;t load: {listOf(card.incomplete)}.</span>
-          {onRetry && (
-            <button className="btn small secondary" onClick={onRetry}>
-              Try again
-            </button>
-          )}
+          Didn&apos;t load: {listOf(card.incomplete)}. Try again loads them.
         </p>
       )}
       <button className="link-btn tiny" onClick={showChecklist}>
-        What no dataset answers
+        {MORE_TO_CHECK}
       </button>
     </section>
   );
