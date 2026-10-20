@@ -8,6 +8,7 @@
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { SyncStore } from "../sync/store";
+import { isConfigError, SyncConfigError } from "./syncConfig";
 import type {
   Changes,
   SaveBatch,
@@ -22,8 +23,14 @@ const CHUNK = 200;
 const chunks = <T>(xs: T[]): T[][] =>
   Array.from({ length: Math.ceil(xs.length / CHUNK) }, (_, i) => xs.slice(i * CHUNK, (i + 1) * CHUNK));
 
-function check<T>(r: { data: T; error: { message: string } | null }): T {
-  if (r.error) throw new Error(`sync store: ${r.error.message}`);
+/** A store error: a SyncConfigError when it can only be the server's setup (syncConfig.ts). */
+const failure = (e: { code?: string; message: string }): Error =>
+  isConfigError(e)
+    ? new SyncConfigError(`sync store: the server's setup: ${e.message}`)
+    : new Error(`sync store: ${e.message}`);
+
+function check<T>(r: { data: T; error: { code?: string; message: string } | null }): T {
+  if (r.error) throw failure(r.error);
   return r.data;
 }
 
@@ -69,6 +76,7 @@ const parcelOf = (r: ParcelRow): StoredParcel => ({
 export class SupabaseSyncStore implements SyncStore {
   private readonly db: SupabaseClient;
 
+  /** `url` is the project's origin (syncConfig.ts supabaseOrigin): supabase-js adds `/rest/v1` itself. */
   constructor(url: string, secretKey: string) {
     this.db = createClient(url, secretKey, { auth: { persistSession: false, autoRefreshToken: false } });
   }
@@ -77,7 +85,7 @@ export class SupabaseSyncStore implements SyncStore {
     const { error } = await this.db.from("sync_spaces").insert({ space });
     if (!error) return true;
     if (error.code === "23505") return false; // unique violation: the code is taken
-    throw new Error(`sync store: ${error.message}`);
+    throw failure(error);
   }
 
   async spaceExists(space: string): Promise<boolean> {
