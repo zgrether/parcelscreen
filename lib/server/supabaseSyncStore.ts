@@ -131,15 +131,13 @@ export class SupabaseSyncStore implements SyncStore {
       profiles: p.map(profileOf),
       parcels: q.map(parcelOf),
       screens: s.map(({ id, profile }) => ({ id, profile })),
-      household: h.map(
-        (r): StoredHousehold => ({
-          key: r.key,
-          kind: r.kind,
-          record: r.record,
-          deleted: r.deleted,
-          updatedAt: r.updated_at,
-        }),
-      ),
+      household: h.map((r): StoredHousehold => ({
+        key: r.key,
+        kind: r.kind,
+        record: r.record,
+        deleted: r.deleted,
+        updatedAt: r.updated_at,
+      })),
       cursor,
     };
   }
