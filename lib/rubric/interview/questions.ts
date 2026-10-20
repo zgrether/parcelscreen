@@ -317,7 +317,8 @@ export const LAND_QUESTION = {
     { id: "over50", label: "50+ acres" },
   ],
   camp: "Ready to camp, all in: the land, a way in, and a track to a clearing your 4x4 can reach. The most you'd spend (optional)",
-  build: "Ready to build, all in: the same, plus a finished driveway, well, septic and power. The most you'd spend (optional)",
+  build:
+    "Ready to build, all in: the same, plus a finished driveway, well, septic and power. The most you'd spend (optional)",
 } as const;
 
 export const ACRES_WORDS: Record<string, string> = {

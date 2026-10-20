@@ -9,7 +9,7 @@ import { useSettings } from "@/components/Settings/SettingsDialog";
 import { downloadExport } from "@/components/Settings/YourData";
 import { holdsData, joinSpace, localData, peekSpace, type LocalData } from "@/lib/sync/space";
 import type { Changes } from "@/lib/sync/wire";
-import { GETTING, JOIN_EMPTY, joinReplaces, SERVER_SETUP, WRONG_CODE } from "@/lib/sync/words";
+import { GETTING, JOIN_EMPTY, joinReplaces, SERVER_SETUP, spaceHolds, WRONG_CODE } from "@/lib/sync/words";
 import { isServerConfig } from "@/lib/sync/client";
 
 type Phase =
@@ -101,9 +101,13 @@ export function JoinConfirm({
     case "ask": {
       const { space, local } = phase;
       const replaces = holdsData(local);
+      // Polish #35: what's in the space, so joining isn't a leap.
+      const theirs = space.parcels.filter((p) => !p.deleted && p.record !== null).length;
       return (
         <div className="sync-block">
-          <p className="sync-line">{replaces ? joinReplaces(local.profiles, local.parcels) : JOIN_EMPTY}</p>
+          <p className="sync-line">
+            {replaces ? joinReplaces(local.profiles, local.parcels) : JOIN_EMPTY} {spaceHolds(theirs)}
+          </p>
           <div className="sync-buttons">
             {replaces && (
               <button className="btn secondary" onClick={() => void downloadExport(settings.config)}>

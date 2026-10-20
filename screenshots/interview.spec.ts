@@ -113,7 +113,8 @@ for (const phone of [false, true]) {
       // Changed since: the interview again asks before replacing it.
       await page.goto("/interview");
       // A finished interview reopens with its answers: every screen shows Next.
-      for (let i = 0; i < 15; i++) await page.getByRole("button", { name: /^(Next|Skip|See my priorities)$/ }).click();
+      for (let i = 0; i < 15; i++)
+        await page.getByRole("button", { name: /^(Next|Skip|See my priorities)$/ }).click();
       await expect(page.getByText("Replace the priorities you changed?")).toBeVisible();
       await shot(page, "12-replace");
     });

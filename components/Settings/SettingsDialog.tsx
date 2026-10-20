@@ -8,7 +8,8 @@
  * prototype saved on Reset and left the cost fields stale); a Save with no edits writes nothing.
  * Cancel, Esc or a tap on the backdrop close without saving, as in the prototype.
  *
- * Its last section, Your data (step 4b), holds Export file and Import file, which act at once, outside Save.
+ * Its first section, Your data (step 4b; polish #32 moved it up from the foot), holds Export file and Import file, which
+ * act at once, outside Save.
  */
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
 import { DEFAULT_USER_CONFIG } from "@/lib/screen/config";
@@ -122,6 +123,8 @@ export function SettingsProvider({
           <h2 id="settings-title">Settings</h2>
         </header>
         <div className="help-body settings-body">
+          <YourData key={opened} config={config} save={imported} />
+
           <h3>Thresholds</h3>
           <p className="tiny muted">These encode judgment, not fact. Change them and re-run.</p>
           <div className="settings-grid">{THRESHOLD_FIELDS.map(numberInput)}</div>
@@ -185,8 +188,6 @@ export function SettingsProvider({
               </option>
             ))}
           </select>
-
-          <YourData key={opened} config={config} save={imported} />
         </div>
         <footer className="settings-foot">
           {errors.length > 0 && (
