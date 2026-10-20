@@ -36,7 +36,10 @@ describe("run keys and freshness (14d)", () => {
     const { settingsBy: _gone, ...older } = run;
     expect(freshness(older, now)).toMatchObject({ settings: true, settingsChanged: [] });
     // The endpoints aren't settings here: a moved service changes nothing.
-    const moved = { ...DEFAULT_USER_CONFIG, endpoints: { ...DEFAULT_USER_CONFIG.endpoints, osrm: "https://x" } };
+    const moved = {
+      ...DEFAULT_USER_CONFIG,
+      endpoints: { ...DEFAULT_USER_CONFIG.endpoints, osrm: "https://x" },
+    };
     expect(freshness(run, runKeys(square(-80.455), null, moved)).settingsChanged).toEqual([]);
   });
 

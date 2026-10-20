@@ -31,7 +31,9 @@ describe("the answer line", () => {
 
   it("measures the miss against the person's own edge", () => {
     const card = reportCard(FERNEY, ANSWERED);
-    expect(answerLine(card, FERNEY)).toMatch(/; the nearest trailhead is 47 minutes away, past your 15-minute limit; /);
+    expect(answerLine(card, FERNEY)).toMatch(
+      /; the nearest trailhead is 47 minutes away, past your 15-minute limit; /,
+    );
   });
 
   it("ends with what to check first when the miss didn't say it (the fresh-eyes review)", () => {

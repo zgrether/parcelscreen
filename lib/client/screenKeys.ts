@@ -61,9 +61,7 @@ export function runKeys(
     boundary: hash(stable(polygon.coordinates)),
     house: house ? `${house[0].toFixed(6)},${house[1].toFixed(6)}` : "",
     settings: hash(stable(settings)),
-    settingsBy: Object.fromEntries(
-      Object.entries(settings).map(([k, v]) => [k, hash(stable(v))] as const),
-    ),
+    settingsBy: Object.fromEntries(Object.entries(settings).map(([k, v]) => [k, hash(stable(v))] as const)),
     lines: lines.length ? hash(stable(lines)) : "",
   };
 }
