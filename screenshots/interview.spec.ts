@@ -36,7 +36,7 @@ for (const phone of [false, true]) {
 
     test("a new profile's name screen", async ({ page }) => {
       await fresh(page, true);
-      await expect(page.locator(".iv-scene")).toHaveText("What should we call this profile?");
+      await expect(page.locator(".iv-scene")).toHaveText("What should we call you?");
       await shot(page, "00-name");
     });
 

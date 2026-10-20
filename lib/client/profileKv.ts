@@ -11,7 +11,6 @@ import { syncHooks } from "./syncHooks";
 
 /** The prefs that belong to a profile, not the device (lib/client/prefs.ts has both). */
 export const PROFILE_KEYS: ReadonlySet<string> = new Set([
-  "ps.parcels",
   "ps.current",
   "ps.cfg",
   "ps.rubricView",
@@ -23,6 +22,14 @@ export const PROFILE_KEYS: ReadonlySet<string> = new Set([
   "ps.namesFromNotes",
 ]);
 export const isProfileKey = (key: string): boolean => PROFILE_KEYS.has(key);
+
+/**
+ * The household's shared documents (step 6, docs/plans/step-6-household.md §1): one list for every profile on the
+ * device, and the asks and takes. They're kept under this reserved id in the same documents store, never a profile's.
+ */
+export const SPACE_ID = "_space";
+export const SHARED_KEYS: ReadonlySet<string> = new Set(["ps.parcels", "ps.household"]);
+export const isSharedKey = (key: string): boolean => SHARED_KEYS.has(key);
 
 export interface KvHandle {
   getItem(key: string): string | null;
@@ -75,6 +82,13 @@ export class ProfileKv implements KvHandle {
 }
 
 let active: ProfileKv | null = null;
+let shared: ProfileKv | null = null;
+
+/** The shared documents (step 6); null before the boot (then they read as defaults). */
+export const sharedKv = (): ProfileKv | null => shared;
+export function setSharedKv(kv: ProfileKv | null): void {
+  shared = kv;
+}
 
 /** The current profile's store; null before the profile is booted (then the profile-scoped prefs read as defaults). */
 export const activeKv = (): ProfileKv | null => active;

@@ -112,6 +112,8 @@ export const INITIAL: ExploreState = {
 export interface Stamp {
   now: string;
   key: string;
+  /** The current profile (step 6): who added a parcel that this change builds. */
+  by?: string | null;
 }
 
 export type ExploreAction =
@@ -297,7 +299,7 @@ function lineKind(m: LineMarkup, kind: MarkupKind, others: readonly Markup[]): M
 }
 
 export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState {
-  const save = (p: WorkingParcel, st: Stamp) => commitOpen(s.store, p, st.now, () => st.key);
+  const save = (p: WorkingParcel, st: Stamp) => commitOpen(s.store, p, st.now, () => st.key, st.by ?? null);
   const open = s.store.open;
   switch (a.type) {
     case "mode":

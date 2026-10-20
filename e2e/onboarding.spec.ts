@@ -33,7 +33,7 @@ test("a first visit starts with the name, comes back until put off, and Not now 
 }) => {
   await firstVisit(page, "/explore");
   await page.waitForURL("**/interview");
-  await expect(page.locator(".iv-scene")).toHaveText("What should we call this profile?");
+  await expect(page.locator(".iv-scene")).toHaveText("What should we call you?");
   await page.getByPlaceholder("Your name or a nickname").fill("Sam");
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(progress(page)).toHaveText("1 of 14");

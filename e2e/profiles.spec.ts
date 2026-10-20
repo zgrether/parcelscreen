@@ -62,7 +62,7 @@ async function switchTo(page: Page, name: string): Promise<void> {
   await menu(page); // the reload closed the menu: the checks that follow read the picker in it
 }
 
-test("the first visit's Profile 1; add Visitor and switch; a parcel kept in one isn't in the other; rename; delete with its screens", async ({
+test("the first visit's Profile 1; add Visitor and switch; one list for both (step 6); rename; delete keeps the list", async ({
   page,
   context,
 }) => {
@@ -89,7 +89,7 @@ test("the first visit's Profile 1; add Visitor and switch; a parcel kept in one 
   await expect(page.locator("main")).toContainText("Nothing on your list yet");
   await page.getByRole("link", { name: "Map", exact: true }).click();
 
-  // A parcel screened under Visitor: kept under Visitor alone. A fresh profile holds its own rubric alone: no switch.
+  // A parcel screened under Visitor: on the household's one list (step 6). Neither profile has set priorities: no switch.
   await importParcel(page, FERNEY);
   expectAllDone(await screenIt(page));
   await expect(page.locator(".card-person")).toHaveCount(0);
@@ -98,11 +98,11 @@ test("the first visit's Profile 1; add Visitor and switch; a parcel kept in one 
   await yourList(page);
   await switchTo(page, "Profile 1");
   await expect(currentName(page)).toHaveText(/Profile 1/);
-  await expect(page.locator(".lib-row:visible", { hasText: "52-47A" })).toHaveCount(0);
+  await expect(page.locator(".lib-row:visible", { hasText: "52-47A" })).toHaveCount(1);
   await switchTo(page, "Visitor");
   await expect(page.locator(".lib-row:visible", { hasText: "52-47A" })).toHaveCount(1);
 
-  // Rename Visitor to Julie, in place; then delete it: its screen goes with it, and Profile 1 is current again.
+  // Rename Visitor to Julie, in place; then delete it: the list and its screen stay, and Profile 1 is current again.
   list = await openPicker(page);
   const visitor = list.locator("li", { hasText: "Visitor" });
   await visitor.getByRole("button", { name: "Rename" }).click();
@@ -114,7 +114,7 @@ test("the first visit's Profile 1; add Visitor and switch; a parcel kept in one 
   const julie = list.locator("li", { hasText: "Julie" });
   await julie.getByRole("button", { name: "Delete" }).click();
   await expect(julie.getByRole("alert")).toContainText(
-    "Delete Julie? Its parcels, screens and settings go with it.",
+    "Delete Julie? Their settings, priorities and answers go with it; the household's list stays.",
   );
   const reloaded = page.waitForEvent("load");
   await julie.getByRole("alert").getByRole("button", { name: "Delete" }).click();
@@ -124,7 +124,7 @@ test("the first visit's Profile 1; add Visitor and switch; a parcel kept in one 
   await expect(currentName(page)).toHaveText(/Profile 1/);
   list = await openPicker(page);
   await expect(list.locator(".profile-name")).toHaveCount(1);
-  expect(await keptScreenCount(page)).toBe(0);
+  expect(await keptScreenCount(page)).toBe(1);
   expect(errors).toEqual([]);
 });
 

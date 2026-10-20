@@ -1,16 +1,17 @@
 /**
- * The current profile's rubrics (step 1, PR 5; docs/plans/step-1-profiles-grading.md §3.5): its own ("mine"), and
- * the other rubrics it holds, each with a name (today's second weight set rides along as "Julie" after the migration;
- * step 5 makes them the household's members). The card, the list, Compare and the rulebook grade with these, and the
- * one on show is the profile's `ps.rubricView`. Nothing here names a person.
+ * The current profile's rubrics (step 1, PR 5; docs/plans/step-1-profiles-grading.md §3.5): its own ("mine"), then
+ * each other household member's own (step 6, docs/plans/step-6-household.md §2, lib/client/household.ts), under their
+ * name. A profile's stored `others` (step 1's stand-ins for the household) are no longer read. The card, the list,
+ * Compare and the rulebook grade with these, and the one on show is the profile's `ps.rubricView`.
  */
 import { defaultRubric } from "@/lib/rubric/default";
 import type { ProfileRubrics } from "@/lib/rubric/schema";
 import { MINE, type NamedRubric } from "@/lib/rubric/types";
+import { otherMembers } from "./household";
 import { getPref, setPref } from "./prefs";
+import { RUBRICS_CHANGED } from "./profileEvents";
 
-/** The window event after the profile's rubrics change (an import's "Replace my rubric too"): the pages re-read. */
-export const RUBRICS_CHANGED = "ps:rubrics";
+export { RUBRICS_CHANGED };
 
 /** The profile's rubrics as kept, or the default alone before it has its own (what an export writes). */
 export const effectiveRubrics = (): ProfileRubrics =>
@@ -25,11 +26,13 @@ export function setProfileRubrics(r: ProfileRubrics | null): void {
 /** The profile's own rubric, named: the first choice everywhere. */
 export const mineNamed = (rubric = defaultRubric()): NamedRubric => ({ id: MINE, name: "Mine", rubric });
 
-/** Every rubric the profile grades with: its own first, then the others it holds. */
+/** Every rubric the profile grades with: its own first, then each other member's who has set their priorities. */
 export function profileRubrics(): NamedRubric[] {
   const stored = getPref("ps.rubrics");
-  if (!stored) return [mineNamed()];
-  return [mineNamed(stored.mine), ...stored.others];
+  const others = otherMembers()
+    .filter((m) => m.rubric !== null)
+    .map((m): NamedRubric => ({ id: m.id, name: m.name, rubric: m.rubric! }));
+  return [stored ? mineNamed(stored.mine) : mineNamed(), ...others];
 }
 
 /** The rubric on show (the switch), falling back to the profile's own when the remembered one is gone. */

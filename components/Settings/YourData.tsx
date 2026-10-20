@@ -23,7 +23,7 @@ import {
 } from "@/lib/client/exportFile";
 import { addImportedParcels, currentParcels } from "@/lib/client/liveParcels";
 import { getPref } from "@/lib/client/prefs";
-import { currentProfile, FIRST_PROFILE_NAME } from "@/lib/client/profiles";
+import { currentProfile, currentProfileId, FIRST_PROFILE_NAME } from "@/lib/client/profiles";
 import { effectiveRubrics, setProfileRubrics } from "@/lib/client/rubrics";
 import { getScreens, putScreens } from "@/lib/client/screenStore";
 import type { ProfileRubrics } from "@/lib/rubric/schema";
@@ -33,8 +33,8 @@ import { SyncSection } from "@/components/Sync/SyncSection";
 export const YOUR_DATA = "Your data";
 export const YOUR_DATA_NOTE = "These don't wait for Save.";
 export const EXPORT_LINE =
-  "Save every parcel in this profile to a file: a backup, or to move them to another browser.";
-export const IMPORT_LINE = "Add the parcels from an export file to this profile.";
+  "Save every parcel on your list to a file: a backup, or to move them to another browser.";
+export const IMPORT_LINE = "Add the parcels from an export file to your list.";
 
 /** Export file: the current profile's parcels, their screens and the settings, downloaded (also the join's "Export first"). */
 export async function downloadExport(config: UserConfig): Promise<void> {
@@ -106,7 +106,8 @@ export function YourData({
       setSummary({ ok: false, lines: ["Nothing imported: this browser couldn't keep the file's results."] });
       return;
     }
-    addImportedParcels(plan.added);
+    // An imported parcel is added by whoever imports it (step 6), unless the file already says who.
+    addImportedParcels(plan.added.map((p) => ({ ...p, addedBy: p.addedBy ?? currentProfileId() })));
     if (outcome === "replaced") save(plan.settings!.config);
     setSummary({
       ok: true,

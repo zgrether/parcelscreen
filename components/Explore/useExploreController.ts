@@ -35,6 +35,7 @@ import {
 } from "@/lib/client/parcelStore";
 import { getPref, onParcelsWritten, parcelsWritten, setPref } from "@/lib/client/prefs";
 import { registerLiveParcels } from "@/lib/client/liveParcels";
+import { currentProfileId } from "@/lib/client/profiles";
 import { ATTACH_MS, attachPatch, type SearchedListing } from "@/lib/client/attachListing";
 import { CancelledError } from "@/lib/http";
 import { unreachableMessage } from "@/lib/client/pwa";
@@ -281,7 +282,11 @@ function useDocked(): boolean {
     () => true,
   );
 }
-const stamp = (): Stamp => ({ now: new Date().toISOString(), key: crypto.randomUUID() });
+const stamp = (): Stamp => ({
+  now: new Date().toISOString(),
+  key: crypto.randomUUID(),
+  by: currentProfileId(),
+});
 const derive = (p: WorkingParcel) => deriveParcel(recipeOf(p), LIMITS);
 
 export function useExploreController(parcelServices: readonly string[], hint: SetHint): ExploreController {

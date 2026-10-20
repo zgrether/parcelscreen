@@ -10,7 +10,7 @@ import { withRanks } from "./myOrder";
 import { ProfileRubricsSchema, type ProfileRubrics } from "@/lib/rubric/schema";
 import { InterviewDocSchema, type InterviewDoc } from "@/lib/rubric/interview/doc";
 import { MINE } from "@/lib/rubric/types";
-import { activeKv, isProfileKey } from "./profileKv";
+import { activeKv, isProfileKey, isSharedKey, sharedKv } from "./profileKv";
 import { readParcelStore, withNamesFromNotes, writeParcelStore, type ParcelStore } from "./parcelStore";
 
 export interface MapView {
@@ -172,6 +172,7 @@ export interface KeyValueStore {
  * PROFILE_KEYS) in the current profile's documents, hydrated before the app renders; a device key in localStorage.
  */
 function store(key: string): KeyValueStore | null {
+  if (isSharedKey(key)) return sharedKv();
   if (isProfileKey(key)) return activeKv();
   try {
     return typeof localStorage === "undefined" ? null : localStorage;

@@ -7,10 +7,9 @@
  *   screens come as they're opened. The device stays joined.
  * - **Leave:** the device forgets the code and keeps its copy as it is. The space and the other devices aren't touched.
  */
-import { withRanks } from "@/lib/client/myOrder";
-import { readParcelStore, writeParcelStore } from "@/lib/client/parcelStore";
 import { getPref } from "@/lib/client/prefs";
-import { activeKv, CURRENT_PROFILE_KEY, currentProfileId, profileStorage } from "@/lib/client/profiles";
+import { activeKv, CURRENT_PROFILE_KEY, profileStorage } from "@/lib/client/profiles";
+import { sharedKv, SPACE_ID } from "@/lib/client/profileKv";
 import type { Profile } from "@/lib/client/profileStore";
 import { getScreens } from "@/lib/client/screenStore";
 import { createSpace, fetchChanges } from "./client";
@@ -46,9 +45,8 @@ export async function localData(): Promise<LocalData> {
     (await profileStorage()
       ?.profiles()
       .catch(() => [])) ?? [];
-  let parcels = 0;
-  for (const p of profiles)
-    parcels += parseParcels((await docsOf(p.id)).get(PARCELS_DOC) ?? null).built.length;
+  // The household's one list (step 6).
+  const parcels = parseParcels((await docsOf(SPACE_ID)).get(PARCELS_DOC) ?? null).built.length;
   return { profiles: profiles.length, parcels };
 }
 
@@ -59,20 +57,14 @@ export const holdsData = (d: LocalData): boolean => d.parcels > 0 || d.profiles 
 export async function startSyncing(progress: (p: Progress) => void): Promise<string> {
   const storage = profileStorage();
   if (!storage) throw new Error("This browser keeps no data, so there's nothing to sync.");
-  // Each profile's parcels as the app keeps them once read (ranked in My order, named from their notes), written back
+  // The household's parcels as the app keeps them once read (ranked in My order, named from their notes), written back
   // before the upload: otherwise the first read after joining would rewrite them all, and that automatic save could
-  // land after another device's real edit and undo it (later save wins, whole).
-  getPref("ps.parcels"); // the current profile: the read itself ranks, names and writes back
-  for (const p of await storage.profiles()) {
-    if (p.id === currentProfileId()) continue;
-    const raw = (await docsOf(p.id)).get(PARCELS_DOC);
-    const store = raw ? readParcelStore(raw) : null;
-    const ranked = store && withRanks(store);
-    if (ranked && ranked !== store)
-      await storage.putDoc({ profile: p.id, key: PARCELS_DOC, value: writeParcelStore(ranked) });
-  }
-  // The current profile's last writes reach storage first: the upload reads storage, not memory.
+  // land after another device's real edit and undo it (later save wins, whole). The read itself ranks, names and
+  // writes back.
+  getPref("ps.parcels");
+  // The last writes reach storage first: the upload reads storage, not memory.
   await activeKv()?.flush();
+  await sharedKv()?.flush();
   let code = generateCode();
   if ((await createSpace(code)) === "taken") {
     code = generateCode(); // 130 random bits: a second clash isn't going to happen
@@ -85,10 +77,11 @@ export async function startSyncing(progress: (p: Progress) => void): Promise<str
     const docs = await docsOf(p.id);
     const record: ProfileRecord = profileRecord(p, (k) => docs.get(k) ?? null);
     profiles.push({ id: p.id, record: { ...record } });
-    for (const parcel of parseParcels(docs.get(PARCELS_DOC) ?? null).built)
-      if (typeof parcel.key === "string") parcels.push({ key: parcel.key, profile: p.id, record: parcel });
-    screenIds.push(...(await storage.screenIds(p.id)));
   }
+  // The household's list and its screens (step 6): the space's, under SPACE_ID.
+  for (const parcel of parseParcels((await docsOf(SPACE_ID)).get(PARCELS_DOC) ?? null).built)
+    if (typeof parcel.key === "string") parcels.push({ key: parcel.key, profile: SPACE_ID, record: parcel });
+  screenIds.push(...(await storage.screenIds(SPACE_ID)));
   progress({ stage: "profiles", done: 0, total: profiles.length + parcels.length });
   await sendAll(code, profiles, parcels, []);
   const screens: ScreenSave[] = (await getScreens(screenIds))
@@ -109,14 +102,16 @@ export async function startSyncing(progress: (p: Progress) => void): Promise<str
 export const peekSpace = (code: string): Promise<Changes | null> => fetchChanges(code, null);
 
 /**
- * Joins: this device's profiles, documents and screens are deleted, and the space's profiles and parcels take their
- * place. Then the page reloads on Your list, as the joined device's first open.
+ * Joins: this device's profiles, documents and screens are deleted, and the space's profiles and its list take their
+ * place. Then the page loads Who's this? (step 6), where the person picks their profile or makes one.
  */
 export async function joinSpace(code: string, space: Changes): Promise<void> {
   const storage = profileStorage();
   if (!storage) throw new Error("This browser keeps no data, so it can't join.");
   const now = new Date().toISOString();
   for (const p of await storage.profiles()) await storage.deleteProfile(p.id);
+  // The household's shared documents and screens go too: SPACE_ID has no profile row, but the same delete clears them.
+  await storage.deleteProfile(SPACE_ID);
   await storage.dropUnstamped().catch(() => undefined);
   const live = space.profiles.filter((p) => !p.deleted && p.record);
   const newest = [...live].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
@@ -133,25 +128,26 @@ export async function joinSpace(code: string, space: Changes): Promise<void> {
       const v = r.docs?.[k];
       if (v !== undefined) await storage.putDoc({ profile: p.id, key: k, value: v });
     }
-    const built = space.parcels
-      .filter((x) => x.profile === p.id && !x.deleted && x.record)
-      .map((x) => x.record!);
-    await storage.putDoc({
-      profile: p.id,
-      key: PARCELS_DOC,
-      value: JSON.stringify({ v: 2, open: null, built }),
-    });
-    // They come as the other device keeps them, already named: the once-per-profile naming has nothing to do here.
-    await storage.putDoc({ profile: p.id, key: "ps.namesFromNotes", value: "1" });
   }
+  // The household's list: the space's parcels under SPACE_ID (rows from before step 6, kept per profile, are left).
+  const built = space.parcels
+    .filter((x) => x.profile === SPACE_ID && !x.deleted && x.record)
+    .map((x) => x.record!);
+  await storage.putDoc({
+    profile: SPACE_ID,
+    key: PARCELS_DOC,
+    value: JSON.stringify({ v: 2, open: null, built }),
+  });
+  // They come as the other device keeps them, already named: the once-only naming from notes has nothing to do here.
+  await storage.putDoc({ profile: SPACE_ID, key: "ps.namesFromNotes", value: "1" });
   writeSyncState({ code, cursor: space.cursor, unsaved: NO_UNSAVED });
   try {
     if (newest) localStorage.setItem(CURRENT_PROFILE_KEY, newest.id);
   } catch {
     /* the boot opens the most recently opened profile, which is this one */
   }
-  // A full load, not a router push: the boot reads the joined profiles afresh.
-  location.replace(new URL("/library", location.origin).href);
+  // A full load, not a router push: the boot reads the joined profiles afresh. Then the person says who they are.
+  location.replace(new URL("/who", location.origin).href);
 }
 
 /** Stops syncing on this device. It keeps its copy, and the page reloads to work unjoined. */
