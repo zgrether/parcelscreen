@@ -37,7 +37,8 @@ describe("the grade button (step 4c, plan §2)", () => {
     );
     expect(label({ ...graded, fresh: { ...FRESH, settings: true } })).toBe("Grade again: settings changed");
     // Named when the run kept them (polish #10): the first two, then a count.
-    const named = (settingsChanged: string[]) => label({ ...graded, fresh: { ...FRESH, settings: true, settingsChanged } });
+    const named = (settingsChanged: string[]) =>
+      label({ ...graded, fresh: { ...FRESH, settings: true, settingsChanged } });
     expect(named(["roadVetoGradePct"])).toBe("Grade again: road veto changed");
     expect(named(["roadVetoGradePct", "budget"])).toBe("Grade again: road veto and budget changed");
     expect(named(["houseMin", "dw", "budget", "timeZone"])).toBe(

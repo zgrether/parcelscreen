@@ -54,7 +54,10 @@ async function raiseSheet(page: Page): Promise<void> {
 
 /** Brings an element of the panel to its top. */
 const toTop = (page: Page, selector: string) =>
-  page.locator(selector).first().evaluate((el) => el.scrollIntoView({ block: "start" }));
+  page
+    .locator(selector)
+    .first()
+    .evaluate((el) => el.scrollIntoView({ block: "start" }));
 
 for (const phone of [false, true]) {
   const device = phone ? "phone" : "desktop";
@@ -64,7 +67,8 @@ for (const phone of [false, true]) {
         ? { viewport: { width: 375, height: 667 }, isMobile: true, hasTouch: true }
         : { viewport: { width: 1280, height: 800 } },
     );
-    const shot = (page: Page, name: string) => page.screenshot({ path: `${OUT}/${device}-grade-${name}.png` });
+    const shot = (page: Page, name: string) =>
+      page.screenshot({ path: `${OUT}/${device}-grade-${name}.png` });
 
     test("the grade panel: the answer, Best homesite, the Musts, one banner, the named setting", async ({
       page,
