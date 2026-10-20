@@ -19,6 +19,8 @@ import {
   settled,
 } from "./flow";
 
+/** The Your list tab, whose name gains the badge's label ("Your list 1 new take") when something waits (step 6b). */
+const YOUR_LIST = /^Your list/;
 const FERNEY = "ferney-creek-52-47A" as const;
 const MACKS = "macks-mountain-35-3" as const;
 
@@ -58,7 +60,7 @@ test("Julie joins: Who's this? → I'm new here → her name; one list, and who 
   await julie.getByRole("button", { name: "Not now" }).click();
 
   // Her list is the household's: Zach's two parcels, each added by him.
-  await julie.getByRole("link", { name: "Your list", exact: true }).click();
+  await julie.getByRole("link", { name: YOUR_LIST }).click();
   await expect(listRow(julie, "52-47A")).toBeVisible();
   await expect(listRow(julie, "35-3")).toBeVisible();
   await listRow(julie, "52-47A").locator(".lib-open").click();
@@ -114,7 +116,7 @@ const setPriorities = (page: Page, rubric: unknown) =>
 async function afterTabSwitch(page: Page, check: () => Promise<void>): Promise<void> {
   await expect(async () => {
     await page.getByRole("link", { name: "Map", exact: true }).click();
-    await page.getByRole("link", { name: "Your list", exact: true }).click();
+    await page.getByRole("link", { name: YOUR_LIST }).click();
     await check();
   }).toPass({ timeout: 30_000 });
 }
@@ -203,4 +205,62 @@ test("everyone's grade; How Julie would rate it; Ask Julie → Waiting for you �
   // Opening it saw it: no dot, no count.
   await expect(zach.locator(".app-badge")).toHaveCount(0);
   await expect(listRow(zach, "52-47A").locator(".new-dot")).toHaveCount(0);
+});
+
+/** The list's scroll position (it scrolls inside the page, not the window); with `to`, scrolls there first. */
+const listScroll = (page: Page, to?: number): Promise<number> =>
+  page.evaluate((to) => {
+    let el = document.querySelector(".lib-row")?.parentElement ?? null;
+    while (el && !(el.scrollHeight > el.clientHeight && /auto|scroll/.test(getComputedStyle(el).overflowY)))
+      el = el.parentElement;
+    if (!el) return 0;
+    if (to !== undefined) el.scrollTop = to;
+    return el.scrollTop;
+  }, to);
+
+test("polling (step 6b): a take saved on one device appears on the other within 35 s, with no action, and the scroll holds", async ({
+  browser,
+}) => {
+  test.setTimeout(240_000);
+  const MUD = "grayson-mud-creek-6273" as const;
+  const zach = await (await browser.newContext()).newPage();
+  await openExplorer(zach, FERNEY);
+  await importParcels(zach, [FERNEY, MACKS, MUD]);
+  await seedScreens(zach, [FERNEY, MACKS, MUD]);
+  const code = await startSyncing(zach);
+
+  const julie = await (await browser.newContext()).newPage();
+  await openExplorer(julie, FERNEY);
+  await julie.goto(`/link#${code}`);
+  await julie.getByRole("button", { name: /^Join$/ }).click();
+  await julie.getByRole("button", { name: "I'm new here" }).click();
+  await julie.waitForURL("**/interview");
+  await julie.getByPlaceholder("Your name or a nickname").fill("Julie");
+  await julie.getByRole("button", { name: "Continue" }).click();
+  await julie.getByRole("button", { name: "Not now" }).click();
+  await booted(julie);
+
+  // Her priorities, so her grade (and her take beside it) has a place on Zach's list.
+  await setPriorities(julie, JULIE.rubric);
+
+  // Zach: Your list in a short window, scrolled to its end, and then left alone.
+  await zach.setViewportSize({ width: 1280, height: 240 });
+  await zach.getByRole("link", { name: YOUR_LIST }).click();
+  await expect(listRow(zach, "6273")).toBeVisible();
+  await listScroll(zach, 1e6);
+  const scrolled = await listScroll(zach);
+  expect(scrolled, "the list scrolls in a short window").toBeGreaterThan(0);
+
+  // Julie gives her take on Ferney.
+  await julie.getByRole("link", { name: YOUR_LIST }).click();
+  await listRow(julie, "52-47A").locator(".lib-open").click();
+  const yours = julie.getByRole("region", { name: "Your take" });
+  await yours.getByRole("button", { name: "Yes" }).click();
+  await yours.getByRole("button", { name: "Save my take" }).click();
+  await expect(yours).toContainText("Change");
+
+  // Zach, untouched: her take arrives by the poll.
+  await expect(listRow(zach, "52-47A").locator(".take-chip")).toHaveText("says Yes", { timeout: 35_000 });
+  // Held: the row above grows a pixel with the take's chip, and the browser's scroll anchoring keeps the view still.
+  expect(Math.abs((await listScroll(zach)) - scrolled)).toBeLessThanOrEqual(2);
 });
