@@ -75,6 +75,9 @@ for (const phone of [false, true]) {
         .getByRole("link", { name: "Open on the map" })
         .click();
       await expect(page).toHaveURL(/\/explore$/);
+      // The tilt tip (desktop) would cover the map in every shot (fresh-eyes review).
+      const tip = page.locator(".tilt-hint").getByRole("button", { name: "Dismiss" });
+      if (await tip.isVisible()) await tip.click();
       const star = page.locator(".sh-actions").getByRole("button", { name: "Add to favorites" });
       await star.click();
       await expect(page.getByRole("dialog", { name: "Add to Favorites" })).toBeVisible();
