@@ -47,7 +47,7 @@ export function Star({
         className={`star-btn${on ? " on" : ""} ${className}`.trim()}
         aria-pressed={on}
         aria-label={name ? `${word}: ${name}` : word}
-        title={word}
+        title={on ? `${STAR_IN}: tap to remove` : STAR_ADD}
         onClick={(e) => {
           stop(e);
           setAsking(on ? "unstar" : "name");
@@ -106,7 +106,9 @@ function NameSheet({ start, add, cancel }: { start: string; add(name: string): v
   });
   useEffect(() => {
     box.current?.focus();
-    box.current?.select();
+    // Selected with the caret at the start, so a long name shows its beginning (fresh-eyes review).
+    box.current?.setSelectionRange(0, box.current.value.length, "backward");
+    if (box.current) box.current.scrollLeft = 0;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && cancelNow.current();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -135,6 +137,7 @@ function NameSheet({ start, add, cancel }: { start: string; add(name: string): v
           Name
           <input ref={box} value={name} maxLength={120} onChange={(e) => setName(e.target.value)} />
         </label>
+        <p className="tiny muted star-sheet-hint">Favorites are shared with everyone in your household.</p>
         <div className="rubric-confirm-actions">
           <button type="submit" className="btn" disabled={!ok}>
             Add

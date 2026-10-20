@@ -129,7 +129,7 @@ test("History is yours, Favorites the household's: star, unstar, ✕ with Undo, 
   // Clear history: the unstarred row goes; Ferney stays, starred, in History and in Favorites.
   await yourList(zach, "History");
   await zach.getByRole("button", { name: "Clear history" }).click();
-  await expect(zach.getByRole("alertdialog")).toContainText("Clear your history? Your favorites stay.");
+  await expect(zach.getByRole("alertdialog")).toContainText("Clear your history? Starred parcels stay.");
   await zach.getByRole("alertdialog").getByRole("button", { name: "Clear", exact: true }).click();
   await expect(historyRows(zach)).toHaveCount(1);
   await expect(historyRows(zach).getByRole("button", { name: /^In favorites/ })).toBeVisible();

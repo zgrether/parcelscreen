@@ -94,9 +94,10 @@ export async function importParcels(
 export async function starFromHistory(page: Page, name: string): Promise<void> {
   await page.getByRole("link", { name: /^Your list/ }).click();
   await page.getByRole("tab", { name: "History" }).click();
-  await page.getByRole("button", { name: `Add to favorites: ${name}` }).click();
+  const add = page.locator(".hist-row", { hasText: name }).getByRole("button", { name: /^Add to favorites/ });
+  await add.click();
   await page.getByRole("dialog", { name: "Add to Favorites" }).getByRole("button", { name: "Add" }).click();
-  await expect(page.getByRole("button", { name: `Add to favorites: ${name}` })).toHaveCount(0);
+  await expect(add).toHaveCount(0);
   await page.getByRole("tab", { name: "Favorites" }).click();
 }
 

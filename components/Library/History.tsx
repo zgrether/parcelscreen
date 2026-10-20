@@ -20,7 +20,7 @@ import type { KeptScreen } from "@/lib/client/useKeptScreens";
 
 const when = (iso: string) => new Date(iso).toLocaleDateString([], { month: "short", day: "numeric" });
 
-export const CLEAR_QUESTION = "Clear your history? Your favorites stay.";
+export const CLEAR_QUESTION = "Clear your history? Starred parcels stay.";
 
 /** What a ✕ took, for its Undo: the parcels and their log entries. */
 interface Removed {
@@ -110,7 +110,7 @@ export function History({
       )}
       {removed && (
         <div className="hist-toast" role="status">
-          <span>Removed.</span>
+          <span>Removed from History.</span>
           <button className="btn secondary small" onClick={undo}>
             Undo
           </button>

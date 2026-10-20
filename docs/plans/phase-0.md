@@ -826,5 +826,27 @@ until step 5 (Q14).
       driveway, so Best homesite instead says where the map's sun, sky and driveway are for, and offers "Evaluate site #N".
     - **The card's Must rows** use the priorities page's words ("Driveway on your land") (owner, #216).
     - **The pins:** the person's best site is the inked pin, ringed; their other spots get a light ring.
+60. **Favorites and History** (owner, 2026-10-20; step 8 plan, `docs/plans/step-8-favorites.md`, from Zach's pre-approved
+    brief, its §11 questions answered with the recommendations; roadmap step 8, PRs 0–3).
+    - **Two views of one store:** the shared store keeps every built parcel, as since step 6. **Favorites**, the
+      household's, are the starred ones (stored status `saved`) and the archived ones; **History**, a person's own, is the
+      parcels they added that aren't favorites and the favorites they graded. Someone else's unstarred parcel is in none of
+      my views: the list, the map's outlines, Search, Compare, Help's and the preview's pickers. The stored statuses stay
+      (no converter): `inProgress` now reads as "in History only". "In progress" and "Saved" are gone from the UI.
+    - **The History log** (`ps.history`, a profile document synced with the profile): when the person last graded each
+      parcel; History's order ("Graded Oct 20", else "Changed Oct 20") and which favorites are in it. Not exported.
+    - **The star** on the panel's header and on rows: starring asks for a plain name (the parcel's own, the listing
+      link's address, or "{acres} ac on {road}, {county}"), builds a plain parcel, and keeps its adder. Unstarring asks
+      once ("… It stays in your History." / "… It goes back to {name}'s History.") and drops its asks and takes, as Remove
+      does. Archived is a favorite's state; Restore returns it to the favorites.
+    - **Clearing:** ✕ on an unstarred History row removes it for good, with a 5 s Undo; Clear history removes every
+      unstarred one after one confirm. Favorites stay. Kept screens stay, as Remove leaves them.
+    - **The one-time sort, no wipe:** at each start, an In progress parcel with no adder goes to the current profile's
+      History; saved and archived ones are favorites already. Imports go to the importer's History.
+    - **Your list** keeps its name and badge, with a Favorites | History switch (remembered per profile in
+      `ps.library`). The badge counts asks and takes on favorites only. The app opens on the list when there's an active
+      favorite, else on the map.
+    - **Search** lists Favorites and Your history (by name, or a county piece's parcel number with separators ignored),
+      up to five each, above the place results.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

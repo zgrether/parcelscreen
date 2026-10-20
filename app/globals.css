@@ -6000,3 +6000,24 @@ button.sync-ind.bad {
     grid-area: x;
   }
 }
+/* The fresh-eyes review: Undo readable on the dark toast; ✕ big enough to see; the name sheet's line; names wrap. */
+.hist-toast .btn {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  border-color: var(--color-paper);
+  min-height: 36px;
+}
+.hist-x {
+  font-size: 28px;
+}
+.star-sheet-hint {
+  margin: -8px 0 14px;
+}
+@media (max-width: 860px) {
+  .hist-name {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+}
