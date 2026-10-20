@@ -91,7 +91,10 @@ test("desktop: My order by default; a mouse drag, the keyboard and the menu move
   await page.getByRole("menuitem", { name: "Move up" }).press("Enter");
   await expect.poll(() => order(names)).toEqual([first, second]);
   // Polish #16: Remove from favorites in the menu asks the star's question; Keep keeps it.
-  await rows.nth(0).getByRole("button", { name: /^Order: / }).click();
+  await rows
+    .nth(0)
+    .getByRole("button", { name: /^Order: / })
+    .click();
   await page.getByRole("menuitem", { name: "Remove from favorites" }).click();
   await expect(page.getByRole("alertdialog")).toContainText("Remove from your household's favorites?");
   await page.getByRole("alertdialog").getByRole("button", { name: "Keep" }).click();

@@ -491,7 +491,15 @@ function LibraryTable({ rows, rubrics, ...rest }: RowsProps) {
         </thead>
         <tbody>
           {rows.map((r, i) => (
-            <TableRow key={r.key} r={r} index={i} count={rows.length} rubrics={rubrics} cols={cols} {...rest} />
+            <TableRow
+              key={r.key}
+              r={r}
+              index={i}
+              count={rows.length}
+              rubrics={rubrics}
+              cols={cols}
+              {...rest}
+            />
           ))}
         </tbody>
       </table>

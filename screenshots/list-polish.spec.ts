@@ -33,7 +33,10 @@ for (const phone of [false, true]) {
       await expect(rows).toHaveCount(2);
       await shot(page, "1-list");
 
-      await rows.first().getByRole("button", { name: /^Order: / }).click();
+      await rows
+        .first()
+        .getByRole("button", { name: /^Order: / })
+        .click();
       await expect(page.getByRole("menu")).toBeVisible();
       await shot(page, "2-menu");
       await page.keyboard.press("Escape");
