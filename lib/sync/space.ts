@@ -109,6 +109,10 @@ export async function joinSpace(code: string, space: Changes): Promise<void> {
   const storage = profileStorage();
   if (!storage) throw new Error("This browser keeps no data, so it can't join.");
   const now = new Date().toISOString();
+  // A space always has someone in it. Joining one with no profile would leave this device to make one at its next
+  // boot, which would then join the space as a new person: refuse instead, before anything here is replaced.
+  if (!space.profiles.some((p) => !p.deleted && p.record))
+    throw new Error("That synced space has no profiles in it yet. Start syncing on your other device again.");
   for (const p of await storage.profiles()) await storage.deleteProfile(p.id);
   // The household's shared documents and screens go too: SPACE_ID has no profile row, but the same delete clears them.
   await storage.deleteProfile(SPACE_ID);

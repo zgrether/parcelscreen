@@ -5012,6 +5012,14 @@ button.cmp-cell:hover {
   padding: 10px 22px;
   font-size: 16px;
 }
+/* The first run's "I already use Parcel Screen on another device", and its code form. */
+.iv > .join-first {
+  margin: 8px 0 12px;
+}
+.iv > button.join-first {
+  align-self: flex-start;
+  min-height: 44px;
+}
 .iv-nav {
   display: flex;
   justify-content: space-between;
