@@ -296,7 +296,7 @@ html:has(.explore) body {
   position: absolute;
   z-index: 15;
   left: calc(var(--float-l, 0px) + 12px);
-  right: calc(var(--col-r, 0px) + 12px);
+  right: calc(var(--bar-r, var(--col-r, 0px)) + 12px);
   bottom: calc(var(--sheet-h, 0px) + 18px);
   margin-inline: auto;
   width: fit-content;
@@ -6332,4 +6332,55 @@ button.sync-ind.bad {
     height: 24px;
     margin: 10px;
   }
+}
+/* A phone with Search's results open: the toolbar's hint, the switch toast and the map's hint step aside, so nothing
+   stacks under the results. */
+@media (max-width: 860px) {
+  .explore:has(.search-results) .toolbar,
+  .explore:has(.search-results) .switch-toast,
+  .explore:has(.search-results) .map-hint {
+    visibility: hidden;
+  }
+}
+/* The toolbar's buttons never shrink into each other (the trash over the grade button); the bar scrolls instead. */
+.toolbar > :not(.tb-status) {
+  flex-shrink: 0;
+}
+/* The docked panel's ‹ (collapse) takes 44 px across; its tab, collapsed, reads as a button (a ring on hover). */
+.dock-edge {
+  width: 28px;
+  height: 56px;
+  right: -29px;
+}
+.dock-edge::before {
+  content: "";
+  position: absolute;
+  inset: -6px -10px -6px 0;
+}
+.dock-tab:hover {
+  border-color: var(--color-ink-2);
+  box-shadow:
+    4px 0 16px rgba(0, 0, 0, 0.18),
+    0 0 0 2px var(--color-rule) inset;
+}
+/* Map layers: a toggle that's on says so with a ✓, not only its fill; on a phone the list fades at its foot to show it
+   scrolls. */
+.map-panel .tc-toggle[aria-pressed="true"]::before {
+  content: "✓ " / "";
+  font-weight: 700;
+}
+@media (max-width: 860px) {
+  .map-panel .mp-body {
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 24px), transparent);
+    padding-bottom: 24px;
+  }
+}
+/* Details: Recorded in takes its own line, so its example isn't cut off. */
+.parcel-details label.ip-line-row:has(> input[aria-label="Recorded in"]) {
+  display: grid;
+  gap: 4px;
+}
+/* The top bar's "Synced": the ink, not the muted ink (step 5's review: about 6:1, now about 13:1). */
+.sync-ind.bar:not(.bad) {
+  color: var(--color-ink);
 }

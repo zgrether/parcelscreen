@@ -7,7 +7,8 @@
 import { EXAGGERATIONS } from "./terrainStyle";
 import { setTerrainPrefs, useTerrainPrefs } from "./useTerrainPrefs";
 
-export const TERRAIN_GROUP_LABEL = "Terrain preview ≈10 m — screen uses 3 m lidar";
+// Polish: plainer words; still the data-source caveat (the preview is coarser than what grades the parcel).
+export const TERRAIN_GROUP_LABEL = "Terrain preview (about 10 m; grades use 3 m lidar)";
 
 export function TerrainControls({ variant }: { variant: "info" | "menu" }) {
   const t = useTerrainPrefs();

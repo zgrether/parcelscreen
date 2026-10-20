@@ -217,6 +217,8 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
     vars["--float-l"] = `${leftInset}px`;
     const columnRight = explore.panelInset ? explore.panelInset + 10 : COLUMN_GAP;
     vars["--col-r"] = `${columnRight + COLUMN_W}px`;
+    // The toolbar clears the column alone: Map layers ends above its row, so it needn't squeeze for it (polish).
+    vars["--bar-r"] = `${COLUMN_GAP + COLUMN_W}px`;
   }
   const panelClass = [
     "explore-panel",

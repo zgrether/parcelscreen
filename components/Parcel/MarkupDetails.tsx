@@ -285,7 +285,8 @@ function Width({
   };
   return (
     <label className="ip-line-row ip-note">
-      Width
+      {/* Polish: an easement's width is its right of way's, the one the screen reads. */}
+      {unused ? "Width" : "Right-of-way width"}
       <input
         inputMode="decimal"
         aria-label="Width in feet"
