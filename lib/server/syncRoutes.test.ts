@@ -78,7 +78,7 @@ describe("the sync routes (step 5 §4), over the memory store", () => {
       screens: [screen("s1")],
     });
     const seen = await changes(store, b);
-    expect(seen).toEqual({ profiles: [], parcels: [], screens: [], cursor: null });
+    expect(seen).toEqual({ profiles: [], parcels: [], screens: [], household: [], cursor: null });
     expect((await handleScreen(get("/sync/screen?id=s1", b), store)).status).toBe(404);
     expect((await handleScreen(get("/sync/screen?id=s1", a), store)).status).toBe(200);
   });
@@ -172,5 +172,35 @@ describe("the sync routes (step 5 §4), over the memory store", () => {
     const code = await start(store);
     for (const r of [await handleChanges(get("/sync/changes", code), store), await handleHealth(store)])
       expect(r.headers.get("cache-control")).toBe("no-store");
+  });
+});
+
+describe("the household's asks and takes (step 6), over the memory store", () => {
+  it("save and fetch as whole records by kind and key; the later save wins; a null record deletes", async () => {
+    const store = new MemorySyncStore();
+    const code = await start(store);
+    const ask = { key: "k1:julie", parcel: "k1", from: "zach", to: "julie", note: "Spring?", at: "t1" };
+    const take = { key: "k1:julie", parcel: "k1", by: "julie", answer: "maybe", comment: "", at: "t2" };
+    await save(store, code, {
+      household: [
+        { key: ask.key, kind: "ask", record: ask },
+        { key: take.key, kind: "take", record: take },
+      ],
+    });
+    let c = await changes(store, code);
+    expect(c.household.map((h) => [h.kind, h.key])).toEqual([
+      ["ask", "k1:julie"],
+      ["take", "k1:julie"],
+    ]);
+    await save(store, code, {
+      household: [{ key: take.key, kind: "take", record: { ...take, answer: "yes" } }],
+    });
+    c = await changes(store, code);
+    expect(c.household.find((h) => h.kind === "take")!.record).toEqual({ ...take, answer: "yes" });
+    await save(store, code, { household: [{ key: ask.key, kind: "ask", record: null }] });
+    c = await changes(store, code);
+    expect(c.household.find((h) => h.kind === "ask")).toMatchObject({ deleted: true, record: null });
+    // Another space sees none of it.
+    expect((await changes(store, await start(store))).household).toEqual([]);
   });
 });

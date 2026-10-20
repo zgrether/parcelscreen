@@ -26,11 +26,20 @@ export const ScreenSave = z.object({
   record: JsonObject,
 });
 
+/** An ask or a take (step 6): a whole record, by its key and kind. `record: null` deletes it. */
+export const HouseholdSave = z.object({
+  key: Id,
+  kind: z.enum(["ask", "take"]),
+  record: JsonObject.nullable(),
+});
+
 export const SaveBatch = z.object({
   profiles: z.array(ProfileSave).default([]),
   parcels: z.array(ParcelSave).default([]),
   screens: z.array(ScreenSave).default([]),
+  household: z.array(HouseholdSave).default([]),
 });
+export type HouseholdSave = z.infer<typeof HouseholdSave>;
 export type ProfileSave = z.infer<typeof ProfileSave>;
 export type ParcelSave = z.infer<typeof ParcelSave>;
 export type ScreenSave = z.infer<typeof ScreenSave>;
@@ -46,6 +55,13 @@ export interface StoredProfile {
 export interface StoredParcel {
   key: string;
   profile: string;
+  record: Record<string, unknown> | null;
+  deleted: boolean;
+  updatedAt: string;
+}
+export interface StoredHousehold {
+  key: string;
+  kind: "ask" | "take";
   record: Record<string, unknown> | null;
   deleted: boolean;
   updatedAt: string;
@@ -68,10 +84,12 @@ export interface Changes {
   parcels: StoredParcel[];
   /** The space's screens of the current schema version (added after `since`): the device fetches one when it's opened. */
   screens: { id: string; profile: string }[];
+  /** The household's asks and takes (step 6). */
+  household: StoredHousehold[];
   cursor: string | null;
 }
 
-export const ChangesSchema: z.ZodType<Changes> = z.object({
+export const ChangesSchema = z.object({
   profiles: z.array(
     z.object({ id: z.string(), record: JsonObject.nullable(), deleted: z.boolean(), updatedAt: z.string() }),
   ),
@@ -85,5 +103,16 @@ export const ChangesSchema: z.ZodType<Changes> = z.object({
     }),
   ),
   screens: z.array(z.object({ id: z.string(), profile: z.string() })),
+  household: z
+    .array(
+      z.object({
+        key: z.string(),
+        kind: z.enum(["ask", "take"]),
+        record: JsonObject.nullable(),
+        deleted: z.boolean(),
+        updatedAt: z.string(),
+      }),
+    )
+    .default([]),
   cursor: z.string().nullable(),
-});
+}) as z.ZodType<Changes>;

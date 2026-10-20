@@ -292,7 +292,8 @@ export async function seedScreens(page: Page, slugs: readonly FixtureSlug[]): Pr
           keys: { boundary: "e2e", house: "", settings: "e2e", lines: "" },
           result: s.result,
           engine,
-          profile: kv.profile,
+          // The household's list (step 6): its screens are the space's.
+          profile: "_space",
         });
         b.screenIds = [id];
       }

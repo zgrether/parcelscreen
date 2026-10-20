@@ -19,6 +19,7 @@ import { setPref } from "@/lib/client/prefs";
 import { readParcelStore } from "@/lib/client/parcelStore";
 import { RUBRICS_CHANGED } from "@/lib/client/rubrics";
 import { getScreen, putScreens, type ScreenRecord } from "@/lib/client/screenStore";
+import { readHousehold } from "@/lib/client/takes";
 import { registerSyncHooks, type SyncHooks } from "@/lib/client/syncHooks";
 import type { Profile } from "@/lib/client/profileStore";
 import { fetchChanges, fetchScreen, saveBatch } from "./client";
@@ -31,6 +32,11 @@ import {
   PARCELS_DOC,
   parcelOf,
   parcelSnapshot,
+  HOUSEHOLD_DOC,
+  householdId,
+  householdRecord,
+  householdSnapshot,
+  mergeHousehold,
   profileRecord,
   SYNCED_DOCS,
   type ProfileRecord,
@@ -38,9 +44,11 @@ import {
 import { hasUnsaved, readSyncState, writeSyncState, type SyncState, type Unsaved } from "./state";
 import {
   MAX_BATCH_BYTES,
+  type HouseholdSave,
   type ParcelSave,
   type ProfileSave,
   type ScreenSave,
+  type StoredHousehold,
   type StoredProfile,
 } from "./wire";
 
@@ -78,6 +86,9 @@ class Engine implements SyncHooks {
   private readonly parcelBase = new Map<string, string>();
   /** Which profile's parcels document holds each parcel. */
   private readonly owner = new Map<string, string>();
+  /** The household's asks and takes (step 6), by "<kind>:<key>". */
+  private readonly householdBase = new Map<string, string>();
+  private readonly dirtyHousehold = new Set<string>();
   /** What may have changed here and isn't saved: checked against the baseline when the save goes. */
   private readonly dirtyProfiles = new Set<string>();
   private readonly dirtyParcels = new Map<string, string>();
@@ -95,6 +106,7 @@ class Engine implements SyncHooks {
       profiles: [...this.dirtyProfiles],
       parcels: [...this.dirtyParcels].map(([key, profile]) => ({ key, profile })),
       screens: [...this.dirtyScreens],
+      household: [...this.dirtyHousehold],
     };
     this.state = { ...this.state, unsaved };
     writeSyncState(this.state);
@@ -135,7 +147,13 @@ class Engine implements SyncHooks {
       this.parcelBase.set(key, value);
       this.owner.set(key, SPACE_ID);
     }
+    for (const [id, value] of householdSnapshot(await this.doc(SPACE_ID, HOUSEHOLD_DOC)))
+      this.householdBase.set(id, value);
     const u = this.state.unsaved;
+    for (const id of u.household) {
+      this.householdBase.delete(id);
+      this.dirtyHousehold.add(id);
+    }
     for (const id of u.profiles) {
       this.profileBase.delete(id);
       this.dirtyProfiles.add(id);
@@ -179,12 +197,24 @@ class Engine implements SyncHooks {
     }
     const profiles = new Map((await this.profiles()).map((p) => [p.id, p.name]));
     for (const id of u.profiles) names.push(profiles.get(id) ?? "a profile");
+    for (const id of u.household) names.push(id.startsWith("ask:") ? "an ask" : "a take");
     return names;
   }
 
   // ---------- this device's writes (the hooks) ----------
 
   docWritten(profile: string, key: string): void {
+    if (key === HOUSEHOLD_DOC && profile === SPACE_ID) {
+      const now = householdSnapshot(sharedKv()?.getItem(key) ?? null);
+      if (this.applying) {
+        for (const [id, v] of now) if (!this.dirtyHousehold.has(id)) this.householdBase.set(id, v);
+        return;
+      }
+      const { changed, removed } = diffParcels(this.householdBase, now);
+      for (const id of [...changed, ...removed]) this.dirtyHousehold.add(id);
+      if (changed.length || removed.length) this.schedule();
+      return;
+    }
     if (key === PARCELS_DOC) {
       if (profile !== SPACE_ID) return; // the list is the household's (step 6): a profile's own copy isn't synced
       const now = parcelSnapshot(sharedKv()?.getItem(key) ?? null);
@@ -264,7 +294,8 @@ class Engine implements SyncHooks {
     const profileIds = [...this.dirtyProfiles];
     const parcelKeys = [...this.dirtyParcels];
     const screenIds = [...this.dirtyScreens];
-    if (!profileIds.length && !parcelKeys.length && !screenIds.length) {
+    const householdIds = [...this.dirtyHousehold];
+    if (!profileIds.length && !parcelKeys.length && !screenIds.length && !householdIds.length) {
       if (view.status === "failed" && !view.atOpen) setView({ status: "synced", atOpen: false });
       return;
     }
@@ -288,6 +319,16 @@ class Engine implements SyncHooks {
       parcels.push({ key, profile, record });
       sentParcels.set(key, value);
     }
+    const household: HouseholdSave[] = [];
+    const sentHousehold = new Map<string, string | null>();
+    const householdRaw = await this.doc(SPACE_ID, HOUSEHOLD_DOC);
+    for (const id of householdIds) {
+      const x = householdRecord(householdRaw, id);
+      const value = x.record ? canonical(x.record) : null;
+      if ((this.householdBase.get(id) ?? null) === value) continue;
+      household.push({ key: x.key, kind: x.kind, record: x.record });
+      sentHousehold.set(id, value);
+    }
     const screens: ScreenSave[] = [];
     for (const id of screenIds) {
       const r = await getScreen(id);
@@ -303,8 +344,13 @@ class Engine implements SyncHooks {
     for (const id of profileIds) this.dirtyProfiles.delete(id);
     for (const [key] of parcelKeys) this.dirtyParcels.delete(key);
     for (const id of screenIds) this.dirtyScreens.delete(id);
+    for (const id of householdIds) this.dirtyHousehold.delete(id);
     try {
-      await sendAll(this.state.code, profiles, parcels, screens);
+      await sendAll(this.state.code, profiles, parcels, screens, undefined, household);
+      for (const [id, v] of sentHousehold) {
+        if (v === null) this.householdBase.delete(id);
+        else this.householdBase.set(id, v);
+      }
       for (const [id, v] of sentProfiles) this.profileBase.set(id, v);
       for (const [key, v] of sentParcels) {
         if (v === null) this.parcelBase.delete(key);
@@ -317,6 +363,7 @@ class Engine implements SyncHooks {
       for (const [key, profile] of parcelKeys)
         if (!this.dirtyParcels.has(key)) this.dirtyParcels.set(key, profile);
       for (const id of screenIds) this.dirtyScreens.add(id);
+      for (const id of householdIds) this.dirtyHousehold.add(id);
       this.persist();
       setView({ status: "failed", atOpen: false });
     }
@@ -326,9 +373,11 @@ class Engine implements SyncHooks {
   async discard(): Promise<void> {
     const profiles = [...this.dirtyProfiles];
     const parcels = [...this.dirtyParcels];
+    const household = [...this.dirtyHousehold];
     this.dirtyProfiles.clear();
     this.dirtyParcels.clear();
     this.dirtyScreens.clear();
+    this.dirtyHousehold.clear();
     this.persist();
     const changes = await fetchChanges(this.state.code, null).catch(() => null);
     if (!changes) {
@@ -347,10 +396,19 @@ class Engine implements SyncHooks {
     // Marked as differing from anything the space holds, so the space's copy of each is taken.
     for (const id of profiles) this.profileBase.set(id, DISCARDED);
     for (const [key] of parcels) this.parcelBase.set(key, DISCARDED);
+    for (const id of household) this.householdBase.set(id, DISCARDED);
+    const heldHousehold = new Set(changes.household.map((x) => householdId(x.kind, x.key)));
+    const goneHousehold = household
+      .filter((id) => !heldHousehold.has(id))
+      .map((id) => {
+        const x = householdRecord(null, id);
+        return { key: x.key, kind: x.kind, record: null, deleted: true, updatedAt: "" };
+      });
     await this.apply({
       ...changes,
       profiles: [...changes.profiles, ...goneProfiles],
       parcels: [...changes.parcels, ...missing],
+      household: [...changes.household, ...goneHousehold],
     });
     setView({ status: "synced", atOpen: false });
   }
@@ -384,6 +442,7 @@ class Engine implements SyncHooks {
   private async apply(changes: {
     profiles: StoredProfile[];
     parcels: { key: string; profile: string; record: Record<string, unknown> | null; deleted: boolean }[];
+    household: StoredHousehold[];
   }): Promise<void> {
     const storage = profileStorage();
     if (!storage) return;
@@ -460,6 +519,29 @@ class Engine implements SyncHooks {
         const store = readParcelStore(merged);
         if (store) setPref("ps.parcels", store);
       }
+
+      // The household's asks and takes (step 6), the same way.
+      const freshHousehold = changes.household.filter((x) => {
+        const id = householdId(x.kind, x.key);
+        return (
+          !this.dirtyHousehold.has(id) &&
+          (this.householdBase.get(id) ?? null) !== (x.record && !x.deleted ? canonical(x.record) : null)
+        );
+      });
+      if (freshHousehold.length) {
+        const merged = mergeHousehold(
+          await this.doc(SPACE_ID, HOUSEHOLD_DOC),
+          freshHousehold,
+          this.dirtyHousehold,
+        );
+        for (const x of freshHousehold) {
+          const id = householdId(x.kind, x.key);
+          if (x.record && !x.deleted) this.householdBase.set(id, canonical(x.record));
+          else this.householdBase.delete(id);
+        }
+        const h = readHousehold(merged);
+        if (h) setPref("ps.household", h);
+      }
     } finally {
       this.applying = false;
     }
@@ -476,18 +558,23 @@ async function sendAll(
   parcels: ParcelSave[],
   screens: ScreenSave[],
   progress?: (done: number, total: number) => void,
+  /** The household's asks and takes (step 6). */
+  household: HouseholdSave[] = [],
 ): Promise<void> {
   const size = (x: unknown) => JSON.stringify(x).length + 1;
-  if (profiles.length || parcels.length)
-    for (const b of batches<ProfileSave | ParcelSave>([...profiles, ...parcels], MAX_BATCH_BYTES, size))
+  type Small = ProfileSave | ParcelSave | HouseholdSave;
+  const isHousehold = (x: Small): x is HouseholdSave => "kind" in x;
+  if (profiles.length || parcels.length || household.length)
+    for (const b of batches<Small>([...profiles, ...parcels, ...household], MAX_BATCH_BYTES, size))
       await saveBatch(code, {
         profiles: b.filter((x): x is ProfileSave => "id" in x),
-        parcels: b.filter((x): x is ParcelSave => "key" in x),
+        parcels: b.filter((x): x is ParcelSave => "key" in x && !isHousehold(x)),
         screens: [],
+        household: b.filter(isHousehold),
       });
   let done = 0;
   for (const b of batches(screens, MAX_BATCH_BYTES, size)) {
-    await saveBatch(code, { profiles: [], parcels: [], screens: b });
+    await saveBatch(code, { profiles: [], parcels: [], screens: b, household: [] });
     done += b.length;
     progress?.(done, screens.length);
   }

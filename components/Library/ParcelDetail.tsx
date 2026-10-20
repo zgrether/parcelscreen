@@ -122,7 +122,7 @@ export function ParcelDetail({
           </p>
         )}
         {/* Step 6: how each other member would rate it, from their own priorities. */}
-        {result && <Others result={result} drawn={drawn} />}
+        {result && <Others result={result} drawn={drawn} parcel={parcel.key} />}
         <div className="lib-detail-actions">
           {confirming ? (
             <>

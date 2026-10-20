@@ -9,7 +9,7 @@
  *     which switches this device to Julie and opens the questions.
  * Nothing shows in a household of one.
  */
-import { useSyncExternalStore, type ReactNode } from "react";
+import { useSyncExternalStore } from "react";
 import { otherMembers, type Member } from "@/lib/client/household";
 import { RUBRICS_CHANGED } from "@/lib/client/profileEvents";
 import { switchProfile } from "@/lib/client/profiles";
@@ -18,6 +18,7 @@ import { reportCard } from "@/lib/report/card";
 import type { Drawn } from "@/lib/report/marks";
 import type { PartialScreenResult as Result } from "@/lib/screen/types";
 import { differences } from "@/lib/report/household";
+import { TheirTake, YourTake } from "./Takes";
 
 const subscribe = (changed: () => void) => {
   window.addEventListener(RUBRICS_CHANGED, changed);
@@ -33,15 +34,7 @@ function snapshot(): Member[] {
 }
 const none: Member[] = [];
 
-export function Others({
-  result,
-  drawn,
-  extra,
-}: {
-  result: Result;
-  drawn?: Drawn;
-  extra?: (m: Member) => ReactNode;
-}) {
+export function Others({ result, drawn, parcel }: { result: Result; drawn?: Drawn; parcel: string | null }) {
   const members = useSyncExternalStore(subscribe, snapshot, () => none);
   if (!members.length) return null;
   return (
@@ -50,9 +43,11 @@ export function Others({
         <section key={m.id} className="block others" aria-label={`How ${m.name} would rate it`}>
           <h3>How {m.name} would rate it</h3>
           {m.rubric ? <Rated m={m} result={result} drawn={drawn} /> : <NoPriorities m={m} />}
-          {extra?.(m)}
+          {/* Step 6 PR 3: their take, and Ask. A parcel not on the list yet can't be asked about. */}
+          {parcel && <TheirTake parcel={parcel} m={m} />}
         </section>
       ))}
+      {parcel && <YourTake parcel={parcel} />}
     </>
   );
 }

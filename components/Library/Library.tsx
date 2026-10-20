@@ -42,7 +42,11 @@ import {
   type WorkingParcel,
 } from "@/lib/client/parcelStore";
 import { getPref, onParcelsWritten, setPref } from "@/lib/client/prefs";
-import { profileRubrics, switchLabel } from "@/lib/client/rubrics";
+import { switchLabel } from "@/lib/client/rubrics";
+import { useRubricView } from "@/lib/client/useRubricView";
+import { dropParcel, useHousehold } from "@/lib/client/householdDoc";
+import { currentProfileId } from "@/lib/client/profiles";
+import { ANSWER_WORD } from "@/lib/client/takes";
 import { useKeptScreens } from "@/lib/client/useKeptScreens";
 import type { Verdict } from "@/lib/report/card";
 import type { NamedRubric } from "@/lib/rubric/types";
@@ -89,10 +93,13 @@ export function Library() {
 
   const built = store.built;
   const screens = useKeptScreens(built);
-  const rubrics = useMemo(() => profileRubrics(), []);
+  // The members' rubrics (step 6) change when they set their priorities, here or by a sync.
+  const { rubrics } = useRubricView();
+  const household = useHousehold();
+  const me = currentProfileId();
   const rows = useMemo(
-    () => built.map((p) => libraryRow(p, screens.get(p.key!), rubrics)),
-    [built, screens, rubrics],
+    () => built.map((p) => libraryRow(p, screens.get(p.key!), rubrics, { household, me })),
+    [built, screens, rubrics, household, me],
   );
   const hidden = hiddenBy(rows, view.filters);
   const shown = sortRows(
@@ -139,6 +146,7 @@ export function Library() {
   };
 
   const remove = (key: string) => {
+    dropParcel(key); // its asks and takes go with it (step 6)
     keep(removeBuilt(latest.current, key));
     setOpened(null);
   };
@@ -309,6 +317,9 @@ function Grades({ r }: { r: LibraryRow }) {
         <span key={g.id} className="lib-other-grade" title={`${g.name}'s grade`}>
           <span className="tiny muted">· {g.name}</span>
           <span className={`card-grade tiny g-${g.graded?.grade ?? "none"}`}>{g.graded?.grade ?? "–"}</span>
+          {r.takes[g.id] && (
+            <span className={`take-chip tiny a-${r.takes[g.id]}`}>{ANSWER_WORD[r.takes[g.id]!]}</span>
+          )}
         </span>
       ))}
     </span>
