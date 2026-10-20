@@ -44,14 +44,14 @@ test.describe("on a desktop", () => {
     const was = await field.inputValue();
     await field.fill(String(Number(was) + 1));
     await page.getByRole("button", { name: "Save", exact: true }).click();
-    await expect(grade(page)).toHaveText("Grade again: settings changed");
+    await expect(grade(page)).toHaveText("Grade again: house site score changed");
     await expect(line).toHaveText(/^Graded in \d+ s · 3 sources didn't loadSteps ▸$/);
 
     // ▸ opens the run's list.
     await line.click();
     await expect(page.locator("ul.steps li")).toHaveCount(11);
     await page.reload();
-    await expect(grade(page)).toHaveText("Grade again: settings changed");
+    await expect(grade(page)).toHaveText("Grade again: house site score changed");
     expect(errors).toEqual([]);
   });
 });

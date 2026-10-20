@@ -36,6 +36,15 @@ describe("the grade button (step 4c, plan §2)", () => {
       "Grade again: lines changed",
     );
     expect(label({ ...graded, fresh: { ...FRESH, settings: true } })).toBe("Grade again: settings changed");
+    // Named when the run kept them (polish #10): the first two, then a count.
+    const named = (settingsChanged: string[]) =>
+      label({ ...graded, fresh: { ...FRESH, settings: true, settingsChanged } });
+    expect(named(["roadVetoGradePct"])).toBe("Grade again: road veto changed");
+    expect(named(["roadVetoGradePct", "budget"])).toBe("Grade again: road veto and budget changed");
+    expect(named(["houseMin", "dw", "budget", "timeZone"])).toBe(
+      "Grade again: house site score, driveway costs and 2 more changed",
+    );
+    expect(named(["aspectFrom", "aspectTo"])).toBe("Grade again: aspect changed");
     expect(label({ ...graded, failed: 3 })).toBe("Try again: 3 sources didn't load");
     expect(label({ ...graded, failed: 1 })).toBe("Try again: 1 source didn't load");
   });

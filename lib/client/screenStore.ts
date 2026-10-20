@@ -31,6 +31,7 @@ export const ScreenRecordSchema = z.object({
     boundary: z.string(),
     house: z.string(),
     settings: z.string(),
+    settingsBy: z.record(z.string(), z.string()).optional(),
     // Follow-up 34 (v5): a key kept before it has no lines.
     lines: z.string().default(""),
   }),

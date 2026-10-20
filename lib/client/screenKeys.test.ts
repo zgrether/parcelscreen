@@ -24,8 +24,23 @@ describe("run keys and freshness (14d)", () => {
       boundary: false,
       house: false,
       settings: false,
+      settingsChanged: [],
       lines: false,
     });
+  });
+
+  it("names the settings that changed (polish #10), and none for a run kept without them", () => {
+    const changed = { ...DEFAULT_USER_CONFIG, roadVetoGradePct: 31, budget: { readyToBuild: 1 } };
+    const now = runKeys(square(-80.455), null, changed);
+    expect(freshness(run, now).settingsChanged).toEqual(["roadVetoGradePct", "budget"]);
+    const { settingsBy: _gone, ...older } = run;
+    expect(freshness(older, now)).toMatchObject({ settings: true, settingsChanged: [] });
+    // The endpoints aren't settings here: a moved service changes nothing.
+    const moved = {
+      ...DEFAULT_USER_CONFIG,
+      endpoints: { ...DEFAULT_USER_CONFIG.endpoints, osrm: "https://x" },
+    };
+    expect(freshness(run, runKeys(square(-80.455), null, moved)).settingsChanged).toEqual([]);
   });
 
   it("tells the three cases apart: boundary, house, settings", () => {

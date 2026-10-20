@@ -43,11 +43,11 @@ that fixed it.
 
 ## Step 4c: Map layout (#196)
 
-- **Map, grade button:** "Grade again: settings changed" doesn't say which. Fix: name the changed settings.
+- ~~**Map, grade button:** "Grade again: settings changed" doesn't say which. Fix: name the changed settings.~~ Done in #235. Named for a run graded from now on; one kept before says "settings changed".
 - ~~**Map panel, log:** "Graded in 47 s ▸" doesn't hint that ▸ holds the failures. Fix: a label on ▸.~~ Done in #232.
 - ~~**Map panel:** the slim tab reads as a label; the ‹ toggle is small. Fix: a button look and a 44 px target.~~ Done in #232.
 - **Map:** S#, E#, G1, numbered pins, red lines and the fan unexplained (also #216). Fix: a legend or tooltips.
-- **Report card:** a grade shows while the run is still going. Fix: hold the grade until the run ends.
+- ~~**Report card:** a grade shows while the run is still going. Fix: hold the grade until the run ends.~~ Done in #235.
 - **Map:** the tilt tip stays up; "Stand here" under the phone's column buttons (also #223). Fix: dismiss the tip after
   a tilt; move Stand here.
 
@@ -82,11 +82,11 @@ that fixed it.
 
 ## Step 7: Screening results (#216)
 
-- **Results answer:** "B Contender" vs "B Maybe" (also #223). Fix: say on the card what holds a B at Maybe.
-- **Results answer:** "past your 20" is terse. Fix: "past your 20-minute limit" (report text: rule 7).
-- **Card, Must rows:** the same frontage is ✓ on Roan and ! on Ferney. Fix: show the private-road reason more plainly.
-- **Best homesite:** other spots read #2, #4, #5, #3; each shows different numbers; it's a heading and a card row.
-  Fix: rank apart from the pin number; the same fields per spot; the section named "Where to build" (parked).
+- ~~**Results answer:** "B Contender" vs "B Maybe" (also #223). Fix: say on the card what holds a B at Maybe.~~ Done in #235. "Held at Maybe by: …" under the reason.
+- ~~**Results answer:** "past your 20" is terse. Fix: "past your 20-minute limit" (report text: rule 7).~~ Done in #235.
+- ~~**Card, Must rows:** the same frontage is ✓ on Roan and ! on Ferney. Fix: show the private-road reason more plainly.~~ Done in #235. What made it a warning goes on its own line.
+- ~~**Best homesite:** other spots read #2, #4, #5, #3; each shows different numbers; it's a heading and a card row.
+  Fix: rank apart from the pin number; the same fields per spot; the section named "Where to build" (parked).~~ Done in #235. The section keeps its name; "Where to build" stays parked.
 - **Older screens:** pin codes, Stand here, the full report's acreages and jargon, Cost to enjoy, map tips and toasts,
   the toolbar, nav labels. Fix: a later UX pass, item by item.
 
@@ -115,13 +115,13 @@ that fixed it.
 
 ## Step 8b: the parcel panel (hand-back)
 
-- **Grade, stale results:** a red "earlier boundary" bar, the yellow "You drew or changed a line" box and the orange
+- ~~**Grade, stale results:** a red "earlier boundary" bar, the yellow "You drew or changed a line" box and the orange
   Grade again at once; the stale card is pale and hard to read. Fix: one banner with one action; keep stale text at
-  readable contrast.
-- **Grade, phone:** with those warnings the answer (B Contender) sits below the sheet's fold. Fix: the answer above the
-  warnings.
-- **Grade:** "Site #1 · its pin is ringed on the map" with no ringed pin in view; "Site" and "spots" both used. Fix:
-  fit the map to the site, or say where; one word.
+  readable contrast.~~ Done in #235.
+- ~~**Grade, phone:** with those warnings the answer (B Contender) sits below the sheet's fold. Fix: the answer above the
+  warnings.~~ Done in #235.
+- ~~**Grade:** "Site #1 · its pin is ringed on the map" with no ringed pin in view; "Site" and "spots" both used. Fix:
+  fit the map to the site, or say where; one word.~~ Done in #235. "Site #1" flies the map to its pin.
 - ~~**Map layers:** on/off is a tan fill shared with the chosen basemap; "Terrain preview ≈10 m — screen uses 3 m lidar"
   reads as jargon; on a phone the panel is clipped. Fix: switches or checkboxes; plainer words; a scrolling bottom sheet.~~ Done in #232.
 - ~~**Toolbar, desktop with Map layers open:** the bar narrows and the trash sits on the grade button; the trash and the
