@@ -9,7 +9,7 @@ import { DEFAULT_USER_CONFIG } from "../screen/config";
 import { MINE } from "../rubric/types";
 import { MOVED_PREFIX, PRE_PROFILE_KEYS, type DeviceStore } from "./oldData";
 import { getPref, setPref } from "./prefs";
-import { activeKv, PROFILE_KEYS, ProfileKv } from "./profileKv";
+import { activeKv, PROFILE_KEYS, ProfileKv, sharedKv, SPACE_ID } from "./profileKv";
 import { memoryProfileStorage } from "./profileStore";
 import {
   bootProfiles,
@@ -85,7 +85,9 @@ describe("data from before profiles is dropped (step 2 plan §9)", () => {
     const storage = memoryProfileStorage();
     const existing = newProfile("Mine");
     await storage.putProfile(existing);
-    await storage.putDoc({ profile: existing.id, key: "ps.parcels", value: PARCELS });
+    await storage.putDoc({ profile: existing.id, key: "ps.cfg", value: CFG });
+    // The household's list is already there (step 6), so this boot has no clean break of its own.
+    await storage.putDoc({ profile: SPACE_ID, key: "ps.parcels", value: PARCELS });
     const ls = fakeLs({
       [CURRENT_PROFILE_KEY]: existing.id,
       [MOVED_PREFIX + "ps.parcels"]: PARCELS,
@@ -99,13 +101,13 @@ describe("data from before profiles is dropped (step 2 plan §9)", () => {
     expect(oldDataDropped()).toBe(false);
     expect([...ls.data.keys()].filter((k) => k.startsWith(MOVED_PREFIX))).toEqual([]);
     expect(ls.getItem("ps.view")).toBe("{}");
-    expect((await storage.docs(existing.id)).map((d) => d.key)).toEqual(["ps.parcels"]);
+    expect((await storage.docs(existing.id)).map((d) => d.key)).toEqual(["ps.cfg"]);
   });
 
   it("a browser that never opened step 1: its keys and unstamped screens go, nothing moves, and the menu says so", async () => {
     const storage = memoryProfileStorage();
     storage.state.screens.set("s1", {});
-    storage.state.screens.set("s2", { profile: "other" });
+    storage.state.screens.set("s2", { profile: SPACE_ID });
     const ls = fakeLs({ "ps.parcels": PARCELS, "ps.cfg": CFG, "ps.person": "julie", "ps.view": "{}" });
     const b = await bootProfiles({ storage, ls });
     expect(b.droppedOld).toBe(true);
@@ -192,5 +194,55 @@ describe("the profile's key-value store", () => {
     expect((await storage.docs(b.id)).length).toBe(1);
     expect(await storage.screenIds(a.id)).toEqual([]);
     expect(await storage.screenIds(b.id)).toEqual(["sb"]);
+  });
+});
+
+describe("the household's one list (step 6, docs/plans/step-6-household.md §1)", () => {
+  it("the parcels and the household's document are shared: every profile reads and writes the same ones", async () => {
+    const storage = memoryProfileStorage();
+    const a = await bootProfiles({ storage, ls: fakeLs() });
+    setPref("ps.parcels", { v: 2, open: null, built: [] });
+    await sharedKv()!.flush();
+    expect((await storage.docs(SPACE_ID)).map((d) => d.key)).toContain("ps.parcels");
+    expect((await storage.docs(a.profile.id)).map((d) => d.key)).not.toContain("ps.parcels");
+    resetProfilesForTests();
+    const other = newProfile("Julie");
+    await storage.putProfile(other);
+    await bootProfiles({ storage, ls: fakeLs({ [CURRENT_PROFILE_KEY]: other.id }) });
+    expect(getPref("ps.parcels")).toEqual({ v: 2, open: null, built: [] });
+  });
+
+  it("the clean break: each profile's own list and the screens stamped with a profile go, once, and the menu says so", async () => {
+    const storage = memoryProfileStorage();
+    const zach = newProfile("Zach");
+    const julie = newProfile("Julie");
+    await storage.putProfile(zach);
+    await storage.putProfile(julie);
+    await storage.putDoc({ profile: zach.id, key: "ps.parcels", value: PARCELS });
+    await storage.putDoc({ profile: zach.id, key: "ps.cfg", value: CFG });
+    await storage.putDoc({ profile: julie.id, key: "ps.parcels", value: PARCELS });
+    storage.state.screens.set("old", { profile: zach.id });
+    const b = await bootProfiles({ storage, ls: fakeLs({ [CURRENT_PROFILE_KEY]: zach.id }) });
+    expect(b.droppedOld).toBe(true);
+    expect(oldDataDropped()).toBe(true);
+    expect((await storage.docs(zach.id)).map((d) => d.key)).toEqual(["ps.cfg"]);
+    expect(await storage.docs(julie.id)).toEqual([]);
+    expect([...storage.state.screens.keys()]).toEqual([]);
+    // Once there's a shared list, there's nothing more to break.
+    setPref("ps.parcels", { v: 2, open: null, built: [] });
+    await sharedKv()!.flush();
+    resetProfilesForTests();
+    expect((await bootProfiles({ storage, ls: fakeLs() })).droppedOld).toBe(false);
+  });
+
+  it("deleting a profile leaves the household's list and its screens", async () => {
+    const storage = memoryProfileStorage();
+    const a = newProfile("A");
+    await storage.putProfile(a);
+    await storage.putDoc({ profile: SPACE_ID, key: "ps.parcels", value: PARCELS });
+    storage.state.screens.set("shared", { profile: SPACE_ID });
+    await storage.deleteProfile(a.id);
+    expect((await storage.docs(SPACE_ID)).length).toBe(1);
+    expect(await storage.screenIds(SPACE_ID)).toEqual(["shared"]);
   });
 });

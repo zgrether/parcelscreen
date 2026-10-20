@@ -5329,3 +5329,26 @@ button.sync-ind.bad {
     background: var(--color-warn);
   }
 }
+
+/* ---------- Step 6: the household (docs/plans/step-6-household.md) ---------- */
+.who-page .sync-line {
+  max-width: 520px;
+  margin-bottom: 16px;
+}
+.who-list {
+  display: grid;
+  gap: 10px;
+  max-width: 420px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.who-person {
+  width: 100%;
+  min-height: 48px;
+  justify-content: flex-start;
+  text-align: left;
+}
+.added-by {
+  margin: 0 0 4px;
+}

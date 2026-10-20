@@ -426,3 +426,15 @@ describe("a Septic field saved by #136 (owner, after #136: no separate kind)", (
     expect(KIND_NAME[m.kind]).toBe("Septic permit");
   });
 });
+
+describe("who added it (step 6)", () => {
+  it("a parcel records the profile that first built it, and keeps it through later edits by anyone", () => {
+    expect(plain.addedBy).toBeNull();
+    const s1 = commitOpen(EMPTY_STORE, { ...plain, notes: "Spring." }, T0, () => "k1", "zach");
+    expect(s1.built[0]!.addedBy).toBe("zach");
+    const s2 = commitOpen(s1, { ...s1.open!, notes: "Spring by the barn." }, T1, () => "k2", "julie");
+    expect(s2.built[0]!.addedBy).toBe("zach");
+    // Not built yet: nothing to record.
+    expect(commitOpen(EMPTY_STORE, plain, T0, () => "k3", "zach").built).toEqual([]);
+  });
+});

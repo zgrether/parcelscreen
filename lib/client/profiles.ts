@@ -8,9 +8,19 @@
 import { debugOn } from "./debugHandle";
 import { openDb } from "./db";
 import { dropOldData, type DeviceStore } from "./oldData";
-import { activeKv, ProfileKv, setActiveKv, type KvHandle } from "./profileKv";
+import {
+  activeKv,
+  isSharedKey,
+  ProfileKv,
+  setActiveKv,
+  setSharedKv,
+  sharedKv,
+  SPACE_ID,
+  type KvHandle,
+} from "./profileKv";
 import { idbProfileStorage, memoryProfileStorage, type Profile, type ProfileStorage } from "./profileStore";
 import { onboardingDoc, onboardingOn } from "./onboarding";
+import { profilesChanged } from "./profileEvents";
 import { syncHooks } from "./syncHooks";
 
 /** The device's current profile, by id. */
@@ -97,7 +107,6 @@ export async function bootProfiles(opts: BootOptions = {}): Promise<Booted> {
   }
   // Screens kept before profiles have no profile stamp: no profile can open them, so they go with the keys.
   if (dropped) await s.dropUnstamped().catch(() => undefined);
-  droppedOld = dropped;
   profile = { ...profile, openedAt: now };
   await s.putProfile(profile).catch(() => undefined);
   try {
@@ -105,12 +114,31 @@ export async function bootProfiles(opts: BootOptions = {}): Promise<Booted> {
   } catch {
     /* the device won't remember which profile is current */
   }
+  // Step 6's clean break (docs/plans/step-6-household.md §1): the list is the household's now, kept under SPACE_ID.
+  // Until there is one, each profile's own list and its screens are dropped, with no converter: the menu says so once,
+  // and Export file → Import file brings them back.
+  let sharedDocs = await s.docs(SPACE_ID).catch(() => []);
+  if (!sharedDocs.some((d) => d.key === "ps.parcels")) {
+    let gone = 0;
+    for (const p of profiles)
+      if ((await s.docs(p.id).catch(() => [])).some((d) => d.key === "ps.parcels")) {
+        await s.deleteDoc(p.id, "ps.parcels").catch(() => undefined);
+        gone++;
+      }
+    gone += await s.dropProfileScreens().catch(() => 0);
+    if (gone > 0) {
+      dropped = true;
+      sharedDocs = await s.docs(SPACE_ID).catch(() => []);
+    }
+  }
+  setSharedKv(new ProfileKv(SPACE_ID, s, sharedDocs));
   const docs = await s.docs(profile.id).catch(() => []);
   const kv = new ProfileKv(profile.id, s, docs);
   // A first visit's profile starts with the interview (step 4, owner Q9).
   if (created && onboardingOn()) kv.setItem("ps.interview", JSON.stringify(onboardingDoc()));
   setActiveKv(kv);
   current = profile;
+  droppedOld = dropped;
   publishKv(kv);
   return { profile, kv, droppedOld: dropped, created };
 }
@@ -156,6 +184,7 @@ export async function addProfile(name: string, now: string = new Date().toISOStr
   await storage?.putProfile(p);
   await storage?.putDoc({ profile: p.id, key: "ps.interview", value: JSON.stringify(onboardingDoc()) });
   syncHooks()?.profileChanged(p.id);
+  profilesChanged();
   return p;
 }
 
@@ -168,6 +197,7 @@ export async function renameProfile(id: string, name: string): Promise<void> {
   await s.putProfile(next);
   if (current?.id === id) current = next;
   syncHooks()?.profileChanged(id);
+  profilesChanged();
 }
 
 /**
@@ -180,6 +210,7 @@ export async function deleteProfile(id: string): Promise<{ wasCurrent: boolean }
   await s.deleteProfile(id);
   // On a joined device it goes everywhere (owner, 10/19, step 5 plan §11 Q5).
   syncHooks()?.profileDeleted(id);
+  profilesChanged();
   const wasCurrent = current?.id === id;
   if (wasCurrent) {
     try {
@@ -209,18 +240,20 @@ declare global {
 
 function publishKv(kv: ProfileKv): void {
   if (typeof window === "undefined" || !debugOn()) return;
+  // The household's shared documents (step 6: the list) go to the shared store, as the prefs module routes them.
+  const to = (k: string): ProfileKv => (isSharedKey(k) && sharedKv()) || kv;
   const handle: KvDebugHandle = {
     profile: kv.profile,
-    getItem: (k) => kv.getItem(k),
+    getItem: (k) => to(k).getItem(k),
     setItem: async (k, v) => {
-      kv.setItem(k, v);
-      await kv.flush();
+      to(k).setItem(k, v);
+      await to(k).flush();
     },
     removeItem: async (k) => {
-      kv.removeItem(k);
-      await kv.flush();
+      to(k).removeItem(k);
+      await to(k).flush();
     },
-    flush: () => kv.flush(),
+    flush: () => Promise.all([kv.flush(), sharedKv()?.flush()]).then(() => undefined),
   };
   window.__psKv = handle;
 }
@@ -233,6 +266,7 @@ export function resetProfilesForTests(): void {
   device = null;
   droppedOld = false;
   setActiveKv(null);
+  setSharedKv(null);
 }
 
 export type { KvHandle };

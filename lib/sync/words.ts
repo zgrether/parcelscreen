@@ -47,10 +47,6 @@ export function joinReplaces(profiles: number, parcels: number): string {
   return `This device has ${n(profiles, "profile")} and ${n(parcels, "parcel")} of its own. Joining replaces them with the synced space's. Export them first if you want to keep a copy.`;
 }
 
-/** Export first saves the current profile only, as Export file does: said when there are others. */
-export const EXPORT_ONE_PROFILE =
-  "Export first saves this profile's parcels; switch profiles to export the others.";
-
 export function uploading(stage: "profiles" | "screens", done: number, total: number): string {
   return stage === "profiles"
     ? "Uploading your profiles and parcels…"

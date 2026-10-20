@@ -41,6 +41,7 @@ import { lineSummary, routeFromLine } from "@/lib/report/lines";
 import { RoadsToggle } from "./RoadsToggle";
 import { MarkIcon } from "./markIcons";
 import { TerrainControls } from "./TerrainControls";
+import { AddedBy } from "@/components/Household/AddedBy";
 
 const ac = (n: number) => `${n.toFixed(2)} ac`;
 
@@ -513,6 +514,7 @@ function ParcelDetails({ ctl, name }: { ctl: ExploreController; name: string }) 
   return (
     <>
       <h3>{name}</h3>
+      <AddedBy addedBy={ctl.state.store.open!.addedBy} />
       <ParcelStanding
         parcel={ctl.state.store.open!}
         act={{

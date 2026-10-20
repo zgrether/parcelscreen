@@ -196,7 +196,7 @@ function NameScreen({ begin, notNow }: { begin(): void; notNow(): void }) {
       </header>
       <form className="iv-screen" onSubmit={(e) => void go(e)}>
         <h1 className="iv-scene" ref={heading} tabIndex={-1}>
-          What should we call this profile?
+          What should we call you?
         </h1>
         <p className="iv-hint">
           Then a few quick questions about how you&apos;d like to live on the land. Your answers set what

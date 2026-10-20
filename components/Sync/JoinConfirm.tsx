@@ -9,7 +9,7 @@ import { useSettings } from "@/components/Settings/SettingsDialog";
 import { downloadExport } from "@/components/Settings/YourData";
 import { holdsData, joinSpace, localData, peekSpace, type LocalData } from "@/lib/sync/space";
 import type { Changes } from "@/lib/sync/wire";
-import { EXPORT_ONE_PROFILE, GETTING, JOIN_EMPTY, joinReplaces, WRONG_CODE } from "@/lib/sync/words";
+import { GETTING, JOIN_EMPTY, joinReplaces, WRONG_CODE } from "@/lib/sync/words";
 
 type Phase =
   | { kind: "checking" }
@@ -99,7 +99,6 @@ export function JoinConfirm({
       return (
         <div className="sync-block">
           <p className="sync-line">{replaces ? joinReplaces(local.profiles, local.parcels) : JOIN_EMPTY}</p>
-          {replaces && local.profiles > 1 && <p className="tiny muted">{EXPORT_ONE_PROFILE}</p>}
           <div className="sync-buttons">
             {replaces && (
               <button className="btn secondary" onClick={() => void downloadExport(settings.config)}>

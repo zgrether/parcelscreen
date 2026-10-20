@@ -10,7 +10,7 @@ import { z } from "zod";
 import { ENGINE_VERSION, UNSTAMPED_ENGINE } from "../screen/engine";
 import { ScreenResultSchema, type ScreenResult } from "../screen/types";
 import { openDb, SCREENS } from "./db";
-import { currentProfileId } from "./profiles";
+import { SPACE_ID } from "./profileKv";
 import type { RunKeys } from "./screenKeys";
 import { syncHooks } from "./syncHooks";
 
@@ -58,11 +58,8 @@ export const RESCREENS_ON_OPEN = "Re-screens with the current rules when opened"
 /** A parcel whose re-screen waits for the network (owner, #101). */
 export const RESCREEN_OFFLINE = "Will re-screen when you're back online";
 
-/** The record stamped with the current profile (step 1, PR 4), unless it already names one (an import keeps its own). */
-const stamped = (r: ScreenRecord): ScreenRecord => {
-  const profile = r.profile ?? currentProfileId();
-  return profile ? { ...r, profile } : r;
-};
+/** The record stamped as the household's (step 6: screens belong to the shared list, not a profile). */
+const stamped = (r: ScreenRecord): ScreenRecord => ({ ...r, profile: SPACE_ID });
 
 /** Adds a screen. Resolves false when it couldn't be kept. */
 export async function addScreen(record: ScreenRecord): Promise<boolean> {

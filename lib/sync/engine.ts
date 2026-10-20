@@ -13,6 +13,8 @@
  * - **Screens** are sent once, when kept, and fetched when a parcel needs one this device hasn't got.
  */
 import { activeKv, currentProfile, currentProfileId, profileStorage } from "@/lib/client/profiles";
+import { sharedKv, SPACE_ID } from "@/lib/client/profileKv";
+import { profilesChanged } from "@/lib/client/profileEvents";
 import { setPref } from "@/lib/client/prefs";
 import { readParcelStore } from "@/lib/client/parcelStore";
 import { RUBRICS_CHANGED } from "@/lib/client/rubrics";
@@ -108,8 +110,9 @@ class Engine implements SyncHooks {
     );
   }
 
-  /** A profile document: the current profile's from memory, another's from storage. */
+  /** A document: the household's shared ones (step 6) and the current profile's from memory, another's from storage. */
   private async doc(profile: string, key: string): Promise<string | null> {
+    if (profile === SPACE_ID) return sharedKv()?.getItem(key) ?? null;
     if (profile === currentProfileId()) return activeKv()?.getItem(key) ?? null;
     const docs =
       (await profileStorage()
@@ -126,12 +129,11 @@ class Engine implements SyncHooks {
 
   /** The baseline from this device's copy, as the app opens: it's taken to match the space, but for what was unsaved. */
   async init(): Promise<void> {
-    for (const p of await this.profiles()) {
-      this.profileBase.set(p.id, canonical(await this.record(p)));
-      for (const [key, value] of parcelSnapshot(await this.doc(p.id, PARCELS_DOC))) {
-        this.parcelBase.set(key, value);
-        this.owner.set(key, p.id);
-      }
+    for (const p of await this.profiles()) this.profileBase.set(p.id, canonical(await this.record(p)));
+    // The household's one list (step 6): its parcels are the space's, under SPACE_ID.
+    for (const [key, value] of parcelSnapshot(await this.doc(SPACE_ID, PARCELS_DOC))) {
+      this.parcelBase.set(key, value);
+      this.owner.set(key, SPACE_ID);
     }
     const u = this.state.unsaved;
     for (const id of u.profiles) {
@@ -184,7 +186,8 @@ class Engine implements SyncHooks {
 
   docWritten(profile: string, key: string): void {
     if (key === PARCELS_DOC) {
-      const now = parcelSnapshot(activeKv()?.profile === profile ? activeKv()!.getItem(key) : null);
+      if (profile !== SPACE_ID) return; // the list is the household's (step 6): a profile's own copy isn't synced
+      const now = parcelSnapshot(sharedKv()?.getItem(key) ?? null);
       const mine = new Map([...this.parcelBase].filter(([k]) => this.owner.get(k) === profile));
       if (this.applying) {
         // The merge's own write: what the store holds now is what the space holds, as this device writes it.
@@ -278,7 +281,7 @@ class Engine implements SyncHooks {
     const parcels: ParcelSave[] = [];
     const sentParcels = new Map<string, string | null>();
     for (const [key, profile] of parcelKeys) {
-      if (!all.has(profile)) continue; // the profile's deletion takes its parcels
+      if (profile !== SPACE_ID && !all.has(profile)) continue; // a deleted profile's own parcels go with it
       const record = parcelOf(await this.doc(profile, PARCELS_DOC), key);
       const value = record ? canonical(record) : null;
       if ((this.parcelBase.get(key) ?? null) === value) continue;
@@ -386,6 +389,7 @@ class Engine implements SyncHooks {
     if (!storage) return;
     const current = currentProfileId();
     let reload = false;
+    let others = false;
     this.applying = true;
     try {
       const local = new Map((await this.profiles()).map((p) => [p.id, p]));
@@ -395,6 +399,7 @@ class Engine implements SyncHooks {
           if (local.has(p.id)) {
             await storage.deleteProfile(p.id);
             if (p.id === current) reload = true;
+            else others = true;
           }
           this.profileBase.delete(p.id);
           for (const [k, o] of this.owner) if (o === p.id) this.parcelBase.delete(k);
@@ -425,12 +430,14 @@ class Engine implements SyncHooks {
         }
         this.profileBase.set(p.id, value);
         if (rubrics && p.id === current) dispatchEvent(new Event(RUBRICS_CHANGED));
+        if (p.id !== current) others = true;
       }
 
       const byProfile = new Map<string, typeof changes.parcels>();
       for (const x of changes.parcels) byProfile.set(x.profile, [...(byProfile.get(x.profile) ?? []), x]);
       for (const [profile, xs] of byProfile) {
-        if (!(await this.profiles()).some((p) => p.id === profile)) continue;
+        // Only the household's list (step 6); a space's rows from before step 6, kept per profile, are left alone.
+        if (profile !== SPACE_ID) continue;
         const keep = new Set([...this.dirtyParcels.keys()]);
         const raw = await this.doc(profile, PARCELS_DOC);
         const fresh = xs.filter(
@@ -449,16 +456,16 @@ class Engine implements SyncHooks {
           if (x.record) this.parcelBase.set(x.key, canonical(x.record));
           else this.parcelBase.delete(x.key);
         }
-        if (profile === current) {
-          // Through the prefs module, so the pages holding the parcels hear of it (step 4b's announcement).
-          const store = readParcelStore(merged);
-          if (store) setPref("ps.parcels", store);
-        } else await storage.putDoc({ profile, key: PARCELS_DOC, value: merged });
+        // Through the prefs module, so the pages holding the parcels hear of it (step 4b's announcement).
+        const store = readParcelStore(merged);
+        if (store) setPref("ps.parcels", store);
       }
     } finally {
       this.applying = false;
     }
     if (reload) location.reload();
+    // Another member's name, priorities or answers changed: the members, and the grades by them, reload (step 6).
+    else if (others) profilesChanged();
   }
 }
 

@@ -8,6 +8,7 @@
  * and memory does it in tests and where storage is refused (memoryProfileStorage). No new dependency.
  */
 import { BY_PROFILE, DOCS, done, openDb, PROFILES, result, SCREENS } from "./db";
+import { SPACE_ID } from "./profileKv";
 
 export interface Profile {
   id: string;
@@ -34,6 +35,8 @@ export interface ProfileStorage {
   deleteDoc(profile: string, key: string): Promise<void>;
   /** Deletes every kept screen without a profile stamp: screens kept before profiles (step 2 plan §9). */
   dropUnstamped(): Promise<void>;
+  /** Deletes every kept screen stamped with a profile, not the shared list (step 6's clean break); resolves to how many. */
+  dropProfileScreens(): Promise<number>;
   /** The ids of the kept screens stamped with this profile. */
   screenIds(profile: string): Promise<string[]>;
 }
@@ -102,6 +105,23 @@ export function idbProfileStorage(): ProfileStorage {
       };
       await done(tx);
     },
+    async dropProfileScreens() {
+      const d = await need();
+      const tx = d.transaction(SCREENS, "readwrite");
+      let n = 0;
+      const cursor = tx.objectStore(SCREENS).openCursor();
+      cursor.onsuccess = () => {
+        const c = cursor.result;
+        if (!c) return;
+        if ((c.value as { profile?: string }).profile !== SPACE_ID) {
+          c.delete();
+          n++;
+        }
+        c.continue();
+      };
+      await done(tx);
+      return n;
+    },
     async screenIds(profile) {
       const d = await need();
       const keys = await result(
@@ -156,6 +176,15 @@ export function memoryProfileStorage(opts: { delayWrites?: number } = {}): Profi
     },
     async dropUnstamped() {
       for (const [k, s] of state.screens) if (s.profile === undefined) state.screens.delete(k);
+    },
+    async dropProfileScreens() {
+      let n = 0;
+      for (const [k, s] of state.screens)
+        if (s.profile !== SPACE_ID) {
+          state.screens.delete(k);
+          n++;
+        }
+      return n;
     },
     async screenIds(profile) {
       return [...state.screens].filter(([, s]) => s.profile === profile).map(([k]) => k);

@@ -132,7 +132,8 @@ export function ProfilePicker() {
                   )}
                   {deleting === p.id ? (
                     <span className="tiny profile-confirm" role="alert">
-                      Delete {p.name}? Its parcels, screens and settings go with it.{" "}
+                      Delete {p.name}? Their settings, priorities and answers go with it; the household&apos;s
+                      list stays.{" "}
                       <button className="btn small danger" disabled={busy} onClick={() => void remove(p)}>
                         Delete
                       </button>{" "}

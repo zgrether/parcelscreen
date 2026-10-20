@@ -23,6 +23,7 @@ import { useRubricView } from "@/lib/client/useRubricView";
 import { reportCard } from "@/lib/report/card";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import { drawnOf } from "@/lib/report/marks";
+import { AddedBy } from "@/components/Household/AddedBy";
 import { listingAcresNote } from "@/lib/report/listing";
 
 export function ParcelDetail({
@@ -70,6 +71,7 @@ export function ParcelDetail({
       </header>
       <div className="lib-detail-body">
         <p className="tiny muted">{acres !== null ? `${acres.toFixed(2)} ac` : ""}</p>
+        <AddedBy addedBy={parcel.addedBy} />
         <div className="lib-detail-actions">
           <Link className="btn small" href="/explore" onClick={() => openOnMap(parcel)}>
             Open on the map

@@ -8,6 +8,7 @@ import { PROFILE_KEYS } from "./profileKv";
 
 /** The keys the app kept in localStorage before profiles: the profile keys of the time, and the weight switch. */
 export const PRE_PROFILE_KEYS: readonly string[] = [
+  "ps.parcels",
   ...[...PROFILE_KEYS].filter((k) => k !== "ps.rubricView" && k !== "ps.rubrics"),
   "ps.person",
 ];

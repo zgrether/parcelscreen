@@ -198,6 +198,11 @@ export interface WorkingParcel {
   excluded: string[];
   /** The screens run on it, newest last (step 14 fills this in; Supabase `screens` ids in Phase 1). */
   screenIds: string[];
+  /**
+   * The profile that first kept it (step 6: "Added by Zach" on the household's shared list), set when it's built or
+   * imported; null for a parcel kept before step 6. An optional field with a null default, so `v` stays 2.
+   */
+  addedBy: string | null;
   updatedAt: string;
 }
 
@@ -308,6 +313,7 @@ export function plainParcel(record: ParcelRecord, now: string): WorkingParcel {
     hidden: [],
     excluded: [],
     screenIds: [],
+    addedBy: null,
     updatedAt: now,
   };
 }
@@ -343,11 +349,19 @@ export function isBuilt(p: WorkingParcel | null): boolean {
  * The open parcel after an edit. A built one gets a key (the first time) and its History entry is
  * replaced or added.
  */
-export function commitOpen(s: ParcelStore, p: WorkingParcel, now: string, newKey: () => string): ParcelStore {
+export function commitOpen(
+  s: ParcelStore,
+  p: WorkingParcel,
+  now: string,
+  newKey: () => string,
+  /** Who's keeping it (step 6): recorded as `addedBy` when it's first built. */
+  by: string | null = null,
+): ParcelStore {
   const next: WorkingParcel = { ...p, updatedAt: now };
   if (!isBuilt(next)) return { ...s, open: next };
   if (next.key === null) {
     next.key = newKey();
+    next.addedBy = next.addedBy ?? by;
     // A new parcel goes to the bottom of My order (WF3).
     next.rank = rankBetween(lastRank(s.built), null);
   }
@@ -514,6 +528,8 @@ const WorkingSchema = z.object({
   hidden: z.array(z.string()),
   excluded: z.array(z.string()),
   screenIds: z.array(z.string()),
+  // Added with step 6: a parcel kept before says nothing about who added it.
+  addedBy: z.string().nullable().default(null),
   updatedAt: z.string(),
 });
 export const ParcelStoreSchema = z.object({
