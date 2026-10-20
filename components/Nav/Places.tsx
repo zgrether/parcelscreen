@@ -11,19 +11,14 @@ import { Menu } from "./Menu";
 import { useHousehold, useNewTakes } from "@/lib/client/householdDoc";
 import { currentProfileId } from "@/lib/client/profiles";
 import { waitingFor } from "@/lib/client/takes";
-import { favoritesOf } from "@/lib/client/favorites";
-import { getPref } from "@/lib/client/prefs";
 import { SyncIndicator } from "@/components/Sync/SyncStatus";
 
 export function Places({ pathname }: { pathname: string }) {
   const here = placeOf(pathname);
   const household = useHousehold();
   const me = currentProfileId();
-  // Step 8 (plan §11 Q7): asks and takes count on the household's favorites only; a parcel in someone's History keeps
-  // its asks and takes, unseen.
-  const favorites = new Set(favoritesOf(getPref("ps.parcels")?.built ?? []).map((p) => p.key));
-  const waiting = me ? [...waitingFor(household, me)].filter((k) => favorites.has(k)).length : 0;
-  const fresh = useNewTakes().filter((t) => favorites.has(t.parcel)).length;
+  const waiting = me ? waitingFor(household, me).size : 0;
+  const fresh = useNewTakes().length;
   const count = waiting + fresh;
   // The badge sums the parcels waiting for my take and the other members' takes I haven't seen (step 6b).
   const said = [
