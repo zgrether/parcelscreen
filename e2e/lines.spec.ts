@@ -27,7 +27,7 @@ async function at(page: Page, dLat: number, dLon: number): Promise<{ x: number; 
 /** Draws a track across Ferney's middle: three points, Finish. */
 async function drawTrack(page: Page): Promise<void> {
   // + Mark → Track (owner, after #136: the lines are in the Mark picker).
-  await page.getByRole("button", { name: "+ Mark", exact: true }).click();
+  await page.locator(".toolbar").getByRole("button", { name: "+ Mark", exact: true }).click();
   await page
     .getByRole("dialog", { name: "Mark on the parcel" })
     .getByRole("group", { name: "Ways in" })
@@ -62,15 +62,16 @@ test("a drawn line: the banner, its layer and details (name, kind, condition, wi
   await expect(banner).toContainText("You drew or changed a line after this screen.");
   await expect(banner.getByRole("button", { name: "Let the app consider it" })).toBeVisible();
 
-  // A tap on the line selects its row in the Layers tree (owner, #127): "Track 1", with its condition and length on
-  // the right; its details below, headed by its name: a track, pioneer, 10 ft.
+  // A tap on the line opens its row in Details' Lines & marks (owner, #127; step 8b): "Track 1", with its condition and
+  // length on the right; its details in the open row, headed by its name: a track, pioneer, 10 ft.
   const mid = await at(page, 0, 0);
   await page.mouse.click(mid.x, mid.y);
-  const info = page.locator(".info-panel");
-  const row = (name: string) => info.getByRole("treeitem").filter({ hasText: name });
-  await expect(row("Track 1")).toHaveAttribute("aria-selected", "true");
-  await expect(row("Track 1").locator(".mt")).toHaveText(/^pioneer · [\d,]+ ft$/);
-  const details = info.locator(".ip-details");
+  const info = page.locator(".parcel-details");
+  const row = (name: string) => info.locator(".pd-row").filter({ hasText: name });
+  await expect(page.getByRole("tab", { name: "Details" })).toHaveAttribute("aria-selected", "true");
+  await expect(row("Track 1")).toHaveAttribute("aria-expanded", "true");
+  await expect(row("Track 1").locator(".pd-meta")).toHaveText(/^pioneer · [\d,]+ ft$/);
+  const details = info.locator(".pd-open");
   await expect(details.getByLabel("Name")).toHaveValue("Track 1");
   await expect(details.getByRole("button", { name: "Track", exact: true })).toHaveAttribute(
     "aria-pressed",
@@ -84,39 +85,35 @@ test("a drawn line: the banner, its layer and details (name, kind, condition, wi
 
   // An existing drive: renamed "Existing drive 1", improved and 12 ft by default; then paved, chosen; and a note.
   await details.getByRole("button", { name: "Existing drive" }).click();
-  await expect(row("Existing drive 1")).toHaveAttribute("aria-selected", "true");
+  await expect(row("Existing drive 1")).toHaveAttribute("aria-expanded", "true");
   await expect(details.getByLabel("Name")).toHaveValue("Existing drive 1");
   await expect(details.getByRole("button", { name: "Improved" })).toHaveAttribute("aria-pressed", "true");
   await expect(details.getByLabel("Width in feet")).toHaveValue("12");
   await details.getByRole("button", { name: "Paved" }).click();
   await expect(details.getByRole("button", { name: "Paved" })).toHaveAttribute("aria-pressed", "true");
-  await expect(row("Existing drive 1").locator(".mt")).toHaveText(/^paved · /);
+  await expect(row("Existing drive 1").locator(".pd-meta")).toHaveText(/^paved · /);
   await details.getByLabel("Note for Existing drive 1").fill("From the gate to the barn");
   await details.getByLabel("Note for Existing drive 1").press("Enter");
 
-  // Renamed in its details, then in the tree (a double-click).
-  await details.getByLabel("Name").fill("Gate lane");
+  // Renamed in its open row (step 8b: the row's Name box; the tree's in-place rename went with the tree).
+  await details.getByLabel("Name").fill("Gravel lane");
   await details.getByLabel("Name").press("Enter");
-  await expect(row("Gate lane")).toHaveCount(1);
-  await row("Gate lane").locator(".nm").dblclick();
-  await info.getByRole("tree").getByLabel("Name").fill("Gravel lane");
-  await info.getByRole("tree").getByLabel("Name").press("Enter");
-  await expect(row("Gravel lane")).toHaveAttribute("aria-selected", "true");
+  await expect(row("Gravel lane")).toHaveAttribute("aria-expanded", "true");
   await expect(details.getByLabel("Name")).toHaveValue("Gravel lane");
 
-  // The row's ×, then Undo; the footer's Delete, then Undo: each time the line comes back as it was.
+  // The row's ×, then Undo; the open row's Delete, then Undo: each time the line comes back as it was.
   const toast = page.locator(".line-undo");
   for (const del of [
     row("Gravel lane").getByRole("button", { name: "Delete Gravel lane" }),
-    info.locator(".ip-actions").getByRole("button", { name: "Delete" }),
+    details.getByRole("button", { name: "Delete", exact: true }),
   ]) {
+    if (!(await details.count())) await row("Gravel lane").click();
     await del.click();
     await expect(row("Gravel lane")).toHaveCount(0);
     await expect(toast).toContainText("Gravel lane deleted");
     await toast.getByRole("button", { name: "Undo" }).click();
     await expect(toast).toHaveCount(0);
     await expect(row("Gravel lane")).toHaveCount(1);
-    await row("Gravel lane").click();
   }
   const markup = await page.evaluate(
     () => (JSON.parse(window.__psKv!.getItem("ps.parcels")!) as { open: { markup: unknown[] } }).open.markup,
@@ -130,11 +127,8 @@ test("a drawn line: the banner, its layer and details (name, kind, condition, wi
       note: "From the gate to the barn",
     }),
   ]);
-  // The Notes tab no longer lists the lines.
-  await info.getByRole("tab", { name: /Notes/ }).click();
-  await expect(info.getByText("Drawn lines")).toHaveCount(0);
-  await info.getByRole("tab", { name: "Layers" }).click();
-  await info.getByRole("button", { name: "Close the Info panel" }).click();
+  // Back to the grade.
+  await page.getByRole("tab", { name: "Grade" }).click();
 
   // The Easement panel lists it by name: drawn after the screen, so nothing to say of it yet.
   // Its Must row reads as on the priorities page (owner, #216): "Driveway on your land".
@@ -146,9 +140,9 @@ test("a drawn line: the banner, its layer and details (name, kind, condition, wi
   await expect(yours.locator("li b")).toHaveText("Gravel lane");
   await expect(yours.locator("li")).toContainText(/Existing drive, paved, [\d,]+ ft/);
   await expect(yours).toContainText("Drawn after this screen: run again to see what the app makes of it.");
-  // Edit selects the line in Layers.
+  // Edit opens the line's row in Details.
   await yours.getByRole("button", { name: "Edit" }).click();
-  await expect(row("Gravel lane")).toHaveAttribute("aria-selected", "true");
+  await expect(row("Gravel lane")).toHaveAttribute("aria-expanded", "true");
 
   expect(net.misses, "data requests the HAR doesn't have").toEqual([]);
   expect(errors).toEqual([]);
@@ -157,7 +151,7 @@ test("a drawn line: the banner, its layer and details (name, kind, condition, wi
 test.describe("on a phone", () => {
   test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 
-  test("a long press renames a line's row; its × deletes, and Undo, above the Info panel, puts it back", async ({
+  test("a tap on a line opens its row in the sheet; renamed there; its × deletes, and Undo puts it back", async ({
     page,
     context,
   }) => {
@@ -169,14 +163,12 @@ test.describe("on a phone", () => {
     await drawTrack(page);
     const mid = await at(page, 0, 0);
     await page.mouse.click(mid.x, mid.y);
-    const info = page.locator(".info-panel");
-    const row = (name: string) => info.getByRole("treeitem").filter({ hasText: name });
-    await expect(row("Track 1")).toHaveAttribute("aria-selected", "true");
+    const info = page.locator(".parcel-details");
+    const row = (name: string) => info.locator(".pd-row").filter({ hasText: name });
+    await expect(row("Track 1")).toHaveAttribute("aria-expanded", "true");
 
-    // A long press (touch) opens the name for editing.
-    const nm = row("Track 1").locator(".nm");
-    await nm.dispatchEvent("pointerdown", { pointerType: "touch", isPrimary: true, bubbles: true });
-    const name = info.getByRole("tree").getByLabel("Name");
+    // Step 8b: its open row in the sheet holds the name.
+    const name = info.locator(".pd-open").getByLabel("Name");
     await expect(name).toBeVisible();
     await name.fill("Logging road");
     await name.press("Enter");

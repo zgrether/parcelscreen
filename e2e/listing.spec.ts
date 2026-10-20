@@ -77,8 +77,7 @@ test("the listing's facts: typed, the name shown, the acres compared on the card
   expectAllDone(await screenIt(page));
 
   // The Notes tab's Listing section.
-  await page.locator('button[aria-label$="acres: parcel info"]').first().click();
-  await page.getByRole("tab", { name: "Notes" }).click();
+  await page.locator('button[aria-label$="acres: parcel details"]').first().click();
   const listing = page.getByRole("group", { name: "Listing" });
   await expect(listing.getByLabel("Name")).toHaveAttribute("placeholder", "52-47A");
   for (const [label, value] of [
@@ -99,10 +98,9 @@ test("the listing's facts: typed, the name shown, the acres compared on the card
     agent: "A. Agent, 540-555-0100",
   });
 
-  // The name is the parcel's name: the Layers tree and the report's header use it.
-  await page.getByRole("tab", { name: "Layers" }).click();
-  await expect(page.getByRole("treeitem").first()).toContainText("Ferney Creek 43 ac");
-  await page.getByRole("button", { name: "Close the Info panel" }).click();
+  // The name is the parcel's name: the panel's header uses it.
+  await expect(page.locator(".sh-name").first()).toContainText("Ferney Creek 43 ac");
+  await page.getByRole("tab", { name: "Grade" }).click();
   // The card says the acres differ, under its reason (appended, rule 7).
   await expect(page.locator(".card-note")).toHaveText("The listing says 52 ac; this boundary is 43.9 ac.");
 
@@ -147,12 +145,11 @@ test("a searched link is offered to the next parcel opened, and attached only wi
   await openExplorer(page, FERNEY);
   await importParcel(page, FERNEY);
   // Its imported name cleared, so the chip names it after the listing's street.
-  await page.locator('button[aria-label$="acres: parcel info"]').first().click();
-  await page.getByRole("tab", { name: "Notes" }).click();
+  await page.locator('button[aria-label$="acres: parcel details"]').first().click();
   const name = page.getByRole("group", { name: "Listing" }).getByLabel("Name");
   await name.fill("");
   await name.press("Enter");
-  await page.getByRole("button", { name: "Close the Info panel" }).click();
+  await page.getByRole("tab", { name: "Grade" }).click();
 
   // The parcel open during the search isn't offered the link.
   await goToLink(page);
@@ -168,12 +165,11 @@ test("a searched link is offered to the next parcel opened, and attached only wi
   expect(await stored(page)).toMatchObject({ listingUrl: LINK, name: "0 Ferney Creek Rd" });
 
   // Dismissed: gone, and not offered again. (Its link cleared first: a parcel with a link is never offered one.)
-  await page.locator('button[aria-label$="acres: parcel info"]').first().click();
-  await page.getByRole("tab", { name: "Notes" }).click();
+  await page.locator('button[aria-label$="acres: parcel details"]').first().click();
   const link = page.getByRole("group", { name: "Listing" }).getByLabel("Listing link");
   await link.fill("");
   await link.press("Enter");
-  await page.getByRole("button", { name: "Close the Info panel" }).click();
+  await page.getByRole("tab", { name: "Grade" }).click();
   await goToLink(page);
   await page.getByRole("button", { name: "Close this parcel" }).first().click();
   await openFromList(page, "0 Ferney Creek Rd");

@@ -80,11 +80,11 @@ for (const phone of [false, true]) {
       await page.waitForTimeout(1000);
       await shot(page, "1-roan-lines");
       await tapAt(page, loadFixture(ROAN).input.point);
-      const info = page.getByRole("button", { name: /acres: parcel info$/ });
+      const info = page.getByRole("button", { name: /acres: parcel details$/ });
       await info.click();
       await expect(page.locator("table.facts").first()).toContainText("099 046.02");
       await shot(page, "2-roan-facts");
-      await page.keyboard.press("Escape");
+      await page.getByRole("tab", { name: "Grade" }).click(); // step 8b: Esc would close the parcel
       await screenIt(page);
       await page.waitForTimeout(1500);
       await shot(page, "6-roan-report");

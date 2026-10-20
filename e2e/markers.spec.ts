@@ -30,7 +30,7 @@ async function onMap(page: Page, [lat, lon]: [number, number]): Promise<{ x: num
 const picker = (page: Page) => page.getByRole("dialog", { name: "Mark on the parcel" });
 /** + Mark, then a kind from its group. */
 async function mark(page: Page, group: string, kind: string): Promise<void> {
-  await page.getByRole("button", { name: "+ Mark", exact: true }).click();
+  await page.locator(".toolbar").getByRole("button", { name: "+ Mark", exact: true }).click();
   await picker(page)
     .getByRole("group", { name: group })
     .getByRole("button", { name: kind, exact: true })
@@ -51,7 +51,7 @@ test("the Mark picker: a septic permit (a point, then a field), its gate, a drag
   await expect(gate).toHaveAttribute("aria-label", "Septic: warn");
 
   // The picker, a popover on a desktop: four groups, no Recent yet.
-  await page.getByRole("button", { name: "+ Mark", exact: true }).click();
+  await page.locator(".toolbar").getByRole("button", { name: "+ Mark", exact: true }).click();
   await expect(picker(page).getByRole("group")).toHaveText([
     /^Build/,
     /^Ways in/,
@@ -75,19 +75,24 @@ test("the Mark picker: a septic permit (a point, then a field), its gate, a drag
   await page.mouse.click(p.x, p.y);
   await page.getByRole("button", { name: "Done", exact: true }).click();
 
-  // Its details open; the gate passes at once, no re-run and no banner, with the reminder after the soils' sentence.
-  const info = page.locator(".info-panel");
-  const details = info.locator(".ip-details");
+  // Its row opens in Details (step 8b); on Grade, the gate passes at once, no re-run and no banner, with the reminder
+  // after the soils' sentence.
+  const info = page.locator(".parcel-details");
+  const details = info.locator(".pd-open");
+  const tab = (name: "Grade" | "Details") => page.getByRole("tab", { name }).click();
   await expect(details.getByLabel("Name")).toHaveValue("Septic permit 1");
+  await tab("Grade");
   await expect(gate).toHaveAttribute("aria-label", "Septic: pass");
   await expect(gate).toHaveAttribute(
     "title",
     "No soil on the parcel rates better than very limited for a septic field; a septic permit is on file (your marker): get a copy, and check it hasn't expired",
   );
   await expect(page.locator(".card-stale")).toHaveCount(0);
+  await tab("Details");
+  const row = (name: string) => info.locator(".pd-row").filter({ hasText: name });
+  await row("Septic permit 1").click();
   await details.getByRole("button", { name: "Conventional" }).click();
-  const row = (name: string) => info.getByRole("treeitem").filter({ hasText: name });
-  await expect(row("Septic permit 1").locator(".mt")).toHaveText("septic permit · conventional");
+  await expect(row("Septic permit 1").locator(".pd-meta")).toHaveText("septic permit · conventional");
   // Its row and its pin carry the kind's icon.
   await expect(row("Septic permit 1").locator(".mark-icon")).toHaveCount(1);
   const pin = page.locator(".mark-pin");
@@ -99,13 +104,16 @@ test("the Mark picker: a septic permit (a point, then a field), its gate, a drag
   await page.mouse.down();
   for (let i = 1; i <= 10; i++) await page.mouse.move(box.x + box.width / 2 + i * 10, box.y + box.height / 2);
   await page.mouse.up();
+  await tab("Grade");
   await expect(gate).toHaveAttribute(
     "title",
     new RegExp(`; the permit is [\\d,]+ ft from site #${bestSite.rank}; it covers the spot that was tested$`),
   );
 
-  // Delete: the warn is back; Undo puts the permit back, and the pass.
-  await info.getByRole("button", { name: "Delete", exact: true }).click();
+  // Delete (its row's ×): the warn is back; Undo puts the permit back, and the pass.
+  await tab("Details");
+  await row("Septic permit 1").getByRole("button", { name: "Delete Septic permit 1" }).click();
+  await tab("Grade");
   await expect(gate).toHaveAttribute("aria-label", "Septic: warn");
   await expect(pin).toHaveCount(0);
   await page.getByRole("button", { name: "Undo" }).click();
@@ -127,7 +135,7 @@ test("the Mark picker: a septic permit (a point, then a field), its gate, a drag
   await page.mouse.click(c3.x, c3.y);
   await page.getByRole("button", { name: "Finish", exact: true }).click();
   await expect(details.getByLabel("Name")).toHaveValue("Septic permit 2");
-  await expect(row("Septic permit 2").locator(".mt")).toHaveText(/^septic permit · \d+\.\d\d ac$/);
+  await expect(row("Septic permit 2").locator(".pd-meta")).toHaveText(/^septic permit · \d+\.\d\d ac$/);
 
   // A clearing: an area from three corners.
   await mark(page, "On the land", "Clearing");
@@ -142,11 +150,11 @@ test("the Mark picker: a septic permit (a point, then a field), its gate, a drag
   await expect(page.locator(".tb-status")).toContainText("3 corners");
   await page.getByRole("button", { name: "Finish", exact: true }).click();
   await expect(details.getByLabel("Name")).toHaveValue("Clearing 1");
-  await expect(row("Clearing 1").locator(".mt")).toHaveText(/^clearing · \d+\.\d\d ac$/);
+  await expect(row("Clearing 1").locator(".pd-meta")).toHaveText(/^clearing · \d+\.\d\d ac$/);
 
   // Recent: the last kinds used, newest first, each once, above the groups; kept after a reload.
   const recent = () => picker(page).getByRole("group", { name: "Recent" }).getByRole("button");
-  await page.getByRole("button", { name: "+ Mark", exact: true }).click();
+  await page.locator(".toolbar").getByRole("button", { name: "+ Mark", exact: true }).click();
   await expect(recent()).toHaveText(["Clearing", "Septic permit"]);
   await page.keyboard.press("Escape");
 
@@ -166,7 +174,7 @@ test("the Mark picker: a septic permit (a point, then a field), its gate, a drag
     ["area", "Septic permit 2"],
     ["area", "Clearing 1"],
   ]);
-  await page.getByRole("button", { name: "+ Mark", exact: true }).click();
+  await page.locator(".toolbar").getByRole("button", { name: "+ Mark", exact: true }).click();
   await expect(recent()).toHaveText(["Clearing", "Septic permit"]);
   expect(errors).toEqual([]);
 });
@@ -243,12 +251,12 @@ test("a Septic field saved by #136 reads as a Septic permit drawn as an area", a
     await window.__psKv!.setItem("ps.parcels", JSON.stringify(store));
   }, site);
   await reload(page);
-  const info = page.locator(".info-panel");
-  await page.getByRole("button", { name: /acres: parcel info$/ }).click();
-  const row = info.getByRole("treeitem").filter({ hasText: "Septic permit 1" });
-  await expect(row.locator(".mt")).toHaveText(/^septic permit · \d+\.\d\d ac$/);
+  const info = page.locator(".parcel-details");
+  await page.getByRole("button", { name: /acres: parcel details$/ }).click();
+  const row = info.locator(".pd-row").filter({ hasText: "Septic permit 1" });
+  await expect(row.locator(".pd-meta")).toHaveText(/^septic permit · \d+\.\d\d ac$/);
   await row.click();
-  await expect(info.locator(".ip-details").getByRole("button", { name: "Septic permit" })).toHaveAttribute(
+  await expect(info.locator(".pd-open").getByRole("button", { name: "Septic permit" })).toHaveAttribute(
     "aria-pressed",
     "true",
   );
@@ -266,7 +274,7 @@ test.describe("on a phone", () => {
     await importParcel(page, MACKS);
 
     // The sheet: along the bottom, the full width, a grid of four.
-    await page.getByRole("button", { name: "+ Mark", exact: true }).tap();
+    await page.locator(".toolbar").getByRole("button", { name: "+ Mark", exact: true }).tap();
     const sheet = picker(page);
     const box = (await sheet.boundingBox())!;
     expect(Math.round(box.x)).toBe(0);
@@ -288,8 +296,12 @@ test.describe("on a phone", () => {
     const p = await onMap(page, site);
     await page.touchscreen.tap(p.x, p.y);
     await expect(page.locator(".mark-pin")).toHaveCount(1);
-    await expect(page.locator(".info-panel .ip-details").getByLabel("Name")).toHaveValue("Spring 1");
-    await page.locator(".info-panel").getByRole("button", { name: "Close" }).first().tap();
+    await expect(page.locator(".parcel-details .pd-open").getByLabel("Name")).toHaveValue("Spring 1");
+    // Step 8b: its row is open in the sheet, raised to half; back to the grade, and the sheet down for the map.
+    await page.getByRole("tab", { name: "Grade" }).tap();
+    // Half → 88% → the peek (the handle's tap cycle).
+    await page.locator(".sheet-handle").tap();
+    await page.locator(".sheet-handle").tap();
 
     // A long press elsewhere: the sheet opens for that spot; a Gate goes there, with no further tap.
     const q = await onMap(page, [site[0] + 0.0012, site[1] - 0.0012]);
@@ -302,8 +314,13 @@ test.describe("on a phone", () => {
     await expect(sheet.getByRole("group", { name: "Recent" }).getByRole("button")).toHaveText(["Spring"]);
     await sheet.getByRole("group", { name: "On the land" }).getByRole("button", { name: "Gate" }).tap();
     await expect(page.locator(".mark-pin")).toHaveCount(2);
+    // At the pressed spot: projected again, since the sheet rises to show the gate's row (step 8b) and the map's
+    // padding follows it.
     const gate = page.locator(".mark-pin").nth(1);
+    await expect(page.locator(".parcel-details .pd-open").getByLabel("Name")).toHaveValue("Gate 1");
+    await page.waitForTimeout(500);
+    const q2 = await onMap(page, [site[0] + 0.0012, site[1] - 0.0012]);
     const g = (await gate.boundingBox())!;
-    expect(Math.hypot(g.x + g.width / 2 - q.x, g.y + g.height / 2 - q.y)).toBeLessThan(6);
+    expect(Math.hypot(g.x + g.width / 2 - q2.x, g.y + g.height / 2 - q2.y)).toBeLessThan(6);
   });
 });

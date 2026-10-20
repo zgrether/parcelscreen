@@ -23,8 +23,7 @@ test("the parcel's standing: a favorite archived with a reason, restored; milest
   await replayHar(context, FERNEY);
   await openExplorer(page, FERNEY);
   await importParcel(page, FERNEY);
-  await page.locator('button[aria-label$="acres: parcel info"]').first().click();
-  await page.getByRole("tab", { name: "Layers" }).click();
+  await page.locator('button[aria-label$="acres: parcel details"]').first().click();
   const standing = page.getByRole("group", { name: "Status" });
 
   // Starred on import (the helper): a favorite; no In progress or Saved any more (step 8).
@@ -63,7 +62,7 @@ test("the parcel's standing: a favorite archived with a reason, restored; milest
   expect(await stored(page)).toMatchObject({ milestones: { walked: "2026-10-20", offered: null } });
 
   // Your list says so, its star filled; a reload keeps it.
-  await page.getByRole("button", { name: "Close the Info panel" }).click();
+  await page.getByRole("tab", { name: "Grade" }).click();
   await page.getByRole("link", { name: "Your list", exact: true }).click();
   const row = listRow(page, "52-47A");
   await expect(row.getByRole("button", { name: /^In favorites/ })).toBeVisible();

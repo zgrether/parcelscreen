@@ -1,6 +1,5 @@
 "use client";
 import { MapView } from "@/components/Map/MapView";
-import { InfoPanel } from "@/components/Map/InfoPanel";
 import { MapControls } from "@/components/Map/MapControls";
 import { Hint, MapTools } from "@/components/Map/MapTools";
 import { ParcelTools } from "@/components/Map/ParcelTools";
@@ -71,7 +70,6 @@ export function MapArea({
       <AttachListingChip />
       <Toolbar />
       <MarkPicker />
-      <InfoPanel />
       <MapPanel />
     </MapView>
   );
