@@ -35,7 +35,7 @@ export function TheirTake({ parcel, m }: { parcel: string; m: Member }) {
       {waiting ? (
         <p className="tiny muted">
           Asked {day(ask.at)}
-          {ask.note ? `: “${ask.note}”` : ""} — waiting for {m.name}.
+          {ask.note ? `: “${ask.note}”` : ""} — it&apos;s in {m.name}&apos;s Waiting for you.
         </p>
       ) : asking ? (
         <form

@@ -5,6 +5,7 @@
  * here: owner, after #133), its report card (each line opening its panel, as in Compare), and Remove. A side panel on
  * desktop, a sheet on a phone.
  */
+import { members } from "@/lib/client/household";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ParcelNotes } from "@/components/Map/ParcelNotes";
@@ -126,7 +127,9 @@ export function ParcelDetail({
         <div className="lib-detail-actions">
           {confirming ? (
             <>
-              <span className="tiny">Remove it? It leaves your list and the map.</span>
+              <span className="tiny">
+                Remove it? It leaves the list and the map{members().length >= 2 ? ", for everyone" : ""}.
+              </span>
               <button className="btn small danger" onClick={remove}>
                 Remove
               </button>
@@ -136,7 +139,7 @@ export function ParcelDetail({
             </>
           ) : (
             <button className="btn secondary small" onClick={() => setConfirming(true)}>
-              Remove
+              Remove from the list
             </button>
           )}
         </div>

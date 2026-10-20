@@ -67,7 +67,10 @@ function Rated({ m, result, drawn }: { m: Member; result: Result; drawn?: Drawn 
         <ul className="others-diffs">
           {diffs.map((d) => (
             <li key={d.key}>
-              <b>{d.label}:</b> you {d.mine}, {m.name} {d.theirs}
+              <b>{d.label}:</b>{" "}
+              {d.weighs
+                ? `${d.mine} for you and ${m.name}; it counts for ${d.weighs} in ${m.name}'s grade`
+                : `you ${d.mine}, ${m.name} ${d.theirs}`}
               <span className="tiny muted others-why">
                 Why, for {m.name}: {d.why}
               </span>
@@ -84,8 +87,11 @@ function Rated({ m, result, drawn }: { m: Member; result: Result; drawn?: Drawn 
 function NoPriorities({ m }: { m: Member }) {
   return (
     <>
-      <p className="others-none">{m.name} hasn&apos;t set priorities yet.</p>
-      <p className="tiny muted">On {m.name}&apos;s phone: More → Answer a few questions.</p>
+      <p className="others-none">{m.name} hasn&apos;t said what matters to them yet.</p>
+      <p className="tiny muted">
+        On {m.name}&apos;s own device: ☰ (More, on a phone) → Answer a few questions. Or, with {m.name}{" "}
+        beside you:
+      </p>
       <button className="btn secondary small" onClick={() => void switchProfile(m.id, "/interview")}>
         Answer as {m.name} here
       </button>

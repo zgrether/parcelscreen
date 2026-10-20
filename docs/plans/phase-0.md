@@ -774,5 +774,28 @@ until step 5 (Q14).
     - **A daily keep-alive** (`.github/workflows/supabase-keepalive.yml`) reads production's `/api/health` against the
       free plan's 7-day pause. Export file is the backup: the free plan has none to restore. Migrations go through the
       Supabase connector, to `parcelscreen` only, and are additive only. CI uses the memory store (`PS_SYNC_STORE=memory`).
+58. **The household on the synced space** (owner, 2026-10-19; step 6 plan, `docs/plans/step-6-household.md`, from Zach's
+    pre-approved brief, its §11 questions answered with the recommendations; roadmap step 6, PRs 0–4).
+    - **Members are the space's profiles.** After joining, **Who's this?** lists them: pick yours, or **I'm new here**
+      (a new profile, then the interview). The current profile stays per device. Settings, priorities and answers are
+      per profile.
+    - **One shared list:** the parcels and their screens belong to the space, kept under the reserved id `_space` in
+      the same documents store, each parcel with `addedBy` ("Added by Zach" once there are two members). A clean
+      break: the per-profile lists and screens are dropped at the first open ("Saved with an older version; screen it
+      again."), with no converter; Export → Import carries a list across.
+    - **The members' own rubrics** replace step 1's `others`. **Everyone's grade, no combined grade:** the list's
+      Grades column reads "B Contender · Julie C"; the Household column is gone, its verdict filter and sort kept.
+    - **How Julie would rate it,** in the parcel's panel: her grade, verdict and reason line from her rubric over the
+      same stored measurements (no re-screen), and up to three rows that differ most by each row's share of the grade
+      (weight × points), a Must failing for her alone first, each with her why line. Same letter, different weight
+      reads "B for both; a bigger part of Julie's grade". Without priorities: "Julie hasn't set priorities yet.", the
+      hint for her phone and **Answer as Julie here**.
+    - **Asks and takes,** in-app only: **Ask Julie** with an optional note; her **Waiting for you** (a count on the
+      Your list tab and a quick filter); **Your take** is Yes / Maybe / No with a comment, changeable, and needs no
+      ask. Stored in the shared `ps.household` document and synced as records in `sync_household` (migration
+      `0002_household.sql`, additive, RLS on with no policies; checked by hand like §9.57's tables). Not in the
+      export file (still version 6). Removing a parcel removes its asks and takes.
+    - **Filters and sort:** **Waiting for you**, **Both like it** (no take is No and every graded member's grade is C
+      or better), and **Lowest of our grades**, beside the existing ones.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.
