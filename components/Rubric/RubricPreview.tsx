@@ -13,6 +13,7 @@ import { getPref } from "@/lib/client/prefs";
 import { visibleParcels } from "@/lib/client/favoritesStore";
 import { previewOptions, SAMPLE_KEY, SAMPLE_NAME } from "@/lib/client/previewParcels";
 import { useKeptScreens } from "@/lib/client/useKeptScreens";
+import { VERDICT_WORD } from "@/lib/report/card";
 import { drawnOf } from "@/lib/report/marks";
 import type { Drawn } from "@/lib/report/marks";
 import { rubricPreview } from "@/lib/report/rubricPreview";
@@ -146,7 +147,10 @@ function Letter({ grade }: { grade: string | null }) {
 function Grade({ grade, verdict }: GradeVerdict) {
   return (
     <span className="rubric-strip-card">
-      <Letter grade={grade} /> · <span className={`v-${verdict.toLowerCase()}`}>{verdict}</span>
+      <Letter grade={grade} /> ·{" "}
+      <span className={`v-${verdict.toLowerCase()}`}>
+        {(VERDICT_WORD as Record<string, string>)[verdict] ?? verdict}
+      </span>
     </span>
   );
 }

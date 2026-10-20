@@ -55,6 +55,8 @@ step. Mission mode changes rules 1 and 3 above as written here; everything else 
 - **A step branch.** Work on `step/<n>-<name>`, branched from main. Open each PR into the step branch and
   merge it yourself when CI is green on its head. Never merge to main. The step ends with one PR from the
   step branch to main, which Zach merges after running the test plan on its preview.
+- **The hand-back closes the step** (owner, 2026-10-20). The last action of a step is opening its hand-back PR from
+  the step branch to main; the step isn't done until that PR is open (4c's and 8b's weren't, at first).
 - **Stop and wait** (push what you have, say why) if:
   - a change would alter expected.json or verdict/flag text beyond what the plan declared;
   - a product decision is needed;

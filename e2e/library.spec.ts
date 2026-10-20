@@ -46,7 +46,7 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   await expect(macks.locator("td").nth(6)).toHaveText("–"); // step 8: an active favorite has no status word
   // The grade from the kept screen, in the profile's own rubric (step 1): a fresh profile holds no other, so there is
   // no Household column and no second grade.
-  await expect(macks.locator("td").nth(7)).toHaveText(/^[A-F](Contender|Maybe|Pass)$/);
+  await expect(macks.locator("td").nth(7)).toHaveText(/^[A-F](Contender|Maybe|Not for us)$/);
   await expect(macks.locator("td")).toHaveCount(9);
   await expect(page.locator(".lib-table thead")).not.toContainText("Household");
 

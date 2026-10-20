@@ -5,7 +5,7 @@
  * ranked rows' letters (Don't care rows are hidden, so they don't count), the parcel's letter and its verdict. Pure.
  */
 import type { Letter } from "@/lib/rubric/types";
-import type { Card, GateStatus, Verdict } from "./card";
+import { VERDICT_WORD, type Card, type GateStatus, type Verdict } from "./card";
 import { GATE_MARK, mustLines, rankedRows } from "./cardLines";
 import type { PanelKey } from "./cardPanels";
 
@@ -79,7 +79,7 @@ export function gradeNote(d: CardDiff): string | null {
   const more = d.changes.length - MAX_NAMED;
   const parts = [...named, ...(more > 0 ? [`${more} more`] : [])];
   if (d.grade) parts.push(`${d.grade.from ?? "–"} → ${d.grade.to ?? "–"}`);
-  if (d.verdict) parts.push(`${d.verdict.from} → ${d.verdict.to}`);
+  if (d.verdict) parts.push(`${VERDICT_WORD[d.verdict.from]} → ${VERDICT_WORD[d.verdict.to]}`);
   return parts.join(" · ");
 }
 

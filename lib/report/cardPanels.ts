@@ -83,7 +83,7 @@ export function panelText(
           `A from ${V.gradeCutoffs[0]}, B from ${V.gradeCutoffs[1]}, C from ${V.gradeCutoffs[2]}, D from ${V.gradeCutoffs[3]}. ` +
           // The verdict lines are letter edges (step 3, §9.51; the numbers replaced under rule 7, owner 10/17).
           `Contender at ${verdictLines(V).contender} and up with at most ${V.verdict.contenderMaxWarns} warning; ` +
-          `Pass with any failed dealbreaker or a grade under ${verdictLines(V).pass}; Maybe otherwise. ` +
+          `Not for us with any failed dealbreaker or a grade under ${verdictLines(V).pass}; Maybe otherwise. ` +
           // Appended (#118 review; rule 7): the caps cardFor applies, from the same list.
           `A parcel is at most a Maybe when ${MAYBE_CAPS.incomplete} or when ${MAYBE_CAPS.checkFirst}.`,
       };

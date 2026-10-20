@@ -6,7 +6,7 @@
  * dismissed or the next change.
  */
 import { useState } from "react";
-import type { Card } from "@/lib/report/card";
+import { VERDICT_WORD, type Card } from "@/lib/report/card";
 import { fmt } from "@/lib/format";
 import { weightsTable, type WeightsSwitch } from "@/lib/rubric/edit";
 
@@ -69,8 +69,8 @@ export function WeightsNotice({
           </table>
           {parcel && (
             <p className="tiny">
-              {parcel.name}: {parcel.before.grade ?? "–"} · {parcel.before.verdict} →{" "}
-              {parcel.after.grade ?? "–"} · {parcel.after.verdict}
+              {parcel.name}: {parcel.before.grade ?? "–"} · {VERDICT_WORD[parcel.before.verdict]} →{" "}
+              {parcel.after.grade ?? "–"} · {VERDICT_WORD[parcel.after.verdict]}
             </p>
           )}
           <p className="tiny muted">

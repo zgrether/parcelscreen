@@ -192,8 +192,8 @@ test("after a clean break: rows read Needs a re-screen; Re-screen all saved parc
   // Then all of them: each row gets its grade back, each as a new kept screen.
   await line.getByRole("button", { name: "Re-screen all saved parcels" }).click();
   await expect(line).toContainText("Re-screened 2 parcels.", { timeout: 200_000 });
-  await expect(rows.nth(0).locator("td").nth(7)).toHaveText(/^[A-F](Contender|Maybe|Pass)$/);
-  await expect(rows.nth(1).locator("td").nth(7)).toHaveText(/^[A-F](Contender|Maybe|Pass)$/);
+  await expect(rows.nth(0).locator("td").nth(7)).toHaveText(/^[A-F](Contender|Maybe|Not for us)$/);
+  await expect(rows.nth(1).locator("td").nth(7)).toHaveText(/^[A-F](Contender|Maybe|Not for us)$/);
   expect(await keptScreenCount(page)).toBe(4);
   await expect(line).not.toContainText("need a re-screen");
   expect(errors).toEqual([]);

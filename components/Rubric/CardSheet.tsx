@@ -136,15 +136,15 @@ export function CardSheet({
               label={`Your limit: ${BAND_LABELS[MINIMUM_BAND[f as keyof typeof MINIMUM_BAND]!].toLowerCase()}`}
               band={MINIMUM_BAND[f as keyof typeof MINIMUM_BAND]!}
               value={rubric.musts.find((m) => m.factor === f && m.threshold !== undefined)!.threshold!}
-              hint="A parcel on the wrong side of it is a Pass; one with no number for it is at most a Maybe."
+              hint="A parcel on the wrong side of it is Not for us; one with no number for it is at most a Maybe."
               onChange={(v) => apply(setMinimum(rubric, f as keyof typeof MINIMUM_BAND, v))}
             />
           </div>
         )}
         {isGate(f) && (
           <p className="tiny muted">
-            A dealbreaker passes, warns or fails by its own rule: a fail is a Pass, and a Contender has at
-            most one warning (&ldquo;verify the easement&rdquo; is a warning).
+            A dealbreaker passes, warns or fails by its own rule: a fail makes it Not for us, and a Contender
+            has at most one warning (&ldquo;verify the easement&rdquo; is a warning).
           </p>
         )}
         {f === "homesite" && card.kind === "factor" && (

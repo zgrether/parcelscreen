@@ -7,7 +7,7 @@
 import { shortPrice } from "../client/askingPrice";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import type { ScreenResult } from "../screen/types";
-import { reportCard, type Card, type GateStatus, type Letter, type NamedRubric } from "./card";
+import { reportCard, VERDICT_WORD, type Card, type GateStatus, type Letter, type NamedRubric } from "./card";
 import type { Drawn } from "./marks";
 import type { PanelKey } from "./cardPanels";
 
@@ -114,7 +114,13 @@ export function compareTable(
       parcels.map((p, i) => {
         const c = cards[i];
         if (!c) return blank(p);
-        return { text: c.verdict, grade: c.grade, mark: null, panel: "verdict", title: c.reason };
+        return {
+          text: VERDICT_WORD[c.verdict],
+          grade: c.grade,
+          mark: null,
+          panel: "verdict",
+          title: c.reason,
+        };
       }),
       // By the letter, as the other rows: two Bs aren't better and worse than each other.
       cards.map((c) => (c?.grade ? POINTS[c.grade] : null)),

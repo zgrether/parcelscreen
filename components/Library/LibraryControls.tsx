@@ -28,7 +28,7 @@ const STATUSES: ParcelStatus[] = ["archived"];
 const CHOICE_WORD: Record<VerdictChoice, string> = {
   Contender: "Contender",
   Maybe: "Maybe",
-  Pass: "Pass",
+  Pass: "Not for us",
   unscreened: "Not screened",
 };
 const SORTS: { key: SortKey; label: string }[] = [

@@ -59,7 +59,7 @@ import { memberName } from "@/lib/client/household";
 import { currentProfileId } from "@/lib/client/profiles";
 import { ANSWER_WORD, type Ask } from "@/lib/client/takes";
 import { useKeptScreens } from "@/lib/client/useKeptScreens";
-import type { Verdict } from "@/lib/report/card";
+import { VERDICT_WORD, type Verdict } from "@/lib/report/card";
 import type { NamedRubric } from "@/lib/rubric/types";
 import { LibraryControls } from "./LibraryControls";
 import { RescreenAll } from "./RescreenAll";
@@ -357,7 +357,7 @@ const statusCell = (r: LibraryRow) => {
 };
 
 function VerdictWord({ v, unscreened }: { v: Verdict | null; unscreened: LibraryRow["unscreened"] }) {
-  if (v) return <span className={`card-word small v-${v.toLowerCase()}`}>{v}</span>;
+  if (v) return <span className={`card-word small v-${v.toLowerCase()}`}>{VERDICT_WORD[v]}</span>;
   // Screened under earlier rules, or its result is gone (a clean break): the Library's own words (approval A).
   return <span className="tiny muted">{unscreened === "rescreen" ? "Needs a re-screen" : "–"}</span>;
 }
