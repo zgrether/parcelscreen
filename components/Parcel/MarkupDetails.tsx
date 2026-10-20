@@ -80,6 +80,9 @@ export function LineDetails({ ctl, m }: { ctl: ExploreController; m: LineMarkup 
           )}
         </div>
       )}
+      <div className="pd-caption" aria-hidden="true">
+        What it is
+      </div>
       <div className="ip-line-row" role="group" aria-label="What it is">
         {KINDS.map((k) => (
           <button
@@ -91,6 +94,9 @@ export function LineDetails({ ctl, m }: { ctl: ExploreController; m: LineMarkup 
             {KIND_NAME[k]}
           </button>
         ))}
+      </div>
+      <div className="pd-caption" aria-hidden="true">
+        Its condition
       </div>
       <div className="ip-line-row" role="group" aria-label="Its condition">
         {LINE_CONDITIONS.map((c) => (
@@ -161,6 +167,9 @@ export function MarkDetails({ ctl, m }: { ctl: ExploreController; m: PointMarkup
           ? "Drag it on the map to move it."
           : `${(area(areaPolygon(m.ring)) / M2_PER_ACRE).toFixed(2)} ac. Redraw it to change its shape.`}
       </p>
+      <div className="pd-caption" aria-hidden="true">
+        What it is
+      </div>
       <div className="ip-line-row" role="group" aria-label="What it is">
         {kinds.map((k) => (
           <button
@@ -175,6 +184,9 @@ export function MarkDetails({ ctl, m }: { ctl: ExploreController; m: PointMarkup
       </div>
       {m.kind === "septic" && (
         <>
+          <div className="pd-caption" aria-hidden="true">
+            The permit&apos;s class
+          </div>
           <div className="ip-line-row" role="group" aria-label="The permit's class">
             {SEPTIC_CLASSES.map((c) => (
               <button

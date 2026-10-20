@@ -66,6 +66,7 @@ test("Details holds the parcel; Map layers holds the map; Your lines and marks h
     "Notes",
     "Lines & marks",
     "Boundary",
+    "Status",
   ]);
   // Grade says it isn't graded yet.
   await page.getByRole("tab", { name: "Grade" }).click();

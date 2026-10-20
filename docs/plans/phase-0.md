@@ -849,5 +849,22 @@ until step 5 (Q14).
       favorite, else on the map.
     - **Search** lists Favorites and Your history (by name, or a county piece's parcel number with separators ignored),
       up to five each, above the place results.
+61. **The parcel panel holds the parcel** (owner, 2026-10-20; step 8b plan, `docs/plans/step-8b-parcel-panel.md`, from
+    Zach's pre-approved brief, its §11 questions answered with the recommendations; roadmap step 8b, PRs 0–3). The rule:
+    Map layers is how the map looks; the parcel panel is everything about this parcel.
+    - **Grade | Details** under the parcel panel's header (desktop panel and phone sheet). Grade is step 7's panel.
+      Details holds a top line (Added by; an archived parcel says so), Listing, Notes, Lines & marks (a row per house
+      site, line and mark, opened in place; Draw a line and + Mark), Boundary (county facts, parts, road strip, split,
+      Edit parcels, Split), Status (Archive, Walked, Offered: moved down from the top line after the fresh-eyes review)
+      and Remove this parcel.
+    - **Which shows:** a parcel never graded opens on Details. A selection on the map, a placed mark and the toolbar's
+      acres ("parcel details", always Details at Boundary) switch to it; a finished run switches to Grade. On a phone, a
+      selection raises the sheet to half. Opening Details closes a Grade card panel.
+    - **The Info panel goes.** Its parcel content is Details; its map content (the results' overlays) joins the map
+      button's panel, "Map layers" (On the map, Results on the map, Terrain preview). The explorer's `info` now means
+      "the parcel panel shows Details", and Map layers opens beside it. `ps.infoTab` goes.
+    - **Your lines and marks** (`ps.marks`, a device pref, on by default): one map setting hiding the open parcel's
+      lines, marks and house site; each row's eye works within it.
+    - The tree's in-place rename gives way to the open row's Name box; a line's Edit reads "Edit on the map".
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.
