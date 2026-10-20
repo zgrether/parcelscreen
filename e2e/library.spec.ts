@@ -166,9 +166,9 @@ test.describe("on a phone", () => {
     // Macks archived: the cards end with the hidden line, as the table does.
     await page.evaluate(async () => {
       const s = JSON.parse(window.__psKv!.getItem("ps.parcels")!) as {
-        built: { notes: string; status: string; archived: unknown }[];
+        built: { name: string; status: string; archived: unknown }[];
       };
-      const m = s.built.find((b) => b.notes.includes("35-3"))!;
+      const m = s.built.find((b) => b.name.includes("35-3"))!;
       m.status = "archived";
       m.archived = { reason: "Sold", at: "2026-10-14T12:00:00.000Z", from: "inProgress" };
       await window.__psKv!.setItem("ps.parcels", JSON.stringify(s));

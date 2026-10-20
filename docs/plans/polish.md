@@ -35,8 +35,8 @@ that fixed it.
 - **Help, phone:** what a grade means is only under More. Fix: a link from the report and Your list.
 - **Settings:** "These don't wait for Save" reads oddly, and Your data is at the foot; Data endpoints is raw JSON. Fix:
   reword; move Your data up; endpoints under Advanced or as a form. **Partly done in #233:** the note reworded and the endpoints folded as advanced; moving Your data up is left.
-- **Map, phone:** "Stand here" against 3D, the legend under the 46% sheet, "No parcel record" over the slider. Fix:
-  re-lay the phone map's controls.
+- ~~**Map, phone:** "Stand here" against 3D, the legend under the 46% sheet, "No parcel record" over the slider. Fix:
+  re-lay the phone map's controls.~~ Done in #237. The buttons lie in a row along the top, the legend on the left under Search.
 - ~~**Compare, phone:** the table is cut off with no sideways-scroll cue. Fix: a cue, or a stacked layout.~~ Done in #233.
 - **App-wide jargon:** "My grade/Mine", "pending", "Stage 1a", "CAN'T ADD", the S/E pins, "Profile 1" ("In progress"
   went in step 8). Fix: a plain-language pass.
@@ -46,10 +46,10 @@ that fixed it.
 - ~~**Map, grade button:** "Grade again: settings changed" doesn't say which. Fix: name the changed settings.~~ Done in #235. Named for a run graded from now on; one kept before says "settings changed".
 - ~~**Map panel, log:** "Graded in 47 s ▸" doesn't hint that ▸ holds the failures. Fix: a label on ▸.~~ Done in #232.
 - ~~**Map panel:** the slim tab reads as a label; the ‹ toggle is small. Fix: a button look and a 44 px target.~~ Done in #232.
-- **Map:** S#, E#, G1, numbered pins, red lines and the fan unexplained (also #216). Fix: a legend or tooltips.
+- ~~**Map:** S#, E#, G1, numbered pins, red lines and the fan unexplained (also #216). Fix: a legend or tooltips.~~ Done in #237. "What's on the map" in Map layers.
 - ~~**Report card:** a grade shows while the run is still going. Fix: hold the grade until the run ends.~~ Done in #235.
-- **Map:** the tilt tip stays up; "Stand here" under the phone's column buttons (also #223). Fix: dismiss the tip after
-  a tilt; move Stand here.
+- ~~**Map:** the tilt tip stays up; "Stand here" under the phone's column buttons (also #223). Fix: dismiss the tip after
+  a tilt; move Stand here.~~ Done in #237. The tip goes after a tilt or 8 s; the phone's row leaves Stand here clear.
 
 ## Step 5: Sync across devices (#200)
 
@@ -106,8 +106,8 @@ that fixed it.
   "Tap a parcel to select it" stack under the search results. Fix: finish the toast's sentence ("Back to the list"),
   hide the tap hint while Search is open.~~ Done in #232.
 - ~~**Search:** acres to two decimals (43.88) where the list shows one (43.9). Fix: one precision, or say why it differs.~~ Done in #232.
-- **Map, desktop:** the tilt tip ("Double-click and drag…") covers the map on first use. Fix: shorter, or out of the
-  map's centre.
+- ~~**Map, desktop:** the tilt tip ("Double-click and drag…") covers the map on first use. Fix: shorter, or out of the
+  map's centre.~~ Done in #237. It goes on its own after 8 s.
 - **Your list (the tab):** "Your list" opens on two lists. Fix: a subtitle, or a name that covers both, if it confuses
   in use.
 - ~~**Your list, Favorites (phone):** a filled star on every row doesn't say what a tap does. Fix: done for the tooltip
@@ -126,11 +126,11 @@ that fixed it.
   reads as jargon; on a phone the panel is clipped. Fix: switches or checkboxes; plainer words; a scrolling bottom sheet.~~ Done in #232.
 - ~~**Toolbar, desktop with Map layers open:** the bar narrows and the trash sits on the grade button; the trash and the
   acres' ▾ don't say what they do. Fix: keep the bar's width or wrap it; labels or tooltips.~~ Done in #232.
-- **Details › Notes:** an imported parcel's notes start "Name: …" (the import's), and Clear wipes them without asking.
-  Fix: no name in imported notes; confirm or undo Clear.
+- ~~**Details › Notes:** an imported parcel's notes start "Name: …" (the import's), and Clear wipes them without asking.
+  Fix: no name in imported notes; confirm or undo Clear.~~ Done in #237. The saved name is the parcel's name; Clear has an Undo.
 - **Details › a line's row:** the condition and width read as unfinished ("doesn't change the cost yet", width of what);
   the Recorded in and note boxes cut their text; the row's title updates only once the name is saved; × on the row and
-  Delete in it both delete. Fix: plain words for both; wider boxes or textareas; one delete control. **Partly done in #232:** "Right-of-way width" and Recorded in on its own line; the cost wording, the note box, the live title and one delete control are left.
-- **Details › Listing, phone:** folded to a summary on a phone, open on a desktop. Fix: one behaviour.
+  Delete in it both delete. Fix: plain words for both; wider boxes or textareas; one delete control. **Partly done in #232 and #237:** "Right-of-way width" and Recorded in on its own line (#232); the live title and one delete control (#237). The cost wording stays until VR4 prices conditions (Zach, #23); the note box is left.
+- ~~**Details › Listing, phone:** folded to a summary on a phone, open on a desktop. Fix: one behaviour.~~ Done in #237. Open while empty, folded once it has a name or a price, on both.
 - ~~**Header and icons:** "PTM 63-A-62", the ⓘ and map buttons, and the star have no visible labels. Fix: tooltips or short
   labels.~~ Checked: the star, the map button and MapLibre's ⓘ already have tooltips, and "PTM 63-A-62" is the county's own parcel number.
