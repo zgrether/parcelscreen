@@ -548,10 +548,14 @@ function serves(t: { name: string; serves?: readonly string[] | undefined }): st
   return line ? `; ${line}` : "";
 }
 
-/** The worse of the ER's and the grocery's; the grocery is the nearer of the real one and the closer one. */
+/**
+ * The worse of the ER's and the grocery's; the grocery is the nearer of the real one and the closer one. A drive step
+ * that failed (OSRM down) is unknown, as Trails reads it, never "no hospital found" (owner, #216): the step keeps an empty
+ * list then.
+ */
 function town(r: Result, K: CardConfig): Row {
   const g = row("town", FACTOR_LABELS.town);
-  if (!r.drives) return notLoaded(g, "the drive times");
+  if (!r.drives || r.failed.includes("drive")) return notLoaded(g, "the drive times");
   const h = r.drives.find((d) => d.label === NEAREST_HOSPITAL);
   const groceries = [r.drives.find((d) => d.label === REAL_GROCERY), r.closerGrocery].filter(
     (d): d is DriveEntry => !!d,
