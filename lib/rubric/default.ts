@@ -1,6 +1,6 @@
 /**
- * Today's card as a rubric (step 1 plan §3.2): the four gates as Musts, every row ranked Should in the order of the
- * weights (ties by the card's order), no Won't, today's bands, points, grade cutoffs and verdict lines, and explicit
+ * Today's card as a rubric (step 1 plan §3.2): the four gates as Musts, every weighted row ranked Should in the order of
+ * the weights (ties by the card's order), a row weighing 0 as Won't (step 7's Driveway), today's bands, points, grade cutoffs and verdict lines, and explicit
  * weights. Rank-sum weights would keep every letter on the fixtures but move the points, so the default stays
  * explicit; step 3's editor switches a rubric to rank-sum when its owner first orders the cards (owner, 2026-10-16).
  * The numbers come from `SCREEN_CONSTANTS.card` (CLAUDE.md rule 4), never from here.
@@ -46,11 +46,12 @@ export function rubricFromWeights(
   const byWeight = [...ROW_KEYS].sort(
     (a, b) => weights[b] - weights[a] || ROW_KEYS.indexOf(a) - ROW_KEYS.indexOf(b),
   );
+  // A row with no weight is Don't care (step 7: the starting list's Driveway row).
   return {
     version: 1,
     musts: GATE_KEYS.map((factor) => ({ factor })),
-    ranked: byWeight.map((factor) => ({ factor, tier: "should" })),
-    wonts: [],
+    ranked: byWeight.filter((k) => weights[k] > 0).map((factor) => ({ factor, tier: "should" })),
+    wonts: byWeight.filter((k) => !(weights[k] > 0)),
     bands: { ...K.rows },
     weights: { mode: "explicit", of: { ...weights } },
     points: { ...K.points },

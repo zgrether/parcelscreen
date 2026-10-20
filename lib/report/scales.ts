@@ -322,7 +322,9 @@ export function scalesFor(
         ),
       ];
     }
-    case "easement": {
+    // The Driveway row's panel (step 7) shows the same scale as the Easement gate's.
+    case "easement":
+    case "driveway": {
       const g = drivewayDesign(r, card.drivewayLine ?? null);
       if (!g) return [];
       const built = g.designPct < g.rawPct;

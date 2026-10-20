@@ -38,6 +38,8 @@ interface Effect {
 export const TIE_ORDER: readonly RowKey[] = [
   "elevation",
   "homesite",
+  // Step 7: the Factors table puts Driveway after Winter sun.
+  "driveway",
   "room",
   "trails",
   "town",
@@ -131,7 +133,9 @@ export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card
   for (const key of ["fly", "calls"] as const) if (a[key]) note(choiceOf(key, a[key])?.later);
   answer("neighbors", a.neighbors);
   answer("garden", a.garden);
-  for (const key of ["driveway", "hoa", "creek"] as const) if (a[key]) note(choiceOf(key, a[key])?.later);
+  // Question 10 sets the Driveway row (step 7); it left the quiet list.
+  answer("driveway", a.driveway);
+  for (const key of ["hoa", "creek"] as const) if (a[key]) note(choiceOf(key, a[key])?.later);
   if (a.land?.acres) note(`Acreage (${ACRES_WORDS[a.land.acres]})`);
   if (a.land?.campBudget !== undefined) note(`Camp budget (${dollars(a.land.campBudget)})`);
   if (a.land?.buildBudget !== undefined) note(`Build budget (${dollars(a.land.buildBudget)})`);

@@ -12,7 +12,16 @@ export const GATE_KEYS = ["floodplain", "access", "easement", "septic"] as const
 export type GateKey = (typeof GATE_KEYS)[number];
 
 /** The graded rows, in the card's order. */
-export const ROW_KEYS = ["elevation", "homesite", "sky", "room", "trails", "town", "garden"] as const;
+export const ROW_KEYS = [
+  "elevation",
+  "homesite",
+  "sky",
+  "room",
+  "driveway",
+  "trails",
+  "town",
+  "garden",
+] as const;
 export type RowKey = (typeof ROW_KEYS)[number];
 
 export type Factor = GateKey | RowKey;
@@ -31,6 +40,8 @@ export interface Bands {
   erMin: number[];
   groceryMin: number[];
   gardenAc: number[];
+  /** The Driveway row's steepest grade, in %, at most (step 7). */
+  drivewayPct: number[];
 }
 
 /**

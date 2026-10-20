@@ -3,7 +3,8 @@
  * on the way back in. Numbers only; the factor keys are the card's.
  */
 import { z } from "zod";
-import { GATE_KEYS, ROW_KEYS, type NamedRubric, type Rubric } from "./types";
+import { SCREEN_CONSTANTS } from "../screen/config";
+import { GATE_KEYS, ROW_KEYS, type NamedRubric, type RowKey, type Rubric } from "./types";
 
 const num = z.number().finite();
 const RowKeySchema = z.enum(ROW_KEYS);
@@ -20,7 +21,14 @@ const BandsSchema = z.strictObject({
   erMin: z.array(num),
   groceryMin: z.array(num),
   gardenAc: z.array(num),
+  // Step 7: an added field. A rubric saved before it reads the starting list's band (REQUIREMENTS §3a's rule).
+  drivewayPct: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.drivewayPct]),
 });
+
+/** Explicit weights by row. A row a saved rubric has no weight for (the Driveway row, step 7) weighs 0. */
+const ExplicitWeightsSchema = z
+  .partialRecord(RowKeySchema, num)
+  .transform((of) => Object.fromEntries(ROW_KEYS.map((k) => [k, of[k] ?? 0])) as Record<RowKey, number>);
 
 export const RubricSchema: z.ZodType<Rubric> = z.strictObject({
   version: z.literal(1),
@@ -29,7 +37,7 @@ export const RubricSchema: z.ZodType<Rubric> = z.strictObject({
   wonts: z.array(RowKeySchema),
   bands: BandsSchema,
   weights: z.union([
-    z.strictObject({ mode: z.literal("explicit"), of: z.record(RowKeySchema, num) }),
+    z.strictObject({ mode: z.literal("explicit"), of: ExplicitWeightsSchema }),
     z.strictObject({ mode: z.literal("rankSum") }),
   ]),
   points: z.strictObject({ A: num, B: num, C: num, D: num, F: num }),

@@ -24,6 +24,7 @@ const PANELS: Record<PanelKey, true> = {
   homesite: true,
   sky: true,
   room: true,
+  driveway: true,
   trails: true,
   town: true,
   garden: true,
@@ -151,6 +152,17 @@ export function panelText(
           "at",
           "from",
         )}, D when it fits; an F when the build doesn't fit on any homesite; ${weightOf(rubrics, "room")}.`,
+      };
+    case "driveway":
+      // Step 7 (plan §3): new text.
+      return {
+        title: "Driveway",
+        question: "How steep is the drive up to the house?",
+        howScored: `The steepest grade on the driveway to the build site, over 30 m: ${ladder(
+          R.drivewayPct.map((v) => `${fmt(v)}%`),
+          "up to",
+          "up to",
+        )}; an F when no route reaches it or no practical drive does. Its length is shown, not graded: its cost is Cost to enjoy's; ${weightOf(rubrics, "driveway")}.`,
       };
     case "trails":
       return {

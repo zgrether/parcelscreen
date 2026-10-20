@@ -54,17 +54,17 @@ test("the columns, a card's Move to…, and Undo", async ({ page }) => {
     "Driveway on your land",
     "Septic",
   ]);
-  await expect(column(page, "Don't care")).toContainText("Nothing ignored");
+  await expect(column(page, "Don't care")).toHaveText(/Driveway/);
   await card(page, "Septic").locator(".rubric-card-body").click();
   await expect(sheet(page)).toContainText("On the starting list.");
   // A dealbreaker can't rank.
   await expect(sheet(page).getByRole("button", { name: "Really want" })).toBeDisabled();
   await sheet(page).getByRole("button", { name: "Don't care" }).click();
-  await expect(names(column(page, "Don't care"))).toHaveText(["Septic"]);
+  await expect(names(column(page, "Don't care"))).toHaveText(["Septic", "Driveway"]);
   await page.getByRole("button", { name: "Close" }).click();
   await page.getByRole("button", { name: "Undo" }).click();
   await expect(names(column(page, "Must have"))).toContainText(["Septic"]);
-  await expect(column(page, "Don't care")).toContainText("Nothing ignored");
+  await expect(column(page, "Don't care")).toHaveText(/Driveway/);
   expect(errors).toEqual([]);
 });
 
@@ -242,7 +242,7 @@ test.describe("on a phone", () => {
       expect((await b.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     await sheet(page).getByRole("button", { name: "Don't care" }).tap();
     await page.keyboard.press("Escape");
-    await expect(names(column(page, "Don't care"))).toHaveText(["Septic"]);
+    await expect(names(column(page, "Don't care"))).toHaveText(["Septic", "Driveway"]);
     // Try it is a bar along the bottom, with the same words as on a desktop.
     const bar = page.getByRole("region", { name: "Try it" });
     await expect(bar).toBeVisible();
