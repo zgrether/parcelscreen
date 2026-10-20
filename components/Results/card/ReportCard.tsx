@@ -1,13 +1,13 @@
 /**
  * The report sheet's top level (value-ranking.md §6.1; VR5; step 7 plan §1): the answer first (the grade and verdict
- * with one line of reason from the person's priorities, and what didn't load with Try again), then what the panel puts
+ * with one line of reason from the person's priorities, and what didn't load), then what the panel puts
  * between (Best homesite and the alternatives, on the map's panel), then the report card in priority order: Must
  * have, Really want, Nice to have, and Cost to enjoy (pending until VR4). Don't care rows are hidden. Every line opens
  * its slide-in panel, where today's report sections live; the card's old reason line is in the Grade and verdict one.
  */
 import type { ReactNode } from "react";
 import { answerReason, incompleteLine } from "@/lib/report/answer";
-import type { Card, GateStatus, Row } from "@/lib/report/card";
+import { lowerFirst, type Card, type GateStatus, type Row } from "@/lib/report/card";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import { thresholdStatus, thresholdWords, type MustStatus } from "@/lib/rubric/musts";
 import type { NamedRubric } from "@/lib/rubric/types";
@@ -97,7 +97,6 @@ export function ReportCard({
   rubrics,
   setRubric,
   onOpen,
-  onRetry,
   between = null,
   stale = null,
   note = null,
@@ -111,8 +110,6 @@ export function ReportCard({
   rubrics: readonly NamedRubric[];
   setRubric(id: string): void;
   onOpen(key: PanelKey): void;
-  /** Runs the screen again: the Try again beside what didn't load (absent where there's no run to start). */
-  onRetry?: () => void;
   /** What goes between the answer and the rows (the map's panel: Best homesite and the alternatives). */
   between?: ReactNode;
   /** A banner under the header saying the results no longer match an input (LINES_CHANGED). */
@@ -169,14 +166,10 @@ export function ReportCard({
           </div>
         )}
         {reason && <p className="card-reason">{reason}</p>}
+        {/* What didn't load: the grade button beside it is its Try again (plan §1.1); Still unknown has one too. */}
         {incomplete && (
           <p className="answer-incomplete" role="status">
-            <span>{incomplete}</span>
-            {onRetry && (
-              <button className="btn small secondary" onClick={onRetry}>
-                Try again
-              </button>
-            )}
+            {incomplete}
           </p>
         )}
         {!running && note && <p className="card-note tiny">{note}</p>}
@@ -205,7 +198,7 @@ export function ReportCard({
                       </span>
                     </span>
                     <span className="row-detail">
-                      {wait ? "…" : m.status === "pass" ? m.detail : `${STATUS_WORD[m.status]}: ${m.detail}`}
+                      {wait ? "…" : m.status === "pass" ? m.detail : `${STATUS_WORD[m.status]}: ${lowerFirst(m.detail)}`}
                     </span>
                   </button>
                 </li>

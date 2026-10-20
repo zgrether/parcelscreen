@@ -91,17 +91,17 @@ function SiteRow({
   return (
     <li>
       <button className="site-row" onClick={() => pick(s)} aria-label={`Show ${label(s.rank)} on the map`}>
-        <span className="sr-head">
-          <span className="sr-name">{title(s.rank)}</span>
+        <span className="spot-head">
+          <span className="spot-name">{title(s.rank)}</span>
           {behind !== null && (
-            <span className="sr-behind">
+            <span className="spot-behind">
               {behind <= 0 ? "as good" : `${behind} ${behind === 1 ? "point" : "points"} behind`}
             </span>
           )}
         </span>
-        <span className="sr-numbers">
+        <span className="spot-numbers">
           {rows.map((r) => (
-            <span key={r.key} className="sr-number">
+            <span key={r.key} className="spot-number">
               <span className={`card-grade small g-${r.grade ?? "none"}`}>{r.grade ?? "–"}</span>
               {SITE_NUMBER[r.key]} {valueOf(r)}
             </span>

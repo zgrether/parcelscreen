@@ -16,8 +16,10 @@ export interface PinSpec {
   ll: LatLon;
   /** What the pin shows: "2", "S1", "G1", "✕". */
   text: string;
-  /** Site #1 is inked (the prototype's `.top`). */
+  /** The best site is inked (the prototype's `.top`): site #1, or (step 7) the person's best homesite. */
   top: boolean;
+  /** One of the person's alternatives beside the best (step 7 plan §1.3): a light ring. */
+  alt: boolean;
   /** The prototype's tooltip, verbatim. */
   tip: string;
   /** The label a tap evaluates under (proto setFocus), or null when a tap doesn't evaluate (gardens). */
@@ -29,7 +31,13 @@ const TAP = "Tap to evaluate here.";
 /** …and the excluded bench's. */
 const TAP_ANYWAY = "Tap to evaluate here anyway.";
 
-export function pinSpecs(r: PartialScreenResult): PinSpec[] {
+/**
+ * `ranks` (step 7): the person's best site and alternatives by their pin numbers; without it, site #1 is inked.
+ */
+export function pinSpecs(
+  r: PartialScreenResult,
+  ranks: { best: number | null; alternatives: readonly number[] } = { best: 1, alternatives: [] },
+): PinSpec[] {
   const pins: PinSpec[] = [];
   (r.shelves ?? []).forEach((sh, i) =>
     pins.push({
@@ -38,6 +46,7 @@ export function pinSpecs(r: PartialScreenResult): PinSpec[] {
       ll: sh.ll,
       text: `S${i + 1}`,
       top: false,
+      alt: false,
       tip: `Shelf S${i + 1} — ${sh.acres.toFixed(2)} ac, cell score ${Math.round(sh.score)}. ${TAP}`,
       evalLabel: `shelf S${i + 1}`,
     }),
@@ -49,6 +58,7 @@ export function pinSpecs(r: PartialScreenResult): PinSpec[] {
       ll: g.ll,
       text: `G${i + 1}`,
       top: false,
+      alt: false,
       tip: `Garden G${i + 1} — ${g.acres.toFixed(2)} ac, ${g.soilNote || ""}`,
       evalLabel: null,
     }),
@@ -60,6 +70,7 @@ export function pinSpecs(r: PartialScreenResult): PinSpec[] {
       ll: x.ll,
       text: "✕",
       top: false,
+      alt: false,
       tip: `Excluded — ${x.why}. ${TAP_ANYWAY}`,
       evalLabel: "the excluded bench",
     }),
@@ -70,7 +81,8 @@ export function pinSpecs(r: PartialScreenResult): PinSpec[] {
       kind: "site",
       ll: s.ll,
       text: String(s.rank),
-      top: s.rank === 1,
+      top: s.rank === ranks.best,
+      alt: ranks.alternatives.includes(s.rank),
       tip: `#${s.rank} — score ${s.score}. ${TAP}`,
       evalLabel: `site #${s.rank}`,
     }),
@@ -82,9 +94,12 @@ export function pinSpecs(r: PartialScreenResult): PinSpec[] {
  * The tooltip when there's no session to evaluate with (a kept result after a reload, plan §2): the
  * prototype's "Tap to evaluate here." becomes "Run again to evaluate here."
  */
+/** What a pin (and, step 7, a site in the panel) says when there's no live session to evaluate with. */
+export const RUN_AGAIN_TO_EVALUATE = "Run again to evaluate here.";
+
 export const inertTip = (p: PinSpec): string =>
   p.evalLabel
-    ? p.tip.replace(p.kind === "excluded" ? TAP_ANYWAY : TAP, "Run again to evaluate here.")
+    ? p.tip.replace(p.kind === "excluded" ? TAP_ANYWAY : TAP, RUN_AGAIN_TO_EVALUATE)
     : p.tip;
 
 /** The unsaved-evaluation note (owner, 15 plan Q1), on the sun, sky and driveway sections and in Copy summary. */

@@ -5,7 +5,11 @@
 "use client";
 import { useState } from "react";
 import { agentQuestions, copyAllText } from "@/lib/report/agent";
-import type { Card } from "@/lib/report/card";
+import { lowerFirst, type Card } from "@/lib/report/card";
+
+/** "a", "a and b", "a, b and c". */
+const listOf = (xs: readonly string[]): string =>
+  xs.length < 2 ? (xs[0] ?? "") : `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}`;
 
 /** How long "Copied" shows, as Copy summary's hint does. */
 const SAID_MS = 1500;
@@ -54,7 +58,7 @@ export function AgentQuestions({
             {qs.map((q) => (
               <li key={q.key}>
                 <p className="ask-q">{q.question}</p>
-                <p className="tiny muted ask-why">Why we ask: {q.why}.</p>
+                <p className="tiny muted ask-why">Why we ask: {lowerFirst(q.why)}.</p>
                 <button className="btn small secondary ask-copy" onClick={() => copy(q.key, q.question)}>
                   {status(q.key) ?? "Copy"}
                 </button>
@@ -67,7 +71,7 @@ export function AgentQuestions({
       )}
       {card.incomplete.length > 0 && (
         <p className="ask-failed" role="status">
-          <span>Didn&apos;t load: {card.incomplete.join(", ")}.</span>
+          <span>Didn&apos;t load: {listOf(card.incomplete)}.</span>
           {onRetry && (
             <button className="btn small secondary" onClick={onRetry}>
               Try again

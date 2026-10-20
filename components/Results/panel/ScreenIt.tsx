@@ -36,7 +36,7 @@ import { STEPS } from "@/lib/screen/config";
 import { summaryText } from "@/lib/screen/summary";
 import { debugOn, publishPosted } from "@/lib/client/debugHandle";
 import { SessionLru } from "@/lib/client/sessionLru";
-import { evaluatedNote } from "@/lib/render/pins";
+import { evaluatedNote, RUN_AGAIN_TO_EVALUATE } from "@/lib/render/pins";
 import type { LatLon } from "@/lib/geo/types";
 import type { PartialScreenResult, ScreenResult, UserConfig } from "@/lib/screen/types";
 import type { ExploreController, SetHint } from "@/components/Explore/useExploreController";
@@ -44,6 +44,7 @@ import { lineLayer } from "@/components/Explore/layers";
 import { evaluationPoint } from "../blocks/types";
 import { useRubricView } from "@/lib/client/useRubricView";
 import { reportCard } from "@/lib/report/card";
+import { answerReason } from "@/lib/report/answer";
 import { lineNamesOf, type LineNames } from "@/lib/report/lines";
 import { drawnOf, type Drawn } from "@/lib/report/marks";
 import { listingAcresNote } from "@/lib/report/listing";
@@ -54,6 +55,9 @@ import type { PanelKey } from "@/lib/report/cardPanels";
 import { CardPanel } from "../card/CardPanel";
 import { LET_THE_APP_CONSIDER_IT, LINES_CHANGED, ReportCard } from "../card/ReportCard";
 import { Others } from "@/components/Household/Others";
+import { AgentQuestions } from "../answer/AgentQuestions";
+import { BestHomesite } from "../answer/BestHomesite";
+import { FullReport } from "../answer/FullReport";
 import { OFFLINE_SCREEN_TEXT } from "@/lib/client/pwa";
 
 /** The run the worker's session holds: which parcel it was for (state.serial) and what it was run on. */
@@ -383,11 +387,29 @@ export function useScreenIt(
     stopped: !!error && !runningHere,
   });
 
+  // Step 7: the card for what's shown, made once per change: the panel, the header and the pins read it.
+  const drivewayLine = open?.drivewayLine;
+  const card = useMemo(
+    () => (display ? reportCard(display, rubric, open ? drawnOf(markup ?? [], drivewayLine) : undefined) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the open parcel's markup and line are what matter
+    [display, rubric, markup, drivewayLine],
+  );
+  // A site tapped in the panel (step 7 plan §1.3): evaluated with the live session, as its pin is; without one, the
+  // pins' own words say why not.
+  const pickSite = (ll: LatLon, label: string) => {
+    if (sessionLive) return evaluateAt(ll, label);
+    hint(RUN_AGAIN_TO_EVALUATE);
+    setTimeout(() => hint((h) => (h === RUN_AGAIN_TO_EVALUATE ? "" : h)), 3000);
+  };
+
   return {
     ctl,
     parcel,
     running,
     runningHere,
+    /** The card for what's shown (step 7): this person's, at their best homesite. */
+    card,
+    pickSite,
     /** The grade button's state (lib/client/gradeButton.ts): null when there's no reason to run again. */
     grade,
     /** The finished run's folded log line: "Graded in 66 s", with the failed count unless the button has it. */
@@ -480,6 +502,8 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
             </span>
           )}
         </span>
+        {/* Step 7 (plan §1.1): the answer's reason, in the phone's peek (on two lines at most; CSS hides it elsewhere). */}
+        {card && s.shown && <span className="sh-reason">{answerReason(card, s.shown.result)}</span>}
       </span>
       <span className="sh-actions">
         {/* Deselect the parcel (17e); Esc does the same on desktop. A screened one stays in History. */}
@@ -538,6 +562,8 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
   const now = s.runningHere ? STEPS.find(([id]) => s.steps[id]?.status === "run") : undefined;
   const running = now ? { step: now[0], message: s.steps[now[0]]!.message } : undefined;
   const notes = !s.runningHere && shown;
+  // Full report ▸ (step 7): open or not, and a section to bring into view as it opens ("What no dataset answers").
+  const [full, setFull] = useState<{ open: boolean; scrollTo: string | null }>({ open: false, scrollTo: null });
   if (!s.showSteps && !s.error && !notes && !display) return null;
   // The card comes right under the header (owner, #111), with the run's log above it: the live list while it runs,
   // one line once it's done (step 4c). What failed or is out of date stays above the card too; Copy summary and the
@@ -568,11 +594,28 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
           )}
         </section>
       )}
-      {display && (
+      {display && s.card && (
         <div className={s.stale && !s.runningHere ? "report stale" : "report"}>
           <ReportCard
-            card={reportCard(display, s.rubric, drawnFor(s))}
+            card={s.card}
+            result={display}
             running={!!s.runningHere}
+            between={
+              <BestHomesite
+                card={s.card}
+                result={display}
+                running={!!s.runningHere}
+                showing={s.evaluated?.label ?? null}
+                onOpen={openPanel}
+                pick={(p) => s.pickSite(p.ll, p.label)}
+                back={() => {
+                  const best = s.card!.sites[0];
+                  const h = display.house;
+                  if (h && !("outside" in h)) s.pickSite(h.ll, "the house");
+                  else if (best) s.pickSite(best.ll, `site #${best.rank}`);
+                }}
+              />
+            }
             note={listingAcresNote(
               s.ctl.state.store.open?.listingAcres ?? null,
               s.ctl.derived?.ok ? s.ctl.derived.acres : null,
@@ -588,6 +631,31 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
           />
           {/* Step 6: how each other member would rate it, from their own priorities. */}
           <Others result={display} drawn={drawnFor(s)} parcel={s.ctl.state.store.open?.key ?? null} />
+          {/* Step 7: what to ask the agent, once the run is done; then the whole report, behind one control. */}
+          {!s.runningHere && (
+            <AgentQuestions
+              card={s.card}
+              name={s.ctl.layers?.name ?? "this parcel"}
+              onRetry={s.run}
+              showChecklist={() => setFull({ open: true, scrollTo: "still-unknown" })}
+            />
+          )}
+          <FullReport
+            result={display}
+            point={point}
+            running={running}
+            lineNames={namesOf(s)}
+            drivewayLine={s.ctl.state.store.open?.drivewayLine ?? null}
+            noteFor={(slug) =>
+              s.evaluated &&
+              EVALUATED_SECTIONS.has(slug) && (
+                <p className="report-note eval-note">{evaluatedNote(s.evaluated.label)}</p>
+              )
+            }
+            open={full.open}
+            setOpen={(open) => setFull({ open, scrollTo: null })}
+            scrollTo={full.scrollTo}
+          />
         </div>
       )}
       {footer && (

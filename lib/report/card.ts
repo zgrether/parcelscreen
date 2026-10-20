@@ -149,7 +149,7 @@ const KM_PER_MI = 1.609344;
 const miles = (km: number): string => fmt(km / KM_PER_MI, km / KM_PER_MI < 1 ? 2 : 1);
 
 /** "fits as is" for a sentence's start, but an acronym stays: "FEMA has…". */
-const lowerFirst = (s: string): string => (/^[A-Z]{2}/.test(s) ? s : s.charAt(0).toLowerCase() + s.slice(1));
+export const lowerFirst = (s: string): string => (/^[A-Z]{2}/.test(s) ? s : s.charAt(0).toLowerCase() + s.slice(1));
 
 type Result = PartialScreenResult;
 

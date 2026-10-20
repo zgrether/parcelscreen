@@ -30,7 +30,7 @@ import { ScreenItContext } from "@/components/Results/ScreenItContext";
 import { debugFromUrl } from "@/lib/client/debugHandle";
 import { DockTab, ScreenBody, ScreenHeader, useScreenIt } from "@/components/Results/panel/ScreenIt";
 import { GradeAction } from "@/components/Results/panel/GradeAction";
-import { PEEK, PEEK_WITH_ACTION, SHEET_QUERY, useBottomSheet } from "./useBottomSheet";
+import { PEEK, PEEK_ANSWER, PEEK_WITH_ACTION, SHEET_QUERY, useBottomSheet } from "./useBottomSheet";
 import { ExploreContext, useExploreController } from "./useExploreController";
 
 /** The docked panel's width (desktop; step 4c). */
@@ -109,7 +109,10 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   const raise = useCallback(() => raiseSheet.current(), []);
   const screen = useScreenIt(explore, config, raise, setHint);
   // The phone's peek holds the grade button under the header while it shows (owner, 4c: 148 px), else 92 px.
-  const peek = !explore.docked && store.open && screen.grade ? PEEK_WITH_ACTION : PEEK;
+  // Step 7: and the answer's reason under the grade, on two lines at most, while a graded parcel is open.
+  const answered = !!store.open && !!screen.shown && !screen.stale && !screen.runningHere;
+  const peek =
+    (!explore.docked && store.open && screen.grade ? PEEK_WITH_ACTION : PEEK) + (answered ? PEEK_ANSWER : 0);
   const sheet = useBottomSheet(
     root,
     panel,
@@ -184,6 +187,8 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   const panelClass = [
     "explore-panel",
     sheet.mapMode ? "mapmode" : "",
+    // Step 7: the header shows the answer's reason only while the sheet rests at its peek.
+    sheet.atPeek ? "at-peek" : "",
     sheetHidden ? "sheet-hidden" : "",
     docked ? (collapsed ? "dock collapsed" : full ? "dock full" : "dock search-only") : "",
     // The phone sheet with a parcel open and nothing run yet: the header alone (17e).

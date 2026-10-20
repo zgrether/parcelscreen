@@ -3228,6 +3228,251 @@ html:has(.app-nav) .explore {
   outline: 2px solid var(--color-water);
   outline-offset: 2px;
 }
+/* ---------- Step 7: the answer, Best homesite, the card in priority order, Still unknown, Full report ---------- */
+.card-answer {
+  padding-bottom: 4px;
+}
+.answer-incomplete,
+.ask-failed,
+.best-site-showing {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 0 0 10px;
+  font-size: 13.5px;
+}
+.card-group,
+.best-site,
+.ask-agent {
+  border-top: 1px solid var(--color-rule);
+  padding: 8px 0 4px;
+}
+.card-group .card-sub,
+.best-site .card-sub,
+.ask-agent .card-sub {
+  display: block;
+  margin: 2px 0 6px;
+}
+.card-group .card-rows,
+.card-cost {
+  border-top: 0;
+}
+.card-row {
+  min-height: 44px;
+}
+.must-row .must-mark {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+}
+.must-row .mark {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--color-ink-2);
+}
+.must-row.pass .mark {
+  background: var(--color-ok);
+}
+.must-row.warn .mark {
+  background: var(--color-warn);
+}
+.must-row.fail .mark {
+  background: var(--color-steep);
+}
+.must-row.unknown .mark,
+.must-row.pending .mark {
+  background: transparent;
+  color: var(--color-ink-2);
+  border: 1px solid var(--color-rule);
+}
+.best-site-name {
+  margin: 0 0 6px;
+  font: 600 17px/1.2 var(--font-cond);
+}
+.site-numbers,
+.site-rows,
+.ask-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.site-numbers {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13em, 1fr));
+  gap: 4px 12px;
+  margin-bottom: 6px;
+}
+.site-number {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 44px;
+  padding: 2px 0;
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.site-number .card-grade.small {
+  grid-column: 1;
+}
+.sn-name {
+  font-weight: 600;
+}
+.sn-value {
+  color: var(--color-ink-2);
+  font-size: 13.5px;
+}
+.other-spots,
+.more-spots {
+  margin-top: 6px;
+}
+.site-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 0;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--color-rule);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.spot-head {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+.spot-name {
+  font-weight: 600;
+}
+.spot-behind {
+  color: var(--color-ink-2);
+  font-size: 13px;
+}
+.spot-numbers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 13.5px;
+}
+.spot-number {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.spot-number .card-grade.small {
+  min-width: 20px;
+  height: 20px;
+  font-size: 13px;
+}
+.more-spots-toggle {
+  min-height: 44px;
+}
+.site-number:hover .sn-name,
+.site-row:hover .spot-name {
+  text-decoration: underline;
+}
+.site-number:focus-visible,
+.site-row:focus-visible,
+.full-report-toggle:focus-visible {
+  outline: 2px solid var(--color-water);
+  outline-offset: 2px;
+}
+.ask-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.ask-list {
+  counter-reset: ask;
+}
+.ask-list li {
+  padding: 6px 0 8px;
+  border-bottom: 1px solid var(--color-rule);
+}
+.ask-q {
+  margin: 0 0 2px;
+}
+.ask-why {
+  margin: 0 0 6px;
+}
+.ask-agent .btn.small,
+.answer-incomplete .btn.small,
+.best-site-showing .btn.small {
+  min-height: 36px;
+}
+.ask-agent > .link-btn {
+  min-height: 44px;
+}
+.full-report {
+  border-top: 1px solid var(--color-rule);
+  margin-top: 8px;
+}
+.full-report-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: inherit;
+  font: 600 18px/1 var(--font-cond);
+  text-align: left;
+  cursor: pointer;
+}
+/* The answer's reason in the phone's peek (step 7 plan §1.1): two lines at most; the panel's own answer elsewhere. */
+.sh-reason {
+  display: none;
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  .at-peek .sh-reason {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    margin-top: 2px;
+    font: 400 13.5px/1.3 var(--font-sans);
+    color: var(--color-ink);
+  }
+  .ask-agent .btn.small,
+  .answer-incomplete .btn.small,
+  .best-site-showing .btn.small {
+    min-height: 44px;
+  }
+}
+/* The person's best homesite on the map (step 7): the inked pin, ringed; their alternatives, a light ring. */
+.sitepin.top {
+  box-shadow:
+    0 0 0 3px #fff,
+    0 0 0 5px var(--color-ink),
+    0 1px 3px rgba(0, 0, 0, 0.4);
+}
+.sitepin.alt {
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 4px var(--color-water),
+    0 1px 3px rgba(0, 0, 0, 0.4);
+}
 .card-panel {
   position: absolute;
   inset: 0;
