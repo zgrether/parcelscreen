@@ -122,12 +122,12 @@ describe("Best homesite (plan §1.2–§1.3)", () => {
 });
 
 describe("Still unknown (plan §1.5)", () => {
-  it("a question per Must to check, Copy, Copy all; what didn't load apart, with Try again", () => {
+  it("a question per Must to check, Copy, Copy all; what didn't load apart, the grade button its Try again", () => {
     const r = structuredClone(MUD);
     delete r.flood;
     const t = text(
       renderToStaticMarkup(
-        <AgentQuestions card={reportCard(r, ZACH)} name="Mud Creek" onRetry={noop} showChecklist={noop} />,
+        <AgentQuestions card={reportCard(r, ZACH)} name="Mud Creek" showChecklist={noop} />,
       ),
     );
     expect(t).toContain("Ask the listing agent:");
@@ -136,7 +136,7 @@ describe("Still unknown (plan §1.5)", () => {
       "Why we ask: no soil on the parcel rates better than very limited for a septic field.",
     );
     expect(t).toContain("Copy");
-    expect(t).toContain("Didn't load: the FEMA flood map. Try again");
+    expect(t).toContain("Didn't load: the FEMA flood map. Try again loads them.");
     expect(t).not.toContain("FEMA hasn't mapped");
   });
 
@@ -144,7 +144,7 @@ describe("Still unknown (plan §1.5)", () => {
     const card = { ...reportCard(FERNEY, ZACH), gates: [] };
     const t = text(renderToStaticMarkup(<AgentQuestions card={card} name="Ferney" showChecklist={noop} />));
     expect(t).toContain("Nothing to ask the agent: the screen answered every must.");
-    expect(t).toContain("What no dataset answers");
+    expect(t).toContain("More to check that no dataset covers");
   });
 });
 

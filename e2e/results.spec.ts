@@ -67,9 +67,9 @@ test("Ferney: the answer, Best homesite, the card's order, an alternative and Ba
   await page.locator(".full-report-toggle").click();
   await expect(page.locator(".full-report-body > section h3").first()).toContainText("Verdict");
   expect(await page.locator(".full-report-body > section").count()).toBeGreaterThanOrEqual(10);
-  // "What no dataset answers" opens it at the checklist.
+  // "More to check that no dataset covers" opens it at the checklist.
   await page.locator(".full-report-toggle").click();
-  await ask.getByRole("button", { name: "What no dataset answers" }).click();
+  await ask.getByRole("button", { name: "More to check that no dataset covers" }).click();
   await expect(page.locator('.full-report-body [data-key="still-unknown"]')).toBeInViewport();
   expect(errors).toEqual([]);
 });

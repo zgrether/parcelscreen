@@ -563,7 +563,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
   const now = s.runningHere ? STEPS.find(([id]) => s.steps[id]?.status === "run") : undefined;
   const running = now ? { step: now[0], message: s.steps[now[0]]!.message } : undefined;
   const notes = !s.runningHere && shown;
-  // Full report ▸ (step 7): open or not, and a section to bring into view as it opens ("What no dataset answers").
+  // Full report ▸ (step 7): open or not, and a section to bring into view as it opens ("More to check that no dataset covers").
   const [full, setFull] = useState<{ open: boolean; scrollTo: string | null }>({
     open: false,
     scrollTo: null,
@@ -640,7 +640,6 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             <AgentQuestions
               card={s.card}
               name={s.ctl.layers?.name ?? "this parcel"}
-              onRetry={s.run}
               showChecklist={() => setFull({ open: true, scrollTo: "still-unknown" })}
             />
           )}
