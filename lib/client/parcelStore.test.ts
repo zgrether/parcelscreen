@@ -243,8 +243,8 @@ describe("storage (ps.parcels)", () => {
         milestones: { walked: null, offered: null },
         notes: "kept before WF2a",
       });
-    // And on the list it reads "In progress".
-    expect(statusLine(back.built[0]!)).toBe("In progress");
+    // Step 8: in its adder's History, with no status word.
+    expect(statusLine(back.built[0]!)).toBe("");
     expect(libraryRow(back.built[0]!, undefined).status).toBe("inProgress");
   });
 

@@ -23,7 +23,8 @@ import type { ParcelStatus } from "@/lib/client/parcelStore";
 import { switchLabel } from "@/lib/client/rubrics";
 import type { NamedRubric } from "@/lib/rubric/types";
 
-const STATUSES: ParcelStatus[] = ["inProgress", "saved", "archived"];
+// Step 8 (plan §4): Favorites are active by default; the one status chip shows the archived ones too.
+const STATUSES: ParcelStatus[] = ["archived"];
 const CHOICE_WORD: Record<VerdictChoice, string> = {
   Contender: "Contender",
   Maybe: "Maybe",

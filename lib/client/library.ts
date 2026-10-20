@@ -302,14 +302,19 @@ export function sortRows(rows: readonly LibraryRow[], s: LibrarySort): LibraryRo
 
 // ---------- the remembered view (ps.library) ----------
 
+/** Step 8 (plan §5): Your list's two views, Favorites first. */
+export type ListTab = "favorites" | "history";
+
 export interface LibraryView {
   filters: LibraryFilters;
   sort: LibrarySort;
+  tab: ListTab;
 }
-export const DEFAULT_VIEW: LibraryView = { filters: DEFAULT_FILTERS, sort: DEFAULT_SORT };
+export const DEFAULT_VIEW: LibraryView = { filters: DEFAULT_FILTERS, sort: DEFAULT_SORT, tab: "favorites" };
 
 const Choice = z.enum(["Contender", "Maybe", "Pass", "unscreened"]);
 const ViewSchema = z.object({
+  tab: z.enum(["favorites", "history"]).default("favorites"),
   filters: z.object({
     status: z.array(z.enum(["inProgress", "saved", "archived"])),
     household: z.array(Choice),
@@ -383,9 +388,11 @@ export const showHidden = (h: Hidden, f: LibraryFilters): LibraryFilters =>
 export const COMPARE_MIN = 2;
 export const COMPARE_MAX = 3;
 
-/** Your list with nothing on it (step 4b, plan §5): it points to the map. */
-export const LIST_EMPTY =
-  "Nothing on your list yet. Find a parcel on the map, screen it, and it's kept here.";
+/** Favorites with none starred (step 8, plan §4): where stars come from. */
+export const FAVORITES_EMPTY = "No favorites yet. Star a parcel on the map, or in History, to add it here.";
+/** History with nothing in it (step 8, plan §3). */
+export const HISTORY_EMPTY =
+  "Nothing here yet. Parcels you grade show up here; star one to add it to your household's favorites.";
 /** How Compare is reached (step 4b): the ticks on Your list, 2 or 3. */
 export const COMPARE_HOW = "Tick 2 or 3 parcels on Your list to compare them.";
 /** A fourth tick isn't offered. */

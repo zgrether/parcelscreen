@@ -144,7 +144,7 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
       const s = x.current();
       if (!s.store.open || s.mode || s.split || s.info || s.mapPanel) return;
       if ((e.target as HTMLElement | null)?.closest("input,select,textarea,[contenteditable]")) return;
-      if (document.querySelector(".menu-panel, .ground-layer, dialog[open]")) return;
+      if (document.querySelector(".menu-panel, .ground-layer, dialog[open], .rubric-sheet-scrim")) return;
       x.close();
     };
     document.addEventListener("keydown", onKey);
