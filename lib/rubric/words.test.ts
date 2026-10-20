@@ -19,6 +19,7 @@ describe("the cards' words", () => {
       homesite: "A good house site: winter sun, facing and slope",
       sky: "A night sky of at least 21.2 mag/arcsec²",
       room: "Gentle ground of at least 2× the build footprint",
+      driveway: "A driveway no steeper than 15% at its steepest",
       trails: "A trailhead within a 20-minute drive (or public land within 1 mi)",
       town: "An ER within 30 min and groceries within 20",
       garden: "At least 0.25 ac of garden ground",
@@ -35,6 +36,7 @@ describe("the cards' words", () => {
   it("show the whole band", () => {
     expect(bandLine(D.bands, "elevationFt")).toBe("A 3,000 ft+ · B 2,500 ft · C 2,000 ft · D 1,500 ft");
     expect(bandLine(D.bands, "erMin")).toBe("A 20 min · B 30 min · C 45 min · D 60 min");
+    expect(bandLine(D.bands, "drivewayPct")).toBe("A 10% · B 15% · C 20% · D 25%");
   });
 
   it("put a minimum in words", () => {
@@ -57,6 +59,7 @@ describe("the cards' words", () => {
       homesite: "A sunny, gentle spot for the house",
       sky: "Dark enough to see the Milky Way",
       room: "Enough gentle ground for the house",
+      driveway: "A driveway no steeper than 15%",
       trails: "A trailhead within 20 min, or public land within 1 mi",
       town: "ER within 30 min, groceries within 20 min",
       garden: "Room for a kitchen garden",

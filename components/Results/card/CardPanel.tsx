@@ -67,7 +67,9 @@ function reading(key: PanelKey, card: Card): { mark: string; tone: string; text:
   if (key === "cost") return { mark: "–", tone: "g-none", text: "Pending." };
   const gate = card.gates.find((g) => g.key === key);
   if (gate) return { mark: STATUS[gate.status], tone: `gate ${gate.status}`, text: `${gate.reason}.` };
-  const row = card.rows.find((r) => r.key === key)!;
+  const row = card.rows.find((r) => r.key === key);
+  // A Don't care row isn't on the card, but its panel can still open (from the URL, or the rulebook's link).
+  if (!row) return { mark: "–", tone: "g-none", text: "Don't care: not part of this grade." };
   const note = row.panelNote ? `; ${row.panelNote}` : "";
   return { mark: row.grade ?? "–", tone: `g-${row.grade ?? "none"}`, text: `${row.detail}${note}.` };
 }

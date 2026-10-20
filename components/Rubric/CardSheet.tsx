@@ -45,6 +45,7 @@ const BAND_LABELS: Record<LimitKey, string> = {
   erMin: "Drive to an ER",
   groceryMin: "Drive to groceries",
   gardenAc: "Garden ground",
+  drivewayPct: "The driveway at its steepest",
   sunH: "December sun at the best site",
 };
 

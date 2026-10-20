@@ -554,11 +554,24 @@ export const SCREEN_CONSTANTS = deepFreeze({
       erMin: [20, 30, 45, 60],
       groceryMin: [10, 20, 30, 45],
       gardenAc: [0.5, 0.25, 0.1, 0], // an A also needs prime or statewide-important soil; any garden is a D
+      // Step 7 (docs/plans/step-7-results.md §3.1): the driveway's steepest grade, at most. B's edge is Settings' default
+      // grade limit (roadMaxGradePct), D's its default veto (roadVetoGradePct); question 10 moves the B/C edge.
+      drivewayPct: [10, 15, 20, 25],
     },
     // The default rubric's weights, summing to 100 (roadmap step 1: a profile's rubric replaces them; the second set the
-    // app shipped with is test/support/rubrics.ts LEGACY_SECOND_WEIGHTS, kept for the step 1 card oracle).
+    // app shipped with is test/support/rubrics.ts LEGACY_SECOND_WEIGHTS, kept for the step 1 card oracle). The Driveway
+    // row weighs 0, so it's Don't care and the starting list grades as before it (step 7 plan §3.3).
     weights: {
-      default: { elevation: 25, homesite: 25, sky: 10, room: 15, trails: 10, town: 5, garden: 10 },
+      default: {
+        elevation: 25,
+        homesite: 25,
+        sky: 10,
+        room: 15,
+        driveway: 0,
+        trails: 10,
+        town: 5,
+        garden: 10,
+      },
     },
     // Step 3 (rubric editor, plan §2): each band's slider, over its B/C edge (the edge of "acceptable"; the band's other
     // edges shift with it) and a minimum's value, in the band's unit. Ranges a person might want, not limits on the data.
@@ -570,6 +583,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
       erMin: { min: 10, max: 90, step: 5 },
       groceryMin: { min: 5, max: 60, step: 5 },
       gardenAc: { min: 0.05, max: 2, step: 0.05 },
+      drivewayPct: { min: 8, max: 25, step: 1 },
       // Step 4 (owner, 10/18; phase-0.md §9.50 amended): Best homesite's limit, hours of December sun at the best site.
       // A limit starts at bands.winterSunH's first edge ("Workable", 3 h).
       sunH: { min: 1, max: 8, step: 0.5 },
@@ -579,7 +593,16 @@ export const SCREEN_CONSTANTS = deepFreeze({
     // (setBandEdge). A choice that sets no edge keeps today's band.
     interview: {
       // A row no answer touches keeps these: the design's default tiers (Should 2, Could 1).
-      defaultPoints: { elevation: 2, homesite: 2, room: 2, trails: 2, town: 2, sky: 1, garden: 1 },
+      defaultPoints: {
+        elevation: 2,
+        homesite: 2,
+        room: 2,
+        driveway: 2,
+        trails: 2,
+        town: 2,
+        sky: 1,
+        garden: 1,
+      },
       // Really want: the rows with at least minPoints, kept to min–max by rank.
       should: { minPoints: 2, min: 3, max: 6 },
       // "That will rule out most land." above this many walk-away chips.
@@ -632,6 +655,12 @@ export const SCREEN_CONSTANTS = deepFreeze({
           herbs: { points: { garden: 1 }, edges: { gardenAc: 0.1 } },
           kitchen: { points: { garden: 2 } },
           most: { points: { garden: 3 }, edges: { gardenAc: 1 } },
+        },
+        // Step 7 (plan §3.2): question 10's grade limits, 20 / 15 / 12%, as the Driveway row's B/C edge.
+        driveway: {
+          steep: { points: { driveway: 1 }, edges: { drivewayPct: 20 } },
+          gentle: { points: { driveway: 2 }, edges: { drivewayPct: 15 } },
+          build: { points: { driveway: 1 }, edges: { drivewayPct: 12 } },
         },
       },
     },

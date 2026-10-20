@@ -52,14 +52,15 @@ describe("the default rubric reproduces today's cards (cards-v7.json; a port-onl
           expect(got.points).toBe(wantRest.points);
         });
 
-  it("the default is explicit, the four gates are its Musts, every row is ranked Should, nothing is a Won't", () => {
+  it("the default is explicit, the four gates are its Musts, every weighted row is ranked Should, Driveway is a Won't", () => {
     for (const nr of PERSONS) {
       const r = nr.rubric;
       expect(r.weights.mode).toBe("explicit");
       expect(r.musts.map((m) => m.factor)).toEqual(["floodplain", "access", "easement", "septic"]);
       expect(r.musts.every((m) => m.threshold === undefined)).toBe(true);
       expect(r.ranked.map((c) => c.tier)).toEqual(Array<"should">(7).fill("should"));
-      expect(r.wonts).toEqual([]);
+      // Step 7: the Driveway row weighs 0 in both shipped sets, so the starting list grades as before it.
+      expect(r.wonts).toEqual(["driveway"]);
       expect(r.bands).toEqual(SCREEN_CONSTANTS.card.rows);
       expect(r.points).toEqual(SCREEN_CONSTANTS.card.points);
       expect(r.gradeCutoffs).toEqual(SCREEN_CONSTANTS.card.gradeCutoffs);

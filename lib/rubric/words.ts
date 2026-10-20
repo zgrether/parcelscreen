@@ -17,6 +17,7 @@ export const FACTOR_LABELS: Record<Factor, string> = {
   homesite: "Best homesite",
   sky: "Night sky",
   room: "Room to build",
+  driveway: "Driveway",
   trails: "Trails and public land",
   town: "Town and hospital",
   garden: "Garden ground",
@@ -33,7 +34,7 @@ export const EDITOR_TITLES: Record<Factor, string> = {
 
 /** The bands a slider moves: each a list of A, B, C and D edges, best first. */
 export type BandKey =
-  "elevationFt" | "skyMag" | "roomX" | "trailheadMin" | "erMin" | "groceryMin" | "gardenAc";
+  "elevationFt" | "skyMag" | "roomX" | "trailheadMin" | "erMin" | "groceryMin" | "gardenAc" | "drivewayPct";
 
 /**
  * What a limit is set in: a band, or (Best homesite, whose letter is the site's quality and has no band) hours of
@@ -47,6 +48,7 @@ export const ROW_BANDS: Record<RowKey, readonly BandKey[]> = {
   homesite: [],
   sky: ["skyMag"],
   room: ["roomX"],
+  driveway: ["drivewayPct"],
   trails: ["trailheadMin"],
   town: ["erMin", "groceryMin"],
   garden: ["gardenAc"],
@@ -58,6 +60,8 @@ export const MINIMUM_BAND: Record<RowKey, LimitKey | null> = {
   homesite: "sunH",
   sky: "skyMag",
   room: "roomX",
+  // No limit on the driveway in step 7 (plan §11 Q9): question 14 has no chip for it.
+  driveway: null,
   trails: "trailheadMin",
   town: "erMin",
   garden: "gardenAc",
@@ -72,6 +76,7 @@ export const BAND_RUNS: Record<BandKey, "atLeast" | "atMost"> = {
   erMin: "atMost",
   groceryMin: "atMost",
   gardenAc: "atLeast",
+  drivewayPct: "atMost",
 };
 
 /** "1.0" → "1", "0.25" stays: a number without trailing zeros. */
@@ -94,6 +99,8 @@ export function bandValue(key: LimitKey, v: number): string {
       return `${fmt(v)} min`;
     case "gardenAc":
       return `${fmt(v, 2).replace(/\.?0+$/, "")} ac`;
+    case "drivewayPct":
+      return `${fmt(v)}%`;
   }
 }
 
@@ -127,6 +134,8 @@ export function cardLine(r: Rubric, factor: Factor): string {
       return `A night sky of at least ${bandValue("skyMag", bcEdge(b, "skyMag"))} mag/arcsec²`;
     case "room":
       return `Gentle ground of at least ${bandValue("roomX", bcEdge(b, "roomX"))} the build footprint`;
+    case "driveway":
+      return `A driveway no steeper than ${bandValue("drivewayPct", bcEdge(b, "drivewayPct"))} at its steepest`;
     case "trails":
       return `A trailhead within a ${fmt(bcEdge(b, "trailheadMin"))}-minute drive (or public land within ${trim(fmt(b.openLandWithinFt / 5280, 2))} mi)`;
     case "town":
@@ -193,6 +202,8 @@ export function plainLine(r: Rubric, factor: Factor): string {
     }
     case "room":
       return "Enough gentle ground for the house";
+    case "driveway":
+      return `A driveway no steeper than ${bandValue("drivewayPct", bcEdge(b, "drivewayPct"))}`;
     case "trails":
       return `A trailhead within ${bandValue("trailheadMin", bcEdge(b, "trailheadMin"))}, or public land within ${trim(fmt(b.openLandWithinFt / 5280, 2))} mi`;
     case "town":

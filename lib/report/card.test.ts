@@ -53,6 +53,7 @@ describe("the report card on the fixtures (engine 13)", () => {
       homesite: "A",
       sky: "B",
       room: "A",
+      driveway: "A", // step 7: 5% at its steepest
       trails: "D", // follow-up 54: 47 min by road to Buffalo Mountain's parking (it read C, 6.5 mi straight)
       town: "D",
       garden: "A",
@@ -87,6 +88,7 @@ describe("the report card on the fixtures (engine 13)", () => {
       homesite: "A",
       sky: "B",
       room: "B", // VR3b: site #1's gentle ground near the house, 2.8× (it read 20.9 ac parcel-wide)
+      driveway: "A", // step 7: 8% at its steepest
       // Follow-up 54: from the entrance, whose road OSRM drives as a track at about 6 mph (followup-54 plan §4).
       trails: "F",
       town: "F",
@@ -206,10 +208,12 @@ describe("the report card on the fixtures (engine 13)", () => {
       homesite: "A",
       sky: "A",
       room: "B",
+      driveway: "C", // step 7: 18% at its steepest, past the starting list's 15%
       trails: "B",
       town: "C",
       garden: "C",
     });
+    expect(rowOf(r, "driveway").detail).toBe("2,888 ft, 18% at its steepest");
     const zach = reportCard(r, ZACH);
     expect(zach.points).toBeCloseTo(3.45, 9);
     expect([zach.grade, zach.verdict]).toEqual(["B", "Contender"]);

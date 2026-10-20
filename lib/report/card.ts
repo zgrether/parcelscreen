@@ -19,7 +19,7 @@ import { derivedSites } from "../screen/derive";
 import { NO_PRACTICAL_ROUTE, existingSteepLine } from "../screen/score";
 import { servesLine, trailheadSourceLabel } from "../screen/trailheads";
 import { isPrimeFarmland, soilAt, type SoilUnit } from "../screen/soils";
-import type { PartialScreenResult, RoadClass } from "../screen/types";
+import type { PartialScreenResult, RoadClass, ScoredDriveway } from "../screen/types";
 import type { LatLon } from "../geo/types";
 import { M2FT, M2_PER_ACRE } from "../screen/util";
 import { steepLandingLine } from "./driveway";
@@ -462,6 +462,47 @@ function room(r: Result, K: CardConfig, footprintAc: number): Row {
     : line;
 }
 
+/**
+ * The grade the Driveway row reads (step 7 plan §3.1): the steepest grade on the chosen route, over 30 m (its design
+ * grade where the router designed an alternative), or the existing drive's raw grade when that's steeper, as the
+ * over-limit term reads them (score.ts overLimitPointsFrom).
+ */
+export function drivewayGradePct(f: ScoredDriveway): number {
+  const route = f.legal || f.limitPct === null ? f.maxGradePct : (f.designPct ?? f.maxGradePct);
+  return Math.max(route, f.existing?.maxGradePct ?? -Infinity);
+}
+
+/**
+ * The Driveway row (step 7): the build site's chosen driveway, graded on its steepest grade against the rubric's band
+ * (question 10 sets its edge). Its length is in the line; its cost is Cost to enjoy's. No route, or no practical drive:
+ * an F.
+ */
+function driveway(r: Result, K: CardConfig): Row {
+  const g = row("driveway", FACTOR_LABELS.driveway);
+  const notRouted = (): Row => ({ ...g(null, "the driveway wasn't routed"), missing: "the roads" });
+  if (!r.driveway) return notRouted();
+  const h = r.house;
+  const spot = h && !("outside" in h) ? { label: "the marked house", dw: h.driveway } : null;
+  if (!spot && !r.sites) return notLoaded(g, "the homesite ranking");
+  const s = r.sites?.[0];
+  const at = spot ?? (s ? { label: "site #1", dw: s.driveway } : null);
+  if (!at) return g(null, "no build site to measure");
+  if (at.dw === undefined) return notRouted();
+  if (at.dw === null) return { ...g("F", `no driveway route reaches ${at.label}`), short: "no route" };
+  if (at.dw.noPractical)
+    return { ...g("F", `no practical driveway to ${at.label}`), short: "no practical route" };
+  const pct = drivewayGradePct(at.dw);
+  const easement = at.dw.needsEasement ? "; needs an easement across neighbouring land" : "";
+  return {
+    ...g(
+      atMost(pct, K.rows.drivewayPct),
+      `${fmt(at.dw.lengthFt)} ft, ${fmt(pct)}% at its steepest${easement}`,
+    ),
+    short: `${fmt(pct)}% steepest`,
+    measure: { value: pct, unit: "%" },
+  };
+}
+
 /** Appended to the Trails row when the drives went to the trailhead points, the parking lookup unanswered (#140). */
 export const TIMED_TO_THE_TRAILHEAD =
   "timed to the trailhead, not its parking (the parking lookup didn't answer)";
@@ -684,6 +725,7 @@ export function cardFacts(
       homesite(r),
       sky(r, K),
       room(r, K, footprintAc),
+      driveway(r, K),
       trails(r, K),
       town(r, K),
       garden(r, K, marks),
@@ -745,8 +787,9 @@ export function maybeCaps(facts: CardFacts): Record<keyof typeof MAYBE_CAPS, boo
 export function cardFor(facts: CardFacts, nr: NamedRubric): Card {
   const R = nr.rubric;
   const w = weightsOf(R);
-  // Won't rows are hidden and left out of the grade; the gates the rubric keeps as Musts decide the verdict.
-  const rows = facts.rows.filter((x) => !R.wonts.includes(x.key));
+  // Won't rows are hidden and left out of the grade; the gates the rubric keeps as Musts decide the verdict. A row the
+  // rubric doesn't rank is Don't care too (step 7: a rubric saved before the Driveway row; words.ts tierOf).
+  const rows = facts.rows.filter((x) => !R.wonts.includes(x.key) && R.ranked.some((c) => c.factor === x.key));
   const graded = gradedRows(rows, R);
   const { points, grade } = parcelGrade(graded, R, w);
   const gates = facts.gates.filter((g) =>
