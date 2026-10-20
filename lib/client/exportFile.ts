@@ -419,6 +419,7 @@ function fromPrototypeSaved(s: z.infer<typeof ProtoSavedSchema>, key: string, no
     hidden: [],
     excluded: [],
     screenIds: [],
+    addedBy: null,
     updatedAt: at,
   };
   // History has no name field (owner, #60): the saved name is the notes' first line, exactly "Name: {name}",

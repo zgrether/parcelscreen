@@ -3871,7 +3871,8 @@ button.cmp-cell:hover {
   border-radius: 8px;
   justify-items: start;
 }
-.lib-filter .chip {
+.lib-filter .chip,
+.lib-quick {
   border: 1px solid var(--color-rule);
   background: transparent;
   color: var(--color-ink);
@@ -3880,7 +3881,8 @@ button.cmp-cell:hover {
   font-size: 13px;
   cursor: pointer;
 }
-.lib-filter .chip[aria-pressed="true"] {
+.lib-filter .chip[aria-pressed="true"],
+.lib-quick[aria-pressed="true"] {
   background: var(--color-ink);
   color: var(--color-paper);
   border-color: var(--color-ink);
@@ -5327,5 +5329,198 @@ button.sync-ind.bad {
     height: 9px;
     border-radius: 50%;
     background: var(--color-warn);
+  }
+}
+
+/* ---------- Step 6: the household (docs/plans/step-6-household.md) ---------- */
+.who-page .sync-line {
+  max-width: 520px;
+  margin-bottom: 16px;
+}
+.who-list {
+  display: grid;
+  gap: 10px;
+  max-width: 420px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.who-person {
+  width: 100%;
+  min-height: 48px;
+  justify-content: flex-start;
+  text-align: left;
+}
+.added-by {
+  margin: 0 0 4px;
+}
+
+/* Your list's Grades: mine, then each other member's small beside it (step 6 §3.1). */
+.lib-grades {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+.lib-other-grade {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.card-grade.tiny {
+  min-width: 18px;
+  height: 18px;
+  font-size: 12px;
+  line-height: 18px;
+}
+/* How each other member would rate it (step 6 §3.2). */
+.others h3 {
+  margin: 0 0 6px;
+  font: 600 16px/1.2 var(--font-cond);
+}
+.others-grade {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 4px;
+}
+.others-reason {
+  margin: 0 0 8px;
+}
+.others-diffs {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.others-why {
+  display: block;
+  margin-top: 2px;
+}
+.others-none {
+  margin: 0 0 4px;
+}
+/* Asks and takes (step 6 §4). */
+.take-chip {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 18px;
+  color: #fff;
+}
+.take-chip.a-yes {
+  background: var(--color-ok);
+}
+.take-chip.a-maybe {
+  background: var(--color-warn);
+}
+.take-chip.a-no {
+  background: var(--color-steep);
+}
+.take-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin: 8px 0 0;
+}
+.take-comment {
+  flex-basis: 100%;
+  font-style: italic;
+}
+.take-ask {
+  margin-top: 8px;
+  min-height: 44px;
+}
+.take-form {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+.take-field {
+  display: grid;
+  gap: 4px;
+}
+.take-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+  border: 1px solid var(--color-ink-2);
+  border-radius: 6px;
+  font: inherit;
+}
+.take-answers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.take-answer {
+  min-height: 44px;
+}
+.take-answer[aria-pressed="true"].a-yes {
+  background: var(--color-ok);
+  border-color: var(--color-ok);
+  color: #fff;
+}
+.take-answer[aria-pressed="true"].a-maybe {
+  background: var(--color-warn);
+  border-color: var(--color-warn);
+  color: #fff;
+}
+.take-answer[aria-pressed="true"].a-no {
+  background: var(--color-steep);
+  border-color: var(--color-steep);
+  color: #fff;
+}
+.take-buttons {
+  display: flex;
+  gap: 8px;
+}
+.take-buttons .btn {
+  min-height: 44px;
+}
+.take-asked {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border-left: 4px solid var(--color-warn);
+  background: rgba(154, 106, 18, 0.1);
+}
+.your-take h3 {
+  margin: 0 0 6px;
+  font: 600 16px/1.2 var(--font-cond);
+}
+.lib-quick {
+  min-height: 32px;
+}
+@media (max-width: 767px) {
+  .lib-quick {
+    min-height: 44px;
+  }
+}
+.app-tab {
+  position: relative;
+}
+.app-badge {
+  display: inline-block;
+  min-width: 18px;
+  height: 18px;
+  margin-left: 4px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--color-steep);
+  color: #fff;
+  font: 600 11px/18px var(--font-sans);
+  text-align: center;
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  .app-badge {
+    position: absolute;
+    top: 4px;
+    left: calc(50% + 6px);
+    margin: 0;
   }
 }

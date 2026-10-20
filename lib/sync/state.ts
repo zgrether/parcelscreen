@@ -13,8 +13,10 @@ export interface Unsaved {
   profiles: string[];
   parcels: { key: string; profile: string }[];
   screens: string[];
+  /** Asks and takes (step 6), by "<kind>:<key>". */
+  household: string[];
 }
-export const NO_UNSAVED: Unsaved = { profiles: [], parcels: [], screens: [] };
+export const NO_UNSAVED: Unsaved = { profiles: [], parcels: [], screens: [], household: [] };
 
 export interface SyncState {
   code: string;
@@ -30,6 +32,7 @@ const Schema = z.object({
       profiles: z.array(z.string()).default([]),
       parcels: z.array(z.object({ key: z.string(), profile: z.string() })).default([]),
       screens: z.array(z.string()).default([]),
+      household: z.array(z.string()).default([]),
     })
     .default(NO_UNSAVED),
 });
@@ -65,4 +68,4 @@ export function writeSyncState(s: SyncState | null): void {
 
 export const isJoined = (): boolean => readSyncState() !== null;
 export const hasUnsaved = (u: Unsaved): boolean =>
-  u.profiles.length + u.parcels.length + u.screens.length > 0;
+  u.profiles.length + u.parcels.length + u.screens.length + u.household.length > 0;

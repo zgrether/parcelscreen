@@ -5,6 +5,7 @@
  * here: owner, after #133), its report card (each line opening its panel, as in Compare), and Remove. A side panel on
  * desktop, a sheet on a phone.
  */
+import { members } from "@/lib/client/household";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ParcelNotes } from "@/components/Map/ParcelNotes";
@@ -12,6 +13,7 @@ import { ParcelStanding } from "@/components/Map/ParcelStanding";
 import { withAskingPrice, withListing, withNotes } from "@/lib/client/parcelEdits";
 import { CardPanel } from "@/components/Results/card/CardPanel";
 import { ReportCard } from "@/components/Results/card/ReportCard";
+import { Others } from "@/components/Household/Others";
 import { evaluationPoint } from "@/components/Results/blocks/types";
 import { parcelName } from "@/lib/client/historyRows";
 import { openOnMap } from "@/lib/client/openOnMap";
@@ -23,6 +25,7 @@ import { useRubricView } from "@/lib/client/useRubricView";
 import { reportCard } from "@/lib/report/card";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import { drawnOf } from "@/lib/report/marks";
+import { AddedBy } from "@/components/Household/AddedBy";
 import { listingAcresNote } from "@/lib/report/listing";
 
 export function ParcelDetail({
@@ -70,6 +73,7 @@ export function ParcelDetail({
       </header>
       <div className="lib-detail-body">
         <p className="tiny muted">{acres !== null ? `${acres.toFixed(2)} ac` : ""}</p>
+        <AddedBy addedBy={parcel.addedBy} />
         <div className="lib-detail-actions">
           <Link className="btn small" href="/explore" onClick={() => openOnMap(parcel)}>
             Open on the map
@@ -118,10 +122,14 @@ export function ParcelDetail({
               : "Not screened yet: open it on the map and screen it."}
           </p>
         )}
+        {/* Step 6: how each other member would rate it, from their own priorities. */}
+        {result && <Others result={result} drawn={drawn} parcel={parcel.key} />}
         <div className="lib-detail-actions">
           {confirming ? (
             <>
-              <span className="tiny">Remove it? It leaves your list and the map.</span>
+              <span className="tiny">
+                Remove it? It leaves the list and the map{members().length >= 2 ? ", for everyone" : ""}.
+              </span>
               <button className="btn small danger" onClick={remove}>
                 Remove
               </button>
@@ -131,7 +139,7 @@ export function ParcelDetail({
             </>
           ) : (
             <button className="btn secondary small" onClick={() => setConfirming(true)}>
-              Remove
+              Remove from the list
             </button>
           )}
         </div>

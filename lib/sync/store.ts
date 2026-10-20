@@ -10,7 +10,7 @@
  *   - deleting a profile marks it and its parcels deleted (so other devices learn of it) and deletes its screens;
  *   - `changes` lists only the screens of the current schema version.
  */
-import type { Changes, SaveBatch, StoredParcel, StoredProfile, StoredScreen } from "./wire";
+import type { Changes, SaveBatch, StoredHousehold, StoredParcel, StoredProfile, StoredScreen } from "./wire";
 
 export interface SyncStore {
   /** Makes a space; false if it already exists. */
@@ -28,6 +28,8 @@ interface MemorySpace {
   profiles: Map<string, StoredProfile>;
   parcels: Map<string, StoredParcel>;
   screens: Map<string, StoredScreen>;
+  /** Asks and takes (step 6), by "<kind>:<key>". */
+  household: Map<string, StoredHousehold>;
 }
 
 /** The store in memory, for tests. `now` is its clock; each read of it must be later than the last. */
@@ -45,7 +47,12 @@ export class MemorySyncStore implements SyncStore {
 
   async createSpace(space: string): Promise<boolean> {
     if (this.spaces.has(space)) return false;
-    this.spaces.set(space, { profiles: new Map(), parcels: new Map(), screens: new Map() });
+    this.spaces.set(space, {
+      profiles: new Map(),
+      parcels: new Map(),
+      screens: new Map(),
+      household: new Map(),
+    });
     return true;
   }
 
@@ -55,22 +62,25 @@ export class MemorySyncStore implements SyncStore {
 
   async changes(space: string, since: string | null, schemaVersion: number): Promise<Changes> {
     const s = this.spaces.get(space);
-    if (!s) return { profiles: [], parcels: [], screens: [], cursor: null };
+    if (!s) return { profiles: [], parcels: [], screens: [], household: [], cursor: null };
     const after = (t: string) => since === null || t > since;
     const profiles = [...s.profiles.values()].filter((p) => after(p.updatedAt));
     const parcels = [...s.parcels.values()].filter((p) => after(p.updatedAt));
     const screens = [...s.screens.values()].filter(
       (x) => x.schemaVersion === schemaVersion && after(x.createdAt),
     );
+    const household = [...s.household.values()].filter((h) => after(h.updatedAt));
     const times = [
       ...profiles.map((p) => p.updatedAt),
       ...parcels.map((p) => p.updatedAt),
       ...screens.map((x) => x.createdAt),
+      ...household.map((h) => h.updatedAt),
     ];
     return {
       profiles: structuredClone(profiles),
       parcels: structuredClone(parcels),
       screens: screens.map(({ id, profile }) => ({ id, profile })),
+      household: structuredClone(household),
       cursor: times.length ? times.reduce((a, b) => (b > a ? b : a)) : since,
     };
   }
@@ -98,6 +108,14 @@ export class MemorySyncStore implements SyncStore {
         profile: p.profile,
         record: structuredClone(p.record),
         deleted: p.record === null,
+        updatedAt: this.stamp(),
+      });
+    for (const h of batch.household)
+      s.household.set(`${h.kind}:${h.key}`, {
+        key: h.key,
+        kind: h.kind,
+        record: structuredClone(h.record),
+        deleted: h.record === null,
         updatedAt: this.stamp(),
       });
     for (const x of batch.screens)

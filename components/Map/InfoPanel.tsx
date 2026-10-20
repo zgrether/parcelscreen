@@ -9,6 +9,7 @@
  *
  * Keys: Delete or Backspace deletes the selected layer; Esc clears the selection, then closes the panel.
  */
+import { members } from "@/lib/client/household";
 import { mapShowing } from "@/lib/client/mapShowing";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { length, lineString } from "@turf/turf";
@@ -41,6 +42,7 @@ import { lineSummary, routeFromLine } from "@/lib/report/lines";
 import { RoadsToggle } from "./RoadsToggle";
 import { MarkIcon } from "./markIcons";
 import { TerrainControls } from "./TerrainControls";
+import { AddedBy } from "@/components/Household/AddedBy";
 
 const ac = (n: number) => `${n.toFixed(2)} ac`;
 
@@ -513,6 +515,7 @@ function ParcelDetails({ ctl, name }: { ctl: ExploreController; name: string }) 
   return (
     <>
       <h3>{name}</h3>
+      <AddedBy addedBy={ctl.state.store.open!.addedBy} />
       <ParcelStanding
         parcel={ctl.state.store.open!}
         act={{
@@ -543,7 +546,9 @@ function ParcelActions({ ctl }: { ctl: ExploreController }) {
   if (confirming)
     return (
       <>
-        <span className="ip-ask">Remove it? It leaves your list and the map.</span>
+        <span className="ip-ask">
+          Remove it? It leaves the list and the map{members().length >= 2 ? ", for everyone" : ""}.
+        </span>
         <Btn kind="danger" onClick={() => ctl.removeSaved(open.key!)}>
           Remove
         </Btn>

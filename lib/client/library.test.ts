@@ -44,6 +44,9 @@ const row = (over: Partial<LibraryRow>): LibraryRow => ({
   unscreened: "none",
   updatedAt: "2026-10-14T12:00:00.000Z",
   rank: null,
+  takes: {},
+  waiting: false,
+  bothLike: false,
   ...over,
 });
 
@@ -253,5 +256,34 @@ describe("Compare's ticks (step 4b, owner #185 Q5): 2 or 3", () => {
     expect([...t]).toEqual(["a", "c"]);
     expect([...toggleTick(t, "d")]).toEqual(["a", "c", "d"]);
     expect([COMPARE_MIN, COMPARE_MAX]).toEqual([2, 3]);
+  });
+});
+
+describe("step 6: Lowest of our grades, Waiting for you and Both like it", () => {
+  const g = (grade: "A" | "B" | "C" | "D" | null, verdict: "Contender" | "Maybe" | "Pass" = "Contender") => ({
+    id: String(Math.random()),
+    name: "x",
+    graded: grade ? { grade, verdict } : null,
+  });
+  it("sorts by the worst of everyone's grades, best first; none graded last", () => {
+    const a = row({ key: "a", name: "a", grades: [g("A"), g("C", "Maybe")] });
+    const b = row({ key: "b", name: "b", grades: [g("B"), g("B")] });
+    const c = row({ key: "c", name: "c", grades: [g(null), g(null)] });
+    expect(sortRows([c, a, b], { key: "lowest", reversed: false }).map((r) => r.key)).toEqual([
+      "b",
+      "a",
+      "c",
+    ]);
+  });
+  it("the two filters keep only the parcels waiting for me, and those we both like", () => {
+    const waiting = row({ key: "w", waiting: true });
+    const liked = row({ key: "l", bothLike: true });
+    const all = { ...DEFAULT_FILTERS, household: [...DEFAULT_FILTERS.household, "Pass" as const] };
+    expect([waiting, liked].filter((r) => passes(r, { ...all, waiting: true })).map((r) => r.key)).toEqual([
+      "w",
+    ]);
+    expect([waiting, liked].filter((r) => passes(r, { ...all, bothLike: true })).map((r) => r.key)).toEqual([
+      "l",
+    ]);
   });
 });

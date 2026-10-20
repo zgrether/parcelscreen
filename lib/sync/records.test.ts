@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   batches,
+  householdRecord,
+  householdSnapshot,
+  mergeHousehold,
   canonical,
   diffParcels,
   isSyncedDoc,
@@ -118,5 +121,49 @@ describe("whole records (step 5 §5)", () => {
     const size = (x: number) => x;
     expect(batches([3, 3, 3, 9, 2], 6, size)).toEqual([[3, 3], [3], [9], [2]]);
     expect(batches([], 6, size)).toEqual([]);
+  });
+});
+
+describe("the household's records (step 6)", () => {
+  const ask = { key: "k1:julie", parcel: "k1", from: "zach", to: "julie", note: "", at: "t1" };
+  const take = {
+    key: "k1:julie",
+    parcel: "k1",
+    by: "julie",
+    answer: "maybe" as const,
+    comment: "",
+    at: "t2",
+  };
+  const doc = JSON.stringify({ v: 1, asks: [ask], takes: [take] });
+
+  it("reads each ask and take by kind and key; merges the space's, keeping what's unsaved here", () => {
+    expect([...householdSnapshot(doc).keys()]).toEqual(["ask:k1:julie", "take:k1:julie"]);
+    expect(householdRecord(doc, "take:k1:julie")).toEqual({ kind: "take", key: "k1:julie", record: take });
+    expect(householdRecord(doc, "ask:k9:julie").record).toBeNull();
+    const merged = JSON.parse(
+      mergeHousehold(
+        doc,
+        [
+          {
+            key: "k1:julie",
+            kind: "take",
+            record: { ...take, answer: "yes" },
+            deleted: false,
+            updatedAt: "",
+          },
+          { key: "k1:julie", kind: "ask", record: null, deleted: true, updatedAt: "" },
+          {
+            key: "k2:zach",
+            kind: "take",
+            record: { ...take, key: "k2:zach", parcel: "k2", by: "zach" },
+            deleted: false,
+            updatedAt: "",
+          },
+        ],
+        new Set(["take:k2:zach"]),
+      ),
+    ) as { asks: unknown[]; takes: { key: string; answer: string }[] };
+    expect(merged.asks).toEqual([]);
+    expect(merged.takes).toEqual([{ ...take, answer: "yes" }]);
   });
 });

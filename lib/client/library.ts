@@ -3,6 +3,7 @@
  * price, state, status and milestones, and both people's grades with the household verdict, the lower of the two
  * (owner, #128). Filters and sorts are views: they never change a parcel. Pure; components/Library renders it.
  */
+import { bothLikeIt, EMPTY_HOUSEHOLD, waits, type Answer, type Household } from "./takes";
 import { centroid } from "@turf/turf";
 import { z } from "zod";
 import { stateOf } from "@/lib/geo/parcelFields";
@@ -62,6 +63,18 @@ export interface LibraryRow {
   updatedAt: string;
   /** Its place in My order (WF3, lib/client/myOrder.ts). */
   rank: string | null;
+  /** Each member's take on it, by profile id (step 6). */
+  takes: Record<string, Answer>;
+  /** An ask to the current person waits for their take (step 6: Waiting for you). */
+  waiting: boolean;
+  /** No one's take is No, and every graded member's grade is C or better (step 6: Both like it). */
+  bothLike: boolean;
+}
+
+/** The household's asks and takes, and who's looking (step 6): what the list reads beside the grades. */
+export interface HouseholdContext {
+  household: Household;
+  me: string | null;
 }
 
 const STATES: readonly StateCode[] = ["VA", "NC", "TN"];
@@ -101,6 +114,7 @@ export function libraryRow(
   p: WorkingParcel,
   kept: KeptScreen | undefined,
   rubrics: readonly NamedRubric[] = [defaultNamedRubric()],
+  ctx: HouseholdContext = { household: EMPTY_HOUSEHOLD, me: null },
 ): LibraryRow {
   const { acres } = parcelName(p);
   const county = p.pieces.map((x) => parcelFacts(x.geo, x.props).county).find((c) => !!c) ?? null;
@@ -126,6 +140,17 @@ export function libraryRow(
     unscreened: result ? null : kept?.state === "rescreen" ? "rescreen" : "none",
     updatedAt: p.updatedAt,
     rank: p.rank,
+    takes: Object.fromEntries(
+      ctx.household.takes.filter((t) => t.parcel === p.key).map((t) => [t.by, t.answer]),
+    ),
+    waiting:
+      ctx.me !== null &&
+      ctx.household.asks.some((a) => a.parcel === p.key && a.to === ctx.me && waits(ctx.household, a)),
+    bothLike: bothLikeIt(
+      ctx.household,
+      p.key!,
+      grades.map((g) => g.graded?.grade ?? null),
+    ),
   };
 }
 
@@ -147,6 +172,9 @@ export interface LibraryFilters {
   priceMin: number | null;
   priceMax: number | null;
   state: StateCode | null;
+  /** Step 6: only the parcels waiting for my take; only those we both like. */
+  waiting: boolean;
+  bothLike: boolean;
 }
 
 /**
@@ -161,6 +189,8 @@ export const DEFAULT_FILTERS: LibraryFilters = {
   priceMin: null,
   priceMax: null,
   state: null,
+  waiting: false,
+  bothLike: false,
 };
 
 const choice = (v: Verdict | null): VerdictChoice => v ?? "unscreened";
@@ -178,13 +208,15 @@ export function passes(r: LibraryRow, f: LibraryFilters): boolean {
     if (f.priceMin !== null && r.price < f.priceMin) return false;
     if (f.priceMax !== null && r.price > f.priceMax) return false;
   }
+  if (f.waiting && !r.waiting) return false;
+  if (f.bothLike && !r.bothLike) return false;
   return f.state === null || r.states.includes(f.state);
 }
 
 // ---------- sorts ----------
 
 /** "grade:<rubric id>" sorts by that rubric's grade (step 1). */
-export type SortKey = "order" | "updated" | "price" | "acres" | "household" | `grade:${string}`;
+export type SortKey = "order" | "updated" | "price" | "acres" | "household" | "lowest" | `grade:${string}`;
 export const gradeSortKey = (id: string): SortKey => `grade:${id}`;
 export interface LibrarySort {
   key: SortKey;
@@ -199,6 +231,15 @@ const LETTER_RANK: Record<Letter, number> = { A: 0, B: 1, C: 2, D: 3, F: 4 };
 const gradedRank = (g: Graded | null): number | null =>
   g ? (2 - rank(g.verdict)) * 10 + (g.grade === null ? 5 : LETTER_RANK[g.grade]) : null;
 
+/**
+ * Lowest of our grades (step 6, docs/plans/step-6-household.md §3.1): each parcel by the worst of its graded rubrics' grades
+ * (the members with priorities), best first; null with none graded.
+ */
+export function lowestOfOurs(r: LibraryRow): number | null {
+  const ranks = r.grades.map((g) => gradedRank(g.graded)).filter((x): x is number => x !== null);
+  return ranks.length ? Math.max(...ranks) : null;
+}
+
 /** Each key's value in its natural order (smaller first); null (no price, no screen) always sorts last. */
 const sortValue = (r: LibraryRow, k: Exclude<SortKey, "order">): number | string | null => {
   switch (k) {
@@ -210,6 +251,8 @@ const sortValue = (r: LibraryRow, k: Exclude<SortKey, "order">): number | string
       return r.acres === null ? null : -r.acres;
     case "household":
       return r.household === null ? null : 2 - rank(r.household);
+    case "lowest":
+      return lowestOfOurs(r);
     default:
       return gradedRank(r.grades.find((g) => g.id === k.slice("grade:".length))?.graded ?? null);
   }
@@ -248,13 +291,15 @@ const ViewSchema = z.object({
     priceMin: z.number().nullable(),
     priceMax: z.number().nullable(),
     state: z.enum(["VA", "NC", "TN"]).nullable(),
+    waiting: z.boolean().default(false),
+    bothLike: z.boolean().default(false),
   }),
   sort: z.object({
     key: z
       .string()
       .refine(
         (k): k is SortKey =>
-          ["order", "updated", "price", "acres", "household"].includes(k) || k.startsWith("grade:"),
+          ["order", "updated", "price", "acres", "household", "lowest"].includes(k) || k.startsWith("grade:"),
       ),
     reversed: z.boolean(),
   }),
@@ -277,6 +322,8 @@ export const ALL_FILTERS: LibraryFilters = {
   priceMin: null,
   priceMax: null,
   state: null,
+  waiting: false,
+  bothLike: false,
 };
 
 /** The parcels the filters hide, and whether they're all archived ones only the status filter hides. */

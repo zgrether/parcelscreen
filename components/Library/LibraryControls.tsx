@@ -39,7 +39,13 @@ const SORTS: { key: SortKey; label: string }[] = [
 /** The sorts for a profile's rubrics: the household verdict when it holds several, then each grade. */
 const sortsFor = (rubrics: readonly NamedRubric[]): { key: SortKey; label: string }[] => [
   ...SORTS,
-  ...(rubrics.length > 1 ? [{ key: "household" as const, label: "Household verdict" }] : []),
+  ...(rubrics.length > 1
+    ? [
+        { key: "household" as const, label: "Household verdict" },
+        // Step 6: by the worst of everyone's grades.
+        { key: "lowest" as const, label: "Lowest of our grades" },
+      ]
+    : []),
   ...rubrics.map((nr) => ({ key: gradeSortKey(nr.id), label: switchLabel(nr) })),
 ];
 
@@ -54,6 +60,8 @@ function changedFilters(f: LibraryFilters): number {
     f.milestones.length > 0,
     f.priceMin !== null || f.priceMax !== null,
     f.state !== null,
+    f.waiting,
+    f.bothLike,
   ].filter(Boolean).length;
 }
 
@@ -71,6 +79,7 @@ export function LibraryControls({
   const [open, setOpen] = useState(false);
   const f = view.filters;
   const setF = (patch: Partial<LibraryFilters>) => setView({ ...view, filters: { ...f, ...patch } });
+  const waiting = rows.filter((r) => r.waiting).length;
   const flip = <T,>(list: T[], x: T): T[] => (list.includes(x) ? list.filter((y) => y !== x) : [...list, x]);
   const states = [...new Set(rows.flatMap((r) => r.states))].sort();
   const n = changedFilters(f);
@@ -98,6 +107,25 @@ export function LibraryControls({
         <button className="btn small secondary" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
           Filters{n ? ` (${n})` : ""}
         </button>
+        {/* Step 6: the household's two quick filters, beside Filters. */}
+        {(several || waiting > 0) && (
+          <>
+            <button
+              className="chip lib-quick"
+              aria-pressed={f.waiting}
+              onClick={() => setF({ waiting: !f.waiting })}
+            >
+              Waiting for you{waiting ? ` (${waiting})` : ""}
+            </button>
+            <button
+              className="chip lib-quick"
+              aria-pressed={f.bothLike}
+              onClick={() => setF({ bothLike: !f.bothLike })}
+            >
+              Both like it
+            </button>
+          </>
+        )}
         <label className="tiny">
           Sort by{" "}
           <select

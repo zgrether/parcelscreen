@@ -7,7 +7,8 @@
  *   - a parcel's record: the built parcel, exactly as the parcel store's `built[]` holds it.
  * What a device keeps for itself (the open parcel, which profile is current, the views and sorts) never leaves it.
  */
-import type { StoredParcel } from "./wire";
+import { EMPTY_HOUSEHOLD, readHousehold, recordsOf, type Ask, type Take } from "@/lib/client/takes";
+import type { StoredHousehold, StoredParcel } from "./wire";
 
 /** The profile documents that sync (§5's table); every other profile document stays on the device. */
 export const SYNCED_DOCS = ["ps.cfg", "ps.rubrics", "ps.interview"] as const;
@@ -126,4 +127,49 @@ export function batches<T>(items: readonly T[], maxBytes: number, size: (x: T) =
   }
   if (cur.length) out.push(cur);
   return out;
+}
+
+// ---------- the household's asks and takes (step 6) ----------
+
+/** The household's shared document: each ask and take syncs as its own record. */
+export const HOUSEHOLD_DOC = "ps.household";
+
+/** A record's identity in the sync: its kind and its key ("take:<parcel>:<person>"). */
+export const householdId = (kind: "ask" | "take", key: string): string => `${kind}:${key}`;
+
+/** Each ask and take by its identity, as its canonical string. */
+export function householdSnapshot(raw: string | null): Map<string, string> {
+  const h = (raw && readHousehold(raw)) || EMPTY_HOUSEHOLD;
+  return new Map(recordsOf(h).map((x) => [householdId(x.kind, x.record.key), canonical(x.record)]));
+}
+
+/** One ask or take from the document, by its identity. */
+export function householdRecord(
+  raw: string | null,
+  id: string,
+): { kind: "ask" | "take"; key: string; record: Json | null } {
+  const [kind, ...rest] = id.split(":");
+  const key = rest.join(":");
+  const h = (raw && readHousehold(raw)) || EMPTY_HOUSEHOLD;
+  const list: readonly (Ask | Take)[] = kind === "ask" ? h.asks : h.takes;
+  const found = list.find((x) => x.key === key);
+  return { kind: kind as "ask" | "take", key, record: found ? (found as unknown as Json) : null };
+}
+
+/** The household's document with the space's changes in it, except the records in `keep` (unsaved here). */
+export function mergeHousehold(
+  raw: string | null,
+  remote: readonly StoredHousehold[],
+  keep: ReadonlySet<string>,
+): string {
+  const h = (raw && readHousehold(raw)) || EMPTY_HOUSEHOLD;
+  const asks = new Map(h.asks.map((a) => [a.key, a]));
+  const takes = new Map(h.takes.map((t) => [t.key, t]));
+  for (const x of remote) {
+    if (keep.has(householdId(x.kind, x.key))) continue;
+    const target = (x.kind === "ask" ? asks : takes) as Map<string, unknown>;
+    if (x.deleted || !x.record) target.delete(x.key);
+    else target.set(x.key, x.record);
+  }
+  return JSON.stringify({ v: 1, asks: [...asks.values()], takes: [...takes.values()] });
 }

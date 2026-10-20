@@ -92,6 +92,8 @@ test("start on one device and join from another; changes cross on a tab switch; 
   await expect(b.getByText(/This device has 1 profile and 1 parcel of its own/)).toBeVisible();
   await expect(b.getByRole("button", { name: "Export first" })).toBeVisible();
   await b.getByRole("button", { name: "Replace and join" }).click();
+  await expect(b).toHaveURL(/\/who$/);
+  await b.getByRole("button", { name: "Profile 1" }).click();
   await expect(b).toHaveURL(/\/library$/);
   await expect(listRow(b, "52-47A")).toBeVisible();
   await expect(listRow(b, "35-3")).toBeVisible();
@@ -180,6 +182,7 @@ test("offline: Not saved, then Try again; a change a closed page didn't save is 
   await openExplorer(b, FERNEY);
   await b.goto(`/link#${(JSON.parse(code) as { code: string }).code}`);
   await b.getByRole("button", { name: /^Join$/ }).click();
+  await b.getByRole("button", { name: "Profile 1" }).click();
   await expect(listRow(b, "Ferney at next open")).toBeVisible();
 });
 

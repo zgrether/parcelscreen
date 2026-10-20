@@ -17,6 +17,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { owesInterview } from "@/lib/client/onboarding";
 import { bootProfiles } from "@/lib/client/profiles";
 import { initSync } from "@/lib/sync/engine";
+import { startHousehold } from "@/lib/client/household";
 
 export function ProfileGate({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
@@ -24,17 +25,22 @@ export function ProfileGate({ children }: { children: ReactNode }) {
   const router = useRouter();
   useEffect(() => {
     let alive = true;
-    const settle = () => {
-      if (!alive) return;
-      setReady(true);
-      void initSync();
-    };
+    // The household's members load before the first render (step 6): the list and the card grade with their rubrics.
+    const settle = () =>
+      void startHousehold()
+        .catch(() => undefined)
+        .then(() => {
+          if (!alive) return;
+          setReady(true);
+          void initSync();
+        });
     bootProfiles().then(settle, settle);
     return () => {
       alive = false;
     };
   }, []);
-  const away = ready && pathname !== "/interview" && pathname !== "/link" && owesInterview();
+  const away =
+    ready && pathname !== "/interview" && pathname !== "/link" && pathname !== "/who" && owesInterview();
   useEffect(() => {
     if (away) router.replace("/interview");
   }, [away, router]);
