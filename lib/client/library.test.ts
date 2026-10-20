@@ -24,6 +24,7 @@ import {
   passes,
   readLibraryView,
   showHidden,
+  snippet,
   sortRows,
   type LibraryRow,
 } from "./library";
@@ -46,6 +47,7 @@ const row = (over: Partial<LibraryRow>): LibraryRow => ({
   updatedAt: "2026-10-14T12:00:00.000Z",
   rank: null,
   takes: {},
+  takeNotes: {},
   waiting: false,
   ask: null,
   newTakesBy: [],
@@ -315,5 +317,22 @@ describe("the household on a row (step 6b)", () => {
     expect(libraryRow(built("g"), undefined, PERSONS, { household, me: "zach", seen }).newTakesBy).toEqual(
       [],
     );
+  });
+});
+
+describe("polish: a take's comment on the row, and the New takes filter", () => {
+  it("the comment's first ~40 characters, cut at a word", () => {
+    expect(snippet("Love the view.")).toBe("Love the view.");
+    expect(snippet("The driveway looks steep from the road, but the top is lovely")).toBe(
+      "The driveway looks steep from the road…",
+    );
+    expect(snippet("  two\n lines  ")).toBe("two lines");
+  });
+
+  it("New takes keeps only the rows with a take I haven't seen", () => {
+    const f = { ...DEFAULT_FILTERS, newTakes: true };
+    expect(passes(row({ newTakesBy: ["julie"] }), f)).toBe(true);
+    expect(passes(row({ newTakesBy: [] }), f)).toBe(false);
+    expect(passes(row({ newTakesBy: [] }), DEFAULT_FILTERS)).toBe(true);
   });
 });

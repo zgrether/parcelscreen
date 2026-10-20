@@ -74,6 +74,8 @@ export interface LibraryRow {
   rank: string | null;
   /** Each member's take on it, by profile id (step 6). */
   takes: Record<string, Answer>;
+  /** Each take's comment, by profile id, when it has one (polish #13: its start on the row). */
+  takeNotes: Record<string, string>;
   /** An ask to the current person waits for their take (step 6: Waiting for you). */
   waiting: boolean;
   /** That ask, for its note on the row (step 6b). */
@@ -165,6 +167,9 @@ export function libraryRow(
     takes: Object.fromEntries(
       ctx.household.takes.filter((t) => t.parcel === p.key).map((t) => [t.by, t.answer]),
     ),
+    takeNotes: Object.fromEntries(
+      ctx.household.takes.filter((t) => t.parcel === p.key && t.comment).map((t) => [t.by, t.comment]),
+    ),
     waiting: waitingAsk(ctx, p.key!) !== null,
     ask: waitingAsk(ctx, p.key!),
     newTakesBy:
@@ -179,6 +184,14 @@ export function libraryRow(
       grades.map((g) => g.graded?.grade ?? null),
     ),
   };
+}
+
+/** A take's comment on the row (polish #13): its first ~40 characters, cut at a word. */
+export function snippet(s: string, n = 40): string {
+  const t = s.replace(/\s+/g, " ").trim();
+  if (t.length <= n) return t;
+  const cut = t.slice(0, n + 1).replace(/\s+\S*$/, "");
+  return `${(cut.length >= n / 2 ? cut : t.slice(0, n)).replace(/[\s,;:.]+$/, "")}…`;
 }
 
 // ---------- filters ----------
@@ -202,6 +215,8 @@ export interface LibraryFilters {
   /** Step 6: only the parcels waiting for my take; only those we both like. */
   waiting: boolean;
   bothLike: boolean;
+  /** Polish #14: only the parcels with a take I haven't seen (the tab's badge counts them). */
+  newTakes: boolean;
 }
 
 /**
@@ -218,6 +233,7 @@ export const DEFAULT_FILTERS: LibraryFilters = {
   state: null,
   waiting: false,
   bothLike: false,
+  newTakes: false,
 };
 
 const choice = (v: Verdict | null): VerdictChoice => v ?? "unscreened";
@@ -237,6 +253,7 @@ export function passes(r: LibraryRow, f: LibraryFilters): boolean {
   }
   if (f.waiting && !r.waiting) return false;
   if (f.bothLike && !r.bothLike) return false;
+  if (f.newTakes && r.newTakesBy.length === 0) return false;
   return f.state === null || r.states.includes(f.state);
 }
 
@@ -325,6 +342,7 @@ const ViewSchema = z.object({
     state: z.enum(["VA", "NC", "TN"]).nullable(),
     waiting: z.boolean().default(false),
     bothLike: z.boolean().default(false),
+    newTakes: z.boolean().default(false),
   }),
   sort: z.object({
     key: z
@@ -356,6 +374,7 @@ export const ALL_FILTERS: LibraryFilters = {
   state: null,
   waiting: false,
   bothLike: false,
+  newTakes: false,
 };
 
 /** The parcels the filters hide, and whether they're all archived ones only the status filter hides. */

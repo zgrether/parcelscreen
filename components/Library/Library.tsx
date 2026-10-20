@@ -26,6 +26,7 @@ import { shortPrice } from "@/lib/client/askingPrice";
 import {
   DEFAULT_SORT,
   hiddenBy,
+  snippet,
   hiddenWords,
   libraryRow,
   passes,
@@ -66,7 +67,8 @@ import { RescreenAll } from "./RescreenAll";
 import { DragHandle, OrderMenu, SortableRows, useSortableRow, type Mover } from "./MyOrder";
 import { ParcelDetail } from "./ParcelDetail";
 import { History } from "./History";
-import { Star } from "@/components/Favorites/Star";
+import { Star, unstarQuestion } from "@/components/Favorites/Star";
+import { ResetConfirm } from "@/components/Rubric/ResetConfirm";
 import { historyOf, isFavorite } from "@/lib/client/favorites";
 import { starParcel, unstarParcel, useHistoryLog } from "@/lib/client/favoritesStore";
 
@@ -203,11 +205,24 @@ export function Library() {
       />
     );
   };
-  const rowsProps = { rows: shown, rubrics, ticked, toggle, open: setOpened, ordering, mover, star };
+  // The ⋯ menu's Remove from favorites (polish #16) asks the star's question, then unstars.
+  const [unstarring, setUnstarring] = useState<LibraryRow | null>(null);
+  const rowsProps = {
+    rows: shown,
+    rubrics,
+    ticked,
+    toggle,
+    open: setOpened,
+    ordering,
+    mover,
+    star,
+    unstar: setUnstarring,
+  };
 
   return (
     <>
-      <main className="compare library">
+      {/* A desktop keeps the table beside an open detail (polish #15): .lib-has-detail leaves room for it. */}
+      <main className={detail ? "compare library lib-has-detail" : "compare library"}>
         <header className="compare-head">
           <h1>Your list</h1>
           {/* Compare takes 2 or 3 (step 4b): with one ticked the button waits for another. */}
@@ -297,6 +312,22 @@ export function Library() {
           </>
         )}
 
+        {unstarring && (
+          <ResetConfirm
+            question={unstarQuestion(
+              adderOf.get(unstarring.key) && adderOf.get(unstarring.key) !== me
+                ? memberName(adderOf.get(unstarring.key)!)
+                : null,
+            )}
+            action="Remove from favorites"
+            keep="Keep"
+            reset={() => {
+              unstarParcel(unstarring.key);
+              setUnstarring(null);
+            }}
+            cancel={() => setUnstarring(null)}
+          />
+        )}
         {detail && (
           <ParcelDetail
             key={detail.key}
@@ -324,6 +355,8 @@ interface RowsProps {
   mover: Mover;
   /** The row's star (step 8): filled, it unstars after asking. */
   star(r: LibraryRow): ReactNode;
+  /** The ⋯ menu's Remove from favorites (polish #16): the star's own question first. */
+  unstar(r: LibraryRow): void;
 }
 
 interface RowProps extends Omit<RowsProps, "rows"> {
@@ -404,6 +437,11 @@ function Grades({ r }: { r: LibraryRow }) {
               {g.name} says {ANSWER_WORD[r.takes[g.id]!]}
             </span>
           )}
+          {r.takeNotes[g.id] && (
+            <span className="tiny take-note" title={r.takeNotes[g.id]}>
+              “{snippet(r.takeNotes[g.id]!)}”
+            </span>
+          )}
         </span>
       ))}
     </span>
@@ -420,8 +458,15 @@ function AskNote({ ask }: { ask: Ask }) {
   );
 }
 
-/** Desktop: one row per parcel; in My order, the handle and the menu first. */
+/** Whether a row has a status word or a milestone (an active favorite with neither shows nothing). */
+const hasStatus = (r: LibraryRow) => !!STATUS_WORD[r.status] || !!milestonesLine(r);
+
+/**
+ * Desktop: one row per parcel; in My order, the handle and the menu first. Price and Status show only when a row has
+ * one (polish #12): a column of dashes says nothing.
+ */
 function LibraryTable({ rows, rubrics, ...rest }: RowsProps) {
+  const cols = { price: rows.some((r) => r.price !== null), status: rows.some(hasStatus) };
   return (
     <div className="lib-scroll">
       <table className="lib-table">
@@ -437,16 +482,16 @@ function LibraryTable({ rows, rubrics, ...rest }: RowsProps) {
             </th>
             <th scope="col">Name</th>
             <th scope="col">Acres</th>
-            <th scope="col">Price</th>
+            {cols.price && <th scope="col">Price</th>}
             <th scope="col">State</th>
-            <th scope="col">Status</th>
+            {cols.status && <th scope="col">Status</th>}
             <th scope="col">{rubrics.length > 1 ? "Grades" : switchLabel(rubrics[0]!)}</th>
             <th scope="col">Updated</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((r, i) => (
-            <TableRow key={r.key} r={r} index={i} count={rows.length} rubrics={rubrics} {...rest} />
+            <TableRow key={r.key} r={r} index={i} count={rows.length} rubrics={rubrics} cols={cols} {...rest} />
           ))}
         </tbody>
       </table>
@@ -454,7 +499,19 @@ function LibraryTable({ rows, rubrics, ...rest }: RowsProps) {
   );
 }
 
-function TableRow({ r, index, count, ticked, toggle, open, ordering, mover, star }: RowProps) {
+function TableRow({
+  r,
+  index,
+  count,
+  ticked,
+  toggle,
+  open,
+  ordering,
+  mover,
+  star,
+  unstar,
+  cols,
+}: RowProps & { cols: { price: boolean; status: boolean } }) {
   const { nodeProps, dragging, handleProps } = useSortableRow(r.key, ordering);
   return (
     <tr
@@ -466,7 +523,13 @@ function TableRow({ r, index, count, ticked, toggle, open, ordering, mover, star
       {ordering && (
         <td className="lib-order" {...ownClick}>
           <DragHandle name={r.name} handle={handleProps} />
-          <OrderMenu name={r.name} index={index} count={count} move={(to) => mover.move(r.key, to)} />
+          <OrderMenu
+            name={r.name}
+            index={index}
+            count={count}
+            move={(to) => mover.move(r.key, to)}
+            remove={() => unstar(r)}
+          />
         </td>
       )}
       <td {...ownClick}>
@@ -486,13 +549,13 @@ function TableRow({ r, index, count, ticked, toggle, open, ordering, mover, star
         </span>
         {r.ask && <AskNote ask={r.ask} />}
       </td>
-      <td className="num">{r.acres !== null ? r.acres.toFixed(1) : "–"}</td>
-      <td className="num">{r.price !== null ? shortPrice(r.price) : "–"}</td>
-      <td>
+      <td className="num lib-c-acres">{r.acres !== null ? r.acres.toFixed(1) : "–"}</td>
+      {cols.price && <td className="num lib-c-price">{r.price !== null ? shortPrice(r.price) : "–"}</td>}
+      <td className="lib-c-state">
         <State r={r} />
       </td>
-      <td>{statusCell(r)}</td>
-      <td>
+      {cols.status && <td className="lib-c-status">{statusCell(r)}</td>}
+      <td className="lib-c-grade">
         <Grades r={r} />
       </td>
       <td className="tiny muted">{when(r.updatedAt)}</td>
@@ -514,7 +577,7 @@ function LibraryCards({ rows, rubrics, ...rest }: RowsProps) {
   );
 }
 
-function Card({ r, index, count, ticked, toggle, open, ordering, mover, star }: RowProps) {
+function Card({ r, index, count, ticked, toggle, open, ordering, mover, star, unstar }: RowProps) {
   const { nodeProps, dragging, handleProps } = useSortableRow(r.key, ordering);
   return (
     <li
@@ -529,7 +592,13 @@ function Card({ r, index, count, ticked, toggle, open, ordering, mover, star }: 
           {star(r)}
           <LongName name={r.name} className="lib-open" />
           {ordering && (
-            <OrderMenu name={r.name} index={index} count={count} move={(to) => mover.move(r.key, to)} />
+            <OrderMenu
+              name={r.name}
+              index={index}
+              count={count}
+              move={(to) => mover.move(r.key, to)}
+              remove={() => unstar(r)}
+            />
           )}
           <input
             {...ownClick}

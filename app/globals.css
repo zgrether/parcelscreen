@@ -4371,6 +4371,15 @@ button.cmp-cell:hover {
   background: var(--color-paper);
   box-shadow: -4px 0 18px rgba(0, 0, 0, 0.18);
 }
+/* A desktop (polish #15): a narrower panel, and the list beside it, its table scrolling sideways when it must. */
+@media (min-width: 861px) {
+  .lib-detail {
+    width: 380px;
+  }
+  .library.lib-has-detail {
+    padding-right: calc(380px + 16px);
+  }
+}
 .lib-detail-head {
   display: flex;
   align-items: flex-start;
@@ -5670,6 +5679,11 @@ button.sync-ind.bad {
   margin: 0 0 4px;
 }
 /* Asks and takes (step 6 §4). */
+/* A take's comment, its start (polish #13); the whole on hover. */
+.take-note {
+  margin-left: 4px;
+  color: var(--color-ink-2);
+}
 .take-chip {
   display: inline-block;
   padding: 1px 7px;

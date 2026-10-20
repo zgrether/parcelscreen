@@ -148,11 +148,14 @@ export function OrderMenu({
   index,
   count,
   move,
+  remove,
 }: {
   name: string;
   index: number;
   count: number;
   move(to: number): void;
+  /** Remove from favorites (polish #16): the star does the same. */
+  remove?(): void;
 }) {
   const button = useRef<HTMLButtonElement>(null);
   const list = useRef<HTMLSpanElement>(null);
@@ -212,6 +215,18 @@ export function OrderMenu({
           <button type="button" role="menuitem" disabled={index === count - 1} onClick={() => go(index + 1)}>
             Move down
           </button>
+          {remove && (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                remove();
+              }}
+            >
+              Remove from favorites
+            </button>
+          )}
         </span>
       )}
     </span>

@@ -165,6 +165,9 @@ test("everyone's grade; How Julie would rate it; Ask Julie → Waiting for you �
   });
   await expect(listRow(zach, "52-47A").locator(".new-dot")).toBeVisible();
   await expect(zach.locator(".app-badge")).toHaveText("1");
+  // Polish #13: her comment's start on the row; #14: New takes (1) keeps the rows with a take not seen yet.
+  await expect(listRow(zach, "52-47A").locator(".take-note")).toHaveText("“Steep drive, lovely spring.”");
+  await expect(zach.getByRole("button", { name: "New takes (1)" })).toBeVisible();
   await expect(zach.locator(".app-badge")).toHaveAttribute("aria-label", "1 new take");
   await listRow(zach, "52-47A").locator(".lib-open").click();
   await expect(zach.getByRole("region", { name: "How Julie would rate it" })).toContainText(
