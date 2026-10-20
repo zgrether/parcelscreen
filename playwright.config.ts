@@ -5,7 +5,8 @@
  */
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = 3100;
+// E2E_PORT: another port, for a second checkout running its own e2e beside one on 3100.
+const PORT = Number(process.env.E2E_PORT ?? 3100);
 // A normal Chrome user agent: some services reject headless ones (the replay doesn't care, the app might).
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36";

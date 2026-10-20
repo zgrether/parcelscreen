@@ -160,7 +160,8 @@ describe("the weights: explicit until the first reorder, then rank-sum at once (
     };
     expect(pts("ferney-creek-52-47A", D)).toEqual([3.2, "B", "Contender"]);
     expect(pts("ferney-creek-52-47A", rs)).toEqual([3.179, "B", "Contender"]);
-    expect(pts("macks-mountain-35-3", rs)).toEqual([3.036, "B", "Maybe"]);
+    // Step 7: Macks is graded at its best site under this order, #3 (3.036 at site #1).
+    expect(pts("macks-mountain-35-3", rs)).toEqual([3.214, "B", "Maybe"]);
     expect(pts("grayson-mud-creek-6273", D)).toEqual([3.45, "B", "Contender"]);
     expect(pts("grayson-mud-creek-6273", rs)).toEqual([3.5, "A", "Contender"]);
     expect(pts("roan-hwy-143-099-046-02", rs)).toEqual([2.786, "B", "Maybe"]);
