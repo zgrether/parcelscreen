@@ -597,7 +597,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
         elevation: 2,
         homesite: 2,
         room: 2,
-        driveway: 2,
+        // Owner, #216: question 10 skipped puts Driveway at the bottom of Nice to have, never higher (generate.ts).
+        driveway: 1,
         trails: 2,
         town: 2,
         sky: 1,

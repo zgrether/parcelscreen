@@ -462,7 +462,7 @@ describe("config", () => {
               },
             },
             "defaultPoints": {
-              "driveway": 2,
+              "driveway": 1,
               "elevation": 2,
               "garden": 1,
               "homesite": 2,

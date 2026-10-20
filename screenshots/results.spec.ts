@@ -4,15 +4,18 @@
  * open; and, on a phone, the sheet at its peek. Run by `pnpm screenshots`; no facts card is opened, so no owner shows.
  */
 import { expect, test, type BrowserContext, type Locator } from "@playwright/test";
-import { importParcel, openExplorer, screenIt } from "../e2e/flow";
+import { booted, importParcel, openExplorer, screenIt, visit } from "../e2e/flow";
 import { replayHar } from "../e2e/replay";
 import type { FixtureSlug } from "../test/support/fixtures";
+import { defaultRubric } from "../lib/rubric/default";
 
 const OUT = "test-results/screenshots";
 const PARCELS: readonly { slug: FixtureSlug; name: string }[] = [
   { slug: "grayson-mud-creek-6273", name: "mud-creek" },
   { slug: "ferney-creek-52-47A", name: "ferney" },
   { slug: "roan-hwy-143-099-046-02", name: "roan" },
+  // Owner, #216: Macks's best site (#3) isn't where the screen ran, so Best homesite offers to evaluate it.
+  { slug: "macks-mountain-35-3", name: "macks" },
 ];
 
 /** The state aerial and the terrain tiles, live (the replay aborts tiles). Registered last. */
@@ -78,5 +81,36 @@ for (const phone of [false, true]) {
         await toTop(page.locator(".full-report"));
         await shot("5-full-report");
       });
+  });
+}
+
+/** What matters after the Driveway row was added to priorities saved before it (owner, #216): the one-time note. */
+for (const phone of [false, true]) {
+  const device = phone ? "phone" : "desktop";
+  test.describe(`${device} note`, () => {
+    test.use(
+      phone
+        ? { viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true }
+        : { viewport: { width: 1280, height: 800 } },
+    );
+    test("What matters: New: Driveway, with Undo", async ({ page }) => {
+      await openExplorer(page, "ferney-creek-52-47A");
+      await booted(page);
+      // The starting list as an older version saved it once reordered: rank-sum, without the Driveway row or its band.
+      const D = defaultRubric();
+      const { drivewayPct: _without, ...bands } = D.bands;
+      const mine = { ...D, bands, weights: { mode: "rankSum" }, wonts: [] };
+      await page.evaluate((mine) => {
+        const kv = window.__psKv!;
+        kv.setItem("ps.rubrics", JSON.stringify({ mine, others: [] }));
+        kv.setItem(
+          "ps.interview",
+          JSON.stringify({ v: 2, state: "done", at: 15, answers: { driveway: "gentle" }, base: mine }),
+        );
+      }, mine);
+      await visit(page, "/priorities");
+      await expect(page.locator(".rubric-new")).toBeVisible();
+      await page.screenshot({ path: `${OUT}/${device}-7-what-matters-note.png` });
+    });
   });
 }

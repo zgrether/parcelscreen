@@ -55,10 +55,16 @@ export const NamedRubricSchema: z.ZodType<NamedRubric> = z.strictObject({
 export interface ProfileRubrics {
   mine: Rubric;
   others: NamedRubric[];
+  /**
+   * Step 7 (owner, #216): the Driveway row was added once to a rubric saved before it (lib/client/drivewayAdd.ts).
+   * "new" until What matters has shown its note, then "seen"; "undone" after its Undo. Absent: not added (yet).
+   */
+  drivewayAdded?: "new" | "seen" | "undone";
 }
 export const ProfileRubricsSchema: z.ZodType<ProfileRubrics> = z.strictObject({
   mine: RubricSchema,
   others: z.array(NamedRubricSchema),
+  drivewayAdded: z.enum(["new", "seen", "undone"]).optional(),
 });
 
 export { LetterSchema };

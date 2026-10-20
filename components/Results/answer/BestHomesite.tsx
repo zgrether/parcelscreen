@@ -9,7 +9,8 @@ import { useState } from "react";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import type { Card, Row } from "@/lib/report/card";
 import type { PanelKey } from "@/lib/report/cardPanels";
-import { choicesBeside, SITE_ROWS, type RankedSite } from "@/lib/report/sites";
+import { choicesBeside, metresBetween, SITE_ROWS, type RankedSite } from "@/lib/report/sites";
+import { evaluationPoint } from "@/lib/report/point";
 import { weightsOf } from "@/lib/rubric/weights";
 import type { RowKey } from "@/lib/rubric/types";
 import type { LatLon } from "@/lib/geo/types";
@@ -160,6 +161,13 @@ export function BestHomesite({
     anchor.score !== null && s.score !== null ? Math.round(anchor.score - s.score) : null;
   const onPick = (s: RankedSite) => pick({ ll: s.ll, label: label(s.rank) });
   const bestLabel = best ? label(best.rank) : null;
+  // Owner, #216: the sun, sky and driveway sections are evaluated where the screen ran. Evaluating the best site there
+  // re-routes its driveway (lib/screen/index.ts evaluateAt), which isn't done unasked: the line says so and offers it.
+  const at = evaluationPoint(result);
+  const elsewhere = !house && !showing && !!best && !!at && metresBetween(at.ll, best.ll) > 1;
+  // Where the screen ran, by its pin's number when it's a ranked site (the engine's own label is "the largest house site").
+  const ranAt = at && card.sites.find((s) => metresBetween(s.ll, at.ll) <= 1);
+  const ranLabel = ranAt ? label(ranAt.rank) : at?.label;
   return (
     <section className="best-site" aria-label={house ? "Your marked house" : "Best homesite"}>
       {head}
@@ -168,6 +176,14 @@ export function BestHomesite({
         {!house && <span className="tiny muted"> · its pin is ringed on the map</span>}
       </p>
       <Numbers rows={bestRows} card={card} onOpen={onOpen} />
+      {elsewhere && (
+        <p className="best-site-showing" role="status">
+          <span>The map&apos;s sun, sky and driveway are for {ranLabel}, where the screen ran.</span>
+          <button className="btn small secondary" onClick={() => onPick(best!)}>
+            Evaluate {bestLabel}
+          </button>
+        </p>
+      )}
       {showing && showing !== bestLabel && (
         <p className="best-site-showing" role="status">
           <span>Showing {showing} on the map</span>
