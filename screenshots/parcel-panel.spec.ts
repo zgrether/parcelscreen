@@ -14,8 +14,9 @@ const OUT = "test-results/screenshots";
 
 /** The state aerial and the terrain tiles, live (the replay aborts tiles). Registered last. */
 async function liveImagery(context: BrowserContext): Promise<void> {
-  await context.route(/VBMP_Imagery|Orthoimagery_Latest|basemap\.nationalmap\.gov|elevation-tiles-prod/, (r) =>
-    r.continue(),
+  await context.route(
+    /VBMP_Imagery|Orthoimagery_Latest|basemap\.nationalmap\.gov|elevation-tiles-prod/,
+    (r) => r.continue(),
   );
 }
 
