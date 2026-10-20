@@ -318,7 +318,7 @@ function Grades({ r }: { r: LibraryRow }) {
           <span className="tiny muted">· {g.name}</span>
           <span className={`card-grade tiny g-${g.graded?.grade ?? "none"}`}>{g.graded?.grade ?? "–"}</span>
           {r.takes[g.id] && (
-            <span className={`take-chip tiny a-${r.takes[g.id]}`}>{ANSWER_WORD[r.takes[g.id]!]}</span>
+            <span className={`take-chip tiny a-${r.takes[g.id]}`}>says {ANSWER_WORD[r.takes[g.id]!]}</span>
           )}
         </span>
       ))}

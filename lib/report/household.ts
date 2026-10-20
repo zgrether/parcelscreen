@@ -17,6 +17,11 @@ export interface Difference {
   /** What each card says: a letter, "fails", or "not counted" (a Won't). */
   mine: string;
   theirs: string;
+  /**
+   * When both count the row and give it the same letter, the gap is its weight: "more" when it's a bigger part of
+   * their grade than of mine, "less" when it's a smaller one. Null when the letters differ (or one doesn't count it).
+   */
+  weighs: "more" | "less" | null;
   /** Their why line for the factor (their answers, else "On the starting list." / "You moved this here."). */
   why: string;
 }
@@ -49,6 +54,7 @@ export function differences(mine: Card, theirs: Card, theirWhy: WhyContext | nul
         label: g.label,
         mine: my?.status === "warn" ? "check" : "passes",
         theirs: "fails",
+        weighs: null,
         why: whyLine(theirRubric, g.key, theirWhy),
       });
   }
@@ -63,11 +69,13 @@ export function differences(mine: Card, theirs: Card, theirWhy: WhyContext | nul
   for (const { key } of rows) {
     const my = mine.rows.find((x) => x.key === key);
     const their = theirs.rows.find((x) => x.key === key);
+    const sameLetter = a.has(key) && b.has(key) && my?.grade === their?.grade;
     out.push({
       key,
       label: (their ?? my)!.label,
       mine: shown(my?.grade ?? null, a.has(key)),
       theirs: shown(their?.grade ?? null, b.has(key)),
+      weighs: sameLetter ? (b.get(key)! > a.get(key)! ? "more" : "less") : null,
       why: whyLine(theirRubric, key, theirWhy),
     });
   }

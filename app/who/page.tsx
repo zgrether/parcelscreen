@@ -6,7 +6,7 @@
  * name first.
  */
 import { useEffect, useState } from "react";
-import { addProfile, currentProfileId, listProfiles, switchProfile } from "@/lib/client/profiles";
+import { addProfile, listProfiles, switchProfile } from "@/lib/client/profiles";
 import type { Profile } from "@/lib/client/profileStore";
 
 const WHO_TITLE = "Who's this?";
@@ -51,7 +51,6 @@ export default function WhoPage() {
             <li key={p.id}>
               <button className="btn secondary who-person" disabled={busy} onClick={() => pick(p.id)}>
                 {p.name}
-                {p.id === currentProfileId() && <span className="tiny muted"> · on this device now</span>}
               </button>
             </li>
           ))}

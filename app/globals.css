@@ -3871,7 +3871,8 @@ button.cmp-cell:hover {
   border-radius: 8px;
   justify-items: start;
 }
-.lib-filter .chip {
+.lib-filter .chip,
+.lib-quick {
   border: 1px solid var(--color-rule);
   background: transparent;
   color: var(--color-ink);
@@ -3880,7 +3881,8 @@ button.cmp-cell:hover {
   font-size: 13px;
   cursor: pointer;
 }
-.lib-filter .chip[aria-pressed="true"] {
+.lib-filter .chip[aria-pressed="true"],
+.lib-quick[aria-pressed="true"] {
   background: var(--color-ink);
   color: var(--color-paper);
   border-color: var(--color-ink);
@@ -5493,6 +5495,11 @@ button.sync-ind.bad {
 }
 .lib-quick {
   min-height: 32px;
+}
+@media (max-width: 767px) {
+  .lib-quick {
+    min-height: 44px;
+  }
 }
 .app-tab {
   position: relative;

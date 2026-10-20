@@ -145,7 +145,9 @@ test("everyone's grade; How Julie would rate it; Ask Julie â†’ Waiting for you â
   // Zach sees her, without priorities.
   await afterTabSwitch(zach, async () => {
     await listRow(zach, "52-47A").locator(".lib-open").click();
-    await expect(zach.getByText("Julie hasn't set priorities yet.")).toBeVisible({ timeout: 1000 });
+    await expect(zach.getByText("Julie hasn't said what matters to them yet.")).toBeVisible({
+      timeout: 1000,
+    });
   });
   await expect(zach.getByRole("button", { name: "Answer as Julie here" })).toBeVisible();
   await zach.getByRole("dialog").getByRole("button", { name: "Close" }).click();
@@ -166,7 +168,7 @@ test("everyone's grade; How Julie would rate it; Ask Julie â†’ Waiting for you â
   await section.getByRole("button", { name: "Ask Julie" }).click();
   await section.getByRole("textbox").fill("The spring by the road?");
   await section.getByRole("button", { name: "Ask", exact: true }).click();
-  await expect(section).toContainText("waiting for Julie");
+  await expect(section).toContainText("Julie's Waiting for you");
   await zach.getByRole("dialog").getByRole("button", { name: "Close" }).click();
 
   await afterTabSwitch(julie, async () => {
@@ -185,7 +187,7 @@ test("everyone's grade; How Julie would rate it; Ask Julie â†’ Waiting for you â
 
   // Zach: her take beside her grade, and in her section.
   await afterTabSwitch(zach, async () => {
-    await expect(listRow(zach, "52-47A").locator(".take-chip")).toHaveText("Maybe", { timeout: 1000 });
+    await expect(listRow(zach, "52-47A").locator(".take-chip")).toHaveText("says Maybe", { timeout: 1000 });
   });
   await listRow(zach, "52-47A").locator(".lib-open").click();
   await expect(zach.getByRole("region", { name: "How Julie would rate it" })).toContainText(

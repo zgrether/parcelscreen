@@ -451,6 +451,20 @@ The device keeps its IndexedDB store (§3a) as the cache and syncs whole records
 reaches the server last wins. `docs/plans/step-5-sync.md` and phase-0.md §9.57 have the details. Julie joins the same
 space with her own profile in step 6.
 
+### 3f. The household (roadmap step 6)
+
+The synced space's profiles are the household's members. The parcel list and its screens are the space's, not a
+profile's (the device stores them under the reserved id `_space`; each parcel notes who added it). Settings,
+priorities and answers stay per profile, so each member's grade is their own rubric over the same measurements, with
+no combined grade. Asks and takes are records in one shared document, synced in one more table:
+
+```sql
+sync_household space, kind ('ask' | 'take'), key, record jsonb, deleted, updated_at   -- primary key (space, kind, key)
+```
+
+An ask's key is "<parcel>:<to>", a take's "<parcel>:<by>". `docs/plans/step-6-household.md` and phase-0.md §9.58
+have the details.
+
 ## 4. The parcel page (the export)
 
 Blocks, in order; each is computed, placeholder, or user-authored:

@@ -9,6 +9,7 @@
  *
  * Keys: Delete or Backspace deletes the selected layer; Esc clears the selection, then closes the panel.
  */
+import { members } from "@/lib/client/household";
 import { mapShowing } from "@/lib/client/mapShowing";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { length, lineString } from "@turf/turf";
@@ -545,7 +546,9 @@ function ParcelActions({ ctl }: { ctl: ExploreController }) {
   if (confirming)
     return (
       <>
-        <span className="ip-ask">Remove it? It leaves your list and the map.</span>
+        <span className="ip-ask">
+          Remove it? It leaves the list and the map{members().length >= 2 ? ", for everyone" : ""}.
+        </span>
         <Btn kind="danger" onClick={() => ctl.removeSaved(open.key!)}>
           Remove
         </Btn>

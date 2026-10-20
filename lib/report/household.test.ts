@@ -27,6 +27,9 @@ describe("the rows that differ most", () => {
       expect(d.length).toBeLessThanOrEqual(3);
       for (const x of d) {
         expect(x.label).not.toBe("");
+        // Same letter: the gap is the weight, and says which way. Different letters: no weight word.
+        if (x.mine === x.theirs) expect(["more", "less"]).toContain(x.weighs);
+        else expect(x.weighs).toBeNull();
         expect([WHY_STARTING, WHY_MOVED]).toContain(x.why);
       }
     }
