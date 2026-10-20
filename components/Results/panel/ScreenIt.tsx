@@ -54,6 +54,7 @@ import type { PanelKey } from "@/lib/report/cardPanels";
 import { CardPanel } from "../card/CardPanel";
 import { LET_THE_APP_CONSIDER_IT, LINES_CHANGED, ReportCard } from "../card/ReportCard";
 import { Others } from "@/components/Household/Others";
+import { useSeeTakes } from "@/lib/client/householdDoc";
 import { OFFLINE_SCREEN_TEXT } from "@/lib/client/pwa";
 
 /** The run the worker's session holds: which parcel it was for (state.serial) and what it was run on. */
@@ -538,6 +539,8 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
   const now = s.runningHere ? STEPS.find(([id]) => s.steps[id]?.status === "run") : undefined;
   const running = now ? { step: now[0], message: s.steps[now[0]]!.message } : undefined;
   const notes = !s.runningHere && shown;
+  // Step 6b: a kept parcel open here with its card, so its takes are seen.
+  useSeeTakes(display ? (s.ctl.state.store.open?.key ?? null) : null);
   if (!s.showSteps && !s.error && !notes && !display) return null;
   // The card comes right under the header (owner, #111), with the run's log above it: the live list while it runs,
   // one line once it's done (step 4c). What failed or is out of date stays above the card too; Copy summary and the

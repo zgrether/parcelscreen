@@ -176,6 +176,10 @@ test("everyone's grade; How Julie would rate it; Ask Julie → Waiting for you �
   });
   await julie.getByRole("button", { name: /^Waiting for you/ }).click();
   await expect(julie.locator(".lib-row:visible")).toHaveCount(1);
+  // Step 6b: the ask's note on its row.
+  await expect(listRow(julie, "52-47A").locator(".lib-ask-note")).toHaveText(
+    "Profile 1 asked for your take: “The spring by the road?”",
+  );
   await listRow(julie, "52-47A").locator(".lib-open").click();
   const yours = julie.getByRole("region", { name: "Your take" });
   await expect(yours).toContainText("Profile 1 asked for your take: “The spring by the road?”");
@@ -185,12 +189,18 @@ test("everyone's grade; How Julie would rate it; Ask Julie → Waiting for you �
   await expect(yours).toContainText("Steep drive, lovely spring.");
   await expect(julie.locator(".app-badge")).toHaveCount(0);
 
-  // Zach: her take beside her grade, and in her section.
+  // Zach: her take beside her grade, new (step 6b: the dot, and a count on the badge), and in her section.
   await afterTabSwitch(zach, async () => {
     await expect(listRow(zach, "52-47A").locator(".take-chip")).toHaveText("says Maybe", { timeout: 1000 });
   });
+  await expect(listRow(zach, "52-47A").locator(".new-dot")).toBeVisible();
+  await expect(zach.locator(".app-badge")).toHaveText("1");
+  await expect(zach.locator(".app-badge")).toHaveAttribute("aria-label", "1 new take");
   await listRow(zach, "52-47A").locator(".lib-open").click();
   await expect(zach.getByRole("region", { name: "How Julie would rate it" })).toContainText(
     "Steep drive, lovely spring.",
   );
+  // Opening it saw it: no dot, no count.
+  await expect(zach.locator(".app-badge")).toHaveCount(0);
+  await expect(listRow(zach, "52-47A").locator(".new-dot")).toHaveCount(0);
 });

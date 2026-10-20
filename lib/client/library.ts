@@ -3,7 +3,16 @@
  * price, state, status and milestones, and both people's grades with the household verdict, the lower of the two
  * (owner, #128). Filters and sorts are views: they never change a parcel. Pure; components/Library renders it.
  */
-import { bothLikeIt, EMPTY_HOUSEHOLD, waits, type Answer, type Household } from "./takes";
+import {
+  bothLikeIt,
+  EMPTY_HOUSEHOLD,
+  newTakes,
+  waits,
+  type Answer,
+  type Ask,
+  type Household,
+  type SeenTakes,
+} from "./takes";
 import { centroid } from "@turf/turf";
 import { z } from "zod";
 import { stateOf } from "@/lib/geo/parcelFields";
@@ -67,6 +76,10 @@ export interface LibraryRow {
   takes: Record<string, Answer>;
   /** An ask to the current person waits for their take (step 6: Waiting for you). */
   waiting: boolean;
+  /** That ask, for its note on the row (step 6b). */
+  ask: Ask | null;
+  /** The members whose take on it the current person hasn't seen (step 6b: the "new" dot). */
+  newTakesBy: string[];
   /** No one's take is No, and every graded member's grade is C or better (step 6: Both like it). */
   bothLike: boolean;
 }
@@ -75,7 +88,16 @@ export interface LibraryRow {
 export interface HouseholdContext {
   household: Household;
   me: string | null;
+  /** The takes the current person has seen on this device (step 6b). */
+  seen?: SeenTakes;
 }
+
+/** The ask to the current person on a parcel that waits for their take, if any. */
+const waitingAsk = (ctx: HouseholdContext, parcel: string): Ask | null =>
+  ctx.me === null
+    ? null
+    : (ctx.household.asks.find((a) => a.parcel === parcel && a.to === ctx.me && waits(ctx.household, a)) ??
+      null);
 
 const STATES: readonly StateCode[] = ["VA", "NC", "TN"];
 
@@ -143,9 +165,14 @@ export function libraryRow(
     takes: Object.fromEntries(
       ctx.household.takes.filter((t) => t.parcel === p.key).map((t) => [t.by, t.answer]),
     ),
-    waiting:
-      ctx.me !== null &&
-      ctx.household.asks.some((a) => a.parcel === p.key && a.to === ctx.me && waits(ctx.household, a)),
+    waiting: waitingAsk(ctx, p.key!) !== null,
+    ask: waitingAsk(ctx, p.key!),
+    newTakesBy:
+      ctx.me === null
+        ? []
+        : newTakes(ctx.household, ctx.me, ctx.seen ?? {})
+            .filter((t) => t.parcel === p.key)
+            .map((t) => t.by),
     bothLike: bothLikeIt(
       ctx.household,
       p.key!,
