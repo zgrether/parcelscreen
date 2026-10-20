@@ -14,7 +14,7 @@ import {
   unsavedAtOpen,
   WRONG_CODE,
 } from "@/lib/sync/words";
-import { importParcels, listRow, openExplorer, openYourData } from "./flow";
+import { importParcels, listRow, openExplorer, openYourData, unfoldListing } from "./flow";
 
 const FERNEY = "ferney-creek-52-47A" as const;
 const MACKS = "macks-mountain-35-3" as const;
@@ -56,7 +56,7 @@ async function rename(page: Page, from: string, to: string): Promise<void> {
   if (!page.url().endsWith("/library")) await goList(page);
   await listRow(page, from).locator(".lib-open").click();
   const detail = page.getByRole("dialog");
-  const name = detail.getByRole("group", { name: "Listing" }).getByLabel("Name");
+  const name = (await unfoldListing(detail)).getByLabel("Name");
   await name.fill(to);
   await name.press("Enter");
   await detail.getByRole("button", { name: "Close" }).click();

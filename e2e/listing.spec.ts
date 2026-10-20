@@ -7,7 +7,15 @@
 import { centroid } from "@turf/turf";
 import { expect, test, type Page } from "@playwright/test";
 import { loadFixture } from "../test/support/fixtures";
-import { expectAllDone, importParcel, openExplorer, openFromList, openSearch, screenIt } from "./flow";
+import {
+  expectAllDone,
+  importParcel,
+  openExplorer,
+  openFromList,
+  openSearch,
+  screenIt,
+  unfoldListing,
+} from "./flow";
 import { replayHar } from "./replay";
 
 const FERNEY = "ferney-creek-52-47A" as const;
@@ -78,7 +86,7 @@ test("the listing's facts: typed, the name shown, the acres compared on the card
 
   // The Notes tab's Listing section.
   await page.locator('button[aria-label$="acres: parcel details"]').first().click();
-  const listing = page.getByRole("group", { name: "Listing" });
+  const listing = await unfoldListing(page);
   await expect(listing.getByLabel("Name")).toHaveAttribute("placeholder", "52-47A");
   for (const [label, value] of [
     ["Name", "Ferney Creek 43 ac"],
@@ -146,7 +154,7 @@ test("a searched link is offered to the next parcel opened, and attached only wi
   await importParcel(page, FERNEY);
   // Its imported name cleared, so the chip names it after the listing's street.
   await page.locator('button[aria-label$="acres: parcel details"]').first().click();
-  const name = page.getByRole("group", { name: "Listing" }).getByLabel("Name");
+  const name = (await unfoldListing(page)).getByLabel("Name");
   await name.fill("");
   await name.press("Enter");
   await page.getByRole("tab", { name: "Grade" }).click();
@@ -166,7 +174,7 @@ test("a searched link is offered to the next parcel opened, and attached only wi
 
   // Dismissed: gone, and not offered again. (Its link cleared first: a parcel with a link is never offered one.)
   await page.locator('button[aria-label$="acres: parcel details"]').first().click();
-  const link = page.getByRole("group", { name: "Listing" }).getByLabel("Listing link");
+  const link = (await unfoldListing(page)).getByLabel("Listing link");
   await link.fill("");
   await link.press("Enter");
   await page.getByRole("tab", { name: "Grade" }).click();

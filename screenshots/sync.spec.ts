@@ -88,9 +88,9 @@ for (const phone of [false, true]) {
       // An edit, through the debug store handle (the same on both widths): it goes up a second later, and fails.
       await a.evaluate(async () => {
         const s = JSON.parse(window.__psKv!.getItem("ps.parcels")!) as {
-          built: { notes: string; name: string }[];
+          built: { name: string }[];
         };
-        s.built.find((b) => b.notes.includes("35-3"))!.name = "Macks Mountain";
+        s.built.find((b) => b.name.includes("35-3"))!.name = "Macks Mountain";
         await window.__psKv!.setItem("ps.parcels", JSON.stringify(s));
       });
       await expect(a.locator(".sync-toast")).toBeVisible({ timeout: 15_000 });

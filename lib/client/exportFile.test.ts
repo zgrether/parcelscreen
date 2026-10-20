@@ -384,7 +384,8 @@ describe("a prototype export ({ cfg, saved[] }, L1605)", () => {
       key: "new1",
       split: null,
       house: [36.629, -81.354],
-      notes: "Name: Ridge tract\n\nSpring on the north line.",
+      name: "Ridge tract",
+      notes: "Spring on the north line.",
       notesAt: "2026-09-30T18:00:00.000Z",
       updatedAt: "2026-09-30T18:00:00.000Z",
       screenIds: [],
@@ -397,9 +398,9 @@ describe("a prototype export ({ cfg, saved[] }, L1605)", () => {
         multiPart: false,
       },
     ]);
-    // The name line is always there (owner, #60), even when it's the parcel ID; an id that isn't a time
-    // stamps it now.
-    expect(b).toMatchObject({ key: "new2", notes: "Name: 52-48", notesAt: NOW, updatedAt: NOW });
+    // The saved name is the parcel's name (polish #21), even when it's the parcel ID, and no line in its notes; an
+    // id that isn't a time stamps it now.
+    expect(b).toMatchObject({ key: "new2", name: "52-48", notes: "", notesAt: null, updatedAt: NOW });
     expect(p.sameRecord).toEqual([]);
   });
 
@@ -417,8 +418,8 @@ describe("a prototype export ({ cfg, saved[] }, L1605)", () => {
   it("the notes' first line names the parcel when it's 60 characters or less; the notes stay (owner, #130)", () => {
     const named = plan(proto(undefined, [saved()])).added[0]!;
     expect(named).toMatchObject({
-      name: "Ridge tract", // the saved name, from its "Name:" line
-      notes: "Name: Ridge tract\n\nSpring on the north line.",
+      name: "Ridge tract", // the saved name (polish #21: not written into the notes)
+      notes: "Spring on the north line.",
     });
     const long = "A".repeat(61);
     const tooLong = plan(proto(undefined, [saved({ name: long })])).added[0]!;
@@ -438,7 +439,7 @@ describe("a prototype export ({ cfg, saved[] }, L1605)", () => {
 
   it("the same saved parcel twice: the second is the same parcel, skipped", () => {
     const p = plan(proto(undefined, [saved(), saved({ name: "Again" })]));
-    expect(p.added.map((x) => x.notes)).toEqual(["Name: Ridge tract\n\nSpring on the north line."]);
+    expect(p.added.map((x) => x.notes)).toEqual(["Spring on the north line."]);
     // Named by its saved name, now that an imported parcel has one (owner, #130).
     expect(p.sameParcel).toEqual(["Again"]);
   });

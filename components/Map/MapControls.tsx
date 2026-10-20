@@ -30,8 +30,9 @@ export function MapControls({ hint }: { hint: Hint }) {
   const map = useMap();
   const { panelInset } = useExplore();
   return (
-    // 24 px in from the edge, clear of the phone's back-swipe zone; beside the Info panel when it's docked.
-    <div className="map-col" style={{ right: panelInset ? panelInset + 10 : 24 }}>
+    // 24 px in from the edge (CSS), clear of the phone's back-swipe zone; beside the Info panel when it's docked. On a
+    // phone the buttons lie in a row along the top (polish #20, CSS).
+    <div className="map-col" style={panelInset ? { right: panelInset + 10 } : undefined}>
       <MapPanelButton />
       {map && <Compass map={map} />}
       {map && <TiltButton map={map} />}
@@ -93,6 +94,8 @@ function Compass({ map }: { map: MlMap }) {
 /** The 3D button's tilt (owner, map UX 2026-10-10): about 60°. */
 const TILT_3D = Math.min(60, MAX_PITCH);
 const TILT_HINT = "Double-click and drag (or middle-drag) to tilt and rotate.";
+/** The tilt hint goes on its own after this long (polish #19), and isn't shown again. */
+const TILT_HINT_MS = 8000;
 
 /** Whether the 3D button turned the terrain on, so going back to 2D turns it off again (and only then). */
 let terrainFromButton = false;
@@ -102,7 +105,7 @@ let terrainFromButton = false;
  * terrain), and back to flat and north up, turning the terrain off again only if the button turned it on. A tilt by
  * gesture leaves the terrain setting alone. Pressed while the map is tilted past the flags' threshold. Off while a
  * tool is open, since the tools lock the map flat. On desktop it also carries the one-time tilt hint, which goes
- * once the map is first tilted or turned, by any means.
+ * once the map is first tilted or turned, by any means, or after 8 s (polish #19).
  */
 function TiltButton({ map }: { map: MlMap }) {
   const { state } = useExplore();
@@ -136,7 +139,9 @@ function TiltButton({ map }: { map: MlMap }) {
     };
     map.once("pitchstart", used);
     map.once("rotatestart", used);
+    const timer = window.setTimeout(used, TILT_HINT_MS);
     return () => {
+      window.clearTimeout(timer);
       map.off("pitchstart", used);
       map.off("rotatestart", used);
     };

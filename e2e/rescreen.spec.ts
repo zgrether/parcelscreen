@@ -12,6 +12,7 @@ import {
   reload,
   screenIt,
   listRow,
+  unfoldListing,
 } from "./flow";
 import { replayHar } from "./replay";
 
@@ -90,6 +91,7 @@ test("the asking price: entered in the parcel sheet with its date, shown on Your
   await openExplorer(page, FERNEY);
   await importParcel(page, FERNEY);
   await page.locator('button[aria-label$="acres: parcel details"]').first().click();
+  await unfoldListing(page);
   const price = page.getByLabel("Asking price");
   await price.fill("185k");
   await price.press("Enter");

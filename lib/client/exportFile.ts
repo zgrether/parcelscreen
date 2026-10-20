@@ -21,6 +21,7 @@ import type { ParcelRecord } from "@/lib/geo/parcels";
 import { LatLonSchema, RecordSchema } from "./currentParcel";
 import {
   nameFromNotes,
+  NOTES_NAME_MAX,
   NO_LISTING,
   NO_STATUS,
   ParcelStoreSchema,
@@ -422,11 +423,16 @@ function fromPrototypeSaved(s: z.infer<typeof ProtoSavedSchema>, key: string, no
     addedBy: null,
     updatedAt: at,
   };
-  // History has no name field (owner, #60): the saved name is the notes' first line, exactly "Name: {name}",
-  // then a blank line and any notes. Phase 1 lifts it into the parcel's name (REQUIREMENTS §3a).
-  const name = s.name?.trim() ?? "";
-  const notes = [name ? `Name: ${name}` : "", s.notes?.trim() ?? ""].filter((x) => x !== "").join("\n\n");
-  return notes ? { ...p, notes, notesAt: at, name: nameFromNotes(notes) } : p;
+  // The saved name is the parcel's name (polish #21: no longer written into the notes as "Name: …"). One longer than a
+  // name holds (NOTES_NAME_MAX) stays at the head of the notes, as before, so nothing is lost; with no saved name, the
+  // notes' first line names it.
+  const saved = s.name?.trim() ?? "";
+  const fits = saved !== "" && saved.length <= NOTES_NAME_MAX;
+  const notes = [saved && !fits ? `Name: ${saved}` : "", s.notes?.trim() ?? ""]
+    .filter((x) => x !== "")
+    .join("\n\n");
+  const name = fits ? saved : nameFromNotes(notes);
+  return notes ? { ...p, notes, notesAt: at, name } : name ? { ...p, name } : p;
 }
 
 // The name read from the notes' first line lives with the store (it also runs once on load): re-exported here.

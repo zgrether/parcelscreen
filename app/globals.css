@@ -1047,30 +1047,27 @@ html:has(.explore) body {
   font-weight: 600;
 }
 /* The asking price, above the notes (owner, #101). */
-/* The listing's facts at the top of the Notes tab (WF1): one row each, as the asking price. On a phone (owner, #130)
-   they fold to a one-line summary once there's a name or a price; the summary is a phone's only. */
+/* The listing's facts at the top of the Notes tab (WF1): one row each, as the asking price. They fold to a one-line
+   summary once there's a name or a price (owner, #130, a phone's; polish #24, a desktop's too). */
 .ip-listing-summary {
-  display: none;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  padding: 6px 8px;
+  border: 1px solid var(--ip-rule);
+  border-radius: 6px;
+  background: var(--ip-field-bg);
+  color: var(--ip-ink);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
 }
-@media (max-width: 860px) and (orientation: portrait) {
-  .ip-listing-summary {
-    display: flex;
-    justify-content: space-between;
-    gap: 8px;
-    width: 100%;
-    padding: 6px 8px;
-    border: 1px solid var(--ip-rule);
-    border-radius: 6px;
-    background: var(--ip-field-bg);
-    color: var(--ip-ink);
-    font: inherit;
-    font-size: 13px;
-    text-align: left;
-    cursor: pointer;
-  }
-  .ip-listing[data-folded] > :not(.ip-listing-summary) {
-    display: none;
-  }
+.ip-listing[data-folded] > :not(.ip-listing-summary) {
+  display: none;
 }
 .ip-listing {
   display: grid;
@@ -1364,11 +1361,28 @@ html:has(.explore) body {
   position: absolute;
   z-index: 14;
   top: 52px;
+  right: 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
   transition: right 0.18s;
+}
+/* A phone (polish #20): the buttons in one row along the top, between Search and the attribution, so the map under
+   them is clear for the pins and "Stand here"; the colour legend on the left under Search, clear of the toolbar and
+   the sheet. */
+@media (max-width: 860px) and (orientation: portrait) {
+  .map-col {
+    top: 10px;
+    right: 44px;
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .map-col .surface-legend {
+    position: fixed;
+    top: 64px;
+    left: 10px;
+  }
 }
 .map-ctl-btn {
   background: var(--tb-bg);
@@ -2753,6 +2767,45 @@ html:has(.app-nav) .explore {
   background: var(--color-ink);
   color: #fff;
   border-color: #fff;
+}
+/* Map layers' key (polish #18): small copies of the pins and lines, each beside what it means. */
+.mp-key {
+  margin: 6px 8px 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--ip-rule);
+}
+.mp-key summary {
+  cursor: pointer;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  color: var(--ip-ink-2);
+}
+.mk-rows {
+  display: grid;
+  gap: 6px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+.mk-rows li {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 8px;
+  align-items: center;
+}
+.mk-swatch {
+  display: flex;
+  justify-content: center;
+}
+.sitepin.mk-pin {
+  width: 24px;
+  height: 24px;
+  font-size: 11px;
+  line-height: 20px;
+  box-shadow: none;
+  cursor: default;
 }
 .sitepin.veto {
   background: var(--color-steep);

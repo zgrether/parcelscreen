@@ -11,6 +11,8 @@ import { ListingFacts, type ListingSaves } from "./ListingFacts";
 
 /** Notes save this long after the last keystroke (and at once when the box loses focus). */
 const NOTES_DEBOUNCE_MS = 600;
+/** How long Clear's Undo stays (polish #21); typing ends it sooner. */
+const UNDO_MS = 8000;
 
 const savedAt = (iso: string) =>
   new Date(iso).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
@@ -44,6 +46,13 @@ export function ParcelNotes({
   listing?: boolean;
 }) {
   const [text, setText] = useState(parcel.notes);
+  // What Clear took away (polish #21): Undo puts it back, for a few seconds.
+  const [cleared, setCleared] = useState<string | null>(null);
+  useEffect(() => {
+    if (cleared === null) return;
+    const t = window.setTimeout(() => setCleared(null), UNDO_MS);
+    return () => window.clearTimeout(t);
+  }, [cleared]);
   // The latest save: a debounced one that lands after the parcel changed is the caller's to drop (by its serial).
   const pending = useRef({ save, text, timer: null as number | null });
   useEffect(() => {
@@ -91,7 +100,10 @@ export function ParcelNotes({
         aria-label={`Notes for ${name}`}
         placeholder="What you learned: the listing, a call with the agent, what to check on the visit…"
         value={text}
-        onChange={(e) => change(e.target.value)}
+        onChange={(e) => {
+          setCleared(null);
+          change(e.target.value);
+        }}
         onFocus={() => document.documentElement.classList.add("note-typing")}
         onBlur={() => {
           flush();
@@ -100,22 +112,38 @@ export function ParcelNotes({
       />
       <div className="ip-notes-foot">
         <span>
-          {unsaved
-            ? "Saving…"
-            : parcel.notesAt
-              ? `Saved ${savedAt(parcel.notesAt)}`
-              : "Notes save as you type."}
+          {cleared !== null && !unsaved
+            ? "Notes cleared."
+            : unsaved
+              ? "Saving…"
+              : parcel.notesAt
+                ? `Saved ${savedAt(parcel.notesAt)}`
+                : "Notes save as you type."}
         </span>
-        {text !== "" && (
+        {cleared !== null ? (
           <button
             className="ip-btn sec"
             onClick={() => {
-              change("");
+              change(cleared);
               flush();
+              setCleared(null);
             }}
           >
-            Clear
+            Undo
           </button>
+        ) : (
+          text !== "" && (
+            <button
+              className="ip-btn sec"
+              onClick={() => {
+                setCleared(text);
+                change("");
+                flush();
+              }}
+            >
+              Clear
+            </button>
+          )
         )}
       </div>
     </div>
