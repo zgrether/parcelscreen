@@ -17,6 +17,8 @@ import {
   seedScreens,
 } from "../e2e/flow";
 
+/** The Your list tab, whose name gains the badge's label ("Your list 1 new take") when something waits (step 6b). */
+const YOUR_LIST = /^Your list/;
 const FERNEY = "ferney-creek-52-47A" as const;
 const MACKS = "macks-mountain-35-3" as const;
 const MUD = "grayson-mud-creek-6273" as const;
@@ -56,7 +58,7 @@ async function afterTabSwitch(page: Page, check: () => Promise<void>): Promise<v
     const close = page.getByRole("dialog").getByRole("button", { name: "Close" });
     if (await close.isVisible()) await close.click();
     await page.getByRole("link", { name: "Map", exact: true }).click();
-    await page.getByRole("link", { name: "Your list", exact: true }).click();
+    await page.getByRole("link", { name: YOUR_LIST }).click();
     await check();
   }).toPass({ timeout: 30_000 });
 }

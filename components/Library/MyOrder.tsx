@@ -5,6 +5,7 @@
  * each has Move up and Move down in a small menu, for the keyboard and screen readers. Only in My order: under another
  * sort the handles hide. The list (Library.tsx) turns a drop into one parcel's new rank (lib/client/myOrder.ts).
  */
+import { holdSync } from "@/lib/sync/hold";
 import {
   DndContext,
   KeyboardSensor,
@@ -69,13 +70,16 @@ export function SortableRows({
   };
   const onDragEnd = ({ active, over }: DragEndEvent) => {
     if (over && active.id !== over.id) mover.move(String(active.id), keys.indexOf(String(over.id)));
+    holdSync(false); // after the drop: another device's changes apply now (step 6b)
   };
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
       modifiers={[vertically]}
+      onDragStart={() => holdSync(true)}
       onDragEnd={onDragEnd}
+      onDragCancel={() => holdSync(false)}
       accessibility={{
         announcements,
         screenReaderInstructions: {
