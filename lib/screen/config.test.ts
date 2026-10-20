@@ -552,6 +552,12 @@ describe("config", () => {
               50,
             ],
           },
+          "sites": {
+            "alternatives": 2,
+            "apartM": 100,
+            "numbers": 5,
+            "withinPoints": 10,
+          },
           "verdict": {
             "contender": 2.5,
             "contenderMaxWarns": 1,

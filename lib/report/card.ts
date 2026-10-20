@@ -16,10 +16,11 @@ import {
   type DriveEntry,
 } from "../screen/driveList";
 import { derivedSites } from "../screen/derive";
+import { lpZone } from "../screen/sky";
 import { NO_PRACTICAL_ROUTE, existingSteepLine } from "../screen/score";
 import { servesLine, trailheadSourceLabel } from "../screen/trailheads";
 import { isPrimeFarmland, soilAt, type SoilUnit } from "../screen/soils";
-import type { PartialScreenResult, RoadClass, ScoredDriveway } from "../screen/types";
+import type { PartialScreenResult, RoadClass, ScoredDriveway, ScoredSite } from "../screen/types";
 import type { LatLon } from "../geo/types";
 import { M2FT, M2_PER_ACRE } from "../screen/util";
 import { steepLandingLine } from "./driveway";
@@ -37,6 +38,7 @@ import {
   type Driven,
   type LineNames,
 } from "./lines";
+import { rankSites, type RankedSite } from "./sites";
 import { nearestFt, PERMIT_ON_FILE, permitFar, SPRING_MARKED, type Drawn, type Mark } from "./marks";
 import { atLeast, atMost, gradedRows, parcelGrade, verdictLines } from "../rubric/grade";
 import { FACTOR_LABELS } from "../rubric/words";
@@ -82,10 +84,15 @@ export interface Row {
   measure?: Measure;
 }
 
-/** What the card says regardless of whose weights are on. */
+/** What the card says regardless of whose weights are on, at one build site. */
 export interface CardFacts {
   gates: Gate[];
   rows: Row[];
+  /**
+   * The ranked site the site rows read (step 7): an index into the result's `sites`, the person's best by reportCard.
+   * A marked house is the build site whatever this says, as before.
+   */
+  at: number;
   /** The household chose a line as its driveway and this screen has no route from it (WF5): said under the reason. */
   routeNote?: string;
   /** The line whose route the card scores (WF5), when the household chose one and this screen routed it. */
@@ -104,6 +111,8 @@ export interface Card extends CardFacts {
   reason: string;
   /** What didn't load, in the card's order: the reason line says so, and asks for a re-run. */
   incomplete: string[];
+  /** The homesites in this person's order (step 7, lib/report/sites.ts); empty before they're ranked. */
+  sites: readonly RankedSite[];
 }
 
 const LETTERS: readonly Letter[] = ["A", "B", "C", "D"];
@@ -134,8 +143,9 @@ const lowerFirst = (s: string): string => (/^[A-Z]{2}/.test(s) ? s : s.charAt(0)
 type Result = PartialScreenResult;
 
 /**
- * The build site: the house when you've placed one (owner, #109 review), else site #1. null when there's neither;
- * undefined when the homesites weren't ranked and there's no house.
+ * The build site: the house when you've placed one (owner, #109 review), else the ranked site at `at` (step 7: the
+ * person's best site, lib/report/sites.ts; site #1 by default). null when there's neither; undefined when the
+ * homesites weren't ranked and there's no house.
  */
 export interface BuildSite {
   label: string;
@@ -146,16 +156,19 @@ export interface BuildSite {
   /** Where it is, [lat, lon]: what a marker's distance is measured from (WF4). */
   ll: LatLon;
 }
-export function buildSite(r: Result): BuildSite | null | undefined {
+export function buildSite(r: Result, at = 0): BuildSite | null | undefined {
   const h = r.house;
   if (h && !("outside" in h))
     return { label: "the marked house", elevFt: h.elevFt, inSfha: h.inSFHA, sfhaOnSite: null, ll: h.ll };
   if (!r.sites) return undefined;
-  const s = r.sites[0];
+  const s = r.sites[at];
   return s
-    ? { label: "site #1", elevFt: s.elevFt, inSfha: !!s.flood, sfhaOnSite: s.sfhaOnSite, ll: s.ll }
+    ? { label: siteLabel(s), elevFt: s.elevFt, inSfha: !!s.flood, sfhaOnSite: s.sfhaOnSite, ll: s.ll }
     : null;
 }
+
+/** A ranked site as the report names it, by the engine's rank (its pin's number): "site #3". */
+export const siteLabel = (s: { rank: number }): string => `site #${s.rank}`;
 
 // ---------- the gates ----------
 
@@ -396,51 +409,65 @@ function elevation(site: BuildSite | null | undefined, K: CardConfig): Row {
 }
 
 /**
- * Site #1's quality grade only (owner, #95 review): its build cost picks the site, but never grades the parcel. The
- * line says it in plain words; the quality score is the panel's (owner, #110).
+ * The site's quality grade only (owner, #95 review): its build cost picks the engine's site #1, but never grades the
+ * parcel. The line says it in plain words; the quality score is the panel's (owner, #110). Step 7: the site at `at`.
  */
-function homesite(r: Result): Row {
+function homesite(r: Result, at: number, derived: ScoredSite[] | undefined): Row {
   const g = row("homesite", FACTOR_LABELS.homesite);
   if (!r.sites) return notLoaded(g, "the homesite ranking");
-  // Site #1's quality derives from its measurements (v8; lib/screen/derive.ts).
-  const s = derivedSites(r)![0];
+  // A site's quality derives from its measurements (v8; lib/screen/derive.ts).
+  const s = derived?.[at];
   if (!s) return g("F", "no build site found");
   return {
     ...g(
       s.qGrade,
       `faces ${compass(s.aspectDeg)}, ${fmt(s.sunH, 1)} h of December sun, ${fmt(s.slopeDeg)}° slope`,
     ),
-    panelNote: `site #1's quality ${s.qGrade} (${fmt(s.quality)})`,
+    panelNote: `${siteLabel(s)}'s quality ${s.qGrade} (${fmt(s.quality)})`,
     short: `${fmt(s.sunH, 1)} h sun, faces ${compass(s.aspectDeg)}`,
-    // What a Best homesite limit is checked against (step 4, §9.50 amended): December sun at site #1.
+    // What a Best homesite limit is checked against (step 4, §9.50 amended): December sun at the site.
     measure: { value: s.sunH, unit: "h" },
   };
 }
 
-/** The zone in words (owner, #109 review); mag/arcsec² is the panel's. */
-function sky(r: Result, K: CardConfig): Row {
+/**
+ * The zone in words (owner, #109 review); mag/arcsec² is the panel's. Site #1 reads the parcel's reading, as before;
+ * another site its own (step 7; v8 stores each site's), with the zone its mag falls in.
+ */
+function sky(r: Result, K: CardConfig, at: number): Row {
   const g = row("sky", FACTOR_LABELS.sky);
   if (!r.sky) return notLoaded(g, "the sky atlas");
+  const own = at > 0 ? r.sites?.[at]?.sky : undefined;
+  const mag = own?.mag ?? r.sky.mag;
+  const [zone, zoneWord] = own ? zoneOfMag(own.mag) : [r.sky.zone, r.sky.zoneWord];
   return {
-    ...g(atLeast(r.sky.mag, K.rows.skyMag), `${r.sky.zoneWord} sky (zone ${r.sky.zone})`),
-    short: `zone ${r.sky.zone}`,
-    measure: { value: r.sky.mag, unit: "mag" },
+    ...g(atLeast(mag, K.rows.skyMag), `${zoneWord} sky (zone ${zone})`),
+    short: `zone ${zone}`,
+    measure: { value: mag, unit: "mag" },
   };
 }
 
+/** The zone and its word for a zenith brightness in mag/arcsec²: lpMag inverted, then lpZone (sky.ts). */
+export function zoneOfMag(mag: number): [zone: string, word: string] {
+  return lpZone(Math.pow(100, (22 - mag) / 5) - 1);
+}
+
 /**
- * Room to build (value-ranking.md §5.4 (b); v4): the pad on site #1, and the drainfield with its reserve on the gentle
+ * Room to build (value-ranking.md §5.4 (b); v4): the pad on the site, and the drainfield with its reserve on the gentle
  * ground (15% or less) within 300 ft of where the house goes. Graded by that ground over the whole footprint; an F
- * when the build doesn't fit, which is also the first thing to check (owner, #110).
+ * when the build doesn't fit, which is also the first thing to check (owner, #110). Step 7: the site at `at`.
  */
-function room(r: Result, K: CardConfig, footprintAc: number): Row {
+function room(r: Result, K: CardConfig, footprintAc: number, at: number): Row {
   const g = row("room", FACTOR_LABELS.room);
   if (!r.sites) return notLoaded(g, "the homesite ranking");
-  const s = r.sites[0];
+  const s = r.sites[at];
   if (!s) return g("F", "no build site to place the build on");
   if (s.fit !== "fits")
     return {
-      ...g("F", `site #1 ${s.fit === "house only" ? "fits the house only" : "is too small for the house"}`),
+      ...g(
+        "F",
+        `${siteLabel(s)} ${s.fit === "house only" ? "fits the house only" : "is too small for the house"}`,
+      ),
       checkFirst: "your build doesn't fit on any homesite",
       short: s.fit === "house only" ? "house only" : "too small",
     };
@@ -477,26 +504,26 @@ export function drivewayGradePct(f: ScoredDriveway): number {
  * (question 10 sets its edge). Its length is in the line; its cost is Cost to enjoy's. No route, or no practical drive:
  * an F.
  */
-function driveway(r: Result, K: CardConfig): Row {
+function driveway(r: Result, K: CardConfig, at: number): Row {
   const g = row("driveway", FACTOR_LABELS.driveway);
   const notRouted = (): Row => ({ ...g(null, "the driveway wasn't routed"), missing: "the roads" });
   if (!r.driveway) return notRouted();
   const h = r.house;
-  const spot = h && !("outside" in h) ? { label: "the marked house", dw: h.driveway } : null;
-  if (!spot && !r.sites) return notLoaded(g, "the homesite ranking");
-  const s = r.sites?.[0];
-  const at = spot ?? (s ? { label: "site #1", dw: s.driveway } : null);
-  if (!at) return g(null, "no build site to measure");
-  if (at.dw === undefined) return notRouted();
-  if (at.dw === null) return { ...g("F", `no driveway route reaches ${at.label}`), short: "no route" };
-  if (at.dw.noPractical)
-    return { ...g("F", `no practical driveway to ${at.label}`), short: "no practical route" };
-  const pct = drivewayGradePct(at.dw);
-  const easement = at.dw.needsEasement ? "; needs an easement across neighbouring land" : "";
+  const house = h && !("outside" in h) ? { label: "the marked house", dw: h.driveway } : null;
+  if (!house && !r.sites) return notLoaded(g, "the homesite ranking");
+  const s = r.sites?.[at];
+  const spot = house ?? (s ? { label: siteLabel(s), dw: s.driveway } : null);
+  if (!spot) return g(null, "no build site to measure");
+  if (spot.dw === undefined) return notRouted();
+  if (spot.dw === null) return { ...g("F", `no driveway route reaches ${spot.label}`), short: "no route" };
+  if (spot.dw.noPractical)
+    return { ...g("F", `no practical driveway to ${spot.label}`), short: "no practical route" };
+  const pct = drivewayGradePct(spot.dw);
+  const easement = spot.dw.needsEasement ? "; needs an easement across neighbouring land" : "";
   return {
     ...g(
       atMost(pct, K.rows.drivewayPct),
-      `${fmt(at.dw.lengthFt)} ft, ${fmt(pct)}% at its steepest${easement}`,
+      `${fmt(spot.dw.lengthFt)} ft, ${fmt(pct)}% at its steepest${easement}`,
     ),
     short: `${fmt(pct)}% steepest`,
     measure: { value: pct, unit: "%" },
@@ -705,14 +732,17 @@ export function cardFacts(
   K: CardConfig = SCREEN_CONSTANTS.card,
   build: BuildConfig = SCREEN_CONSTANTS.build,
   drawn?: Drawn,
+  /** The ranked site to read the site rows at (step 7): site #1 unless reportCard picks the person's best. */
+  at = 0,
 ): CardFacts {
-  const footprintAc = footprintFt2(build) / FT2_PER_ACRE;
-  const site = buildSite(r);
+  const site = buildSite(r, at);
   const names = drawn?.names,
     marks = drawn?.marks ?? [],
     records = drawn?.records;
-  // The route scored: the household's when it chose a line and this screen has a route from it (WF5).
+  // The route scored: the household's when it chose a line and this screen has a route from it (WF5). The Access and
+  // Easement gates, and Floodplain's driveway part, read it whichever site the rows read (step 7 plan §2, §11 Q5).
   const driven = drivenRoute(r, drawn?.driveway);
+  const [elevationRow, homesiteRow, skyRow, roomRow, drivewayRow] = siteRows(r, K, build, at);
   const facts = {
     gates: [
       floodplain(r, site, driven),
@@ -721,17 +751,40 @@ export function cardFacts(
       septic(r, site, marks, K),
     ],
     rows: [
-      elevation(site, K),
-      homesite(r),
-      sky(r, K),
-      room(r, K, footprintAc),
-      driveway(r, K),
+      elevationRow!,
+      homesiteRow!,
+      skyRow!,
+      roomRow!,
+      drivewayRow!,
       trails(r, K),
       town(r, K),
       garden(r, K, marks),
     ],
+    at,
   };
   return withYourRoute(facts, r, driven, drawn);
+}
+
+/**
+ * The rows that differ from site to site (step 7, lib/report/sites.ts SITE_ROWS), read at the ranked site `at`:
+ * Elevation, Best homesite, Night sky, Room to build and Driveway, in the card's order. A marked house is still where
+ * Elevation and Driveway are read, as before. `derived`: the sites' scores, when the caller has them already.
+ */
+export function siteRows(
+  r: Result,
+  K: CardConfig = SCREEN_CONSTANTS.card,
+  build: BuildConfig = SCREEN_CONSTANTS.build,
+  at = 0,
+  derived: ScoredSite[] | undefined = derivedSites(r),
+): Row[] {
+  const footprintAc = footprintFt2(build) / FT2_PER_ACRE;
+  return [
+    elevation(buildSite(r, at), K),
+    homesite(r, at, derived),
+    sky(r, K, at),
+    room(r, K, footprintAc, at),
+    driveway(r, K, at),
+  ];
 }
 
 /**
@@ -837,15 +890,38 @@ export function cardFor(facts: CardFacts, nr: NamedRubric): Card {
             ? `${verdict}. Weakest part: ${lowerFirst(weakest.label)} (${weakest.grade}, ${weakest.detail})`
             : `${verdict}. Not enough of the screen ran to grade the land`;
   const more = incomplete.length ? ` (incomplete: ${listOf(incomplete)} didn't load, run again)` : "";
-  return { ...facts, rows, rubric: nr, points, grade, verdict, reason: `${why}${more}.`, incomplete };
+  return {
+    ...facts,
+    rows,
+    rubric: nr,
+    points,
+    grade,
+    verdict,
+    reason: `${why}${more}.`,
+    incomplete,
+    sites: [],
+  };
 }
 
-/** The card for a result and a rubric: the rubric's bands grade the rows, its weights and lines grade the parcel. */
+/**
+ * The card for a result and a rubric: the rubric's bands grade the rows, its weights and lines grade the parcel.
+ * Step 7 (plan §2): it's graded at this person's best homesite, the first of `rankSites` over the site rows; or at
+ * `opts.at`, a ranked site's index, when the caller names one (the guard test grades site #1 this way). A marked house
+ * is the build site either way, as before.
+ */
 export const reportCard = (
   r: Result,
   nr: NamedRubric,
   drawn?: Drawn,
   K: CardConfig = SCREEN_CONSTANTS.card,
+  opts: { at?: number } = {},
 ): Card => {
-  return cardFor(cardFacts(r, { ...K, rows: nr.rubric.bands }, SCREEN_CONSTANTS.build, drawn), nr);
+  const KR = { ...K, rows: nr.rubric.bands };
+  const build = SCREEN_CONSTANTS.build;
+  const derived = derivedSites(r);
+  const sites = r.sites ? rankSites(r.sites, (i) => siteRows(r, KR, build, i, derived), nr.rubric) : [];
+  // A marked house grades as before (§11 Q6): its own elevation and driveway, site #1's quality and room.
+  const house = !!r.house && !("outside" in r.house);
+  const at = opts.at ?? (house ? 0 : (sites[0]?.index ?? 0));
+  return { ...cardFor(cardFacts(r, KR, build, drawn, at), nr), sites };
 };
