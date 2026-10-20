@@ -130,12 +130,14 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   useEffect(() => {
     raiseSheet.current = sheet.raise;
   });
-  // Step 8b (plan §2): a parcel never graded opens on Details; a line or mark selected raises the sheet to show its row.
+  // Step 8b (plan §2): each parcel opens on Grade, or on Details when never graded; a line or mark selected raises the
+  // sheet to show its row.
   const { serial, layer } = explore.state;
   const ungraded = !!store.open && store.open.screenIds.length === 0;
   const { setInfo } = explore;
   useEffect(() => {
-    if (ungraded) setInfo(true);
+    // Not remembered between parcels (plan §2): Grade for a graded one, Details for one never graded.
+    if (store.open && ungraded !== explore.state.info) setInfo(ungraded);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once per parcel opened
   }, [serial]);
   useEffect(() => {
