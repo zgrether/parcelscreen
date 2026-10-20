@@ -100,7 +100,12 @@ for (const size of [
       page.on("pageerror", (e) => errors.push(e.message));
       await replayHar(context, FERNEY);
       const { lat, lon } = { lat: 36.92, lon: -80.32 };
-      await openExplorer(page, FERNEY, { "ps.view": JSON.stringify({ lat, lon, z: 11 }) });
+      // No hillshade or contours: their unrecorded z11 tiles' "Terrain tiles didn't load" could take the hint slot (it did, in CI).
+      await openExplorer(page, FERNEY, {
+        "ps.view": JSON.stringify({ lat, lon, z: 11 }),
+        "ps.hillshade": "0",
+        "ps.contours": "0",
+      });
       const hint = page.locator(".map-hint");
       await expect(hint).toHaveText("Zoom in to see parcel lines");
       const toolbar = page.locator(".toolbar");
