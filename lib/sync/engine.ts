@@ -5,8 +5,10 @@
  * - **Saving:** a write marks what may have changed; about a second after the last one, the whole records that really
  *   differ from what the space is known to hold (the baseline) are sent in one batch. The save that reaches the server
  *   last wins, whole (owner, 10/19).
- * - **Fetching:** when the app opens, comes back to the front, or switches tabs, the changes since the last fetch (with
- *   a little overlap) are merged in, except records changed here and not saved yet: their own save follows.
+ * - **Fetching:** when the app opens, comes back to the front, or switches tabs, and every 30 s while it's visible and
+ *   online (step 6b, poll.ts), the changes since the last fetch (with a little overlap) are merged in, except records
+ *   changed here and not saved yet: their own save follows. They wait during a My order drag and while a text field
+ *   has focus (hold.ts), and are fetched again on the drop or the blur.
  * - **Failing:** a save that fails (offline, the server's error, over 10 s) turns the indicator to Not saved and offers
  *   Try again. Nothing retries by itself. What's unsaved is written to `ps.sync`, so the next open says so once, with
  *   Try again and Discard.
@@ -23,6 +25,8 @@ import { readHousehold } from "@/lib/client/takes";
 import { registerSyncHooks, type SyncHooks } from "@/lib/client/syncHooks";
 import type { Profile } from "@/lib/client/profileStore";
 import { fetchChanges, fetchScreen, saveBatch } from "./client";
+import { onSyncReleased, syncHeld } from "./hold";
+import { Poller } from "./poll";
 import {
   batches,
   canonical,
@@ -98,6 +102,11 @@ class Engine implements SyncHooks {
   private fetching: Promise<void> | null = null;
   /** True while merging the space's changes in: the writes that makes aren't this device's edits. */
   private applying = false;
+  /** Every 30 s while visible and online (step 6b); each fetch, whatever started it, resets it. */
+  private readonly poller = new Poller(() => void this.fetch());
+  /** A fetch found the changes held (a drag, a focused field): fetch again once released. */
+  private deferred = false;
+  private unhold: (() => void) | null = null;
 
   constructor(private state: SyncState) {}
 
@@ -171,6 +180,11 @@ class Engine implements SyncHooks {
     registerSyncHooks(this);
     addEventListener("visibilitychange", this.onVisibility);
     addEventListener("focus", this.onFocus);
+    addEventListener("online", this.onNetwork);
+    addEventListener("offline", this.onNetwork);
+    document.addEventListener("focusout", this.onRelease);
+    this.unhold = onSyncReleased(this.onRelease);
+    this.poller.start();
     await this.fetch();
   }
 
@@ -179,14 +193,29 @@ class Engine implements SyncHooks {
     registerSyncHooks(null);
     removeEventListener("visibilitychange", this.onVisibility);
     removeEventListener("focus", this.onFocus);
+    removeEventListener("online", this.onNetwork);
+    removeEventListener("offline", this.onNetwork);
+    document.removeEventListener("focusout", this.onRelease);
+    this.unhold?.();
+    this.poller.stop();
   }
 
   private readonly onVisibility = () => {
     // Hidden: send what's waiting now, in case the page goes. Shown again: fetch.
-    if (document.visibilityState === "hidden") void this.save();
-    else void this.fetch();
+    if (document.visibilityState === "hidden") {
+      void this.save();
+      this.poller.changed();
+    } else void this.fetch();
   };
   private readonly onFocus = () => void this.fetch();
+  private readonly onNetwork = () => this.poller.changed();
+  /** A blur or a drop: changes held back meanwhile are fetched now (after the focus has settled on its next element). */
+  private readonly onRelease = () =>
+    setTimeout(() => {
+      if (!this.deferred || syncHeld()) return;
+      this.deferred = false;
+      void this.fetch();
+    }, 0);
 
   /** What wasn't saved, by name: each parcel's own name (or "a parcel"), each profile's. */
   private async unsavedNames(u: Unsaved): Promise<string[]> {
@@ -417,12 +446,19 @@ class Engine implements SyncHooks {
 
   fetch(): Promise<void> {
     if (this.fetching) return this.fetching;
-    const work = this.fetchOnce().finally(() => (this.fetching = null));
+    const work = this.fetchOnce()
+      .then((ok) => this.poller.fetched(ok))
+      .finally(() => (this.fetching = null));
     this.fetching = work;
     return work;
   }
 
-  private async fetchOnce(): Promise<void> {
+  /** One fetch and merge; false when it failed (offline, slow, the server's error), which only the poller counts. */
+  private async fetchOnce(): Promise<boolean> {
+    if (syncHeld()) {
+      this.deferred = true;
+      return true;
+    }
     const since = this.state.cursor
       ? new Date(Date.parse(this.state.cursor) - OVERLAP_MS).toISOString()
       : null;
@@ -430,12 +466,18 @@ class Engine implements SyncHooks {
     try {
       changes = await fetchChanges(this.state.code, since);
     } catch {
-      return; // offline or slow: the cached copy stands, and saving says so if it fails
+      return false; // offline or slow: the cached copy stands, and saving says so if it fails
     }
-    if (!changes) return;
+    if (!changes) return false;
+    // A drag or a field took hold while the fetch was out: apply nothing yet, and fetch again on release.
+    if (syncHeld()) {
+      this.deferred = true;
+      return true;
+    }
     await this.apply(changes);
     this.state = { ...this.state, cursor: changes.cursor ?? this.state.cursor };
     writeSyncState(this.state);
+    return true;
   }
 
   /** Merges the space's changes into this device's copy, except what's changed here and not saved. */
