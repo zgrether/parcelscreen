@@ -11,8 +11,10 @@ import { useRef, useState, useSyncExternalStore } from "react";
 import { groupCode, normalizeCode } from "@/lib/sync/code";
 import { initSync, subscribeSync, syncView } from "@/lib/sync/engine";
 import { leaveSync, startSyncing, type Progress } from "@/lib/sync/space";
+import { isServerConfig } from "@/lib/sync/client";
 import { readSyncState } from "@/lib/sync/state";
 import {
+  SERVER_SETUP,
   JOIN_WITH_CODE,
   JOINED,
   LEAVE,
@@ -93,7 +95,11 @@ function SyncView({ view, setView, joined }: { view: View; setView(v: View): voi
       setView({ kind: "code", code });
       await initSync(); // this device is joined now: its changes save from here on
     } catch (e) {
-      const msg = e instanceof Error && !/HTTP|fetch|abort|timeout/i.test(e.message) ? e.message : null;
+      const msg = isServerConfig(e)
+        ? SERVER_SETUP
+        : e instanceof Error && !/HTTP|fetch|abort|timeout/i.test(e.message)
+          ? e.message
+          : null;
       setView({
         kind: "starting",
         progress: null,

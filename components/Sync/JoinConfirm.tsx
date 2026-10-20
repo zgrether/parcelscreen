@@ -9,12 +9,14 @@ import { useSettings } from "@/components/Settings/SettingsDialog";
 import { downloadExport } from "@/components/Settings/YourData";
 import { holdsData, joinSpace, localData, peekSpace, type LocalData } from "@/lib/sync/space";
 import type { Changes } from "@/lib/sync/wire";
-import { GETTING, JOIN_EMPTY, joinReplaces, WRONG_CODE } from "@/lib/sync/words";
+import { GETTING, JOIN_EMPTY, joinReplaces, SERVER_SETUP, WRONG_CODE } from "@/lib/sync/words";
+import { isServerConfig } from "@/lib/sync/client";
 
 type Phase =
   | { kind: "checking" }
   | { kind: "wrong" }
   | { kind: "offline" }
+  | { kind: "server" }
   | { kind: "ask"; space: Changes; local: LocalData }
   | { kind: "joining" }
   | { kind: "failed" };
@@ -36,7 +38,7 @@ export function JoinConfirm({
     let alive = true;
     void Promise.all([peekSpace(code), localData()])
       .then(([space, local]) => alive && setPhase(space ? { kind: "ask", space, local } : { kind: "wrong" }))
-      .catch(() => alive && setPhase({ kind: "offline" }));
+      .catch((e: unknown) => alive && setPhase({ kind: isServerConfig(e) ? "server" : "offline" }));
     return () => {
       alive = false;
     };
@@ -46,8 +48,8 @@ export function JoinConfirm({
     setPhase({ kind: "joining" });
     try {
       await joinSpace(code, space);
-    } catch {
-      setPhase({ kind: "failed" });
+    } catch (e) {
+      setPhase({ kind: isServerConfig(e) ? "server" : "failed" });
     }
   };
 
@@ -72,13 +74,16 @@ export function JoinConfirm({
         </div>
       );
     case "offline":
+    case "server":
     case "failed":
       return (
         <div className="sync-block">
           <p className="sync-line bad" role="alert">
             {phase.kind === "offline"
               ? "Couldn't reach the synced space. Check the connection and try again."
-              : "Joining didn't finish. Nothing on the synced space changed; try again."}
+              : phase.kind === "server"
+                ? SERVER_SETUP
+                : "Joining didn't finish. Nothing on the synced space changed; try again."}
           </p>
           <div className="sync-buttons">
             <button className="btn secondary" onClick={onCancel}>
