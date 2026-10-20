@@ -109,10 +109,21 @@ export interface Card extends CardFacts {
   verdict: Verdict;
   /** "Maybe. Check first: no soil on the parcel rates better than very limited for a septic field." */
   reason: string;
+  /** What the reason line leads with, in its own words (step 7: the answer line reuses it, lib/report/answer.ts). */
+  lead: Lead;
   /** What didn't load, in the card's order: the reason line says so, and asks for a re-run. */
   incomplete: string[];
   /** The homesites in this person's order (step 7, lib/report/sites.ts); empty before they're ranked. */
   sites: readonly RankedSite[];
+}
+
+/**
+ * What a card's reason leads with: a failed Must (a gate), a limit not met, something to check first (a warning, or a
+ * build that doesn't fit), the weakest row, or none. `text` is the phrase the reason line puts after its lead-in.
+ */
+export interface Lead {
+  kind: "fail" | "limit" | "check" | "weakest" | "none";
+  text: string;
 }
 
 const LETTERS: readonly Letter[] = ["A", "B", "C", "D"];
@@ -878,17 +889,28 @@ export function cardFor(facts: CardFacts, nr: NamedRubric): Card {
         : "Maybe";
   // The lowest row; among equals, the one this rubric weighs most, then the card's order.
   const weakest = [...graded].sort((a, b) => R.points[a.grade] - R.points[b.grade] || w[b.key] - w[a.key])[0];
-  const why = fail
-    ? `${verdict}: ${lowerFirst(fail.reason)}`
+  const lead: Lead = fail
+    ? { kind: "fail", text: lowerFirst(fail.reason) }
     : thresholdFail
-      ? `${verdict}: ${lowerFirst(thresholdFail.row.label)} fails your must (${thresholdFail.row.short ?? thresholdFail.row.detail}; you asked for ${thresholdWords(thresholdFail.must, (n) => fmt(n))})`
+      ? {
+          kind: "limit",
+          text: `${lowerFirst(thresholdFail.row.label)} fails your must (${thresholdFail.row.short ?? thresholdFail.row.detail}; you asked for ${thresholdWords(thresholdFail.must, (n) => fmt(n))})`,
+        }
       : check && verdict !== "Pass"
-        ? `${verdict}. Check first: ${check}`
+        ? { kind: "check", text: check }
         : warns[0] && verdict !== "Pass"
-          ? `${verdict}. Check first: ${lowerFirst(warns[0].reason)}`
+          ? { kind: "check", text: lowerFirst(warns[0].reason) }
           : weakest
-            ? `${verdict}. Weakest part: ${lowerFirst(weakest.label)} (${weakest.grade}, ${weakest.detail})`
-            : `${verdict}. Not enough of the screen ran to grade the land`;
+            ? { kind: "weakest", text: `${lowerFirst(weakest.label)} (${weakest.grade}, ${weakest.detail})` }
+            : { kind: "none", text: "Not enough of the screen ran to grade the land" };
+  const why =
+    lead.kind === "fail" || lead.kind === "limit"
+      ? `${verdict}: ${lead.text}`
+      : lead.kind === "check"
+        ? `${verdict}. Check first: ${lead.text}`
+        : lead.kind === "weakest"
+          ? `${verdict}. Weakest part: ${lead.text}`
+          : `${verdict}. ${lead.text}`;
   const more = incomplete.length ? ` (incomplete: ${listOf(incomplete)} didn't load, run again)` : "";
   return {
     ...facts,
@@ -898,6 +920,7 @@ export function cardFor(facts: CardFacts, nr: NamedRubric): Card {
     grade,
     verdict,
     reason: `${why}${more}.`,
+    lead,
     incomplete,
     sites: [],
   };

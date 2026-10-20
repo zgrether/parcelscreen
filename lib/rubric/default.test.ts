@@ -36,10 +36,10 @@ const recorded = (slug: FixtureSlug): Recorded =>
 
 /**
  * The card without what step 1 added to it (the rubric, and each row's measure) and what step 7 added (the site it
- * reads, and the person's ranking of the sites).
+ * reads, the person's ranking of the sites, and the reason's lead as data).
  */
 const comparable = (c: Card) => {
-  const { rubric: _rubric, at: _at, sites: _sites, ...rest } = c;
+  const { rubric: _rubric, at: _at, sites: _sites, lead: _lead, ...rest } = c;
   return { ...rest, rows: rest.rows.map(({ measure: _m, ...row }) => row) };
 };
 
