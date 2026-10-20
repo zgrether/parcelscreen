@@ -53,6 +53,7 @@ import { gradeButton, logLine, runSeconds } from "@/lib/client/gradeButton";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import { CardPanel } from "../card/CardPanel";
 import { LET_THE_APP_CONSIDER_IT, LINES_CHANGED, ReportCard } from "../card/ReportCard";
+import { Others } from "@/components/Household/Others";
 import { OFFLINE_SCREEN_TEXT } from "@/lib/client/pwa";
 
 /** The run the worker's session holds: which parcel it was for (state.serial) and what it was run on. */
@@ -585,6 +586,8 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
                 : null
             }
           />
+          {/* Step 6: how each other member would rate it, from their own priorities. */}
+          <Others result={display} drawn={drawnFor(s)} />
         </div>
       )}
       {footer && (

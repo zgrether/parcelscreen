@@ -42,7 +42,7 @@ import {
   type WorkingParcel,
 } from "@/lib/client/parcelStore";
 import { getPref, onParcelsWritten, setPref } from "@/lib/client/prefs";
-import { profileRubrics, shortLabel, switchLabel } from "@/lib/client/rubrics";
+import { profileRubrics, switchLabel } from "@/lib/client/rubrics";
 import { useKeptScreens } from "@/lib/client/useKeptScreens";
 import type { Verdict } from "@/lib/report/card";
 import type { NamedRubric } from "@/lib/rubric/types";
@@ -265,10 +265,6 @@ interface RowProps extends Omit<RowsProps, "rows"> {
   count: number;
 }
 
-/** "Needs a re-screen" once per row: on the one grade when it's the only column, else on the Household cell. */
-const noteOn = (r: LibraryRow, i: number): LibraryRow["unscreened"] =>
-  r.grades.length > 1 || i > 0 ? null : r.unscreened;
-
 const rowClass = (base: string, r: LibraryRow, dragging: boolean) =>
   [base, "lib-row", r.status === "archived" && "lib-archived", dragging && "lib-dragging"]
     .filter(Boolean)
@@ -300,6 +296,25 @@ function Grade({ g, unscreened }: { g: Graded | null; unscreened: LibraryRow["un
   );
 }
 
+/**
+ * Everyone's grade (step 6, docs/plans/step-6-household.md §3.1): the current person's first, as their card shows it,
+ * then each other member's small beside it ("B · Julie C"). No combined grade.
+ */
+function Grades({ r }: { r: LibraryRow }) {
+  const [mine, ...others] = r.grades;
+  return (
+    <span className="lib-grades">
+      <Grade g={mine?.graded ?? null} unscreened={r.unscreened} />
+      {others.map((g) => (
+        <span key={g.id} className="lib-other-grade" title={`${g.name}'s grade`}>
+          <span className="tiny muted">· {g.name}</span>
+          <span className={`card-grade tiny g-${g.graded?.grade ?? "none"}`}>{g.graded?.grade ?? "–"}</span>
+        </span>
+      ))}
+    </span>
+  );
+}
+
 /** Desktop: one row per parcel; in My order, the handle and the menu first. */
 function LibraryTable({ rows, rubrics, ...rest }: RowsProps) {
   return (
@@ -320,12 +335,7 @@ function LibraryTable({ rows, rubrics, ...rest }: RowsProps) {
             <th scope="col">Price</th>
             <th scope="col">State</th>
             <th scope="col">Status</th>
-            {rubrics.length > 1 && <th scope="col">Household</th>}
-            {rubrics.map((nr) => (
-              <th key={nr.id} scope="col">
-                {switchLabel(nr)}
-              </th>
-            ))}
+            <th scope="col">{rubrics.length > 1 ? "Grades" : switchLabel(rubrics[0]!)}</th>
             <th scope="col">Updated</th>
           </tr>
         </thead>
@@ -373,16 +383,9 @@ function TableRow({ r, index, count, ticked, toggle, open, ordering, mover }: Ro
         <State r={r} />
       </td>
       <td>{statusCell(r)}</td>
-      {r.grades.length > 1 && (
-        <td>
-          <VerdictWord v={r.household} unscreened={r.unscreened} />
-        </td>
-      )}
-      {r.grades.map((g, i) => (
-        <td key={g.id}>
-          <Grade g={g.graded} unscreened={noteOn(r, i)} />
-        </td>
-      ))}
+      <td>
+        <Grades r={r} />
+      </td>
       <td className="tiny muted">{when(r.updatedAt)}</td>
     </tr>
   );
@@ -440,18 +443,9 @@ function Card({ r, index, count, ticked, toggle, open, ordering, mover }: RowPro
           <State r={r} />
         </div>
         <div className="lib-chips">
-          {r.grades.length > 1 && (
-            <span className="lib-chip">
-              <span className="tiny muted">Household</span>{" "}
-              <VerdictWord v={r.household} unscreened={r.unscreened} />
-            </span>
-          )}
-          {r.grades.map((g, i) => (
-            <span key={g.id} className="lib-chip">
-              <span className="tiny muted">{shortLabel(g)}</span>{" "}
-              <Grade g={g.graded} unscreened={noteOn(r, i)} />
-            </span>
-          ))}
+          <span className="lib-chip">
+            <Grades r={r} />
+          </span>
         </div>
       </div>
     </li>

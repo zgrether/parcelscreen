@@ -184,7 +184,7 @@ export function passes(r: LibraryRow, f: LibraryFilters): boolean {
 // ---------- sorts ----------
 
 /** "grade:<rubric id>" sorts by that rubric's grade (step 1). */
-export type SortKey = "order" | "updated" | "price" | "acres" | "household" | `grade:${string}`;
+export type SortKey = "order" | "updated" | "price" | "acres" | "household" | "lowest" | `grade:${string}`;
 export const gradeSortKey = (id: string): SortKey => `grade:${id}`;
 export interface LibrarySort {
   key: SortKey;
@@ -199,6 +199,15 @@ const LETTER_RANK: Record<Letter, number> = { A: 0, B: 1, C: 2, D: 3, F: 4 };
 const gradedRank = (g: Graded | null): number | null =>
   g ? (2 - rank(g.verdict)) * 10 + (g.grade === null ? 5 : LETTER_RANK[g.grade]) : null;
 
+/**
+ * Lowest of our grades (step 6, docs/plans/step-6-household.md §3.1): each parcel by the worst of its graded rubrics' grades
+ * (the members with priorities), best first; null with none graded.
+ */
+export function lowestOfOurs(r: LibraryRow): number | null {
+  const ranks = r.grades.map((g) => gradedRank(g.graded)).filter((x): x is number => x !== null);
+  return ranks.length ? Math.max(...ranks) : null;
+}
+
 /** Each key's value in its natural order (smaller first); null (no price, no screen) always sorts last. */
 const sortValue = (r: LibraryRow, k: Exclude<SortKey, "order">): number | string | null => {
   switch (k) {
@@ -210,6 +219,8 @@ const sortValue = (r: LibraryRow, k: Exclude<SortKey, "order">): number | string
       return r.acres === null ? null : -r.acres;
     case "household":
       return r.household === null ? null : 2 - rank(r.household);
+    case "lowest":
+      return lowestOfOurs(r);
     default:
       return gradedRank(r.grades.find((g) => g.id === k.slice("grade:".length))?.graded ?? null);
   }
@@ -254,7 +265,7 @@ const ViewSchema = z.object({
       .string()
       .refine(
         (k): k is SortKey =>
-          ["order", "updated", "price", "acres", "household"].includes(k) || k.startsWith("grade:"),
+          ["order", "updated", "price", "acres", "household", "lowest"].includes(k) || k.startsWith("grade:"),
       ),
     reversed: z.boolean(),
   }),
