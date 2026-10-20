@@ -19,6 +19,7 @@ import { bootProfiles } from "@/lib/client/profiles";
 import { initSync } from "@/lib/sync/engine";
 import { startHousehold } from "@/lib/client/household";
 import { addDrivewayOnce } from "@/lib/client/drivewayAdd";
+import { sortIntoHistory } from "@/lib/client/favoritesStore";
 
 export function ProfileGate({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
@@ -33,6 +34,12 @@ export function ProfileGate({ children }: { children: ReactNode }) {
         addDrivewayOnce();
       } catch {
         /* a profile's documents unreadable: nothing added, the rest boots */
+      }
+      // Step 8 (plan §6): In progress parcels with no adder go to this profile's History (idempotent).
+      try {
+        sortIntoHistory();
+      } catch {
+        /* the shared store unreadable: nothing sorted, the rest boots */
       }
       return void startHousehold()
         .catch(() => undefined)

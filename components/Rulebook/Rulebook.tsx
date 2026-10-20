@@ -11,6 +11,7 @@ import { useEffect, useMemo, useState } from "react";
 import { parcelName } from "@/lib/client/historyRows";
 import { openOnMap } from "@/lib/client/openOnMap";
 import { getPref } from "@/lib/client/prefs";
+import { visibleParcels } from "@/lib/client/favoritesStore";
 import { useKeptScreens } from "@/lib/client/useKeptScreens";
 import { loadUserConfig } from "@/lib/client/userConfig";
 import { breakdown } from "@/lib/report/breakdown";
@@ -25,7 +26,8 @@ import { RulebookRules } from "./RulebookRules";
 
 export function Rulebook() {
   const store = useMemo(() => getPref("ps.parcels"), []);
-  const built = useMemo(() => store?.built ?? [], [store]);
+  // Step 8: what this person may see, not someone else's History.
+  const built = useMemo(() => (store ? visibleParcels() : []), [store]);
   const config = useMemo(() => loadUserConfig(), []);
   const { rubrics, rubric, setRubric } = useRubricView();
   const rb = useMemo(() => rulebook(SCREEN_CONSTANTS, config, rubrics), [config, rubrics]);

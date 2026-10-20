@@ -1,16 +1,26 @@
 "use client";
 /**
- * The household's list (WF2b, docs/plans/parcel-workflow.md §5): every History parcel with its name, acres, price,
- * state, status and milestones, the household verdict and each rubric's grade (step 1). Filters and sorts are views, remembered per
- * browser (ps.library); they never change a parcel. A tap on a name opens its detail: the report card, the status
- * controls, Open on the map, Remove. Ticked rows open in Compare. On a phone the table becomes cards.
+ * Your list (step 8, docs/plans/step-8-favorites.md §4–§5): a switch between Favorites, the household's, and History,
+ * this person's own (History.tsx). Favorites is the household's list (WF2b, docs/plans/parcel-workflow.md §5): every
+ * starred parcel with its star, name, acres, price, state, archive and milestones, the household verdict and each
+ * rubric's grade (step 1). Filters and sorts are views, remembered per profile (ps.library); they never change a parcel.
+ * A tap on a name opens its detail: the report card, the status controls, Open on the map, Remove. Ticked rows open in
+ * Compare. On a phone the table becomes cards.
  *
  * My order (WF3) is the default sort: rows move by their handle or their menu's Move up and Move down, and a move
  * writes that one parcel's rank. Under another sort the handles hide, and the list says how to get them back.
  */
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 import { LongName } from "@/components/LongName";
 import { shortPrice } from "@/lib/client/askingPrice";
 import {
@@ -26,7 +36,7 @@ import {
   COMPARE_HOW,
   COMPARE_MAX,
   COMPARE_MIN,
-  LIST_EMPTY,
+  FAVORITES_EMPTY,
   type Graded,
   type LibraryRow,
   type LibraryView,
@@ -55,6 +65,10 @@ import { LibraryControls } from "./LibraryControls";
 import { RescreenAll } from "./RescreenAll";
 import { DragHandle, OrderMenu, SortableRows, useSortableRow, type Mover } from "./MyOrder";
 import { ParcelDetail } from "./ParcelDetail";
+import { History } from "./History";
+import { Star } from "@/components/Favorites/Star";
+import { historyOf, isFavorite } from "@/lib/client/favorites";
+import { starParcel, unstarParcel, useHistoryLog } from "@/lib/client/favoritesStore";
 
 const when = (iso: string) => new Date(iso).toLocaleDateString([], { month: "short", day: "numeric" });
 
@@ -93,16 +107,26 @@ export function Library() {
   const [ticked, setTicked] = useState<ReadonlySet<string>>(new Set());
 
   const built = store.built;
-  const screens = useKeptScreens(built);
+  const me = currentProfileId();
+  const log = useHistoryLog();
+  // Step 8: the household's favorites, and this person's History; someone else's unstarred parcels are in neither.
+  const favorites = useMemo(() => built.filter(isFavorite), [built]);
+  const mine = useMemo(() => (me ? historyOf(built, me, log) : []), [built, me, log]);
+  const visible = useMemo(() => [...new Set([...favorites, ...mine])], [favorites, mine]);
+  const screens = useKeptScreens(visible);
   // The members' rubrics (step 6) change when they set their priorities, here or by a sync.
   const { rubrics } = useRubricView();
   const household = useHousehold();
   const seen = useSeenTakes();
-  const me = currentProfileId();
-  const rows = useMemo(
-    () => built.map((p) => libraryRow(p, screens.get(p.key!), rubrics, { household, me, seen })),
-    [built, screens, rubrics, household, me, seen],
+  const rowOf = useMemo(
+    () =>
+      new Map(
+        visible.map((p) => [p.key!, libraryRow(p, screens.get(p.key!), rubrics, { household, me, seen })]),
+      ),
+    [visible, screens, rubrics, household, me, seen],
   );
+  const rows = favorites.map((p) => rowOf.get(p.key!)!);
+  const tab = view.tab;
   const hidden = hiddenBy(rows, view.filters);
   const shown = sortRows(
     rows.filter((r) => passes(r, view.filters)),
@@ -157,13 +181,29 @@ export function Library() {
     router.push("/compare");
   };
   const toggle = (key: string) => setTicked(toggleTick(ticked, key));
-  const detail = opened ? built.find((p) => p.key === opened) : undefined;
+  // Unstarred while open, it leaves Favorites, and its detail closes.
+  const detail = opened ? favorites.find((p) => p.key === opened) : undefined;
   // The parcels whose grades are gone (approval A): "Re-screen all saved parcels" screens them one after another.
   const needing = rows
     .filter((r) => r.unscreened === "rescreen")
     .map((r) => built.find((p) => p.key === r.key)!);
   const nameOf = new Map(rows.map((r) => [r.key, r.name]));
-  const rowsProps = { rows: shown, rubrics, ticked, toggle, open: setOpened, ordering, mover };
+  // Each favorite's star, filled: unstarring asks first, naming whose History it goes back to (plan §2).
+  const adderOf = new Map(favorites.map((p) => [p.key!, p.addedBy]));
+  const star = (r: LibraryRow) => {
+    const by = adderOf.get(r.key) ?? null;
+    return (
+      <Star
+        on
+        name={r.name}
+        prefill={() => r.name}
+        star={(n) => starParcel(r.key, n)}
+        unstar={() => unstarParcel(r.key)}
+        adder={by && by !== me ? memberName(by) : null}
+      />
+    );
+  };
+  const rowsProps = { rows: shown, rubrics, ticked, toggle, open: setOpened, ordering, mover, star };
 
   return (
     <>
@@ -171,7 +211,7 @@ export function Library() {
         <header className="compare-head">
           <h1>Your list</h1>
           {/* Compare takes 2 or 3 (step 4b): with one ticked the button waits for another. */}
-          {ticked.size > 0 && (
+          {tab === "favorites" && ticked.size > 0 && (
             <button
               className="btn small"
               disabled={ticked.size < COMPARE_MIN}
@@ -182,10 +222,26 @@ export function Library() {
             </button>
           )}
         </header>
+        {/* Step 8 (plan §5): Favorites first; the choice is remembered with the view. */}
+        <div className="list-switch" role="tablist" aria-label="Favorites or History">
+          {(["favorites", "history"] as const).map((t) => (
+            <button
+              key={t}
+              role="tab"
+              className="list-switch-seg"
+              aria-selected={tab === t}
+              onClick={() => setView({ ...view, tab: t })}
+            >
+              {t === "favorites" ? "Favorites" : "History"}
+            </button>
+          ))}
+        </div>
 
-        {built.length === 0 ? (
+        {tab === "history" ? (
+          <History parcels={mine} rows={rowOf} screens={screens} log={log} me={me} />
+        ) : favorites.length === 0 ? (
           <p className="muted">
-            {LIST_EMPTY} <Link href="/explore">Go to the map</Link>
+            {FAVORITES_EMPTY} <Link href="/explore">Go to the map</Link>
           </p>
         ) : (
           <>
@@ -266,6 +322,8 @@ interface RowsProps {
   /** In My order: the handles and menus show, and rows move. */
   ordering: boolean;
   mover: Mover;
+  /** The row's star (step 8): filled, it unstars after asking. */
+  star(r: LibraryRow): ReactNode;
 }
 
 interface RowProps extends Omit<RowsProps, "rows"> {
@@ -280,12 +338,20 @@ const rowClass = (base: string, r: LibraryRow, dragging: boolean) =>
     .filter(Boolean)
     .join(" ");
 
+/** "Archived · Walked Oct 20", "Walked Oct 20", or "–" (step 8: an active favorite has no status word). */
 const statusCell = (r: LibraryRow) => {
   const m = milestonesLine(r);
+  const word = STATUS_WORD[r.status];
+  if (!word && !m) return <span className="muted">–</span>;
   return (
     <>
-      {STATUS_WORD[r.status]}
-      {m && <span className="tiny muted lib-milestones"> · {m}</span>}
+      {word}
+      {m && (
+        <span className="tiny muted lib-milestones">
+          {word ? " · " : ""}
+          {m}
+        </span>
+      )}
     </>
   );
 };
@@ -375,7 +441,7 @@ function LibraryTable({ rows, rubrics, ...rest }: RowsProps) {
   );
 }
 
-function TableRow({ r, index, count, ticked, toggle, open, ordering, mover }: RowProps) {
+function TableRow({ r, index, count, ticked, toggle, open, ordering, mover, star }: RowProps) {
   const { nodeProps, dragging, handleProps } = useSortableRow(r.key, ordering);
   return (
     <tr
@@ -401,7 +467,10 @@ function TableRow({ r, index, count, ticked, toggle, open, ordering, mover }: Ro
         />
       </td>
       <td className="lib-name">
-        <LongName name={r.name} className="lib-open" />
+        <span className="lib-name-line">
+          {star(r)}
+          <LongName name={r.name} className="lib-open" />
+        </span>
         {r.ask && <AskNote ask={r.ask} />}
       </td>
       <td className="num">{r.acres !== null ? r.acres.toFixed(1) : "–"}</td>
@@ -432,7 +501,7 @@ function LibraryCards({ rows, rubrics, ...rest }: RowsProps) {
   );
 }
 
-function Card({ r, index, count, ticked, toggle, open, ordering, mover }: RowProps) {
+function Card({ r, index, count, ticked, toggle, open, ordering, mover, star }: RowProps) {
   const { nodeProps, dragging, handleProps } = useSortableRow(r.key, ordering);
   return (
     <li
@@ -444,6 +513,7 @@ function Card({ r, index, count, ticked, toggle, open, ordering, mover }: RowPro
       {ordering && <DragHandle name={r.name} handle={handleProps} />}
       <div className="lib-card-body">
         <div className="lib-card-head">
+          {star(r)}
           <LongName name={r.name} className="lib-open" />
           {ordering && (
             <OrderMenu name={r.name} index={index} count={count} move={(to) => mover.move(r.key, to)} />

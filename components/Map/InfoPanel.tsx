@@ -519,7 +519,6 @@ function ParcelDetails({ ctl, name }: { ctl: ExploreController; name: string }) 
       <ParcelStanding
         parcel={ctl.state.store.open!}
         act={{
-          setStatus: (st) => ctl.setStatus(st, ctl.state.serial),
           archive: (reason) => ctl.archive(reason, ctl.state.serial),
           restore: () => ctl.restore(ctl.state.serial),
           setMilestone: (m, date) => ctl.setMilestone(m, date, ctl.state.serial),

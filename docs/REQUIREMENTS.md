@@ -475,6 +475,14 @@ stays version 6. At the next start, a profile's own saved priorities get the Dri
 optional field on the stored rubrics marks it, `drivewayAdded`: "new" until What matters has shown its note, "seen"
 after, "undone" after its Undo. `docs/plans/step-7-results.md` and phase-0.md §9.59 have the details.
 
+### 3h. Favorites and History (roadmap step 8)
+
+No new table and no change to the stored parcel: the shared store keeps every built parcel, and its stored status
+reads as before, `saved` (and `archived`) for the household's favorites, `inProgress` for a parcel only in its adder's
+History. One profile document is new, `ps.history` (`{ v: 1, graded: { [parcel key]: ISO time } }`): when the person
+last graded each parcel. It syncs with the profile (SYNCED_DOCS) and isn't in the export file, which stays version 6.
+`docs/plans/step-8-favorites.md` and phase-0.md §9.60 have the details.
+
 ## 4. The parcel page (the export)
 
 Blocks, in order; each is computed, placeholder, or user-authored:

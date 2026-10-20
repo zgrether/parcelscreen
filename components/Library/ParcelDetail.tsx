@@ -17,7 +17,7 @@ import { Others } from "@/components/Household/Others";
 import { evaluationPoint } from "@/components/Results/blocks/types";
 import { parcelName } from "@/lib/client/historyRows";
 import { openOnMap } from "@/lib/client/openOnMap";
-import { withArchive, withMilestone, withRestore, withStatus } from "@/lib/client/parcelStatus";
+import { withArchive, withMilestone, withRestore } from "@/lib/client/parcelStatus";
 import type { WorkingParcel } from "@/lib/client/parcelStore";
 import type { KeptScreen } from "@/lib/client/useKeptScreens";
 import { loadUserConfig } from "@/lib/client/userConfig";
@@ -85,7 +85,6 @@ export function ParcelDetail({
           <ParcelStanding
             parcel={parcel}
             act={{
-              setStatus: (st) => change((p) => withStatus(p, st)),
               archive: (reason) => change((p) => withArchive(p, reason, new Date().toISOString())),
               restore: () => change(withRestore),
               setMilestone: (m, date) => change((p) => withMilestone(p, m, date)),

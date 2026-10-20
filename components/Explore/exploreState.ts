@@ -18,7 +18,6 @@ import {
   removeBuilt,
   type LineCondition,
   type ListingField,
-  type ActiveStatus,
   type Milestone,
   type LineKind,
   type LineMarkup,
@@ -33,7 +32,8 @@ import { drawnPart } from "@/lib/geo/recipe";
 import type { Side } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
 import { lineLayer, type LayerId } from "./layers";
-import { withArchive, withMilestone, withRestore, withStatus } from "@/lib/client/parcelStatus";
+import { withArchive, withMilestone, withRestore } from "@/lib/client/parcelStatus";
+import { starred, unstarred } from "@/lib/client/favorites";
 import { withAskingPrice, withListing, withNotes } from "@/lib/client/parcelEdits";
 import {
   AREA_KINDS,
@@ -169,10 +169,12 @@ export type ExploreAction =
   /** WF1: the listing's facts (name, link, acres, agent), for the parcel open when they were typed. */
   | { type: "listing"; patch: Partial<Pick<WorkingParcel, ListingField>>; serial: number; stamp: Stamp }
   /**
-   * WF2: the parcel's status (in progress or saved); archiving it with a reason (blank is refused); restoring it to
-   * what it was; a milestone's date ("2026-10-20"), or null to clear it. Each for the parcel open as `serial`.
+   * Step 8: starred with its name (a favorite; it builds a plain parcel) or unstarred (back to History). WF2: archiving
+   * it with a reason (blank is refused); restoring it to the favorites; a milestone's date ("2026-10-20"), or null to
+   * clear it. Each for the parcel open as `serial`.
    */
-  | { type: "status"; status: ActiveStatus; serial: number; stamp: Stamp }
+  | { type: "star"; name: string; serial: number; stamp: Stamp }
+  | { type: "unstar"; serial: number; stamp: Stamp }
   | { type: "archive"; reason: string; serial: number; stamp: Stamp }
   | { type: "restore"; serial: number; stamp: Stamp }
   | { type: "milestone"; which: Milestone; date: string | null; serial: number; stamp: Stamp }
@@ -667,20 +669,23 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       const drivewayLine = a.type === "markupDelete" && open.drivewayLine === a.id ? null : open.drivewayLine;
       return { ...s, layer, store: save({ ...open, markup, drivewayLine }, a.stamp) };
     }
-    case "status":
+    case "star":
+    case "unstar":
     case "archive":
     case "restore":
     case "milestone": {
       // As notes: a change after another parcel opened is dropped; one that changes nothing saves nothing.
       if (!open || a.serial !== s.serial) return s;
       const next =
-        a.type === "status"
-          ? withStatus(open, a.status)
-          : a.type === "archive"
-            ? withArchive(open, a.reason, a.stamp.now)
-            : a.type === "restore"
-              ? withRestore(open)
-              : withMilestone(open, a.which, a.date);
+        a.type === "star"
+          ? starred(open, a.name)
+          : a.type === "unstar"
+            ? unstarred(open)
+            : a.type === "archive"
+              ? withArchive(open, a.reason, a.stamp.now)
+              : a.type === "restore"
+                ? withRestore(open)
+                : withMilestone(open, a.which, a.date);
       return next === open ? s : { ...s, store: save(next, a.stamp) };
     }
     case "toggleHidden": {

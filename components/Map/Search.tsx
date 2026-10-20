@@ -12,9 +12,12 @@
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { browserHttp } from "@/lib/client/http";
 import { CancelledError } from "@/lib/http";
-import { coordinatesIn, idPattern, matchesName } from "@/lib/search/query";
+import { coordinatesIn, idPattern } from "@/lib/search/query";
 import { searchParcelNumbers, searchPlaces, type ParcelHit, type PlaceHit } from "@/lib/search/sources";
 import { historyRows } from "@/lib/client/historyRows";
+import { favoritesOf, historyOf, isFavorite, matchesSaved, parcelNumbers } from "@/lib/client/favorites";
+import { useHistoryLog } from "@/lib/client/favoritesStore";
+import { currentProfileId } from "@/lib/client/profiles";
 import { flash, useExplore, type SetHint } from "@/components/Explore/useExploreController";
 import { PRECISION_ZOOM, readListingUrl, type ListingRead } from "@/lib/client/listingUrl";
 import { countiesShown, parcelServiceDown } from "./useParcelLines";
@@ -146,7 +149,20 @@ function SearchBox({
   }, [text, ctl.map, photonUrl]);
   useEffect(() => () => searching.current?.abort(), []);
 
-  const saved = useMemo(() => historyRows(ctl.state.store.built), [ctl.state.store.built]);
+  // Step 8 (plan §5): the household's Favorites and this person's History, each with its parcel numbers; never another
+  // member's History.
+  const log = useHistoryLog();
+  const me = currentProfileId();
+  const saved = useMemo(() => {
+    const built = ctl.state.store.built;
+    const rows = (list: typeof built) => {
+      const numbers = new Map(list.map((p) => [p.key!, parcelNumbers(p)]));
+      return historyRows(list).map((r) => ({ ...r, numbers: numbers.get(r.key) ?? [] }));
+    };
+    const favorites = favoritesOf(built);
+    const history = me ? historyOf(built, me, log).filter((p) => !isFavorite(p)) : [];
+    return { favorites: rows(favorites), history: rows(history) };
+  }, [ctl.state.store.built, me, log]);
 
   // The groups, in order; picking anything closes the search.
   const done = (f: () => void) => () => {
@@ -182,21 +198,27 @@ function SearchBox({
         },
       ],
     });
-  const savedHits = q ? saved.filter((s) => matchesName(s.name, q)).slice(0, 5) : [];
-  if (savedHits.length)
-    groups.push({
-      title: "Saved parcels",
-      options: savedHits.map((s) => ({
-        key: `saved:${s.key}`,
-        label: s.name,
-        ...(s.tellApart
-          ? { detail: s.tellApart }
-          : s.acres !== null
-            ? { detail: `${s.acres.toFixed(2)} ac` }
-            : {}),
-        pick: done(() => ctl.openSaved(s.key)),
-      })),
-    });
+  // Your saved parcels, by name or parcel number, above the place results (step 8, plan §5): up to five of each.
+  for (const [title, list] of [
+    ["Favorites", saved.favorites],
+    ["Your history", saved.history],
+  ] as const) {
+    const hits = q ? list.filter((s) => matchesSaved(s.name, s.numbers, q)).slice(0, 5) : [];
+    if (hits.length)
+      groups.push({
+        title,
+        options: hits.map((s) => ({
+          key: `saved:${s.key}`,
+          label: s.name,
+          ...(s.tellApart
+            ? { detail: s.tellApart }
+            : s.acres !== null
+              ? { detail: `${s.acres.toFixed(2)} ac` }
+              : {}),
+          pick: done(() => ctl.openSaved(s.key)),
+        })),
+      });
+  }
   // Until the debounce clears them, results from before a link was pasted aren't shown with it.
   const searched = listing.kind === "notUrl";
   if (searched && noCounties)
@@ -312,9 +334,11 @@ function SearchBox({
 
   let n = -1;
   const listId = `${id}-list`;
+  // A group's heading id has no spaces: aria-labelledby reads a space as a list of ids ("Your history" was unnamed).
+  const headId = (title: string) => `${id}-${title.replace(/\s+/g, "-")}`;
   const rows: ReactNode[] = groups.map((g) => (
-    <div key={g.title} role="group" aria-labelledby={`${id}-${g.title}`}>
-      <div className="sr-head" id={`${id}-${g.title}`}>
+    <div key={g.title} role="group" aria-labelledby={headId(g.title)}>
+      <div className="sr-head" id={headId(g.title)}>
         {g.title}
       </div>
       {g.options.map((o) => {

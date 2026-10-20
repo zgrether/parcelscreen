@@ -167,3 +167,13 @@ describe("the household's records (step 6)", () => {
     expect(merged.takes).toEqual([{ ...take, answer: "yes" }]);
   });
 });
+
+describe("History follows its profile (step 8)", () => {
+  it("the profile record carries its History log", () => {
+    const log = JSON.stringify({ v: 1, graded: { k1: "2026-10-20T10:00:00.000Z" } });
+    const r = profileRecord({ name: "Zach", createdAt: "2026-10-01T00:00:00.000Z" }, (k) =>
+      k === "ps.history" ? log : null,
+    );
+    expect(r.docs).toEqual({ "ps.history": log });
+  });
+});

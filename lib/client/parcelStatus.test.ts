@@ -3,8 +3,9 @@ import { dayWord, localDay, milestonesLine, statusLine } from "./parcelStatus";
 
 describe("a parcel's standing in words (WF2)", () => {
   it("the status, and an archive's date and reason", () => {
-    expect(statusLine({ status: "inProgress", archived: null })).toBe("In progress");
-    expect(statusLine({ status: "saved", archived: null })).toBe("Saved");
+    // Step 8: no word for a favorite or a History parcel.
+    expect(statusLine({ status: "inProgress", archived: null })).toBe("");
+    expect(statusLine({ status: "saved", archived: null })).toBe("");
     const at = new Date(2026, 9, 14, 15, 30).toISOString();
     expect(statusLine({ status: "archived", archived: { reason: "Sold", at, from: "saved" } })).toBe(
       "Archived Oct 14: Sold",

@@ -43,7 +43,7 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   await expect(macks.locator("td").nth(5)).toHaveText("VA");
   // The state's county on hover (and a long press, on a phone).
   await expect(macks.locator(".lib-state")).toHaveAttribute("title", "Floyd County");
-  await expect(macks.locator("td").nth(6)).toHaveText("In progress");
+  await expect(macks.locator("td").nth(6)).toHaveText("–"); // step 8: an active favorite has no status word
   // The grade from the kept screen, in the profile's own rubric (step 1): a fresh profile holds no other, so there is
   // no Household column and no second grade.
   await expect(macks.locator("td").nth(7)).toHaveText(/^[A-F](Contender|Maybe|Pass)$/);

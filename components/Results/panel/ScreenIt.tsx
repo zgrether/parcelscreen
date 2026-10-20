@@ -60,6 +60,10 @@ import { BestHomesite } from "../answer/BestHomesite";
 import { FullReport } from "../answer/FullReport";
 import { useSeeTakes } from "@/lib/client/householdDoc";
 import { OFFLINE_SCREEN_TEXT } from "@/lib/client/pwa";
+import { Star } from "@/components/Favorites/Star";
+import { countyOf, isFavorite, starName } from "@/lib/client/favorites";
+import { memberName } from "@/lib/client/household";
+import { currentProfileId } from "@/lib/client/profiles";
 
 /** The run the worker's session holds: which parcel it was for (state.serial) and what it was run on. */
 interface LiveRun {
@@ -508,6 +512,7 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
         {card && s.shown && <span className="sh-reason">{answerReason(card, s.shown.result)}</span>}
       </span>
       <span className="sh-actions">
+        <PanelStar s={s} />
         {/* Deselect the parcel (17e); Esc does the same on desktop. A screened one stays in History. */}
         <button
           className="sh-x"
@@ -520,6 +525,32 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
       </span>
       {!s.display && <RescreenLine s={s} />}
     </>
+  );
+}
+
+/**
+ * The open parcel's star (step 8, plan §2 and §5), beside the grade: starring names it (prefilled from its own name, its
+ * listing's address, or its acres, road and county) and builds a plain parcel; unstarring asks first.
+ */
+function PanelStar({ s }: { s: ScreenIt }) {
+  const open = s.ctl.state.store.open!;
+  const serial = s.ctl.state.serial;
+  const d = s.ctl.derived;
+  const prefill = () =>
+    starName(open, {
+      acres: d?.ok ? d.acres : null,
+      road: s.shown?.result.driveFrom?.road ?? null,
+      county: countyOf(open),
+    });
+  return (
+    <Star
+      className="sh-star"
+      on={isFavorite(open)}
+      prefill={prefill}
+      star={(name) => s.ctl.star(name, serial)}
+      unstar={() => s.ctl.unstar(serial)}
+      adder={open.addedBy && open.addedBy !== currentProfileId() ? memberName(open.addedBy) : null}
+    />
   );
 }
 

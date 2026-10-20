@@ -25,7 +25,6 @@ import {
   recipeOf,
   type LineCondition,
   type ListingField,
-  type ActiveStatus,
   type Milestone,
   type Markup,
   type LineKind,
@@ -37,6 +36,8 @@ import { getPref, onParcelsWritten, parcelsWritten, setPref } from "@/lib/client
 import { registerLiveParcels } from "@/lib/client/liveParcels";
 import { currentProfileId } from "@/lib/client/profiles";
 import { dropParcel } from "@/lib/client/householdDoc";
+import { logGraded, useHistoryLog } from "@/lib/client/favoritesStore";
+import { visibleTo } from "@/lib/client/favorites";
 import { ATTACH_MS, attachPatch, type SearchedListing } from "@/lib/client/attachListing";
 import { CancelledError } from "@/lib/http";
 import { unreachableMessage } from "@/lib/client/pwa";
@@ -228,8 +229,12 @@ export interface ExploreController {
   saveAskingPrice(price: number | null, serial: number): void;
   /** WF1: the listing's facts, for the parcel open as `serial`. */
   saveListing(patch: Partial<Pick<WorkingParcel, ListingField>>, serial: number): void;
-  /** WF2: the status, archiving with a reason, restoring, and a milestone's date (null clears it). */
-  setStatus(status: ActiveStatus, serial: number): void;
+  /**
+   * Step 8: starred with its name, or unstarred (its asks and takes go). WF2: archiving with a reason, restoring, and a
+   * milestone's date (null clears it).
+   */
+  star(name: string, serial: number): void;
+  unstar(serial: number): void;
   archive(reason: string, serial: number): void;
   restore(serial: number): void;
   setMilestone(which: Milestone, date: string | null, serial: number): void;
@@ -363,6 +368,17 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     written.current.add(store);
     setPref("ps.parcels", store);
   }, [store]);
+  // Step 8 (plan §1): a finished run kept on the open parcel is a grading by this profile, for its History, once the
+  // parcel has its key (the run builds it).
+  const graded = useRef<string | null>(null);
+  const openKey = store.open?.key ?? null;
+  const openScreens = store.open?.screenIds;
+  useEffect(() => {
+    if (graded.current && openKey && openScreens?.includes(graded.current)) {
+      graded.current = null;
+      logGraded(openKey);
+    }
+  }, [openKey, openScreens]);
   // "Open on the map" from Your list, Compare or the rulebook, while the explorer is mounted: opened here, as a tap on
   // its outline would, so the parcel left keeps its session and its Back, and refused while a screen runs.
   const opener = useRef({ leaving, docked, refuseBusy });
@@ -408,15 +424,18 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
   const derived = useMemo(() => (open ? derive(open) : null), [open]);
   const parcel = derived?.ok ? derived.record : null;
 
+  // The saved outlines on the map: Favorites and this person's History only (step 8, plan §5).
+  const historyLog = useHistoryLog();
+  const me = currentProfileId();
   const saved = useMemo(
     () =>
       store.built
-        .filter((b) => b.key !== open?.key)
+        .filter((b) => b.key !== open?.key && (me === null || visibleTo(b, me, historyLog)))
         .flatMap((b) => {
           const d = derive(b);
           return d.ok ? [{ key: b.key!, geo: d.record.geo, acres: d.acres }] : [];
         }),
-    [store.built, open?.key],
+    [store.built, open?.key, me, historyLog],
   );
 
   // The split tool cuts the whole combined boundary, before any split. The boundary and the parts' own land
@@ -585,7 +604,9 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       dropParcel(key); // its asks and takes go with it (step 6)
     },
     importParcels(added) {
-      dispatch({ type: "imported", added });
+      // Step 8: an imported parcel with no adder is the importer's, in their History (a favorite in the file stays one).
+      const me = currentProfileId();
+      dispatch({ type: "imported", added: added.map((p) => (p.addedBy ? p : { ...p, addedBy: me })) });
     },
     setHouse(ll) {
       if (latest.current.mode === "house") hint("");
@@ -839,8 +860,13 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     saveListing(patch, serial) {
       dispatch({ type: "listing", patch, serial, stamp: stamp() });
     },
-    setStatus(status, serial) {
-      dispatch({ type: "status", status, serial, stamp: stamp() });
+    star(name, serial) {
+      dispatch({ type: "star", name, serial, stamp: stamp() });
+    },
+    unstar(serial) {
+      const key = latest.current.store.open?.key;
+      if (key) dropParcel(key); // as Remove drops them (plan §2)
+      dispatch({ type: "unstar", serial, stamp: stamp() });
     },
     archive(reason, serial) {
       dispatch({ type: "archive", reason, serial, stamp: stamp() });
@@ -852,6 +878,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       dispatch({ type: "milestone", which, date, serial, stamp: stamp() });
     },
     screened(id, serial) {
+      graded.current = id;
       dispatch({ type: "screened", id, serial, stamp: stamp() });
     },
   };
