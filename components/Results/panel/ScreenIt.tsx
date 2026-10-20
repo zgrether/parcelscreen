@@ -390,7 +390,8 @@ export function useScreenIt(
   // Step 7: the card for what's shown, made once per change: the panel, the header and the pins read it.
   const drivewayLine = open?.drivewayLine;
   const card = useMemo(
-    () => (display ? reportCard(display, rubric, open ? drawnOf(markup ?? [], drivewayLine) : undefined) : null),
+    () =>
+      display ? reportCard(display, rubric, open ? drawnOf(markup ?? [], drivewayLine) : undefined) : null,
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the open parcel's markup and line are what matter
     [display, rubric, markup, drivewayLine],
   );
@@ -563,7 +564,10 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
   const running = now ? { step: now[0], message: s.steps[now[0]]!.message } : undefined;
   const notes = !s.runningHere && shown;
   // Full report ▸ (step 7): open or not, and a section to bring into view as it opens ("What no dataset answers").
-  const [full, setFull] = useState<{ open: boolean; scrollTo: string | null }>({ open: false, scrollTo: null });
+  const [full, setFull] = useState<{ open: boolean; scrollTo: string | null }>({
+    open: false,
+    scrollTo: null,
+  });
   if (!s.showSteps && !s.error && !notes && !display) return null;
   // The card comes right under the header (owner, #111), with the run's log above it: the live list while it runs,
   // one line once it's done (step 4c). What failed or is out of date stays above the card too; Copy summary and the

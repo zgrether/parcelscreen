@@ -98,9 +98,7 @@ export function pinSpecs(
 export const RUN_AGAIN_TO_EVALUATE = "Run again to evaluate here.";
 
 export const inertTip = (p: PinSpec): string =>
-  p.evalLabel
-    ? p.tip.replace(p.kind === "excluded" ? TAP_ANYWAY : TAP, RUN_AGAIN_TO_EVALUATE)
-    : p.tip;
+  p.evalLabel ? p.tip.replace(p.kind === "excluded" ? TAP_ANYWAY : TAP, RUN_AGAIN_TO_EVALUATE) : p.tip;
 
 /** The unsaved-evaluation note (owner, 15 plan Q1), on the sun, sky and driveway sections and in Copy summary. */
 export const evaluatedNote = (label: string): string =>

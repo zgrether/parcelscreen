@@ -109,10 +109,12 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   const raise = useCallback(() => raiseSheet.current(), []);
   const screen = useScreenIt(explore, config, raise, setHint);
   // The phone's peek holds the grade button under the header while it shows (owner, 4c: 148 px), else 92 px.
-  // Step 7: and the answer's reason under the grade, on two lines at most, while a graded parcel is open.
-  const answered = !!store.open && !!screen.shown && !screen.stale && !screen.runningHere;
-  const peek =
-    (!explore.docked && store.open && screen.grade ? PEEK_WITH_ACTION : PEEK) + (answered ? PEEK_ANSWER : 0);
+  // Step 7: otherwise, the answer's reason under the grade, on two lines at most, while a graded parcel is open. The
+  // grade button keeps its place when it shows ("Try again: …"): the peek stays within 4c's 148 px, clear of the map's
+  // buttons on a short phone, and the answer is one swipe up.
+  const withAction = !explore.docked && !!store.open && !!screen.grade;
+  const answered = !!store.open && !!screen.shown && !screen.stale && !screen.runningHere && !withAction;
+  const peek = withAction ? PEEK_WITH_ACTION : PEEK + (answered ? PEEK_ANSWER : 0);
   const sheet = useBottomSheet(
     root,
     panel,
@@ -188,7 +190,7 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
     "explore-panel",
     sheet.mapMode ? "mapmode" : "",
     // Step 7: the header shows the answer's reason only while the sheet rests at its peek.
-    sheet.atPeek ? "at-peek" : "",
+    sheet.atPeek && !withAction ? "at-peek" : "",
     sheetHidden ? "sheet-hidden" : "",
     docked ? (collapsed ? "dock collapsed" : full ? "dock full" : "dock search-only") : "",
     // The phone sheet with a parcel open and nothing run yet: the header alone (17e).

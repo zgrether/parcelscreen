@@ -64,7 +64,9 @@ function Numbers({ rows, card, onOpen }: { rows: readonly Row[]; card: Card; onO
       {topNumbers(rows, card).map(({ row, graded }) => (
         <li key={row.key}>
           <button className="site-number" onClick={() => onOpen(row.key)}>
-            {graded && <span className={`card-grade small g-${row.grade ?? "none"}`}>{row.grade ?? "–"}</span>}
+            {graded && (
+              <span className={`card-grade small g-${row.grade ?? "none"}`}>{row.grade ?? "–"}</span>
+            )}
             <span className="sn-name">{SITE_NUMBER[row.key]}</span>
             <span className="sn-value">{valueOf(row)}</span>
           </button>
@@ -186,7 +188,11 @@ export function BestHomesite({
       )}
       {choices.more.length > 0 && (
         <div className="more-spots">
-          <button className="link-btn more-spots-toggle" aria-expanded={more} onClick={() => setMore((v) => !v)}>
+          <button
+            className="link-btn more-spots-toggle"
+            aria-expanded={more}
+            onClick={() => setMore((v) => !v)}
+          >
             {choices.more.length} more {choices.more.length === 1 ? "spot" : "spots"} {more ? "▾" : "▸"}
           </button>
           {more && (

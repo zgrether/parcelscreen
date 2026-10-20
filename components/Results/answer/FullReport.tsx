@@ -36,7 +36,8 @@ export function FullReport({
   const help = useHelp();
   const body = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (open && scrollTo) body.current?.querySelector(`[data-key="${scrollTo}"]`)?.scrollIntoView({ block: "start" });
+    if (open && scrollTo)
+      body.current?.querySelector(`[data-key="${scrollTo}"]`)?.scrollIntoView({ block: "start" });
   }, [open, scrollTo]);
   return (
     <section className="full-report" aria-label="Full report">

@@ -55,15 +55,13 @@ export function mustLines(card: Card): MustLine[] {
   const R = card.rubric.rubric;
   const gates = card.gates
     .filter((g) => R.musts.some((m) => m.factor === g.key && m.threshold === undefined))
-    .map(
-      (g): MustLine => ({
-        key: g.key,
-        label: g.label,
-        status: g.status,
-        detail: g.reason,
-        ...(g.missing ? { missing: g.missing } : {}),
-      }),
-    );
+    .map((g): MustLine => ({
+      key: g.key,
+      label: g.label,
+      status: g.status,
+      detail: g.reason,
+      ...(g.missing ? { missing: g.missing } : {}),
+    }));
   const limits = R.musts.flatMap((must): MustLine[] => {
     if (must.threshold === undefined) return [];
     const row = card.rows.find((x) => x.key === must.factor);
@@ -198,7 +196,11 @@ export function ReportCard({
                       </span>
                     </span>
                     <span className="row-detail">
-                      {wait ? "…" : m.status === "pass" ? m.detail : `${STATUS_WORD[m.status]}: ${lowerFirst(m.detail)}`}
+                      {wait
+                        ? "…"
+                        : m.status === "pass"
+                          ? m.detail
+                          : `${STATUS_WORD[m.status]}: ${lowerFirst(m.detail)}`}
                     </span>
                   </button>
                 </li>

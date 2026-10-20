@@ -48,14 +48,16 @@ export function missLine(row: Row, card: Card, r: PartialScreenResult): string {
       if (v !== undefined) return `the best homesite grades ${row.grade} (${fmt(v, 1)} h of December sun)`;
       break;
     case "sky":
-      if (v !== undefined) return `the night sky (${fmt(v, 1)}) is brighter than your ${fmt(edge(b.skyMag), 1)}`;
+      if (v !== undefined)
+        return `the night sky (${fmt(v, 1)}) is brighter than your ${fmt(edge(b.skyMag), 1)}`;
       break;
     case "room":
       if (v !== undefined)
         return `gentle ground is ${fmt(v, v < 10 ? 1 : 0)}× the build footprint, under your ${fmt(edge(b.roomX), 2).replace(/\.?0+$/, "")}×`;
       break;
     case "driveway":
-      if (v !== undefined) return `the driveway is ${fmt(v)}% at its steepest, past your ${fmt(edge(b.drivewayPct))}%`;
+      if (v !== undefined)
+        return `the driveway is ${fmt(v)}% at its steepest, past your ${fmt(edge(b.drivewayPct))}%`;
       break;
     case "trails":
       if (row.measure?.unit === "min" && v !== undefined)
@@ -65,7 +67,8 @@ export function missLine(row: Row, card: Card, r: PartialScreenResult): string {
       break;
     case "town": {
       const g = groceryMin(r);
-      if (v !== undefined && v > edge(b.erMin)) return `${fmt(v)} minutes to an ER is past your ${fmt(edge(b.erMin))}`;
+      if (v !== undefined && v > edge(b.erMin))
+        return `${fmt(v)} minutes to an ER is past your ${fmt(edge(b.erMin))}`;
       if (g !== null && g > edge(b.groceryMin))
         return `${fmt(g)} minutes to groceries is past your ${fmt(edge(b.groceryMin))}`;
       break;
@@ -97,8 +100,9 @@ export function biggestMiss(card: Card): Row | null {
   return (
     card.rows
       .filter((x) => x.grade !== null && R.points[x.grade] < R.points.B && w[x.key] > 0)
-      .sort((a, b) => cost(b) - cost(a) || w[b.key] - w[a.key] || card.rows.indexOf(a) - card.rows.indexOf(b))[0] ??
-    null
+      .sort(
+        (a, b) => cost(b) - cost(a) || w[b.key] - w[a.key] || card.rows.indexOf(a) - card.rows.indexOf(b),
+      )[0] ?? null
   );
 }
 

@@ -15,7 +15,8 @@ const MUD = expectedOf("grayson-mud-creek-6273", "run");
 const named = (rubric: Rubric): NamedRubric => ({ id: "x", name: "x", rubric });
 /** An interviewed person: a 15-minute trailhead, a 30-minute ER, a gentle driveway. */
 const ANSWERED = named(
-  rubricFromAnswers({ climate: "between", sky: "camera", trails: "door", er: "30", driveway: "gentle" }).rubric,
+  rubricFromAnswers({ climate: "between", sky: "camera", trails: "door", er: "30", driveway: "gentle" })
+    .rubric,
 );
 
 describe("the answer line", () => {
@@ -46,7 +47,9 @@ describe("the answer line", () => {
     const r = structuredClone(FERNEY);
     r.flood = { zones: ["AE"], sfha: true, sfhaAcres: 3, mapped: true };
     for (const s of r.sites!) s.flood = true;
-    expect(answerLine(reportCard(r, ZACH), r)).toMatch(/; fails your must: the build site is in a FEMA flood zone\.$/);
+    expect(answerLine(reportCard(r, ZACH), r)).toMatch(
+      /; fails your must: the build site is in a FEMA flood zone\.$/,
+    );
   });
 
   it("each row's miss in plain words", () => {
@@ -57,7 +60,10 @@ describe("the answer line", () => {
     const r = structuredClone(MUD);
     const h = r.drives!.find((d) => d.er === "yes")!;
     h.min = 38;
-    const town = named({ ...defaultRubric(), weights: { mode: "explicit", of: { ...zeroWeights(), town: 100 } } });
+    const town = named({
+      ...defaultRubric(),
+      weights: { mode: "explicit", of: { ...zeroWeights(), town: 100 } },
+    });
     expect(answerLine(reportCard(r, town), r)).toBe("C, Maybe. 38 minutes to an ER is past your 30.");
   });
 
@@ -70,7 +76,9 @@ describe("the answer line", () => {
     const r = structuredClone(FERNEY);
     delete r.flood;
     delete r.sky;
-    expect(incompleteLine(reportCard(r, ZACH))).toBe("Incomplete: the FEMA flood map and the sky atlas didn't load.");
+    expect(incompleteLine(reportCard(r, ZACH))).toBe(
+      "Incomplete: the FEMA flood map and the sky atlas didn't load.",
+    );
     expect(incompleteLine(reportCard(FERNEY, ZACH))).toBeNull();
   });
 });

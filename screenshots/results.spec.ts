@@ -3,7 +3,7 @@
  * answer and Best homesite; the alternatives and N more spots; the card in priority order; Still unknown; Full report
  * open; and, on a phone, the sheet at its peek. Run by `pnpm screenshots`; no facts card is opened, so no owner shows.
  */
-import { expect, test, type BrowserContext, type Locator, type Page } from "@playwright/test";
+import { expect, test, type BrowserContext, type Locator } from "@playwright/test";
 import { importParcel, openExplorer, screenIt } from "../e2e/flow";
 import { replayHar } from "../e2e/replay";
 import type { FixtureSlug } from "../test/support/fixtures";
@@ -38,7 +38,10 @@ for (const phone of [false, true]) {
         : { viewport: { width: 1280, height: 800 } },
     );
     for (const { slug, name } of PARCELS)
-      test(`${name}: the answer, Best homesite, the card, Still unknown, Full report`, async ({ page, context }) => {
+      test(`${name}: the answer, Best homesite, the card, Still unknown, Full report`, async ({
+        page,
+        context,
+      }) => {
         test.setTimeout(400_000);
         const shot = (what: string) => page.screenshot({ path: `${OUT}/${device}-7-${name}-${what}.png` });
         await replayHar(context, slug);
