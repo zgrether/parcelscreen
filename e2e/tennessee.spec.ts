@@ -43,7 +43,7 @@ test("Roan Mountain: the Tennessee lines draw; a tap shows the Carter record's f
   await openExplorer(page, ROAN);
   await expect.poll(() => linesDrawn(page), { timeout: 30_000 }).toBeGreaterThan(0);
   await tapAt(page, loadFixture(ROAN).input.point);
-  const info = page.getByRole("button", { name: /acres: parcel info$/ });
+  const info = page.getByRole("button", { name: /acres: parcel details$/ });
   await expect(info).toBeVisible({ timeout: 15_000 });
   await info.click();
   const facts = page.locator("table.facts").first();
@@ -54,7 +54,7 @@ test("Roan Mountain: the Tennessee lines draw; a tap shows the Carter record's f
   const link = page.getByRole("link", { name: "County record ↗" }).first();
   await expect(link).toHaveAttribute("target", "_blank");
   await expect(link).toHaveAttribute("href", /^https:\/\/assessment\.cot\.tn\.gov\/TPAD\//);
-  await page.keyboard.press("Escape");
+  await page.getByRole("tab", { name: "Grade" }).click(); // step 8b: Esc would close the parcel
   expectAllDone(await screenIt(page));
   expect(errors).toEqual([]);
 });

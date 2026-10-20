@@ -484,16 +484,20 @@ describe("tap rules (decideTap)", () => {
   });
 });
 
-describe("panels (17e): one at a time", () => {
-  it("opening the map panel closes Info (and its selected layer); opening Info closes the map panel", () => {
+describe("panels (17e; step 8b): Map layers beside the parcel panel's Details", () => {
+  it("Map layers opens and closes on its own; Details and its open row stay", () => {
     const s = run([selectA(), { type: "info", open: true }, { type: "layer", id: "house" }]);
     const m = exploreReducer(s, { type: "mapPanel", open: true });
-    expect([m.mapPanel, m.info, m.layer]).toEqual([true, false, null]);
-    const i = exploreReducer(m, { type: "info", open: true });
-    expect([i.mapPanel, i.info]).toEqual([false, true]);
-    const l = exploreReducer(m, { type: "layer", id: "house" });
-    expect([l.mapPanel, l.info]).toEqual([false, true]);
-    expect(exploreReducer(m, { type: "mapPanel", open: false }).mapPanel).toBe(false);
+    expect([m.mapPanel, m.info, m.layer]).toEqual([true, true, "house"]);
+    const l = exploreReducer(m, { type: "layer", id: null });
+    expect([l.mapPanel, l.info, l.layer]).toEqual([true, true, null]);
+    // Grade (info off) closes the open row; Map layers stays.
+    const g = exploreReducer(m, { type: "info", open: false });
+    expect([g.mapPanel, g.info, g.layer]).toEqual([true, false, null]);
+    expect(exploreReducer(m, { type: "mapPanel", open: false })).toMatchObject({
+      mapPanel: false,
+      info: true,
+    });
   });
 });
 

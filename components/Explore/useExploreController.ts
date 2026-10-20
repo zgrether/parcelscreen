@@ -536,7 +536,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     combined,
     shapes,
     layers,
-    panelInset: docked && ((state.info && open) || state.mapPanel) ? DOCKED_PANEL_INSET : 0,
+    panelInset: docked && state.mapPanel ? DOCKED_PANEL_INSET : 0,
     docked,
     toast,
     back() {
