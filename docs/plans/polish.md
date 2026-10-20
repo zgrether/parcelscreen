@@ -4,6 +4,7 @@ The fresh-eyes reviews' findings left as they were: pre-existing, or outside the
 2026-10-20). One line each: the screen, the problem, and the fix in a few words. Every hand-back appends its own
 leftovers under its step; Zach schedules a polish PR every few steps, and a fixed line is struck through with the PR
 that fixed it.
+
 ## Step 3: What matters to you (#173)
 
 - **What matters, Try it:** the verdict "Pass" can read as "passes" or "skip it". Fix: a clearer word (report text: a
