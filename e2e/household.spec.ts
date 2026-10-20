@@ -5,37 +5,12 @@
  */
 import { expect, test, type Page } from "@playwright/test";
 import { OLD_DATA_DROPPED } from "@/lib/client/oldData";
-import { PASSWORD_LEAD, START, SYNC_TITLE } from "@/lib/sync/words";
+import { afterTabSwitch, startSyncing, YOUR_LIST } from "./household";
 import { JULIE, ZACH } from "../test/support/rubrics";
-import {
-  booted,
-  importParcels,
-  listRow,
-  openExplorer,
-  openMenu,
-  openYourData,
-  reload,
-  seedScreens,
-  settled,
-} from "./flow";
+import { booted, importParcels, listRow, openExplorer, openMenu, reload, seedScreens, settled } from "./flow";
 
-/** The Your list tab, whose name gains the badge's label ("Your list 1 new take") when something waits (step 6b). */
-const YOUR_LIST = /^Your list/;
 const FERNEY = "ferney-creek-52-47A" as const;
 const MACKS = "macks-mountain-35-3" as const;
-
-/** Starts syncing on this page; returns its code. */
-async function startSyncing(page: Page): Promise<string> {
-  await openYourData(page);
-  await page.getByRole("button", { name: SYNC_TITLE, exact: true }).click();
-  const dialog = page.getByRole("dialog", { name: SYNC_TITLE });
-  await dialog.getByRole("button", { name: START }).click();
-  await expect(dialog.getByText(PASSWORD_LEAD)).toBeVisible({ timeout: 30_000 });
-  const code = (await dialog.locator(".sync-code-value").innerText()).replace(/[-\s]/g, "");
-  await page.keyboard.press("Escape");
-  await page.keyboard.press("Escape");
-  return code;
-}
 
 test("Julie joins: Who's this? → I'm new here → her name; one list, and who added each parcel", async ({
   browser,
@@ -111,15 +86,6 @@ test("the clean break: a profile's own list from before step 6 goes, and the men
 /** Sets the current profile's own priorities through the debug handle (a rubric as the editor would save it). */
 const setPriorities = (page: Page, rubric: unknown) =>
   page.evaluate((r) => window.__psKv!.setItem("ps.rubrics", JSON.stringify({ mine: r, others: [] })), rubric);
-
-/** Switches tabs until the check passes: each switch fetches the space's changes. */
-async function afterTabSwitch(page: Page, check: () => Promise<void>): Promise<void> {
-  await expect(async () => {
-    await page.getByRole("link", { name: "Map", exact: true }).click();
-    await page.getByRole("link", { name: YOUR_LIST }).click();
-    await check();
-  }).toPass({ timeout: 30_000 });
-}
 
 test("everyone's grade; How Julie would rate it; Ask Julie → Waiting for you → her take beside her grade", async ({
   browser,

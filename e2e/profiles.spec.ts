@@ -86,7 +86,7 @@ test("the first visit's Profile 1; add Visitor and switch; one list for both (st
   await menu(page);
   await expect(currentName(page)).toHaveText(/Visitor/);
   await yourList(page);
-  await expect(page.locator("main")).toContainText("Nothing on your list yet");
+  await expect(page.locator("main")).toContainText("No favorites yet");
   await page.getByRole("link", { name: "Map", exact: true }).click();
 
   // A parcel screened under Visitor: on the household's one list (step 6). Neither profile has set priorities: no switch.

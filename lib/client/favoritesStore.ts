@@ -4,7 +4,15 @@
  * writes (prefs onParcelsWritten), so a change made here shows on the map at once.
  */
 import { useEffect, useState } from "react";
-import { clearHistory, sortedIntoHistory, star, unstar, withGraded, type HistoryLog } from "./favorites";
+import {
+  clearHistory,
+  sortedIntoHistory,
+  star,
+  unstar,
+  visibleTo,
+  withGraded,
+  type HistoryLog,
+} from "./favorites";
 import { dropParcel } from "./householdDoc";
 import { EMPTY_STORE, type WorkingParcel } from "./parcelStore";
 import { getPref, setPref } from "./prefs";
@@ -76,4 +84,11 @@ export function sortIntoHistory(): void {
   if (!me) return;
   const next = sortedIntoHistory(parcels(), me);
   if (next) setPref("ps.parcels", next);
+}
+
+/** The built parcels this profile may see (Favorites and its History): the Help page's and the preview's pickers. */
+export function visibleParcels(): WorkingParcel[] {
+  const me = currentProfileId();
+  const log = getPref("ps.history");
+  return parcels().built.filter((p) => me === null || visibleTo(p, me, log));
 }

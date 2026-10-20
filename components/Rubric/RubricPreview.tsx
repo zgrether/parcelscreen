@@ -10,6 +10,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { getPref } from "@/lib/client/prefs";
+import { visibleParcels } from "@/lib/client/favoritesStore";
 import { previewOptions, SAMPLE_KEY, SAMPLE_NAME } from "@/lib/client/previewParcels";
 import { useKeptScreens } from "@/lib/client/useKeptScreens";
 import { drawnOf } from "@/lib/report/marks";
@@ -42,7 +43,8 @@ export function RubricPreview({
   onParcel?: (p: PreviewParcel | null) => void;
 }) {
   const store = useMemo(() => getPref("ps.parcels"), []);
-  const built = useMemo(() => store?.built ?? [], [store]);
+  // Step 8: what this person may see, not someone else's History.
+  const built = useMemo(() => (store ? visibleParcels() : []), [store]);
   const screens = useKeptScreens(built);
   const options = previewOptions(built, screens, store?.open?.key);
   const [picked, setPicked] = useState<string | null>(null);

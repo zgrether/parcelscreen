@@ -12,7 +12,9 @@
 import { z } from "zod";
 import { isCountyRecord } from "@/lib/geo/recipe";
 import { fieldsFor } from "@/lib/geo/parcelFields";
+import { parcelFacts } from "@/lib/geo/parcels";
 import { matchesId, matchesName, MIN_ID_CHARS, normalizeId } from "@/lib/search/query";
+import { countyShort } from "./library";
 import { readListingUrl } from "./listingUrl";
 import { editBuilt, removeBuilt, type ParcelStore, type WorkingParcel } from "./parcelStore";
 
@@ -68,25 +70,25 @@ export function withoutKeys(log: HistoryLog, keys: readonly string[]): HistoryLo
 }
 
 /** Starred (plan §2): a favorite, with the name given. Its adder stays (the person starring: only their History shows it). */
-export function star(s: ParcelStore, key: string, name: string, now: string): ParcelStore {
-  return editBuilt(
-    s,
-    key,
-    (p) =>
-      p.status === "saved" && p.name === name.trim()
-        ? p
-        : { ...p, status: "saved", archived: null, name: name.trim() },
-    now,
-  );
-}
+export const starred = (p: WorkingParcel, name: string): WorkingParcel =>
+  p.status === "saved" && p.name === name.trim()
+    ? p
+    : { ...p, status: "saved", archived: null, name: name.trim() };
 
 /**
  * Unstarred (plan §2): back to its adder's History, archived or not. The caller drops its asks and takes, as Remove
  * does. Walked and Offered stay on the parcel.
  */
-export function unstar(s: ParcelStore, key: string, now: string): ParcelStore {
-  return editBuilt(s, key, (p) => (isFavorite(p) ? { ...p, status: "inProgress", archived: null } : p), now);
-}
+export const unstarred = (p: WorkingParcel): WorkingParcel =>
+  isFavorite(p) ? { ...p, status: "inProgress", archived: null } : p;
+
+/** A built parcel starred, in the store. */
+export const star = (s: ParcelStore, key: string, name: string, now: string): ParcelStore =>
+  editBuilt(s, key, (p) => starred(p, name), now);
+
+/** A built parcel unstarred, in the store. */
+export const unstar = (s: ParcelStore, key: string, now: string): ParcelStore =>
+  editBuilt(s, key, unstarred, now);
 
 /** The unstarred parcels in this person's History: what ✕ and Clear history can remove. */
 export const clearable = (built: readonly WorkingParcel[], me: string, log: HistoryLog): WorkingParcel[] =>
@@ -115,6 +117,12 @@ export function sortedIntoHistory(s: ParcelStore, me: string): ParcelStore | nul
   if (!orphans.length) return null;
   const set = (p: WorkingParcel) => (!isFavorite(p) && p.addedBy === null ? { ...p, addedBy: me } : p);
   return { ...s, built: s.built.map(set), open: s.open && set(s.open) };
+}
+
+/** The parcel's county as the name sheet says it ("Grayson"), from its county records. */
+export function countyOf(p: Pick<WorkingParcel, "pieces">): string | null {
+  const c = p.pieces.map((x) => parcelFacts(x.geo, x.props).county).find((x) => !!x);
+  return c ? countyShort(c).replace(/ Co\.$/, "") : null;
 }
 
 /** What the name sheet starts with (§11 Q15): the parcel's own name, the listing link's address, or a description. */

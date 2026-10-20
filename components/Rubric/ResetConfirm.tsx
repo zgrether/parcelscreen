@@ -3,7 +3,7 @@
  * Reset's confirm (owner, 10/18): a real dialog with styled buttons, Reset in the destructive style. The focus starts on
  * Cancel, and Escape or a tap outside cancels, so a stray Enter never wipes the list.
  */
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 
 export const RESET_QUESTION = "Reset to the starting list? This undoes all your changes.";
 /** "Reset to my answers" (step 4, §6.3): the same dialog. */
@@ -13,12 +13,18 @@ export function ResetConfirm({
   reset,
   cancel,
   question = RESET_QUESTION,
+  action = "Reset",
+  keep = "Cancel",
 }: {
   reset(): void;
   cancel(): void;
   question?: string;
+  /** Step 8 reuses it: "Remove from favorites" / "Keep", "Clear" / "Keep". */
+  action?: string;
+  keep?: string;
 }) {
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const id = useId();
   useEffect(() => {
     cancelRef.current?.focus();
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && cancel();
@@ -26,21 +32,28 @@ export function ResetConfirm({
     return () => window.removeEventListener("keydown", onKey);
   }, [cancel]);
   return (
-    <div className="rubric-sheet-scrim" onClick={cancel}>
+    // Its clicks stop here: opened from a list row, they'd open the row too.
+    <div
+      className="rubric-sheet-scrim"
+      onClick={(e) => {
+        e.stopPropagation();
+        cancel();
+      }}
+    >
       <div
         className="rubric-sheet rubric-confirm"
         role="alertdialog"
         aria-modal="true"
-        aria-labelledby="reset-question"
+        aria-labelledby={id}
         onClick={(e) => e.stopPropagation()}
       >
-        <p id="reset-question">{question}</p>
+        <p id={id}>{question}</p>
         <div className="rubric-confirm-actions">
           <button type="button" className="btn danger" onClick={reset}>
-            Reset
+            {action}
           </button>
           <button ref={cancelRef} type="button" className="btn secondary" onClick={cancel}>
-            Cancel
+            {keep}
           </button>
         </div>
       </div>

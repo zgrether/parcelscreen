@@ -25,7 +25,6 @@ import {
   recipeOf,
   type LineCondition,
   type ListingField,
-  type ActiveStatus,
   type Milestone,
   type Markup,
   type LineKind,
@@ -230,8 +229,12 @@ export interface ExploreController {
   saveAskingPrice(price: number | null, serial: number): void;
   /** WF1: the listing's facts, for the parcel open as `serial`. */
   saveListing(patch: Partial<Pick<WorkingParcel, ListingField>>, serial: number): void;
-  /** WF2: the status, archiving with a reason, restoring, and a milestone's date (null clears it). */
-  setStatus(status: ActiveStatus, serial: number): void;
+  /**
+   * Step 8: starred with its name, or unstarred (its asks and takes go). WF2: archiving with a reason, restoring, and a
+   * milestone's date (null clears it).
+   */
+  star(name: string, serial: number): void;
+  unstar(serial: number): void;
   archive(reason: string, serial: number): void;
   restore(serial: number): void;
   setMilestone(which: Milestone, date: string | null, serial: number): void;
@@ -601,7 +604,9 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       dropParcel(key); // its asks and takes go with it (step 6)
     },
     importParcels(added) {
-      dispatch({ type: "imported", added });
+      // Step 8: an imported parcel with no adder is the importer's, in their History (a favorite in the file stays one).
+      const me = currentProfileId();
+      dispatch({ type: "imported", added: added.map((p) => (p.addedBy ? p : { ...p, addedBy: me })) });
     },
     setHouse(ll) {
       if (latest.current.mode === "house") hint("");
@@ -855,8 +860,13 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     saveListing(patch, serial) {
       dispatch({ type: "listing", patch, serial, stamp: stamp() });
     },
-    setStatus(status, serial) {
-      dispatch({ type: "status", status, serial, stamp: stamp() });
+    star(name, serial) {
+      dispatch({ type: "star", name, serial, stamp: stamp() });
+    },
+    unstar(serial) {
+      const key = latest.current.store.open?.key;
+      if (key) dropParcel(key); // as Remove drops them (plan §2)
+      dispatch({ type: "unstar", serial, stamp: stamp() });
     },
     archive(reason, serial) {
       dispatch({ type: "archive", reason, serial, stamp: stamp() });

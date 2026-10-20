@@ -18,6 +18,7 @@ import { parcelName } from "@/lib/client/historyRows";
 import { openOnMap } from "@/lib/client/openOnMap";
 import type { WorkingParcel } from "@/lib/client/parcelStore";
 import { getPref, setPref } from "@/lib/client/prefs";
+import { favoritesOf } from "@/lib/client/favorites";
 import { useKeptScreens } from "@/lib/client/useKeptScreens";
 import { loadUserConfig } from "@/lib/client/userConfig";
 import { useRubricView } from "@/lib/client/useRubricView";
@@ -33,7 +34,8 @@ const STATUS: Record<NonNullable<Cell["status"]>, { mark: string; word: string }
 };
 
 export function Compare() {
-  const built = useMemo(() => getPref("ps.parcels")?.built ?? [], []);
+  // Step 8: Compare is Your list's, the household's favorites.
+  const built = useMemo(() => favoritesOf(getPref("ps.parcels")?.built ?? []), []);
   // The columns: the parcels ticked on Your list, then as changed here (remembered per browser); none until then.
   const [picked, setPicked] = useState<string[] | null>(() => {
     const kept = getPref("ps.compare");

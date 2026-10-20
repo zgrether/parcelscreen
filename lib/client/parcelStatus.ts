@@ -2,17 +2,12 @@
  * A parcel's standing in words (WF2, docs/plans/parcel-workflow.md §4): its status, why it was archived and when,
  * and its milestones. Pure; the Info panel, History and the list show these.
  */
-import {
-  reasonGiven,
-  type ActiveStatus,
-  type Milestone,
-  type ParcelStatus,
-  type WorkingParcel,
-} from "./parcelStore";
+import { reasonGiven, type Milestone, type ParcelStatus, type WorkingParcel } from "./parcelStore";
 
+/** Step 8 (plan §8): "In progress" and "Saved" are gone; a favorite has no word, an archived one says so. */
 export const STATUS_WORD: Record<ParcelStatus, string> = {
-  inProgress: "In progress",
-  saved: "Saved",
+  inProgress: "",
+  saved: "",
   archived: "Archived",
 };
 
@@ -33,7 +28,7 @@ export function localDay(at: Date): string {
   return `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())}`;
 }
 
-/** "In progress", "Saved", or "Archived Oct 14: Sold". */
+/** "Archived Oct 14: Sold", or "" for a parcel that isn't archived. */
 export function statusLine(p: Pick<WorkingParcel, "status" | "archived">): string {
   if (p.status !== "archived" || !p.archived) return STATUS_WORD[p.status];
   return `Archived ${dayWord(localDay(new Date(p.archived.at)))}: ${p.archived.reason}`;
@@ -50,10 +45,6 @@ export function milestonesLine(p: Pick<WorkingParcel, "milestones">): string {
 // ---------- the changes (WF2): the explorer's reducer and the list both make them ----------
 // Each returns the parcel itself when nothing changes, so a caller can tell and save nothing.
 
-/** In progress or Saved. An archived parcel comes back through Restore, which knows what it was. */
-export const withStatus = (p: WorkingParcel, status: ActiveStatus): WorkingParcel =>
-  p.status === status || p.status === "archived" ? p : { ...p, status };
-
 /** Archived for a reason that says something (not blank, not "Rejected:" alone), with when and what it was. */
 export function withArchive(p: WorkingParcel, reason: string, now: string): WorkingParcel {
   const r = reason.trim();
@@ -61,9 +52,9 @@ export function withArchive(p: WorkingParcel, reason: string, now: string): Work
   return { ...p, status: "archived", archived: { reason: r, at: now, from: p.status } };
 }
 
-/** Back to what it was before it was archived. */
+/** Back to the household's favorites (step 8, plan §2): Archived is a favorite's state. */
 export const withRestore = (p: WorkingParcel): WorkingParcel =>
-  p.archived ? { ...p, status: p.archived.from, archived: null } : p;
+  p.status === "archived" ? { ...p, status: "saved", archived: null } : p;
 
 /** A milestone's date ("2026-10-20"), or null to clear it. */
 export const withMilestone = (p: WorkingParcel, which: Milestone, date: string | null): WorkingParcel =>

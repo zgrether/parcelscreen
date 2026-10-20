@@ -1,25 +1,16 @@
 "use client";
 /**
- * The parcel's standing (WF2, docs/plans/parcel-workflow.md §4), under its name in the Info panel: In progress or
- * Saved; Archive, which asks why (the quick picks "Not for us", "Sold", "Rejected: …", or the household's words);
- * Restore; and the Walked and Offered milestones, each with its date. Archiving keeps everything; Remove is the only
- * delete.
+ * The parcel's standing (WF2, docs/plans/parcel-workflow.md §4), under its name in the Info panel: for a favorite,
+ * Archive, which asks why (the quick picks "Not for us", "Sold", "Rejected: …", or the household's words); Restore;
+ * and the Walked and Offered milestones, each with its date. Archiving keeps everything; Remove is the only delete.
+ * Step 8: the star (the panel's header, the list's rows) makes a favorite; In progress and Saved are gone.
  */
 import { useRef, useState } from "react";
-import {
-  ARCHIVE_PICKS,
-  reasonGiven,
-  type ActiveStatus,
-  type Milestone,
-  type WorkingParcel,
-} from "@/lib/client/parcelStore";
-import { localDay, MILESTONE_WORD, MILESTONES, STATUS_WORD, statusLine } from "@/lib/client/parcelStatus";
-
-const ACTIVE: ActiveStatus[] = ["inProgress", "saved"];
+import { ARCHIVE_PICKS, reasonGiven, type Milestone, type WorkingParcel } from "@/lib/client/parcelStore";
+import { localDay, MILESTONE_WORD, MILESTONES, statusLine } from "@/lib/client/parcelStatus";
 
 /** What the controls change: the explorer's open parcel, or a parcel on the list (WF2b). */
 export interface StandingActions {
-  setStatus(status: ActiveStatus): void;
   archive(reason: string): void;
   restore(): void;
   setMilestone(which: Milestone, date: string | null): void;
@@ -45,21 +36,14 @@ export function ParcelStanding({ parcel: open, act }: { parcel: WorkingParcel; a
           cancel={() => setAsking(false)}
         />
       ) : (
-        <div className="ip-chips">
-          {ACTIVE.map((st) => (
-            <button
-              key={st}
-              className="chip"
-              aria-pressed={open.status === st}
-              onClick={() => act.setStatus(st)}
-            >
-              {STATUS_WORD[st]}
+        // Archived is a favorite's state (step 8, plan §2): a parcel only in someone's History has no Archive.
+        open.status === "saved" && (
+          <div className="ip-chips">
+            <button className="ip-btn sec" onClick={() => setAsking(true)}>
+              Archive…
             </button>
-          ))}
-          <button className="ip-btn sec" onClick={() => setAsking(true)}>
-            Archive…
-          </button>
-        </div>
+          </div>
+        )
       )}
       <div className="ip-chips" role="group" aria-label="Milestones">
         {MILESTONES.map((m) => {

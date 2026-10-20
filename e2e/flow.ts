@@ -57,11 +57,16 @@ export async function importParcel(page: Page, slug: FixtureSlug, house?: [numbe
   });
   await expect(page.locator(".import-summary")).toContainText("Imported 1 parcel");
   await page.keyboard.press("Escape");
+  await starFromHistory(page, input.name);
   await openFromList(page, input.name);
 }
 
-/** Several parcels as one prototype export, imported into History without opening any (17e's switching). */
-export async function importParcels(page: Page, slugs: readonly FixtureSlug[]): Promise<void> {
+/** Several parcels as one prototype export, imported and starred without opening any (17e's switching; step 8). */
+export async function importParcels(
+  page: Page,
+  slugs: readonly FixtureSlug[],
+  { star = true }: { star?: boolean } = {},
+): Promise<void> {
   const saved = slugs.map((slug, i) => {
     const { input } = loadFixture(slug);
     return {
@@ -79,6 +84,20 @@ export async function importParcels(page: Page, slugs: readonly FixtureSlug[]): 
   });
   await expect(page.locator(".import-summary")).toContainText(`Imported ${slugs.length} parcels`);
   await page.keyboard.press("Escape");
+  if (star) for (const slug of slugs) await starFromHistory(page, loadFixture(slug).input.name);
+}
+
+/**
+ * Stars an imported parcel from History (step 8: an import, like a grading, puts it in the importer's History only),
+ * with the name its sheet starts with: the imported name. Leaves Your list on Favorites.
+ */
+export async function starFromHistory(page: Page, name: string): Promise<void> {
+  await page.getByRole("link", { name: /^Your list/ }).click();
+  await page.getByRole("tab", { name: "History" }).click();
+  await page.getByRole("button", { name: `Add to favorites: ${name}` }).click();
+  await page.getByRole("dialog", { name: "Add to Favorites" }).getByRole("button", { name: "Add" }).click();
+  await expect(page.getByRole("button", { name: `Add to favorites: ${name}` })).toHaveCount(0);
+  await page.getByRole("tab", { name: "Favorites" }).click();
 }
 
 /** The menu (step 4b): the places' bar's ☰ (More on a phone), opened if it isn't; its panel. */
@@ -102,7 +121,10 @@ export const searchField = (page: Page): Locator =>
 /** Search, ready to type in (focused). */
 export async function openSearch(page: Page): Promise<Locator> {
   const field = searchField(page);
-  if (!(await field.count())) await page.getByRole("button", { name: "Search" }).click();
+  const button = page.getByRole("button", { name: "Search" });
+  // Just after a navigation the map may not have drawn either yet.
+  await expect(field.or(button).first()).toBeVisible();
+  if (!(await field.count())) await button.click();
   await field.click();
   return field;
 }
@@ -172,10 +194,20 @@ export const ageKept = (page: Page, how: "v2" | "earlier rules"): Promise<void> 
  */
 export async function openFromList(page: Page, name: string): Promise<void> {
   await page.getByRole("link", { name: "Your list", exact: true }).click();
+  await page.getByRole("tab", { name: "Favorites" }).click();
   await listRow(page, name).click();
   await page.getByRole("link", { name: "Open on the map" }).click();
   await expect(page).toHaveURL(/\/explore$/);
   // An imported prototype parcel is named after its saved name (owner, #130), which holds the parcel ID.
+  await expect(page.locator(".sh-name").first()).toContainText(name);
+}
+
+/** Opens a parcel on the map from History (step 8), by (part of) its name: its row's Open on the map. */
+export async function openFromHistory(page: Page, name: string): Promise<void> {
+  await page.getByRole("link", { name: /^Your list/ }).click();
+  await page.getByRole("tab", { name: "History" }).click();
+  await page.locator(".hist-row", { hasText: name }).getByRole("link", { name: "Open on the map" }).click();
+  await expect(page).toHaveURL(/\/explore$/);
   await expect(page.locator(".sh-name").first()).toContainText(name);
 }
 

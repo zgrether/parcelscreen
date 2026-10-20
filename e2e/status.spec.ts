@@ -1,7 +1,7 @@
 /**
- * A parcel's standing (WF2a, docs/plans/parcel-workflow.md §4): Saved; Archive, which asks why ("Rejected: …" takes
- * the rest in the box) and keeps everything; Restore, back to what it was; the Walked and Offered milestones with
- * their dates; and all of it in History and kept across a reload.
+ * A parcel's standing (WF2a, docs/plans/parcel-workflow.md §4; step 8): a favorite's Archive, which asks why ("Rejected:
+ * …" takes the rest in the box) and keeps everything; Restore, back to the favorites; the Walked and Offered milestones
+ * with their dates; and all of it on Your list and kept across a reload.
  */
 import { expect, test, type Page } from "@playwright/test";
 import { importParcel, listRow, openExplorer, reload } from "./flow";
@@ -14,7 +14,7 @@ const stored = (page: Page) =>
     () => (JSON.parse(window.__psKv!.getItem("ps.parcels")!) as { open: Record<string, unknown> }).open,
   );
 
-test("the parcel's standing: saved, archived with a reason, restored; milestones; in History and after a reload", async ({
+test("the parcel's standing: a favorite archived with a reason, restored; milestones; on Your list and after a reload", async ({
   page,
   context,
 }) => {
@@ -27,10 +27,12 @@ test("the parcel's standing: saved, archived with a reason, restored; milestones
   await page.getByRole("tab", { name: "Layers" }).click();
   const standing = page.getByRole("group", { name: "Status" });
 
-  // In progress by default; Saved.
-  await expect(standing.getByRole("button", { name: "In progress" })).toHaveAttribute("aria-pressed", "true");
-  await standing.getByRole("button", { name: "Saved" }).click();
-  await expect(standing.getByRole("button", { name: "Saved" })).toHaveAttribute("aria-pressed", "true");
+  // Starred on import (the helper): a favorite; no In progress or Saved any more (step 8).
+  await expect(standing.getByRole("button", { name: "In progress" })).toHaveCount(0);
+  await expect(page.locator(".sh-actions").getByRole("button", { name: "In favorites" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
 
   // Archive asks why: nothing to archive with a blank reason or "Rejected:" alone.
   await standing.getByRole("button", { name: "Archive…" }).click();
@@ -47,9 +49,10 @@ test("the parcel's standing: saved, archived with a reason, restored; milestones
     archived: { reason: "Rejected: no winter sun", from: "saved" },
   });
 
-  // Restore: back to Saved.
+  // Restore: back to the favorites.
   await standing.getByRole("button", { name: "Restore" }).click();
-  await expect(standing.getByRole("button", { name: "Saved" })).toHaveAttribute("aria-pressed", "true");
+  await expect(standing.getByRole("button", { name: "Archive…" })).toBeVisible();
+  expect(await stored(page)).toMatchObject({ status: "saved", archived: null });
 
   // Milestones: Walked today, then a chosen date; Offered set and cleared.
   const milestones = page.getByRole("group", { name: "Milestones" });
@@ -59,11 +62,11 @@ test("the parcel's standing: saved, archived with a reason, restored; milestones
   await milestones.getByRole("button", { name: "Clear Offered" }).click();
   expect(await stored(page)).toMatchObject({ milestones: { walked: "2026-10-20", offered: null } });
 
-  // Your list says so (step 4b: it was History); a reload keeps it.
+  // Your list says so, its star filled; a reload keeps it.
   await page.getByRole("button", { name: "Close the Info panel" }).click();
   await page.getByRole("link", { name: "Your list", exact: true }).click();
   const row = listRow(page, "52-47A");
-  await expect(row).toContainText("Saved");
+  await expect(row.getByRole("button", { name: /^In favorites/ })).toBeVisible();
   await expect(row).toContainText("Walked Oct 20");
   await reload(page);
   expect(await stored(page)).toMatchObject({ status: "saved", milestones: { walked: "2026-10-20" } });

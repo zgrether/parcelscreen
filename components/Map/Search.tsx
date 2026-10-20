@@ -334,9 +334,11 @@ function SearchBox({
 
   let n = -1;
   const listId = `${id}-list`;
+  // A group's heading id has no spaces: aria-labelledby reads a space as a list of ids ("Your history" was unnamed).
+  const headId = (title: string) => `${id}-${title.replace(/\s+/g, "-")}`;
   const rows: ReactNode[] = groups.map((g) => (
-    <div key={g.title} role="group" aria-labelledby={`${id}-${g.title}`}>
-      <div className="sr-head" id={`${id}-${g.title}`}>
+    <div key={g.title} role="group" aria-labelledby={headId(g.title)}>
+      <div className="sr-head" id={headId(g.title)}>
         {g.title}
       </div>
       {g.options.map((o) => {
