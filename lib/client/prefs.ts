@@ -10,6 +10,7 @@ import { withRanks } from "./myOrder";
 import { ProfileRubricsSchema, type ProfileRubrics } from "@/lib/rubric/schema";
 import { InterviewDocSchema, type InterviewDoc } from "@/lib/rubric/interview/doc";
 import { MINE } from "@/lib/rubric/types";
+import { readHousehold, type Household } from "./takes";
 import { activeKv, isProfileKey, isSharedKey, sharedKv } from "./profileKv";
 import { readParcelStore, withNamesFromNotes, writeParcelStore, type ParcelStore } from "./parcelStore";
 
@@ -70,6 +71,8 @@ export interface Prefs {
   "ps.rubrics": ProfileRubrics | null;
   /** The interview (step 4): its answers, where to resume, and the rubric it made; null until it's begun. */
   "ps.interview": InterviewDoc | null;
+  /** The household's asks and takes (step 6; shared, lib/client/takes.ts). */
+  "ps.household": Household | null;
   /** The comparison table's columns (VR6): History keys, in order; null until the table is first changed (all shown). */
   "ps.compare": string[] | null;
   /** The list's filters and sort (WF2b), remembered per browser. */
@@ -102,6 +105,7 @@ const DEFAULTS: Prefs = {
   "ps.rubricView": MINE,
   "ps.rubrics": null,
   "ps.interview": null,
+  "ps.household": null,
   "ps.compare": null,
   "ps.library": DEFAULT_VIEW,
   "ps.namesFromNotes": false,
@@ -131,6 +135,7 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
     },
     write: (v) => JSON.stringify(v),
   },
+  "ps.household": { read: readHousehold, write: (v) => JSON.stringify(v) },
   "ps.interview": {
     read: (r) => {
       const parsed = InterviewDocSchema.safeParse(JSON.parse(r));
@@ -230,7 +235,13 @@ export function setPref<K extends keyof Prefs>(
     parcelWrites++;
     announceParcels(value as Prefs["ps.parcels"]);
   }
+  // The asks and takes (step 6): heard by the list's badge and the parcel's take, here or from a sync.
+  if (key === "ps.household" && typeof window !== "undefined")
+    queueMicrotask(() => window.dispatchEvent(new Event(HOUSEHOLD_WRITTEN)));
 }
+
+/** The window event after the household's asks and takes are written (step 6). */
+export const HOUSEHOLD_WRITTEN = "ps:household";
 
 let parcelWrites = 0;
 /** How many times the parcels have been written on this page: a holder that read them can tell it missed one. */

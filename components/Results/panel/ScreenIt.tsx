@@ -587,7 +587,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             }
           />
           {/* Step 6: how each other member would rate it, from their own priorities. */}
-          <Others result={display} drawn={drawnFor(s)} />
+          <Others result={display} drawn={drawnFor(s)} parcel={s.ctl.state.store.open?.key ?? null} />
         </div>
       )}
       {footer && (

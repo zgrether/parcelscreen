@@ -8,10 +8,16 @@
 import Link from "next/link";
 import { PLACES, placeOf, type PlaceId } from "@/lib/client/places";
 import { Menu } from "./Menu";
+import { useHousehold } from "@/lib/client/householdDoc";
+import { currentProfileId } from "@/lib/client/profiles";
+import { waitingFor } from "@/lib/client/takes";
 import { SyncIndicator } from "@/components/Sync/SyncStatus";
 
 export function Places({ pathname }: { pathname: string }) {
   const here = placeOf(pathname);
+  const household = useHousehold();
+  const me = currentProfileId();
+  const waiting = me ? waitingFor(household, me).size : 0;
   return (
     <nav className="app-nav" aria-label="Places">
       <Link className="app-brand" href="/">
@@ -23,6 +29,12 @@ export function Places({ pathname }: { pathname: string }) {
             <Link className="app-tab" href={p.href} aria-current={here === p.id ? "page" : undefined}>
               <PlaceIcon id={p.id} />
               <span>{p.label}</span>
+              {/* Step 6: parcels waiting for my take. */}
+              {p.id === "list" && waiting > 0 && (
+                <span className="app-badge" aria-label={`${waiting} waiting for your take`}>
+                  {waiting}
+                </span>
+              )}
             </Link>
           </li>
         ))}

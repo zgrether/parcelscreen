@@ -8,7 +8,14 @@
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { SyncStore } from "../sync/store";
-import type { Changes, SaveBatch, StoredParcel, StoredProfile, StoredScreen } from "../sync/wire";
+import type {
+  Changes,
+  SaveBatch,
+  StoredHousehold,
+  StoredParcel,
+  StoredProfile,
+  StoredScreen,
+} from "../sync/wire";
 
 /** Rows per upsert: a batch is at most 4 MB, so this only splits a batch of many small parcels. */
 const CHUNK = 200;
@@ -29,6 +36,13 @@ interface ProfileRow {
 interface ParcelRow extends Omit<ProfileRow, "id"> {
   key: string;
   profile: string;
+}
+interface HouseholdRow {
+  key: string;
+  kind: "ask" | "take";
+  record: Record<string, unknown> | null;
+  deleted: boolean;
+  updated_at: string;
 }
 interface ScreenRow {
   id: string;
@@ -85,25 +99,45 @@ export class SupabaseSyncStore implements SyncStore {
       .select("id, profile, created_at")
       .eq("space", space)
       .eq("schema_version", schemaVersion);
+    // Step 6's asks and takes (0002_household.sql).
+    let householdQ = this.db
+      .from("sync_household")
+      .select("key, kind, record, deleted, updated_at")
+      .eq("space", space);
     if (since) {
       profilesQ = profilesQ.gt("updated_at", since);
       parcelsQ = parcelsQ.gt("updated_at", since);
       screensQ = screensQ.gt("created_at", since);
+      householdQ = householdQ.gt("updated_at", since);
     }
-    const [profiles, parcels, screens] = await Promise.all([profilesQ, parcelsQ, screensQ]);
+    const [profiles, parcels, screens, household] = await Promise.all([
+      profilesQ,
+      parcelsQ,
+      screensQ,
+      householdQ,
+    ]);
     const p = check(profiles) as ProfileRow[];
     const q = check(parcels) as ParcelRow[];
     const s = check(screens) as Pick<ScreenRow, "id" | "profile" | "created_at">[];
+    const h = check(household) as HouseholdRow[];
     const times = [
       ...p.map((r) => r.updated_at),
       ...q.map((r) => r.updated_at),
       ...s.map((r) => r.created_at),
+      ...h.map((r) => r.updated_at),
     ];
     const cursor = times.length ? times.reduce((a, b) => (Date.parse(b) > Date.parse(a) ? b : a)) : since;
     return {
       profiles: p.map(profileOf),
       parcels: q.map(parcelOf),
       screens: s.map(({ id, profile }) => ({ id, profile })),
+      household: h.map((r): StoredHousehold => ({
+        key: r.key,
+        kind: r.kind,
+        record: r.record,
+        deleted: r.deleted,
+        updatedAt: r.updated_at,
+      })),
       cursor,
     };
   }
@@ -139,6 +173,19 @@ export class SupabaseSyncStore implements SyncStore {
             deleted: p.record === null,
           })),
           { onConflict: "space,key" },
+        ),
+      );
+    for (const rows of chunks(batch.household))
+      check(
+        await this.db.from("sync_household").upsert(
+          rows.map((x) => ({
+            space,
+            key: x.key,
+            kind: x.kind,
+            record: x.record,
+            deleted: x.record === null,
+          })),
+          { onConflict: "space,kind,key" },
         ),
       );
     for (const rows of chunks(batch.screens))
