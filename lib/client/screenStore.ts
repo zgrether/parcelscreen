@@ -12,6 +12,7 @@ import { ScreenResultSchema, type ScreenResult } from "../screen/types";
 import { openDb, SCREENS } from "./db";
 import { currentProfileId } from "./profiles";
 import type { RunKeys } from "./screenKeys";
+import { syncHooks } from "./syncHooks";
 
 export interface ScreenRecord {
   id: string;
@@ -67,11 +68,15 @@ const stamped = (r: ScreenRecord): ScreenRecord => {
 export async function addScreen(record: ScreenRecord): Promise<boolean> {
   const d = await openDb();
   if (!d) return false;
+  const kept = stamped(record);
   return new Promise((resolve) => {
     try {
       const tx = d.transaction(SCREENS, "readwrite");
-      tx.objectStore(SCREENS).add(stamped(record));
-      tx.oncomplete = () => resolve(true);
+      tx.objectStore(SCREENS).add(kept);
+      tx.oncomplete = () => {
+        syncHooks()?.screensKept([kept]);
+        resolve(true);
+      };
       tx.onerror = () => resolve(false);
     } catch {
       resolve(false);
@@ -103,7 +108,9 @@ export async function readScreen(id: string): Promise<ReadScreen> {
       resolve(null);
     }
   });
-  const r = ScreenRecordSchema.safeParse(raw);
+  // Not on this device, and it's joined: the synced space may have it (step 5: screens come as they're opened).
+  const fetched = raw == null ? await syncHooks()?.fetchScreen(id) : null;
+  const r = ScreenRecordSchema.safeParse(fetched ?? raw);
   return r.success ? { kind: "ok", record: r.data as ScreenRecord } : { kind: "gone" };
 }
 
@@ -162,8 +169,12 @@ export async function putScreens(records: readonly ScreenRecord[]): Promise<bool
     try {
       const tx = d.transaction(SCREENS, "readwrite");
       const store = tx.objectStore(SCREENS);
-      for (const r of records) store.put(stamped(r));
-      tx.oncomplete = () => resolve(true);
+      const kept = records.map(stamped);
+      for (const r of kept) store.put(r);
+      tx.oncomplete = () => {
+        syncHooks()?.screensKept(kept);
+        resolve(true);
+      };
       tx.onerror = () => resolve(false);
       tx.onabort = () => resolve(false);
     } catch {

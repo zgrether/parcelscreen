@@ -38,6 +38,8 @@ export default defineConfig({
       ? `pnpm exec next start -p ${PORT}`
       : `pnpm build && pnpm exec next start -p ${PORT}`,
     url: `http://localhost:${PORT}/explore`,
+    // Step 5: the sync routes keep their spaces in memory, so the e2e never touches the production database.
+    env: { PS_SYNC_STORE: "memory" },
     reuseExistingServer: !process.env.CI,
     timeout: 300_000,
   },

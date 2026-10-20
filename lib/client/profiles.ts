@@ -11,6 +11,7 @@ import { dropOldData, type DeviceStore } from "./oldData";
 import { activeKv, ProfileKv, setActiveKv, type KvHandle } from "./profileKv";
 import { idbProfileStorage, memoryProfileStorage, type Profile, type ProfileStorage } from "./profileStore";
 import { onboardingDoc, onboardingOn } from "./onboarding";
+import { syncHooks } from "./syncHooks";
 
 /** The device's current profile, by id. */
 export const CURRENT_PROFILE_KEY = "ps.profile";
@@ -154,6 +155,7 @@ export async function addProfile(name: string, now: string = new Date().toISOStr
   const p = newProfile(name, now);
   await storage?.putProfile(p);
   await storage?.putDoc({ profile: p.id, key: "ps.interview", value: JSON.stringify(onboardingDoc()) });
+  syncHooks()?.profileChanged(p.id);
   return p;
 }
 
@@ -165,6 +167,7 @@ export async function renameProfile(id: string, name: string): Promise<void> {
   const next = { ...p, name };
   await s.putProfile(next);
   if (current?.id === id) current = next;
+  syncHooks()?.profileChanged(id);
 }
 
 /**
@@ -175,6 +178,8 @@ export async function deleteProfile(id: string): Promise<{ wasCurrent: boolean }
   const s = storage;
   if (!s) return { wasCurrent: false };
   await s.deleteProfile(id);
+  // On a joined device it goes everywhere (owner, 10/19, step 5 plan §11 Q5).
+  syncHooks()?.profileDeleted(id);
   const wasCurrent = current?.id === id;
   if (wasCurrent) {
     try {
