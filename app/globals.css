@@ -1374,7 +1374,7 @@ html:has(.explore) body {
 @media (max-width: 860px) and (orientation: portrait) {
   .map-col {
     top: 10px;
-    right: 30px;
+    right: 44px;
     flex-direction: row;
     align-items: flex-start;
   }
@@ -2769,11 +2769,17 @@ html:has(.app-nav) .explore {
   border-color: #fff;
 }
 /* Map layers' key (polish #18): small copies of the pins and lines, each beside what it means. */
+.mp-key {
+  margin: 6px 8px 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--ip-rule);
+}
 .mp-key summary {
   cursor: pointer;
   min-height: 32px;
   display: flex;
   align-items: center;
+  color: var(--ip-ink-2);
 }
 .mk-rows {
   display: grid;
