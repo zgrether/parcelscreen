@@ -6,9 +6,10 @@
  * Gardens only show their text. Without a live session (after a reload) the pins are drawn but a tap shows
  * "Run again to evaluate here." Hidden while a tool is open.
  */
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Marker } from "maplibre-gl";
 import { inertTip, pinSpecs, type PinSpec } from "@/lib/render/pins";
+import { choicesBeside } from "@/lib/report/sites";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
 import type { ScreenIt } from "@/components/Results/panel/ScreenIt";
 import { useMap } from "../MapView";
@@ -36,12 +37,33 @@ export function ResultPins() {
   // Inert ("Run again to evaluate here.") only for a kept result with no run going: during a run the session
   // is on its way.
   const live = !!s?.view || !!s?.runningHere;
+  // Step 7 (plan §1.3): the person's best site is the inked pin and their alternatives get a ring; a marked house is
+  // the build site, so no site is inked then.
+  const card = s?.card ?? null;
+  const ranks = useMemo(() => {
+    if (!card || !display) return { best: 1, alternatives: [] as number[] };
+    const h = display.house;
+    if (h && !("outside" in h)) {
+      const near = choicesBeside(card.sites, { ll: h.ll, score: null, fails: 0, index: null });
+      return { best: null, alternatives: near.alternatives.map((x) => x.rank) };
+    }
+    const best = card.sites[0];
+    if (!best) return { best: 1, alternatives: [] as number[] };
+    const near = choicesBeside(card.sites, {
+      ll: best.ll,
+      score: best.score,
+      fails: best.fails.length,
+      index: best.index,
+    });
+    return { best: best.rank, alternatives: near.alternatives.map((x) => x.rank) };
+  }, [card, display]);
+  const rankKey = `${ranks.best}:${ranks.alternatives.join(",")}`;
 
   useEffect(() => {
     if (!map || !display) return;
-    const markers = pinSpecs(display).map((pin) => {
+    const markers = pinSpecs(display, ranks).map((pin) => {
       const el = document.createElement("div");
-      el.className = `sitepin${CLASS[pin.kind]}${pin.top ? " top" : ""}`;
+      el.className = `sitepin${CLASS[pin.kind]}${pin.top ? " top" : ""}${pin.alt ? " alt" : ""}`;
       el.textContent = pin.text;
       el.dataset.pin = pin.key;
       el.setAttribute("role", "button");
@@ -72,7 +94,8 @@ export function ResultPins() {
       markers.forEach((m) => m.remove());
       hideTip(map);
     };
-  }, [map, display, live]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- ranks changes with rankKey
+  }, [map, display, live, rankKey]);
 
   return null;
 }

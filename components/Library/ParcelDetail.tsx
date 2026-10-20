@@ -109,6 +109,7 @@ export function ParcelDetail({
         {card ? (
           <ReportCard
             card={card}
+            result={result!}
             running={false}
             rubrics={rubrics}
             setRubric={setRubric}

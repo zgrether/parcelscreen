@@ -70,9 +70,9 @@ async function expectCleanRun(page: Page, steps: Record<string, string>): Promis
     ).toBe(true);
 }
 
-/** The report card's line opening a panel: the verdict, a dealbreaker or a row (VR5). */
+/** The report card's line opening a panel: the verdict, a Must (step 7: a row of its own) or a row (VR5). */
 const cardLine = (page: Page, name: string) =>
-  page.locator(".card-verdict, .card-gates .gate, .card-row").filter({ hasText: name }).first();
+  page.locator(".card .card-verdict, .card .card-row").filter({ hasText: name }).first();
 
 /** Opens a card panel, runs `check` on it, and closes it again. */
 async function inPanel(page: Page, line: string, check: (panel: Locator) => Promise<void>): Promise<void> {
@@ -87,7 +87,7 @@ async function inPanel(page: Page, line: string, check: (panel: Locator) => Prom
 /** Every panel the card opens, in turn: the report sections now under "From the report" (VR5). */
 async function panelHeadings(page: Page): Promise<string[]> {
   const out: string[] = [];
-  const lines = page.locator(".card-verdict, .card-gates .gate, .card-row");
+  const lines = page.locator(".card .card-verdict, .card .card-row");
   const n = await lines.count();
   expect(n, "the card's lines").toBe(13);
   for (let i = 0; i < n; i++) {

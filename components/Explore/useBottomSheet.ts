@@ -31,6 +31,8 @@ const space = (root: HTMLElement | null) => root?.clientHeight || window.innerHe
 /** The peek: the header alone, or the header with the grade button under it (step 4c). */
 export const PEEK = 92;
 export const PEEK_WITH_ACTION = 148;
+/** Step 7: the answer's reason, two lines at most, under the header's grade while a graded parcel is open. */
+export const PEEK_ANSWER = 38;
 const snaps = (root: HTMLElement | null, peek: number) => [
   peek,
   Math.round(space(root) * 0.46),
@@ -153,6 +155,8 @@ export function useBottomSheet(
     mapMode,
     /** Stepped aside for a tool or the Info panel. */
     aside,
+    /** Resting at its peek (step 7: the header then shows the answer's reason, which the sheet's body repeats). */
+    atPeek: atPeek && !aside,
     handlers: { ...handlers, onPointerCancel: handlers.onPointerUp },
     raise,
   };

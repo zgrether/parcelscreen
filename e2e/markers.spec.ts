@@ -47,7 +47,7 @@ test("the Mark picker: a septic permit (a point, then a field), its gate, a drag
   await openExplorer(page, MACKS);
   await importParcel(page, MACKS);
   expectAllDone(await screenIt(page));
-  const gate = page.locator(".card-gates .gate").filter({ hasText: /septic/i });
+  const gate = page.locator(".must-row").filter({ has: page.locator(".row-label", { hasText: /septic/i }) });
   await expect(gate).toHaveAttribute("aria-label", "Septic: warn");
 
   // The picker, a popover on a desktop: four groups, no Recent yet.
