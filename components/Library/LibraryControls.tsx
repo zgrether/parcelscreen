@@ -39,7 +39,13 @@ const SORTS: { key: SortKey; label: string }[] = [
 /** The sorts for a profile's rubrics: the household verdict when it holds several, then each grade. */
 const sortsFor = (rubrics: readonly NamedRubric[]): { key: SortKey; label: string }[] => [
   ...SORTS,
-  ...(rubrics.length > 1 ? [{ key: "household" as const, label: "Household verdict" }] : []),
+  ...(rubrics.length > 1
+    ? [
+        { key: "household" as const, label: "Household verdict" },
+        // Step 6: by the worst of everyone's grades.
+        { key: "lowest" as const, label: "Lowest of our grades" },
+      ]
+    : []),
   ...rubrics.map((nr) => ({ key: gradeSortKey(nr.id), label: switchLabel(nr) })),
 ];
 

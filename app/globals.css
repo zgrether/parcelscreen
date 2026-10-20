@@ -5352,3 +5352,51 @@ button.sync-ind.bad {
 .added-by {
   margin: 0 0 4px;
 }
+
+/* Your list's Grades: mine, then each other member's small beside it (step 6 §3.1). */
+.lib-grades {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+.lib-other-grade {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.card-grade.tiny {
+  min-width: 18px;
+  height: 18px;
+  font-size: 12px;
+  line-height: 18px;
+}
+/* How each other member would rate it (step 6 §3.2). */
+.others h3 {
+  margin: 0 0 6px;
+  font: 600 16px/1.2 var(--font-cond);
+}
+.others-grade {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 4px;
+}
+.others-reason {
+  margin: 0 0 8px;
+}
+.others-diffs {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.others-why {
+  display: block;
+  margin-top: 2px;
+}
+.others-none {
+  margin: 0 0 4px;
+}

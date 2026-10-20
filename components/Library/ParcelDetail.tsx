@@ -12,6 +12,7 @@ import { ParcelStanding } from "@/components/Map/ParcelStanding";
 import { withAskingPrice, withListing, withNotes } from "@/lib/client/parcelEdits";
 import { CardPanel } from "@/components/Results/card/CardPanel";
 import { ReportCard } from "@/components/Results/card/ReportCard";
+import { Others } from "@/components/Household/Others";
 import { evaluationPoint } from "@/components/Results/blocks/types";
 import { parcelName } from "@/lib/client/historyRows";
 import { openOnMap } from "@/lib/client/openOnMap";
@@ -120,6 +121,8 @@ export function ParcelDetail({
               : "Not screened yet: open it on the map and screen it."}
           </p>
         )}
+        {/* Step 6: how each other member would rate it, from their own priorities. */}
+        {result && <Others result={result} drawn={drawn} />}
         <div className="lib-detail-actions">
           {confirming ? (
             <>
