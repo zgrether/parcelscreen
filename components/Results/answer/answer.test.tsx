@@ -126,7 +126,9 @@ describe("Best homesite (plan §1.2–§1.3)", () => {
   it("says when the map's sections are for another site, and offers to evaluate the best (owner, #216)", () => {
     // Macks: the best site is #3; the screen ran at site #1. Evaluating #3 re-routes, so it's offered, not done.
     const t = text(html(expectedOf("macks-mountain-35-3", "run")));
-    expect(t).toContain("The map's sun, sky and driveway are for site #1, where the screen ran. Evaluate site #3");
+    expect(t).toContain(
+      "The map's sun, sky and driveway are for site #1, where the screen ran. Evaluate site #3",
+    );
     // Ferney: the best site is where the screen ran.
     expect(text(html())).not.toContain("where the screen ran");
   });
