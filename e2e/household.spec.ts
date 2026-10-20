@@ -16,6 +16,7 @@ import {
   openYourData,
   reload,
   seedScreens,
+  settled,
 } from "./flow";
 
 const FERNEY = "ferney-creek-52-47A" as const;
@@ -74,7 +75,10 @@ test("the clean break: a profile's own list from before step 6 goes, and the men
   await openExplorer(page, FERNEY);
   await booted(page);
   const profile = await page.evaluate(() => window.__psKv!.profile);
-  // A list kept the old way: under the profile, with no shared one.
+  // A list kept the old way: under the profile, with no shared one. Written from a page that doesn't run the app, so
+  // the app's own flush as it unloads can't put the shared list back (it did, in CI).
+  await settled(page);
+  await page.goto("/api/health");
   await page.evaluate(
     ({ parcels, profile }) =>
       new Promise<void>((resolve, reject) => {
@@ -94,7 +98,8 @@ test("the clean break: a profile's own list from before step 6 goes, and the men
       }),
     { parcels: JSON.stringify({ v: 2, open: null, built: [] }), profile },
   );
-  await reload(page);
+  await page.goto("/explore");
+  await booted(page);
   await expect((await openMenu(page)).getByText(OLD_DATA_DROPPED)).toBeVisible();
   await page.keyboard.press("Escape");
   await reload(page);
