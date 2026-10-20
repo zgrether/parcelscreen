@@ -11,6 +11,7 @@ import { ProfileRubricsSchema, type ProfileRubrics } from "@/lib/rubric/schema";
 import { InterviewDocSchema, type InterviewDoc } from "@/lib/rubric/interview/doc";
 import { MINE } from "@/lib/rubric/types";
 import { readHousehold, readSeen, type Household, type SeenTakes } from "./takes";
+import { EMPTY_LOG, readHistoryLog, type HistoryLog } from "./favorites";
 import { activeKv, isProfileKey, isSharedKey, sharedKv } from "./profileKv";
 import { readParcelStore, withNamesFromNotes, writeParcelStore, type ParcelStore } from "./parcelStore";
 
@@ -86,6 +87,8 @@ export interface Prefs {
   "ps.recentMarks": MarkChoice[];
   /** The other members' takes this profile has seen here (step 6b): per profile and device, never synced. */
   "ps.seenTakes": SeenTakes;
+  /** When this profile last graded each parcel (step 8): History's order; synced with the profile. */
+  "ps.history": HistoryLog;
 }
 
 const DEFAULTS: Prefs = {
@@ -113,6 +116,7 @@ const DEFAULTS: Prefs = {
   "ps.namesFromNotes": false,
   "ps.recentMarks": [],
   "ps.seenTakes": {},
+  "ps.history": EMPTY_LOG,
 };
 
 /** How each key is stored: the prototype kept flags as "1"/"0" and the rest as plain strings or JSON. */
@@ -157,6 +161,7 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
   "ps.namesFromNotes": { read: (r) => r === "1", write: (v) => (v ? "1" : "0") },
   "ps.recentMarks": { read: readRecent, write: (v) => JSON.stringify(v) },
   "ps.seenTakes": { read: readSeen, write: (v) => JSON.stringify(v) },
+  "ps.history": { read: (r) => readHistoryLog(r) ?? EMPTY_LOG, write: (v) => JSON.stringify(v) },
   "ps.overlays": {
     // Unknown or missing keys read as shown, so an overlay added later starts visible.
     read: (r) => ({ ...ALL_OVERLAYS, ...(JSON.parse(r) as Partial<OverlayPrefs>) }),
