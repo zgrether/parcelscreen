@@ -4882,6 +4882,7 @@ button.cmp-cell:hover {
   color: var(--color-ink-2);
 }
 .rubric-min-badge {
+  white-space: nowrap;
   margin-left: 6px;
   padding: 0 5px;
   border: 1px solid var(--color-ok);
@@ -6383,4 +6384,22 @@ button.sync-ind.bad {
 /* The top bar's "Synced": the ink, not the muted ink (step 5's review: about 6:1, now about 13:1). */
 .sync-ind.bar:not(.bad) {
   color: var(--color-ink);
+}
+/* Settings: the advanced fold's heading sits on its summary line. */
+.settings-advanced > summary {
+  cursor: pointer;
+  list-style: revert;
+}
+.settings-advanced > summary h3 {
+  display: inline;
+}
+/* Compare: shadows at the edges that have more to scroll to (step 4b's review: no cue on a phone). */
+.compare-scroll {
+  background:
+    linear-gradient(to right, var(--color-paper) 30%, transparent) left / 28px 100% no-repeat local,
+    linear-gradient(to left, var(--color-paper) 30%, transparent) right / 28px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.2), transparent) left / 14px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.2), transparent) right / 14px 100% no-repeat
+      scroll,
+    var(--color-paper);
 }

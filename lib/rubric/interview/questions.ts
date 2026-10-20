@@ -382,7 +382,8 @@ export const CHIP_WORDS: Record<Chip, ChipWords> = {
     dontMatter: "You said winter sun doesn't matter",
   },
   altSeptic: {
-    label: "Alternative septic only",
+    // Polish: plain words (it was "Alternative septic only").
+    label: "Only an alternative septic system",
     walkAway: () => "You'd walk away if only an alternative septic system would work",
     dontMatter: "You said an alternative septic system doesn't matter",
   },

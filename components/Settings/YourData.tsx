@@ -31,7 +31,8 @@ import type { UserConfig } from "@/lib/screen/types";
 import { SyncSection } from "@/components/Sync/SyncSection";
 
 export const YOUR_DATA = "Your data";
-export const YOUR_DATA_NOTE = "These don't wait for Save.";
+// Polish (step 4b's review): plainer words for "These don't wait for Save."
+export const YOUR_DATA_NOTE = "Import and Export happen at once; Save isn't needed.";
 export const EXPORT_LINE =
   "Save every parcel on your list to a file: a backup, or to move them to another browser.";
 export const IMPORT_LINE = "Add the parcels from an export file to your list.";

@@ -35,7 +35,7 @@ export const TIER_LINES = [
   [TIER_NAMES.wont, "ignored."],
 ] as const;
 export const HOW_TO =
-  "Drag items between columns, or tap one to move it or change its limit. Changes save automatically and apply to every parcel you've screened.";
+  "Drag items between columns, or select one to move it or change its limit. Changes save automatically and apply to every parcel you've screened.";
 
 export function RubricEditor() {
   const my = useMyRubric();

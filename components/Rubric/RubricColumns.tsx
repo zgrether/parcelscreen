@@ -52,7 +52,7 @@ export function emptyLine(tier: Tier, columns: Columns): string {
         ? "Nothing here: your grade comes from Nice to have alone."
         : "Nothing counts toward the grade. Move an item here.";
     case "could":
-      return "Nothing here yet. Drag an item here, or tap one and choose Nice to have.";
+      return "Nothing here yet. Drag an item here, or select one and choose Nice to have.";
     case "wont":
       return "Nothing ignored: everything counts. Move an item here to ignore it.";
   }

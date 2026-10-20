@@ -151,20 +151,25 @@ export function SettingsProvider({
             onChange={(e) => setForm((f) => ({ ...f, anchors: e.target.value }))}
           />
 
-          <h3>{ENDPOINTS_LABEL}</h3>
-          <p className="tiny muted">
-            Edit if a service moves. Parcel services are tried in order until one returns a feature.
-          </p>
-          <textarea
-            rows={9}
-            className="mono"
-            wrap="off"
-            spellCheck={false}
-            aria-label={ENDPOINTS_LABEL}
-            value={form.endpoints}
-            aria-invalid={bad.has("endpoints") || undefined}
-            onChange={(e) => setForm((f) => ({ ...f, endpoints: e.target.value }))}
-          />
+          {/* Polish (step 4b's review): raw JSON, for when a service moves: folded away, open when it has an error. */}
+          <details className="settings-advanced" open={bad.has("endpoints") || undefined}>
+            <summary>
+              <h3>{ENDPOINTS_LABEL} (advanced)</h3>
+            </summary>
+            <p className="tiny muted">
+              Edit if a service moves. Parcel services are tried in order until one returns a feature.
+            </p>
+            <textarea
+              rows={9}
+              className="mono"
+              wrap="off"
+              spellCheck={false}
+              aria-label={ENDPOINTS_LABEL}
+              value={form.endpoints}
+              aria-invalid={bad.has("endpoints") || undefined}
+              onChange={(e) => setForm((f) => ({ ...f, endpoints: e.target.value }))}
+            />
+          </details>
 
           <h3>{TIME_ZONE_LABEL}</h3>
           <p className="tiny muted">The night sky&apos;s hours are in this zone.</p>

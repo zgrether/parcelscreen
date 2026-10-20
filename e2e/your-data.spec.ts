@@ -33,7 +33,7 @@ test("Your data: Import file adds the parcels at once; Export file saves them; t
 
   // Export: a file with both parcels.
   await openYourData(page);
-  await expect(page.getByText("These don't wait for Save.")).toBeVisible();
+  await expect(page.getByText("Import and Export happen at once; Save isn't needed.")).toBeVisible();
   const [download] = await Promise.all([
     page.waitForEvent("download"),
     page.getByRole("button", { name: "Export file", exact: true }).click(),

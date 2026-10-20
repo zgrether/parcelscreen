@@ -41,6 +41,8 @@ export function InterviewResult({ iv }: { iv: Interview }) {
       {status === "ask" && (
         <section className="iv-ask" role="alertdialog" aria-labelledby="iv-ask-q">
           <p id="iv-ask-q">{REPLACE_QUESTION}</p>
+          {/* Polish (step 4's review): which list is shown below. */}
+          <p className="tiny muted">The list below is the one your answers make.</p>
           <div className="iv-ask-actions">
             <button
               type="button"
