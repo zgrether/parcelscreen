@@ -773,9 +773,15 @@ function StepList({
   const [open, setOpen] = useState(false);
   if (!running && !open)
     return (
-      <button className="steps-folded" aria-expanded={false} onClick={() => setOpen(true)}>
+      <button
+        className="steps-folded"
+        aria-expanded={false}
+        title="Show each step, and what didn't load"
+        onClick={() => setOpen(true)}
+      >
         <span>{line}</span>
-        <span aria-hidden="true">▸</span>
+        {/* Polish: the ▸ says what it holds. */}
+        <span className="steps-more">Steps ▸</span>
       </button>
     );
   return (

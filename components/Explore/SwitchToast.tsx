@@ -1,7 +1,7 @@
 "use client";
 /**
- * "{parcel} kept on Your list — Back" (step 17e): after leaving a parcel that has a screen, by switching or with
- * the ×. Back reopens it, with its overlays live if its session is still kept. It goes after about 5 s, when
+ * "{parcel} is on Your list. Reopen it" (step 17e; polish after 8b): after leaving a parcel that has a screen, by switching or with
+ * the ×. Reopen it brings it back, with its overlays live if its session is still kept. It goes after about 5 s, when
  * a newer one replaces it, or when a map tool starts.
  */
 import { useEffect } from "react";
@@ -23,8 +23,9 @@ export function SwitchToast() {
   if (!t) return null;
   return (
     <div className="switch-toast" role="status">
-      <span>{t.name} kept on Your list —</span>
-      <button onClick={ctl.back}>Back</button>
+      {/* Polish: a whole sentence, and a button that says what it does. */}
+      <span>{t.name} is on Your list.</span>
+      <button onClick={ctl.back}>Reopen it</button>
     </div>
   );
 }

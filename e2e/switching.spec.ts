@@ -1,6 +1,6 @@
 /**
  * Parcel switching and live sessions (step 17e; plan phase-0-17e-switching.md §1): switching is immediate,
- * with "{parcel} kept on Your list — Back" when the parcel left had a screen; a screened parcel reopened while
+ * with "{parcel} is on Your list. Reopen it" when the parcel left had a screen; a screened parcel reopened while
  * its session is kept comes back with its overlays live and no network; nothing switches while a screen runs;
  * the × and Esc close the parcel with the same toast.
  */
@@ -43,7 +43,7 @@ test("switching keeps screened parcels live: back to one with no re-run and no n
 
   // Another parcel: switches at once; the screened one is kept, with Back.
   await openFromList(page, "35-3");
-  await expect(toast(page)).toContainText("52-47A kept on Your list");
+  await expect(toast(page)).toContainText("52-47A is on Your list.");
   await page
     .locator(".grade-btn", { hasText: /^Grade this parcel$/ })
     .first()
@@ -62,11 +62,11 @@ test("switching keeps screened parcels live: back to one with no re-run and no n
   // Back to Ferney: its session is still kept, so it's live again with no request at all.
   const servedBefore = net.served.length;
   await openFromList(page, "52-47A");
-  await expect(toast(page)).toContainText("35-3 kept on Your list");
+  await expect(toast(page)).toContainText("35-3 is on Your list.");
   await expect.poll(() => live(page)).toBe(true);
   expect(againstExpected(await postedResult(page), FERNEY, "run"), EXPECTED_MSG).toEqual([]);
   // The toast's Back: Macks again, live, still nothing asked of the network.
-  await toast(page).getByRole("button", { name: "Back" }).click();
+  await toast(page).getByRole("button", { name: "Reopen it" }).click();
   await expect(page.locator(".sh-name").first()).toContainText("35-3");
   await expect.poll(() => live(page)).toBe(true);
   expect(againstExpected(await postedResult(page), MACKS, "run"), EXPECTED_MSG).toEqual([]);
@@ -76,8 +76,8 @@ test("switching keeps screened parcels live: back to one with no re-run and no n
   // The ×: closes the parcel with the same toast; Back reopens it.
   await page.getByRole("button", { name: "Close this parcel" }).first().click();
   await expect(page.locator(".sh-name")).toHaveCount(0);
-  await expect(toast(page)).toContainText("35-3 kept on Your list");
-  await toast(page).getByRole("button", { name: "Back" }).click();
+  await expect(toast(page)).toContainText("35-3 is on Your list.");
+  await toast(page).getByRole("button", { name: "Reopen it" }).click();
   await expect(page.locator(".sh-name").first()).toContainText("35-3");
   // Nothing else ran since: still the worker's current run, and live again for this new open (18b).
   await expect.poll(() => live(page)).toBe(true);
