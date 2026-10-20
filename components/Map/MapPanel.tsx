@@ -3,7 +3,7 @@
  * The map panel (step 17e; plan phase-0-17e-switching.md §2), opened from the map button at the top of the
  * right column. It replaced the "Map ▾" menu, whose native basemap dropdown let a pick click through to the
  * toggle beneath it. A slide-over: the basemaps as radio rows, the map layers, the results on the map (step 8b: the Info
- * panel's Analysis, merged here with the rest of how the map looks),
+ * panel's Analysis, merged here with the rest of how the map looks), what the pins and lines mean (polish #18),
  * then the terrain preview. Esc or × closes it.
  */
 import { mapShowing } from "@/lib/client/mapShowing";
@@ -11,6 +11,7 @@ import { useEffect, useRef } from "react";
 import { useExplore } from "@/components/Explore/useExploreController";
 import { AnalysisGroup } from "./results/AnalysisGroup";
 import { RoadsToggle } from "./RoadsToggle";
+import { MapKey } from "./MapKey";
 import { BASEMAPS } from "./style";
 import { TerrainControls } from "./TerrainControls";
 import { setMapLayerPrefs, useMapLayerPrefs } from "./useMapLayerPrefs";
@@ -82,6 +83,7 @@ function Panel({ onClose }: { onClose: () => void }) {
           {toggle(MARKS_LABEL, p.marks, () => setMapLayerPrefs({ marks: !p.marks }))}
         </div>
         <AnalysisGroup />
+        <MapKey />
         <TerrainControls variant="info" />
       </div>
     </section>

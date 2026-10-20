@@ -1361,11 +1361,28 @@ html:has(.explore) body {
   position: absolute;
   z-index: 14;
   top: 52px;
+  right: 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
   transition: right 0.18s;
+}
+/* A phone (polish #20): the buttons in one row along the top, between Search and the attribution, so the map under
+   them is clear for the pins and "Stand here"; the colour legend on the left under Search, clear of the toolbar and
+   the sheet. */
+@media (max-width: 860px) and (orientation: portrait) {
+  .map-col {
+    top: 10px;
+    right: 30px;
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .map-col .surface-legend {
+    position: fixed;
+    top: 64px;
+    left: 10px;
+  }
 }
 .map-ctl-btn {
   background: var(--tb-bg);
@@ -2750,6 +2767,39 @@ html:has(.app-nav) .explore {
   background: var(--color-ink);
   color: #fff;
   border-color: #fff;
+}
+/* Map layers' key (polish #18): small copies of the pins and lines, each beside what it means. */
+.mp-key summary {
+  cursor: pointer;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+.mk-rows {
+  display: grid;
+  gap: 6px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+.mk-rows li {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 8px;
+  align-items: center;
+}
+.mk-swatch {
+  display: flex;
+  justify-content: center;
+}
+.sitepin.mk-pin {
+  width: 24px;
+  height: 24px;
+  font-size: 11px;
+  line-height: 20px;
+  box-shadow: none;
+  cursor: default;
 }
 .sitepin.veto {
   background: var(--color-steep);
