@@ -19,10 +19,10 @@ describe("rank-sum weights", () => {
     expect(COULD_FACTOR).toBe(0.75);
   });
 
-  it("seven Should cards, the card's rows in order: n down to 1 over 28", () => {
+  it("eight Should cards, the card's rows in order: n down to 1 over 36", () => {
     const ranked: RankedCard[] = ROW_KEYS.map((factor) => ({ factor, tier: "should" }));
     const w = rankSumWeights(ranked);
-    expect(round1(ROW_KEYS.map((k) => w[k]))).toEqual([25, 21.4, 17.9, 14.3, 10.7, 7.1, 3.6]);
+    expect(round1(ROW_KEYS.map((k) => w[k]))).toEqual([22.2, 19.4, 16.7, 13.9, 11.1, 8.3, 5.6, 2.8]);
     expect(Object.values(w).reduce((a, b) => a + b, 0)).toBeCloseTo(100, 9);
   });
 
@@ -47,6 +47,7 @@ describe("rank-sum weights", () => {
       sky: 10,
       room: 15,
       trails: 10,
+      driveway: 0,
       town: 5,
       garden: 10,
     });

@@ -797,5 +797,34 @@ until step 5 (Q14).
       export file (still version 6). Removing a parcel removes its asks and takes.
     - **Filters and sort:** **Waiting for you**, **Both like it** (no take is No and every graded member's grade is C
       or better), and **Lowest of our grades**, beside the existing ones.
+59. **Screening results** (owner, 2026-10-20; step 7 plan, `docs/plans/step-7-results.md`, from Zach's pre-approved
+    brief, its §11 questions answered with the recommendations; roadmap step 7, PRs 0–4).
+    - **The panel, top to bottom:** the answer (grade, verdict, and one line of reason from the person's rubric: up to two
+      strengths, the heaviest rows at A or B, and the biggest miss against their own edge; a failed Must first; "check
+      first: …" when that's what holds an A or B at Maybe); Best homesite with its numbers, heaviest first; up to two
+      other spots (within 10 points, 100 m apart) and "N more spots", each evaluated on a tap as its pin is; the card in
+      priority order (Must have, Really want, Nice to have; Don't care hidden); Still unknown, each Must to check or
+      unknown as a question for the listing agent with Copy and Copy all, what didn't load apart with Try again; and
+      Full report ▸ with every report section. On a phone the answer's reason is in the peek, except while the grade
+      button holds it ("Try again: …"), so the peek stays within 148 px.
+    - **Highest capability:** each person's grade is taken at their best homesite (`lib/report/sites.ts`): the sites
+      that pass the site checks first (the build fits; the person's flood, driveway and site limits), then the weighted
+      points of the site rows they rank (Elevation, Best homesite, Night sky, Room to build, Driveway) on 0–100, then the
+      engine's order. Garden ground stays the parcel's. The Access and Easement gates and Floodplain's driveway part read
+      the scored route; a marked house grades as before. Display-time only: no engine, `ScreenResult` or `expected.json`
+      change. The card oracle, graded at site #1, is unchanged byte for byte (the guard).
+    - **The Driveway row:** graded on the steepest grade of the build site's chosen driveway (`card.rows.drivewayPct`
+      [10, 15, 20, 25]); no route or no practical drive is an F; the length is in the line. Question 10 sets its B/C edge
+      (20 / 15 / 12%) and points (1 / 2 / 1). Skipped, it goes at the bottom of Nice to have with the 15% edge, never
+      higher (owner, #216). The starting list gives it no weight (Don't care), so it grades as before.
+    - **Priorities saved before it** (owner, #216): Driveway is added once, add-only, at the bottom of the tier question
+      10's answer implies (Long and gentle: Really want; the others, or none: Nice to have), with its edge; nothing else
+      moves. What matters says so once ("New: Driveway, placed from your answer about steep drives.") with Undo, which
+      puts it in Don't care for good. The starting list's explicit weights aren't touched. A deliberate exception to the
+      clean-break rule, by the owner's answer.
+    - **The best site on open** (owner, #216): evaluated only if it needs no re-route. Every evaluation re-routes the
+      driveway, so Best homesite instead says where the map's sun, sky and driveway are for, and offers "Evaluate site #N".
+    - **The card's Must rows** use the priorities page's words ("Driveway on your land") (owner, #216).
+    - **The pins:** the person's best site is the inked pin, ringed; their other spots get a light ring.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

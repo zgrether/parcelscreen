@@ -75,11 +75,10 @@ describe("§3: every choice", () => {
     expect(b.gardenAc).toEqual([0.35, 0.1, 0, 0]);
   });
 
-  it("questions 7 and 10–13 only add to the stored list of later factors", () => {
+  it("questions 7 and 11–13 only add to the stored list of later factors", () => {
     const a: InterviewAnswers = {
       fly: "monthly",
       calls: "yes",
-      driveway: "steep",
       hoa: "welcome",
       creek: "rather",
       land: { acres: "5to20", campBudget: 40000, buildBudget: 250000 },
@@ -87,7 +86,6 @@ describe("§3: every choice", () => {
     expect(later(a)).toEqual([
       "Airport (monthly or more)",
       "Internet for video calls",
-      "Driveway (steep is fine, up to 20%)",
       "HOA (welcome)",
       "No creek",
       "Acreage (5–20 acres)",
@@ -98,6 +96,7 @@ describe("§3: every choice", () => {
       elevation: 2,
       homesite: 2,
       room: 2,
+      driveway: 1,
       trails: 2,
       town: 2,
       sky: 1,
@@ -107,6 +106,23 @@ describe("§3: every choice", () => {
       "HOA (light rules)",
     ]);
     expect(later({ fly: "few" })).toEqual(["Airport (a few times a year)"]);
+  });
+
+  it("question 10 sets the Driveway row: its B/C edge, 20 / 15 / 12%, and its points (step 7)", () => {
+    const at = (driveway: "steep" | "gentle" | "build") => rubricFromAnswers({ driveway });
+    expect(at("steep").rubric.bands.drivewayPct).toEqual([15, 20, 25, 30]);
+    expect(at("gentle").rubric.bands.drivewayPct).toEqual([10, 15, 20, 25]);
+    expect(at("build").rubric.bands.drivewayPct).toEqual([7, 12, 17, 22]);
+    expect([at("steep"), at("gentle"), at("build")].map((g) => g.points.driveway)).toEqual([1, 2, 1]);
+    expect(later({ driveway: "steep" })).toEqual([]);
+    expect(whyOf({ driveway: "gentle" }, "driveway")).toEqual(["You'd rather have a long, gentle driveway"]);
+    // Skipped (owner, #216): the bottom of Nice to have with the starting list's 15% edge, never higher, even when
+    // Nice to have is otherwise empty.
+    const skipped = rubricFromAnswers({ er: "30" }).rubric;
+    expect(skipped.ranked.at(-1)).toEqual({ factor: "driveway", tier: "could" });
+    expect(skipped.bands.drivewayPct).toEqual([10, 15, 20, 25]);
+    // "Long and gentle" is Really want: its 2 points meet Really want's floor.
+    expect(at("gentle").rubric.ranked.find((c) => c.factor === "driveway")!.tier).toBe("should");
   });
 
   it("why lines quote the person, never a question number (owner, 10/18)", () => {
@@ -255,19 +271,24 @@ describe("§4: the two people", () => {
       { factor: "homesite", tier: "should" },
       { factor: "trails", tier: "should" },
       { factor: "sky", tier: "should" },
+      // Step 7: "Long and gentle" gives Driveway 2 points, ahead of Room to build by the default order; Town and
+      // hospital, also at 2, goes to Nice to have (Really want holds six).
+      { factor: "driveway", tier: "should" },
       { factor: "room", tier: "should" },
-      { factor: "town", tier: "should" },
+      { factor: "town", tier: "could" },
       { factor: "garden", tier: "could" },
     ]);
     expect(rounded(weightsOf(g.rubric))).toEqual({
-      elevation: 25.2,
-      homesite: 21.6,
-      trails: 18,
-      sky: 14.4,
-      room: 10.8,
-      town: 7.2,
-      garden: 2.7,
+      elevation: 22.7,
+      homesite: 19.9,
+      trails: 17,
+      sky: 14.2,
+      driveway: 11.3,
+      room: 8.5,
+      town: 4.3,
+      garden: 2.1,
     });
+    expect(bcEdge(g.rubric.bands, "drivewayPct")).toBe(15);
     expect(g.rubric.musts.slice(4)).toEqual([
       { factor: "elevation", threshold: 2500 },
       { factor: "homesite", threshold: 3 },
@@ -279,7 +300,6 @@ describe("§4: the two people", () => {
       "Internet for video calls",
       "Privacy (never know they're there)",
       "Frost-free season",
-      "Driveway (gentle, up to 15%)",
       "No HOA (a must)",
       "A creek (the best feature)",
       "Acreage (20–50 acres)",
@@ -295,17 +315,21 @@ describe("§4: the two people", () => {
       { factor: "trails", tier: "should" },
       { factor: "homesite", tier: "could" },
       { factor: "garden", tier: "could" },
+      // Step 7 (owner, #216): question 10 skipped, so Driveway at the bottom of Nice to have, never higher.
+      { factor: "driveway", tier: "could" },
     ]);
     expect(g.rubric.wonts).toEqual(["elevation", "sky"]);
     expect(rounded(weightsOf(g.rubric))).toEqual({
-      town: 35.1,
-      room: 28.1,
-      trails: 21.1,
-      homesite: 10.5,
-      garden: 5.3,
+      town: 30.8,
+      room: 25.6,
+      trails: 20.5,
+      homesite: 11.5,
+      garden: 7.7,
+      driveway: 3.8,
       elevation: 0,
       sky: 0,
     });
+    expect(g.rubric.bands.drivewayPct).toEqual([10, 15, 20, 25]);
     expect(g.rubric.musts.slice(4)).toEqual([{ factor: "town", threshold: 30 }]);
     expect([bcEdge(g.rubric.bands, "erMin"), bcEdge(g.rubric.bands, "groceryMin")]).toEqual([15, 15]);
     expect(g.later).toEqual([
@@ -327,7 +351,7 @@ describe("§2: the rules", () => {
   });
 
   it("Really want holds the rows with 2+ points, kept to 3–6; ties go to the default order", () => {
-    // Everything at 3: six in Really want, the seventh (garden, last in the order) to Nice to have.
+    // Everything at 3: six in Really want; Room (2, by default) to Nice to have; Driveway (skipped) at its bottom.
     const all3 = rubricFromAnswers({
       climate: "cool",
       sky: "camera",
@@ -344,6 +368,7 @@ describe("§2: the rules", () => {
       "sky:should",
       "garden:should",
       "room:could",
+      "driveway:could",
     ]);
     // Only Room to build has 2+: Really want is filled to three with the next best rows.
     const few = rubricFromAnswers({
@@ -361,6 +386,7 @@ describe("§2: the rules", () => {
       "homesite",
     ]);
     expect(few.rubric.wonts).toEqual(["trails"]);
+    expect(few.rubric.ranked.at(-1)).toEqual({ factor: "driveway", tier: "could" });
   });
 
   it("rank-sum weights, always", () => {

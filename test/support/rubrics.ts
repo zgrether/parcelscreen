@@ -16,6 +16,7 @@ export const LEGACY_SECOND_WEIGHTS: Record<RowKey, number> = {
   homesite: 15,
   sky: 10,
   room: 10,
+  driveway: 0,
   trails: 25,
   town: 10,
   garden: 20,

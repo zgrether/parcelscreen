@@ -24,7 +24,9 @@ describe("the columns", () => {
     expect(html).not.toContain("Easement needed");
     expect(html).not.toMatch(/#\d+ · \d+%/);
     expect(html).toContain(emptyLine("could", columnsOf(D)));
-    expect(html).toContain("Nothing ignored: everything counts. Move an item here to ignore it.");
+    // Step 7: the starting list's Driveway row weighs 0, so it starts in Don't care.
+    expect(html).toContain("A driveway no steeper than 15%");
+    expect(html).not.toContain("Nothing ignored: everything counts. Move an item here to ignore it.");
     expect(html).not.toContain("rubric-min-badge");
   });
 

@@ -10,6 +10,8 @@
 import type { InterviewDoc } from "@/lib/rubric/interview/doc";
 import type { Rubric } from "@/lib/rubric/types";
 import type { WhyContext } from "@/lib/rubric/words";
+import { withDriveway } from "@/lib/rubric/drivewayAdd";
+import { addedTo } from "./drivewayAdd";
 import { whyContext } from "./myAnswers";
 import { getPref, type KeyValueStore } from "./prefs";
 import { activeKv } from "./profileKv";
@@ -56,7 +58,12 @@ export async function loadHousehold(): Promise<void> {
         : readOnly(new Map((await s.docs(p.id).catch(() => [])).map((d) => [d.key, d.value])));
     const rubrics = getPref("ps.rubrics", kv);
     const interview = getPref("ps.interview", kv) as InterviewDoc | null;
-    next.push({ id: p.id, name: p.name, rubric: rubrics?.mine ?? null, why: whyContext(interview) });
+    // Step 7 (owner, #216): priorities saved before the Driveway row get it, as their own device will add it.
+    const added = addedTo(rubrics, interview?.answers.driveway);
+    const mine = added?.mine ?? rubrics?.mine ?? null;
+    const base = added && interview?.base ? withDriveway(interview.base, interview.answers.driveway) : null;
+    const why = whyContext(base && interview ? { ...interview, base } : interview);
+    next.push({ id: p.id, name: p.name, rubric: mine, why });
   }
   list = next;
   if (typeof window !== "undefined") window.dispatchEvent(new Event(RUBRICS_CHANGED));

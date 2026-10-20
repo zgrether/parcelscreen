@@ -7,8 +7,9 @@
  */
 import Link from "next/link";
 import { GRADES_ID, GRADES_TITLE } from "@/lib/client/help";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { effectiveRubrics, profileRubrics } from "@/lib/client/rubrics";
+import { markDrivewayNoteSeen, pendingDrivewayNote, undoDrivewayAdd } from "@/lib/client/drivewayAdd";
 import { reportCard } from "@/lib/report/card";
 import { useMyRubric } from "@/lib/client/useMyRubric";
 import type { EditorCard } from "@/lib/rubric/edit";
@@ -69,6 +70,17 @@ export function RubricEditor() {
       : null;
   const others = profileRubrics().filter((r) => r.id !== MINE);
   const close = useCallback(() => setSheet(null), []);
+  // Step 7 (owner, #216): the one-time note on the Driveway row added to these priorities, with its Undo.
+  const [driveNote, setDriveNote] = useState(() => pendingDrivewayNote());
+  useEffect(() => {
+    if (driveNote) markDrivewayNoteSeen();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once, as the page opens
+  }, []);
+  const undoDriveway = () => {
+    const without = undoDrivewayAdd();
+    if (without) my.resetTo(without);
+    setDriveNote(null);
+  };
 
   return (
     <>
@@ -130,6 +142,18 @@ export function RubricEditor() {
             }}
             cancel={() => setConfirmReset(null)}
           />
+        )}
+
+        {driveNote && (
+          <div className="card-stale rubric-new" role="status">
+            <span>{driveNote}</span>
+            <button type="button" className="btn small" onClick={undoDriveway}>
+              Undo
+            </button>
+            <button type="button" className="btn secondary small" onClick={() => setDriveNote(null)}>
+              OK
+            </button>
+          </div>
         )}
 
         {my.switched && (

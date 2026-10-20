@@ -24,6 +24,7 @@ const PANELS: Record<PanelKey, true> = {
   homesite: true,
   sky: true,
   room: true,
+  driveway: true,
   trails: true,
   town: true,
   garden: true,
@@ -129,7 +130,8 @@ export function panelText(
       return {
         title: "Best homesite",
         question: "Is there a good place to build?",
-        howScored: `Site #1's quality grade, from its sun, facing, frost, slope and sky; what it costs to build there picks the site but isn't graded here; ${weightOf(rubrics, "homesite")}.`,
+        // Step 7 (§9.43: it read "Site #1's quality grade", superseded by the best site).
+        howScored: `The quality grade of your best homesite (the site your priorities rank first), from its sun, facing, frost, slope and sky; what it costs to build there breaks ties but isn't graded here; ${weightOf(rubrics, "homesite")}.`,
       };
     case "sky":
       return {
@@ -146,11 +148,22 @@ export function panelText(
         title: "Room to build",
         question:
           "Does the whole build fit on gentle ground: the house, the garage, the turnaround and the septic field with its reserve?",
-        howScored: `Gentle ground (${gentleText}) within ${fmt(build.drainfieldWithinFt)} ft of where the house goes on site #1, against the build footprint, ${fmt(footprintFt2(build))} ft²: ${ladder(
+        howScored: `Gentle ground (${gentleText}) within ${fmt(build.drainfieldWithinFt)} ft of where the house goes on your best homesite, against the build footprint, ${fmt(footprintFt2(build))} ft²: ${ladder(
           R.roomX.slice(0, 3).map((v) => `${v}×`),
           "at",
           "from",
         )}, D when it fits; an F when the build doesn't fit on any homesite; ${weightOf(rubrics, "room")}.`,
+      };
+    case "driveway":
+      // Step 7 (plan §3): new text.
+      return {
+        title: "Driveway",
+        question: "How steep is the drive up to the house?",
+        howScored: `The steepest grade on the driveway to the build site, over 30 m: ${ladder(
+          R.drivewayPct.map((v) => `${fmt(v)}%`),
+          "up to",
+          "up to",
+        )}; an F when no route reaches it or no practical drive does. Its length is shown, not graded: its cost is Cost to enjoy's; ${weightOf(rubrics, "driveway")}.`,
       };
     case "trails":
       return {

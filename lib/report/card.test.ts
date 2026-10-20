@@ -21,6 +21,7 @@ import {
   reportCard,
   roadInWords,
   type CardConfig,
+  type NamedRubric,
 } from "./card";
 
 const K = SCREEN_CONSTANTS.card;
@@ -41,6 +42,8 @@ const gates = (r: ScreenResult) => Object.fromEntries(cardFacts(r).gates.map((g)
 const grades = (r: ScreenResult) => Object.fromEntries(cardFacts(r).rows.map((x) => [x.key, x.grade]));
 const gateOf = (r: ScreenResult, key: string) => cardFacts(r).gates.find((g) => g.key === key)!;
 const rowOf = (r: ScreenResult, key: string) => cardFacts(r).rows.find((x) => x.key === key)!;
+/** The card graded at site #1 (step 7): for the tests of a gate or row rule that change site #1 to make their case. */
+const atSite1 = (r: ScreenResult, nr: NamedRubric) => reportCard(r, nr, undefined, undefined, { at: 0 });
 const SEPTIC_WARN = "no soil on the parcel rates better than very limited for a septic field";
 
 describe("the report card on the fixtures (engine 13)", () => {
@@ -53,6 +56,7 @@ describe("the report card on the fixtures (engine 13)", () => {
       homesite: "A",
       sky: "B",
       room: "A",
+      driveway: "A", // step 7: 5% at its steepest
       trails: "D", // follow-up 54: 47 min by road to Buffalo Mountain's parking (it read C, 6.5 mi straight)
       town: "D",
       garden: "A",
@@ -87,6 +91,7 @@ describe("the report card on the fixtures (engine 13)", () => {
       homesite: "A",
       sky: "B",
       room: "B", // VR3b: site #1's gentle ground near the house, 2.8× (it read 20.9 ac parcel-wide)
+      driveway: "A", // step 7: 8% at its steepest
       // Follow-up 54: from the entrance, whose road OSRM drives as a track at about 6 mph (followup-54 plan §4).
       trails: "F",
       town: "F",
@@ -102,10 +107,13 @@ describe("the report card on the fixtures (engine 13)", () => {
     );
     const zach = reportCard(r, ZACH),
       julie = reportCard(r, JULIE);
-    expect(zach.points).toBeCloseTo(3.05, 9);
+    // Step 7: graded at Zach's best site, #3 (3.05 at site #1, the step 6 card; the guard keeps that one).
+    expect(r.sites![zach.at]!.rank).toBe(3);
+    expect(zach.points).toBeCloseTo(3.2, 9);
+    expect(reportCard(r, ZACH, undefined, undefined, { at: 0 }).points).toBeCloseTo(3.05, 9);
     // Two warns (the road in, the septic) are a Maybe.
     expect([zach.grade, zach.verdict]).toEqual(["B", "Maybe"]);
-    expect(julie.points).toBeCloseTo(2.2, 9);
+    expect(julie.points).toBeCloseTo(2.3, 9); // step 7: at her best site (2.2 at site #1)
     expect([julie.grade, julie.verdict]).toEqual(["C", "Maybe"]);
     expect(zach.reason).toBe(
       "Maybe. Check first: frontage on an unnamed road; the road in is a track (OpenStreetMap); check that it's public and drivable year-round.",
@@ -206,10 +214,12 @@ describe("the report card on the fixtures (engine 13)", () => {
       homesite: "A",
       sky: "A",
       room: "B",
+      driveway: "C", // step 7: 18% at its steepest, past the starting list's 15%
       trails: "B",
       town: "C",
       garden: "C",
     });
+    expect(rowOf(r, "driveway").detail).toBe("2,888 ft, 18% at its steepest");
     const zach = reportCard(r, ZACH);
     expect(zach.points).toBeCloseTo(3.45, 9);
     expect([zach.grade, zach.verdict]).toEqual(["B", "Contender"]);
@@ -227,7 +237,7 @@ describe("the gates", () => {
     const r = ferney();
     r.flood = { zones: ["AE"], sfha: true, sfhaAcres: 3, mapped: true };
     r.sites![0]!.flood = true;
-    const c = reportCard(r, ZACH);
+    const c = atSite1(r, ZACH);
     expect(c.verdict).toBe("Pass");
     expect(c.reason).toBe("Pass: the build site is in a FEMA flood zone.");
   });
@@ -272,7 +282,7 @@ describe("the gates", () => {
     // A Pass stays a Pass.
     r.sites![0]!.flood = true;
     r.flood = { zones: ["AE"], sfha: true, sfhaAcres: 3, mapped: true };
-    expect(reportCard(r, ZACH).reason).toBe(
+    expect(atSite1(r, ZACH).reason).toBe(
       "Pass: the build site is in a FEMA flood zone (incomplete: the sky atlas didn't load, run again).",
     );
   });
@@ -624,7 +634,7 @@ describe("the rows", () => {
       grade: "F",
       checkFirst: "your build doesn't fit on the gentle ground (0.2 ac, 0.4× the footprint)",
     });
-    const c = reportCard(r, ZACH);
+    const c = atSite1(r, ZACH);
     expect(c.points).toBeGreaterThan(K.verdict.contender); // a Contender on points alone
     expect(c.verdict).toBe("Maybe");
     expect(c.reason).toBe(
@@ -633,7 +643,7 @@ describe("the rows", () => {
     // A fail still comes first.
     r.sites![0]!.flood = true;
     r.flood = { zones: ["AE"], sfha: true, sfhaAcres: 3, mapped: true };
-    expect(reportCard(r, ZACH).reason).toBe("Pass: the build site is in a FEMA flood zone.");
+    expect(atSite1(r, ZACH).reason).toBe("Pass: the build site is in a FEMA flood zone.");
   });
 
   it("a trailhead serving TREC trails says so after its name; none when it serves only its own (step 2, additive)", () => {

@@ -34,12 +34,20 @@ const recorded = (slug: FixtureSlug): Recorded =>
     ),
   ) as Recorded;
 
-/** The card without what step 1 added to it: the rubric, and each row's measure. */
+/**
+ * The card without what step 1 added to it (the rubric, and each row's measure) and what step 7 added (the site it
+ * reads, the person's ranking of the sites, and the reason's lead as data).
+ */
 const comparable = (c: Card) => {
-  const { rubric: _rubric, ...rest } = c;
+  const { rubric: _rubric, at: _at, sites: _sites, lead: _lead, ...rest } = c;
   return { ...rest, rows: rest.rows.map(({ measure: _m, ...row }) => row) };
 };
 
+/**
+ * Step 7's guard (plan §2): graded at site #1, with the Driveway row as Don't care (it is, on both shipped weight
+ * sets), every card is today's, byte for byte. So a grade or verdict that changes can only come from the best site or
+ * the Driveway row, the two sources the step declared.
+ */
 describe("the default rubric reproduces today's cards (cards-v7.json; a port-only fixture's cards-v8.json)", () => {
   for (const slug of FIXTURE_SLUGS)
     for (const scenario of SCENARIOS[slug])
@@ -47,19 +55,20 @@ describe("the default rubric reproduces today's cards (cards-v7.json; a port-onl
         it(`${slug} ${scenario}, ${nr.id}`, () => {
           const want = recorded(slug)[scenario]![nr.id]!;
           const { person: _p, ...wantRest } = want;
-          const got = comparable(reportCard(expectedOf(slug, scenario), nr));
+          const got = comparable(reportCard(expectedOf(slug, scenario), nr, undefined, undefined, { at: 0 }));
           expect(differences(got, wantRest)).toEqual([]);
           expect(got.points).toBe(wantRest.points);
         });
 
-  it("the default is explicit, the four gates are its Musts, every row is ranked Should, nothing is a Won't", () => {
+  it("the default is explicit, the four gates are its Musts, every weighted row is ranked Should, Driveway is a Won't", () => {
     for (const nr of PERSONS) {
       const r = nr.rubric;
       expect(r.weights.mode).toBe("explicit");
       expect(r.musts.map((m) => m.factor)).toEqual(["floodplain", "access", "easement", "septic"]);
       expect(r.musts.every((m) => m.threshold === undefined)).toBe(true);
       expect(r.ranked.map((c) => c.tier)).toEqual(Array<"should">(7).fill("should"));
-      expect(r.wonts).toEqual([]);
+      // Step 7: the Driveway row weighs 0 in both shipped sets, so the starting list grades as before it.
+      expect(r.wonts).toEqual(["driveway"]);
       expect(r.bands).toEqual(SCREEN_CONSTANTS.card.rows);
       expect(r.points).toEqual(SCREEN_CONSTANTS.card.points);
       expect(r.gradeCutoffs).toEqual(SCREEN_CONSTANTS.card.gradeCutoffs);

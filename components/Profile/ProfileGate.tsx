@@ -18,6 +18,7 @@ import { owesInterview } from "@/lib/client/onboarding";
 import { bootProfiles } from "@/lib/client/profiles";
 import { initSync } from "@/lib/sync/engine";
 import { startHousehold } from "@/lib/client/household";
+import { addDrivewayOnce } from "@/lib/client/drivewayAdd";
 
 export function ProfileGate({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
@@ -26,14 +27,21 @@ export function ProfileGate({ children }: { children: ReactNode }) {
   useEffect(() => {
     let alive = true;
     // The household's members load before the first render (step 6): the list and the card grade with their rubrics.
-    const settle = () =>
-      void startHousehold()
+    // Step 7 (owner, #216): first, the Driveway row is added once to this profile's saved priorities.
+    const settle = () => {
+      try {
+        addDrivewayOnce();
+      } catch {
+        /* a profile's documents unreadable: nothing added, the rest boots */
+      }
+      return void startHousehold()
         .catch(() => undefined)
         .then(() => {
           if (!alive) return;
           setReady(true);
           void initSync();
         });
+    };
     bootProfiles().then(settle, settle);
     return () => {
       alive = false;

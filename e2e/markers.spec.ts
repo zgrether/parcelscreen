@@ -1,7 +1,7 @@
 /**
  * Markers (WF4, docs/plans/parcel-workflow.md §3.1) and placing them (owner, after #136): + Mark opens the Mark
  * picker, a popover on a desktop and a bottom sheet on a phone, its kinds in four groups with the last three used
- * first; the kind sets the shape. A septic permit passes the Septic gate at once, says how far it is from site #1 once
+ * first; the kind sets the shape. A septic permit passes the Septic gate at once, says how far it is from the build site once
  * dragged away, and its delete brings the warn back (Undo puts it back); one tap makes it a point, more outline its
  * field. A long press on a phone (a right-click on a desktop) opens the picker there. The boundary tools moved under
  * Boundary ▾. Markers outlast a reload; a Septic field #136 saved reads as a Septic permit's area.
@@ -10,6 +10,8 @@ import { expect, test, type Page } from "@playwright/test";
 import { expectedOf } from "../test/support/expected";
 import { expectAllDone, importParcel, openExplorer, reload, screenIt } from "./flow";
 import { replayHar } from "./replay";
+import { reportCard } from "../lib/report/card";
+import { defaultNamedRubric } from "../lib/rubric/default";
 
 const MACKS = "macks-mountain-35-3" as const;
 
@@ -45,7 +47,7 @@ test("the Mark picker: a septic permit (a point, then a field), its gate, a drag
   await openExplorer(page, MACKS);
   await importParcel(page, MACKS);
   expectAllDone(await screenIt(page));
-  const gate = page.locator(".card-gates .gate").filter({ hasText: /septic/i });
+  const gate = page.locator(".must-row").filter({ has: page.locator(".row-label", { hasText: /septic/i }) });
   await expect(gate).toHaveAttribute("aria-label", "Septic: warn");
 
   // The picker, a popover on a desktop: four groups, no Recent yet.
@@ -62,8 +64,11 @@ test("the Mark picker: a septic permit (a point, then a field), its gate, a drag
   await page.keyboard.press("Escape");
   await expect(picker(page)).toHaveCount(0);
 
-  // A septic permit: one tap at site #1, then Done, makes its point.
-  const site = expectedOf(MACKS, "run").sites![0]!.ll;
+  // A septic permit: one tap at the build site, then Done, makes its point. Step 7: the card's build site is the
+  // person's best homesite (on the starting list, Macks's site #3).
+  const best = reportCard(expectedOf(MACKS, "run"), defaultNamedRubric());
+  const bestSite = expectedOf(MACKS, "run").sites![best.at]!;
+  const site = bestSite.ll;
   await mark(page, "Water & utilities", "Septic permit");
   await expect(page.locator(".tb-status")).toHaveText("Tap the permit's spot, or its field's corners");
   const p = await onMap(page, site);
@@ -88,7 +93,7 @@ test("the Mark picker: a septic permit (a point, then a field), its gate, a drag
   const pin = page.locator(".mark-pin");
   await expect(pin.locator("svg")).toHaveCount(1);
 
-  // Dragged well away from site #1 (about 100 px): the gate says how far.
+  // Dragged well away from the build site (about 100 px): the gate says how far.
   const box = (await pin.boundingBox())!;
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();
@@ -96,7 +101,7 @@ test("the Mark picker: a septic permit (a point, then a field), its gate, a drag
   await page.mouse.up();
   await expect(gate).toHaveAttribute(
     "title",
-    /; the permit is [\d,]+ ft from site #1; it covers the spot that was tested$/,
+    new RegExp(`; the permit is [\\d,]+ ft from site #${bestSite.rank}; it covers the spot that was tested$`),
   );
 
   // Delete: the warn is back; Undo puts the permit back, and the pass.

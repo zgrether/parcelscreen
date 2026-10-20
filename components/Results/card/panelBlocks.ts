@@ -32,6 +32,7 @@ const BLOCKS: Record<PanelKey, Block[]> = {
   homesite: [WhereToBuild, ExistingHouse, DecemberSun],
   sky: [DarkSkies],
   room: [Terrain],
+  driveway: [Driveway],
   trails: [PublicLand, GettingThere],
   town: [GettingThere],
   garden: [WhereToGarden, Soils],

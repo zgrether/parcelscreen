@@ -107,7 +107,9 @@ describe("the comparison table (VR6)", () => {
     }
     expect(rows.find((r) => r.key === "elevation")!.cells.map((c) => c.text)).toEqual(
       three.map(
-        (p) => `${p.result!.sites![0]!.elevFt.toLocaleString("en-US", { maximumFractionDigits: 0 })} ft`,
+        // Step 7: each at Zach's best site.
+        (p) =>
+          `${p.result!.sites![reportCard(p.result!, ZACH).at]!.elevFt.toLocaleString("en-US", { maximumFractionDigits: 0 })} ft`,
       ),
     );
   });

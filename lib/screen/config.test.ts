@@ -185,6 +185,11 @@ describe("config", () => {
         },
         "card": {
           "editor": {
+            "drivewayPct": {
+              "max": 25,
+              "min": 8,
+              "step": 1,
+            },
             "elevationFt": {
               "max": 4500,
               "min": 1000,
@@ -256,6 +261,32 @@ describe("config", () => {
                 "warm": {
                   "points": {
                     "elevation": 0,
+                  },
+                },
+              },
+              "driveway": {
+                "build": {
+                  "edges": {
+                    "drivewayPct": 12,
+                  },
+                  "points": {
+                    "driveway": 1,
+                  },
+                },
+                "gentle": {
+                  "edges": {
+                    "drivewayPct": 15,
+                  },
+                  "points": {
+                    "driveway": 2,
+                  },
+                },
+                "steep": {
+                  "edges": {
+                    "drivewayPct": 20,
+                  },
+                  "points": {
+                    "driveway": 1,
                   },
                 },
               },
@@ -431,6 +462,7 @@ describe("config", () => {
               },
             },
             "defaultPoints": {
+              "driveway": 1,
               "elevation": 2,
               "garden": 1,
               "homesite": 2,
@@ -464,6 +496,12 @@ describe("config", () => {
             "F": 0,
           },
           "rows": {
+            "drivewayPct": [
+              10,
+              15,
+              20,
+              25,
+            ],
             "elevationFt": [
               3000,
               2500,
@@ -514,6 +552,12 @@ describe("config", () => {
               50,
             ],
           },
+          "sites": {
+            "alternatives": 2,
+            "apartM": 100,
+            "numbers": 5,
+            "withinPoints": 10,
+          },
           "verdict": {
             "contender": 2.5,
             "contenderMaxWarns": 1,
@@ -521,6 +565,7 @@ describe("config", () => {
           },
           "weights": {
             "default": {
+              "driveway": 0,
               "elevation": 25,
               "garden": 10,
               "homesite": 25,

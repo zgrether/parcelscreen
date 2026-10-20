@@ -288,7 +288,8 @@ export function scalesFor(
   card: Card,
   B: Bands = SCREEN_CONSTANTS.bands,
 ): Scale[] {
-  const site = r.sites?.[0];
+  // Step 7: the site the card graded, the person's best (site #1 for a marked house, as before).
+  const site = r.sites?.[card.at];
   const row = (k: string) => card.rows.find((x) => x.key === k);
   switch (panel) {
     case "homesite": {
@@ -322,6 +323,24 @@ export function scalesFor(
         ),
       ];
     }
+    // The Driveway row's panel (step 7) shows the Easement gate's scale for the scored route; at another site, the
+    // grade the row read there, since only the scored route is stored in full.
+    case "driveway": {
+      const house = !!r.house && !("outside" in r.house);
+      const pct = row("driveway")?.measure?.value;
+      if (!house && card.at > 0)
+        return pct === undefined
+          ? []
+          : [
+              scale(
+                "Driveway",
+                scaleBands("Driveway", B),
+                bandUpTo(pct, B.drivewayPct),
+                `${fmt(pct, 1)}% over 30 m`,
+              ),
+            ];
+      return scalesFor("easement", r, card, B);
+    }
     case "easement": {
       const g = drivewayDesign(r, card.drivewayLine ?? null);
       if (!g) return [];
@@ -342,7 +361,7 @@ export function scalesFor(
       ];
     }
     case "elevation": {
-      const s = buildSite(r);
+      const s = buildSite(r, card.at);
       if (!s || s.elevFt === null) return [];
       return [
         {
@@ -363,14 +382,14 @@ export function scalesFor(
             scale(
               "Sky",
               scaleBands("Sky", B),
-              bandOf(r.sky.mag, B.skyMag),
-              `${fmt(r.sky.mag, 2)} mag/arcsec²`,
+              bandOf(row("sky")?.measure?.value ?? r.sky.mag, B.skyMag),
+              `${fmt(row("sky")?.measure?.value ?? r.sky.mag, 2)} mag/arcsec²`,
             ),
           ]
         : [];
     case "room": {
-      // Site #1's gentle ground near the house (v4), over the whole footprint: the row's own measure.
-      const s = r.sites?.[0];
+      // The graded site's gentle ground near the house (v4), over the whole footprint: the row's own measure.
+      const s = r.sites?.[card.at];
       if (!s) return [];
       const x = s.fit === "fits" ? s.gentleNearAc / (footprintFt2() / FT2_PER_ACRE) : 0;
       const edges = [...SCREEN_CONSTANTS.card.rows.roomX].reverse();
@@ -384,7 +403,7 @@ export function scalesFor(
       ];
     }
     case "septic": {
-      // Site #1's own soil (§5.3); the gate is the parcel-wide rule.
+      // The graded site's own soil (§5.3); the gate is the parcel-wide rule.
       const soil = site ? soilUnder(r, site.ll) : null;
       const cls = soil ? septicClass(soil) : null;
       if (!soil || !cls) return [];

@@ -465,6 +465,16 @@ sync_household space, kind ('ask' | 'take'), key, record jsonb, deleted, updated
 An ask's key is "<parcel>:<to>", a take's "<parcel>:<by>". `docs/plans/step-6-household.md` and phase-0.md §9.58
 have the details.
 
+### 3g. Screening results (roadmap step 7)
+
+No new storage. The report card is still made at display time from a stored screen and a rubric, now at the person's
+best homesite (each ranked site already stores what its rows read: elevation, December sun, its own sky reading, fit and
+gentle ground, and its chosen driveway's facts). The rubric gains a Driveway row and its band, both optional on read: a
+rubric saved before step 7 reads the starting list's band, so the stored rubric keeps `version: 1` and the export file
+stays version 6. At the next start, a profile's own saved priorities get the Driveway row once (owner, #216). One
+optional field on the stored rubrics marks it, `drivewayAdded`: "new" until What matters has shown its note, "seen"
+after, "undone" after its Undo. `docs/plans/step-7-results.md` and phase-0.md §9.59 have the details.
+
 ## 4. The parcel page (the export)
 
 Blocks, in order; each is computed, placeholder, or user-authored:

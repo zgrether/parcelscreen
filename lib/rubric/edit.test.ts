@@ -38,12 +38,12 @@ const names = (r: Rubric) => {
 };
 
 describe("the columns", () => {
-  it("the default: the four dealbreakers in Must, the seven rows in Should by weight, nothing in Could or Won't", () => {
+  it("the default: the four dealbreakers in Must, the seven weighted rows in Should by weight, the Driveway row (weight 0) in Won't (step 7)", () => {
     expect(names(D)).toEqual({
       must: ["floodplain", "access", "easement", "septic"],
       should: ["elevation", "homesite", "room", "sky", "trails", "garden", "town"],
       could: [],
-      wont: [],
+      wont: ["driveway"],
     });
   });
 
@@ -54,7 +54,7 @@ describe("the columns", () => {
     });
     const out = ok(moveCard(D, { kind: "factor", factor: "access" }, "wont"));
     expect(names(out.rubric).must).toEqual(["floodplain", "easement", "septic"]);
-    expect(names(out.rubric).wont).toEqual(["access"]);
+    expect(names(out.rubric).wont).toEqual(["access", "driveway"]);
     expect(out.rubric.weights).toEqual(D.weights); // not a reorder
     const back = ok(moveCard(out.rubric, { kind: "factor", factor: "access" }, "must"));
     expect(names(back.rubric).must).toEqual(["floodplain", "access", "easement", "septic"]);
@@ -96,7 +96,7 @@ describe("the columns", () => {
   it("a row moved to Won't leaves the grade and takes its minimum with it; explicit weights stay", () => {
     const withMin = ok(moveCard(D, { kind: "factor", factor: "garden" }, "must")).rubric;
     const out = ok(moveCard(withMin, { kind: "factor", factor: "garden" }, "wont"));
-    expect(names(out.rubric).wont).toEqual(["garden"]);
+    expect(names(out.rubric).wont).toEqual(["driveway", "garden"]);
     expect(names(out.rubric).should).not.toContain("garden");
     expect(hasMinimum(out.rubric, "garden")).toBe(false);
     expect(out.rubric.weights.mode).toBe("explicit");
@@ -125,6 +125,7 @@ describe("the weights: explicit until the first reorder, then rank-sum at once (
       ["homesite", 25, 17.9],
       ["sky", 10, 21.4],
       ["room", 15, 14.3],
+      ["driveway", 0, 0],
       ["trails", 10, 10.7],
       ["town", 5, 3.6],
       ["garden", 10, 7.1],
@@ -148,6 +149,7 @@ describe("the weights: explicit until the first reorder, then rank-sum at once (
       homesite: 21.4,
       sky: 14.3,
       room: 17.9,
+      driveway: 0,
       trails: 10.7,
       town: 3.6,
       garden: 7.1,
@@ -158,7 +160,8 @@ describe("the weights: explicit until the first reorder, then rank-sum at once (
     };
     expect(pts("ferney-creek-52-47A", D)).toEqual([3.2, "B", "Contender"]);
     expect(pts("ferney-creek-52-47A", rs)).toEqual([3.179, "B", "Contender"]);
-    expect(pts("macks-mountain-35-3", rs)).toEqual([3.036, "B", "Maybe"]);
+    // Step 7: Macks is graded at its best site under this order, #3 (3.036 at site #1).
+    expect(pts("macks-mountain-35-3", rs)).toEqual([3.214, "B", "Maybe"]);
     expect(pts("grayson-mud-creek-6273", D)).toEqual([3.45, "B", "Contender"]);
     expect(pts("grayson-mud-creek-6273", rs)).toEqual([3.5, "A", "Contender"]);
     expect(pts("roan-hwy-143-099-046-02", rs)).toEqual([2.786, "B", "Maybe"]);

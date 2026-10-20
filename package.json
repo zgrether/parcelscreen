@@ -23,6 +23,7 @@
     "expected": "vitest run test/tools/expected.test.ts --mode expected",
     "diff:prototype": "vitest run test/tools/diff-prototype.test.ts --mode diff-prototype",
     "before-after": "vitest run test/tools/before-after.test.ts --mode before-after",
+    "step7-table": "vitest run test/tools/step7-table.test.ts --mode step7-table",
     "guard:expected": "vitest run test/tools/expected-guard.test.ts --mode guard",
     "check:pins": "vitest run test/tools/pins.test.ts",
     "check:fixtures": "vitest run test/tools/fixture-size.test.ts",

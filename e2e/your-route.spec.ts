@@ -70,13 +70,14 @@ test("Mud Creek: the red-gate route beside the app's pick; chosen as the drivewa
   // only the driveway has to be done.
   expect((await screenIt(page)).driveway).toBe("done");
 
-  const gate = (label: RegExp) => page.locator(".card-gates .gate").filter({ hasText: label });
+  const gate = (label: RegExp) =>
+    page.locator(".must-row").filter({ has: page.locator(".row-label", { hasText: label }) });
   const access = gate(/access/i);
   await expect(access).toHaveAttribute("aria-label", "Legal road access: pass");
   await expect(access).toHaveAttribute("title", "Frontage on Mud Creek Ln");
 
   // The Easement panel: the app's pick and the red-gate route, side by side.
-  await gate(/easement/i).click();
+  await gate(/driveway on your land/i).click();
   const choice = page.locator(".route-choice");
   await expect(choice.locator(".route-choice-col")).toHaveCount(2);
   await expect(choice.locator(".route-choice-col").nth(0)).toContainText("The app's pick");
