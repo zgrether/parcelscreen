@@ -26,6 +26,7 @@ import { reportCard } from "@/lib/report/card";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import { drawnOf } from "@/lib/report/marks";
 import { AddedBy } from "@/components/Household/AddedBy";
+import { useSeeTakes } from "@/lib/client/householdDoc";
 import { listingAcresNote } from "@/lib/report/listing";
 
 export function ParcelDetail({
@@ -46,6 +47,7 @@ export function ParcelDetail({
   const { rubrics, rubric, setRubric } = useRubricView();
   const [panel, setPanel] = useState<PanelKey | null>(null);
   const [confirming, setConfirming] = useState(false);
+  useSeeTakes(parcel.key); // step 6b: open, so its takes are seen
   const config = useMemo(() => loadUserConfig(), []);
   const result = kept?.state === "ok" ? kept.result : null;
   const drawn = drawnOf(parcel.markup, parcel.drivewayLine);

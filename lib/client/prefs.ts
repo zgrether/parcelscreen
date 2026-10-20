@@ -10,7 +10,7 @@ import { withRanks } from "./myOrder";
 import { ProfileRubricsSchema, type ProfileRubrics } from "@/lib/rubric/schema";
 import { InterviewDocSchema, type InterviewDoc } from "@/lib/rubric/interview/doc";
 import { MINE } from "@/lib/rubric/types";
-import { readHousehold, type Household } from "./takes";
+import { readHousehold, readSeen, type Household, type SeenTakes } from "./takes";
 import { activeKv, isProfileKey, isSharedKey, sharedKv } from "./profileKv";
 import { readParcelStore, withNamesFromNotes, writeParcelStore, type ParcelStore } from "./parcelStore";
 
@@ -84,6 +84,8 @@ export interface Prefs {
   "ps.namesFromNotes": boolean;
   /** The Mark picker's Recent row (owner, after #136): the last kinds marked, newest first, per browser. */
   "ps.recentMarks": MarkChoice[];
+  /** The other members' takes this profile has seen here (step 6b): per profile and device, never synced. */
+  "ps.seenTakes": SeenTakes;
 }
 
 const DEFAULTS: Prefs = {
@@ -110,6 +112,7 @@ const DEFAULTS: Prefs = {
   "ps.library": DEFAULT_VIEW,
   "ps.namesFromNotes": false,
   "ps.recentMarks": [],
+  "ps.seenTakes": {},
 };
 
 /** How each key is stored: the prototype kept flags as "1"/"0" and the rest as plain strings or JSON. */
@@ -153,6 +156,7 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
   "ps.library": { read: readLibraryView, write: (v) => JSON.stringify(v) },
   "ps.namesFromNotes": { read: (r) => r === "1", write: (v) => (v ? "1" : "0") },
   "ps.recentMarks": { read: readRecent, write: (v) => JSON.stringify(v) },
+  "ps.seenTakes": { read: readSeen, write: (v) => JSON.stringify(v) },
   "ps.overlays": {
     // Unknown or missing keys read as shown, so an overlay added later starts visible.
     read: (r) => ({ ...ALL_OVERLAYS, ...(JSON.parse(r) as Partial<OverlayPrefs>) }),
@@ -235,8 +239,9 @@ export function setPref<K extends keyof Prefs>(
     parcelWrites++;
     announceParcels(value as Prefs["ps.parcels"]);
   }
-  // The asks and takes (step 6): heard by the list's badge and the parcel's take, here or from a sync.
-  if (key === "ps.household" && typeof window !== "undefined")
+  // The asks and takes (step 6), and which takes I've seen (6b): heard by the list's badge, its rows and the parcel's
+  // take, whether written here or arriving by a sync.
+  if ((key === "ps.household" || key === "ps.seenTakes") && typeof window !== "undefined")
     queueMicrotask(() => window.dispatchEvent(new Event(HOUSEHOLD_WRITTEN)));
 }
 

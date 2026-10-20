@@ -5257,6 +5257,14 @@ button.cmp-cell:hover {
   padding: 10px 22px;
   font-size: 16px;
 }
+/* The first run's "I already use Parcel Screen on another device", and its code form. */
+.iv > .join-first {
+  margin: 8px 0 12px;
+}
+.iv > button.join-first {
+  align-self: flex-start;
+  min-height: 44px;
+}
 .iv-nav {
   display: flex;
   justify-content: space-between;
@@ -5748,6 +5756,26 @@ button.sync-ind.bad {
 }
 .app-tab {
   position: relative;
+}
+/* Step 6b: an ask's note on its row, one line; a take not seen yet. */
+.lib-ask-note {
+  display: block;
+  max-width: 100%;
+  min-width: 0;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-ink);
+}
+.new-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin: 0 2px 0 6px;
+  border-radius: 50%;
+  background: var(--color-steep);
+  vertical-align: middle;
 }
 .app-badge {
   display: inline-block;

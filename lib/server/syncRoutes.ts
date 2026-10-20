@@ -15,6 +15,7 @@ import { normalizeCode, spaceKeyOf } from "../sync/code";
 import type { SyncStore } from "../sync/store";
 import { CODE_HEADER, MAX_BATCH_BYTES, SaveBatch } from "../sync/wire";
 import { SCREEN_SCHEMA_VERSION } from "../screen/types";
+import { SyncConfigError } from "./syncConfig";
 
 const NO_STORE = { "cache-control": "no-store" };
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: NO_STORE });
@@ -78,7 +79,9 @@ export async function handleHealth(store: SyncStore): Promise<Response> {
   try {
     await store.health();
     return json({ ok: true });
-  } catch {
+  } catch (e) {
+    if (e instanceof SyncConfigError) throw e; // withStore answers it: { error: "server-config" }, 503
+    console.error(`sync: health: ${e instanceof Error ? e.message : String(e)}`);
     return json({ ok: false }, 503);
   }
 }

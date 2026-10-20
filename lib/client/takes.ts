@@ -87,6 +87,33 @@ export const waitingFor = (h: Household, me: string): Set<string> =>
   new Set(h.asks.filter((a) => a.to === me && waits(h, a)).map((a) => a.parcel));
 
 /**
+ * The takes I've seen (step 6b): each take's key, with the time of the version I saw. Per profile and per device, never
+ * synced (`ps.seenTakes`).
+ */
+export type SeenTakes = Record<string, string>;
+const SeenSchema = z.record(z.string(), z.string());
+
+export function readSeen(raw: string): SeenTakes {
+  try {
+    const parsed = SeenSchema.safeParse(JSON.parse(raw));
+    return parsed.success ? parsed.data : {};
+  } catch {
+    return {};
+  }
+}
+
+/** Another member's takes that I haven't seen: given, or changed, since I last opened the parcel. */
+export const newTakes = (h: Household, me: string, seen: SeenTakes): Take[] =>
+  h.takes.filter((t) => t.by !== me && (seen[t.key] ?? "") < t.at);
+
+/** What I've seen once a parcel is open: every take on it, as it stands now. */
+export function withSeen(seen: SeenTakes, h: Household, parcel: string): SeenTakes {
+  const next = { ...seen };
+  for (const t of h.takes) if (t.parcel === parcel) next[t.key] = t.at;
+  return next;
+}
+
+/**
  * Both like it (step 6 §3.1): no member's take on it is No, and every member with priorities grades it C or better.
  * `grades` are the members' letters (null: not graded, or no priorities, and left out); at least one must be graded.
  */

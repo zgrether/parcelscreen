@@ -44,9 +44,10 @@ import {
 import { getPref, onParcelsWritten, setPref } from "@/lib/client/prefs";
 import { switchLabel } from "@/lib/client/rubrics";
 import { useRubricView } from "@/lib/client/useRubricView";
-import { dropParcel, useHousehold } from "@/lib/client/householdDoc";
+import { dropParcel, useHousehold, useSeenTakes } from "@/lib/client/householdDoc";
+import { memberName } from "@/lib/client/household";
 import { currentProfileId } from "@/lib/client/profiles";
-import { ANSWER_WORD } from "@/lib/client/takes";
+import { ANSWER_WORD, type Ask } from "@/lib/client/takes";
 import { useKeptScreens } from "@/lib/client/useKeptScreens";
 import type { Verdict } from "@/lib/report/card";
 import type { NamedRubric } from "@/lib/rubric/types";
@@ -96,10 +97,11 @@ export function Library() {
   // The members' rubrics (step 6) change when they set their priorities, here or by a sync.
   const { rubrics } = useRubricView();
   const household = useHousehold();
+  const seen = useSeenTakes();
   const me = currentProfileId();
   const rows = useMemo(
-    () => built.map((p) => libraryRow(p, screens.get(p.key!), rubrics, { household, me })),
-    [built, screens, rubrics, household, me],
+    () => built.map((p) => libraryRow(p, screens.get(p.key!), rubrics, { household, me, seen })),
+    [built, screens, rubrics, household, me, seen],
   );
   const hidden = hiddenBy(rows, view.filters);
   const shown = sortRows(
@@ -317,11 +319,24 @@ function Grades({ r }: { r: LibraryRow }) {
         <span key={g.id} className="lib-other-grade" title={`${g.name}'s grade`}>
           <span className="tiny muted">· {g.name}</span>
           <span className={`card-grade tiny g-${g.graded?.grade ?? "none"}`}>{g.graded?.grade ?? "–"}</span>
+          {r.newTakesBy.includes(g.id) && (
+            <span className="new-dot" role="img" aria-label={`New take from ${g.name}`} title="New take" />
+          )}
           {r.takes[g.id] && (
             <span className={`take-chip tiny a-${r.takes[g.id]}`}>says {ANSWER_WORD[r.takes[g.id]!]}</span>
           )}
         </span>
       ))}
+    </span>
+  );
+}
+
+/** The ask waiting for my take (step 6b): its note on one line; the panel shows it whole. */
+function AskNote({ ask }: { ask: Ask }) {
+  const line = `${memberName(ask.from) ?? "Someone"} asked for your take${ask.note ? `: “${ask.note}”` : "."}`;
+  return (
+    <span className="lib-ask-note tiny" title={line}>
+      {line}
     </span>
   );
 }
@@ -387,6 +402,7 @@ function TableRow({ r, index, count, ticked, toggle, open, ordering, mover }: Ro
       </td>
       <td className="lib-name">
         <LongName name={r.name} className="lib-open" />
+        {r.ask && <AskNote ask={r.ask} />}
       </td>
       <td className="num">{r.acres !== null ? r.acres.toFixed(1) : "–"}</td>
       <td className="num">{r.price !== null ? shortPrice(r.price) : "–"}</td>
@@ -442,6 +458,7 @@ function Card({ r, index, count, ticked, toggle, open, ordering, mover }: RowPro
             onChange={() => toggle(r.key)}
           />
         </div>
+        {r.ask && <AskNote ask={r.ask} />}
         <div className="tiny">{statusCell(r)}</div>
         <div className="tiny muted lib-card-facts">
           {[

@@ -16,6 +16,8 @@ import { questionNumber, STEPS, type Step } from "@/lib/rubric/interview/doc";
 import type { InterviewAnswers } from "@/lib/rubric/interview/answers";
 import { ChipsScreen, ChoiceScreen, LandScreen, PairScreen } from "./Screens";
 import { InterviewResult } from "./Result";
+import { JoinFirst } from "@/components/Sync/JoinFirst";
+import { readSyncState } from "@/lib/sync/state";
 
 /** The answers' fields a step sets: what Skip leaves out. */
 function keysOf(step: Step): (keyof InterviewAnswers)[] {
@@ -180,6 +182,7 @@ function StepView({
 /** A new profile's first screen: its name (Skip keeps "Profile 1"), then question 1. */
 function NameScreen({ begin, notNow }: { begin(): void; notNow(): void }) {
   const [name, setName] = useState("");
+  const [synced] = useState(() => readSyncState() !== null);
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => heading.current?.focus(), []);
   const go = async (e?: FormEvent) => {
@@ -215,6 +218,8 @@ function NameScreen({ begin, notNow }: { begin(): void; notNow(): void }) {
           Continue
         </button>
       </form>
+      {/* A device not synced yet may belong to someone who already uses Parcel Screen: join, don't start anew. */}
+      {!synced && <JoinFirst />}
       <nav className="iv-nav" aria-label="Interview">
         <button type="button" className="btn secondary" onClick={notNow}>
           {NOT_NOW}

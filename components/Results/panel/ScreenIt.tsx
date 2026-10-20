@@ -58,6 +58,7 @@ import { Others } from "@/components/Household/Others";
 import { AgentQuestions } from "../answer/AgentQuestions";
 import { BestHomesite } from "../answer/BestHomesite";
 import { FullReport } from "../answer/FullReport";
+import { useSeeTakes } from "@/lib/client/householdDoc";
 import { OFFLINE_SCREEN_TEXT } from "@/lib/client/pwa";
 
 /** The run the worker's session holds: which parcel it was for (state.serial) and what it was run on. */
@@ -568,6 +569,8 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
     open: false,
     scrollTo: null,
   });
+  // Step 6b: a kept parcel open here with its card, so its takes are seen.
+  useSeeTakes(display ? (s.ctl.state.store.open?.key ?? null) : null);
   if (!s.showSteps && !s.error && !notes && !display) return null;
   // The card comes right under the header (owner, #111), with the run's log above it: the live list while it runs,
   // one line once it's done (step 4c). What failed or is out of date stays above the card too; Copy summary and the
