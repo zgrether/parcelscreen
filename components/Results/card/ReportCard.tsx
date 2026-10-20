@@ -11,7 +11,7 @@ import { lowerFirst, type Card, type GateStatus, type Row } from "@/lib/report/c
 import type { PanelKey } from "@/lib/report/cardPanels";
 import { thresholdStatus, thresholdWords, type MustStatus } from "@/lib/rubric/musts";
 import type { NamedRubric } from "@/lib/rubric/types";
-import { FACTOR_LABELS, TIER_NAMES } from "@/lib/rubric/words";
+import { EDITOR_TITLES, TIER_NAMES } from "@/lib/rubric/words";
 import { fmt } from "@/lib/format";
 import type { PartialScreenResult } from "@/lib/screen/types";
 import { RubricSwitch } from "./RubricSwitch";
@@ -57,7 +57,8 @@ export function mustLines(card: Card): MustLine[] {
     .filter((g) => R.musts.some((m) => m.factor === g.key && m.threshold === undefined))
     .map((g): MustLine => ({
       key: g.key,
-      label: g.label,
+      // The priorities page's own words for each factor (owner, #216): "Driveway on your land", not "Easement needed".
+      label: EDITOR_TITLES[g.key],
       status: g.status,
       detail: g.reason,
       ...(g.missing ? { missing: g.missing } : {}),
@@ -69,7 +70,7 @@ export function mustLines(card: Card): MustLine[] {
     return [
       {
         key: must.factor,
-        label: FACTOR_LABELS[must.factor],
+        label: EDITOR_TITLES[must.factor],
         status: LIMIT_STATUS[thresholdStatus(must, row?.measure)],
         detail: `${thresholdWords(must, (n) => fmt(n))}${measured ? ` · ${measured}` : ""}`,
         ...(row?.missing ? { missing: row.missing } : {}),

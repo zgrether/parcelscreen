@@ -44,7 +44,10 @@ describe("the report card in priority order (plan §1.4)", () => {
     expect(at("Really want")).toBeGreaterThan(at("Must have"));
     expect(at("Cost to enjoy")).toBeGreaterThan(at("Really want"));
     // The starting list's Driveway row is Don't care: not on the card.
-    expect(t).not.toContain("Driveway ");
+    expect(t).not.toContain("at its steepest");
+    // The Must rows use the priorities page's titles (owner, #216).
+    expect(t).toContain("Driveway on your land");
+    expect(t).not.toContain("Easement needed");
     // The rows in rank order: Elevation and Best homesite (25), Room to build (15), then the 10s.
     expect(at("Elevation at the build site")).toBeLessThan(at("Room to build"));
     expect(at("Room to build")).toBeLessThan(at("Night sky"));
@@ -118,6 +121,16 @@ describe("Best homesite (plan §1.2–§1.3)", () => {
   it("a marked house is the build site", () => {
     const t = text(html(expectedOf("ferney-creek-52-47A", "setHouse")));
     expect(t).toContain("Your marked house");
+  });
+
+  it("says when the map's sections are for another site, and offers to evaluate the best (owner, #216)", () => {
+    // Macks: the best site is #3; the screen ran at site #1. Evaluating #3 re-routes, so it's offered, not done.
+    const t = text(html(expectedOf("macks-mountain-35-3", "run")));
+    expect(t).toContain(
+      "The map's sun, sky and driveway are for site #1, where the screen ran. Evaluate site #3",
+    );
+    // Ferney: the best site is where the screen ran.
+    expect(text(html())).not.toContain("where the screen ran");
   });
 });
 

@@ -137,7 +137,8 @@ test("a drawn line: the banner, its layer and details (name, kind, condition, wi
   await info.getByRole("button", { name: "Close the Info panel" }).click();
 
   // The Easement panel lists it by name: drawn after the screen, so nothing to say of it yet.
-  await page.getByRole("button", { name: /^Easement needed:/ }).click();
+  // Its Must row reads as on the priorities page (owner, #216): "Driveway on your land".
+  await page.getByRole("button", { name: /^Driveway on your land:/ }).click();
   const easement = page.locator(".card-panel");
   const yours = easement.locator(".your-lines");
   await expect(yours.getByRole("heading", { name: "Your lines" })).toBeVisible();

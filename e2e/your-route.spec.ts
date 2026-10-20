@@ -77,7 +77,7 @@ test("Mud Creek: the red-gate route beside the app's pick; chosen as the drivewa
   await expect(access).toHaveAttribute("title", "Frontage on Mud Creek Ln");
 
   // The Easement panel: the app's pick and the red-gate route, side by side.
-  await gate(/easement/i).click();
+  await gate(/driveway on your land/i).click();
   const choice = page.locator(".route-choice");
   await expect(choice.locator(".route-choice-col")).toHaveCount(2);
   await expect(choice.locator(".route-choice-col").nth(0)).toContainText("The app's pick");

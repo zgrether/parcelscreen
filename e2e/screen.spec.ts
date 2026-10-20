@@ -172,7 +172,7 @@ test("Macks Mountain 35-3: the plain run and the re-evaluation at site #2 match 
 const EVALUATED = [
   ["december-sun", "Best homesite"],
   ["dark-skies", "Night sky"],
-  ["driveway", "Easement"],
+  ["driveway", "Driveway on your land"], // the Must row's priorities-page title (owner, #216)
 ] as const;
 
 test("Ferney Creek 52-47A: a pin away from the run's point is an unsaved re-evaluation; the run's own site ends it", async ({

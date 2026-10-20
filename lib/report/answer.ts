@@ -11,6 +11,7 @@ import { REAL_GROCERY, type DriveEntry } from "../screen/driveList";
 import type { PartialScreenResult } from "../screen/types";
 import { weightsOf } from "../rubric/weights";
 import type { RowKey } from "../rubric/types";
+import { EDITOR_TITLES } from "../rubric/words";
 import type { Card, Row } from "./card";
 
 /** Each row as a strength, after "Strong". */
@@ -112,14 +113,15 @@ const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
 
 /**
  * What to check first, by name: the person's Musts that warn, and a build that doesn't fit, in the card's order
- * ("legal road access", "septic"). Their whole sentences are on the card's Must rows.
+ * in the priorities page's words ("legal road access", "driveway on your land"). Their whole sentences are on the card's
+ * Must rows.
  */
 export function checks(card: Card): string[] {
   const R = card.rubric.rubric;
   const must = (k: string) => R.musts.some((m) => m.factor === k && m.threshold === undefined);
   return [
-    ...card.gates.filter((g) => must(g.key) && g.status === "warn").map((g) => g.label),
-    ...card.rows.filter((x) => x.checkFirst).map((x) => x.label),
+    ...card.gates.filter((g) => must(g.key) && g.status === "warn").map((g) => EDITOR_TITLES[g.key]),
+    ...card.rows.filter((x) => x.checkFirst).map((x) => EDITOR_TITLES[x.key]),
   ].map((l) => l.charAt(0).toLowerCase() + l.slice(1));
 }
 

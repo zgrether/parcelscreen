@@ -210,8 +210,10 @@ export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card
     for (const text of said) if (text && !zeroed.has(row)) say(row, text);
   }
 
-  // 2. Tiers.
-  const order = [...TIE_ORDER].sort(
+  // 2. Tiers. Question 10 skipped (owner, #216): Driveway goes at the bottom of Nice to have, with the starting
+  // list's edge, never higher; it takes no place from another row.
+  const skipped10 = a.driveway === undefined;
+  const order = TIE_ORDER.filter((r) => !(skipped10 && r === "driveway")).sort(
     (x, y) => points[y] - points[x] || TIE_ORDER.indexOf(x) - TIE_ORDER.indexOf(y),
   );
   const should = order.filter((r) => points[r] >= I.should.minPoints).slice(0, I.should.max);
@@ -222,6 +224,7 @@ export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card
   const ranked: RankedCard[] = [
     ...should.map((factor) => ({ factor, tier: "should" as const })),
     ...could.map((factor) => ({ factor, tier: "could" as const })),
+    ...(skipped10 ? [{ factor: "driveway" as const, tier: "could" as const }] : []),
   ];
 
   // 4–5. Bands, the Must haves, and rank-sum weights (3).

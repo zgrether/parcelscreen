@@ -815,8 +815,16 @@ until step 5 (Q14).
       change. The card oracle, graded at site #1, is unchanged byte for byte (the guard).
     - **The Driveway row:** graded on the steepest grade of the build site's chosen driveway (`card.rows.drivewayPct`
       [10, 15, 20, 25]); no route or no practical drive is an F; the length is in the line. Question 10 sets its B/C edge
-      (20 / 15 / 12%) and points (1 / 2 / 1; skipped 2). The starting list gives it no weight (Don't care), so it grades
-      as before; a saved rubric reads the band's default and has it in Don't care until Reset to my answers or a drag.
+      (20 / 15 / 12%) and points (1 / 2 / 1). Skipped, it goes at the bottom of Nice to have with the 15% edge, never
+      higher (owner, #216). The starting list gives it no weight (Don't care), so it grades as before.
+    - **Priorities saved before it** (owner, #216): Driveway is added once, add-only, at the bottom of the tier question
+      10's answer implies (Long and gentle: Really want; the others, or none: Nice to have), with its edge; nothing else
+      moves. What matters says so once ("New: Driveway, placed from your answer about steep drives.") with Undo, which
+      puts it in Don't care for good. The starting list's explicit weights aren't touched. A deliberate exception to the
+      clean-break rule, by the owner's answer.
+    - **The best site on open** (owner, #216): evaluated only if it needs no re-route. Every evaluation re-routes the
+      driveway, so Best homesite instead says where the map's sun, sky and driveway are for, and offers "Evaluate site #N".
+    - **The card's Must rows** use the priorities page's words ("Driveway on your land") (owner, #216).
     - **The pins:** the person's best site is the inked pin, ringed; their other spots get a light ring.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.
