@@ -24,7 +24,7 @@ const MACKS = "macks-mountain-35-3" as const;
 const historyRows = (page: Page) => page.locator(".hist-row");
 const favoriteRows = (page: Page) => page.locator(".lib-table tbody tr");
 const tab = (page: Page, name: "Favorites" | "History") => page.getByRole("tab", { name });
-const nameSheet = (page: Page) => page.getByRole("dialog", { name: "Add to Favorites" });
+const nameSheet = (page: Page) => page.getByRole("dialog", { name: "Add to favorites" });
 
 async function yourList(page: Page, view: "Favorites" | "History"): Promise<void> {
   await page.getByRole("link", { name: YOUR_LIST }).click();

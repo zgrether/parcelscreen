@@ -70,11 +70,11 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   await expect(rows).toHaveCount(2);
   await expect(hiddenLine).toHaveCount(0);
   await expect(
-    page.getByRole("button", { name: "Filters (1)" }), // the Status filter now includes Archived
+    page.getByRole("button", { name: "Filters · 1 on" }), // the Status filter now includes Archived
   ).toBeVisible();
   await expect(rows.filter({ hasText: "parcel 35-3" })).toHaveClass(/lib-archived/);
   await reload(page);
-  await expect(page.getByRole("button", { name: "Filters (1)" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Filters · 1 on" })).toBeVisible();
   await expect(rows).toHaveCount(2);
   expect(
     await page.evaluate(
@@ -83,7 +83,7 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   ).toEqual(expect.arrayContaining([expect.objectContaining({ status: "archived" })]));
 
   // Hidden by another filter: "2 hidden by filters · Show all", which shows everything.
-  await page.getByRole("button", { name: "Filters (1)" }).click();
+  await page.getByRole("button", { name: "Filters · 1 on" }).click();
   await page.getByRole("group", { name: "Milestones" }).getByRole("button", { name: "Walked" }).click();
   await expect(rows).toHaveCount(0);
   await expect(hiddenLine).toHaveText("2 hidden by filters · Show all");

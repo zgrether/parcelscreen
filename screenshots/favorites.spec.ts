@@ -80,10 +80,10 @@ for (const phone of [false, true]) {
       if (await tip.isVisible()) await tip.click();
       const star = page.locator(".sh-actions").getByRole("button", { name: "Add to favorites" });
       await star.click();
-      await expect(page.getByRole("dialog", { name: "Add to Favorites" })).toBeVisible();
+      await expect(page.getByRole("dialog", { name: "Add to favorites" })).toBeVisible();
       await shot(page, "5-name-sheet");
       await page
-        .getByRole("dialog", { name: "Add to Favorites" })
+        .getByRole("dialog", { name: "Add to favorites" })
         .getByRole("button", { name: "Add" })
         .click();
       await expect(page.locator(".sh-actions").getByRole("button", { name: "In favorites" })).toBeVisible();

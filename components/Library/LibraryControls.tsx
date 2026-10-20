@@ -105,8 +105,13 @@ export function LibraryControls({
   return (
     <div className="lib-controls">
       <div className="lib-bar">
-        <button className="btn small secondary" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-          Filters{n ? ` (${n})` : ""}
+        <button
+          className="btn small secondary lib-filters-btn"
+          aria-expanded={open}
+          onClick={() => setOpen((o) => !o)}
+        >
+          {/* Polish: "· 1 on" counts filters, where Waiting for you (1) counts parcels. */}
+          Filters{n ? ` · ${n} on` : ""}
         </button>
         {/* Step 6: the household's two quick filters, beside Filters. */}
         {(several || waiting > 0) && (
