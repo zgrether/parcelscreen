@@ -133,7 +133,10 @@ function Row({
   );
 }
 
-/** The open row: its details, then its actions (Edit on the map, Move it or Redraw; Delete). */
+/**
+ * The open row: its details, then its actions (Edit on the map, Move it or Redraw). The row's × deletes, with Undo
+ * (polish #22: the open row's own Delete went, so there's one delete control).
+ */
 function Open({ ctl, n, remove }: { ctl: ExploreController; n: LayerNode; remove(id: LayerId): void }) {
   const open = ctl.state.store.open!;
   if (n.kind === "house")
@@ -163,9 +166,6 @@ function Open({ ctl, n, remove }: { ctl: ExploreController; n: LayerNode; remove
       <div className="pd-actions">
         <Btn onClick={() => ctl.editLine(m.id)}>
           {m.shape === "line" ? "Edit on the map" : m.shape === "point" ? "Move it" : "Redraw"}
-        </Btn>
-        <Btn kind="danger" onClick={() => remove(n.id)}>
-          Delete
         </Btn>
       </div>
     </div>

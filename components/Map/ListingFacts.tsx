@@ -33,8 +33,8 @@ export function ListingFacts({
 }) {
   const href = safeListingHref(open.listingUrl);
   const acresNote = listingAcresNote(open.listingAcres, acres);
-  // On a phone (owner, #130) the section folds to one line once it has a name or a price, as the tab opens; it stays
-  // open while empty, and doesn't fold under the fingers while it's being filled. Desktop always shows it (CSS).
+  // The section folds to one line once it has a name or a price, as the tab opens (owner, #130, a phone's; polish #24,
+  // a desktop's too); it stays open while empty, and doesn't fold under the fingers while it's being filled.
   const [expanded, setExpanded] = useState(() => !listingFolds(open));
   // "Add a name": unfolded (adjusted while rendering, as React recommends), then focused once it's on screen.
   const [focused, setFocused] = useState(focusName);

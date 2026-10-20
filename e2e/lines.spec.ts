@@ -95,26 +95,22 @@ test("a drawn line: the banner, its layer and details (name, kind, condition, wi
   await details.getByLabel("Note for Existing drive 1").fill("From the gate to the barn");
   await details.getByLabel("Note for Existing drive 1").press("Enter");
 
-  // Renamed in its open row (step 8b: the row's Name box; the tree's in-place rename went with the tree).
+  // Renamed in its open row (step 8b: the row's Name box), saved as it's typed: the row's title follows with no Enter
+  // (polish #22), and the box keeps the focus.
   await details.getByLabel("Name").fill("Gravel lane");
-  await details.getByLabel("Name").press("Enter");
   await expect(row("Gravel lane")).toHaveAttribute("aria-expanded", "true");
   await expect(details.getByLabel("Name")).toHaveValue("Gravel lane");
+  await expect(details.getByLabel("Name")).toBeFocused();
 
-  // The row's ×, then Undo; the open row's Delete, then Undo: each time the line comes back as it was.
+  // One delete control (polish #22): the row's ×, then Undo, and the line comes back as it was.
+  await expect(details.getByRole("button", { name: "Delete", exact: true })).toHaveCount(0);
   const toast = page.locator(".line-undo");
-  for (const del of [
-    row("Gravel lane").getByRole("button", { name: "Delete Gravel lane" }),
-    details.getByRole("button", { name: "Delete", exact: true }),
-  ]) {
-    if (!(await details.count())) await row("Gravel lane").click();
-    await del.click();
-    await expect(row("Gravel lane")).toHaveCount(0);
-    await expect(toast).toContainText("Gravel lane deleted");
-    await toast.getByRole("button", { name: "Undo" }).click();
-    await expect(toast).toHaveCount(0);
-    await expect(row("Gravel lane")).toHaveCount(1);
-  }
+  await row("Gravel lane").getByRole("button", { name: "Delete Gravel lane" }).click();
+  await expect(row("Gravel lane")).toHaveCount(0);
+  await expect(toast).toContainText("Gravel lane deleted");
+  await toast.getByRole("button", { name: "Undo" }).click();
+  await expect(toast).toHaveCount(0);
+  await expect(row("Gravel lane")).toHaveCount(1);
   const markup = await page.evaluate(
     () => (JSON.parse(window.__psKv!.getItem("ps.parcels")!) as { open: { markup: unknown[] } }).open.markup,
   );

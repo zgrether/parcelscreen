@@ -6,7 +6,7 @@
  * cards, the same last line, and a long press shows a whole name.
  */
 import { expect, test } from "@playwright/test";
-import { importParcels, openExplorer, reload, seedScreens, settled, visit } from "./flow";
+import { importParcels, openExplorer, reload, seedScreens, settled, unfoldListing, visit } from "./flow";
 import { replayHar } from "./replay";
 
 const FERNEY = "ferney-creek-52-47A" as const;
@@ -108,7 +108,7 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   await expect(ferneyDetail.getByRole("heading", { name: /parcel 52-47A/ })).toBeVisible();
 
   // Its listing's facts and notes, editable here as in the map's Notes tab (owner, after #133).
-  const listing = ferneyDetail.getByRole("group", { name: "Listing" });
+  const listing = await unfoldListing(ferneyDetail);
   await listing.getByLabel("Asking price").fill("185k");
   await listing.getByLabel("Asking price").press("Enter");
   await expect(listing).toContainText(/asking \$185,000 as of /);
