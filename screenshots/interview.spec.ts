@@ -100,7 +100,14 @@ for (const phone of [false, true]) {
         "You'd rather have a small market 10 minutes away",
       );
       await shot(page, "11-why");
-      await page.getByRole("dialog").getByRole("button", { name: "Nice to have" }).click();
+      // Moved to another tier, so the list differs from the answers: Nice to have, or Really want if it's there already
+      // (since step 7's Driveway it can be).
+      const nice = page.getByRole("dialog").getByRole("button", { name: "Nice to have" });
+      await (
+        (await nice.isEnabled())
+          ? nice
+          : page.getByRole("dialog").getByRole("button", { name: "Really want" })
+      ).click();
       await page.keyboard.press("Escape");
 
       // Changed since: the interview again asks before replacing it.
