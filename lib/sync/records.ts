@@ -2,8 +2,8 @@
  * Whole records, and what changed between two copies (step 5, docs/plans/step-5-sync.md §5). Pure, so it's tested in
  * Node. A device keeps its data as profile documents (lib/client/profileKv.ts); the synced space keeps one record per
  * profile and one per built parcel:
- *   - a profile's record: its name and created time, and the documents that sync (settings, priorities, answers), each
- *     as the string the prefs module writes;
+ *   - a profile's record: its name and created time, and the documents that sync (settings, priorities, answers, and
+ *     step 8's History log), each as the string the prefs module writes;
  *   - a parcel's record: the built parcel, exactly as the parcel store's `built[]` holds it.
  * What a device keeps for itself (the open parcel, which profile is current, the views and sorts) never leaves it.
  */
@@ -11,7 +11,7 @@ import { EMPTY_HOUSEHOLD, readHousehold, recordsOf, type Ask, type Take } from "
 import type { StoredHousehold, StoredParcel } from "./wire";
 
 /** The profile documents that sync (§5's table); every other profile document stays on the device. */
-export const SYNCED_DOCS = ["ps.cfg", "ps.rubrics", "ps.interview"] as const;
+export const SYNCED_DOCS = ["ps.cfg", "ps.rubrics", "ps.interview", "ps.history"] as const;
 export type SyncedDoc = (typeof SYNCED_DOCS)[number];
 export const isSyncedDoc = (key: string): key is SyncedDoc =>
   (SYNCED_DOCS as readonly string[]).includes(key);
