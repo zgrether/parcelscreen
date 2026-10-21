@@ -34,6 +34,26 @@ export const EDITOR_TITLES: Record<Factor, string> = {
   easement: "Driveway on your land",
 };
 
+/**
+ * Each factor in a word or two (step 10b plan §8): the Favorites grid's headers and the phone card's strip, with
+ * EDITOR_TITLES as the full name beside them. Best homesite is "Sun", as the owner's brief has it.
+ */
+export const SHORT_TITLES: Record<Factor, string> = {
+  floodplain: "Flood",
+  access: "Access",
+  easement: "Own drive",
+  septic: "Septic",
+  elevation: "Elev",
+  homesite: "Sun",
+  sky: "Sky",
+  room: "Room",
+  driveway: "Drive",
+  trails: "Trails",
+  town: "Town",
+  garden: "Garden",
+  budget: "Budget",
+};
+
 /** The bands a slider moves: each a list of A, B, C and D edges, best first. */
 export type BandKey =
   "elevationFt" | "skyMag" | "roomX" | "trailheadMin" | "erMin" | "groceryMin" | "gardenAc" | "drivewayPct";

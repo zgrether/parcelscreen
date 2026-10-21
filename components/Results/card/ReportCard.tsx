@@ -16,7 +16,7 @@ import {
   GATE_MARK as MARK,
   MUST_STATUS_WORD as STATUS_WORD,
   mustLines,
-  rankedRows,
+  shownRankedRows,
   type MustLine,
 } from "@/lib/report/cardLines";
 import type { NamedRubric } from "@/lib/rubric/types";
@@ -134,7 +134,8 @@ export function ReportCard({
   const pending = (missing: string | undefined) => running && !!missing;
   const reason = running ? "" : answerReason(card, result);
   const incomplete = running ? null : incompleteLine(card);
-  const { should, could } = rankedRows(card);
+  // Step 10b: a factor with a limit is drawn once, on its Must line with its letter.
+  const { should, could } = shownRankedRows(card);
   const musts = mustLines(card);
   const rowButton = (r: Row) => (
     <li key={r.key} data-card-key={r.key}>
@@ -215,7 +216,7 @@ export function ReportCard({
                   <button
                     className={`card-row must-row ${wait ? "pending" : m.status}`}
                     title={m.detail}
-                    aria-label={`${m.label}: ${wait ? "still loading" : m.status}`}
+                    aria-label={`${m.label}: ${wait ? "still loading" : m.status}${!wait && m.grade !== undefined ? `, ${m.grade ?? "not graded"}` : ""}`}
                     onClick={() => onOpen(m.key)}
                   >
                     <span className="row-label">{m.label}</span>
@@ -223,6 +224,10 @@ export function ReportCard({
                       <span className="mark" aria-hidden="true">
                         {wait ? "…" : MARK[m.status]}
                       </span>
+                      {/* Step 10b: ranked too, so its letter is here and its tier skips it. */}
+                      {!wait && m.grade !== undefined && (
+                        <span className={`card-grade small g-${m.grade ?? "none"}`}>{m.grade ?? "–"}</span>
+                      )}
                     </span>
                     <span className="row-detail">{wait ? "…" : <MustDetail m={m} />}</span>
                   </button>

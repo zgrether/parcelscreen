@@ -3,7 +3,7 @@
  * lines (the gates the person keeps, then each limit) and its ranked rows by tier, and each Must's mark.
  */
 import { fmt } from "@/lib/format";
-import { lowerFirst, type Card, type GateStatus, type Row } from "./card";
+import { lowerFirst, type Card, type GateStatus, type Letter, type Row } from "./card";
 import type { PanelKey } from "./cardPanels";
 import { thresholdStatus, thresholdWords, type MustStatus } from "@/lib/rubric/musts";
 import { EDITOR_TITLES } from "@/lib/rubric/words";
@@ -18,6 +18,11 @@ export interface MustLine {
   missing?: string;
   /** The detail's first clause when more follows (Gate.first): the rest goes on its own line. */
   first?: string;
+  /**
+   * Step 10b (owner, 10/21): a limit whose factor is also ranked shows once, here, with the row's letter beside the
+   * mark ("✓ B · 2,855 ft, at least 1,800 ft"); null when the row isn't graded. Absent for a gate or an unranked limit.
+   */
+  grade?: Letter | null;
 }
 
 /** A Must's mark on the card: ✓ passes, ! to check first, ✗ fails, ? unknown. */
@@ -55,13 +60,19 @@ export function mustLines(card: Card): MustLine[] {
     if (must.threshold === undefined) return [];
     const row = card.rows.find((x) => x.key === must.factor);
     const measured = row?.short ?? row?.detail;
+    const limit = thresholdWords(must, (n) => fmt(n));
+    // Ranked too (step 10b): one line, the value first, then the limit, with the row's letter.
+    const ranked = !!row && R.ranked.some((c) => c.factor === must.factor);
     return [
       {
         key: must.factor,
         label: EDITOR_TITLES[must.factor],
         status: LIMIT_STATUS[thresholdStatus(must, row?.measure)],
-        detail: `${thresholdWords(must, (n) => fmt(n))}${measured ? ` · ${measured}` : ""}`,
+        detail: ranked
+          ? `${measured ? `${measured}, ` : ""}${limit}`
+          : `${limit}${measured ? ` · ${measured}` : ""}`,
         ...(row?.missing ? { missing: row.missing } : {}),
+        ...(ranked ? { grade: row.grade } : {}),
       },
     ];
   });
@@ -77,6 +88,20 @@ export function mustLines(card: Card): MustLine[] {
       ]
     : [];
   return [...gates, ...budget, ...limits];
+}
+
+/**
+ * The ranked rows the card draws by tier (step 10b): a factor with a limit is drawn once, on its Must line with its
+ * letter, so its tier skips it. Its weight and letter still count where the rubric ranks it (`rankedRows`).
+ */
+export function shownRankedRows(card: Card): { should: Row[]; could: Row[] } {
+  const R = card.rubric.rubric;
+  const limited = new Set(R.musts.filter((m) => m.threshold !== undefined).map((m) => m.factor));
+  const { should, could } = rankedRows(card);
+  return {
+    should: should.filter((x) => !limited.has(x.key)),
+    could: could.filter((x) => !limited.has(x.key)),
+  };
 }
 
 /** The ranked rows by tier, in rank order (plan §1.4). */

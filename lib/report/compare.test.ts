@@ -49,7 +49,8 @@ describe("the comparison table (VR6)", () => {
       [
         "Costs",
         // Step 10: the two costs in place of the four stages.
-        ["Asking price", "Ready to camp", "Ready to build"],
+        // Step 10b: $/ac after the asking price.
+        ["Asking price", "$/ac", "Ready to camp", "Ready to build"],
       ],
       // The viewer's budgets: the starting list has none.
       ["Budget", ["No budget given"]],
@@ -74,7 +75,7 @@ describe("the comparison table (VR6)", () => {
       ["$95k", "best"],
     ]);
     // Drawn without the cost's inputs (the price and rates), so not priced.
-    for (const r of costs.slice(1))
+    for (const r of costs.slice(2))
       expect(r.cells.map((c) => c.text)).toEqual(["not yet", "not yet", "not yet"]);
     const septic = t.groups[2]!.rows.find((r) => r.key === "septic")!;
     expect(septic.cells.map((c) => c.status)).toEqual(
@@ -127,7 +128,7 @@ describe("the comparison table (VR6)", () => {
       ],
       budgeted,
     );
-    const [, camp, build] = t.groups[0]!.rows;
+    const [, , camp, build] = t.groups[0]!.rows;
     expect(camp!.cells.map((c) => [c.text, c.mark])).toEqual([
       ["$200–240k", "worst"],
       ["$63–69k", "best"],
@@ -160,7 +161,10 @@ describe("the comparison table (VR6)", () => {
       ZACH,
     );
     expect(t.cards[1]).toBeNull();
-    for (const r of [t.head, ...t.groups.flatMap((g) => g.rows).filter((r) => r.key !== "stage0")]) {
+    for (const r of [
+      t.head,
+      ...t.groups.flatMap((g) => g.rows).filter((r) => r.key !== "stage0" && r.key !== "perAcre"),
+    ]) {
       expect(r.cells[1]).toEqual({ text: "re-screens when opened", mark: null, panel: null });
       expect(r.cells[0]!.mark).toBeNull(); // nothing to be better than
     }

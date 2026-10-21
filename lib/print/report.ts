@@ -5,13 +5,14 @@
  * One page fits one US Letter page by shortening, never by dropping a section (§2): FIT_STEPS, applied in order.
  */
 import { askingLine } from "../client/askingPrice";
+import { perAcre } from "../report/perAcre";
 import { costSummary, summaryText } from "../report/costLines";
 import type { Household } from "../client/takes";
 import { ANSWER_WORD, type Answer } from "../client/takes";
 import { agentQuestions } from "../report/agent";
 import { answerReason } from "../report/answer";
 import { reportCard, type Card, type NamedRubric } from "../report/card";
-import { GATE_MARK, mustLines, mustText, rankedRows } from "../report/cardLines";
+import { GATE_MARK, mustLines, mustText, shownRankedRows } from "../report/cardLines";
 import type { Drawn } from "../report/marks";
 import type { ScreenResult } from "../screen/types";
 
@@ -80,6 +81,8 @@ export interface ReportContent {
   acres: number | null;
   /** "asking $185,000 as of Oct 11, 2026", or null. */
   price: string | null;
+  /** "$6,310/ac" after the price (step 10b), "≠" when the listing's and the boundary's acres differ; null without one. */
+  perAcre: string | null;
   graded: string;
   stale: boolean;
   /** The viewer's card first, then each other member's who has priorities. */
@@ -99,6 +102,8 @@ export interface ReportInput {
   name: string;
   acres: number | null;
   askingPrice: number | null;
+  /** The acres the listing claims (WF1), for $/ac (step 10b). */
+  listingAcres?: number | null;
   askingPriceAt: string | null;
   result: ScreenResult;
   drawn?: Drawn;
@@ -120,13 +125,14 @@ export function cardTiers(card: Card): PrintTier[] {
   const musts: PrintRow[] = mustLines(card).map((m) => ({
     key: `must-${m.key}-${m.label}`,
     label: m.label,
-    mark: GATE_MARK[m.status],
+    // Step 10b: a limit that's ranked too carries its letter ("✓ B"); its tier skips it.
+    mark: m.grade !== undefined ? `${GATE_MARK[m.status]} ${m.grade ?? "–"}` : GATE_MARK[m.status],
     kind: "must",
     tone: m.status,
     text: mustText(m),
     short: mustText({ ...m, detail: m.first ?? m.detail }),
   }));
-  const { should, could } = rankedRows(card);
+  const { should, could } = shownRankedRows(card);
   const ranked = (rows: typeof should): PrintRow[] =>
     rows.map((r) => ({
       key: r.key,
@@ -161,6 +167,7 @@ export function reportContent(i: ReportInput): ReportContent {
       i.askingPrice !== null && i.askingPriceAt
         ? capitalize(askingLine(i.askingPrice, i.askingPriceAt))
         : null,
+    perAcre: perAcreLine(i.askingPrice, i.listingAcres ?? null, i.acres),
     graded: gradedOn(i.result.runAt),
     stale: i.stale,
     grades,
@@ -176,6 +183,13 @@ function costPrintLines(card: Card): string[] {
   const s = costSummary(card.cost, card.rubric.rubric.budgets);
   if (!s) return [];
   return s.kind === "noWay" ? [s.text] : s.lines.map(summaryText);
+}
+
+/** "$6,310/ac", marked "≠" with both readings when the two acreages differ (step 10b). */
+function perAcreLine(price: number | null, listed: number | null, boundary: number | null): string | null {
+  const pa = perAcre(price, listed, boundary);
+  if (!pa) return null;
+  return pa.both ? `${pa.text} (${pa.both})` : pa.text;
 }
 
 /** "Julie says Maybe", the list's own words for a take. */
