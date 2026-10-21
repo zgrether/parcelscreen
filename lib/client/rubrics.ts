@@ -45,9 +45,9 @@ export function setViewedRubric(id: string): void {
   setPref("ps.rubricView", id);
 }
 
-/** The switch's label: "My grade", or "{name}'s grade". */
+/** The switch's label: "Your grade", or "{name}'s grade" (polish #33: "My grade" read as the app's). */
 export const switchLabel = (r: { id: string; name: string }): string =>
-  r.id === MINE ? "My grade" : `${r.name}'s grade`;
+  r.id === MINE ? "Your grade" : `${r.name}'s grade`;
 
-/** The short label beside a grade on a card: "Mine", or the name. */
-export const shortLabel = (r: { id: string; name: string }): string => (r.id === MINE ? "Mine" : r.name);
+/** The short label beside a grade on a card: "You", or the name (polish #33, as Your list's "You"). */
+export const shortLabel = (r: { id: string; name: string }): string => (r.id === MINE ? "You" : r.name);

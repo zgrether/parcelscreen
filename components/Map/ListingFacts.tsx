@@ -55,7 +55,8 @@ export function ListingFacts({
           onClick={() => setExpanded((e) => !e)}
         >
           <span>{listingSummary(open, derivedName)}</span>
-          <span aria-hidden="true">{expanded ? "▴" : "▾"}</span>
+          {/* The fresh-eyes review (polish): a name and ▾ read as a picker; the words say it opens the facts. */}
+          <span className="ip-listing-toggle">{expanded ? "Fold ▴" : "Edit ▾"}</span>
         </button>
       )}
       <TextField

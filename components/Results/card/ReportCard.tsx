@@ -169,7 +169,7 @@ export function ReportCard({
                   <button
                     className={`card-row must-row ${wait ? "pending" : m.status}`}
                     title={m.detail}
-                    aria-label={`${m.label}: ${wait ? "pending" : m.status}`}
+                    aria-label={`${m.label}: ${wait ? "still loading" : m.status}`}
                     onClick={() => onOpen(m.key)}
                   >
                     <span className="row-label">{m.label}</span>
