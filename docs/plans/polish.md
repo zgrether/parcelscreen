@@ -167,3 +167,21 @@ step 9 reuses unchanged (rule 7):
 - **Jargon in print:** "the bench, not the pin", "1.0 = half the sky's light is man-made", "as of the screen" when the run
   has no date, the elevation profile without axes, every site "$$$$ to build". Fix: plain words; axes; the cost scale.
 - **"a 32-minute drive to an ER, 5 to a grocery":** the second number has no unit. Fix: "5 minutes".
+
+## Step 10: the cost to enjoy (hand-back)
+
+From the fresh-eyes review of step 10's screens, the findings not fixed in the step (each concerns an existing screen,
+the seeded screenshots, or a product question):
+- **Paving on top of the finished driveway** reads as double counting (2,185 ft paved over a 2,888 ft gravel upgrade).
+  The plan's model; a quote or Zach's call decides whether paving replaces the gravel where it applies.
+- **Sources outside the parcel's state** (NRCS Tennessee, NC culverts) under a Virginia parcel: the regional ranges are
+  the Blue Ridge's. Fix: say "regional (Blue Ridge)" in the breakdown, or pick sources by state.
+- **Cost to build compares unlike things:** a priced parcel's range includes the land, an unpriced one's "+ land" doesn't.
+  Fix: a land-excluded figure as well, or sort unpriced parcels apart (they sort last today).
+- **A B Contender with Within budget F:** the row is last in Really want, so it weighs little under rank-sum. Fix: say the
+  row's weight on the card, or move it up in What matters.
+- **The phone grade heading under the tabs** when the panel is scrolled; **"Grade again" twice** (banner and toolbar);
+  **two Driveway items** in What matters; **"Profile 1"**; the One page map key's "Filled" with an unfilled pin; the
+  phone's tiny One page preview: existing screens.
+- **The Best homesite block repeats the letters the card shows below it** (Zach, 10/21, with 8c): propose numbers only
+  there, e.g. "8.2 h winter sun · W · 2,649 ft · 129 ft drive at 6%", and leave the letters to the card.

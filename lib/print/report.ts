@@ -5,6 +5,7 @@
  * One page fits one US Letter page by shortening, never by dropping a section (§2): FIT_STEPS, applied in order.
  */
 import { askingLine } from "../client/askingPrice";
+import { costSummary, summaryText } from "../report/costLines";
 import type { Household } from "../client/takes";
 import { ANSWER_WORD, type Answer } from "../client/takes";
 import { agentQuestions } from "../report/agent";
@@ -87,6 +88,11 @@ export interface ReportContent {
   tiers: PrintTier[];
   takes: PrintTake[];
   questions: string[];
+  /**
+   * The viewer's cost to enjoy (step 10), as the Grade section says it: "Ready to camp: $200–240k ✓ under your $250k",
+   * then Ready to build; the no-way-in sentence alone; empty before it can be priced.
+   */
+  cost: string[];
 }
 
 export interface ReportInput {
@@ -161,7 +167,15 @@ export function reportContent(i: ReportInput): ReportContent {
     tiers: cardTiers(mine),
     takes,
     questions: agentQuestions(mine).map((q) => q.question),
+    cost: costPrintLines(mine),
   };
+}
+
+/** The viewer's two cost lines for One page (step 10 plan §4). */
+function costPrintLines(card: Card): string[] {
+  const s = costSummary(card.cost, card.rubric.rubric.budgets);
+  if (!s) return [];
+  return s.kind === "noWay" ? [s.text] : s.lines.map(summaryText);
 }
 
 /** "Julie says Maybe", the list's own words for a take. */

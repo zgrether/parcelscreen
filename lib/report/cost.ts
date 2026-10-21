@@ -99,6 +99,8 @@ export const COST_WORDS = {
   plusLand: "plus the land",
   noWay: "No practical drive: the costs need a way in",
   notAQuote: "Published ranges, not a quote.",
+  // The fresh-eyes review: say the land is in it, and that a line opens its breakdown.
+  howRead: "All in, the land included; to build is everything but the house. Tap a line for its breakdown.",
   driveNote:
     "The Driveway section's estimate prices earthwork and stone at Settings' driveway rates; these costs use published per-foot ranges.",
 } as const;
@@ -137,6 +139,24 @@ export const LOWER_IT = {
   power: "Mark a power pole near the site.",
   easement: 'Record the easement (its "recorded in").',
 } as const;
+
+// ---------- against a budget (step 10 plan §3) ----------
+
+/**
+ * A budget against its cost: pass when the high end is within it, warn when the range straddles it, fail when even the
+ * low end is over; unknown without an asking price or a cost.
+ */
+export type BudgetStatus = "pass" | "warn" | "fail" | "unknown";
+
+export const budgetStatusOf = (r: Range, budget: number): BudgetStatus =>
+  r.high <= budget ? "pass" : r.low > budget ? "fail" : "warn";
+
+/** How a range sits against a budget, in the card's words: "under your $250k". */
+export const BUDGET_SITS: Record<Exclude<BudgetStatus, "unknown">, string> = {
+  pass: "under",
+  warn: "straddles",
+  fail: "over",
+};
 
 // ---------- arithmetic ----------
 

@@ -6,6 +6,7 @@
  * desktop, a sheet on a phone.
  */
 import { members } from "@/lib/client/household";
+import { useCostRates } from "@/lib/client/costRates";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ParcelNotes } from "@/components/Map/ParcelNotes";
@@ -50,7 +51,8 @@ export function ParcelDetail({
   useSeeTakes(parcel.key); // step 6b: open, so its takes are seen
   const config = useMemo(() => loadUserConfig(), []);
   const result = kept?.state === "ok" ? kept.result : null;
-  const drawn = drawnOf(parcel.markup, parcel.drivewayLine);
+  const rates = useCostRates();
+  const drawn = drawnOf(parcel.markup, parcel.drivewayLine, { askingPrice: parcel.askingPrice, rates });
   const card = result ? reportCard(result, rubric, drawn) : null;
   const acresNote = listingAcresNote(parcel.listingAcres, acres);
   // The name it has until one is typed, and "Add a name": the Name box, unfolded and focused.

@@ -87,7 +87,7 @@ test("the page's states: a parcel not on this device, and one not graded yet", a
   await expect(page.getByRole("button", { name: "← Back" })).toBeVisible();
 });
 
-test("Full: the summary, then the brief's sections in order, the closing line; nothing for steps 10 and 12", async ({
+test("Full: the summary, then the brief's sections in order, the closing line; Cost to enjoy, nothing for step 12", async ({
   page,
   context,
 }) => {
@@ -105,6 +105,8 @@ test("Full: the summary, then the brief's sections in order, the closing line; n
       "The priorities it was graded against",
       "Best site and alternatives",
       "Access and driveway",
+      // Step 10: the breakdown, after Access and driveway.
+      "Cost to enjoy",
       "Winter sun and the horizon",
       "Night sky",
       "Soils, septic and flood",
@@ -117,7 +119,8 @@ test("Full: the summary, then the brief's sections in order, the closing line; n
       "This is a desk screen, not a survey, perc test or appraisal.",
     );
     await expect(full).toContainText(/Graded by engine version \d+\./);
-    await expect(full).not.toContainText(/cost to enjoy|raise the grade/i);
+    await expect(full).toContainText("Published ranges, not a quote.");
+    await expect(full).not.toContainText(/raise the grade/i);
     // The summary is One page's, unshortened; Full runs to more pages.
     await expect(page.locator(".rp-one")).not.toHaveAttribute("data-fit");
     const pdf = await page.pdf({ preferCSSPageSize: true, printBackground: true });

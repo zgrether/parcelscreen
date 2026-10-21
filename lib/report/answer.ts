@@ -75,6 +75,10 @@ export function missLine(row: Row, card: Card, r: PartialScreenResult): string {
         return `${fmt(g)} minutes to groceries is past your ${fmt(edge(b.groceryMin))}-minute limit`;
       break;
     }
+    case "budget":
+      // Within budget (step 10): the budgets at its worst, "ready to build $330–595k, over your $300k".
+      if (row.budget) return row.budget.reason;
+      break;
     case "garden":
       if (v !== undefined)
         return `${fmt(v, 2).replace(/\.?0+$/, "")} ac of garden ground, under your ${fmt(edge(b.gardenAc), 2).replace(/\.?0+$/, "")} ac`;

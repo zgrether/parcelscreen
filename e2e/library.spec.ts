@@ -49,7 +49,8 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   // The grade from the kept screen, in the profile's own rubric (step 1): a fresh profile holds no other, so there is
   // no Household column and no second grade.
   await expect(macks.locator(".lib-c-grade")).toHaveText(/^[A-F](Contender|Maybe|Not for us)$/);
-  await expect(macks.locator("td")).toHaveCount(7);
+  // Step 10: Cost to build ("$55–195k + land" without a price) is a column once a row has one.
+  await expect(macks.locator("td")).toHaveCount(8);
   await expect(page.locator(".lib-table thead")).not.toContainText("Household");
 
   // A click anywhere on the row opens its detail (owner, after #133): the full name, the card; archived as sold.

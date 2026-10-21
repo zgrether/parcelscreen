@@ -497,6 +497,13 @@ map is a static render (USGS imagery tiles and an SVG overlay). One device pref 
 service worker serves a precached shell for any report offline. `docs/plans/step-9-report-export.md` and phase-0.md
 §9.62 have the details.
 
+### 3k. The cost to enjoy (roadmap step 10)
+
+No stored-data change to screens. Ready to camp and Ready to build are priced at display time from the saved screen,
+the parcel's lines, marks and asking price, and published low–high rates (`lib/config/costs.ts`). A profile's rate
+edits are a new synced profile document, `ps.costs` (overrides only). Rubrics gain optional `budgets` and a Within
+budget row (`budget`). `docs/plans/step-10-cost-to-enjoy.md` and phase-0.md §9.63 have the details.
+
 ## 4. The parcel page (the export)
 
 Blocks, in order; each is computed, placeholder, or user-authored:

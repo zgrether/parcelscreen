@@ -5,6 +5,7 @@
  * sheet under it is laid out at Letter size on screen too, so what you see is what prints.
  */
 import { useParams, useRouter } from "next/navigation";
+import { useCostRates } from "@/lib/client/costRates";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { getPref, setPref } from "@/lib/client/prefs";
 import { useHousehold } from "@/lib/client/householdDoc";
@@ -154,6 +155,7 @@ function Report({
   onMapReady(ready: boolean): void;
 }) {
   const household = useHousehold();
+  const rates = useCostRates();
   const derived = useMemo(() => deriveParcel(recipeOf(parcel), SCREEN_CONSTANTS.combine), [parcel]);
   const content = useMemo(() => {
     // A boundary changed since the run (the panel's "earlier boundary"): the saved screen still prints, and says so.
@@ -169,7 +171,7 @@ function Report({
       askingPrice: parcel.askingPrice,
       askingPriceAt: parcel.askingPriceAt,
       result: record.result,
-      drawn: drawnOf(parcel.markup, parcel.drivewayLine),
+      drawn: drawnOf(parcel.markup, parcel.drivewayLine, { askingPrice: parcel.askingPrice, rates }),
       rubrics,
       viewer: viewedRubric(rubrics),
       nameOf: (id) =>
@@ -180,7 +182,7 @@ function Report({
       parcelKey: parcel.key!,
       stale,
     });
-  }, [parcel, record, household, derived]);
+  }, [parcel, record, household, derived, rates]);
   // The map's content (plan §4): the boundary's rings, the viewer's best site and their alternatives, the lines, a house.
   const map = useMemo(() => {
     const geo = derived.ok ? derived.record.geo.geometry : null;

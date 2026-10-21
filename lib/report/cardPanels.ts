@@ -204,7 +204,8 @@ export function panelText(
         title: "Cost to enjoy",
         question: "What will it cost to camp here, then to build and live here?",
         howScored:
-          "Not priced yet: what it costs to buy, to camp, to be ready to build and to move in comes once the app's unit costs are set.",
+          // Step 10: priced (the sentence before it, "Not priced yet…", is replaced: its promise is kept).
+          "Ready to camp and Ready to build, all in, from published low–high rates (Settings → Costs): the land, a legal way in, a pioneer track and a campsite, then the finished driveway, paving, culverts, well, septic, power, clearing and the house pad. Your lines and marks lower it. Each budget you gave marks its line: under it, straddling it, or over it.",
       };
   }
 }

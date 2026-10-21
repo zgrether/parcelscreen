@@ -895,5 +895,24 @@ until step 5 (Q14).
     - **Where:** Report card in the panel header's ⋯ (disabled until graded: "Grade it first") and in a Favorites row's ⋯,
       which now shows in every sort (Move up and Move down in My order only).
     - **Offline:** a precached shell, `/parcel/_/report`, which the service worker serves for any `/parcel/*/report`.
+63. **The cost to enjoy** (owner, 2026-10-21; step 10 plan, `docs/plans/step-10-cost-to-enjoy.md`, from Zach's
+    pre-approved brief, its §9 questions answered with the recommendations; roadmap step 10, PRs 0–4).
+    - **The rates:** `lib/config/costs.ts`, every rate a published low–high range with its sources (name, URL, the
+      source's date, how regional) and the date checked (2026-10-21). No builder quote. Settings → Costs edits them; the
+      edits are overrides in a new synced profile document, `ps.costs`, never a run's input, so a rate never asks for a
+      re-grade. `UserConfig.dw` stays the engine's driveway estimate, unchanged, shown as its own group.
+    - **The two costs** (`lib/report/cost.ts`, display time, no engine, schema or `expected.json` change): Ready to camp
+      (the land, a legal way in when needed, a pioneer track to a Campsite mark or the site, 0.1 ac of clearing) and
+      Ready to build (those, a finished driveway crediting the track, paving over 12%, culverts, a well or a pump, septic
+      by a permit's class or the soil's, power from a Power mark or the road, 0.5 ac of clearing, the pad by slope). The
+      scored route is split by the drawn lines within 15 m and their condition. Totals are Σ lows and Σ highs, rounded
+      to $1k under $100k and $5k above. No price: "plus the land". No practical drive: no cost.
+    - **Within budget:** `Rubric.budgets` (optional) and a ninth row key, `budget`. Question 13 sets the budgets;
+      14a's "Over budget" makes it a Must without a number (fail Not for us, straddle a warning, no price holds at
+      Maybe), 14b Don't care, otherwise the last of Really want, graded A ≤ 80% … F > 130% of the budget at the high end
+      (`card.budgetBands`). No budgets, no row: a card without them is unchanged, so no ENGINE_VERSION bump.
+    - **Where:** Cost to enjoy after the answer (two lines, each with its budget's mark), its breakdown in the card panel
+      (ending "Published ranges, not a quote."), a Cost to build column and sort on Favorites, Compare's two cost rows
+      and the viewer's budgets, One page's two lines and Full's Cost to enjoy section.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

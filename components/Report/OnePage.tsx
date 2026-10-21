@@ -5,6 +5,7 @@
  * step by step (FIT_STEPS), until it fits: rows first, never a section dropped. Full shows it unshortened.
  */
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { COST_WORDS } from "@/lib/report/cost";
 import { fmt } from "@/lib/format";
 import { VERDICT_WORD, listOf } from "@/lib/report/card";
 import { fitSteps, nextFit, REPORT_WORDS as W, takeWords, type ReportContent } from "@/lib/print/report";
@@ -65,6 +66,15 @@ export function OnePage({
           </p>
         ))}
       </section>
+
+      {/* Step 10: the viewer's cost to enjoy, after the grades. */}
+      {c.cost.length > 0 && (
+        <section className="rp-cost" aria-label={COST_WORDS.section}>
+          {c.cost.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
+        </section>
+      )}
 
       <section className="rp-card" aria-label="Report card">
         {c.tiers.map((t) => (

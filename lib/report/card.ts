@@ -40,7 +40,15 @@ import {
 } from "./lines";
 import { rankSites, type RankedSite } from "./sites";
 import { nearestFt, PERMIT_ON_FILE, permitFar, SPRING_MARKED, type Drawn, type Mark } from "./marks";
-import { COST_WORDS, costRange, costToEnjoy, type CostToEnjoy } from "./cost";
+import {
+  BUDGET_SITS,
+  budgetStatusOf,
+  COST_WORDS,
+  costRange,
+  costToEnjoy,
+  type BudgetStatus,
+  type CostToEnjoy,
+} from "./cost";
 import { shortPrice } from "../client/askingPrice";
 import { atLeast, atMost, gradedRows, parcelGrade, verdictLines } from "../rubric/grade";
 import { EDITOR_TITLES, FACTOR_LABELS } from "../rubric/words";
@@ -105,11 +113,7 @@ export interface Row {
   budget?: { status: BudgetStatus; reason: string };
 }
 
-/**
- * A budget against its cost (step 10 plan §3): pass when the high end is within it, warn when the range straddles it,
- * fail when even the low end is over; unknown without an asking price or a cost.
- */
-export type BudgetStatus = "pass" | "warn" | "fail" | "unknown";
+export type { BudgetStatus };
 
 /** What the card says regardless of whose weights are on, at one build site. */
 export interface CardFacts {
@@ -809,8 +813,8 @@ export function budgetRow(
   const each = given.map((w) => {
     const budget = budgets![w]!;
     const { low, high } = cost[w].total;
-    const status: BudgetStatus = high <= budget ? "pass" : low > budget ? "fail" : "warn";
-    const sits = status === "pass" ? "under" : status === "warn" ? "straddles" : "over";
+    const status = budgetStatusOf({ low, high }, budget);
+    const sits = BUDGET_SITS[status as Exclude<BudgetStatus, "unknown">];
     return {
       status,
       letter: atMost(budget > 0 ? high / budget : Infinity, K.budgetBands),
