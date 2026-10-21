@@ -919,4 +919,23 @@ until step 5 (Q14).
       (ending "Published ranges, not a quote."), a Cost to build column and sort on Favorites, Compare's two cost rows
       and the viewer's budgets, One page's two lines and Full's Cost to enjoy section.
 
+65. **The existing drive in the cost to enjoy; a declared exception to the frozen v9 shape** (owner, 2026-10-21, option B
+    of the existing-drive follow-up; a PR into main beside step 10b's hand-back).
+    - **The gap:** a scored route that starts from a drawn drive or track starts at the drive's end (`Route.existing`),
+      so Ready to build never priced the drive itself.
+    - **The cost:** Ready to build has its own line, "Upgrade the existing drive, 870 ft (pioneer)": the drive's length at
+      the WF7 per-condition upgrade rate (uncleared, pioneer, improved; a paved drive costs nothing), plus its steep
+      stretches paved at Settings' threshold (or "steep gravel needs more upkeep" with paving off). Camp is unchanged:
+      the drive is already there.
+    - **The stored field:** `Route.existing.profile`, the drive's grade profile every 3 m, optional, so its paving follows
+      the threshold as the route's does. The Driveway section's Upgrade row reads the same length (`driveSteepFt` in
+      `lib/report/ground.ts`), and says "N ft over P%: steep gravel, more upkeep" with paving off.
+    - **The exception:** CLAUDE.md freezes the stored ScreenResult at v9, any change being a new version and a clean break.
+      The owner chose an optional field instead: no version bump, no ENGINE_VERSION bump, no screens dropped.
+      `schema-v9.test.ts`'s snapshot gains the optional `profile`; nothing becomes required, and `expected.json` is
+      unchanged (no fixture's scored route starts from a drawn drive).
+    - **Screens saved before it** have no profile: the Upgrade row keeps its stored text ("~N ft over 12% to pave"), the
+      condition-based upgrade still applies (it needs only the drawn line's length and condition), and the breakdown
+      says "Grade again to price paving on the existing drive".
+
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

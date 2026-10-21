@@ -665,6 +665,8 @@ export function existingDrive(ctx: RouteContext, line: number): ExistingDrive | 
     stoneTons,
     outsideFt: src.offEasementM * M2FT,
     cost: { mid, low: mid * R.low, high: mid * R.high },
+    // The existing-drive follow-up (owner, 10/21): its profile, for its paving at Settings' threshold.
+    profile: prof,
   };
 }
 

@@ -2421,6 +2421,23 @@
                           "high"
                         ],
                         "additionalProperties": false
+                      },
+                      "profile": {
+                        "type": "array",
+                        "items": {
+                          "type": "array",
+                          "prefixItems": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "items": false,
+                          "minItems": 2,
+                          "maxItems": 2
+                        }
                       }
                     },
                     "required": [
@@ -2709,6 +2726,23 @@
                         "high"
                       ],
                       "additionalProperties": false
+                    },
+                    "profile": {
+                      "type": "array",
+                      "items": {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ],
+                        "items": false,
+                        "minItems": 2,
+                        "maxItems": 2
+                      }
                     }
                   },
                   "required": [
@@ -2990,6 +3024,23 @@
                         "high"
                       ],
                       "additionalProperties": false
+                    },
+                    "profile": {
+                      "type": "array",
+                      "items": {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ],
+                        "items": false,
+                        "minItems": 2,
+                        "maxItems": 2
+                      }
                     }
                   },
                   "required": [

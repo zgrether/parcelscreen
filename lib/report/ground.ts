@@ -83,6 +83,24 @@ export function steepStretchFt(rt: StoredRoute, abovePct: number, runs: readonly
   }, 0);
 }
 
+/**
+ * An existing drive's steep stretches, ft (the existing-drive follow-up, owner 10/21): where its 30 m grade passes
+ * `abovePct`. Null when its profile wasn't stored (a screen saved before it): its stored paving text stands.
+ */
+export function driveSteepFt(
+  profile: readonly (readonly [number, number])[] | undefined,
+  abovePct: number,
+): number | null {
+  if (!profile) return null;
+  return (
+    overLimitSpans(profile as [number, number][], abovePct / 100).reduce((t, [a, b]) => t + (b - a), 0) * M2FT
+  );
+}
+
+/** The condition the parcel gives a drawn line, by id; a drive reads as pioneer when the line isn't among them. */
+export const conditionOf = (lines: readonly CostLine[], id: string | undefined): CostLine["condition"] =>
+  lines.find((l) => l.id === id)?.condition ?? "pioneer";
+
 /** What a report needs to say a route's paving (step 10): the paving choice and the parcel's lines, or the defaults. */
 export interface PavingContext {
   paving: Paving;

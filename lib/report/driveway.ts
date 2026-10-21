@@ -7,7 +7,14 @@ import { existingSteepLine, impracticalLine } from "../screen/score";
 import type { PartialScreenResult } from "../screen/types";
 import { M2FT } from "../screen/util";
 import type { FactRow } from "./facts";
-import { DEFAULT_PAVING_CONTEXT, routeRuns, steepStretchFt, type PavingContext } from "./ground";
+import {
+  conditionOf,
+  DEFAULT_PAVING_CONTEXT,
+  driveSteepFt,
+  routeRuns,
+  steepStretchFt,
+  type PavingContext,
+} from "./ground";
 import { said, type Heading, type Part } from "./parts";
 import {
   drivenRoute,
@@ -161,10 +168,28 @@ function drawnRow(rt: Route, r: PartialScreenResult, names?: LineNames): FactRow
  * The existing drive a route starts from, as its own line of the route's cost (owner, #116): an upgrade, not new
  * construction. Its paving has no rate until follow-up 47. Its entrance is the drive's: shared, not priced.
  */
-function upgradeRow(rt: Route): FactRow | null {
+function upgradeRow(
+  rt: Route,
+  r: PartialScreenResult | null = null,
+  pave: PavingContext = DEFAULT_PAVING_CONTEXT,
+): FactRow | null {
   const x = rt.existing;
   if (!x) return null;
-  const paved = x.pavedFt >= 1 ? `, ~${fmt(x.pavedFt)} ft over ${DW.paveAbovePct}% to pave (cost TBD)` : "";
+  // The existing-drive follow-up (owner, 10/21): with the drive's profile kept, its paving is the cost breakdown's, at
+  // Settings' threshold (steep gravel when paving is off; none for a paved drive). Without it, the stored text.
+  const { abovePct, on } = pave.paving;
+  const steepFt = driveSteepFt(x.profile, abovePct);
+  const condition = conditionOf(pave.lines, r?.lines?.[x.line]?.id);
+  const paved =
+    steepFt === null
+      ? x.pavedFt >= 1
+        ? `, ~${fmt(x.pavedFt)} ft over ${DW.paveAbovePct}% to pave (cost TBD)`
+        : ""
+      : condition === "paved" || steepFt < 1
+        ? ""
+        : on
+          ? `, ~${fmt(steepFt)} ft over ${abovePct}% to pave (cost TBD)`
+          : `, ${fmt(steepFt)} ft over ${abovePct}%: steep gravel, more upkeep`;
   // Steeper than the veto: kept, with the owner's warning (#116).
   const steep = existingSteepLine(x);
   return {
@@ -215,7 +240,7 @@ function routeView(
     );
   const drawn = r ? drawnRow(rt, r, names) : null;
   if (drawn) rows.push(drawn);
-  const upgrade = upgradeRow(rt);
+  const upgrade = upgradeRow(rt, r, pave);
   if (upgrade)
     rows.push(upgrade, {
       label: "Entrance",

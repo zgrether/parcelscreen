@@ -480,6 +480,12 @@ const ExistingDriveSchema = z.strictObject({
   /** Its length on neighbouring land outside every drawn easement: it counts towards the easement need. */
   outsideFt: num,
   cost: CostRangeSchema,
+  /**
+   * Its grade profile, [distance m, elevation m] every 3 m (owner, 10/21: the existing-drive follow-up), so its paving
+   * follows Settings' threshold as the route's does. Optional, a declared exception to the frozen v9 shape (phase-0.md
+   * §9.65): a screen saved before it reads as before, with the drive's stored paving text.
+   */
+  profile: z.array(z.tuple([num, num])).optional(),
 });
 
 const RouteSchema = z.strictObject({
