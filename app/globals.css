@@ -6505,3 +6505,197 @@ button.sync-ind.bad {
       scroll,
     var(--color-paper);
 }
+
+/* ---------- The report card export (step 9, docs/plans/step-9-report-export.md §6) ---------- */
+/* On screen: the app's paper, a bar (Back, One page | Full, Print), and a white Letter sheet laid out at print size;
+   a phone scales the sheet down to its width (ReportPage), so the layout, and the One page fit, are the print's. */
+.report-page {
+  height: 100%;
+  overflow: auto;
+  padding: 12px 16px 40px;
+  box-sizing: border-box;
+  background: var(--color-paper-2);
+}
+.rp-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  max-width: 8.5in;
+  margin: 0 auto 12px;
+}
+.rp-bar .list-switch {
+  margin-bottom: 0;
+}
+.rp-bar .rp-print {
+  margin-left: auto;
+}
+.rp-bar .list-switch-seg {
+  min-width: 0;
+  white-space: nowrap;
+}
+/* A phone: Back and Print on the first row, the switch across the second (plan §7). */
+@media (max-width: 560px) {
+  .rp-bar .list-switch {
+    order: 3;
+    display: flex;
+    flex-basis: 100%;
+  }
+  .rp-bar .list-switch-seg {
+    flex: 1;
+  }
+}
+.rp-bar .btn {
+  min-height: 44px;
+}
+.rp-state {
+  max-width: 8.5in;
+  margin: 24px auto;
+}
+.rp-wrap {
+  width: 8.5in;
+  margin: 0 auto;
+  transform-origin: top left;
+}
+.rp-sheet {
+  box-sizing: border-box;
+  width: 8.5in;
+  padding: 0.5in;
+  background: #fff;
+  color: #111;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.18);
+  font: 10.5pt/1.35 var(--font-sans);
+}
+.rp-sheet h1 {
+  margin: 0;
+  font: 600 16pt/1.2 var(--font-cond);
+}
+.rp-sheet h2 {
+  margin: 10px 0 3px;
+  font: 600 9pt/1.2 var(--font-cond);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.rp-facts,
+.rp-stale {
+  margin: 2px 0 0;
+  font-size: 9.5pt;
+}
+.rp-stale {
+  font-weight: 600;
+}
+.rp-map-slot {
+  height: 3.3in;
+  margin: 8px 0;
+}
+.rp-map-slot.small {
+  height: 2.4in;
+}
+.rp-grades {
+  margin: 6px 0;
+}
+.rp-grade {
+  margin: 0 0 4px;
+}
+/* A letter grade: the letter in a box outlined in ink; nothing rests on its colour (§6). */
+.rp-letter {
+  display: inline-block;
+  min-width: 1.4em;
+  padding: 0 0.2em;
+  border: 1.5px solid #111;
+  border-radius: 3px;
+  font-weight: 700;
+  text-align: center;
+}
+.rp-clip {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.rp-tier table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9pt;
+}
+.rp-tier th,
+.rp-tier td {
+  padding: 2px 4px;
+  border-bottom: 0.5pt solid #bbb;
+  text-align: left;
+  vertical-align: top;
+}
+.rp-tier th {
+  width: 1.9in;
+  font-weight: 600;
+}
+.rp-mark {
+  width: 0.35in;
+  text-align: center !important;
+  font-weight: 700;
+}
+.rp-tier tr,
+.rp-takes li,
+.rp-questions li {
+  break-inside: avoid;
+}
+.rp-takes ul,
+.rp-questions ol {
+  margin: 0;
+  padding-left: 1.3em;
+  font-size: 9.5pt;
+}
+.rp-questions ol {
+  list-style: decimal;
+}
+.rp-takes ul {
+  list-style: none;
+  padding-left: 0;
+}
+.rp-questions p {
+  margin: 0;
+  font-size: 9.5pt;
+}
+
+/* Print: the sheet alone on a Letter page, without the app's chrome. */
+@media print {
+  @page {
+    size: letter;
+    margin: 0.5in;
+  }
+  html,
+  body {
+    height: auto !important;
+    background: #fff !important;
+  }
+  .app-frame {
+    display: block;
+    height: auto;
+    overflow: visible;
+  }
+  .app-frame > :not(.app-main),
+  .app-map,
+  .rp-bar,
+  .pwa-offline,
+  .pwa-update {
+    display: none !important;
+  }
+  .report-page {
+    height: auto;
+    overflow: visible;
+    padding: 0;
+    background: #fff;
+  }
+  .rp-wrap,
+  .rp-scaled {
+    width: auto !important;
+    height: auto !important;
+    transform: none !important;
+  }
+  .rp-sheet {
+    width: auto;
+    padding: 0;
+    box-shadow: none;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
