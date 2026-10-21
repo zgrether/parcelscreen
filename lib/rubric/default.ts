@@ -46,12 +46,13 @@ export function rubricFromWeights(
   const byWeight = [...ROW_KEYS].sort(
     (a, b) => weights[b] - weights[a] || ROW_KEYS.indexOf(a) - ROW_KEYS.indexOf(b),
   );
-  // A row with no weight is Don't care (step 7: the starting list's Driveway row).
+  // A row with no weight is Don't care (step 7: the starting list's Driveway row). Within budget isn't on the list at
+  // all: it comes with budgets (step 10).
   return {
     version: 1,
     musts: GATE_KEYS.map((factor) => ({ factor })),
     ranked: byWeight.filter((k) => weights[k] > 0).map((factor) => ({ factor, tier: "should" })),
-    wonts: byWeight.filter((k) => !(weights[k] > 0)),
+    wonts: byWeight.filter((k) => !(weights[k] > 0) && k !== "budget"),
     bands: { ...K.rows },
     weights: { mode: "explicit", of: { ...weights } },
     points: { ...K.points },

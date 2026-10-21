@@ -37,8 +37,8 @@ export interface CostLine {
   line: readonly LatLon[];
   recordedIn: string;
 }
-/** A marker as the cost reads it: with a septic permit's class. */
-export type CostMark = Mark & { septicClass: SepticClass | null };
+/** A marker as the cost reads it: with a septic permit's class, when the marker is one. */
+export type CostMark = Mark & { septicClass?: SepticClass | null };
 
 export interface CostInput {
   result: PartialScreenResult;
@@ -149,6 +149,16 @@ export const roundCost = (n: number): number => {
   const step = n < 100_000 ? 1_000 : 5_000;
   return Math.round(n / step) * step;
 };
+
+/** "$200–240k", "$950k–1.05M", "$12k": a range of dollars, in thousands or millions. */
+export function costRange(r: Range): string {
+  const unit = (n: number) => (n >= 1_000_000 ? "M" : "k");
+  const num = (n: number) => (n >= 1_000_000 ? +(n / 1_000_000).toFixed(2) : Math.round(n / 1_000));
+  if (unit(r.low) !== unit(r.high)) return `$${num(r.low)}${unit(r.low)}–${num(r.high)}${unit(r.high)}`;
+  return num(r.low) === num(r.high)
+    ? `$${num(r.high)}${unit(r.high)}`
+    : `$${num(r.low)}–${num(r.high)}${unit(r.high)}`;
+}
 
 const part = (
   rates: Rates,
@@ -386,10 +396,10 @@ export function costToEnjoy(input: CostInput): CostToEnjoy | null {
 
   // Septic: a permit's class near the site, else the site's soil's.
   const permit = nearest(
-    marks.filter((m) => m.kind === "septic" && m.septicClass !== null),
+    marks.filter((m) => m.kind === "septic" && m.septicClass != null),
     site.ll,
   );
-  const fromPermit = permit && permit.ft <= A.nearMarkFt ? permit.mark.septicClass : null;
+  const fromPermit = permit && permit.ft <= A.nearMarkFt ? (permit.mark.septicClass ?? null) : null;
   const soil = soilUnder(r, site.ll);
   const fromSoil = soil ? septicClass(soil) : null;
   const cls: SepticClass | null = fromPermit ?? (fromSoil ? (fromSoil.toLowerCase() as SepticClass) : null);

@@ -109,6 +109,7 @@ export function RulebookRules({ rb, current }: { rb: Rulebook; current: string }
         {rb.card.rows.map((r) => (
           <RulePanelView key={r.key} panel={r} />
         ))}
+        <RulePanelView panel={rb.card.budget} />
         {/* The card's last line: every panel has its section here, for its "How it's scored" link (follow-up 52). */}
         <RulePanelView panel={rb.card.cost} />
       </section>

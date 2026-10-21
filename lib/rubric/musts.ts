@@ -22,6 +22,8 @@ export const BAND_DIRECTION: Record<RowKey, "atLeast" | "atMost" | null> = {
   trails: "atMost",
   town: "atMost",
   garden: "atLeast",
+  // Step 10: no threshold; a Must on it reads the budgets (lib/report/card.ts).
+  budget: null,
 };
 
 /** The unit a threshold on each row is in; the row's measure must carry the same one, else the Must is unknown. */
@@ -34,6 +36,7 @@ export const MEASURE_UNIT: Record<RowKey, string | null> = {
   trails: "min",
   town: "min",
   garden: "ac",
+  budget: null,
 };
 
 export type MustStatus = "pass" | "fail" | "unknown";

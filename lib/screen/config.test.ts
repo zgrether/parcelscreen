@@ -184,6 +184,12 @@ describe("config", () => {
           ],
         },
         "card": {
+          "budgetBands": [
+            0.8,
+            1,
+            1.15,
+            1.3,
+          ],
           "editor": {
             "drivewayPct": {
               "max": 25,
@@ -462,6 +468,7 @@ describe("config", () => {
               },
             },
             "defaultPoints": {
+              "budget": 0,
               "driveway": 1,
               "elevation": 2,
               "garden": 1,
@@ -565,6 +572,7 @@ describe("config", () => {
           },
           "weights": {
             "default": {
+              "budget": 0,
               "driveway": 0,
               "elevation": 25,
               "garden": 10,

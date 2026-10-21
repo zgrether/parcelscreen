@@ -9,6 +9,8 @@
  * 3. Rank becomes weight: rank-sum, Nice to have at three quarters (lib/rubric/weights.ts).
  * 4. Each answer marks its row's B/C edge, and the band shifts with it (setBandEdge).
  * 5. The four dealbreakers stay Must haves unless 14b says they don't matter; 14a's chips add limits.
+ * 6. Question 13's budgets (step 10) make the Within budget card: a Must with 14a's "Over budget", Don't care with
+ *    14b's, else at the end of Really want. No budget, no card.
  * Skipping every question returns the starting list unchanged (owner Q8).
  */
 import { SCREEN_CONSTANTS } from "../../screen/config";
@@ -23,9 +25,9 @@ import {
   type RowKey,
   type Rubric,
 } from "../types";
-import type { BandKey } from "../words";
+import { budgetWords, type BandKey } from "../words";
 import { CHIPS, type Chip, type InterviewAnswers } from "./answers";
-import { ACRES_WORDS, CHIP_WORDS, dollars, GLOW_QUESTION, QUESTIONS } from "./questions";
+import { ACRES_WORDS, CHIP_WORDS, GLOW_QUESTION, QUESTIONS } from "./questions";
 
 /** What one choice does, as config writes it. */
 interface Effect {
@@ -137,8 +139,9 @@ export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card
   answer("driveway", a.driveway);
   for (const key of ["hoa", "creek"] as const) if (a[key]) note(choiceOf(key, a[key])?.later);
   if (a.land?.acres) note(`Acreage (${ACRES_WORDS[a.land.acres]})`);
-  if (a.land?.campBudget !== undefined) note(`Camp budget (${dollars(a.land.campBudget)})`);
-  if (a.land?.buildBudget !== undefined) note(`Build budget (${dollars(a.land.buildBudget)})`);
+  // Step 10: a budget is graded now (Within budget), so it leaves the quiet list.
+  const budgets = { camp: a.land?.campBudget ?? null, build: a.land?.buildBudget ?? null };
+  const budgeted = budgets.camp !== null || budgets.build !== null;
 
   // Question 14a: the walk-away chips. Their rows are lifted to at least 1 point, and each limit keeps its why.
   const starts = walkAwayStarts(a, C);
@@ -166,7 +169,8 @@ export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card
     }
     const gate = walkGate[chip];
     if (gate) say(gate, text);
-    note(CHIP_WORDS[chip].laterWalkAway);
+    if (chip === "overBudget" && budgeted) say("budget", text);
+    else note(CHIP_WORDS[chip].laterWalkAway);
   }
 
   // Question 14b: the chips that don't matter. A dealbreaker goes to Don't care; a row goes to 0 points.
@@ -196,7 +200,8 @@ export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card
       edges.erMin = I.dontMatterErMin;
       say("town", text);
     }
-    note(CHIP_WORDS[chip].laterDontMatter);
+    if (chip === "overBudget" && budgeted) say("budget", text);
+    else note(CHIP_WORDS[chip].laterDontMatter);
   }
 
   // 1. Points: the highest answer, else the default; a walk-away chip lifts to 1; "doesn't matter" is 0.
@@ -221,8 +226,19 @@ export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card
     if (should.length < I.should.min && points[r] >= 1 && !should.includes(r)) should.push(r);
   const could = order.filter((r) => points[r] >= 1 && !should.includes(r));
   const wonts = order.filter((r) => points[r] === 0);
+  // 6. Within budget (step 10): a Must, Don't care, or the last of Really want.
+  const budgetAt = !budgeted
+    ? null
+    : walk.has("overBudget")
+      ? "must"
+      : off.has("overBudget")
+        ? "wont"
+        : "should";
+  if (budgetAt === "should") say("budget", `Your budgets: ${budgetWords(budgets)}`);
+  if (budgetAt === "wont") wonts.push("budget");
   const ranked: RankedCard[] = [
     ...should.map((factor) => ({ factor, tier: "should" as const })),
+    ...(budgetAt === "should" ? [{ factor: "budget" as const, tier: "should" as const }] : []),
     ...could.map((factor) => ({ factor, tier: "could" as const })),
     ...(skipped10 ? [{ factor: "driveway" as const, tier: "could" as const }] : []),
   ];
@@ -232,11 +248,13 @@ export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card
     ...start,
     musts: [
       ...GATE_KEYS.filter((g) => !dropped.has(g)).map((factor) => ({ factor })),
+      ...(budgetAt === "must" ? [{ factor: "budget" as const }] : []),
       ...limits.map(({ row, threshold }) => ({ factor: row, threshold })),
     ],
     ranked,
     wonts,
     weights: { mode: "rankSum" },
+    ...(budgeted ? { budgets } : {}),
   };
   for (const [band, value] of Object.entries(edges) as [BandKey, number][])
     rubric = setBandEdge(rubric, band, value);

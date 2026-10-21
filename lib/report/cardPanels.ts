@@ -28,6 +28,7 @@ const PANELS: Record<PanelKey, true> = {
   trails: true,
   town: true,
   garden: true,
+  budget: true,
   cost: true,
 };
 export const PANEL_KEYS = Object.keys(PANELS) as PanelKey[];
@@ -186,6 +187,18 @@ export function panelText(
         question: "Is there ground to grow food on?",
         howScored: `A for a garden of ${fmt(R.gardenAc[0]!, 2)} ac or more on prime or statewide-important farmland; B from ${fmt(R.gardenAc[1]!, 2)} ac, C from ${fmt(R.gardenAc[2]!, 2)} ac, D for any garden; ${weightOf(rubrics, "garden")}.`,
       };
+    case "budget": {
+      const B = K.budgetBands.map((x) => `${fmt(x * 100)}%`);
+      return {
+        title: "Within budget",
+        question: "Does it fit what you'd spend?",
+        howScored:
+          `Ready to camp and Ready to build, all in, against your budgets from the questions; the worse of the two counts. ` +
+          `As something you really want or would like: A when the high end of the range is within ${B[0]} of the budget, B within ${B[1]}, C within ${B[2]}, D within ${B[3]}, F above; ${weightOf(rubrics, "budget")}. ` +
+          `As a must have: it passes when the high end is within the budget, asks you to check first when the range straddles it, and fails when even the low end is over. ` +
+          `Without an asking price it isn't graded.`,
+      };
+    }
     case "cost":
       return {
         title: "Cost to enjoy",
