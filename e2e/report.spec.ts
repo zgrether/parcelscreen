@@ -86,3 +86,51 @@ test("the page's states: a parcel not on this device, and one not graded yet", a
   await expect(page.getByText("This parcel hasn't been graded yet.")).toBeVisible();
   await expect(page.getByRole("button", { name: "← Back" })).toBeVisible();
 });
+
+test("Full: the summary, then the brief's sections in order, the closing line; nothing for steps 10 and 12", async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(120_000);
+  const slugs: readonly FixtureSlug[] = ["roan-hwy-143-099-046-02", "grayson-mud-creek-6273"];
+  await replayHar(context, "ferney-creek-52-47A");
+  await openExplorer(page, "ferney-creek-52-47A");
+  await importParcels(page, slugs);
+  await seedScreens(page, slugs);
+  await settled(page);
+  for (const slug of slugs) {
+    await visit(page, `/parcel/${await keyOf(page, loadFixture(slug).input.name)}/report?preset=full`);
+    const full = page.locator(".rp-full");
+    await expect(full.locator(".rp-full-section > h2")).toHaveText([
+      "The priorities it was graded against",
+      "Best site and alternatives",
+      "Access and driveway",
+      "Winter sun and the horizon",
+      "Night sky",
+      "Soils, septic and flood",
+      "Drive times",
+      "Listing facts and notes",
+      "Lines and marks",
+      "Data sources",
+    ]);
+    await expect(full.locator(".rp-closing")).toHaveText(
+      "This is a desk screen, not a survey, perc test or appraisal.",
+    );
+    await expect(full).toContainText(/Graded by engine version \d+\./);
+    await expect(full).not.toContainText(/cost to enjoy|raise the grade/i);
+    // The summary is One page's, unshortened; Full runs to more pages.
+    await expect(page.locator(".rp-one")).not.toHaveAttribute("data-fit");
+    const pdf = await page.pdf({ preferCSSPageSize: true, printBackground: true });
+    expect(pageCount(pdf), `${slug}: Full's pages`).toBeGreaterThan(2);
+    // Nothing cut off: in print, no table is wider than the page's column (the side-by-side table had been).
+    await page.emulateMedia({ media: "print" });
+    const widest = await page.evaluate(() => {
+      const column = document.querySelector(".rp-sheet")!.getBoundingClientRect().width;
+      return (
+        Math.max(...[...document.querySelectorAll(".rp-sheet table")].map((t) => t.scrollWidth)) - column
+      );
+    });
+    expect(widest, `${slug}: a table past the page's width, px`).toBeLessThanOrEqual(1);
+    await page.emulateMedia({ media: null });
+  }
+});

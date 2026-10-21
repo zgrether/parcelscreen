@@ -22,6 +22,7 @@ import { DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { MINE } from "@/lib/rubric/types";
 import { presetOf, REPORT_WORDS as W, reportContent, type Preset } from "@/lib/print/report";
 import { OnePage } from "./OnePage";
+import { Full } from "./Full";
 import { PrintMap, type PrintLine, type PrintSite } from "./PrintMap";
 import { choicesBeside } from "@/lib/report/sites";
 import type { LatLon } from "@/lib/geo/types";
@@ -202,6 +203,9 @@ function Report({
           fit={preset === "one"}
           map={(height) => <PrintMap {...map} height={height} onSettled={() => onMapReady(true)} />}
         />
+        {preset === "full" && (
+          <Full result={record.result} card={content.grades[0]!.card} parcel={parcel} acres={content.acres} />
+        )}
       </article>
     </SheetScale>
   );
