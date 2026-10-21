@@ -2564,6 +2564,36 @@ html:has(.app-nav) .explore {
   border-color: var(--color-steep);
   box-shadow: 0 0 0 1px var(--color-steep);
 }
+/* Settings → Costs (step 10): one rate per row, its low and high side by side, its sources under them. */
+.settings-body h4 {
+  margin: 14px 0 0;
+  font-size: 13.5px;
+}
+.cost-row {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-rule);
+}
+.cost-label {
+  font-size: 13px;
+}
+.cost-range {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 12px;
+  max-width: 340px;
+}
+.cost-range .settings-field {
+  margin-top: 4px;
+}
+.cost-source {
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 560px) {
+  .cost-range input {
+    min-height: 44px;
+  }
+}
 .settings-foot {
   padding: 10px 18px 14px;
   border-top: 1px solid var(--color-rule);

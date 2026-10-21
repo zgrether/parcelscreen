@@ -11,7 +11,7 @@ import { EMPTY_HOUSEHOLD, readHousehold, recordsOf, type Ask, type Take } from "
 import type { StoredHousehold, StoredParcel } from "./wire";
 
 /** The profile documents that sync (§5's table); every other profile document stays on the device. */
-export const SYNCED_DOCS = ["ps.cfg", "ps.rubrics", "ps.interview", "ps.history"] as const;
+export const SYNCED_DOCS = ["ps.cfg", "ps.costs", "ps.rubrics", "ps.interview", "ps.history"] as const;
 export type SyncedDoc = (typeof SYNCED_DOCS)[number];
 export const isSyncedDoc = (key: string): key is SyncedDoc =>
   (SYNCED_DOCS as readonly string[]).includes(key);

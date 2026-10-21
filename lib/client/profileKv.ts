@@ -13,6 +13,7 @@ import { syncHooks } from "./syncHooks";
 export const PROFILE_KEYS: ReadonlySet<string> = new Set([
   "ps.current",
   "ps.cfg",
+  "ps.costs",
   "ps.rubricView",
   "ps.rubrics",
   "ps.interview",
