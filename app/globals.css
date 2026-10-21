@@ -129,6 +129,8 @@ html:has(.explore) body {
     display: block;
     width: 56px;
     height: 6px;
+    padding: 0;
+    border: 0;
     border-radius: 3px;
     background: var(--color-ink-2);
     opacity: 0.5;
