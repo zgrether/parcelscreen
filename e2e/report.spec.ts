@@ -53,6 +53,14 @@ test("One page: from the saved screen, no tabs, one Letter page for each fixture
     await expect(sheet.locator(".rp-tier h2").first()).toHaveText("Must have");
     await expect(sheet.getByRole("heading", { name: "Questions for the agent" })).toBeVisible();
     await expect(page.getByRole("tab", { name: "One page" })).toHaveAttribute("aria-selected", "true");
+    // The map (PR 2): its tiles asked for (the replay aborts them, so they fail and the map says so), the boundary and
+    // the best site drawn over them, and Print enabled once every tile has settled.
+    const map = sheet.locator(".rp-map");
+    await expect(map.locator(".rp-overlay path").first()).toBeAttached();
+    await expect(map.locator(".rp-overlay text").first()).toBeAttached();
+    await expect(page.getByRole("button", { name: "Print or save as PDF" })).toBeEnabled({ timeout: 30_000 });
+    await expect(map).toContainText("The map couldn't load.");
+    await expect(map.locator("figcaption")).toContainText("Imagery: USGS (public domain)");
     const pdf = await page.pdf({ preferCSSPageSize: true, printBackground: true });
     expect(pageCount(pdf), `${slug}: One page's pages`).toBe(1);
   }

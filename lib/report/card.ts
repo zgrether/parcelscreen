@@ -41,7 +41,7 @@ import {
 import { rankSites, type RankedSite } from "./sites";
 import { nearestFt, PERMIT_ON_FILE, permitFar, SPRING_MARKED, type Drawn, type Mark } from "./marks";
 import { atLeast, atMost, gradedRows, parcelGrade, verdictLines } from "../rubric/grade";
-import { FACTOR_LABELS } from "../rubric/words";
+import { EDITOR_TITLES, FACTOR_LABELS } from "../rubric/words";
 import { thresholdStatus, thresholdWords, type Measure } from "../rubric/musts";
 import type { GateKey, Letter, NamedRubric, RowKey } from "../rubric/types";
 import { weightsOf } from "../rubric/weights";
@@ -942,7 +942,8 @@ export function cardFor(facts: CardFacts, nr: NamedRubric): Card {
   const heldBy =
     verdict === "Maybe" && points !== null && points >= lines.contender
       ? [
-          ...(warns.length > R.verdict.contenderMaxWarns ? warns.map((g) => g.label) : []),
+          // In the card's own words for each Must ("Driveway on your land", not the factor's "Easement needed").
+          ...(warns.length > R.verdict.contenderMaxWarns ? warns.map((g) => EDITOR_TITLES[g.key]) : []),
           ...thresholds.filter((t) => t.status === "unknown").map((t) => t.row.label),
           ...facts.rows.filter((x) => x.checkFirst).map((x) => x.label),
           ...(incomplete.length ? ["something that didn't load"] : []),

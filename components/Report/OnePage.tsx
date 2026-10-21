@@ -9,7 +9,19 @@ import { fmt } from "@/lib/format";
 import { VERDICT_WORD, listOf } from "@/lib/report/card";
 import { fitSteps, nextFit, REPORT_WORDS as W, takeWords, type ReportContent } from "@/lib/print/report";
 
-export function OnePage({ content: c, fit, map }: { content: ReportContent; fit: boolean; map?: ReactNode }) {
+/** The map's height on One page, in CSS px: 3.3 in, or 2.4 in at the fit's third step. */
+export const MAP_HEIGHT = { full: 317, small: 230 } as const;
+
+export function OnePage({
+  content: c,
+  fit,
+  map,
+}: {
+  content: ReportContent;
+  fit: boolean;
+  /** The print map at a height, from the page. */
+  map?: (height: number) => ReactNode;
+}) {
   const box = useRef<HTMLDivElement>(null);
   const [level, setLevel] = useState(0);
   // Content or preset changed: start again from nothing shortened.
@@ -35,7 +47,9 @@ export function OnePage({ content: c, fit, map }: { content: ReportContent; fit:
         {c.stale && <p className="rp-stale">{W.staleBoundary}</p>}
       </header>
 
-      {map && <div className={steps.has("smallerMap") ? "rp-map-slot small" : "rp-map-slot"}>{map}</div>}
+      {map && (
+        <div className="rp-map-slot">{map(steps.has("smallerMap") ? MAP_HEIGHT.small : MAP_HEIGHT.full)}</div>
+      )}
 
       <section className="rp-grades" aria-label="Grades">
         {c.grades.map((g) => (
@@ -61,7 +75,7 @@ export function OnePage({ content: c, fit, map }: { content: ReportContent; fit:
                 {t.rows.map((r) => (
                   <tr key={r.key}>
                     <th scope="row">{r.label}</th>
-                    <td className={`rp-mark ${r.kind}`} data-tone={r.tone}>
+                    <td className={`rp-mark rp-${r.kind}`} data-tone={r.tone}>
                       {r.kind === "grade" ? <span className="rp-letter">{r.mark}</span> : r.mark}
                     </td>
                     <td>{steps.has("shortRows") ? r.short : r.text}</td>
