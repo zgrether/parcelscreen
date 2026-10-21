@@ -489,6 +489,14 @@ No stored-data change: UI moves and labels only. One device pref is new, `ps.mar
 on by default), and the Info panel's `ps.infoTab` goes. `docs/plans/step-8b-parcel-panel.md` and phase-0.md §9.61 have
 the details.
 
+### 3j. The report card export (roadmap step 9)
+
+No stored-data change. `/parcel/<key>/report` renders a print page from the parcel and its saved screen alone, with
+One page (one US Letter page, shortened to fit) and Full presets; the browser's Print → Save as PDF makes the file. Its
+map is a static render (USGS imagery tiles and an SVG overlay). One device pref is new, `ps.reportPreset`. The
+service worker serves a precached shell for any report offline. `docs/plans/step-9-report-export.md` and phase-0.md
+§9.62 have the details.
+
 ## 4. The parcel page (the export)
 
 Blocks, in order; each is computed, placeholder, or user-authored:

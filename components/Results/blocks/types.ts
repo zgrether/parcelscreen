@@ -12,10 +12,10 @@ export type { EvaluationPoint };
 export { evaluationPoint } from "@/lib/report/point";
 
 /**
- * Where the block is shown. Only the explorer's panel today; the parcel page and print add members (plan
- * §6), and every place a block depends on it is a check the compiler will point at.
+ * Where the block is shown: the explorer's panel, or the report card export's print page (step 9). The parcel page
+ * would add a member (plan §6); every place a block depends on it is a check the compiler will point at.
  */
-export type Variant = "panel";
+export type Variant = "panel" | "print";
 
 export interface BlockProps {
   /** Partial while a run is in progress (no verdict yet). */

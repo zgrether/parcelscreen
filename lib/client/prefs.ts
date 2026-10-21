@@ -14,6 +14,7 @@ import { readHousehold, readSeen, type Household, type SeenTakes } from "./takes
 import { EMPTY_LOG, readHistoryLog, type HistoryLog } from "./favorites";
 import { activeKv, isProfileKey, isSharedKey, sharedKv } from "./profileKv";
 import { readParcelStore, withNamesFromNotes, writeParcelStore, type ParcelStore } from "./parcelStore";
+import { presetOf, type Preset } from "../print/report";
 
 export interface MapView {
   lat: number;
@@ -69,6 +70,8 @@ export interface Prefs {
   "ps.tiltHint": boolean;
   /** The rubric on show (step 1): "mine", or one of the profile's other rubrics by id. UI only, never part of a run. */
   "ps.rubricView": string;
+  /** The report card export's preset (step 9): One page or Full, the last one used. */
+  "ps.reportPreset": Preset;
   /** The profile's rubrics (step 1; lib/client/rubrics.ts): null until it has its own. */
   "ps.rubrics": ProfileRubrics | null;
   /** The interview (step 4): its answers, where to resume, and the rubric it made; null until it's begun. */
@@ -109,6 +112,7 @@ const DEFAULTS: Prefs = {
   "ps.overlays": ALL_OVERLAYS,
   "ps.tiltHint": false,
   "ps.rubricView": MINE,
+  "ps.reportPreset": "one",
   "ps.rubrics": null,
   "ps.interview": null,
   "ps.household": null,
@@ -136,6 +140,7 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
   "ps.contours": { read: (r) => r !== "0", write: (v) => (v ? "1" : "0") },
   "ps.tiltHint": { read: (r) => r === "1", write: (v) => (v ? "1" : "0") },
   "ps.rubricView": { read: (r) => r, write: (v) => v },
+  "ps.reportPreset": { read: (r) => presetOf(r) ?? "one", write: (v) => v },
   "ps.rubrics": {
     read: (r) => {
       const parsed = ProfileRubricsSchema.safeParse(JSON.parse(r));

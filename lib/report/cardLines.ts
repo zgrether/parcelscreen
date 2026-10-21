@@ -3,7 +3,7 @@
  * lines (the gates the person keeps, then each limit) and its ranked rows by tier, and each Must's mark.
  */
 import { fmt } from "@/lib/format";
-import type { Card, GateStatus, Row } from "./card";
+import { lowerFirst, type Card, type GateStatus, type Row } from "./card";
 import type { PanelKey } from "./cardPanels";
 import { thresholdStatus, thresholdWords, type MustStatus } from "@/lib/rubric/musts";
 import { EDITOR_TITLES } from "@/lib/rubric/words";
@@ -22,6 +22,18 @@ export interface MustLine {
 
 /** A Must's mark on the card: ✓ passes, ! to check first, ✗ fails, ? unknown. */
 export const GATE_MARK: Record<GateStatus, string> = { pass: "✓", warn: "!", fail: "✗", unknown: "?" };
+
+/** A Must's status in words (step 7 plan §1.4): a warning is something to check first. */
+export const MUST_STATUS_WORD: Record<GateStatus, string> = {
+  pass: "Pass",
+  warn: "Check first",
+  fail: "Fail",
+  unknown: "Unknown",
+};
+
+/** A Must line's detail as the card says it: "Check first: …" unless it passes (the print page's one line). */
+export const mustText = (m: MustLine): string =>
+  m.status === "pass" ? m.detail : `${MUST_STATUS_WORD[m.status]}: ${lowerFirst(m.detail)}`;
 
 const LIMIT_STATUS: Record<MustStatus, GateStatus> = { pass: "pass", fail: "fail", unknown: "unknown" };
 

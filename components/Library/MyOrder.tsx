@@ -6,6 +6,7 @@
  * sort the handles hide. The list (Library.tsx) turns a drop into one parcel's new rank (lib/client/myOrder.ts).
  */
 import { holdSync } from "@/lib/sync/hold";
+import { REPORT_WORDS } from "@/lib/print/report";
 import {
   DndContext,
   KeyboardSensor,
@@ -142,20 +143,27 @@ function menuPlace(button: HTMLElement): CSSProperties {
   };
 }
 
-/** Move up and Move down, at the row's place among those shown; the button keeps the focus after a move. */
-export function OrderMenu({
+/**
+ * A row's ⋯ (step 9: in every sort): Report card for a graded parcel; in My order, Move up and Move down at the row's
+ * place among those shown (the button keeps the focus after a move); Remove from favorites.
+ */
+export function RowMenu({
   name,
   index,
   count,
   move,
   remove,
+  report,
 }: {
   name: string;
   index: number;
   count: number;
-  move(to: number): void;
+  /** In My order only: moves the row. */
+  move?(to: number): void;
   /** Remove from favorites (polish #16): the star does the same. */
   remove?(): void;
+  /** Opens the parcel's report card (step 9), for a graded parcel. */
+  report?(): void;
 }) {
   const button = useRef<HTMLButtonElement>(null);
   const list = useRef<HTMLSpanElement>(null);
@@ -176,7 +184,7 @@ export function OrderMenu({
   }, [open]);
   const go = (to: number) => {
     setOpen(false);
-    move(to);
+    move?.(to);
     // A moved row's elements can lose the focus as the list reorders: give it back.
     requestAnimationFrame(() => button.current?.focus());
   };
@@ -198,9 +206,9 @@ export function OrderMenu({
       <button
         ref={button}
         type="button"
-        className="lib-handle"
-        aria-label={`Order: ${name}`}
-        title="Move up or down"
+        className="lib-more"
+        aria-label={`More for ${name}`}
+        title={move ? "Report card, move up or down, remove" : "Report card, remove"}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
@@ -209,12 +217,33 @@ export function OrderMenu({
       </button>
       {open && (
         <span ref={list} className="lib-menu" role="menu" style={at}>
-          <button type="button" role="menuitem" disabled={index === 0} onClick={() => go(index - 1)}>
-            Move up
-          </button>
-          <button type="button" role="menuitem" disabled={index === count - 1} onClick={() => go(index + 1)}>
-            Move down
-          </button>
+          {report && (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                report();
+              }}
+            >
+              {REPORT_WORDS.title}
+            </button>
+          )}
+          {move && (
+            <>
+              <button type="button" role="menuitem" disabled={index === 0} onClick={() => go(index - 1)}>
+                Move up
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                disabled={index === count - 1}
+                onClick={() => go(index + 1)}
+              >
+                Move down
+              </button>
+            </>
+          )}
           {remove && (
             <button
               type="button"

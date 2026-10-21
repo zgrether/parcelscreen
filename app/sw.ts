@@ -22,6 +22,10 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope;
 
+/** The report page's shell, precached (app/serwist/[path]/route.ts), and the paths it stands in for. */
+const REPORT_SHELL = "/parcel/_/report";
+const REPORT_PATH = /^\/parcel\/[^/]+\/report\/?$/;
+
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
   skipWaiting: false,
@@ -29,7 +33,15 @@ const serwist = new Serwist({
   navigationPreload: false,
   runtimeCaching: [],
   fallbacks: {
-    entries: [{ url: "/explore", matcher: ({ request }) => request.destination === "document" }],
+    entries: [
+      // The report card export (step 9 plan §1): one precached shell for every parcel, which reads its key from the URL.
+      {
+        url: REPORT_SHELL,
+        matcher: ({ request }) =>
+          request.destination === "document" && REPORT_PATH.test(new URL(request.url).pathname),
+      },
+      { url: "/explore", matcher: ({ request }) => request.destination === "document" },
+    ],
   },
 });
 

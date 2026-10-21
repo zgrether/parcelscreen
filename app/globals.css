@@ -6505,3 +6505,396 @@ button.sync-ind.bad {
       scroll,
     var(--color-paper);
 }
+
+/* ---------- The report card export (step 9, docs/plans/step-9-report-export.md §6) ---------- */
+/* On screen: the app's paper, a bar (Back, One page | Full, Print), and a white Letter sheet laid out at print size;
+   a phone scales the sheet down to its width (ReportPage), so the layout, and the One page fit, are the print's. */
+.report-page {
+  height: 100%;
+  overflow: auto;
+  padding: 12px 16px 40px;
+  box-sizing: border-box;
+  background: var(--color-paper-2);
+}
+.rp-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  max-width: 8.5in;
+  margin: 0 auto 12px;
+}
+.rp-bar .list-switch {
+  margin-bottom: 0;
+}
+.rp-bar .rp-print {
+  margin-left: auto;
+}
+.rp-bar .list-switch-seg {
+  min-width: 0;
+  white-space: nowrap;
+}
+/* A phone: Back and Print on the first row, the switch across the second (plan §7). */
+@media (max-width: 560px) {
+  .rp-bar .list-switch {
+    order: 3;
+    display: flex;
+    flex-basis: 100%;
+  }
+  .rp-bar .list-switch-seg {
+    flex: 1;
+  }
+}
+.rp-bar .btn {
+  min-height: 44px;
+}
+.rp-state {
+  max-width: 8.5in;
+  margin: 24px auto;
+}
+.rp-wrap {
+  width: 8.5in;
+  margin: 0 auto;
+  transform-origin: top left;
+}
+.rp-sheet {
+  box-sizing: border-box;
+  width: 8.5in;
+  padding: 0.5in;
+  background: #fff;
+  color: #111;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.18);
+  font: 10.5pt/1.35 var(--font-sans);
+}
+.rp-sheet h1 {
+  margin: 0;
+  font: 600 16pt/1.2 var(--font-cond);
+}
+.rp-sheet h2 {
+  margin: 10px 0 3px;
+  font: 600 9pt/1.2 var(--font-cond);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.rp-facts,
+.rp-stale {
+  margin: 2px 0 0;
+  font-size: 9.5pt;
+}
+.rp-stale {
+  font-weight: 600;
+}
+.rp-map-slot {
+  margin: 8px 0;
+}
+.rp-grades {
+  margin: 6px 0;
+}
+.rp-grade {
+  margin: 0 0 4px;
+}
+/* A letter grade: the letter in a box outlined in ink; nothing rests on its colour (§6). */
+.rp-letter {
+  display: inline-block;
+  min-width: 1.4em;
+  padding: 0 0.2em;
+  border: 1.5px solid #111;
+  border-radius: 3px;
+  font-weight: 700;
+  text-align: center;
+}
+.rp-clip {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.rp-tier table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9pt;
+}
+.rp-tier th,
+.rp-tier td {
+  padding: 2px 4px;
+  border-bottom: 0.5pt solid #bbb;
+  text-align: left;
+  vertical-align: top;
+}
+.rp-tier th {
+  width: 1.9in;
+  font-weight: 600;
+}
+.rp-mark {
+  width: 0.35in;
+  text-align: center !important;
+  font-weight: 700;
+}
+.rp-tier tr,
+.rp-takes li,
+.rp-questions li {
+  break-inside: avoid;
+}
+.rp-takes ul,
+.rp-questions ol {
+  margin: 0;
+  padding-left: 1.3em;
+  font-size: 9.5pt;
+}
+.rp-questions ol {
+  list-style: decimal;
+}
+.rp-takes ul {
+  list-style: none;
+  padding-left: 0;
+}
+.rp-questions p {
+  margin: 0;
+  font-size: 9.5pt;
+}
+
+/* Print: the sheet alone on a Letter page, without the app's chrome. */
+@media print {
+  @page {
+    size: letter;
+    margin: 0.5in;
+  }
+  html,
+  body {
+    height: auto !important;
+    background: #fff !important;
+  }
+  .app-frame {
+    display: block;
+    height: auto;
+    overflow: visible;
+  }
+  .app-frame > :not(.app-main),
+  .app-map,
+  .rp-bar,
+  .pwa-offline,
+  .pwa-update {
+    display: none !important;
+  }
+  .report-page {
+    height: auto;
+    overflow: visible;
+    padding: 0;
+    background: #fff;
+  }
+  .rp-wrap,
+  .rp-scaled {
+    width: auto !important;
+    height: auto !important;
+    transform: none !important;
+  }
+  .rp-sheet {
+    width: auto;
+    padding: 0;
+    box-shadow: none;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
+/* The print map (plan §4): tiles as images in a clipped box, the SVG over them, the credit under it. */
+.rp-map {
+  margin: 0;
+}
+.rp-map-box {
+  position: relative;
+  width: 720px;
+  overflow: hidden;
+  background: #d9d9d4;
+}
+.rp-tile {
+  position: absolute;
+  display: block;
+  max-width: none;
+  /* Half a pixel of overlap: a scaled-down sheet (a phone) shows no seams between tiles. */
+  width: 128.5px !important;
+  height: 128.5px !important;
+}
+.rp-overlay {
+  position: absolute;
+  inset: 0;
+}
+.rp-map-note {
+  position: absolute;
+  inset: auto 0 40% 0;
+  margin: 0;
+  text-align: center;
+  font-size: 10pt;
+  font-weight: 600;
+}
+.rp-map-credit {
+  margin-top: 2px;
+  font-size: 7.5pt;
+  color: #333;
+}
+/* Full (plan §3): after the one-page summary, on a new page; headings stay with what follows, and a block or a list
+   item doesn't split across pages where it can help it. */
+.rp-full {
+  break-before: page;
+  margin-top: 24px;
+  font-size: 10pt;
+}
+.rp-full-section {
+  margin-top: 14px;
+}
+.rp-full-section > h2 {
+  margin: 0 0 4px;
+  padding-bottom: 2px;
+  border-bottom: 1pt solid #111;
+  font-size: 10.5pt;
+}
+.rp-full h2,
+.rp-full h3 {
+  break-after: avoid;
+}
+.rp-full h3 {
+  margin: 8px 0 2px;
+  font: 600 10pt/1.25 var(--font-cond);
+}
+.rp-full h3 small {
+  font-weight: 400;
+  color: #444;
+}
+.rp-block,
+.rp-full li {
+  break-inside: avoid;
+}
+.rp-full ul,
+.rp-full ol {
+  margin: 2px 0;
+  padding-left: 1.3em;
+}
+.rp-full ul {
+  list-style: disc;
+}
+.rp-full ol {
+  list-style: decimal;
+}
+.rp-facts-list {
+  display: grid;
+  grid-template-columns: 1.4in 1fr;
+  gap: 2px 10px;
+  margin: 0;
+}
+.rp-facts-list dt {
+  font-weight: 600;
+}
+.rp-facts-list dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.rp-notes {
+  white-space: pre-wrap;
+}
+.rp-closing {
+  margin-top: 18px;
+  padding-top: 6px;
+  border-top: 1pt solid #111;
+  font-weight: 600;
+}
+@media print {
+  .rp-full {
+    margin-top: 0;
+  }
+}
+/* The side-by-side table on paper: no scrolling box, so it fits the page's width in smaller type (nothing cut off). */
+.rp-full .cmpwrap {
+  overflow: visible;
+}
+.rp-full table.cmp {
+  width: 100%;
+  table-layout: fixed;
+  font-size: 7pt;
+}
+.rp-full table.cmp th,
+.rp-full table.cmp td {
+  padding: 1px 2px;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+/* Step 9: a row's ⋯ in every sort (Report card, Move up/down in My order, Remove from favorites), and the panel
+   header's ⋯ (Report card). 44 px targets on a phone. */
+.lib-more {
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--color-ink-2);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.lib-more:hover,
+.lib-more[aria-expanded="true"],
+.sh-more-btn:hover,
+.sh-more-btn[aria-expanded="true"] {
+  background: rgba(28, 38, 32, 0.08);
+  color: var(--color-ink);
+}
+.sh-more {
+  position: relative;
+  display: inline-flex;
+}
+.sh-more-btn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin: -3px 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-ink-2);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.sh-more-btn:focus-visible {
+  outline: 2px solid var(--color-water);
+  outline-offset: 1px;
+}
+.sh-more-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 40;
+}
+.sh-more-why {
+  padding: 0 10px 6px;
+}
+@media (max-width: 860px) {
+  .lib-card .lib-more,
+  .sh-more-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .lib-menu button {
+    min-height: 44px;
+  }
+}
+/* The bar's title (the fresh-eyes review: the page names itself), and the phone's line about its scaled preview. */
+.rp-title {
+  margin: 0;
+  font: 600 16px/1.2 var(--font-cond);
+}
+.rp-phone-hint {
+  display: none;
+  max-width: 8.5in;
+  margin: -4px auto 8px;
+}
+@media (max-width: 860px) {
+  .rp-phone-hint {
+    display: block;
+  }
+}
+@media print {
+  .rp-phone-hint {
+    display: none !important;
+  }
+}

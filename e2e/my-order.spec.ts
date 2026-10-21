@@ -79,13 +79,13 @@ test("desktop: My order by default; a mouse drag, the keyboard and the menu move
   await expect.poll(() => order(names)).toEqual([first, second]);
 
   // The menu: Move up stops at the top; Move down moves it, says so, and the focus stays on the menu's button.
-  const menu = rows.nth(0).getByRole("button", { name: /^Order: / });
+  const menu = rows.nth(0).getByRole("button", { name: /^More for / });
   await menu.click();
   await expect(page.getByRole("menuitem", { name: "Move up" })).toBeDisabled();
   await page.getByRole("menuitem", { name: "Move down" }).click();
   await expect.poll(() => order(names)).toEqual([second, first]);
   await expect(page.getByRole("status").filter({ hasText: "moved to 2 of 2" })).toHaveCount(1);
-  await expect(rows.nth(1).getByRole("button", { name: /^Order: / })).toBeFocused();
+  await expect(rows.nth(1).getByRole("button", { name: /^More for / })).toBeFocused();
   // With the keyboard: Enter on the focused button opens the menu, and Enter on Move up moves it back.
   await page.keyboard.press("Enter");
   await page.getByRole("menuitem", { name: "Move up" }).press("Enter");
@@ -93,7 +93,7 @@ test("desktop: My order by default; a mouse drag, the keyboard and the menu move
   // Polish #16: Remove from favorites in the menu asks the star's question; Keep keeps it.
   await rows
     .nth(0)
-    .getByRole("button", { name: /^Order: / })
+    .getByRole("button", { name: /^More for / })
     .click();
   await page.getByRole("menuitem", { name: "Remove from favorites" }).click();
   await expect(page.getByRole("alertdialog")).toContainText("Remove from your household's favorites?");
@@ -146,7 +146,7 @@ test.describe("on a phone", () => {
     // The menu, beside the Compare tick: Move down puts it back.
     await cards
       .nth(0)
-      .getByRole("button", { name: /^Order: / })
+      .getByRole("button", { name: /^More for / })
       .tap();
     await page.getByRole("menuitem", { name: "Move down" }).tap();
     await expect.poll(() => order(names)).toEqual([first, second]);
