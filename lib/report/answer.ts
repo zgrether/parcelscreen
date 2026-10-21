@@ -24,6 +24,7 @@ export const STRENGTH: Record<RowKey, string> = {
   trails: "trails",
   town: "town and ER access",
   garden: "garden ground",
+  budget: "budget fit",
 };
 
 const KM_PER_MI = 1.609344;
@@ -121,6 +122,8 @@ export function checks(card: Card): string[] {
   const must = (k: string) => R.musts.some((m) => m.factor === k && m.threshold === undefined);
   return [
     ...card.gates.filter((g) => must(g.key) && g.status === "warn").map((g) => EDITOR_TITLES[g.key]),
+    // Within budget as a Must (step 10), when its range straddles a budget.
+    ...(card.budgetMust?.status === "warn" ? [EDITOR_TITLES.budget] : []),
     ...card.rows.filter((x) => x.checkFirst).map((x) => EDITOR_TITLES[x.key]),
   ].map((l) => l.charAt(0).toLowerCase() + l.slice(1));
 }

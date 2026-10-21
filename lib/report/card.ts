@@ -40,10 +40,12 @@ import {
 } from "./lines";
 import { rankSites, type RankedSite } from "./sites";
 import { nearestFt, PERMIT_ON_FILE, permitFar, SPRING_MARKED, type Drawn, type Mark } from "./marks";
+import { COST_WORDS, costRange, costToEnjoy, type CostToEnjoy } from "./cost";
+import { shortPrice } from "../client/askingPrice";
 import { atLeast, atMost, gradedRows, parcelGrade, verdictLines } from "../rubric/grade";
 import { EDITOR_TITLES, FACTOR_LABELS } from "../rubric/words";
 import { thresholdStatus, thresholdWords, type Measure } from "../rubric/musts";
-import type { GateKey, Letter, NamedRubric, RowKey } from "../rubric/types";
+import type { Budgets, Factor, GateKey, Letter, NamedRubric, RowKey } from "../rubric/types";
 import { weightsOf } from "../rubric/weights";
 
 export type { GateKey, Letter, NamedRubric, RowKey } from "../rubric/types";
@@ -96,7 +98,18 @@ export interface Row {
   short?: string;
   /** The number the band graded, in its unit (step 1): what a threshold Must is compared with (lib/rubric/musts.ts). */
   measure?: Measure;
+  /**
+   * Within budget's outcome as a Must (step 10): the worse of the two budgets', and its reason, the parts at that
+   * status ("ready to build $330–595k, over your $300k").
+   */
+  budget?: { status: BudgetStatus; reason: string };
 }
+
+/**
+ * A budget against its cost (step 10 plan §3): pass when the high end is within it, warn when the range straddles it,
+ * fail when even the low end is over; unknown without an asking price or a cost.
+ */
+export type BudgetStatus = "pass" | "warn" | "fail" | "unknown";
 
 /** What the card says regardless of whose weights are on, at one build site. */
 export interface CardFacts {
@@ -111,6 +124,8 @@ export interface CardFacts {
   routeNote?: string;
   /** The line whose route the card scores (WF5), when the household chose one and this screen routed it. */
   drivewayLine?: string;
+  /** The cost to enjoy at the build site (step 10), when the parcel's lines, price and rates came with the result. */
+  cost?: CostToEnjoy | null;
 }
 
 export interface Card extends CardFacts {
@@ -132,6 +147,8 @@ export interface Card extends CardFacts {
    * reason, "Held at Maybe by: Legal road access." Absent when nothing does.
    */
   heldBy?: string[];
+  /** Within budget, when this rubric holds it as a Must (step 10): its status and reason, for the Must rows. */
+  budgetMust?: { status: BudgetStatus; reason: string };
   /** The homesites in this person's order (step 7, lib/report/sites.ts); empty before they're ranked. */
   sites: readonly RankedSite[];
 }
@@ -756,6 +773,64 @@ function gardenRow(r: Result, K: CardConfig, spring: (row: Row, ll: LatLon) => R
   );
 }
 
+// ---------- Within budget (step 10) ----------
+
+const STATUS_ORDER: readonly BudgetStatus[] = ["pass", "unknown", "warn", "fail"];
+const worseStatus = (a: BudgetStatus, b: BudgetStatus): BudgetStatus =>
+  STATUS_ORDER.indexOf(a) >= STATUS_ORDER.indexOf(b) ? a : b;
+
+/**
+ * Within budget (step 10 plan §3): each budget given against its cost, Ready to camp's and Ready to build's. Ranked,
+ * its letter is the worse of the two, by the high end as a share of the budget (card.budgetBands); as a Must, its
+ * status is the worse of the two. Not graded without a cost or an asking price. Null without budgets: no row, so a card
+ * graded without them is the card as before step 10.
+ */
+export function budgetRow(
+  cost: CostToEnjoy | null | undefined,
+  budgets: Budgets | undefined,
+  K: CardConfig,
+): Row | null {
+  const g = (grade: Letter | null, detail: string, status: BudgetStatus, reason = detail): Row => ({
+    key: "budget",
+    label: FACTOR_LABELS.budget,
+    grade,
+    detail,
+    budget: { status, reason },
+  });
+  const given = (["camp", "build"] as const).filter((w) => budgets?.[w] != null);
+  if (!given.length) return null;
+  if (!cost) return g(null, "Not priced yet: the driveway hasn't been routed", "unknown");
+  if (cost.kind === "noWay") return g(null, COST_WORDS.noWay, "unknown");
+  const word = { camp: COST_WORDS.camp, build: COST_WORDS.build };
+  if (cost.camp.land === null) {
+    const ranges = given.map((w) => `${word[w].toLowerCase()} ${costRange(cost[w].total)}`).join(", ");
+    return g(null, `No asking price: ${ranges}, ${COST_WORDS.plusLand}`, "unknown");
+  }
+  const each = given.map((w) => {
+    const budget = budgets![w]!;
+    const { low, high } = cost[w].total;
+    const status: BudgetStatus = high <= budget ? "pass" : low > budget ? "fail" : "warn";
+    const sits = status === "pass" ? "under" : status === "warn" ? "straddles" : "over";
+    return {
+      status,
+      letter: atMost(budget > 0 ? high / budget : Infinity, K.budgetBands),
+      text: `${word[w].toLowerCase()} ${costRange(cost[w].total)}, ${sits} your ${shortPrice(budget)}`,
+      short: `${w} ${costRange(cost[w].total)}`,
+    };
+  });
+  const status = each.map((x): BudgetStatus => x.status).reduce(worseStatus);
+  const row = g(
+    each.map((x) => x.letter).reduce(worse),
+    each.map((x) => x.text).join("; "),
+    status,
+    each
+      .filter((x) => x.status === status)
+      .map((x) => x.text)
+      .join("; "),
+  );
+  return { ...row, short: each.map((x) => x.short).join(", ") };
+}
+
 // ---------- the card ----------
 
 /**
@@ -770,6 +845,8 @@ export function cardFacts(
   drawn?: Drawn,
   /** The ranked site to read the site rows at (step 7): site #1 unless reportCard picks the person's best. */
   at = 0,
+  /** The rubric's budgets (step 10): what Within budget grades against. */
+  budgets?: Budgets,
 ): CardFacts {
   const site = buildSite(r, at);
   const names = drawn?.names,
@@ -779,6 +856,18 @@ export function cardFacts(
   // Easement gates, and Floodplain's driveway part, read it whichever site the rows read (step 7 plan §2, §11 Q5).
   const driven = drivenRoute(r, drawn?.driveway);
   const [elevationRow, homesiteRow, skyRow, roomRow, drivewayRow] = siteRows(r, K, build, at);
+  // The cost to enjoy at this site (step 10), when the parcel's lines, price and rates came with it.
+  const cost = drawn?.cost
+    ? costToEnjoy({
+        result: r,
+        siteAt: at,
+        lines: drawn.cost.lines,
+        marks,
+        driveway: drawn.driveway ?? null,
+        askingPrice: drawn.cost.askingPrice,
+        rates: drawn.cost.rates,
+      })
+    : undefined;
   const facts = {
     gates: [
       floodplain(r, site, driven),
@@ -795,8 +884,10 @@ export function cardFacts(
       trails(r, K),
       town(r, K),
       garden(r, K, marks),
+      ...[budgetRow(cost, budgets, K)].filter((x): x is Row => x !== null),
     ],
     at,
+    ...(cost !== undefined ? { cost } : {}),
   };
   return withYourRoute(facts, r, driven, drawn);
 }
@@ -884,8 +975,19 @@ export function cardFor(facts: CardFacts, nr: NamedRubric): Card {
   const gates = facts.gates.filter((g) =>
     R.musts.some((m) => m.factor === g.key && m.threshold === undefined),
   );
-  const fail = gates.find((x) => x.status === "fail");
-  const warns = gates.filter((x) => x.status === "warn");
+  // Within budget as a Must (step 10): the interview's "Over budget" walk-away. A fail is a Pass, a warn a warning, as a
+  // gate's; an unknown (no asking price) holds the verdict at Maybe, as a threshold Must's does.
+  const budgetMust = R.musts.some((m) => m.factor === "budget" && m.threshold === undefined)
+    ? facts.rows.find((x) => x.key === "budget")?.budget
+    : undefined;
+  const fail =
+    gates.find((x) => x.status === "fail") ??
+    (budgetMust?.status === "fail" ? { reason: budgetMust.reason } : undefined);
+  const warns: { key: Factor; reason: string }[] = [
+    ...gates.filter((x) => x.status === "warn"),
+    ...(budgetMust?.status === "warn" ? [{ key: "budget" as const, reason: budgetMust.reason }] : []),
+  ];
+  const budgetUnknown = budgetMust?.status === "unknown";
   // A threshold Must on a ranked row (lib/rubric/musts.ts): a fail is a Pass that names the row; an unknown holds
   // the verdict at Maybe. None in the default rubric.
   const thresholds = R.musts
@@ -909,6 +1011,7 @@ export function cardFor(facts: CardFacts, nr: NamedRubric): Card {
           points >= lines.contender &&
           warns.length <= R.verdict.contenderMaxWarns &&
           !thresholdUnknown &&
+          !budgetUnknown &&
           !Object.values(maybeCaps(facts)).some(Boolean)
         ? "Contender"
         : "Maybe";
@@ -945,6 +1048,7 @@ export function cardFor(facts: CardFacts, nr: NamedRubric): Card {
           // In the card's own words for each Must ("Driveway on your land", not the factor's "Easement needed").
           ...(warns.length > R.verdict.contenderMaxWarns ? warns.map((g) => EDITOR_TITLES[g.key]) : []),
           ...thresholds.filter((t) => t.status === "unknown").map((t) => t.row.label),
+          ...(budgetUnknown ? [EDITOR_TITLES.budget] : []),
           ...facts.rows.filter((x) => x.checkFirst).map((x) => x.label),
           ...(incomplete.length ? ["something that didn't load"] : []),
         ]
@@ -960,6 +1064,7 @@ export function cardFor(facts: CardFacts, nr: NamedRubric): Card {
     lead,
     incomplete,
     ...(heldBy.length ? { heldBy: [...new Set(heldBy)] } : {}),
+    ...(budgetMust ? { budgetMust } : {}),
     sites: [],
   };
 }
@@ -984,5 +1089,5 @@ export const reportCard = (
   // A marked house grades as before (§11 Q6): its own elevation and driveway, site #1's quality and room.
   const house = !!r.house && !("outside" in r.house);
   const at = opts.at ?? (house ? 0 : (sites[0]?.index ?? 0));
-  return { ...cardFor(cardFacts(r, KR, build, drawn, at), nr), sites };
+  return { ...cardFor(cardFacts(r, KR, build, drawn, at, nr.rubric.budgets), nr), sites };
 };

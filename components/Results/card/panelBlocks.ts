@@ -36,6 +36,7 @@ const BLOCKS: Record<PanelKey, Block[]> = {
   trails: [PublicLand, GettingThere],
   town: [GettingThere],
   garden: [WhereToGarden, Soils],
+  budget: [StillUnknown],
   cost: [StillUnknown],
 };
 

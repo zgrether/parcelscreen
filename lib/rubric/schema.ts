@@ -43,6 +43,10 @@ export const RubricSchema: z.ZodType<Rubric> = z.strictObject({
   points: z.strictObject({ A: num, B: num, C: num, D: num, F: num }),
   gradeCutoffs: z.array(num),
   verdict: z.strictObject({ contender: num, pass: num, contenderMaxWarns: num }),
+  // Step 10: optional, so a rubric saved before it reads as before (no budget row).
+  budgets: z
+    .strictObject({ camp: num.nonnegative().nullable(), build: num.nonnegative().nullable() })
+    .optional(),
 }) as z.ZodType<Rubric>;
 
 export const NamedRubricSchema: z.ZodType<NamedRubric> = z.strictObject({

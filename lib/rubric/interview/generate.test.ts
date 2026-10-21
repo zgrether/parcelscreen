@@ -89,9 +89,14 @@ describe("§3: every choice", () => {
       "HOA (welcome)",
       "No creek",
       "Acreage (5–20 acres)",
-      "Camp budget ($40,000)",
-      "Build budget ($250,000)",
     ]);
+    // Step 10: the budgets are graded now (Within budget, the last of Really want), so they left the quiet list.
+    const g = rubricFromAnswers(a);
+    expect(g.rubric.budgets).toEqual({ camp: 40000, build: 250000 });
+    expect(g.rubric.ranked.filter((c) => c.tier === "should").at(-1)).toEqual({
+      factor: "budget",
+      tier: "should",
+    });
     expect(rubricFromAnswers(a).points).toEqual({
       elevation: 2,
       homesite: 2,
@@ -101,6 +106,7 @@ describe("§3: every choice", () => {
       town: 2,
       sky: 1,
       garden: 1,
+      budget: 0,
     });
     expect(later({ fly: "rarely", calls: "no", creek: "either", hoa: "light" })).toEqual([
       "HOA (light rules)",
@@ -287,6 +293,7 @@ describe("§4: the two people", () => {
       room: 8.5,
       town: 4.3,
       garden: 2.1,
+      budget: 0,
     });
     expect(bcEdge(g.rubric.bands, "drivewayPct")).toBe(15);
     expect(g.rubric.musts.slice(4)).toEqual([
@@ -328,6 +335,7 @@ describe("§4: the two people", () => {
       driveway: 3.8,
       elevation: 0,
       sky: 0,
+      budget: 0,
     });
     expect(g.rubric.bands.drivewayPct).toEqual([10, 15, 20, 25]);
     expect(g.rubric.musts.slice(4)).toEqual([{ factor: "town", threshold: 30 }]);

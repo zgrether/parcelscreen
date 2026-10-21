@@ -44,9 +44,12 @@ export type Columns = Record<Tier, EditorCard[]>;
 export function columnsOf(r: Rubric): Columns {
   const gatesIn = (tier: Tier) =>
     GATE_KEYS.filter((g) => tierOf(r, g) === tier).map((factor): EditorCard => ({ kind: "factor", factor }));
+  // Within budget held as a Must (step 10): a card without a number, after the gates.
+  const budgetMust: EditorCard[] = isBudgetMust(r) ? [{ kind: "factor", factor: "budget" }] : [];
   return {
     must: [
       ...gatesIn("must"),
+      ...budgetMust,
       ...r.musts
         .filter((m) => m.threshold !== undefined)
         .map((m): EditorCard => ({ kind: "minimum", factor: m.factor as RowKey })),
@@ -55,6 +58,47 @@ export function columnsOf(r: Rubric): Columns {
     could: r.ranked.filter((c) => c.tier === "could").map((c) => ({ kind: "factor", factor: c.factor })),
     wont: [...gatesIn("wont"), ...r.wonts.map((factor): EditorCard => ({ kind: "factor", factor }))],
   };
+}
+
+/** Within budget is a Must (step 10): the interview's "Over budget" walk-away, a Must without a number. */
+export const isBudgetMust = (r: Rubric): boolean =>
+  r.musts.some((m) => m.factor === "budget" && m.threshold === undefined);
+
+const withoutBudgetMust = (r: Rubric): Rubric => ({
+  ...r,
+  musts: r.musts.filter((m) => !(m.factor === "budget" && m.threshold === undefined)),
+});
+
+/**
+ * Within budget's moves (step 10): to Must it leaves the ranked list and becomes a Must without a number; out of Must
+ * it's ranked or Don't care like any row.
+ */
+function moveBudget(r: Rubric, to: Tier, index?: number): EditResult {
+  if (to === "must") {
+    if (isBudgetMust(r)) return { ok: true, rubric: r };
+    const gates = r.musts.filter((m) => isGate(m.factor) && m.threshold === undefined);
+    const rest = r.musts.filter((m) => !(isGate(m.factor) && m.threshold === undefined));
+    return {
+      ok: true,
+      rubric: {
+        ...r,
+        musts: [...gates, { factor: "budget" }, ...rest],
+        ranked: r.ranked.filter((c) => c.factor !== "budget"),
+        wonts: without(r.wonts, "budget"),
+      },
+    };
+  }
+  const out = withoutBudgetMust(r);
+  if (to === "wont")
+    return {
+      ok: true,
+      rubric: {
+        ...out,
+        ranked: out.ranked.filter((c) => c.factor !== "budget"),
+        wonts: [...without(out.wonts, "budget"), "budget"],
+      },
+    };
+  return rank(out, "budget", to, index);
 }
 
 /** A row has a minimum in Must: its ranked card shows the "min" badge. */
@@ -102,6 +146,7 @@ export function moveCard(r: Rubric, card: EditorCard, to: Tier, index?: number):
   }
   const f = card.factor;
   if (isGate(f)) return moveGate(r, f, to);
+  if (f === "budget") return moveBudget(r, to, index);
   if (to === "must") return addMinimum(r, f);
   if (to === "wont") {
     if (tierOf(r, f) === "wont") return { ok: true, rubric: r };
@@ -204,7 +249,8 @@ export const resetToDefault = (): Rubric => defaultRubric();
 export function weightsTable(
   s: WeightsSwitch,
 ): { key: RowKey; label: string; before: number; after: number }[] {
-  return ROW_KEYS.map((key) => ({
+  // Within budget only where it weighs something either side (step 10): it isn't on every list.
+  return ROW_KEYS.filter((key) => key !== "budget" || s.before[key] > 0 || s.after[key] > 0).map((key) => ({
     key,
     label: EDITOR_TITLES[key],
     before: s.before[key],

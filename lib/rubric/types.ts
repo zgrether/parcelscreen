@@ -11,7 +11,10 @@ export type Letter = "A" | "B" | "C" | "D" | "F";
 export const GATE_KEYS = ["floodplain", "access", "easement", "septic"] as const;
 export type GateKey = (typeof GATE_KEYS)[number];
 
-/** The graded rows, in the card's order. */
+/**
+ * The graded rows, in the card's order. Within budget (step 10) is a row only in a rubric with budgets: it's never on
+ * the starting list (default.ts), and a rubric without budgets neither ranks it nor lists it as Don't care.
+ */
 export const ROW_KEYS = [
   "elevation",
   "homesite",
@@ -21,10 +24,20 @@ export const ROW_KEYS = [
   "trails",
   "town",
   "garden",
+  "budget",
 ] as const;
 export type RowKey = (typeof ROW_KEYS)[number];
 
 export type Factor = GateKey | RowKey;
+
+/**
+ * The interview's budgets (question 13; step 10): the most the person would spend to be ready to camp and ready to
+ * build, all in, in dollars. Null where not given.
+ */
+export interface Budgets {
+  camp: number | null;
+  build: number | null;
+}
 
 /**
  * Each row's cutoffs, today's `card.rows` (lib/screen/config.ts): the bands a measurement is graded on, best first
@@ -77,6 +90,11 @@ export interface Rubric {
   gradeCutoffs: number[];
   /** Contender from this score with at most this many warnings; Pass below `pass` or with a failed Must. */
   verdict: { contender: number; pass: number; contenderMaxWarns: number };
+  /**
+   * Step 10: the budgets the Within budget card grades against. Absent on a rubric made without them (saved before
+   * step 10, or the starting list): no budget row.
+   */
+  budgets?: Budgets;
 }
 
 /** The id of a profile's own rubric (lib/client/rubrics.ts): the first choice everywhere. */

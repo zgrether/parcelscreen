@@ -20,9 +20,11 @@ describe("rank-sum weights", () => {
   });
 
   it("eight Should cards, the card's rows in order: n down to 1 over 36", () => {
-    const ranked: RankedCard[] = ROW_KEYS.map((factor) => ({ factor, tier: "should" }));
+    // The card's eight rows; Within budget (step 10) comes only with budgets.
+    const rows = ROW_KEYS.filter((k) => k !== "budget");
+    const ranked: RankedCard[] = rows.map((factor) => ({ factor, tier: "should" }));
     const w = rankSumWeights(ranked);
-    expect(round1(ROW_KEYS.map((k) => w[k]))).toEqual([22.2, 19.4, 16.7, 13.9, 11.1, 8.3, 5.6, 2.8]);
+    expect(round1(rows.map((k) => w[k]))).toEqual([22.2, 19.4, 16.7, 13.9, 11.1, 8.3, 5.6, 2.8]);
     expect(Object.values(w).reduce((a, b) => a + b, 0)).toBeCloseTo(100, 9);
   });
 
@@ -50,6 +52,7 @@ describe("rank-sum weights", () => {
       driveway: 0,
       town: 5,
       garden: 10,
+      budget: 0,
     });
     expect(weightsOf(explicit)).toEqual(explicit.weights.mode === "explicit" ? explicit.weights.of : null);
     const ranked = { ...explicit, weights: { mode: "rankSum" as const } };

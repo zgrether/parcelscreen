@@ -23,6 +23,8 @@ describe("the cards' words", () => {
       trails: "A trailhead within a 20-minute drive (or public land within 1 mi)",
       town: "An ER within 30 min and groceries within 20",
       garden: "At least 0.25 ac of garden ground",
+      // Step 10: the starting list has no budgets.
+      budget: "No budget given",
     });
   });
 
@@ -63,6 +65,7 @@ describe("the cards' words", () => {
       trails: "A trailhead within 20 min, or public land within 1 mi",
       town: "ER within 30 min, groceries within 20 min",
       garden: "Room for a kitchen garden",
+      budget: "No budget given",
     });
     expect(plainLine(setBandEdge(D, "skyMag", 20.5), "sky")).toBe("Some stars, even with a town's glow");
     expect(plainLine(setBandEdge(D, "gardenAc", 1), "garden")).toBe("Room for a big garden");

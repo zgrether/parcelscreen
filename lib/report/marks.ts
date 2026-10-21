@@ -7,7 +7,9 @@
  * noted on the Garden row. The rest wait for their costs (VR4).
  */
 import { booleanPointInPolygon, distance, point, pointToLineDistance, lineString, polygon } from "@turf/turf";
+import type { Rates } from "../config/costs";
 import type { LatLon } from "../geo/types";
+import type { CostLine } from "./cost";
 import { lineNamesOf, type LineNames } from "./lines";
 
 /** What a point marks (owner, WF4: a spring and a well apart, since they cost differently). */
@@ -56,9 +58,15 @@ export type Mark = PointMark | AreaMark;
  */
 export interface Drawn {
   names: LineNames;
-  marks: readonly Mark[];
+  /** With a septic permit's class, as typed (the cost to enjoy reads it, step 10). */
+  marks: readonly (Mark & { septicClass?: SepticClass | null })[];
   driveway?: string | null;
   records?: ReadonlyMap<string, string>;
+  /**
+   * What the cost to enjoy reads besides the result and the marks (step 10, lib/report/cost.ts): the lines with their
+   * condition, the asking price and the rates in use. Absent: the cost isn't priced, and Within budget isn't graded.
+   */
+  cost?: { lines: readonly CostLine[]; askingPrice: number | null; rates: Rates };
 }
 
 /**
