@@ -149,3 +149,21 @@ that fixed it.
   (the key in #237 explains the fan). Fix: the ✓ toggles On the map uses (#232); plainer labels.
 - **Map:** pins overlap at the default zoom ("2" and a garden pin, "E3" under "1"). Fix: collision offsets, if it
   confuses in use.
+
+## Step 9: the report card export (hand-back)
+
+From the fresh-eyes review of the export. Each concerns the report's existing blocks or the engine's wording, which
+step 9 reuses unchanged (rule 7):
+- **Where to build vs the person's order:** Full's "Best site and alternatives" lists sites in the person's order
+  (2nd · Site #3), while the Where to build block calls Site #2 the "Runner-up" (the engine's order), and its
+  side-by-side table shows a 4th site with a higher overall score. Fix: one order, or say whose.
+- **Side by side's Rock column** shows "1.9500000000000002" for compact sites. Fix: round it.
+- **December sun and the best site:** the sun block reads "at the largest house site" (faces NNW, 5.3°) where the card's
+  row reads the best site (faces W, 7°). Fix: say which site each is about, or read the same one.
+- **Acres:** the header's 29.31 ac (own land) and Terrain's "Of 30.1 ac" (the outline). Fix: one figure, or name both.
+- **"House sites found 2"** with four ranked sites (two compact). Fix: count compact sites, or say so.
+- **Driveway:** "routed driveway: 2888 ft at ≤15%" beside "Grade over 30 m … 17.9% (limit 15%)"; "E1 best" but the
+  route starts "from E2". Fix: one grade figure; say why E2.
+- **Jargon in print:** "the bench, not the pin", "1.0 = half the sky's light is man-made", "as of the screen" when the run
+  has no date, the elevation profile without axes, every site "$$$$ to build". Fix: plain words; axes; the cost scale.
+- **"a 32-minute drive to an ER, 5 to a grocery":** the second number has no unit. Fix: "5 minutes".

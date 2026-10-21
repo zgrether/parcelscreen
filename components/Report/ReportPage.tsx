@@ -97,6 +97,7 @@ export function ReportPage() {
         <button type="button" className="btn secondary rp-back" onClick={back}>
           {W.back}
         </button>
+        <h1 className="rp-title">{W.title}</h1>
         {loaded.kind === "ok" && (
           <>
             <div className="list-switch rp-switch" role="tablist" aria-label="Report card length">
@@ -126,6 +127,7 @@ export function ReportPage() {
           </>
         )}
       </div>
+      {loaded.kind === "ok" && <p className="tiny muted rp-phone-hint">{W.phoneHint}</p>}
       {loaded.kind === "loading" && <p className="rp-state muted">{W.loading}</p>}
       {loaded.kind === "missing" && <p className="rp-state">{W.notHere}</p>}
       {loaded.kind === "ungraded" && <p className="rp-state">{W.notGraded}</p>}

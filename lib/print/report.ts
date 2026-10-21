@@ -25,7 +25,9 @@ export const REPORT_WORDS = {
   loading: "Loading the report card…",
   notHere: "This parcel isn't on this device.",
   notGraded: "This parcel hasn't been graded yet.",
-  staleBoundary: "Graded on an earlier boundary.",
+  staleBoundary:
+    "Graded on an earlier boundary: the parcel's lines changed after this grade. Grade it again for a current report card.",
+  phoneHint: "This is the page as it prints. Pinch to zoom.",
   takes: "Takes",
   questions: "Questions for the agent",
   noQuestions: "Nothing for the agent: every must was checked.",

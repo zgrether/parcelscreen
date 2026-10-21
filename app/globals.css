@@ -6878,3 +6878,23 @@ button.sync-ind.bad {
     min-height: 44px;
   }
 }
+/* The bar's title (the fresh-eyes review: the page names itself), and the phone's line about its scaled preview. */
+.rp-title {
+  margin: 0;
+  font: 600 16px/1.2 var(--font-cond);
+}
+.rp-phone-hint {
+  display: none;
+  max-width: 8.5in;
+  margin: -4px auto 8px;
+}
+@media (max-width: 860px) {
+  .rp-phone-hint {
+    display: block;
+  }
+}
+@media print {
+  .rp-phone-hint {
+    display: none !important;
+  }
+}
