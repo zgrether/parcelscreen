@@ -5,6 +5,8 @@
  * have, Really want, Nice to have, and Cost to enjoy (pending until VR4). Don't care rows are hidden. Every line opens
  * its slide-in panel, where today's report sections live; the card's old reason line is in the Grade and verdict one.
  */
+import Link from "next/link";
+import { GRADES_ID, GRADES_TITLE } from "@/lib/client/help";
 import type { ReactNode } from "react";
 import { answerReason, incompleteLine } from "@/lib/report/answer";
 import { listOf, lowerFirst, VERDICT_WORD, type Card, type GateStatus, type Row } from "@/lib/report/card";
@@ -118,6 +120,10 @@ export function ReportCard({
               {running ? "Grading…" : VERDICT_WORD[card.verdict]}
             </span>
           </button>
+          {/* Polish #31: Help's grade rules, beside the grade. */}
+          <Link className="link-btn tiny card-how" href={`/help#${GRADES_ID}`}>
+            {GRADES_TITLE}
+          </Link>
           <RubricSwitch
             rubrics={rubrics}
             current={card.rubric.id}

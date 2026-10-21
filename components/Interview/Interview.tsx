@@ -166,7 +166,13 @@ function StepView({
             {NOT_NOW}
           </button>
         )}
-        {revisit ? (
+        {/* 14b, the last screen (polish #27): one row, the same however it was reached; Skip would only do what an
+            empty pick does. */}
+        {step.kind === "dontMatter" ? (
+          <button type="button" className="btn" onClick={next}>
+            See my priorities
+          </button>
+        ) : revisit ? (
           <button type="button" className="btn" onClick={next}>
             Next
           </button>
@@ -185,7 +191,10 @@ function StepView({
   );
 }
 
-/** A new profile's first screen: its name (Skip keeps "Profile 1"), then question 1. */
+/**
+ * A new profile's first screen: its name, then question 1. Polish #30: the name is asked for, so no profile is left as
+ * "Profile 1" by a Continue; Not now still puts the whole interview off.
+ */
 function NameScreen({ begin, notNow }: { begin(): void; notNow(): void }) {
   const [name, setName] = useState("");
   const [synced] = useState(() => readSyncState() !== null);
@@ -220,7 +229,7 @@ function NameScreen({ begin, notNow }: { begin(): void; notNow(): void }) {
             onChange={(e) => setName(e.target.value)}
           />
         </label>
-        <button type="submit" className="btn iv-continue">
+        <button type="submit" className="btn iv-continue" disabled={!name.trim()}>
           Continue
         </button>
       </form>
@@ -229,9 +238,6 @@ function NameScreen({ begin, notNow }: { begin(): void; notNow(): void }) {
       <nav className="iv-nav" aria-label="Interview">
         <button type="button" className="btn secondary" onClick={notNow}>
           {NOT_NOW}
-        </button>
-        <button type="button" className="btn secondary" onClick={() => void go()}>
-          Keep &ldquo;{currentProfile()?.name ?? "Profile 1"}&rdquo;
         </button>
       </nav>
     </main>

@@ -11,6 +11,7 @@
  * writes that one parcel's rank. Under another sort the handles hide, and the list says how to get them back.
  */
 import Link from "next/link";
+import { GRADES_ID, GRADES_TITLE } from "@/lib/client/help";
 import { useRouter } from "next/navigation";
 import {
   useEffect,
@@ -268,6 +269,9 @@ export function Library() {
             />
             <p className="tiny muted lib-count">
               {shown.length} parcel{shown.length === 1 ? "" : "s"}
+              {/* Polish #31: Help's grade rules, beside the grades. */}
+              {" · "}
+              <Link href={`/help#${GRADES_ID}`}>{GRADES_TITLE}</Link>
               {/* Dragging works only in My order (§5): under another sort, the way back to it. */}
               {!ordering && shown.length > 1 && (
                 <span className="lib-order-hint">

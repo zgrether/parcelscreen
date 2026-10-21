@@ -3167,6 +3167,11 @@ html:has(.app-nav) .explore {
   margin: -4px 0 10px;
   color: var(--color-ink-2);
 }
+/* Help's grade rules beside the grade (polish #31). */
+.card-how {
+  align-self: center;
+  white-space: nowrap;
+}
 /* What holds a Contender's grade at Maybe (polish #5), under the reason. */
 .card-held {
   margin: -4px 0 10px;
@@ -4804,6 +4809,11 @@ button.cmp-cell:hover {
   align-items: center;
   gap: 6px 10px;
   margin: 4px 0 10px;
+}
+/* What each Reset puts back (polish #30), on its own row under the buttons. */
+.rubric-reset-note {
+  flex-basis: 100%;
+  margin: 0;
 }
 .rubric-status {
   flex: 1 1 260px;

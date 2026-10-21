@@ -12,7 +12,7 @@ export const SCAN_LINE =
   "Scan it with your other device's camera, or type the code there under Join with a code.";
 export const JOINED = "This device is synced.";
 export const SHOW_CODE = "Show code";
-export const LEAVE = "Leave sync on this device";
+export const LEAVE = "Stop syncing this device"; // polish #34 (was "Leave sync on this device")
 export const LEAVE_QUESTION =
   "Stop syncing this device? It keeps a copy of everything as it is now, and stops getting your other devices' changes.";
 /** The first run's way to join instead of starting as someone new (after step 6). */
@@ -49,6 +49,9 @@ export const START_LINE =
 const n = (count: number, one: string) => `${count} ${one}${count === 1 ? "" : "s"}`;
 
 /** The join question for a device that holds data of its own (plan §2). */
+/** What the space holds, after the join question (polish #35): "It holds 12 parcels." */
+export const spaceHolds = (parcels: number): string => `It holds ${n(parcels, "parcel")}.`;
+
 export function joinReplaces(profiles: number, parcels: number): string {
   return `This device has ${n(profiles, "profile")} and ${n(parcels, "parcel")} of its own. Joining replaces them with the synced space's. Export them first if you want to keep a copy.`;
 }

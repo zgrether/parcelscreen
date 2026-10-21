@@ -24,6 +24,12 @@ import { RubricColumns, TIER_NAMES } from "./RubricColumns";
 import { RubricPreview, type Hover, type PreviewParcel } from "./RubricPreview";
 import { WeightsNotice } from "./WeightsNotice";
 
+/** What each Reset puts back (polish #30). */
+export const RESET_NOTES = {
+  answers: "Reset to my answers puts back the list your answers made.",
+  start: "Reset to the starting list puts back the app's own list.",
+} as const;
+
 export const PAGE_TITLE = "What matters to you";
 
 /** The intro (owner, 10/18): what the list is, each column in a line, and how to use it. */
@@ -131,6 +137,11 @@ export function RubricEditor() {
               {interviewLabel(answers)}
             </Link>
           </span>
+          {/* Polish #30: what each Reset puts back, in a line. */}
+          <p className="tiny muted rubric-reset-note">
+            {hasAnswers(answers) ? `${RESET_NOTES.answers} ` : ""}
+            {RESET_NOTES.start}
+          </p>
         </div>
         {confirmReset && (
           <ResetConfirm
@@ -157,12 +168,7 @@ export function RubricEditor() {
         )}
 
         {my.switched && (
-          <WeightsNotice
-            switched={my.switched}
-            parcel={noticeParcel}
-            undo={my.undo}
-            dismiss={my.dismissNotice}
-          />
+          <WeightsNotice switched={my.switched} parcel={noticeParcel} dismiss={my.dismissNotice} />
         )}
 
         <RubricColumns rubric={my.rubric} move={my.move} open={setSheet} onHover={setHover} />
