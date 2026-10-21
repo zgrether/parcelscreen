@@ -38,8 +38,8 @@ that fixed it.
 - ~~**Map, phone:** "Stand here" against 3D, the legend under the 46% sheet, "No parcel record" over the slider. Fix:
   re-lay the phone map's controls.~~ Done in #237. The buttons lie in a row along the top, the legend on the left under Search.
 - ~~**Compare, phone:** the table is cut off with no sideways-scroll cue. Fix: a cue, or a stacked layout.~~ Done in #233.
-- **App-wide jargon:** "My grade/Mine", "pending", "Stage 1a", "CAN'T ADD", the S/E pins, "Profile 1" ("In progress"
-  went in step 8). Fix: a plain-language pass.
+- ~~**App-wide jargon:** "My grade/Mine", "pending", "Stage 1a", "CAN'T ADD", the S/E pins, "Profile 1" ("In progress"
+  went in step 8). Fix: a plain-language pass.~~ Done in #239. "Your grade" and "You"; "not yet" and "Not priced yet"; Compare's stages in plain words ("To camp now"…), "What money can't add", and the gates in the card's words; the pins in Map layers' key (#237); the profile's name asked for at setup (#238).
 
 ## Step 4c: Map layout (#196)
 

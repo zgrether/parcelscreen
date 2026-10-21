@@ -64,7 +64,7 @@ const panelOfFlag = (f: { step: Step | null; t: string }): PanelKey | null =>
 function reading(key: PanelKey, card: Card): { mark: string; tone: string; text: string } {
   if (key === "verdict")
     return { mark: card.grade ?? "–", tone: `v-${card.verdict.toLowerCase()}`, text: card.reason };
-  if (key === "cost") return { mark: "–", tone: "g-none", text: "Pending." };
+  if (key === "cost") return { mark: "–", tone: "g-none", text: "Not priced yet." };
   const gate = card.gates.find((g) => g.key === key);
   if (gate) return { mark: STATUS[gate.status], tone: `gate ${gate.status}`, text: `${gate.reason}.` };
   const row = card.rows.find((r) => r.key === key);

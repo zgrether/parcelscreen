@@ -41,23 +41,17 @@ describe("the comparison table (VR6)", () => {
     }
   });
 
-  it("the groups and their rows: costs pending but Stage 0, the budget pending, the gates, the can't-add rows", () => {
+  it("the groups and their rows: costs not yet but the asking price, the budget not yet, the gates, what money can't add", () => {
     const t = compareTable(three, ZACH, 300_000);
     expect(t.groups.map((g) => [g.label, g.rows.map((r) => r.label)])).toEqual([
       [
         "Costs",
-        [
-          "Stage 0: asking",
-          "Stage 1a: camp today",
-          "Stage 1b: camp at the build site",
-          "Stage 2: ready to build",
-          "Stage 3: home",
-        ],
+        ["Asking price", "To camp now", "To camp at the build site", "To be ready to build", "To move in"],
       ],
       ["Budget", ["Ready to build ≤ $300k"]],
-      ["Dealbreakers", ["Floodplain", "Legal road access", "Easement needed", "Septic"]],
+      ["Dealbreakers", ["Floodplain", "Legal road access", "Driveway on your land", "Septic"]],
       [
-        "Can't add",
+        "What money can't add",
         [
           "Elevation at the build site",
           "Best homesite",
@@ -76,7 +70,7 @@ describe("the comparison table (VR6)", () => {
       ["$95k", "best"],
     ]);
     for (const r of costs.slice(1))
-      expect(r.cells.map((c) => c.text)).toEqual(["pending", "pending", "pending"]);
+      expect(r.cells.map((c) => c.text)).toEqual(["not yet", "not yet", "not yet"]);
     const septic = t.groups[2]!.rows.find((r) => r.key === "septic")!;
     expect(septic.cells.map((c) => c.status)).toEqual(
       three.map((p) => reportCard(p.result!, ZACH).gates.find((g) => g.key === "septic")!.status),

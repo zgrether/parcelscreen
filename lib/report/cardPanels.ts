@@ -191,7 +191,7 @@ export function panelText(
         title: "Cost to enjoy",
         question: "What will it cost to camp here, then to build and live here?",
         howScored:
-          "Pending: the stages (purchase, camping, ready to build, home) are priced once the unit costs are calibrated.",
+          "Not priced yet: what it costs to buy, to camp, to be ready to build and to move in comes once the app's unit costs are set.",
       };
   }
 }
