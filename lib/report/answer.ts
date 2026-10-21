@@ -24,6 +24,7 @@ export const STRENGTH: Record<RowKey, string> = {
   trails: "trails",
   town: "town and ER access",
   garden: "garden ground",
+  budget: "budget fit",
 };
 
 const KM_PER_MI = 1.609344;
@@ -74,6 +75,10 @@ export function missLine(row: Row, card: Card, r: PartialScreenResult): string {
         return `${fmt(g)} minutes to groceries is past your ${fmt(edge(b.groceryMin))}-minute limit`;
       break;
     }
+    case "budget":
+      // Within budget (step 10): the budgets at its worst, "ready to build $330–595k, over your $300k".
+      if (row.budget) return row.budget.reason;
+      break;
     case "garden":
       if (v !== undefined)
         return `${fmt(v, 2).replace(/\.?0+$/, "")} ac of garden ground, under your ${fmt(edge(b.gardenAc), 2).replace(/\.?0+$/, "")} ac`;
@@ -121,6 +126,8 @@ export function checks(card: Card): string[] {
   const must = (k: string) => R.musts.some((m) => m.factor === k && m.threshold === undefined);
   return [
     ...card.gates.filter((g) => must(g.key) && g.status === "warn").map((g) => EDITOR_TITLES[g.key]),
+    // Within budget as a Must (step 10), when its range straddles a budget.
+    ...(card.budgetMust?.status === "warn" ? [EDITOR_TITLES.budget] : []),
     ...card.rows.filter((x) => x.checkFirst).map((x) => EDITOR_TITLES[x.key]),
   ].map((l) => l.charAt(0).toLowerCase() + l.slice(1));
 }

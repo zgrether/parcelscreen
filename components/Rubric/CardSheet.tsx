@@ -5,6 +5,7 @@
  * with it; a minimum's value), and "Move to…" for anyone who can't drag. A dialog: Escape or Close shuts it, and the
  * focus goes back to the card.
  */
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { panelText } from "@/lib/report/cardPanels";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
@@ -84,6 +85,8 @@ export function CardSheet({
     if (tier === here) return false;
     if (card.kind === "minimum") return tier === "wont";
     if (isGate(f)) return tier === "must" || tier === "wont";
+    // Within budget (step 10) is a Must without a number, as a dealbreaker is.
+    if (f === "budget") return true;
     if (tier === "must") return MINIMUM_BAND[f] !== null && !hasMinimum(rubric, f);
     return true;
   };
@@ -145,6 +148,12 @@ export function CardSheet({
           <p className="tiny muted">
             A dealbreaker passes, warns or fails by its own rule: a fail makes it Not for us, and a Contender
             has at most one warning (&ldquo;verify the easement&rdquo; is a warning).
+          </p>
+        )}
+        {f === "budget" && (
+          <p className="tiny muted">
+            Graded on Ready to camp and Ready to build against your budgets.{" "}
+            <Link href="/interview">Change them in the questions</Link>
           </p>
         )}
         {f === "homesite" && card.kind === "factor" && (

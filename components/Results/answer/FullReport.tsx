@@ -9,6 +9,7 @@ import type { LineNames } from "@/lib/report/lines";
 import type { PartialScreenResult, ScreenResult, Step } from "@/lib/screen/types";
 import type { EvaluationPoint } from "../blocks/types";
 import { REPORT } from "../report";
+import type { PavingContext } from "@/lib/report/ground";
 
 export function FullReport({
   result,
@@ -16,6 +17,7 @@ export function FullReport({
   running,
   lineNames,
   drivewayLine,
+  paving,
   noteFor,
   open,
   setOpen,
@@ -26,6 +28,8 @@ export function FullReport({
   running?: { step: Step; message?: string };
   lineNames?: LineNames;
   drivewayLine: string | null;
+  /** Settings' paving choice and the parcel's lines (step 10), for the Driveway section's Paving row. */
+  paving?: PavingContext;
   /** A note to show above a section (the re-evaluation's), by its slug. */
   noteFor?(slug: string): ReactNode;
   open: boolean;
@@ -47,7 +51,15 @@ export function FullReport({
       {open && (
         <div ref={body} className="full-report-body">
           {REPORT.map(({ Block, heading }) => {
-            const content = Block({ result, point, variant: "panel", running, lineNames, drivewayLine });
+            const content = Block({
+              result,
+              point,
+              variant: "panel",
+              running,
+              lineNames,
+              drivewayLine,
+              ...(paving ? { paving } : {}),
+            });
             if (content === null) return null;
             const h = heading(result, point);
             return (

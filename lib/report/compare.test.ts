@@ -8,6 +8,8 @@ import { ZACH, JULIE } from "@/test/support/rubrics";
 import { expectedOf } from "@/test/support/expected";
 import { reportCard } from "./card";
 import { DEFAULT_COLUMNS, compareTable, defaultColumns, type CompareParcel } from "./compare";
+import { drawnOf } from "./marks";
+import { DEFAULT_RATES } from "../config/costs";
 
 const parcel = (
   slug: "ferney-creek-52-47A" | "macks-mountain-35-3" | "grayson-mud-creek-6273",
@@ -30,7 +32,7 @@ describe("the comparison table (VR6)", () => {
 
   it("one column per parcel; the head row is each card's grade and verdict, in the chosen person's weights", () => {
     for (const person of [ZACH, JULIE] as const) {
-      const t = compareTable(three, person, 300_000);
+      const t = compareTable(three, person);
       expect(t.head.cells.map((c) => [c.grade, c.text])).toEqual(
         three.map((p) => {
           const c = reportCard(p.result!, person);
@@ -41,14 +43,16 @@ describe("the comparison table (VR6)", () => {
     }
   });
 
-  it("the groups and their rows: costs not yet but the asking price, the budget not yet, the gates, what money can't add", () => {
-    const t = compareTable(three, ZACH, 300_000);
+  it("the groups and their rows: the asking price and the two costs, the budgets, the gates, what money can't add", () => {
+    const t = compareTable(three, ZACH);
     expect(t.groups.map((g) => [g.label, g.rows.map((r) => r.label)])).toEqual([
       [
         "Costs",
-        ["Asking price", "To camp now", "To camp at the build site", "To be ready to build", "To move in"],
+        // Step 10: the two costs in place of the four stages.
+        ["Asking price", "Ready to camp", "Ready to build"],
       ],
-      ["Budget", ["Ready to build ≤ $300k"]],
+      // The viewer's budgets: the starting list has none.
+      ["Budget", ["No budget given"]],
       ["Dealbreakers", ["Floodplain", "Legal road access", "Driveway on your land", "Septic"]],
       [
         "What money can't add",
@@ -69,6 +73,7 @@ describe("the comparison table (VR6)", () => {
       ["$640k", "worst"],
       ["$95k", "best"],
     ]);
+    // Drawn without the cost's inputs (the price and rates), so not priced.
     for (const r of costs.slice(1))
       expect(r.cells.map((c) => c.text)).toEqual(["not yet", "not yet", "not yet"]);
     const septic = t.groups[2]!.rows.find((r) => r.key === "septic")!;
@@ -78,7 +83,7 @@ describe("the comparison table (VR6)", () => {
   });
 
   it("a can't-add cell is its grade and short value; best and worst only where the grades differ", () => {
-    const t = compareTable(three, ZACH, 300_000);
+    const t = compareTable(three, ZACH);
     const rows = t.groups[3]!.rows;
     for (const r of rows) {
       const grades = r.cells.map((c) => c.grade);
@@ -108,22 +113,58 @@ describe("the comparison table (VR6)", () => {
     );
   });
 
+  it("prices the two costs, cheapest best, and sets each against the viewer's budgets (step 10)", () => {
+    const priced = (slug: Parameters<typeof parcel>[0], price: number | null): CompareParcel => ({
+      ...parcel(slug, price),
+      drawn: drawnOf([], null, { askingPrice: price, rates: DEFAULT_RATES }),
+    });
+    const budgeted = { ...ZACH, rubric: { ...ZACH.rubric, budgets: { camp: 250_000, build: 300_000 } } };
+    const t = compareTable(
+      [
+        priced("grayson-mud-creek-6273", 185_000),
+        priced("ferney-creek-52-47A", 60_000),
+        priced("macks-mountain-35-3", null),
+      ],
+      budgeted,
+    );
+    const [, camp, build] = t.groups[0]!.rows;
+    expect(camp!.cells.map((c) => [c.text, c.mark])).toEqual([
+      ["$200–240k", "worst"],
+      ["$63–69k", "best"],
+      [expect.stringMatching(/ plus the land$/), null],
+    ]);
+    expect(build!.cells[0]!.text).toBe("$330–595k");
+    expect(t.groups[1]!.rows.map((r) => [r.label, r.cells.map((c) => [c.status, c.text])])).toEqual([
+      [
+        "Ready to camp ≤ $250k",
+        [
+          ["pass", "under · $200–240k"],
+          ["pass", "under · $63–69k"],
+          ["unknown", "–"],
+        ],
+      ],
+      [
+        "Ready to build ≤ $300k",
+        [
+          ["fail", "over · $330–595k"],
+          ["pass", expect.stringMatching(/^under · /)],
+          ["unknown", "–"],
+        ],
+      ],
+    ]);
+  });
+
   it("a parcel without a current screen says so in each cell, with no panel and no mark", () => {
     const t = compareTable(
       [parcel("ferney-creek-52-47A"), { ...parcel("macks-mountain-35-3"), state: "rescreen", result: null }],
       ZACH,
-      300_000,
     );
     expect(t.cards[1]).toBeNull();
     for (const r of [t.head, ...t.groups.flatMap((g) => g.rows).filter((r) => r.key !== "stage0")]) {
       expect(r.cells[1]).toEqual({ text: "re-screens when opened", mark: null, panel: null });
       expect(r.cells[0]!.mark).toBeNull(); // nothing to be better than
     }
-    const never = compareTable(
-      [{ ...parcel("macks-mountain-35-3"), state: "none", result: null }],
-      ZACH,
-      300_000,
-    );
+    const never = compareTable([{ ...parcel("macks-mountain-35-3"), state: "none", result: null }], ZACH);
     expect(never.head.cells[0]!.text).toBe("not screened");
   });
 });

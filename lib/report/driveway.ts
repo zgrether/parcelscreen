@@ -1,12 +1,13 @@
 /** The Driveway section (proto L1515–1532): entrances, routed alignments with costs, the pioneer track. */
 import { fmt } from "../format";
 import { SCREEN_CONSTANTS } from "../screen/config";
-import { gradeOver, overLimitSpans, reliefCulverts } from "../screen/driveway";
+import { gradeOver, reliefCulverts } from "../screen/driveway";
 import { NEEDS_EASEMENT, routeLabel } from "../screen/routeLabel";
 import { existingSteepLine, impracticalLine } from "../screen/score";
 import type { PartialScreenResult } from "../screen/types";
 import { M2FT } from "../screen/util";
 import type { FactRow } from "./facts";
+import { DEFAULT_PAVING_CONTEXT, routeRuns, steepStretchFt, type PavingContext } from "./ground";
 import { said, type Heading, type Part } from "./parts";
 import {
   drivenRoute,
@@ -100,8 +101,9 @@ function overLimitView(
   o: NonNullable<NonNullable<PartialScreenResult["driveway"]>["overLimit"]>,
   r: PartialScreenResult,
   names?: LineNames,
+  pave: PavingContext = DEFAULT_PAVING_CONTEXT,
 ): RouteView {
-  const v = routeView(o, 0, null, r, names);
+  const v = routeView(o, 0, null, r, names, pave);
   const m = o.metrics;
   return {
     ...v,
@@ -178,6 +180,7 @@ function routeView(
   overLimitPct: number | null = null,
   r: PartialScreenResult | null = null,
   names?: LineNames,
+  pave: PavingContext = DEFAULT_PAVING_CONTEXT,
 ): RouteView {
   const m = rt.metrics;
   const rows: FactRow[] = [
@@ -200,11 +203,16 @@ function routeView(
     // Owner, #99 decisions (2026-10-11): cross-drains along the road, by its grade; priced at the culvert rate.
     { label: "Relief culverts", value: `${reliefCulverts(rt.profile)} (one every 150–400 ft, by grade)` },
   ];
-  // Owner, #103 decisions (2026-10-11): the length steeper than paveAbovePct is paved; no rate until follow-up 47.
-  const pavedFt =
-    overLimitSpans(rt.profile, DW.paveAbovePct / 100).reduce((t, [a, b]) => t + (b - a), 0) * M2FT;
-  if (pavedFt >= 1)
-    rows.push({ label: `Paving (over ${DW.paveAbovePct}%)`, value: `~${fmt(pavedFt)} ft (cost TBD)` });
+  // Owner, #103 decisions (2026-10-11): the length steeper than paveAbovePct is paved. Step 10 (owner, #256 review): at
+  // Settings' threshold, less any paved line, the same length the cost breakdown paves; with paving off, steep gravel.
+  const { abovePct, on } = pave.paving;
+  const steepFt = steepStretchFt(rt, abovePct, pave.lines.length ? routeRuns(rt, pave.lines) : []);
+  if (steepFt >= 1)
+    rows.push(
+      on
+        ? { label: `Paving (over ${abovePct}%)`, value: `~${fmt(steepFt)} ft (cost TBD)` }
+        : { label: "Paving", value: `${fmt(steepFt)} ft over ${abovePct}%: steep gravel, more upkeep` },
+    );
   const drawn = r ? drawnRow(rt, r, names) : null;
   if (drawn) rows.push(drawn);
   const upgrade = upgradeRow(rt);
@@ -299,6 +307,8 @@ export function drivewayView(
   r: PartialScreenResult,
   names?: LineNames,
   drivewayLine: string | null = null,
+  /** The paving choice and the parcel's lines (step 10): the Paving row follows Settings → Costs. */
+  pave: PavingContext = DEFAULT_PAVING_CONTEXT,
 ): DrivewayView | null {
   const d = r.driveway;
   if (!d) return null;
@@ -315,14 +325,14 @@ export function drivewayView(
     steepLanding: d.steepLanding ? steepLandingLine(d.steepLanding) : null,
     entrances: entrancesLine(d, r, names),
     routes: d.routes.map((rt, i) => ({
-      ...routeView(rt, i, overLimitPct, r, names),
+      ...routeView(rt, i, overLimitPct, r, names, pave),
       ...(driven.yours && rt === driven.route ? { yours: true } : {}),
     })),
     chosen:
       driven.yours && driven.pick
         ? youChose(lineLabel(driven.yours, names), pickFrom(r, driven.pick, names))
         : null,
-    overLimit: d.overLimit ? overLimitView(d.overLimit, r, names) : null,
+    overLimit: d.overLimit ? overLimitView(d.overLimit, r, names, pave) : null,
     track: first?.track
       ? {
           rows: [

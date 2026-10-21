@@ -3,7 +3,8 @@
  * Full (step 9 plan §3): after the one-page summary, the priorities it was graded against, then the report's own blocks
  * grouped under the brief's sections, the listing and notes, the lines and marks, the data sources and the closing
  * line. The blocks render as they do in the panel's Full report, in their print variant (no "on the map" pointers).
- * Nothing here for ways to raise the grade (step 12) or the cost to enjoy (step 10): they come with their steps.
+ * Nothing here for ways to raise the grade (step 12): it comes with its step. The cost to enjoy (step 10) follows
+ * Access and driveway.
  */
 import { useEffect, useRef, type ReactNode } from "react";
 import { area, length, lineString } from "@turf/turf";
@@ -38,12 +39,14 @@ import { PublicLand } from "@/components/Results/blocks/PublicLand";
 import { StillUnknown } from "@/components/Results/blocks/StillUnknown";
 import { ordinal, SITE_NUMBER, topNumbers } from "@/components/Results/answer/BestHomesite";
 import { lineNamesOf } from "@/lib/report/lines";
+import { CostBreakdown } from "@/components/Results/card/CostBreakdown";
 
 /** Full's headings and lines (plan §8). */
 export const FULL_WORDS = {
   priorities: "The priorities it was graded against",
   sites: "Best site and alternatives",
   access: "Access and driveway",
+  cost: "Cost to enjoy",
   sun: "Winter sun and the horizon",
   sky: "Night sky",
   soils: "Soils, septic and flood",
@@ -116,6 +119,7 @@ export function Full({
     variant: "print",
     lineNames: lineNamesOf(parcel.markup),
     drivewayLine: parcel.drivewayLine,
+    ...(card.paving ? { paving: card.paving } : {}),
   };
   /** A report block with its own heading, or nothing when it has nothing to say. */
   const block = (B: (p: BlockProps) => ReactNode) => {
@@ -225,6 +229,13 @@ export function Full({
         </ul>
         {block(Driveway)}
       </Section>
+
+      {/* Only when the card was priced (graded with the parcel's price and the rates). */}
+      {card.cost !== undefined && (
+        <Section title={FULL_WORDS.cost}>
+          <CostBreakdown cost={card.cost} print />
+        </Section>
+      )}
 
       <Section title={FULL_WORDS.sun}>{block(DecemberSun)}</Section>
       <Section title={FULL_WORDS.sky}>{block(DarkSkies)}</Section>

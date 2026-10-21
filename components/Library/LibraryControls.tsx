@@ -36,6 +36,7 @@ const SORTS: { key: SortKey; label: string }[] = [
   { key: "updated", label: "Last changed" },
   { key: "price", label: "Price" },
   { key: "acres", label: "Acres" },
+  { key: "costBuild", label: "Cost to build" },
 ];
 /** The sorts for a profile's rubrics: the household verdict when it holds several, then each grade. */
 const sortsFor = (rubrics: readonly NamedRubric[]): { key: SortKey; label: string }[] => [

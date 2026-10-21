@@ -52,6 +52,7 @@ const row = (over: Partial<LibraryRow>): LibraryRow => ({
   ask: null,
   newTakesBy: [],
   bothLike: false,
+  costBuild: null,
   ...over,
 });
 

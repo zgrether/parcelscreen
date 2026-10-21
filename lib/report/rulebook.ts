@@ -62,6 +62,8 @@ export interface Rulebook {
     weights: { key: RowKey; label: string; byRubric: Record<string, number> }[];
     gates: RulePanel[];
     rows: RulePanel[];
+    /** Within budget (step 10): a row only in a rubric with budgets, so it's apart from the weights table's rows. */
+    budget: RulePanel;
     /** Cost to enjoy: the card's last line, not graded; pending until the unit costs are calibrated. */
     cost: RulePanel;
   };
@@ -252,6 +254,7 @@ export function rulebook(
       })),
       gates: GATES.map((k) => rulePanel(k, C, rubrics)),
       rows: ROWS.map((k) => rulePanel(k, C, rubrics)),
+      budget: rulePanel("budget", C, rubrics),
       cost: rulePanel("cost", C, rubrics),
     },
     homesite: {

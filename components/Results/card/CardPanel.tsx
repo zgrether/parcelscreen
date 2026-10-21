@@ -6,6 +6,8 @@
  * word, each with its own heading and "?" help link.
  */
 import { behindTabs } from "@/lib/client/mapShowing";
+import { costSummary, summaryText } from "@/lib/report/costLines";
+import { CostBreakdown } from "./CostBreakdown";
 import { length, lineString } from "@turf/turf";
 import Link from "next/link";
 import { useEffect, useRef, type ReactNode } from "react";
@@ -64,7 +66,17 @@ const panelOfFlag = (f: { step: Step | null; t: string }): PanelKey | null =>
 function reading(key: PanelKey, card: Card): { mark: string; tone: string; text: string } {
   if (key === "verdict")
     return { mark: card.grade ?? "–", tone: `v-${card.verdict.toLowerCase()}`, text: card.reason };
-  if (key === "cost") return { mark: "–", tone: "g-none", text: "Not priced yet." };
+  if (key === "cost") {
+    // Step 10: the two lines, as the Grade section shows them.
+    const s = costSummary(card.cost, card.rubric.rubric.budgets);
+    const text = !s
+      ? "Not priced yet."
+      : s.kind === "noWay"
+        ? `${s.text}.`
+        : `${s.lines.map(summaryText).join("; ")}.`;
+    // No letter or mark of its own: the lines carry their budgets' marks.
+    return { mark: "", tone: "g-none", text };
+  }
   const gate = card.gates.find((g) => g.key === key);
   if (gate) return { mark: STATUS[gate.status], tone: `gate ${gate.status}`, text: `${gate.reason}.` };
   const row = card.rows.find((r) => r.key === key);
@@ -141,7 +153,7 @@ export function CardPanel({
       <div className="card-panel-body">
         <p className="panel-question">{t.question}</p>
         <p className="panel-reading">
-          <span className={`card-grade small ${r.tone}`}>{r.mark}</span> {r.text}
+          {r.mark && <span className={`card-grade small ${r.tone}`}>{r.mark}</span>} {r.text}
         </p>
         {/* Each scale with its own sentences under it (owner, #113 review). */}
         {scalesFor(panel, result, card).map((sc) => (
@@ -152,6 +164,7 @@ export function CardPanel({
         ))}
         {panel === "homesite" && <BuildingHere result={result} dw={dw} />}
         {panel === "septic" && <BottomlandHere result={result} />}
+        {(panel === "cost" || panel === "budget") && <CostBreakdown cost={card.cost} />}
         {panel === "easement" && (
           <YourRouteChoice
             result={result}
@@ -181,9 +194,13 @@ export function CardPanel({
             </>
           )}
         </p>
-        <h3 className="panel-from">From the report</h3>
-        {/* Owner's wording (#111): added above the moved sections, nothing replaced. */}
-        <p className="tiny muted panel-from-note">{FROM_THE_REPORT_NOTE}</p>
+        {panelSections(panel).length > 0 && (
+          <>
+            <h3 className="panel-from">From the report</h3>
+            {/* Owner's wording (#111): added above the moved sections, nothing replaced. */}
+            <p className="tiny muted panel-from-note">{FROM_THE_REPORT_NOTE}</p>
+          </>
+        )}
         {panelSections(panel).map(({ Block, heading }) => {
           const body = Block({
             result,
@@ -192,6 +209,7 @@ export function CardPanel({
             running,
             lineNames,
             drivewayLine: card.drivewayLine ?? null,
+            ...(card.paving ? { paving: card.paving } : {}),
           });
           if (body === null) return null;
           const h = heading(result, point);

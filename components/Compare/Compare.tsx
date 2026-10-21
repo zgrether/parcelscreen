@@ -8,6 +8,7 @@
  * (owner, #117 review); once columns are added or removed here, that choice is remembered per browser (ps.compare).
  */
 import Link from "next/link";
+import { useCostSettings } from "@/lib/client/costRates";
 import { COMPARE_HOW, COMPARE_MAX } from "@/lib/client/library";
 import { useMemo, useState } from "react";
 import { LongName } from "@/components/LongName";
@@ -53,6 +54,7 @@ export function Compare() {
 
   // Every History parcel's latest screen: the default columns need their verdicts and dates.
   const screens = useKeptScreens(built);
+  const costs = useCostSettings();
   const all: CompareParcel[] = built.map((b) => {
     const { name, acres } = parcelName(b);
     const s = screens.get(b.key!);
@@ -63,14 +65,14 @@ export function Compare() {
       askingPrice: b.askingPrice,
       state: s?.state ?? "none",
       result: s?.result ?? null,
-      drawn: drawnOf(b.markup, b.drivewayLine),
+      drawn: drawnOf(b.markup, b.drivewayLine, { askingPrice: b.askingPrice, ...costs }),
     };
   });
   // The parcels ticked on Your list (step 4b: Compare is reached from there, 2 or 3 of them).
   const chosen = picked ?? [];
   const columns = chosen.map((k) => built.find((b) => b.key === k)).filter((b): b is WorkingParcel => !!b);
   const parcels = columns.map((b) => all.find((p) => p.key === b.key)!);
-  const table = compareTable(parcels, rubric, config.budget.readyToBuild);
+  const table = compareTable(parcels, rubric);
   // Up to three columns, as on Your list.
   const addable = chosen.length < COMPARE_MAX ? built.filter((b) => !chosen.includes(b.key!)) : [];
   const opened = panel ? parcels[panel.col] : null;

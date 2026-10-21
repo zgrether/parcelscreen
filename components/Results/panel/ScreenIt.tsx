@@ -47,6 +47,7 @@ import { reportCard, VERDICT_WORD } from "@/lib/report/card";
 import { answerReason } from "@/lib/report/answer";
 import { lineNamesOf, type LineNames } from "@/lib/report/lines";
 import { drawnOf, type Drawn } from "@/lib/report/marks";
+import { currentCostSettings, useCostSettings } from "@/lib/client/costRates";
 import { listingAcresNote } from "@/lib/report/listing";
 import { panelFromSearch, replacePanelInUrl } from "@/lib/client/panelUrl";
 import { mapShowing, onMapShowing } from "@/lib/client/mapShowing";
@@ -401,11 +402,20 @@ export function useScreenIt(
 
   // Step 7: the card for what's shown, made once per change: the panel, the header and the pins read it.
   const drivewayLine = open?.drivewayLine;
+  // Step 10: the cost to enjoy reads the asking price and the rates in use (Settings → Costs), live.
+  const askingPrice = open?.askingPrice ?? null;
+  const costs = useCostSettings();
   const card = useMemo(
     () =>
-      display ? reportCard(display, rubric, open ? drawnOf(markup ?? [], drivewayLine) : undefined) : null,
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- the open parcel's markup and line are what matter
-    [display, rubric, markup, drivewayLine],
+      display
+        ? reportCard(
+            display,
+            rubric,
+            open ? drawnOf(markup ?? [], drivewayLine, { askingPrice, ...costs }) : undefined,
+          )
+        : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the open parcel's markup, line and price are what matter
+    [display, rubric, markup, drivewayLine, askingPrice, costs],
   );
   // A site tapped in the panel (step 7 plan §1.3): evaluated with the live session, as its pin is; without one, the
   // pins' own words say why not.
@@ -484,7 +494,9 @@ const namesOf = (s: ScreenIt): LineNames | undefined => {
 /** What the open parcel holds for its card: those names, and its markers (WF4). */
 const drawnFor = (s: ScreenIt): Drawn | undefined => {
   const open = s.ctl.state.store.open;
-  return open ? drawnOf(open.markup, open.drivewayLine) : undefined;
+  return open
+    ? drawnOf(open.markup, open.drivewayLine, { askingPrice: open.askingPrice, ...currentCostSettings() })
+    : undefined;
 };
 
 /**
@@ -714,6 +726,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             running={running}
             lineNames={namesOf(s)}
             drivewayLine={s.ctl.state.store.open?.drivewayLine ?? null}
+            paving={s.card?.paving}
             noteFor={(slug) =>
               s.evaluated &&
               EVALUATED_SECTIONS.has(slug) && (

@@ -571,8 +571,13 @@ export const SCREEN_CONSTANTS = deepFreeze({
         trails: 10,
         town: 5,
         garden: 10,
+        // Step 10: Within budget is never on the starting list; it comes with the interview's budgets.
+        budget: 0,
       },
     },
+    // Step 10 (docs/plans/step-10-cost-to-enjoy.md §3): the Within budget row's letter by the cost's high end as a share
+    // of the budget, at most: A within 80%, B 100%, C 115%, D 130%; above, an F.
+    budgetBands: [0.8, 1, 1.15, 1.3],
     // Step 3 (rubric editor, plan §2): each band's slider, over its B/C edge (the edge of "acceptable"; the band's other
     // edges shift with it) and a minimum's value, in the band's unit. Ranges a person might want, not limits on the data.
     editor: {
@@ -603,6 +608,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
         town: 2,
         sky: 1,
         garden: 1,
+        // Step 10: placed by the budgets themselves (generate.ts), never by points.
+        budget: 0,
       },
       // Really want: the rows with at least minPoints, kept to min–max by rank.
       should: { minPoints: 2, min: 3, max: 6 },

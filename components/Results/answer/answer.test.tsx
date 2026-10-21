@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 import { expectedOf } from "@/test/support/expected";
 import { ZACH } from "@/test/support/rubrics";
 import { reportCard } from "@/lib/report/card";
+import { drawnOf } from "@/lib/report/marks";
+import { DEFAULT_RATES } from "@/lib/config/costs";
 import { defaultRubric } from "@/lib/rubric/default";
 import type { NamedRubric } from "@/lib/rubric/types";
 import { REPORT } from "../report";
@@ -36,13 +38,14 @@ describe("the report card in priority order (plan §1.4)", () => {
       />,
     );
 
-  it("the answer first, then Must have, Really want and Cost to enjoy; Don't care hidden", () => {
+  it("the answer first, then Must have and Really want; Don't care hidden", () => {
     const t = text(html());
     const at = (s: string) => t.indexOf(s);
     expect(at("Strong elevation and winter sun")).toBeGreaterThan(-1);
     expect(at("Must have")).toBeGreaterThan(at("Strong elevation"));
     expect(at("Really want")).toBeGreaterThan(at("Must have"));
-    expect(at("Cost to enjoy")).toBeGreaterThan(at("Really want"));
+    // Step 10: the pending row went; without the parcel's price and rates there's no Cost to enjoy section.
+    expect(t).not.toContain("Cost to enjoy");
     // The starting list's Driveway row is Don't care: not on the card.
     expect(t).not.toContain("at its steepest");
     // The Must rows use the priorities page's titles (owner, #216).
@@ -51,6 +54,42 @@ describe("the report card in priority order (plan §1.4)", () => {
     // The rows in rank order: Elevation and Best homesite (25), Room to build (15), then the 10s.
     expect(at("Elevation at the build site")).toBeLessThan(at("Room to build"));
     expect(at("Room to build")).toBeLessThan(at("Night sky"));
+  });
+
+  it("Cost to enjoy after the answer: each line against its budget (step 10 plan §4)", () => {
+    const nr = { ...ZACH, rubric: { ...ZACH.rubric, budgets: { camp: 250_000, build: 300_000 } } };
+    const drawn = drawnOf([], null, { askingPrice: 185_000, rates: DEFAULT_RATES });
+    const t = text(
+      renderToStaticMarkup(
+        <ReportCard
+          card={reportCard(MUD, nr, drawn)}
+          result={MUD}
+          running={false}
+          rubrics={[nr]}
+          setRubric={noop}
+          onOpen={noop}
+        />,
+      ),
+    );
+    const at = (s: string) => t.indexOf(s);
+    expect(at("Cost to enjoy")).toBeGreaterThan(-1);
+    expect(at("Cost to enjoy")).toBeLessThan(at("Must have"));
+    expect(t).toContain("Ready to camp $200–240k ✓ under your $250k");
+    expect(t).toContain("Ready to build $330–595k ✗ over your $300k");
+    // Without a price: the range plus the land, no mark.
+    const unpriced = text(
+      renderToStaticMarkup(
+        <ReportCard
+          card={reportCard(MUD, nr, drawnOf([], null, { askingPrice: null, rates: DEFAULT_RATES }))}
+          result={MUD}
+          running={false}
+          rubrics={[nr]}
+          setRubric={noop}
+          onOpen={noop}
+        />,
+      ),
+    );
+    expect(unpriced).toMatch(/Ready to camp \$\d+–\d+k plus the land Ready to build/);
   });
 
   it("each Must says pass, check first, fail or unknown, with its reason", () => {

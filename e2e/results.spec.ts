@@ -44,7 +44,12 @@ test("Ferney: the answer, Best homesite, the card's order, an alternative and Ba
   ]);
 
   // The card in priority order.
-  await expect(page.locator(".card .card-group > .card-sub")).toHaveText(["Must have", "Really want"]);
+  // Step 10: Cost to enjoy after the answer, then the card's tiers.
+  await expect(page.locator(".card .card-group > .card-sub")).toHaveText([
+    "Cost to enjoy",
+    "Must have",
+    "Really want",
+  ]);
 
   // An alternative, evaluated as its pin would be; Back to the best site ends it.
   const alt = best.locator(".other-spots .site-row").first();

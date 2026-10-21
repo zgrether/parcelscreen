@@ -20,6 +20,7 @@ export const LEGACY_SECOND_WEIGHTS: Record<RowKey, number> = {
   trails: 25,
   town: 10,
   garden: 20,
+  budget: 0,
 };
 
 export const ZACH: NamedRubric = { id: "zach", name: "Zach", rubric: defaultRubric() };

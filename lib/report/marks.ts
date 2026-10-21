@@ -7,7 +7,9 @@
  * noted on the Garden row. The rest wait for their costs (VR4).
  */
 import { booleanPointInPolygon, distance, point, pointToLineDistance, lineString, polygon } from "@turf/turf";
+import type { Paving, Rates } from "../config/costs";
 import type { LatLon } from "../geo/types";
+import type { CostLine } from "./cost";
 import { lineNamesOf, type LineNames } from "./lines";
 
 /** What a point marks (owner, WF4: a spring and a well apart, since they cost differently). */
@@ -56,9 +58,15 @@ export type Mark = PointMark | AreaMark;
  */
 export interface Drawn {
   names: LineNames;
-  marks: readonly Mark[];
+  /** With a septic permit's class, as typed (the cost to enjoy reads it, step 10). */
+  marks: readonly (Mark & { septicClass?: SepticClass | null })[];
   driveway?: string | null;
   records?: ReadonlyMap<string, string>;
+  /**
+   * What the cost to enjoy reads besides the result and the marks (step 10, lib/report/cost.ts): the lines with their
+   * condition, the asking price and the rates in use. Absent: the cost isn't priced, and Within budget isn't graded.
+   */
+  cost?: { lines: readonly CostLine[]; askingPrice: number | null; rates: Rates; paving?: Paving };
 }
 
 /**
@@ -66,8 +74,10 @@ export interface Drawn {
  * choice, and each line's "Recorded in" when it says something.
  */
 export const drawnOf = (
-  markup: readonly ({ id: string; name: string } & ({ shape: "line"; recordedIn?: string } | Mark))[],
+  markup: readonly ({ id: string; name: string } & (DrawnLineMarkup | Mark))[],
   driveway: string | null = null,
+  /** The asking price and the rates in use (step 10): given, the card prices the cost to enjoy. */
+  cost?: { askingPrice: number | null; rates: Rates; paving?: Paving },
 ): Drawn => ({
   names: lineNamesOf(markup),
   marks: markup.filter((m): m is typeof m & Mark => m.shape !== "line"),
@@ -75,7 +85,36 @@ export const drawnOf = (
   records: new Map(
     markup.flatMap((m) => (m.shape === "line" && m.recordedIn?.trim() ? [[m.id, m.recordedIn.trim()]] : [])),
   ),
+  ...(cost
+    ? {
+        cost: {
+          ...cost,
+          lines: markup.flatMap((m): CostLine[] =>
+            m.shape === "line" && m.kind && m.condition && m.line
+              ? [
+                  {
+                    id: m.id,
+                    kind: m.kind,
+                    condition: m.condition,
+                    line: m.line,
+                    recordedIn: m.recordedIn ?? "",
+                  },
+                ]
+              : [],
+          ),
+        },
+      }
+    : {}),
 });
+
+/** A drawn line as the parcel keeps it: the card reads its "recorded in", the cost its kind, condition and points. */
+interface DrawnLineMarkup {
+  shape: "line";
+  recordedIn?: string;
+  kind?: CostLine["kind"];
+  condition?: CostLine["condition"];
+  line?: readonly LatLon[];
+}
 
 const xy = ([lat, lon]: LatLon): [number, number] => [lon, lat];
 

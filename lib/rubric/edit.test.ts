@@ -153,6 +153,7 @@ describe("the weights: explicit until the first reorder, then rank-sum at once (
       trails: 10.7,
       town: 3.6,
       garden: 7.1,
+      budget: 0,
     });
     const pts = (slug: Parameters<typeof expectedOf>[0], r: Rubric) => {
       const c = reportCard(expectedOf(slug, "run"), { id: "x", name: "x", rubric: r });

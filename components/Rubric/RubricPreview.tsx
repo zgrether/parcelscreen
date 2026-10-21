@@ -9,6 +9,7 @@
  * strip is a bar along the bottom, with the same words.
  */
 import { useEffect, useMemo, useState } from "react";
+import { useCostSettings } from "@/lib/client/costRates";
 import { getPref } from "@/lib/client/prefs";
 import { visibleParcels } from "@/lib/client/favoritesStore";
 import { previewOptions, SAMPLE_KEY, SAMPLE_NAME } from "@/lib/client/previewParcels";
@@ -64,7 +65,10 @@ export function RubricPreview({
 
   const parcel = built.find((b) => b.key === key);
   const result = key === SAMPLE_KEY ? sample : (screens.get(key)?.result ?? null);
-  const drawn = parcel ? drawnOf(parcel.markup, parcel.drivewayLine) : undefined;
+  const costs = useCostSettings();
+  const drawn = parcel
+    ? drawnOf(parcel.markup, parcel.drivewayLine, { askingPrice: parcel.askingPrice, ...costs })
+    : undefined;
   const name = options.find((o) => o.key === key)?.name ?? SAMPLE_NAME;
   useEffect(() => {
     onParcel?.(result ? { name, result, ...(drawn ? { drawn } : {}) } : null);

@@ -10,6 +10,9 @@
  *
  * Its first section, Your data (step 4b; polish #32 moved it up from the foot), holds Export file and Import file, which
  * act at once, outside Save.
+ *
+ * Costs (step 10) holds the cost to enjoy's rates, kept apart from the config in the profile's "ps.costs"
+ * (lib/client/costRates.ts): Save checks both and stores each only if it changed, so a rate never asks for a re-grade.
  */
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
 import { DEFAULT_USER_CONFIG } from "@/lib/screen/config";
@@ -28,6 +31,10 @@ import {
   type NumberField,
   type SettingsForm,
 } from "@/lib/client/settingsForm";
+import { DEFAULT_COST_SETTINGS } from "@/lib/config/costs";
+import { currentCostSettings, saveCostSettings } from "@/lib/client/costRates";
+import { fromCostForm, sameSettings, toCostForm, type CostForm } from "@/lib/client/costsForm";
+import { Costs } from "./Costs";
 import { YourData } from "./YourData";
 
 interface SettingsApi {
@@ -65,12 +72,14 @@ export function SettingsProvider({
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [form, setForm] = useState<SettingsForm>(() => toForm(config));
+  const [costs, setCosts] = useState<CostForm>(() => toCostForm(DEFAULT_COST_SETTINGS));
   const [errors, setErrors] = useState<FieldError[]>([]);
   // Each opening starts Your data afresh, without the last import's summary.
   const [opened, setOpened] = useState(0);
 
   const open = useCallback(() => {
     setForm(toForm(config));
+    setCosts(toCostForm(currentCostSettings()));
     setErrors([]);
     setOpened((n) => n + 1);
     dialog.current?.showModal();
@@ -79,11 +88,13 @@ export function SettingsProvider({
 
   const save = () => {
     const r = fromForm(form, config);
-    if (!r.ok) {
-      setErrors(r.errors);
+    const c = fromCostForm(costs);
+    if (!r.ok || !c.ok) {
+      setErrors([...(r.ok ? [] : r.errors), ...(c.ok ? [] : c.errors)]);
       return;
     }
     if (!sameConfig(r.config, config)) onSave(r.config);
+    if (!sameSettings(c.settings, currentCostSettings())) saveCostSettings(c.settings);
     close();
   };
 
@@ -129,11 +140,22 @@ export function SettingsProvider({
           <p className="tiny muted">These encode judgment, not fact. Change them and re-run.</p>
           <div className="settings-grid">{THRESHOLD_FIELDS.map(numberInput)}</div>
 
-          <h3>Driveway unit costs</h3>
-          <p className="tiny muted">
-            Blue Ridge 2026 rough rates; edit to your excavator&apos;s numbers. The estimate is shown as ±30%.
-          </p>
-          <div className="settings-grid">{COST_FIELDS.map(numberInput)}</div>
+          <Costs
+            form={costs}
+            bad={bad}
+            set={(key, end, v) =>
+              setCosts((f) => ({ ...f, rates: { ...f.rates, [key]: { ...f.rates[key], [end]: v } } }))
+            }
+            setPaving={(p) => setCosts((f) => ({ ...f, paving: { ...f.paving, ...p } }))}
+          />
+          <section className="rate-group" aria-label="The screen's driveway estimate">
+            <h4>The screen&apos;s driveway estimate</h4>
+            <p className="tiny muted">
+              Blue Ridge 2026 rough rates; edit to your excavator&apos;s numbers. The estimate is shown as
+              ±30%.
+            </p>
+            <div className="settings-grid">{COST_FIELDS.map(numberInput)}</div>
+          </section>
 
           <h3>Budget</h3>
           <p className="tiny muted">
@@ -207,6 +229,7 @@ export function SettingsProvider({
               className="btn secondary"
               onClick={() => {
                 setForm(toForm(DEFAULT_USER_CONFIG));
+                setCosts(toCostForm(DEFAULT_COST_SETTINGS));
                 setErrors([]);
               }}
             >

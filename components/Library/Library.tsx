@@ -11,6 +11,7 @@
  * writes that one parcel's rank. Under another sort the handles hide, and the list says how to get them back.
  */
 import Link from "next/link";
+import { useCostSettings } from "@/lib/client/costRates";
 import { reportHref } from "@/lib/print/report";
 import { GRADES_ID, GRADES_TITLE } from "@/lib/client/help";
 import { useRouter } from "next/navigation";
@@ -25,6 +26,7 @@ import {
 } from "react";
 import { LongName } from "@/components/LongName";
 import { shortPrice } from "@/lib/client/askingPrice";
+import { costRange } from "@/lib/report/cost";
 import {
   DEFAULT_SORT,
   hiddenBy,
@@ -125,12 +127,16 @@ export function Library() {
   const { rubrics } = useRubricView();
   const household = useHousehold();
   const seen = useSeenTakes();
+  const costs = useCostSettings();
   const rowOf = useMemo(
     () =>
       new Map(
-        visible.map((p) => [p.key!, libraryRow(p, screens.get(p.key!), rubrics, { household, me, seen })]),
+        visible.map((p) => [
+          p.key!,
+          libraryRow(p, screens.get(p.key!), rubrics, { household, me, seen }, costs),
+        ]),
       ),
-    [visible, screens, rubrics, household, me, seen],
+    [visible, screens, rubrics, household, me, seen, costs],
   );
   const rows = favorites.map((p) => rowOf.get(p.key!)!);
   const tab = view.tab;
@@ -472,6 +478,10 @@ function AskNote({ ask }: { ask: Ask }) {
   );
 }
 
+/** Ready to build, all in (step 10): "$330–595k", or "$55–185k + land" without an asking price. */
+const costCell = (r: LibraryRow): string =>
+  r.costBuild ? `${costRange(r.costBuild.total)}${r.costBuild.plusLand ? " + land" : ""}` : "–";
+
 /** Whether a row has a status word or a milestone (an active favorite with neither shows nothing). */
 const hasStatus = (r: LibraryRow) => !!STATUS_WORD[r.status] || !!milestonesLine(r);
 
@@ -480,7 +490,12 @@ const hasStatus = (r: LibraryRow) => !!STATUS_WORD[r.status] || !!milestonesLine
  * one (polish #12): a column of dashes says nothing.
  */
 function LibraryTable({ rows, rubrics, ...rest }: RowsProps) {
-  const cols = { price: rows.some((r) => r.price !== null), status: rows.some(hasStatus) };
+  const cols = {
+    price: rows.some((r) => r.price !== null),
+    // Step 10: like Price, shown when a row has one.
+    cost: rows.some((r) => r.costBuild !== null),
+    status: rows.some(hasStatus),
+  };
   return (
     <div className="lib-scroll">
       <table className="lib-table">
@@ -495,6 +510,7 @@ function LibraryTable({ rows, rubrics, ...rest }: RowsProps) {
             <th scope="col">Name</th>
             <th scope="col">Acres</th>
             {cols.price && <th scope="col">Price</th>}
+            {cols.cost && <th scope="col">Cost to build</th>}
             <th scope="col">State</th>
             {cols.status && <th scope="col">Status</th>}
             <th scope="col">{rubrics.length > 1 ? "Grades" : switchLabel(rubrics[0]!)}</th>
@@ -532,7 +548,7 @@ function TableRow({
   unstar,
   report,
   cols,
-}: RowProps & { cols: { price: boolean; status: boolean } }) {
+}: RowProps & { cols: { price: boolean; cost: boolean; status: boolean } }) {
   const { nodeProps, dragging, handleProps } = useSortableRow(r.key, ordering);
   return (
     <tr
@@ -572,6 +588,7 @@ function TableRow({
       </td>
       <td className="num lib-c-acres">{r.acres !== null ? r.acres.toFixed(1) : "–"}</td>
       {cols.price && <td className="num lib-c-price">{r.price !== null ? shortPrice(r.price) : "–"}</td>}
+      {cols.cost && <td className="num lib-c-cost">{costCell(r)}</td>}
       <td className="lib-c-state">
         <State r={r} />
       </td>
@@ -637,6 +654,7 @@ function Card({ r, index, count, ticked, toggle, open, ordering, mover, star, un
           {[
             r.acres !== null ? `${r.acres.toFixed(1)} ac` : null,
             r.price !== null ? shortPrice(r.price) : null,
+            r.costBuild ? `build ${costCell(r)}` : null,
           ]
             .filter(Boolean)
             .map((t) => `${t} · `)

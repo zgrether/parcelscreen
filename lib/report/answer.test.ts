@@ -94,7 +94,17 @@ describe("the answer line", () => {
 });
 
 function zeroWeights() {
-  return { elevation: 0, homesite: 0, sky: 0, room: 0, driveway: 0, trails: 0, town: 0, garden: 0 };
+  return {
+    elevation: 0,
+    homesite: 0,
+    sky: 0,
+    room: 0,
+    driveway: 0,
+    trails: 0,
+    town: 0,
+    garden: 0,
+    budget: 0,
+  };
 }
 
 describe("Still unknown's questions for the agent", () => {

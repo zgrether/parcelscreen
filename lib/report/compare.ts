@@ -1,7 +1,8 @@
 /**
  * The comparison table (value-ranking.md §7; VR6): parcels as columns, the report card's lines as rows, in groups
  * (Costs, Budget, Dealbreakers, What money can't add). Each cell holds a value and a mark: a gate's status, or best /
- * worst in its row. The costs and the budget are VR4's: until then their rows say "not yet", except the asking price.
+ * worst in its row. Step 10: the costs are Ready to camp and Ready to build (the stages' "not yet" rows went), and the
+ * budget rows are the viewer's two budgets.
  * Polish #33 (owner, 2026-10-20): plain words for the stages, the gates in the card's own words.
  * Pure: the page reads the parcels and their kept screens, and draws this.
  */
@@ -12,6 +13,8 @@ import { reportCard, VERDICT_WORD, type Card, type GateStatus, type Letter, type
 import type { Drawn } from "./marks";
 import type { PanelKey } from "./cardPanels";
 import { EDITOR_TITLES } from "../rubric/words";
+import { BUDGET_SITS, budgetStatusOf, COST_WORDS } from "./cost";
+import { estimateRange } from "./costLines";
 
 /** A History parcel as the table reads it: its name, asking price, and its latest kept screen. */
 export interface CompareParcel {
@@ -86,20 +89,8 @@ function marked(cells: Cell[], scores: (number | null)[]): Cell[] {
   }));
 }
 
-/** The VR4 stages, "not yet" until then (§4.1); before them, the asking price. */
-const STAGES: { key: string; label: string }[] = [
-  { key: "stage1a", label: "To camp now" },
-  { key: "stage1b", label: "To camp at the build site" },
-  { key: "stage2", label: "To be ready to build" },
-  { key: "stage3", label: "To move in" },
-];
-
 /** The table for these parcels, graded with `rubric`. */
-export function compareTable(
-  parcels: readonly CompareParcel[],
-  rubric: NamedRubric,
-  readyToBuild: number,
-): CompareTable {
+export function compareTable(parcels: readonly CompareParcel[], rubric: NamedRubric): CompareTable {
   const cards = parcels.map((p) =>
     p.state === "ok" && p.result ? reportCard(p.result, rubric, p.drawn) : null,
   );
@@ -142,10 +133,49 @@ export function compareTable(
       parcels.map((p) => (p.askingPrice !== null ? -p.askingPrice : null)),
     ),
   };
-  const pending = (key: string, label: string, panel: PanelKey | null): CompareRow => ({
-    key,
-    label,
-    cells: parcels.map((p, i) => (cards[i] ? { text: PENDING, mark: null, panel } : blank(p))),
+  // Step 10: Ready to camp and Ready to build, all in, cheaper the better; a range without the land isn't compared.
+  const costRow = (which: "camp" | "build"): CompareRow => {
+    const estimates = cards.map((c) => (c?.cost?.kind === "priced" ? c.cost[which] : null));
+    return {
+      key: which,
+      label: which === "camp" ? COST_WORDS.camp : COST_WORDS.build,
+      cells: marked(
+        parcels.map((p, i): Cell => {
+          const c = cards[i];
+          if (!c) return blank(p);
+          const e = estimates[i];
+          const text = e ? estimateRange(e) : c.cost?.kind === "noWay" ? COST_WORDS.noWay : PENDING;
+          return { text, mark: null, panel: "cost" };
+        }),
+        estimates.map((e) => (e && e.land !== null ? -(e.total.low + e.total.high) / 2 : null)),
+      ),
+    };
+  };
+  // The viewer's budgets (step 10): each parcel's range against each, in the card's words and marks.
+  const budgets = rubric.rubric.budgets;
+  const budgetRows: CompareRow[] = (["camp", "build"] as const).flatMap((which) => {
+    const b = budgets?.[which];
+    if (b == null) return [];
+    const label = `${which === "camp" ? COST_WORDS.camp : COST_WORDS.build} ≤ ${shortPrice(b)}`;
+    return [
+      {
+        key: `budget-${which}`,
+        label,
+        cells: parcels.map((p, i): Cell => {
+          const c = cards[i];
+          if (!c) return blank(p);
+          const e = c.cost?.kind === "priced" ? c.cost[which] : null;
+          if (!e || e.land === null) return { text: "–", status: "unknown", mark: null, panel: "cost" };
+          const status = budgetStatusOf(e.total, b);
+          return {
+            text: `${BUDGET_SITS[status as "pass" | "warn" | "fail"]} · ${estimateRange(e)}`,
+            status,
+            mark: null,
+            panel: "cost",
+          };
+        }),
+      },
+    ];
   });
 
   const gateRows: CompareRow[] = (cards.find((c) => c)?.gates ?? []).map((g0) => ({
@@ -158,24 +188,27 @@ export function compareTable(
     }),
   }));
 
-  const rowLines: CompareRow[] = (cards.find((c) => c)?.rows ?? []).map((r0) => {
-    const cells = parcels.map((p, i): Cell => {
-      const r = cards[i]?.rows.find((x) => x.key === r0.key);
-      if (!r) return blank(p);
-      return { text: r.short ?? r.detail, grade: r.grade, mark: null, panel: r.key, title: r.detail };
+  // Within budget is the Budget group's (step 10), not something money can't add.
+  const rowLines: CompareRow[] = (cards.find((c) => c)?.rows ?? [])
+    .filter((r0) => r0.key !== "budget")
+    .map((r0) => {
+      const cells = parcels.map((p, i): Cell => {
+        const r = cards[i]?.rows.find((x) => x.key === r0.key);
+        if (!r) return blank(p);
+        return { text: r.short ?? r.detail, grade: r.grade, mark: null, panel: r.key, title: r.detail };
+      });
+      return {
+        key: r0.key,
+        label: r0.label,
+        cells: marked(
+          cells,
+          parcels.map((_, i) => {
+            const g = cards[i]?.rows.find((x) => x.key === r0.key)?.grade;
+            return g ? POINTS[g] : null;
+          }),
+        ),
+      };
     });
-    return {
-      key: r0.key,
-      label: r0.label,
-      cells: marked(
-        cells,
-        parcels.map((_, i) => {
-          const g = cards[i]?.rows.find((x) => x.key === r0.key)?.grade;
-          return g ? POINTS[g] : null;
-        }),
-      ),
-    };
-  });
 
   return {
     cards,
@@ -184,12 +217,20 @@ export function compareTable(
       {
         key: "costs",
         label: "Costs",
-        rows: [asking, ...STAGES.map((s) => pending(s.key, s.label, "cost"))],
+        rows: [asking, costRow("camp"), costRow("build")],
       },
       {
         key: "budget",
         label: "Budget",
-        rows: [pending("readyToBuild", `Ready to build ≤ ${shortPrice(readyToBuild)}`, "cost")],
+        rows: budgetRows.length
+          ? budgetRows
+          : [
+              {
+                key: "budget-none",
+                label: "No budget given",
+                cells: parcels.map((p, i) => (cards[i] ? { text: "–", mark: null, panel: null } : blank(p))),
+              },
+            ],
       },
       { key: "dealbreakers", label: "Dealbreakers", rows: gateRows },
       { key: "cantAdd", label: "What money can't add", rows: rowLines },

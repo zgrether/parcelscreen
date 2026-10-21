@@ -2,7 +2,8 @@
  * The report sheet's top level (value-ranking.md §6.1; VR5; step 7 plan §1): the answer first (the grade and verdict
  * with one line of reason from the person's priorities, and what didn't load), then what the panel puts
  * between (Best homesite and the alternatives, on the map's panel), then the report card in priority order: Must
- * have, Really want, Nice to have, and Cost to enjoy (pending until VR4). Don't care rows are hidden. Every line opens
+ * have, Really want, Nice to have. Cost to enjoy (step 10) sits after the answer: Ready to camp and Ready to build, each
+ * against its budget. Don't care rows are hidden. Every line opens
  * its slide-in panel, where today's report sections live; the card's old reason line is in the Grade and verdict one.
  */
 import Link from "next/link";
@@ -22,6 +23,53 @@ import type { NamedRubric } from "@/lib/rubric/types";
 import { TIER_NAMES } from "@/lib/rubric/words";
 import type { PartialScreenResult } from "@/lib/screen/types";
 import { RubricSwitch } from "./RubricSwitch";
+import { costSummary } from "@/lib/report/costLines";
+import { COST_WORDS } from "@/lib/report/cost";
+
+/**
+ * Cost to enjoy (step 10 plan §4): the two lines after the answer, each with its budget's mark and words; a tap opens the
+ * breakdown. Nothing until the driveway is routed.
+ */
+function CostSection({ card, onOpen }: { card: Card; onOpen(key: PanelKey): void }) {
+  const s = costSummary(card.cost, card.rubric.rubric.budgets);
+  if (!s) return null;
+  return (
+    <div className="card-group card-cost" role="group" aria-label={COST_WORDS.section}>
+      <h3 className="card-sub">{COST_WORDS.section}</h3>
+      <p className="tiny muted cost-note">{COST_WORDS.howRead}</p>
+      <ul className="card-rows">
+        {s.kind === "noWay" ? (
+          <li>
+            <button className="card-row" onClick={() => onOpen("cost")}>
+              <span className="row-label">{s.text}</span>
+            </button>
+          </li>
+        ) : (
+          s.lines.map((l) => (
+            <li key={l.which} data-card-key={`cost-${l.which}`}>
+              <button
+                className={`card-row cost-row ${l.budget?.status ?? ""}`}
+                aria-label={`${l.label}: ${l.range}${l.budget ? `, ${l.budget.words}` : ""}`}
+                onClick={() => onOpen("cost")}
+              >
+                <span className="row-label">{l.label}</span>
+                <span className="cost-range">{l.range}</span>
+                {l.budget && (
+                  <span className="cost-budget">
+                    <span className="mark" aria-hidden="true">
+                      {l.budget.mark}
+                    </span>{" "}
+                    {l.budget.words}
+                  </span>
+                )}
+              </button>
+            </li>
+          ))
+        )}
+      </ul>
+    </div>
+  );
+}
 
 /**
  * A Must's detail: "Check first: …" unless it passes. When its reason has a first clause and more (Legal road access's
@@ -154,6 +202,7 @@ export function ReportCard({
         {/* WF5: a route chosen from a line this screen has no route from. */}
         {!running && card.routeNote && <p className="card-note tiny">{card.routeNote}</p>}
       </div>
+      {!running && <CostSection card={card} onOpen={onOpen} />}
       {between}
       {musts.length > 0 && (
         <div className="card-group" role="group" aria-label={TIER_NAMES.must}>
@@ -185,15 +234,6 @@ export function ReportCard({
       )}
       {group(TIER_NAMES.should, should)}
       {group(TIER_NAMES.could, could)}
-      <ul className="card-rows card-cost">
-        <li>
-          <button className="card-row" onClick={() => onOpen("cost")}>
-            <span className="row-label">Cost to enjoy</span>
-            <span className="card-grade small g-none">–</span>
-            <span className="row-detail">pending</span>
-          </button>
-        </li>
-      </ul>
     </section>
   );
 }

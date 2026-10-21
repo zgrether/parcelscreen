@@ -29,6 +29,7 @@ export const SITE_NUMBER: Record<RowKey, string> = {
   trails: "Trails",
   town: "Town",
   garden: "Garden",
+  budget: "Budget",
 };
 
 const label = (rank: number) => `site #${rank}`;

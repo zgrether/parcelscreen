@@ -3,9 +3,10 @@
  * lib/report/card.ts reads them from here), what it asks for at its B/C edge (the edge of "acceptable"), its band, a
  * minimum in words, and why a card is where it is. Pure; the editor renders them.
  */
+import { shortPrice } from "../client/askingPrice";
 import { fmt } from "../format";
 import { defaultRubric } from "./default";
-import type { Bands, Factor, GateKey, MustCard, RowKey, Rubric } from "./types";
+import type { Bands, Budgets, Factor, GateKey, MustCard, RowKey, Rubric } from "./types";
 
 /** Each factor's name, as the card's gates and rows show it. */
 export const FACTOR_LABELS: Record<Factor, string> = {
@@ -21,6 +22,7 @@ export const FACTOR_LABELS: Record<Factor, string> = {
   trails: "Trails and public land",
   town: "Town and hospital",
   garden: "Garden ground",
+  budget: "Within budget",
 };
 
 /**
@@ -52,6 +54,8 @@ export const ROW_BANDS: Record<RowKey, readonly BandKey[]> = {
   trails: ["trailheadMin"],
   town: ["erMin", "groceryMin"],
   garden: ["gardenAc"],
+  // Step 10: graded against the budgets, which the questions set; no slider.
+  budget: [],
 };
 
 /** What a row's limit is set in: the unit of its `measure` (lib/rubric/musts.ts); null when it can't have one. */
@@ -65,6 +69,8 @@ export const MINIMUM_BAND: Record<RowKey, LimitKey | null> = {
   trails: "trailheadMin",
   town: "erMin",
   garden: "gardenAc",
+  // Step 10: a Must on it has no number of its own: it's the budgets.
+  budget: null,
 };
 
 /** Which way a band runs: a bigger number is better (at least) or worse (at most). */
@@ -114,6 +120,18 @@ export function bandLine(bands: Bands, key: BandKey): string {
   return edges.map((e, i) => `${"ABCD"[i]} ${bandValue(key, e)}${i === 0 ? plus : ""}`).join(" · ");
 }
 
+/** "ready to camp under $250k, ready to build under $300k": the budgets given, in the What matters card's words. */
+export function budgetWords(b: Budgets | undefined): string {
+  const parts = [
+    b?.camp != null ? `ready to camp under ${shortPrice(b.camp)}` : null,
+    b?.build != null ? `ready to build under ${shortPrice(b.build)}` : null,
+  ].filter((x): x is string => !!x);
+  return parts.length ? parts.join(", ") : "no budget given";
+}
+
+/** Sentence case for a line that starts with words of its own. */
+const capital = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
+
 /** What a card asks for, in plain words, at the rubric's own bands. */
 export function cardLine(r: Rubric, factor: Factor): string {
   const b = r.bands;
@@ -142,6 +160,8 @@ export function cardLine(r: Rubric, factor: Factor): string {
       return `An ER within ${bandValue("erMin", bcEdge(b, "erMin"))} and groceries within ${fmt(bcEdge(b, "groceryMin"))}`;
     case "garden":
       return `At least ${bandValue("gardenAc", bcEdge(b, "gardenAc"))} of garden ground`;
+    case "budget":
+      return capital(budgetWords(r.budgets));
   }
 }
 
@@ -214,13 +234,19 @@ export function plainLine(r: Rubric, factor: Factor): string {
       if (ac >= 0.25) return "Room for a kitchen garden";
       return "Room for a small garden";
     }
+    case "budget":
+      return capital(budgetWords(r.budgets));
   }
 }
 
-/** Where a factor's main card is: a gate in Must or Won't; a row in Should, Could or Won't. */
+/**
+ * Where a factor's main card is: a gate in Must or Won't; a row in Should, Could or Won't. Within budget (step 10) can
+ * also be a Must without a number, as a gate is: the interview's "Over budget" walk-away.
+ */
 export function tierOf(r: Rubric, factor: Factor): Tier {
-  if (isGate(factor))
-    return r.musts.some((m) => m.factor === factor && m.threshold === undefined) ? "must" : "wont";
+  const asMust = r.musts.some((m) => m.factor === factor && m.threshold === undefined);
+  if (isGate(factor)) return asMust ? "must" : "wont";
+  if (factor === "budget" && asMust) return "must";
   const ranked = r.ranked.find((c) => c.factor === factor);
   return ranked ? ranked.tier : "wont";
 }
