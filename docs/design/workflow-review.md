@@ -245,6 +245,15 @@ The results panel, top to bottom:
 
 Each suggestion reads as cause and effect, for example: "Clearing about half an acre south of site 1 adds 2.3 hours of December sun: Winter sun C → A, parcel B → B+." Costs appear only where the app has a rate; otherwise the line says what to ask.
 
+**Per-parcel adjustments (owner decisions, 10/21).** Each person can adjust their own card on one parcel. Built in step 12, alongside the suggestions; a suggestion may itself be an adjustment, for example "Set aside Night sky: C → B".
+
+- **Override:** set a row's grade or a Must's result on this parcel, with a short reason, which is required. The card shows the original struck through beside the new one.
+- **Set aside:** this row (a Must or a graded row) doesn't count for this parcel. The grade is recomputed without it, and the row reads "set aside for this parcel".
+- **Musts can be set aside.** This supersedes #128's rule that an override never touches a failed dealbreaker (`docs/plans/parcel-workflow.md` §3.6). The answer line names any set-aside Must: "You set aside a must-have: …".
+- **Adjustments are personal:** another member's grade ignores them.
+- **Adjusted grades are marked** in the list, Compare and the report export. The export lists each adjustment with its reason.
+- **The learning nudge:** after the same factor is set aside on 3 or more parcels, What matters offers once to move it down, with Undo.
+
 ## History, favorites and the report card
 
 This is mostly renaming and simplifying what's built. History keeps every screen automatically; Favorites holds only what you star, and that's where comparing happens.
