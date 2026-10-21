@@ -1,5 +1,5 @@
 /**
- * A drawn line after a screen (owner, A, 2026-10-13): the banner says so, with "Let the app consider it"; a tap on the
+ * A drawn line after a screen (owner, A, 2026-10-13): the banner says so, with "Grade again" (owner, #240); a tap on the
  * line selects it in the Layers tree, with its details (name, kind, condition, width, note, Edit, Delete; owner, #127);
  * the row's × and Delete offer Undo; the Easement panel lists "Your lines", whose Edit selects the line in Layers.
  */
@@ -57,10 +57,10 @@ test("a drawn line: the banner, its layer and details (name, kind, condition, wi
   // The grade button names the reason (step 4c).
   await expect(page.locator(".grade-btn")).toHaveText("Grade again: lines changed");
 
-  // The results stay, under the owner's banner, with "Let the app consider it" (it runs the grade again).
+  // The results stay, under the owner's banner, with "Grade again", as the toolbar's (owner, #240).
   const banner = page.locator(".card-stale");
   await expect(banner).toContainText("You drew or changed a line after this screen.");
-  await expect(banner.getByRole("button", { name: "Let the app consider it" })).toBeVisible();
+  await expect(banner.getByRole("button", { name: "Grade again", exact: true })).toBeVisible();
 
   // A tap on the line opens its row in Details' Lines & marks (owner, #127; step 8b): "Track 1", with its condition and
   // length on the right; its details in the open row, headed by its name: a track, pioneer, 10 ft.

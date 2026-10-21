@@ -5283,6 +5283,15 @@ button.cmp-cell:hover {
   gap: 4px;
   font-size: 14px;
 }
+/* Question 13's budgets (owner, #240): what it covers, then the box with its own label. */
+.iv-field-lead {
+  margin: 0;
+}
+.iv-field-label {
+  display: grid;
+  gap: 4px;
+  font-weight: 600;
+}
 .iv-field input {
   min-height: 44px;
   padding: 6px 10px;

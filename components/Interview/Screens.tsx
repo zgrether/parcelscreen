@@ -241,26 +241,40 @@ export function LandScreen({ iv, heading, n, revisit, bindNext }: ScreenProps) {
         pick={(id) => setAcres(id as typeof acres)}
         label="How much land"
       />
-      <label className="iv-field">
-        <span>{LAND_QUESTION.camp}</span>
-        <span className="iv-money">
-          <span aria-hidden="true">$</span>
-          <input inputMode="numeric" value={camp} onChange={(e) => setCamp(e.target.value)} />
-        </span>
-      </label>
-      <label className="iv-field">
-        <span>{LAND_QUESTION.build}</span>
-        <span className="iv-money">
-          <span aria-hidden="true">$</span>
-          <input inputMode="numeric" value={build} onChange={(e) => setBuild(e.target.value)} />
-        </span>
-      </label>
+      <Budget id="iv-camp" lead={LAND_QUESTION.camp} value={camp} set={setCamp} />
+      <Budget id="iv-build" lead={LAND_QUESTION.build} value={build} set={setBuild} />
       {!revisit && (
         <button type="button" className="btn iv-continue" onClick={save}>
           Continue
         </button>
       )}
     </>
+  );
+}
+
+/**
+ * One of question 13's budgets (owner, #240): the sentence says what it covers, and the box's own label asks for the
+ * number. A screen reader hears both, the label first.
+ */
+function Budget({ id, lead, value, set }: { id: string; lead: string; value: string; set(v: string): void }) {
+  return (
+    <div className="iv-field">
+      <p id={`${id}-lead`} className="iv-field-lead">
+        {lead}
+      </p>
+      <label className="iv-field-label">
+        <span id={`${id}-label`}>{LAND_QUESTION.most}</span>
+        <span className="iv-money">
+          <span aria-hidden="true">$</span>
+          <input
+            inputMode="numeric"
+            aria-labelledby={`${id}-label ${id}-lead`}
+            value={value}
+            onChange={(e) => set(e.target.value)}
+          />
+        </span>
+      </label>
+    </div>
   );
 }
 
