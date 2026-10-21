@@ -39,7 +39,11 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   expect(
     await macks.locator(".lib-open .long-name-text").evaluate((el) => getComputedStyle(el).textOverflow),
   ).toBe("ellipsis");
-  // My order's grip and menu come first (WF3), then the Compare tick.
+  // Step 10b: State starts hidden; Columns ▾ shows it. My order's grip and menu come first (WF3), then the tick.
+  await expect(macks.locator(".lib-c-state")).toHaveCount(0);
+  await page.getByRole("button", { name: "Columns ▾" }).click();
+  await page.getByRole("group", { name: "Columns" }).getByLabel("State").check();
+  await page.getByRole("button", { name: "Columns ▾" }).click();
   await expect(macks.locator(".lib-c-state")).toHaveText("VA");
   // The state's county on hover (and a long press, on a phone).
   await expect(macks.locator(".lib-state")).toHaveAttribute("title", "Floyd County");
@@ -49,8 +53,14 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   // The grade from the kept screen, in the profile's own rubric (step 1): a fresh profile holds no other, so there is
   // no Household column and no second grade.
   await expect(macks.locator(".lib-c-grade")).toHaveText(/^[A-F](Contender|Maybe|Not for us)$/);
-  // Step 10: Cost to build ("$55–195k + land" without a price) is a column once a row has one.
-  await expect(macks.locator("td")).toHaveCount(8);
+  // Step 10: Cost to build ("$55–195k + land" without a price) is a column once a row has one; step 10b: then a
+  // column per factor, the kept dealbreakers first.
+  await expect(page.locator(".lib-table thead th")).toContainText([
+    "Name",
+    "Cost to build",
+    "Flood",
+    "Access",
+  ]);
   await expect(page.locator(".lib-table thead")).not.toContainText("Household");
 
   // A click anywhere on the row opens its detail (owner, after #133): the full name, the card; archived as sold.
