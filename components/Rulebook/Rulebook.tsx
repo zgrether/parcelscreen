@@ -7,7 +7,7 @@
  * matters to you, and from each report panel's "How it's scored" (its section, #rule-<panel>).
  */
 import Link from "next/link";
-import { useCostRates } from "@/lib/client/costRates";
+import { useCostSettings } from "@/lib/client/costRates";
 import { useEffect, useMemo, useState } from "react";
 import { parcelName } from "@/lib/client/historyRows";
 import { openOnMap } from "@/lib/client/openOnMap";
@@ -38,7 +38,7 @@ export function Rulebook() {
   // browser, and the breakdown above the rules grows once the kept screens load, so it goes to the section itself,
   // once they have (follow-up 52).
   const loaded = screens.size === built.length;
-  const rates = useCostRates();
+  const costs = useCostSettings();
   useEffect(() => {
     if (!loaded || !location.hash) return;
     document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView();
@@ -61,7 +61,7 @@ export function Rulebook() {
     ? reportCard(
         result,
         rubric,
-        parcel && drawnOf(parcel.markup, parcel.drivewayLine, { askingPrice: parcel.askingPrice, rates }),
+        parcel && drawnOf(parcel.markup, parcel.drivewayLine, { askingPrice: parcel.askingPrice, ...costs }),
       )
     : null;
   const bd = card ? breakdown(card) : null;

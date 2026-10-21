@@ -55,6 +55,26 @@ test("the two lines, plus the land without a price, and a Settings rate flowing 
   // A rate isn't a run's input: no "settings changed" re-grade.
   await expect(page.getByRole("button", { name: /Grade again: settings changed/ })).toHaveCount(0);
 
+  // Paving off (owner, #255 review): steep stretches stay gravel; the build drops, and the paving line goes.
+  const build = lines.getByRole("button", { name: /^Ready to build/ });
+  /** The build's high end, in thousands: "Ready to build: $360–620k" → 620. */
+  const buildHigh = async () => Number(/–(\d+)k/.exec((await build.getAttribute("aria-label")) ?? "")?.[1]);
+  const paved = await buildHigh();
+  await (await openMenu(page)).getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("checkbox", { name: "Pave stretches steeper than" }).uncheck();
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  // Mud Creek paves 2,185 ft at up to $84/ft: about $180k off the high end.
+  await expect.poll(buildHigh).toBeLessThan(paved - 150);
+  await build.click();
+  const panel = page.locator(".card-panel");
+  await expect(panel.getByText("steep gravel needs more upkeep")).toBeVisible();
+  await expect(panel.getByText(/^Paving, /)).toHaveCount(0);
+  await panel.getByRole("button", { name: "Close" }).click();
+  // The Driveway section's Paving row follows it (owner, #256 review): the same length, as steep gravel.
+  await page.locator(".card .card-row").filter({ hasText: "Driveway on your land" }).first().click();
+  await expect(panel.getByText("2,185 ft over 12%: steep gravel, more upkeep").first()).toBeVisible();
+  await panel.getByRole("button", { name: "Close" }).click();
+
   // No asking price: the range plus the land.
   await setPrice(page, null);
   await visit(page, "/library");

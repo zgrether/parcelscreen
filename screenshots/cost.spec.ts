@@ -143,6 +143,12 @@ for (const phone of [false, true]) {
         .evaluate((h) => h.scrollIntoView({ block: "start" }));
       await page.waitForTimeout(300);
       await page.screenshot({ path: `${OUT}/${device}-cost-settings.png` });
+      // The paving switch (owner, #255 review), after the paving rate.
+      await page
+        .getByRole("checkbox", { name: "Pave stretches steeper than" })
+        .evaluate((el) => el.scrollIntoView({ block: "center" }));
+      await page.waitForTimeout(300);
+      await page.screenshot({ path: `${OUT}/${device}-cost-settings-paving.png` });
       await page.keyboard.press("Escape");
 
       // What matters: Within budget, last in Really want.

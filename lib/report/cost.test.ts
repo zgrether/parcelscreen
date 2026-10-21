@@ -88,7 +88,7 @@ describe("the cost to enjoy (step 10 plan §2)", () => {
       COST_ITEMS.track,
       COST_ITEMS.campClearing,
       COST_ITEMS.driveway,
-      COST_ITEMS.paving,
+      "Paving, 2,185 ft over 12%",
       COST_ITEMS.culverts,
       "Well (150–400 ft)",
       "Septic, modified",
@@ -140,7 +140,38 @@ describe("the cost to enjoy (step 10 plan §2)", () => {
     expect(d.parts.map((p) => p.rate)).toEqual(["driveway.upgrade.improved"]);
     const paved = run({ lines: [track(line, "paved")] });
     expect(itemOf(paved.build.items, COST_ITEMS.driveway)!.parts).toEqual([]);
-    expect(itemOf(paved.build.items, COST_ITEMS.paving)).toBeUndefined();
+    expect(paved.build.items.some((i) => i.label.startsWith("Paving"))).toBe(false);
+  });
+
+  it("paves the steep stretches on top of the gravel, with its length and threshold (owner, #255 review)", () => {
+    const pave = itemOf(run().build.items, "Paving, 2,185 ft over 12%")!;
+    expect(pave.parts.map((p) => p.rate)).toEqual(["driveway.paving"]);
+    expect(pave.lower).toBe(LOWER_IT.paving);
+    // A higher threshold paves less.
+    const at15 = run({ paving: { on: true, abovePct: 15 } }).build.items.find((i) =>
+      i.label.startsWith("Paving"),
+    )!;
+    expect(at15.label).toMatch(/^Paving, [\d,]+ ft over 15%$/);
+    expect(at15.total.high).toBeLessThan(pave.total.high);
+  });
+
+  it("leaves steep stretches gravel with paving off: no paving cost, a note on the driveway", () => {
+    const on = run();
+    const off = run({ paving: { on: false, abovePct: 12 } });
+    expect(off.build.items.some((i) => i.label.startsWith("Paving"))).toBe(false);
+    expect(itemOf(off.build.items, COST_ITEMS.driveway)!.notes).toEqual([COST_NOTES.steepGravel]);
+    expect(itemOf(on.build.items, COST_ITEMS.driveway)!.notes).toEqual([]);
+    expect(off.build.total.high).toBeLessThan(on.build.total.high);
+    // Ferney's route is gentle: nothing steep, so no note either way.
+    const ferney = costToEnjoy({
+      result: expectedOf("ferney-creek-52-47A", "run"),
+      lines: [],
+      marks: [],
+      askingPrice: null,
+      rates: DEFAULT_RATES,
+      paving: { on: false, abovePct: 12 },
+    });
+    expect(ferney?.kind === "priced" && itemOf(ferney.build.items, COST_ITEMS.driveway)!.notes).toEqual([]);
   });
 
   it("ignores a line farther than 15 m from the route", () => {

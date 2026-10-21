@@ -50,6 +50,8 @@ import {
   type CostToEnjoy,
 } from "./cost";
 import { shortPrice } from "../client/askingPrice";
+import { DEFAULT_PAVING } from "../config/costs";
+import type { PavingContext } from "./ground";
 import { atLeast, atMost, gradedRows, parcelGrade, verdictLines } from "../rubric/grade";
 import { EDITOR_TITLES, FACTOR_LABELS } from "../rubric/words";
 import { thresholdStatus, thresholdWords, type Measure } from "../rubric/musts";
@@ -130,6 +132,8 @@ export interface CardFacts {
   drivewayLine?: string;
   /** The cost to enjoy at the build site (step 10), when the parcel's lines, price and rates came with the result. */
   cost?: CostToEnjoy | null;
+  /** Settings' paving choice and the parcel's lines, with them (step 10): the Driveway section's Paving row reads them. */
+  paving?: PavingContext;
 }
 
 export interface Card extends CardFacts {
@@ -870,6 +874,7 @@ export function cardFacts(
         driveway: drawn.driveway ?? null,
         askingPrice: drawn.cost.askingPrice,
         rates: drawn.cost.rates,
+        ...(drawn.cost.paving ? { paving: drawn.cost.paving } : {}),
       })
     : undefined;
   const facts = {
@@ -892,6 +897,9 @@ export function cardFacts(
     ],
     at,
     ...(cost !== undefined ? { cost } : {}),
+    ...(drawn?.cost
+      ? { paving: { paving: drawn.cost.paving ?? DEFAULT_PAVING, lines: drawn.cost.lines } }
+      : {}),
   };
   return withYourRoute(facts, r, driven, drawn);
 }

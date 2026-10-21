@@ -7,23 +7,19 @@
  * entrance to the site, and is split by what lies along it: within COST_ASSUMPTIONS.onLineM of a drawn line, the line's
  * condition counts (the best one, where lines overlap); the rest is new ground.
  */
-import {
-  along,
-  distance,
-  length,
-  lineString,
-  nearestPointOnLine,
-  point,
-  pointToLineDistance,
-} from "@turf/turf";
+import { distance, length, lineString, nearestPointOnLine, point } from "@turf/turf";
 import type { LineCondition, LineKind } from "../client/parcelStore";
-import { COST_ASSUMPTIONS as A, type CostKey, type Range, type Rates } from "../config/costs";
+import {
+  COST_ASSUMPTIONS as A,
+  DEFAULT_PAVING,
+  type CostKey,
+  type Paving,
+  type Range,
+  type Rates,
+} from "../config/costs";
 import type { LatLon } from "../geo/types";
-import { SCREEN_CONSTANTS } from "../screen/config";
-import { overLimitSpans } from "../screen/driveway";
 import { NO_PRACTICAL_ROUTE } from "../screen/score";
 import type { PartialScreenResult } from "../screen/types";
-import { M2FT } from "../screen/util";
 import { buildSite } from "./card";
 import { septicClass, soilUnder } from "./derived";
 import { drivenRoute, routeLines } from "./lines";
@@ -50,6 +46,8 @@ export interface CostInput {
   driveway?: string | null;
   askingPrice: number | null;
   rates: Rates;
+  /** Whether steep stretches are paved, and above what grade (Settings → Costs); paved above 12% when absent. */
+  paving?: Paving;
 }
 
 /** One rate's share of an item: a quantity (a range for the well's depth) × the rate. */
@@ -112,7 +110,8 @@ export const COST_ITEMS = {
   campClearing: `Clearing a campsite (${A.campsiteAc} ac)`,
   driveway: "Finished driveway (the track upgraded)",
   newDriveway: "Gravel driveway, new",
-  paving: `Paving over ${SCREEN_CONSTANTS.driveway.paveAbovePct}%`,
+  // Owner, #255 review: its own line, with its length and the threshold.
+  paving: (ft: number, pct: number) => `Paving, ${Math.round(ft).toLocaleString("en-US")} ft over ${pct}%`,
   culverts: "Culverts",
   well: (r: Range) => `Well (${r.low}–${r.high} ft)`,
   pump: "Pump and line (your well or spring)",
@@ -129,6 +128,8 @@ export const COST_NOTES = {
   spring: "priced as a pump and line (no published spring figure)",
   offRoute: `off the route: the straight distance × ${A.trackTurns} for a track's turns (ours)`,
   beyondTrack: "past the camp's track: new ground",
+  // Owner, #255 review: paving switched off in Settings, steep stretches stay gravel; no cost for it.
+  steepGravel: "steep gravel needs more upkeep",
 } as const;
 
 export const LOWER_IT = {
@@ -138,6 +139,8 @@ export const LOWER_IT = {
   septic: "Mark a septic permit with its class.",
   power: "Mark a power pole near the site.",
   easement: 'Record the easement (its "recorded in").',
+  // Owner's wording (#255 review).
+  paving: "a gentler route, or gravel on steep stretches (Settings)",
 } as const;
 
 // ---------- against a budget (step 10 plan §3) ----------
@@ -207,56 +210,12 @@ const item = (
 /** Drops the parts with nothing in them; the item with them. */
 const nonEmpty = (parts: CostPart[]): CostPart[] => parts.filter((p) => p.qty.high > 0);
 
-// ---------- the route's ground ----------
+// ---------- the route's ground (lib/report/ground.ts) ----------
 
-export type Ground = "new" | LineCondition;
-const RANK: Record<Ground, number> = { new: 0, uncleared: 1, pioneer: 2, improved: 3, paved: 4 };
-
-/** A stretch of the route, ft from the entrance, and what's on the ground there. */
-export interface Run {
-  from: number;
-  to: number;
-  ground: Ground;
-}
+import { groundBetween, routeRuns, steepStretchFt } from "./ground";
 
 const xy = ([lat, lon]: LatLon): [number, number] => [lon, lat];
-type RouteLine = ReturnType<typeof lineString>;
-
-/**
- * The route's ground, entrance to site, by sampling every ~3 m. Lengths are scaled to the route's own `lengthFt`, so
- * the parts add up to what the Driveway section says.
- */
-export function groundAlong(route: RouteLine, lengthFt: number, lines: readonly CostLine[]): Run[] {
-  const lenM = length(route, { units: "meters" });
-  if (!(lenM > 0)) return [];
-  const drawn = lines
-    .filter((l) => l.line.length >= 2)
-    .map((l) => ({ ground: l.condition as Ground, geo: lineString(l.line.map(xy)) }));
-  const n = Math.max(1, Math.ceil(lenM / 3));
-  const step = lenM / n;
-  const ftPerM = lengthFt / lenM;
-  const runs: Run[] = [];
-  for (let i = 0; i < n; i++) {
-    const at = along(route, (i + 0.5) * step, { units: "meters" });
-    let ground: Ground = "new";
-    for (const d of drawn)
-      if (RANK[d.ground] > RANK[ground] && pointToLineDistance(at, d.geo, { units: "meters" }) <= A.onLineM)
-        ground = d.ground;
-    const from = i * step * ftPerM,
-      to = (i + 1) * step * ftPerM;
-    const last = runs[runs.length - 1];
-    if (last && last.ground === ground) last.to = to;
-    else runs.push({ from, to, ground });
-  }
-  return runs;
-}
-
-/** Each ground's length, ft, between two points along the route. */
-export function groundBetween(runs: readonly Run[], from: number, to: number): Record<Ground, number> {
-  const out: Record<Ground, number> = { new: 0, uncleared: 0, pioneer: 0, improved: 0, paved: 0 };
-  for (const r of runs) out[r.ground] += Math.max(0, Math.min(r.to, to) - Math.max(r.from, from));
-  return out;
-}
+export { groundAlong, groundBetween, routeRuns, steepStretchFt, type Ground, type Run } from "./ground";
 
 // ---------- the two costs ----------
 
@@ -284,7 +243,7 @@ export function costToEnjoy(input: CostInput): CostToEnjoy | null {
 
   const route = lineString(rt.line.geometry.coordinates as [number, number][]);
   const lengthFt = rt.metrics.lengthFt;
-  const runs = groundAlong(route, lengthFt, input.lines);
+  const runs = routeRuns(rt, input.lines);
 
   // ----- Ready to camp -----
   const camp: CostItem[] = [];
@@ -350,6 +309,11 @@ export function costToEnjoy(input: CostInput): CostToEnjoy | null {
   // ----- Ready to build: the camp's items, plus -----
   const build: CostItem[] = [...camp];
 
+  // Steep stretches: where the 30 m grade passes the paving threshold (the Driveway section's own "~N ft to pave" at
+  // 12%), less any paved line. Paved on top of the gravel when paving is on; gravel, with a note, when it's off.
+  const paving = input.paving ?? DEFAULT_PAVING;
+  const steepFt = steepStretchFt(rt, paving.abovePct, runs);
+
   // The finished driveway, crediting the camp's track; past it (a campsite off the route), the ground as it is.
   const past = groundBetween(runs, campAt.alongFt, lengthFt);
   build.push(
@@ -365,7 +329,7 @@ export function costToEnjoy(input: CostInput): CostToEnjoy | null {
         part(rates, "driveway.upgrade.improved", toCamp.improved + past.improved, "ft"),
         part(rates, "driveway.upgrade.uncleared", past.uncleared, "ft"),
       ]),
-      [],
+      !paving.on && steepFt >= 1 ? [COST_NOTES.steepGravel] : [],
       toCamp.new + past.new + past.uncleared > 0 ? LOWER_IT.track : null,
     ),
   );
@@ -379,15 +343,15 @@ export function costToEnjoy(input: CostInput): CostToEnjoy | null {
       ),
     );
 
-  // Paving where the 30 m grade passes paveAbovePct (the Driveway section's own "~N ft to pave"), less any paved line.
-  const paveFt = overLimitSpans(
-    rt.profile as [number, number][],
-    SCREEN_CONSTANTS.driveway.paveAbovePct / 100,
-  ).reduce((t, [a, b]) => {
-    const g = groundBetween(runs, a * M2FT, b * M2FT);
-    return t + (b - a) * M2FT - g.paved;
-  }, 0);
-  if (paveFt >= 1) build.push(item(COST_ITEMS.paving, [part(rates, "driveway.paving", paveFt, "ft")]));
+  if (paving.on && steepFt >= 1)
+    build.push(
+      item(
+        COST_ITEMS.paving(steepFt, paving.abovePct),
+        [part(rates, "driveway.paving", steepFt, "ft")],
+        [],
+        LOWER_IT.paving,
+      ),
+    );
   if (rt.metrics.culverts > 0)
     build.push(item(COST_ITEMS.culverts, [part(rates, "culvert", rt.metrics.culverts, "each")]));
 

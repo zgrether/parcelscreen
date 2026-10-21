@@ -209,6 +209,7 @@ export function CardPanel({
             running,
             lineNames,
             drivewayLine: card.drivewayLine ?? null,
+            ...(card.paving ? { paving: card.paving } : {}),
           });
           if (body === null) return null;
           const h = heading(result, point);
