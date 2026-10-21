@@ -172,8 +172,6 @@ step 9 reuses unchanged (rule 7):
 
 From the fresh-eyes review of step 10's screens, the findings not fixed in the step (each concerns an existing screen,
 the seeded screenshots, or a product question):
-- **Paving on top of the finished driveway** reads as double counting (2,185 ft paved over a 2,888 ft gravel upgrade).
-  The plan's model; a quote or Zach's call decides whether paving replaces the gravel where it applies.
 - **Sources outside the parcel's state** (NRCS Tennessee, NC culverts) under a Virginia parcel: the regional ranges are
   the Blue Ridge's. Fix: say "regional (Blue Ridge)" in the breakdown, or pick sources by state.
 - **Cost to build compares unlike things:** a priced parcel's range includes the land, an unpriced one's "+ land" doesn't.

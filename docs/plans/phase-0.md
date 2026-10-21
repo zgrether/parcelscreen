@@ -907,6 +907,10 @@ until step 5 (Q14).
       by a permit's class or the soil's, power from a Power mark or the road, 0.5 ac of clearing, the pad by slope). The
       scored route is split by the drawn lines within 15 m and their condition. Totals are Σ lows and Σ highs, rounded
       to $1k under $100k and $5k above. No price: "plus the land". No practical drive: no cost.
+    - **Paving** (owner, #255 review): steep stretches are paved on top of the gravel, which is their base, as their
+      own line ("Paving, 2,185 ft over 12%"). Settings → Costs' "Pave stretches steeper than [12]%" (on by default, the
+      threshold 5–25%, kept in `ps.costs`) turns it off: steep stretches stay gravel, with no paving cost and the note
+      "steep gravel needs more upkeep".
     - **Within budget:** `Rubric.budgets` (optional) and a ninth row key, `budget`. Question 13 sets the budgets;
       14a's "Over budget" makes it a Must without a number (fail Not for us, straddle a warning, no price holds at
       Maybe), 14b Don't care, otherwise the last of Really want, graded A ≤ 80% … F > 130% of the budget at the high end
