@@ -81,7 +81,7 @@ export interface ReportContent {
   acres: number | null;
   /** "asking $185,000 as of Oct 11, 2026", or null. */
   price: string | null;
-  /** "$6,310/ac" after the price (step 10b), "≠" when the listing's and the boundary's acres differ; null without one. */
+  /** "$6,310/ac" after the price (step 10b), or both readings when the two acreages differ; null without one. */
   perAcre: string | null;
   graded: string;
   stale: boolean;
@@ -185,11 +185,12 @@ function costPrintLines(card: Card): string[] {
   return s.kind === "noWay" ? [s.text] : s.lines.map(summaryText);
 }
 
-/** "$6,310/ac", marked "≠" with both readings when the two acreages differ (step 10b). */
+/** "$6,310/ac", or both readings when the two acreages differ (step 10b). */
 function perAcreLine(price: number | null, listed: number | null, boundary: number | null): string | null {
   const pa = perAcre(price, listed, boundary);
   if (!pa) return null;
-  return pa.both ? `${pa.text} (${pa.both})` : pa.text;
+  // Both readings say it all when they differ; the first figure isn't repeated before them.
+  return pa.both ?? pa.text;
 }
 
 /** "Julie says Maybe", the list's own words for a take. */

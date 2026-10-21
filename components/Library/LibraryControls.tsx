@@ -82,28 +82,39 @@ function Columns({
       </button>
       {open && (
         <div className="lib-columns-menu" role="group" aria-label="Columns">
+          {columns
+            .filter((c) => c.kind !== "factor")
+            .map((c) => (
+              <label key={c.id} className="lib-columns-item">
+                <input type="checkbox" checked={!hidden.includes(c.id)} onChange={() => flip(c.id)} />
+                {c.title}
+              </label>
+            ))}
           {factors.length > 0 && (
             <div className="lib-columns-all">
+              <span className="lib-columns-group">Factors</span>
               <button
                 className="btn small secondary"
                 onClick={() => setHidden(hidden.filter((x) => !factors.includes(x)))}
               >
-                All factors
+                All
               </button>
               <button
                 className="btn small secondary"
                 onClick={() => setHidden([...new Set([...hidden, ...factors])])}
               >
-                No factors
+                None
               </button>
             </div>
           )}
-          {columns.map((c) => (
-            <label key={c.id} className="lib-columns-item">
-              <input type="checkbox" checked={!hidden.includes(c.id)} onChange={() => flip(c.id)} />
-              {c.title}
-            </label>
-          ))}
+          {columns
+            .filter((c) => c.kind === "factor")
+            .map((c) => (
+              <label key={c.id} className="lib-columns-item">
+                <input type="checkbox" checked={!hidden.includes(c.id)} onChange={() => flip(c.id)} />
+                {c.title}
+              </label>
+            ))}
         </div>
       )}
     </div>

@@ -919,4 +919,22 @@ until step 5 (Q14).
       (ending "Published ranges, not a quote."), a Cost to build column and sort on Favorites, Compare's two cost rows
       and the viewer's budgets, One page's two lines and Full's Cost to enjoy section.
 
+64. **Favorites as a comparison grid** (owner, 2026-10-21; step 10b plan, `docs/plans/step-10b-compare-grid.md`, from
+    Zach's pre-approved brief, its §9 questions answered with the recommendations; roadmap step 10b, PRs 0–3).
+    - **The grid** (a desktop's Favorites): the name and grade, then Price, Acres, $/ac and Cost to build, then a column
+      per factor in the viewer's rubric order (`lib/report/factorCells.ts`): the Musts first as marks, a limit that's
+      ranked too as "✓A", then letters; Don't care hidden. Short headers (`SHORT_TITLES`) with the full name in the
+      title. A header sorts and turns around; unknowns last either way. A quiet ● marks the best in each factor column,
+      $/ac and Cost to build, Compare's rule. The header and the first three columns stay put in the grid's own scroll
+      box (at least 320 px tall); rows are one line, "Added by" on the name's line. Columns ▾ hides any column,
+      remembered per profile in `ps.library`; State and Updated start hidden.
+    - **The phone:** each card's one-line strip (passing Musts as bare ✓, others by name, then short names and
+      letters), its $/ac, and the factor sorts in the Sort menu. A legend line under the list says what the marks mean.
+    - **$/ac** (`lib/report/perAcre.ts`): the asking price over the listing's acres when given, else the boundary's, to
+      $10; marked ≠ with both readings when they differ by more than `card.perAcreDiffPct` (5). On the grid, the cards,
+      Recent (with the verdict word beside the letter), the panel's listing line, Compare and One page.
+    - **One row per factor:** a limit whose factor is ranked too shows once, in Must have, with its letter ("✓ A · 3,543
+      ft, at least 1,800 ft"); its tier skips it (`shownRankedRows`); grades and verdicts unchanged. The interview's
+      walk-away chips made the pair.
+
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

@@ -4519,6 +4519,34 @@ button.cmp-cell:hover {
   text-decoration: underline dotted;
   cursor: help;
 }
+/* Step 10b: a phone card's factors on one line, cut off with an ellipsis; the whole of it is in its label. */
+.lib-strip {
+  margin-top: 4px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--color-ink-2);
+  font-size: 13px;
+}
+.lib-strip-mark {
+  font-weight: 700;
+}
+.lib-strip-mark.m-pass {
+  color: var(--color-ok);
+}
+.lib-strip-mark.m-warn {
+  color: var(--color-warn);
+}
+.lib-strip-mark.m-fail {
+  color: var(--color-steep);
+}
+.lib-strip-grade {
+  color: var(--color-ink);
+}
+.lib-strip-grade.g-D,
+.lib-strip-grade.g-F {
+  color: var(--color-steep);
+}
 .lib-columns {
   position: relative;
 }
@@ -4542,6 +4570,15 @@ button.cmp-cell:hover {
   display: flex;
   gap: 6px;
   margin-bottom: 4px;
+}
+.lib-columns-group {
+  align-self: center;
+  margin-right: auto;
+  font-weight: 600;
+  font-size: 13px;
+}
+.lib-legend {
+  margin: 6px 0 0;
 }
 .lib-columns-item {
   display: flex;
