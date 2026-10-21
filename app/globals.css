@@ -4412,6 +4412,11 @@ button.cmp-cell:hover {
 .lib-grid thead .lib-stick {
   z-index: 3;
 }
+/* A row's ⋯ menu opens over the rows below: its sticky cell rises above theirs while it's open. */
+.lib-grid td.lib-stick-1:focus-within,
+.lib-grid td.lib-stick-1:has([role="menu"]) {
+  z-index: 5;
+}
 .lib-grid .lib-stick-1 {
   left: 0;
   min-width: 72px;
