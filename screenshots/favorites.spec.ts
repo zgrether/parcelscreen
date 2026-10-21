@@ -4,7 +4,7 @@
  * tab is in its Favorites and History shots. One profile; three fixture parcels, two of them starred.
  */
 import { expect, test, type Browser, type Page } from "@playwright/test";
-import { importParcels, openExplorer, openSearch, seedScreens, starFromHistory, visit } from "../e2e/flow";
+import { importParcels, openExplorer, openSearch, seedScreens, addFromRecent, visit } from "../e2e/flow";
 import { YOUR_LIST } from "../e2e/household";
 
 const FERNEY = "ferney-creek-52-47A" as const;
@@ -34,7 +34,7 @@ for (const phone of [false, true]) {
       ).newPage();
     const shot = (page: Page, name: string) =>
       page.screenshot({ path: `${OUT}/${device}-favorites-${name}.png` });
-    const tab = (page: Page, name: "Favorites" | "History") => page.getByRole("tab", { name });
+    const tab = (page: Page, name: "Favorites" | "Recent") => page.getByRole("tab", { name });
 
     test("Favorites, History, the star, unstarring, Clear history, Undo, Search", async ({ browser }) => {
       test.setTimeout(300_000);
@@ -44,27 +44,27 @@ for (const phone of [false, true]) {
       await seedScreens(page, [FERNEY, MACKS, MUD]);
       await seedGraded(page);
       await visit(page, "/library");
-      await starFromHistory(page, "52-47A");
-      await starFromHistory(page, "35-3");
+      await addFromRecent(page, "52-47A");
+      await addFromRecent(page, "35-3");
 
       // Favorites, then History (the phone's switch at the top of each).
       await page.getByRole("link", { name: YOUR_LIST }).click();
       await tab(page, "Favorites").click();
       await expect(page.locator(".lib-row:visible")).toHaveCount(2);
       await shot(page, "1-favorites");
-      await tab(page, "History").click();
-      await expect(page.locator(".hist-row")).toHaveCount(3);
+      await tab(page, "Recent").click();
+      await expect(page.locator(".hist-row")).toHaveCount(1);
       await shot(page, "2-history");
 
       // ✕ on Mud Creek, and its Undo.
-      await page.getByRole("button", { name: /^Remove from History: .*6273/ }).click();
+      await page.getByRole("button", { name: /^Remove from Recent: .*6273/ }).click();
       await expect(page.locator(".hist-toast")).toBeVisible();
       await shot(page, "3-removed-undo");
       await page.locator(".hist-toast").getByRole("button", { name: "Undo" }).click();
-      await expect(page.locator(".hist-row")).toHaveCount(3);
+      await expect(page.locator(".hist-row")).toHaveCount(1);
 
       // Clear history's confirm.
-      await page.getByRole("button", { name: "Clear history" }).click();
+      await page.getByRole("button", { name: "Clear Recent" }).click();
       await expect(page.getByRole("alertdialog")).toBeVisible();
       await shot(page, "4-clear-history");
       await page.getByRole("alertdialog").getByRole("button", { name: "Keep" }).click();
@@ -78,7 +78,7 @@ for (const phone of [false, true]) {
       // The tilt tip (desktop) would cover the map in every shot (fresh-eyes review).
       const tip = page.locator(".tilt-hint").getByRole("button", { name: "Dismiss" });
       if (await tip.isVisible()) await tip.click();
-      const star = page.locator(".sh-actions").getByRole("button", { name: "Add to favorites" });
+      const star = page.locator(".sh-actions").getByRole("button", { name: "Add to list" });
       await star.click();
       await expect(page.getByRole("dialog", { name: "Add to favorites" })).toBeVisible();
       await shot(page, "5-name-sheet");
@@ -86,11 +86,11 @@ for (const phone of [false, true]) {
         .getByRole("dialog", { name: "Add to favorites" })
         .getByRole("button", { name: "Add" })
         .click();
-      await expect(page.locator(".sh-actions").getByRole("button", { name: "In favorites" })).toBeVisible();
+      await expect(page.locator(".sh-actions").getByRole("button", { name: "On your list" })).toBeVisible();
       await shot(page, "6-panel-starred");
 
       // Unstarring asks once.
-      await page.locator(".sh-actions").getByRole("button", { name: "In favorites" }).click();
+      await page.locator(".sh-actions").getByRole("button", { name: "On your list" }).click();
       await expect(page.getByRole("alertdialog")).toBeVisible();
       await shot(page, "7-unstar");
       await page.getByRole("alertdialog").getByRole("button", { name: "Keep" }).click();

@@ -1,8 +1,9 @@
 "use client";
 /**
- * The star (step 8, docs/plans/step-8-favorites.md §2): on the results panel's header and on each list row. Empty, it
- * opens the name sheet (Add to favorites: the name, prefilled; Add); filled, it asks once before unstarring. Both
- * sheets go to the page's body: the panel and the rows hold transforms and clicks of their own.
+ * The star (step 8, docs/plans/step-8-favorites.md §2) on each Favorites row, and its words (8c: "Add to list", "★ On
+ * your list") on the panel's header and each Recent row. Empty, it opens the name sheet (Add to favorites: the name,
+ * prefilled; Add); filled, it asks once before unstarring. Both sheets go to the page's body: the panel and the rows
+ * hold transforms and clicks of their own.
  */
 import { useEffect, useId, useRef, useState, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
@@ -10,10 +11,13 @@ import { ResetConfirm } from "@/components/Rubric/ResetConfirm";
 
 export const STAR_ADD = "Add to favorites";
 export const STAR_IN = "In favorites";
+/** The header's and Recent's words for the same two states (8c). */
+export const LIST_ADD = "Add to list";
+export const LIST_IN = "On your list";
 
-/** The unstar confirm's question: back to my History, or to the adder's when that's someone else (plan §11 Q6). */
+/** The unstar confirm's question: back to my Recent list, or to the adder's when that's someone else (plan §11 Q6). */
 export const unstarQuestion = (adder: string | null): string =>
-  `Remove from your household's favorites? ${adder ? `It goes back to ${adder}'s History.` : "It stays in your History."}`;
+  `Remove from your household's favorites? ${adder ? `It goes back to ${adder}'s Recent list.` : "It goes back to your Recent list."}`;
 
 const stop = (e: MouseEvent) => e.stopPropagation();
 
@@ -24,6 +28,7 @@ export function Star({
   star,
   unstar,
   adder,
+  words = false,
   className = "",
 }: {
   on: boolean;
@@ -33,36 +38,55 @@ export function Star({
   prefill(): string;
   star(name: string): void;
   unstar(): void;
-  /** Whose History it goes back to when that isn't mine; null for my own. */
+  /** Whose Recent list it goes back to when that isn't mine; null for my own. */
   adder: string | null;
+  /** Words instead of the star (8c): "Add to list", or "★ On your list". */
+  words?: boolean;
   className?: string;
 }) {
   const [asking, setAsking] = useState<"name" | "unstar" | null>(null);
-  const word = on ? STAR_IN : STAR_ADD;
+  const word = words ? (on ? LIST_IN : LIST_ADD) : on ? STAR_IN : STAR_ADD;
   const close = () => setAsking(null);
   return (
     <>
-      <button
-        type="button"
-        className={`star-btn${on ? " on" : ""} ${className}`.trim()}
-        aria-pressed={on}
-        aria-label={name ? `${word}: ${name}` : word}
-        title={on ? `${STAR_IN}: tap to remove` : STAR_ADD}
-        onClick={(e) => {
-          stop(e);
-          setAsking(on ? "unstar" : "name");
-        }}
-      >
-        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            d="M12 3.2l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 17l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z"
-            fill={on ? "currentColor" : "none"}
-            stroke="currentColor"
-            strokeWidth="1.7"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </button>
+      {words ? (
+        <button
+          type="button"
+          className={`list-btn${on ? " on" : ""} ${className}`.trim()}
+          aria-pressed={on}
+          aria-label={name ? `${word}: ${name}` : word}
+          title={on ? `${LIST_IN}: tap to remove` : undefined}
+          onClick={(e) => {
+            stop(e);
+            setAsking(on ? "unstar" : "name");
+          }}
+        >
+          {on && <span aria-hidden="true">★ </span>}
+          {word}
+        </button>
+      ) : (
+        <button
+          type="button"
+          className={`star-btn${on ? " on" : ""} ${className}`.trim()}
+          aria-pressed={on}
+          aria-label={name ? `${word}: ${name}` : word}
+          title={on ? `${STAR_IN}: tap to remove` : STAR_ADD}
+          onClick={(e) => {
+            stop(e);
+            setAsking(on ? "unstar" : "name");
+          }}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M12 3.2l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 17l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z"
+              fill={on ? "currentColor" : "none"}
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      )}
       {asking === "name" &&
         createPortal(
           <NameSheet

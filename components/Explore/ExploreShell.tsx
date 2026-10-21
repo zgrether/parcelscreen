@@ -177,7 +177,7 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
       if (!s.store.open || s.mode || s.split || s.layer || s.mapPanel) return;
       if ((e.target as HTMLElement | null)?.closest("input,select,textarea,[contenteditable]")) return;
       if (document.querySelector(".menu-panel, .ground-layer, dialog[open], .rubric-sheet-scrim")) return;
-      x.close();
+      x.dismiss(); // as the × (8c)
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -250,7 +250,17 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
               className={panelClass}
               style={sheet.height != null ? { height: sheet.height } : undefined}
             >
-              <div className="sheet-handle" title="Drag or tap to resize" {...sheet.handlers} />
+              {/* A button, so a tap on it stays on it: the browser's touch adjustment moves a tap on a plain element to the
+                  nearest button, which since 8c is the header's "Add to list" just below. Out of the tab order, as the
+                  sheet's drag is. */}
+              <button
+                type="button"
+                className="sheet-handle"
+                title="Drag or tap to resize"
+                tabIndex={-1}
+                aria-hidden="true"
+                {...sheet.handlers}
+              />
               {/* The desktop panel's first row: Search (step 4c). */}
               {docked && (
                 <div className="dock-search">

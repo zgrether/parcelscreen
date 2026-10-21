@@ -180,3 +180,25 @@ export async function putScreens(records: readonly ScreenRecord[]): Promise<bool
     }
   });
 }
+
+/**
+ * Deletes these kept screens from this device (8c: a dismissed parcel's, once its Undo has gone). The synced copies
+ * stay: screens are immutable there, and a parcel gone from the store never asks for them again.
+ */
+export async function deleteScreens(ids: readonly string[]): Promise<void> {
+  if (ids.length === 0) return;
+  const d = await openDb();
+  if (!d) return;
+  await new Promise<void>((resolve) => {
+    try {
+      const tx = d.transaction(SCREENS, "readwrite");
+      const store = tx.objectStore(SCREENS);
+      for (const id of ids) store.delete(id);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+      tx.onabort = () => resolve();
+    } catch {
+      resolve();
+    }
+  });
+}

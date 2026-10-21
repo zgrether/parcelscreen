@@ -114,7 +114,9 @@ export function useBottomSheet(
   const handlers = {
     onPointerDown: (e: PointerEvent<HTMLElement>) => {
       // While it's stepped aside the sheet stays put: the tool or the panel has the screen.
-      if (!isSheet() || aside || (e.target as HTMLElement).closest("button,select,input")) return;
+      // The handle is a button too (8c), and the one that drags.
+      const control = (e.target as HTMLElement).closest("button:not(.sheet-handle),select,input");
+      if (!isSheet() || aside || control) return;
       const h = panel.current?.getBoundingClientRect().height ?? 0;
       drag.current = { startY: e.clientY, startH: h, moved: false, h };
       e.currentTarget.setPointerCapture(e.pointerId);

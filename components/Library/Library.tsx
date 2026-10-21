@@ -1,7 +1,7 @@
 "use client";
 /**
- * Your list (step 8, docs/plans/step-8-favorites.md §4–§5): a switch between Favorites, the household's, and History,
- * this person's own (History.tsx). Favorites is the household's list (WF2b, docs/plans/parcel-workflow.md §5): every
+ * Your list (step 8, docs/plans/step-8-favorites.md §4–§5): a switch between Favorites, the household's, and Recent,
+ * this person's own (Recent.tsx; step 8's History, 8c). Favorites is the household's list (WF2b, docs/plans/parcel-workflow.md §5): every
  * starred parcel with its star, name, acres, price, state, archive and milestones, the household verdict and each
  * rubric's grade (step 1). Filters and sorts are views, remembered per profile (ps.library); they never change a parcel.
  * A tap on a name opens its detail: the report card, the status controls, Open on the map, Remove. Ticked rows open in
@@ -68,10 +68,10 @@ import { LibraryControls } from "./LibraryControls";
 import { RescreenAll } from "./RescreenAll";
 import { DragHandle, RowMenu, SortableRows, useSortableRow, type Mover } from "./MyOrder";
 import { ParcelDetail } from "./ParcelDetail";
-import { History } from "./History";
+import { Recent } from "./Recent";
 import { Star, unstarQuestion } from "@/components/Favorites/Star";
 import { ResetConfirm } from "@/components/Rubric/ResetConfirm";
-import { historyOf, isFavorite } from "@/lib/client/favorites";
+import { isFavorite, recentOf } from "@/lib/client/favorites";
 import { starParcel, unstarParcel, useHistoryLog } from "@/lib/client/favoritesStore";
 
 const when = (iso: string) => new Date(iso).toLocaleDateString([], { month: "short", day: "numeric" });
@@ -113,9 +113,12 @@ export function Library() {
   const built = store.built;
   const me = currentProfileId();
   const log = useHistoryLog();
-  // Step 8: the household's favorites, and this person's History; someone else's unstarred parcels are in neither.
+  // Step 8: the household's favorites, and this person's Recent (8c); someone else's unstarred parcels are in neither.
   const favorites = useMemo(() => built.filter(isFavorite), [built]);
-  const mine = useMemo(() => (me ? historyOf(built, me, log) : []), [built, me, log]);
+  const mine = useMemo(
+    () => (me ? recentOf(built, me, log, new Date().toISOString()) : []),
+    [built, me, log],
+  );
   const visible = useMemo(() => [...new Set([...favorites, ...mine])], [favorites, mine]);
   const screens = useKeptScreens(visible);
   // The members' rubrics (step 6) change when they set their priorities, here or by a sync.
@@ -241,7 +244,7 @@ export function Library() {
           )}
         </header>
         {/* Step 8 (plan §5): Favorites first; the choice is remembered with the view. */}
-        <div className="list-switch" role="tablist" aria-label="Favorites or History">
+        <div className="list-switch" role="tablist" aria-label="Favorites or Recent">
           {(["favorites", "history"] as const).map((t) => (
             <button
               key={t}
@@ -250,13 +253,13 @@ export function Library() {
               aria-selected={tab === t}
               onClick={() => setView({ ...view, tab: t })}
             >
-              {t === "favorites" ? "Favorites" : "History"}
+              {t === "favorites" ? "Favorites" : "Recent"}
             </button>
           ))}
         </div>
 
         {tab === "history" ? (
-          <History parcels={mine} rows={rowOf} screens={screens} log={log} me={me} />
+          <Recent parcels={mine} rows={rowOf} screens={screens} log={log} />
         ) : favorites.length === 0 ? (
           <p className="muted">
             {FAVORITES_EMPTY} <Link href="/explore">Go to the map</Link>

@@ -11,6 +11,9 @@ import {
   inHistoryOf,
   matchesSaved,
   parcelNumbers,
+  pastRecent,
+  RECENT_MAX,
+  recentOf,
   sortedIntoHistory,
   star,
   starName,
@@ -105,6 +108,41 @@ describe("clearing History", () => {
   it("✕ on one row; a favorite or another's parcel isn't cleared", () => {
     const out = clearHistory(S, "zach", ZACH_LOG, ["a", "f", "j"]);
     expect(keysOf(out.store.built)).toEqual(["b", "f", "old", "j"]);
+  });
+});
+
+describe("Recent (8c)", () => {
+  const NOW = "2026-10-21T10:00:00.000Z";
+  // 25 of Zach's, an hour apart, the newest graded an hour before NOW; and one a month and a day old.
+  const hourly = Array.from({ length: 25 }, (_, i) =>
+    parcel(`r${i}`, { updatedAt: new Date(Date.parse(NOW) - (i + 1) * 3_600_000).toISOString() }),
+  );
+  const stale = parcel("stale", { updatedAt: "2026-09-20T09:00:00.000Z" });
+  const many = store(...hourly, stale, F, J);
+
+  it("my unstarred parcels only, newest first, the 20 newest", () => {
+    const recent = recentOf(many.built, "zach", EMPTY_LOG, NOW);
+    expect(recent).toHaveLength(RECENT_MAX);
+    expect(keysOf(recent).slice(0, 2)).toEqual(["r0", "r1"]);
+    expect(keysOf(recent)).not.toContain("f");
+  });
+
+  it("a favorite I graded isn't in Recent: it's on the list", () => {
+    expect(keysOf(recentOf(S.built, "julie", JULIE_LOG, NOW))).toEqual(["j"]);
+  });
+
+  it("older than 30 days by its grading, it falls out", () => {
+    const s = store(stale, A);
+    expect(keysOf(recentOf(s.built, "zach", EMPTY_LOG, NOW))).toEqual(["a"]);
+    // Graded since, it's back.
+    const log = withGraded(EMPTY_LOG, "stale", "2026-10-21T09:30:00.000Z");
+    expect(keysOf(recentOf(s.built, "zach", log, NOW))).toEqual(["stale", "a"]);
+  });
+
+  it("what falls out is dropped, but never the open parcel, a favorite or another's", () => {
+    const out = pastRecent(many.built, "zach", EMPTY_LOG, NOW, "r24");
+    expect(out.sort()).toEqual(["r20", "r21", "r22", "r23", "stale"]);
+    expect(pastRecent(S.built, "zach", ZACH_LOG, NOW, null)).toEqual([]);
   });
 });
 

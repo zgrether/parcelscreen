@@ -201,7 +201,7 @@ function SearchBox({
   // Your saved parcels, by name or parcel number, above the place results (step 8, plan §5): up to five of each.
   for (const [title, list] of [
     ["Favorites", saved.favorites],
-    ["Your history", saved.history],
+    ["Recent", saved.history],
   ] as const) {
     const hits = q ? list.filter((s) => matchesSaved(s.name, s.numbers, q)).slice(0, 5) : [];
     if (hits.length)
