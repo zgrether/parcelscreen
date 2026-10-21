@@ -7,7 +7,7 @@
  * noted on the Garden row. The rest wait for their costs (VR4).
  */
 import { booleanPointInPolygon, distance, point, pointToLineDistance, lineString, polygon } from "@turf/turf";
-import type { Rates } from "../config/costs";
+import type { Paving, Rates } from "../config/costs";
 import type { LatLon } from "../geo/types";
 import type { CostLine } from "./cost";
 import { lineNamesOf, type LineNames } from "./lines";
@@ -66,7 +66,7 @@ export interface Drawn {
    * What the cost to enjoy reads besides the result and the marks (step 10, lib/report/cost.ts): the lines with their
    * condition, the asking price and the rates in use. Absent: the cost isn't priced, and Within budget isn't graded.
    */
-  cost?: { lines: readonly CostLine[]; askingPrice: number | null; rates: Rates };
+  cost?: { lines: readonly CostLine[]; askingPrice: number | null; rates: Rates; paving?: Paving };
 }
 
 /**
@@ -77,7 +77,7 @@ export const drawnOf = (
   markup: readonly ({ id: string; name: string } & (DrawnLineMarkup | Mark))[],
   driveway: string | null = null,
   /** The asking price and the rates in use (step 10): given, the card prices the cost to enjoy. */
-  cost?: { askingPrice: number | null; rates: Rates },
+  cost?: { askingPrice: number | null; rates: Rates; paving?: Paving },
 ): Drawn => ({
   names: lineNamesOf(markup),
   marks: markup.filter((m): m is typeof m & Mark => m.shape !== "line"),

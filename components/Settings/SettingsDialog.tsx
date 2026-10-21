@@ -31,9 +31,9 @@ import {
   type NumberField,
   type SettingsForm,
 } from "@/lib/client/settingsForm";
-import { DEFAULT_RATES } from "@/lib/config/costs";
-import { currentCostRates, saveCostRates } from "@/lib/client/costRates";
-import { fromCostForm, sameRates, toCostForm, type CostForm } from "@/lib/client/costsForm";
+import { DEFAULT_COST_SETTINGS } from "@/lib/config/costs";
+import { currentCostSettings, saveCostSettings } from "@/lib/client/costRates";
+import { fromCostForm, sameSettings, toCostForm, type CostForm } from "@/lib/client/costsForm";
 import { Costs } from "./Costs";
 import { YourData } from "./YourData";
 
@@ -72,14 +72,14 @@ export function SettingsProvider({
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [form, setForm] = useState<SettingsForm>(() => toForm(config));
-  const [costs, setCosts] = useState<CostForm>(() => toCostForm(DEFAULT_RATES));
+  const [costs, setCosts] = useState<CostForm>(() => toCostForm(DEFAULT_COST_SETTINGS));
   const [errors, setErrors] = useState<FieldError[]>([]);
   // Each opening starts Your data afresh, without the last import's summary.
   const [opened, setOpened] = useState(0);
 
   const open = useCallback(() => {
     setForm(toForm(config));
-    setCosts(toCostForm(currentCostRates()));
+    setCosts(toCostForm(currentCostSettings()));
     setErrors([]);
     setOpened((n) => n + 1);
     dialog.current?.showModal();
@@ -94,7 +94,7 @@ export function SettingsProvider({
       return;
     }
     if (!sameConfig(r.config, config)) onSave(r.config);
-    if (!sameRates(c.rates, currentCostRates())) saveCostRates(c.rates);
+    if (!sameSettings(c.settings, currentCostSettings())) saveCostSettings(c.settings);
     close();
   };
 
@@ -143,7 +143,10 @@ export function SettingsProvider({
           <Costs
             form={costs}
             bad={bad}
-            set={(key, end, v) => setCosts((f) => ({ ...f, [key]: { ...f[key], [end]: v } }))}
+            set={(key, end, v) =>
+              setCosts((f) => ({ ...f, rates: { ...f.rates, [key]: { ...f.rates[key], [end]: v } } }))
+            }
+            setPaving={(p) => setCosts((f) => ({ ...f, paving: { ...f.paving, ...p } }))}
           />
           <section className="rate-group" aria-label="The screen's driveway estimate">
             <h4>The screen&apos;s driveway estimate</h4>
@@ -226,7 +229,7 @@ export function SettingsProvider({
               className="btn secondary"
               onClick={() => {
                 setForm(toForm(DEFAULT_USER_CONFIG));
-                setCosts(toCostForm(DEFAULT_RATES));
+                setCosts(toCostForm(DEFAULT_COST_SETTINGS));
                 setErrors([]);
               }}
             >

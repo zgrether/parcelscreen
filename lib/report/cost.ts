@@ -17,9 +17,15 @@ import {
   pointToLineDistance,
 } from "@turf/turf";
 import type { LineCondition, LineKind } from "../client/parcelStore";
-import { COST_ASSUMPTIONS as A, type CostKey, type Range, type Rates } from "../config/costs";
+import {
+  COST_ASSUMPTIONS as A,
+  DEFAULT_PAVING,
+  type CostKey,
+  type Paving,
+  type Range,
+  type Rates,
+} from "../config/costs";
 import type { LatLon } from "../geo/types";
-import { SCREEN_CONSTANTS } from "../screen/config";
 import { overLimitSpans } from "../screen/driveway";
 import { NO_PRACTICAL_ROUTE } from "../screen/score";
 import type { PartialScreenResult } from "../screen/types";
@@ -50,6 +56,8 @@ export interface CostInput {
   driveway?: string | null;
   askingPrice: number | null;
   rates: Rates;
+  /** Whether steep stretches are paved, and above what grade (Settings → Costs); paved above 12% when absent. */
+  paving?: Paving;
 }
 
 /** One rate's share of an item: a quantity (a range for the well's depth) × the rate. */
@@ -112,7 +120,8 @@ export const COST_ITEMS = {
   campClearing: `Clearing a campsite (${A.campsiteAc} ac)`,
   driveway: "Finished driveway (the track upgraded)",
   newDriveway: "Gravel driveway, new",
-  paving: `Paving over ${SCREEN_CONSTANTS.driveway.paveAbovePct}%`,
+  // Owner, #255 review: its own line, with its length and the threshold.
+  paving: (ft: number, pct: number) => `Paving, ${Math.round(ft).toLocaleString("en-US")} ft over ${pct}%`,
   culverts: "Culverts",
   well: (r: Range) => `Well (${r.low}–${r.high} ft)`,
   pump: "Pump and line (your well or spring)",
@@ -129,6 +138,8 @@ export const COST_NOTES = {
   spring: "priced as a pump and line (no published spring figure)",
   offRoute: `off the route: the straight distance × ${A.trackTurns} for a track's turns (ours)`,
   beyondTrack: "past the camp's track: new ground",
+  // Owner, #255 review: paving switched off in Settings, steep stretches stay gravel; no cost for it.
+  steepGravel: "steep gravel needs more upkeep",
 } as const;
 
 export const LOWER_IT = {
@@ -138,6 +149,8 @@ export const LOWER_IT = {
   septic: "Mark a septic permit with its class.",
   power: "Mark a power pole near the site.",
   easement: 'Record the easement (its "recorded in").',
+  // Owner's wording (#255 review).
+  paving: "a gentler route, or gravel on steep stretches (Settings)",
 } as const;
 
 // ---------- against a budget (step 10 plan §3) ----------
@@ -350,6 +363,17 @@ export function costToEnjoy(input: CostInput): CostToEnjoy | null {
   // ----- Ready to build: the camp's items, plus -----
   const build: CostItem[] = [...camp];
 
+  // Steep stretches: where the 30 m grade passes the paving threshold (the Driveway section's own "~N ft to pave" at
+  // 12%), less any paved line. Paved on top of the gravel when paving is on; gravel, with a note, when it's off.
+  const paving = input.paving ?? DEFAULT_PAVING;
+  const steepFt = overLimitSpans(rt.profile as [number, number][], paving.abovePct / 100).reduce(
+    (t, [a, b]) => {
+      const g = groundBetween(runs, a * M2FT, b * M2FT);
+      return t + (b - a) * M2FT - g.paved;
+    },
+    0,
+  );
+
   // The finished driveway, crediting the camp's track; past it (a campsite off the route), the ground as it is.
   const past = groundBetween(runs, campAt.alongFt, lengthFt);
   build.push(
@@ -365,7 +389,7 @@ export function costToEnjoy(input: CostInput): CostToEnjoy | null {
         part(rates, "driveway.upgrade.improved", toCamp.improved + past.improved, "ft"),
         part(rates, "driveway.upgrade.uncleared", past.uncleared, "ft"),
       ]),
-      [],
+      !paving.on && steepFt >= 1 ? [COST_NOTES.steepGravel] : [],
       toCamp.new + past.new + past.uncleared > 0 ? LOWER_IT.track : null,
     ),
   );
@@ -379,15 +403,15 @@ export function costToEnjoy(input: CostInput): CostToEnjoy | null {
       ),
     );
 
-  // Paving where the 30 m grade passes paveAbovePct (the Driveway section's own "~N ft to pave"), less any paved line.
-  const paveFt = overLimitSpans(
-    rt.profile as [number, number][],
-    SCREEN_CONSTANTS.driveway.paveAbovePct / 100,
-  ).reduce((t, [a, b]) => {
-    const g = groundBetween(runs, a * M2FT, b * M2FT);
-    return t + (b - a) * M2FT - g.paved;
-  }, 0);
-  if (paveFt >= 1) build.push(item(COST_ITEMS.paving, [part(rates, "driveway.paving", paveFt, "ft")]));
+  if (paving.on && steepFt >= 1)
+    build.push(
+      item(
+        COST_ITEMS.paving(steepFt, paving.abovePct),
+        [part(rates, "driveway.paving", steepFt, "ft")],
+        [],
+        LOWER_IT.paving,
+      ),
+    );
   if (rt.metrics.culverts > 0)
     build.push(item(COST_ITEMS.culverts, [part(rates, "culvert", rt.metrics.culverts, "each")]));
 

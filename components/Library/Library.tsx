@@ -11,7 +11,7 @@
  * writes that one parcel's rank. Under another sort the handles hide, and the list says how to get them back.
  */
 import Link from "next/link";
-import { useCostRates } from "@/lib/client/costRates";
+import { useCostSettings } from "@/lib/client/costRates";
 import { reportHref } from "@/lib/print/report";
 import { GRADES_ID, GRADES_TITLE } from "@/lib/client/help";
 import { useRouter } from "next/navigation";
@@ -124,16 +124,16 @@ export function Library() {
   const { rubrics } = useRubricView();
   const household = useHousehold();
   const seen = useSeenTakes();
-  const rates = useCostRates();
+  const costs = useCostSettings();
   const rowOf = useMemo(
     () =>
       new Map(
         visible.map((p) => [
           p.key!,
-          libraryRow(p, screens.get(p.key!), rubrics, { household, me, seen }, rates),
+          libraryRow(p, screens.get(p.key!), rubrics, { household, me, seen }, costs),
         ]),
       ),
-    [visible, screens, rubrics, household, me, seen, rates],
+    [visible, screens, rubrics, household, me, seen, costs],
   );
   const rows = favorites.map((p) => rowOf.get(p.key!)!);
   const tab = view.tab;

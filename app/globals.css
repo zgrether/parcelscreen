@@ -2576,6 +2576,32 @@ html:has(.app-nav) .explore {
   padding: 8px 0;
   border-bottom: 1px solid var(--color-rule);
 }
+/* Owner, #255 review: the paving switch and its threshold, on one line. */
+.paving-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.paving-switch .paving-on {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 13px;
+}
+.settings-body .paving-switch input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+}
+.settings-body .paving-switch .paving-pct {
+  width: 4.5em;
+  margin-top: 0;
+}
+.paving-switch .tiny {
+  flex-basis: 100%;
+}
 .rate-label {
   font-size: 13px;
 }

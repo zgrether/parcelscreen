@@ -11,6 +11,8 @@
  * They're never a run's input: the engine's own driveway estimate keeps `UserConfig.dw`.
  */
 
+import { SCREEN_CONSTANTS } from "../screen/config";
+
 export type CostKey =
   | "driveway.new"
   | "driveway.upgrade.improved"
@@ -136,7 +138,7 @@ export const COST_RATES: readonly CostRate[] = [
   },
   {
     key: "driveway.paving",
-    label: "Paving where the grade passes 12%",
+    label: "Paving steep stretches (on top of the gravel)",
     unit: "$/ft",
     low: 30,
     high: 84,
@@ -391,3 +393,23 @@ export const COST_ASSUMPTIONS = {
   padSlopedDeg: 4,
   padSteepDeg: 10,
 } as const;
+
+/**
+ * Paving steep stretches (owner, #255 review, 10/21): on by default, where the route's 30 m grade passes `abovePct` (the
+ * screen's paveAbovePct, 12%). Paving is on top of the gravel, which is its base. Off, steep stretches stay gravel: no
+ * paving cost, and the breakdown notes the upkeep. Settings → Costs edits both.
+ */
+export interface Paving {
+  on: boolean;
+  abovePct: number;
+}
+export const DEFAULT_PAVING: Paving = { on: true, abovePct: SCREEN_CONSTANTS.driveway.paveAbovePct };
+/** The threshold's editable range, %. */
+export const PAVING_PCT = { min: 5, max: 25 } as const;
+
+/** Everything Settings → Costs keeps: the rates and the paving choice. */
+export interface CostSettings {
+  rates: Rates;
+  paving: Paving;
+}
+export const DEFAULT_COST_SETTINGS: CostSettings = { rates: DEFAULT_RATES, paving: DEFAULT_PAVING };

@@ -3,7 +3,7 @@
  * price, state, status and milestones, and both people's grades with the household verdict, the lower of the two
  * (owner, #128). Filters and sorts are views: they never change a parcel. Pure; components/Library renders it.
  */
-import { DEFAULT_RATES, type Range, type Rates } from "../config/costs";
+import { DEFAULT_COST_SETTINGS, type CostSettings, type Range } from "../config/costs";
 import {
   bothLikeIt,
   EMPTY_HOUSEHOLD,
@@ -145,8 +145,8 @@ export function libraryRow(
   kept: KeptScreen | undefined,
   rubrics: readonly NamedRubric[] = [defaultNamedRubric()],
   ctx: HouseholdContext = { household: EMPTY_HOUSEHOLD, me: null },
-  /** The cost to enjoy's rates in use (step 10, Settings → Costs). */
-  rates: Rates = DEFAULT_RATES,
+  /** The cost to enjoy's rates and paving choice in use (step 10, Settings → Costs). */
+  costs: CostSettings = DEFAULT_COST_SETTINGS,
 ): LibraryRow {
   const { acres } = parcelName(p);
   const county = p.pieces.map((x) => parcelFacts(x.geo, x.props).county).find((c) => !!c) ?? null;
@@ -157,7 +157,7 @@ export function libraryRow(
     const c = reportCard(
       result,
       nr,
-      drawnOf(p.markup, p.drivewayLine, { askingPrice: p.askingPrice, rates }),
+      drawnOf(p.markup, p.drivewayLine, { askingPrice: p.askingPrice, ...costs }),
     );
     // The viewer's (the profile's own rubric comes first): the cost at their best site.
     if (nr === rubrics[0] && c.cost?.kind === "priced")

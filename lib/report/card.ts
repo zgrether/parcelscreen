@@ -870,6 +870,7 @@ export function cardFacts(
         driveway: drawn.driveway ?? null,
         askingPrice: drawn.cost.askingPrice,
         rates: drawn.cost.rates,
+        ...(drawn.cost.paving ? { paving: drawn.cost.paving } : {}),
       })
     : undefined;
   const facts = {
