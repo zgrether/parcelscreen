@@ -32,7 +32,10 @@ export function placeOf(pathname: string): PlaceId | null {
   return null;
 }
 
-/** Every page has the tabs but the opening redirect ("/") and the interview, a focused flow with its own way out (§2). */
+/**
+ * Every page has the tabs but the opening redirect ("/"), the interview, a focused flow with its own way out (§2), and
+ * the report card export (step 9), a print page with its own Back.
+ */
 export function showsNav(pathname: string): boolean {
-  return pathname !== "/" && !under(pathname, "/interview");
+  return pathname !== "/" && !under(pathname, "/interview") && !under(pathname, "/parcel");
 }

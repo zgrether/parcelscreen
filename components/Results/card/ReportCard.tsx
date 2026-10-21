@@ -9,21 +9,20 @@ import Link from "next/link";
 import { GRADES_ID, GRADES_TITLE } from "@/lib/client/help";
 import type { ReactNode } from "react";
 import { answerReason, incompleteLine } from "@/lib/report/answer";
-import { listOf, lowerFirst, VERDICT_WORD, type Card, type GateStatus, type Row } from "@/lib/report/card";
+import { listOf, lowerFirst, VERDICT_WORD, type Card, type Row } from "@/lib/report/card";
 import type { PanelKey } from "@/lib/report/cardPanels";
-import { GATE_MARK as MARK, mustLines, rankedRows, type MustLine } from "@/lib/report/cardLines";
+import {
+  GATE_MARK as MARK,
+  MUST_STATUS_WORD as STATUS_WORD,
+  mustLines,
+  rankedRows,
+  type MustLine,
+} from "@/lib/report/cardLines";
 import type { NamedRubric } from "@/lib/rubric/types";
 import { TIER_NAMES } from "@/lib/rubric/words";
 import type { PartialScreenResult } from "@/lib/screen/types";
 import { RubricSwitch } from "./RubricSwitch";
 
-/** A Must's status in words (plan §1.4): a warning is something to check first. */
-const STATUS_WORD: Record<GateStatus, string> = {
-  pass: "Pass",
-  warn: "Check first",
-  fail: "Fail",
-  unknown: "Unknown",
-};
 /**
  * A Must's detail: "Check first: …" unless it passes. When its reason has a first clause and more (Legal road access's
  * frontage, then the road in), the more goes on its own line, so what made it a warning reads plainly (polish #7).

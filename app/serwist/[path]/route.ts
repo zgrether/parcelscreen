@@ -41,6 +41,8 @@ export const { dynamic, dynamicParams, revalidate, generateStaticParams, GET } =
     { url: "/library", revision },
     { url: "/priorities", revision },
     { url: "/help", revision },
+    // The report card export's shell (step 9): the service worker serves it for any /parcel/<key>/report offline.
+    { url: "/parcel/_/report", revision },
   ],
   // Left out: notes in public/ (fonts/README.md) aren't app assets; and Turbopack's Web Worker entry, which
   // reads its bootstrap config from its own URL's #params= hash. A worker started from a cached response gets
