@@ -52,6 +52,45 @@ export function historyOf(built: readonly WorkingParcel[], me: string, log: Hist
     .sort((a, b) => historyAt(b, log).localeCompare(historyAt(a, log)));
 }
 
+/** Recent keeps this many parcels (8c, owner 2026-10-21)… */
+export const RECENT_MAX = 20;
+/** …for this long after they were last graded or changed. */
+export const RECENT_DAYS = 30;
+const DAY_MS = 86_400_000;
+
+/**
+ * Recent (8c): this person's graded parcels that aren't on the list, newest first, the 20 newest within 30 days. A
+ * dismissed parcel (×) is gone from the store, so it's in no view.
+ */
+export function recentOf(
+  built: readonly WorkingParcel[],
+  me: string,
+  log: HistoryLog,
+  now: string,
+): WorkingParcel[] {
+  const since = new Date(Date.parse(now) - RECENT_DAYS * DAY_MS).toISOString();
+  return historyOf(built, me, log)
+    .filter((p) => !isFavorite(p) && historyAt(p, log) >= since)
+    .slice(0, RECENT_MAX);
+}
+
+/**
+ * What falls out of Recent (8c): this person's unstarred parcels beyond the 20 newest or older than 30 days, for
+ * clearHistory to drop. The open parcel stays, whatever its age.
+ */
+export const pastRecent = (
+  built: readonly WorkingParcel[],
+  me: string,
+  log: HistoryLog,
+  now: string,
+  open: string | null,
+): string[] => {
+  const kept = new Set(recentOf(built, me, log, now).map((p) => p.key));
+  return clearable(built, me, log)
+    .filter((p) => !kept.has(p.key) && p.key !== open)
+    .map((p) => p.key!);
+};
+
 /** What this person may see anywhere (the map's outlines, Search, opening by key): Favorites and their History. */
 export const visibleTo = (p: WorkingParcel, me: string, log: HistoryLog): boolean =>
   isFavorite(p) || inHistoryOf(p, me, log);

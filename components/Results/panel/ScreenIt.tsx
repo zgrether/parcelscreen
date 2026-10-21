@@ -20,7 +20,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useScreen } from "@/lib/client/useScreen";
 import { freshness, runKeys, type RunKeys } from "@/lib/client/screenKeys";
-import { drawnInput, linesOf } from "@/lib/client/parcelStore";
+import { drawnInput, linesOf, type WorkingParcel } from "@/lib/client/parcelStore";
 import {
   addScreen,
   needsRescreen,
@@ -257,8 +257,8 @@ export function useScreenIt(
     indexed.current = null;
     awaitingRestore.current = false;
   }, [st.generation]);
-  // A parcel removed from History: its session goes too.
-  const builtKeys = ctl.state.store.built.map((b) => b.key).join("|");
+  // A parcel removed from Recent: its session goes too, but a dismissed one's only once its Undo has gone (8c).
+  const builtKeys = [...ctl.state.store.built.map((b) => b.key), ctl.dismissed?.parcel.key].join("|");
   useEffect(() => {
     const keys = new Set(builtKeys.split("|"));
     for (const k of sessions.current.parcels())
@@ -522,12 +522,13 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
         <PanelStar s={s} />
         {/* Step 9: the report card, once the parcel is graded and on the list. */}
         <PanelMenu parcelKey={s.ctl.state.store.open?.key ?? null} graded={!!s.shown && !s.runningHere} />
-        {/* Deselect the parcel (17e); Esc does the same on desktop. A screened one stays in History. */}
+        {/* Deselect the parcel (17e); Esc does the same on desktop. 8c: on a parcel not on the list it means "not for
+            me": it goes from Recent and the map, with an Undo. */}
         <button
           className="sh-x"
           aria-label="Close this parcel"
-          title={desk ? "Close this parcel (Esc)" : "Close this parcel"}
-          onClick={() => s.ctl.close()}
+          title={closeTitle(s.ctl.state.store.open, desk)}
+          onClick={() => s.ctl.dismiss()}
         >
           ×
         </button>
@@ -537,9 +538,18 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
   );
 }
 
+/** The ×'s tooltip: on a parcel of mine that isn't on the list, what × does to it (8c). */
+const closeTitle = (open: WorkingParcel | null, desk: boolean): string => {
+  const esc = desk ? " (Esc)" : "";
+  const mine =
+    !!open?.key && !isFavorite(open) && (open.addedBy === null || open.addedBy === currentProfileId());
+  return mine ? `Not for me: close it and clear it from Recent${esc}` : `Close this parcel${esc}`;
+};
+
 /**
- * The open parcel's star (step 8, plan §2 and §5), beside the grade: starring names it (prefilled from its own name, its
- * listing's address, or its acres, road and county) and builds a plain parcel; unstarring asks first.
+ * The open parcel's list button (step 8's star, in words since 8c: "Add to list", "★ On your list"), beside the grade:
+ * adding names it (prefilled from its own name, its listing's address, or its acres, road and county) and builds a
+ * plain parcel; removing asks first.
  */
 function PanelStar({ s }: { s: ScreenIt }) {
   const open = s.ctl.state.store.open!;
@@ -554,6 +564,7 @@ function PanelStar({ s }: { s: ScreenIt }) {
   return (
     <Star
       className="sh-star"
+      words
       on={isFavorite(open)}
       prefill={prefill}
       star={(name) => s.ctl.star(name, serial)}

@@ -57,7 +57,7 @@ export async function importParcel(page: Page, slug: FixtureSlug, house?: [numbe
   });
   await expect(page.locator(".import-summary")).toContainText("Imported 1 parcel");
   await page.keyboard.press("Escape");
-  await starFromHistory(page, input.name);
+  await addFromRecent(page, input.name);
   await openFromList(page, input.name);
 }
 
@@ -84,17 +84,17 @@ export async function importParcels(
   });
   await expect(page.locator(".import-summary")).toContainText(`Imported ${slugs.length} parcels`);
   await page.keyboard.press("Escape");
-  if (star) for (const slug of slugs) await starFromHistory(page, loadFixture(slug).input.name);
+  if (star) for (const slug of slugs) await addFromRecent(page, loadFixture(slug).input.name);
 }
 
 /**
- * Stars an imported parcel from History (step 8: an import, like a grading, puts it in the importer's History only),
- * with the name its sheet starts with: the imported name. Leaves Your list on Favorites.
+ * Adds an imported parcel to the list from Recent (step 8: an import, like a grading, puts it in the importer's Recent
+ * only; 8c), with the name its sheet starts with: the imported name. Leaves Your list on Favorites.
  */
-export async function starFromHistory(page: Page, name: string): Promise<void> {
+export async function addFromRecent(page: Page, name: string): Promise<void> {
   await page.getByRole("link", { name: /^Your list/ }).click();
-  await page.getByRole("tab", { name: "History" }).click();
-  const add = page.locator(".hist-row", { hasText: name }).getByRole("button", { name: /^Add to favorites/ });
+  await page.getByRole("tab", { name: "Recent" }).click();
+  const add = page.locator(".hist-row", { hasText: name }).getByRole("button", { name: /^Add to list/ });
   await add.click();
   await page.getByRole("dialog", { name: "Add to favorites" }).getByRole("button", { name: "Add" }).click();
   await expect(add).toHaveCount(0);
@@ -203,10 +203,10 @@ export async function openFromList(page: Page, name: string): Promise<void> {
   await expect(page.locator(".sh-name").first()).toContainText(name);
 }
 
-/** Opens a parcel on the map from History (step 8), by (part of) its name: its row's Open on the map. */
-export async function openFromHistory(page: Page, name: string): Promise<void> {
+/** Opens a parcel on the map from Recent (step 8; 8c), by (part of) its name: its row's Open on the map. */
+export async function openFromRecent(page: Page, name: string): Promise<void> {
   await page.getByRole("link", { name: /^Your list/ }).click();
-  await page.getByRole("tab", { name: "History" }).click();
+  await page.getByRole("tab", { name: "Recent" }).click();
   await page.locator(".hist-row", { hasText: name }).getByRole("link", { name: "Open on the map" }).click();
   await expect(page).toHaveURL(/\/explore$/);
   await expect(page.locator(".sh-name").first()).toContainText(name);

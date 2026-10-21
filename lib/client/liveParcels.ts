@@ -3,6 +3,7 @@
  * the explorer holds the parcels in memory and saves them as they change, so it registers itself here and an import
  * goes through it; on any other page, the stored parcels are read and written directly.
  */
+import { isFavorite } from "./favorites";
 import { EMPTY_STORE, type ParcelStore, type WorkingParcel } from "./parcelStore";
 import { getPref, setPref } from "./prefs";
 
@@ -34,8 +35,11 @@ export function openLive(key: string): boolean {
   return true;
 }
 
-export function addImportedParcels(added: WorkingParcel[]): void {
-  if (!added.length) return;
+export function addImportedParcels(file: WorkingParcel[]): void {
+  if (!file.length) return;
+  // 8c: one off the list starts its 30 days in Recent as it's imported (a file's dates can be months old).
+  const now = new Date().toISOString();
+  const added = file.map((p) => (isFavorite(p) ? p : { ...p, updatedAt: now }));
   if (live) return live.importParcels(added);
   const s = currentParcels();
   setPref("ps.parcels", { ...s, built: [...s.built, ...added] });

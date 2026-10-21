@@ -6,16 +6,19 @@
 import { useEffect, useState } from "react";
 import {
   clearHistory,
+  pastRecent,
   sortedIntoHistory,
   star,
   unstar,
   visibleTo,
   withGraded,
+  withoutKeys,
   type HistoryLog,
 } from "./favorites";
 import { dropParcel } from "./householdDoc";
 import { EMPTY_STORE, type WorkingParcel } from "./parcelStore";
 import { getPref, setPref } from "./prefs";
+import { deleteScreens } from "./screenStore";
 import { currentProfileId } from "./profiles";
 
 /** The shared store, empty before anything is kept. */
@@ -43,6 +46,32 @@ export function useHistoryLog(): HistoryLog {
 /** A finished run kept on this parcel: it's graded now, by this profile. */
 export function logGraded(key: string, now = new Date().toISOString()): void {
   saveLog(withGraded(getPref("ps.history"), key, now));
+  pruneRecent(now);
+}
+
+/** A dismissed parcel's log entry (8c's ×) taken out, and returned for its Undo; null when it had none. */
+export function forgetGraded(key: string): string | null {
+  const log = getPref("ps.history");
+  const at = log.graded[key] ?? null;
+  if (at) saveLog(withoutKeys(log, [key]));
+  return at;
+}
+
+/** A dismiss undone: its log entry back. */
+export function relogGraded(key: string, at: string | null): void {
+  if (at) saveLog(withGraded(getPref("ps.history"), key, at));
+}
+
+/**
+ * Recent's limits (8c): this profile's unstarred parcels beyond the 20 newest or older than 30 days go, as a ✕ takes
+ * them; the open one stays. At boot and after each grading: History became Recent this way, with no converter.
+ */
+export function pruneRecent(now = new Date().toISOString()): void {
+  const me = currentProfileId();
+  if (!me) return;
+  const s = parcels();
+  const keys = pastRecent(s.built, me, getPref("ps.history"), now, s.open?.key ?? null);
+  if (keys.length) clearMyHistory(keys);
 }
 
 /** Star a built parcel with its name: it's a favorite for the household. */
@@ -78,12 +107,22 @@ export function restoreToHistory(removed: readonly WorkingParcel[], log: History
   saveLog({ ...getPref("ps.history"), graded: { ...getPref("ps.history").graded, ...log.graded } });
 }
 
+/**
+ * A removal's Undo gone (8c): the removed parcels' screens are deleted from this device, but not one another parcel
+ * in the store still lists.
+ */
+export function dropScreensOf(removed: readonly WorkingParcel[]): void {
+  const used = new Set(parcels().built.flatMap((p) => p.screenIds));
+  void deleteScreens(removed.flatMap((p) => p.screenIds).filter((id) => !used.has(id)));
+}
+
 /** The one-time sort (plan §6), at boot: In progress parcels with no adder go to this profile's History. */
 export function sortIntoHistory(): void {
   const me = currentProfileId();
   if (!me) return;
   const next = sortedIntoHistory(parcels(), me);
   if (next) setPref("ps.parcels", next);
+  pruneRecent();
 }
 
 /** The built parcels this profile may see (Favorites and its History): the Help page's and the preview's pickers. */

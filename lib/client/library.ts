@@ -407,11 +407,11 @@ export const showHidden = (h: Hidden, f: LibraryFilters): LibraryFilters =>
 export const COMPARE_MIN = 2;
 export const COMPARE_MAX = 3;
 
-/** Favorites with none starred (step 8, plan §4): where stars come from. */
-export const FAVORITES_EMPTY = "No favorites yet. Star a parcel on the map, or in History, to add it here.";
-/** History with nothing in it (step 8, plan §3). */
-export const HISTORY_EMPTY =
-  "Nothing here yet. Parcels you grade show up here; star one to add it to your household's favorites.";
+/** Favorites with none added (step 8, plan §4; 8c): where they come from. */
+export const FAVORITES_EMPTY = "No favorites yet. Use Add to list on a parcel, on the map or in Recent.";
+/** Recent with nothing in it (8c; step 8's History). */
+export const RECENT_EMPTY =
+  "Nothing here yet. The parcels you grade show up here for 30 days; add one to your list to keep it.";
 /** How Compare is reached (step 4b): the ticks on Your list, 2 or 3. */
 export const COMPARE_HOW = "Tick 2 or 3 parcels on Your list to compare them.";
 /** A fourth tick isn't offered. */

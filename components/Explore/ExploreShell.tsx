@@ -177,7 +177,7 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
       if (!s.store.open || s.mode || s.split || s.layer || s.mapPanel) return;
       if ((e.target as HTMLElement | null)?.closest("input,select,textarea,[contenteditable]")) return;
       if (document.querySelector(".menu-panel, .ground-layer, dialog[open], .rubric-sheet-scrim")) return;
-      x.close();
+      x.dismiss(); // as the × (8c)
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);

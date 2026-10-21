@@ -36,8 +36,14 @@ import { getPref, onParcelsWritten, parcelsWritten, setPref } from "@/lib/client
 import { registerLiveParcels } from "@/lib/client/liveParcels";
 import { currentProfileId } from "@/lib/client/profiles";
 import { dropParcel } from "@/lib/client/householdDoc";
-import { logGraded, useHistoryLog } from "@/lib/client/favoritesStore";
-import { visibleTo } from "@/lib/client/favorites";
+import {
+  dropScreensOf,
+  forgetGraded,
+  logGraded,
+  relogGraded,
+  useHistoryLog,
+} from "@/lib/client/favoritesStore";
+import { isFavorite, visibleTo } from "@/lib/client/favorites";
 import { ATTACH_MS, attachPatch, type SearchedListing } from "@/lib/client/attachListing";
 import { CancelledError } from "@/lib/http";
 import { unreachableMessage } from "@/lib/client/pwa";
@@ -134,6 +140,17 @@ export interface ExploreController {
    */
   tap(hit: TapHit): Promise<void>;
   close(): void;
+  /**
+   * × (8c): on a parcel that's on the list, or one never built, it closes (as close); on one of mine that isn't on the
+   * list it's "not for me": closed and gone from Recent and the map, with `dismissed` offering it back for a few seconds.
+   */
+  dismiss(): void;
+  /** The parcel × dismissed, until its Undo goes (8c). */
+  dismissed: Dismissed | null;
+  /** Undo: the dismissed parcel back as it was, open, with no re-grade. */
+  undoDismiss(): void;
+  /** The Undo's time is up: the dismissed parcel's screens go from this device. */
+  endDismiss(): void;
   /** Opens a county parcel found by search, from its full record (the outline's fields name it). */
   openOutline(outline: { source: string; props: Record<string, unknown> }): Promise<void>;
   openSaved(key: string): void;
@@ -246,6 +263,15 @@ export interface ExploreController {
 export interface SwitchToast {
   key: string;
   name: string;
+  /** On the list (a favorite), or in Recent (8c). */
+  listed: boolean;
+  at: number;
+}
+
+/** A parcel × dismissed (8c): what it was, and its History log entry, for the Undo. */
+export interface Dismissed {
+  parcel: WorkingParcel;
+  graded: string | null;
   at: number;
 }
 
@@ -315,6 +341,12 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
   const [map, setMap] = useState<MlMap | null>(null);
   const [toast, setToast] = useState<SwitchToast | null>(null);
   const [lineUndo, setLineUndo] = useState<LineUndo | null>(null);
+  const [dismissed, setDismissedState] = useState<Dismissed | null>(null);
+  const dismissedNow = useRef<Dismissed | null>(null);
+  const setDismissed = (d: Dismissed | null) => {
+    dismissedNow.current = d;
+    setDismissedState(d);
+  };
   const [picker, setPicker] = useState<MarkPickerState | null>(null);
   const [recentMarks, setRecentMarks] = useState<MarkChoice[]>(() => getPref("ps.recentMarks"));
   const [searchedListing, setSearchedListing] = useState<SearchedListing | null>(null);
@@ -335,7 +367,8 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
   /** About to leave the open parcel: if it has a screen, offer Back to it. */
   const leaving = () => {
     const o = latest.current.store.open;
-    if (o?.key && o.screenIds.length > 0) setToast({ key: o.key, name: parcelName(o).name, at: Date.now() });
+    if (o?.key && o.screenIds.length > 0)
+      setToast({ key: o.key, name: parcelName(o).name, listed: isFavorite(o), at: Date.now() });
     else setToast(null);
   };
   /** A switch asked for while a screen runs: say so, and don't switch (17e). */
@@ -586,6 +619,44 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       leaving();
       dispatch({ type: "close" });
       hint("");
+    },
+    dismiss() {
+      if (refuseBusy()) return;
+      lookup.current?.abort();
+      const o = latest.current.store.open;
+      const me = currentProfileId();
+      // Never built (a plain tap), on the list, or someone else's: it only closes.
+      if (!o?.key || isFavorite(o) || (o.addedBy !== null && o.addedBy !== me)) {
+        leaving();
+        dispatch({ type: "close" });
+      } else {
+        const before = dismissedNow.current;
+        if (before) dropScreensOf([before.parcel]); // a newer dismiss ends the last one's Undo
+        setToast(null);
+        dropParcel(o.key); // its asks and takes, as a ✕ in Recent drops them
+        const graded = forgetGraded(o.key);
+        dispatch({ type: "removeSaved", key: o.key });
+        setDismissed({ parcel: o, graded, at: Date.now() });
+      }
+      hint("");
+    },
+    dismissed,
+    undoDismiss() {
+      const d = dismissedNow.current;
+      if (!d || refuseBusy()) return;
+      setDismissed(null);
+      const key = d.parcel.key!;
+      leaving();
+      if (!latest.current.store.built.some((b) => b.key === key))
+        dispatch({ type: "imported", added: [d.parcel] });
+      relogGraded(key, d.graded);
+      dispatch({ type: "openSaved", key, keepPanel: docked });
+      hint("");
+    },
+    endDismiss() {
+      const d = dismissedNow.current;
+      setDismissed(null);
+      if (d) dropScreensOf([d.parcel]);
     },
     async openOutline(outline) {
       if (refuseBusy()) return;

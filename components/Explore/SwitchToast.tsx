@@ -1,6 +1,6 @@
 "use client";
 /**
- * "{parcel} is on Your list. Reopen it" (step 17e; polish after 8b): after leaving a parcel that has a screen, by switching or with
+ * "{parcel} is on Your list. Reopen it" (step 17e; polish after 8b; "is in Recent" when it isn't on the list, 8c): after leaving a parcel that has a screen, by switching or with
  * the ×. Reopen it brings it back, with its overlays live if its session is still kept. It goes after about 5 s, when
  * a newer one replaces it, or when a map tool starts.
  */
@@ -24,7 +24,10 @@ export function SwitchToast() {
   return (
     <div className="switch-toast" role="status">
       {/* Polish: a whole sentence, and a button that says what it does. */}
-      <span>{t.name} is on Your list.</span>
+      {/* 8c: a parcel not on the list is in Recent. */}
+      <span>
+        {t.name} is {t.listed ? "on Your list" : "in Recent"}.
+      </span>
       <button onClick={ctl.back}>Reopen it</button>
     </div>
   );
