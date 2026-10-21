@@ -1,12 +1,14 @@
 /**
- * Step 9's screenshots (plan §12, PR 4): the report card export for Mud Creek and Roan, One page and Full, as rendered
- * (desktop 1280 × 800, and a phone at 375) and as printed (Chromium's PDF of the page, saved beside the shots). The
- * aerial tiles load live (the replay aborts tiles). Run by `pnpm screenshots`.
+ * Step 9's screenshots (plan §12, PR 4), desktop (1280 × 800) then phone (375 × 812):
+ * - the report card export for Mud Creek and Roan, One page and Full, as rendered and as a print preview (print media,
+ *   the whole page), with Chromium's PDF of each saved beside the shots (desktop);
+ * - the button's place: the panel header's ⋯ and a Favorites row's ⋯, each open.
+ * The aerial tiles load live (the replay aborts tiles). Run by `pnpm screenshots`.
  */
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 import { writeFileSync } from "node:fs";
 import { loadFixture, type FixtureSlug } from "../test/support/fixtures";
-import { importParcels, openExplorer, seedScreens, settled, visit } from "../e2e/flow";
+import { importParcels, openExplorer, openFromList, seedScreens, settled, visit } from "../e2e/flow";
 import { replayHar } from "../e2e/replay";
 
 const OUT = "test-results/screenshots";
@@ -39,8 +41,8 @@ for (const phone of [false, true]) {
         : { viewport: { width: 1280, height: 800 } },
     );
 
-    test("One page and Full, as rendered and as printed", async ({ page, context }) => {
-      test.setTimeout(240_000);
+    test("One page and Full, as rendered and as printed; the buttons", async ({ page, context }) => {
+      test.setTimeout(300_000);
       await replayHar(context, "ferney-creek-52-47A");
       await liveImagery(context);
       await openExplorer(page, "ferney-creek-52-47A");
@@ -53,15 +55,37 @@ for (const phone of [false, true]) {
         for (const preset of ["one", "full"] as const) {
           await visit(page, `/parcel/${key}/report?preset=${preset}`);
           await expect(page.locator(".rp-sheet h1")).toHaveText(name);
-          await page.waitForTimeout(2500);
+          await expect(page.getByRole("button", { name: "Print or save as PDF" })).toBeEnabled({
+            timeout: 60_000,
+          });
+          await page.waitForTimeout(800);
           const base = `${OUT}/${device}-report-${SHORT[slug]}-${preset}`;
           await page.screenshot({ path: `${base}.png` });
           if (!phone) {
-            await page.screenshot({ path: `${base}-whole.png`, fullPage: true });
+            await page.emulateMedia({ media: "print" });
+            await page.screenshot({ path: `${base}-print.png`, fullPage: true });
+            await page.emulateMedia({ media: null });
             writeFileSync(`${base}.pdf`, await page.pdf({ preferCSSPageSize: true, printBackground: true }));
           }
         }
       }
+
+      // The button's place: the panel header's ⋯, open; then a Favorites row's ⋯, open.
+      await visit(page, "/library");
+      await openFromList(page, loadFixture(SLUGS[1]).input.name);
+      await page.getByRole("button", { name: "More for this parcel" }).first().click();
+      await expect(page.getByRole("menuitem", { name: "Report card" })).toBeVisible();
+      await page.waitForTimeout(400);
+      await page.screenshot({ path: `${OUT}/${device}-report-button-panel.png` });
+      await page.keyboard.press("Escape");
+      await page.getByRole("link", { name: "Your list", exact: true }).click();
+      await page
+        .locator(".lib-row:visible")
+        .first()
+        .getByRole("button", { name: /^More for / })
+        .click();
+      await expect(page.getByRole("menuitem", { name: "Report card" })).toBeVisible();
+      await page.screenshot({ path: `${OUT}/${device}-report-button-row.png` });
     });
   });
 }

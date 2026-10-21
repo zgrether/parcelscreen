@@ -184,6 +184,9 @@ export const PRINT_AREA = { width: 720, height: 960 - 12 } as const;
 export const nextFit = (level: number, height: number): number | null =>
   height <= PRINT_AREA.height || level >= FIT_STEPS.length ? null : level + 1;
 
+/** The report card's page for a parcel (step 9 plan §1). */
+export const reportHref = (key: string): string => `/parcel/${encodeURIComponent(key)}/report`;
+
 /** The two presets, and the URL's and the pref's word for each. */
 export type Preset = "one" | "full";
 export const presetOf = (s: string | null | undefined): Preset | null =>

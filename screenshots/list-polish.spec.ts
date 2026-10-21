@@ -35,7 +35,7 @@ for (const phone of [false, true]) {
 
       await rows
         .first()
-        .getByRole("button", { name: /^Order: / })
+        .getByRole("button", { name: /^More for / })
         .click();
       await expect(page.getByRole("menu")).toBeVisible();
       await shot(page, "2-menu");

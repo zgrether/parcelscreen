@@ -866,5 +866,34 @@ until step 5 (Q14).
     - **Your lines and marks** (`ps.marks`, a device pref, on by default): one map setting hiding the open parcel's
       lines, marks and house site; each row's eye works within it.
     - The tree's in-place rename gives way to the open row's Name box; a line's Edit reads "Edit on the map".
+62. **The report card export** (owner, 2026-10-21; step 9 plan, `docs/plans/step-9-report-export.md`, from Zach's
+    pre-approved brief, its §9 questions answered with the recommendations; roadmap step 9, PRs 0–4).
+    - **The page:** `/parcel/<key>/report`, rendered from the parcel and its saved screen alone (no engine run; the
+      network only for the map's tiles, and for the saved screen itself when it's in the synced space and not yet on
+      the device). No app chrome: its own bar (Back, One page | Full, Print or save as PDF) doesn't print. The sheet is
+      laid out at Letter size on screen too, a phone scaling it down. `ps.reportPreset` (a device pref) and `?preset=`
+      keep the preset. A stale screen still prints, saying "Graded on an earlier boundary."
+    - **One page:**
+      - the name, acres, asking price and the screen's date;
+      - the map;
+      - each member's grade with priorities, the viewer first, with their answer line and "Held at Maybe by" when it
+        applies;
+      - the viewer's card by tier;
+      - the takes;
+      - the questions for the agent.
+      It fits one US Letter page by shortening, in order (rows' short values, one-line comments, a smaller map,
+      one-line answers), never by dropping a section.
+    - **Full:** the summary unshortened with Still unknown's checklist, then the brief's sections, each a new section:
+      the priorities with weights; best site and alternatives; access and driveway; winter sun and the horizon; night
+      sky; soils, septic and flood; drive times; listing facts and notes; lines and marks; data sources with dates and
+      the engine version; the closing line. The report's blocks render in a new `print` variant (no map pointers). The
+      blocks the brief doesn't name sit in the nearest section. Nothing for steps 10 and 12 until they exist.
+    - **The map:** a static render, never a capture of the live canvas. USGS imagery tiles (Esri for a missing tile)
+      as images, with an SVG for the boundary, the best site and the alternatives, your lines, a marked house, a north
+      arrow and a scale bar, and the key and credit under it. Print waits for the tiles to load or fail.
+    - **Black and white:** letters in outlined boxes, the Must marks (✓ ! ✗ ?), verdict words, dashes per line kind.
+    - **Where:** Report card in the panel header's ⋯ (disabled until graded: "Grade it first") and in a Favorites row's ⋯,
+      which now shows in every sort (Move up and Move down in My order only).
+    - **Offline:** a precached shell, `/parcel/_/report`, which the service worker serves for any `/parcel/*/report`.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.
