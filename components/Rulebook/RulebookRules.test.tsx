@@ -120,8 +120,8 @@ describe("the rulebook (VR7)", () => {
     expect(text).not.toContain("A at 3,000 ft");
     expect(text).toContain("December sun (45%)");
     expect(text).toMatch(/Elevation at the build site 30 10/); // the weights table: both columns
-    // The default alone (a fresh profile): one column, the first with "Mine".
-    expect(render(rulebook(C))).toMatch(/Mine.*Elevation at the build site 30 Best homesite/);
+    // The default alone (a fresh profile): one column, headed "You" (polish #33; was "Mine").
+    expect(render(rulebook(C))).toMatch(/You.*Elevation at the build site 30 Best homesite/);
   });
 
   it("reads the Settings: the frost belt's start and the grade limit", () => {

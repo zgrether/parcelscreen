@@ -14,10 +14,11 @@ import { otherMembers, type Member } from "@/lib/client/household";
 import { RUBRICS_CHANGED } from "@/lib/client/profileEvents";
 import { switchProfile } from "@/lib/client/profiles";
 import { profileRubrics } from "@/lib/client/rubrics";
-import { reportCard } from "@/lib/report/card";
+import { reportCard, VERDICT_WORD } from "@/lib/report/card";
 import type { Drawn } from "@/lib/report/marks";
 import type { PartialScreenResult as Result } from "@/lib/screen/types";
 import { differences } from "@/lib/report/household";
+import { WHY_STARTING } from "@/lib/rubric/words";
 import { TheirTake, YourTake } from "./Takes";
 
 const subscribe = (changed: () => void) => {
@@ -60,9 +61,12 @@ function Rated({ m, result, drawn }: { m: Member; result: Result; drawn?: Drawn 
     <>
       <p className="others-grade">
         <span className={`card-grade small g-${theirs.grade ?? "none"}`}>{theirs.grade ?? "–"}</span>{" "}
-        <span className={`card-word small v-${theirs.verdict.toLowerCase()}`}>{theirs.verdict}</span>
+        <span className={`card-word small v-${theirs.verdict.toLowerCase()}`}>
+          {VERDICT_WORD[theirs.verdict]}
+        </span>
       </p>
-      <p className="tiny others-reason">{theirs.reason}</p>
+      {/* Polish: the verdict is just above, so the reason starts after it ("Contender." once, not twice). */}
+      <p className="tiny others-reason">{withoutVerdict(theirs.reason, VERDICT_WORD[theirs.verdict])}</p>
       {diffs.length > 0 ? (
         <ul className="others-diffs">
           {diffs.map((d) => (
@@ -71,8 +75,11 @@ function Rated({ m, result, drawn }: { m: Member; result: Result; drawn?: Drawn 
               {d.weighs
                 ? `${d.mine} for you and ${m.name}; it counts for ${d.weighs} in ${m.name}'s grade`
                 : `you ${d.mine}, ${m.name} ${d.theirs}`}
-              <span className="tiny muted others-why">
-                Why, for {m.name}: {d.why}
+              <span className="others-why">
+                {/* Polish: "On the starting list." explained nothing to a first-time reader. */}
+                {d.why === WHY_STARTING
+                  ? `${m.name} hasn't moved this one: it's where the starting list puts it.`
+                  : `Why, for ${m.name}: ${d.why}`}
               </span>
             </li>
           ))}
@@ -97,4 +104,9 @@ function NoPriorities({ m }: { m: Member }) {
       </button>
     </>
   );
+}
+
+/** The card's reason without its leading verdict ("Contender. Strong…" → "Strong…"), shown under the verdict itself. */
+function withoutVerdict(reason: string, verdict: string): string {
+  return reason.startsWith(`${verdict}.`) ? reason.slice(verdict.length + 1).trimStart() : reason;
 }

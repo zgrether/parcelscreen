@@ -6,7 +6,8 @@
  *   re-screen on open, say): "Try again".
  * - After a run, the button shows only with a reason, the first that applies in this order: the boundary changed; the
  *   house moved and no live session can re-assess it; the lines changed; the settings changed; steps failed ("Try again:
- *   N sources didn't load"). With none, there's no button: the old permanent "Run again" is gone.
+ *   N sources didn't load"). With none, there's no button: the old permanent "Run again" is gone. Changed settings
+ *   are named, the first two (polish #10): "Grade again: road veto changed".
  * - The log, folded after a run: "Graded in 66 s". The failed count joins it only when the button doesn't carry it
  *   (owner, 10/19: the count appears once).
  */
@@ -18,7 +19,7 @@ export type GradeButton =
   | { kind: "first" }
   | { kind: "running" }
   | { kind: "stopped" }
-  | { kind: "again"; reason: GradeReason }
+  | { kind: "again"; reason: GradeReason; changed?: readonly string[] }
   | { kind: "retry"; failed: number };
 
 export interface GradeState {
@@ -44,7 +45,7 @@ export function gradeButton(s: GradeState): GradeButton | null {
   if (f?.boundary) return { kind: "again", reason: "boundary" };
   if (f?.house && !s.sessionLive) return { kind: "again", reason: "house" };
   if (f?.lines) return { kind: "again", reason: "lines" };
-  if (f?.settings) return { kind: "again", reason: "settings" };
+  if (f?.settings) return { kind: "again", reason: "settings", changed: f.settingsChanged ?? [] };
   if (s.failed > 0) return { kind: "retry", failed: s.failed };
   return null;
 }
@@ -55,6 +56,39 @@ const REASON_WORDS: Record<GradeReason, string> = {
   lines: "lines changed",
   settings: "settings changed",
 };
+
+/** A setting's name on the button, by its name in the config; the Settings dialog's labels are too long for it. */
+const SETTING_WORDS: Record<string, string> = {
+  houseMin: "house site score",
+  benchMinAcres: "house site area",
+  shelfMin: "shelf score",
+  shelfMinAcres: "shelf area",
+  compactMinAcres: "compact site area",
+  gardenMin: "garden score",
+  gardenMinAcres: "garden area",
+  aspectFrom: "aspect",
+  aspectTo: "aspect",
+  thermalMinFt: "frost pocket height",
+  shallowBedrockCm: "shallow bedrock",
+  sunHoursWanted: "winter sun hours",
+  canopyDeg: "tree canopy",
+  roadMaxGradePct: "road grade warning",
+  roadVetoGradePct: "road veto",
+  dw: "driveway costs",
+  budget: "budget",
+  demResM: "DEM cell size",
+  anchors: "drive-time anchors",
+  timeZone: "time zone",
+};
+
+/** "road veto", "road veto and budget", "road veto, budget and 2 more"; null when none is known. */
+export function settingsNamed(changed: readonly string[]): string | null {
+  const words = [...new Set(changed.map((k) => SETTING_WORDS[k] ?? k))];
+  if (words.length === 0) return null;
+  if (words.length === 1) return words[0]!;
+  if (words.length === 2) return `${words[0]} and ${words[1]}`;
+  return `${words[0]}, ${words[1]} and ${words.length - 2} more`;
+}
 
 export const sourcesDidntLoad = (n: number): string => `${n} source${n === 1 ? "" : "s"} didn't load`;
 
@@ -67,6 +101,10 @@ export function gradeLabel(b: GradeButton): string {
     case "stopped":
       return "Try again";
     case "again":
+      if (b.reason === "settings") {
+        const named = settingsNamed(b.changed ?? []);
+        if (named) return `Grade again: ${named} changed`;
+      }
       return `Grade again: ${REASON_WORDS[b.reason]}`;
     case "retry":
       return `Try again: ${sourcesDidntLoad(b.failed)}`;

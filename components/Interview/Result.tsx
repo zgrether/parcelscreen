@@ -15,6 +15,17 @@ import { rubricFromAnswers } from "@/lib/rubric/interview/generate";
 import { EDITOR_TITLES, minimumLine, plainLine, TIER_NAMES } from "@/lib/rubric/words";
 
 export const MUST_NOTE = "That will rule out most land.";
+/**
+ * What each list means, one line under its heading (polish #29): a limit and a ranked row on the same factor read as two
+ * things, not one said twice.
+ */
+export const TIER_NOTES = {
+  must: "A parcel that misses one of these is Not for us.",
+  should: "In order: the first counts most.",
+  could: "In order, each counting less than the ones above.",
+} as const;
+/** A limit whose factor is ranked too. */
+export const ALSO_RANKED = "a limit; it's also ranked below";
 export const REPLACE_QUESTION = "Replace the priorities you changed?";
 /** Its buttons (owner, 10/18, after the fresh-eyes review: "Use my answers" and "Keep mine" both read as "mine"). */
 export const REPLACE_YES = "Replace with the new list";
@@ -26,6 +37,7 @@ export function InterviewResult({ iv }: { iv: Interview }) {
   const r = made.rubric;
   const cols = columnsOf(r);
   const ranked = (tier: "should" | "could") => cols[tier].filter((c) => c.kind === "factor");
+  const rankedFactors = new Set([...ranked("should"), ...ranked("could")].map((c) => c.factor));
 
   return (
     <div className="iv-result">
@@ -41,6 +53,8 @@ export function InterviewResult({ iv }: { iv: Interview }) {
       {status === "ask" && (
         <section className="iv-ask" role="alertdialog" aria-labelledby="iv-ask-q">
           <p id="iv-ask-q">{REPLACE_QUESTION}</p>
+          {/* Polish (step 4's review): which list is shown below. */}
+          <p className="tiny muted">The list below is the one your answers make.</p>
           <div className="iv-ask-actions">
             <button
               type="button"
@@ -73,12 +87,16 @@ export function InterviewResult({ iv }: { iv: Interview }) {
 
       <section className="iv-summary" aria-label="Your priorities">
         <h2>{TIER_NAMES.must}</h2>
+        <p className="tiny muted iv-tier-note">{TIER_NOTES.must}</p>
         <ul>
           {cols.must.map((c) => (
             <li key={`${c.kind}:${c.factor}`}>
               {c.kind === "minimum"
                 ? minimumLine(r.musts.find((m) => m.factor === c.factor && m.threshold !== undefined)!)
                 : plainLine(r, c.factor)}
+              {c.kind === "minimum" && rankedFactors.has(c.factor) && (
+                <span className="tiny muted"> ({ALSO_RANKED})</span>
+              )}
             </li>
           ))}
         </ul>
@@ -88,6 +106,7 @@ export function InterviewResult({ iv }: { iv: Interview }) {
             ranked(tier).length > 0 && (
               <div key={tier}>
                 <h2>{TIER_NAMES[tier]}</h2>
+                <p className="tiny muted iv-tier-note">{TIER_NOTES[tier]}</p>
                 <ol>
                   {ranked(tier).map((c) => (
                     <li key={c.factor}>
@@ -109,11 +128,12 @@ export function InterviewResult({ iv }: { iv: Interview }) {
         <Link className="btn" href="/priorities">
           Fine-tune in What matters to you
         </Link>
+        {/* Polish #29: each button says where it goes. */}
         <Link className="btn secondary" href="/explore">
-          Done
+          Go to the map
         </Link>
         <button type="button" className="btn secondary" onClick={iv.back}>
-          Back
+          Back to the questions
         </button>
       </nav>
     </div>

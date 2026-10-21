@@ -1,5 +1,5 @@
 /**
- * A drawn line after a screen (owner, A, 2026-10-13): the banner says so, with "Let the app consider it"; a tap on the
+ * A drawn line after a screen (owner, A, 2026-10-13): the banner says so, with "Grade again" (owner, #240); a tap on the
  * line selects it in the Layers tree, with its details (name, kind, condition, width, note, Edit, Delete; owner, #127);
  * the row's × and Delete offer Undo; the Easement panel lists "Your lines", whose Edit selects the line in Layers.
  */
@@ -57,10 +57,10 @@ test("a drawn line: the banner, its layer and details (name, kind, condition, wi
   // The grade button names the reason (step 4c).
   await expect(page.locator(".grade-btn")).toHaveText("Grade again: lines changed");
 
-  // The results stay, under the owner's banner, with "Let the app consider it" (it runs the grade again).
+  // The results stay, under the owner's banner, with "Grade again", as the toolbar's (owner, #240).
   const banner = page.locator(".card-stale");
   await expect(banner).toContainText("You drew or changed a line after this screen.");
-  await expect(banner.getByRole("button", { name: "Let the app consider it" })).toBeVisible();
+  await expect(banner.getByRole("button", { name: "Grade again", exact: true })).toBeVisible();
 
   // A tap on the line opens its row in Details' Lines & marks (owner, #127; step 8b): "Track 1", with its condition and
   // length on the right; its details in the open row, headed by its name: a track, pioneer, 10 ft.
@@ -95,26 +95,22 @@ test("a drawn line: the banner, its layer and details (name, kind, condition, wi
   await details.getByLabel("Note for Existing drive 1").fill("From the gate to the barn");
   await details.getByLabel("Note for Existing drive 1").press("Enter");
 
-  // Renamed in its open row (step 8b: the row's Name box; the tree's in-place rename went with the tree).
+  // Renamed in its open row (step 8b: the row's Name box), saved as it's typed: the row's title follows with no Enter
+  // (polish #22), and the box keeps the focus.
   await details.getByLabel("Name").fill("Gravel lane");
-  await details.getByLabel("Name").press("Enter");
   await expect(row("Gravel lane")).toHaveAttribute("aria-expanded", "true");
   await expect(details.getByLabel("Name")).toHaveValue("Gravel lane");
+  await expect(details.getByLabel("Name")).toBeFocused();
 
-  // The row's ×, then Undo; the open row's Delete, then Undo: each time the line comes back as it was.
+  // One delete control (polish #22): the row's ×, then Undo, and the line comes back as it was.
+  await expect(details.getByRole("button", { name: "Delete", exact: true })).toHaveCount(0);
   const toast = page.locator(".line-undo");
-  for (const del of [
-    row("Gravel lane").getByRole("button", { name: "Delete Gravel lane" }),
-    details.getByRole("button", { name: "Delete", exact: true }),
-  ]) {
-    if (!(await details.count())) await row("Gravel lane").click();
-    await del.click();
-    await expect(row("Gravel lane")).toHaveCount(0);
-    await expect(toast).toContainText("Gravel lane deleted");
-    await toast.getByRole("button", { name: "Undo" }).click();
-    await expect(toast).toHaveCount(0);
-    await expect(row("Gravel lane")).toHaveCount(1);
-  }
+  await row("Gravel lane").getByRole("button", { name: "Delete Gravel lane" }).click();
+  await expect(row("Gravel lane")).toHaveCount(0);
+  await expect(toast).toContainText("Gravel lane deleted");
+  await toast.getByRole("button", { name: "Undo" }).click();
+  await expect(toast).toHaveCount(0);
+  await expect(row("Gravel lane")).toHaveCount(1);
   const markup = await page.evaluate(
     () => (JSON.parse(window.__psKv!.getItem("ps.parcels")!) as { open: { markup: unknown[] } }).open.markup,
   );

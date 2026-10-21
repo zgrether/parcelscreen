@@ -82,7 +82,7 @@ test("a row on Must: a minimum too, its ranked card stays, marked min", async ({
   expect(errors).toEqual([]);
 });
 
-test("the first reorder by dragging: applied at once, the notice's table, its Undo, gone at the next change", async ({
+test("the first reorder by dragging: applied at once, the notice's table, the page's Undo, gone at the next change", async ({
   page,
 }) => {
   await openRubric(page);
@@ -97,10 +97,12 @@ test("the first reorder by dragging: applied at once, the notice's table, its Un
     "Town and hospital",
   ]);
   const notice = page.locator(".rubric-notice");
-  await expect(notice).toContainText("Your order now sets the weights.");
+  await expect(notice).toContainText("Weights follow your order now.");
   await notice.getByRole("button", { name: "See what changed" }).click();
   await expect(notice.locator("tr", { hasText: "Night sky" })).toContainText(/10(\.0)?%\s*21\.4%/);
-  await notice.getByRole("button", { name: "Undo" }).click();
+  // The page's Undo (polish #25: the notice has none of its own).
+  await expect(notice.getByRole("button", { name: "Undo" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Undo", exact: true }).first().click();
   await expect(notice).toHaveCount(0);
   await expect(names(column(page, "Really want")).nth(3)).toHaveText("Night sky");
   // Again, then another change: the notice goes.
@@ -138,7 +140,7 @@ test("a change re-grades the Library at once, and nothing asks for a re-screen",
   await importParcels(page, [FERNEY]);
   await seedScreens(page, [FERNEY]);
   await visit(page, "/library");
-  const grade = page.locator(".lib-table tbody tr").first().locator("td").nth(7);
+  const grade = page.locator(".lib-table tbody tr").first().locator(".lib-c-grade");
   await expect(grade).toHaveText(/^[A-F]/);
   const before = await grade.textContent();
   await visit(page, "/priorities");
@@ -217,7 +219,7 @@ test("the keyboard: Space picks a card up, the arrows move it, Space puts it dow
   await page.waitForTimeout(50);
   await page.keyboard.press("Space");
   await expect(names(column(page, "Really want")).nth(2)).toHaveText("Night sky");
-  await expect(page.locator(".rubric-notice")).toContainText("Your order now sets the weights.");
+  await expect(page.locator(".rubric-notice")).toContainText("Weights follow your order now.");
   expect(errors).toEqual([]);
 });
 

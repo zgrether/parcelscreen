@@ -56,7 +56,7 @@ describe("a threshold Must on the card", () => {
     });
     expect(c.verdict).toBe("Pass");
     expect(c.reason).toBe(
-      `Pass: elevation at the build site fails your must (${elevation.short}; you asked for at least 3,000 ft).`,
+      `Not for us: elevation at the build site fails your must (${elevation.short}; you asked for at least 3,000 ft).`,
     );
     // The grade itself is unchanged: a Must gates, it never adds or removes points.
     expect([c.points, c.grade]).toEqual([base.points, base.grade]);

@@ -1,7 +1,7 @@
 /**
  * The answer (step 7 plan §1.1): the grade and verdict with one line of reason built from the person's rubric. Up to
  * two strengths (the rows they weigh most that grade A or B) and the biggest miss (the row that costs the grade most),
- * each against their own B/C edge: "B, Contender. Strong winter sun and trails; 38 minutes to an ER is past your 30."
+ * each against their own B/C edge: "B, Contender. Strong winter sun and trails; 38 minutes to an ER is past your 30-minute limit."
  * A Must comes first: a failed one, a limit not met, or something to check. Pure, from a card and its result.
  *
  * The card's own reason line ("Contender. Weakest part: …") is unchanged; it's in the Grade and verdict panel.
@@ -12,7 +12,7 @@ import type { PartialScreenResult } from "../screen/types";
 import { weightsOf } from "../rubric/weights";
 import type { RowKey } from "../rubric/types";
 import { EDITOR_TITLES } from "../rubric/words";
-import type { Card, Row } from "./card";
+import { VERDICT_WORD, type Card, type Row } from "./card";
 
 /** Each row as a strength, after "Strong". */
 export const STRENGTH: Record<RowKey, string> = {
@@ -37,7 +37,7 @@ function groceryMin(r: PartialScreenResult): number | null {
   return gs.length ? Math.min(...gs.map((d) => d.min)) : null;
 }
 
-/** A row past its B/C edge, in the person's terms: "38 minutes to an ER is past your 30". */
+/** A row past its B/C edge, in the person's terms: "38 minutes to an ER is past your 30-minute limit". */
 export function missLine(row: Row, card: Card, r: PartialScreenResult): string {
   const b = card.rubric.rubric.bands;
   const v = row.measure?.value;
@@ -58,20 +58,20 @@ export function missLine(row: Row, card: Card, r: PartialScreenResult): string {
       break;
     case "driveway":
       if (v !== undefined)
-        return `the driveway is ${fmt(v)}% at its steepest, past your ${fmt(edge(b.drivewayPct))}%`;
+        return `the driveway is ${fmt(v)}% at its steepest, past your ${fmt(edge(b.drivewayPct))}% limit`;
       break;
     case "trails":
       if (row.measure?.unit === "min" && v !== undefined)
-        return `the nearest trailhead is ${fmt(v)} minutes away, past your ${fmt(edge(b.trailheadMin))}`;
+        return `the nearest trailhead is ${fmt(v)} minutes away, past your ${fmt(edge(b.trailheadMin))}-minute limit`;
       if (row.measure?.unit === "km" && v !== undefined)
         return `the nearest trailhead is ${fmt(v / KM_PER_MI, 1)} mi away`;
       break;
     case "town": {
       const g = groceryMin(r);
       if (v !== undefined && v > edge(b.erMin))
-        return `${fmt(v)} minutes to an ER is past your ${fmt(edge(b.erMin))}`;
+        return `${fmt(v)} minutes to an ER is past your ${fmt(edge(b.erMin))}-minute limit`;
       if (g !== null && g > edge(b.groceryMin))
-        return `${fmt(g)} minutes to groceries is past your ${fmt(edge(b.groceryMin))}`;
+        return `${fmt(g)} minutes to groceries is past your ${fmt(edge(b.groceryMin))}-minute limit`;
       break;
     }
     case "garden":
@@ -154,10 +154,10 @@ export function answerReason(card: Card, r: PartialScreenResult): string {
   return parts.length ? `${cap(parts.join("; "))}.` : "";
 }
 
-/** The answer, whole: "B, Contender. Strong winter sun and trails; 38 minutes to an ER is past your 30." */
+/** The answer, whole: "B, Contender. Strong winter sun and trails; 38 minutes to an ER is past your 30-minute limit." */
 export function answerLine(card: Card, r: PartialScreenResult): string {
   const reason = answerReason(card, r);
-  return `${card.grade ?? "–"}, ${card.verdict}.${reason ? ` ${reason}` : ""}`;
+  return `${card.grade ?? "–"}, ${VERDICT_WORD[card.verdict]}.${reason ? ` ${reason}` : ""}`;
 }
 
 /** What didn't load, for the line under the answer: "Incomplete: the FEMA flood map didn't load." */

@@ -210,7 +210,7 @@ export function Compare() {
             </div>
             <p className="tiny muted cmp-legend">
               ✓ pass · ! warning · ✗ fail · ? unknown &nbsp; ↑ best in its row · ↓ worst in its row. Costs and
-              the budget are pending until the cost to enjoy is built.
+              the budget say &ldquo;not yet&rdquo; until the app prices them.
             </p>
             {addable.length > 0 && (
               <label className="cmp-add">

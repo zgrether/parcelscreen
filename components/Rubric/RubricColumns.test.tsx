@@ -46,13 +46,13 @@ describe("the columns", () => {
 });
 
 describe("the notice", () => {
-  it("says the order sets the weights, with See what changed and Undo (the table opens on demand)", () => {
+  it("says the weights follow the order, with See what changed and no Undo of its own (polish #25; the table opens on demand)", () => {
     const out = moveCard(D, { kind: "factor", factor: "sky" }, "should", 1);
     if (!out.ok || !out.switched) throw new Error("no switch");
-    const html = renderToStaticMarkup(<WeightsNotice switched={out.switched} undo={noop} dismiss={noop} />);
+    const html = renderToStaticMarkup(<WeightsNotice switched={out.switched} dismiss={noop} />);
     expect(html).toContain(NOTICE_TEXT);
     expect(html).toContain("See what changed");
-    expect(html).toContain("Undo");
+    expect(html).not.toContain("Undo");
     expect(html).not.toContain("<table");
   });
 });

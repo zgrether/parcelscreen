@@ -146,7 +146,7 @@ test("everyone's grade; How Julie would rate it; Ask Julie → Waiting for you �
   await expect(julie.locator(".lib-row:visible")).toHaveCount(1);
   // Step 6b: the ask's note on its row.
   await expect(listRow(julie, "52-47A").locator(".lib-ask-note")).toHaveText(
-    "Profile 1 asked for your take: “The spring by the road?”",
+    "Profile 1 asked for your take: “The spring by the road?” Open it to answer.",
   );
   await listRow(julie, "52-47A").locator(".lib-open").click();
   const yours = julie.getByRole("region", { name: "Your take" });
@@ -159,10 +159,15 @@ test("everyone's grade; How Julie would rate it; Ask Julie → Waiting for you �
 
   // Zach: her take beside her grade, new (step 6b: the dot, and a count on the badge), and in her section.
   await afterTabSwitch(zach, async () => {
-    await expect(listRow(zach, "52-47A").locator(".take-chip")).toHaveText("says Maybe", { timeout: 1000 });
+    await expect(listRow(zach, "52-47A").locator(".take-chip")).toHaveText("Julie says Maybe", {
+      timeout: 1000,
+    });
   });
   await expect(listRow(zach, "52-47A").locator(".new-dot")).toBeVisible();
   await expect(zach.locator(".app-badge")).toHaveText("1");
+  // Polish #13: her comment's start on the row; #14: New takes (1) keeps the rows with a take not seen yet.
+  await expect(listRow(zach, "52-47A").locator(".take-note")).toHaveText("“Steep drive, lovely spring.”");
+  await expect(zach.getByRole("button", { name: "New takes (1)" })).toBeVisible();
   await expect(zach.locator(".app-badge")).toHaveAttribute("aria-label", "1 new take");
   await listRow(zach, "52-47A").locator(".lib-open").click();
   await expect(zach.getByRole("region", { name: "How Julie would rate it" })).toContainText(
@@ -226,7 +231,9 @@ test("polling (step 6b): a take saved on one device appears on the other within 
   await expect(yours).toContainText("Change");
 
   // Zach, untouched: her take arrives by the poll.
-  await expect(listRow(zach, "52-47A").locator(".take-chip")).toHaveText("says Yes", { timeout: 35_000 });
+  await expect(listRow(zach, "52-47A").locator(".take-chip")).toHaveText("Julie says Yes", {
+    timeout: 35_000,
+  });
   // Held: the row above grows a pixel with the take's chip, and the browser's scroll anchoring keeps the view still.
   expect(Math.abs((await listScroll(zach)) - scrolled)).toBeLessThanOrEqual(2);
 });

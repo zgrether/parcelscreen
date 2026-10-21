@@ -4,7 +4,7 @@
  * Info panel's details area). Each box saves on Enter or leaving it, for the parcel open as `serial`. Keyed by the
  * markup, so the boxes start from its own values.
  */
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { area, length, lineString } from "@turf/turf";
 import {
   KIND_NAME,
@@ -63,7 +63,7 @@ export function LineDetails({ ctl, m }: { ctl: ExploreController; m: LineMarkup 
   const chosen = ctl.state.store.open?.drivewayLine === m.id;
   return (
     <>
-      <LineName key={m.name} name={m.name} save={(name) => ctl.renameMarkup(m.id, name, serial)} />
+      <LineName name={m.name} save={(name) => ctl.renameMarkup(m.id, name, serial)} />
       <p className="ip-note">
         {measured ? lineSummary(measured) : `${Math.round(ft).toLocaleString()} ft`}
         {!measured && result && " (run again to grade it)"}
@@ -161,7 +161,7 @@ export function MarkDetails({ ctl, m }: { ctl: ExploreController; m: PointMarkup
   const kinds = m.shape === "point" ? POINT_KINDS : AREA_KINDS;
   return (
     <>
-      <LineName key={m.name} name={m.name} save={(name) => ctl.renameMarkup(m.id, name, serial)} />
+      <LineName name={m.name} save={(name) => ctl.renameMarkup(m.id, name, serial)} />
       <p className="ip-note">
         {m.shape === "point"
           ? "Drag it on the map to move it."
@@ -247,25 +247,58 @@ function RecordedIn({ value, save }: { value: string; save(text: string): void }
 }
 
 /** The details' heading: the line's name, typed over (owner, #127); kept on Enter or leaving the box, unless blank. */
+/**
+ * A line's or mark's name, saved as it's typed (polish #22: the row's title follows), a moment after the last key; an
+ * empty name isn't kept, and leaving the box puts the saved one back. A rename from elsewhere shows unless you're typing.
+ */
 function LineName({ name, save }: { name: string; save(name: string): void }) {
   const [text, setText] = useState(name);
-  const keep = () => {
-    if (text.trim() && text.trim() !== name) save(text);
-    else setText(name);
+  const box = useRef<HTMLInputElement>(null);
+  const timer = useRef<number | null>(null);
+  const typed = useRef(name);
+  const latest = useRef({ name, save });
+  useEffect(() => {
+    latest.current = { name, save };
+    if (document.activeElement !== box.current) setText(name);
+  }, [name, save]);
+  const keep = (t: string) => {
+    if (timer.current !== null) window.clearTimeout(timer.current);
+    timer.current = null;
+    if (t.trim() && t.trim() !== latest.current.name) latest.current.save(t);
   };
+  // Leaving the panel saves what's pending.
+  useEffect(
+    () => () => {
+      if (timer.current !== null) keep(typed.current);
+    },
+    [],
+  );
   return (
     <input
+      ref={box}
       className="ip-line-name"
       aria-label="Name"
       value={text}
-      onChange={(e) => setText(e.target.value)}
-      onBlur={keep}
+      onChange={(e) => {
+        const t = e.target.value;
+        setText(t);
+        typed.current = t;
+        if (timer.current !== null) window.clearTimeout(timer.current);
+        timer.current = window.setTimeout(() => keep(t), NAME_DEBOUNCE_MS);
+      }}
+      onBlur={() => {
+        keep(text);
+        if (!text.trim()) setText(latest.current.name);
+      }}
       onKeyDown={(e) => {
-        if (e.key === "Enter") keep();
+        if (e.key === "Enter") keep(text);
       }}
     />
   );
 }
+
+/** A name saves this long after the last keystroke (and at once on Enter or leaving the box). */
+const NAME_DEBOUNCE_MS = 500;
 
 /** A line's width, typed: kept on Enter or leaving the box when it's a positive number, else put back. */
 function Width({
@@ -285,7 +318,8 @@ function Width({
   };
   return (
     <label className="ip-line-row ip-note">
-      Width
+      {/* Polish: an easement's width is its right of way's, the one the screen reads. */}
+      {unused ? "Width" : "Right-of-way width"}
       <input
         inputMode="decimal"
         aria-label="Width in feet"

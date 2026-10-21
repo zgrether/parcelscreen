@@ -239,7 +239,7 @@ describe("the gates", () => {
     r.sites![0]!.flood = true;
     const c = atSite1(r, ZACH);
     expect(c.verdict).toBe("Pass");
-    expect(c.reason).toBe("Pass: the build site is in a FEMA flood zone.");
+    expect(c.reason).toBe("Not for us: the build site is in a FEMA flood zone.");
   });
 
   it("a placed house is the build site: its flood zone and its elevation (owner, #109 review)", () => {
@@ -265,6 +265,7 @@ describe("the gates", () => {
     const c = reportCard(r, ZACH);
     expect(c.verdict).toBe("Contender"); // the septic warn is its only warn
     expect(c.incomplete).toEqual([]);
+    expect(c.heldBy).toBeUndefined();
   });
 
   it("data that didn't load: not a warn; the verdict is at most a Maybe and says what to re-run", () => {
@@ -283,7 +284,7 @@ describe("the gates", () => {
     r.sites![0]!.flood = true;
     r.flood = { zones: ["AE"], sfha: true, sfhaAcres: 3, mapped: true };
     expect(atSite1(r, ZACH).reason).toBe(
-      "Pass: the build site is in a FEMA flood zone (incomplete: the sky atlas didn't load, run again).",
+      "Not for us: the build site is in a FEMA flood zone (incomplete: the sky atlas didn't load, run again).",
     );
   });
 
@@ -358,7 +359,7 @@ describe("the gates", () => {
     r.driveway = { ...r.driveway!, entrances: [], routes: [] };
     expect(gates(r)).toMatchObject({ access: "fail", easement: "fail" });
     expect(reportCard(r, JULIE).reason).toBe(
-      "Pass: no road within 0.25 mi of the boundary (landlocked, or TIGER is wrong).",
+      "Not for us: no road within 0.25 mi of the boundary (landlocked, or TIGER is wrong).",
     );
   });
 
@@ -640,10 +641,12 @@ describe("the rows", () => {
     expect(c.reason).toBe(
       "Maybe. Check first: your build doesn't fit on the gentle ground (0.2 ac, 0.4× the footprint).",
     );
+    // Polish #5: the line under the reason names what holds it.
+    expect(c.heldBy).toEqual(["Room to build"]);
     // A fail still comes first.
     r.sites![0]!.flood = true;
     r.flood = { zones: ["AE"], sfha: true, sfhaAcres: 3, mapped: true };
-    expect(atSite1(r, ZACH).reason).toBe("Pass: the build site is in a FEMA flood zone.");
+    expect(atSite1(r, ZACH).reason).toBe("Not for us: the build site is in a FEMA flood zone.");
   });
 
   it("a trailhead serving TREC trails says so after its name; none when it serves only its own (step 2, additive)", () => {
@@ -720,7 +723,7 @@ describe("config and weights", () => {
     expect([zach.verdict, julie.verdict]).toEqual(["Maybe", "Pass"]);
     // Trails and the garden are both F; the reason names the one this person weighs more (Julie: trails 25).
     expect(julie.reason).toBe(
-      "Pass. Weakest part: trails and public land (F, no trailhead found within 22.4 mi).",
+      "Not for us. Weakest part: trails and public land (F, no trailhead found within 22.4 mi).",
     );
     expect(zach.gates).toEqual(julie.gates);
     expect(zach.rows).toEqual(julie.rows);

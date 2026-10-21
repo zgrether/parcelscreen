@@ -25,13 +25,15 @@ describe("the answer line", () => {
     expect(strengths(card).map((x) => x.key)).toEqual(["elevation", "homesite"]);
     expect(biggestMiss(card)!.key).toBe("trails");
     expect(answerLine(card, FERNEY)).toBe(
-      "B, Contender. Strong elevation and winter sun; the nearest trailhead is 47 minutes away, past your 20; check first: legal road access.",
+      "B, Contender. Strong elevation and winter sun; the nearest trailhead is 47 minutes away, past your 20-minute limit; check first: legal road access.",
     );
   });
 
   it("measures the miss against the person's own edge", () => {
     const card = reportCard(FERNEY, ANSWERED);
-    expect(answerLine(card, FERNEY)).toMatch(/; the nearest trailhead is 47 minutes away, past your 15; /);
+    expect(answerLine(card, FERNEY)).toMatch(
+      /; the nearest trailhead is 47 minutes away, past your 15-minute limit; /,
+    );
   });
 
   it("ends with what to check first when the miss didn't say it (the fresh-eyes review)", () => {
@@ -71,7 +73,7 @@ describe("the answer line", () => {
       weights: { mode: "explicit", of: { ...zeroWeights(), town: 100 } },
     });
     expect(answerLine(reportCard(r, town), r)).toBe(
-      "C, Maybe. 38 minutes to an ER is past your 30; check first: septic.",
+      "C, Maybe. 38 minutes to an ER is past your 30-minute limit; check first: septic.",
     );
   });
 

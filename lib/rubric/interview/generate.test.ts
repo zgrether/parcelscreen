@@ -178,7 +178,7 @@ describe("§3: question 14", () => {
     });
     expect(g.later).toEqual([
       "No HOA (a must)",
-      "No shared driveway (a must)",
+      "Driveway on your land (a must)",
       "Privacy: no house in view (a must)",
     ]);
     expect(g.mustNote).toBe(true); // eight chips, above five

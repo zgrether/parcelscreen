@@ -55,7 +55,8 @@ export default function WhoPage() {
             </li>
           ))}
           <li>
-            <button className="btn who-person" disabled={busy} onClick={() => void fresh()}>
+            {/* Polish (step 6's review): secondary, so the people already here come first, not a new profile. */}
+            <button className="btn secondary who-person who-new" disabled={busy} onClick={() => void fresh()}>
               {NEW_HERE}
             </button>
           </li>

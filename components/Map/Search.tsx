@@ -213,7 +213,7 @@ function SearchBox({
           ...(s.tellApart
             ? { detail: s.tellApart }
             : s.acres !== null
-              ? { detail: `${s.acres.toFixed(2)} ac` }
+              ? { detail: `${s.acres.toFixed(1)} ac` } // one decimal, as Your list shows it (polish)
               : {}),
           pick: done(() => ctl.openSaved(s.key)),
         })),

@@ -8,6 +8,7 @@ import { ScaleBar } from "@/components/Results/card/CardPanel";
 import { fmt } from "@/lib/format";
 import { ruleAnchor } from "@/lib/report/cardPanels";
 import type { RulePanel, RuleScale, Rulebook } from "@/lib/report/rulebook";
+import { shortLabel } from "@/lib/client/rubrics";
 
 function RuleScaleView({ scale }: { scale: RuleScale }) {
   return (
@@ -80,7 +81,7 @@ export function RulebookRules({ rb, current }: { rb: Rulebook; current: string }
               <th scope="col">Row</th>
               {rb.card.rubrics.map((nr) => (
                 <th key={nr.id} scope="col" aria-current={nr.id === current ? "true" : undefined}>
-                  {nr.name}
+                  {shortLabel(nr)}
                 </th>
               ))}
             </tr>

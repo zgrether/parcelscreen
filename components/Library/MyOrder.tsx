@@ -116,6 +116,7 @@ export function DragHandle({ name, handle }: { name: string; handle: HandleProps
       type="button"
       className="lib-handle"
       aria-label={`Move ${name} in your order`}
+      title="Drag to reorder (My order)"
       {...handle}
       onClick={(e) => e.stopPropagation()}
     >
@@ -147,11 +148,14 @@ export function OrderMenu({
   index,
   count,
   move,
+  remove,
 }: {
   name: string;
   index: number;
   count: number;
   move(to: number): void;
+  /** Remove from favorites (polish #16): the star does the same. */
+  remove?(): void;
 }) {
   const button = useRef<HTMLButtonElement>(null);
   const list = useRef<HTMLSpanElement>(null);
@@ -196,6 +200,7 @@ export function OrderMenu({
         type="button"
         className="lib-handle"
         aria-label={`Order: ${name}`}
+        title="Move up or down"
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
@@ -210,6 +215,18 @@ export function OrderMenu({
           <button type="button" role="menuitem" disabled={index === count - 1} onClick={() => go(index + 1)}>
             Move down
           </button>
+          {remove && (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                remove();
+              }}
+            >
+              Remove from favorites
+            </button>
+          )}
         </span>
       )}
     </span>

@@ -20,6 +20,7 @@ import {
   type Question,
 } from "@/lib/rubric/interview/questions";
 import { fmt } from "@/lib/format";
+import { EDITOR_TITLES } from "@/lib/rubric/words";
 
 /** How long a pick shows before the next screen, ms: long enough to see, short enough not to wait. */
 const BEAT_MS = 300;
@@ -240,26 +241,40 @@ export function LandScreen({ iv, heading, n, revisit, bindNext }: ScreenProps) {
         pick={(id) => setAcres(id as typeof acres)}
         label="How much land"
       />
-      <label className="iv-field">
-        <span>{LAND_QUESTION.camp}</span>
-        <span className="iv-money">
-          <span aria-hidden="true">$</span>
-          <input inputMode="numeric" value={camp} onChange={(e) => setCamp(e.target.value)} />
-        </span>
-      </label>
-      <label className="iv-field">
-        <span>{LAND_QUESTION.build}</span>
-        <span className="iv-money">
-          <span aria-hidden="true">$</span>
-          <input inputMode="numeric" value={build} onChange={(e) => setBuild(e.target.value)} />
-        </span>
-      </label>
+      <Budget id="iv-camp" lead={LAND_QUESTION.camp} value={camp} set={setCamp} />
+      <Budget id="iv-build" lead={LAND_QUESTION.build} value={build} set={setBuild} />
       {!revisit && (
         <button type="button" className="btn iv-continue" onClick={save}>
           Continue
         </button>
       )}
     </>
+  );
+}
+
+/**
+ * One of question 13's budgets (owner, #240): the sentence says what it covers, and the box's own label asks for the
+ * number. A screen reader hears both, the label first.
+ */
+function Budget({ id, lead, value, set }: { id: string; lead: string; value: string; set(v: string): void }) {
+  return (
+    <div className="iv-field">
+      <p id={`${id}-lead`} className="iv-field-lead">
+        {lead}
+      </p>
+      <label className="iv-field-label">
+        <span id={`${id}-label`}>{LAND_QUESTION.most}</span>
+        <span className="iv-money">
+          <span aria-hidden="true">$</span>
+          <input
+            inputMode="numeric"
+            aria-labelledby={`${id}-label ${id}-lead`}
+            value={value}
+            onChange={(e) => set(e.target.value)}
+          />
+        </span>
+      </label>
+    </div>
   );
 }
 
@@ -303,7 +318,10 @@ function Stepper({
   );
 }
 
-/** Question 14: walk away (14a), then doesn't matter (14b, without 14a's chips). */
+/**
+ * Question 14: walk away (14a), then doesn't matter (14b, without 14a's chips, and without "Drive to an ER" once the ER
+ * question has its answer: polish #27). 14b's See my priorities is the nav row's.
+ */
 export function ChipsScreen({
   iv,
   heading,
@@ -318,12 +336,21 @@ export function ChipsScreen({
   const [picked, setPicked] = useState<Chip[]>(half === "walkAway" ? walk : (a.dontMatter ?? []));
   const [belowFt, setBelowFt] = useState(a.walkAway?.belowFt ?? starts.belowFt);
   const [erOverMin, setErOverMin] = useState(a.walkAway?.erOverMin ?? starts.erOverMin);
-  const chips = half === "walkAway" ? CHIPS : CHIPS.filter((c) => !walk.includes(c));
+  const chips =
+    half === "walkAway"
+      ? CHIPS
+      : CHIPS.filter((c) => !walk.includes(c) && !(c === "erOver" && a.er !== undefined));
   const toggle = (c: Chip) => setPicked((p) => (p.includes(c) ? p.filter((x) => x !== c) : [...p, c]));
   // 14b has no numbers to set: its two number chips say what they are. In 14a a picked one shows its number beside it.
   const label = (c: Chip) => {
     if (half === "dontMatter")
-      return c === "belowFt" ? "Elevation" : c === "erOver" ? "Drive to an ER" : CHIP_WORDS[c].label;
+      return c === "belowFt"
+        ? "Elevation"
+        : c === "erOver"
+          ? "Drive to an ER"
+          : c === "sharedDriveway"
+            ? EDITOR_TITLES.easement
+            : CHIP_WORDS[c].label;
     if (picked.includes(c) && c === "belowFt") return "Elevation below";
     if (picked.includes(c) && c === "erOver") return "ER over";
     return CHIP_WORDS[c].label;
@@ -388,9 +415,9 @@ export function ChipsScreen({
           That will rule out most land.
         </p>
       )}
-      {!revisit && (
+      {!revisit && half === "walkAway" && (
         <button type="button" className="btn iv-continue" onClick={save}>
-          {half === "walkAway" ? "Continue" : "See my priorities"}
+          Continue
         </button>
       )}
     </>

@@ -96,7 +96,7 @@ export async function starFromHistory(page: Page, name: string): Promise<void> {
   await page.getByRole("tab", { name: "History" }).click();
   const add = page.locator(".hist-row", { hasText: name }).getByRole("button", { name: /^Add to favorites/ });
   await add.click();
-  await page.getByRole("dialog", { name: "Add to Favorites" }).getByRole("button", { name: "Add" }).click();
+  await page.getByRole("dialog", { name: "Add to favorites" }).getByRole("button", { name: "Add" }).click();
   await expect(add).toHaveCount(0);
   await page.getByRole("tab", { name: "Favorites" }).click();
 }
@@ -297,6 +297,18 @@ export function againstExpected(result: unknown, slug: FixtureSlug, scenario: Sc
  * Gives each imported fixture parcel its fixture's expected result as its kept screen, as a run would leave it:
  * straight into IndexedDB, no screening (VR6's compare, WF2b's list).
  */
+/**
+ * A parcel's Listing section, unfolded: it folds to a summary once it has a name or a price (polish #24, on a desktop
+ * too), and an imported parcel has its name.
+ */
+export async function unfoldListing(scope: Page | Locator): Promise<Locator> {
+  const listing = scope.getByRole("group", { name: "Listing" }).first();
+  const summary = listing.locator(".ip-listing-summary");
+  if ((await summary.count()) > 0 && (await summary.getAttribute("aria-expanded")) === "false")
+    await summary.click();
+  return listing;
+}
+
 export async function seedScreens(page: Page, slugs: readonly FixtureSlug[]): Promise<void> {
   const seeds = slugs.map((slug) => ({
     name: loadFixture(slug).input.name,
@@ -307,7 +319,7 @@ export async function seedScreens(page: Page, slugs: readonly FixtureSlug[]): Pr
       // The current profile's documents (step 1, PR 4): the debug handle writes through to IndexedDB.
       const kv = window.__psKv!;
       const store = JSON.parse(kv.getItem("ps.parcels")!) as {
-        built: { notes: string; screenIds: string[] }[];
+        built: { name: string; screenIds: string[] }[];
       };
       // The app has opened the database at its current version by now; no version here, so it's never downgraded.
       const db = await new Promise<IDBDatabase>((resolve, reject) => {
@@ -317,8 +329,8 @@ export async function seedScreens(page: Page, slugs: readonly FixtureSlug[]): Pr
       });
       const tx = db.transaction("screens", "readwrite");
       for (const s of seeds) {
-        // The imported name is the notes' first line (lib/client/exportFile.ts).
-        const b = store.built.find((x) => x.notes.split("\n")[0] === `Name: ${s.name}`)!;
+        // The imported name is the parcel's name (lib/client/exportFile.ts; polish #21).
+        const b = store.built.find((x) => x.name === s.name)!;
         const id = `e2e-${s.name}`;
         tx.objectStore("screens").put({
           id,

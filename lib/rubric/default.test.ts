@@ -35,12 +35,17 @@ const recorded = (slug: FixtureSlug): Recorded =>
   ) as Recorded;
 
 /**
- * The card without what step 1 added to it (the rubric, and each row's measure) and what step 7 added (the site it
- * reads, the person's ranking of the sites, and the reason's lead as data).
+ * The card without what step 1 added to it (the rubric, and each row's measure), what step 7 added (the site it
+ * reads, the person's ranking of the sites, and the reason's lead as data), and what the polish pass added for display
+ * (what holds it at Maybe, and a gate's first clause: both say again what the card already holds).
  */
 const comparable = (c: Card) => {
-  const { rubric: _rubric, at: _at, sites: _sites, lead: _lead, ...rest } = c;
-  return { ...rest, rows: rest.rows.map(({ measure: _m, ...row }) => row) };
+  const { rubric: _rubric, at: _at, sites: _sites, lead: _lead, heldBy: _held, ...rest } = c;
+  return {
+    ...rest,
+    gates: rest.gates.map(({ first: _f, ...gate }) => gate),
+    rows: rest.rows.map(({ measure: _m, ...row }) => row),
+  };
 };
 
 /**

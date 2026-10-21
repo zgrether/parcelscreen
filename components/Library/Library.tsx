@@ -11,6 +11,7 @@
  * writes that one parcel's rank. Under another sort the handles hide, and the list says how to get them back.
  */
 import Link from "next/link";
+import { GRADES_ID, GRADES_TITLE } from "@/lib/client/help";
 import { useRouter } from "next/navigation";
 import {
   useEffect,
@@ -26,6 +27,7 @@ import { shortPrice } from "@/lib/client/askingPrice";
 import {
   DEFAULT_SORT,
   hiddenBy,
+  snippet,
   hiddenWords,
   libraryRow,
   passes,
@@ -59,14 +61,15 @@ import { memberName } from "@/lib/client/household";
 import { currentProfileId } from "@/lib/client/profiles";
 import { ANSWER_WORD, type Ask } from "@/lib/client/takes";
 import { useKeptScreens } from "@/lib/client/useKeptScreens";
-import type { Verdict } from "@/lib/report/card";
+import { VERDICT_WORD, type Verdict } from "@/lib/report/card";
 import type { NamedRubric } from "@/lib/rubric/types";
 import { LibraryControls } from "./LibraryControls";
 import { RescreenAll } from "./RescreenAll";
 import { DragHandle, OrderMenu, SortableRows, useSortableRow, type Mover } from "./MyOrder";
 import { ParcelDetail } from "./ParcelDetail";
 import { History } from "./History";
-import { Star } from "@/components/Favorites/Star";
+import { Star, unstarQuestion } from "@/components/Favorites/Star";
+import { ResetConfirm } from "@/components/Rubric/ResetConfirm";
 import { historyOf, isFavorite } from "@/lib/client/favorites";
 import { starParcel, unstarParcel, useHistoryLog } from "@/lib/client/favoritesStore";
 
@@ -203,11 +206,24 @@ export function Library() {
       />
     );
   };
-  const rowsProps = { rows: shown, rubrics, ticked, toggle, open: setOpened, ordering, mover, star };
+  // The ⋯ menu's Remove from favorites (polish #16) asks the star's question, then unstars.
+  const [unstarring, setUnstarring] = useState<LibraryRow | null>(null);
+  const rowsProps = {
+    rows: shown,
+    rubrics,
+    ticked,
+    toggle,
+    open: setOpened,
+    ordering,
+    mover,
+    star,
+    unstar: setUnstarring,
+  };
 
   return (
     <>
-      <main className="compare library">
+      {/* A desktop keeps the table beside an open detail (polish #15): .lib-has-detail leaves room for it. */}
+      <main className={detail ? "compare library lib-has-detail" : "compare library"}>
         <header className="compare-head">
           <h1>Your list</h1>
           {/* Compare takes 2 or 3 (step 4b): with one ticked the button waits for another. */}
@@ -253,6 +269,9 @@ export function Library() {
             />
             <p className="tiny muted lib-count">
               {shown.length} parcel{shown.length === 1 ? "" : "s"}
+              {/* Polish #31: Help's grade rules, beside the grades. */}
+              {" · "}
+              <Link href={`/help#${GRADES_ID}`}>{GRADES_TITLE}</Link>
               {/* Dragging works only in My order (§5): under another sort, the way back to it. */}
               {!ordering && shown.length > 1 && (
                 <span className="lib-order-hint">
@@ -297,6 +316,22 @@ export function Library() {
           </>
         )}
 
+        {unstarring && (
+          <ResetConfirm
+            question={unstarQuestion(
+              adderOf.get(unstarring.key) && adderOf.get(unstarring.key) !== me
+                ? memberName(adderOf.get(unstarring.key)!)
+                : null,
+            )}
+            action="Remove from favorites"
+            keep="Keep"
+            reset={() => {
+              unstarParcel(unstarring.key);
+              setUnstarring(null);
+            }}
+            cancel={() => setUnstarring(null)}
+          />
+        )}
         {detail && (
           <ParcelDetail
             key={detail.key}
@@ -324,6 +359,8 @@ interface RowsProps {
   mover: Mover;
   /** The row's star (step 8): filled, it unstars after asking. */
   star(r: LibraryRow): ReactNode;
+  /** The ⋯ menu's Remove from favorites (polish #16): the star's own question first. */
+  unstar(r: LibraryRow): void;
 }
 
 interface RowProps extends Omit<RowsProps, "rows"> {
@@ -357,15 +394,19 @@ const statusCell = (r: LibraryRow) => {
 };
 
 function VerdictWord({ v, unscreened }: { v: Verdict | null; unscreened: LibraryRow["unscreened"] }) {
-  if (v) return <span className={`card-word small v-${v.toLowerCase()}`}>{v}</span>;
+  if (v) return <span className={`card-word small v-${v.toLowerCase()}`}>{VERDICT_WORD[v]}</span>;
   // Screened under earlier rules, or its result is gone (a clean break): the Library's own words (approval A).
   return <span className="tiny muted">{unscreened === "rescreen" ? "Needs a re-screen" : "–"}</span>;
 }
 
+/** Why the same letter can read Contender on one row and Maybe on another (polish, step 8's review). */
+export const VERDICT_TIP =
+  "The verdict also weighs your Must haves and limits, so the same letter can read differently.";
+
 function Grade({ g, unscreened }: { g: Graded | null; unscreened: LibraryRow["unscreened"] }) {
   if (!g) return <VerdictWord v={null} unscreened={unscreened} />;
   return (
-    <span className="lib-grade">
+    <span className="lib-grade" title={VERDICT_TIP}>
       <span className={`card-grade small g-${g.grade ?? "none"}`}>{g.grade ?? "–"}</span>
       <VerdictWord v={g.verdict} unscreened={null} />
     </span>
@@ -374,22 +415,36 @@ function Grade({ g, unscreened }: { g: Graded | null; unscreened: LibraryRow["un
 
 /**
  * Everyone's grade (step 6, docs/plans/step-6-household.md §3.1): the current person's first, as their card shows it,
- * then each other member's small beside it ("B · Julie C"). No combined grade.
+ * then each other member's small beside it ("You B Contender · Julie C"). No combined grade. Polish: "You" says whose
+ * the first grade is, a new take says "new" as well as its dot, and a take says whose it is.
  */
 function Grades({ r }: { r: LibraryRow }) {
   const [mine, ...others] = r.grades;
   return (
     <span className="lib-grades">
+      {others.length > 0 && <span className="tiny muted lib-you">You</span>}
       <Grade g={mine?.graded ?? null} unscreened={r.unscreened} />
       {others.map((g) => (
         <span key={g.id} className="lib-other-grade" title={`${g.name}'s grade`}>
           <span className="tiny muted">· {g.name}</span>
           <span className={`card-grade tiny g-${g.graded?.grade ?? "none"}`}>{g.graded?.grade ?? "–"}</span>
           {r.newTakesBy.includes(g.id) && (
-            <span className="new-dot" role="img" aria-label={`New take from ${g.name}`} title="New take" />
+            <span className="new-take" title="New take">
+              <span className="new-dot" role="img" aria-label={`New take from ${g.name}`} />
+              <span className="tiny new-word" aria-hidden="true">
+                new
+              </span>
+            </span>
           )}
           {r.takes[g.id] && (
-            <span className={`take-chip tiny a-${r.takes[g.id]}`}>says {ANSWER_WORD[r.takes[g.id]!]}</span>
+            <span className={`take-chip tiny a-${r.takes[g.id]}`}>
+              {g.name} says {ANSWER_WORD[r.takes[g.id]!]}
+            </span>
+          )}
+          {r.takeNotes[g.id] && (
+            <span className="tiny take-note" title={r.takeNotes[g.id]}>
+              “{snippet(r.takeNotes[g.id]!)}”
+            </span>
           )}
         </span>
       ))}
@@ -397,18 +452,25 @@ function Grades({ r }: { r: LibraryRow }) {
   );
 }
 
-/** The ask waiting for my take (step 6b): its note on one line; the panel shows it whole. */
+/** The ask waiting for my take (step 6b): its note on one line; the panel shows it whole, and how to answer. */
 function AskNote({ ask }: { ask: Ask }) {
   const line = `${memberName(ask.from) ?? "Someone"} asked for your take${ask.note ? `: “${ask.note}”` : "."}`;
   return (
-    <span className="lib-ask-note tiny" title={line}>
-      {line}
+    <span className="lib-ask-note tiny" title={`${line} Open it to answer.`}>
+      {line} <span className="lib-ask-how">Open it to answer.</span>
     </span>
   );
 }
 
-/** Desktop: one row per parcel; in My order, the handle and the menu first. */
+/** Whether a row has a status word or a milestone (an active favorite with neither shows nothing). */
+const hasStatus = (r: LibraryRow) => !!STATUS_WORD[r.status] || !!milestonesLine(r);
+
+/**
+ * Desktop: one row per parcel; in My order, the handle and the menu first. Price and Status show only when a row has
+ * one (polish #12): a column of dashes says nothing.
+ */
 function LibraryTable({ rows, rubrics, ...rest }: RowsProps) {
+  const cols = { price: rows.some((r) => r.price !== null), status: rows.some(hasStatus) };
   return (
     <div className="lib-scroll">
       <table className="lib-table">
@@ -424,16 +486,24 @@ function LibraryTable({ rows, rubrics, ...rest }: RowsProps) {
             </th>
             <th scope="col">Name</th>
             <th scope="col">Acres</th>
-            <th scope="col">Price</th>
+            {cols.price && <th scope="col">Price</th>}
             <th scope="col">State</th>
-            <th scope="col">Status</th>
+            {cols.status && <th scope="col">Status</th>}
             <th scope="col">{rubrics.length > 1 ? "Grades" : switchLabel(rubrics[0]!)}</th>
             <th scope="col">Updated</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((r, i) => (
-            <TableRow key={r.key} r={r} index={i} count={rows.length} rubrics={rubrics} {...rest} />
+            <TableRow
+              key={r.key}
+              r={r}
+              index={i}
+              count={rows.length}
+              rubrics={rubrics}
+              cols={cols}
+              {...rest}
+            />
           ))}
         </tbody>
       </table>
@@ -441,7 +511,19 @@ function LibraryTable({ rows, rubrics, ...rest }: RowsProps) {
   );
 }
 
-function TableRow({ r, index, count, ticked, toggle, open, ordering, mover, star }: RowProps) {
+function TableRow({
+  r,
+  index,
+  count,
+  ticked,
+  toggle,
+  open,
+  ordering,
+  mover,
+  star,
+  unstar,
+  cols,
+}: RowProps & { cols: { price: boolean; status: boolean } }) {
   const { nodeProps, dragging, handleProps } = useSortableRow(r.key, ordering);
   return (
     <tr
@@ -453,7 +535,13 @@ function TableRow({ r, index, count, ticked, toggle, open, ordering, mover, star
       {ordering && (
         <td className="lib-order" {...ownClick}>
           <DragHandle name={r.name} handle={handleProps} />
-          <OrderMenu name={r.name} index={index} count={count} move={(to) => mover.move(r.key, to)} />
+          <OrderMenu
+            name={r.name}
+            index={index}
+            count={count}
+            move={(to) => mover.move(r.key, to)}
+            remove={() => unstar(r)}
+          />
         </td>
       )}
       <td {...ownClick}>
@@ -462,7 +550,7 @@ function TableRow({ r, index, count, ticked, toggle, open, ordering, mover, star
           aria-label={`Compare ${r.name}`}
           checked={ticked.has(r.key)}
           disabled={!ticked.has(r.key) && ticked.size >= COMPARE_MAX}
-          title={!ticked.has(r.key) && ticked.size >= COMPARE_MAX ? COMPARE_FULL : undefined}
+          title={!ticked.has(r.key) && ticked.size >= COMPARE_MAX ? COMPARE_FULL : COMPARE_HOW}
           onChange={() => toggle(r.key)}
         />
       </td>
@@ -473,13 +561,13 @@ function TableRow({ r, index, count, ticked, toggle, open, ordering, mover, star
         </span>
         {r.ask && <AskNote ask={r.ask} />}
       </td>
-      <td className="num">{r.acres !== null ? r.acres.toFixed(1) : "–"}</td>
-      <td className="num">{r.price !== null ? shortPrice(r.price) : "–"}</td>
-      <td>
+      <td className="num lib-c-acres">{r.acres !== null ? r.acres.toFixed(1) : "–"}</td>
+      {cols.price && <td className="num lib-c-price">{r.price !== null ? shortPrice(r.price) : "–"}</td>}
+      <td className="lib-c-state">
         <State r={r} />
       </td>
-      <td>{statusCell(r)}</td>
-      <td>
+      {cols.status && <td className="lib-c-status">{statusCell(r)}</td>}
+      <td className="lib-c-grade">
         <Grades r={r} />
       </td>
       <td className="tiny muted">{when(r.updatedAt)}</td>
@@ -501,7 +589,7 @@ function LibraryCards({ rows, rubrics, ...rest }: RowsProps) {
   );
 }
 
-function Card({ r, index, count, ticked, toggle, open, ordering, mover, star }: RowProps) {
+function Card({ r, index, count, ticked, toggle, open, ordering, mover, star, unstar }: RowProps) {
   const { nodeProps, dragging, handleProps } = useSortableRow(r.key, ordering);
   return (
     <li
@@ -516,7 +604,13 @@ function Card({ r, index, count, ticked, toggle, open, ordering, mover, star }: 
           {star(r)}
           <LongName name={r.name} className="lib-open" />
           {ordering && (
-            <OrderMenu name={r.name} index={index} count={count} move={(to) => mover.move(r.key, to)} />
+            <OrderMenu
+              name={r.name}
+              index={index}
+              count={count}
+              move={(to) => mover.move(r.key, to)}
+              remove={() => unstar(r)}
+            />
           )}
           <input
             {...ownClick}
@@ -524,12 +618,13 @@ function Card({ r, index, count, ticked, toggle, open, ordering, mover, star }: 
             aria-label={`Compare ${r.name}`}
             checked={ticked.has(r.key)}
             disabled={!ticked.has(r.key) && ticked.size >= COMPARE_MAX}
-            title={!ticked.has(r.key) && ticked.size >= COMPARE_MAX ? COMPARE_FULL : undefined}
+            title={!ticked.has(r.key) && ticked.size >= COMPARE_MAX ? COMPARE_FULL : COMPARE_HOW}
             onChange={() => toggle(r.key)}
           />
         </div>
         {r.ask && <AskNote ask={r.ask} />}
-        <div className="tiny">{statusCell(r)}</div>
+        {/* Polish: an active favorite with no milestone has nothing to say here; no lone "–". */}
+        {(STATUS_WORD[r.status] || milestonesLine(r)) && <div className="tiny">{statusCell(r)}</div>}
         <div className="tiny muted lib-card-facts">
           {[
             r.acres !== null ? `${r.acres.toFixed(1)} ac` : null,

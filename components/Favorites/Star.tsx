@@ -1,7 +1,7 @@
 "use client";
 /**
  * The star (step 8, docs/plans/step-8-favorites.md §2): on the results panel's header and on each list row. Empty, it
- * opens the name sheet (Add to Favorites: the name, prefilled; Add); filled, it asks once before unstarring. Both
+ * opens the name sheet (Add to favorites: the name, prefilled; Add); filled, it asks once before unstarring. Both
  * sheets go to the page's body: the panel and the rows hold transforms and clicks of their own.
  */
 import { useEffect, useId, useRef, useState, type MouseEvent } from "react";
@@ -93,7 +93,7 @@ export function Star({
   );
 }
 
-/** Add to Favorites: a plain name, prefilled and selected; Add waits for one (plan §9). */
+/** Add to favorites: a plain name, prefilled and selected; Add waits for one (plan §9). */
 function NameSheet({ start, add, cancel }: { start: string; add(name: string): void; cancel(): void }) {
   const [name, setName] = useState(start);
   const box = useRef<HTMLInputElement>(null);
@@ -132,7 +132,7 @@ function NameSheet({ start, add, cancel }: { start: string; add(name: string): v
           if (ok) add(name);
         }}
       >
-        <h2 id={id}>Add to Favorites</h2>
+        <h2 id={id}>Add to favorites</h2>
         <label className="star-sheet-name">
           Name
           <input ref={box} value={name} maxLength={120} onChange={(e) => setName(e.target.value)} />

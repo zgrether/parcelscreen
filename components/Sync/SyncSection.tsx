@@ -5,7 +5,7 @@
  *   - Unjoined: Start syncing this device (the upload, then the code), or Join with a code.
  *   - Showing the code: the QR (its link opens /link#<code>), the code in groups of five with Copy, and the line that
  *     it works like a password.
- *   - Joined: "This device is synced.", the indicator's state, Show code, and Leave sync on this device.
+ *   - Joined: "This device is synced.", the indicator's state, Show code, and Stop syncing this device.
  */
 import { useRef, useState, useSyncExternalStore } from "react";
 import { groupCode, normalizeCode } from "@/lib/sync/code";

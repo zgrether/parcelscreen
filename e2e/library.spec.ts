@@ -6,7 +6,7 @@
  * cards, the same last line, and a long press shows a whole name.
  */
 import { expect, test } from "@playwright/test";
-import { importParcels, openExplorer, reload, seedScreens, settled, visit } from "./flow";
+import { importParcels, openExplorer, reload, seedScreens, settled, unfoldListing, visit } from "./flow";
 import { replayHar } from "./replay";
 
 const FERNEY = "ferney-creek-52-47A" as const;
@@ -40,18 +40,20 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
     await macks.locator(".lib-open .long-name-text").evaluate((el) => getComputedStyle(el).textOverflow),
   ).toBe("ellipsis");
   // My order's grip and menu come first (WF3), then the Compare tick.
-  await expect(macks.locator("td").nth(5)).toHaveText("VA");
+  await expect(macks.locator(".lib-c-state")).toHaveText("VA");
   // The state's county on hover (and a long press, on a phone).
   await expect(macks.locator(".lib-state")).toHaveAttribute("title", "Floyd County");
-  await expect(macks.locator("td").nth(6)).toHaveText("–"); // step 8: an active favorite has no status word
+  // Polish #12: no row has a price or a status yet (step 8: an active favorite has no status word), so neither column shows.
+  await expect(page.locator(".lib-table thead")).not.toContainText("Price");
+  await expect(page.locator(".lib-table thead")).not.toContainText("Status");
   // The grade from the kept screen, in the profile's own rubric (step 1): a fresh profile holds no other, so there is
   // no Household column and no second grade.
-  await expect(macks.locator("td").nth(7)).toHaveText(/^[A-F](Contender|Maybe|Pass)$/);
-  await expect(macks.locator("td")).toHaveCount(9);
+  await expect(macks.locator(".lib-c-grade")).toHaveText(/^[A-F](Contender|Maybe|Not for us)$/);
+  await expect(macks.locator("td")).toHaveCount(7);
   await expect(page.locator(".lib-table thead")).not.toContainText("Household");
 
   // A click anywhere on the row opens its detail (owner, after #133): the full name, the card; archived as sold.
-  await macks.locator("td").nth(4).click();
+  await macks.locator(".lib-c-acres").click();
   const detail = page.getByRole("dialog", { name: MACKS_NAME });
   await expect(detail.getByRole("heading", { name: MACKS_NAME })).toBeVisible();
   await expect(detail.locator(".card")).toBeVisible();
@@ -70,11 +72,11 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   await expect(rows).toHaveCount(2);
   await expect(hiddenLine).toHaveCount(0);
   await expect(
-    page.getByRole("button", { name: "Filters (1)" }), // the Status filter now includes Archived
+    page.getByRole("button", { name: "Filters · 1 on" }), // the Status filter now includes Archived
   ).toBeVisible();
   await expect(rows.filter({ hasText: "parcel 35-3" })).toHaveClass(/lib-archived/);
   await reload(page);
-  await expect(page.getByRole("button", { name: "Filters (1)" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Filters · 1 on" })).toBeVisible();
   await expect(rows).toHaveCount(2);
   expect(
     await page.evaluate(
@@ -83,7 +85,7 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   ).toEqual(expect.arrayContaining([expect.objectContaining({ status: "archived" })]));
 
   // Hidden by another filter: "2 hidden by filters · Show all", which shows everything.
-  await page.getByRole("button", { name: "Filters (1)" }).click();
+  await page.getByRole("button", { name: "Filters · 1 on" }).click();
   await page.getByRole("group", { name: "Milestones" }).getByRole("button", { name: "Walked" }).click();
   await expect(rows).toHaveCount(0);
   await expect(hiddenLine).toHaveText("2 hidden by filters · Show all");
@@ -106,7 +108,7 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   await expect(ferneyDetail.getByRole("heading", { name: /parcel 52-47A/ })).toBeVisible();
 
   // Its listing's facts and notes, editable here as in the map's Notes tab (owner, after #133).
-  const listing = ferneyDetail.getByRole("group", { name: "Listing" });
+  const listing = await unfoldListing(ferneyDetail);
   await listing.getByLabel("Asking price").fill("185k");
   await listing.getByLabel("Asking price").press("Enter");
   await expect(listing).toContainText(/asking \$185,000 as of /);
@@ -121,7 +123,7 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   await ferneyDetail.getByRole("button", { name: "Close" }).click();
   const ferneyRow = rows.filter({ hasText: "52-47A · Floyd Co." });
   await expect(ferneyRow.locator(".lib-open")).toHaveText("52-47A · Floyd Co.");
-  await expect(ferneyRow.locator("td").nth(4)).toHaveText("$185k");
+  await expect(ferneyRow.locator(".lib-c-price")).toHaveText("$185k");
   expect(
     await page.evaluate(() =>
       (JSON.parse(window.__psKv!.getItem("ps.parcels")!) as { built: Record<string, unknown>[] }).built.find(
@@ -164,9 +166,9 @@ test.describe("on a phone", () => {
     // Macks archived: the cards end with the hidden line, as the table does.
     await page.evaluate(async () => {
       const s = JSON.parse(window.__psKv!.getItem("ps.parcels")!) as {
-        built: { notes: string; status: string; archived: unknown }[];
+        built: { name: string; status: string; archived: unknown }[];
       };
-      const m = s.built.find((b) => b.notes.includes("35-3"))!;
+      const m = s.built.find((b) => b.name.includes("35-3"))!;
       m.status = "archived";
       m.archived = { reason: "Sold", at: "2026-10-14T12:00:00.000Z", from: "inProgress" };
       await window.__psKv!.setItem("ps.parcels", JSON.stringify(s));

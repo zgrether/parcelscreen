@@ -16,6 +16,8 @@ export interface MustLine {
   detail: string;
   /** The data that didn't load, when that's why it's unknown. */
   missing?: string;
+  /** The detail's first clause when more follows (Gate.first): the rest goes on its own line. */
+  first?: string;
 }
 
 /** A Must's mark on the card: ✓ passes, ! to check first, ✗ fails, ? unknown. */
@@ -35,6 +37,7 @@ export function mustLines(card: Card): MustLine[] {
       status: g.status,
       detail: g.reason,
       ...(g.missing ? { missing: g.missing } : {}),
+      ...(g.first ? { first: g.first } : {}),
     }));
   const limits = R.musts.flatMap((must): MustLine[] => {
     if (must.threshold === undefined) return [];

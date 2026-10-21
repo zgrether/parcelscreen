@@ -1,15 +1,17 @@
 /**
  * The comparison table (value-ranking.md §7; VR6): parcels as columns, the report card's lines as rows, in groups
- * (Costs, Budget, Dealbreakers, Can't add). Each cell holds a value and a mark: a gate's status, or best / worst in its
- * row. The costs and the budget are VR4's: until then their rows say "pending", except Stage 0, the asking price.
+ * (Costs, Budget, Dealbreakers, What money can't add). Each cell holds a value and a mark: a gate's status, or best /
+ * worst in its row. The costs and the budget are VR4's: until then their rows say "not yet", except the asking price.
+ * Polish #33 (owner, 2026-10-20): plain words for the stages, the gates in the card's own words.
  * Pure: the page reads the parcels and their kept screens, and draws this.
  */
 import { shortPrice } from "../client/askingPrice";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import type { ScreenResult } from "../screen/types";
-import { reportCard, type Card, type GateStatus, type Letter, type NamedRubric } from "./card";
+import { reportCard, VERDICT_WORD, type Card, type GateStatus, type Letter, type NamedRubric } from "./card";
 import type { Drawn } from "./marks";
 import type { PanelKey } from "./cardPanels";
+import { EDITOR_TITLES } from "../rubric/words";
 
 /** A History parcel as the table reads it: its name, asking price, and its latest kept screen. */
 export interface CompareParcel {
@@ -59,7 +61,7 @@ export interface CompareTable {
   groups: CompareGroup[];
 }
 
-const PENDING = "pending";
+const PENDING = "not yet";
 const POINTS: Record<Letter, number> = SCREEN_CONSTANTS.card.points;
 
 /** What a parcel without a current screen shows in each of its cells. */
@@ -84,12 +86,12 @@ function marked(cells: Cell[], scores: (number | null)[]): Cell[] {
   }));
 }
 
-/** The VR4 stages, pending until then (§4.1); Stage 0 is the asking price. */
+/** The VR4 stages, "not yet" until then (§4.1); before them, the asking price. */
 const STAGES: { key: string; label: string }[] = [
-  { key: "stage1a", label: "Stage 1a: camp today" },
-  { key: "stage1b", label: "Stage 1b: camp at the build site" },
-  { key: "stage2", label: "Stage 2: ready to build" },
-  { key: "stage3", label: "Stage 3: home" },
+  { key: "stage1a", label: "To camp now" },
+  { key: "stage1b", label: "To camp at the build site" },
+  { key: "stage2", label: "To be ready to build" },
+  { key: "stage3", label: "To move in" },
 ];
 
 /** The table for these parcels, graded with `rubric`. */
@@ -114,7 +116,13 @@ export function compareTable(
       parcels.map((p, i) => {
         const c = cards[i];
         if (!c) return blank(p);
-        return { text: c.verdict, grade: c.grade, mark: null, panel: "verdict", title: c.reason };
+        return {
+          text: VERDICT_WORD[c.verdict],
+          grade: c.grade,
+          mark: null,
+          panel: "verdict",
+          title: c.reason,
+        };
       }),
       // By the letter, as the other rows: two Bs aren't better and worse than each other.
       cards.map((c) => (c?.grade ? POINTS[c.grade] : null)),
@@ -123,7 +131,7 @@ export function compareTable(
 
   const asking: CompareRow = {
     key: "stage0",
-    label: "Stage 0: asking",
+    label: "Asking price",
     cells: marked(
       parcels.map((p) => ({
         text: p.askingPrice !== null ? shortPrice(p.askingPrice) : "–",
@@ -142,7 +150,7 @@ export function compareTable(
 
   const gateRows: CompareRow[] = (cards.find((c) => c)?.gates ?? []).map((g0) => ({
     key: g0.key,
-    label: g0.label,
+    label: EDITOR_TITLES[g0.key],
     cells: parcels.map((p, i) => {
       const g = cards[i]?.gates.find((x) => x.key === g0.key);
       if (!g) return blank(p);
@@ -184,7 +192,7 @@ export function compareTable(
         rows: [pending("readyToBuild", `Ready to build ≤ ${shortPrice(readyToBuild)}`, "cost")],
       },
       { key: "dealbreakers", label: "Dealbreakers", rows: gateRows },
-      { key: "cantAdd", label: "Can't add", rows: rowLines },
+      { key: "cantAdd", label: "What money can't add", rows: rowLines },
     ],
   };
 }

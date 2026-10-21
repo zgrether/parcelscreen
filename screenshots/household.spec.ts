@@ -159,7 +159,7 @@ for (const phone of [false, true]) {
 
       // Zach: her take beside her grade, new (step 6b: the dot and the badge).
       await afterTabSwitch(zach, async () => {
-        await expect(listRow(zach, "52-47A").locator(".take-chip")).toHaveText("says Maybe", {
+        await expect(listRow(zach, "52-47A").locator(".take-chip")).toHaveText("Sam says Maybe", {
           timeout: 1000,
         });
       });

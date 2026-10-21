@@ -43,7 +43,7 @@ import type { ExploreController, SetHint } from "@/components/Explore/useExplore
 import { lineLayer } from "@/components/Explore/layers";
 import { evaluationPoint } from "../blocks/types";
 import { useRubricView } from "@/lib/client/useRubricView";
-import { reportCard } from "@/lib/report/card";
+import { reportCard, VERDICT_WORD } from "@/lib/report/card";
 import { answerReason } from "@/lib/report/answer";
 import { lineNamesOf, type LineNames } from "@/lib/report/lines";
 import { drawnOf, type Drawn } from "@/lib/report/marks";
@@ -53,7 +53,13 @@ import { mapShowing, onMapShowing } from "@/lib/client/mapShowing";
 import { gradeButton, logLine, runSeconds } from "@/lib/client/gradeButton";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import { CardPanel } from "../card/CardPanel";
-import { LET_THE_APP_CONSIDER_IT, LINES_CHANGED, ReportCard } from "../card/ReportCard";
+import {
+  EARLIER_BOUNDARY,
+  HOUSE_CHANGED,
+  LINES_CHANGED,
+  ReportCard,
+  type StaleBanner,
+} from "../card/ReportCard";
 import { Others } from "@/components/Household/Others";
 import { AgentQuestions } from "../answer/AgentQuestions";
 import { BestHomesite } from "../answer/BestHomesite";
@@ -504,7 +510,7 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
           {card && (
             <span className={`sh-card v-${card.verdict.toLowerCase()}`} title={card.reason}>
               <span className={`card-grade small g-${card.grade ?? "none"}`}>{card.grade ?? "–"}</span>
-              <span className="sh-word">{card.verdict}</span>
+              <span className="sh-word">{VERDICT_WORD[card.verdict]}</span>
             </span>
           )}
         </span>
@@ -606,7 +612,18 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
   // The card comes right under the header (owner, #111), with the run's log above it: the live list while it runs,
   // one line once it's done (step 4c). What failed or is out of date stays above the card too; Copy summary and the
   // notes go below its rows.
-  const below = !!display && !s.stale;
+  // One banner for results that no longer fit (polish #1), in the card under its answer: the grade button's reason. Its
+  // action is "Grade again" for each, as the toolbar's (owner, #240: it was "Let the app consider it" for the lines).
+  const why = s.grade?.kind === "again" ? s.grade.reason : null;
+  const banner: StaleBanner | null =
+    why === "boundary"
+      ? { text: EARLIER_BOUNDARY, actions: [{ label: "Grade again", onClick: s.run }] }
+      : why === "house"
+        ? { text: HOUSE_CHANGED, actions: [{ label: "Grade again", onClick: s.run }] }
+        : why === "lines"
+          ? { text: LINES_CHANGED, actions: [{ label: "Grade again", onClick: s.run }] }
+          : null;
+  const below = !!display;
   const top = s.showSteps || !!s.error || (notes && !below) || (s.rescreenOffline && !!display);
   const footer = below && notes;
   return (
@@ -618,7 +635,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
           {s.error && <p className="tiny text-steep">The screen stopped: {s.error}</p>}
           {notes && !below && (
             <Notices
-              stale={s.stale}
+              bannered={!!banner}
               houseChanged={!!s.fresh?.house}
               sessionLive={s.sessionLive}
               settingsChanged={!!s.fresh?.settings}
@@ -652,6 +669,10 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
                   if (h && !("outside" in h)) s.pickSite(h.ll, "the house");
                   else if (best) s.pickSite(best.ll, `site #${best.rank}`);
                 }}
+                show={(ll) => {
+                  const map = s.ctl.map;
+                  map?.flyTo({ center: [ll[1], ll[0]], zoom: Math.max(map.getZoom(), 16) });
+                }}
               />
             }
             note={listingAcresNote(
@@ -661,11 +682,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             rubrics={s.rubrics}
             setRubric={s.setRubric}
             onOpen={openPanel}
-            stale={
-              s.fresh?.lines
-                ? { text: LINES_CHANGED, actions: [{ label: LET_THE_APP_CONSIDER_IT, onClick: s.run }] }
-                : null
-            }
+            stale={banner}
           />
           {/* Step 6: how each other member would rate it, from their own priorities. */}
           <Others result={display} drawn={drawnFor(s)} parcel={s.ctl.state.store.open?.key ?? null} />
@@ -706,7 +723,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
           )}
           {notes && (
             <Notices
-              stale={s.stale}
+              bannered={!!banner}
               houseChanged={!!s.fresh?.house}
               sessionLive={s.sessionLive}
               settingsChanged={!!s.fresh?.settings}
@@ -773,9 +790,15 @@ function StepList({
   const [open, setOpen] = useState(false);
   if (!running && !open)
     return (
-      <button className="steps-folded" aria-expanded={false} onClick={() => setOpen(true)}>
+      <button
+        className="steps-folded"
+        aria-expanded={false}
+        title="Show each step, and what didn't load"
+        onClick={() => setOpen(true)}
+      >
         <span>{line}</span>
-        <span aria-hidden="true">▸</span>
+        {/* Polish: the ▸ says what it holds. */}
+        <span className="steps-more">Steps ▸</span>
       </button>
     );
   return (
@@ -808,7 +831,8 @@ function StepList({
 }
 
 function Notices(p: {
-  stale: boolean;
+  /** The card's banner says the results no longer fit (the boundary, the house or the lines). */
+  bannered: boolean;
   houseChanged: boolean;
   sessionLive: boolean;
   settingsChanged: boolean;
@@ -821,19 +845,12 @@ function Notices(p: {
   grade(): void;
   grading: boolean;
 }) {
-  if (p.stale)
-    return <p className="report-note stale-note">These results are for an earlier boundary. Grade again.</p>;
   return (
     <>
-      {/* With a live session a changed house is being re-assessed; without one, it takes a run. */}
-      {p.houseChanged &&
-        (p.sessionLive ? (
-          <p className="tiny muted">Re-assessing the house…</p>
-        ) : (
-          <p className="report-note">The house changed since this run — grade again to assess it.</p>
-        ))}
+      {/* With a live session a changed house is being re-assessed; without one, the card's banner says so. */}
+      {p.houseChanged && p.sessionLive && <p className="tiny muted">Re-assessing the house…</p>}
       {p.rescreened && <p className="report-note">{RESCREENED}.</p>}
-      {!p.sessionLive && !p.houseChanged && (
+      {!p.sessionLive && !p.houseChanged && !p.bannered && (
         // No toolbar button for this (owner, 4c Q5): the note's own words run it.
         <p className="tiny muted">
           <button className="link-btn grade-again-link" disabled={p.grading} onClick={p.grade}>

@@ -28,7 +28,7 @@ const STATUSES: ParcelStatus[] = ["archived"];
 const CHOICE_WORD: Record<VerdictChoice, string> = {
   Contender: "Contender",
   Maybe: "Maybe",
-  Pass: "Pass",
+  Pass: "Not for us",
   unscreened: "Not screened",
 };
 const SORTS: { key: SortKey; label: string }[] = [
@@ -50,7 +50,7 @@ const sortsFor = (rubrics: readonly NamedRubric[]): { key: SortKey; label: strin
   ...rubrics.map((nr) => ({ key: gradeSortKey(nr.id), label: switchLabel(nr) })),
 ];
 
-/** How many filters differ from the defaults. */
+/** How many of the fold's filters differ from the defaults; the quick ones beside it show as pressed (polish). */
 function changedFilters(f: LibraryFilters): number {
   const d = DEFAULT_VIEW.filters;
   const same = (a: unknown[], b: unknown[]) => a.length === b.length && a.every((x) => b.includes(x));
@@ -61,8 +61,6 @@ function changedFilters(f: LibraryFilters): number {
     f.milestones.length > 0,
     f.priceMin !== null || f.priceMax !== null,
     f.state !== null,
-    f.waiting,
-    f.bothLike,
   ].filter(Boolean).length;
 }
 
@@ -81,6 +79,7 @@ export function LibraryControls({
   const f = view.filters;
   const setF = (patch: Partial<LibraryFilters>) => setView({ ...view, filters: { ...f, ...patch } });
   const waiting = rows.filter((r) => r.waiting).length;
+  const fresh = rows.filter((r) => r.newTakesBy.length > 0).length;
   const flip = <T,>(list: T[], x: T): T[] => (list.includes(x) ? list.filter((y) => y !== x) : [...list, x]);
   const states = [...new Set(rows.flatMap((r) => r.states))].sort();
   const n = changedFilters(f);
@@ -105,11 +104,16 @@ export function LibraryControls({
   return (
     <div className="lib-controls">
       <div className="lib-bar">
-        <button className="btn small secondary" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-          Filters{n ? ` (${n})` : ""}
+        <button
+          className="btn small secondary lib-filters-btn"
+          aria-expanded={open}
+          onClick={() => setOpen((o) => !o)}
+        >
+          {/* Polish: "· 1 on" counts filters, where Waiting for you (1) counts parcels. */}
+          Filters{n ? ` · ${n} on` : ""}
         </button>
-        {/* Step 6: the household's two quick filters, beside Filters. */}
-        {(several || waiting > 0) && (
+        {/* Step 6: the household's quick filters, beside Filters; polish #14: New takes, what the tab's badge counts. */}
+        {(several || waiting > 0 || fresh > 0) && (
           <>
             <button
               className="chip lib-quick"
@@ -118,6 +122,15 @@ export function LibraryControls({
             >
               Waiting for you{waiting ? ` (${waiting})` : ""}
             </button>
+            {(fresh > 0 || f.newTakes) && (
+              <button
+                className="chip lib-quick"
+                aria-pressed={f.newTakes}
+                onClick={() => setF({ newTakes: !f.newTakes })}
+              >
+                New takes{fresh ? ` (${fresh})` : ""}
+              </button>
+            )}
             <button
               className="chip lib-quick"
               aria-pressed={f.bothLike}

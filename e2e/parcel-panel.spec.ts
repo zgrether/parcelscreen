@@ -5,7 +5,7 @@
  */
 import { expect, test, type Page } from "@playwright/test";
 import roads from "../test/tools/driveway-validation.roads.json";
-import { importParcel, openExplorer, reload } from "./flow";
+import { importParcel, openExplorer, reload, unfoldListing } from "./flow";
 import { replayHar } from "./replay";
 
 const GRAYSON = "grayson-mud-creek-6273" as const;
@@ -103,13 +103,19 @@ test("Details holds the parcel; Map layers holds the map; Your lines and marks h
   await page.getByRole("button", { name: "Cancel" }).click();
 
   // The listing and notes.
-  const listing = details.getByRole("group", { name: "Listing" });
+  const listing = await unfoldListing(details);
   await listing.getByLabel("Asking price").fill("185k");
   await listing.getByLabel("Asking price").press("Enter");
   await details.getByLabel(/^Notes for /).fill("Gate code from the agent.");
   await details.getByLabel(/^Notes for /).blur();
   await expect.poll(async () => (await stored(page)).notes).toBe("Gate code from the agent.");
   expect(await stored(page)).toMatchObject({ askingPrice: 185000 });
+  // Clear has an Undo (polish #21).
+  await details.getByRole("button", { name: "Clear", exact: true }).click();
+  await expect.poll(async () => (await stored(page)).notes).toBe("");
+  await expect(details).toContainText("Notes cleared.");
+  await details.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect.poll(async () => (await stored(page)).notes).toBe("Gate code from the agent.");
 
   // Map layers: only how the map looks; Your lines and marks hides them, and Details says so.
   await page.getByRole("button", { name: "Map layers" }).click();

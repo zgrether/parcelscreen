@@ -296,7 +296,7 @@ html:has(.explore) body {
   position: absolute;
   z-index: 15;
   left: calc(var(--float-l, 0px) + 12px);
-  right: calc(var(--col-r, 0px) + 12px);
+  right: calc(var(--bar-r, var(--col-r, 0px)) + 12px);
   bottom: calc(var(--sheet-h, 0px) + 18px);
   margin-inline: auto;
   width: fit-content;
@@ -1047,30 +1047,32 @@ html:has(.explore) body {
   font-weight: 600;
 }
 /* The asking price, above the notes (owner, #101). */
-/* The listing's facts at the top of the Notes tab (WF1): one row each, as the asking price. On a phone (owner, #130)
-   they fold to a one-line summary once there's a name or a price; the summary is a phone's only. */
+/* The listing's facts at the top of the Notes tab (WF1): one row each, as the asking price. They fold to a one-line
+   summary once there's a name or a price (owner, #130, a phone's; polish #24, a desktop's too). */
 .ip-listing-summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  padding: 6px 8px;
+  border: 1px solid var(--ip-rule);
+  border-radius: 6px;
+  background: var(--ip-field-bg);
+  color: var(--ip-ink);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+.ip-listing[data-folded] > :not(.ip-listing-summary) {
   display: none;
 }
-@media (max-width: 860px) and (orientation: portrait) {
-  .ip-listing-summary {
-    display: flex;
-    justify-content: space-between;
-    gap: 8px;
-    width: 100%;
-    padding: 6px 8px;
-    border: 1px solid var(--ip-rule);
-    border-radius: 6px;
-    background: var(--ip-field-bg);
-    color: var(--ip-ink);
-    font: inherit;
-    font-size: 13px;
-    text-align: left;
-    cursor: pointer;
-  }
-  .ip-listing[data-folded] > :not(.ip-listing-summary) {
-    display: none;
-  }
+.ip-listing-toggle {
+  flex: none;
+  color: var(--ip-ink-2);
+  text-decoration: underline;
 }
 .ip-listing {
   display: grid;
@@ -1364,11 +1366,28 @@ html:has(.explore) body {
   position: absolute;
   z-index: 14;
   top: 52px;
+  right: 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
   transition: right 0.18s;
+}
+/* A phone (polish #20): the buttons in one row along the top, between Search and the attribution, so the map under
+   them is clear for the pins and "Stand here"; the colour legend on the left under Search, clear of the toolbar and
+   the sheet. */
+@media (max-width: 860px) and (orientation: portrait) {
+  .map-col {
+    top: 10px;
+    right: 44px;
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .map-col .surface-legend {
+    position: fixed;
+    top: 64px;
+    left: 10px;
+  }
 }
 .map-ctl-btn {
   background: var(--tb-bg);
@@ -1633,19 +1652,12 @@ html:has(.explore) body {
   details.block > *:not(summary) {
     margin-top: 8px;
   }
-  /* Results for an earlier boundary stay readable but step back. */
-  .report.stale {
-    opacity: 0.55;
-  }
   .report-note {
     margin: 8px 0 0;
     padding: 6px 10px;
     border-left: 3px solid var(--color-warn);
     background: var(--color-paper-2);
     font-size: 13.5px;
-  }
-  .report-note.stale-note {
-    border-color: var(--color-steep);
   }
   .link-btn {
     padding: 0;
@@ -2761,6 +2773,45 @@ html:has(.app-nav) .explore {
   color: #fff;
   border-color: #fff;
 }
+/* Map layers' key (polish #18): small copies of the pins and lines, each beside what it means. */
+.mp-key {
+  margin: 6px 8px 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--ip-rule);
+}
+.mp-key summary {
+  cursor: pointer;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  color: var(--ip-ink-2);
+}
+.mk-rows {
+  display: grid;
+  gap: 6px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+.mk-rows li {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 8px;
+  align-items: center;
+}
+.mk-swatch {
+  display: flex;
+  justify-content: center;
+}
+.sitepin.mk-pin {
+  width: 24px;
+  height: 24px;
+  font-size: 11px;
+  line-height: 20px;
+  box-shadow: none;
+  cursor: default;
+}
 .sitepin.veto {
   background: var(--color-steep);
   color: #fff;
@@ -3121,6 +3172,17 @@ html:has(.app-nav) .explore {
   margin: -4px 0 10px;
   color: var(--color-ink-2);
 }
+/* Help's grade rules beside the grade (polish #31). */
+.card-how {
+  align-self: center;
+  white-space: nowrap;
+}
+/* What holds a Contender's grade at Maybe (polish #5), under the reason. */
+.card-held {
+  margin: -4px 0 10px;
+  color: var(--color-ink-2);
+  font-size: 14px;
+}
 /* The drawn lines changed since the screen (owner, #116): prominent, in the card's header; the results stay. */
 .card-stale {
   display: flex;
@@ -3215,6 +3277,11 @@ html:has(.app-nav) .explore {
 .card-row .row-detail {
   color: var(--color-ink-2);
   font-size: 13.5px;
+}
+/* What made a Must a warning, on its own line under its first clause (polish #7). */
+.card-row .row-why {
+  display: block;
+  color: var(--color-ink);
 }
 .card-row:hover .row-label,
 .card-verdict:hover .card-word {
@@ -3359,6 +3426,13 @@ html:has(.app-nav) .explore {
   align-items: baseline;
 }
 .spot-name {
+  font-weight: 600;
+}
+/* Its place in the person's order, apart from the pin's number (polish #8). */
+.spot-choice {
+  min-width: 2.2em;
+  color: var(--color-ink-2);
+  font-size: 13px;
   font-weight: 600;
 }
 .spot-behind {
@@ -4360,6 +4434,15 @@ button.cmp-cell:hover {
   background: var(--color-paper);
   box-shadow: -4px 0 18px rgba(0, 0, 0, 0.18);
 }
+/* A desktop (polish #15): a narrower panel, and the list beside it, its table scrolling sideways when it must. */
+@media (min-width: 861px) {
+  .lib-detail {
+    width: 380px;
+  }
+  .library.lib-has-detail {
+    padding-right: calc(380px + 16px);
+  }
+}
 .lib-detail-head {
   display: flex;
   align-items: flex-start;
@@ -4732,6 +4815,11 @@ button.cmp-cell:hover {
   gap: 6px 10px;
   margin: 4px 0 10px;
 }
+/* What each Reset puts back (polish #30), on its own row under the buttons. */
+.rubric-reset-note {
+  flex-basis: 100%;
+  margin: 0;
+}
 .rubric-status {
   flex: 1 1 260px;
   margin: 0;
@@ -4882,6 +4970,7 @@ button.cmp-cell:hover {
   color: var(--color-ink-2);
 }
 .rubric-min-badge {
+  white-space: nowrap;
   margin-left: 6px;
   padding: 0 5px;
   border: 1px solid var(--color-ok);
@@ -5193,6 +5282,15 @@ button.cmp-cell:hover {
   display: grid;
   gap: 4px;
   font-size: 14px;
+}
+/* Question 13's budgets (owner, #240): what it covers, then the box with its own label. */
+.iv-field-lead {
+  margin: 0;
+}
+.iv-field-label {
+  display: grid;
+  gap: 4px;
+  font-weight: 600;
 }
 .iv-field input {
   min-height: 44px;
@@ -5651,11 +5749,18 @@ button.sync-ind.bad {
 .others-why {
   display: block;
   margin-top: 2px;
+  font-size: 13px;
+  color: var(--color-ink-2);
 }
 .others-none {
   margin: 0 0 4px;
 }
 /* Asks and takes (step 6 §4). */
+/* A take's comment, its start (polish #13); the whole on hover. */
+.take-note {
+  margin-left: 4px;
+  color: var(--color-ink-2);
+}
 .take-chip {
   display: inline-block;
   padding: 1px 7px;
@@ -5774,7 +5879,8 @@ button.sync-ind.bad {
   height: 8px;
   margin: 0 2px 0 6px;
   border-radius: 50%;
-  background: var(--color-steep);
+  /* Polish: blue, with "new" beside it; red read as a warning. */
+  background: var(--color-water);
   vertical-align: middle;
 }
 .app-badge {
@@ -6268,4 +6374,134 @@ button.sync-ind.bad {
   .grade-note {
     animation: none;
   }
+}
+
+/* ---------- Polish (docs/plans/polish.md, after step 8b) ---------- */
+/* Your list: "You" before the first grade; a new take says "new"; the ask says how to answer; Filters a pill. */
+.lib-you {
+  margin-right: 4px;
+}
+.new-take {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.new-word {
+  color: var(--color-water);
+  font-weight: 600;
+}
+.lib-ask-how {
+  color: var(--color-ink-2);
+}
+.lib-filters-btn {
+  border-radius: 999px;
+}
+/* Favorites cards on a phone: the name on up to two lines, so parcels that differ only in their numbers read apart. */
+@media (max-width: 860px) {
+  .lib-card .lib-open .long-name-text {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+}
+/* Who's this?: the new-profile button is the lesser choice. */
+.who-new {
+  border-style: dashed;
+}
+.take-sent {
+  color: var(--color-ok);
+  font-weight: 600;
+}
+/* A phone: the list's detail sheet ends above the tab bar and fades at its foot, so it shows there's more; it rises
+   over the list's controls so no chip peeks out behind it. The list's small controls get 44 px targets. */
+@media (max-width: 860px) {
+  .lib-detail {
+    bottom: var(--tabs-h);
+    height: calc(88vh - var(--tabs-h));
+    z-index: 45;
+  }
+  .lib-detail-body {
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+    padding-bottom: 28px;
+  }
+  .lib-detail .btn.small,
+  .lib-card .lib-handle {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .lib-card-head input[type="checkbox"] {
+    width: 24px;
+    height: 24px;
+    margin: 10px;
+  }
+}
+/* A phone with Search's results open: the toolbar's hint, the switch toast and the map's hint step aside, so nothing
+   stacks under the results. */
+@media (max-width: 860px) {
+  .explore:has(.search-results) .toolbar,
+  .explore:has(.search-results) .switch-toast,
+  .explore:has(.search-results) .map-hint {
+    visibility: hidden;
+  }
+}
+/* The toolbar's buttons never shrink into each other (the trash over the grade button); the bar scrolls instead. */
+.toolbar > :not(.tb-status) {
+  flex-shrink: 0;
+}
+/* The docked panel's ‹ (collapse) takes 44 px across; its tab, collapsed, reads as a button (a ring on hover). */
+.dock-edge {
+  width: 28px;
+  height: 56px;
+  right: -29px;
+}
+.dock-edge::before {
+  content: "";
+  position: absolute;
+  inset: -6px -10px -6px 0;
+}
+.dock-tab:hover {
+  border-color: var(--color-ink-2);
+  box-shadow:
+    4px 0 16px rgba(0, 0, 0, 0.18),
+    0 0 0 2px var(--color-rule) inset;
+}
+/* Map layers: a toggle that's on says so with a ✓, not only its fill; on a phone the list fades at its foot to show it
+   scrolls. */
+.map-panel .tc-toggle[aria-pressed="true"]::before {
+  content: "✓ " / "";
+  font-weight: 700;
+}
+@media (max-width: 860px) {
+  .map-panel .mp-body {
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 24px), transparent);
+    padding-bottom: 24px;
+  }
+}
+/* Details: Recorded in takes its own line, so its example isn't cut off. */
+.parcel-details label.ip-line-row:has(> input[aria-label="Recorded in"]) {
+  display: grid;
+  gap: 4px;
+}
+/* The top bar's "Synced": the ink, not the muted ink (step 5's review: about 6:1, now about 13:1). */
+.sync-ind.bar:not(.bad) {
+  color: var(--color-ink);
+}
+/* Settings: the advanced fold's heading sits on its summary line. */
+.settings-advanced > summary {
+  cursor: pointer;
+  list-style: revert;
+}
+.settings-advanced > summary h3 {
+  display: inline;
+}
+/* Compare: shadows at the edges that have more to scroll to (step 4b's review: no cue on a phone). */
+.compare-scroll {
+  background:
+    linear-gradient(to right, var(--color-paper) 30%, transparent) left / 28px 100% no-repeat local,
+    linear-gradient(to left, var(--color-paper) 30%, transparent) right / 28px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.2), transparent) left / 14px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.2), transparent) right / 14px 100% no-repeat
+      scroll,
+    var(--color-paper);
 }

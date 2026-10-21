@@ -72,7 +72,7 @@ export function movedMost(b: Card, a: Card, before: Rubric, now: Rubric): Moved[
           : status === "fail"
             ? `Out: ${label} misses its limit (${words})`
             : status === "pass"
-              ? `${label} meets its new limit (${words})`
+              ? `${label} passes its minimum (${words})`
               : `${label}: new limit (${words}), not measured for this parcel`,
       decides: true,
     });

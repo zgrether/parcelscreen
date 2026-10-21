@@ -98,8 +98,10 @@ test("a fresh device opening the QR's link joins straight away: no profile promp
   const phone = await (await browser.newContext()).newPage();
   const visited = await freshDevice(phone);
   await phone.goto(`/link#${groupCode(code)}`);
-  // Nothing of its own to replace: the plain question, never "This device has 1 profile…".
+  // Nothing of its own to replace: the plain question, never "This device has 1 profile…"; and what the space holds
+  // (polish #35).
   await expect(phone.getByText(JOIN_EMPTY)).toBeVisible();
+  await expect(phone.getByText(/It holds \d+ parcels?\./)).toBeVisible();
   await phone.getByRole("button", { name: "Join", exact: true }).click();
   await pickAndCheck(phone, code);
   expect(visited).not.toContain("/interview");

@@ -5,11 +5,13 @@
  * have, Really want, Nice to have, and Cost to enjoy (pending until VR4). Don't care rows are hidden. Every line opens
  * its slide-in panel, where today's report sections live; the card's old reason line is in the Grade and verdict one.
  */
+import Link from "next/link";
+import { GRADES_ID, GRADES_TITLE } from "@/lib/client/help";
 import type { ReactNode } from "react";
 import { answerReason, incompleteLine } from "@/lib/report/answer";
-import { lowerFirst, type Card, type GateStatus, type Row } from "@/lib/report/card";
+import { listOf, lowerFirst, VERDICT_WORD, type Card, type GateStatus, type Row } from "@/lib/report/card";
 import type { PanelKey } from "@/lib/report/cardPanels";
-import { GATE_MARK as MARK, mustLines, rankedRows } from "@/lib/report/cardLines";
+import { GATE_MARK as MARK, mustLines, rankedRows, type MustLine } from "@/lib/report/cardLines";
 import type { NamedRubric } from "@/lib/rubric/types";
 import { TIER_NAMES } from "@/lib/rubric/words";
 import type { PartialScreenResult } from "@/lib/screen/types";
@@ -23,12 +25,28 @@ const STATUS_WORD: Record<GateStatus, string> = {
   unknown: "Unknown",
 };
 /**
+ * A Must's detail: "Check first: …" unless it passes. When its reason has a first clause and more (Legal road access's
+ * frontage, then the road in), the more goes on its own line, so what made it a warning reads plainly (polish #7).
+ */
+function MustDetail({ m }: { m: MustLine }) {
+  const say = (s: string) => (m.status === "pass" ? s : `${STATUS_WORD[m.status]}: ${lowerFirst(s)}`);
+  if (!m.first || !m.detail.startsWith(`${m.first}; `)) return <>{say(m.detail)}</>;
+  return (
+    <>
+      {say(m.first)};<span className="row-why">{m.detail.slice(m.first.length + 2)}</span>
+    </>
+  );
+}
+
+/**
  * The banner when the drawn lines changed since the screen: the results stay, no re-run. The owner's wording (A,
  * 2026-10-13; an approved replacement of #116's "Your drawn lines changed since this screen. Run again.").
  */
 export const LINES_CHANGED = "You drew or changed a line after this screen.";
-/** Its action until follow-up 56's "Score it as the driveway" exists: today's Run again (owner, A). */
-export const LET_THE_APP_CONSIDER_IT = "Let the app consider it";
+/** The banner when the boundary changed since the screen (the panel's old red note, less its "Grade again."). */
+export const EARLIER_BOUNDARY = "These results are for an earlier boundary.";
+/** The banner when the house moved and no live session can re-assess it (the panel's old note, shortened). */
+export const HOUSE_CHANGED = "The house changed since this run.";
 
 /** A banner saying the results no longer match an input, with what can be done about it. */
 export interface StaleBanner {
@@ -58,7 +76,10 @@ export function ReportCard({
   onOpen(key: PanelKey): void;
   /** What goes between the answer and the rows (the map's panel: Best homesite and the alternatives). */
   between?: ReactNode;
-  /** A banner under the header saying the results no longer match an input (LINES_CHANGED). */
+  /**
+   * The one banner saying the results no longer match an input (polish #1): the first of the boundary, the house and the
+   * lines, under the reason, so the answer comes first (#2).
+   */
   stale?: StaleBanner | null;
   /** A line from the parcel's own facts, under the reason (WF1: the listing's acres when they differ). Appended. */
   note?: string | null;
@@ -89,11 +110,18 @@ export function ReportCard({
       <div className="card-answer" data-card-key="answer">
         <div className="card-head">
           <button className="card-verdict" onClick={() => onOpen("verdict")}>
-            <span className={`card-grade g-${card.grade ?? "none"}`}>{card.grade ?? "–"}</span>
+            {/* Held until the run ends (polish #9): a grade from half the data would only change. */}
+            <span className={`card-grade g-${running ? "none" : (card.grade ?? "none")}`}>
+              {running ? "…" : (card.grade ?? "–")}
+            </span>
             <span className={`card-word v-${running ? "running" : card.verdict.toLowerCase()}`}>
-              {running ? "Screening…" : card.verdict}
+              {running ? "Grading…" : VERDICT_WORD[card.verdict]}
             </span>
           </button>
+          {/* Polish #31: Help's grade rules, beside the grade. */}
+          <Link className="link-btn tiny card-how" href={`/help#${GRADES_ID}`}>
+            {GRADES_TITLE}
+          </Link>
           <RubricSwitch
             rubrics={rubrics}
             current={card.rubric.id}
@@ -101,6 +129,12 @@ export function ReportCard({
             label="Whose weights grade the parcel"
           />
         </div>
+        {reason && <p className="card-reason">{reason}</p>}
+        {!running && card.heldBy && (
+          <p className="card-held">
+            Held at {VERDICT_WORD.Maybe} by: {listOf(card.heldBy)}.
+          </p>
+        )}
         {stale && !running && (
           <div className="card-stale" role="status">
             <span>{stale.text}</span>
@@ -111,7 +145,6 @@ export function ReportCard({
             ))}
           </div>
         )}
-        {reason && <p className="card-reason">{reason}</p>}
         {/* What didn't load: the grade button beside it is its Try again (plan §1.1); Still unknown has one too. */}
         {incomplete && (
           <p className="answer-incomplete" role="status">
@@ -134,7 +167,7 @@ export function ReportCard({
                   <button
                     className={`card-row must-row ${wait ? "pending" : m.status}`}
                     title={m.detail}
-                    aria-label={`${m.label}: ${wait ? "pending" : m.status}`}
+                    aria-label={`${m.label}: ${wait ? "still loading" : m.status}`}
                     onClick={() => onOpen(m.key)}
                   >
                     <span className="row-label">{m.label}</span>
@@ -143,13 +176,7 @@ export function ReportCard({
                         {wait ? "…" : MARK[m.status]}
                       </span>
                     </span>
-                    <span className="row-detail">
-                      {wait
-                        ? "…"
-                        : m.status === "pass"
-                          ? m.detail
-                          : `${STATUS_WORD[m.status]}: ${lowerFirst(m.detail)}`}
-                    </span>
+                    <span className="row-detail">{wait ? "…" : <MustDetail m={m} />}</span>
                   </button>
                 </li>
               );

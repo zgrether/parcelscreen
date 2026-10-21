@@ -84,6 +84,8 @@ export function YourTake({ parcel }: { parcel: string }) {
   const [editing, setEditing] = useState(false);
   const [answer, setAnswer] = useState<Answer | null>(mine?.answer ?? null);
   const [comment, setComment] = useState(mine?.comment ?? "");
+  // Polish (step 6's review): saved, it says so, and to whom when it answered an ask.
+  const [sent, setSent] = useState<string | null>(null);
   if (!me) return null;
   const open = editing || waiting || !mine;
   return (
@@ -100,6 +102,11 @@ export function YourTake({ parcel }: { parcel: string }) {
           <span className={`take-chip a-${mine.answer}`}>{ANSWER_WORD[mine.answer]}</span>{" "}
           <span className="tiny muted">{day(mine.at)}</span>
           {mine.comment && <span className="take-comment">“{mine.comment}”</span>}{" "}
+          {sent !== null && (
+            <span className="tiny take-sent" role="status">
+              {sent ? `Sent to ${sent}.` : "Saved."}
+            </span>
+          )}{" "}
           <button className="btn secondary small" onClick={() => setEditing(true)}>
             Change
           </button>
@@ -111,6 +118,7 @@ export function YourTake({ parcel }: { parcel: string }) {
             e.preventDefault();
             if (!answer) return;
             giveTake(parcel, answer, comment);
+            setSent(waiting ? (memberName(ask.from) ?? "") : "");
             setEditing(false);
           }}
         >

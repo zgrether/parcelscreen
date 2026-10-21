@@ -35,7 +35,7 @@ test.describe("on a desktop", () => {
     // Three steps failed: the button carries the count, and the log's one line doesn't.
     await expect(grade(page)).toHaveText("Try again: 3 sources didn't load");
     const line = page.locator(".steps-folded");
-    await expect(line).toHaveText(/^Graded in \d+ s▸$/);
+    await expect(line).toHaveText(/^Graded in \d+ sSteps ▸$/);
     await expect(page.locator("ul.steps")).toHaveCount(0);
 
     // A setting changed: the button names it, and the count joins the line.
@@ -44,14 +44,14 @@ test.describe("on a desktop", () => {
     const was = await field.inputValue();
     await field.fill(String(Number(was) + 1));
     await page.getByRole("button", { name: "Save", exact: true }).click();
-    await expect(grade(page)).toHaveText("Grade again: settings changed");
-    await expect(line).toHaveText(/^Graded in \d+ s · 3 sources didn't load▸$/);
+    await expect(grade(page)).toHaveText("Grade again: house site score changed");
+    await expect(line).toHaveText(/^Graded in \d+ s · 3 sources didn't loadSteps ▸$/);
 
     // ▸ opens the run's list.
     await line.click();
     await expect(page.locator("ul.steps li")).toHaveCount(11);
     await page.reload();
-    await expect(grade(page)).toHaveText("Grade again: settings changed");
+    await expect(grade(page)).toHaveText("Grade again: house site score changed");
     expect(errors).toEqual([]);
   });
 });
@@ -85,7 +85,7 @@ test.describe("on a phone", () => {
 
     await screenIt(page);
     await expect(sheet.locator(".grade-btn")).toHaveText("Try again: 3 sources didn't load");
-    await expect(page.locator(".steps-folded")).toHaveText(/^Graded in \d+ s▸$/);
+    await expect(page.locator(".steps-folded")).toHaveText(/^Graded in \d+ sSteps ▸$/);
     expect(errors).toEqual([]);
   });
 });
