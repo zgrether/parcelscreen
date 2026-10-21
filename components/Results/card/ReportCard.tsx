@@ -43,8 +43,6 @@ function MustDetail({ m }: { m: MustLine }) {
  * 2026-10-13; an approved replacement of #116's "Your drawn lines changed since this screen. Run again.").
  */
 export const LINES_CHANGED = "You drew or changed a line after this screen.";
-/** Its action until follow-up 56's "Score it as the driveway" exists: today's Run again (owner, A). */
-export const LET_THE_APP_CONSIDER_IT = "Let the app consider it";
 /** The banner when the boundary changed since the screen (the panel's old red note, less its "Grade again."). */
 export const EARLIER_BOUNDARY = "These results are for an earlier boundary.";
 /** The banner when the house moved and no live session can re-assess it (the panel's old note, shortened). */

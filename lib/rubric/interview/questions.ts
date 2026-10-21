@@ -316,9 +316,11 @@ export const LAND_QUESTION = {
     { id: "20to50", label: "20–50 acres" },
     { id: "over50", label: "50+ acres" },
   ],
-  camp: "Ready to camp, all in: the land, a way in, and a track to a clearing your 4x4 can reach. The most you'd spend (optional)",
+  // Owner, #240: the sentences say what each budget covers; the box's own label asks for the number.
+  camp: "Ready to camp, all in: the land, a way in, and a track to a clearing your 4x4 can reach.",
   build:
-    "Ready to build, all in: the same, plus a finished driveway, well, septic and power. The most you'd spend (optional)",
+    "Ready to build, all in: the same, plus a finished driveway, well, septic and power. Everything but the house.",
+  most: "The most you'd spend (optional)",
 } as const;
 
 export const ACRES_WORDS: Record<string, string> = {

@@ -56,7 +56,6 @@ import { CardPanel } from "../card/CardPanel";
 import {
   EARLIER_BOUNDARY,
   HOUSE_CHANGED,
-  LET_THE_APP_CONSIDER_IT,
   LINES_CHANGED,
   ReportCard,
   type StaleBanner,
@@ -613,7 +612,8 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
   // The card comes right under the header (owner, #111), with the run's log above it: the live list while it runs,
   // one line once it's done (step 4c). What failed or is out of date stays above the card too; Copy summary and the
   // notes go below its rows.
-  // One banner for results that no longer fit (polish #1), in the card under its answer: the grade button's reason.
+  // One banner for results that no longer fit (polish #1), in the card under its answer: the grade button's reason. Its
+  // action is "Grade again" for each, as the toolbar's (owner, #240: it was "Let the app consider it" for the lines).
   const why = s.grade?.kind === "again" ? s.grade.reason : null;
   const banner: StaleBanner | null =
     why === "boundary"
@@ -621,7 +621,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
       : why === "house"
         ? { text: HOUSE_CHANGED, actions: [{ label: "Grade again", onClick: s.run }] }
         : why === "lines"
-          ? { text: LINES_CHANGED, actions: [{ label: LET_THE_APP_CONSIDER_IT, onClick: s.run }] }
+          ? { text: LINES_CHANGED, actions: [{ label: "Grade again", onClick: s.run }] }
           : null;
   const below = !!display;
   const top = s.showSteps || !!s.error || (notes && !below) || (s.rescreenOffline && !!display);
