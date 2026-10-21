@@ -332,6 +332,10 @@ export function Library() {
                 <SortableRows keys={shownKeys} names={names} mover={mover}>
                   <LibraryCards {...rowsProps} />
                 </SortableRows>
+                {/* The fresh-eyes review (step 10b): what the marks mean, said once under the list. */}
+                {columns.all.some((c) => c.kind === "factor") && (
+                  <p className="tiny muted lib-legend">{LEGEND}</p>
+                )}
               </>
             )}
             <p className="sr-only" role="status">
@@ -519,6 +523,9 @@ const hasStatus = (r: LibraryRow) => !!STATUS_WORD[r.status] || !!milestonesLine
 
 /** Best in column's words (step 10b plan §8): the ●'s title and label. */
 const BEST_WORDS = "best in this column";
+/** What the grid's and the strip's marks mean (the fresh-eyes review), under the list. */
+const LEGEND =
+  "✓ pass · ! check first · ✗ fail · ? not known · A–F the grade · ● best in its column · ≠ the listing's acres differ from the boundary's (hover or open the parcel for both)";
 
 /**
  * Desktop: the comparison grid (step 10b plan §1): in My order, the handle and the menu first; the name, its grade,
@@ -765,6 +772,43 @@ function LibraryCards({ rows, rubrics, ...rest }: RowsProps) {
   );
 }
 
+/**
+ * A phone card's factors (step 10b plan §2): one line in the rubric's order, the Musts first as their marks alone
+ * ("✓✓✓!"; a limit that's ranked too keeps its name and letter, "Elev ✓A"), then the letters with short names ("Sun
+ * A · Sky B"), cut off with an ellipsis. The whole of it, each with its full name, is in its label.
+ */
+function FactorStrip({ r }: { r: LibraryRow }) {
+  if (!r.factors.length) return null;
+  const label = r.factors.map((c) => `${c.title} ${c.text}`).join("; ");
+  // The fresh-eyes review: a pass is a bare ✓; a Must that isn't a pass keeps its name ("Septic !").
+  const marksOnly = r.factors.filter(
+    (c) => c.kind === "must" && c.grade === undefined && c.status === "pass",
+  );
+  const named = r.factors.filter((c) => !marksOnly.includes(c));
+  const mark = (c: FactorCell) =>
+    c.status && <span className={`lib-strip-mark m-${c.status}`}>{GATE_MARK[c.status]}</span>;
+  return (
+    <div className="tiny lib-strip" aria-label={label} title={label}>
+      {marksOnly.length > 0 && (
+        <span className="lib-strip-item" aria-hidden="true">
+          {marksOnly.map((c) => (
+            <Fragment key={c.key}>{mark(c)}</Fragment>
+          ))}
+        </span>
+      )}
+      {named.map((c, i) => (
+        <span key={c.key} className="lib-strip-item" aria-hidden="true">
+          {(i > 0 || marksOnly.length > 0) && <span className="muted"> · </span>}
+          {c.short} {c.kind === "must" && mark(c)}
+          {c.grade !== undefined && (
+            <b className={`lib-strip-grade g-${c.grade ?? "none"}`}>{c.grade ?? "–"}</b>
+          )}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function Card({ r, index, count, ticked, toggle, open, ordering, mover, star, unstar, report }: RowProps) {
   const { nodeProps, dragging, handleProps } = useSortableRow(r.key, ordering);
   return (
@@ -804,6 +848,8 @@ function Card({ r, index, count, ticked, toggle, open, ordering, mover, star, un
           {[
             r.acres !== null ? `${r.acres.toFixed(1)} ac` : null,
             r.price !== null ? shortPrice(r.price) : null,
+            // Step 10b: the price per acre, after the price.
+            r.perAcre ? `${r.perAcre.text}${r.perAcre.differs ? " ≠" : ""}` : null,
             r.costBuild ? `build ${costCell(r)}` : null,
           ]
             .filter(Boolean)
@@ -816,6 +862,7 @@ function Card({ r, index, count, ticked, toggle, open, ordering, mover, star, un
             <Grades r={r} />
           </span>
         </div>
+        <FactorStrip r={r} />
       </div>
     </li>
   );

@@ -183,3 +183,21 @@ the seeded screenshots, or a product question):
   phone's tiny One page preview: existing screens.
 - **The Best homesite block repeats the letters the card shows below it** (Zach, 10/21, with 8c): propose numbers only
   there, e.g. "8.2 h winter sun · W · 2,649 ft · 129 ft drive at 6%", and leave the letters to the card.
+
+## Step 10b: the comparison grid (hand-back)
+
+From the fresh-eyes review of step 10b's screens, the findings not fixed in the step (existing screens, the seeded
+shots, or a product question):
+- **Every fixture is a B** though Macks has two Fs: the parcel grade is a weighted average. Fix: show the weakest row
+  beside the grade, or explain it in the grade's title.
+- **Short headers vs full names** ("Sun" for Best homesite, "Own drive" for Driveway on your land): the plan's labels
+  (§8), the full name in each header's title. Fix if they stay confusing: longer headers at 1920.
+- **At 1280 the grid scrolls sideways with no visible cue** beyond the scrollbar. Fix: a fade on the right edge.
+- **The phone strip is cut off after five or six factors.** Its label holds them all. Fix: a second line, or the
+  Musts that pass dropped from it.
+- **The Compare page's words differ from the card's** ("Dealbreakers" vs "Must have", "What money can't add" vs "Really
+  want"; "Pass"/"Warning" vs ✓ !); **its arrows mean better/worse**, not higher/lower; **29.31 vs 29.3 ac**.
+- **"3,543 ft, at least 1,800 ft"** could read as two measurements. Fix: "at least 1,800 ft (your limit)".
+- **The panel's Grade tab opens mid-card** after a reload; **"zone 3a"** unexplained; **"Grade again" twice**;
+  **"Profile 1"**; One page's "Filled: the best site" key and its outlined grade box: existing screens.
+

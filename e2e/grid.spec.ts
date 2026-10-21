@@ -62,3 +62,29 @@ test("a header sorts and turns around; Columns ▾ hides a factor and remembers 
       .evaluate((el) => getComputedStyle(el).position),
   ).toBe("sticky");
 });
+
+test.describe("on a phone", () => {
+  test.use({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true });
+
+  test("each card has its factor strip; the Sort menu sorts by a factor", async ({ page, context }) => {
+    test.setTimeout(180_000);
+    await replayHar(context, "ferney-creek-52-47A");
+    await openExplorer(page, "ferney-creek-52-47A");
+    await importParcels(page, SLUGS);
+    await seedScreens(page, SLUGS);
+    await settled(page);
+    await visit(page, "/library");
+    await page.getByRole("tab", { name: "Favorites" }).click();
+    const cards = page.locator(".lib-cards .lib-card");
+    await expect(cards).toHaveCount(3);
+    // The Musts first, as their marks alone; then the letters with short names, in the rubric's order.
+    const strip = cards.filter({ hasText: "Mud Creek" }).locator(".lib-strip");
+    await expect(strip).toHaveText(/^✓✓✓ · Septic ! · Elev A · Sun A · Room B · Sky A/);
+    await expect(strip).toHaveAttribute("aria-label", /^Floodplain ✓; Legal road access ✓;/);
+    // No grid controls on a phone.
+    await expect(page.getByRole("button", { name: "Columns ▾" })).toBeHidden();
+    // Sort by a factor, best first: Mud Creek's A sky leads.
+    await page.getByLabel("Sort by").selectOption({ label: "Night sky" });
+    await expect(cards.first()).toContainText("Mud Creek");
+  });
+});
