@@ -37,7 +37,10 @@ export interface PrintLine {
 export const MAP_WORDS = {
   loading: "Map loading…",
   failed: "The map couldn't load. The rest of the report card is complete.",
-  key: "Filled: the best site · ringed: other sites · solid: a drive · dashed: a track · dotted: an easement",
+  best: "Filled: the best site",
+  others: "ringed: other sites",
+  house: "the bulls-eye: your house site",
+  line: { drive: "solid: a drive", track: "dashed: a track", easement: "dotted: an easement" },
 } as const;
 
 /** Each line kind's dash (none for a drive). */
@@ -219,7 +222,15 @@ export function PrintMap({
         {failed && <p className="rp-map-note">{MAP_WORDS.failed}</p>}
       </div>
       <figcaption className="rp-map-credit">
-        {MAP_WORDS.key} · {IMAGERY.usgs.credit}
+        {[
+          ...(sites.some((s) => s.best) ? [MAP_WORDS.best] : []),
+          ...(sites.some((s) => !s.best) ? [MAP_WORDS.others] : []),
+          ...(house ? [MAP_WORDS.house] : []),
+          ...(["drive", "track", "easement"] as const)
+            .filter((k) => lines.some((l) => l.kind === k))
+            .map((k) => MAP_WORDS.line[k]),
+          IMAGERY.usgs.credit,
+        ].join(" · ")}
         {usedEsri ? ` · ${IMAGERY.esri.credit}` : ""}
       </figcaption>
     </figure>

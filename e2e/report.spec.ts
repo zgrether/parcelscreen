@@ -6,7 +6,7 @@
  */
 import { expect, test, type Page } from "@playwright/test";
 import { loadFixture, type FixtureSlug } from "../test/support/fixtures";
-import { importParcels, openExplorer, seedScreens, settled, visit } from "./flow";
+import { importParcels, openExplorer, openFromList, seedScreens, settled, visit } from "./flow";
 import { replayHar } from "./replay";
 
 const SLUGS: readonly FixtureSlug[] = [
@@ -133,4 +133,42 @@ test("Full: the summary, then the brief's sections in order, the closing line; n
     expect(widest, `${slug}: a table past the page's width, px`).toBeLessThanOrEqual(1);
     await page.emulateMedia({ media: null });
   }
+});
+
+test("Report card from the panel header's ⋯ and from a Favorites row's ⋯, in any sort", async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(120_000);
+  const slug: FixtureSlug = "ferney-creek-52-47A";
+  const name = loadFixture(slug).input.name;
+  await replayHar(context, slug);
+  await openExplorer(page, slug);
+  await importParcels(page, [slug, "macks-mountain-35-3"]);
+  await seedScreens(page, [slug, "macks-mountain-35-3"]);
+  await settled(page);
+
+  // The panel: ⋯ → Report card, once the parcel's grade shows (a fresh load, so the explorer reads the seeded screens).
+  await visit(page, "/library");
+  await openFromList(page, name);
+  await expect(page.locator(".report .card").first()).toBeVisible();
+  await page.getByRole("button", { name: "More for this parcel" }).first().click();
+  await page.getByRole("menuitem", { name: "Report card" }).click();
+  await expect(page).toHaveURL(/\/parcel\/[^/]+\/report/);
+  await expect(page.locator(".rp-sheet h1")).toHaveText(name);
+  await page.getByRole("button", { name: "← Back" }).click();
+  await expect(page).toHaveURL(/\/explore$/);
+
+  // A row's ⋯ under another sort (no grips there): Report card, and no Move up.
+  await page.getByRole("link", { name: "Your list", exact: true }).click();
+  await page.getByLabel("Sort by").selectOption("acres");
+  await expect(page.locator(".lib-handle")).toHaveCount(0);
+  await page
+    .locator(".lib-table tbody tr")
+    .filter({ hasText: "parcel 35-3" })
+    .getByRole("button", { name: /^More for / })
+    .click();
+  await expect(page.getByRole("menuitem", { name: "Move up" })).toHaveCount(0);
+  await page.getByRole("menuitem", { name: "Report card" }).click();
+  await expect(page.locator(".rp-sheet h1")).toContainText("35-3");
 });

@@ -4,7 +4,7 @@
  * the parcel's saved screen alone. Its own top bar (Back, One page | Full, Print or save as PDF) doesn't print; the
  * sheet under it is laid out at Letter size on screen too, so what you see is what prints.
  */
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { getPref, setPref } from "@/lib/client/prefs";
 import { useHousehold } from "@/lib/client/householdDoc";
@@ -34,17 +34,25 @@ type Loaded =
   | { kind: "older"; parcel: WorkingParcel }
   | { kind: "ok"; parcel: WorkingParcel; record: ScreenRecord };
 
-/** The parcel's key from the URL: the page's own path, so the offline shell (§1) reads it too. */
-function keyFromPath(): string | null {
+/** The offline shell's key (app/sw.ts): the page it stands in for has its own in the URL. */
+const SHELL_KEY = "_";
+
+/**
+ * The parcel's key: the route's (a client navigation renders before the address bar changes), or, in the offline shell,
+ * the URL's own path.
+ */
+function parcelKey(param: string | undefined): string | null {
+  if (param && param !== SHELL_KEY) return decodeURIComponent(param);
   const m = /^\/parcel\/([^/]+)\/report\/?$/.exec(window.location.pathname);
   return m ? decodeURIComponent(m[1]!) : null;
 }
 
 export function ReportPage() {
   const router = useRouter();
+  const params = useParams<{ key: string }>();
   // The parcel is read at once from the store; only its saved screen waits for IndexedDB (or the synced space).
   const [parcel] = useState(() => {
-    const key = keyFromPath();
+    const key = parcelKey(params?.key);
     return getPref("ps.parcels")?.built.find((b) => b.key === key) ?? null;
   });
   const [loaded, setLoaded] = useState<Loaded>(() =>
@@ -89,6 +97,7 @@ export function ReportPage() {
         <button type="button" className="btn secondary rp-back" onClick={back}>
           {W.back}
         </button>
+        <h1 className="rp-title">{W.title}</h1>
         {loaded.kind === "ok" && (
           <>
             <div className="list-switch rp-switch" role="tablist" aria-label="Report card length">
@@ -118,6 +127,7 @@ export function ReportPage() {
           </>
         )}
       </div>
+      {loaded.kind === "ok" && <p className="tiny muted rp-phone-hint">{W.phoneHint}</p>}
       {loaded.kind === "loading" && <p className="rp-state muted">{W.loading}</p>}
       {loaded.kind === "missing" && <p className="rp-state">{W.notHere}</p>}
       {loaded.kind === "ungraded" && <p className="rp-state">{W.notGraded}</p>}

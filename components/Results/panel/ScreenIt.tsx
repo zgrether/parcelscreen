@@ -67,6 +67,7 @@ import { FullReport } from "../answer/FullReport";
 import { useSeeTakes } from "@/lib/client/householdDoc";
 import { OFFLINE_SCREEN_TEXT } from "@/lib/client/pwa";
 import { Star } from "@/components/Favorites/Star";
+import { PanelMenu } from "@/components/Report/PanelMenu";
 import { countyOf, isFavorite, starName } from "@/lib/client/favorites";
 import { memberName } from "@/lib/client/household";
 import { currentProfileId } from "@/lib/client/profiles";
@@ -519,6 +520,8 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
       </span>
       <span className="sh-actions">
         <PanelStar s={s} />
+        {/* Step 9: the report card, once the parcel is graded and on the list. */}
+        <PanelMenu parcelKey={s.ctl.state.store.open?.key ?? null} graded={!!s.shown && !s.runningHere} />
         {/* Deselect the parcel (17e); Esc does the same on desktop. A screened one stays in History. */}
         <button
           className="sh-x"

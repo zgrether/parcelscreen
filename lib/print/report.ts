@@ -25,7 +25,9 @@ export const REPORT_WORDS = {
   loading: "Loading the report card…",
   notHere: "This parcel isn't on this device.",
   notGraded: "This parcel hasn't been graded yet.",
-  staleBoundary: "Graded on an earlier boundary.",
+  staleBoundary:
+    "Graded on an earlier boundary: the parcel's lines changed after this grade. Grade it again for a current report card.",
+  phoneHint: "This is the page as it prints. Pinch to zoom.",
   takes: "Takes",
   questions: "Questions for the agent",
   noQuestions: "Nothing for the agent: every must was checked.",
@@ -183,6 +185,9 @@ export const PRINT_AREA = { width: 720, height: 960 - 12 } as const;
 /** The next level to try, or null when it fits or nothing's left to shorten. */
 export const nextFit = (level: number, height: number): number | null =>
   height <= PRINT_AREA.height || level >= FIT_STEPS.length ? null : level + 1;
+
+/** The report card's page for a parcel (step 9 plan §1). */
+export const reportHref = (key: string): string => `/parcel/${encodeURIComponent(key)}/report`;
 
 /** The two presets, and the URL's and the pref's word for each. */
 export type Preset = "one" | "full";

@@ -5,7 +5,7 @@
  * line. The blocks render as they do in the panel's Full report, in their print variant (no "on the map" pointers).
  * Nothing here for ways to raise the grade (step 12) or the cost to enjoy (step 10): they come with their steps.
  */
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { area, length, lineString } from "@turf/turf";
 import { fmt } from "@/lib/format";
 import { KIND_NAME, type WorkingParcel } from "@/lib/client/parcelStore";
@@ -104,6 +104,11 @@ export function Full({
   parcel: WorkingParcel;
   acres: number | null;
 }) {
+  // A block's folds (the driveway's grade detail) print open: paper has no ▸ to press (fresh-eyes review).
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    box.current?.querySelectorAll("details").forEach((d) => (d.open = true));
+  });
   const point = evaluationPoint(result);
   const props: BlockProps = {
     result,
@@ -149,7 +154,7 @@ export function Full({
   const status = [statusLine(parcel), milestonesLine(parcel)].filter(Boolean).join(" · ");
 
   return (
-    <div className="rp-full">
+    <div className="rp-full" ref={box}>
       {block(StillUnknown)}
 
       <Section title={FULL_WORDS.priorities}>

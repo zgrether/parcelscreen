@@ -11,6 +11,7 @@
  * writes that one parcel's rank. Under another sort the handles hide, and the list says how to get them back.
  */
 import Link from "next/link";
+import { reportHref } from "@/lib/print/report";
 import { GRADES_ID, GRADES_TITLE } from "@/lib/client/help";
 import { useRouter } from "next/navigation";
 import {
@@ -65,7 +66,7 @@ import { VERDICT_WORD, type Verdict } from "@/lib/report/card";
 import type { NamedRubric } from "@/lib/rubric/types";
 import { LibraryControls } from "./LibraryControls";
 import { RescreenAll } from "./RescreenAll";
-import { DragHandle, OrderMenu, SortableRows, useSortableRow, type Mover } from "./MyOrder";
+import { DragHandle, RowMenu, SortableRows, useSortableRow, type Mover } from "./MyOrder";
 import { ParcelDetail } from "./ParcelDetail";
 import { History } from "./History";
 import { Star, unstarQuestion } from "@/components/Favorites/Star";
@@ -218,6 +219,7 @@ export function Library() {
     mover,
     star,
     unstar: setUnstarring,
+    report: (key: string) => router.push(reportHref(key)),
   };
 
   return (
@@ -361,7 +363,12 @@ interface RowsProps {
   star(r: LibraryRow): ReactNode;
   /** The ⋯ menu's Remove from favorites (polish #16): the star's own question first. */
   unstar(r: LibraryRow): void;
+  /** The ⋯ menu's Report card (step 9): opens the parcel's print page. */
+  report(key: string): void;
 }
+
+/** A row with a grade from a kept screen: its report card can print (step 9). */
+const graded = (r: LibraryRow): boolean => r.grades[0]?.graded != null;
 
 interface RowProps extends Omit<RowsProps, "rows"> {
   r: LibraryRow;
@@ -476,11 +483,9 @@ function LibraryTable({ rows, rubrics, ...rest }: RowsProps) {
       <table className="lib-table">
         <thead>
           <tr>
-            {rest.ordering && (
-              <th scope="col">
-                <span className="sr-only">My order</span>
-              </th>
-            )}
+            <th scope="col">
+              <span className="sr-only">{rest.ordering ? "My order" : "More"}</span>
+            </th>
             <th scope="col">
               <span className="sr-only">Compare</span>
             </th>
@@ -522,6 +527,7 @@ function TableRow({
   mover,
   star,
   unstar,
+  report,
   cols,
 }: RowProps & { cols: { price: boolean; status: boolean } }) {
   const { nodeProps, dragging, handleProps } = useSortableRow(r.key, ordering);
@@ -532,18 +538,18 @@ function TableRow({
       aria-label={`Open ${r.name}`}
       {...opens(() => open(r.key))}
     >
-      {ordering && (
-        <td className="lib-order" {...ownClick}>
-          <DragHandle name={r.name} handle={handleProps} />
-          <OrderMenu
-            name={r.name}
-            index={index}
-            count={count}
-            move={(to) => mover.move(r.key, to)}
-            remove={() => unstar(r)}
-          />
-        </td>
-      )}
+      {/* The grip in My order only; the ⋯ in every sort (step 9: Report card). */}
+      <td className="lib-order" {...ownClick}>
+        {ordering && <DragHandle name={r.name} handle={handleProps} />}
+        <RowMenu
+          name={r.name}
+          index={index}
+          count={count}
+          move={ordering ? (to) => mover.move(r.key, to) : undefined}
+          remove={() => unstar(r)}
+          report={graded(r) ? () => report(r.key) : undefined}
+        />
+      </td>
       <td {...ownClick}>
         <input
           type="checkbox"
@@ -589,7 +595,7 @@ function LibraryCards({ rows, rubrics, ...rest }: RowsProps) {
   );
 }
 
-function Card({ r, index, count, ticked, toggle, open, ordering, mover, star, unstar }: RowProps) {
+function Card({ r, index, count, ticked, toggle, open, ordering, mover, star, unstar, report }: RowProps) {
   const { nodeProps, dragging, handleProps } = useSortableRow(r.key, ordering);
   return (
     <li
@@ -603,15 +609,14 @@ function Card({ r, index, count, ticked, toggle, open, ordering, mover, star, un
         <div className="lib-card-head">
           {star(r)}
           <LongName name={r.name} className="lib-open" />
-          {ordering && (
-            <OrderMenu
-              name={r.name}
-              index={index}
-              count={count}
-              move={(to) => mover.move(r.key, to)}
-              remove={() => unstar(r)}
-            />
-          )}
+          <RowMenu
+            name={r.name}
+            index={index}
+            count={count}
+            move={ordering ? (to) => mover.move(r.key, to) : undefined}
+            remove={() => unstar(r)}
+            report={graded(r) ? () => report(r.key) : undefined}
+          />
           <input
             {...ownClick}
             type="checkbox"
