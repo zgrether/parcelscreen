@@ -17,6 +17,7 @@ import { RECENT_EMPTY, type LibraryRow } from "@/lib/client/library";
 import { openOnMap } from "@/lib/client/openOnMap";
 import type { WorkingParcel } from "@/lib/client/parcelStore";
 import type { KeptScreen } from "@/lib/client/useKeptScreens";
+import { VERDICT_WORD } from "@/lib/report/card";
 
 const when = (iso: string) => new Date(iso).toLocaleDateString([], { month: "short", day: "numeric" });
 
@@ -143,9 +144,11 @@ function RecentRow({
         <span className="hist-name" title={name}>
           {name}
         </span>
-        <span className="tiny muted">
+        <span className="tiny muted" title={r?.perAcre?.both ?? undefined}>
           {[
             r?.acres != null ? `${r.acres.toFixed(1)} ac` : null,
+            // Step 10b: the price per acre, "≠" when the listing's and the boundary's acres differ.
+            r?.perAcre ? `${r.perAcre.text}${r.perAcre.differs ? " ≠" : ""}` : null,
             graded ? `Graded ${when(graded)}` : `Changed ${when(p.updatedAt)}`,
           ]
             .filter(Boolean)
@@ -154,7 +157,13 @@ function RecentRow({
       </div>
       <span className="hist-grade" title={mine ? "Your grade" : undefined}>
         {mine ? (
-          <span className={`card-grade small g-${mine.grade ?? "none"}`}>{mine.grade ?? "–"}</span>
+          <>
+            <span className={`card-grade small g-${mine.grade ?? "none"}`}>{mine.grade ?? "–"}</span>
+            {/* Step 10b: the verdict word beside the letter, as Favorites shows it. */}
+            <span className={`card-word small v-${mine.verdict.toLowerCase()}`}>
+              {VERDICT_WORD[mine.verdict]}
+            </span>
+          </>
         ) : (
           <span className="tiny muted">–</span>
         )}

@@ -3390,8 +3390,10 @@ html:has(.app-nav) .explore {
   min-height: 44px;
 }
 .must-row .must-mark {
-  display: inline-grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   min-width: 24px;
 }
 .must-row .mark {
@@ -6194,6 +6196,12 @@ button.sync-ind.bad {
   align-items: center;
   gap: 4px 10px;
   padding: 6px 8px;
+}
+/* Step 10b: the letter and the verdict word side by side. */
+.hist-grade {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .hist-row + .hist-row {
   border-top: 1px solid var(--color-rule);

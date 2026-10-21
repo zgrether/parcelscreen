@@ -4,6 +4,8 @@
  * (owner, #128). Filters and sorts are views: they never change a parcel. Pure; components/Library renders it.
  */
 import { DEFAULT_COST_SETTINGS, type CostSettings, type Range } from "../config/costs";
+import { factorCells, type FactorCell } from "../report/factorCells";
+import { perAcre, type PerAcre } from "../report/perAcre";
 import {
   bothLikeIt,
   EMPTY_HOUSEHOLD,
@@ -90,6 +92,10 @@ export interface LibraryRow {
    * price); null before it can be priced, or with no practical drive.
    */
   costBuild: { total: Range; plusLand: boolean } | null;
+  /** Price per acre (step 10b): over the listing's acres when given, else the boundary's; null without a price. */
+  perAcre: PerAcre | null;
+  /** The viewer's card as factor cells, in their rubric's order (step 10b's grid and strip); empty without a screen. */
+  factors: FactorCell[];
 }
 
 /** The household's asks and takes, and who's looking (step 6): what the list reads beside the grades. */
@@ -152,6 +158,7 @@ export function libraryRow(
   const county = p.pieces.map((x) => parcelFacts(x.geo, x.props).county).find((c) => !!c) ?? null;
   const result = kept?.state === "ok" ? kept.result : null;
   let costBuild: LibraryRow["costBuild"] = null;
+  let factors: FactorCell[] = [];
   const graded = (nr: NamedRubric): Graded | null => {
     if (!result) return null;
     const c = reportCard(
@@ -160,8 +167,11 @@ export function libraryRow(
       drawnOf(p.markup, p.drivewayLine, { askingPrice: p.askingPrice, ...costs }),
     );
     // The viewer's (the profile's own rubric comes first): the cost at their best site.
-    if (nr === rubrics[0] && c.cost?.kind === "priced")
-      costBuild = { total: c.cost.build.total, plusLand: c.cost.build.land === null };
+    if (nr === rubrics[0]) {
+      if (c.cost?.kind === "priced")
+        costBuild = { total: c.cost.build.total, plusLand: c.cost.build.land === null };
+      factors = factorCells(c);
+    }
     return { grade: c.grade, verdict: c.verdict };
   };
   const grades = rubrics.map((nr) => ({ id: nr.id, name: nr.name, graded: graded(nr) }));
@@ -200,6 +210,8 @@ export function libraryRow(
       grades.map((g) => g.graded?.grade ?? null),
     ),
     costBuild,
+    perAcre: perAcre(p.askingPrice, p.listingAcres, acres),
+    factors,
   };
 }
 
