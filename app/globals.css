@@ -6585,11 +6585,7 @@ button.sync-ind.bad {
   font-weight: 600;
 }
 .rp-map-slot {
-  height: 3.3in;
   margin: 8px 0;
-}
-.rp-map-slot.small {
-  height: 2.4in;
 }
 .rp-grades {
   margin: 6px 0;
@@ -6698,4 +6694,36 @@ button.sync-ind.bad {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
+}
+/* The print map (plan §4): tiles as images in a clipped box, the SVG over them, the credit under it. */
+.rp-map {
+  margin: 0;
+}
+.rp-map-box {
+  position: relative;
+  width: 720px;
+  overflow: hidden;
+  background: #d9d9d4;
+}
+.rp-tile {
+  position: absolute;
+  display: block;
+  max-width: none;
+}
+.rp-overlay {
+  position: absolute;
+  inset: 0;
+}
+.rp-map-note {
+  position: absolute;
+  inset: auto 0 40% 0;
+  margin: 0;
+  text-align: center;
+  font-size: 10pt;
+  font-weight: 600;
+}
+.rp-map-credit {
+  margin-top: 2px;
+  font-size: 7.5pt;
+  color: #333;
 }

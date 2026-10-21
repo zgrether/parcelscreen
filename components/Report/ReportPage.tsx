@@ -22,6 +22,9 @@ import { DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { MINE } from "@/lib/rubric/types";
 import { presetOf, REPORT_WORDS as W, reportContent, type Preset } from "@/lib/print/report";
 import { OnePage } from "./OnePage";
+import { PrintMap, type PrintLine, type PrintSite } from "./PrintMap";
+import { choicesBeside } from "@/lib/report/sites";
+import type { LatLon } from "@/lib/geo/types";
 
 type Loaded =
   | { kind: "loading" }
@@ -76,6 +79,7 @@ export function ReportPage() {
     };
   }, [parcel]);
 
+  const [mapReady, setMapReady] = useState(false);
   const back = () => (window.history.length > 1 ? router.back() : router.push("/library"));
 
   return (
@@ -100,7 +104,14 @@ export function ReportPage() {
                 </button>
               ))}
             </div>
-            <button type="button" className="btn rp-print" onClick={() => window.print()}>
+            {/* Print waits for the map's tiles (loaded or failed), so the saved PDF has the map (plan §4). */}
+            <button
+              type="button"
+              className="btn rp-print"
+              disabled={!mapReady}
+              title={mapReady ? undefined : MAP_WAIT}
+              onClick={() => window.print()}
+            >
               {W.print}
             </button>
           </>
@@ -110,15 +121,30 @@ export function ReportPage() {
       {loaded.kind === "missing" && <p className="rp-state">{W.notHere}</p>}
       {loaded.kind === "ungraded" && <p className="rp-state">{W.notGraded}</p>}
       {loaded.kind === "older" && <p className="rp-state">{OLD_DATA_DROPPED}</p>}
-      {loaded.kind === "ok" && <Report parcel={loaded.parcel} record={loaded.record} preset={preset} />}
+      {loaded.kind === "ok" && (
+        <Report parcel={loaded.parcel} record={loaded.record} preset={preset} onMapReady={setMapReady} />
+      )}
     </main>
   );
 }
 
-function Report({ parcel, record, preset }: { parcel: WorkingParcel; record: ScreenRecord; preset: Preset }) {
+/** The print button's title while the map's tiles come in. */
+const MAP_WAIT = "Waiting for the map";
+
+function Report({
+  parcel,
+  record,
+  preset,
+  onMapReady,
+}: {
+  parcel: WorkingParcel;
+  record: ScreenRecord;
+  preset: Preset;
+  onMapReady(ready: boolean): void;
+}) {
   const household = useHousehold();
+  const derived = useMemo(() => deriveParcel(recipeOf(parcel), SCREEN_CONSTANTS.combine), [parcel]);
   const content = useMemo(() => {
-    const derived = deriveParcel(recipeOf(parcel), SCREEN_CONSTANTS.combine);
     // A boundary changed since the run (the panel's "earlier boundary"): the saved screen still prints, and says so.
     const stale =
       derived.ok &&
@@ -143,11 +169,39 @@ function Report({ parcel, record, preset }: { parcel: WorkingParcel; record: Scr
       parcelKey: parcel.key!,
       stale,
     });
-  }, [parcel, record, household]);
+  }, [parcel, record, household, derived]);
+  // The map's content (plan §4): the boundary's rings, the viewer's best site and their alternatives, the lines, a house.
+  const map = useMemo(() => {
+    const geo = derived.ok ? derived.record.geo.geometry : null;
+    // The boundary is one polygon (a combination's parts are joined into it); its rings in [lat, lon].
+    const rings = (geo?.coordinates ?? []).map((r) => r.map(([lon, lat]) => [lat!, lon!] as LatLon));
+    const card = content.grades[0]!.card;
+    const best = card.sites[0];
+    const near = best
+      ? choicesBeside(card.sites, {
+          ll: best.ll,
+          score: best.score,
+          fails: best.fails.length,
+          index: best.index,
+        })
+      : null;
+    const sites: PrintSite[] = [
+      ...(best ? [{ rank: best.rank, ll: best.ll, best: true }] : []),
+      ...(near?.alternatives ?? []).map((s) => ({ rank: s.rank, ll: s.ll, best: false })),
+    ];
+    const lines: PrintLine[] = parcel.markup.flatMap((m) =>
+      m.shape === "line" ? [{ kind: m.kind, line: m.line }] : [],
+    );
+    return { rings, sites, lines, house: parcel.house };
+  }, [derived, content, parcel]);
   return (
     <SheetScale>
       <article className="rp-sheet" data-preset={preset} aria-label={`${W.title}: ${content.name}`}>
-        <OnePage content={content} fit={preset === "one"} />
+        <OnePage
+          content={content}
+          fit={preset === "one"}
+          map={(height) => <PrintMap {...map} height={height} onSettled={() => onMapReady(true)} />}
+        />
       </article>
     </SheetScale>
   );

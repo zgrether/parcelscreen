@@ -748,3 +748,11 @@ describe("config and weights", () => {
     expect(cardFor(facts, old).verdict).toBe("Contender");
   });
 });
+
+describe("held at Maybe by (polish #5), in the card's own words", () => {
+  it("Roan: two warnings past the allowance, named as the card names its Musts", () => {
+    const c = reportCard(expectedOf("roan-hwy-143-099-046-02", "run"), ZACH);
+    expect(c.verdict).toBe("Maybe");
+    expect(c.heldBy).toEqual(["Driveway on your land", "Septic"]);
+  });
+});
