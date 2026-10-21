@@ -288,10 +288,40 @@ export function passes(r: LibraryRow, f: LibraryFilters): boolean {
 
 // ---------- sorts ----------
 
-/** "grade:<rubric id>" sorts by that rubric's grade (step 1). */
+/**
+ * "grade:<rubric id>" sorts by that rubric's grade (step 1); "factor:<factor>" by the viewer's cell for it (step 10b:
+ * a Must's outcome, then its letter; a row's letter), best first.
+ */
 export type SortKey =
-  "order" | "updated" | "price" | "acres" | "costBuild" | "household" | "lowest" | `grade:${string}`;
+  | "order"
+  | "updated"
+  | "price"
+  | "acres"
+  | "costBuild"
+  | "household"
+  | "lowest"
+  | "name"
+  | "pricePerAcre"
+  | "state"
+  | `grade:${string}`
+  | `factor:${string}`;
 export const gradeSortKey = (id: string): SortKey => `grade:${id}`;
+export const factorSortKey = (f: string): SortKey => `factor:${f}`;
+const SORT_KEYS = [
+  "order",
+  "updated",
+  "price",
+  "acres",
+  "costBuild",
+  "household",
+  "lowest",
+  "name",
+  "pricePerAcre",
+  "state",
+];
+/** A stored sort key this version knows. */
+export const isSortKey = (k: string): k is SortKey =>
+  SORT_KEYS.includes(k) || k.startsWith("grade:") || k.startsWith("factor:");
 export interface LibrarySort {
   key: SortKey;
   /** Each key's natural order (the newest, the cheapest, the largest, the best), or its reverse. */
@@ -332,7 +362,19 @@ const sortValue = (r: LibraryRow, k: Exclude<SortKey, "order">): number | string
       return r.household === null ? null : 2 - rank(r.household);
     case "lowest":
       return lowestOfOurs(r);
+    // Step 10b: the grid's columns.
+    case "name":
+      return r.name.toLocaleLowerCase();
+    case "pricePerAcre":
+      return r.perAcre?.value ?? null;
+    case "state":
+      return r.states.length ? r.states.join(" ") : null;
     default:
+      if (k.startsWith("factor:")) {
+        // Best first; an unknown sorts last either way (sortRows).
+        const score = r.factors.find((c) => c.key === k.slice("factor:".length))?.score ?? null;
+        return score === null ? null : -score;
+      }
       return gradedRank(r.grades.find((g) => g.id === k.slice("grade:".length))?.graded ?? null);
   }
 };
@@ -361,8 +403,16 @@ export interface LibraryView {
   filters: LibraryFilters;
   sort: LibrarySort;
   tab: ListTab;
+  /** Step 10b: the grid's columns the person hid (Columns ▾); State and Updated start hidden. */
+  columns: { hidden: string[] };
 }
-export const DEFAULT_VIEW: LibraryView = { filters: DEFAULT_FILTERS, sort: DEFAULT_SORT, tab: "favorites" };
+export const DEFAULT_COLUMNS = { hidden: ["state", "updated"] };
+export const DEFAULT_VIEW: LibraryView = {
+  filters: DEFAULT_FILTERS,
+  sort: DEFAULT_SORT,
+  tab: "favorites",
+  columns: DEFAULT_COLUMNS,
+};
 
 const Choice = z.enum(["Contender", "Maybe", "Pass", "unscreened"]);
 const ViewSchema = z.object({
@@ -380,15 +430,11 @@ const ViewSchema = z.object({
     newTakes: z.boolean().default(false),
   }),
   sort: z.object({
-    key: z
-      .string()
-      .refine(
-        (k): k is SortKey =>
-          ["order", "updated", "price", "acres", "costBuild", "household", "lowest"].includes(k) ||
-          k.startsWith("grade:"),
-      ),
+    key: z.string().refine((k): k is SortKey => isSortKey(k)),
     reversed: z.boolean(),
   }),
+  // Step 10b: a view stored before it has no columns: the default's.
+  columns: z.object({ hidden: z.array(z.string()) }).default(() => ({ hidden: [...DEFAULT_COLUMNS.hidden] })),
 });
 
 /** A stored view, or the default when it's missing or from another shape. */
