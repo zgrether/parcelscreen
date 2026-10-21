@@ -715,6 +715,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             running={running}
             lineNames={namesOf(s)}
             drivewayLine={s.ctl.state.store.open?.drivewayLine ?? null}
+            paving={s.card?.paving}
             noteFor={(slug) =>
               s.evaluated &&
               EVALUATED_SECTIONS.has(slug) && (

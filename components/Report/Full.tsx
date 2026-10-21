@@ -119,6 +119,7 @@ export function Full({
     variant: "print",
     lineNames: lineNamesOf(parcel.markup),
     drivewayLine: parcel.drivewayLine,
+    ...(card.paving ? { paving: card.paving } : {}),
   };
   /** A report block with its own heading, or nothing when it has nothing to say. */
   const block = (B: (p: BlockProps) => ReactNode) => {

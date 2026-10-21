@@ -7,6 +7,7 @@ import type { PartialScreenResult, ScreenResult, Step } from "@/lib/screen/types
 import type { LatLon } from "@/lib/screen/util";
 import type { LineNames } from "@/lib/report/lines";
 import type { EvaluationPoint } from "@/lib/report/point";
+import type { PavingContext } from "@/lib/report/ground";
 
 export type { EvaluationPoint };
 export { evaluationPoint } from "@/lib/report/point";
@@ -30,6 +31,8 @@ export interface BlockProps {
   lineNames?: LineNames;
   /** The line the household chose as its driveway (WF5), by id; absent or null for the app's pick. */
   drivewayLine?: string | null;
+  /** Settings' paving choice and the parcel's lines (step 10): the Driveway section's Paving row follows them. */
+  paving?: PavingContext;
 }
 
 export interface BlockActions {
