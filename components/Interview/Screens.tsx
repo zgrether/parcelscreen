@@ -20,7 +20,7 @@ import {
   type Question,
 } from "@/lib/rubric/interview/questions";
 import { fmt } from "@/lib/format";
-import { FACTOR_LABELS } from "@/lib/rubric/words";
+import { EDITOR_TITLES } from "@/lib/rubric/words";
 
 /** How long a pick shows before the next screen, ms: long enough to see, short enough not to wait. */
 const BEAT_MS = 300;
@@ -335,7 +335,7 @@ export function ChipsScreen({
         : c === "erOver"
           ? "Drive to an ER"
           : c === "sharedDriveway"
-            ? FACTOR_LABELS.easement
+            ? EDITOR_TITLES.easement
             : CHIP_WORDS[c].label;
     if (picked.includes(c) && c === "belowFt") return "Elevation below";
     if (picked.includes(c) && c === "erOver") return "ER over";
