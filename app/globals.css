@@ -1069,6 +1069,11 @@ html:has(.explore) body {
 .ip-listing[data-folded] > :not(.ip-listing-summary) {
   display: none;
 }
+.ip-listing-toggle {
+  flex: none;
+  color: var(--ip-ink-2);
+  text-decoration: underline;
+}
 .ip-listing {
   display: grid;
   gap: 6px;

@@ -134,3 +134,18 @@ that fixed it.
 - ~~**Details › Listing, phone:** folded to a summary on a phone, open on a desktop. Fix: one behaviour.~~ Done in #237. Open while empty, folded once it has a name or a price, on both.
 - ~~**Header and icons:** "PTM 63-A-62", the ⓘ and map buttons, and the star have no visible labels. Fix: tooltips or short
   labels.~~ Checked: the star, the map button and MapLibre's ⓘ already have tooltips, and "PTM 63-A-62" is the county's own parcel number.
+
+## Polish pass 1 (hand-back)
+
+- **Grade:** a parcel past a limit in the reason ("past your 20-minute limit") still reads "B Contender"; the reason
+  doesn't say the limit is a ranked edge, not a Must. Fix: say "a C on that row" or similar, if it confuses in use.
+- **Your list, household:** "Sam B" beside "Sam says Maybe" reads as two judgments with no labels. Fix: "Sam's grade"
+  and "Sam's take" in the tooltip or a heading, if it confuses in use.
+- **Your list, Filters:** "Filters · 2 on" with Show all on lights every verdict chip, so "2 on" looks wrong. Fix: count
+  only filters narrower than the default, or say what's on.
+- **What matters, the notice's table:** "Nice to have 0" after an interview that put two items there; the percentages
+  are heavy. Fix: check the table's tiers against the list; plainer words.
+- **Map layers, Results on the map:** "Shown" buttons don't read as toggles, and "Horizon fan" and "Surface" are jargon
+  (the key in #237 explains the fan). Fix: the ✓ toggles On the map uses (#232); plainer labels.
+- **Map:** pins overlap at the default zoom ("2" and a garden pin, "E3" under "1"). Fix: collision offsets, if it
+  confuses in use.
