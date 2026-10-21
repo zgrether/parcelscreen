@@ -16,11 +16,11 @@ export function Costs({
   set(key: CostKey, end: "low" | "high", value: string): void;
 }) {
   const row = (r: CostRate) => (
-    <div key={r.key} className="cost-row" role="group" aria-label={r.label}>
-      <div className="cost-label">
+    <div key={r.key} className="rate-row" role="group" aria-label={r.label}>
+      <div className="rate-label">
         {r.label} <span className="muted">({r.unit})</span>
       </div>
-      <div className="cost-range">
+      <div className="rate-range">
         {(["low", "high"] as const).map((end) => (
           <label key={end} className="settings-field">
             {end === "low" ? "Low" : "High"}
@@ -35,7 +35,7 @@ export function Costs({
           </label>
         ))}
       </div>
-      <div className="tiny muted cost-source">
+      <div className="tiny muted rate-source">
         Source:{" "}
         {r.sources.map((s, i) => (
           <span key={s.url}>
@@ -43,7 +43,7 @@ export function Costs({
             <a href={s.url} target="_blank" rel="noopener noreferrer">
               {s.name}
             </a>{" "}
-            ({s.date}, {s.where})
+            · {s.date} · {s.where}
           </span>
         ))}
       </div>
@@ -55,10 +55,16 @@ export function Costs({
       <h3>Costs</h3>
       <p className="tiny muted">
         Published ranges, low to high, for Ready to camp and Ready to build. Edit them to your
-        contractor&apos;s numbers. Checked {COSTS_CHECKED}.
+        contractor&apos;s numbers. They apply to every parcel. Sources checked{" "}
+        {new Date(`${COSTS_CHECKED}T12:00:00`).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })}
+        .
       </p>
       {COST_GROUPS.map((g) => (
-        <section key={g.id} className="cost-group" aria-label={g.label}>
+        <section key={g.id} className="rate-group" aria-label={g.label}>
           <h4>{g.label}</h4>
           {COST_RATES.filter((r) => r.group === g.id).map(row)}
         </section>

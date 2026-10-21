@@ -65,7 +65,18 @@ export function mustLines(card: Card): MustLine[] {
       },
     ];
   });
-  return [...gates, ...limits];
+  // Within budget held as a Must (step 10): after the gates, its reason the budgets at its status.
+  const budget: MustLine[] = card.budgetMust
+    ? [
+        {
+          key: "budget",
+          label: EDITOR_TITLES.budget,
+          status: card.budgetMust.status,
+          detail: card.budgetMust.reason,
+        },
+      ]
+    : [];
+  return [...gates, ...budget, ...limits];
 }
 
 /** The ranked rows by tier, in rank order (plan §1.4). */

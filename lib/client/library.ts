@@ -3,6 +3,7 @@
  * price, state, status and milestones, and both people's grades with the household verdict, the lower of the two
  * (owner, #128). Filters and sorts are views: they never change a parcel. Pure; components/Library renders it.
  */
+import { DEFAULT_RATES, type Range, type Rates } from "../config/costs";
 import {
   bothLikeIt,
   EMPTY_HOUSEHOLD,
@@ -84,6 +85,11 @@ export interface LibraryRow {
   newTakesBy: string[];
   /** No one's take is No, and every graded member's grade is C or better (step 6: Both like it). */
   bothLike: boolean;
+  /**
+   * Ready to build, all in, at the viewer's best site (step 10): its range and whether it leaves out the land (no asking
+   * price); null before it can be priced, or with no practical drive.
+   */
+  costBuild: { total: Range; plusLand: boolean } | null;
 }
 
 /** The household's asks and takes, and who's looking (step 6): what the list reads beside the grades. */
@@ -139,13 +145,23 @@ export function libraryRow(
   kept: KeptScreen | undefined,
   rubrics: readonly NamedRubric[] = [defaultNamedRubric()],
   ctx: HouseholdContext = { household: EMPTY_HOUSEHOLD, me: null },
+  /** The cost to enjoy's rates in use (step 10, Settings → Costs). */
+  rates: Rates = DEFAULT_RATES,
 ): LibraryRow {
   const { acres } = parcelName(p);
   const county = p.pieces.map((x) => parcelFacts(x.geo, x.props).county).find((c) => !!c) ?? null;
   const result = kept?.state === "ok" ? kept.result : null;
+  let costBuild: LibraryRow["costBuild"] = null;
   const graded = (nr: NamedRubric): Graded | null => {
     if (!result) return null;
-    const c = reportCard(result, nr, drawnOf(p.markup, p.drivewayLine));
+    const c = reportCard(
+      result,
+      nr,
+      drawnOf(p.markup, p.drivewayLine, { askingPrice: p.askingPrice, rates }),
+    );
+    // The viewer's (the profile's own rubric comes first): the cost at their best site.
+    if (nr === rubrics[0] && c.cost?.kind === "priced")
+      costBuild = { total: c.cost.build.total, plusLand: c.cost.build.land === null };
     return { grade: c.grade, verdict: c.verdict };
   };
   const grades = rubrics.map((nr) => ({ id: nr.id, name: nr.name, graded: graded(nr) }));
@@ -183,6 +199,7 @@ export function libraryRow(
       p.key!,
       grades.map((g) => g.graded?.grade ?? null),
     ),
+    costBuild,
   };
 }
 
@@ -260,7 +277,8 @@ export function passes(r: LibraryRow, f: LibraryFilters): boolean {
 // ---------- sorts ----------
 
 /** "grade:<rubric id>" sorts by that rubric's grade (step 1). */
-export type SortKey = "order" | "updated" | "price" | "acres" | "household" | "lowest" | `grade:${string}`;
+export type SortKey =
+  "order" | "updated" | "price" | "acres" | "costBuild" | "household" | "lowest" | `grade:${string}`;
 export const gradeSortKey = (id: string): SortKey => `grade:${id}`;
 export interface LibrarySort {
   key: SortKey;
@@ -293,6 +311,11 @@ const sortValue = (r: LibraryRow, k: Exclude<SortKey, "order">): number | string
       return r.price;
     case "acres":
       return r.acres === null ? null : -r.acres;
+    case "costBuild":
+      // Cheapest first, by the range's middle. Without an asking price it leaves out the land, so it sorts last.
+      return r.costBuild && !r.costBuild.plusLand
+        ? (r.costBuild.total.low + r.costBuild.total.high) / 2
+        : null;
     case "household":
       return r.household === null ? null : 2 - rank(r.household);
     case "lowest":
@@ -349,7 +372,8 @@ const ViewSchema = z.object({
       .string()
       .refine(
         (k): k is SortKey =>
-          ["order", "updated", "price", "acres", "household", "lowest"].includes(k) || k.startsWith("grade:"),
+          ["order", "updated", "price", "acres", "costBuild", "household", "lowest"].includes(k) ||
+          k.startsWith("grade:"),
       ),
     reversed: z.boolean(),
   }),

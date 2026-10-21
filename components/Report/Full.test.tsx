@@ -6,6 +6,9 @@ import { ZACH } from "@/test/support/rubrics";
 import { built } from "@/test/support/parcels";
 import { reportCard } from "@/lib/report/card";
 import type { LineMarkup } from "@/lib/client/parcelStore";
+import { drawnOf } from "@/lib/report/marks";
+import { DEFAULT_RATES } from "@/lib/config/costs";
+import { COST_WORDS } from "@/lib/report/cost";
 import { Full, FULL_WORDS } from "./Full";
 
 const text = (html: string) =>
@@ -42,6 +45,19 @@ const render = (over: Parameters<typeof built>[1] = {}) =>
   );
 
 describe("Full (plan §3)", () => {
+  it("Cost to enjoy after Access and driveway when the card is priced (step 10)", () => {
+    const card = reportCard(ROAN, ZACH, drawnOf([], null, { askingPrice: 90_000, rates: DEFAULT_RATES }));
+    const html = renderToStaticMarkup(<Full result={ROAN} card={card} parcel={built("k1")} acres={13.29} />);
+    const headings = [...html.matchAll(/<section class="rp-full-section"><h2>([^<]+)<\/h2>/g)].map(
+      (m) => m[1],
+    );
+    expect(headings.indexOf(FULL_WORDS.cost)).toBe(headings.indexOf(FULL_WORDS.access) + 1);
+    expect(html).toContain("A legal way in (easement)");
+    expect(html).toContain(COST_WORDS.notAQuote);
+    // In print a source is plain text, not a link.
+    expect(html).not.toContain("gradinglands.com/driveway");
+  });
+
   it("the brief's sections in order, each from the saved screen, and the closing line", () => {
     const t = render();
     const html = renderToStaticMarkup(

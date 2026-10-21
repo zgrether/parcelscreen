@@ -74,8 +74,10 @@ export interface Drawn {
  * choice, and each line's "Recorded in" when it says something.
  */
 export const drawnOf = (
-  markup: readonly ({ id: string; name: string } & ({ shape: "line"; recordedIn?: string } | Mark))[],
+  markup: readonly ({ id: string; name: string } & (DrawnLineMarkup | Mark))[],
   driveway: string | null = null,
+  /** The asking price and the rates in use (step 10): given, the card prices the cost to enjoy. */
+  cost?: { askingPrice: number | null; rates: Rates },
 ): Drawn => ({
   names: lineNamesOf(markup),
   marks: markup.filter((m): m is typeof m & Mark => m.shape !== "line"),
@@ -83,7 +85,36 @@ export const drawnOf = (
   records: new Map(
     markup.flatMap((m) => (m.shape === "line" && m.recordedIn?.trim() ? [[m.id, m.recordedIn.trim()]] : [])),
   ),
+  ...(cost
+    ? {
+        cost: {
+          ...cost,
+          lines: markup.flatMap((m): CostLine[] =>
+            m.shape === "line" && m.kind && m.condition && m.line
+              ? [
+                  {
+                    id: m.id,
+                    kind: m.kind,
+                    condition: m.condition,
+                    line: m.line,
+                    recordedIn: m.recordedIn ?? "",
+                  },
+                ]
+              : [],
+          ),
+        },
+      }
+    : {}),
 });
+
+/** A drawn line as the parcel keeps it: the card reads its "recorded in", the cost its kind, condition and points. */
+interface DrawnLineMarkup {
+  shape: "line";
+  recordedIn?: string;
+  kind?: CostLine["kind"];
+  condition?: CostLine["condition"];
+  line?: readonly LatLon[];
+}
 
 const xy = ([lat, lon]: LatLon): [number, number] => [lon, lat];
 

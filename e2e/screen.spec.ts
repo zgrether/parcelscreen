@@ -89,7 +89,8 @@ async function panelHeadings(page: Page): Promise<string[]> {
   const out: string[] = [];
   const lines = page.locator(".card .card-verdict, .card .card-row");
   const n = await lines.count();
-  expect(n, "the card's lines").toBe(13);
+  // Step 10: the verdict, Cost to enjoy's two lines (the pending row went), 4 Musts and 7 rows.
+  expect(n, "the card's lines").toBe(14);
   for (let i = 0; i < n; i++) {
     await lines.nth(i).click();
     const panel = page.locator(".card-panel");

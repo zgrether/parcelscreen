@@ -145,7 +145,7 @@ export function SettingsProvider({
             bad={bad}
             set={(key, end, v) => setCosts((f) => ({ ...f, [key]: { ...f[key], [end]: v } }))}
           />
-          <section className="cost-group" aria-label="The screen's driveway estimate">
+          <section className="rate-group" aria-label="The screen's driveway estimate">
             <h4>The screen&apos;s driveway estimate</h4>
             <p className="tiny muted">
               Blue Ridge 2026 rough rates; edit to your excavator&apos;s numbers. The estimate is shown as

@@ -106,7 +106,7 @@ export const COST_RATES: readonly CostRate[] = [
   },
   {
     key: "driveway.upgrade.improved",
-    label: "Bring an improved (graveled) drive to standard",
+    label: "Upgrade an improved (graveled) drive to a finished driveway",
     unit: "$/ft",
     low: 5,
     high: 12,
@@ -116,7 +116,7 @@ export const COST_RATES: readonly CostRate[] = [
   },
   {
     key: "driveway.upgrade.pioneer",
-    label: "Bring a pioneer track to standard",
+    label: "Upgrade a pioneer track to a finished driveway",
     unit: "$/ft",
     low: 14,
     high: 25,
@@ -126,7 +126,7 @@ export const COST_RATES: readonly CostRate[] = [
   },
   {
     key: "driveway.upgrade.uncleared",
-    label: "Bring an uncleared line to standard",
+    label: "Upgrade an uncleared line to a finished driveway",
     unit: "$/ft",
     low: 21,
     high: 84,
