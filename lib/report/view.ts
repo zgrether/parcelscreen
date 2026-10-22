@@ -39,6 +39,12 @@ export const longestShort = (v: Pick<View, "longestKm" | "past">): string =>
 /** "22%". */
 export const openPct = (v: Pick<View, "openShare">): number => Math.round(v.openShare * 100);
 
+/** The short form, the card's and the report table's: "25% open, farther than 3.7 mi" or "8% open, 2.0 mi". */
+export const viewShort = (v: View): string => `${openPct(v)}% open, ${longestShort(v)}`;
+
+/** Under the report's table of sites, which uses the short form (owner, #273). */
+export const VIEW_TABLE_NOTE = `Views are measured out to ${mi(K.reachKm)}; '${PAST_REACH}' means the view runs past that.`;
+
 /**
  * "the view opens past 3 mi over 22% of the horizon, toward the NW; the longest reaches farther than 3.7 mi (as far as the app
  * measures)" or "no view past 3 mi; …".

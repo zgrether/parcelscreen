@@ -10,7 +10,7 @@ import type { Rubric } from "../rubric/types";
 import type { ScreenResult } from "../screen/types";
 import { cardFacts } from "./card";
 import { NOT_MEASURED } from "./climate";
-import { viewLine } from "./view";
+import { VIEW_TABLE_NOTE, viewLine, viewShort } from "./view";
 
 const MUD = expectedOf("grayson-mud-creek-6273", "run");
 
@@ -39,6 +39,11 @@ describe("the Long view row", () => {
       "the view opens past 3 mi over 100% of the horizon, all around; the longest reaches farther than 3.7 mi (as far as the app measures)",
     );
     expect(rowOf(withSites(0.22)).short).toBe("22% open, farther than 3.7 mi");
+    // The report's table of sites uses the short form, with one caption under it (owner, #273).
+    expect(viewShort({ longestKm: 3.31, past: false, openShare: 0.08, dirDeg: 0 })).toBe("8% open, 2.1 mi");
+    expect(VIEW_TABLE_NOTE).toBe(
+      "Views are measured out to 3.7 mi; 'farther than 3.7 mi' means the view runs past that.",
+    );
   });
 
   it("a screen made before it: not measured, never incomplete", () => {
