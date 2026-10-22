@@ -39,6 +39,7 @@ import { padusStep } from "./padus";
 import type { HospitalCandidate, HospitalSource } from "./hospitals";
 import { loadClimate, withClimate, type ClimateSource } from "./climate";
 import { loadBuildings, withPrivacy, type BuildingSource } from "./privacy";
+import { LONG_TRAIL_DRIVES, longTrailDrive } from "./longTrail";
 import { OverpassMirrors, type OverpassFallback } from "./places";
 import type { OsmWay } from "./osmRoads";
 import { drawnGrid, insideWithLines, measureLines } from "./drawn";
@@ -614,8 +615,10 @@ export async function reroute(
     R.driveFrom = { ...was, kept: false };
     if (before.closerGrocery !== undefined) R.closerGrocery = before.closerGrocery;
     if (before.near) R.near = before.near;
+    // Step 11: and the long-trail drive, timed from the same start.
+    if (before.longTrail !== undefined) R.longTrail = before.longTrail;
     for (const n of before.noResponse)
-      if (n === TRAILHEAD_PARKING || n === TRAILHEAD_DRIVES) R.noResponse.push(n);
+      if (n === TRAILHEAD_PARKING || n === TRAILHEAD_DRIVES || n === LONG_TRAIL_DRIVES) R.noResponse.push(n);
   } else {
     onProgress?.({ step: "drive", status: "run" });
     try {
@@ -835,6 +838,12 @@ async function driveStep(
       ...R.near,
       trailheads: R.near.trailheads.map((t, i) => ({ ...t, drive: d.trailDrives.get(i) ?? null })),
     };
+  // Step 11 (plan §2.6): the nearest long trail, in a request of its own; unknown when OSRM doesn't answer.
+  const lt = await longTrailDrive(start.ll, io);
+  if (lt === undefined) {
+    delete R.longTrail;
+    R.noResponse.push(LONG_TRAIL_DRIVES);
+  } else R.longTrail = lt;
 }
 
 /**

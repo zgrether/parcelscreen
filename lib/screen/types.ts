@@ -821,6 +821,14 @@ export const ScreenResultSchema = z.strictObject({
       ),
     })
     .optional(),
+  /**
+   * Step 11 (plan §2.6; §9.66): the drive to the nearest long rail-trail's access point, from where the drives start;
+   * null when none is within reach or routable. Absent before it, or when OSRM didn't answer.
+   */
+  longTrail: z
+    .strictObject({ trail: z.string(), point: z.string(), min: num, mi: num })
+    .nullable()
+    .optional(),
   /** Step 11 (plan §2.3; §9.66): whether the parcel is outside the footprints' region. Absent before it. */
   privacy: z.strictObject({ outside: z.boolean() }).optional(),
   excluded: z.array(z.strictObject({ acres: num, ll: LatLonSchema, why: z.string() })).optional(),

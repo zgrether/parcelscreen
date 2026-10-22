@@ -1336,6 +1336,37 @@
       ],
       "additionalProperties": false
     },
+    "longTrail": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "trail": {
+              "type": "string"
+            },
+            "point": {
+              "type": "string"
+            },
+            "min": {
+              "type": "number"
+            },
+            "mi": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "trail",
+            "point",
+            "min",
+            "mi"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "privacy": {
       "type": "object",
       "properties": {

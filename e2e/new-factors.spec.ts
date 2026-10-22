@@ -49,7 +49,9 @@ test("Hospital just after Town, Town's ER limit with it, one notice, and its Und
   await seed(page);
   await visit(page, "/priorities");
   const notice = page.locator(".rubric-new-factors");
-  await expect(notice).toContainText("New factors to place: Hospital, Climate, Privacy, Long view, Airport");
+  await expect(notice).toContainText(
+    "New factors to place: Hospital, Climate, Privacy, Long view, Airport, Bike to a long trail",
+  );
   await expect(names(page, "Really want")).toHaveText([
     "Trails and public land",
     "Town and groceries",

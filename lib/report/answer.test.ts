@@ -108,6 +108,7 @@ function zeroWeights() {
     privacy: 0,
     longView: 0,
     airport: 0,
+    longTrail: 0,
     budget: 0,
   };
 }

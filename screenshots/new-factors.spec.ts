@@ -31,6 +31,7 @@ const FACTORS = [
   { label: "Privacy", file: "privacy" },
   { label: "Long view", file: "view" },
   { label: "Airport", file: "airport" },
+  { label: "Bike to a long trail", file: "bike" },
 ] as const;
 
 /** The starting list with Town (the groceries) and each new factor weighed too, so each shows on the card. */
@@ -41,6 +42,7 @@ const GRADED: Rubric = rubricFromWeights({
   privacy: 5,
   longView: 5,
   airport: 5,
+  longTrail: 5,
 });
 
 /** Priorities as saved before step 11: rank-sum, Town in Really want, no Hospital. */

@@ -17,6 +17,7 @@ export const NEW_FACTORS = [
   "privacy",
   "longView",
   "airport",
+  "longTrail",
 ] as const satisfies readonly RowKey[];
 export type NewFactor = (typeof NEW_FACTORS)[number];
 
@@ -50,7 +51,19 @@ export function withFactor(r: Rubric, f: NewFactor, answers: InterviewAnswers = 
       return withLongView(r, answers);
     case "airport":
       return withAirport(r, answers);
+    case "longTrail":
+      return withLongTrail(r, answers);
   }
+}
+
+/**
+ * Bike to a long trail (plan §2.6, §5): question 4's "Bike from home to a long trail" places it at the bottom of Really
+ * want, at 10 min; any other answer, or none, Don't care. On explicit weights it stays Don't care.
+ */
+function withLongTrail(r: Rubric, a: InterviewAnswers): Rubric {
+  if (a.trails !== "bike" || r.weights.mode !== "rankSum") return { ...r, wonts: [...r.wonts, "longTrail"] };
+  const edge = SCREEN_CONSTANTS.card.interview.choices.trails.bike.edges.longTrailMin;
+  return lastShould(setBandEdge({ ...r, bands: { ...r.bands } }, "longTrailMin", edge), "longTrail");
 }
 
 /**

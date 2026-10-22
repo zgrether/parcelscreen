@@ -362,6 +362,9 @@ export const SCREEN_CONSTANTS = deepFreeze({
   // Step 11 (plan §2.4): Long view. A direction is open when its skyline is past openKm; the skyline is traced to
   // reachKm (sun.horizonMaxM), so a view past it reads "6+ km".
   view: { openKm: 5, reachKm: 6 },
+  // Step 11 (plan §2.6): Bike to a long trail. The access points within maxKm in a straight line, the nearest `points`
+  // of them, are timed in one OSRM table request.
+  longTrail: { maxKm: 100, points: 6 },
   grocery: {
     // Owner, #81: "Closer: {name}, {N} min." after the chain grocery's drive time, when a non-chain grocery
     // is at least this many minutes nearer by road.
@@ -584,6 +587,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
       viewOpenPct: [25, 15, 8, 3],
       // Step 11 (plan §2.5): Airport, the drive to the nearest airport on Settings' list, in minutes, at most.
       airportMin: [45, 60, 90, 120],
+      // Step 11 (plan §2.6): Bike to a long trail, the drive to the nearest access point, in minutes, at most.
+      longTrailMin: [10, 20, 35, 50],
     },
     // The default rubric's weights, summing to 100 (roadmap step 1: a profile's rubric replaces them; the second set the
     // app shipped with is test/support/rubrics.ts LEGACY_SECOND_WEIGHTS, kept for the step 1 card oracle). The Driveway
@@ -606,6 +611,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
         privacy: 0,
         longView: 0,
         airport: 0,
+        longTrail: 0,
         // Step 10: Within budget is never on the starting list; it comes with the interview's budgets.
         budget: 0,
       },
@@ -634,6 +640,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
       privacySight: { min: 0, max: 20, step: 1 },
       viewOpenPct: { min: 0, max: 60, step: 1 },
       airportMin: { min: 15, max: 180, step: 5 },
+      longTrailMin: { min: 5, max: 90, step: 5 },
     },
     // Step 4, the interview (docs/plans/step-4-interview.md §2–§3; owner, 10/18): what each answer gives a row, as
     // importance points (0–3; a row takes its highest answer) and the B/C edge it sets, which shifts the row's band
@@ -660,6 +667,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
         longView: 0,
         // Step 11: placed by question 7, never by default.
         airport: 0,
+        // Step 11: placed by question 4, never by default.
+        longTrail: 0,
         // Step 10: placed by the budgets themselves (generate.ts), never by points.
         budget: 0,
       },
@@ -719,7 +728,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
         // 15 min, not 10: a 10-minute edge would put the A edge at 0 min (owner, 10/18, Q11).
         trails: {
           door: { points: { trails: 3 }, edges: { trailheadMin: 15 }, openLandWithinFt: 1320 },
-          bike: { points: { trails: 2 } },
+          // Step 11 (plan §2.6, §5): "Bike from home to a long trail" places Bike to a long trail in Really want, at 10 min.
+          bike: { points: { trails: 2, longTrail: 2 }, edges: { longTrailMin: 10 } },
           drive: { points: { trails: 2 } },
           none: { points: { trails: 0 } },
         },

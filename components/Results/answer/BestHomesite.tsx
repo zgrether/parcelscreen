@@ -34,6 +34,7 @@ export const SITE_NUMBER: Record<RowKey, string> = {
   privacy: "Privacy",
   longView: "Long view",
   airport: "Airport",
+  longTrail: "Long trail",
   budget: "Budget",
 };
 

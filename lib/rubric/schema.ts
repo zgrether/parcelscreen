@@ -31,6 +31,7 @@ const BandsSchema = z.strictObject({
   privacySight: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.privacySight]),
   viewOpenPct: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.viewOpenPct]),
   airportMin: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.airportMin]),
+  longTrailMin: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.longTrailMin]),
 });
 
 /** Explicit weights by row. A row a saved rubric has no weight for (the Driveway row, step 7) weighs 0. */

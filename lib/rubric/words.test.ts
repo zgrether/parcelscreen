@@ -28,6 +28,7 @@ describe("the cards' words", () => {
       privacy: "The nearest house at least 660 ft away",
       longView: "A view past 5 km over at least 15% of the horizon",
       airport: "An airport within 60 min",
+      longTrail: "A long rail-trail within 20 min",
       garden: "At least 0.25 ac of garden ground",
       // Step 10: the starting list has no budgets.
       budget: "No budget given",
@@ -88,6 +89,7 @@ describe("the cards' words", () => {
       privacy: "The nearest house at least 660 ft away",
       longView: "A view past 5 km over at least 15% of the horizon",
       airport: "An airport within 60 min",
+      longTrail: "A long rail-trail within a 20-minute drive",
       garden: "Room for a kitchen garden",
       budget: "No budget given",
     });

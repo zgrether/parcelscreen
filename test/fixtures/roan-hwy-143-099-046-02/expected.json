@@ -5129,8 +5129,14 @@
    "mi": 2.2,
    "er": null
   },
+  "longTrail": {
+   "trail": "Tweetsie Trail",
+   "point": "Elizabethton",
+   "min": 26,
+   "mi": 17.1
+  },
   "schemaVersion": 9,
-  "engine": 25,
+  "engine": 26,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -9958,8 +9964,14 @@
    "mi": 2.2,
    "er": null
   },
+  "longTrail": {
+   "trail": "Tweetsie Trail",
+   "point": "Elizabethton",
+   "min": 26,
+   "mi": 17.1
+  },
   "schemaVersion": 9,
-  "engine": 25,
+  "engine": 26,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

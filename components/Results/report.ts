@@ -8,6 +8,7 @@ import { buildHeading } from "@/lib/report/build";
 import { climateHeading } from "@/lib/report/climate";
 import { privacyHeading } from "@/lib/report/privacy";
 import { viewHeading } from "@/lib/report/view";
+import { longTrailHeading } from "@/lib/report/longTrail";
 import { drivewayHeading } from "@/lib/report/driveway";
 import { gardenHeading } from "@/lib/report/garden";
 import { houseHeading } from "@/lib/report/house";
@@ -23,6 +24,7 @@ import type { PartialScreenResult } from "@/lib/screen/types";
 import { Climate } from "./blocks/Climate";
 import { Privacy } from "./blocks/Privacy";
 import { LongView } from "./blocks/LongView";
+import { LongTrails } from "./blocks/LongTrails";
 import { DarkSkies } from "./blocks/DarkSkies";
 import { DecemberSun } from "./blocks/DecemberSun";
 import { Driveway } from "./blocks/Driveway";
@@ -61,5 +63,6 @@ export const REPORT: readonly ReportSection[] = [
   { Block: Climate, heading: () => climateHeading },
   { Block: Privacy, heading: () => privacyHeading },
   { Block: LongView, heading: () => viewHeading },
+  { Block: LongTrails, heading: () => longTrailHeading },
   { Block: StillUnknown, heading: () => unknownHeading },
 ];

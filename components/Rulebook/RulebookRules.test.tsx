@@ -67,7 +67,9 @@ const render = (rb = rulebook(SCREEN_CONSTANTS, DEFAULT_USER_CONFIG, PERSONS)) =
 describe("the rulebook (VR7)", () => {
   it("every number on the page comes from config", () => {
     // A source's citation (its dates and DOI; step 11) isn't a number the scoring uses.
-    const text = render().replace(/Sources: .*?\(doi:[^)]*\)\./g, "");
+    const text = render()
+      .replace(/Sources: .*?\(doi:[^)]*\)\./g, "")
+      .replace(/\(checked [A-Z][a-z]{2} \d+, \d{4}\)/g, "");
     expect(text).not.toMatch(/NaN|undefined|Infinity/);
     const ok = allowed();
     const found = [...text.matchAll(/\d[\d,]*(?:\.\d+)?/g)].map((m) => m[0].replace(/,/g, ""));

@@ -231,6 +231,11 @@ describe("config", () => {
               "min": 75,
               "step": 1,
             },
+            "longTrailMin": {
+              "max": 90,
+              "min": 5,
+              "step": 5,
+            },
             "privacyFt": {
               "max": 2640,
               "min": 100,
@@ -539,7 +544,11 @@ describe("config", () => {
               },
               "trails": {
                 "bike": {
+                  "edges": {
+                    "longTrailMin": 10,
+                  },
                   "points": {
+                    "longTrail": 2,
                     "trails": 2,
                   },
                 },
@@ -604,6 +613,7 @@ describe("config", () => {
               "garden": 1,
               "homesite": 2,
               "hospital": 2,
+              "longTrail": 0,
               "longView": 0,
               "privacy": 0,
               "room": 2,
@@ -684,6 +694,12 @@ describe("config", () => {
               89,
               93,
             ],
+            "longTrailMin": [
+              10,
+              20,
+              35,
+              50,
+            ],
             "openLandWithinFt": 5280,
             "privacyFt": [
               1320,
@@ -749,6 +765,7 @@ describe("config", () => {
               "garden": 10,
               "homesite": 25,
               "hospital": 5,
+              "longTrail": 0,
               "longView": 0,
               "privacy": 0,
               "room": 15,
@@ -935,6 +952,10 @@ describe("config", () => {
         },
         "grocery": {
           "closerMinMin": 10,
+        },
+        "longTrail": {
+          "maxKm": 100,
+          "points": 6,
         },
         "near": {
           "bigGrocer": /walmart\\|ingles\\|food lion\\|publix\\|harris teeter\\|kroger\\|lowes foods\\|food city\\|trader joe\\|whole foods\\|sprouts\\|aldi/i,

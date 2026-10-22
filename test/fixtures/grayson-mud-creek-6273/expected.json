@@ -7788,8 +7788,14 @@
    "mi": 9,
    "er": null
   },
+  "longTrail": {
+   "trail": "Virginia Creeper Trail",
+   "point": "Damascus",
+   "min": 38,
+   "mi": 21.8
+  },
   "schemaVersion": 9,
-  "engine": 25,
+  "engine": 26,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -15583,8 +15589,14 @@
    "mi": 9,
    "er": null
   },
+  "longTrail": {
+   "trail": "Virginia Creeper Trail",
+   "point": "Damascus",
+   "min": 38,
+   "mi": 21.8
+  },
   "schemaVersion": 9,
-  "engine": 25,
+  "engine": 26,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

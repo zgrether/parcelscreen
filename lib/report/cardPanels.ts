@@ -12,6 +12,7 @@ import { weightsOf } from "../rubric/weights";
 import { CLIMATE_SOURCES } from "./climate";
 import { IN_WINTER, PRIVACY_SOURCES } from "./privacy";
 import { VIEW_CAVEAT } from "./view";
+import { LONG_TRAIL_SOURCES } from "./longTrail";
 import { climateWords, privacyWords } from "../rubric/words";
 import { MAYBE_CAPS, footprintFt2, type CardConfig, type GateKey, type RowKey } from "./card";
 
@@ -37,6 +38,7 @@ const PANELS: Record<PanelKey, true> = {
   privacy: true,
   longView: true,
   airport: true,
+  longTrail: true,
   budget: true,
   cost: true,
 };
@@ -238,6 +240,12 @@ export function panelText(
         title: "Airport",
         question: "How far to an airport we'd fly from?",
         howScored: `The drive to the nearest airport on your list of places to time drives to (Settings): A within ${R.airportMin[0]} min, B within ${R.airportMin[1]}, C within ${R.airportMin[2]}, D within ${R.airportMin[3]}. A place counts as an airport when its name says "airport" or ends in a three-letter code in parentheses; ${weightOf(rubrics, "airport")}.`,
+      };
+    case "longTrail":
+      return {
+        title: "Bike to a long trail",
+        question: "How far to a long rail-trail we could ride?",
+        howScored: `The drive from where the driveway meets the road to the nearest access point of a long rail-trail or greenway: A within ${R.longTrailMin[0]} min, B within ${R.longTrailMin[1]}, C within ${R.longTrailMin[2]}, D within ${R.longTrailMin[3]}; ${weightOf(rubrics, "longTrail")}. ${LONG_TRAIL_SOURCES}`,
       };
     case "budget": {
       const B = K.budgetBands.map((x) => `${fmt(x * 100)}%`);
