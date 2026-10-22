@@ -152,6 +152,31 @@ describe("the open parcel and History", () => {
     expect(s.store.built).toHaveLength(1); // the same History entry, updated
   });
 
+  it("the parcel next door (step 12): a new parcel by its name, graded as it opens; this one stays as it was", () => {
+    // Graded, so it's in History.
+    const picked = run([selectA()]);
+    const opened = exploreReducer(picked, { type: "screened", id: "s1", serial: picked.serial, stamp: at() });
+    expect(opened.store.built).toHaveLength(1);
+    const s = run(
+      [
+        { type: "startCombine", asNew: "Ferney + next door" },
+        { type: "combineToggle", parcel: b },
+        { type: "applyCombine", stamp: at() },
+      ],
+      opened,
+    );
+    expect(s.store.open).toMatchObject({ name: "Ferney + next door", pieces: [a, b] });
+    expect(s.store.open?.key).not.toBe(opened.store.open?.key);
+    expect(s.store.built.find((x) => x.key === opened.store.open?.key)?.pieces).toEqual([a]);
+    expect(s.serial).toBe(opened.serial + 1);
+    expect(s.gradeOnOpen).toBe(s.serial);
+    expect(s).toMatchObject({ combine: null, combineAsNew: null, mode: null });
+    expect(exploreReducer(s, { type: "gradedOnOpen" }).gradeOnOpen).toBeNull();
+    // Cancelled: nothing made, and the next combination changes the open parcel as before.
+    const cancelled = run([{ type: "startCombine", asNew: "x" }, { type: "combineCancel" }], opened);
+    expect(cancelled.combineAsNew).toBeNull();
+  });
+
   it("a drawn piece is never matched: adding the same drawn shape twice keeps both, and parcels still toggle", () => {
     const drawn: ParcelRecord = {
       geo: b.geo,

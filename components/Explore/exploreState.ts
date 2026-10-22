@@ -73,6 +73,13 @@ export interface ExploreState {
   split: SplitLine | null;
   /** Pieces picked to combine; null when not combining. */
   combine: ParcelRecord[] | null;
+  /**
+   * Step 12 (plan §2.4): the combination is a new parcel of this name ("{name} + next door"), graded once made; the
+   * parcel it started from stays as it is. Null: a combination changes the open parcel, as before.
+   */
+  combineAsNew: string | null;
+  /** Step 12: the open (by serial) to grade as soon as it's shown, after "Grade the combination". */
+  gradeOnOpen: number | null;
   /** The parcel panel shows Details (step 8b; it was the Info panel, 13e-4); Grade when false. */
   info: boolean;
   /** Map layers is open (17e; step 8b: with the results on the map, and beside Details). */
@@ -100,6 +107,8 @@ export const INITIAL: ExploreState = {
   draft: [],
   split: null,
   combine: null,
+  combineAsNew: null,
+  gradeOnOpen: null,
   info: false,
   mapPanel: false,
   layer: null,
@@ -145,7 +154,8 @@ export type ExploreAction =
   /** Keep one side of the split line: the line itself is saved, so it can be moved or removed later. */
   | { type: "keepPiece"; side: Side; stamp: Stamp }
   /** Starts combining, with the open parcel's pieces (if any). */
-  | { type: "startCombine" }
+  | { type: "startCombine"; asNew?: string }
+  | { type: "gradedOnOpen" }
   /** Adds a parcel to the combination, or takes it out if it's already in. */
   | { type: "combineToggle"; parcel: ParcelRecord }
   | { type: "combineCancel" }
@@ -397,7 +407,15 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
         store: save({ ...open, split: { a: s.split.a, b: s.split.b, keep: a.side } }, a.stamp),
       };
     case "startCombine":
-      return { ...s, combine: open ? [...open.pieces] : [], split: null, mode: "combine" };
+      return {
+        ...s,
+        combine: open ? [...open.pieces] : [],
+        combineAsNew: a.asNew ?? null,
+        split: null,
+        mode: "combine",
+      };
+    case "gradedOnOpen":
+      return { ...s, gradeOnOpen: null };
     case "combineToggle": {
       if (!s.combine) return s;
       const k = memberKey(a.parcel);
@@ -406,10 +424,22 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       return { ...s, combine: without.length < s.combine.length ? without : [...s.combine, a.parcel] };
     }
     case "combineCancel":
-      return { ...s, combine: null, mode: s.mode === "combine" ? null : s.mode };
+      return { ...s, combine: null, combineAsNew: null, mode: s.mode === "combine" ? null : s.mode };
     case "applyCombine": {
       const pieces = s.combine;
       if (!pieces?.length) return s;
+      // Step 12: the parcel next door, combined as a new parcel and graded; this one stays as it is.
+      if (s.combineAsNew) {
+        const made = { ...plainParcel(pieces[0]!, a.stamp.now), pieces, name: s.combineAsNew };
+        return {
+          ...s,
+          ...NO_TOOL,
+          ...switched(s),
+          combineAsNew: null,
+          gradeOnOpen: s.serial + 1,
+          store: save(made, a.stamp),
+        };
+      }
       // The split stays: if it no longer cuts the new boundary, deriving the parcel leaves it off and says so.
       const next = open ? { ...open, pieces } : { ...plainParcel(pieces[0]!, a.stamp.now), pieces };
       return {

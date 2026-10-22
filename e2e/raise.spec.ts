@@ -101,3 +101,17 @@ test("Mud Creek's red gate: not suggested; in the Easement panel, Try it shows t
   await expect(page.locator(".route-choice-col.scored")).toContainText("Red gate");
   await expect.poll(() => keptScreenCount(page)).toBe(screens + 1);
 });
+
+test("Grade it with the parcel next door: combine mode, with the hint and its own button", async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(180_000);
+  await replayHar(context, MACKS);
+  await open(page, MACKS);
+  const raise = page.getByRole("region", { name: "Ways to raise this grade" });
+  await raise.getByRole("button", { name: "Grade it with the parcel next door" }).click();
+  await expect(page.getByText("Tap the parcel next door, then Grade the combination")).toBeVisible();
+  // One part so far: nothing to grade yet.
+  await expect(page.getByRole("button", { name: "Grade the combination" })).toBeDisabled();
+});

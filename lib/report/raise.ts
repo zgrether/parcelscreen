@@ -312,3 +312,11 @@ export const RAISE_WORDS = {
   slow: "Try it: grades the parcel again (about a minute)",
   failed: (why: string) => `Couldn't try it: ${why}. Try again`,
 } as const;
+
+/** The parcel next door (plan §2.4, §8). */
+export const NEIGHBOUR_WORDS = {
+  button: "Grade it with the parcel next door",
+  hint: "Tap the parcel next door, then Grade the combination",
+  go: "Grade the combination",
+  name: (name: string) => `${name} + next door`,
+} as const;

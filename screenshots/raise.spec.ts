@@ -154,6 +154,12 @@ for (const phone of [false, true]) {
       await settled(page);
       await shootSuggestions(page, "grayson-mud-creek-6273", `${OUT}/${device}-raise-mud.png`, phone);
       await shootSuggestions(page, "macks-mountain-35-3", `${OUT}/${device}-raise-macks.png`, phone);
+
+      // The parcel next door (PR 8): combine mode, with its hint.
+      await page.getByRole("button", { name: "Grade it with the parcel next door" }).click();
+      await expect(page.getByText("Tap the parcel next door, then Grade the combination")).toBeVisible();
+      await page.waitForTimeout(500);
+      await page.screenshot({ path: `${OUT}/${device}-raise-neighbour.png` });
     });
   });
 }

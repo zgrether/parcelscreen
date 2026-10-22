@@ -21,6 +21,9 @@ import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { GradeAction } from "@/components/Results/panel/GradeAction";
 import { showBoundary } from "@/components/Parcel/ParcelSwitch";
+import { NEIGHBOUR_WORDS } from "@/lib/report/raise";
+
+const GRADE_COMBINATION = NEIGHBOUR_WORDS.go;
 
 const ac = (n: number) => n.toFixed(2);
 
@@ -312,7 +315,7 @@ function barBody(
       <>
         {status}
         <Btn kind="go" onClick={ctl.applyCombination} disabled={!r?.ok}>
-          Done
+          {ctl.state.combineAsNew ? GRADE_COMBINATION : "Done"}
         </Btn>
         {cancel}
       </>
