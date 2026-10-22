@@ -69,7 +69,10 @@ describe("moving down a tier", () => {
   it("Really want to the top of Nice to have; Nice to have to Don't care", () => {
     const sky = moveDown(R, "sky");
     expect(sky.to).toBe("could");
-    expect(sky.rubric.ranked.filter((c) => c.tier === "could").map((c) => c.factor)).toEqual(["sky", "garden"]);
+    expect(sky.rubric.ranked.filter((c) => c.tier === "could").map((c) => c.factor)).toEqual([
+      "sky",
+      "garden",
+    ]);
     const garden = moveDown(R, "garden");
     expect(garden.to).toBe("wont");
     expect(garden.rubric.wonts).toContain("garden");
