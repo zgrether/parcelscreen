@@ -19,6 +19,7 @@ import { bootProfiles } from "@/lib/client/profiles";
 import { initSync } from "@/lib/sync/engine";
 import { startHousehold } from "@/lib/client/household";
 import { addDrivewayOnce } from "@/lib/client/drivewayAdd";
+import { addFactorsOnce } from "@/lib/client/factorsAdd";
 import { sortIntoHistory } from "@/lib/client/favoritesStore";
 
 export function ProfileGate({ children }: { children: ReactNode }) {
@@ -32,6 +33,8 @@ export function ProfileGate({ children }: { children: ReactNode }) {
     const settle = () => {
       try {
         addDrivewayOnce();
+        // Step 11 (plan §1): then its new factors, once.
+        addFactorsOnce();
       } catch {
         /* a profile's documents unreadable: nothing added, the rest boots */
       }

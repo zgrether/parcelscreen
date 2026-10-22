@@ -4,7 +4,9 @@
  * minimum in words, and why a card is where it is. Pure; the editor renders them.
  */
 import { shortPrice } from "../client/askingPrice";
+import { SCREEN_CONSTANTS } from "../screen/config";
 import { fmt } from "../format";
+import { VIEW_OPEN_MI } from "../report/view";
 import { defaultRubric } from "./default";
 import type { Bands, Budgets, Factor, GateKey, MustCard, RowKey, Rubric } from "./types";
 
@@ -20,8 +22,16 @@ export const FACTOR_LABELS: Record<Factor, string> = {
   room: "Room to build",
   driveway: "Driveway",
   trails: "Trails and public land",
-  town: "Town and hospital",
+  // Step 11 (plan §2.1): the ER is its own row now; Town keeps the groceries.
+  town: "Town and groceries",
+  hospital: "Hospital",
   garden: "Garden ground",
+  climate: "Climate",
+  privacy: "Privacy",
+  longView: "Long view",
+  airport: "Airport",
+  longTrail: "Bike to a long trail",
+  internet: "Satellite internet",
   budget: "Within budget",
 };
 
@@ -50,13 +60,35 @@ export const SHORT_TITLES: Record<Factor, string> = {
   driveway: "Drive",
   trails: "Trails",
   town: "Town",
+  hospital: "Hosp",
   garden: "Garden",
+  climate: "Climate",
+  privacy: "Privacy",
+  longView: "View",
+  airport: "Air",
+  longTrail: "Bike",
+  internet: "Satellite",
   budget: "Budget",
 };
 
 /** The bands a slider moves: each a list of A, B, C and D edges, best first. */
 export type BandKey =
-  "elevationFt" | "skyMag" | "roomX" | "trailheadMin" | "erMin" | "groceryMin" | "gardenAc" | "drivewayPct";
+  | "elevationFt"
+  | "skyMag"
+  | "roomX"
+  | "trailheadMin"
+  | "erMin"
+  | "groceryMin"
+  | "gardenAc"
+  | "drivewayPct"
+  | "janLowF"
+  | "julHighF"
+  | "privacyFt"
+  | "privacySight"
+  | "viewOpenPct"
+  | "airportMin"
+  | "longTrailMin"
+  | "dishClearPct";
 
 /**
  * What a limit is set in: a band, or (Best homesite, whose letter is the site's quality and has no band) hours of
@@ -72,8 +104,15 @@ export const ROW_BANDS: Record<RowKey, readonly BandKey[]> = {
   room: ["roomX"],
   driveway: ["drivewayPct"],
   trails: ["trailheadMin"],
-  town: ["erMin", "groceryMin"],
+  town: ["groceryMin"],
+  hospital: ["erMin"],
   garden: ["gardenAc"],
+  climate: ["janLowF", "julHighF"],
+  privacy: ["privacyFt", "privacySight"],
+  longView: ["viewOpenPct"],
+  airport: ["airportMin"],
+  longTrail: ["longTrailMin"],
+  internet: ["dishClearPct"],
   // Step 10: graded against the budgets, which the questions set; no slider.
   budget: [],
 };
@@ -87,8 +126,20 @@ export const MINIMUM_BAND: Record<RowKey, LimitKey | null> = {
   // No limit on the driveway in step 7 (plan §11 Q9): question 14 has no chip for it.
   driveway: null,
   trails: "trailheadMin",
-  town: "erMin",
+  // Step 11: a Town limit is the grocery drive; the ER's is Hospital's.
+  town: "groceryMin",
+  hospital: "erMin",
   garden: "gardenAc",
+  // Step 11: no limit; question 14 has no chip for it.
+  climate: null,
+  // Step 11: question 14's "Neighbor's house in view", the houses in sight at most.
+  privacy: "privacySight",
+  // Step 11: no limit; question 14 has no chip for it.
+  longView: null,
+  // Step 11: the drive to an airport, as Hospital's to an ER.
+  airport: "airportMin",
+  longTrail: "longTrailMin",
+  internet: "dishClearPct",
   // Step 10: a Must on it has no number of its own: it's the budgets.
   budget: null,
 };
@@ -103,6 +154,14 @@ export const BAND_RUNS: Record<BandKey, "atLeast" | "atMost"> = {
   groceryMin: "atMost",
   gardenAc: "atLeast",
   drivewayPct: "atMost",
+  janLowF: "atLeast",
+  julHighF: "atMost",
+  privacyFt: "atLeast",
+  privacySight: "atMost",
+  viewOpenPct: "atLeast",
+  airportMin: "atMost",
+  longTrailMin: "atMost",
+  dishClearPct: "atLeast",
 };
 
 /** "1.0" → "1", "0.25" stays: a number without trailing zeros. */
@@ -122,10 +181,22 @@ export function bandValue(key: LimitKey, v: number): string {
     case "trailheadMin":
     case "erMin":
     case "groceryMin":
+    case "airportMin":
+    case "longTrailMin":
       return `${fmt(v)} min`;
     case "gardenAc":
       return `${fmt(v, 2).replace(/\.?0+$/, "")} ac`;
     case "drivewayPct":
+      return `${fmt(v)}%`;
+    case "janLowF":
+    case "julHighF":
+      return `${fmt(v)} °F`;
+    case "privacyFt":
+      return `${fmt(v)} ft`;
+    case "privacySight":
+      return v === 1 ? "1 house" : `${fmt(v)} houses`;
+    case "viewOpenPct":
+    case "dishClearPct":
       return `${fmt(v)}%`;
   }
 }
@@ -147,6 +218,36 @@ export function budgetWords(b: Budgets | undefined): string {
     b?.build != null ? `ready to build under ${shortPrice(b.build)}` : null,
   ].filter((x): x is string => !!x);
   return parts.length ? parts.join(", ") : "no budget given";
+}
+
+/**
+ * Climate's limits in words (step 11): "January lows of 24 °F or milder, July highs of 86 °F or cooler"; a season at its
+ * slider's end has no limit ("any winter", "any summer").
+ */
+export function climateWords(b: Bands): string {
+  const E = SCREEN_CONSTANTS.card.editor;
+  const jan = bcEdge(b, "janLowF");
+  const jul = bcEdge(b, "julHighF");
+  return [
+    jan <= E.janLowF.min ? "any winter" : `January lows of ${bandValue("janLowF", jan)} or milder`,
+    jul >= E.julHighF.max ? "any summer" : `July highs of ${bandValue("julHighF", jul)} or cooler`,
+  ].join(", ");
+}
+
+/**
+ * Privacy's limits in words (step 11): "the nearest house at least 660 ft away"; with ", none in sight" when the houses
+ * in sight are limited to none.
+ */
+export function privacyWords(b: Bands): string {
+  const sight = bcEdge(b, "privacySight");
+  return (
+    `the nearest house at least ${bandValue("privacyFt", bcEdge(b, "privacyFt"))} away` +
+    (sight === 0
+      ? ", none in sight"
+      : sight < SCREEN_CONSTANTS.card.editor.privacySight.max
+        ? `, at most ${bandValue("privacySight", sight)} in sight`
+        : "")
+  );
 }
 
 /** Sentence case for a line that starts with words of its own. */
@@ -177,9 +278,23 @@ export function cardLine(r: Rubric, factor: Factor): string {
     case "trails":
       return `A trailhead within a ${fmt(bcEdge(b, "trailheadMin"))}-minute drive (or public land within ${trim(fmt(b.openLandWithinFt / 5280, 2))} mi)`;
     case "town":
-      return `An ER within ${bandValue("erMin", bcEdge(b, "erMin"))} and groceries within ${fmt(bcEdge(b, "groceryMin"))}`;
+      return `Groceries within ${bandValue("groceryMin", bcEdge(b, "groceryMin"))}`;
+    case "hospital":
+      return `An ER within ${bandValue("erMin", bcEdge(b, "erMin"))}`;
     case "garden":
       return `At least ${bandValue("gardenAc", bcEdge(b, "gardenAc"))} of garden ground`;
+    case "climate":
+      return capital(climateWords(b));
+    case "privacy":
+      return capital(privacyWords(b));
+    case "longView":
+      return `A view past ${VIEW_OPEN_MI} over at least ${bandValue("viewOpenPct", bcEdge(b, "viewOpenPct"))} of the horizon`;
+    case "airport":
+      return `An airport within ${bandValue("airportMin", bcEdge(b, "airportMin"))}`;
+    case "longTrail":
+      return `A long rail-trail within ${bandValue("longTrailMin", bcEdge(b, "longTrailMin"))}`;
+    case "internet":
+      return "A clear spot for a satellite dish";
     case "budget":
       return capital(budgetWords(r.budgets));
   }
@@ -190,14 +305,19 @@ export function minimumWords(row: RowKey, v: number): string {
   const band = MINIMUM_BAND[row];
   if (!band) return "";
   const value = bandValue(band, v);
-  if (row === "town") return `ER within ${value}`;
+  if (row === "hospital") return `ER within ${value}`;
+  if (row === "airport") return `an airport within ${value}`;
+  if (row === "longTrail") return `a long trail within ${value}`;
+  if (row === "internet") return `a dish spot with at least ${value} open sky`;
+  if (row === "town") return `groceries within ${value}`;
   if (row === "trails") return `a trailhead within ${value}`;
   if (row === "room") return `at least ${value} the footprint`;
   if (row === "homesite") return `at least ${value} of December sun`;
+  if (row === "privacy") return v === 0 ? "no house in sight" : `at most ${value} in sight`;
   return `at least ${value}`;
 }
 
-/** A minimum in words: "Town and hospital: ER within 30 min", "Elevation at the build site: at least 3,000 ft". */
+/** A minimum in words: "Hospital: ER within 30 min", "Elevation at the build site: at least 3,000 ft". */
 export function minimumLine(must: MustCard): string {
   const key = must.factor as RowKey;
   if (!MINIMUM_BAND[key] || must.threshold === undefined) return EDITOR_TITLES[must.factor];
@@ -247,7 +367,21 @@ export function plainLine(r: Rubric, factor: Factor): string {
     case "trails":
       return `A trailhead within ${bandValue("trailheadMin", bcEdge(b, "trailheadMin"))}, or public land within ${trim(fmt(b.openLandWithinFt / 5280, 2))} mi`;
     case "town":
-      return `ER within ${bandValue("erMin", bcEdge(b, "erMin"))}, groceries within ${bandValue("groceryMin", bcEdge(b, "groceryMin"))}`;
+      return `Groceries within ${bandValue("groceryMin", bcEdge(b, "groceryMin"))}`;
+    case "hospital":
+      return `ER within ${bandValue("erMin", bcEdge(b, "erMin"))}`;
+    case "climate":
+      return capital(climateWords(b));
+    case "privacy":
+      return capital(privacyWords(b));
+    case "longView":
+      return `A view past ${VIEW_OPEN_MI} over at least ${bandValue("viewOpenPct", bcEdge(b, "viewOpenPct"))} of the horizon`;
+    case "airport":
+      return `An airport within ${bandValue("airportMin", bcEdge(b, "airportMin"))}`;
+    case "longTrail":
+      return `A long rail-trail within a ${fmt(bcEdge(b, "longTrailMin"))}-minute drive`;
+    case "internet":
+      return `A dish spot with at least ${bandValue("dishClearPct", bcEdge(b, "dishClearPct"))} open sky`;
     case "garden": {
       const ac = bcEdge(b, "gardenAc");
       if (ac >= 1) return "Room for a big garden";

@@ -2081,10 +2081,27 @@
      "coreClear": 18.048232341042148,
      "domeW": 4.219192028832789
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.25,
+     "dirDeg": 58
+    },
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 4.288248313496763,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.9,
+     "julHighF": 80.6,
+     "station": "USC00445453",
+     "stationMi": 15.3
+    },
+    "privacy": {
+     "near": 5,
+     "inSight": 0,
+     "nearestFt": 937
+    },
     "driveway": {
      "lengthFt": 478.0716692682822,
      "cost": {
@@ -2134,6 +2151,12 @@
      "coreClear": 8.180983972757907,
      "domeW": 3.751561287904464
     },
+    "view": {
+     "longestKm": 3.31,
+     "past": false,
+     "openShare": 0,
+     "dirDeg": null
+    },
     "roadGrade": 2.797786146484147,
     "roadRunFt": 128.61708832262076,
     "roadName": "unnamed road",
@@ -2142,6 +2165,17 @@
     "fit": "fits",
     "gentleNearAc": 2.5095998652850375,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.6,
+     "julHighF": 81,
+     "station": "USC00445453",
+     "stationMi": 15.4
+    },
+    "privacy": {
+     "near": 3,
+     "inSight": 14,
+     "nearestFt": 922
+    },
     "driveway": {
      "lengthFt": 1985.2866327034553,
      "cost": {
@@ -2194,6 +2228,12 @@
      "coreClear": 16.41763332794587,
      "domeW": 3.751561287904464
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.14,
+     "dirDeg": 38
+    },
     "roadGrade": 2.489218365519043,
     "roadRunFt": 212.1108256935515,
     "roadName": "unnamed road",
@@ -2202,6 +2242,17 @@
     "fit": "fits",
     "gentleNearAc": 1.0388370139617675,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 25.1,
+     "julHighF": 80.6,
+     "station": "USC00445453",
+     "stationMi": 15.3
+    },
+    "privacy": {
+     "near": 2,
+     "inSight": 24,
+     "nearestFt": 576
+    },
     "driveway": {
      "lengthFt": 1181.0896518703828,
      "cost": {
@@ -2252,6 +2303,12 @@
      "coreClear": 15.8398702888244,
      "domeW": 4.219192028832789
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.13,
+     "dirDeg": 35
+    },
     "roadGrade": 7.88603202979003,
     "roadRunFt": 236.3286037800262,
     "roadName": "unnamed road",
@@ -2260,6 +2317,17 @@
     "fit": "fits",
     "gentleNearAc": 2.467514783695968,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 25,
+     "julHighF": 80.4,
+     "station": "USC00445453",
+     "stationMi": 15.3
+    },
+    "privacy": {
+     "near": 7,
+     "inSight": 18,
+     "nearestFt": 555
+    },
     "driveway": {
      "lengthFt": 269.14711227469934,
      "cost": {
@@ -2309,10 +2377,27 @@
      "coreClear": 15.782850147689057,
      "domeW": 3.751561287904464
     },
+    "view": {
+     "longestKm": 5.87,
+     "past": false,
+     "openShare": 0.08,
+     "dirDeg": 30
+    },
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 1.6080931175612863,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.4,
+     "julHighF": 80.8,
+     "station": "USC00445453",
+     "stationMi": 15.3
+    },
+    "privacy": {
+     "near": 3,
+     "inSight": 31,
+     "nearestFt": 634
+    },
     "driveway": {
      "lengthFt": 1431.634503350094,
      "cost": {
@@ -2331,6 +2416,30 @@
     "driveFt": 1431.634503350094
    }
   ],
+  "climate": {
+   "outside": false,
+   "stations": [
+    {
+     "id": "USC00445453",
+     "name": "Meadows Of Dan 5 SW, VA",
+     "elevFt": 2225,
+     "snowIn": 7.1,
+     "lastFreeze": "04-21",
+     "firstFreeze": "10-25",
+     "frostFreeDays": 185
+    }
+   ]
+  },
+  "privacy": {
+   "outside": false
+  },
+  "dish": {
+   "ll": [
+    36.887482,
+    -80.454615
+   ],
+   "clearShare": 1
+  },
   "driveway": {
    "toLabel": "site #1",
    "entrances": [
@@ -3259,8 +3368,14 @@
    "kept": false
   },
   "closerGrocery": null,
+  "longTrail": {
+   "trail": "Huckleberry Trail",
+   "point": "Christiansburg",
+   "min": 49,
+   "mi": 24.1
+  },
   "schemaVersion": 9,
-  "engine": 22,
+  "engine": 28,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -5347,6 +5462,12 @@
      "coreClear": 18.048232341042148,
      "domeW": 4.219192028832789
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.25,
+     "dirDeg": 58
+    },
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 4.288248313496763,
@@ -5366,7 +5487,18 @@
      "existing": null,
      "noPractical": false
     },
-    "driveFt": 478.0716692682822
+    "driveFt": 478.0716692682822,
+    "climate": {
+     "janLowF": 24.9,
+     "julHighF": 80.6,
+     "station": "USC00445453",
+     "stationMi": 15.3
+    },
+    "privacy": {
+     "near": 5,
+     "inSight": 0,
+     "nearestFt": 937
+    }
    },
    {
     "rank": 2,
@@ -5400,6 +5532,12 @@
      "coreClear": 8.180983972757907,
      "domeW": 3.751561287904464
     },
+    "view": {
+     "longestKm": 3.31,
+     "past": false,
+     "openShare": 0,
+     "dirDeg": null
+    },
     "roadGrade": 2.797786146484147,
     "roadRunFt": 128.61708832262076,
     "roadName": "unnamed road",
@@ -5422,6 +5560,17 @@
      "designPct": null,
      "existing": null,
      "noPractical": false
+    },
+    "climate": {
+     "janLowF": 24.6,
+     "julHighF": 81,
+     "station": "USC00445453",
+     "stationMi": 15.4
+    },
+    "privacy": {
+     "near": 3,
+     "inSight": 14,
+     "nearestFt": 922
     }
    },
    {
@@ -5460,6 +5609,12 @@
      "coreClear": 16.41763332794587,
      "domeW": 3.751561287904464
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.14,
+     "dirDeg": 38
+    },
     "roadGrade": 2.489218365519043,
     "roadRunFt": 212.1108256935515,
     "roadName": "unnamed road",
@@ -5482,6 +5637,17 @@
      "designPct": null,
      "existing": null,
      "noPractical": false
+    },
+    "climate": {
+     "janLowF": 25.1,
+     "julHighF": 80.6,
+     "station": "USC00445453",
+     "stationMi": 15.3
+    },
+    "privacy": {
+     "near": 2,
+     "inSight": 24,
+     "nearestFt": 576
     }
    },
    {
@@ -5518,6 +5684,12 @@
      "coreClear": 15.8398702888244,
      "domeW": 4.219192028832789
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.13,
+     "dirDeg": 35
+    },
     "roadGrade": 7.88603202979003,
     "roadRunFt": 236.3286037800262,
     "roadName": "unnamed road",
@@ -5540,6 +5712,17 @@
      "designPct": null,
      "existing": null,
      "noPractical": false
+    },
+    "climate": {
+     "janLowF": 25,
+     "julHighF": 80.4,
+     "station": "USC00445453",
+     "stationMi": 15.3
+    },
+    "privacy": {
+     "near": 7,
+     "inSight": 18,
+     "nearestFt": 555
     }
    },
    {
@@ -5575,6 +5758,12 @@
      "coreClear": 15.782850147689057,
      "domeW": 3.751561287904464
     },
+    "view": {
+     "longestKm": 5.87,
+     "past": false,
+     "openShare": 0.08,
+     "dirDeg": 30
+    },
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 1.6080931175612863,
@@ -5594,9 +5783,44 @@
      "existing": null,
      "noPractical": false
     },
-    "driveFt": 1431.634503350094
+    "driveFt": 1431.634503350094,
+    "climate": {
+     "janLowF": 24.4,
+     "julHighF": 80.8,
+     "station": "USC00445453",
+     "stationMi": 15.3
+    },
+    "privacy": {
+     "near": 3,
+     "inSight": 31,
+     "nearestFt": 634
+    }
    }
   ],
+  "climate": {
+   "outside": false,
+   "stations": [
+    {
+     "id": "USC00445453",
+     "name": "Meadows Of Dan 5 SW, VA",
+     "elevFt": 2225,
+     "snowIn": 7.1,
+     "lastFreeze": "04-21",
+     "firstFreeze": "10-25",
+     "frostFreeDays": 185
+    }
+   ]
+  },
+  "privacy": {
+   "outside": false
+  },
+  "dish": {
+   "ll": [
+    36.887482,
+    -80.454615
+   ],
+   "clearShare": 1
+  },
   "driveway": {
    "toLabel": "the existing house",
    "entrances": [
@@ -8001,8 +8225,14 @@
    "kept": true
   },
   "closerGrocery": null,
+  "longTrail": {
+   "trail": "Huckleberry Trail",
+   "point": "Christiansburg",
+   "min": 49,
+   "mi": 24.1
+  },
   "schemaVersion": 9,
-  "engine": 22,
+  "engine": 28,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -8040,6 +8270,12 @@
     "coreClear": 5.950336016144957,
     "domeW": 4.219192028832789
    },
+   "view": {
+    "longestKm": 5.5,
+    "past": false,
+    "openShare": 0.03,
+    "dirDeg": 80
+   },
    "roadGrade": 15.089900268508277,
    "roadRunFt": 292.97635408085887,
    "roadName": "unnamed road",
@@ -8058,6 +8294,17 @@
     "designPct": null,
     "existing": null,
     "noPractical": false
+   },
+   "climate": {
+    "janLowF": 24.5,
+    "julHighF": 80.9,
+    "station": "USC00445453",
+    "stationMi": 15.4
+   },
+   "privacy": {
+    "near": 2,
+    "inSight": 25,
+    "nearestFt": 969
    }
   }
  },
@@ -10145,10 +10392,27 @@
     "coreClear": 5.950336016144957,
     "domeW": 4.219192028832789
    },
+   "view": {
+    "longestKm": 5.5,
+    "past": false,
+    "openShare": 0.03,
+    "dirDeg": 80
+   },
    "roadGrade": 15.089900268508277,
    "roadRunFt": 292.97635408085887,
    "roadName": "unnamed road",
    "driveFt": 1487.4399249961073,
+   "climate": {
+    "janLowF": 24.5,
+    "julHighF": 80.9,
+    "station": "USC00445453",
+    "stationMi": 15.4
+   },
+   "privacy": {
+    "near": 2,
+    "inSight": 25,
+    "nearestFt": 969
+   },
    "driveway": {
     "lengthFt": 1487.4399249961073,
     "cost": {
@@ -10197,10 +10461,27 @@
      "coreClear": 18.048232341042148,
      "domeW": 4.219192028832789
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.25,
+     "dirDeg": 58
+    },
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 4.288248313496763,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.9,
+     "julHighF": 80.6,
+     "station": "USC00445453",
+     "stationMi": 15.3
+    },
+    "privacy": {
+     "near": 5,
+     "inSight": 0,
+     "nearestFt": 937
+    },
     "driveway": {
      "lengthFt": 478.0716692682822,
      "cost": {
@@ -10250,6 +10531,12 @@
      "coreClear": 8.180983972757907,
      "domeW": 3.751561287904464
     },
+    "view": {
+     "longestKm": 3.31,
+     "past": false,
+     "openShare": 0,
+     "dirDeg": null
+    },
     "roadGrade": 2.797786146484147,
     "roadRunFt": 128.61708832262076,
     "roadName": "unnamed road",
@@ -10258,6 +10545,17 @@
     "fit": "fits",
     "gentleNearAc": 2.5095998652850375,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.6,
+     "julHighF": 81,
+     "station": "USC00445453",
+     "stationMi": 15.4
+    },
+    "privacy": {
+     "near": 3,
+     "inSight": 14,
+     "nearestFt": 922
+    },
     "driveway": {
      "lengthFt": 1985.2866327034553,
      "cost": {
@@ -10310,6 +10608,12 @@
      "coreClear": 16.41763332794587,
      "domeW": 3.751561287904464
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.14,
+     "dirDeg": 38
+    },
     "roadGrade": 2.489218365519043,
     "roadRunFt": 212.1108256935515,
     "roadName": "unnamed road",
@@ -10318,6 +10622,17 @@
     "fit": "fits",
     "gentleNearAc": 1.0388370139617675,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 25.1,
+     "julHighF": 80.6,
+     "station": "USC00445453",
+     "stationMi": 15.3
+    },
+    "privacy": {
+     "near": 2,
+     "inSight": 24,
+     "nearestFt": 576
+    },
     "driveway": {
      "lengthFt": 1181.0896518703828,
      "cost": {
@@ -10368,6 +10683,12 @@
      "coreClear": 15.8398702888244,
      "domeW": 4.219192028832789
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.13,
+     "dirDeg": 35
+    },
     "roadGrade": 7.88603202979003,
     "roadRunFt": 236.3286037800262,
     "roadName": "unnamed road",
@@ -10376,6 +10697,17 @@
     "fit": "fits",
     "gentleNearAc": 2.467514783695968,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 25,
+     "julHighF": 80.4,
+     "station": "USC00445453",
+     "stationMi": 15.3
+    },
+    "privacy": {
+     "near": 7,
+     "inSight": 18,
+     "nearestFt": 555
+    },
     "driveway": {
      "lengthFt": 269.14711227469934,
      "cost": {
@@ -10425,10 +10757,27 @@
      "coreClear": 15.782850147689057,
      "domeW": 3.751561287904464
     },
+    "view": {
+     "longestKm": 5.87,
+     "past": false,
+     "openShare": 0.08,
+     "dirDeg": 30
+    },
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 1.6080931175612863,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.4,
+     "julHighF": 80.8,
+     "station": "USC00445453",
+     "stationMi": 15.3
+    },
+    "privacy": {
+     "near": 3,
+     "inSight": 31,
+     "nearestFt": 634
+    },
     "driveway": {
      "lengthFt": 1431.634503350094,
      "cost": {
@@ -10447,6 +10796,30 @@
     "driveFt": 1431.634503350094
    }
   ],
+  "climate": {
+   "outside": false,
+   "stations": [
+    {
+     "id": "USC00445453",
+     "name": "Meadows Of Dan 5 SW, VA",
+     "elevFt": 2225,
+     "snowIn": 7.1,
+     "lastFreeze": "04-21",
+     "firstFreeze": "10-25",
+     "frostFreeDays": 185
+    }
+   ]
+  },
+  "privacy": {
+   "outside": false
+  },
+  "dish": {
+   "ll": [
+    36.888823,
+    -80.452926
+   ],
+   "clearShare": 1
+  },
   "driveway": {
    "toLabel": "the existing house",
    "entrances": [
@@ -12851,8 +13224,14 @@
    "kept": false
   },
   "closerGrocery": null,
+  "longTrail": {
+   "trail": "Huckleberry Trail",
+   "point": "Christiansburg",
+   "min": 49,
+   "mi": 24.1
+  },
   "schemaVersion": 9,
-  "engine": 22,
+  "engine": 28,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

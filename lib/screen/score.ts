@@ -15,6 +15,7 @@ import { overLimitSpans, type PracticalAlternatives, type SiteDriveway, type Sit
 import { NEEDS_EASEMENT } from "./routeLabel";
 import { bottomland, soilAt, type SoilLimits, type SoilUnit, type VettedBench } from "./soils";
 import { skyScore } from "./sky";
+import { viewOf } from "./view";
 import { horizonProfile, sunHours, type HorizonPoint } from "./sun";
 import type {
   CostTier as Tier,
@@ -552,6 +553,8 @@ export async function scoreSiteDetailed(
     qGrade: grade(quality),
     soilKey: comp ? (comp.cokey ?? null) : null,
     ...(spot !== undefined ? { sky: spot } : {}),
+    // Step 11 (plan §2.4): the long view, from the same skyline.
+    view: viewOf(hz, ctx.dWide, r0, c0),
     ...road,
     ...(flood ? { flood } : {}),
   };

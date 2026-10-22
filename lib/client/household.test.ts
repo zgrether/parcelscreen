@@ -56,6 +56,15 @@ describe("the members", () => {
       [MINE, "Mine"],
       [julie.id, "Julie"],
     ]);
-    expect(rubrics[1]!.rubric.wonts).toEqual(["sky"]);
+    // Step 11: a list saved before it gets its new factors in memory; Climate, unanswered, is Don't care.
+    expect(rubrics[1]!.rubric.wonts).toEqual([
+      "sky",
+      "climate",
+      "privacy",
+      "longView",
+      "airport",
+      "longTrail",
+      "internet",
+    ]);
   });
 });

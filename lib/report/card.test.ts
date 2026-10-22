@@ -58,8 +58,16 @@ describe("the report card on the fixtures (engine 13)", () => {
       room: "A",
       driveway: "A", // step 7: 5% at its steepest
       trails: "D", // follow-up 54: 47 min by road to Buffalo Mountain's parking (it read C, 6.5 mi straight)
-      town: "D",
+      // Step 11: Town and hospital's D was the ER's; the grocery, 15 min, is a B.
+      town: "B",
+      hospital: "D",
       garden: "A",
+      climate: "A", // step 11: January lows 24.9 °F, July highs 80.6 °F at site #1
+      privacy: "B", // step 11: the nearest house 937 ft away, none in sight
+      longView: "A", // step 11: 25% of the horizon open past 3 mi
+      airport: "C", // step 11: 88 min to Roanoke (ROA)
+      longTrail: "D", // step 11: 49 min to the Huckleberry Trail
+      internet: "A", // step 11: a dish spot 100% clear
     });
     const zach = reportCard(r, ZACH);
     expect(zach.points).toBeCloseTo(3.2, 9);
@@ -67,7 +75,9 @@ describe("the report card on the fixtures (engine 13)", () => {
     // One warn: the first thing to check (it read: the weakest part, trails and public land).
     expect(zach.reason).toBe(`Contender. Check first: frontage on an unnamed road; ${MARKED_PRIVATE}.`);
     expect(zach.incomplete).toEqual([]);
-    expect(rowOf(r, "town").detail).toBe("a 47-minute drive to an ER, 15 to a grocery"); // from the entrance
+    // Step 11: Town and hospital's line, split in two.
+    expect(rowOf(r, "hospital").detail).toBe("a 47-minute drive to an ER");
+    expect(rowOf(r, "town").detail).toBe("a 15-minute drive to a grocery"); // from the entrance
     expect(reportCard(r, JULIE).points).toBeCloseTo(2.75, 9);
     expect(rowOf(r, "garden").detail).toBe("a 2.48 ac garden on prime farmland");
     expect(rowOf(r, "room").detail).toBe(
@@ -95,12 +105,22 @@ describe("the report card on the fixtures (engine 13)", () => {
       // Follow-up 54: from the entrance, whose road OSRM drives as a track at about 6 mph (followup-54 plan §4).
       trails: "F",
       town: "F",
+      hospital: "F",
       garden: "B",
+      climate: "A",
+      privacy: "A",
+      longView: "C",
+      airport: "F",
+      longTrail: "F",
+      internet: "A",
     });
     // The nearer grocery is the closer one, 76 min, but over every cutoff.
     // "an" (owner, #124: an approved correction), and the track note appended, as on Trails.
+    expect(rowOf(r, "hospital").detail).toBe(
+      "an 82-minute drive to an ER (the first 2.6 mi on unnamed tracks)",
+    );
     expect(rowOf(r, "town").detail).toBe(
-      "an 82-minute drive to an ER, 76 to a grocery (the first 2.6 mi on unnamed tracks)",
+      "a 76-minute drive to a grocery (the first 2.6 mi on unnamed tracks)",
     );
     expect(rowOf(r, "trails").detail).toBe(
       "a trailhead 92 min (17.4 mi) by road (the first 2.6 mi on unnamed tracks), 10.4 mi straight (Heritage Park)",
@@ -217,7 +237,14 @@ describe("the report card on the fixtures (engine 13)", () => {
       driveway: "C", // step 7: 18% at its steepest, past the starting list's 15%
       trails: "B",
       town: "C",
+      hospital: "C",
       garden: "C",
+      climate: "A",
+      privacy: "B",
+      longView: "C",
+      airport: "D",
+      longTrail: "D",
+      internet: "A",
     });
     expect(rowOf(r, "driveway").detail).toBe("2,888 ft, 18% at its steepest");
     const zach = reportCard(r, ZACH);
@@ -431,15 +458,26 @@ describe("the rows", () => {
     expect(rowOf(r, "garden")).toMatchObject({ grade: "F", detail: "no garden ground found" });
   });
 
-  it("town: the worse of the ER and the grocery", () => {
+  it("town: the nearer grocery; hospital: the ER (step 11, split from Town and hospital)", () => {
     const r = ferney();
     r.drives = r.drives!.map((d) => (d.label === "Nearest hospital" ? { ...d, min: 15 } : d));
-    expect(rowOf(r, "town").grade).toBe("B"); // ER 15 (A), grocery 16 (B)
+    expect(rowOf(r, "town").grade).toBe("B"); // grocery 16
+    expect(rowOf(r, "hospital")).toMatchObject({
+      grade: "A",
+      detail: "a 15-minute drive to an ER",
+      short: "ER 15 min",
+      measure: { value: 15, unit: "min" },
+    });
     r.closerGrocery = { label: "Closer grocery", name: "Corner store", min: 8, mi: 4, er: null };
     expect(rowOf(r, "town")).toMatchObject({
       grade: "A",
-      detail: "a 15-minute drive to an ER, 8 to a grocery",
+      detail: "an 8-minute drive to a grocery",
+      short: "grocery 8 min",
+      measure: { value: 8, unit: "min" },
     });
+    r.drives = r.drives!.filter((d) => d.label !== "Nearest hospital");
+    expect(rowOf(r, "hospital")).toMatchObject({ grade: "F", detail: "no hospital found" });
+    expect(rowOf(r, "town").grade).toBe("A");
   });
 
   it("trails: adjoining open land is an A; open land within a mile a B, unless a trailhead does better", () => {
@@ -531,7 +569,8 @@ describe("the rows", () => {
     const r = expectedOf("grayson-mud-creek-6273", "run");
     r.near = { ...r.near!, trailheads: r.near!.trailheads.map((t) => ({ ...t, drive: null })) };
     delete r.driveFrom;
-    expect(rowOf(r, "town").detail).toBe("a 38-minute drive to an ER, 21 to a grocery");
+    expect(rowOf(r, "town").detail).toBe("a 21-minute drive to a grocery");
+    expect(rowOf(r, "hospital").detail).toBe("a 38-minute drive to an ER");
     expect(rowOf(r, "trails")).toMatchObject({
       grade: "B",
       detail: "a trailhead 4.9 mi away in a straight line (Grayson Highlands State Park)",

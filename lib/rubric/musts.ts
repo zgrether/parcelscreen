@@ -21,7 +21,18 @@ export const BAND_DIRECTION: Record<RowKey, "atLeast" | "atMost" | null> = {
   driveway: "atMost",
   trails: "atMost",
   town: "atMost",
+  hospital: "atMost",
   garden: "atLeast",
+  // Step 11: two seasons, no limit.
+  climate: null,
+  // Step 11: the houses in sight, at most.
+  privacy: "atMost",
+  // Step 11: no limit.
+  longView: null,
+  // Step 11: the drive to an airport, at most.
+  airport: "atMost",
+  longTrail: "atMost",
+  internet: "atLeast",
   // Step 10: no threshold; a Must on it reads the budgets (lib/report/card.ts).
   budget: null,
 };
@@ -35,7 +46,14 @@ export const MEASURE_UNIT: Record<RowKey, string | null> = {
   driveway: "%",
   trails: "min",
   town: "min",
+  hospital: "min",
   garden: "ac",
+  climate: null,
+  privacy: "houses",
+  longView: null,
+  airport: "min",
+  longTrail: "min",
+  internet: "%",
   budget: null,
 };
 

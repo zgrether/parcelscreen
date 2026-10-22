@@ -26,6 +26,16 @@ async function fresh(page: Page, path = "/interview"): Promise<void> {
 const progress = (page: Page) => page.locator(".iv-progress");
 const choice = (page: Page, name: string) => page.getByRole("radio", { name, exact: false });
 
+/**
+ * Question 1 (step 11): a year shows its two follow-ups, preset from it, and Continue goes on; "Either is fine" goes on
+ * by itself.
+ */
+async function pickYear(page: Page, name: string): Promise<void> {
+  await choice(page, name).first().click();
+  if (name !== "Either is fine") await page.getByRole("button", { name: "Continue" }).click();
+  await expect(progress(page)).toHaveText("2 of 14");
+}
+
 /** Picks a single choice and waits for the next screen. */
 async function pick(page: Page, name: string, next: number): Promise<void> {
   await choice(page, name).first().click();
@@ -38,7 +48,18 @@ test("a full run as Person A, with Back and Skip: the result, and the priorities
   await fresh(page);
   await expect(progress(page)).toHaveText("1 of 14");
   await expect(page.locator(".iv-scene")).toContainText("Which year sounds better");
-  await pick(page, "Cool and snowy", 2);
+  // Question 1's follow-ups (step 11): preset from the year, so Continue is the one more tap.
+  await choice(page, "Cool and snowy").first().click();
+  const follow = page.locator(".iv-follow");
+  await expect(follow.getByRole("radio", { name: "Real winter welcome" })).toHaveAttribute(
+    "aria-checked",
+    "true",
+  );
+  await expect(follow.getByRole("radio", { name: "Keep it cool" })).toHaveAttribute("aria-checked", "true");
+  await expect(progress(page)).toHaveText("1 of 14");
+  await follow.getByRole("radio", { name: "Some snow" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(progress(page)).toHaveText("2 of 14");
   // Question 2: "Out with a camera" asks its follow-up on the same screen.
   await choice(page, "Out with a camera").click();
   await expect(page.locator(".iv-follow")).toContainText("A town's glow on one horizon");
@@ -118,7 +139,7 @@ test("a full run as Person A, with Back and Skip: the result, and the priorities
 
 test("leaving halfway resumes on the same screen", async ({ page }) => {
   await fresh(page);
-  await pick(page, "In between", 2);
+  await pickYear(page, "In between");
   await pick(page, "Inside by the fire", 3);
   await pick(page, "Both", 4);
   await page.reload();
@@ -132,13 +153,14 @@ test("leaving halfway resumes on the same screen", async ({ page }) => {
 test("the keyboard: 1–4 pick, the arrows move, Backspace goes back", async ({ page }) => {
   await fresh(page);
   await expect(page.locator(".iv-scene")).toBeFocused();
-  await page.keyboard.press("2");
+  // "Either is fine" (step 11: a year waits for its follow-ups) moves on by itself.
+  await page.keyboard.press("4");
   await expect(progress(page)).toHaveText("2 of 14");
   await page.keyboard.press("Backspace");
   await expect(progress(page)).toHaveText("1 of 14");
-  await expect(choice(page, "In between")).toHaveAttribute("aria-checked", "true");
-  await choice(page, "In between").focus();
-  await page.keyboard.press("ArrowDown");
+  await expect(choice(page, "Either is fine")).toHaveAttribute("aria-checked", "true");
+  await choice(page, "Either is fine").focus();
+  await page.keyboard.press("ArrowUp");
   await expect(choice(page, "Warm and mild")).toBeFocused();
   // A screen that held an answer waits: Enter changes the pick, Enter on it again moves on.
   await page.keyboard.press("Enter");
@@ -158,7 +180,7 @@ test("a changed list: the result asks, and Keep my changes keeps it", async ({ p
   // The change kept before the page goes (the profile's store writes through asynchronously).
   await settled(page);
   await page.goto("/interview");
-  await pick(page, "Cool and snowy", 2);
+  await pickYear(page, "Cool and snowy");
   for (let n = 3; n <= 14; n++) {
     await page.getByRole("button", { name: "Skip" }).click();
     await expect(progress(page)).toHaveText(`${n} of 14`);
@@ -187,6 +209,10 @@ test.describe("on a phone", () => {
     const skip = (await page.getByRole("button", { name: "Skip" }).boundingBox())!;
     expect(skip.y + skip.height).toBeLessThanOrEqual(667);
     await choice(page, "Cool and snowy").tap();
+    // Step 11: its follow-ups and Continue fit too.
+    for (const c of await page.locator(".iv-follow").getByRole("radio").all())
+      expect((await c.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await page.getByRole("button", { name: "Continue" }).tap();
     await expect(progress(page)).toHaveText("2 of 14");
     expect(errors).toEqual([]);
   });

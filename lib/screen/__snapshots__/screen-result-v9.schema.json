@@ -1284,6 +1284,135 @@
         }
       ]
     },
+    "climate": {
+      "type": "object",
+      "properties": {
+        "outside": {
+          "type": "boolean"
+        },
+        "stations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "elevFt": {
+                "type": "number"
+              },
+              "snowIn": {
+                "type": "number"
+              },
+              "lastFreeze": {
+                "type": "string"
+              },
+              "firstFreeze": {
+                "type": "string"
+              },
+              "frostFreeDays": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "elevFt",
+              "snowIn",
+              "lastFreeze",
+              "firstFreeze",
+              "frostFreeDays"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "outside",
+        "stations"
+      ],
+      "additionalProperties": false
+    },
+    "longTrail": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "trail": {
+              "type": "string"
+            },
+            "point": {
+              "type": "string"
+            },
+            "min": {
+              "type": "number"
+            },
+            "mi": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "trail",
+            "point",
+            "min",
+            "mi"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "dish": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "ll": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "clearShare": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "ll",
+            "clearShare"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "privacy": {
+      "type": "object",
+      "properties": {
+        "outside": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "outside"
+      ],
+      "additionalProperties": false
+    },
     "excluded": {
       "type": "array",
       "items": {
@@ -1535,6 +1664,90 @@
                 "type": "null"
               }
             ]
+          },
+          "climate": {
+            "type": "object",
+            "properties": {
+              "janLowF": {
+                "type": "number"
+              },
+              "julHighF": {
+                "type": "number"
+              },
+              "station": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "stationMi": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "janLowF",
+              "julHighF",
+              "station",
+              "stationMi"
+            ],
+            "additionalProperties": false
+          },
+          "privacy": {
+            "type": "object",
+            "properties": {
+              "near": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "inSight": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "nearestFt": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "near",
+              "inSight",
+              "nearestFt"
+            ],
+            "additionalProperties": false
+          },
+          "view": {
+            "type": "object",
+            "properties": {
+              "longestKm": {
+                "type": "number"
+              },
+              "past": {
+                "type": "boolean"
+              },
+              "openShare": {
+                "type": "number"
+              },
+              "dirDeg": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "longestKm",
+              "past",
+              "openShare",
+              "dirDeg"
+            ],
+            "additionalProperties": false
           },
           "practical": {
             "anyOf": [
@@ -1984,6 +2197,90 @@
                       "type": "null"
                     }
                   ]
+                },
+                "climate": {
+                  "type": "object",
+                  "properties": {
+                    "janLowF": {
+                      "type": "number"
+                    },
+                    "julHighF": {
+                      "type": "number"
+                    },
+                    "station": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "stationMi": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "janLowF",
+                    "julHighF",
+                    "station",
+                    "stationMi"
+                  ],
+                  "additionalProperties": false
+                },
+                "privacy": {
+                  "type": "object",
+                  "properties": {
+                    "near": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "inSight": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "nearestFt": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "near",
+                    "inSight",
+                    "nearestFt"
+                  ],
+                  "additionalProperties": false
+                },
+                "view": {
+                  "type": "object",
+                  "properties": {
+                    "longestKm": {
+                      "type": "number"
+                    },
+                    "past": {
+                      "type": "boolean"
+                    },
+                    "openShare": {
+                      "type": "number"
+                    },
+                    "dirDeg": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "longestKm",
+                    "past",
+                    "openShare",
+                    "dirDeg"
+                  ],
+                  "additionalProperties": false
                 }
               },
               "required": [

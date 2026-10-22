@@ -23,7 +23,16 @@ export const ROW_KEYS = [
   "driveway",
   "trails",
   "town",
+  // Step 11 (docs/plans/step-11-new-data.md §2.1): split from Town, which keeps the groceries.
+  "hospital",
   "garden",
+  // Step 11's new factors (plan §2): after the rows before them, so their order and ties stay as they were.
+  "climate",
+  "privacy",
+  "longView",
+  "airport",
+  "longTrail",
+  "internet",
   "budget",
 ] as const;
 export type RowKey = (typeof ROW_KEYS)[number];
@@ -55,6 +64,22 @@ export interface Bands {
   gardenAc: number[];
   /** The Driveway row's steepest grade, in %, at most (step 7). */
   drivewayPct: number[];
+  /** Step 11: Climate's January mean low at the site, in °F, at least. */
+  janLowF: number[];
+  /** Step 11: Climate's July mean high at the site, in °F, at most. */
+  julHighF: number[];
+  /** Step 11: Privacy's nearest house, in ft, at least. */
+  privacyFt: number[];
+  /** Step 11: Privacy's houses in sight within a mile, at most. */
+  privacySight: number[];
+  /** Step 11: Long view's share of the horizon open past 3 mi, in %, at least. */
+  viewOpenPct: number[];
+  /** Step 11: Airport's drive to the nearest airport on Settings' list, in minutes, at most. */
+  airportMin: number[];
+  /** Step 11: Bike to a long trail's drive to the nearest access point, in minutes, at most. */
+  longTrailMin: number[];
+  /** Step 11: Internet's dish spot, the clear share of its view cone, in %, at least. */
+  dishClearPct: number[];
 }
 
 /**

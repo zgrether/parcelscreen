@@ -27,7 +27,14 @@ import {
 } from "../types";
 import { budgetWords, type BandKey } from "../words";
 import { CHIPS, type Chip, type InterviewAnswers } from "./answers";
-import { ACRES_WORDS, CHIP_WORDS, GLOW_QUESTION, QUESTIONS } from "./questions";
+import {
+  ACRES_WORDS,
+  CHIP_WORDS,
+  GLOW_QUESTION,
+  QUESTIONS,
+  SUMMER_QUESTION,
+  WINTER_QUESTION,
+} from "./questions";
 
 /** What one choice does, as config writes it. */
 interface Effect {
@@ -39,14 +46,25 @@ interface Effect {
 /** Ties between rows with the same points break in the design's default order (Factors table). */
 export const TIE_ORDER: readonly RowKey[] = [
   "elevation",
+  // Step 11: question 1 places it, so it sits by Elevation, which the same answer moves (plan §2.2).
+  "climate",
   "homesite",
   // Step 7: the Factors table puts Driveway after Winter sun.
   "driveway",
   "room",
   "trails",
   "town",
+  // Step 11: split from Town, just after it.
+  "hospital",
   "sky",
   "garden",
+  // Step 11's other new factors break ties after the original rows, so a list from the same answers keeps their order:
+  // Privacy (question 8), Long view (3), Airport (7), Bike to a long trail (4), Internet (7; 1 point by default).
+  "privacy",
+  "longView",
+  "airport",
+  "longTrail",
+  "internet",
 ];
 
 export interface Generated {
@@ -78,6 +96,20 @@ export function walkAwayStarts(
   const edgeFt = climate?.edges?.elevationFt ?? C.rows.elevationFt[1]!;
   const erMin = a.er ? Number(a.er) : C.rows.erMin[1]!;
   return { belowFt: edgeFt - I.walkAway.belowFtUnderEdge, erOverMin: erMin + I.walkAway.erStepMin };
+}
+
+/**
+ * Climate's two limits (step 11): question 1's follow-ups, or the preset its answer implies (config `climatePreset`);
+ * none for "Either", or when it wasn't answered.
+ */
+export function climateLimits(
+  a: Pick<InterviewAnswers, "climate" | "winter" | "summer">,
+  C = SCREEN_CONSTANTS.card,
+): Pick<InterviewAnswers, "winter" | "summer"> {
+  const preset = a.climate && a.climate !== "either" ? C.interview.climatePreset[a.climate] : undefined;
+  const winter = a.winter ?? (preset?.winter as InterviewAnswers["winter"]);
+  const summer = a.summer ?? (preset?.summer as InterviewAnswers["summer"]);
+  return { ...(winter ? { winter } : {}), ...(summer ? { summer } : {}) };
 }
 
 const choiceOf = (key: keyof InterviewAnswers, id: string) =>
@@ -119,6 +151,16 @@ export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card
   };
 
   answer("climate", a.climate);
+  // Step 11 (plan §2.2): question 1's follow-ups set Climate's limits; left alone, they're its answer's preset.
+  const { winter, summer } = climateLimits(a, C);
+  if (winter) {
+    apply(I.choices.winter[winter] as Effect, null);
+    if (a.winter) say("climate", WINTER_QUESTION.choices.find((c) => c.id === a.winter)!.why);
+  }
+  if (summer) {
+    apply(I.choices.summer[summer] as Effect, null);
+    if (a.summer) say("climate", SUMMER_QUESTION.choices.find((c) => c.id === a.summer)!.why);
+  }
   if (a.sky) {
     // "Out with a camera" then "spoils it": one why for both, and the follow-up's stricter edge.
     const spoils = a.sky === "camera" && a.glow === "spoils";
@@ -132,7 +174,9 @@ export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card
   answer("trails", a.trails);
   answer("groceries", a.groceries);
   answer("er", a.er);
-  for (const key of ["fly", "calls"] as const) if (a[key]) note(choiceOf(key, a[key])?.later);
+  // Step 11: question 7's rows set Airport and Internet.
+  answer("fly", a.fly);
+  answer("calls", a.calls);
   answer("neighbors", a.neighbors);
   answer("garden", a.garden);
   // Question 10 sets the Driveway row (step 7); it left the quiet list.
@@ -154,8 +198,10 @@ export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card
   const limits: { row: RowKey; threshold: number }[] = [];
   const limitRow: Partial<Record<Chip, { row: RowKey; threshold: number }>> = {
     belowFt: { row: "elevation", threshold: numbers.belowFt },
-    erOver: { row: "town", threshold: numbers.erOverMin },
+    erOver: { row: "hospital", threshold: numbers.erOverMin },
     noWinterSun: { row: "homesite", threshold: SCREEN_CONSTANTS.bands.winterSunH[0]! },
+    // Step 11: Privacy's own limit, no house in sight.
+    neighborInView: { row: "privacy", threshold: 0 },
   };
   const walkGate: Partial<Record<Chip, GateKey>> = { flood: "floodplain", altSeptic: "septic" };
   for (const chip of CHIPS) {
@@ -180,7 +226,13 @@ export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card
     sharedDriveway: "easement",
     altSeptic: "septic",
   };
-  const zeroRow: Partial<Record<Chip, RowKey>> = { belowFt: "elevation", noWinterSun: "homesite" };
+  // Step 11: "Over ___ min to an ER" doesn't matter puts Hospital, its own row now, in Don't care.
+  const zeroRow: Partial<Record<Chip, RowKey>> = {
+    belowFt: "elevation",
+    noWinterSun: "homesite",
+    erOver: "hospital",
+    neighborInView: "privacy",
+  };
   const dropped = new Set<GateKey>();
   const zeroed = new Set<RowKey>();
   for (const chip of CHIPS) {
@@ -195,10 +247,6 @@ export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card
     if (row) {
       zeroed.add(row);
       say(row, text);
-    }
-    if (chip === "erOver") {
-      edges.erMin = I.dontMatterErMin;
-      say("town", text);
     }
     if (chip === "overBudget" && budgeted) say("budget", text);
     else note(CHIP_WORDS[chip].laterDontMatter);

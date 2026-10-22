@@ -68,11 +68,11 @@ describe("the answer line", () => {
     const r = structuredClone(MUD);
     const h = r.drives!.find((d) => d.er === "yes")!;
     h.min = 38;
-    const town = named({
+    const er = named({
       ...defaultRubric(),
-      weights: { mode: "explicit", of: { ...zeroWeights(), town: 100 } },
+      weights: { mode: "explicit", of: { ...zeroWeights(), hospital: 100 } },
     });
-    expect(answerLine(reportCard(r, town), r)).toBe(
+    expect(answerLine(reportCard(r, er), r)).toBe(
       "C, Maybe. 38 minutes to an ER is past your 30-minute limit; check first: septic.",
     );
   });
@@ -102,7 +102,14 @@ function zeroWeights() {
     driveway: 0,
     trails: 0,
     town: 0,
+    hospital: 0,
     garden: 0,
+    climate: 0,
+    privacy: 0,
+    longView: 0,
+    airport: 0,
+    longTrail: 0,
+    internet: 0,
     budget: 0,
   };
 }

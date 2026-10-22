@@ -157,6 +157,53 @@ export function HelpText() {
         all of them are in Settings. When the map disagrees with what you saw in Google Earth, believe your
         eyes and check the DEM cell size first.
       </p>
+
+      {/* Step 11's new factors: after the prototype's copy, which stays word for word (rule 7). */}
+      <h3 id="h-climate">Climate</h3>
+      <p>
+        January&apos;s mean low and July&apos;s mean high at each house site: PRISM&apos;s 30-year normals
+        (1991–2020) on an 800 m grid, moved from the grid cell&apos;s average elevation to the site&apos;s at
+        3.6 °F per 1,000 ft. Snowfall and the spring and fall frost dates come from the nearest NOAA weather
+        station that&apos;s most like the site in elevation, as that station recorded them. Stations sit in
+        towns and valleys, where cold air pools on still nights, so a site on a slope above one usually has a
+        longer frost-free season than it says. These are averages: any one winter can be much colder.
+      </p>
+
+      <h3 id="h-privacy">Privacy</h3>
+      <p>
+        The houses around each house site: Microsoft&apos;s building footprints, found in aerial imagery from
+        2020 on, of 650 ft² and up and off the parcel. The nearest one, how many are within a quarter mile,
+        and how many within a mile you could see: a straight line from eye height at the site to the
+        house&apos;s roof that clears the bare-earth elevation all the way. Trees aren&apos;t in that
+        elevation, so it&apos;s the view in winter, with the leaves down. A house under trees, or built since,
+        can be missing.
+      </p>
+
+      <h3 id="h-view">Long view</h3>
+      <p>
+        From each house site, the skyline every 5° all around, traced over the bare-earth elevation out to 3.7
+        mi: in each direction, the view ends where the ground rises highest against the sky. The share of the
+        horizon whose view reaches past 3 mi is graded; the longest view and the direction it opens toward are
+        shown. Trees aren&apos;t in the elevation, so a view through woods needs clearing first, and a ridge
+        past 3.7 mi counts as open.
+      </p>
+
+      <h3 id="h-bike">Bike to a long trail</h3>
+      <p>
+        The drive from where the driveway meets the road to the nearest access point of a long rail-trail or
+        greenway: the New River Trail, the Virginia Creeper, the Tweetsie, the Huckleberry, the Mendota and
+        the Roanoke River Greenway. Their access points are a short list kept by hand, from Virginia DCR, the
+        Virginia Creeper&apos;s own site and OpenStreetMap; a closed section is left out until it reopens. The
+        Blue Ridge Parkway isn&apos;t on it: it isn&apos;t a designated bike route.
+      </p>
+
+      <h3 id="h-internet">Satellite internet</h3>
+      <p>
+        The parcel&apos;s best spot for a satellite dish: every 30 m over the parcel, how much of the
+        dish&apos;s view (from 25° up, all around) the terrain leaves clear, the northern half counting twice,
+        since Starlink looks north from here. The distance is from your best homesite. Trees aren&apos;t in
+        the elevation, so a spot in the woods needs clearing.
+      </p>
     </>
   );
 }

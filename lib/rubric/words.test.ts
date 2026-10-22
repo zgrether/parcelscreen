@@ -21,7 +21,15 @@ describe("the cards' words", () => {
       room: "Gentle ground of at least 2× the build footprint",
       driveway: "A driveway no steeper than 15% at its steepest",
       trails: "A trailhead within a 20-minute drive (or public land within 1 mi)",
-      town: "An ER within 30 min and groceries within 20",
+      // Step 11: Town and hospital, split in two.
+      town: "Groceries within 20 min",
+      hospital: "An ER within 30 min",
+      climate: "January lows of 18 °F or milder, July highs of 86 °F or cooler",
+      privacy: "The nearest house at least 660 ft away",
+      longView: "A view past 3 mi over at least 15% of the horizon",
+      airport: "An airport within 60 min",
+      longTrail: "A long rail-trail within 20 min",
+      internet: "A clear spot for a satellite dish",
       garden: "At least 0.25 ac of garden ground",
       // Step 10: the starting list has no budgets.
       budget: "No budget given",
@@ -32,7 +40,8 @@ describe("the cards' words", () => {
     expect(cardLine(setBandEdge(D, "elevationFt", 3000), "elevation")).toBe(
       "Build site at 3,000 ft or higher",
     );
-    expect(cardLine(setBandEdge(D, "erMin", 20), "town")).toBe("An ER within 20 min and groceries within 20");
+    expect(cardLine(setBandEdge(D, "erMin", 20), "hospital")).toBe("An ER within 20 min");
+    expect(cardLine(setBandEdge(D, "groceryMin", 30), "town")).toBe("Groceries within 30 min");
   });
 
   it("show the whole band", () => {
@@ -41,8 +50,20 @@ describe("the cards' words", () => {
     expect(bandLine(D.bands, "drivewayPct")).toBe("A 10% · B 15% · C 20% · D 25%");
   });
 
+  it("Climate's limits, with no limit at a slider's end (step 11)", () => {
+    expect(cardLine(setBandEdge(setBandEdge(D, "janLowF", -25), "julHighF", 80), "climate")).toBe(
+      "Any winter, July highs of 80 °F or cooler",
+    );
+    expect(plainLine(setBandEdge(setBandEdge(D, "janLowF", 24), "julHighF", 115), "climate")).toBe(
+      "January lows of 24 °F or milder, any summer",
+    );
+  });
+
   it("put a minimum in words", () => {
-    expect(minimumLine({ factor: "town", threshold: 30 })).toBe("Town and hospital: ER within 30 min");
+    expect(minimumLine({ factor: "hospital", threshold: 30 })).toBe("Hospital: ER within 30 min");
+    expect(minimumLine({ factor: "town", threshold: 15 })).toBe(
+      "Town and groceries: groceries within 15 min",
+    );
     expect(minimumLine({ factor: "elevation", threshold: 3000 })).toBe(
       "Elevation at the build site: at least 3,000 ft",
     );
@@ -63,7 +84,14 @@ describe("the cards' words", () => {
       room: "Enough gentle ground for the house",
       driveway: "A driveway no steeper than 15%",
       trails: "A trailhead within 20 min, or public land within 1 mi",
-      town: "ER within 30 min, groceries within 20 min",
+      town: "Groceries within 20 min",
+      hospital: "ER within 30 min",
+      climate: "January lows of 18 °F or milder, July highs of 86 °F or cooler",
+      privacy: "The nearest house at least 660 ft away",
+      longView: "A view past 3 mi over at least 15% of the horizon",
+      airport: "An airport within 60 min",
+      longTrail: "A long rail-trail within a 20-minute drive",
+      internet: "A dish spot with at least 85% open sky",
       garden: "Room for a kitchen garden",
       budget: "No budget given",
     });
@@ -82,11 +110,11 @@ describe("the cards' words", () => {
   it("after the interview: the answer that put it there, in the person's terms (owner, 10/18)", () => {
     const g = rubricFromAnswers({ er: "30", sunView: "sun", walkAway: { chips: ["erOver"], erOverMin: 45 } });
     const ctx = { base: g.rubric, why: g.why };
-    expect(whyLine(g.rubric, "town", ctx)).toBe("You'd want an ER within 30 minutes");
+    expect(whyLine(g.rubric, "hospital", ctx)).toBe("You'd want an ER within 30 minutes");
     expect(whyLine(g.rubric, "room", ctx)).toBe("On the starting list.");
-    expect(limitWhy(g.rubric, "town", ctx)).toBe("You'd walk away from an ER more than 45 minutes away");
+    expect(limitWhy(g.rubric, "hospital", ctx)).toBe("You'd walk away from an ER more than 45 minutes away");
     const slid = setBandEdge(g.rubric, "erMin", 20);
-    expect(whyLine(slid, "town", ctx)).toBe("You moved this here.");
+    expect(whyLine(slid, "hospital", ctx)).toBe("You moved this here.");
     const off = moveCard(g.rubric, { kind: "factor", factor: "homesite" }, "wont");
     expect(off.ok && whyLine(off.rubric, "homesite", ctx)).toBe("You moved this here.");
     // Another card's move doesn't move this one.

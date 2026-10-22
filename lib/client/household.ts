@@ -11,7 +11,9 @@ import type { InterviewDoc } from "@/lib/rubric/interview/doc";
 import type { Rubric } from "@/lib/rubric/types";
 import type { WhyContext } from "@/lib/rubric/words";
 import { withDriveway } from "@/lib/rubric/drivewayAdd";
+import { withNewFactors } from "@/lib/rubric/factorsAdd";
 import { addedTo } from "./drivewayAdd";
+import { factorsAddedTo } from "./factorsAdd";
 import { whyContext } from "./myAnswers";
 import { getPref, type KeyValueStore } from "./prefs";
 import { activeKv } from "./profileKv";
@@ -60,8 +62,14 @@ export async function loadHousehold(): Promise<void> {
     const interview = getPref("ps.interview", kv) as InterviewDoc | null;
     // Step 7 (owner, #216): priorities saved before the Driveway row get it, as their own device will add it.
     const added = addedTo(rubrics, interview?.answers.driveway);
-    const mine = added?.mine ?? rubrics?.mine ?? null;
-    const base = added && interview?.base ? withDriveway(interview.base, interview.answers.driveway) : null;
+    // Step 11: and its new factors, as their own device will add them.
+    const factors = factorsAddedTo(added ?? rubrics, interview?.answers);
+    const mine = factors?.rubrics.mine ?? added?.mine ?? rubrics?.mine ?? null;
+    const drivewayBase =
+      added && interview?.base ? withDriveway(interview.base, interview.answers.driveway) : null;
+    const priorBase = drivewayBase ?? interview?.base ?? null;
+    const base =
+      factors && priorBase ? withNewFactors(priorBase, {}, interview?.answers).rubric : drivewayBase;
     const why = whyContext(base && interview ? { ...interview, base } : interview);
     next.push({ id: p.id, name: p.name, rubric: mine, why });
   }

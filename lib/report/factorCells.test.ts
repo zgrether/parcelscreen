@@ -28,7 +28,7 @@ describe("factor cells", () => {
       ["Sky", "grade", "A"],
       ["Trails", "grade", "B"],
       ["Garden", "grade", "C"],
-      ["Town", "grade", "C"],
+      ["Hosp", "grade", "C"],
     ]);
     // The starting list's Driveway is Don't care: no cell.
     expect(cells.some((c) => c.key === "driveway")).toBe(false);
@@ -40,7 +40,7 @@ describe("factor cells", () => {
     const cells = factorCells(reportCard(MUD, ZACH));
     const by = (k: string) => cells.find((c) => c.key === k)!.score;
     expect(by("floodplain")! > by("septic")!).toBe(true);
-    expect(by("elevation")! > by("town")!).toBe(true);
+    expect(by("elevation")! > by("hospital")!).toBe(true);
   });
 });
 

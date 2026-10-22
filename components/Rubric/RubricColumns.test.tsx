@@ -31,7 +31,7 @@ describe("the columns", () => {
   });
 
   it("a row with a limit: its card marked limit, the limit's card in Must have", () => {
-    const out = moveCard(D, { kind: "factor", factor: "town" }, "must");
+    const out = moveCard(D, { kind: "factor", factor: "hospital" }, "must");
     if (!out.ok) throw new Error(out.reason);
     const html = renderToStaticMarkup(<RubricColumns rubric={out.rubric} move={noop} open={noop} />);
     expect(html).toContain('class="rubric-min-badge"');

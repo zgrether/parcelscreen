@@ -168,6 +168,13 @@ export function SettingsProvider({
           <p className="tiny muted">
             One per line: <code>Name, lat, lon</code>
           </p>
+          {/* Step 11 (plan §2.5): the Airport row reads the ones named as airports; two more nearby, on offer. */}
+          <p className="tiny muted">
+            The Airport row reads the places named as airports (&ldquo;airport&rdquo; in the name, or a code
+            in parentheses). Two more with scheduled flights nearby:{" "}
+            <code>Greensboro airport (GSO), 36.1013, -79.9411</code> and{" "}
+            <code>Lynchburg airport (LYH), 37.3254, -79.2012</code>.
+          </p>
           <textarea
             rows={6}
             aria-label={ANCHORS_LABEL}

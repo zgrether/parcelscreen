@@ -349,6 +349,27 @@ export const SCREEN_CONSTANTS = deepFreeze({
     trackMph: 12,
     trackMinMi: 0.5,
   },
+  // Step 11 (docs/plans/step-11-new-data.md §2.2): Climate. A PRISM cell's temperature is moved to the spot's elevation
+  // at the standard atmosphere's lapse rate. Snowfall and frost dates come from the most similar NOAA station within
+  // stationMaxKm, scored by its distance plus its elevation difference at stationFtPerKm (330 ft counts as 5 km); they
+  // aren't adjusted, since cold air pools in the valleys the stations sit in.
+  climate: { lapseFPer1000Ft: 3.6, stationMaxKm: 50, stationFtPerKm: 66 },
+  // Step 11 (plan §2.3): Privacy. A house is a footprint of at least minHouseM2 off the parcel (smaller ones are sheds;
+  // scripts/data-buildings.mts keeps the same floor). Houses within nearM (a quarter mile) are counted; those within
+  // sightM (a mile) are tested for line of sight over the bare-earth DEM, from eyeM above the site to roofM above the
+  // house's ground (or its own height), every stepM, trees ignored: "in winter, with leaves down".
+  privacy: { minHouseM2: 60, nearM: 402, sightM: 1609, eyeM: 1.7, roofM: 5, stepM: 30 },
+  // Step 11 (plan §2.4): Long view. A direction is open when its skyline is past openMi, 3 mi (owner, #273: a cutoff
+  // read in miles, not converted km; it was 5 km); openKm is the engine's copy. The skyline is traced to reachKm
+  // (sun.horizonMaxM), the data's range, not a choice: a view past it reads "farther than 3.7 mi".
+  view: { openMi: 3, openKm: 3 * KM_PER_MI, reachKm: 6 },
+  // Step 11 (plan §2.6): Bike to a long trail. The access points within maxKm in a straight line, the nearest `points`
+  // of them, are timed in one OSRM table request.
+  longTrail: { maxKm: 100, points: 6 },
+  // Step 11 (plan §2.7): the dish spot. Candidates every stepM over the parcel; the cone from coneDeg up, its northern
+  // half northWeight times the southern; the skyline traced to reachM; spots within tieShare of the best are tied, and
+  // the one nearest the house site wins.
+  dish: { stepM: 30, coneDeg: 25, northWeight: 2, reachM: 2000, tieShare: 0.01 },
   grocery: {
     // Owner, #81: "Closer: {name}, {N} min." after the chain grocery's drive time, when a non-chain grocery
     // is at least this many minutes nearer by road.
@@ -557,6 +578,24 @@ export const SCREEN_CONSTANTS = deepFreeze({
       // Step 7 (docs/plans/step-7-results.md §3.1): the driveway's steepest grade, at most. B's edge is Settings' default
       // grade limit (roadMaxGradePct), D's its default veto (roadVetoGradePct); question 10 moves the B/C edge.
       drivewayPct: [10, 15, 20, 25],
+      // Step 11 (plan §2.2): Climate at the site, the worse of its two seasons. The B/C edge is the person's limit, as on
+      // every row: these are "some snow" (January lows of 18 °F and up) and "warm is fine" (July highs to 86 °F). An A is
+      // 3 °F inside it; a C up to 3 °F past it, a D up to 7.
+      janLowF: [21, 18, 15, 11],
+      julHighF: [83, 86, 89, 93],
+      // Step 11 (plan §2.3): Privacy at the site, the worse of two: the nearest house at least this far, in ft (the B/C
+      // edge is "See their lights", 660 ft), and the houses in sight within a mile at most (no limit to speak of until
+      // "Never know they're there" sets it to none, so one in sight is a C).
+      privacyFt: [1320, 660, 330, 165],
+      privacySight: [10, 20, 30, 40],
+      // Step 11 (plan §2.4): Long view, the share of the horizon open past 5 km, in %, at least.
+      viewOpenPct: [25, 15, 8, 3],
+      // Step 11 (plan §2.5): Airport, the drive to the nearest airport on Settings' list, in minutes, at most.
+      airportMin: [45, 60, 90, 120],
+      // Step 11 (plan §2.6): Bike to a long trail, the drive to the nearest access point, in minutes, at most.
+      longTrailMin: [10, 20, 35, 50],
+      // Step 11 (plan §2.7): Internet, the dish spot's clear share of its view cone, in %, at least.
+      dishClearPct: [95, 85, 70, 50],
     },
     // The default rubric's weights, summing to 100 (roadmap step 1: a profile's rubric replaces them; the second set the
     // app shipped with is test/support/rubrics.ts LEGACY_SECOND_WEIGHTS, kept for the step 1 card oracle). The Driveway
@@ -569,8 +608,18 @@ export const SCREEN_CONSTANTS = deepFreeze({
         room: 15,
         driveway: 0,
         trails: 10,
-        town: 5,
+        // Step 11 (plan §2.1): Hospital takes Town's weight, as Town graded the ER until it; Town keeps the groceries,
+        // at 0 (Don't care), so the starting list grades as before (the ER's letter was Town's on every fixture).
+        town: 0,
+        hospital: 5,
         garden: 10,
+        // Step 11: each new factor weighs 0, so it's Don't care on the starting list (plan §1).
+        climate: 0,
+        privacy: 0,
+        longView: 0,
+        airport: 0,
+        longTrail: 0,
+        internet: 0,
         // Step 10: Within budget is never on the starting list; it comes with the interview's budgets.
         budget: 0,
       },
@@ -592,6 +641,15 @@ export const SCREEN_CONSTANTS = deepFreeze({
       // Step 4 (owner, 10/18; phase-0.md §9.50 amended): Best homesite's limit, hours of December sun at the best site.
       // A limit starts at bands.winterSunH's first edge ("Workable", 3 h).
       sunH: { min: 1, max: 8, step: 0.5 },
+      // Step 11: the B/C edges; past their ends is "real winter welcome" and "hot is fine".
+      janLowF: { min: -25, max: 30, step: 1 },
+      julHighF: { min: 75, max: 115, step: 1 },
+      privacyFt: { min: 100, max: 2640, step: 10 },
+      privacySight: { min: 0, max: 20, step: 1 },
+      viewOpenPct: { min: 0, max: 60, step: 1 },
+      airportMin: { min: 15, max: 180, step: 5 },
+      longTrailMin: { min: 5, max: 90, step: 5 },
+      dishClearPct: { min: 30, max: 100, step: 1 },
     },
     // Step 4, the interview (docs/plans/step-4-interview.md §2–§3; owner, 10/18): what each answer gives a row, as
     // importance points (0–3; a row takes its highest answer) and the B/C edge it sets, which shifts the row's band
@@ -606,8 +664,23 @@ export const SCREEN_CONSTANTS = deepFreeze({
         driveway: 1,
         trails: 2,
         town: 2,
+        // Step 11: Town's, as question 6 set Town's until Hospital was its own row.
+        hospital: 2,
         sky: 1,
         garden: 1,
+        // Step 11: placed by question 1, never by default.
+        climate: 0,
+        // Step 11: placed by question 8, never by default.
+        privacy: 0,
+        // Step 11: placed by question 3, never by default.
+        longView: 0,
+        // Step 11: placed by question 7, never by default.
+        airport: 0,
+        // Step 11: placed by question 4, never by default.
+        longTrail: 0,
+        // Step 11 (plan §2.7): Nice to have unless question 7 says otherwise (owner: on 20+ acres there's nearly always a
+        // spot).
+        internet: 1,
         // Step 10: placed by the budgets themselves (generate.ts), never by points.
         budget: 0,
       },
@@ -618,14 +691,40 @@ export const SCREEN_CONSTANTS = deepFreeze({
       // The walk-away numbers' starting values: this far under question 1's elevation edge, and one step past
       // question 6's answer.
       walkAway: { belowFtUnderEdge: 500, erStepMin: 15 },
-      // 14b's "Over ___ min to an ER" doesn't matter: the ER's edge, the slider's end, until Hospital is its own factor.
-      dontMatterErMin: 90,
+      // Step 11: question 1's follow-ups start at what its answer implies.
+      climatePreset: {
+        cool: { winter: "real", summer: "cool" },
+        between: { winter: "some", summer: "warm" },
+        warm: { winter: "mild", summer: "hot" },
+      },
       choices: {
+        // Step 11 (plan §2.2): an answer other than "Either" puts Climate in Really want; its follow-ups set the edges.
         climate: {
-          cool: { points: { elevation: 3 }, edges: { elevationFt: 3000 } },
-          between: { points: { elevation: 2 } },
-          warm: { points: { elevation: 0 } },
-          either: { points: { elevation: 1 } },
+          cool: { points: { elevation: 3, climate: 2 }, edges: { elevationFt: 3000 } },
+          between: { points: { elevation: 2, climate: 2 } },
+          warm: { points: { elevation: 0, climate: 2 } },
+          either: { points: { elevation: 1, climate: 0 } },
+        },
+        // Step 11 (plan §2.5, §5): question 7's first row sets Airport: a few times a year, Nice to have at 90 min;
+        // monthly or more, Nice to have at 60.
+        fly: {
+          rarely: { points: { airport: 0 } },
+          few: { points: { airport: 1 }, edges: { airportMin: 90 } },
+          monthly: { points: { airport: 1 }, edges: { airportMin: 60 } },
+        },
+        // Step 11 (plan §2.7, §5): question 7's second row: video calls from home put Internet in Really want.
+        calls: { yes: { points: { internet: 3 } }, no: { points: { internet: 1 } } },
+        // Question 1's follow-ups (step 11): the B/C edges, the limits as the plan has them. "Real winter welcome" and
+        // "Hot is fine" set them at the sliders' ends, past anything in these mountains: no limit.
+        winter: {
+          mild: { edges: { janLowF: 24 } },
+          some: { edges: { janLowF: 18 } },
+          real: { edges: { janLowF: -25 } },
+        },
+        summer: {
+          cool: { edges: { julHighF: 80 } },
+          warm: { edges: { julHighF: 86 } },
+          hot: { edges: { julHighF: 115 } },
         },
         sky: {
           camera: { points: { sky: 3 } },
@@ -633,16 +732,18 @@ export const SCREEN_CONSTANTS = deepFreeze({
           inside: { points: { sky: 0 } },
         },
         glow: { shrug: {}, spoils: { edges: { skyMag: 21.5 } } },
+        // Step 11 (plan §2.4, §5): question 3 sets Long view too. View: Really want; both: Nice to have.
         sunView: {
-          sun: { points: { homesite: 3 } },
-          view: { points: { homesite: 1 } },
-          both: { points: { homesite: 2 } },
-          neither: { points: { homesite: 1 } },
+          sun: { points: { homesite: 3, longView: 0 } },
+          view: { points: { homesite: 1, longView: 3 } },
+          both: { points: { homesite: 2, longView: 1 } },
+          neither: { points: { homesite: 1, longView: 0 } },
         },
         // 15 min, not 10: a 10-minute edge would put the A edge at 0 min (owner, 10/18, Q11).
         trails: {
           door: { points: { trails: 3 }, edges: { trailheadMin: 15 }, openLandWithinFt: 1320 },
-          bike: { points: { trails: 2 } },
+          // Step 11 (plan §2.6, §5): "Bike from home to a long trail" places Bike to a long trail in Really want, at 10 min.
+          bike: { points: { trails: 2, longTrail: 3 }, edges: { longTrailMin: 10 } },
           drive: { points: { trails: 2 } },
           none: { points: { trails: 0 } },
         },
@@ -652,12 +753,19 @@ export const SCREEN_CONSTANTS = deepFreeze({
           either: { points: { town: 0 }, edges: { groceryMin: 40 } },
         },
         er: {
-          "15": { points: { town: 3 }, edges: { erMin: 15 } },
-          "30": { points: { town: 2 } },
-          "45": { points: { town: 1 }, edges: { erMin: 45 } },
-          "60": { points: { town: 0 }, edges: { erMin: 60 } },
+          // Step 11 (plan §2.1): the ER's answer sets Hospital, its own row now.
+          "15": { points: { hospital: 3 }, edges: { erMin: 15 } },
+          "30": { points: { hospital: 2 } },
+          "45": { points: { hospital: 1 }, edges: { erMin: 45 } },
+          "60": { points: { hospital: 0 }, edges: { erMin: 60 } },
         },
-        neighbors: { wave: {}, lights: {}, never: { points: { sky: 1 } } },
+        // Step 11 (plan §2.3, §5): question 8 sets Privacy. Wave: Don't care, at 330 ft; lights: Nice to have, at 660;
+        // never: Really want, at 1,320 ft and none in sight.
+        neighbors: {
+          wave: { points: { privacy: 0 }, edges: { privacyFt: 330 } },
+          lights: { points: { privacy: 1 }, edges: { privacyFt: 660 } },
+          never: { points: { sky: 1, privacy: 3 }, edges: { privacyFt: 1320, privacySight: 0 } },
+        },
         garden: {
           none: { points: { garden: 0 } },
           herbs: { points: { garden: 1 }, edges: { gardenAc: 0.1 } },

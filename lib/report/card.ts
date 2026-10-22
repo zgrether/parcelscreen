@@ -6,6 +6,7 @@
  * Money can fix the driveway, clearing, septic, the well and power, so they never reach the grade (§3.3): the
  * gates only warn or fail, and the rows are the qualities money can't add.
  */
+import { distance } from "@turf/turf";
 import { compass, fmt } from "../format";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import {
@@ -20,7 +21,7 @@ import { lpZone } from "../screen/sky";
 import { NO_PRACTICAL_ROUTE, existingSteepLine } from "../screen/score";
 import { servesLine, trailheadSourceLabel } from "../screen/trailheads";
 import { isPrimeFarmland, soilAt, type SoilUnit } from "../screen/soils";
-import type { PartialScreenResult, RoadClass, ScoredDriveway, ScoredSite } from "../screen/types";
+import type { PartialScreenResult, RoadClass, ScoredDriveway, ScoredSite, Site } from "../screen/types";
 import type { LatLon } from "../geo/types";
 import { M2FT, M2_PER_ACRE } from "../screen/util";
 import { steepLandingLine } from "./driveway";
@@ -52,6 +53,10 @@ import {
 import { shortPrice } from "../client/askingPrice";
 import { DEFAULT_PAVING } from "../config/costs";
 import type { PavingContext } from "./ground";
+import { NOT_MEASURED, OUTSIDE_AREA, stationLine, stationName } from "./climate";
+import { IN_WINTER } from "./privacy";
+import { LONG_TRAIL_DRIVES } from "../screen/longTrail";
+import { openPct, viewLine, viewShort } from "./view";
 import { atLeast, atMost, gradedRows, parcelGrade, verdictLines } from "../rubric/grade";
 import { EDITOR_TITLES, FACTOR_LABELS } from "../rubric/words";
 import { thresholdStatus, thresholdWords, type Measure } from "../rubric/musts";
@@ -673,33 +678,210 @@ function serves(t: { name: string; serves?: readonly string[] | undefined }): st
   return line ? `; ${line}` : "";
 }
 
+/** Whether the drive step ran: a failed one (OSRM down) is unknown, never "none found" (owner, #216). */
+const drivesLoaded = (r: Result): boolean => !!r.drives && !r.failed.includes("drive");
+
 /**
- * The worse of the ER's and the grocery's; the grocery is the nearer of the real one and the closer one. A drive step
- * that failed (OSRM down) is unknown, as Trails reads it, never "no hospital found" (owner, #216): the step keeps an empty
- * list then.
+ * The grocery drive: the nearer of the real one and the closer one. Step 11 (plan §2.1) split the ER out into Hospital;
+ * until then this row was the worse of the two.
  */
 function town(r: Result, K: CardConfig): Row {
   const g = row("town", FACTOR_LABELS.town);
-  if (!r.drives || r.failed.includes("drive")) return notLoaded(g, "the drive times");
-  const h = r.drives.find((d) => d.label === NEAREST_HOSPITAL);
-  const groceries = [r.drives.find((d) => d.label === REAL_GROCERY), r.closerGrocery].filter(
+  if (!drivesLoaded(r)) return notLoaded(g, "the drive times");
+  const groceries = [r.drives!.find((d) => d.label === REAL_GROCERY), r.closerGrocery].filter(
     (d): d is DriveEntry => !!d,
   );
   const gr = groceries.sort((a, b) => a.min - b.min)[0];
-  const grade = worse(h ? atMost(h.min, K.rows.erMin) : "F", gr ? atMost(gr.min, K.rows.groceryMin) : "F");
+  // Appended (rule 7; owner, #124): the drives start on tracks, as Trails says.
+  return {
+    ...g(
+      gr ? atMost(gr.min, K.rows.groceryMin) : "F",
+      `${gr ? `${articleFor(gr.min)} ${fmt(gr.min)}-minute drive to a grocery` : "no grocery found"}${trackNote(r)}`,
+    ),
+    short: gr ? `grocery ${fmt(gr.min)} min` : "no grocery",
+    ...(gr ? { measure: { value: gr.min, unit: "min" } } : {}),
+  };
+}
+
+/**
+ * The drive to the nearest hospital, an ER where it has one (step 11, plan §2.1: the old Town and hospital row's ER
+ * half, its words unchanged). The ER drive is the measure a threshold Must reads ("over 30 min to an ER").
+ */
+function hospital(r: Result, K: CardConfig): Row {
+  const g = row("hospital", FACTOR_LABELS.hospital);
+  if (!drivesLoaded(r)) return notLoaded(g, "the drive times");
+  const h = r.drives!.find((d) => d.label === NEAREST_HOSPITAL);
   const toH = h
     ? `${articleFor(h.min)} ${fmt(h.min)}-minute drive to ${h.er === "yes" ? "an ER" : "the nearest hospital"}`
     : "no hospital found";
-  const toG = gr ? `${fmt(gr.min)} to a grocery` : "no grocery found";
-  const short = [h ? `ER ${fmt(h.min)} min` : "no ER", gr ? `grocery ${fmt(gr.min)}` : "no grocery"].join(
-    ", ",
-  );
-  // Appended (rule 7; owner, #124): the drives start on tracks, as Trails says.
-  // The ER drive is the measure a threshold Must reads ("over 30 min to an ER"); the grocery's is the row's own.
   return {
-    ...g(grade, `${toH}, ${toG}${trackNote(r)}`),
-    short,
+    ...g(h ? atMost(h.min, K.rows.erMin) : "F", `${toH}${trackNote(r)}`),
+    short: h ? `ER ${fmt(h.min)} min` : "no ER",
     ...(h ? { measure: { value: h.min, unit: "min" } } : {}),
+  };
+}
+
+/**
+ * Climate at the build site (step 11, plan §2.2): the worse of January's mean low and July's mean high against the
+ * person's limits, at the site the card reads (the marked house, if any); the station's snowfall and frost-free days
+ * beside them, not graded. A screen made before it has no reading: "not measured", unknown, never a fail.
+ */
+function climate(r: Result, K: CardConfig, at: number): Row {
+  const g = row("climate", FACTOR_LABELS.climate);
+  if (!r.climate) return { ...g(null, NOT_MEASURED), short: "not measured" };
+  const house = r.house && !("outside" in r.house) ? r.house : null;
+  const spot = house ?? r.sites?.[at];
+  if (!spot && !r.climate.outside) {
+    if (!r.sites) return notLoaded(g, "the homesite ranking");
+    // No build site: left out, as Elevation is (the Best homesite row's F carries it).
+    return g(null, "no build site to measure");
+  }
+  const c = spot?.climate;
+  if (!c) return { ...g(null, OUTSIDE_AREA), short: "not measured" };
+  const where = house ? "the marked house" : siteLabel(spot as Site);
+  const st = c.station ? r.climate.stations.find((x) => x.id === c.station) : undefined;
+  const grade = worse(atLeast(c.janLowF, K.rows.janLowF), atMost(c.julHighF, K.rows.julHighF));
+  return {
+    ...g(
+      grade,
+      `January lows ${fmt(c.janLowF)} °F, July highs ${fmt(c.julHighF)} °F at ${where} (${fmt(spot!.elevFt ?? 0)} ft)` +
+        (st ? `; ${stationLine(st)} at ${stationName(st, c.stationMi)}` : ""),
+    ),
+    short: `Jan ${fmt(c.janLowF)}°, Jul ${fmt(c.julHighF)}°F`,
+  };
+}
+
+/**
+ * Privacy at the build site (step 11, plan §2.3): the worse of the nearest house's distance and the houses in sight
+ * within a mile, against the person's limits. The houses in sight are the measure a limit reads ("no house in sight").
+ */
+function privacy(r: Result, K: CardConfig, at: number): Row {
+  const g = row("privacy", FACTOR_LABELS.privacy);
+  if (!r.privacy) return { ...g(null, NOT_MEASURED), short: "not measured" };
+  if (r.privacy.outside) return { ...g(null, OUTSIDE_AREA), short: "not measured" };
+  const house = r.house && !("outside" in r.house) ? r.house : null;
+  const spot = house ?? r.sites?.[at];
+  if (!spot) {
+    if (!r.sites) return notLoaded(g, "the homesite ranking");
+    return g(null, "no build site to measure");
+  }
+  const p = spot.privacy;
+  if (!p) return { ...g(null, NOT_MEASURED), short: "not measured" };
+  const grade = worse(
+    p.nearestFt === null ? "A" : atLeast(p.nearestFt, K.rows.privacyFt),
+    atMost(p.inSight, K.rows.privacySight),
+  );
+  return {
+    ...g(grade, privacyLine(p)),
+    short:
+      p.nearestFt === null
+        ? "no house within a mile"
+        : `nearest ${fmt(p.nearestFt)} ft, ${fmt(p.inSight)} in sight`,
+    measure: { value: p.inSight, unit: "houses" },
+  };
+}
+
+/**
+ * Long view at the build site (step 11, plan §2.4): the share of the horizon open past 3 mi, against the person's
+ * limit; the longest view and its direction beside it.
+ */
+function longView(r: Result, K: CardConfig, at: number): Row {
+  const g = row("longView", FACTOR_LABELS.longView);
+  const house = r.house && !("outside" in r.house) ? r.house : null;
+  const spot = house ?? r.sites?.[at];
+  if (!spot) {
+    if (!r.sites) return notLoaded(g, "the homesite ranking");
+    return g(null, "no build site to measure");
+  }
+  const v = spot.view;
+  if (!v) return { ...g(null, NOT_MEASURED), short: "not measured" };
+  const pct = openPct(v);
+  return {
+    ...g(atLeast(pct, K.rows.viewOpenPct), viewLine(v)),
+    short: viewShort(v),
+    measure: { value: pct, unit: "%" },
+  };
+}
+
+/**
+ * "the nearest house 1,100 ft away; 2 within a quarter mile; 1 in sight within a mile (in winter, with leaves down)".
+ */
+export function privacyLine(p: { near: number; inSight: number; nearestFt: number | null }): string {
+  if (p.nearestFt === null) return "no house within a mile";
+  return (
+    `the nearest house ${fmt(p.nearestFt)} ft away; ${fmt(p.near)} within a quarter mile; ` +
+    `${p.inSight === 0 ? "none" : fmt(p.inSight)} in sight within a mile (${IN_WINTER})`
+  );
+}
+
+/**
+ * A drive-time place that's an airport (step 11, plan §2.5): its name says "airport", or ends in a three-letter code in
+ * parentheses, as Settings' defaults do ("Greenville-Spartanburg (GSP)").
+ */
+export const isAirport = (name: string): boolean => /airport/i.test(name) || /\([A-Z]{3}\)\s*$/.test(name);
+
+/** The drive to the nearest airport on Settings' list (step 11, plan §2.5), as Hospital's to an ER. */
+function airport(r: Result, K: CardConfig): Row {
+  const g = row("airport", FACTOR_LABELS.airport);
+  if (!drivesLoaded(r)) return notLoaded(g, "the drive times");
+  const a = r.drives!.filter((d) => isAirport(d.label)).sort((x, y) => x.min - y.min)[0];
+  if (!a)
+    return {
+      ...g(null, "no airport on your list of places to time drives to (Settings)"),
+      short: "none listed",
+    };
+  return {
+    ...g(
+      atMost(a.min, K.rows.airportMin),
+      `${articleFor(a.min)} ${fmt(a.min)}-minute drive to ${a.label}${trackNote(r)}`,
+    ),
+    short: `${a.label.match(/\(([A-Z]{3})\)/)?.[1] ?? "airport"} ${fmt(a.min)} min`,
+    measure: { value: a.min, unit: "min" },
+  };
+}
+
+/**
+ * Bike to a long trail (step 11, plan §2.6): the drive to the nearest access point of a long rail-trail, from where
+ * the drives start. A screen made before it has none: "not measured".
+ */
+function longTrail(r: Result, K: CardConfig): Row {
+  const g = row("longTrail", FACTOR_LABELS.longTrail);
+  if (!drivesLoaded(r) || r.noResponse.includes(LONG_TRAIL_DRIVES)) return notLoaded(g, "the drive times");
+  if (r.longTrail === undefined) return { ...g(null, NOT_MEASURED), short: "not measured" };
+  if (r.longTrail === null) return { ...g("F", "no long trail within reach"), short: "none near" };
+  const t = r.longTrail;
+  return {
+    ...g(
+      atMost(t.min, K.rows.longTrailMin),
+      `${articleFor(t.min)} ${fmt(t.min)}-minute drive to the ${t.trail} at ${t.point}${trackNote(r)}`,
+    ),
+    short: `${t.trail.replace(/ Trail$| Greenway$/, "")} ${fmt(t.min)} min`,
+    measure: { value: t.min, unit: "min" },
+  };
+}
+
+/**
+ * Satellite internet (step 11, plan §2.7; renamed from Internet, owner, #272): the parcel's best spot for a satellite dish, graded on how clear its view is, with its
+ * distance from the site the card reads.
+ */
+function internet(r: Result, K: CardConfig, at: number): Row {
+  const g = row("internet", FACTOR_LABELS.internet);
+  if (r.dish === undefined) return { ...g(null, NOT_MEASURED), short: "not measured" };
+  if (r.dish === null) return { ...g(null, "no spot on the parcel could be read"), short: "not read" };
+  const pct = Math.round(r.dish.clearShare * 100);
+  const house = r.house && !("outside" in r.house) ? r.house : null;
+  const site = house ?? r.sites?.[at];
+  const ft = site
+    ? Math.round(distance([site.ll[1], site.ll[0]], [r.dish.ll[1], r.dish.ll[0]], { units: "feet" }))
+    : null;
+  const where = house ? "the house" : site ? siteLabel(site as Site) : null;
+  return {
+    ...g(
+      atLeast(pct, K.rows.dishClearPct),
+      `best dish spot: ${pct}% open sky${ft !== null && where ? `, ${fmt(ft)} ft from ${where}` : ""} (trees not counted)`,
+    ),
+    short: `${pct}% open sky`,
+    measure: { value: pct, unit: "%" },
   };
 }
 
@@ -863,7 +1045,8 @@ export function cardFacts(
   // The route scored: the household's when it chose a line and this screen has a route from it (WF5). The Access and
   // Easement gates, and Floodplain's driveway part, read it whichever site the rows read (step 7 plan §2, §11 Q5).
   const driven = drivenRoute(r, drawn?.driveway);
-  const [elevationRow, homesiteRow, skyRow, roomRow, drivewayRow] = siteRows(r, K, build, at);
+  const [elevationRow, homesiteRow, skyRow, roomRow, drivewayRow, climateRow, privacyRow, longViewRow] =
+    siteRows(r, K, build, at);
   // The cost to enjoy at this site (step 10), when the parcel's lines, price and rates came with it.
   const cost = drawn?.cost
     ? costToEnjoy({
@@ -892,7 +1075,14 @@ export function cardFacts(
       drivewayRow!,
       trails(r, K),
       town(r, K),
+      hospital(r, K),
+      airport(r, K),
+      longTrail(r, K),
+      internet(r, K, at),
       garden(r, K, marks),
+      climateRow!,
+      privacyRow!,
+      longViewRow!,
       ...[budgetRow(cost, budgets, K)].filter((x): x is Row => x !== null),
     ],
     at,
@@ -923,6 +1113,10 @@ export function siteRows(
     sky(r, K, at),
     room(r, K, footprintAc, at),
     driveway(r, K, at),
+    // Step 11: by each site's elevation, so it ranks the sites too (plan §4).
+    climate(r, K, at),
+    privacy(r, K, at),
+    longView(r, K, at),
   ];
 }
 
@@ -935,7 +1129,7 @@ function withYourRoute(facts: CardFacts, r: Result, driven: Driven, drawn?: Draw
   const moved = !!driven.yours && !!driven.pick && driven.route?.entranceIndex !== driven.pick.entranceIndex;
   const rows = moved
     ? facts.rows.map((x) =>
-        x.key === "town" || x.key === "trails"
+        x.key === "town" || x.key === "hospital" || x.key === "airport" || x.key === "trails"
           ? { ...x, panelNote: [x.panelNote, DRIVES_FROM_PICK].filter(Boolean).join(" ") }
           : x,
       )

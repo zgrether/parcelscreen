@@ -8,6 +8,7 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { panelText } from "@/lib/report/cardPanels";
+import { VIEW_OPEN_MI } from "@/lib/report/view";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import {
   columnsOf,
@@ -37,7 +38,7 @@ import {
 } from "@/lib/rubric/words";
 import { cardName, TIER_NAMES, TIERS } from "./RubricColumns";
 
-/** Each band's slider label, where a row has two (Town and hospital) or the unit needs a word. */
+/** Each band's slider label, where the unit needs a word. */
 const BAND_LABELS: Record<LimitKey, string> = {
   elevationFt: "Build site elevation",
   skyMag: "Sky brightness (mag/arcsec²)",
@@ -47,6 +48,14 @@ const BAND_LABELS: Record<LimitKey, string> = {
   groceryMin: "Drive to groceries",
   gardenAc: "Garden ground",
   drivewayPct: "The driveway at its steepest",
+  janLowF: "January lows at least",
+  julHighF: "July highs at most",
+  privacyFt: "Nearest house at least",
+  privacySight: "Houses in sight, at most",
+  viewOpenPct: `Horizon open past ${VIEW_OPEN_MI}, at least`,
+  airportMin: "Drive to an airport",
+  longTrailMin: "Drive to a long trail",
+  dishClearPct: "Dish spot clear, at least",
   sunH: "December sun at the best site",
 };
 

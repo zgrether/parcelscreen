@@ -26,7 +26,9 @@ export const SCALE_IDS = {
   Sky: "sky",
   "Room to build": "room",
   Trails: "trails",
-  "Town and hospital": "town",
+  // Step 11 (plan §2.1): Town and hospital split in two.
+  "Town and groceries": "town",
+  Hospital: "hospital",
   Garden: "garden",
   Septic: "septic",
 } as const;
@@ -273,7 +275,8 @@ export function scaleBands(
     }
     case "Trails":
       return ["At the edge", "A short drive", "A drive", "Far"];
-    case "Town and hospital":
+    case "Town and groceries":
+    case "Hospital":
       return ["Close", "Practical", "A haul", "Remote"];
     case "Garden":
       return ["None", "Kitchen garden", "Market garden", "Small farm"];
@@ -433,7 +436,11 @@ export function scalesFor(
     }
     case "town": {
       const g = row("town")?.grade ?? null;
-      return [scale("Town and hospital", scaleBands("Town and hospital", B), byGrade(g), g ?? "")];
+      return [scale("Town and groceries", scaleBands("Town and groceries", B), byGrade(g), g ?? "")];
+    }
+    case "hospital": {
+      const g = row("hospital")?.grade ?? null;
+      return [scale("Hospital", scaleBands("Hospital", B), byGrade(g), g ?? "")];
     }
     case "garden": {
       if (!r.gardens) return [];

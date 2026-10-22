@@ -18,8 +18,16 @@ export const LEGACY_SECOND_WEIGHTS: Record<RowKey, number> = {
   room: 10,
   driveway: 0,
   trails: 25,
-  town: 10,
+  // Step 11: Town graded the ER then; Hospital takes its weight (plan §2.1).
+  town: 0,
+  hospital: 10,
   garden: 20,
+  climate: 0,
+  privacy: 0,
+  longView: 0,
+  airport: 0,
+  longTrail: 0,
+  internet: 0,
   budget: 0,
 };
 

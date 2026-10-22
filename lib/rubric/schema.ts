@@ -4,6 +4,7 @@
  */
 import { z } from "zod";
 import { SCREEN_CONSTANTS } from "../screen/config";
+import { NEW_FACTORS, type FactorsAdded } from "./factorsAdd";
 import { GATE_KEYS, ROW_KEYS, type NamedRubric, type RowKey, type Rubric } from "./types";
 
 const num = z.number().finite();
@@ -23,6 +24,15 @@ const BandsSchema = z.strictObject({
   gardenAc: z.array(num),
   // Step 7: an added field. A rubric saved before it reads the starting list's band (REQUIREMENTS §3a's rule).
   drivewayPct: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.drivewayPct]),
+  // Step 11: Climate's, added the same way.
+  janLowF: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.janLowF]),
+  julHighF: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.julHighF]),
+  privacyFt: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.privacyFt]),
+  privacySight: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.privacySight]),
+  viewOpenPct: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.viewOpenPct]),
+  airportMin: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.airportMin]),
+  longTrailMin: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.longTrailMin]),
+  dishClearPct: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.dishClearPct]),
 });
 
 /** Explicit weights by row. A row a saved rubric has no weight for (the Driveway row, step 7) weighs 0. */
@@ -64,11 +74,18 @@ export interface ProfileRubrics {
    * "new" until What matters has shown its note, then "seen"; "undone" after its Undo. Absent: not added (yet).
    */
   drivewayAdded?: "new" | "seen" | "undone";
+  /**
+   * Step 11 (plan §1): each new factor added once to a rubric saved before it (lib/client/factorsAdd.ts), marked as
+   * Driveway's is. A factor with no mark isn't added yet.
+   */
+  factorsAdded?: FactorsAdded;
 }
+const AddedMark = z.enum(["new", "seen", "undone"]);
 export const ProfileRubricsSchema: z.ZodType<ProfileRubrics> = z.strictObject({
   mine: RubricSchema,
   others: z.array(NamedRubricSchema),
   drivewayAdded: z.enum(["new", "seen", "undone"]).optional(),
+  factorsAdded: z.partialRecord(z.enum(NEW_FACTORS), AddedMark).optional(),
 });
 
 export { LetterSchema };

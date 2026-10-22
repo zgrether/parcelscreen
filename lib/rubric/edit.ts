@@ -238,7 +238,9 @@ function clampTo(band: LimitKey, v: number): number {
 export function setBandEdge(r: Rubric, band: BandKey, value: number): Rubric {
   const edges = r.bands[band];
   const delta = clampTo(band, value) - edges[1]!;
-  const shifted = edges.map((e) => Number(Math.max(0, e + delta).toFixed(6)));
+  // No edge goes below 0, but a temperature's (step 11: a January low can be under 0 °F).
+  const floor = band === "janLowF" ? -Infinity : 0;
+  const shifted = edges.map((e) => Number(Math.max(floor, e + delta).toFixed(6)));
   return { ...r, bands: { ...r.bands, [band]: shifted } };
 }
 

@@ -1685,6 +1685,12 @@
      "coreClear": 13.156289298732574,
      "domeW": 2.5665882829663573
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.07,
+     "dirDeg": 195
+    },
     "roadGrade": 9.250368100223954,
     "roadRunFt": 439.1243620218932,
     "roadName": "State Rte 143",
@@ -1693,6 +1699,17 @@
     "fit": "fits",
     "gentleNearAc": 0.5416696739173056,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.6,
+     "julHighF": 80.7,
+     "station": "USC00313072",
+     "stationMi": 10.1
+    },
+    "privacy": {
+     "near": 27,
+     "inSight": 66,
+     "nearestFt": 307
+    },
     "driveway": {
      "lengthFt": 2367.2349613551137,
      "cost": {
@@ -1742,6 +1759,12 @@
      "coreClear": 11.913878570323636,
      "domeW": 2.5665882829663573
     },
+    "view": {
+     "longestKm": 2.92,
+     "past": false,
+     "openShare": 0,
+     "dirDeg": null
+    },
     "roadGrade": 22.610203623127614,
     "roadRunFt": 649.4360625195619,
     "roadName": "unnamed road",
@@ -1750,6 +1773,17 @@
     "fit": "fits",
     "gentleNearAc": 0.12381021118109842,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.6,
+     "julHighF": 80.7,
+     "station": "USC00313072",
+     "stationMi": 10.1
+    },
+    "privacy": {
+     "near": 26,
+     "inSight": 1,
+     "nearestFt": 613
+    },
     "driveway": {
      "lengthFt": 2011.932616977945,
      "cost": {
@@ -1801,6 +1835,12 @@
      "coreClear": 14.59151381446889,
      "domeW": 2.5665882829663573
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.13,
+     "dirDeg": 73
+    },
     "roadGrade": 16.80938643793915,
     "roadRunFt": 591.1909434958761,
     "roadName": "State Rte 143",
@@ -1809,6 +1849,17 @@
     "fit": "fits",
     "gentleNearAc": 0.4819754649549902,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.5,
+     "julHighF": 80.6,
+     "station": "USC00313072",
+     "stationMi": 10.1
+    },
+    "privacy": {
+     "near": 26,
+     "inSight": 10,
+     "nearestFt": 460
+    },
     "driveway": {
      "lengthFt": 2185.121387261132,
      "cost": {
@@ -1860,6 +1911,12 @@
      "coreClear": 17.469459403616657,
      "domeW": 2.192396058543589
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.18,
+     "dirDeg": 85
+    },
     "roadGrade": 5.275165732431242,
     "roadRunFt": 417.16790514492305,
     "roadName": "unnamed road",
@@ -1868,6 +1925,17 @@
     "fit": "house only",
     "gentleNearAc": 0.1569736606046069,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 22.9,
+     "julHighF": 80,
+     "station": "USC00313072",
+     "stationMi": 10.1
+    },
+    "privacy": {
+     "near": 12,
+     "inSight": 90,
+     "nearestFt": 766
+    },
     "driveway": {
      "lengthFt": 652.0596821640069,
      "cost": {
@@ -1885,6 +1953,30 @@
     }
    }
   ],
+  "climate": {
+   "outside": false,
+   "stations": [
+    {
+     "id": "USC00313072",
+     "name": "Flat Springs 1E, NC",
+     "elevFt": 3330,
+     "snowIn": 48.2,
+     "lastFreeze": "04-18",
+     "firstFreeze": "10-24",
+     "frostFreeDays": 188
+    }
+   ]
+  },
+  "privacy": {
+   "outside": false
+  },
+  "dish": {
+   "ll": [
+    36.185108,
+    -82.073636
+   ],
+   "clearShare": 1
+  },
   "driveway": {
    "toLabel": "site #1",
    "entrances": [
@@ -5044,8 +5136,14 @@
    "mi": 2.2,
    "er": null
   },
+  "longTrail": {
+   "trail": "Tweetsie Trail",
+   "point": "Elizabethton",
+   "min": 26,
+   "mi": 17.1
+  },
   "schemaVersion": 9,
-  "engine": 22,
+  "engine": 28,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -6736,6 +6834,12 @@
      "coreClear": 13.156289298732574,
      "domeW": 2.5665882829663573
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.07,
+     "dirDeg": 195
+    },
     "roadGrade": 9.250368100223954,
     "roadRunFt": 439.1243620218932,
     "roadName": "State Rte 143",
@@ -6744,6 +6848,17 @@
     "fit": "fits",
     "gentleNearAc": 0.5416696739173056,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.6,
+     "julHighF": 80.7,
+     "station": "USC00313072",
+     "stationMi": 10.1
+    },
+    "privacy": {
+     "near": 27,
+     "inSight": 66,
+     "nearestFt": 307
+    },
     "driveway": {
      "lengthFt": 2367.2349613551137,
      "cost": {
@@ -6793,6 +6908,12 @@
      "coreClear": 11.913878570323636,
      "domeW": 2.5665882829663573
     },
+    "view": {
+     "longestKm": 2.92,
+     "past": false,
+     "openShare": 0,
+     "dirDeg": null
+    },
     "roadGrade": 22.610203623127614,
     "roadRunFt": 649.4360625195619,
     "roadName": "unnamed road",
@@ -6801,6 +6922,17 @@
     "fit": "fits",
     "gentleNearAc": 0.12381021118109842,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.6,
+     "julHighF": 80.7,
+     "station": "USC00313072",
+     "stationMi": 10.1
+    },
+    "privacy": {
+     "near": 26,
+     "inSight": 1,
+     "nearestFt": 613
+    },
     "driveway": {
      "lengthFt": 2011.932616977945,
      "cost": {
@@ -6852,6 +6984,12 @@
      "coreClear": 14.59151381446889,
      "domeW": 2.5665882829663573
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.13,
+     "dirDeg": 73
+    },
     "roadGrade": 16.80938643793915,
     "roadRunFt": 591.1909434958761,
     "roadName": "State Rte 143",
@@ -6860,6 +6998,17 @@
     "fit": "fits",
     "gentleNearAc": 0.4819754649549902,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.5,
+     "julHighF": 80.6,
+     "station": "USC00313072",
+     "stationMi": 10.1
+    },
+    "privacy": {
+     "near": 26,
+     "inSight": 10,
+     "nearestFt": 460
+    },
     "driveway": {
      "lengthFt": 2185.121387261132,
      "cost": {
@@ -6911,6 +7060,12 @@
      "coreClear": 17.469459403616657,
      "domeW": 2.192396058543589
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.18,
+     "dirDeg": 85
+    },
     "roadGrade": 5.275165732431242,
     "roadRunFt": 417.16790514492305,
     "roadName": "unnamed road",
@@ -6919,6 +7074,17 @@
     "fit": "house only",
     "gentleNearAc": 0.1569736606046069,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 22.9,
+     "julHighF": 80,
+     "station": "USC00313072",
+     "stationMi": 10.1
+    },
+    "privacy": {
+     "near": 12,
+     "inSight": 90,
+     "nearestFt": 766
+    },
     "driveway": {
      "lengthFt": 652.0596821640069,
      "cost": {
@@ -6936,6 +7102,30 @@
     }
    }
   ],
+  "climate": {
+   "outside": false,
+   "stations": [
+    {
+     "id": "USC00313072",
+     "name": "Flat Springs 1E, NC",
+     "elevFt": 3330,
+     "snowIn": 48.2,
+     "lastFreeze": "04-18",
+     "firstFreeze": "10-24",
+     "frostFreeDays": 188
+    }
+   ]
+  },
+  "privacy": {
+   "outside": false
+  },
+  "dish": {
+   "ll": [
+    36.185108,
+    -82.073636
+   ],
+   "clearShare": 1
+  },
   "driveway": {
    "toLabel": "site #2",
    "entrances": [
@@ -9788,8 +9978,14 @@
    "mi": 2.2,
    "er": null
   },
+  "longTrail": {
+   "trail": "Tweetsie Trail",
+   "point": "Elizabethton",
+   "min": 26,
+   "mi": 17.1
+  },
   "schemaVersion": 9,
-  "engine": 22,
+  "engine": 28,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

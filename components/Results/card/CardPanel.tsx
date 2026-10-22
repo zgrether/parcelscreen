@@ -53,7 +53,8 @@ const FLAG_PANEL: Record<Step, PanelKey> = {
   flood: "floodplain",
   padus: "trails",
   near: "easement",
-  drive: "town",
+  // Step 11: the drive times' flags go with the ER, which the starting list grades (Town, the groceries, is Don't care).
+  drive: "hospital",
   rank: "homesite",
   driveway: "easement",
 };
@@ -121,7 +122,12 @@ export function CardPanel({
 }) {
   const help = useHelp();
   const close = useRef<HTMLButtonElement>(null);
-  const t = panelText(panel);
+  // The viewer's own bands and weight, as the card grades them (step 11: a new factor weighs 0 on the starting list,
+  // so the starting list's numbers misled).
+  const t = panelText(panel, { ...SCREEN_CONSTANTS.card, rows: card.rubric.rubric.bands }, undefined, {
+    rubric: card.rubric.rubric,
+    rubrics: [card.rubric],
+  });
   const r = reading(panel, card);
 
   // Esc closes; focus goes to the close button, and back to what opened the panel afterwards.

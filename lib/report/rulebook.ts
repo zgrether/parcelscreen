@@ -81,7 +81,24 @@ export interface Rulebook {
 }
 
 const GATES: GateKey[] = ["floodplain", "access", "easement", "septic"];
-const ROWS: RowKey[] = ["elevation", "homesite", "sky", "room", "driveway", "trails", "town", "garden"];
+const ROWS: RowKey[] = [
+  "elevation",
+  "homesite",
+  "sky",
+  "room",
+  "driveway",
+  "trails",
+  "town",
+  "hospital",
+  "garden",
+  // Step 11's new factors, in the order they shipped.
+  "climate",
+  "privacy",
+  "longView",
+  "airport",
+  "longTrail",
+  "internet",
+];
 
 /** The scales each panel shows (as the report's panels do), by panel. */
 const PANEL_SCALES: Partial<Record<PanelKey, ScaleName[]>> = {
@@ -93,7 +110,8 @@ const PANEL_SCALES: Partial<Record<PanelKey, ScaleName[]>> = {
   room: ["Room to build"],
   driveway: ["Driveway"],
   trails: ["Trails"],
-  town: ["Town and hospital"],
+  town: ["Town and groceries"],
+  hospital: ["Hospital"],
   garden: ["Garden"],
 };
 

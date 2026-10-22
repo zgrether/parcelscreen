@@ -4037,6 +4037,12 @@
      "coreClear": 18.021124887011347,
      "domeW": 4.6529267757374635
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.1,
+     "dirDeg": 90
+    },
     "roadGrade": 16.86388550654117,
     "roadRunFt": 228.97064944805598,
     "roadName": "unnamed road",
@@ -4045,6 +4051,17 @@
     "fit": "fits",
     "gentleNearAc": 1.2644044557930019,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.1,
+     "julHighF": 78.9,
+     "station": "USC00446955",
+     "stationMi": 11.9
+    },
+    "privacy": {
+     "near": 0,
+     "inSight": 0,
+     "nearestFt": 4208
+    },
     "driveway": {
      "lengthFt": 1135.1466120473292,
      "cost": {
@@ -4093,6 +4110,12 @@
      "coreClear": 21.068586456286184,
      "domeW": 5.658203526464341
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.21,
+     "dirDeg": 195
+    },
     "roadGrade": 0.345660883182147,
     "roadRunFt": 1180.586318488471,
     "roadName": "unnamed road",
@@ -4101,6 +4124,17 @@
     "fit": "fits",
     "gentleNearAc": 0.39263085732519537,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.4,
+     "julHighF": 79.9,
+     "station": "USC00446955",
+     "stationMi": 12.3
+    },
+    "privacy": {
+     "near": 0,
+     "inSight": 15,
+     "nearestFt": 1916
+    },
     "driveway": {
      "lengthFt": 3604.400930375693,
      "cost": {
@@ -4149,6 +4183,12 @@
      "coreClear": 20.278225463560027,
      "domeW": 4.6529267757374635
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.14,
+     "dirDeg": 85
+    },
     "roadGrade": 6.620740018353626,
     "roadRunFt": 1331.0553964588214,
     "roadName": "unnamed road",
@@ -4157,6 +4197,17 @@
     "fit": "fits",
     "gentleNearAc": 1.6880908611552183,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.7,
+     "julHighF": 79.2,
+     "station": "USC00446955",
+     "stationMi": 12.1
+    },
+    "privacy": {
+     "near": 0,
+     "inSight": 0,
+     "nearestFt": 3474
+    },
     "driveway": {
      "lengthFt": 1672.1978006361178,
      "cost": {
@@ -4205,6 +4256,12 @@
      "coreClear": 21.070392717337633,
      "domeW": 5.658203526464341
     },
+    "view": {
+     "longestKm": 5.97,
+     "past": false,
+     "openShare": 0.18,
+     "dirDeg": 193
+    },
     "roadGrade": 29.83936284383694,
     "roadRunFt": 1101.9266500925148,
     "roadName": "State Rte 611",
@@ -4213,6 +4270,17 @@
     "fit": "fits",
     "gentleNearAc": 0.3793213367379005,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.7,
+     "julHighF": 80.2,
+     "station": "USC00446955",
+     "stationMi": 12.4
+    },
+    "privacy": {
+     "near": 0,
+     "inSight": 3,
+     "nearestFt": 2424
+    },
     "driveway": {
      "lengthFt": 4098.449953086412,
      "cost": {
@@ -4263,6 +4331,12 @@
      "coreClear": 19.739854572798336,
      "domeW": 4.6529267757374635
     },
+    "view": {
+     "longestKm": 5.92,
+     "past": false,
+     "openShare": 0.07,
+     "dirDeg": 93
+    },
     "roadGrade": 16.024205964612964,
     "roadRunFt": 297.2506334055836,
     "roadName": "unnamed road",
@@ -4271,6 +4345,17 @@
     "fit": "fits",
     "gentleNearAc": 1.0115235646344014,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.3,
+     "julHighF": 79.1,
+     "station": "USC00446955",
+     "stationMi": 11.9
+    },
+    "privacy": {
+     "near": 0,
+     "inSight": 2,
+     "nearestFt": 3867
+    },
     "driveway": {
      "lengthFt": 690.6425072846655,
      "cost": {
@@ -4321,6 +4406,12 @@
      "coreClear": 15.600414719115797,
      "domeW": 4.6529267757374635
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.17,
+     "dirDeg": 85
+    },
     "roadGrade": 14.44394640917219,
     "roadRunFt": 356.38450641170306,
     "roadName": "unnamed road",
@@ -4329,6 +4420,17 @@
     "fit": "fits",
     "gentleNearAc": 0.995995790615891,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.1,
+     "julHighF": 78.9,
+     "station": "USC00446955",
+     "stationMi": 11.9
+    },
+    "privacy": {
+     "near": 0,
+     "inSight": 0,
+     "nearestFt": 4612
+    },
     "driveway": {
      "lengthFt": 505.59542956791387,
      "cost": {
@@ -4377,6 +4479,12 @@
      "coreClear": 7.73032873155095,
      "domeW": 4.6529267757374635
     },
+    "view": {
+     "longestKm": 0.7,
+     "past": false,
+     "openShare": 0,
+     "dirDeg": null
+    },
     "roadGrade": 20.78966260974282,
     "roadRunFt": 1065.9946781203896,
     "roadName": "unnamed road",
@@ -4385,6 +4493,17 @@
     "fit": "fits",
     "gentleNearAc": 0.523507809766927,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.4,
+     "julHighF": 79.9,
+     "station": "USC00446955",
+     "stationMi": 12
+    },
+    "privacy": {
+     "near": 0,
+     "inSight": 0,
+     "nearestFt": 3167
+    },
     "driveway": {
      "lengthFt": 2035.873568722586,
      "cost": {
@@ -4435,6 +4554,12 @@
      "coreClear": 14.428333682745901,
      "domeW": 4.6529267757374635
     },
+    "view": {
+     "longestKm": 5.93,
+     "past": false,
+     "openShare": 0.01,
+     "dirDeg": 75
+    },
     "roadGrade": 5.93470733329961,
     "roadRunFt": 1540.0480735452827,
     "roadName": "unnamed road",
@@ -4443,6 +4568,17 @@
     "fit": "fits",
     "gentleNearAc": 2.20938041749093,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.9,
+     "julHighF": 79.4,
+     "station": "USC00446955",
+     "stationMi": 12.1
+    },
+    "privacy": {
+     "near": 0,
+     "inSight": 0,
+     "nearestFt": 3090
+    },
     "driveway": {
      "lengthFt": 2104.48812661335,
      "cost": {
@@ -4460,6 +4596,30 @@
     }
    }
   ],
+  "climate": {
+   "outside": false,
+   "stations": [
+    {
+     "id": "USC00446955",
+     "name": "Pulaski 2 E, VA",
+     "elevFt": 2080,
+     "snowIn": 15.8,
+     "lastFreeze": "04-25",
+     "firstFreeze": "10-17",
+     "frostFreeDays": 175
+    }
+   ]
+  },
+  "privacy": {
+   "outside": false
+  },
+  "dish": {
+   "ll": [
+    36.931387,
+    -80.623564
+   ],
+   "clearShare": 1
+  },
   "driveway": {
    "toLabel": "site #1",
    "entrances": [
@@ -6210,8 +6370,14 @@
    "mi": 27.2,
    "er": null
   },
+  "longTrail": {
+   "trail": "New River Trail",
+   "point": "Pulaski",
+   "min": 90,
+   "mi": 16.8
+  },
   "schemaVersion": 9,
-  "engine": 22,
+  "engine": 28,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -10254,6 +10420,12 @@
      "coreClear": 18.021124887011347,
      "domeW": 4.6529267757374635
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.1,
+     "dirDeg": 90
+    },
     "roadGrade": 16.86388550654117,
     "roadRunFt": 228.97064944805598,
     "roadName": "unnamed road",
@@ -10262,6 +10434,17 @@
     "fit": "fits",
     "gentleNearAc": 1.2644044557930019,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.1,
+     "julHighF": 78.9,
+     "station": "USC00446955",
+     "stationMi": 11.9
+    },
+    "privacy": {
+     "near": 0,
+     "inSight": 0,
+     "nearestFt": 4208
+    },
     "driveway": {
      "lengthFt": 1135.1466120473292,
      "cost": {
@@ -10310,6 +10493,12 @@
      "coreClear": 21.068586456286184,
      "domeW": 5.658203526464341
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.21,
+     "dirDeg": 195
+    },
     "roadGrade": 0.345660883182147,
     "roadRunFt": 1180.586318488471,
     "roadName": "unnamed road",
@@ -10318,6 +10507,17 @@
     "fit": "fits",
     "gentleNearAc": 0.39263085732519537,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.4,
+     "julHighF": 79.9,
+     "station": "USC00446955",
+     "stationMi": 12.3
+    },
+    "privacy": {
+     "near": 0,
+     "inSight": 15,
+     "nearestFt": 1916
+    },
     "driveway": {
      "lengthFt": 3604.400930375693,
      "cost": {
@@ -10366,6 +10566,12 @@
      "coreClear": 20.278225463560027,
      "domeW": 4.6529267757374635
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.14,
+     "dirDeg": 85
+    },
     "roadGrade": 6.620740018353626,
     "roadRunFt": 1331.0553964588214,
     "roadName": "unnamed road",
@@ -10374,6 +10580,17 @@
     "fit": "fits",
     "gentleNearAc": 1.6880908611552183,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.7,
+     "julHighF": 79.2,
+     "station": "USC00446955",
+     "stationMi": 12.1
+    },
+    "privacy": {
+     "near": 0,
+     "inSight": 0,
+     "nearestFt": 3474
+    },
     "driveway": {
      "lengthFt": 1672.1978006361178,
      "cost": {
@@ -10422,6 +10639,12 @@
      "coreClear": 21.070392717337633,
      "domeW": 5.658203526464341
     },
+    "view": {
+     "longestKm": 5.97,
+     "past": false,
+     "openShare": 0.18,
+     "dirDeg": 193
+    },
     "roadGrade": 29.83936284383694,
     "roadRunFt": 1101.9266500925148,
     "roadName": "State Rte 611",
@@ -10430,6 +10653,17 @@
     "fit": "fits",
     "gentleNearAc": 0.3793213367379005,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.7,
+     "julHighF": 80.2,
+     "station": "USC00446955",
+     "stationMi": 12.4
+    },
+    "privacy": {
+     "near": 0,
+     "inSight": 3,
+     "nearestFt": 2424
+    },
     "driveway": {
      "lengthFt": 4098.449953086412,
      "cost": {
@@ -10480,6 +10714,12 @@
      "coreClear": 19.739854572798336,
      "domeW": 4.6529267757374635
     },
+    "view": {
+     "longestKm": 5.92,
+     "past": false,
+     "openShare": 0.07,
+     "dirDeg": 93
+    },
     "roadGrade": 16.024205964612964,
     "roadRunFt": 297.2506334055836,
     "roadName": "unnamed road",
@@ -10488,6 +10728,17 @@
     "fit": "fits",
     "gentleNearAc": 1.0115235646344014,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.3,
+     "julHighF": 79.1,
+     "station": "USC00446955",
+     "stationMi": 11.9
+    },
+    "privacy": {
+     "near": 0,
+     "inSight": 2,
+     "nearestFt": 3867
+    },
     "driveway": {
      "lengthFt": 690.6425072846655,
      "cost": {
@@ -10538,6 +10789,12 @@
      "coreClear": 15.600414719115797,
      "domeW": 4.6529267757374635
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.17,
+     "dirDeg": 85
+    },
     "roadGrade": 14.44394640917219,
     "roadRunFt": 356.38450641170306,
     "roadName": "unnamed road",
@@ -10546,6 +10803,17 @@
     "fit": "fits",
     "gentleNearAc": 0.995995790615891,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.1,
+     "julHighF": 78.9,
+     "station": "USC00446955",
+     "stationMi": 11.9
+    },
+    "privacy": {
+     "near": 0,
+     "inSight": 0,
+     "nearestFt": 4612
+    },
     "driveway": {
      "lengthFt": 505.59542956791387,
      "cost": {
@@ -10594,6 +10862,12 @@
      "coreClear": 7.73032873155095,
      "domeW": 4.6529267757374635
     },
+    "view": {
+     "longestKm": 0.7,
+     "past": false,
+     "openShare": 0,
+     "dirDeg": null
+    },
     "roadGrade": 20.78966260974282,
     "roadRunFt": 1065.9946781203896,
     "roadName": "unnamed road",
@@ -10602,6 +10876,17 @@
     "fit": "fits",
     "gentleNearAc": 0.523507809766927,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.4,
+     "julHighF": 79.9,
+     "station": "USC00446955",
+     "stationMi": 12
+    },
+    "privacy": {
+     "near": 0,
+     "inSight": 0,
+     "nearestFt": 3167
+    },
     "driveway": {
      "lengthFt": 2035.873568722586,
      "cost": {
@@ -10652,6 +10937,12 @@
      "coreClear": 14.428333682745901,
      "domeW": 4.6529267757374635
     },
+    "view": {
+     "longestKm": 5.93,
+     "past": false,
+     "openShare": 0.01,
+     "dirDeg": 75
+    },
     "roadGrade": 5.93470733329961,
     "roadRunFt": 1540.0480735452827,
     "roadName": "unnamed road",
@@ -10660,6 +10951,17 @@
     "fit": "fits",
     "gentleNearAc": 2.20938041749093,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.9,
+     "julHighF": 79.4,
+     "station": "USC00446955",
+     "stationMi": 12.1
+    },
+    "privacy": {
+     "near": 0,
+     "inSight": 0,
+     "nearestFt": 3090
+    },
     "driveway": {
      "lengthFt": 2104.48812661335,
      "cost": {
@@ -10677,6 +10979,30 @@
     }
    }
   ],
+  "climate": {
+   "outside": false,
+   "stations": [
+    {
+     "id": "USC00446955",
+     "name": "Pulaski 2 E, VA",
+     "elevFt": 2080,
+     "snowIn": 15.8,
+     "lastFreeze": "04-25",
+     "firstFreeze": "10-17",
+     "frostFreeDays": 175
+    }
+   ]
+  },
+  "privacy": {
+   "outside": false
+  },
+  "dish": {
+   "ll": [
+    36.931387,
+    -80.623564
+   ],
+   "clearShare": 1
+  },
   "driveway": {
    "toLabel": "site #1",
    "entrances": [
@@ -12447,8 +12773,14 @@
    "mi": 27.2,
    "er": null
   },
+  "longTrail": {
+   "trail": "New River Trail",
+   "point": "Pulaski",
+   "min": 90,
+   "mi": 16.8
+  },
   "schemaVersion": 9,
-  "engine": 22,
+  "engine": 28,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

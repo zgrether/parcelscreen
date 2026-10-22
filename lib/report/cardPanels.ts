@@ -9,6 +9,12 @@ import { defaultNamedRubric } from "../rubric/default";
 import type { NamedRubric, Rubric } from "../rubric/types";
 import { verdictLines } from "../rubric/grade";
 import { weightsOf } from "../rubric/weights";
+import { CLIMATE_SOURCES } from "./climate";
+import { IN_WINTER, PRIVACY_SOURCES } from "./privacy";
+import { VIEW_CAVEAT, VIEW_OPEN_MI } from "./view";
+import { LONG_TRAIL_SOURCES } from "./longTrail";
+import { DISH_CAVEAT } from "./internet";
+import { climateWords, privacyWords } from "../rubric/words";
 import { MAYBE_CAPS, footprintFt2, type CardConfig, type GateKey, type RowKey } from "./card";
 
 export type PanelKey = "verdict" | GateKey | RowKey | "cost";
@@ -27,7 +33,14 @@ const PANELS: Record<PanelKey, true> = {
   driveway: true,
   trails: true,
   town: true,
+  hospital: true,
   garden: true,
+  climate: true,
+  privacy: true,
+  longView: true,
+  airport: true,
+  longTrail: true,
+  internet: true,
   budget: true,
   cost: true,
 };
@@ -175,11 +188,18 @@ export function panelText(
           // Appended (rule 7; follow-up 54, owner #123): the drive minutes, with the straight line as the fallback.
           `By road: the quickest drive from where the driveway meets the road to one of the ${SCREEN_CONSTANTS.drive.trailheadCandidates} nearest trailheads, to its parking where OpenStreetMap tags one: A within ${R.trailheadMin[0]} min, B within ${R.trailheadMin[1]}, C within ${R.trailheadMin[2]}, D within ${R.trailheadMin[3]}. The straight-line distances above count only when the drive times didn't load.`,
       };
+    // Step 11 (plan §2.1): the ER is Hospital's own panel now; Town keeps the groceries.
     case "town":
       return {
-        title: "Town and hospital",
-        question: "How far to groceries, and to an emergency room?",
-        howScored: `The worse of the two drives: an ER within ${R.erMin[0]} min and a grocery within ${R.groceryMin[0]} for an A; ${R.erMin[1]} and ${R.groceryMin[1]} for a B; ${R.erMin[2]} and ${R.groceryMin[2]} for a C; ${R.erMin[3]} and ${R.groceryMin[3]} for a D; ${weightOf(rubrics, "town")}.`,
+        title: "Town and groceries",
+        question: "How far to groceries?",
+        howScored: `The drive to the nearest grocery: A within ${R.groceryMin[0]} min, B within ${R.groceryMin[1]}, C within ${R.groceryMin[2]}, D within ${R.groceryMin[3]}; ${weightOf(rubrics, "town")}.`,
+      };
+    case "hospital":
+      return {
+        title: "Hospital",
+        question: "How far to an emergency room?",
+        howScored: `The drive to the nearest hospital, its ER where it has one: A within ${R.erMin[0]} min, B within ${R.erMin[1]}, C within ${R.erMin[2]}, D within ${R.erMin[3]}; ${weightOf(rubrics, "hospital")}.`,
       };
     case "garden":
       return {
@@ -187,6 +207,56 @@ export function panelText(
         question: "Is there ground to grow food on?",
         howScored: `A for a garden of ${fmt(R.gardenAc[0]!, 2)} ac or more on prime or statewide-important farmland; B from ${fmt(R.gardenAc[1]!, 2)} ac, C from ${fmt(R.gardenAc[2]!, 2)} ac, D for any garden; ${weightOf(rubrics, "garden")}.`,
       };
+    case "climate": {
+      const jan = R.janLowF.map((v) => `${fmt(v)} °F`);
+      const jul = R.julHighF.map((v) => `${fmt(v)} °F`);
+      return {
+        title: "Climate",
+        question: "How cold are the winters, and how hot the summers, where we'd build?",
+        howScored:
+          `At your best homesite, the worse of two 30-year normals: January's mean low (A from ${jan[0]}, B from ${jan[1]}, C from ${jan[2]}, D from ${jan[3]}) and July's mean high (A up to ${jul[0]}, B up to ${jul[1]}, C up to ${jul[2]}, D up to ${jul[3]}); your limits: ${climateWords(R)}. Snowfall and frost-free days are shown, not graded; ${weightOf(rubrics, "climate")}. ` +
+          `Sources: ${CLIMATE_SOURCES}`,
+      };
+    }
+    case "privacy": {
+      const near = R.privacyFt.map((v) => `${fmt(v)} ft`);
+      const sight = R.privacySight.map((v) => fmt(v));
+      return {
+        title: "Privacy",
+        question: "How close are the neighbors, and will we see their houses?",
+        howScored:
+          `At your best homesite, the worse of two: the nearest house (A from ${near[0]}, B from ${near[1]}, C from ${near[2]}, D from ${near[3]}; no house within a mile is an A) and the houses in sight within a mile, ${IN_WINTER} (A up to ${sight[0]}, B up to ${sight[1]}, C up to ${sight[2]}, D up to ${sight[3]}); your limits: ${privacyWords(R)}. A house is a footprint of ${fmt(SCREEN_CONSTANTS.privacy.minHouseM2)} m² or more off the parcel; the houses within a quarter mile are shown, not graded; ${weightOf(rubrics, "privacy")}. ` +
+          `Sources: ${PRIVACY_SOURCES}`,
+      };
+    }
+    case "longView": {
+      const pct = R.viewOpenPct.map((v) => `${fmt(v)}%`);
+      return {
+        title: "Long view",
+        question: "How far can we see from where the house would go?",
+        howScored: `At your best homesite, the share of the horizon whose view reaches past ${VIEW_OPEN_MI}: A from ${pct[0]}, B from ${pct[1]}, C from ${pct[2]}, D from ${pct[3]}. The longest view and its direction are shown, not graded; ${weightOf(rubrics, "longView")}. ${VIEW_CAVEAT}`,
+      };
+    }
+    case "airport":
+      return {
+        title: "Airport",
+        question: "How far to an airport we'd fly from?",
+        howScored: `The drive to the nearest airport on your list of places to time drives to (Settings): A within ${R.airportMin[0]} min, B within ${R.airportMin[1]}, C within ${R.airportMin[2]}, D within ${R.airportMin[3]}. A place counts as an airport when its name says "airport" or ends in a three-letter code in parentheses; ${weightOf(rubrics, "airport")}.`,
+      };
+    case "longTrail":
+      return {
+        title: "Bike to a long trail",
+        question: "How far to a long rail-trail we could ride?",
+        howScored: `The drive from where the driveway meets the road to the nearest access point of a long rail-trail or greenway: A within ${R.longTrailMin[0]} min, B within ${R.longTrailMin[1]}, C within ${R.longTrailMin[2]}, D within ${R.longTrailMin[3]}; ${weightOf(rubrics, "longTrail")}. ${LONG_TRAIL_SOURCES}`,
+      };
+    case "internet": {
+      const D = SCREEN_CONSTANTS.dish;
+      return {
+        title: "Satellite internet",
+        question: "Is there a clear patch of sky for a satellite dish?",
+        howScored: `The parcel's best spot for a dish: every ${fmt(D.stepM)} m over the parcel, the share of the dish's view (from ${fmt(D.coneDeg)}° up, all around, the northern half counting ${fmt(D.northWeight)} times) that the terrain leaves clear: A from ${R.dishClearPct[0]}%, B from ${R.dishClearPct[1]}, C from ${R.dishClearPct[2]}, D from ${R.dishClearPct[3]}. Its distance from your best homesite is shown, not graded; ${weightOf(rubrics, "internet")}. ${DISH_CAVEAT}`,
+      };
+    }
     case "budget": {
       const B = K.budgetBands.map((x) => `${fmt(x * 100)}%`);
       return {

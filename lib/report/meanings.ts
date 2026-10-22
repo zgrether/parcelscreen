@@ -212,18 +212,24 @@ export const MEANINGS: Record<ScaleId, Meaning[][]> = {
     // Far
     [m(undefined, "The nearest trails are a trip, not an afternoon.")],
   ],
+  // Step 11 (plan §2.1): Town and hospital split in two; each keeps its half of the old sentences.
   town: [
     // Close
-    [m(undefined, "Groceries and an ER nearby; an emergency is a short drive.")],
+    [m(undefined, "Groceries nearby.")],
     // Practical
-    [m(undefined, "Weekly shopping is an easy trip, and the ER is within half an hour.")],
+    [m(undefined, "Weekly shopping is an easy trip.")],
     // A haul
-    [
-      m(
-        undefined,
-        "Shopping is a planned trip and an emergency is a long drive: keep the pantry and the first-aid kit stocked.",
-      ),
-    ],
+    [m(undefined, "Shopping is a planned trip: keep the pantry stocked.")],
+    // Remote
+    [m(undefined, "Groceries are a long drive: shop big, and keep a deep pantry.")],
+  ],
+  hospital: [
+    // Close
+    [m(undefined, "An ER nearby; an emergency is a short drive.")],
+    // Practical
+    [m(undefined, "The ER is within half an hour.")],
+    // A haul
+    [m(undefined, "An emergency is a long drive: keep the first-aid kit stocked.")],
     // Remote
     [
       m(

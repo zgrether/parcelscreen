@@ -193,8 +193,9 @@ describe("WF5: the red-gate easement as the driveway, and where it's recorded (o
     });
     const card = reportCard(result, ZACH, drawn("red-gate"));
     expect(card.drivewayLine).toBe("red-gate");
-    // Drive times are still from Mud Creek Ln's end (until WF6): the Town and Trails panels say so.
-    for (const key of ["town", "trails"])
+    // Drive times are still from Mud Creek Ln's end (until WF6): the Hospital and Trails panels say so (Town, the
+    // groceries, is Don't care on the starting list since step 11, so it isn't on this card).
+    for (const key of ["hospital", "trails"])
       expect(card.rows.find((x) => x.key === key)!.panelNote).toMatch(
         /Drive times start where the app's pick meets the road\.$/,
       );

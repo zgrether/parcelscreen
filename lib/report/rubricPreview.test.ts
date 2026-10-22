@@ -50,13 +50,13 @@ describe("the preview", () => {
   });
 
   it("a limit added is named, with its words", () => {
-    const now = after(moveCard(D, { kind: "factor", factor: "town" }, "must"));
+    const now = after(moveCard(D, { kind: "factor", factor: "hospital" }, "must"));
     const p = rubricPreview(MUD, D, now);
     expect(p.moved[0]).toEqual({
-      key: "town",
-      label: "Town and hospital",
+      key: "hospital",
+      label: "Hospital",
       delta: 0,
-      why: "Out: Town and hospital misses its limit (ER within 30 min)",
+      why: "Out: Hospital misses its limit (ER within 30 min)",
     });
   });
 });

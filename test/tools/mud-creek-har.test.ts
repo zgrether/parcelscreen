@@ -2,7 +2,8 @@
  * Mud Creek's port recording gains Tennessee's TREC answer in step 2 and nothing else changes (owner, 2026-10-17):
  * live data has drifted since September, so the fixture isn't re-recorded; `PORT_APPEND=grayson-mud-creek-6273
  * pnpm record:port` adds the missing requests only. The 28 entries recorded before step 2 are pinned here by the hash
- * of their serialization, and every entry after them must be one of the step's new requests.
+ * of their serialization, and every entry after them must be one of the step's new requests. Step 11 appends the same
+ * way: OSRM's table for the drive to the nearest long trail (lib/screen/longTrail.ts).
  */
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
@@ -17,6 +18,9 @@ const BEFORE = { entries: 28, sha256: "45a0f70fb3d641288895ac030c5982c0f315655d4
 const ADDED =
   /^https:\/\/services1\.arcgis\.com\/YuVBSS7Y1of2Qud1\/arcgis\/rest\/services\/Tennessee_Statewide_Trails_Lines_Public\//;
 
+/** What step 11 may add: OSRM's table for the long-trail drives. */
+const ADDED_11 = /^https:\/\/router\.project-osrm\.org\/table\/v1\/driving\//;
+
 describe("Mud Creek's port HAR (step 2: append only)", () => {
   const entries = (JSON.parse(readFileSync(PATH, "utf8")) as Har).log.entries;
 
@@ -25,9 +29,13 @@ describe("Mud Creek's port HAR (step 2: append only)", () => {
     expect(createHash("sha256").update(JSON.stringify(before)).digest("hex")).toBe(BEFORE.sha256);
   });
 
-  it("adds only Tennessee's TREC requests after them", () => {
+  it("adds only Tennessee's TREC requests after them, then step 11's long-trail drives", () => {
     const added = entries.slice(BEFORE.entries);
     expect(added.length).toBeGreaterThan(0);
-    for (const e of added) expect(e.request.url).toMatch(ADDED);
+    const trec = added.filter((e) => ADDED.test(e.request.url));
+    expect(trec.length).toBeGreaterThan(0);
+    // Each step's after the last's: TREC's first, then OSRM's table, nothing else.
+    expect(added.slice(0, trec.length)).toEqual(trec);
+    for (const e of added.slice(trec.length)) expect(e.request.url).toMatch(ADDED_11);
   });
 });

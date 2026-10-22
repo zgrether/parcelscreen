@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { ZACH } from "@/test/support/rubrics";
 import { expectedOf } from "@/test/support/expected";
 import { SCREEN_CONSTANTS } from "../screen/config";
+import { rubricFromWeights } from "../rubric/default";
 import { reportCard } from "./card";
 import type { PanelKey } from "./cardPanels";
 import { drivewayDesign, scalesFor } from "./scales";
@@ -103,10 +104,19 @@ describe("the banded scales", () => {
     expect(drivewayDesign(r)!.designPct).toBe(12);
   });
 
-  it("trails and town place the row's grade", () => {
+  it("trails, town and hospital place the row's grade", () => {
     expect(placed(scales("grayson-mud-creek-6273", "trails"))).toEqual([["Trails", "A short drive", "B"]]);
     // Follow-up 54: from the entrance, an 82-minute drive to the ER and 76 to a grocery.
-    expect(placed(scales("macks-mountain-35-3", "town"))).toEqual([["Town and hospital", "Remote", "F"]]);
+    // Step 11: Town (the groceries) is Don't care on the starting list, so it's graded here with a weight of its own.
+    const r = expectedOf("macks-mountain-35-3", "run");
+    const groceries = {
+      ...ZACH,
+      rubric: rubricFromWeights({ ...SCREEN_CONSTANTS.card.weights.default, town: 5 }),
+    };
+    expect(placed(scalesFor("town", r, reportCard(r, groceries)))).toEqual([
+      ["Town and groceries", "Remote", "F"],
+    ]);
+    expect(placed(scales("macks-mountain-35-3", "hospital"))).toEqual([["Hospital", "Remote", "F"]]);
   });
 
   it("septic: site #1's own soil, in §5.3's classes (VR3b)", () => {

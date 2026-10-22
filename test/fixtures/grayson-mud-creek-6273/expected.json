@@ -2231,6 +2231,12 @@
      "coreClear": 18.025468968264335,
      "domeW": 3.466232272555967
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.08,
+     "dirDeg": 325
+    },
     "roadGrade": 11.660691375667428,
     "roadRunFt": 614.3255830669212,
     "roadName": "unnamed road",
@@ -2239,6 +2245,17 @@
     "fit": "fits",
     "gentleNearAc": 0.9546316998100731,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.1,
+     "julHighF": 78.1,
+     "station": "USC00314496",
+     "stationMi": 13.7
+    },
+    "privacy": {
+     "near": 1,
+     "inSight": 15,
+     "nearestFt": 724
+    },
     "driveway": {
      "lengthFt": 2887.618130949411,
      "cost": {
@@ -2289,6 +2306,12 @@
      "coreClear": 17.409277170308954,
      "domeW": 3.0206913092518426
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.07,
+     "dirDeg": 183
+    },
     "roadGrade": 34.8957316910476,
     "roadRunFt": 803.8875228422704,
     "roadName": "Mud Creek Ln",
@@ -2297,6 +2320,17 @@
     "fit": "fits",
     "gentleNearAc": 0.32413076319132716,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.2,
+     "julHighF": 78.2,
+     "station": "USC00314496",
+     "stationMi": 13.7
+    },
+    "privacy": {
+     "near": 4,
+     "inSight": 22,
+     "nearestFt": 687
+    },
     "driveway": {
      "lengthFt": 2578.0350724695954,
      "cost": {
@@ -2347,6 +2381,12 @@
      "coreClear": 14.825850599465078,
      "domeW": 3.466232272555967
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.04,
+     "dirDeg": 323
+    },
     "roadGrade": 15.213416457767547,
     "roadRunFt": 556.1445489110306,
     "roadName": "unnamed road",
@@ -2355,6 +2395,17 @@
     "fit": "fits",
     "gentleNearAc": 0.9568517735305616,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.1,
+     "julHighF": 78.1,
+     "station": "USC00314496",
+     "stationMi": 13.8
+    },
+    "privacy": {
+     "near": 1,
+     "inSight": 9,
+     "nearestFt": 823
+    },
     "driveway": {
      "lengthFt": 2844.855485397168,
      "cost": {
@@ -2405,6 +2456,12 @@
      "coreClear": 15.473682258520036,
      "domeW": 3.0206913092518426
     },
+    "view": {
+     "longestKm": 5.01,
+     "past": false,
+     "openShare": 0.01,
+     "dirDeg": 180
+    },
     "roadGrade": 36.099887730928245,
     "roadRunFt": 294.53867668222597,
     "roadName": "Mud Creek Rd",
@@ -2413,6 +2470,17 @@
     "fit": "house only",
     "gentleNearAc": 0.06438213789416773,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24,
+     "julHighF": 79,
+     "station": "USC00314496",
+     "stationMi": 13.7
+    },
+    "privacy": {
+     "near": 4,
+     "inSight": 7,
+     "nearestFt": 449
+    },
     "driveway": {
      "lengthFt": 905.0394175824515,
      "cost": {
@@ -2430,6 +2498,30 @@
     }
    }
   ],
+  "climate": {
+   "outside": false,
+   "stations": [
+    {
+     "id": "USC00314496",
+     "name": "Jefferson 2 E, NC",
+     "elevFt": 2759,
+     "snowIn": 14.4,
+     "lastFreeze": "05-07",
+     "firstFreeze": "10-08",
+     "frostFreeDays": 154
+    }
+   ]
+  },
+  "privacy": {
+   "outside": false
+  },
+  "dish": {
+   "ll": [
+    36.58635,
+    -81.560415
+   ],
+   "clearShare": 1
+  },
   "driveway": {
    "toLabel": "site #1",
    "entrances": [
@@ -7703,8 +7795,14 @@
    "mi": 9,
    "er": null
   },
+  "longTrail": {
+   "trail": "Virginia Creeper Trail",
+   "point": "Damascus",
+   "min": 38,
+   "mi": 21.8
+  },
   "schemaVersion": 9,
-  "engine": 22,
+  "engine": 28,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -9941,6 +10039,12 @@
      "coreClear": 18.025468968264335,
      "domeW": 3.466232272555967
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.08,
+     "dirDeg": 325
+    },
     "roadGrade": 11.660691375667428,
     "roadRunFt": 614.3255830669212,
     "roadName": "unnamed road",
@@ -9949,6 +10053,17 @@
     "fit": "fits",
     "gentleNearAc": 0.9546316998100731,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.1,
+     "julHighF": 78.1,
+     "station": "USC00314496",
+     "stationMi": 13.7
+    },
+    "privacy": {
+     "near": 1,
+     "inSight": 15,
+     "nearestFt": 724
+    },
     "driveway": {
      "lengthFt": 2887.618130949411,
      "cost": {
@@ -9999,6 +10114,12 @@
      "coreClear": 17.409277170308954,
      "domeW": 3.0206913092518426
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.07,
+     "dirDeg": 183
+    },
     "roadGrade": 34.8957316910476,
     "roadRunFt": 803.8875228422704,
     "roadName": "Mud Creek Ln",
@@ -10007,6 +10128,17 @@
     "fit": "fits",
     "gentleNearAc": 0.32413076319132716,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.2,
+     "julHighF": 78.2,
+     "station": "USC00314496",
+     "stationMi": 13.7
+    },
+    "privacy": {
+     "near": 4,
+     "inSight": 22,
+     "nearestFt": 687
+    },
     "driveway": {
      "lengthFt": 2578.0350724695954,
      "cost": {
@@ -10057,6 +10189,12 @@
      "coreClear": 14.825850599465078,
      "domeW": 3.466232272555967
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.04,
+     "dirDeg": 323
+    },
     "roadGrade": 15.213416457767547,
     "roadRunFt": 556.1445489110306,
     "roadName": "unnamed road",
@@ -10065,6 +10203,17 @@
     "fit": "fits",
     "gentleNearAc": 0.9568517735305616,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.1,
+     "julHighF": 78.1,
+     "station": "USC00314496",
+     "stationMi": 13.8
+    },
+    "privacy": {
+     "near": 1,
+     "inSight": 9,
+     "nearestFt": 823
+    },
     "driveway": {
      "lengthFt": 2844.855485397168,
      "cost": {
@@ -10115,6 +10264,12 @@
      "coreClear": 15.473682258520036,
      "domeW": 3.0206913092518426
     },
+    "view": {
+     "longestKm": 5.01,
+     "past": false,
+     "openShare": 0.01,
+     "dirDeg": 180
+    },
     "roadGrade": 36.099887730928245,
     "roadRunFt": 294.53867668222597,
     "roadName": "Mud Creek Rd",
@@ -10123,6 +10278,17 @@
     "fit": "house only",
     "gentleNearAc": 0.06438213789416773,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24,
+     "julHighF": 79,
+     "station": "USC00314496",
+     "stationMi": 13.7
+    },
+    "privacy": {
+     "near": 4,
+     "inSight": 7,
+     "nearestFt": 449
+    },
     "driveway": {
      "lengthFt": 905.0394175824515,
      "cost": {
@@ -10140,6 +10306,30 @@
     }
    }
   ],
+  "climate": {
+   "outside": false,
+   "stations": [
+    {
+     "id": "USC00314496",
+     "name": "Jefferson 2 E, NC",
+     "elevFt": 2759,
+     "snowIn": 14.4,
+     "lastFreeze": "05-07",
+     "firstFreeze": "10-08",
+     "frostFreeDays": 154
+    }
+   ]
+  },
+  "privacy": {
+   "outside": false
+  },
+  "dish": {
+   "ll": [
+    36.58635,
+    -81.560415
+   ],
+   "clearShare": 1
+  },
   "driveway": {
    "toLabel": "site #2",
    "entrances": [
@@ -15413,8 +15603,14 @@
    "mi": 9,
    "er": null
   },
+  "longTrail": {
+   "trail": "Virginia Creeper Trail",
+   "point": "Damascus",
+   "min": 38,
+   "mi": 21.8
+  },
   "schemaVersion": 9,
-  "engine": 22,
+  "engine": 28,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

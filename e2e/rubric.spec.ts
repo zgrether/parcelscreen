@@ -60,7 +60,17 @@ test("the columns, a card's Move to…, and Undo", async ({ page }) => {
   // A dealbreaker can't rank.
   await expect(sheet(page).getByRole("button", { name: "Really want" })).toBeDisabled();
   await sheet(page).getByRole("button", { name: "Don't care" }).click();
-  await expect(names(column(page, "Don't care"))).toHaveText(["Septic", "Driveway"]);
+  await expect(names(column(page, "Don't care"))).toHaveText([
+    "Septic",
+    "Driveway",
+    "Town and groceries",
+    "Climate",
+    "Privacy",
+    "Long view",
+    "Airport",
+    "Bike to a long trail",
+    "Satellite internet",
+  ]);
   await page.getByRole("button", { name: "Close" }).click();
   await page.getByRole("button", { name: "Undo" }).click();
   await expect(names(column(page, "Must have"))).toContainText(["Septic"]);
@@ -70,10 +80,10 @@ test("the columns, a card's Move to…, and Undo", async ({ page }) => {
 
 test("a row on Must: a minimum too, its ranked card stays, marked min", async ({ page }) => {
   await openRubric(page);
-  await card(page, "Town and hospital").locator(".rubric-card-body").click();
+  await card(page, "Hospital").locator(".rubric-card-body").click();
   await sheet(page).getByRole("button", { name: "Must have" }).click();
   await expect(page.locator(".rubric-status")).toHaveText(
-    "Town and hospital is now a must have too (ER within 30 min): it also stays at #7 in Really want.",
+    "Hospital is now a must have too (ER within 30 min): it also stays at #7 in Really want.",
   );
   await page.keyboard.press("Escape");
   await expect(column(page, "Must have").locator(".rubric-card.minimum")).toContainText("ER within 30 min");
@@ -94,7 +104,7 @@ test("the first reorder by dragging: applied at once, the notice's table, the pa
     "Room to build",
     "Trails and public land",
     "Garden ground",
-    "Town and hospital",
+    "Hospital",
   ]);
   const notice = page.locator(".rubric-notice");
   await expect(notice).toContainText("Weights follow your order now.");
@@ -108,11 +118,11 @@ test("the first reorder by dragging: applied at once, the notice's table, the pa
   // Again, then another change: the notice goes.
   await drag(page, card(page, "Night sky"), card(page, "Best homesite"));
   await expect(notice).toBeVisible();
-  await card(page, "Town and hospital").locator(".rubric-card-body").click();
+  await card(page, "Hospital").locator(".rubric-card-body").click();
   await sheet(page).getByRole("button", { name: "Nice to have" }).click();
   await page.keyboard.press("Escape");
   await expect(notice).toHaveCount(0);
-  await expect(names(column(page, "Nice to have"))).toHaveText(["Town and hospital"]);
+  await expect(names(column(page, "Nice to have"))).toHaveText(["Hospital"]);
   expect(errors).toEqual([]);
 });
 
@@ -244,7 +254,17 @@ test.describe("on a phone", () => {
       expect((await b.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     await sheet(page).getByRole("button", { name: "Don't care" }).tap();
     await page.keyboard.press("Escape");
-    await expect(names(column(page, "Don't care"))).toHaveText(["Septic", "Driveway"]);
+    await expect(names(column(page, "Don't care"))).toHaveText([
+      "Septic",
+      "Driveway",
+      "Town and groceries",
+      "Climate",
+      "Privacy",
+      "Long view",
+      "Airport",
+      "Bike to a long trail",
+      "Satellite internet",
+    ]);
     // Try it is a bar along the bottom, with the same words as on a desktop.
     const bar = page.getByRole("region", { name: "Try it" });
     await expect(bar).toBeVisible();

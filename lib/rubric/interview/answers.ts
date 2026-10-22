@@ -6,6 +6,9 @@
 import { z } from "zod";
 
 export const CLIMATE = ["cool", "between", "warm", "either"] as const;
+/** Question 1's follow-ups (step 11): winters, and summer heat. */
+export const WINTER = ["mild", "some", "real"] as const;
+export const SUMMER = ["cool", "warm", "hot"] as const;
 export const SKY = ["camera", "look", "inside"] as const;
 export const GLOW = ["shrug", "spoils"] as const;
 export const SUN_VIEW = ["sun", "view", "both", "neither"] as const;
@@ -36,6 +39,9 @@ export type Chip = (typeof CHIPS)[number];
 
 export interface InterviewAnswers {
   climate?: (typeof CLIMATE)[number];
+  /** Question 1's follow-ups (step 11; plan §2.2), preset from its answer: winters, and summer heat. */
+  winter?: (typeof WINTER)[number];
+  summer?: (typeof SUMMER)[number];
   sky?: (typeof SKY)[number];
   /** Question 2's follow-up, asked after "Out with a camera". */
   glow?: (typeof GLOW)[number];
@@ -65,6 +71,8 @@ const dollars = z.number().finite().nonnegative();
 
 export const InterviewAnswersSchema: z.ZodType<InterviewAnswers> = z.strictObject({
   climate: z.enum(CLIMATE).optional(),
+  winter: z.enum(WINTER).optional(),
+  summer: z.enum(SUMMER).optional(),
   sky: z.enum(SKY).optional(),
   glow: z.enum(GLOW).optional(),
   sunView: z.enum(SUN_VIEW).optional(),

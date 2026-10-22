@@ -5,6 +5,11 @@
  */
 import type { ReactNode } from "react";
 import { buildHeading } from "@/lib/report/build";
+import { climateHeading } from "@/lib/report/climate";
+import { privacyHeading } from "@/lib/report/privacy";
+import { viewHeading } from "@/lib/report/view";
+import { longTrailHeading } from "@/lib/report/longTrail";
+import { internetHeading } from "@/lib/report/internet";
 import { drivewayHeading } from "@/lib/report/driveway";
 import { gardenHeading } from "@/lib/report/garden";
 import { houseHeading } from "@/lib/report/house";
@@ -17,6 +22,11 @@ import { terrainHeading } from "@/lib/report/terrain";
 import { unknownHeading } from "@/lib/report/unknown";
 import { verdictHeading } from "@/lib/report/verdict";
 import type { PartialScreenResult } from "@/lib/screen/types";
+import { Climate } from "./blocks/Climate";
+import { Privacy } from "./blocks/Privacy";
+import { LongView } from "./blocks/LongView";
+import { LongTrails } from "./blocks/LongTrails";
+import { Internet } from "./blocks/Internet";
 import { DarkSkies } from "./blocks/DarkSkies";
 import { DecemberSun } from "./blocks/DecemberSun";
 import { Driveway } from "./blocks/Driveway";
@@ -51,5 +61,11 @@ export const REPORT: readonly ReportSection[] = [
   { Block: Floodplain, heading: () => floodHeading },
   { Block: PublicLand, heading: () => publicLandHeading },
   { Block: GettingThere, heading: () => gettingThereHeading },
+  // Step 11: after the prototype's sections, so their order stays its.
+  { Block: Climate, heading: () => climateHeading },
+  { Block: Privacy, heading: () => privacyHeading },
+  { Block: LongView, heading: () => viewHeading },
+  { Block: LongTrails, heading: () => longTrailHeading },
+  { Block: Internet, heading: () => internetHeading },
   { Block: StillUnknown, heading: () => unknownHeading },
 ];

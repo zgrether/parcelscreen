@@ -37,6 +37,13 @@ import { WhereToGarden } from "@/components/Results/blocks/WhereToGarden";
 import { GettingThere } from "@/components/Results/blocks/GettingThere";
 import { PublicLand } from "@/components/Results/blocks/PublicLand";
 import { StillUnknown } from "@/components/Results/blocks/StillUnknown";
+import { Climate } from "@/components/Results/blocks/Climate";
+import { Privacy } from "@/components/Results/blocks/Privacy";
+import { LongView } from "@/components/Results/blocks/LongView";
+import { LongTrails } from "@/components/Results/blocks/LongTrails";
+import { Internet } from "@/components/Results/blocks/Internet";
+import { PRIVACY_SOURCES } from "@/lib/report/privacy";
+import { CLIMATE_SOURCES } from "@/lib/report/climate";
 import { ordinal, SITE_NUMBER, topNumbers } from "@/components/Results/answer/BestHomesite";
 import { lineNamesOf } from "@/lib/report/lines";
 import { CostBreakdown } from "@/components/Results/card/CostBreakdown";
@@ -51,6 +58,11 @@ export const FULL_WORDS = {
   sky: "Night sky",
   soils: "Soils, septic and flood",
   drives: "Drive times",
+  // Step 11: one section per new factor, after the brief's.
+  climate: "Climate",
+  privacy: "Privacy",
+  longView: "Long view",
+  internet: "Satellite internet",
   listing: "Listing facts and notes",
   lines: "Lines and marks",
   sources: "Data sources",
@@ -61,8 +73,11 @@ export const FULL_WORDS = {
   noListing: "No listing facts yet.",
 } as const;
 
-/** One line per data source, with the screen step that fetched it (plan §3, §8). */
-function sources(r: ScreenResult): { text: string; step: Step }[] {
+/**
+ * One line per data source, with the screen step that fetched it (plan §3, §8). `dated`: the line carries its own
+ * date (the atlas's year, a baked snapshot's), so it isn't "as of the screen".
+ */
+function sources(r: ScreenResult): { text: string; step: Step; dated?: true }[] {
   return [
     {
       text: `USGS 3DEP lidar (${r.demSource ?? "3DEP"}${r.demResM !== undefined ? `, ${fmt(r.demResM)} m` : ""})`,
@@ -75,6 +90,13 @@ function sources(r: ScreenResult): { text: string; step: Step }[] {
     { text: "Census TIGER roads", step: "driveway" },
     { text: "OpenStreetMap places and trailheads", step: "near" },
     { text: "OSRM drive times", step: "drive" },
+    // Step 11: the baked snapshots, read when the sites are ranked.
+    ...(r.climate
+      ? [{ text: `Climate: ${CLIMATE_SOURCES}`, step: "rank" as const, dated: true as const }]
+      : []),
+    ...(r.privacy
+      ? [{ text: `Privacy: ${PRIVACY_SOURCES}`, step: "rank" as const, dated: true as const }]
+      : []),
   ];
 }
 
@@ -247,7 +269,12 @@ export function Full({
       <Section title={FULL_WORDS.drives}>
         {block(GettingThere)}
         {block(PublicLand)}
+        {block(LongTrails)}
       </Section>
+      <Section title={FULL_WORDS.climate}>{block(Climate)}</Section>
+      <Section title={FULL_WORDS.privacy}>{block(Privacy)}</Section>
+      <Section title={FULL_WORDS.longView}>{block(LongView)}</Section>
+      <Section title={FULL_WORDS.internet}>{block(Internet)}</Section>
 
       <Section title={FULL_WORDS.listing}>
         <dl className="rp-facts-list">
@@ -317,12 +344,12 @@ export function Full({
       <Section title={FULL_WORDS.sources}>
         <ul>
           {sources(result).map((s) => (
-            <li key={s.step}>
+            <li key={s.text}>
               {s.text}
               {/* The atlas's own year is in its line; every other source is as of the screen. */}
               {result.failed.includes(s.step)
                 ? `: ${FULL_WORDS.didntLoad}`
-                : s.step === "sky"
+                : s.step === "sky" || s.dated
                   ? ""
                   : `: ${asOf(result.runAt)}`}
             </li>

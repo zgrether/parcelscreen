@@ -50,6 +50,7 @@ async function seed(page: Page, driveway: "gentle" | null): Promise<void> {
 }
 
 const column = (page: Page, name: string) => page.getByRole("region", { name, exact: true });
+const names = (page: Page, name: string) => column(page, name).locator(".rubric-card-name");
 
 test("Long and gentle: Driveway at the bottom of Really want, the note once, and its Undo", async ({
   page,
@@ -60,8 +61,8 @@ test("Long and gentle: Driveway at the bottom of Really want, the note once, and
   const note = page.locator(".rubric-new");
   await expect(note).toHaveText(/New: Driveway, placed from your answer about steep drives\./);
   await expect(column(page, "Really want").locator(".rubric-card").last()).toContainText("Driveway");
-  // Nothing else moved.
-  await expect(column(page, "Nice to have").locator(".rubric-card")).toHaveCount(1);
+  // Nothing else moved; step 11's Internet joins Nice to have, its default tier.
+  await expect(names(page, "Nice to have")).toHaveText(["Best homesite", "Satellite internet"]);
 
   // Undo: back in Don't care, and the next start doesn't add it again or show the note.
   await note.getByRole("button", { name: "Undo" }).click();
@@ -77,9 +78,10 @@ test("unanswered: the bottom of Nice to have; the note shows once", async ({ pag
   await seed(page, null);
   await visit(page, "/priorities");
   await expect(page.locator(".rubric-new")).toContainText("you skipped the question about steep drives");
-  await expect(column(page, "Nice to have").locator(".rubric-card").last()).toContainText("Driveway");
+  // The bottom of Nice to have, then step 11's Internet, added after it.
+  await expect(names(page, "Nice to have")).toHaveText(["Best homesite", "Driveway", "Satellite internet"]);
   await page.locator(".rubric-new").getByRole("button", { name: "OK" }).click();
   await visit(page, "/priorities");
   await expect(page.locator(".rubric-new")).toHaveCount(0);
-  await expect(column(page, "Nice to have").locator(".rubric-card").last()).toContainText("Driveway");
+  await expect(names(page, "Nice to have")).toHaveText(["Best homesite", "Driveway", "Satellite internet"]);
 });

@@ -48,6 +48,28 @@ const comparable = (c: Card) => {
   };
 };
 
+type Recorded1 = Recorded[string][string];
+
+/**
+ * Step 11's declared split (docs/plans/step-11-new-data.md §2.1): the recorded Town and hospital row is Hospital's now,
+ * with its ER half: the same letter (the ER's was the worse on every fixture), the grocery's words dropped. Town keeps
+ * the groceries at weight 0, so it's Don't care and off the card. Nothing else may differ.
+ */
+const split = (want: Recorded1): Recorded1 => ({
+  ...want,
+  rows: want.rows.map((x) =>
+    x.key === "town"
+      ? {
+          ...x,
+          key: "hospital",
+          label: "Hospital",
+          detail: x.detail.replace(/, (\d+ to a grocery|no grocery found)/, ""),
+          ...(x.short ? { short: x.short.replace(/, (grocery \d+|no grocery)$/, "") } : {}),
+        }
+      : x,
+  ),
+});
+
 /**
  * Step 7's guard (plan §2): graded at site #1, with the Driveway row as Don't care (it is, on both shipped weight
  * sets), every card is today's, byte for byte. So a grade or verdict that changes can only come from the best site or
@@ -58,7 +80,7 @@ describe("the default rubric reproduces today's cards (cards-v7.json; a port-onl
     for (const scenario of SCENARIOS[slug])
       for (const nr of PERSONS)
         it(`${slug} ${scenario}, ${nr.id}`, () => {
-          const want = recorded(slug)[scenario]![nr.id]!;
+          const want = split(recorded(slug)[scenario]![nr.id]!);
           const { person: _p, ...wantRest } = want;
           const got = comparable(reportCard(expectedOf(slug, scenario), nr, undefined, undefined, { at: 0 }));
           expect(differences(got, wantRest)).toEqual([]);
@@ -72,8 +94,18 @@ describe("the default rubric reproduces today's cards (cards-v7.json; a port-onl
       expect(r.musts.map((m) => m.factor)).toEqual(["floodplain", "access", "easement", "septic"]);
       expect(r.musts.every((m) => m.threshold === undefined)).toBe(true);
       expect(r.ranked.map((c) => c.tier)).toEqual(Array<"should">(7).fill("should"));
-      // Step 7: the Driveway row weighs 0 in both shipped sets, so the starting list grades as before it.
-      expect(r.wonts).toEqual(["driveway"]);
+      // Step 7: the Driveway row weighs 0 in both shipped sets, so the starting list grades as before it. Step 11:
+      // Town (the groceries) too, Hospital taking its weight.
+      expect(r.wonts).toEqual([
+        "driveway",
+        "town",
+        "climate",
+        "privacy",
+        "longView",
+        "airport",
+        "longTrail",
+        "internet",
+      ]);
       expect(r.bands).toEqual(SCREEN_CONSTANTS.card.rows);
       expect(r.points).toEqual(SCREEN_CONSTANTS.card.points);
       expect(r.gradeCutoffs).toEqual(SCREEN_CONSTANTS.card.gradeCutoffs);

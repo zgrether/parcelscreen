@@ -19,12 +19,19 @@ describe("rank-sum weights", () => {
     expect(COULD_FACTOR).toBe(0.75);
   });
 
-  it("eight Should cards, the card's rows in order: n down to 1 over 36", () => {
-    // The card's eight rows; Within budget (step 10) comes only with budgets.
+  it("every row a Should card, in the card's order: n down to 1 over n(n+1)/2", () => {
+    // The card's rows (step 11 adds one per factor); Within budget (step 10) comes only with budgets.
     const rows = ROW_KEYS.filter((k) => k !== "budget");
     const ranked: RankedCard[] = rows.map((factor) => ({ factor, tier: "should" }));
     const w = rankSumWeights(ranked);
-    expect(round1(rows.map((k) => w[k]))).toEqual([22.2, 19.4, 16.7, 13.9, 11.1, 8.3, 5.6, 2.8]);
+    const n = rows.length;
+    expect(round1(rows.map((k) => w[k]))).toEqual(
+      round1(rows.map((_, i) => ((n - i) / ((n * (n + 1)) / 2)) * 100)),
+    );
+    // Fifteen rows since step 11's Internet: 15 down to 1 over 120.
+    expect(
+      round1([w.elevation, w.climate, w.privacy, w.longView, w.airport, w.longTrail, w.internet]),
+    ).toEqual([12.5, 5, 4.2, 3.3, 2.5, 1.7, 0.8]);
     expect(Object.values(w).reduce((a, b) => a + b, 0)).toBeCloseTo(100, 9);
   });
 
@@ -50,8 +57,15 @@ describe("rank-sum weights", () => {
       room: 15,
       trails: 10,
       driveway: 0,
-      town: 5,
+      town: 0,
+      hospital: 5,
       garden: 10,
+      climate: 0,
+      privacy: 0,
+      longView: 0,
+      airport: 0,
+      longTrail: 0,
+      internet: 0,
       budget: 0,
     });
     expect(weightsOf(explicit)).toEqual(explicit.weights.mode === "explicit" ? explicit.weights.of : null);
@@ -65,7 +79,7 @@ describe("rank-sum weights", () => {
       "sky",
       "trails",
       "garden",
-      "town",
+      "hospital",
     ]);
   });
 });

@@ -191,6 +191,16 @@ describe("config", () => {
             1.3,
           ],
           "editor": {
+            "airportMin": {
+              "max": 180,
+              "min": 15,
+              "step": 5,
+            },
+            "dishClearPct": {
+              "max": 100,
+              "min": 30,
+              "step": 1,
+            },
             "drivewayPct": {
               "max": 25,
               "min": 8,
@@ -216,6 +226,31 @@ describe("config", () => {
               "min": 5,
               "step": 5,
             },
+            "janLowF": {
+              "max": 30,
+              "min": -25,
+              "step": 1,
+            },
+            "julHighF": {
+              "max": 115,
+              "min": 75,
+              "step": 1,
+            },
+            "longTrailMin": {
+              "max": 90,
+              "min": 5,
+              "step": 5,
+            },
+            "privacyFt": {
+              "max": 2640,
+              "min": 100,
+              "step": 10,
+            },
+            "privacySight": {
+              "max": 20,
+              "min": 0,
+              "step": 1,
+            },
             "roomX": {
               "max": 5,
               "min": 1,
@@ -236,6 +271,11 @@ describe("config", () => {
               "min": 5,
               "step": 5,
             },
+            "viewOpenPct": {
+              "max": 60,
+              "min": 0,
+              "step": 1,
+            },
           },
           "gradeCutoffs": [
             3.5,
@@ -245,9 +285,22 @@ describe("config", () => {
           ],
           "interview": {
             "choices": {
+              "calls": {
+                "no": {
+                  "points": {
+                    "internet": 1,
+                  },
+                },
+                "yes": {
+                  "points": {
+                    "internet": 3,
+                  },
+                },
+              },
               "climate": {
                 "between": {
                   "points": {
+                    "climate": 2,
                     "elevation": 2,
                   },
                 },
@@ -256,16 +309,19 @@ describe("config", () => {
                     "elevationFt": 3000,
                   },
                   "points": {
+                    "climate": 2,
                     "elevation": 3,
                   },
                 },
                 "either": {
                   "points": {
+                    "climate": 0,
                     "elevation": 1,
                   },
                 },
                 "warm": {
                   "points": {
+                    "climate": 2,
                     "elevation": 0,
                   },
                 },
@@ -302,12 +358,12 @@ describe("config", () => {
                     "erMin": 15,
                   },
                   "points": {
-                    "town": 3,
+                    "hospital": 3,
                   },
                 },
                 "30": {
                   "points": {
-                    "town": 2,
+                    "hospital": 2,
                   },
                 },
                 "45": {
@@ -315,7 +371,7 @@ describe("config", () => {
                     "erMin": 45,
                   },
                   "points": {
-                    "town": 1,
+                    "hospital": 1,
                   },
                 },
                 "60": {
@@ -323,7 +379,30 @@ describe("config", () => {
                     "erMin": 60,
                   },
                   "points": {
-                    "town": 0,
+                    "hospital": 0,
+                  },
+                },
+              },
+              "fly": {
+                "few": {
+                  "edges": {
+                    "airportMin": 90,
+                  },
+                  "points": {
+                    "airport": 1,
+                  },
+                },
+                "monthly": {
+                  "edges": {
+                    "airportMin": 60,
+                  },
+                  "points": {
+                    "airport": 1,
+                  },
+                },
+                "rarely": {
+                  "points": {
+                    "airport": 0,
                   },
                 },
               },
@@ -390,13 +469,32 @@ describe("config", () => {
                 },
               },
               "neighbors": {
-                "lights": {},
-                "never": {
+                "lights": {
+                  "edges": {
+                    "privacyFt": 660,
+                  },
                   "points": {
+                    "privacy": 1,
+                  },
+                },
+                "never": {
+                  "edges": {
+                    "privacyFt": 1320,
+                    "privacySight": 0,
+                  },
+                  "points": {
+                    "privacy": 3,
                     "sky": 1,
                   },
                 },
-                "wave": {},
+                "wave": {
+                  "edges": {
+                    "privacyFt": 330,
+                  },
+                  "points": {
+                    "privacy": 0,
+                  },
+                },
               },
               "sky": {
                 "camera": {
@@ -418,31 +516,56 @@ describe("config", () => {
                   },
                 },
               },
+              "summer": {
+                "cool": {
+                  "edges": {
+                    "julHighF": 80,
+                  },
+                },
+                "hot": {
+                  "edges": {
+                    "julHighF": 115,
+                  },
+                },
+                "warm": {
+                  "edges": {
+                    "julHighF": 86,
+                  },
+                },
+              },
               "sunView": {
                 "both": {
                   "points": {
                     "homesite": 2,
+                    "longView": 1,
                   },
                 },
                 "neither": {
                   "points": {
                     "homesite": 1,
+                    "longView": 0,
                   },
                 },
                 "sun": {
                   "points": {
                     "homesite": 3,
+                    "longView": 0,
                   },
                 },
                 "view": {
                   "points": {
                     "homesite": 1,
+                    "longView": 3,
                   },
                 },
               },
               "trails": {
                 "bike": {
+                  "edges": {
+                    "longTrailMin": 10,
+                  },
                   "points": {
+                    "longTrail": 3,
                     "trails": 2,
                   },
                 },
@@ -466,19 +589,56 @@ describe("config", () => {
                   },
                 },
               },
+              "winter": {
+                "mild": {
+                  "edges": {
+                    "janLowF": 24,
+                  },
+                },
+                "real": {
+                  "edges": {
+                    "janLowF": -25,
+                  },
+                },
+                "some": {
+                  "edges": {
+                    "janLowF": 18,
+                  },
+                },
+              },
+            },
+            "climatePreset": {
+              "between": {
+                "summer": "warm",
+                "winter": "some",
+              },
+              "cool": {
+                "summer": "cool",
+                "winter": "real",
+              },
+              "warm": {
+                "summer": "hot",
+                "winter": "mild",
+              },
             },
             "defaultPoints": {
+              "airport": 0,
               "budget": 0,
+              "climate": 0,
               "driveway": 1,
               "elevation": 2,
               "garden": 1,
               "homesite": 2,
+              "hospital": 2,
+              "internet": 1,
+              "longTrail": 0,
+              "longView": 0,
+              "privacy": 0,
               "room": 2,
               "sky": 1,
               "town": 2,
               "trails": 2,
             },
-            "dontMatterErMin": 90,
             "mustNoteAbove": 5,
             "should": {
               "max": 6,
@@ -504,6 +664,18 @@ describe("config", () => {
             "F": 0,
           },
           "rows": {
+            "airportMin": [
+              45,
+              60,
+              90,
+              120,
+            ],
+            "dishClearPct": [
+              95,
+              85,
+              70,
+              50,
+            ],
             "drivewayPct": [
               10,
               15,
@@ -534,7 +706,37 @@ describe("config", () => {
               30,
               45,
             ],
+            "janLowF": [
+              21,
+              18,
+              15,
+              11,
+            ],
+            "julHighF": [
+              83,
+              86,
+              89,
+              93,
+            ],
+            "longTrailMin": [
+              10,
+              20,
+              35,
+              50,
+            ],
             "openLandWithinFt": 5280,
+            "privacyFt": [
+              1320,
+              660,
+              330,
+              165,
+            ],
+            "privacySight": [
+              10,
+              20,
+              30,
+              40,
+            ],
             "roomX": [
               3,
               2,
@@ -559,6 +761,12 @@ describe("config", () => {
               35,
               50,
             ],
+            "viewOpenPct": [
+              25,
+              15,
+              8,
+              3,
+            ],
           },
           "sites": {
             "alternatives": 2,
@@ -573,17 +781,29 @@ describe("config", () => {
           },
           "weights": {
             "default": {
+              "airport": 0,
               "budget": 0,
+              "climate": 0,
               "driveway": 0,
               "elevation": 25,
               "garden": 10,
               "homesite": 25,
+              "hospital": 5,
+              "internet": 0,
+              "longTrail": 0,
+              "longView": 0,
+              "privacy": 0,
               "room": 15,
               "sky": 10,
-              "town": 5,
+              "town": 0,
               "trails": 10,
             },
           },
+        },
+        "climate": {
+          "lapseFPer1000Ft": 3.6,
+          "stationFtPerKm": 66,
+          "stationMaxKm": 50,
         },
         "combine": {
           "joinBudgetMs": 2000,
@@ -622,6 +842,13 @@ describe("config", () => {
           "timeoutMs": 45000,
           "wideBufferKm": 6,
           "wideResM": 30,
+        },
+        "dish": {
+          "coneDeg": 25,
+          "northWeight": 2,
+          "reachM": 2000,
+          "stepM": 30,
+          "tieShare": 0.01,
         },
         "drive": {
           "candidates": 3,
@@ -758,6 +985,10 @@ describe("config", () => {
         "grocery": {
           "closerMinMin": 10,
         },
+        "longTrail": {
+          "maxKm": 100,
+          "points": 6,
+        },
         "near": {
           "bigGrocer": /walmart\\|ingles\\|food lion\\|publix\\|harris teeter\\|kroger\\|lowes foods\\|food city\\|trader joe\\|whole foods\\|sprouts\\|aldi/i,
           "excludeHospital": /urgent\\|veterinar\\|animal\\|behavioral\\|psychiatric/i,
@@ -797,6 +1028,14 @@ describe("config", () => {
           "nearestOpenKm": 16,
           "openSimplifyDeg": 0.0002,
           "searchM": 1600,
+        },
+        "privacy": {
+          "eyeM": 1.7,
+          "minHouseM2": 60,
+          "nearM": 402,
+          "roofM": 5,
+          "sightM": 1609,
+          "stepM": 30,
         },
         "roads": {
           "layers": [
@@ -1092,6 +1331,11 @@ describe("config", () => {
           "steepGradePct": 25,
           "steepP90FlagDeg": 30,
           "valleyFloorRadiusM": 1500,
+        },
+        "view": {
+          "openKm": 4.828032,
+          "openMi": 3,
+          "reachKm": 6,
         },
       }
     `);

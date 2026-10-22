@@ -954,5 +954,52 @@ until step 5 (Q14).
     - **Screens saved before it** have no profile: the Upgrade row keeps its stored text ("~N ft over 12% to pave"), the
       condition-based upgrade still applies (it needs only the drawn line's length and condition), and the breakdown
       says "Grade again to price paving on the existing drive".
+66. **Step 11's new data points: optional fields on v9, and old screens kept current** (owner, 2026-10-21, step 11's
+    brief and plan, `docs/plans/step-11-new-data.md`, #263; built in #264–#271).
+    - **Seven factors, one PR each:** Hospital (split from Town and hospital), Climate, Privacy, Long view, Airport, Bike
+      to a long trail, Internet. Hospital and Airport read what the screen already stores; the other five add one
+      optional field each to the stored ScreenResult: `sites[].climate` and `climate`, `sites[].privacy` and `privacy`,
+      `sites[].view` (and the marked house's), `longTrail`, `dish`.
+    - **The exception extended:** §9.65's owner exception (an optional field, no version, no clean break) covers these
+      fields too. SCREEN_SCHEMA_VERSION stays 9; `schema-v9.test.ts`'s snapshot gained each as optional; each PR's
+      `expected.json` change was purely additive (its only deleted line `"engine": N`).
+    - **ENGINE_VERSION 22 → 27,** once per engine PR. `ENGINE_CURRENT_FROM = 22` (`lib/screen/engine.ts`) keeps a screen
+      from engine 22 on current: `fromEarlierRules` reads it, so no saved grade is hidden. A factor a screen lacks reads
+      "not measured: grade again" and counts as unknown: it never fails a Must, and holds the verdict at Maybe only
+      when it is one.
+    - **Saved priorities, added once:** `ps.rubrics.factorsAdded` (optional, generalising step 7's `drivewayAdded`)
+      marks each new factor "new", "seen" or "undone". Each goes in once, where an existing interview answer implies
+      (plan §5), else Don't care; on the starting list's explicit weights it stays Don't care, except Hospital, which
+      takes Town's weight (5). One notice on What matters, "New factors to place: …. They're placed from your answers:
+      drag one to move it.", with Answer the new questions (`/interview?ask=climate`), Take them out and Keep them.
+    - **The interview:** Q1 gains two follow-ups (winter low, summer high) for Climate; Q3, Q4, Q6, Q7, Q8 and Q14 now
+      grade Long view, Bike to a long trail, Hospital, Internet and Airport, and Privacy. New factors break ties after
+      the original rows (Climate beside Elevation).
+    - **Baked-in data:** `lib/screen/data/climate.json` (PRISM 1991–2020 800 m normals, NOAA NCEI 1991–2020 stations;
+      `pnpm data:climate`), `lib/screen/data/buildings/` (Microsoft Global ML Building Footprints, CDLA Permissive 2.0,
+      houses of 60 m² and up, 448 tiles of 0.1°, 6.3 MB; `pnpm data:buildings`), `lib/screen/data/longTrails.ts`
+      (kept by hand from Virginia DCR, vacreepertrail.org and OpenStreetMap). The study region is 35.8–37.4°N by
+      79.9–82.7°W; outside it Climate and Privacy read "not measured: outside the data's area". Each source's terms and
+      attribution are in the plan's §3 and in each panel's "How it's scored".
+    - **Recordings:** Bike to a long trail's OSRM table request is appended to each fixture's `network-port.har`
+      (`PORT_APPEND`), existing entries byte-identical.
+    - **Declared deviations:** Climate's limit is the B/C edge like every row; no Overpass fallback for Privacy; no
+      `sun.profileKm`; Whitetop Station left out of the trail list until it reopens in 2027; the bike and video-calls
+      answers give 3 points; the card panels quote the viewer's rubric (a fix found on the way).
+    - **The owner's answers on the hand-back** (#272, 2026-10-22):
+      - **The FCC's broadband data is dropped.** Its Broadband Data Collection needs a registered account (its API
+        answers 401, its download page 403), and there won't be one: no wired or cell lines, no `h3-js`, and the
+        Internet section's pointer to the FCC's map is gone.
+      - **"Internet" is "Satellite internet"** everywhere it's shown (the card, the grid's header "Satellite", the
+        phone strip, What matters, the interview, Full and Help); the row's key stays `internet`. Its line reads "best
+        dish spot: 92% open sky, 140 ft from site #1 (trees not counted)", "the house" for a marked house.
+      - **Long view is in miles,** as the rest of the app, and its cutoff is a mile figure, not converted km: a
+        direction is open past **3 mi** (`view.openMi`; it was 5 km). A declared numbers change (#273): each site's
+        `openShare` and `dirDeg` move, ENGINE_VERSION 27 → 28, and Ferney's Long view goes B → A (22% → 25% at site
+        #1); the other fixtures keep their letters. Step 11 isn't on main, so no saved screen holds the 5 km share.
+        The 6 km reach is the data's range, not a choice, and stays; past it the line says "the longest reaches
+        farther than 3.7 mi (as far as the app measures)".
+      - **PRISM stays.** Its terms don't address commercial use: it's listed, with its swap (NOAA's 1991–2020
+        normals), in `docs/commercial-review.md` beside the other sources whose terms limit commercial use.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

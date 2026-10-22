@@ -321,6 +321,40 @@ const ScoredDrivewaySchema = z.strictObject({
 });
 export type ScoredDriveway = z.infer<typeof ScoredDrivewaySchema>;
 
+/**
+ * Step 11 (plan §2.2; phase-0.md §9.66, the frozen v9 shape's declared exception): the spot's climate, PRISM's
+ * January low and July high moved to its elevation, and the NOAA station its snowfall and frost dates are from
+ * (`ScreenResult.climate.stations`), null when none is near enough. Optional: absent from a screen made before it.
+ */
+const SpotClimateSchema = z.strictObject({
+  janLowF: num,
+  julHighF: num,
+  station: z.string().nullable(),
+  stationMi: num.nullable(),
+});
+
+/**
+ * Step 11 (plan §2.3; §9.66): the spot's privacy: the houses within a quarter mile, those within a mile in sight over
+ * bare earth, and the nearest one's distance (null: none within a mile). Optional: absent before it.
+ */
+const SpotPrivacySchema = z.strictObject({
+  near: z.number().int().nonnegative(),
+  inSight: z.number().int().nonnegative(),
+  nearestFt: num.nullable(),
+});
+
+/**
+ * Step 11 (plan §2.4; §9.66): the spot's long view, from the skyline its score traces: the longest view (km, at most
+ * the profile's reach, `past` beyond it), the share of the horizon open past 5 km, and its middle direction (null:
+ * none open, or all of it). Optional: absent before it.
+ */
+const SpotViewSchema = z.strictObject({
+  longestKm: num,
+  past: z.boolean(),
+  openShare: num,
+  dirDeg: num.nullable(),
+});
+
 /** What a scored spot stores (v8): its measurements and reasons; its scores derive from them (SpotScores, derive.ts). */
 const ScoreFields = {
   why: z.array(z.string()),
@@ -344,6 +378,12 @@ const ScoreFields = {
    * run, when the straight line to the road scores it.
    */
   driveway: ScoredDrivewaySchema.nullable().optional(),
+  /** Step 11: absent outside the climate data's region, and on a screen made before it. */
+  climate: SpotClimateSchema.optional(),
+  /** Step 11: absent outside the footprints' region, and on a screen made before it. */
+  privacy: SpotPrivacySchema.optional(),
+  /** Step 11: absent on a screen made before it. */
+  view: SpotViewSchema.optional(),
 };
 const CellSchema = z.strictObject({ score: num, slope: num, aspect: num, thermal: num });
 
@@ -761,6 +801,41 @@ export const ScreenResultSchema = z.strictObject({
    * field, phase-0.md §9.20 (d); v2 kept it last in `drives`). Null when there's none; absent when drives didn't run.
    */
   closerGrocery: DriveSchema.nullable().optional(),
+  /**
+   * Step 11 (plan §2.2; §9.66, an optional field on v9): the NOAA stations the spots' climate names, and whether the
+   * parcel is outside the climate data's region (then no spot has a reading). Absent on a screen made before it.
+   */
+  climate: z
+    .strictObject({
+      outside: z.boolean(),
+      stations: z.array(
+        z.strictObject({
+          id: z.string(),
+          name: z.string(),
+          elevFt: num,
+          snowIn: num,
+          lastFreeze: z.string(),
+          firstFreeze: z.string(),
+          frostFreeDays: num,
+        }),
+      ),
+    })
+    .optional(),
+  /**
+   * Step 11 (plan §2.6; §9.66): the drive to the nearest long rail-trail's access point, from where the drives start;
+   * null when none is within reach or routable. Absent before it, or when OSRM didn't answer.
+   */
+  longTrail: z
+    .strictObject({ trail: z.string(), point: z.string(), min: num, mi: num })
+    .nullable()
+    .optional(),
+  /**
+   * Step 11 (plan §2.7; §9.66): the parcel's best open-sky spot for a satellite dish, and how clear its view cone is
+   * (0–1); null when no spot could be read. Absent before it.
+   */
+  dish: z.strictObject({ ll: LatLonSchema, clearShare: num }).nullable().optional(),
+  /** Step 11 (plan §2.3; §9.66): whether the parcel is outside the footprints' region. Absent before it. */
+  privacy: z.strictObject({ outside: z.boolean() }).optional(),
   excluded: z.array(z.strictObject({ acres: num, ll: LatLonSchema, why: z.string() })).optional(),
   sites: z.array(SiteSchema).optional(),
   house: HouseSchema.nullable().optional(),
