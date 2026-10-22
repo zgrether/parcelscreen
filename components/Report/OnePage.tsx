@@ -5,6 +5,8 @@
  * step by step (FIT_STEPS), until it fits: rows first, never a section dropped. Full shows it unshortened.
  */
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { isAdjusted } from "@/lib/report/adjust";
+import { ADJUSTED_TITLE } from "@/lib/report/adjustWords";
 import { COST_WORDS } from "@/lib/report/cost";
 import { fmt } from "@/lib/format";
 import { VERDICT_WORD, listOf } from "@/lib/report/card";
@@ -57,8 +59,13 @@ export function OnePage({
       <section className="rp-grades" aria-label="Grades">
         {c.grades.map((g) => (
           <p key={g.who} className={steps.has("oneLineAnswers") ? "rp-grade rp-clip" : "rp-grade"}>
-            <span className="rp-letter">{g.card.grade ?? "–"}</span> <b>{VERDICT_WORD[g.card.verdict]}</b> ·{" "}
-            {g.who}: {g.reason}
+            <span className="rp-letter">{g.card.grade ?? "–"}</span>
+            {isAdjusted(g.card) && (
+              <span className="adjusted-mark" title={ADJUSTED_TITLE} aria-label={ADJUSTED_TITLE}>
+                ✎
+              </span>
+            )}{" "}
+            <b>{VERDICT_WORD[g.card.verdict]}</b> · {g.who}: {g.reason}
             {g.card.heldBy && (
               <>
                 {" "}

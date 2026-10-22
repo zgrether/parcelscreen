@@ -7,6 +7,8 @@
  * Access and driveway.
  */
 import { useEffect, useRef, type ReactNode } from "react";
+import { ADJUSTMENTS_TITLE } from "@/lib/report/adjustWords";
+import type { PrintAdjust } from "@/lib/print/report";
 import { area, length, lineString } from "@turf/turf";
 import { fmt } from "@/lib/format";
 import { KIND_NAME, type WorkingParcel } from "@/lib/client/parcelStore";
@@ -65,6 +67,8 @@ export const FULL_WORDS = {
   internet: "Satellite internet",
   listing: "Listing facts and notes",
   lines: "Lines and marks",
+  // Step 12: every adjustment on the parcel, with its reason.
+  adjustments: ADJUSTMENTS_TITLE,
   sources: "Data sources",
   closing: "This is a desk screen, not a survey, perc test or appraisal.",
   engine: (n: number) => `Graded by engine version ${n}.`,
@@ -100,6 +104,14 @@ function sources(r: ScreenResult): { text: string; step: Step; dated?: true }[] 
   ];
 }
 
+/** "Oct 22, 2026": an adjustment's date (step 12). */
+const fmtDate = (iso: string): string => {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime())
+    ? ""
+    : d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+};
+
 const asOf = (iso: string): string => {
   const d = new Date(iso);
   return Number.isNaN(d.getTime())
@@ -122,12 +134,15 @@ export function Full({
   card,
   parcel,
   acres,
+  adjustments = [],
 }: {
   result: ScreenResult;
   /** The viewer's card. */
   card: Card;
   parcel: WorkingParcel;
   acres: number | null;
+  /** Every person's adjustments on the parcel (step 12). */
+  adjustments?: readonly PrintAdjust[];
 }) {
   // A block's folds (the driveway's grade detail) print open: paper has no ▸ to press (fresh-eyes review).
   const box = useRef<HTMLDivElement>(null);
@@ -340,6 +355,18 @@ export function Full({
           </ul>
         )}
       </Section>
+
+      {adjustments.length > 0 && (
+        <Section title={FULL_WORDS.adjustments}>
+          <ul>
+            {adjustments.map((a) => (
+              <li key={`${a.who}-${a.factor}`}>
+                <b>{a.who}:</b> {a.factor}, {a.change} (“{a.reason}”), {fmtDate(a.at)}
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
 
       <Section title={FULL_WORDS.sources}>
         <ul>

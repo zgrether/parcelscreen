@@ -62,6 +62,14 @@ test("override a row's letter with a reason, then remove it and Undo", async ({ 
   await adjust(page).getByRole("button", { name: "Undo" }).click();
   await expect(sky.locator("s.was")).toHaveText(app);
   await expect(adjust(page)).toContainText(`You set it to ${to}`);
+
+  // The list marks the adjusted grade and the adjusted factor (PR 4).
+  await visit(page, "/library");
+  const listed = listRow(page, "52-47A");
+  await expect(listed.locator(".lib-grade .adjusted-mark")).toHaveAttribute(
+    "title",
+    "Adjusted for this parcel",
+  );
 });
 
 test("set a Must aside: listed as set aside, and named in the answer line", async ({ page, context }) => {

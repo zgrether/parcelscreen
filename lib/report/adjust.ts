@@ -75,3 +75,10 @@ export const asideLabel = (f: Factor, own?: string): string => own ?? FACTOR_LAB
 
 /** "D" or "–" for a row's letter; a Must's status as stored ("warn"). */
 export const valueWords = (v: Letter | string | null | undefined): string => v ?? "–";
+
+/** Whether a person's card carries any adjustment of theirs (the ✎ mark beside its grade, plan §3). */
+export const isAdjusted = (c: {
+  rows: readonly { adjusted?: unknown }[];
+  gates: readonly { adjusted?: unknown }[];
+  setAside?: readonly unknown[];
+}): boolean => c.rows.some((x) => !!x.adjusted) || c.gates.some((g) => !!g.adjusted) || !!c.setAside?.length;

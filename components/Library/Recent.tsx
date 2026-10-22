@@ -7,6 +7,7 @@
  * phone (CSS).
  */
 import Link from "next/link";
+import { ADJUSTED_TITLE } from "@/lib/report/adjustWords";
 import { useEffect, useState } from "react";
 import { Star } from "@/components/Favorites/Star";
 import { ResetConfirm } from "@/components/Rubric/ResetConfirm";
@@ -159,6 +160,11 @@ function RecentRow({
         {mine ? (
           <>
             <span className={`card-grade small g-${mine.grade ?? "none"}`}>{mine.grade ?? "–"}</span>
+            {mine.adjusted && (
+              <span className="adjusted-mark" title={ADJUSTED_TITLE} aria-label={ADJUSTED_TITLE}>
+                ✎
+              </span>
+            )}
             {/* Step 10b: the verdict word beside the letter, as Favorites shows it. */}
             <span className={`card-word small v-${mine.verdict.toLowerCase()}`}>
               {VERDICT_WORD[mine.verdict]}

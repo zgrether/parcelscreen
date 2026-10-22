@@ -14,6 +14,8 @@ import { answerReason } from "../report/answer";
 import { reportCard, type Card, type NamedRubric } from "../report/card";
 import { GATE_MARK, mustLines, mustText, shownRankedRows } from "../report/cardLines";
 import type { Drawn } from "../report/marks";
+import { adjustChange, SET_ASIDE_READING, SET_ASIDE_WORDS } from "../report/adjustWords";
+import { EDITOR_TITLES, tierOf } from "../rubric/words";
 import type { ScreenResult } from "../screen/types";
 
 /** The new strings (plan §8). */
@@ -70,6 +72,16 @@ export interface PrintGrade {
   reason: string;
 }
 
+/** One adjustment on the parcel, for Full's Your adjustments (step 12). */
+export interface PrintAdjust {
+  who: string;
+  factor: string;
+  /** "B → A", "Check first → Pass", "set aside". */
+  change: string;
+  reason: string;
+  at: string;
+}
+
 export interface PrintTake {
   who: string;
   answer: Answer;
@@ -90,6 +102,8 @@ export interface ReportContent {
   /** The viewer's card, in their rubric's order. */
   tiers: PrintTier[];
   takes: PrintTake[];
+  /** Every person's adjustments on the parcel (step 12), for Full. */
+  adjustments: PrintAdjust[];
   questions: string[];
   /**
    * The viewer's cost to enjoy (step 10), as the Grade section says it: "Ready to camp: $200–240k ✓ under your $250k",
@@ -126,7 +140,7 @@ export function cardTiers(card: Card): PrintTier[] {
     key: `must-${m.key}-${m.label}`,
     label: m.label,
     // Step 10b: a limit that's ranked too carries its letter ("✓ B"); its tier skips it.
-    mark: m.grade !== undefined ? `${GATE_MARK[m.status]} ${m.grade ?? "–"}` : GATE_MARK[m.status],
+    mark: `${m.grade !== undefined ? `${GATE_MARK[m.status]} ${m.grade ?? "–"}` : GATE_MARK[m.status]}${m.adjusted ? " ✎" : ""}`,
     kind: "must",
     tone: m.status,
     text: mustText(m),
@@ -137,16 +151,30 @@ export function cardTiers(card: Card): PrintTier[] {
     rows.map((r) => ({
       key: r.key,
       label: r.label,
-      mark: r.grade ?? "–",
+      mark: `${r.grade ?? "–"}${r.adjusted ? " ✎" : ""}`,
       kind: "grade",
       tone: `g-${r.grade ?? "none"}`,
       text: r.detail,
       short: r.short ?? r.detail,
     }));
+  // Step 12: what the person set aside, in the tier it was in.
+  const R = card.rubric.rubric;
+  const aside = (tier: "must" | "should" | "could"): PrintRow[] =>
+    (card.setAside ?? [])
+      .filter((x) => (x.must ? "must" : tierOf(R, x.key)) === tier)
+      .map((x) => ({
+        key: `aside-${x.key}`,
+        label: x.label,
+        mark: "– ✎",
+        kind: x.must ? "must" : "grade",
+        tone: "g-none",
+        text: SET_ASIDE_READING(x.reason),
+        short: SET_ASIDE_WORDS,
+      }));
   return [
-    { name: TIERS.must, rows: musts },
-    { name: TIERS.should, rows: ranked(should) },
-    { name: TIERS.could, rows: ranked(could) },
+    { name: TIERS.must, rows: [...musts, ...aside("must")] },
+    { name: TIERS.should, rows: [...ranked(should), ...aside("should")] },
+    { name: TIERS.could, rows: [...ranked(could), ...aside("could")] },
   ].filter((t) => t.rows.length > 0);
 }
 
@@ -173,6 +201,15 @@ export function reportContent(i: ReportInput): ReportContent {
     grades,
     tiers: cardTiers(mine),
     takes,
+    adjustments: i.household.adjusts
+      .filter((a) => a.parcel === i.parcelKey)
+      .map((a): PrintAdjust => ({
+        who: i.nameOf(a.by),
+        factor: EDITOR_TITLES[a.factor],
+        change: adjustChange(a),
+        reason: a.reason,
+        at: a.at,
+      })),
     questions: agentQuestions(mine).map((q) => q.question),
     cost: costPrintLines(mine),
   };
