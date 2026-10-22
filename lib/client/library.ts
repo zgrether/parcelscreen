@@ -8,6 +8,7 @@ import { factorCells, type FactorCell } from "../report/factorCells";
 import { perAcre, type PerAcre } from "../report/perAcre";
 import {
   bothLikeIt,
+  adjustMap,
   EMPTY_HOUSEHOLD,
   newTakes,
   waits,
@@ -164,7 +165,12 @@ export function libraryRow(
     const c = reportCard(
       result,
       nr,
-      drawnOf(p.markup, p.drivewayLine, { askingPrice: p.askingPrice, ...costs }),
+      drawnOf(
+        p.markup,
+        p.drivewayLine,
+        { askingPrice: p.askingPrice, ...costs },
+        p.key ? adjustMap(ctx.household, p.key, ctx.me) : undefined,
+      ),
     );
     // The viewer's (the profile's own rubric comes first): the cost at their best site.
     if (nr === rubrics[0]) {

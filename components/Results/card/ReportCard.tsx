@@ -20,7 +20,9 @@ import {
   type MustLine,
 } from "@/lib/report/cardLines";
 import type { NamedRubric } from "@/lib/rubric/types";
-import { TIER_NAMES } from "@/lib/rubric/words";
+import { TIER_NAMES, tierOf } from "@/lib/rubric/words";
+import { ADJUSTED_TITLE, APP_NOW_SAYS, SET_ASIDE_WORDS } from "@/lib/report/adjustWords";
+import type { Adjusted, SetAside } from "@/lib/report/adjust";
 import type { PartialScreenResult } from "@/lib/screen/types";
 import { RubricSwitch } from "./RubricSwitch";
 import { costSummary } from "@/lib/report/costLines";
@@ -85,6 +87,41 @@ function MustDetail({ m }: { m: MustLine }) {
   );
 }
 
+/** An override's reason under the row, in quotes, and "app now says …" when the app's value changed since (step 12). */
+function AdjustedNote({ a }: { a: Adjusted }) {
+  return (
+    <span className="row-why adjusted-why">
+      <span className="adjusted-mark" title={ADJUSTED_TITLE}>
+        ✎
+      </span>{" "}
+      “{a.reason}”{a.then !== a.from ? ` · ${APP_NOW_SAYS(a.from)}` : ""}
+    </span>
+  );
+}
+
+/** A row or Must set aside on this parcel (step 12): greyed in its tier, with its reason; a tap opens its panel. */
+function SetAsideRow({ x, onOpen }: { x: SetAside; onOpen(key: PanelKey): void }) {
+  return (
+    <li data-card-key={x.key}>
+      <button className="card-row set-aside" onClick={() => onOpen(x.key)}>
+        <span className="row-label">{x.label}</span>
+        <span className="card-grade small g-none" aria-hidden="true">
+          –
+        </span>
+        <span className="row-detail">
+          {SET_ASIDE_WORDS}
+          <span className="row-why adjusted-why">
+            <span className="adjusted-mark" title={ADJUSTED_TITLE}>
+              ✎
+            </span>{" "}
+            “{x.reason}”
+          </span>
+        </span>
+      </button>
+    </li>
+  );
+}
+
 /**
  * The banner when the drawn lines changed since the screen: the results stay, no re-run. The owner's wording (A,
  * 2026-10-13; an approved replacement of #116's "Your drawn lines changed since this screen. Run again.").
@@ -137,20 +174,41 @@ export function ReportCard({
   // Step 10b: a factor with a limit is drawn once, on its Must line with its letter.
   const { should, could } = shownRankedRows(card);
   const musts = mustLines(card);
+  // Step 12: what the person set aside here, listed in the tier it was in (a limit's in Must have).
+  const R = card.rubric.rubric;
+  const asideIn = (tier: "must" | "should" | "could") =>
+    (card.setAside ?? []).filter((x) => (x.must ? "must" : tierOf(R, x.key)) === tier);
   const rowButton = (r: Row) => (
     <li key={r.key} data-card-key={r.key}>
-      <button className="card-row" onClick={() => onOpen(r.key)}>
+      <button className={`card-row${r.adjusted ? " adjusted" : ""}`} onClick={() => onOpen(r.key)}>
         <span className="row-label">{r.label}</span>
-        <span className={`card-grade small g-${r.grade ?? "none"}`}>{r.grade ?? "–"}</span>
-        <span className="row-detail">{pending(r.missing) ? "…" : r.detail}</span>
+        {r.adjusted ? (
+          <span className="adjusted-grade">
+            <s className={`card-grade small was g-${r.adjusted.from === "–" ? "none" : r.adjusted.from}`}>
+              {r.adjusted.from}
+            </s>
+            <span className={`card-grade small g-${r.grade ?? "none"}`}>{r.grade ?? "–"}</span>
+          </span>
+        ) : (
+          <span className={`card-grade small g-${r.grade ?? "none"}`}>{r.grade ?? "–"}</span>
+        )}
+        <span className="row-detail">
+          {pending(r.missing) ? "…" : r.detail}
+          {r.adjusted && <AdjustedNote a={r.adjusted} />}
+        </span>
       </button>
     </li>
   );
-  const group = (name: string, rows: Row[]) =>
-    rows.length > 0 && (
+  const group = (name: string, rows: Row[], aside: SetAside[]) =>
+    (rows.length > 0 || aside.length > 0) && (
       <div className="card-group" role="group" aria-label={name}>
         <h3 className="card-sub">{name}</h3>
-        <ul className="card-rows">{rows.map(rowButton)}</ul>
+        <ul className="card-rows">
+          {rows.map(rowButton)}
+          {aside.map((x) => (
+            <SetAsideRow key={`aside-${x.key}`} x={x} onOpen={onOpen} />
+          ))}
+        </ul>
       </div>
     );
   return (
@@ -205,7 +263,7 @@ export function ReportCard({
       </div>
       {!running && <CostSection card={card} onOpen={onOpen} />}
       {between}
-      {musts.length > 0 && (
+      {(musts.length > 0 || asideIn("must").length > 0) && (
         <div className="card-group" role="group" aria-label={TIER_NAMES.must}>
           <h3 className="card-sub">{TIER_NAMES.must}</h3>
           <ul className="card-rows">
@@ -221,6 +279,12 @@ export function ReportCard({
                   >
                     <span className="row-label">{m.label}</span>
                     <span className="must-mark" title={wait ? undefined : STATUS_WORD[m.status]}>
+                      {/* Step 12: the app's result struck through beside the person's. */}
+                      {!wait && m.adjusted && (
+                        <s className="mark was" aria-hidden="true">
+                          {MARK[m.adjusted.from as keyof typeof MARK] ?? m.adjusted.from}
+                        </s>
+                      )}
                       <span className="mark" aria-hidden="true">
                         {wait ? "…" : MARK[m.status]}
                       </span>
@@ -229,16 +293,22 @@ export function ReportCard({
                         <span className={`card-grade small g-${m.grade ?? "none"}`}>{m.grade ?? "–"}</span>
                       )}
                     </span>
-                    <span className="row-detail">{wait ? "…" : <MustDetail m={m} />}</span>
+                    <span className="row-detail">
+                      {wait ? "…" : <MustDetail m={m} />}
+                      {!wait && m.adjusted && <AdjustedNote a={m.adjusted} />}
+                    </span>
                   </button>
                 </li>
               );
             })}
+            {asideIn("must").map((x) => (
+              <SetAsideRow key={`aside-${x.key}`} x={x} onOpen={onOpen} />
+            ))}
           </ul>
         </div>
       )}
-      {group(TIER_NAMES.should, should)}
-      {group(TIER_NAMES.could, could)}
+      {group(TIER_NAMES.should, should, asideIn("should"))}
+      {group(TIER_NAMES.could, could, asideIn("could"))}
     </section>
   );
 }

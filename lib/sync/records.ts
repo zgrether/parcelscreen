@@ -171,5 +171,6 @@ export function mergeHousehold(
     if (x.deleted || !x.record) target.delete(x.key);
     else target.set(x.key, x.record);
   }
-  return JSON.stringify({ v: 1, asks: [...asks.values()], takes: [...takes.values()] });
+  // Step 12's adjustments ride along untouched until they sync (plan §11, PR 3).
+  return JSON.stringify({ ...h, v: 1, asks: [...asks.values()], takes: [...takes.values()] });
 }

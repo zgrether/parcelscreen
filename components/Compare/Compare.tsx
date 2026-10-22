@@ -22,6 +22,7 @@ import { getPref, setPref } from "@/lib/client/prefs";
 import { favoritesOf } from "@/lib/client/favorites";
 import { useKeptScreens } from "@/lib/client/useKeptScreens";
 import { loadUserConfig } from "@/lib/client/userConfig";
+import { adjustFor, useHousehold } from "@/lib/client/householdDoc";
 import { useRubricView } from "@/lib/client/useRubricView";
 import { RubricSwitch } from "@/components/Results/card/RubricSwitch";
 import type { PanelKey } from "@/lib/report/cardPanels";
@@ -55,6 +56,7 @@ export function Compare() {
   // Every History parcel's latest screen: the default columns need their verdicts and dates.
   const screens = useKeptScreens(built);
   const costs = useCostSettings();
+  const household = useHousehold();
   const all: CompareParcel[] = built.map((b) => {
     const { name, acres } = parcelName(b);
     const s = screens.get(b.key!);
@@ -66,7 +68,12 @@ export function Compare() {
       listingAcres: b.listingAcres,
       state: s?.state ?? "none",
       result: s?.result ?? null,
-      drawn: drawnOf(b.markup, b.drivewayLine, { askingPrice: b.askingPrice, ...costs }),
+      drawn: drawnOf(
+        b.markup,
+        b.drivewayLine,
+        { askingPrice: b.askingPrice, ...costs },
+        adjustFor(b.key, household),
+      ),
     };
   });
   // The parcels ticked on Your list (step 4b: Compare is reached from there, 2 or 3 of them).

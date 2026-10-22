@@ -15,6 +15,7 @@ import { visibleParcels } from "@/lib/client/favoritesStore";
 import { previewOptions, SAMPLE_KEY, SAMPLE_NAME } from "@/lib/client/previewParcels";
 import { useKeptScreens } from "@/lib/client/useKeptScreens";
 import { VERDICT_WORD } from "@/lib/report/card";
+import { adjustFor, useHousehold } from "@/lib/client/householdDoc";
 import { drawnOf } from "@/lib/report/marks";
 import type { Drawn } from "@/lib/report/marks";
 import { rubricPreview } from "@/lib/report/rubricPreview";
@@ -66,8 +67,14 @@ export function RubricPreview({
   const parcel = built.find((b) => b.key === key);
   const result = key === SAMPLE_KEY ? sample : (screens.get(key)?.result ?? null);
   const costs = useCostSettings();
+  const household = useHousehold();
   const drawn = parcel
-    ? drawnOf(parcel.markup, parcel.drivewayLine, { askingPrice: parcel.askingPrice, ...costs })
+    ? drawnOf(
+        parcel.markup,
+        parcel.drivewayLine,
+        { askingPrice: parcel.askingPrice, ...costs },
+        adjustFor(parcel.key, household),
+      )
     : undefined;
   const name = options.find((o) => o.key === key)?.name ?? SAMPLE_NAME;
   useEffect(() => {

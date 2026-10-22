@@ -8,6 +8,7 @@ import { getPref, HOUSEHOLD_WRITTEN, setPref } from "./prefs";
 import { currentProfileId } from "./profiles";
 import { sharedKv } from "./profileKv";
 import {
+  adjustMap,
   EMPTY_HOUSEHOLD,
   newTakes,
   readHousehold,
@@ -39,6 +40,13 @@ export const useHousehold = (): Household =>
   useSyncExternalStore(subscribeHousehold, householdDoc, () => EMPTY_HOUSEHOLD);
 
 const save = (h: Household) => setPref("ps.household", h);
+
+/**
+ * A parcel's adjustments by the id of the rubric that grades them (step 12; Drawn.adjust), from the document given (a
+ * page's useHousehold, so it re-renders when one changes) or as stored now.
+ */
+export const adjustFor = (parcel: string | null | undefined, h: Household = householdDoc()) =>
+  parcel ? adjustMap(h, parcel, currentProfileId()) : undefined;
 const now = () => new Date().toISOString();
 
 /** Asks a member for their take on a parcel, with an optional note. */

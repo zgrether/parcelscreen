@@ -8,7 +8,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useCostSettings } from "@/lib/client/costRates";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { getPref, setPref } from "@/lib/client/prefs";
-import { useHousehold } from "@/lib/client/householdDoc";
+import { adjustFor, useHousehold } from "@/lib/client/householdDoc";
 import { parcelName } from "@/lib/client/historyRows";
 import { recipeOf, type WorkingParcel } from "@/lib/client/parcelStore";
 import { currentProfile } from "@/lib/client/profiles";
@@ -172,7 +172,12 @@ function Report({
       askingPriceAt: parcel.askingPriceAt,
       listingAcres: parcel.listingAcres,
       result: record.result,
-      drawn: drawnOf(parcel.markup, parcel.drivewayLine, { askingPrice: parcel.askingPrice, ...costs }),
+      drawn: drawnOf(
+        parcel.markup,
+        parcel.drivewayLine,
+        { askingPrice: parcel.askingPrice, ...costs },
+        adjustFor(parcel.key, household),
+      ),
       rubrics,
       viewer: viewedRubric(rubrics),
       nameOf: (id) =>
