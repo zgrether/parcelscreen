@@ -147,3 +147,52 @@ describe("personal", () => {
     expect(reportCard(MUD, mine(), drawnOf([], null))).toEqual(reportCard(MUD, mine()));
   });
 });
+
+describe("the marks (plan §3, PR 4)", () => {
+  const over = withAdj([adj("sky", { grade: "A", was: "B" }), adj("floodplain", { kind: "setAside" })]);
+
+  it("the grid's cells: the override marked, the set-aside kept empty and marked, never best", async () => {
+    const { factorCells } = await import("./factorCells");
+    const cells = factorCells(reportCard(FERNEY, mine(), over));
+    expect(cells.find((c) => c.key === "sky")).toMatchObject({ grade: "A", adjusted: true });
+    expect(cells.find((c) => c.key === "floodplain")).toMatchObject({
+      kind: "must",
+      text: "–",
+      score: null,
+      setAside: true,
+      adjusted: true,
+    });
+    expect(factorCells(reportCard(FERNEY, mine())).some((c) => c.adjusted)).toBe(false);
+  });
+
+  it("Compare's grade cell and the print rows say so", async () => {
+    const { compareTable } = await import("./compare");
+    const { cardTiers } = await import("../print/report");
+    const t = compareTable(
+      [{ key: "p", name: "Ferney", state: "ok", result: FERNEY, drawn: over } as never],
+      mine(),
+    );
+    expect(t.head.cells[0]!.text).toMatch(/ ✎$/);
+    const tiers = cardTiers(reportCard(FERNEY, mine(), over));
+    const rows = tiers.flatMap((x) => x.rows);
+    expect(rows.find((r) => r.key === "sky")!.mark).toBe("A ✎");
+    expect(rows.find((r) => r.key === "aside-floodplain")).toMatchObject({
+      mark: "– ✎",
+      text: "Set aside for this parcel: “walked it”.",
+    });
+  });
+
+  it("isAdjusted: an override, a set-aside, or neither", async () => {
+    const { isAdjusted } = await import("./adjust");
+    expect(isAdjusted(reportCard(FERNEY, mine()))).toBe(false);
+    expect(isAdjusted(reportCard(FERNEY, mine(), withAdj([adj("sky", { grade: "A" })])))).toBe(true);
+    expect(isAdjusted(reportCard(FERNEY, mine(), withAdj([adj("sky", { kind: "setAside" })])))).toBe(true);
+  });
+
+  it("Full's lines: who, the factor, what changed and why", async () => {
+    const { adjustChange } = await import("./adjustWords");
+    expect(adjustChange({ kind: "override", grade: "A", was: "B" })).toBe("B → A");
+    expect(adjustChange({ kind: "override", status: "pass", was: "warn" })).toBe("Check first → Pass");
+    expect(adjustChange({ kind: "setAside", was: "C" })).toBe("set aside");
+  });
+});

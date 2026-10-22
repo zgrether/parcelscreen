@@ -83,6 +83,12 @@ for (const phone of [false, true]) {
       await row(page, "floodplain").evaluate((el) => el.scrollIntoView({ block: "center" }));
       await page.waitForTimeout(300);
       await page.screenshot({ path: `${OUT}/${device}-adjust-aside-must.png` });
+
+      // The list: the grade and the factors marked (PR 4).
+      await visit(page, "/library");
+      await expect(page.locator(".lib-grade .adjusted-mark:visible").first()).toBeVisible();
+      await page.waitForTimeout(400);
+      await page.screenshot({ path: `${OUT}/${device}-adjust-grid.png` });
     });
   });
 }

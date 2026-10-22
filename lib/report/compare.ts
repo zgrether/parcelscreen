@@ -7,6 +7,8 @@
  * Pure: the page reads the parcels and their kept screens, and draws this.
  */
 import { shortPrice } from "../client/askingPrice";
+import { isAdjusted } from "./adjust";
+import { ADJUSTED_TITLE } from "./adjustWords";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import type { ScreenResult } from "../screen/types";
 import { reportCard, VERDICT_WORD, type Card, type GateStatus, type Letter, type NamedRubric } from "./card";
@@ -110,12 +112,14 @@ export function compareTable(parcels: readonly CompareParcel[], rubric: NamedRub
       parcels.map((p, i) => {
         const c = cards[i];
         if (!c) return blank(p);
+        // Step 12: an adjusted card says so beside its verdict.
+        const adjusted = isAdjusted(c);
         return {
-          text: VERDICT_WORD[c.verdict],
+          text: `${VERDICT_WORD[c.verdict]}${adjusted ? " ✎" : ""}`,
           grade: c.grade,
           mark: null,
           panel: "verdict",
-          title: c.reason,
+          title: adjusted ? `${c.reason} ${ADJUSTED_TITLE}.` : c.reason,
         };
       }),
       // By the letter, as the other rows: two Bs aren't better and worse than each other.

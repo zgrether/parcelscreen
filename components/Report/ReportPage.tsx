@@ -222,7 +222,13 @@ function Report({
           map={(height) => <PrintMap {...map} height={height} onSettled={() => onMapReady(true)} />}
         />
         {preset === "full" && (
-          <Full result={record.result} card={content.grades[0]!.card} parcel={parcel} acres={content.acres} />
+          <Full
+            result={record.result}
+            card={content.grades[0]!.card}
+            parcel={parcel}
+            acres={content.acres}
+            adjustments={content.adjustments}
+          />
         )}
       </article>
     </SheetScale>

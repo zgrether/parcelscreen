@@ -64,6 +64,7 @@ import { getPref, onParcelsWritten, setPref } from "@/lib/client/prefs";
 import { switchLabel } from "@/lib/client/rubrics";
 import { useRubricView } from "@/lib/client/useRubricView";
 import { dropParcel, useHousehold, useSeenTakes } from "@/lib/client/householdDoc";
+import { ADJUSTED_TITLE } from "@/lib/report/adjustWords";
 import { memberName } from "@/lib/client/household";
 import { currentProfileId } from "@/lib/client/profiles";
 import { ANSWER_WORD, type Ask } from "@/lib/client/takes";
@@ -460,6 +461,11 @@ function Grade({ g, unscreened }: { g: Graded | null; unscreened: LibraryRow["un
   return (
     <span className="lib-grade" title={VERDICT_TIP}>
       <span className={`card-grade small g-${g.grade ?? "none"}`}>{g.grade ?? "–"}</span>
+      {g.adjusted && (
+        <span className="adjusted-mark" title={ADJUSTED_TITLE} aria-label={ADJUSTED_TITLE}>
+          ✎
+        </span>
+      )}
       <VerdictWord v={g.verdict} unscreened={null} />
     </span>
   );
@@ -480,6 +486,11 @@ function Grades({ r }: { r: LibraryRow }) {
         <span key={g.id} className="lib-other-grade" title={`${g.name}'s grade`}>
           <span className="tiny muted">· {g.name}</span>
           <span className={`card-grade tiny g-${g.graded?.grade ?? "none"}`}>{g.graded?.grade ?? "–"}</span>
+          {g.graded?.adjusted && (
+            <span className="adjusted-mark tiny" title={ADJUSTED_TITLE} aria-label={ADJUSTED_TITLE}>
+              ✎
+            </span>
+          )}
           {r.newTakesBy.includes(g.id) && (
             <span className="new-take" title="New take">
               <span className="new-dot" role="img" aria-label={`New take from ${g.name}`} />
@@ -523,9 +534,9 @@ const hasStatus = (r: LibraryRow) => !!STATUS_WORD[r.status] || !!milestonesLine
 
 /** Best in column's words (step 10b plan §8): the ●'s title and label. */
 const BEST_WORDS = "best in this column";
-/** What the grid's and the strip's marks mean (the fresh-eyes review), under the list. */
+/** What the grid's and the strip's marks mean (the fresh-eyes review), under the list; step 12 appends ✎. */
 const LEGEND =
-  "✓ pass · ! check first · ✗ fail · ? not known · A–F the grade · ● best in its column · ≠ the listing's acres differ from the boundary's (hover or open the parcel for both)";
+  "✓ pass · ! check first · ✗ fail · ? not known · A–F the grade · ● best in its column · ≠ the listing's acres differ from the boundary's (hover or open the parcel for both) · ✎ adjusted for this parcel";
 
 /**
  * Desktop: the comparison grid (step 10b plan §1): in My order, the handle and the menu first; the name, its grade,
@@ -619,6 +630,12 @@ function FactorCellView({ c, best }: { c: FactorCell | undefined; best: boolean 
       {c.grade !== undefined && (
         <span className={`card-grade small g-${c.grade ?? "none"}`} aria-hidden="true">
           {c.grade ?? "–"}
+        </span>
+      )}
+      {c.setAside && <span className="muted">–</span>}
+      {c.adjusted && (
+        <span className="adjusted-mark" aria-hidden="true">
+          ✎
         </span>
       )}
       {best && (
@@ -803,6 +820,8 @@ function FactorStrip({ r }: { r: LibraryRow }) {
           {c.grade !== undefined && (
             <b className={`lib-strip-grade g-${c.grade ?? "none"}`}>{c.grade ?? "–"}</b>
           )}
+          {c.setAside && <span className="muted">–</span>}
+          {c.adjusted && <span className="adjusted-mark">✎</span>}
         </span>
       ))}
     </div>

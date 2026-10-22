@@ -4,6 +4,7 @@
  * (owner, #128). Filters and sorts are views: they never change a parcel. Pure; components/Library renders it.
  */
 import { DEFAULT_COST_SETTINGS, type CostSettings, type Range } from "../config/costs";
+import { isAdjusted } from "@/lib/report/adjust";
 import { factorCells, type FactorCell } from "../report/factorCells";
 import { perAcre, type PerAcre } from "../report/perAcre";
 import {
@@ -46,6 +47,8 @@ export const householdVerdict = (a: Verdict, b: Verdict): Verdict => (rank(a) <=
 export interface Graded {
   grade: Letter | null;
   verdict: Verdict;
+  /** Step 12: the person adjusted this parcel's card (✎ beside the grade). */
+  adjusted?: true;
 }
 
 /** A parcel with no current screen: never screened, or screened under earlier rules (it re-screens when opened). */
@@ -178,7 +181,7 @@ export function libraryRow(
         costBuild = { total: c.cost.build.total, plusLand: c.cost.build.land === null };
       factors = factorCells(c);
     }
-    return { grade: c.grade, verdict: c.verdict };
+    return { grade: c.grade, verdict: c.verdict, ...(isAdjusted(c) ? { adjusted: true as const } : {}) };
   };
   const grades = rubrics.map((nr) => ({ id: nr.id, name: nr.name, graded: graded(nr) }));
   const verdicts = grades.map((g) => g.graded?.verdict).filter((v): v is Verdict => !!v);

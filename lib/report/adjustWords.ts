@@ -51,3 +51,18 @@ export function adjustedWords(
 
 /** A set-aside factor's reading at the top of its panel. */
 export const SET_ASIDE_READING = (reason: string): string => `Set aside for this parcel: “${reason}”.`;
+
+/** Full's section (plan §3, §8): every adjustment on the parcel, by whom. */
+export const ADJUSTMENTS_TITLE = "Your adjustments";
+
+/** What an adjustment changed, in a line: "B → A", "Check first → Pass", "set aside". */
+export function adjustChange(a: {
+  kind: "override" | "setAside";
+  grade?: string;
+  status?: string;
+  was: string;
+}): string {
+  if (a.kind === "setAside") return "set aside";
+  const now = a.grade ?? (a.status === "pass" ? "Pass" : "Fail");
+  return `${valueWord(a.was)} → ${now}`;
+}
