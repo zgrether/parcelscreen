@@ -187,17 +187,19 @@ export function RubricEditor() {
 
         {newFactors.length > 0 && (
           <div className="card-stale rubric-new-factors" role="status">
-            <span>{factorsNote(newFactors)}</span>
+            <span>
+              {factorsNote(newFactors)}. They&apos;re placed from your answers: drag one to move it.
+            </span>
             {newQuestionsHref(newFactors) && (
               <Link className="btn small" href={newQuestionsHref(newFactors)!}>
                 Answer the new questions
               </Link>
             )}
             <button type="button" className="btn secondary small" onClick={undoFactors}>
-              Undo
+              Take them out
             </button>
             <button type="button" className="btn secondary small" onClick={() => setNewFactors([])}>
-              OK
+              Keep them
             </button>
           </div>
         )}

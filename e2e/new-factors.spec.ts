@@ -63,7 +63,7 @@ test("Hospital just after Town, Town's ER limit with it, one notice, and its Und
   await expect(column(page, "Must have").locator(".rubric-card.minimum")).toContainText("ER within 50 min");
 
   // Undo: Hospital in Don't care, and the next start adds nothing and shows no notice.
-  await notice.getByRole("button", { name: "Undo" }).click();
+  await notice.getByRole("button", { name: "Take them out" }).click();
   await expect(notice).toHaveCount(0);
   await expect(column(page, "Don't care")).toContainText("Hospital");
   await expect(column(page, "Don't care")).toContainText("Climate");
@@ -76,11 +76,11 @@ test("Hospital just after Town, Town's ER limit with it, one notice, and its Und
   ]);
 });
 
-test("OK: the notice shows once, and Hospital stays where it was placed", async ({ page }) => {
+test("Keep them: the notice shows once, and Hospital stays where it was placed", async ({ page }) => {
   await openExplorer(page, FERNEY);
   await seed(page);
   await visit(page, "/priorities");
-  await page.locator(".rubric-new-factors").getByRole("button", { name: "OK" }).click();
+  await page.locator(".rubric-new-factors").getByRole("button", { name: "Keep them" }).click();
   await visit(page, "/priorities");
   await expect(page.locator(".rubric-new-factors")).toHaveCount(0);
   await expect(names(page, "Really want")).toContainText(["Hospital"]);

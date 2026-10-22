@@ -13,7 +13,7 @@ export const IN_WINTER = "in winter, with leaves down";
 
 /** The sources' limits, kept with the numbers (CLAUDE.md: the data's caveats are part of the product's honesty). */
 export const PRIVACY_CAVEAT =
-  "Houses are building footprints of 60 m² (650 ft²) and up that Microsoft found in aerial imagery from 2020 on: a " +
+  "Houses are building footprints of 650 sq ft and up that Microsoft found in aerial imagery from 2020 on: a " +
   "house under trees, or built since, can be missing, and a big barn can count. In sight means a straight line from " +
   "eye height at the site to the house's roof clears the ground, trees not counted: it's the view in winter, with the " +
   "leaves down. Summer leaves hide more.";
