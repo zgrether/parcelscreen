@@ -45,6 +45,8 @@ export const TIE_ORDER: readonly RowKey[] = [
   "room",
   "trails",
   "town",
+  // Step 11: split from Town, just after it.
+  "hospital",
   "sky",
   "garden",
 ];
@@ -154,7 +156,7 @@ export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card
   const limits: { row: RowKey; threshold: number }[] = [];
   const limitRow: Partial<Record<Chip, { row: RowKey; threshold: number }>> = {
     belowFt: { row: "elevation", threshold: numbers.belowFt },
-    erOver: { row: "town", threshold: numbers.erOverMin },
+    erOver: { row: "hospital", threshold: numbers.erOverMin },
     noWinterSun: { row: "homesite", threshold: SCREEN_CONSTANTS.bands.winterSunH[0]! },
   };
   const walkGate: Partial<Record<Chip, GateKey>> = { flood: "floodplain", altSeptic: "septic" };
@@ -180,7 +182,12 @@ export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card
     sharedDriveway: "easement",
     altSeptic: "septic",
   };
-  const zeroRow: Partial<Record<Chip, RowKey>> = { belowFt: "elevation", noWinterSun: "homesite" };
+  // Step 11: "Over ___ min to an ER" doesn't matter puts Hospital, its own row now, in Don't care.
+  const zeroRow: Partial<Record<Chip, RowKey>> = {
+    belowFt: "elevation",
+    noWinterSun: "homesite",
+    erOver: "hospital",
+  };
   const dropped = new Set<GateKey>();
   const zeroed = new Set<RowKey>();
   for (const chip of CHIPS) {
@@ -195,10 +202,6 @@ export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card
     if (row) {
       zeroed.add(row);
       say(row, text);
-    }
-    if (chip === "erOver") {
-      edges.erMin = I.dontMatterErMin;
-      say("town", text);
     }
     if (chip === "overBudget" && budgeted) say("budget", text);
     else note(CHIP_WORDS[chip].laterDontMatter);

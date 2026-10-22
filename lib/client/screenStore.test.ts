@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ENGINE_VERSION } from "@/lib/screen/engine";
+import { ENGINE_CURRENT_FROM, ENGINE_VERSION } from "@/lib/screen/engine";
 import type { ScreenResult } from "@/lib/screen/types";
 import { expectedOf } from "@/test/support/expected";
 import {
@@ -49,6 +49,9 @@ describe("the engine stamp on a kept screen (Batch A §6)", () => {
     expect(fromEarlierRules(record(19))).toBe(true); // the sky at each site and the house (follow-up 58), before §9.43
     expect(fromEarlierRules(record(21))).toBe(true); // schema v8 (step 1), before v9
     expect(fromEarlierRules(record(22))).toBe(false); // schema v9 (step 2)
+    // Step 11: its bumps only add measurements, so a screen from 22 on stays current.
+    expect(ENGINE_CURRENT_FROM).toBe(22);
+    expect(fromEarlierRules(record(ENGINE_VERSION))).toBe(false);
     expect(fromEarlierRules(record(), 1)).toBe(false); // against Phase 0's rules
     expect(fromEarlierRules(record(2), 2)).toBe(false);
     expect(fromEarlierRules(record(1), 5)).toBe(true);

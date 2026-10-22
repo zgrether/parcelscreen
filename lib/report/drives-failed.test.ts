@@ -15,16 +15,18 @@ const osrmDown =
     /router\.project-osrm\.org/.test(String(input)) ? new Response("down", { status: 503 }) : f(input, init);
 
 describe("OSRM failing", () => {
-  it("Town and hospital is unknown, not absent; the card says the drive times didn't load", async () => {
+  it("Town and Hospital are unknown, not absent; the card says the drive times didn't load", async () => {
     const r = (await runFixture("ferney-creek-52-47A", {}, depsFor("ferney-creek-52-47A", osrmDown))).result;
     expect(r.failed).toContain("drive");
-    const town = cardFacts(r).rows.find((x) => x.key === "town")!;
-    expect(town).toMatchObject({
-      grade: null,
-      detail: "the drive times didn't load",
-      missing: "the drive times",
-    });
-    expect(town.detail).not.toMatch(/no hospital found|no grocery found/);
+    for (const key of ["town", "hospital"]) {
+      const row = cardFacts(r).rows.find((x) => x.key === key)!;
+      expect(row).toMatchObject({
+        grade: null,
+        detail: "the drive times didn't load",
+        missing: "the drive times",
+      });
+      expect(row.detail).not.toMatch(/no hospital found|no grocery found/);
+    }
     const card = reportCard(r, ZACH);
     expect(card.incomplete).toContain("the drive times");
     expect(card.verdict).not.toBe("Contender");

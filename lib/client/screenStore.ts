@@ -7,7 +7,7 @@
  * Storage can be missing or refused (private windows); then nothing is kept and reads find nothing.
  */
 import { z } from "zod";
-import { ENGINE_VERSION, UNSTAMPED_ENGINE } from "../screen/engine";
+import { ENGINE_CURRENT_FROM, UNSTAMPED_ENGINE } from "../screen/engine";
 import { ScreenResultSchema, type ScreenResult } from "../screen/types";
 import { openDb, SCREENS } from "./db";
 import { SPACE_ID } from "./profileKv";
@@ -43,11 +43,15 @@ export const ScreenRecordSchema = z.object({
 /** The rules a kept screen was screened with; an unstamped one is Phase 0's. */
 export const engineOf = (r: Pick<ScreenRecord, "engine">): number => r.engine ?? UNSTAMPED_ENGINE;
 
-/** Whether a kept screen came from earlier rules than this build's, so a re-run may give other numbers. */
+/**
+ * Whether a kept screen came from earlier rules than this build's, so a re-run may give other numbers. Step 11: rules
+ * from ENGINE_CURRENT_FROM on only added measurements, so a screen from them is current (its new factors read "not
+ * measured").
+ */
 export const fromEarlierRules = (
   r: Pick<ScreenRecord, "engine">,
-  current: number = ENGINE_VERSION,
-): boolean => engineOf(r) < current;
+  currentFrom: number = ENGINE_CURRENT_FROM,
+): boolean => engineOf(r) < currentFrom;
 
 /**
  * What a result re-screened on open says (owner, #101, 2026-10-11: an approved replacement of "Screened with earlier

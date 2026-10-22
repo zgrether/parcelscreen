@@ -88,7 +88,8 @@ describe("the rulebook (VR7)", () => {
       "Night sky",
       "Room to build",
       "Trails and public land",
-      "Town and hospital",
+      "Town and groceries",
+      "Hospital",
       "Garden ground",
       // Bands, with their edges from config, and what they mean.
       "Shaded under",

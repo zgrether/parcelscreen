@@ -41,10 +41,11 @@ describe("§3: every choice", () => {
     [{ groceries: "close" }, "town", 2, "groceryMin", 15, null],
     [{ groceries: "far" }, "town", 1, "groceryMin", 40, null],
     [{ groceries: "either" }, "town", 0, "groceryMin", 40, null],
-    [{ er: "15" }, "town", 3, "erMin", 15, null],
-    [{ er: "30" }, "town", 2, "erMin", null, null],
-    [{ er: "45" }, "town", 1, "erMin", 45, null],
-    [{ er: "60" }, "town", 0, "erMin", 60, null],
+    // Step 11 (plan §2.1): the ER's answer sets Hospital, split from Town.
+    [{ er: "15" }, "hospital", 3, "erMin", 15, null],
+    [{ er: "30" }, "hospital", 2, "erMin", null, null],
+    [{ er: "45" }, "hospital", 1, "erMin", 45, null],
+    [{ er: "60" }, "hospital", 0, "erMin", 60, null],
     [{ neighbors: "wave" }, "sky", 1, null, null, "Privacy (close enough to wave)"],
     [{ neighbors: "lights" }, "sky", 1, null, null, "Privacy (lights at night are fine)"],
     [{ neighbors: "never", sky: "inside" }, "sky", 1, null, null, "Privacy (never know they're there)"],
@@ -104,6 +105,7 @@ describe("§3: every choice", () => {
       driveway: 1,
       trails: 2,
       town: 2,
+      hospital: 2,
       sky: 1,
       garden: 1,
       budget: 0,
@@ -132,16 +134,19 @@ describe("§3: every choice", () => {
   });
 
   it("why lines quote the person, never a question number (owner, 10/18)", () => {
-    expect(whyOf({ er: "30" }, "town")).toEqual(["You'd want an ER within 30 minutes"]);
+    expect(whyOf({ er: "30" }, "hospital")).toEqual(["You'd want an ER within 30 minutes"]);
     expect(whyOf({ sunView: "sun" }, "homesite")).toEqual([
       "You'd rather have sun at breakfast than a long view",
     ]);
     expect(whyOf({ sky: "camera", glow: "spoils" }, "sky")).toEqual([
       "You'd be out with a camera, and a town's glow would spoil it",
     ]);
-    // Two answers: the one that set the place first.
+    // Two answers: the one that set the place first (step 11: the night sky's two, as the ER's left Town for Hospital).
+    expect(whyOf({ neighbors: "never", sky: "camera" }, "sky")).toEqual([
+      "You'd be out with a camera on a clear January night",
+      "You'd rather never know the neighbors are there",
+    ]);
     expect(whyOf({ groceries: "far", er: "15" }, "town")).toEqual([
-      "You'd want an ER within 15 minutes",
       "You'd rather drive 40 minutes to a big store once a week",
     ]);
     const all = JSON.stringify(rubricFromAnswers(PERSON_A).why);
@@ -173,13 +178,13 @@ describe("§3: question 14", () => {
       { factor: "easement" },
       { factor: "septic" },
       { factor: "elevation", threshold: 2800 },
-      { factor: "town", threshold: 40 },
+      { factor: "hospital", threshold: 40 },
       { factor: "homesite", threshold: 3 },
     ]);
     expect(g.why.cards.floodplain).toEqual(["You'd walk away from a flood zone"]);
     expect(g.why.limits).toEqual({
       elevation: "You'd walk away from land below 2,800 ft",
-      town: "You'd walk away from an ER more than 40 minutes away",
+      hospital: "You'd walk away from an ER more than 40 minutes away",
       homesite: "You'd walk away from a place with no winter sun",
     });
     expect(g.later).toEqual([
@@ -204,7 +209,7 @@ describe("§3: question 14", () => {
     expect(g.rubric.ranked.find((c) => c.factor === "elevation")?.tier).toBe("could");
   });
 
-  it("14b: dealbreakers to Don't care, rows to 0, the ER's edge to 90 min", () => {
+  it("14b: dealbreakers to Don't care, rows to 0 (step 11: the ER's chip puts Hospital at 0)", () => {
     const g = rubricFromAnswers({
       dontMatter: [
         "flood",
@@ -219,8 +224,10 @@ describe("§3: question 14", () => {
       ],
     });
     expect(g.rubric.musts).toEqual([{ factor: "access" }]);
-    expect(g.rubric.wonts).toEqual(["elevation", "homesite"]);
-    expect(bcEdge(g.rubric.bands, "erMin")).toBe(90);
+    // Step 11: the ER's own row is Don't care; until Hospital, the ER's edge went to 90 min on Town.
+    expect(g.rubric.wonts).toEqual(["elevation", "homesite", "hospital"]);
+    expect(bcEdge(g.rubric.bands, "erMin")).toBe(30);
+    expect(g.why.cards.hospital).toEqual(["You said the drive to an ER doesn't matter"]);
     expect(g.why.cards.floodplain).toEqual(["You said a flood zone doesn't matter"]);
     expect(g.why.cards.elevation).toEqual(["You said elevation doesn't matter"]);
     expect(g.later).toEqual(["HOA (doesn't matter)", "Privacy (doesn't matter)", "Budgets (don't matter)"]);
@@ -277,22 +284,24 @@ describe("§4: the two people", () => {
       { factor: "homesite", tier: "should" },
       { factor: "trails", tier: "should" },
       { factor: "sky", tier: "should" },
-      // Step 7: "Long and gentle" gives Driveway 2 points, ahead of Room to build by the default order; Town and
-      // hospital, also at 2, goes to Nice to have (Really want holds six).
+      // Step 7: "Long and gentle" gives Driveway 2 points, ahead of Room to build by the default order; Town, also at
+      // 2, goes to Nice to have (Really want holds six), and Hospital (step 11: the ER's 30 min, 2 points) after it.
       { factor: "driveway", tier: "should" },
       { factor: "room", tier: "should" },
       { factor: "town", tier: "could" },
+      { factor: "hospital", tier: "could" },
       { factor: "garden", tier: "could" },
     ]);
     expect(rounded(weightsOf(g.rubric))).toEqual({
-      elevation: 22.7,
-      homesite: 19.9,
-      trails: 17,
-      sky: 14.2,
-      driveway: 11.3,
-      room: 8.5,
-      town: 4.3,
-      garden: 2.1,
+      elevation: 20.7,
+      homesite: 18.4,
+      trails: 16.1,
+      sky: 13.8,
+      driveway: 11.5,
+      room: 9.2,
+      town: 5.2,
+      hospital: 3.4,
+      garden: 1.7,
       budget: 0,
     });
     expect(bcEdge(g.rubric.bands, "drivewayPct")).toBe(15);
@@ -317,9 +326,11 @@ describe("§4: the two people", () => {
   it("Person B", () => {
     const g = rubricFromAnswers(PERSON_B);
     expect(g.rubric.ranked).toEqual([
-      { factor: "town", tier: "should" },
+      // Step 11: the ER within 15 min (3 points) is Hospital's; the small market close by (2) keeps Town in Really want.
+      { factor: "hospital", tier: "should" },
       { factor: "room", tier: "should" },
       { factor: "trails", tier: "should" },
+      { factor: "town", tier: "should" },
       { factor: "homesite", tier: "could" },
       { factor: "garden", tier: "could" },
       // Step 7 (owner, #216): question 10 skipped, so Driveway at the bottom of Nice to have, never higher.
@@ -327,18 +338,19 @@ describe("§4: the two people", () => {
     ]);
     expect(g.rubric.wonts).toEqual(["elevation", "sky"]);
     expect(rounded(weightsOf(g.rubric))).toEqual({
-      town: 30.8,
-      room: 25.6,
-      trails: 20.5,
-      homesite: 11.5,
-      garden: 7.7,
-      driveway: 3.8,
+      hospital: 26.4,
+      room: 22.6,
+      trails: 18.9,
+      town: 15.1,
+      homesite: 8.5,
+      garden: 5.7,
+      driveway: 2.8,
       elevation: 0,
       sky: 0,
       budget: 0,
     });
     expect(g.rubric.bands.drivewayPct).toEqual([10, 15, 20, 25]);
-    expect(g.rubric.musts.slice(4)).toEqual([{ factor: "town", threshold: 30 }]);
+    expect(g.rubric.musts.slice(4)).toEqual([{ factor: "hospital", threshold: 30 }]);
     expect([bcEdge(g.rubric.bands, "erMin"), bcEdge(g.rubric.bands, "groceryMin")]).toEqual([15, 15]);
     expect(g.later).toEqual([
       "Climate (warm and mild)",
@@ -354,8 +366,9 @@ describe("§2: the rules", () => {
   });
 
   it("a row takes its highest answer, not the sum (owner Q1)", () => {
-    expect(points({ groceries: "close", er: "30" }, "town")).toBe(2);
-    expect(points({ groceries: "far", er: "15" }, "town")).toBe(3);
+    // Step 11: groceries and the ER were Town's two answers; Hospital took the ER's, so the night sky's two show it.
+    expect(points({ sky: "look", neighbors: "never" }, "sky")).toBe(1);
+    expect(points({ sky: "camera", neighbors: "never" }, "sky")).toBe(3);
   });
 
   it("Really want holds the rows with 2+ points, kept to 3–6; ties go to the default order", () => {
@@ -372,10 +385,12 @@ describe("§2: the rules", () => {
       "elevation:should",
       "homesite:should",
       "trails:should",
-      "town:should",
+      // Step 11: the ER's 15 min is Hospital's 3; Town keeps its default 2, so it's in Nice to have with Room.
+      "hospital:should",
       "sky:should",
       "garden:should",
       "room:could",
+      "town:could",
       "driveway:could",
     ]);
     // Only Room to build has 2+: Really want is filled to three with the next best rows.

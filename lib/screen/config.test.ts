@@ -302,12 +302,12 @@ describe("config", () => {
                     "erMin": 15,
                   },
                   "points": {
-                    "town": 3,
+                    "hospital": 3,
                   },
                 },
                 "30": {
                   "points": {
-                    "town": 2,
+                    "hospital": 2,
                   },
                 },
                 "45": {
@@ -315,7 +315,7 @@ describe("config", () => {
                     "erMin": 45,
                   },
                   "points": {
-                    "town": 1,
+                    "hospital": 1,
                   },
                 },
                 "60": {
@@ -323,7 +323,7 @@ describe("config", () => {
                     "erMin": 60,
                   },
                   "points": {
-                    "town": 0,
+                    "hospital": 0,
                   },
                 },
               },
@@ -473,12 +473,12 @@ describe("config", () => {
               "elevation": 2,
               "garden": 1,
               "homesite": 2,
+              "hospital": 2,
               "room": 2,
               "sky": 1,
               "town": 2,
               "trails": 2,
             },
-            "dontMatterErMin": 90,
             "mustNoteAbove": 5,
             "should": {
               "max": 6,
@@ -578,9 +578,10 @@ describe("config", () => {
               "elevation": 25,
               "garden": 10,
               "homesite": 25,
+              "hospital": 5,
               "room": 15,
               "sky": 10,
-              "town": 5,
+              "town": 0,
               "trails": 10,
             },
           },

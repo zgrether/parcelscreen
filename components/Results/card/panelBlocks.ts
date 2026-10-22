@@ -35,6 +35,7 @@ const BLOCKS: Record<PanelKey, Block[]> = {
   driveway: [Driveway],
   trails: [PublicLand, GettingThere],
   town: [GettingThere],
+  hospital: [GettingThere],
   garden: [WhereToGarden, Soils],
   // Step 10: the breakdown is the panels' own (CardPanel's CostBreakdown). Still unknown stays where it was.
   budget: [],

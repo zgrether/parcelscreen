@@ -37,7 +37,7 @@ import {
 } from "@/lib/rubric/words";
 import { cardName, TIER_NAMES, TIERS } from "./RubricColumns";
 
-/** Each band's slider label, where a row has two (Town and hospital) or the unit needs a word. */
+/** Each band's slider label, where the unit needs a word. */
 const BAND_LABELS: Record<LimitKey, string> = {
   elevationFt: "Build site elevation",
   skyMag: "Sky brightness (mag/arcsec²)",

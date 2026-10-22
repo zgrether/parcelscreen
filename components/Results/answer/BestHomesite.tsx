@@ -28,6 +28,7 @@ export const SITE_NUMBER: Record<RowKey, string> = {
   driveway: "Driveway",
   trails: "Trails",
   town: "Town",
+  hospital: "Hospital",
   garden: "Garden",
   budget: "Budget",
 };

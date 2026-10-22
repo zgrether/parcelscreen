@@ -27,6 +27,7 @@ const PANELS: Record<PanelKey, true> = {
   driveway: true,
   trails: true,
   town: true,
+  hospital: true,
   garden: true,
   budget: true,
   cost: true,
@@ -175,11 +176,18 @@ export function panelText(
           // Appended (rule 7; follow-up 54, owner #123): the drive minutes, with the straight line as the fallback.
           `By road: the quickest drive from where the driveway meets the road to one of the ${SCREEN_CONSTANTS.drive.trailheadCandidates} nearest trailheads, to its parking where OpenStreetMap tags one: A within ${R.trailheadMin[0]} min, B within ${R.trailheadMin[1]}, C within ${R.trailheadMin[2]}, D within ${R.trailheadMin[3]}. The straight-line distances above count only when the drive times didn't load.`,
       };
+    // Step 11 (plan §2.1): the ER is Hospital's own panel now; Town keeps the groceries.
     case "town":
       return {
-        title: "Town and hospital",
-        question: "How far to groceries, and to an emergency room?",
-        howScored: `The worse of the two drives: an ER within ${R.erMin[0]} min and a grocery within ${R.groceryMin[0]} for an A; ${R.erMin[1]} and ${R.groceryMin[1]} for a B; ${R.erMin[2]} and ${R.groceryMin[2]} for a C; ${R.erMin[3]} and ${R.groceryMin[3]} for a D; ${weightOf(rubrics, "town")}.`,
+        title: "Town and groceries",
+        question: "How far to groceries?",
+        howScored: `The drive to the nearest grocery: A within ${R.groceryMin[0]} min, B within ${R.groceryMin[1]}, C within ${R.groceryMin[2]}, D within ${R.groceryMin[3]}; ${weightOf(rubrics, "town")}.`,
+      };
+    case "hospital":
+      return {
+        title: "Hospital",
+        question: "How far to an emergency room?",
+        howScored: `The drive to the nearest hospital, its ER where it has one: A within ${R.erMin[0]} min, B within ${R.erMin[1]}, C within ${R.erMin[2]}, D within ${R.erMin[3]}; ${weightOf(rubrics, "hospital")}.`,
       };
     case "garden":
       return {

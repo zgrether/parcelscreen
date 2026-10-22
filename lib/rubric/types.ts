@@ -23,6 +23,8 @@ export const ROW_KEYS = [
   "driveway",
   "trails",
   "town",
+  // Step 11 (docs/plans/step-11-new-data.md §2.1): split from Town, which keeps the groceries.
+  "hospital",
   "garden",
   "budget",
 ] as const;
