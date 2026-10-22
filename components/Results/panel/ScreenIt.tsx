@@ -75,6 +75,10 @@ import {
   useSeeTakes,
 } from "@/lib/client/householdDoc";
 import { adjustPropsFor } from "@/components/Results/card/AdjustSection";
+import { RaiseSection } from "@/components/Results/card/RaiseSection";
+import { getPref } from "@/lib/client/prefs";
+import { MINE } from "@/lib/rubric/types";
+import { raiseSuggestions, type RaiseAction } from "@/lib/report/raise";
 import { OFFLINE_SCREEN_TEXT } from "@/lib/client/pwa";
 import { Star } from "@/components/Favorites/Star";
 import { PanelMenu } from "@/components/Report/PanelMenu";
@@ -382,7 +386,23 @@ export function useScreenIt(
   const panel = opened && opened.serial === serial ? opened.key : null;
   // Stable: CardPanel's focus handling runs again when its onClose changes.
   const openPanel = useCallback((key: PanelKey) => setOpened({ key, serial }), [serial]);
-  const closePanel = useCallback(() => setOpened(null), []);
+  // Step 12: a suggestion opens its factor's panel with Adjust for this parcel's choice made and its reason prefilled.
+  const [adjustIntent, setAdjustIntent] = useState<{
+    factor: PanelKey;
+    choice: "pass" | "setAside";
+    reason: string;
+  } | null>(null);
+  const openAdjust = useCallback(
+    (factor: PanelKey, choice: "pass" | "setAside", reason: string) => {
+      setAdjustIntent({ factor, choice, reason });
+      setOpened({ key: factor, serial });
+    },
+    [serial],
+  );
+  const closePanel = useCallback(() => {
+    setOpened(null);
+    setAdjustIntent(null);
+  }, []);
   // Reopened from the URL (Back from the rulebook): on phones, the sheet comes up to show it.
   const reopened = !!opened?.fromUrl && !!panel && !!display;
   useEffect(() => {
@@ -473,6 +493,8 @@ export function useScreenIt(
     /** The card's open panel (VR5), shown with the report; it's in the URL (#121 review). */
     panel: display ? panel : null,
     openPanel,
+    openAdjust,
+    adjustIntent,
     closePanel,
     /** The worker's session for this parcel's shown run (surfaces, horizon…), or null after a reload. */
     view: sessionLive ? screen.state.view : null,
@@ -652,6 +674,21 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
   });
   // Step 6b: a kept parcel open here with its card, so its takes are seen.
   useSeeTakes(display ? (s.ctl.state.store.open?.key ?? null) : null);
+  // Step 12: ways to raise this grade, for the person's own card once the run is done: from the card shown, as its grade is.
+  const raise = useMemo(
+    () =>
+      display && s.card && !s.runningHere && s.card.rubric.id === MINE
+        ? raiseSuggestions(display, s.card, drawnFor(s), {
+            refusesAltSeptic: !!getPref("ps.interview")?.answers.walkAway?.chips?.includes("altSeptic"),
+          })
+        : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the card carries the drawn lines, adjustments and rubric
+    [display, s.card, s.runningHere],
+  );
+  const act = (a: RaiseAction) => {
+    if (a.kind === "house") s.ctl.setHouse(a.ll);
+    else if (a.kind === "adjust") s.openAdjust(a.factor, a.choice, a.reason);
+  };
   if (!s.showSteps && !s.error && !notes && !display) return null;
   // The card comes right under the header (owner, #111), with the run's log above it: the live list while it runs,
   // one line once it's done (step 4c). What failed or is out of date stays above the card too; Copy summary and the
@@ -728,6 +765,9 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             onOpen={openPanel}
             stale={banner}
           />
+          {raise && (raise.suggestions.length > 0 || raise.neighbour) && (
+            <RaiseSection suggestions={raise.suggestions} act={act} />
+          )}
           {/* Step 6: how each other member would rate it, from their own priorities. */}
           <Others result={display} drawn={drawnFor(s)} parcel={s.ctl.state.store.open?.key ?? null} />
           {/* Step 7: what to ask the agent, once the run is done; then the whole report, behind one control. */}
@@ -796,6 +836,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             reportCard(display, s.rubric, { ...drawnFor(s)!, adjust: undefined }),
             (key) => householdDoc().adjusts.find((a) => a.key === key) ?? null,
             { save: adjustParcel, remove: removeAdjust, restore: restoreAdjust },
+            s.adjustIntent?.factor === panel ? s.adjustIntent : null,
           )}
           point={point}
           running={running}

@@ -7390,3 +7390,30 @@ button.sync-ind.bad {
 .adjust-now q {
   font-style: italic;
 }
+/* Ways to raise this grade (step 12): each change on its line, its action under it, full width on a phone. */
+.raise-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.raise-item {
+  padding: 6px 0 10px;
+  border-bottom: 1px solid var(--color-rule);
+}
+.raise-item:last-child {
+  border-bottom: 0;
+}
+.raise-text {
+  margin: 0 0 6px;
+}
+.raise-cost {
+  color: var(--color-ink-2);
+}
+.raise .btn {
+  min-height: 44px;
+}
+@media (max-width: 600px) {
+  .raise .raise-act {
+    width: 100%;
+  }
+}

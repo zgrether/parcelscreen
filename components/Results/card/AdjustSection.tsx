@@ -30,11 +30,29 @@ export interface AdjustProps {
   /** Removes the adjustment and returns it, so Undo can put it back. */
   remove(): Adjustment | null;
   undo(a: Adjustment): void;
+  /** Opened from a suggestion (step 12 §2): its choice made and its reason prefilled, still to be saved. */
+  initial?: { choice: "pass" | "setAside"; reason: string } | null;
 }
 
-export function AdjustSection({ factor, existing, app, graded, must, save, remove, undo }: AdjustProps) {
-  const [choice, setChoice] = useState<Choice | null>(null);
-  const [reason, setReason] = useState("");
+export function AdjustSection({
+  factor,
+  existing,
+  app,
+  graded,
+  must,
+  save,
+  remove,
+  undo,
+  initial,
+}: AdjustProps) {
+  const [choice, setChoice] = useState<Choice | null>(() =>
+    !initial || existing
+      ? null
+      : initial.choice === "pass"
+        ? { kind: "override", status: "pass" }
+        : { kind: "setAside" },
+  );
+  const [reason, setReason] = useState(initial?.reason ?? "");
   const [removed, setRemoved] = useState<Adjustment | null>(null);
   const reasonId = useId();
   // What the app said when the adjustment is made: the Must's status for a Must's result, else the letter.
@@ -170,6 +188,7 @@ export function adjustPropsFor(
     remove(key: string): Adjustment | null;
     restore(a: Adjustment): void;
   },
+  initial: AdjustProps["initial"] = null,
 ): AdjustProps | null {
   if (!parcel || !me || appCard.rubric.id !== MINE) return null;
   if (!(GATE_KEYS as readonly string[]).includes(panel) && !(ROW_KEYS as readonly string[]).includes(panel))
@@ -199,5 +218,6 @@ export function adjustPropsFor(
       }),
     remove: () => writes.remove(key),
     undo: (a) => writes.restore(a),
+    initial,
   };
 }
