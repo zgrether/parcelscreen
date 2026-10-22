@@ -226,6 +226,16 @@ describe("config", () => {
               "min": 75,
               "step": 1,
             },
+            "privacyFt": {
+              "max": 2640,
+              "min": 100,
+              "step": 10,
+            },
+            "privacySight": {
+              "max": 20,
+              "min": 0,
+              "step": 1,
+            },
             "roomX": {
               "max": 5,
               "min": 1,
@@ -404,13 +414,32 @@ describe("config", () => {
                 },
               },
               "neighbors": {
-                "lights": {},
-                "never": {
+                "lights": {
+                  "edges": {
+                    "privacyFt": 660,
+                  },
                   "points": {
+                    "privacy": 1,
+                  },
+                },
+                "never": {
+                  "edges": {
+                    "privacyFt": 1320,
+                    "privacySight": 0,
+                  },
+                  "points": {
+                    "privacy": 3,
                     "sky": 1,
                   },
                 },
-                "wave": {},
+                "wave": {
+                  "edges": {
+                    "privacyFt": 330,
+                  },
+                  "points": {
+                    "privacy": 0,
+                  },
+                },
               },
               "sky": {
                 "camera": {
@@ -537,6 +566,7 @@ describe("config", () => {
               "garden": 1,
               "homesite": 2,
               "hospital": 2,
+              "privacy": 0,
               "room": 2,
               "sky": 1,
               "town": 2,
@@ -610,6 +640,18 @@ describe("config", () => {
               93,
             ],
             "openLandWithinFt": 5280,
+            "privacyFt": [
+              1320,
+              660,
+              330,
+              165,
+            ],
+            "privacySight": [
+              10,
+              20,
+              30,
+              40,
+            ],
             "roomX": [
               3,
               2,
@@ -655,6 +697,7 @@ describe("config", () => {
               "garden": 10,
               "homesite": 25,
               "hospital": 5,
+              "privacy": 0,
               "room": 15,
               "sky": 10,
               "town": 0,
@@ -879,6 +922,14 @@ describe("config", () => {
           "nearestOpenKm": 16,
           "openSimplifyDeg": 0.0002,
           "searchM": 1600,
+        },
+        "privacy": {
+          "eyeM": 1.7,
+          "minHouseM2": 60,
+          "nearM": 402,
+          "roofM": 5,
+          "sightM": 1609,
+          "stepM": 30,
         },
         "roads": {
           "layers": [

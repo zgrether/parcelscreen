@@ -28,6 +28,7 @@ export const ROW_KEYS = [
   "garden",
   // Step 11's new factors (plan §2): after the rows before them, so their order and ties stay as they were.
   "climate",
+  "privacy",
   "budget",
 ] as const;
 export type RowKey = (typeof ROW_KEYS)[number];
@@ -63,6 +64,10 @@ export interface Bands {
   janLowF: number[];
   /** Step 11: Climate's July mean high at the site, in °F, at most. */
   julHighF: number[];
+  /** Step 11: Privacy's nearest house, in ft, at least. */
+  privacyFt: number[];
+  /** Step 11: Privacy's houses in sight within a mile, at most. */
+  privacySight: number[];
 }
 
 /**

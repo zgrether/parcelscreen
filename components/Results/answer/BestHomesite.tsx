@@ -31,6 +31,7 @@ export const SITE_NUMBER: Record<RowKey, string> = {
   hospital: "Hospital",
   garden: "Garden",
   climate: "Climate",
+  privacy: "Privacy",
   budget: "Budget",
 };
 

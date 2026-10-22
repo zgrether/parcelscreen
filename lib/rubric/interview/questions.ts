@@ -184,19 +184,16 @@ export const QUESTIONS: readonly Question[] = [
         id: "wave",
         label: "Wave from the porch",
         why: "You'd like neighbors close enough to wave to",
-        later: "Privacy (close enough to wave)",
       },
       {
         id: "lights",
         label: "See their lights",
         why: "You don't mind seeing the neighbors' lights at night",
-        later: "Privacy (lights at night are fine)",
       },
       {
         id: "never",
         label: "Never know they're there",
         why: "You'd rather never know the neighbors are there",
-        later: "Privacy (never know they're there)",
       },
     ],
   },
@@ -401,8 +398,6 @@ export const CHIP_WORDS: Record<Chip, ChipWords> = {
     label: "Neighbor's house in view",
     walkAway: () => "You'd walk away from a neighbor's house in view",
     dontMatter: "You said a neighbor's house in view doesn't matter",
-    laterWalkAway: "Privacy: no house in view (a must)",
-    laterDontMatter: "Privacy (doesn't matter)",
   },
   noWinterSun: {
     label: "No winter sun",

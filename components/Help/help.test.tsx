@@ -38,10 +38,9 @@ const APPROVED: [string, string][] = [
 ];
 
 /** Step 11's sections (rule 7: added after the prototype's copy, never in it), by anchor. */
-const ADDED = ["h-climate"];
+const ADDED = ["h-climate", "h-privacy"];
 /** Our copy without step 11's sections: what the prototype's must match. */
-const withoutAdded = (html: string): string =>
-  ADDED.reduce((t, id) => t.slice(0, t.indexOf(`<h3 id="${id}">`)) || t, html);
+const withoutAdded = (html: string): string => html.slice(0, html.indexOf(`<h3 id="${ADDED[0]}">`));
 
 describe("help (14e)", () => {
   it("is the prototype's copy, word for word, but for the owner's approved corrections", () => {

@@ -23,6 +23,7 @@ export const LEGACY_SECOND_WEIGHTS: Record<RowKey, number> = {
   hospital: 10,
   garden: 20,
   climate: 0,
+  privacy: 0,
   budget: 0,
 };
 

@@ -26,6 +26,7 @@ export const FACTOR_LABELS: Record<Factor, string> = {
   hospital: "Hospital",
   garden: "Garden ground",
   climate: "Climate",
+  privacy: "Privacy",
   budget: "Within budget",
 };
 
@@ -57,6 +58,7 @@ export const SHORT_TITLES: Record<Factor, string> = {
   hospital: "Hosp",
   garden: "Garden",
   climate: "Climate",
+  privacy: "Privacy",
   budget: "Budget",
 };
 
@@ -71,7 +73,9 @@ export type BandKey =
   | "gardenAc"
   | "drivewayPct"
   | "janLowF"
-  | "julHighF";
+  | "julHighF"
+  | "privacyFt"
+  | "privacySight";
 
 /**
  * What a limit is set in: a band, or (Best homesite, whose letter is the site's quality and has no band) hours of
@@ -91,6 +95,7 @@ export const ROW_BANDS: Record<RowKey, readonly BandKey[]> = {
   hospital: ["erMin"],
   garden: ["gardenAc"],
   climate: ["janLowF", "julHighF"],
+  privacy: ["privacyFt", "privacySight"],
   // Step 10: graded against the budgets, which the questions set; no slider.
   budget: [],
 };
@@ -110,6 +115,8 @@ export const MINIMUM_BAND: Record<RowKey, LimitKey | null> = {
   garden: "gardenAc",
   // Step 11: no limit; question 14 has no chip for it.
   climate: null,
+  // Step 11: question 14's "Neighbor's house in view", the houses in sight at most.
+  privacy: "privacySight",
   // Step 10: a Must on it has no number of its own: it's the budgets.
   budget: null,
 };
@@ -126,6 +133,8 @@ export const BAND_RUNS: Record<BandKey, "atLeast" | "atMost"> = {
   drivewayPct: "atMost",
   janLowF: "atLeast",
   julHighF: "atMost",
+  privacyFt: "atLeast",
+  privacySight: "atMost",
 };
 
 /** "1.0" → "1", "0.25" stays: a number without trailing zeros. */
@@ -153,6 +162,10 @@ export function bandValue(key: LimitKey, v: number): string {
     case "janLowF":
     case "julHighF":
       return `${fmt(v)} °F`;
+    case "privacyFt":
+      return `${fmt(v)} ft`;
+    case "privacySight":
+      return v === 1 ? "1 house" : `${fmt(v)} houses`;
   }
 }
 
@@ -187,6 +200,22 @@ export function climateWords(b: Bands): string {
     jan <= E.janLowF.min ? "any winter" : `January lows of ${bandValue("janLowF", jan)} or milder`,
     jul >= E.julHighF.max ? "any summer" : `July highs of ${bandValue("julHighF", jul)} or cooler`,
   ].join(", ");
+}
+
+/**
+ * Privacy's limits in words (step 11): "the nearest house at least 660 ft away"; with ", none in sight" when the houses
+ * in sight are limited to none.
+ */
+export function privacyWords(b: Bands): string {
+  const sight = bcEdge(b, "privacySight");
+  return (
+    `the nearest house at least ${bandValue("privacyFt", bcEdge(b, "privacyFt"))} away` +
+    (sight === 0
+      ? ", none in sight"
+      : sight < SCREEN_CONSTANTS.card.editor.privacySight.max
+        ? `, at most ${bandValue("privacySight", sight)} in sight`
+        : "")
+  );
 }
 
 /** Sentence case for a line that starts with words of its own. */
@@ -224,6 +253,8 @@ export function cardLine(r: Rubric, factor: Factor): string {
       return `At least ${bandValue("gardenAc", bcEdge(b, "gardenAc"))} of garden ground`;
     case "climate":
       return capital(climateWords(b));
+    case "privacy":
+      return capital(privacyWords(b));
     case "budget":
       return capital(budgetWords(r.budgets));
   }
@@ -239,6 +270,7 @@ export function minimumWords(row: RowKey, v: number): string {
   if (row === "trails") return `a trailhead within ${value}`;
   if (row === "room") return `at least ${value} the footprint`;
   if (row === "homesite") return `at least ${value} of December sun`;
+  if (row === "privacy") return v === 0 ? "no house in sight" : `at most ${value} in sight`;
   return `at least ${value}`;
 }
 
@@ -297,6 +329,8 @@ export function plainLine(r: Rubric, factor: Factor): string {
       return `ER within ${bandValue("erMin", bcEdge(b, "erMin"))}`;
     case "climate":
       return capital(climateWords(b));
+    case "privacy":
+      return capital(privacyWords(b));
     case "garden": {
       const ac = bcEdge(b, "gardenAc");
       if (ac >= 1) return "Room for a big garden";

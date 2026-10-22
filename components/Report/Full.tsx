@@ -38,6 +38,8 @@ import { GettingThere } from "@/components/Results/blocks/GettingThere";
 import { PublicLand } from "@/components/Results/blocks/PublicLand";
 import { StillUnknown } from "@/components/Results/blocks/StillUnknown";
 import { Climate } from "@/components/Results/blocks/Climate";
+import { Privacy } from "@/components/Results/blocks/Privacy";
+import { PRIVACY_SOURCES } from "@/lib/report/privacy";
 import { CLIMATE_SOURCES } from "@/lib/report/climate";
 import { ordinal, SITE_NUMBER, topNumbers } from "@/components/Results/answer/BestHomesite";
 import { lineNamesOf } from "@/lib/report/lines";
@@ -55,6 +57,7 @@ export const FULL_WORDS = {
   drives: "Drive times",
   // Step 11: one section per new factor, after the brief's.
   climate: "Climate",
+  privacy: "Privacy",
   listing: "Listing facts and notes",
   lines: "Lines and marks",
   sources: "Data sources",
@@ -85,6 +88,9 @@ function sources(r: ScreenResult): { text: string; step: Step; dated?: true }[] 
     // Step 11: the baked snapshots, read when the sites are ranked.
     ...(r.climate
       ? [{ text: `Climate: ${CLIMATE_SOURCES}`, step: "rank" as const, dated: true as const }]
+      : []),
+    ...(r.privacy
+      ? [{ text: `Privacy: ${PRIVACY_SOURCES}`, step: "rank" as const, dated: true as const }]
       : []),
   ];
 }
@@ -260,6 +266,7 @@ export function Full({
         {block(PublicLand)}
       </Section>
       <Section title={FULL_WORDS.climate}>{block(Climate)}</Section>
+      <Section title={FULL_WORDS.privacy}>{block(Privacy)}</Section>
 
       <Section title={FULL_WORDS.listing}>
         <dl className="rp-facts-list">
@@ -329,7 +336,7 @@ export function Full({
       <Section title={FULL_WORDS.sources}>
         <ul>
           {sources(result).map((s) => (
-            <li key={s.step}>
+            <li key={s.text}>
               {s.text}
               {/* The atlas's own year is in its line; every other source is as of the screen. */}
               {result.failed.includes(s.step)

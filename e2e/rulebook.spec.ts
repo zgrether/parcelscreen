@@ -48,7 +48,7 @@ test("Help: from the menu, every section, a screened parcel's breakdown, no side
   await expect(page.locator(".rule-breakdown")).toContainText(
     "Screen a parcel from the map and it shows here.",
   );
-  await expect(page.locator(".rule-panel")).toHaveCount(17); // the verdict, 4 dealbreakers, 10 rows (step 11: Hospital, Climate), within budget (step 10), cost to enjoy
+  await expect(page.locator(".rule-panel")).toHaveCount(18); // the verdict, 4 dealbreakers, 11 rows (step 11: Hospital, Climate, Privacy), within budget (step 10), cost to enjoy
 
   // Screen Ferney on the map, then back: its breakdown, at its card's grade.
   await page.getByRole("link", { name: "Map", exact: true }).click();

@@ -25,6 +25,8 @@ export const BAND_DIRECTION: Record<RowKey, "atLeast" | "atMost" | null> = {
   garden: "atLeast",
   // Step 11: two seasons, no limit.
   climate: null,
+  // Step 11: the houses in sight, at most.
+  privacy: "atMost",
   // Step 10: no threshold; a Must on it reads the budgets (lib/report/card.ts).
   budget: null,
 };
@@ -41,6 +43,7 @@ export const MEASURE_UNIT: Record<RowKey, string | null> = {
   hospital: "min",
   garden: "ac",
   climate: null,
+  privacy: "houses",
   budget: null,
 };
 

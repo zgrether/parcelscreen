@@ -53,6 +53,7 @@ import { shortPrice } from "../client/askingPrice";
 import { DEFAULT_PAVING } from "../config/costs";
 import type { PavingContext } from "./ground";
 import { NOT_MEASURED, OUTSIDE_AREA, stationLine, stationName } from "./climate";
+import { IN_WINTER } from "./privacy";
 import { atLeast, atMost, gradedRows, parcelGrade, verdictLines } from "../rubric/grade";
 import { EDITOR_TITLES, FACTOR_LABELS } from "../rubric/words";
 import { thresholdStatus, thresholdWords, type Measure } from "../rubric/musts";
@@ -748,6 +749,47 @@ function climate(r: Result, K: CardConfig, at: number): Row {
 }
 
 /**
+ * Privacy at the build site (step 11, plan §2.3): the worse of the nearest house's distance and the houses in sight
+ * within a mile, against the person's limits. The houses in sight are the measure a limit reads ("no house in sight").
+ */
+function privacy(r: Result, K: CardConfig, at: number): Row {
+  const g = row("privacy", FACTOR_LABELS.privacy);
+  if (!r.privacy) return { ...g(null, NOT_MEASURED), short: "not measured" };
+  if (r.privacy.outside) return { ...g(null, OUTSIDE_AREA), short: "not measured" };
+  const house = r.house && !("outside" in r.house) ? r.house : null;
+  const spot = house ?? r.sites?.[at];
+  if (!spot) {
+    if (!r.sites) return notLoaded(g, "the homesite ranking");
+    return g(null, "no build site to measure");
+  }
+  const p = spot.privacy;
+  if (!p) return { ...g(null, NOT_MEASURED), short: "not measured" };
+  const grade = worse(
+    p.nearestFt === null ? "A" : atLeast(p.nearestFt, K.rows.privacyFt),
+    atMost(p.inSight, K.rows.privacySight),
+  );
+  return {
+    ...g(grade, privacyLine(p)),
+    short:
+      p.nearestFt === null
+        ? "no house within a mile"
+        : `nearest ${fmt(p.nearestFt)} ft, ${fmt(p.inSight)} in sight`,
+    measure: { value: p.inSight, unit: "houses" },
+  };
+}
+
+/**
+ * "the nearest house 1,100 ft away; 2 within a quarter mile; 1 in sight within a mile (in winter, with leaves down)".
+ */
+export function privacyLine(p: { near: number; inSight: number; nearestFt: number | null }): string {
+  if (p.nearestFt === null) return "no house within a mile";
+  return (
+    `the nearest house ${fmt(p.nearestFt)} ft away; ${fmt(p.near)} within a quarter mile; ` +
+    `${p.inSight === 0 ? "none" : fmt(p.inSight)} in sight within a mile (${IN_WINTER})`
+  );
+}
+
+/**
  * "an 82-minute drive", "a 48-minute drive": the article for a number said aloud (owner, #124: an approved correction,
  * phase-0.md §9.36): "an" for 8, 11, 18 and 80–89.
  */
@@ -907,7 +949,12 @@ export function cardFacts(
   // The route scored: the household's when it chose a line and this screen has a route from it (WF5). The Access and
   // Easement gates, and Floodplain's driveway part, read it whichever site the rows read (step 7 plan §2, §11 Q5).
   const driven = drivenRoute(r, drawn?.driveway);
-  const [elevationRow, homesiteRow, skyRow, roomRow, drivewayRow, climateRow] = siteRows(r, K, build, at);
+  const [elevationRow, homesiteRow, skyRow, roomRow, drivewayRow, climateRow, privacyRow] = siteRows(
+    r,
+    K,
+    build,
+    at,
+  );
   // The cost to enjoy at this site (step 10), when the parcel's lines, price and rates came with it.
   const cost = drawn?.cost
     ? costToEnjoy({
@@ -939,6 +986,7 @@ export function cardFacts(
       hospital(r, K),
       garden(r, K, marks),
       climateRow!,
+      privacyRow!,
       ...[budgetRow(cost, budgets, K)].filter((x): x is Row => x !== null),
     ],
     at,
@@ -971,6 +1019,7 @@ export function siteRows(
     driveway(r, K, at),
     // Step 11: by each site's elevation, so it ranks the sites too (plan §4).
     climate(r, K, at),
+    privacy(r, K, at),
   ];
 }
 

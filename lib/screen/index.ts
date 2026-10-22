@@ -38,6 +38,7 @@ import { nearStep } from "./near";
 import { padusStep } from "./padus";
 import type { HospitalCandidate, HospitalSource } from "./hospitals";
 import { loadClimate, withClimate, type ClimateSource } from "./climate";
+import { loadBuildings, withPrivacy, type BuildingSource } from "./privacy";
 import { OverpassMirrors, type OverpassFallback } from "./places";
 import type { OsmWay } from "./osmRoads";
 import { drawnGrid, insideWithLines, measureLines } from "./drawn";
@@ -111,6 +112,8 @@ export interface ScreenDeps {
   hospitals?: HospitalSource;
   /** The climate snapshot (step 11); injectable as the hospitals' is. Defaults to the committed one. */
   climate?: ClimateSource;
+  /** The building footprint tiles (step 11); injectable as the climate snapshot is. Defaults to the committed ones. */
+  buildings?: BuildingSource;
   /** The browser's OSM roads query (VR3a, through /api/places/overpass); Node calls the mirrors directly. */
   osmRoads?: (centre: LatLon, signal?: AbortSignal) => Promise<OsmWay[]>;
   /** The browser's trailhead parking query (follow-up 54, the same route); Node calls the mirrors directly. */
@@ -473,6 +476,11 @@ export async function screen(
     if (R.shelves) R.shelves = shelvesFromBest(R.shelves, sites);
     // Step 11 (plan §2.2): each spot's climate, from the committed snapshot; without it, the card says "not measured".
     Object.assign(R, withClimate(await (deps.climate ?? loadClimate)(), R));
+    // Step 11 (plan §2.3): and its privacy, from the committed footprints and the wide DEM.
+    Object.assign(
+      R,
+      await withPrivacy(deps.buildings ?? loadBuildings, s.dWide, s.ownLand ?? s.parcel, s.centre, R),
+    );
     return message;
   });
 
@@ -971,13 +979,21 @@ export async function setHouse(out: ScreenOutput, ll: LatLon | null): Promise<Sc
     "the existing house",
   );
   if (!done.result.driveway || "outside" in assessed)
-    return { ...done, result: { ...done.result, ...withClimate(await loadClimate(), done.result) } };
+    return { ...done, result: await readHouse(done.result) };
   const rc = routeContext(done.session);
   const hr = houseRoutes(rc, s.roads ?? [], s.parcel, house, s.config.roadMaxGradePct);
   const alt = alternativesFor(rc, done.session, [house], [hr])[0];
   const result = { ...done.result, house: storedHouse(houseWithDriveway(ctx, assessed, hr, alt)) };
-  // Step 11: the house's climate, as every site's (the stations are the result's, so they're read again).
-  return { ...done, result: { ...result, ...withClimate(await loadClimate(), result) } };
+  return { ...done, result: await readHouse(result) };
+
+  /** Step 11: the house's climate and privacy, as every site's (the stations are the result's, so all are read again). */
+  async function readHouse(r: ScreenResult): Promise<ScreenResult> {
+    const withC = { ...r, ...withClimate(await loadClimate(), r) };
+    return {
+      ...withC,
+      ...(await withPrivacy(loadBuildings, s.dWide, s.ownLand ?? s.parcel, s.centre, withC)),
+    };
+  }
 }
 
 /** The existing house's two candidate driveways (A4), as every ranked site's. */

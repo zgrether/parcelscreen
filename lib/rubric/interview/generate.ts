@@ -48,6 +48,8 @@ export const TIE_ORDER: readonly RowKey[] = [
   "elevation",
   // Step 11: question 1 places it, so it sits by Elevation, which the same answer moves (plan §2.2).
   "climate",
+  // Step 11: question 8 places it (plan §2.3).
+  "privacy",
   "homesite",
   // Step 7: the Factors table puts Driveway after Winter sun.
   "driveway",
@@ -191,6 +193,8 @@ export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card
     belowFt: { row: "elevation", threshold: numbers.belowFt },
     erOver: { row: "hospital", threshold: numbers.erOverMin },
     noWinterSun: { row: "homesite", threshold: SCREEN_CONSTANTS.bands.winterSunH[0]! },
+    // Step 11: Privacy's own limit, no house in sight.
+    neighborInView: { row: "privacy", threshold: 0 },
   };
   const walkGate: Partial<Record<Chip, GateKey>> = { flood: "floodplain", altSeptic: "septic" };
   for (const chip of CHIPS) {
@@ -220,6 +224,7 @@ export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card
     belowFt: "elevation",
     noWinterSun: "homesite",
     erOver: "hospital",
+    neighborInView: "privacy",
   };
   const dropped = new Set<GateKey>();
   const zeroed = new Set<RowKey>();
