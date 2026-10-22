@@ -165,9 +165,11 @@ export function bothLikeIt(h: Household, parcel: string, grades: readonly (strin
   return graded.length > 0 && graded.every((g) => g <= "C");
 }
 
-/** The records the sync carries: each ask and take by its key and kind. */
-export type HouseholdRecord = { kind: "ask"; record: Ask } | { kind: "take"; record: Take };
+/** The records the sync carries: each ask, take and adjustment (step 12) by its key and kind. */
+export type HouseholdRecord =
+  { kind: "ask"; record: Ask } | { kind: "take"; record: Take } | { kind: "adjust"; record: Adjustment };
 export const recordsOf = (h: Household): HouseholdRecord[] => [
   ...h.asks.map((record) => ({ kind: "ask" as const, record })),
   ...h.takes.map((record) => ({ kind: "take" as const, record })),
+  ...h.adjusts.map((record) => ({ kind: "adjust" as const, record })),
 ];

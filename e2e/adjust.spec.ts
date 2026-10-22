@@ -4,7 +4,17 @@
  */
 import { expect, test, type Page } from "@playwright/test";
 import { loadFixture } from "../test/support/fixtures";
-import { importParcels, openExplorer, openFromList, seedScreens, settled, visit } from "./flow";
+import {
+  booted,
+  importParcels,
+  listRow,
+  openExplorer,
+  openFromList,
+  seedScreens,
+  settled,
+  visit,
+} from "./flow";
+import { afterTabSwitch, startSyncing } from "./household";
 import { replayHar } from "./replay";
 
 const FERNEY = "ferney-creek-52-47A";
@@ -71,4 +81,34 @@ test("set a Must aside: listed as set aside, and named in the answer line", asyn
   await expect(flood).toHaveClass(/set-aside/);
   await expect(flood).toContainText("set aside for this parcel");
   await expect(page.locator(".card .card-reason")).toContainText("You set aside a must-have: Floodplain.");
+});
+
+test("an adjustment syncs: made on one device, the other's card has it", async ({ browser }) => {
+  test.setTimeout(240_000);
+  const desk = await (await browser.newContext()).newPage();
+  await replayHar(desk.context(), FERNEY);
+  await openFerney(desk);
+  const code = await startSyncing(desk);
+
+  // The same person's phone: Who's this? → them.
+  const phone = await (await browser.newContext()).newPage();
+  await replayHar(phone.context(), FERNEY);
+  await openExplorer(phone, FERNEY);
+  await phone.goto(`/link#${code}`);
+  await phone.getByRole("button", { name: /^Join$/ }).click();
+  await phone.getByRole("button", { name: "Profile 1" }).click();
+  await booted(phone);
+
+  await visit(desk, "/library");
+  await openFromList(desk, NAME);
+  await row(desk, "floodplain").click();
+  await adjust(desk).getByRole("button", { name: "Set aside for this parcel" }).click();
+  await adjust(desk).getByLabel("Why? (required)").fill("The house goes on the ridge");
+  await adjust(desk).getByRole("button", { name: "Save" }).click();
+  await expect(row(desk, "floodplain")).toHaveClass(/set-aside/);
+
+  await afterTabSwitch(phone, async () => {
+    await listRow(phone, "52-47A").locator(".lib-open").click();
+    await expect(row(phone, "floodplain")).toHaveClass(/set-aside/, { timeout: 5_000 });
+  });
 });

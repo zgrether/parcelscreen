@@ -10,6 +10,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { SyncStore } from "../sync/store";
 import { isConfigError, SyncConfigError } from "./syncConfig";
 import type {
+  HouseholdKind,
   Changes,
   SaveBatch,
   StoredHousehold,
@@ -46,7 +47,7 @@ interface ParcelRow extends Omit<ProfileRow, "id"> {
 }
 interface HouseholdRow {
   key: string;
-  kind: "ask" | "take";
+  kind: HouseholdKind;
   record: Record<string, unknown> | null;
   deleted: boolean;
   updated_at: string;
@@ -112,22 +113,35 @@ export class SupabaseSyncStore implements SyncStore {
       .from("sync_household")
       .select("key, kind, record, deleted, updated_at")
       .eq("space", space);
+    // Step 12's adjustments (0003_adjustments.sql): read as the household's "adjust" records.
+    let adjustQ = this.db
+      .from("sync_adjustments")
+      .select("key, record, deleted, updated_at")
+      .eq("space", space);
     if (since) {
+      adjustQ = adjustQ.gt("updated_at", since);
       profilesQ = profilesQ.gt("updated_at", since);
       parcelsQ = parcelsQ.gt("updated_at", since);
       screensQ = screensQ.gt("created_at", since);
       householdQ = householdQ.gt("updated_at", since);
     }
-    const [profiles, parcels, screens, household] = await Promise.all([
+    const [profiles, parcels, screens, household, adjusts] = await Promise.all([
       profilesQ,
       parcelsQ,
       screensQ,
       householdQ,
+      adjustQ,
     ]);
     const p = check(profiles) as ProfileRow[];
     const q = check(parcels) as ParcelRow[];
     const s = check(screens) as Pick<ScreenRow, "id" | "profile" | "created_at">[];
-    const h = check(household) as HouseholdRow[];
+    const h = [
+      ...(check(household) as HouseholdRow[]),
+      ...(check(adjusts) as Omit<HouseholdRow, "kind">[]).map((r): HouseholdRow => ({
+        ...r,
+        kind: "adjust",
+      })),
+    ];
     const times = [
       ...p.map((r) => r.updated_at),
       ...q.map((r) => r.updated_at),
@@ -183,7 +197,14 @@ export class SupabaseSyncStore implements SyncStore {
           { onConflict: "space,key" },
         ),
       );
-    for (const rows of chunks(batch.household))
+    for (const rows of chunks(batch.household.filter((x) => x.kind === "adjust")))
+      check(
+        await this.db.from("sync_adjustments").upsert(
+          rows.map((x) => ({ space, key: x.key, record: x.record, deleted: x.record === null })),
+          { onConflict: "space,key" },
+        ),
+      );
+    for (const rows of chunks(batch.household.filter((x) => x.kind !== "adjust")))
       check(
         await this.db.from("sync_household").upsert(
           rows.map((x) => ({
