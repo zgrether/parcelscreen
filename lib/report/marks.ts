@@ -9,6 +9,7 @@
 import { booleanPointInPolygon, distance, point, pointToLineDistance, lineString, polygon } from "@turf/turf";
 import type { Paving, Rates } from "../config/costs";
 import type { LatLon } from "../geo/types";
+import type { Adjustment } from "./adjust";
 import type { CostLine } from "./cost";
 import { lineNamesOf, type LineNames } from "./lines";
 
@@ -67,6 +68,11 @@ export interface Drawn {
    * condition, the asking price and the rates in use. Absent: the cost isn't priced, and Within budget isn't graded.
    */
   cost?: { lines: readonly CostLine[]; askingPrice: number | null; rates: Rates; paving?: Paving };
+  /**
+   * Each person's adjustments on this parcel (step 12), by the id of the rubric that grades them: MINE for the viewer's
+   * own, a member's profile id for theirs. A card reads only its own rubric's.
+   */
+  adjust?: ReadonlyMap<string, readonly Adjustment[]>;
 }
 
 /**
@@ -78,7 +84,10 @@ export const drawnOf = (
   driveway: string | null = null,
   /** The asking price and the rates in use (step 10): given, the card prices the cost to enjoy. */
   cost?: { askingPrice: number | null; rates: Rates; paving?: Paving },
+  /** Each person's adjustments on this parcel, by rubric id (step 12): given, each card applies its own. */
+  adjust?: ReadonlyMap<string, readonly Adjustment[]>,
 ): Drawn => ({
+  ...(adjust?.size ? { adjust } : {}),
   names: lineNamesOf(markup),
   marks: markup.filter((m): m is typeof m & Mark => m.shape !== "line"),
   driveway,

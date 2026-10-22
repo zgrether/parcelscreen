@@ -7316,3 +7316,28 @@ button.sync-ind.bad {
     display: none !important;
   }
 }
+/* ---------- Step 12: per-parcel adjustments on the card ---------- */
+/* An override: the app's letter (or Must mark) struck through beside the person's; their reason under the row. */
+.card-row .adjusted-grade {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.card-row s.was,
+.must-row s.was {
+  opacity: 0.55;
+  text-decoration-thickness: 2px;
+}
+.card-row .adjusted-why {
+  color: var(--color-ink-2);
+  font-style: italic;
+}
+.adjusted-mark {
+  font-style: normal;
+  color: var(--color-ink);
+}
+/* A set-aside row or Must: greyed in its tier, still a button to its panel. */
+.card-row.set-aside .row-label,
+.card-row.set-aside .row-detail {
+  color: var(--color-ink-2);
+}

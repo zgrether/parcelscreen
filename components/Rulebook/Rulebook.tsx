@@ -19,6 +19,7 @@ import { breakdown } from "@/lib/report/breakdown";
 import { useRubricView } from "@/lib/client/useRubricView";
 import { reportCard } from "@/lib/report/card";
 import { drawnOf } from "@/lib/report/marks";
+import { adjustFor } from "@/lib/client/householdDoc";
 import { rulebook } from "@/lib/report/rulebook";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { RubricSwitch } from "@/components/Results/card/RubricSwitch";
@@ -61,7 +62,13 @@ export function Rulebook() {
     ? reportCard(
         result,
         rubric,
-        parcel && drawnOf(parcel.markup, parcel.drivewayLine, { askingPrice: parcel.askingPrice, ...costs }),
+        parcel &&
+          drawnOf(
+            parcel.markup,
+            parcel.drivewayLine,
+            { askingPrice: parcel.askingPrice, ...costs },
+            adjustFor(parcel.key),
+          ),
       )
     : null;
   const bd = card ? breakdown(card) : null;

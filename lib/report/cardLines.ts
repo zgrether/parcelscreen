@@ -4,6 +4,7 @@
  */
 import { fmt } from "@/lib/format";
 import { lowerFirst, type Card, type GateStatus, type Letter, type Row } from "./card";
+import type { Adjusted } from "./adjust";
 import type { PanelKey } from "./cardPanels";
 import { thresholdStatus, thresholdWords, type MustStatus } from "@/lib/rubric/musts";
 import { EDITOR_TITLES } from "@/lib/rubric/words";
@@ -23,6 +24,8 @@ export interface MustLine {
    * mark ("✓ B · 2,855 ft, at least 1,800 ft"); null when the row isn't graded. Absent for a gate or an unranked limit.
    */
   grade?: Letter | null;
+  /** The person's override on this parcel (step 12): the status above is theirs. */
+  adjusted?: Adjusted;
 }
 
 /** A Must's mark on the card: ✓ passes, ! to check first, ✗ fails, ? unknown. */
@@ -55,9 +58,12 @@ export function mustLines(card: Card): MustLine[] {
       detail: g.reason,
       ...(g.missing ? { missing: g.missing } : {}),
       ...(g.first ? { first: g.first } : {}),
+      ...(g.adjusted ? { adjusted: g.adjusted } : {}),
     }));
+  // Step 12: a limit set aside on this parcel is listed with the set-asides, not here.
+  const aside = new Set(card.setAside?.map((x) => x.key));
   const limits = R.musts.flatMap((must): MustLine[] => {
-    if (must.threshold === undefined) return [];
+    if (must.threshold === undefined || aside.has(must.factor)) return [];
     const row = card.rows.find((x) => x.key === must.factor);
     const measured = row?.short ?? row?.detail;
     const limit = thresholdWords(must, (n) => fmt(n));
@@ -67,16 +73,18 @@ export function mustLines(card: Card): MustLine[] {
       {
         key: must.factor,
         label: EDITOR_TITLES[must.factor],
-        status: LIMIT_STATUS[thresholdStatus(must, row?.measure)],
+        status: row?.mustStatus ?? LIMIT_STATUS[thresholdStatus(must, row?.measure)],
         detail: ranked
           ? `${measured ? `${measured}, ` : ""}${limit}`
           : `${limit}${measured ? ` · ${measured}` : ""}`,
         ...(row?.missing ? { missing: row.missing } : {}),
         ...(ranked ? { grade: row.grade } : {}),
+        ...(row?.adjusted ? { adjusted: row.adjusted } : {}),
       },
     ];
   });
   // Within budget held as a Must (step 10): after the gates, its reason the budgets at its status.
+  const budgetRow = card.rows.find((x) => x.key === "budget");
   const budget: MustLine[] = card.budgetMust
     ? [
         {
@@ -84,6 +92,7 @@ export function mustLines(card: Card): MustLine[] {
           label: EDITOR_TITLES.budget,
           status: card.budgetMust.status,
           detail: card.budgetMust.reason,
+          ...(budgetRow?.adjusted ? { adjusted: budgetRow.adjusted } : {}),
         },
       ]
     : [];

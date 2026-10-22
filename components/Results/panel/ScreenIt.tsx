@@ -65,7 +65,7 @@ import { Others } from "@/components/Household/Others";
 import { AgentQuestions } from "../answer/AgentQuestions";
 import { BestHomesite } from "../answer/BestHomesite";
 import { FullReport } from "../answer/FullReport";
-import { useSeeTakes } from "@/lib/client/householdDoc";
+import { adjustFor, useHousehold, useSeeTakes } from "@/lib/client/householdDoc";
 import { OFFLINE_SCREEN_TEXT } from "@/lib/client/pwa";
 import { Star } from "@/components/Favorites/Star";
 import { PanelMenu } from "@/components/Report/PanelMenu";
@@ -405,17 +405,21 @@ export function useScreenIt(
   // Step 10: the cost to enjoy reads the asking price and the rates in use (Settings → Costs), live.
   const askingPrice = open?.askingPrice ?? null;
   const costs = useCostSettings();
+  // Step 12: the person's adjustments on this parcel, live.
+  const household = useHousehold();
   const card = useMemo(
     () =>
       display
         ? reportCard(
             display,
             rubric,
-            open ? drawnOf(markup ?? [], drivewayLine, { askingPrice, ...costs }) : undefined,
+            open
+              ? drawnOf(markup ?? [], drivewayLine, { askingPrice, ...costs }, adjustFor(open.key, household))
+              : undefined,
           )
         : null,
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- the open parcel's markup, line and price are what matter
-    [display, rubric, markup, drivewayLine, askingPrice, costs],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the open parcel's markup, line, price and adjustments are what matter
+    [display, rubric, markup, drivewayLine, askingPrice, costs, household],
   );
   // A site tapped in the panel (step 7 plan §1.3): evaluated with the live session, as its pin is; without one, the
   // pins' own words say why not.
@@ -495,7 +499,12 @@ const namesOf = (s: ScreenIt): LineNames | undefined => {
 const drawnFor = (s: ScreenIt): Drawn | undefined => {
   const open = s.ctl.state.store.open;
   return open
-    ? drawnOf(open.markup, open.drivewayLine, { askingPrice: open.askingPrice, ...currentCostSettings() })
+    ? drawnOf(
+        open.markup,
+        open.drivewayLine,
+        { askingPrice: open.askingPrice, ...currentCostSettings() },
+        adjustFor(open.key),
+      )
     : undefined;
 };
 

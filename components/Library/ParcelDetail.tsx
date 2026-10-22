@@ -27,7 +27,7 @@ import { reportCard } from "@/lib/report/card";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import { drawnOf } from "@/lib/report/marks";
 import { AddedBy } from "@/components/Household/AddedBy";
-import { useSeeTakes } from "@/lib/client/householdDoc";
+import { adjustFor, useHousehold, useSeeTakes } from "@/lib/client/householdDoc";
 import { listingAcresNote } from "@/lib/report/listing";
 
 export function ParcelDetail({
@@ -52,7 +52,13 @@ export function ParcelDetail({
   const config = useMemo(() => loadUserConfig(), []);
   const result = kept?.state === "ok" ? kept.result : null;
   const costs = useCostSettings();
-  const drawn = drawnOf(parcel.markup, parcel.drivewayLine, { askingPrice: parcel.askingPrice, ...costs });
+  const household = useHousehold();
+  const drawn = drawnOf(
+    parcel.markup,
+    parcel.drivewayLine,
+    { askingPrice: parcel.askingPrice, ...costs },
+    adjustFor(parcel.key, household),
+  );
   const card = result ? reportCard(result, rubric, drawn) : null;
   const acresNote = listingAcresNote(parcel.listingAcres, acres);
   // The name it has until one is typed, and "Add a name": the Name box, unfolded and focused.

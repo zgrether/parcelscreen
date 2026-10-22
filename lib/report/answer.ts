@@ -190,7 +190,21 @@ export function answerReason(card: Card, r: PartialScreenResult): string {
   const failed = lead.kind === "fail" || lead.kind === "limit";
   const also = !failed && checkFirst && miss !== checkFirst ? checkFirst : null;
   const parts = [strong.length ? `Strong ${and(strong)}` : null, miss, also].filter((x): x is string => !!x);
-  return parts.length ? `${cap(parts.join("; "))}.` : "";
+  const line = parts.length ? `${cap(parts.join("; "))}.` : "";
+  const aside = asideMustsLine(card);
+  return [line, aside].filter((x) => !!x).join(" ");
+}
+
+/**
+ * The Musts the person set aside on this parcel (step 12, plan §3), named after the reason (rule 7: appended): "You set
+ * aside a must-have: Elevation." Null when there are none.
+ */
+export function asideMustsLine(card: Card): string | null {
+  const musts = (card.setAside ?? []).filter((x) => x.must).map((x) => EDITOR_TITLES[x.key]);
+  if (!musts.length) return null;
+  return musts.length === 1
+    ? `You set aside a must-have: ${musts[0]}.`
+    : `You set aside ${musts.length} must-haves: ${musts.join(", ")}.`;
 }
 
 /** The answer, whole: "B, Contender. Strong winter sun and trails; 38 minutes to an ER is past your 30-minute limit." */
