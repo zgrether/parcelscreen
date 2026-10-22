@@ -30,6 +30,7 @@ import { Facts } from "../blocks/shared";
 import type { EvaluationPoint } from "../blocks/types";
 import { panelSections } from "./panelBlocks";
 import { AdjustSection, type AdjustProps } from "./AdjustSection";
+import { TryIt, type TryProps } from "./TryIt";
 import { SET_ASIDE_READING } from "@/lib/report/adjustWords";
 
 export const FROM_THE_REPORT_NOTE =
@@ -186,6 +187,7 @@ export function CardPanel({
             scored={card.drivewayLine ?? null}
             vetoPct={vetoPct}
             choose={lines?.choose}
+            tryIt={lines?.tryIt}
           />
         )}
         {panel === "easement" && lines && lines.markup.length > 0 && (
@@ -370,6 +372,8 @@ export interface YourLines {
   onDelete(id: string): void;
   /** Scores a line's route as the driveway, or the app's pick again (null) (WF5). */
   choose?(lineId: string | null): void;
+  /** Step 12 (owner, #281 answer): Try it beside Use as my driveway, for every drawn line. */
+  tryIt?: TryProps;
 }
 
 /**
@@ -382,12 +386,14 @@ function YourRouteChoice({
   scored,
   vetoPct,
   choose,
+  tryIt,
 }: {
   result: ScreenResult | PartialScreenResult;
   names?: LineNames;
   scored: string | null;
   vetoPct: number;
   choose?(lineId: string | null): void;
+  tryIt?: TryProps;
 }) {
   const cols = routeChoices(result, names, scored, vetoPct);
   if (!cols) return null;
@@ -408,6 +414,8 @@ function YourRouteChoice({
                 </button>
               )
             )}
+            {/* Step 12: the line tried as the driveway, its drives re-timed; kept only with Use it. */}
+            {c.line && tryIt && <TryIt line={c.line} {...tryIt} />}
           </div>
         ))}
       </div>

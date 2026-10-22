@@ -1143,7 +1143,15 @@ export function siteRows(
  * says so when a line was chosen and this screen has no route from it.
  */
 function withYourRoute(facts: CardFacts, r: Result, driven: Driven, drawn?: Drawn): CardFacts {
-  const moved = !!driven.yours && !!driven.pick && driven.route?.entranceIndex !== driven.pick.entranceIndex;
+  // Step 12: a screen timed from your route (a run with the choice, or a Try it kept) says nothing of the pick's start.
+  const pickE = driven.pick ? r.driveway?.entrances[driven.pick.entranceIndex] : undefined;
+  const fromPick =
+    !r.driveFrom ||
+    !pickE ||
+    pickE.source === "drawn" ||
+    distance([r.driveFrom.ll[1], r.driveFrom.ll[0]], [pickE.ll[1], pickE.ll[0]], { units: "meters" }) < 1;
+  const moved =
+    !!driven.yours && !!driven.pick && driven.route?.entranceIndex !== driven.pick.entranceIndex && fromPick;
   const rows = moved
     ? facts.rows.map((x) =>
         x.key === "town" || x.key === "hospital" || x.key === "airport" || x.key === "trails"

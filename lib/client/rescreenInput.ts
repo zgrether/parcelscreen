@@ -28,6 +28,8 @@ export function rescreenInput(
       ...(ownLand ? { ownLand } : {}),
       ...(p.house ? { house: p.house } : {}),
       ...(lines.length ? { lines } : {}),
+      // Step 12 (plan §2.2): the drives are timed from the household's chosen route, as WF6 meant.
+      ...(p.drivewayLine ? { drivewayLine: p.drivewayLine } : {}),
     },
     keys: runKeys(polygon, p.house, config, lines),
   };
