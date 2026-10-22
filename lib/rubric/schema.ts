@@ -27,6 +27,8 @@ const BandsSchema = z.strictObject({
   // Step 11: Climate's, added the same way.
   janLowF: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.janLowF]),
   julHighF: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.julHighF]),
+  privacyFt: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.privacyFt]),
+  privacySight: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.privacySight]),
 });
 
 /** Explicit weights by row. A row a saved rubric has no weight for (the Driveway row, step 7) weighs 0. */

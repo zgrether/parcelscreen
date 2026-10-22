@@ -19,7 +19,15 @@ import type { Row } from "./card";
  * The rows read at a site (§2): Garden ground stays the parcel's (§11 Q1), and Trails and Town are timed from the
  * entrance, so they're the same at every site. Step 11: Climate, by each site's elevation.
  */
-export const SITE_ROWS: readonly RowKey[] = ["elevation", "homesite", "sky", "room", "driveway", "climate"];
+export const SITE_ROWS: readonly RowKey[] = [
+  "elevation",
+  "homesite",
+  "sky",
+  "room",
+  "driveway",
+  "climate",
+  "privacy",
+];
 
 /** What a site needs to pass before its score counts (§2): the build fits, and the person's site-level musts. */
 export type SiteCheck = "fit" | "flood" | "driveway" | RowKey;

@@ -354,6 +354,11 @@ export const SCREEN_CONSTANTS = deepFreeze({
   // stationMaxKm, scored by its distance plus its elevation difference at stationFtPerKm (330 ft counts as 5 km); they
   // aren't adjusted, since cold air pools in the valleys the stations sit in.
   climate: { lapseFPer1000Ft: 3.6, stationMaxKm: 50, stationFtPerKm: 66 },
+  // Step 11 (plan §2.3): Privacy. A house is a footprint of at least minHouseM2 off the parcel (smaller ones are sheds;
+  // scripts/data-buildings.mts keeps the same floor). Houses within nearM (a quarter mile) are counted; those within
+  // sightM (a mile) are tested for line of sight over the bare-earth DEM, from eyeM above the site to roofM above the
+  // house's ground (or its own height), every stepM, trees ignored: "in winter, with leaves down".
+  privacy: { minHouseM2: 60, nearM: 402, sightM: 1609, eyeM: 1.7, roofM: 5, stepM: 30 },
   grocery: {
     // Owner, #81: "Closer: {name}, {N} min." after the chain grocery's drive time, when a non-chain grocery
     // is at least this many minutes nearer by road.
@@ -567,6 +572,11 @@ export const SCREEN_CONSTANTS = deepFreeze({
       // 3 °F inside it; a C up to 3 °F past it, a D up to 7.
       janLowF: [21, 18, 15, 11],
       julHighF: [83, 86, 89, 93],
+      // Step 11 (plan §2.3): Privacy at the site, the worse of two: the nearest house at least this far, in ft (the B/C
+      // edge is "See their lights", 660 ft), and the houses in sight within a mile at most (no limit to speak of until
+      // "Never know they're there" sets it to none, so one in sight is a C).
+      privacyFt: [1320, 660, 330, 165],
+      privacySight: [10, 20, 30, 40],
     },
     // The default rubric's weights, summing to 100 (roadmap step 1: a profile's rubric replaces them; the second set the
     // app shipped with is test/support/rubrics.ts LEGACY_SECOND_WEIGHTS, kept for the step 1 card oracle). The Driveway
@@ -586,6 +596,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
         garden: 10,
         // Step 11: each new factor weighs 0, so it's Don't care on the starting list (plan §1).
         climate: 0,
+        privacy: 0,
         // Step 10: Within budget is never on the starting list; it comes with the interview's budgets.
         budget: 0,
       },
@@ -610,6 +621,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
       // Step 11: the B/C edges; past their ends is "real winter welcome" and "hot is fine".
       janLowF: { min: -25, max: 30, step: 1 },
       julHighF: { min: 75, max: 115, step: 1 },
+      privacyFt: { min: 100, max: 2640, step: 10 },
+      privacySight: { min: 0, max: 20, step: 1 },
     },
     // Step 4, the interview (docs/plans/step-4-interview.md §2–§3; owner, 10/18): what each answer gives a row, as
     // importance points (0–3; a row takes its highest answer) and the B/C edge it sets, which shifts the row's band
@@ -630,6 +643,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
         garden: 1,
         // Step 11: placed by question 1, never by default.
         climate: 0,
+        // Step 11: placed by question 8, never by default.
+        privacy: 0,
         // Step 10: placed by the budgets themselves (generate.ts), never by points.
         budget: 0,
       },
@@ -697,7 +712,13 @@ export const SCREEN_CONSTANTS = deepFreeze({
           "45": { points: { hospital: 1 }, edges: { erMin: 45 } },
           "60": { points: { hospital: 0 }, edges: { erMin: 60 } },
         },
-        neighbors: { wave: {}, lights: {}, never: { points: { sky: 1 } } },
+        // Step 11 (plan §2.3, §5): question 8 sets Privacy. Wave: Don't care, at 330 ft; lights: Nice to have, at 660;
+        // never: Really want, at 1,320 ft and none in sight.
+        neighbors: {
+          wave: { points: { privacy: 0 }, edges: { privacyFt: 330 } },
+          lights: { points: { privacy: 1 }, edges: { privacyFt: 660 } },
+          never: { points: { sky: 1, privacy: 3 }, edges: { privacyFt: 1320, privacySight: 0 } },
+        },
         garden: {
           none: { points: { garden: 0 } },
           herbs: { points: { garden: 1 }, edges: { gardenAc: 0.1 } },

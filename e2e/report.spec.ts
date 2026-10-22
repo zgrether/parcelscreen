@@ -112,6 +112,7 @@ test("Full: the summary, then the brief's sections in order, the closing line; C
       "Soils, septic and flood",
       "Drive times",
       "Climate", // step 11
+      "Privacy",
       "Listing facts and notes",
       "Lines and marks",
       "Data sources",

@@ -1336,6 +1336,18 @@
       ],
       "additionalProperties": false
     },
+    "privacy": {
+      "type": "object",
+      "properties": {
+        "outside": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "outside"
+      ],
+      "additionalProperties": false
+    },
     "excluded": {
       "type": "array",
       "items": {
@@ -1615,6 +1627,33 @@
               "julHighF",
               "station",
               "stationMi"
+            ],
+            "additionalProperties": false
+          },
+          "privacy": {
+            "type": "object",
+            "properties": {
+              "near": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "inSight": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "nearestFt": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "near",
+              "inSight",
+              "nearestFt"
             ],
             "additionalProperties": false
           },
@@ -2094,6 +2133,33 @@
                     "julHighF",
                     "station",
                     "stationMi"
+                  ],
+                  "additionalProperties": false
+                },
+                "privacy": {
+                  "type": "object",
+                  "properties": {
+                    "near": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "inSight": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "nearestFt": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "near",
+                    "inSight",
+                    "nearestFt"
                   ],
                   "additionalProperties": false
                 }

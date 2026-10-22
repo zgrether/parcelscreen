@@ -11,7 +11,7 @@ import { climateLimits } from "./interview/generate";
 import type { RankedCard, RowKey, Rubric } from "./types";
 
 /** The factors step 11 added, in the order they shipped (plan §11). Each factor's PR appends its own. */
-export const NEW_FACTORS = ["hospital", "climate"] as const satisfies readonly RowKey[];
+export const NEW_FACTORS = ["hospital", "climate", "privacy"] as const satisfies readonly RowKey[];
 export type NewFactor = (typeof NEW_FACTORS)[number];
 
 /** Each new factor's state: "new" until What matters has shown the notice, then "seen"; "undone" after its Undo. */
@@ -38,7 +38,37 @@ export function withFactor(r: Rubric, f: NewFactor, answers: InterviewAnswers = 
       return withHospital(r);
     case "climate":
       return withClimate(r, answers);
+    case "privacy":
+      return withPrivacy(r, answers);
   }
+}
+
+/** A card at the bottom of Nice to have: the last card of all. */
+const lastCould = (r: Rubric, factor: RowKey): Rubric => ({
+  ...r,
+  ranked: [...r.ranked, { factor, tier: "could" }],
+});
+
+/**
+ * Privacy (plan §2.3, §5): question 8 places it, "See their lights" at the bottom of Nice to have and "Never know
+ * they're there" at the bottom of Really want, at the answer's limits; "Wave from the porch", or no answer, Don't care.
+ * Question 14's "Neighbor's house in view" walk-away is its limit, none in sight, and lifts it to at least Nice to
+ * have, as the interview does. On explicit weights it stays Don't care, as Climate does.
+ */
+function withPrivacy(r: Rubric, a: InterviewAnswers): Rubric {
+  const I = SCREEN_CONSTANTS.card.interview;
+  let out: Rubric = { ...r, bands: { ...r.bands } };
+  const effect = a.neighbors ? I.choices.neighbors[a.neighbors] : undefined;
+  for (const [band, v] of Object.entries(effect?.edges ?? {}) as ["privacyFt" | "privacySight", number][])
+    out = setBandEdge(out, band, v);
+  const limit = !!a.walkAway?.chips.includes("neighborInView");
+  if (limit && !out.musts.some((m) => m.factor === "privacy"))
+    out = { ...out, musts: [...out.musts, { factor: "privacy", threshold: 0 }] };
+  if (r.weights.mode !== "rankSum") return { ...out, wonts: [...out.wonts, "privacy"] };
+  const points = Math.max(effect?.points.privacy ?? 0, limit ? 1 : 0);
+  if (points >= I.should.minPoints) return lastShould(out, "privacy");
+  if (points >= 1) return lastCould(out, "privacy");
+  return { ...out, wonts: [...out.wonts, "privacy"] };
 }
 
 /** A card at the bottom of Really want: after the last Really want card. */

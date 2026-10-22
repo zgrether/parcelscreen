@@ -2091,6 +2091,11 @@
      "station": "USC00445453",
      "stationMi": 15.3
     },
+    "privacy": {
+     "near": 5,
+     "inSight": 0,
+     "nearestFt": 937
+    },
     "driveway": {
      "lengthFt": 478.0716692682822,
      "cost": {
@@ -2153,6 +2158,11 @@
      "julHighF": 81,
      "station": "USC00445453",
      "stationMi": 15.4
+    },
+    "privacy": {
+     "near": 3,
+     "inSight": 14,
+     "nearestFt": 922
     },
     "driveway": {
      "lengthFt": 1985.2866327034553,
@@ -2220,6 +2230,11 @@
      "station": "USC00445453",
      "stationMi": 15.3
     },
+    "privacy": {
+     "near": 2,
+     "inSight": 24,
+     "nearestFt": 576
+    },
     "driveway": {
      "lengthFt": 1181.0896518703828,
      "cost": {
@@ -2284,6 +2299,11 @@
      "station": "USC00445453",
      "stationMi": 15.3
     },
+    "privacy": {
+     "near": 7,
+     "inSight": 18,
+     "nearestFt": 555
+    },
     "driveway": {
      "lengthFt": 269.14711227469934,
      "cost": {
@@ -2343,6 +2363,11 @@
      "station": "USC00445453",
      "stationMi": 15.3
     },
+    "privacy": {
+     "near": 3,
+     "inSight": 31,
+     "nearestFt": 634
+    },
     "driveway": {
      "lengthFt": 1431.634503350094,
      "cost": {
@@ -2374,6 +2399,9 @@
      "frostFreeDays": 185
     }
    ]
+  },
+  "privacy": {
+   "outside": false
   },
   "driveway": {
    "toLabel": "site #1",
@@ -3304,7 +3332,7 @@
   },
   "closerGrocery": null,
   "schemaVersion": 9,
-  "engine": 23,
+  "engine": 24,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -5416,6 +5444,11 @@
      "julHighF": 80.6,
      "station": "USC00445453",
      "stationMi": 15.3
+    },
+    "privacy": {
+     "near": 5,
+     "inSight": 0,
+     "nearestFt": 937
     }
    },
    {
@@ -5478,6 +5511,11 @@
      "julHighF": 81,
      "station": "USC00445453",
      "stationMi": 15.4
+    },
+    "privacy": {
+     "near": 3,
+     "inSight": 14,
+     "nearestFt": 922
     }
    },
    {
@@ -5544,6 +5582,11 @@
      "julHighF": 80.6,
      "station": "USC00445453",
      "stationMi": 15.3
+    },
+    "privacy": {
+     "near": 2,
+     "inSight": 24,
+     "nearestFt": 576
     }
    },
    {
@@ -5608,6 +5651,11 @@
      "julHighF": 80.4,
      "station": "USC00445453",
      "stationMi": 15.3
+    },
+    "privacy": {
+     "near": 7,
+     "inSight": 18,
+     "nearestFt": 555
     }
    },
    {
@@ -5668,6 +5716,11 @@
      "julHighF": 80.8,
      "station": "USC00445453",
      "stationMi": 15.3
+    },
+    "privacy": {
+     "near": 3,
+     "inSight": 31,
+     "nearestFt": 634
     }
    }
   ],
@@ -5684,6 +5737,9 @@
      "frostFreeDays": 185
     }
    ]
+  },
+  "privacy": {
+   "outside": false
   },
   "driveway": {
    "toLabel": "the existing house",
@@ -8090,7 +8146,7 @@
   },
   "closerGrocery": null,
   "schemaVersion": 9,
-  "engine": 23,
+  "engine": 24,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -8152,6 +8208,11 @@
     "julHighF": 80.9,
     "station": "USC00445453",
     "stationMi": 15.4
+   },
+   "privacy": {
+    "near": 2,
+    "inSight": 25,
+    "nearestFt": 969
    }
   }
  },
@@ -10249,6 +10310,11 @@
     "station": "USC00445453",
     "stationMi": 15.4
    },
+   "privacy": {
+    "near": 2,
+    "inSight": 25,
+    "nearestFt": 969
+   },
    "driveway": {
     "lengthFt": 1487.4399249961073,
     "cost": {
@@ -10306,6 +10372,11 @@
      "julHighF": 80.6,
      "station": "USC00445453",
      "stationMi": 15.3
+    },
+    "privacy": {
+     "near": 5,
+     "inSight": 0,
+     "nearestFt": 937
     },
     "driveway": {
      "lengthFt": 478.0716692682822,
@@ -10369,6 +10440,11 @@
      "julHighF": 81,
      "station": "USC00445453",
      "stationMi": 15.4
+    },
+    "privacy": {
+     "near": 3,
+     "inSight": 14,
+     "nearestFt": 922
     },
     "driveway": {
      "lengthFt": 1985.2866327034553,
@@ -10436,6 +10512,11 @@
      "station": "USC00445453",
      "stationMi": 15.3
     },
+    "privacy": {
+     "near": 2,
+     "inSight": 24,
+     "nearestFt": 576
+    },
     "driveway": {
      "lengthFt": 1181.0896518703828,
      "cost": {
@@ -10500,6 +10581,11 @@
      "station": "USC00445453",
      "stationMi": 15.3
     },
+    "privacy": {
+     "near": 7,
+     "inSight": 18,
+     "nearestFt": 555
+    },
     "driveway": {
      "lengthFt": 269.14711227469934,
      "cost": {
@@ -10559,6 +10645,11 @@
      "station": "USC00445453",
      "stationMi": 15.3
     },
+    "privacy": {
+     "near": 3,
+     "inSight": 31,
+     "nearestFt": 634
+    },
     "driveway": {
      "lengthFt": 1431.634503350094,
      "cost": {
@@ -10590,6 +10681,9 @@
      "frostFreeDays": 185
     }
    ]
+  },
+  "privacy": {
+   "outside": false
   },
   "driveway": {
    "toLabel": "the existing house",
@@ -12996,7 +13090,7 @@
   },
   "closerGrocery": null,
   "schemaVersion": 9,
-  "engine": 23,
+  "engine": 24,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

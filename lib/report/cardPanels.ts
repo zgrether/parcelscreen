@@ -10,7 +10,8 @@ import type { NamedRubric, Rubric } from "../rubric/types";
 import { verdictLines } from "../rubric/grade";
 import { weightsOf } from "../rubric/weights";
 import { CLIMATE_SOURCES } from "./climate";
-import { climateWords } from "../rubric/words";
+import { IN_WINTER, PRIVACY_SOURCES } from "./privacy";
+import { climateWords, privacyWords } from "../rubric/words";
 import { MAYBE_CAPS, footprintFt2, type CardConfig, type GateKey, type RowKey } from "./card";
 
 export type PanelKey = "verdict" | GateKey | RowKey | "cost";
@@ -32,6 +33,7 @@ const PANELS: Record<PanelKey, true> = {
   hospital: true,
   garden: true,
   climate: true,
+  privacy: true,
   budget: true,
   cost: true,
 };
@@ -207,6 +209,17 @@ export function panelText(
         howScored:
           `At your best homesite, the worse of two 30-year normals: January's mean low (A from ${jan[0]}, B from ${jan[1]}, C from ${jan[2]}, D from ${jan[3]}) and July's mean high (A up to ${jul[0]}, B up to ${jul[1]}, C up to ${jul[2]}, D up to ${jul[3]}); your limits: ${climateWords(R)}. Snowfall and frost-free days are shown, not graded; ${weightOf(rubrics, "climate")}. ` +
           `Sources: ${CLIMATE_SOURCES}`,
+      };
+    }
+    case "privacy": {
+      const near = R.privacyFt.map((v) => `${fmt(v)} ft`);
+      const sight = R.privacySight.map((v) => fmt(v));
+      return {
+        title: "Privacy",
+        question: "How close are the neighbors, and will we see their houses?",
+        howScored:
+          `At your best homesite, the worse of two: the nearest house (A from ${near[0]}, B from ${near[1]}, C from ${near[2]}, D from ${near[3]}; no house within a mile is an A) and the houses in sight within a mile, ${IN_WINTER} (A up to ${sight[0]}, B up to ${sight[1]}, C up to ${sight[2]}, D up to ${sight[3]}); your limits: ${privacyWords(R)}. A house is a footprint of ${fmt(SCREEN_CONSTANTS.privacy.minHouseM2)} m² or more off the parcel; the houses within a quarter mile are shown, not graded; ${weightOf(rubrics, "privacy")}. ` +
+          `Sources: ${PRIVACY_SOURCES}`,
       };
     }
     case "budget": {

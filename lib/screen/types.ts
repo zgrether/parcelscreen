@@ -333,6 +333,16 @@ const SpotClimateSchema = z.strictObject({
   stationMi: num.nullable(),
 });
 
+/**
+ * Step 11 (plan §2.3; §9.66): the spot's privacy: the houses within a quarter mile, those within a mile in sight over
+ * bare earth, and the nearest one's distance (null: none within a mile). Optional: absent before it.
+ */
+const SpotPrivacySchema = z.strictObject({
+  near: z.number().int().nonnegative(),
+  inSight: z.number().int().nonnegative(),
+  nearestFt: num.nullable(),
+});
+
 /** What a scored spot stores (v8): its measurements and reasons; its scores derive from them (SpotScores, derive.ts). */
 const ScoreFields = {
   why: z.array(z.string()),
@@ -358,6 +368,8 @@ const ScoreFields = {
   driveway: ScoredDrivewaySchema.nullable().optional(),
   /** Step 11: absent outside the climate data's region, and on a screen made before it. */
   climate: SpotClimateSchema.optional(),
+  /** Step 11: absent outside the footprints' region, and on a screen made before it. */
+  privacy: SpotPrivacySchema.optional(),
 };
 const CellSchema = z.strictObject({ score: num, slope: num, aspect: num, thermal: num });
 
@@ -795,6 +807,8 @@ export const ScreenResultSchema = z.strictObject({
       ),
     })
     .optional(),
+  /** Step 11 (plan §2.3; §9.66): whether the parcel is outside the footprints' region. Absent before it. */
+  privacy: z.strictObject({ outside: z.boolean() }).optional(),
   excluded: z.array(z.strictObject({ acres: num, ll: LatLonSchema, why: z.string() })).optional(),
   sites: z.array(SiteSchema).optional(),
   house: HouseSchema.nullable().optional(),

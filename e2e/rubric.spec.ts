@@ -65,6 +65,7 @@ test("the columns, a card's Move to…, and Undo", async ({ page }) => {
     "Driveway",
     "Town and groceries",
     "Climate",
+    "Privacy",
   ]);
   await page.getByRole("button", { name: "Close" }).click();
   await page.getByRole("button", { name: "Undo" }).click();
@@ -254,6 +255,7 @@ test.describe("on a phone", () => {
       "Driveway",
       "Town and groceries",
       "Climate",
+      "Privacy",
     ]);
     // Try it is a bar along the bottom, with the same words as on a desktop.
     const bar = page.getByRole("region", { name: "Try it" });

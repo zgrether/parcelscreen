@@ -25,6 +25,7 @@ export const STRENGTH: Record<RowKey, string> = {
   town: "groceries nearby",
   hospital: "ER access",
   climate: "climate",
+  privacy: "privacy",
   garden: "garden ground",
   budget: "budget fit",
 };
@@ -80,6 +81,16 @@ export function missLine(row: Row, card: Card, r: PartialScreenResult): string {
       if (v !== undefined && v > edge(b.erMin))
         return `${fmt(v)} minutes to an ER is past your ${fmt(edge(b.erMin))}-minute limit`;
       break;
+    case "privacy": {
+      // Step 11: the houses in sight past the limit first, then the nearest house too near.
+      const spot = r.house && !("outside" in r.house) ? r.house : r.sites?.[card.at];
+      const near = spot?.privacy?.nearestFt ?? null;
+      if (v !== undefined && v > edge(b.privacySight))
+        return `${fmt(v)} ${v === 1 ? "house is" : "houses are"} in sight, past your limit of ${fmt(edge(b.privacySight))}`;
+      if (near !== null && near < edge(b.privacyFt))
+        return `the nearest house is ${fmt(near)} ft away, nearer than your ${fmt(edge(b.privacyFt))} ft`;
+      break;
+    }
     case "budget":
       // Within budget (step 10): the budgets at its worst, "ready to build $330–595k, over your $300k".
       if (row.budget) return row.budget.reason;

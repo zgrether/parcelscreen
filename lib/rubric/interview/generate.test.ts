@@ -55,9 +55,14 @@ describe("§3: every choice", () => {
     [{ er: "30" }, "hospital", 2, "erMin", null, null],
     [{ er: "45" }, "hospital", 1, "erMin", 45, null],
     [{ er: "60" }, "hospital", 0, "erMin", 60, null],
-    [{ neighbors: "wave" }, "sky", 1, null, null, "Privacy (close enough to wave)"],
-    [{ neighbors: "lights" }, "sky", 1, null, null, "Privacy (lights at night are fine)"],
-    [{ neighbors: "never", sky: "inside" }, "sky", 1, null, null, "Privacy (never know they're there)"],
+    // Step 11: question 8 sets Privacy, graded now, so it left the quiet list.
+    [{ neighbors: "wave" }, "sky", 1, null, null, null],
+    [{ neighbors: "lights" }, "sky", 1, null, null, null],
+    [{ neighbors: "never", sky: "inside" }, "sky", 1, null, null, null],
+    [{ neighbors: "wave" }, "privacy", 0, "privacyFt", 330, null],
+    [{ neighbors: "lights" }, "privacy", 1, "privacyFt", 660, null],
+    [{ neighbors: "never" }, "privacy", 3, "privacyFt", 1320, null],
+    [{ neighbors: "never" }, "privacy", 3, "privacySight", 0, null],
     [{ garden: "none" }, "garden", 0, null, null, null],
     [{ garden: "herbs" }, "garden", 1, "gardenAc", 0.1, null],
     [{ garden: "kitchen" }, "garden", 2, "gardenAc", null, "Frost-free season"],
@@ -118,6 +123,7 @@ describe("§3: every choice", () => {
       sky: 1,
       garden: 1,
       climate: 0,
+      privacy: 0,
       budget: 0,
     });
     expect(later({ fly: "rarely", calls: "no", creek: "either", hoa: "light" })).toEqual([
@@ -189,19 +195,18 @@ describe("§3: question 14", () => {
       { factor: "septic" },
       { factor: "elevation", threshold: 2800 },
       { factor: "hospital", threshold: 40 },
+      // Step 11: "Neighbor's house in view" is Privacy's limit, none in sight.
+      { factor: "privacy", threshold: 0 },
       { factor: "homesite", threshold: 3 },
     ]);
     expect(g.why.cards.floodplain).toEqual(["You'd walk away from a flood zone"]);
     expect(g.why.limits).toEqual({
       elevation: "You'd walk away from land below 2,800 ft",
       hospital: "You'd walk away from an ER more than 40 minutes away",
+      privacy: "You'd walk away from a neighbor's house in view",
       homesite: "You'd walk away from a place with no winter sun",
     });
-    expect(g.later).toEqual([
-      "No HOA (a must)",
-      "Driveway on your land (a must)",
-      "Privacy: no house in view (a must)",
-    ]);
+    expect(g.later).toEqual(["No HOA (a must)", "Driveway on your land (a must)"]);
     expect(g.mustNote).toBe(true); // eight chips, above five
   });
 
@@ -235,12 +240,13 @@ describe("§3: question 14", () => {
     });
     expect(g.rubric.musts).toEqual([{ factor: "access" }]);
     // Step 11: the ER's own row is Don't care; until Hospital, the ER's edge went to 90 min on Town.
-    expect(g.rubric.wonts).toEqual(["elevation", "climate", "homesite", "hospital"]);
+    expect(g.rubric.wonts).toEqual(["elevation", "climate", "privacy", "homesite", "hospital"]);
+    expect(g.why.cards.privacy).toEqual(["You said a neighbor's house in view doesn't matter"]);
     expect(bcEdge(g.rubric.bands, "erMin")).toBe(30);
     expect(g.why.cards.hospital).toEqual(["You said the drive to an ER doesn't matter"]);
     expect(g.why.cards.floodplain).toEqual(["You said a flood zone doesn't matter"]);
     expect(g.why.cards.elevation).toEqual(["You said elevation doesn't matter"]);
-    expect(g.later).toEqual(["HOA (doesn't matter)", "Privacy (doesn't matter)", "Budgets (don't matter)"]);
+    expect(g.later).toEqual(["HOA (doesn't matter)", "Budgets (don't matter)"]);
   });
 
   it("the note shows above five walk-away chips, not at five", () => {
@@ -291,32 +297,40 @@ describe("§4: the two people", () => {
     const g = rubricFromAnswers(PERSON_A);
     expect(g.rubric.ranked).toEqual([
       { factor: "elevation", tier: "should" },
+      // Step 11: "Never know they're there" gives Privacy 3 points, second of the 3s by the default order.
+      { factor: "privacy", tier: "should" },
       { factor: "homesite", tier: "should" },
       { factor: "trails", tier: "should" },
       { factor: "sky", tier: "should" },
       // Step 11: Climate (cool and snowy, 2 points) by Elevation in the default order. Step 7: "Long and gentle" gives
-      // Driveway 2 points, ahead of Room to build; Room, Town and Hospital (the ER's 30 min), also at 2, go to Nice to
-      // have, as Really want holds six.
+      // Driveway 2 points, ahead of Room to build; Driveway, Room, Town and Hospital (the ER's 30 min), also at 2, go
+      // to Nice to have, as Really want holds six.
       { factor: "climate", tier: "should" },
-      { factor: "driveway", tier: "should" },
+      { factor: "driveway", tier: "could" },
       { factor: "room", tier: "could" },
       { factor: "town", tier: "could" },
       { factor: "hospital", tier: "could" },
       { factor: "garden", tier: "could" },
     ]);
     expect(rounded(weightsOf(g.rubric))).toEqual({
-      elevation: 19,
-      homesite: 17.1,
-      trails: 15.2,
-      sky: 13.3,
-      climate: 11.4,
-      driveway: 9.5,
-      room: 5.7,
-      town: 4.3,
-      hospital: 2.9,
-      garden: 1.4,
+      elevation: 17.7,
+      privacy: 16.1,
+      homesite: 14.5,
+      trails: 12.9,
+      sky: 11.2,
+      climate: 9.6,
+      driveway: 6,
+      room: 4.8,
+      town: 3.6,
+      hospital: 2.4,
+      garden: 1.2,
       budget: 0,
     });
+    // Never know they're there: the nearest house 1,320 ft away, none in sight.
+    expect([g.rubric.bands.privacyFt, g.rubric.bands.privacySight]).toEqual([
+      [1980, 1320, 990, 825],
+      [0, 0, 10, 20],
+    ]);
     // Cool and snowy: real winter welcome (no January limit), keep it cool (July highs to 80 °F).
     expect([g.rubric.bands.janLowF, g.rubric.bands.julHighF]).toEqual([
       [-22, -25, -28, -32],
@@ -331,7 +345,6 @@ describe("§4: the two people", () => {
     expect([bcEdge(g.rubric.bands, "groceryMin"), bcEdge(g.rubric.bands, "erMin")]).toEqual([15, 30]);
     expect(g.later).toEqual([
       "Internet for video calls",
-      "Privacy (never know they're there)",
       "Frost-free season",
       "No HOA (a must)",
       "A creek (the best feature)",
@@ -355,7 +368,8 @@ describe("§4: the two people", () => {
       // Step 7 (owner, #216): question 10 skipped, so Driveway at the bottom of Nice to have, never higher.
       { factor: "driveway", tier: "could" },
     ]);
-    expect(g.rubric.wonts).toEqual(["elevation", "sky"]);
+    // Step 11: "Wave from the porch" leaves Privacy at 0 points.
+    expect(g.rubric.wonts).toEqual(["elevation", "privacy", "sky"]);
     expect(rounded(weightsOf(g.rubric))).toEqual({
       hospital: 23.2,
       climate: 20.3,
@@ -367,12 +381,13 @@ describe("§4: the two people", () => {
       driveway: 2.2,
       elevation: 0,
       sky: 0,
+      privacy: 0,
       budget: 0,
     });
     expect(g.rubric.bands.drivewayPct).toEqual([10, 15, 20, 25]);
     expect(g.rubric.musts.slice(4)).toEqual([{ factor: "hospital", threshold: 30 }]);
     expect([bcEdge(g.rubric.bands, "erMin"), bcEdge(g.rubric.bands, "groceryMin")]).toEqual([15, 15]);
-    expect(g.later).toEqual(["Long view (over winter sun)", "Privacy (close enough to wave)"]);
+    expect(g.later).toEqual(["Long view (over winter sun)"]);
   });
 });
 
@@ -427,7 +442,7 @@ describe("§2: the rules", () => {
       "homesite",
     ]);
     // Step 11: "Either" climate gives Climate 0 points.
-    expect(few.rubric.wonts).toEqual(["climate", "trails"]);
+    expect(few.rubric.wonts).toEqual(["climate", "privacy", "trails"]);
     expect(few.rubric.ranked.at(-1)).toEqual({ factor: "driveway", tier: "could" });
   });
 

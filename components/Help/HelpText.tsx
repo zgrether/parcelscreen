@@ -168,6 +168,16 @@ export function HelpText() {
         towns and valleys, where cold air pools on still nights, so a site on a slope above one usually has a
         longer frost-free season than it says. These are averages: any one winter can be much colder.
       </p>
+
+      <h3 id="h-privacy">Privacy</h3>
+      <p>
+        The houses around each house site: Microsoft&apos;s building footprints, found in aerial imagery from
+        2020 on, of 650 ft² and up and off the parcel. The nearest one, how many are within a quarter mile,
+        and how many within a mile you could see: a straight line from eye height at the site to the
+        house&apos;s roof that clears the bare-earth elevation all the way. Trees aren&apos;t in that
+        elevation, so it&apos;s the view in winter, with the leaves down. A house under trees, or built since,
+        can be missing.
+      </p>
     </>
   );
 }

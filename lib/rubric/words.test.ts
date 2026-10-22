@@ -25,6 +25,7 @@ describe("the cards' words", () => {
       town: "Groceries within 20 min",
       hospital: "An ER within 30 min",
       climate: "January lows of 18 °F or milder, July highs of 86 °F or cooler",
+      privacy: "The nearest house at least 660 ft away",
       garden: "At least 0.25 ac of garden ground",
       // Step 10: the starting list has no budgets.
       budget: "No budget given",
@@ -82,6 +83,7 @@ describe("the cards' words", () => {
       town: "Groceries within 20 min",
       hospital: "ER within 30 min",
       climate: "January lows of 18 °F or milder, July highs of 86 °F or cooler",
+      privacy: "The nearest house at least 660 ft away",
       garden: "Room for a kitchen garden",
       budget: "No budget given",
     });

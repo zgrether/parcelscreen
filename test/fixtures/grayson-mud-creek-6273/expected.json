@@ -2245,6 +2245,11 @@
      "station": "USC00314496",
      "stationMi": 13.7
     },
+    "privacy": {
+     "near": 1,
+     "inSight": 15,
+     "nearestFt": 724
+    },
     "driveway": {
      "lengthFt": 2887.618130949411,
      "cost": {
@@ -2308,6 +2313,11 @@
      "julHighF": 78.2,
      "station": "USC00314496",
      "stationMi": 13.7
+    },
+    "privacy": {
+     "near": 4,
+     "inSight": 22,
+     "nearestFt": 687
     },
     "driveway": {
      "lengthFt": 2578.0350724695954,
@@ -2373,6 +2383,11 @@
      "station": "USC00314496",
      "stationMi": 13.8
     },
+    "privacy": {
+     "near": 1,
+     "inSight": 9,
+     "nearestFt": 823
+    },
     "driveway": {
      "lengthFt": 2844.855485397168,
      "cost": {
@@ -2437,6 +2452,11 @@
      "station": "USC00314496",
      "stationMi": 13.7
     },
+    "privacy": {
+     "near": 4,
+     "inSight": 7,
+     "nearestFt": 449
+    },
     "driveway": {
      "lengthFt": 905.0394175824515,
      "cost": {
@@ -2467,6 +2487,9 @@
      "frostFreeDays": 154
     }
    ]
+  },
+  "privacy": {
+   "outside": false
   },
   "driveway": {
    "toLabel": "site #1",
@@ -7742,7 +7765,7 @@
    "er": null
   },
   "schemaVersion": 9,
-  "engine": 23,
+  "engine": 24,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -9993,6 +10016,11 @@
      "station": "USC00314496",
      "stationMi": 13.7
     },
+    "privacy": {
+     "near": 1,
+     "inSight": 15,
+     "nearestFt": 724
+    },
     "driveway": {
      "lengthFt": 2887.618130949411,
      "cost": {
@@ -10056,6 +10084,11 @@
      "julHighF": 78.2,
      "station": "USC00314496",
      "stationMi": 13.7
+    },
+    "privacy": {
+     "near": 4,
+     "inSight": 22,
+     "nearestFt": 687
     },
     "driveway": {
      "lengthFt": 2578.0350724695954,
@@ -10121,6 +10154,11 @@
      "station": "USC00314496",
      "stationMi": 13.8
     },
+    "privacy": {
+     "near": 1,
+     "inSight": 9,
+     "nearestFt": 823
+    },
     "driveway": {
      "lengthFt": 2844.855485397168,
      "cost": {
@@ -10185,6 +10223,11 @@
      "station": "USC00314496",
      "stationMi": 13.7
     },
+    "privacy": {
+     "near": 4,
+     "inSight": 7,
+     "nearestFt": 449
+    },
     "driveway": {
      "lengthFt": 905.0394175824515,
      "cost": {
@@ -10215,6 +10258,9 @@
      "frostFreeDays": 154
     }
    ]
+  },
+  "privacy": {
+   "outside": false
   },
   "driveway": {
    "toLabel": "site #2",
@@ -15490,7 +15536,7 @@
    "er": null
   },
   "schemaVersion": 9,
-  "engine": 23,
+  "engine": 24,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

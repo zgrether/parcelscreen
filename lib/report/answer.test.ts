@@ -105,6 +105,7 @@ function zeroWeights() {
     hospital: 0,
     garden: 0,
     climate: 0,
+    privacy: 0,
     budget: 0,
   };
 }
