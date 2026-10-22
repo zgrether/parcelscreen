@@ -6,6 +6,7 @@
 import { shortPrice } from "../client/askingPrice";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { fmt } from "../format";
+import { VIEW_OPEN_MI } from "../report/view";
 import { defaultRubric } from "./default";
 import type { Bands, Budgets, Factor, GateKey, MustCard, RowKey, Rubric } from "./types";
 
@@ -30,7 +31,7 @@ export const FACTOR_LABELS: Record<Factor, string> = {
   longView: "Long view",
   airport: "Airport",
   longTrail: "Bike to a long trail",
-  internet: "Internet",
+  internet: "Satellite internet",
   budget: "Within budget",
 };
 
@@ -66,7 +67,7 @@ export const SHORT_TITLES: Record<Factor, string> = {
   longView: "View",
   airport: "Air",
   longTrail: "Bike",
-  internet: "Net",
+  internet: "Satellite",
   budget: "Budget",
 };
 
@@ -287,7 +288,7 @@ export function cardLine(r: Rubric, factor: Factor): string {
     case "privacy":
       return capital(privacyWords(b));
     case "longView":
-      return `A view past 5 km over at least ${bandValue("viewOpenPct", bcEdge(b, "viewOpenPct"))} of the horizon`;
+      return `A view past ${VIEW_OPEN_MI} over at least ${bandValue("viewOpenPct", bcEdge(b, "viewOpenPct"))} of the horizon`;
     case "airport":
       return `An airport within ${bandValue("airportMin", bcEdge(b, "airportMin"))}`;
     case "longTrail":
@@ -307,7 +308,7 @@ export function minimumWords(row: RowKey, v: number): string {
   if (row === "hospital") return `ER within ${value}`;
   if (row === "airport") return `an airport within ${value}`;
   if (row === "longTrail") return `a long trail within ${value}`;
-  if (row === "internet") return `a dish spot at least ${value} clear`;
+  if (row === "internet") return `a dish spot with at least ${value} open sky`;
   if (row === "town") return `groceries within ${value}`;
   if (row === "trails") return `a trailhead within ${value}`;
   if (row === "room") return `at least ${value} the footprint`;
@@ -374,13 +375,13 @@ export function plainLine(r: Rubric, factor: Factor): string {
     case "privacy":
       return capital(privacyWords(b));
     case "longView":
-      return `A view past 5 km over at least ${bandValue("viewOpenPct", bcEdge(b, "viewOpenPct"))} of the horizon`;
+      return `A view past ${VIEW_OPEN_MI} over at least ${bandValue("viewOpenPct", bcEdge(b, "viewOpenPct"))} of the horizon`;
     case "airport":
       return `An airport within ${bandValue("airportMin", bcEdge(b, "airportMin"))}`;
     case "longTrail":
       return `A long rail-trail within a ${fmt(bcEdge(b, "longTrailMin"))}-minute drive`;
     case "internet":
-      return `A spot for a satellite dish with at least ${bandValue("dishClearPct", bcEdge(b, "dishClearPct"))} of its view clear`;
+      return `A dish spot with at least ${bandValue("dishClearPct", bcEdge(b, "dishClearPct"))} open sky`;
     case "garden": {
       const ac = bcEdge(b, "gardenAc");
       if (ac >= 1) return "Room for a big garden";

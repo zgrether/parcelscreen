@@ -2,8 +2,8 @@
  * The long view at a spot (step 11, docs/plans/step-11-new-data.md §2.4), from the skyline the site's score already
  * traces (sun.ts horizonProfile: every 5°, out to 6 km on the 30 m bare-earth DEM). No new requests.
  * - Each direction's view ends at its skyline cell, the one seen highest; where nothing rises above the profile's
- *   floor within 6 km, it reaches past the profile ("6+ km").
- * - The open share is the part of the horizon whose view reaches past view.openKm.
+ *   floor within 6 km, it reaches past the profile ("farther than 3.7 mi").
+ * - The open share is the part of the horizon whose view reaches past view.openKm (3 mi).
  * - The direction is the middle of the widest run of open directions.
  */
 import { SCREEN_CONSTANTS } from "./config";

@@ -64,7 +64,7 @@ describe("the report card on the fixtures (engine 13)", () => {
       garden: "A",
       climate: "A", // step 11: January lows 24.9 °F, July highs 80.6 °F at site #1
       privacy: "B", // step 11: the nearest house 937 ft away, none in sight
-      longView: "B", // step 11: 22% of the horizon open past 5 km
+      longView: "A", // step 11: 25% of the horizon open past 3 mi
       airport: "C", // step 11: 88 min to Roanoke (ROA)
       longTrail: "D", // step 11: 49 min to the Huckleberry Trail
       internet: "A", // step 11: a dish spot 100% clear

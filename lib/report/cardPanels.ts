@@ -11,7 +11,7 @@ import { verdictLines } from "../rubric/grade";
 import { weightsOf } from "../rubric/weights";
 import { CLIMATE_SOURCES } from "./climate";
 import { IN_WINTER, PRIVACY_SOURCES } from "./privacy";
-import { VIEW_CAVEAT } from "./view";
+import { VIEW_CAVEAT, VIEW_OPEN_MI } from "./view";
 import { LONG_TRAIL_SOURCES } from "./longTrail";
 import { DISH_CAVEAT } from "./internet";
 import { climateWords, privacyWords } from "../rubric/words";
@@ -234,7 +234,7 @@ export function panelText(
       return {
         title: "Long view",
         question: "How far can we see from where the house would go?",
-        howScored: `At your best homesite, the share of the horizon whose view reaches past ${fmt(SCREEN_CONSTANTS.view.openKm)} km: A from ${pct[0]}, B from ${pct[1]}, C from ${pct[2]}, D from ${pct[3]}. The longest view and its direction are shown, not graded; ${weightOf(rubrics, "longView")}. ${VIEW_CAVEAT}`,
+        howScored: `At your best homesite, the share of the horizon whose view reaches past ${VIEW_OPEN_MI}: A from ${pct[0]}, B from ${pct[1]}, C from ${pct[2]}, D from ${pct[3]}. The longest view and its direction are shown, not graded; ${weightOf(rubrics, "longView")}. ${VIEW_CAVEAT}`,
       };
     }
     case "airport":
@@ -252,7 +252,7 @@ export function panelText(
     case "internet": {
       const D = SCREEN_CONSTANTS.dish;
       return {
-        title: "Internet",
+        title: "Satellite internet",
         question: "Is there a clear patch of sky for a satellite dish?",
         howScored: `The parcel's best spot for a dish: every ${fmt(D.stepM)} m over the parcel, the share of the dish's view (from ${fmt(D.coneDeg)}° up, all around, the northern half counting ${fmt(D.northWeight)} times) that the terrain leaves clear: A from ${R.dishClearPct[0]}%, B from ${R.dishClearPct[1]}, C from ${R.dishClearPct[2]}, D from ${R.dishClearPct[3]}. Its distance from your best homesite is shown, not graded; ${weightOf(rubrics, "internet")}. ${DISH_CAVEAT}`,
       };

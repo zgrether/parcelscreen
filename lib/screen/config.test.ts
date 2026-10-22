@@ -1333,7 +1333,8 @@ describe("config", () => {
           "valleyFloorRadiusM": 1500,
         },
         "view": {
-          "openKm": 5,
+          "openKm": 4.828032,
+          "openMi": 3,
           "reachKm": 6,
         },
       }

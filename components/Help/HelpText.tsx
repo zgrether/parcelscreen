@@ -181,11 +181,11 @@ export function HelpText() {
 
       <h3 id="h-view">Long view</h3>
       <p>
-        From each house site, the skyline every 5° all around, traced over the bare-earth elevation out to 6
-        km: in each direction, the view ends where the ground rises highest against the sky. The share of the
-        horizon whose view reaches past 5 km is graded; the longest view and the direction it opens toward are
+        From each house site, the skyline every 5° all around, traced over the bare-earth elevation out to 3.7
+        mi: in each direction, the view ends where the ground rises highest against the sky. The share of the
+        horizon whose view reaches past 3 mi is graded; the longest view and the direction it opens toward are
         shown. Trees aren&apos;t in the elevation, so a view through woods needs clearing first, and a ridge
-        past 6 km counts as open.
+        past 3.7 mi counts as open.
       </p>
 
       <h3 id="h-bike">Bike to a long trail</h3>
@@ -197,13 +197,12 @@ export function HelpText() {
         Blue Ridge Parkway isn&apos;t on it: it isn&apos;t a designated bike route.
       </p>
 
-      <h3 id="h-internet">Internet</h3>
+      <h3 id="h-internet">Satellite internet</h3>
       <p>
         The parcel&apos;s best spot for a satellite dish: every 30 m over the parcel, how much of the
         dish&apos;s view (from 25° up, all around) the terrain leaves clear, the northern half counting twice,
         since Starlink looks north from here. The distance is from your best homesite. Trees aren&apos;t in
-        the elevation, so a spot in the woods needs clearing. Fiber, cable and cell coverage aren&apos;t
-        graded yet: check the address on the FCC&apos;s National Broadband Map.
+        the elevation, so a spot in the woods needs clearing.
       </p>
     </>
   );

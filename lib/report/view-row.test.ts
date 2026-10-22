@@ -1,5 +1,5 @@
 /**
- * The Long view row (step 11, plan §2.4): the share of the horizon open past 5 km at the card's site; its line;
+ * The Long view row (step 11, plan §2.4): the share of the horizon open past 3 mi at the card's site; its line;
  * "not measured" on a screen made before it; question 3 in saved priorities.
  */
 import { describe, expect, it } from "vitest";
@@ -10,7 +10,7 @@ import type { Rubric } from "../rubric/types";
 import type { ScreenResult } from "../screen/types";
 import { cardFacts } from "./card";
 import { NOT_MEASURED } from "./climate";
-import { viewLine } from "./view";
+import { VIEW_TABLE_NOTE, viewLine, viewShort } from "./view";
 
 const MUD = expectedOf("grayson-mud-creek-6273", "run");
 
@@ -30,15 +30,20 @@ describe("the Long view row", () => {
 
   it("says the share, its direction, and the longest", () => {
     expect(rowOf(withSites(0.22)).detail).toBe(
-      "the view opens past 5 km over 22% of the horizon, toward the NW; the longest 6+ km",
+      "the view opens past 3 mi over 22% of the horizon, toward the NW; the longest reaches farther than 3.7 mi (as far as the app measures)",
     );
     expect(viewLine({ longestKm: 3.31, past: false, openShare: 0, dirDeg: null })).toBe(
-      "no view past 5 km; the longest 3.3 km",
+      "no view past 3 mi; the longest 2.1 mi",
     );
     expect(viewLine({ longestKm: 6, past: true, openShare: 1, dirDeg: null })).toBe(
-      "the view opens past 5 km over 100% of the horizon, all around; the longest 6+ km",
+      "the view opens past 3 mi over 100% of the horizon, all around; the longest reaches farther than 3.7 mi (as far as the app measures)",
     );
-    expect(rowOf(withSites(0.22)).short).toBe("22% open, 6+ km");
+    expect(rowOf(withSites(0.22)).short).toBe("22% open, farther than 3.7 mi");
+    // The report's table of sites uses the short form, with one caption under it (owner, #273).
+    expect(viewShort({ longestKm: 3.31, past: false, openShare: 0.08, dirDeg: 0 })).toBe("8% open, 2.1 mi");
+    expect(VIEW_TABLE_NOTE).toBe(
+      "Views are measured out to 3.7 mi; 'farther than 3.7 mi' means the view runs past that.",
+    );
   });
 
   it("a screen made before it: not measured, never incomplete", () => {

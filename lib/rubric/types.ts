@@ -72,7 +72,7 @@ export interface Bands {
   privacyFt: number[];
   /** Step 11: Privacy's houses in sight within a mile, at most. */
   privacySight: number[];
-  /** Step 11: Long view's share of the horizon open past 5 km, in %, at least. */
+  /** Step 11: Long view's share of the horizon open past 3 mi, in %, at least. */
   viewOpenPct: number[];
   /** Step 11: Airport's drive to the nearest airport on Settings' list, in minutes, at most. */
   airportMin: number[];

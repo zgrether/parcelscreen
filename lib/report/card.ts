@@ -56,7 +56,7 @@ import type { PavingContext } from "./ground";
 import { NOT_MEASURED, OUTSIDE_AREA, stationLine, stationName } from "./climate";
 import { IN_WINTER } from "./privacy";
 import { LONG_TRAIL_DRIVES } from "../screen/longTrail";
-import { longestWords, openPct, viewLine } from "./view";
+import { openPct, viewLine, viewShort } from "./view";
 import { atLeast, atMost, gradedRows, parcelGrade, verdictLines } from "../rubric/grade";
 import { EDITOR_TITLES, FACTOR_LABELS } from "../rubric/words";
 import { thresholdStatus, thresholdWords, type Measure } from "../rubric/musts";
@@ -782,7 +782,7 @@ function privacy(r: Result, K: CardConfig, at: number): Row {
 }
 
 /**
- * Long view at the build site (step 11, plan §2.4): the share of the horizon open past 5 km, against the person's
+ * Long view at the build site (step 11, plan §2.4): the share of the horizon open past 3 mi, against the person's
  * limit; the longest view and its direction beside it.
  */
 function longView(r: Result, K: CardConfig, at: number): Row {
@@ -798,7 +798,7 @@ function longView(r: Result, K: CardConfig, at: number): Row {
   const pct = openPct(v);
   return {
     ...g(atLeast(pct, K.rows.viewOpenPct), viewLine(v)),
-    short: `${pct}% open, ${longestWords(v)}`,
+    short: viewShort(v),
     measure: { value: pct, unit: "%" },
   };
 }
@@ -861,7 +861,7 @@ function longTrail(r: Result, K: CardConfig): Row {
 }
 
 /**
- * Internet (step 11, plan §2.7): the parcel's best spot for a satellite dish, graded on how clear its view is, with its
+ * Satellite internet (step 11, plan §2.7; renamed from Internet, owner, #272): the parcel's best spot for a satellite dish, graded on how clear its view is, with its
  * distance from the site the card reads.
  */
 function internet(r: Result, K: CardConfig, at: number): Row {
@@ -874,13 +874,13 @@ function internet(r: Result, K: CardConfig, at: number): Row {
   const ft = site
     ? Math.round(distance([site.ll[1], site.ll[0]], [r.dish.ll[1], r.dish.ll[0]], { units: "feet" }))
     : null;
-  const where = house ? "the marked house" : site ? siteLabel(site as Site) : null;
+  const where = house ? "the house" : site ? siteLabel(site as Site) : null;
   return {
     ...g(
       atLeast(pct, K.rows.dishClearPct),
-      `the best spot for a satellite dish is ${pct}% clear${ft !== null && where ? `, ${fmt(ft)} ft from ${where}` : ""} (trees not counted)`,
+      `best dish spot: ${pct}% open sky${ft !== null && where ? `, ${fmt(ft)} ft from ${where}` : ""} (trees not counted)`,
     ),
-    short: `dish ${pct}% clear`,
+    short: `${pct}% open sky`,
     measure: { value: pct, unit: "%" },
   };
 }

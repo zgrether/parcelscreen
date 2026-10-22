@@ -18,17 +18,15 @@ const at = (clearShare: number): ScreenResult => ({
   dish: { ll: MUD.sites![0]!.ll, clearShare },
 });
 
-describe("the Internet row", () => {
+describe("the Satellite internet row", () => {
   it("grades the clear share: A from 95%, B 85, C 70, D 50", () => {
     expect([0.97, 0.9, 0.75, 0.6, 0.4].map((x) => rowOf(at(x)).grade)).toEqual(["A", "B", "C", "D", "F"]);
     expect(rowOf(at(0.9))).toMatchObject({
-      detail: "the best spot for a satellite dish is 90% clear, 0 ft from site #1 (trees not counted)",
-      short: "dish 90% clear",
+      detail: "best dish spot: 90% open sky, 0 ft from site #1 (trees not counted)",
+      short: "90% open sky",
       measure: { value: 90, unit: "%" },
     });
-    expect(rowOf(MUD).detail).toMatch(
-      /^the best spot for a satellite dish is 100% clear, \d+ ft from site #1/,
-    );
+    expect(rowOf(MUD).detail).toMatch(/^best dish spot: 100% open sky, [0-9]+ ft from site #1/);
   });
 
   it("a screen made before it: not measured; no spot read: ungraded", () => {

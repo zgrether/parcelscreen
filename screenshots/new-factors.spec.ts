@@ -32,7 +32,7 @@ const FACTORS = [
   { label: "Long view", file: "view" },
   { label: "Airport", file: "airport" },
   { label: "Bike to a long trail", file: "bike" },
-  { label: "Internet", file: "internet" },
+  { label: "Satellite internet", file: "internet" },
 ] as const;
 
 /** The starting list with Town (the groceries) and each new factor weighed too, so each shows on the card. */
