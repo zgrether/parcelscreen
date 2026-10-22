@@ -15,6 +15,7 @@ import { redGate, toTheBoundary } from "../../test/support/redGate";
 import { runFixture } from "../../test/support/scenarios";
 import { reportCard } from "../report/card";
 import { drivewayView, routeChoices } from "../report/driveway";
+import { driveSteepFt } from "../report/ground";
 import { drivewayFeatures } from "../render/resultGeo";
 import { lineNamesOf, lineOutcome, type LineNames } from "../report/lines";
 import { DEFAULT_USER_CONFIG } from "./config";
@@ -57,6 +58,9 @@ describe("the red-gate drive on Grayson 6273, drawn as an easement", () => {
     expect(x.lengthFt).toBeCloseTo(l!.lengthFt, 6);
     expect(x.maxGradePct).toBeCloseTo(l!.maxGradePct!, 6);
     expect(x.pavedFt).toBeGreaterThan(600);
+    // The existing-drive follow-up (owner, 10/21): its profile is kept, and at 12% it gives the drive's own paved length.
+    expect(x.profile!.length).toBeGreaterThan(50);
+    expect(driveSteepFt(x.profile, 12)).toBeCloseTo(x.pavedFt, 6);
     expect(x.cost.mid).toBeGreaterThan(15_000);
     expect(drawn.route!.needsEasement).toBe(true);
     expect(overLimitPoints(drawn)).toBe(20);

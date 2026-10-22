@@ -110,6 +110,9 @@ export const COST_ITEMS = {
   campClearing: `Clearing a campsite (${A.campsiteAc} ac)`,
   driveway: "Finished driveway (the track upgraded)",
   newDriveway: "Gravel driveway, new",
+  // The existing-drive follow-up (owner, 10/21): "Upgrade the existing drive, 870 ft (pioneer)".
+  existingDrive: (ft: number, condition: string) =>
+    `Upgrade the existing drive, ${Math.round(ft).toLocaleString("en-US")} ft (${condition})`,
   // Owner, #255 review: its own line, with its length and the threshold.
   paving: (ft: number, pct: number) => `Paving, ${Math.round(ft).toLocaleString("en-US")} ft over ${pct}%`,
   culverts: "Culverts",
@@ -130,6 +133,8 @@ export const COST_NOTES = {
   beyondTrack: "past the camp's track: new ground",
   // Owner, #255 review: paving switched off in Settings, steep stretches stay gravel; no cost for it.
   steepGravel: "steep gravel needs more upkeep",
+  // The existing-drive follow-up (owner, 10/21): a screen saved before the drive's profile was kept.
+  driveNotGraded: "Grade again to price paving on the existing drive",
 } as const;
 
 export const LOWER_IT = {
@@ -212,7 +217,7 @@ const nonEmpty = (parts: CostPart[]): CostPart[] => parts.filter((p) => p.qty.hi
 
 // ---------- the route's ground (lib/report/ground.ts) ----------
 
-import { groundBetween, routeRuns, steepStretchFt } from "./ground";
+import { conditionOf, driveSteepFt, groundBetween, routeRuns, steepStretchFt } from "./ground";
 
 const xy = ([lat, lon]: LatLon): [number, number] => [lon, lat];
 export { groundAlong, groundBetween, routeRuns, steepStretchFt, type Ground, type Run } from "./ground";
@@ -333,6 +338,35 @@ export function costToEnjoy(input: CostInput): CostToEnjoy | null {
       toCamp.new + past.new + past.uncleared > 0 ? LOWER_IT.track : null,
     ),
   );
+  // The existing drive the route starts from (the existing-drive follow-up, owner 10/21): upgraded to a finished
+  // driveway by its condition (paved, nothing), and its steep stretches paved at Settings' threshold when its profile
+  // was kept; a screen saved before it says to grade again. The route itself starts at the drive's end.
+  const x = rt.existing;
+  if (x) {
+    const drawnLine = r.lines?.[x.line];
+    const condition = conditionOf(input.lines, drawnLine?.id);
+    const upgradeRate: Partial<Record<CostLine["condition"], CostKey>> = {
+      uncleared: "driveway.upgrade.uncleared",
+      pioneer: "driveway.upgrade.pioneer",
+      improved: "driveway.upgrade.improved",
+    };
+    const rate = upgradeRate[condition];
+    const steep = condition === "paved" ? 0 : driveSteepFt(x.profile, paving.abovePct);
+    build.push(
+      item(
+        COST_ITEMS.existingDrive(x.lengthFt, condition),
+        nonEmpty([
+          ...(rate ? [part(rates, rate, x.lengthFt, "ft")] : []),
+          ...(paving.on && steep !== null && steep >= 1 ? [part(rates, "driveway.paving", steep, "ft")] : []),
+        ]),
+        steep === null
+          ? [COST_NOTES.driveNotGraded]
+          : !paving.on && steep >= 1
+            ? [COST_NOTES.steepGravel]
+            : [],
+      ),
+    );
+  }
   if (past.new > 0)
     build.push(
       item(
