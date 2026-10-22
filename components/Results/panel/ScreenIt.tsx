@@ -872,6 +872,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
               extra={
                 raise.neighbour && (
                   <p className="raise-neighbour">
+                    <span className="tiny muted">{NEIGHBOUR_WORDS.what}</span>{" "}
                     <button
                       type="button"
                       className="btn secondary raise-act"

@@ -15,6 +15,7 @@ import { reportCard, type Card, type NamedRubric } from "../report/card";
 import { GATE_MARK, mustLines, mustText, shownRankedRows } from "../report/cardLines";
 import type { Drawn } from "../report/marks";
 import { adjustChange, SET_ASIDE_READING, SET_ASIDE_WORDS } from "../report/adjustWords";
+import { raiseSuggestions } from "../report/raise";
 import { EDITOR_TITLES, tierOf } from "../rubric/words";
 import type { ScreenResult } from "../screen/types";
 
@@ -104,6 +105,8 @@ export interface ReportContent {
   takes: PrintTake[];
   /** Every person's adjustments on the parcel (step 12), for Full. */
   adjustments: PrintAdjust[];
+  /** Ways to raise the viewer's grade (step 12): One page shows the first, Full all of them. */
+  raise: string[];
   questions: string[];
   /**
    * The viewer's cost to enjoy (step 10), as the Grade section says it: "Ready to camp: $200–240k ✓ under your $250k",
@@ -130,6 +133,8 @@ export interface ReportInput {
   household: Household;
   parcelKey: string;
   stale: boolean;
+  /** Step 12: the viewer walked away from "Only an alternative septic system" (their interview). */
+  refusesAltSeptic?: boolean;
 }
 
 /** The tier names, as the card says them. */
@@ -210,6 +215,9 @@ export function reportContent(i: ReportInput): ReportContent {
         reason: a.reason,
         at: a.at,
       })),
+    raise: raiseSuggestions(i.result, mine, i.drawn, {
+      refusesAltSeptic: !!i.refusesAltSeptic,
+    }).suggestions.map((x) => `${x.text}${x.cost ? ` · ${x.cost}` : ""}`),
     questions: agentQuestions(mine).map((q) => q.question),
     cost: costPrintLines(mine),
   };

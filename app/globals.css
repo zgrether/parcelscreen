@@ -7439,3 +7439,21 @@ button.sync-ind.bad {
 .try-note {
   margin: 0 0 6px;
 }
+/* The app's own letter among the override chips: shown, outlined, not a button. */
+.adjust-letters .adjust-app {
+  display: inline-grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  opacity: 0.45;
+  outline: 2px dashed var(--color-ink-2);
+  outline-offset: -4px;
+}
+.adjust-what {
+  margin: -4px 0 8px;
+}
+.raise-neighbour {
+  border-top: 1px solid var(--color-rule);
+  margin: 4px 0 0;
+  padding-top: 8px;
+}

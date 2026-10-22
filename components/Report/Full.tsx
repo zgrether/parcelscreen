@@ -3,10 +3,11 @@
  * Full (step 9 plan §3): after the one-page summary, the priorities it was graded against, then the report's own blocks
  * grouped under the brief's sections, the listing and notes, the lines and marks, the data sources and the closing
  * line. The blocks render as they do in the panel's Full report, in their print variant (no "on the map" pointers).
- * Nothing here for ways to raise the grade (step 12): it comes with its step. The cost to enjoy (step 10) follows
+ * Ways to raise the viewer's grade (step 12) follow the cost to enjoy, when there are any. The cost to enjoy (step 10) follows
  * Access and driveway.
  */
 import { useEffect, useRef, type ReactNode } from "react";
+import { RAISE_WORDS } from "@/lib/report/raise";
 import { ADJUSTMENTS_TITLE } from "@/lib/report/adjustWords";
 import type { PrintAdjust } from "@/lib/print/report";
 import { area, length, lineString } from "@turf/turf";
@@ -135,6 +136,7 @@ export function Full({
   parcel,
   acres,
   adjustments = [],
+  raise = [],
 }: {
   result: ScreenResult;
   /** The viewer's card. */
@@ -143,6 +145,8 @@ export function Full({
   acres: number | null;
   /** Every person's adjustments on the parcel (step 12). */
   adjustments?: readonly PrintAdjust[];
+  /** Ways to raise the viewer's grade (step 12). */
+  raise?: readonly string[];
 }) {
   // A block's folds (the driveway's grade detail) print open: paper has no ▸ to press (fresh-eyes review).
   const box = useRef<HTMLDivElement>(null);
@@ -271,6 +275,15 @@ export function Full({
       {card.cost !== undefined && (
         <Section title={FULL_WORDS.cost}>
           <CostBreakdown cost={card.cost} print />
+        </Section>
+      )}
+      {raise.length > 0 && (
+        <Section title={RAISE_WORDS.title}>
+          <ul>
+            {raise.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
         </Section>
       )}
 

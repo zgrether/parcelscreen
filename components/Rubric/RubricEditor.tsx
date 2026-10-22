@@ -22,7 +22,7 @@ import { useMyRubric } from "@/lib/client/useMyRubric";
 import type { EditorCard } from "@/lib/rubric/edit";
 import { MINE, type Factor, type Rubric } from "@/lib/rubric/types";
 import { acceptNudge, markNudge, pendingNudge } from "@/lib/client/nudge";
-import { movedWords, nudgeWords } from "@/lib/rubric/nudge";
+import { moveDown, movedWords, nudgeWords } from "@/lib/rubric/nudge";
 import type { Tier } from "@/lib/rubric/words";
 import { CardSheet } from "./CardSheet";
 import { RESET_QUESTION, RESET_TO_ANSWERS_QUESTION, ResetConfirm } from "./ResetConfirm";
@@ -231,8 +231,9 @@ export function RubricEditor() {
         {nudge && (
           <div className="card-stale rubric-nudge" role="status">
             <span>{nudgeWords(nudge)}</span>
+            {/* The fresh-eyes review: say where it goes. */}
             <button type="button" className="btn small" onClick={moveItDown}>
-              Move it down
+              Move it to {TIER_NAMES[moveDown(my.rubric, nudge.factor).to]}
             </button>
             <button
               type="button"

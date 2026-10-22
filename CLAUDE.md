@@ -102,7 +102,7 @@ step. Mission mode changes rules 1 and 3 above as written here; everything else 
   run in a Web Worker and in Node. Rendering (overlays, charts, 3D) is done by components from
   the result.
 - Every Supabase table has **row-level security enabled** in the same migration that creates it. No
-  table is created without RLS. Step 5's sync tables have **no policies**: the public key reads and
+  table is created without RLS. Step 5's sync tables (and step 12's `sync_adjustments`) have **no policies**: the public key reads and
   writes nothing, and the Next.js routes, with the secret key on the server, are the only way in
   (`docs/plans/step-5-sync.md` §4). Policies scoped to a household come with accounts, if they come.
 - Migrations go through the Supabase connector to the `parcelscreen` project only, and are

@@ -536,7 +536,7 @@ const hasStatus = (r: LibraryRow) => !!STATUS_WORD[r.status] || !!milestonesLine
 const BEST_WORDS = "best in this column";
 /** What the grid's and the strip's marks mean (the fresh-eyes review), under the list; step 12 appends ✎. */
 const LEGEND =
-  "✓ pass · ! check first · ✗ fail · ? not known · A–F the grade · ● best in its column · ≠ the listing's acres differ from the boundary's (hover or open the parcel for both) · ✎ adjusted for this parcel";
+  "✓ pass · ! check first · ✗ fail · ? not known · A–F the grade · ● best in its column · ≠ the listing's acres differ from the boundary's (hover or open the parcel for both) · ✎ adjusted for this parcel · – set aside for this parcel";
 
 /**
  * Desktop: the comparison grid (step 10b plan §1): in My order, the handle and the menu first; the name, its grade,

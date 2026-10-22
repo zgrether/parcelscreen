@@ -224,3 +224,23 @@ screens, or the seeded shots):
 - **"Weight 5", DOIs and station names** in "How it's scored"; "FROM THE REPORT … the card above grades quality only";
   "B · Maybe" unexplained on Try it on; the phone's Try it on sheet covering the columns; the 3D tip over the map;
   "Grade again: boundary changed" and "Terrain tiles didn't load" in the seeded shots: existing screens.
+
+## Step 12: ways to raise the grade, and per-parcel adjustments (hand-back)
+
+From the fresh-eyes review of step 12's screens, the findings not fixed in the step (the brief's own wording, existing
+screens, or the seeded shots):
+- **The suggestions' shorthand** ("Septic ! → ✓, Maybe → Contender", "parcel B → A", "Tried: Legal road access ✓ → !")
+  needs decoding, and "parcel B → A" can read as a parcel named B. The brief's own example wording; on a phone "B →" and
+  "A" can break across lines. Fix if it stays hard: words for the marks ("Septic: check first → pass") and "grade B → A".
+- **"Use as my driveway" beside Try it's "Use it"** in the Easement panel: two ways to commit, with the tried outcome
+  between them. Fix: one of them, or Try it's result replacing the column's own button while it's shown.
+- **The faded struck letter beside the new one** can read as two grades; the strike is light at small sizes.
+- **The answer line names a set-aside Must but not an override**, and a set-aside Must leaves "Contender" without a
+  caution. #128's "Contender, with 1 override" would say it.
+- **"Grade the combination" disabled with one parcel**, no reason given; "Tap" on a desktop; the disabled grey's
+  contrast.
+- **The Easement panel's columns** wrap "Steepest, raw ground" over three lines on a desktop; the map's E1–E4, S1–S6 and
+  1–4 pins have no key; "Veto within/over 25%" and "Scored on the card" are jargon.
+- **Existing screens:** "Grade again: boundary changed" and "Terrain tiles didn't load" in the seeded shots; the report
+  score (67/100) beside a letter in "From the report"; the phone's Try it on sheet over the columns; rows scrolling under
+  the Grade | Details tabs; the map's tilt tip; What matters' disabled Undo as an empty box.
