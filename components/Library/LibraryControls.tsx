@@ -22,6 +22,7 @@ import { MILESTONE_WORD, MILESTONES, STATUS_WORD } from "@/lib/client/parcelStat
 import type { ParcelStatus } from "@/lib/client/parcelStore";
 import { switchLabel } from "@/lib/client/rubrics";
 import type { NamedRubric } from "@/lib/rubric/types";
+import type { GridColumn } from "@/lib/client/gridColumns";
 
 // Step 8 (plan §4): Favorites are active by default; the one status chip shows the archived ones too.
 const STATUSES: ParcelStatus[] = ["archived"];
@@ -37,9 +38,17 @@ const SORTS: { key: SortKey; label: string }[] = [
   { key: "price", label: "Price" },
   { key: "acres", label: "Acres" },
   { key: "costBuild", label: "Cost to build" },
+  // Step 10b: price per acre.
+  { key: "pricePerAcre", label: "$/ac" },
 ];
-/** The sorts for a profile's rubrics: the household verdict when it holds several, then each grade. */
-const sortsFor = (rubrics: readonly NamedRubric[]): { key: SortKey; label: string }[] => [
+/**
+ * The sorts for a profile's rubrics: the household verdict when it holds several, then each grade; then each factor of
+ * the viewer's rubric (step 10b: a phone's only way to sort by one), by its full name.
+ */
+const sortsFor = (
+  rubrics: readonly NamedRubric[],
+  factors: readonly GridColumn[] = [],
+): { key: SortKey; label: string }[] => [
   ...SORTS,
   ...(rubrics.length > 1
     ? [
@@ -49,7 +58,68 @@ const sortsFor = (rubrics: readonly NamedRubric[]): { key: SortKey; label: strin
       ]
     : []),
   ...rubrics.map((nr) => ({ key: gradeSortKey(nr.id), label: switchLabel(nr) })),
+  ...factors.map((c) => ({ key: c.sort, label: c.title })),
 ];
+
+/** Columns ▾ (step 10b plan §1): a checkbox per column the grid can show, and every factor at once. A desktop's. */
+function Columns({
+  columns,
+  hidden,
+  setHidden,
+}: {
+  columns: readonly GridColumn[];
+  hidden: readonly string[];
+  setHidden(h: string[]): void;
+}) {
+  const [open, setOpen] = useState(false);
+  const factors = columns.filter((c) => c.kind === "factor").map((c) => c.id);
+  const flip = (id: string) =>
+    setHidden(hidden.includes(id) ? hidden.filter((x) => x !== id) : [...hidden, id]);
+  return (
+    <div className="lib-columns">
+      <button className="btn small secondary" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+        Columns ▾
+      </button>
+      {open && (
+        <div className="lib-columns-menu" role="group" aria-label="Columns">
+          {columns
+            .filter((c) => c.kind !== "factor")
+            .map((c) => (
+              <label key={c.id} className="lib-columns-item">
+                <input type="checkbox" checked={!hidden.includes(c.id)} onChange={() => flip(c.id)} />
+                {c.title}
+              </label>
+            ))}
+          {factors.length > 0 && (
+            <div className="lib-columns-all">
+              <span className="lib-columns-group">Factors</span>
+              <button
+                className="btn small secondary"
+                onClick={() => setHidden(hidden.filter((x) => !factors.includes(x)))}
+              >
+                All
+              </button>
+              <button
+                className="btn small secondary"
+                onClick={() => setHidden([...new Set([...hidden, ...factors])])}
+              >
+                None
+              </button>
+            </div>
+          )}
+          {columns
+            .filter((c) => c.kind === "factor")
+            .map((c) => (
+              <label key={c.id} className="lib-columns-item">
+                <input type="checkbox" checked={!hidden.includes(c.id)} onChange={() => flip(c.id)} />
+                {c.title}
+              </label>
+            ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 /** How many of the fold's filters differ from the defaults; the quick ones beside it show as pressed (polish). */
 function changedFilters(f: LibraryFilters): number {
@@ -70,11 +140,14 @@ export function LibraryControls({
   setView,
   rows,
   rubrics,
+  columns = [],
 }: {
   view: LibraryView;
   setView(v: LibraryView): void;
   rows: LibraryRow[];
   rubrics: readonly NamedRubric[];
+  /** Every column the grid can show (step 10b): Columns ▾ lists them; the factors join the sorts. */
+  columns?: readonly GridColumn[];
 }) {
   const [open, setOpen] = useState(false);
   const f = view.filters;
@@ -85,7 +158,10 @@ export function LibraryControls({
   const states = [...new Set(rows.flatMap((r) => r.states))].sort();
   const n = changedFilters(f);
   const several = rubrics.length > 1;
-  const sorts = sortsFor(rubrics);
+  const sorts = sortsFor(
+    rubrics,
+    columns.filter((c) => c.kind === "factor"),
+  );
   const chips = <T extends string>(
     label: string,
     all: readonly T[],
@@ -154,6 +230,13 @@ export function LibraryControls({
             ))}
           </select>
         </label>
+        {columns.length > 0 && (
+          <Columns
+            columns={columns}
+            hidden={view.columns.hidden}
+            setHidden={(hidden) => setView({ ...view, columns: { hidden } })}
+          />
+        )}
         {/* My order is the household's own (WF3): it's rearranged, not turned around. */}
         {view.sort.key !== "order" && (
           <button

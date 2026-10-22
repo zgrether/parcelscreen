@@ -63,6 +63,7 @@ export function Compare() {
       name,
       acres,
       askingPrice: b.askingPrice,
+      listingAcres: b.listingAcres,
       state: s?.state ?? "none",
       result: s?.result ?? null,
       drawn: drawnOf(b.markup, b.drivewayLine, { askingPrice: b.askingPrice, ...costs }),

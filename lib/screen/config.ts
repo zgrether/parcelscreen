@@ -677,6 +677,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
     sites: { withinPoints: 10, apartM: 100, alternatives: 2, numbers: 5 },
     // WF1 (owner, #128): the card says so when the listing's acres differ from the boundary's by more than this.
     listingAcresPct: 10,
+    // Step 10b (owner, 10/21): price per acre is marked when the listing's and the boundary's acres differ by more than this.
+    perAcreDiffPct: 5,
     // WF4 (owner, #128): the markers the card reads. A septic permit farther than this from the build site covers
     // another spot; a spring within this of the garden is noted on its row.
     marks: { permitFarFt: 200, springNearFt: 300 },

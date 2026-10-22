@@ -504,6 +504,12 @@ the parcel's lines, marks and asking price, and published low–high rates (`lib
 edits are a new synced profile document, `ps.costs` (overrides only). Rubrics gain optional `budgets` and a Within
 budget row (`budget`). `docs/plans/step-10-cost-to-enjoy.md` and phase-0.md §9.63 have the details.
 
+### 3l. Favorites as a comparison grid (roadmap step 10b)
+
+No stored-data change to parcels or screens. `ps.library` (per profile) gains `columns.hidden` (Columns ▾; State
+and Updated start hidden), read with a default, and new sort keys (`name`, `pricePerAcre`, `state`, `factor:<key>`).
+`docs/plans/step-10b-compare-grid.md` and phase-0.md §9.64 have the details.
+
 ## 4. The parcel page (the export)
 
 Blocks, in order; each is computed, placeholder, or user-authored:

@@ -27,13 +27,21 @@ describe("the Listing section folded on a phone (owner, #130)", () => {
     expect(listingFolds({ ...none, askingPrice: 185_000 })).toBe(true);
   });
 
-  it("one line: the name, the price, the listed acres, and whether there's a link", () => {
+  it("one line: the name, the price and its $/ac, the listed acres, and whether there's a link", () => {
     expect(
       listingSummary(
         { name: "Ferney Creek 43 ac", askingPrice: 185_000, listingAcres: 52, listingUrl: "https://x.test" },
         "52-47A",
       ),
-    ).toBe("Ferney Creek 43 ac · $185k · 52 ac listed · link");
+    ).toBe("Ferney Creek 43 ac · $185k · $3,560/ac · 52 ac listed · link");
+    // No acres either way: no $/ac.
     expect(listingSummary({ ...none, askingPrice: 185_000 }, "52-47A")).toBe("52-47A · $185k");
+    // Step 10b: the boundary's acres when the listing gives none; marked when the two differ by more than 5%.
+    expect(listingSummary({ ...none, askingPrice: 185_000 }, "52-47A", 43.9)).toBe(
+      "52-47A · $185k · $4,210/ac",
+    );
+    expect(listingSummary({ ...none, askingPrice: 185_000, listingAcres: 52 }, "52-47A", 43.9)).toBe(
+      "52-47A · $185k · $3,560/ac ≠ · 52 ac listed",
+    );
   });
 });

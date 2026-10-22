@@ -6,6 +6,7 @@
  * fetched; the agent is a third party's contact and stays with the parcel.
  */
 import { useEffect, useRef, useState, type RefObject } from "react";
+import { perAcre } from "@/lib/report/perAcre";
 import { askingLine, parsePrice } from "@/lib/client/askingPrice";
 import { safeListingHref } from "@/lib/client/listingUrl";
 import type { ListingField, WorkingParcel } from "@/lib/client/parcelStore";
@@ -54,7 +55,7 @@ export function ListingFacts({
           aria-expanded={expanded}
           onClick={() => setExpanded((e) => !e)}
         >
-          <span>{listingSummary(open, derivedName)}</span>
+          <span>{listingSummary(open, derivedName, acres)}</span>
           {/* The fresh-eyes review (polish): a name and ▾ read as a picker; the words say it opens the facts. */}
           <span className="ip-listing-toggle">{expanded ? "Fold ▴" : "Edit ▾"}</span>
         </button>
@@ -79,7 +80,7 @@ export function ListingFacts({
           ) : null
         }
       />
-      <AskingPrice key={String(open.askingPrice)} parcel={open} save={save.askingPrice} />
+      <AskingPrice key={String(open.askingPrice)} parcel={open} acres={acres} save={save.askingPrice} />
       <AcresField
         value={open.listingAcres}
         save={(listingAcres) => save.listing({ listingAcres })}
@@ -205,7 +206,17 @@ function AcresBox({
  * The asking price (owner, #101, 2026-10-11): entered by hand, saved when the box loses focus or on Enter, with the
  * date it was entered ("asking $X as of [date]"). Nothing reads it yet: the cost-to-enjoy stages will (VR4).
  */
-function AskingPrice({ parcel: open, save }: { parcel: WorkingParcel; save(price: number | null): void }) {
+function AskingPrice({
+  parcel: open,
+  acres,
+  save,
+}: {
+  parcel: WorkingParcel;
+  /** The boundary's acres, for the $/ac (step 10b). */
+  acres: number | null;
+  save(price: number | null): void;
+}) {
+  const pa = perAcre(open.askingPrice, open.listingAcres, acres);
   const [text, setText] = useState(open.askingPrice !== null ? String(open.askingPrice) : "");
   const [bad, setBad] = useState(false);
   const commit = () => {
@@ -229,12 +240,14 @@ function AskingPrice({ parcel: open, save }: { parcel: WorkingParcel; save(price
           }}
         />
       </label>
-      <span className="tiny muted">
+      <span className="tiny muted" title={pa?.both ?? undefined}>
         {bad
           ? "Enter dollars, like 185,000 or 185k."
           : open.askingPrice !== null && open.askingPriceAt
             ? askingLine(open.askingPrice, open.askingPriceAt)
             : ""}
+        {/* Step 10b: the price per acre, marked when the listing's and the boundary's acres differ. */}
+        {!bad && pa && ` · ${pa.text}${pa.differs ? " ≠" : ""}`}
       </span>
     </div>
   );
