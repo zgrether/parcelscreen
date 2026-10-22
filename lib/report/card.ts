@@ -6,6 +6,7 @@
  * Money can fix the driveway, clearing, septic, the well and power, so they never reach the grade (§3.3): the
  * gates only warn or fail, and the rows are the qualities money can't add.
  */
+import { distance } from "@turf/turf";
 import { compass, fmt } from "../format";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import {
@@ -860,6 +861,31 @@ function longTrail(r: Result, K: CardConfig): Row {
 }
 
 /**
+ * Internet (step 11, plan §2.7): the parcel's best spot for a satellite dish, graded on how clear its view is, with its
+ * distance from the site the card reads.
+ */
+function internet(r: Result, K: CardConfig, at: number): Row {
+  const g = row("internet", FACTOR_LABELS.internet);
+  if (r.dish === undefined) return { ...g(null, NOT_MEASURED), short: "not measured" };
+  if (r.dish === null) return { ...g(null, "no spot on the parcel could be read"), short: "not read" };
+  const pct = Math.round(r.dish.clearShare * 100);
+  const house = r.house && !("outside" in r.house) ? r.house : null;
+  const site = house ?? r.sites?.[at];
+  const ft = site
+    ? Math.round(distance([site.ll[1], site.ll[0]], [r.dish.ll[1], r.dish.ll[0]], { units: "feet" }))
+    : null;
+  const where = house ? "the marked house" : site ? siteLabel(site as Site) : null;
+  return {
+    ...g(
+      atLeast(pct, K.rows.dishClearPct),
+      `the best spot for a satellite dish is ${pct}% clear${ft !== null && where ? `, ${fmt(ft)} ft from ${where}` : ""} (trees not counted)`,
+    ),
+    short: `dish ${pct}% clear`,
+    measure: { value: pct, unit: "%" },
+  };
+}
+
+/**
  * "an 82-minute drive", "a 48-minute drive": the article for a number said aloud (owner, #124: an approved correction,
  * phase-0.md §9.36): "an" for 8, 11, 18 and 80–89.
  */
@@ -1052,6 +1078,7 @@ export function cardFacts(
       hospital(r, K),
       airport(r, K),
       longTrail(r, K),
+      internet(r, K, at),
       garden(r, K, marks),
       climateRow!,
       privacyRow!,

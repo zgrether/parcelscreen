@@ -365,6 +365,10 @@ export const SCREEN_CONSTANTS = deepFreeze({
   // Step 11 (plan §2.6): Bike to a long trail. The access points within maxKm in a straight line, the nearest `points`
   // of them, are timed in one OSRM table request.
   longTrail: { maxKm: 100, points: 6 },
+  // Step 11 (plan §2.7): the dish spot. Candidates every stepM over the parcel; the cone from coneDeg up, its northern
+  // half northWeight times the southern; the skyline traced to reachM; spots within tieShare of the best are tied, and
+  // the one nearest the house site wins.
+  dish: { stepM: 30, coneDeg: 25, northWeight: 2, reachM: 2000, tieShare: 0.01 },
   grocery: {
     // Owner, #81: "Closer: {name}, {N} min." after the chain grocery's drive time, when a non-chain grocery
     // is at least this many minutes nearer by road.
@@ -589,6 +593,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
       airportMin: [45, 60, 90, 120],
       // Step 11 (plan §2.6): Bike to a long trail, the drive to the nearest access point, in minutes, at most.
       longTrailMin: [10, 20, 35, 50],
+      // Step 11 (plan §2.7): Internet, the dish spot's clear share of its view cone, in %, at least.
+      dishClearPct: [95, 85, 70, 50],
     },
     // The default rubric's weights, summing to 100 (roadmap step 1: a profile's rubric replaces them; the second set the
     // app shipped with is test/support/rubrics.ts LEGACY_SECOND_WEIGHTS, kept for the step 1 card oracle). The Driveway
@@ -612,6 +618,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
         longView: 0,
         airport: 0,
         longTrail: 0,
+        internet: 0,
         // Step 10: Within budget is never on the starting list; it comes with the interview's budgets.
         budget: 0,
       },
@@ -641,6 +648,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
       viewOpenPct: { min: 0, max: 60, step: 1 },
       airportMin: { min: 15, max: 180, step: 5 },
       longTrailMin: { min: 5, max: 90, step: 5 },
+      dishClearPct: { min: 30, max: 100, step: 1 },
     },
     // Step 4, the interview (docs/plans/step-4-interview.md §2–§3; owner, 10/18): what each answer gives a row, as
     // importance points (0–3; a row takes its highest answer) and the B/C edge it sets, which shifts the row's band
@@ -669,6 +677,9 @@ export const SCREEN_CONSTANTS = deepFreeze({
         airport: 0,
         // Step 11: placed by question 4, never by default.
         longTrail: 0,
+        // Step 11 (plan §2.7): Nice to have unless question 7 says otherwise (owner: on 20+ acres there's nearly always a
+        // spot).
+        internet: 1,
         // Step 10: placed by the budgets themselves (generate.ts), never by points.
         budget: 0,
       },
@@ -700,6 +711,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
           few: { points: { airport: 1 }, edges: { airportMin: 90 } },
           monthly: { points: { airport: 1 }, edges: { airportMin: 60 } },
         },
+        // Step 11 (plan §2.7, §5): question 7's second row: video calls from home put Internet in Really want.
+        calls: { yes: { points: { internet: 3 } }, no: { points: { internet: 1 } } },
         // Question 1's follow-ups (step 11): the B/C edges, the limits as the plan has them. "Real winter welcome" and
         // "Hot is fine" set them at the sliders' ends, past anything in these mountains: no limit.
         winter: {
@@ -729,7 +742,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
         trails: {
           door: { points: { trails: 3 }, edges: { trailheadMin: 15 }, openLandWithinFt: 1320 },
           // Step 11 (plan §2.6, §5): "Bike from home to a long trail" places Bike to a long trail in Really want, at 10 min.
-          bike: { points: { trails: 2, longTrail: 2 }, edges: { longTrailMin: 10 } },
+          bike: { points: { trails: 2, longTrail: 3 }, edges: { longTrailMin: 10 } },
           drive: { points: { trails: 2 } },
           none: { points: { trails: 0 } },
         },

@@ -41,6 +41,7 @@ import { Climate } from "@/components/Results/blocks/Climate";
 import { Privacy } from "@/components/Results/blocks/Privacy";
 import { LongView } from "@/components/Results/blocks/LongView";
 import { LongTrails } from "@/components/Results/blocks/LongTrails";
+import { Internet } from "@/components/Results/blocks/Internet";
 import { PRIVACY_SOURCES } from "@/lib/report/privacy";
 import { CLIMATE_SOURCES } from "@/lib/report/climate";
 import { ordinal, SITE_NUMBER, topNumbers } from "@/components/Results/answer/BestHomesite";
@@ -61,6 +62,7 @@ export const FULL_WORDS = {
   climate: "Climate",
   privacy: "Privacy",
   longView: "Long view",
+  internet: "Internet",
   listing: "Listing facts and notes",
   lines: "Lines and marks",
   sources: "Data sources",
@@ -272,6 +274,7 @@ export function Full({
       <Section title={FULL_WORDS.climate}>{block(Climate)}</Section>
       <Section title={FULL_WORDS.privacy}>{block(Privacy)}</Section>
       <Section title={FULL_WORDS.longView}>{block(LongView)}</Section>
+      <Section title={FULL_WORDS.internet}>{block(Internet)}</Section>
 
       <Section title={FULL_WORDS.listing}>
         <dl className="rp-facts-list">

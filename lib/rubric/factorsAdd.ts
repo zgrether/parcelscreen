@@ -18,6 +18,7 @@ export const NEW_FACTORS = [
   "longView",
   "airport",
   "longTrail",
+  "internet",
 ] as const satisfies readonly RowKey[];
 export type NewFactor = (typeof NEW_FACTORS)[number];
 
@@ -53,7 +54,18 @@ export function withFactor(r: Rubric, f: NewFactor, answers: InterviewAnswers = 
       return withAirport(r, answers);
     case "longTrail":
       return withLongTrail(r, answers);
+    case "internet":
+      return withInternet(r, answers);
   }
+}
+
+/**
+ * Internet (plan §2.7, §5): Nice to have by default, the brief's tier; question 7's "Video calls from home" puts it at
+ * the bottom of Really want. On explicit weights it stays Don't care, as the others do.
+ */
+function withInternet(r: Rubric, a: InterviewAnswers): Rubric {
+  if (r.weights.mode !== "rankSum") return { ...r, wonts: [...r.wonts, "internet"] };
+  return a.calls === "yes" ? lastShould(r, "internet") : lastCould(r, "internet");
 }
 
 /**

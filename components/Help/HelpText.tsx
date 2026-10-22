@@ -196,6 +196,15 @@ export function HelpText() {
         Virginia Creeper&apos;s own site and OpenStreetMap; a closed section is left out until it reopens. The
         Blue Ridge Parkway isn&apos;t on it: it isn&apos;t a designated bike route.
       </p>
+
+      <h3 id="h-internet">Internet</h3>
+      <p>
+        The parcel&apos;s best spot for a satellite dish: every 30 m over the parcel, how much of the
+        dish&apos;s view (from 25° up, all around) the terrain leaves clear, the northern half counting twice,
+        since Starlink looks north from here. The distance is from your best homesite. Trees aren&apos;t in
+        the elevation, so a spot in the woods needs clearing. Fiber, cable and cell coverage aren&apos;t
+        graded yet: check the address on the FCC&apos;s National Broadband Map.
+      </p>
     </>
   );
 }

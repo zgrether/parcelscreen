@@ -4,6 +4,7 @@
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { defaultRubric } from "../rubric/default";
+import { NEW_FACTORS } from "../rubric/factorsAdd";
 import type { InterviewDoc } from "../rubric/interview/doc";
 import type { Rubric } from "../rubric/types";
 import {
@@ -69,26 +70,23 @@ async function boot(answers: InterviewDoc["answers"] = { er: "30" }) {
 
 afterEach(() => resetProfilesForTests());
 
+/** Every new factor marked the same way. */
+const marked = (m: "new" | "seen" | "undone") => Object.fromEntries(NEW_FACTORS.map((f) => [f, m]));
+
 describe("adding the new factors once, at boot", () => {
   it("to the current profile's priorities and its interview's list, with the notice pending", async () => {
     await boot();
     addFactorsOnce();
     const r = getPref("ps.rubrics")!;
-    expect(r.mine.ranked.map((c) => c.factor)).toEqual(["trails", "town", "hospital", "garden"]);
-    // Questions 1, 3 and 8 unanswered: Climate, Privacy and Long view are Don't care.
+    // Hospital after Town; Internet at the bottom of Nice to have, its default tier (plan §2.7).
+    expect(r.mine.ranked.map((c) => c.factor)).toEqual(["trails", "town", "hospital", "garden", "internet"]);
+    // The questions that place the others unanswered: Don't care.
     expect(r.mine.wonts).toEqual(["climate", "privacy", "longView", "airport", "longTrail"]);
-    expect(r.factorsAdded).toEqual({
-      hospital: "new",
-      climate: "new",
-      privacy: "new",
-      longView: "new",
-      airport: "new",
-      longTrail: "new",
-    });
+    expect(r.factorsAdded).toEqual(marked("new"));
     expect(getPref("ps.interview")!.base!.ranked.map((c) => c.factor)).toContain("hospital");
-    expect(pendingFactors()).toEqual(["hospital", "climate", "privacy", "longView", "airport", "longTrail"]);
+    expect(pendingFactors()).toEqual(NEW_FACTORS);
     expect(factorsNote(pendingFactors())).toBe(
-      "New factors to place: Hospital, Climate, Privacy, Long view, Airport, Bike to a long trail",
+      "New factors to place: Hospital, Climate, Privacy, Long view, Airport, Bike to a long trail, Internet",
     );
     expect(newQuestionsHref(pendingFactors())).toBe("/interview?ask=climate");
     expect(newQuestionsHref(["hospital"])).toBeNull();
@@ -104,6 +102,7 @@ describe("adding the new factors once, at boot", () => {
       "hospital:should",
       "climate:should",
       "garden:could",
+      "internet:could",
     ]);
     // Warm and mild: mild winters (24 °F), hot is fine (no July limit).
     expect([mine.bands.janLowF[1], mine.bands.julHighF[1]]).toEqual([24, 115]);
@@ -114,7 +113,7 @@ describe("adding the new factors once, at boot", () => {
     const again = getPref("ps.rubrics")!.mine;
     expect(again.ranked.some((c) => c.factor === "climate")).toBe(false);
     expect(again.wonts).toContain("climate");
-    expect(again.ranked.map((c) => c.factor)).toEqual(["trails", "town", "hospital", "garden"]);
+    expect(again.ranked.map((c) => c.factor)).toEqual(["trails", "town", "hospital", "garden", "internet"]);
   });
 
   it("once: the notice shows once, and after Undo nothing is added again", async () => {
@@ -122,25 +121,19 @@ describe("adding the new factors once, at boot", () => {
     addFactorsOnce();
     markFactorsSeen();
     expect(pendingFactors()).toEqual([]);
-    expect(getPref("ps.rubrics")!.factorsAdded).toEqual({
-      hospital: "seen",
-      climate: "seen",
-      privacy: "seen",
-      longView: "seen",
-      airport: "seen",
-      longTrail: "seen",
-    });
-    const without = undoFactorsAdd(["hospital", "climate", "privacy", "longView", "airport", "longTrail"])!;
+    expect(getPref("ps.rubrics")!.factorsAdded).toEqual(marked("seen"));
+    const without = undoFactorsAdd(NEW_FACTORS)!;
     expect(without.ranked.map((c) => c.factor)).toEqual(["trails", "town", "garden"]);
-    expect(without.wonts).toEqual(["climate", "privacy", "longView", "airport", "longTrail", "hospital"]);
-    expect(getPref("ps.rubrics")!.factorsAdded).toEqual({
-      hospital: "undone",
-      climate: "undone",
-      privacy: "undone",
-      longView: "undone",
-      airport: "undone",
-      longTrail: "undone",
-    });
+    expect(without.wonts).toEqual([
+      "climate",
+      "privacy",
+      "longView",
+      "airport",
+      "longTrail",
+      "hospital",
+      "internet",
+    ]);
+    expect(getPref("ps.rubrics")!.factorsAdded).toEqual(marked("undone"));
     setProfileRubrics({ ...getPref("ps.rubrics")!, mine: without });
     addFactorsOnce();
     expect(getPref("ps.rubrics")!.mine.ranked.some((c) => c.factor === "hospital")).toBe(false);
@@ -154,6 +147,7 @@ describe("adding the new factors once, at boot", () => {
       "town",
       "hospital",
       "garden",
+      "internet",
     ]);
   });
 });

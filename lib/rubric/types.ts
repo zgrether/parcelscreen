@@ -32,6 +32,7 @@ export const ROW_KEYS = [
   "longView",
   "airport",
   "longTrail",
+  "internet",
   "budget",
 ] as const;
 export type RowKey = (typeof ROW_KEYS)[number];
@@ -77,6 +78,8 @@ export interface Bands {
   airportMin: number[];
   /** Step 11: Bike to a long trail's drive to the nearest access point, in minutes, at most. */
   longTrailMin: number[];
+  /** Step 11: Internet's dish spot, the clear share of its view cone, in %, at least. */
+  dishClearPct: number[];
 }
 
 /**

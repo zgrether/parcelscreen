@@ -2433,6 +2433,13 @@
   "privacy": {
    "outside": false
   },
+  "dish": {
+   "ll": [
+    36.887482,
+    -80.454615
+   ],
+   "clearShare": 1
+  },
   "driveway": {
    "toLabel": "site #1",
    "entrances": [
@@ -3368,7 +3375,7 @@
    "mi": 24.1
   },
   "schemaVersion": 9,
-  "engine": 26,
+  "engine": 27,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -5807,6 +5814,13 @@
   "privacy": {
    "outside": false
   },
+  "dish": {
+   "ll": [
+    36.887482,
+    -80.454615
+   ],
+   "clearShare": 1
+  },
   "driveway": {
    "toLabel": "the existing house",
    "entrances": [
@@ -8218,7 +8232,7 @@
    "mi": 24.1
   },
   "schemaVersion": 9,
-  "engine": 26,
+  "engine": 27,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -10799,6 +10813,13 @@
   "privacy": {
    "outside": false
   },
+  "dish": {
+   "ll": [
+    36.888823,
+    -80.452926
+   ],
+   "clearShare": 1
+  },
   "driveway": {
    "toLabel": "the existing house",
    "entrances": [
@@ -13210,7 +13231,7 @@
    "mi": 24.1
   },
   "schemaVersion": 9,
-  "engine": 26,
+  "engine": 27,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

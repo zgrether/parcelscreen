@@ -1970,6 +1970,13 @@
   "privacy": {
    "outside": false
   },
+  "dish": {
+   "ll": [
+    36.185108,
+    -82.073636
+   ],
+   "clearShare": 1
+  },
   "driveway": {
    "toLabel": "site #1",
    "entrances": [
@@ -5136,7 +5143,7 @@
    "mi": 17.1
   },
   "schemaVersion": 9,
-  "engine": 26,
+  "engine": 27,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -7111,6 +7118,13 @@
   },
   "privacy": {
    "outside": false
+  },
+  "dish": {
+   "ll": [
+    36.185108,
+    -82.073636
+   ],
+   "clearShare": 1
   },
   "driveway": {
    "toLabel": "site #2",
@@ -9971,7 +9985,7 @@
    "mi": 17.1
   },
   "schemaVersion": 9,
-  "engine": 26,
+  "engine": 27,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

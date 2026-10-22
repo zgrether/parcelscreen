@@ -64,6 +64,7 @@ describe("the members", () => {
       "longView",
       "airport",
       "longTrail",
+      "internet",
     ]);
   });
 });

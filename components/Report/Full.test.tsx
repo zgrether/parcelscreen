@@ -79,6 +79,7 @@ describe("Full (plan §3)", () => {
       FULL_WORDS.climate, // step 11
       FULL_WORDS.privacy,
       FULL_WORDS.longView,
+      FULL_WORDS.internet,
       FULL_WORDS.listing,
       FULL_WORDS.lines,
       FULL_WORDS.sources,

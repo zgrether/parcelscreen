@@ -164,7 +164,6 @@ export const QUESTIONS: readonly Question[] = [
           id: "yes",
           label: "Yes",
           why: "You need internet for video calls from home",
-          later: "Internet for video calls",
         },
         { id: "no", label: "Not really", why: "You don't need internet for video calls" },
       ],

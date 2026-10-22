@@ -48,14 +48,6 @@ export const TIE_ORDER: readonly RowKey[] = [
   "elevation",
   // Step 11: question 1 places it, so it sits by Elevation, which the same answer moves (plan §2.2).
   "climate",
-  // Step 11: question 8 places it (plan §2.3).
-  "privacy",
-  // Step 11: question 3 places it (plan §2.4).
-  "longView",
-  // Step 11: question 7 places it (plan §2.5).
-  "airport",
-  // Step 11: question 4 places it (plan §2.6).
-  "longTrail",
   "homesite",
   // Step 7: the Factors table puts Driveway after Winter sun.
   "driveway",
@@ -66,6 +58,13 @@ export const TIE_ORDER: readonly RowKey[] = [
   "hospital",
   "sky",
   "garden",
+  // Step 11's other new factors break ties after the original rows, so a list from the same answers keeps their order:
+  // Privacy (question 8), Long view (3), Airport (7), Bike to a long trail (4), Internet (7; 1 point by default).
+  "privacy",
+  "longView",
+  "airport",
+  "longTrail",
+  "internet",
 ];
 
 export interface Generated {
@@ -175,9 +174,9 @@ export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card
   answer("trails", a.trails);
   answer("groceries", a.groceries);
   answer("er", a.er);
-  // Step 11: question 7's first row sets Airport; its second is still on the quiet list until Internet.
+  // Step 11: question 7's rows set Airport and Internet.
   answer("fly", a.fly);
-  if (a.calls) note(choiceOf("calls", a.calls)?.later);
+  answer("calls", a.calls);
   answer("neighbors", a.neighbors);
   answer("garden", a.garden);
   // Question 10 sets the Driveway row (step 7); it left the quiet list.

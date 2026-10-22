@@ -96,7 +96,16 @@ describe("the default rubric reproduces today's cards (cards-v7.json; a port-onl
       expect(r.ranked.map((c) => c.tier)).toEqual(Array<"should">(7).fill("should"));
       // Step 7: the Driveway row weighs 0 in both shipped sets, so the starting list grades as before it. Step 11:
       // Town (the groceries) too, Hospital taking its weight.
-      expect(r.wonts).toEqual(["driveway", "town", "climate", "privacy", "longView", "airport", "longTrail"]);
+      expect(r.wonts).toEqual([
+        "driveway",
+        "town",
+        "climate",
+        "privacy",
+        "longView",
+        "airport",
+        "longTrail",
+        "internet",
+      ]);
       expect(r.bands).toEqual(SCREEN_CONSTANTS.card.rows);
       expect(r.points).toEqual(SCREEN_CONSTANTS.card.points);
       expect(r.gradeCutoffs).toEqual(SCREEN_CONSTANTS.card.gradeCutoffs);
