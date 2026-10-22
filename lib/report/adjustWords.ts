@@ -21,3 +21,33 @@ export const valueWord = (v: string): string => STATUS_WORDS[v] ?? v;
 
 /** After a re-grade changed the app's own value since the person adjusted it. */
 export const APP_NOW_SAYS = (v: string): string => `app now says ${valueWord(v)}`;
+
+/** The row panel's section (plan §3, §8). */
+export const ADJUST_WORDS = {
+  title: "Adjust for this parcel",
+  override: "Override the grade",
+  pass: "Count it as passed",
+  fail: "Count it as failed",
+  setAside: "Set aside for this parcel",
+  reason: "Why? (required)",
+  save: "Save",
+  cancel: "Cancel",
+  remove: "Remove adjustment",
+  removed: "Adjustment removed.",
+  undo: "Undo",
+  /** Only your grade: another member's ignores it. */
+  yours: "Only your grade changes; others in your household keep theirs.",
+} as const;
+
+/** What an existing adjustment did, in the panel: "You set it to B; the app says D." */
+export function adjustedWords(
+  a: { kind: "override" | "setAside"; grade?: string; status?: string },
+  app: string,
+): string {
+  if (a.kind === "setAside") return "You set it aside for this parcel.";
+  if (a.grade) return `You set it to ${a.grade}; the app says ${valueWord(app)}.`;
+  return `You count it as ${a.status === "pass" ? "passed" : "failed"}; the app says ${valueWord(app)}.`;
+}
+
+/** A set-aside factor's reading at the top of its panel. */
+export const SET_ASIDE_READING = (reason: string): string => `Set aside for this parcel: “${reason}”.`;

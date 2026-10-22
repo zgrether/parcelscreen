@@ -16,11 +16,14 @@ import {
   withAsk,
   withoutParcel,
   withTake,
+  withAdjust,
+  withoutAdjust,
   type Answer,
   type Household,
   type SeenTakes,
   type Take,
 } from "./takes";
+import type { Adjustment } from "@/lib/report/adjust";
 
 let cache: { raw: string | null; doc: Household } = { raw: null, doc: EMPTY_HOUSEHOLD };
 
@@ -117,4 +120,27 @@ export function dropParcel(parcel: string): void {
   const h = getPref("ps.household");
   if (h && (h.asks.some((a) => a.parcel === parcel) || h.takes.some((t) => t.parcel === parcel)))
     save(withoutParcel(h, parcel));
+}
+
+// ---------- per-parcel adjustments (step 12) ----------
+
+/** Makes (or replaces) the current person's adjustment of one factor on a parcel. */
+export function adjustParcel(a: Omit<Adjustment, "key" | "by" | "at">): void {
+  const by = currentProfileId();
+  if (!by) return;
+  save(withAdjust(getPref("ps.household") ?? EMPTY_HOUSEHOLD, { ...a, by, at: now() }));
+}
+
+/** Removes an adjustment; returns it, for Undo. */
+export function removeAdjust(key: string): Adjustment | null {
+  const h = getPref("ps.household") ?? EMPTY_HOUSEHOLD;
+  const found = h.adjusts.find((a) => a.key === key) ?? null;
+  if (found) save(withoutAdjust(h, key));
+  return found;
+}
+
+/** Undo: puts a removed adjustment back as it was. */
+export function restoreAdjust(a: Adjustment): void {
+  const h = getPref("ps.household") ?? EMPTY_HOUSEHOLD;
+  save({ ...h, adjusts: [...h.adjusts.filter((x) => x.key !== a.key), a] });
 }

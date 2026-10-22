@@ -121,3 +121,13 @@ export function rankedRows(card: Card): { should: Row[]; could: Row[] } {
       .flatMap((c) => card.rows.filter((x) => x.key === c.factor));
   return { should: by("should"), could: by("could") };
 }
+
+/**
+ * What the app itself says on a factor (step 12's panel; read from a card without the person's adjustments): the row's
+ * letter, and the Must's status when it's one of the person's Musts.
+ */
+export function appValue(card: Card, key: PanelKey): { grade?: Letter | null; status?: GateStatus } {
+  const row = card.rows.find((x) => x.key === key);
+  const must = mustLines(card).find((m) => m.key === key);
+  return { ...(row ? { grade: row.grade } : {}), ...(must ? { status: must.status } : {}) };
+}
