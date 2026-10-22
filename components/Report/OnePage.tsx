@@ -43,7 +43,9 @@ export function OnePage({
       <header className="rp-head">
         <h1>{c.name}</h1>
         <p className="rp-facts">
-          {[c.acres !== null ? `${fmt(c.acres, 2)} ac` : null, c.price, c.graded].filter(Boolean).join(" · ")}
+          {[c.acres !== null ? `${fmt(c.acres, 2)} ac` : null, c.price, c.perAcre, c.graded]
+            .filter(Boolean)
+            .join(" · ")}
         </p>
         {c.stale && <p className="rp-stale">{W.staleBoundary}</p>}
       </header>

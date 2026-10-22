@@ -170,6 +170,7 @@ function Report({
       acres,
       askingPrice: parcel.askingPrice,
       askingPriceAt: parcel.askingPriceAt,
+      listingAcres: parcel.listingAcres,
       result: record.result,
       drawn: drawnOf(parcel.markup, parcel.drivewayLine, { askingPrice: parcel.askingPrice, ...costs }),
       rubrics,

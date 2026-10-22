@@ -16,6 +16,7 @@ import { reportHref } from "@/lib/print/report";
 import { GRADES_ID, GRADES_TITLE } from "@/lib/client/help";
 import { useRouter } from "next/navigation";
 import {
+  Fragment,
   useEffect,
   useMemo,
   useRef,
@@ -43,8 +44,11 @@ import {
   COMPARE_MIN,
   FAVORITES_EMPTY,
   type Graded,
+  gradeSortKey,
   type LibraryRow,
+  type LibrarySort,
   type LibraryView,
+  type SortKey,
 } from "@/lib/client/library";
 import { rankForMove } from "@/lib/client/myOrder";
 import { milestonesLine, STATUS_WORD } from "@/lib/client/parcelStatus";
@@ -67,6 +71,10 @@ import { useKeptScreens } from "@/lib/client/useKeptScreens";
 import { VERDICT_WORD, type Verdict } from "@/lib/report/card";
 import type { NamedRubric } from "@/lib/rubric/types";
 import { LibraryControls } from "./LibraryControls";
+import { bestIn, cellOf, gridColumns, type GridColumn } from "@/lib/client/gridColumns";
+import type { FactorCell } from "@/lib/report/factorCells";
+import { GATE_MARK } from "@/lib/report/cardLines";
+import { addedByLine } from "@/components/Household/AddedBy";
 import { RescreenAll } from "./RescreenAll";
 import { DragHandle, RowMenu, SortableRows, useSortableRow, type Mover } from "./MyOrder";
 import { ParcelDetail } from "./ParcelDetail";
@@ -141,6 +149,8 @@ export function Library() {
   const rows = favorites.map((p) => rowOf.get(p.key!)!);
   const tab = view.tab;
   const hidden = hiddenBy(rows, view.filters);
+  // Step 10b: the grid's columns, from the favorites, without the ones the person hid (Columns ▾).
+  const columns = gridColumns(rows, view.columns.hidden, hasStatus);
   const shown = sortRows(
     rows.filter((r) => passes(r, view.filters)),
     view.sort,
@@ -229,6 +239,15 @@ export function Library() {
     star,
     unstar: setUnstarring,
     report: (key: string) => router.push(reportHref(key)),
+    addedBy: (r: LibraryRow) => addedByLine(adderOf.get(r.key) ?? null),
+    sort: view.sort,
+    // A header click: its sort, or the same one turned around (My order isn't a header).
+    setSort: (key: SortKey) =>
+      setView({
+        ...view,
+        sort: { key, reversed: view.sort.key === key ? !view.sort.reversed : false },
+      }),
+    columns,
   };
 
   return (
@@ -272,7 +291,13 @@ export function Library() {
           </p>
         ) : (
           <>
-            <LibraryControls view={view} setView={setView} rows={rows} rubrics={rubrics} />
+            <LibraryControls
+              view={view}
+              setView={setView}
+              rows={rows}
+              rubrics={rubrics}
+              columns={columns.all}
+            />
             <RescreenAll
               parcels={needing}
               nameOf={(key) => nameOf.get(key) ?? "the parcel"}
@@ -307,6 +332,10 @@ export function Library() {
                 <SortableRows keys={shownKeys} names={names} mover={mover}>
                   <LibraryCards {...rowsProps} />
                 </SortableRows>
+                {/* The fresh-eyes review (step 10b): what the marks mean, said once under the list. */}
+                {columns.all.some((c) => c.kind === "factor") && (
+                  <p className="tiny muted lib-legend">{LEGEND}</p>
+                )}
               </>
             )}
             <p className="sr-only" role="status">
@@ -374,6 +403,13 @@ interface RowsProps {
   unstar(r: LibraryRow): void;
   /** The ⋯ menu's Report card (step 9): opens the parcel's print page. */
   report(key: string): void;
+  /** "Added by Zach", with two or more members (step 10b); null otherwise. */
+  addedBy(r: LibraryRow): string | null;
+  /** The sort in use, and a header's: the same key again turns it around (step 10b). */
+  sort: LibrarySort;
+  setSort(key: SortKey): void;
+  /** The grid's columns (step 10b): every one the rows can fill, and those shown. */
+  columns: { all: GridColumn[]; shown: GridColumn[] };
 }
 
 /** A row with a grade from a kept screen: its report card can print (step 9). */
@@ -485,36 +521,67 @@ const costCell = (r: LibraryRow): string =>
 /** Whether a row has a status word or a milestone (an active favorite with neither shows nothing). */
 const hasStatus = (r: LibraryRow) => !!STATUS_WORD[r.status] || !!milestonesLine(r);
 
+/** Best in column's words (step 10b plan §8): the ●'s title and label. */
+const BEST_WORDS = "best in this column";
+/** What the grid's and the strip's marks mean (the fresh-eyes review), under the list. */
+const LEGEND =
+  "✓ pass · ! check first · ✗ fail · ? not known · A–F the grade · ● best in its column · ≠ the listing's acres differ from the boundary's (hover or open the parcel for both)";
+
 /**
- * Desktop: one row per parcel; in My order, the handle and the menu first. Price and Status show only when a row has
- * one (polish #12): a column of dashes says nothing.
+ * Desktop: the comparison grid (step 10b plan §1): in My order, the handle and the menu first; the name, its grade,
+ * then the columns gridColumns gives (money, the factors in the viewer's rubric order, and Status, State, Updated, as
+ * Columns ▾ leaves them). A header sorts; the header row and the Name column stay put while the grid scrolls.
  */
-function LibraryTable({ rows, rubrics, ...rest }: RowsProps) {
-  const cols = {
-    price: rows.some((r) => r.price !== null),
-    // Step 10: like Price, shown when a row has one.
-    cost: rows.some((r) => r.costBuild !== null),
-    status: rows.some(hasStatus),
+function LibraryTable({ rows, rubrics, sort, setSort, columns, ...rest }: RowsProps) {
+  const shown = columns.shown;
+  // Best in column (plan §1): the factor columns, $/ac and Cost to build.
+  const best = new Map(
+    shown
+      .filter((c) => c.kind === "factor" || c.id === "perAcre" || c.id === "cost")
+      .map((c) => [c.id, bestIn(rows, c.id)]),
+  );
+  const gradeKey = gradeSortKey(rubrics[0]!.id);
+  /** A header that sorts by its column; a second click turns it around (My order has no header). */
+  const head = (label: ReactNode, key: SortKey, title?: string, className?: string) => {
+    const on = sort.key === key;
+    return (
+      <th
+        scope="col"
+        className={className}
+        title={title}
+        aria-sort={on ? (sort.reversed ? "descending" : "ascending") : "none"}
+      >
+        <button className="lib-sort" onClick={() => setSort(key)}>
+          {label}
+          <span className="lib-sort-mark" aria-hidden="true">
+            {on ? (sort.reversed ? " ▼" : " ▲") : ""}
+          </span>
+        </button>
+      </th>
+    );
   };
   return (
-    <div className="lib-scroll">
+    <div className="lib-scroll lib-grid">
       <table className="lib-table">
         <thead>
           <tr>
-            <th scope="col">
+            <th scope="col" className="lib-stick lib-stick-1">
               <span className="sr-only">{rest.ordering ? "My order" : "More"}</span>
             </th>
-            <th scope="col">
+            <th scope="col" className="lib-stick lib-stick-2">
               <span className="sr-only">Compare</span>
             </th>
-            <th scope="col">Name</th>
-            <th scope="col">Acres</th>
-            {cols.price && <th scope="col">Price</th>}
-            {cols.cost && <th scope="col">Cost to build</th>}
-            <th scope="col">State</th>
-            {cols.status && <th scope="col">Status</th>}
-            <th scope="col">{rubrics.length > 1 ? "Grades" : switchLabel(rubrics[0]!)}</th>
-            <th scope="col">Updated</th>
+            {head("Name", "name", undefined, "lib-stick lib-stick-3")}
+            {head(
+              rubrics.length > 1 ? "Grades" : switchLabel(rubrics[0]!),
+              gradeKey,
+              "Your grade and verdict",
+            )}
+            {shown.map((c) => (
+              <Fragment key={c.id}>
+                {head(c.header, c.sort, c.title, c.kind === "factor" ? "lib-factor-h" : undefined)}
+              </Fragment>
+            ))}
           </tr>
         </thead>
         <tbody>
@@ -525,13 +592,60 @@ function LibraryTable({ rows, rubrics, ...rest }: RowsProps) {
               index={i}
               count={rows.length}
               rubrics={rubrics}
-              cols={cols}
+              sort={sort}
+              setSort={setSort}
+              columns={columns}
+              best={best}
               {...rest}
             />
           ))}
         </tbody>
       </table>
     </div>
+  );
+}
+
+/** A factor's cell: a Must's mark (with its letter when it's ranked too), or a row's letter; ● when best. */
+function FactorCellView({ c, best }: { c: FactorCell | undefined; best: boolean }) {
+  if (!c) return <span className="muted">–</span>;
+  const label = `${c.title}: ${c.detail}${best ? `; ${BEST_WORDS}` : ""}`;
+  return (
+    <span className="lib-factor" title={label} aria-label={label}>
+      {c.kind === "must" && c.status && (
+        <span className={`lib-mark m-${c.status}`} aria-hidden="true">
+          {GATE_MARK[c.status]}
+        </span>
+      )}
+      {c.grade !== undefined && (
+        <span className={`card-grade small g-${c.grade ?? "none"}`} aria-hidden="true">
+          {c.grade ?? "–"}
+        </span>
+      )}
+      {best && (
+        <span className="lib-best" aria-hidden="true">
+          ●
+        </span>
+      )}
+    </span>
+  );
+}
+
+/** $/ac, marked ≠ with both readings when the listing's and the boundary's acres differ. */
+function PerAcreCell({ r, best }: { r: LibraryRow; best: boolean }) {
+  const pa = r.perAcre;
+  if (!pa) return <span className="muted">–</span>;
+  const title = [pa.both, best ? BEST_WORDS : null].filter(Boolean).join("; ") || undefined;
+  return (
+    <span className={pa.differs ? "lib-perac-differs" : undefined} title={title}>
+      {pa.text}
+      {pa.differs ? " ≠" : ""}
+      {best && (
+        <span className="lib-best" aria-label={BEST_WORDS}>
+          {" "}
+          ●
+        </span>
+      )}
+    </span>
   );
 }
 
@@ -547,9 +661,55 @@ function TableRow({
   star,
   unstar,
   report,
-  cols,
-}: RowProps & { cols: { price: boolean; cost: boolean; status: boolean } }) {
+  addedBy,
+  columns,
+  best,
+}: RowProps & { best: ReadonlyMap<string, ReadonlySet<string>> }) {
   const { nodeProps, dragging, handleProps } = useSortableRow(r.key, ordering);
+  const isBest = (id: string) => best.get(id)?.has(r.key) ?? false;
+  const by = addedBy(r);
+  const cell = (c: GridColumn): ReactNode => {
+    switch (c.id) {
+      case "price":
+        return <td className="num lib-c-price">{r.price !== null ? shortPrice(r.price) : "–"}</td>;
+      case "acres":
+        return <td className="num lib-c-acres">{r.acres !== null ? r.acres.toFixed(1) : "–"}</td>;
+      case "perAcre":
+        return (
+          <td className="num lib-c-perac">
+            <PerAcreCell r={r} best={isBest(c.id)} />
+          </td>
+        );
+      case "cost":
+        return (
+          <td className="num lib-c-cost">
+            {costCell(r)}
+            {isBest(c.id) && (
+              <span className="lib-best" title={BEST_WORDS} aria-label={BEST_WORDS}>
+                {" "}
+                ●
+              </span>
+            )}
+          </td>
+        );
+      case "status":
+        return <td className="lib-c-status">{statusCell(r)}</td>;
+      case "state":
+        return (
+          <td className="lib-c-state">
+            <State r={r} />
+          </td>
+        );
+      case "updated":
+        return <td className="tiny muted">{when(r.updatedAt)}</td>;
+      default:
+        return (
+          <td className="lib-c-factor">
+            <FactorCellView c={cellOf(r, c.id)} best={isBest(c.id)} />
+          </td>
+        );
+    }
+  };
   return (
     <tr
       {...nodeProps}
@@ -558,7 +718,7 @@ function TableRow({
       {...opens(() => open(r.key))}
     >
       {/* The grip in My order only; the ⋯ in every sort (step 9: Report card). */}
-      <td className="lib-order" {...ownClick}>
+      <td className="lib-order lib-stick lib-stick-1" {...ownClick}>
         {ordering && <DragHandle name={r.name} handle={handleProps} />}
         <RowMenu
           name={r.name}
@@ -569,7 +729,7 @@ function TableRow({
           report={graded(r) ? () => report(r.key) : undefined}
         />
       </td>
-      <td {...ownClick}>
+      <td className="lib-stick lib-stick-2" {...ownClick}>
         <input
           type="checkbox"
           aria-label={`Compare ${r.name}`}
@@ -579,24 +739,21 @@ function TableRow({
           onChange={() => toggle(r.key)}
         />
       </td>
-      <td className="lib-name">
+      <td className="lib-name lib-stick lib-stick-3">
         <span className="lib-name-line">
           {star(r)}
           <LongName name={r.name} className="lib-open" />
+          {/* Step 10b: who added it, with two or more members: on the name's line, so a row stays one line high. */}
+          {by && <span className="tiny muted lib-added-by">{by}</span>}
         </span>
         {r.ask && <AskNote ask={r.ask} />}
       </td>
-      <td className="num lib-c-acres">{r.acres !== null ? r.acres.toFixed(1) : "–"}</td>
-      {cols.price && <td className="num lib-c-price">{r.price !== null ? shortPrice(r.price) : "–"}</td>}
-      {cols.cost && <td className="num lib-c-cost">{costCell(r)}</td>}
-      <td className="lib-c-state">
-        <State r={r} />
-      </td>
-      {cols.status && <td className="lib-c-status">{statusCell(r)}</td>}
       <td className="lib-c-grade">
         <Grades r={r} />
       </td>
-      <td className="tiny muted">{when(r.updatedAt)}</td>
+      {columns.shown.map((c) => (
+        <Fragment key={c.id}>{cell(c)}</Fragment>
+      ))}
     </tr>
   );
 }
@@ -612,6 +769,43 @@ function LibraryCards({ rows, rubrics, ...rest }: RowsProps) {
         <Card key={r.key} r={r} index={i} count={rows.length} rubrics={rubrics} {...rest} />
       ))}
     </ul>
+  );
+}
+
+/**
+ * A phone card's factors (step 10b plan §2): one line in the rubric's order, the Musts first as their marks alone
+ * ("✓✓✓!"; a limit that's ranked too keeps its name and letter, "Elev ✓A"), then the letters with short names ("Sun
+ * A · Sky B"), cut off with an ellipsis. The whole of it, each with its full name, is in its label.
+ */
+function FactorStrip({ r }: { r: LibraryRow }) {
+  if (!r.factors.length) return null;
+  const label = r.factors.map((c) => `${c.title} ${c.text}`).join("; ");
+  // The fresh-eyes review: a pass is a bare ✓; a Must that isn't a pass keeps its name ("Septic !").
+  const marksOnly = r.factors.filter(
+    (c) => c.kind === "must" && c.grade === undefined && c.status === "pass",
+  );
+  const named = r.factors.filter((c) => !marksOnly.includes(c));
+  const mark = (c: FactorCell) =>
+    c.status && <span className={`lib-strip-mark m-${c.status}`}>{GATE_MARK[c.status]}</span>;
+  return (
+    <div className="tiny lib-strip" aria-label={label} title={label}>
+      {marksOnly.length > 0 && (
+        <span className="lib-strip-item" aria-hidden="true">
+          {marksOnly.map((c) => (
+            <Fragment key={c.key}>{mark(c)}</Fragment>
+          ))}
+        </span>
+      )}
+      {named.map((c, i) => (
+        <span key={c.key} className="lib-strip-item" aria-hidden="true">
+          {(i > 0 || marksOnly.length > 0) && <span className="muted"> · </span>}
+          {c.short} {c.kind === "must" && mark(c)}
+          {c.grade !== undefined && (
+            <b className={`lib-strip-grade g-${c.grade ?? "none"}`}>{c.grade ?? "–"}</b>
+          )}
+        </span>
+      ))}
+    </div>
   );
 }
 
@@ -654,6 +848,8 @@ function Card({ r, index, count, ticked, toggle, open, ordering, mover, star, un
           {[
             r.acres !== null ? `${r.acres.toFixed(1)} ac` : null,
             r.price !== null ? shortPrice(r.price) : null,
+            // Step 10b: the price per acre, after the price.
+            r.perAcre ? `${r.perAcre.text}${r.perAcre.differs ? " ≠" : ""}` : null,
             r.costBuild ? `build ${costCell(r)}` : null,
           ]
             .filter(Boolean)
@@ -666,6 +862,7 @@ function Card({ r, index, count, ticked, toggle, open, ordering, mover, star, un
             <Grades r={r} />
           </span>
         </div>
+        <FactorStrip r={r} />
       </div>
     </li>
   );

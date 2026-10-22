@@ -495,6 +495,7 @@ describe("config", () => {
             "permitFarFt": 200,
             "springNearFt": 300,
           },
+          "perAcreDiffPct": 5,
           "points": {
             "A": 4,
             "B": 3,

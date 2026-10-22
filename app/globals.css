@@ -3390,8 +3390,10 @@ html:has(.app-nav) .explore {
   min-height: 44px;
 }
 .must-row .must-mark {
-  display: inline-grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   min-width: 24px;
 }
 .must-row .mark {
@@ -4374,6 +4376,222 @@ button.cmp-cell:hover {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
+}
+/*
+ * Step 10b: the comparison grid scrolls in its own box, both ways, so its header row and its first three columns (the
+ * ⋯, the tick, the name) stay put; separate borders, as Compare's, so the sticky cells keep theirs. Opaque cells:
+ * the columns scroll under them.
+ */
+.lib-grid {
+  /* At least 320 px: a short window scrolls the page around it instead of leaving a sliver. */
+  max-height: max(320px, calc(100dvh - 230px));
+  overflow: auto;
+}
+.lib-grid .lib-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.lib-grid .lib-table th,
+.lib-grid .lib-table td {
+  padding: 4px 8px;
+  height: 36px;
+  background: var(--color-paper);
+}
+.lib-grid thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--color-paper-2);
+}
+.lib-grid .lib-stick {
+  position: sticky;
+  z-index: 1;
+}
+.lib-grid thead .lib-stick {
+  z-index: 3;
+}
+/* A row's ⋯ menu opens over the rows below: its sticky cell rises above theirs while it's open. */
+.lib-grid td.lib-stick-1:focus-within,
+.lib-grid td.lib-stick-1:has([role="menu"]) {
+  z-index: 5;
+}
+.lib-grid .lib-stick-1 {
+  left: 0;
+  min-width: 72px;
+  width: 72px;
+}
+.lib-grid .lib-stick-2 {
+  left: 72px;
+  min-width: 36px;
+  width: 36px;
+}
+.lib-grid .lib-stick-3 {
+  left: 108px;
+  border-right: 1px solid var(--color-rule);
+}
+.lib-grid .lib-name {
+  max-width: 16em;
+}
+.lib-grid .lib-name .lib-open {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.lib-grid .lib-row:hover td,
+.lib-grid .lib-row:focus-visible td {
+  background: var(--color-paper-2);
+}
+/* One line per row: the members' grades, takes and notes don't wrap (a take arriving doesn't move the grid). */
+.lib-grid .lib-grades {
+  flex-wrap: nowrap;
+}
+.lib-grid .take-note {
+  display: inline-block;
+  max-width: 12em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+.lib-added-by {
+  flex: none;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+/* The name gives way first: it truncates, and "Added by" stays whole beside it. */
+.lib-grid .lib-name-line .lib-open {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.lib-sort {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.lib-sort:hover {
+  text-decoration: underline;
+}
+.lib-grid .lib-factor-h,
+.lib-grid .lib-c-factor {
+  text-align: center;
+}
+.lib-factor {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.lib-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+}
+.lib-mark.m-pass {
+  background: var(--color-ok);
+}
+.lib-mark.m-warn {
+  background: var(--color-warn);
+}
+.lib-mark.m-fail {
+  background: var(--color-steep);
+}
+.lib-mark.m-unknown {
+  background: transparent;
+  color: var(--color-ink-2);
+  border: 1px solid var(--color-rule);
+}
+/* Best in column: small and quiet; its words are in the cell's title and label. */
+.lib-best {
+  color: var(--color-water);
+  font-size: 9px;
+  vertical-align: middle;
+}
+.lib-perac-differs {
+  text-decoration: underline dotted;
+  cursor: help;
+}
+/* Step 10b: a phone card's factors on one line, cut off with an ellipsis; the whole of it is in its label. */
+.lib-strip {
+  margin-top: 4px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--color-ink-2);
+  font-size: 13px;
+}
+.lib-strip-mark {
+  font-weight: 700;
+}
+.lib-strip-mark.m-pass {
+  color: var(--color-ok);
+}
+.lib-strip-mark.m-warn {
+  color: var(--color-warn);
+}
+.lib-strip-mark.m-fail {
+  color: var(--color-steep);
+}
+.lib-strip-grade {
+  color: var(--color-ink);
+}
+.lib-strip-grade.g-D,
+.lib-strip-grade.g-F {
+  color: var(--color-steep);
+}
+.lib-columns {
+  position: relative;
+}
+.lib-columns-menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  display: grid;
+  gap: 2px;
+  min-width: 260px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 8px 10px;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+  background: var(--color-paper);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+.lib-columns-all {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.lib-columns-group {
+  align-self: center;
+  margin-right: auto;
+  font-weight: 600;
+  font-size: 13px;
+}
+.lib-legend {
+  margin: 6px 0 0;
+}
+.lib-columns-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  font-size: 13px;
+}
+@media (max-width: 700px) {
+  /* A phone has the card list, not the grid. */
+  .lib-columns {
+    display: none;
+  }
 }
 .lib-table th,
 .lib-table td {
@@ -6194,6 +6412,12 @@ button.sync-ind.bad {
   align-items: center;
   gap: 4px 10px;
   padding: 6px 8px;
+}
+/* Step 10b: the letter and the verdict word side by side. */
+.hist-grade {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .hist-row + .hist-row {
   border-top: 1px solid var(--color-rule);

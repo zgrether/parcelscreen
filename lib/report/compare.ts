@@ -15,6 +15,7 @@ import type { PanelKey } from "./cardPanels";
 import { EDITOR_TITLES } from "../rubric/words";
 import { BUDGET_SITS, budgetStatusOf, COST_WORDS } from "./cost";
 import { estimateRange } from "./costLines";
+import { perAcre } from "./perAcre";
 
 /** A History parcel as the table reads it: its name, asking price, and its latest kept screen. */
 export interface CompareParcel {
@@ -22,6 +23,8 @@ export interface CompareParcel {
   name: string;
   acres: number | null;
   askingPrice: number | null;
+  /** The acres the listing claims (WF1), for $/ac (step 10b); null or absent: the boundary's. */
+  listingAcres?: number | null;
   /** "ok" with a result; "rescreen" when its screen is from earlier rules or gone; "none" when never screened. */
   state: "ok" | "rescreen" | "none";
   result: ScreenResult | null;
@@ -133,6 +136,24 @@ export function compareTable(parcels: readonly CompareParcel[], rubric: NamedRub
       parcels.map((p) => (p.askingPrice !== null ? -p.askingPrice : null)),
     ),
   };
+  // Step 10b: price per acre, the listing's acres when given; cheaper the better.
+  const rates = parcels.map((p) => perAcre(p.askingPrice, p.listingAcres ?? null, p.acres));
+  const perAcreRow: CompareRow = {
+    key: "perAcre",
+    label: "$/ac",
+    cells: marked(
+      parcels.map((_, i): Cell => {
+        const pa = rates[i];
+        return {
+          text: pa ? `${pa.text}${pa.differs ? " ≠" : ""}` : "–",
+          mark: null,
+          panel: null,
+          ...(pa?.both ? { title: pa.both } : {}),
+        };
+      }),
+      rates.map((pa) => (pa ? -pa.value : null)),
+    ),
+  };
   // Step 10: Ready to camp and Ready to build, all in, cheaper the better; a range without the land isn't compared.
   const costRow = (which: "camp" | "build"): CompareRow => {
     const estimates = cards.map((c) => (c?.cost?.kind === "priced" ? c.cost[which] : null));
@@ -217,7 +238,7 @@ export function compareTable(parcels: readonly CompareParcel[], rubric: NamedRub
       {
         key: "costs",
         label: "Costs",
-        rows: [asking, costRow("camp"), costRow("build")],
+        rows: [asking, perAcreRow, costRow("camp"), costRow("build")],
       },
       {
         key: "budget",

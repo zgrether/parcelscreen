@@ -4,6 +4,8 @@
  * (owner, #128). Filters and sorts are views: they never change a parcel. Pure; components/Library renders it.
  */
 import { DEFAULT_COST_SETTINGS, type CostSettings, type Range } from "../config/costs";
+import { factorCells, type FactorCell } from "../report/factorCells";
+import { perAcre, type PerAcre } from "../report/perAcre";
 import {
   bothLikeIt,
   EMPTY_HOUSEHOLD,
@@ -90,6 +92,10 @@ export interface LibraryRow {
    * price); null before it can be priced, or with no practical drive.
    */
   costBuild: { total: Range; plusLand: boolean } | null;
+  /** Price per acre (step 10b): over the listing's acres when given, else the boundary's; null without a price. */
+  perAcre: PerAcre | null;
+  /** The viewer's card as factor cells, in their rubric's order (step 10b's grid and strip); empty without a screen. */
+  factors: FactorCell[];
 }
 
 /** The household's asks and takes, and who's looking (step 6): what the list reads beside the grades. */
@@ -152,6 +158,7 @@ export function libraryRow(
   const county = p.pieces.map((x) => parcelFacts(x.geo, x.props).county).find((c) => !!c) ?? null;
   const result = kept?.state === "ok" ? kept.result : null;
   let costBuild: LibraryRow["costBuild"] = null;
+  let factors: FactorCell[] = [];
   const graded = (nr: NamedRubric): Graded | null => {
     if (!result) return null;
     const c = reportCard(
@@ -160,8 +167,11 @@ export function libraryRow(
       drawnOf(p.markup, p.drivewayLine, { askingPrice: p.askingPrice, ...costs }),
     );
     // The viewer's (the profile's own rubric comes first): the cost at their best site.
-    if (nr === rubrics[0] && c.cost?.kind === "priced")
-      costBuild = { total: c.cost.build.total, plusLand: c.cost.build.land === null };
+    if (nr === rubrics[0]) {
+      if (c.cost?.kind === "priced")
+        costBuild = { total: c.cost.build.total, plusLand: c.cost.build.land === null };
+      factors = factorCells(c);
+    }
     return { grade: c.grade, verdict: c.verdict };
   };
   const grades = rubrics.map((nr) => ({ id: nr.id, name: nr.name, graded: graded(nr) }));
@@ -200,6 +210,8 @@ export function libraryRow(
       grades.map((g) => g.graded?.grade ?? null),
     ),
     costBuild,
+    perAcre: perAcre(p.askingPrice, p.listingAcres, acres),
+    factors,
   };
 }
 
@@ -276,10 +288,40 @@ export function passes(r: LibraryRow, f: LibraryFilters): boolean {
 
 // ---------- sorts ----------
 
-/** "grade:<rubric id>" sorts by that rubric's grade (step 1). */
+/**
+ * "grade:<rubric id>" sorts by that rubric's grade (step 1); "factor:<factor>" by the viewer's cell for it (step 10b:
+ * a Must's outcome, then its letter; a row's letter), best first.
+ */
 export type SortKey =
-  "order" | "updated" | "price" | "acres" | "costBuild" | "household" | "lowest" | `grade:${string}`;
+  | "order"
+  | "updated"
+  | "price"
+  | "acres"
+  | "costBuild"
+  | "household"
+  | "lowest"
+  | "name"
+  | "pricePerAcre"
+  | "state"
+  | `grade:${string}`
+  | `factor:${string}`;
 export const gradeSortKey = (id: string): SortKey => `grade:${id}`;
+export const factorSortKey = (f: string): SortKey => `factor:${f}`;
+const SORT_KEYS = [
+  "order",
+  "updated",
+  "price",
+  "acres",
+  "costBuild",
+  "household",
+  "lowest",
+  "name",
+  "pricePerAcre",
+  "state",
+];
+/** A stored sort key this version knows. */
+export const isSortKey = (k: string): k is SortKey =>
+  SORT_KEYS.includes(k) || k.startsWith("grade:") || k.startsWith("factor:");
 export interface LibrarySort {
   key: SortKey;
   /** Each key's natural order (the newest, the cheapest, the largest, the best), or its reverse. */
@@ -320,7 +362,19 @@ const sortValue = (r: LibraryRow, k: Exclude<SortKey, "order">): number | string
       return r.household === null ? null : 2 - rank(r.household);
     case "lowest":
       return lowestOfOurs(r);
+    // Step 10b: the grid's columns.
+    case "name":
+      return r.name.toLocaleLowerCase();
+    case "pricePerAcre":
+      return r.perAcre?.value ?? null;
+    case "state":
+      return r.states.length ? r.states.join(" ") : null;
     default:
+      if (k.startsWith("factor:")) {
+        // Best first; an unknown sorts last either way (sortRows).
+        const score = r.factors.find((c) => c.key === k.slice("factor:".length))?.score ?? null;
+        return score === null ? null : -score;
+      }
       return gradedRank(r.grades.find((g) => g.id === k.slice("grade:".length))?.graded ?? null);
   }
 };
@@ -349,8 +403,16 @@ export interface LibraryView {
   filters: LibraryFilters;
   sort: LibrarySort;
   tab: ListTab;
+  /** Step 10b: the grid's columns the person hid (Columns ▾); State and Updated start hidden. */
+  columns: { hidden: string[] };
 }
-export const DEFAULT_VIEW: LibraryView = { filters: DEFAULT_FILTERS, sort: DEFAULT_SORT, tab: "favorites" };
+export const DEFAULT_COLUMNS = { hidden: ["state", "updated"] };
+export const DEFAULT_VIEW: LibraryView = {
+  filters: DEFAULT_FILTERS,
+  sort: DEFAULT_SORT,
+  tab: "favorites",
+  columns: DEFAULT_COLUMNS,
+};
 
 const Choice = z.enum(["Contender", "Maybe", "Pass", "unscreened"]);
 const ViewSchema = z.object({
@@ -368,15 +430,11 @@ const ViewSchema = z.object({
     newTakes: z.boolean().default(false),
   }),
   sort: z.object({
-    key: z
-      .string()
-      .refine(
-        (k): k is SortKey =>
-          ["order", "updated", "price", "acres", "costBuild", "household", "lowest"].includes(k) ||
-          k.startsWith("grade:"),
-      ),
+    key: z.string().refine((k): k is SortKey => isSortKey(k)),
     reversed: z.boolean(),
   }),
+  // Step 10b: a view stored before it has no columns: the default's.
+  columns: z.object({ hidden: z.array(z.string()) }).default(() => ({ hidden: [...DEFAULT_COLUMNS.hidden] })),
 });
 
 /** A stored view, or the default when it's missing or from another shape. */

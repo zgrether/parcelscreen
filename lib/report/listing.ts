@@ -4,6 +4,7 @@
  */
 import { shortPrice } from "../client/askingPrice";
 import { SCREEN_CONSTANTS } from "../screen/config";
+import { perAcre } from "./perAcre";
 
 /**
  * "The listing says 52 ac; this boundary is 43.9 ac.", when the two differ by more than `card.listingAcresPct` of the
@@ -33,10 +34,14 @@ export const listingFolds = (p: { name: string; askingPrice: number | null }): b
 export function listingSummary(
   p: { name: string; askingPrice: number | null; listingAcres: number | null; listingUrl: string },
   derivedName: string,
+  /** The boundary's acres (step 10b): with the price, its $/ac follows it. */
+  boundaryAcres: number | null = null,
 ): string {
+  const pa = perAcre(p.askingPrice, p.listingAcres, boundaryAcres);
   return [
     p.name.trim() || derivedName,
     p.askingPrice !== null ? shortPrice(p.askingPrice) : null,
+    pa ? `${pa.text}${pa.differs ? " ≠" : ""}` : null,
     p.listingAcres !== null ? `${ac(p.listingAcres, 2)} ac listed` : null,
     p.listingUrl.trim() ? "link" : null,
   ]
