@@ -201,3 +201,29 @@ shots, or a product question):
 - **The panel's Grade tab opens mid-card** after a reload; **"zone 3a"** unexplained; **"Grade again" twice**;
   **"Profile 1"**; One page's "Filled: the best site" key and its outlined grade box: existing screens.
 
+
+## Step 11: new data points (hand-back)
+
+From the fresh-eyes review of step 11's screens, the findings not fixed in the step (a product question, existing
+screens, or the seeded shots):
+- **"Internet" grades a tree-blind dish check:** an A on a wooded parcel, "(trees not counted)" in small print, and the
+  name promises connectivity the FCC data would add (parked: it needs an account). Fix: rename the row "Satellite dish
+  spot" until the FCC lines come, or lead its line with "satellite only".
+- **Long view in km** in an app that uses ft and mi ("past 5 km", "the longest 6+ km"); "the longest 5.0 km" beside "1%
+  open past 5 km" reads as a contradiction; its caveat shows twice in the panel. Fix: miles with a 3 mi reach, and the
+  caveat once.
+- **Climate's snow and frost are a station's,** miles away and hundreds of feet lower or higher, beside the site's own
+  temperatures. The panel names the station and its elevation. Fix: say "at the station, not the site" on the line.
+- **The climate follow-ups' choices run in opposite directions** (Winters: Mild first; Summer: Keep it cool first), and
+  Q1's "hot summer days" against "Warm and mild"; the follow-ups come pre-selected from Q1 without saying so.
+- **A D or F with no limit shown** (Hospital 47 min, Airport): the rows outside Must have don't say the B/C edge. Fix:
+  "past your 30" in the line, as the answer's reason does.
+- **Privacy's F is off the published scale** (A–D edges only) and D and F share one red: existing card style.
+- **Privacy's "1 within a quarter mile"** sits in the graded sentence but isn't graded; the panel grades the best
+  homesite only.
+- **The ask-one interview page** says "← What matters" and "A new question" where the full interview says "← Map" and
+  "1 of 14"; no Next is visible above the fold on a phone.
+- **"85% clear" in What matters vs "A from 95%"** on the scale: the limit is the B/C edge, as every row's is.
+- **"Weight 5", DOIs and station names** in "How it's scored"; "FROM THE REPORT … the card above grades quality only";
+  "B · Maybe" unexplained on Try it on; the phone's Try it on sheet covering the columns; the 3D tip over the map;
+  "Grade again: boundary changed" and "Terrain tiles didn't load" in the seeded shots: existing screens.

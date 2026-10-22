@@ -414,7 +414,8 @@ A few questions, about four minutes, that make a person's priorities (`/intervie
 - **Stored raw,** in the profile's `ps.interview` (not in the export file until step 6), saved as each answer is
   picked so a half-done interview resumes where it was left. Answers about factors the app doesn't measure yet are
   kept but not shown (owner, 10/18); a later step adds such a factor to the person's list without touching their
-  changes, and says so once (the plan's §5).
+  changes, and says so once (the plan's §5). Step 11 did so for its seven factors (`factorsAdded` in `ps.rubrics`;
+  `docs/plans/phase-0.md` §9.66).
 - **Onboarding:** a new profile (a first visit, or "Add a profile") starts with its name, then the interview, with
   "Not now" on every screen; the app sends it there until it's finished or put off. The ☰ menu offers "Answer a few
   questions (about 4 min)" while the profile has no answers; after that the priorities page alone offers "Finish your

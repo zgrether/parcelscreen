@@ -164,6 +164,11 @@ lists: `PROTOTYPE_FIXTURE_SLUGS` (Ferney, Macks, Mud Creek) and `FIXTURE_SLUGS` 
 
 Recorded 2026-10-17 with `PORT_APPEND=roan-hwy-143-099-046-02 pnpm record:port`. Scenarios: `run`, `evaluateSite2`.
 
+Step 11 (2026-10-22) appended one request to every fixture's `network-port.har` with `PORT_APPEND=<slug> pnpm record:port`:
+Bike to a long trail's OSRM table from the driveway's road end to the nearest long-trail access points. Existing
+entries are byte-identical; Mud Creek's HAR guard (`mud-creek-har.test.ts`) allows the OSRM table after step 2's TREC
+entries. Climate, Privacy, Long view and Internet read baked-in data or the screen's own DEMs, so they request nothing.
+
 ## Terrarium tile (DEM fallback)
 
 `terrarium/14/4530/6383.png` (103,098 bytes) is the one AWS terrain tile covering Ferney Creek's fine-DEM
