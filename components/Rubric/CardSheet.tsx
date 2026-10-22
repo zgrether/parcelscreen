@@ -51,6 +51,7 @@ const BAND_LABELS: Record<LimitKey, string> = {
   julHighF: "July highs at most",
   privacyFt: "Nearest house at least",
   privacySight: "Houses in sight, at most",
+  viewOpenPct: "Horizon open past 5 km, at least",
   sunH: "December sun at the best site",
 };
 

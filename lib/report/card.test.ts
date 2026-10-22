@@ -64,6 +64,7 @@ describe("the report card on the fixtures (engine 13)", () => {
       garden: "A",
       climate: "A", // step 11: January lows 24.9 °F, July highs 80.6 °F at site #1
       privacy: "B", // step 11: the nearest house 937 ft away, none in sight
+      longView: "B", // step 11: 22% of the horizon open past 5 km
     });
     const zach = reportCard(r, ZACH);
     expect(zach.points).toBeCloseTo(3.2, 9);
@@ -105,6 +106,7 @@ describe("the report card on the fixtures (engine 13)", () => {
       garden: "B",
       climate: "A",
       privacy: "A",
+      longView: "C",
     });
     // The nearer grocery is the closer one, 76 min, but over every cutoff.
     // "an" (owner, #124: an approved correction), and the track note appended, as on Trails.
@@ -233,6 +235,7 @@ describe("the report card on the fixtures (engine 13)", () => {
       garden: "C",
       climate: "A",
       privacy: "B",
+      longView: "C",
     });
     expect(rowOf(r, "driveway").detail).toBe("2,888 ft, 18% at its steepest");
     const zach = reportCard(r, ZACH);

@@ -27,6 +27,7 @@ export const SITE_ROWS: readonly RowKey[] = [
   "driveway",
   "climate",
   "privacy",
+  "longView",
 ];
 
 /** What a site needs to pass before its score counts (§2): the build fits, and the person's site-level musts. */

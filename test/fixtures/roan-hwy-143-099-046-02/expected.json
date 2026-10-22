@@ -1685,6 +1685,12 @@
      "coreClear": 13.156289298732574,
      "domeW": 2.5665882829663573
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.04,
+     "dirDeg": 193
+    },
     "roadGrade": 9.250368100223954,
     "roadRunFt": 439.1243620218932,
     "roadName": "State Rte 143",
@@ -1752,6 +1758,12 @@
      "mag": 20.91961900426926,
      "coreClear": 11.913878570323636,
      "domeW": 2.5665882829663573
+    },
+    "view": {
+     "longestKm": 2.92,
+     "past": false,
+     "openShare": 0,
+     "dirDeg": null
     },
     "roadGrade": 22.610203623127614,
     "roadRunFt": 649.4360625195619,
@@ -1823,6 +1835,12 @@
      "coreClear": 14.59151381446889,
      "domeW": 2.5665882829663573
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.1,
+     "dirDeg": 78
+    },
     "roadGrade": 16.80938643793915,
     "roadRunFt": 591.1909434958761,
     "roadName": "State Rte 143",
@@ -1892,6 +1910,12 @@
      "mag": 20.986145998452336,
      "coreClear": 17.469459403616657,
      "domeW": 2.192396058543589
+    },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.18,
+     "dirDeg": 85
     },
     "roadGrade": 5.275165732431242,
     "roadRunFt": 417.16790514492305,
@@ -5106,7 +5130,7 @@
    "er": null
   },
   "schemaVersion": 9,
-  "engine": 24,
+  "engine": 25,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -6797,6 +6821,12 @@
      "coreClear": 13.156289298732574,
      "domeW": 2.5665882829663573
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.04,
+     "dirDeg": 193
+    },
     "roadGrade": 9.250368100223954,
     "roadRunFt": 439.1243620218932,
     "roadName": "State Rte 143",
@@ -6864,6 +6894,12 @@
      "mag": 20.91961900426926,
      "coreClear": 11.913878570323636,
      "domeW": 2.5665882829663573
+    },
+    "view": {
+     "longestKm": 2.92,
+     "past": false,
+     "openShare": 0,
+     "dirDeg": null
     },
     "roadGrade": 22.610203623127614,
     "roadRunFt": 649.4360625195619,
@@ -6935,6 +6971,12 @@
      "coreClear": 14.59151381446889,
      "domeW": 2.5665882829663573
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.1,
+     "dirDeg": 78
+    },
     "roadGrade": 16.80938643793915,
     "roadRunFt": 591.1909434958761,
     "roadName": "State Rte 143",
@@ -7004,6 +7046,12 @@
      "mag": 20.986145998452336,
      "coreClear": 17.469459403616657,
      "domeW": 2.192396058543589
+    },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.18,
+     "dirDeg": 85
     },
     "roadGrade": 5.275165732431242,
     "roadRunFt": 417.16790514492305,
@@ -9911,7 +9959,7 @@
    "er": null
   },
   "schemaVersion": 9,
-  "engine": 24,
+  "engine": 25,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

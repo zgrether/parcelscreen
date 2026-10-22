@@ -178,6 +178,15 @@ export function HelpText() {
         elevation, so it&apos;s the view in winter, with the leaves down. A house under trees, or built since,
         can be missing.
       </p>
+
+      <h3 id="h-view">Long view</h3>
+      <p>
+        From each house site, the skyline every 5° all around, traced over the bare-earth elevation out to 6
+        km: in each direction, the view ends where the ground rises highest against the sky. The share of the
+        horizon whose view reaches past 5 km is graded; the longest view and the direction it opens toward are
+        shown. Trees aren&apos;t in the elevation, so a view through woods needs clearing first, and a ridge
+        past 6 km counts as open.
+      </p>
     </>
   );
 }

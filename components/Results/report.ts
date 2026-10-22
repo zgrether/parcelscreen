@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { buildHeading } from "@/lib/report/build";
 import { climateHeading } from "@/lib/report/climate";
 import { privacyHeading } from "@/lib/report/privacy";
+import { viewHeading } from "@/lib/report/view";
 import { drivewayHeading } from "@/lib/report/driveway";
 import { gardenHeading } from "@/lib/report/garden";
 import { houseHeading } from "@/lib/report/house";
@@ -21,6 +22,7 @@ import { verdictHeading } from "@/lib/report/verdict";
 import type { PartialScreenResult } from "@/lib/screen/types";
 import { Climate } from "./blocks/Climate";
 import { Privacy } from "./blocks/Privacy";
+import { LongView } from "./blocks/LongView";
 import { DarkSkies } from "./blocks/DarkSkies";
 import { DecemberSun } from "./blocks/DecemberSun";
 import { Driveway } from "./blocks/Driveway";
@@ -58,5 +60,6 @@ export const REPORT: readonly ReportSection[] = [
   // Step 11: after the prototype's sections, so their order stays its.
   { Block: Climate, heading: () => climateHeading },
   { Block: Privacy, heading: () => privacyHeading },
+  { Block: LongView, heading: () => viewHeading },
   { Block: StillUnknown, heading: () => unknownHeading },
 ];

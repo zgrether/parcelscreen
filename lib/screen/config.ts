@@ -359,6 +359,9 @@ export const SCREEN_CONSTANTS = deepFreeze({
   // sightM (a mile) are tested for line of sight over the bare-earth DEM, from eyeM above the site to roofM above the
   // house's ground (or its own height), every stepM, trees ignored: "in winter, with leaves down".
   privacy: { minHouseM2: 60, nearM: 402, sightM: 1609, eyeM: 1.7, roofM: 5, stepM: 30 },
+  // Step 11 (plan §2.4): Long view. A direction is open when its skyline is past openKm; the skyline is traced to
+  // reachKm (sun.horizonMaxM), so a view past it reads "6+ km".
+  view: { openKm: 5, reachKm: 6 },
   grocery: {
     // Owner, #81: "Closer: {name}, {N} min." after the chain grocery's drive time, when a non-chain grocery
     // is at least this many minutes nearer by road.
@@ -577,6 +580,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
       // "Never know they're there" sets it to none, so one in sight is a C).
       privacyFt: [1320, 660, 330, 165],
       privacySight: [10, 20, 30, 40],
+      // Step 11 (plan §2.4): Long view, the share of the horizon open past 5 km, in %, at least.
+      viewOpenPct: [25, 15, 8, 3],
     },
     // The default rubric's weights, summing to 100 (roadmap step 1: a profile's rubric replaces them; the second set the
     // app shipped with is test/support/rubrics.ts LEGACY_SECOND_WEIGHTS, kept for the step 1 card oracle). The Driveway
@@ -597,6 +602,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
         // Step 11: each new factor weighs 0, so it's Don't care on the starting list (plan §1).
         climate: 0,
         privacy: 0,
+        longView: 0,
         // Step 10: Within budget is never on the starting list; it comes with the interview's budgets.
         budget: 0,
       },
@@ -623,6 +629,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
       julHighF: { min: 75, max: 115, step: 1 },
       privacyFt: { min: 100, max: 2640, step: 10 },
       privacySight: { min: 0, max: 20, step: 1 },
+      viewOpenPct: { min: 0, max: 60, step: 1 },
     },
     // Step 4, the interview (docs/plans/step-4-interview.md §2–§3; owner, 10/18): what each answer gives a row, as
     // importance points (0–3; a row takes its highest answer) and the B/C edge it sets, which shifts the row's band
@@ -645,6 +652,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
         climate: 0,
         // Step 11: placed by question 8, never by default.
         privacy: 0,
+        // Step 11: placed by question 3, never by default.
+        longView: 0,
         // Step 10: placed by the budgets themselves (generate.ts), never by points.
         budget: 0,
       },
@@ -687,11 +696,12 @@ export const SCREEN_CONSTANTS = deepFreeze({
           inside: { points: { sky: 0 } },
         },
         glow: { shrug: {}, spoils: { edges: { skyMag: 21.5 } } },
+        // Step 11 (plan §2.4, §5): question 3 sets Long view too. View: Really want; both: Nice to have.
         sunView: {
-          sun: { points: { homesite: 3 } },
-          view: { points: { homesite: 1 } },
-          both: { points: { homesite: 2 } },
-          neither: { points: { homesite: 1 } },
+          sun: { points: { homesite: 3, longView: 0 } },
+          view: { points: { homesite: 1, longView: 3 } },
+          both: { points: { homesite: 2, longView: 1 } },
+          neither: { points: { homesite: 1, longView: 0 } },
         },
         // 15 min, not 10: a 10-minute edge would put the A edge at 0 min (owner, 10/18, Q11).
         trails: {

@@ -84,13 +84,11 @@ export const QUESTIONS: readonly Question[] = [
         id: "view",
         label: "View",
         why: "You'd rather have a long view than sun at breakfast",
-        later: "Long view (over winter sun)",
       },
       {
         id: "both",
         label: "Both",
         why: "You want both sun at breakfast and a long view",
-        later: "Long view (as much as winter sun)",
       },
       { id: "neither", label: "Neither", why: "You said neither morning sun nor a long view matters much" },
     ],

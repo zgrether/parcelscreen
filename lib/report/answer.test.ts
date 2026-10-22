@@ -106,6 +106,7 @@ function zeroWeights() {
     garden: 0,
     climate: 0,
     privacy: 0,
+    longView: 0,
     budget: 0,
   };
 }

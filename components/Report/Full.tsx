@@ -39,6 +39,7 @@ import { PublicLand } from "@/components/Results/blocks/PublicLand";
 import { StillUnknown } from "@/components/Results/blocks/StillUnknown";
 import { Climate } from "@/components/Results/blocks/Climate";
 import { Privacy } from "@/components/Results/blocks/Privacy";
+import { LongView } from "@/components/Results/blocks/LongView";
 import { PRIVACY_SOURCES } from "@/lib/report/privacy";
 import { CLIMATE_SOURCES } from "@/lib/report/climate";
 import { ordinal, SITE_NUMBER, topNumbers } from "@/components/Results/answer/BestHomesite";
@@ -58,6 +59,7 @@ export const FULL_WORDS = {
   // Step 11: one section per new factor, after the brief's.
   climate: "Climate",
   privacy: "Privacy",
+  longView: "Long view",
   listing: "Listing facts and notes",
   lines: "Lines and marks",
   sources: "Data sources",
@@ -267,6 +269,7 @@ export function Full({
       </Section>
       <Section title={FULL_WORDS.climate}>{block(Climate)}</Section>
       <Section title={FULL_WORDS.privacy}>{block(Privacy)}</Section>
+      <Section title={FULL_WORDS.longView}>{block(LongView)}</Section>
 
       <Section title={FULL_WORDS.listing}>
         <dl className="rp-facts-list">

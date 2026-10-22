@@ -256,6 +256,11 @@ describe("config", () => {
               "min": 5,
               "step": 5,
             },
+            "viewOpenPct": {
+              "max": 60,
+              "min": 0,
+              "step": 1,
+            },
           },
           "gradeCutoffs": [
             3.5,
@@ -482,21 +487,25 @@ describe("config", () => {
                 "both": {
                   "points": {
                     "homesite": 2,
+                    "longView": 1,
                   },
                 },
                 "neither": {
                   "points": {
                     "homesite": 1,
+                    "longView": 0,
                   },
                 },
                 "sun": {
                   "points": {
                     "homesite": 3,
+                    "longView": 0,
                   },
                 },
                 "view": {
                   "points": {
                     "homesite": 1,
+                    "longView": 3,
                   },
                 },
               },
@@ -566,6 +575,7 @@ describe("config", () => {
               "garden": 1,
               "homesite": 2,
               "hospital": 2,
+              "longView": 0,
               "privacy": 0,
               "room": 2,
               "sky": 1,
@@ -676,6 +686,12 @@ describe("config", () => {
               35,
               50,
             ],
+            "viewOpenPct": [
+              25,
+              15,
+              8,
+              3,
+            ],
           },
           "sites": {
             "alternatives": 2,
@@ -697,6 +713,7 @@ describe("config", () => {
               "garden": 10,
               "homesite": 25,
               "hospital": 5,
+              "longView": 0,
               "privacy": 0,
               "room": 15,
               "sky": 10,
@@ -1225,6 +1242,10 @@ describe("config", () => {
           "steepGradePct": 25,
           "steepP90FlagDeg": 30,
           "valleyFloorRadiusM": 1500,
+        },
+        "view": {
+          "openKm": 5,
+          "reachKm": 6,
         },
       }
     `);

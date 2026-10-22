@@ -1657,6 +1657,33 @@
             ],
             "additionalProperties": false
           },
+          "view": {
+            "type": "object",
+            "properties": {
+              "longestKm": {
+                "type": "number"
+              },
+              "past": {
+                "type": "boolean"
+              },
+              "openShare": {
+                "type": "number"
+              },
+              "dirDeg": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "longestKm",
+              "past",
+              "openShare",
+              "dirDeg"
+            ],
+            "additionalProperties": false
+          },
           "practical": {
             "anyOf": [
               {
@@ -2160,6 +2187,33 @@
                     "near",
                     "inSight",
                     "nearestFt"
+                  ],
+                  "additionalProperties": false
+                },
+                "view": {
+                  "type": "object",
+                  "properties": {
+                    "longestKm": {
+                      "type": "number"
+                    },
+                    "past": {
+                      "type": "boolean"
+                    },
+                    "openShare": {
+                      "type": "number"
+                    },
+                    "dirDeg": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "longestKm",
+                    "past",
+                    "openShare",
+                    "dirDeg"
                   ],
                   "additionalProperties": false
                 }

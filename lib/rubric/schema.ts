@@ -29,6 +29,7 @@ const BandsSchema = z.strictObject({
   julHighF: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.julHighF]),
   privacyFt: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.privacyFt]),
   privacySight: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.privacySight]),
+  viewOpenPct: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.viewOpenPct]),
 });
 
 /** Explicit weights by row. A row a saved rubric has no weight for (the Driveway row, step 7) weighs 0. */

@@ -27,6 +27,7 @@ export const FACTOR_LABELS: Record<Factor, string> = {
   garden: "Garden ground",
   climate: "Climate",
   privacy: "Privacy",
+  longView: "Long view",
   budget: "Within budget",
 };
 
@@ -59,6 +60,7 @@ export const SHORT_TITLES: Record<Factor, string> = {
   garden: "Garden",
   climate: "Climate",
   privacy: "Privacy",
+  longView: "View",
   budget: "Budget",
 };
 
@@ -75,7 +77,8 @@ export type BandKey =
   | "janLowF"
   | "julHighF"
   | "privacyFt"
-  | "privacySight";
+  | "privacySight"
+  | "viewOpenPct";
 
 /**
  * What a limit is set in: a band, or (Best homesite, whose letter is the site's quality and has no band) hours of
@@ -96,6 +99,7 @@ export const ROW_BANDS: Record<RowKey, readonly BandKey[]> = {
   garden: ["gardenAc"],
   climate: ["janLowF", "julHighF"],
   privacy: ["privacyFt", "privacySight"],
+  longView: ["viewOpenPct"],
   // Step 10: graded against the budgets, which the questions set; no slider.
   budget: [],
 };
@@ -117,6 +121,8 @@ export const MINIMUM_BAND: Record<RowKey, LimitKey | null> = {
   climate: null,
   // Step 11: question 14's "Neighbor's house in view", the houses in sight at most.
   privacy: "privacySight",
+  // Step 11: no limit; question 14 has no chip for it.
+  longView: null,
   // Step 10: a Must on it has no number of its own: it's the budgets.
   budget: null,
 };
@@ -135,6 +141,7 @@ export const BAND_RUNS: Record<BandKey, "atLeast" | "atMost"> = {
   julHighF: "atMost",
   privacyFt: "atLeast",
   privacySight: "atMost",
+  viewOpenPct: "atLeast",
 };
 
 /** "1.0" → "1", "0.25" stays: a number without trailing zeros. */
@@ -166,6 +173,8 @@ export function bandValue(key: LimitKey, v: number): string {
       return `${fmt(v)} ft`;
     case "privacySight":
       return v === 1 ? "1 house" : `${fmt(v)} houses`;
+    case "viewOpenPct":
+      return `${fmt(v)}%`;
   }
 }
 
@@ -255,6 +264,8 @@ export function cardLine(r: Rubric, factor: Factor): string {
       return capital(climateWords(b));
     case "privacy":
       return capital(privacyWords(b));
+    case "longView":
+      return `A view past 5 km over at least ${bandValue("viewOpenPct", bcEdge(b, "viewOpenPct"))} of the horizon`;
     case "budget":
       return capital(budgetWords(r.budgets));
   }
@@ -331,6 +342,8 @@ export function plainLine(r: Rubric, factor: Factor): string {
       return capital(climateWords(b));
     case "privacy":
       return capital(privacyWords(b));
+    case "longView":
+      return `A view past 5 km over at least ${bandValue("viewOpenPct", bcEdge(b, "viewOpenPct"))} of the horizon`;
     case "garden": {
       const ac = bcEdge(b, "gardenAc");
       if (ac >= 1) return "Room for a big garden";

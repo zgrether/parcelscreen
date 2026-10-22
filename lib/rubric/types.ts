@@ -29,6 +29,7 @@ export const ROW_KEYS = [
   // Step 11's new factors (plan §2): after the rows before them, so their order and ties stay as they were.
   "climate",
   "privacy",
+  "longView",
   "budget",
 ] as const;
 export type RowKey = (typeof ROW_KEYS)[number];
@@ -68,6 +69,8 @@ export interface Bands {
   privacyFt: number[];
   /** Step 11: Privacy's houses in sight within a mile, at most. */
   privacySight: number[];
+  /** Step 11: Long view's share of the horizon open past 5 km, in %, at least. */
+  viewOpenPct: number[];
 }
 
 /**
