@@ -78,7 +78,7 @@ import { adjustPropsFor } from "@/components/Results/card/AdjustSection";
 import { RaiseSection } from "@/components/Results/card/RaiseSection";
 import { getPref } from "@/lib/client/prefs";
 import { MINE } from "@/lib/rubric/types";
-import { raiseSuggestions, triedWords, type RaiseAction } from "@/lib/report/raise";
+import { NEIGHBOUR_WORDS, raiseSuggestions, triedWords, type RaiseAction } from "@/lib/report/raise";
 import type { TryProps } from "@/components/Results/card/TryIt";
 import { OFFLINE_SCREEN_TEXT } from "@/lib/client/pwa";
 import { Star } from "@/components/Favorites/Star";
@@ -383,6 +383,15 @@ export function useScreenIt(
     run(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `run` is new each render
   }, [wantsRescreen, running, canRun, online, serial]);
+
+  // Step 12 (plan §2.4): "Grade the combination" made a new parcel; it's graded as it opens, once.
+  const gradeOnOpen = ctl.state.gradeOnOpen;
+  useEffect(() => {
+    if (gradeOnOpen !== serial || running || !canRun) return;
+    ctl.gradedOnOpen();
+    run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `run` is new each render
+  }, [gradeOnOpen, serial, running, canRun]);
 
   // Re-evaluate at a pin (15b): only with this parcel's live session. The hint says what's happening, as the
   // prototype's setFocus did (L1279), until the answer arrives.
@@ -856,7 +865,26 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             stale={banner}
           />
           {raise && (raise.suggestions.length > 0 || raise.neighbour) && (
-            <RaiseSection suggestions={raise.suggestions} act={act} tryIt={tryIt} />
+            <RaiseSection
+              suggestions={raise.suggestions}
+              act={act}
+              tryIt={tryIt}
+              extra={
+                raise.neighbour && (
+                  <p className="raise-neighbour">
+                    <button
+                      type="button"
+                      className="btn secondary raise-act"
+                      onClick={() =>
+                        s.ctl.startCombine(NEIGHBOUR_WORDS.name(s.ctl.layers?.name ?? "This parcel"))
+                      }
+                    >
+                      {NEIGHBOUR_WORDS.button}
+                    </button>
+                  </p>
+                )
+              }
+            />
           )}
           {/* Step 6: how each other member would rate it, from their own priorities. */}
           <Others result={display} drawn={drawnFor(s)} parcel={s.ctl.state.store.open?.key ?? null} />

@@ -70,6 +70,7 @@ import {
   type Stamp,
   type TapHit,
 } from "./exploreState";
+import { NEIGHBOUR_WORDS } from "@/lib/report/raise";
 import { SHEET_QUERY } from "./useBottomSheet";
 import {
   layerLine,
@@ -226,7 +227,10 @@ export interface ExploreController {
   splitTap(ll: LatLon): void;
   moveSplit(a: LatLon, b: LatLon | null): void;
   choosePiece(side: Side): void;
-  startCombine(): void;
+  /** Combine mode; with a name (step 12), the combination is a new parcel by that name, graded once made. */
+  startCombine(asNew?: string): void;
+  /** Step 12: the new combination's grade has started. */
+  gradedOnOpen(): void;
   /** A tap while combining: the outline under it, else the parcel the services find there. */
   combineAt(ll: LatLon, line: ParcelLine | null): Promise<void>;
   applyCombination(): void;
@@ -853,9 +857,12 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       dispatch({ type: "keepPiece", side, stamp: stamp() });
       hint("");
     },
-    startCombine() {
-      dispatch({ type: "startCombine" });
-      hint("");
+    startCombine(asNew) {
+      dispatch({ type: "startCombine", ...(asNew ? { asNew } : {}) });
+      hint(asNew ? NEIGHBOUR_WORDS.hint : "");
+    },
+    gradedOnOpen() {
+      dispatch({ type: "gradedOnOpen" });
     },
     async combineAt(ll, line) {
       if (line) {
