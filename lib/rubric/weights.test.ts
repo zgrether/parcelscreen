@@ -29,8 +29,8 @@ describe("rank-sum weights", () => {
       round1(rows.map((_, i) => ((n - i) / ((n * (n + 1)) / 2)) * 100)),
     );
     // Thirteen rows since step 11's Airport: 13 down to 1 over 91.
-    expect(round1([w.elevation, w.climate, w.privacy, w.longView, w.airport])).toEqual([
-      14.3, 4.4, 3.3, 2.2, 1.1,
+    expect(round1([w.elevation, w.climate, w.privacy, w.longView, w.airport, w.longTrail])).toEqual([
+      13.3, 4.8, 3.8, 2.9, 1.9, 1,
     ]);
     expect(Object.values(w).reduce((a, b) => a + b, 0)).toBeCloseTo(100, 9);
   });
@@ -64,6 +64,7 @@ describe("rank-sum weights", () => {
       privacy: 0,
       longView: 0,
       airport: 0,
+      longTrail: 0,
       budget: 0,
     });
     expect(weightsOf(explicit)).toEqual(explicit.weights.mode === "explicit" ? explicit.weights.of : null);

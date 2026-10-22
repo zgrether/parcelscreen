@@ -6363,8 +6363,14 @@
    "mi": 27.2,
    "er": null
   },
+  "longTrail": {
+   "trail": "New River Trail",
+   "point": "Pulaski",
+   "min": 90,
+   "mi": 16.8
+  },
   "schemaVersion": 9,
-  "engine": 25,
+  "engine": 26,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -12753,8 +12759,14 @@
    "mi": 27.2,
    "er": null
   },
+  "longTrail": {
+   "trail": "New River Trail",
+   "point": "Pulaski",
+   "min": 90,
+   "mi": 16.8
+  },
   "schemaVersion": 9,
-  "engine": 25,
+  "engine": 26,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

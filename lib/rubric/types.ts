@@ -31,6 +31,7 @@ export const ROW_KEYS = [
   "privacy",
   "longView",
   "airport",
+  "longTrail",
   "budget",
 ] as const;
 export type RowKey = (typeof ROW_KEYS)[number];
@@ -74,6 +75,8 @@ export interface Bands {
   viewOpenPct: number[];
   /** Step 11: Airport's drive to the nearest airport on Settings' list, in minutes, at most. */
   airportMin: number[];
+  /** Step 11: Bike to a long trail's drive to the nearest access point, in minutes, at most. */
+  longTrailMin: number[];
 }
 
 /**

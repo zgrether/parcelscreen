@@ -53,6 +53,7 @@ const BAND_LABELS: Record<LimitKey, string> = {
   privacySight: "Houses in sight, at most",
   viewOpenPct: "Horizon open past 5 km, at least",
   airportMin: "Drive to an airport",
+  longTrailMin: "Drive to a long trail",
   sunH: "December sun at the best site",
 };
 

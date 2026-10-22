@@ -66,6 +66,7 @@ describe("the report card on the fixtures (engine 13)", () => {
       privacy: "B", // step 11: the nearest house 937 ft away, none in sight
       longView: "B", // step 11: 22% of the horizon open past 5 km
       airport: "C", // step 11: 88 min to Roanoke (ROA)
+      longTrail: "D", // step 11: 49 min to the Huckleberry Trail
     });
     const zach = reportCard(r, ZACH);
     expect(zach.points).toBeCloseTo(3.2, 9);
@@ -109,6 +110,7 @@ describe("the report card on the fixtures (engine 13)", () => {
       privacy: "A",
       longView: "C",
       airport: "F",
+      longTrail: "F",
     });
     // The nearer grocery is the closer one, 76 min, but over every cutoff.
     // "an" (owner, #124: an approved correction), and the track note appended, as on Trails.
@@ -239,6 +241,7 @@ describe("the report card on the fixtures (engine 13)", () => {
       privacy: "B",
       longView: "C",
       airport: "D",
+      longTrail: "D",
     });
     expect(rowOf(r, "driveway").detail).toBe("2,888 ft, 18% at its steepest");
     const zach = reportCard(r, ZACH);

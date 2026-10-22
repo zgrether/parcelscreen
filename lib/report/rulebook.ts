@@ -96,6 +96,7 @@ const ROWS: RowKey[] = [
   "privacy",
   "longView",
   "airport",
+  "longTrail",
 ];
 
 /** The scales each panel shows (as the report's panels do), by panel. */

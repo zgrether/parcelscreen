@@ -3361,8 +3361,14 @@
    "kept": false
   },
   "closerGrocery": null,
+  "longTrail": {
+   "trail": "Huckleberry Trail",
+   "point": "Christiansburg",
+   "min": 49,
+   "mi": 24.1
+  },
   "schemaVersion": 9,
-  "engine": 25,
+  "engine": 26,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -8205,8 +8211,14 @@
    "kept": true
   },
   "closerGrocery": null,
+  "longTrail": {
+   "trail": "Huckleberry Trail",
+   "point": "Christiansburg",
+   "min": 49,
+   "mi": 24.1
+  },
   "schemaVersion": 9,
-  "engine": 25,
+  "engine": 26,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -13191,8 +13203,14 @@
    "kept": false
   },
   "closerGrocery": null,
+  "longTrail": {
+   "trail": "Huckleberry Trail",
+   "point": "Christiansburg",
+   "min": 49,
+   "mi": 24.1
+  },
   "schemaVersion": 9,
-  "engine": 25,
+  "engine": 26,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

@@ -54,6 +54,8 @@ export const TIE_ORDER: readonly RowKey[] = [
   "longView",
   // Step 11: question 7 places it (plan §2.5).
   "airport",
+  // Step 11: question 4 places it (plan §2.6).
+  "longTrail",
   "homesite",
   // Step 7: the Factors table puts Driveway after Winter sun.
   "driveway",

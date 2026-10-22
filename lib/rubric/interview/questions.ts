@@ -107,7 +107,6 @@ export const QUESTIONS: readonly Question[] = [
         id: "bike",
         label: "Bike from home to a long trail",
         why: "You'd like to bike from home to a long trail",
-        later: "Bike to a long trail",
       },
       {
         id: "drive",

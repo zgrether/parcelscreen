@@ -187,6 +187,15 @@ export function HelpText() {
         shown. Trees aren&apos;t in the elevation, so a view through woods needs clearing first, and a ridge
         past 6 km counts as open.
       </p>
+
+      <h3 id="h-bike">Long trails</h3>
+      <p>
+        The drive from where the driveway meets the road to the nearest access point of a long rail-trail or
+        greenway: the New River Trail, the Virginia Creeper, the Tweetsie, the Huckleberry, the Mendota and
+        the Roanoke River Greenway. Their access points are a short list kept by hand, from Virginia DCR, the
+        Virginia Creeper&apos;s own site and OpenStreetMap; a closed section is left out until it reopens. The
+        Blue Ridge Parkway isn&apos;t on it: it isn&apos;t a designated bike route.
+      </p>
     </>
   );
 }

@@ -54,6 +54,7 @@ import { DEFAULT_PAVING } from "../config/costs";
 import type { PavingContext } from "./ground";
 import { NOT_MEASURED, OUTSIDE_AREA, stationLine, stationName } from "./climate";
 import { IN_WINTER } from "./privacy";
+import { LONG_TRAIL_DRIVES } from "../screen/longTrail";
 import { longestWords, openPct, viewLine } from "./view";
 import { atLeast, atMost, gradedRows, parcelGrade, verdictLines } from "../rubric/grade";
 import { EDITOR_TITLES, FACTOR_LABELS } from "../rubric/words";
@@ -839,6 +840,26 @@ function airport(r: Result, K: CardConfig): Row {
 }
 
 /**
+ * Bike to a long trail (step 11, plan §2.6): the drive to the nearest access point of a long rail-trail, from where
+ * the drives start. A screen made before it has none: "not measured".
+ */
+function longTrail(r: Result, K: CardConfig): Row {
+  const g = row("longTrail", FACTOR_LABELS.longTrail);
+  if (!drivesLoaded(r) || r.noResponse.includes(LONG_TRAIL_DRIVES)) return notLoaded(g, "the drive times");
+  if (r.longTrail === undefined) return { ...g(null, NOT_MEASURED), short: "not measured" };
+  if (r.longTrail === null) return { ...g("F", "no long trail within reach"), short: "none near" };
+  const t = r.longTrail;
+  return {
+    ...g(
+      atMost(t.min, K.rows.longTrailMin),
+      `${articleFor(t.min)} ${fmt(t.min)}-minute drive to the ${t.trail} at ${t.point}${trackNote(r)}`,
+    ),
+    short: `${t.trail.replace(/ Trail$| Greenway$/, "")} ${fmt(t.min)} min`,
+    measure: { value: t.min, unit: "min" },
+  };
+}
+
+/**
  * "an 82-minute drive", "a 48-minute drive": the article for a number said aloud (owner, #124: an approved correction,
  * phase-0.md §9.36): "an" for 8, 11, 18 and 80–89.
  */
@@ -1030,6 +1051,7 @@ export function cardFacts(
       town(r, K),
       hospital(r, K),
       airport(r, K),
+      longTrail(r, K),
       garden(r, K, marks),
       climateRow!,
       privacyRow!,

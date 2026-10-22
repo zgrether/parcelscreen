@@ -40,6 +40,7 @@ import { StillUnknown } from "@/components/Results/blocks/StillUnknown";
 import { Climate } from "@/components/Results/blocks/Climate";
 import { Privacy } from "@/components/Results/blocks/Privacy";
 import { LongView } from "@/components/Results/blocks/LongView";
+import { LongTrails } from "@/components/Results/blocks/LongTrails";
 import { PRIVACY_SOURCES } from "@/lib/report/privacy";
 import { CLIMATE_SOURCES } from "@/lib/report/climate";
 import { ordinal, SITE_NUMBER, topNumbers } from "@/components/Results/answer/BestHomesite";
@@ -266,6 +267,7 @@ export function Full({
       <Section title={FULL_WORDS.drives}>
         {block(GettingThere)}
         {block(PublicLand)}
+        {block(LongTrails)}
       </Section>
       <Section title={FULL_WORDS.climate}>{block(Climate)}</Section>
       <Section title={FULL_WORDS.privacy}>{block(Privacy)}</Section>
