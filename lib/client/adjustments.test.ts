@@ -52,11 +52,11 @@ describe("adjustments in the household document", () => {
     expect(withoutParcel(h, "p1").adjusts).toEqual([]);
   });
 
-  it("a document saved before step 12 reads as none; a bad one is refused", () => {
+  it("a document saved before step 12 reads as none; one that doesn't read is dropped alone", () => {
     expect(readHousehold(JSON.stringify({ v: 1, asks: [], takes: [] }))!.adjusts).toEqual([]);
-    expect(
-      readHousehold(JSON.stringify({ ...EMPTY_HOUSEHOLD, adjusts: [{ ...base, reason: "" }] })),
-    ).toBeNull();
+    const h = withAdjust(EMPTY_HOUSEHOLD, base);
+    const bad = readHousehold(JSON.stringify({ ...h, adjusts: [...h.adjusts, { ...base, reason: "" }] }))!;
+    expect(bad.adjusts.map((a) => a.key)).toEqual(["p1:zach:sky"]);
   });
 
   it("a sync merge of asks and takes keeps them", () => {

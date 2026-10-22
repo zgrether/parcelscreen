@@ -41,7 +41,16 @@ export const HouseholdSchema = z.object({
   v: z.literal(1),
   asks: z.array(AskSchema).default([]),
   takes: z.array(TakeSchema).default([]),
-  adjusts: z.array(AdjustmentSchema).default([]),
+  // Step 12: one record that doesn't read is dropped alone, so it can't cost the asks and takes their document.
+  adjusts: z
+    .array(z.unknown())
+    .default([])
+    .transform((xs) =>
+      xs.flatMap((x) => {
+        const r = AdjustmentSchema.safeParse(x);
+        return r.success ? [r.data] : [];
+      }),
+    ),
 });
 export type Household = z.infer<typeof HouseholdSchema>;
 export const EMPTY_HOUSEHOLD: Household = { v: 1, asks: [], takes: [], adjusts: [] };
