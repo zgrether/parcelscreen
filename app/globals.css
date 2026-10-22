@@ -7417,3 +7417,25 @@ button.sync-ind.bad {
     width: 100%;
   }
 }
+/* Try it (step 12): a drawn line tried as the driveway, its outcome, Use it / Discard. */
+.try-it {
+  margin-top: 6px;
+}
+.try-it .btn {
+  min-height: 44px;
+}
+.try-it.tried {
+  border-left: 3px solid var(--color-water);
+  padding-left: 8px;
+}
+.try-words {
+  margin: 0 0 6px;
+}
+.try-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.try-note {
+  margin: 0 0 6px;
+}

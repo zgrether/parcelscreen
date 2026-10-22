@@ -85,3 +85,111 @@ describe("the suggestions", () => {
     expect(raiseSuggestions(FERNEY, top, drawn)).toEqual({ suggestions: [], neighbour: false });
   });
 });
+
+describe("your line as access (plan §2.2)", () => {
+  /**
+   * Roan with a drawn easement, "Old road", recorded, whose route reaches the site without crossing neighbouring land:
+   * a copy of the app's pick from its own drawn entrance, the easement need gone. Constructed: on the fixtures the app's
+   * own pick takes such a line at the next grade (the owner's #281 answer: test with a line that raises a grade).
+   */
+  function roanWithOldRoad() {
+    const r = structuredClone(ROAN);
+    const d = r.driveway!;
+    const pick = d.routes[0]!;
+    r.lines = [
+      {
+        id: "old-road",
+        kind: "easement",
+        lengthFt: 1100,
+        widthFt: 30,
+        outsideFt: 400,
+        gradedFt: 1100,
+        avgGradePct: 9,
+        maxGradePct: 14,
+      },
+    ];
+    d.entrances.push({ ...d.entrances[pick.entranceIndex]!, source: "drawn", line: 0 });
+    d.routes.push({ ...pick, entranceIndex: d.entrances.length - 1, needsEasement: false });
+    const named = drawnOf([], null, { askingPrice: null, rates: DEFAULT_RATES });
+    return {
+      r,
+      drawn: {
+        ...named,
+        names: new Map([["old-road", "Old road"]]),
+        records: new Map([["old-road", "Carter Co. Deed Bk 412 Pg 88"]]),
+      },
+    };
+  }
+
+  it("a recorded easement that avoids the neighbour's land: Driveway on your land ! → ✓, Maybe → Contender; Try it", () => {
+    const { r, drawn } = roanWithOldRoad();
+    const base = reportCard(r, nr, drawn);
+    expect(base.verdict).toBe("Maybe");
+    const { suggestions } = raiseSuggestions(r, base, drawn);
+    const access = suggestions.find((s) => s.kind === "access")!;
+    expect(access.text).toBe("Use Old road for access: Driveway on your land ! → ✓, Maybe → Contender");
+    expect(access.action).toEqual({ kind: "tryLine", line: "old-road" });
+    // In order: after the homesite (none here), before the septic system.
+    expect(suggestions.map((s) => s.kind)).toEqual(["access", "septic"]);
+  });
+
+  it("a line that lowers the grade isn't suggested: the chosen route is scored, the pick holds", () => {
+    const { r, drawn } = roanWithOldRoad();
+    r.driveway!.routes.at(-1)!.needsEasement = true;
+    const base = reportCard(r, nr, drawn);
+    expect(raiseSuggestions(r, base, drawn).suggestions.some((s) => s.kind === "access")).toBe(false);
+  });
+
+  it("the tried words: what moved, the drives re-timed, and why when a Must got worse", async () => {
+    const { triedWords } = await import("./raise");
+    const { r, drawn } = roanWithOldRoad();
+    const base = reportCard(r, nr, drawn);
+    const tried = structuredClone(r);
+    for (const d of tried.drives ?? []) d.min += 4;
+    const yours = reportCard(tried, nr, { ...drawn, driveway: "old-road" });
+    expect(triedWords(base, yours)).toMatch(
+      /^Driveway on your land ! → ✓, Maybe → Contender, .* \d+ → \d+ min/,
+    );
+    // Back the other way: worse, and the Must's own words say why.
+    expect(triedWords(yours, base)).toMatch(
+      /Contender → Maybe.*\. Why: The driveway needs an easement across neighbouring land$/,
+    );
+  });
+});
+
+describe("the drives note with your route chosen (plan §2.2)", () => {
+  it("'Drive times start where the app's pick meets the road' only while they do", async () => {
+    const { DRIVES_FROM_PICK } = await import("./lines");
+    const r = structuredClone(ROAN);
+    const d = r.driveway!;
+    r.lines = [
+      {
+        id: "L",
+        kind: "track",
+        lengthFt: 500,
+        widthFt: null,
+        outsideFt: 0,
+        gradedFt: 500,
+        avgGradePct: 8,
+        maxGradePct: 12,
+      },
+    ];
+    // Your route from another point on the road: its entrance is elsewhere.
+    d.entrances.push({ ...d.entrances[0]!, ll: [36.1871, -82.0761], source: "drawn", line: 0 });
+    d.routes.push({ ...d.routes[0]!, entranceIndex: d.entrances.length - 1 });
+    const drawn = { ...drawnOf([], null), driveway: "L" };
+    const note = (x: typeof r) =>
+      reportCard(x, nr, drawn).rows.find((row) => row.key === "hospital")!.panelNote ?? "";
+    expect(note(r)).toContain(DRIVES_FROM_PICK);
+    // A screen timed from your route (a run with the choice, or a Try it kept): its drives start at your line.
+    const timed = structuredClone(r);
+    timed.driveFrom = {
+      ...timed.driveFrom!,
+      ll: [36.1871, -82.0761],
+      kind: "drawn",
+      line: "track",
+      road: null,
+    };
+    expect(note(timed)).not.toContain(DRIVES_FROM_PICK);
+  });
+});

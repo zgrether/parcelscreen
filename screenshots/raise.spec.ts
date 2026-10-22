@@ -5,7 +5,17 @@
  */
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 import { loadFixture, type FixtureSlug } from "../test/support/fixtures";
-import { importParcels, openExplorer, openFromList, seedScreens, settled, visit } from "../e2e/flow";
+import {
+  importParcel,
+  importParcels,
+  openExplorer,
+  openFromList,
+  screenIt,
+  seedScreens,
+  settled,
+  visit,
+} from "../e2e/flow";
+import { GRAYSON, withRedGate } from "../e2e/redGate";
 import { replayHar } from "../e2e/replay";
 
 const OUT = "test-results/screenshots";
@@ -144,6 +154,41 @@ for (const phone of [false, true]) {
       await settled(page);
       await shootSuggestions(page, "grayson-mud-creek-6273", `${OUT}/${device}-raise-mud.png`, phone);
       await shootSuggestions(page, "macks-mountain-35-3", `${OUT}/${device}-raise-macks.png`, phone);
+    });
+  });
+}
+
+for (const phone of [false, true]) {
+  const device = phone ? "phone" : "desktop";
+  test.describe(`${device} red gate`, () => {
+    test.use(
+      phone
+        ? { viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true }
+        : { viewport: { width: 1280, height: 800 } },
+    );
+
+    test("Try it in the Easement panel: the red gate, the card going down and why (PR 7)", async ({
+      page,
+      context,
+    }) => {
+      test.setTimeout(300_000);
+      await replayHar(context, [GRAYSON]);
+      await liveImagery(context);
+      await openExplorer(page, GRAYSON);
+      await importParcel(page, GRAYSON);
+      await withRedGate(page);
+      await screenIt(page);
+      if (phone) await raiseSheet(page);
+      await page
+        .locator(".must-row")
+        .filter({ has: page.locator(".row-label", { hasText: /driveway on your land/i }) })
+        .click();
+      const redGate = page.locator(".route-choice-col").filter({ hasText: "Red gate" });
+      await redGate.getByRole("button", { name: "Try it" }).click();
+      await expect(redGate.locator(".try-it.tried")).toBeVisible({ timeout: 60_000 });
+      await redGate.evaluate((el) => el.scrollIntoView({ block: "center" }));
+      await page.waitForTimeout(400);
+      await page.screenshot({ path: `${OUT}/${device}-try-red-gate.png` });
     });
   });
 }

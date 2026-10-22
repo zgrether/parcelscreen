@@ -78,7 +78,8 @@ import { adjustPropsFor } from "@/components/Results/card/AdjustSection";
 import { RaiseSection } from "@/components/Results/card/RaiseSection";
 import { getPref } from "@/lib/client/prefs";
 import { MINE } from "@/lib/rubric/types";
-import { raiseSuggestions, type RaiseAction } from "@/lib/report/raise";
+import { raiseSuggestions, triedWords, type RaiseAction } from "@/lib/report/raise";
+import type { TryProps } from "@/components/Results/card/TryIt";
 import { OFFLINE_SCREEN_TEXT } from "@/lib/client/pwa";
 import { Star } from "@/components/Favorites/Star";
 import { PanelMenu } from "@/components/Report/PanelMenu";
@@ -95,6 +96,16 @@ interface LiveRun {
 }
 
 export type ScreenIt = ReturnType<typeof useScreenIt>;
+
+/** A drawn line tried as the driveway (step 12, plan §2.2): running, held for Use it or Discard, or failed. */
+export interface Tried {
+  line: string;
+  phase: "trying" | "tried" | "failed";
+  /** From the parcel's session (WF6a's reroute), not a whole new run. */
+  quick: boolean;
+  result?: ScreenResult;
+  error?: string;
+}
 
 export function useScreenIt(
   ctl: ExploreController,
@@ -120,6 +131,9 @@ export function useScreenIt(
   const awaitingEval = useRef(false);
   // A kept session reactivated (17e): its result comes back, but it's not a new screen to keep.
   const awaitingRestore = useRef(false);
+  // Step 12 (plan §2.2): Try it on a drawn line as the driveway. Its result is held here until Use it or Discard.
+  const awaitingTry = useRef<"try" | "discard" | null>(null);
+  const [tried, setTried] = useState<Tried | null>(null);
   const evalHint = useRef("");
 
   // Handlers and effects read the latest controller and callback.
@@ -178,6 +192,13 @@ export function useScreenIt(
     if (status !== "done" || !live || !result || kept.current === result || result.cancelled === undefined)
       return;
     kept.current = result;
+    // Step 12's Try it: its result stays a suggestion until Use it; Discard's reroute back is just put away.
+    if (awaitingTry.current) {
+      const what = awaitingTry.current;
+      awaitingTry.current = null;
+      if (what === "try") setTried((t) => (t ? { ...t, phase: "tried", result: result as ScreenResult } : t));
+      return;
+    }
     if (awaitingRestore.current) {
       awaitingRestore.current = false;
       return;
@@ -212,6 +233,45 @@ export function useScreenIt(
   const stale = !!shown && (!now || !!fresh?.boundary);
   // The worker's session is this parcel's last run, on this boundary: it can re-assess the house.
   const sessionLive = !!live && live.serial === serial && status === "done" && !!shown && !stale;
+
+  // Try it (step 12): from this parcel's session when there is one (WF6a's reroute), else a run with the choice.
+  const tryLine = (line: string) => {
+    if (tried?.phase === "trying" || screen.state.updating || running) return;
+    awaitingTry.current = "try";
+    setTried({ line, phase: "trying", quick: sessionLive });
+    if (sessionLive) screen.reroute(lines, line);
+    else run(false, line);
+  };
+  // Use it: the tried screen becomes the parcel's newest (screens are never changed, so it's a new one), and its line
+  // the chosen driveway.
+  const useTried = () => {
+    if (!tried?.result || !live) return;
+    const record: ScreenRecord = {
+      id: crypto.randomUUID(),
+      keys: live.keys,
+      result: tried.result,
+      engine: ENGINE_VERSION,
+    };
+    void addScreen(record).then(() => setStored({ serial: live.serial, record }));
+    latest.current.ctl.screened(record.id, live.serial);
+    ctl.setDrivewayLine(tried.line, serial);
+    setTried(null);
+  };
+  // Discard: the session goes back to the parcel's own choice; the shown screen never changed.
+  const discardTried = () => {
+    if (sessionLive && !screen.state.updating) {
+      awaitingTry.current = "discard";
+      screen.reroute(lines, open?.drivewayLine ?? null);
+    }
+    setTried(null);
+  };
+  // A failed try says why; the parcel is as it was.
+  const tryError = screen.state.error;
+  useEffect(() => {
+    if (!tryError || !awaitingTry.current) return;
+    awaitingTry.current = null;
+    setTried((t) => (t ? { ...t, phase: "failed", error: tryError } : t));
+  }, [tryError]);
 
   // The house changed: re-assess it with the session (no notice), when there is one.
   useEffect(() => {
@@ -285,7 +345,7 @@ export function useScreenIt(
   const autoRun = live?.serial === serial && !!live.auto;
   const wantsRescreen = rescreen === serial && !autoRun;
 
-  const run = (auto = false) => {
+  const run = (auto = false, tryLine?: string) => {
     if (!parcel || !now) return;
     // Offline (17c): say so rather than start a run whose every request would fail.
     if (typeof navigator !== "undefined" && navigator.onLine === false) {
@@ -308,6 +368,8 @@ export function useScreenIt(
       ...(ownLand ? { ownLand } : {}),
       ...(house ? { house } : {}),
       ...(lines.length ? { lines } : {}),
+      // Step 12 (plan §2.2): drives timed from the chosen route (or the one being tried), as WF6 meant.
+      ...((tryLine ?? open?.drivewayLine) ? { drivewayLine: tryLine ?? open!.drivewayLine! } : {}),
     });
   };
 
@@ -495,6 +557,12 @@ export function useScreenIt(
     openPanel,
     openAdjust,
     adjustIntent,
+    tried,
+    /** The session is busy (a reroute, a house move): Try it waits for it. */
+    updating: screen.state.updating,
+    tryLine,
+    useTried,
+    discardTried,
     closePanel,
     /** The worker's session for this parcel's shown run (surfaces, horizon…), or null after a reload. */
     view: sessionLive ? screen.state.view : null,
@@ -685,6 +753,28 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the card carries the drawn lines, adjustments and rubric
     [display, s.card, s.runningHere],
   );
+  // Step 12's Try it, for the suggestion and the Easement panel alike: the tried screen's card against the shown one.
+  const tried = s.tried;
+  const triedCard = useMemo(
+    () =>
+      tried?.result && s.card
+        ? reportCard(tried.result, s.card.rubric, {
+            ...(drawnFor(s) ?? { names: new Map(), marks: [] }),
+            driveway: tried.line,
+          } as Drawn)
+        : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the try's result and the card shown are what matter
+    [tried?.result, s.card],
+  );
+  const tryIt: TryProps = {
+    tried,
+    quick: s.sessionLive,
+    busy: s.updating || !!s.runningHere,
+    words: triedCard && s.card ? triedWords(s.card, triedCard) : null,
+    tryLine: s.tryLine,
+    useIt: s.useTried,
+    discard: s.discardTried,
+  };
   const act = (a: RaiseAction) => {
     if (a.kind === "house") s.ctl.setHouse(a.ll);
     else if (a.kind === "adjust") s.openAdjust(a.factor, a.choice, a.reason);
@@ -766,7 +856,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             stale={banner}
           />
           {raise && (raise.suggestions.length > 0 || raise.neighbour) && (
-            <RaiseSection suggestions={raise.suggestions} act={act} />
+            <RaiseSection suggestions={raise.suggestions} act={act} tryIt={tryIt} />
           )}
           {/* Step 6: how each other member would rate it, from their own priorities. */}
           <Others result={display} drawn={drawnFor(s)} parcel={s.ctl.state.store.open?.key ?? null} />
@@ -855,6 +945,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
                   onEdit: (id) => s.ctl.selectLayer(lineLayer(id)),
                   onDelete: (id) => s.ctl.deleteMarkup(id, s.ctl.state.serial),
                   choose: (id) => s.ctl.setDrivewayLine(id, s.ctl.state.serial),
+                  tryIt,
                 }
               : undefined
           }

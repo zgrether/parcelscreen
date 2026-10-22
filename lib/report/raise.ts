@@ -152,6 +152,83 @@ function homesite(r: Result, base: Card, drawn: Drawn | undefined): Suggestion[]
   ];
 }
 
+/** "your drawn track", "your existing drive", "your easement", or the line's name (plan §8). */
+function lineWords(id: string, kind: string, drawn: Drawn | undefined): string {
+  const name = drawn?.names.get(id);
+  if (name) return name;
+  const own = drawn?.cost?.lines.find((l) => l.id === id)?.kind ?? kind;
+  return own === "drive" ? "your existing drive" : own === "easement" ? "your easement" : "your drawn track";
+}
+
+/** 2.2: a drawn line as access, when the card with its route chosen raises the grade (WF5's choice, display-time). */
+function access(r: Result, base: Card, drawn: Drawn | undefined): Suggestion[] {
+  let best: { id: string; kind: string; card: Card } | null = null;
+  for (const l of r.lines ?? []) {
+    if (l.id === drawn?.driveway) continue;
+    const c = reportCard(r, base.rubric, {
+      ...(drawn ?? { names: new Map(), marks: [] }),
+      driveway: l.id,
+    } as Drawn);
+    // No route from it in this screen: nothing to score.
+    if (c.drivewayLine !== l.id || !raises(base, c)) continue;
+    if (!best || gain(base, c) > gain(base, best.card)) best = { id: l.id, kind: l.kind, card: c };
+  }
+  if (!best) return [];
+  const cost = buildCostWords(base, best.card);
+  return [
+    {
+      kind: "access",
+      text: `Use ${lineWords(best.id, best.kind, drawn)} for access: ${effectWords(base, best.card)}`,
+      ...(cost ? { cost } : {}),
+      action: { kind: "tryLine", line: best.id },
+      card: best.card,
+    },
+  ];
+}
+
+/**
+ * A tried line's outcome (plan §2.2), up or down: the rows and Musts that moved, the drive minutes it re-timed, the
+ * parcel and the verdict; and, when a Must got worse, why, in its own words.
+ */
+export function triedWords(a: Card, b: Card): string {
+  const minutes = b.rows.flatMap((row) => {
+    const was = a.rows.find((x) => x.key === row.key)?.measure;
+    const now = row.measure;
+    if (now?.unit !== "min" || was?.unit !== "min" || Math.round(was.value) === Math.round(now.value))
+      return [];
+    return [`${row.label} ${Math.round(was.value)} → ${Math.round(now.value)} min`];
+  });
+  const worse = new Map(mustLines(a).map((m) => [m.key, m.status]));
+  const rank = { pass: 3, warn: 2, unknown: 1, fail: 0 } as const;
+  const why = mustLines(b).filter((m) => {
+    const was = worse.get(m.key);
+    return !!was && rank[m.status] < rank[was];
+  });
+  const effect = [effectWords(a, b), ...minutes].filter((x) => !!x).join(", ") || "no change to the grade";
+  // Why, in the Musts' own words: only what's new since the shown card, each once, the first two.
+  const had = new Set(mustLines(a).flatMap((m) => clauses(m.detail)));
+  const reasons = [...new Set(why.flatMap((m) => clauses(m.detail)).filter((c) => !had.has(c)))].slice(0, 2);
+  return reasons.length ? `${effect}. Why: ${reasons.join("; ")}` : effect;
+}
+
+/** A reason's clauses, split at "; " outside parentheses: "…limit (21% avg, 41% steepest; a built road …)" stays whole. */
+function clauses(text: string): string[] {
+  const out: string[] = [];
+  let depth = 0;
+  let from = 0;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === "(") depth++;
+    else if (ch === ")") depth = Math.max(0, depth - 1);
+    else if (ch === ";" && depth === 0 && text[i + 1] === " ") {
+      out.push(text.slice(from, i));
+      from = i + 2;
+    }
+  }
+  out.push(text.slice(from));
+  return out.map((c) => c.trim()).filter((c) => !!c);
+}
+
 /** 2.3: an alternative septic system, when Septic is a Must warned on the soils and the person allows it. */
 function septic(r: Result, base: Card, drawn: Drawn | undefined, o: RaiseOptions): Suggestion[] {
   const R: Rubric = base.rubric.rubric;
@@ -206,14 +283,12 @@ export function raiseSuggestions(
   base: Card,
   drawn: Drawn | undefined,
   o: RaiseOptions = {},
-  /** Later PRs' changes (your line as access, 2.2), tried after the homesite. */
-  more: (base: Card) => Suggestion[] = () => [],
 ): { suggestions: Suggestion[]; neighbour: boolean } {
   const top = base.grade === "A" && base.verdict === "Contender";
   if (top || base.grade === null) return { suggestions: [], neighbour: false };
   const suggestions = [
     ...homesite(r, base, drawn),
-    ...more(base),
+    ...access(r, base, drawn),
     ...septic(r, base, drawn, o),
     ...setAside(r, base, drawn),
   ].slice(0, MAX_SUGGESTIONS);
@@ -227,4 +302,13 @@ export const RAISE_WORDS = {
   house: "Put the house here",
   pass: "Count it as passed",
   setAside: "Set it aside…",
+  tryIt: "Try it",
+  trying: "Trying…",
+  tried: "Tried:",
+  useIt: "Use it",
+  discard: "Discard",
+  notRetimed: "Drive times aren't re-timed until you try it.",
+  quick: "Try it: quick, from this session",
+  slow: "Try it: grades the parcel again (about a minute)",
+  failed: (why: string) => `Couldn't try it: ${why}. Try again`,
 } as const;

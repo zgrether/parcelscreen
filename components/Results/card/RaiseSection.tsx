@@ -5,14 +5,18 @@
  * Nothing changes until the person acts.
  */
 import { RAISE_WORDS as W, type RaiseAction, type Suggestion } from "@/lib/report/raise";
+import { TryIt, type TryProps } from "./TryIt";
 
 export function RaiseSection({
   suggestions,
   act,
+  tryIt,
   extra = null,
 }: {
   suggestions: readonly Suggestion[];
   act(a: RaiseAction): void;
+  /** Your line as access (plan §2.2): Try it, then Use it or Discard. */
+  tryIt?: TryProps;
   /** What follows the suggestions (later PRs: the neighbour's button). */
   extra?: React.ReactNode;
 }) {
@@ -30,15 +34,13 @@ export function RaiseSection({
                 {x.text}
                 {x.cost && <span className="raise-cost"> · {x.cost}</span>}
               </p>
-              <button type="button" className="btn secondary raise-act" onClick={() => act(x.action)}>
-                {x.action.kind === "house"
-                  ? W.house
-                  : x.action.kind === "adjust"
-                    ? x.action.choice === "pass"
-                      ? W.pass
-                      : W.setAside
-                    : null}
-              </button>
+              {x.action.kind === "tryLine" ? (
+                tryIt && <TryIt line={x.action.line} {...tryIt} note />
+              ) : (
+                <button type="button" className="btn secondary raise-act" onClick={() => act(x.action)}>
+                  {x.action.kind === "house" ? W.house : x.action.choice === "pass" ? W.pass : W.setAside}
+                </button>
+              )}
             </li>
           ))}
         </ul>
