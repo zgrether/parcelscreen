@@ -183,9 +183,9 @@ export function HelpText() {
       <p>
         From each house site, the skyline every 5° all around, traced over the bare-earth elevation out to 3.7
         mi: in each direction, the view ends where the ground rises highest against the sky. The share of the
-        horizon whose view reaches past 3.1 mi is graded; the longest view and the direction it opens toward
-        are shown. Trees aren&apos;t in the elevation, so a view through woods needs clearing first, and a
-        ridge past 3.7 mi counts as open.
+        horizon whose view reaches past 3 mi is graded; the longest view and the direction it opens toward are
+        shown. Trees aren&apos;t in the elevation, so a view through woods needs clearing first, and a ridge
+        past 3.7 mi counts as open.
       </p>
 
       <h3 id="h-bike">Bike to a long trail</h3>

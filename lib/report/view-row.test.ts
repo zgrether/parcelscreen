@@ -1,5 +1,5 @@
 /**
- * The Long view row (step 11, plan §2.4): the share of the horizon open past 3.1 mi at the card's site; its line;
+ * The Long view row (step 11, plan §2.4): the share of the horizon open past 3 mi at the card's site; its line;
  * "not measured" on a screen made before it; question 3 in saved priorities.
  */
 import { describe, expect, it } from "vitest";
@@ -30,15 +30,15 @@ describe("the Long view row", () => {
 
   it("says the share, its direction, and the longest", () => {
     expect(rowOf(withSites(0.22)).detail).toBe(
-      "the view opens past 3.1 mi over 22% of the horizon, toward the NW; the longest 3.7+ mi",
+      "the view opens past 3 mi over 22% of the horizon, toward the NW; the longest reaches farther than 3.7 mi (as far as the app measures)",
     );
     expect(viewLine({ longestKm: 3.31, past: false, openShare: 0, dirDeg: null })).toBe(
-      "no view past 3.1 mi; the longest 2.1 mi",
+      "no view past 3 mi; the longest 2.1 mi",
     );
     expect(viewLine({ longestKm: 6, past: true, openShare: 1, dirDeg: null })).toBe(
-      "the view opens past 3.1 mi over 100% of the horizon, all around; the longest 3.7+ mi",
+      "the view opens past 3 mi over 100% of the horizon, all around; the longest reaches farther than 3.7 mi (as far as the app measures)",
     );
-    expect(rowOf(withSites(0.22)).short).toBe("22% open, 3.7+ mi");
+    expect(rowOf(withSites(0.22)).short).toBe("22% open, farther than 3.7 mi");
   });
 
   it("a screen made before it: not measured, never incomplete", () => {

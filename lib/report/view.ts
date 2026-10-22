@@ -18,21 +18,31 @@ interface View {
   dirDeg: number | null;
 }
 
-/** Distances in miles, as the rest of the app (owner, #272); the cutoffs stay in km. */
+/** Distances in miles, as the rest of the app (owner, #272). */
 const KM_PER_MI = 1.609344;
 const mi = (km: number): string => `${fmt(km / KM_PER_MI, 1)} mi`;
 
-/** "3.1 mi": the distance the view must reach to count as open. */
-export const VIEW_OPEN_MI = mi(K.openKm);
+/** "3 mi": the distance the view must reach to count as open (owner, #273: a cutoff in miles). */
+export const VIEW_OPEN_MI = `${fmt(K.openMi)} mi`;
 
-/** "3.7+ mi" past the profile's reach, else "2.0 mi". */
+/** The profile's reach is the data's range, not a choice (owner, #273): said as such. */
+const PAST_REACH = `farther than ${mi(K.reachKm)}`;
+
+/** "reaches farther than 3.7 mi (as far as the app measures)" past the profile's reach, else "2.0 mi": after "the longest". */
 export const longestWords = (v: Pick<View, "longestKm" | "past">): string =>
-  v.past ? `${fmt(K.reachKm / KM_PER_MI, 1)}+ mi` : mi(v.longestKm);
+  v.past ? `reaches ${PAST_REACH} (as far as the app measures)` : mi(v.longestKm);
+
+/** The short value's: "farther than 3.7 mi", or "2.0 mi". */
+export const longestShort = (v: Pick<View, "longestKm" | "past">): string =>
+  v.past ? PAST_REACH : mi(v.longestKm);
 
 /** "22%". */
 export const openPct = (v: Pick<View, "openShare">): number => Math.round(v.openShare * 100);
 
-/** "the view opens past 3.1 mi over 22% of the horizon, toward the NW; the longest 3.7+ mi" or "no view past 3.1 mi; …". */
+/**
+ * "the view opens past 3 mi over 22% of the horizon, toward the NW; the longest reaches farther than 3.7 mi (as far as the app
+ * measures)" or "no view past 3 mi; …".
+ */
 export function viewLine(v: View): string {
   const pct = openPct(v);
   const open =

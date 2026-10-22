@@ -56,7 +56,7 @@ import type { PavingContext } from "./ground";
 import { NOT_MEASURED, OUTSIDE_AREA, stationLine, stationName } from "./climate";
 import { IN_WINTER } from "./privacy";
 import { LONG_TRAIL_DRIVES } from "../screen/longTrail";
-import { longestWords, openPct, viewLine } from "./view";
+import { longestShort, openPct, viewLine } from "./view";
 import { atLeast, atMost, gradedRows, parcelGrade, verdictLines } from "../rubric/grade";
 import { EDITOR_TITLES, FACTOR_LABELS } from "../rubric/words";
 import { thresholdStatus, thresholdWords, type Measure } from "../rubric/musts";
@@ -782,7 +782,7 @@ function privacy(r: Result, K: CardConfig, at: number): Row {
 }
 
 /**
- * Long view at the build site (step 11, plan §2.4): the share of the horizon open past 5 km, against the person's
+ * Long view at the build site (step 11, plan §2.4): the share of the horizon open past 3 mi, against the person's
  * limit; the longest view and its direction beside it.
  */
 function longView(r: Result, K: CardConfig, at: number): Row {
@@ -798,7 +798,7 @@ function longView(r: Result, K: CardConfig, at: number): Row {
   const pct = openPct(v);
   return {
     ...g(atLeast(pct, K.rows.viewOpenPct), viewLine(v)),
-    short: `${pct}% open, ${longestWords(v)}`,
+    short: `${pct}% open, ${longestShort(v)}`,
     measure: { value: pct, unit: "%" },
   };
 }

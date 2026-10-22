@@ -206,7 +206,7 @@ shots, or a product question):
 
 From the fresh-eyes review of step 11's screens, the findings not fixed in the step (a product question, existing
 screens, or the seeded shots):
-- **Long view:** "the longest 3.1 mi" beside "1% open past 3.1 mi" reads as a contradiction (the open share counts
+- **Long view:** "the longest 3.1 mi" beside "1% open past 3 mi" reads as a contradiction (the open share counts
   directions; the longest is one of them), and its caveat shows twice in the panel. Fix: "the longest" only when it's
   past the cutoff, and the caveat once. (Its km and the "Internet" name were fixed on the hand-back, #272.)
 - **Climate's snow and frost are a station's,** miles away and hundreds of feet lower or higher, beside the site's own

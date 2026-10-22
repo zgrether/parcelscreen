@@ -2084,8 +2084,8 @@
     "view": {
      "longestKm": 6,
      "past": true,
-     "openShare": 0.22,
-     "dirDeg": 35
+     "openShare": 0.25,
+     "dirDeg": 58
     },
     "practical": null,
     "fit": "fits",
@@ -2231,7 +2231,7 @@
     "view": {
      "longestKm": 6,
      "past": true,
-     "openShare": 0.13,
+     "openShare": 0.14,
      "dirDeg": 38
     },
     "roadGrade": 2.489218365519043,
@@ -2306,8 +2306,8 @@
     "view": {
      "longestKm": 6,
      "past": true,
-     "openShare": 0.11,
-     "dirDeg": 38
+     "openShare": 0.13,
+     "dirDeg": 35
     },
     "roadGrade": 7.88603202979003,
     "roadRunFt": 236.3286037800262,
@@ -2380,8 +2380,8 @@
     "view": {
      "longestKm": 5.87,
      "past": false,
-     "openShare": 0.04,
-     "dirDeg": 33
+     "openShare": 0.08,
+     "dirDeg": 30
     },
     "practical": null,
     "fit": "fits",
@@ -3375,7 +3375,7 @@
    "mi": 24.1
   },
   "schemaVersion": 9,
-  "engine": 27,
+  "engine": 28,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -5465,8 +5465,8 @@
     "view": {
      "longestKm": 6,
      "past": true,
-     "openShare": 0.22,
-     "dirDeg": 35
+     "openShare": 0.25,
+     "dirDeg": 58
     },
     "practical": null,
     "fit": "fits",
@@ -5612,7 +5612,7 @@
     "view": {
      "longestKm": 6,
      "past": true,
-     "openShare": 0.13,
+     "openShare": 0.14,
      "dirDeg": 38
     },
     "roadGrade": 2.489218365519043,
@@ -5687,8 +5687,8 @@
     "view": {
      "longestKm": 6,
      "past": true,
-     "openShare": 0.11,
-     "dirDeg": 38
+     "openShare": 0.13,
+     "dirDeg": 35
     },
     "roadGrade": 7.88603202979003,
     "roadRunFt": 236.3286037800262,
@@ -5761,8 +5761,8 @@
     "view": {
      "longestKm": 5.87,
      "past": false,
-     "openShare": 0.04,
-     "dirDeg": 33
+     "openShare": 0.08,
+     "dirDeg": 30
     },
     "practical": null,
     "fit": "fits",
@@ -8232,7 +8232,7 @@
    "mi": 24.1
   },
   "schemaVersion": 9,
-  "engine": 27,
+  "engine": 28,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -8273,8 +8273,8 @@
    "view": {
     "longestKm": 5.5,
     "past": false,
-    "openShare": 0.01,
-    "dirDeg": 95
+    "openShare": 0.03,
+    "dirDeg": 80
    },
    "roadGrade": 15.089900268508277,
    "roadRunFt": 292.97635408085887,
@@ -10395,8 +10395,8 @@
    "view": {
     "longestKm": 5.5,
     "past": false,
-    "openShare": 0.01,
-    "dirDeg": 95
+    "openShare": 0.03,
+    "dirDeg": 80
    },
    "roadGrade": 15.089900268508277,
    "roadRunFt": 292.97635408085887,
@@ -10464,8 +10464,8 @@
     "view": {
      "longestKm": 6,
      "past": true,
-     "openShare": 0.22,
-     "dirDeg": 35
+     "openShare": 0.25,
+     "dirDeg": 58
     },
     "practical": null,
     "fit": "fits",
@@ -10611,7 +10611,7 @@
     "view": {
      "longestKm": 6,
      "past": true,
-     "openShare": 0.13,
+     "openShare": 0.14,
      "dirDeg": 38
     },
     "roadGrade": 2.489218365519043,
@@ -10686,8 +10686,8 @@
     "view": {
      "longestKm": 6,
      "past": true,
-     "openShare": 0.11,
-     "dirDeg": 38
+     "openShare": 0.13,
+     "dirDeg": 35
     },
     "roadGrade": 7.88603202979003,
     "roadRunFt": 236.3286037800262,
@@ -10760,8 +10760,8 @@
     "view": {
      "longestKm": 5.87,
      "past": false,
-     "openShare": 0.04,
-     "dirDeg": 33
+     "openShare": 0.08,
+     "dirDeg": 30
     },
     "practical": null,
     "fit": "fits",
@@ -13231,7 +13231,7 @@
    "mi": 24.1
   },
   "schemaVersion": 9,
-  "engine": 27,
+  "engine": 28,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

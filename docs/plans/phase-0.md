@@ -993,8 +993,12 @@ until step 5 (Q14).
       - **"Internet" is "Satellite internet"** everywhere it's shown (the card, the grid's header "Satellite", the
         phone strip, What matters, the interview, Full and Help); the row's key stays `internet`. Its line reads "best
         dish spot: 92% open sky, 140 ft from site #1 (trees not counted)", "the house" for a marked house.
-      - **Long view is in miles,** as the rest of the app: "past 3.1 mi", "the longest 3.7+ mi". The cutoffs stay
-        5 and 6 km in config, so no number changes.
+      - **Long view is in miles,** as the rest of the app, and its cutoff is a mile figure, not converted km: a
+        direction is open past **3 mi** (`view.openMi`; it was 5 km). A declared numbers change (#273): each site's
+        `openShare` and `dirDeg` move, ENGINE_VERSION 27 → 28, and Ferney's Long view goes B → A (22% → 25% at site
+        #1); the other fixtures keep their letters. Step 11 isn't on main, so no saved screen holds the 5 km share.
+        The 6 km reach is the data's range, not a choice, and stays; past it the line says "the longest reaches
+        farther than 3.7 mi (as far as the app measures)".
       - **PRISM stays.** Its terms don't address commercial use: it's listed, with its swap (NOAA's 1991–2020
         normals), in `docs/commercial-review.md` beside the other sources whose terms limit commercial use.
 

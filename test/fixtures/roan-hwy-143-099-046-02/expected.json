@@ -1688,8 +1688,8 @@
     "view": {
      "longestKm": 6,
      "past": true,
-     "openShare": 0.04,
-     "dirDeg": 193
+     "openShare": 0.07,
+     "dirDeg": 195
     },
     "roadGrade": 9.250368100223954,
     "roadRunFt": 439.1243620218932,
@@ -1838,8 +1838,8 @@
     "view": {
      "longestKm": 6,
      "past": true,
-     "openShare": 0.1,
-     "dirDeg": 78
+     "openShare": 0.13,
+     "dirDeg": 73
     },
     "roadGrade": 16.80938643793915,
     "roadRunFt": 591.1909434958761,
@@ -5143,7 +5143,7 @@
    "mi": 17.1
   },
   "schemaVersion": 9,
-  "engine": 27,
+  "engine": 28,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -6837,8 +6837,8 @@
     "view": {
      "longestKm": 6,
      "past": true,
-     "openShare": 0.04,
-     "dirDeg": 193
+     "openShare": 0.07,
+     "dirDeg": 195
     },
     "roadGrade": 9.250368100223954,
     "roadRunFt": 439.1243620218932,
@@ -6987,8 +6987,8 @@
     "view": {
      "longestKm": 6,
      "past": true,
-     "openShare": 0.1,
-     "dirDeg": 78
+     "openShare": 0.13,
+     "dirDeg": 73
     },
     "roadGrade": 16.80938643793915,
     "roadRunFt": 591.1909434958761,
@@ -9985,7 +9985,7 @@
    "mi": 17.1
   },
   "schemaVersion": 9,
-  "engine": 27,
+  "engine": 28,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

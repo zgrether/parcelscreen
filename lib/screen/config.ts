@@ -359,9 +359,10 @@ export const SCREEN_CONSTANTS = deepFreeze({
   // sightM (a mile) are tested for line of sight over the bare-earth DEM, from eyeM above the site to roofM above the
   // house's ground (or its own height), every stepM, trees ignored: "in winter, with leaves down".
   privacy: { minHouseM2: 60, nearM: 402, sightM: 1609, eyeM: 1.7, roofM: 5, stepM: 30 },
-  // Step 11 (plan §2.4): Long view. A direction is open when its skyline is past openKm; the skyline is traced to
-  // reachKm (sun.horizonMaxM), so a view past it reads "6+ km".
-  view: { openKm: 5, reachKm: 6 },
+  // Step 11 (plan §2.4): Long view. A direction is open when its skyline is past openMi, 3 mi (owner, #273: a cutoff
+  // read in miles, not converted km; it was 5 km); openKm is the engine's copy. The skyline is traced to reachKm
+  // (sun.horizonMaxM), the data's range, not a choice: a view past it reads "farther than 3.7 mi".
+  view: { openMi: 3, openKm: 3 * KM_PER_MI, reachKm: 6 },
   // Step 11 (plan §2.6): Bike to a long trail. The access points within maxKm in a straight line, the nearest `points`
   // of them, are timed in one OSRM table request.
   longTrail: { maxKm: 100, points: 6 },

@@ -4113,8 +4113,8 @@
     "view": {
      "longestKm": 6,
      "past": true,
-     "openShare": 0.18,
-     "dirDeg": 198
+     "openShare": 0.21,
+     "dirDeg": 195
     },
     "roadGrade": 0.345660883182147,
     "roadRunFt": 1180.586318488471,
@@ -6377,7 +6377,7 @@
    "mi": 16.8
   },
   "schemaVersion": 9,
-  "engine": 27,
+  "engine": 28,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -10496,8 +10496,8 @@
     "view": {
      "longestKm": 6,
      "past": true,
-     "openShare": 0.18,
-     "dirDeg": 198
+     "openShare": 0.21,
+     "dirDeg": 195
     },
     "roadGrade": 0.345660883182147,
     "roadRunFt": 1180.586318488471,
@@ -12780,7 +12780,7 @@
    "mi": 16.8
   },
   "schemaVersion": 9,
-  "engine": 27,
+  "engine": 28,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
