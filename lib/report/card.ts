@@ -861,7 +861,7 @@ function longTrail(r: Result, K: CardConfig): Row {
 }
 
 /**
- * Internet (step 11, plan §2.7): the parcel's best spot for a satellite dish, graded on how clear its view is, with its
+ * Satellite internet (step 11, plan §2.7; renamed from Internet, owner, #272): the parcel's best spot for a satellite dish, graded on how clear its view is, with its
  * distance from the site the card reads.
  */
 function internet(r: Result, K: CardConfig, at: number): Row {
@@ -874,13 +874,13 @@ function internet(r: Result, K: CardConfig, at: number): Row {
   const ft = site
     ? Math.round(distance([site.ll[1], site.ll[0]], [r.dish.ll[1], r.dish.ll[0]], { units: "feet" }))
     : null;
-  const where = house ? "the marked house" : site ? siteLabel(site as Site) : null;
+  const where = house ? "the house" : site ? siteLabel(site as Site) : null;
   return {
     ...g(
       atLeast(pct, K.rows.dishClearPct),
-      `the best spot for a satellite dish is ${pct}% clear${ft !== null && where ? `, ${fmt(ft)} ft from ${where}` : ""} (trees not counted)`,
+      `best dish spot: ${pct}% open sky${ft !== null && where ? `, ${fmt(ft)} ft from ${where}` : ""} (trees not counted)`,
     ),
-    short: `dish ${pct}% clear`,
+    short: `${pct}% open sky`,
     measure: { value: pct, unit: "%" },
   };
 }

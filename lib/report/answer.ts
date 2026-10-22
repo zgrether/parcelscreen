@@ -105,7 +105,7 @@ export function missLine(row: Row, card: Card, r: PartialScreenResult): string {
       break;
     case "internet":
       if (v !== undefined && v < edge(b.dishClearPct))
-        return `the best spot for a dish is ${fmt(v)}% clear, under your ${fmt(edge(b.dishClearPct))}%`;
+        return `the best dish spot has ${fmt(v)}% open sky, under your ${fmt(edge(b.dishClearPct))}%`;
       break;
     case "budget":
       // Within budget (step 10): the budgets at its worst, "ready to build $330–595k, over your $300k".

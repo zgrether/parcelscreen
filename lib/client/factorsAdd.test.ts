@@ -86,7 +86,7 @@ describe("adding the new factors once, at boot", () => {
     expect(getPref("ps.interview")!.base!.ranked.map((c) => c.factor)).toContain("hospital");
     expect(pendingFactors()).toEqual(NEW_FACTORS);
     expect(factorsNote(pendingFactors())).toBe(
-      "New factors to place: Hospital, Climate, Privacy, Long view, Airport, Bike to a long trail, Internet",
+      "New factors to place: Hospital, Climate, Privacy, Long view, Airport, Bike to a long trail, Satellite internet",
     );
     expect(newQuestionsHref(pendingFactors())).toBe("/interview?ask=climate");
     expect(newQuestionsHref(["hospital"])).toBeNull();

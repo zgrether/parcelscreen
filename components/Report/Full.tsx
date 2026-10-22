@@ -62,7 +62,7 @@ export const FULL_WORDS = {
   climate: "Climate",
   privacy: "Privacy",
   longView: "Long view",
-  internet: "Internet",
+  internet: "Satellite internet",
   listing: "Listing facts and notes",
   lines: "Lines and marks",
   sources: "Data sources",

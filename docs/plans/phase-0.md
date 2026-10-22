@@ -986,8 +986,16 @@ until step 5 (Q14).
     - **Declared deviations:** Climate's limit is the B/C edge like every row; no Overpass fallback for Privacy; no
       `sun.profileKm`; Whitetop Station left out of the trail list until it reopens in 2027; the bike and video-calls
       answers give 3 points; the card panels quote the viewer's rubric (a fix found on the way).
-    - **Parked:** the FCC's Broadband Data Collection needs a registered account (its API answers 401, its download
-      page 403), so Internet grades the dish spot only and points to broadbandmap.fcc.gov; no `h3-js`. PRISM's terms
-      don't address commercial use: ask before a commercial version.
+    - **The owner's answers on the hand-back** (#272, 2026-10-22):
+      - **The FCC's broadband data is dropped.** Its Broadband Data Collection needs a registered account (its API
+        answers 401, its download page 403), and there won't be one: no wired or cell lines, no `h3-js`, and the
+        Internet section's pointer to the FCC's map is gone.
+      - **"Internet" is "Satellite internet"** everywhere it's shown (the card, the grid's header "Satellite", the
+        phone strip, What matters, the interview, Full and Help); the row's key stays `internet`. Its line reads "best
+        dish spot: 92% open sky, 140 ft from site #1 (trees not counted)", "the house" for a marked house.
+      - **Long view is in miles,** as the rest of the app: "past 3.1 mi", "the longest 3.7+ mi". The cutoffs stay
+        5 and 6 km in config, so no number changes.
+      - **PRISM stays.** Its terms don't address commercial use: it's listed, with its swap (NOAA's 1991–2020
+        normals), in `docs/commercial-review.md` beside the other sources whose terms limit commercial use.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

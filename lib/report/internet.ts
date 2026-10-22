@@ -4,12 +4,8 @@
  */
 import type { Heading } from "./parts";
 
-export const internetHeading: Heading = { title: "Internet", slug: "internet", help: "h-internet" };
+export const internetHeading: Heading = { title: "Satellite internet", slug: "internet", help: "h-internet" };
 
 /** The terrain's limits, kept with the numbers (CLAUDE.md: the data's caveats are part of the product's honesty). */
 export const DISH_CAVEAT =
   "Trees not counted: the skyline is bare earth, so a spot in the woods needs clearing, and the dish's own app checks the real view before you buy.";
-
-/** Where to check what's wired in, until the FCC's data is in the app (the step 11 hand-back's parked question). */
-export const FCC_CHECK =
-  "Fiber, cable and cell coverage aren't graded here yet: check the address on the FCC's National Broadband Map, broadbandmap.fcc.gov.";

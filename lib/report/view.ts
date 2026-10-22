@@ -18,20 +18,27 @@ interface View {
   dirDeg: number | null;
 }
 
-/** "6+ km" past the profile's reach, else "3.2 km". */
+/** Distances in miles, as the rest of the app (owner, #272); the cutoffs stay in km. */
+const KM_PER_MI = 1.609344;
+const mi = (km: number): string => `${fmt(km / KM_PER_MI, 1)} mi`;
+
+/** "3.1 mi": the distance the view must reach to count as open. */
+export const VIEW_OPEN_MI = mi(K.openKm);
+
+/** "3.7+ mi" past the profile's reach, else "2.0 mi". */
 export const longestWords = (v: Pick<View, "longestKm" | "past">): string =>
-  v.past ? `${fmt(K.reachKm)}+ km` : `${fmt(v.longestKm, 1)} km`;
+  v.past ? `${fmt(K.reachKm / KM_PER_MI, 1)}+ mi` : mi(v.longestKm);
 
 /** "22%". */
 export const openPct = (v: Pick<View, "openShare">): number => Math.round(v.openShare * 100);
 
-/** "the view opens past 5 km over 22% of the horizon, toward the NW; the longest 6+ km" or "no view past 5 km; …". */
+/** "the view opens past 3.1 mi over 22% of the horizon, toward the NW; the longest 3.7+ mi" or "no view past 3.1 mi; …". */
 export function viewLine(v: View): string {
   const pct = openPct(v);
   const open =
     pct === 0
-      ? `no view past ${fmt(K.openKm)} km`
-      : `the view opens past ${fmt(K.openKm)} km over ${pct}% of the horizon${
+      ? `no view past ${VIEW_OPEN_MI}`
+      : `the view opens past ${VIEW_OPEN_MI} over ${pct}% of the horizon${
           pct === 100 ? ", all around" : v.dirDeg === null ? "" : `, toward the ${compass(v.dirDeg)}`
         }`;
   return `${open}; the longest ${longestWords(v)}`;
@@ -39,8 +46,8 @@ export function viewLine(v: View): string {
 
 /** The sources' limits, kept with the numbers (CLAUDE.md: the data's caveats are part of the product's honesty). */
 export const VIEW_CAVEAT =
-  `The skyline every 5°, traced from 2 m above the site over the 30 m bare-earth elevation out to ${fmt(K.reachKm)} km: ` +
-  `trees aren't in it, so a view through woods needs clearing, and a ridge past ${fmt(K.reachKm)} km reads as open.`;
+  `The skyline every 5°, traced from 7 ft above the site over the bare-earth elevation (a 98 ft grid) out to ${mi(K.reachKm)}: ` +
+  `trees aren't in it, so a view through woods needs clearing, and a ridge past ${mi(K.reachKm)} reads as open.`;
 
 export interface ViewRowView {
   label: string;

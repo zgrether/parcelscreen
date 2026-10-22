@@ -114,7 +114,7 @@ test("Full: the summary, then the brief's sections in order, the closing line; C
       "Climate", // step 11
       "Privacy",
       "Long view",
-      "Internet",
+      "Satellite internet",
       "Listing facts and notes",
       "Lines and marks",
       "Data sources",

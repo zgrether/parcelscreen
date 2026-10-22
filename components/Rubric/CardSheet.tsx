@@ -8,6 +8,7 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { panelText } from "@/lib/report/cardPanels";
+import { VIEW_OPEN_MI } from "@/lib/report/view";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import {
   columnsOf,
@@ -51,7 +52,7 @@ const BAND_LABELS: Record<LimitKey, string> = {
   julHighF: "July highs at most",
   privacyFt: "Nearest house at least",
   privacySight: "Houses in sight, at most",
-  viewOpenPct: "Horizon open past 5 km, at least",
+  viewOpenPct: `Horizon open past ${VIEW_OPEN_MI}, at least`,
   airportMin: "Drive to an airport",
   longTrailMin: "Drive to a long trail",
   dishClearPct: "Dish spot clear, at least",
