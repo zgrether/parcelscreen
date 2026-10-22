@@ -8,7 +8,8 @@
  * What a device keeps for itself (the open parcel, which profile is current, the views and sorts) never leaves it.
  */
 import { EMPTY_HOUSEHOLD, readHousehold, recordsOf, type Ask, type Take } from "@/lib/client/takes";
-import type { StoredHousehold, StoredParcel } from "./wire";
+import type { HouseholdKind, StoredHousehold, StoredParcel } from "./wire";
+import type { Adjustment } from "@/lib/report/adjust";
 
 /** The profile documents that sync (§5's table); every other profile document stays on the device. */
 export const SYNCED_DOCS = ["ps.cfg", "ps.costs", "ps.rubrics", "ps.interview", "ps.history"] as const;
@@ -135,7 +136,7 @@ export function batches<T>(items: readonly T[], maxBytes: number, size: (x: T) =
 export const HOUSEHOLD_DOC = "ps.household";
 
 /** A record's identity in the sync: its kind and its key ("take:<parcel>:<person>"). */
-export const householdId = (kind: "ask" | "take", key: string): string => `${kind}:${key}`;
+export const householdId = (kind: HouseholdKind, key: string): string => `${kind}:${key}`;
 
 /** Each ask and take by its identity, as its canonical string. */
 export function householdSnapshot(raw: string | null): Map<string, string> {
@@ -147,13 +148,14 @@ export function householdSnapshot(raw: string | null): Map<string, string> {
 export function householdRecord(
   raw: string | null,
   id: string,
-): { kind: "ask" | "take"; key: string; record: Json | null } {
+): { kind: HouseholdKind; key: string; record: Json | null } {
   const [kind, ...rest] = id.split(":");
   const key = rest.join(":");
   const h = (raw && readHousehold(raw)) || EMPTY_HOUSEHOLD;
-  const list: readonly (Ask | Take)[] = kind === "ask" ? h.asks : h.takes;
+  const list: readonly (Ask | Take | Adjustment)[] =
+    kind === "ask" ? h.asks : kind === "adjust" ? h.adjusts : h.takes;
   const found = list.find((x) => x.key === key);
-  return { kind: kind as "ask" | "take", key, record: found ? (found as unknown as Json) : null };
+  return { kind: kind as HouseholdKind, key, record: found ? (found as unknown as Json) : null };
 }
 
 /** The household's document with the space's changes in it, except the records in `keep` (unsaved here). */
@@ -165,12 +167,17 @@ export function mergeHousehold(
   const h = (raw && readHousehold(raw)) || EMPTY_HOUSEHOLD;
   const asks = new Map(h.asks.map((a) => [a.key, a]));
   const takes = new Map(h.takes.map((t) => [t.key, t]));
+  const adjusts = new Map(h.adjusts.map((a) => [a.key, a]));
   for (const x of remote) {
     if (keep.has(householdId(x.kind, x.key))) continue;
-    const target = (x.kind === "ask" ? asks : takes) as Map<string, unknown>;
+    const target = (x.kind === "ask" ? asks : x.kind === "adjust" ? adjusts : takes) as Map<string, unknown>;
     if (x.deleted || !x.record) target.delete(x.key);
     else target.set(x.key, x.record);
   }
-  // Step 12's adjustments ride along untouched until they sync (plan §11, PR 3).
-  return JSON.stringify({ ...h, v: 1, asks: [...asks.values()], takes: [...takes.values()] });
+  return JSON.stringify({
+    v: 1,
+    asks: [...asks.values()],
+    takes: [...takes.values()],
+    adjusts: [...adjusts.values()],
+  });
 }

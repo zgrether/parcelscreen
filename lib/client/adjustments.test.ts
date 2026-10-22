@@ -65,3 +65,31 @@ describe("adjustments in the household document", () => {
     expect(merged.adjusts.map((a) => a.key)).toEqual(["p1:zach:sky"]);
   });
 });
+
+describe("adjustments in the sync (step 12, plan §4)", () => {
+  it("each is a record of its own; a remote one lands, a deleted one goes, an unsaved one here stays", async () => {
+    const { householdSnapshot, householdId } = await import("@/lib/sync/records");
+    const raw = JSON.stringify(withAdjust(EMPTY_HOUSEHOLD, base));
+    expect([...householdSnapshot(raw).keys()]).toEqual(["adjust:p1:zach:sky"]);
+    const julie = { ...base, by: "julie", key: "p1:julie:sky" };
+    const merged = readHousehold(
+      mergeHousehold(
+        raw,
+        [
+          { key: julie.key, kind: "adjust", record: julie, deleted: false, updatedAt: "t" },
+          { key: "p1:zach:sky", kind: "adjust", record: null, deleted: true, updatedAt: "t" },
+        ],
+        new Set(),
+      ),
+    )!;
+    expect(merged.adjusts.map((a) => a.key)).toEqual(["p1:julie:sky"]);
+    const kept = readHousehold(
+      mergeHousehold(
+        raw,
+        [{ key: "p1:zach:sky", kind: "adjust", record: null, deleted: true, updatedAt: "t" }],
+        new Set([householdId("adjust", "p1:zach:sky")]),
+      ),
+    )!;
+    expect(kept.adjusts.map((a) => a.key)).toEqual(["p1:zach:sky"]);
+  });
+});

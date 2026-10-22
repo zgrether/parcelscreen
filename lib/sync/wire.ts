@@ -26,10 +26,14 @@ export const ScreenSave = z.object({
   record: JsonObject,
 });
 
-/** An ask or a take (step 6): a whole record, by its key and kind. `record: null` deletes it. */
+/** The household document's record kinds: step 6's asks and takes, step 12's adjustments. */
+export const HOUSEHOLD_KINDS = ["ask", "take", "adjust"] as const;
+export type HouseholdKind = (typeof HOUSEHOLD_KINDS)[number];
+
+/** An ask, a take or an adjustment: a whole record, by its key and kind. `record: null` deletes it. */
 export const HouseholdSave = z.object({
   key: Id,
-  kind: z.enum(["ask", "take"]),
+  kind: z.enum(HOUSEHOLD_KINDS),
   record: JsonObject.nullable(),
 });
 
@@ -61,7 +65,7 @@ export interface StoredParcel {
 }
 export interface StoredHousehold {
   key: string;
-  kind: "ask" | "take";
+  kind: HouseholdKind;
   record: Record<string, unknown> | null;
   deleted: boolean;
   updatedAt: string;
@@ -84,7 +88,7 @@ export interface Changes {
   parcels: StoredParcel[];
   /** The space's screens of the current schema version (added after `since`): the device fetches one when it's opened. */
   screens: { id: string; profile: string }[];
-  /** The household's asks and takes (step 6). */
+  /** The household's asks and takes (step 6), and its people's adjustments (step 12). */
   household: StoredHousehold[];
   cursor: string | null;
 }
@@ -107,7 +111,7 @@ export const ChangesSchema = z.object({
     .array(
       z.object({
         key: z.string(),
-        kind: z.enum(["ask", "take"]),
+        kind: z.enum(HOUSEHOLD_KINDS),
         record: JsonObject.nullable(),
         deleted: z.boolean(),
         updatedAt: z.string(),

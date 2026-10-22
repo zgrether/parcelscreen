@@ -226,7 +226,8 @@ class Engine implements SyncHooks {
     }
     const profiles = new Map((await this.profiles()).map((p) => [p.id, p.name]));
     for (const id of u.profiles) names.push(profiles.get(id) ?? "a profile");
-    for (const id of u.household) names.push(id.startsWith("ask:") ? "an ask" : "a take");
+    for (const id of u.household)
+      names.push(id.startsWith("ask:") ? "an ask" : id.startsWith("adjust:") ? "an adjustment" : "a take");
     return names;
   }
 
