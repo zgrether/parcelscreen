@@ -196,6 +196,11 @@ describe("config", () => {
               "min": 15,
               "step": 5,
             },
+            "dishClearPct": {
+              "max": 100,
+              "min": 30,
+              "step": 1,
+            },
             "drivewayPct": {
               "max": 25,
               "min": 8,
@@ -280,6 +285,18 @@ describe("config", () => {
           ],
           "interview": {
             "choices": {
+              "calls": {
+                "no": {
+                  "points": {
+                    "internet": 1,
+                  },
+                },
+                "yes": {
+                  "points": {
+                    "internet": 3,
+                  },
+                },
+              },
               "climate": {
                 "between": {
                   "points": {
@@ -548,7 +565,7 @@ describe("config", () => {
                     "longTrailMin": 10,
                   },
                   "points": {
-                    "longTrail": 2,
+                    "longTrail": 3,
                     "trails": 2,
                   },
                 },
@@ -613,6 +630,7 @@ describe("config", () => {
               "garden": 1,
               "homesite": 2,
               "hospital": 2,
+              "internet": 1,
               "longTrail": 0,
               "longView": 0,
               "privacy": 0,
@@ -651,6 +669,12 @@ describe("config", () => {
               60,
               90,
               120,
+            ],
+            "dishClearPct": [
+              95,
+              85,
+              70,
+              50,
             ],
             "drivewayPct": [
               10,
@@ -765,6 +789,7 @@ describe("config", () => {
               "garden": 10,
               "homesite": 25,
               "hospital": 5,
+              "internet": 0,
               "longTrail": 0,
               "longView": 0,
               "privacy": 0,
@@ -817,6 +842,13 @@ describe("config", () => {
           "timeoutMs": 45000,
           "wideBufferKm": 6,
           "wideResM": 30,
+        },
+        "dish": {
+          "coneDeg": 25,
+          "northWeight": 2,
+          "reachM": 2000,
+          "stepM": 30,
+          "tieShare": 0.01,
         },
         "drive": {
           "candidates": 3,

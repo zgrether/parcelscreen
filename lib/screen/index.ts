@@ -40,6 +40,7 @@ import type { HospitalCandidate, HospitalSource } from "./hospitals";
 import { loadClimate, withClimate, type ClimateSource } from "./climate";
 import { loadBuildings, withPrivacy, type BuildingSource } from "./privacy";
 import { LONG_TRAIL_DRIVES, longTrailDrive } from "./longTrail";
+import { dishSpot } from "./dish";
 import { OverpassMirrors, type OverpassFallback } from "./places";
 import type { OsmWay } from "./osmRoads";
 import { drawnGrid, insideWithLines, measureLines } from "./drawn";
@@ -482,6 +483,9 @@ export async function screen(
       R,
       await withPrivacy(deps.buildings ?? loadBuildings, s.dWide, s.ownLand ?? s.parcel, s.centre, R),
     );
+    // Step 11 (plan §2.7): the best spot for a dish, tied ones settled by the nearest to the house or site #1.
+    const near = R.house && !("outside" in R.house) ? R.house.ll : (sites[0]?.ll ?? null);
+    R.dish = s.inside ? dishSpot(s.dFine, s.inside, s.dWide, near) : null;
     return message;
   });
 

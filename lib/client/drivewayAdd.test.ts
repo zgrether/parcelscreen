@@ -102,7 +102,11 @@ describe("adding the Driveway row once, at boot", () => {
     await boot("gentle", "steep");
     await loadHousehold();
     const julie = otherMembers()[0]!;
-    expect(julie.rubric!.ranked.at(-1)).toEqual({ factor: "driveway", tier: "could" });
+    // Driveway at the bottom of Nice to have; step 11's Internet comes after it, added once too.
+    expect(julie.rubric!.ranked.slice(-2)).toEqual([
+      { factor: "driveway", tier: "could" },
+      { factor: "internet", tier: "could" },
+    ]);
     expect(julie.rubric!.bands.drivewayPct).toEqual([15, 20, 25, 30]);
   });
 });

@@ -829,6 +829,11 @@ export const ScreenResultSchema = z.strictObject({
     .strictObject({ trail: z.string(), point: z.string(), min: num, mi: num })
     .nullable()
     .optional(),
+  /**
+   * Step 11 (plan §2.7; §9.66): the parcel's best open-sky spot for a satellite dish, and how clear its view cone is
+   * (0–1); null when no spot could be read. Absent before it.
+   */
+  dish: z.strictObject({ ll: LatLonSchema, clearShare: num }).nullable().optional(),
   /** Step 11 (plan §2.3; §9.66): whether the parcel is outside the footprints' region. Absent before it. */
   privacy: z.strictObject({ outside: z.boolean() }).optional(),
   excluded: z.array(z.strictObject({ acres: num, ll: LatLonSchema, why: z.string() })).optional(),

@@ -29,6 +29,7 @@ export const STRENGTH: Record<RowKey, string> = {
   longView: "a long view",
   airport: "airport access",
   longTrail: "a long trail nearby",
+  internet: "a clear sky for a dish",
   garden: "garden ground",
   budget: "budget fit",
 };
@@ -101,6 +102,10 @@ export function missLine(row: Row, card: Card, r: PartialScreenResult): string {
     case "longTrail":
       if (v !== undefined && v > edge(b.longTrailMin))
         return `${fmt(v)} minutes to a long trail is past your ${fmt(edge(b.longTrailMin))}-minute limit`;
+      break;
+    case "internet":
+      if (v !== undefined && v < edge(b.dishClearPct))
+        return `the best spot for a dish is ${fmt(v)}% clear, under your ${fmt(edge(b.dishClearPct))}%`;
       break;
     case "budget":
       // Within budget (step 10): the budgets at its worst, "ready to build $330–595k, over your $300k".

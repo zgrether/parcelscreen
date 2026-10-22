@@ -109,6 +109,7 @@ function zeroWeights() {
     longView: 0,
     airport: 0,
     longTrail: 0,
+    internet: 0,
     budget: 0,
   };
 }

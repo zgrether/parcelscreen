@@ -13,6 +13,7 @@ import { CLIMATE_SOURCES } from "./climate";
 import { IN_WINTER, PRIVACY_SOURCES } from "./privacy";
 import { VIEW_CAVEAT } from "./view";
 import { LONG_TRAIL_SOURCES } from "./longTrail";
+import { DISH_CAVEAT } from "./internet";
 import { climateWords, privacyWords } from "../rubric/words";
 import { MAYBE_CAPS, footprintFt2, type CardConfig, type GateKey, type RowKey } from "./card";
 
@@ -39,6 +40,7 @@ const PANELS: Record<PanelKey, true> = {
   longView: true,
   airport: true,
   longTrail: true,
+  internet: true,
   budget: true,
   cost: true,
 };
@@ -247,6 +249,14 @@ export function panelText(
         question: "How far to a long rail-trail we could ride?",
         howScored: `The drive from where the driveway meets the road to the nearest access point of a long rail-trail or greenway: A within ${R.longTrailMin[0]} min, B within ${R.longTrailMin[1]}, C within ${R.longTrailMin[2]}, D within ${R.longTrailMin[3]}; ${weightOf(rubrics, "longTrail")}. ${LONG_TRAIL_SOURCES}`,
       };
+    case "internet": {
+      const D = SCREEN_CONSTANTS.dish;
+      return {
+        title: "Internet",
+        question: "Is there a clear patch of sky for a satellite dish?",
+        howScored: `The parcel's best spot for a dish: every ${fmt(D.stepM)} m over the parcel, the share of the dish's view (from ${fmt(D.coneDeg)}° up, all around, the northern half counting ${fmt(D.northWeight)} times) that the terrain leaves clear: A from ${R.dishClearPct[0]}%, B from ${R.dishClearPct[1]}, C from ${R.dishClearPct[2]}, D from ${R.dishClearPct[3]}. Its distance from your best homesite is shown, not graded; ${weightOf(rubrics, "internet")}. ${DISH_CAVEAT}`,
+      };
+    }
     case "budget": {
       const B = K.budgetBands.map((x) => `${fmt(x * 100)}%`);
       return {

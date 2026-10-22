@@ -35,6 +35,7 @@ export const SITE_NUMBER: Record<RowKey, string> = {
   longView: "Long view",
   airport: "Airport",
   longTrail: "Long trail",
+  internet: "Internet",
   budget: "Budget",
 };
 

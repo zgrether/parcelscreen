@@ -22,7 +22,7 @@ const record = (engine?: number): ScreenRecord => ({
 
 describe("the engine stamp on a kept screen (Batch A §6)", () => {
   it("Phase 0's rules are version 1, A2a's 2, A2b's 3, A2c's 4, A3's 5, A3b's 6, and a screen kept before the stamp counts as 1", () => {
-    expect(ENGINE_VERSION).toBe(26); // step 11's Bike to a long trail; 25 its Long view; 24 its Privacy; 23 its Climate (§9.66); 22 schema v9 (step 2, §9.49)
+    expect(ENGINE_VERSION).toBe(27); // step 11's Internet; 26 its Bike to a long trail; 25 its Long view; 24 its Privacy; 23 its Climate (§9.66); 22 schema v9 (step 2, §9.49)
     expect(engineOf(record())).toBe(1);
     expect(engineOf(record(3))).toBe(3);
   });

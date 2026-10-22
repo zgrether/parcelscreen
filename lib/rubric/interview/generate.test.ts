@@ -50,7 +50,7 @@ describe("§3: every choice", () => {
     [{ trails: "door" }, "trails", 3, "trailheadMin", 15, null],
     // Step 11: "Bike from home" sets Bike to a long trail, graded now, so it left the quiet list.
     [{ trails: "bike" }, "trails", 2, "trailheadMin", null, null],
-    [{ trails: "bike" }, "longTrail", 2, "longTrailMin", 10, null],
+    [{ trails: "bike" }, "longTrail", 3, "longTrailMin", 10, null],
     [{ trails: "drive" }, "longTrail", 0, null, null, null],
     [{ trails: "drive" }, "trails", 2, "trailheadMin", null, null],
     [{ trails: "none" }, "trails", 0, null, null, null],
@@ -97,7 +97,7 @@ describe("§3: every choice", () => {
     expect(b.gardenAc).toEqual([0.35, 0.1, 0, 0]);
   });
 
-  it("questions 7's second row and 11–13 only add to the stored list of later factors", () => {
+  it("questions 11–13 only add to the stored list of later factors (step 11: question 7 grades)", () => {
     const a: InterviewAnswers = {
       fly: "monthly",
       calls: "yes",
@@ -105,13 +105,8 @@ describe("§3: every choice", () => {
       creek: "rather",
       land: { acres: "5to20", campBudget: 40000, buildBudget: 250000 },
     };
-    // Step 11: Airport is graded now (question 7's first row), so it left the quiet list.
-    expect(later(a)).toEqual([
-      "Internet for video calls",
-      "HOA (welcome)",
-      "No creek",
-      "Acreage (5–20 acres)",
-    ]);
+    // Step 11: Airport and Internet are graded now (question 7's rows), so they left the quiet list.
+    expect(later(a)).toEqual(["HOA (welcome)", "No creek", "Acreage (5–20 acres)"]);
     // Step 10: the budgets are graded now (Within budget, the last of Really want), so they left the quiet list.
     const g = rubricFromAnswers(a);
     expect(g.rubric.budgets).toEqual({ camp: 40000, build: 250000 });
@@ -135,6 +130,8 @@ describe("§3: every choice", () => {
       // Monthly or more: Airport in Nice to have.
       airport: 1,
       longTrail: 0,
+      // Video calls from home: Internet in Really want (3 points).
+      internet: 3,
       budget: 0,
     });
     expect(later({ fly: "rarely", calls: "no", creek: "either", hoa: "light" })).toEqual([
@@ -251,15 +248,16 @@ describe("§3: question 14", () => {
     });
     expect(g.rubric.musts).toEqual([{ factor: "access" }]);
     // Step 11: the ER's own row is Don't care; until Hospital, the ER's edge went to 90 min on Town.
+    // Step 11's other new factors break ties after the original rows.
     expect(g.rubric.wonts).toEqual([
       "elevation",
       "climate",
+      "homesite",
+      "hospital",
       "privacy",
       "longView",
       "airport",
       "longTrail",
-      "homesite",
-      "hospital",
     ]);
     expect(g.why.cards.privacy).toEqual(["You said a neighbor's house in view doesn't matter"]);
     expect(bcEdge(g.rubric.bands, "erMin")).toBe(30);
@@ -317,15 +315,16 @@ describe("§4: the two people", () => {
     const g = rubricFromAnswers(PERSON_A);
     expect(g.rubric.ranked).toEqual([
       { factor: "elevation", tier: "should" },
-      // Step 11: "Never know they're there" gives Privacy 3 points, second of the 3s by the default order.
-      { factor: "privacy", tier: "should" },
       { factor: "homesite", tier: "should" },
       { factor: "trails", tier: "should" },
       { factor: "sky", tier: "should" },
-      // Step 11: Climate (cool and snowy, 2 points) by Elevation in the default order. Step 7: "Long and gentle" gives
-      // Driveway 2 points, ahead of Room to build; Driveway, Room, Town and Hospital (the ER's 30 min), also at 2, go
-      // to Nice to have, as Really want holds six.
-      { factor: "climate", tier: "should" },
+      // Step 11: "Never know they're there" gives Privacy 3 points, and video calls from home give Internet 3; the new
+      // factors break ties after the original rows.
+      { factor: "privacy", tier: "should" },
+      { factor: "internet", tier: "should" },
+      // Step 11: Climate (cool and snowy, 2 points) by Elevation in the default order, first of the 2s. Step 7: "Long and
+      // gentle" gives Driveway 2 points, ahead of Room to build; all go to Nice to have, as Really want holds six.
+      { factor: "climate", tier: "could" },
       { factor: "driveway", tier: "could" },
       { factor: "room", tier: "could" },
       { factor: "town", tier: "could" },
@@ -333,17 +332,18 @@ describe("§4: the two people", () => {
       { factor: "garden", tier: "could" },
     ]);
     expect(rounded(weightsOf(g.rubric))).toEqual({
-      elevation: 17.7,
-      privacy: 16.1,
-      homesite: 14.5,
-      trails: 12.9,
-      sky: 11.2,
-      climate: 9.6,
-      driveway: 6,
-      room: 4.8,
-      town: 3.6,
-      hospital: 2.4,
-      garden: 1.2,
+      elevation: 16.5,
+      homesite: 15.1,
+      trails: 13.7,
+      sky: 12.4,
+      privacy: 11,
+      internet: 9.6,
+      climate: 6.2,
+      driveway: 5.2,
+      room: 4.1,
+      town: 3.1,
+      hospital: 2.1,
+      garden: 1,
       longView: 0,
       airport: 0,
       longTrail: 0,
@@ -369,7 +369,6 @@ describe("§4: the two people", () => {
     expect(g.rubric.bands.openLandWithinFt).toBe(1320);
     expect([bcEdge(g.rubric.bands, "groceryMin"), bcEdge(g.rubric.bands, "erMin")]).toEqual([15, 30]);
     expect(g.later).toEqual([
-      "Internet for video calls",
       "Frost-free season",
       "No HOA (a must)",
       "A creek (the best feature)",
@@ -381,10 +380,10 @@ describe("§4: the two people", () => {
   it("Person B", () => {
     const g = rubricFromAnswers(PERSON_B);
     expect(g.rubric.ranked).toEqual([
-      // Step 11: a long view over sun at breakfast gives Long view 3 points, first of the 3s by the default order.
-      { factor: "longView", tier: "should" },
       // Step 11: the ER within 15 min (3 points) is Hospital's; the small market close by (2) keeps Town in Really want.
       { factor: "hospital", tier: "should" },
+      // Step 11: a long view over sun at breakfast gives Long view 3 points; new factors break ties after the others.
+      { factor: "longView", tier: "should" },
       // Step 11: warm and mild, 2 points.
       { factor: "climate", tier: "should" },
       { factor: "room", tier: "should" },
@@ -392,21 +391,24 @@ describe("§4: the two people", () => {
       { factor: "town", tier: "should" },
       { factor: "homesite", tier: "could" },
       { factor: "garden", tier: "could" },
+      // Step 11: Internet, Nice to have by default ("Not really" to video calls).
+      { factor: "internet", tier: "could" },
       // Step 7 (owner, #216): question 10 skipped, so Driveway at the bottom of Nice to have, never higher.
       { factor: "driveway", tier: "could" },
     ]);
     // Step 11: "Wave from the porch" leaves Privacy at 0 points.
-    expect(g.rubric.wonts).toEqual(["elevation", "privacy", "airport", "longTrail", "sky"]);
+    expect(g.rubric.wonts).toEqual(["elevation", "sky", "privacy", "airport", "longTrail"]);
     expect(rounded(weightsOf(g.rubric))).toEqual({
-      longView: 20.7,
-      hospital: 18.4,
-      climate: 16.1,
-      room: 13.8,
-      trails: 11.5,
-      town: 9.2,
-      homesite: 5.2,
-      garden: 3.4,
-      driveway: 1.7,
+      hospital: 19,
+      longView: 17.1,
+      climate: 15.2,
+      room: 13.3,
+      trails: 11.4,
+      town: 9.5,
+      homesite: 5.7,
+      garden: 4.3,
+      internet: 2.9,
+      driveway: 1.4,
       elevation: 0,
       sky: 0,
       privacy: 0,
@@ -454,6 +456,8 @@ describe("§2: the rules", () => {
       "climate:could",
       "room:could",
       "town:could",
+      // Step 11: Internet, Nice to have by default, after the original rows.
+      "internet:could",
       "driveway:could",
     ]);
     // Only Room to build has 2+: Really want is filled to three with the next best rows.
@@ -472,7 +476,7 @@ describe("§2: the rules", () => {
       "homesite",
     ]);
     // Step 11: "Either" climate gives Climate 0 points.
-    expect(few.rubric.wonts).toEqual(["climate", "privacy", "longView", "airport", "longTrail", "trails"]);
+    expect(few.rubric.wonts).toEqual(["climate", "trails", "privacy", "longView", "airport", "longTrail"]);
     expect(few.rubric.ranked.at(-1)).toEqual({ factor: "driveway", tier: "could" });
   });
 
@@ -500,7 +504,8 @@ describe("question 7 (owner, 10/18): two single-choice rows", () => {
       ["Monthly or more", "You fly monthly or more", null],
     ]);
     expect(q7.second!.choices.map((c) => [c.label, c.why, c.later ?? null])).toEqual([
-      ["Yes", "You need internet for video calls from home", "Internet for video calls"],
+      // Step 11: Internet is graded now, so it left the quiet list too.
+      ["Yes", "You need internet for video calls from home", null],
       ["Not really", "You don't need internet for video calls", null],
     ]);
     expect(InterviewAnswersSchema.safeParse({ fly: "few", calls: "no" }).success).toBe(true);

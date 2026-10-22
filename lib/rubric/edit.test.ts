@@ -43,7 +43,7 @@ describe("the columns", () => {
       must: ["floodplain", "access", "easement", "septic"],
       should: ["elevation", "homesite", "room", "sky", "trails", "garden", "hospital"],
       could: [],
-      wont: ["driveway", "town", "climate", "privacy", "longView", "airport", "longTrail"],
+      wont: ["driveway", "town", "climate", "privacy", "longView", "airport", "longTrail", "internet"],
     });
   });
 
@@ -63,6 +63,7 @@ describe("the columns", () => {
       "longView",
       "airport",
       "longTrail",
+      "internet",
     ]);
     expect(out.rubric.weights).toEqual(D.weights); // not a reorder
     const back = ok(moveCard(out.rubric, { kind: "factor", factor: "access" }, "must"));
@@ -113,6 +114,7 @@ describe("the columns", () => {
       "longView",
       "airport",
       "longTrail",
+      "internet",
       "garden",
     ]);
     expect(names(out.rubric).should).not.toContain("garden");
@@ -153,6 +155,7 @@ describe("the weights: explicit until the first reorder, then rank-sum at once (
       ["longView", 0, 0],
       ["airport", 0, 0],
       ["longTrail", 0, 0],
+      ["internet", 0, 0],
     ]);
     const second = ok(moveCard(first.rubric, { kind: "factor", factor: "hospital" }, "could"));
     expect(second.switched).toBeUndefined();
@@ -183,6 +186,7 @@ describe("the weights: explicit until the first reorder, then rank-sum at once (
       longView: 0,
       airport: 0,
       longTrail: 0,
+      internet: 0,
       budget: 0,
     });
     const pts = (slug: Parameters<typeof expectedOf>[0], r: Rubric) => {

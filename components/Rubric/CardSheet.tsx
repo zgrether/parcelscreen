@@ -54,6 +54,7 @@ const BAND_LABELS: Record<LimitKey, string> = {
   viewOpenPct: "Horizon open past 5 km, at least",
   airportMin: "Drive to an airport",
   longTrailMin: "Drive to a long trail",
+  dishClearPct: "Dish spot clear, at least",
   sunH: "December sun at the best site",
 };
 

@@ -8,6 +8,7 @@ import { Climate } from "../blocks/Climate";
 import { Privacy } from "../blocks/Privacy";
 import { LongView } from "../blocks/LongView";
 import { LongTrails } from "../blocks/LongTrails";
+import { Internet } from "../blocks/Internet";
 import { DarkSkies } from "../blocks/DarkSkies";
 import { DecemberSun } from "../blocks/DecemberSun";
 import { Driveway } from "../blocks/Driveway";
@@ -46,6 +47,7 @@ const BLOCKS: Record<PanelKey, Block[]> = {
   longView: [LongView],
   airport: [GettingThere],
   longTrail: [LongTrails],
+  internet: [Internet],
   // Step 10: the breakdown is the panels' own (CardPanel's CostBreakdown). Still unknown stays where it was.
   budget: [],
   cost: [StillUnknown],
