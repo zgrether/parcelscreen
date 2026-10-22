@@ -4,6 +4,7 @@
  * more than one panel (the driveway under both road gates; the terrain under Elevation and Room to build).
  */
 import type { PanelKey } from "@/lib/report/cardPanels";
+import { Climate } from "../blocks/Climate";
 import { DarkSkies } from "../blocks/DarkSkies";
 import { DecemberSun } from "../blocks/DecemberSun";
 import { Driveway } from "../blocks/Driveway";
@@ -37,6 +38,7 @@ const BLOCKS: Record<PanelKey, Block[]> = {
   town: [GettingThere],
   hospital: [GettingThere],
   garden: [WhereToGarden, Soils],
+  climate: [Climate],
   // Step 10: the breakdown is the panels' own (CardPanel's CostBreakdown). Still unknown stays where it was.
   budget: [],
   cost: [StillUnknown],

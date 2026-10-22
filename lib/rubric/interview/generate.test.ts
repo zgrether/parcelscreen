@@ -22,10 +22,19 @@ const rounded = (w: Record<string, number>) =>
 describe("§3: every choice", () => {
   // [answers, row, points, band, B/C edge (null: today's), later entry]
   const table: [InterviewAnswers, RowKey, number, BandKey | null, number | null, string | null][] = [
-    [{ climate: "cool" }, "elevation", 3, "elevationFt", 3000, "Climate (cool and snowy)"],
-    [{ climate: "between" }, "elevation", 2, "elevationFt", null, "Climate (in between)"],
-    [{ climate: "warm" }, "elevation", 0, null, null, "Climate (warm and mild)"],
+    // Step 11: Climate is graded now, so question 1 left the quiet list; a year gives Climate 2 points, and its
+    // follow-ups (or the year's preset) its limits.
+    [{ climate: "cool" }, "elevation", 3, "elevationFt", 3000, null],
+    [{ climate: "between" }, "elevation", 2, "elevationFt", null, null],
+    [{ climate: "warm" }, "elevation", 0, null, null, null],
     [{ climate: "either" }, "elevation", 1, "elevationFt", null, null],
+    [{ climate: "cool" }, "climate", 2, "julHighF", 80, null],
+    [{ climate: "between" }, "climate", 2, "janLowF", 18, null],
+    [{ climate: "warm" }, "climate", 2, "janLowF", 24, null],
+    [{ climate: "either" }, "climate", 0, "janLowF", null, null],
+    [{ climate: "cool", winter: "mild" }, "climate", 2, "janLowF", 24, null],
+    [{ climate: "warm", summer: "hot" }, "climate", 2, "julHighF", 115, null],
+    [{ climate: "cool" }, "climate", 2, "janLowF", -25, null],
     [{ sky: "camera", glow: "shrug" }, "sky", 3, "skyMag", null, null],
     [{ sky: "camera", glow: "spoils" }, "sky", 3, "skyMag", 21.5, null],
     [{ sky: "look" }, "sky", 1, "skyMag", 20.9, null],
@@ -108,6 +117,7 @@ describe("§3: every choice", () => {
       hospital: 2,
       sky: 1,
       garden: 1,
+      climate: 0,
       budget: 0,
     });
     expect(later({ fly: "rarely", calls: "no", creek: "either", hoa: "light" })).toEqual([
@@ -225,7 +235,7 @@ describe("§3: question 14", () => {
     });
     expect(g.rubric.musts).toEqual([{ factor: "access" }]);
     // Step 11: the ER's own row is Don't care; until Hospital, the ER's edge went to 90 min on Town.
-    expect(g.rubric.wonts).toEqual(["elevation", "homesite", "hospital"]);
+    expect(g.rubric.wonts).toEqual(["elevation", "climate", "homesite", "hospital"]);
     expect(bcEdge(g.rubric.bands, "erMin")).toBe(30);
     expect(g.why.cards.hospital).toEqual(["You said the drive to an ER doesn't matter"]);
     expect(g.why.cards.floodplain).toEqual(["You said a flood zone doesn't matter"]);
@@ -284,26 +294,34 @@ describe("§4: the two people", () => {
       { factor: "homesite", tier: "should" },
       { factor: "trails", tier: "should" },
       { factor: "sky", tier: "should" },
-      // Step 7: "Long and gentle" gives Driveway 2 points, ahead of Room to build by the default order; Town, also at
-      // 2, goes to Nice to have (Really want holds six), and Hospital (step 11: the ER's 30 min, 2 points) after it.
+      // Step 11: Climate (cool and snowy, 2 points) by Elevation in the default order. Step 7: "Long and gentle" gives
+      // Driveway 2 points, ahead of Room to build; Room, Town and Hospital (the ER's 30 min), also at 2, go to Nice to
+      // have, as Really want holds six.
+      { factor: "climate", tier: "should" },
       { factor: "driveway", tier: "should" },
-      { factor: "room", tier: "should" },
+      { factor: "room", tier: "could" },
       { factor: "town", tier: "could" },
       { factor: "hospital", tier: "could" },
       { factor: "garden", tier: "could" },
     ]);
     expect(rounded(weightsOf(g.rubric))).toEqual({
-      elevation: 20.7,
-      homesite: 18.4,
-      trails: 16.1,
-      sky: 13.8,
-      driveway: 11.5,
-      room: 9.2,
-      town: 5.2,
-      hospital: 3.4,
-      garden: 1.7,
+      elevation: 19,
+      homesite: 17.1,
+      trails: 15.2,
+      sky: 13.3,
+      climate: 11.4,
+      driveway: 9.5,
+      room: 5.7,
+      town: 4.3,
+      hospital: 2.9,
+      garden: 1.4,
       budget: 0,
     });
+    // Cool and snowy: real winter welcome (no January limit), keep it cool (July highs to 80 °F).
+    expect([g.rubric.bands.janLowF, g.rubric.bands.julHighF]).toEqual([
+      [-22, -25, -28, -32],
+      [77, 80, 83, 87],
+    ]);
     expect(bcEdge(g.rubric.bands, "drivewayPct")).toBe(15);
     expect(g.rubric.musts.slice(4)).toEqual([
       { factor: "elevation", threshold: 2500 },
@@ -312,7 +330,6 @@ describe("§4: the two people", () => {
     expect(g.rubric.bands.openLandWithinFt).toBe(1320);
     expect([bcEdge(g.rubric.bands, "groceryMin"), bcEdge(g.rubric.bands, "erMin")]).toEqual([15, 30]);
     expect(g.later).toEqual([
-      "Climate (cool and snowy)",
       "Internet for video calls",
       "Privacy (never know they're there)",
       "Frost-free season",
@@ -328,6 +345,8 @@ describe("§4: the two people", () => {
     expect(g.rubric.ranked).toEqual([
       // Step 11: the ER within 15 min (3 points) is Hospital's; the small market close by (2) keeps Town in Really want.
       { factor: "hospital", tier: "should" },
+      // Step 11: warm and mild, 2 points.
+      { factor: "climate", tier: "should" },
       { factor: "room", tier: "should" },
       { factor: "trails", tier: "should" },
       { factor: "town", tier: "should" },
@@ -338,13 +357,14 @@ describe("§4: the two people", () => {
     ]);
     expect(g.rubric.wonts).toEqual(["elevation", "sky"]);
     expect(rounded(weightsOf(g.rubric))).toEqual({
-      hospital: 26.4,
-      room: 22.6,
-      trails: 18.9,
-      town: 15.1,
-      homesite: 8.5,
-      garden: 5.7,
-      driveway: 2.8,
+      hospital: 23.2,
+      climate: 20.3,
+      room: 17.4,
+      trails: 14.5,
+      town: 11.6,
+      homesite: 6.5,
+      garden: 4.3,
+      driveway: 2.2,
       elevation: 0,
       sky: 0,
       budget: 0,
@@ -352,11 +372,7 @@ describe("§4: the two people", () => {
     expect(g.rubric.bands.drivewayPct).toEqual([10, 15, 20, 25]);
     expect(g.rubric.musts.slice(4)).toEqual([{ factor: "hospital", threshold: 30 }]);
     expect([bcEdge(g.rubric.bands, "erMin"), bcEdge(g.rubric.bands, "groceryMin")]).toEqual([15, 15]);
-    expect(g.later).toEqual([
-      "Climate (warm and mild)",
-      "Long view (over winter sun)",
-      "Privacy (close enough to wave)",
-    ]);
+    expect(g.later).toEqual(["Long view (over winter sun)", "Privacy (close enough to wave)"]);
   });
 });
 
@@ -389,6 +405,8 @@ describe("§2: the rules", () => {
       "hospital:should",
       "sky:should",
       "garden:should",
+      // Step 11: cool and snowy gives Climate 2, first of the 2s by the default order: Nice to have, as six are at 3.
+      "climate:could",
       "room:could",
       "town:could",
       "driveway:could",
@@ -408,7 +426,8 @@ describe("§2: the rules", () => {
       "elevation",
       "homesite",
     ]);
-    expect(few.rubric.wonts).toEqual(["trails"]);
+    // Step 11: "Either" climate gives Climate 0 points.
+    expect(few.rubric.wonts).toEqual(["climate", "trails"]);
     expect(few.rubric.ranked.at(-1)).toEqual({ factor: "driveway", tier: "could" });
   });
 

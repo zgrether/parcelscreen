@@ -349,6 +349,11 @@ export const SCREEN_CONSTANTS = deepFreeze({
     trackMph: 12,
     trackMinMi: 0.5,
   },
+  // Step 11 (docs/plans/step-11-new-data.md §2.2): Climate. A PRISM cell's temperature is moved to the spot's elevation
+  // at the standard atmosphere's lapse rate. Snowfall and frost dates come from the most similar NOAA station within
+  // stationMaxKm, scored by its distance plus its elevation difference at stationFtPerKm (330 ft counts as 5 km); they
+  // aren't adjusted, since cold air pools in the valleys the stations sit in.
+  climate: { lapseFPer1000Ft: 3.6, stationMaxKm: 50, stationFtPerKm: 66 },
   grocery: {
     // Owner, #81: "Closer: {name}, {N} min." after the chain grocery's drive time, when a non-chain grocery
     // is at least this many minutes nearer by road.
@@ -557,6 +562,11 @@ export const SCREEN_CONSTANTS = deepFreeze({
       // Step 7 (docs/plans/step-7-results.md §3.1): the driveway's steepest grade, at most. B's edge is Settings' default
       // grade limit (roadMaxGradePct), D's its default veto (roadVetoGradePct); question 10 moves the B/C edge.
       drivewayPct: [10, 15, 20, 25],
+      // Step 11 (plan §2.2): Climate at the site, the worse of its two seasons. The B/C edge is the person's limit, as on
+      // every row: these are "some snow" (January lows of 18 °F and up) and "warm is fine" (July highs to 86 °F). An A is
+      // 3 °F inside it; a C up to 3 °F past it, a D up to 7.
+      janLowF: [21, 18, 15, 11],
+      julHighF: [83, 86, 89, 93],
     },
     // The default rubric's weights, summing to 100 (roadmap step 1: a profile's rubric replaces them; the second set the
     // app shipped with is test/support/rubrics.ts LEGACY_SECOND_WEIGHTS, kept for the step 1 card oracle). The Driveway
@@ -574,6 +584,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
         town: 0,
         hospital: 5,
         garden: 10,
+        // Step 11: each new factor weighs 0, so it's Don't care on the starting list (plan §1).
+        climate: 0,
         // Step 10: Within budget is never on the starting list; it comes with the interview's budgets.
         budget: 0,
       },
@@ -595,6 +607,9 @@ export const SCREEN_CONSTANTS = deepFreeze({
       // Step 4 (owner, 10/18; phase-0.md §9.50 amended): Best homesite's limit, hours of December sun at the best site.
       // A limit starts at bands.winterSunH's first edge ("Workable", 3 h).
       sunH: { min: 1, max: 8, step: 0.5 },
+      // Step 11: the B/C edges; past their ends is "real winter welcome" and "hot is fine".
+      janLowF: { min: -25, max: 30, step: 1 },
+      julHighF: { min: 75, max: 115, step: 1 },
     },
     // Step 4, the interview (docs/plans/step-4-interview.md §2–§3; owner, 10/18): what each answer gives a row, as
     // importance points (0–3; a row takes its highest answer) and the B/C edge it sets, which shifts the row's band
@@ -613,6 +628,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
         hospital: 2,
         sky: 1,
         garden: 1,
+        // Step 11: placed by question 1, never by default.
+        climate: 0,
         // Step 10: placed by the budgets themselves (generate.ts), never by points.
         budget: 0,
       },
@@ -623,12 +640,31 @@ export const SCREEN_CONSTANTS = deepFreeze({
       // The walk-away numbers' starting values: this far under question 1's elevation edge, and one step past
       // question 6's answer.
       walkAway: { belowFtUnderEdge: 500, erStepMin: 15 },
+      // Step 11: question 1's follow-ups start at what its answer implies.
+      climatePreset: {
+        cool: { winter: "real", summer: "cool" },
+        between: { winter: "some", summer: "warm" },
+        warm: { winter: "mild", summer: "hot" },
+      },
       choices: {
+        // Step 11 (plan §2.2): an answer other than "Either" puts Climate in Really want; its follow-ups set the edges.
         climate: {
-          cool: { points: { elevation: 3 }, edges: { elevationFt: 3000 } },
-          between: { points: { elevation: 2 } },
-          warm: { points: { elevation: 0 } },
-          either: { points: { elevation: 1 } },
+          cool: { points: { elevation: 3, climate: 2 }, edges: { elevationFt: 3000 } },
+          between: { points: { elevation: 2, climate: 2 } },
+          warm: { points: { elevation: 0, climate: 2 } },
+          either: { points: { elevation: 1, climate: 0 } },
+        },
+        // Question 1's follow-ups (step 11): the B/C edges, the limits as the plan has them. "Real winter welcome" and
+        // "Hot is fine" set them at the sliders' ends, past anything in these mountains: no limit.
+        winter: {
+          mild: { edges: { janLowF: 24 } },
+          some: { edges: { janLowF: 18 } },
+          real: { edges: { janLowF: -25 } },
+        },
+        summer: {
+          cool: { edges: { julHighF: 80 } },
+          warm: { edges: { julHighF: 86 } },
+          hot: { edges: { julHighF: 115 } },
         },
         sky: {
           camera: { points: { sky: 3 } },

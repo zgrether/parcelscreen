@@ -37,18 +37,24 @@ const APPROVED: [string, string][] = [
   ],
 ];
 
+/** Step 11's sections (rule 7: added after the prototype's copy, never in it), by anchor. */
+const ADDED = ["h-climate"];
+/** Our copy without step 11's sections: what the prototype's must match. */
+const withoutAdded = (html: string): string =>
+  ADDED.reduce((t, id) => t.slice(0, t.indexOf(`<h3 id="${id}">`)) || t, html);
+
 describe("help (14e)", () => {
   it("is the prototype's copy, word for word, but for the owner's approved corrections", () => {
     const proto = APPROVED.reduce((t, [was, now]) => {
       expect(t, `the prototype still says: ${was}`).toContain(visibleText(was));
       return t.replace(visibleText(was), visibleText(now));
     }, visibleText(prototypeHelp()));
-    expect(visibleText(ours)).toBe(proto);
+    expect(visibleText(withoutAdded(ours))).toBe(proto);
   });
 
-  it("has the prototype's anchors, in its order", () => {
+  it("has the prototype's anchors, in its order, then step 11's", () => {
     const ids = (html: string) => [...html.matchAll(/<h3 id="([^"]+)"/g)].map((m) => m[1]);
-    expect(ids(ours)).toEqual(ids(prototypeHelp()));
+    expect(ids(ours)).toEqual([...ids(prototypeHelp()), ...ADDED]);
   });
 
   it("has an anchor for every report section's ? link", () => {

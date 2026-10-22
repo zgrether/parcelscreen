@@ -27,7 +27,14 @@ import {
 } from "../types";
 import { budgetWords, type BandKey } from "../words";
 import { CHIPS, type Chip, type InterviewAnswers } from "./answers";
-import { ACRES_WORDS, CHIP_WORDS, GLOW_QUESTION, QUESTIONS } from "./questions";
+import {
+  ACRES_WORDS,
+  CHIP_WORDS,
+  GLOW_QUESTION,
+  QUESTIONS,
+  SUMMER_QUESTION,
+  WINTER_QUESTION,
+} from "./questions";
 
 /** What one choice does, as config writes it. */
 interface Effect {
@@ -39,6 +46,8 @@ interface Effect {
 /** Ties between rows with the same points break in the design's default order (Factors table). */
 export const TIE_ORDER: readonly RowKey[] = [
   "elevation",
+  // Step 11: question 1 places it, so it sits by Elevation, which the same answer moves (plan §2.2).
+  "climate",
   "homesite",
   // Step 7: the Factors table puts Driveway after Winter sun.
   "driveway",
@@ -82,6 +91,20 @@ export function walkAwayStarts(
   return { belowFt: edgeFt - I.walkAway.belowFtUnderEdge, erOverMin: erMin + I.walkAway.erStepMin };
 }
 
+/**
+ * Climate's two limits (step 11): question 1's follow-ups, or the preset its answer implies (config `climatePreset`);
+ * none for "Either", or when it wasn't answered.
+ */
+export function climateLimits(
+  a: Pick<InterviewAnswers, "climate" | "winter" | "summer">,
+  C = SCREEN_CONSTANTS.card,
+): Pick<InterviewAnswers, "winter" | "summer"> {
+  const preset = a.climate && a.climate !== "either" ? C.interview.climatePreset[a.climate] : undefined;
+  const winter = a.winter ?? (preset?.winter as InterviewAnswers["winter"]);
+  const summer = a.summer ?? (preset?.summer as InterviewAnswers["summer"]);
+  return { ...(winter ? { winter } : {}), ...(summer ? { summer } : {}) };
+}
+
 const choiceOf = (key: keyof InterviewAnswers, id: string) =>
   (
     QUESTIONS.find((q) => q.key === key)?.choices ??
@@ -121,6 +144,16 @@ export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card
   };
 
   answer("climate", a.climate);
+  // Step 11 (plan §2.2): question 1's follow-ups set Climate's limits; left alone, they're its answer's preset.
+  const { winter, summer } = climateLimits(a, C);
+  if (winter) {
+    apply(I.choices.winter[winter] as Effect, null);
+    if (a.winter) say("climate", WINTER_QUESTION.choices.find((c) => c.id === a.winter)!.why);
+  }
+  if (summer) {
+    apply(I.choices.summer[summer] as Effect, null);
+    if (a.summer) say("climate", SUMMER_QUESTION.choices.find((c) => c.id === a.summer)!.why);
+  }
   if (a.sky) {
     // "Out with a camera" then "spoils it": one why for both, and the follow-up's stricter edge.
     const spoils = a.sky === "camera" && a.glow === "spoils";

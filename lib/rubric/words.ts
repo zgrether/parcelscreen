@@ -4,6 +4,7 @@
  * minimum in words, and why a card is where it is. Pure; the editor renders them.
  */
 import { shortPrice } from "../client/askingPrice";
+import { SCREEN_CONSTANTS } from "../screen/config";
 import { fmt } from "../format";
 import { defaultRubric } from "./default";
 import type { Bands, Budgets, Factor, GateKey, MustCard, RowKey, Rubric } from "./types";
@@ -24,6 +25,7 @@ export const FACTOR_LABELS: Record<Factor, string> = {
   town: "Town and groceries",
   hospital: "Hospital",
   garden: "Garden ground",
+  climate: "Climate",
   budget: "Within budget",
 };
 
@@ -54,12 +56,22 @@ export const SHORT_TITLES: Record<Factor, string> = {
   town: "Town",
   hospital: "Hosp",
   garden: "Garden",
+  climate: "Climate",
   budget: "Budget",
 };
 
 /** The bands a slider moves: each a list of A, B, C and D edges, best first. */
 export type BandKey =
-  "elevationFt" | "skyMag" | "roomX" | "trailheadMin" | "erMin" | "groceryMin" | "gardenAc" | "drivewayPct";
+  | "elevationFt"
+  | "skyMag"
+  | "roomX"
+  | "trailheadMin"
+  | "erMin"
+  | "groceryMin"
+  | "gardenAc"
+  | "drivewayPct"
+  | "janLowF"
+  | "julHighF";
 
 /**
  * What a limit is set in: a band, or (Best homesite, whose letter is the site's quality and has no band) hours of
@@ -78,6 +90,7 @@ export const ROW_BANDS: Record<RowKey, readonly BandKey[]> = {
   town: ["groceryMin"],
   hospital: ["erMin"],
   garden: ["gardenAc"],
+  climate: ["janLowF", "julHighF"],
   // Step 10: graded against the budgets, which the questions set; no slider.
   budget: [],
 };
@@ -95,6 +108,8 @@ export const MINIMUM_BAND: Record<RowKey, LimitKey | null> = {
   town: "groceryMin",
   hospital: "erMin",
   garden: "gardenAc",
+  // Step 11: no limit; question 14 has no chip for it.
+  climate: null,
   // Step 10: a Must on it has no number of its own: it's the budgets.
   budget: null,
 };
@@ -109,6 +124,8 @@ export const BAND_RUNS: Record<BandKey, "atLeast" | "atMost"> = {
   groceryMin: "atMost",
   gardenAc: "atLeast",
   drivewayPct: "atMost",
+  janLowF: "atLeast",
+  julHighF: "atMost",
 };
 
 /** "1.0" → "1", "0.25" stays: a number without trailing zeros. */
@@ -133,6 +150,9 @@ export function bandValue(key: LimitKey, v: number): string {
       return `${fmt(v, 2).replace(/\.?0+$/, "")} ac`;
     case "drivewayPct":
       return `${fmt(v)}%`;
+    case "janLowF":
+    case "julHighF":
+      return `${fmt(v)} °F`;
   }
 }
 
@@ -153,6 +173,20 @@ export function budgetWords(b: Budgets | undefined): string {
     b?.build != null ? `ready to build under ${shortPrice(b.build)}` : null,
   ].filter((x): x is string => !!x);
   return parts.length ? parts.join(", ") : "no budget given";
+}
+
+/**
+ * Climate's limits in words (step 11): "January lows of 24 °F or milder, July highs of 86 °F or cooler"; a season at its
+ * slider's end has no limit ("any winter", "any summer").
+ */
+export function climateWords(b: Bands): string {
+  const E = SCREEN_CONSTANTS.card.editor;
+  const jan = bcEdge(b, "janLowF");
+  const jul = bcEdge(b, "julHighF");
+  return [
+    jan <= E.janLowF.min ? "any winter" : `January lows of ${bandValue("janLowF", jan)} or milder`,
+    jul >= E.julHighF.max ? "any summer" : `July highs of ${bandValue("julHighF", jul)} or cooler`,
+  ].join(", ");
 }
 
 /** Sentence case for a line that starts with words of its own. */
@@ -188,6 +222,8 @@ export function cardLine(r: Rubric, factor: Factor): string {
       return `An ER within ${bandValue("erMin", bcEdge(b, "erMin"))}`;
     case "garden":
       return `At least ${bandValue("gardenAc", bcEdge(b, "gardenAc"))} of garden ground`;
+    case "climate":
+      return capital(climateWords(b));
     case "budget":
       return capital(budgetWords(r.budgets));
   }
@@ -259,6 +295,8 @@ export function plainLine(r: Rubric, factor: Factor): string {
       return `Groceries within ${bandValue("groceryMin", bcEdge(b, "groceryMin"))}`;
     case "hospital":
       return `ER within ${bandValue("erMin", bcEdge(b, "erMin"))}`;
+    case "climate":
+      return capital(climateWords(b));
     case "garden": {
       const ac = bcEdge(b, "gardenAc");
       if (ac >= 1) return "Room for a big garden";

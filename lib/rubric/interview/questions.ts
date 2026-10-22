@@ -42,19 +42,16 @@ export const QUESTIONS: readonly Question[] = [
         id: "cool",
         label: "Cool and snowy",
         why: "You'd like cool summer days and snowy winters",
-        later: "Climate (cool and snowy)",
       },
       {
         id: "between",
         label: "In between",
         why: "You'd like a climate in between",
-        later: "Climate (in between)",
       },
       {
         id: "warm",
         label: "Warm and mild",
         why: "You'd like hot summers and snow that rarely sticks",
-        later: "Climate (warm and mild)",
       },
       { id: "either", label: "Either is fine", why: "You said either climate is fine" },
     ],
@@ -293,6 +290,30 @@ export const QUESTIONS: readonly Question[] = [
     ],
   },
 ];
+
+/**
+ * Question 1's follow-ups (step 11, plan §2.2): on its screen, preset from its answer (config `climatePreset`), so a
+ * tap on the first row is enough. Their whys say the limit in the person's words.
+ */
+export const WINTER_QUESTION = {
+  key: "winter",
+  ask: "Winters",
+  choices: [
+    { id: "mild", label: "Mild", why: "You'd rather have mild winters" },
+    { id: "some", label: "Some snow", why: "You'd like some snow in winter" },
+    { id: "real", label: "Real winter welcome", why: "You'd welcome a real winter" },
+  ],
+} as const satisfies { key: "winter"; ask: string; choices: readonly Choice[] };
+
+export const SUMMER_QUESTION = {
+  key: "summer",
+  ask: "Summer heat",
+  choices: [
+    { id: "cool", label: "Keep it cool", why: "You'd rather keep summers cool" },
+    { id: "warm", label: "Warm is fine", why: "Warm summers are fine with you" },
+    { id: "hot", label: "Hot is fine", why: "Hot summers are fine with you" },
+  ],
+} as const satisfies { key: "summer"; ask: string; choices: readonly Choice[] };
 
 /** Question 2's follow-up, on the same screen after "Out with a camera". */
 export const GLOW_QUESTION = {

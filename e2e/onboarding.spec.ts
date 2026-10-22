@@ -38,6 +38,7 @@ test("a first visit starts with the name, comes back until put off, and Not now 
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(progress(page)).toHaveText("1 of 14");
   await page.getByRole("radio", { name: "Cool and snowy" }).click();
+  await page.getByRole("button", { name: "Continue" }).click(); // step 11: its follow-ups, preset
   await expect(progress(page)).toHaveText("2 of 14");
 
   // Any other page sends the profile back, to the question it left.
@@ -74,6 +75,7 @@ test("an existing profile: offered, never sent; the why lines, Reset to my answe
   // Not a new profile's interview: no "Not now".
   await expect(page.getByRole("button", { name: "Not now" })).toHaveCount(0);
   await page.getByRole("radio", { name: "Cool and snowy" }).click();
+  await page.getByRole("button", { name: "Continue" }).click(); // step 11: its follow-ups, preset
   await expect(progress(page)).toHaveText("2 of 14");
   for (let n = 3; n <= 6; n++) {
     await page.getByRole("button", { name: "Skip" }).click();
@@ -93,7 +95,8 @@ test("an existing profile: offered, never sent; the why lines, Reset to my answe
   const sheet = page.getByRole("dialog");
   await expect(sheet).toContainText("You'd want an ER within 30 minutes");
   await expect(sheet).not.toContainText(/Question \d/);
-  await sheet.getByRole("button", { name: "Nice to have" }).click();
+  // Step 11: Climate (cool and snowy) takes a Really want place, so Hospital, at 2 points, starts in Nice to have.
+  await sheet.getByRole("button", { name: "Really want" }).click();
   await expect(sheet).toContainText("You moved this here.");
   await page.keyboard.press("Escape");
 
@@ -102,7 +105,7 @@ test("an existing profile: offered, never sent; the why lines, Reset to my answe
   await expect(confirm).toContainText("Reset to your answers? This undoes the changes you made since.");
   await confirm.getByRole("button", { name: "Reset", exact: true }).click();
   await expect(
-    page.getByRole("region", { name: "Really want", exact: true }).locator(".rubric-card-name"),
+    page.getByRole("region", { name: "Nice to have", exact: true }).locator(".rubric-card-name"),
   ).toContainText(["Hospital"]);
   await expect(
     page.locator(".rubric-bar-actions").getByRole("link", { name: "Answer the questions again" }),

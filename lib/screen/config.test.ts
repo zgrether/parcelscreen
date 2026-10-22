@@ -216,6 +216,16 @@ describe("config", () => {
               "min": 5,
               "step": 5,
             },
+            "janLowF": {
+              "max": 30,
+              "min": -25,
+              "step": 1,
+            },
+            "julHighF": {
+              "max": 115,
+              "min": 75,
+              "step": 1,
+            },
             "roomX": {
               "max": 5,
               "min": 1,
@@ -248,6 +258,7 @@ describe("config", () => {
               "climate": {
                 "between": {
                   "points": {
+                    "climate": 2,
                     "elevation": 2,
                   },
                 },
@@ -256,16 +267,19 @@ describe("config", () => {
                     "elevationFt": 3000,
                   },
                   "points": {
+                    "climate": 2,
                     "elevation": 3,
                   },
                 },
                 "either": {
                   "points": {
+                    "climate": 0,
                     "elevation": 1,
                   },
                 },
                 "warm": {
                   "points": {
+                    "climate": 2,
                     "elevation": 0,
                   },
                 },
@@ -418,6 +432,23 @@ describe("config", () => {
                   },
                 },
               },
+              "summer": {
+                "cool": {
+                  "edges": {
+                    "julHighF": 80,
+                  },
+                },
+                "hot": {
+                  "edges": {
+                    "julHighF": 115,
+                  },
+                },
+                "warm": {
+                  "edges": {
+                    "julHighF": 86,
+                  },
+                },
+              },
               "sunView": {
                 "both": {
                   "points": {
@@ -466,9 +497,41 @@ describe("config", () => {
                   },
                 },
               },
+              "winter": {
+                "mild": {
+                  "edges": {
+                    "janLowF": 24,
+                  },
+                },
+                "real": {
+                  "edges": {
+                    "janLowF": -25,
+                  },
+                },
+                "some": {
+                  "edges": {
+                    "janLowF": 18,
+                  },
+                },
+              },
+            },
+            "climatePreset": {
+              "between": {
+                "summer": "warm",
+                "winter": "some",
+              },
+              "cool": {
+                "summer": "cool",
+                "winter": "real",
+              },
+              "warm": {
+                "summer": "hot",
+                "winter": "mild",
+              },
             },
             "defaultPoints": {
               "budget": 0,
+              "climate": 0,
               "driveway": 1,
               "elevation": 2,
               "garden": 1,
@@ -534,6 +597,18 @@ describe("config", () => {
               30,
               45,
             ],
+            "janLowF": [
+              21,
+              18,
+              15,
+              11,
+            ],
+            "julHighF": [
+              83,
+              86,
+              89,
+              93,
+            ],
             "openLandWithinFt": 5280,
             "roomX": [
               3,
@@ -574,6 +649,7 @@ describe("config", () => {
           "weights": {
             "default": {
               "budget": 0,
+              "climate": 0,
               "driveway": 0,
               "elevation": 25,
               "garden": 10,
@@ -585,6 +661,11 @@ describe("config", () => {
               "trails": 10,
             },
           },
+        },
+        "climate": {
+          "lapseFPer1000Ft": 3.6,
+          "stationFtPerKm": 66,
+          "stationMaxKm": 50,
         },
         "combine": {
           "joinBudgetMs": 2000,

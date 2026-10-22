@@ -26,6 +26,8 @@ export const ROW_KEYS = [
   // Step 11 (docs/plans/step-11-new-data.md §2.1): split from Town, which keeps the groceries.
   "hospital",
   "garden",
+  // Step 11's new factors (plan §2): after the rows before them, so their order and ties stay as they were.
+  "climate",
   "budget",
 ] as const;
 export type RowKey = (typeof ROW_KEYS)[number];
@@ -57,6 +59,10 @@ export interface Bands {
   gardenAc: number[];
   /** The Driveway row's steepest grade, in %, at most (step 7). */
   drivewayPct: number[];
+  /** Step 11: Climate's January mean low at the site, in °F, at least. */
+  janLowF: number[];
+  /** Step 11: Climate's July mean high at the site, in °F, at most. */
+  julHighF: number[];
 }
 
 /**

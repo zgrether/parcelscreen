@@ -2239,6 +2239,12 @@
     "fit": "fits",
     "gentleNearAc": 0.9546316998100731,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.1,
+     "julHighF": 78.1,
+     "station": "USC00314496",
+     "stationMi": 13.7
+    },
     "driveway": {
      "lengthFt": 2887.618130949411,
      "cost": {
@@ -2297,6 +2303,12 @@
     "fit": "fits",
     "gentleNearAc": 0.32413076319132716,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.2,
+     "julHighF": 78.2,
+     "station": "USC00314496",
+     "stationMi": 13.7
+    },
     "driveway": {
      "lengthFt": 2578.0350724695954,
      "cost": {
@@ -2355,6 +2367,12 @@
     "fit": "fits",
     "gentleNearAc": 0.9568517735305616,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.1,
+     "julHighF": 78.1,
+     "station": "USC00314496",
+     "stationMi": 13.8
+    },
     "driveway": {
      "lengthFt": 2844.855485397168,
      "cost": {
@@ -2413,6 +2431,12 @@
     "fit": "house only",
     "gentleNearAc": 0.06438213789416773,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24,
+     "julHighF": 79,
+     "station": "USC00314496",
+     "stationMi": 13.7
+    },
     "driveway": {
      "lengthFt": 905.0394175824515,
      "cost": {
@@ -2430,6 +2454,20 @@
     }
    }
   ],
+  "climate": {
+   "outside": false,
+   "stations": [
+    {
+     "id": "USC00314496",
+     "name": "Jefferson 2 E, NC",
+     "elevFt": 2759,
+     "snowIn": 14.4,
+     "lastFreeze": "05-07",
+     "firstFreeze": "10-08",
+     "frostFreeDays": 154
+    }
+   ]
+  },
   "driveway": {
    "toLabel": "site #1",
    "entrances": [
@@ -7704,7 +7742,7 @@
    "er": null
   },
   "schemaVersion": 9,
-  "engine": 22,
+  "engine": 23,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -9949,6 +9987,12 @@
     "fit": "fits",
     "gentleNearAc": 0.9546316998100731,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.1,
+     "julHighF": 78.1,
+     "station": "USC00314496",
+     "stationMi": 13.7
+    },
     "driveway": {
      "lengthFt": 2887.618130949411,
      "cost": {
@@ -10007,6 +10051,12 @@
     "fit": "fits",
     "gentleNearAc": 0.32413076319132716,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.2,
+     "julHighF": 78.2,
+     "station": "USC00314496",
+     "stationMi": 13.7
+    },
     "driveway": {
      "lengthFt": 2578.0350724695954,
      "cost": {
@@ -10065,6 +10115,12 @@
     "fit": "fits",
     "gentleNearAc": 0.9568517735305616,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.1,
+     "julHighF": 78.1,
+     "station": "USC00314496",
+     "stationMi": 13.8
+    },
     "driveway": {
      "lengthFt": 2844.855485397168,
      "cost": {
@@ -10123,6 +10179,12 @@
     "fit": "house only",
     "gentleNearAc": 0.06438213789416773,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24,
+     "julHighF": 79,
+     "station": "USC00314496",
+     "stationMi": 13.7
+    },
     "driveway": {
      "lengthFt": 905.0394175824515,
      "cost": {
@@ -10140,6 +10202,20 @@
     }
    }
   ],
+  "climate": {
+   "outside": false,
+   "stations": [
+    {
+     "id": "USC00314496",
+     "name": "Jefferson 2 E, NC",
+     "elevFt": 2759,
+     "snowIn": 14.4,
+     "lastFreeze": "05-07",
+     "firstFreeze": "10-08",
+     "frostFreeDays": 154
+    }
+   ]
+  },
   "driveway": {
    "toLabel": "site #2",
    "entrances": [
@@ -15414,7 +15490,7 @@
    "er": null
   },
   "schemaVersion": 9,
-  "engine": 22,
+  "engine": 23,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

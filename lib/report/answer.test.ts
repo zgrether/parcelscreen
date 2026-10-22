@@ -104,6 +104,7 @@ function zeroWeights() {
     town: 0,
     hospital: 0,
     garden: 0,
+    climate: 0,
     budget: 0,
   };
 }

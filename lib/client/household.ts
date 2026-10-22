@@ -63,12 +63,13 @@ export async function loadHousehold(): Promise<void> {
     // Step 7 (owner, #216): priorities saved before the Driveway row get it, as their own device will add it.
     const added = addedTo(rubrics, interview?.answers.driveway);
     // Step 11: and its new factors, as their own device will add them.
-    const factors = factorsAddedTo(added ?? rubrics);
+    const factors = factorsAddedTo(added ?? rubrics, interview?.answers);
     const mine = factors?.rubrics.mine ?? added?.mine ?? rubrics?.mine ?? null;
     const drivewayBase =
       added && interview?.base ? withDriveway(interview.base, interview.answers.driveway) : null;
     const priorBase = drivewayBase ?? interview?.base ?? null;
-    const base = factors && priorBase ? withNewFactors(priorBase, {}).rubric : drivewayBase;
+    const base =
+      factors && priorBase ? withNewFactors(priorBase, {}, interview?.answers).rubric : drivewayBase;
     const why = whyContext(base && interview ? { ...interview, base } : interview);
     next.push({ id: p.id, name: p.name, rubric: mine, why });
   }

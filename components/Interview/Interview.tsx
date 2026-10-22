@@ -12,9 +12,12 @@ import { useCallback, useEffect, useRef, useState, type FormEvent, type RefObjec
 import { currentProfile, renameProfile } from "@/lib/client/profiles";
 import { useInterview, type Interview } from "@/lib/client/useInterview";
 import { QUESTION_COUNT, QUESTIONS } from "@/lib/rubric/interview/questions";
-import { questionNumber, STEPS, type Step } from "@/lib/rubric/interview/doc";
+import { freshDoc, questionNumber, STEPS, type InterviewDoc, type Step } from "@/lib/rubric/interview/doc";
+import { NEW_FACTORS, NEW_QUESTION } from "@/lib/rubric/factorsAdd";
+import { placeFromAnswers } from "@/lib/client/factorsAdd";
+import { getPref, setPref } from "@/lib/client/prefs";
 import type { InterviewAnswers } from "@/lib/rubric/interview/answers";
-import { ChipsScreen, ChoiceScreen, LandScreen, PairScreen } from "./Screens";
+import { ChipsScreen, ChoiceScreen, ClimateScreen, LandScreen, PairScreen } from "./Screens";
 import { InterviewResult } from "./Result";
 import { JoinFirst } from "@/components/Sync/JoinFirst";
 import { readSyncState } from "@/lib/sync/state";
@@ -25,6 +28,7 @@ function keysOf(step: Step): (keyof InterviewAnswers)[] {
     case "choice": {
       const q = QUESTIONS[step.index]!;
       if (q.key === "sky") return ["sky", "glow"];
+      if (q.key === "climate") return ["climate", "winter", "summer"];
       return q.second ? [q.key, q.second.key] : [q.key];
     }
     case "land":
@@ -60,7 +64,63 @@ export function isAnswered(step: Step, a: InterviewAnswers): boolean {
 /** "Not now": a new profile's way out, on every screen of its interview (§6.1). */
 export const NOT_NOW = "Not now";
 
+/**
+ * The interview, or (step 11, plan §1) one of its new questions on its own: `?ask=climate`, from What matters' notice
+ * on the new factors. Its answer places them again (lib/client/factorsAdd.ts placeFromAnswers), then What matters.
+ */
 export function Interview() {
+  const [ask] = useState(() => askedFor(typeof window === "undefined" ? "" : window.location.search));
+  return ask ? <AskOne ask={ask} /> : <FullInterview />;
+}
+
+/** The new question a link asks for, when it's one: a factor's (NEW_QUESTION) that this screen can ask alone. */
+function askedFor(search: string): "climate" | null {
+  return new URLSearchParams(search).get("ask") === "climate" ? "climate" : null;
+}
+
+function AskOne({ ask }: { ask: "climate" }) {
+  const router = useRouter();
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => heading.current?.focus(), []);
+  const [doc] = useState<InterviewDoc>(() => getPref("ps.interview") ?? freshDoc("notNow"));
+  const answers = useRef(doc.answers);
+  // The interview's own answer() as this screen needs it: the answers saved as they're picked, the doc otherwise kept.
+  const iv = {
+    doc,
+    answer(patch: Partial<InterviewAnswers>) {
+      answers.current = { ...answers.current, ...patch };
+      setPref("ps.interview", { ...(getPref("ps.interview") ?? doc), answers: answers.current });
+    },
+  } as unknown as Interview;
+  const done = () => {
+    placeFromAnswers(NEW_FACTORS.filter((f) => NEW_QUESTION[f] === ask));
+    router.push("/priorities");
+  };
+  const question = QUESTIONS.find((q) => q.key === ask)!;
+  return (
+    <main className="iv">
+      <header className="iv-head">
+        <Link className="link-btn" href="/priorities">
+          ← What matters
+        </Link>
+        <p className="iv-progress">A new question</p>
+      </header>
+      <section className="iv-screen">
+        <ClimateScreen
+          iv={iv}
+          question={question}
+          heading={heading}
+          n={question.n}
+          revisit={false}
+          bindNext={() => undefined}
+          onDone={done}
+        />
+      </section>
+    </main>
+  );
+}
+
+function FullInterview() {
   const iv = useInterview();
   const router = useRouter();
   const step = STEPS[iv.doc.at]!;
@@ -148,6 +208,8 @@ function StepView({
         {step.kind === "choice" &&
           (QUESTIONS[step.index]!.second ? (
             <PairScreen {...props} question={QUESTIONS[step.index]!} />
+          ) : QUESTIONS[step.index]!.key === "climate" ? (
+            <ClimateScreen {...props} question={QUESTIONS[step.index]!} />
           ) : (
             <ChoiceScreen {...props} question={QUESTIONS[step.index]!} />
           ))}

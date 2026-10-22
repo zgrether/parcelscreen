@@ -5,6 +5,7 @@
  */
 import type { ReactNode } from "react";
 import { buildHeading } from "@/lib/report/build";
+import { climateHeading } from "@/lib/report/climate";
 import { drivewayHeading } from "@/lib/report/driveway";
 import { gardenHeading } from "@/lib/report/garden";
 import { houseHeading } from "@/lib/report/house";
@@ -17,6 +18,7 @@ import { terrainHeading } from "@/lib/report/terrain";
 import { unknownHeading } from "@/lib/report/unknown";
 import { verdictHeading } from "@/lib/report/verdict";
 import type { PartialScreenResult } from "@/lib/screen/types";
+import { Climate } from "./blocks/Climate";
 import { DarkSkies } from "./blocks/DarkSkies";
 import { DecemberSun } from "./blocks/DecemberSun";
 import { Driveway } from "./blocks/Driveway";
@@ -51,5 +53,7 @@ export const REPORT: readonly ReportSection[] = [
   { Block: Floodplain, heading: () => floodHeading },
   { Block: PublicLand, heading: () => publicLandHeading },
   { Block: GettingThere, heading: () => gettingThereHeading },
+  // Step 11: after the prototype's sections, so their order stays its.
+  { Block: Climate, heading: () => climateHeading },
   { Block: StillUnknown, heading: () => unknownHeading },
 ];

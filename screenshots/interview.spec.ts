@@ -43,7 +43,12 @@ for (const phone of [false, true]) {
     test("the questions and the result", async ({ page }) => {
       await fresh(page);
       await shot(page, "01-q1");
-      await pick(page, "Cool and snowy", 2);
+      // Step 11: question 1's follow-ups, preset from the year.
+      await page.getByRole("radio", { name: "Cool and snowy" }).first().click();
+      await expect(page.locator(".iv-follow")).toBeVisible();
+      await shot(page, "01b-q1-follow-ups");
+      await page.getByRole("button", { name: "Continue" }).click();
+      await expect(progress(page)).toHaveText("2 of 14");
       await page.getByRole("radio", { name: "Out with a camera" }).click();
       await expect(page.locator(".iv-follow")).toBeVisible();
       await shot(page, "02-q2-follow-up");
@@ -91,14 +96,12 @@ for (const phone of [false, true]) {
       await expect(page.getByRole("button", { name: "Reset to my answers" })).toBeVisible();
       await shot(page, "09-priorities");
       await page
-        .locator(".rubric-card", { hasText: "Town and hospital" })
+        .locator(".rubric-card", { hasText: "Hospital" })
         .first()
         .locator(".rubric-card-body")
         .click();
-      // Groceries and the ER both gave it 2 points: the earlier answer speaks first.
-      await expect(page.getByRole("dialog")).toContainText(
-        "You'd rather have a small market 10 minutes away",
-      );
+      // Step 11: the ER's answer is Hospital's own.
+      await expect(page.getByRole("dialog")).toContainText("You'd want an ER within 30 minutes");
       await shot(page, "11-why");
       // Moved to another tier, so the list differs from the answers: Nice to have, or Really want if it's there already
       // (since step 7's Driveway it can be).

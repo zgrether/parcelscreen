@@ -60,7 +60,12 @@ test("the columns, a card's Move to…, and Undo", async ({ page }) => {
   // A dealbreaker can't rank.
   await expect(sheet(page).getByRole("button", { name: "Really want" })).toBeDisabled();
   await sheet(page).getByRole("button", { name: "Don't care" }).click();
-  await expect(names(column(page, "Don't care"))).toHaveText(["Septic", "Driveway", "Town and groceries"]);
+  await expect(names(column(page, "Don't care"))).toHaveText([
+    "Septic",
+    "Driveway",
+    "Town and groceries",
+    "Climate",
+  ]);
   await page.getByRole("button", { name: "Close" }).click();
   await page.getByRole("button", { name: "Undo" }).click();
   await expect(names(column(page, "Must have"))).toContainText(["Septic"]);
@@ -244,7 +249,12 @@ test.describe("on a phone", () => {
       expect((await b.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     await sheet(page).getByRole("button", { name: "Don't care" }).tap();
     await page.keyboard.press("Escape");
-    await expect(names(column(page, "Don't care"))).toHaveText(["Septic", "Driveway", "Town and groceries"]);
+    await expect(names(column(page, "Don't care"))).toHaveText([
+      "Septic",
+      "Driveway",
+      "Town and groceries",
+      "Climate",
+    ]);
     // Try it is a bar along the bottom, with the same words as on a desktop.
     const bar = page.getByRole("region", { name: "Try it" });
     await expect(bar).toBeVisible();

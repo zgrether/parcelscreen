@@ -9,6 +9,8 @@ import { defaultNamedRubric } from "../rubric/default";
 import type { NamedRubric, Rubric } from "../rubric/types";
 import { verdictLines } from "../rubric/grade";
 import { weightsOf } from "../rubric/weights";
+import { CLIMATE_SOURCES } from "./climate";
+import { climateWords } from "../rubric/words";
 import { MAYBE_CAPS, footprintFt2, type CardConfig, type GateKey, type RowKey } from "./card";
 
 export type PanelKey = "verdict" | GateKey | RowKey | "cost";
@@ -29,6 +31,7 @@ const PANELS: Record<PanelKey, true> = {
   town: true,
   hospital: true,
   garden: true,
+  climate: true,
   budget: true,
   cost: true,
 };
@@ -195,6 +198,17 @@ export function panelText(
         question: "Is there ground to grow food on?",
         howScored: `A for a garden of ${fmt(R.gardenAc[0]!, 2)} ac or more on prime or statewide-important farmland; B from ${fmt(R.gardenAc[1]!, 2)} ac, C from ${fmt(R.gardenAc[2]!, 2)} ac, D for any garden; ${weightOf(rubrics, "garden")}.`,
       };
+    case "climate": {
+      const jan = R.janLowF.map((v) => `${fmt(v)} °F`);
+      const jul = R.julHighF.map((v) => `${fmt(v)} °F`);
+      return {
+        title: "Climate",
+        question: "How cold are the winters, and how hot the summers, where we'd build?",
+        howScored:
+          `At your best homesite, the worse of two 30-year normals: January's mean low (A from ${jan[0]}, B from ${jan[1]}, C from ${jan[2]}, D from ${jan[3]}) and July's mean high (A up to ${jul[0]}, B up to ${jul[1]}, C up to ${jul[2]}, D up to ${jul[3]}); your limits: ${climateWords(R)}. Snowfall and frost-free days are shown, not graded; ${weightOf(rubrics, "climate")}. ` +
+          `Sources: ${CLIMATE_SOURCES}`,
+      };
+    }
     case "budget": {
       const B = K.budgetBands.map((x) => `${fmt(x * 100)}%`);
       return {
