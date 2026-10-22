@@ -52,6 +52,8 @@ export const TIE_ORDER: readonly RowKey[] = [
   "privacy",
   // Step 11: question 3 places it (plan §2.4).
   "longView",
+  // Step 11: question 7 places it (plan §2.5).
+  "airport",
   "homesite",
   // Step 7: the Factors table puts Driveway after Winter sun.
   "driveway",
@@ -171,7 +173,9 @@ export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card
   answer("trails", a.trails);
   answer("groceries", a.groceries);
   answer("er", a.er);
-  for (const key of ["fly", "calls"] as const) if (a[key]) note(choiceOf(key, a[key])?.later);
+  // Step 11: question 7's first row sets Airport; its second is still on the quiet list until Internet.
+  answer("fly", a.fly);
+  if (a.calls) note(choiceOf("calls", a.calls)?.later);
   answer("neighbors", a.neighbors);
   answer("garden", a.garden);
   // Question 10 sets the Driveway row (step 7); it left the quiet list.

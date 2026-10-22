@@ -36,6 +36,7 @@ const PANELS: Record<PanelKey, true> = {
   climate: true,
   privacy: true,
   longView: true,
+  airport: true,
   budget: true,
   cost: true,
 };
@@ -232,6 +233,12 @@ export function panelText(
         howScored: `At your best homesite, the share of the horizon whose view reaches past ${fmt(SCREEN_CONSTANTS.view.openKm)} km: A from ${pct[0]}, B from ${pct[1]}, C from ${pct[2]}, D from ${pct[3]}. The longest view and its direction are shown, not graded; ${weightOf(rubrics, "longView")}. ${VIEW_CAVEAT}`,
       };
     }
+    case "airport":
+      return {
+        title: "Airport",
+        question: "How far to an airport we'd fly from?",
+        howScored: `The drive to the nearest airport on your list of places to time drives to (Settings): A within ${R.airportMin[0]} min, B within ${R.airportMin[1]}, C within ${R.airportMin[2]}, D within ${R.airportMin[3]}. A place counts as an airport when its name says "airport" or ends in a three-letter code in parentheses; ${weightOf(rubrics, "airport")}.`,
+      };
     case "budget": {
       const B = K.budgetBands.map((x) => `${fmt(x * 100)}%`);
       return {

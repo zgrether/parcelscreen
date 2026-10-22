@@ -107,6 +107,7 @@ function zeroWeights() {
     climate: 0,
     privacy: 0,
     longView: 0,
+    airport: 0,
     budget: 0,
   };
 }

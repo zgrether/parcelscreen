@@ -191,6 +191,11 @@ describe("config", () => {
             1.3,
           ],
           "editor": {
+            "airportMin": {
+              "max": 180,
+              "min": 15,
+              "step": 5,
+            },
             "drivewayPct": {
               "max": 25,
               "min": 8,
@@ -353,6 +358,29 @@ describe("config", () => {
                   },
                   "points": {
                     "hospital": 0,
+                  },
+                },
+              },
+              "fly": {
+                "few": {
+                  "edges": {
+                    "airportMin": 90,
+                  },
+                  "points": {
+                    "airport": 1,
+                  },
+                },
+                "monthly": {
+                  "edges": {
+                    "airportMin": 60,
+                  },
+                  "points": {
+                    "airport": 1,
+                  },
+                },
+                "rarely": {
+                  "points": {
+                    "airport": 0,
                   },
                 },
               },
@@ -568,6 +596,7 @@ describe("config", () => {
               },
             },
             "defaultPoints": {
+              "airport": 0,
               "budget": 0,
               "climate": 0,
               "driveway": 1,
@@ -607,6 +636,12 @@ describe("config", () => {
             "F": 0,
           },
           "rows": {
+            "airportMin": [
+              45,
+              60,
+              90,
+              120,
+            ],
             "drivewayPct": [
               10,
               15,
@@ -706,6 +741,7 @@ describe("config", () => {
           },
           "weights": {
             "default": {
+              "airport": 0,
               "budget": 0,
               "climate": 0,
               "driveway": 0,

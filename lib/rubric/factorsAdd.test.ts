@@ -77,6 +77,6 @@ describe("Hospital, split from Town (plan §2.1)", () => {
     const start = withoutFactor(defaultRubric(), "hospital");
     expect(order(start)).toEqual(order(OLD_START));
     expect(weightsOf(start)).toMatchObject({ town: 5, hospital: 0 });
-    expect(start.wonts).toEqual(["driveway", "climate", "privacy", "longView", "hospital"]);
+    expect(start.wonts).toEqual(["driveway", "climate", "privacy", "longView", "airport", "hospital"]);
   });
 });

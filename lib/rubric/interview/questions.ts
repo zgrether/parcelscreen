@@ -150,13 +150,11 @@ export const QUESTIONS: readonly Question[] = [
         id: "few",
         label: "A few times a year",
         why: "You fly a few times a year",
-        later: "Airport (a few times a year)",
       },
       {
         id: "monthly",
         label: "Monthly or more",
         why: "You fly monthly or more",
-        later: "Airport (monthly or more)",
       },
     ],
     second: {
