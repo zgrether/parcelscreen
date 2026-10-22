@@ -29,6 +29,18 @@ const row = (page: Page, key: string) => page.locator(`.card [data-card-key="${k
 const adjust = (page: Page) => page.locator(".card-panel .adjust");
 const closePanel = (page: Page) => page.locator(".card-panel").getByRole("button", { name: "Close" }).click();
 
+/** Ways to raise this grade on a parcel (PR 6): the section after the card. */
+async function shootSuggestions(page: Page, slug: FixtureSlug, file: string, phone: boolean): Promise<void> {
+  await visit(page, "/library");
+  await openFromList(page, loadFixture(slug).input.name);
+  if (phone) await raiseSheet(page);
+  const raise = page.getByRole("region", { name: "Ways to raise this grade" });
+  await expect(raise).toBeVisible({ timeout: 30_000 });
+  await raise.evaluate((el) => el.scrollIntoView({ block: "center" }));
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: file });
+}
+
 for (const phone of [false, true]) {
   const device = phone ? "phone" : "desktop";
   test.describe(device, () => {
@@ -40,7 +52,7 @@ for (const phone of [false, true]) {
 
     test("adjustments: the panel, an overridden row, a set-aside Must", async ({ page, context }) => {
       test.setTimeout(300_000);
-      await replayHar(context, FERNEY);
+      await replayHar(context, [FERNEY, "macks-mountain-35-3", "grayson-mud-creek-6273"]);
       await liveImagery(context);
       await openExplorer(page, FERNEY);
       await importParcels(page, [FERNEY]);
@@ -120,6 +132,18 @@ for (const phone of [false, true]) {
       await expect(page.locator(".rubric-nudge")).toBeVisible();
       await page.waitForTimeout(300);
       await page.screenshot({ path: `${OUT}/${device}-adjust-nudge.png` });
+
+      // Ways to raise this grade (PR 6), on Mud Creek and Macks.
+      await seedScreens(page, ["macks-mountain-35-3", "grayson-mud-creek-6273"]);
+      await settled(page);
+      // The nudge's seeded set-asides off, so each card is the app's own.
+      await page.evaluate(() => {
+        const kv = window.__psKv!;
+        kv.setItem("ps.household", JSON.stringify({ v: 1, asks: [], takes: [], adjusts: [] }));
+      });
+      await settled(page);
+      await shootSuggestions(page, "grayson-mud-creek-6273", `${OUT}/${device}-raise-mud.png`, phone);
+      await shootSuggestions(page, "macks-mountain-35-3", `${OUT}/${device}-raise-macks.png`, phone);
     });
   });
 }
