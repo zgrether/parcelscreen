@@ -24,6 +24,7 @@ export const LEGACY_SECOND_WEIGHTS: Record<RowKey, number> = {
   garden: 20,
   climate: 0,
   privacy: 0,
+  longView: 0,
   budget: 0,
 };
 

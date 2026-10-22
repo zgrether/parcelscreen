@@ -2231,6 +2231,12 @@
      "coreClear": 18.025468968264335,
      "domeW": 3.466232272555967
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.08,
+     "dirDeg": 325
+    },
     "roadGrade": 11.660691375667428,
     "roadRunFt": 614.3255830669212,
     "roadName": "unnamed road",
@@ -2299,6 +2305,12 @@
      "mag": 21.520649316922533,
      "coreClear": 17.409277170308954,
      "domeW": 3.0206913092518426
+    },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.04,
+     "dirDeg": 328
     },
     "roadGrade": 34.8957316910476,
     "roadRunFt": 803.8875228422704,
@@ -2369,6 +2381,12 @@
      "coreClear": 14.825850599465078,
      "domeW": 3.466232272555967
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.04,
+     "dirDeg": 323
+    },
     "roadGrade": 15.213416457767547,
     "roadRunFt": 556.1445489110306,
     "roadName": "unnamed road",
@@ -2437,6 +2455,12 @@
      "mag": 21.520649316922533,
      "coreClear": 15.473682258520036,
      "domeW": 3.0206913092518426
+    },
+    "view": {
+     "longestKm": 5.01,
+     "past": false,
+     "openShare": 0.01,
+     "dirDeg": 180
     },
     "roadGrade": 36.099887730928245,
     "roadRunFt": 294.53867668222597,
@@ -7765,7 +7789,7 @@
    "er": null
   },
   "schemaVersion": 9,
-  "engine": 24,
+  "engine": 25,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -10002,6 +10026,12 @@
      "coreClear": 18.025468968264335,
      "domeW": 3.466232272555967
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.08,
+     "dirDeg": 325
+    },
     "roadGrade": 11.660691375667428,
     "roadRunFt": 614.3255830669212,
     "roadName": "unnamed road",
@@ -10070,6 +10100,12 @@
      "mag": 21.520649316922533,
      "coreClear": 17.409277170308954,
      "domeW": 3.0206913092518426
+    },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.04,
+     "dirDeg": 328
     },
     "roadGrade": 34.8957316910476,
     "roadRunFt": 803.8875228422704,
@@ -10140,6 +10176,12 @@
      "coreClear": 14.825850599465078,
      "domeW": 3.466232272555967
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.04,
+     "dirDeg": 323
+    },
     "roadGrade": 15.213416457767547,
     "roadRunFt": 556.1445489110306,
     "roadName": "unnamed road",
@@ -10208,6 +10250,12 @@
      "mag": 21.520649316922533,
      "coreClear": 15.473682258520036,
      "domeW": 3.0206913092518426
+    },
+    "view": {
+     "longestKm": 5.01,
+     "past": false,
+     "openShare": 0.01,
+     "dirDeg": 180
     },
     "roadGrade": 36.099887730928245,
     "roadRunFt": 294.53867668222597,
@@ -15536,7 +15584,7 @@
    "er": null
   },
   "schemaVersion": 9,
-  "engine": 24,
+  "engine": 25,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

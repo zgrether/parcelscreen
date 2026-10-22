@@ -28,8 +28,8 @@ describe("rank-sum weights", () => {
     expect(round1(rows.map((k) => w[k]))).toEqual(
       round1(rows.map((_, i) => ((n - i) / ((n * (n + 1)) / 2)) * 100)),
     );
-    // Eleven rows since step 11's Privacy: 11 down to 1 over 66.
-    expect(round1([w.elevation, w.climate, w.privacy])).toEqual([16.7, 3, 1.5]);
+    // Twelve rows since step 11's Long view: 12 down to 1 over 78.
+    expect(round1([w.elevation, w.climate, w.privacy, w.longView])).toEqual([15.4, 3.8, 2.6, 1.3]);
     expect(Object.values(w).reduce((a, b) => a + b, 0)).toBeCloseTo(100, 9);
   });
 
@@ -60,6 +60,7 @@ describe("rank-sum weights", () => {
       garden: 10,
       climate: 0,
       privacy: 0,
+      longView: 0,
       budget: 0,
     });
     expect(weightsOf(explicit)).toEqual(explicit.weights.mode === "explicit" ? explicit.weights.of : null);

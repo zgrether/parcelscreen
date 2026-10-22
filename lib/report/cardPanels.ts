@@ -11,6 +11,7 @@ import { verdictLines } from "../rubric/grade";
 import { weightsOf } from "../rubric/weights";
 import { CLIMATE_SOURCES } from "./climate";
 import { IN_WINTER, PRIVACY_SOURCES } from "./privacy";
+import { VIEW_CAVEAT } from "./view";
 import { climateWords, privacyWords } from "../rubric/words";
 import { MAYBE_CAPS, footprintFt2, type CardConfig, type GateKey, type RowKey } from "./card";
 
@@ -34,6 +35,7 @@ const PANELS: Record<PanelKey, true> = {
   garden: true,
   climate: true,
   privacy: true,
+  longView: true,
   budget: true,
   cost: true,
 };
@@ -220,6 +222,14 @@ export function panelText(
         howScored:
           `At your best homesite, the worse of two: the nearest house (A from ${near[0]}, B from ${near[1]}, C from ${near[2]}, D from ${near[3]}; no house within a mile is an A) and the houses in sight within a mile, ${IN_WINTER} (A up to ${sight[0]}, B up to ${sight[1]}, C up to ${sight[2]}, D up to ${sight[3]}); your limits: ${privacyWords(R)}. A house is a footprint of ${fmt(SCREEN_CONSTANTS.privacy.minHouseM2)} m² or more off the parcel; the houses within a quarter mile are shown, not graded; ${weightOf(rubrics, "privacy")}. ` +
           `Sources: ${PRIVACY_SOURCES}`,
+      };
+    }
+    case "longView": {
+      const pct = R.viewOpenPct.map((v) => `${fmt(v)}%`);
+      return {
+        title: "Long view",
+        question: "How far can we see from where the house would go?",
+        howScored: `At your best homesite, the share of the horizon whose view reaches past ${fmt(SCREEN_CONSTANTS.view.openKm)} km: A from ${pct[0]}, B from ${pct[1]}, C from ${pct[2]}, D from ${pct[3]}. The longest view and its direction are shown, not graded; ${weightOf(rubrics, "longView")}. ${VIEW_CAVEAT}`,
       };
     }
     case "budget": {

@@ -2081,6 +2081,12 @@
      "coreClear": 18.048232341042148,
      "domeW": 4.219192028832789
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.22,
+     "dirDeg": 35
+    },
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 4.288248313496763,
@@ -2144,6 +2150,12 @@
      "mag": 21.39095816203732,
      "coreClear": 8.180983972757907,
      "domeW": 3.751561287904464
+    },
+    "view": {
+     "longestKm": 3.31,
+     "past": false,
+     "openShare": 0,
+     "dirDeg": null
     },
     "roadGrade": 2.797786146484147,
     "roadRunFt": 128.61708832262076,
@@ -2216,6 +2228,12 @@
      "coreClear": 16.41763332794587,
      "domeW": 3.751561287904464
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.13,
+     "dirDeg": 38
+    },
     "roadGrade": 2.489218365519043,
     "roadRunFt": 212.1108256935515,
     "roadName": "unnamed road",
@@ -2285,6 +2303,12 @@
      "coreClear": 15.8398702888244,
      "domeW": 4.219192028832789
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.11,
+     "dirDeg": 38
+    },
     "roadGrade": 7.88603202979003,
     "roadRunFt": 236.3286037800262,
     "roadName": "unnamed road",
@@ -2352,6 +2376,12 @@
      "mag": 21.39095816203732,
      "coreClear": 15.782850147689057,
      "domeW": 3.751561287904464
+    },
+    "view": {
+     "longestKm": 5.87,
+     "past": false,
+     "openShare": 0.04,
+     "dirDeg": 33
     },
     "practical": null,
     "fit": "fits",
@@ -3332,7 +3362,7 @@
   },
   "closerGrocery": null,
   "schemaVersion": 9,
-  "engine": 24,
+  "engine": 25,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -5419,6 +5449,12 @@
      "coreClear": 18.048232341042148,
      "domeW": 4.219192028832789
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.22,
+     "dirDeg": 35
+    },
     "practical": null,
     "fit": "fits",
     "gentleNearAc": 4.288248313496763,
@@ -5482,6 +5518,12 @@
      "mag": 21.39095816203732,
      "coreClear": 8.180983972757907,
      "domeW": 3.751561287904464
+    },
+    "view": {
+     "longestKm": 3.31,
+     "past": false,
+     "openShare": 0,
+     "dirDeg": null
     },
     "roadGrade": 2.797786146484147,
     "roadRunFt": 128.61708832262076,
@@ -5554,6 +5596,12 @@
      "coreClear": 16.41763332794587,
      "domeW": 3.751561287904464
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.13,
+     "dirDeg": 38
+    },
     "roadGrade": 2.489218365519043,
     "roadRunFt": 212.1108256935515,
     "roadName": "unnamed road",
@@ -5623,6 +5671,12 @@
      "coreClear": 15.8398702888244,
      "domeW": 4.219192028832789
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.11,
+     "dirDeg": 38
+    },
     "roadGrade": 7.88603202979003,
     "roadRunFt": 236.3286037800262,
     "roadName": "unnamed road",
@@ -5690,6 +5744,12 @@
      "mag": 21.39095816203732,
      "coreClear": 15.782850147689057,
      "domeW": 3.751561287904464
+    },
+    "view": {
+     "longestKm": 5.87,
+     "past": false,
+     "openShare": 0.04,
+     "dirDeg": 33
     },
     "practical": null,
     "fit": "fits",
@@ -8146,7 +8206,7 @@
   },
   "closerGrocery": null,
   "schemaVersion": 9,
-  "engine": 24,
+  "engine": 25,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -8183,6 +8243,12 @@
     "mag": 21.39095816203732,
     "coreClear": 5.950336016144957,
     "domeW": 4.219192028832789
+   },
+   "view": {
+    "longestKm": 5.5,
+    "past": false,
+    "openShare": 0.01,
+    "dirDeg": 95
    },
    "roadGrade": 15.089900268508277,
    "roadRunFt": 292.97635408085887,
@@ -10300,6 +10366,12 @@
     "coreClear": 5.950336016144957,
     "domeW": 4.219192028832789
    },
+   "view": {
+    "longestKm": 5.5,
+    "past": false,
+    "openShare": 0.01,
+    "dirDeg": 95
+   },
    "roadGrade": 15.089900268508277,
    "roadRunFt": 292.97635408085887,
    "roadName": "unnamed road",
@@ -10362,6 +10434,12 @@
      "mag": 21.39095816203732,
      "coreClear": 18.048232341042148,
      "domeW": 4.219192028832789
+    },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.22,
+     "dirDeg": 35
     },
     "practical": null,
     "fit": "fits",
@@ -10426,6 +10504,12 @@
      "mag": 21.39095816203732,
      "coreClear": 8.180983972757907,
      "domeW": 3.751561287904464
+    },
+    "view": {
+     "longestKm": 3.31,
+     "past": false,
+     "openShare": 0,
+     "dirDeg": null
     },
     "roadGrade": 2.797786146484147,
     "roadRunFt": 128.61708832262076,
@@ -10498,6 +10582,12 @@
      "coreClear": 16.41763332794587,
      "domeW": 3.751561287904464
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.13,
+     "dirDeg": 38
+    },
     "roadGrade": 2.489218365519043,
     "roadRunFt": 212.1108256935515,
     "roadName": "unnamed road",
@@ -10567,6 +10657,12 @@
      "coreClear": 15.8398702888244,
      "domeW": 4.219192028832789
     },
+    "view": {
+     "longestKm": 6,
+     "past": true,
+     "openShare": 0.11,
+     "dirDeg": 38
+    },
     "roadGrade": 7.88603202979003,
     "roadRunFt": 236.3286037800262,
     "roadName": "unnamed road",
@@ -10634,6 +10730,12 @@
      "mag": 21.39095816203732,
      "coreClear": 15.782850147689057,
      "domeW": 3.751561287904464
+    },
+    "view": {
+     "longestKm": 5.87,
+     "past": false,
+     "openShare": 0.04,
+     "dirDeg": 33
     },
     "practical": null,
     "fit": "fits",
@@ -13090,7 +13192,7 @@
   },
   "closerGrocery": null,
   "schemaVersion": 9,
-  "engine": 24,
+  "engine": 25,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

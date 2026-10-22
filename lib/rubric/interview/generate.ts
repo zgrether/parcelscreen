@@ -50,6 +50,8 @@ export const TIE_ORDER: readonly RowKey[] = [
   "climate",
   // Step 11: question 8 places it (plan §2.3).
   "privacy",
+  // Step 11: question 3 places it (plan §2.4).
+  "longView",
   "homesite",
   // Step 7: the Factors table puts Driveway after Winter sun.
   "driveway",

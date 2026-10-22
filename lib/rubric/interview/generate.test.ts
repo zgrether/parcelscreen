@@ -40,8 +40,12 @@ describe("§3: every choice", () => {
     [{ sky: "look" }, "sky", 1, "skyMag", 20.9, null],
     [{ sky: "inside" }, "sky", 0, null, null, null],
     [{ sunView: "sun" }, "homesite", 3, null, null, null],
-    [{ sunView: "view" }, "homesite", 1, null, null, "Long view (over winter sun)"],
-    [{ sunView: "both" }, "homesite", 2, null, null, "Long view (as much as winter sun)"],
+    // Step 11: question 3 sets Long view too, graded now, so it left the quiet list.
+    [{ sunView: "view" }, "homesite", 1, null, null, null],
+    [{ sunView: "both" }, "homesite", 2, null, null, null],
+    [{ sunView: "view" }, "longView", 3, null, null, null],
+    [{ sunView: "both" }, "longView", 1, null, null, null],
+    [{ sunView: "sun" }, "longView", 0, null, null, null],
     [{ sunView: "neither" }, "homesite", 1, null, null, null],
     [{ trails: "door" }, "trails", 3, "trailheadMin", 15, null],
     [{ trails: "bike" }, "trails", 2, "trailheadMin", null, "Bike to a long trail"],
@@ -124,6 +128,7 @@ describe("§3: every choice", () => {
       garden: 1,
       climate: 0,
       privacy: 0,
+      longView: 0,
       budget: 0,
     });
     expect(later({ fly: "rarely", calls: "no", creek: "either", hoa: "light" })).toEqual([
@@ -240,7 +245,7 @@ describe("§3: question 14", () => {
     });
     expect(g.rubric.musts).toEqual([{ factor: "access" }]);
     // Step 11: the ER's own row is Don't care; until Hospital, the ER's edge went to 90 min on Town.
-    expect(g.rubric.wonts).toEqual(["elevation", "climate", "privacy", "homesite", "hospital"]);
+    expect(g.rubric.wonts).toEqual(["elevation", "climate", "privacy", "longView", "homesite", "hospital"]);
     expect(g.why.cards.privacy).toEqual(["You said a neighbor's house in view doesn't matter"]);
     expect(bcEdge(g.rubric.bands, "erMin")).toBe(30);
     expect(g.why.cards.hospital).toEqual(["You said the drive to an ER doesn't matter"]);
@@ -324,8 +329,11 @@ describe("§4: the two people", () => {
       town: 3.6,
       hospital: 2.4,
       garden: 1.2,
+      longView: 0,
       budget: 0,
     });
+    // "Sun" at breakfast: Long view is Don't care.
+    expect(g.rubric.wonts).toEqual(["longView"]);
     // Never know they're there: the nearest house 1,320 ft away, none in sight.
     expect([g.rubric.bands.privacyFt, g.rubric.bands.privacySight]).toEqual([
       [1980, 1320, 990, 825],
@@ -356,6 +364,8 @@ describe("§4: the two people", () => {
   it("Person B", () => {
     const g = rubricFromAnswers(PERSON_B);
     expect(g.rubric.ranked).toEqual([
+      // Step 11: a long view over sun at breakfast gives Long view 3 points, first of the 3s by the default order.
+      { factor: "longView", tier: "should" },
       // Step 11: the ER within 15 min (3 points) is Hospital's; the small market close by (2) keeps Town in Really want.
       { factor: "hospital", tier: "should" },
       // Step 11: warm and mild, 2 points.
@@ -371,14 +381,15 @@ describe("§4: the two people", () => {
     // Step 11: "Wave from the porch" leaves Privacy at 0 points.
     expect(g.rubric.wonts).toEqual(["elevation", "privacy", "sky"]);
     expect(rounded(weightsOf(g.rubric))).toEqual({
-      hospital: 23.2,
-      climate: 20.3,
-      room: 17.4,
-      trails: 14.5,
-      town: 11.6,
-      homesite: 6.5,
-      garden: 4.3,
-      driveway: 2.2,
+      longView: 20.7,
+      hospital: 18.4,
+      climate: 16.1,
+      room: 13.8,
+      trails: 11.5,
+      town: 9.2,
+      homesite: 5.2,
+      garden: 3.4,
+      driveway: 1.7,
       elevation: 0,
       sky: 0,
       privacy: 0,
@@ -387,7 +398,7 @@ describe("§4: the two people", () => {
     expect(g.rubric.bands.drivewayPct).toEqual([10, 15, 20, 25]);
     expect(g.rubric.musts.slice(4)).toEqual([{ factor: "hospital", threshold: 30 }]);
     expect([bcEdge(g.rubric.bands, "erMin"), bcEdge(g.rubric.bands, "groceryMin")]).toEqual([15, 15]);
-    expect(g.later).toEqual(["Long view (over winter sun)"]);
+    expect(g.later).toEqual([]);
   });
 });
 
@@ -442,7 +453,7 @@ describe("§2: the rules", () => {
       "homesite",
     ]);
     // Step 11: "Either" climate gives Climate 0 points.
-    expect(few.rubric.wonts).toEqual(["climate", "privacy", "trails"]);
+    expect(few.rubric.wonts).toEqual(["climate", "privacy", "longView", "trails"]);
     expect(few.rubric.ranked.at(-1)).toEqual({ factor: "driveway", tier: "could" });
   });
 

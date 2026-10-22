@@ -343,6 +343,18 @@ const SpotPrivacySchema = z.strictObject({
   nearestFt: num.nullable(),
 });
 
+/**
+ * Step 11 (plan §2.4; §9.66): the spot's long view, from the skyline its score traces: the longest view (km, at most
+ * the profile's reach, `past` beyond it), the share of the horizon open past 5 km, and its middle direction (null:
+ * none open, or all of it). Optional: absent before it.
+ */
+const SpotViewSchema = z.strictObject({
+  longestKm: num,
+  past: z.boolean(),
+  openShare: num,
+  dirDeg: num.nullable(),
+});
+
 /** What a scored spot stores (v8): its measurements and reasons; its scores derive from them (SpotScores, derive.ts). */
 const ScoreFields = {
   why: z.array(z.string()),
@@ -370,6 +382,8 @@ const ScoreFields = {
   climate: SpotClimateSchema.optional(),
   /** Step 11: absent outside the footprints' region, and on a screen made before it. */
   privacy: SpotPrivacySchema.optional(),
+  /** Step 11: absent on a screen made before it. */
+  view: SpotViewSchema.optional(),
 };
 const CellSchema = z.strictObject({ score: num, slope: num, aspect: num, thermal: num });
 

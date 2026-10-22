@@ -11,7 +11,12 @@ import { climateLimits } from "./interview/generate";
 import type { RankedCard, RowKey, Rubric } from "./types";
 
 /** The factors step 11 added, in the order they shipped (plan §11). Each factor's PR appends its own. */
-export const NEW_FACTORS = ["hospital", "climate", "privacy"] as const satisfies readonly RowKey[];
+export const NEW_FACTORS = [
+  "hospital",
+  "climate",
+  "privacy",
+  "longView",
+] as const satisfies readonly RowKey[];
 export type NewFactor = (typeof NEW_FACTORS)[number];
 
 /** Each new factor's state: "new" until What matters has shown the notice, then "seen"; "undone" after its Undo. */
@@ -40,7 +45,21 @@ export function withFactor(r: Rubric, f: NewFactor, answers: InterviewAnswers = 
       return withClimate(r, answers);
     case "privacy":
       return withPrivacy(r, answers);
+    case "longView":
+      return withLongView(r, answers);
   }
+}
+
+/**
+ * Long view (plan §2.4, §5): question 3 places it, "View" at the bottom of Really want and "Both" at the bottom of Nice
+ * to have; "Sun", "Neither", or no answer, Don't care. On explicit weights it stays Don't care.
+ */
+function withLongView(r: Rubric, a: InterviewAnswers): Rubric {
+  const I = SCREEN_CONSTANTS.card.interview;
+  const points = a.sunView ? I.choices.sunView[a.sunView].points.longView : 0;
+  if (r.weights.mode === "rankSum" && points >= I.should.minPoints) return lastShould(r, "longView");
+  if (r.weights.mode === "rankSum" && points >= 1) return lastCould(r, "longView");
+  return { ...r, wonts: [...r.wonts, "longView"] };
 }
 
 /** A card at the bottom of Nice to have: the last card of all. */

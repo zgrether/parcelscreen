@@ -54,6 +54,7 @@ import { DEFAULT_PAVING } from "../config/costs";
 import type { PavingContext } from "./ground";
 import { NOT_MEASURED, OUTSIDE_AREA, stationLine, stationName } from "./climate";
 import { IN_WINTER } from "./privacy";
+import { longestWords, openPct, viewLine } from "./view";
 import { atLeast, atMost, gradedRows, parcelGrade, verdictLines } from "../rubric/grade";
 import { EDITOR_TITLES, FACTOR_LABELS } from "../rubric/words";
 import { thresholdStatus, thresholdWords, type Measure } from "../rubric/musts";
@@ -779,6 +780,28 @@ function privacy(r: Result, K: CardConfig, at: number): Row {
 }
 
 /**
+ * Long view at the build site (step 11, plan §2.4): the share of the horizon open past 5 km, against the person's
+ * limit; the longest view and its direction beside it.
+ */
+function longView(r: Result, K: CardConfig, at: number): Row {
+  const g = row("longView", FACTOR_LABELS.longView);
+  const house = r.house && !("outside" in r.house) ? r.house : null;
+  const spot = house ?? r.sites?.[at];
+  if (!spot) {
+    if (!r.sites) return notLoaded(g, "the homesite ranking");
+    return g(null, "no build site to measure");
+  }
+  const v = spot.view;
+  if (!v) return { ...g(null, NOT_MEASURED), short: "not measured" };
+  const pct = openPct(v);
+  return {
+    ...g(atLeast(pct, K.rows.viewOpenPct), viewLine(v)),
+    short: `${pct}% open, ${longestWords(v)}`,
+    measure: { value: pct, unit: "%" },
+  };
+}
+
+/**
  * "the nearest house 1,100 ft away; 2 within a quarter mile; 1 in sight within a mile (in winter, with leaves down)".
  */
 export function privacyLine(p: { near: number; inSight: number; nearestFt: number | null }): string {
@@ -949,12 +972,8 @@ export function cardFacts(
   // The route scored: the household's when it chose a line and this screen has a route from it (WF5). The Access and
   // Easement gates, and Floodplain's driveway part, read it whichever site the rows read (step 7 plan §2, §11 Q5).
   const driven = drivenRoute(r, drawn?.driveway);
-  const [elevationRow, homesiteRow, skyRow, roomRow, drivewayRow, climateRow, privacyRow] = siteRows(
-    r,
-    K,
-    build,
-    at,
-  );
+  const [elevationRow, homesiteRow, skyRow, roomRow, drivewayRow, climateRow, privacyRow, longViewRow] =
+    siteRows(r, K, build, at);
   // The cost to enjoy at this site (step 10), when the parcel's lines, price and rates came with it.
   const cost = drawn?.cost
     ? costToEnjoy({
@@ -987,6 +1006,7 @@ export function cardFacts(
       garden(r, K, marks),
       climateRow!,
       privacyRow!,
+      longViewRow!,
       ...[budgetRow(cost, budgets, K)].filter((x): x is Row => x !== null),
     ],
     at,
@@ -1020,6 +1040,7 @@ export function siteRows(
     // Step 11: by each site's elevation, so it ranks the sites too (plan §4).
     climate(r, K, at),
     privacy(r, K, at),
+    longView(r, K, at),
   ];
 }
 

@@ -94,6 +94,7 @@ const ROWS: RowKey[] = [
   // Step 11's new factors, in the order they shipped.
   "climate",
   "privacy",
+  "longView",
 ];
 
 /** The scales each panel shows (as the report's panels do), by panel. */
