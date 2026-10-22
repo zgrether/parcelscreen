@@ -76,7 +76,10 @@ for (const phone of [false, true]) {
         : { viewport: { width: 1280, height: 800 } },
     );
 
-    test("the new factors: each row on three parcels, its panel, and the notice", async ({ page, context }) => {
+    test("the new factors: each row on three parcels, its panel, and the notice", async ({
+      page,
+      context,
+    }) => {
       test.setTimeout(300_000);
       await replayHar(context, [...SLUGS]);
       await liveImagery(context);
@@ -107,7 +110,10 @@ for (const phone of [false, true]) {
 
       // What matters, for priorities saved before the step: the one notice.
       await page.evaluate((m) => {
-        window.__psKv!.setItem("ps.rubrics", JSON.stringify({ mine: m, others: [], drivewayAdded: "undone" }));
+        window.__psKv!.setItem(
+          "ps.rubrics",
+          JSON.stringify({ mine: m, others: [], drivewayAdded: "undone" }),
+        );
       }, SAVED_BEFORE);
       await visit(page, "/priorities");
       await expect(page.locator(".rubric-new-factors")).toBeVisible();

@@ -30,13 +30,10 @@ function savedBefore(): Rubric {
 /** Writes this profile's priorities as an older version saved them, then starts again. */
 async function seed(page: Page): Promise<void> {
   await booted(page);
-  await page.evaluate(
-    (mine) => {
-      const kv = window.__psKv!;
-      kv.setItem("ps.rubrics", JSON.stringify({ mine, others: [], drivewayAdded: "seen" }));
-    },
-    savedBefore(),
-  );
+  await page.evaluate((mine) => {
+    const kv = window.__psKv!;
+    kv.setItem("ps.rubrics", JSON.stringify({ mine, others: [], drivewayAdded: "seen" }));
+  }, savedBefore());
 }
 
 const column = (page: Page, name: string) => page.getByRole("region", { name, exact: true });
