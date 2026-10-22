@@ -16,13 +16,5 @@ export const ENGINE_VERSION = 23;
  */
 export const ENGINE_CURRENT_FROM = 22;
 
-/**
- * The oldest rules whose kept screens still count as current (step 11, docs/plans/step-11-new-data.md §1; owner,
- * 10/21: old screens aren't dropped). From step 11 on, a bump that only adds a measurement leaves this where it is: a
- * screen from these rules keeps its grade, and the new factor reads "not measured: grade again" until it's re-screened.
- * A bump that changes an existing number moves it up to the new version, as every bump did before.
- */
-export const ENGINE_CURRENT_FROM = 22;
-
 /** What a kept screen without a stamp counts as: everything kept before the stamp existed is Phase 0's. */
 export const UNSTAMPED_ENGINE = 1;
