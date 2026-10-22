@@ -319,4 +319,6 @@ export const NEIGHBOUR_WORDS = {
   hint: "Tap the parcel next door, then Grade the combination",
   go: "Grade the combination",
   name: (name: string) => `${name} + next door`,
+  /** What it does, beside the button (the fresh-eyes review). */
+  what: "Adds the parcel next door to this one and grades them together as a new parcel; this one stays as it is.",
 } as const;

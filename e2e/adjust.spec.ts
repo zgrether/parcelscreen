@@ -153,7 +153,7 @@ test("the nudge: Night sky set aside on 3 parcels, offered once; Move it down, t
   await expect(column("Really want")).toContainText("Night sky");
   const offer = page.locator(".rubric-nudge");
   await expect(offer).toContainText("You've set aside Night sky on 3 parcels. Move it down a tier?");
-  await offer.getByRole("button", { name: "Move it down" }).click();
+  await offer.getByRole("button", { name: "Move it to Nice to have" }).click();
   await expect(offer).toContainText("Moved Night sky to Nice to have.");
   await expect(column("Nice to have")).toContainText("Night sky");
   await offer.getByRole("button", { name: "Undo" }).click();

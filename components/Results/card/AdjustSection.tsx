@@ -67,6 +67,8 @@ export function AdjustSection({
   return (
     <section className="adjust" aria-labelledby={`${reasonId}-h`} data-factor={factor}>
       <h3 id={`${reasonId}-h`}>{W.title}</h3>
+      {/* The fresh-eyes review: the choices' words alone didn't say how they differ. */}
+      {!existing && !removed && !choice && <p className="tiny muted adjust-what">{W.what}</p>}
       {removed ? (
         <p className="adjust-removed" role="status">
           {W.removed}{" "}
@@ -95,17 +97,24 @@ export function AdjustSection({
           {graded && (
             <div role="group" aria-label={W.override} className="adjust-letters">
               <span className="tiny muted">{W.override}</span>
-              {LETTERS.filter((l) => l !== app.grade).map((l) => (
-                <button
-                  key={l}
-                  type="button"
-                  className={`chip card-grade g-${l}`}
-                  aria-label={`${W.override}: ${l}`}
-                  onClick={() => pick({ kind: "override", grade: l })}
-                >
-                  {l}
-                </button>
-              ))}
+              {/* The app's own letter is shown, marked and not offered (the fresh-eyes review: a gap read as a bug). */}
+              {LETTERS.map((l) =>
+                l === app.grade ? (
+                  <span key={l} className={`chip card-grade g-${l} adjust-app`} title={W.appsLetter}>
+                    {l}
+                  </span>
+                ) : (
+                  <button
+                    key={l}
+                    type="button"
+                    className={`chip card-grade g-${l}`}
+                    aria-label={`${W.override}: ${l}`}
+                    onClick={() => pick({ kind: "override", grade: l })}
+                  >
+                    {l}
+                  </button>
+                ),
+              )}
             </div>
           )}
           {must && app.status !== "pass" && (

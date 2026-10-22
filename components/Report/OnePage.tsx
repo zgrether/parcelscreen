@@ -5,6 +5,7 @@
  * step by step (FIT_STEPS), until it fits: rows first, never a section dropped. Full shows it unshortened.
  */
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { RAISE_WORDS } from "@/lib/report/raise";
 import { isAdjusted } from "@/lib/report/adjust";
 import { ADJUSTED_TITLE } from "@/lib/report/adjustWords";
 import { COST_WORDS } from "@/lib/report/cost";
@@ -83,6 +84,13 @@ export function OnePage({
             <p key={line}>{line}</p>
           ))}
         </section>
+      )}
+
+      {/* Step 12: the top way to raise the viewer's grade (the design's One page). */}
+      {c.raise.length > 0 && (
+        <p className="rp-raise">
+          <b>{RAISE_WORDS.title}:</b> {c.raise[0]}
+        </p>
       )}
 
       <section className="rp-card" aria-label="Report card">

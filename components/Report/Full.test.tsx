@@ -110,4 +110,32 @@ describe("Full (plan §3)", () => {
     expect(t).toContain("Gate code 1234.");
     expect(t).toMatch(/Logging road \(Track, pioneer, [\d,]+ ft, 10 ft wide\)\. Gate at the road/);
   });
+
+  it("Ways to raise this grade after the cost, and Your adjustments before the sources, when there are any (step 12)", () => {
+    const html = renderToStaticMarkup(
+      <Full
+        result={ROAN}
+        card={reportCard(ROAN, ZACH)}
+        parcel={built("k1")}
+        acres={13.29}
+        raise={["Plan on an alternative septic system: Septic ! → ✓, Maybe → Contender"]}
+        adjustments={[
+          {
+            who: "Zach",
+            factor: "Night sky",
+            change: "B → A",
+            reason: "dark here",
+            at: "2026-10-22T12:00:00Z",
+          },
+        ]}
+      />,
+    );
+    const t = text(html);
+    expect(t).toContain("Ways to raise this grade");
+    expect(t).toContain("Plan on an alternative septic system: Septic ! → ✓, Maybe → Contender");
+    expect(t).toContain("Your adjustments");
+    expect(t).toContain("Zach: Night sky, B → A (“dark here”), Oct 22, 2026");
+    // None: neither section.
+    expect(render()).not.toMatch(/Ways to raise this grade|Your adjustments/);
+  });
 });

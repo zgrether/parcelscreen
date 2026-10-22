@@ -37,6 +37,10 @@ export const ADJUST_WORDS = {
   undo: "Undo",
   /** Only your grade: another member's ignores it. */
   yours: "Only your grade changes; others in your household keep theirs.",
+  /** What the choices do, said once above them (the fresh-eyes review). */
+  what: "Override gives this factor your own grade on this parcel; set aside leaves it out of this parcel's grade.",
+  /** The app's own letter among the chips. */
+  appsLetter: "The app's grade",
 } as const;
 
 /** What an existing adjustment did, in the panel: "You set it to B; the app says D." */
