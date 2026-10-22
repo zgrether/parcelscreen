@@ -20,7 +20,9 @@ export const FACTOR_LABELS: Record<Factor, string> = {
   room: "Room to build",
   driveway: "Driveway",
   trails: "Trails and public land",
-  town: "Town and hospital",
+  // Step 11 (plan §2.1): the ER is its own row now; Town keeps the groceries.
+  town: "Town and groceries",
+  hospital: "Hospital",
   garden: "Garden ground",
   budget: "Within budget",
 };
@@ -50,6 +52,7 @@ export const SHORT_TITLES: Record<Factor, string> = {
   driveway: "Drive",
   trails: "Trails",
   town: "Town",
+  hospital: "Hosp",
   garden: "Garden",
   budget: "Budget",
 };
@@ -72,7 +75,8 @@ export const ROW_BANDS: Record<RowKey, readonly BandKey[]> = {
   room: ["roomX"],
   driveway: ["drivewayPct"],
   trails: ["trailheadMin"],
-  town: ["erMin", "groceryMin"],
+  town: ["groceryMin"],
+  hospital: ["erMin"],
   garden: ["gardenAc"],
   // Step 10: graded against the budgets, which the questions set; no slider.
   budget: [],
@@ -87,7 +91,9 @@ export const MINIMUM_BAND: Record<RowKey, LimitKey | null> = {
   // No limit on the driveway in step 7 (plan §11 Q9): question 14 has no chip for it.
   driveway: null,
   trails: "trailheadMin",
-  town: "erMin",
+  // Step 11: a Town limit is the grocery drive; the ER's is Hospital's.
+  town: "groceryMin",
+  hospital: "erMin",
   garden: "gardenAc",
   // Step 10: a Must on it has no number of its own: it's the budgets.
   budget: null,
@@ -177,7 +183,9 @@ export function cardLine(r: Rubric, factor: Factor): string {
     case "trails":
       return `A trailhead within a ${fmt(bcEdge(b, "trailheadMin"))}-minute drive (or public land within ${trim(fmt(b.openLandWithinFt / 5280, 2))} mi)`;
     case "town":
-      return `An ER within ${bandValue("erMin", bcEdge(b, "erMin"))} and groceries within ${fmt(bcEdge(b, "groceryMin"))}`;
+      return `Groceries within ${bandValue("groceryMin", bcEdge(b, "groceryMin"))}`;
+    case "hospital":
+      return `An ER within ${bandValue("erMin", bcEdge(b, "erMin"))}`;
     case "garden":
       return `At least ${bandValue("gardenAc", bcEdge(b, "gardenAc"))} of garden ground`;
     case "budget":
@@ -190,14 +198,15 @@ export function minimumWords(row: RowKey, v: number): string {
   const band = MINIMUM_BAND[row];
   if (!band) return "";
   const value = bandValue(band, v);
-  if (row === "town") return `ER within ${value}`;
+  if (row === "hospital") return `ER within ${value}`;
+  if (row === "town") return `groceries within ${value}`;
   if (row === "trails") return `a trailhead within ${value}`;
   if (row === "room") return `at least ${value} the footprint`;
   if (row === "homesite") return `at least ${value} of December sun`;
   return `at least ${value}`;
 }
 
-/** A minimum in words: "Town and hospital: ER within 30 min", "Elevation at the build site: at least 3,000 ft". */
+/** A minimum in words: "Hospital: ER within 30 min", "Elevation at the build site: at least 3,000 ft". */
 export function minimumLine(must: MustCard): string {
   const key = must.factor as RowKey;
   if (!MINIMUM_BAND[key] || must.threshold === undefined) return EDITOR_TITLES[must.factor];
@@ -247,7 +256,9 @@ export function plainLine(r: Rubric, factor: Factor): string {
     case "trails":
       return `A trailhead within ${bandValue("trailheadMin", bcEdge(b, "trailheadMin"))}, or public land within ${trim(fmt(b.openLandWithinFt / 5280, 2))} mi`;
     case "town":
-      return `ER within ${bandValue("erMin", bcEdge(b, "erMin"))}, groceries within ${bandValue("groceryMin", bcEdge(b, "groceryMin"))}`;
+      return `Groceries within ${bandValue("groceryMin", bcEdge(b, "groceryMin"))}`;
+    case "hospital":
+      return `ER within ${bandValue("erMin", bcEdge(b, "erMin"))}`;
     case "garden": {
       const ac = bcEdge(b, "gardenAc");
       if (ac >= 1) return "Room for a big garden";

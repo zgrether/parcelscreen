@@ -4,6 +4,7 @@
  */
 import { z } from "zod";
 import { SCREEN_CONSTANTS } from "../screen/config";
+import { NEW_FACTORS, type FactorsAdded } from "./factorsAdd";
 import { GATE_KEYS, ROW_KEYS, type NamedRubric, type RowKey, type Rubric } from "./types";
 
 const num = z.number().finite();
@@ -64,11 +65,18 @@ export interface ProfileRubrics {
    * "new" until What matters has shown its note, then "seen"; "undone" after its Undo. Absent: not added (yet).
    */
   drivewayAdded?: "new" | "seen" | "undone";
+  /**
+   * Step 11 (plan §1): each new factor added once to a rubric saved before it (lib/client/factorsAdd.ts), marked as
+   * Driveway's is. A factor with no mark isn't added yet.
+   */
+  factorsAdded?: FactorsAdded;
 }
+const AddedMark = z.enum(["new", "seen", "undone"]);
 export const ProfileRubricsSchema: z.ZodType<ProfileRubrics> = z.strictObject({
   mine: RubricSchema,
   others: z.array(NamedRubricSchema),
   drivewayAdded: z.enum(["new", "seen", "undone"]).optional(),
+  factorsAdded: z.partialRecord(z.enum(NEW_FACTORS), AddedMark).optional(),
 });
 
 export { LetterSchema };

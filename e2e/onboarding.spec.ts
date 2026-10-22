@@ -88,8 +88,8 @@ test("an existing profile: offered, never sent; the why lines, Reset to my answe
   await page.getByRole("link", { name: "Fine-tune in What matters to you" }).click();
   await page.waitForURL("**/priorities");
   await expect(page.locator("main")).not.toContainText("Counts once the app measures it");
-  const town = page.locator(".rubric-card", { hasText: "Town and hospital" }).first();
-  await town.locator(".rubric-card-body").click();
+  const er = page.locator(".rubric-card", { hasText: "Hospital" }).first();
+  await er.locator(".rubric-card-body").click();
   const sheet = page.getByRole("dialog");
   await expect(sheet).toContainText("You'd want an ER within 30 minutes");
   await expect(sheet).not.toContainText(/Question \d/);
@@ -103,7 +103,7 @@ test("an existing profile: offered, never sent; the why lines, Reset to my answe
   await confirm.getByRole("button", { name: "Reset", exact: true }).click();
   await expect(
     page.getByRole("region", { name: "Really want", exact: true }).locator(".rubric-card-name"),
-  ).toContainText(["Town and hospital"]);
+  ).toContainText(["Hospital"]);
   await expect(
     page.locator(".rubric-bar-actions").getByRole("link", { name: "Answer the questions again" }),
   ).toBeVisible();

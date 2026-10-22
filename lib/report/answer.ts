@@ -22,7 +22,8 @@ export const STRENGTH: Record<RowKey, string> = {
   room: "room to build",
   driveway: "driveway",
   trails: "trails",
-  town: "town and ER access",
+  town: "groceries nearby",
+  hospital: "ER access",
   garden: "garden ground",
   budget: "budget fit",
 };
@@ -67,14 +68,17 @@ export function missLine(row: Row, card: Card, r: PartialScreenResult): string {
       if (row.measure?.unit === "km" && v !== undefined)
         return `the nearest trailhead is ${fmt(v / KM_PER_MI, 1)} mi away`;
       break;
+    // Step 11 (plan §2.1): the ER's miss is Hospital's, in the words Town used for it.
     case "town": {
       const g = groceryMin(r);
-      if (v !== undefined && v > edge(b.erMin))
-        return `${fmt(v)} minutes to an ER is past your ${fmt(edge(b.erMin))}-minute limit`;
       if (g !== null && g > edge(b.groceryMin))
         return `${fmt(g)} minutes to groceries is past your ${fmt(edge(b.groceryMin))}-minute limit`;
       break;
     }
+    case "hospital":
+      if (v !== undefined && v > edge(b.erMin))
+        return `${fmt(v)} minutes to an ER is past your ${fmt(edge(b.erMin))}-minute limit`;
+      break;
     case "budget":
       // Within budget (step 10): the budgets at its worst, "ready to build $330–595k, over your $300k".
       if (row.budget) return row.budget.reason;

@@ -10,6 +10,7 @@ import { GRADES_ID, GRADES_TITLE } from "@/lib/client/help";
 import { useCallback, useEffect, useState } from "react";
 import { effectiveRubrics, profileRubrics } from "@/lib/client/rubrics";
 import { markDrivewayNoteSeen, pendingDrivewayNote, undoDrivewayAdd } from "@/lib/client/drivewayAdd";
+import { factorsNote, markFactorsSeen, pendingFactors, undoFactorsAdd } from "@/lib/client/factorsAdd";
 import { reportCard } from "@/lib/report/card";
 import { useMyRubric } from "@/lib/client/useMyRubric";
 import type { EditorCard } from "@/lib/rubric/edit";
@@ -87,6 +88,17 @@ export function RubricEditor() {
     if (without) my.resetTo(without);
     setDriveNote(null);
   };
+  // Step 11 (plan §1): the one notice on the new factors added to these priorities, with its Undo.
+  const [newFactors, setNewFactors] = useState(() => pendingFactors());
+  useEffect(() => {
+    if (newFactors.length) markFactorsSeen();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once, as the page opens
+  }, []);
+  const undoFactors = () => {
+    const without = undoFactorsAdd(newFactors);
+    if (without) my.resetTo(without);
+    setNewFactors([]);
+  };
 
   return (
     <>
@@ -162,6 +174,18 @@ export function RubricEditor() {
               Undo
             </button>
             <button type="button" className="btn secondary small" onClick={() => setDriveNote(null)}>
+              OK
+            </button>
+          </div>
+        )}
+
+        {newFactors.length > 0 && (
+          <div className="card-stale rubric-new-factors" role="status">
+            <span>{factorsNote(newFactors)}</span>
+            <button type="button" className="btn small" onClick={undoFactors}>
+              Undo
+            </button>
+            <button type="button" className="btn secondary small" onClick={() => setNewFactors([])}>
               OK
             </button>
           </div>

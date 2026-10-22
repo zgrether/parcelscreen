@@ -38,12 +38,12 @@ const names = (r: Rubric) => {
 };
 
 describe("the columns", () => {
-  it("the default: the four dealbreakers in Must, the seven weighted rows in Should by weight, the Driveway row (weight 0) in Won't (step 7)", () => {
+  it("the default: the four dealbreakers in Must, the seven weighted rows in Should by weight, the Driveway row (weight 0) in Won't (step 7), and Town (the groceries, weight 0; step 11)", () => {
     expect(names(D)).toEqual({
       must: ["floodplain", "access", "easement", "septic"],
-      should: ["elevation", "homesite", "room", "sky", "trails", "garden", "town"],
+      should: ["elevation", "homesite", "room", "sky", "trails", "garden", "hospital"],
       could: [],
-      wont: ["driveway"],
+      wont: ["driveway", "town"],
     });
   });
 
@@ -54,20 +54,20 @@ describe("the columns", () => {
     });
     const out = ok(moveCard(D, { kind: "factor", factor: "access" }, "wont"));
     expect(names(out.rubric).must).toEqual(["floodplain", "easement", "septic"]);
-    expect(names(out.rubric).wont).toEqual(["access", "driveway"]);
+    expect(names(out.rubric).wont).toEqual(["access", "driveway", "town"]);
     expect(out.rubric.weights).toEqual(D.weights); // not a reorder
     const back = ok(moveCard(out.rubric, { kind: "factor", factor: "access" }, "must"));
     expect(names(back.rubric).must).toEqual(["floodplain", "access", "easement", "septic"]);
   });
 
   it("a row dropped on Must becomes a minimum at its B/C edge and keeps its ranked card, marked min (owner Q2)", () => {
-    const out = ok(moveCard(D, { kind: "factor", factor: "town" }, "must"));
-    expect(names(out.rubric).must).toEqual(["floodplain", "access", "easement", "septic", "min:town"]);
+    const out = ok(moveCard(D, { kind: "factor", factor: "hospital" }, "must"));
+    expect(names(out.rubric).must).toEqual(["floodplain", "access", "easement", "septic", "min:hospital"]);
     expect(names(out.rubric).should).toEqual(names(D).should);
-    expect(hasMinimum(out.rubric, "town")).toBe(true);
-    expect(out.rubric.musts.at(-1)).toEqual({ factor: "town", threshold: 30 });
+    expect(hasMinimum(out.rubric, "hospital")).toBe(true);
+    expect(out.rubric.musts.at(-1)).toEqual({ factor: "hospital", threshold: 30 });
     expect(out.message).toBe(
-      "Town and hospital is now a must have too (ER within 30 min): it also stays at #7 in Really want.",
+      "Hospital is now a must have too (ER within 30 min): it also stays at #7 in Really want.",
     );
     expect(out.rubric.weights).toEqual(D.weights);
     const elevation = ok(moveCard(D, { kind: "factor", factor: "elevation" }, "must"));
@@ -96,7 +96,7 @@ describe("the columns", () => {
   it("a row moved to Won't leaves the grade and takes its minimum with it; explicit weights stay", () => {
     const withMin = ok(moveCard(D, { kind: "factor", factor: "garden" }, "must")).rubric;
     const out = ok(moveCard(withMin, { kind: "factor", factor: "garden" }, "wont"));
-    expect(names(out.rubric).wont).toEqual(["driveway", "garden"]);
+    expect(names(out.rubric).wont).toEqual(["driveway", "town", "garden"]);
     expect(names(out.rubric).should).not.toContain("garden");
     expect(hasMinimum(out.rubric, "garden")).toBe(false);
     expect(out.rubric.weights.mode).toBe("explicit");
@@ -114,7 +114,7 @@ describe("the weights: explicit until the first reorder, then rank-sum at once (
       "room",
       "trails",
       "garden",
-      "town",
+      "hospital",
     ]);
     expect(first.rubric.weights).toEqual({ mode: "rankSum" });
     expect(first.switched!.before).toEqual(D.weights.mode === "explicit" ? D.weights.of : null);
@@ -127,12 +127,13 @@ describe("the weights: explicit until the first reorder, then rank-sum at once (
       ["room", 15, 14.3],
       ["driveway", 0, 0],
       ["trails", 10, 10.7],
-      ["town", 5, 3.6],
+      ["town", 0, 0],
+      ["hospital", 5, 3.6],
       ["garden", 10, 7.1],
     ]);
-    const second = ok(moveCard(first.rubric, { kind: "factor", factor: "town" }, "could"));
+    const second = ok(moveCard(first.rubric, { kind: "factor", factor: "hospital" }, "could"));
     expect(second.switched).toBeUndefined();
-    expect(names(second.rubric).could).toEqual(["town"]);
+    expect(names(second.rubric).could).toEqual(["hospital"]);
   });
 
   it("a drop where the card already is changes nothing", () => {
@@ -151,7 +152,8 @@ describe("the weights: explicit until the first reorder, then rank-sum at once (
       room: 17.9,
       driveway: 0,
       trails: 10.7,
-      town: 3.6,
+      town: 0,
+      hospital: 3.6,
       garden: 7.1,
       budget: 0,
     });
@@ -181,9 +183,9 @@ describe("the sliders", () => {
   });
 
   it("a minimum is set within its slider's range", () => {
-    const withMin = ok(moveCard(D, { kind: "factor", factor: "town" }, "must")).rubric;
-    expect(setMinimum(withMin, "town", 22).musts.at(-1)).toEqual({ factor: "town", threshold: 20 });
-    expect(setMinimum(withMin, "town", 2).musts.at(-1)).toEqual({ factor: "town", threshold: 10 });
+    const withMin = ok(moveCard(D, { kind: "factor", factor: "hospital" }, "must")).rubric;
+    expect(setMinimum(withMin, "hospital", 22).musts.at(-1)).toEqual({ factor: "hospital", threshold: 20 });
+    expect(setMinimum(withMin, "hospital", 2).musts.at(-1)).toEqual({ factor: "hospital", threshold: 10 });
     const sun = ok(moveCard(D, { kind: "factor", factor: "homesite" }, "must")).rubric;
     expect(setMinimum(sun, "homesite", 9).musts.at(-1)).toEqual({ factor: "homesite", threshold: 8 });
     expect(setMinimum(sun, "homesite", 4.3).musts.at(-1)).toEqual({ factor: "homesite", threshold: 4.5 });

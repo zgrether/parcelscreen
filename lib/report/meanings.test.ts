@@ -16,6 +16,7 @@ const PANEL_KEYS_WITH_SCALES = [
   "septic",
   "trails",
   "town",
+  "hospital",
   "garden",
 ] as const;
 

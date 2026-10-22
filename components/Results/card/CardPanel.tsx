@@ -53,7 +53,8 @@ const FLAG_PANEL: Record<Step, PanelKey> = {
   flood: "floodplain",
   padus: "trails",
   near: "easement",
-  drive: "town",
+  // Step 11: the drive times' flags go with the ER, which the starting list grades (Town, the groceries, is Don't care).
+  drive: "hospital",
   rank: "homesite",
   driveway: "easement",
 };

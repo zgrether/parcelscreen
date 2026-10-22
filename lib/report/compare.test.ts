@@ -63,7 +63,7 @@ describe("the comparison table (VR6)", () => {
           "Night sky",
           "Room to build",
           "Trails and public land",
-          "Town and hospital",
+          "Hospital",
           "Garden ground",
         ],
       ],

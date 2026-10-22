@@ -19,12 +19,12 @@ describe("rank-sum weights", () => {
     expect(COULD_FACTOR).toBe(0.75);
   });
 
-  it("eight Should cards, the card's rows in order: n down to 1 over 36", () => {
-    // The card's eight rows; Within budget (step 10) comes only with budgets.
+  it("nine Should cards, the card's rows in order: n down to 1 over 45", () => {
+    // The card's nine rows (step 11: Hospital split from Town); Within budget (step 10) comes only with budgets.
     const rows = ROW_KEYS.filter((k) => k !== "budget");
     const ranked: RankedCard[] = rows.map((factor) => ({ factor, tier: "should" }));
     const w = rankSumWeights(ranked);
-    expect(round1(rows.map((k) => w[k]))).toEqual([22.2, 19.4, 16.7, 13.9, 11.1, 8.3, 5.6, 2.8]);
+    expect(round1(rows.map((k) => w[k]))).toEqual([20, 17.8, 15.6, 13.3, 11.1, 8.9, 6.7, 4.4, 2.2]);
     expect(Object.values(w).reduce((a, b) => a + b, 0)).toBeCloseTo(100, 9);
   });
 
@@ -50,7 +50,8 @@ describe("rank-sum weights", () => {
       room: 15,
       trails: 10,
       driveway: 0,
-      town: 5,
+      town: 0,
+      hospital: 5,
       garden: 10,
       budget: 0,
     });
@@ -65,7 +66,7 @@ describe("rank-sum weights", () => {
       "sky",
       "trails",
       "garden",
-      "town",
+      "hospital",
     ]);
   });
 });

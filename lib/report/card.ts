@@ -673,32 +673,45 @@ function serves(t: { name: string; serves?: readonly string[] | undefined }): st
   return line ? `; ${line}` : "";
 }
 
+/** Whether the drive step ran: a failed one (OSRM down) is unknown, never "none found" (owner, #216). */
+const drivesLoaded = (r: Result): boolean => !!r.drives && !r.failed.includes("drive");
+
 /**
- * The worse of the ER's and the grocery's; the grocery is the nearer of the real one and the closer one. A drive step
- * that failed (OSRM down) is unknown, as Trails reads it, never "no hospital found" (owner, #216): the step keeps an empty
- * list then.
+ * The grocery drive: the nearer of the real one and the closer one. Step 11 (plan §2.1) split the ER out into Hospital;
+ * until then this row was the worse of the two.
  */
 function town(r: Result, K: CardConfig): Row {
   const g = row("town", FACTOR_LABELS.town);
-  if (!r.drives || r.failed.includes("drive")) return notLoaded(g, "the drive times");
-  const h = r.drives.find((d) => d.label === NEAREST_HOSPITAL);
-  const groceries = [r.drives.find((d) => d.label === REAL_GROCERY), r.closerGrocery].filter(
+  if (!drivesLoaded(r)) return notLoaded(g, "the drive times");
+  const groceries = [r.drives!.find((d) => d.label === REAL_GROCERY), r.closerGrocery].filter(
     (d): d is DriveEntry => !!d,
   );
   const gr = groceries.sort((a, b) => a.min - b.min)[0];
-  const grade = worse(h ? atMost(h.min, K.rows.erMin) : "F", gr ? atMost(gr.min, K.rows.groceryMin) : "F");
+  // Appended (rule 7; owner, #124): the drives start on tracks, as Trails says.
+  return {
+    ...g(
+      gr ? atMost(gr.min, K.rows.groceryMin) : "F",
+      `${gr ? `${articleFor(gr.min)} ${fmt(gr.min)}-minute drive to a grocery` : "no grocery found"}${trackNote(r)}`,
+    ),
+    short: gr ? `grocery ${fmt(gr.min)} min` : "no grocery",
+    ...(gr ? { measure: { value: gr.min, unit: "min" } } : {}),
+  };
+}
+
+/**
+ * The drive to the nearest hospital, an ER where it has one (step 11, plan §2.1: the old Town and hospital row's ER
+ * half, its words unchanged). The ER drive is the measure a threshold Must reads ("over 30 min to an ER").
+ */
+function hospital(r: Result, K: CardConfig): Row {
+  const g = row("hospital", FACTOR_LABELS.hospital);
+  if (!drivesLoaded(r)) return notLoaded(g, "the drive times");
+  const h = r.drives!.find((d) => d.label === NEAREST_HOSPITAL);
   const toH = h
     ? `${articleFor(h.min)} ${fmt(h.min)}-minute drive to ${h.er === "yes" ? "an ER" : "the nearest hospital"}`
     : "no hospital found";
-  const toG = gr ? `${fmt(gr.min)} to a grocery` : "no grocery found";
-  const short = [h ? `ER ${fmt(h.min)} min` : "no ER", gr ? `grocery ${fmt(gr.min)}` : "no grocery"].join(
-    ", ",
-  );
-  // Appended (rule 7; owner, #124): the drives start on tracks, as Trails says.
-  // The ER drive is the measure a threshold Must reads ("over 30 min to an ER"); the grocery's is the row's own.
   return {
-    ...g(grade, `${toH}, ${toG}${trackNote(r)}`),
-    short,
+    ...g(h ? atMost(h.min, K.rows.erMin) : "F", `${toH}${trackNote(r)}`),
+    short: h ? `ER ${fmt(h.min)} min` : "no ER",
     ...(h ? { measure: { value: h.min, unit: "min" } } : {}),
   };
 }
@@ -892,6 +905,7 @@ export function cardFacts(
       drivewayRow!,
       trails(r, K),
       town(r, K),
+      hospital(r, K),
       garden(r, K, marks),
       ...[budgetRow(cost, budgets, K)].filter((x): x is Row => x !== null),
     ],
@@ -935,7 +949,7 @@ function withYourRoute(facts: CardFacts, r: Result, driven: Driven, drawn?: Draw
   const moved = !!driven.yours && !!driven.pick && driven.route?.entranceIndex !== driven.pick.entranceIndex;
   const rows = moved
     ? facts.rows.map((x) =>
-        x.key === "town" || x.key === "trails"
+        x.key === "town" || x.key === "hospital" || x.key === "trails"
           ? { ...x, panelNote: [x.panelNote, DRIVES_FROM_PICK].filter(Boolean).join(" ") }
           : x,
       )

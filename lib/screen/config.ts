@@ -569,7 +569,10 @@ export const SCREEN_CONSTANTS = deepFreeze({
         room: 15,
         driveway: 0,
         trails: 10,
-        town: 5,
+        // Step 11 (plan §2.1): Hospital takes Town's weight, as Town graded the ER until it; Town keeps the groceries,
+        // at 0 (Don't care), so the starting list grades as before (the ER's letter was Town's on every fixture).
+        town: 0,
+        hospital: 5,
         garden: 10,
         // Step 10: Within budget is never on the starting list; it comes with the interview's budgets.
         budget: 0,
@@ -606,6 +609,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
         driveway: 1,
         trails: 2,
         town: 2,
+        // Step 11: Town's, as question 6 set Town's until Hospital was its own row.
+        hospital: 2,
         sky: 1,
         garden: 1,
         // Step 10: placed by the budgets themselves (generate.ts), never by points.
@@ -618,8 +623,6 @@ export const SCREEN_CONSTANTS = deepFreeze({
       // The walk-away numbers' starting values: this far under question 1's elevation edge, and one step past
       // question 6's answer.
       walkAway: { belowFtUnderEdge: 500, erStepMin: 15 },
-      // 14b's "Over ___ min to an ER" doesn't matter: the ER's edge, the slider's end, until Hospital is its own factor.
-      dontMatterErMin: 90,
       choices: {
         climate: {
           cool: { points: { elevation: 3 }, edges: { elevationFt: 3000 } },
@@ -652,10 +655,11 @@ export const SCREEN_CONSTANTS = deepFreeze({
           either: { points: { town: 0 }, edges: { groceryMin: 40 } },
         },
         er: {
-          "15": { points: { town: 3 }, edges: { erMin: 15 } },
-          "30": { points: { town: 2 } },
-          "45": { points: { town: 1 }, edges: { erMin: 45 } },
-          "60": { points: { town: 0 }, edges: { erMin: 60 } },
+          // Step 11 (plan §2.1): the ER's answer sets Hospital, its own row now.
+          "15": { points: { hospital: 3 }, edges: { erMin: 15 } },
+          "30": { points: { hospital: 2 } },
+          "45": { points: { hospital: 1 }, edges: { erMin: 45 } },
+          "60": { points: { hospital: 0 }, edges: { erMin: 60 } },
         },
         neighbors: { wave: {}, lights: {}, never: { points: { sky: 1 } } },
         garden: {

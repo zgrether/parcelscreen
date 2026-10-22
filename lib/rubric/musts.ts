@@ -21,6 +21,7 @@ export const BAND_DIRECTION: Record<RowKey, "atLeast" | "atMost" | null> = {
   driveway: "atMost",
   trails: "atMost",
   town: "atMost",
+  hospital: "atMost",
   garden: "atLeast",
   // Step 10: no threshold; a Must on it reads the budgets (lib/report/card.ts).
   budget: null,
@@ -35,6 +36,7 @@ export const MEASURE_UNIT: Record<RowKey, string | null> = {
   driveway: "%",
   trails: "min",
   town: "min",
+  hospital: "min",
   garden: "ac",
   budget: null,
 };
