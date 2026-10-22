@@ -30,6 +30,7 @@ export const ROW_KEYS = [
   "climate",
   "privacy",
   "longView",
+  "airport",
   "budget",
 ] as const;
 export type RowKey = (typeof ROW_KEYS)[number];
@@ -71,6 +72,8 @@ export interface Bands {
   privacySight: number[];
   /** Step 11: Long view's share of the horizon open past 5 km, in %, at least. */
   viewOpenPct: number[];
+  /** Step 11: Airport's drive to the nearest airport on Settings' list, in minutes, at most. */
+  airportMin: number[];
 }
 
 /**

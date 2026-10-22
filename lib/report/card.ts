@@ -813,6 +813,32 @@ export function privacyLine(p: { near: number; inSight: number; nearestFt: numbe
 }
 
 /**
+ * A drive-time place that's an airport (step 11, plan §2.5): its name says "airport", or ends in a three-letter code in
+ * parentheses, as Settings' defaults do ("Greenville-Spartanburg (GSP)").
+ */
+export const isAirport = (name: string): boolean => /airport/i.test(name) || /\([A-Z]{3}\)\s*$/.test(name);
+
+/** The drive to the nearest airport on Settings' list (step 11, plan §2.5), as Hospital's to an ER. */
+function airport(r: Result, K: CardConfig): Row {
+  const g = row("airport", FACTOR_LABELS.airport);
+  if (!drivesLoaded(r)) return notLoaded(g, "the drive times");
+  const a = r.drives!.filter((d) => isAirport(d.label)).sort((x, y) => x.min - y.min)[0];
+  if (!a)
+    return {
+      ...g(null, "no airport on your list of places to time drives to (Settings)"),
+      short: "none listed",
+    };
+  return {
+    ...g(
+      atMost(a.min, K.rows.airportMin),
+      `${articleFor(a.min)} ${fmt(a.min)}-minute drive to ${a.label}${trackNote(r)}`,
+    ),
+    short: `${a.label.match(/\(([A-Z]{3})\)/)?.[1] ?? "airport"} ${fmt(a.min)} min`,
+    measure: { value: a.min, unit: "min" },
+  };
+}
+
+/**
  * "an 82-minute drive", "a 48-minute drive": the article for a number said aloud (owner, #124: an approved correction,
  * phase-0.md §9.36): "an" for 8, 11, 18 and 80–89.
  */
@@ -1003,6 +1029,7 @@ export function cardFacts(
       trails(r, K),
       town(r, K),
       hospital(r, K),
+      airport(r, K),
       garden(r, K, marks),
       climateRow!,
       privacyRow!,
@@ -1053,7 +1080,7 @@ function withYourRoute(facts: CardFacts, r: Result, driven: Driven, drawn?: Draw
   const moved = !!driven.yours && !!driven.pick && driven.route?.entranceIndex !== driven.pick.entranceIndex;
   const rows = moved
     ? facts.rows.map((x) =>
-        x.key === "town" || x.key === "hospital" || x.key === "trails"
+        x.key === "town" || x.key === "hospital" || x.key === "airport" || x.key === "trails"
           ? { ...x, panelNote: [x.panelNote, DRIVES_FROM_PICK].filter(Boolean).join(" ") }
           : x,
       )

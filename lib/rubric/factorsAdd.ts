@@ -16,6 +16,7 @@ export const NEW_FACTORS = [
   "climate",
   "privacy",
   "longView",
+  "airport",
 ] as const satisfies readonly RowKey[];
 export type NewFactor = (typeof NEW_FACTORS)[number];
 
@@ -47,7 +48,22 @@ export function withFactor(r: Rubric, f: NewFactor, answers: InterviewAnswers = 
       return withPrivacy(r, answers);
     case "longView":
       return withLongView(r, answers);
+    case "airport":
+      return withAirport(r, answers);
   }
+}
+
+/**
+ * Airport (plan §2.5, §5): question 7's "a few times a year" or "monthly or more" places it at the bottom of Nice to
+ * have, at the answer's limit; "rarely or never", or no answer, Don't care. On explicit weights it stays Don't care.
+ */
+function withAirport(r: Rubric, a: InterviewAnswers): Rubric {
+  const I = SCREEN_CONSTANTS.card.interview;
+  const effect = a.fly ? I.choices.fly[a.fly] : undefined;
+  const edge = (effect as { edges?: { airportMin?: number } } | undefined)?.edges?.airportMin;
+  const out = edge === undefined ? r : setBandEdge({ ...r, bands: { ...r.bands } }, "airportMin", edge);
+  if (r.weights.mode === "rankSum" && (effect?.points.airport ?? 0) >= 1) return lastCould(out, "airport");
+  return { ...out, wonts: [...out.wonts, "airport"] };
 }
 
 /**

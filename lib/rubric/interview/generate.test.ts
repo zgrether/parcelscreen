@@ -94,7 +94,7 @@ describe("§3: every choice", () => {
     expect(b.gardenAc).toEqual([0.35, 0.1, 0, 0]);
   });
 
-  it("questions 7 and 11–13 only add to the stored list of later factors", () => {
+  it("questions 7's second row and 11–13 only add to the stored list of later factors", () => {
     const a: InterviewAnswers = {
       fly: "monthly",
       calls: "yes",
@@ -102,8 +102,8 @@ describe("§3: every choice", () => {
       creek: "rather",
       land: { acres: "5to20", campBudget: 40000, buildBudget: 250000 },
     };
+    // Step 11: Airport is graded now (question 7's first row), so it left the quiet list.
     expect(later(a)).toEqual([
-      "Airport (monthly or more)",
       "Internet for video calls",
       "HOA (welcome)",
       "No creek",
@@ -129,12 +129,14 @@ describe("§3: every choice", () => {
       climate: 0,
       privacy: 0,
       longView: 0,
+      // Monthly or more: Airport in Nice to have.
+      airport: 1,
       budget: 0,
     });
     expect(later({ fly: "rarely", calls: "no", creek: "either", hoa: "light" })).toEqual([
       "HOA (light rules)",
     ]);
-    expect(later({ fly: "few" })).toEqual(["Airport (a few times a year)"]);
+    expect(later({ fly: "few" })).toEqual([]);
   });
 
   it("question 10 sets the Driveway row: its B/C edge, 20 / 15 / 12%, and its points (step 7)", () => {
@@ -245,7 +247,15 @@ describe("§3: question 14", () => {
     });
     expect(g.rubric.musts).toEqual([{ factor: "access" }]);
     // Step 11: the ER's own row is Don't care; until Hospital, the ER's edge went to 90 min on Town.
-    expect(g.rubric.wonts).toEqual(["elevation", "climate", "privacy", "longView", "homesite", "hospital"]);
+    expect(g.rubric.wonts).toEqual([
+      "elevation",
+      "climate",
+      "privacy",
+      "longView",
+      "airport",
+      "homesite",
+      "hospital",
+    ]);
     expect(g.why.cards.privacy).toEqual(["You said a neighbor's house in view doesn't matter"]);
     expect(bcEdge(g.rubric.bands, "erMin")).toBe(30);
     expect(g.why.cards.hospital).toEqual(["You said the drive to an ER doesn't matter"]);
@@ -330,10 +340,11 @@ describe("§4: the two people", () => {
       hospital: 2.4,
       garden: 1.2,
       longView: 0,
+      airport: 0,
       budget: 0,
     });
     // "Sun" at breakfast: Long view is Don't care.
-    expect(g.rubric.wonts).toEqual(["longView"]);
+    expect(g.rubric.wonts).toEqual(["longView", "airport"]);
     // Never know they're there: the nearest house 1,320 ft away, none in sight.
     expect([g.rubric.bands.privacyFt, g.rubric.bands.privacySight]).toEqual([
       [1980, 1320, 990, 825],
@@ -379,7 +390,7 @@ describe("§4: the two people", () => {
       { factor: "driveway", tier: "could" },
     ]);
     // Step 11: "Wave from the porch" leaves Privacy at 0 points.
-    expect(g.rubric.wonts).toEqual(["elevation", "privacy", "sky"]);
+    expect(g.rubric.wonts).toEqual(["elevation", "privacy", "airport", "sky"]);
     expect(rounded(weightsOf(g.rubric))).toEqual({
       longView: 20.7,
       hospital: 18.4,
@@ -393,6 +404,7 @@ describe("§4: the two people", () => {
       elevation: 0,
       sky: 0,
       privacy: 0,
+      airport: 0,
       budget: 0,
     });
     expect(g.rubric.bands.drivewayPct).toEqual([10, 15, 20, 25]);
@@ -453,7 +465,7 @@ describe("§2: the rules", () => {
       "homesite",
     ]);
     // Step 11: "Either" climate gives Climate 0 points.
-    expect(few.rubric.wonts).toEqual(["climate", "privacy", "longView", "trails"]);
+    expect(few.rubric.wonts).toEqual(["climate", "privacy", "longView", "airport", "trails"]);
     expect(few.rubric.ranked.at(-1)).toEqual({ factor: "driveway", tier: "could" });
   });
 
@@ -476,8 +488,9 @@ describe("question 7 (owner, 10/18): two single-choice rows", () => {
     const q7 = QUESTIONS.find((q) => q.key === "fly")!;
     expect(q7.choices.map((c) => [c.label, c.why, c.later ?? null])).toEqual([
       ["Rarely or never", "You rarely or never fly", null],
-      ["A few times a year", "You fly a few times a year", "Airport (a few times a year)"],
-      ["Monthly or more", "You fly monthly or more", "Airport (monthly or more)"],
+      // Step 11: Airport is graded now, so its answers left the quiet list.
+      ["A few times a year", "You fly a few times a year", null],
+      ["Monthly or more", "You fly monthly or more", null],
     ]);
     expect(q7.second!.choices.map((c) => [c.label, c.why, c.later ?? null])).toEqual([
       ["Yes", "You need internet for video calls from home", "Internet for video calls"],

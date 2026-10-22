@@ -52,6 +52,7 @@ const BAND_LABELS: Record<LimitKey, string> = {
   privacyFt: "Nearest house at least",
   privacySight: "Houses in sight, at most",
   viewOpenPct: "Horizon open past 5 km, at least",
+  airportMin: "Drive to an airport",
   sunH: "December sun at the best site",
 };
 

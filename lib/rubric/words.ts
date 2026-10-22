@@ -28,6 +28,7 @@ export const FACTOR_LABELS: Record<Factor, string> = {
   climate: "Climate",
   privacy: "Privacy",
   longView: "Long view",
+  airport: "Airport",
   budget: "Within budget",
 };
 
@@ -61,6 +62,7 @@ export const SHORT_TITLES: Record<Factor, string> = {
   climate: "Climate",
   privacy: "Privacy",
   longView: "View",
+  airport: "Air",
   budget: "Budget",
 };
 
@@ -78,7 +80,8 @@ export type BandKey =
   | "julHighF"
   | "privacyFt"
   | "privacySight"
-  | "viewOpenPct";
+  | "viewOpenPct"
+  | "airportMin";
 
 /**
  * What a limit is set in: a band, or (Best homesite, whose letter is the site's quality and has no band) hours of
@@ -100,6 +103,7 @@ export const ROW_BANDS: Record<RowKey, readonly BandKey[]> = {
   climate: ["janLowF", "julHighF"],
   privacy: ["privacyFt", "privacySight"],
   longView: ["viewOpenPct"],
+  airport: ["airportMin"],
   // Step 10: graded against the budgets, which the questions set; no slider.
   budget: [],
 };
@@ -123,6 +127,8 @@ export const MINIMUM_BAND: Record<RowKey, LimitKey | null> = {
   privacy: "privacySight",
   // Step 11: no limit; question 14 has no chip for it.
   longView: null,
+  // Step 11: the drive to an airport, as Hospital's to an ER.
+  airport: "airportMin",
   // Step 10: a Must on it has no number of its own: it's the budgets.
   budget: null,
 };
@@ -142,6 +148,7 @@ export const BAND_RUNS: Record<BandKey, "atLeast" | "atMost"> = {
   privacyFt: "atLeast",
   privacySight: "atMost",
   viewOpenPct: "atLeast",
+  airportMin: "atMost",
 };
 
 /** "1.0" → "1", "0.25" stays: a number without trailing zeros. */
@@ -161,6 +168,7 @@ export function bandValue(key: LimitKey, v: number): string {
     case "trailheadMin":
     case "erMin":
     case "groceryMin":
+    case "airportMin":
       return `${fmt(v)} min`;
     case "gardenAc":
       return `${fmt(v, 2).replace(/\.?0+$/, "")} ac`;
@@ -266,6 +274,8 @@ export function cardLine(r: Rubric, factor: Factor): string {
       return capital(privacyWords(b));
     case "longView":
       return `A view past 5 km over at least ${bandValue("viewOpenPct", bcEdge(b, "viewOpenPct"))} of the horizon`;
+    case "airport":
+      return `An airport within ${bandValue("airportMin", bcEdge(b, "airportMin"))}`;
     case "budget":
       return capital(budgetWords(r.budgets));
   }
@@ -277,6 +287,7 @@ export function minimumWords(row: RowKey, v: number): string {
   if (!band) return "";
   const value = bandValue(band, v);
   if (row === "hospital") return `ER within ${value}`;
+  if (row === "airport") return `an airport within ${value}`;
   if (row === "town") return `groceries within ${value}`;
   if (row === "trails") return `a trailhead within ${value}`;
   if (row === "room") return `at least ${value} the footprint`;
@@ -344,6 +355,8 @@ export function plainLine(r: Rubric, factor: Factor): string {
       return capital(privacyWords(b));
     case "longView":
       return `A view past 5 km over at least ${bandValue("viewOpenPct", bcEdge(b, "viewOpenPct"))} of the horizon`;
+    case "airport":
+      return `An airport within ${bandValue("airportMin", bcEdge(b, "airportMin"))}`;
     case "garden": {
       const ac = bcEdge(b, "gardenAc");
       if (ac >= 1) return "Room for a big garden";

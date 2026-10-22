@@ -582,6 +582,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
       privacySight: [10, 20, 30, 40],
       // Step 11 (plan §2.4): Long view, the share of the horizon open past 5 km, in %, at least.
       viewOpenPct: [25, 15, 8, 3],
+      // Step 11 (plan §2.5): Airport, the drive to the nearest airport on Settings' list, in minutes, at most.
+      airportMin: [45, 60, 90, 120],
     },
     // The default rubric's weights, summing to 100 (roadmap step 1: a profile's rubric replaces them; the second set the
     // app shipped with is test/support/rubrics.ts LEGACY_SECOND_WEIGHTS, kept for the step 1 card oracle). The Driveway
@@ -603,6 +605,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
         climate: 0,
         privacy: 0,
         longView: 0,
+        airport: 0,
         // Step 10: Within budget is never on the starting list; it comes with the interview's budgets.
         budget: 0,
       },
@@ -630,6 +633,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
       privacyFt: { min: 100, max: 2640, step: 10 },
       privacySight: { min: 0, max: 20, step: 1 },
       viewOpenPct: { min: 0, max: 60, step: 1 },
+      airportMin: { min: 15, max: 180, step: 5 },
     },
     // Step 4, the interview (docs/plans/step-4-interview.md §2–§3; owner, 10/18): what each answer gives a row, as
     // importance points (0–3; a row takes its highest answer) and the B/C edge it sets, which shifts the row's band
@@ -654,6 +658,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
         privacy: 0,
         // Step 11: placed by question 3, never by default.
         longView: 0,
+        // Step 11: placed by question 7, never by default.
+        airport: 0,
         // Step 10: placed by the budgets themselves (generate.ts), never by points.
         budget: 0,
       },
@@ -677,6 +683,13 @@ export const SCREEN_CONSTANTS = deepFreeze({
           between: { points: { elevation: 2, climate: 2 } },
           warm: { points: { elevation: 0, climate: 2 } },
           either: { points: { elevation: 1, climate: 0 } },
+        },
+        // Step 11 (plan §2.5, §5): question 7's first row sets Airport: a few times a year, Nice to have at 90 min;
+        // monthly or more, Nice to have at 60.
+        fly: {
+          rarely: { points: { airport: 0 } },
+          few: { points: { airport: 1 }, edges: { airportMin: 90 } },
+          monthly: { points: { airport: 1 }, edges: { airportMin: 60 } },
         },
         // Question 1's follow-ups (step 11): the B/C edges, the limits as the plan has them. "Real winter welcome" and
         // "Hot is fine" set them at the sliders' ends, past anything in these mountains: no limit.

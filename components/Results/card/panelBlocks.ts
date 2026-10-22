@@ -43,6 +43,7 @@ const BLOCKS: Record<PanelKey, Block[]> = {
   climate: [Climate],
   privacy: [Privacy],
   longView: [LongView],
+  airport: [GettingThere],
   // Step 10: the breakdown is the panels' own (CardPanel's CostBreakdown). Still unknown stays where it was.
   budget: [],
   cost: [StillUnknown],

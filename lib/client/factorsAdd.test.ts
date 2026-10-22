@@ -76,11 +76,19 @@ describe("adding the new factors once, at boot", () => {
     const r = getPref("ps.rubrics")!;
     expect(r.mine.ranked.map((c) => c.factor)).toEqual(["trails", "town", "hospital", "garden"]);
     // Questions 1, 3 and 8 unanswered: Climate, Privacy and Long view are Don't care.
-    expect(r.mine.wonts).toEqual(["climate", "privacy", "longView"]);
-    expect(r.factorsAdded).toEqual({ hospital: "new", climate: "new", privacy: "new", longView: "new" });
+    expect(r.mine.wonts).toEqual(["climate", "privacy", "longView", "airport"]);
+    expect(r.factorsAdded).toEqual({
+      hospital: "new",
+      climate: "new",
+      privacy: "new",
+      longView: "new",
+      airport: "new",
+    });
     expect(getPref("ps.interview")!.base!.ranked.map((c) => c.factor)).toContain("hospital");
-    expect(pendingFactors()).toEqual(["hospital", "climate", "privacy", "longView"]);
-    expect(factorsNote(pendingFactors())).toBe("New factors to place: Hospital, Climate, Privacy, Long view");
+    expect(pendingFactors()).toEqual(["hospital", "climate", "privacy", "longView", "airport"]);
+    expect(factorsNote(pendingFactors())).toBe(
+      "New factors to place: Hospital, Climate, Privacy, Long view, Airport",
+    );
     expect(newQuestionsHref(pendingFactors())).toBe("/interview?ask=climate");
     expect(newQuestionsHref(["hospital"])).toBeNull();
   });
@@ -118,15 +126,17 @@ describe("adding the new factors once, at boot", () => {
       climate: "seen",
       privacy: "seen",
       longView: "seen",
+      airport: "seen",
     });
-    const without = undoFactorsAdd(["hospital", "climate", "privacy", "longView"])!;
+    const without = undoFactorsAdd(["hospital", "climate", "privacy", "longView", "airport"])!;
     expect(without.ranked.map((c) => c.factor)).toEqual(["trails", "town", "garden"]);
-    expect(without.wonts).toEqual(["climate", "privacy", "longView", "hospital"]);
+    expect(without.wonts).toEqual(["climate", "privacy", "longView", "airport", "hospital"]);
     expect(getPref("ps.rubrics")!.factorsAdded).toEqual({
       hospital: "undone",
       climate: "undone",
       privacy: "undone",
       longView: "undone",
+      airport: "undone",
     });
     setProfileRubrics({ ...getPref("ps.rubrics")!, mine: without });
     addFactorsOnce();

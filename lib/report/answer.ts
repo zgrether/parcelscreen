@@ -27,6 +27,7 @@ export const STRENGTH: Record<RowKey, string> = {
   climate: "climate",
   privacy: "privacy",
   longView: "a long view",
+  airport: "airport access",
   garden: "garden ground",
   budget: "budget fit",
 };
@@ -92,6 +93,10 @@ export function missLine(row: Row, card: Card, r: PartialScreenResult): string {
         return `the nearest house is ${fmt(near)} ft away, nearer than your ${fmt(edge(b.privacyFt))} ft`;
       break;
     }
+    case "airport":
+      if (v !== undefined && v > edge(b.airportMin))
+        return `${fmt(v)} minutes to an airport is past your ${fmt(edge(b.airportMin))}-minute limit`;
+      break;
     case "budget":
       // Within budget (step 10): the budgets at its worst, "ready to build $330–595k, over your $300k".
       if (row.budget) return row.budget.reason;
