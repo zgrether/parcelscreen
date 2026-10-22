@@ -7,15 +7,19 @@ import { SCREEN_CONSTANTS } from "../screen/config";
 import { LONG_TRAILS } from "../screen/data/longTrails";
 import type { Heading } from "./parts";
 
-export const longTrailHeading: Heading = { title: "Long trails", slug: "long-trails", help: "h-bike" };
+export const longTrailHeading: Heading = {
+  title: "Bike to a long trail",
+  slug: "long-trails",
+  help: "h-bike",
+};
 
 /** Where the access points come from, for "How it's scored" and the report (plan §3; checked 2026-10-21). */
 export const LONG_TRAIL_SOURCES =
   "Trail access points: Virginia DCR, vacreepertrail.org and OpenStreetMap contributors (checked Oct 21, 2026).";
 
-/** The trails the screen looks for, for the section's note: "New River Trail (57 mi), Virginia Creeper Trail (34 mi), …". */
+/** The trails the screen looks for, for the section's note: "New River Trail (57 mi long), Virginia Creeper Trail (34 mi long), …". */
 export const TRAILS_LISTED = LONG_TRAILS.map(
-  (t) => `${t.name} (${fmt(t.miles, t.miles % 1 ? 1 : 0)} mi)`,
+  (t) => `${t.name} (${fmt(t.miles, t.miles % 1 ? 1 : 0)} mi long)`,
 ).join(", ");
 
 /** What the section says about its reach. */

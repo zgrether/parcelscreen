@@ -6,7 +6,7 @@ import type { BlockProps } from "./types";
 
 export function LongTrails({ result }: BlockProps) {
   const t = result.longTrail;
-  if (t === undefined) return <p className="tiny muted">Long trails: {NOT_MEASURED}.</p>;
+  if (t === undefined) return <p className="tiny muted">Bike to a long trail: {NOT_MEASURED}.</p>;
   return (
     <>
       <table className="facts">
@@ -19,7 +19,7 @@ export function LongTrails({ result }: BlockProps) {
             <td className="num">
               {t ? (
                 <>
-                  {fmt(t.min)} min, {fmt(t.mi, 1)} mi
+                  {fmt(t.min)} min drive, {fmt(t.mi, 1)} mi
                   <div>at {t.point}</div>
                 </>
               ) : (

@@ -188,7 +188,7 @@ export function HelpText() {
         past 6 km counts as open.
       </p>
 
-      <h3 id="h-bike">Long trails</h3>
+      <h3 id="h-bike">Bike to a long trail</h3>
       <p>
         The drive from where the driveway meets the road to the nearest access point of a long rail-trail or
         greenway: the New River Trail, the Virginia Creeper, the Tweetsie, the Huckleberry, the Mendota and
