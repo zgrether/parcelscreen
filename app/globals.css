@@ -7341,3 +7341,52 @@ button.sync-ind.bad {
 .card-row.set-aside .row-detail {
   color: var(--color-ink-2);
 }
+/* Adjust for this parcel, in a row's panel (step 12): letter chips and buttons at 44 px, the reason field full width. */
+.card-panel .adjust {
+  border-top: 1px solid var(--color-rule);
+  margin: 12px 0;
+  padding-top: 8px;
+}
+.card-panel .adjust h3 {
+  margin: 0 0 8px;
+}
+.adjust-choices,
+.adjust-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.adjust-letters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+.adjust-letters .tiny {
+  width: 100%;
+}
+.adjust-letters .chip,
+.adjust .btn {
+  min-width: 44px;
+  min-height: 44px;
+}
+.adjust-form label {
+  display: block;
+  margin: 6px 0 4px;
+  font-weight: 600;
+}
+.adjust-form textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  field-sizing: content;
+  font: inherit;
+}
+.adjust-form .adjust-actions {
+  margin-top: 8px;
+}
+.adjust-now q {
+  font-style: italic;
+}

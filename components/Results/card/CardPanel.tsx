@@ -29,6 +29,8 @@ import { M2FT } from "@/lib/screen/util";
 import { Facts } from "../blocks/shared";
 import type { EvaluationPoint } from "../blocks/types";
 import { panelSections } from "./panelBlocks";
+import { AdjustSection, type AdjustProps } from "./AdjustSection";
+import { SET_ASIDE_READING } from "@/lib/report/adjustWords";
 
 export const FROM_THE_REPORT_NOTE =
   "The original report, kept for reference. Its 'overall' score mixes site quality with build cost; the card above grades quality only.";
@@ -78,6 +80,9 @@ function reading(key: PanelKey, card: Card): { mark: string; tone: string; text:
     // No letter or mark of its own: the lines carry their budgets' marks.
     return { mark: "", tone: "g-none", text };
   }
+  // Step 12: set aside on this parcel, with its reason.
+  const aside = card.setAside?.find((x) => x.key === key);
+  if (aside) return { mark: "–", tone: "g-none", text: SET_ASIDE_READING(aside.reason) };
   const gate = card.gates.find((g) => g.key === key);
   if (gate) return { mark: STATUS[gate.status], tone: `gate ${gate.status}`, text: `${gate.reason}.` };
   const row = card.rows.find((r) => r.key === key);
@@ -99,6 +104,7 @@ export function CardPanel({
   about,
   lines,
   lineNames,
+  adjust = null,
   onClose,
 }: {
   panel: PanelKey;
@@ -118,6 +124,8 @@ export function CardPanel({
   lines?: YourLines;
   /** The parcel's names for its drawn lines, for the report's sentences (owner, 2026-10-14); `card` uses the same. */
   lineNames?: LineNames;
+  /** Step 12: Adjust for this parcel, where it applies (AdjustSection.tsx adjustPropsFor). */
+  adjust?: AdjustProps | null;
   onClose(): void;
 }) {
   const help = useHelp();
@@ -189,6 +197,7 @@ export function CardPanel({
           />
         )}
         <PanelFlags flags={flagsOf(result).filter((f) => panel !== "verdict" && panelOfFlag(f) === panel)} />
+        {adjust && <AdjustSection key={panel} {...adjust} />}
         <p className="tiny muted panel-scored">
           {/* To this panel's section of the rulebook, in the app: Back returns to the map with the report open. */}
           <Link href={rulebookHref(panel)}>How it&apos;s scored</Link>: {t.howScored}

@@ -65,7 +65,16 @@ import { Others } from "@/components/Household/Others";
 import { AgentQuestions } from "../answer/AgentQuestions";
 import { BestHomesite } from "../answer/BestHomesite";
 import { FullReport } from "../answer/FullReport";
-import { adjustFor, useHousehold, useSeeTakes } from "@/lib/client/householdDoc";
+import {
+  adjustFor,
+  adjustParcel,
+  householdDoc,
+  removeAdjust,
+  restoreAdjust,
+  useHousehold,
+  useSeeTakes,
+} from "@/lib/client/householdDoc";
+import { adjustPropsFor } from "@/components/Results/card/AdjustSection";
 import { OFFLINE_SCREEN_TEXT } from "@/lib/client/pwa";
 import { Star } from "@/components/Favorites/Star";
 import { PanelMenu } from "@/components/Report/PanelMenu";
@@ -779,6 +788,15 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
           card={reportCard(display, s.rubric, drawnFor(s))}
           result={display}
           lineNames={namesOf(s)}
+          adjust={adjustPropsFor(
+            panel,
+            s.ctl.state.store.open?.key,
+            currentProfileId(),
+            // What the app says without the person's adjustments.
+            reportCard(display, s.rubric, { ...drawnFor(s)!, adjust: undefined }),
+            (key) => householdDoc().adjusts.find((a) => a.key === key) ?? null,
+            { save: adjustParcel, remove: removeAdjust, restore: restoreAdjust },
+          )}
           point={point}
           running={running}
           noteFor={(slug) =>
