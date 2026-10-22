@@ -10,6 +10,7 @@ import { drawnOf } from "@/lib/report/marks";
 import { DEFAULT_RATES } from "@/lib/config/costs";
 import { COST_WORDS } from "@/lib/report/cost";
 import { Full, FULL_WORDS } from "./Full";
+import { CLIMATE_SOURCES } from "@/lib/report/climate";
 
 const text = (html: string) =>
   html
@@ -75,6 +76,7 @@ describe("Full (plan §3)", () => {
       FULL_WORDS.sky,
       FULL_WORDS.soils,
       FULL_WORDS.drives,
+      FULL_WORDS.climate, // step 11
       FULL_WORDS.listing,
       FULL_WORDS.lines,
       FULL_WORDS.sources,
@@ -84,6 +86,9 @@ describe("Full (plan §3)", () => {
     expect(t).toContain("Legal road access: Frontage on an unnamed road");
     expect(t).toContain("Light pollution atlas (D. Lorenz, 2025)");
     expect(t).toContain("OSRM drive times: as of Oct 20, 2026");
+    // Step 11: the climate snapshots carry their own dates.
+    expect(t).toContain(`Climate: ${CLIMATE_SOURCES}`);
+    expect(t).not.toContain(`${CLIMATE_SOURCES}: as of`);
     expect(t).toContain(FULL_WORDS.engine(ROAN.engine));
     expect(t).not.toMatch(/cost to enjoy|raise the grade/i);
   });

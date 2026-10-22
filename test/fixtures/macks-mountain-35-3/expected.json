@@ -4045,6 +4045,12 @@
     "fit": "fits",
     "gentleNearAc": 1.2644044557930019,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.1,
+     "julHighF": 78.9,
+     "station": "USC00446955",
+     "stationMi": 11.9
+    },
     "driveway": {
      "lengthFt": 1135.1466120473292,
      "cost": {
@@ -4101,6 +4107,12 @@
     "fit": "fits",
     "gentleNearAc": 0.39263085732519537,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.4,
+     "julHighF": 79.9,
+     "station": "USC00446955",
+     "stationMi": 12.3
+    },
     "driveway": {
      "lengthFt": 3604.400930375693,
      "cost": {
@@ -4157,6 +4169,12 @@
     "fit": "fits",
     "gentleNearAc": 1.6880908611552183,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.7,
+     "julHighF": 79.2,
+     "station": "USC00446955",
+     "stationMi": 12.1
+    },
     "driveway": {
      "lengthFt": 1672.1978006361178,
      "cost": {
@@ -4213,6 +4231,12 @@
     "fit": "fits",
     "gentleNearAc": 0.3793213367379005,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.7,
+     "julHighF": 80.2,
+     "station": "USC00446955",
+     "stationMi": 12.4
+    },
     "driveway": {
      "lengthFt": 4098.449953086412,
      "cost": {
@@ -4271,6 +4295,12 @@
     "fit": "fits",
     "gentleNearAc": 1.0115235646344014,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.3,
+     "julHighF": 79.1,
+     "station": "USC00446955",
+     "stationMi": 11.9
+    },
     "driveway": {
      "lengthFt": 690.6425072846655,
      "cost": {
@@ -4329,6 +4359,12 @@
     "fit": "fits",
     "gentleNearAc": 0.995995790615891,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.1,
+     "julHighF": 78.9,
+     "station": "USC00446955",
+     "stationMi": 11.9
+    },
     "driveway": {
      "lengthFt": 505.59542956791387,
      "cost": {
@@ -4385,6 +4421,12 @@
     "fit": "fits",
     "gentleNearAc": 0.523507809766927,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.4,
+     "julHighF": 79.9,
+     "station": "USC00446955",
+     "stationMi": 12
+    },
     "driveway": {
      "lengthFt": 2035.873568722586,
      "cost": {
@@ -4443,6 +4485,12 @@
     "fit": "fits",
     "gentleNearAc": 2.20938041749093,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.9,
+     "julHighF": 79.4,
+     "station": "USC00446955",
+     "stationMi": 12.1
+    },
     "driveway": {
      "lengthFt": 2104.48812661335,
      "cost": {
@@ -4460,6 +4508,20 @@
     }
    }
   ],
+  "climate": {
+   "outside": false,
+   "stations": [
+    {
+     "id": "USC00446955",
+     "name": "Pulaski 2 E, VA",
+     "elevFt": 2080,
+     "snowIn": 15.8,
+     "lastFreeze": "04-25",
+     "firstFreeze": "10-17",
+     "frostFreeDays": 175
+    }
+   ]
+  },
   "driveway": {
    "toLabel": "site #1",
    "entrances": [
@@ -6211,7 +6273,7 @@
    "er": null
   },
   "schemaVersion": 9,
-  "engine": 22,
+  "engine": 23,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -10262,6 +10324,12 @@
     "fit": "fits",
     "gentleNearAc": 1.2644044557930019,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.1,
+     "julHighF": 78.9,
+     "station": "USC00446955",
+     "stationMi": 11.9
+    },
     "driveway": {
      "lengthFt": 1135.1466120473292,
      "cost": {
@@ -10318,6 +10386,12 @@
     "fit": "fits",
     "gentleNearAc": 0.39263085732519537,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.4,
+     "julHighF": 79.9,
+     "station": "USC00446955",
+     "stationMi": 12.3
+    },
     "driveway": {
      "lengthFt": 3604.400930375693,
      "cost": {
@@ -10374,6 +10448,12 @@
     "fit": "fits",
     "gentleNearAc": 1.6880908611552183,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.7,
+     "julHighF": 79.2,
+     "station": "USC00446955",
+     "stationMi": 12.1
+    },
     "driveway": {
      "lengthFt": 1672.1978006361178,
      "cost": {
@@ -10430,6 +10510,12 @@
     "fit": "fits",
     "gentleNearAc": 0.3793213367379005,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.7,
+     "julHighF": 80.2,
+     "station": "USC00446955",
+     "stationMi": 12.4
+    },
     "driveway": {
      "lengthFt": 4098.449953086412,
      "cost": {
@@ -10488,6 +10574,12 @@
     "fit": "fits",
     "gentleNearAc": 1.0115235646344014,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.3,
+     "julHighF": 79.1,
+     "station": "USC00446955",
+     "stationMi": 11.9
+    },
     "driveway": {
      "lengthFt": 690.6425072846655,
      "cost": {
@@ -10546,6 +10638,12 @@
     "fit": "fits",
     "gentleNearAc": 0.995995790615891,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.1,
+     "julHighF": 78.9,
+     "station": "USC00446955",
+     "stationMi": 11.9
+    },
     "driveway": {
      "lengthFt": 505.59542956791387,
      "cost": {
@@ -10602,6 +10700,12 @@
     "fit": "fits",
     "gentleNearAc": 0.523507809766927,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.4,
+     "julHighF": 79.9,
+     "station": "USC00446955",
+     "stationMi": 12
+    },
     "driveway": {
      "lengthFt": 2035.873568722586,
      "cost": {
@@ -10660,6 +10764,12 @@
     "fit": "fits",
     "gentleNearAc": 2.20938041749093,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.9,
+     "julHighF": 79.4,
+     "station": "USC00446955",
+     "stationMi": 12.1
+    },
     "driveway": {
      "lengthFt": 2104.48812661335,
      "cost": {
@@ -10677,6 +10787,20 @@
     }
    }
   ],
+  "climate": {
+   "outside": false,
+   "stations": [
+    {
+     "id": "USC00446955",
+     "name": "Pulaski 2 E, VA",
+     "elevFt": 2080,
+     "snowIn": 15.8,
+     "lastFreeze": "04-25",
+     "firstFreeze": "10-17",
+     "frostFreeDays": 175
+    }
+   ]
+  },
   "driveway": {
    "toLabel": "site #1",
    "entrances": [
@@ -12448,7 +12572,7 @@
    "er": null
   },
   "schemaVersion": 9,
-  "engine": 22,
+  "engine": 23,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

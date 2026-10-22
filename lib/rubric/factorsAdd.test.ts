@@ -1,7 +1,7 @@
 /** Step 11's new factors added once to saved priorities (plan §1, §5): Hospital takes Town's place (§2.1). */
 import { describe, expect, it } from "vitest";
 import { defaultRubric, rubricFromWeights } from "./default";
-import { withFactor, withNewFactors, withoutFactor } from "./factorsAdd";
+import { NEW_FACTORS, withFactor, withNewFactors, withoutFactor } from "./factorsAdd";
 import type { Rubric, RowKey } from "./types";
 import { weightsOf } from "./weights";
 import { SCREEN_CONSTANTS } from "../screen/config";
@@ -10,7 +10,7 @@ import { SCREEN_CONSTANTS } from "../screen/config";
 const OLD_WEIGHTS = { ...SCREEN_CONSTANTS.card.weights.default, town: 5, hospital: 0 };
 const OLD_START: Rubric = (() => {
   const r = rubricFromWeights(OLD_WEIGHTS);
-  return { ...r, wonts: r.wonts.filter((k) => k !== "hospital") };
+  return { ...r, wonts: r.wonts.filter((k) => !(NEW_FACTORS as readonly string[]).includes(k)) };
 })();
 
 /** A rank-sum list saved before step 11, Town in Really want with an ER limit. */
@@ -55,7 +55,7 @@ describe("Hospital, split from Town (plan §2.1)", () => {
   });
 
   it("the starting list as saved before it becomes today's starting list, and grades the same", () => {
-    const r = withFactor(OLD_START, "hospital")!;
+    const r = withNewFactors(OLD_START, {}).rubric;
     expect(r).toEqual(defaultRubric());
     const w = weightsOf(r) as Record<RowKey, number>;
     expect([w.hospital, w.town]).toEqual([5, 0]);
@@ -64,8 +64,8 @@ describe("Hospital, split from Town (plan §2.1)", () => {
   it("once: a rubric that places it already gets nothing", () => {
     expect(withFactor(defaultRubric(), "hospital")).toBeNull();
     expect(withFactor(withFactor(SAVED, "hospital")!, "hospital")).toBeNull();
-    expect(withNewFactors(SAVED, { hospital: "undone" }).added).toEqual([]);
-    expect(withNewFactors(SAVED, {}).added).toEqual(["hospital"]);
+    expect(withNewFactors(SAVED, { hospital: "undone" }).added).not.toContain("hospital");
+    expect(withNewFactors(SAVED, {}).added).toEqual(NEW_FACTORS);
   });
 
   it("Undo: Hospital to Don't care; on the starting list, Town's weight and card come back", () => {
@@ -77,6 +77,6 @@ describe("Hospital, split from Town (plan §2.1)", () => {
     const start = withoutFactor(defaultRubric(), "hospital");
     expect(order(start)).toEqual(order(OLD_START));
     expect(weightsOf(start)).toMatchObject({ town: 5, hospital: 0 });
-    expect(start.wonts).toEqual(["driveway", "hospital"]);
+    expect(start.wonts).toEqual(["driveway", "climate", "hospital"]);
   });
 });

@@ -4,10 +4,14 @@
  * Hospital's split from Town (§2.1), which takes Town's place because Town graded the ER until then. Pure;
  * lib/client/factorsAdd.ts applies it at boot and keeps the notice's state.
  */
+import { SCREEN_CONSTANTS } from "../screen/config";
+import { setBandEdge } from "./edit";
+import type { InterviewAnswers } from "./interview/answers";
+import { climateLimits } from "./interview/generate";
 import type { RankedCard, RowKey, Rubric } from "./types";
 
 /** The factors step 11 added, in the order they shipped (plan §11). Each factor's PR appends its own. */
-export const NEW_FACTORS = ["hospital"] as const satisfies readonly RowKey[];
+export const NEW_FACTORS = ["hospital", "climate"] as const satisfies readonly RowKey[];
 export type NewFactor = (typeof NEW_FACTORS)[number];
 
 /** Each new factor's state: "new" until What matters has shown the notice, then "seen"; "undone" after its Undo. */
@@ -18,15 +22,58 @@ export const places = (r: Rubric, f: RowKey): boolean =>
   r.ranked.some((c) => c.factor === f) || r.wonts.includes(f) || r.musts.some((m) => m.factor === f);
 
 /**
- * The rubric with the factor added, or null when it already has it. Hospital follows Town's card; the factors that
- * follow it in step 11 take the person's answers (plan §5).
+ * The interview question each factor's limits come from, where it's new in step 11 (plan §1): the notice links to it
+ * ("Answer the new questions"). The factors placed from questions the interview already asked aren't listed.
  */
-export function withFactor(r: Rubric, f: NewFactor): Rubric | null {
+export const NEW_QUESTION: Partial<Record<NewFactor, keyof InterviewAnswers>> = { climate: "climate" };
+
+/**
+ * The rubric with the factor added, or null when it already has it. Hospital follows Town's card; the others are
+ * placed from the person's answers (plan §5).
+ */
+export function withFactor(r: Rubric, f: NewFactor, answers: InterviewAnswers = {}): Rubric | null {
   if (places(r, f)) return null;
   switch (f) {
     case "hospital":
       return withHospital(r);
+    case "climate":
+      return withClimate(r, answers);
   }
+}
+
+/** A card at the bottom of Really want: after the last Really want card. */
+function lastShould(r: Rubric, factor: RowKey): Rubric {
+  const at = r.ranked.findLastIndex((c) => c.tier === "should");
+  const card: RankedCard = { factor, tier: "should" };
+  return { ...r, ranked: [...r.ranked.slice(0, at + 1), card, ...r.ranked.slice(at + 1)] };
+}
+
+/**
+ * Climate (plan §2.2, §5): question 1 answered with a year (not "Either") places it at the bottom of Really want, its
+ * limits from the follow-ups or the year's preset; otherwise Don't care, at the starting list's limits. On explicit
+ * weights (the starting list) it stays Don't care: a card there needs a weight the list doesn't have.
+ */
+function withClimate(r: Rubric, a: InterviewAnswers): Rubric {
+  const I = SCREEN_CONSTANTS.card.interview;
+  const { winter, summer } = climateLimits(a);
+  let out: Rubric = { ...r, bands: { ...r.bands } };
+  if (winter) out = setBandEdge(out, "janLowF", I.choices.winter[winter].edges.janLowF);
+  if (summer) out = setBandEdge(out, "julHighF", I.choices.summer[summer].edges.julHighF);
+  const placed = !!a.climate && a.climate !== "either" && r.weights.mode === "rankSum";
+  return placed ? lastShould(out, "climate") : { ...out, wonts: [...out.wonts, "climate"] };
+}
+
+/**
+ * The factor placed again from the answers, after the person answered its new question (the notice's link): taken out
+ * of every list, then added as at first. Its limits move with the answers; nothing else does.
+ */
+export function placedAgain(r: Rubric, f: NewFactor, answers: InterviewAnswers): Rubric {
+  const out: Rubric = {
+    ...r,
+    ranked: r.ranked.filter((c) => c.factor !== f),
+    wonts: r.wonts.filter((k) => k !== f),
+  };
+  return withFactor(out, f, answers) ?? r;
 }
 
 /**
@@ -81,12 +128,16 @@ export function withoutFactor(r: Rubric, f: NewFactor): Rubric {
 }
 
 /** The rubric with every factor not yet added (no mark) added; the factors it added, in NEW_FACTORS' order. */
-export function withNewFactors(r: Rubric, marks: FactorsAdded): { rubric: Rubric; added: NewFactor[] } {
+export function withNewFactors(
+  r: Rubric,
+  marks: FactorsAdded,
+  answers: InterviewAnswers = {},
+): { rubric: Rubric; added: NewFactor[] } {
   let rubric = r;
   const added: NewFactor[] = [];
   for (const f of NEW_FACTORS) {
     if (marks[f]) continue;
-    const next = withFactor(rubric, f);
+    const next = withFactor(rubric, f, answers);
     if (!next) continue;
     rubric = next;
     added.push(f);

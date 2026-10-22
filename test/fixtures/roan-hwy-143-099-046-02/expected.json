@@ -1693,6 +1693,12 @@
     "fit": "fits",
     "gentleNearAc": 0.5416696739173056,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.6,
+     "julHighF": 80.7,
+     "station": "USC00313072",
+     "stationMi": 10.1
+    },
     "driveway": {
      "lengthFt": 2367.2349613551137,
      "cost": {
@@ -1750,6 +1756,12 @@
     "fit": "fits",
     "gentleNearAc": 0.12381021118109842,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.6,
+     "julHighF": 80.7,
+     "station": "USC00313072",
+     "stationMi": 10.1
+    },
     "driveway": {
      "lengthFt": 2011.932616977945,
      "cost": {
@@ -1809,6 +1821,12 @@
     "fit": "fits",
     "gentleNearAc": 0.4819754649549902,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.5,
+     "julHighF": 80.6,
+     "station": "USC00313072",
+     "stationMi": 10.1
+    },
     "driveway": {
      "lengthFt": 2185.121387261132,
      "cost": {
@@ -1868,6 +1886,12 @@
     "fit": "house only",
     "gentleNearAc": 0.1569736606046069,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 22.9,
+     "julHighF": 80,
+     "station": "USC00313072",
+     "stationMi": 10.1
+    },
     "driveway": {
      "lengthFt": 652.0596821640069,
      "cost": {
@@ -1885,6 +1909,20 @@
     }
    }
   ],
+  "climate": {
+   "outside": false,
+   "stations": [
+    {
+     "id": "USC00313072",
+     "name": "Flat Springs 1E, NC",
+     "elevFt": 3330,
+     "snowIn": 48.2,
+     "lastFreeze": "04-18",
+     "firstFreeze": "10-24",
+     "frostFreeDays": 188
+    }
+   ]
+  },
   "driveway": {
    "toLabel": "site #1",
    "entrances": [
@@ -5045,7 +5083,7 @@
    "er": null
   },
   "schemaVersion": 9,
-  "engine": 22,
+  "engine": 23,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -6744,6 +6782,12 @@
     "fit": "fits",
     "gentleNearAc": 0.5416696739173056,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.6,
+     "julHighF": 80.7,
+     "station": "USC00313072",
+     "stationMi": 10.1
+    },
     "driveway": {
      "lengthFt": 2367.2349613551137,
      "cost": {
@@ -6801,6 +6845,12 @@
     "fit": "fits",
     "gentleNearAc": 0.12381021118109842,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.6,
+     "julHighF": 80.7,
+     "station": "USC00313072",
+     "stationMi": 10.1
+    },
     "driveway": {
      "lengthFt": 2011.932616977945,
      "cost": {
@@ -6860,6 +6910,12 @@
     "fit": "fits",
     "gentleNearAc": 0.4819754649549902,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 23.5,
+     "julHighF": 80.6,
+     "station": "USC00313072",
+     "stationMi": 10.1
+    },
     "driveway": {
      "lengthFt": 2185.121387261132,
      "cost": {
@@ -6919,6 +6975,12 @@
     "fit": "house only",
     "gentleNearAc": 0.1569736606046069,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 22.9,
+     "julHighF": 80,
+     "station": "USC00313072",
+     "stationMi": 10.1
+    },
     "driveway": {
      "lengthFt": 652.0596821640069,
      "cost": {
@@ -6936,6 +6998,20 @@
     }
    }
   ],
+  "climate": {
+   "outside": false,
+   "stations": [
+    {
+     "id": "USC00313072",
+     "name": "Flat Springs 1E, NC",
+     "elevFt": 3330,
+     "snowIn": 48.2,
+     "lastFreeze": "04-18",
+     "firstFreeze": "10-24",
+     "frostFreeDays": 188
+    }
+   ]
+  },
   "driveway": {
    "toLabel": "site #2",
    "entrances": [
@@ -9789,7 +9865,7 @@
    "er": null
   },
   "schemaVersion": 9,
-  "engine": 22,
+  "engine": 23,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

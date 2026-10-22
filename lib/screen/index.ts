@@ -37,6 +37,7 @@ import { floodStep, sfhaMask, type FloodFeature } from "./flood";
 import { nearStep } from "./near";
 import { padusStep } from "./padus";
 import type { HospitalCandidate, HospitalSource } from "./hospitals";
+import { loadClimate, withClimate, type ClimateSource } from "./climate";
 import { OverpassMirrors, type OverpassFallback } from "./places";
 import type { OsmWay } from "./osmRoads";
 import { drawnGrid, insideWithLines, measureLines } from "./drawn";
@@ -108,6 +109,8 @@ export interface ScreenDeps {
   overpass?: OverpassFallback;
   /** The hospital snapshot (A2c); injectable so tests can make it fail. Defaults to the committed one. */
   hospitals?: HospitalSource;
+  /** The climate snapshot (step 11); injectable as the hospitals' is. Defaults to the committed one. */
+  climate?: ClimateSource;
   /** The browser's OSM roads query (VR3a, through /api/places/overpass); Node calls the mirrors directly. */
   osmRoads?: (centre: LatLon, signal?: AbortSignal) => Promise<OsmWay[]>;
   /** The browser's trailhead parking query (follow-up 54, the same route); Node calls the mirrors directly. */
@@ -468,6 +471,8 @@ export async function screen(
       );
     R.sites = sites;
     if (R.shelves) R.shelves = shelvesFromBest(R.shelves, sites);
+    // Step 11 (plan §2.2): each spot's climate, from the committed snapshot; without it, the card says "not measured".
+    Object.assign(R, withClimate(await (deps.climate ?? loadClimate)(), R));
     return message;
   });
 
@@ -965,14 +970,14 @@ export async function setHouse(out: ScreenOutput, ll: LatLon | null): Promise<Sc
     house,
     "the existing house",
   );
-  if (!done.result.driveway || "outside" in assessed) return done;
+  if (!done.result.driveway || "outside" in assessed)
+    return { ...done, result: { ...done.result, ...withClimate(await loadClimate(), done.result) } };
   const rc = routeContext(done.session);
   const hr = houseRoutes(rc, s.roads ?? [], s.parcel, house, s.config.roadMaxGradePct);
   const alt = alternativesFor(rc, done.session, [house], [hr])[0];
-  return {
-    ...done,
-    result: { ...done.result, house: storedHouse(houseWithDriveway(ctx, assessed, hr, alt)) },
-  };
+  const result = { ...done.result, house: storedHouse(houseWithDriveway(ctx, assessed, hr, alt)) };
+  // Step 11: the house's climate, as every site's (the stations are the result's, so they're read again).
+  return { ...done, result: { ...result, ...withClimate(await loadClimate(), result) } };
 }
 
 /** The existing house's two candidate driveways (A4), as every ranked site's. */

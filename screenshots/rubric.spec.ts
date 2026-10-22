@@ -115,14 +115,14 @@ for (const phone of [false, true]) {
 
     test("a row on Must have: its limit badge and its limit card", async ({ page }) => {
       await openRubric(page);
-      await card(page, "Town and hospital").locator(".rubric-card-body").click();
+      await card(page, "Hospital").locator(".rubric-card-body").click();
       await sheet(page).getByRole("button", { name: "Must have" }).click();
       await page.keyboard.press("Escape");
       await expect(page.locator(".rubric-card .rubric-min-badge").first()).toBeVisible();
       await scrollTo(page, phone ? column(page, "Must have") : page.locator(".rubric-bar"));
       await shot(page, "7-min");
       if (phone) {
-        await scrollTo(page, card(page, "Town and hospital").last());
+        await scrollTo(page, card(page, "Hospital").last());
         await shot(page, "8-min-badge");
       }
     });

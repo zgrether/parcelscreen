@@ -2085,6 +2085,12 @@
     "fit": "fits",
     "gentleNearAc": 4.288248313496763,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.9,
+     "julHighF": 80.6,
+     "station": "USC00445453",
+     "stationMi": 15.3
+    },
     "driveway": {
      "lengthFt": 478.0716692682822,
      "cost": {
@@ -2142,6 +2148,12 @@
     "fit": "fits",
     "gentleNearAc": 2.5095998652850375,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.6,
+     "julHighF": 81,
+     "station": "USC00445453",
+     "stationMi": 15.4
+    },
     "driveway": {
      "lengthFt": 1985.2866327034553,
      "cost": {
@@ -2202,6 +2214,12 @@
     "fit": "fits",
     "gentleNearAc": 1.0388370139617675,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 25.1,
+     "julHighF": 80.6,
+     "station": "USC00445453",
+     "stationMi": 15.3
+    },
     "driveway": {
      "lengthFt": 1181.0896518703828,
      "cost": {
@@ -2260,6 +2278,12 @@
     "fit": "fits",
     "gentleNearAc": 2.467514783695968,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 25,
+     "julHighF": 80.4,
+     "station": "USC00445453",
+     "stationMi": 15.3
+    },
     "driveway": {
      "lengthFt": 269.14711227469934,
      "cost": {
@@ -2313,6 +2337,12 @@
     "fit": "fits",
     "gentleNearAc": 1.6080931175612863,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.4,
+     "julHighF": 80.8,
+     "station": "USC00445453",
+     "stationMi": 15.3
+    },
     "driveway": {
      "lengthFt": 1431.634503350094,
      "cost": {
@@ -2331,6 +2361,20 @@
     "driveFt": 1431.634503350094
    }
   ],
+  "climate": {
+   "outside": false,
+   "stations": [
+    {
+     "id": "USC00445453",
+     "name": "Meadows Of Dan 5 SW, VA",
+     "elevFt": 2225,
+     "snowIn": 7.1,
+     "lastFreeze": "04-21",
+     "firstFreeze": "10-25",
+     "frostFreeDays": 185
+    }
+   ]
+  },
   "driveway": {
    "toLabel": "site #1",
    "entrances": [
@@ -3260,7 +3304,7 @@
   },
   "closerGrocery": null,
   "schemaVersion": 9,
-  "engine": 22,
+  "engine": 23,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -5366,7 +5410,13 @@
      "existing": null,
      "noPractical": false
     },
-    "driveFt": 478.0716692682822
+    "driveFt": 478.0716692682822,
+    "climate": {
+     "janLowF": 24.9,
+     "julHighF": 80.6,
+     "station": "USC00445453",
+     "stationMi": 15.3
+    }
    },
    {
     "rank": 2,
@@ -5422,6 +5472,12 @@
      "designPct": null,
      "existing": null,
      "noPractical": false
+    },
+    "climate": {
+     "janLowF": 24.6,
+     "julHighF": 81,
+     "station": "USC00445453",
+     "stationMi": 15.4
     }
    },
    {
@@ -5482,6 +5538,12 @@
      "designPct": null,
      "existing": null,
      "noPractical": false
+    },
+    "climate": {
+     "janLowF": 25.1,
+     "julHighF": 80.6,
+     "station": "USC00445453",
+     "stationMi": 15.3
     }
    },
    {
@@ -5540,6 +5602,12 @@
      "designPct": null,
      "existing": null,
      "noPractical": false
+    },
+    "climate": {
+     "janLowF": 25,
+     "julHighF": 80.4,
+     "station": "USC00445453",
+     "stationMi": 15.3
     }
    },
    {
@@ -5594,9 +5662,29 @@
      "existing": null,
      "noPractical": false
     },
-    "driveFt": 1431.634503350094
+    "driveFt": 1431.634503350094,
+    "climate": {
+     "janLowF": 24.4,
+     "julHighF": 80.8,
+     "station": "USC00445453",
+     "stationMi": 15.3
+    }
    }
   ],
+  "climate": {
+   "outside": false,
+   "stations": [
+    {
+     "id": "USC00445453",
+     "name": "Meadows Of Dan 5 SW, VA",
+     "elevFt": 2225,
+     "snowIn": 7.1,
+     "lastFreeze": "04-21",
+     "firstFreeze": "10-25",
+     "frostFreeDays": 185
+    }
+   ]
+  },
   "driveway": {
    "toLabel": "the existing house",
    "entrances": [
@@ -8002,7 +8090,7 @@
   },
   "closerGrocery": null,
   "schemaVersion": 9,
-  "engine": 22,
+  "engine": 23,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -8058,6 +8146,12 @@
     "designPct": null,
     "existing": null,
     "noPractical": false
+   },
+   "climate": {
+    "janLowF": 24.5,
+    "julHighF": 80.9,
+    "station": "USC00445453",
+    "stationMi": 15.4
    }
   }
  },
@@ -10149,6 +10243,12 @@
    "roadRunFt": 292.97635408085887,
    "roadName": "unnamed road",
    "driveFt": 1487.4399249961073,
+   "climate": {
+    "janLowF": 24.5,
+    "julHighF": 80.9,
+    "station": "USC00445453",
+    "stationMi": 15.4
+   },
    "driveway": {
     "lengthFt": 1487.4399249961073,
     "cost": {
@@ -10201,6 +10301,12 @@
     "fit": "fits",
     "gentleNearAc": 4.288248313496763,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.9,
+     "julHighF": 80.6,
+     "station": "USC00445453",
+     "stationMi": 15.3
+    },
     "driveway": {
      "lengthFt": 478.0716692682822,
      "cost": {
@@ -10258,6 +10364,12 @@
     "fit": "fits",
     "gentleNearAc": 2.5095998652850375,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.6,
+     "julHighF": 81,
+     "station": "USC00445453",
+     "stationMi": 15.4
+    },
     "driveway": {
      "lengthFt": 1985.2866327034553,
      "cost": {
@@ -10318,6 +10430,12 @@
     "fit": "fits",
     "gentleNearAc": 1.0388370139617675,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 25.1,
+     "julHighF": 80.6,
+     "station": "USC00445453",
+     "stationMi": 15.3
+    },
     "driveway": {
      "lengthFt": 1181.0896518703828,
      "cost": {
@@ -10376,6 +10494,12 @@
     "fit": "fits",
     "gentleNearAc": 2.467514783695968,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 25,
+     "julHighF": 80.4,
+     "station": "USC00445453",
+     "stationMi": 15.3
+    },
     "driveway": {
      "lengthFt": 269.14711227469934,
      "cost": {
@@ -10429,6 +10553,12 @@
     "fit": "fits",
     "gentleNearAc": 1.6080931175612863,
     "sfhaOnSite": false,
+    "climate": {
+     "janLowF": 24.4,
+     "julHighF": 80.8,
+     "station": "USC00445453",
+     "stationMi": 15.3
+    },
     "driveway": {
      "lengthFt": 1431.634503350094,
      "cost": {
@@ -10447,6 +10577,20 @@
     "driveFt": 1431.634503350094
    }
   ],
+  "climate": {
+   "outside": false,
+   "stations": [
+    {
+     "id": "USC00445453",
+     "name": "Meadows Of Dan 5 SW, VA",
+     "elevFt": 2225,
+     "snowIn": 7.1,
+     "lastFreeze": "04-21",
+     "firstFreeze": "10-25",
+     "frostFreeDays": 185
+    }
+   ]
+  },
   "driveway": {
    "toLabel": "the existing house",
    "entrances": [
@@ -12852,7 +12996,7 @@
   },
   "closerGrocery": null,
   "schemaVersion": 9,
-  "engine": 22,
+  "engine": 23,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

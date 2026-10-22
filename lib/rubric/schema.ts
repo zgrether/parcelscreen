@@ -24,6 +24,9 @@ const BandsSchema = z.strictObject({
   gardenAc: z.array(num),
   // Step 7: an added field. A rubric saved before it reads the starting list's band (REQUIREMENTS §3a's rule).
   drivewayPct: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.drivewayPct]),
+  // Step 11: Climate's, added the same way.
+  janLowF: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.janLowF]),
+  julHighF: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.julHighF]),
 });
 
 /** Explicit weights by row. A row a saved rubric has no weight for (the Driveway row, step 7) weighs 0. */

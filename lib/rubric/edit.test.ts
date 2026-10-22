@@ -43,7 +43,7 @@ describe("the columns", () => {
       must: ["floodplain", "access", "easement", "septic"],
       should: ["elevation", "homesite", "room", "sky", "trails", "garden", "hospital"],
       could: [],
-      wont: ["driveway", "town"],
+      wont: ["driveway", "town", "climate"],
     });
   });
 
@@ -54,7 +54,7 @@ describe("the columns", () => {
     });
     const out = ok(moveCard(D, { kind: "factor", factor: "access" }, "wont"));
     expect(names(out.rubric).must).toEqual(["floodplain", "easement", "septic"]);
-    expect(names(out.rubric).wont).toEqual(["access", "driveway", "town"]);
+    expect(names(out.rubric).wont).toEqual(["access", "driveway", "town", "climate"]);
     expect(out.rubric.weights).toEqual(D.weights); // not a reorder
     const back = ok(moveCard(out.rubric, { kind: "factor", factor: "access" }, "must"));
     expect(names(back.rubric).must).toEqual(["floodplain", "access", "easement", "septic"]);
@@ -96,7 +96,7 @@ describe("the columns", () => {
   it("a row moved to Won't leaves the grade and takes its minimum with it; explicit weights stay", () => {
     const withMin = ok(moveCard(D, { kind: "factor", factor: "garden" }, "must")).rubric;
     const out = ok(moveCard(withMin, { kind: "factor", factor: "garden" }, "wont"));
-    expect(names(out.rubric).wont).toEqual(["driveway", "town", "garden"]);
+    expect(names(out.rubric).wont).toEqual(["driveway", "town", "climate", "garden"]);
     expect(names(out.rubric).should).not.toContain("garden");
     expect(hasMinimum(out.rubric, "garden")).toBe(false);
     expect(out.rubric.weights.mode).toBe("explicit");
@@ -130,6 +130,7 @@ describe("the weights: explicit until the first reorder, then rank-sum at once (
       ["town", 0, 0],
       ["hospital", 5, 3.6],
       ["garden", 10, 7.1],
+      ["climate", 0, 0],
     ]);
     const second = ok(moveCard(first.rubric, { kind: "factor", factor: "hospital" }, "could"));
     expect(second.switched).toBeUndefined();
@@ -155,6 +156,7 @@ describe("the weights: explicit until the first reorder, then rank-sum at once (
       town: 0,
       hospital: 3.6,
       garden: 7.1,
+      climate: 0,
       budget: 0,
     });
     const pts = (slug: Parameters<typeof expectedOf>[0], r: Rubric) => {

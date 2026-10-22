@@ -1284,6 +1284,58 @@
         }
       ]
     },
+    "climate": {
+      "type": "object",
+      "properties": {
+        "outside": {
+          "type": "boolean"
+        },
+        "stations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "elevFt": {
+                "type": "number"
+              },
+              "snowIn": {
+                "type": "number"
+              },
+              "lastFreeze": {
+                "type": "string"
+              },
+              "firstFreeze": {
+                "type": "string"
+              },
+              "frostFreeDays": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "elevFt",
+              "snowIn",
+              "lastFreeze",
+              "firstFreeze",
+              "frostFreeDays"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "outside",
+        "stations"
+      ],
+      "additionalProperties": false
+    },
     "excluded": {
       "type": "array",
       "items": {
@@ -1535,6 +1587,36 @@
                 "type": "null"
               }
             ]
+          },
+          "climate": {
+            "type": "object",
+            "properties": {
+              "janLowF": {
+                "type": "number"
+              },
+              "julHighF": {
+                "type": "number"
+              },
+              "station": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "stationMi": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "janLowF",
+              "julHighF",
+              "station",
+              "stationMi"
+            ],
+            "additionalProperties": false
           },
           "practical": {
             "anyOf": [
@@ -1984,6 +2066,36 @@
                       "type": "null"
                     }
                   ]
+                },
+                "climate": {
+                  "type": "object",
+                  "properties": {
+                    "janLowF": {
+                      "type": "number"
+                    },
+                    "julHighF": {
+                      "type": "number"
+                    },
+                    "station": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "stationMi": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "janLowF",
+                    "julHighF",
+                    "station",
+                    "stationMi"
+                  ],
+                  "additionalProperties": false
                 }
               },
               "required": [

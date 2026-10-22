@@ -24,6 +24,7 @@ describe("the cards' words", () => {
       // Step 11: Town and hospital, split in two.
       town: "Groceries within 20 min",
       hospital: "An ER within 30 min",
+      climate: "January lows of 18 °F or milder, July highs of 86 °F or cooler",
       garden: "At least 0.25 ac of garden ground",
       // Step 10: the starting list has no budgets.
       budget: "No budget given",
@@ -42,6 +43,15 @@ describe("the cards' words", () => {
     expect(bandLine(D.bands, "elevationFt")).toBe("A 3,000 ft+ · B 2,500 ft · C 2,000 ft · D 1,500 ft");
     expect(bandLine(D.bands, "erMin")).toBe("A 20 min · B 30 min · C 45 min · D 60 min");
     expect(bandLine(D.bands, "drivewayPct")).toBe("A 10% · B 15% · C 20% · D 25%");
+  });
+
+  it("Climate's limits, with no limit at a slider's end (step 11)", () => {
+    expect(cardLine(setBandEdge(setBandEdge(D, "janLowF", -25), "julHighF", 80), "climate")).toBe(
+      "Any winter, July highs of 80 °F or cooler",
+    );
+    expect(plainLine(setBandEdge(setBandEdge(D, "janLowF", 24), "julHighF", 115), "climate")).toBe(
+      "January lows of 24 °F or milder, any summer",
+    );
   });
 
   it("put a minimum in words", () => {
@@ -71,6 +81,7 @@ describe("the cards' words", () => {
       trails: "A trailhead within 20 min, or public land within 1 mi",
       town: "Groceries within 20 min",
       hospital: "ER within 30 min",
+      climate: "January lows of 18 °F or milder, July highs of 86 °F or cooler",
       garden: "Room for a kitchen garden",
       budget: "No budget given",
     });

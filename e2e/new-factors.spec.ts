@@ -27,13 +27,18 @@ function savedBefore(): Rubric {
   };
 }
 
-/** Writes this profile's priorities as an older version saved them, then starts again. */
-async function seed(page: Page): Promise<void> {
+/** Writes this profile's priorities (and its answers) as an older version saved them, then starts again. */
+async function seed(page: Page, answers?: Record<string, string>): Promise<void> {
   await booted(page);
-  await page.evaluate((mine) => {
-    const kv = window.__psKv!;
-    kv.setItem("ps.rubrics", JSON.stringify({ mine, others: [], drivewayAdded: "seen" }));
-  }, savedBefore());
+  await page.evaluate(
+    ({ mine, answers }) => {
+      const kv = window.__psKv!;
+      kv.setItem("ps.rubrics", JSON.stringify({ mine, others: [], drivewayAdded: "seen" }));
+      if (answers)
+        kv.setItem("ps.interview", JSON.stringify({ v: 2, state: "done", at: 15, answers, base: mine }));
+    },
+    { mine: savedBefore(), answers },
+  );
 }
 
 const column = (page: Page, name: string) => page.getByRole("region", { name, exact: true });
@@ -44,7 +49,7 @@ test("Hospital just after Town, Town's ER limit with it, one notice, and its Und
   await seed(page);
   await visit(page, "/priorities");
   const notice = page.locator(".rubric-new-factors");
-  await expect(notice).toContainText("New factors to place: Hospital");
+  await expect(notice).toContainText("New factors to place: Hospital, Climate");
   await expect(names(page, "Really want")).toHaveText([
     "Trails and public land",
     "Town and groceries",
@@ -59,6 +64,7 @@ test("Hospital just after Town, Town's ER limit with it, one notice, and its Und
   await notice.getByRole("button", { name: "Undo" }).click();
   await expect(notice).toHaveCount(0);
   await expect(column(page, "Don't care")).toContainText("Hospital");
+  await expect(column(page, "Don't care")).toContainText("Climate");
   await visit(page, "/priorities");
   await expect(page.locator(".rubric-new-factors")).toHaveCount(0);
   await expect(names(page, "Really want")).toHaveText([
@@ -76,4 +82,34 @@ test("OK: the notice shows once, and Hospital stays where it was placed", async 
   await visit(page, "/priorities");
   await expect(page.locator(".rubric-new-factors")).toHaveCount(0);
   await expect(names(page, "Really want")).toContainText(["Hospital"]);
+});
+
+test("Climate from question 1, and its new questions asked on their own", async ({ page }) => {
+  await openExplorer(page, FERNEY);
+  await seed(page, { climate: "cool" });
+  await visit(page, "/priorities");
+  // Cool and snowy: Climate at the bottom of Really want.
+  await expect(names(page, "Really want").last()).toHaveText("Climate");
+  const notice = page.locator(".rubric-new-factors");
+  await notice.getByRole("link", { name: "Answer the new questions" }).click();
+  await page.waitForURL("**/interview?ask=climate");
+  await expect(page.locator(".iv-progress")).toHaveText("A new question");
+  // Its follow-ups, preset from the year; a change, then Continue, back to What matters.
+  const follow = page.locator(".iv-follow");
+  await expect(follow.getByRole("radio", { name: "Real winter welcome" })).toHaveAttribute(
+    "aria-checked",
+    "true",
+  );
+  await follow.getByRole("radio", { name: "Mild" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.waitForURL("**/priorities");
+  await expect(names(page, "Really want").last()).toHaveText("Climate");
+  await page.locator(".rubric-card", { hasText: "Climate" }).first().locator(".rubric-card-body").click();
+  await expect(page.getByRole("dialog")).toContainText("January lows of 24 °F or milder");
+  await page.keyboard.press("Escape");
+  // "Either is fine" puts it in Don't care.
+  await visit(page, "/interview?ask=climate");
+  await page.getByRole("radio", { name: "Either is fine" }).click();
+  await page.waitForURL("**/priorities");
+  await expect(column(page, "Don't care")).toContainText("Climate");
 });

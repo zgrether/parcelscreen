@@ -8,14 +8,16 @@ import { useEffect, useRef, useState, type KeyboardEvent, type RefObject } from 
 import type { Interview } from "@/lib/client/useInterview";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { CHIPS, type Chip, type InterviewAnswers } from "@/lib/rubric/interview/answers";
-import { walkAwayStarts } from "@/lib/rubric/interview/generate";
+import { climateLimits, walkAwayStarts } from "@/lib/rubric/interview/generate";
 import {
   CHIP_WORDS,
   DONT_MATTER_SCENE,
   GLOW_QUESTION,
   LAND_QUESTION,
   QUESTION_COUNT,
+  SUMMER_QUESTION,
   WALK_AWAY_SCENE,
+  WINTER_QUESTION,
   type Choice,
   type Question,
 } from "@/lib/rubric/interview/questions";
@@ -168,6 +170,85 @@ export function ChoiceScreen({ iv, question, heading, n, revisit }: ScreenProps 
           <p className="iv-follow-q">{GLOW_QUESTION.scene}</p>
           <p className="iv-hint">{revisit && glow ? hint(true) : "One more tap, then the next question."}</p>
           <Choices choices={GLOW_QUESTION.choices} value={glow} pick={pickGlow} label={GLOW_QUESTION.scene} />
+        </div>
+      )}
+    </>
+  );
+}
+
+/**
+ * Question 1 (step 11, plan §2.2): the year, then its two follow-ups on the same screen, preset from the year (config
+ * `climatePreset`), so Continue is the one more tap. "Either is fine" has none, and moves on as any choice does.
+ * `onDone`: the notice's "Answer the new questions" (plan §1), which returns to What matters instead of going on.
+ */
+export function ClimateScreen({
+  iv,
+  question,
+  heading,
+  n,
+  revisit,
+  onDone,
+}: ScreenProps & { question: Question; onDone?: () => void }) {
+  const a = iv.doc.answers;
+  const [value, setValue] = useState(a.climate);
+  const [winter, setWinter] = useState(a.winter);
+  const [summer, setSummer] = useState(a.summer);
+  const timer = useRef<number | null>(null);
+  useEffect(() => () => void (timer.current && clearTimeout(timer.current)), []);
+  const done = onDone ?? (() => iv.answer({}, true));
+  const preset = climateLimits({ climate: value });
+  const follow = !!value && value !== "either";
+  const pick = (id: string) => {
+    const climate = id as InterviewAnswers["climate"];
+    // On a screen that held an answer, the same pick again moves on, as on every screen.
+    if (revisit && id === value) return done();
+    setValue(climate);
+    if (id !== "either") return iv.answer({ climate }, false);
+    // "Either": no limits; it moves on by itself, as any choice does.
+    setWinter(undefined);
+    setSummer(undefined);
+    iv.answer({ climate, winter: undefined, summer: undefined }, false);
+    if (!revisit) {
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = window.setTimeout(done, BEAT_MS);
+    }
+  };
+  const pickWinter = (id: string) => {
+    setWinter(id as InterviewAnswers["winter"]);
+    iv.answer({ winter: id as InterviewAnswers["winter"] }, false);
+  };
+  const pickSummer = (id: string) => {
+    setSummer(id as InterviewAnswers["summer"]);
+    iv.answer({ summer: id as InterviewAnswers["summer"] }, false);
+  };
+  useNumberKeys(question.choices, pick);
+  return (
+    <>
+      <Scene heading={heading} n={n} text={question.scene} />
+      {!follow && <p className="iv-hint">{hint(revisit)}</p>}
+      <Choices choices={question.choices} value={value} pick={pick} label={question.scene} />
+      {follow && (
+        <div className="iv-follow">
+          <p className="iv-follow-q">{WINTER_QUESTION.ask}</p>
+          <Choices
+            choices={WINTER_QUESTION.choices}
+            value={winter ?? preset.winter}
+            pick={pickWinter}
+            label={WINTER_QUESTION.ask}
+          />
+          <p className="iv-follow-q">{SUMMER_QUESTION.ask}</p>
+          <Choices
+            choices={SUMMER_QUESTION.choices}
+            value={summer ?? preset.summer}
+            pick={pickSummer}
+            label={SUMMER_QUESTION.ask}
+          />
+          <p className="iv-hint">Set from your answer above: change either if it&apos;s off.</p>
+          {(!revisit || onDone) && (
+            <button type="button" className="btn iv-continue" onClick={done}>
+              Continue
+            </button>
+          )}
         </div>
       )}
     </>

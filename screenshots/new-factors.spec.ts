@@ -27,10 +27,11 @@ const SHORT: Record<(typeof SLUGS)[number], string> = {
 const FACTORS = [
   { label: "Hospital", file: "hospital" },
   { label: "Town and groceries", file: "town" },
+  { label: "Climate", file: "climate" },
 ] as const;
 
-/** The starting list with Town (the groceries) weighed too, so both halves of the split show on the card. */
-const GRADED: Rubric = rubricFromWeights({ ...SCREEN_CONSTANTS.card.weights.default, town: 5 });
+/** The starting list with Town (the groceries) and each new factor weighed too, so each shows on the card. */
+const GRADED: Rubric = rubricFromWeights({ ...SCREEN_CONSTANTS.card.weights.default, town: 5, climate: 5 });
 
 /** Priorities as saved before step 11: rank-sum, Town in Really want, no Hospital. */
 const SAVED_BEFORE: Rubric = {
@@ -119,6 +120,16 @@ for (const phone of [false, true]) {
       await expect(page.locator(".rubric-new-factors")).toBeVisible();
       await page.waitForTimeout(300);
       await page.screenshot({ path: `${OUT}/${device}-factor-notice.png` });
+
+      // Its new questions, asked on their own (Climate's: question 1 and its follow-ups).
+      await page
+        .locator(".rubric-new-factors")
+        .getByRole("link", { name: "Answer the new questions" })
+        .click();
+      await page.waitForURL("**/interview?ask=climate");
+      await page.getByRole("radio", { name: "In between" }).click();
+      await expect(page.locator(".iv-follow")).toBeVisible();
+      await page.screenshot({ path: `${OUT}/${device}-factor-ask-climate.png` });
     });
   });
 }

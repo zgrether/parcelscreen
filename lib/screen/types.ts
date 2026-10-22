@@ -321,6 +321,18 @@ const ScoredDrivewaySchema = z.strictObject({
 });
 export type ScoredDriveway = z.infer<typeof ScoredDrivewaySchema>;
 
+/**
+ * Step 11 (plan §2.2; phase-0.md §9.66, the frozen v9 shape's declared exception): the spot's climate, PRISM's
+ * January low and July high moved to its elevation, and the NOAA station its snowfall and frost dates are from
+ * (`ScreenResult.climate.stations`), null when none is near enough. Optional: absent from a screen made before it.
+ */
+const SpotClimateSchema = z.strictObject({
+  janLowF: num,
+  julHighF: num,
+  station: z.string().nullable(),
+  stationMi: num.nullable(),
+});
+
 /** What a scored spot stores (v8): its measurements and reasons; its scores derive from them (SpotScores, derive.ts). */
 const ScoreFields = {
   why: z.array(z.string()),
@@ -344,6 +356,8 @@ const ScoreFields = {
    * run, when the straight line to the road scores it.
    */
   driveway: ScoredDrivewaySchema.nullable().optional(),
+  /** Step 11: absent outside the climate data's region, and on a screen made before it. */
+  climate: SpotClimateSchema.optional(),
 };
 const CellSchema = z.strictObject({ score: num, slope: num, aspect: num, thermal: num });
 
@@ -761,6 +775,26 @@ export const ScreenResultSchema = z.strictObject({
    * field, phase-0.md §9.20 (d); v2 kept it last in `drives`). Null when there's none; absent when drives didn't run.
    */
   closerGrocery: DriveSchema.nullable().optional(),
+  /**
+   * Step 11 (plan §2.2; §9.66, an optional field on v9): the NOAA stations the spots' climate names, and whether the
+   * parcel is outside the climate data's region (then no spot has a reading). Absent on a screen made before it.
+   */
+  climate: z
+    .strictObject({
+      outside: z.boolean(),
+      stations: z.array(
+        z.strictObject({
+          id: z.string(),
+          name: z.string(),
+          elevFt: num,
+          snowIn: num,
+          lastFreeze: z.string(),
+          firstFreeze: z.string(),
+          frostFreeDays: num,
+        }),
+      ),
+    })
+    .optional(),
   excluded: z.array(z.strictObject({ acres: num, ll: LatLonSchema, why: z.string() })).optional(),
   sites: z.array(SiteSchema).optional(),
   house: HouseSchema.nullable().optional(),

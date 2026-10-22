@@ -10,7 +10,13 @@ import { GRADES_ID, GRADES_TITLE } from "@/lib/client/help";
 import { useCallback, useEffect, useState } from "react";
 import { effectiveRubrics, profileRubrics } from "@/lib/client/rubrics";
 import { markDrivewayNoteSeen, pendingDrivewayNote, undoDrivewayAdd } from "@/lib/client/drivewayAdd";
-import { factorsNote, markFactorsSeen, pendingFactors, undoFactorsAdd } from "@/lib/client/factorsAdd";
+import {
+  factorsNote,
+  markFactorsSeen,
+  newQuestionsHref,
+  pendingFactors,
+  undoFactorsAdd,
+} from "@/lib/client/factorsAdd";
 import { reportCard } from "@/lib/report/card";
 import { useMyRubric } from "@/lib/client/useMyRubric";
 import type { EditorCard } from "@/lib/rubric/edit";
@@ -182,7 +188,12 @@ export function RubricEditor() {
         {newFactors.length > 0 && (
           <div className="card-stale rubric-new-factors" role="status">
             <span>{factorsNote(newFactors)}</span>
-            <button type="button" className="btn small" onClick={undoFactors}>
+            {newQuestionsHref(newFactors) && (
+              <Link className="btn small" href={newQuestionsHref(newFactors)!}>
+                Answer the new questions
+              </Link>
+            )}
+            <button type="button" className="btn secondary small" onClick={undoFactors}>
               Undo
             </button>
             <button type="button" className="btn secondary small" onClick={() => setNewFactors([])}>

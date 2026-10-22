@@ -20,7 +20,7 @@ import { lpZone } from "../screen/sky";
 import { NO_PRACTICAL_ROUTE, existingSteepLine } from "../screen/score";
 import { servesLine, trailheadSourceLabel } from "../screen/trailheads";
 import { isPrimeFarmland, soilAt, type SoilUnit } from "../screen/soils";
-import type { PartialScreenResult, RoadClass, ScoredDriveway, ScoredSite } from "../screen/types";
+import type { PartialScreenResult, RoadClass, ScoredDriveway, ScoredSite, Site } from "../screen/types";
 import type { LatLon } from "../geo/types";
 import { M2FT, M2_PER_ACRE } from "../screen/util";
 import { steepLandingLine } from "./driveway";
@@ -52,6 +52,7 @@ import {
 import { shortPrice } from "../client/askingPrice";
 import { DEFAULT_PAVING } from "../config/costs";
 import type { PavingContext } from "./ground";
+import { NOT_MEASURED, OUTSIDE_AREA, stationLine, stationName } from "./climate";
 import { atLeast, atMost, gradedRows, parcelGrade, verdictLines } from "../rubric/grade";
 import { EDITOR_TITLES, FACTOR_LABELS } from "../rubric/words";
 import { thresholdStatus, thresholdWords, type Measure } from "../rubric/musts";
@@ -717,6 +718,36 @@ function hospital(r: Result, K: CardConfig): Row {
 }
 
 /**
+ * Climate at the build site (step 11, plan §2.2): the worse of January's mean low and July's mean high against the
+ * person's limits, at the site the card reads (the marked house, if any); the station's snowfall and frost-free days
+ * beside them, not graded. A screen made before it has no reading: "not measured", unknown, never a fail.
+ */
+function climate(r: Result, K: CardConfig, at: number): Row {
+  const g = row("climate", FACTOR_LABELS.climate);
+  if (!r.climate) return { ...g(null, NOT_MEASURED), short: "not measured" };
+  const house = r.house && !("outside" in r.house) ? r.house : null;
+  const spot = house ?? r.sites?.[at];
+  if (!spot && !r.climate.outside) {
+    if (!r.sites) return notLoaded(g, "the homesite ranking");
+    // No build site: left out, as Elevation is (the Best homesite row's F carries it).
+    return g(null, "no build site to measure");
+  }
+  const c = spot?.climate;
+  if (!c) return { ...g(null, OUTSIDE_AREA), short: "not measured" };
+  const where = house ? "the marked house" : siteLabel(spot as Site);
+  const st = c.station ? r.climate.stations.find((x) => x.id === c.station) : undefined;
+  const grade = worse(atLeast(c.janLowF, K.rows.janLowF), atMost(c.julHighF, K.rows.julHighF));
+  return {
+    ...g(
+      grade,
+      `January lows ${fmt(c.janLowF)} °F, July highs ${fmt(c.julHighF)} °F at ${where} (${fmt(spot!.elevFt ?? 0)} ft)` +
+        (st ? `; ${stationLine(st)} at ${stationName(st, c.stationMi)}` : ""),
+    ),
+    short: `Jan ${fmt(c.janLowF)}°, Jul ${fmt(c.julHighF)}°F`,
+  };
+}
+
+/**
  * "an 82-minute drive", "a 48-minute drive": the article for a number said aloud (owner, #124: an approved correction,
  * phase-0.md §9.36): "an" for 8, 11, 18 and 80–89.
  */
@@ -876,7 +907,7 @@ export function cardFacts(
   // The route scored: the household's when it chose a line and this screen has a route from it (WF5). The Access and
   // Easement gates, and Floodplain's driveway part, read it whichever site the rows read (step 7 plan §2, §11 Q5).
   const driven = drivenRoute(r, drawn?.driveway);
-  const [elevationRow, homesiteRow, skyRow, roomRow, drivewayRow] = siteRows(r, K, build, at);
+  const [elevationRow, homesiteRow, skyRow, roomRow, drivewayRow, climateRow] = siteRows(r, K, build, at);
   // The cost to enjoy at this site (step 10), when the parcel's lines, price and rates came with it.
   const cost = drawn?.cost
     ? costToEnjoy({
@@ -907,6 +938,7 @@ export function cardFacts(
       town(r, K),
       hospital(r, K),
       garden(r, K, marks),
+      climateRow!,
       ...[budgetRow(cost, budgets, K)].filter((x): x is Row => x !== null),
     ],
     at,
@@ -937,6 +969,8 @@ export function siteRows(
     sky(r, K, at),
     room(r, K, footprintAc, at),
     driveway(r, K, at),
+    // Step 11: by each site's elevation, so it ranks the sites too (plan §4).
+    climate(r, K, at),
   ];
 }
 

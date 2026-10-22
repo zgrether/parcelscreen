@@ -22,7 +22,7 @@ const record = (engine?: number): ScreenRecord => ({
 
 describe("the engine stamp on a kept screen (Batch A §6)", () => {
   it("Phase 0's rules are version 1, A2a's 2, A2b's 3, A2c's 4, A3's 5, A3b's 6, and a screen kept before the stamp counts as 1", () => {
-    expect(ENGINE_VERSION).toBe(22); // schema v9: the TREC trails a trailhead serves (step 2, §9.49)
+    expect(ENGINE_VERSION).toBe(23); // step 11's Climate (§9.66); 22 was schema v9 (step 2, §9.49)
     expect(engineOf(record())).toBe(1);
     expect(engineOf(record(3))).toBe(3);
   });
@@ -68,7 +68,9 @@ describe("the engine stamp on a kept screen (Batch A §6)", () => {
 describe("re-screen on open (owner, #101, 2026-10-11)", () => {
   it("a parcel whose last screen is gone or from earlier rules re-screens; a current one, or no storage, doesn't", () => {
     expect(needsRescreen({ kind: "gone" })).toBe(true);
-    expect(needsRescreen({ kind: "ok", record: record(ENGINE_VERSION - 1) })).toBe(true);
+    expect(needsRescreen({ kind: "ok", record: record(ENGINE_CURRENT_FROM - 1) })).toBe(true);
+    // Step 11: a screen from rules that only lacked a new measurement stays current.
+    expect(needsRescreen({ kind: "ok", record: record(ENGINE_CURRENT_FROM) })).toBe(false);
     expect(needsRescreen({ kind: "ok", record: record() })).toBe(true); // unstamped: Phase 0's rules
     expect(needsRescreen({ kind: "ok", record: record(ENGINE_VERSION) })).toBe(false);
     expect(needsRescreen({ kind: "unavailable" })).toBe(false);

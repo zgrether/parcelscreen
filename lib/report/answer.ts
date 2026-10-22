@@ -24,6 +24,7 @@ export const STRENGTH: Record<RowKey, string> = {
   trails: "trails",
   town: "groceries nearby",
   hospital: "ER access",
+  climate: "climate",
   garden: "garden ground",
   budget: "budget fit",
 };

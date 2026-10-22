@@ -91,6 +91,8 @@ const ROWS: RowKey[] = [
   "town",
   "hospital",
   "garden",
+  // Step 11's new factors, in the order they shipped.
+  "climate",
 ];
 
 /** The scales each panel shows (as the report's panels do), by panel. */

@@ -157,6 +157,17 @@ export function HelpText() {
         all of them are in Settings. When the map disagrees with what you saw in Google Earth, believe your
         eyes and check the DEM cell size first.
       </p>
+
+      {/* Step 11's new factors: after the prototype's copy, which stays word for word (rule 7). */}
+      <h3 id="h-climate">Climate</h3>
+      <p>
+        January&apos;s mean low and July&apos;s mean high at each house site: PRISM&apos;s 30-year normals
+        (1991–2020) on an 800 m grid, moved from the grid cell&apos;s average elevation to the site&apos;s at
+        3.6 °F per 1,000 ft. Snowfall and the spring and fall frost dates come from the nearest NOAA weather
+        station that&apos;s most like the site in elevation, as that station recorded them. Stations sit in
+        towns and valleys, where cold air pools on still nights, so a site on a slope above one usually has a
+        longer frost-free season than it says. These are averages: any one winter can be much colder.
+      </p>
     </>
   );
 }
