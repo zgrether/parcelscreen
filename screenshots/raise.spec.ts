@@ -89,6 +89,37 @@ for (const phone of [false, true]) {
       await expect(page.locator(".lib-grade .adjusted-mark:visible").first()).toBeVisible();
       await page.waitForTimeout(400);
       await page.screenshot({ path: `${OUT}/${device}-adjust-grid.png` });
+
+      // The nudge (PR 5): Night sky set aside on three parcels, What matters offers once.
+      await importParcels(page, ["macks-mountain-35-3", "grayson-mud-creek-6273"]);
+      await settled(page);
+      await page.evaluate(() => {
+        const kv = window.__psKv!;
+        const me = localStorage.getItem("ps.profile")!;
+        const h = JSON.parse(kv.getItem("ps.household") ?? '{"v":1,"asks":[],"takes":[],"adjusts":[]}');
+        const keys = (JSON.parse(kv.getItem("ps.parcels")!) as { built: { key: string }[] }).built.map(
+          (p) => p.key,
+        );
+        // One per factor per parcel: Ferney's Night sky override gives way to the set-aside.
+        h.adjusts = h.adjusts.filter((a: { factor: string }) => a.factor !== "sky");
+        for (const parcel of keys)
+          h.adjusts.push({
+            key: `${parcel}:${me}:sky`,
+            parcel,
+            by: me,
+            factor: "sky",
+            kind: "setAside",
+            reason: "fine by us",
+            was: "B",
+            at: "2026-10-22T12:00:00Z",
+          });
+        kv.setItem("ps.household", JSON.stringify(h));
+      });
+      await settled(page);
+      await visit(page, "/priorities");
+      await expect(page.locator(".rubric-nudge")).toBeVisible();
+      await page.waitForTimeout(300);
+      await page.screenshot({ path: `${OUT}/${device}-adjust-nudge.png` });
     });
   });
 }

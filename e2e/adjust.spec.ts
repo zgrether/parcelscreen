@@ -120,3 +120,46 @@ test("an adjustment syncs: made on one device, the other's card has it", async (
     await expect(row(phone, "floodplain")).toHaveClass(/set-aside/, { timeout: 5_000 });
   });
 });
+
+test("the nudge: Night sky set aside on 3 parcels, offered once; Move it down, then Undo", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  const SLUGS = [FERNEY, "macks-mountain-35-3", "grayson-mud-creek-6273"] as const;
+  await openExplorer(page, FERNEY);
+  await importParcels(page, [...SLUGS]);
+  await settled(page);
+  await page.evaluate(() => {
+    const kv = window.__psKv!;
+    const me = localStorage.getItem("ps.profile")!;
+    const keys = (JSON.parse(kv.getItem("ps.parcels")!) as { built: { key: string }[] }).built.map(
+      (p) => p.key,
+    );
+    const adjusts = keys.map((parcel) => ({
+      key: `${parcel}:${me}:sky`,
+      parcel,
+      by: me,
+      factor: "sky",
+      kind: "setAside",
+      reason: "fine by us",
+      was: "B",
+      at: "2026-10-22T12:00:00Z",
+    }));
+    kv.setItem("ps.household", JSON.stringify({ v: 1, asks: [], takes: [], adjusts }));
+  });
+  await settled(page);
+  await visit(page, "/priorities");
+  const column = (name: string) => page.getByRole("region", { name, exact: true });
+  await expect(column("Really want")).toContainText("Night sky");
+  const offer = page.locator(".rubric-nudge");
+  await expect(offer).toContainText("You've set aside Night sky on 3 parcels. Move it down a tier?");
+  await offer.getByRole("button", { name: "Move it down" }).click();
+  await expect(offer).toContainText("Moved Night sky to Nice to have.");
+  await expect(column("Nice to have")).toContainText("Night sky");
+  await offer.getByRole("button", { name: "Undo" }).click();
+  await expect(column("Really want")).toContainText("Night sky");
+  await expect(page.locator(".rubric-nudge")).toHaveCount(0);
+  // Offered once: not again.
+  await visit(page, "/priorities");
+  await expect(page.locator(".rubric-nudge")).toHaveCount(0);
+});

@@ -563,6 +563,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
     // Step 3 (owner, 2026-10-17; §9.51): the verdict lines are letter edges, the B and C cutoffs above. The card reads
     // them from a rubric's grade cutoffs (lib/rubric/grade.ts verdictLines); these keep a new rubric's copy in step.
     verdict: { contender: 2.5, pass: 1.5, contenderMaxWarns: 1 },
+    // Step 12 (plan §3): What matters offers once to move a factor down a tier after it's set aside on this many parcels.
+    nudgeAfter: 3,
     rows: {
       elevationFt: [3000, 2500, 2000, 1500],
       skyMag: [21.5, 21.2, 20.9, 20.5],

@@ -20,7 +20,10 @@ import {
 import { reportCard } from "@/lib/report/card";
 import { useMyRubric } from "@/lib/client/useMyRubric";
 import type { EditorCard } from "@/lib/rubric/edit";
-import { MINE } from "@/lib/rubric/types";
+import { MINE, type Factor, type Rubric } from "@/lib/rubric/types";
+import { acceptNudge, markNudge, pendingNudge } from "@/lib/client/nudge";
+import { movedWords, nudgeWords } from "@/lib/rubric/nudge";
+import type { Tier } from "@/lib/rubric/words";
 import { CardSheet } from "./CardSheet";
 import { RESET_QUESTION, RESET_TO_ANSWERS_QUESTION, ResetConfirm } from "./ResetConfirm";
 import { getPref, setPref } from "@/lib/client/prefs";
@@ -104,6 +107,27 @@ export function RubricEditor() {
     const without = undoFactorsAdd(newFactors);
     if (without) my.resetTo(without);
     setNewFactors([]);
+  };
+  // Step 12 (plan §3): the learning nudge, offered once; after Move it down, its Undo.
+  const [nudge, setNudge] = useState(() => pendingNudge());
+  const [moved, setMoved] = useState<{ factor: Factor; to: Tier; before: Rubric } | null>(null);
+  useEffect(() => {
+    if (nudge) markNudge(nudge.factor, "offered");
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once, as the page opens
+  }, []);
+  const moveItDown = () => {
+    if (!nudge) return;
+    const before = my.rubric;
+    const { rubric, to } = acceptNudge(nudge.factor, before);
+    my.resetTo(rubric);
+    setMoved({ factor: nudge.factor, to, before });
+    setNudge(null);
+  };
+  const undoMove = () => {
+    if (!moved) return;
+    markNudge(moved.factor, "undone");
+    my.resetTo(moved.before);
+    setMoved(null);
   };
 
   return (
@@ -200,6 +224,37 @@ export function RubricEditor() {
             </button>
             <button type="button" className="btn secondary small" onClick={() => setNewFactors([])}>
               Keep them
+            </button>
+          </div>
+        )}
+
+        {nudge && (
+          <div className="card-stale rubric-nudge" role="status">
+            <span>{nudgeWords(nudge)}</span>
+            <button type="button" className="btn small" onClick={moveItDown}>
+              Move it down
+            </button>
+            <button
+              type="button"
+              className="btn secondary small"
+              onClick={() => {
+                markNudge(nudge.factor, "declined");
+                setNudge(null);
+              }}
+            >
+              No thanks
+            </button>
+          </div>
+        )}
+
+        {moved && (
+          <div className="card-stale rubric-nudge" role="status">
+            <span>{movedWords(moved.factor, moved.to)}</span>
+            <button type="button" className="btn secondary small" onClick={undoMove}>
+              Undo
+            </button>
+            <button type="button" className="btn secondary small" onClick={() => setMoved(null)}>
+              OK
             </button>
           </div>
         )}
