@@ -511,6 +511,17 @@ No stored-data change to parcels or screens. `ps.library` (per profile) gains `c
 and Updated start hidden), read with a default, and new sort keys (`name`, `pricePerAcre`, `state`, `factor:<key>`).
 `docs/plans/step-10b-compare-grid.md` and phase-0.md §9.64 have the details.
 
+### 3m. Ways to raise the grade, and per-parcel adjustments (roadmap step 12)
+
+No change to screens. Each person's adjustments (an override or a set-aside of one factor on one parcel, with its reason)
+are records in the household's shared document, `ps.household.adjusts` (optional), synced in one more table:
+
+```sql
+sync_adjustments space, key, record jsonb, deleted, updated_at   -- primary key (space, key); key "<parcel>:<by>:<factor>"
+```
+
+`ps.rubrics` gains `nudged` (optional). `docs/plans/step-12-raise-the-grade.md` and phase-0.md §9.67 have the details.
+
 ## 4. The parcel page (the export)
 
 Blocks, in order; each is computed, placeholder, or user-authored:

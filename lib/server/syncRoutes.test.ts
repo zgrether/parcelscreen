@@ -204,3 +204,26 @@ describe("the household's asks and takes (step 6), over the memory store", () =>
     expect((await changes(store, await start(store))).household).toEqual([]);
   });
 });
+
+describe("the people's adjustments (step 12), over the memory store", () => {
+  it("save and fetch as the household's adjust records; a null record deletes", async () => {
+    const store = new MemorySyncStore();
+    const code = await start(store);
+    const adj = {
+      key: "k1:zach:sky",
+      parcel: "k1",
+      by: "zach",
+      factor: "sky",
+      kind: "setAside",
+      reason: "fine by us",
+      was: "C",
+      at: "t1",
+    };
+    await save(store, code, { household: [{ key: adj.key, kind: "adjust", record: adj }] });
+    let c = await changes(store, code);
+    expect(c.household).toMatchObject([{ kind: "adjust", key: "k1:zach:sky", record: adj }]);
+    await save(store, code, { household: [{ key: adj.key, kind: "adjust", record: null }] });
+    c = await changes(store, code);
+    expect(c.household.find((h) => h.kind === "adjust")).toMatchObject({ deleted: true, record: null });
+  });
+});

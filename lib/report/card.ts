@@ -60,8 +60,17 @@ import { openPct, viewLine, viewShort } from "./view";
 import { atLeast, atMost, gradedRows, parcelGrade, verdictLines } from "../rubric/grade";
 import { EDITOR_TITLES, FACTOR_LABELS } from "../rubric/words";
 import { thresholdStatus, thresholdWords, type Measure } from "../rubric/musts";
-import type { Budgets, Factor, GateKey, Letter, NamedRubric, RowKey } from "../rubric/types";
+import type { Budgets, Factor, GateKey, Letter, NamedRubric, RowKey, Rubric } from "../rubric/types";
 import { weightsOf } from "../rubric/weights";
+import {
+  asideLabel,
+  asideOf,
+  isMustOf,
+  withoutFactors,
+  type Adjusted,
+  type Adjustment,
+  type SetAside,
+} from "./adjust";
 
 export type { GateKey, Letter, NamedRubric, RowKey } from "../rubric/types";
 export { atLeast, atMost } from "../rubric/grade";
@@ -95,6 +104,8 @@ export interface Gate {
    * what made it a warning, on its own line (polish #7). The reason's words are the same.
    */
   first?: string;
+  /** The person's override on this parcel (step 12): the status above is theirs. */
+  adjusted?: Adjusted;
 }
 
 export interface Row {
@@ -118,6 +129,10 @@ export interface Row {
    * status ("ready to build $330–595k, over your $300k").
    */
   budget?: { status: BudgetStatus; reason: string };
+  /** The person's override on this parcel (step 12): the letter above, or the Must's result, is theirs. */
+  adjusted?: Adjusted;
+  /** A limit's result the person set on this parcel (step 12): it stands for the measure's. */
+  mustStatus?: "pass" | "fail";
 }
 
 export type { BudgetStatus };
@@ -139,6 +154,8 @@ export interface CardFacts {
   cost?: CostToEnjoy | null;
   /** Settings' paving choice and the parcel's lines, with them (step 10): the Driveway section's Paving row reads them. */
   paving?: PavingContext;
+  /** What the person set aside on this parcel (step 12): off the grade, still listed in its tier. */
+  setAside?: SetAside[];
 }
 
 export interface Card extends CardFacts {
@@ -1126,7 +1143,15 @@ export function siteRows(
  * says so when a line was chosen and this screen has no route from it.
  */
 function withYourRoute(facts: CardFacts, r: Result, driven: Driven, drawn?: Drawn): CardFacts {
-  const moved = !!driven.yours && !!driven.pick && driven.route?.entranceIndex !== driven.pick.entranceIndex;
+  // Step 12: a screen timed from your route (a run with the choice, or a Try it kept) says nothing of the pick's start.
+  const pickE = driven.pick ? r.driveway?.entrances[driven.pick.entranceIndex] : undefined;
+  const fromPick =
+    !r.driveFrom ||
+    !pickE ||
+    pickE.source === "drawn" ||
+    distance([r.driveFrom.ll[1], r.driveFrom.ll[0]], [pickE.ll[1], pickE.ll[0]], { units: "meters" }) < 1;
+  const moved =
+    !!driven.yours && !!driven.pick && driven.route?.entranceIndex !== driven.pick.entranceIndex && fromPick;
   const rows = moved
     ? facts.rows.map((x) =>
         x.key === "town" || x.key === "hospital" || x.key === "airport" || x.key === "trails"
@@ -1200,7 +1225,7 @@ export function cardFor(facts: CardFacts, nr: NamedRubric): Card {
     .filter((m) => m.threshold !== undefined)
     .flatMap((must) => {
       const row = facts.rows.find((x) => x.key === must.factor);
-      return row ? [{ must, row, status: thresholdStatus(must, row.measure) }] : [];
+      return row ? [{ must, row, status: row.mustStatus ?? thresholdStatus(must, row.measure) }] : [];
     });
   const thresholdFail = thresholds.find((t) => t.status === "fail");
   const thresholdUnknown = thresholds.some((t) => t.status === "unknown");
@@ -1291,9 +1316,69 @@ export const reportCard = (
   const KR = { ...K, rows: nr.rubric.bands };
   const build = SCREEN_CONSTANTS.build;
   const derived = derivedSites(r);
-  const sites = r.sites ? rankSites(r.sites, (i) => siteRows(r, KR, build, i, derived), nr.rubric) : [];
+  // Step 12: this person's adjustments on this parcel. What they set aside doesn't rank their homesites either.
+  const adjust = drawn?.adjust?.get(nr.id) ?? [];
+  const aside = asideOf(adjust);
+  const rankBy = withoutFactors(nr.rubric, aside);
+  const sites = r.sites
+    ? rankSites(r.sites, (i) => siteRows(r, KR, build, i, derived).filter((x) => !aside.has(x.key)), rankBy)
+    : [];
   // A marked house grades as before (§11 Q6): its own elevation and driveway, site #1's quality and room.
   const house = !!r.house && !("outside" in r.house);
   const at = opts.at ?? (house ? 0 : (sites[0]?.index ?? 0));
-  return { ...cardFor(cardFacts(r, KR, build, drawn, at, nr.rubric.budgets), nr), sites };
+  const facts = withAdjustments(cardFacts(r, KR, build, drawn, at, nr.rubric.budgets), adjust, nr.rubric);
+  return { ...cardFor(facts, nr), sites };
 };
+
+/**
+ * A person's adjustments on the card's facts (step 12, plan §3), before their rubric grades them:
+ *   - an override sets a row's letter, a gate's status, or a limit's or Within budget's result, and keeps what the app
+ *     said beside it;
+ *   - a set-aside row or Must leaves the facts (so nothing counts it) and is listed in `setAside`.
+ */
+export function withAdjustments(facts: CardFacts, adjust: readonly Adjustment[], R: Rubric): CardFacts {
+  if (!adjust.length) return facts;
+  const by = new Map(adjust.map((a) => [a.factor, a]));
+  const aside = asideOf(adjust);
+  const note = (a: Adjustment, from: string, to: string): Adjusted => ({
+    from,
+    to,
+    reason: a.reason,
+    then: a.was,
+    at: a.at,
+  });
+  const gates = facts.gates.flatMap((g): Gate[] => {
+    if (aside.has(g.key)) return [];
+    const a = by.get(g.key);
+    return a?.status ? [{ ...g, status: a.status, adjusted: note(a, g.status, a.status) }] : [g];
+  });
+  const rows = facts.rows.flatMap((x): Row[] => {
+    const a = by.get(x.key);
+    if (aside.has(x.key)) return [];
+    if (!a) return [x];
+    let row: Row = x;
+    if (a.grade) row = { ...row, grade: a.grade, adjusted: note(a, x.grade ?? "–", a.grade) };
+    if (a.status) {
+      const from = x.budget?.status ?? "–";
+      row = {
+        ...row,
+        mustStatus: a.status,
+        ...(x.budget ? { budget: { ...x.budget, status: a.status } } : {}),
+        adjusted: note(a, row.adjusted?.from ?? from, a.status),
+      };
+    }
+    return [row];
+  });
+  const own = (f: Factor) =>
+    facts.rows.find((x) => x.key === f)?.label ?? facts.gates.find((g) => g.key === f)?.label;
+  const setAside = adjust
+    .filter((a) => a.kind === "setAside")
+    .map((a): SetAside => ({
+      key: a.factor,
+      label: asideLabel(a.factor, own(a.factor)),
+      reason: a.reason,
+      must: isMustOf(R, a.factor),
+      at: a.at,
+    }));
+  return { ...facts, gates, rows, ...(setAside.length ? { setAside } : {}) };
+}

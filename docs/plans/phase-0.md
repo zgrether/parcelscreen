@@ -1002,4 +1002,38 @@ until step 5 (Q14).
       - **PRISM stays.** Its terms don't address commercial use: it's listed, with its swap (NOAA's 1991–2020
         normals), in `docs/commercial-review.md` beside the other sources whose terms limit commercial use.
 
+67. **Step 12: ways to raise the grade, and per-parcel adjustments** (owner, 2026-10-22, step 12's brief and plan,
+    `docs/plans/step-12-raise-the-grade.md`, #275; built in #276–#283 and the docs PR).
+    - **Adjustments are the person's own:** an override (a row's letter, a Must's result) or a set-aside (a row or a Must
+      off this parcel's grade), each with a required reason. They're applied to that person's card only
+      (`reportCard`'s `Drawn.adjust`, by rubric id), between `cardFacts` and `cardFor`. A set-aside leaves the
+      facts, so nothing counts it (the grade, the Musts, the verdict, the homesite ranking), and is listed in its tier;
+      the answer line names a set-aside Must. This supersedes #128's household-wide overrides (`parcel-workflow.md`
+      §3.6), which were never built, and their "a failed dealbreaker can't be overridden".
+    - **Storage, additive:** `ps.household.adjusts` (optional; a record that doesn't read is dropped alone), synced as
+      the household's `adjust` records through a new table, `sync_adjustments` (0003, RLS on, no policies; applied
+      2026-10-22; the public key reads nothing and can't insert; advisors: only the INFO `rls_enabled_no_policy` every
+      sync table has). A new table rather than widening `sync_household`'s check, which would be a drop and a
+      re-create. `ps.rubrics.nudged` (optional) keeps the nudge's answers.
+    - **The marks:** ✎ beside an adjusted grade in the list, the phone strip, Recent, Compare, One page and the print
+      rows; Full lists every adjustment with its reason.
+    - **The nudge:** after one factor is set aside on `card.nudgeAfter` (3) of the parcels still kept, What matters offers
+      once to move it down a tier, with Undo.
+    - **The suggestions** are display-time, at most three, only what raises the person's letter or verdict and lowers
+      neither, in order: a different homesite (a better letter only), your drawn line as access, an alternative septic
+      system (the gate's warn, the gate never fails; not for someone who walked away from one), and one set-aside (never
+      Floodplain, Legal road access, the easement, Septic or Within budget). "Grade it with the parcel next door" makes
+      the combination a new parcel and grades it; the original stays. Tree clearing waits for canopy heights (12b).
+    - **Try it (WF6b's app side):** WF6a's `reroute` from the live session, else a run with `drivewayLine`; the result
+      stays a suggestion until Use it (a new screen, the line chosen) or Discard (the session rerouted back). Every run
+      now passes the parcel's chosen line, so a WF5 choice re-times its drives at its next grade; the card drops "Drive
+      times start where the app's pick meets the road" when the drives already start at your route. No `keys.driveway`
+      and no export version 6 (WF6's plan §3): the card reads the drive start.
+    - **The owner's answer on the red gate (#281):** Mud Creek's red-gate line lowers the card (B Contender → B Maybe for
+      every rubric: 41% against the 25% veto, and a legal check), so the filtered suggestion never offers it. Try it also
+      sits beside "Use as my driveway" in the Easement panel for every drawn line, and is tested there on the red gate;
+      the suggestion's raising case is a constructed line on Roan ("Old road", `lib/report/raise.test.ts`), because on the
+      fixtures the app's own pick takes a line that helps at the next grade.
+    - **Numbers:** none. `expected.json` is unchanged; `card.nudgeAfter` is the one config addition.
+
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

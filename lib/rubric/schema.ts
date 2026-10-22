@@ -5,6 +5,7 @@
 import { z } from "zod";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { NEW_FACTORS, type FactorsAdded } from "./factorsAdd";
+import type { NudgeMarks } from "./nudge";
 import { GATE_KEYS, ROW_KEYS, type NamedRubric, type RowKey, type Rubric } from "./types";
 
 const num = z.number().finite();
@@ -79,6 +80,8 @@ export interface ProfileRubrics {
    * Driveway's is. A factor with no mark isn't added yet.
    */
   factorsAdded?: FactorsAdded;
+  /** Step 12 (plan §3): each factor offered by the learning nudge, and its answer (lib/rubric/nudge.ts). */
+  nudged?: NudgeMarks;
 }
 const AddedMark = z.enum(["new", "seen", "undone"]);
 export const ProfileRubricsSchema: z.ZodType<ProfileRubrics> = z.strictObject({
@@ -86,6 +89,9 @@ export const ProfileRubricsSchema: z.ZodType<ProfileRubrics> = z.strictObject({
   others: z.array(NamedRubricSchema),
   drivewayAdded: z.enum(["new", "seen", "undone"]).optional(),
   factorsAdded: z.partialRecord(z.enum(NEW_FACTORS), AddedMark).optional(),
+  nudged: z
+    .partialRecord(z.enum([...GATE_KEYS, ...ROW_KEYS]), z.enum(["offered", "moved", "declined", "undone"]))
+    .optional(),
 });
 
 export { LetterSchema };

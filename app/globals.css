@@ -7316,3 +7316,144 @@ button.sync-ind.bad {
     display: none !important;
   }
 }
+/* ---------- Step 12: per-parcel adjustments on the card ---------- */
+/* An override: the app's letter (or Must mark) struck through beside the person's; their reason under the row. */
+.card-row .adjusted-grade {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.card-row s.was,
+.must-row s.was {
+  opacity: 0.55;
+  text-decoration-thickness: 2px;
+}
+.card-row .adjusted-why {
+  color: var(--color-ink-2);
+  font-style: italic;
+}
+.adjusted-mark {
+  font-style: normal;
+  color: var(--color-ink);
+}
+/* A set-aside row or Must: greyed in its tier, still a button to its panel. */
+.card-row.set-aside .row-label,
+.card-row.set-aside .row-detail {
+  color: var(--color-ink-2);
+}
+/* Adjust for this parcel, in a row's panel (step 12): letter chips and buttons at 44 px, the reason field full width. */
+.card-panel .adjust {
+  border-top: 1px solid var(--color-rule);
+  margin: 12px 0;
+  padding-top: 8px;
+}
+.card-panel .adjust h3 {
+  margin: 0 0 8px;
+}
+.adjust-choices,
+.adjust-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.adjust-letters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+.adjust-letters .tiny {
+  width: 100%;
+}
+.adjust-letters .chip,
+.adjust .btn {
+  min-width: 44px;
+  min-height: 44px;
+}
+.adjust-form label {
+  display: block;
+  margin: 6px 0 4px;
+  font-weight: 600;
+}
+.adjust-form textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  field-sizing: content;
+  font: inherit;
+}
+.adjust-form .adjust-actions {
+  margin-top: 8px;
+}
+.adjust-now q {
+  font-style: italic;
+}
+/* Ways to raise this grade (step 12): each change on its line, its action under it, full width on a phone. */
+.raise-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.raise-item {
+  padding: 6px 0 10px;
+  border-bottom: 1px solid var(--color-rule);
+}
+.raise-item:last-child {
+  border-bottom: 0;
+}
+.raise-text {
+  margin: 0 0 6px;
+}
+.raise-cost {
+  color: var(--color-ink-2);
+}
+.raise .btn {
+  min-height: 44px;
+}
+@media (max-width: 600px) {
+  .raise .raise-act {
+    width: 100%;
+  }
+}
+/* Try it (step 12): a drawn line tried as the driveway, its outcome, Use it / Discard. */
+.try-it {
+  margin-top: 6px;
+}
+.try-it .btn {
+  min-height: 44px;
+}
+.try-it.tried {
+  border-left: 3px solid var(--color-water);
+  padding-left: 8px;
+}
+.try-words {
+  margin: 0 0 6px;
+}
+.try-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.try-note {
+  margin: 0 0 6px;
+}
+/* The app's own letter among the override chips: shown, outlined, not a button. */
+.adjust-letters .adjust-app {
+  display: inline-grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  opacity: 0.45;
+  outline: 2px dashed var(--color-ink-2);
+  outline-offset: -4px;
+}
+.adjust-what {
+  margin: -4px 0 8px;
+}
+.raise-neighbour {
+  border-top: 1px solid var(--color-rule);
+  margin: 4px 0 0;
+  padding-top: 8px;
+}

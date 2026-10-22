@@ -7,6 +7,7 @@ import type { Factor, Letter } from "../rubric/types";
 import { EDITOR_TITLES, SHORT_TITLES } from "../rubric/words";
 import type { Card, GateStatus } from "./card";
 import { GATE_MARK, MUST_STATUS_WORD, mustLines, mustText, shownRankedRows } from "./cardLines";
+import { SET_ASIDE_READING } from "./adjustWords";
 
 export interface FactorCell {
   key: Factor;
@@ -25,6 +26,10 @@ export interface FactorCell {
   detail: string;
   /** For sorting and best-in-column, higher is better; null when unknown (sorted last, never best). */
   score: number | null;
+  /** The person's adjustment on this parcel (step 12): marked ✎. */
+  adjusted?: true;
+  /** Set aside on this parcel (step 12): no mark or letter, never best. */
+  setAside?: true;
 }
 
 /** A Must's outcomes, worst to best: unknown isn't ranked. */
@@ -48,6 +53,7 @@ export function factorCells(card: Card): FactorCell[] {
       // mustText says "Check first: …" itself; a pass says so here.
       detail: m.status === "pass" ? `${MUST_STATUS_WORD.pass}: ${mustText(m)}` : mustText(m),
       score: status === null ? null : status * 10 + letter,
+      ...(m.adjusted ? { adjusted: true as const } : {}),
     };
   });
   const { should, could } = shownRankedRows(card);
@@ -60,6 +66,19 @@ export function factorCells(card: Card): FactorCell[] {
     text: r.grade ?? "–",
     detail: r.detail,
     score: r.grade ? points[r.grade] : null,
+    ...(r.adjusted ? { adjusted: true as const } : {}),
   }));
-  return [...musts, ...grades];
+  // Step 12: what the person set aside here keeps its column, empty and marked.
+  const aside = (card.setAside ?? []).map((x): FactorCell => ({
+    key: x.key,
+    short: SHORT_TITLES[x.key],
+    title: EDITOR_TITLES[x.key],
+    kind: x.must ? "must" : "grade",
+    text: "–",
+    detail: SET_ASIDE_READING(x.reason),
+    score: null,
+    adjusted: true,
+    setAside: true,
+  }));
+  return [...musts, ...grades, ...aside];
 }

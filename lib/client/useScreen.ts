@@ -1,7 +1,7 @@
 "use client";
 /**
  * React hook that runs the screen in a Web Worker (lib/screen/worker.ts). It tracks each step's status and
- * the latest (partial) result as the worker reports them, and exposes run / cancel / evaluateAt / setHouse.
+ * the latest (partial) result as the worker reports them, and exposes run / cancel / evaluateAt / setHouse / reroute.
  * The worker is created on first use and terminated on unmount; its caches (DEMs, atlas tiles) live as long
  * as it does, so re-runs and re-evaluations in one session don't refetch.
  *
@@ -14,7 +14,14 @@
  * page forgets its kept sessions, and each parcel shows the usual "Run again to restore…" note.
  */
 import { useCallback, useEffect, useReducer, useRef } from "react";
-import type { PartialScreenResult, ProgressEvent, ScreenInput, ScreenResult, Step } from "@/lib/screen/types";
+import type {
+  DrawnInput,
+  PartialScreenResult,
+  ProgressEvent,
+  ScreenInput,
+  ScreenResult,
+  Step,
+} from "@/lib/screen/types";
 import type { FromWorker, SessionBytes, SessionView, ToWorker } from "@/lib/screen/worker-protocol";
 import { WorkerWatch } from "./workerWatch";
 import type { LatLon } from "@/lib/screen/util";
@@ -237,6 +244,15 @@ export function useScreen() {
     [send],
   );
 
+  /** WF6's reroute, from the run's session (step 12's Try it): the driveway again for these lines and this choice. */
+  const reroute = useCallback(
+    (lines: DrawnInput[], drivewayLine: string | null) => {
+      dispatch({ type: "update-start" });
+      send({ type: "reroute", id: runId.current, lines, drivewayLine });
+    },
+    [send],
+  );
+
   const ping = useCallback(() => send({ type: "ping", id: 0 }), [send]);
 
   /** Reopen a kept run (17e): it becomes the current one, at its own point. */
@@ -259,6 +275,7 @@ export function useScreen() {
     cancel,
     evaluateAt,
     setHouse,
+    reroute,
     ping,
     activate,
     release,

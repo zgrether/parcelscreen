@@ -3,10 +3,13 @@
  * Full (step 9 plan §3): after the one-page summary, the priorities it was graded against, then the report's own blocks
  * grouped under the brief's sections, the listing and notes, the lines and marks, the data sources and the closing
  * line. The blocks render as they do in the panel's Full report, in their print variant (no "on the map" pointers).
- * Nothing here for ways to raise the grade (step 12): it comes with its step. The cost to enjoy (step 10) follows
+ * Ways to raise the viewer's grade (step 12) follow the cost to enjoy, when there are any. The cost to enjoy (step 10) follows
  * Access and driveway.
  */
 import { useEffect, useRef, type ReactNode } from "react";
+import { RAISE_WORDS } from "@/lib/report/raise";
+import { ADJUSTMENTS_TITLE } from "@/lib/report/adjustWords";
+import type { PrintAdjust } from "@/lib/print/report";
 import { area, length, lineString } from "@turf/turf";
 import { fmt } from "@/lib/format";
 import { KIND_NAME, type WorkingParcel } from "@/lib/client/parcelStore";
@@ -65,6 +68,8 @@ export const FULL_WORDS = {
   internet: "Satellite internet",
   listing: "Listing facts and notes",
   lines: "Lines and marks",
+  // Step 12: every adjustment on the parcel, with its reason.
+  adjustments: ADJUSTMENTS_TITLE,
   sources: "Data sources",
   closing: "This is a desk screen, not a survey, perc test or appraisal.",
   engine: (n: number) => `Graded by engine version ${n}.`,
@@ -100,6 +105,14 @@ function sources(r: ScreenResult): { text: string; step: Step; dated?: true }[] 
   ];
 }
 
+/** "Oct 22, 2026": an adjustment's date (step 12). */
+const fmtDate = (iso: string): string => {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime())
+    ? ""
+    : d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+};
+
 const asOf = (iso: string): string => {
   const d = new Date(iso);
   return Number.isNaN(d.getTime())
@@ -122,12 +135,18 @@ export function Full({
   card,
   parcel,
   acres,
+  adjustments = [],
+  raise = [],
 }: {
   result: ScreenResult;
   /** The viewer's card. */
   card: Card;
   parcel: WorkingParcel;
   acres: number | null;
+  /** Every person's adjustments on the parcel (step 12). */
+  adjustments?: readonly PrintAdjust[];
+  /** Ways to raise the viewer's grade (step 12). */
+  raise?: readonly string[];
 }) {
   // A block's folds (the driveway's grade detail) print open: paper has no ▸ to press (fresh-eyes review).
   const box = useRef<HTMLDivElement>(null);
@@ -258,6 +277,15 @@ export function Full({
           <CostBreakdown cost={card.cost} print />
         </Section>
       )}
+      {raise.length > 0 && (
+        <Section title={RAISE_WORDS.title}>
+          <ul>
+            {raise.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        </Section>
+      )}
 
       <Section title={FULL_WORDS.sun}>{block(DecemberSun)}</Section>
       <Section title={FULL_WORDS.sky}>{block(DarkSkies)}</Section>
@@ -340,6 +368,18 @@ export function Full({
           </ul>
         )}
       </Section>
+
+      {adjustments.length > 0 && (
+        <Section title={FULL_WORDS.adjustments}>
+          <ul>
+            {adjustments.map((a) => (
+              <li key={`${a.who}-${a.factor}`}>
+                <b>{a.who}:</b> {a.factor}, {a.change} (“{a.reason}”), {fmtDate(a.at)}
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
 
       <Section title={FULL_WORDS.sources}>
         <ul>

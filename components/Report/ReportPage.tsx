@@ -8,7 +8,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useCostSettings } from "@/lib/client/costRates";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { getPref, setPref } from "@/lib/client/prefs";
-import { useHousehold } from "@/lib/client/householdDoc";
+import { adjustFor, useHousehold } from "@/lib/client/householdDoc";
 import { parcelName } from "@/lib/client/historyRows";
 import { recipeOf, type WorkingParcel } from "@/lib/client/parcelStore";
 import { currentProfile } from "@/lib/client/profiles";
@@ -172,7 +172,12 @@ function Report({
       askingPriceAt: parcel.askingPriceAt,
       listingAcres: parcel.listingAcres,
       result: record.result,
-      drawn: drawnOf(parcel.markup, parcel.drivewayLine, { askingPrice: parcel.askingPrice, ...costs }),
+      drawn: drawnOf(
+        parcel.markup,
+        parcel.drivewayLine,
+        { askingPrice: parcel.askingPrice, ...costs },
+        adjustFor(parcel.key, household),
+      ),
       rubrics,
       viewer: viewedRubric(rubrics),
       nameOf: (id) =>
@@ -182,6 +187,7 @@ function Report({
       household,
       parcelKey: parcel.key!,
       stale,
+      refusesAltSeptic: !!getPref("ps.interview")?.answers.walkAway?.chips?.includes("altSeptic"),
     });
   }, [parcel, record, household, derived, costs]);
   // The map's content (plan §4): the boundary's rings, the viewer's best site and their alternatives, the lines, a house.
@@ -217,7 +223,14 @@ function Report({
           map={(height) => <PrintMap {...map} height={height} onSettled={() => onMapReady(true)} />}
         />
         {preset === "full" && (
-          <Full result={record.result} card={content.grades[0]!.card} parcel={parcel} acres={content.acres} />
+          <Full
+            result={record.result}
+            card={content.grades[0]!.card}
+            parcel={parcel}
+            acres={content.acres}
+            adjustments={content.adjustments}
+            raise={content.raise}
+          />
         )}
       </article>
     </SheetScale>

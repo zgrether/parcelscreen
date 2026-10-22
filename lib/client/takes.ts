@@ -6,8 +6,13 @@
  *     replaces it. A take doesn't need an ask.
  *   - Waiting for you: an ask to me with no take of mine made after it.
  * Each ask and take syncs as a whole record (the later save wins), like a parcel. Pure: tested in Node.
+ *
+ * Step 12 adds each person's per-parcel adjustments (lib/report/adjust.ts), optional: a document without them reads as
+ * none.
  */
 import { z } from "zod";
+import { AdjustmentSchema, adjustKey, type Adjustment } from "@/lib/report/adjust";
+import { MINE } from "@/lib/rubric/types";
 
 export type Answer = "yes" | "maybe" | "no";
 export const ANSWERS: readonly Answer[] = ["yes", "maybe", "no"];
@@ -36,9 +41,19 @@ export const HouseholdSchema = z.object({
   v: z.literal(1),
   asks: z.array(AskSchema).default([]),
   takes: z.array(TakeSchema).default([]),
+  // Step 12: one record that doesn't read is dropped alone, so it can't cost the asks and takes their document.
+  adjusts: z
+    .array(z.unknown())
+    .default([])
+    .transform((xs) =>
+      xs.flatMap((x) => {
+        const r = AdjustmentSchema.safeParse(x);
+        return r.success ? [r.data] : [];
+      }),
+    ),
 });
 export type Household = z.infer<typeof HouseholdSchema>;
-export const EMPTY_HOUSEHOLD: Household = { v: 1, asks: [], takes: [] };
+export const EMPTY_HOUSEHOLD: Household = { v: 1, asks: [], takes: [], adjusts: [] };
 
 export const askKey = (parcel: string, to: string): string => `${parcel}:${to}`;
 export const takeKey = (parcel: string, by: string): string => `${parcel}:${by}`;
@@ -74,7 +89,34 @@ export const withoutParcel = (h: Household, parcel: string): Household => ({
   ...h,
   asks: h.asks.filter((a) => a.parcel !== parcel),
   takes: h.takes.filter((t) => t.parcel !== parcel),
+  adjusts: h.adjusts.filter((a) => a.parcel !== parcel),
 });
+
+/** Makes (or replaces) a person's adjustment of one factor on a parcel (step 12). */
+export function withAdjust(h: Household, a: Omit<Adjustment, "key">): Household {
+  const adj: Adjustment = { ...a, key: adjustKey(a.parcel, a.by, a.factor) };
+  return { ...h, adjusts: [...h.adjusts.filter((x) => x.key !== adj.key), adj] };
+}
+
+/** Removes an adjustment by its key. */
+export const withoutAdjust = (h: Household, key: string): Household => ({
+  ...h,
+  adjusts: h.adjusts.filter((x) => x.key !== key),
+});
+
+/**
+ * Each person's adjustments on a parcel, by the id of the rubric that grades them (Drawn.adjust): MINE for mine, the
+ * member's profile id for theirs.
+ */
+export function adjustMap(h: Household, parcel: string, me: string | null): Map<string, Adjustment[]> {
+  const out = new Map<string, Adjustment[]>();
+  for (const a of h.adjusts) {
+    if (a.parcel !== parcel) continue;
+    const id = a.by === me ? MINE : a.by;
+    out.set(id, [...(out.get(id) ?? []), a]);
+  }
+  return out;
+}
 
 /** Whether an ask to me waits for my take: no take of mine, or one made before the ask. */
 export function waits(h: Household, a: Ask): boolean {
@@ -123,9 +165,11 @@ export function bothLikeIt(h: Household, parcel: string, grades: readonly (strin
   return graded.length > 0 && graded.every((g) => g <= "C");
 }
 
-/** The records the sync carries: each ask and take by its key and kind. */
-export type HouseholdRecord = { kind: "ask"; record: Ask } | { kind: "take"; record: Take };
+/** The records the sync carries: each ask, take and adjustment (step 12) by its key and kind. */
+export type HouseholdRecord =
+  { kind: "ask"; record: Ask } | { kind: "take"; record: Take } | { kind: "adjust"; record: Adjustment };
 export const recordsOf = (h: Household): HouseholdRecord[] => [
   ...h.asks.map((record) => ({ kind: "ask" as const, record })),
   ...h.takes.map((record) => ({ kind: "take" as const, record })),
+  ...h.adjusts.map((record) => ({ kind: "adjust" as const, record })),
 ];
