@@ -37,7 +37,7 @@ test("after the interview: Areas that fit you, five cards, and Show me a parcel 
   const box = page.getByRole("region", { name: W.afterInterview });
   await expect(box.locator(".area-card")).toHaveCount(5);
   // The starting list's must-haves are all parcel-scale: said once, under the title.
-  await expect(box.locator(".area-note")).toHaveText(MUSTS_PARCEL_SCALE);
+  await expect(box.locator(".area-note")).toHaveText([W.ranked, MUSTS_PARCEL_SCALE]);
   await expect(box.locator(".ac-share")).toHaveCount(0);
   const first = (await box.locator(".ac-name").first().innerText()).trim();
   await box.getByRole("button", { name: W.showParcel }).first().click();

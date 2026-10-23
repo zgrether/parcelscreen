@@ -76,6 +76,7 @@ export function AreaBox({
         setRubric={setRubric}
         label="Whose priorities rank the areas"
       />
+      <p className="area-note tiny muted">{W.ranked}</p>
       {parcelScale && <p className="area-note tiny muted">{MUSTS_PARCEL_SCALE}</p>}
       {areas.state !== "ready" ? (
         <ol className="area-cards" aria-busy="true">
@@ -128,6 +129,7 @@ export function AreaBox({
                   {more ? W.showFewer : W.showMore}
                 </button>
               )}
+              {more && <h3 className="area-rest-head">{W.moreHeading(rest.length)}</h3>}
               {more && (
                 <ol className="area-rest" start={top.length + 1}>
                   {rest.map((c) => (
@@ -141,6 +143,9 @@ export function AreaBox({
                         <span className="area-rest-name">{byId.get(c.id)!.name}</span>
                         <span className="area-rest-share">
                           {c.limits.length ? `${Math.round(c.mustShare * 100)}%` : ""}
+                        </span>
+                        <span className="area-rest-go" aria-hidden="true">
+                          ›
                         </span>
                       </button>
                     </li>
