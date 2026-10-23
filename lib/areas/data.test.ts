@@ -5,7 +5,8 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { erDestinations, ersToConfirm, loadAirports, loadErAdditions, loadErList } from "./data";
+import HOSPITALS_OSM from "@/lib/screen/data/hospitals.json";
+import { erDestinations, ersToConfirm, loadAirports, loadErOverrides, loadErList } from "./data";
 import { CATALOG_BOX } from "./extent";
 
 const script = (name: string) => readFileSync(join(process.cwd(), "scripts", name), "utf8");
@@ -19,8 +20,13 @@ const boxIn = (text: string, name: string) => {
 };
 
 describe("the catalog's extent", () => {
-  it("is the one each data script was made for", () => {
-    expect(boxIn(script("data-er.mts"), "CATALOG_BOX")).toEqual([...CATALOG_BOX]);
+  it("is the one each data script was made for; the ER list's is the parcel screen's, the OSM snapshot's box", () => {
+    // "… in 33.3,-90.959,40.01,-74.591 (VA, NC and TN widened by 60 km)"
+    const osmBox = / in (-?[0-9.]+),(-?[0-9.]+),(-?[0-9.]+),(-?[0-9.]+) /
+      .exec(HOSPITALS_OSM.source)!
+      .slice(1)
+      .map(Number);
+    expect(boxIn(script("data-er.mts"), "SCREEN_BOX")).toEqual(osmBox);
     expect(boxIn(script("data-airports.mts"), "CATALOG_BOX")).toEqual([...CATALOG_BOX]);
     expect(boxIn(script("data-climate.mts"), "REGION")).toEqual([...CATALOG_BOX]);
   });
@@ -40,6 +46,9 @@ describe("the ER list", () => {
       /^Twin County Regional Hospital, Galax/,
       /^Watauga Medical Center, Boone/,
       /, Linville$/,
+      // Placed by a shared word or by hand (§9.69): the geocoder can't match their addresses.
+      /^Southside Community Hospital, Farmville/,
+      /^North Carolina Baptist Hospital, Winston-Salem/,
     ])
       expect(names.some((x) => n.test(x))).toBe(true);
   });
@@ -53,30 +62,31 @@ describe("the airport list", () => {
 });
 
 describe("the ERs the profiler times, and those to confirm (owner, #298 answers)", () => {
-  it("CMS's, with the hand-checked additions: Stuart Community is timed", async () => {
+  it("CMS's, with the hand-checked overrides: Stuart Community is timed", async () => {
     const list = await loadErList();
-    const additions = await loadErAdditions();
-    const dest = erDestinations(list, additions);
+    const overrides = await loadErOverrides();
+    const dest = erDestinations(list, overrides);
     expect(dest.length).toBe(list.hospitals.length + 1);
     expect(dest).toContainEqual([36.646318, -80.254812]);
   });
 
-  it("an addition without an ER takes CMS's hospital near it off the list", async () => {
+  it("a closed override takes CMS's hospital off the areas' list too", async () => {
     const list = await loadErList();
     const h = list.hospitals[0]!;
     const closed = {
-      name: "Closed",
+      status: "closed" as const,
+      id: h.id,
+      name: h.name,
       ll: h.ll,
-      er: false,
       source: "https://example.org",
       checked: "2026-10-23",
     };
     expect(erDestinations(list, [closed])).not.toContainEqual(h.ll);
   });
 
-  it("to confirm: OSM's ERs that CMS lacks, less the additions and CMS's own under another name", async () => {
+  it("to confirm: OSM's ERs that CMS lacks, less the overrides and CMS's own under another name", async () => {
     const list = await loadErList();
-    const names = ersToConfirm(list, await loadErAdditions()).map((o) => o.name);
+    const names = ersToConfirm(list, await loadErOverrides()).map((o) => o.name);
     expect(names).not.toContain("Stuart Community Hospital");
     expect(names.length).toBeLessThan(list.osmOnly.length);
   });

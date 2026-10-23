@@ -5,7 +5,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { refreshSummary, TO_CONFIRM_HEADING } from "./summary";
+import { CAN_REMOVE_HEADING, refreshSummary, TO_CONFIRM_HEADING } from "./summary";
 import { AreaFileSchema, type AreaFile } from "./types";
 
 const file = (id: string): AreaFile =>
@@ -85,5 +85,21 @@ describe("the ERs to confirm (owner, #298 answers)", () => {
     expect(s.changed).toBe(false);
     expect(s.markdown).toContain(`**${TO_CONFIRM_HEADING}**`);
     expect(s.markdown).toContain("- Example Hospital (36.1000, -81.2000)");
+  });
+
+  it("closed overrides CMS has since dropped: listed as can be removed; not a change in itself (owner, #300)", () => {
+    const dan = file("meadows-of-dan");
+    const s = refreshSummary(
+      [dan],
+      [dan],
+      "2026-11-03",
+      [],
+      [{ name: "Old County Hospital", id: "490099" }, { name: "No Id" }],
+    );
+    expect(s.changed).toBe(false);
+    expect(s.markdown).toContain(`**${CAN_REMOVE_HEADING}**`);
+    expect(s.markdown).toContain("- Old County Hospital (CMS 490099)");
+    expect(s.markdown).toContain("- No Id\n");
+    expect(refreshSummary([dan], [dan], "2026-11-03").markdown).not.toContain(CAN_REMOVE_HEADING);
   });
 });

@@ -1,6 +1,6 @@
 /**
- * A deployed site's first visit doesn't fetch the hospital snapshot (owner, #85): neither the page's own
- * scripts nor the service worker's precache include the chunk that holds lib/screen/data/hospitals.json. Only
+ * A deployed site's first visit doesn't fetch the ER list (owner, #85; the OSM hospital snapshot before §9.69): neither
+ * the page's own scripts nor the service worker's precache include the chunk that holds lib/screen/data/er.json. Only
  * the screen worker fetches it, when a screen runs.
  *
  *   pnpm check:deployed https://parcelscreen-zgrether-1030s-projects.vercel.app
@@ -12,7 +12,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 /** lib/screen/hospitalsMarker.ts's HOSPITAL_SNAPSHOT_MARKER (a test holds the two equal). */
-export const MARKER = "amenity=hospital or healthcare=hospital in";
+export const MARKER = "CMS Hospital General Information (Emergency Services = Yes)";
 
 /** The scripts a first visit loads: the page's <script src>, and every script the precache manifest lists. */
 export function firstVisitScripts(html: string, sw: string): { page: string[]; precache: string[] } {

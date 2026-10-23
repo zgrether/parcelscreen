@@ -15,9 +15,9 @@ const revision =
   crypto.randomUUID();
 
 /**
- * The chunk holding lib/screen/data/hospitals.json (A2c), left out of the precache (owner, #82): 250 KB that
- * only a screen needs, fetched by the screen worker when it runs. Chunk names are content hashes, so it's
- * found by the source line `pnpm data:hospitals` writes into the file.
+ * The chunk holding the ER list, lib/screen/data/er.json (§9.69; the OSM snapshot before it, A2c), left out of the
+ * precache (owner, #82): 180 KB that only a screen needs, fetched by the screen worker when it runs. Chunk names are
+ * content hashes, so it's found by the source line `pnpm data:er` writes into the file.
  */
 function isHospitalSnapshot(url: string): boolean {
   // Our transforms run before Serwist's own, which rewrites ".next/…" to "/_next/…"; accept either. Any script

@@ -16,6 +16,10 @@ export const publicLandHeading: Heading = {
   slug: "public-land-within-a-mile",
   help: "h-public",
 };
+/** Where the Hospital row's ERs come from (§9.69), the caveat's last sentence. */
+export const HOSPITALS_SOURCE =
+  "Hospitals with an emergency department come from CMS's list of hospitals, with a hand-checked list of recent openings and closings.";
+
 export const gettingThereHeading: Heading = {
   title: "Getting there and getting out",
   slug: "getting-there-and-getting-out",
@@ -304,7 +308,9 @@ export function gettingThereView(r: PartialScreenResult): GettingThereView | nul
       // Appended (rule 7; follow-up 24, Batch A plan §3): the prototype's sentence above stays word for word.
       " Forest Service trailheads and state parks are included too." +
       // Appended (rule 7; follow-up 54, owner #123): where the drives start.
-      (r.driveFrom ? ` ${driveFromSentence(r.driveFrom)}` : ""),
+      (r.driveFrom ? ` ${driveFromSentence(r.driveFrom)}` : "") +
+      // Appended (rule 7; the ER follow-up, §9.69): the hospitals aren't OpenStreetMap's any more.
+      ` ${HOSPITALS_SOURCE}`,
   };
 }
 

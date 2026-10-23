@@ -110,7 +110,8 @@ describe("Within budget (step 10 plan §3)", () => {
     expect(table).toEqual([
       [MUD, [3.5, "A", "Contender"], [3.333, "B", "Contender"], [3.5, "A", "Pass"]],
       ["macks-mountain-35-3", [3.214, "B", "Maybe"], [3.086, "B", "Maybe"], [3.214, "B", "Maybe"]],
-      ["ferney-creek-52-47A", [3.179, "B", "Contender"], [3.114, "B", "Contender"], [3.179, "B", "Maybe"]],
+      // §9.69: Ferney's Hospital row a C, not a D (3.179, 3.114, 3.179 before).
+      ["ferney-creek-52-47A", [3.214, "B", "Contender"], [3.171, "B", "Contender"], [3.214, "B", "Maybe"]],
       ["roan-hwy-143-099-046-02", [2.786, "B", "Maybe"], [2.771, "B", "Maybe"], [2.786, "B", "Maybe"]],
     ]);
   });

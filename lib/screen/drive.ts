@@ -1,6 +1,6 @@
 /**
- * Drive times by the public OSRM router: the nearest of the top three hospitals (those with an emergency department
- * first, A2c) and big-name groceries, then each anchor. Ported from the prototype (proto L883–889, L1138–1144), plus a
+ * Drive times by the public OSRM router: the nearest of the top three emergency departments (CMS's list with the
+ * hand-checked overrides, §9.69) and big-name groceries, then each anchor. Ported from the prototype (proto L883–889, L1138–1144), plus a
  * nearer non-chain grocery when there is one (owner, #81; CLOSER_GROCERY).
  *
  * Follow-up 54 (owner, #123): the drives start where the scored driveway meets the road (driveStart), and the nearest
@@ -155,7 +155,7 @@ export interface DrivePools {
    * Slaughters' is the tenth nearest).
    */
   otherGrocers?: readonly Place[];
-  /** Every candidate hospital, nearest first, with its emergency status when the snapshot gave it (A2c). */
+  /** Every candidate hospital, nearest first: the ERs within near.hospitalKm (§9.69). */
   hospitals?: readonly HospitalCandidate[];
 }
 
@@ -247,8 +247,9 @@ export async function driveTimes(
   };
   let closer: DriveEntry | null = null;
   if (near) {
-    // A2c (owner, 2026-10-09): prefer hospitals the snapshot lists with emergency=yes, as the grocery rule
-    // prefers chains; when the one chosen isn't, its row says so. Unknown status (no snapshot): no note.
+    // A2c (owner, 2026-10-09): prefer hospitals with an emergency department, as the grocery rule prefers chains.
+    // Since §9.69 every candidate is one (CMS's list and the overrides); "not-listed" and "unknown" are kept for
+    // results stored before it, and for a pool given without the status.
     const h = await quickest(hospitalList);
     if (h) {
       firstLl ??= h.place.ll;

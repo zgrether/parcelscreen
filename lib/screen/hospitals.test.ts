@@ -1,4 +1,8 @@
-/** Hospitals from the committed OSM snapshot (Batch A A2c, owner 2026-10-09). */
+/**
+ * The ERs the drive step times (the ER follow-up, owner 2026-10-23; phase-0.md §9.69): CMS's hospitals with an
+ * emergency department and the hand-checked overrides, the list the area catalog times. OpenStreetMap's are never timed.
+ */
+import HOSPITALS_OSM from "./data/hospitals.json";
 import { HOSPITAL_SNAPSHOT_MARKER } from "./hospitalsMarker";
 import { describe, expect, it } from "vitest";
 import type { HttpClient } from "../http";
@@ -6,101 +10,204 @@ import { DEFAULT_ENDPOINTS, SCREEN_CONSTANTS } from "./config";
 import { driveTimes } from "./drive";
 import { driveName, ER_NOT_LISTED, NEAREST_HOSPITAL } from "./driveList";
 import {
+  closedCmsDropped,
+  erPlaces,
   hospitalCandidates,
-  loadHospitalSnapshot,
+  loadErLists,
+  loadHospitals,
+  type ErList,
+  type ErOverride,
+  type ErPlace,
   type HospitalCandidate,
-  type HospitalSnapshot,
 } from "./hospitals";
 import type { LatLon } from "./util";
 
 const GRAYSON: LatLon = [36.5854, -81.5632];
+const km = ([a, b]: LatLon, [c, d]: LatLon) =>
+  Math.hypot((c - a) * 111.2, (d - b) * 111.32 * Math.cos((a * Math.PI) / 180));
 
-describe("the committed snapshot", () => {
-  it("loads, parses, and covers the three states with emergency status", async () => {
-    const s = (await loadHospitalSnapshot())!;
-    expect(s).not.toBeNull();
-    expect(s.generatedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    expect(s.source).toContain("OpenStreetMap");
-    expect(s.source).toContain(HOSPITAL_SNAPSHOT_MARKER); // how the precache leaves its chunk out
-    expect(s.hospitals.length).toBeGreaterThan(300);
-    expect(new Set(s.hospitals.map((h) => h.id)).size).toBe(s.hospitals.length);
-    expect(s.hospitals.every((h) => h.tags.amenity === "hospital" || h.tags.healthcare === "hospital")).toBe(
-      true,
-    );
-    expect(s.hospitals.some((h) => h.tags.emergency === "yes")).toBe(true);
+describe("the committed list", () => {
+  it("loads, parses, and covers the three states; its chunk is found by the marker", async () => {
+    const [list] = await loadErLists();
+    expect(list.source).toContain(HOSPITAL_SNAPSHOT_MARKER); // how the precache leaves its chunk out
+    expect(list.hospitals.length).toBeGreaterThan(700);
+    expect(new Set(list.hospitals.map((h) => h.id)).size).toBe(list.hospitals.length);
+    for (const st of ["VA", "NC", "TN"]) expect(list.hospitals.some((h) => h.state === st)).toBe(true);
+    // Never one whose emergency room isn't open to everyone.
+    expect(list.hospitals.some((h) => /psychiatric|childrens|veterans|defense/i.test(h.type))).toBe(false);
+    const ers = (await loadHospitals())!;
+    expect(ers.length).toBe(list.hospitals.length + 1); // Stuart Community, from the overrides
   });
 
-  it("candidates: the name filter, within hospitalKm, nearest first, er from emergency=yes only", () => {
-    const h = (id: string, name: string, lat: number, emergency?: string) => ({
-      id,
-      name,
-      lat,
-      lon: GRAYSON[1],
-      tags: { amenity: "hospital", ...(emergency ? { emergency } : {}) },
-    });
-    const snap: HospitalSnapshot = {
-      generatedAt: "2026-10-09",
-      source: "OpenStreetMap",
-      hospitals: [
-        h("way/1", "Far Regional", GRAYSON[0] + 0.3, "yes"), // ~33 km
-        h("way/2", "Near Community", GRAYSON[0] + 0.1, "no"), // ~11 km
-        h("way/3", "Behavioral Health Center", GRAYSON[0] + 0.05, "yes"), // excludeHospital
-        h("way/4", "Beyond", GRAYSON[0] + 0.6), // ~67 km > hospitalKm
-        h("node/5", "", GRAYSON[0] + 0.2), // unnamed, no tag
-      ],
-    };
+  it("candidates: the name filter, within hospitalKm, nearest first, every one an ER", () => {
+    const at = (name: string, dLat: number): ErPlace => ({ name, ll: [GRAYSON[0] + dLat, GRAYSON[1]] });
+    const places = [
+      at("Far Regional", 0.3), // ~33 km
+      at("Near Community", 0.1), // ~11 km
+      at("Behavioral Health Center", 0.05), // excludeHospital
+      at("Beyond", 0.6), // ~67 km > hospitalKm
+    ];
     expect(SCREEN_CONSTANTS.near.hospitalKm).toBe(60);
-    expect(hospitalCandidates(snap, GRAYSON).map((c) => [c.name, c.er])).toEqual([
-      ["Near Community", false],
-      ["Hospital", false],
+    expect(hospitalCandidates(places, GRAYSON).map((c) => [c.name, c.er])).toEqual([
+      ["Near Community", true],
       ["Far Regional", true],
     ]);
   });
 });
 
-describe("psychiatric and rehabilitation hospitals, by tag (owner, #82)", () => {
-  it("Carilion Saint Albans (healthcare:speciality=psychiatry) is never a candidate, even with no emergency hospital in range", async () => {
-    const real = (await loadHospitalSnapshot())!;
-    const stAlbans = real.hospitals.find((h) => h.name === "Carilion Clinic Saint Albans Hospital")!;
-    expect(stAlbans.tags).toMatchObject({ emergency: "no", "healthcare:speciality": "psychiatry" });
-    expect(SCREEN_CONSTANTS.near.excludeHospital.test(stAlbans.name)).toBe(false); // the name filter misses it
-    // Only Saint Albans and a farther hospital with no emergency tag in range.
-    const other = {
-      id: "way/9",
-      name: "Farther Community",
-      lat: stAlbans.lat + 0.1,
-      lon: stAlbans.lon,
-      tags: { amenity: "hospital" },
-    };
-    const snap: HospitalSnapshot = { ...real, hospitals: [stAlbans, other] };
-    const near: LatLon = [stAlbans.lat - 0.05, stAlbans.lon];
-    expect(hospitalCandidates(snap, near).map((c) => [c.name, c.er])).toEqual([["Farther Community", false]]);
-    // In the real snapshot too, from Ferney Creek, where it's the second nearest.
-    expect(hospitalCandidates(real, [36.8872, -80.4535]).map((c) => c.name)).not.toContain(stAlbans.name);
+describe("the hand-checked overrides (owner, #300): open adds an ER CMS lacks, closed takes one of CMS's off", () => {
+  const list = {
+    hospitals: [
+      { id: "1", name: "Open Regional", city: "", state: "VA", type: "", ll: [36, -81] as LatLon },
+      { id: "2", name: "Closed Since", city: "", state: "VA", type: "", ll: [36.5, -81] as LatLon },
+    ],
+  } as ErList;
+  const at = { source: "https://example.org", checked: "2026-10-23" };
+  const open = (name: string, ll: LatLon): ErOverride => ({ status: "open", name, ll, ...at });
+  const closed = (name: string, ll: LatLon, id?: string): ErOverride => ({
+    status: "closed",
+    name,
+    ll,
+    ...(id ? { id } : {}),
+    ...at,
+  });
+  const names = (o: ErOverride[]) => erPlaces(list, o).map((p) => p.name);
+
+  it("open: added where CMS has nothing within 1 km, and not twice where it has", () => {
+    expect(names([open("Reopened", [36.2, -80.2])])).toEqual(["Open Regional", "Closed Since", "Reopened"]);
+    expect(names([open("Open Regional (new wing)", [36.003, -81.002])])).toEqual([
+      "Open Regional",
+      "Closed Since",
+    ]);
   });
 
-  it("rehabilitation too, and the older health_specialty keys are folded in by the script", () => {
-    const snap: HospitalSnapshot = {
-      generatedAt: "2026-10-09",
-      source: "OpenStreetMap",
-      hospitals: [
-        {
-          id: "way/1",
-          name: "Rehab Hospital of the South",
-          lat: GRAYSON[0] + 0.01,
-          lon: GRAYSON[1],
-          tags: { amenity: "hospital", "healthcare:speciality": "physical_medicine_and_rehabilitation" },
-        },
-        {
-          id: "way/2",
-          name: "General",
-          lat: GRAYSON[0] + 0.02,
-          lon: GRAYSON[1],
-          tags: { amenity: "hospital", "healthcare:speciality": "general;cardiology" },
-        },
-      ],
+  it("closed: by CMS's ID wherever its coordinates say, or by its name within 1 km", () => {
+    expect(names([closed("anything", [0, 0], "2")])).toEqual(["Open Regional"]);
+    expect(names([closed("closed since", [36.5004, -81.0004])])).toEqual(["Open Regional"]);
+    // The name 5 km off, or another name at the spot: not this hospital.
+    expect(names([closed("Closed Since", [36.545, -81])])).toEqual(["Open Regional", "Closed Since"]);
+    expect(names([closed("Another", [36.5, -81])])).toEqual(["Open Regional", "Closed Since"]);
+  });
+
+  it("the monthly refresh's 'can be removed': a closed override whose hospital CMS no longer lists", () => {
+    const gone = closed("Gone From CMS", [37, -80], "9");
+    expect(
+      closedCmsDropped(list, [closed("Closed Since", [36.5, -81], "2"), gone, open("X", [36.2, -80.2])]),
+    ).toEqual([gone]);
+  });
+});
+
+describe("a CMS hospital marked closed is never timed (owner, #300)", () => {
+  // Carilion New River Valley, Ferney Creek's ER (44 min), as if it had closed.
+  const FERNEY: LatLon = [36.8872, -80.4535];
+
+  it("leaves the candidates, and OSRM is never asked the way there", async () => {
+    const [list, overrides] = await loadErLists();
+    const nrv = list.hospitals.find((h) => h.name === "Carilion New River Valley Medical Center")!;
+    const shut: ErOverride = {
+      status: "closed",
+      id: nrv.id,
+      name: nrv.name,
+      ll: nrv.ll,
+      source: "https://example.org",
+      checked: "2026-10-23",
     };
-    expect(hospitalCandidates(snap, GRAYSON).map((c) => c.name)).toEqual(["General"]);
+    const before = hospitalCandidates(erPlaces(list, overrides), FERNEY);
+    expect(before[0]!.name).toBe(nrv.name);
+    const pool = hospitalCandidates(erPlaces(list, [...overrides, shut]), FERNEY);
+    expect(pool.some((h) => km(h.ll, nrv.ll) <= 1)).toBe(false);
+    const asked: string[] = [];
+    const http: HttpClient = {
+      fetch: async (url) => {
+        asked.push(url);
+        const n = url.split(";").length - 1;
+        return Response.json({
+          code: "Ok",
+          durations: [Array.from({ length: n }, () => 1200)],
+          distances: [Array.from({ length: n }, () => 15000)],
+          routes: [{ duration: 1200, distance: 15000 }],
+        });
+      },
+    };
+    const near = { hospitals: [], grocers: [], trailheads: [], trailheadCount: 0 };
+    const { drives } = await driveTimes(
+      FERNEY,
+      near,
+      [],
+      { http, endpoints: DEFAULT_ENDPOINTS },
+      { hospitals: pool },
+    );
+    expect(drives.find((d) => d.label === NEAREST_HOSPITAL)!.name).not.toBe(nrv.name);
+    const points = asked.flatMap((u) =>
+      [...new URL(u).pathname.matchAll(/(-?[0-9.]+),(-?[0-9.]+)/g)].map((m): LatLon => [
+        Number(m[2]),
+        Number(m[1]),
+      ]),
+    );
+    expect(points.length).toBeGreaterThan(1);
+    expect(points.some((p) => km(p, nrv.ll) <= 1)).toBe(false);
+  });
+});
+
+describe("a closed hospital absent from CMS and not in the overrides is never timed (owner, 2026-10-23)", () => {
+  // Unicoi County Hospital, Erwin: closed after Helene (its replacement broke ground in August 2026). OpenStreetMap
+  // still has it (amenity=hospital, access=no, no emergency tag); CMS's list doesn't, and neither do the overrides.
+  const unicoi = HOSPITALS_OSM.hospitals.find((h) => h.name === "Unicoi County Hospital")!;
+  const UNICOI: LatLon = [unicoi.lat, unicoi.lon];
+  const ERWIN: LatLon = [36.1451, -82.4168];
+
+  it("isn't on the list the drive step reads", async () => {
+    expect(unicoi).toBeDefined();
+    const ers = (await loadHospitals())!;
+    expect(ers.some((h) => km(h.ll, UNICOI) <= 1)).toBe(false);
+    expect(hospitalCandidates(ers, ERWIN).some((h) => km(h.ll, UNICOI) <= 1)).toBe(false);
+  });
+
+  it("from Erwin, where it's the nearest hospital, OSRM is never asked the way there", async () => {
+    const asked: string[] = [];
+    const http: HttpClient = {
+      fetch: async (url) => {
+        asked.push(url);
+        // A table answer: every destination 20 minutes away.
+        const n = url.split(";").length - 1;
+        return Response.json({
+          code: "Ok",
+          durations: [Array.from({ length: n }, () => 1200)],
+          distances: [Array.from({ length: n }, () => 15000)],
+          routes: [{ duration: 1200, distance: 15000 }],
+        });
+      },
+    };
+    const pool = hospitalCandidates((await loadHospitals())!, ERWIN);
+    const near = { hospitals: [], grocers: [], trailheads: [], trailheadCount: 0 };
+    const { drives } = await driveTimes(
+      ERWIN,
+      near,
+      [],
+      { http, endpoints: DEFAULT_ENDPOINTS },
+      { hospitals: pool },
+    );
+    const h = drives.find((d) => d.label === NEAREST_HOSPITAL)!;
+    expect(h.er).toBe("yes");
+    expect(h.name).not.toMatch(/unicoi/i);
+    // Every point OSRM was asked about, from each request's path ("lon,lat;lon,lat…").
+    const points = asked.flatMap((u) =>
+      [...new URL(u).pathname.matchAll(/(-?[\d.]+),(-?[\d.]+)/g)].map((m): LatLon => [
+        Number(m[2]),
+        Number(m[1]),
+      ]),
+    );
+    expect(points.length).toBeGreaterThan(1);
+    expect(points.some((p) => km(p, UNICOI) <= 1)).toBe(false);
+  });
+});
+
+describe("psychiatric and rehabilitation hospitals (owner, #82)", () => {
+  it("Carilion Saint Albans (psychiatric, beside NRV Medical Center) is never a candidate from Ferney Creek", async () => {
+    const ers = (await loadHospitals())!;
+    expect(ers.some((h) => /saint albans/i.test(h.name))).toBe(false);
+    const from = hospitalCandidates(ers, [36.8872, -80.4535]).map((c) => c.name);
+    expect(from).toContain("Carilion New River Valley Medical Center");
   });
 });
 

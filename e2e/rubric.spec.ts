@@ -154,7 +154,8 @@ test("a change re-grades the Library at once, and nothing asks for a re-screen",
   await expect(grade).toHaveText(/^[A-F]/);
   const before = await grade.textContent();
   await visit(page, "/priorities");
-  for (const row of ["Elevation at the build site", "Best homesite", "Room to build"]) {
+  // Trails (a D) to Don't care lifts Ferney from a B to an A (§9.69: the three best rows' drop no longer moves it).
+  for (const row of ["Trails and public land"]) {
     await card(page, row).locator(".rubric-card-body").click();
     await sheet(page).getByRole("button", { name: "Don't care" }).click();
     await page.keyboard.press("Escape");

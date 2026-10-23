@@ -1,36 +1,38 @@
 /**
- * Regenerates lib/areas/data/er.json (step 13, docs/plans/step-13-area-catalog.md §3.4): the hospitals with an
- * emergency department that the area profiler times drives to. From CMS Hospital General Information (a U.S.
+ * Regenerates lib/screen/data/er.json: the hospitals with an emergency department that parcel screens and the area
+ * profiler time drives to (step 13 §3.4; one list for both since the ER follow-up, phase-0.md §9.69). From CMS Hospital General Information (a U.S.
  * government work), which records whether each Medicare-registered hospital offers emergency services:
- * - kept: Emergency Services "Yes", in the catalog's states and their neighbours, and not a psychiatric, children's,
+ * - kept: Emergency Services "Yes", in the states the parcel screen's extent touches, and not a psychiatric, children's,
  *   Veterans Administration or Department of Defense hospital (their emergency rooms aren't open to everyone);
  * - placed: CMS gives addresses only, so they're geocoded with the Census Geocoder's batch service (public domain); an
  *   address it can't match is placed from the OSM snapshot (lib/screen/data/hospitals.json) by name, else listed
  *   under `unplaced` and left out;
- * - within MARGIN_DEG of the catalog's extent.
+ * - within SCREEN_BOX, the parcel screen's extent (the OSM snapshot's: VA, NC and TN widened by near.hospitalKm).
  *
  *   pnpm data:er
  *
  * data.cms.gov refuses scripted requests (Akamai answers "Access Denied" to Node's fetch and to curl), so the file is
- * read through a headless Chromium (Playwright, already a dev dependency). Run by hand and by the monthly refresh. The
- * parcel screen's Hospital row doesn't read it yet: it keeps the OSM snapshot (follow-up 42).
+ * read through a headless Chromium (Playwright, already a dev dependency). Run by hand and by the monthly refresh; a
+ * change is a numbers change for parcel screens (regenerate expected.json and declare it).
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { chromium } from "@playwright/test";
 
 const ROOT = resolve(import.meta.dirname, "..");
-export const OUT = join(ROOT, "lib", "areas", "data", "er.json");
+export const OUT = join(ROOT, "lib", "screen", "data", "er.json");
 const OSM = join(ROOT, "lib", "screen", "data", "hospitals.json");
 const UA = "parcelscreen-data/1 (ER snapshot for the area catalog; https://github.com/zgrether/parcelscreen)";
 const META = "https://data.cms.gov/provider-data/api/1/metastore/schemas/dataset/items/xubh-q36u";
 const GEOCODER = "https://geocoding.geo.census.gov/geocoder/locations/addressbatch";
 
-/** The catalog's extent, [south, west, north, east] (lib/areas/extent.ts; a test holds the two equal). */
-export const CATALOG_BOX = [34.9, -83.8, 38.6, -78.6] as const;
-/** About 70 miles: an ER farther from every area than this is never the nearest. */
-const MARGIN_DEG = 1;
-const STATES = new Set(["VA", "NC", "TN", "KY", "WV", "SC", "GA"]);
+/**
+ * The parcel screen's extent, [south, west, north, east]: the OSM snapshot's box (scripts/data-hospitals.mts, VA, NC and
+ * TN widened by near.hospitalKm; a test holds it to hospitals.json's source line). It holds the area catalog's too.
+ */
+export const SCREEN_BOX = [33.3, -90.959, 40.01, -74.591] as const;
+/** Every state SCREEN_BOX touches. */
+const STATES = new Set("VA NC TN KY WV SC GA AL MS AR MO IL IN OH PA MD DE NJ DC".split(" "));
 const NOT_OPEN_TO_ALL = /psychiatric|childrens|veterans|department of defense/i;
 
 /** A CSV line's fields, with quoted fields and doubled quotes. */
@@ -149,28 +151,92 @@ const bare = (x: string) =>
     .replace(/\b(hospital|medical|center|centre|regional|health|inc|the|of)\b/g, " ")
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
+/** Words too common to say two names are one hospital: places, directions and corporate words. */
+const COMMON = new Set(
+  "north south east west carolina virginia tennessee kentucky georgia county community saint st inc llc system campus university hospitals and".split(
+    " ",
+  ),
+);
+const osmWords = (o: { name?: string }) =>
+  o.name ? bare(o.name.split(";").at(-1)!).split(" ").filter(Boolean) : [];
+/**
+ * CMS hospitals neither the geocoder nor a name match can place, placed by hand from the OSM snapshot (checked
+ * 2026-10-23): CMS's name, city and state → [lat, lon]. Both have a ZIP with no Census ZIP area to match near (27157 is
+ * the hospital's own; 42135 is post-office boxes). Only those within reach of a VA, NC or TN parcel.
+ */
+const BY_HAND: Record<string, [number, number]> = {
+  // OSM's "Wake Forest Baptist Medical Center".
+  "NORTH CAROLINA BAPTIST HOSPITAL, WINSTON-SALEM, NC": [36.08967, -80.26763],
+  // OSM's "The Medical Center at Franklin", 8 km north of the Tennessee line.
+  "THE MEDICAL CENTER AT FRANKLIN, FRANKLIN, KY": [36.6999, -86.57696],
+};
 const unplaced: string[] = [];
+const loose: string[] = [];
 for (const v of kept) {
   if (placed.has(v[ID!]!)) continue;
   const want = new Set(bare(v[NAME!]!).split(" "));
   const zip = await zipCentre(v[ZIP!]!);
-  const hit = zip
-    ? osm.find((o) => {
-        const words = o.name ? bare(o.name.split(";").at(-1)!).split(" ").filter(Boolean) : [];
-        return words.length >= 1 && words.every((x) => want.has(x)) && km(zip, [o.lat, o.lon]) <= NEAR_ZIP_KM;
-      })
-    : undefined;
+  const near = zip ? osm.filter((o) => km(zip, [o.lat, o.lon]) <= NEAR_ZIP_KM) : [];
+  let hit = near.find((o) => {
+    const words = osmWords(o);
+    return words.length >= 1 && words.every((x) => want.has(x));
+  });
+  // Else the OSM hospital near the ZIP area sharing distinctive words with CMS's name ("Southside Community
+  // Hospital" is OSM's "Centra Southside Community Hospital"): two words, or one that no other hospital near shares.
+  if (!hit && zip) {
+    const scored = near
+      .map((o) => ({ o, n: osmWords(o).filter((x) => want.has(x) && !COMMON.has(x) && x.length > 2).length }))
+      .filter((x) => x.n >= 1)
+      .sort((a, b) => b.n - a.n || km(zip, [a.o.lat, a.o.lon]) - km(zip, [b.o.lat, b.o.lon]));
+    const best = scored[0];
+    if (best && (best.n >= 2 || scored.length === 1)) {
+      hit = best.o;
+      loose.push(`${v[NAME!]}, ${v[CITY!]}, ${v[STATE!]} → ${hit.name}`);
+    }
+  }
+  const key = `${v[NAME!]}, ${v[CITY!]}, ${v[STATE!]}`;
   if (hit) placed.set(v[ID!]!, [+hit.lat.toFixed(5), +hit.lon.toFixed(5)]);
-  else unplaced.push(`${v[NAME!]}, ${v[CITY!]}, ${v[STATE!]}`);
+  else if (BY_HAND[key]) placed.set(v[ID!]!, BY_HAND[key]);
+  else unplaced.push(key);
 }
 
-// 4. Near the catalog only.
-const [s, w, n, e] = CATALOG_BOX;
+// 4. Within the parcel screen's extent only.
+const [s, w, n, e] = SCREEN_BOX;
 const inBox = ([lat, lon]: [number, number], m: number) =>
   lat > s - m && lat < n + m && lon > w - m && lon < e + m;
-const near = (ll: [number, number]) => inBox(ll, MARGIN_DEG);
-/** "SMYTH COUNTY COMMUNITY HOSPITAL" → "Smyth County Community Hospital". */
-const title = (x: string) => x.toLowerCase().replace(/\b([a-z])/g, (m) => m.toUpperCase());
+const near = (ll: [number, number]) => inBox(ll, 0);
+/** Initialisms in CMS's names, kept in capitals. */
+const INITIALS = new Set(
+  "arh hca musc unc uva vcu wvu uab ssm hshs ngmc ecu upmc amc chi osf ut va uk ii iii iv cmc ttuhsc".split(
+    " ",
+  ),
+);
+const SMALL = new Set("of and at the an for in on by".split(" "));
+/** Health systems whose names CMS runs together in capitals: "LEWISGALE" is LewisGale. */
+const BRANDS: Record<string, string> = {
+  lewisgale: "LewisGale",
+  tidalhealth: "TidalHealth",
+  medstar: "MedStar",
+  wellstar: "WellStar",
+  adventhealth: "AdventHealth",
+  firsthealth: "FirstHealth",
+};
+/**
+ * CMS's capitals as a name: "SAINT JOSEPH'S HOSPITAL OF ATLANTA, INC" → "Saint Joseph's Hospital of Atlanta". Small
+ * words lower-case after the first, initialisms in capitals, and the company's "Inc" or "LLC" left off.
+ */
+const title = (x: string) =>
+  x
+    .replace(/,?\s+(inc|llc)\.?$/i, "")
+    .toLowerCase()
+    .split(/(\s+|-|\/|\()/)
+    .map((w, i) =>
+      INITIALS.has(w)
+        ? w.toUpperCase()
+        : (BRANDS[w] ?? (i > 0 && SMALL.has(w) ? w : w.replace(/^[a-z]/, (c) => c.toUpperCase()))),
+    )
+    .join("")
+    .replace(/^Uofl\b/, "UofL");
 const hospitals = kept
   .filter((v) => placed.has(v[ID!]!) && near(placed.get(v[ID!]!)!))
   .map((v) => ({
@@ -183,13 +249,12 @@ const hospitals = kept
   }))
   .sort((a, b) => a.id.localeCompare(b.id));
 
-// 5. OSM's emergency=yes hospitals near the catalog that no CMS entry lies within OSM_MATCH_KM of: CMS lags a
-// reopening (Stuart Community, January 2026). Listed for review, never timed.
+// 5. OSM's emergency=yes hospitals in the extent that no CMS entry lies within OSM_MATCH_KM of: CMS lags a reopening
+// (Stuart Community, January 2026). Listed for review in the monthly refresh PR (lib/areas/data.ts ersToConfirm), never
+// timed: one confirmed goes into lib/screen/data/er-overrides.json.
 const OSM_MATCH_KM = 1.5;
-/** Only those in or right beside the catalog: the ones that could be an area's nearest. */
-const OSM_ONLY_MARGIN_DEG = 0.25;
 const osmOnly = osm
-  .filter((o) => o.tags?.emergency === "yes" && inBox([o.lat, o.lon], OSM_ONLY_MARGIN_DEG))
+  .filter((o) => o.tags?.emergency === "yes" && near([o.lat, o.lon]))
   .filter((o) => !hospitals.some((h) => km(h.ll, [o.lat, o.lon]) <= OSM_MATCH_KM))
   .map((o) => ({ name: o.name?.split(";").at(-1) ?? "unnamed", ll: [+o.lat.toFixed(5), +o.lon.toFixed(5)] }))
   .sort((a, b) => a.name.localeCompare(b.name));
@@ -210,6 +275,7 @@ writeFileSync(
   ) + "\n",
 );
 console.log(
-  `${OUT}: ${hospitals.length} near the catalog; ${unplaced.length} unplaced; ${osmOnly.length} OSM-only`,
+  `${OUT}: ${hospitals.length} in the parcel screen's extent; ${unplaced.length} unplaced; ${osmOnly.length} OSM-only`,
 );
+for (const l of loose) console.log(`  placed by a shared word: ${l}`);
 for (const u of unplaced) console.log(`  unplaced: ${u}`);

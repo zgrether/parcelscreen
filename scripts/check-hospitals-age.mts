@@ -1,6 +1,7 @@
 /**
- * CI: a warning, never a failure, when the hospital snapshot is more than MAX_AGE_DAYS old (owner, #82 review).
- * It's meant to be regenerated quarterly (`pnpm data:hospitals`, docs/plans/phase-0.md §9.21).
+ * CI: a warning, never a failure, when the OSM hospital snapshot is more than MAX_AGE_DAYS old (owner, #82 review).
+ * It's meant to be regenerated quarterly (`pnpm data:hospitals`, docs/plans/phase-0.md §9.21); since §9.69 it feeds
+ * `pnpm data:er`, whose list the screen times.
  *
  *   pnpm check:hospitals-age
  */
@@ -18,7 +19,7 @@ export function ageWarning(generatedAt: string, today: Date, maxDays: number = M
     return `${FILE}: generatedAt "${generatedAt}" isn't a date. Run pnpm data:hospitals.`;
   const days = Math.floor((today.getTime() - made) / 86_400_000);
   return days > maxDays
-    ? `${FILE} was generated ${generatedAt}, ${days} days ago (over ${maxDays}). Run pnpm data:hospitals and treat the PR as a numbers change (phase-0.md §9.21).`
+    ? `${FILE} was generated ${generatedAt}, ${days} days ago (over ${maxDays}). Run pnpm data:hospitals, then pnpm data:er; a change to the ER list is a numbers change (phase-0.md §9.21, §9.69).`
     : null;
 }
 

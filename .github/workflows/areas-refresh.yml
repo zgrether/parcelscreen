@@ -3,7 +3,8 @@ name: Area catalog refresh
 # Step 13 (docs/plans/step-13-area-catalog.md §3.6): re-profiles the thirty areas once a month and opens a PR titled
 # "Area catalog refresh" with a plain summary of what moved. Zach merges it; nothing merges itself. A PR opened with
 # GITHUB_TOKEN starts no other workflow, so the job dispatches ci.yml on the branch; its checks land on the commit,
-# so the PR shows them.
+# so the PR shows them. The ER list is the parcel screen's too (phase-0.md §9.69): when its hospitals change, the PR
+# opens even if no area moved, and says that parcel numbers may move (re-record and declare them before merging).
 on:
   schedule:
     - cron: "23 7 3 * *" # the 3rd of each month, 07:23 UTC
@@ -43,9 +44,25 @@ jobs:
         run: pnpm areas:profile
       - id: summary
         name: What moved
-        run: node scripts/areas-summary.mts tmp/areas-before public/areas/v1 tmp/areas-summary.md tmp/ers-to-confirm.json >> "$GITHUB_OUTPUT"
+        run: node scripts/areas-summary.mts tmp/areas-before public/areas/v1 tmp/areas-summary.md tmp/ers-to-confirm.json tmp/er-overrides-can-remove.json >> "$GITHUB_OUTPUT"
+      - id: ers
+        name: Did the parcel screen's ER list change
+        run: |
+          # Its hospitals, not its "checked" date, which every run writes.
+          same=$(node -e "const a = JSON.parse(require('child_process').execSync('git show HEAD:lib/screen/data/er.json')); const b = require('./lib/screen/data/er.json'); console.log(JSON.stringify(a.hospitals) === JSON.stringify(b.hospitals))")
+          if [ "$same" = "true" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            {
+              echo
+              echo '**The ER list changed** (lib/screen/data/er.json), and parcel screens time it too: their numbers may move.'
+              echo 'Before merging: `pnpm record:port` (Mud Creek with `PORT_APPEND=grayson-mud-creek-6273`), `pnpm expected`,'
+              echo 'and a `Numbers change:` line with the summary line of `pnpm diff:prototype` here (phase-0.md §9.21, §9.69).'
+            } >> tmp/areas-summary.md
+          fi
       - name: Open the PR
-        if: steps.summary.outputs.changed == 'true'
+        if: steps.summary.outputs.changed == 'true' || steps.ers.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -53,7 +70,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -c "$branch"
-          git add public/areas lib/areas/data
+          git add public/areas lib/areas/data lib/screen/data/er.json
           git commit -m "Area catalog refresh" -m "$(cat tmp/areas-summary.md)"
           git push origin "$branch"
           gh pr create --base main --head "$branch" --title "Area catalog refresh" --body-file tmp/areas-summary.md

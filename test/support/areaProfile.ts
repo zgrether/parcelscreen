@@ -11,7 +11,7 @@ import { DemCache } from "@/lib/screen/dem";
 import { loadClimate } from "@/lib/screen/climate";
 import { AtlasCache } from "@/lib/screen/sky";
 import { SERVER_USER_AGENT } from "@/lib/server/http";
-import { loadAirports, loadErAdditions, loadErList } from "@/lib/areas/data";
+import { loadAirports, loadErOverrides, loadErList } from "@/lib/areas/data";
 import type { ProfileDeps, ProfileScale } from "@/lib/areas/profile";
 import { createReplayFetch, ReplayMissError, type Har, type HarEntry } from "./replayFetch";
 
@@ -37,7 +37,7 @@ export async function profileDeps(
     dems: new DemCache(),
     climate: await loadClimate(),
     ers: await loadErList(),
-    erAdditions: await loadErAdditions(),
+    erOverrides: await loadErOverrides(),
     airports: await loadAirports(),
     today,
   };

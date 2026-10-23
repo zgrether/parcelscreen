@@ -1213,36 +1213,36 @@
   "near": {
    "hospitals": [
     {
-     "name": "Cannon Memorial Hospital",
+     "name": "Charles A Cannon Jr Memorial Hospital",
      "ll": [
       36.06082,
-      -81.889239
+      -81.88924
      ],
-     "km": 21.724245443873503
+     "km": 21.724176424428613
     },
     {
      "name": "Sycamore Shoals Hospital",
      "ll": [
-      36.345806,
-      -82.249541
+      36.34443,
+      -82.24892
      ],
-     "km": 23.68483134143345
-    },
-    {
-     "name": "James H. Quillen VA Medical Center",
-     "ll": [
-      36.307494,
-      -82.376171
-     ],
-     "km": 30.19798856386202
+     "km": 23.533328345074906
     },
     {
      "name": "Blue Ridge Regional Hospital",
      "ll": [
-      35.911492,
-      -82.062287
+      35.91057,
+      -82.06272
      ],
-     "km": 30.528108656006154
+     "km": 30.629118502262276
+    },
+    {
+     "name": "Johnson City Medical Center",
+     "ll": [
+      36.3086,
+      -82.38646
+     ],
+     "km": 31.079311797219713
     }
    ],
    "grocers": [
@@ -5068,7 +5068,7 @@
   "drives": [
    {
     "label": "Nearest hospital",
-    "name": "Cannon Memorial Hospital",
+    "name": "Charles A Cannon Jr Memorial Hospital",
     "min": 32,
     "mi": 18.2,
     "er": "yes"
@@ -5143,7 +5143,7 @@
    "mi": 17.1
   },
   "schemaVersion": 9,
-  "engine": 28,
+  "engine": 29,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -6362,36 +6362,36 @@
   "near": {
    "hospitals": [
     {
-     "name": "Cannon Memorial Hospital",
+     "name": "Charles A Cannon Jr Memorial Hospital",
      "ll": [
       36.06082,
-      -81.889239
+      -81.88924
      ],
-     "km": 21.724245443873503
+     "km": 21.724176424428613
     },
     {
      "name": "Sycamore Shoals Hospital",
      "ll": [
-      36.345806,
-      -82.249541
+      36.34443,
+      -82.24892
      ],
-     "km": 23.68483134143345
-    },
-    {
-     "name": "James H. Quillen VA Medical Center",
-     "ll": [
-      36.307494,
-      -82.376171
-     ],
-     "km": 30.19798856386202
+     "km": 23.533328345074906
     },
     {
      "name": "Blue Ridge Regional Hospital",
      "ll": [
-      35.911492,
-      -82.062287
+      35.91057,
+      -82.06272
      ],
-     "km": 30.528108656006154
+     "km": 30.629118502262276
+    },
+    {
+     "name": "Johnson City Medical Center",
+     "ll": [
+      36.3086,
+      -82.38646
+     ],
+     "km": 31.079311797219713
     }
    ],
    "grocers": [
@@ -9910,7 +9910,7 @@
   "drives": [
    {
     "label": "Nearest hospital",
-    "name": "Cannon Memorial Hospital",
+    "name": "Charles A Cannon Jr Memorial Hospital",
     "min": 32,
     "mi": 18.2,
     "er": "yes"
@@ -9985,7 +9985,7 @@
    "mi": 17.1
   },
   "schemaVersion": 9,
-  "engine": 28,
+  "engine": 29,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

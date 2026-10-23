@@ -1,0 +1,12 @@
+{
+ "about": "Emergency departments the sources lag on, checked by hand (owner, #298 and #300), each with its source and the date checked. \"open\": an ER CMS doesn't list yet, timed unless CMS has a hospital within 1 km. \"closed\": a CMS hospital that no longer has one, named by its CMS facility ID or by its name within 1 km of its coordinates, and never timed. Parcel screens and the area catalog both read it.",
+ "hospitals": [
+  {
+   "status": "open",
+   "name": "Stuart Community Hospital",
+   "ll": [36.646318, -80.254812],
+   "source": "https://cardinalnews.org/2026/01/06/stuart-community-hospital-opens-for-emergency-and-inpatient-care/",
+   "checked": "2026-10-23"
+  }
+ ]
+}

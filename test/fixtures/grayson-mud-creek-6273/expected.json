@@ -1847,34 +1847,34 @@
     {
      "name": "Ashe Memorial Hospital",
      "ll": [
-      36.423499,
-      -81.457977
+      36.42361,
+      -81.45874
      ],
-     "km": 20.313833453654695
+     "km": 20.271401858895164
     },
     {
      "name": "Johnson County Community Hospital",
      "ll": [
-      36.453558,
-      -81.797537
+      36.45031,
+      -81.79802
      ],
-     "km": 25.56832798609294
+     "km": 25.812615460228916
     },
     {
      "name": "Smyth County Community Hospital",
      "ll": [
-      36.851678,
-      -81.488434
+      36.85119,
+      -81.48928
      ],
-     "km": 30.34387971313808
+     "km": 30.274455913518924
     },
     {
      "name": "Johnston Memorial Hospital",
      "ll": [
-      36.722423,
-      -81.911198
+      36.72242,
+      -81.9112
      ],
-     "km": 34.582335454803946
+     "km": 34.58234925362824
     }
    ],
    "grocers": [
@@ -7729,7 +7729,7 @@
     "label": "Nearest hospital",
     "name": "Ashe Memorial Hospital",
     "min": 38,
-    "mi": 19,
+    "mi": 18.9,
     "er": "yes"
    },
    {
@@ -7802,7 +7802,7 @@
    "mi": 21.8
   },
   "schemaVersion": 9,
-  "engine": 28,
+  "engine": 29,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -9655,34 +9655,34 @@
     {
      "name": "Ashe Memorial Hospital",
      "ll": [
-      36.423499,
-      -81.457977
+      36.42361,
+      -81.45874
      ],
-     "km": 20.313833453654695
+     "km": 20.271401858895164
     },
     {
      "name": "Johnson County Community Hospital",
      "ll": [
-      36.453558,
-      -81.797537
+      36.45031,
+      -81.79802
      ],
-     "km": 25.56832798609294
+     "km": 25.812615460228916
     },
     {
      "name": "Smyth County Community Hospital",
      "ll": [
-      36.851678,
-      -81.488434
+      36.85119,
+      -81.48928
      ],
-     "km": 30.34387971313808
+     "km": 30.274455913518924
     },
     {
      "name": "Johnston Memorial Hospital",
      "ll": [
-      36.722423,
-      -81.911198
+      36.72242,
+      -81.9112
      ],
-     "km": 34.582335454803946
+     "km": 34.58234925362824
     }
    ],
    "grocers": [
@@ -15537,7 +15537,7 @@
     "label": "Nearest hospital",
     "name": "Ashe Memorial Hospital",
     "min": 38,
-    "mi": 19,
+    "mi": 18.9,
     "er": "yes"
    },
    {
@@ -15610,7 +15610,7 @@
    "mi": 21.8
   },
   "schemaVersion": 9,
-  "engine": 28,
+  "engine": 29,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

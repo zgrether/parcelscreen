@@ -1,6 +1,6 @@
 /**
- * The hospital snapshot (A2c) loads only in the screen worker, lazily at screen time (owner, #82): not with the
- * page, not in the main thread, and not in the service worker's precache.
+ * The ER list (§9.69; the OSM hospital snapshot before it, A2c) loads only in the screen worker, lazily at screen time
+ * (owner, #82): not with the page, not in the main thread, and not in the service worker's precache.
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -11,7 +11,7 @@ import { replayHar } from "./replay";
 
 const FERNEY = "ferney-creek-52-47A";
 
-/** The built chunk that holds hospitals.json, found by its source line. */
+/** The built chunk that holds er.json, found by its source line. */
 function snapshotChunk(): string {
   const dir = join(".next", "static", "chunks");
   const hits = readdirSync(dir).filter(

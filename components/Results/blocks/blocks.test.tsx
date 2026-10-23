@@ -25,6 +25,7 @@ import { soilsHeading } from "@/lib/report/soils";
 import {
   floodHeading,
   gettingThereHeading,
+  HOSPITALS_SOURCE,
   NO_GROCER_CAVEAT,
   publicLandHeading,
   unitMeta,
@@ -69,13 +70,14 @@ const BLOCKS: {
  * Differences from the prototype the plan approved, removed from our text before comparing. Q4: the Soils
  * block carries the map-unit-scale caveat, which the prototype kept in its help dialog only. Batch A A2b
  * (rule 7, appended): the trailhead sources after the Getting-there caveat (follow-up 24), and the line under
- * "none in OSM" when no grocer was found (follow-up 25).
+ * "none in OSM" when no grocer was found (follow-up 25). §9.69 (rule 7, appended): where the hospitals come from.
  */
 const APPROVED: Record<string, string[]> = {
   soils: ["Map-unit lines are drawn at county scale, so a boundary can be 100 ft off on the ground."],
   "getting-there-and-getting-out": [
     " Forest Service trailheads and state parks are included too.",
     NO_GROCER_CAVEAT,
+    ` ${HOSPITALS_SOURCE}`,
   ],
 };
 

@@ -36,7 +36,7 @@ const tagsAsked = (asked: URL[]) =>
   ]);
 
 describe("findPlaces asks Photon by tag, never by name", () => {
-  it("with the hospital snapshot: groceries and trailheads only", async () => {
+  it("groceries and trailheads only: the hospitals are the ER list's (§9.69)", async () => {
     const p = photon({ "shop:supermarket": [shop] });
     const r = await findPlaces(
       [36.5856, -81.5631],
@@ -47,26 +47,12 @@ describe("findPlaces asks Photon by tag, never by name", () => {
       ["/reverse", null, "shop:supermarket", "40"],
       ["/reverse", null, "highway:trailhead", "36"],
     ]);
-    expect(r.near.hospitals.length).toBeGreaterThan(0); // from the snapshot
-    expect(r.hospitalPool.every((h) => typeof h.er === "boolean")).toBe(true);
+    expect(r.near.hospitals.length).toBeGreaterThan(0); // from the list
+    expect(r.hospitalPool.every((h) => h.er === true)).toBe(true);
   });
 
-  it("without it: hospitals by both tags, one element found by both counted once, status unknown", async () => {
-    const twinCounty: Feature = {
-      coordinates: [-80.92, 36.67],
-      name: "Twin County Regional Hospital",
-      osm: ["W", 517484622],
-    };
-    const hughChatham: Feature = {
-      coordinates: [-80.86, 36.24],
-      name: "Hugh Chatham Memorial Hosital",
-      osm: ["N", 12431788914],
-    };
-    const p = photon({
-      "shop:supermarket": [shop],
-      "amenity:hospital": [twinCounty],
-      "healthcare:hospital": [hughChatham, twinCounty],
-    });
+  it("without the list: no hospital, and still none asked of Photon (OpenStreetMap's are never timed)", async () => {
+    const p = photon({ "shop:supermarket": [shop] });
     const r = await findPlaces(
       [36.5856, -81.5631],
       { http: p.http, endpoints: DEFAULT_ENDPOINTS, hospitals: async () => null },
@@ -75,12 +61,8 @@ describe("findPlaces asks Photon by tag, never by name", () => {
     expect(tagsAsked(p.asked)).toEqual([
       ["/reverse", null, "shop:supermarket", "40"],
       ["/reverse", null, "highway:trailhead", "36"],
-      ["/reverse", null, "amenity:hospital", "60"],
-      ["/reverse", null, "healthcare:hospital", "60"],
     ]);
-    expect(r.hospitalPool.map((h) => [h.name, h.er])).toEqual([
-      ["Twin County Regional Hospital", undefined],
-      ["Hugh Chatham Memorial Hosital", undefined],
-    ]);
+    expect(r.hospitalPool).toEqual([]);
+    expect(r.near.hospitals).toEqual([]);
   });
 });

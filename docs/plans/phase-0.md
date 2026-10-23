@@ -1081,5 +1081,51 @@ until step 5 (Q14).
         bottom third − (`areas.fitSign`, 1/3; with the starting cutoffs a B+ is 3.17 to 3.5). Areas only: a parcel's
         grade has no sign.
       - **The Must share is each card's headline number.**
+69. **One ER list for parcels and areas** (owner, 2026-10-23, the follow-up after #298). Parcel screens time the same
+    emergency departments as the area catalog: CMS Hospital General Information's hospitals with Emergency Services
+    "Yes" (`lib/screen/data/er.json`, moved from `lib/areas/data/`) with the hand-checked additions
+    (`lib/screen/data/er-additions.json`, §9.68). It supersedes §9.21's "the screen reads hospitals from" the OSM
+    snapshot, and its Photon and Overpass fallback for hospitals: OpenStreetMap is never timed. The snapshot
+    (`pnpm data:hospitals`, quarterly as before) now only helps `pnpm data:er` place CMS's addresses and fills the
+    monthly refresh PR's "ERs in OpenStreetMap but not CMS: to confirm" list.
+    - **Why:** a closed hospital OSM still has, or a hospital whose emergency tag is missing or wrong, could be a
+      parcel's Hospital row. Unicoi County Hospital (Erwin; closed after Helene) is still in OSM, untagged and
+      `access=no`; it's the straight-line nearest hospital for 156 of Unicoi–Erwin's 200 sample points, 74 of
+      Burnsville–Celo's and 46 of Madison's. The old rule preferred tagged ERs, so it was never chosen there, but
+      nothing but a tag kept it out.
+    - **The list covers the parcel screen's extent** (VA, NC and TN widened by `near.hospitalKm`, the OSM snapshot's
+      box), not just the catalog's: 805 ERs. The 273 the catalog had are unchanged, so no area moves. CMS's addresses the
+      Census Geocoder can't match are placed from the OSM snapshot by name: every word, or (new) two distinctive words,
+      or one that no other hospital near the ZIP area shares (Centra Southside, Farmville; Sentara Albemarle; Betsy
+      Johnson; Summers County ARH). Two whose ZIP has no Census ZIP area are placed by hand in the script (North
+      Carolina Baptist, Winston-Salem; The Medical Center at Franklin, KY). Names are CMS's, cased as names
+      ("Saint Joseph's Hospital of Atlanta"; LewisGale, MedStar).
+    - **The to-confirm list** stays near the catalog (its extent plus 0.25°): 28 today. Over the whole extent it's 158,
+      mostly CMS's own hospitals under other names.
+    - **The monthly refresh** commits the ER list with the areas, and opens its PR when the list's hospitals changed
+      even if no area moved, saying parcel numbers may move: before merging, `pnpm record:port` (Mud Creek with
+      `PORT_APPEND`), `pnpm expected`, and a declared numbers change.
+    - **Numbers:** `ENGINE_VERSION` 29, and `ENGINE_CURRENT_FROM` 29 (an existing number changed: earlier screens
+      show "Graded with earlier rules"). Fixtures: Ferney's Carilion New River Valley 47 → 44 min (21.6 → 21.1 mi);
+      Macks's 82 → 80 min (25 → 24.6 mi); Mud Creek's Ashe Memorial 19 → 18.9 mi (38 min); Roan's hospital is CMS's
+      "Charles A Cannon Jr Memorial Hospital" (32 min). The sample parcels are screened again on the new rules
+      (`SAMPLES_RESCREEN=1 pnpm areas:samples`). Groceries, airports and trails unchanged.
+    - **Words:** the report's getting-there caveat gains a last sentence, "Hospitals with an emergency department come
+      from CMS's list of hospitals, with a hand-checked list of recent openings and closings." (rule 7). Help's
+      Getting there sentence (owner, #300: an approved correction, a factual fix under rule 7): "Hospitals, groceries and
+      trailheads come from OpenStreetMap and undercount national-forest trailheads." is now "Groceries and trailheads
+      come from OpenStreetMap, which undercounts national-forest trailheads. Hospitals with an emergency department
+      come from CMS's list of hospitals, with a hand-checked list of recent openings and closings." The to-confirm
+      list near the catalog is the owner's choice too (#300).
+    - **The overrides** (owner, #300): `lib/screen/data/er-additions.json` is now `lib/screen/data/er-overrides.json`,
+      because its entries can close as well as add. Each has a `status`, a source URL and the date checked:
+      - `"open"`: an ER CMS doesn't list yet, with its name and coordinates. It's timed unless CMS has a hospital
+        within 1 km. Stuart Community Hospital is the only entry today.
+      - `"closed"`: a CMS hospital that no longer has an ER, named by its CMS facility ID, or else by its name within
+        1 km of its coordinates. It's taken off the timed list for parcels and areas.
+      - The monthly refresh PR lists any closed entry whose hospital CMS has since dropped, under "Closed overrides
+        CMS has since dropped: can be removed". It isn't a change in itself.
+      - No numbers change: no closure is known today.
+      " — emergency department not listed in OpenStreetMap" stays for stored screens; a new screen never has it.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

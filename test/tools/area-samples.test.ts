@@ -6,6 +6,8 @@
  *
  *   pnpm areas:samples                         every area missing a sample
  *   AREAS=floyd,cosby pnpm areas:samples       just those (their samples redone)
+ *   SAMPLES_RESCREEN=1 pnpm areas:samples      the same parcels screened again, after an engine bump that changes
+ *                                              a number (ENGINE_CURRENT_FROM moves); AREAS= narrows it
  *
  * "Typical": the area's own sample points nearest its median elevation are walked in turn, and the parcel under each
  * is asked of the state's parcel service. "No house": no Microsoft building footprint of a house's size (60 m²) on it;
@@ -114,8 +116,10 @@ async function housesIn(box: Box, live: typeof fetch): Promise<[number, number][
   return out;
 }
 
+const RESCREEN = !!process.env.SAMPLES_RESCREEN;
+
 describe.runIf(import.meta.env.MODE === "areas-samples")("the sample parcels, live", () => {
-  it(
+  it.skipIf(RESCREEN)(
     "two per area",
     async () => {
       const live = (globalThis as unknown as Record<symbol, typeof fetch>)[
@@ -205,6 +209,52 @@ describe.runIf(import.meta.env.MODE === "areas-samples")("the sample parcels, li
       }
       console.log(missed.length ? `short: ${missed.join(", ")}` : "every area has its samples");
       expect(missed.length).toBeLessThan(defs.length || 1);
+    },
+    6 * HOUR,
+  );
+
+  it.runIf(RESCREEN)(
+    "each kept sample screened again on the current rules (SAMPLES_RESCREEN=1; an engine bump that changes a number)",
+    async () => {
+      const live = (globalThis as unknown as Record<symbol, typeof fetch>)[
+        Symbol.for("parcelscreen.liveFetch")
+      ]!;
+      const withUA: typeof fetch = (input, init) => {
+        const headers = new Headers(init?.headers);
+        headers.set("User-Agent", uaFor(String(input)));
+        return live(input, { ...init, headers });
+      };
+      const http = createHttpClient({ env: "node", fetchImpl: withUA, clock: realClock });
+      const only = (process.env.AREAS ?? "").split(",").filter(Boolean);
+      const files = readdirSync(OUT)
+        .filter((f) => f.endsWith(".json"))
+        .filter((f) => !only.length || only.some((id) => f.startsWith(`${id}-`)));
+      const kept: string[] = [];
+      for (const f of files) {
+        const sample = SampleFileSchema.parse(JSON.parse(readFileSync(join(OUT, f), "utf8")));
+        const why: string[] = [];
+        const out = await screen(
+          { polygon: sample.boundary, config: DEFAULT_USER_CONFIG },
+          (e) => {
+            if (e.status === "fail") why.push(`${e.step}: ${e.message ?? "?"}`);
+          },
+          {
+            http,
+          },
+        );
+        if (out.result.failed.length) {
+          // The sample stays as it was; run it again later.
+          console.log(`${f}: the screen failed ${why.join("; ")}; kept as it was`);
+          kept.push(f);
+          continue;
+        }
+        const next: SampleFile = { ...sample, result: out.result };
+        SampleFileSchema.parse(next);
+        writeFileSync(join(OUT, f), JSON.stringify(next) + "\n");
+        console.log(`${f}: screened again (engine ${out.result.engine})`);
+      }
+      console.log(kept.length ? `kept as they were: ${kept.join(", ")}` : "every sample screened again");
+      expect(kept).toEqual([]);
     },
     6 * HOUR,
   );
