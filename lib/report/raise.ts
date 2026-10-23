@@ -76,10 +76,10 @@ export function effectWords(a: Card, b: Card): string {
       });
   }
   const before = new Map(mustLines(a).map((m) => [m.key, m.status]));
-  const mark = { pass: "✓", warn: "!", fail: "✗", unknown: "?" } as const;
+  // Step 12's parked question 3 (owner, 10/22): a Must's state in words, letters only for grades.
   for (const m of mustLines(b)) {
     const was = before.get(m.key);
-    if (was && was !== m.status) moved.push({ words: `${m.label} ${mark[was]} → ${mark[m.status]}`, by: 5 });
+    if (was && was !== m.status) moved.push({ words: `${m.label} ${WOULD[m.status]}`, by: 5 });
   }
   const rows = moved
     .sort((x, y) => y.by - x.by)
@@ -87,8 +87,16 @@ export function effectWords(a: Card, b: Card): string {
     .map((x) => x.words);
   const parcel = a.grade !== b.grade ? [`parcel ${a.grade ?? "–"} → ${b.grade ?? "–"}`] : [];
   const verdict = a.verdict !== b.verdict ? [`${VERDICT_WORD[a.verdict]} → ${VERDICT_WORD[b.verdict]}`] : [];
-  return [...rows, ...parcel, ...verdict].join(", ");
+  return [...rows, ...parcel, ...verdict].join(" · ");
 }
+
+/** A Must's new state, said as a change the suggestion would make: "Septic would pass". */
+const WOULD = {
+  pass: "would pass",
+  warn: "would need a check",
+  fail: "would fail",
+  unknown: "would be unknown",
+} as const;
 
 /** Ready to build's change between two cards, past $1k: "Ready to build $5–9k less", "adds $18–31k to Ready to build". */
 export function buildCostWords(a: Card, b: Card): string | undefined {
@@ -204,7 +212,7 @@ export function triedWords(a: Card, b: Card): string {
     const was = worse.get(m.key);
     return !!was && rank[m.status] < rank[was];
   });
-  const effect = [effectWords(a, b), ...minutes].filter((x) => !!x).join(", ") || "no change to the grade";
+  const effect = [effectWords(a, b), ...minutes].filter((x) => !!x).join(" · ") || "no change to the grade";
   // Why, in the Musts' own words: only what's new since the shown card, each once, the first two.
   const had = new Set(mustLines(a).flatMap((m) => clauses(m.detail)));
   const reasons = [...new Set(why.flatMap((m) => clauses(m.detail)).filter((c) => !had.has(c)))].slice(0, 2);

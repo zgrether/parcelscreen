@@ -1,7 +1,7 @@
 /**
  * WF5 (docs/plans/parcel-workflow.md §3.4) on Mud Creek: the red-gate right-of-way, drawn as an easement carried on to
  * 6273's boundary, screened beside the app's pick from Rte 600's frontage (Mud Creek Ln). The Easement panel compares
- * them side by side; "Use as my driveway" scores the red-gate route (the gates say it's over the veto, the Driveway
+ * them side by side; Try it, then Use it, scores the red-gate route (the gates say it's over the veto, the Driveway
  * section says it was chosen), and the choice outlasts a reload. Its "Recorded in" replaces the "verify" warning with
  * the reminder; cleared, the warning is back.
  */
@@ -42,8 +42,11 @@ test("Mud Creek: the red-gate route beside the app's pick; chosen as the drivewa
   await expect(choice.locator(".route-choice-col").nth(1)).toContainText("Red gate");
   await expect(choice.locator(".route-choice-col").nth(1)).toContainText("over 25%");
 
-  // Chosen: the card scores it.
-  await choice.getByRole("button", { name: "Use as my driveway" }).click();
+  // Chosen (step 12's parked question 2: Try it, then Use it): the card scores it.
+  const redGateCol = choice.locator(".route-choice-col").nth(1);
+  await expect(redGateCol.getByRole("button", { name: "Use as my driveway" })).toHaveCount(0);
+  await redGateCol.getByRole("button", { name: "Try it" }).click();
+  await redGateCol.getByRole("button", { name: "Use it" }).click({ timeout: 60_000 });
   await expect(choice.locator(".route-choice-col.scored")).toContainText("Red gate");
   await expect(access).toHaveAttribute("aria-label", "Legal road access: warn");
   await expect(access).toHaveAttribute(

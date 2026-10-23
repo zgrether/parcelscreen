@@ -31,6 +31,11 @@ import type { EvaluationPoint } from "../blocks/types";
 import { panelSections } from "./panelBlocks";
 import { AdjustSection, type AdjustProps } from "./AdjustSection";
 import { TryIt, type TryProps } from "./TryIt";
+import { useOnline } from "@/lib/client/useOnline";
+
+/** Offline: "Use as my driveway" does what Try it can't, scoring the route without the network (owner, 10/22). */
+export const OFFLINE_CHOICE =
+  "Offline: this scores the route on the card now; its drive times stay the app's pick's until you grade again.";
 import { SET_ASIDE_READING } from "@/lib/report/adjustWords";
 
 export const FROM_THE_REPORT_NOTE =
@@ -395,6 +400,7 @@ function YourRouteChoice({
   choose?(lineId: string | null): void;
   tryIt?: TryProps;
 }) {
+  const online = useOnline();
   const cols = routeChoices(result, names, scored, vetoPct);
   if (!cols) return null;
   return (
@@ -407,15 +413,21 @@ function YourRouteChoice({
             <Facts rows={c.rows} />
             {c.scored ? (
               <span className="tiny muted">Scored on the card</span>
+            ) : c.line && tryIt && online ? (
+              // Step 12's parked question 2 (owner, 10/22): one way to choose a line, Try it; a tried result shows Use it
+              // and Discard in its place.
+              <TryIt line={c.line} {...tryIt} />
             ) : (
               choose && (
-                <button className="btn small" onClick={() => choose(c.line)}>
-                  {c.line ? "Use as my driveway" : "Use the app's pick"}
-                </button>
+                <>
+                  <button className="btn small" onClick={() => choose(c.line)}>
+                    {c.line ? "Use as my driveway" : "Use the app's pick"}
+                  </button>
+                  {/* Offline, Try it can't re-time the drives; the card can still score the route. */}
+                  {c.line && tryIt && <p className="tiny muted">{OFFLINE_CHOICE}</p>}
+                </>
               )
             )}
-            {/* Step 12: the line tried as the driveway, its drives re-timed; kept only with Use it. */}
-            {c.line && tryIt && <TryIt line={c.line} {...tryIt} />}
           </div>
         ))}
       </div>

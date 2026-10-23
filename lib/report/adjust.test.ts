@@ -196,3 +196,18 @@ describe("the marks (plan §3, PR 4)", () => {
     expect(adjustChange({ kind: "setAside", was: "C" })).toBe("set aside");
   });
 });
+
+describe("the answer line names the overrides too (step 12's parked question 1)", () => {
+  it("alone, after set-aside Musts, and both", () => {
+    const sky = adj("sky", { grade: "A", was: "B" });
+    expect(asideMustsLine(reportCard(FERNEY, mine(), withAdj([sky])))).toBe("With 1 override: Night sky.");
+    const flood = adj("floodplain", { kind: "setAside" });
+    const garden = adj("garden", { grade: "A", was: "B" });
+    expect(asideMustsLine(reportCard(FERNEY, mine(), withAdj([flood, sky, garden])))).toBe(
+      "You set aside a must-have: Floodplain, with 2 overrides: Night sky, Garden ground.",
+    );
+    expect(asideMustsLine(reportCard(FERNEY, mine(), withAdj([flood])))).toBe(
+      "You set aside a must-have: Floodplain.",
+    );
+  });
+});
