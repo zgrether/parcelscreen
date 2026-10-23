@@ -14,7 +14,7 @@ import type { AreaFile } from "@/lib/areas/types";
 import {
   AREA_WORDS as W,
   MUSTS_PARCEL_SCALE,
-  mustShareLine,
+  mustShareParts,
   SAMPLE_WORDS,
   tradeOffLine,
   whyLine,
@@ -139,7 +139,7 @@ export function AreaBox({
                         className="area-rest-row"
                         onClick={() => void show(byId.get(c.id)!)}
                       >
-                        <span className={`card-grade small g-${c.grade ?? "none"}`}>{c.grade ?? "–"}</span>
+                        <span className={`card-grade small fit g-${c.grade ?? "none"}`}>{c.fit ?? "–"}</span>
                         <span className="area-rest-name">{byId.get(c.id)!.name}</span>
                         <span className="area-rest-share">
                           {c.limits.length ? `${Math.round(c.mustShare * 100)}%` : ""}
@@ -176,11 +176,12 @@ function AreaCardView({
   failed: boolean;
 }) {
   const why = whyLine(card, file);
+  const share = mustShareParts(card, file);
   return (
     <li className="area-card">
       <div className="ac-head">
-        <span className={`card-grade g-${card.grade ?? "none"}`} aria-label={W.fit(card.grade ?? "–")}>
-          {card.grade ?? "–"}
+        <span className={`card-grade fit g-${card.grade ?? "none"}`} aria-label={W.fit(card.fit ?? "–")}>
+          {card.fit ?? "–"}
         </span>
         <h3 className="ac-name">{file.name}</h3>
         <button
@@ -194,7 +195,12 @@ function AreaCardView({
           {starred ? "★" : "☆"}
         </button>
       </div>
-      {card.limits.length > 0 && <p className="ac-share">{mustShareLine(card, file)}</p>}
+      {/* Owner, #298 answers: the Must share is the card's headline number. */}
+      {share && (
+        <p className="ac-share">
+          <span className="ac-pct">{share.pct}</span> {share.rest}
+        </p>
+      )}
       {why && <p className="ac-why">{why}</p>}
       <p className="ac-trade">
         <span className="ac-label">{W.tradeOff}</span> {tradeOffLine(card, file)}

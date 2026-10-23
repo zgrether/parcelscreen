@@ -46,15 +46,72 @@ export interface HospitalCandidate {
 
 export type HospitalSource = () => Promise<HospitalSnapshot | null>;
 
+/**
+ * Hospitals the sources lag on, checked by hand (owner, #298 answers, 2026-10-23): a reopened ER the OSM snapshot or
+ * CMS doesn't list yet, or one that closed. Each entry carries its source and the date it was checked.
+ */
+export const ErAdditionsSchema = z.strictObject({
+  about: z.string(),
+  hospitals: z.array(
+    z.strictObject({
+      name: z.string(),
+      ll: z.tuple([z.number(), z.number()]),
+      /** Whether it has an emergency department now. */
+      er: z.boolean(),
+      source: z.string().url(),
+      checked: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    }),
+  ),
+});
+export type ErAdditions = z.infer<typeof ErAdditionsSchema>;
+export type ErAddition = ErAdditions["hospitals"][number];
+
+/** An addition stands for any hospital this close to it: the same place, under another name or position. */
+export const ADDITION_MATCH_KM = 1;
+
+/**
+ * The snapshot with the hand-checked additions: an addition within ADDITION_MATCH_KM of a snapshot hospital
+ * replaces its name and emergency tag; one with none is added.
+ */
+export function withAdditions(
+  snapshot: HospitalSnapshot,
+  additions: readonly ErAddition[],
+): HospitalSnapshot {
+  const hospitals = [...snapshot.hospitals];
+  additions.forEach((a, i) => {
+    const near = (h: { lat: number; lon: number }) =>
+      distance([a.ll[1], a.ll[0]], [h.lon, h.lat], { units: "kilometers" }) <= ADDITION_MATCH_KM;
+    const emergency = a.er ? "yes" : "no";
+    const at = hospitals.findIndex(near);
+    if (at >= 0)
+      hospitals[at] = { ...hospitals[at]!, name: a.name, tags: { ...hospitals[at]!.tags, emergency } };
+    else
+      hospitals.push({
+        id: `addition/${i}`,
+        name: a.name,
+        lat: a.ll[0],
+        lon: a.ll[1],
+        tags: { amenity: "hospital", emergency },
+      });
+  });
+  return { ...snapshot, hospitals };
+}
+
 let loaded: Promise<HospitalSnapshot | null> | null = null;
 
 /**
- * The committed snapshot, loaded once per session (a separate chunk in the browser) and checked; null when
- * it can't be loaded or doesn't parse, so the step falls back rather than fails.
+ * The committed snapshot with the hand-checked additions, loaded once per session (separate chunks in the browser)
+ * and checked; null when the snapshot can't be loaded or doesn't parse, so the step falls back rather than fails. The
+ * additions failing to load leave the snapshot as it is.
  */
 export const loadHospitalSnapshot: HospitalSource = () =>
-  (loaded ??= import("./data/hospitals.json")
-    .then((m) => SnapshotSchema.parse((m as { default: unknown }).default))
+  (loaded ??= Promise.all([
+    import("./data/hospitals.json").then((m) => SnapshotSchema.parse((m as { default: unknown }).default)),
+    import("./data/er-additions.json")
+      .then((m) => ErAdditionsSchema.parse((m as { default: unknown }).default).hospitals)
+      .catch(() => [] as ErAddition[]),
+  ])
+    .then(([snapshot, additions]) => withAdditions(snapshot, additions))
     .catch(() => {
       loaded = null; // try again next run
       return null;

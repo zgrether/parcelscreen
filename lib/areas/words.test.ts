@@ -9,7 +9,14 @@ import { defaultRubric } from "../rubric/default";
 import { MINE, type NamedRubric, type Rubric } from "../rubric/types";
 import { areaCard } from "./score";
 import { AreaFileSchema, type AreaFile } from "./types";
-import { MUSTS_PARCEL_SCALE, mustShareLine, NOTHING_BELOW_B, tradeOffLine, whyLine } from "./words";
+import {
+  MUSTS_PARCEL_SCALE,
+  mustShareLine,
+  mustShareParts,
+  NOTHING_BELOW_B,
+  tradeOffLine,
+  whyLine,
+} from "./words";
 
 const file = (id: string): AreaFile =>
   AreaFileSchema.parse(
@@ -50,5 +57,16 @@ describe("a card's words", () => {
     );
     const none = areaCard(a, nr({ ...defaultRubric(), musts: [] }));
     expect(mustShareLine(none, a)).toBe(MUSTS_PARCEL_SCALE);
+  });
+});
+
+describe("the Must share as the card's headline (owner, #298 answers)", () => {
+  it("the share's number, then the rest of the sentence; none without limits", () => {
+    const a = file("grayson-highlands");
+    const R = { ...defaultRubric(), musts: [{ factor: "elevation", threshold: 3000 }] };
+    const parts = mustShareParts(areaCard(a, nr(R as Rubric)), a)!;
+    expect(parts.pct).toMatch(/^\d+%$/);
+    expect(parts.rest).toBe("of rural land here is at least 3,000 ft up.");
+    expect(mustShareParts(areaCard(a, nr({ ...defaultRubric(), musts: [] })), a)).toBeNull();
   });
 });

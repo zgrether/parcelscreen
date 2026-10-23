@@ -140,6 +140,14 @@ export function mustShareLine(card: AreaCard, area: AreaFile): string {
   return `${pct}% of rural land here is ${listOf(card.limits.map(limitWords).filter(Boolean))}${thin}.`;
 }
 
+/** The Must share split for the card's headline (owner, #298 answers): "41%", then the rest. Null with no limits. */
+export function mustShareParts(card: AreaCard, area: AreaFile): { pct: string; rest: string } | null {
+  if (!card.limits.length) return null;
+  const line = mustShareLine(card, area);
+  const at = line.indexOf(" ");
+  return { pct: line.slice(0, at), rest: line.slice(at + 1) };
+}
+
 /** The box's and the card's labels (§8). */
 export const AREA_WORDS = {
   afterInterview: "Areas that fit you",

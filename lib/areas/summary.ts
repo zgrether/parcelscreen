@@ -56,10 +56,20 @@ export interface Summary {
   markdown: string;
 }
 
+/** An ER in OpenStreetMap that CMS doesn't list (lib/areas/data.ts ersToConfirm): to confirm by hand, never timed. */
+export interface ErToConfirm {
+  name: string;
+  ll: [number, number];
+}
+
+/** The section's heading (owner, #298 answers). */
+export const TO_CONFIRM_HEADING = "ERs in OpenStreetMap but not CMS: to confirm";
+
 export function refreshSummary(
   before: readonly AreaFile[],
   after: readonly AreaFile[],
   date: string,
+  toConfirm: readonly ErToConfirm[] = [],
 ): Summary {
   const was = new Map(before.map((f) => [f.id, f]));
   const lines: string[] = [];
@@ -108,6 +118,14 @@ export function refreshSummary(
     ...(editions.length ? ["", "**New editions:**", ...editions.map((e) => `- ${e}`)] : []),
     "",
     `${unchanged} ${unchanged === 1 ? "area" : "areas"} unchanged.`,
+    // Listed, not timed, and not a change in itself: one confirmed goes into lib/screen/data/er-additions.json.
+    ...(toConfirm.length
+      ? [
+          "",
+          `**${TO_CONFIRM_HEADING}** (not timed; one confirmed goes into \`lib/screen/data/er-additions.json\` with its source):`,
+          ...toConfirm.map((e) => `- ${e.name} (${e.ll[0].toFixed(4)}, ${e.ll[1].toFixed(4)})`),
+        ]
+      : []),
   ];
   return { changed, markdown: md.join("\n") + "\n" };
 }

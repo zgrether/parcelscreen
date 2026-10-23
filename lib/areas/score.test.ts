@@ -8,7 +8,7 @@ import { expectedOf } from "@/test/support/expected";
 import { defaultRubric } from "../rubric/default";
 import { MINE, type NamedRubric, type Rubric } from "../rubric/types";
 import { reportCard } from "../report/card";
-import { AREA_FACTORS, areaCard, areaLetter, rankAreas } from "./score";
+import { AREA_FACTORS, areaCard, areaLetter, fitLabel, rankAreas } from "./score";
 import { AREA_FILE_VERSION, MEASURES, type AreaFile, type Measure } from "./types";
 
 const nr = (rubric: Rubric = defaultRubric()): NamedRubric => ({ id: MINE, name: "Mine", rubric });
@@ -144,5 +144,24 @@ describe("Musts as a share", () => {
     const c = areaCard(a, withMusts([{ factor: "elevation", threshold: 3000 }]));
     expect(c.sharePoints).toBe(2);
     expect(c.mustShare).toBeCloseTo(0.5);
+  });
+});
+
+describe("the fit's sign (owner, #298 answers)", () => {
+  const R = defaultRubric();
+  it("thirds of each letter's band: B+ from 3.17, B− under 2.83; A's band runs to A's points; no sign on an F", () => {
+    expect(R.gradeCutoffs).toEqual([3.5, 2.5, 1.5, 0.5]);
+    expect(fitLabel(3.3, R)).toBe("B+");
+    expect(fitLabel(3.0, R)).toBe("B");
+    expect(fitLabel(2.6, R)).toBe("B−");
+    expect(fitLabel(3.9, R)).toBe("A+");
+    expect(fitLabel(3.6, R)).toBe("A−");
+    expect(fitLabel(0.2, R)).toBe("F");
+    expect(fitLabel(null, R)).toBeNull();
+  });
+
+  it("an area's card carries it; a parcel's grade is untouched", () => {
+    const c = areaCard(area("x", {}), nr());
+    expect(c.fit!.startsWith(c.grade!)).toBe(true);
   });
 });
