@@ -784,7 +784,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
     },
     // Step 7 (plan §1.3): an alternative homesite is within withinPoints of the best's site score (0–100) and at least
     // apartM from it and from the other alternatives; at most `alternatives` of them; Best homesite shows `numbers`.
-    sites: { withinPoints: 10, apartM: 100, alternatives: 2, numbers: 5 },
+    sites: { withinPoints: 10, apartM: 100, alternatives: 2 },
     // WF1 (owner, #128): the card says so when the listing's acres differ from the boundary's by more than this.
     listingAcresPct: 10,
     // Step 10b (owner, 10/21): price per acre is marked when the listing's and the boundary's acres differ by more than this.

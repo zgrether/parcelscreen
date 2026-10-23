@@ -10,6 +10,8 @@ import { weightsOf } from "../rubric/weights";
 import type { Factor, Letter, Rubric } from "../rubric/types";
 import { whyLine, type WhyContext } from "../rubric/words";
 import type { Card } from "./card";
+import { letterText, shownLetter } from "./adjust";
+import { SET_ASIDE_SHORT } from "./adjustWords";
 
 export interface Difference {
   key: Factor;
@@ -39,8 +41,12 @@ function shares(card: Card, rubric: Rubric): Map<string, number> {
   );
 }
 
-const shown = (letter: Letter | null, counted: boolean): string =>
-  !counted ? "not counted" : (letter ?? "–");
+/** A row as one member's card shows it (adjust.ts shownLetter): their override marked ✎, or set aside. */
+function shown(card: Card, key: string, counted: boolean): string {
+  const l = shownLetter(card, key);
+  if (l?.setAside) return `${SET_ASIDE_SHORT} ✎`;
+  return !counted ? "not counted" : letterText(l);
+}
 
 export function differences(mine: Card, theirs: Card, theirWhy: WhyContext | null, max = 3): Difference[] {
   const myRubric = mine.rubric.rubric;
@@ -73,8 +79,8 @@ export function differences(mine: Card, theirs: Card, theirWhy: WhyContext | nul
     out.push({
       key,
       label: (their ?? my)!.label,
-      mine: shown(my?.grade ?? null, a.has(key)),
-      theirs: shown(their?.grade ?? null, b.has(key)),
+      mine: shown(mine, key, a.has(key)),
+      theirs: shown(theirs, key, b.has(key)),
       weighs: sameLetter ? (b.get(key)! > a.get(key)! ? "more" : "less") : null,
       why: whyLine(theirRubric, key, theirWhy),
     });

@@ -16,6 +16,8 @@ import { fitSteps, nextFit, REPORT_WORDS as W, takeWords, type ReportContent } f
 /** The map's height on One page, in CSS px: 3.3 in, or 2.4 in at the fit's third step. */
 export const MAP_HEIGHT = { full: 317, small: 230 } as const;
 
+const ADJUSTED_SUFFIX = " ✎";
+
 export function OnePage({
   content: c,
   fit,
@@ -103,7 +105,23 @@ export function OnePage({
                   <tr key={r.key}>
                     <th scope="row">{r.label}</th>
                     <td className={`rp-mark rp-${r.kind}`} data-tone={r.tone}>
-                      {r.kind === "grade" ? <span className="rp-letter">{r.mark}</span> : r.mark}
+                      {r.kind === "grade" ? (
+                        <>
+                          {/* The letter in its box, the ✎ beside it (it wrapped inside the box). */}
+                          <span className="rp-letter">{r.mark.replace(ADJUSTED_SUFFIX, "")}</span>
+                          {r.mark.endsWith(ADJUSTED_SUFFIX) && (
+                            <span
+                              className="adjusted-mark"
+                              title={ADJUSTED_TITLE}
+                              aria-label={ADJUSTED_TITLE}
+                            >
+                              ✎
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        r.mark
+                      )}
                     </td>
                     <td>{steps.has("shortRows") ? r.short : r.text}</td>
                   </tr>

@@ -18,6 +18,8 @@ import { reportCard, VERDICT_WORD } from "@/lib/report/card";
 import type { Drawn } from "@/lib/report/marks";
 import type { PartialScreenResult as Result } from "@/lib/screen/types";
 import { differences } from "@/lib/report/household";
+import { isAdjusted } from "@/lib/report/adjust";
+import { ADJUSTED_TITLE } from "@/lib/report/adjustWords";
 import { WHY_STARTING } from "@/lib/rubric/words";
 import { TheirTake, YourTake } from "./Takes";
 
@@ -60,7 +62,12 @@ function Rated({ m, result, drawn }: { m: Member; result: Result; drawn?: Drawn 
   return (
     <>
       <p className="others-grade">
-        <span className={`card-grade small g-${theirs.grade ?? "none"}`}>{theirs.grade ?? "–"}</span>{" "}
+        <span className={`card-grade small g-${theirs.grade ?? "none"}`}>{theirs.grade ?? "–"}</span>
+        {isAdjusted(theirs) && (
+          <span className="adjusted-mark" title={ADJUSTED_TITLE} aria-label={ADJUSTED_TITLE}>
+            ✎
+          </span>
+        )}{" "}
         <span className={`card-word small v-${theirs.verdict.toLowerCase()}`}>
           {VERDICT_WORD[theirs.verdict]}
         </span>

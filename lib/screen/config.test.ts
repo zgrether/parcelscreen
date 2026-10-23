@@ -772,7 +772,6 @@ describe("config", () => {
           "sites": {
             "alternatives": 2,
             "apartM": 100,
-            "numbers": 5,
             "withinPoints": 10,
           },
           "verdict": {

@@ -27,6 +27,7 @@ import { useRubricView } from "@/lib/client/useRubricView";
 import { RubricSwitch } from "@/components/Results/card/RubricSwitch";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import { compareTable, type Cell, type CompareParcel } from "@/lib/report/compare";
+import { ADJUSTED_TITLE } from "@/lib/report/adjustWords";
 
 const STATUS: Record<NonNullable<Cell["status"]>, { mark: string; word: string }> = {
   pass: { mark: "✓", word: "Pass" },
@@ -99,6 +100,11 @@ export function Compare() {
           <span className={`card-grade small g-${c.grade ?? "none"}`}>{c.grade ?? "–"}</span>
         )}
         <span className="cmp-text">{status ? status.word : c.text}</span>
+        {c.adjusted && (
+          <span className="adjusted-mark" title={ADJUSTED_TITLE} aria-label={ADJUSTED_TITLE}>
+            ✎
+          </span>
+        )}
         {c.mark && (
           <span
             className={`cmp-mark ${c.mark}`}

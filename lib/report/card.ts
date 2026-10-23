@@ -70,6 +70,8 @@ import {
   type Adjusted,
   type Adjustment,
   type SetAside,
+  letterText,
+  shownLetter,
 } from "./adjust";
 
 export type { GateKey, Letter, NamedRubric, RowKey } from "../rubric/types";
@@ -1260,7 +1262,10 @@ export function cardFor(facts: CardFacts, nr: NamedRubric): Card {
         : warns[0] && verdict !== "Pass"
           ? { kind: "check", text: lowerFirst(warns[0].reason) }
           : weakest
-            ? { kind: "weakest", text: `${lowerFirst(weakest.label)} (${weakest.grade}, ${weakest.detail})` }
+            ? {
+                kind: "weakest",
+                text: `${lowerFirst(weakest.label)} (${letterText(shownLetter(facts, weakest.key))}, ${weakest.detail})`,
+              }
             : { kind: "none", text: "Not enough of the screen ran to grade the land" };
   const why =
     lead.kind === "fail" || lead.kind === "limit"

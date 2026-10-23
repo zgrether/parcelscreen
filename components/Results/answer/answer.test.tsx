@@ -11,7 +11,8 @@ import type { NamedRubric } from "@/lib/rubric/types";
 import { REPORT } from "../report";
 import { ReportCard } from "../card/ReportCard";
 import { AgentQuestions } from "./AgentQuestions";
-import { BestHomesite, ordinal, topNumbers } from "./BestHomesite";
+import { BestHomesite, ordinal } from "./BestHomesite";
+import { siteMeasures } from "@/lib/report/siteMeasures";
 import { FullReport } from "./FullReport";
 
 const FERNEY = expectedOf("ferney-creek-52-47A", "run");
@@ -126,25 +127,25 @@ describe("Best homesite (plan §1.2–§1.3)", () => {
         result={r}
         running={false}
         showing={showing}
-        onOpen={noop}
         pick={noop}
         back={noop}
         show={noop}
       />,
     );
 
-  it("names the best site and its numbers, heaviest first", () => {
+  it("names the best site and its measurements, never a letter (owner, 2026-10-22)", () => {
     const card = reportCard(FERNEY, ZACH);
-    expect(topNumbers(card.sites[0]!.rows, card).map((x) => x.row.key)).toEqual([
-      "elevation",
-      "homesite",
-      "room",
-      "sky",
-    ]);
-    const t = text(html());
+    const line = siteMeasures(FERNEY, card.sites[0]!.index);
+    expect(line).toBe(
+      "8.7 h December sun · faces E · 2,729 ft · 4.3 ac gentle ground (9.4× footprint) · 478 ft drive at 5%",
+    );
+    const h = html();
+    const t = text(h);
     expect(t).toContain("Best homesite");
     expect(t).toContain("Site #1");
-    expect(t).toContain("Elevation 2,729 ft");
+    expect(t).toContain(line);
+    // No letter beside any site: the card is the only place a row's letter shows.
+    expect(h).not.toContain("card-grade");
   });
 
   it("the alternatives, then N more sites: each with its place in the order apart from its pin's number", () => {

@@ -75,6 +75,7 @@ import {
   useSeeTakes,
 } from "@/lib/client/householdDoc";
 import { adjustPropsFor } from "@/components/Results/card/AdjustSection";
+import { gradedSite } from "@/lib/report/adjust";
 import { RaiseSection } from "@/components/Results/card/RaiseSection";
 import { getPref } from "@/lib/client/prefs";
 import { MINE } from "@/lib/rubric/types";
@@ -841,7 +842,6 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
                 result={display}
                 running={!!s.runningHere}
                 showing={s.evaluated?.label ?? null}
-                onOpen={openPanel}
                 pick={(p) => s.pickSite(p.ll, p.label)}
                 back={() => {
                   const best = s.card!.sites[0];
@@ -956,6 +956,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             (key) => householdDoc().adjusts.find((a) => a.key === key) ?? null,
             { save: adjustParcel, remove: removeAdjust, restore: restoreAdjust },
             s.adjustIntent?.factor === panel ? s.adjustIntent : null,
+            s.card ? gradedSite(s.card, !!display.house && !("outside" in display.house)) : null,
           )}
           point={point}
           running={running}
