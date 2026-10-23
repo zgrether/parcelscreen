@@ -24,6 +24,7 @@ import { AttachListingChip } from "@/components/Map/AttachListingChip";
 import { MapPanel } from "@/components/Map/MapPanel";
 import { useExplore, type SetHint } from "./useExploreController";
 import { OWN_RECORDS_HINT } from "@/lib/geo/ownRecords";
+import { AreaOutlines } from "@/components/Map/AreaOutlines";
 
 /** The map with its tools and hint. Loaded client-side only (MapLibre needs the browser). */
 export function MapArea({
@@ -62,6 +63,7 @@ export function MapArea({
       <MapTools parcelServices={config.endpoints.parcels} hint={setHint} />
       <MapControls hint={setHint} />
       <ParcelTools />
+      <AreaOutlines />
       {/* On a desktop Search is the docked panel's first row (step 4c). */}
       {!docked && <Search photonUrl={config.endpoints.photon} hint={setHint} />}
       <Hint text={hint} action={hint === OWN_RECORDS_HINT ? { label: "Draw", onClick: startDraw } : null} />

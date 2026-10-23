@@ -13,6 +13,7 @@ import type { Interview } from "@/lib/client/useInterview";
 import { columnsOf } from "@/lib/rubric/edit";
 import { rubricFromAnswers } from "@/lib/rubric/interview/generate";
 import { EDITOR_TITLES, minimumLine, plainLine, TIER_NAMES } from "@/lib/rubric/words";
+import { AreaBox } from "@/components/Areas/AreaBox";
 
 export const MUST_NOTE = "That will rule out most land.";
 /**
@@ -123,6 +124,9 @@ export function InterviewResult({ iv }: { iv: Interview }) {
           </p>
         )}
       </section>
+
+      {/* Step 13: the areas that fit what they just said matters. */}
+      <AreaBox where="interview" />
 
       <nav className="iv-done">
         <Link className="btn" href="/priorities">
