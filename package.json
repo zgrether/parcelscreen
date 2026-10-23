@@ -35,6 +35,8 @@
     "data:er": "node scripts/data-er.mts",
     "data:airports": "node scripts/data-airports.mts",
     "areas:outlines": "node scripts/areas-outlines.mts",
+    "areas:profile": "vitest run test/tools/area-profile.test.ts --mode areas",
+    "areas:record": "vitest run test/tools/area-profile.test.ts --mode areas-record",
     "data:hospitals": "node scripts/data-hospitals.mts",
     "data:states": "node scripts/data-state-outlines.mts",
     "data:tn-counties": "node scripts/data-tn-own-records.mts",
