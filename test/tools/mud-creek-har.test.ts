@@ -21,6 +21,12 @@ const ADDED =
 /** What step 11 may add: OSRM's table for the long-trail drives. */
 const ADDED_11 = /^https:\/\/router\.project-osrm\.org\/table\/v1\/driving\//;
 
+/**
+ * The flaky-count fix (2026-10-22): Photon's reverse lookups at the point the e2e's import asks from. Unrecorded, they
+ * fell to the server's Overpass route, which reached the live mirrors: a slow one failed "near", 4 sources, not 3.
+ */
+const ADDED_E2E = /^https:\/\/photon\.komoot\.io\/reverse\?lat=36\.58540768065242&lon=-81\.56344520266869&/;
+
 describe("Mud Creek's port HAR (step 2: append only)", () => {
   const entries = (JSON.parse(readFileSync(PATH, "utf8")) as Har).log.entries;
 
@@ -29,13 +35,19 @@ describe("Mud Creek's port HAR (step 2: append only)", () => {
     expect(createHash("sha256").update(JSON.stringify(before)).digest("hex")).toBe(BEFORE.sha256);
   });
 
-  it("adds only Tennessee's TREC requests after them, then step 11's long-trail drives", () => {
+  it("adds only Tennessee's TREC requests after them, then step 11's long-trail drives, then the e2e point's Photon", () => {
     const added = entries.slice(BEFORE.entries);
     expect(added.length).toBeGreaterThan(0);
     const trec = added.filter((e) => ADDED.test(e.request.url));
     expect(trec.length).toBeGreaterThan(0);
-    // Each step's after the last's: TREC's first, then OSRM's table, nothing else.
+    // Each step's after the last's: TREC's first, then OSRM's table, then the e2e point's two Photon lookups.
     expect(added.slice(0, trec.length)).toEqual(trec);
-    for (const e of added.slice(trec.length)) expect(e.request.url).toMatch(ADDED_11);
+    const rest = added.slice(trec.length);
+    const osrm = rest.filter((e) => ADDED_11.test(e.request.url));
+    expect(osrm.length).toBeGreaterThan(0);
+    expect(rest.slice(0, osrm.length)).toEqual(osrm);
+    const photon = rest.slice(osrm.length);
+    expect(photon).toHaveLength(2);
+    for (const e of photon) expect(e.request.url).toMatch(ADDED_E2E);
   });
 });

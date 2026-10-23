@@ -40,7 +40,18 @@ const Points = z
   .transform((ms) => ms.map((m) => [Number(m[1]), Number(m[3])] as [number, number]))
   .refine((ps) => ps.every(([lat, lon]) => Math.abs(lat) <= 90 && Math.abs(lon) <= 180));
 
-export async function handleOverpass(req: Request, http: HttpClient): Promise<Response> {
+/**
+ * The e2e server's switch (PS_OVERPASS=off): the browser's recordings can't answer a request the server makes, so a test
+ * run must never reach the live mirrors; it answers as the mirrors do when none answers, at once and every time.
+ */
+export const OVERPASS_OFF = "Overpass is off on this server";
+
+export async function handleOverpass(
+  req: Request,
+  http: HttpClient,
+  env: Readonly<Record<string, string | undefined>> = process.env,
+): Promise<Response> {
+  if (env.PS_OVERPASS === "off") return Response.json({ error: OVERPASS_OFF }, { status: 503 });
   const params = new URL(req.url).searchParams;
   if (params.get("kind") === "parking") return parking(params.get("pts"), req, http);
   const q = Query.safeParse({
