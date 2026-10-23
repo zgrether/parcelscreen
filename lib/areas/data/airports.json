@@ -1,0 +1,487 @@
+{
+ "source": "BTS NTAD Aviation Facilities (FAA), Part 139 Class I with scheduled service",
+ "effective": "2026-10-01",
+ "checked": "2026-10-22",
+ "airports": [
+  {
+   "code": "AGS",
+   "name": "Augusta Rgnl At Bush Fld",
+   "city": "Augusta",
+   "state": "GA",
+   "ll": [
+    33.36995,
+    -81.9645
+   ]
+  },
+  {
+   "code": "ATL",
+   "name": "Hartsfield/Jackson Atlanta Intl",
+   "city": "Atlanta",
+   "state": "GA",
+   "ll": [
+    33.6367,
+    -84.42786
+   ]
+  },
+  {
+   "code": "AVL",
+   "name": "Asheville Rgnl",
+   "city": "Asheville",
+   "state": "NC",
+   "ll": [
+    35.43611,
+    -82.54205
+   ]
+  },
+  {
+   "code": "BKW",
+   "name": "Raleigh County Meml",
+   "city": "Beckley",
+   "state": "WV",
+   "ll": [
+    37.78733,
+    -81.12417
+   ]
+  },
+  {
+   "code": "BWI",
+   "name": "Baltimore/Washington Intl Thurgood Marshall",
+   "city": "Baltimore",
+   "state": "MD",
+   "ll": [
+    39.17573,
+    -76.66899
+   ]
+  },
+  {
+   "code": "CAE",
+   "name": "Columbia Metro",
+   "city": "Columbia",
+   "state": "SC",
+   "ll": [
+    33.93884,
+    -81.11954
+   ]
+  },
+  {
+   "code": "CHA",
+   "name": "Lovell Fld",
+   "city": "Chattanooga",
+   "state": "TN",
+   "ll": [
+    35.03519,
+    -85.20356
+   ]
+  },
+  {
+   "code": "CHO",
+   "name": "Charlottesville-Albemarle",
+   "city": "Charlottesville",
+   "state": "VA",
+   "ll": [
+    38.13964,
+    -78.45234
+   ]
+  },
+  {
+   "code": "CHS",
+   "name": "Charleston Afb/Intl",
+   "city": "Charleston",
+   "state": "SC",
+   "ll": [
+    32.89864,
+    -80.04053
+   ]
+  },
+  {
+   "code": "CKB",
+   "name": "North Central West Virginia",
+   "city": "Clarksburg",
+   "state": "WV",
+   "ll": [
+    39.29765,
+    -80.22753
+   ]
+  },
+  {
+   "code": "CLT",
+   "name": "Charlotte/Douglas Intl",
+   "city": "Charlotte",
+   "state": "NC",
+   "ll": [
+    35.21319,
+    -80.95138
+   ]
+  },
+  {
+   "code": "CMH",
+   "name": "John Glenn Columbus Intl",
+   "city": "Columbus",
+   "state": "OH",
+   "ll": [
+    39.99695,
+    -82.89216
+   ]
+  },
+  {
+   "code": "CRW",
+   "name": "West Virginia Intl Yeager",
+   "city": "Charleston",
+   "state": "WV",
+   "ll": [
+    38.37601,
+    -81.59289
+   ]
+  },
+  {
+   "code": "CVG",
+   "name": "Cincinnati/Northern Kentucky Intl",
+   "city": "Covington",
+   "state": "KY",
+   "ll": [
+    39.04884,
+    -84.66782
+   ]
+  },
+  {
+   "code": "DAY",
+   "name": "James M Cox Dayton Intl",
+   "city": "Dayton",
+   "state": "OH",
+   "ll": [
+    39.90225,
+    -84.21941
+   ]
+  },
+  {
+   "code": "DCA",
+   "name": "Ronald Reagan Washington Ntl",
+   "city": "Washington",
+   "state": "DC",
+   "ll": [
+    38.85144,
+    -77.03772
+   ]
+  },
+  {
+   "code": "EWN",
+   "name": "Coastal Carolina Rgnl",
+   "city": "New Bern",
+   "state": "NC",
+   "ll": [
+    35.07285,
+    -77.04302
+   ]
+  },
+  {
+   "code": "FAY",
+   "name": "Fayetteville Rgnl/Grannis Fld",
+   "city": "Fayetteville",
+   "state": "NC",
+   "ll": [
+    34.99121,
+    -78.88027
+   ]
+  },
+  {
+   "code": "FLO",
+   "name": "Florence Rgnl",
+   "city": "Florence",
+   "state": "SC",
+   "ll": [
+    34.18536,
+    -79.72388
+   ]
+  },
+  {
+   "code": "GSO",
+   "name": "Piedmont Triad Intl",
+   "city": "Greensboro",
+   "state": "NC",
+   "ll": [
+    36.10133,
+    -79.94112
+   ]
+  },
+  {
+   "code": "GSP",
+   "name": "Greenville Spartanburg Intl",
+   "city": "Greer",
+   "state": "SC",
+   "ll": [
+    34.89567,
+    -82.21886
+   ]
+  },
+  {
+   "code": "HGR",
+   "name": "Hagerstown Rgnl/Richard A Henson Fld",
+   "city": "Hagerstown",
+   "state": "MD",
+   "ll": [
+    39.7085,
+    -77.7265
+   ]
+  },
+  {
+   "code": "HTS",
+   "name": "Tri-State/Milton J Ferguson Fld",
+   "city": "Huntington",
+   "state": "WV",
+   "ll": [
+    38.36851,
+    -82.56036
+   ]
+  },
+  {
+   "code": "IAD",
+   "name": "Washington Dulles Intl",
+   "city": "Washington",
+   "state": "DC",
+   "ll": [
+    38.94746,
+    -77.45993
+   ]
+  },
+  {
+   "code": "ILM",
+   "name": "Wilmington Intl",
+   "city": "Wilmington",
+   "state": "NC",
+   "ll": [
+    34.27115,
+    -77.90289
+   ]
+  },
+  {
+   "code": "ISO",
+   "name": "Kinston Rgnl Jetport At Stallings Fld",
+   "city": "Kinston",
+   "state": "NC",
+   "ll": [
+    35.33143,
+    -77.60883
+   ]
+  },
+  {
+   "code": "JQF",
+   "name": "Concord-Padgett Rgnl",
+   "city": "Concord",
+   "state": "NC",
+   "ll": [
+    35.38777,
+    -80.70913
+   ]
+  },
+  {
+   "code": "JST",
+   "name": "John Murtha Johnstown/Cambria County",
+   "city": "Johnstown",
+   "state": "PA",
+   "ll": [
+    40.31556,
+    -78.83467
+   ]
+  },
+  {
+   "code": "LBE",
+   "name": "Arnold Palmer Rgnl",
+   "city": "Latrobe",
+   "state": "PA",
+   "ll": [
+    40.2731,
+    -79.41033
+   ]
+  },
+  {
+   "code": "LCK",
+   "name": "Rickenbacker Intl",
+   "city": "Columbus",
+   "state": "OH",
+   "ll": [
+    39.81379,
+    -82.92781
+   ]
+  },
+  {
+   "code": "LEX",
+   "name": "Blue Grass",
+   "city": "Lexington",
+   "state": "KY",
+   "ll": [
+    38.03674,
+    -84.60862
+   ]
+  },
+  {
+   "code": "LWB",
+   "name": "Greenbrier Valley",
+   "city": "Lewisburg",
+   "state": "WV",
+   "ll": [
+    37.85831,
+    -80.39948
+   ]
+  },
+  {
+   "code": "LYH",
+   "name": "Lynchburg Rgnl/Preston Glenn Fld",
+   "city": "Lynchburg",
+   "state": "VA",
+   "ll": [
+    37.32539,
+    -79.20122
+   ]
+  },
+  {
+   "code": "MDT",
+   "name": "Harrisburg Intl",
+   "city": "Harrisburg",
+   "state": "PA",
+   "ll": [
+    40.19319,
+    -76.76262
+   ]
+  },
+  {
+   "code": "MGW",
+   "name": "Morgantown Muni/Walter L Bill Hart Fld",
+   "city": "Morgantown",
+   "state": "WV",
+   "ll": [
+    39.6436,
+    -79.91755
+   ]
+  },
+  {
+   "code": "MYR",
+   "name": "Myrtle Beach Intl",
+   "city": "Myrtle Beach",
+   "state": "SC",
+   "ll": [
+    33.67974,
+    -78.92832
+   ]
+  },
+  {
+   "code": "OAJ",
+   "name": "Albert J Ellis",
+   "city": "Jacksonville",
+   "state": "NC",
+   "ll": [
+    34.82917,
+    -77.61214
+   ]
+  },
+  {
+   "code": "PGV",
+   "name": "Pitt-Greenville",
+   "city": "Greenville",
+   "state": "NC",
+   "ll": [
+    35.63569,
+    -77.38408
+   ]
+  },
+  {
+   "code": "PHF",
+   "name": "Newport News/Williamsburg Intl",
+   "city": "Newport News",
+   "state": "VA",
+   "ll": [
+    37.13189,
+    -76.49297
+   ]
+  },
+  {
+   "code": "PIT",
+   "name": "Pittsburgh Intl",
+   "city": "Pittsburgh",
+   "state": "PA",
+   "ll": [
+    40.49142,
+    -80.23269
+   ]
+  },
+  {
+   "code": "PKB",
+   "name": "Mid-Ohio Valley Rgnl",
+   "city": "Parkersburg",
+   "state": "WV",
+   "ll": [
+    39.34496,
+    -81.43929
+   ]
+  },
+  {
+   "code": "RDU",
+   "name": "Raleigh-Durham Intl",
+   "city": "Raleigh/Durham",
+   "state": "NC",
+   "ll": [
+    35.87764,
+    -78.78747
+   ]
+  },
+  {
+   "code": "RIC",
+   "name": "Richmond Intl",
+   "city": "Richmond",
+   "state": "VA",
+   "ll": [
+    37.50518,
+    -77.31974
+   ]
+  },
+  {
+   "code": "ROA",
+   "name": "Roanoke/Blacksburg Rgnl (Woodrum Fld)",
+   "city": "Roanoke",
+   "state": "VA",
+   "ll": [
+    37.32547,
+    -79.97542
+   ]
+  },
+  {
+   "code": "SDF",
+   "name": "Louisville Muhammad Ali Intl",
+   "city": "Louisville",
+   "state": "KY",
+   "ll": [
+    38.17408,
+    -85.73649
+   ]
+  },
+  {
+   "code": "SHD",
+   "name": "Shenandoah Valley Rgnl",
+   "city": "Staunton/Waynesboro/Harrisonburg",
+   "state": "VA",
+   "ll": [
+    38.26383,
+    -78.89644
+   ]
+  },
+  {
+   "code": "TRI",
+   "name": "Tri-Cities",
+   "city": "Bristol/Johnson/Kingsport",
+   "state": "TN",
+   "ll": [
+    36.47521,
+    -82.40742
+   ]
+  },
+  {
+   "code": "TYS",
+   "name": "Mc Ghee Tyson",
+   "city": "Knoxville",
+   "state": "TN",
+   "ll": [
+    35.81109,
+    -83.99407
+   ]
+  }
+ ]
+}

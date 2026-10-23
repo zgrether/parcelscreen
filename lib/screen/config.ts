@@ -370,6 +370,32 @@ export const SCREEN_CONSTANTS = deepFreeze({
   // half northWeight times the southern; the skyline traced to reachM; spots within tieShare of the best are tied, and
   // the one nearest the house site wins.
   dish: { stepM: 30, coneDeg: 25, northWeight: 2, reachM: 2000, tieShare: 0.01 },
+  // Step 13 (docs/plans/step-13-area-catalog.md §3, §4): the area catalog. Each area samples `points` rural points
+  // (fewer than minPoints is "thin"), drawing at most maxCandidates; NLCD 2021 classes on open water and on developed
+  // land of low, medium and high intensity are rejected (developed open space, 21, stays: rural homes). Each point's
+  // drives go to its `nearest` destinations of each kind, in OSRM tables of at most tableMaxCoords coordinates. The DEM
+  // is fetched at demResM in tiles of about demTileCoreKm square, each widened by the Long view's reach; places come
+  // from within placesMarginKm of the outline, public land from within padusMarginKm. A point within adjoinFt of open
+  // public land adjoins it, as a parcel does (padus.ts adjoins at 20 m). An area where fewer than minMustShare of the
+  // points pass every area-scale Must isn't suggested. fitSign: below.
+  areas: {
+    points: 200,
+    minPoints: 100,
+    maxCandidates: 5000,
+    waterClasses: [11] as readonly number[],
+    developedClasses: [22, 23, 24] as readonly number[],
+    nearest: { er: 3, groceryChain: 3, groceryAny: 3, airport: 3, trailhead: 3, longTrail: 4 },
+    tableMaxCoords: 100,
+    demResM: 30,
+    demTileCoreKm: 30,
+    placesMarginKm: 30,
+    padusMarginKm: 16,
+    adjoinFt: 66,
+    minMustShare: 0.1,
+    // Owner, #298 answers: an area's fit letter carries + in the top third of its letter's band of points and − in the
+    // bottom third (an A's band runs up to A's points; an F has no sign). Areas only: a parcel's grade has no sign.
+    fitSign: 1 / 3,
+  },
   grocery: {
     // Owner, #81: "Closer: {name}, {N} min." after the chain grocery's drive time, when a non-chain grocery
     // is at least this many minutes nearer by road.

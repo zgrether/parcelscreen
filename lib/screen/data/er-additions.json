@@ -1,0 +1,12 @@
+{
+ "about": "Hospitals with an emergency department that the sources lag on, checked by hand (owner, #298): each overrides a hospital in the OSM snapshot and the CMS list within 1 km, or is added. Parcel screens and the area catalog both read it.",
+ "hospitals": [
+  {
+   "name": "Stuart Community Hospital",
+   "ll": [36.646318, -80.254812],
+   "er": true,
+   "source": "https://cardinalnews.org/2026/01/06/stuart-community-hospital-opens-for-emergency-and-inpatient-care/",
+   "checked": "2026-10-23"
+  }
+ ]
+}

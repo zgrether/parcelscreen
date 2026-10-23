@@ -23,6 +23,7 @@ export const PROFILE_KEYS: ReadonlySet<string> = new Set([
   "ps.namesFromNotes",
   "ps.seenTakes",
   "ps.history",
+  "ps.areaStars",
 ]);
 export const isProfileKey = (key: string): boolean => PROFILE_KEYS.has(key);
 

@@ -15,6 +15,7 @@ import { MapKey } from "./MapKey";
 import { BASEMAPS } from "./style";
 import { TerrainControls } from "./TerrainControls";
 import { setMapLayerPrefs, useMapLayerPrefs } from "./useMapLayerPrefs";
+import { AREA_WORDS } from "@/lib/areas/words";
 
 /** Step 8b: the one show/hide for the open parcel's lines, marks and house site. */
 export const MARKS_LABEL = "Your lines and marks";
@@ -81,6 +82,7 @@ function Panel({ onClose }: { onClose: () => void }) {
             setMapLayerPrefs({ lightPollution: !p.lightPollution }),
           )}
           {toggle(MARKS_LABEL, p.marks, () => setMapLayerPrefs({ marks: !p.marks }))}
+          {toggle(AREA_WORDS.outlines, p.areas, () => setMapLayerPrefs({ areas: !p.areas }))}
         </div>
         <AnalysisGroup />
         <MapKey />

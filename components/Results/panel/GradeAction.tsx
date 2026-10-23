@@ -7,10 +7,12 @@
  */
 import { gradeLabel } from "@/lib/client/gradeButton";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
+import { isPreview } from "@/lib/client/samples";
 
 export function GradeAction({ where }: { where: "toolbar" | "sheet" }) {
   const s = useScreenItContext();
-  if (!s?.grade || !s.ctl.state.store.open) return null;
+  // Step 13: a sample parcel comes graded, and isn't graded again until it's on the person's list.
+  if (!s?.grade || !s.ctl.state.store.open || isPreview(s.ctl.state.store.open)) return null;
   const label = gradeLabel(s.grade);
   const grading = s.grade.kind === "running";
   const cls = where === "toolbar" ? "tb-btn grade-btn" : "btn grade-btn sheet-grade";

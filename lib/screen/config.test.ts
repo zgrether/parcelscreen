@@ -109,6 +109,35 @@ describe("config", () => {
   it("screen constants are unchanged", () => {
     expect(SCREEN_CONSTANTS).toMatchInlineSnapshot(`
       {
+        "areas": {
+          "adjoinFt": 66,
+          "demResM": 30,
+          "demTileCoreKm": 30,
+          "developedClasses": [
+            22,
+            23,
+            24,
+          ],
+          "fitSign": 0.3333333333333333,
+          "maxCandidates": 5000,
+          "minMustShare": 0.1,
+          "minPoints": 100,
+          "nearest": {
+            "airport": 3,
+            "er": 3,
+            "groceryAny": 3,
+            "groceryChain": 3,
+            "longTrail": 4,
+            "trailhead": 3,
+          },
+          "padusMarginKm": 16,
+          "placesMarginKm": 30,
+          "points": 200,
+          "tableMaxCoords": 100,
+          "waterClasses": [
+            11,
+          ],
+        },
         "bands": {
           "drivewayPct": [
             8,

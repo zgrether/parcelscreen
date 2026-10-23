@@ -1,0 +1,60 @@
+name: Area catalog refresh
+
+# Step 13 (docs/plans/step-13-area-catalog.md §3.6): re-profiles the thirty areas once a month and opens a PR titled
+# "Area catalog refresh" with a plain summary of what moved. Zach merges it; nothing merges itself. A PR opened with
+# GITHUB_TOKEN starts no other workflow, so the job dispatches ci.yml on the branch; its checks land on the commit,
+# so the PR shows them.
+on:
+  schedule:
+    - cron: "23 7 3 * *" # the 3rd of each month, 07:23 UTC
+  workflow_dispatch: {}
+
+concurrency:
+  group: areas-refresh
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    # About 40 minutes, most of it OSRM's one request a second.
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # data.cms.gov answers a browser, not a script (scripts/data-er.mts).
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Keep last month's files to compare
+        run: mkdir -p tmp && cp -r public/areas/v1 tmp/areas-before
+      - name: The ER list
+        run: pnpm data:er || echo "::warning::CMS or the Census Geocoder didn't answer; last month's ER list stands."
+      - name: The airport list
+        run: pnpm data:airports || echo "::warning::NTAD didn't answer; last month's airport list stands."
+      - name: Profile the thirty areas
+        run: pnpm areas:profile
+      - id: summary
+        name: What moved
+        run: node scripts/areas-summary.mts tmp/areas-before public/areas/v1 tmp/areas-summary.md tmp/ers-to-confirm.json >> "$GITHUB_OUTPUT"
+      - name: Open the PR
+        if: steps.summary.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          branch="areas/refresh-$(date -u +%Y-%m-%d)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add public/areas lib/areas/data
+          git commit -m "Area catalog refresh" -m "$(cat tmp/areas-summary.md)"
+          git push origin "$branch"
+          gh pr create --base main --head "$branch" --title "Area catalog refresh" --body-file tmp/areas-summary.md
+          gh workflow run ci.yml --ref "$branch"

@@ -93,6 +93,10 @@ export interface Prefs {
   "ps.seenTakes": SeenTakes;
   /** When this profile last graded each parcel (step 8): History's order; synced with the profile. */
   "ps.history": HistoryLog;
+  /** Step 13: Map layers' Area outlines, per device (off). */
+  "ps.areas": boolean;
+  /** Step 13: the areas this profile starred; their outlines stay on the map. */
+  "ps.areaStars": string[];
 }
 
 const DEFAULTS: Prefs = {
@@ -122,6 +126,8 @@ const DEFAULTS: Prefs = {
   "ps.recentMarks": [],
   "ps.seenTakes": {},
   "ps.history": EMPTY_LOG,
+  "ps.areas": false,
+  "ps.areaStars": [],
 };
 
 /** How each key is stored: the prototype kept flags as "1"/"0" and the rest as plain strings or JSON. */
@@ -168,6 +174,14 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
   "ps.recentMarks": { read: readRecent, write: (v) => JSON.stringify(v) },
   "ps.seenTakes": { read: readSeen, write: (v) => JSON.stringify(v) },
   "ps.history": { read: (r) => readHistoryLog(r) ?? EMPTY_LOG, write: (v) => JSON.stringify(v) },
+  "ps.areas": { read: (r) => r === "1", write: (v) => (v ? "1" : "0") },
+  "ps.areaStars": {
+    read: (r) => {
+      const v = JSON.parse(r) as unknown;
+      return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+    },
+    write: (v) => JSON.stringify(v),
+  },
   "ps.overlays": {
     // Unknown or missing keys read as shown, so an overlay added later starts visible.
     read: (r) => ({ ...ALL_OVERLAYS, ...(JSON.parse(r) as Partial<OverlayPrefs>) }),

@@ -35,13 +35,17 @@ test("the docked panel: Search first, the empty state, full height with a parcel
   await openExplorer(page, FERNEY);
   const panel = page.locator(".explore-panel.dock");
 
-  // No parcel: the panel is the search row alone, flush under the top bar at the left edge.
+  // No parcel: the search row, then (step 13) Where to look, flush under the top bar at the left edge, ending above
+  // the toolbar's row.
   const empty = await box(panel);
   const topBar = await box(page.locator(".app-nav"));
   expect(empty.x).toBe(0);
   expect(empty.y).toBeCloseTo(topBar.y + topBar.height, 0);
   expect(empty.width).toBe(380);
-  expect(empty.height).toBeLessThan(70);
+  expect((await box(panel.locator(".dock-search"))).height).toBeLessThan(70);
+  await expect(panel.getByRole("region", { name: "Where to look" })).toBeVisible();
+  // Clear of the toolbar, which centres on the map under it (the panel's only an overlay here).
+  expect(empty.y + empty.height).toBeLessThan((await box(page.locator(".toolbar"))).y);
   await expect(panel.getByRole("combobox", { name: /^Search coordinates/ })).toBeVisible();
   await expect(page.getByText("Tap a parcel to begin")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Search", exact: true })).toHaveCount(0);
