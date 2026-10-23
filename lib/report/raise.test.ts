@@ -42,7 +42,7 @@ describe("the suggestions", () => {
     const { suggestions, neighbour } = raiseSuggestions(MACKS, base, drawn);
     expect(suggestions.map((s) => s.kind)).toEqual(["septic", "setAside"]);
     expect(suggestions[0]).toMatchObject({
-      text: "Plan on an alternative septic system: Septic ! → ✓, Maybe → Contender",
+      text: "Plan on an alternative septic system: Septic would pass · Maybe → Contender",
       cost: "septic $15–55k in Ready to build (Alternative)",
       action: { kind: "adjust", factor: "septic", choice: "pass" },
     });
@@ -121,13 +121,13 @@ describe("your line as access (plan §2.2)", () => {
     };
   }
 
-  it("a recorded easement that avoids the neighbour's land: Driveway on your land ! → ✓, Maybe → Contender; Try it", () => {
+  it("a recorded easement that avoids the neighbour's land: Driveway on your land would pass · Maybe → Contender; Try it", () => {
     const { r, drawn } = roanWithOldRoad();
     const base = reportCard(r, nr, drawn);
     expect(base.verdict).toBe("Maybe");
     const { suggestions } = raiseSuggestions(r, base, drawn);
     const access = suggestions.find((s) => s.kind === "access")!;
-    expect(access.text).toBe("Use Old road for access: Driveway on your land ! → ✓, Maybe → Contender");
+    expect(access.text).toBe("Use Old road for access: Driveway on your land would pass · Maybe → Contender");
     expect(access.action).toEqual({ kind: "tryLine", line: "old-road" });
     // In order: after the homesite (none here), before the septic system.
     expect(suggestions.map((s) => s.kind)).toEqual(["access", "septic"]);
@@ -148,7 +148,7 @@ describe("your line as access (plan §2.2)", () => {
     for (const d of tried.drives ?? []) d.min += 4;
     const yours = reportCard(tried, nr, { ...drawn, driveway: "old-road" });
     expect(triedWords(base, yours)).toMatch(
-      /^Driveway on your land ! → ✓, Maybe → Contender, .* \d+ → \d+ min/,
+      /^Driveway on your land would pass · Maybe → Contender · .* \d+ → \d+ min/,
     );
     // Back the other way: worse, and the Must's own words say why.
     expect(triedWords(yours, base)).toMatch(
