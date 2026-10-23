@@ -1,6 +1,6 @@
 /**
  * Regenerates lib/screen/data/climate.json (step 11, docs/plans/step-11-new-data.md §2.2, §3): the Climate factor's
- * baked data for the study region.
+ * baked data for the area catalog's extent (step 13).
  * - PRISM 1991–2020 normals at 800 m (30 arc-seconds): January's mean low and July's mean high, in tenths of a °F,
  *   with PRISM's own 800 m DEM (each cell's mean elevation, in ft), so the screen can adjust a cell's temperature to
  *   the site's elevation. Free to reproduce with attribution (prism.oregonstate.edu/terms); commercial use isn't
@@ -25,8 +25,11 @@ const ROOT = resolve(import.meta.dirname, "..");
 export const OUT = join(ROOT, "lib", "screen", "data", "climate.json");
 const UA = "parcelscreen-data/1 (climate snapshot, run by hand; https://github.com/zgrether/parcelscreen)";
 
-/** The study region (plan §3), [south, west, north, east]: the fixtures' counties and their neighbours. */
-export const REGION = [35.8, -82.7, 37.4, -79.9] as const;
+/**
+ * The region, [south, west, north, east]: the area catalog's extent (step 13, docs/plans/step-13-area-catalog.md §3.4),
+ * which holds step 11's study region (35.8, -82.7, 37.4, -79.9) cell for cell.
+ */
+export const REGION = [34.9, -83.8, 38.6, -78.6] as const;
 /** Stations this far outside the region are kept, so a parcel near its edge has neighbours on every side. */
 const STATION_MARGIN_DEG = 0.5;
 /** PRISM's 30 arc-second grid. */
@@ -171,7 +174,7 @@ for (const [id] of candidates) {
       .toLowerCase()
       .replace(/\b([a-z])/g, (m) => m.toUpperCase())
       .replace(/(\d+(?:\.\d+)?\s?)([nsew]{1,3})\b/gi, (_m, d: string, dir: string) => d + dir.toUpperCase())
-      .replace(/\b(Va|Nc|Tn|Wv|Ky)$/, (m) => m.toUpperCase())
+      .replace(/\b(Va|Nc|Tn|Wv|Ky|Sc|Ga|Md|Oh)$/, (m) => m.toUpperCase())
       // NOAA's abbreviations: a Weather Service office, an airport.
       .replace(/\b(Nwso|Wso)\b/g, (m) => m.toUpperCase())
       .replace(/\bAp\b/g, "Airport"),
