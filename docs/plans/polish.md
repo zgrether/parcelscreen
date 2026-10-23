@@ -244,3 +244,22 @@ screens, or the seeded shots):
 - **Existing screens:** "Grade again: boundary changed" and "Terrain tiles didn't load" in the seeded shots; the report
   score (67/100) beside a letter in "From the report"; the phone's Try it on sheet over the columns; rows scrolling under
   the Grade | Details tabs; the map's tilt tip; What matters' disabled Undo as an empty box.
+
+## Step 13: the area catalog (hand-back)
+
+From the fresh-eyes review of step 13's screens, the findings not fixed in the step (the fixed ones: the ranking line,
+the trade-off with no weak spot, "land at 3,701 ft", the typical-values footnote, the parcel-scale must-haves note,
+Show more's heading and chevrons, and "An example lot, not a listing"):
+
+- **Two names for one box:** "Areas that fit you" after the interview, "Where to look" on the map (the brief's). Fix:
+  one name, or a line that says they're the same list.
+- **Every area a B under the starting list:** the letters don't separate the top areas. Fix: a finer fit (points) beside
+  the letter, or the deciding factor.
+- **An area's star and a parcel's star** look alike but mean "pin its outline" and "on your list". Fix: a pin icon for
+  areas.
+- **Area outlines unnamed far out** (by design, to avoid a pile of names) and drawn like parcel lines, under "Zoom in to
+  see parcel lines". Fix: names at every zoom for the five suggested areas; hide that hint while outlines show.
+- **A sample added to the list keeps "Sample parcel 1 · …" as its name** (the sheet offers it, prefilled). Fix: suggest a
+  name from the area alone.
+- **Existing screens:** the phone's toolbar status over the map's buttons; the edit bar's unlabelled bin; the map pins
+  E1–E3, S5–S6 and 1–5 with no key; "Held at Maybe by"; "Terrain tiles didn't load" and the tilt tip in the shots.
