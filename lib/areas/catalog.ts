@@ -140,10 +140,12 @@ export const AREAS: readonly AreaDef[] = [
     id: "nelson-highlands",
     name: "Nelson highlands (Montebello)",
     description: [
-      "The Blue Ridge's eastern slopes, from Montebello to Wintergreen and Nellysford.",
+      "The Blue Ridge's high eastern slopes around Montebello and the Tye River's headwaters.",
       "The Parkway and the Appalachian Trail along the crest.",
     ],
     units: { "51125": ["West district", "Central district"] },
+    // The high ground: west of the Tye and Rockfish valleys (Massies Mill, Nellysford), which sit near 900 ft.
+    keep: { lonMax: -79.02 },
   },
   {
     id: "blacksburg-outskirts",
