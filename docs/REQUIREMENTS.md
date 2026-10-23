@@ -522,6 +522,14 @@ sync_adjustments space, key, record jsonb, deleted, updated_at   -- primary key 
 
 `ps.rubrics` gains `nudged` (optional). `docs/plans/step-12-raise-the-grade.md` and phase-0.md §9.67 have the details.
 
+### 3n. The area catalog (roadmap step 13)
+
+No change to screens and no table. The catalog is static data in the app: `lib/areas/catalog.ts` (the 30 areas' names,
+descriptions and outline recipes), `lib/areas/data/` (the outlines, the CMS ER list and the airport list) and
+`public/areas/v1/` (each area's profile, and its two sample parcels under `samples/`), refreshed by the monthly
+workflow's PR. Two prefs: `ps.areas` (per device) and `ps.areaStars` (per profile, synced with the profile).
+`docs/plans/step-13-area-catalog.md` and phase-0.md §9.68 have the details.
+
 ## 4. The parcel page (the export)
 
 Blocks, in order; each is computed, placeholder, or user-authored:
