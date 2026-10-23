@@ -98,3 +98,16 @@ describe("GET /api/places/overpass", () => {
     });
   });
 });
+
+describe("PS_OVERPASS=off (the e2e server)", () => {
+  it("answers as no mirror answering, at once, without a request", async () => {
+    const { http, seen } = fakeHttp(() => new Response("{}"));
+    const res = await handleOverpass(
+      new Request("http://localhost/api/places/overpass?lat=36.6&lon=-81.5&kind=places"),
+      http,
+      { PS_OVERPASS: "off" },
+    );
+    expect(res.status).toBe(503);
+    expect(seen).toEqual([]);
+  });
+});
