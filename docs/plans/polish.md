@@ -253,8 +253,8 @@ Show more's heading and chevrons, and "An example lot, not a listing"):
 
 - **Two names for one box:** "Areas that fit you" after the interview, "Where to look" on the map (the brief's). Fix:
   one name, or a line that says they're the same list.
-- **Every area a B under the starting list:** the letters don't separate the top areas. Fix: a finer fit (points) beside
-  the letter, or the deciding factor.
+- ~~**Every area a B under the starting list:** the letters don't separate the top areas. Fix: a finer fit (points) beside
+  the letter, or the deciding factor.~~ Done in #299 (B+, B, B−; the Must share as the headline).
 - **An area's star and a parcel's star** look alike but mean "pin its outline" and "on your list". Fix: a pin icon for
   areas.
 - **Area outlines unnamed far out** (by design, to avoid a pile of names) and drawn like parcel lines, under "Zoom in to

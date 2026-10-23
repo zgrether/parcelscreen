@@ -377,7 +377,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
   // is fetched at demResM in tiles of about demTileCoreKm square, each widened by the Long view's reach; places come
   // from within placesMarginKm of the outline, public land from within padusMarginKm. A point within adjoinFt of open
   // public land adjoins it, as a parcel does (padus.ts adjoins at 20 m). An area where fewer than minMustShare of the
-  // points pass every area-scale Must isn't suggested.
+  // points pass every area-scale Must isn't suggested. fitSign: below.
   areas: {
     points: 200,
     minPoints: 100,
@@ -392,6 +392,9 @@ export const SCREEN_CONSTANTS = deepFreeze({
     padusMarginKm: 16,
     adjoinFt: 66,
     minMustShare: 0.1,
+    // Owner, #298 answers: an area's fit letter carries + in the top third of its letter's band of points and − in the
+    // bottom third (an A's band runs up to A's points; an F has no sign). Areas only: a parcel's grade has no sign.
+    fitSign: 1 / 3,
   },
   grocery: {
     // Owner, #81: "Closer: {name}, {N} min." after the chain grocery's drive time, when a non-chain grocery

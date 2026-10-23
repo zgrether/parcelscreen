@@ -90,6 +90,8 @@ export interface AreaCard {
   points: number | null;
   /** The fit letter. */
   grade: Letter | null;
+  /** The fit letter with its sign: "B+", "B", "B−" (fitLabel). */
+  fit: string | null;
   /** The person's limits on area-scale factors (the Musts with a threshold whose measure an area has). */
   limits: { factor: AreaFactor; threshold: number }[];
   /** The share of points passing every limit, 0–1; 1 when there are none. */
@@ -145,11 +147,31 @@ export function areaCard(area: AreaFile, nr: NamedRubric): AreaCard {
     rows,
     points,
     grade,
+    fit: fitLabel(points, R),
     limits,
     mustShare,
     sharePoints: limits.length ? counted : area.points.ll.length,
     suggestable: mustShare >= K.minMustShare,
   };
+}
+
+const LETTERS: readonly Letter[] = ["A", "B", "C", "D"];
+
+/**
+ * An area's fit with its sign (owner, #298 answers; areas only, never a parcel's grade): the letter the points reach,
+ * "+" in the top areas.fitSign of that letter's band and "−" in the bottom one. A letter's band runs from its cutoff to
+ * the next letter's (an A's, to A's points); an F has no sign. With the starting cutoffs (A from 3.5, B from 2.5, …)
+ * a B+ is 3.17 to 3.5 and a B− is 2.5 to 2.83.
+ */
+export function fitLabel(points: number | null, R: Rubric): string | null {
+  if (points === null) return null;
+  const letter = atLeast(points, R.gradeCutoffs);
+  const i = LETTERS.indexOf(letter);
+  if (i < 0) return letter;
+  const lo = R.gradeCutoffs[i]!;
+  const hi = i === 0 ? R.points.A : R.gradeCutoffs[i - 1]!;
+  const third = (hi - lo) * K.fitSign;
+  return points >= hi - third ? `${letter}+` : points < lo + third ? `${letter}−` : letter;
 }
 
 /** The ranking (§4.4): suggestable first, then fit points, then Must share, then name. */

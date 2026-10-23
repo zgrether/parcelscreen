@@ -21,7 +21,8 @@ import type { Endpoints } from "../screen/types";
 import { openPct } from "../report/view";
 import type { LatLon } from "../geo/types";
 import type { AreaDef } from "./catalog";
-import type { AirportList, ErList } from "./data";
+import { erDestinations, type AirportList, type ErList } from "./data";
+import type { ErAddition } from "../screen/hospitals";
 import { osrmMatrix, pointDrives, type Matrix } from "./drives";
 import { sampleArea, type Sample } from "./sample";
 import {
@@ -50,6 +51,8 @@ export interface ProfileDeps {
   dems?: DemCache;
   climate: ClimateData | null;
   ers: ErList;
+  /** The hand-checked ER additions (lib/screen/data/er-additions.json). */
+  erAdditions: readonly ErAddition[];
   airports: AirportList;
   /** The run's date, YYYY-MM-DD: injected, so a replayed run is the same file. */
   today: string;
@@ -158,7 +161,7 @@ export async function profileArea(
   const drives = await pointDrives(
     pts,
     {
-      ers: deps.ers.hospitals.map((h) => h.ll),
+      ers: erDestinations(deps.ers, deps.erAdditions),
       chains: places.chains,
       otherGroceries: places.otherGroceries,
       airports: deps.airports.airports.map((a) => a.ll),
@@ -193,7 +196,7 @@ export async function profileArea(
       elevation: `USGS 3DEP, ${scale.demResM ?? K.demResM} m`,
       sky: skyYear ? `Light-pollution atlas, ${skyYear}` : "Light-pollution atlas",
       climate: deps.climate ? "PRISM and NOAA normals, 1991–2020" : "none",
-      er: `CMS Hospital General Information, ${deps.ers.released}`,
+      er: `CMS Hospital General Information, ${deps.ers.released}${deps.erAdditions.length ? `; ${deps.erAdditions.length} checked by hand` : ""}`,
       airports: `FAA via BTS NTAD, ${deps.airports.effective}`,
       places: `OpenStreetMap via Overpass, ${deps.today}`,
       drives: `OSRM, ${deps.today}`,

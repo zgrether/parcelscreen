@@ -149,9 +149,9 @@ export function AreaOutlines() {
       const head = document.createElement("p");
       head.className = "area-pop-head";
       const chip = document.createElement("span");
-      chip.className = `card-grade small g-${card.grade ?? "none"}`;
-      chip.textContent = card.grade ?? "–";
-      chip.setAttribute("aria-label", W.fit(card.grade ?? "–"));
+      chip.className = `card-grade small fit g-${card.grade ?? "none"}`;
+      chip.textContent = card.fit ?? "–";
+      chip.setAttribute("aria-label", W.fit(card.fit ?? "–"));
       head.append(chip, ` ${file.name}`);
       const share = document.createElement("p");
       share.className = "tiny";

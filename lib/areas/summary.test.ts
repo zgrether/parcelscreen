@@ -5,7 +5,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { refreshSummary } from "./summary";
+import { refreshSummary, TO_CONFIRM_HEADING } from "./summary";
 import { AreaFileSchema, type AreaFile } from "./types";
 
 const file = (id: string): AreaFile =>
@@ -75,5 +75,15 @@ describe("the refresh summary", () => {
     expect(s.markdown).toContain("Meadows of Dan: now thin");
     expect(s.markdown).toContain("Sparta: profiled for the first time");
     expect(s.markdown).toContain("Floyd: no longer in the catalog");
+  });
+});
+
+describe("the ERs to confirm (owner, #298 answers)", () => {
+  it("listed under their heading, with coordinates; not a change in itself", () => {
+    const dan = file("meadows-of-dan");
+    const s = refreshSummary([dan], [dan], "2026-11-03", [{ name: "Example Hospital", ll: [36.1, -81.2] }]);
+    expect(s.changed).toBe(false);
+    expect(s.markdown).toContain(`**${TO_CONFIRM_HEADING}**`);
+    expect(s.markdown).toContain("- Example Hospital (36.1000, -81.2000)");
   });
 });

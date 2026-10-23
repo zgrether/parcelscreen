@@ -7632,3 +7632,12 @@ button.sync-ind.bad {
   color: var(--color-ink-2);
   font-size: 18px;
 }
+/* Owner, #298 answers: an area's fit can carry a sign (B+, B−); the Must share leads the card. */
+.card-grade.fit {
+  width: auto;
+  min-width: 2em;
+  padding: 0 4px;
+}
+.ac-pct {
+  font: 700 22px/1 var(--font-cond);
+}

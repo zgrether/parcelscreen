@@ -118,6 +118,7 @@ describe("config", () => {
             23,
             24,
           ],
+          "fitSign": 0.3333333333333333,
           "maxCandidates": 5000,
           "minMustShare": 0.1,
           "minPoints": 100,

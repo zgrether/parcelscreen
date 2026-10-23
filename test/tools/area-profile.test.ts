@@ -27,6 +27,7 @@ import {
 import { AREA_HAR, MUD_HAR, profileDeps, recordingFetch, RECORDED } from "../support/areaProfile";
 import { loadHar, type HarEntry } from "../support/replayFetch";
 import { scrubHar } from "../support/scrubHar";
+import { ersToConfirm } from "@/lib/areas/data";
 
 const live = () =>
   (globalThis as unknown as Record<symbol, typeof fetch>)[Symbol.for("parcelscreen.liveFetch")]!;
@@ -98,6 +99,12 @@ describe.runIf(import.meta.env.MODE === "areas")("profile the areas, live", () =
             `${Math.round((Date.now() - started) / 1000)} s; medians ${JSON.stringify(file.medians)}`,
         );
       }
+      // The ERs in OpenStreetMap but not CMS, for the refresh PR to list (owner, #298 answers): never timed.
+      mkdirSync(join(process.cwd(), "tmp"), { recursive: true });
+      writeFileSync(
+        join(process.cwd(), "tmp", "ers-to-confirm.json"),
+        JSON.stringify(ersToConfirm(deps.ers, deps.erAdditions).map(({ name, ll }) => ({ name, ll }))),
+      );
       // Every area failing is the run failing; one or two is a warning (the refresh PR lists them).
       expect(failed.length).toBeLessThan(defs.length);
     },

@@ -1069,5 +1069,17 @@ until step 5 (Q14).
       its editing tools and Grade held back until it's added to the list. A test fails when a sample's shape or engine
       is out of date; `pnpm areas:samples` redoes them.
     - **Numbers:** none of the card's. `expected.json` is unchanged; `SCREEN_CONSTANTS.areas` is new.
+    - **The owner's answers on the hand-back** (#298, 2026-10-23; built in #299):
+      - **ERs the sources lag on** are a hand-checked list, `lib/screen/data/er-additions.json` (each with its name,
+        coordinates, ER flag, source URL and date checked), read by parcel screens and areas: within 1 km it overrides a
+        hospital's name and ER flag, else it's added. It starts with Stuart Community Hospital (reopened January 2026);
+        Unicoi County Hospital isn't on it (closed after Helene, its replacement broke ground August 2026). OSM-only ERs
+        are never timed on their own: the monthly refresh PR lists them under "ERs in OpenStreetMap but not CMS: to
+        confirm". Numbers: Meadows of Dan's median ER drive 48 → 24 min, Floyd's 42 → 40; parcel screens unchanged
+        (the OSM snapshot already had Stuart with an ER), `expected.json` unchanged.
+      - **An area's fit letter carries a sign** (B+, B, B−): the top third of its letter's band of points is +, the
+        bottom third − (`areas.fitSign`, 1/3; with the starting cutoffs a B+ is 3.17 to 3.5). Areas only: a parcel's
+        grade has no sign.
+      - **The Must share is each card's headline number.**
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

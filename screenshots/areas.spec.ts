@@ -5,7 +5,8 @@
  */
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 import { AREA_WORDS as W, SAMPLE_WORDS } from "@/lib/areas/words";
-import { openExplorer, settled, visit } from "../e2e/flow";
+import { defaultRubric } from "@/lib/rubric/default";
+import { openExplorer, reload, settled, visit } from "../e2e/flow";
 import { GRAYSON } from "../e2e/redGate";
 import { replayHar } from "../e2e/replay";
 
@@ -89,6 +90,36 @@ for (const phone of [false, true]) {
       );
       await page.waitForTimeout(2500);
       await page.screenshot({ path: `${OUT}/${device}-areas-outlines.png` });
+    });
+
+    test("with must-haves an area can measure: the share as each card's headline, the fit's sign", async ({
+      page,
+      context,
+    }) => {
+      test.setTimeout(120_000);
+      await replayHar(context, [GRAYSON]);
+      await liveImagery(context);
+      await openExplorer(page, GRAYSON);
+      await dismissTilt(page);
+      const musts = {
+        ...defaultRubric(),
+        musts: [
+          ...defaultRubric().musts,
+          { factor: "elevation", threshold: 3000 },
+          { factor: "hospital", threshold: 30 },
+        ],
+      };
+      await page.evaluate(
+        (r) => window.__psKv!.setItem("ps.rubrics", JSON.stringify({ mine: r, others: [] })),
+        musts,
+      );
+      await reload(page);
+      await dismissTilt(page);
+      if (phone) await page.getByRole("button", { name: "Search", exact: true }).click();
+      const box = page.getByRole("region", { name: W.onTheMap });
+      await expect(box.locator(".ac-pct").first()).toHaveText(/^\d+%$/);
+      await page.waitForTimeout(800);
+      await page.screenshot({ path: `${OUT}/${device}-areas-musts.png` });
     });
 
     test("a sample parcel, before and after Add to list", async ({ page, context }) => {
