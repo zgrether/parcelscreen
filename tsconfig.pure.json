@@ -10,6 +10,7 @@
   },
   "include": [
     "lib/screen/**/*.ts",
+    "lib/areas/**/*.ts",
     "lib/geo/**/*.ts",
     "lib/http.ts",
     "lib/format.ts",
