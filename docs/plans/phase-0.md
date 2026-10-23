@@ -1036,4 +1036,38 @@ until step 5 (Q14).
       fixtures the app's own pick takes a line that helps at the next grade.
     - **Numbers:** none. `expected.json` is unchanged; `card.nudgeAfter` is the one config addition.
 
+68. **Step 13: the area catalog** (owner, 2026-10-22, step 13's brief and plan, `docs/plans/step-13-area-catalog.md`,
+    #289; built in #290–#296 and the docs PR).
+    - **Thirty areas, no hand-entered numbers:** each is a name, a two-line description of the place (landmarks and
+      character, never a distance, height or hospital) and an outline (`lib/areas/catalog.ts`). Outlines are unions of
+      Census county subdivisions, trimmed by hand with a meridian, a parallel or a circle, less towns
+      (`pnpm areas:outlines`, run by hand). Nelson highlands is trimmed to its high ground west of 79.02° W.
+    - **Profiled by the screen's own code, headless:** about 200 points per area on rural land (NLCD 2021 water and
+      developed land of low to high intensity rejected, all PAD-US fee land rejected; seeded by the area's id), and at
+      each the elevation and Long view (3DEP 30 m, in tiles), the zenith sky, the PRISM/NOAA climate at the point's
+      height, the distance to open public land, and drives in OSRM tables of at most 100 coordinates to the 3 nearest
+      ERs (CMS Hospital General Information, Emergency Services = Yes), groceries (the Town row's rule), commercial
+      airports (BTS NTAD, Part 139 Class I with scheduled service), trailheads (OSM and the official lists) and long-trail
+      access points. One file per area under `public/areas/v1/` (columns of point values and their medians), loaded on
+      demand; a format change starts v2 (clean break).
+    - **The climate grid covers the catalog's extent** (34.9–38.6 N, 83.8–78.6 W): step 11's cells and stations are
+      unchanged; parcels in every area get Climate.
+    - **Refreshed monthly** (`.github/workflows/areas-refresh.yml`, the 3rd, and by hand): the ER and airport lists, then
+      every area; a PR titled "Area catalog refresh" with a plain summary of what moved past its threshold ("Meadows of
+      Dan: ER 41 → 18 min") and each new edition. CI is dispatched on its branch (`ci.yml` gains `workflow_dispatch`).
+      Zach merges it.
+    - **Scored at display time, per person:** each area-scale factor (Elevation, Night sky, Trails, Town, Hospital,
+      Climate, Long view, Airport, Long trail) graded at the area's median by the card's own row rule; the fit letter is
+      the parcel grade's arithmetic. Musts are the share of points passing every limit on those factors; an area under
+      10% (`areas.minMustShare`) isn't suggested. Parcel-scale Musts are left to the parcel.
+    - **The suggestion box:** five cards (fit, share, why, trade-off, Show me a parcel here), Show more, each member's
+      ranking a tap away, stars (`ps.areaStars`, per profile) pinning outlines; "Areas that fit you" after the
+      interview, "Where to look" on the map with nothing open, Map layers' Area outlines (`ps.areas`, per device).
+    - **Sample parcels:** two per area, 10–30 ac, no Microsoft building footprint of a house's size, no public land,
+      near the area's median elevation, screened by the engine and shipped with their boundary, acres and screen only
+      (§9.23). Show me a parcel here opens one as a parcel of the person's with its screen, labelled "Sample parcel",
+      its editing tools and Grade held back until it's added to the list. A test fails when a sample's shape or engine
+      is out of date; `pnpm areas:samples` redoes them.
+    - **Numbers:** none of the card's. `expected.json` is unchanged; `SCREEN_CONSTANTS.areas` is new.
+
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

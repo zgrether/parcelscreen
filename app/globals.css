@@ -7620,3 +7620,15 @@ button.sync-ind.bad {
   font-size: 13px;
   white-space: nowrap;
 }
+.area-rest-head {
+  margin: 10px 0 2px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.area-rest-row {
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+}
+.area-rest-go {
+  color: var(--color-ink-2);
+  font-size: 18px;
+}

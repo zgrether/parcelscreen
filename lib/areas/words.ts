@@ -17,7 +17,7 @@ type M = AreaFile["medians"];
 function good(f: AreaFactor, m: M): string | null {
   switch (f) {
     case "elevation":
-      return m.elevFt === null ? null : `${fmt(m.elevFt)} ft land`;
+      return m.elevFt === null ? null : `land at ${fmt(m.elevFt)} ft`;
     case "sky":
       return m.skyMag === null ? null : `dark skies (zone ${zoneOfMag(m.skyMag)[0]})`;
     case "trails":
@@ -69,7 +69,7 @@ const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /**
  * Why it fits (§4.3): the two heaviest factors in the person's rubric that earn an A or a B here, with their medians:
- * "Dark skies (zone 2b) and 3,400 ft land." Null when none does.
+ * "Dark skies (zone 2b) and land at 3,400 ft." Null when none does.
  */
 export function whyLine(card: AreaCard, area: AreaFile): string | null {
   const w = weightsOf(card.rubric.rubric);
@@ -82,8 +82,8 @@ export function whyLine(card: AreaCard, area: AreaFile): string | null {
   return top.length ? `${capital(top.join(" and "))}.` : null;
 }
 
-/** "Nothing below a B for you.": the trade-off line when no counted factor costs points. */
-export const NOTHING_BELOW_B = "Nothing below a B for you.";
+/** The trade-off line when no counted factor costs points. */
+export const NOTHING_BELOW_B = "No weak spots for you: every factor here is a B or better.";
 
 /**
  * The trade-off (§4.3): the factor that costs the most points below a B (its weight times the points it misses):
@@ -126,7 +126,8 @@ function limitWords(l: AreaCard["limits"][number]): string {
 }
 
 /** Said when the person has no Must an area can measure. */
-export const MUSTS_PARCEL_SCALE = "Your must-haves are checked parcel by parcel.";
+export const MUSTS_PARCEL_SCALE =
+  "Your must-haves are about the parcel itself (flood, road access, septic), so they're checked on each parcel.";
 
 /**
  * The Must share (§4.2), the brief's own sentence: "41% of rural land here is at least 3,000 ft up and within 30
@@ -150,7 +151,9 @@ export const AREA_WORDS = {
   tradeOff: "Trade-off:",
   star: "Star this area",
   starred: "Starred",
-  typical: (n: number) => `On a typical piece of rural land here (the median of ${n} points).`,
+  typical: (n: number) => `Typical values: the middle of ${n} sampled spots on rural land here.`,
+  ranked: "Ranked by how well typical land here fits your priorities.",
+  moreHeading: (n: number) => `${n} more ${n === 1 ? "area" : "areas"}, ranked`,
   parcelScale:
     "Parcel-scale must-haves (floodplain, road access, easement, septic) are checked parcel by parcel.",
   failed: (n: number) => `${n} ${n === 1 ? "area" : "areas"} didn't load.`,
@@ -165,6 +168,6 @@ export const AREA_WORDS = {
 export const SAMPLE_WORDS = {
   tag: "Sample parcel",
   other: "Show the other sample",
-  readOnly: "A sample parcel: add it to your list to edit it",
+  readOnly: "An example lot, not a listing: add it to your list to edit it",
   failed: "This sample didn't load.",
 } as const;
