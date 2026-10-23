@@ -18,6 +18,7 @@ import { adjustChange, SET_ASIDE_READING, SET_ASIDE_WORDS } from "../report/adju
 import { raiseSuggestions } from "../report/raise";
 import { EDITOR_TITLES, tierOf } from "../rubric/words";
 import type { ScreenResult } from "../screen/types";
+import { letterText, shownLetter } from "../report/adjust";
 
 /** The new strings (plan §8). */
 export const REPORT_WORDS = {
@@ -156,7 +157,7 @@ export function cardTiers(card: Card): PrintTier[] {
     rows.map((r) => ({
       key: r.key,
       label: r.label,
-      mark: `${r.grade ?? "–"}${r.adjusted ? " ✎" : ""}`,
+      mark: letterText(shownLetter(card, r.key)),
       kind: "grade",
       tone: `g-${r.grade ?? "none"}`,
       text: r.detail,

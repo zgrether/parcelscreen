@@ -7,8 +7,9 @@
  * Pure: the page reads the parcels and their kept screens, and draws this.
  */
 import { shortPrice } from "../client/askingPrice";
-import { isAdjusted } from "./adjust";
-import { ADJUSTED_TITLE } from "./adjustWords";
+import { isAdjusted, shownLetter } from "./adjust";
+import { ADJUSTED_TITLE, SET_ASIDE_WORDS } from "./adjustWords";
+import { ROW_KEYS, type RowKey } from "../rubric/types";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import type { ScreenResult } from "../screen/types";
 import { reportCard, VERDICT_WORD, type Card, type GateStatus, type Letter, type NamedRubric } from "./card";
@@ -47,6 +48,8 @@ export interface Cell {
   panel: PanelKey | null;
   /** The full line, for the cell's title. */
   title?: string;
+  /** The person's adjustment on this parcel (step 12): its letter marked ✎ (adjust.ts shownLetter). */
+  adjusted?: true;
 }
 
 export interface CompareRow {
@@ -209,28 +212,58 @@ export function compareTable(parcels: readonly CompareParcel[], rubric: NamedRub
     cells: parcels.map((p, i) => {
       const g = cards[i]?.gates.find((x) => x.key === g0.key);
       if (!g) return blank(p);
-      return { text: g.status, status: g.status, mark: null, panel: g.key, title: `${g.reason}.` };
+      return {
+        text: g.status,
+        status: g.status,
+        mark: null,
+        panel: g.key,
+        title: `${g.reason}.`,
+        ...(g.adjusted ? { adjusted: true as const } : {}),
+      };
     }),
   }));
 
   // Within budget is the Budget group's (step 10), not something money can't add.
-  const rowLines: CompareRow[] = (cards.find((c) => c)?.rows ?? [])
-    .filter((r0) => r0.key !== "budget")
-    .map((r0) => {
+  // Every row a card has, or set aside (step 12): a row one parcel set aside keeps its line, in the card's order.
+  const lineOf = new Map<RowKey, string>();
+  for (const k of ROW_KEYS)
+    for (const c of cards) {
+      const label = c?.rows.find((x) => x.key === k)?.label ?? c?.setAside?.find((x) => x.key === k)?.label;
+      if (label && !lineOf.has(k)) lineOf.set(k, label);
+    }
+  const order =
+    (cards.find((c) => c && !c.setAside?.length) ?? cards.find((c) => c))?.rows.map((x) => x.key) ?? [];
+  const rowKeys = [...lineOf.keys()].sort(
+    (a, b) =>
+      (order.indexOf(a) + 1 || ROW_KEYS.indexOf(a) + 100) -
+      (order.indexOf(b) + 1 || ROW_KEYS.indexOf(b) + 100),
+  );
+  const rowLines: CompareRow[] = rowKeys
+    .filter((k) => k !== "budget")
+    .map((k) => {
       const cells = parcels.map((p, i): Cell => {
-        const r = cards[i]?.rows.find((x) => x.key === r0.key);
-        if (!r) return blank(p);
-        return { text: r.short ?? r.detail, grade: r.grade, mark: null, panel: r.key, title: r.detail };
+        const c = cards[i];
+        // The letter every view shows (adjust.ts shownLetter): the person's override or set-aside, marked ✎.
+        const l = c ? shownLetter(c, k) : null;
+        if (!c || !l) return blank(p);
+        const adjusted = l.adjusted ? { adjusted: true as const } : {};
+        if (l.setAside) return { text: SET_ASIDE_WORDS, grade: null, mark: null, panel: k, ...adjusted };
+        const r = c.rows.find((x) => x.key === k)!;
+        return {
+          text: r.short ?? r.detail,
+          grade: l.grade,
+          mark: null,
+          panel: k,
+          title: r.detail,
+          ...adjusted,
+        };
       });
       return {
-        key: r0.key,
-        label: r0.label,
+        key: k,
+        label: lineOf.get(k)!,
         cells: marked(
           cells,
-          parcels.map((_, i) => {
-            const g = cards[i]?.rows.find((x) => x.key === r0.key)?.grade;
-            return g ? POINTS[g] : null;
-          }),
+          cells.map((x) => (x.grade ? POINTS[x.grade] : null)),
         ),
       };
     });

@@ -13,6 +13,7 @@ import { weightsOf } from "../rubric/weights";
 import type { RowKey } from "../rubric/types";
 import { EDITOR_TITLES } from "../rubric/words";
 import { VERDICT_WORD, type Card, type Row } from "./card";
+import { letterText, shownLetter } from "./adjust";
 
 /** Each row as a strength, after "Strong". */
 export const STRENGTH: Record<RowKey, string> = {
@@ -54,7 +55,8 @@ export function missLine(row: Row, card: Card, r: PartialScreenResult): string {
       if (v !== undefined) return `${fmt(v)} ft is below your ${fmt(edge(b.elevationFt))} ft`;
       break;
     case "homesite":
-      if (v !== undefined) return `the best homesite grades ${row.grade} (${fmt(v, 1)} h of December sun)`;
+      if (v !== undefined)
+        return `the best homesite grades ${letterText(shownLetter(card, row.key))} (${fmt(v, 1)} h of December sun)`;
       break;
     case "sky":
       if (v !== undefined)
@@ -197,14 +199,25 @@ export function answerReason(card: Card, r: PartialScreenResult): string {
 
 /**
  * The Musts the person set aside on this parcel (step 12, plan §3), named after the reason (rule 7: appended): "You set
- * aside a must-have: Elevation." Null when there are none.
+ * aside a must-have: Elevation.", and the factors they overrode: "…, with 1 override: Night sky.", or "With 1 override:
+ * Night sky." alone. Null when there are none.
  */
 export function asideMustsLine(card: Card): string | null {
   const musts = (card.setAside ?? []).filter((x) => x.must).map((x) => EDITOR_TITLES[x.key]);
-  if (!musts.length) return null;
-  return musts.length === 1
-    ? `You set aside a must-have: ${musts[0]}.`
-    : `You set aside ${musts.length} must-haves: ${musts.join(", ")}.`;
+  // Step 12's parked question 1 (owner, 10/22): the overrides are named too, after the set-aside Musts.
+  const overridden = [...card.gates, ...card.rows]
+    .filter((x) => !!x.adjusted)
+    .map((x) => EDITOR_TITLES[x.key]);
+  const over = [...new Set(overridden)];
+  const overWords = over.length
+    ? `with ${over.length} override${over.length === 1 ? "" : "s"}: ${over.join(", ")}`
+    : null;
+  if (!musts.length) return overWords ? `${overWords.charAt(0).toUpperCase()}${overWords.slice(1)}.` : null;
+  const aside =
+    musts.length === 1
+      ? `You set aside a must-have: ${musts[0]}`
+      : `You set aside ${musts.length} must-haves: ${musts.join(", ")}`;
+  return overWords ? `${aside}, ${overWords}.` : `${aside}.`;
 }
 
 /** The answer, whole: "B, Contender. Strong winter sun and trails; 38 minutes to an ER is past your 30-minute limit." */

@@ -11,6 +11,7 @@ import { reportCard } from "../lib/report/card";
 import { defaultNamedRubric } from "../lib/rubric/default";
 import { importParcel, openExplorer, screenIt } from "./flow";
 import { replayHar } from "./replay";
+import { siteMeasures } from "../lib/report/siteMeasures";
 
 const FERNEY = "ferney-creek-52-47A" as const;
 const MACKS = "macks-mountain-35-3" as const;
@@ -33,15 +34,11 @@ test("Ferney: the answer, Best homesite, the card's order, an alternative and Ba
   await expect(page.locator(".card .card-reason")).toHaveText(answerReason(card, r));
   await expect(page.locator(".card .card-reason")).toHaveText(/^Strong elevation and winter sun; /);
 
-  // Best homesite: the site and its numbers, heaviest first.
+  // Best homesite: the site and its measurements, never a letter (owner, 2026-10-22).
   const best = page.locator(".best-site");
   await expect(best.locator(".best-site-name")).toContainText(`Site #${card.sites[0]!.rank}`);
-  await expect(best.locator(".site-numbers .sn-name")).toHaveText([
-    "Elevation",
-    "Winter sun",
-    "Room to build",
-    "Night sky",
-  ]);
+  await expect(best.locator(".site-measures")).toHaveText(siteMeasures(r, card.sites[0]!.index));
+  await expect(best.locator(".card-grade")).toHaveCount(0);
 
   // The card in priority order.
   // Step 10: Cost to enjoy after the answer, then the card's tiers.

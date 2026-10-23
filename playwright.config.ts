@@ -40,7 +40,9 @@ export default defineConfig({
       : `pnpm build && pnpm exec next start -p ${PORT}`,
     url: `http://localhost:${PORT}/explore`,
     // Step 5: the sync routes keep their spaces in memory, so the e2e never touches the production database.
-    env: { PS_SYNC_STORE: "memory" },
+    // The Overpass route is the server's own request, which the browser's recordings can't answer: off, so the e2e never
+    // reaches the live mirrors (a slow one made Mud Creek's "near" fail now and then: 4 sources, not 3).
+    env: { PS_SYNC_STORE: "memory", PS_OVERPASS: "off" },
     reuseExistingServer: !process.env.CI,
     timeout: 300_000,
   },

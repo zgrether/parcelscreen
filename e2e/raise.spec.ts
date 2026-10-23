@@ -36,7 +36,9 @@ test("Macks: the septic suggestion, counted as passed, makes it a Contender", as
 
   await expect(page.locator(".card .card-word")).toHaveText("Maybe");
   const raise = page.getByRole("region", { name: "Ways to raise this grade" });
-  await expect(raise).toContainText("Plan on an alternative septic system: Septic ! → ✓, Maybe → Contender");
+  await expect(raise).toContainText(
+    "Plan on an alternative septic system: Septic would pass · Maybe → Contender",
+  );
   await expect(raise).toContainText("septic $15–55k in Ready to build (Alternative)");
   await expect(raise.locator(".raise-item")).toHaveCount(2);
 
@@ -73,7 +75,7 @@ test("Mud Creek's red gate: not suggested; in the Easement panel, Try it shows t
   await expect(raise).toBeVisible();
   await expect(raise.locator(".raise-access")).toHaveCount(0);
 
-  // The Easement panel: Try it beside Use as my driveway.
+  // The Easement panel: Try it (step 12; online, the one way to choose a line).
   const gate = page
     .locator(".must-row")
     .filter({ has: page.locator(".row-label", { hasText: /driveway on your land/i }) });
@@ -82,7 +84,7 @@ test("Mud Creek's red gate: not suggested; in the Easement panel, Try it shows t
   const screens = await keptScreenCount(page);
   await redGate.getByRole("button", { name: "Try it" }).click();
   const tried = redGate.locator(".try-it.tried");
-  await expect(tried).toContainText("Legal road access ✓ → !", { timeout: 60_000 });
+  await expect(tried).toContainText("Legal road access would need a check", { timeout: 60_000 });
   await expect(tried).toContainText("Why:");
   await expect(tried).toContainText("your route is steeper than your veto (41% vs 25%)");
   // Still a suggestion: the card and the kept screens are as they were.

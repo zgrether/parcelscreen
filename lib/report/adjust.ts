@@ -82,3 +82,44 @@ export const isAdjusted = (c: {
   gates: readonly { adjusted?: unknown }[];
   setAside?: readonly unknown[];
 }): boolean => c.rows.some((x) => !!x.adjusted) || c.gates.some((g) => !!g.adjusted) || !!c.setAside?.length;
+
+/** A row's letter as a view shows it: the person's override or set-aside applied, and whether to mark it ✎. */
+export interface ShownLetter {
+  /** Null: not graded, or set aside. */
+  grade: Letter | null;
+  adjusted: boolean;
+  setAside: boolean;
+}
+
+/**
+ * A row's letter for every view that shows one (owner, 2026-10-22): the grid and the phone strip, Compare, One page,
+ * the suggestions, the answer line and the household section all read it here, so one override shows the same letter,
+ * marked ✎, in each. The card's rows carry the override already (card.ts withAdjustments); a set-aside row has left
+ * them and is listed in `setAside`. Null when the card has no such row (a Don't care).
+ */
+export function shownLetter(
+  c: {
+    rows: readonly { key: string; grade: Letter | null; adjusted?: unknown }[];
+    setAside?: readonly { key: string }[];
+  },
+  key: string,
+): ShownLetter | null {
+  if (c.setAside?.some((x) => x.key === key)) return { grade: null, adjusted: true, setAside: true };
+  const row = c.rows.find((x) => x.key === key);
+  return row ? { grade: row.grade, adjusted: !!row.adjusted, setAside: false } : null;
+}
+
+/** The letter in text: "D", "D ✎", "–", "– ✎". */
+export const letterText = (l: ShownLetter | null): string => `${l?.grade ?? "–"}${l?.adjusted ? " ✎" : ""}`;
+
+/**
+ * The site a card is graded at, by its pin's number, or "house" for a marked house: where an override on a site row
+ * applies (owner, 2026-10-22). Null when there's no ranked site.
+ */
+export function gradedSite(
+  card: { at: number; sites: readonly { index: number; rank: number }[] },
+  house: boolean,
+): number | "house" | null {
+  if (house) return "house";
+  return card.sites.find((x) => x.index === card.at)?.rank ?? null;
+}

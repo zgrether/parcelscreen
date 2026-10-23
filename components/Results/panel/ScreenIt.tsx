@@ -51,7 +51,7 @@ import { currentCostSettings, useCostSettings } from "@/lib/client/costRates";
 import { listingAcresNote } from "@/lib/report/listing";
 import { panelFromSearch, replacePanelInUrl } from "@/lib/client/panelUrl";
 import { mapShowing, onMapShowing } from "@/lib/client/mapShowing";
-import { gradeButton, logLine, runSeconds } from "@/lib/client/gradeButton";
+import { failedCount, gradeButton, logLine, runSeconds } from "@/lib/client/gradeButton";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import { CardPanel } from "../card/CardPanel";
 import {
@@ -75,6 +75,7 @@ import {
   useSeeTakes,
 } from "@/lib/client/householdDoc";
 import { adjustPropsFor } from "@/components/Results/card/AdjustSection";
+import { gradedSite } from "@/lib/report/adjust";
 import { RaiseSection } from "@/components/Results/card/RaiseSection";
 import { getPref } from "@/lib/client/prefs";
 import { MINE } from "@/lib/rubric/types";
@@ -492,7 +493,7 @@ export function useScreenIt(
 
   // The one action and the folded log (step 4c, plan §2): the button only with a reason after a run.
   const error = live?.serial === serial ? screen.state.error : null;
-  const failedSteps = shown?.result.failed.length ?? 0;
+  const failedSteps = shown ? failedCount(shown.result.failed) : 0;
   const grade = gradeButton({
     running: runningHere,
     graded: !!shown,
@@ -863,7 +864,6 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
                 result={display}
                 running={!!s.runningHere}
                 showing={s.evaluated?.label ?? null}
-                onOpen={openPanel}
                 pick={(p) => s.pickSite(p.ll, p.label)}
                 back={() => {
                   const best = s.card!.sites[0];
@@ -978,6 +978,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             (key) => householdDoc().adjusts.find((a) => a.key === key) ?? null,
             { save: adjustParcel, remove: removeAdjust, restore: restoreAdjust },
             s.adjustIntent?.factor === panel ? s.adjustIntent : null,
+            s.card ? gradedSite(s.card, !!display.house && !("outside" in display.house)) : null,
           )}
           point={point}
           running={running}

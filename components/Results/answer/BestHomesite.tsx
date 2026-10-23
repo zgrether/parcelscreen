@@ -6,68 +6,21 @@
  *
  * Polish (8b's review): one word, "sites"; the best site's name flies the map to its pin (#3); each other site shows its
  * place in the person's order apart from its pin's number, and the same numbers as every other site (#8).
+ *
+ * Owner, 2026-10-22: each site shows its measurements, never a letter. The card is the only place a row's letter shows:
+ * an override grades the parcel's graded site, and a letter here beside it went stale.
  */
 "use client";
 import { useState } from "react";
-import { SCREEN_CONSTANTS } from "@/lib/screen/config";
-import type { Card, Row } from "@/lib/report/card";
-import type { PanelKey } from "@/lib/report/cardPanels";
-import { choicesBeside, metresBetween, SITE_ROWS, type RankedSite } from "@/lib/report/sites";
+import type { Card } from "@/lib/report/card";
+import { choicesBeside, metresBetween, type RankedSite } from "@/lib/report/sites";
+import { siteMeasures } from "@/lib/report/siteMeasures";
 import { evaluationPoint } from "@/lib/report/point";
-import { weightsOf } from "@/lib/rubric/weights";
-import type { RowKey } from "@/lib/rubric/types";
 import type { LatLon } from "@/lib/geo/types";
 import type { PartialScreenResult } from "@/lib/screen/types";
 
-/** Each site number's name, short. */
-export const SITE_NUMBER: Record<RowKey, string> = {
-  elevation: "Elevation",
-  homesite: "Winter sun",
-  sky: "Night sky",
-  room: "Room to build",
-  driveway: "Driveway",
-  trails: "Trails",
-  town: "Town",
-  hospital: "Hospital",
-  garden: "Garden",
-  climate: "Climate",
-  privacy: "Privacy",
-  longView: "Long view",
-  airport: "Airport",
-  longTrail: "Long trail",
-  internet: "Satellite internet",
-  budget: "Budget",
-};
-
 const label = (rank: number) => `site #${rank}`;
 const title = (rank: number) => `Site #${rank}`;
-
-/** The value as the number shows it: the row's short value; the driveway with its length. */
-const valueOf = (r: Row): string => (r.key === "driveway" ? r.detail : (r.short ?? r.detail));
-
-/**
- * The numbers that matter most to this rubric (plan §1.2): the site rows it ranks, heaviest first, up to `n`; fewer
- * than four, and the others fill in, in the card's order, without their letter.
- */
-export function topNumbers(rows: readonly Row[], card: Card, n = SCREEN_CONSTANTS.card.sites.numbers) {
-  const w = weightsOf(card.rubric.rubric);
-  const counts = (k: RowKey) => card.rubric.rubric.ranked.some((c) => c.factor === k) && w[k] > 0;
-  const site = rows.filter((x) => SITE_ROWS.includes(x.key));
-  const ranked = site
-    .filter((x) => counts(x.key))
-    .sort((a, b) => w[b.key] - w[a.key] || SITE_ROWS.indexOf(a.key) - SITE_ROWS.indexOf(b.key))
-    .slice(0, n);
-  const fill = ranked.length < 4 ? site.filter((x) => !counts(x.key)).slice(0, 4 - ranked.length) : [];
-  return [...ranked.map((row) => ({ row, graded: true })), ...fill.map((row) => ({ row, graded: false }))];
-}
-
-/** The numbers every other site shows, the same for each (polish #8): the best's graded ones, heaviest first, up to 3. */
-function sharedKeys(best: readonly Row[], card: Card): RowKey[] {
-  return topNumbers(best, card)
-    .filter((x) => x.graded)
-    .slice(0, 3)
-    .map((x) => x.row.key);
-}
 
 /** 2 → "2nd": a site's place in the person's order. */
 export function ordinal(n: number): string {
@@ -76,39 +29,21 @@ export function ordinal(n: number): string {
   return `${n}${end}`;
 }
 
-function Numbers({ rows, card, onOpen }: { rows: readonly Row[]; card: Card; onOpen(key: PanelKey): void }) {
-  return (
-    <ul className="site-numbers">
-      {topNumbers(rows, card).map(({ row, graded }) => (
-        <li key={row.key}>
-          <button className="site-number" onClick={() => onOpen(row.key)}>
-            {graded && (
-              <span className={`card-grade small g-${row.grade ?? "none"}`}>{row.grade ?? "–"}</span>
-            )}
-            <span className="sn-name">{SITE_NUMBER[row.key]}</span>
-            <span className="sn-value">{valueOf(row)}</span>
-          </button>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
 function SiteRow({
   s,
   place,
   behind,
-  keys,
+  line,
   pick,
 }: {
   s: RankedSite;
   /** Its place in the person's order: 2 for the second best. */
   place: number;
   behind: number | null;
-  keys: readonly RowKey[];
+  /** Its measurements (lib/report/siteMeasures.ts). */
+  line: string;
   pick(s: RankedSite): void;
 }) {
-  const rows = keys.map((k) => s.rows.find((x) => x.key === k)).filter((x): x is Row => !!x);
   return (
     <li>
       <button className="site-row" onClick={() => pick(s)} aria-label={`Show ${label(s.rank)} on the map`}>
@@ -121,14 +56,7 @@ function SiteRow({
             </span>
           )}
         </span>
-        <span className="spot-numbers">
-          {rows.map((r) => (
-            <span key={r.key} className="spot-number">
-              <span className={`card-grade small g-${r.grade ?? "none"}`}>{r.grade ?? "–"}</span>
-              {SITE_NUMBER[r.key]} {valueOf(r)}
-            </span>
-          ))}
-        </span>
+        <span className="spot-measures">{line}</span>
       </button>
     </li>
   );
@@ -144,7 +72,6 @@ export function BestHomesite({
   result,
   running,
   showing,
-  onOpen,
   pick,
   back,
   show,
@@ -154,7 +81,6 @@ export function BestHomesite({
   running: boolean;
   /** The site the map is showing when it isn't the best (an evaluation's label, "site #5"), else null. */
   showing: string | null;
-  onOpen(key: PanelKey): void;
   /** Shows a site on the map: evaluates there with the live session, as its pin does. */
   pick(p: SitePick): void;
   /** Back to the best site's evaluation. */
@@ -174,7 +100,6 @@ export function BestHomesite({
       </section>
     );
   }
-  const bestRows = house ? card.rows : best!.rows;
   const anchor = house
     ? { ll: (result.house as { ll: LatLon }).ll, score: null, fails: 0, index: null }
     : { ll: best!.ll, score: best!.score, fails: best!.fails.length, index: best!.index };
@@ -190,7 +115,7 @@ export function BestHomesite({
   // Where the screen ran, by its pin's number when it's a ranked site (the engine's own label is "the largest house site").
   const ranAt = at && card.sites.find((s) => metresBetween(s.ll, at.ll) <= 1);
   const ranLabel = ranAt ? label(ranAt.rank) : at?.label;
-  const keys = sharedKeys(bestRows, card);
+  const lineOf = (s: RankedSite) => siteMeasures(result, s.index);
   const place = (s: RankedSite) => card.sites.indexOf(s) + 1;
   return (
     <section className="best-site" aria-label={house ? "Your marked house" : "Best homesite"}>
@@ -204,7 +129,7 @@ export function BestHomesite({
           </button>
         )}
       </p>
-      <Numbers rows={bestRows} card={card} onOpen={onOpen} />
+      <p className="site-measures">{siteMeasures(result, house ? "house" : best!.index)}</p>
       {elsewhere && (
         <p className="best-site-showing" role="status">
           <span>The map&apos;s sun, sky and driveway are for {ranLabel}, where the screen ran.</span>
@@ -226,7 +151,14 @@ export function BestHomesite({
           <h3 className="card-sub">Other sites</h3>
           <ul className="site-rows">
             {choices.alternatives.map((s) => (
-              <SiteRow key={s.index} s={s} place={place(s)} behind={behind(s)} keys={keys} pick={onPick} />
+              <SiteRow
+                key={s.index}
+                s={s}
+                place={place(s)}
+                behind={behind(s)}
+                line={lineOf(s)}
+                pick={onPick}
+              />
             ))}
           </ul>
         </div>
@@ -243,7 +175,14 @@ export function BestHomesite({
           {more && (
             <ul className="site-rows">
               {choices.more.map((s) => (
-                <SiteRow key={s.index} s={s} place={place(s)} behind={behind(s)} keys={keys} pick={onPick} />
+                <SiteRow
+                  key={s.index}
+                  s={s}
+                  place={place(s)}
+                  behind={behind(s)}
+                  line={lineOf(s)}
+                  pick={onPick}
+                />
               ))}
             </ul>
           )}

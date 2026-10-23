@@ -3503,43 +3503,22 @@ html:has(.app-nav) .explore {
   margin: 0 0 6px;
   font: 600 17px/1.2 var(--font-cond);
 }
-.site-numbers,
 .site-rows,
 .ask-list {
   list-style: none;
   margin: 0;
   padding: 0;
 }
-.site-numbers {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(13em, 1fr));
-  gap: 4px 12px;
-  margin-bottom: 6px;
+/* A site's measurements, never a letter (owner, 2026-10-22): the card is where the letters are. */
+.site-measures {
+  margin: 0 0 6px;
+  font-size: 14px;
+  line-height: 1.45;
 }
-.site-number {
-  display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr);
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  min-height: 44px;
-  padding: 2px 0;
-  background: none;
-  border: 0;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-.site-number .card-grade.small {
-  grid-column: 1;
-}
-.sn-name {
-  font-weight: 600;
-}
-.sn-value {
+.spot-measures {
   color: var(--color-ink-2);
   font-size: 13.5px;
+  line-height: 1.4;
 }
 .other-spots,
 .more-spots {
@@ -3579,30 +3558,12 @@ html:has(.app-nav) .explore {
   color: var(--color-ink-2);
   font-size: 13px;
 }
-.spot-numbers {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  font-size: 13.5px;
-}
-.spot-number {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-.spot-number .card-grade.small {
-  min-width: 20px;
-  height: 20px;
-  font-size: 13px;
-}
 .more-spots-toggle {
   min-height: 44px;
 }
-.site-number:hover .sn-name,
 .site-row:hover .spot-name {
   text-decoration: underline;
 }
-.site-number:focus-visible,
 .site-row:focus-visible,
 .full-report-toggle:focus-visible {
   outline: 2px solid var(--color-water);
@@ -7046,6 +7007,8 @@ button.sync-ind.bad {
   width: 0.35in;
   text-align: center !important;
   font-weight: 700;
+  /* An adjusted letter keeps its ✎ on the same line. */
+  white-space: nowrap;
 }
 .rp-tier tr,
 .rp-takes li,

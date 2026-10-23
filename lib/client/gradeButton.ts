@@ -134,3 +134,9 @@ export function logLine(seconds: number | null, failed: number, button: GradeBut
   const graded = seconds === null ? "Graded" : `Graded in ${seconds} s`;
   return failed > 0 && button?.kind !== "retry" ? `${graded} · ${sourcesDidntLoad(failed)}` : graded;
 }
+
+/**
+ * A kept run's failed sources, for the button and the log: each step once. The engine records a failed step once, and a
+ * step's own retries happen inside it; counting distinct steps keeps it so if that ever changes.
+ */
+export const failedCount = (failed: readonly string[]): number => new Set(failed).size;
