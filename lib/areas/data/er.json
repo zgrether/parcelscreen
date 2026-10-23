@@ -1,2396 +1,3350 @@
 {
-  "source": "CMS Hospital General Information (Emergency Services = Yes), geocoded by the Census Geocoder",
-  "released": "2026-07-22",
-  "checked": "2026-10-22",
-  "hospitals": [
-    {
-      "id": "110005",
-      "name": "Northside Hospital Forsyth",
-      "city": "Cumming",
-      "state": "GA",
-      "type": "Acute Care Hospitals",
-      "ll": [34.17776, -84.14133]
-    },
-    {
-      "id": "110006",
-      "name": "St Mary'S Hospital",
-      "city": "Athens",
-      "state": "GA",
-      "type": "Acute Care Hospitals",
-      "ll": [33.94595, -83.40459]
-    },
-    {
-      "id": "110008",
-      "name": "Northside Hospital Cherokee",
-      "city": "Canton",
-      "state": "GA",
-      "type": "Acute Care Hospitals",
-      "ll": [34.22686, -84.46057]
-    },
-    {
-      "id": "110029",
-      "name": "Northeast Georgia Medical Center, Inc",
-      "city": "Gainesville",
-      "state": "GA",
-      "type": "Acute Care Hospitals",
-      "ll": [34.30237, -83.8182]
-    },
-    {
-      "id": "110030",
-      "name": "Piedmont Cartersville Medical Center",
-      "city": "Cartersville",
-      "state": "GA",
-      "type": "Acute Care Hospitals",
-      "ll": [34.19974, -84.79521]
-    },
-    {
-      "id": "110032",
-      "name": "Stephens County Hospital",
-      "city": "Toccoa",
-      "state": "GA",
-      "type": "Acute Care Hospitals",
-      "ll": [34.59298, -83.34723]
-    },
-    {
-      "id": "110035",
-      "name": "Wellstar Kennestone Regional Medical Center",
-      "city": "Marietta",
-      "state": "GA",
-      "type": "Acute Care Hospitals",
-      "ll": [33.96868, -84.55031]
-    },
-    {
-      "id": "110041",
-      "name": "Northeast Georgia Medical Center Habersham",
-      "city": "Demorest",
-      "state": "GA",
-      "type": "Acute Care Hospitals",
-      "ll": [34.5808, -83.53816]
-    },
-    {
-      "id": "110045",
-      "name": "Ngmc Barrow, Llc",
-      "city": "Winder",
-      "state": "GA",
-      "type": "Acute Care Hospitals",
-      "ll": [34.00602, -83.70678]
-    },
-    {
-      "id": "110082",
-      "name": "Saint Joseph'S Hospital Of Atlanta, Inc",
-      "city": "Atlanta",
-      "state": "GA",
-      "type": "Acute Care Hospitals",
-      "ll": [33.90837, -84.35179]
-    },
-    {
-      "id": "110087",
-      "name": "Northside Hospital Gwinnett",
-      "city": "Lawrenceville",
-      "state": "GA",
-      "type": "Acute Care Hospitals",
-      "ll": [33.96342, -84.01731]
-    },
-    {
-      "id": "110161",
-      "name": "Northside Hospital",
-      "city": "Atlanta",
-      "state": "GA",
-      "type": "Acute Care Hospitals",
-      "ll": [33.90793, -84.35492]
-    },
-    {
-      "id": "110230",
-      "name": "Emory Johns Creek Hospital",
-      "city": "Johns Creek",
-      "state": "GA",
-      "type": "Acute Care Hospitals",
-      "ll": [34.06796, -84.17556]
-    },
-    {
-      "id": "110237",
-      "name": "Northeast Georgia Medical Center Lumpkin",
-      "city": "Dahlonega",
-      "state": "GA",
-      "type": "Acute Care Hospitals",
-      "ll": [34.52127, -83.97876]
-    },
-    {
-      "id": "110252",
-      "name": "Northside Hospital Duluth",
-      "city": "Duluth",
-      "state": "GA",
-      "type": "Acute Care Hospitals",
-      "ll": [34.00293, -84.16195]
-    },
-    {
-      "id": "111324",
-      "name": "Chatuge Regional Hospital",
-      "city": "Hiawassee",
-      "state": "GA",
-      "type": "Critical Access Hospitals",
-      "ll": [34.9456, -83.75304]
-    },
-    {
-      "id": "111336",
-      "name": "Mountain Lakes Medical Center",
-      "city": "Clayton",
-      "state": "GA",
-      "type": "Critical Access Hospitals",
-      "ll": [34.89261, -83.39319]
-    },
-    {
-      "id": "111338",
-      "name": "Blue Ridge Medical Center",
-      "city": "Blue Ridge",
-      "state": "GA",
-      "type": "Critical Access Hospitals",
-      "ll": [34.91607, -84.37463]
-    },
-    {
-      "id": "180001",
-      "name": "St Elizabeth Ft Thomas",
-      "city": "Fort Thomas",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [39.0786, -84.46522]
-    },
-    {
-      "id": "180002",
-      "name": "Whitesburg Arh Hospital",
-      "city": "Whitesburg",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [37.11355, -82.81311]
-    },
-    {
-      "id": "180005",
-      "name": "Highlands Arh Regional Medical Center",
-      "city": "Prestonsburg",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [37.7297, -82.76843]
-    },
-    {
-      "id": "180009",
-      "name": "King'S Daughters' Medical Center",
-      "city": "Ashland",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [38.4704, -82.63589]
-    },
-    {
-      "id": "180010",
-      "name": "Saint Joseph Hospital",
-      "city": "Lexington",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [38.03132, -84.5219]
-    },
-    {
-      "id": "180018",
-      "name": "St Claire Regional Medical Center",
-      "city": "Morehead",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [38.18118, -83.44206]
-    },
-    {
-      "id": "180019",
-      "name": "Meadowview Regional Medical Center",
-      "city": "Maysville",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [38.64078, -83.80788]
-    },
-    {
-      "id": "180020",
-      "name": "Middlesboro Arh Hospital",
-      "city": "Middlesboro",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [36.60546, -83.73809]
-    },
-    {
-      "id": "180029",
-      "name": "Hazard Arh Regional Medical Center",
-      "city": "Hazard",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [37.27776, -83.22753]
-    },
-    {
-      "id": "180035",
-      "name": "St Elizabeth Edgewood",
-      "city": "Edgewood",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [39.00798, -84.56478]
-    },
-    {
-      "id": "180043",
-      "name": "Adventhealthmanchester",
-      "city": "Manchester",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [37.16179, -83.76149]
-    },
-    {
-      "id": "180044",
-      "name": "Pikeville Medical Center",
-      "city": "Pikeville",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [37.4709, -82.52182]
-    },
-    {
-      "id": "180045",
-      "name": "St Elizabeth Florence",
-      "city": "Florence",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [39.01442, -84.63812]
-    },
-    {
-      "id": "180046",
-      "name": "Bourbon Community Hospital",
-      "city": "Paris",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [38.2224, -84.23828]
-    },
-    {
-      "id": "180048",
-      "name": "Ephraim Mcdowell Regional Medical Center",
-      "city": "Danville",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [37.64409, -84.77269]
-    },
-    {
-      "id": "180049",
-      "name": "Baptist Health Richmond",
-      "city": "Richmond",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [37.73121, -84.28582]
-    },
-    {
-      "id": "180050",
-      "name": "Harlan Arh Hospital",
-      "city": "Harlan",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [36.81021, -83.31297]
-    },
-    {
-      "id": "180064",
-      "name": "Saint Joseph Mount Sterling",
-      "city": "Mount Sterling",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [38.07571, -83.94827]
-    },
-    {
-      "id": "180067",
-      "name": "University Of Kentucky Hospital",
-      "city": "Lexington",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [38.03283, -84.50672]
-    },
-    {
-      "id": "180069",
-      "name": "Tug Valley Arh Regional Medical Center",
-      "city": "South Williamson",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [37.67714, -82.29561]
-    },
-    {
-      "id": "180078",
-      "name": "Paintsville Arh Hospital",
-      "city": "Paintsville",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [37.81496, -82.81231]
-    },
-    {
-      "id": "180079",
-      "name": "Harrison Memorial Hospital",
-      "city": "Cynthiana",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [38.38482, -84.27689]
-    },
-    {
-      "id": "180080",
-      "name": "Baptist Health Corbin",
-      "city": "Corbin",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [36.92198, -84.11401]
-    },
-    {
-      "id": "180101",
-      "name": "Georgetown Community Hospital",
-      "city": "Georgetown",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [38.18578, -84.56219]
-    },
-    {
-      "id": "180103",
-      "name": "Baptist Health Lexington",
-      "city": "Lexington",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [38.0191, -84.51376]
-    },
-    {
-      "id": "180115",
-      "name": "Rockcastle County Hospital, Inc.",
-      "city": "Mount Vernon",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [37.3576, -84.3361]
-    },
-    {
-      "id": "180128",
-      "name": "Three Rivers Medical Center",
-      "city": "Louisa",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [38.09328, -82.60532]
-    },
-    {
-      "id": "180132",
-      "name": "Lake Cumberland Regional Hospital",
-      "city": "Somerset",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [37.08695, -84.6182]
-    },
-    {
-      "id": "180143",
-      "name": "Saint Joseph East",
-      "city": "Lexington",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [38.00025, -84.44022]
-    },
-    {
-      "id": "180154",
-      "name": "Pineville Community Health Center, Inc",
-      "city": "Pineville",
-      "state": "KY",
-      "type": "Acute Care Hospitals",
-      "ll": [36.76325, -83.70774]
-    },
-    {
-      "id": "180780",
-      "name": "Fleming County Hospital",
-      "city": "Flemingsburg",
-      "state": "KY",
-      "type": "Rural Emergency Hospital",
-      "ll": [38.42151, -83.75119]
-    },
-    {
-      "id": "181301",
-      "name": "Marcum And Wallace Memorial Hospital",
-      "city": "Irvine",
-      "state": "KY",
-      "type": "Critical Access Hospitals",
-      "ll": [37.70593, -83.97782]
-    },
-    {
-      "id": "181305",
-      "name": "Arh Our Lady Of The Way",
-      "city": "Martin",
-      "state": "KY",
-      "type": "Critical Access Hospitals",
-      "ll": [37.57848, -82.75082]
-    },
-    {
-      "id": "181307",
-      "name": "Morgan County Arh Hospital",
-      "city": "West Liberty",
-      "state": "KY",
-      "type": "Critical Access Hospitals",
-      "ll": [37.92184, -83.26628]
-    },
-    {
-      "id": "181308",
-      "name": "Bluegrass Community Hospital",
-      "city": "Versailles",
-      "state": "KY",
-      "type": "Critical Access Hospitals",
-      "ll": [38.05479, -84.72439]
-    },
-    {
-      "id": "181311",
-      "name": "St Elizabeth Grant",
-      "city": "Williamstown",
-      "state": "KY",
-      "type": "Critical Access Hospitals",
-      "ll": [38.6481, -84.57744]
-    },
-    {
-      "id": "181315",
-      "name": "Ephraim Mcdowell Fort Logan Hospital",
-      "city": "Stanford",
-      "state": "KY",
-      "type": "Critical Access Hospitals",
-      "ll": [37.54352, -84.65355]
-    },
-    {
-      "id": "181316",
-      "name": "Mary Breckinridge Arh Hospital",
-      "city": "Hyden",
-      "state": "KY",
-      "type": "Critical Access Hospitals",
-      "ll": [37.16385, -83.37843]
-    },
-    {
-      "id": "181328",
-      "name": "Knox County Hospital",
-      "city": "Barbourville",
-      "state": "KY",
-      "type": "Critical Access Hospitals",
-      "ll": [36.85221, -83.87044]
-    },
-    {
-      "id": "181329",
-      "name": "Chi Saint Joseph Berea Nf",
-      "city": "Berea",
-      "state": "KY",
-      "type": "Critical Access Hospitals",
-      "ll": [37.57362, -84.28737]
-    },
-    {
-      "id": "181331",
-      "name": "Mcdowell Arh Hospital",
-      "city": "Mc Dowell",
-      "state": "KY",
-      "type": "Critical Access Hospitals",
-      "ll": [37.45685, -82.74757]
-    },
-    {
-      "id": "181334",
-      "name": "Kentucky River Medical Center",
-      "city": "Jackson",
-      "state": "KY",
-      "type": "Critical Access Hospitals",
-      "ll": [37.56558, -83.36908]
-    },
-    {
-      "id": "340001",
-      "name": "Carolinas Medical Center-Northeast",
-      "city": "Concord",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.43448, -80.6031]
-    },
-    {
-      "id": "340002",
-      "name": "Memorial Mission Hospital And Asheville Surgery Ce",
-      "city": "Asheville",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.57863, -82.54945]
-    },
-    {
-      "id": "340003",
-      "name": "Northern Regional Hospital",
-      "city": "Mount Airy",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [36.48914, -80.61111]
-    },
-    {
-      "id": "340004",
-      "name": "High Point Regional Health System",
-      "city": "High Point",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.96244, -80.01211]
-    },
-    {
-      "id": "340008",
-      "name": "Scotland Memorial Hospital",
-      "city": "Laurinburg",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.75177, -79.47054]
-    },
-    {
-      "id": "340010",
-      "name": "Unc Health Care Wayne",
-      "city": "Goldsboro",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.39972, -77.95671]
-    },
-    {
-      "id": "340013",
-      "name": "Rutherford Regional Medical Center",
-      "city": "Rutherfordton",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.3634, -81.965]
-    },
-    {
-      "id": "340014",
-      "name": "Novant Health Forsyth Medical Center",
-      "city": "Winston-Salem",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [36.07401, -80.29853]
-    },
-    {
-      "id": "340015",
-      "name": "Novant Health Rowan Medical Center",
-      "city": "Salisbury",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.68194, -80.47138]
-    },
-    {
-      "id": "340016",
-      "name": "Harris Regional Hospital",
-      "city": "Sylva",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.38439, -83.20303]
-    },
-    {
-      "id": "340017",
-      "name": "Pardee Hospital Henderson County",
-      "city": "Hendersonville",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.32068, -82.46807]
-    },
-    {
-      "id": "340020",
-      "name": "Central Carolina Hospital",
-      "city": "Sanford",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.4701, -79.18848]
-    },
-    {
-      "id": "340021",
-      "name": "Atrium Health Cleveland",
-      "city": "Shelby",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.30157, -81.53652]
-    },
-    {
-      "id": "340023",
-      "name": "Adventhealth Hendersonville",
-      "city": "Hendersonville",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.39075, -82.48861]
-    },
-    {
-      "id": "340024",
-      "name": "Sampson Regional Medical Center",
-      "city": "Clinton",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.00824, -78.32392]
-    },
-    {
-      "id": "340028",
-      "name": "Cape Fear Valley Medical Center",
-      "city": "Fayetteville",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.03275, -78.9313]
-    },
-    {
-      "id": "340030",
-      "name": "Duke University Hospital",
-      "city": "Durham",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [36.00813, -78.93738]
-    },
-    {
-      "id": "340032",
-      "name": "Caromont Regional Medical Center",
-      "city": "Gastonia",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.27477, -81.13808]
-    },
-    {
-      "id": "340039",
-      "name": "Iredell Memorial Hospital Inc",
-      "city": "Statesville",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.79914, -80.87686]
-    },
-    {
-      "id": "340041",
-      "name": "Caldwell Memorial Hospital",
-      "city": "Lenoir",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.91105, -81.53643]
-    },
-    {
-      "id": "340050",
-      "name": "Southeastern Regional Medical Center",
-      "city": "Lumberton",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.63651, -79.01061]
-    },
-    {
-      "id": "340051",
-      "name": "Watauga Medical Center",
-      "city": "Boone",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [36.19682, -81.65249]
-    },
-    {
-      "id": "340053",
-      "name": "Novant Health Presbyterian Medical Center",
-      "city": "Charlotte",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.2129, -80.8255]
-    },
-    {
-      "id": "340060",
-      "name": "Unc Rockingham",
-      "city": "Eden",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [36.49351, -79.73876]
-    },
-    {
-      "id": "340061",
-      "name": "Unc Hospitals",
-      "city": "Chapel Hill",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.90308, -79.05031]
-    },
-    {
-      "id": "340064",
-      "name": "Wilkes Regional Medical Center",
-      "city": "North Wilkesboro",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [36.15853, -81.15705]
-    },
-    {
-      "id": "340068",
-      "name": "Columbus Regional Healthcare System",
-      "city": "Whiteville",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.33845, -78.69526]
-    },
-    {
-      "id": "340069",
-      "name": "Wakemed, Raleigh Campus",
-      "city": "Raleigh",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.78583, -78.5893]
-    },
-    {
-      "id": "340070",
-      "name": "Alamance Regional Medical Center",
-      "city": "Burlington",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [36.0642, -79.50182]
-    },
-    {
-      "id": "340075",
-      "name": "Blue Ridge Healthcare Hospitals, Inc",
-      "city": "Morganton",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.72415, -81.65878]
-    },
-    {
-      "id": "340084",
-      "name": "Atrium Health Anson",
-      "city": "Wadesboro",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.97846, -80.11091]
-    },
-    {
-      "id": "340085",
-      "name": "Novant Health Thomasville Medical Center",
-      "city": "Thomasville",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.88167, -80.10927]
-    },
-    {
-      "id": "340087",
-      "name": "The Mcdowell Hospital",
-      "city": "Marion",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.66341, -82.02771]
-    },
-    {
-      "id": "340090",
-      "name": "Johnston Health",
-      "city": "Smithfield",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.51487, -78.3337]
-    },
-    {
-      "id": "340091",
-      "name": "Moses H. Cone Memorial Hospital, The",
-      "city": "Greensboro",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [36.09102, -79.78874]
-    },
-    {
-      "id": "340096",
-      "name": "Lexington Memorial Hospital Inc",
-      "city": "Lexington",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.80543, -80.28853]
-    },
-    {
-      "id": "340097",
-      "name": "Hugh Chatham Memorial Hospital",
-      "city": "Elkin",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [36.26251, -80.8382]
-    },
-    {
-      "id": "340098",
-      "name": "Atrium Health Pineville",
-      "city": "Charlotte",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.09072, -80.86993]
-    },
-    {
-      "id": "340113",
-      "name": "Carolinas Medical Center/Behav Health",
-      "city": "Charlotte",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.20517, -80.84077]
-    },
-    {
-      "id": "340114",
-      "name": "Rex Hospital",
-      "city": "Raleigh",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.81552, -78.70247]
-    },
-    {
-      "id": "340115",
-      "name": "Firsthealth Moore Regional Hospital",
-      "city": "Pinehurst",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.20592, -79.45877]
-    },
-    {
-      "id": "340116",
-      "name": "Frye Regional Medical Center",
-      "city": "Hickory",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.73687, -81.3377]
-    },
-    {
-      "id": "340119",
-      "name": "Stanly Regional Medical Center",
-      "city": "Albemarle",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.36266, -80.19421]
-    },
-    {
-      "id": "340120",
-      "name": "Vidant Duplin Hospital",
-      "city": "Kenansville",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.96302, -77.96102]
-    },
-    {
-      "id": "340123",
-      "name": "Randolph Hospital",
-      "city": "Asheboro",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.71148, -79.81491]
-    },
-    {
-      "id": "340126",
-      "name": "Wilson Medical Center",
-      "city": "Wilson",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.72065, -77.94319]
-    },
-    {
-      "id": "340127",
-      "name": "Granville Health Systems",
-      "city": "Oxford",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [36.32591, -78.59456]
-    },
-    {
-      "id": "340129",
-      "name": "Duke Health Lake Norman Hospital",
-      "city": "Mooresville",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.54927, -80.85359]
-    },
-    {
-      "id": "340130",
-      "name": "Atrium Health Union",
-      "city": "Monroe",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.97467, -80.52271]
-    },
-    {
-      "id": "340132",
-      "name": "Maria Parham Medical Center",
-      "city": "Henderson",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [36.33087, -78.44945]
-    },
-    {
-      "id": "340141",
-      "name": "Novant Health New Hanover Regional Medical Center",
-      "city": "Wilmington",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.2044, -77.92357]
-    },
-    {
-      "id": "340143",
-      "name": "Catawba Valley Medical Center",
-      "city": "Hickory",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.7137, -81.26511]
-    },
-    {
-      "id": "340145",
-      "name": "Atrium Health Lincoln",
-      "city": "Lincolnton",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.48821, -81.20167]
-    },
-    {
-      "id": "340147",
-      "name": "Unc Health Nash",
-      "city": "Rocky Mount",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.97297, -77.84842]
-    },
-    {
-      "id": "340151",
-      "name": "Ecu Health North Hospital",
-      "city": "Roanoke Rapids",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [36.43218, -77.64603]
-    },
-    {
-      "id": "340155",
-      "name": "Duke Regional Hospital",
-      "city": "Durham",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [36.03766, -78.89747]
-    },
-    {
-      "id": "340156",
-      "name": "Cherokee Indian Hospital Authority",
-      "city": "Cherokee",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.48382, -83.32369]
-    },
-    {
-      "id": "340158",
-      "name": "Novant Health Brunswick Medical Center",
-      "city": "Supply",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.00998, -78.29146]
-    },
-    {
-      "id": "340159",
-      "name": "Person Memorial Hospital",
-      "city": "Roxboro",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [36.40705, -78.98531]
-    },
-    {
-      "id": "340166",
-      "name": "Atrium Health University City",
-      "city": "Charlotte",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.30615, -80.74939]
-    },
-    {
-      "id": "340171",
-      "name": "Novant Health Matthews Medical Center",
-      "city": "Matthews",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.12188, -80.71435]
-    },
-    {
-      "id": "340173",
-      "name": "Wakemed, Cary Hospital",
-      "city": "Cary",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.74061, -78.78005]
-    },
-    {
-      "id": "340183",
-      "name": "Novant Health Huntersville Medical Center",
-      "city": "Huntersville",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.40575, -80.86009]
-    },
-    {
-      "id": "340184",
-      "name": "Haywood Regional Medical Center",
-      "city": "Clyde",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.52532, -82.94187]
-    },
-    {
-      "id": "340188",
-      "name": "Cape Fear Valley Hoke Hospital",
-      "city": "Raeford",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.02962, -79.10692]
-    },
-    {
-      "id": "340190",
-      "name": "Novant Health Mint Hill Medical Center",
-      "city": "Charlotte",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.22489, -80.64858]
-    },
-    {
-      "id": "340195",
-      "name": "Novant Health Ballantyne Medical Center",
-      "city": "Charlotte",
-      "state": "NC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.04126, -80.84372]
-    },
-    {
-      "id": "341303",
-      "name": "Firsthealth Montgomery Memorial Hosp",
-      "city": "Troy",
-      "state": "NC",
-      "type": "Critical Access Hospitals",
-      "ll": [35.3642, -79.89144]
-    },
-    {
-      "id": "341305",
-      "name": "Dlp Swain County Hospital Llc",
-      "city": "Bryson City",
-      "state": "NC",
-      "type": "Critical Access Hospitals",
-      "ll": [35.43507, -83.44461]
-    },
-    {
-      "id": "341307",
-      "name": "Pender Memorial Hospital",
-      "city": "Burgaw",
-      "state": "NC",
-      "type": "Critical Access Hospitals",
-      "ll": [34.55124, -77.92034]
-    },
-    {
-      "id": "341311",
-      "name": "Chatham Hospital Inc",
-      "city": "Siler City",
-      "state": "NC",
-      "type": "Critical Access Hospitals",
-      "ll": [35.72297, -79.42202]
-    },
-    {
-      "id": "341315",
-      "name": "Cape Fear Valley-Bladen County Hospital",
-      "city": "Elizabethtown",
-      "state": "NC",
-      "type": "Critical Access Hospitals",
-      "ll": [34.62346, -78.60829]
-    },
-    {
-      "id": "341316",
-      "name": "Highlands Cashiers Hospital",
-      "city": "Highlands",
-      "state": "NC",
-      "type": "Critical Access Hospitals",
-      "ll": [35.08636, -83.18569]
-    },
-    {
-      "id": "341317",
-      "name": "Lifebrite Community Hospital Of Stokes",
-      "city": "Danbury",
-      "state": "NC",
-      "type": "Critical Access Hospitals",
-      "ll": [36.41808, -80.23086]
-    },
-    {
-      "id": "341319",
-      "name": "Transylvania Regional Hospital, Inc",
-      "city": "Brevard",
-      "state": "NC",
-      "type": "Critical Access Hospitals",
-      "ll": [35.25594, -82.7118]
-    },
-    {
-      "id": "341320",
-      "name": "Alleghany  Memorial Hospital",
-      "city": "Sparta",
-      "state": "NC",
-      "type": "Critical Access Hospitals",
-      "ll": [36.50901, -81.11501]
-    },
-    {
-      "id": "341322",
-      "name": "Advent Health Polk",
-      "city": "Columbus",
-      "state": "NC",
-      "type": "Critical Access Hospitals",
-      "ll": [35.24089, -82.21281]
-    },
-    {
-      "id": "341323",
-      "name": "Charles A Cannon Jr Memorial Hospital",
-      "city": "Linville",
-      "state": "NC",
-      "type": "Critical Access Hospitals",
-      "ll": [36.06082, -81.88924]
-    },
-    {
-      "id": "341325",
-      "name": "Ashe Memorial Hospital",
-      "city": "Jefferson",
-      "state": "NC",
-      "type": "Critical Access Hospitals",
-      "ll": [36.42361, -81.45874]
-    },
-    {
-      "id": "341326",
-      "name": "Angel Medical Center",
-      "city": "Franklin",
-      "state": "NC",
-      "type": "Critical Access Hospitals",
-      "ll": [35.19275, -83.35977]
-    },
-    {
-      "id": "341327",
-      "name": "J Arthur Dosher Memorial Hospital",
-      "city": "Southport",
-      "state": "NC",
-      "type": "Critical Access Hospitals",
-      "ll": [33.92879, -78.02208]
-    },
-    {
-      "id": "341328",
-      "name": "Erlanger Murphy Medical Center",
-      "city": "Murphy",
-      "state": "NC",
-      "type": "Critical Access Hospitals",
-      "ll": [35.07271, -83.96512]
-    },
-    {
-      "id": "341329",
-      "name": "Blue Ridge Regional Hospital",
-      "city": "Spruce Pine",
-      "state": "NC",
-      "type": "Critical Access Hospitals",
-      "ll": [35.91057, -82.06272]
-    },
-    {
-      "id": "420002",
-      "name": "Piedmont Medical Center",
-      "city": "Rock Hill",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.95625, -81.05341]
-    },
-    {
-      "id": "420005",
-      "name": "Mcleod Medical Center - Dillon",
-      "city": "Dillon",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.42137, -79.3661]
-    },
-    {
-      "id": "420007",
-      "name": "Spartanburg Medical Center",
-      "city": "Spartanburg",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.96805, -81.93586]
-    },
-    {
-      "id": "420009",
-      "name": "Prisma Health Oconee Memorial Hospital",
-      "city": "Seneca",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.69495, -82.98562]
-    },
-    {
-      "id": "420010",
-      "name": "Carolina Pines Regional Medical Center",
-      "city": "Hartsville",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.34808, -80.10446]
-    },
-    {
-      "id": "420011",
-      "name": "Cannon Memorial Hospital",
-      "city": "Pickens",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.87427, -82.70807]
-    },
-    {
-      "id": "420015",
-      "name": "Prisma Health Baptist Easley Hospital",
-      "city": "Easley",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.84029, -82.60582]
-    },
-    {
-      "id": "420018",
-      "name": "Prisma Health Richland Hospital",
-      "city": "Columbia",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.02772, -81.03256]
-    },
-    {
-      "id": "420019",
-      "name": "Musc Health Chester Medical Center",
-      "city": "Chester",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.6843, -81.18313]
-    },
-    {
-      "id": "420023",
-      "name": "St Francis-Downtown",
-      "city": "Greenville",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.84331, -82.42191]
-    },
-    {
-      "id": "420026",
-      "name": "Musc Health Columbia Medical Center Downtown",
-      "city": "Columbia",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.01339, -81.01144]
-    },
-    {
-      "id": "420027",
-      "name": "Anmed Health",
-      "city": "Anderson",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.51148, -82.64739]
-    },
-    {
-      "id": "420033",
-      "name": "Prisma Health Greer Memorial Hospital",
-      "city": "Spartanburg",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.92611, -81.9675]
-    },
-    {
-      "id": "420036",
-      "name": "Musc Health Lancaster Medical Center",
-      "city": "Lancaster",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.71708, -80.78627]
-    },
-    {
-      "id": "420037",
-      "name": "Prisma Health Hillcrest Hospital",
-      "city": "Simpsonville",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.71838, -82.24744]
-    },
-    {
-      "id": "420038",
-      "name": "Prisma Health Laurens County Hospital",
-      "city": "Clinton",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.47992, -81.9423]
-    },
-    {
-      "id": "420043",
-      "name": "Cherokee Medical Center",
-      "city": "Gaffney",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [35.09166, -81.63429]
-    },
-    {
-      "id": "420048",
-      "name": "Kershawhealth",
-      "city": "Camden",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.25242, -80.58943]
-    },
-    {
-      "id": "420051",
-      "name": "Mcleod Regional Medical Center-Pee Dee",
-      "city": "Florence",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.19596, -79.7592]
-    },
-    {
-      "id": "420053",
-      "name": "Newberry County Memorial Hospital",
-      "city": "Newberry",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.29075, -81.60406]
-    },
-    {
-      "id": "420070",
-      "name": "Prisma Health Tuomey Hospital",
-      "city": "Sumter",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [33.92366, -80.34425]
-    },
-    {
-      "id": "420071",
-      "name": "Self Regional Healthcare",
-      "city": "Greenwood",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.17431, -82.15683]
-    },
-    {
-      "id": "420073",
-      "name": "Lexington Medical Center",
-      "city": "West Columbia",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.00685, -81.11375]
-    },
-    {
-      "id": "420086",
-      "name": "Prisma Health Baptist",
-      "city": "Columbia",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.00763, -81.03271]
-    },
-    {
-      "id": "420091",
-      "name": "Musc Health Florence Medical Center",
-      "city": "Florence",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.15742, -79.75244]
-    },
-    {
-      "id": "420103",
-      "name": "Pelham Medical Center",
-      "city": "Greer",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.86354, -82.218]
-    },
-    {
-      "id": "420106",
-      "name": "Prisma Health Baptist Parkridge",
-      "city": "Columbia",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.00718, -81.03353]
-    },
-    {
-      "id": "420107",
-      "name": "Mcleod Health Cheraw",
-      "city": "Cheraw",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.69406, -79.91354]
-    },
-    {
-      "id": "420108",
-      "name": "Union Medical Center",
-      "city": "Union",
-      "state": "SC",
-      "type": "Acute Care Hospitals",
-      "ll": [34.71169, -81.62655]
-    },
-    {
-      "id": "421301",
-      "name": "Abbeville Area Medical Center",
-      "city": "Abbeville",
-      "state": "SC",
-      "type": "Critical Access Hospitals",
-      "ll": [34.15738, -82.38153]
-    },
-    {
-      "id": "440011",
-      "name": "Blount Memorial Hospital",
-      "city": "Maryville",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [35.75503, -83.95923]
-    },
-    {
-      "id": "440012",
-      "name": "Wellmont Bristol Regional Medical Center",
-      "city": "Bristol",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [36.58566, -82.25586]
-    },
-    {
-      "id": "440015",
-      "name": "University Health System, Inc",
-      "city": "Knoxville",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [35.93982, -83.94884]
-    },
-    {
-      "id": "440017",
-      "name": "Wellmont Holston Valley Medical Center",
-      "city": "Kingsport",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [36.55229, -82.55333]
-    },
-    {
-      "id": "440018",
-      "name": "Sycamore Shoals Hospital",
-      "city": "Elizabethton",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [36.34443, -82.24892]
-    },
-    {
-      "id": "440030",
-      "name": "Morristown Hamblen Hospital Association",
-      "city": "Morristown",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [36.21198, -83.30442]
-    },
-    {
-      "id": "440031",
-      "name": "Roane Medical Center",
-      "city": "Harriman",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [35.88944, -84.5558]
-    },
-    {
-      "id": "440032",
-      "name": "Hawkins County Memorial Hospital",
-      "city": "Rogersville",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [36.39917, -83.01406]
-    },
-    {
-      "id": "440033",
-      "name": "Lafollette Medical Center",
-      "city": "La Follette",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [36.38802, -84.11268]
-    },
-    {
-      "id": "440034",
-      "name": "Methodist Medical Center Of Oak Ridge",
-      "city": "Oak Ridge",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [36.02409, -84.24318]
-    },
-    {
-      "id": "440050",
-      "name": "Greeneville Community Hospital",
-      "city": "Greeneville",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [36.17357, -82.79316]
-    },
-    {
-      "id": "440056",
-      "name": "Tennova Healthcare-Jefferson Memorial Hospital",
-      "city": "Jefferson City",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [36.10763, -83.51898]
-    },
-    {
-      "id": "440057",
-      "name": "Claiborne Medical Center",
-      "city": "Tazewell",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [36.45262, -83.57214]
-    },
-    {
-      "id": "440063",
-      "name": "Johnson City Medical Center",
-      "city": "Johnson City",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [36.3086, -82.38646]
-    },
-    {
-      "id": "440068",
-      "name": "Starr Regional Medical Center Athens",
-      "city": "Athens",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [35.4406, -84.60825]
-    },
-    {
-      "id": "440081",
-      "name": "Leconte Medical Center",
-      "city": "Sevierville",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [35.85509, -83.53838]
-    },
-    {
-      "id": "440084",
-      "name": "Sweetwater Hospital Association",
-      "city": "Sweetwater",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [35.60031, -84.46423]
-    },
-    {
-      "id": "440110",
-      "name": "Fort Loudoun Medical Center",
-      "city": "Lenoir City",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [35.82538, -84.2711]
-    },
-    {
-      "id": "440120",
-      "name": "Physicians Regional Medical Center",
-      "city": "Powell",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [36.05619, -83.99825]
-    },
-    {
-      "id": "440125",
-      "name": "Fort Sanders Regional Medical Center",
-      "city": "Knoxville",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [35.9572, -83.9363]
-    },
-    {
-      "id": "440153",
-      "name": "Tennova Healthcare - Newport Medical Center",
-      "city": "Newport",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [35.96501, -83.18165]
-    },
-    {
-      "id": "440173",
-      "name": "Parkwest Medical Center",
-      "city": "Knoxville",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [35.91779, -84.10259]
-    },
-    {
-      "id": "440176",
-      "name": "Indian Path Community Hospital",
-      "city": "Kingsport",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [36.55101, -82.51789]
-    },
-    {
-      "id": "440184",
-      "name": "Franklin Woods Community Hospital",
-      "city": "Johnson City",
-      "state": "TN",
-      "type": "Acute Care Hospitals",
-      "ll": [36.33991, -82.40385]
-    },
-    {
-      "id": "441304",
-      "name": "Johnson County Community Hospital",
-      "city": "Mountain City",
-      "state": "TN",
-      "type": "Critical Access Hospitals",
-      "ll": [36.45031, -81.79802]
-    },
-    {
-      "id": "441313",
-      "name": "Hancock County Hospital",
-      "city": "Sneedville",
-      "state": "TN",
-      "type": "Critical Access Hospitals",
-      "ll": [36.53213, -83.21483]
-    },
-    {
-      "id": "441323",
-      "name": "Big South Fork Medical Center",
-      "city": "Oneida",
-      "state": "TN",
-      "type": "Critical Access Hospitals",
-      "ll": [36.50376, -84.51545]
-    },
-    {
-      "id": "490002",
-      "name": "Russell County Hospital",
-      "city": "Lebanon",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [36.8989, -82.07853]
-    },
-    {
-      "id": "490004",
-      "name": "Sentara Rmh Medical Center",
-      "city": "Harrisonburg",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [38.4075, -78.85484]
-    },
-    {
-      "id": "490005",
-      "name": "Winchester Medical Center",
-      "city": "Winchester",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [39.19174, -78.19119]
-    },
-    {
-      "id": "490009",
-      "name": "University Of Virginia Medical Center",
-      "city": "Charlottesville",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [38.03239, -78.49935]
-    },
-    {
-      "id": "490013",
-      "name": "Sentara Halifax Regional Hospital",
-      "city": "South Boston",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [36.71372, -78.91351]
-    },
-    {
-      "id": "490018",
-      "name": "Augusta Health",
-      "city": "Fishersville",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [38.09412, -78.98424]
-    },
-    {
-      "id": "490019",
-      "name": "Uva Health Culpeper Medical Center",
-      "city": "Culpeper",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [38.4549, -78.01137]
-    },
-    {
-      "id": "490021",
-      "name": "Centra Health -  Lynchburg Gen Hospital",
-      "city": "Lynchburg",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [37.41832, -79.16972]
-    },
-    {
-      "id": "490023",
-      "name": "Fauquier Hospital",
-      "city": "Warrenton",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [38.71198, -77.80872]
-    },
-    {
-      "id": "490024",
-      "name": "Carilion Medical Center",
-      "city": "Roanoke",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [37.25199, -79.94229]
-    },
-    {
-      "id": "490033",
-      "name": "Warren Memorial Hospital",
-      "city": "Front Royal",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [38.91997, -78.15329]
-    },
-    {
-      "id": "490038",
-      "name": "Smyth County Community Hospital",
-      "city": "Marion",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [36.85119, -81.48928]
-    },
-    {
-      "id": "490042",
-      "name": "Carilion New River Valley Medical Center",
-      "city": "Christiansburg",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [37.08955, -80.50735]
-    },
-    {
-      "id": "490048",
-      "name": "Lewisgale Medical Center",
-      "city": "Salem",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [37.26408, -80.03322]
-    },
-    {
-      "id": "490053",
-      "name": "Johnston Memorial Hospital",
-      "city": "Abingdon",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [36.72242, -81.9112]
-    },
-    {
-      "id": "490060",
-      "name": "Clinch Valley Medical Center",
-      "city": "Richlands",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [37.09401, -81.8211]
-    },
-    {
-      "id": "490075",
-      "name": "Sovah Health Danville",
-      "city": "Danville",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [36.57733, -79.40474]
-    },
-    {
-      "id": "490077",
-      "name": "Sentara Martha Jefferson Hospital",
-      "city": "Charlottesville",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [38.02408, -78.44215]
-    },
-    {
-      "id": "490088",
-      "name": "Centra Bedford Memorial Hospital",
-      "city": "Bedford",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [37.35226, -79.51636]
-    },
-    {
-      "id": "490089",
-      "name": "Carilion Franklin Memorial Hospital",
-      "city": "Rocky Mount",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [36.99449, -79.89035]
-    },
-    {
-      "id": "490098",
-      "name": "Community Memorial Hospital",
-      "city": "South Hill",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [36.74799, -78.10324]
-    },
-    {
-      "id": "490110",
-      "name": "Lewisgale Hospital Montgomery",
-      "city": "Blacksburg",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [37.1857, -80.40864]
-    },
-    {
-      "id": "490111",
-      "name": "Wythe County Community Hospital",
-      "city": "Wytheville",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [36.95333, -81.09569]
-    },
-    {
-      "id": "490114",
-      "name": "Lonesome Pine Hospital",
-      "city": "Big Stone Gap",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [36.87652, -82.75678]
-    },
-    {
-      "id": "490115",
-      "name": "Twin County Regional Hospital",
-      "city": "Galax",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [36.67176, -80.92382]
-    },
-    {
-      "id": "490116",
-      "name": "Lewisgale Hospital Pulaski",
-      "city": "Pulaski",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [37.06995, -80.75696]
-    },
-    {
-      "id": "490117",
-      "name": "Carilion Tazewell Community Hospital",
-      "city": "Tazewell",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [37.12559, -81.4908]
-    },
-    {
-      "id": "490126",
-      "name": "Lewisgale Hospital Alleghany",
-      "city": "Low Moor",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [37.79202, -79.88124]
-    },
-    {
-      "id": "490127",
-      "name": "Buchanan General Hospital",
-      "city": "Grundy",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [37.28546, -82.06824]
-    },
-    {
-      "id": "490136",
-      "name": "Bon Secours St Francis Medical Center",
-      "city": "Midlothian",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [37.4659, -77.66142]
-    },
-    {
-      "id": "490144",
-      "name": "Uva Health Haymarket Medical Center",
-      "city": "Haymarket",
-      "state": "VA",
-      "type": "Acute Care Hospitals",
-      "ll": [38.82205, -77.64154]
-    },
-    {
-      "id": "491300",
-      "name": "Bath Community Hospital",
-      "city": "Hot Springs",
-      "state": "VA",
-      "type": "Critical Access Hospitals",
-      "ll": [37.99315, -79.83159]
-    },
-    {
-      "id": "491302",
-      "name": "Carilion Giles Community Hospital",
-      "city": "Pearisburg",
-      "state": "VA",
-      "type": "Critical Access Hospitals",
-      "ll": [37.33304, -80.71261]
-    },
-    {
-      "id": "491303",
-      "name": "Dickenson Community Hospital",
-      "city": "Clintwood",
-      "state": "VA",
-      "type": "Critical Access Hospitals",
-      "ll": [37.16018, -82.44972]
-    },
-    {
-      "id": "491304",
-      "name": "Carilion Stonewall Jackson Hospital",
-      "city": "Lexington",
-      "state": "VA",
-      "type": "Critical Access Hospitals",
-      "ll": [37.77842, -79.44194]
-    },
-    {
-      "id": "491305",
-      "name": "Shenandoah Memorial Hospital",
-      "city": "Woodstock",
-      "state": "VA",
-      "type": "Critical Access Hospitals",
-      "ll": [38.87256, -78.5129]
-    },
-    {
-      "id": "491307",
-      "name": "Page Memorial Hospital, Inc",
-      "city": "Luray",
-      "state": "VA",
-      "type": "Critical Access Hospitals",
-      "ll": [38.66549, -78.46859]
-    },
-    {
-      "id": "491309",
-      "name": "Lee County Community Hospital",
-      "city": "Pennington Gap",
-      "state": "VA",
-      "type": "Critical Access Hospitals",
-      "ll": [36.74937, -83.04978]
-    },
-    {
-      "id": "510002",
-      "name": "Camc Greenbrier Valley Medical Center, Inc",
-      "city": "Ronceverte",
-      "state": "WV",
-      "type": "Acute Care Hospitals",
-      "ll": [37.77214, -80.46913]
-    },
-    {
-      "id": "510006",
-      "name": "United Hospital Center, Inc",
-      "city": "Bridgeport",
-      "state": "WV",
-      "type": "Acute Care Hospitals",
-      "ll": [39.32617, -80.23924]
-    },
-    {
-      "id": "510007",
-      "name": "St Marys Medical Center",
-      "city": "Huntington",
-      "state": "WV",
-      "type": "Acute Care Hospitals",
-      "ll": [38.43147, -82.4012]
-    },
-    {
-      "id": "510008",
-      "name": "Berkeley Medical Center",
-      "city": "Martinsburg",
-      "state": "WV",
-      "type": "Acute Care Hospitals",
-      "ll": [39.47747, -77.98045]
-    },
-    {
-      "id": "510012",
-      "name": "Rivers Health",
-      "city": "Point Pleasant",
-      "state": "WV",
-      "type": "Acute Care Hospitals",
-      "ll": [38.86854, -82.12257]
-    },
-    {
-      "id": "510022",
-      "name": "Charleston Area Medical Center",
-      "city": "Charleston",
-      "state": "WV",
-      "type": "Acute Care Hospitals",
-      "ll": [38.3473, -81.62604]
-    },
-    {
-      "id": "510029",
-      "name": "Thomas Memorial Hospital",
-      "city": "South Charleston",
-      "state": "WV",
-      "type": "Acute Care Hospitals",
-      "ll": [38.3556, -81.72628]
-    },
-    {
-      "id": "510030",
-      "name": "Davis Medical Center",
-      "city": "Elkins",
-      "state": "WV",
-      "type": "Acute Care Hospitals",
-      "ll": [38.92819, -79.85322]
-    },
-    {
-      "id": "510038",
-      "name": "Stonewall Jackson Memorial Hospital Company",
-      "city": "Weston",
-      "state": "WV",
-      "type": "Acute Care Hospitals",
-      "ll": [39.04789, -80.49145]
-    },
-    {
-      "id": "510046",
-      "name": "Princeton Community Hospital Assn Inc",
-      "city": "Princeton",
-      "state": "WV",
-      "type": "Acute Care Hospitals",
-      "ll": [37.36289, -81.11184]
-    },
-    {
-      "id": "510048",
-      "name": "Logan Regional Medical Center",
-      "city": "Logan",
-      "state": "WV",
-      "type": "Acute Care Hospitals",
-      "ll": [37.84616, -81.99407]
-    },
-    {
-      "id": "510055",
-      "name": "Cabell Huntington Hospital, Inc",
-      "city": "Huntington",
-      "state": "WV",
-      "type": "Acute Care Hospitals",
-      "ll": [38.40999, -82.42833]
-    },
-    {
-      "id": "510058",
-      "name": "Camden Clark Medical Center",
-      "city": "Parkersburg",
-      "state": "WV",
-      "type": "Acute Care Hospitals",
-      "ll": [39.27088, -81.56027]
-    },
-    {
-      "id": "510062",
-      "name": "Beckley Arh Hospital",
-      "city": "Beckley",
-      "state": "WV",
-      "type": "Acute Care Hospitals",
-      "ll": [37.79927, -81.16893]
-    },
-    {
-      "id": "510070",
-      "name": "Raleigh General Hospital",
-      "city": "Beckley",
-      "state": "WV",
-      "type": "Acute Care Hospitals",
-      "ll": [37.78652, -81.20303]
-    },
-    {
-      "id": "510086",
-      "name": "Welch Community Hospital",
-      "city": "Welch",
-      "state": "WV",
-      "type": "Acute Care Hospitals",
-      "ll": [37.43908, -81.58922]
-    },
-    {
-      "id": "510093",
-      "name": "Mon Health Marion",
-      "city": "Whitehall",
-      "state": "WV",
-      "type": "Acute Care Hospitals",
-      "ll": [39.42623, -80.19454]
-    },
-    {
-      "id": "511300",
-      "name": "Vandalia Health Broaddus Hospital",
-      "city": "Philippi",
-      "state": "WV",
-      "type": "Critical Access Hospitals",
-      "ll": [39.14359, -80.06218]
-    },
-    {
-      "id": "511301",
-      "name": "Webster Memorial Hospital",
-      "city": "Webster Springs",
-      "state": "WV",
-      "type": "Critical Access Hospitals",
-      "ll": [38.48258, -80.4098]
-    },
-    {
-      "id": "511303",
-      "name": "Minnie Hamilton Health System",
-      "city": "Grantsville",
-      "state": "WV",
-      "type": "Critical Access Hospitals",
-      "ll": [38.92354, -81.09207]
-    },
-    {
-      "id": "511304",
-      "name": "Sistersville General Hospital",
-      "city": "Sistersville",
-      "state": "WV",
-      "type": "Critical Access Hospitals",
-      "ll": [39.55864, -81.00382]
-    },
-    {
-      "id": "511306",
-      "name": "Roane General Hospital",
-      "city": "Spencer",
-      "state": "WV",
-      "type": "Critical Access Hospitals",
-      "ll": [38.81355, -81.36891]
-    },
-    {
-      "id": "511307",
-      "name": "Grafton City Hospital, Inc",
-      "city": "Grafton",
-      "state": "WV",
-      "type": "Critical Access Hospitals",
-      "ll": [39.34377, -80.02527]
-    },
-    {
-      "id": "511308",
-      "name": "Braxton County Memorial Hospital, Inc",
-      "city": "Gassaway",
-      "state": "WV",
-      "type": "Critical Access Hospitals",
-      "ll": [38.65918, -80.74925]
-    },
-    {
-      "id": "511311",
-      "name": "Hampshire Memorial Hospital",
-      "city": "Romney",
-      "state": "WV",
-      "type": "Critical Access Hospitals",
-      "ll": [39.33258, -78.69831]
-    },
-    {
-      "id": "511313",
-      "name": "Boone Memorial Hospital",
-      "city": "Madison",
-      "state": "WV",
-      "type": "Critical Access Hospitals",
-      "ll": [38.04616, -81.80804]
-    },
-    {
-      "id": "511314",
-      "name": "Pocahontas Memorial Hospital",
-      "city": "Buckeye",
-      "state": "WV",
-      "type": "Critical Access Hospitals",
-      "ll": [38.20035, -80.10887]
-    },
-    {
-      "id": "511315",
-      "name": "Potomac Valley Hospital",
-      "city": "Keyser",
-      "state": "WV",
-      "type": "Critical Access Hospitals",
-      "ll": [39.40861, -79.00314]
-    },
-    {
-      "id": "511316",
-      "name": "Grant Memorial Hospital",
-      "city": "Petersburg",
-      "state": "WV",
-      "type": "Critical Access Hospitals",
-      "ll": [39.00171, -79.13792]
-    },
-    {
-      "id": "511317",
-      "name": "Camc Plateau Medical Center, Inc",
-      "city": "Oak Hill",
-      "state": "WV",
-      "type": "Critical Access Hospitals",
-      "ll": [37.97533, -81.14275]
-    },
-    {
-      "id": "511318",
-      "name": "Montgomery General Hospital",
-      "city": "Montgomery",
-      "state": "WV",
-      "type": "Critical Access Hospitals",
-      "ll": [38.18283, -81.32398]
-    },
-    {
-      "id": "511319",
-      "name": "Jefferson Medical Center",
-      "city": "Ranson",
-      "state": "WV",
-      "type": "Critical Access Hospitals",
-      "ll": [39.29635, -77.85857]
-    },
-    {
-      "id": "511320",
-      "name": "Jackson General Hospital",
-      "city": "Ripley",
-      "state": "WV",
-      "type": "Critical Access Hospitals",
-      "ll": [38.82292, -81.72982]
-    },
-    {
-      "id": "511321",
-      "name": "St Joseph'S Hospital Of Buckhannon, Inc",
-      "city": "Buckhannon",
-      "state": "WV",
-      "type": "Critical Access Hospitals",
-      "ll": [38.99128, -80.23677]
-    },
-    {
-      "id": "511322",
-      "name": "Summersville Regional Medical Center",
-      "city": "Summersville",
-      "state": "WV",
-      "type": "Critical Access Hospitals",
-      "ll": [38.29213, -80.83232]
-    }
-  ],
-  "unplaced": [
-    "ATRIUM HEALTH NAVICENT PEACH, BYRON, GA",
-    "BETSY JOHNSON REGIONAL HOSPITAL, DUNN, NC",
-    "CANDLER HOSPITAL, SAVANNAH, GA",
-    "CLARK REGIONAL MEDICAL CENTER, WINCHESTER, KY",
-    "CLINCH MEMORIAL HOSPITAL, HOMERVILLE, GA",
-    "COASTAL CAROLINA HOSPITAL, HARDEEVILLE, SC",
-    "DORMINY MEDICAL CENTER, FITZGERALD, GA",
-    "LIBERTY REGIONAL MEDICAL CENTER, HINESVILLE, GA",
-    "MEMORIAL HEALTH MEADOWS HOSPITAL, VIDALIA, GA",
-    "MUSC HEALTH MARION MEDICAL CENTER, MULLINS, SC",
-    "NORTH CAROLINA BAPTIST HOSPITAL, WINSTON-SALEM, NC",
-    "PRESTON MEMORIAL HOSPITAL, KINGWOOD, WV",
-    "ROPER ST FRANCIS HOSPITAL-BERKELEY INC, SUMMERVILLE, SC",
-    "SAINT JOSEPH LONDON, LONDON, KY",
-    "SENTARA ALBEMARLE MEDICAL CENTER, ELIZABETH CITY, NC",
-    "SOUTHSIDE COMMUNITY HOSPITAL, INC, FARMVILLE, VA",
-    "SUMMERS COUNTY ARH HOSPITAL, HINTON, WV",
-    "THE MEDICAL CENTER AT FRANKLIN, FRANKLIN, KY",
-    "TY COBB REGIONAL MEDICAL CENTER, LLC, LAVONIA, GA",
-    "WELLSTAR WEST GEORGIA MEDICAL CENTER, LAGRANGE, GA",
-    "WEST VIRGINIA UNIVERSITY HOSPITALS, INC, MORGANTOWN, WV"
-  ],
-  "osmOnly": [
-    {
-      "name": "Annie Penn Hospital",
-      "ll": [36.35364, -79.66751]
-    },
-    {
-      "name": "Atrium Health Harrisburg Emergency Department",
-      "ll": [35.28534, -80.66678]
-    },
-    {
-      "name": "Atrium Health Kannapolis",
-      "ll": [35.50077, -80.56809]
-    },
-    {
-      "name": "Atrium Health Steele Creek",
-      "ll": [35.09898, -80.99317]
-    },
-    {
-      "name": "Atrium Health Union West",
-      "ll": [35.09402, -80.67588]
-    },
-    {
-      "name": "Atrium Health Wake Forest Baptist Medical Plaza - Clemmons",
-      "ll": [36.0412, -80.38551]
-    },
-    {
-      "name": "Beckley Veterans Affairs Medical Center",
-      "ll": [37.76486, -81.19196]
-    },
-    {
-      "name": "CAMC Teays Valley Hospital",
-      "ll": [38.4514, -81.95275]
-    },
-    {
-      "name": "Cape Fear Valley Betsy Johnson Hospital",
-      "ll": [35.30691, -78.63504]
-    },
-    {
-      "name": "Cape Fear Valley Central Harnett Hospital",
-      "ll": [35.42534, -78.80836]
-    },
-    {
-      "name": "Centra Southside Community Hospital",
-      "ll": [37.30271, -78.40401]
-    },
-    {
-      "name": "Charleston Area Medical Center - Memorial Hospital",
-      "ll": [38.33003, -81.60409]
-    },
-    {
-      "name": "Charleston Area Medical Center - Women and Children's Hospital",
-      "ll": [38.3592, -81.63787]
-    },
-    {
-      "name": "Cone Health Wesley Long Hospital",
-      "ll": [36.08311, -79.82603]
-    },
-    {
-      "name": "Duke Raleigh Hospital",
-      "ll": [35.82861, -78.61794]
-    },
-    {
-      "name": "First Health Richmond Memorial Hospital",
-      "ll": [34.93035, -79.74929]
-    },
-    {
-      "name": "FirstHealth Moore Regional Hospital-Hoke Campus",
-      "ll": [35.02053, -79.15021]
-    },
-    {
-      "name": "Hershel \"Woody\" Williams VA Medical Center",
-      "ll": [38.37701, -82.5187]
-    },
-    {
-      "name": "Holzer Gallipolis",
-      "ll": [38.84622, -82.23752]
-    },
-    {
-      "name": "Iredell Davis",
-      "ll": [35.81901, -80.82919]
-    },
-    {
-      "name": "King's Daughters Medical Center Ohio",
-      "ll": [38.74768, -82.99329]
-    },
-    {
-      "name": "Kings Mountain Hospital",
-      "ll": [35.24175, -81.35624]
-    },
-    {
-      "name": "LewisGale Blue Hills Emergency Room",
-      "ll": [37.31201, -79.88537]
-    },
-    {
-      "name": "Norton Community Hospital",
-      "ll": [36.9335, -82.64244]
-    },
-    {
-      "name": "Novant Health Clemmons Medical Center",
-      "ll": [36.0283, -80.39849]
-    },
-    {
-      "name": "Piedmont Medical Center – Fort Mill",
-      "ll": [35.02277, -80.95736]
-    },
-    {
-      "name": "Prisma Health Greenville Memorial Hospital",
-      "ll": [34.81946, -82.41098]
-    },
-    {
-      "name": "Prisma Health Greer Memorial Hospital",
-      "ll": [34.91938, -82.24475]
-    },
-    {
-      "name": "Prisma Health North Greenville Hospital",
-      "ll": [34.97586, -82.45597]
-    },
-    {
-      "name": "Saint Mary's Medical Center - Ironton Campus",
-      "ll": [38.52622, -82.66211]
-    },
-    {
-      "name": "Salem Veterans Affairs Medical Center",
-      "ll": [37.2747, -80.02011]
-    },
-    {
-      "name": "Southern Ohio Medical Center",
-      "ll": [38.7536, -82.97913]
-    },
-    {
-      "name": "Sovah Health - Martinsville",
-      "ll": [36.69923, -79.86648]
-    },
-    {
-      "name": "Spartanburg Medical Center - Mary Black Campus",
-      "ll": [34.97746, -81.89698]
-    },
-    {
-      "name": "St. Francis Eastside",
-      "ll": [34.85188, -82.32232]
-    },
-    {
-      "name": "Stuart Community Hospital",
-      "ll": [36.64632, -80.25481]
-    },
-    {
-      "name": "Summers County Appalachian Regional Hospital",
-      "ll": [37.65073, -80.86043]
-    },
-    {
-      "name": "UNC Health Blue Ridge - Valdese",
-      "ll": [35.74773, -81.52288]
-    },
-    {
-      "name": "UNC Health Johnston Clayton",
-      "ll": [35.63064, -78.50292]
-    },
-    {
-      "name": "UNC Hospitals Hillsborough Campus",
-      "ll": [36.03691, -79.09084]
-    },
-    {
-      "name": "Union General Health Systems",
-      "ll": [34.88564, -83.962]
-    },
-    {
-      "name": "Union Medical Center",
-      "ll": [34.75559, -81.64542]
-    },
-    {
-      "name": "Wake Forest Baptist Medical Center",
-      "ll": [36.08967, -80.26763]
-    },
-    {
-      "name": "WakeMed North Family Health & Women’s Hospital",
-      "ll": [35.90914, -78.59782]
-    },
-    {
-      "name": "Williamson Memorial Hospital",
-      "ll": [37.67841, -82.27262]
-    }
-  ]
+ "source": "CMS Hospital General Information (Emergency Services = Yes), geocoded by the Census Geocoder",
+ "released": "2026-07-22",
+ "checked": "2026-10-22",
+ "hospitals": [
+  {
+   "id": "110005",
+   "name": "Northside Hospital Forsyth",
+   "city": "Cumming",
+   "state": "GA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.17776,
+    -84.14133
+   ]
+  },
+  {
+   "id": "110006",
+   "name": "St Mary'S Hospital",
+   "city": "Athens",
+   "state": "GA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    33.94595,
+    -83.40459
+   ]
+  },
+  {
+   "id": "110008",
+   "name": "Northside Hospital Cherokee",
+   "city": "Canton",
+   "state": "GA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.22686,
+    -84.46057
+   ]
+  },
+  {
+   "id": "110029",
+   "name": "Northeast Georgia Medical Center, Inc",
+   "city": "Gainesville",
+   "state": "GA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.30237,
+    -83.8182
+   ]
+  },
+  {
+   "id": "110030",
+   "name": "Piedmont Cartersville Medical Center",
+   "city": "Cartersville",
+   "state": "GA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.19974,
+    -84.79521
+   ]
+  },
+  {
+   "id": "110032",
+   "name": "Stephens County Hospital",
+   "city": "Toccoa",
+   "state": "GA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.59298,
+    -83.34723
+   ]
+  },
+  {
+   "id": "110035",
+   "name": "Wellstar Kennestone Regional Medical Center",
+   "city": "Marietta",
+   "state": "GA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    33.96868,
+    -84.55031
+   ]
+  },
+  {
+   "id": "110041",
+   "name": "Northeast Georgia Medical Center Habersham",
+   "city": "Demorest",
+   "state": "GA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.5808,
+    -83.53816
+   ]
+  },
+  {
+   "id": "110045",
+   "name": "Ngmc Barrow, Llc",
+   "city": "Winder",
+   "state": "GA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.00602,
+    -83.70678
+   ]
+  },
+  {
+   "id": "110082",
+   "name": "Saint Joseph'S Hospital Of Atlanta, Inc",
+   "city": "Atlanta",
+   "state": "GA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    33.90837,
+    -84.35179
+   ]
+  },
+  {
+   "id": "110087",
+   "name": "Northside Hospital Gwinnett",
+   "city": "Lawrenceville",
+   "state": "GA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    33.96342,
+    -84.01731
+   ]
+  },
+  {
+   "id": "110161",
+   "name": "Northside Hospital",
+   "city": "Atlanta",
+   "state": "GA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    33.90793,
+    -84.35492
+   ]
+  },
+  {
+   "id": "110230",
+   "name": "Emory Johns Creek Hospital",
+   "city": "Johns Creek",
+   "state": "GA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.06796,
+    -84.17556
+   ]
+  },
+  {
+   "id": "110237",
+   "name": "Northeast Georgia Medical Center Lumpkin",
+   "city": "Dahlonega",
+   "state": "GA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.52127,
+    -83.97876
+   ]
+  },
+  {
+   "id": "110252",
+   "name": "Northside Hospital Duluth",
+   "city": "Duluth",
+   "state": "GA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.00293,
+    -84.16195
+   ]
+  },
+  {
+   "id": "111324",
+   "name": "Chatuge Regional Hospital",
+   "city": "Hiawassee",
+   "state": "GA",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    34.9456,
+    -83.75304
+   ]
+  },
+  {
+   "id": "111336",
+   "name": "Mountain Lakes Medical Center",
+   "city": "Clayton",
+   "state": "GA",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    34.89261,
+    -83.39319
+   ]
+  },
+  {
+   "id": "111338",
+   "name": "Blue Ridge Medical Center",
+   "city": "Blue Ridge",
+   "state": "GA",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    34.91607,
+    -84.37463
+   ]
+  },
+  {
+   "id": "180001",
+   "name": "St Elizabeth Ft Thomas",
+   "city": "Fort Thomas",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    39.0786,
+    -84.46522
+   ]
+  },
+  {
+   "id": "180002",
+   "name": "Whitesburg Arh Hospital",
+   "city": "Whitesburg",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.11355,
+    -82.81311
+   ]
+  },
+  {
+   "id": "180005",
+   "name": "Highlands Arh Regional Medical Center",
+   "city": "Prestonsburg",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.7297,
+    -82.76843
+   ]
+  },
+  {
+   "id": "180009",
+   "name": "King'S Daughters' Medical Center",
+   "city": "Ashland",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.4704,
+    -82.63589
+   ]
+  },
+  {
+   "id": "180010",
+   "name": "Saint Joseph Hospital",
+   "city": "Lexington",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.03132,
+    -84.5219
+   ]
+  },
+  {
+   "id": "180018",
+   "name": "St Claire Regional Medical Center",
+   "city": "Morehead",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.18118,
+    -83.44206
+   ]
+  },
+  {
+   "id": "180019",
+   "name": "Meadowview Regional Medical Center",
+   "city": "Maysville",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.64078,
+    -83.80788
+   ]
+  },
+  {
+   "id": "180020",
+   "name": "Middlesboro Arh Hospital",
+   "city": "Middlesboro",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.60546,
+    -83.73809
+   ]
+  },
+  {
+   "id": "180029",
+   "name": "Hazard Arh Regional Medical Center",
+   "city": "Hazard",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.27776,
+    -83.22753
+   ]
+  },
+  {
+   "id": "180035",
+   "name": "St Elizabeth Edgewood",
+   "city": "Edgewood",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    39.00798,
+    -84.56478
+   ]
+  },
+  {
+   "id": "180043",
+   "name": "Adventhealthmanchester",
+   "city": "Manchester",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.16179,
+    -83.76149
+   ]
+  },
+  {
+   "id": "180044",
+   "name": "Pikeville Medical Center",
+   "city": "Pikeville",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.4709,
+    -82.52182
+   ]
+  },
+  {
+   "id": "180045",
+   "name": "St Elizabeth Florence",
+   "city": "Florence",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    39.01442,
+    -84.63812
+   ]
+  },
+  {
+   "id": "180046",
+   "name": "Bourbon Community Hospital",
+   "city": "Paris",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.2224,
+    -84.23828
+   ]
+  },
+  {
+   "id": "180048",
+   "name": "Ephraim Mcdowell Regional Medical Center",
+   "city": "Danville",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.64409,
+    -84.77269
+   ]
+  },
+  {
+   "id": "180049",
+   "name": "Baptist Health Richmond",
+   "city": "Richmond",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.73121,
+    -84.28582
+   ]
+  },
+  {
+   "id": "180050",
+   "name": "Harlan Arh Hospital",
+   "city": "Harlan",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.81021,
+    -83.31297
+   ]
+  },
+  {
+   "id": "180064",
+   "name": "Saint Joseph Mount Sterling",
+   "city": "Mount Sterling",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.07571,
+    -83.94827
+   ]
+  },
+  {
+   "id": "180067",
+   "name": "University Of Kentucky Hospital",
+   "city": "Lexington",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.03283,
+    -84.50672
+   ]
+  },
+  {
+   "id": "180069",
+   "name": "Tug Valley Arh Regional Medical Center",
+   "city": "South Williamson",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.67714,
+    -82.29561
+   ]
+  },
+  {
+   "id": "180078",
+   "name": "Paintsville Arh Hospital",
+   "city": "Paintsville",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.81496,
+    -82.81231
+   ]
+  },
+  {
+   "id": "180079",
+   "name": "Harrison Memorial Hospital",
+   "city": "Cynthiana",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.38482,
+    -84.27689
+   ]
+  },
+  {
+   "id": "180080",
+   "name": "Baptist Health Corbin",
+   "city": "Corbin",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.92198,
+    -84.11401
+   ]
+  },
+  {
+   "id": "180101",
+   "name": "Georgetown Community Hospital",
+   "city": "Georgetown",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.18578,
+    -84.56219
+   ]
+  },
+  {
+   "id": "180103",
+   "name": "Baptist Health Lexington",
+   "city": "Lexington",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.0191,
+    -84.51376
+   ]
+  },
+  {
+   "id": "180115",
+   "name": "Rockcastle County Hospital, Inc.",
+   "city": "Mount Vernon",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.3576,
+    -84.3361
+   ]
+  },
+  {
+   "id": "180128",
+   "name": "Three Rivers Medical Center",
+   "city": "Louisa",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.09328,
+    -82.60532
+   ]
+  },
+  {
+   "id": "180132",
+   "name": "Lake Cumberland Regional Hospital",
+   "city": "Somerset",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.08695,
+    -84.6182
+   ]
+  },
+  {
+   "id": "180143",
+   "name": "Saint Joseph East",
+   "city": "Lexington",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.00025,
+    -84.44022
+   ]
+  },
+  {
+   "id": "180154",
+   "name": "Pineville Community Health Center, Inc",
+   "city": "Pineville",
+   "state": "KY",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.76325,
+    -83.70774
+   ]
+  },
+  {
+   "id": "180780",
+   "name": "Fleming County Hospital",
+   "city": "Flemingsburg",
+   "state": "KY",
+   "type": "Rural Emergency Hospital",
+   "ll": [
+    38.42151,
+    -83.75119
+   ]
+  },
+  {
+   "id": "181301",
+   "name": "Marcum And Wallace Memorial Hospital",
+   "city": "Irvine",
+   "state": "KY",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    37.70593,
+    -83.97782
+   ]
+  },
+  {
+   "id": "181305",
+   "name": "Arh Our Lady Of The Way",
+   "city": "Martin",
+   "state": "KY",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    37.57848,
+    -82.75082
+   ]
+  },
+  {
+   "id": "181307",
+   "name": "Morgan County Arh Hospital",
+   "city": "West Liberty",
+   "state": "KY",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    37.92184,
+    -83.26628
+   ]
+  },
+  {
+   "id": "181308",
+   "name": "Bluegrass Community Hospital",
+   "city": "Versailles",
+   "state": "KY",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    38.05479,
+    -84.72439
+   ]
+  },
+  {
+   "id": "181311",
+   "name": "St Elizabeth Grant",
+   "city": "Williamstown",
+   "state": "KY",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    38.6481,
+    -84.57744
+   ]
+  },
+  {
+   "id": "181315",
+   "name": "Ephraim Mcdowell Fort Logan Hospital",
+   "city": "Stanford",
+   "state": "KY",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    37.54352,
+    -84.65355
+   ]
+  },
+  {
+   "id": "181316",
+   "name": "Mary Breckinridge Arh Hospital",
+   "city": "Hyden",
+   "state": "KY",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    37.16385,
+    -83.37843
+   ]
+  },
+  {
+   "id": "181328",
+   "name": "Knox County Hospital",
+   "city": "Barbourville",
+   "state": "KY",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    36.85221,
+    -83.87044
+   ]
+  },
+  {
+   "id": "181329",
+   "name": "Chi Saint Joseph Berea Nf",
+   "city": "Berea",
+   "state": "KY",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    37.57362,
+    -84.28737
+   ]
+  },
+  {
+   "id": "181331",
+   "name": "Mcdowell Arh Hospital",
+   "city": "Mc Dowell",
+   "state": "KY",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    37.45685,
+    -82.74757
+   ]
+  },
+  {
+   "id": "181334",
+   "name": "Kentucky River Medical Center",
+   "city": "Jackson",
+   "state": "KY",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    37.56558,
+    -83.36908
+   ]
+  },
+  {
+   "id": "340001",
+   "name": "Carolinas Medical Center-Northeast",
+   "city": "Concord",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.43448,
+    -80.6031
+   ]
+  },
+  {
+   "id": "340002",
+   "name": "Memorial Mission Hospital And Asheville Surgery Ce",
+   "city": "Asheville",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.57863,
+    -82.54945
+   ]
+  },
+  {
+   "id": "340003",
+   "name": "Northern Regional Hospital",
+   "city": "Mount Airy",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.48914,
+    -80.61111
+   ]
+  },
+  {
+   "id": "340004",
+   "name": "High Point Regional Health System",
+   "city": "High Point",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.96244,
+    -80.01211
+   ]
+  },
+  {
+   "id": "340008",
+   "name": "Scotland Memorial Hospital",
+   "city": "Laurinburg",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.75177,
+    -79.47054
+   ]
+  },
+  {
+   "id": "340010",
+   "name": "Unc Health Care Wayne",
+   "city": "Goldsboro",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.39972,
+    -77.95671
+   ]
+  },
+  {
+   "id": "340013",
+   "name": "Rutherford Regional Medical Center",
+   "city": "Rutherfordton",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.3634,
+    -81.965
+   ]
+  },
+  {
+   "id": "340014",
+   "name": "Novant Health Forsyth Medical Center",
+   "city": "Winston-Salem",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.07401,
+    -80.29853
+   ]
+  },
+  {
+   "id": "340015",
+   "name": "Novant Health Rowan Medical Center",
+   "city": "Salisbury",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.68194,
+    -80.47138
+   ]
+  },
+  {
+   "id": "340016",
+   "name": "Harris Regional Hospital",
+   "city": "Sylva",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.38439,
+    -83.20303
+   ]
+  },
+  {
+   "id": "340017",
+   "name": "Pardee Hospital Henderson County",
+   "city": "Hendersonville",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.32068,
+    -82.46807
+   ]
+  },
+  {
+   "id": "340020",
+   "name": "Central Carolina Hospital",
+   "city": "Sanford",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.4701,
+    -79.18848
+   ]
+  },
+  {
+   "id": "340021",
+   "name": "Atrium Health Cleveland",
+   "city": "Shelby",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.30157,
+    -81.53652
+   ]
+  },
+  {
+   "id": "340023",
+   "name": "Adventhealth Hendersonville",
+   "city": "Hendersonville",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.39075,
+    -82.48861
+   ]
+  },
+  {
+   "id": "340024",
+   "name": "Sampson Regional Medical Center",
+   "city": "Clinton",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.00824,
+    -78.32392
+   ]
+  },
+  {
+   "id": "340028",
+   "name": "Cape Fear Valley Medical Center",
+   "city": "Fayetteville",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.03275,
+    -78.9313
+   ]
+  },
+  {
+   "id": "340030",
+   "name": "Duke University Hospital",
+   "city": "Durham",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.00813,
+    -78.93738
+   ]
+  },
+  {
+   "id": "340032",
+   "name": "Caromont Regional Medical Center",
+   "city": "Gastonia",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.27477,
+    -81.13808
+   ]
+  },
+  {
+   "id": "340039",
+   "name": "Iredell Memorial Hospital Inc",
+   "city": "Statesville",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.79914,
+    -80.87686
+   ]
+  },
+  {
+   "id": "340041",
+   "name": "Caldwell Memorial Hospital",
+   "city": "Lenoir",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.91105,
+    -81.53643
+   ]
+  },
+  {
+   "id": "340050",
+   "name": "Southeastern Regional Medical Center",
+   "city": "Lumberton",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.63651,
+    -79.01061
+   ]
+  },
+  {
+   "id": "340051",
+   "name": "Watauga Medical Center",
+   "city": "Boone",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.19682,
+    -81.65249
+   ]
+  },
+  {
+   "id": "340053",
+   "name": "Novant Health Presbyterian Medical Center",
+   "city": "Charlotte",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.2129,
+    -80.8255
+   ]
+  },
+  {
+   "id": "340060",
+   "name": "Unc Rockingham",
+   "city": "Eden",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.49351,
+    -79.73876
+   ]
+  },
+  {
+   "id": "340061",
+   "name": "Unc Hospitals",
+   "city": "Chapel Hill",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.90308,
+    -79.05031
+   ]
+  },
+  {
+   "id": "340064",
+   "name": "Wilkes Regional Medical Center",
+   "city": "North Wilkesboro",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.15853,
+    -81.15705
+   ]
+  },
+  {
+   "id": "340068",
+   "name": "Columbus Regional Healthcare System",
+   "city": "Whiteville",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.33845,
+    -78.69526
+   ]
+  },
+  {
+   "id": "340069",
+   "name": "Wakemed, Raleigh Campus",
+   "city": "Raleigh",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.78583,
+    -78.5893
+   ]
+  },
+  {
+   "id": "340070",
+   "name": "Alamance Regional Medical Center",
+   "city": "Burlington",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.0642,
+    -79.50182
+   ]
+  },
+  {
+   "id": "340075",
+   "name": "Blue Ridge Healthcare Hospitals, Inc",
+   "city": "Morganton",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.72415,
+    -81.65878
+   ]
+  },
+  {
+   "id": "340084",
+   "name": "Atrium Health Anson",
+   "city": "Wadesboro",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.97846,
+    -80.11091
+   ]
+  },
+  {
+   "id": "340085",
+   "name": "Novant Health Thomasville Medical Center",
+   "city": "Thomasville",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.88167,
+    -80.10927
+   ]
+  },
+  {
+   "id": "340087",
+   "name": "The Mcdowell Hospital",
+   "city": "Marion",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.66341,
+    -82.02771
+   ]
+  },
+  {
+   "id": "340090",
+   "name": "Johnston Health",
+   "city": "Smithfield",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.51487,
+    -78.3337
+   ]
+  },
+  {
+   "id": "340091",
+   "name": "Moses H. Cone Memorial Hospital, The",
+   "city": "Greensboro",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.09102,
+    -79.78874
+   ]
+  },
+  {
+   "id": "340096",
+   "name": "Lexington Memorial Hospital Inc",
+   "city": "Lexington",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.80543,
+    -80.28853
+   ]
+  },
+  {
+   "id": "340097",
+   "name": "Hugh Chatham Memorial Hospital",
+   "city": "Elkin",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.26251,
+    -80.8382
+   ]
+  },
+  {
+   "id": "340098",
+   "name": "Atrium Health Pineville",
+   "city": "Charlotte",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.09072,
+    -80.86993
+   ]
+  },
+  {
+   "id": "340113",
+   "name": "Carolinas Medical Center/Behav Health",
+   "city": "Charlotte",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.20517,
+    -80.84077
+   ]
+  },
+  {
+   "id": "340114",
+   "name": "Rex Hospital",
+   "city": "Raleigh",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.81552,
+    -78.70247
+   ]
+  },
+  {
+   "id": "340115",
+   "name": "Firsthealth Moore Regional Hospital",
+   "city": "Pinehurst",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.20592,
+    -79.45877
+   ]
+  },
+  {
+   "id": "340116",
+   "name": "Frye Regional Medical Center",
+   "city": "Hickory",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.73687,
+    -81.3377
+   ]
+  },
+  {
+   "id": "340119",
+   "name": "Stanly Regional Medical Center",
+   "city": "Albemarle",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.36266,
+    -80.19421
+   ]
+  },
+  {
+   "id": "340120",
+   "name": "Vidant Duplin Hospital",
+   "city": "Kenansville",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.96302,
+    -77.96102
+   ]
+  },
+  {
+   "id": "340123",
+   "name": "Randolph Hospital",
+   "city": "Asheboro",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.71148,
+    -79.81491
+   ]
+  },
+  {
+   "id": "340126",
+   "name": "Wilson Medical Center",
+   "city": "Wilson",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.72065,
+    -77.94319
+   ]
+  },
+  {
+   "id": "340127",
+   "name": "Granville Health Systems",
+   "city": "Oxford",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.32591,
+    -78.59456
+   ]
+  },
+  {
+   "id": "340129",
+   "name": "Duke Health Lake Norman Hospital",
+   "city": "Mooresville",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.54927,
+    -80.85359
+   ]
+  },
+  {
+   "id": "340130",
+   "name": "Atrium Health Union",
+   "city": "Monroe",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.97467,
+    -80.52271
+   ]
+  },
+  {
+   "id": "340132",
+   "name": "Maria Parham Medical Center",
+   "city": "Henderson",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.33087,
+    -78.44945
+   ]
+  },
+  {
+   "id": "340141",
+   "name": "Novant Health New Hanover Regional Medical Center",
+   "city": "Wilmington",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.2044,
+    -77.92357
+   ]
+  },
+  {
+   "id": "340143",
+   "name": "Catawba Valley Medical Center",
+   "city": "Hickory",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.7137,
+    -81.26511
+   ]
+  },
+  {
+   "id": "340145",
+   "name": "Atrium Health Lincoln",
+   "city": "Lincolnton",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.48821,
+    -81.20167
+   ]
+  },
+  {
+   "id": "340147",
+   "name": "Unc Health Nash",
+   "city": "Rocky Mount",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.97297,
+    -77.84842
+   ]
+  },
+  {
+   "id": "340151",
+   "name": "Ecu Health North Hospital",
+   "city": "Roanoke Rapids",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.43218,
+    -77.64603
+   ]
+  },
+  {
+   "id": "340155",
+   "name": "Duke Regional Hospital",
+   "city": "Durham",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.03766,
+    -78.89747
+   ]
+  },
+  {
+   "id": "340156",
+   "name": "Cherokee Indian Hospital Authority",
+   "city": "Cherokee",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.48382,
+    -83.32369
+   ]
+  },
+  {
+   "id": "340158",
+   "name": "Novant Health Brunswick Medical Center",
+   "city": "Supply",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.00998,
+    -78.29146
+   ]
+  },
+  {
+   "id": "340159",
+   "name": "Person Memorial Hospital",
+   "city": "Roxboro",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.40705,
+    -78.98531
+   ]
+  },
+  {
+   "id": "340166",
+   "name": "Atrium Health University City",
+   "city": "Charlotte",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.30615,
+    -80.74939
+   ]
+  },
+  {
+   "id": "340171",
+   "name": "Novant Health Matthews Medical Center",
+   "city": "Matthews",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.12188,
+    -80.71435
+   ]
+  },
+  {
+   "id": "340173",
+   "name": "Wakemed, Cary Hospital",
+   "city": "Cary",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.74061,
+    -78.78005
+   ]
+  },
+  {
+   "id": "340183",
+   "name": "Novant Health Huntersville Medical Center",
+   "city": "Huntersville",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.40575,
+    -80.86009
+   ]
+  },
+  {
+   "id": "340184",
+   "name": "Haywood Regional Medical Center",
+   "city": "Clyde",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.52532,
+    -82.94187
+   ]
+  },
+  {
+   "id": "340188",
+   "name": "Cape Fear Valley Hoke Hospital",
+   "city": "Raeford",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.02962,
+    -79.10692
+   ]
+  },
+  {
+   "id": "340190",
+   "name": "Novant Health Mint Hill Medical Center",
+   "city": "Charlotte",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.22489,
+    -80.64858
+   ]
+  },
+  {
+   "id": "340195",
+   "name": "Novant Health Ballantyne Medical Center",
+   "city": "Charlotte",
+   "state": "NC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.04126,
+    -80.84372
+   ]
+  },
+  {
+   "id": "341303",
+   "name": "Firsthealth Montgomery Memorial Hosp",
+   "city": "Troy",
+   "state": "NC",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    35.3642,
+    -79.89144
+   ]
+  },
+  {
+   "id": "341305",
+   "name": "Dlp Swain County Hospital Llc",
+   "city": "Bryson City",
+   "state": "NC",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    35.43507,
+    -83.44461
+   ]
+  },
+  {
+   "id": "341307",
+   "name": "Pender Memorial Hospital",
+   "city": "Burgaw",
+   "state": "NC",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    34.55124,
+    -77.92034
+   ]
+  },
+  {
+   "id": "341311",
+   "name": "Chatham Hospital Inc",
+   "city": "Siler City",
+   "state": "NC",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    35.72297,
+    -79.42202
+   ]
+  },
+  {
+   "id": "341315",
+   "name": "Cape Fear Valley-Bladen County Hospital",
+   "city": "Elizabethtown",
+   "state": "NC",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    34.62346,
+    -78.60829
+   ]
+  },
+  {
+   "id": "341316",
+   "name": "Highlands Cashiers Hospital",
+   "city": "Highlands",
+   "state": "NC",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    35.08636,
+    -83.18569
+   ]
+  },
+  {
+   "id": "341317",
+   "name": "Lifebrite Community Hospital Of Stokes",
+   "city": "Danbury",
+   "state": "NC",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    36.41808,
+    -80.23086
+   ]
+  },
+  {
+   "id": "341319",
+   "name": "Transylvania Regional Hospital, Inc",
+   "city": "Brevard",
+   "state": "NC",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    35.25594,
+    -82.7118
+   ]
+  },
+  {
+   "id": "341320",
+   "name": "Alleghany  Memorial Hospital",
+   "city": "Sparta",
+   "state": "NC",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    36.50901,
+    -81.11501
+   ]
+  },
+  {
+   "id": "341322",
+   "name": "Advent Health Polk",
+   "city": "Columbus",
+   "state": "NC",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    35.24089,
+    -82.21281
+   ]
+  },
+  {
+   "id": "341323",
+   "name": "Charles A Cannon Jr Memorial Hospital",
+   "city": "Linville",
+   "state": "NC",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    36.06082,
+    -81.88924
+   ]
+  },
+  {
+   "id": "341325",
+   "name": "Ashe Memorial Hospital",
+   "city": "Jefferson",
+   "state": "NC",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    36.42361,
+    -81.45874
+   ]
+  },
+  {
+   "id": "341326",
+   "name": "Angel Medical Center",
+   "city": "Franklin",
+   "state": "NC",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    35.19275,
+    -83.35977
+   ]
+  },
+  {
+   "id": "341327",
+   "name": "J Arthur Dosher Memorial Hospital",
+   "city": "Southport",
+   "state": "NC",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    33.92879,
+    -78.02208
+   ]
+  },
+  {
+   "id": "341328",
+   "name": "Erlanger Murphy Medical Center",
+   "city": "Murphy",
+   "state": "NC",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    35.07271,
+    -83.96512
+   ]
+  },
+  {
+   "id": "341329",
+   "name": "Blue Ridge Regional Hospital",
+   "city": "Spruce Pine",
+   "state": "NC",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    35.91057,
+    -82.06272
+   ]
+  },
+  {
+   "id": "420002",
+   "name": "Piedmont Medical Center",
+   "city": "Rock Hill",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.95625,
+    -81.05341
+   ]
+  },
+  {
+   "id": "420005",
+   "name": "Mcleod Medical Center - Dillon",
+   "city": "Dillon",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.42137,
+    -79.3661
+   ]
+  },
+  {
+   "id": "420007",
+   "name": "Spartanburg Medical Center",
+   "city": "Spartanburg",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.96805,
+    -81.93586
+   ]
+  },
+  {
+   "id": "420009",
+   "name": "Prisma Health Oconee Memorial Hospital",
+   "city": "Seneca",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.69495,
+    -82.98562
+   ]
+  },
+  {
+   "id": "420010",
+   "name": "Carolina Pines Regional Medical Center",
+   "city": "Hartsville",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.34808,
+    -80.10446
+   ]
+  },
+  {
+   "id": "420011",
+   "name": "Cannon Memorial Hospital",
+   "city": "Pickens",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.87427,
+    -82.70807
+   ]
+  },
+  {
+   "id": "420015",
+   "name": "Prisma Health Baptist Easley Hospital",
+   "city": "Easley",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.84029,
+    -82.60582
+   ]
+  },
+  {
+   "id": "420018",
+   "name": "Prisma Health Richland Hospital",
+   "city": "Columbia",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.02772,
+    -81.03256
+   ]
+  },
+  {
+   "id": "420019",
+   "name": "Musc Health Chester Medical Center",
+   "city": "Chester",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.6843,
+    -81.18313
+   ]
+  },
+  {
+   "id": "420023",
+   "name": "St Francis-Downtown",
+   "city": "Greenville",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.84331,
+    -82.42191
+   ]
+  },
+  {
+   "id": "420026",
+   "name": "Musc Health Columbia Medical Center Downtown",
+   "city": "Columbia",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.01339,
+    -81.01144
+   ]
+  },
+  {
+   "id": "420027",
+   "name": "Anmed Health",
+   "city": "Anderson",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.51148,
+    -82.64739
+   ]
+  },
+  {
+   "id": "420033",
+   "name": "Prisma Health Greer Memorial Hospital",
+   "city": "Spartanburg",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.92611,
+    -81.9675
+   ]
+  },
+  {
+   "id": "420036",
+   "name": "Musc Health Lancaster Medical Center",
+   "city": "Lancaster",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.71708,
+    -80.78627
+   ]
+  },
+  {
+   "id": "420037",
+   "name": "Prisma Health Hillcrest Hospital",
+   "city": "Simpsonville",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.71838,
+    -82.24744
+   ]
+  },
+  {
+   "id": "420038",
+   "name": "Prisma Health Laurens County Hospital",
+   "city": "Clinton",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.47992,
+    -81.9423
+   ]
+  },
+  {
+   "id": "420043",
+   "name": "Cherokee Medical Center",
+   "city": "Gaffney",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.09166,
+    -81.63429
+   ]
+  },
+  {
+   "id": "420048",
+   "name": "Kershawhealth",
+   "city": "Camden",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.25242,
+    -80.58943
+   ]
+  },
+  {
+   "id": "420051",
+   "name": "Mcleod Regional Medical Center-Pee Dee",
+   "city": "Florence",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.19596,
+    -79.7592
+   ]
+  },
+  {
+   "id": "420053",
+   "name": "Newberry County Memorial Hospital",
+   "city": "Newberry",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.29075,
+    -81.60406
+   ]
+  },
+  {
+   "id": "420070",
+   "name": "Prisma Health Tuomey Hospital",
+   "city": "Sumter",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    33.92366,
+    -80.34425
+   ]
+  },
+  {
+   "id": "420071",
+   "name": "Self Regional Healthcare",
+   "city": "Greenwood",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.17431,
+    -82.15683
+   ]
+  },
+  {
+   "id": "420073",
+   "name": "Lexington Medical Center",
+   "city": "West Columbia",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.00685,
+    -81.11375
+   ]
+  },
+  {
+   "id": "420086",
+   "name": "Prisma Health Baptist",
+   "city": "Columbia",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.00763,
+    -81.03271
+   ]
+  },
+  {
+   "id": "420091",
+   "name": "Musc Health Florence Medical Center",
+   "city": "Florence",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.15742,
+    -79.75244
+   ]
+  },
+  {
+   "id": "420103",
+   "name": "Pelham Medical Center",
+   "city": "Greer",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.86354,
+    -82.218
+   ]
+  },
+  {
+   "id": "420106",
+   "name": "Prisma Health Baptist Parkridge",
+   "city": "Columbia",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.00718,
+    -81.03353
+   ]
+  },
+  {
+   "id": "420107",
+   "name": "Mcleod Health Cheraw",
+   "city": "Cheraw",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.69406,
+    -79.91354
+   ]
+  },
+  {
+   "id": "420108",
+   "name": "Union Medical Center",
+   "city": "Union",
+   "state": "SC",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    34.71169,
+    -81.62655
+   ]
+  },
+  {
+   "id": "421301",
+   "name": "Abbeville Area Medical Center",
+   "city": "Abbeville",
+   "state": "SC",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    34.15738,
+    -82.38153
+   ]
+  },
+  {
+   "id": "440011",
+   "name": "Blount Memorial Hospital",
+   "city": "Maryville",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.75503,
+    -83.95923
+   ]
+  },
+  {
+   "id": "440012",
+   "name": "Wellmont Bristol Regional Medical Center",
+   "city": "Bristol",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.58566,
+    -82.25586
+   ]
+  },
+  {
+   "id": "440015",
+   "name": "University Health System, Inc",
+   "city": "Knoxville",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.93982,
+    -83.94884
+   ]
+  },
+  {
+   "id": "440017",
+   "name": "Wellmont Holston Valley Medical Center",
+   "city": "Kingsport",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.55229,
+    -82.55333
+   ]
+  },
+  {
+   "id": "440018",
+   "name": "Sycamore Shoals Hospital",
+   "city": "Elizabethton",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.34443,
+    -82.24892
+   ]
+  },
+  {
+   "id": "440030",
+   "name": "Morristown Hamblen Hospital Association",
+   "city": "Morristown",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.21198,
+    -83.30442
+   ]
+  },
+  {
+   "id": "440031",
+   "name": "Roane Medical Center",
+   "city": "Harriman",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.88944,
+    -84.5558
+   ]
+  },
+  {
+   "id": "440032",
+   "name": "Hawkins County Memorial Hospital",
+   "city": "Rogersville",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.39917,
+    -83.01406
+   ]
+  },
+  {
+   "id": "440033",
+   "name": "Lafollette Medical Center",
+   "city": "La Follette",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.38802,
+    -84.11268
+   ]
+  },
+  {
+   "id": "440034",
+   "name": "Methodist Medical Center Of Oak Ridge",
+   "city": "Oak Ridge",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.02409,
+    -84.24318
+   ]
+  },
+  {
+   "id": "440050",
+   "name": "Greeneville Community Hospital",
+   "city": "Greeneville",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.17357,
+    -82.79316
+   ]
+  },
+  {
+   "id": "440056",
+   "name": "Tennova Healthcare-Jefferson Memorial Hospital",
+   "city": "Jefferson City",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.10763,
+    -83.51898
+   ]
+  },
+  {
+   "id": "440057",
+   "name": "Claiborne Medical Center",
+   "city": "Tazewell",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.45262,
+    -83.57214
+   ]
+  },
+  {
+   "id": "440063",
+   "name": "Johnson City Medical Center",
+   "city": "Johnson City",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.3086,
+    -82.38646
+   ]
+  },
+  {
+   "id": "440068",
+   "name": "Starr Regional Medical Center Athens",
+   "city": "Athens",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.4406,
+    -84.60825
+   ]
+  },
+  {
+   "id": "440081",
+   "name": "Leconte Medical Center",
+   "city": "Sevierville",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.85509,
+    -83.53838
+   ]
+  },
+  {
+   "id": "440084",
+   "name": "Sweetwater Hospital Association",
+   "city": "Sweetwater",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.60031,
+    -84.46423
+   ]
+  },
+  {
+   "id": "440110",
+   "name": "Fort Loudoun Medical Center",
+   "city": "Lenoir City",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.82538,
+    -84.2711
+   ]
+  },
+  {
+   "id": "440120",
+   "name": "Physicians Regional Medical Center",
+   "city": "Powell",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.05619,
+    -83.99825
+   ]
+  },
+  {
+   "id": "440125",
+   "name": "Fort Sanders Regional Medical Center",
+   "city": "Knoxville",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.9572,
+    -83.9363
+   ]
+  },
+  {
+   "id": "440153",
+   "name": "Tennova Healthcare - Newport Medical Center",
+   "city": "Newport",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.96501,
+    -83.18165
+   ]
+  },
+  {
+   "id": "440173",
+   "name": "Parkwest Medical Center",
+   "city": "Knoxville",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    35.91779,
+    -84.10259
+   ]
+  },
+  {
+   "id": "440176",
+   "name": "Indian Path Community Hospital",
+   "city": "Kingsport",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.55101,
+    -82.51789
+   ]
+  },
+  {
+   "id": "440184",
+   "name": "Franklin Woods Community Hospital",
+   "city": "Johnson City",
+   "state": "TN",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.33991,
+    -82.40385
+   ]
+  },
+  {
+   "id": "441304",
+   "name": "Johnson County Community Hospital",
+   "city": "Mountain City",
+   "state": "TN",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    36.45031,
+    -81.79802
+   ]
+  },
+  {
+   "id": "441313",
+   "name": "Hancock County Hospital",
+   "city": "Sneedville",
+   "state": "TN",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    36.53213,
+    -83.21483
+   ]
+  },
+  {
+   "id": "441323",
+   "name": "Big South Fork Medical Center",
+   "city": "Oneida",
+   "state": "TN",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    36.50376,
+    -84.51545
+   ]
+  },
+  {
+   "id": "490002",
+   "name": "Russell County Hospital",
+   "city": "Lebanon",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.8989,
+    -82.07853
+   ]
+  },
+  {
+   "id": "490004",
+   "name": "Sentara Rmh Medical Center",
+   "city": "Harrisonburg",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.4075,
+    -78.85484
+   ]
+  },
+  {
+   "id": "490005",
+   "name": "Winchester Medical Center",
+   "city": "Winchester",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    39.19174,
+    -78.19119
+   ]
+  },
+  {
+   "id": "490009",
+   "name": "University Of Virginia Medical Center",
+   "city": "Charlottesville",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.03239,
+    -78.49935
+   ]
+  },
+  {
+   "id": "490013",
+   "name": "Sentara Halifax Regional Hospital",
+   "city": "South Boston",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.71372,
+    -78.91351
+   ]
+  },
+  {
+   "id": "490018",
+   "name": "Augusta Health",
+   "city": "Fishersville",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.09412,
+    -78.98424
+   ]
+  },
+  {
+   "id": "490019",
+   "name": "Uva Health Culpeper Medical Center",
+   "city": "Culpeper",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.4549,
+    -78.01137
+   ]
+  },
+  {
+   "id": "490021",
+   "name": "Centra Health -  Lynchburg Gen Hospital",
+   "city": "Lynchburg",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.41832,
+    -79.16972
+   ]
+  },
+  {
+   "id": "490023",
+   "name": "Fauquier Hospital",
+   "city": "Warrenton",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.71198,
+    -77.80872
+   ]
+  },
+  {
+   "id": "490024",
+   "name": "Carilion Medical Center",
+   "city": "Roanoke",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.25199,
+    -79.94229
+   ]
+  },
+  {
+   "id": "490033",
+   "name": "Warren Memorial Hospital",
+   "city": "Front Royal",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.91997,
+    -78.15329
+   ]
+  },
+  {
+   "id": "490038",
+   "name": "Smyth County Community Hospital",
+   "city": "Marion",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.85119,
+    -81.48928
+   ]
+  },
+  {
+   "id": "490042",
+   "name": "Carilion New River Valley Medical Center",
+   "city": "Christiansburg",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.08955,
+    -80.50735
+   ]
+  },
+  {
+   "id": "490048",
+   "name": "Lewisgale Medical Center",
+   "city": "Salem",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.26408,
+    -80.03322
+   ]
+  },
+  {
+   "id": "490053",
+   "name": "Johnston Memorial Hospital",
+   "city": "Abingdon",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.72242,
+    -81.9112
+   ]
+  },
+  {
+   "id": "490060",
+   "name": "Clinch Valley Medical Center",
+   "city": "Richlands",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.09401,
+    -81.8211
+   ]
+  },
+  {
+   "id": "490075",
+   "name": "Sovah Health Danville",
+   "city": "Danville",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.57733,
+    -79.40474
+   ]
+  },
+  {
+   "id": "490077",
+   "name": "Sentara Martha Jefferson Hospital",
+   "city": "Charlottesville",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.02408,
+    -78.44215
+   ]
+  },
+  {
+   "id": "490088",
+   "name": "Centra Bedford Memorial Hospital",
+   "city": "Bedford",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.35226,
+    -79.51636
+   ]
+  },
+  {
+   "id": "490089",
+   "name": "Carilion Franklin Memorial Hospital",
+   "city": "Rocky Mount",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.99449,
+    -79.89035
+   ]
+  },
+  {
+   "id": "490098",
+   "name": "Community Memorial Hospital",
+   "city": "South Hill",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.74799,
+    -78.10324
+   ]
+  },
+  {
+   "id": "490110",
+   "name": "Lewisgale Hospital Montgomery",
+   "city": "Blacksburg",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.1857,
+    -80.40864
+   ]
+  },
+  {
+   "id": "490111",
+   "name": "Wythe County Community Hospital",
+   "city": "Wytheville",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.95333,
+    -81.09569
+   ]
+  },
+  {
+   "id": "490114",
+   "name": "Lonesome Pine Hospital",
+   "city": "Big Stone Gap",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.87652,
+    -82.75678
+   ]
+  },
+  {
+   "id": "490115",
+   "name": "Twin County Regional Hospital",
+   "city": "Galax",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    36.67176,
+    -80.92382
+   ]
+  },
+  {
+   "id": "490116",
+   "name": "Lewisgale Hospital Pulaski",
+   "city": "Pulaski",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.06995,
+    -80.75696
+   ]
+  },
+  {
+   "id": "490117",
+   "name": "Carilion Tazewell Community Hospital",
+   "city": "Tazewell",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.12559,
+    -81.4908
+   ]
+  },
+  {
+   "id": "490126",
+   "name": "Lewisgale Hospital Alleghany",
+   "city": "Low Moor",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.79202,
+    -79.88124
+   ]
+  },
+  {
+   "id": "490127",
+   "name": "Buchanan General Hospital",
+   "city": "Grundy",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.28546,
+    -82.06824
+   ]
+  },
+  {
+   "id": "490136",
+   "name": "Bon Secours St Francis Medical Center",
+   "city": "Midlothian",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.4659,
+    -77.66142
+   ]
+  },
+  {
+   "id": "490144",
+   "name": "Uva Health Haymarket Medical Center",
+   "city": "Haymarket",
+   "state": "VA",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.82205,
+    -77.64154
+   ]
+  },
+  {
+   "id": "491300",
+   "name": "Bath Community Hospital",
+   "city": "Hot Springs",
+   "state": "VA",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    37.99315,
+    -79.83159
+   ]
+  },
+  {
+   "id": "491302",
+   "name": "Carilion Giles Community Hospital",
+   "city": "Pearisburg",
+   "state": "VA",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    37.33304,
+    -80.71261
+   ]
+  },
+  {
+   "id": "491303",
+   "name": "Dickenson Community Hospital",
+   "city": "Clintwood",
+   "state": "VA",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    37.16018,
+    -82.44972
+   ]
+  },
+  {
+   "id": "491304",
+   "name": "Carilion Stonewall Jackson Hospital",
+   "city": "Lexington",
+   "state": "VA",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    37.77842,
+    -79.44194
+   ]
+  },
+  {
+   "id": "491305",
+   "name": "Shenandoah Memorial Hospital",
+   "city": "Woodstock",
+   "state": "VA",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    38.87256,
+    -78.5129
+   ]
+  },
+  {
+   "id": "491307",
+   "name": "Page Memorial Hospital, Inc",
+   "city": "Luray",
+   "state": "VA",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    38.66549,
+    -78.46859
+   ]
+  },
+  {
+   "id": "491309",
+   "name": "Lee County Community Hospital",
+   "city": "Pennington Gap",
+   "state": "VA",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    36.74937,
+    -83.04978
+   ]
+  },
+  {
+   "id": "510002",
+   "name": "Camc Greenbrier Valley Medical Center, Inc",
+   "city": "Ronceverte",
+   "state": "WV",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.77214,
+    -80.46913
+   ]
+  },
+  {
+   "id": "510006",
+   "name": "United Hospital Center, Inc",
+   "city": "Bridgeport",
+   "state": "WV",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    39.32617,
+    -80.23924
+   ]
+  },
+  {
+   "id": "510007",
+   "name": "St Marys Medical Center",
+   "city": "Huntington",
+   "state": "WV",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.43147,
+    -82.4012
+   ]
+  },
+  {
+   "id": "510008",
+   "name": "Berkeley Medical Center",
+   "city": "Martinsburg",
+   "state": "WV",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    39.47747,
+    -77.98045
+   ]
+  },
+  {
+   "id": "510012",
+   "name": "Rivers Health",
+   "city": "Point Pleasant",
+   "state": "WV",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.86854,
+    -82.12257
+   ]
+  },
+  {
+   "id": "510022",
+   "name": "Charleston Area Medical Center",
+   "city": "Charleston",
+   "state": "WV",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.3473,
+    -81.62604
+   ]
+  },
+  {
+   "id": "510029",
+   "name": "Thomas Memorial Hospital",
+   "city": "South Charleston",
+   "state": "WV",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.3556,
+    -81.72628
+   ]
+  },
+  {
+   "id": "510030",
+   "name": "Davis Medical Center",
+   "city": "Elkins",
+   "state": "WV",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.92819,
+    -79.85322
+   ]
+  },
+  {
+   "id": "510038",
+   "name": "Stonewall Jackson Memorial Hospital Company",
+   "city": "Weston",
+   "state": "WV",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    39.04789,
+    -80.49145
+   ]
+  },
+  {
+   "id": "510046",
+   "name": "Princeton Community Hospital Assn Inc",
+   "city": "Princeton",
+   "state": "WV",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.36289,
+    -81.11184
+   ]
+  },
+  {
+   "id": "510048",
+   "name": "Logan Regional Medical Center",
+   "city": "Logan",
+   "state": "WV",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.84616,
+    -81.99407
+   ]
+  },
+  {
+   "id": "510055",
+   "name": "Cabell Huntington Hospital, Inc",
+   "city": "Huntington",
+   "state": "WV",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    38.40999,
+    -82.42833
+   ]
+  },
+  {
+   "id": "510058",
+   "name": "Camden Clark Medical Center",
+   "city": "Parkersburg",
+   "state": "WV",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    39.27088,
+    -81.56027
+   ]
+  },
+  {
+   "id": "510062",
+   "name": "Beckley Arh Hospital",
+   "city": "Beckley",
+   "state": "WV",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.79927,
+    -81.16893
+   ]
+  },
+  {
+   "id": "510070",
+   "name": "Raleigh General Hospital",
+   "city": "Beckley",
+   "state": "WV",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.78652,
+    -81.20303
+   ]
+  },
+  {
+   "id": "510086",
+   "name": "Welch Community Hospital",
+   "city": "Welch",
+   "state": "WV",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    37.43908,
+    -81.58922
+   ]
+  },
+  {
+   "id": "510093",
+   "name": "Mon Health Marion",
+   "city": "Whitehall",
+   "state": "WV",
+   "type": "Acute Care Hospitals",
+   "ll": [
+    39.42623,
+    -80.19454
+   ]
+  },
+  {
+   "id": "511300",
+   "name": "Vandalia Health Broaddus Hospital",
+   "city": "Philippi",
+   "state": "WV",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    39.14359,
+    -80.06218
+   ]
+  },
+  {
+   "id": "511301",
+   "name": "Webster Memorial Hospital",
+   "city": "Webster Springs",
+   "state": "WV",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    38.48258,
+    -80.4098
+   ]
+  },
+  {
+   "id": "511303",
+   "name": "Minnie Hamilton Health System",
+   "city": "Grantsville",
+   "state": "WV",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    38.92354,
+    -81.09207
+   ]
+  },
+  {
+   "id": "511304",
+   "name": "Sistersville General Hospital",
+   "city": "Sistersville",
+   "state": "WV",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    39.55864,
+    -81.00382
+   ]
+  },
+  {
+   "id": "511306",
+   "name": "Roane General Hospital",
+   "city": "Spencer",
+   "state": "WV",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    38.81355,
+    -81.36891
+   ]
+  },
+  {
+   "id": "511307",
+   "name": "Grafton City Hospital, Inc",
+   "city": "Grafton",
+   "state": "WV",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    39.34377,
+    -80.02527
+   ]
+  },
+  {
+   "id": "511308",
+   "name": "Braxton County Memorial Hospital, Inc",
+   "city": "Gassaway",
+   "state": "WV",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    38.65918,
+    -80.74925
+   ]
+  },
+  {
+   "id": "511311",
+   "name": "Hampshire Memorial Hospital",
+   "city": "Romney",
+   "state": "WV",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    39.33258,
+    -78.69831
+   ]
+  },
+  {
+   "id": "511313",
+   "name": "Boone Memorial Hospital",
+   "city": "Madison",
+   "state": "WV",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    38.04616,
+    -81.80804
+   ]
+  },
+  {
+   "id": "511314",
+   "name": "Pocahontas Memorial Hospital",
+   "city": "Buckeye",
+   "state": "WV",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    38.20035,
+    -80.10887
+   ]
+  },
+  {
+   "id": "511315",
+   "name": "Potomac Valley Hospital",
+   "city": "Keyser",
+   "state": "WV",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    39.40861,
+    -79.00314
+   ]
+  },
+  {
+   "id": "511316",
+   "name": "Grant Memorial Hospital",
+   "city": "Petersburg",
+   "state": "WV",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    39.00171,
+    -79.13792
+   ]
+  },
+  {
+   "id": "511317",
+   "name": "Camc Plateau Medical Center, Inc",
+   "city": "Oak Hill",
+   "state": "WV",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    37.97533,
+    -81.14275
+   ]
+  },
+  {
+   "id": "511318",
+   "name": "Montgomery General Hospital",
+   "city": "Montgomery",
+   "state": "WV",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    38.18283,
+    -81.32398
+   ]
+  },
+  {
+   "id": "511319",
+   "name": "Jefferson Medical Center",
+   "city": "Ranson",
+   "state": "WV",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    39.29635,
+    -77.85857
+   ]
+  },
+  {
+   "id": "511320",
+   "name": "Jackson General Hospital",
+   "city": "Ripley",
+   "state": "WV",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    38.82292,
+    -81.72982
+   ]
+  },
+  {
+   "id": "511321",
+   "name": "St Joseph'S Hospital Of Buckhannon, Inc",
+   "city": "Buckhannon",
+   "state": "WV",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    38.99128,
+    -80.23677
+   ]
+  },
+  {
+   "id": "511322",
+   "name": "Summersville Regional Medical Center",
+   "city": "Summersville",
+   "state": "WV",
+   "type": "Critical Access Hospitals",
+   "ll": [
+    38.29213,
+    -80.83232
+   ]
+  }
+ ],
+ "unplaced": [
+  "ATRIUM HEALTH NAVICENT PEACH, BYRON, GA",
+  "BETSY JOHNSON REGIONAL HOSPITAL, DUNN, NC",
+  "CANDLER HOSPITAL, SAVANNAH, GA",
+  "CLARK REGIONAL MEDICAL CENTER, WINCHESTER, KY",
+  "CLINCH MEMORIAL HOSPITAL, HOMERVILLE, GA",
+  "COASTAL CAROLINA HOSPITAL, HARDEEVILLE, SC",
+  "DORMINY MEDICAL CENTER, FITZGERALD, GA",
+  "LIBERTY REGIONAL MEDICAL CENTER, HINESVILLE, GA",
+  "MEMORIAL HEALTH MEADOWS HOSPITAL, VIDALIA, GA",
+  "MUSC HEALTH MARION MEDICAL CENTER, MULLINS, SC",
+  "NORTH CAROLINA BAPTIST HOSPITAL, WINSTON-SALEM, NC",
+  "PRESTON MEMORIAL HOSPITAL, KINGWOOD, WV",
+  "ROPER ST FRANCIS HOSPITAL-BERKELEY INC, SUMMERVILLE, SC",
+  "SAINT JOSEPH LONDON, LONDON, KY",
+  "SENTARA ALBEMARLE MEDICAL CENTER, ELIZABETH CITY, NC",
+  "SOUTHSIDE COMMUNITY HOSPITAL, INC, FARMVILLE, VA",
+  "SUMMERS COUNTY ARH HOSPITAL, HINTON, WV",
+  "THE MEDICAL CENTER AT FRANKLIN, FRANKLIN, KY",
+  "TY COBB REGIONAL MEDICAL CENTER, LLC, LAVONIA, GA",
+  "WELLSTAR WEST GEORGIA MEDICAL CENTER, LAGRANGE, GA",
+  "WEST VIRGINIA UNIVERSITY HOSPITALS, INC, MORGANTOWN, WV"
+ ],
+ "osmOnly": [
+  {
+   "name": "Annie Penn Hospital",
+   "ll": [
+    36.35364,
+    -79.66751
+   ]
+  },
+  {
+   "name": "Atrium Health Harrisburg Emergency Department",
+   "ll": [
+    35.28534,
+    -80.66678
+   ]
+  },
+  {
+   "name": "Atrium Health Kannapolis",
+   "ll": [
+    35.50077,
+    -80.56809
+   ]
+  },
+  {
+   "name": "Atrium Health Steele Creek",
+   "ll": [
+    35.09898,
+    -80.99317
+   ]
+  },
+  {
+   "name": "Atrium Health Union West",
+   "ll": [
+    35.09402,
+    -80.67588
+   ]
+  },
+  {
+   "name": "Atrium Health Wake Forest Baptist Medical Plaza - Clemmons",
+   "ll": [
+    36.0412,
+    -80.38551
+   ]
+  },
+  {
+   "name": "Beckley Veterans Affairs Medical Center",
+   "ll": [
+    37.76486,
+    -81.19196
+   ]
+  },
+  {
+   "name": "CAMC Teays Valley Hospital",
+   "ll": [
+    38.4514,
+    -81.95275
+   ]
+  },
+  {
+   "name": "Cape Fear Valley Betsy Johnson Hospital",
+   "ll": [
+    35.30691,
+    -78.63504
+   ]
+  },
+  {
+   "name": "Cape Fear Valley Central Harnett Hospital",
+   "ll": [
+    35.42534,
+    -78.80836
+   ]
+  },
+  {
+   "name": "Centra Southside Community Hospital",
+   "ll": [
+    37.30271,
+    -78.40401
+   ]
+  },
+  {
+   "name": "Charleston Area Medical Center - Memorial Hospital",
+   "ll": [
+    38.33003,
+    -81.60409
+   ]
+  },
+  {
+   "name": "Charleston Area Medical Center - Women and Children's Hospital",
+   "ll": [
+    38.3592,
+    -81.63787
+   ]
+  },
+  {
+   "name": "Cone Health Wesley Long Hospital",
+   "ll": [
+    36.08311,
+    -79.82603
+   ]
+  },
+  {
+   "name": "Duke Raleigh Hospital",
+   "ll": [
+    35.82861,
+    -78.61794
+   ]
+  },
+  {
+   "name": "First Health Richmond Memorial Hospital",
+   "ll": [
+    34.93035,
+    -79.74929
+   ]
+  },
+  {
+   "name": "FirstHealth Moore Regional Hospital-Hoke Campus",
+   "ll": [
+    35.02053,
+    -79.15021
+   ]
+  },
+  {
+   "name": "Hershel \"Woody\" Williams VA Medical Center",
+   "ll": [
+    38.37701,
+    -82.5187
+   ]
+  },
+  {
+   "name": "Holzer Gallipolis",
+   "ll": [
+    38.84622,
+    -82.23752
+   ]
+  },
+  {
+   "name": "Iredell Davis",
+   "ll": [
+    35.81901,
+    -80.82919
+   ]
+  },
+  {
+   "name": "King's Daughters Medical Center Ohio",
+   "ll": [
+    38.74768,
+    -82.99329
+   ]
+  },
+  {
+   "name": "Kings Mountain Hospital",
+   "ll": [
+    35.24175,
+    -81.35624
+   ]
+  },
+  {
+   "name": "LewisGale Blue Hills Emergency Room",
+   "ll": [
+    37.31201,
+    -79.88537
+   ]
+  },
+  {
+   "name": "Norton Community Hospital",
+   "ll": [
+    36.9335,
+    -82.64244
+   ]
+  },
+  {
+   "name": "Novant Health Clemmons Medical Center",
+   "ll": [
+    36.0283,
+    -80.39849
+   ]
+  },
+  {
+   "name": "Piedmont Medical Center – Fort Mill",
+   "ll": [
+    35.02277,
+    -80.95736
+   ]
+  },
+  {
+   "name": "Prisma Health Greenville Memorial Hospital",
+   "ll": [
+    34.81946,
+    -82.41098
+   ]
+  },
+  {
+   "name": "Prisma Health Greer Memorial Hospital",
+   "ll": [
+    34.91938,
+    -82.24475
+   ]
+  },
+  {
+   "name": "Prisma Health North Greenville Hospital",
+   "ll": [
+    34.97586,
+    -82.45597
+   ]
+  },
+  {
+   "name": "Saint Mary's Medical Center - Ironton Campus",
+   "ll": [
+    38.52622,
+    -82.66211
+   ]
+  },
+  {
+   "name": "Salem Veterans Affairs Medical Center",
+   "ll": [
+    37.2747,
+    -80.02011
+   ]
+  },
+  {
+   "name": "Southern Ohio Medical Center",
+   "ll": [
+    38.7536,
+    -82.97913
+   ]
+  },
+  {
+   "name": "Sovah Health - Martinsville",
+   "ll": [
+    36.69923,
+    -79.86648
+   ]
+  },
+  {
+   "name": "Spartanburg Medical Center - Mary Black Campus",
+   "ll": [
+    34.97746,
+    -81.89698
+   ]
+  },
+  {
+   "name": "St. Francis Eastside",
+   "ll": [
+    34.85188,
+    -82.32232
+   ]
+  },
+  {
+   "name": "Stuart Community Hospital",
+   "ll": [
+    36.64632,
+    -80.25481
+   ]
+  },
+  {
+   "name": "Summers County Appalachian Regional Hospital",
+   "ll": [
+    37.65073,
+    -80.86043
+   ]
+  },
+  {
+   "name": "UNC Health Blue Ridge - Valdese",
+   "ll": [
+    35.74773,
+    -81.52288
+   ]
+  },
+  {
+   "name": "UNC Health Johnston Clayton",
+   "ll": [
+    35.63064,
+    -78.50292
+   ]
+  },
+  {
+   "name": "UNC Hospitals Hillsborough Campus",
+   "ll": [
+    36.03691,
+    -79.09084
+   ]
+  },
+  {
+   "name": "Union General Health Systems",
+   "ll": [
+    34.88564,
+    -83.962
+   ]
+  },
+  {
+   "name": "Union Medical Center",
+   "ll": [
+    34.75559,
+    -81.64542
+   ]
+  },
+  {
+   "name": "Wake Forest Baptist Medical Center",
+   "ll": [
+    36.08967,
+    -80.26763
+   ]
+  },
+  {
+   "name": "WakeMed North Family Health & Women’s Hospital",
+   "ll": [
+    35.90914,
+    -78.59782
+   ]
+  },
+  {
+   "name": "Williamson Memorial Hospital",
+   "ll": [
+    37.67841,
+    -82.27262
+   ]
+  }
+ ]
 }
