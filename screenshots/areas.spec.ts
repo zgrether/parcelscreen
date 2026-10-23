@@ -4,7 +4,7 @@
  * area's popup. Run by `pnpm screenshots`.
  */
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
-import { AREA_WORDS as W } from "@/lib/areas/words";
+import { AREA_WORDS as W, SAMPLE_WORDS } from "@/lib/areas/words";
 import { openExplorer, settled, visit } from "../e2e/flow";
 import { GRAYSON } from "../e2e/redGate";
 import { replayHar } from "../e2e/replay";
@@ -13,6 +13,16 @@ const OUT = "test-results/screenshots";
 
 async function liveImagery(context: BrowserContext): Promise<void> {
   await context.route(/basemap\.nationalmap\.gov|arcgisonline\.com/, (r) => r.continue());
+}
+
+/** The phone's sheet, raised until it holds most of the screen. */
+async function raiseSheet(page: Page): Promise<void> {
+  const sheet = page.locator(".explore-panel");
+  for (let i = 0; i < 4; i++) {
+    if ((await sheet.boundingBox())!.height > 500) return;
+    await page.locator(".sheet-handle").tap();
+    await page.waitForTimeout(500);
+  }
 }
 
 async function dismissTilt(page: Page): Promise<void> {
@@ -79,6 +89,30 @@ for (const phone of [false, true]) {
       );
       await page.waitForTimeout(2500);
       await page.screenshot({ path: `${OUT}/${device}-areas-outlines.png` });
+    });
+
+    test("a sample parcel, before and after Add to list", async ({ page, context }) => {
+      test.setTimeout(180_000);
+      await replayHar(context, [GRAYSON]);
+      await liveImagery(context);
+      await openExplorer(page, GRAYSON);
+      await dismissTilt(page);
+      if (phone) await page.getByRole("button", { name: "Search", exact: true }).click();
+      const box = page.getByRole("region", { name: W.onTheMap });
+      await box.getByRole("button", { name: W.showParcel }).first().click();
+      const header = page.locator(".explore-header");
+      await expect(header.locator(".sh-sample")).toHaveText(SAMPLE_WORDS.tag);
+      if (phone) await raiseSheet(page);
+      await page.waitForTimeout(2500);
+      await page.screenshot({ path: `${OUT}/${device}-areas-sample.png` });
+      await header.getByRole("button", { name: /^Add to list/ }).click();
+      await page
+        .getByRole("dialog", { name: "Add to favorites" })
+        .getByRole("button", { name: "Add" })
+        .click();
+      await expect(header.locator(".sh-sample")).toHaveCount(0);
+      await page.waitForTimeout(800);
+      await page.screenshot({ path: `${OUT}/${device}-areas-sample-added.png` });
     });
   });
 }

@@ -22,6 +22,8 @@ import { useExplore, type ExploreController } from "@/components/Explore/useExpl
 import { GradeAction } from "@/components/Results/panel/GradeAction";
 import { showBoundary } from "@/components/Parcel/ParcelSwitch";
 import { NEIGHBOUR_WORDS } from "@/lib/report/raise";
+import { isPreview } from "@/lib/client/samples";
+import { SAMPLE_WORDS } from "@/lib/areas/words";
 
 const GRADE_COMBINATION = NEIGHBOUR_WORDS.go;
 
@@ -111,6 +113,8 @@ function barBody(
       Cancel
     </Btn>
   );
+  // Step 13: a sample parcel isn't the person's to edit until it's on their list.
+  if (!mode && isPreview(open)) return <Status>{SAMPLE_WORDS.readOnly}</Status>;
 
   if (mode === "draw") {
     const n = draft.length;

@@ -160,3 +160,11 @@ export const AREA_WORDS = {
   showAll: "Show all ranked",
   outlines: "Area outlines",
 } as const;
+
+/** A sample parcel's words (§5, §8). */
+export const SAMPLE_WORDS = {
+  tag: "Sample parcel",
+  other: "Show the other sample",
+  readOnly: "A sample parcel: add it to your list to edit it",
+  failed: "This sample didn't load.",
+} as const;

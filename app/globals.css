@@ -7606,3 +7606,17 @@ button.sync-ind.bad {
 .area-note {
   margin: 0 0 8px;
 }
+/* Step 13: a sample parcel's tag and its other sample, on the header's second line. */
+.sh-sample {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--color-paper-2);
+  color: var(--color-ink-2);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.sh-other-sample {
+  font-size: 13px;
+  white-space: nowrap;
+}

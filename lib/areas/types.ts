@@ -4,7 +4,7 @@
  * null there. A format change starts v2 and drops v1 (clean break, §1).
  */
 import { z } from "zod";
-import { LatLonSchema } from "../screen/types";
+import { LatLonSchema, ScreenResultSchema } from "../screen/types";
 
 /** The file format's version; it's also the folder: public/areas/v1/. */
 export const AREA_FILE_VERSION = 1;
@@ -76,3 +76,22 @@ export const AreaIndexSchema = z.strictObject({
   ),
 });
 export type AreaIndex = z.infer<typeof AreaIndexSchema>;
+
+/**
+ * A sample parcel (step 13 plan §5): public/areas/v1/samples/<area>-<n>.json, written by `pnpm areas:samples`. Its
+ * boundary, its acres and its screen, and nothing else: no owner, address or parcel number (phase-0.md §9.23). The
+ * name is the app's.
+ */
+export const SampleFileSchema = z.strictObject({
+  version: z.literal(AREA_FILE_VERSION),
+  area: z.string(),
+  n: z.number().int().positive(),
+  name: z.string(),
+  acres: z.number(),
+  boundary: z.strictObject({ type: z.literal("Polygon"), coordinates: z.array(z.array(Position)) }),
+  result: ScreenResultSchema,
+});
+export type SampleFile = z.infer<typeof SampleFileSchema>;
+
+/** Where a sample's file is. */
+export const samplePath = (area: string, n: number): string => `${AREAS_PATH}/samples/${area}-${n}.json`;
