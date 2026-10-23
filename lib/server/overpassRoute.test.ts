@@ -74,18 +74,19 @@ describe("GET /api/places/overpass", () => {
     expect(seen).toHaveLength(1);
   });
 
-  it("runs the three prototype queries on the default mirrors with an identifying User-Agent", async () => {
+  it("runs the prototype's queries but hospitals' (§9.69) on the default mirrors with an identifying User-Agent", async () => {
     const { http, seen } = fakeHttp(() => new Response(JSON.stringify({ elements: [hospital] })));
     const r = await handleOverpass(get("?lat=36.9&lon=-80.5"), http);
     expect(r.status).toBe(200);
     expect(r.headers.get("cache-control")).toBe("public, s-maxage=86400");
-    expect(((await r.json()) as { elements: unknown[] }).elements).toHaveLength(3);
-    expect(seen.map((s) => s.url.split("/")[2])).toEqual(Array(3).fill("overpass-api.de"));
+    expect(((await r.json()) as { elements: unknown[] }).elements).toHaveLength(2);
+    expect(seen.map((s) => s.url.split("/")[2])).toEqual(Array(2).fill("overpass-api.de"));
     expect(seen.every((s) => s.ua === SERVER_USER_AGENT)).toBe(true);
     expect(SERVER_USER_AGENT).toMatch(
       /^ParcelScreen\/\S+ \(\+https:\/\/github\.com\/zgrether\/parcelscreen\)$/,
     );
-    expect(decodeURIComponent(seen[0]!.url)).toContain('node["amenity"="hospital"]');
+    expect(decodeURIComponent(seen[0]!.url)).toContain('node["shop"="supermarket"]');
+    expect(seen.some((s) => decodeURIComponent(s.url).includes("hospital"))).toBe(false);
   });
 
   it("answers 502 with the same 'Overpass unreachable (…)' message when every mirror fails", async () => {

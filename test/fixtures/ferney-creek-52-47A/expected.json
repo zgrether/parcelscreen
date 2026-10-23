@@ -1855,10 +1855,10 @@
     {
      "name": "Carilion New River Valley Medical Center",
      "ll": [
-      37.08829,
-      -80.505149
+      37.08955,
+      -80.50735
      ],
-     "km": 22.829931534252122
+     "km": 23.007021890624653
     },
     {
      "name": "Stuart Community Hospital",
@@ -1871,18 +1871,18 @@
     {
      "name": "LewisGale Hospital Montgomery",
      "ll": [
-      37.1873,
-      -80.411632
+      37.1857,
+      -80.40864
      ],
-     "km": 33.580450020648264
+     "km": 33.43424122351236
     },
     {
      "name": "LewisGale Hospital Pulaski",
      "ll": [
-      37.068471,
-      -80.75714
+      37.06995,
+      -80.75696
      ],
-     "km": 33.67325292804025
+     "km": 33.758996080622005
     }
    ],
    "grocers": [
@@ -3307,8 +3307,8 @@
    {
     "label": "Nearest hospital",
     "name": "Carilion New River Valley Medical Center",
-    "min": 47,
-    "mi": 21.6,
+    "min": 44,
+    "mi": 21.1,
     "er": "yes"
    },
    {
@@ -3375,7 +3375,7 @@
    "mi": 24.1
   },
   "schemaVersion": 9,
-  "engine": 28,
+  "engine": 29,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -5236,10 +5236,10 @@
     {
      "name": "Carilion New River Valley Medical Center",
      "ll": [
-      37.08829,
-      -80.505149
+      37.08955,
+      -80.50735
      ],
-     "km": 22.829931534252122
+     "km": 23.007021890624653
     },
     {
      "name": "Stuart Community Hospital",
@@ -5252,18 +5252,18 @@
     {
      "name": "LewisGale Hospital Montgomery",
      "ll": [
-      37.1873,
-      -80.411632
+      37.1857,
+      -80.40864
      ],
-     "km": 33.580450020648264
+     "km": 33.43424122351236
     },
     {
      "name": "LewisGale Hospital Pulaski",
      "ll": [
-      37.068471,
-      -80.75714
+      37.06995,
+      -80.75696
      ],
-     "km": 33.67325292804025
+     "km": 33.758996080622005
     }
    ],
    "grocers": [
@@ -8164,8 +8164,8 @@
    {
     "label": "Nearest hospital",
     "name": "Carilion New River Valley Medical Center",
-    "min": 47,
-    "mi": 21.6,
+    "min": 44,
+    "mi": 21.1,
     "er": "yes"
    },
    {
@@ -8232,7 +8232,7 @@
    "mi": 24.1
   },
   "schemaVersion": 9,
-  "engine": 28,
+  "engine": 29,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -10164,10 +10164,10 @@
     {
      "name": "Carilion New River Valley Medical Center",
      "ll": [
-      37.08829,
-      -80.505149
+      37.08955,
+      -80.50735
      ],
-     "km": 22.829931534252122
+     "km": 23.007021890624653
     },
     {
      "name": "Stuart Community Hospital",
@@ -10180,18 +10180,18 @@
     {
      "name": "LewisGale Hospital Montgomery",
      "ll": [
-      37.1873,
-      -80.411632
+      37.1857,
+      -80.40864
      ],
-     "km": 33.580450020648264
+     "km": 33.43424122351236
     },
     {
      "name": "LewisGale Hospital Pulaski",
      "ll": [
-      37.068471,
-      -80.75714
+      37.06995,
+      -80.75696
      ],
-     "km": 33.67325292804025
+     "km": 33.758996080622005
     }
    ],
    "grocers": [
@@ -13163,8 +13163,8 @@
    {
     "label": "Nearest hospital",
     "name": "Carilion New River Valley Medical Center",
-    "min": 47,
-    "mi": 21.6,
+    "min": 44,
+    "mi": 21.1,
     "er": "yes"
    },
    {
@@ -13231,7 +13231,7 @@
    "mi": 24.1
   },
   "schemaVersion": 9,
-  "engine": 28,
+  "engine": 29,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

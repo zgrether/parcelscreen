@@ -2,8 +2,9 @@
  * Hospitals, groceries and trailheads near the parcel, from OpenStreetMap via Photon (komoot), with the
  * Overpass mirrors as a fallback. Ported verbatim (proto L861–882, L1111–1128).
  *
- * Batch A A2c (owner, 2026-10-09): hospitals come from the committed OSM snapshot (hospitals.ts), with their
- * emergency tag; Photon (by tag, amenity and healthcare) and Overpass supply them only if it can't be loaded.
+ * Hospitals aren't OpenStreetMap's (the ER follow-up, owner 2026-10-23; phase-0.md §9.69): they're the emergency
+ * departments of CMS's list with the hand-checked additions (hospitals.ts), the list the area catalog times. Photon
+ * and Overpass supply groceries and trailheads only.
  *
  * Deviation (step 13 CORS check): no Overpass mirror answers a browser any more (overpass-api.de sends 406
  * to browser User-Agents, openstreetmap.fr 403 "white-listed usages only", the other two time out), so in
@@ -14,18 +15,13 @@ import { distance } from "@turf/turf";
 import { CancelledError, retryAfterHeaderMs, type HttpClient } from "../http";
 import { SCREEN_CONSTANTS } from "./config";
 import type { Endpoints, ScreenResult } from "./types";
-import {
-  hospitalCandidates,
-  loadHospitalSnapshot,
-  type HospitalCandidate,
-  type HospitalSource,
-} from "./hospitals";
+import { hospitalCandidates, loadHospitals, type HospitalCandidate, type HospitalSource } from "./hospitals";
 import type { TrailheadPoint } from "./trailheads";
 import type { LatLon } from "./util";
 
 const K = SCREEN_CONSTANTS.near;
 
-/** Runs the three Overpass queries for a centre some other way (the browser: through the server route). */
+/** Runs the two Overpass queries for a centre some other way (the browser: through the server route). */
 export type OverpassFallback = (centre: LatLon, signal?: AbortSignal) => Promise<OsmElement[]>;
 
 export interface PlacesDeps {
@@ -36,7 +32,7 @@ export interface PlacesDeps {
   sleep?: (ms: number) => Promise<void>;
   /** When set, replaces calling the Overpass mirrors directly. */
   overpass?: OverpassFallback;
-  /** The hospital snapshot; injectable so tests can make it fail. Defaults to the committed one. */
+  /** The ERs; injectable so tests can make it fail. Defaults to the committed list with the additions. */
   hospitals?: HospitalSource;
 }
 
@@ -147,7 +143,7 @@ export class OverpassMirrors {
   }
 }
 
-/** The Overpass fallback: hospitals, supermarkets and trailheads around a centre (proto L1117–1124). */
+/** The Overpass fallback: supermarkets and trailheads around a centre (proto L1117–1124; hospitals since §9.69 aren't OSM's). */
 export async function overpassPlaces(
   centre: LatLon,
   deps: PlacesDeps,
@@ -159,10 +155,6 @@ export async function overpassPlaces(
       dx = d / Math.cos((lat * Math.PI) / 180);
     return `${(lat - d).toFixed(4)},${(lon - dx).toFixed(4)},${(lat + d).toFixed(4)},${(lon + dx).toFixed(4)}`;
   };
-  const e1s = await mirrors.query(
-    `[out:json][timeout:30][bbox:${box(K.hospitalKm)}];(node["amenity"="hospital"];way["amenity"="hospital"];);out center;`,
-    deps,
-  );
   const e2s = await mirrors.query(
     `[out:json][timeout:30][bbox:${box(K.groceryKm)}];(node["shop"="supermarket"];way["shop"="supermarket"];);out center;`,
     deps,
@@ -171,7 +163,7 @@ export async function overpassPlaces(
     `[out:json][timeout:30][bbox:${box(K.trailheadKm)}];(node["highway"="trailhead"];node["information"="trailhead"];);out;`,
     deps,
   );
-  return [...e1s, ...e2s, ...e3s];
+  return [...e2s, ...e3s];
 }
 
 /**
@@ -202,10 +194,6 @@ export class PlacesError extends Error {
   }
 }
 
-/** An element's OSM identity, when its source gave one. */
-const osmIdOf = (e: OsmElement): string | undefined =>
-  e.osm ?? (e.id !== undefined ? `${e.type}/${e.id}` : undefined);
-
 /** The places half of the 'near' step (proto L1112–1128). */
 export async function findPlaces(
   centre: LatLon,
@@ -222,30 +210,20 @@ export async function findPlaces(
    */
   otherGrocers: { name: string; ll: LatLon }[];
   /**
-   * Session-only: every hospital the drive step may route to, nearest first, with its emergency status when
-   * the snapshot gave it (A2c). near.hospitals is its first maxHospitals.
+   * Session-only: every ER the drive step may route to, nearest first. near.hospitals is its first maxHospitals.
    */
   hospitalPool: HospitalCandidate[];
 }> {
   const [lat, lon] = centre;
   // Loaded alongside Photon, not before it, so places and roads still start together (it never rejects).
-  const loading = (deps.hospitals ?? loadHospitalSnapshot)();
+  const loading = (deps.hospitals ?? loadHospitals)();
   let els: OsmElement[] = [];
   let nearNote: string | undefined;
   try {
-    // By tag, not by name (photonNear): groceries and trailheads (follow-ups 25 and 24), and hospitals only
-    // when the snapshot couldn't be loaded, both tags (A2c).
+    // By tag, not by name (photonNear): groceries and trailheads (follow-ups 25 and 24).
     const ps = await Promise.all([
       photonNear("shop:supermarket", lat, lon, K.groceryKm, deps),
       photonNear("highway:trailhead", lat, lon, K.trailheadKm, deps),
-      loading.then((snap) =>
-        snap
-          ? []
-          : Promise.all([
-              photonNear("amenity:hospital", lat, lon, K.hospitalKm, deps),
-              photonNear("healthcare:hospital", lat, lon, K.hospitalKm, deps),
-            ]).then((h) => h.flat()),
-      ),
     ]);
     els = ps.flat();
     if (!els.length) throw new Error("returned nothing");
@@ -263,23 +241,9 @@ export async function findPlaces(
   }
   const withPos = els.filter((e) => e.lat || e.center);
   const km = (e: OsmElement) => distance([lon, lat], [opLL(e)[1], opLL(e)[0]], { units: "kilometers" });
-  const snapshot = await loading;
-  const seen = new Set<string>();
-  const hospitalPool: HospitalCandidate[] = snapshot
-    ? hospitalCandidates(snapshot, centre)
-    : withPos
-        .filter((e) => e.tags?.amenity === "hospital" || e.tags?.healthcare === "hospital")
-        .filter((e) => !K.excludeHospital.test(e.tags!.name || ""))
-        .filter((e) => {
-          // One element found by both tags, once.
-          const id = osmIdOf(e);
-          if (id === undefined) return true;
-          if (seen.has(id)) return false;
-          seen.add(id);
-          return true;
-        })
-        .map((e) => ({ name: e.tags!.name || "Hospital", ll: opLL(e), km: km(e) }))
-        .sort((a, b) => a.km - b.km);
+  // No list, no hospital: OpenStreetMap's are never timed (§9.69).
+  const ers = await loading;
+  const hospitalPool: HospitalCandidate[] = ers ? hospitalCandidates(ers, centre) : [];
   const grocers = withPos
     .filter((e) => e.tags?.shop === "supermarket")
     .map((e) => ({

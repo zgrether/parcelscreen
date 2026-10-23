@@ -5,6 +5,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import HOSPITALS_OSM from "@/lib/screen/data/hospitals.json";
 import { erDestinations, ersToConfirm, loadAirports, loadErAdditions, loadErList } from "./data";
 import { CATALOG_BOX } from "./extent";
 
@@ -19,8 +20,13 @@ const boxIn = (text: string, name: string) => {
 };
 
 describe("the catalog's extent", () => {
-  it("is the one each data script was made for", () => {
-    expect(boxIn(script("data-er.mts"), "CATALOG_BOX")).toEqual([...CATALOG_BOX]);
+  it("is the one each data script was made for; the ER list's is the parcel screen's, the OSM snapshot's box", () => {
+    // "… in 33.3,-90.959,40.01,-74.591 (VA, NC and TN widened by 60 km)"
+    const osmBox = / in (-?[0-9.]+),(-?[0-9.]+),(-?[0-9.]+),(-?[0-9.]+) /
+      .exec(HOSPITALS_OSM.source)!
+      .slice(1)
+      .map(Number);
+    expect(boxIn(script("data-er.mts"), "SCREEN_BOX")).toEqual(osmBox);
     expect(boxIn(script("data-airports.mts"), "CATALOG_BOX")).toEqual([...CATALOG_BOX]);
     expect(boxIn(script("data-climate.mts"), "REGION")).toEqual([...CATALOG_BOX]);
   });
@@ -40,6 +46,9 @@ describe("the ER list", () => {
       /^Twin County Regional Hospital, Galax/,
       /^Watauga Medical Center, Boone/,
       /, Linville$/,
+      // Placed by a shared word or by hand (§9.69): the geocoder can't match their addresses.
+      /^Southside Community Hospital, Farmville/,
+      /^North Carolina Baptist Hospital, Winston-Salem/,
     ])
       expect(names.some((x) => n.test(x))).toBe(true);
   });

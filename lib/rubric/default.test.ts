@@ -71,6 +71,46 @@ const split = (want: Recorded1): Recorded1 => ({
 });
 
 /**
+ * §9.69's declared change (the ER follow-up, owner 2026-10-23): the Hospital row times CMS's ERs. On Ferney Creek the
+ * ER is 44 minutes, not 47: the row a C, not a D, and the points 3.25 and 2.85, not 3.2 and 2.75, with the same letter
+ * and verdict. On Macks Mountain it's 80, not 82. Nothing else may differ.
+ */
+const ER_969: Partial<
+  Record<
+    FixtureSlug,
+    { min: [number, number]; grade?: [string, string]; points?: Record<string, [number, number]> }
+  >
+> = {
+  "ferney-creek-52-47A": {
+    min: [47, 44],
+    grade: ["D", "C"],
+    points: { zach: [3.2, 3.25], julie: [2.75, 2.85] },
+  },
+  "macks-mountain-35-3": { min: [82, 80] },
+};
+const ers = (slug: FixtureSlug, want: Recorded1): Recorded1 => {
+  const d = ER_969[slug];
+  if (!d) return want;
+  const [a, b] = d.min;
+  const p = d.points?.[want.person];
+  if (p) expect(want.points).toBe(p[0]);
+  return {
+    ...want,
+    ...(p ? { points: p[1] } : {}),
+    rows: want.rows.map((x) =>
+      x.key === "hospital"
+        ? {
+            ...x,
+            ...(d.grade && x.grade === d.grade[0] ? { grade: d.grade[1] as typeof x.grade } : {}),
+            detail: x.detail.replace(`${a}-minute`, `${b}-minute`),
+            ...(x.short ? { short: x.short.replace(`ER ${a} min`, `ER ${b} min`) } : {}),
+          }
+        : x,
+    ),
+  };
+};
+
+/**
  * Step 7's guard (plan §2): graded at site #1, with the Driveway row as Don't care (it is, on both shipped weight
  * sets), every card is today's, byte for byte. So a grade or verdict that changes can only come from the best site or
  * the Driveway row, the two sources the step declared.
@@ -80,7 +120,7 @@ describe("the default rubric reproduces today's cards (cards-v7.json; a port-onl
     for (const scenario of SCENARIOS[slug])
       for (const nr of PERSONS)
         it(`${slug} ${scenario}, ${nr.id}`, () => {
-          const want = split(recorded(slug)[scenario]![nr.id]!);
+          const want = ers(slug, split(recorded(slug)[scenario]![nr.id]!));
           const { person: _p, ...wantRest } = want;
           const got = comparable(reportCard(expectedOf(slug, scenario), nr, undefined, undefined, { at: 0 }));
           expect(differences(got, wantRest)).toEqual([]);

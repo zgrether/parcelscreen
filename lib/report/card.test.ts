@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import { ZACH, JULIE } from "@/test/support/rubrics";
 import { expectedOf } from "@/test/support/expected";
 import { SCREEN_CONSTANTS } from "../screen/config";
-import { TRAILHEAD_DRIVES } from "../screen/driveList";
+import { NEAREST_HOSPITAL, TRAILHEAD_DRIVES } from "../screen/driveList";
 import { NO_PRACTICAL_ROUTE } from "../screen/score";
 import type { RoadClass, ScreenResult } from "../screen/types";
 import {
@@ -28,7 +28,7 @@ const K = SCREEN_CONSTANTS.card;
 /**
  * Ferney, for the tests of the other gates and rows: its entrance road (a private driveway, 640 ft of it off the
  * parcel, owner #126) taken as its own drive, so the Access gate passes as it did before follow-up 55. The fixture's
- * own test and the private-road test read the real result.
+ * own test and the private-road test read the real result. And its ER at 47 minutes (below).
  */
 const ferney = () => {
   const r = structuredClone(expectedOf("ferney-creek-52-47A", "run"));
@@ -36,6 +36,10 @@ const ferney = () => {
   const e = d.entrances[d.routes[0]!.entranceIndex]!;
   e.roadClass = { ...e.roadClass!, osm: { ...e.roadClass!.osm!, outsideFt: 0 } };
   for (const rt of d.routes) rt.metrics.privateFt = 0;
+  // Its ER at 47 minutes, as the OSM snapshot's position gave it before §9.69 (44 from CMS's): these tests' edges
+  // were set on it.
+  const h = r.drives!.find((x) => x.label === NEAREST_HOSPITAL)!;
+  h.min = 47;
   return r;
 };
 const gates = (r: ScreenResult) => Object.fromEntries(cardFacts(r).gates.map((g) => [g.key, g.status]));
@@ -60,7 +64,7 @@ describe("the report card on the fixtures (engine 13)", () => {
       trails: "D", // follow-up 54: 47 min by road to Buffalo Mountain's parking (it read C, 6.5 mi straight)
       // Step 11: Town and hospital's D was the ER's; the grocery, 15 min, is a B.
       town: "B",
-      hospital: "D",
+      hospital: "C", // §9.69: 44 min to Carilion New River Valley at CMS's position (a D at 47)
       garden: "A",
       climate: "A", // step 11: January lows 24.9 °F, July highs 80.6 °F at site #1
       privacy: "B", // step 11: the nearest house 937 ft away, none in sight
@@ -70,15 +74,15 @@ describe("the report card on the fixtures (engine 13)", () => {
       internet: "A", // step 11: a dish spot 100% clear
     });
     const zach = reportCard(r, ZACH);
-    expect(zach.points).toBeCloseTo(3.2, 9);
+    expect(zach.points).toBeCloseTo(3.25, 9); // §9.69: 3.2 with the Hospital row a D
     expect([zach.grade, zach.verdict]).toEqual(["B", "Contender"]);
     // One warn: the first thing to check (it read: the weakest part, trails and public land).
     expect(zach.reason).toBe(`Contender. Check first: frontage on an unnamed road; ${MARKED_PRIVATE}.`);
     expect(zach.incomplete).toEqual([]);
     // Step 11: Town and hospital's line, split in two.
-    expect(rowOf(r, "hospital").detail).toBe("a 47-minute drive to an ER");
+    expect(rowOf(r, "hospital").detail).toBe("a 44-minute drive to an ER"); // §9.69: 47 at the OSM snapshot's position
     expect(rowOf(r, "town").detail).toBe("a 15-minute drive to a grocery"); // from the entrance
-    expect(reportCard(r, JULIE).points).toBeCloseTo(2.75, 9);
+    expect(reportCard(r, JULIE).points).toBeCloseTo(2.85, 9); // §9.69: 2.75 with the Hospital row a D
     expect(rowOf(r, "garden").detail).toBe("a 2.48 ac garden on prime farmland");
     expect(rowOf(r, "room").detail).toBe(
       "4.3 ac of gentle ground near the house site, 9.4× the build footprint",
@@ -117,7 +121,7 @@ describe("the report card on the fixtures (engine 13)", () => {
     // The nearer grocery is the closer one, 76 min, but over every cutoff.
     // "an" (owner, #124: an approved correction), and the track note appended, as on Trails.
     expect(rowOf(r, "hospital").detail).toBe(
-      "an 82-minute drive to an ER (the first 2.6 mi on unnamed tracks)",
+      "an 80-minute drive to an ER (the first 2.6 mi on unnamed tracks)", // §9.69: 82 before
     );
     expect(rowOf(r, "town").detail).toBe(
       "a 76-minute drive to a grocery (the first 2.6 mi on unnamed tracks)",
@@ -729,7 +733,7 @@ describe("the rows", () => {
 
 describe("config and weights", () => {
   it("a changed cutoff changes the grade", () => {
-    const r = expectedOf("ferney-creek-52-47A", "run");
+    const r = ferney(); // its ER at 47 minutes: 3.45 stays a B until Trails lifts it
     const lower: CardConfig = { ...K, rows: { ...K.rows, elevationFt: [2700, 2500, 2000, 1500] } };
     const c = cardFor(cardFacts(r, lower), ZACH);
     expect(c.rows.find((x) => x.key === "elevation")!.grade).toBe("A");

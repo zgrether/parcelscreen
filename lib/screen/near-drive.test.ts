@@ -147,9 +147,8 @@ describe("places and roads run at the same time", () => {
 // Photon and Overpass both answered in neither fixture's way except Photon-first, so the fallbacks are synthetic.
 describe("places fallbacks (synthetic)", () => {
   const centre: LatLon = [36.9, -80.5];
-  const hospital = { type: "node", lat: 36.95, lon: -80.45, tags: { amenity: "hospital", name: "Carilion" } };
-  /** These exercise Photon and Overpass for hospitals too, which they supply only without the snapshot (A2c). */
-  const noSnapshot = { hospitals: async () => null };
+  // Since §9.69 hospitals never come from Photon or Overpass: a supermarket stands for what they answer.
+  const grocer = { type: "node", lat: 36.95, lon: -80.45, tags: { shop: "supermarket", name: "Food Lion" } };
   const route = (handler: (u: string) => Response | Promise<Response>): HttpClient => ({
     fetch: async (u) => handler(u),
   });
@@ -160,16 +159,15 @@ describe("places fallbacks (synthetic)", () => {
       asked.push(u.split("/")[2]!);
       if (u.includes("photon")) return new Response("down", { status: 503 });
       if (u.includes("overpass-api.de")) return new Response("busy", { status: 504 });
-      return new Response(JSON.stringify({ elements: [hospital] }));
+      return new Response(JSON.stringify({ elements: [grocer] }));
     });
     const mirrors = new OverpassMirrors();
-    const r = await findPlaces(centre, { http, endpoints: DEFAULT_ENDPOINTS, ...noSnapshot }, mirrors);
+    const r = await findPlaces(centre, { http, endpoints: DEFAULT_ENDPOINTS }, mirrors);
     expect(r.nearNote).toBe("Places came from Overpass (Photon was unavailable).");
-    expect(r.near.hospitals[0]!.name).toBe("Carilion");
+    expect(r.near.grocers[0]!.name).toBe("Food Lion");
     // After Photon, the main server (504: not a wait status) → openstreetmap.fr (answers, moves to front).
     expect(asked.filter((h) => !h.includes("photon"))).toEqual([
       "overpass-api.de",
-      "overpass.openstreetmap.fr",
       "overpass.openstreetmap.fr",
       "overpass.openstreetmap.fr",
     ]);
@@ -246,7 +244,7 @@ describe("places fallbacks (synthetic)", () => {
       },
     };
     await findPlaces(centre, { http, endpoints: DEFAULT_ENDPOINTS }, new OverpassMirrors());
-    expect(retries).toEqual([0, 0, 0]);
+    expect(retries).toEqual([0, 0]); // groceries and trailheads; hospitals aren't OSM's (§9.69)
   });
 
   it("when both fail: one error naming both, and no 'test the query' link (A2c: no clean OSM equivalent)", async () => {
@@ -277,15 +275,14 @@ describe("places fallbacks (synthetic)", () => {
       {
         http,
         endpoints: DEFAULT_ENDPOINTS,
-        ...noSnapshot,
-        overpass: async (c) => (calls.push(c), [hospital]),
+        overpass: async (c) => (calls.push(c), [grocer]),
       },
       new OverpassMirrors(),
     );
     expect(calls).toEqual([centre]);
     expect(asked.every((u) => u.includes("photon"))).toBe(true);
     expect(ok.nearNote).toBe("Places came from Overpass (Photon was unavailable).");
-    expect(ok.near.hospitals[0]!.name).toBe("Carilion");
+    expect(ok.near.grocers[0]!.name).toBe("Food Lion");
 
     const failed = await nearStep(centre, null, null, 10, {
       http: route((u) =>

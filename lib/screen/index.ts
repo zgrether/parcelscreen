@@ -110,7 +110,7 @@ export interface ScreenDeps {
   now?: () => Date;
   /** The browser's Overpass fallback (through /api/places/overpass); Node calls the mirrors directly. */
   overpass?: OverpassFallback;
-  /** The hospital snapshot (A2c); injectable so tests can make it fail. Defaults to the committed one. */
+  /** The ERs (§9.69); injectable so tests can make it fail. Defaults to CMS's list with the hand-checked additions. */
   hospitals?: HospitalSource;
   /** The climate snapshot (step 11); injectable as the hospitals' is. Defaults to the committed one. */
   climate?: ClimateSource;
@@ -173,7 +173,7 @@ export interface ScreenSession {
   osmRoads?: OsmWay[];
   /** Every non-chain supermarket the near step found, nearest first: the closer grocery's candidates (#81). */
   otherGrocers?: { name: string; ll: LatLon }[];
-  /** Every candidate hospital, nearest first, with its emergency status when known (A2c). */
+  /** Every candidate hospital, nearest first: the ERs within near.hospitalKm (§9.69). */
   hospitalPool?: HospitalCandidate[];
   soilMask?: Uint8Array;
   flowAcc?: Float32Array;

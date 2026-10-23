@@ -54,7 +54,7 @@ describe("where the drive times start", () => {
   it("appended after the caveat, which stays word for word", () => {
     const v = gettingThereView(expectedOf("ferney-creek-52-47A", "run"))!;
     expect(v.caveat).toBe(
-      "Drive times from OSRM's public router — fine for comparing parcels, not for catching a flight. Places come from OpenStreetMap data (via Photon); trailhead counts undercount national forest access. Roads from the Census Bureau's TIGER lines. Forest Service trailheads and state parks are included too. Drive times start at the driveway's entrance on an unnamed road. OSRM's nearest road is 520 ft from there.",
+      "Drive times from OSRM's public router — fine for comparing parcels, not for catching a flight. Places come from OpenStreetMap data (via Photon); trailhead counts undercount national forest access. Roads from the Census Bureau's TIGER lines. Forest Service trailheads and state parks are included too. Drive times start at the driveway's entrance on an unnamed road. OSRM's nearest road is 520 ft from there. Hospitals with an emergency department come from CMS's list of hospitals, with a hand-checked list of recent openings and closings.",
     );
   });
 });

@@ -1,13 +1,13 @@
 /**
  * Regenerates lib/screen/data/hospitals.json: every OSM hospital (amenity=hospital or healthcare=hospital) in the
  * bounding box of Virginia, North Carolina and Tennessee widened by near.hospitalKm, so a parcel near a state
- * line sees the hospitals across it (owner, #82 review). With the tags the screen reads. Batch A A2c (owner,
- * 2026-10-09); regenerated quarterly (docs/plans/phase-0.md §9.21).
+ * line sees the hospitals across it (owner, #82 review). Batch A A2c (owner, 2026-10-09); regenerated quarterly
+ * (docs/plans/phase-0.md §9.21).
  *
  *   pnpm data:hospitals
  *
- * One Overpass query, run by hand, never in CI. The screen never calls Overpass for hospitals: it reads this
- * snapshot, so there's no runtime endpoint and an emergency department's status comes with it.
+ * One Overpass query, run by hand, never in CI. Since §9.69 the screen doesn't time these: `pnpm data:er` places
+ * CMS's hospitals from it where the geocoder can't, and lists its emergency=yes hospitals CMS lacks, to confirm.
  */
 import { writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";

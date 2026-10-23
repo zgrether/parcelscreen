@@ -1,38 +1,17 @@
 /**
  * The area profiler's two destination lists (step 13, docs/plans/step-13-area-catalog.md §3.4), checked when loaded:
- * the hospitals with an emergency department (CMS Hospital General Information, `pnpm data:er`) and the commercial
- * airports (BTS NTAD, Part 139 Class I with scheduled service, `pnpm data:airports`). The parcel screen reads neither.
+ * the hospitals with an emergency department, the same list parcel screens time (lib/screen/hospitals.ts: CMS Hospital
+ * General Information with the hand-checked additions, `pnpm data:er`; phase-0.md §9.69), and the commercial airports
+ * (BTS NTAD, Part 139 Class I with scheduled service, `pnpm data:airports`).
  */
 import { distance } from "@turf/turf";
 import { z } from "zod";
-import { ADDITION_MATCH_KM, ErAdditionsSchema, type ErAddition } from "../screen/hospitals";
+import { erPlaces, loadErLists, type ErAddition, type ErList } from "../screen/hospitals";
 import { LatLonSchema } from "../screen/types";
 import type { LatLon } from "../geo/types";
+import { CATALOG_BOX } from "./extent";
 
-export const ErListSchema = z.strictObject({
-  source: z.string(),
-  /** CMS's release date of the dataset. */
-  released: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  checked: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  hospitals: z
-    .array(
-      z.strictObject({
-        /** CMS's facility ID (the CCN). */
-        id: z.string(),
-        name: z.string(),
-        city: z.string(),
-        state: z.string().length(2),
-        type: z.string(),
-        ll: LatLonSchema,
-      }),
-    )
-    .min(1),
-  /** CMS hospitals that neither the geocoder nor the OSM snapshot could place: left out. */
-  unplaced: z.array(z.string()),
-  /** OSM emergency=yes hospitals no CMS entry matches (a reopening CMS hasn't listed yet): for review, never timed. */
-  osmOnly: z.array(z.strictObject({ name: z.string(), ll: LatLonSchema })),
-});
-export type ErList = z.infer<typeof ErListSchema>;
+export type { ErList };
 
 export const AirportListSchema = z.strictObject({
   source: z.string(),
@@ -53,36 +32,23 @@ export const AirportListSchema = z.strictObject({
 });
 export type AirportList = z.infer<typeof AirportListSchema>;
 
-let ers: Promise<ErList> | null = null;
 let airports: Promise<AirportList> | null = null;
 
-/** The ER list, once per process. */
-export const loadErList = (): Promise<ErList> =>
-  (ers ??= import("./data/er.json").then((m) => ErListSchema.parse(m.default)));
+/** CMS's ER list, once per process (lib/screen/data/er.json). */
+export const loadErList = (): Promise<ErList> => loadErLists().then(([list]) => list);
 
 /** The airport list, once per process. */
 export const loadAirports = (): Promise<AirportList> =>
   (airports ??= import("./data/airports.json").then((m) => AirportListSchema.parse(m.default)));
 
-/** The hand-checked additions (lib/screen/data/er-additions.json), once per process; none when they don't load. */
-export const loadErAdditions = (): Promise<ErAddition[]> =>
-  import("../screen/data/er-additions.json")
-    .then((m) => ErAdditionsSchema.parse(m.default).hospitals)
-    .catch(() => []);
+/** The hand-checked additions (lib/screen/data/er-additions.json), once per process. */
+export const loadErAdditions = (): Promise<ErAddition[]> => loadErLists().then(([, additions]) => additions);
 
 const km = ([a, b]: LatLon, [c, d]: LatLon) => distance([b, a], [d, c], { units: "kilometers" });
 
-/**
- * Where the profiler times ER drives to (owner, #298 answers): CMS's hospitals with an ER, less any an addition within
- * ADDITION_MATCH_KM says has none, plus the additions with an ER that CMS doesn't have near them.
- */
-export function erDestinations(list: ErList, additions: readonly ErAddition[]): LatLon[] {
-  const near = (a: LatLon, b: LatLon) => km(a, b) <= ADDITION_MATCH_KM;
-  const closed = additions.filter((a) => !a.er);
-  const cms = list.hospitals.map((h) => h.ll).filter((ll) => !closed.some((a) => near(a.ll, ll)));
-  const added = additions.filter((a) => a.er && !cms.some((ll) => near(a.ll, ll))).map((a) => a.ll);
-  return [...cms, ...added];
-}
+/** Where the profiler times ER drives to: the parcel screen's ERs (lib/screen/hospitals.ts erPlaces), as points. */
+export const erDestinations = (list: ErList, additions: readonly ErAddition[]): LatLon[] =>
+  erPlaces(list, additions).map((p) => p.ll);
 
 /** Words too common in hospital names to say two names are the same place. */
 const GENERIC = new Set(
@@ -100,14 +66,26 @@ const VETERANS = /veterans|\bva medical/i;
 const NAME_MATCH_KM = 5;
 
 /**
- * The ERs in OpenStreetMap but not CMS, to confirm by hand (owner, #298 answers): the snapshot's OSM-only list, less
- * those an addition already covers and those CMS has under another name nearby. Listed in the monthly refresh PR,
- * never timed.
+ * How far past the catalog's extent the to-confirm list reaches, in degrees: the ERs that could be an area's nearest. The
+ * list covers the parcel screen's whole extent, mostly with CMS's own hospitals under other names (158 of 200 left, 10/23).
+ */
+const TO_CONFIRM_MARGIN_DEG = 0.25;
+const nearCatalog = ([lat, lon]: LatLon) => {
+  const [s, w, n, e] = CATALOG_BOX;
+  const m = TO_CONFIRM_MARGIN_DEG;
+  return lat > s - m && lat < n + m && lon > w - m && lon < e + m;
+};
+
+/**
+ * The ERs in OpenStreetMap but not CMS, to confirm by hand (owner, #298 answers): the snapshot's OSM-only list near the
+ * catalog, less those an addition already covers and those CMS has under another name nearby. Listed in the monthly
+ * refresh PR, never timed.
  */
 export function ersToConfirm(list: ErList, additions: readonly ErAddition[]): ErList["osmOnly"] {
   // CMS's hospitals it couldn't place: their names, without the town and state.
   const unplaced = list.unplaced.map((u) => words(u.split(",")[0] ?? u));
   return list.osmOnly.filter((o) => {
+    if (!nearCatalog(o.ll)) return false;
     if (additions.some((a) => km(a.ll, o.ll) <= 1.5)) return false;
     // A veterans' hospital's ER isn't open to everyone, which is why CMS's list leaves them out.
     if (VETERANS.test(o.name)) return false;

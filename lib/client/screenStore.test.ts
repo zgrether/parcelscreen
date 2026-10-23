@@ -22,7 +22,7 @@ const record = (engine?: number): ScreenRecord => ({
 
 describe("the engine stamp on a kept screen (Batch A §6)", () => {
   it("Phase 0's rules are version 1, A2a's 2, A2b's 3, A2c's 4, A3's 5, A3b's 6, and a screen kept before the stamp counts as 1", () => {
-    expect(ENGINE_VERSION).toBe(28); // step 11's Long view past 3 mi (#273); 27 its Internet; 26 its Bike to a long trail; 25 its Long view; 24 its Privacy; 23 its Climate (§9.66); 22 schema v9 (step 2, §9.49)
+    expect(ENGINE_VERSION).toBe(29); // the ERs from CMS's list and the additions (§9.69); 28 step 11's Long view past 3 mi (#273); 27 its Internet; 26 its Bike to a long trail; 25 its Long view; 24 its Privacy; 23 its Climate (§9.66); 22 schema v9 (step 2, §9.49)
     expect(engineOf(record())).toBe(1);
     expect(engineOf(record(3))).toBe(3);
   });
@@ -48,9 +48,9 @@ describe("the engine stamp on a kept screen (Batch A §6)", () => {
     expect(fromEarlierRules(record(18))).toBe(true); // schema v7 (follow-up 55), before each site's own sky
     expect(fromEarlierRules(record(19))).toBe(true); // the sky at each site and the house (follow-up 58), before §9.43
     expect(fromEarlierRules(record(21))).toBe(true); // schema v8 (step 1), before v9
-    expect(fromEarlierRules(record(22))).toBe(false); // schema v9 (step 2)
-    // Step 11: its bumps only add measurements, so a screen from 22 on stays current.
-    expect(ENGINE_CURRENT_FROM).toBe(22);
+    expect(fromEarlierRules(record(22))).toBe(true); // schema v9 (step 2), current through step 11 (its bumps only added measurements)
+    expect(fromEarlierRules(record(28))).toBe(true); // step 11's last, before §9.69's ERs changed the Hospital row
+    expect(ENGINE_CURRENT_FROM).toBe(29); // §9.69 changed the Hospital row's numbers
     expect(fromEarlierRules(record(ENGINE_VERSION))).toBe(false);
     expect(fromEarlierRules(record(), 1)).toBe(false); // against Phase 0's rules
     expect(fromEarlierRules(record(2), 2)).toBe(false);

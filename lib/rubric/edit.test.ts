@@ -193,8 +193,9 @@ describe("the weights: explicit until the first reorder, then rank-sum at once (
       const c = reportCard(expectedOf(slug, "run"), { id: "x", name: "x", rubric: r });
       return [Number(c.points!.toFixed(3)), c.grade, c.verdict];
     };
-    expect(pts("ferney-creek-52-47A", D)).toEqual([3.2, "B", "Contender"]);
-    expect(pts("ferney-creek-52-47A", rs)).toEqual([3.179, "B", "Contender"]);
+    // §9.69: Ferney's ER is 44 minutes, not 47 (the Hospital row a C, not a D): 3.2 and 3.179 before.
+    expect(pts("ferney-creek-52-47A", D)).toEqual([3.25, "B", "Contender"]);
+    expect(pts("ferney-creek-52-47A", rs)).toEqual([3.214, "B", "Contender"]);
     // Step 7: Macks is graded at its best site under this order, #3 (3.036 at site #1).
     expect(pts("macks-mountain-35-3", rs)).toEqual([3.214, "B", "Maybe"]);
     expect(pts("grayson-mud-creek-6273", D)).toEqual([3.45, "B", "Contender"]);

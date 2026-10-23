@@ -3,7 +3,8 @@
  * live data has drifted since September, so the fixture isn't re-recorded; `PORT_APPEND=grayson-mud-creek-6273
  * pnpm record:port` adds the missing requests only. The 28 entries recorded before step 2 are pinned here by the hash
  * of their serialization, and every entry after them must be one of the step's new requests. Step 11 appends the same
- * way: OSRM's table for the drive to the nearest long trail (lib/screen/longTrail.ts).
+ * way: OSRM's table for the drive to the nearest long trail (lib/screen/longTrail.ts). And §9.69 (the ER follow-up):
+ * OSRM's table and route out for the drives to CMS's ERs, from the parcel and from the red gate's road end.
  */
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
@@ -27,6 +28,9 @@ const ADDED_11 = /^https:\/\/router\.project-osrm\.org\/table\/v1\/driving\//;
  */
 const ADDED_E2E = /^https:\/\/photon\.komoot\.io\/reverse\?lat=36\.58540768065242&lon=-81\.56344520266869&/;
 
+/** What §9.69 may add: OSRM's table and route for the drives, now to CMS's ERs. */
+const ADDED_ERS = /^https:\/\/router\.project-osrm\.org\/(table|route)\/v1\/driving\//;
+
 describe("Mud Creek's port HAR (step 2: append only)", () => {
   const entries = (JSON.parse(readFileSync(PATH, "utf8")) as Har).log.entries;
 
@@ -35,7 +39,7 @@ describe("Mud Creek's port HAR (step 2: append only)", () => {
     expect(createHash("sha256").update(JSON.stringify(before)).digest("hex")).toBe(BEFORE.sha256);
   });
 
-  it("adds only Tennessee's TREC requests after them, then step 11's long-trail drives, then the e2e point's Photon", () => {
+  it("adds only Tennessee's TREC requests after them, then step 11's long-trail drives, the e2e point's Photon, §9.69's drives", () => {
     const added = entries.slice(BEFORE.entries);
     expect(added.length).toBeGreaterThan(0);
     const trec = added.filter((e) => ADDED.test(e.request.url));
@@ -43,11 +47,16 @@ describe("Mud Creek's port HAR (step 2: append only)", () => {
     // Each step's after the last's: TREC's first, then OSRM's table, then the e2e point's two Photon lookups.
     expect(added.slice(0, trec.length)).toEqual(trec);
     const rest = added.slice(trec.length);
-    const osrm = rest.filter((e) => ADDED_11.test(e.request.url));
+    // Step 11's tables run up to the e2e point's Photon lookups.
+    const at = rest.findIndex((e) => ADDED_E2E.test(e.request.url));
+    const osrm = rest.slice(0, at);
     expect(osrm.length).toBeGreaterThan(0);
-    expect(rest.slice(0, osrm.length)).toEqual(osrm);
-    const photon = rest.slice(osrm.length);
+    for (const e of osrm) expect(e.request.url).toMatch(ADDED_11);
+    const photon = rest.slice(at, at + 2);
     expect(photon).toHaveLength(2);
     for (const e of photon) expect(e.request.url).toMatch(ADDED_E2E);
+    const ers = rest.slice(at + 2);
+    expect(ers).toHaveLength(4); // a table and a route out, from each drive start
+    for (const e of ers) expect(e.request.url).toMatch(ADDED_ERS);
   });
 });
