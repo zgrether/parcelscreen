@@ -44,7 +44,7 @@ jobs:
         run: pnpm areas:profile
       - id: summary
         name: What moved
-        run: node scripts/areas-summary.mts tmp/areas-before public/areas/v1 tmp/areas-summary.md tmp/ers-to-confirm.json >> "$GITHUB_OUTPUT"
+        run: node scripts/areas-summary.mts tmp/areas-before public/areas/v1 tmp/areas-summary.md tmp/ers-to-confirm.json tmp/er-overrides-can-remove.json >> "$GITHUB_OUTPUT"
       - id: ers
         name: Did the parcel screen's ER list change
         run: |

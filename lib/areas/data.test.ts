@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import HOSPITALS_OSM from "@/lib/screen/data/hospitals.json";
-import { erDestinations, ersToConfirm, loadAirports, loadErAdditions, loadErList } from "./data";
+import { erDestinations, ersToConfirm, loadAirports, loadErOverrides, loadErList } from "./data";
 import { CATALOG_BOX } from "./extent";
 
 const script = (name: string) => readFileSync(join(process.cwd(), "scripts", name), "utf8");
@@ -62,30 +62,31 @@ describe("the airport list", () => {
 });
 
 describe("the ERs the profiler times, and those to confirm (owner, #298 answers)", () => {
-  it("CMS's, with the hand-checked additions: Stuart Community is timed", async () => {
+  it("CMS's, with the hand-checked overrides: Stuart Community is timed", async () => {
     const list = await loadErList();
-    const additions = await loadErAdditions();
-    const dest = erDestinations(list, additions);
+    const overrides = await loadErOverrides();
+    const dest = erDestinations(list, overrides);
     expect(dest.length).toBe(list.hospitals.length + 1);
     expect(dest).toContainEqual([36.646318, -80.254812]);
   });
 
-  it("an addition without an ER takes CMS's hospital near it off the list", async () => {
+  it("a closed override takes CMS's hospital off the areas' list too", async () => {
     const list = await loadErList();
     const h = list.hospitals[0]!;
     const closed = {
-      name: "Closed",
+      status: "closed" as const,
+      id: h.id,
+      name: h.name,
       ll: h.ll,
-      er: false,
       source: "https://example.org",
       checked: "2026-10-23",
     };
     expect(erDestinations(list, [closed])).not.toContainEqual(h.ll);
   });
 
-  it("to confirm: OSM's ERs that CMS lacks, less the additions and CMS's own under another name", async () => {
+  it("to confirm: OSM's ERs that CMS lacks, less the overrides and CMS's own under another name", async () => {
     const list = await loadErList();
-    const names = ersToConfirm(list, await loadErAdditions()).map((o) => o.name);
+    const names = ersToConfirm(list, await loadErOverrides()).map((o) => o.name);
     expect(names).not.toContain("Stuart Community Hospital");
     expect(names.length).toBeLessThan(list.osmOnly.length);
   });

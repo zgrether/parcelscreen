@@ -1,12 +1,12 @@
 /**
  * The area profiler's two destination lists (step 13, docs/plans/step-13-area-catalog.md §3.4), checked when loaded:
  * the hospitals with an emergency department, the same list parcel screens time (lib/screen/hospitals.ts: CMS Hospital
- * General Information with the hand-checked additions, `pnpm data:er`; phase-0.md §9.69), and the commercial airports
+ * General Information with the hand-checked overrides, `pnpm data:er`; phase-0.md §9.69), and the commercial airports
  * (BTS NTAD, Part 139 Class I with scheduled service, `pnpm data:airports`).
  */
 import { distance } from "@turf/turf";
 import { z } from "zod";
-import { erPlaces, loadErLists, type ErAddition, type ErList } from "../screen/hospitals";
+import { erPlaces, loadErLists, type ErOverride, type ErList } from "../screen/hospitals";
 import { LatLonSchema } from "../screen/types";
 import type { LatLon } from "../geo/types";
 import { CATALOG_BOX } from "./extent";
@@ -41,14 +41,14 @@ export const loadErList = (): Promise<ErList> => loadErLists().then(([list]) => 
 export const loadAirports = (): Promise<AirportList> =>
   (airports ??= import("./data/airports.json").then((m) => AirportListSchema.parse(m.default)));
 
-/** The hand-checked additions (lib/screen/data/er-additions.json), once per process. */
-export const loadErAdditions = (): Promise<ErAddition[]> => loadErLists().then(([, additions]) => additions);
+/** The hand-checked overrides (lib/screen/data/er-overrides.json), once per process. */
+export const loadErOverrides = (): Promise<ErOverride[]> => loadErLists().then(([, overrides]) => overrides);
 
 const km = ([a, b]: LatLon, [c, d]: LatLon) => distance([b, a], [d, c], { units: "kilometers" });
 
 /** Where the profiler times ER drives to: the parcel screen's ERs (lib/screen/hospitals.ts erPlaces), as points. */
-export const erDestinations = (list: ErList, additions: readonly ErAddition[]): LatLon[] =>
-  erPlaces(list, additions).map((p) => p.ll);
+export const erDestinations = (list: ErList, overrides: readonly ErOverride[]): LatLon[] =>
+  erPlaces(list, overrides).map((p) => p.ll);
 
 /** Words too common in hospital names to say two names are the same place. */
 const GENERIC = new Set(
@@ -78,15 +78,15 @@ const nearCatalog = ([lat, lon]: LatLon) => {
 
 /**
  * The ERs in OpenStreetMap but not CMS, to confirm by hand (owner, #298 answers): the snapshot's OSM-only list near the
- * catalog, less those an addition already covers and those CMS has under another name nearby. Listed in the monthly
+ * catalog, less those an override already covers and those CMS has under another name nearby. Listed in the monthly
  * refresh PR, never timed.
  */
-export function ersToConfirm(list: ErList, additions: readonly ErAddition[]): ErList["osmOnly"] {
+export function ersToConfirm(list: ErList, overrides: readonly ErOverride[]): ErList["osmOnly"] {
   // CMS's hospitals it couldn't place: their names, without the town and state.
   const unplaced = list.unplaced.map((u) => words(u.split(",")[0] ?? u));
   return list.osmOnly.filter((o) => {
     if (!nearCatalog(o.ll)) return false;
-    if (additions.some((a) => km(a.ll, o.ll) <= 1.5)) return false;
+    if (overrides.some((a) => km(a.ll, o.ll) <= 1.5)) return false;
     // A veterans' hospital's ER isn't open to everyone, which is why CMS's list leaves them out.
     if (VETERANS.test(o.name)) return false;
     const mine = new Set(words(o.name));

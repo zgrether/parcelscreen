@@ -3,7 +3,7 @@
  * (komoot), with the Overpass mirrors as a fallback. Ported verbatim (proto L861–882, L1111–1128).
  *
  * Hospitals aren't OpenStreetMap's (the ER follow-up, owner 2026-10-23; phase-0.md §9.69): they're the emergency
- * departments of CMS's list with the hand-checked additions (hospitals.ts), the list the area catalog times. Photon
+ * departments of CMS's list with the hand-checked overrides (hospitals.ts), the list the area catalog times. Photon
  * and Overpass supply groceries and trailheads only.
  *
  * Deviation (step 13 CORS check): no Overpass mirror answers a browser any more (overpass-api.de sends 406
@@ -32,7 +32,7 @@ export interface PlacesDeps {
   sleep?: (ms: number) => Promise<void>;
   /** When set, replaces calling the Overpass mirrors directly. */
   overpass?: OverpassFallback;
-  /** The ERs; injectable so tests can make it fail. Defaults to the committed list with the additions. */
+  /** The ERs; injectable so tests can make it fail. Defaults to the committed list with the overrides. */
   hospitals?: HospitalSource;
 }
 

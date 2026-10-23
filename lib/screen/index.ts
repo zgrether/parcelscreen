@@ -110,7 +110,7 @@ export interface ScreenDeps {
   now?: () => Date;
   /** The browser's Overpass fallback (through /api/places/overpass); Node calls the mirrors directly. */
   overpass?: OverpassFallback;
-  /** The ERs (§9.69); injectable so tests can make it fail. Defaults to CMS's list with the hand-checked additions. */
+  /** The ERs (§9.69); injectable so tests can make it fail. Defaults to CMS's list with the hand-checked overrides. */
   hospitals?: HospitalSource;
   /** The climate snapshot (step 11); injectable as the hospitals' is. Defaults to the committed one. */
   climate?: ClimateSource;

@@ -28,6 +28,7 @@ import { AREA_HAR, MUD_HAR, profileDeps, recordingFetch, RECORDED } from "../sup
 import { loadHar, type HarEntry } from "../support/replayFetch";
 import { scrubHar } from "../support/scrubHar";
 import { ersToConfirm } from "@/lib/areas/data";
+import { closedCmsDropped } from "@/lib/screen/hospitals";
 
 const live = () =>
   (globalThis as unknown as Record<symbol, typeof fetch>)[Symbol.for("parcelscreen.liveFetch")]!;
@@ -103,7 +104,12 @@ describe.runIf(import.meta.env.MODE === "areas")("profile the areas, live", () =
       mkdirSync(join(process.cwd(), "tmp"), { recursive: true });
       writeFileSync(
         join(process.cwd(), "tmp", "ers-to-confirm.json"),
-        JSON.stringify(ersToConfirm(deps.ers, deps.erAdditions).map(({ name, ll }) => ({ name, ll }))),
+        JSON.stringify(ersToConfirm(deps.ers, deps.erOverrides).map(({ name, ll }) => ({ name, ll }))),
+      );
+      // The closed overrides whose hospital CMS has since dropped, for the refresh PR to list (owner, #300).
+      writeFileSync(
+        join(process.cwd(), "tmp", "er-overrides-can-remove.json"),
+        JSON.stringify(closedCmsDropped(deps.ers, deps.erOverrides).map(({ name, id }) => ({ name, id }))),
       );
       // Every area failing is the run failing; one or two is a warning (the refresh PR lists them).
       expect(failed.length).toBeLessThan(defs.length);

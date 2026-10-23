@@ -251,7 +251,7 @@ const hospitals = kept
 
 // 5. OSM's emergency=yes hospitals in the extent that no CMS entry lies within OSM_MATCH_KM of: CMS lags a reopening
 // (Stuart Community, January 2026). Listed for review in the monthly refresh PR (lib/areas/data.ts ersToConfirm), never
-// timed: one confirmed goes into lib/screen/data/er-additions.json.
+// timed: one confirmed goes into lib/screen/data/er-overrides.json.
 const OSM_MATCH_KM = 1.5;
 const osmOnly = osm
   .filter((o) => o.tags?.emergency === "yes" && near([o.lat, o.lon]))

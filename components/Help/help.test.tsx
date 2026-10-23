@@ -29,7 +29,7 @@ function prototypeHelp(): string {
 /**
  * Corrections the owner approved, as [the prototype's text, ours]. A3b (2026-10-09): driveways are routed since A3,
  * so the help no longer says the driveway line is straight-line rise over run. §9.69 (2026-10-23, a factual fix under
- * rule 7): the ERs come from CMS's list with the hand-checked additions, not OpenStreetMap.
+ * rule 7): the ERs come from CMS's list with the hand-checked overrides, not OpenStreetMap.
  */
 const APPROVED: [string, string][] = [
   [

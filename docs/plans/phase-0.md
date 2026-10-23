@@ -1117,6 +1117,15 @@ until step 5 (Q14).
       come from OpenStreetMap, which undercounts national-forest trailheads. Hospitals with an emergency department
       come from CMS's list of hospitals, with a hand-checked list of recent openings and closings." The to-confirm
       list near the catalog is the owner's choice too (#300).
+    - **The overrides** (owner, #300): `lib/screen/data/er-additions.json` is now `lib/screen/data/er-overrides.json`,
+      because its entries can close as well as add. Each has a `status`, a source URL and the date checked:
+      - `"open"`: an ER CMS doesn't list yet, with its name and coordinates. It's timed unless CMS has a hospital
+        within 1 km. Stuart Community Hospital is the only entry today.
+      - `"closed"`: a CMS hospital that no longer has an ER, named by its CMS facility ID, or else by its name within
+        1 km of its coordinates. It's taken off the timed list for parcels and areas.
+      - The monthly refresh PR lists any closed entry whose hospital CMS has since dropped, under "Closed overrides
+        CMS has since dropped: can be removed". It isn't a change in itself.
+      - No numbers change: no closure is known today.
       " — emergency department not listed in OpenStreetMap" stays for stored screens; a new screen never has it.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

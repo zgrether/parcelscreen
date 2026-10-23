@@ -1,6 +1,6 @@
 /**
  * The ERs the drive step times (the ER follow-up, owner 2026-10-23; phase-0.md §9.69): CMS's hospitals with an
- * emergency department and the hand-checked additions, the list the area catalog times. OpenStreetMap's are never timed.
+ * emergency department and the hand-checked overrides, the list the area catalog times. OpenStreetMap's are never timed.
  */
 import HOSPITALS_OSM from "./data/hospitals.json";
 import { HOSPITAL_SNAPSHOT_MARKER } from "./hospitalsMarker";
@@ -10,11 +10,13 @@ import { DEFAULT_ENDPOINTS, SCREEN_CONSTANTS } from "./config";
 import { driveTimes } from "./drive";
 import { driveName, ER_NOT_LISTED, NEAREST_HOSPITAL } from "./driveList";
 import {
+  closedCmsDropped,
   erPlaces,
   hospitalCandidates,
   loadErLists,
   loadHospitals,
   type ErList,
+  type ErOverride,
   type ErPlace,
   type HospitalCandidate,
 } from "./hospitals";
@@ -34,7 +36,7 @@ describe("the committed list", () => {
     // Never one whose emergency room isn't open to everyone.
     expect(list.hospitals.some((h) => /psychiatric|childrens|veterans|defense/i.test(h.type))).toBe(false);
     const ers = (await loadHospitals())!;
-    expect(ers.length).toBe(list.hospitals.length + 1); // Stuart Community, from the additions
+    expect(ers.length).toBe(list.hospitals.length + 1); // Stuart Community, from the overrides
   });
 
   it("candidates: the name filter, within hospitalKm, nearest first, every one an ER", () => {
@@ -51,33 +53,105 @@ describe("the committed list", () => {
       ["Far Regional", true],
     ]);
   });
+});
 
-  it("an addition without an ER takes CMS's hospital near it off; one with an ER CMS lacks is added", () => {
-    const list = {
-      hospitals: [
-        { id: "1", name: "Open", city: "", state: "VA", type: "", ll: [36, -81] as LatLon },
-        { id: "2", name: "Closed since", city: "", state: "VA", type: "", ll: [36.5, -81] as LatLon },
-      ],
-    } as ErList;
-    const add = (name: string, ll: LatLon, er: boolean) => ({
-      name,
-      ll,
-      er,
-      source: "https://example.org",
-      checked: "2026-10-23",
-    });
+describe("the hand-checked overrides (owner, #300): open adds an ER CMS lacks, closed takes one of CMS's off", () => {
+  const list = {
+    hospitals: [
+      { id: "1", name: "Open Regional", city: "", state: "VA", type: "", ll: [36, -81] as LatLon },
+      { id: "2", name: "Closed Since", city: "", state: "VA", type: "", ll: [36.5, -81] as LatLon },
+    ],
+  } as ErList;
+  const at = { source: "https://example.org", checked: "2026-10-23" };
+  const open = (name: string, ll: LatLon): ErOverride => ({ status: "open", name, ll, ...at });
+  const closed = (name: string, ll: LatLon, id?: string): ErOverride => ({
+    status: "closed",
+    name,
+    ll,
+    ...(id ? { id } : {}),
+    ...at,
+  });
+  const names = (o: ErOverride[]) => erPlaces(list, o).map((p) => p.name);
+
+  it("open: added where CMS has nothing within 1 km, and not twice where it has", () => {
+    expect(names([open("Reopened", [36.2, -80.2])])).toEqual(["Open Regional", "Closed Since", "Reopened"]);
+    expect(names([open("Open Regional (new wing)", [36.003, -81.002])])).toEqual([
+      "Open Regional",
+      "Closed Since",
+    ]);
+  });
+
+  it("closed: by CMS's ID wherever its coordinates say, or by its name within 1 km", () => {
+    expect(names([closed("anything", [0, 0], "2")])).toEqual(["Open Regional"]);
+    expect(names([closed("closed since", [36.5004, -81.0004])])).toEqual(["Open Regional"]);
+    // The name 5 km off, or another name at the spot: not this hospital.
+    expect(names([closed("Closed Since", [36.545, -81])])).toEqual(["Open Regional", "Closed Since"]);
+    expect(names([closed("Another", [36.5, -81])])).toEqual(["Open Regional", "Closed Since"]);
+  });
+
+  it("the monthly refresh's 'can be removed': a closed override whose hospital CMS no longer lists", () => {
+    const gone = closed("Gone From CMS", [37, -80], "9");
     expect(
-      erPlaces(list, [
-        add("Closed since", [36.5004, -81.0004], false),
-        add("Reopened", [36.2, -80.2], true),
-      ]).map((p) => p.name),
-    ).toEqual(["Open", "Reopened"]);
+      closedCmsDropped(list, [closed("Closed Since", [36.5, -81], "2"), gone, open("X", [36.2, -80.2])]),
+    ).toEqual([gone]);
   });
 });
 
-describe("a closed hospital absent from CMS and not in the additions is never timed (owner, 2026-10-23)", () => {
+describe("a CMS hospital marked closed is never timed (owner, #300)", () => {
+  // Carilion New River Valley, Ferney Creek's ER (44 min), as if it had closed.
+  const FERNEY: LatLon = [36.8872, -80.4535];
+
+  it("leaves the candidates, and OSRM is never asked the way there", async () => {
+    const [list, overrides] = await loadErLists();
+    const nrv = list.hospitals.find((h) => h.name === "Carilion New River Valley Medical Center")!;
+    const shut: ErOverride = {
+      status: "closed",
+      id: nrv.id,
+      name: nrv.name,
+      ll: nrv.ll,
+      source: "https://example.org",
+      checked: "2026-10-23",
+    };
+    const before = hospitalCandidates(erPlaces(list, overrides), FERNEY);
+    expect(before[0]!.name).toBe(nrv.name);
+    const pool = hospitalCandidates(erPlaces(list, [...overrides, shut]), FERNEY);
+    expect(pool.some((h) => km(h.ll, nrv.ll) <= 1)).toBe(false);
+    const asked: string[] = [];
+    const http: HttpClient = {
+      fetch: async (url) => {
+        asked.push(url);
+        const n = url.split(";").length - 1;
+        return Response.json({
+          code: "Ok",
+          durations: [Array.from({ length: n }, () => 1200)],
+          distances: [Array.from({ length: n }, () => 15000)],
+          routes: [{ duration: 1200, distance: 15000 }],
+        });
+      },
+    };
+    const near = { hospitals: [], grocers: [], trailheads: [], trailheadCount: 0 };
+    const { drives } = await driveTimes(
+      FERNEY,
+      near,
+      [],
+      { http, endpoints: DEFAULT_ENDPOINTS },
+      { hospitals: pool },
+    );
+    expect(drives.find((d) => d.label === NEAREST_HOSPITAL)!.name).not.toBe(nrv.name);
+    const points = asked.flatMap((u) =>
+      [...new URL(u).pathname.matchAll(/(-?[0-9.]+),(-?[0-9.]+)/g)].map((m): LatLon => [
+        Number(m[2]),
+        Number(m[1]),
+      ]),
+    );
+    expect(points.length).toBeGreaterThan(1);
+    expect(points.some((p) => km(p, nrv.ll) <= 1)).toBe(false);
+  });
+});
+
+describe("a closed hospital absent from CMS and not in the overrides is never timed (owner, 2026-10-23)", () => {
   // Unicoi County Hospital, Erwin: closed after Helene (its replacement broke ground in August 2026). OpenStreetMap
-  // still has it (amenity=hospital, access=no, no emergency tag); CMS's list doesn't, and neither do the additions.
+  // still has it (amenity=hospital, access=no, no emergency tag); CMS's list doesn't, and neither do the overrides.
   const unicoi = HOSPITALS_OSM.hospitals.find((h) => h.name === "Unicoi County Hospital")!;
   const UNICOI: LatLon = [unicoi.lat, unicoi.lon];
   const ERWIN: LatLon = [36.1451, -82.4168];
