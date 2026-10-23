@@ -135,6 +135,7 @@ components/               Map/, Results/ (one component per section), Ground/, L
 lib/screen/               the pipeline (pure TS): dem.ts terrain.ts sites.ts sun.ts sky.ts soils.ts
                           flood.ts padus.ts places.ts roads.ts score.ts config.ts types.ts index.ts
 lib/screen/worker.ts      Web Worker entry: runs screen() and posts step progress
+lib/areas/                the area catalog (step 13): the areas, the headless profiler, scoring by rubric (pure TS)
 lib/geo/                  utm.ts parcels.ts (NC/VA/TN services) split.ts wkt.ts
 lib/connectors/           types.ts registry.ts gmail.ts hibid.ts firm-page.ts
 lib/http.ts               throttled fetch
