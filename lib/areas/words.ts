@@ -147,6 +147,7 @@ export const AREA_WORDS = {
   showFewer: "Show fewer",
   fit: (g: string) => `Fit ${g}`,
   showParcel: "Show me a parcel here",
+  tradeOff: "Trade-off:",
   star: "Star this area",
   starred: "Starred",
   typical: (n: number) => `On a typical piece of rural land here (the median of ${n} points).`,

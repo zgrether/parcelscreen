@@ -35,6 +35,7 @@ import { PEEK, PEEK_ANSWER, PEEK_WITH_ACTION, SHEET_QUERY, useBottomSheet } from
 import { ExploreContext, useExploreController } from "./useExploreController";
 import { Details } from "@/components/Parcel/Details";
 import { NOT_GRADED, ParcelSwitch, SHOW_BOUNDARY } from "@/components/Parcel/ParcelSwitch";
+import { AreaBox } from "@/components/Areas/AreaBox";
 
 /** The docked panel's width (desktop; step 4c). */
 const DOCK_W = 380;
@@ -265,6 +266,12 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
               {docked && (
                 <div className="dock-search">
                   <Search docked photonUrl={config.endpoints.photon} hint={setHint} />
+                </div>
+              )}
+              {/* Step 13: with nothing open, where to look. */}
+              {docked && !parcelOpen && (
+                <div className="dock-areas">
+                  <AreaBox where="map" />
                 </div>
               )}
               {(!docked || parcelOpen) && (

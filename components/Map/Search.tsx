@@ -21,6 +21,7 @@ import { currentProfileId } from "@/lib/client/profiles";
 import { flash, useExplore, type SetHint } from "@/components/Explore/useExploreController";
 import { PRECISION_ZOOM, readListingUrl, type ListingRead } from "@/lib/client/listingUrl";
 import { countiesShown, parcelServiceDown } from "./useParcelLines";
+import { AreaBox } from "@/components/Areas/AreaBox";
 
 /** Network searches wait this long after the last keystroke. */
 const DEBOUNCE_MS = 300;
@@ -388,6 +389,13 @@ function SearchBox({
       {groups.length > 0 && (
         <div className="search-results" id={listId} role="listbox" aria-label="Search results">
           {rows}
+        </div>
+      )}
+      {/* Step 13: a phone's empty search, with nothing open, suggests where to look (the docked panel shows it
+          under the box). */}
+      {!docked && !text && !ctl.state.store.open && (
+        <div className="search-areas">
+          <AreaBox where="map" onShow={close} />
         </div>
       )}
     </div>

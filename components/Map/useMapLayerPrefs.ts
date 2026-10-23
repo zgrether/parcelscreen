@@ -19,6 +19,8 @@ export interface MapLayerPrefs {
   marks: boolean;
   /** Not saved: off at each visit (13f). */
   lightPollution: boolean;
+  /** Step 13: every area's outline (starred areas' show whatever this says). */
+  areas: boolean;
 }
 
 /** Topo and Streets already draw roads and names: the overlay is for the aerials (owner, 17d §7). */
@@ -35,6 +37,7 @@ function read(): MapLayerPrefs {
     lines: getPref("ps.lines"),
     marks: getPref("ps.marks"),
     lightPollution: false,
+    areas: getPref("ps.areas"),
   };
 }
 
@@ -49,6 +52,7 @@ export function setMapLayerPrefs(patch: Partial<MapLayerPrefs>): void {
   if (patch.dim !== undefined) setPref("ps.dim", patch.dim);
   if (patch.lines !== undefined) setPref("ps.lines", patch.lines);
   if (patch.marks !== undefined) setPref("ps.marks", patch.marks);
+  if (patch.areas !== undefined) setPref("ps.areas", patch.areas);
   listeners.forEach((l) => l());
 }
 
