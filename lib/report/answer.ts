@@ -13,6 +13,7 @@ import { weightsOf } from "../rubric/weights";
 import type { RowKey } from "../rubric/types";
 import { EDITOR_TITLES } from "../rubric/words";
 import { VERDICT_WORD, type Card, type Row } from "./card";
+import { letterText, shownLetter } from "./adjust";
 
 /** Each row as a strength, after "Strong". */
 export const STRENGTH: Record<RowKey, string> = {
@@ -54,7 +55,8 @@ export function missLine(row: Row, card: Card, r: PartialScreenResult): string {
       if (v !== undefined) return `${fmt(v)} ft is below your ${fmt(edge(b.elevationFt))} ft`;
       break;
     case "homesite":
-      if (v !== undefined) return `the best homesite grades ${row.grade} (${fmt(v, 1)} h of December sun)`;
+      if (v !== undefined)
+        return `the best homesite grades ${letterText(shownLetter(card, row.key))} (${fmt(v, 1)} h of December sun)`;
       break;
     case "sky":
       if (v !== undefined)

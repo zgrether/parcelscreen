@@ -9,6 +9,9 @@ export const ADJUSTED_TITLE = "Adjusted for this parcel";
 /** A set-aside row's or Must's line. */
 export const SET_ASIDE_WORDS = "set aside for this parcel";
 
+/** A set-aside row where a letter would be, in a sentence ("you set aside ✎, Julie B"). */
+export const SET_ASIDE_SHORT = "set aside";
+
 const STATUS_WORDS: Record<string, string> = {
   pass: "Pass",
   warn: "Check first",
@@ -42,6 +45,15 @@ export const ADJUST_WORDS = {
   /** The app's own letter among the chips. */
   appsLetter: "The app's grade",
 } as const;
+
+/**
+ * Where an override on a site row applies (owner, 2026-10-22): the parcel's graded site only, or the marked house that
+ * stands for it. Said at the top of the row's adjust section.
+ */
+export const APPLIES_AT = (site: number | "house"): string =>
+  site === "house"
+    ? "Applies to your marked house, where this parcel is graded."
+    : `Applies to this parcel's graded site, #${site}.`;
 
 /** What an existing adjustment did, in the panel: "You set it to B; the app says D." */
 export function adjustedWords(

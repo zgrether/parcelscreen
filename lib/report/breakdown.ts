@@ -7,11 +7,14 @@
 import { verdictLines } from "../rubric/grade";
 import { weightsOf } from "../rubric/weights";
 import type { Card, Letter, RowKey } from "./card";
+import { shownLetter } from "./adjust";
 
 export interface BreakdownRow {
   key: RowKey;
   label: string;
   grade: Letter;
+  /** The person's override on this parcel (step 12): marked ✎ (adjust.ts shownLetter). */
+  adjusted: boolean;
   /** The row's weight as a share of the graded rows' weights (0–1). */
   share: number;
   /** Points earned and lost toward the parcel's grade: share × points, share × (A's points − points). */
@@ -45,6 +48,7 @@ export function breakdown(card: Card): Breakdown | null {
       key: r.key,
       label: r.label,
       grade: r.grade,
+      adjusted: shownLetter(card, r.key)?.adjusted ?? false,
       share,
       earned: share * pts,
       lost: share * (max - pts),

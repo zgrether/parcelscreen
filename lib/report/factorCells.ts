@@ -8,6 +8,7 @@ import { EDITOR_TITLES, SHORT_TITLES } from "../rubric/words";
 import type { Card, GateStatus } from "./card";
 import { GATE_MARK, MUST_STATUS_WORD, mustLines, mustText, shownRankedRows } from "./cardLines";
 import { SET_ASIDE_READING } from "./adjustWords";
+import { shownLetter } from "./adjust";
 
 export interface FactorCell {
   key: Factor;
@@ -57,17 +58,21 @@ export function factorCells(card: Card): FactorCell[] {
     };
   });
   const { should, could } = shownRankedRows(card);
-  const grades = [...should, ...could].map((r): FactorCell => ({
-    key: r.key,
-    short: SHORT_TITLES[r.key],
-    title: EDITOR_TITLES[r.key],
-    kind: "grade",
-    grade: r.grade,
-    text: r.grade ?? "–",
-    detail: r.detail,
-    score: r.grade ? points[r.grade] : null,
-    ...(r.adjusted ? { adjusted: true as const } : {}),
-  }));
+  const grades = [...should, ...could].map((r): FactorCell => {
+    // The letter every view shows (adjust.ts shownLetter): the person's override, marked ✎.
+    const l = shownLetter(card, r.key)!;
+    return {
+      key: r.key,
+      short: SHORT_TITLES[r.key],
+      title: EDITOR_TITLES[r.key],
+      kind: "grade",
+      grade: l.grade,
+      text: l.grade ?? "–",
+      detail: r.detail,
+      score: l.grade ? points[l.grade] : null,
+      ...(l.adjusted ? { adjusted: true as const } : {}),
+    };
+  });
   // Step 12: what the person set aside here keeps its column, empty and marked.
   const aside = (card.setAside ?? []).map((x): FactorCell => ({
     key: x.key,

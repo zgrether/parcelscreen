@@ -7,7 +7,7 @@ import type { LatLon } from "../geo/types";
 import type { Factor, Letter, Rubric } from "../rubric/types";
 import { EDITOR_TITLES } from "../rubric/words";
 import type { PartialScreenResult } from "../screen/types";
-import { adjustKey, type Adjustment } from "./adjust";
+import { adjustKey, type Adjustment, letterText, shownLetter } from "./adjust";
 import { reportCard, VERDICT_WORD, type Card, type Verdict } from "./card";
 import { mustLines } from "./cardLines";
 import { costRange } from "./cost";
@@ -71,7 +71,7 @@ export function effectWords(a: Card, b: Card): string {
     const was = a.rows.find((x) => x.key === row.key)?.grade ?? null;
     if (row.grade !== was && row.grade)
       moved.push({
-        words: `${row.label} ${was ?? "–"} → ${row.grade}`,
+        words: `${row.label} ${letterText(shownLetter(a, row.key))} → ${letterText(shownLetter(b, row.key))}`,
         by: letterRank(row.grade) - letterRank(was),
       });
   }

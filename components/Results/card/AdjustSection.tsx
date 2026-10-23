@@ -6,7 +6,8 @@
  */
 import { useId, useState } from "react";
 import { ADJUST_REASON_MAX, adjustKey, type Adjustment } from "@/lib/report/adjust";
-import { ADJUST_WORDS as W, adjustedWords } from "@/lib/report/adjustWords";
+import { ADJUST_WORDS as W, adjustedWords, APPLIES_AT } from "@/lib/report/adjustWords";
+import { SITE_ROWS } from "@/lib/report/sites";
 import type { Card, GateStatus } from "@/lib/report/card";
 import { appValue } from "@/lib/report/cardLines";
 import { GATE_KEYS, MINE, ROW_KEYS, type Factor, type Letter } from "@/lib/rubric/types";
@@ -32,6 +33,8 @@ export interface AdjustProps {
   undo(a: Adjustment): void;
   /** Opened from a suggestion (step 12 §2): its choice made and its reason prefilled, still to be saved. */
   initial?: { choice: "pass" | "setAside"; reason: string } | null;
+  /** A site row's: the site the card is graded at, where the override applies (owner, 2026-10-22). */
+  site?: number | "house" | null;
 }
 
 export function AdjustSection({
@@ -44,6 +47,7 @@ export function AdjustSection({
   remove,
   undo,
   initial,
+  site,
 }: AdjustProps) {
   const [choice, setChoice] = useState<Choice | null>(() =>
     !initial || existing
@@ -67,6 +71,7 @@ export function AdjustSection({
   return (
     <section className="adjust" aria-labelledby={`${reasonId}-h`} data-factor={factor}>
       <h3 id={`${reasonId}-h`}>{W.title}</h3>
+      {site != null && <p className="tiny muted adjust-site">{APPLIES_AT(site)}</p>}
       {/* The fresh-eyes review: the choices' words alone didn't say how they differ. */}
       {!existing && !removed && !choice && <p className="tiny muted adjust-what">{W.what}</p>}
       {removed ? (
@@ -198,6 +203,8 @@ export function adjustPropsFor(
     restore(a: Adjustment): void;
   },
   initial: AdjustProps["initial"] = null,
+  /** The site the shown card is graded at (adjust.ts gradedSite). */
+  site: number | "house" | null = null,
 ): AdjustProps | null {
   if (!parcel || !me || appCard.rubric.id !== MINE) return null;
   if (!(GATE_KEYS as readonly string[]).includes(panel) && !(ROW_KEYS as readonly string[]).includes(panel))
@@ -228,5 +235,6 @@ export function adjustPropsFor(
     remove: () => writes.remove(key),
     undo: (a) => writes.restore(a),
     initial,
+    ...((SITE_ROWS as readonly string[]).includes(factor) && site !== null ? { site } : {}),
   };
 }

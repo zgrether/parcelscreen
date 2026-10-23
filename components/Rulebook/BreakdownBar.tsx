@@ -5,6 +5,7 @@
  */
 import { fmt } from "@/lib/format";
 import type { Breakdown } from "@/lib/report/breakdown";
+import { ADJUSTED_TITLE } from "@/lib/report/adjustWords";
 
 const at = (v: number, max: number) => `${(v / max) * 100}%`;
 
@@ -54,6 +55,11 @@ export function BreakdownBar({ b }: { b: Breakdown }) {
                 </th>
                 <td>
                   <span className={`card-grade small g-${r.grade}`}>{r.grade}</span>
+                  {r.adjusted && (
+                    <span className="adjusted-mark" title={ADJUSTED_TITLE} aria-label={ADJUSTED_TITLE}>
+                      ✎
+                    </span>
+                  )}
                 </td>
                 <td>{fmt(r.share * 100)}%</td>
                 <td>+{fmt(r.earned, 2)}</td>

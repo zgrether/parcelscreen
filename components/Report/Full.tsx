@@ -47,7 +47,8 @@ import { LongTrails } from "@/components/Results/blocks/LongTrails";
 import { Internet } from "@/components/Results/blocks/Internet";
 import { PRIVACY_SOURCES } from "@/lib/report/privacy";
 import { CLIMATE_SOURCES } from "@/lib/report/climate";
-import { ordinal, SITE_NUMBER, topNumbers } from "@/components/Results/answer/BestHomesite";
+import { ordinal } from "@/components/Results/answer/BestHomesite";
+import { siteMeasures } from "@/lib/report/siteMeasures";
 import { lineNamesOf } from "@/lib/report/lines";
 import { CostBreakdown } from "@/components/Results/card/CostBreakdown";
 
@@ -245,12 +246,7 @@ export function Full({
                   {ordinal(i + 1)} · Site #{s.rank}
                 </b>
                 {": "}
-                {topNumbers(s.rows, card)
-                  .map(
-                    ({ row }) =>
-                      `${SITE_NUMBER[row.key]} ${row.key === "driveway" ? row.detail : (row.short ?? row.detail)}`,
-                  )
-                  .join(" · ")}
+                {siteMeasures(result, s.index)}
               </li>
             ))}
           </ol>
