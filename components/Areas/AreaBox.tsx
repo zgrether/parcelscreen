@@ -11,7 +11,15 @@ import { bbox } from "@turf/turf";
 import { RubricSwitch } from "@/components/Results/card/RubricSwitch";
 import { areaCard, areaLimits, rankAreas, type AreaCard } from "@/lib/areas/score";
 import type { AreaFile } from "@/lib/areas/types";
-import { AREA_WORDS as W, MUSTS_PARCEL_SCALE, mustShareLine, tradeOffLine, whyLine } from "@/lib/areas/words";
+import {
+  AREA_WORDS as W,
+  MUSTS_PARCEL_SCALE,
+  mustShareLine,
+  SAMPLE_WORDS,
+  tradeOffLine,
+  whyLine,
+} from "@/lib/areas/words";
+import { openSample } from "@/lib/client/samples";
 import { focusArea, useAreas, useAreaStars, type Box } from "@/lib/client/areas";
 import { useRubricView } from "@/lib/client/useRubricView";
 
@@ -43,8 +51,16 @@ export function AreaBox({
   const rest = ranked.filter((c) => !top.includes(c));
   const title = where === "interview" ? W.afterInterview : W.onTheMap;
 
-  const show = (f: AreaFile) => {
-    focusArea(bbox(f.outline) as Box);
+  const [failed, setFailed] = useState<string | null>(null);
+  // Show me a parcel here (§5): the area's first sample, on the map; the area itself when the sample won't load.
+  const show = async (f: AreaFile) => {
+    setFailed(null);
+    try {
+      await openSample(f.id, 1);
+    } catch {
+      setFailed(f.id);
+      focusArea(bbox(f.outline) as Box);
+    }
     if (where === "interview") router.push("/explore");
     onShow?.();
   };
@@ -95,7 +111,8 @@ export function AreaBox({
                 file={byId.get(c.id)!}
                 starred={stars.includes(c.id)}
                 star={() => toggle(c.id)}
-                show={() => show(byId.get(c.id)!)}
+                show={() => void show(byId.get(c.id)!)}
+                failed={failed === c.id}
               />
             ))}
           </ol>
@@ -115,7 +132,11 @@ export function AreaBox({
                 <ol className="area-rest" start={top.length + 1}>
                   {rest.map((c) => (
                     <li key={c.id}>
-                      <button type="button" className="area-rest-row" onClick={() => show(byId.get(c.id)!)}>
+                      <button
+                        type="button"
+                        className="area-rest-row"
+                        onClick={() => void show(byId.get(c.id)!)}
+                      >
                         <span className={`card-grade small g-${c.grade ?? "none"}`}>{c.grade ?? "–"}</span>
                         <span className="area-rest-name">{byId.get(c.id)!.name}</span>
                         <span className="area-rest-share">
@@ -140,12 +161,14 @@ function AreaCardView({
   starred,
   star,
   show,
+  failed,
 }: {
   card: AreaCard;
   file: AreaFile;
   starred: boolean;
   star(): void;
   show(): void;
+  failed: boolean;
 }) {
   const why = whyLine(card, file);
   return (
@@ -175,6 +198,11 @@ function AreaCardView({
       <button type="button" className="btn small secondary ac-show" onClick={show}>
         {W.showParcel}
       </button>
+      {failed && (
+        <p className="tiny" role="status">
+          {SAMPLE_WORDS.failed}
+        </p>
+      )}
     </li>
   );
 }

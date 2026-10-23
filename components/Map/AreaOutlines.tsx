@@ -15,6 +15,7 @@ import { useRubricView } from "@/lib/client/useRubricView";
 import { mapGone, useMap } from "./MapView";
 import { LAYER } from "./style";
 import { useMapLayerPrefs } from "./useMapLayerPrefs";
+import { openSample } from "@/lib/client/samples";
 
 const SOURCE = "areas";
 export const AREA_LAYERS = {
@@ -56,7 +57,8 @@ export function AreaOutlines() {
           [w, s],
           [e, n],
         ],
-        { padding: { top: 40, right: 40, bottom: 90, left: dock + 40 }, duration: 800 },
+        // At once, not eased: opening a sample also docks the parcel panel, whose padding jump would cut an ease short.
+        { padding: { top: 40, right: 40, bottom: 90, left: dock + 40 }, animate: false },
       );
     });
   }, [map]);
@@ -161,7 +163,7 @@ export function AreaOutlines() {
       const pop = new Popup({ maxWidth: "260px" }).setLngLat(e.lngLat).setDOMContent(el).addTo(map);
       go.onclick = () => {
         pop.remove();
-        focusArea(bbox(file.outline) as Box);
+        openSample(file.id, 1).catch(() => focusArea(bbox(file.outline) as Box));
       };
       el.append(head, share, go);
     };

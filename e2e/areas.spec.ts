@@ -1,11 +1,13 @@
 /**
  * The area catalog's suggestion box (step 13, docs/plans/step-13-area-catalog.md §6, §10): after the interview,
- * "Areas that fit you", five cards; "Show me a parcel here" goes to the map there; on the map with nothing open,
- * "Where to look"; a starred area's outline stays on the map, and the star outlasts a reload; Map layers' Area
- * outlines shows every area.
+ * "Areas that fit you", five cards; "Show me a parcel here" opens the area's sample on the map there, read-only until
+ * Add to list; on the map with nothing open, "Where to look"; a starred area's outline stays on the map, and the star
+ * outlasts a reload; Map layers' Area outlines shows every area.
  */
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import { AREA_WORDS as W, MUSTS_PARCEL_SCALE } from "@/lib/areas/words";
+import { AREA_WORDS as W, MUSTS_PARCEL_SCALE, SAMPLE_WORDS } from "@/lib/areas/words";
 import { openExplorer, reload, visit } from "./flow";
 import { GRAYSON } from "./redGate";
 import { replayHar } from "./replay";
@@ -40,8 +42,42 @@ test("after the interview: Areas that fit you, five cards, and Show me a parcel 
   const first = (await box.locator(".ac-name").first().innerText()).trim();
   await box.getByRole("button", { name: W.showParcel }).first().click();
   await expect(page).toHaveURL(/\/explore/);
-  // The map opened on the area, and with nothing open, the box is there too.
-  await expect(page.getByRole("region", { name: W.onTheMap }).locator(".ac-name").first()).toHaveText(first);
+
+  // The area's first sample, graded, read-only until it's on the list.
+  const header = page.locator(".explore-header");
+  await expect(header.locator(".sh-name")).toHaveText(`Sample parcel 1 · ${first}`);
+  await expect(header.locator(".sh-sample")).toHaveText(SAMPLE_WORDS.tag);
+  await expect(header.locator(".sh-card .card-grade")).toHaveText(/^[A-F]$/);
+  await expect(page.locator(".toolbar")).toContainText(SAMPLE_WORDS.readOnly);
+  // The map is on it: its centre inside the area's box.
+  const index = JSON.parse(
+    readFileSync(join(process.cwd(), "public", "areas", "v1", "index.json"), "utf8"),
+  ) as {
+    areas: { name: string; bbox: [number, number, number, number] }[];
+  };
+  const [w, s, e, n] = index.areas.find((a) => a.name === first)!.bbox;
+  const inside = () =>
+    page.evaluate(
+      ([w, s, e, n]) => {
+        const c = (
+          window as unknown as { __psMap: { getCenter(): { lng: number; lat: number } } }
+        ).__psMap.getCenter();
+        return c.lng >= w! && c.lng <= e! && c.lat >= s! && c.lat <= n!;
+      },
+      [w, s, e, n],
+    );
+  await expect.poll(inside).toBe(true);
+  // The other one, then back to the first.
+  await header.getByRole("button", { name: SAMPLE_WORDS.other }).click();
+  await expect(header.locator(".sh-name")).toHaveText(`Sample parcel 2 · ${first}`);
+  await header.getByRole("button", { name: SAMPLE_WORDS.other }).click();
+  await expect(header.locator(".sh-name")).toHaveText(`Sample parcel 1 · ${first}`);
+
+  // Add to list: an ordinary parcel of the person's, the tag gone and the tools back.
+  await header.getByRole("button", { name: /^Add to list/ }).click();
+  await page.getByRole("dialog", { name: "Add to favorites" }).getByRole("button", { name: "Add" }).click();
+  await expect(header.locator(".sh-sample")).toHaveCount(0);
+  await expect(page.locator(".toolbar")).not.toContainText(SAMPLE_WORDS.readOnly);
 });
 
 test("on the map: Where to look; a star keeps an outline drawn, through a reload; Area outlines shows all", async ({
@@ -71,4 +107,31 @@ test("on the map: Where to look; a star keeps an outline drawn, through a reload
   // Show more: the other 25, ranked.
   await box.getByRole("button", { name: W.showMore }).click();
   await expect(box.locator(".area-rest li")).toHaveCount(25);
+});
+
+test("from the map: Show me a parcel here opens the sample, and the map goes there", async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(120_000);
+  await replayHar(context, [GRAYSON]);
+  await openExplorer(page, GRAYSON);
+  const box = page.getByRole("region", { name: W.onTheMap });
+  const first = (await box.locator(".ac-name").first().innerText()).trim();
+  await box.getByRole("button", { name: W.showParcel }).first().click();
+  await expect(page.locator(".explore-header .sh-name")).toHaveText(`Sample parcel 1 · ${first}`);
+  const index = JSON.parse(
+    readFileSync(join(process.cwd(), "public", "areas", "v1", "index.json"), "utf8"),
+  ) as {
+    areas: { name: string; bbox: [number, number, number, number] }[];
+  };
+  const box4 = index.areas.find((a) => a.name === first)!.bbox;
+  const inside = () =>
+    page.evaluate(([w, s, e, n]) => {
+      const c = (
+        window as unknown as { __psMap: { getCenter(): { lng: number; lat: number } } }
+      ).__psMap.getCenter();
+      return c.lng >= w! && c.lng <= e! && c.lat >= s! && c.lat <= n!;
+    }, box4);
+  await expect.poll(inside).toBe(true);
 });

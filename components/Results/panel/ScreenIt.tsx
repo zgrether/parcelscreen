@@ -86,6 +86,8 @@ import { PanelMenu } from "@/components/Report/PanelMenu";
 import { countyOf, isFavorite, starName } from "@/lib/client/favorites";
 import { memberName } from "@/lib/client/household";
 import { currentProfileId } from "@/lib/client/profiles";
+import { isPreview, openSample, sampleOf } from "@/lib/client/samples";
+import { SAMPLE_WORDS } from "@/lib/areas/words";
 
 /** The run the worker's session holds: which parcel it was for (state.serial) and what it was run on. */
 interface LiveRun {
@@ -620,6 +622,24 @@ const drawnFor = (s: ScreenIt): Drawn | undefined => {
  * The panel's header: the parcel's name on up to two lines, then its acres and its grade (step 4c, plan §2). The run
  * button isn't here any more: it's GradeAction, in the toolbar on a desktop and under this header on a phone.
  */
+/** "Sample parcel", and the area's other sample (step 13). */
+function SampleTag({ open }: { open: WorkingParcel | null }) {
+  const at = sampleOf(open);
+  if (!at) return null;
+  return (
+    <>
+      <span className="sh-sample">{SAMPLE_WORDS.tag}</span>
+      <button
+        type="button"
+        className="link-btn sh-other-sample"
+        onClick={() => void openSample(at.area, at.n === 1 ? 2 : 1).catch(() => undefined)}
+      >
+        {SAMPLE_WORDS.other}
+      </button>
+    </>
+  );
+}
+
 export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean }) {
   const d = s.ctl.derived;
   if (!s.ctl.state.store.open)
@@ -636,6 +656,8 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
           {name}
         </span>
         <span className="sh-sub">
+          {/* Step 13: one of the catalog's sample parcels, until it's on the list. */}
+          {isPreview(s.ctl.state.store.open) && <SampleTag open={s.ctl.state.store.open} />}
           {d?.ok && <span className="sh-acres">{fmt(d.acres, 2)} ac</span>}
           {card && (
             <span className={`sh-card v-${card.verdict.toLowerCase()}`} title={card.reason}>
