@@ -34,6 +34,7 @@
     "data:climate": "node scripts/data-climate.mts",
     "data:er": "node scripts/data-er.mts",
     "data:airports": "node scripts/data-airports.mts",
+    "areas:outlines": "node scripts/areas-outlines.mts",
     "data:hospitals": "node scripts/data-hospitals.mts",
     "data:states": "node scripts/data-state-outlines.mts",
     "data:tn-counties": "node scripts/data-tn-own-records.mts",
