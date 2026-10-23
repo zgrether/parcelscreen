@@ -1112,7 +1112,11 @@ until step 5 (Q14).
       (`SAMPLES_RESCREEN=1 pnpm areas:samples`). Groceries, airports and trails unchanged.
     - **Words:** the report's getting-there caveat gains a last sentence, "Hospitals with an emergency department come
       from CMS's list of hospitals, with a hand-checked list of recent openings and closings." (rule 7). Help's
-      Getting there sentence now says groceries and trailheads come from OpenStreetMap, and hospitals from CMS's list.
+      Getting there sentence (owner, #300: an approved correction, a factual fix under rule 7): "Hospitals, groceries and
+      trailheads come from OpenStreetMap and undercount national-forest trailheads." is now "Groceries and trailheads
+      come from OpenStreetMap, which undercounts national-forest trailheads. Hospitals with an emergency department
+      come from CMS's list of hospitals, with a hand-checked list of recent openings and closings." The to-confirm
+      list near the catalog is the owner's choice too (#300).
       " — emergency department not listed in OpenStreetMap" stays for stored screens; a new screen never has it.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

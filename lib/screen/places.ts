@@ -1,6 +1,6 @@
 /**
- * Hospitals, groceries and trailheads near the parcel, from OpenStreetMap via Photon (komoot), with the
- * Overpass mirrors as a fallback. Ported verbatim (proto L861–882, L1111–1128).
+ * Hospitals, groceries and trailheads near the parcel: the groceries and trailheads from OpenStreetMap via Photon
+ * (komoot), with the Overpass mirrors as a fallback. Ported verbatim (proto L861–882, L1111–1128).
  *
  * Hospitals aren't OpenStreetMap's (the ER follow-up, owner 2026-10-23; phase-0.md §9.69): they're the emergency
  * departments of CMS's list with the hand-checked additions (hospitals.ts), the list the area catalog times. Photon
