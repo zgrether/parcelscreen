@@ -232,12 +232,19 @@ describe.runIf(import.meta.env.MODE === "areas-samples")("the sample parcels, li
       const kept: string[] = [];
       for (const f of files) {
         const sample = SampleFileSchema.parse(JSON.parse(readFileSync(join(OUT, f), "utf8")));
-        const out = await screen({ polygon: sample.boundary, config: DEFAULT_USER_CONFIG }, undefined, {
-          http,
-        });
+        const why: string[] = [];
+        const out = await screen(
+          { polygon: sample.boundary, config: DEFAULT_USER_CONFIG },
+          (e) => {
+            if (e.status === "fail") why.push(`${e.step}: ${e.message ?? "?"}`);
+          },
+          {
+            http,
+          },
+        );
         if (out.result.failed.length) {
           // The sample stays as it was; run it again later.
-          console.log(`${f}: the screen failed ${out.result.failed.join(", ")}; kept as it was`);
+          console.log(`${f}: the screen failed ${why.join("; ")}; kept as it was`);
           kept.push(f);
           continue;
         }
