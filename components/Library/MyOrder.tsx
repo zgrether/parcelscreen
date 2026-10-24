@@ -253,7 +253,7 @@ export function RowMenu({
                 remove();
               }}
             >
-              Remove from favorites
+              Remove from Your list
             </button>
           )}
         </span>
