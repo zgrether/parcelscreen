@@ -67,8 +67,8 @@ describe("usesInputOf", () => {
 describe("Grade's shortcut line", () => {
   it("counts each answer, leaving out a count of none", () => {
     const t = tallyOf(landUses(usesInput(MUD)));
-    expect(t).toEqual({ yes: 1, maybe: 4, no: 2 });
-    expect(USE_WORDS.tally(t)).toBe("What you can do here: 1 yes, 4 maybe, 2 no");
+    expect(t).toEqual({ yes: 2, maybe: 3, no: 2 });
+    expect(USE_WORDS.tally(t)).toBe("What you can do here: 2 yes, 3 maybe, 2 no");
     expect(USE_WORDS.tally({ yes: 0, maybe: 7, no: 0 })).toBe("What you can do here: 7 maybe");
   });
 });
@@ -76,7 +76,7 @@ describe("Grade's shortcut line", () => {
 describe("One page's Divide line", () => {
   it("2 lots or more: how many; 1 lot: why not; a county not covered or unread: nothing", () => {
     expect(divideReportLine(MUD)).toBe(
-      "Can divide: up to 3 lots without subdivision review (a farm division approved by staff; limited by 30.15 ac at 10 ac a lot) · up to 11 with an approved subdivision plat (limited by 1,116 ft of road frontage at 100 ft per lot; more lots need a road built to the county's standard)",
+      "Can divide: up to 3 lots without subdivision review (a farm division approved by staff; limited by 30.15 ac at 10 ac a lot) · up to 8 with an approved subdivision plat (limited by 885 ft of road frontage at 100 ft per lot; more lots need a road built to the county's standard)",
     );
     expect(divideReportLine(ROAN)).toBe(
       "Can divide: up to 2 lots without subdivision review (an exempt division with no new street or utility; limited by 13.29 ac at 5 ac a lot)",

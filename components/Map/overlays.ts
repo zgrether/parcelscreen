@@ -8,7 +8,9 @@ import type { Feature, FeatureCollection, MultiPolygon, Polygon } from "geojson"
 import type { LayerId, ParcelShapes } from "@/components/Explore/layers";
 import type { ParcelRecord } from "@/lib/geo/parcels";
 import type { CombineResult } from "@/lib/geo/combine";
-import { sideName, type Side, type SplitPieces } from "@/lib/geo/split";
+import type { Side, SplitPieces } from "@/lib/geo/split";
+import { pieceSideWord } from "@/lib/split/scenario";
+import { SPLIT_WORDS } from "@/lib/split/words";
 import { KIND_NAME, type Markup, type PointMarkup } from "@/lib/client/parcelStore";
 import { M2FT, M2_PER_ACRE, type LatLon } from "@/lib/geo/types";
 import { areaPolygon } from "@/lib/report/marks";
@@ -129,14 +131,36 @@ export interface PieceLabel {
   side: Side;
   /** Where the label sits: the piece's centre of mass, or a point inside it when that falls outside. */
   at: LatLon;
-  /** e.g. "W · 27.71 ac" */
+  /** "West piece, 27.7 ac", as the scenario's panel names it (owner, after #312: one label style). */
   text: string;
+  /**
+   * Which side of the label sits on its point: the one toward the cut, so the label reaches away from it (a narrow
+   * piece's label otherwise covers its neighbour's).
+   */
+  anchor: "left" | "right" | "top" | "bottom";
 }
 
-/** A label per piece while a split is placed: its compass side and the acres keeping it gives. */
+/** The label's anchor: away from the cut's middle, along whichever axis the point is farther off it. */
+function awayFrom(at: LatLon, a: LatLon, b: LatLon): PieceLabel["anchor"] {
+  const k = Math.cos((at[0] * Math.PI) / 180);
+  const dx = (at[1] - (a[1] + b[1]) / 2) * k,
+    dy = at[0] - (a[0] + b[0]) / 2;
+  return Math.abs(dx) >= Math.abs(dy) ? (dx < 0 ? "right" : "left") : dy < 0 ? "top" : "bottom";
+}
+
+/** A label per piece while a split is placed or a scenario shown: its compass side and the acres keeping it gives. */
 export function pieceLabels(pieces: SplitPieces, a: LatLon, b: LatLon): PieceLabel[] {
   const label = (geo: Feature<Polygon> | null, ac: number, side: Side): PieceLabel[] =>
-    geo ? [{ side, at: labelPoint(geo), text: `${sideName(a, b, side)} · ${ac.toFixed(2)} ac` }] : [];
+    geo
+      ? [
+          {
+            side,
+            at: labelPoint(geo),
+            text: SPLIT_WORDS.piece(pieceSideWord(a, b, side < 0 ? "left" : "right"), ac),
+            anchor: awayFrom(labelPoint(geo), a, b),
+          },
+        ]
+      : [];
   return [...label(pieces.left, pieces.leftAc, -1), ...label(pieces.right, pieces.rightAc, 1)];
 }
 

@@ -59,7 +59,8 @@ describe("Divide", () => {
     expect(divideHeadline(one)).toBe("1 lot: limited by 3 ac at a 2 ac minimum");
     const noRoad = divide(input({ acres: 30, publicFrontageFt: 0 }));
     expect(noRoad).toMatchObject({ lots: 1, binding: "frontage", byFrontage: 0 });
-    expect(divideHeadline(noRoad)).toBe("1 lot: limited by 0 ft of road frontage at 200 ft per lot");
+    // Owner, after #312: none is said as none.
+    expect(divideHeadline(noRoad)).toBe("1 lot: no public road along the county map's boundary");
   });
 
   it("no county zoning: the subdivision ordinance's minimum applies; nothing is assumed", () => {

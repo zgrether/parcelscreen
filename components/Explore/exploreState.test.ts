@@ -1225,6 +1225,28 @@ describe("split scenarios (step 14, plan §5)", () => {
     ).toBe(named);
     const gone = exploreReducer(named, { type: "scenarioRemove", id: "sc1", serial: s0.serial, stamp: at() });
     expect(gone.store.open?.scenarios).toEqual([]);
+    // Owner, after #312: Undo puts it back as it was; twice, or on another parcel, does nothing.
+    const scenario = named.store.open!.scenarios[0]!;
+    const back = exploreReducer(gone, {
+      type: "scenarioRestore",
+      scenario,
+      index: 0,
+      serial: s0.serial,
+      stamp: at(),
+    });
+    expect(back.store.open?.scenarios).toEqual([scenario]);
+    expect(
+      exploreReducer(back, { type: "scenarioRestore", scenario, index: 0, serial: s0.serial, stamp: at() }),
+    ).toBe(back);
+    expect(
+      exploreReducer(gone, {
+        type: "scenarioRestore",
+        scenario,
+        index: 0,
+        serial: s0.serial + 1,
+        stamp: at(),
+      }),
+    ).toBe(gone);
   });
 
   it("Adjust the line starts from the scenario's line; Grade both pieces moves it and asks for both again", () => {

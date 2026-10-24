@@ -8,7 +8,14 @@
  * A house is a footprint of at least privacy.minHouseM2 that isn't on the parcel. No runtime endpoint: a parcel outside
  * the tiles' region has no reading, and the card says so.
  */
-import { booleanPointInPolygon, distance } from "@turf/turf";
+import {
+  bbox,
+  booleanPointInPolygon,
+  distance,
+  lineString,
+  pointToLineDistance,
+  polygonToLine,
+} from "@turf/turf";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 import * as UTM from "../geo/utm";
 import { SCREEN_CONSTANTS } from "./config";
@@ -88,6 +95,42 @@ export function tilesAround([lat, lon]: LatLon, m: number): string[] {
   return [...names];
 }
 
+/** The tiles the parcel's box, widened by `m` metres, touches. */
+export function tilesAroundParcel(parcel: Feature<Polygon | MultiPolygon>, m: number): string[] {
+  const [w, s, e, n] = bbox(parcel);
+  const dLat = m / 111_320;
+  const dLon = m / (111_320 * Math.cos((((s + n) / 2) * Math.PI) / 180));
+  const names = new Set<string>();
+  for (let y = s - dLat; y <= n + dLat + TILE_DEG; y += TILE_DEG)
+    for (let x = w - dLon; x <= e + dLon + TILE_DEG; x += TILE_DEG)
+      names.add(tileName(Math.min(y, n + dLat), Math.min(x, e + dLon)));
+  return [...names];
+}
+
+/** Owner, after #312: the houses within privacy.nearM of the boundary, the parcel's own left out. */
+export function housesNearBoundary(
+  houses: readonly House[],
+  parcel: Feature<Polygon | MultiPolygon>,
+): number {
+  const [w, s, e, n] = bbox(parcel);
+  const dLat = K.nearM / 111_320;
+  const dLon = K.nearM / (111_320 * Math.cos((((s + n) / 2) * Math.PI) / 180));
+  const l = polygonToLine(parcel);
+  const edges = (l.type === "FeatureCollection" ? l.features : [l]).flatMap((f) =>
+    f.geometry.type === "LineString"
+      ? [lineString(f.geometry.coordinates)]
+      : f.geometry.coordinates.map((c) => lineString(c)),
+  );
+  let count = 0;
+  for (const h of houses) {
+    const [lat, lon] = h.ll;
+    if (lat < s - dLat || lat > n + dLat || lon < w - dLon || lon > e + dLon) continue;
+    if (booleanPointInPolygon([lon, lat], parcel)) continue;
+    if (edges.some((g) => pointToLineDistance([lon, lat], g, { units: "meters" }) <= K.nearM)) count++;
+  }
+  return count;
+}
+
 /** A spot's privacy, as a site or the house stores it (ScoreFields.privacy). */
 export interface SpotPrivacy {
   /** Houses within a quarter mile. */
@@ -156,11 +199,13 @@ export async function withPrivacy(
   parcel: Feature<Polygon | MultiPolygon>,
   centre: LatLon,
   r: Spots,
-): Promise<(Spots & { privacy: { outside: boolean } }) | null> {
+): Promise<(Spots & { privacy: { outside: boolean; nearBoundary?: number } }) | null> {
   if (!dem) return null;
   if (!inRegion(centre)) return { ...r, privacy: { outside: true } };
   const spots = [...(r.sites ?? []), ...(r.house && !("outside" in r.house) ? [r.house] : [])];
-  const houses = await source([...new Set(spots.flatMap((x) => tilesAround(x.ll, K.sightM)))]);
+  const houses = await source([
+    ...new Set([...spots.flatMap((x) => tilesAround(x.ll, K.sightM)), ...tilesAroundParcel(parcel, K.nearM)]),
+  ]);
   if (!houses) return null;
   const read = <T extends { ll: LatLon; elevFt?: number | null }>(x: T): T & { privacy?: SpotPrivacy } => {
     const { privacy: _old, ...rest } = x as T & { privacy?: SpotPrivacy };
@@ -171,6 +216,6 @@ export async function withPrivacy(
   return {
     ...(r.sites ? { sites: r.sites.map(read) } : {}),
     ...(r.house !== undefined ? { house: r.house && !("outside" in r.house) ? read(r.house) : r.house } : {}),
-    privacy: { outside: false },
+    privacy: { outside: false, nearBoundary: housesNearBoundary(houses, parcel) },
   };
 }

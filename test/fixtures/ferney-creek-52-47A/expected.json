@@ -2079,26 +2079,26 @@
    "insideFt": 0
   },
   "frontage": {
-   "publicFt": 3872,
+   "publicFt": 2365,
    "roads": [
     {
      "name": "unnamed road",
-     "ft": 2297,
+     "ft": 1377,
      "public": true
     },
     {
      "name": "Ferney Creek Rd NW",
-     "ft": 984,
+     "ft": 647,
      "public": true
     },
     {
      "name": "State Rte 750",
-     "ft": 591,
+     "ft": 341,
      "public": true
     },
     {
      "name": "unmapped service",
-     "ft": 164,
+     "ft": 106,
      "public": false
     }
    ]
@@ -2115,6 +2115,11 @@
    "intermittentFt": 1198,
    "names": [],
    "nearestFt": 687
+  },
+  "ponds": {
+   "count": 1,
+   "acres": 0.9395706246534861,
+   "names": []
   },
   "county": {
    "fips": "51063",
@@ -2707,7 +2712,8 @@
    ]
   },
   "privacy": {
-   "outside": false
+   "outside": false,
+   "nearBoundary": 18
   },
   "dish": {
    "ll": [
@@ -3651,7 +3657,7 @@
    "mi": 24.1
   },
   "schemaVersion": 9,
-  "engine": 31,
+  "engine": 32,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -5736,26 +5742,26 @@
    "insideFt": 0
   },
   "frontage": {
-   "publicFt": 3872,
+   "publicFt": 2365,
    "roads": [
     {
      "name": "unnamed road",
-     "ft": 2297,
+     "ft": 1377,
      "public": true
     },
     {
      "name": "Ferney Creek Rd NW",
-     "ft": 984,
+     "ft": 647,
      "public": true
     },
     {
      "name": "State Rte 750",
-     "ft": 591,
+     "ft": 341,
      "public": true
     },
     {
      "name": "unmapped service",
-     "ft": 164,
+     "ft": 106,
      "public": false
     }
    ]
@@ -5772,6 +5778,11 @@
    "intermittentFt": 1198,
    "names": [],
    "nearestFt": 687
+  },
+  "ponds": {
+   "count": 1,
+   "acres": 0.9395706246534861,
+   "names": []
   },
   "county": {
    "fips": "51063",
@@ -6364,7 +6375,8 @@
    ]
   },
   "privacy": {
-   "outside": false
+   "outside": false,
+   "nearBoundary": 18
   },
   "dish": {
    "ll": [
@@ -8784,7 +8796,7 @@
    "mi": 24.1
   },
   "schemaVersion": 9,
-  "engine": 31,
+  "engine": 32,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -10940,26 +10952,26 @@
    "insideFt": 0
   },
   "frontage": {
-   "publicFt": 3872,
+   "publicFt": 2365,
    "roads": [
     {
      "name": "unnamed road",
-     "ft": 2297,
+     "ft": 1377,
      "public": true
     },
     {
      "name": "Ferney Creek Rd NW",
-     "ft": 984,
+     "ft": 647,
      "public": true
     },
     {
      "name": "State Rte 750",
-     "ft": 591,
+     "ft": 341,
      "public": true
     },
     {
      "name": "unmapped service",
-     "ft": 164,
+     "ft": 106,
      "public": false
     }
    ]
@@ -10976,6 +10988,11 @@
    "intermittentFt": 1198,
    "names": [],
    "nearestFt": 687
+  },
+  "ponds": {
+   "count": 1,
+   "acres": 0.9395706246534861,
+   "names": []
   },
   "county": {
    "fips": "51063",
@@ -11639,7 +11656,8 @@
    ]
   },
   "privacy": {
-   "outside": false
+   "outside": false,
+   "nearBoundary": 18
   },
   "dish": {
    "ll": [
@@ -14059,7 +14077,7 @@
    "mi": 24.1
   },
   "schemaVersion": 9,
-  "engine": 31,
+  "engine": 32,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

@@ -54,8 +54,9 @@ export function Scenarios({ s }: { s: ScreenIt }) {
   const grading = useScenarioGradingContext();
   const open = s.ctl.state.store.open;
   if (!open?.scenarios.length) return null;
-  // The person's own rubric (§13 Q7): the first of the profile's (lib/client/rubrics.ts profileRubrics).
-  const mine = s.rubrics[0] ?? s.rubric;
+  // Owner, after #312: the pieces grade under the rubric the grade switch shows, as the card does (it was the profile's
+  // own, §13 Q7).
+  const mine = s.rubric;
   return (
     <section className="scn-list" aria-label={SPLIT_WORDS.section}>
       <h3 className="uses-head">{SPLIT_WORDS.section}</h3>

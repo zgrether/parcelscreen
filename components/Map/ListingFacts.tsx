@@ -12,7 +12,7 @@ import { askingLine, parsePrice } from "@/lib/client/askingPrice";
 import { safeListingHref } from "@/lib/client/listingUrl";
 import { HOA_VALUES, type ListingField, type WorkingParcel } from "@/lib/client/parcelStore";
 import { listingAcresNote, listingFolds, listingSummary } from "@/lib/report/listing";
-import { HOA_WORD, LIMIT_WORDS } from "@/lib/uses/words";
+import { HOA_WORD, LIMIT_WORDS, SOURCE } from "@/lib/uses/words";
 
 export interface ListingSaves {
   listing(patch: Partial<Pick<WorkingParcel, ListingField>>): void;
@@ -100,6 +100,7 @@ export function ListingFacts({
         value={open.deedRestrictions}
         placeholder="What the deed restricts, if anything"
         save={(deedRestrictions) => save.listing({ deedRestrictions: deedRestrictions.trim() })}
+        after={open.fromOriginal?.includes("deedRestrictions") && <FromOriginalNote />}
       />
       <div className="ip-field" role="group" aria-label={LIMIT_WORDS.hoa}>
         <span>{LIMIT_WORDS.hoa}</span>
@@ -115,9 +116,15 @@ export function ListingFacts({
             </button>
           ))}
         </div>
+        {open.fromOriginal?.includes("hoa") && <FromOriginalNote />}
       </div>
     </div>
   );
+}
+
+/** Owner, after #312: a piece added from a split brought this from its parcel; an edit makes it the person's own. */
+function FromOriginalNote() {
+  return <span className="tiny muted ip-from">{SOURCE.original}</span>;
 }
 
 /** A text box saved on Enter or leaving it. Keyed by its value, so a save from elsewhere shows. */

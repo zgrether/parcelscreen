@@ -19,5 +19,10 @@ export function withListing(
   patch: Partial<Pick<WorkingParcel, ListingField>>,
 ): WorkingParcel {
   const next = { ...p, ...patch };
-  return (Object.keys(patch) as ListingField[]).every((k) => next[k] === p[k]) ? p : next;
+  if ((Object.keys(patch) as ListingField[]).every((k) => next[k] === p[k])) return p;
+  // Owner, after #312: an edit makes a copied fact the person's own.
+  const kept = p.fromOriginal?.filter((k) => !(k in patch));
+  if (kept?.length) next.fromOriginal = kept;
+  else delete next.fromOriginal;
+  return next;
 }

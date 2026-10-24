@@ -233,7 +233,7 @@ function twoWays(
 }
 
 /**
- * One page's Divide line (§7): "Can divide: up to 3 lots without subdivision review (…) · up to 11 with an approved
+ * One page's Divide line (§7): "Can divide: up to 3 lots without subdivision review (…) · up to 8 with an approved
  * subdivision plat (…)", or "Can't divide: limited by …". Only where the county is covered and its minimum lot size is
  * known; null otherwise.
  */

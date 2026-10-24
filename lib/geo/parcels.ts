@@ -203,6 +203,16 @@ export function taxCardId(props: Record<string, unknown>): string | null {
   return [map, group, parcel].filter(Boolean).join(" ");
 }
 
+/**
+ * A record's own acres: every part of a multi-part county record, not only the first (owner, after #312: Mud Creek's
+ * Details said 29.31 ac, its first part, beside the header's 30.15). A combined boundary's are its parts', the strip
+ * left out.
+ */
+export function recordAcres(r: Pick<ParcelRecord, "geo" | "props" | "parts">): number {
+  if (typeof r.props.combined_acres === "number") return r.props.combined_acres;
+  return (r.parts ?? [r.geo]).reduce((n, g) => n + area(g), 0) / M2_PER_ACRE;
+}
+
 /** Case-insensitive lookup over the services' differing attribute names (proto L695–696). */
 export function parcelFacts(geo: Feature<Polygon>, props: Record<string, unknown>): ParcelFacts {
   const keys = Object.keys(props);
