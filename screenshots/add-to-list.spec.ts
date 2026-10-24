@@ -74,14 +74,12 @@ for (const phone of [false, true]) {
       await expect(actions.getByRole("button", { name: "On your list" })).toBeVisible();
       await shot(page, "3-header-on-list");
 
-      // Macks, off the list: × clears it, with Closed. Undo.
+      // Macks, off the list: × closes it and clears it from the map; it stays in Recent (J-2, UX part 2).
       await openFromRecent(page, "35-3");
       await page.waitForTimeout(3000); // the map's flight to Macks, from Grayson County
       await page.getByRole("button", { name: "Close this parcel" }).first().click();
-      await expect(page.locator(".dismiss-toast")).toBeVisible();
-      await shot(page, "4-closed-undo");
-      await page.locator(".dismiss-toast").getByRole("button", { name: "Undo" }).click();
-      await expect(page.locator(".sh-name").first()).toContainText("35-3");
+      await expect(page.locator(".sh-name")).toHaveCount(0);
+      await shot(page, "4-closed");
     });
   });
 }

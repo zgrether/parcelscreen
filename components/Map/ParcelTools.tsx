@@ -362,7 +362,7 @@ function useOverlays(map: MlMap | null, ctl: ExploreController, splits: readonly
   useEffect(() => {
     map?.getSource<GeoJSONSource>(SOURCE.saved)?.setData({
       type: "FeatureCollection",
-      features: saved.map((b) => ({ ...b.geo, properties: { key: b.key } })),
+      features: saved.map((b) => ({ ...b.geo, properties: { key: b.key, ruledOut: b.ruledOut } })),
     });
   }, [map, saved]);
 

@@ -372,29 +372,42 @@ describe("notes (13e-5)", () => {
     expect(justAName.store.built).toHaveLength(1);
   });
 
-  it("the status (WF2, step 8): starred; archived with a reason (blank or 'Rejected:' alone refused); restored to the favorites; unstarred", () => {
+  it("the status (WF2, step 8; P-4): starred; ruled out, a reason optional; moved back where it was; unstarred", () => {
     const s = run([selectA()]);
     const go = (st: ExploreState, a: ExploreAction) => exploreReducer(st, a);
     const saved = go(s, { type: "star", name: " The bench ", serial: s.serial, stamp: at() });
     expect(saved.store.open).toMatchObject({ status: "saved", archived: null, name: "The bench" });
     expect(saved.store.built).toHaveLength(1); // starring builds the parcel
-    for (const reason of ["", "   ", "Rejected: ", "rejected"])
-      expect(go(saved, { type: "archive", reason, serial: s.serial, stamp: at() }), reason).toBe(saved);
+    // No reason is fine (§9 Q5).
+    expect(
+      go(saved, { type: "archive", reason: "  ", serial: s.serial, stamp: at() }).store.open,
+    ).toMatchObject({
+      status: "archived",
+      archived: { reason: "", from: "saved" },
+    });
     const archived = go(saved, {
       type: "archive",
-      reason: "  Rejected: no winter sun ",
+      reason: "  Septic: perc failed ",
       serial: s.serial,
       stamp: at(),
     });
     expect(archived.store.open).toMatchObject({
       status: "archived",
-      archived: { reason: "Rejected: no winter sun", from: "saved" },
+      archived: { reason: "Septic: perc failed", from: "saved" },
     });
     expect(archived.store.open!.archived!.at).toMatch(/^2026-/);
     // Archived: archiving again does nothing.
     expect(go(archived, { type: "archive", reason: "Sold", serial: s.serial, stamp: at() })).toBe(archived);
     const restored = go(archived, { type: "restore", serial: s.serial, stamp: at() });
     expect(restored.store.open).toMatchObject({ status: "saved", archived: null });
+    // A parcel only in Recent can be ruled out too (P-4): it builds, joins the list as Ruled out, and moves back to Recent.
+    const recent = go(s, { type: "archive", reason: "Too far", serial: s.serial, stamp: at() });
+    expect(recent.store.open).toMatchObject({ status: "archived", archived: { from: "inProgress" } });
+    expect(recent.store.built).toHaveLength(1);
+    expect(go(recent, { type: "restore", serial: s.serial, stamp: at() }).store.open).toMatchObject({
+      status: "inProgress",
+      archived: null,
+    });
     // Unstarred, archived or not: back to History, still built.
     const unstarred = go(archived, { type: "unstar", serial: s.serial, stamp: at() });
     expect(unstarred.store.open).toMatchObject({ status: "inProgress", archived: null });

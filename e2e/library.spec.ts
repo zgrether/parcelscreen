@@ -68,17 +68,17 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   const detail = page.getByRole("dialog", { name: MACKS_NAME });
   await expect(detail.getByRole("heading", { name: MACKS_NAME })).toBeVisible();
   await expect(detail.locator(".card")).toBeVisible();
-  await detail.getByRole("button", { name: "Archive…" }).click();
-  await detail.getByRole("button", { name: "Sold" }).click();
-  await detail.getByRole("button", { name: "Archive", exact: true }).click();
-  await expect(detail).toContainText(/Archived [A-Z][a-z]{2} \d{1,2}: Sold/);
+  await detail.getByRole("button", { name: "Not for us…" }).click();
+  await detail.getByRole("button", { name: "Price" }).click();
+  await detail.getByRole("button", { name: "Rule it out" }).click();
+  await expect(detail).toContainText(/Ruled out [A-Z][a-z]{2} \d{1,2}: Price/);
   await detail.getByRole("button", { name: "Close" }).click();
 
   // Hidden by the default view; the Status filter shows it, and the choice outlasts a reload.
   await expect(rows).toHaveCount(1);
   // The list ends saying so (owner, #132): only the status filter hides it, so "Show" brings the archived back.
   const hiddenLine = page.locator(".lib-hidden");
-  await expect(hiddenLine).toHaveText("1 archived parcel hidden · Show");
+  await expect(hiddenLine).toHaveText("1 ruled-out parcel hidden · Show");
   await hiddenLine.getByRole("button", { name: "Show" }).click();
   await expect(rows).toHaveCount(2);
   await expect(hiddenLine).toHaveCount(0);
@@ -153,10 +153,9 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   await visit(page, "/library");
   await rows.filter({ hasText: "52-47A" }).click();
   const ferney = page.getByRole("dialog", { name: /52-47A/ });
-  await ferney.getByRole("button", { name: "Archive…" }).click();
-  await ferney.getByRole("button", { name: "Not for us" }).click();
-  await ferney.getByRole("button", { name: "Archive", exact: true }).click();
-  await expect(ferney).toContainText("Archived");
+  await ferney.getByRole("button", { name: "Not for us…" }).click();
+  await ferney.getByRole("button", { name: "Rule it out" }).click();
+  await expect(ferney).toContainText("Ruled out");
   await visit(page, "/");
   await expect(page).toHaveURL(/\/explore$/);
   expect(errors).toEqual([]);
@@ -186,7 +185,7 @@ test.describe("on a phone", () => {
     });
     await visit(page, "/library");
     await expect(page.locator(".lib-cards .lib-card")).toHaveCount(1);
-    await expect(page.locator(".lib-hidden")).toHaveText("1 archived parcel hidden · Show");
+    await expect(page.locator(".lib-hidden")).toHaveText("1 ruled-out parcel hidden · Show");
     await page.locator(".lib-hidden").getByRole("button", { name: "Show" }).tap();
     await expect(page.locator(".lib-cards .lib-card")).toHaveCount(2);
     await expect(page.locator(".lib-table")).toBeHidden();

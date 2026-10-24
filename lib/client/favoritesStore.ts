@@ -12,7 +12,7 @@ import {
   unstar,
   visibleTo,
   withGraded,
-  withoutKeys,
+  withOpened,
   type HistoryLog,
 } from "./favorites";
 import { dropParcel } from "./householdDoc";
@@ -49,21 +49,13 @@ export function logGraded(key: string, now = new Date().toISOString()): void {
   pruneRecent(now);
 }
 
-/** A dismissed parcel's log entry (8c's ×) taken out, and returned for its Undo; null when it had none. */
-export function forgetGraded(key: string): string | null {
-  const log = getPref("ps.history");
-  const at = log.graded[key] ?? null;
-  if (at) saveLog(withoutKeys(log, [key]));
-  return at;
-}
-
-/** A dismiss undone: its log entry back. */
-export function relogGraded(key: string, at: string | null): void {
-  if (at) saveLog(withGraded(getPref("ps.history"), key, at));
+/** A built parcel opened (UX part 2, §9 Q4): Recent counts its days from the later of this and its last grade. */
+export function logOpened(key: string, now = new Date().toISOString()): void {
+  saveLog(withOpened(getPref("ps.history"), key, now));
 }
 
 /**
- * Recent's limits (8c): this profile's unstarred parcels beyond the 20 newest or older than 30 days go, as a ✕ takes
+ * Recent's limits (8c; Z-8): this profile's unstarred parcels beyond the 50 newest or older than 60 days go, as a ✕ takes
  * them; the open one stays. At boot and after each grading: History became Recent this way, with no converter.
  */
 export function pruneRecent(now = new Date().toISOString()): void {
@@ -104,7 +96,12 @@ export function restoreToHistory(removed: readonly WorkingParcel[], log: History
   const s = parcels();
   const back = removed.filter((p) => p.key !== null && !s.built.some((b) => b.key === p.key));
   setPref("ps.parcels", { ...s, built: [...s.built, ...back] });
-  saveLog({ ...getPref("ps.history"), graded: { ...getPref("ps.history").graded, ...log.graded } });
+  const now = getPref("ps.history");
+  saveLog({
+    ...now,
+    graded: { ...now.graded, ...log.graded },
+    ...(log.opened || now.opened ? { opened: { ...now.opened, ...log.opened } } : {}),
+  });
 }
 
 /**

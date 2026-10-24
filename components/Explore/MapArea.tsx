@@ -18,10 +18,10 @@ import { Toolbar } from "@/components/Map/Toolbar";
 import { MarkPicker } from "@/components/Map/MarkPicker";
 import type { UserConfig } from "@/lib/screen/types";
 import { ClearedNote } from "./ClearedNote";
-import { DismissToast } from "./DismissToast";
 import { SwitchToast } from "./SwitchToast";
 import { LineUndoToast } from "@/components/Map/LineUndoToast";
 import { ScenarioUndoToast } from "@/components/Split/ScenarioUndoToast";
+import { RuleOutToast } from "./RuleOutToast";
 import { AttachListingChip } from "@/components/Map/AttachListingChip";
 import { MapPanel } from "@/components/Map/MapPanel";
 import { useExplore, type SetHint } from "./useExploreController";
@@ -71,10 +71,10 @@ export function MapArea({
       {!docked && <Search photonUrl={config.endpoints.photon} hint={setHint} />}
       <Hint text={hint} action={hint === OWN_RECORDS_HINT ? { label: "Draw", onClick: startDraw } : null} />
       <SwitchToast />
-      <DismissToast />
       <ClearedNote />
       <LineUndoToast />
       <ScenarioUndoToast />
+      <RuleOutToast />
       <AttachListingChip />
       <Toolbar />
       <MarkPicker />

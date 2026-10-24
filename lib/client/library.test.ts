@@ -230,11 +230,11 @@ describe("what the filters hide, at the list's end (owner, #132 review)", () => 
   it("nothing hidden: no line", () => {
     expect(hiddenBy([live], DEFAULT_FILTERS)).toBeNull();
   });
-  it("only archived parcels the status filter hides: '2 archived parcels hidden', and Show adds Archived", () => {
+  it("only ruled-out parcels the status filter hides: '2 ruled-out parcels hidden', and Show adds them", () => {
     const h = hiddenBy([live, archived, { ...archived, key: "y" }], DEFAULT_FILTERS)!;
     expect(h).toEqual({ n: 2, onlyArchived: true });
-    expect(hiddenWords(h)).toBe("2 archived parcels hidden");
-    expect(hiddenWords({ n: 1, onlyArchived: true })).toBe("1 archived parcel hidden");
+    expect(hiddenWords(h)).toBe("2 ruled-out parcels hidden");
+    expect(hiddenWords({ n: 1, onlyArchived: true })).toBe("1 ruled-out parcel hidden");
     expect(showHidden(h, DEFAULT_FILTERS)).toEqual({
       ...DEFAULT_FILTERS,
       status: ["inProgress", "saved", "archived"],

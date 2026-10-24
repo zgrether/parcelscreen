@@ -337,8 +337,8 @@ export function useScreenIt(
     indexed.current = null;
     awaitingRestore.current = false;
   }, [st.generation]);
-  // A parcel removed from Recent: its session goes too, but a dismissed one's only once its Undo has gone (8c).
-  const builtKeys = [...ctl.state.store.built.map((b) => b.key), ctl.dismissed?.parcel.key].join("|");
+  // A parcel removed from Recent: its session goes too.
+  const builtKeys = ctl.state.store.built.map((b) => b.key).join("|");
   useEffect(() => {
     const keys = new Set(builtKeys.split("|"));
     for (const k of sessions.current.parcels())
