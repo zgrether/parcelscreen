@@ -54,9 +54,9 @@ describe("the comparison table (VR6)", () => {
       ],
       // The viewer's budgets: the starting list has none.
       ["Budget", ["No budget given"]],
-      ["Dealbreakers", ["Floodplain", "Legal road access", "Driveway on your land", "Septic"]],
+      ["Must have", ["Floodplain", "Legal road access", "Driveway on your land", "Septic"]],
       [
-        "What money can't add",
+        "Really want",
         [
           "Elevation at the build site",
           "Best homesite",
@@ -165,7 +165,7 @@ describe("the comparison table (VR6)", () => {
       t.head,
       ...t.groups.flatMap((g) => g.rows).filter((r) => r.key !== "stage0" && r.key !== "perAcre"),
     ]) {
-      expect(r.cells[1]).toEqual({ text: "re-screens when opened", mark: null, panel: null });
+      expect(r.cells[1]).toEqual({ text: "grades again when opened", mark: null, panel: null });
       expect(r.cells[0]!.mark).toBeNull(); // nothing to be better than
     }
     const never = compareTable([{ ...parcel("macks-mountain-35-3"), state: "none", result: null }], ZACH);

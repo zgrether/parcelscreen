@@ -128,8 +128,8 @@ export function ParcelDetail({
         ) : (
           <p className="tiny muted">
             {kept?.state === "rescreen"
-              ? "Needs a re-screen: open it on the map, or use the list's Re-screen all saved parcels."
-              : "Not screened yet: open it on the map and screen it."}
+              ? "Needs grading again: open it on the map, or use the list's Grade all saved parcels again."
+              : "Not graded yet: open it on the map and grade it."}
           </p>
         )}
         {/* Step 6: how each other member would rate it, from their own priorities. */}

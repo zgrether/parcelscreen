@@ -50,7 +50,7 @@ describe("verdictView", () => {
   it("while running: 'Screening…' and the worst flag so far", () => {
     const { cancelled, ...partial } = golden;
     const v = verdictView(partial as PartialScreenResult);
-    expect(v).toMatchObject({ lead: "Screening…", tone });
+    expect(v).toMatchObject({ lead: "Grading…", tone });
     expect(v.flags).toEqual(flagsOf(golden));
     expect(cancelled).toBeDefined();
   });

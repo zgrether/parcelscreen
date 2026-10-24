@@ -104,7 +104,7 @@ for (const phone of [false, true]) {
       await visit(page, "/library");
 
       // Favorites: the Cost to build column (desktop), the facts line (phone).
-      await page.getByRole("tab", { name: "Favorites" }).click();
+      await page.getByRole("tab", { name: "Shortlist" }).click();
       await expect(
         page
           .getByText(/\$330–595k/)

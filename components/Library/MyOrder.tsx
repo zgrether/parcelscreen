@@ -208,7 +208,7 @@ export function RowMenu({
         type="button"
         className="lib-more"
         aria-label={`More for ${name}`}
-        title={move ? "Report card, move up or down, remove" : "Report card, remove"}
+        title={move ? "Make a report, move up or down, remove" : "Make a report, remove"}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
@@ -226,7 +226,7 @@ export function RowMenu({
                 report();
               }}
             >
-              {REPORT_WORDS.title}
+              {REPORT_WORDS.make}
             </button>
           )}
           {move && (

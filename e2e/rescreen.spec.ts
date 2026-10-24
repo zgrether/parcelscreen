@@ -26,7 +26,7 @@ test.beforeEach(({ page }) => {
 
 /** The note a re-screened result carries (the approved replacement of the "earlier rules" note). */
 const RESCREENED = (page: Page) =>
-  page.locator(".report-note", { hasText: "Re-screened with the current rules." });
+  page.locator(".report-note", { hasText: "Graded again with the current rules." });
 
 test("a v2 result is cleared at start-up, its parcel kept; the map says so, and the open parcel re-screens", async ({
   page,
@@ -46,7 +46,7 @@ test("a v2 result is cleared at start-up, its parcel kept; the map says so, and 
 
   // Said on the map once (step 4b: it was History's), and the parcel is still on Your list.
   await expect(page.locator(".cleared-note")).toContainText(
-    "Saved results from an older version of Parcel Screen were cleared. Your parcels, notes and houses are kept; each re-screens when you open it.",
+    "Saved results from an older version of Parcel Screen were cleared. Your parcels, notes and houses are kept; each grades again when you open it.",
   );
   await page.locator(".cleared-note").getByRole("button", { name: "OK" }).click();
   await expect(page.locator(".cleared-note")).toHaveCount(0);
@@ -67,11 +67,11 @@ test("offline, a parcel from earlier rules shows its result and waits; back onli
   await page.getByRole("button", { name: "Close this parcel" }).first().click();
 
   await page.getByRole("link", { name: "Your list", exact: true }).click();
-  await expect(listRow(page, "52-47A")).toContainText("Needs a re-screen");
+  await expect(listRow(page, "52-47A")).toContainText("Needs grading again");
 
   await context.setOffline(true);
   await openFromList(page, "52-47A");
-  await expect(page.locator(".rescreen-note")).toHaveText("Will re-screen when you're back online.");
+  await expect(page.locator(".rescreen-note")).toHaveText("Will grade again when you're back online.");
   // Never a blank report: the kept result is shown while it waits.
   await expect(page.locator(".card-verdict")).toBeVisible();
   expect(await keptScreenCount(page)).toBe(1);
@@ -126,7 +126,7 @@ test("a cleared result opened offline: the card says it will re-screen, never bl
   await context.setOffline(true);
   await openFromList(page, "52-47A");
   // Nothing kept to show: the header, always on screen, says what will happen.
-  await expect(page.locator(".rescreen-note")).toHaveText("Will re-screen when you're back online.");
+  await expect(page.locator(".rescreen-note")).toHaveText("Will grade again when you're back online.");
   await context.setOffline(false);
   await expect(RESCREENED(page)).toBeVisible({ timeout: 200_000 });
   await expect(page.locator(".rescreen-note")).toHaveCount(0);

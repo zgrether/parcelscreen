@@ -499,7 +499,8 @@ export const COMPARE_MIN = 2;
 export const COMPARE_MAX = 3;
 
 /** Favorites with none added (step 8, plan §4; 8c): where they come from. */
-export const FAVORITES_EMPTY = "No favorites yet. Use Add to list on a parcel, on the map or in Recent.";
+export const FAVORITES_EMPTY =
+  "Nothing on your shortlist yet. Use Add to list on a parcel, on the map or in Recent.";
 /** Recent with nothing in it (8c; step 8's History). */
 export const RECENT_EMPTY =
   "Nothing here yet. The parcels you grade show up here for 30 days; add one to your list to keep it.";

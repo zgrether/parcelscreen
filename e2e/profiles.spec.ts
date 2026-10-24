@@ -2,7 +2,7 @@
  * Local profiles (roadmap step 1, PR 5b; docs/plans/step-1-profiles-grading.md §3.4, §7): the first visit's
  * "Profile 1" and the picker (add, switch, rename, delete with its screens; a parcel kept in one profile isn't in
  * another); a pre-profile store dropped, with the menu's one-time line (step 2 plan §9); and the Library after a clean
- * break: rows reading "Needs a re-screen", and "Re-screen all saved parcels" with Cancel.
+ * break: rows reading "Needs grading again", and "Grade all saved parcels again" with Cancel.
  * A production build, the fixtures' HARs replayed.
  */
 import { expect, test, type Locator, type Page } from "@playwright/test";
@@ -86,7 +86,7 @@ test("the first visit's Profile 1; add Visitor and switch; one list for both (st
   await menu(page);
   await expect(currentName(page)).toHaveText(/Visitor/);
   await yourList(page);
-  await expect(page.locator("main")).toContainText("No favorites yet");
+  await expect(page.locator("main")).toContainText("Nothing on your shortlist yet");
   await page.getByRole("link", { name: "Map", exact: true }).click();
 
   // A parcel screened under Visitor: on the household's one list (step 6). Neither profile has set priorities: no switch.
@@ -176,26 +176,26 @@ test("after a clean break: rows read Needs a re-screen; Re-screen all saved parc
   await visit(page, "/library");
   const rows = page.locator(".lib-table tbody tr");
   await expect(rows).toHaveCount(2);
-  await expect(rows.nth(0).locator(".lib-c-grade")).toHaveText("Needs a re-screen");
-  await expect(rows.nth(1).locator(".lib-c-grade")).toHaveText("Needs a re-screen");
+  await expect(rows.nth(0).locator(".lib-c-grade")).toHaveText("Needs grading again");
+  await expect(rows.nth(1).locator(".lib-c-grade")).toHaveText("Needs grading again");
   const line = page.locator(".lib-rescreen");
-  await expect(line).toContainText("2 parcels need a re-screen");
+  await expect(line).toContainText("2 parcels need grading again");
 
   // Cancel part-way: the run in flight is dropped, nothing is kept, the rows still need one.
-  await line.getByRole("button", { name: "Re-screen all saved parcels" }).click();
-  await expect(line).toContainText(/Re-screening 1 of 2: /);
+  await line.getByRole("button", { name: "Grade all saved parcels again" }).click();
+  await expect(line).toContainText(/Grading 1 of 2 again: /);
   await line.getByRole("button", { name: "Cancel" }).click();
   await expect(line).toContainText("Stopped after 0 of 2.");
-  await expect(rows.nth(0).locator(".lib-c-grade")).toHaveText("Needs a re-screen");
+  await expect(rows.nth(0).locator(".lib-c-grade")).toHaveText("Needs grading again");
   expect(await keptScreenCount(page)).toBe(2);
 
   // Then all of them: each row gets its grade back, each as a new kept screen.
-  await line.getByRole("button", { name: "Re-screen all saved parcels" }).click();
-  await expect(line).toContainText("Re-screened 2 parcels.", { timeout: 200_000 });
+  await line.getByRole("button", { name: "Grade all saved parcels again" }).click();
+  await expect(line).toContainText("Graded 2 parcels again.", { timeout: 200_000 });
   await expect(rows.nth(0).locator(".lib-c-grade")).toHaveText(/^[A-F](Contender|Maybe|Not for us)$/);
   await expect(rows.nth(1).locator(".lib-c-grade")).toHaveText(/^[A-F](Contender|Maybe|Not for us)$/);
   expect(await keptScreenCount(page)).toBe(4);
-  await expect(line).not.toContainText("need a re-screen");
+  await expect(line).not.toContainText("need grading again");
   expect(errors).toEqual([]);
 });
 

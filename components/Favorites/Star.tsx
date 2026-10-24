@@ -9,15 +9,15 @@ import { useEffect, useId, useRef, useState, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
 import { ResetConfirm } from "@/components/Rubric/ResetConfirm";
 
-export const STAR_ADD = "Add to favorites";
-export const STAR_IN = "In favorites";
+export const STAR_ADD = "Add to list";
+export const STAR_IN = "On your list";
 /** The header's and Recent's words for the same two states (8c). */
 export const LIST_ADD = "Add to list";
 export const LIST_IN = "On your list";
 
 /** The unstar confirm's question: back to my Recent list, or to the adder's when that's someone else (plan §11 Q6). */
 export const unstarQuestion = (adder: string | null): string =>
-  `Remove from your household's favorites? ${adder ? `It goes back to ${adder}'s Recent list.` : "It goes back to your Recent list."}`;
+  `Remove from Your list? ${adder ? `It goes back to ${adder}'s Recent list.` : "It goes back to your Recent list."}`;
 
 const stop = (e: MouseEvent) => e.stopPropagation();
 
@@ -103,7 +103,7 @@ export function Star({
         createPortal(
           <ResetConfirm
             question={unstarQuestion(adder)}
-            action="Remove from favorites"
+            action="Remove from Your list"
             keep="Keep"
             reset={() => {
               unstar();
@@ -156,12 +156,12 @@ function NameSheet({ start, add, cancel }: { start: string; add(name: string): v
           if (ok) add(name);
         }}
       >
-        <h2 id={id}>Add to favorites</h2>
+        <h2 id={id}>Add to list</h2>
         <label className="star-sheet-name">
           Name
           <input ref={box} value={name} maxLength={120} onChange={(e) => setName(e.target.value)} />
         </label>
-        <p className="tiny muted star-sheet-hint">Favorites are shared with everyone in your household.</p>
+        <p className="tiny muted star-sheet-hint">Your list is shared with everyone in your household.</p>
         <div className="rubric-confirm-actions">
           <button type="submit" className="btn" disabled={!ok}>
             Add

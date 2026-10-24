@@ -875,7 +875,7 @@ export interface TapHit {
 export const NO_PARCEL_HERE = "No parcel record here. Draw a custom parcel?";
 
 /** While a screen runs, switching parcels waits (owner, 17e). */
-export const BUSY_TEXT = "Screening — finish or Cancel first.";
+export const BUSY_TEXT = "Grading — finish or Cancel first.";
 
 export type TapOutcome =
   | { kind: "clearLayer" }

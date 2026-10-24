@@ -16,7 +16,7 @@ const listOf = (xs: readonly string[]): string =>
 const SAID_MS = 1500;
 
 /** The link to Full report's checklist (renamed after the fresh-eyes review: "What no dataset answers"). */
-export const MORE_TO_CHECK = "More to check that no dataset covers";
+export const MORE_TO_CHECK = "More questions for the agent";
 
 export function AgentQuestions({
   card,
@@ -43,9 +43,9 @@ export function AgentQuestions({
   };
   const status = (key: string) => (said?.startsWith(`${key}:`) ? said.slice(key.length + 1) : null);
   return (
-    <section className="ask-agent" aria-label="Still unknown">
+    <section className="ask-agent" aria-label="Questions for the agent">
       <div className="ask-head">
-        <h3 className="card-sub">Still unknown</h3>
+        <h3 className="card-sub">Questions for the agent</h3>
         {qs.length > 1 && (
           <button className="btn small secondary" onClick={() => copy("all", copyAllText(name, qs))}>
             {status("all") ?? "Copy all"}

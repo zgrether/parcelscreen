@@ -96,9 +96,9 @@ export async function addFromRecent(page: Page, name: string): Promise<void> {
   await page.getByRole("tab", { name: "Recent" }).click();
   const add = page.locator(".hist-row", { hasText: name }).getByRole("button", { name: /^Add to list/ });
   await add.click();
-  await page.getByRole("dialog", { name: "Add to favorites" }).getByRole("button", { name: "Add" }).click();
+  await page.getByRole("dialog", { name: "Add to list" }).getByRole("button", { name: "Add" }).click();
   await expect(add).toHaveCount(0);
-  await page.getByRole("tab", { name: "Favorites" }).click();
+  await page.getByRole("tab", { name: "Shortlist" }).click();
 }
 
 /** The menu (step 4b): the places' bar's ☰ (More on a phone), opened if it isn't; its panel. */
@@ -195,7 +195,7 @@ export const ageKept = (page: Page, how: "v2" | "earlier rules"): Promise<void> 
  */
 export async function openFromList(page: Page, name: string): Promise<void> {
   await page.getByRole("link", { name: "Your list", exact: true }).click();
-  await page.getByRole("tab", { name: "Favorites" }).click();
+  await page.getByRole("tab", { name: "Shortlist" }).click();
   await listRow(page, name).click();
   await page.getByRole("link", { name: "Open on the map" }).click();
   await expect(page).toHaveURL(/\/explore$/);

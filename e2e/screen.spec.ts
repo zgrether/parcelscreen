@@ -29,7 +29,7 @@ const SECTIONS = [
   "Verdict",
   "Terrain",
   "December sun",
-  "Dark skies",
+  "Night sky",
   "Where to build",
   "Driveway",
   "Where to garden",
@@ -37,7 +37,7 @@ const SECTIONS = [
   "Floodplain",
   "Public land within a mile",
   "Getting there and getting out",
-  "Still unknown",
+  "Questions for the agent",
 ];
 
 let errors: string[] = [];

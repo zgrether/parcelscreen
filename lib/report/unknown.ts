@@ -8,7 +8,7 @@ import type { Heading } from "./parts";
 import { isPartial } from "./verdict";
 
 export const unknownHeading: Heading = {
-  title: "Still unknown",
+  title: "Questions for the agent",
   sub: "not in any dataset",
   slug: "still-unknown",
   help: "h-unknown",

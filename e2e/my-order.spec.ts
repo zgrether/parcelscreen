@@ -95,7 +95,7 @@ test("desktop: My order by default; a mouse drag, the keyboard and the menu move
     .nth(0)
     .getByRole("button", { name: /^More for / })
     .click();
-  await page.getByRole("menuitem", { name: "Remove from favorites" }).click();
+  await page.getByRole("menuitem", { name: "Remove from Your list" }).click();
   await expect(page.getByRole("alertdialog")).toContainText("Remove from your household's favorites?");
   await page.getByRole("alertdialog").getByRole("button", { name: "Keep" }).click();
   await expect.poll(() => order(names)).toEqual([first, second]);

@@ -162,7 +162,7 @@ test("a change re-grades the Library at once, and nothing asks for a re-screen",
   }
   await visit(page, "/library");
   await expect(grade).not.toHaveText(before!);
-  await expect(page.locator(".lib-table")).not.toContainText("Needs a re-screen");
+  await expect(page.locator(".lib-table")).not.toContainText("Needs grading again");
   expect(errors).toEqual([]);
 });
 

@@ -82,8 +82,8 @@ describe("re-screen on open (owner, #101, 2026-10-11)", () => {
   });
 
   it('says it in the owner\'s words (the approved replacement of "Screened with earlier rules — run again")', () => {
-    expect(RESCREENED).toBe("Re-screened with the current rules");
-    expect(RESCREEN_OFFLINE).toBe("Will re-screen when you're back online");
-    expect(RESCREENS_ON_OPEN).toBe("Re-screens with the current rules when opened");
+    expect(RESCREENED).toBe("Graded again with the current rules");
+    expect(RESCREEN_OFFLINE).toBe("Will grade again when you're back online");
+    expect(RESCREENS_ON_OPEN).toBe("Grades again with the current rules when opened");
   });
 });

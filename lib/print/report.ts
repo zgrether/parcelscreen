@@ -25,17 +25,19 @@ import { usesInputOf, type UsesParcel } from "../uses/input";
 
 /** The new strings (plan §8). */
 export const REPORT_WORDS = {
-  title: "Report card",
+  title: "Report",
+  /** The ⋯ menus' item that opens it (Zach, #314). */
+  make: "Make a report",
   onePage: "One page",
   full: "Full",
   print: "Print or save as PDF",
   back: "← Back",
   gradeFirst: "Grade it first",
-  loading: "Loading the report card…",
+  loading: "Loading the report…",
   notHere: "This parcel isn't on this device.",
   notGraded: "This parcel hasn't been graded yet.",
   staleBoundary:
-    "Graded on an earlier boundary: the parcel's lines changed after this grade. Grade it again for a current report card.",
+    "Graded on an earlier boundary: the parcel's lines changed after this grade. Grade it again for a current report.",
   phoneHint: "This is the page as it prints. Pinch to zoom.",
   takes: "Takes",
   questions: "Questions for the agent",

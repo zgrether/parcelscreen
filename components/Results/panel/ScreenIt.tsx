@@ -682,7 +682,7 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
   const d = s.ctl.derived;
   if (!s.ctl.state.store.open)
     // The phone's sheet (hidden until a parcel is open); the desktop's docked panel shows only Search then (step 4c).
-    return <span className="sh-empty">Tap a parcel to screen it</span>;
+    return <span className="sh-empty">Tap a parcel to grade it</span>;
   const name = s.ctl.layers?.name ?? "Parcel";
   // The card's grade and verdict for the kept run (owner, #110), in whoever's grade is on.
   const card =
@@ -771,7 +771,7 @@ function RescreenLine({ s }: { s: ScreenIt }) {
   if (s.rescreenOffline)
     return <span className="sh-verdict sh-rescreen muted rescreen-note">{RESCREEN_OFFLINE}.</span>;
   if (s.rescreenFailed)
-    return <span className="sh-verdict sh-rescreen fatal">The screen stopped: {s.error}</span>;
+    return <span className="sh-verdict sh-rescreen fatal">The grade stopped: {s.error}</span>;
   return null;
 }
 
@@ -872,7 +872,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
         <section className="block">
           {s.rescreenOffline && s.display && <p className="report-note rescreen-note">{RESCREEN_OFFLINE}.</p>}
           {s.showSteps && <StepList steps={s.steps} running={s.runningHere} line={s.logLine} />}
-          {s.error && <p className="tiny text-steep">The screen stopped: {s.error}</p>}
+          {s.error && <p className="tiny text-steep">The grade stopped: {s.error}</p>}
           {notes && !below && (
             <Notices
               bannered={!!banner}

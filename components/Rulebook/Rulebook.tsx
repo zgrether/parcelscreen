@@ -95,7 +95,7 @@ export function Rulebook() {
               <div className="muted">
                 <p>
                   {stale.length} parcel{stale.length === 1 ? "" : "s"} on your list{" "}
-                  {stale.length === 1 ? "was" : "were"} screened under earlier rules. Open one to re-screen
+                  {stale.length === 1 ? "was" : "were"} graded under earlier rules. Open one to grade it again
                   it.
                 </p>
                 <ul className="rule-stale">

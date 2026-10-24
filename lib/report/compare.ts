@@ -77,7 +77,7 @@ const POINTS: Record<Letter, number> = SCREEN_CONSTANTS.card.points;
 
 /** What a parcel without a current screen shows in each of its cells. */
 const NO_SCREEN: Record<Exclude<CompareParcel["state"], "ok">, string> = {
-  rescreen: "re-screens when opened",
+  rescreen: "grades again when opened",
   none: "not screened",
 };
 
@@ -290,8 +290,8 @@ export function compareTable(parcels: readonly CompareParcel[], rubric: NamedRub
               },
             ],
       },
-      { key: "dealbreakers", label: "Dealbreakers", rows: gateRows },
-      { key: "cantAdd", label: "What money can't add", rows: rowLines },
+      { key: "dealbreakers", label: "Must have", rows: gateRows },
+      { key: "cantAdd", label: "Really want", rows: rowLines },
     ],
   };
 }

@@ -31,7 +31,7 @@ import { ADJUSTED_TITLE } from "@/lib/report/adjustWords";
 
 const STATUS: Record<NonNullable<Cell["status"]>, { mark: string; word: string }> = {
   pass: { mark: "✓", word: "Pass" },
-  warn: { mark: "!", word: "Warning" },
+  warn: { mark: "!", word: "Check first" },
   fail: { mark: "✗", word: "Fail" },
   unknown: { mark: "?", word: "Unknown" },
 };

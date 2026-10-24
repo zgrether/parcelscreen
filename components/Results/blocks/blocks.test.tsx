@@ -87,6 +87,9 @@ const APPROVED: Record<string, string[]> = {
  * none at all when both are unknown or catch-all (owner, 2026-10-08).
  */
 const APPROVED_PROTO: Record<string, (text: string) => string> = {
+  // UX part 2's names (Zach, #314; docs/plans/ux-part-2.md §4, the audit's §4.1): running the screen is "Grade", so the
+  // verdict reads "Grading…" while it runs.
+  verdict: (t) => t.replace("Screening…", "Grading…"),
   // A4b (owner, 2026-10-10: an approved replacement): a route's grade is the steepest over 30 m, not a single 3 m
   // step: the card's row and the direct track's say so.
   driveway: (t) =>
@@ -99,6 +102,15 @@ const APPROVED_PROTO: Record<string, (text: string) => string> = {
   "public-land-within-a-mile": (t) =>
     t.replace(/\(([A-Z]*), ([A-Z]*)\)/g, (_m, m: string, d: string) => unitMeta({ manager: m, type: d })),
 };
+
+/**
+ * Approved renames of the prototype's section headings (Zach, #314: UX part 2's names, docs/plans/ux-part-2.md §4),
+ * applied to its heading before comparing.
+ */
+const APPROVED_HEADING: [string, string][] = [
+  ["Dark skies", "Night sky"],
+  ["Still unknown", "Questions for the agent"],
+];
 
 /**
  * A4b (owner, 2026-10-10; added): each route card's disclosure with its 15 and 60 m grades and the ground note,
@@ -140,7 +152,11 @@ function expectParity(R: PrototypeResult, ours: PartialScreenResult, partial: bo
     const theirs = visibleText(APPROVED_PROTO[slug]?.(section.body) ?? section.body);
     expect(text, slug).toBe(theirs);
     const h = heading(ours, evaluationPoint(ours));
-    expect(visibleText(`${h.title}${h.sub ?? ""}?`), `${slug} heading`).toBe(section.heading);
+    const theirsHeading = APPROVED_HEADING.reduce(
+      (t, [was, now]) => t.replace(visibleText(was), visibleText(now)),
+      section.heading,
+    );
+    expect(visibleText(`${h.title}${h.sub ?? ""}?`), `${slug} heading`).toBe(theirsHeading);
   }
 }
 

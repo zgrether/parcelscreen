@@ -270,7 +270,7 @@ export function Library() {
           )}
         </header>
         {/* Step 8 (plan §5): Favorites first; the choice is remembered with the view. */}
-        <div className="list-switch" role="tablist" aria-label="Favorites or Recent">
+        <div className="list-switch" role="tablist" aria-label="Shortlist or Recent">
           {(["favorites", "history"] as const).map((t) => (
             <button
               key={t}
@@ -279,7 +279,7 @@ export function Library() {
               aria-selected={tab === t}
               onClick={() => setView({ ...view, tab: t })}
             >
-              {t === "favorites" ? "Favorites" : "Recent"}
+              {t === "favorites" ? "Shortlist" : "Recent"}
             </button>
           ))}
         </div>
@@ -364,7 +364,7 @@ export function Library() {
                 ? memberName(adderOf.get(unstarring.key)!)
                 : null,
             )}
-            action="Remove from favorites"
+            action="Remove from Your list"
             keep="Keep"
             reset={() => {
               unstarParcel(unstarring.key);
@@ -449,7 +449,7 @@ const statusCell = (r: LibraryRow) => {
 function VerdictWord({ v, unscreened }: { v: Verdict | null; unscreened: LibraryRow["unscreened"] }) {
   if (v) return <span className={`card-word small v-${v.toLowerCase()}`}>{VERDICT_WORD[v]}</span>;
   // Screened under earlier rules, or its result is gone (a clean break): the Library's own words (approval A).
-  return <span className="tiny muted">{unscreened === "rescreen" ? "Needs a re-screen" : "–"}</span>;
+  return <span className="tiny muted">{unscreened === "rescreen" ? "Needs grading again" : "–"}</span>;
 }
 
 /** Why the same letter can read Contender on one row and Maybe on another (polish, step 8's review). */

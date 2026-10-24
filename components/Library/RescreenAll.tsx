@@ -23,7 +23,7 @@ import { useScreen } from "@/lib/client/useScreen";
 import { ENGINE_VERSION } from "@/lib/screen/engine";
 import type { ScreenResult } from "@/lib/screen/types";
 
-export const RESCREEN_ALL = "Re-screen all saved parcels";
+export const RESCREEN_ALL = "Grade all saved parcels again";
 
 interface Job {
   /** The parcels to screen, in list order, as they were when the job started. */
@@ -162,7 +162,7 @@ export function RescreenAll({
   const plural = (k: number) => `${k} parcel${k === 1 ? "" : "s"}`;
   const failedWords = (j: Job) =>
     j.failed.length
-      ? ` ${plural(j.failed.length)} couldn't be re-screened: ${j.failed
+      ? ` ${plural(j.failed.length)} couldn't be graded again: ${j.failed
           .map((f) => (f.why ? `${nameOf(f.key)} (${f.why})` : nameOf(f.key)))
           .join(", ")}.`
       : "";
@@ -171,7 +171,7 @@ export function RescreenAll({
       {job?.state === "running" && current ? (
         <>
           <span>
-            Re-screening {job.at + 1} of {job.parcels.length}: {nameOf(current.key!)}…
+            Grading {job.at + 1} of {job.parcels.length} again: {nameOf(current.key!)}…
           </span>
           <button className="btn small secondary" onClick={cancel}>
             Cancel
@@ -181,7 +181,7 @@ export function RescreenAll({
         <>
           {job?.state === "finished" && (
             <span>
-              Re-screened {plural(job.kept)}.{failedWords(job)}
+              Graded {plural(job.kept)} again.{failedWords(job)}
             </span>
           )}
           {job?.state === "stopped" && (
@@ -193,7 +193,7 @@ export function RescreenAll({
           {n > 0 && (
             <>
               <span className="muted">
-                {plural(n)} need{n === 1 ? "s" : ""} a re-screen (saved under earlier rules).
+                {plural(n)} need{n === 1 ? "s" : ""} grading again (graded under earlier rules).
               </span>
               <button className="btn small" onClick={start}>
                 {RESCREEN_ALL}

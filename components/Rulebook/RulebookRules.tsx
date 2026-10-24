@@ -101,7 +101,7 @@ export function RulebookRules({ rb, current }: { rb: Rulebook; current: string }
             ))}
           </tbody>
         </table>
-        <h3>Dealbreakers</h3>
+        <h3>Must have</h3>
         {rb.card.gates.map((g) => (
           <RulePanelView key={g.key} panel={g} />
         ))}

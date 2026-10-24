@@ -37,9 +37,9 @@ test("Esc closes the parcel's ⋯ menu, then a row's panel, and only then the pa
   await expect(header).toBeVisible();
 
   await page.getByRole("button", { name: "More for this parcel" }).click();
-  await expect(page.getByRole("menuitem", { name: /Report card/ })).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: /Make a report/ })).toBeVisible();
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("menuitem", { name: /Report card/ })).toHaveCount(0);
+  await expect(page.getByRole("menuitem", { name: /Make a report/ })).toHaveCount(0);
   await expect(header).toBeVisible();
 
   // A row's panel: Esc closes it, and the parcel stays.
