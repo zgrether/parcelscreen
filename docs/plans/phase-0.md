@@ -1179,5 +1179,36 @@ until step 5 (Q14).
       gained step 14's power lines, land cover, flowlines, county and zoning, and the two pieces of a fixed split
       (`test/support/splitScenario.ts`). `record:port` waits 5 s for each connection (it lost the county ask to Node's
       250 ms default before, #305).
+71. **Zach's answers after #312: the parked questions, frontage, ponds and one acreage** (owner, 2026-10-24, the
+    message after step 14's hand-back). Questions 2–7 and 11 stand as answered in #312. The rest:
+    - **Garden, orchard, animals** (Q1): water no longer decides it. The reason names where the water would come from:
+      a Spring, Stream or Well mark, else "a stream on the parcel" (a year-round NHD flowline inside), "a pond on the
+      parcel" (an NHD waterbody, below), or "from the well; no stream or spring mapped".
+    - **Hunt** (Q8) counts the houses within a quarter mile of the boundary, not of the build site: a new optional
+      `privacy.nearBoundary`, from the same footprint tiles (no new request).
+    - **Split** (Q9, Q10, Q12–Q14): a scenario's line and pieces are drawn on the map while Uses shows the parcel,
+      labelled as the panel names them ("West piece, 9.4 ac", the one label style, the split tool's too). A piece added
+      to the list brings the parcel's deed restrictions and HOA, marked "from the original parcel" (an optional
+      `fromOriginal` on the parcel; an edit makes the field the person's own). Remove this split has an Undo toast. A
+      piece's grade follows the grade switch.
+    - **Frontage, walked along the boundary.** Roan's 0 ft was right: the county map puts two other owners' parcels
+      (Carter 099 046.03 and 046.05) between it and State Rte 143, whose centreline is 73 m from Roan's boundary at the
+      closest (TIGER and OSM agree). It now reads "None: no public road runs along the county map's boundary". Rechecking
+      every fixture found the measure itself overcounted: it took the road's length within 40 m of the boundary, so a
+      road passing a corner counted, and a side's road ran on past its corners. It now walks the boundary: a stretch is
+      frontage on the nearest road within `frontage.reachM` (20 m) running within `frontage.parallelDeg` (30°) of it,
+      laid onto that road and counted once along it (Mud Creek's two parts face each other across Mud Creek Ln). Mud
+      Creek 1,116 → 885 ft (the deed: about 909 ft along Rte 600's centreline), Macks 2,494 → 1,315, Ferney 3,872 →
+      2,365, Roan 0. Divide's plat counts follow: Mud Creek 11 → 8 lots, Macks 24 → 13.
+    - **Ponds:** NHD's waterbodies (the National Map's layer 12, endpoints `_v` 15), lakes, ponds and reservoirs
+      (FTYPE 390, 436) reaching inside the parcel: a new optional `ponds` (count, acres inside, names). Ferney has one
+      (0.94 ac).
+    - **One acreage per parcel:** the parcel's own land, every part of a county record, the bridged strip left out
+      (Mud Creek: 29.31 + 0.84 = 30.15 ac). The engine, the header, the list and Divide already used it; Details' part
+      line took only a record's first polygon (29.31). `recordAcres` now sums the parts. The e2e harness's import is the
+      prototype's export, Mud Creek's first part only: the screenshots for this answer open it as the county record.
+    - SCREEN_SCHEMA_VERSION stays 9 (`ponds` and `privacy.nearBoundary` are optional, §9.65's exception). ENGINE_VERSION
+      31 → 32; `ENGINE_CURRENT_FROM` stays 29, so a grade from before keeps its old frontage until graded again, and reads
+      Hunt's houses and the ponds as not measured.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

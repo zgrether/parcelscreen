@@ -3,7 +3,7 @@
  * screen result, the card's facts and the parcel's own marks, lines and listing, and answers Yes, Maybe or No with one
  * reason and the facts that decide it. Pure: display time only, outside the grade (§1).
  */
-import type { EasementType, Hoa, LineKind } from "../client/parcelStore";
+import type { EasementType, FromOriginal, Hoa, LineKind } from "../client/parcelStore";
 import type { CardFacts } from "../report/card";
 import type { Mark, SepticClass } from "../report/marks";
 import type { PartialScreenResult } from "../screen/types";
@@ -42,6 +42,8 @@ export interface UseListing {
   hoa: Hoa;
   /** The acres the listing claims, as typed: Divide counts on them, as $/ac does (owner, #311). Absent: none typed. */
   listingAcres?: number | null;
+  /** Which came from the parcel a piece was split from (owner, after #312). Absent: none. */
+  fromOriginal?: readonly FromOriginal[];
 }
 
 export interface UsesInput {

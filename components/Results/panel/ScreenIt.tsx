@@ -531,6 +531,7 @@ export function useScreenIt(
   const deedRestrictions = open?.deedRestrictions ?? "";
   const hoa = open?.hoa ?? "unknown";
   const listingAcres = open?.listingAcres ?? null;
+  const fromOriginal = open?.fromOriginal;
   const uses = useMemo(
     () =>
       display && card && !runningHere
@@ -540,6 +541,7 @@ export function useScreenIt(
               deedRestrictions,
               hoa,
               listingAcres,
+              ...(fromOriginal ? { fromOriginal } : {}),
             }),
           )
         : null,
@@ -554,6 +556,7 @@ export function useScreenIt(
       deedRestrictions,
       hoa,
       listingAcres,
+      fromOriginal,
     ],
   );
   // A site tapped in the panel (step 7 plan §1.3): evaluated with the live session, as its pin is; without one, the

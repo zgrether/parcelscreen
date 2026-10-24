@@ -17,11 +17,12 @@ import {
 } from "maplibre-gl";
 import { useEffect, useMemo, useRef } from "react";
 import { snapCorner, type SnapRing } from "@/lib/geo/snap";
-import type { Side } from "@/lib/geo/split";
+import type { SplitPieces } from "@/lib/geo/split";
+import { piecesOf } from "@/lib/split/scenario";
 import type { LatLon } from "@/lib/geo/types";
 import { parcelFromLine } from "@/lib/geo/parcels";
 import { LINES_MIN_ZOOM } from "@/lib/geo/parcelTiles";
-import { DRAWING } from "@/components/Explore/exploreState";
+import { DRAWING, panelView } from "@/components/Explore/exploreState";
 import { layerLine, lineLayer } from "@/components/Explore/layers";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { KIND_NAME, type PointMarkup } from "@/lib/client/parcelStore";
@@ -89,11 +90,12 @@ export function ParcelTools() {
   const map = useMap();
   const ctl = useExplore();
   useMapTaps(map, ctl);
-  useOverlays(map, ctl);
+  const splits = useShownSplits(ctl);
+  useOverlays(map, ctl, splits);
   useHouseMarker(map, ctl);
   usePointMarkers(map, ctl);
   useSplitMarkers(map, ctl);
-  usePieceLabels(map, ctl);
+  usePieceLabels(map, splits);
   useSnapIndicator(map, ctl);
   useSavedLabels(map, ctl);
   return null;
@@ -267,9 +269,49 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
   }, [map, mode, placed]);
 }
 
-function useOverlays(map: MlMap | null, ctl: ExploreController) {
-  const { draft, split, combine, layer } = ctl.state;
-  const { parcel, pieces, combined, saved, shapes } = ctl;
+/** A split line on the map, its two pieces and their acres; `id` tells their labels apart. */
+interface ShownSplit {
+  id: string;
+  a: LatLon;
+  b: LatLon;
+  pieces: SplitPieces;
+}
+
+/**
+ * The splits drawn on the map: the split tool's line once placed, or else, while Uses shows the open parcel, each of
+ * its scenarios (owner, after #312: a scenario's line and pieces drawn, labelled, while it's open).
+ */
+function useShownSplits(ctl: ExploreController): ShownSplit[] {
+  const { split, mode } = ctl.state;
+  const { pieces } = ctl;
+  const open = ctl.state.store.open;
+  const onUses = panelView(ctl.state) === "uses";
+  const parts = open?.pieces,
+    scenarios = open?.scenarios;
+  const fromScenarios = useMemo(() => {
+    if (!open || !onUses || !scenarios?.length) return [];
+    return scenarios.flatMap((sc): ShownSplit[] => {
+      const two = piecesOf(open, sc);
+      if (!two) return [];
+      const [left, right] = two;
+      return [
+        {
+          id: sc.id,
+          a: sc.a,
+          b: sc.b,
+          pieces: { left: left.geo, right: right.geo, leftAc: left.acres, rightAc: right.acres },
+        },
+      ];
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the pieces follow the parts and the scenarios' lines
+  }, [onUses, parts, scenarios]);
+  if (pieces && split?.b) return [{ id: "tool", a: split.a, b: split.b, pieces }];
+  return mode === "split" ? [] : fromScenarios;
+}
+
+function useOverlays(map: MlMap | null, ctl: ExploreController, splits: readonly ShownSplit[]) {
+  const { draft, combine, layer } = ctl.state;
+  const { parcel, combined, saved, shapes } = ctl;
   const open = ctl.state.store.open;
   const parcelHidden = !!open?.hidden.includes("parcel");
   // The map fits to the parcel when its boundary changes, not on every edit that re-derives it (a house, a
@@ -335,10 +377,11 @@ function useOverlays(map: MlMap | null, ctl: ExploreController) {
   }, [map, draft]);
 
   useEffect(() => {
-    map
-      ?.getSource<GeoJSONSource>(SOURCE.split)
-      ?.setData(pieces && split?.b ? splitData(pieces, split.a, split.b) : EMPTY);
-  }, [map, pieces, split]);
+    map?.getSource<GeoJSONSource>(SOURCE.split)?.setData({
+      type: "FeatureCollection",
+      features: splits.flatMap((x) => splitData(x.pieces, x.a, x.b).features),
+    });
+  }, [map, splits]);
 
   useEffect(() => {
     map?.getSource<GeoJSONSource>(SOURCE.combine)?.setData(
@@ -529,34 +572,35 @@ function useSplitMarkers(map: MlMap | null, ctl: ExploreController) {
 }
 
 /**
- * A label on each piece while a split is placed: its side and its acres. Step 14: a label only, since both pieces are
+ * A label on each piece of each split shown: its side and its acres. Step 14: a label only, since both pieces are
  * graded (Grade both pieces), not one kept.
  */
-function usePieceLabels(map: MlMap | null, ctl: ExploreController) {
-  const markers = useRef(new Map<Side, Marker>());
-  const { split } = ctl.state;
-  const { pieces } = ctl;
+function usePieceLabels(map: MlMap | null, splits: readonly ShownSplit[]) {
+  const markers = useRef(new Map<string, Marker>());
 
   useEffect(() => {
     if (!map) return;
-    const labels = pieces && split?.b ? pieceLabels(pieces, split.a, split.b) : [];
+    // Keyed by its anchor too: a marker's anchor is set when it's made.
+    const labels = splits.flatMap((x) =>
+      pieceLabels(x.pieces, x.a, x.b).map((l) => ({ ...l, key: `${x.id}:${l.side}:${l.anchor}` })),
+    );
     const m = markers.current;
-    for (const [side, mk] of m)
-      if (!labels.some((l) => l.side === side)) {
+    for (const [key, mk] of m)
+      if (!labels.some((l) => l.key === key)) {
         mk.remove();
-        m.delete(side);
+        m.delete(key);
       }
     for (const l of labels) {
-      let mk = m.get(l.side);
+      let mk = m.get(l.key);
       if (!mk) {
         const el = document.createElement("span");
         el.className = "piece-label static";
-        mk = new Marker({ element: el });
-        m.set(l.side, mk.setLngLat([l.at[1], l.at[0]]).addTo(map));
+        mk = new Marker({ element: el, anchor: l.anchor });
+        m.set(l.key, mk.setLngLat([l.at[1], l.at[0]]).addTo(map));
       } else mk.setLngLat([l.at[1], l.at[0]]);
       mk.getElement().textContent = l.text;
     }
-  }, [map, pieces, split]);
+  }, [map, splits]);
 
   useEffect(
     () => () => {

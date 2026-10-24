@@ -13,7 +13,7 @@ import type { Curve } from "./util";
 
 /** Service endpoints. `_v` bumps when a default moves, so stale stored copies are replaced. */
 export const DEFAULT_ENDPOINTS: Endpoints = {
-  _v: 14,
+  _v: 15,
   dem: "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
   terrarium: "https://s3.amazonaws.com/elevation-tiles-prod/terrarium",
   sda: "https://SDMDataAccess.sc.egov.usda.gov/Tabular/post.rest",
@@ -57,6 +57,8 @@ export const DEFAULT_ENDPOINTS: Endpoints = {
   // Step 14: NLCD 2021 land cover (MRLC's WCS), NHD's flowlines (the National Map), and the Census Bureau's counties.
   nlcd: "https://www.mrlc.gov/geoserver/mrlc_download/wcs",
   nhd: "https://hydro.nationalmap.gov/arcgis/rest/services/nhd/MapServer/6",
+  // Owner, after #312 (_v 15): NHD's waterbodies, so a pond on the parcel counts as water.
+  nhdWaterbody: "https://hydro.nationalmap.gov/arcgis/rest/services/nhd/MapServer/12",
   counties: "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/1",
 };
 
@@ -357,6 +359,9 @@ export const SCREEN_CONSTANTS = deepFreeze({
     bufferFt: 300,
     perennial: [46006] as const,
     intermittent: [46003] as const,
+    // Owner, after #312: NHD's waterbodies that are water to draw from: FTYPE 390 lake or pond, 436 reservoir (a
+    // swamp or marsh, 466, isn't).
+    ponds: [390, 436] as const,
     stepM: 5,
     timeoutMs: 60_000,
   },
@@ -376,12 +381,18 @@ export const SCREEN_CONSTANTS = deepFreeze({
     rideNearMi: 3,
     rideFarMi: 10,
   },
-  // Step 14 (plan §2.3): road frontage, the road length within the entrance search's reach of the boundary.
-  // Public: TIGER's primary, secondary and local roads (MTFCC S1100, S1200, S1400); OSM's ways only when they're one
-  // of these classes and not private.
+  // Step 14 (plan §2.3): road frontage. Public: TIGER's primary, secondary and local roads (MTFCC S1100, S1200, S1400);
+  // OSM's ways only when they're one of these classes and not private. Owner, after #312: walked along the boundary,
+  // in pieces of at most stepM; a piece is frontage on the nearest road within reachM running within parallelDeg of
+  // it. 20 m holds a road's centreline beside a boundary drawn to its edge or its middle (VA's secondary roads have a
+  // 30–50 ft right-of-way) with TIGER's offset; 30° leaves out a road that meets the boundary at a corner. Mud Creek's
+  // 919 ft against the deed's 909 ft along Rte 600 was the check.
   frontage: {
     publicMtfcc: ["S1100", "S1200", "S1400"] as const,
     publicOsm: ["primary", "secondary", "tertiary", "unclassified", "residential"] as const,
+    reachM: 20,
+    parallelDeg: 30,
+    stepM: 10,
   },
   roads: {
     layers: [8, 6, 2] as const, // L843: local, secondary, primary

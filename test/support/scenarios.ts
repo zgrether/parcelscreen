@@ -4,7 +4,7 @@
  * (test/tools/diff-prototype.test.ts) and the screen tests.
  */
 import { createHttpClient, type HttpClient } from "@/lib/http";
-import { pickParcelAt } from "@/lib/geo/parcels";
+import { pickParcelAt, type ParcelRecord } from "@/lib/geo/parcels";
 import { fieldsFor, fullRecord } from "@/lib/geo/parcelTiles";
 import { deriveParcel } from "@/lib/geo/recipe";
 import { DEFAULT_ENDPOINTS, DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "@/lib/screen/config";
@@ -47,6 +47,22 @@ export function depsFor(
 const parcels = new Map<FixtureSlug, Promise<Pick<ScreenInput, "polygon" | "ownLand">>>();
 
 /**
+ * The county record at the fixture's point, as a tap picks it, answered from the HAR (`http` when given): every part of
+ * a multi-part record (Mud Creek's two), and Tennessee's full record.
+ */
+export async function countyRecordOf(slug: FixtureSlug, http?: HttpClient): Promise<ParcelRecord> {
+  const { point } = loadFixture(slug).input;
+  const client = http ?? depsFor(slug).http!;
+  const { parcel: picked, report } = await pickParcelAt(client, DEFAULT_ENDPOINTS.parcels, [
+    point.lat,
+    point.lon,
+  ]);
+  if (!picked) throw new Error(`${slug}: no parcel in the HAR at its point (${report.join("; ")})`);
+  // Where a parcel can be several features (Tennessee, step 2) the app takes the full record, as a tap does.
+  return fieldsFor(picked.source).groupById ? await fullRecord(client, picked) : picked;
+}
+
+/**
  * The fixture's parcel as the app screens it: the county record at the fixture's point, answered from the
  * HAR, through the recipe (lib/geo/recipe.ts). For a one-part record it's the recorded polygon; for Grayson
  * Mud Creek's two parts it's the bridged boundary with the parts as own land (follow-up 29). `http` is the run's
@@ -59,15 +75,7 @@ export function fixtureParcel(
   let p = http ? undefined : parcels.get(slug);
   if (!p) {
     p = (async () => {
-      const { point } = loadFixture(slug).input;
-      const client = http ?? depsFor(slug).http!;
-      const { parcel: picked, report } = await pickParcelAt(client, DEFAULT_ENDPOINTS.parcels, [
-        point.lat,
-        point.lon,
-      ]);
-      if (!picked) throw new Error(`${slug}: no parcel in the HAR at its point (${report.join("; ")})`);
-      // Where a parcel can be several features (Tennessee, step 2) the app takes the full record, as a tap does.
-      const parcel = fieldsFor(picked.source).groupById ? await fullRecord(client, picked) : picked;
+      const parcel = await countyRecordOf(slug, http);
       const d = deriveParcel({ parts: [parcel] }, SCREEN_CONSTANTS.combine);
       if (!d.ok) throw new Error(`${slug}: the recipe failed (${d.reason})`);
       return { polygon: d.record.geo.geometry, ...(d.bridgeAcres > 0 ? { ownLand: d.own.geometry } : {}) };

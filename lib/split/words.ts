@@ -27,6 +27,9 @@ export const SPLIT_WORDS = {
   /** The piece kept as a parcel of its own: "Mud Creek, North piece". */
   listName: (parent: string, side: string) => `${parent}, ${side} piece`,
   tryAgain: "Try again",
+  /** Owner, after #312: Remove this split's Undo toast, as a deleted line's ("Track 2 deleted — Undo"). */
+  removed: (name: string) => `${name} removed —`,
+  undo: "Undo",
 } as const;
 
 /** A piece's side, by the compass point it faces from the line (8 points). */

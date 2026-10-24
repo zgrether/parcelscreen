@@ -58,6 +58,7 @@ export const USE_NAME: Record<UseKey | "limits", string> = {
 export const SOURCE = {
   nlcd: "NLCD land cover",
   nhd: "USGS NHD flowlines",
+  nhdPonds: "USGS NHD waterbodies",
   lidar: "USGS 3DEP lidar (our estimate)",
   dem: "USGS 3DEP lidar",
   padus: "USGS PAD-US",
@@ -72,6 +73,8 @@ export const SOURCE = {
   marks: "your marks",
   lines: "your lines",
   listing: "your listing notes",
+  /** Owner, after #312: copied to a piece added from a split. */
+  original: "from the original parcel",
   cost: "Cost to enjoy (published ranges)",
 } as const;
 
@@ -177,21 +180,22 @@ export const GARDEN = {
     `${ac(openAc)} ac of open gentle ground for animals, with water (${water})`,
   animals: (openAc: number) => `${ac(openAc)} ac of open gentle ground for animals`,
   pocketOnly: "The garden ground is in a frost pocket",
-  noWater:
-    "Garden ground, but no water found: no spring, stream or well marked, and no year-round stream mapped",
-  waterUnknown: "Garden ground, but mapped streams didn't load: water not known",
-  animalsNoWater:
-    "Room for animals, but no water found: no spring, stream or well marked, and no year-round stream mapped",
-  animalsWaterUnknown: "Room for animals, but mapped streams didn't load: water not known",
   smallStock: (openAc: number) => `Room for small stock (${ac(openAc)} ac of open gentle ground)`,
   none: (smallAc: number) => `No garden ground, and under ${ac(smallAc)} ac of open ground`,
-  /** The water found, as the reason names it. */
+  /**
+   * The water, as the reason names it (owner, after #312: water doesn't decide the answer, its source is named): what
+   * the household marked, then a year-round stream or a pond the NHD maps on the parcel, else the well.
+   */
   waterSpring: "your spring",
   waterStream: "your stream",
   waterWell: "your well",
-  waterMapped: (names: readonly string[]) =>
-    names.length ? `a year-round stream: ${names.join(", ")}` : "a year-round stream",
-  noWaterFound: "none found",
+  streamOnParcel: "a stream on the parcel",
+  pondOnParcel: "a pond on the parcel",
+  fromWell: "from the well; no stream or spring mapped",
+  fromWellNotLoaded: "from the well; mapped streams didn't load",
+  /** What decides it's Water: the source, and the mapped water's names. */
+  waterNamed: (water: string, names: readonly string[]) =>
+    names.length ? `${water} (${names.join(", ")})` : water,
   acres: (n: number) => `${ac(n)} ac`,
 } as const;
 
@@ -201,7 +205,8 @@ export const HUNT = {
   acresLabel: "Acres",
   forestLabel: "Forest",
   publicLabel: "Open public land next door",
-  housesLabel: "Houses within a quarter mile",
+  /** Owner, after #312: counted from the boundary, not the build site. */
+  housesBoundaryLabel: "Houses within a quarter mile of the boundary",
   countyLabel: (county: string) => `${county} County's rule on where you can shoot`,
   countyNotCoveredLabel: "The county's rule on where you can shoot",
   licenseLabel: "License",
@@ -213,8 +218,8 @@ export const HUNT = {
   adjoins: (name: string) => `Adjoins open public land (${name})`,
   small: (acres: number, minAc: number) => `Under ${ac(minAc)} ac (${ac(acres)} ac)`,
   thin: (forestPct: number, minPct: number) => `${fmt(forestPct)}% forest, under ${fmt(minPct)}%`,
-  houses: (n: number, site: string) =>
-    `${fmt(n)} ${n === 1 ? "house" : "houses"} within a quarter mile of ${site}`,
+  housesBoundary: (n: number) =>
+    `${fmt(n)} ${n === 1 ? "house" : "houses"} within a quarter mile of the boundary`,
   notCovered: "The county's rules aren't covered here yet",
   notCoveredValue: "Not covered here yet",
   acres: (n: number) => `${ac(n)} ac`,
@@ -258,8 +263,8 @@ export const RIDE = {
 export const DIVIDE = {
   /**
    * Owner, #311: the two numbers, each with what binds it, in the county's terms. "Up to 3 lots without subdivision
-   * review (a farm division approved by staff; limited by 30.15 ac at 10 ac a lot) · up to 11 with an approved
-   * subdivision plat (limited by 1,116 ft of road frontage at 100 ft per lot; more lots need a road built to the
+   * review (a farm division approved by staff; limited by 30.15 ac at 10 ac a lot) · up to 8 with an approved
+   * subdivision plat (limited by 885 ft of road frontage at 100 ft per lot; more lots need a road built to the
    * county's standard)".
    */
   withoutReview: (n: number, term: string, limit: string) =>
@@ -294,7 +299,7 @@ export const DIVIDE = {
   byFrontage: (frontage: number, per: number, n: number) =>
     `${ft(frontage)} ft of public road frontage ÷ ${ft(per)} ft a lot = ${n} ${n === 1 ? "lot" : "lots"}`,
   withPlatLabel: "With a subdivision plat",
-  /** "11 lots: road frontage binds". */
+  /** "8 lots: road frontage binds". */
   binds: (n: number, what: string) => `${n} ${n === 1 ? "lot" : "lots"}: ${what} binds`,
   bindsSize: "lot size",
   bindsFrontage: "road frontage",
@@ -314,7 +319,9 @@ export const DIVIDE = {
     `${listed} ac from the listing (used); the county map shows ${boundary} ac`,
   /** The frontage as measured, and what it's measured along (owner, #311). */
   frontageMeasured: (feet: number) =>
-    `${ft(feet)} ft, measured along the county map's boundary; a survey may differ`,
+    feet === 0
+      ? "None: no public road runs along the county map's boundary; a survey may differ"
+      : `${ft(feet)} ft, measured along the county map's boundary; a survey may differ`,
   boundaryDisagrees: (listed: string, boundary: string) =>
     `The county map's boundary (${boundary} ac) disagrees with the listing (${listed} ac): the road frontage is measured along that boundary, so it may be off too`,
   /** §9 Divide. */

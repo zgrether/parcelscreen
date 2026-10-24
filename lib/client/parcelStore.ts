@@ -189,6 +189,11 @@ export interface WorkingParcel {
   deedRestrictions: string;
   hoa: Hoa;
   /**
+   * Owner, after #312: which of the two a piece added from a split brought from its parcel ("from the original parcel");
+   * an edit of one makes it the person's own. Absent: none.
+   */
+  fromOriginal?: FromOriginal[];
+  /**
    * Where the household stands on it (WF2, docs/plans/parcel-workflow.md §4): in progress (the default), saved (a
    * contender to keep), or archived, with the reason and what it was before (Restore puts that back). Archiving keeps
    * everything; Remove is still the only delete.
@@ -306,6 +311,9 @@ export type ListingField = "name" | "listingUrl" | "listingAcres" | "agent" | "d
 /** Whether the parcel has an HOA, as the household knows it (step 14, plan §3.2). */
 export type Hoa = "yes" | "no" | "unknown";
 export const HOA_VALUES: readonly Hoa[] = ["yes", "no", "unknown"];
+/** The listing facts a piece added from a split copies from its parcel (owner, after #312). */
+export type FromOriginal = "deedRestrictions" | "hoa";
+export const FROM_ORIGINAL: readonly FromOriginal[] = ["deedRestrictions", "hoa"];
 
 /** A name read from the notes is used only this short (owner, #130). */
 export const NOTES_NAME_MAX = 60;
@@ -562,6 +570,8 @@ const WorkingSchema = z.object({
   // Added with step 14: a parcel kept before has no restrictions typed, and an HOA not known.
   deedRestrictions: z.string().default(""),
   hoa: z.enum(HOA_VALUES).default("unknown"),
+  // Added after #312: a parcel kept before brought nothing from another.
+  fromOriginal: z.array(z.enum(FROM_ORIGINAL)).optional(),
   // Added with WF2: a parcel kept before is in progress, with no milestones.
   status: z.enum(["inProgress", "saved", "archived"]).default("inProgress"),
   archived: z

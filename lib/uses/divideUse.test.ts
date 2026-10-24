@@ -22,7 +22,7 @@ const frontage = (publicFt: number) => ({
 const FARM =
   "Up to 3 lots without subdivision review (a farm division approved by staff; limited by 30.15 ac at 10 ac a lot)";
 const PLAT =
-  "up to 11 with an approved subdivision plat (limited by 1,116 ft of road frontage at 100 ft per lot; more lots need a road built to the county's standard)";
+  "up to 8 with an approved subdivision plat (limited by 885 ft of road frontage at 100 ft per lot; more lots need a road built to the county's standard)";
 const GRAYSON_SO = "https://graysoncountyva.gov/DocumentCenter/View/262/Subdivision-Ordinance--PDF";
 const GRAYSON_ZO = "https://graysoncountyva.gov/DocumentCenter/View/257/Zoning-Ordinance-PDF";
 
@@ -56,10 +56,10 @@ describe("Divide's answer", () => {
       source: GRAYSON_ZO,
     });
     expect(fact("Lots by frontage")).toMatchObject({
-      value: "1,116 ft of public road frontage ÷ 100 ft a lot = 11 lots (§9-2)",
+      value: "885 ft of public road frontage ÷ 100 ft a lot = 8 lots (§9-2)",
       source: GRAYSON_SO,
     });
-    expect(fact("With a subdivision plat").value).toBe("11 lots: road frontage binds");
+    expect(fact("With a subdivision plat").value).toBe("8 lots: road frontage binds");
     // The county's own rules follow, the exceptions in its words.
     const exceptions = facts.filter((f) => f.label === "Also allowed");
     expect(exceptions.map((f) => f.value)).toEqual([
@@ -169,7 +169,7 @@ describe("Divide on the listing's acres (owner, #311: the same rule as $/ac)", (
       "24.7 ac ÷ 0.69 ac minimum lot = 35 lots (§4-6.3)",
     );
     expect(facts.find((f) => f.label === "Public road frontage")?.value).toBe(
-      "1,116 ft, measured along the county map's boundary; a survey may differ",
+      "885 ft, measured along the county map's boundary; a survey may differ",
     );
     expect(facts.find((f) => f.label === "To re-check" && f.value.startsWith("The county map"))?.value).toBe(
       "The county map's boundary (30.15 ac) disagrees with the listing (24.7 ac): the road frontage is measured along that boundary, so it may be off too",

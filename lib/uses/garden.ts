@@ -1,8 +1,9 @@
 /**
- * Garden, orchard, animals (step 14 §3.1). Yes: garden ground out of the frost pocket with water (a Spring, Stream or
- * Well mark, or a year-round stream inside), or uses.pastureAc of open gentle ground for animals, with water. Maybe: a
- * garden in the frost pocket or without water, or uses.smallStockAc to pastureAc of open ground ("room for small
- * stock"). No: no garden ground and under smallStockAc open. Pure.
+ * Garden, orchard, animals (step 14 §3.1). Yes: garden ground out of the frost pocket, or uses.pastureAc of open gentle
+ * ground for animals. Water doesn't decide it (owner, after #312): the reason names where it would come from, a Spring,
+ * Stream or Well mark, a year-round stream or a pond mapped on the parcel, else the well. Maybe: a garden in the frost
+ * pocket, or uses.smallStockAc to pastureAc of open ground ("room for small stock"). No: no garden ground and under
+ * smallStockAc open. Pure.
  */
 import { SCREEN_CONSTANTS } from "../screen/config";
 import type { Fact, UseAnswer, UsesInput } from "./types";
@@ -12,26 +13,50 @@ const K = SCREEN_CONSTANTS.uses;
 /** Below the thermal belt's lower edge, cold air pools: the frost scale's Pocket band (config bands.frostAboveFloorFt). */
 const POCKET_BELOW_FT = SCREEN_CONSTANTS.bands.frostAboveFloorFt[0]!;
 
-export function garden({ result: r, marks }: UsesInput): UseAnswer {
-  const gardens = r.gardens;
-  const warm = (gardens ?? []).filter((g) => g.aboveFt >= POCKET_BELOW_FT);
-  const best = [...warm].sort((a, b) => b.acres - a.acres)[0] ?? null;
-  const largest = [...(gardens ?? [])].sort((a, b) => b.acres - a.acres)[0] ?? null;
-  const open = r.cover?.openGentleAc ?? null;
-  // Water: what the household marked, then the year-round streams NHD maps inside the parcel.
+/** Where the water would come from, and the fact that says so. */
+function waterOf({ result: r, marks }: Pick<UsesInput, "result" | "marks">): { says: string; fact: Fact } {
   const kinds = new Set(marks.map((m) => m.kind));
-  const marked = kinds.has("spring") || kinds.has("stream") || kinds.has("well");
-  const yearRound = r.streams && r.streams.perennialFt > 0 ? r.streams : null;
-  const water = kinds.has("spring")
+  const mark = kinds.has("spring")
     ? GARDEN.waterSpring
     : kinds.has("stream")
       ? GARDEN.waterStream
       : kinds.has("well")
         ? GARDEN.waterWell
-        : yearRound
-          ? GARDEN.waterMapped(yearRound.names)
-          : null;
-  const waterUnknown = water === null && !r.streams;
+        : null;
+  if (mark) return { says: mark, fact: { label: GARDEN.waterLabel, value: mark, source: SOURCE.marks } };
+  if (r.streams && r.streams.perennialFt > 0)
+    return {
+      says: GARDEN.streamOnParcel,
+      fact: {
+        label: GARDEN.waterLabel,
+        value: GARDEN.waterNamed(GARDEN.streamOnParcel, r.streams.names),
+        source: SOURCE.nhd,
+      },
+    };
+  if (r.ponds && r.ponds.count > 0)
+    return {
+      says: GARDEN.pondOnParcel,
+      fact: {
+        label: GARDEN.waterLabel,
+        value: GARDEN.waterNamed(GARDEN.pondOnParcel, r.ponds.names),
+        source: SOURCE.nhdPonds,
+      },
+    };
+  const says = r.streams ? GARDEN.fromWell : GARDEN.fromWellNotLoaded;
+  return {
+    says,
+    fact: { label: GARDEN.waterLabel, value: says, ...(r.streams ? { source: SOURCE.nhd } : {}) },
+  };
+}
+
+export function garden(input: UsesInput): UseAnswer {
+  const { result: r } = input;
+  const gardens = r.gardens;
+  const warm = (gardens ?? []).filter((g) => g.aboveFt >= POCKET_BELOW_FT);
+  const best = [...warm].sort((a, b) => b.acres - a.acres)[0] ?? null;
+  const largest = [...(gardens ?? [])].sort((a, b) => b.acres - a.acres)[0] ?? null;
+  const open = r.cover?.openGentleAc ?? null;
+  const water = waterOf(input);
 
   const decides: Fact[] = [
     gardens
@@ -40,11 +65,7 @@ export function garden({ result: r, marks }: UsesInput): UseAnswer {
     ...(largest
       ? [{ label: GARDEN.frostLabel, value: best ? GARDEN.outOfPocket : GARDEN.pocket, source: SOURCE.dem }]
       : []),
-    {
-      label: GARDEN.waterLabel,
-      value: water ?? (waterUnknown ? MISSING.streams : GARDEN.noWaterFound),
-      ...(marked ? { source: SOURCE.marks } : r.streams ? { source: SOURCE.nhd } : {}),
-    },
+    water.fact,
     open !== null
       ? {
           label: GARDEN.openLabel,
@@ -58,15 +79,13 @@ export function garden({ result: r, marks }: UsesInput): UseAnswer {
 
   if (!gardens) return say("maybe", MISSING.terrain);
   const pasture = open !== null && open >= K.pastureAc;
-  if (best && water) {
-    const yes = GARDEN.yes(best.acres, water);
+  if (best) {
+    const yes = GARDEN.yes(best.acres, water.says);
     return say("yes", pasture ? `${yes}; ${GARDEN.animals(open)}` : yes);
   }
-  if (pasture && water) return say("yes", GARDEN.yesAnimals(open, water));
+  if (pasture) return say("yes", GARDEN.yesAnimals(open, water.says));
   if (!largest && open !== null && open < K.smallStockAc) return say("no", GARDEN.none(K.smallStockAc));
-  if (best) return say("maybe", waterUnknown ? GARDEN.waterUnknown : GARDEN.noWater);
   if (largest) return say("maybe", GARDEN.pocketOnly);
   if (open === null) return say("maybe", MISSING.cover("open ground"));
-  if (pasture) return say("maybe", waterUnknown ? GARDEN.animalsWaterUnknown : GARDEN.animalsNoWater);
   return say("maybe", GARDEN.smallStock(open));
 }

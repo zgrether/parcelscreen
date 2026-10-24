@@ -91,7 +91,7 @@ test("Uses on Mud Creek: from Grade's shortcut, seven answers, What decides it, 
   await expect(divide.locator(".use-chip")).toHaveText("Yes");
   // Owner, #311: two numbers, each with what binds it.
   await expect(divide.locator(".use-reason")).toHaveText(
-    "Up to 3 lots without subdivision review (a farm division approved by staff; limited by 30.15 ac at 10 ac a lot) · up to 11 with an approved subdivision plat (limited by 1,116 ft of road frontage at 100 ft per lot; more lots need a road built to the county's standard)",
+    "Up to 3 lots without subdivision review (a farm division approved by staff; limited by 30.15 ac at 10 ac a lot) · up to 8 with an approved subdivision plat (limited by 885 ft of road frontage at 100 ft per lot; more lots need a road built to the county's standard)",
   );
   // The row itself (its Try a split is the other button, split-scenario.spec.ts).
   await divide.locator("button.use-row").click();
@@ -109,7 +109,7 @@ test("Uses on Mud Creek: from Grade's shortcut, seven answers, What decides it, 
   await reload(page);
   await page.getByRole("tab", { name: "Uses" }).click();
   await expect(divide.locator(".use-reason")).toHaveText(
-    "Up to 2 lots without subdivision review (a farm division approved by staff; limited by 24.7 ac at 10 ac a lot) · up to 11 with an approved subdivision plat (limited by 1,116 ft of road frontage at 100 ft per lot; more lots need a road built to the county's standard); on 24.7 listed ac (the county map shows 30.15)",
+    "Up to 2 lots without subdivision review (a farm division approved by staff; limited by 24.7 ac at 10 ac a lot) · up to 8 with an approved subdivision plat (limited by 885 ft of road frontage at 100 ft per lot; more lots need a road built to the county's standard); on 24.7 listed ac (the county map shows 30.15)",
   );
   await divide.locator("button.use-row").click();
   await expect(divide.locator(".use-fact").filter({ hasText: "from the listing (used)" })).toContainText(
@@ -174,7 +174,7 @@ test("One page has the Divide line; Full has What you can do here", async ({ pag
   );
   await visit(page, `/parcel/${key}/report`);
   await expect(page.locator(".rp-one .rp-divide")).toHaveText(
-    "Can divide: up to 3 lots without subdivision review (a farm division approved by staff; limited by 30.15 ac at 10 ac a lot) · up to 11 with an approved subdivision plat (limited by 1,116 ft of road frontage at 100 ft per lot; more lots need a road built to the county's standard)",
+    "Can divide: up to 3 lots without subdivision review (a farm division approved by staff; limited by 30.15 ac at 10 ac a lot) · up to 8 with an approved subdivision plat (limited by 885 ft of road frontage at 100 ft per lot; more lots need a road built to the county's standard)",
   );
 
   await page.getByRole("tab", { name: "Full" }).click();
@@ -183,7 +183,7 @@ test("One page has the Divide line; Full has What you can do here", async ({ pag
     .filter({ has: page.getByRole("heading", { name: "What you can do here", level: 2 }) });
   await expect(section.locator(".rp-uses > li")).toHaveCount(7);
   await expect(section.locator(".rp-uses > li").last()).toContainText(
-    "Divide: Yes. Up to 3 lots without subdivision review (a farm division approved by staff; limited by 30.15 ac at 10 ac a lot) · up to 11 with an approved subdivision plat",
+    "Divide: Yes. Up to 3 lots without subdivision review (a farm division approved by staff; limited by 30.15 ac at 10 ac a lot) · up to 8 with an approved subdivision plat",
   );
   await expect(section.getByRole("heading", { name: "What limits you" })).toBeVisible();
   await expect(section).toContainText(

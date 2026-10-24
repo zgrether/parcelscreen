@@ -8,6 +8,7 @@ import {
   parcelFromLine,
   pickOutline,
   pickParcelAt,
+  recordAcres,
   squareAround,
   type ParcelLine,
 } from "./parcels";
@@ -170,6 +171,17 @@ describe("parcel facts", () => {
     });
     expect(rec.geo.geometry).toEqual(input.polygon.geometry);
     expect(rec.multiPart).toBe(false);
+  });
+});
+
+describe("recordAcres (owner, after #312: one acreage per parcel)", () => {
+  it("every part of a multi-part record, not only the first; a combination's own acres as given", () => {
+    const a = squareAround([36.6, -81.5], 10),
+      b = squareAround([36.6, -81.49], 2);
+    const one = { geo: a, props: {} };
+    expect(recordAcres(one)).toBeCloseTo(area(a) / M2_PER_ACRE, 6);
+    expect(recordAcres({ ...one, parts: [a, b] })).toBeCloseTo((area(a) + area(b)) / M2_PER_ACRE, 6);
+    expect(recordAcres({ ...one, props: { combined_acres: 30.15 } })).toBe(30.15);
   });
 });
 
