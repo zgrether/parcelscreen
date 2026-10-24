@@ -45,12 +45,15 @@ export async function fetchFlowlines(
     const g = f.geometry;
     if (!g || (g.type !== "LineString" && g.type !== "MultiLineString")) return [];
     const p = (f.properties ?? {}) as Record<string, unknown>;
+    // The National Map's hydro service answers with lower-case field names; the NHD's own spelling is upper case.
+    const name = p.GNIS_NAME ?? p.gnis_name;
+    const fcode = p.FCODE ?? p.fcode;
     const parts = g.type === "LineString" ? [g.coordinates] : g.coordinates;
     return parts
       .filter((c) => c.length >= 2)
       .map((c) => ({
-        name: typeof p.GNIS_NAME === "string" && p.GNIS_NAME ? p.GNIS_NAME : null,
-        fcode: typeof p.FCODE === "number" ? p.FCODE : null,
+        name: typeof name === "string" && name ? name : null,
+        fcode: typeof fcode === "number" ? fcode : null,
         coords: c.map((q) => [q[0]!, q[1]!] as [number, number]),
       }));
   });

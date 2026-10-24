@@ -13,6 +13,7 @@
  * Run by hand, never in CI: it reaches the public services. The prototype's network.har is never touched.
  */
 import { existsSync } from "node:fs";
+import { setDefaultAutoSelectFamilyAttemptTimeout } from "node:net";
 import { describe, expect, it } from "vitest";
 import { createHttpClient, realClock } from "@/lib/http";
 import { DEFAULT_ENDPOINTS } from "@/lib/screen/config";
@@ -73,6 +74,13 @@ const BROWSER_UA =
 const uaFor = (url: string) =>
   DEFAULT_ENDPOINTS.overpass.some((u) => url.startsWith(u)) ? SERVER_USER_AGENT : BROWSER_UA;
 const ROAN_PARCELS = DEFAULT_ENDPOINTS.parcels.find((u) => u.includes("Tennessee_Property_Boundaries"))!;
+
+/**
+ * Node gives each of a host's addresses 250 ms to connect, and the run's terrain work holds the event loop longer than
+ * that: a request asked at the start (step 14's county) then failed with "fetch failed" (AggregateError) and was
+ * never recorded. A connect attempt here has 5 s.
+ */
+setDefaultAutoSelectFamilyAttemptTimeout(5000);
 
 /** PORT_APPEND=<slug>: record that fixture's missing requests only, keeping every entry already there. */
 const APPEND = process.env.PORT_APPEND ?? "";

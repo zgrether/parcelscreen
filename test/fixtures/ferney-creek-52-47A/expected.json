@@ -2112,9 +2112,9 @@
   },
   "streams": {
    "perennialFt": 0,
-   "intermittentFt": 0,
+   "intermittentFt": 1198,
    "names": [],
-   "nearestFt": null
+   "nearestFt": 687
   },
   "county": {
    "fips": "51063",
@@ -5769,9 +5769,9 @@
   },
   "streams": {
    "perennialFt": 0,
-   "intermittentFt": 0,
+   "intermittentFt": 1198,
    "names": [],
-   "nearestFt": null
+   "nearestFt": 687
   },
   "county": {
    "fips": "51063",
@@ -10973,9 +10973,9 @@
   },
   "streams": {
    "perennialFt": 0,
-   "intermittentFt": 0,
+   "intermittentFt": 1198,
    "names": [],
-   "nearestFt": null
+   "nearestFt": 687
   },
   "county": {
    "fips": "51063",

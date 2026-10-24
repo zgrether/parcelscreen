@@ -4059,9 +4059,11 @@
   },
   "streams": {
    "perennialFt": 0,
-   "intermittentFt": 0,
-   "names": [],
-   "nearestFt": null
+   "intermittentFt": 7087,
+   "names": [
+    "Deepwater Creek"
+   ],
+   "nearestFt": 565
   },
   "county": {
    "fips": "51063",
@@ -10712,9 +10714,11 @@
   },
   "streams": {
    "perennialFt": 0,
-   "intermittentFt": 0,
-   "names": [],
-   "nearestFt": null
+   "intermittentFt": 7087,
+   "names": [
+    "Deepwater Creek"
+   ],
+   "nearestFt": 565
   },
   "county": {
    "fips": "51063",

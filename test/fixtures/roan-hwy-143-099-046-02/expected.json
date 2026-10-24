@@ -14,9 +14,7 @@
    "roadMaxGradePct": 15,
    "roadVetoGradePct": 25
   },
-  "noResponse": [
-   "County DEBUG No recorded response for GET https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/1/query?f=json&geometry=-82.0751017632,36.1858419251&geometryType=esriGeometryPoint&inSR=4326&outFields=GEOID,BASENAME&returnGeometry=false&spatialRel=esriSpatialRelIntersects"
-  ],
+  "noResponse": [],
   "lines": [],
   "demSource": "USGS 3DEP",
   "demResM": 2.991185238151524,
@@ -1251,8 +1249,16 @@
   "streams": {
    "perennialFt": 0,
    "intermittentFt": 0,
-   "names": [],
-   "nearestFt": null
+   "names": [
+    "Doe River"
+   ],
+   "nearestFt": 553
+  },
+  "county": {
+   "fips": "47019",
+   "name": "Carter",
+   "state": "TN",
+   "zoning": null
   },
   "trails": {
    "gentleAc": 0.46,
@@ -5211,9 +5217,7 @@
    "roadMaxGradePct": 15,
    "roadVetoGradePct": 25
   },
-  "noResponse": [
-   "County DEBUG No recorded response for GET https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/1/query?f=json&geometry=-82.0751017632,36.1858419251&geometryType=esriGeometryPoint&inSR=4326&outFields=GEOID,BASENAME&returnGeometry=false&spatialRel=esriSpatialRelIntersects"
-  ],
+  "noResponse": [],
   "lines": [],
   "demSource": "USGS 3DEP",
   "demResM": 2.991185238151524,
@@ -6448,8 +6452,16 @@
   "streams": {
    "perennialFt": 0,
    "intermittentFt": 0,
-   "names": [],
-   "nearestFt": null
+   "names": [
+    "Doe River"
+   ],
+   "nearestFt": 553
+  },
+  "county": {
+   "fips": "47019",
+   "name": "Carter",
+   "state": "TN",
+   "zoning": null
   },
   "trails": {
    "gentleAc": 0.46,
