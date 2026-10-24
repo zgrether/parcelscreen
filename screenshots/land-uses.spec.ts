@@ -71,8 +71,13 @@ for (const phone of [false, true]) {
       // What decides it, on Mud Creek's Divide.
       await onUses(page, MUD);
       const divide = page.locator(".uses .use").filter({ hasText: "Divide" });
+      // On a phone the sheet raised to its tallest, so the row and its facts have the room.
+      const handle = page.locator("[title='Drag or tap to resize']").first();
+      if (phone)
+        for (let i = 0; i < 3 && !(await page.locator(".explore.sheet-tall").count()); i++)
+          await handle.click();
       await divide.locator("button").first().click();
-      await divide.scrollIntoViewIfNeeded();
+      await divide.evaluate((el) => el.scrollIntoView({ block: "start" }));
       await page.waitForTimeout(400);
       await page.screenshot({ path: `${OUT}/${device}-uses-decides.png` });
 

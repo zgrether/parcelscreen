@@ -75,8 +75,15 @@ describe("Grade's shortcut line", () => {
 
 describe("One page's Divide line", () => {
   it("2 lots or more: how many; 1 lot: why not; a county not covered or unread: nothing", () => {
-    expect(divideReportLine(MUD)).toBe("Can divide into up to 11 lots");
-    expect(divideReportLine(ROAN)).toBe("Can't divide: limited by 0 ft of road frontage at 40 ft per lot");
+    expect(divideReportLine(MUD)).toBe(
+      "Can divide: up to 3 lots without subdivision review (a farm division approved by staff; limited by 30.15 ac at 10 ac a lot) · up to 11 with an approved subdivision plat (limited by 1,116 ft of road frontage at 100 ft per lot; more lots need a road built to the county's standard)",
+    );
+    expect(divideReportLine(ROAN)).toBe(
+      "Can divide: up to 2 lots without subdivision review (an exempt division with no new street or utility; limited by 13.29 ac at 5 ac a lot)",
+    );
+    expect(divideReportLine({ ...MUD, acres: 1.2 })).toBe(
+      "Can't divide: limited by 1.2 ac at a 0.69 ac minimum",
+    );
     expect(divideReportLine({ ...MUD, county: undefined })).toBeNull();
     expect(divideReportLine({ ...MUD, county: { ...MUD.county!, fips: "99999" } })).toBeNull();
   });

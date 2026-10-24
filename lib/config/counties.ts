@@ -723,6 +723,89 @@ export const COUNTIES: readonly CountyRules[] = [
 export const countyByFips = (fips: string): CountyRules | null =>
   COUNTIES.find((c) => c.fips === fips) ?? null;
 
+/**
+ * The way to divide without subdivision review, where the county has one (owner, #311): Divide's first number. Each is the
+ * county's own rule, read from the facts above: Grayson's farm division (staff approve it, §6-6); the exemption North
+ * Carolina's statute gives lots over 10 ac with no new right-of-way (Mitchell's over 3 ac); Tennessee's for lots of 5 ac
+ * or more with no new street or utility; Patrick's for divisions with no lot or remainder under 2 ac. Floyd and Carroll
+ * review every division.
+ */
+export interface NoReviewRoute {
+  /** The county's term, as Divide names it: "a farm division approved by staff". */
+  term: string;
+  /** Each lot's least size: at least this (`inclusive`), or over it. */
+  lotAc: number;
+  inclusive: boolean;
+  /** The most lots it allows, when it caps them (Grayson's farm division: 4 parcels). */
+  maxLots: number | null;
+  says: string;
+  source: string;
+  checked: string;
+  confidence: Confidence;
+}
+
+const route = (
+  term: string,
+  lotAc: number,
+  inclusive: boolean,
+  maxLots: number | null,
+  says: string,
+  source: string,
+  confidence: Confidence,
+): NoReviewRoute => ({ term, lotAc, inclusive, maxLots, says, source, checked: C, confidence });
+
+const NC_EXEMPT = (ac: number, section: string, source: string) =>
+  route(
+    "an exempt division with no new right-of-way",
+    ac,
+    false,
+    null,
+    `A division where every lot is over ${ac} ac, with no new right-of-way, isn't a subdivision (${section})`,
+    source,
+    "from the ordinance",
+  );
+const TN_EXEMPT = route(
+  "an exempt division with no new street or utility",
+  5,
+  true,
+  null,
+  "Lots of 5 ac or more with no new street or utility aren't a subdivision (TCA 13-3-401)",
+  TCA_SUBDIVISION,
+  "from the county's summary",
+);
+
+const NO_REVIEW: Readonly<Record<string, NoReviewRoute | null>> = {
+  "51063": null, // Floyd: the agent approves every plat
+  "51077": route(
+    "a farm division approved by staff",
+    10,
+    true,
+    4,
+    "A farm division: up to 4 parcels of at least 10 ac each, approved by staff (§6-6)",
+    GRAYSON_SO,
+    "from the ordinance",
+  ),
+  "51035": null, // Carroll: every division is a subdivision
+  "51141": route(
+    "a division with no lot or remainder under 2 ac",
+    2,
+    true,
+    null,
+    "Only a lot or remainder under 2 ac makes a division a subdivision (Art. 4)",
+    PATRICK_SO,
+    "from the ordinance",
+  ),
+  "37009": NC_EXEMPT(10, "§156.06", `${ASHE}0-0-0-2889`),
+  "37005": NC_EXEMPT(10, "Art. 5", ALLEGHANY_SO),
+  "37011": NC_EXEMPT(10, "§501", AVERY_SO),
+  "37121": NC_EXEMPT(3, "Art. V", MITCHELL_SO),
+  "47019": TN_EXEMPT,
+  "47091": TN_EXEMPT,
+};
+
+/** The county's way to divide without subdivision review; null where every division is reviewed. */
+export const noReviewRoute = (county: CountyRules): NoReviewRoute | null => NO_REVIEW[county.fips] ?? null;
+
 /** The minimum lot for a parcel, by its slope where the county's rule depends on it (Mitchell). */
 export function minLotFor(county: CountyRules, slopePct: number | null): number | null {
   const bands = county.minLotBySlope;

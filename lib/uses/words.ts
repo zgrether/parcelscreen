@@ -26,7 +26,8 @@ export const USE_WORDS = {
 
 /** One page's Divide line (§9 Report). */
 export const REPORT_DIVIDE = {
-  can: (n: number) => `Can divide into up to ${n} lots`,
+  /** Owner, #311: the panel's two numbers, each with what binds it. */
+  can: (ways: string) => `Can divide: ${ways.charAt(0).toLowerCase()}${ways.slice(1)}`,
   cant: (reason: string) => `Can't divide: ${reason}`,
 } as const;
 
@@ -64,6 +65,7 @@ export const SOURCE = {
   fema: "FEMA flood map",
   nrcs: "NRCS soils",
   tiger: "Census TIGER roads",
+  parcel: "the parcel's outline",
   hifld: "HIFLD transmission lines",
   osm: "OpenStreetMap power lines",
   drives: "OSRM drive",
@@ -90,6 +92,8 @@ export const MISSING = {
 
 const ac = (n: number): string => fmt(n, n < 10 ? (n < 1 ? 2 : 1) : 0);
 const ft = (n: number): string => fmt(n);
+/** A rule's lot size as the county writes it: "2", "10", "0.69" (not "2.0"). */
+const lotSize = (n: number): string => (Number.isInteger(n) ? fmt(n) : fmt(n, 2));
 const mi = (n: number): string => fmt(n, n < 10 ? 1 : 0);
 
 // ---------- Camp now ----------
@@ -252,6 +256,52 @@ export const RIDE = {
 // ---------- Divide (lib/uses/divide.ts says the count) ----------
 
 export const DIVIDE = {
+  /**
+   * Owner, #311: the two numbers, each with what binds it, in the county's terms. "Up to 3 lots without subdivision
+   * review (a farm division approved by staff; limited by 30.15 ac at 10 ac a lot) · up to 11 with an approved
+   * subdivision plat (limited by 1,116 ft of road frontage at 100 ft per lot; more lots need a road built to the
+   * county's standard)".
+   */
+  withoutReview: (n: number, term: string, limit: string) =>
+    `Up to ${n} lots without subdivision review (${term}; ${limit})`,
+  withPlat: (n: number, binding: string, first: boolean) =>
+    first
+      ? `Up to ${n} lots with an approved subdivision plat (${binding})`
+      : `up to ${n} with an approved subdivision plat (${binding})`,
+  bothWays: (a: string, b: string) => `${a} · ${b}`,
+  roadStandard: "more lots need a road built to the county's standard",
+  /** No public road frontage at all: the no-review lots each still need a way in. */
+  needsAccess: "each new lot still needs legal access to a road",
+  /** What holds the no-review count: the acres at its lot size, or the county's cap. */
+  noReviewBySize: (acres: string, lotAc: number, inclusive: boolean) =>
+    `limited by ${acres} ac at ${inclusive ? "" : "over "}${lotSize(lotAc)} ac a lot`,
+  noReviewByCap: (max: number) => `limited to ${max} lots by the county's rule`,
+  /** What decides it: the parcel's arithmetic, each line naming what binds. */
+  withoutReviewLabel: "Without subdivision review",
+  withoutReviewMath: (
+    acres: string,
+    lotAc: number,
+    inclusive: boolean,
+    byAcres: number,
+    max: number | null,
+  ) =>
+    `${acres} ac ÷ ${inclusive ? "" : "over "}${lotSize(lotAc)} ac a lot = ${byAcres} ${byAcres === 1 ? "lot" : "lots"}` +
+    (max !== null ? `; the rule allows at most ${max}` : ""),
+  bySizeLabel: "Lots by size",
+  bySize: (acres: string, minLot: number, n: number) =>
+    `${acres} ac ÷ ${lotSize(minLot)} ac minimum lot = ${n} ${n === 1 ? "lot" : "lots"}`,
+  byFrontageLabel: "Lots by frontage",
+  byFrontage: (frontage: number, per: number, n: number) =>
+    `${ft(frontage)} ft of public road frontage ÷ ${ft(per)} ft a lot = ${n} ${n === 1 ? "lot" : "lots"}`,
+  withPlatLabel: "With a subdivision plat",
+  /** "11 lots: road frontage binds". */
+  binds: (n: number, what: string) => `${n} ${n === 1 ? "lot" : "lots"}: ${what} binds`,
+  bindsSize: "lot size",
+  bindsFrontage: "road frontage",
+  bindsBoth: "lot size and road frontage",
+  bindsCap: "the county's cap",
+  /** The parcel's acres to two places, as the arithmetic uses them. */
+  exactAcres: (n: number) => `${fmt(n, 2)} ac`,
   /** §9 Divide. */
   couldAllowMore: (exception: string) => `Could allow more: ${exception}`,
   notCovered: "Not covered here yet",

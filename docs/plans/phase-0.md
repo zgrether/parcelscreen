@@ -1149,6 +1149,16 @@ until step 5 (Q14).
       with its source, date and a confidence word). There are seven uses (Camp now, Build, Trails and walking woods,
       Garden/orchard/animals, Hunt, Ride/ski/snowshoe from home, Divide) and the What limits you list. Each answers Yes,
       Maybe or No with one reason and the facts that decide it.
+    - **Divide's two numbers** (owner, #311): without subdivision review, by the county's own route
+      (`noReviewRoute` in `lib/config/counties.ts`: Grayson's farm division, 4 parcels of at least 10 ac, staff-approved;
+      North Carolina's statute, lots over 10 ac with no new right-of-way, Mitchell's over 3 ac; Tennessee's, 5 ac or
+      more with no new street or utility; Patrick's, no lot under 2 ac; none in Floyd or Carroll), and with an approved
+      subdivision plat, by the standard lots (minimum lot size and frontage). Each names what binds it; What decides it
+      shows the parcel's arithmetic, each line with the ordinance's section and its URL. Mud Creek: "Up to 3 lots without
+      subdivision review (a farm division approved by staff; limited by 30.15 ac at 10 ac a lot) · up to 11 with an
+      approved subdivision plat (limited by 1,116 ft of road frontage at 100 ft per lot; more lots need a road built to
+      the county's standard)". A no-review count on a parcel with no public road frontage is a Maybe: "each new lot still
+      needs legal access to a road" (Roan).
     - **The parcel's new fields** (store stays v2: each has a default, so older parcels read as before; no converter):
       Listing's Deed restrictions (text) and HOA (Yes / No / Not known); a line's optional easement type (Road
       right-of-way / Utility / Scenic / Other); the Stream point mark; and `scenarios` (#310).
