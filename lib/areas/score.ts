@@ -96,6 +96,8 @@ export interface AreaCard {
   limits: { factor: AreaFactor; threshold: number }[];
   /** The share of points passing every limit, 0–1; 1 when there are none. */
   mustShare: number;
+  /** Each limit's own share of points passing it, 0–1 (What holds it back; the catalog-wide check). */
+  limitShares: { factor: AreaFactor; threshold: number; share: number }[];
   /** Points with a reading for every limit (the share's denominator). */
   sharePoints: number;
   /** Not suggested: under areas.minMustShare passes every limit. */
@@ -125,6 +127,7 @@ export function areaCard(area: AreaFile, nr: NamedRubric): AreaCard {
   const limits = areaLimits(R);
   let pass = 0;
   let counted = 0;
+  const each = limits.map(() => ({ pass: 0, counted: 0 }));
   area.points.ll.forEach((_, i) => {
     const statuses = limits.map((l) => {
       const m = LIMIT_MEASURE[l.factor]!;
@@ -135,6 +138,11 @@ export function areaCard(area: AreaFile, nr: NamedRubric): AreaCard {
             { factor: l.factor, threshold: l.threshold },
             { value, unit: MEASURE_UNIT[l.factor]! },
           );
+    });
+    statuses.forEach((s, k) => {
+      if (s === "unknown") return;
+      each[k]!.counted++;
+      if (s === "pass") each[k]!.pass++;
     });
     if (statuses.includes("unknown")) return;
     counted++;
@@ -150,6 +158,10 @@ export function areaCard(area: AreaFile, nr: NamedRubric): AreaCard {
     fit: fitLabel(points, R),
     limits,
     mustShare,
+    limitShares: limits.map((l, k) => ({
+      ...l,
+      share: each[k]!.counted ? each[k]!.pass / each[k]!.counted : 0,
+    })),
     sharePoints: limits.length ? counted : area.points.ll.length,
     suggestable: mustShare >= K.minMustShare,
   };
@@ -183,4 +195,29 @@ export function rankAreas(cards: readonly AreaCard[], names: ReadonlyMap<string,
       b.mustShare - a.mustShare ||
       (names.get(a.id) ?? a.id).localeCompare(names.get(b.id) ?? b.id),
   );
+}
+
+/** Each area's place in the ranking, 1 first: "#3 of 30 for you". */
+export function rankOf(ranked: readonly AreaCard[]): Map<string, number> {
+  return new Map(ranked.map((c, i) => [c.id, i + 1]));
+}
+
+/**
+ * A Must that rules out most of the region (owner, 10/23): one that passes on under areas.regionWideShare of the rural
+ * land in at least areas.regionWideAreas areas (or every area, when fewer are loaded). The one that does so in the most
+ * areas, then on the least land; null when none does.
+ */
+export function regionWideLimit(cards: readonly AreaCard[]): AreaCard["limits"][number] | null {
+  const need = Math.min(K.regionWideAreas, cards.length);
+  if (!cards.length || !cards[0]!.limits.length) return null;
+  const tally = cards[0]!.limits.map((l) => {
+    const shares = cards.map((c) => c.limitShares.find((x) => x.factor === l.factor)?.share ?? 1);
+    return {
+      l,
+      under: shares.filter((x) => x < K.regionWideShare).length,
+      mean: shares.reduce((a, b) => a + b, 0) / shares.length,
+    };
+  });
+  const worst = tally.filter((t) => t.under >= need).sort((a, b) => b.under - a.under || a.mean - b.mean)[0];
+  return worst ? worst.l : null;
 }

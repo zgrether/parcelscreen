@@ -7556,15 +7556,91 @@ button.sync-ind.bad {
   background: #2f6f8f;
   color: #fff;
 }
-.area-pop-head {
-  display: flex;
-  gap: 6px;
+/* Owner, 10/23: the fit letter leads each label; where labels would collide the name goes first, then the label. */
+.area-label {
+  display: inline-flex;
+  gap: 5px;
   align-items: center;
-  margin: 0 0 4px;
-  font-weight: 600;
+  padding: 1px 6px 1px 2px;
 }
-.areas-far .area-label:not(.starred) {
+.al-fit {
+  min-width: 22px;
+  padding: 0 3px;
+  border-radius: 3px;
+  background: var(--color-ink-2);
+  color: #fff;
+  text-align: center;
+  font-weight: 700;
+}
+.al-fit.g-A,
+.al-fit.g-B {
+  background: var(--color-ok);
+}
+.al-fit.g-C {
+  background: var(--color-warn);
+}
+.al-fit.g-D,
+.al-fit.g-F {
+  background: var(--color-steep);
+}
+.area-label.al-letter {
+  padding-right: 2px;
+}
+.area-label.al-letter .al-name {
   display: none;
+}
+.area-label.al-hidden {
+  visibility: hidden;
+}
+.ac-title {
+  flex: 1;
+  min-width: 0;
+}
+.ac-rank {
+  margin: 1px 0 0;
+}
+.ac-back {
+  margin: 6px 0 0;
+  font-size: 14px;
+}
+.ac-back .ac-label {
+  margin: 0;
+}
+.ac-back-list {
+  margin: 2px 0 0;
+  padding-left: 18px;
+}
+.area-region {
+  padding: 6px 8px;
+  border-left: 3px solid var(--color-warn);
+  background: var(--color-paper-2);
+  font-size: 14px;
+}
+.area-rest-rank {
+  font-weight: 400;
+}
+.area-pop .area-card {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}
+/* The popup's close: a 44 px target (the walkthroughs found MapLibre's 10 px one), in a row of its own above the card
+   so it never sits on the card's star. */
+.area-popup .maplibregl-popup-content {
+  padding-top: 40px;
+}
+.area-popup .maplibregl-popup-close-button {
+  width: 44px;
+  height: 44px;
+  font-size: 24px;
+  line-height: 1;
+}
+.areas-legend {
+  margin: 2px 0 6px;
+}
+.terrain-controls.info .areas-legend {
+  color: var(--ip-ink-2);
 }
 .area-note {
   margin: 0 0 8px;

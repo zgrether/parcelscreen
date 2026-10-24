@@ -395,6 +395,10 @@ export const SCREEN_CONSTANTS = deepFreeze({
     // Owner, #298 answers: an area's fit letter carries + in the top third of its letter's band of points and − in the
     // bottom third (an A's band runs up to A's points; an F has no sign). Areas only: a parcel's grade has no sign.
     fitSign: 1 / 3,
+    // Owner, 10/23: a Must that passes on under regionWideShare of the rural land in at least regionWideAreas areas
+    // rules out most of the region; the suggestion box names it. Display only.
+    regionWideShare: 0.25,
+    regionWideAreas: 25,
   },
   grocery: {
     // Owner, #81: "Closer: {name}, {N} min." after the chain grocery's drive time, when a non-chain grocery

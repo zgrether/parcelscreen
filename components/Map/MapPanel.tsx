@@ -83,6 +83,7 @@ function Panel({ onClose }: { onClose: () => void }) {
           )}
           {toggle(MARKS_LABEL, p.marks, () => setMapLayerPrefs({ marks: !p.marks }))}
           {toggle(AREA_WORDS.outlines, p.areas, () => setMapLayerPrefs({ areas: !p.areas }))}
+          {p.areas && <p className="tiny muted areas-legend">{AREA_WORDS.legend}</p>}
         </div>
         <AnalysisGroup />
         <MapKey />

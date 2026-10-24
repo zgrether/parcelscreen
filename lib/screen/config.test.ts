@@ -133,6 +133,8 @@ describe("config", () => {
           "padusMarginKm": 16,
           "placesMarginKm": 30,
           "points": 200,
+          "regionWideAreas": 25,
+          "regionWideShare": 0.25,
           "tableMaxCoords": 100,
           "waterClasses": [
             11,
