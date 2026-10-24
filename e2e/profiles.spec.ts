@@ -148,7 +148,7 @@ test("a pre-profile store is dropped: an empty Profile 1, the menu's line once, 
   });
   await menu(page);
   await expect(currentName(page)).toHaveText(/Profile 1/);
-  await expect(page.locator(".old-data-note")).toHaveText("Saved with an older version; screen it again.");
+  await expect(page.locator(".old-data-note")).toHaveText("Saved with an older version; grade it again.");
   await yourList(page);
   await expect(page.locator(".lib-row:visible", { hasText: "Ferney Creek" })).toHaveCount(0);
   const left = await page.evaluate(() =>

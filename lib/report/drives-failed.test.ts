@@ -30,6 +30,6 @@ describe("OSRM failing", () => {
     const card = reportCard(r, ZACH);
     expect(card.incomplete).toContain("the drive times");
     expect(card.verdict).not.toBe("Contender");
-    expect(card.reason).toMatch(/\(incomplete: .*the drive times.* didn't load, run again\)\.$/);
+    expect(card.reason).toMatch(/\(incomplete: .*the drive times.* didn't load, grade again\)\.$/);
   }, 240_000);
 });

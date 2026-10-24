@@ -104,9 +104,7 @@ test("Recent is yours, Favorites the household's: add, remove, ✕ with Undo, Cl
     .getByRole("button", { name: /^On your list: Macks bench/ })
     .click();
   const confirm = zach.getByRole("alertdialog");
-  await expect(confirm).toContainText(
-    "Remove from your household's favorites? It goes back to your Recent list.",
-  );
+  await expect(confirm).toContainText("Remove from Your list? It goes back to your Recent list.");
   await confirm.getByRole("button", { name: "Remove from Your list" }).click();
   await expect(zach.locator("main")).toContainText(FAVORITES_EMPTY);
   await tab(zach, "Recent").click();

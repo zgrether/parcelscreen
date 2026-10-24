@@ -84,7 +84,7 @@ describe("the rulebook (VR7)", () => {
       "Grade and verdict",
       "Floodplain",
       "Legal road access",
-      "Easement needed",
+      "Driveway on your land",
       "Septic",
       "Elevation at the build site",
       "Best homesite",

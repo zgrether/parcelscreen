@@ -111,6 +111,21 @@ const ers = (slug: FixtureSlug, want: Recorded1): Recorded1 => {
 };
 
 /**
+ * UX part 2's declared renames (Zach, #316; rule 7): the easement gate is "Driveway on your land", the row's own words,
+ * not "Easement needed"; a card missing data asks to "grade again", not "run again". Nothing else may differ.
+ */
+const renamed = (want: Recorded1): Recorded1 => {
+  const words = (t: string) => t.replace("didn't load, run again)", "didn't load, grade again)");
+  return {
+    ...want,
+    reason: words(want.reason),
+    gates: want.gates.map((g) =>
+      g.label === "Easement needed" ? { ...g, label: "Driveway on your land" } : g,
+    ),
+  };
+};
+
+/**
  * Step 7's guard (plan §2): graded at site #1, with the Driveway row as Don't care (it is, on both shipped weight
  * sets), every card is today's, byte for byte. So a grade or verdict that changes can only come from the best site or
  * the Driveway row, the two sources the step declared.
@@ -120,7 +135,7 @@ describe("the default rubric reproduces today's cards (cards-v7.json; a port-onl
     for (const scenario of SCENARIOS[slug])
       for (const nr of PERSONS)
         it(`${slug} ${scenario}, ${nr.id}`, () => {
-          const want = ers(slug, split(recorded(slug)[scenario]![nr.id]!));
+          const want = renamed(ers(slug, split(recorded(slug)[scenario]![nr.id]!)));
           const { person: _p, ...wantRest } = want;
           const got = comparable(reportCard(expectedOf(slug, scenario), nr, undefined, undefined, { at: 0 }));
           expect(differences(got, wantRest)).toEqual([]);
