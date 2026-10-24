@@ -7625,6 +7625,17 @@ button.sync-ind.bad {
   border: 0;
   box-shadow: none;
 }
+/* The popup's close: a 44 px target (the walkthroughs found MapLibre's 10 px one), in a row of its own above the card
+   so it never sits on the card's star. */
+.area-popup .maplibregl-popup-content {
+  padding-top: 40px;
+}
+.area-popup .maplibregl-popup-close-button {
+  width: 44px;
+  height: 44px;
+  font-size: 24px;
+  line-height: 1;
+}
 .areas-legend {
   margin: 2px 0 6px;
 }

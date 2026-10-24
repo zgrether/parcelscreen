@@ -14,6 +14,7 @@ import { AreaCardView } from "@/components/Areas/AreaBox";
 import type { AreaFile } from "@/lib/areas/types";
 import { areaCard, rankAreas, rankOf, type AreaCard } from "@/lib/areas/score";
 import { AREA_WORDS as W } from "@/lib/areas/words";
+import { LINES_MIN_ZOOM } from "@/lib/geo/parcelTiles";
 import type { Letter } from "@/lib/rubric/types";
 import { focusArea, registerAreaFocus, useAreas, useAreaStars, type Box } from "@/lib/client/areas";
 import { useRubricView } from "@/lib/client/useRubricView";
@@ -46,6 +47,20 @@ export const FIT_COLOR: Record<Letter | "none", string> = {
 /** The fill's strength by Must share: from 0.08 (none of the land passes) to 0.38 (all of it does). */
 export const fillStrength = (share: number) => Math.round((0.08 + 0.3 * share) * 1000) / 1000;
 
+/** The popup's card, in its own root: it reads the stars itself, so its star turns as it's tapped. */
+function PopupCard(p: { card: AreaCard; file: AreaFile; rank: number; total: number; show(): void }) {
+  const { stars, toggle } = useAreaStars();
+  return (
+    <AreaCardView
+      as="div"
+      {...p}
+      starred={stars.includes(p.file.id)}
+      star={() => toggle(p.file.id)}
+      failed={false}
+    />
+  );
+}
+
 const featureOf = (f: AreaFile, starred: boolean, card: AreaCard | undefined) => ({
   type: "Feature" as const,
   properties: {
@@ -65,7 +80,7 @@ const overlaps = (a: DOMRect, b: DOMRect) =>
 export function AreaOutlines() {
   const map = useMap();
   const prefs = useMapLayerPrefs();
-  const { stars, toggle } = useAreaStars();
+  const { stars } = useAreaStars();
   const wanted = prefs.areas || stars.length > 0;
   const areas = useAreas(wanted);
   const { rubric } = useRubricView();
@@ -203,14 +218,21 @@ export function AreaOutlines() {
   const popRoot = useRef<Root | null>(null);
   useEffect(() => {
     if (!map || mapGone(map)) return;
+    // A tap where parcels can be picked, or while a map tool is drawing, is the parcel's or the tool's (walkthroughs,
+    // 10/23: the card covered the map mid-line).
+    const tapsAreTheMaps = () =>
+      document.documentElement.classList.contains("map-tool") || map.getZoom() >= LINES_MIN_ZOOM;
     const onClick = (e: MapLayerMouseEvent) => {
+      if (tapsAreTheMaps()) return;
       const id = e.features?.[0]?.properties?.id as string | undefined;
       const file = shown.find((f) => f.id === id);
       const card = id ? cards.get(id) : undefined;
       if (!file || !card) return;
       const el = document.createElement("div");
       el.className = "area-pop";
-      const pop = new Popup({ maxWidth: "320px" }).setLngLat(e.lngLat).setDOMContent(el);
+      const pop = new Popup({ maxWidth: "320px", className: "area-popup" })
+        .setLngLat(e.lngLat)
+        .setDOMContent(el);
       const root = createRoot(el);
       popRoot.current = root;
       pop.on("close", () => {
@@ -221,19 +243,15 @@ export function AreaOutlines() {
       // whatever still sticks out (a phone's card is taller than the room above or below most taps).
       flushSync(() =>
         root.render(
-          <AreaCardView
-            as="div"
+          <PopupCard
             card={card}
             file={file}
             rank={ranks.get(file.id)!}
             total={ranked.length}
-            starred={stars.includes(file.id)}
-            star={() => toggle(file.id)}
             show={() => {
               pop.remove();
               openSample(file.id, 1).catch(() => focusArea(bbox(file.outline) as Box));
             }}
-            failed={false}
           />,
         ),
       );
@@ -246,14 +264,16 @@ export function AreaOutlines() {
       const box = pop.getElement()?.getBoundingClientRect();
       const frame = map.getContainer().getBoundingClientRect();
       if (box) {
-        // Clear of the search and map buttons over the top edge.
+        // Clear of the search and map buttons over the top edge, and of the hint, the toolbar and (on a phone) the tab
+        // bar over the bottom one.
         const pad = 8,
-          top = 64;
+          top = 64,
+          bottom = 150;
         const dy =
           box.top < frame.top + top
             ? box.top - frame.top - top
-            : box.bottom > frame.bottom - pad
-              ? box.bottom - frame.bottom + pad
+            : box.bottom > frame.bottom - bottom
+              ? Math.min(box.bottom - frame.bottom + bottom, box.top - frame.top - top)
               : 0;
         const dx =
           box.left < frame.left + pad
@@ -264,7 +284,9 @@ export function AreaOutlines() {
         if (dx || dy) map.panBy([dx, dy], { duration: 250 });
       }
     };
-    const pointer = () => (map.getCanvas().style.cursor = "pointer");
+    const pointer = () => {
+      if (!tapsAreTheMaps()) map.getCanvas().style.cursor = "pointer";
+    };
     const plain = () => (map.getCanvas().style.cursor = "");
     map.on("click", AREA_LAYERS.fill, onClick);
     map.on("mouseenter", AREA_LAYERS.fill, pointer);
@@ -275,7 +297,7 @@ export function AreaOutlines() {
       map.off("mouseenter", AREA_LAYERS.fill, pointer);
       map.off("mouseleave", AREA_LAYERS.fill, plain);
     };
-  }, [map, shown, cards, ranks, ranked.length, stars, toggle]);
+  }, [map, shown, cards, ranks, ranked.length]);
 
   // Gone with the map: removed on unmount.
   useEffect(

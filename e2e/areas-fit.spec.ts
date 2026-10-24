@@ -61,6 +61,39 @@ test("each card: its rank beside the fit, and what holds it back; the map's outl
   await expect(pop.locator(".ac-name")).toHaveText(/^Grayson Highlands/);
   await expect(pop.locator(".ac-rank")).toHaveText(/ · #\d+ of 30 for you$/);
   await expect(pop.getByRole("button", { name: W.showParcel })).toBeVisible();
+  // Its star turns as it's tapped (the walkthroughs, 10/23: it stayed hollow).
+  const star = pop.getByRole("button", { name: W.star });
+  await star.click();
+  await expect(pop.getByRole("button", { name: W.starred })).toHaveAttribute("aria-pressed", "true");
+  await pop.getByRole("button", { name: W.starred }).click();
+  await expect(pop.getByRole("button", { name: W.star })).toHaveAttribute("aria-pressed", "false");
+
+  // Where parcels can be picked, a tap is the parcel's: no area card over it.
+  await page.locator(".maplibregl-popup-close-button").click();
+  await page.evaluate(() => {
+    const map = (window as unknown as { __psMap: { jumpTo(o: object): void } }).__psMap;
+    map.jumpTo({ center: [-81.5, 36.63], zoom: 14.5 });
+  });
+  await page.waitForTimeout(500);
+  // The map's centre, inside Grayson Highlands' outline (its fill is under the tap).
+  const at = await page.evaluate(() => {
+    type M = {
+      getCanvas(): HTMLCanvasElement;
+      queryRenderedFeatures(p: [number, number], o: object): unknown[];
+    };
+    const map = (window as unknown as { __psMap: M }).__psMap;
+    const r = map.getCanvas().getBoundingClientRect();
+    const p: [number, number] = [r.width / 2, r.height / 2];
+    return {
+      x: r.left + p[0],
+      y: r.top + p[1],
+      under: map.queryRenderedFeatures(p, { layers: ["areas-fill"] }).length,
+    };
+  });
+  expect(at.under).toBeGreaterThan(0);
+  await page.mouse.click(at.x, at.y);
+  await page.waitForTimeout(500);
+  await expect(page.locator(".area-pop")).toHaveCount(0);
 });
 
 test("a Must that rules out most of the region: the box says so, and Change it opens that limit", async ({
