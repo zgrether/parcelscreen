@@ -21,15 +21,16 @@ export function addedTo(stored: ProfileRubrics | null, answer: Parameters<typeof
   return mine ? { ...stored, mine, drivewayAdded: "new" as const } : null;
 }
 
-/** At boot, for the current profile: add it once, and to the interview's list. */
-export function addDrivewayOnce(): void {
+/** At boot, for the current profile: add it once, and to the interview's list. True when it wrote. */
+export function addDrivewayOnce(): boolean {
   const interview = getPref("ps.interview");
   const answer = interview?.answers.driveway;
   const next = addedTo(getPref("ps.rubrics"), answer);
-  if (!next) return;
+  if (!next) return false;
   setPref("ps.rubrics", next);
   const base = interview?.base ? withDriveway(interview.base, answer) : null;
   if (interview && base) setPref("ps.interview", { ...interview, base });
+  return true;
 }
 
 /** The note What matters shows once: its words while it hasn't been shown, else null. */

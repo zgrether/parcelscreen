@@ -91,6 +91,30 @@ export function drivenRoute(r: PartialScreenResult, lineId: string | null | unde
     : { route: pick, pick, yours: null, lost: true };
 }
 
+/** The driveway the household chose (WF5), whole: the routed part and the drawn drive it starts from. */
+export interface ChosenDrive {
+  lengthFt: number;
+  /** Its steepest: the drawn drive's own and the routed part's over 30 m, whichever is steeper. */
+  gradePct: number;
+  needsEasement: boolean;
+}
+
+/**
+ * The chosen driveway as the card's Driveway row, Best homesite and the cost all quote it (owner, #308): the route
+ * from the line, plus the existing drive it starts at (the route starts at that drive's end, and the cost upgrades
+ * both). Null with no line chosen, or none this screen has a route from: then the app's route is read, as before.
+ */
+export function chosenDrive(r: PartialScreenResult, lineId: string | null | undefined): ChosenDrive | null {
+  const d = drivenRoute(r, lineId);
+  if (!d.yours || !d.route) return null;
+  const rt = d.route;
+  return {
+    lengthFt: rt.metrics.lengthFt + (rt.existing?.lengthFt ?? 0),
+    gradePct: Math.max(rt.maxGrade, rt.existing?.maxGradePct ?? -Infinity),
+    needsEasement: rt.needsEasement,
+  };
+}
+
 /**
  * Appended where an easement's "verify it's a legal right-of-way" was, when the household says where the easement is
  * recorded (owner, WF5; rule 7): it's no longer a warning, but it's still not the parcel's own land.

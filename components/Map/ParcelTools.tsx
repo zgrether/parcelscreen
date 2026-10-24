@@ -306,12 +306,14 @@ function useOverlays(map: MlMap | null, ctl: ExploreController) {
     const [w, s, e, n] = bbox(JSON.parse(boundary));
     const dx = (e - w) * 0.4,
       dy = (n - s) * 0.4;
+    // A short, straight ease (the UX audit's B-5): a long fly from the region out and back in, cut short by the sheet
+    // settling, left the map zoomed out on the way. The map's own padding (the docked panel, the sheet) is added.
     map.fitBounds(
       [
         [w - dx, s - dy],
         [e + dx, n + dy],
       ],
-      { padding: 0 },
+      { padding: 0, linear: true, duration: 450 },
     );
   }, [map, boundary]);
 

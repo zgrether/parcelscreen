@@ -27,6 +27,7 @@ import { M2FT, M2_PER_ACRE } from "../screen/util";
 import { steepLandingLine } from "./driveway";
 import {
   DRIVES_FROM_PICK,
+  chosenDrive,
   drivenRoute,
   isUserName,
   lineLabel,
@@ -36,6 +37,7 @@ import {
   VERIFY_RIGHT_OF_WAY,
   routeLines,
   startLine,
+  type ChosenDrive,
   type Driven,
   type LineNames,
 } from "./lines";
@@ -599,13 +601,19 @@ function driveway(r: Result, K: CardConfig, at: number): Row {
   if (spot.dw === null) return { ...g("F", `no driveway route reaches ${spot.label}`), short: "no route" };
   if (spot.dw.noPractical)
     return { ...g("F", `no practical driveway to ${spot.label}`), short: "no practical route" };
-  const pct = drivewayGradePct(spot.dw);
-  const easement = spot.dw.needsEasement ? "; needs an easement across neighbouring land" : "";
+  return drivewayGraded(
+    { lengthFt: spot.dw.lengthFt, gradePct: drivewayGradePct(spot.dw), needsEasement: spot.dw.needsEasement },
+    K,
+  );
+}
+
+/** The Driveway row for a driveway: its length and steepest grade in the line, graded on the steepest. */
+function drivewayGraded(dw: ChosenDrive, K: CardConfig): Row {
+  const g = row("driveway", FACTOR_LABELS.driveway);
+  const pct = dw.gradePct;
+  const easement = dw.needsEasement ? "; needs an easement across neighbouring land" : "";
   return {
-    ...g(
-      atMost(pct, K.rows.drivewayPct),
-      `${fmt(spot.dw.lengthFt)} ft, ${fmt(pct)}% at its steepest${easement}`,
-    ),
+    ...g(atMost(pct, K.rows.drivewayPct), `${fmt(dw.lengthFt)} ft, ${fmt(pct)}% at its steepest${easement}`),
     short: `${fmt(pct)}% steepest`,
     measure: { value: pct, unit: "%" },
   };
@@ -1064,8 +1072,12 @@ export function cardFacts(
   // The route scored: the household's when it chose a line and this screen has a route from it (WF5). The Access and
   // Easement gates, and Floodplain's driveway part, read it whichever site the rows read (step 7 plan §2, §11 Q5).
   const driven = drivenRoute(r, drawn?.driveway);
-  const [elevationRow, homesiteRow, skyRow, roomRow, drivewayRow, climateRow, privacyRow, longViewRow] =
+  const [elevationRow, homesiteRow, skyRow, roomRow, siteDrivewayRow, climateRow, privacyRow, longViewRow] =
     siteRows(r, K, build, at);
+  // The Driveway row grades the household's route whenever it chose a line this screen routed from, the app's route
+  // only when it didn't (owner, #308): the row, Best homesite and the cost then read the same driveway.
+  const chosen = driven.yours ? chosenDrive(r, drawn?.driveway) : null;
+  const drivewayRow = chosen ? drivewayGraded(chosen, K) : siteDrivewayRow;
   // The cost to enjoy at this site (step 10), when the parcel's lines, price and rates came with it.
   const cost = drawn?.cost
     ? costToEnjoy({

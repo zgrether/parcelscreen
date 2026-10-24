@@ -87,12 +87,37 @@ const outline = (oid: number, id: string, x: number) => ({
   },
 });
 
+/** A Virginia service: the numbers' ask (no geometry) answers `rows`; the outlines' ask (by object id) their outlines. */
+function virginia(rows: { oid: number; id: string; ptm?: string }[]) {
+  return (url: string, body: URLSearchParams | null) => {
+    if (!url.startsWith(VA)) return { features: [] };
+    if (body?.get("returnGeometry") === "false")
+      return {
+        features: rows.map((r) => ({
+          type: "Feature",
+          properties: {
+            OBJECTID: r.oid,
+            PARCELID: r.id,
+            PTM_ID: r.ptm ?? r.id,
+            FIPS: "51063",
+            LOCALITY: "Floyd County",
+          },
+          geometry: null,
+        })),
+      };
+    const where = body?.get("where") ?? "";
+    const asked = new Set((/IN \(([^)]*)\)/.exec(where)?.[1] ?? "").split(",").map(Number));
+    return { features: rows.filter((r) => asked.has(r.oid)).map((r) => outline(r.oid, r.id, -80.455)) };
+  };
+}
+
 describe("searchParcelNumbers", () => {
   it("asks each county in view, keeps true prefix matches, sorted, with a centre to aim at", async () => {
-    const { http, asked } = stub((url) =>
-      url.startsWith(VA)
-        ? { features: [outline(2, "55A2-1-Y-47A", -80.46), outline(1, "52-47A", -80.455)] }
-        : { features: [] },
+    const { http, asked } = stub(
+      virginia([
+        { oid: 2, id: "55A2-1-Y-47A" },
+        { oid: 1, id: "52-47A" },
+      ]),
     );
     const hits = await searchParcelNumbers(
       http,
@@ -102,15 +127,39 @@ describe("searchParcelNumbers", () => {
       ]),
       "52 47",
     );
-    expect(asked).toHaveLength(2);
-    expect(asked[0]!.body!.get("where")).toBe("FIPS='51063' AND UPPER(PARCELID) LIKE '5%2%4%7%'");
+    const va = asked.filter((a) => a.url.startsWith(VA));
+    expect(va).toHaveLength(2);
+    // The numbers first, the parcel number and the tax map number, as many as the service gives, no outlines.
+    expect(va[0]!.body!.get("where")).toBe(
+      "FIPS='51063' AND (UPPER(PARCELID) LIKE '5%2%4%7%' OR UPPER(PTM_ID) LIKE '5%2%4%7%')",
+    );
+    expect(va[0]!.body!.get("returnGeometry")).toBe("false");
+    expect(va[0]!.body!.get("resultRecordCount")).toBe("2000");
+    // Then the true matches' outlines, by object id.
+    expect(va[1]!.body!.get("where")).toBe("OBJECTID IN (1)");
     // Tennessee is asked by control map and parcel ("52 47" reads as map 052, parcel 047…), railroads and conflicts left out.
-    expect(asked[1]!.body!.get("where")).toBe(
+    expect(asked.find((a) => a.url.startsWith(TN))!.body!.get("where")).toBe(
       "(PARCEL_TYPE NOT IN (4,5)) AND (COUNTY_NAME='Johnson' AND CMAP='052' AND PARCEL LIKE '047%')",
     );
     expect(hits.map((h) => h.id)).toEqual(["52-47A"]);
+    expect(hits[0]!.county).toBe("Floyd County");
     expect(hits[0]!.centre[0]).toBeCloseTo(36.881, 6);
     expect(hits[0]!.props.OBJECTID).toBe(1);
+  });
+
+  it("finds a number its pattern over-matches many times over: 35-3 behind 3-153, 30-35, 31-53… (B-3)", async () => {
+    // Floyd's ids matching '3%5%3%' that sort ahead of 35-3: more than the 25 the search used to fetch.
+    const ahead = Array.from({ length: 40 }, (_, i) => ({ oid: 100 + i, id: `3-${i}53` }));
+    const { http } = stub(virginia([...ahead, { oid: 7, id: "35-3" }, { oid: 8, id: "35-31" }]));
+    const hits = await searchParcelNumbers(http, new Map([[VA, new Set(["51063"])]]), "35-3");
+    expect(hits.map((h) => h.id)).toEqual(["35-3", "35-31"]);
+  });
+
+  it("finds Virginia's tax map number, and shows the record's id beside it: 63-A-62 (6273) (B-3)", async () => {
+    const { http } = stub(virginia([{ oid: 9, id: "6273", ptm: "63-A-62" }]));
+    const hits = await searchParcelNumbers(http, new Map([[VA, new Set(["51077"])]]), "63-A-62");
+    expect(hits.map((h) => h.id)).toEqual(["63-A-62 (6273)"]);
+    expect(hits[0]!.props.PARCELID).toBe("6273");
   });
 
   it("skips a county whose service fails, and asks nothing for short queries", async () => {
