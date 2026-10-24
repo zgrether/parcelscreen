@@ -59,7 +59,7 @@ describe("config", () => {
           "woodedPct": 100,
         },
         "endpoints": {
-          "_v": 14,
+          "_v": 15,
           "counties": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/1",
           "dem": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
           "lpAtlasBinary": "https://djlorenz.github.io/astronomy/binary_tiles",
@@ -67,6 +67,7 @@ describe("config", () => {
           "lpAtlasYear": 2025,
           "nfhl": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28",
           "nhd": "https://hydro.nationalmap.gov/arcgis/rest/services/nhd/MapServer/6",
+          "nhdWaterbody": "https://hydro.nationalmap.gov/arcgis/rest/services/nhd/MapServer/12",
           "nlcd": "https://www.mrlc.gov/geoserver/mrlc_download/wcs",
           "osrm": "https://router.project-osrm.org/route/v1/driving",
           "overpass": [
@@ -1023,6 +1024,7 @@ describe("config", () => {
           "shallowRockCm": 50,
         },
         "frontage": {
+          "parallelDeg": 30,
           "publicMtfcc": [
             "S1100",
             "S1200",
@@ -1035,6 +1037,8 @@ describe("config", () => {
             "unclassified",
             "residential",
           ],
+          "reachM": 20,
+          "stepM": 10,
         },
         "grocery": {
           "closerMinMin": 10,
@@ -1285,6 +1289,10 @@ describe("config", () => {
           ],
           "perennial": [
             46006,
+          ],
+          "ponds": [
+            390,
+            436,
           ],
           "stepM": 5,
           "timeoutMs": 60000,

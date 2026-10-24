@@ -1,13 +1,18 @@
 /**
  * Road frontage (step 14, docs/plans/step-14-land-uses.md §2.3): how much road runs along the boundary, by road, and how
- * much of it is public. It counts what the entrance search samples (driveway.ts frontageCandidates): a road's points
- * every entranceSampleM that lie within entranceMaxDistM of the boundary, each standing for entranceSampleM of road.
+ * much of it is public. Found by walking the boundary (owner, after #312): a stretch of the boundary is frontage on the
+ * nearest road within frontage.reachM that runs within frontage.parallelDeg of it, so a road that only passes a corner,
+ * or meets the boundary at an angle, isn't frontage, and nothing is added past the corners. Each stretch is then laid
+ * onto its road, and the road's length so covered is what counts: a road with the parcel on both sides (Mud Creek's
+ * two parts either side of Mud Creek Ln) counts once, as a deed's call along its centreline does. Measured on the
+ * county map's boundary: a survey may differ.
  *
  * Public: TIGER's primary, secondary and local roads (MTFCC S1100, S1200, S1400), and OSM's ways of those classes that
- * aren't private. A track, a service drive or a private road is frontage, but not public. Divide reads `publicFt`; the
- * deed or plat confirms what the county counts.
+ * aren't private. A track, a service drive or a private road is frontage, but not public. TIGER's roads are tried
+ * first; an OSM way counts only where no TIGER road runs along the boundary (OSM's rural roads are TIGER imports).
+ * Divide reads `publicFt`; the deed or plat confirms what the county counts.
  */
-import { bbox, distance, lineString, pointToLineDistance, polygonToLine } from "@turf/turf";
+import { bbox } from "@turf/turf";
 import type { Feature, LineString, MultiLineString, MultiPolygon, Polygon } from "geojson";
 import { SCREEN_CONSTANTS } from "./config";
 import type { OsmWay } from "./osmRoads";
@@ -15,7 +20,6 @@ import type { RoadFeature } from "./roads";
 import { M2FT } from "./util";
 
 const K = SCREEN_CONSTANTS.frontage;
-const D = SCREEN_CONSTANTS.driveway;
 
 export interface Frontage {
   /** Feet of public-road frontage, every road together. */
@@ -29,72 +33,79 @@ const isPublicTiger = (mtfcc: string | undefined) =>
 const isPublicOsm = (w: OsmWay) =>
   (K.publicOsm as readonly string[]).includes(w.highway) && w.access !== "private" && w.access !== "no";
 
-/** The road's lines, as the entrance search walks them. */
-const linesOf = (f: Feature<LineString | MultiLineString>): Feature<LineString>[] =>
-  f.geometry.type === "LineString"
-    ? [f as Feature<LineString>]
-    : f.geometry.coordinates.map((c) => lineString(c));
+/** Metres east and north of the parcel's middle: flat enough at a parcel's scale. */
+type Xy = [number, number];
 
-/** A sample this close to one already counted is the same road (TIGER returns a road once per layer and name). */
-const SAME_SAMPLE_M = D.entranceSampleM * 0.8;
-
-/**
- * Metres of a line within entranceMaxDistM of the boundary, at the entrance search's spacing. A sample near one in
- * `counted` (the same road under another name or layer) isn't counted again, nor one within osmRoads.onRoadM of one
- * of `skip` (an OSM way on a TIGER road: the same road, imported). Each sample counted is added to `counted`.
- */
-function nearBoundaryM(
-  ln: Feature<LineString>,
-  edges: readonly Feature<LineString>[],
-  box: Box,
-  counted: [number, number][],
-  skip: readonly Feature<LineString>[] = [],
-): number {
-  let m = 0;
-  for (const c of samples(ln.geometry.coordinates as [number, number][], box)) {
-    if (!edges.some((e) => pointToLineDistance(c, e, { units: "meters" }) <= D.entranceMaxDistM)) continue;
-    if (skip.some((t) => pointToLineDistance(c, t, { units: "meters" }) <= SCREEN_CONSTANTS.osmRoads.onRoadM))
-      continue;
-    if (counted.some((q) => distance(q, c, { units: "meters" }) < SAME_SAMPLE_M)) continue;
-    counted.push(c);
-    m += D.entranceSampleM;
-  }
-  return m;
+/** A segment of a road's line, and how far along the line it starts. */
+interface Seg {
+  a: Xy;
+  b: Xy;
+  line: number;
+  from: number;
 }
 
-/** [west, south, east, north]: the parcel's box widened by the entrance search's reach. */
-type Box = [number, number, number, number];
+/** A road's segments near the parcel, in local metres, with what it's called and whether it's public. */
+interface Road {
+  name: string;
+  public: boolean;
+  segs: Seg[];
+}
 
-/**
- * The line's points every entranceSampleM from its start (as turf's `along` would give them, on a local flat
- * approximation), keeping only those inside `box`: the roads within 1.5 km are mostly far from the parcel.
- */
-function samples(coords: readonly [number, number][], box: Box): [number, number][] {
-  const out: [number, number][] = [];
-  const step = D.entranceSampleM;
-  let next = 0; // distance along the line of the next sample
-  let walked = 0;
-  for (let i = 1; i < coords.length; i++) {
-    const [x0, y0] = coords[i - 1]!;
-    const [x1, y1] = coords[i]!;
-    const kx = 111_320 * Math.cos((((y0 + y1) / 2) * Math.PI) / 180);
-    const len = Math.hypot((x1 - x0) * kx, (y1 - y0) * 110_540);
-    const segOut =
-      Math.max(x0, x1) < box[0] ||
-      Math.min(x0, x1) > box[2] ||
-      Math.max(y0, y1) < box[1] ||
-      Math.min(y0, y1) > box[3];
-    while (next <= walked + len) {
-      if (!segOut) {
-        const t = len > 0 ? (next - walked) / len : 0;
-        const p: [number, number] = [x0 + (x1 - x0) * t, y0 + (y1 - y0) * t];
-        if (p[0] >= box[0] && p[0] <= box[2] && p[1] >= box[1] && p[1] <= box[3]) out.push(p);
-      }
-      next += step;
-    }
-    walked += len;
+/** Where a point is nearest a road: how far off, the segment there, and how far along its line. */
+interface Near {
+  m: number;
+  seg: Seg;
+  at: number;
+}
+
+const linesOf = (g: LineString | MultiLineString): number[][][] =>
+  g.type === "LineString" ? [g.coordinates] : g.coordinates;
+
+/** The acute angle between two directions, in degrees (a road has no direction: 170° apart is 10°). */
+function acuteDeg(a: Xy, b: Xy): number {
+  const d = Math.abs(Math.atan2(a[1], a[0]) - Math.atan2(b[1], b[0])) % Math.PI;
+  return (Math.min(d, Math.PI - d) * 180) / Math.PI;
+}
+
+/** The point's nearest place on these segments. */
+function nearestOn(p: Xy, segs: readonly Seg[]): Near | null {
+  let best: Near | null = null;
+  for (const s of segs) {
+    const dx = s.b[0] - s.a[0],
+      dy = s.b[1] - s.a[1];
+    const len2 = dx * dx + dy * dy;
+    const t = len2 > 0 ? Math.max(0, Math.min(1, ((p[0] - s.a[0]) * dx + (p[1] - s.a[1]) * dy) / len2)) : 0;
+    const m = Math.hypot(s.a[0] + t * dx - p[0], s.a[1] + t * dy - p[1]);
+    if (!best || m < best.m) best = { m, seg: s, at: s.from + t * Math.sqrt(len2) };
   }
-  return out;
+  return best;
+}
+
+/** The road running along the boundary at `p` (the side's direction `along`): the nearest within reach, near parallel. */
+function alongside(p: Xy, along: Xy, roads: readonly Road[]): { road: Road; near: Near } | null {
+  let found: { road: Road; near: Near } | null = null;
+  for (const road of roads) {
+    const n = nearestOn(p, road.segs);
+    if (!n || n.m > K.reachM || (found && n.m >= found.near.m)) continue;
+    if (acuteDeg(along, [n.seg.b[0] - n.seg.a[0], n.seg.b[1] - n.seg.a[1]]) > K.parallelDeg) continue;
+    found = { road, near: n };
+  }
+  return found;
+}
+
+/** The total length of a set of intervals, overlaps counted once. */
+function unionLength(spans: [number, number][]): number {
+  const sorted = [...spans].sort((x, y) => x[0] - y[0]);
+  if (!sorted.length) return 0;
+  let total = 0;
+  let [lo, hi] = sorted[0]!;
+  for (const [a, b] of sorted.slice(1)) {
+    if (a > hi) {
+      total += hi - lo;
+      [lo, hi] = [a, b];
+    } else hi = Math.max(hi, b);
+  }
+  return total + hi - lo;
 }
 
 export function measureFrontage(
@@ -102,45 +113,85 @@ export function measureFrontage(
   osm: readonly OsmWay[],
   parcel: Feature<Polygon | MultiPolygon>,
 ): Frontage {
-  const e = polygonToLine(parcel);
-  const edges: Feature<LineString>[] = (e.type === "FeatureCollection" ? e.features : [e]).flatMap((f) =>
-    f.geometry.type === "LineString"
-      ? [f as Feature<LineString>]
-      : f.geometry.coordinates.map((c) => lineString(c)),
-  );
   const [w0, s0, e0, n0] = bbox(parcel);
-  const padLat = (D.entranceMaxDistM + 5) / 110_540;
-  const padLon = (D.entranceMaxDistM + 5) / (111_320 * Math.cos((((s0 + n0) / 2) * Math.PI) / 180));
-  const box: Box = [w0 - padLon, s0 - padLat, e0 + padLon, n0 + padLat];
-  const byRoad = new Map<string, { ft: number; public: boolean }>();
-  const add = (name: string, m: number, pub: boolean) => {
-    if (m <= 0) return;
-    const key = `${name}|${pub}`;
-    const r = byRoad.get(key) ?? { ft: 0, public: pub };
-    r.ft += m * M2FT;
-    byRoad.set(key, r);
+  const lat0 = (s0 + n0) / 2,
+    lon0 = (w0 + e0) / 2;
+  const kx = 111_320 * Math.cos((lat0 * Math.PI) / 180),
+    ky = 110_540;
+  const xy = (c: readonly number[]): Xy => [(c[0]! - lon0) * kx, (c[1]! - lat0) * ky];
+  // Only the segments near the parcel: those whose box meets the parcel's, widened by the reach.
+  const hx = ((e0 - w0) / 2) * kx + K.reachM + 5,
+    hy = ((n0 - s0) / 2) * ky + K.reachM + 5;
+  const nearBox = (a: Xy, b: Xy) =>
+    Math.max(a[0], b[0]) >= -hx &&
+    Math.min(a[0], b[0]) <= hx &&
+    Math.max(a[1], b[1]) >= -hy &&
+    Math.min(a[1], b[1]) <= hy;
+  let lineId = 0;
+  const roadOf = (name: string, pub: boolean, lines: readonly (readonly number[])[][]): Road[] => {
+    const segs: Seg[] = [];
+    for (const l of lines) {
+      const line = lineId++;
+      let from = 0;
+      for (let i = 1; i < l.length; i++) {
+        const a = xy(l[i - 1]!),
+          b = xy(l[i]!);
+        if (nearBox(a, b)) segs.push({ a, b, line, from });
+        from += Math.hypot(b[0] - a[0], b[1] - a[1]);
+      }
+    }
+    return segs.length ? [{ name, public: pub, segs }] : [];
   };
-  const tigerLines = tiger.flatMap(linesOf);
-  const counted: [number, number][] = [];
-  // Public roads first, so a road TIGER returns twice keeps its public length under the public name.
-  const ordered = [...tiger].sort(
-    (a, b) => Number(isPublicTiger(b.properties.MTFCC)) - Number(isPublicTiger(a.properties.MTFCC)),
-  );
-  for (const f of ordered)
-    for (const ln of linesOf(f))
-      add(
-        f.properties.NAME || "unnamed road",
-        nearBoundaryM(ln, edges, box, counted),
-        isPublicTiger(f.properties.MTFCC),
-      );
-  for (const w of osm)
-    add(
-      w.name ?? `unmapped ${w.highway}`,
-      nearBoundaryM(lineString(w.coords), edges, box, counted, tigerLines),
-      isPublicOsm(w),
+  // Public roads first, so a road TIGER returns twice (a layer each, two names) keeps its public name.
+  const tigerRoads = [...tiger]
+    .sort((a, b) => Number(isPublicTiger(b.properties.MTFCC)) - Number(isPublicTiger(a.properties.MTFCC)))
+    .flatMap((f) =>
+      roadOf(f.properties.NAME || "unnamed road", isPublicTiger(f.properties.MTFCC), linesOf(f.geometry)),
     );
+  const osmRoads = osm.flatMap((w) => roadOf(w.name ?? `unmapped ${w.highway}`, isPublicOsm(w), [w.coords]));
+
+  // Each road's stretches the boundary runs along, by its line: [from, to] metres along the line.
+  const spans = new Map<Road, Map<number, [number, number][]>>();
+  const rings =
+    parcel.geometry.type === "Polygon" ? parcel.geometry.coordinates : parcel.geometry.coordinates.flat();
+  for (const ring of rings)
+    for (let i = 1; i < ring.length; i++) {
+      const a = xy(ring[i - 1]!),
+        b = xy(ring[i]!);
+      const along: Xy = [b[0] - a[0], b[1] - a[1]];
+      const len = Math.hypot(along[0], along[1]);
+      if (len === 0) continue;
+      // The side in pieces of at most stepM, each decided by its middle and laid onto its road by its ends.
+      const n = Math.ceil(len / K.stepM);
+      const at = (t: number): Xy => [a[0] + along[0] * t, a[1] + along[1] * t];
+      for (let j = 0; j < n; j++) {
+        const hit =
+          alongside(at((j + 0.5) / n), along, tigerRoads) ?? alongside(at((j + 0.5) / n), along, osmRoads);
+        if (!hit) continue;
+        const onLine = hit.road.segs.filter((s) => s.line === hit.near.seg.line);
+        const p = nearestOn(at(j / n), onLine)!.at,
+          q = nearestOn(at((j + 1) / n), onLine)!.at;
+        const byLine = spans.get(hit.road) ?? new Map<number, [number, number][]>();
+        const list = byLine.get(hit.near.seg.line) ?? [];
+        list.push([Math.min(p, q), Math.max(p, q)]);
+        byLine.set(hit.near.seg.line, list);
+        spans.set(hit.road, byLine);
+      }
+    }
+  const byRoad = new Map<string, { m: number; public: boolean }>();
+  for (const [road, byLine] of spans) {
+    const key = `${road.name}|${road.public}`;
+    const kept = byRoad.get(key) ?? { m: 0, public: road.public };
+    for (const list of byLine.values()) kept.m += unionLength(list);
+    byRoad.set(key, kept);
+  }
   const roads = [...byRoad.entries()]
-    .map(([key, r]) => ({ name: key.slice(0, key.lastIndexOf("|")), ft: Math.round(r.ft), public: r.public }))
+    .map(([key, r]) => ({
+      name: key.slice(0, key.lastIndexOf("|")),
+      ft: Math.round(r.m * M2FT),
+      public: r.public,
+    }))
+    .filter((r) => r.ft > 0)
     .sort((a, b) => b.ft - a.ft);
   return { publicFt: roads.filter((r) => r.public).reduce((s, r) => s + r.ft, 0), roads };
 }

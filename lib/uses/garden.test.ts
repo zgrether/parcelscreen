@@ -1,4 +1,4 @@
-/** Garden, orchard, animals' yes / maybe / no (step 14 §3.1, §11). */
+/** Garden, orchard, animals' yes / maybe / no (step 14 §3.1, §11; owner, after #312: the water's source is named). */
 import { describe, expect, it } from "vitest";
 import { expectedOf } from "@/test/support/expected";
 import { point, synthetic } from "@/test/support/uses";
@@ -26,22 +26,47 @@ const r = (over: Partial<PartialScreenResult>): PartialScreenResult => ({
   gardens: [plot(0.6, 300)],
   cover: cover(0.2),
   streams: streams(0),
+  ponds: { count: 0, acres: 0, names: [] },
   ...over,
 });
 const at = (result: PartialScreenResult, marks: Mark[] = []) => garden(synthetic(result, {}, { marks }));
 const ll = MUD.sites![0]!.ll;
+const WELL = "from the well; no stream or spring mapped";
 
 describe("Garden, orchard, animals", () => {
-  it("a garden out of the frost pocket with water: yes, the water named", () => {
+  it("a garden out of the frost pocket: yes, the water's source named, marks first", () => {
     expect(at(r({}), [point("spring", ll)])).toMatchObject({
       answer: "yes",
       reason: "A 0.60 ac garden out of the frost pocket, with water (your spring)",
     });
-    expect(at(r({}), [point("stream", ll)]).reason).toMatch(/\(your stream\)$/);
-    expect(at(r({}), [point("well", ll)]).reason).toMatch(/\(your well\)$/);
-    expect(at(r({ streams: streams(800, ["Mud Creek"]) })).reason).toMatch(
-      /\(a year-round stream: Mud Creek\)$/,
+    expect(at(r({}), [point("stream", ll)]).reason).toContain("(your stream)");
+    expect(at(r({}), [point("well", ll)]).reason).toContain("(your well)");
+    const stream = at(r({ streams: streams(800, ["Mud Creek"]) }));
+    expect(stream.reason).toBe(
+      "A 0.60 ac garden out of the frost pocket, with water (a stream on the parcel)",
     );
+    expect(stream.decides.find((f) => f.label === "Water")).toEqual({
+      label: "Water",
+      value: "a stream on the parcel (Mud Creek)",
+      source: "USGS NHD flowlines",
+    });
+  });
+
+  it("a pond on the parcel counts as water; with none mapped, the well", () => {
+    const pond = at(r({ ponds: { count: 1, acres: 0.4, names: [] } }));
+    expect(pond).toMatchObject({
+      answer: "yes",
+      reason: "A 0.60 ac garden out of the frost pocket, with water (a pond on the parcel)",
+    });
+    expect(pond.decides.find((f) => f.label === "Water")?.source).toBe("USGS NHD waterbodies");
+    expect(at(r({}))).toMatchObject({
+      answer: "yes",
+      reason: `A 0.60 ac garden out of the frost pocket, with water (${WELL})`,
+    });
+    // An intermittent stream isn't a year-round source.
+    expect(at(r({ streams: { ...streams(0), intermittentFt: 900 } })).reason).toContain(`(${WELL})`);
+    // A grade from before ponds were read: the streams still decide.
+    expect(at(r({ ponds: undefined })).reason).toContain(`(${WELL})`);
   });
 
   it("room for animals too: said after the garden", () => {
@@ -50,21 +75,18 @@ describe("Garden, orchard, animals", () => {
     );
   });
 
-  it("no garden, but 2 ac of open gentle ground with water: yes, for animals", () => {
+  it("no garden, but 2 ac of open gentle ground: yes, for animals, the water named", () => {
     expect(at(r({ gardens: [], cover: cover(2.5) }), [point("spring", ll)])).toMatchObject({
       answer: "yes",
       reason: "2.5 ac of open gentle ground for animals, with water (your spring)",
     });
+    expect(at(r({ gardens: [], cover: cover(2.5) }))).toMatchObject({
+      answer: "yes",
+      reason: `2.5 ac of open gentle ground for animals, with water (${WELL})`,
+    });
   });
 
-  it("a garden but no water, or in the frost pocket: maybe", () => {
-    expect(at(r({}))).toMatchObject({
-      answer: "maybe",
-      reason:
-        "Garden ground, but no water found: no spring, stream or well marked, and no year-round stream mapped",
-    });
-    // An intermittent stream isn't water for a garden.
-    expect(at(r({ streams: { ...streams(0), intermittentFt: 900 } })).answer).toBe("maybe");
+  it("the garden ground in a frost pocket: maybe", () => {
     expect(at(r({ gardens: [plot(0.6, 40)] }), [point("spring", ll)])).toMatchObject({
       answer: "maybe",
       reason: "The garden ground is in a frost pocket",
@@ -85,10 +107,11 @@ describe("Garden, orchard, animals", () => {
     });
   });
 
-  it("what didn't load: maybe, said", () => {
+  it("what didn't load: said", () => {
     expect(at(r({ streams: undefined }))).toMatchObject({
-      answer: "maybe",
-      reason: "Garden ground, but mapped streams didn't load: water not known",
+      answer: "yes",
+      reason:
+        "A 0.60 ac garden out of the frost pocket, with water (from the well; mapped streams didn't load)",
     });
     expect(at(r({ gardens: [], cover: undefined }))).toMatchObject({
       answer: "maybe",

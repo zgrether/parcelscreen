@@ -1,4 +1,7 @@
-/** Hunt's yes / maybe (step 14 §3.1, §11), on Macks (292 ac, Floyd County) with the parts that decide it replaced. */
+/**
+ * Hunt's yes / maybe (step 14 §3.1, §11), on Macks (292 ac, Floyd County) with the parts that decide it replaced. The
+ * houses are counted from the boundary (owner, after #312).
+ */
 import { describe, expect, it } from "vitest";
 import { expectedOf } from "@/test/support/expected";
 import { synthetic } from "@/test/support/uses";
@@ -13,12 +16,11 @@ const cover = (forestPct: number) => ({
   openNearRoadAc: 0,
   year: 2021,
 });
-const near = (n: number) =>
-  MACKS.sites!.map((s) => ({ ...s, privacy: { near: n, inSight: 0, nearestFt: n ? 900 : 4000 } }));
+const near = (n: number) => ({ outside: false, nearBoundary: n });
 const r = (over: Partial<PartialScreenResult>): PartialScreenResult => ({
   ...MACKS,
   cover: cover(80),
-  sites: near(0),
+  privacy: near(0),
   ...over,
 });
 const at = (result: PartialScreenResult) => hunt(synthetic(result));
@@ -47,10 +49,13 @@ describe("Hunt", () => {
   it("smaller, thinner or with houses near: maybe, said", () => {
     expect(at(r({ acres: 6.5 }))).toMatchObject({ answer: "maybe", reason: "Under 10 ac (6.5 ac)" });
     expect(at(r({ cover: cover(36) }))).toMatchObject({ answer: "maybe", reason: "36% forest, under 50%" });
-    expect(at(r({ sites: near(3) }))).toMatchObject({
+    expect(at(r({ privacy: near(3) }))).toMatchObject({
       answer: "maybe",
-      reason: "3 houses within a quarter mile of site #1",
+      reason: "3 houses within a quarter mile of the boundary",
     });
+    // Houses near the build site alone don't count: only the boundary's.
+    const sites = MACKS.sites!.map((x) => ({ ...x, privacy: { near: 5, inSight: 0, nearestFt: 900 } }));
+    expect(at(r({ sites })).answer).toBe("yes");
   });
 
   it("a county not covered: maybe, said; and the county line says so", () => {
@@ -63,9 +68,9 @@ describe("Hunt", () => {
 
   it("what didn't load: maybe, said", () => {
     expect(at(r({ cover: undefined })).reason).toBe("Land cover didn't load: forest share not known");
-    expect(at(r({ sites: MACKS.sites!.map(({ privacy: _, ...s }) => s) })).reason).toBe(
-      "Houses nearby weren't measured",
-    );
+    // A grade from before the boundary's count, and a parcel outside the footprints' region.
+    expect(at(r({ privacy: { outside: false } })).reason).toBe("Houses nearby weren't measured");
+    expect(at(r({ privacy: { outside: true } })).reason).toBe("Houses nearby weren't measured");
     expect(at(r({ county: undefined })).reason).toBe("The county didn't load: grade again");
   });
 
@@ -83,7 +88,7 @@ describe("Hunt", () => {
       "Acres",
       "Forest",
       "Open public land next door",
-      "Houses within a quarter mile",
+      "Houses within a quarter mile of the boundary",
       "Floyd County's rule on where you can shoot",
       "License",
       "Sunday hunting",

@@ -31,6 +31,7 @@ import {
   type LineKind,
   type MarkupKind,
   type ParcelStore,
+  type Scenario,
   type WorkingParcel,
 } from "@/lib/client/parcelStore";
 import { getPref, onParcelsWritten, parcelsWritten, setPref } from "@/lib/client/prefs";
@@ -215,6 +216,10 @@ export interface ExploreController {
   pickMark(c: MarkChoice): void;
   /** The line just deleted, for the Undo toast; null when there's none or it timed out. */
   lineUndo: LineUndo | null;
+  /** The split just removed, for its Undo toast (owner, after #312); null when there's none or it timed out. */
+  scenarioUndo: ScenarioUndo | null;
+  undoScenarioRemove(): void;
+  dismissScenarioUndo(): void;
   /**
    * The last listing link searched (owner, #130), offered to the next parcel opened (lib/client/attachListing.ts);
    * null once used, dismissed, replaced by another search, or ATTACH_MS after the search.
@@ -314,6 +319,14 @@ export interface LineUndo {
   at: number;
 }
 
+/** A split just removed (owner, after #312): what it was, where in the list, for which open parcel, and when. */
+export interface ScenarioUndo {
+  scenario: Scenario;
+  index: number;
+  serial: number;
+  at: number;
+}
+
 /** Shows a hint for a while, unless something else replaced it meanwhile. */
 export function flash(hint: SetHint, text: string, ms: number): void {
   hint(text);
@@ -364,6 +377,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
   const [map, setMap] = useState<MlMap | null>(null);
   const [toast, setToast] = useState<SwitchToast | null>(null);
   const [lineUndo, setLineUndo] = useState<LineUndo | null>(null);
+  const [scenarioUndo, setScenarioUndo] = useState<ScenarioUndo | null>(null);
   const [dismissed, setDismissedState] = useState<Dismissed | null>(null);
   const dismissedNow = useRef<Dismissed | null>(null);
   const setDismissed = (d: Dismissed | null) => {
@@ -837,6 +851,15 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       }
     },
     lineUndo,
+    scenarioUndo,
+    undoScenarioRemove() {
+      if (!scenarioUndo) return;
+      dispatch({ type: "scenarioRestore", ...scenarioUndo, stamp: stamp() });
+      setScenarioUndo(null);
+    },
+    dismissScenarioUndo() {
+      setScenarioUndo(null);
+    },
     searchedListing,
     listingSearched(l) {
       endListingOffer();
@@ -893,6 +916,11 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       dispatch({ type: "scenarioName", id, name, serial, stamp: stamp() });
     },
     removeScenario(id, serial) {
+      const open = latest.current.store.open;
+      const index = open?.scenarios.findIndex((x) => x.id === id) ?? -1;
+      if (!open || index < 0 || serial !== latest.current.serial) return;
+      // Kept for its Undo toast (owner, after #312).
+      setScenarioUndo({ scenario: open.scenarios[index]!, index, serial, at: Date.now() });
       dispatch({ type: "scenarioRemove", id, serial, stamp: stamp() });
     },
     addPiece(id, side) {

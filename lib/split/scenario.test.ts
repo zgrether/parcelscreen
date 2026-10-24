@@ -3,6 +3,7 @@ import { polygon } from "@turf/turf";
 import { describe, expect, it } from "vitest";
 import type { ParcelRecord } from "../geo/parcels";
 import type { LatLon } from "../geo/types";
+import { withListing } from "../client/parcelEdits";
 import { plainParcel, type Markup, type Scenario, type WorkingParcel } from "../client/parcelStore";
 import {
   markupInside,
@@ -167,6 +168,26 @@ describe("Add this piece to the list", () => {
     });
     expect(made.markup.map((m) => m.id)).toEqual(["t1"]);
     expect(pieceAsParcel(piece, null, "Ferney, East piece", NOW).screenIds).toEqual([]);
+    // Nothing typed on the parent: nothing marked.
+    expect(made.fromOriginal).toBeUndefined();
+  });
+
+  it("the parent's deed restrictions and HOA come with it, marked from the original parcel; an edit makes one its own", () => {
+    const p = parcel({ deedRestrictions: "No mobile homes", hoa: "no" });
+    const made = pieceAsParcel(pieceOf(p, line, "right")!, null, "Ferney, East piece", NOW);
+    expect(made).toMatchObject({
+      deedRestrictions: "No mobile homes",
+      hoa: "no",
+      fromOriginal: ["deedRestrictions", "hoa"],
+    });
+    expect(withListing(made, { hoa: "yes" }).fromOriginal).toEqual(["deedRestrictions"]);
+    expect(withListing(made, { hoa: "no" })).toBe(made); // no change: still copied
+    expect(
+      withListing(withListing(made, { hoa: "yes" }), { deedRestrictions: "" }).fromOriginal,
+    ).toBeUndefined();
+    // Only the HOA picked on the parent: only it is marked.
+    const hoaOnly = pieceAsParcel(pieceOf(parcel({ hoa: "yes" }), line, "left")!, null, "x", NOW);
+    expect(hoaOnly.fromOriginal).toEqual(["hoa"]);
   });
 });
 

@@ -1224,17 +1224,12 @@
    "roads": [
     {
      "name": "unmapped track",
-     "ft": 2297,
+     "ft": 888,
      "public": false
     },
     {
      "name": "unmapped service",
-     "ft": 492,
-     "public": false
-    },
-    {
-     "name": "unnamed road",
-     "ft": 33,
+     "ft": 158,
      "public": false
     }
    ]
@@ -1253,6 +1248,11 @@
     "Doe River"
    ],
    "nearestFt": 553
+  },
+  "ponds": {
+   "count": 0,
+   "acres": 0,
+   "names": []
   },
   "county": {
    "fips": "47019",
@@ -2022,7 +2022,8 @@
    ]
   },
   "privacy": {
-   "outside": false
+   "outside": false,
+   "nearBoundary": 35
   },
   "dish": {
    "ll": [
@@ -5197,7 +5198,7 @@
    "mi": 17.1
   },
   "schemaVersion": 9,
-  "engine": 31,
+  "engine": 32,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -6427,17 +6428,12 @@
    "roads": [
     {
      "name": "unmapped track",
-     "ft": 2297,
+     "ft": 888,
      "public": false
     },
     {
      "name": "unmapped service",
-     "ft": 492,
-     "public": false
-    },
-    {
-     "name": "unnamed road",
-     "ft": 33,
+     "ft": 158,
      "public": false
     }
    ]
@@ -6456,6 +6452,11 @@
     "Doe River"
    ],
    "nearestFt": 553
+  },
+  "ponds": {
+   "count": 0,
+   "acres": 0,
+   "names": []
   },
   "county": {
    "fips": "47019",
@@ -7225,7 +7226,8 @@
    ]
   },
   "privacy": {
-   "outside": false
+   "outside": false,
+   "nearBoundary": 35
   },
   "dish": {
    "ll": [
@@ -10093,7 +10095,7 @@
    "mi": 17.1
   },
   "schemaVersion": 9,
-  "engine": 31,
+  "engine": 32,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

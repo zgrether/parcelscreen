@@ -15,7 +15,7 @@ import { areaPolygon } from "@/lib/report/marks";
 import type { MarkChoice } from "@/lib/client/markChoices";
 import type { CombineLimits } from "@/lib/geo/combine";
 import { memberLabel } from "@/lib/geo/combine";
-import { parcelFacts } from "@/lib/geo/parcels";
+import { recordAcres } from "@/lib/geo/parcels";
 import { parcelDisplayName } from "@/lib/client/historyRows";
 import { deriveParcel, ownLand, splitPreview, type DerivedParcel } from "@/lib/geo/recipe";
 import { sideName, type Side, type SplitPieces } from "@/lib/geo/split";
@@ -104,7 +104,7 @@ export function layerTree(p: WorkingParcel, derived: DerivedParcel, shapes: Parc
         id: `part:${i}`,
         kind: "part",
         name: part.source === "drawn" ? "Drawn shape" : memberLabel(part, i),
-        acres: parcelFacts(part.geo, part.props).acres,
+        acres: recordAcres(part),
         hideable: false,
         // The last part can't be taken out: close the parcel instead.
         deletable: p.pieces.length > 1,

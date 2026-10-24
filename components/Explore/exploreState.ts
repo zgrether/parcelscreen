@@ -25,6 +25,7 @@ import {
   type Markup,
   type MarkupKind,
   type ParcelStore,
+  type Scenario,
   type WorkingParcel,
 } from "@/lib/client/parcelStore";
 import { memberKey } from "@/lib/geo/combine";
@@ -196,6 +197,8 @@ export type ExploreAction =
   | { type: "pieceScreened"; id: string; side: PieceSide; screenId: string; serial: number; stamp: Stamp }
   | { type: "scenarioName"; id: string; name: string; serial: number; stamp: Stamp }
   | { type: "scenarioRemove"; id: string; serial: number; stamp: Stamp }
+  /** Undo of Remove this split (owner, after #312): the scenario back where it was. */
+  | { type: "scenarioRestore"; scenario: Scenario; index: number; serial: number; stamp: Stamp }
   /**
    * Add this piece to the list: the new parcel (made by pieceAsParcel) is kept and opened; the parcel it came from stays
    * as it is. Graded as it opens when the piece had no screen.
@@ -773,6 +776,13 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
         // The line tool needs the map: its details come back on Finish or Cancel.
         layer: null,
       };
+    }
+    case "scenarioRestore": {
+      // Back where it was, if it's still gone and the parcel is the same.
+      if (!open || a.serial !== s.serial || open.scenarios.some((x) => x.id === a.scenario.id)) return s;
+      const scenarios = [...open.scenarios];
+      scenarios.splice(Math.min(a.index, scenarios.length), 0, a.scenario);
+      return { ...s, store: save({ ...open, scenarios }, a.stamp) };
     }
     case "markupRestore": {
       // Undo of a delete (owner, A): back where it was, if it's still gone and the parcel is the same.

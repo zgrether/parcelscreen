@@ -4036,16 +4036,16 @@
    "insideFt": 3035
   },
   "frontage": {
-   "publicFt": 2494,
+   "publicFt": 1315,
    "roads": [
     {
      "name": "State Rte 611",
-     "ft": 1575,
+     "ft": 1037,
      "public": true
     },
     {
      "name": "unnamed road",
-     "ft": 919,
+     "ft": 278,
      "public": true
     }
    ]
@@ -4064,6 +4064,11 @@
     "Deepwater Creek"
    ],
    "nearestFt": 565
+  },
+  "ponds": {
+   "count": 0,
+   "acres": 0,
+   "names": []
   },
   "county": {
    "fips": "51063",
@@ -4883,7 +4888,8 @@
    ]
   },
   "privacy": {
-   "outside": false
+   "outside": false,
+   "nearBoundary": 5
   },
   "dish": {
    "ll": [
@@ -6649,7 +6655,7 @@
    "mi": 16.8
   },
   "schemaVersion": 9,
-  "engine": 31,
+  "engine": 32,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -10691,16 +10697,16 @@
    "insideFt": 3035
   },
   "frontage": {
-   "publicFt": 2494,
+   "publicFt": 1315,
    "roads": [
     {
      "name": "State Rte 611",
-     "ft": 1575,
+     "ft": 1037,
      "public": true
     },
     {
      "name": "unnamed road",
-     "ft": 919,
+     "ft": 278,
      "public": true
     }
    ]
@@ -10719,6 +10725,11 @@
     "Deepwater Creek"
    ],
    "nearestFt": 565
+  },
+  "ponds": {
+   "count": 0,
+   "acres": 0,
+   "names": []
   },
   "county": {
    "fips": "51063",
@@ -11538,7 +11549,8 @@
    ]
   },
   "privacy": {
-   "outside": false
+   "outside": false,
+   "nearBoundary": 5
   },
   "dish": {
    "ll": [
@@ -13324,7 +13336,7 @@
    "mi": 16.8
   },
   "schemaVersion": 9,
-  "engine": 31,
+  "engine": 32,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
