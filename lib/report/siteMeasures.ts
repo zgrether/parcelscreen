@@ -13,6 +13,7 @@ import { SCREEN_CONSTANTS } from "../screen/config";
 import type { PartialScreenResult, ScoredDriveway } from "../screen/types";
 import { M2FT, M2_PER_ACRE } from "../screen/util";
 import { drivewayGradePct, footprintFt2 } from "./card";
+import { chosenDrive, type ChosenDrive } from "./lines";
 
 export const MEASURE_WORDS = {
   sun: (h: string) => `${h} h December sun`,
@@ -39,15 +40,30 @@ function drivePart(dw: ScoredDriveway | null | undefined): string | null {
   return dw.needsEasement ? `${line}, ${MEASURE_WORDS.easement}` : line;
 }
 
+/** The driveway the household chose, as the card's Driveway row and the cost read it (lines.ts chosenDrive). */
+export const yourDrive = chosenDrive;
+export type YourDrive = ChosenDrive;
+
 /**
  * The line for the ranked site at `index` (into the result's `sites`), or for the marked house ("house"), which has no
- * gentle-ground figure of its own. Empty when there's nothing there.
+ * gentle-ground figure of its own. Empty when there's nothing there. `yours`: the route the household chose as its
+ * driveway, quoted instead of the app's (the UX audit's B-6: "2,880 ft drive at 16%" stayed after Use as my driveway).
  */
 export function siteMeasures(
   r: PartialScreenResult,
   index: number | "house",
   build: BuildConfig = SCREEN_CONSTANTS.build,
+  yours: YourDrive | null = null,
 ): string {
+  const drive = (dw: ScoredDriveway | null | undefined) =>
+    yours
+      ? [
+          MEASURE_WORDS.drive(fmt(yours.lengthFt), fmt(yours.gradePct)),
+          yours.needsEasement ? MEASURE_WORDS.easement : null,
+        ]
+          .filter(Boolean)
+          .join(", ")
+      : drivePart(dw);
   const parts: (string | null)[] = [];
   if (index === "house") {
     const h = r.house;
@@ -56,7 +72,7 @@ export function siteMeasures(
       MEASURE_WORDS.sun(fmt(h.sunH, 1)),
       h.aspectDeg === null ? null : MEASURE_WORDS.faces(compass(h.aspectDeg)),
       h.elevFt === null ? null : MEASURE_WORDS.elevation(fmt(h.elevFt)),
-      drivePart(h.driveway),
+      drive(h.driveway),
     );
   } else {
     const s = r.sites?.[index];
@@ -71,7 +87,7 @@ export function siteMeasures(
         : s.fit === "house only"
           ? MEASURE_WORDS.houseOnly
           : MEASURE_WORDS.tooSmall,
-      drivePart(s.driveway),
+      drive(s.driveway),
     );
   }
   return parts.filter((p): p is string => p !== null).join(" · ");

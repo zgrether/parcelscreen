@@ -12,7 +12,8 @@ import type { LandUses } from "./index";
 import type { Answer, UseLine, UsesInput } from "./types";
 
 /** What the uses read from the parcel itself (parcelStore's WorkingParcel). */
-export type UsesParcel = Pick<WorkingParcel, "markup" | "deedRestrictions" | "hoa">;
+export type UsesParcel = Pick<WorkingParcel, "markup" | "deedRestrictions" | "hoa"> &
+  Partial<Pick<WorkingParcel, "listingAcres">>;
 
 const isLine = (m: Markup): m is LineMarkup => m.shape === "line";
 
@@ -35,7 +36,11 @@ export function usesInputOf(
       easementType: l.easementType ?? null,
       recordedIn: l.recordedIn,
     })),
-    listing: { deedRestrictions: parcel.deedRestrictions, hoa: parcel.hoa },
+    listing: {
+      deedRestrictions: parcel.deedRestrictions,
+      hoa: parcel.hoa,
+      listingAcres: parcel.listingAcres ?? null,
+    },
   };
 }
 

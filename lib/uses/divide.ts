@@ -3,7 +3,7 @@
  * parcel's acres and its public-road frontage, with the binding limit named. Exceptions (family divisions, private
  * roads, large lots) are listed with their rule, never added to the count. Pure: display time, no requests.
  */
-import { minLotFor, type CountyRules } from "../config/counties";
+import { minLotFor, type CountyRules, type NoReviewRoute } from "../config/counties";
 
 export interface DivideInput {
   acres: number;
@@ -73,6 +73,27 @@ export function divide(input: DivideInput): DivideResult {
     publicFrontageFt: input.publicFrontageFt,
     assumedDefault: county.zoning.value && input.district === null,
   };
+}
+
+/** Divide's first number (owner, #311): the lots the county's no-review route allows, and what binds them. */
+export interface NoReviewCount {
+  route: NoReviewRoute;
+  /** At least 1: the parcel as it is. */
+  lots: number;
+  /** The lots its lot size allows on these acres. */
+  byAcres: number;
+  /** The county's cap binds (Grayson's farm division: 4 parcels), not the acres. */
+  capped: boolean;
+}
+
+/** The lots the route allows: each at least (or over) its lot size, at most its cap. Null where there's no route. */
+export function noReviewCount(acres: number, route: NoReviewRoute | null): NoReviewCount | null {
+  if (!route) return null;
+  const q = acres / route.lotAc;
+  // "Over 10 ac": 30 ac makes 2 lots, not 3; "at least 10 ac": 30 ac makes 3.
+  const byAcres = route.inclusive ? Math.floor(q + 1e-9) : Math.max(0, Math.ceil(q - 1e-9) - 1);
+  const capped = route.maxLots !== null && byAcres > route.maxLots;
+  return { route, lots: Math.max(1, capped ? route.maxLots! : byAcres), byAcres, capped };
 }
 
 const ac = (v: number) => (v >= 10 ? Math.round(v) : Math.round(v * 100) / 100).toLocaleString("en-US");

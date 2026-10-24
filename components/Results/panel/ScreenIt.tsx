@@ -530,6 +530,7 @@ export function useScreenIt(
   // Step 14: what the land can do, at the card's site, once the run is done (Uses and Grade's shortcut line read it).
   const deedRestrictions = open?.deedRestrictions ?? "";
   const hoa = open?.hoa ?? "unknown";
+  const listingAcres = open?.listingAcres ?? null;
   const uses = useMemo(
     () =>
       display && card && !runningHere
@@ -538,10 +539,22 @@ export function useScreenIt(
               markup: markup ?? [],
               deedRestrictions,
               hoa,
+              listingAcres,
             }),
           )
         : null,
-    [display, card, runningHere, markup, drivewayLine, askingPrice, costs, deedRestrictions, hoa],
+    [
+      display,
+      card,
+      runningHere,
+      markup,
+      drivewayLine,
+      askingPrice,
+      costs,
+      deedRestrictions,
+      hoa,
+      listingAcres,
+    ],
   );
   // A site tapped in the panel (step 7 plan §1.3): evaluated with the live session, as its pin is; without one, the
   // pins' own words say why not.

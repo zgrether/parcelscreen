@@ -24,7 +24,7 @@ const r = (over: Partial<PartialScreenResult>): PartialScreenResult => ({
   ...over,
 });
 const at = (result: PartialScreenResult) => ride(synthetic(result));
-const PRIVATE = "; neighbours' corridors are private unless they agree";
+const PRIVATE = "; neighbours' land is private unless they agree";
 
 describe("Ride, ski, snowshoe from home", () => {
   it("open public land next door, or a long trail within 3 mi: yes", () => {

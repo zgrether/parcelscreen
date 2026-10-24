@@ -63,6 +63,14 @@ describe("adding the Driveway row to saved priorities", () => {
     expect(withDriveway(defaultRubric(), "gentle")).toBeNull();
   });
 
+  it("nothing to add when the person put it in Don't care: the starting list reordered keeps its choice (B-1)", () => {
+    // The starting list, reordered on What matters: rank-sum weights, Driveway still in Don't care.
+    const reordered: Rubric = { ...defaultRubric(), weights: { mode: "rankSum" } };
+    expect(reordered.wonts).toContain("driveway");
+    expect(withDriveway(reordered, undefined)).toBeNull();
+    expect(withDriveway({ ...SAVED, wonts: [...SAVED.wonts, "driveway"] }, "gentle")).toBeNull();
+  });
+
   it("the note's Undo puts it back in Don't care, the rest as it was", () => {
     const back = withoutDriveway(withDriveway(SAVED, "gentle")!);
     expect(back.ranked).toEqual(SAVED.ranked);

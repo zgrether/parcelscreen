@@ -26,6 +26,9 @@ export function PanelMenu({ parcelKey, graded }: { parcelKey: string | null; gra
       className="sh-more"
       onKeyDown={(e) => {
         if (e.key === "Escape" && open) {
+          // Handled: the explorer's Esc (which closes the parcel) skips it (the UX audit's B-4). React listens on the
+          // document too, so stopping the event alone doesn't reach a listener there.
+          e.preventDefault();
           e.stopPropagation();
           setOpen(false);
         }

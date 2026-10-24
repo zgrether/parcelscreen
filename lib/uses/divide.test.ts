@@ -3,8 +3,8 @@
  * Mitchell's minimum by slope, a county with no frontage rule or no minimum, and exceptions never added.
  */
 import { describe, expect, it } from "vitest";
-import { COUNTIES, countyByFips, type CountyRules, type Fact } from "../config/counties";
-import { divide, divideHeadline, type DivideInput } from "./divide";
+import { COUNTIES, countyByFips, noReviewRoute, type CountyRules, type Fact } from "../config/counties";
+import { divide, divideHeadline, noReviewCount, type DivideInput } from "./divide";
 
 const fact = <T>(value: T): Fact<T> => ({
   value,
@@ -152,5 +152,41 @@ describe("the county rules", () => {
   it("a zoning layer only where the county has zoning; Grayson's is the one found", () => {
     for (const c of COUNTIES) if (c.zoningLayer) expect(c.zoning.value, c.name).toBe(true);
     expect(COUNTIES.filter((c) => c.zoningLayer).map((c) => c.name)).toEqual(["Grayson"]);
+  });
+});
+
+describe("without subdivision review (owner, #311)", () => {
+  const route = (fips: string) => noReviewRoute(countyByFips(fips)!);
+
+  it("each county's own route: Grayson's farm division, North Carolina's and Tennessee's exempt lots, Patrick's; none in Floyd or Carroll", () => {
+    expect(route("51077")).toMatchObject({
+      term: "a farm division approved by staff",
+      lotAc: 10,
+      inclusive: true,
+      maxLots: 4,
+    });
+    expect(route("37009")).toMatchObject({ lotAc: 10, inclusive: false, maxLots: null });
+    expect(route("37121")).toMatchObject({ lotAc: 3, inclusive: false });
+    expect(route("47019")).toMatchObject({ lotAc: 5, inclusive: true });
+    expect(route("51141")).toMatchObject({ lotAc: 2, inclusive: true });
+    expect(route("51063")).toBeNull();
+    expect(route("51035")).toBeNull();
+    // Every county has an entry, and each route its source and date.
+    for (const c of COUNTIES) {
+      const r = noReviewRoute(c);
+      if (r) expect(r).toMatchObject({ checked: "2026-10-23", source: expect.stringMatching(/^https:/) });
+    }
+  });
+
+  it("at least its lot size, or over it; at most its cap", () => {
+    // "At least 10 ac": 30 ac makes 3 lots; "over 10 ac": 30 ac makes 2.
+    expect(noReviewCount(30, route("51077"))).toMatchObject({ lots: 3, byAcres: 3, capped: false });
+    expect(noReviewCount(30, route("37009"))).toMatchObject({ lots: 2, byAcres: 2 });
+    expect(noReviewCount(30.15, route("37009"))).toMatchObject({ lots: 3 });
+    // Grayson's farm division stops at 4 parcels.
+    expect(noReviewCount(52, route("51077"))).toMatchObject({ lots: 4, byAcres: 5, capped: true });
+    // Too small: the parcel as it is.
+    expect(noReviewCount(8, route("51077"))).toMatchObject({ lots: 1, byAcres: 0 });
+    expect(noReviewCount(30, null)).toBeNull();
   });
 });

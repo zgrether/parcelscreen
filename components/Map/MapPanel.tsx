@@ -84,6 +84,7 @@ function Panel({ onClose }: { onClose: () => void }) {
           )}
           {toggle(MARKS_LABEL, p.marks, () => setMapLayerPrefs({ marks: !p.marks }))}
           {toggle(AREA_WORDS.outlines, p.areas, () => setMapLayerPrefs({ areas: !p.areas }))}
+          {p.areas && <p className="tiny muted areas-legend">{AREA_WORDS.legend}</p>}
           {/* Step 14: the power lines near the graded parcel, from its result. */}
           {toggle(POWER_MAP.toggle, p.power, () => setMapLayerPrefs({ power: !p.power }))}
         </div>

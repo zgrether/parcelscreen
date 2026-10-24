@@ -150,11 +150,17 @@ export function CardPanel({
     close.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       // Not the map's panel while another tab is showing (step 4b): Compare's and the list's still close.
-      if (e.key === "Escape" && !behindTabs(close.current)) onClose();
+      if (e.key !== "Escape" || e.defaultPrevented || behindTabs(close.current)) return;
+      // A dialog over it (a section's "?") closes first, and must keep its own Esc: cancelling it would hold it open.
+      if (document.querySelector("dialog[open]")) return;
+      // Esc closes the topmost thing only (the UX audit's B-4): in the capture phase, ahead of the explorer's Esc,
+      // and marked handled so that one leaves the parcel open.
+      e.preventDefault();
+      onClose();
     };
-    document.addEventListener("keydown", onKey);
+    document.addEventListener("keydown", onKey, true);
     return () => {
-      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("keydown", onKey, true);
       before?.focus?.();
     };
   }, [panel, onClose]);

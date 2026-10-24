@@ -1127,5 +1127,57 @@ until step 5 (Q14).
         CMS has since dropped: can be removed". It isn't a change in itself.
       - No numbers change: no closure is known today.
       " — emergency department not listed in OpenStreetMap" stays for stored screens; a new screen never has it.
+70. **Step 14: what the land can do** (owner, 2026-10-23, step 14's pre-approved brief and plan,
+    `docs/plans/step-14-land-uses.md`, #301; built in #302–#310; the UX audit's J-1, #306, puts it in a Uses segment).
+    - **New measurements, as optional fields on v9** (§9.65's exception, as §9.66 extended it):
+      - `power`: HIFLD's transmission lines near the parcel, with OSM as the fallback; the distance from the build site,
+        whether a line crosses, and its length inside and voltage (#302).
+      - `frontage`: public and private road frontage (#302).
+      - `cover`: NLCD 2021's forest and open shares, and the open gentle ground near a road (#305).
+      - `streams`: NHD's perennial and intermittent stream inside the parcel, the names, and the nearest's distance
+        (#305).
+      - `trails`: the trail a parcel's gentle ground could hold (#305).
+      - `county`: TIGERweb's county at the centre, and Grayson's zoning districts from its own map (#305).
+
+      SCREEN_SCHEMA_VERSION stays 9: `schema-v9.test.ts`'s snapshot gained each as optional. ENGINE_VERSION 29 → 30
+      (#302) → 31 (#305), measurement-only bumps, so `ENGINE_CURRENT_FROM` stays 29 and no saved grade is hidden. A
+      screen without them shows the uses that need them as "not measured".
+    - **No grade or verdict moves:** every `expected.json` change was additive, its only changed line `"engine": N`.
+      Grades never read the uses (step 14 plan §1).
+    - **The uses** (`lib/uses/*`, #307) are computed at display time from the result, the card's own facts, the
+      parcel's marks, lines and listing, and the county rules (`lib/config/counties.ts`, researched 2026-10-23, each fact
+      with its source, date and a confidence word). There are seven uses (Camp now, Build, Trails and walking woods,
+      Garden/orchard/animals, Hunt, Ride/ski/snowshoe from home, Divide) and the What limits you list. Each answers Yes,
+      Maybe or No with one reason and the facts that decide it.
+    - **Divide's two numbers** (owner, #311): without subdivision review, by the county's own route
+      (`noReviewRoute` in `lib/config/counties.ts`: Grayson's farm division, 4 parcels of at least 10 ac, staff-approved;
+      North Carolina's statute, lots over 10 ac with no new right-of-way, Mitchell's over 3 ac; Tennessee's, 5 ac or
+      more with no new street or utility; Patrick's, no lot under 2 ac; none in Floyd or Carroll), and with an approved
+      subdivision plat, by the standard lots (minimum lot size and frontage). Each names what binds it; What decides it
+      shows the parcel's arithmetic, each line with the ordinance's section and its URL. Mud Creek: "Up to 3 lots without
+      subdivision review (a farm division approved by staff; limited by 30.15 ac at 10 ac a lot) · up to 11 with an
+      approved subdivision plat (limited by 1,116 ft of road frontage at 100 ft per lot; more lots need a road built to
+      the county's standard)". A no-review count on a parcel with no public road frontage is a Maybe: "each new lot still
+      needs legal access to a road" (Roan).
+    - **Divide on the listing's acres** (owner, #311): the same rule as $/ac (`lib/report/perAcre.ts`). The count uses
+      the listing's acres when they're entered, else the county map's. When the two differ by more than
+      `card.perAcreDiffPct` (5%), the reason ends "on 24.7 listed ac (the county map shows 30.15)". What decides it
+      gives both and says which was used. The frontage reads "measured along the county map's boundary; a survey may
+      differ", and a To re-check line says the boundary disagrees with the listing. Mud Creek on 24.7 listed ac: 2 lots
+      without review, 11 with a plat (frontage still binds). A split's pieces count on their own outlines.
+    - **The parcel's new fields** (store stays v2: each has a default, so older parcels read as before; no converter):
+      Listing's Deed restrictions (text) and HOA (Yes / No / Not known); a line's optional easement type (Road
+      right-of-way / Utility / Scenic / Other); the Stream point mark; and `scenarios` (#310).
+    - **The panel** (#309): Grade | Uses | Details. Uses holds What you can do here (What decides it on a tap), What
+      limits you and one not-advice line; step 15's How it could pay goes in the same segment (J-1). Grade gets a
+      shortcut line. One page gets the Divide line; Full gets a What you can do here section. Map layers gets Power
+      lines (off by default).
+    - **Split as a scenario** (#310) replaces the keep-a-piece split: the two pieces are graded side by side, each with
+      its own screen (kept under the scenario, synced, not in the parcel's own screens), its costs, its county check and
+      its uses. A split saved before still shows its kept side, read as before.
+    - **Recordings:** Mud Creek's port HAR, append only (`test/tools/mud-creek-har.test.ts` pins each step's entries),
+      gained step 14's power lines, land cover, flowlines, county and zoning, and the two pieces of a fixed split
+      (`test/support/splitScenario.ts`). `record:port` waits 5 s for each connection (it lost the county ask to Node's
+      250 ms default before, #305).
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

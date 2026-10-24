@@ -6,6 +6,7 @@
  */
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { setBandEdge } from "./edit";
+import { places } from "./factorsAdd";
 import type { InterviewAnswers } from "./interview/answers";
 import type { RankedCard, Rubric } from "./types";
 
@@ -18,15 +19,17 @@ export function drivewayTier(a: DrivewayAnswer | undefined, C = SCREEN_CONSTANTS
 }
 
 /**
- * The rubric with Driveway added, or null when there's nothing to add: it already ranks Driveway, or it's the starting
- * list's explicit weights (its Driveway weighs 0 and is Don't care by design, step 7 plan §3.3).
+ * The rubric with Driveway added, or null when there's nothing to add: it already places Driveway (ranked, a limit, or
+ * Don't care), or it's the starting list's explicit weights (its Driveway weighs 0 and is Don't care by design, step 7
+ * plan §3.3). A list saved before step 7 has no Driveway anywhere; one with Driveway in Don't care chose it (the UX
+ * audit's B-1: a starting list reordered later had Driveway pulled into Nice to have against the person's own list).
  */
 export function withDriveway(
   r: Rubric,
   a: DrivewayAnswer | undefined,
   C = SCREEN_CONSTANTS.card,
 ): Rubric | null {
-  if (r.weights.mode !== "rankSum" || r.ranked.some((c) => c.factor === "driveway")) return null;
+  if (r.weights.mode !== "rankSum" || places(r, "driveway")) return null;
   const card: RankedCard = { factor: "driveway", tier: drivewayTier(a, C) };
   const lastShould = r.ranked.findLastIndex((c) => c.tier === "should");
   const ranked =

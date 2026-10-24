@@ -6,6 +6,7 @@
 import { fmt } from "../format";
 import { listOf, zoneOfMag } from "../report/card";
 import type { Letter } from "../rubric/types";
+import { EDITOR_TITLES } from "../rubric/words";
 import { weightsOf } from "../rubric/weights";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import type { AreaCard, AreaFactor } from "./score";
@@ -148,6 +149,71 @@ export function mustShareParts(card: AreaCard, area: AreaFile): { pct: string; r
   return { pct: line.slice(0, at), rest: line.slice(at + 1) };
 }
 
+/** The fit with its rank (owner, 10/23): "C+ · #3 of 30 for you". */
+export const rankLine = (fit: string | null, rank: number, total: number): string =>
+  `${fit ?? "–"} · #${rank} of ${total} for you`;
+
+/** What holds an area back (owner, 10/23): the Must failing on the most land, then the two weakest graded factors. */
+export interface HoldsBack {
+  /** "Only 12% of rural land here is within 15 minutes of a trailhead"; null with no limits, or when every limit passes everywhere. */
+  must: string | null;
+  /** "Trails and public land, D: 48 minutes to a trailhead", the two weakest, weakest first. */
+  weakest: string[];
+}
+
+export function holdsBack(card: AreaCard, area: AreaFile): HoldsBack {
+  const worstLimit = [...card.limitShares].sort((a, b) => a.share - b.share)[0];
+  const pct = worstLimit ? Math.round(worstLimit.share * 100) : 100;
+  const must =
+    worstLimit && pct < 100
+      ? pct === 0
+        ? `None of the rural land here is ${limitWords(worstLimit)}.`
+        : `Only ${pct}% of rural land here is ${limitWords(worstLimit)}.`
+      : null;
+  const R = card.rubric.rubric;
+  const w = weightsOf(R);
+  const weakest = card.rows
+    .filter((r): r is typeof r & { grade: Letter } => r.grade !== null && w[r.key] > 0)
+    .sort((a, b) => R.points[a.grade] - R.points[b.grade] || w[b.key] - w[a.key])
+    .slice(0, 2)
+    .map((r) => {
+      const v = cost(r.key, area.medians);
+      return `${EDITOR_TITLES[r.key]}, ${r.grade}${v ? `: ${v}` : ""}`;
+    });
+  return { must, weakest };
+}
+
+/** A limit as a name: "15-minute trailhead limit". */
+export function limitName(l: AreaCard["limits"][number]): string {
+  const t = fmt(l.threshold);
+  switch (l.factor) {
+    case "elevation":
+      return `${t} ft elevation limit`;
+    case "sky":
+      return `dark-sky limit (${fmt(l.threshold, 1)} mag/arcsec²)`;
+    case "hospital":
+      return `${t}-minute ER limit`;
+    case "town":
+      return `${t}-minute grocery limit`;
+    case "airport":
+      return `${t}-minute airport limit`;
+    case "trails":
+      return `${t}-minute trailhead limit`;
+    case "longTrail":
+      return `${t}-minute long-trail limit`;
+    default:
+      return "limit";
+  }
+}
+
+/** The catalog-wide line (owner, 10/23): one Must rules out most of the region. */
+export const regionLine = (l: AreaCard["limits"][number]): string =>
+  `Your ${limitName(l)} rules out most of the region; that's why few areas fit.`;
+
+/** Why a ranked area isn't among the five (owner, 10/23): under the 10% rule. */
+export const notSuggestedReason = (card: AreaCard): string =>
+  `only ${Math.round(card.mustShare * 100)}% passes your must-haves`;
+
 /** The box's and the card's labels (§8). */
 export const AREA_WORDS = {
   afterInterview: "Areas that fit you",
@@ -170,6 +236,10 @@ export const AREA_WORDS = {
   noneSuggested: "No area passes your must-haves on 10% of its land.",
   showAll: "Show all ranked",
   outlines: "Area outlines",
+  holdsBack: "What holds it back",
+  legend:
+    "Colour: your fit (green A–B, amber C, red D–F). A stronger fill: more of the land passes your must-haves.",
+  changeIt: "Change it",
 } as const;
 
 /** A sample parcel's words (§5, §8). */

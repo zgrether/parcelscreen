@@ -230,7 +230,7 @@ export function reportContent(i: ReportInput): ReportContent {
     }).suggestions.map((x) => `${x.text}${x.cost ? ` · ${x.cost}` : ""}`),
     questions: agentQuestions(mine).map((q) => q.question),
     cost: costPrintLines(mine),
-    divide: divideReportLine(i.result),
+    divide: divideReportLine(i.result, i.parcel?.listingAcres ?? null),
     uses: landUses(
       usesInputOf(
         i.result,

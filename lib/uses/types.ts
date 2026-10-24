@@ -40,6 +40,8 @@ export interface UseLine {
 export interface UseListing {
   deedRestrictions: string;
   hoa: Hoa;
+  /** The acres the listing claims, as typed: Divide counts on them, as $/ac does (owner, #311). Absent: none typed. */
+  listingAcres?: number | null;
 }
 
 export interface UsesInput {

@@ -101,6 +101,13 @@ describe("the report card's content (step 9 plan §2)", () => {
     ]);
     const hoa = reportContent(input({ parcel: { markup: [], deedRestrictions: "", hoa: "yes" } }));
     expect(hoa.uses.limits).toContainEqual(expect.objectContaining({ label: "HOA", value: "Yes" }));
+    // Owner, #311: the listing's acres, when typed, counted on as the panel counts on them.
+    const listed = reportContent(
+      input({ parcel: { markup: [], deedRestrictions: "", hoa: "unknown", listingAcres: 30 } }),
+    );
+    expect(listed.divide).toBe(divideReportLine(FERNEY, 30));
+    expect(listed.divide).toContain("on 30 listed ac (the county map shows 43.88)");
+    expect(listed.uses.uses.find((u) => u.key === "divide")?.answer.reason).toContain("on 30 listed ac");
   });
 });
 

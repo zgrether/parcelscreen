@@ -530,6 +530,28 @@ descriptions and outline recipes), `lib/areas/data/` (the outlines, the CMS ER l
 workflow's PR. Two prefs: `ps.areas` (per device) and `ps.areaStars` (per profile, synced with the profile).
 `docs/plans/step-13-area-catalog.md` and phase-0.md §9.68 have the details.
 
+### 3o. What the land can do (roadmap step 14)
+
+- **The Uses segment.** The parcel panel's third segment (Grade | Uses | Details) answers "what could we do here?",
+  outside the grade:
+  - seven uses (Camp now, Build, Trails and walking woods, Garden/orchard/animals, Hunt, Ride/ski/snowshoe from home,
+    Divide), each Yes, Maybe or No with one reason and What decides it (each fact with its source and date);
+  - What limits you;
+  - one not-advice line.
+
+  It's computed at display time (`lib/uses/*`) from the result, the card's facts, the parcel's marks, lines and
+  listing, and ten counties' rules (`lib/config/counties.ts`, dated and sourced). Step 15's How it could pay goes in the
+  same segment (UX audit J-1).
+- **The parcel gains** (each with a default; older parcels read as before):
+  - `deedRestrictions` (text) and `hoa` (`"yes" | "no" | "unknown"`) in its listing;
+  - a line's optional `easementType` (`"row" | "utility" | "scenic" | "other"`);
+  - the `stream` point mark;
+  - `scenarios`: a split kept as "Keep this, sell that". Each is `{ id, name, a, b, screens: { left, right }, at }`.
+    Each piece is graded as its own screen, kept and synced but not in the parcel's own screens.
+
+  A split saved before (`split` with `keep`) is still read and shown.
+- **The details** are in phase-0.md §9.70.
+
 ## 4. The parcel page (the export)
 
 Blocks, in order; each is computed, placeholder, or user-authored:
