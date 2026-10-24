@@ -22,11 +22,14 @@ import { getPref } from "@/lib/client/prefs";
 import { MORE_LABEL } from "@/lib/client/places";
 import { ANSWER_FIRST, menuOffersInterview } from "@/lib/rubric/interview/doc";
 import { SyncIndicator, useUnsaved } from "@/components/Sync/SyncStatus";
+import { AreasDialog, type AreasDialogHandle } from "@/components/Areas/AreasDialog";
+import { AREA_WORDS } from "@/lib/areas/words";
 
 const FOCUSABLE = "a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex='-1'])";
 
 export function Menu() {
   const [open, setOpen] = useState(false);
+  const areas = useRef<AreasDialogHandle>(null);
   const box = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
@@ -76,6 +79,7 @@ export function Menu() {
 
   return (
     <div ref={box} className="menu-box">
+      <AreasDialog ref={areas} />
       <button
         ref={button}
         className="app-more"
@@ -111,6 +115,17 @@ export function Menu() {
                   </Link>
                 </li>
               )}
+              {/* Owner, 10/23: where to look, from anywhere (a parcel open, any page). */}
+              <li>
+                <button
+                  onClick={() => {
+                    close(false);
+                    areas.current?.open();
+                  }}
+                >
+                  {AREA_WORDS.onTheMap}
+                </button>
+              </li>
               <li>
                 <Link href="/help" onClick={() => close(false)}>
                   Help
