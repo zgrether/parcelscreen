@@ -134,8 +134,8 @@ export function BestHomesite({
           result,
           house ? "house" : best!.index,
           undefined,
-          // The route the household chose reaches where the screen ran: quoted there (B-6).
-          house || !elsewhere ? yourDrive(result, card.drivewayLine) : null,
+          // The driveway the household chose, as the Driveway row and the cost read it (B-6; owner, #308).
+          yourDrive(result, card.drivewayLine),
         )}
       </p>
       {elsewhere && (

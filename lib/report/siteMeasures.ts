@@ -13,7 +13,7 @@ import { SCREEN_CONSTANTS } from "../screen/config";
 import type { PartialScreenResult, ScoredDriveway } from "../screen/types";
 import { M2FT, M2_PER_ACRE } from "../screen/util";
 import { drivewayGradePct, footprintFt2 } from "./card";
-import { drivenRoute } from "./lines";
+import { chosenDrive, type ChosenDrive } from "./lines";
 
 export const MEASURE_WORDS = {
   sun: (h: string) => `${h} h December sun`,
@@ -40,25 +40,9 @@ function drivePart(dw: ScoredDriveway | null | undefined): string | null {
   return dw.needsEasement ? `${line}, ${MEASURE_WORDS.easement}` : line;
 }
 
-/** The route from the line the household chose as its driveway, when this screen has one; null otherwise. */
-export function yourDrive(r: PartialScreenResult, lineId: string | null | undefined): YourDrive | null {
-  const d = drivenRoute(r, lineId);
-  if (!d.yours || !d.route) return null;
-  const rt = d.route;
-  return {
-    lengthFt: rt.metrics.lengthFt,
-    gradePct: Math.max(rt.maxGrade, rt.existing?.maxGradePct ?? -Infinity),
-    needsEasement: rt.needsEasement,
-  };
-}
-
-/** The household's chosen route to the build site (WF5), as the line quotes it. */
-export interface YourDrive {
-  lengthFt: number;
-  /** Its steepest: the drawn drive's own where it has one, else the route's over 30 m. */
-  gradePct: number;
-  needsEasement: boolean;
-}
+/** The driveway the household chose, as the card's Driveway row and the cost read it (lines.ts chosenDrive). */
+export const yourDrive = chosenDrive;
+export type YourDrive = ChosenDrive;
 
 /**
  * The line for the ranked site at `index` (into the result's `sites`), or for the marked house ("house"), which has no
