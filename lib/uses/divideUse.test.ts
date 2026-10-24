@@ -142,3 +142,52 @@ describe("Divide's answer", () => {
     expect(divideReportLine(r({ acres: 1.2 }))).toBe("Can't divide: limited by 1.2 ac at a 0.69 ac minimum");
   });
 });
+
+describe("Divide on the listing's acres (owner, #311: the same rule as $/ac)", () => {
+  const LISTED_FARM =
+    "Up to 2 lots without subdivision review (a farm division approved by staff; limited by 24.7 ac at 10 ac a lot)";
+  const ON_LISTED = "on 24.7 listed ac (the county map shows 30.15)";
+  const listed = (acres: number | null) =>
+    divideUse(synthetic(MUD, {}, { listing: { deedRestrictions: "", hoa: "unknown", listingAcres: acres } }));
+
+  it("more than 5% apart: counted on the listing's, and the reason says so", () => {
+    expect(listed(24.7)).toMatchObject({ answer: "yes", reason: `${LISTED_FARM} · ${PLAT}; ${ON_LISTED}` });
+    expect(divideReportLine(MUD, 24.7)).toBe(`Can divide: u${LISTED_FARM.slice(1)} · ${PLAT}; ${ON_LISTED}`);
+  });
+
+  it("What decides it: both acreages and which was used, the frontage's boundary, and the boundary's disagreement", () => {
+    const facts = listed(24.7).decides;
+    expect(facts.find((f) => f.label === "Acres")).toEqual({
+      label: "Acres",
+      value: "24.7 ac from the listing (used); the county map shows 30.15 ac",
+      source: "your listing notes",
+    });
+    expect(facts.find((f) => f.label === "Without subdivision review")?.value).toBe(
+      "24.7 ac ÷ 10 ac a lot = 2 lots; the rule allows at most 4; 2 lots: lot size binds (§6-6)",
+    );
+    expect(facts.find((f) => f.label === "Lots by size")?.value).toBe(
+      "24.7 ac ÷ 0.69 ac minimum lot = 35 lots (§4-6.3)",
+    );
+    expect(facts.find((f) => f.label === "Public road frontage")?.value).toBe(
+      "1,116 ft, measured along the county map's boundary; a survey may differ",
+    );
+    expect(facts.find((f) => f.label === "To re-check" && f.value.startsWith("The county map"))?.value).toBe(
+      "The county map's boundary (30.15 ac) disagrees with the listing (24.7 ac): the road frontage is measured along that boundary, so it may be off too",
+    );
+  });
+
+  it("within 5%: counted on the listing's, both shown in What decides it, no note in the reason or on the frontage", () => {
+    const a = listed(29);
+    expect(a.reason).not.toContain("listed ac");
+    expect(a.reason).toContain("limited by 29 ac at 10 ac a lot");
+    expect(a.decides.find((f) => f.label === "Acres")?.value).toBe(
+      "29 ac from the listing (used); the county map shows 30.15 ac",
+    );
+    expect(a.decides.some((f) => f.value.startsWith("The county map's boundary"))).toBe(false);
+  });
+
+  it("none typed: the county map's acres, as before", () => {
+    expect(listed(null)).toEqual(at(MUD));
+    expect(listed(0)).toEqual(at(MUD));
+  });
+});

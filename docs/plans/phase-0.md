@@ -1159,6 +1159,12 @@ until step 5 (Q14).
       approved subdivision plat (limited by 1,116 ft of road frontage at 100 ft per lot; more lots need a road built to
       the county's standard)". A no-review count on a parcel with no public road frontage is a Maybe: "each new lot still
       needs legal access to a road" (Roan).
+    - **Divide on the listing's acres** (owner, #311): the same rule as $/ac (`lib/report/perAcre.ts`). The count uses
+      the listing's acres when they're entered, else the county map's. When the two differ by more than
+      `card.perAcreDiffPct` (5%), the reason ends "on 24.7 listed ac (the county map shows 30.15)". What decides it
+      gives both and says which was used. The frontage reads "measured along the county map's boundary; a survey may
+      differ", and a To re-check line says the boundary disagrees with the listing. Mud Creek on 24.7 listed ac: 2 lots
+      without review, 11 with a plat (frontage still binds). A split's pieces count on their own outlines.
     - **The parcel's new fields** (store stays v2: each has a default, so older parcels read as before; no converter):
       Listing's Deed restrictions (text) and HOA (Yes / No / Not known); a line's optional easement type (Road
       right-of-way / Utility / Scenic / Other); the Stream point mark; and `scenarios` (#310).

@@ -31,6 +31,19 @@ async function openGraded(page: Page, slug: FixtureSlug): Promise<void> {
   await openFromList(page, loadFixture(slug).input.name);
 }
 
+/** The listing's acres on the open parcel and its History entry, as Details would save them. */
+const withListingAcres = (page: Page, acres: number) =>
+  page.evaluate(async (n) => {
+    const kv = window.__psKv!;
+    const store = JSON.parse(kv.getItem("ps.parcels")!) as {
+      open: { key: string; listingAcres: number | null };
+      built?: { key: string; listingAcres: number | null }[];
+    };
+    store.open.listingAcres = n;
+    for (const b of store.built ?? []) if (b.key === store.open.key) b.listingAcres = n;
+    await kv.setItem("ps.parcels", JSON.stringify(store));
+  }, acres);
+
 const storedLine = (page: Page) =>
   page.evaluate(
     () =>
@@ -90,6 +103,18 @@ test("Uses on Mud Creek: from Grade's shortcut, seven answers, What decides it, 
   // Grade again: the card, with its shortcut.
   await page.getByRole("tab", { name: "Grade" }).click();
   await expect(page.locator(".card .uses-shortcut")).toBeVisible();
+
+  // Owner, #311: with the listing's 24.7 ac typed, Divide counts on them and says so, as $/ac does.
+  await withListingAcres(page, 24.7);
+  await reload(page);
+  await page.getByRole("tab", { name: "Uses" }).click();
+  await expect(divide.locator(".use-reason")).toHaveText(
+    "Up to 2 lots without subdivision review (a farm division approved by staff; limited by 24.7 ac at 10 ac a lot) · up to 11 with an approved subdivision plat (limited by 1,116 ft of road frontage at 100 ft per lot; more lots need a road built to the county's standard); on 24.7 listed ac (the county map shows 30.15)",
+  );
+  await divide.locator("button.use-row").click();
+  await expect(divide.locator(".use-fact").filter({ hasText: "from the listing (used)" })).toContainText(
+    "24.7 ac from the listing (used); the county map shows 30.15 ac",
+  );
   expect(errors).toEqual([]);
 });
 

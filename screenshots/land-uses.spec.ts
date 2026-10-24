@@ -68,8 +68,21 @@ for (const phone of [false, true]) {
         await page.screenshot({ path: `${OUT}/${device}-uses-${name}.png` });
       }
 
-      // What decides it, on Mud Creek's Divide.
+      // What decides it, on Mud Creek's Divide, with the listing's 24.7 ac typed (owner, #311).
       await onUses(page, MUD);
+      await page.evaluate(async () => {
+        const kv = window.__psKv!;
+        const store = JSON.parse(kv.getItem("ps.parcels")!) as {
+          open: { key: string; listingAcres: number | null };
+          built?: { key: string; listingAcres: number | null }[];
+        };
+        store.open.listingAcres = 24.7;
+        for (const b of store.built ?? []) if (b.key === store.open.key) b.listingAcres = 24.7;
+        await kv.setItem("ps.parcels", JSON.stringify(store));
+      });
+      await reload(page);
+      await page.getByRole("tab", { name: "Uses" }).click();
+      await expect(page.locator(".uses .use").first()).toBeVisible();
       const divide = page.locator(".uses .use").filter({ hasText: "Divide" });
       // On a phone the sheet raised to its tallest, so the row and its facts have the room.
       const handle = page.locator("[title='Drag or tap to resize']").first();

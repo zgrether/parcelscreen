@@ -302,6 +302,21 @@ export const DIVIDE = {
   bindsCap: "the county's cap",
   /** The parcel's acres to two places, as the arithmetic uses them. */
   exactAcres: (n: number) => `${fmt(n, 2)} ac`,
+  /** The listing's acres as typed: "24.7 ac". */
+  listedAcres: (n: number) => `${n.toLocaleString("en-US", { maximumFractionDigits: 2 })} ac`,
+  /**
+   * Owner, #311: the listing's acres differ from the county map's by more than $/ac's cutoff, and Divide counts on the
+   * listing's: "on 24.7 listed ac (the county map shows 30.15)".
+   */
+  onListed: (listed: string, boundary: string) => `on ${listed} listed ac (the county map shows ${boundary})`,
+  /** What decides it's Acres when the listing gives them: both, and which the count used. */
+  acresBoth: (listed: string, boundary: string) =>
+    `${listed} ac from the listing (used); the county map shows ${boundary} ac`,
+  /** The frontage as measured, and what it's measured along (owner, #311). */
+  frontageMeasured: (feet: number) =>
+    `${ft(feet)} ft, measured along the county map's boundary; a survey may differ`,
+  boundaryDisagrees: (listed: string, boundary: string) =>
+    `The county map's boundary (${boundary} ac) disagrees with the listing (${listed} ac): the road frontage is measured along that boundary, so it may be off too`,
   /** §9 Divide. */
   couldAllowMore: (exception: string) => `Could allow more: ${exception}`,
   notCovered: "Not covered here yet",
