@@ -28,6 +28,10 @@ const ADDED_11 = /^https:\/\/router\.project-osrm\.org\/table\/v1\/driving\//;
  */
 const ADDED_E2E = /^https:\/\/photon\.komoot\.io\/reverse\?lat=36\.58540768065242&lon=-81\.56344520266869&/;
 
+/** What step 14 may add: HIFLD's transmission lines near the parcel, then OSM's power lines. */
+const ADDED_POWER_HIFLD = /Electric_Power_Transmission_Lines\/FeatureServer\/0\/query$/;
+const ADDED_POWER_OSM = /\/api\/interpreter\?data=.*power/;
+
 /** What §9.69 may add: OSRM's table and route for the drives, now to CMS's ERs. */
 const ADDED_ERS = /^https:\/\/router\.project-osrm\.org\/(table|route)\/v1\/driving\//;
 
@@ -39,7 +43,7 @@ describe("Mud Creek's port HAR (step 2: append only)", () => {
     expect(createHash("sha256").update(JSON.stringify(before)).digest("hex")).toBe(BEFORE.sha256);
   });
 
-  it("adds only Tennessee's TREC requests after them, then step 11's long-trail drives, the e2e point's Photon, §9.69's drives", () => {
+  it("adds only Tennessee's TREC requests after them, then step 11's long-trail drives, the e2e point's Photon, §9.69's drives, step 14's power lines", () => {
     const added = entries.slice(BEFORE.entries);
     expect(added.length).toBeGreaterThan(0);
     const trec = added.filter((e) => ADDED.test(e.request.url));
@@ -55,8 +59,13 @@ describe("Mud Creek's port HAR (step 2: append only)", () => {
     const photon = rest.slice(at, at + 2);
     expect(photon).toHaveLength(2);
     for (const e of photon) expect(e.request.url).toMatch(ADDED_E2E);
-    const ers = rest.slice(at + 2);
+    const ers = rest.slice(at + 2, at + 6);
     expect(ers).toHaveLength(4); // a table and a route out, from each drive start
     for (const e of ers) expect(e.request.url).toMatch(ADDED_ERS);
+    // Step 14: HIFLD's power lines (none near) and OSM's, at whichever mirrors answered when recorded.
+    const power = rest.slice(at + 6).map((e) => e.request.url);
+    expect(power.every((u) => ADDED_POWER_HIFLD.test(u) || ADDED_POWER_OSM.test(u))).toBe(true);
+    expect(power.some((u) => ADDED_POWER_HIFLD.test(u))).toBe(true);
+    expect(power.some((u) => ADDED_POWER_OSM.test(u))).toBe(true);
   });
 });

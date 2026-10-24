@@ -1413,6 +1413,131 @@
       ],
       "additionalProperties": false
     },
+    "power": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": [
+            "hifld",
+            "osm"
+          ]
+        },
+        "date": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "kV": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "owner": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "coords": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 2,
+                  "maxItems": 2
+                }
+              }
+            },
+            "required": [
+              "kV",
+              "owner",
+              "coords"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "nearestFt": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "nearestKV": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "crosses": {
+          "type": "boolean"
+        },
+        "insideFt": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "source",
+        "date",
+        "lines",
+        "nearestFt",
+        "nearestKV",
+        "crosses",
+        "insideFt"
+      ],
+      "additionalProperties": false
+    },
+    "frontage": {
+      "type": "object",
+      "properties": {
+        "publicFt": {
+          "type": "number"
+        },
+        "roads": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "ft": {
+                "type": "number"
+              },
+              "public": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "name",
+              "ft",
+              "public"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "publicFt",
+        "roads"
+      ],
+      "additionalProperties": false
+    },
     "excluded": {
       "type": "array",
       "items": {

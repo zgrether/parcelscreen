@@ -4,12 +4,13 @@
  * Overpass QL, and asks only the default mirrors, so it can't be used as an open relay. With `kind=roads` (VR3a),
  * the OSM tracks and service roads near the point instead (lib/screen/osmRoads.ts). With `kind=parking` (follow-up
  * 54) and `pts=lat,lon;…` (one to five points) in place of lat and lon, the parking near each trailhead
- * (lib/screen/trailheadParking.ts).
+ * (lib/screen/trailheadParking.ts). With `kind=power` (step 14), the OSM power lines near the point (lib/screen/power.ts).
  */
 import { z } from "zod";
 import { CancelledError, type HttpClient } from "../http";
 import { DEFAULT_ENDPOINTS, SCREEN_CONSTANTS } from "../screen/config";
 import { osmRoadsQuery } from "../screen/osmRoads";
+import { osmPowerQuery } from "../screen/power";
 import { OverpassMirrors, overpassPlaces } from "../screen/places";
 import { parkingQuery } from "../screen/trailheadParking";
 
@@ -23,7 +24,7 @@ const coord = (min: number, max: number) =>
 const Query = z.object({
   lat: coord(-90, 90),
   lon: coord(-180, 180),
-  kind: z.enum(["places", "roads"]).default("places"),
+  kind: z.enum(["places", "roads", "power"]).default("places"),
 });
 
 /** `pts=lat,lon;lat,lon`: one to SCREEN_CONSTANTS.drive.trailheadCandidates points. */
@@ -61,7 +62,7 @@ export async function handleOverpass(
   });
   if (!q.success)
     return Response.json(
-      { error: "lat and lon are required, in degrees; kind is places or roads" },
+      { error: "lat and lon are required, in degrees; kind is places, roads or power" },
       { status: 400 },
     );
   try {
@@ -70,7 +71,9 @@ export async function handleOverpass(
     const elements =
       q.data.kind === "roads"
         ? await new OverpassMirrors().query(osmRoadsQuery(centre), deps)
-        : await overpassPlaces(centre, deps, new OverpassMirrors());
+        : q.data.kind === "power"
+          ? await new OverpassMirrors().query(osmPowerQuery(centre), deps)
+          : await overpassPlaces(centre, deps, new OverpassMirrors());
     // OSM places change slowly; a re-run of the same parcel shouldn't ask the volunteer mirrors again.
     return Response.json({ elements }, { headers: { "Cache-Control": "public, s-maxage=86400" } });
   } catch (e) {
