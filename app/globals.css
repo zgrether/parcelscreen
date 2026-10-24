@@ -551,6 +551,36 @@ html:has(.explore) body {
   .switch-toast {
     bottom: calc(var(--sheet-h) + 62px);
   }
+  /* Drawing a line (the UX audit's B-7): its kinds on one row, the count, Undo and Finish on the next, so Finish is on
+     screen at 375 px rather than scrolled off the bar's edge. */
+  .toolbar[data-mode="track"],
+  .toolbar[data-mode="drive"],
+  .toolbar[data-mode="easement"] {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    row-gap: 6px;
+  }
+  .toolbar[data-mode="track"] .tb-seg,
+  .toolbar[data-mode="drive"] .tb-seg,
+  .toolbar[data-mode="easement"] .tb-seg {
+    flex: 1 0 100%;
+  }
+  .toolbar[data-mode] .tb-seg button {
+    flex: 1;
+    min-height: 36px;
+  }
+  .toolbar[data-mode="track"] .tb-status,
+  .toolbar[data-mode="drive"] .tb-status,
+  .toolbar[data-mode="easement"] .tb-status {
+    margin-right: auto;
+  }
+  /* The sheet raised past the middle (B-7): the toolbar and the map's notes step aside rather than sit among the map's
+     buttons along the top. */
+  .explore.sheet-tall .toolbar,
+  .explore.sheet-tall .map-hint,
+  .explore.sheet-tall .switch-toast {
+    visibility: hidden;
+  }
 }
 
 /* ---------- 13e-3: split piece labels, the snap ring ---------- */
@@ -7858,15 +7888,91 @@ button.use-row[aria-expanded="true"] .use-name::after {
   background: #2f6f8f;
   color: #fff;
 }
-.area-pop-head {
-  display: flex;
-  gap: 6px;
+/* Owner, 10/23: the fit letter leads each label; where labels would collide the name goes first, then the label. */
+.area-label {
+  display: inline-flex;
+  gap: 5px;
   align-items: center;
-  margin: 0 0 4px;
-  font-weight: 600;
+  padding: 1px 6px 1px 2px;
 }
-.areas-far .area-label:not(.starred) {
+.al-fit {
+  min-width: 22px;
+  padding: 0 3px;
+  border-radius: 3px;
+  background: var(--color-ink-2);
+  color: #fff;
+  text-align: center;
+  font-weight: 700;
+}
+.al-fit.g-A,
+.al-fit.g-B {
+  background: var(--color-ok);
+}
+.al-fit.g-C {
+  background: var(--color-warn);
+}
+.al-fit.g-D,
+.al-fit.g-F {
+  background: var(--color-steep);
+}
+.area-label.al-letter {
+  padding-right: 2px;
+}
+.area-label.al-letter .al-name {
   display: none;
+}
+.area-label.al-hidden {
+  visibility: hidden;
+}
+.ac-title {
+  flex: 1;
+  min-width: 0;
+}
+.ac-rank {
+  margin: 1px 0 0;
+}
+.ac-back {
+  margin: 6px 0 0;
+  font-size: 14px;
+}
+.ac-back .ac-label {
+  margin: 0;
+}
+.ac-back-list {
+  margin: 2px 0 0;
+  padding-left: 18px;
+}
+.area-region {
+  padding: 6px 8px;
+  border-left: 3px solid var(--color-warn);
+  background: var(--color-paper-2);
+  font-size: 14px;
+}
+.area-rest-rank {
+  font-weight: 400;
+}
+.area-pop .area-card {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}
+/* The popup's close: a 44 px target (the walkthroughs found MapLibre's 10 px one), in a row of its own above the card
+   so it never sits on the card's star. */
+.area-popup .maplibregl-popup-content {
+  padding-top: 40px;
+}
+.area-popup .maplibregl-popup-close-button {
+  width: 44px;
+  height: 44px;
+  font-size: 24px;
+  line-height: 1;
+}
+.areas-legend {
+  margin: 2px 0 6px;
+}
+.terrain-controls.info .areas-legend {
+  color: var(--ip-ink-2);
 }
 .area-note {
   margin: 0 0 8px;

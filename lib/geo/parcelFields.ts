@@ -28,6 +28,13 @@ export interface ServiceFields {
   conflictWhere?: string;
   /** How parcel numbers are searched: by the id's prefix (VA, NC), or by control map, group and parcel (TN). */
   search: "idPrefix" | "mapGroupParcel";
+  /**
+   * A second number the county's listings use, searched beside `id` (the UX audit's B-3): Virginia's tax map number
+   * (PTM_ID, "63-A-62" for Grayson's record 6273).
+   */
+  altId?: string;
+  /** The county's name, where `county` is a code (Virginia's and North Carolina's FIPS): what a search hit shows. */
+  countyName?: string;
 }
 
 interface ParcelService {
@@ -49,6 +56,7 @@ const SERVICES: readonly ParcelService[] = [
       maxRecords: 5000,
       record: ["objectid", "parno", "ownname", "siteadd", "cntyname", "stcntyfips"],
       search: "idPrefix",
+      countyName: "cntyname",
     },
   },
   // No owner or address fields on VGIN's layer; county name LOCALITY, dedupe FIPS.
@@ -62,6 +70,8 @@ const SERVICES: readonly ParcelService[] = [
       maxRecords: 2000,
       record: ["OBJECTID", "PARCELID", "FIPS", "LOCALITY"],
       search: "idPrefix",
+      altId: "PTM_ID",
+      countyName: "LOCALITY",
     },
   },
   // The Comptroller's public-use layer (step 2 plan §1). GISLINK is the parcel (county, control map, group, parcel),

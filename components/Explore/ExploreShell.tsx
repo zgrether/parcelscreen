@@ -212,6 +212,12 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   // Phones: with no parcel open the sheet would only repeat the toolbar's "Tap a parcel…", so it's hidden
   // until one is (owner, #48). The map keeps its bottom padding, so nothing moves when the sheet comes in.
   const sheetHidden = !docked && store.open === null;
+  // The sheet raised past the middle (its 88% snap): the map's floating toolbar and notes would sit among the map's
+  // buttons along the top (the UX audit's B-7), over a map that's barely showing. They step aside until it's lowered.
+  const sheetTall =
+    !docked && !sheetHidden && sheet.height != null && typeof window !== "undefined"
+      ? sheet.height > window.innerHeight * 0.6
+      : false;
 
   const vars: Record<string, string> = {};
   // The sheet's height, for what sits on the map above it (hint, attribution).
@@ -243,7 +249,11 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
     <ExploreContext.Provider value={explore}>
       <ScreenItContext.Provider value={screen}>
         <GroundProvider timeZone={config.timeZone} endpoints={config.endpoints}>
-          <div ref={root} className="explore" style={vars as CSSProperties}>
+          <div
+            ref={root}
+            className={sheetTall ? "explore sheet-tall" : "explore"}
+            style={vars as CSSProperties}
+          >
             <div className="explore-map">
               <MapArea
                 config={config}

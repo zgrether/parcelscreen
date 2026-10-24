@@ -20,7 +20,7 @@ import {
 import { reportCard } from "@/lib/report/card";
 import { useMyRubric } from "@/lib/client/useMyRubric";
 import type { EditorCard } from "@/lib/rubric/edit";
-import { MINE, type Factor, type Rubric } from "@/lib/rubric/types";
+import { MINE, type Factor, type RowKey, type Rubric } from "@/lib/rubric/types";
 import { acceptNudge, markNudge, pendingNudge } from "@/lib/client/nudge";
 import { moveDown, movedWords, nudgeWords } from "@/lib/rubric/nudge";
 import type { Tier } from "@/lib/rubric/words";
@@ -53,9 +53,18 @@ export const TIER_LINES = [
 export const HOW_TO =
   "Drag items between columns, or select one to move it or change its limit. Changes save automatically and apply to every parcel you've screened.";
 
+/** The sheet a ?limit=<factor> link asks for: the factor's limit when it has one, else its card. */
+function sheetFromUrl(r: Rubric): EditorCard | null {
+  const factor = new URLSearchParams(window.location.search).get("limit");
+  if (!factor) return null;
+  const m = r.musts.find((x) => x.factor === factor && x.threshold !== undefined);
+  return m ? { kind: "minimum", factor: m.factor as RowKey } : { kind: "factor", factor: factor as Factor };
+}
+
 export function RubricEditor() {
   const my = useMyRubric();
-  const [sheet, setSheet] = useState<EditorCard | null>(null);
+  // Owner, 10/23: /priorities?limit=<factor> (the area box's "Change it") opens with that factor's limit, or its card.
+  const [sheet, setSheet] = useState<EditorCard | null>(() => sheetFromUrl(my.rubric));
   const [confirmReset, setConfirmReset] = useState<"start" | "answers" | null>(null);
   // The profile's interview (step 4): its why lines, its quiet list, and "Reset to my answers".
   const [answers, setAnswers] = useState(() => getPref("ps.interview"));

@@ -1,15 +1,21 @@
 "use client";
 /**
  * The catalog's areas on the map (step 13, docs/plans/step-13-area-catalog.md §5a): every outline while Map layers'
- * Area outlines is on, and a starred area's whatever it says; starred ones solid, the rest dashed, each named. Tapping
- * one shows its fit for the person and "Show me a parcel here". Also where focusArea fits the map to an area.
+ * Area outlines is on, and a starred area's whatever it says; starred ones solid, the rest dashed. Owner, 10/23: each
+ * filled by the person's fit (its colour) and Must share (its strength), and labelled with its fit letter and name;
+ * where labels would collide, names go before letters. Tapping one opens its card. Also where focusArea fits the map.
  */
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import { flushSync } from "react-dom";
+import { createRoot, type Root } from "react-dom/client";
 import { Marker, Popup, type GeoJSONSource, type MapLayerMouseEvent } from "maplibre-gl";
 import { bbox, centerOfMass } from "@turf/turf";
+import { AreaCardView } from "@/components/Areas/AreaBox";
 import type { AreaFile } from "@/lib/areas/types";
-import { areaCard } from "@/lib/areas/score";
-import { AREA_WORDS as W, mustShareLine } from "@/lib/areas/words";
+import { areaCard, rankAreas, rankOf, type AreaCard } from "@/lib/areas/score";
+import { AREA_WORDS as W } from "@/lib/areas/words";
+import { LINES_MIN_ZOOM } from "@/lib/geo/parcelTiles";
+import type { Letter } from "@/lib/rubric/types";
 import { focusArea, registerAreaFocus, useAreas, useAreaStars, type Box } from "@/lib/client/areas";
 import { useRubricView } from "@/lib/client/useRubricView";
 import { mapGone, useMap } from "./MapView";
@@ -25,13 +31,51 @@ export const AREA_LAYERS = {
   starred: "areas-line-starred",
 } as const;
 export const AREA_COLOR = "#2f6f8f";
-const LABEL_MIN_ZOOM = 9;
+/** Below this zoom an area's label is its letter alone; from it, its name too, room allowing. */
+const NAME_MIN_ZOOM = 8;
 
-const featureOf = (f: AreaFile, starred: boolean) => ({
+/** The fit's colour on the map: the card's grade colours (globals.css .bd-key), B and D paler. */
+export const FIT_COLOR: Record<Letter | "none", string> = {
+  A: "#2f7a46",
+  B: "#6da27e",
+  C: "#9a6a12",
+  D: "#c1756b",
+  F: "#a63a2c",
+  none: "#7a7a7a",
+};
+
+/** The fill's strength by Must share: from 0.08 (none of the land passes) to 0.38 (all of it does). */
+export const fillStrength = (share: number) => Math.round((0.08 + 0.3 * share) * 1000) / 1000;
+
+/** The popup's card, in its own root: it reads the stars itself, so its star turns as it's tapped. */
+function PopupCard(p: { card: AreaCard; file: AreaFile; rank: number; total: number; show(): void }) {
+  const { stars, toggle } = useAreaStars();
+  return (
+    <AreaCardView
+      as="div"
+      {...p}
+      starred={stars.includes(p.file.id)}
+      star={() => toggle(p.file.id)}
+      failed={false}
+    />
+  );
+}
+
+const featureOf = (f: AreaFile, starred: boolean, card: AreaCard | undefined) => ({
   type: "Feature" as const,
-  properties: { id: f.id, name: f.name, starred },
+  properties: {
+    id: f.id,
+    name: f.name,
+    starred,
+    color: FIT_COLOR[card?.grade ?? "none"],
+    strength: fillStrength(card?.mustShare ?? 0),
+  },
   geometry: f.outline,
 });
+
+/** Two labels' boxes overlap, with a few pixels to spare. */
+const overlaps = (a: DOMRect, b: DOMRect) =>
+  a.left < b.right + 4 && b.left < a.right + 4 && a.top < b.bottom + 2 && b.top < a.bottom + 2;
 
 export function AreaOutlines() {
   const map = useMap();
@@ -44,6 +88,17 @@ export function AreaOutlines() {
     () => areas.files.filter((f) => prefs.areas || stars.includes(f.id)),
     [areas.files, prefs.areas, stars],
   );
+  // Every area's card and place for the person on show: the fill, the labels, and the card a tap opens.
+  const ranked = useMemo(
+    () =>
+      rankAreas(
+        areas.files.map((f) => areaCard(f, rubric)),
+        new Map(areas.files.map((f) => [f.id, f.name])),
+      ),
+    [areas.files, rubric],
+  );
+  const cards = useMemo(() => new Map(ranked.map((c) => [c.id, c])), [ranked]);
+  const ranks = useMemo(() => rankOf(ranked), [ranked]);
 
   // Where focusArea fits the map, while it's mounted.
   useEffect(() => {
@@ -68,7 +123,7 @@ export function AreaOutlines() {
     if (!map || mapGone(map)) return;
     const data = {
       type: "FeatureCollection" as const,
-      features: shown.map((f) => featureOf(f, stars.includes(f.id))),
+      features: shown.map((f) => featureOf(f, stars.includes(f.id), cards.get(f.id))),
     };
     const src = map.getSource<GeoJSONSource>(SOURCE);
     if (src) src.setData(data);
@@ -80,7 +135,7 @@ export function AreaOutlines() {
           id: AREA_LAYERS.fill,
           type: "fill",
           source: SOURCE,
-          paint: { "fill-color": AREA_COLOR, "fill-opacity": 0.06 },
+          paint: { "fill-color": ["get", "color"], "fill-opacity": ["get", "strength"] },
         },
         before,
       );
@@ -114,60 +169,124 @@ export function AreaOutlines() {
         before,
       );
     }
-  }, [map, shown, stars]);
+  }, [map, shown, stars, cards]);
 
-  // Each shown area's name, as a label on the map (DOM, as the saved parcels' are).
+  // Each shown area's label: its fit letter and name (DOM, as the saved parcels' are). Placed best-ranked first: a label
+  // that would collide loses its name; one that still would is left out.
   useEffect(() => {
     if (!map || mapGone(map)) return;
-    const markers = shown.map((f) => {
+    const order = [...shown].sort((a, b) => (ranks.get(a.id) ?? 99) - (ranks.get(b.id) ?? 99));
+    const labels = order.map((f) => {
+      const card = cards.get(f.id);
       const el = document.createElement("div");
       el.className = `area-label${stars.includes(f.id) ? " starred" : ""}`;
-      el.textContent = f.name;
+      const fit = document.createElement("span");
+      fit.className = `al-fit g-${card?.grade ?? "none"}`;
+      fit.textContent = card?.fit ?? "–";
+      const name = document.createElement("span");
+      name.className = "al-name";
+      name.textContent = f.name;
+      el.append(fit, name);
+      el.setAttribute("aria-label", `${f.name}, ${W.fit(card?.fit ?? "–")}`);
       const [lon, lat] = centerOfMass(f.outline).geometry.coordinates as [number, number];
-      return new Marker({ element: el }).setLngLat([lon, lat]).addTo(map);
+      return { el, marker: new Marker({ element: el }).setLngLat([lon, lat]).addTo(map) };
     });
-    // Far out, the names of the unstarred areas crowd each other: only the starred ones' show below zoom 9.
-    const far = () => map.getContainer().classList.toggle("areas-far", map.getZoom() < LABEL_MIN_ZOOM);
-    far();
-    map.on("zoomend", far);
-    return () => {
-      markers.forEach((m) => m.remove());
-      if (!mapGone(map)) map.off("zoomend", far);
+    const place = () => {
+      const named = map.getZoom() >= NAME_MIN_ZOOM;
+      const placed: DOMRect[] = [];
+      for (const { el } of labels) {
+        el.classList.remove("al-hidden");
+        el.classList.toggle("al-letter", !named);
+        let box = el.getBoundingClientRect();
+        if (!el.classList.contains("al-letter") && placed.some((p) => overlaps(p, box))) {
+          el.classList.add("al-letter");
+          box = el.getBoundingClientRect();
+        }
+        if (placed.some((p) => overlaps(p, box))) el.classList.add("al-hidden");
+        else placed.push(box);
+      }
     };
-  }, [map, shown, stars]);
+    place();
+    map.on("moveend", place);
+    return () => {
+      labels.forEach((l) => l.marker.remove());
+      if (!mapGone(map)) map.off("moveend", place);
+    };
+  }, [map, shown, stars, cards, ranks]);
 
-  // A tap on an outline: its fit for the person on show, and the way to a parcel there.
+  // A tap on an outline: its card, as the suggestion box shows it.
+  const popRoot = useRef<Root | null>(null);
   useEffect(() => {
     if (!map || mapGone(map)) return;
+    // A tap where parcels can be picked, or while a map tool is drawing, is the parcel's or the tool's (walkthroughs,
+    // 10/23: the card covered the map mid-line).
+    const tapsAreTheMaps = () =>
+      document.documentElement.classList.contains("map-tool") || map.getZoom() >= LINES_MIN_ZOOM;
     const onClick = (e: MapLayerMouseEvent) => {
+      if (tapsAreTheMaps()) return;
       const id = e.features?.[0]?.properties?.id as string | undefined;
       const file = shown.find((f) => f.id === id);
-      if (!file) return;
-      const card = areaCard(file, rubric);
+      const card = id ? cards.get(id) : undefined;
+      if (!file || !card) return;
       const el = document.createElement("div");
       el.className = "area-pop";
-      const head = document.createElement("p");
-      head.className = "area-pop-head";
-      const chip = document.createElement("span");
-      chip.className = `card-grade small fit g-${card.grade ?? "none"}`;
-      chip.textContent = card.fit ?? "–";
-      chip.setAttribute("aria-label", W.fit(card.fit ?? "–"));
-      head.append(chip, ` ${file.name}`);
-      const share = document.createElement("p");
-      share.className = "tiny";
-      share.textContent = mustShareLine(card, file);
-      const go = document.createElement("button");
-      go.type = "button";
-      go.className = "btn small secondary";
-      go.textContent = W.showParcel;
-      const pop = new Popup({ maxWidth: "260px" }).setLngLat(e.lngLat).setDOMContent(el).addTo(map);
-      go.onclick = () => {
-        pop.remove();
-        openSample(file.id, 1).catch(() => focusArea(bbox(file.outline) as Box));
-      };
-      el.append(head, share, go);
+      const pop = new Popup({ maxWidth: "320px", className: "area-popup" })
+        .setLngLat(e.lngLat)
+        .setDOMContent(el);
+      const root = createRoot(el);
+      popRoot.current = root;
+      pop.on("close", () => {
+        if (popRoot.current === root) popRoot.current = null;
+        queueMicrotask(() => root.unmount());
+      });
+      // Rendered before the popup is added, so it picks its side from the card's real size; then the map moves by
+      // whatever still sticks out (a phone's card is taller than the room above or below most taps).
+      flushSync(() =>
+        root.render(
+          <PopupCard
+            card={card}
+            file={file}
+            rank={ranks.get(file.id)!}
+            total={ranked.length}
+            show={() => {
+              pop.remove();
+              openSample(file.id, 1).catch(() => focusArea(bbox(file.outline) as Box));
+            }}
+          />,
+        ),
+      );
+      pop.addTo(map);
+      // MapLibre places the popup on its next frame: measured after that.
+      requestAnimationFrame(() => requestAnimationFrame(() => fitPopup(pop)));
     };
-    const pointer = () => (map.getCanvas().style.cursor = "pointer");
+    const fitPopup = (pop: Popup) => {
+      if (!pop.isOpen() || mapGone(map)) return;
+      const box = pop.getElement()?.getBoundingClientRect();
+      const frame = map.getContainer().getBoundingClientRect();
+      if (box) {
+        // Clear of the search and map buttons over the top edge, and of the hint, the toolbar and (on a phone) the tab
+        // bar over the bottom one.
+        const pad = 8,
+          top = 64,
+          bottom = 150;
+        const dy =
+          box.top < frame.top + top
+            ? box.top - frame.top - top
+            : box.bottom > frame.bottom - bottom
+              ? Math.min(box.bottom - frame.bottom + bottom, box.top - frame.top - top)
+              : 0;
+        const dx =
+          box.left < frame.left + pad
+            ? box.left - frame.left - pad
+            : box.right > frame.right - pad
+              ? box.right - frame.right + pad
+              : 0;
+        if (dx || dy) map.panBy([dx, dy], { duration: 250 });
+      }
+    };
+    const pointer = () => {
+      if (!tapsAreTheMaps()) map.getCanvas().style.cursor = "pointer";
+    };
     const plain = () => (map.getCanvas().style.cursor = "");
     map.on("click", AREA_LAYERS.fill, onClick);
     map.on("mouseenter", AREA_LAYERS.fill, pointer);
@@ -178,7 +297,7 @@ export function AreaOutlines() {
       map.off("mouseenter", AREA_LAYERS.fill, pointer);
       map.off("mouseleave", AREA_LAYERS.fill, plain);
     };
-  }, [map, shown, rubric]);
+  }, [map, shown, cards, ranks, ranked.length]);
 
   // Gone with the map: removed on unmount.
   useEffect(

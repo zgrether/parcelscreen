@@ -16,6 +16,8 @@ export interface SyncHooks {
   screensKept(records: readonly ScreenRecord[]): void;
   /** A screen this device doesn't have, from the space; null when the space hasn't it either, or can't be reached. */
   fetchScreen(id: string): Promise<ScreenRecord | null>;
+  /** Sends what's waiting to be saved; resolves once it's saved or has failed (the page is about to go). */
+  flush(): Promise<void>;
 }
 
 let hooks: SyncHooks | null = null;

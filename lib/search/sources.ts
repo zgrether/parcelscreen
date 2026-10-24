@@ -71,42 +71,109 @@ export async function searchParcelNumbers(
   const pattern = idPattern(query);
   if (!pattern) return [];
   const taxCard = taxCardQuery(query);
-  const jobs = [...counties].flatMap(([source, codes]) =>
-    [...codes].map(async (code): Promise<ParcelHit[]> => {
-      const f = fieldsFor(source);
-      const byMap = f.search === "mapGroupParcel";
-      if (byMap && !taxCard) return [];
-      const q = new URLSearchParams({
-        where: byMap
-          ? whereFor(source, taxCardWhere(f.county, code, taxCard!))
-          : whereFor(source, parcelNumberWhere(f, code, pattern)),
-        outFields: [f.oid, f.id, f.county, ...(byMap ? ["CMAP", "GP", "PARCEL"] : [])].join(","),
-        returnGeometry: "true",
-        outSR: "4326",
-        maxAllowableOffset: "0.0002",
-        geometryPrecision: "5",
+  const ask = async (source: string, q: URLSearchParams) => {
+    const r = await http.fetch(`${source}/query`, {
+      method: "POST",
+      body: q,
+      ...PARCEL_SERVICE_TIMEOUTS,
+      ...(signal ? { signal } : {}),
+    });
+    if (!r.ok) return [];
+    const page = ParcelPage.safeParse(await r.json());
+    return !page.success || page.data.error ? [] : (page.data.features ?? []);
+  };
+  const outline = {
+    returnGeometry: "true",
+    outSR: "4326",
+    maxAllowableOffset: "0.0002",
+    geometryPrecision: "5",
+  };
+
+  // Tennessee's where clause is exact: one ask, outlines and all.
+  const byTaxCard = async (source: string, code: string): Promise<ParcelHit[]> => {
+    const f = fieldsFor(source);
+    const features = await ask(
+      source,
+      new URLSearchParams({
+        where: whereFor(source, taxCardWhere(f.county, code, taxCard!)),
+        outFields: [f.oid, f.id, f.county, "CMAP", "GP", "PARCEL"].join(","),
+        ...outline,
         orderByFields: f.id,
         resultRecordCount: "25",
         f: "geojson",
-      });
+      }),
+    );
+    return features.flatMap((ft) => {
+      const props = ft.properties ?? {};
+      const id = taxCardId(props) ?? "";
+      const centre = middle(ft.geometry?.coordinates);
+      return id && centre ? [{ source, props, id, county: String(props[f.county] ?? code), centre }] : [];
+    });
+  };
+
+  // The others' LIKE pattern over-matches, many times over ("35-3" asks for '3%5%3%': 3-153, 30-35, 31-53… sort ahead
+  // of it). The UX audit's B-3: 25 outlines held only those, the filter dropped them all, and "35-3" wasn't found with
+  // Floyd in view. So first the numbers alone, as many as the service gives; the true matches kept; then their
+  // outlines, by object id.
+  const byPrefix = async (source: string, code: string): Promise<ParcelHit[]> => {
+    const f = fieldsFor(source);
+    const fields = [
+      f.oid,
+      f.id,
+      f.county,
+      ...(f.altId ? [f.altId] : []),
+      ...(f.countyName ? [f.countyName] : []),
+    ];
+    const numbers = await ask(
+      source,
+      new URLSearchParams({
+        where: whereFor(source, parcelNumberWhere(f, code, pattern)),
+        outFields: fields.join(","),
+        returnGeometry: "false",
+        orderByFields: f.id,
+        resultRecordCount: String(f.maxRecords),
+        f: "geojson",
+      }),
+    );
+    const found = numbers
+      .flatMap((ft) => {
+        const props = ft.properties ?? {};
+        const id = String(props[f.id] ?? "");
+        const alt = f.altId ? String(props[f.altId] ?? "") : "";
+        // The listing's number when that's what matched: "63-A-62 (6273)".
+        if (id && matchesId(id, query)) return [{ props, id }];
+        if (alt && matchesId(alt, query)) return [{ props, id: id ? `${alt} (${id})` : alt }];
+        return [];
+      })
+      .sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }))
+      .slice(0, MAX_PARCEL_HITS);
+    if (!found.length) return [];
+    const oids = found.map((x) => Number(x.props[f.oid])).filter(Number.isFinite);
+    const outlines = await ask(
+      source,
+      new URLSearchParams({
+        where: whereFor(source, `${f.oid} IN (${oids.join(",")})`),
+        outFields: f.oid,
+        ...outline,
+        f: "geojson",
+      }),
+    );
+    const centres = new Map(
+      outlines.map((ft) => [Number(ft.properties?.[f.oid]), middle(ft.geometry?.coordinates)]),
+    );
+    return found.flatMap(({ props, id }) => {
+      const centre = centres.get(Number(props[f.oid]));
+      const county = String((f.countyName && props[f.countyName]) || props[f.county] || code);
+      return centre ? [{ source, props, id, county, centre }] : [];
+    });
+  };
+
+  const jobs = [...counties].flatMap(([source, codes]) =>
+    [...codes].map(async (code): Promise<ParcelHit[]> => {
+      const byMap = fieldsFor(source).search === "mapGroupParcel";
+      if (byMap && !taxCard) return [];
       try {
-        const r = await http.fetch(`${source}/query`, {
-          method: "POST",
-          body: q,
-          ...PARCEL_SERVICE_TIMEOUTS,
-          ...(signal ? { signal } : {}),
-        });
-        if (!r.ok) return [];
-        const page = ParcelPage.safeParse(await r.json());
-        if (!page.success || page.data.error) return [];
-        return (page.data.features ?? []).flatMap((ft) => {
-          const props = ft.properties ?? {};
-          const id = byMap ? (taxCardId(props) ?? "") : String(props[f.id] ?? "");
-          const centre = middle(ft.geometry?.coordinates);
-          // Tennessee's where clause is exact; the others' LIKE pattern over-matches.
-          if (!id || !centre || (!byMap && !matchesId(id, query))) return [];
-          return [{ source, props, id, county: String(props[f.county] ?? code), centre }];
-        });
+        return await (byMap ? byTaxCard(source, code) : byPrefix(source, code));
       } catch (e) {
         if (e instanceof CancelledError) throw e;
         return [];

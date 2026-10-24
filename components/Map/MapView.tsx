@@ -6,7 +6,15 @@
  */
 import "maplibre-gl/dist/maplibre-gl.css";
 import { AttributionControl, Map as MlMap, setWorkerUrl } from "maplibre-gl";
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { getPref, setPref, type MapView as SavedView } from "@/lib/client/prefs";
 import { buildStyle, isBasemapId } from "./style";
 import { terrainTiles } from "./terrain";
@@ -140,7 +148,10 @@ export function MapView({
   // on the map moves: the camera's centre, which is drawn in the middle of
   // the padded area, jumps to the point already showing there. Later fits and fly-tos then use the padding. Until the
   // user first moves the map, though, the restored centre stays put (below).
-  useEffect(() => {
+  // A layout effect (the UX audit's B-5): opening a parcel docks the panel (or raises the sheet) in the same render
+  // that the parcel's fit runs (ParcelTools, a passive effect). Run after it, this jump cancelled the fit's flight at
+  // its first frame, and the map stayed on the region; run first, the fit frames the parcel in the visible part.
+  useLayoutEffect(() => {
     if (!map) return;
     const prev = padded.current;
     const padding = { top: 0, left: leftInset, right: rightInset, bottom: bottomInset };
