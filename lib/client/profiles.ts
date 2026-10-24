@@ -149,8 +149,21 @@ export async function bootProfiles(opts: BootOptions = {}): Promise<Booted> {
  */
 export async function reloadAfterWrites(): Promise<void> {
   await activeKv()?.flush();
+  await syncSent();
   if (typeof location !== "undefined") location.reload();
 }
+
+/**
+ * On a synced device, what's waiting to be saved goes before the page does (the UX audit's B-2): a save the reload cut
+ * off left its "unsaved" mark, and the next page said "A change on this device wasn't saved: New member" right after
+ * "I'm new here". At most a few seconds; one that fails is kept and said at the next open, as before.
+ */
+async function syncSent(): Promise<void> {
+  const sent = syncHooks()?.flush();
+  if (sent)
+    await Promise.race([sent.catch(() => undefined), new Promise((r) => setTimeout(r, SYNC_WAIT_MS))]);
+}
+const SYNC_WAIT_MS = 4000;
 
 /**
  * Makes another profile current and starts over (the picker, PR 5): the page reloads, so no state carries over. The
@@ -158,6 +171,7 @@ export async function reloadAfterWrites(): Promise<void> {
  */
 export async function switchProfile(id: string, to?: string): Promise<void> {
   await activeKv()?.flush();
+  await syncSent();
   try {
     (device ?? localStore())?.setItem(CURRENT_PROFILE_KEY, id);
   } catch {

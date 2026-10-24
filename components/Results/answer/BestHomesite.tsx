@@ -14,7 +14,7 @@
 import { useState } from "react";
 import type { Card } from "@/lib/report/card";
 import { choicesBeside, metresBetween, type RankedSite } from "@/lib/report/sites";
-import { siteMeasures } from "@/lib/report/siteMeasures";
+import { siteMeasures, yourDrive } from "@/lib/report/siteMeasures";
 import { evaluationPoint } from "@/lib/report/point";
 import type { LatLon } from "@/lib/geo/types";
 import type { PartialScreenResult } from "@/lib/screen/types";
@@ -129,7 +129,15 @@ export function BestHomesite({
           </button>
         )}
       </p>
-      <p className="site-measures">{siteMeasures(result, house ? "house" : best!.index)}</p>
+      <p className="site-measures">
+        {siteMeasures(
+          result,
+          house ? "house" : best!.index,
+          undefined,
+          // The route the household chose reaches where the screen ran: quoted there (B-6).
+          house || !elsewhere ? yourDrive(result, card.drivewayLine) : null,
+        )}
+      </p>
       {elsewhere && (
         <p className="best-site-showing" role="status">
           <span>The map&apos;s sun, sky and driveway are for {ranLabel}, where the screen ran.</span>

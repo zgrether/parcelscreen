@@ -42,13 +42,15 @@ export const matchesId = (stored: string, query: string): boolean =>
 
 const sqlString = (s: string) => `'${s.replace(/'/g, "''")}'`;
 
-/** The where clause for one county of one service. */
+/** The where clause for one county of one service: its parcel number, and its second number where it has one. */
 export function parcelNumberWhere(
-  fields: { id: string; county: string },
+  fields: { id: string; county: string; altId?: string },
   countyCode: string,
   pattern: string,
 ): string {
-  return `${fields.county}=${sqlString(countyCode)} AND UPPER(${fields.id}) LIKE ${sqlString(pattern)}`;
+  const like = (field: string) => `UPPER(${field}) LIKE ${sqlString(pattern)}`;
+  const ids = fields.altId ? `(${like(fields.id)} OR ${like(fields.altId)})` : like(fields.id);
+  return `${fields.county}=${sqlString(countyCode)} AND ${ids}`;
 }
 
 /** Saved parcels whose name contains the query, or whose name starts with it as a parcel number. */

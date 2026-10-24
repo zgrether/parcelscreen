@@ -91,7 +91,15 @@ function ArchiveReason({ archive, cancel }: { archive(reason: string): void; can
   const box = useRef<HTMLInputElement>(null);
   const ok = reasonGiven(reason);
   return (
-    <div className="ip-archive">
+    <div
+      className="ip-archive"
+      onKeyDown={(e) => {
+        // Esc anywhere in it (a chip, the box) cancels this, not the parcel (the UX audit's B-4).
+        if (e.key !== "Escape") return;
+        e.preventDefault();
+        cancel();
+      }}
+    >
       <div className="ip-chips" role="group" aria-label="Why">
         {ARCHIVE_PICKS.map((p) => (
           <button
@@ -116,7 +124,6 @@ function ArchiveReason({ archive, cancel }: { archive(reason: string): void; can
         onChange={(e) => setReason(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter" && ok) archive(reason);
-          if (e.key === "Escape") cancel();
         }}
       />
       <div className="ip-chips">

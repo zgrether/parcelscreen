@@ -37,17 +37,18 @@ export function factorsAddedTo(stored: ProfileRubrics | null, answers?: Intervie
   };
 }
 
-/** At boot, for the current profile: add them once, and to the interview's list. */
-export function addFactorsOnce(): void {
+/** At boot, for the current profile: add them once, and to the interview's list. True when it wrote. */
+export function addFactorsOnce(): boolean {
   const interview = getPref("ps.interview");
   const next = factorsAddedTo(getPref("ps.rubrics"), interview?.answers);
-  if (!next) return;
+  if (!next) return false;
   setPref("ps.rubrics", next.rubrics);
   if (interview?.base) {
     // The interview's list takes the same factors, whatever it already had (it may be older than the saved list).
     const base = withNewFactors(interview.base, {}, interview.answers).rubric;
     setPref("ps.interview", { ...interview, base });
   }
+  return true;
 }
 
 /** The new questions behind these factors (plan §1), for the notice's link; none when they were placed without one. */

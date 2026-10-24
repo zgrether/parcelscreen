@@ -320,6 +320,11 @@ class Engine implements SyncHooks {
     return work;
   }
 
+  /** SyncHooks' flush: what's changed, sent now (before a profile switch reloads the page). */
+  flush(): Promise<void> {
+    return this.save();
+  }
+
   private async sendDirty(): Promise<void> {
     const profileIds = [...this.dirtyProfiles];
     const parcelKeys = [...this.dirtyParcels];

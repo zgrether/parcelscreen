@@ -551,6 +551,36 @@ html:has(.explore) body {
   .switch-toast {
     bottom: calc(var(--sheet-h) + 62px);
   }
+  /* Drawing a line (the UX audit's B-7): its kinds on one row, the count, Undo and Finish on the next, so Finish is on
+     screen at 375 px rather than scrolled off the bar's edge. */
+  .toolbar[data-mode="track"],
+  .toolbar[data-mode="drive"],
+  .toolbar[data-mode="easement"] {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    row-gap: 6px;
+  }
+  .toolbar[data-mode="track"] .tb-seg,
+  .toolbar[data-mode="drive"] .tb-seg,
+  .toolbar[data-mode="easement"] .tb-seg {
+    flex: 1 0 100%;
+  }
+  .toolbar[data-mode] .tb-seg button {
+    flex: 1;
+    min-height: 36px;
+  }
+  .toolbar[data-mode="track"] .tb-status,
+  .toolbar[data-mode="drive"] .tb-status,
+  .toolbar[data-mode="easement"] .tb-status {
+    margin-right: auto;
+  }
+  /* The sheet raised past the middle (B-7): the toolbar and the map's notes step aside rather than sit among the map's
+     buttons along the top. */
+  .explore.sheet-tall .toolbar,
+  .explore.sheet-tall .map-hint,
+  .explore.sheet-tall .switch-toast {
+    visibility: hidden;
+  }
 }
 
 /* ---------- 13e-3: split piece labels, the snap ring ---------- */

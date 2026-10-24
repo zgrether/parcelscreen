@@ -14,6 +14,9 @@ import {
   unsavedAtOpen,
   WRONG_CODE,
 } from "@/lib/sync/words";
+import { defaultRubric } from "@/lib/rubric/default";
+import { NEW_FACTORS, places } from "@/lib/rubric/factorsAdd";
+import type { Rubric } from "@/lib/rubric/types";
 import { importParcels, listRow, openExplorer, openYourData, unfoldListing } from "./flow";
 
 const FERNEY = "ferney-creek-52-47A" as const;
@@ -184,6 +187,87 @@ test("offline: Not saved, then Try again; a change a closed page didn't save is 
   await b.getByRole("button", { name: /^Join$/ }).click();
   await b.getByRole("button", { name: "Profile 1" }).click();
   await expect(listRow(b, "Ferney at next open")).toBeVisible();
+});
+
+/** The current profile's own priorities on this page, as stored. */
+const myRubric = (page: Page) =>
+  page.evaluate(() => (JSON.parse(window.__psKv!.getItem("ps.rubrics")!) as { mine: unknown }).mine);
+
+test("a new factor added on one device reaches the other: one profile grades the same everywhere (B-1)", async ({
+  browser,
+}) => {
+  test.setTimeout(120_000);
+  const urls: string[] = [];
+  const a = await device(await browser.newContext(), urls);
+  const b = await device(await browser.newContext(), urls);
+  await openExplorer(a, FERNEY);
+  await importParcels(a, [FERNEY]);
+  const code = await startSyncing(a);
+  await openExplorer(b, MUD);
+  await b.goto(`/link#${groupCode(code)}`);
+  await b.getByRole("button", { name: /^(Replace and join|Join)$/ }).click();
+  await expect(b).toHaveURL(/\/who$/);
+  await b.getByRole("button", { name: "Profile 1" }).click();
+  await expect(b).toHaveURL(/\/library$/);
+
+  // B saves the profile's priorities as a release before Internet left them: no Internet anywhere, and no mark that
+  // it was added. The space, and A, take that copy.
+  const start = defaultRubric();
+  const before = {
+    mine: {
+      ...start,
+      ranked: start.ranked.filter((c) => c.factor !== "internet"),
+      wonts: start.wonts.filter((k) => k !== "internet"),
+      musts: start.musts.filter((m) => m.factor !== "internet"),
+    },
+    others: [],
+    drivewayAdded: "seen",
+    factorsAdded: Object.fromEntries(NEW_FACTORS.filter((f) => f !== "internet").map((f) => [f, "seen"])),
+  };
+  await b.waitForFunction(() => !!window.__psKv);
+  await b.evaluate((r) => window.__psKv!.setItem("ps.rubrics", JSON.stringify(r)), before);
+  // Placed: ranked, a limit, or Don't care (its bands are there either way).
+  const hasInternet = (r: unknown) => places(r as Rubric, "internet");
+  await expect(async () => {
+    await goMap(a);
+    await goList(a);
+    expect(hasInternet(await myRubric(a))).toBe(false);
+  }).toPass({ timeout: 20_000 });
+
+  // B opens again: the release adds Internet once, after the space's copy is in, and saves it to the space. A, which
+  // never reopened, gets it on a tab switch; the two copies are the same.
+  await b.reload();
+  await expect(async () => expect(hasInternet(await myRubric(b))).toBe(true)).toPass({ timeout: 15_000 });
+  await expect(async () => {
+    await goMap(a);
+    await goList(a);
+    expect(hasInternet(await myRubric(a))).toBe(true);
+  }).toPass({ timeout: 20_000 });
+  expect(await myRubric(a)).toEqual(await myRubric(b));
+});
+
+test("I'm new here on a joined device: the new member is saved before its questions open (B-2)", async ({
+  browser,
+}) => {
+  test.setTimeout(90_000);
+  const urls: string[] = [];
+  const a = await device(await browser.newContext(), urls);
+  const b = await device(await browser.newContext(), urls);
+  await openExplorer(a, FERNEY);
+  await importParcels(a, [FERNEY]);
+  const code = await startSyncing(a);
+  await openExplorer(b, MUD);
+  await b.goto(`/link#${groupCode(code)}`);
+  await b.getByRole("button", { name: /^(Replace and join|Join)$/ }).click();
+  await expect(b).toHaveURL(/\/who$/);
+  await b.getByRole("button", { name: "I'm new here" }).click();
+  await expect(b).toHaveURL(/\/interview/);
+  // The save went before the page did: no leftover to call unsaved.
+  await b.waitForTimeout(1500);
+  await expect(b.getByText(unsavedAtOpen(["New member"]))).toHaveCount(0);
+  expect(
+    await b.evaluate(() => JSON.parse(localStorage.getItem("ps.sync") ?? "{}").unsaved?.profiles ?? []),
+  ).toEqual([]);
 });
 
 test("a code no space has changes nothing", async ({ page }) => {
