@@ -8,7 +8,7 @@
  * - Ferney's pond as Garden's water; Roan's frontage, none along the county map's boundary.
  * Run by `pnpm screenshots`.
  */
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { loadFixture, type FixtureSlug } from "../test/support/fixtures";
 import { countyRecordOf } from "../test/support/scenarios";
 import { mudSplitLine } from "../test/support/splitScenario";
@@ -56,6 +56,12 @@ async function tall(page: Page, phone: boolean): Promise<void> {
   const handle = page.locator("[title='Drag or tap to resize']").first();
   if (phone)
     for (let i = 0; i < 3 && !(await page.locator(".explore.sheet-tall").count()); i++) await handle.click();
+}
+
+/** A tap, the target first brought to the middle of its scroller: on a phone the bottom tabs cover the sheet's foot. */
+async function tap(target: Locator): Promise<void> {
+  await target.evaluate((el) => el.scrollIntoView({ block: "center" }));
+  await target.click();
 }
 
 async function openUse(page: Page, name: string): Promise<void> {
@@ -118,30 +124,39 @@ for (const phone of [false, true]) {
         hoa: "no",
       });
       await page.getByRole("tab", { name: "Uses" }).click();
+      await tall(page, phone);
       const scenario = page.getByRole("article", { name: "Split 1" });
       const pieces = scenario.locator(".scn-piece");
       for (const i of [0, 1]) {
-        await pieces.nth(i).getByRole("button", { name: "Try again" }).click();
+        await tap(pieces.nth(i).getByRole("button", { name: "Try again" }));
         await expect(scenario.locator(".scn-status[role=status]")).toHaveCount(0, { timeout: 480_000 });
       }
       await expect(page.locator(".piece-label")).toHaveCount(2);
       await scenario.scrollIntoViewIfNeeded();
       await page.waitForTimeout(800);
+      // On a phone, the sheet lowered so the map shows the pieces; raised again for the rest.
+      const handle = page.locator("[title='Drag or tap to resize']").first();
+      if (phone)
+        for (let i = 0; i < 3 && (await page.locator(".explore.sheet-tall").count()); i++)
+          await handle.click();
+      await page.waitForTimeout(800);
       await page.screenshot({ path: `${OUT}/${device}-312-split-map.png` });
+      await tall(page, phone);
 
       // Remove this split: the Undo.
-      await scenario.getByRole("button", { name: "Remove this split" }).click();
+      await tap(scenario.getByRole("button", { name: "Remove this split" }));
       await expect(page.locator(".line-undo")).toBeVisible();
       await page.screenshot({ path: `${OUT}/${device}-312-split-undo.png` });
       await page.locator(".line-undo").getByRole("button", { name: "Undo" }).click();
 
       // A piece added to the list: its listing, the deed restrictions and HOA from the original parcel.
-      await page
-        .getByRole("article", { name: "Split 1" })
-        .locator(".scn-piece")
-        .first()
-        .getByRole("button", { name: "Add this piece to the list" })
-        .click();
+      await tap(
+        page
+          .getByRole("article", { name: "Split 1" })
+          .locator(".scn-piece")
+          .first()
+          .getByRole("button", { name: "Add this piece to the list" }),
+      );
       await settled(page);
       await page.getByRole("tab", { name: "Details" }).click();
       const summary = page.locator(".ip-listing-summary");
@@ -168,7 +183,10 @@ for (const phone of [false, true]) {
       await page.getByRole("tab", { name: "Uses" }).click();
       await tall(page, phone);
       await openUse(page, "Divide");
-      await page.locator(".use-fact").filter({ hasText: "Public road frontage" }).scrollIntoViewIfNeeded();
+      await page
+        .locator(".use-fact")
+        .filter({ hasText: /^Public road frontage/ })
+        .evaluate((el) => el.scrollIntoView({ block: "center" }));
       await page.waitForTimeout(400);
       await page.screenshot({ path: `${OUT}/${device}-312-roan-frontage.png` });
     });

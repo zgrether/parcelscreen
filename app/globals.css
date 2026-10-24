@@ -581,6 +581,13 @@ html:has(.explore) body {
   .explore.sheet-tall .switch-toast {
     visibility: hidden;
   }
+  /* An Undo answers what was just done in the raised sheet (a line deleted, a split removed; owner, after #312): it
+     stays, under the map's top buttons, in the strip of map the sheet leaves. */
+  .explore.sheet-tall .switch-toast.line-undo {
+    visibility: visible;
+    top: 60px;
+    bottom: auto;
+  }
 }
 
 /* ---------- 13e-3: split piece labels, the snap ring ---------- */

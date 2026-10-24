@@ -580,8 +580,9 @@ function usePieceLabels(map: MlMap | null, splits: readonly ShownSplit[]) {
 
   useEffect(() => {
     if (!map) return;
+    // Keyed by its anchor too: a marker's anchor is set when it's made.
     const labels = splits.flatMap((x) =>
-      pieceLabels(x.pieces, x.a, x.b).map((l) => ({ ...l, key: `${x.id}:${l.side}` })),
+      pieceLabels(x.pieces, x.a, x.b).map((l) => ({ ...l, key: `${x.id}:${l.side}:${l.anchor}` })),
     );
     const m = markers.current;
     for (const [key, mk] of m)
@@ -594,7 +595,7 @@ function usePieceLabels(map: MlMap | null, splits: readonly ShownSplit[]) {
       if (!mk) {
         const el = document.createElement("span");
         el.className = "piece-label static";
-        mk = new Marker({ element: el });
+        mk = new Marker({ element: el, anchor: l.anchor });
         m.set(l.key, mk.setLngLat([l.at[1], l.at[0]]).addTo(map));
       } else mk.setLngLat([l.at[1], l.at[0]]);
       mk.getElement().textContent = l.text;

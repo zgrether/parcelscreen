@@ -133,6 +133,19 @@ export interface PieceLabel {
   at: LatLon;
   /** "West piece, 27.7 ac", as the scenario's panel names it (owner, after #312: one label style). */
   text: string;
+  /**
+   * Which side of the label sits on its point: the one toward the cut, so the label reaches away from it (a narrow
+   * piece's label otherwise covers its neighbour's).
+   */
+  anchor: "left" | "right" | "top" | "bottom";
+}
+
+/** The label's anchor: away from the cut's middle, along whichever axis the point is farther off it. */
+function awayFrom(at: LatLon, a: LatLon, b: LatLon): PieceLabel["anchor"] {
+  const k = Math.cos((at[0] * Math.PI) / 180);
+  const dx = (at[1] - (a[1] + b[1]) / 2) * k,
+    dy = at[0] - (a[0] + b[0]) / 2;
+  return Math.abs(dx) >= Math.abs(dy) ? (dx < 0 ? "right" : "left") : dy < 0 ? "top" : "bottom";
 }
 
 /** A label per piece while a split is placed or a scenario shown: its compass side and the acres keeping it gives. */
@@ -144,6 +157,7 @@ export function pieceLabels(pieces: SplitPieces, a: LatLon, b: LatLon): PieceLab
             side,
             at: labelPoint(geo),
             text: SPLIT_WORDS.piece(pieceSideWord(a, b, side < 0 ? "left" : "right"), ac),
+            anchor: awayFrom(labelPoint(geo), a, b),
           },
         ]
       : [];
