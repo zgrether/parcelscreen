@@ -2,7 +2,7 @@
 /**
  * Details › Boundary (step 8b, docs/plans/step-8b-parcel-panel.md §3): how the open parcel's boundary is made, from the
  * same layer tree the Info panel drew. Its county facts; each part when there are several (Take out of this parcel);
- * the road strip a combine bridges; the split's two pieces (● kept, Keep this piece), Adjust the line and Remove split;
+ * the road strip a combine bridges; a split saved before step 14, its two pieces (● kept, Keep this piece) and Remove split;
  * and Edit parcels and Split, the toolbar's Boundary ▾ tools.
  */
 import { ParcelFacts } from "@/components/Explore/ParcelFacts";
@@ -62,7 +62,7 @@ export function Boundary({
       )}
       <div className="pd-actions">
         <Btn onClick={ctl.startCombine}>Edit parcels</Btn>
-        {!open.split && <Btn onClick={ctl.startSplit}>Split</Btn>}
+        {!open.split && <Btn onClick={() => ctl.startSplit()}>Split</Btn>}
       </div>
     </>
   );
@@ -119,8 +119,9 @@ function BoundaryItem({
               ? "A cut across the whole boundary. The piece kept is the parcel the screen sees."
               : "The cut no longer crosses the boundary (a part it went through was taken out), so it's left off."}
           </p>
+          {/* Step 14: a split saved before reads as it was, and can be removed or switched; the Split tool now tries a
+              scenario instead of moving this line. */}
           <span className="pd-actions">
-            {shapes?.pieces && <Btn onClick={ctl.startSplit}>Adjust the line</Btn>}
             <Btn kind="danger" onClick={() => remove("split")}>
               Remove split
             </Btn>

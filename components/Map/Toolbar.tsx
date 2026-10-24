@@ -24,6 +24,7 @@ import { showBoundary } from "@/components/Parcel/ParcelSwitch";
 import { NEIGHBOUR_WORDS } from "@/lib/report/raise";
 import { isPreview } from "@/lib/client/samples";
 import { SAMPLE_WORDS } from "@/lib/areas/words";
+import { SPLIT_WORDS } from "@/lib/split/words";
 
 const GRADE_COMBINATION = NEIGHBOUR_WORDS.go;
 
@@ -266,25 +267,29 @@ function barBody(
       </>
     );
   if (mode === "split" || split) {
+    // Step 14 (plan §5.1): the line tries a scenario, "Keep this, sell that"; both pieces are graded, side by side.
     if (!split || !split.b)
       return (
         <>
-          <Status>{split ? "Tap the other end of the cut" : "Tap two points to draw the cut"}</Status>
+          <Status>{split ? "Tap the other end of the cut" : SPLIT_WORDS.draw}</Status>
           {cancel}
         </>
       );
-    // Each piece's acres are on the map, on the piece; tapping the piece keeps it.
+    // Each piece's acres are on the map, on the piece.
     const cuts = !!ctl.pieces?.left && !!ctl.pieces.right;
     return (
       <>
         {cuts ? (
           <Status>
-            <b>Tap the piece to keep</b>
+            <b>{SPLIT_WORDS.draw}</b>
             <span className="sub"> · drag the ends to adjust</span>
           </Status>
         ) : (
           <Status bad>The cut misses the parcel · drag its ends across it</Status>
         )}
+        <Btn kind="go" onClick={ctl.gradePieces} disabled={!cuts}>
+          {SPLIT_WORDS.grade}
+        </Btn>
         {cancel}
       </>
     );
@@ -459,7 +464,7 @@ function BoundaryMenu({ ctl }: { ctl: ExploreController }) {
           >
             Custom
           </button>
-          <button role="menuitem" onClick={() => go(ctl.startSplit)} disabled={!ctl.parcel}>
+          <button role="menuitem" onClick={() => go(() => ctl.startSplit())} disabled={!ctl.parcel}>
             Split
           </button>
         </span>
