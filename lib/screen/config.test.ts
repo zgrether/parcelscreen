@@ -60,11 +60,14 @@ describe("config", () => {
         },
         "endpoints": {
           "_v": 14,
+          "counties": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/1",
           "dem": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
           "lpAtlasBinary": "https://djlorenz.github.io/astronomy/binary_tiles",
           "lpAtlasTiles": "https://djlorenz.github.io/astronomy/image_tiles",
           "lpAtlasYear": 2025,
           "nfhl": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28",
+          "nhd": "https://hydro.nationalmap.gov/arcgis/rest/services/nhd/MapServer/6",
+          "nlcd": "https://www.mrlc.gov/geoserver/mrlc_download/wcs",
           "osrm": "https://router.project-osrm.org/route/v1/driving",
           "overpass": [
             "https://overpass-api.de/api/interpreter",
@@ -842,6 +845,11 @@ describe("config", () => {
           "maxJoinVertices": 2500,
           "touchM": 1,
         },
+        "cover": {
+          "nearRoadFt": 300,
+          "roadStride": 3,
+          "timeoutMs": 60000,
+        },
         "dem": {
           "attempts": 3,
           "fineBufferKm": 0.15,
@@ -1268,6 +1276,17 @@ describe("config", () => {
           "shallowShareFlag": 0.1,
           "skipComponents": /\\^\\(water\\|urban land\\|pits\\|dumps\\)\\$/i,
         },
+        "streams": {
+          "bufferFt": 300,
+          "intermittent": [
+            46003,
+          ],
+          "perennial": [
+            46006,
+          ],
+          "stepM": 5,
+          "timeoutMs": 60000,
+        },
         "suitability": {
           "aspectCurve": [
             [
@@ -1382,6 +1401,21 @@ describe("config", () => {
           "steepGradePct": 25,
           "steepP90FlagDeg": 30,
           "valleyFloorRadiusM": 1500,
+        },
+        "uses": {
+          "campMinOpenAc": 0.25,
+          "campNearAccessFt": 300,
+          "huntForestPct": 50,
+          "huntMinAc": 10,
+          "pastureAc": 2,
+          "rideFarMi": 10,
+          "rideNearMi": 3,
+          "smallStockAc": 0.5,
+          "trailMaxGradePct": 15,
+          "trailMaybeMi": 0.2,
+          "trailMinPatchAc": 0.25,
+          "trailSpacingFt": 100,
+          "trailYesMi": 0.5,
         },
         "view": {
           "openKm": 4.828032,

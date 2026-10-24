@@ -73,6 +73,9 @@ export const EndpointsSchema = z.strictObject({
   osrm: z.string(),
   parcels: z.array(z.string()),
   power: z.string(),
+  nlcd: z.string(),
+  nhd: z.string(),
+  counties: z.string(),
 });
 export type Endpoints = z.infer<typeof EndpointsSchema>;
 
@@ -856,6 +859,49 @@ export const ScreenResultSchema = z.strictObject({
       nearestKV: num.nullable(),
       crosses: z.boolean(),
       insideFt: num,
+    })
+    .optional(),
+  /**
+   * Step 14 (plan §2.4; §9.70): NLCD 2021's cover inside the parcel: forest and open shares, open gentle ground, and
+   * how much of that is within cover.nearRoadFt of a road. Absent before it, or when NLCD didn't answer.
+   */
+  cover: z
+    .strictObject({
+      forestPct: num,
+      openPct: num,
+      openGentleAc: num,
+      openNearRoadAc: num,
+      year: num,
+    })
+    .optional(),
+  /**
+   * Step 14 (plan §2.5; §9.70): NHD's perennial and intermittent streams inside the parcel, their names, and the
+   * nearest's distance from the best site. Absent before it, or when NHD didn't answer.
+   */
+  streams: z
+    .strictObject({
+      perennialFt: num,
+      intermittentFt: num,
+      names: z.array(z.string()),
+      nearestFt: num.nullable(),
+    })
+    .optional(),
+  /** Step 14 (plan §2.2; §9.70): the walking trail the gentle ground could hold. Absent before it. */
+  trails: z.strictObject({ gentleAc: num, miles: num }).optional(),
+  /**
+   * Step 14 (plan §2.6; §9.70): the parcel's county, and the districts its zoning map gives the parcel when the county
+   * has one we read (null otherwise). Absent before it, or when TIGERweb didn't answer.
+   */
+  county: z
+    .strictObject({
+      fips: z.string(),
+      name: z.string(),
+      state: z.string(),
+      zoning: z
+        .strictObject({
+          districts: z.array(z.strictObject({ code: z.string(), name: z.string().nullable() })),
+        })
+        .nullable(),
     })
     .optional(),
   /** Step 14 (plan §2.3; §9.70): road frontage by road, and the public part's feet. Absent before it. */

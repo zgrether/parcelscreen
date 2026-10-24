@@ -14,7 +14,9 @@
    "roadMaxGradePct": 15,
    "roadVetoGradePct": 25
   },
-  "noResponse": [],
+  "noResponse": [
+   "County DEBUG No recorded response for GET https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/1/query?f=json&geometry=-81.5631591158,36.5854441799&geometryType=esriGeometryPoint&inSR=4326&outFields=GEOID,BASENAME&returnGeometry=false&spatialRel=esriSpatialRelIntersects"
+  ],
   "lines": [],
   "demSource": "USGS 3DEP",
   "demResM": 2.9973867846007027,
@@ -1865,6 +1867,23 @@
      "public": true
     }
    ]
+  },
+  "cover": {
+   "forestPct": 95,
+   "openPct": 0,
+   "openGentleAc": 0,
+   "openNearRoadAc": 0,
+   "year": 2021
+  },
+  "streams": {
+   "perennialFt": 0,
+   "intermittentFt": 0,
+   "names": [],
+   "nearestFt": null
+  },
+  "trails": {
+   "gentleAc": 0.89,
+   "miles": 0.07
   },
   "near": {
    "hospitals": [
@@ -7826,7 +7845,7 @@
    "mi": 21.8
   },
   "schemaVersion": 9,
-  "engine": 30,
+  "engine": 31,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -7846,7 +7865,9 @@
    "roadMaxGradePct": 15,
    "roadVetoGradePct": 25
   },
-  "noResponse": [],
+  "noResponse": [
+   "County DEBUG No recorded response for GET https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/1/query?f=json&geometry=-81.5631591158,36.5854441799&geometryType=esriGeometryPoint&inSR=4326&outFields=GEOID,BASENAME&returnGeometry=false&spatialRel=esriSpatialRelIntersects"
+  ],
   "lines": [],
   "demSource": "USGS 3DEP",
   "demResM": 2.9973867846007027,
@@ -9697,6 +9718,23 @@
      "public": true
     }
    ]
+  },
+  "cover": {
+   "forestPct": 95,
+   "openPct": 0,
+   "openGentleAc": 0,
+   "openNearRoadAc": 0,
+   "year": 2021
+  },
+  "streams": {
+   "perennialFt": 0,
+   "intermittentFt": 0,
+   "names": [],
+   "nearestFt": null
+  },
+  "trails": {
+   "gentleAc": 0.89,
+   "miles": 0.07
   },
   "near": {
    "hospitals": [
@@ -15658,7 +15696,7 @@
    "mi": 21.8
   },
   "schemaVersion": 9,
-  "engine": 30,
+  "engine": 31,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

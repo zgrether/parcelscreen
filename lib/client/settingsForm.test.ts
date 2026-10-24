@@ -73,7 +73,7 @@ describe("the defaults are the prototype's (owner, step 16)", () => {
     // HIFLD's power lines (step 14).
     const protoEndpoints = JSON.parse(PROTO.endpoints) as Record<string, unknown>;
     const portEndpoints = DEFAULT_ENDPOINTS as unknown as Record<string, unknown>;
-    const ADDED = ["usfsRecSites", "stateParks", "power"];
+    const ADDED = ["usfsRecSites", "stateParks", "power", "nlcd", "nhd", "counties"];
     expect(Object.keys(portEndpoints).filter((k) => !ADDED.includes(k))).toEqual(Object.keys(protoEndpoints));
     const differ = Object.keys(protoEndpoints).filter(
       (k) => JSON.stringify(protoEndpoints[k]) !== JSON.stringify(portEndpoints[k]),
