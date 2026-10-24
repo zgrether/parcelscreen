@@ -74,7 +74,7 @@ for (const phone of [false, true]) {
       await visit(page, "/library");
       await openFromList(page, loadFixture(SLUGS[1]).input.name);
       await page.getByRole("button", { name: "More for this parcel" }).first().click();
-      await expect(page.getByRole("menuitem", { name: "Report card" })).toBeVisible();
+      await expect(page.getByRole("menuitem", { name: "Make a report" })).toBeVisible();
       await page.waitForTimeout(400);
       await page.screenshot({ path: `${OUT}/${device}-report-button-panel.png` });
       await page.keyboard.press("Escape");
@@ -84,7 +84,7 @@ for (const phone of [false, true]) {
         .first()
         .getByRole("button", { name: /^More for / })
         .click();
-      await expect(page.getByRole("menuitem", { name: "Report card" })).toBeVisible();
+      await expect(page.getByRole("menuitem", { name: "Make a report" })).toBeVisible();
       await page.screenshot({ path: `${OUT}/${device}-report-button-row.png` });
     });
   });

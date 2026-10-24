@@ -21,7 +21,7 @@ const HEADINGS = [
   "A parcel's grade, row by row",
   "The parcel grade",
   "Weights",
-  "Dealbreakers",
+  "Must have",
   "The graded rows",
   "The homesite grade",
   "Quality",

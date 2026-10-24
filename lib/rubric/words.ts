@@ -14,7 +14,7 @@ import type { Bands, Budgets, Factor, GateKey, MustCard, RowKey, Rubric } from "
 export const FACTOR_LABELS: Record<Factor, string> = {
   floodplain: "Floodplain",
   access: "Legal road access",
-  easement: "Easement needed",
+  easement: "Driveway on your land",
   septic: "Septic",
   elevation: "Elevation at the build site",
   homesite: "Best homesite",

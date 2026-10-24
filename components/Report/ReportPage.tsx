@@ -101,7 +101,7 @@ export function ReportPage() {
         <h1 className="rp-title">{W.title}</h1>
         {loaded.kind === "ok" && (
           <>
-            <div className="list-switch rp-switch" role="tablist" aria-label="Report card length">
+            <div className="list-switch rp-switch" role="tablist" aria-label="Report length">
               {(["one", "full"] as const).map((p) => (
                 <button
                   key={p}

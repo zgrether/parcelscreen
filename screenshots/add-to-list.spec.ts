@@ -70,10 +70,7 @@ for (const phone of [false, true]) {
 
       // Added: ★ On your list.
       await actions.getByRole("button", { name: "Add to list" }).click();
-      await page
-        .getByRole("dialog", { name: "Add to favorites" })
-        .getByRole("button", { name: "Add" })
-        .click();
+      await page.getByRole("dialog", { name: "Add to list" }).getByRole("button", { name: "Add" }).click();
       await expect(actions.getByRole("button", { name: "On your list" })).toBeVisible();
       await shot(page, "3-header-on-list");
 

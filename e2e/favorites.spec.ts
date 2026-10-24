@@ -24,10 +24,10 @@ const MACKS = "macks-mountain-35-3" as const;
 
 const recentRows = (page: Page) => page.locator(".hist-row");
 const favoriteRows = (page: Page) => page.locator(".lib-table tbody tr");
-const tab = (page: Page, name: "Favorites" | "Recent") => page.getByRole("tab", { name });
-const nameSheet = (page: Page) => page.getByRole("dialog", { name: "Add to favorites" });
+const tab = (page: Page, name: "Shortlist" | "Recent") => page.getByRole("tab", { name });
+const nameSheet = (page: Page) => page.getByRole("dialog", { name: "Add to list" });
 
-async function yourList(page: Page, view: "Favorites" | "Recent"): Promise<void> {
+async function yourList(page: Page, view: "Shortlist" | "Recent"): Promise<void> {
   await page.getByRole("link", { name: YOUR_LIST }).click();
   await tab(page, view).click();
 }
@@ -51,7 +51,7 @@ test("Recent is yours, Favorites the household's: add, remove, ✕ with Undo, Cl
   await expect(recentRows(zach).first()).toContainText("52-47A");
   await expect(recentRows(zach).first()).toContainText(/Graded [A-Z][a-z]{2} \d{1,2}/);
   await expect(recentRows(zach).first().locator(".card-grade")).toHaveText(/^[A-F]$/);
-  await tab(zach, "Favorites").click();
+  await tab(zach, "Shortlist").click();
   await expect(zach.locator("main")).toContainText(FAVORITES_EMPTY);
 
   // He adds Macks to the list from Recent, with a name of his own (Add waits for one).
@@ -64,7 +64,7 @@ test("Recent is yours, Favorites the household's: add, remove, ✕ with Undo, Cl
   await nameSheet(zach).getByRole("button", { name: "Add" }).click();
   // It leaves his Recent for Favorites.
   await expect(recentRows(zach)).toHaveCount(1);
-  await tab(zach, "Favorites").click();
+  await tab(zach, "Shortlist").click();
   await expect(favoriteRows(zach)).toHaveCount(1);
   await expect(favoriteRows(zach)).toContainText("Macks bench");
 
@@ -80,7 +80,7 @@ test("Recent is yours, Favorites the household's: add, remove, ✕ with Undo, Cl
   await julie.getByRole("button", { name: "Continue" }).click();
   await julie.getByRole("button", { name: "Not now" }).click();
   await booted(julie);
-  await yourList(julie, "Favorites");
+  await yourList(julie, "Shortlist");
   await expect(favoriteRows(julie)).toHaveCount(1);
   await expect(favoriteRows(julie)).toContainText("Macks bench");
   await tab(julie, "Recent").click();
@@ -90,7 +90,7 @@ test("Recent is yours, Favorites the household's: add, remove, ✕ with Undo, Cl
   // county record, so no parcel number: favorites.test.ts covers the numbers).
   await julie.getByRole("link", { name: "Map", exact: true }).click();
   await (await openSearch(julie)).fill("macks bench");
-  await expect(julie.getByRole("group", { name: "Favorites" }).getByRole("option")).toContainText(
+  await expect(julie.getByRole("group", { name: "Shortlist" }).getByRole("option")).toContainText(
     "Macks bench",
   );
   await zach.getByRole("link", { name: "Map", exact: true }).click();
@@ -99,19 +99,17 @@ test("Recent is yours, Favorites the household's: add, remove, ✕ with Undo, Cl
   await zach.keyboard.press("Escape");
 
   // Zach takes Macks off the list: one confirm; it's back in his Recent, and gone for Julie.
-  await yourList(zach, "Favorites");
+  await yourList(zach, "Shortlist");
   await favoriteRows(zach)
-    .getByRole("button", { name: /^In favorites: Macks bench/ })
+    .getByRole("button", { name: /^On your list: Macks bench/ })
     .click();
   const confirm = zach.getByRole("alertdialog");
-  await expect(confirm).toContainText(
-    "Remove from your household's favorites? It goes back to your Recent list.",
-  );
-  await confirm.getByRole("button", { name: "Remove from favorites" }).click();
+  await expect(confirm).toContainText("Remove from Your list? It goes back to your Recent list.");
+  await confirm.getByRole("button", { name: "Remove from Your list" }).click();
   await expect(zach.locator("main")).toContainText(FAVORITES_EMPTY);
   await tab(zach, "Recent").click();
   await expect(recentRows(zach)).toHaveCount(2);
-  await yourList(julie, "Favorites");
+  await yourList(julie, "Shortlist");
   await afterTabSwitch(julie, async () => {
     await expect(julie.locator("main")).toContainText(FAVORITES_EMPTY, { timeout: 1000 });
   });
@@ -140,7 +138,7 @@ test("Recent is yours, Favorites the household's: add, remove, ✕ with Undo, Cl
   await expect(recentRows(zach)).toHaveCount(0);
   await expect(zach.locator("main")).toContainText(RECENT_EMPTY);
   await expect(zach.getByRole("button", { name: "Clear Recent" })).toHaveCount(0);
-  await tab(zach, "Favorites").click();
+  await tab(zach, "Shortlist").click();
   await expect(favoriteRows(zach)).toHaveCount(1);
   await afterTabSwitch(julie, async () => {
     await expect(favoriteRows(julie)).toContainText("52-47A", { timeout: 1000 });

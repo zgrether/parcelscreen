@@ -34,7 +34,7 @@ for (const phone of [false, true]) {
       ).newPage();
     const shot = (page: Page, name: string) =>
       page.screenshot({ path: `${OUT}/${device}-favorites-${name}.png` });
-    const tab = (page: Page, name: "Favorites" | "Recent") => page.getByRole("tab", { name });
+    const tab = (page: Page, name: "Shortlist" | "Recent") => page.getByRole("tab", { name });
 
     test("Favorites, History, the star, unstarring, Clear history, Undo, Search", async ({ browser }) => {
       test.setTimeout(300_000);
@@ -49,7 +49,7 @@ for (const phone of [false, true]) {
 
       // Favorites, then History (the phone's switch at the top of each).
       await page.getByRole("link", { name: YOUR_LIST }).click();
-      await tab(page, "Favorites").click();
+      await tab(page, "Shortlist").click();
       await expect(page.locator(".lib-row:visible")).toHaveCount(2);
       await shot(page, "1-favorites");
       await tab(page, "Recent").click();
@@ -80,12 +80,9 @@ for (const phone of [false, true]) {
       if (await tip.isVisible()) await tip.click();
       const star = page.locator(".sh-actions").getByRole("button", { name: "Add to list" });
       await star.click();
-      await expect(page.getByRole("dialog", { name: "Add to favorites" })).toBeVisible();
+      await expect(page.getByRole("dialog", { name: "Add to list" })).toBeVisible();
       await shot(page, "5-name-sheet");
-      await page
-        .getByRole("dialog", { name: "Add to favorites" })
-        .getByRole("button", { name: "Add" })
-        .click();
+      await page.getByRole("dialog", { name: "Add to list" }).getByRole("button", { name: "Add" }).click();
       await expect(page.locator(".sh-actions").getByRole("button", { name: "On your list" })).toBeVisible();
       await shot(page, "6-panel-starred");
 
@@ -98,7 +95,7 @@ for (const phone of [false, true]) {
       // Search shows the saved parcels above the places.
       if (phone) await page.locator(".sh-x").click();
       await (await openSearch(page)).fill("parcel");
-      await expect(page.getByRole("group", { name: "Favorites" })).toBeVisible();
+      await expect(page.getByRole("group", { name: "Shortlist" })).toBeVisible();
       await shot(page, "8-search");
     });
   });

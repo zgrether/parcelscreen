@@ -30,7 +30,7 @@ const CHOICE_WORD: Record<VerdictChoice, string> = {
   Contender: "Contender",
   Maybe: "Maybe",
   Pass: "Not for us",
-  unscreened: "Not screened",
+  unscreened: "Not graded",
 };
 const SORTS: { key: SortKey; label: string }[] = [
   { key: "order", label: "My order" },

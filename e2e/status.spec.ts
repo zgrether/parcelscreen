@@ -65,7 +65,7 @@ test("the parcel's standing: a favorite archived with a reason, restored; milest
   await page.getByRole("tab", { name: "Grade" }).click();
   await page.getByRole("link", { name: "Your list", exact: true }).click();
   const row = listRow(page, "52-47A");
-  await expect(row.getByRole("button", { name: /^In favorites/ })).toBeVisible();
+  await expect(row.getByRole("button", { name: /^On your list/ })).toBeVisible();
   await expect(row).toContainText("Walked Oct 20");
   await reload(page);
   expect(await stored(page)).toMatchObject({ status: "saved", milestones: { walked: "2026-10-20" } });

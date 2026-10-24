@@ -210,14 +210,14 @@ describe("Still unknown (plan §1.5)", () => {
     const card = { ...reportCard(FERNEY, ZACH), gates: [] };
     const t = text(renderToStaticMarkup(<AgentQuestions card={card} name="Ferney" showChecklist={noop} />));
     expect(t).toContain("Nothing to ask the agent: the screen answered every must.");
-    expect(t).toContain("More to check that no dataset covers");
+    expect(t).toContain("More questions for the agent");
   });
 });
 
 describe("Full report (plan §1.6)", () => {
   it("closed, the control alone; open, every section of the report under its heading", () => {
     const props = { result: FERNEY, point: null, drivewayLine: null, setOpen: noop, scrollTo: null };
-    expect(text(renderToStaticMarkup(<FullReport {...props} open={false} />)).trim()).toBe("Full report ▸");
+    expect(text(renderToStaticMarkup(<FullReport {...props} open={false} />)).trim()).toBe("All details ▸");
     const open = renderToStaticMarkup(<FullReport {...props} open />);
     const shown = REPORT.map((s) => s.heading(FERNEY, null).slug).filter((slug) =>
       open.includes(`data-key="${slug}"`),

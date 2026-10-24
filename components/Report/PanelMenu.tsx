@@ -38,7 +38,7 @@ export function PanelMenu({ parcelKey, graded }: { parcelKey: string | null; gra
         type="button"
         className="sh-more-btn"
         aria-label="More for this parcel"
-        title={REPORT_WORDS.title}
+        title={REPORT_WORDS.make}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
@@ -57,7 +57,7 @@ export function PanelMenu({ parcelKey, graded }: { parcelKey: string | null; gra
               router.push(reportHref(parcelKey!));
             }}
           >
-            {REPORT_WORDS.title}
+            {REPORT_WORDS.make}
           </button>
           {!ready && <span className="tiny muted sh-more-why">{REPORT_WORDS.gradeFirst}</span>}
         </span>

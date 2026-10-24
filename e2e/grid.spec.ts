@@ -24,7 +24,7 @@ test("a header sorts and turns around; Columns ▾ hides a factor and remembers 
   await seedScreens(page, SLUGS);
   await settled(page);
   await visit(page, "/library");
-  await page.getByRole("tab", { name: "Favorites" }).click();
+  await page.getByRole("tab", { name: "Shortlist" }).click();
 
   const grid = page.locator(".lib-grid");
   const sky = grid.locator("thead th").filter({ hasText: /^Sky/ });
@@ -45,7 +45,7 @@ test("a header sorts and turns around; Columns ▾ hides a factor and remembers 
   await page.getByRole("group", { name: "Columns" }).getByLabel("Night sky").uncheck();
   await expect(sky).toHaveCount(0);
   await reload(page);
-  await page.getByRole("tab", { name: "Favorites" }).click();
+  await page.getByRole("tab", { name: "Shortlist" }).click();
   await expect(page.locator(".lib-grid thead th").filter({ hasText: /^Sky/ })).toHaveCount(0);
 
   // The header row and the Name column are sticky in the grid's own scroll box.
@@ -74,7 +74,7 @@ test.describe("on a phone", () => {
     await seedScreens(page, SLUGS);
     await settled(page);
     await visit(page, "/library");
-    await page.getByRole("tab", { name: "Favorites" }).click();
+    await page.getByRole("tab", { name: "Shortlist" }).click();
     const cards = page.locator(".lib-cards .lib-card");
     await expect(cards).toHaveCount(3);
     // The Musts first, as their marks alone; then the letters with short names, in the rubric's order.

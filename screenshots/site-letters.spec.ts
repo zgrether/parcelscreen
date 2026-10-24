@@ -86,7 +86,7 @@ for (const phone of [false, true]) {
 
       // The grid (the phone's strip).
       await visit(page, "/library");
-      await page.getByRole("tab", { name: "Favorites" }).click();
+      await page.getByRole("tab", { name: "Shortlist" }).click();
       await expect(page.locator(".adjusted-mark:visible").first()).toBeVisible({ timeout: 30_000 });
       await page.waitForTimeout(400);
       await page.screenshot({ path: `${OUT}/${device}-site-letters-grid.png` });

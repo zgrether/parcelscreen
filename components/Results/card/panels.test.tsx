@@ -107,7 +107,7 @@ describe("the report card's panels (VR5)", () => {
       );
     const done = panel(result);
     expect(done).toContain("<b>Track 2</b>");
-    expect(done).toContain("Drawn after this screen: run again to see what the app makes of it.");
+    expect(done).toContain("Drawn after this grade: grade again to see what the app makes of it.");
     const { driveway: _d, ...routing } = result;
     expect(panel(routing as typeof result, { step: "driveway" })).toContain(WAITING_FOR_THE_DRIVEWAY);
   });

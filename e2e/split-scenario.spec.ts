@@ -193,7 +193,7 @@ test("Add a piece to the list: a new parcel of that piece, on the list, with the
   await expect(page.locator(".grade-btn", { hasText: /^Grading…$/ })).toHaveCount(0);
   await settled(page);
   await visit(page, "/library");
-  await page.getByRole("tab", { name: "Favorites" }).click();
+  await page.getByRole("tab", { name: "Shortlist" }).click();
   await expect(listRow(page, name)).toBeVisible();
 });
 
@@ -280,7 +280,7 @@ test("a split scenario: Grade both pieces, Cancel, Rename, Adjust the line, Add 
   await expect(page.locator(".grade-btn", { hasText: /^Grading…$/ }).first()).toBeVisible();
   await settled(page);
   await visit(page, "/library");
-  await page.getByRole("tab", { name: "Favorites" }).click();
+  await page.getByRole("tab", { name: "Shortlist" }).click();
   await expect(listRow(page, name)).toBeVisible();
   expect(errors).toEqual([]);
 });

@@ -137,10 +137,7 @@ for (const phone of [false, true]) {
       await page.waitForTimeout(2500);
       await page.screenshot({ path: `${OUT}/${device}-areas-sample.png` });
       await header.getByRole("button", { name: /^Add to list/ }).click();
-      await page
-        .getByRole("dialog", { name: "Add to favorites" })
-        .getByRole("button", { name: "Add" })
-        .click();
+      await page.getByRole("dialog", { name: "Add to list" }).getByRole("button", { name: "Add" }).click();
       await expect(header.locator(".sh-sample")).toHaveCount(0);
       await page.waitForTimeout(800);
       await page.screenshot({ path: `${OUT}/${device}-areas-sample-added.png` });

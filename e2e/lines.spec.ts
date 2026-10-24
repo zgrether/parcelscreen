@@ -135,7 +135,7 @@ test("a drawn line: the banner, its layer and details (name, kind, condition, wi
   await expect(yours.locator("li")).toHaveCount(1);
   await expect(yours.locator("li b")).toHaveText("Gravel lane");
   await expect(yours.locator("li")).toContainText(/Existing drive, paved, [\d,]+ ft/);
-  await expect(yours).toContainText("Drawn after this screen: run again to see what the app makes of it.");
+  await expect(yours).toContainText("Drawn after this grade: grade again to see what the app makes of it.");
   // Edit opens the line's row in Details.
   await yours.getByRole("button", { name: "Edit" }).click();
   await expect(row("Gravel lane")).toHaveAttribute("aria-expanded", "true");

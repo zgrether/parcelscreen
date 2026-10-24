@@ -45,7 +45,7 @@ test("compare: two screened parcels as columns, best and worst marked, a cell op
     "Ferney Creek, Floyd County VA, parcel 52-47A",
     "Macks Mountain, Floyd County VA, parcel 35-3",
   ]);
-  // Both are screened: each column has its grade and verdict, not "re-screens when opened".
+  // Both are screened: each column has its grade and verdict, not "grades again when opened".
   await expect(page.locator(".cmp-headline td .card-grade")).toHaveCount(2);
   // Where the parcels differ, the better is marked ↑ and the worse ↓.
   await expect(page.locator(".cmp-mark.best").first()).toBeVisible();

@@ -43,7 +43,7 @@ export const FROM_THE_REPORT_NOTE =
 
 const STATUS: Record<GateStatus, string> = {
   pass: "Pass",
-  warn: "Warning",
+  warn: "Check first",
   fail: "Fail",
   unknown: "Unknown",
 };
@@ -490,7 +490,7 @@ function YourLinesList({
               <p className="tiny">
                 {routing
                   ? WAITING_FOR_THE_DRIVEWAY
-                  : (outcome ?? "Drawn after this screen: run again to see what the app makes of it.")}
+                  : (outcome ?? "Drawn after this grade: grade again to see what the app makes of it.")}
               </p>
             </li>
           );

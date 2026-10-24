@@ -1287,7 +1287,7 @@ export function cardFor(facts: CardFacts, nr: NamedRubric): Card {
         : lead.kind === "weakest"
           ? `${VERDICT_WORD[verdict]}. Weakest part: ${lead.text}`
           : `${VERDICT_WORD[verdict]}. ${lead.text}`;
-  const more = incomplete.length ? ` (incomplete: ${listOf(incomplete)} didn't load, run again)` : "";
+  const more = incomplete.length ? ` (incomplete: ${listOf(incomplete)} didn't load, grade again)` : "";
   // A Contender's grade held at Maybe (polish #5): the warnings past the allowance, a Must that couldn't be checked, a
   // "Check first" item, and what didn't load, as MAYBE_CAPS and the verdict above count them.
   const heldBy =
