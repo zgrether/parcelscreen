@@ -17,7 +17,9 @@
     "lib/render/**/*.ts",
     "lib/report/**/*.ts",
     "lib/rubric/**/*.ts",
-    "lib/search/**/*.ts"
+    "lib/search/**/*.ts",
+    "lib/uses/**/*.ts",
+    "lib/config/counties.ts"
   ],
   "exclude": ["**/*.test.ts"]
 }

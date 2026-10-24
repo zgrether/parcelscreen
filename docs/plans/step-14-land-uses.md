@@ -236,11 +236,30 @@ ordinance", "from the county's summary", "to confirm").
 
 **Per state:** hunting basics (license, Sunday hunting on private land, hunter orange), each with its source.
 
-**PR 1 researches it** and puts this table here, filled:
+**PR 1 researched it (2026-10-23).** It's in `lib/config/counties.ts`, each fact with its source and confidence word.
+Only Grayson and Carter have county zoning, and only Grayson publishes a zoning map we can read.
 
-| County | Zoning | Rural default | Min lot | Frontage | Exceptions | Review from | Discharge rule | GIS layer | Confidence |
+| County | Zoning | Rural default | Min lot | Frontage per lot | Exceptions (shown, never counted) | Review | Exempt over | Shooting rule | Map |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| *(PR 1)* | | | | | | | | | |
+| Floyd VA | none | — | 2 ac | 100 ft | 25 ac large lots on a 50 ft ROW; family 1 ac; private division road ≤ 10 parcels | agent; ≤ 10 lots per plat | — | 100 yd from highways (to confirm) | — |
+| Grayson VA | yes | RF (assumed off-map) | 0.69 ac | 100 ft, or a 40 ft ROW | farm division 4 × 10 ac; family; Class II private street | staff for single, farm, family; else Planning Commission | — | none found | zoning layer |
+| Carroll VA | none | — | 0.75 ac | not in the ordinance (to confirm) | flag lots ≥ 1.5 ac (3); family on a 20 ft ROW | agent ≤ 4 lots | — | none found | — |
+| Patrick VA | none | — | 1 ac | 50 ft | family on a 20 ft ROW | staff for single lots | 2 ac | 25 ft from highways | — |
+| Ashe NC | none | — | 1 ac | 45 ft | family; county-standard private road | staff ≤ 7 lots | 10 ac | not from a state road | — |
+| Alleghany NC | Open District | Open District | 0.75 ac | not found (to confirm) | private driveway ≤ 5 lots; family | planner ≤ 5 lots | 10 ac | none found | — |
+| Avery NC | none | — | 0.75 ac | 70 ft | panhandle lot; private street; family | administrator ≤ 10 lots | 10 ac | none found | — |
+| Mitchell NC | none found (to confirm) | — | 1 / 1.5 / 2 ac by slope | not found (to confirm) | family; private road | Review Board from 6 lots | 3 ac | none found | — |
+| Carter TN | yes | A-1 (to confirm) | 0.34 ac (to confirm) | 40 ft (to confirm) | 5 ac lots aren't a subdivision (state law) | planning commission | 5 ac | none found | none found |
+| Johnson TN | none | — | not online (to confirm) | not online (to confirm) | 5 ac lots; private-road subdivisions ≤ 5 lots | planning commission; proven water per lot | 5 ac | none found | — |
+
+**What it means for Divide:**
+- Carter's figures come from a copy of the zoning resolution, not the county's own, so they're "to confirm".
+- Johnson has no minimum lot size online, so Divide says "ask the county" there.
+- Floyd and Patrick each had a hearing on changes this fall (2026-09-22, 2026-09-28). Re-check both.
+
+**State hunting basics:**
+- VA, NC and TN: the landowner license exemptions, Sunday rules, hunter orange, and road distances.
+- They're `STATE_HUNTING` in the same file, each with its statute.
 
 ## 5. Split: "Keep this, sell that"
 
