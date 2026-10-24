@@ -61,9 +61,8 @@ function countyFacts(r: PartialScreenResult, c: CountyRules): Fact[] {
     r.frontage
       ? { label: DIVIDE.frontageLabel, value: DIVIDE.feet(r.frontage.publicFt), source: SOURCE.tiger }
       : { label: DIVIDE.frontageLabel, value: MISSING.frontage },
-    ...c.exceptions.map((e) =>
-      ruleFact(DIVIDE.exceptionLabel, { ...e, says: DIVIDE.couldAllowMore(e.says) }),
-    ),
+    // Each as the county's own words: "could allow more" read wrong beside a count it doesn't reach (fresh-eyes review).
+    ...c.exceptions.map((e) => ruleFact(DIVIDE.exceptionLabel, e)),
     ruleFact(DIVIDE.reviewLabel, c.review),
     ...(c.exemptOverAc.value !== null ? [ruleFact(DIVIDE.exemptLabel, c.exemptOverAc)] : []),
     ...c.notes.map((n) => ({ label: DIVIDE.noteLabel, value: n })),

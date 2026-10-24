@@ -14,7 +14,7 @@ export const SPLIT_WORDS = {
   passes: "Passes the county's lot size and frontage",
   under: (rule: string) => `Under the county's ${rule}`,
   rename: "Rename",
-  remove: "Remove scenario",
+  remove: "Remove this split",
   adjust: "Adjust the line",
   add: "Add this piece to the list",
   failed: "This piece didn't grade",

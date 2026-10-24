@@ -222,7 +222,7 @@ export const HUNT = {
 // ---------- Ride, ski, snowshoe from home ----------
 
 /** Said with every Ride answer (§3.1). */
-const RIDE_PRIVATE = "neighbours' corridors are private unless they agree";
+const RIDE_PRIVATE = "neighbours' land is private unless they agree";
 
 export const RIDE = {
   privateCorridors: RIDE_PRIVATE,
@@ -268,7 +268,7 @@ export const DIVIDE = {
   frontageRuleLabel: "Road frontage per lot",
   frontageLabel: "Public road frontage",
   acresLabel: "Acres",
-  exceptionLabel: "Exception",
+  exceptionLabel: "Also allowed",
   reviewLabel: "Review",
   exemptLabel: "Not a subdivision",
   noteLabel: "To re-check",

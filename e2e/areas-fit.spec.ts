@@ -69,7 +69,9 @@ test("each card: its rank beside the fit, and what holds it back; the map's outl
   await expect(pop.getByRole("button", { name: W.star })).toHaveAttribute("aria-pressed", "false");
 
   // Where parcels can be picked, a tap is the parcel's: no area card over it.
-  await page.locator(".maplibregl-popup-close-button").click();
+  // Esc closes the card (B-4), and only it.
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".area-pop")).toHaveCount(0);
   await page.evaluate(() => {
     const map = (window as unknown as { __psMap: { jumpTo(o: object): void } }).__psMap;
     map.jumpTo({ center: [-81.5, 36.63], zoom: 14.5 });

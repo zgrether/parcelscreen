@@ -1127,5 +1127,41 @@ until step 5 (Q14).
         CMS has since dropped: can be removed". It isn't a change in itself.
       - No numbers change: no closure is known today.
       " — emergency department not listed in OpenStreetMap" stays for stored screens; a new screen never has it.
+70. **Step 14: what the land can do** (owner, 2026-10-23, step 14's pre-approved brief and plan,
+    `docs/plans/step-14-land-uses.md`, #301; built in #302–#310; the UX audit's J-1, #306, puts it in a Uses segment).
+    - **New measurements, as optional fields on v9** (§9.65's exception, as §9.66 extended it):
+      - `power`: HIFLD's transmission lines near the parcel, with OSM as the fallback; the distance from the build site,
+        whether a line crosses, and its length inside and voltage (#302).
+      - `frontage`: public and private road frontage (#302).
+      - `cover`: NLCD 2021's forest and open shares, and the open gentle ground near a road (#305).
+      - `streams`: NHD's perennial and intermittent stream inside the parcel, the names, and the nearest's distance
+        (#305).
+      - `trails`: the trail a parcel's gentle ground could hold (#305).
+      - `county`: TIGERweb's county at the centre, and Grayson's zoning districts from its own map (#305).
+
+      SCREEN_SCHEMA_VERSION stays 9: `schema-v9.test.ts`'s snapshot gained each as optional. ENGINE_VERSION 29 → 30
+      (#302) → 31 (#305), measurement-only bumps, so `ENGINE_CURRENT_FROM` stays 29 and no saved grade is hidden. A
+      screen without them shows the uses that need them as "not measured".
+    - **No grade or verdict moves:** every `expected.json` change was additive, its only changed line `"engine": N`.
+      Grades never read the uses (step 14 plan §1).
+    - **The uses** (`lib/uses/*`, #307) are computed at display time from the result, the card's own facts, the
+      parcel's marks, lines and listing, and the county rules (`lib/config/counties.ts`, researched 2026-10-23, each fact
+      with its source, date and a confidence word). There are seven uses (Camp now, Build, Trails and walking woods,
+      Garden/orchard/animals, Hunt, Ride/ski/snowshoe from home, Divide) and the What limits you list. Each answers Yes,
+      Maybe or No with one reason and the facts that decide it.
+    - **The parcel's new fields** (store stays v2: each has a default, so older parcels read as before; no converter):
+      Listing's Deed restrictions (text) and HOA (Yes / No / Not known); a line's optional easement type (Road
+      right-of-way / Utility / Scenic / Other); the Stream point mark; and `scenarios` (#310).
+    - **The panel** (#309): Grade | Uses | Details. Uses holds What you can do here (What decides it on a tap), What
+      limits you and one not-advice line; step 15's How it could pay goes in the same segment (J-1). Grade gets a
+      shortcut line. One page gets the Divide line; Full gets a What you can do here section. Map layers gets Power
+      lines (off by default).
+    - **Split as a scenario** (#310) replaces the keep-a-piece split: the two pieces are graded side by side, each with
+      its own screen (kept under the scenario, synced, not in the parcel's own screens), its costs, its county check and
+      its uses. A split saved before still shows its kept side, read as before.
+    - **Recordings:** Mud Creek's port HAR, append only (`test/tools/mud-creek-har.test.ts` pins each step's entries),
+      gained step 14's power lines, land cover, flowlines, county and zoning, and the two pieces of a fixed split
+      (`test/support/splitScenario.ts`). `record:port` waits 5 s for each connection (it lost the county ask to Node's
+      250 ms default before, #305).
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

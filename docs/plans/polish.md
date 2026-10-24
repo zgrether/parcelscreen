@@ -263,3 +263,32 @@ Show more's heading and chevrons, and "An example lot, not a listing"):
   name from the area alone.
 - **Existing screens:** the phone's toolbar status over the map's buttons; the edit bar's unlabelled bin; the map pins
   E1–E3, S5–S6 and 1–5 with no key; "Held at Maybe by"; "Terrain tiles didn't load" and the tilt tip in the shots.
+
+## Step 14: what the land can do (hand-back)
+
+From the fresh-eyes review of step 14's screens, the findings not fixed in the step. The step fixed three: Divide's
+exceptions read "Could allow more" beside a count they don't reach (now "Also allowed", in the county's words), Ride's
+"corridors" (now "neighbours' land"), and "Remove scenario" (now "Remove this split"). Many of the rest are the UX
+audit's part 2 (docs/design/ux-audit.md), noted where so.
+
+- **Garden: "no water found"** on all three parcels, with a pond in plain sight on Ferney: NHD's flowlines are read, its
+  waterbodies aren't. Fix: read NHD waterbodies (a pond or lake inside, or within the buffer) as water.
+- **Divide: "limited by 1,116 ft of road frontage"** beside the county's "40 ft right-of-way where there's none". Fix: say
+  that a right-of-way is the way around the frontage rule, in the reason.
+- **Divide on Roan: "No. 1 lot: limited by 0 ft of road frontage"** next to a highway: its frontage is the easement's.
+  Fix: "Can't divide: no public road frontage (the way in is an easement)".
+- **Acres: Divide's "30 ac" vs the header's 29.31 ac** (the outline vs the parcel's own land) and the ordinance's "§" codes
+  and dates beside each fact. Fix: one acreage (polish 17); "checked 2026-10-23" for the date.
+- **A split's pieces aren't comparable when one has no route:** the West piece's "Cost to enjoy: the way in isn't priced"
+  against the East's Ready to camp / Ready to build rows. Fix: the same two rows, each saying "not priced".
+- **Hunt and Camp say what, not what would change it:** "1 house within a quarter mile", "36% forest, under 50%"; Camp's Yes
+  "within 300 ft of a road" beside Build's private road. Fix: the threshold in the reason ("Yes from 50%"); Camp names the
+  road's access caveat.
+- **Jargon:** "pioneer track" (the cost's own word), "a path every 100 ft". Fix: "a rough track cut for a 4x4"; "one walking
+  path every 100 ft across the gentle ground".
+- **The phone:** the pieces stack, so they can't be compared at a glance; the ▸ that opens What decides it is small;
+  the Yes and Maybe chips are pale. Fix: a two-column compact piece row; the whole row as the target; darker chips.
+- **Existing screens (the UX audit's part 2):** "Grade again: boundary changed" and "Terrain tiles didn't load" in the
+  seeded shots; Best homesite's site #3 vs "the map's … are for site #1"; the map's pins and lines with no key on screen;
+  the phone sheet's clipped header; the truncated parcel name; the unlabelled bin; the small ⓘ; the two rows of tabs on a
+  phone.

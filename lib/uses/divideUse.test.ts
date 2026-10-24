@@ -69,7 +69,7 @@ describe("Divide's answer", () => {
     });
   });
 
-  it("the county's rules are the facts, each with its source, date and confidence; exceptions could allow more", () => {
+  it("the county's rules are the facts, each with its source, date and confidence; exceptions as the county says them (also allowed, never counted)", () => {
     const a = at(MUD);
     const labels = a.decides.map((f) => f.label);
     expect(labels.slice(0, 7)).toEqual([
@@ -82,12 +82,12 @@ describe("Divide's answer", () => {
       "Public road frontage",
     ]);
     expect(a.decides.find((f) => f.label === "Zoning")?.value).toBe("Rural Farm (RF)");
-    const exceptions = a.decides.filter((f) => f.label === "Exception");
+    const exceptions = a.decides.filter((f) => f.label === "Also allowed");
     expect(exceptions.map((f) => f.value)).toEqual([
-      "Could allow more: A farm division: up to 4 parcels of at least 10 ac each, approved by staff (§6-6)",
-      "Could allow more: A family division: one lot per family member, approved by staff, meeting zoning (§6-5)",
-      "Could allow more: A Class II private street: a 40 ft easement, 20 ft surfaced, at most 17% grade (§9-6)",
-      "Could allow more: A lot without frontage can use a 40 ft right-of-way (§9-2); a house needs 30 ft of frontage on a state road or a 30 ft deeded right-of-way (zoning §3-7)",
+      "A farm division: up to 4 parcels of at least 10 ac each, approved by staff (§6-6)",
+      "A family division: one lot per family member, approved by staff, meeting zoning (§6-5)",
+      "A Class II private street: a 40 ft easement, 20 ft surfaced, at most 17% grade (§9-6)",
+      "A lot without frontage can use a 40 ft right-of-way (§9-2); a house needs 30 ft of frontage on a state road or a 30 ft deeded right-of-way (zoning §3-7)",
     ]);
     for (const f of exceptions) expect(f).toMatchObject({ date: "2026-10-23" });
   });

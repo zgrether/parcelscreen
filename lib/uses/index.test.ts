@@ -34,7 +34,7 @@ describe("the uses on the fixtures", () => {
           "divide": "yes: Up to 11 lots: limited by 1,116 ft of road frontage at 100 ft per lot",
           "garden": "maybe: Garden ground, but no water found: no spring, stream or well marked, and no year-round stream mapped",
           "hunt": "maybe: 1 house within a quarter mile of site #1",
-          "ride": "no: No public land next door, and the nearest long trail is 22 mi away by road; neighbours' corridors are private unless they agree",
+          "ride": "no: No public land next door, and the nearest long trail is 22 mi away by road; neighbours' land is private unless they agree",
           "trails": "no: Mostly steeper than 15%",
         },
       }
@@ -57,7 +57,7 @@ describe("the uses on the fixtures", () => {
           "divide": "yes: Up to 24 lots: limited by 2,494 ft of road frontage at 100 ft per lot",
           "garden": "maybe: Garden ground, but no water found: no spring, stream or well marked, and no year-round stream mapped",
           "hunt": "yes: 292 ac, 93% forest",
-          "ride": "maybe: Gentle ground for your own loop (about 1.4 mi of trail); neighbours' corridors are private unless they agree",
+          "ride": "maybe: Gentle ground for your own loop (about 1.4 mi of trail); neighbours' land is private unless they agree",
           "trails": "yes: About 1.4 mi of trail on 16 ac of gentle ground, at a path every 100 ft",
         },
       }
@@ -79,7 +79,7 @@ describe("the uses on the fixtures", () => {
           "divide": "yes: Up to 21 lots: limited by 44 ac at a 2 ac minimum",
           "garden": "maybe: Garden ground, but no water found: no spring, stream or well marked, and no year-round stream mapped",
           "hunt": "maybe: 36% forest, under 50%",
-          "ride": "maybe: Gentle ground for your own loop (about 1.5 mi of trail); neighbours' corridors are private unless they agree",
+          "ride": "maybe: Gentle ground for your own loop (about 1.5 mi of trail); neighbours' land is private unless they agree",
           "trails": "yes: About 1.5 mi of trail on 18 ac of gentle ground, at a path every 100 ft",
         },
       }
@@ -101,7 +101,7 @@ describe("the uses on the fixtures", () => {
           "divide": "no: 1 lot: limited by 0 ft of road frontage at 40 ft per lot",
           "garden": "maybe: Garden ground, but no water found: no spring, stream or well marked, and no year-round stream mapped",
           "hunt": "maybe: 27 houses within a quarter mile of site #1",
-          "ride": "no: No public land next door, and the nearest long trail is 17 mi away by road; neighbours' corridors are private unless they agree",
+          "ride": "no: No public land next door, and the nearest long trail is 17 mi away by road; neighbours' land is private unless they agree",
           "trails": "no: Mostly steeper than 15%",
         },
       }
