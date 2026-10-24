@@ -25,6 +25,9 @@ const USES: readonly [UseKey, (input: UsesInput) => UseAnswer][] = [
   ["divide", divideUse],
 ];
 
+/** The uses in the panel's order (the loading rows name them before the answers come). */
+export const USE_ORDER: readonly UseKey[] = USES.map(([key]) => key);
+
 export interface LandUses {
   uses: { key: UseKey; name: string; answer: UseAnswer }[];
   limits: Fact[];

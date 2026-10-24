@@ -16,6 +16,7 @@ import {
   openBuilt,
   plainParcel,
   removeBuilt,
+  type EasementType,
   type LineCondition,
   type ListingField,
   type Milestone,
@@ -82,6 +83,11 @@ export interface ExploreState {
   gradeOnOpen: number | null;
   /** The parcel panel shows Details (step 8b; it was the Info panel, 13e-4); Grade when false. */
   info: boolean;
+  /**
+   * Step 14 (plan §6 B): the parcel panel shows Uses when Details doesn't. Details wins while `info` is on, so the paths
+   * that open Details (a line selected, a mark placed, the toolbar's acres) need not know about it.
+   */
+  uses: boolean;
   /** Map layers is open (17e; step 8b: with the results on the map, and beside Details). */
   mapPanel: boolean;
   /** The layer selected in the panel or on the map. */
@@ -110,12 +116,18 @@ export const INITIAL: ExploreState = {
   combineAsNew: null,
   gradeOnOpen: null,
   info: false,
+  uses: false,
   mapPanel: false,
   layer: null,
   serial: 0,
   editing: null,
   markKind: null,
 };
+
+/** The parcel panel's segment (step 14): Grade, Uses or Details. */
+export type PanelView = "grade" | "uses" | "details";
+export const panelView = (s: Pick<ExploreState, "info" | "uses">): PanelView =>
+  s.info ? "details" : s.uses ? "uses" : "grade";
 
 /** The time and a fresh key for a change that may save a parcel (the reducer stays pure). */
 export interface Stamp {
@@ -163,6 +175,8 @@ export type ExploreAction =
   | { type: "applyCombine"; stamp: Stamp }
   /** Open or close the Info panel; closing it clears the selected layer. */
   | { type: "info"; open: boolean }
+  /** Step 14: the panel on Uses (closing Details), or back to Grade. */
+  | { type: "uses"; open: boolean }
   /** Open or close the map panel (17e); opening it closes Info. */
   | { type: "mapPanel"; open: boolean }
   /** Select a layer (opening the panel), or clear the selection. */
@@ -211,6 +225,14 @@ export type ExploreAction =
   | { type: "markupSeptic"; id: string; septicClass: SepticClass | null; serial: number; stamp: Stamp }
   /** WF5: an easement's "Recorded in"; the line scored as the driveway (null: the app's pick). */
   | { type: "markupRecorded"; id: string; recordedIn: string; serial: number; stamp: Stamp }
+  /** Step 14: what an easement is for; null clears it. */
+  | {
+      type: "markupEasementType";
+      id: string;
+      easementType: EasementType | null;
+      serial: number;
+      stamp: Stamp;
+    }
   | { type: "drivewayLine"; line: string | null; serial: number; stamp: Stamp }
   /** Undo of a delete: the line back where it was, and the driveway choice too when it was the line's (WF5). */
   | { type: "markupRestore"; markup: Markup; index: number; driveway?: boolean; serial: number; stamp: Stamp }
@@ -222,9 +244,14 @@ const roundLL = (ll: LatLon): LatLon => [+ll[0].toFixed(6), +ll[1].toFixed(6)];
 
 /** Unselecting always closes the Info panel (owner, plan 13e §4); so does switching parcels, unless the panel
  * is docked beside the map (owner, 13e-4 review). A selected layer belonged to the old parcel either way. */
-const PANEL_CLOSED: Pick<ExploreState, "info" | "layer"> = { info: false, layer: null };
-const switched = (s: ExploreState, keepPanel?: boolean): Pick<ExploreState, "info" | "layer" | "serial"> => ({
+const PANEL_CLOSED: Pick<ExploreState, "info" | "uses" | "layer"> = { info: false, uses: false, layer: null };
+// Uses isn't kept from one parcel to the next (step 14): each opens on Grade, or on Details when never graded.
+const switched = (
+  s: ExploreState,
+  keepPanel?: boolean,
+): Pick<ExploreState, "info" | "uses" | "layer" | "serial"> => ({
   info: !!keepPanel && s.info && !!s.store.open,
+  uses: false,
   layer: null,
   serial: s.serial + 1,
 });
@@ -265,7 +292,8 @@ function edited(
         | "markupKind"
         | "markupCondition"
         | "markupSeptic"
-        | "markupRecorded";
+        | "markupRecorded"
+        | "markupEasementType";
     }
   >,
   others: readonly Markup[],
@@ -284,6 +312,10 @@ function edited(
     case "markupRecorded":
       return m.shape === "line" && m.recordedIn !== a.recordedIn.trim()
         ? { ...m, recordedIn: a.recordedIn.trim() }
+        : m;
+    case "markupEasementType":
+      return m.shape === "line" && (m.easementType ?? null) !== a.easementType
+        ? { ...m, easementType: a.easementType }
         : m;
     case "markupKind":
       return m.shape === "line" ? lineKind(m, a.kind, others) : markKind(m, a.kind, others);
@@ -453,6 +485,9 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
     case "info":
       // Step 8b: `info` is the parcel panel on Details; Map layers is its own, and both can be open.
       return a.open ? { ...s, info: true } : { ...s, ...PANEL_CLOSED };
+    case "uses":
+      // Leaving Details closes what it had selected, as Grade does.
+      return { ...s, ...PANEL_CLOSED, uses: a.open };
     case "mapPanel":
       return { ...s, mapPanel: a.open };
     case "layer":
@@ -672,6 +707,7 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
     case "markupCondition":
     case "markupSeptic":
     case "markupRecorded":
+    case "markupEasementType":
     case "markupDelete": {
       // As notes: an edit after another parcel opened is dropped.
       if (!open || a.serial !== s.serial || !open.markup.some((m) => m.id === a.id)) return s;

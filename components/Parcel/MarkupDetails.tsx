@@ -7,6 +7,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { area, length, lineString } from "@turf/turf";
 import {
+  EASEMENT_TYPES,
   KIND_NAME,
   LINE_CONDITIONS,
   type AreaMarkup,
@@ -20,6 +21,7 @@ import { AREA_KINDS, areaPolygon, POINT_KINDS, SEPTIC_CLASSES, type SepticClass 
 import { lineSummary, routeFromLine } from "@/lib/report/lines";
 import type { ExploreController } from "@/components/Explore/useExploreController";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
+import { EASEMENT_TYPE_CAPTION, EASEMENT_TYPE_WORD } from "@/lib/uses/words";
 
 export const Btn = ({
   kind = "sec",
@@ -125,6 +127,27 @@ export function LineDetails({ ctl, m }: { ctl: ExploreController; m: LineMarkup 
           value={m.recordedIn}
           save={(text) => ctl.saveRecordedIn(m.id, text, serial)}
         />
+      )}
+      {/* Step 14 (plan §3.2): what the easement is for; What limits you, in Uses, lists it. */}
+      {m.kind === "easement" && (
+        <>
+          <div className="pd-caption" aria-hidden="true">
+            {EASEMENT_TYPE_CAPTION}
+          </div>
+          <div className="ip-line-row" role="group" aria-label={EASEMENT_TYPE_CAPTION}>
+            {EASEMENT_TYPES.map((t) => (
+              <button
+                key={t}
+                className="chip"
+                aria-pressed={m.easementType === t}
+                // A second tap clears it: it's optional.
+                onClick={() => ctl.setEasementType(m.id, m.easementType === t ? null : t, serial)}
+              >
+                {EASEMENT_TYPE_WORD[t]}
+              </button>
+            ))}
+          </div>
+        </>
       )}
       <input
         className="ip-line-note"

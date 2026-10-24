@@ -34,6 +34,7 @@ import { GradeAction } from "@/components/Results/panel/GradeAction";
 import { PEEK, PEEK_ANSWER, PEEK_WITH_ACTION, SHEET_QUERY, useBottomSheet } from "./useBottomSheet";
 import { ExploreContext, useExploreController } from "./useExploreController";
 import { Details } from "@/components/Parcel/Details";
+import { Uses } from "@/components/Parcel/Uses";
 import { NOT_GRADED, ParcelSwitch, SHOW_BOUNDARY } from "@/components/Parcel/ParcelSwitch";
 import { AreaBox } from "@/components/Areas/AreaBox";
 
@@ -107,7 +108,7 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   const setHint = useCallback((t: string | ((prev: string) => string)) => setHintState(t), []);
   const explore = useExploreController(config.endpoints.parcels, setHint);
   // On phones the sheet steps aside to its peek while a map tool has the screen (13e-6).
-  const { mode, split, info, store } = explore.state;
+  const { mode, split, info, uses, store } = explore.state;
   // The screen's "after a run, rise" calls the sheet's, which is made below (the sheet's peek depends on the screen).
   const raiseSheet = useRef<() => void>(() => {});
   // After a run the sheet rises, and the panel shows Grade (step 8b).
@@ -151,11 +152,11 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
     window.addEventListener(SHOW_BOUNDARY, up);
     return () => window.removeEventListener(SHOW_BOUNDARY, up);
   }, []);
-  // A card panel (the Easement's, say) is Grade's: Details closes it, so it doesn't cover the switch.
+  // A card panel (the Easement's, say) is Grade's: Details or Uses closes it, so it doesn't cover the switch.
   const { closePanel } = screen;
   useEffect(() => {
-    if (info) closePanel();
-  }, [info, closePanel]);
+    if (info || uses) closePanel();
+  }, [info, uses, closePanel]);
   // A map tool has the screen: on a phone the tab bar steps aside too (step 4b; CSS, only while the map is showing).
   const tool = mode !== null || split !== null;
   useEffect(() => {
@@ -229,7 +230,9 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
     sheetHidden ? "sheet-hidden" : "",
     docked ? (collapsed ? "dock collapsed" : full ? "dock full" : "dock search-only") : "",
     // The phone sheet with a parcel open and nothing run yet: the header alone (17e).
-    !docked && explore.state.store.open && !info && !screen.display && !screen.showSteps ? "bare" : "",
+    !docked && explore.state.store.open && !info && !uses && !screen.display && !screen.showSteps
+      ? "bare"
+      : "",
   ].join(" ");
 
   return (
@@ -282,12 +285,14 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
                   </header>
                   {/* The phone's grade button, under the header (owner, 4c Q1); the desktop's is the toolbar's. */}
                   {!docked && <GradeAction where="sheet" />}
-                  {/* Step 8b: what an edit changed on the card, for a few seconds; then Grade | Details. */}
+                  {/* Step 8b: what an edit changed on the card, for a few seconds; then Grade | Uses | Details. */}
                   {store.open && <GradeNote s={screen} />}
                   {store.open && <ParcelSwitch ctl={explore} />}
                   <div className="explore-scroll">
                     {info && store.open ? (
                       <Details ctl={explore} />
+                    ) : uses && store.open ? (
+                      <Uses s={screen} />
                     ) : (
                       <>
                         <ScreenBody s={screen} />

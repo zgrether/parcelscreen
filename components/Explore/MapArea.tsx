@@ -7,6 +7,7 @@ import { Search } from "@/components/Map/Search";
 import { TerrainLayers } from "@/components/Map/TerrainLayers";
 import { FanLayer } from "@/components/Map/results/FanLayer";
 import { ResultLayers } from "@/components/Map/results/ResultLayers";
+import { PowerLayer } from "@/components/Map/results/PowerLayer";
 import { ResultPins } from "@/components/Map/results/ResultPins";
 import { StandHere } from "@/components/Map/results/StandHere";
 import { ResultTips } from "@/components/Map/results/ResultTips";
@@ -56,6 +57,7 @@ export function MapArea({
       <TerrainLayers hint={setHint} />
       <SurfaceLayer />
       <ResultLayers />
+      <PowerLayer />
       <FanLayer />
       <ResultPins />
       <StandHere />

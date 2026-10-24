@@ -148,6 +148,7 @@ export function ReportCard({
   between = null,
   stale = null,
   note = null,
+  shortcut = null,
 }: {
   card: Card;
   /** The result the card grades: the answer's reason reads a drive time from it. */
@@ -167,6 +168,8 @@ export function ReportCard({
   stale?: StaleBanner | null;
   /** A line from the parcel's own facts, under the reason (WF1: the listing's acres when they differ). Appended. */
   note?: string | null;
+  /** The answer's last line once the run is done (step 14: "What you can do here: …", to Uses). */
+  shortcut?: ReactNode;
 }) {
   const pending = (missing: string | undefined) => running && !!missing;
   const reason = running ? "" : answerReason(card, result);
@@ -260,6 +263,7 @@ export function ReportCard({
         {!running && note && <p className="card-note tiny">{note}</p>}
         {/* WF5: a route chosen from a line this screen has no route from. */}
         {!running && card.routeNote && <p className="card-note tiny">{card.routeNote}</p>}
+        {!running && shortcut}
       </div>
       {!running && <CostSection card={card} onOpen={onOpen} />}
       {between}

@@ -16,6 +16,7 @@ import { BASEMAPS } from "./style";
 import { TerrainControls } from "./TerrainControls";
 import { setMapLayerPrefs, useMapLayerPrefs } from "./useMapLayerPrefs";
 import { AREA_WORDS } from "@/lib/areas/words";
+import { POWER_MAP } from "@/lib/uses/words";
 
 /** Step 8b: the one show/hide for the open parcel's lines, marks and house site. */
 export const MARKS_LABEL = "Your lines and marks";
@@ -83,6 +84,8 @@ function Panel({ onClose }: { onClose: () => void }) {
           )}
           {toggle(MARKS_LABEL, p.marks, () => setMapLayerPrefs({ marks: !p.marks }))}
           {toggle(AREA_WORDS.outlines, p.areas, () => setMapLayerPrefs({ areas: !p.areas }))}
+          {/* Step 14: the power lines near the graded parcel, from its result. */}
+          {toggle(POWER_MAP.toggle, p.power, () => setMapLayerPrefs({ power: !p.power }))}
         </div>
         <AnalysisGroup />
         <MapKey />

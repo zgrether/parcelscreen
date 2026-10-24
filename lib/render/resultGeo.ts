@@ -12,6 +12,7 @@ import type { LatLon } from "../geo/types";
 import { steepLandingLine } from "../report/driveway";
 import { drivenRoute } from "../report/lines";
 import type { PartialScreenResult } from "../screen/types";
+import { POWER_MAP } from "../uses/words";
 
 type FC<G extends Polygon | MultiPolygon | LineString | Point, P> = FeatureCollection<G, P>;
 const point = (ll: LatLon): Point => ({ type: "Point", coordinates: [ll[1], ll[0]] });
@@ -44,6 +45,23 @@ export function trailheadFeatures(r: PartialScreenResult): FC<Point, { tip: stri
       properties: { tip: [t.name, servesLine(t)].filter(Boolean).join("\n") },
       geometry: point(t.ll),
     })),
+  };
+}
+
+/**
+ * The power lines near the parcel (step 14 §2.1, Map layers › Power lines), as the result keeps them ([lon, lat]), each
+ * with its voltage and owner when known.
+ */
+export function powerFeatures(r: PartialScreenResult): FC<LineString, { tip: string }> {
+  return {
+    type: "FeatureCollection",
+    features: (r.power?.lines ?? [])
+      .filter((l) => l.coords.length >= 2)
+      .map((l) => ({
+        type: "Feature",
+        properties: { tip: [POWER_MAP.tip(l.kV), l.owner].filter(Boolean).join("\n") },
+        geometry: { type: "LineString", coordinates: l.coords.map(([lon, lat]) => [lon, lat]) },
+      })),
   };
 }
 

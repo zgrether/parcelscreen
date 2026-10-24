@@ -7,9 +7,9 @@
  */
 import { countyByFips, type CountyRules } from "../config/counties";
 import type { PartialScreenResult } from "../screen/types";
-import { divide, divideHeadline, type DivideResult } from "./divide";
+import { divide, divideHeadline, divideLimit, type DivideResult } from "./divide";
 import type { Fact, UseAnswer, UsesInput } from "./types";
-import { DIVIDE, MISSING, SOURCE } from "./words";
+import { DIVIDE, MISSING, REPORT_DIVIDE, SOURCE } from "./words";
 
 /** An exception that reaches a lot without its own frontage: what could make a frontage-limited count 2. */
 const ACCESS_EXCEPTION = /private|right-of-way|flag|panhandle/i;
@@ -68,6 +68,16 @@ function countyFacts(r: PartialScreenResult, c: CountyRules): Fact[] {
     ...(c.exemptOverAc.value !== null ? [ruleFact(DIVIDE.exemptLabel, c.exemptOverAc)] : []),
     ...c.notes.map((n) => ({ label: DIVIDE.noteLabel, value: n })),
   ];
+}
+
+/**
+ * One page's Divide line (§7): "Can divide into up to 3 lots", or "Can't divide: limited by …". Only where the county is
+ * covered and its minimum lot size is known; null otherwise.
+ */
+export function divideReportLine(r: PartialScreenResult): string | null {
+  const d = divideOf(r);
+  if (!d || d.kind !== "lots") return null;
+  return d.lots >= 2 ? REPORT_DIVIDE.can(d.lots) : REPORT_DIVIDE.cant(divideLimit(d));
 }
 
 export function divideUse({ result: r }: UsesInput): UseAnswer {

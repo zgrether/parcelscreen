@@ -3,6 +3,8 @@
  * "What's on the map" (polish #18, owner 2026-10-20): the pins' codes and the lines a grade draws, each beside a small
  * copy of how it looks, in Map layers. Folded to its heading; the pins' own tooltips say the rest.
  */
+import { POWER_MAP } from "@/lib/uses/words";
+import { POWER_CASING, POWER_COLOR } from "./results/PowerLayer";
 
 /** A pin as the map draws it (the .sitepin classes). */
 const Pin = ({ cls, text }: { cls: string; text: string }) => (
@@ -55,6 +57,8 @@ const ROWS: { key: string; swatch: React.ReactNode; text: string }[] = [
     swatch: <Line color="#e0553f" />,
     text: "The horizon fan: a ray toward each ridge, red where it blocks the winter sun.",
   },
+  // Step 14: added last, so the rows above keep their order.
+  { key: "power", swatch: <Line color={POWER_COLOR} under={POWER_CASING} />, text: POWER_MAP.key },
 ];
 
 export function MapKey() {
