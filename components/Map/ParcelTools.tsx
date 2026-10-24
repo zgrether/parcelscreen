@@ -260,11 +260,11 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
   }, [map]);
 
   const mode = ctl.state.mode;
-  // Once the cut is placed, a tap picks a piece.
-  const picking = mode === "split" && !!ctl.state.split?.b;
+  // Once the cut is placed, its ends are dragged to move it (step 14: no piece is picked on the map).
+  const placed = mode === "split" && !!ctl.state.split?.b;
   useEffect(() => {
-    if (map) map.getCanvas().style.cursor = picking ? "pointer" : mode ? "crosshair" : "";
-  }, [map, mode, picking]);
+    if (map) map.getCanvas().style.cursor = !placed && mode ? "crosshair" : "";
+  }, [map, mode, placed]);
 }
 
 function useOverlays(map: MlMap | null, ctl: ExploreController) {
@@ -529,18 +529,13 @@ function useSplitMarkers(map: MlMap | null, ctl: ExploreController) {
 }
 
 /**
- * A label on each piece while a split is placed: its side and the acres keeping it gives. Tapping a label
- * (or anywhere in its piece) keeps that piece. When the parcel already has a split, ● marks the piece kept.
+ * A label on each piece while a split is placed: its side and its acres. Step 14: a label only, since both pieces are
+ * graded (Grade both pieces), not one kept.
  */
 function usePieceLabels(map: MlMap | null, ctl: ExploreController) {
-  const ref = useRef(ctl);
-  useEffect(() => {
-    ref.current = ctl;
-  });
   const markers = useRef(new Map<Side, Marker>());
   const { split } = ctl.state;
   const { pieces } = ctl;
-  const kept = ctl.state.store.open?.split?.keep ?? null;
 
   useEffect(() => {
     if (!map) return;
@@ -554,21 +549,14 @@ function usePieceLabels(map: MlMap | null, ctl: ExploreController) {
     for (const l of labels) {
       let mk = m.get(l.side);
       if (!mk) {
-        const el = document.createElement("button");
-        el.type = "button";
-        el.className = "piece-label";
-        el.addEventListener("click", (e) => {
-          e.stopPropagation();
-          ref.current.choosePiece(l.side);
-        });
+        const el = document.createElement("span");
+        el.className = "piece-label static";
         mk = new Marker({ element: el });
         m.set(l.side, mk.setLngLat([l.at[1], l.at[0]]).addTo(map));
       } else mk.setLngLat([l.at[1], l.at[0]]);
-      const el = mk.getElement();
-      el.textContent = (l.side === kept ? "● " : "") + l.text;
-      el.title = `Keep the ${l.text.split(" ·")[0]} piece`;
+      mk.getElement().textContent = l.text;
     }
-  }, [map, pieces, split, kept]);
+  }, [map, pieces, split]);
 
   useEffect(
     () => () => {

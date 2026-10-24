@@ -13,7 +13,7 @@ import type { Curve } from "./util";
 
 /** Service endpoints. `_v` bumps when a default moves, so stale stored copies are replaced. */
 export const DEFAULT_ENDPOINTS: Endpoints = {
-  _v: 13,
+  _v: 14,
   dem: "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
   terrarium: "https://s3.amazonaws.com/elevation-tiles-prod/terrarium",
   sda: "https://SDMDataAccess.sc.egov.usda.gov/Tabular/post.rest",
@@ -51,6 +51,13 @@ export const DEFAULT_ENDPOINTS: Endpoints = {
     // service it replaces is the back end of the Comptroller's own viewer (docs/plans/phase-0.md §9.46).
     "https://services1.arcgis.com/YuVBSS7Y1of2Qud1/arcgis/rest/services/Tennessee_Property_Boundaries_Public_Use/FeatureServer/0",
   ],
+  // Step 14 (_v 14): HIFLD Open's electric power transmission lines (official; data as of its SOURCEDATE).
+  power:
+    "https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Electric_Power_Transmission_Lines/FeatureServer/0",
+  // Step 14: NLCD 2021 land cover (MRLC's WCS), NHD's flowlines (the National Map), and the Census Bureau's counties.
+  nlcd: "https://www.mrlc.gov/geoserver/mrlc_download/wcs",
+  nhd: "https://hydro.nationalmap.gov/arcgis/rest/services/nhd/MapServer/6",
+  counties: "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/1",
 };
 
 export const DEFAULT_USER_CONFIG: UserConfig = {
@@ -327,6 +334,54 @@ export const SCREEN_CONSTANTS = deepFreeze({
     // before the boundary, isn't the parcel's own drive: Legal road access asks for a recorded right (owner, #126).
     privateOutsideMinM: 15,
     maxWalkM: 5000, // how far along the OSM network to look for a TIGER road
+  },
+  // Step 14 (plan §2.1): power lines near the parcel. HIFLD's transmission lines within searchKm; those within
+  // keepKm kept, simplified, for the map and the house-site distance; OSM's power=line when HIFLD has none or fails.
+  power: {
+    searchKm: 3,
+    keepKm: 1,
+    simplifyDeg: 0.0001, // about 10 m: ArcGIS's maxAllowableOffset
+    insideStepM: 5, // the walk along a line that measures its length inside the parcel
+    timeoutMs: 30_000,
+  },
+  // Step 14 (plan §2.4): land cover from NLCD 2021. Open gentle ground within nearRoadFt of a road is "near the
+  // access" (Camp now); the road distance is read every roadStride cells, each standing for its block.
+  cover: {
+    nearRoadFt: 300,
+    roadStride: 3,
+    timeoutMs: 60_000,
+  },
+  // Step 14 (plan §2.5): NHD's flowlines within bufferFt of the parcel. FCODE 46006 is perennial, 46003 intermittent;
+  // NHD answers slowly (33 s for Mud Creek's box when checked), so it starts with the run.
+  streams: {
+    bufferFt: 300,
+    perennial: [46006] as const,
+    intermittent: [46003] as const,
+    stepM: 5,
+    timeoutMs: 60_000,
+  },
+  // Step 14 (plan §3, §9): the land uses' thresholds. None is graded; each decides a Yes / Maybe / No.
+  uses: {
+    trailSpacingFt: 100, // the trail estimate: one path every 100 ft across the gentle ground
+    trailMaxGradePct: 15, // "gentle ground"
+    trailMinPatchAc: 0.25,
+    trailYesMi: 0.5,
+    trailMaybeMi: 0.2,
+    pastureAc: 2, // open gentle ground for animals
+    smallStockAc: 0.5,
+    huntMinAc: 10,
+    huntForestPct: 50,
+    campNearAccessFt: 300,
+    campMinOpenAc: 0.25,
+    rideNearMi: 3,
+    rideFarMi: 10,
+  },
+  // Step 14 (plan §2.3): road frontage, the road length within the entrance search's reach of the boundary.
+  // Public: TIGER's primary, secondary and local roads (MTFCC S1100, S1200, S1400); OSM's ways only when they're one
+  // of these classes and not private.
+  frontage: {
+    publicMtfcc: ["S1100", "S1200", "S1400"] as const,
+    publicOsm: ["primary", "secondary", "tertiary", "unclassified", "residential"] as const,
   },
   roads: {
     layers: [8, 6, 2] as const, // L843: local, secondary, primary

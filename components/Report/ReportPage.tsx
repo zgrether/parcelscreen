@@ -188,6 +188,7 @@ function Report({
       parcelKey: parcel.key!,
       stale,
       refusesAltSeptic: !!getPref("ps.interview")?.answers.walkAway?.chips?.includes("altSeptic"),
+      parcel,
     });
   }, [parcel, record, household, derived, costs]);
   // The map's content (plan §4): the boundary's rings, the viewer's best site and their alternatives, the lines, a house.
@@ -230,6 +231,7 @@ function Report({
             acres={content.acres}
             adjustments={content.adjustments}
             raise={content.raise}
+            uses={content.uses}
           />
         )}
       </article>

@@ -1842,6 +1842,62 @@
     "distFt": 49097.43827779469
    }
   ],
+  "power": {
+   "source": "osm",
+   "date": null,
+   "lines": [],
+   "nearestFt": null,
+   "nearestKV": null,
+   "crosses": false,
+   "insideFt": 0
+  },
+  "frontage": {
+   "publicFt": 1116,
+   "roads": [
+    {
+     "name": "Mud Creek Ln",
+     "ft": 919,
+     "public": true
+    },
+    {
+     "name": "Mud Creek Rd",
+     "ft": 197,
+     "public": true
+    }
+   ]
+  },
+  "cover": {
+   "forestPct": 95,
+   "openPct": 0,
+   "openGentleAc": 0,
+   "openNearRoadAc": 0,
+   "year": 2021
+  },
+  "streams": {
+   "perennialFt": 0,
+   "intermittentFt": 0,
+   "names": [
+    "Mud Creek"
+   ],
+   "nearestFt": 742
+  },
+  "county": {
+   "fips": "51077",
+   "name": "Grayson",
+   "state": "VA",
+   "zoning": {
+    "districts": [
+     {
+      "code": "RF",
+      "name": "Rural Farm"
+     }
+    ]
+   }
+  },
+  "trails": {
+   "gentleAc": 0.89,
+   "miles": 0.07
+  },
   "near": {
    "hospitals": [
     {
@@ -7802,7 +7858,7 @@
    "mi": 21.8
   },
   "schemaVersion": 9,
-  "engine": 29,
+  "engine": 31,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -9650,6 +9706,62 @@
     "distFt": 49097.43827779469
    }
   ],
+  "power": {
+   "source": "osm",
+   "date": null,
+   "lines": [],
+   "nearestFt": null,
+   "nearestKV": null,
+   "crosses": false,
+   "insideFt": 0
+  },
+  "frontage": {
+   "publicFt": 1116,
+   "roads": [
+    {
+     "name": "Mud Creek Ln",
+     "ft": 919,
+     "public": true
+    },
+    {
+     "name": "Mud Creek Rd",
+     "ft": 197,
+     "public": true
+    }
+   ]
+  },
+  "cover": {
+   "forestPct": 95,
+   "openPct": 0,
+   "openGentleAc": 0,
+   "openNearRoadAc": 0,
+   "year": 2021
+  },
+  "streams": {
+   "perennialFt": 0,
+   "intermittentFt": 0,
+   "names": [
+    "Mud Creek"
+   ],
+   "nearestFt": 742
+  },
+  "county": {
+   "fips": "51077",
+   "name": "Grayson",
+   "state": "VA",
+   "zoning": {
+    "districts": [
+     {
+      "code": "RF",
+      "name": "Rural Farm"
+     }
+    ]
+   }
+  },
+  "trails": {
+   "gentleAc": 0.89,
+   "miles": 0.07
+  },
   "near": {
    "hospitals": [
     {
@@ -15610,7 +15722,7 @@
    "mi": 21.8
   },
   "schemaVersion": 9,
-  "engine": 29,
+  "engine": 31,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

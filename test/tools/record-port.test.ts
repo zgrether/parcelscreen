@@ -13,6 +13,7 @@
  * Run by hand, never in CI: it reaches the public services. The prototype's network.har is never touched.
  */
 import { existsSync } from "node:fs";
+import { setDefaultAutoSelectFamilyAttemptTimeout } from "node:net";
 import { describe, expect, it } from "vitest";
 import { createHttpClient, realClock } from "@/lib/http";
 import { DEFAULT_ENDPOINTS } from "@/lib/screen/config";
@@ -31,7 +32,8 @@ import {
 import { portHarPath, writePortHar } from "../support/portHar";
 import { redGate, toTheBoundary } from "../support/redGate";
 import { runFixture, runScenario, SCENARIOS } from "../support/scenarios";
-import type { ScreenDeps } from "@/lib/screen";
+import { mudPieceInputs } from "../support/splitScenario";
+import { screen, type ScreenDeps } from "@/lib/screen";
 
 /**
  * Runs besides the golden scenarios whose requests the tests replay (they have no expected.json entry). WF6 (#140
@@ -48,6 +50,11 @@ const PORT_RUNS: Partial<
         { lines: [toTheBoundary(redGate)], drivewayLine: "red-gate" },
         deps(),
       ),
+    // Step 14 PR 6 (e2e/split-scenario.spec.ts): the two pieces of Mud Creek's split, each its own screen, as the
+    // app's Grade both pieces runs them.
+    async (deps) => {
+      for (const input of mudPieceInputs()) await screen(input, undefined, deps());
+    },
   ],
   // Step 2 (e2e/tennessee.spec.ts): the Tennessee parcel lines around Roan at zoom 15 and up, and its parcel-number
   // search, as the browser asks them, so the map's tap and search replay offline.
@@ -73,6 +80,13 @@ const BROWSER_UA =
 const uaFor = (url: string) =>
   DEFAULT_ENDPOINTS.overpass.some((u) => url.startsWith(u)) ? SERVER_USER_AGENT : BROWSER_UA;
 const ROAN_PARCELS = DEFAULT_ENDPOINTS.parcels.find((u) => u.includes("Tennessee_Property_Boundaries"))!;
+
+/**
+ * Node gives each of a host's addresses 250 ms to connect, and the run's terrain work holds the event loop longer than
+ * that: a request asked at the start (step 14's county) then failed with "fetch failed" (AggregateError) and was
+ * never recorded. A connect attempt here has 5 s.
+ */
+setDefaultAutoSelectFamilyAttemptTimeout(5000);
 
 /** PORT_APPEND=<slug>: record that fixture's missing requests only, keeping every entry already there. */
 const APPEND = process.env.PORT_APPEND ?? "";

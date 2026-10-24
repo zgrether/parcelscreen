@@ -89,6 +89,9 @@ import { memberName } from "@/lib/client/household";
 import { currentProfileId } from "@/lib/client/profiles";
 import { isPreview, openSample, sampleOf } from "@/lib/client/samples";
 import { SAMPLE_WORDS } from "@/lib/areas/words";
+import { landUses } from "@/lib/uses";
+import { tallyOf, usesInputOf } from "@/lib/uses/input";
+import { USE_WORDS } from "@/lib/uses/words";
 
 /** The run the worker's session holds: which parcel it was for (state.serial) and what it was run on. */
 interface LiveRun {
@@ -524,6 +527,35 @@ export function useScreenIt(
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the open parcel's markup, line, price and adjustments are what matter
     [display, rubric, markup, drivewayLine, askingPrice, costs, household],
   );
+  // Step 14: what the land can do, at the card's site, once the run is done (Uses and Grade's shortcut line read it).
+  const deedRestrictions = open?.deedRestrictions ?? "";
+  const hoa = open?.hoa ?? "unknown";
+  const listingAcres = open?.listingAcres ?? null;
+  const uses = useMemo(
+    () =>
+      display && card && !runningHere
+        ? landUses(
+            usesInputOf(display, card, drawnOf(markup ?? [], drivewayLine, { askingPrice, ...costs }), {
+              markup: markup ?? [],
+              deedRestrictions,
+              hoa,
+              listingAcres,
+            }),
+          )
+        : null,
+    [
+      display,
+      card,
+      runningHere,
+      markup,
+      drivewayLine,
+      askingPrice,
+      costs,
+      deedRestrictions,
+      hoa,
+      listingAcres,
+    ],
+  );
   // A site tapped in the panel (step 7 plan §1.3): evaluated with the live session, as its pin is; without one, the
   // pins' own words say why not.
   const pickSite = (ll: LatLon, label: string) => {
@@ -539,6 +571,8 @@ export function useScreenIt(
     runningHere,
     /** The card for what's shown (step 7): this person's, at their best homesite. */
     card,
+    /** What you can do here (step 14), at the card's site; null before a grade and while one runs. */
+    uses,
     pickSite,
     /** The grade button's state (lib/client/gradeButton.ts): null when there's no reason to run again. */
     grade,
@@ -885,6 +919,14 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             setRubric={s.setRubric}
             onOpen={openPanel}
             stale={banner}
+            shortcut={
+              s.uses && (
+                <button type="button" className="uses-shortcut" onClick={() => s.ctl.setUses(true)}>
+                  <span>{USE_WORDS.tally(tallyOf(s.uses))}</span>
+                  <span aria-hidden="true">›</span>
+                </button>
+              )
+            }
           />
           {raise && (raise.suggestions.length > 0 || raise.neighbour) && (
             <RaiseSection

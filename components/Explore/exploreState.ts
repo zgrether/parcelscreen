@@ -16,6 +16,7 @@ import {
   openBuilt,
   plainParcel,
   removeBuilt,
+  type EasementType,
   type LineCondition,
   type ListingField,
   type Milestone,
@@ -31,6 +32,15 @@ import type { ParcelRecord } from "@/lib/geo/parcels";
 import { drawnPart } from "@/lib/geo/recipe";
 import type { Side } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
+import {
+  nextScenarioName,
+  relined,
+  renamed,
+  withoutScenario,
+  withPieceScreen,
+  withScenario,
+  type PieceSide,
+} from "@/lib/split/scenario";
 import { lineLayer, type LayerId } from "./layers";
 import { withArchive, withMilestone, withRestore } from "@/lib/client/parcelStatus";
 import { starred, unstarred } from "@/lib/client/favorites";
@@ -82,6 +92,11 @@ export interface ExploreState {
   gradeOnOpen: number | null;
   /** The parcel panel shows Details (step 8b; it was the Info panel, 13e-4); Grade when false. */
   info: boolean;
+  /**
+   * Step 14 (plan §6 B): the parcel panel shows Uses when Details doesn't. Details wins while `info` is on, so the paths
+   * that open Details (a line selected, a mark placed, the toolbar's acres) need not know about it.
+   */
+  uses: boolean;
   /** Map layers is open (17e; step 8b: with the results on the map, and beside Details). */
   mapPanel: boolean;
   /** The layer selected in the panel or on the map. */
@@ -99,6 +114,13 @@ export interface ExploreState {
   editing: string | null;
   /** What the Mark tool marks next (WF4); null until a kind is picked. */
   markKind: MarkKind | null;
+  /** Step 14 (plan §5): the scenario whose line the split tool is moving (Adjust the line); null for a new one. */
+  scenarioLine: string | null;
+  /**
+   * Step 14: the scenario to grade next, on the parcel open as `serial`, and which of its pieces (both after Grade both
+   * pieces, one after Try again). The grading hook takes it (scenarioGrading) and runs them one after the other.
+   */
+  gradeScenario: { id: string; sides: PieceSide[]; serial: number } | null;
 }
 
 export const INITIAL: ExploreState = {
@@ -110,12 +132,20 @@ export const INITIAL: ExploreState = {
   combineAsNew: null,
   gradeOnOpen: null,
   info: false,
+  uses: false,
   mapPanel: false,
   layer: null,
   serial: 0,
   editing: null,
   markKind: null,
+  scenarioLine: null,
+  gradeScenario: null,
 };
+
+/** The parcel panel's segment (step 14): Grade, Uses or Details. */
+export type PanelView = "grade" | "uses" | "details";
+export const panelView = (s: Pick<ExploreState, "info" | "uses">): PanelView =>
+  s.info ? "details" : s.uses ? "uses" : "grade";
 
 /** The time and a fresh key for a change that may save a parcel (the reducer stays pure). */
 export interface Stamp {
@@ -147,12 +177,30 @@ export type ExploreAction =
   | { type: "draftCancel" }
   /** Closes the drawn shape: a new parcel, or a piece added to the open one. */
   | { type: "finishDraw"; stamp: Stamp }
-  | { type: "startSplit" }
+  /** The split tool (step 14: a scenario); with `scenario`, its line moved (Adjust the line). */
+  | { type: "startSplit"; scenario?: string }
   | { type: "splitTap"; ll: LatLon }
   | { type: "splitMove"; a: LatLon; b: LatLon | null }
   | { type: "splitCancel" }
-  /** Keep one side of the split line: the line itself is saved, so it can be moved or removed later. */
-  | { type: "keepPiece"; side: Side; stamp: Stamp }
+  /**
+   * Grade both pieces (step 14, plan §5): the line placed is saved as a new scenario (`id`), or as the adjusted one's new
+   * line, and both its pieces are to be graded; the panel shows Uses, where the scenario is. The caller has checked that
+   * the line cuts the parcel in two.
+   */
+  | { type: "placeScenario"; id: string; stamp: Stamp }
+  /** Try again: the pieces of a scenario graded again (those that didn't grade). */
+  | { type: "regradeScenario"; id: string; sides: PieceSide[] }
+  /** The grading hook has taken the scenario to grade. */
+  | { type: "scenarioGrading" }
+  /** A piece graded: its screen kept, for the scenario of the parcel open as `serial`. */
+  | { type: "pieceScreened"; id: string; side: PieceSide; screenId: string; serial: number; stamp: Stamp }
+  | { type: "scenarioName"; id: string; name: string; serial: number; stamp: Stamp }
+  | { type: "scenarioRemove"; id: string; serial: number; stamp: Stamp }
+  /**
+   * Add this piece to the list: the new parcel (made by pieceAsParcel) is kept and opened; the parcel it came from stays
+   * as it is. Graded as it opens when the piece had no screen.
+   */
+  | { type: "addPiece"; parcel: WorkingParcel; stamp: Stamp }
   /** Starts combining, with the open parcel's pieces (if any). */
   | { type: "startCombine"; asNew?: string }
   | { type: "gradedOnOpen" }
@@ -163,6 +211,8 @@ export type ExploreAction =
   | { type: "applyCombine"; stamp: Stamp }
   /** Open or close the Info panel; closing it clears the selected layer. */
   | { type: "info"; open: boolean }
+  /** Step 14: the panel on Uses (closing Details), or back to Grade. */
+  | { type: "uses"; open: boolean }
   /** Open or close the map panel (17e); opening it closes Info. */
   | { type: "mapPanel"; open: boolean }
   /** Select a layer (opening the panel), or clear the selection. */
@@ -211,6 +261,14 @@ export type ExploreAction =
   | { type: "markupSeptic"; id: string; septicClass: SepticClass | null; serial: number; stamp: Stamp }
   /** WF5: an easement's "Recorded in"; the line scored as the driveway (null: the app's pick). */
   | { type: "markupRecorded"; id: string; recordedIn: string; serial: number; stamp: Stamp }
+  /** Step 14: what an easement is for; null clears it. */
+  | {
+      type: "markupEasementType";
+      id: string;
+      easementType: EasementType | null;
+      serial: number;
+      stamp: Stamp;
+    }
   | { type: "drivewayLine"; line: string | null; serial: number; stamp: Stamp }
   /** Undo of a delete: the line back where it was, and the driveway choice too when it was the line's (WF5). */
   | { type: "markupRestore"; markup: Markup; index: number; driveway?: boolean; serial: number; stamp: Stamp }
@@ -222,21 +280,30 @@ const roundLL = (ll: LatLon): LatLon => [+ll[0].toFixed(6), +ll[1].toFixed(6)];
 
 /** Unselecting always closes the Info panel (owner, plan 13e §4); so does switching parcels, unless the panel
  * is docked beside the map (owner, 13e-4 review). A selected layer belonged to the old parcel either way. */
-const PANEL_CLOSED: Pick<ExploreState, "info" | "layer"> = { info: false, layer: null };
-const switched = (s: ExploreState, keepPanel?: boolean): Pick<ExploreState, "info" | "layer" | "serial"> => ({
+const PANEL_CLOSED: Pick<ExploreState, "info" | "uses" | "layer"> = { info: false, uses: false, layer: null };
+// Uses isn't kept from one parcel to the next (step 14): each opens on Grade, or on Details when never graded.
+const switched = (
+  s: ExploreState,
+  keepPanel?: boolean,
+): Pick<ExploreState, "info" | "uses" | "layer" | "serial"> => ({
   info: !!keepPanel && s.info && !!s.store.open,
+  uses: false,
   layer: null,
   serial: s.serial + 1,
 });
 
 /** Tools in progress end when the parcel changes underneath them. */
-const NO_TOOL: Pick<ExploreState, "mode" | "draft" | "split" | "combine" | "editing" | "markKind"> = {
+const NO_TOOL: Pick<
+  ExploreState,
+  "mode" | "draft" | "split" | "combine" | "editing" | "markKind" | "scenarioLine"
+> = {
   mode: null,
   draft: [],
   split: null,
   combine: null,
   editing: null,
   markKind: null,
+  scenarioLine: null,
 };
 
 const LINE_KINDS: readonly MarkupKind[] = ["track", "easement", "drive"];
@@ -265,7 +332,8 @@ function edited(
         | "markupKind"
         | "markupCondition"
         | "markupSeptic"
-        | "markupRecorded";
+        | "markupRecorded"
+        | "markupEasementType";
     }
   >,
   others: readonly Markup[],
@@ -284,6 +352,10 @@ function edited(
     case "markupRecorded":
       return m.shape === "line" && m.recordedIn !== a.recordedIn.trim()
         ? { ...m, recordedIn: a.recordedIn.trim() }
+        : m;
+    case "markupEasementType":
+      return m.shape === "line" && (m.easementType ?? null) !== a.easementType
+        ? { ...m, easementType: a.easementType }
         : m;
     case "markupKind":
       return m.shape === "line" ? lineKind(m, a.kind, others) : markKind(m, a.kind, others);
@@ -382,29 +454,77 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
         store: save(next, a.stamp),
       };
     }
-    case "startSplit":
-      // An existing split is edited where it is.
+    case "startSplit": {
+      // Step 14: the split tool tries a scenario; Adjust the line starts from that scenario's line. A parcel saved with a
+      // split before step 14 keeps it (read as before), and a new line cuts the whole parts, as a split always did.
+      const moving = a.scenario ? open?.scenarios.find((sc) => sc.id === a.scenario) : undefined;
       return {
         ...s,
-        split: open?.split ? { a: open.split.a, b: open.split.b } : null,
+        split: moving ? { a: moving.a, b: moving.b } : null,
+        scenarioLine: moving?.id ?? null,
         combine: null,
         mode: "split",
       };
+    }
     case "splitTap":
       if (!s.split) return { ...s, split: { a: a.ll, b: null } };
-      // The tool stays on: the next tap, on a piece, keeps it (keepPiece).
       if (!s.split.b) return { ...s, split: { a: s.split.a, b: a.ll } };
+      // The line is placed: its ends are dragged to move it, and Grade both pieces takes it.
       return s;
     case "splitMove":
       return { ...s, split: { a: a.a, b: a.b } };
     case "splitCancel":
-      return { ...s, split: null, mode: null };
-    case "keepPiece":
+      return { ...s, split: null, mode: null, scenarioLine: null };
+    case "placeScenario": {
       if (!open || !s.split?.b) return s;
+      const { a: from, b: to } = s.split;
+      const moved = s.scenarioLine && open.scenarios.some((sc) => sc.id === s.scenarioLine);
+      const id = moved ? s.scenarioLine! : a.id;
+      const next = moved
+        ? relined(open, id, from, to, a.stamp.now)
+        : withScenario(open, {
+            id,
+            name: nextScenarioName(open.scenarios),
+            a: from,
+            b: to,
+            screens: { left: null, right: null },
+            at: a.stamp.now,
+          });
       return {
         ...s,
         ...NO_TOOL,
-        store: save({ ...open, split: { a: s.split.a, b: s.split.b, keep: a.side } }, a.stamp),
+        info: false,
+        uses: true,
+        layer: null,
+        gradeScenario: { id, sides: ["left", "right"], serial: s.serial },
+        store: save(next, a.stamp),
+      };
+    }
+    case "regradeScenario":
+      if (!open?.scenarios.some((sc) => sc.id === a.id) || !a.sides.length) return s;
+      return { ...s, gradeScenario: { id: a.id, sides: a.sides, serial: s.serial } };
+    case "scenarioGrading":
+      return s.gradeScenario ? { ...s, gradeScenario: null } : s;
+    case "pieceScreened":
+    case "scenarioName":
+    case "scenarioRemove": {
+      // As notes: a change that lands after another parcel opened is dropped; one that changes nothing saves nothing.
+      if (!open || a.serial !== s.serial) return s;
+      const next =
+        a.type === "pieceScreened"
+          ? withPieceScreen(open, a.id, a.side, a.screenId)
+          : a.type === "scenarioName"
+            ? renamed(open, a.id, a.name)
+            : withoutScenario(open, a.id);
+      return next === open ? s : { ...s, store: save(next, a.stamp) };
+    }
+    case "addPiece":
+      return {
+        ...s,
+        ...NO_TOOL,
+        ...switched(s),
+        gradeOnOpen: a.parcel.screenIds.length ? null : s.serial + 1,
+        store: save(a.parcel, a.stamp),
       };
     case "startCombine":
       return {
@@ -453,6 +573,9 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
     case "info":
       // Step 8b: `info` is the parcel panel on Details; Map layers is its own, and both can be open.
       return a.open ? { ...s, info: true } : { ...s, ...PANEL_CLOSED };
+    case "uses":
+      // Leaving Details closes what it had selected, as Grade does.
+      return { ...s, ...PANEL_CLOSED, uses: a.open };
     case "mapPanel":
       return { ...s, mapPanel: a.open };
     case "layer":
@@ -672,6 +795,7 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
     case "markupCondition":
     case "markupSeptic":
     case "markupRecorded":
+    case "markupEasementType":
     case "markupDelete": {
       // As notes: an edit after another parcel opened is dropped.
       if (!open || a.serial !== s.serial || !open.markup.some((m) => m.id === a.id)) return s;

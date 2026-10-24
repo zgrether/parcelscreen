@@ -1,32 +1,40 @@
 "use client";
 /**
- * The parcel panel's switch (step 8b, docs/plans/step-8b-parcel-panel.md §2): Grade, step 7's answer and card, and
- * Details, everything about the parcel. Under the panel's header on a desktop and in the phone's sheet; step 8's
- * Favorites | History switch in style. Details is the explorer's `info` (selecting a line or mark, a placed mark and the
- * toolbar's acres turn it on).
+ * The parcel panel's switch (step 8b, docs/plans/step-8b-parcel-panel.md §2): Grade, step 7's answer and card; Uses,
+ * step 14's What you can do here (docs/plans/step-14-land-uses.md §6 B); and Details, everything about the parcel. Under
+ * the panel's header on a desktop and in the phone's sheet; step 8's Favorites | History switch in style. Details is the
+ * explorer's `info` (selecting a line or mark, a placed mark and the toolbar's acres turn it on), and wins over Uses.
  */
 import type { ExploreController } from "@/components/Explore/useExploreController";
+import { panelView, type PanelView } from "@/components/Explore/exploreState";
+import { USE_WORDS } from "@/lib/uses/words";
+
+const SEGMENTS: readonly { view: PanelView; label: string }[] = [
+  { view: "grade", label: "Grade" },
+  { view: "uses", label: USE_WORDS.tab },
+  { view: "details", label: "Details" },
+];
 
 export function ParcelSwitch({ ctl }: { ctl: ExploreController }) {
-  const details = ctl.state.info;
+  const view = panelView(ctl.state);
+  const show = (v: PanelView) => {
+    if (v === "details") ctl.setInfo(true);
+    else if (v === "uses") ctl.setUses(true);
+    else ctl.setInfo(false);
+  };
   return (
-    <div className="parcel-switch" role="tablist" aria-label="Grade or details">
-      <button
-        role="tab"
-        aria-selected={!details}
-        className="parcel-switch-seg"
-        onClick={() => ctl.setInfo(false)}
-      >
-        Grade
-      </button>
-      <button
-        role="tab"
-        aria-selected={details}
-        className="parcel-switch-seg"
-        onClick={() => ctl.setInfo(true)}
-      >
-        Details
-      </button>
+    <div className="parcel-switch" role="tablist" aria-label="Grade, uses or details">
+      {SEGMENTS.map((s) => (
+        <button
+          key={s.view}
+          role="tab"
+          aria-selected={view === s.view}
+          className="parcel-switch-seg"
+          onClick={() => show(s.view)}
+        >
+          {s.label}
+        </button>
+      ))}
     </div>
   );
 }

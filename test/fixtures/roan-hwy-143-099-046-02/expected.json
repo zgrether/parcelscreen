@@ -1210,6 +1210,60 @@
     "distFt": 49684.723308822904
    }
   ],
+  "power": {
+   "source": "hifld",
+   "date": "2014-09-02",
+   "lines": [],
+   "nearestFt": 5113,
+   "nearestKV": 161,
+   "crosses": false,
+   "insideFt": 0
+  },
+  "frontage": {
+   "publicFt": 0,
+   "roads": [
+    {
+     "name": "unmapped track",
+     "ft": 2297,
+     "public": false
+    },
+    {
+     "name": "unmapped service",
+     "ft": 492,
+     "public": false
+    },
+    {
+     "name": "unnamed road",
+     "ft": 33,
+     "public": false
+    }
+   ]
+  },
+  "cover": {
+   "forestPct": 67,
+   "openPct": 33,
+   "openGentleAc": 0.5,
+   "openNearRoadAc": 0.5,
+   "year": 2021
+  },
+  "streams": {
+   "perennialFt": 0,
+   "intermittentFt": 0,
+   "names": [
+    "Doe River"
+   ],
+   "nearestFt": 553
+  },
+  "county": {
+   "fips": "47019",
+   "name": "Carter",
+   "state": "TN",
+   "zoning": null
+  },
+  "trails": {
+   "gentleAc": 0.46,
+   "miles": 0.04
+  },
   "near": {
    "hospitals": [
     {
@@ -5143,7 +5197,7 @@
    "mi": 17.1
   },
   "schemaVersion": 9,
-  "engine": 29,
+  "engine": 31,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -6359,6 +6413,60 @@
     "distFt": 49684.723308822904
    }
   ],
+  "power": {
+   "source": "hifld",
+   "date": "2014-09-02",
+   "lines": [],
+   "nearestFt": 5113,
+   "nearestKV": 161,
+   "crosses": false,
+   "insideFt": 0
+  },
+  "frontage": {
+   "publicFt": 0,
+   "roads": [
+    {
+     "name": "unmapped track",
+     "ft": 2297,
+     "public": false
+    },
+    {
+     "name": "unmapped service",
+     "ft": 492,
+     "public": false
+    },
+    {
+     "name": "unnamed road",
+     "ft": 33,
+     "public": false
+    }
+   ]
+  },
+  "cover": {
+   "forestPct": 67,
+   "openPct": 33,
+   "openGentleAc": 0.5,
+   "openNearRoadAc": 0.5,
+   "year": 2021
+  },
+  "streams": {
+   "perennialFt": 0,
+   "intermittentFt": 0,
+   "names": [
+    "Doe River"
+   ],
+   "nearestFt": 553
+  },
+  "county": {
+   "fips": "47019",
+   "name": "Carter",
+   "state": "TN",
+   "zoning": null
+  },
+  "trails": {
+   "gentleAc": 0.46,
+   "miles": 0.04
+  },
   "near": {
    "hospitals": [
     {
@@ -9985,7 +10093,7 @@
    "mi": 17.1
   },
   "schemaVersion": 9,
-  "engine": 29,
+  "engine": 31,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

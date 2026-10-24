@@ -5,6 +5,7 @@ import { EMPTY_HOUSEHOLD } from "../client/takes";
 import { agentQuestions } from "../report/agent";
 import { answerReason } from "../report/answer";
 import { reportCard } from "../report/card";
+import { divideReportLine } from "../uses/divideUse";
 import {
   FIT_STEPS,
   fitSteps,
@@ -84,6 +85,29 @@ describe("the report card's content (step 9 plan §2)", () => {
     const c = reportContent(input({ household }));
     expect(c.takes).toEqual([{ who: "Julie", answer: "maybe", comment: "Steep drive." }]);
     expect(takeWords(c.takes[0]!)).toBe("Julie says Maybe");
+  });
+
+  it("step 14: One page's Divide line and Full's uses, at the viewer's card; the parcel's listing read", () => {
+    const c = reportContent(input());
+    expect(c.divide).toBe(divideReportLine(FERNEY));
+    expect(c.uses.uses.map((u) => u.key)).toEqual([
+      "camp",
+      "build",
+      "trails",
+      "garden",
+      "hunt",
+      "ride",
+      "divide",
+    ]);
+    const hoa = reportContent(input({ parcel: { markup: [], deedRestrictions: "", hoa: "yes" } }));
+    expect(hoa.uses.limits).toContainEqual(expect.objectContaining({ label: "HOA", value: "Yes" }));
+    // Owner, #311: the listing's acres, when typed, counted on as the panel counts on them.
+    const listed = reportContent(
+      input({ parcel: { markup: [], deedRestrictions: "", hoa: "unknown", listingAcres: 30 } }),
+    );
+    expect(listed.divide).toBe(divideReportLine(FERNEY, 30));
+    expect(listed.divide).toContain("on 30 listed ac (the county map shows 43.88)");
+    expect(listed.uses.uses.find((u) => u.key === "divide")?.answer.reason).toContain("on 30 listed ac");
   });
 });
 

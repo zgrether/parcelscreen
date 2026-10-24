@@ -73,8 +73,17 @@ export interface LineMarkup {
    * that the easement be verified; it says where it's recorded. "" when not given; offered on easements only.
    */
   recordedIn: string;
+  /**
+   * What an easement is for (step 14, plan §3.2): a road right-of-way, a utility's, a scenic one, or other. What limits
+   * you lists it; nothing else reads it. Absent or null: not given (a line kept before step 14, or never set).
+   */
+  easementType?: EasementType | null;
   at: string;
 }
+
+/** An easement's purpose (step 14, plan §3.2), in the order the picker offers them. */
+export type EasementType = "row" | "utility" | "scenic" | "other";
+export const EASEMENT_TYPES: readonly EasementType[] = ["row", "utility", "scenic", "other"];
 
 /**
  * A point or area marker (WF4, docs/plans/parcel-workflow.md §3.1–3.2): a spring, a well, a septic permit, a building,
@@ -103,6 +112,7 @@ export const KIND_NAME: Record<MarkupKind, string> = {
   easement: "Easement",
   drive: "Existing drive",
   spring: "Spring",
+  stream: "Stream",
   well: "Well",
   septic: "Septic permit",
   building: "Building",
@@ -173,6 +183,12 @@ export interface WorkingParcel {
   listingAcres: number | null;
   agent: string;
   /**
+   * Step 14 (plan §3.2): the deed's restrictions as typed ("" until typed), and whether there's an HOA. What limits you
+   * lists them; neither reaches the engine or the card. Optional fields with defaults, so `v` stays 2.
+   */
+  deedRestrictions: string;
+  hoa: Hoa;
+  /**
    * Where the household stands on it (WF2, docs/plans/parcel-workflow.md §4): in progress (the default), saved (a
    * contender to keep), or archived, with the reason and what it was before (Restore puts that back). Archiving keeps
    * everything; Remove is still the only delete.
@@ -203,7 +219,31 @@ export interface WorkingParcel {
    * imported; null for a parcel kept before step 6. An optional field with a null default, so `v` stays 2.
    */
   addedBy: string | null;
+  /**
+   * Splits tried on it (step 14, plan §5: "Keep this, sell that"), oldest first: each a line across the parts and the
+   * screen of each piece. The pieces' screens are kept and synced as any screen is, but they aren't in `screenIds`: the
+   * parcel's own history is unchanged. An optional field with an empty default, so `v` stays 2.
+   */
+  scenarios: Scenario[];
   updatedAt: string;
+}
+
+/**
+ * A split tried on a parcel (step 14, plan §5.2): the line a→b across the parcel's parts (the same cut as a `split`),
+ * and each piece's screen by id, left and right of the direction a→b; null until it's graded, or when it didn't grade.
+ */
+export interface Scenario {
+  id: string;
+  /** "Split 1" until renamed. */
+  name: string;
+  a: LatLon;
+  b: LatLon;
+  screens: PieceScreens;
+  at: string;
+}
+export interface PieceScreens {
+  left: string | null;
+  right: string | null;
 }
 
 export interface ParcelStore {
@@ -258,8 +298,14 @@ export const NO_LISTING: Pick<WorkingParcel, ListingField> = {
   listingUrl: "",
   listingAcres: null,
   agent: "",
+  deedRestrictions: "",
+  hoa: "unknown",
 };
-export type ListingField = "name" | "listingUrl" | "listingAcres" | "agent";
+export type ListingField = "name" | "listingUrl" | "listingAcres" | "agent" | "deedRestrictions" | "hoa";
+
+/** Whether the parcel has an HOA, as the household knows it (step 14, plan §3.2). */
+export type Hoa = "yes" | "no" | "unknown";
+export const HOA_VALUES: readonly Hoa[] = ["yes", "no", "unknown"];
 
 /** A name read from the notes is used only this short (owner, #130). */
 export const NOTES_NAME_MAX = 60;
@@ -314,13 +360,15 @@ export function plainParcel(record: ParcelRecord, now: string): WorkingParcel {
     excluded: [],
     screenIds: [],
     addedBy: null,
+    scenarios: [],
     updatedAt: now,
   };
 }
 
 /**
  * Built = changed: more than one piece, a drawn or derived piece (anything but a county record), a split, a
- * house, notes, a price or a listing fact, a status or milestone, a drawn line, or a screen. Once built, it stays built
+ * house, notes, a price or a listing fact, a status or milestone, a drawn line, a screen, or a split tried on it. Once
+ * built, it stays built
  * (it has a key).
  */
 export function isBuilt(p: WorkingParcel | null): boolean {
@@ -337,11 +385,14 @@ export function isBuilt(p: WorkingParcel | null): boolean {
     p.listingUrl.trim() !== "" ||
     p.listingAcres !== null ||
     p.agent.trim() !== "" ||
+    p.deedRestrictions.trim() !== "" ||
+    p.hoa !== "unknown" ||
     p.status !== "inProgress" ||
     p.milestones.walked !== null ||
     p.milestones.offered !== null ||
     p.markup.length > 0 ||
-    p.screenIds.length > 0
+    p.screenIds.length > 0 ||
+    p.scenarios.length > 0
   );
 }
 
@@ -437,6 +488,14 @@ const SplitSchema = z.object({
   b: LatLonSchema,
   keep: z.union([z.literal(1), z.literal(-1)]),
 });
+const ScenarioSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  a: LatLonSchema,
+  b: LatLonSchema,
+  screens: z.object({ left: z.string().nullable(), right: z.string().nullable() }),
+  at: z.string(),
+});
 const LineSchema = z
   .object({
     id: z.string(),
@@ -451,6 +510,8 @@ const LineSchema = z
     note: z.string(),
     // Added with WF5: a line kept before has no record.
     recordedIn: z.string().default(""),
+    // Added with step 14: a line kept before has no purpose given, and stays without one.
+    easementType: z.enum(EASEMENT_TYPES).nullable().optional(),
     at: z.string(),
   })
   .transform((m): Omit<LineMarkup, "name"> & { name?: string } => ({
@@ -498,6 +559,9 @@ const WorkingSchema = z.object({
   listingUrl: z.string().default(""),
   listingAcres: z.number().positive().nullable().default(null),
   agent: z.string().default(""),
+  // Added with step 14: a parcel kept before has no restrictions typed, and an HOA not known.
+  deedRestrictions: z.string().default(""),
+  hoa: z.enum(HOA_VALUES).default("unknown"),
   // Added with WF2: a parcel kept before is in progress, with no milestones.
   status: z.enum(["inProgress", "saved", "archived"]).default("inProgress"),
   archived: z
@@ -530,6 +594,8 @@ const WorkingSchema = z.object({
   screenIds: z.array(z.string()),
   // Added with step 6: a parcel kept before says nothing about who added it.
   addedBy: z.string().nullable().default(null),
+  // Added with step 14: a parcel kept before has no split tried on it.
+  scenarios: z.array(ScenarioSchema).default([]),
   updatedAt: z.string(),
 });
 export const ParcelStoreSchema = z.object({

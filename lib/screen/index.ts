@@ -6,10 +6,10 @@
  *
  * No DOM here: this runs in a Web Worker and in Node.
  */
-import { area, centroid, feature, polygon } from "@turf/turf";
+import { area, bbox, centroid, feature, polygon } from "@turf/turf";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { CancelledError, createHttpClient, type HttpClient } from "../http";
-import { STEPS } from "./config";
+import { SCREEN_CONSTANTS, STEPS } from "./config";
 import { DemCache, fetchDEM, fineResM, parcelBboxes, rcToLL } from "./dem";
 import { driveStart, driveTimes, trailCandidates } from "./drive";
 import { TRAILHEAD_DRIVES, TRAILHEAD_PARKING } from "./driveList";
@@ -43,6 +43,12 @@ import { LONG_TRAIL_DRIVES, longTrailDrive } from "./longTrail";
 import { dishSpot } from "./dish";
 import { OverpassMirrors, type OverpassFallback } from "./places";
 import type { OsmWay } from "./osmRoads";
+import { measureFrontage } from "./frontage";
+import { fetchLandCover, measureCover, type Box } from "./landcover";
+import { fetchFlowlines, measureStreams } from "./streams";
+import { findCounty } from "./county";
+import { trailNetwork } from "./trailNetwork";
+import type { OsmPowerSource } from "./power";
 import { drawnGrid, insideWithLines, measureLines } from "./drawn";
 import type { RoadFeature } from "./roads";
 import { storedHouse, storedSite } from "./derive";
@@ -118,6 +124,8 @@ export interface ScreenDeps {
   buildings?: BuildingSource;
   /** The browser's OSM roads query (VR3a, through /api/places/overpass); Node calls the mirrors directly. */
   osmRoads?: (centre: LatLon, signal?: AbortSignal) => Promise<OsmWay[]>;
+  /** Step 14: OSM's power lines, when not straight to the mirrors (the worker: the app's route). */
+  osmPower?: OsmPowerSource;
   /** The browser's trailhead parking query (follow-up 54, the same route); Node calls the mirrors directly. */
   parking?: ParkingSource;
 }
@@ -307,6 +315,24 @@ export async function screen(
 
   const scoreContext = (): ScoreContext => scoreContextOf(s, R);
 
+  // Step 14 (plan §2.4–§2.6): land cover, mapped streams and the county, asked now and read in the near step: NHD
+  // answers slowly (half a minute when checked), and nothing before the near step needs them.
+  const settle = <T>(p: Promise<T>): Promise<{ ok: true; value: T } | { ok: false; error: unknown }> =>
+    p.then(
+      (value) => ({ ok: true as const, value }),
+      (error: unknown) => ({ ok: false as const, error }),
+    );
+  const usesLand = s.ownLand ?? parcel;
+  const coverAsk = settle(
+    fetchLandCover(paddedBox(usesLand), io.http, 1, {
+      url: cfg.endpoints.nlcd,
+      timeoutMs: SCREEN_CONSTANTS.cover.timeoutMs,
+      ...(signal ? { signal } : {}),
+    }),
+  );
+  const streamsAsk = settle(fetchFlowlines(cfg.endpoints.nhd, usesLand, io));
+  const countyAsk = settle(findCounty(s.centre, usesLand, io, cfg.endpoints.counties));
+
   await step("dem", async () => {
     // Fine, then wide, as in the prototype: a wide-DEM failure leaves the fine DEM in place.
     const b = parcelBboxes(parcel);
@@ -433,11 +459,41 @@ export async function screen(
         ...(deps.overpass ? { overpass: deps.overpass } : {}),
         ...(deps.hospitals ? { hospitals: deps.hospitals } : {}),
         ...(deps.osmRoads ? { osmRoads: deps.osmRoads } : {}),
+        ...(deps.osmPower ? { osmPower: deps.osmPower } : {}),
+        parcel: s.ownLand ?? parcel,
       },
       new OverpassMirrors(),
     );
     R.noResponse.push(...n.unanswered);
     if (n.osmRoads) s.osmRoads = n.osmRoads;
+    // Step 14 (plan §2.1, §2.3): the power lines, and the road frontage from the roads just found.
+    if (n.power) R.power = n.power;
+    R.frontage = measureFrontage(n.roads, n.osmRoads ?? [], s.ownLand ?? parcel);
+    // Step 14 (plan §2.2, §2.4–§2.6): the land cover, mapped streams and county asked at the start, and the trail
+    // estimate. None is graded; a source that didn't answer is named, and the others stand.
+    const [cv, st, co] = await Promise.all([coverAsk, streamsAsk, countyAsk]);
+    for (const a of [cv, st, co]) if (!a.ok && a.error instanceof CancelledError) throw a.error;
+    const roadLines: [number, number][][] = [
+      ...n.roads.flatMap((f) =>
+        f.geometry.type === "LineString"
+          ? [f.geometry.coordinates as [number, number][]]
+          : (f.geometry.coordinates as [number, number][][]),
+      ),
+      ...(n.osmRoads ?? []).map((w) => w.coords),
+    ];
+    if (!cv.ok) R.noResponse.push("Land cover");
+    else if (s.dFine && s.slope && s.inside)
+      R.cover = measureCover(cv.value, s.dFine, s.slope, s.inside, roadLines);
+    if (!st.ok) R.noResponse.push("Mapped streams");
+    else R.streams = measureStreams(st.value, s.ownLand ?? parcel, bestLL);
+    if (!co.ok) R.noResponse.push("County");
+    else if (co.value) {
+      const { zoningFailed, ...county } = co.value;
+      if (zoningFailed) R.noResponse.push("Zoning map");
+      R.county = county;
+    }
+    if (s.dFine && s.slope && s.inside)
+      R.trails = trailNetwork(s.dFine, s.slope, s.inside, (s.flowAcc ??= flowAccum(s.dFine)), sfhaGrid(s));
     if (n.near) R.near = n.near;
     if (n.nearNote) R.nearNote = n.nearNote;
     s.roads = n.roads;
@@ -914,6 +970,12 @@ function routeInside(s: ScreenSession): Uint8Array {
 }
 
 /** The flood zones on the fine DEM, built once per session (VR3a): sites and routes are read against it. */
+/** The parcel's box widened by about 60 m: NLCD's 30 m cells along its edge (step 14). */
+const paddedBox = (p: Feature<Polygon | MultiPolygon>): Box => {
+  const [w, so, e, n] = bbox(p);
+  return [w - 0.0007, so - 0.0006, e + 0.0007, n + 0.0006];
+};
+
 const sfhaGrid = (s: ScreenSession): Uint8Array => (s.sfhaGrid ??= sfhaMask(s.dFine!, s.sfha ?? null));
 
 /**

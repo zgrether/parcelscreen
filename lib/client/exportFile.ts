@@ -421,6 +421,7 @@ function fromPrototypeSaved(s: z.infer<typeof ProtoSavedSchema>, key: string, no
     excluded: [],
     screenIds: [],
     addedBy: null,
+    scenarios: [],
     updatedAt: at,
   };
   // The saved name is the parcel's name (polish #21: no longer written into the notes as "Name: …"). One longer than a

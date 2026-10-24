@@ -6,7 +6,6 @@
  */
 import { bbox as bboxOf, booleanPointInPolygon, point, pointToPolygonDistance } from "@turf/turf";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
-import { fromArrayBuffer } from "geotiff";
 import type { HttpClient } from "../http";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { fetchDEM, inGrid, llToRC, type BboxLL, type DemDeps } from "../screen/dem";
@@ -17,10 +16,6 @@ const K = SCREEN_CONSTANTS.areas;
 /** [west, south, east, north], turf's order. */
 export type Box = [number, number, number, number];
 
-export const NLCD_WCS = "https://www.mrlc.gov/geoserver/mrlc_download/wcs";
-export const NLCD_COVERAGE = "mrlc_download__NLCD_2021_Land_Cover_L48";
-const EPSG_4326 = "http://www.opengis.net/def/crs/EPSG/0/4326";
-
 /** A box widened by `km` on every side. */
 export function widen([w, s, e, n]: Box, km: number): Box {
   const dLat = km / 111.2;
@@ -28,57 +23,9 @@ export function widen([w, s, e, n]: Box, km: number): Box {
   return [w - dLon, s - dLat, e + dLon, n + dLat];
 }
 
-// ---------- land cover ----------
+// ---------- land cover: lib/screen/landcover.ts (the parcel screen reads it too, step 14) ----------
 
-export interface LandCover {
-  west: number;
-  north: number;
-  dx: number;
-  dy: number;
-  w: number;
-  h: number;
-  classes: Uint8Array;
-}
-
-/** NLCD's class at a point; null off the raster. */
-export function landCoverAt(g: LandCover, [lat, lon]: LatLon): number | null {
-  const c = Math.floor((lon - g.west) / g.dx);
-  const r = Math.floor((g.north - lat) / g.dy);
-  if (r < 0 || c < 0 || r >= g.h || c >= g.w) return null;
-  return g.classes[r * g.w + c]!;
-}
-
-/** NLCD 2021 over a box, reprojected by the WCS to latitude and longitude; `scale` below 1 coarsens it (the tests). */
-export async function fetchLandCover(box: Box, http: HttpClient, scale = 1): Promise<LandCover> {
-  const [w, s, e, n] = box;
-  const q = [
-    "service=WCS",
-    "version=2.0.1",
-    "request=GetCoverage",
-    `coverageId=${NLCD_COVERAGE}`,
-    `subset=Lat(${s.toFixed(4)},${n.toFixed(4)})`,
-    `subset=Long(${w.toFixed(4)},${e.toFixed(4)})`,
-    `subsettingcrs=${EPSG_4326}`,
-    `outputcrs=${EPSG_4326}`,
-    ...(scale < 1 ? [`scalefactor=${scale}`] : []),
-    "format=image/geotiff",
-  ].join("&");
-  const r = await http.fetch(`${NLCD_WCS}?${q}`, { timeoutMs: 120_000 });
-  if (!r.ok) throw new Error(`NLCD answered ${r.status}`);
-  const image = await (await fromArrayBuffer(await r.arrayBuffer())).getImage();
-  const [x0, y0] = image.getOrigin() as [number, number];
-  const [dx, dy] = image.getResolution() as [number, number];
-  const [band] = (await image.readRasters()) as unknown as [ArrayLike<number>];
-  return {
-    west: x0,
-    north: y0,
-    dx: Math.abs(dx),
-    dy: Math.abs(dy),
-    w: image.getWidth(),
-    h: image.getHeight(),
-    classes: Uint8Array.from(band),
-  };
-}
+export { fetchLandCover, landCoverAt, NLCD_COVERAGE, NLCD_WCS, type LandCover } from "../screen/landcover";
 
 // ---------- public land ----------
 

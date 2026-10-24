@@ -52,6 +52,16 @@ describe("GET /api/places/overpass", () => {
     expect((await handleOverpass(get("?kind=anything&lat=36.3&lon=-81.6"), http)).status).toBe(400);
   });
 
+  it("kind=power asks for the OSM power lines within 3 km of the point, once (step 14)", async () => {
+    const { http, seen } = fakeHttp(() => new Response(JSON.stringify({ elements: [] })));
+    const r = await handleOverpass(get("?kind=power&lat=36.326382&lon=-81.627171"), http);
+    expect(r.status).toBe(200);
+    expect(seen).toHaveLength(1);
+    expect(decodeURIComponent(seen[0]!.url)).toContain(
+      'way["power"="line"](around:3000,36.326382,-81.627171)',
+    );
+  });
+
   it("kind=parking asks for the parking near up to five trailheads, once (follow-up 54); anything else is refused", async () => {
     const lot = { type: "way", center: { lat: 36.79, lon: -80.47 }, tags: { amenity: "parking" } };
     const { http, seen } = fakeHttp(() => new Response(JSON.stringify({ elements: [lot] })));

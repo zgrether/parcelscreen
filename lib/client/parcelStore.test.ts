@@ -74,6 +74,8 @@ describe("built parcels", () => {
       ["a listing link", { ...plain, listingUrl: "https://x.test/l" }],
       ["listing acres", { ...plain, listingAcres: 52 }],
       ["an agent", { ...plain, agent: "A. Agent" }],
+      ["deed restrictions (step 14)", { ...plain, deedRestrictions: "No mobile homes" }],
+      ["an HOA known", { ...plain, hoa: "no" }],
       ["a status (WF2)", { ...plain, status: "saved" }],
       ["a milestone", { ...plain, milestones: { walked: "2026-10-20", offered: null } }],
       ["results", { ...plain, screenIds: ["screen-1"] }],
@@ -436,5 +438,122 @@ describe("who added it (step 6)", () => {
     expect(s2.built[0]!.addedBy).toBe("zach");
     // Not built yet: nothing to record.
     expect(commitOpen(EMPTY_STORE, plain, T0, () => "k3", "zach").built).toEqual([]);
+  });
+});
+
+describe("step 14's parcel fields (plan §3.2)", () => {
+  it("a parcel kept before them loads with no deed restrictions, an HOA not known, and easements of no purpose", () => {
+    const s = commitOpen(EMPTY_STORE, { ...plain, notes: "kept before step 14" }, T0, keys());
+    const raw = JSON.parse(writeParcelStore(s)) as {
+      v: number;
+      open: Record<string, unknown>;
+      built: Record<string, unknown>[];
+    };
+    for (const p of [raw.open, ...raw.built]) {
+      delete p.deedRestrictions;
+      delete p.hoa;
+      p.markup = [
+        {
+          id: "e",
+          name: "Easement 1",
+          shape: "line",
+          kind: "easement",
+          condition: "uncleared",
+          line: [
+            [36.629, -81.354],
+            [36.6295, -81.3535],
+          ],
+          widthFt: 30,
+          note: "",
+          recordedIn: "",
+          at: T0,
+        },
+      ];
+    }
+    const back = readParcelStore(JSON.stringify(raw))!;
+    expect(back.v).toBe(2);
+    for (const p of [back.open!, ...back.built]) {
+      expect(p).toMatchObject({ deedRestrictions: "", hoa: "unknown", notes: "kept before step 14" });
+      expect(linesOf(p.markup)[0]!.easementType).toBeUndefined();
+    }
+  });
+
+  it("round-trips them, and a Stream mark; an HOA or a purpose it doesn't know fails the read", () => {
+    const stream = {
+      id: "s",
+      name: "Stream 1",
+      shape: "point" as const,
+      kind: "stream" as const,
+      ll: [36.629, -81.354] as [number, number],
+      septicClass: null,
+      note: "",
+      at: T0,
+    };
+    const easement = {
+      id: "e",
+      name: "Easement 1",
+      shape: "line" as const,
+      kind: "easement" as const,
+      condition: "uncleared" as const,
+      line: [
+        [36.629, -81.354],
+        [36.6295, -81.3535],
+      ] as [number, number][],
+      widthFt: 30,
+      note: "",
+      recordedIn: "",
+      easementType: "utility" as const,
+      at: T0,
+    };
+    const p: WorkingParcel = {
+      ...plain,
+      deedRestrictions: "No mobile homes",
+      hoa: "yes",
+      markup: [stream, easement],
+    };
+    const s = commitOpen(EMPTY_STORE, p, T0, keys());
+    const back = readParcelStore(writeParcelStore(s))!.open!;
+    expect(back).toMatchObject({ deedRestrictions: "No mobile homes", hoa: "yes" });
+    expect(back.markup).toEqual([stream, easement]);
+    expect(KIND_NAME.stream).toBe("Stream");
+    const bad = (patch: Record<string, unknown>) =>
+      readParcelStore(writeParcelStore({ ...s, open: { ...s.open!, ...patch } as WorkingParcel }));
+    expect(bad({ hoa: "maybe" })).toBeNull();
+    expect(bad({ markup: [{ ...easement, easementType: "pipeline" }] })).toBeNull();
+  });
+
+  it("split scenarios (§5.2): a parcel kept before them has none; they round-trip, and one builds the parcel", () => {
+    const s = commitOpen(EMPTY_STORE, { ...plain, notes: "kept before step 14" }, T0, keys());
+    const raw = JSON.parse(writeParcelStore(s)) as {
+      open: Record<string, unknown>;
+      built: Record<string, unknown>[];
+    };
+    for (const p of [raw.open, ...raw.built]) delete p.scenarios;
+    const back = readParcelStore(JSON.stringify(raw))!;
+    expect(back.v).toBe(2);
+    for (const p of [back.open!, ...back.built]) expect(p.scenarios).toEqual([]);
+
+    const scenario = {
+      id: "sc1",
+      name: "Split 1",
+      a: [36.627, -81.354] as [number, number],
+      b: [36.631, -81.354] as [number, number],
+      screens: { left: "scr-left", right: null },
+      at: T0,
+    };
+    expect(isBuilt({ ...plain, scenarios: [scenario] })).toBe(true);
+    const kept = commitOpen(EMPTY_STORE, { ...plain, scenarios: [scenario] }, T0, keys());
+    expect(readParcelStore(writeParcelStore(kept))!.open!.scenarios).toEqual([scenario]);
+    expect(
+      readParcelStore(
+        writeParcelStore({
+          ...kept,
+          open: {
+            ...kept.open!,
+            scenarios: [{ ...scenario, screens: { left: 1 } }],
+          } as unknown as WorkingParcel,
+        }),
+      ),
+    ).toBeNull();
   });
 });

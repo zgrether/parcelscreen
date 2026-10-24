@@ -235,7 +235,15 @@ export function AreaOutlines() {
         .setDOMContent(el);
       const root = createRoot(el);
       popRoot.current = root;
+      // Esc closes the card, and only the card (the UX audit's B-4: it closed the parcel behind it and left this up).
+      const onKey = (k: KeyboardEvent) => {
+        if (k.key !== "Escape" || k.defaultPrevented) return;
+        k.preventDefault();
+        pop.remove();
+      };
+      document.addEventListener("keydown", onKey, true);
       pop.on("close", () => {
+        document.removeEventListener("keydown", onKey, true);
         if (popRoot.current === root) popRoot.current = null;
         queueMicrotask(() => root.unmount());
       });

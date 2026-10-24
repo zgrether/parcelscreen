@@ -28,8 +28,22 @@ const ADDED_11 = /^https:\/\/router\.project-osrm\.org\/table\/v1\/driving\//;
  */
 const ADDED_E2E = /^https:\/\/photon\.komoot\.io\/reverse\?lat=36\.58540768065242&lon=-81\.56344520266869&/;
 
+/** What step 14 may add: HIFLD's transmission lines near the parcel, then OSM's power lines. */
+const ADDED_POWER_HIFLD = /Electric_Power_Transmission_Lines\/FeatureServer\/0\/query$/;
+const ADDED_POWER_OSM = /\/api\/interpreter\?data=.*power/;
+
+/** What step 14's PR 3 may add: NLCD's land cover, NHD's flowlines, TIGERweb's county and Grayson's zoning map. */
+const ADDED_LAND = [
+  /^https:\/\/www\.mrlc\.gov\/geoserver\/mrlc_download\/wcs\?/,
+  /^https:\/\/hydro\.nationalmap\.gov\/arcgis\/rest\/services\/nhd\/MapServer\/6\/query$/,
+  /^https:\/\/tigerweb\.geo\.census\.gov\/arcgis\/rest\/services\/TIGERweb\/State_County\/MapServer\/1\/query\?/,
+  /^https:\/\/www\.webgis\.net\/arcgis\/rest\/services\/VA\/GraysonCo_WebGIS1\/MapServer\/21\/query$/,
+];
+
 /** What §9.69 may add: OSRM's table and route for the drives, now to CMS's ERs. */
 const ADDED_ERS = /^https:\/\/router\.project-osrm\.org\/(table|route)\/v1\/driving\//;
+
+const hostOf = (e: Har["log"]["entries"][number]) => new URL(e.request.url).host.toLowerCase();
 
 describe("Mud Creek's port HAR (step 2: append only)", () => {
   const entries = (JSON.parse(readFileSync(PATH, "utf8")) as Har).log.entries;
@@ -39,13 +53,16 @@ describe("Mud Creek's port HAR (step 2: append only)", () => {
     expect(createHash("sha256").update(JSON.stringify(before)).digest("hex")).toBe(BEFORE.sha256);
   });
 
-  it("adds only Tennessee's TREC requests after them, then step 11's long-trail drives, the e2e point's Photon, §9.69's drives", () => {
+  it("adds only Tennessee's TREC requests after them, then step 11's long-trail drives, the e2e point's Photon, §9.69's drives, step 14's power lines and land", () => {
     const added = entries.slice(BEFORE.entries);
     expect(added.length).toBeGreaterThan(0);
-    const trec = added.filter((e) => ADDED.test(e.request.url));
+    // Each step's after the last's: TREC's first (the split's pieces, last, ask TREC again), then OSRM's table, then
+    // the e2e point's two Photon lookups.
+    const trec = added.slice(
+      0,
+      added.findIndex((e) => !ADDED.test(e.request.url)),
+    );
     expect(trec.length).toBeGreaterThan(0);
-    // Each step's after the last's: TREC's first, then OSRM's table, then the e2e point's two Photon lookups.
-    expect(added.slice(0, trec.length)).toEqual(trec);
     const rest = added.slice(trec.length);
     // Step 11's tables run up to the e2e point's Photon lookups.
     const at = rest.findIndex((e) => ADDED_E2E.test(e.request.url));
@@ -55,8 +72,33 @@ describe("Mud Creek's port HAR (step 2: append only)", () => {
     const photon = rest.slice(at, at + 2);
     expect(photon).toHaveLength(2);
     for (const e of photon) expect(e.request.url).toMatch(ADDED_E2E);
-    const ers = rest.slice(at + 2);
+    const ers = rest.slice(at + 2, at + 6);
     expect(ers).toHaveLength(4); // a table and a route out, from each drive start
     for (const e of ers) expect(e.request.url).toMatch(ADDED_ERS);
+    // Step 14: HIFLD's power lines (none near) and OSM's, at whichever mirrors answered when recorded.
+    const tail = rest.slice(at + 6).map((e) => e.request.url);
+    const land = tail.findIndex((u) => ADDED_LAND[0]!.test(u));
+    const power = tail.slice(0, land);
+    expect(power.every((u) => ADDED_POWER_HIFLD.test(u) || ADDED_POWER_OSM.test(u))).toBe(true);
+    expect(power.some((u) => ADDED_POWER_HIFLD.test(u))).toBe(true);
+    expect(power.some((u) => ADDED_POWER_OSM.test(u))).toBe(true);
+    // Step 14's PR 3: the land cover, the flowlines, the county and its zoning map, one each, in the order asked.
+    const landed = tail.slice(land, land + ADDED_LAND.length);
+    expect(landed).toHaveLength(ADDED_LAND.length);
+    landed.forEach((u, i) => expect(u).toMatch(ADDED_LAND[i]!));
+    // Step 14's PR 6: the split's two pieces (test/support/splitScenario.ts), each its own screen, so only the services
+    // the parcel's own screen already asks, all answered (an Overpass mirror's 502 is its answer: the next mirror's
+    // follows, as in the app).
+    const known = new Set(
+      entries.slice(0, entries.length - tail.length + land + ADDED_LAND.length).map(hostOf),
+    );
+    const pieces = entries.slice(entries.length - tail.length + land + ADDED_LAND.length);
+    expect(pieces.length).toBeGreaterThan(0);
+    for (const e of pieces) {
+      expect(known.has(hostOf(e)), e.request.url).toBe(true);
+      if (ADDED_POWER_OSM.test(e.request.url) || hostOf(e).startsWith("overpass"))
+        expect([200, 502, 503, 504]).toContain(e.response.status);
+      else expect(e.response.status, e.request.url).toBe(200);
+    }
   });
 });

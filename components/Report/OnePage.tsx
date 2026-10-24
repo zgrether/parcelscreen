@@ -95,6 +95,9 @@ export function OnePage({
         </p>
       )}
 
+      {/* Step 14 (plan §7): one line on dividing it, after the Raise line, where the county is covered. */}
+      {c.divide && <p className="rp-divide">{c.divide}</p>}
+
       <section className="rp-card" aria-label="Report card">
         {c.tiers.map((t) => (
           <div key={t.name} className="rp-tier">

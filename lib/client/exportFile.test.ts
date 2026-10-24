@@ -196,6 +196,8 @@ describe("version 2 (owner, after #131): every field written; a version 1 file c
       listingUrl: "",
       listingAcres: null,
       agent: "",
+      deedRestrictions: "",
+      hoa: "unknown",
       status: "inProgress",
       archived: null,
       milestones: { walked: null, offered: null },
@@ -305,10 +307,10 @@ describe("settings from a file", () => {
   });
 
   it("the same checks as Save: a bad field fails the whole import", () => {
-    const bad = { ...DEFAULT_USER_CONFIG, gardenMin: 300, endpoints: { ...DEFAULT_ENDPOINTS, _v: 14 } };
+    const bad = { ...DEFAULT_USER_CONFIG, gardenMin: 300, endpoints: { ...DEFAULT_ENDPOINTS, _v: 15 } };
     expect(errors(file({ cfg: bad }))).toEqual([
       "Settings: Garden: min cell score — must be between 0 and 100",
-      "Settings: Data endpoints — Endpoints are version 14; only version 13 is accepted, and older versions are replaced by defaults on load. Reset the endpoints, or update the list and set _v to 13.",
+      "Settings: Data endpoints — Endpoints are version 15; only version 14 is accepted, and older versions are replaced by defaults on load. Reset the endpoints, or update the list and set _v to 14.",
     ]);
   });
 

@@ -21,6 +21,7 @@ import { CancelledError, createHttpClient, type HttpClient } from "../http";
 import { DemCache } from "./dem";
 import { evaluateAt, reroute, screen, setHouse, type ScreenOutput, type ScreenSession } from "./index";
 import type { OsmWay } from "./osmRoads";
+import type { OsmPowerSource } from "./power";
 import type { ParkingSource } from "./trailheadParking";
 import type { OverpassFallback } from "./places";
 import type { Surfaces } from "./sites";
@@ -144,6 +145,8 @@ export interface WorkerCoreOptions {
   osmRoads?: (centre: LatLon, signal?: AbortSignal) => Promise<OsmWay[]>;
   /** The trailheads' parking query (follow-up 54), likewise. */
   parking?: ParkingSource;
+  /** OSM's power lines (step 14), likewise. */
+  osmPower?: OsmPowerSource;
   /** Defaults to HEARTBEAT_MS; tests shorten it. */
   heartbeatMs?: number;
 }
@@ -222,6 +225,7 @@ export class ScreenWorkerCore {
         ...(this.opts.overpass ? { overpass: this.opts.overpass } : {}),
         ...(this.opts.osmRoads ? { osmRoads: this.opts.osmRoads } : {}),
         ...(this.opts.parking ? { parking: this.opts.parking } : {}),
+        ...(this.opts.osmPower ? { osmPower: this.opts.osmPower } : {}),
       });
       if (!live()) return;
       this.keep(id, { base: out, current: out, run: out });

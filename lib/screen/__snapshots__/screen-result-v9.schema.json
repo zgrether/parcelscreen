@@ -1413,6 +1413,264 @@
       ],
       "additionalProperties": false
     },
+    "power": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": [
+            "hifld",
+            "osm"
+          ]
+        },
+        "date": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "kV": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "owner": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "coords": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 2,
+                  "maxItems": 2
+                }
+              }
+            },
+            "required": [
+              "kV",
+              "owner",
+              "coords"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "nearestFt": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "nearestKV": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "crosses": {
+          "type": "boolean"
+        },
+        "insideFt": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "source",
+        "date",
+        "lines",
+        "nearestFt",
+        "nearestKV",
+        "crosses",
+        "insideFt"
+      ],
+      "additionalProperties": false
+    },
+    "cover": {
+      "type": "object",
+      "properties": {
+        "forestPct": {
+          "type": "number"
+        },
+        "openPct": {
+          "type": "number"
+        },
+        "openGentleAc": {
+          "type": "number"
+        },
+        "openNearRoadAc": {
+          "type": "number"
+        },
+        "year": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "forestPct",
+        "openPct",
+        "openGentleAc",
+        "openNearRoadAc",
+        "year"
+      ],
+      "additionalProperties": false
+    },
+    "streams": {
+      "type": "object",
+      "properties": {
+        "perennialFt": {
+          "type": "number"
+        },
+        "intermittentFt": {
+          "type": "number"
+        },
+        "names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "nearestFt": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "perennialFt",
+        "intermittentFt",
+        "names",
+        "nearestFt"
+      ],
+      "additionalProperties": false
+    },
+    "trails": {
+      "type": "object",
+      "properties": {
+        "gentleAc": {
+          "type": "number"
+        },
+        "miles": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "gentleAc",
+        "miles"
+      ],
+      "additionalProperties": false
+    },
+    "county": {
+      "type": "object",
+      "properties": {
+        "fips": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "zoning": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "districts": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "code": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "code",
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "districts"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "fips",
+        "name",
+        "state",
+        "zoning"
+      ],
+      "additionalProperties": false
+    },
+    "frontage": {
+      "type": "object",
+      "properties": {
+        "publicFt": {
+          "type": "number"
+        },
+        "roads": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "ft": {
+                "type": "number"
+              },
+              "public": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "name",
+              "ft",
+              "public"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "publicFt",
+        "roads"
+      ],
+      "additionalProperties": false
+    },
     "excluded": {
       "type": "array",
       "items": {
