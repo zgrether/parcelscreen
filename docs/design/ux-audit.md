@@ -1,8 +1,9 @@
 # UX audit and redesign proposal (part 1)
 
-**Status: a proposal for Zach.** This is documents and mock-ups only; nothing in the app changes here. Once the
-proposal (§6) and its judgment calls (§6.10) are approved, part 2 builds them as a normal mission: plan, step branch,
-hand-back.
+**Status: decided (Zach, 2026-10-24).** He chose A on all six judgment calls, with the notes recorded in §6.10. This is
+documents and mock-ups only; nothing in the app changes here. Part 2 builds the proposal as a normal mission (plan as
+PR 0, step branch, hand-back). It starts once step 14's hand-back is on main. The bugs in §7 come first, as one PR into
+main.
 
 The material:
 - this file;
@@ -247,7 +248,7 @@ The proposal keeps one place for each decision (§6.2) and lets the others link 
 - ▸/▾ mean expand, open a menu, and switch to Details.
 
 The proposal:
-- × only closes;
+- × closes (and clears the parcel from the map), never more;
 - deleting and removing are words;
 - an area gets a pin icon (polish #51).
 
@@ -528,7 +529,8 @@ means it remains a polish item, untouched by this proposal.
 
 - **Not for us works on any parcel,** from the header. It asks why (optional chips, an optional note), moves the
   parcel to **Ruled out** on Your list, and greys it on the map. Undo is there, and so is "Move back" from Ruled out.
-- **× only closes.** A graded parcel always stays in Recent for its 30 days. Esc closes the topmost thing only.
+- **× closes the parcel and clears it from the map; a graded parcel always stays in Recent for its 30 days** (J-2,
+  Zach). Esc closes the topmost thing only.
 - **Archive becomes Rule out,** so one decision has one name, wherever it's made.
 
 ### 6.5 P-5. Your list: one name, three views
@@ -604,6 +606,15 @@ means it remains a polish item, untouched by this proposal.
 
 ### 6.10 The judgment calls
 
+**Zach's decisions (2026-10-24): A on all six**, with these notes:
+- **J-1.** Step 14's panel ships as the Uses segment, and step 15 then writes into Uses.
+- **J-2.** **× closes the parcel and clears it from the map, but a graded parcel always stays in Recent for its 30
+  days.** "Not for us" is the explicit header action: an optional reason, then Ruled out, greyed on the map, with
+  Undo. **This supersedes 8c's "× means not for me"** (#253), by Zach's decision.
+- **J-4.** The wording as proposed. Part 2's plan lists every changed string under rule 7.
+- **J-5.** A correction of a fact becomes a shared mark; an opinion stays a personal override. Part 2's plan says which
+  rows count as facts.
+
 **J-1. Where step 14's Uses and step 15's "How it could pay" go.**
 - **A (recommended): one Uses segment holding both panels,** so the segments are Grade · Uses · Details.
   - Three segments stay at least 110 px wide on a 375 px phone.
@@ -649,10 +660,13 @@ means it remains a polish item, untouched by this proposal.
 
 ### 6.11 What this means for steps 14 and 15
 
-- **Step 14 (in flight).** It ships its panel as the Uses segment (J-1 A matches its plan) with its strings as
-  planned. If Zach picks J-1 B, the only change is the segment's name.
-- **Step 15.** It writes its rows into the second panel of Uses, under the same not-advice line.
-- **Part 2 lands after step 14's hand-back,** so the two don't edit the parcel panel at the same time.
+- **Step 14 (in flight).** It ships its panel as the Uses segment (J-1 A, as its plan has it), with its strings as
+  planned.
+- **The order** (Zach, 2026-10-24):
+  1. The bug-fix PR (§7) into main, B-1 first.
+  2. Step 14 to its hand-back.
+  3. Part 2, once that hand-back is on main.
+  4. Step 15, writing its rows into the second panel of Uses, under the same not-advice line.
 
 ### 6.12 Part 2, roughly
 
@@ -661,7 +675,7 @@ For sizing only; the mission's plan sets the PRs.
 | PR | What | From |
 | --- | --- | --- |
 | 1 | The names (§4.1) on screen; the report-text renames listed for approval (rule 7) | P-0 |
-| 2 | Recent keeps every graded parcel; × only closes; Esc closes the topmost; Not for us and Ruled out | P-4, P-5 |
+| 2 | Recent keeps every graded parcel; × closes and clears the map, never Recent; Esc closes the topmost; Not for us and Ruled out | P-4, P-5 |
 | 3 | The parcel header and its actions; takes near the top; the map key line; grading progress on a phone; Adjust in every copy | P-2 |
 | 4 | Search: parcel numbers everywhere with the county named, tax-map numbers, places in the region, a pin at coordinates, the map follows | P-1 |
 | 5 | Household: the menu item, invite a person, link a device, the name at first run | P-8 |
