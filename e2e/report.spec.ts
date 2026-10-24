@@ -109,6 +109,8 @@ test("Full: the summary, then the brief's sections in order, the closing line; C
       "Cost to enjoy",
       // Step 12: both parcels have a way to raise their grade (Roan the septic system, Mud Creek a set-aside).
       "Ways to raise this grade",
+      // Step 14: what the land can do, after Ways to raise.
+      "What you can do here",
       "Winter sun and the horizon",
       "Night sky",
       "Soils, septic and flood",

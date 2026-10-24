@@ -3,10 +3,12 @@ import { describe, expect, it } from "vitest";
 import { ZACH } from "@/test/support/rubrics";
 import type { ParcelRecord } from "@/lib/geo/parcels";
 import type { LatLon } from "@/lib/geo/types";
+import type { EasementType } from "@/lib/client/parcelStore";
 import {
   decideTap,
   exploreReducer,
   INITIAL,
+  panelView,
   type ExploreAction,
   type ExploreState,
   type Stamp,
@@ -1109,5 +1111,55 @@ describe("WF5: a line as the driveway, and where an easement is recorded", () =>
     expect(typed.store.open!.markup[0]).toMatchObject({ recordedIn: "Ashe Co. Plat Bk 574 Pg 1132" });
     expect(rec(typed, "Ashe Co. Plat Bk 574 Pg 1132")).toBe(typed);
     expect(rec(typed, "   ").store.open!.markup[0]).toMatchObject({ recordedIn: "" });
+  });
+
+  it("What it's for (step 14): set, changed, cleared; the same choice saves nothing", () => {
+    const s = withEasement();
+    const set = (st: ExploreState, easementType: EasementType | null) =>
+      exploreReducer(st, {
+        type: "markupEasementType",
+        id: "e",
+        easementType,
+        serial: st.serial,
+        stamp: at(),
+      });
+    const row = set(s, "row");
+    expect(row.store.open!.markup[0]).toMatchObject({ easementType: "row" });
+    expect(set(row, "row")).toBe(row);
+    expect(set(row, "utility").store.open!.markup[0]).toMatchObject({ easementType: "utility" });
+    expect(set(row, null).store.open!.markup[0]).toMatchObject({ easementType: null });
+    // Unset is the same as cleared.
+    expect(set(s, null)).toBe(s);
+    // Another parcel's edit is dropped.
+    expect(
+      exploreReducer(row, {
+        type: "markupEasementType",
+        id: "e",
+        easementType: "scenic",
+        serial: row.serial + 1,
+        stamp: at(),
+      }),
+    ).toBe(row);
+  });
+});
+
+describe("the panel's segments (step 14: Grade | Uses | Details)", () => {
+  it("Uses, then Details over it, then Grade; each parcel opens without Uses", () => {
+    const s = run([selectA()]);
+    expect(panelView(s)).toBe("grade");
+    const uses = exploreReducer(s, { type: "uses", open: true });
+    expect(panelView(uses)).toBe("uses");
+    // A line or mark selected opens Details whatever the segment.
+    const details = exploreReducer(uses, { type: "layer", id: "part:0" });
+    expect(panelView(details)).toBe("details");
+    expect(panelView(exploreReducer(details, { type: "uses", open: true }))).toBe("uses");
+    expect(exploreReducer(details, { type: "uses", open: true }).layer).toBeNull();
+    expect(panelView(exploreReducer(uses, { type: "info", open: false }))).toBe("grade");
+    expect(panelView(exploreReducer(uses, { type: "uses", open: false }))).toBe("grade");
+    for (const act of [
+      { type: "close" },
+      { type: "select", record: b, stamp: at(), keepPanel: true },
+    ] as ExploreAction[])
+      expect(exploreReducer(uses, act).uses).toBe(false);
   });
 });

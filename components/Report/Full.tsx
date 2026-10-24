@@ -51,6 +51,8 @@ import { ordinal } from "@/components/Results/answer/BestHomesite";
 import { siteMeasures } from "@/lib/report/siteMeasures";
 import { lineNamesOf } from "@/lib/report/lines";
 import { CostBreakdown } from "@/components/Results/card/CostBreakdown";
+import type { Fact, LandUses } from "@/lib/uses";
+import { ANSWER_WORD, USE_NAME, USE_WORDS } from "@/lib/uses/words";
 
 /** Full's headings and lines (plan §8). */
 export const FULL_WORDS = {
@@ -121,6 +123,20 @@ const asOf = (iso: string): string => {
     : `as of ${d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
 };
 
+/** Facts as Uses shows them (step 14): "Label: value (source, date)". */
+function PrintFacts({ facts }: { facts: readonly Fact[] }) {
+  return (
+    <ul className="rp-facts-sub">
+      {facts.map((f, i) => (
+        <li key={`${i}-${f.label}`}>
+          {f.label}: {f.value}
+          {(f.source || f.date) && ` (${[f.source, f.date].filter(Boolean).join(", ")})`}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 /** A section of Full: a heading, and its content kept off a page's foot where it can. */
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -138,6 +154,7 @@ export function Full({
   acres,
   adjustments = [],
   raise = [],
+  uses = null,
 }: {
   result: ScreenResult;
   /** The viewer's card. */
@@ -148,6 +165,8 @@ export function Full({
   adjustments?: readonly PrintAdjust[];
   /** Ways to raise the viewer's grade (step 12). */
   raise?: readonly string[];
+  /** What you can do here (step 14), at the viewer's card's site. */
+  uses?: LandUses | null;
 }) {
   // A block's folds (the driveway's grade detail) print open: paper has no ▸ to press (fresh-eyes review).
   const box = useRef<HTMLDivElement>(null);
@@ -280,6 +299,24 @@ export function Full({
               <li key={line}>{line}</li>
             ))}
           </ul>
+        </Section>
+      )}
+      {/* Step 14 (plan §7): every use with its answer, reason and what decides it; the limits; the not-advice line. */}
+      {uses && (
+        <Section title={USE_WORDS.section}>
+          <ul className="rp-uses">
+            {uses.uses.map((u) => (
+              <li key={u.key}>
+                <b>
+                  {u.name}: {ANSWER_WORD[u.answer.answer]}.
+                </b>{" "}
+                {u.answer.reason}.{u.answer.decides.length > 0 && <PrintFacts facts={u.answer.decides} />}
+              </li>
+            ))}
+          </ul>
+          <h3>{USE_NAME.limits}</h3>
+          <PrintFacts facts={uses.limits} />
+          <p>{USE_WORDS.notAdvice}</p>
         </Section>
       )}
 

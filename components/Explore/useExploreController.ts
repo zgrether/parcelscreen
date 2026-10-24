@@ -23,6 +23,7 @@ import { clearUnreadableScreens } from "@/lib/client/screenStore";
 import {
   loadParcelStore,
   recipeOf,
+  type EasementType,
   type LineCondition,
   type ListingField,
   type Milestone,
@@ -196,6 +197,8 @@ export interface ExploreController {
   /** WF5: where an easement is recorded ("" clears it); the line scored as the driveway, or null for the app's pick. */
   saveRecordedIn(id: string, recordedIn: string, serial: number): void;
   setDrivewayLine(line: string | null, serial: number): void;
+  /** Step 14: what an easement is for, or null to clear it. */
+  setEasementType(id: string, easementType: EasementType | null, serial: number): void;
   /**
    * The Mark picker (owner, after #136): open from + Mark, or from a long press (a right-click on a desktop) on the
    * map, which gives where. Null when closed.
@@ -235,6 +238,8 @@ export interface ExploreController {
   combineAt(ll: LatLon, line: ParcelLine | null): Promise<void>;
   applyCombination(): void;
   setInfo(open: boolean): void;
+  /** Step 14: the parcel panel on Uses, or back to Grade. */
+  setUses(open: boolean): void;
   selectLayer(id: LayerId | null): void;
   /**
    * The layer's ×: take a part out, remove the cut, remove the house, delete a line (with Undo). Returns why it can't,
@@ -774,6 +779,9 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     saveRecordedIn(id, recordedIn, serial) {
       dispatch({ type: "markupRecorded", id, recordedIn, serial, stamp: stamp() });
     },
+    setEasementType(id, easementType, serial) {
+      dispatch({ type: "markupEasementType", id, easementType, serial, stamp: stamp() });
+    },
     setDrivewayLine(line, serial) {
       dispatch({ type: "drivewayLine", line, serial, stamp: stamp() });
     },
@@ -899,6 +907,9 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     setInfo(open) {
       dispatch({ type: "info", open });
+    },
+    setUses(open) {
+      dispatch({ type: "uses", open });
     },
     selectLayer(id) {
       dispatch({ type: "layer", id });

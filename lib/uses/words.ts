@@ -13,7 +13,32 @@ export const USE_WORDS = {
   decides: "What decides it",
   notAdvice: "Not advice: check with the county, a surveyor or a land-use attorney before acting.",
   notGraded: "Grade this parcel to see what you can do here",
+  /**
+   * Grade's shortcut line to Uses (step 14 §6, ux-audit P-3): "What you can do here: 1 yes, 4 maybe, 2 no". A count of
+   * none is left out.
+   */
+  tally: (t: Record<Answer, number>) =>
+    `What you can do here: ${(["yes", "maybe", "no"] as const)
+      .filter((a) => t[a] > 0)
+      .map((a) => `${t[a]} ${a}`)
+      .join(", ")}`,
 } as const;
+
+/** One page's Divide line (§9 Report). */
+export const REPORT_DIVIDE = {
+  can: (n: number) => `Can divide into up to ${n} lots`,
+  cant: (reason: string) => `Can't divide: ${reason}`,
+} as const;
+
+/** Map layers' power lines (§9 Map, §2.1): the toggle, the key's line, and a line's tip on the map. */
+export const POWER_MAP = {
+  toggle: "Power lines",
+  key: "A power line near the parcel, when Power lines is on.",
+  tip: (kV: number | null) => (kV !== null ? `A ${fmt(kV)} kV power line` : "A power line"),
+} as const;
+
+/** An easement line's purpose picker, in Details (§3.2). */
+export const EASEMENT_TYPE_CAPTION = "What it's for";
 
 export const ANSWER_WORD: Record<Answer, string> = { yes: "Yes", maybe: "Maybe", no: "No" };
 

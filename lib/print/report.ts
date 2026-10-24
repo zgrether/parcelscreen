@@ -19,6 +19,9 @@ import { raiseSuggestions } from "../report/raise";
 import { EDITOR_TITLES, tierOf } from "../rubric/words";
 import type { ScreenResult } from "../screen/types";
 import { letterText, shownLetter } from "../report/adjust";
+import { landUses, type LandUses } from "../uses";
+import { divideReportLine } from "../uses/divideUse";
+import { usesInputOf, type UsesParcel } from "../uses/input";
 
 /** The new strings (plan §8). */
 export const REPORT_WORDS = {
@@ -114,6 +117,10 @@ export interface ReportContent {
    * then Ready to build; the no-way-in sentence alone; empty before it can be priced.
    */
   cost: string[];
+  /** Step 14 (plan §7): One page's Divide line, where the county is covered; null elsewhere. */
+  divide: string | null;
+  /** Step 14: What you can do here, at the viewer's card's site, for Full. */
+  uses: LandUses;
 }
 
 export interface ReportInput {
@@ -136,6 +143,8 @@ export interface ReportInput {
   stale: boolean;
   /** Step 12: the viewer walked away from "Only an alternative septic system" (their interview). */
   refusesAltSeptic?: boolean;
+  /** Step 14: the parcel's lines, deed restrictions and HOA, for What you can do here. Absent: none, not known. */
+  parcel?: UsesParcel;
 }
 
 /** The tier names, as the card says them. */
@@ -221,6 +230,15 @@ export function reportContent(i: ReportInput): ReportContent {
     }).suggestions.map((x) => `${x.text}${x.cost ? ` · ${x.cost}` : ""}`),
     questions: agentQuestions(mine).map((q) => q.question),
     cost: costPrintLines(mine),
+    divide: divideReportLine(i.result),
+    uses: landUses(
+      usesInputOf(
+        i.result,
+        mine,
+        i.drawn ?? { names: new Map(), marks: [] },
+        i.parcel ?? { markup: [], deedRestrictions: "", hoa: "unknown" },
+      ),
+    ),
   };
 }
 

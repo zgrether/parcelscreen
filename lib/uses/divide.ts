@@ -86,12 +86,17 @@ export function divideHeadline(r: DivideResult): string {
   if (r.kind === "notCovered") return "Not covered here yet";
   if (r.kind === "unknown") return `${r.county.name} County's minimum lot size isn't online: ask the county`;
   const n = r.lots === 1 ? "1 lot" : `Up to ${r.lots} lots`;
+  return `${n}: ${divideLimit(r)}`;
+}
+
+/** What holds the count, as the headline says it after the count: "limited by 1.4 ac at a 2 ac minimum". */
+export function divideLimit(r: Extract<DivideResult, { kind: "lots" }>): string {
   const size = `${ac(r.acres)} ac at a ${ac(r.minLotAc)} ac minimum`;
   const frontage =
     r.publicFrontageFt !== null && r.frontagePerLotFt !== null
       ? `${ft(r.publicFrontageFt)} ft of road frontage at ${ft(r.frontagePerLotFt)} ft per lot`
       : null;
-  if (r.binding === "frontage" && frontage) return `${n}: limited by ${frontage}`;
-  if (r.binding === "both" && frontage) return `${n}: limited by ${size} and ${frontage}`;
-  return `${n}: limited by ${size}`;
+  if (r.binding === "frontage" && frontage) return `limited by ${frontage}`;
+  if (r.binding === "both" && frontage) return `limited by ${size} and ${frontage}`;
+  return `limited by ${size}`;
 }

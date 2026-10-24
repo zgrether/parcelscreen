@@ -21,6 +21,8 @@ export interface MapLayerPrefs {
   lightPollution: boolean;
   /** Step 13: every area's outline (starred areas' show whatever this says). */
   areas: boolean;
+  /** Step 14: the power lines near the graded parcel (off). */
+  power: boolean;
 }
 
 /** Topo and Streets already draw roads and names: the overlay is for the aerials (owner, 17d §7). */
@@ -38,6 +40,7 @@ function read(): MapLayerPrefs {
     marks: getPref("ps.marks"),
     lightPollution: false,
     areas: getPref("ps.areas"),
+    power: getPref("ps.power"),
   };
 }
 
@@ -53,6 +56,7 @@ export function setMapLayerPrefs(patch: Partial<MapLayerPrefs>): void {
   if (patch.lines !== undefined) setPref("ps.lines", patch.lines);
   if (patch.marks !== undefined) setPref("ps.marks", patch.marks);
   if (patch.areas !== undefined) setPref("ps.areas", patch.areas);
+  if (patch.power !== undefined) setPref("ps.power", patch.power);
   listeners.forEach((l) => l());
 }
 
