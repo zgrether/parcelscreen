@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>UX audit mock-ups</title>
+<!--
+  The UX audit's "after" mock-ups (docs/design/ux-audit.md §6). One page, one screen at a time: ?s=<screen>. The same
+  markup lays out as the desktop (1280 × 800) or the phone (375 × 812) by width. Static: the numbers are the fixtures'
+  (Mud Creek, Ferney, Roan; step 14 PR 4's answers on Uses), the money panel's rows illustrate step 15's layout only.
+  Rendered to PNG by tmp/ux/render-mocks.mjs.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link
+  href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&display=swap"
+  rel="stylesheet"
+/>
+<style>
+  :root {
+    --paper: #e7eae3;
+    --paper-2: #dfe3da;
+    --card: #f4f6f1;
+    --ink: #1c2620;
+    --ink-2: #4a5650;
+    --rule: #c3c9bf;
+    --ok: #2f7a46;
+    --warn: #9a6a12;
+    --bad: #a63a2c;
+    --water: #2b6f8f;
+    --dark: #1f2a24;
+    --new: #c0392b;
+    --sans: "Barlow", system-ui, sans-serif;
+    --cond: "Barlow Condensed", "Barlow", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { font: 15px/1.35 var(--sans); color: var(--ink); background: var(--paper); overflow: hidden; }
+  button { font: inherit; color: inherit; }
+  .screen { display: none; position: fixed; inset: 0; }
+  .screen.on { display: block; }
+
+  /* ---- frame: desktop top bar, phone bottom tabs ---- */
+  .top { height: 44px; display: flex; align-items: center; gap: 22px; padding: 0 16px; border-bottom: 1px solid var(--rule); background: var(--paper); position: relative; z-index: 5; }
+  .brand { font: 600 18px var(--cond); margin-right: 8px; }
+  .top a { color: var(--ink-2); text-decoration: none; font-weight: 500; padding: 11px 0; }
+  .top a.cur { color: var(--ink); border-bottom: 3px solid var(--ok); }
+  .top .right { margin-left: auto; display: flex; gap: 14px; align-items: center; color: var(--ink-2); font-size: 14px; }
+  .badge { display: inline-grid; place-items: center; min-width: 18px; height: 18px; border-radius: 9px; background: var(--new); color: #fff; font-size: 11px; font-weight: 600; margin-left: 4px; padding: 0 5px; }
+  .tabs { display: none; }
+  .body { position: absolute; top: 44px; left: 0; right: 0; bottom: 0; }
+
+  /* ---- the map ---- */
+  .map { position: absolute; inset: 0; overflow: hidden;
+    background:
+      radial-gradient(ellipse 30% 22% at 30% 40%, rgba(120, 104, 70, .55), transparent 70%),
+      radial-gradient(ellipse 25% 30% at 70% 60%, rgba(70, 92, 52, .7), transparent 70%),
+      radial-gradient(ellipse 40% 25% at 55% 25%, rgba(98, 112, 66, .6), transparent 70%),
+      repeating-radial-gradient(circle at 48% 52%, rgba(255,255,255,.05) 0 2px, transparent 2px 26px),
+      linear-gradient(135deg, #4e5e3a, #3d4f31 40%, #5a6644 70%, #475a36); }
+  .map svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .mapbtns { position: absolute; right: 16px; top: 56px; display: grid; gap: 8px; }
+  .mapbtn { width: 44px; height: 44px; border-radius: 10px; background: var(--dark); color: #fff; display: grid; place-items: center; font: 600 12px var(--cond); }
+  .pin { position: absolute; transform: translate(-50%, -100%); }
+  .pin b { display: block; width: 26px; height: 26px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--bad); border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.4); }
+  .maplabel { position: absolute; background: rgba(255,255,255,.9); border-radius: 4px; padding: 1px 6px 1px 2px; font: 600 12px var(--cond); color: #1d4a60; display: inline-flex; gap: 5px; align-items: center; white-space: nowrap; }
+  .fit { display: inline-grid; place-items: center; min-width: 22px; height: 18px; border-radius: 3px; color: #fff; font: 600 12px var(--cond); padding: 0 3px; }
+  .gA { background: #2f7a46; } .gB { background: #4f8a60; } .gC { background: var(--warn); } .gD, .gF { background: var(--bad); }
+  .hint { position: absolute; left: 50%; transform: translateX(-50%); bottom: 18px; background: var(--dark); color: #fff; border-radius: 10px; padding: 8px 12px; display: flex; gap: 10px; align-items: center; font-size: 14px; white-space: nowrap; }
+  .hint .b { border: 1px solid #7d8a83; border-radius: 6px; padding: 6px 10px; font-weight: 600; }
+
+  /* ---- the panel (desktop dock) / sheet (phone) ---- */
+  .panel { position: absolute; left: 0; top: 0; bottom: 0; width: 380px; background: var(--paper); border-right: 1px solid var(--rule); overflow: hidden; display: flex; flex-direction: column; z-index: 3; }
+  .pscroll { overflow: hidden; padding: 12px 16px 16px; flex: 1; }
+  .grip { display: none; }
+  .search { display: flex; align-items: center; gap: 8px; height: 40px; border: 1px solid var(--rule); background: #fff; border-radius: 8px; padding: 0 12px; color: var(--ink); }
+  .search .q { flex: 1; }
+  .drop { background: #fff; border: 1px solid var(--rule); border-top: 0; border-radius: 0 0 8px 8px; margin-top: -4px; padding: 6px 0 4px; box-shadow: 0 6px 14px rgba(0,0,0,.12); }
+  .drop h4 { margin: 6px 12px 2px; font: 600 12px var(--sans); text-transform: uppercase; letter-spacing: .04em; color: var(--ink-2); }
+  .drop .r { padding: 8px 12px; display: flex; gap: 8px; align-items: baseline; }
+  .drop .r.sel { background: #e8f0ea; }
+  .drop .r small { color: var(--ink-2); }
+  .drop .note { padding: 2px 12px 6px; font-size: 12px; color: var(--ink-2); }
+  h2 { font: 600 19px var(--cond); margin: 14px 0 4px; }
+  h3 { font: 600 13px var(--sans); margin: 14px 0 6px; color: var(--ink-2); text-transform: uppercase; letter-spacing: .04em; }
+  .muted { color: var(--ink-2); }
+  .tiny { font-size: 12.5px; }
+  p { margin: 4px 0; }
+  .arow { display: flex; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--rule); }
+  .arow .n { flex: 1; } .arow .n small { display: block; color: var(--ink-2); }
+
+  /* parcel header + actions */
+  .phead { display: flex; gap: 10px; align-items: flex-start; }
+  .phead .t { flex: 1; min-width: 0; }
+  .phead .t b { font: 600 20px/1.15 var(--cond); display: block; }
+  .phead .t small { color: var(--ink-2); }
+  .x { width: 44px; height: 44px; display: grid; place-items: center; font-size: 22px; color: var(--ink-2); margin: -8px -10px 0 0; }
+  .answer { display: flex; gap: 10px; align-items: center; margin: 10px 0 4px; }
+  .grade { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 6px; color: #fff; font: 600 22px var(--cond); }
+  .verdict { font: 600 22px var(--cond); }
+  .v-ok { color: var(--ok); } .v-warn { color: var(--warn); } .v-bad { color: var(--bad); }
+  .actions { display: grid; grid-template-columns: repeat(4, auto); gap: 6px; margin: 10px 0 8px; }
+  .act { min-height: 44px; border: 1px solid var(--rule); border-radius: 8px; background: var(--card); display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; font-size: 14px; padding: 0 10px; white-space: nowrap; }
+  .act.primary { background: var(--dark); color: #fff; border-color: var(--dark); }
+  .seg { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; margin: 6px 0 10px; }
+  .seg span { text-align: center; padding: 11px 0; font-weight: 600; color: var(--ink-2); }
+  .seg span.cur { background: var(--dark); color: #fff; }
+  .take { background: #f2efe2; border-left: 4px solid var(--warn); border-radius: 6px; padding: 8px 10px; margin: 6px 0; font-size: 14px; }
+  .take b .dot { display: inline-block; width: 8px; height: 8px; border-radius: 4px; background: var(--new); margin-left: 6px; vertical-align: middle; }
+  .row { display: flex; gap: 10px; align-items: baseline; padding: 7px 0; border-bottom: 1px solid var(--rule); }
+  .row .k { width: 22px; flex: none; text-align: center; font-weight: 700; }
+  .row .l { flex: 1; } .row .l small { display: block; color: var(--ink-2); }
+  .row .v { font-weight: 600; white-space: nowrap; }
+  .ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+  .chip { display: inline-block; border-radius: 12px; padding: 1px 9px; font: 600 12.5px var(--sans); }
+  .yes { background: #dcebdf; color: #1f5a33; } .maybe { background: #f1e6cf; color: #6b4a0b; } .no { background: #f2d9d4; color: #7a2a1f; } .soon { background: var(--paper-2); color: var(--ink-2); }
+  .use { padding: 9px 0; border-bottom: 1px solid var(--rule); display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; }
+  .use b { font-weight: 600; } .use p { grid-column: 1 / -1; margin: 0; color: var(--ink-2); font-size: 14px; }
+  .notadvice { font-size: 12.5px; color: var(--ink-2); border-top: 1px solid var(--rule); padding-top: 8px; margin-top: 10px; }
+  .sub { font-size: 12.5px; color: var(--ink-2); margin: -2px 0 6px; }
+
+  /* ---- pages (list, compare, matters) ---- */
+  .page { position: absolute; inset: 0; overflow: hidden; padding: 16px 24px; }
+  .page h1 { font: 600 24px var(--cond); margin: 0 0 4px; }
+  .ltabs { display: flex; gap: 0; border-bottom: 1px solid var(--rule); margin: 10px 0 12px; }
+  .ltabs span { padding: 10px 16px; font-weight: 600; color: var(--ink-2); }
+  .ltabs span.cur { color: var(--ink); border-bottom: 3px solid var(--ok); }
+  .ltabs .c { font-weight: 400; color: var(--ink-2); }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th { text-align: left; font: 600 13px var(--sans); color: var(--ink-2); padding: 6px 8px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+  td { padding: 9px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .cb { width: 22px; height: 22px; border: 2px solid var(--ink-2); border-radius: 4px; display: inline-block; vertical-align: middle; }
+  .cb.on { background: var(--dark); border-color: var(--dark); position: relative; }
+  .cb.on::after { content: "✓"; color: #fff; position: absolute; inset: 0; display: grid; place-items: center; font-size: 14px; }
+  .gv { display: inline-flex; gap: 6px; align-items: center; font-weight: 600; }
+  .gv .grade { width: 26px; height: 26px; font-size: 15px; }
+  .cards { display: none; }
+  .bar { position: absolute; left: 50%; transform: translateX(-50%); bottom: 18px; background: var(--dark); color: #fff; border-radius: 10px; padding: 8px 8px 8px 16px; display: flex; gap: 14px; align-items: center; box-shadow: 0 6px 18px rgba(0,0,0,.25); }
+  .bar .act { background: #fff; color: var(--ink); border: 0; }
+  .ctable td:first-child { font-weight: 600; width: 230px; }
+  .cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 12px; }
+  .col { background: var(--paper-2); border-radius: 8px; padding: 10px; }
+  .col h4 { margin: 0 0 8px; font: 600 16px var(--cond); }
+  .item { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 9px 10px; margin-bottom: 8px; }
+  .item b { display: block; } .item small { color: var(--ink-2); }
+  .tag { font-size: 11px; border: 1px solid var(--ok); color: var(--ok); border-radius: 8px; padding: 0 6px; margin-left: 6px; font-weight: 600; }
+  .sheetR { position: absolute; right: 24px; top: 60px; width: 380px; background: #fff; border: 1px solid var(--rule); border-radius: 10px; padding: 14px 16px; box-shadow: 0 10px 28px rgba(0,0,0,.18); }
+  .scale { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 8px 0; }
+  .scale div { border-radius: 6px; padding: 6px; font-size: 12.5px; color: #fff; }
+  .slider { height: 6px; background: var(--rule); border-radius: 3px; position: relative; margin: 18px 0 6px; }
+  .slider i { position: absolute; left: 0; width: 62%; top: 0; bottom: 0; background: var(--ok); border-radius: 3px; }
+  .slider b { position: absolute; left: 62%; top: -9px; width: 24px; height: 24px; border-radius: 12px; background: #fff; border: 2px solid var(--ok); transform: translateX(-50%); }
+  .trybar { border: 1px solid var(--rule); border-radius: 8px; padding: 8px 12px; display: flex; gap: 10px; align-items: center; background: var(--card); }
+  .dialog { position: absolute; left: 50%; top: 70px; transform: translateX(-50%); width: 560px; background: var(--paper); border-radius: 12px; box-shadow: 0 16px 40px rgba(0,0,0,.35); padding: 0 0 16px; }
+  .dialog header { display: flex; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--rule); }
+  .dialog header b { font: 600 20px var(--cond); flex: 1; }
+  .dialog .in { padding: 4px 18px; }
+  .member { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--rule); }
+  .av { width: 36px; height: 36px; border-radius: 18px; display: grid; place-items: center; color: #fff; font-weight: 600; }
+  .scrim { position: absolute; inset: 0; background: rgba(20, 26, 22, .45); }
+  .linkbox { display: flex; gap: 8px; align-items: center; background: #fff; border: 1px solid var(--rule); border-radius: 8px; padding: 8px 10px; font-family: ui-monospace, monospace; font-size: 13px; }
+  .toolbar { position: absolute; left: 50%; transform: translateX(-50%); bottom: 18px; background: var(--dark); color: #fff; border-radius: 12px; padding: 8px; display: flex; gap: 8px; align-items: center; white-space: nowrap; }
+  .toolbar .seg2 { display: flex; border: 1px solid #56635c; border-radius: 8px; overflow: hidden; }
+  .toolbar .seg2 span { padding: 10px 12px; font-weight: 600; } .toolbar .seg2 .cur { background: #fff; color: var(--ink); }
+  .toolbar .act { background: transparent; color: #fff; border-color: #56635c; }
+  .toolbar .act.primary { background: #fff; color: var(--ink); }
+  .callout { position: absolute; background: #fff; border-radius: 10px; padding: 12px 14px; box-shadow: 0 8px 22px rgba(0,0,0,.3); width: 340px; }
+  .legend { position: absolute; left: 396px; bottom: 18px; background: rgba(255,255,255,.92); border-radius: 8px; padding: 6px 10px; font-size: 12.5px; display: flex; gap: 12px; }
+  .legend span { display: inline-flex; gap: 5px; align-items: center; }
+  .sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+  /* ===================== the phone ===================== */
+  @media (max-width: 600px) {
+    body { font-size: 15px; }
+    .top { display: none; }
+    .body { top: 0; bottom: 56px; }
+    .tabs { display: grid; grid-template-columns: repeat(4, 1fr); position: absolute; left: 0; right: 0; bottom: 0; height: 56px; background: var(--paper); border-top: 1px solid var(--rule); z-index: 6; }
+    .tabs span { display: grid; place-items: center; font-size: 12.5px; font-weight: 500; color: var(--ink-2); padding-top: 26px; position: relative; }
+    .tabs span::before { content: ""; position: absolute; top: 9px; left: 50%; width: 20px; height: 16px; transform: translateX(-50%); border: 2px solid var(--ink-2); border-radius: 4px; }
+    .tabs span.cur { color: var(--ink); } .tabs span.cur::before { border-color: var(--ink); }
+    .tabs .badge { position: absolute; top: 4px; left: 56%; }
+    .mapbtns { top: 12px; right: 12px; grid-auto-flow: column; }
+    .panel { width: auto; right: 0; top: auto; height: 64%; border-right: 0; border-radius: 14px 14px 0 0; box-shadow: 0 -6px 18px rgba(0,0,0,.18); }
+    .panel.full, .panel.full-phone { height: 100%; border-radius: 0; box-shadow: none; }
+    .panel.tall { height: 86%; }
+    .grip { display: block; width: 40px; height: 5px; border-radius: 3px; background: var(--rule); margin: 8px auto 0; }
+    .pscroll { padding: 8px 14px 14px; }
+    .actions { grid-template-columns: repeat(4, 1fr); }
+    .act { padding: 0 4px; font-size: 13.5px; }
+    .hint { bottom: 12px; font-size: 13px; }
+    .legend { display: none; }
+    .page { padding: 12px 14px; }
+    .page h1 { font-size: 22px; }
+    .wide { display: none; }
+    .cards { display: block; }
+    .card { background: var(--card); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; }
+    .card .cbx { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: var(--ink-2); min-width: 52px; min-height: 44px; justify-content: center; }
+    .bar { bottom: 70px; left: 14px; right: 14px; transform: none; justify-content: space-between; }
+    .cols { grid-template-columns: 1fr; }
+    .col.hide { display: none; }
+    .sheetR { left: 0; right: 0; top: auto; bottom: 0; width: auto; border-radius: 14px 14px 0 0; }
+    .dialog { left: 0; right: 0; top: auto; bottom: 0; transform: none; width: auto; border-radius: 14px 14px 0 0; max-height: 90%; }
+    .toolbar { left: 8px; right: 8px; transform: none; bottom: 12px; justify-content: space-between; flex-wrap: wrap; }
+    .toolbar .seg2 span { padding: 10px 8px; }
+    .callout { left: 12px !important; right: 12px; width: auto; top: auto !important; bottom: 120px; }
+    .ctable { font-size: 13.5px; }
+    .ctable td:first-child { width: auto; }
+    .ctable td, .ctable th { padding: 7px 5px; }
+  }
+</style>
+</head>
+<body>
+<script>
+  // Shared bits, written once and used by each screen below.
+  const TOP = (cur, list = 0) => `<div class="top"><span class="brand">Parcel Screen</span>
+    <a class="${cur === "map" ? "cur" : ""}">Map</a><a class="${cur === "list" ? "cur" : ""}">Your list${list ? `<span class="badge">${list}</span>` : ""}</a>
+    <a class="${cur === "matters" ? "cur" : ""}">What matters</a>
+    <span class="right">Sam · Synced <span style="font-size:20px">☰</span></span></div>`;
+  const TABS = (cur, list = 0) => `<div class="tabs"><span class="${cur === "map" ? "cur" : ""}">Map</span>
+    <span class="${cur === "list" ? "cur" : ""}">Your list${list ? `<b class="badge">${list}</b>` : ""}</span>
+    <span class="${cur === "matters" ? "cur" : ""}">What matters</span><span>More</span></div>`;
+  const BTNS = `<div class="mapbtns"><div class="mapbtn">▦</div><div class="mapbtn">3D</div><div class="mapbtn">◎</div></div>`;
+  // A parcel's outline, drawn in the map's middle-right (desktop) or upper half (phone): viewBox units.
+  const PARCEL = (extra = "") => `<svg viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid slice">
+    <g stroke="rgba(240,220,140,.55)" stroke-width="1.5" fill="none">
+      <path d="M380 60 L520 180 L700 120 L880 260" /><path d="M420 700 L560 560 L760 600 L960 520" />
+      <path d="M300 300 L420 380 L380 520" /><path d="M820 420 L940 380" /></g>
+    <path d="M560 250 L640 210 L760 230 L800 330 L760 470 L640 500 L560 430 Z" fill="rgba(240,170,60,.18)" stroke="#e8962e" stroke-width="5" />
+    ${extra}</svg>`;
+  const ROW = (k, cls, label, sub, v = "") =>
+    `<div class="row"><span class="k ${cls}">${k}</span><span class="l">${label}${sub ? `<small>${sub}</small>` : ""}</span><span class="v">${v}</span></div>`;
+  const HEADER = (seg) => `
+    <div class="grip"></div>
+    <div class="pscroll">
+      <div class="phead"><div class="t"><b>Mud Creek</b><small>30.1 ac · Grayson Co., VA · tax map 63-A-62</small></div><span class="x">×</span></div>
+      <div class="answer"><span class="verdict v-ok">Contender</span><span class="grade gB">B</span>
+        <span class="muted tiny">How grades work</span></div>
+      <p class="tiny">Strong elevation and winter sun; check first: septic.</p>
+      <div class="actions"><span class="act">★ On your list</span><span class="act">Not for us</span><span class="act">Ask Alex</span><span class="act">⋯</span></div>
+      <div class="seg"><span class="${seg === "grade" ? "cur" : ""}">Grade</span><span class="${seg === "uses" ? "cur" : ""}">Uses</span><span class="${seg === "details" ? "cur" : ""}">Details</span></div>`;
+  const s = (id, html) => document.write(`<section class="screen" id="${id}">${html}</section>`);
+</script>
+
+<!-- 1. The map with nothing open: a search that finds the listing's own number, anywhere it's covered -->
+<script>
+  s("map", `${TOP("map")}<div class="body"><div class="map">${PARCEL()}<div class="pin" style="left:68%;top:46%"><b></b></div>${BTNS}
+    <div class="hint">Tap a parcel to select it <span class="b">Draw a custom parcel</span></div></div>
+    <div class="panel full-phone"><div class="grip"></div><div class="pscroll">
+      <div class="search"><span>⌕</span><span class="q">63-A-62</span><span class="muted">×</span></div>
+      <div class="drop">
+        <h4>Parcel numbers · every county we cover</h4>
+        <div class="r sel"><b>63-A-62</b><small>Grayson Co., VA · Mud Creek Ln · 30.1 ac</small></div>
+        <div class="r"><b>63-A-62A</b><small>Grayson Co., VA · 4.0 ac</small></div>
+        <div class="note">Opens the parcel and moves the map to it.</div>
+        <h4>Places near the map</h4>
+        <div class="r">Grayson Highlands State Park <small>VA</small></div>
+      </div>
+      <h2>Where to look</h2>
+      <p class="tiny muted">Ranked for you · in your region (SW Virginia, NW North Carolina, NE Tennessee) · <u>change</u></p>
+      <div class="arow"><span class="fit gA">A−</span><span class="n"><b>Whitetop and Konnarock</b><small>#1 of 21 · 64% of rural land passes your must-haves</small></span>›</div>
+      <div class="arow"><span class="fit gB">B+</span><span class="n"><b>Ashe County (West Jefferson)</b><small>#2 of 21 · 58%</small></span>›</div>
+      <div class="arow"><span class="fit gB">B+</span><span class="n"><b>Boone and Blowing Rock</b><small>#3 of 21 · 41%</small></span>›</div>
+      <div class="arow"><span class="fit gB">B</span><span class="n"><b>Grayson Highlands</b><small>#4 of 21 · 37%</small></span>›</div>
+      <p class="tiny"><u>Show all 21</u> · <u>See them on the map</u></p>
+    </div></div></div>${TABS("map")}`);
+</script>
+
+<!-- 2. A parcel open, Grade: the answer, the actions in reach, the household's take near the top -->
+<script>
+  s("parcel", `${TOP("map", 1)}<div class="body"><div class="map">${PARCEL(`
+      <circle cx="660" cy="330" r="13" fill="#fff"/><text x="660" y="335" font-size="15" text-anchor="middle" font-weight="700">1</text>
+      <path d="M560 470 C600 420 620 380 660 345" stroke="#f4d03f" stroke-width="5" fill="none" stroke-dasharray="10 6"/>`)}${BTNS}
+      <div class="legend"><span><span class="sw" style="background:#fff;border:1px solid #333"></span>1 Best homesite</span><span><span class="sw" style="background:#f4d03f"></span>The app's driveway</span><span><span class="sw" style="background:#e8962e"></span>Mud Creek</span><u>All map marks</u></div></div>
+    <div class="panel tall">${HEADER("grade")}
+      <div class="take"><b>Alex · Maybe<span class="dot"></span></b> “Love the elevation. Let's get a perc test before we decide.”</div>
+      <h3>Must have</h3>
+      ${ROW("✓", "ok", "Floodplain", "No flood zone at the house or the drive")}
+      ${ROW("✓", "ok", "Legal road access", "Frontage on Mud Creek Ln")}
+      ${ROW("✓", "ok", "Driveway on your land", "")}
+      ${ROW("!", "warn", "Septic", "Check first: no soil rates better than very limited", "")}
+      <h3>Really want</h3>
+      ${ROW("A", "ok", "Elevation at the build site", "3,543 ft", "")}
+      ${ROW("A", "ok", "Best homesite", "8.3 h December sun · faces W", "")}
+      ${ROW("B", "ok", "Room to build", "1.0 ac gentle ground", "")}
+      <h3>Cost to enjoy</h3>
+      ${ROW("", "", "Ready to camp", "", "$15–53k + land")}
+      ${ROW("", "", "Ready to build", "everything but the house", "$145–410k + land")}
+    </div></div></div>${TABS("map", 1)}`);
+</script>
+
+<!-- 3. Uses: step 14's panel and, under it, step 15's -->
+<script>
+  const USE = (name, a, why) => `<div class="use"><b>${name}</b><span class="chip ${a.toLowerCase()}">${a}</span><p>${why}</p></div>`;
+  const PAY = (name, a, cls, why) => `<div class="use"><b>${name}</b><span class="chip ${cls}">${a}</span><p>${why}</p></div>`;
+  s("uses", `${TOP("map", 1)}<div class="body"><div class="map">${PARCEL()}${BTNS}</div>
+    <div class="panel tall">${HEADER("uses")}
+      <h3>What you can do here</h3>
+      ${USE("Camp now", "Maybe", "Only after a pioneer track: 2,888 ft to cut")}
+      ${USE("Build", "Maybe", "No soil better than very limited for a septic field (the card's)")}
+      ${USE("Trails and walking woods", "No", "Mostly steeper than 15%")}
+      ${USE("Garden, orchard, animals", "Maybe", "No water found: mark a spring, stream or well")}
+      ${USE("Hunt", "Maybe", "1 house within a quarter mile of the homesite")}
+      ${USE("Ride, ski, snowshoe from home", "No", "No public land next door; a long trail 22 mi by road")}
+      ${USE("Divide", "Yes", "Up to 11 lots, limited by 1,116 ft of frontage at 100 ft · <u>Try a split</u>")}
+      <h3>What limits you</h3>
+      <p class="tiny">0.5 ac in the flood zone · no power line within 3 km · deed restrictions: not entered · HOA: not known</p>
+      <h3>How it could pay <span class="chip soon">step 15</span></h3>
+      <p class="sub">Ranges with their source and date; each says what it costs you in use.</p>
+      ${PAY("Use-value (land use) tax", "Ask the county", "maybe", "Over 20 ac of forest; Grayson takes part")}
+      ${PAY("Split and resell", "Up to 11 lots", "yes", "Break-even price per acre for the piece you sell")}
+      ${PAY("Forest carbon", "Not here", "no", "Under 30 ac of forest")}
+      <p class="notadvice">Not advice: check with the county, a surveyor, a forester or a tax advisor before acting.</p>
+    </div></div></div>${TABS("map", 1)}`);
+</script>
+
+<!-- 4. Not for us: a decision with a reason, from where the person is looking -->
+<script>
+  s("notforus", `${TOP("map")}<div class="body"><div class="map">${PARCEL()}${BTNS}</div>
+    <div class="panel tall"><div class="grip"></div><div class="pscroll">
+      <div class="phead"><div class="t"><b>35-3</b><small>292 ac · Floyd Co., VA</small></div><span class="x">×</span></div>
+      <div class="answer"><span class="verdict v-warn">Maybe</span><span class="grade gB">B</span></div>
+      <p class="tiny">Held at Maybe by: legal road access and septic.</p>
+      <div class="item" style="margin-top:12px;background:#fff">
+        <b style="font:600 18px var(--cond)">Not for us?</b>
+        <p class="tiny muted">It moves to Ruled out on Your list, with your reason, and the map shows it greyed. You can change your mind there.</p>
+        <p style="margin:10px 0 6px;font-weight:600">Why (optional)</p>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <span class="act">Too steep</span><span class="act">Road access</span><span class="act primary">Septic</span><span class="act">Price</span><span class="act">Too far</span><span class="act">Other…</span></div>
+        <div class="search" style="margin:10px 0"><span class="q muted">A note for later (optional)</span></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end"><span class="act">Cancel</span><span class="act primary">Rule it out</span></div>
+      </div>
+      <p class="tiny muted" style="margin-top:10px">Closing with × only closes it: a graded parcel always stays in Recent for 30 days.</p>
+    </div></div></div>${TABS("map")}`);
+</script>
+
+<!-- 5. Your list: one name for the list, three views, takes on the rows, Compare next to what's ticked -->
+<script>
+  const GV = (g, v, cls) => `<span class="gv"><span class="grade g${g}">${g}</span><span class="${cls}">${v}</span></span>`;
+  s("list", `${TOP("list", 1)}<div class="body"><div class="page">
+      <h1>Your list</h1>
+      <div class="ltabs"><span class="cur">Shortlist <span class="c">3</span></span><span>Recent <span class="c">2</span></span><span>Ruled out <span class="c">1</span></span></div>
+      <div class="wide"><table>
+        <tr><th>Compare</th><th>Parcel</th><th>Your grade</th><th>Takes</th><th>Cost to build</th><th>Acres</th><th>Elevation</th><th>Homesite</th><th>Night sky</th><th>Trails</th></tr>
+        <tr><td><span class="cb on"></span></td><td><b>Mud Creek</b><br><small class="muted">Grayson Co., VA</small></td><td>${GV("B", "Contender", "ok")}</td><td>Alex: Maybe <span class="badge">new</span></td><td>$145–410k + land</td><td>30.1</td><td>A</td><td>A</td><td>B</td><td>C</td></tr>
+        <tr><td><span class="cb on"></span></td><td><b>Ferney Creek</b><br><small class="muted">Floyd Co., VA</small></td><td>${GV("B", "Contender", "ok")}</td><td>Asked Alex 10/23</td><td>$31–105k + land</td><td>43.9</td><td>B</td><td>A</td><td>B</td><td>D</td></tr>
+        <tr><td><span class="cb"></span></td><td><b>Roan Mountain</b><br><small class="muted">Carter Co., TN</small></td><td>${GV("B", "Maybe", "warn")}</td><td>—</td><td>not priced</td><td>13.3</td><td>A</td><td>B</td><td>C</td><td>B</td></tr>
+      </table></div>
+      <div class="cards">
+        <div class="card"><div><b>Mud Creek</b> ${GV("B", "Contender", "ok")}<br><small class="muted">30.1 ac · build $145–410k + land</small><br><small>Alex: Maybe <span class="badge">new</span></small></div><div class="cbx"><span class="cb on"></span>Compare</div></div>
+        <div class="card"><div><b>Ferney Creek</b> ${GV("B", "Contender", "ok")}<br><small class="muted">43.9 ac · build $31–105k + land</small><br><small class="muted">Asked Alex 10/23</small></div><div class="cbx"><span class="cb on"></span>Compare</div></div>
+        <div class="card"><div><b>Roan Mountain</b> ${GV("B", "Maybe", "warn")}<br><small class="muted">13.3 ac · not priced</small></div><div class="cbx"><span class="cb"></span>Compare</div></div>
+      </div>
+      <div class="bar">2 ticked <span class="act">Compare 2 →</span></div>
+    </div></div>${TABS("list", 1)}`);
+</script>
+
+<!-- 6. Compare: the card's own section names; the phone reads each row across -->
+<script>
+  const C = (v, cls = "") => `<td class="${cls}">${v}</td>`;
+  s("compare", `${TOP("list")}<div class="body"><div class="page">
+      <p class="tiny"><u>← Your list</u></p><h1>Compare</h1>
+      <table class="ctable">
+        <tr><th></th><th>Mud Creek</th><th>Ferney Creek</th><th>Roan Mtn</th></tr>
+        <tr><td>Your grade</td>${C("B Contender", "ok")}${C("B Contender", "ok")}${C("B Maybe", "warn")}</tr>
+        <tr><td>Cost to build</td>${C("$145–410k")}${C("$31–105k ↑", "ok")}${C("not priced")}</tr>
+        <tr><th colspan="4">Must have</th></tr>
+        <tr><td>Floodplain</td>${C("✓ pass", "ok")}${C("✓ pass", "ok")}${C("✓ pass", "ok")}</tr>
+        <tr><td>Legal road access</td>${C("✓ pass", "ok")}${C("! check first", "warn")}${C("✓ pass", "ok")}</tr>
+        <tr><td>Septic</td>${C("! check first", "warn")}${C("✓ pass", "ok")}${C("! check first", "warn")}</tr>
+        <tr><th colspan="4">Really want</th></tr>
+        <tr><td>Elevation</td>${C("A 3,543 ft")}${C("B 2,890 ft")}${C("A 3,320 ft")}</tr>
+        <tr><td>Best homesite</td>${C("A")}${C("A")}${C("B")}</tr>
+        <tr><td>Night sky</td>${C("B zone 3b")}${C("B zone 3b")}${C("C zone 4a")}</tr>
+        <tr><td>Trails and public land</td>${C("C 22 min")}${C("D 47 min")}${C("B 9 min")}</tr>
+      </table>
+      <p class="tiny muted" style="margin-top:8px">↑ best in the row. The row names are the card's: Must have, Really want, Nice to have.</p>
+    </div></div>${TABS("list")}`);
+</script>
+
+<!-- 7. What matters: plain words for the night sky, and Try it as a slim line -->
+<script>
+  const IT = (b, s, tag = "") => `<div class="item"><b>${b}${tag}</b><small>${s}</small></div>`;
+  s("matters", `${TOP("matters")}<div class="body"><div class="page">
+      <h1>What matters to you</h1>
+      <p class="tiny muted">Every parcel you grade is graded against this list. Sam's list: Alex has their own.</p>
+      <div class="trybar tiny"><b>Try it on</b> Mud Creek ▾ <span class="gv"><span class="grade gB">B</span>→<span class="grade gA">A</span> Contender</span><span class="muted">Night sky now counts more</span></div>
+      <div class="cols">
+        <div class="col"><h4>Must have 4</h4>${IT("Floodplain", "No flood zone at the house or the drive")}${IT("Legal road access", "A public road or a recorded right-of-way")}${IT("Septic", "Soil that can take a septic field")}</div>
+        <div class="col"><h4>Really want 7</h4>${IT("Night sky", "The Milky Way clearly visible (zone 3b or darker)", '<span class="tag">also a limit</span>')}${IT("Elevation", "2,500 ft or higher")}${IT("Best homesite", "A sunny, gentle spot for the house")}</div>
+        <div class="col hide"><h4>Nice to have 0</h4><p class="tiny muted">Drag here what would be a bonus.</p></div>
+        <div class="col hide"><h4>Don't care 8</h4>${IT("Town and groceries", "Groceries within 20 min")}${IT("Climate", "Mild winters")}</div>
+      </div>
+      <div class="sheetR"><b style="font:600 19px var(--cond)">Night sky</b> <span class="muted">· Really want, #1</span>
+        <p>How dark it has to be at the house site:</p>
+        <div class="slider"><i></i><b></b></div>
+        <p><b>The Milky Way clearly visible</b> <span class="muted">(zone 3b or darker)</span></p>
+        <div class="scale"><div class="gA">A · bright Milky Way</div><div class="gB">B · clearly visible</div><div class="gC">C · faint</div><div class="gD">D · washed out</div></div>
+        <p class="tiny muted">Measured as sky brightness, 21.2 mag/arcsec² for B: <u>what that means</u></p>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><span class="act">Must have</span><span class="act primary">Really want</span><span class="act">Nice to have</span><span class="act">Don't care</span></div>
+      </div>
+    </div></div>${TABS("matters")}`);
+</script>
+
+<!-- 8. Household: a person is invited; a device is linked; two doors, two words -->
+<script>
+  s("household", `${TOP("map")}<div class="body"><div class="map">${PARCEL()}</div><div class="scrim"></div>
+    <div class="dialog"><header><b>Household</b><span class="act">Close</span></header><div class="in">
+      <div class="member"><span class="av" style="background:#2f7a46">S</span><span style="flex:1"><b>Sam</b> <span class="muted">· you, on this device</span></span><u class="tiny">Rename</u></div>
+      <div class="member"><span class="av" style="background:#2b6f8f">A</span><span style="flex:1"><b>Alex</b> <span class="muted">· joined 10/23</span></span></div>
+      <h3>Invite someone</h3>
+      <p class="tiny">For a person in your household: they see the same parcels and get their own priorities, grades and takes.</p>
+      <div class="linkbox"><span style="flex:1">parcelscreen.app/join#hk4-…</span><span class="act">Copy link</span></div>
+      <p class="tiny muted">They open it and type their name. The link stops working after one use or 7 days.</p>
+      <h3>Your other devices</h3>
+      <p class="tiny">To use your own list on your phone or another computer, as yourself.</p>
+      <span class="act">Link a device of yours</span>
+    </div></div></div>${TABS("map")}`);
+</script>
+
+<!-- 9. Drawing a track: the map on the parcel, Finish in reach, the driveway offered at Finish -->
+<script>
+  s("draw", `${TOP("map")}<div class="body"><div class="map">${PARCEL(`
+      <path d="M570 470 L600 430 L630 405 L655 372 L660 340" stroke="#ff7a1a" stroke-width="5" fill="none"/>
+      ${[[570, 470], [600, 430], [630, 405], [655, 372], [660, 340]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="7" fill="#fff" stroke="#ff7a1a" stroke-width="3"/>`).join("")}`)}${BTNS}
+      <div class="callout" style="left:56%;top:22%"><b style="font:600 18px var(--cond)">Track 1 · 972 ft</b>
+        <p class="tiny muted">Average 33%, steepest 49% over 30 m: over your 25% limit for a driveway.</p>
+        <p style="margin-top:8px"><b>Use it as the driveway?</b></p>
+        <p class="tiny muted">Grades the parcel again with it (about 40 s).</p>
+        <div style="display:flex;gap:8px;margin-top:8px"><span class="act primary">Use as the driveway</span><span class="act">Just keep the line</span></div></div>
+      <div class="toolbar"><span class="seg2"><span class="cur">Track</span><span>Existing drive</span><span>Easement</span></span><span>5 points · 972 ft</span><span class="act">Undo</span><span class="act primary">Finish</span></div>
+    </div></div>${TABS("map")}`);
+</script>
+
+<script>
+  const want = new URLSearchParams(location.search).get("s") || "map";
+  document.getElementById(want)?.classList.add("on");
+  // ?scroll=N: the panel scrolled, to show what sits below the fold (Uses: step 15's panel).
+  const down = Number(new URLSearchParams(location.search).get("scroll") || 0);
+  const sc = document.querySelector(`#${want} .pscroll`);
+  if (down && sc) sc.scrollTop = down;
+</script>
+</body>
+</html>
