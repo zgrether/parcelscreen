@@ -40,8 +40,9 @@ describe("map overlays", () => {
 
     const labels = pieceLabels(P, a, b);
     expect(labels.map((l) => [l.side, l.text])).toEqual([
-      [-1, `W · ${P.leftAc.toFixed(2)} ac`],
-      [1, `E · ${P.rightAc.toFixed(2)} ac`],
+      // Owner, after #312: the panel's style.
+      [-1, `West piece, ${P.leftAc.toFixed(1)} ac`],
+      [1, `East piece, ${P.rightAc.toFixed(1)} ac`],
     ]);
     expect(labels[0]!.at[1]).toBeLessThan(-81.354);
     expect(labels[1]!.at[1]).toBeGreaterThan(-81.354);

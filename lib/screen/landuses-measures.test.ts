@@ -10,7 +10,7 @@ import type { HttpClient } from "../http";
 import { findCounty } from "./county";
 import { rcToLL } from "./dem";
 import { measureCover, type LandCover } from "./landcover";
-import { measureStreams } from "./streams";
+import { measurePonds, measureStreams } from "./streams";
 import { trailNetwork } from "./trailNetwork";
 import type { Dem } from "./types";
 
@@ -146,6 +146,35 @@ describe("mapped streams", () => {
     expect(s.intermittentFt).toBeGreaterThan(depthFt * 0.95);
     expect(s.names).toEqual(["Mud Creek"]);
     expect(s.nearestFt).toBeLessThan(80);
+  });
+
+  it("ponds (owner, after #312): a lake, pond or reservoir reaching inside counts, with its water inside; a marsh doesn't", () => {
+    const square = (lon: number, lat: number, d: number) =>
+      polygon([
+        [
+          [lon, lat],
+          [lon + d, lat],
+          [lon + d, lat + d],
+          [lon, lat + d],
+          [lon, lat],
+        ],
+      ]);
+    const p = measurePonds(
+      [
+        { name: "Mill Pond", ftype: 390, geo: square(-81.4995, 36.6005, 0.0005) },
+        // Half of it inside.
+        { name: null, ftype: 436, geo: square(-81.4985, 36.6005, 0.001) },
+        { name: "Bog", ftype: 466, geo: square(-81.4995, 36.6012, 0.0003) },
+        { name: "Away", ftype: 390, geo: square(-81.49, 36.6, 0.0005) },
+      ],
+      parcel,
+    );
+    expect(p.count).toBe(2);
+    expect(p.names).toEqual(["Mill Pond"]);
+    const ac = (d: number) => (d * 111_320 * Math.cos((36.6 * Math.PI) / 180) * d * 110_950) / M2_PER_ACRE;
+    expect(p.acres).toBeGreaterThan((ac(0.0005) + ac(0.001) / 2) * 0.97);
+    expect(p.acres).toBeLessThan((ac(0.0005) + ac(0.001) / 2) * 1.03);
+    expect(measurePonds([], parcel)).toEqual({ count: 0, acres: 0, names: [] });
   });
 
   it("none: zeros, and no nearest", () => {

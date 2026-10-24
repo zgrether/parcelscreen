@@ -1852,16 +1852,16 @@
    "insideFt": 0
   },
   "frontage": {
-   "publicFt": 1116,
+   "publicFt": 885,
    "roads": [
     {
      "name": "Mud Creek Ln",
-     "ft": 919,
+     "ft": 792,
      "public": true
     },
     {
      "name": "Mud Creek Rd",
-     "ft": 197,
+     "ft": 93,
      "public": true
     }
    ]
@@ -1880,6 +1880,11 @@
     "Mud Creek"
    ],
    "nearestFt": 742
+  },
+  "ponds": {
+   "count": 0,
+   "acres": 0,
+   "names": []
   },
   "county": {
    "fips": "51077",
@@ -2569,7 +2574,8 @@
    ]
   },
   "privacy": {
-   "outside": false
+   "outside": false,
+   "nearBoundary": 8
   },
   "dish": {
    "ll": [
@@ -7858,7 +7864,7 @@
    "mi": 21.8
   },
   "schemaVersion": 9,
-  "engine": 31,
+  "engine": 32,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -9716,16 +9722,16 @@
    "insideFt": 0
   },
   "frontage": {
-   "publicFt": 1116,
+   "publicFt": 885,
    "roads": [
     {
      "name": "Mud Creek Ln",
-     "ft": 919,
+     "ft": 792,
      "public": true
     },
     {
      "name": "Mud Creek Rd",
-     "ft": 197,
+     "ft": 93,
      "public": true
     }
    ]
@@ -9744,6 +9750,11 @@
     "Mud Creek"
    ],
    "nearestFt": 742
+  },
+  "ponds": {
+   "count": 0,
+   "acres": 0,
+   "names": []
   },
   "county": {
    "fips": "51077",
@@ -10433,7 +10444,8 @@
    ]
   },
   "privacy": {
-   "outside": false
+   "outside": false,
+   "nearBoundary": 8
   },
   "dish": {
    "ll": [
@@ -15722,7 +15734,7 @@
    "mi": 21.8
   },
   "schemaVersion": 9,
-  "engine": 31,
+  "engine": 32,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

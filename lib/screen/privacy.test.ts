@@ -7,6 +7,7 @@ import type { Feature, Polygon } from "geojson";
 import * as UTM from "../geo/utm";
 import { SCREEN_CONSTANTS } from "./config";
 import {
+  housesNearBoundary,
   inRegion,
   inSight,
   loadBuildings,
@@ -62,6 +63,19 @@ const PARCEL: Feature<Polygon> = {
     ],
   },
 };
+
+describe("the houses near the boundary (owner, after #312: Hunt counts from the boundary)", () => {
+  it("within a quarter mile of the boundary, the parcel's own left out", () => {
+    const houses = [
+      house(off(0, 0)), // on the parcel
+      house(off(100 + 300, 0)), // 300 m east of the east side
+      house(off(-100 - 390, 0)), // 390 m west of the west side
+      house(off(0, 100 + 420)), // 420 m north: out
+      house(off(100 + 300, 100 + 300)), // 424 m from the north-east corner: out
+    ];
+    expect(housesNearBoundary(houses, PARCEL)).toBe(2);
+  });
+});
 
 describe("privacy at a spot", () => {
   it("a neighbor in the open is in sight; a house behind the ridge isn't", () => {

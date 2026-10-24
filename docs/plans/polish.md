@@ -271,14 +271,17 @@ exceptions read "Could allow more" beside a count they don't reach (now "Also al
 "corridors" (now "neighbours' land"), and "Remove scenario" (now "Remove this split"). Many of the rest are the UX
 audit's part 2 (docs/design/ux-audit.md), noted where so.
 
-- **Garden: "no water found"** on all three parcels, with a pond in plain sight on Ferney: NHD's flowlines are read, its
-  waterbodies aren't. Fix: read NHD waterbodies (a pond or lake inside, or within the buffer) as water.
+- ~~**Garden: "no water found"** on all three parcels, with a pond in plain sight on Ferney: NHD's flowlines are read, its
+  waterbodies aren't. Fix: read NHD waterbodies (a pond or lake inside, or within the buffer) as water.~~ Done after
+  #312 (§9.71): NHD's waterbodies are read, and water names its source instead of deciding the answer.
 - **Divide: "limited by 1,116 ft of road frontage"** beside the county's "40 ft right-of-way where there's none". Fix: say
   that a right-of-way is the way around the frontage rule, in the reason.
-- **Divide on Roan: "No. 1 lot: limited by 0 ft of road frontage"** next to a highway: its frontage is the easement's.
-  Fix: "Can't divide: no public road frontage (the way in is an easement)".
+- ~~**Divide on Roan: "No. 1 lot: limited by 0 ft of road frontage"** next to a highway: its frontage is the easement's.
+  Fix: "Can't divide: no public road frontage (the way in is an easement)".~~ Done after #312 (§9.71): two other
+  parcels lie between Roan and the highway; it reads "None: no public road runs along the county map's boundary".
 - **Acres: Divide's "30 ac" vs the header's 29.31 ac** (the outline vs the parcel's own land) and the ordinance's "§" codes
-  and dates beside each fact. Fix: one acreage (polish 17); "checked 2026-10-23" for the date.
+  and dates beside each fact. Fix: one acreage (polish 17); "checked 2026-10-23" for the date. The acreage is done after
+  #312 (§9.71: 30.15 ac everywhere; 29.31 was Details' first part, and the screenshots' import); the "§" codes stand.
 - **A split's pieces aren't comparable when one has no route:** the West piece's "Cost to enjoy: the way in isn't priced"
   against the East's Ready to camp / Ready to build rows. Fix: the same two rows, each saying "not priced".
 - **Hunt and Camp say what, not what would change it:** "1 house within a quarter mile", "36% forest, under 50%"; Camp's Yes

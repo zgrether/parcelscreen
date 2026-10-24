@@ -1,14 +1,18 @@
 /**
  * Mapped streams (step 14, docs/plans/step-14-land-uses.md §2.5): the National Map's NHD flowlines within
  * streams.bufferFt of the parcel, and how much perennial and intermittent stream runs inside it. Not graded: the
- * Garden use reads it for water. NHD answers slowly, so the request starts with the run (index.ts).
+ * Garden use reads it for water. NHD answers slowly, so the request starts with the run (index.ts). The lakes and ponds
+ * on the parcel, NHD's waterbodies, are read the same way (owner, after #312).
  */
 import {
   along,
+  area,
   bbox,
   bboxPolygon,
   booleanPointInPolygon,
   buffer,
+  featureCollection,
+  intersect,
   length,
   lineString,
   pointToLineDistance,
@@ -17,7 +21,7 @@ import type { Feature, MultiPolygon, Polygon } from "geojson";
 import type { HttpClient } from "../http";
 import { arcQuery } from "./arcgis";
 import { SCREEN_CONSTANTS } from "./config";
-import { M2FT, type LatLon } from "./util";
+import { M2FT, M2_PER_ACRE, type LatLon } from "./util";
 
 const K = SCREEN_CONSTANTS.streams;
 
@@ -98,4 +102,63 @@ export function measureStreams(
     names: [...names].sort(),
     nearestFt: Number.isFinite(nearestM) ? Math.round(nearestM * M2FT) : null,
   };
+}
+
+/** An NHD waterbody near the parcel: its name, its FTYPE (390 lake or pond, 436 reservoir, 466 swamp…), its outline. */
+export interface Waterbody {
+  name: string | null;
+  ftype: number | null;
+  geo: Feature<Polygon | MultiPolygon>;
+}
+
+/** NHD's waterbodies touching the parcel (owner, after #312: a pond counts as water). */
+export async function fetchWaterbodies(
+  url: string,
+  parcel: Feature<Polygon | MultiPolygon>,
+  deps: { http: HttpClient; signal?: AbortSignal },
+): Promise<Waterbody[]> {
+  const features = await arcQuery(
+    url,
+    parcel,
+    { outFields: "GNIS_NAME,FTYPE", maxAllowableOffset: 0.00005, geometryPrecision: 6 },
+    { ...deps, timeoutMs: K.timeoutMs },
+  );
+  return features.flatMap((f) => {
+    const g = f.geometry;
+    if (!g || (g.type !== "Polygon" && g.type !== "MultiPolygon")) return [];
+    const p = (f.properties ?? {}) as Record<string, unknown>;
+    const name = p.GNIS_NAME ?? p.gnis_name;
+    const ftype = p.FTYPE ?? p.ftype;
+    return [
+      {
+        name: typeof name === "string" && name ? name : null,
+        ftype: typeof ftype === "number" ? ftype : null,
+        geo: { type: "Feature", properties: {}, geometry: g },
+      },
+    ];
+  });
+}
+
+export interface Ponds {
+  /** The lakes, ponds and reservoirs on the parcel. */
+  count: number;
+  /** Their water inside the parcel. */
+  acres: number;
+  names: string[];
+}
+
+/** The lakes, ponds and reservoirs (streams.ponds) that reach inside the parcel. */
+export function measurePonds(bodies: readonly Waterbody[], parcel: Feature<Polygon | MultiPolygon>): Ponds {
+  let count = 0,
+    m2 = 0;
+  const names = new Set<string>();
+  for (const b of bodies) {
+    if (!(K.ponds as readonly number[]).includes(b.ftype ?? -1)) continue;
+    const inside = intersect(featureCollection([b.geo, parcel]));
+    if (!inside) continue;
+    count++;
+    m2 += area(inside);
+    if (b.name) names.add(b.name);
+  }
+  return { count, acres: m2 / M2_PER_ACRE, names: [...names].sort() };
 }

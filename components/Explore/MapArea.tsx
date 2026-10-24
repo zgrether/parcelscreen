@@ -21,6 +21,7 @@ import { ClearedNote } from "./ClearedNote";
 import { DismissToast } from "./DismissToast";
 import { SwitchToast } from "./SwitchToast";
 import { LineUndoToast } from "@/components/Map/LineUndoToast";
+import { ScenarioUndoToast } from "@/components/Split/ScenarioUndoToast";
 import { AttachListingChip } from "@/components/Map/AttachListingChip";
 import { MapPanel } from "@/components/Map/MapPanel";
 import { useExplore, type SetHint } from "./useExploreController";
@@ -73,6 +74,7 @@ export function MapArea({
       <DismissToast />
       <ClearedNote />
       <LineUndoToast />
+      <ScenarioUndoToast />
       <AttachListingChip />
       <Toolbar />
       <MarkPicker />

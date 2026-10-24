@@ -45,7 +45,7 @@ import { OverpassMirrors, type OverpassFallback } from "./places";
 import type { OsmWay } from "./osmRoads";
 import { measureFrontage } from "./frontage";
 import { fetchLandCover, measureCover, type Box } from "./landcover";
-import { fetchFlowlines, measureStreams } from "./streams";
+import { fetchFlowlines, fetchWaterbodies, measurePonds, measureStreams } from "./streams";
 import { findCounty } from "./county";
 import { trailNetwork } from "./trailNetwork";
 import type { OsmPowerSource } from "./power";
@@ -331,6 +331,7 @@ export async function screen(
     }),
   );
   const streamsAsk = settle(fetchFlowlines(cfg.endpoints.nhd, usesLand, io));
+  const pondsAsk = settle(fetchWaterbodies(cfg.endpoints.nhdWaterbody, usesLand, io));
   const countyAsk = settle(findCounty(s.centre, usesLand, io, cfg.endpoints.counties));
 
   await step("dem", async () => {
@@ -471,8 +472,8 @@ export async function screen(
     R.frontage = measureFrontage(n.roads, n.osmRoads ?? [], s.ownLand ?? parcel);
     // Step 14 (plan §2.2, §2.4–§2.6): the land cover, mapped streams and county asked at the start, and the trail
     // estimate. None is graded; a source that didn't answer is named, and the others stand.
-    const [cv, st, co] = await Promise.all([coverAsk, streamsAsk, countyAsk]);
-    for (const a of [cv, st, co]) if (!a.ok && a.error instanceof CancelledError) throw a.error;
+    const [cv, st, pd, co] = await Promise.all([coverAsk, streamsAsk, pondsAsk, countyAsk]);
+    for (const a of [cv, st, pd, co]) if (!a.ok && a.error instanceof CancelledError) throw a.error;
     const roadLines: [number, number][][] = [
       ...n.roads.flatMap((f) =>
         f.geometry.type === "LineString"
@@ -486,6 +487,8 @@ export async function screen(
       R.cover = measureCover(cv.value, s.dFine, s.slope, s.inside, roadLines);
     if (!st.ok) R.noResponse.push("Mapped streams");
     else R.streams = measureStreams(st.value, s.ownLand ?? parcel, bestLL);
+    if (!pd.ok) R.noResponse.push("Mapped ponds");
+    else R.ponds = measurePonds(pd.value, s.ownLand ?? parcel);
     if (!co.ok) R.noResponse.push("County");
     else if (co.value) {
       const { zoningFailed, ...county } = co.value;

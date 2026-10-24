@@ -8,7 +8,9 @@ import type { Feature, FeatureCollection, MultiPolygon, Polygon } from "geojson"
 import type { LayerId, ParcelShapes } from "@/components/Explore/layers";
 import type { ParcelRecord } from "@/lib/geo/parcels";
 import type { CombineResult } from "@/lib/geo/combine";
-import { sideName, type Side, type SplitPieces } from "@/lib/geo/split";
+import type { Side, SplitPieces } from "@/lib/geo/split";
+import { pieceSideWord } from "@/lib/split/scenario";
+import { SPLIT_WORDS } from "@/lib/split/words";
 import { KIND_NAME, type Markup, type PointMarkup } from "@/lib/client/parcelStore";
 import { M2FT, M2_PER_ACRE, type LatLon } from "@/lib/geo/types";
 import { areaPolygon } from "@/lib/report/marks";
@@ -129,14 +131,22 @@ export interface PieceLabel {
   side: Side;
   /** Where the label sits: the piece's centre of mass, or a point inside it when that falls outside. */
   at: LatLon;
-  /** e.g. "W · 27.71 ac" */
+  /** "West piece, 27.7 ac", as the scenario's panel names it (owner, after #312: one label style). */
   text: string;
 }
 
-/** A label per piece while a split is placed: its compass side and the acres keeping it gives. */
+/** A label per piece while a split is placed or a scenario shown: its compass side and the acres keeping it gives. */
 export function pieceLabels(pieces: SplitPieces, a: LatLon, b: LatLon): PieceLabel[] {
   const label = (geo: Feature<Polygon> | null, ac: number, side: Side): PieceLabel[] =>
-    geo ? [{ side, at: labelPoint(geo), text: `${sideName(a, b, side)} · ${ac.toFixed(2)} ac` }] : [];
+    geo
+      ? [
+          {
+            side,
+            at: labelPoint(geo),
+            text: SPLIT_WORDS.piece(pieceSideWord(a, b, side < 0 ? "left" : "right"), ac),
+          },
+        ]
+      : [];
   return [...label(pieces.left, pieces.leftAc, -1), ...label(pieces.right, pieces.rightAc, 1)];
 }
 

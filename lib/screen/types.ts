@@ -75,6 +75,7 @@ export const EndpointsSchema = z.strictObject({
   power: z.string(),
   nlcd: z.string(),
   nhd: z.string(),
+  nhdWaterbody: z.string(),
   counties: z.string(),
 });
 export type Endpoints = z.infer<typeof EndpointsSchema>;
@@ -839,7 +840,16 @@ export const ScreenResultSchema = z.strictObject({
    */
   dish: z.strictObject({ ll: LatLonSchema, clearShare: num }).nullable().optional(),
   /** Step 11 (plan §2.3; §9.66): whether the parcel is outside the footprints' region. Absent before it. */
-  privacy: z.strictObject({ outside: z.boolean() }).optional(),
+  privacy: z
+    .strictObject({
+      outside: z.boolean(),
+      /**
+       * Owner, after #312 (§9.71): the houses within privacy.nearM of the boundary, the parcel's own left out (Hunt
+       * reads it). Absent before it, and outside the footprints' region.
+       */
+      nearBoundary: z.number().int().nonnegative().optional(),
+    })
+    .optional(),
   /**
    * Step 14 (plan §2.1; §9.70): the power lines near the parcel, HIFLD's or OSM's, with those within power.keepKm kept
    * ([lon, lat], simplified) for the map and the house-site distance. Absent before it, or when neither source answered.
@@ -885,6 +895,13 @@ export const ScreenResultSchema = z.strictObject({
       names: z.array(z.string()),
       nearestFt: num.nullable(),
     })
+    .optional(),
+  /**
+   * Owner, after #312 (§9.71): NHD's lakes, ponds and reservoirs on the parcel: how many, their acres inside it and
+   * their names. Absent before it, or when NHD didn't answer.
+   */
+  ponds: z
+    .strictObject({ count: z.number().int().nonnegative(), acres: num, names: z.array(z.string()) })
     .optional(),
   /** Step 14 (plan §2.2; §9.70): the walking trail the gentle ground could hold. Absent before it. */
   trails: z.strictObject({ gentleAc: num, miles: num }).optional(),

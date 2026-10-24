@@ -16,6 +16,7 @@ import {
   reload,
   seedScreens,
   settled,
+  unfoldListing,
   visit,
 } from "./flow";
 import { GRAYSON } from "./redGate";
@@ -281,5 +282,84 @@ test("a split scenario: Grade both pieces, Cancel, Rename, Adjust the line, Add 
   await visit(page, "/library");
   await page.getByRole("tab", { name: "Favorites" }).click();
   await expect(listRow(page, name)).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+/**
+ * Owner, after #312: while Uses shows it, the scenario's line and pieces are on the map, each labelled as the panel names
+ * it; Remove this split has an Undo; a piece added to the list brings the parcel's deed restrictions and HOA, marked
+ * "from the original parcel".
+ */
+test("a split on the map while Uses shows it; Remove this split, then Undo; a piece added brings the deed restrictions and HOA", async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(300_000);
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await replayHar(context, GRAYSON);
+  await openOnUses(page);
+  const line = mudSplitLine();
+  await page.evaluate(async (l) => {
+    const kv = window.__psKv!;
+    const store = JSON.parse(kv.getItem("ps.parcels")!) as {
+      open: Record<string, unknown> & { key: string };
+      built?: (Record<string, unknown> & { key: string })[];
+    };
+    const sc = {
+      id: "split-1",
+      name: "Split 1",
+      a: l.a,
+      b: l.b,
+      screens: { left: null, right: null },
+      at: "x",
+    };
+    const patch = { scenarios: [sc], deedRestrictions: "No mobile homes", hoa: "no" };
+    Object.assign(store.open, patch);
+    for (const b of store.built ?? []) if (b.key === store.open.key) Object.assign(b, patch);
+    await kv.setItem("ps.parcels", JSON.stringify(store));
+  }, line);
+  await reload(page);
+  await page.getByRole("tab", { name: "Uses" }).click();
+
+  // On the map, labelled as the panel names the pieces.
+  const scenario = page.getByRole("article", { name: "Split 1" });
+  const names = await scenario.locator(".scn-piece-name").allTextContents();
+  await expect(page.locator(".piece-label")).toHaveCount(2);
+  expect((await page.locator(".piece-label").allTextContents()).sort()).toEqual([...names].sort());
+  // Only while Uses shows it.
+  await page.getByRole("tab", { name: "Grade" }).click();
+  await expect(page.locator(".piece-label")).toHaveCount(0);
+  await page.getByRole("tab", { name: "Uses" }).click();
+  await expect(page.locator(".piece-label")).toHaveCount(2);
+
+  // Remove this split, then Undo: back as it was.
+  await scenario.getByRole("button", { name: "Remove this split" }).click();
+  await expect(scenario).toHaveCount(0);
+  const toast = page.locator(".line-undo");
+  await expect(toast).toContainText("Split 1 removed —");
+  await toast.getByRole("button", { name: "Undo" }).click();
+  await expect(page.getByRole("article", { name: "Split 1" })).toBeVisible();
+  await expect(page.locator(".piece-label")).toHaveCount(2);
+
+  // A piece added to the list: the deed restrictions and HOA come with it, marked.
+  await page
+    .getByRole("article", { name: "Split 1" })
+    .locator(".scn-piece")
+    .first()
+    .getByRole("button", { name: "Add this piece to the list" })
+    .click();
+  await expect(page.locator(".sh-name").first()).toHaveText(`${loadFixture(GRAYSON).input.name}, East piece`);
+  await settled(page);
+  await page.getByRole("tab", { name: "Details" }).click();
+  const listing = await unfoldListing(page);
+  await expect(listing.getByRole("textbox", { name: "Deed restrictions" })).toHaveValue("No mobile homes");
+  await expect(
+    listing.getByRole("group", { name: "HOA" }).getByRole("button", { name: "No", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(listing.locator(".ip-from")).toHaveText([
+    "from the original parcel",
+    "from the original parcel",
+  ]);
   expect(errors).toEqual([]);
 });

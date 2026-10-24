@@ -113,10 +113,15 @@ export function divideHeadline(r: DivideResult): string {
 /** What holds the count, as the headline says it after the count: "limited by 1.4 ac at a 2 ac minimum". */
 export function divideLimit(r: Extract<DivideResult, { kind: "lots" }>): string {
   const size = `${ac(r.acres)} ac at a ${ac(r.minLotAc)} ac minimum`;
+  // Owner, after #312: none at all is said as none, not "0 ft" (Roan: the county map puts two other parcels between it
+  // and State Rte 143).
   const frontage =
-    r.publicFrontageFt !== null && r.frontagePerLotFt !== null
-      ? `${ft(r.publicFrontageFt)} ft of road frontage at ${ft(r.frontagePerLotFt)} ft per lot`
-      : null;
+    r.publicFrontageFt === 0
+      ? "no public road along the county map's boundary"
+      : r.publicFrontageFt !== null && r.frontagePerLotFt !== null
+        ? `${ft(r.publicFrontageFt)} ft of road frontage at ${ft(r.frontagePerLotFt)} ft per lot`
+        : null;
+  if (r.binding === "frontage" && r.publicFrontageFt === 0) return frontage!;
   if (r.binding === "frontage" && frontage) return `limited by ${frontage}`;
   if (r.binding === "both" && frontage) return `limited by ${size} and ${frontage}`;
   return `limited by ${size}`;

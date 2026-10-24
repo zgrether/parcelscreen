@@ -32,7 +32,7 @@ import {
 import { portHarPath, writePortHar } from "../support/portHar";
 import { redGate, toTheBoundary } from "../support/redGate";
 import { runFixture, runScenario, SCENARIOS } from "../support/scenarios";
-import { mudPieceInputs } from "../support/splitScenario";
+import { mudCountyParcel, mudPieceInputs } from "../support/splitScenario";
 import { screen, type ScreenDeps } from "@/lib/screen";
 
 /**
@@ -54,6 +54,11 @@ const PORT_RUNS: Partial<
     // app's Grade both pieces runs them.
     async (deps) => {
       for (const input of mudPieceInputs()) await screen(input, undefined, deps());
+    },
+    // Owner, after #312 (screenshots/after-312.spec.ts): the same split of the county record a tap opens, both parts.
+    async (deps) => {
+      for (const input of mudPieceInputs(await mudCountyParcel(deps().http)))
+        await screen(input, undefined, deps());
     },
   ],
   // Step 2 (e2e/tennessee.spec.ts): the Tennessee parcel lines around Roan at zoom 15 and up, and its parcel-number

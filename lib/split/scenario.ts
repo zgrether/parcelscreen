@@ -12,7 +12,13 @@ import type { LatLon } from "../geo/types";
 import { areaPolygon } from "../report/marks";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { starred } from "../client/favorites";
-import { plainParcel, type Markup, type Scenario, type WorkingParcel } from "../client/parcelStore";
+import {
+  FROM_ORIGINAL,
+  plainParcel,
+  type Markup,
+  type Scenario,
+  type WorkingParcel,
+} from "../client/parcelStore";
 import { SIDE_WORD, SPLIT_WORDS } from "./words";
 
 /** Left and right of the line's direction a→b, as the screens are kept. */
@@ -97,7 +103,8 @@ export function piecesOf(p: WorkingParcel, line: Pick<Scenario, "a" | "b">): [Pi
 /**
  * "Add this piece to the list" (§5.1): a new parcel from the same parts with the split kept on the piece's side, its
  * house, marks and lines as the piece was graded with, on the list by `name`, with the piece's screen as its own when it
- * has one. Nothing else of the parent comes with it, as combine's "as new" brings nothing (no listing, no price).
+ * has one. The parent's deed restrictions and HOA come with it, marked "from the original parcel" (owner, after #312);
+ * nothing else of the listing does (no price, no link, no acres).
  */
 export function pieceAsParcel(
   piece: Piece,
@@ -115,9 +122,20 @@ export function pieceAsParcel(
       markup: g.markup,
       drivewayLine: g.drivewayLine,
       screenIds: screenId ? [screenId] : [],
+      deedRestrictions: g.deedRestrictions,
+      hoa: g.hoa,
+      ...copied(g),
     },
     name,
   );
+}
+
+/** Which of the deed restrictions and HOA the parent has to copy: those typed or picked. */
+function copied(g: WorkingParcel): Pick<WorkingParcel, "fromOriginal"> {
+  const from = FROM_ORIGINAL.filter((k) =>
+    k === "hoa" ? g.hoa !== "unknown" : g.deedRestrictions.trim() !== "",
+  );
+  return from.length ? { fromOriginal: from } : {};
 }
 
 // ---------- the parcel's scenarios (the reducer's edits; each returns the parcel itself when nothing changes) ----------

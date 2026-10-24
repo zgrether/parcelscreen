@@ -25,9 +25,13 @@ export function limits({ result: r, facts, lines, listing }: UsesInput): Fact[] 
     {
       label: LIMIT_WORDS.deed,
       value: listing.deedRestrictions.trim() || LIMIT_WORDS.notKnown,
-      source: SOURCE.listing,
+      source: listing.fromOriginal?.includes("deedRestrictions") ? SOURCE.original : SOURCE.listing,
     },
-    { label: LIMIT_WORDS.hoa, value: HOA_WORD[listing.hoa], source: SOURCE.listing },
+    {
+      label: LIMIT_WORDS.hoa,
+      value: HOA_WORD[listing.hoa],
+      source: listing.fromOriginal?.includes("hoa") ? SOURCE.original : SOURCE.listing,
+    },
     floodFact(r),
     ...powerFacts(r, facts.at),
   ];
