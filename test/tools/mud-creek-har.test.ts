@@ -43,6 +43,8 @@ const ADDED_LAND = [
 /** What §9.69 may add: OSRM's table and route for the drives, now to CMS's ERs. */
 const ADDED_ERS = /^https:\/\/router\.project-osrm\.org\/(table|route)\/v1\/driving\//;
 
+const hostOf = (e: Har["log"]["entries"][number]) => new URL(e.request.url).host.toLowerCase();
+
 describe("Mud Creek's port HAR (step 2: append only)", () => {
   const entries = (JSON.parse(readFileSync(PATH, "utf8")) as Har).log.entries;
 
@@ -54,10 +56,13 @@ describe("Mud Creek's port HAR (step 2: append only)", () => {
   it("adds only Tennessee's TREC requests after them, then step 11's long-trail drives, the e2e point's Photon, §9.69's drives, step 14's power lines and land", () => {
     const added = entries.slice(BEFORE.entries);
     expect(added.length).toBeGreaterThan(0);
-    const trec = added.filter((e) => ADDED.test(e.request.url));
+    // Each step's after the last's: TREC's first (the split's pieces, last, ask TREC again), then OSRM's table, then
+    // the e2e point's two Photon lookups.
+    const trec = added.slice(
+      0,
+      added.findIndex((e) => !ADDED.test(e.request.url)),
+    );
     expect(trec.length).toBeGreaterThan(0);
-    // Each step's after the last's: TREC's first, then OSRM's table, then the e2e point's two Photon lookups.
-    expect(added.slice(0, trec.length)).toEqual(trec);
     const rest = added.slice(trec.length);
     // Step 11's tables run up to the e2e point's Photon lookups.
     const at = rest.findIndex((e) => ADDED_E2E.test(e.request.url));
@@ -78,8 +83,22 @@ describe("Mud Creek's port HAR (step 2: append only)", () => {
     expect(power.some((u) => ADDED_POWER_HIFLD.test(u))).toBe(true);
     expect(power.some((u) => ADDED_POWER_OSM.test(u))).toBe(true);
     // Step 14's PR 3: the land cover, the flowlines, the county and its zoning map, one each, in the order asked.
-    const after = tail.slice(land);
-    expect(after).toHaveLength(ADDED_LAND.length);
-    after.forEach((u, i) => expect(u).toMatch(ADDED_LAND[i]!));
+    const landed = tail.slice(land, land + ADDED_LAND.length);
+    expect(landed).toHaveLength(ADDED_LAND.length);
+    landed.forEach((u, i) => expect(u).toMatch(ADDED_LAND[i]!));
+    // Step 14's PR 6: the split's two pieces (test/support/splitScenario.ts), each its own screen, so only the services
+    // the parcel's own screen already asks, all answered (an Overpass mirror's 502 is its answer: the next mirror's
+    // follows, as in the app).
+    const known = new Set(
+      entries.slice(0, entries.length - tail.length + land + ADDED_LAND.length).map(hostOf),
+    );
+    const pieces = entries.slice(entries.length - tail.length + land + ADDED_LAND.length);
+    expect(pieces.length).toBeGreaterThan(0);
+    for (const e of pieces) {
+      expect(known.has(hostOf(e)), e.request.url).toBe(true);
+      if (ADDED_POWER_OSM.test(e.request.url) || hostOf(e).startsWith("overpass"))
+        expect([200, 502, 503, 504]).toContain(e.response.status);
+      else expect(e.response.status, e.request.url).toBe(200);
+    }
   });
 });

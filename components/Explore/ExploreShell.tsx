@@ -37,6 +37,7 @@ import { Details } from "@/components/Parcel/Details";
 import { Uses } from "@/components/Parcel/Uses";
 import { NOT_GRADED, ParcelSwitch, SHOW_BOUNDARY } from "@/components/Parcel/ParcelSwitch";
 import { AreaBox } from "@/components/Areas/AreaBox";
+import { ScenarioGradingContext, useScenarioGrading } from "@/components/Split/useScenarioGrading";
 
 /** The docked panel's width (desktop; step 4c). */
 const DOCK_W = 380;
@@ -121,6 +122,9 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
     exploreNow.current.setInfo(false);
   }, []);
   const screen = useScreenIt(explore, config, raise, setHint);
+  // Step 14: Grade both pieces, in a worker of its own; the panel shows it on Uses (the reducer opened it), the sheet up.
+  const raiseOnly = useCallback(() => raiseSheet.current(), []);
+  const scenarios = useScenarioGrading(explore, config, raiseOnly);
   // The phone's peek holds the grade button under the header while it shows (owner, 4c: 148 px), else 92 px.
   // Step 7: otherwise, the answer's reason under the grade, on two lines at most, while a graded parcel is open. The
   // grade button keeps its place when it shows ("Try again: …"): the peek stays within 4c's 148 px, clear of the map's
@@ -292,7 +296,9 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
                     {info && store.open ? (
                       <Details ctl={explore} />
                     ) : uses && store.open ? (
-                      <Uses s={screen} />
+                      <ScenarioGradingContext.Provider value={scenarios}>
+                        <Uses s={screen} />
+                      </ScenarioGradingContext.Provider>
                     ) : (
                       <>
                         <ScreenBody s={screen} />

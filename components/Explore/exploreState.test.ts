@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import { ZACH } from "@/test/support/rubrics";
 import type { ParcelRecord } from "@/lib/geo/parcels";
 import type { LatLon } from "@/lib/geo/types";
-import type { EasementType } from "@/lib/client/parcelStore";
+import type { SplitCut } from "@/lib/geo/recipe";
+import { plainParcel, type EasementType } from "@/lib/client/parcelStore";
 import {
   decideTap,
   exploreReducer,
@@ -41,6 +42,14 @@ const record = (x0: number, id: string): ParcelRecord => ({
 const a = record(-81.355, "52-47A"),
   b = record(-81.353, "52-42A");
 const selectA = (): ExploreAction => ({ type: "select", record: a, stamp: at() });
+/** A parcel saved with a split before step 14 (the Split tool tries a scenario now): its kept side, read as before. */
+const withOldSplit = (s: ExploreState, split: SplitCut): ExploreState => {
+  const open = { ...s.store.open!, split, key: s.store.open!.key ?? "old" };
+  return {
+    ...s,
+    store: { ...s.store, open, built: [...s.store.built.filter((x) => x.key !== open.key), open] },
+  };
+};
 const house = (ll: LatLon | null = [36.629, -81.354]): ExploreAction => ({ type: "house", ll, stamp: at() });
 
 describe("the open parcel and History", () => {
@@ -110,7 +119,7 @@ describe("the open parcel and History", () => {
     expect(exploreReducer(two, { type: "finishDraw", stamp: at() })).toBe(two);
   });
 
-  it("a split saves the line and the side kept, so it can be edited later from where it was", () => {
+  it("a split (step 14) places a line, and Grade both pieces keeps it as a scenario: the boundary stays whole", () => {
     const line = { a: [36.627, -81.354] as LatLon, b: [36.631, -81.354] as LatLon };
     const placed = run([
       selectA(),
@@ -118,28 +127,22 @@ describe("the open parcel and History", () => {
       { type: "splitTap", ll: line.a },
       { type: "splitTap", ll: line.b },
     ]);
-    // With the line placed, the tool waits for a tap on the piece to keep.
+    // With the line placed, a tap changes nothing: its ends are dragged, and Grade both pieces takes it.
     expect(placed.mode).toBe("split");
     expect(placed.split).toEqual(line);
     expect(exploreReducer(placed, { type: "splitTap", ll: [36.629, -81.355] })).toBe(placed);
-    const s = exploreReducer(placed, { type: "keepPiece", side: -1, stamp: at() });
-    expect(s.mode).toBeNull();
-    expect(s.split).toBeNull();
-    expect(s.store.open?.split).toEqual({ ...line, keep: -1 });
-    expect(s.store.open?.pieces).toEqual([a]); // the pieces stay whole: the split is applied when derived
-    expect(s.store.built).toHaveLength(1);
-    // Editing starts from the saved line.
-    expect(exploreReducer(s, { type: "startSplit" }).split).toEqual(line);
+    const s = exploreReducer(placed, { type: "placeScenario", id: "sc1", stamp: at() });
+    expect(s).toMatchObject({ mode: null, split: null, uses: true, info: false });
+    expect(s.store.open?.split).toBeNull();
+    expect(s.store.open?.scenarios).toEqual([
+      { id: "sc1", name: "Split 1", ...line, screens: { left: null, right: null }, at: expect.any(String) },
+    ]);
+    expect(s.store.built).toHaveLength(1); // a split tried builds the parcel
+    expect(s.gradeScenario).toEqual({ id: "sc1", sides: ["left", "right"], serial: s.serial });
   });
 
   it("combining starts from the open parcel's pieces and saves the new pieces, keeping the split", () => {
-    const split = run([
-      selectA(),
-      { type: "startSplit" },
-      { type: "splitTap", ll: [36.627, -81.354] },
-      { type: "splitTap", ll: [36.631, -81.354] },
-      { type: "keepPiece", side: 1, stamp: at() },
-    ]);
+    const split = withOldSplit(run([selectA()]), { a: [36.627, -81.354], b: [36.631, -81.354], keep: 1 });
     const s0 = exploreReducer(split, { type: "startCombine" });
     expect(s0.combine).toEqual([a]);
     const s = run(
@@ -266,17 +269,13 @@ describe("the Info panel and its layers (13e-4)", () => {
     expect(exploreReducer(s, { type: "removePart", index: 0, stamp: at() })).toBe(s);
   });
 
-  it("the split can be switched to its other side, or removed", () => {
-    const s = run([
-      selectA(),
-      { type: "startSplit" },
-      { type: "splitTap", ll: [36.627, -81.354] },
-      { type: "splitTap", ll: [36.631, -81.354] },
-      { type: "keepPiece", side: -1, stamp: at() },
-      { type: "keepSide", side: 1, stamp: at() },
-    ]);
+  it("a split saved before step 14 can be switched to its other side, or removed", () => {
+    const saved = withOldSplit(run([selectA()]), { a: [36.627, -81.354], b: [36.631, -81.354], keep: -1 });
+    const s = exploreReducer(saved, { type: "keepSide", side: 1, stamp: at() });
     expect(s.store.open?.split?.keep).toBe(1);
     expect(exploreReducer(s, { type: "removeSplit", stamp: at() }).store.open?.split).toBeNull();
+    // The Split tool doesn't move it: it starts a new line for a scenario.
+    expect(exploreReducer(s, { type: "startSplit" })).toMatchObject({ split: null, scenarioLine: null });
   });
 
   it("removing the house clears its selection; hiding toggles and is saved with the parcel", () => {
@@ -1161,5 +1160,134 @@ describe("the panel's segments (step 14: Grade | Uses | Details)", () => {
       { type: "select", record: b, stamp: at(), keepPanel: true },
     ] as ExploreAction[])
       expect(exploreReducer(uses, act).uses).toBe(false);
+  });
+});
+
+describe("split scenarios (step 14, plan §5)", () => {
+  const line = { a: [36.627, -81.354] as LatLon, b: [36.631, -81.354] as LatLon };
+  const placed = () =>
+    run([
+      selectA(),
+      { type: "startSplit" },
+      { type: "splitTap", ll: line.a },
+      { type: "splitTap", ll: line.b },
+      { type: "placeScenario", id: "sc1", stamp: at() },
+    ]);
+
+  it("the grading hook takes the request once; Try again asks for the pieces given", () => {
+    const s = exploreReducer(placed(), { type: "scenarioGrading" });
+    expect(s.gradeScenario).toBeNull();
+    expect(exploreReducer(s, { type: "scenarioGrading" })).toBe(s);
+    const again = exploreReducer(s, { type: "regradeScenario", id: "sc1", sides: ["right"] });
+    expect(again.gradeScenario).toEqual({ id: "sc1", sides: ["right"], serial: s.serial });
+    expect(exploreReducer(s, { type: "regradeScenario", id: "nope", sides: ["right"] })).toBe(s);
+  });
+
+  it("each piece's screen is kept under its scenario, not in the parcel's screens", () => {
+    const s0 = placed();
+    const s = exploreReducer(s0, {
+      type: "pieceScreened",
+      id: "sc1",
+      side: "left",
+      screenId: "scr-left",
+      serial: s0.serial,
+      stamp: at(),
+    });
+    expect(s.store.open?.scenarios[0]?.screens).toEqual({ left: "scr-left", right: null });
+    expect(s.store.open?.screenIds).toEqual([]);
+    expect(s.store.built[0]?.scenarios[0]?.screens.left).toBe("scr-left");
+    // One that lands after another parcel opened is dropped.
+    const other = exploreReducer(s0, { type: "select", record: b, stamp: at() });
+    expect(
+      exploreReducer(other, {
+        type: "pieceScreened",
+        id: "sc1",
+        side: "right",
+        screenId: "x",
+        serial: s0.serial,
+        stamp: at(),
+      }),
+    ).toBe(other);
+  });
+
+  it("Rename (a blank name is ignored), Remove scenario", () => {
+    const s0 = placed();
+    const named = exploreReducer(s0, {
+      type: "scenarioName",
+      id: "sc1",
+      name: "  Sell the north  ",
+      serial: s0.serial,
+      stamp: at(),
+    });
+    expect(named.store.open?.scenarios[0]?.name).toBe("Sell the north");
+    expect(
+      exploreReducer(named, { type: "scenarioName", id: "sc1", name: " ", serial: s0.serial, stamp: at() }),
+    ).toBe(named);
+    const gone = exploreReducer(named, { type: "scenarioRemove", id: "sc1", serial: s0.serial, stamp: at() });
+    expect(gone.store.open?.scenarios).toEqual([]);
+  });
+
+  it("Adjust the line starts from the scenario's line; Grade both pieces moves it and asks for both again", () => {
+    const s0 = exploreReducer(placed(), {
+      type: "pieceScreened",
+      id: "sc1",
+      side: "left",
+      screenId: "scr-left",
+      serial: placed().serial,
+      stamp: at(),
+    });
+    const adjusting = exploreReducer(s0, { type: "startSplit", scenario: "sc1" });
+    expect(adjusting).toMatchObject({ mode: "split", split: line, scenarioLine: "sc1" });
+    const b2: LatLon = [36.631, -81.3535];
+    const s = run(
+      [
+        { type: "splitMove", a: line.a, b: b2 },
+        { type: "placeScenario", id: "unused", stamp: at() },
+      ],
+      adjusting,
+    );
+    expect(s.store.open?.scenarios).toHaveLength(1);
+    expect(s.store.open?.scenarios[0]).toMatchObject({
+      id: "sc1",
+      a: line.a,
+      b: b2,
+      screens: { left: null, right: null },
+    });
+    expect(s.gradeScenario).toMatchObject({ id: "sc1", sides: ["left", "right"] });
+    expect(s.scenarioLine).toBeNull();
+    // Cancel leaves the scenario as it was.
+    const cancelled = exploreReducer(adjusting, { type: "splitCancel" });
+    expect(cancelled).toMatchObject({ mode: null, split: null, scenarioLine: null });
+    expect(cancelled.store).toBe(s0.store);
+  });
+
+  it("a second scenario is Split 2", () => {
+    const s = run(
+      [
+        { type: "startSplit" },
+        { type: "splitTap", ll: line.a },
+        { type: "splitTap", ll: [36.631, -81.3535] },
+        { type: "placeScenario", id: "sc2", stamp: at() },
+      ],
+      placed(),
+    );
+    expect(s.store.open?.scenarios.map((x) => x.name)).toEqual(["Split 1", "Split 2"]);
+  });
+
+  it("Add this piece to the list opens the new parcel; graded as it opens only when the piece had no screen", () => {
+    const s0 = placed();
+    const piece = { ...plainParcel(a, "2026-10-24T00:00:00.000Z"), name: "Ferney, West piece" };
+    const s = exploreReducer(s0, { type: "addPiece", parcel: piece, stamp: at() });
+    expect(s.store.open).toMatchObject({ name: "Ferney, West piece" });
+    expect(s.store.open?.key).not.toBe(s0.store.open?.key);
+    expect(s.store.built).toHaveLength(2);
+    expect(s.serial).toBe(s0.serial + 1);
+    expect(s.gradeOnOpen).toBe(s.serial);
+    const graded = exploreReducer(s0, {
+      type: "addPiece",
+      parcel: { ...piece, screenIds: ["p1"] },
+      stamp: at(),
+    });
+    expect(graded.gradeOnOpen).toBeNull();
   });
 });

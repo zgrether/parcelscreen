@@ -571,6 +571,11 @@ html:has(.explore) body {
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
+/* Step 14: a label only, while the line is placed (both pieces are graded, neither is picked on the map). */
+.piece-label.static {
+  cursor: default;
+  pointer-events: none;
+}
 .piece-label:hover,
 .piece-label:focus-visible {
   border-color: var(--tb-amber);
@@ -6681,6 +6686,153 @@ button.use-row[aria-expanded="true"] .use-name::after {
 .uses-shortcut:focus-visible {
   outline: 2px solid var(--color-water);
   outline-offset: 2px;
+}
+/* Divide's Try a split, under its row. */
+.use-action {
+  min-height: 44px;
+  margin: 0 0 10px;
+}
+/* ---------- Step 14: Split, "Keep this, sell that" (plan §5, §8): the pieces side by side, stacked on a phone ---------- */
+.scn-list {
+  margin-top: 18px;
+}
+.scn {
+  padding: 8px 0 12px;
+  border-bottom: 1px solid var(--color-rule);
+  scroll-margin-top: 8px;
+}
+.scn-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-bottom: 8px;
+}
+.scn-name {
+  flex: 1 1 auto;
+  margin: 0;
+  font: 600 15px/1.2 var(--font-sans);
+}
+.scn-rename {
+  flex: 1 1 140px;
+  min-height: 44px;
+  font-size: 15px;
+}
+.scn-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.scn .btn.small {
+  min-height: 44px;
+}
+.scn-pieces {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.scn-piece {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 8px 10px 10px;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+}
+.scn-piece-name {
+  margin: 0;
+  font: 600 14px/1.25 var(--font-sans);
+}
+.scn-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.scn-row {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0;
+  border-top: 1px solid var(--color-paper-2);
+  font-size: 14px;
+  line-height: 1.3;
+}
+.scn-row:first-child {
+  border-top: 0;
+}
+.scn-label {
+  color: var(--color-ink-2);
+  font-size: 12.5px;
+}
+.scn-value {
+  overflow-wrap: anywhere;
+}
+.scn-row[data-row="grade"] .scn-value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+/* The gate colours (§8); the words always say it too. */
+.scn-row.pass .scn-value {
+  color: var(--color-ok);
+}
+.scn-row.warn .scn-value {
+  color: var(--color-warn);
+}
+.scn-row.fail .scn-value {
+  color: var(--color-steep);
+}
+.scn-row.loading .use-bar {
+  display: block;
+  height: 14px;
+  width: 70%;
+  border-radius: 4px;
+  background: var(--color-paper-2);
+}
+.scn-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 0;
+  font-size: 14px;
+}
+.scn-uses summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+/* Folded, as a use's row says it: ▸ to open, ▾ open. */
+.scn-uses summary::after {
+  content: " ▸";
+  margin-left: 4px;
+  color: var(--color-ink-2);
+  font-weight: 400;
+}
+.scn-uses[open] summary::after {
+  content: " ▾";
+}
+.scn-uses summary:focus-visible {
+  outline: 2px solid var(--color-water);
+  outline-offset: 2px;
+}
+.scn-uses .use-row {
+  grid-template-columns: 1fr 56px;
+}
+.scn-add {
+  margin-top: auto;
+}
+.scn-note {
+  margin: 0;
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  .scn-pieces {
+    grid-template-columns: 1fr;
+  }
 }
 /* Details: the Info panel's controls in the panel's light style (as the list's detail, #133); Remove stays red. */
 .parcel-details {

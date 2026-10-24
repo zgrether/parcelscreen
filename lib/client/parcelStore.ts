@@ -219,7 +219,31 @@ export interface WorkingParcel {
    * imported; null for a parcel kept before step 6. An optional field with a null default, so `v` stays 2.
    */
   addedBy: string | null;
+  /**
+   * Splits tried on it (step 14, plan §5: "Keep this, sell that"), oldest first: each a line across the parts and the
+   * screen of each piece. The pieces' screens are kept and synced as any screen is, but they aren't in `screenIds`: the
+   * parcel's own history is unchanged. An optional field with an empty default, so `v` stays 2.
+   */
+  scenarios: Scenario[];
   updatedAt: string;
+}
+
+/**
+ * A split tried on a parcel (step 14, plan §5.2): the line a→b across the parcel's parts (the same cut as a `split`),
+ * and each piece's screen by id, left and right of the direction a→b; null until it's graded, or when it didn't grade.
+ */
+export interface Scenario {
+  id: string;
+  /** "Split 1" until renamed. */
+  name: string;
+  a: LatLon;
+  b: LatLon;
+  screens: PieceScreens;
+  at: string;
+}
+export interface PieceScreens {
+  left: string | null;
+  right: string | null;
 }
 
 export interface ParcelStore {
@@ -336,13 +360,15 @@ export function plainParcel(record: ParcelRecord, now: string): WorkingParcel {
     excluded: [],
     screenIds: [],
     addedBy: null,
+    scenarios: [],
     updatedAt: now,
   };
 }
 
 /**
  * Built = changed: more than one piece, a drawn or derived piece (anything but a county record), a split, a
- * house, notes, a price or a listing fact, a status or milestone, a drawn line, or a screen. Once built, it stays built
+ * house, notes, a price or a listing fact, a status or milestone, a drawn line, a screen, or a split tried on it. Once
+ * built, it stays built
  * (it has a key).
  */
 export function isBuilt(p: WorkingParcel | null): boolean {
@@ -365,7 +391,8 @@ export function isBuilt(p: WorkingParcel | null): boolean {
     p.milestones.walked !== null ||
     p.milestones.offered !== null ||
     p.markup.length > 0 ||
-    p.screenIds.length > 0
+    p.screenIds.length > 0 ||
+    p.scenarios.length > 0
   );
 }
 
@@ -460,6 +487,14 @@ const SplitSchema = z.object({
   a: LatLonSchema,
   b: LatLonSchema,
   keep: z.union([z.literal(1), z.literal(-1)]),
+});
+const ScenarioSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  a: LatLonSchema,
+  b: LatLonSchema,
+  screens: z.object({ left: z.string().nullable(), right: z.string().nullable() }),
+  at: z.string(),
 });
 const LineSchema = z
   .object({
@@ -559,6 +594,8 @@ const WorkingSchema = z.object({
   screenIds: z.array(z.string()),
   // Added with step 6: a parcel kept before says nothing about who added it.
   addedBy: z.string().nullable().default(null),
+  // Added with step 14: a parcel kept before has no split tried on it.
+  scenarios: z.array(ScenarioSchema).default([]),
   updatedAt: z.string(),
 });
 export const ParcelStoreSchema = z.object({

@@ -32,7 +32,8 @@ import {
 import { portHarPath, writePortHar } from "../support/portHar";
 import { redGate, toTheBoundary } from "../support/redGate";
 import { runFixture, runScenario, SCENARIOS } from "../support/scenarios";
-import type { ScreenDeps } from "@/lib/screen";
+import { mudPieceInputs } from "../support/splitScenario";
+import { screen, type ScreenDeps } from "@/lib/screen";
 
 /**
  * Runs besides the golden scenarios whose requests the tests replay (they have no expected.json entry). WF6 (#140
@@ -49,6 +50,11 @@ const PORT_RUNS: Partial<
         { lines: [toTheBoundary(redGate)], drivewayLine: "red-gate" },
         deps(),
       ),
+    // Step 14 PR 6 (e2e/split-scenario.spec.ts): the two pieces of Mud Creek's split, each its own screen, as the
+    // app's Grade both pieces runs them.
+    async (deps) => {
+      for (const input of mudPieceInputs()) await screen(input, undefined, deps());
+    },
   ],
   // Step 2 (e2e/tennessee.spec.ts): the Tennessee parcel lines around Roan at zoom 15 and up, and its parcel-number
   // search, as the browser asks them, so the map's tap and search replay offline.

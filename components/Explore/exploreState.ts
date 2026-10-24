@@ -32,6 +32,15 @@ import type { ParcelRecord } from "@/lib/geo/parcels";
 import { drawnPart } from "@/lib/geo/recipe";
 import type { Side } from "@/lib/geo/split";
 import type { LatLon } from "@/lib/geo/types";
+import {
+  nextScenarioName,
+  relined,
+  renamed,
+  withoutScenario,
+  withPieceScreen,
+  withScenario,
+  type PieceSide,
+} from "@/lib/split/scenario";
 import { lineLayer, type LayerId } from "./layers";
 import { withArchive, withMilestone, withRestore } from "@/lib/client/parcelStatus";
 import { starred, unstarred } from "@/lib/client/favorites";
@@ -105,6 +114,13 @@ export interface ExploreState {
   editing: string | null;
   /** What the Mark tool marks next (WF4); null until a kind is picked. */
   markKind: MarkKind | null;
+  /** Step 14 (plan §5): the scenario whose line the split tool is moving (Adjust the line); null for a new one. */
+  scenarioLine: string | null;
+  /**
+   * Step 14: the scenario to grade next, on the parcel open as `serial`, and which of its pieces (both after Grade both
+   * pieces, one after Try again). The grading hook takes it (scenarioGrading) and runs them one after the other.
+   */
+  gradeScenario: { id: string; sides: PieceSide[]; serial: number } | null;
 }
 
 export const INITIAL: ExploreState = {
@@ -122,6 +138,8 @@ export const INITIAL: ExploreState = {
   serial: 0,
   editing: null,
   markKind: null,
+  scenarioLine: null,
+  gradeScenario: null,
 };
 
 /** The parcel panel's segment (step 14): Grade, Uses or Details. */
@@ -159,12 +177,30 @@ export type ExploreAction =
   | { type: "draftCancel" }
   /** Closes the drawn shape: a new parcel, or a piece added to the open one. */
   | { type: "finishDraw"; stamp: Stamp }
-  | { type: "startSplit" }
+  /** The split tool (step 14: a scenario); with `scenario`, its line moved (Adjust the line). */
+  | { type: "startSplit"; scenario?: string }
   | { type: "splitTap"; ll: LatLon }
   | { type: "splitMove"; a: LatLon; b: LatLon | null }
   | { type: "splitCancel" }
-  /** Keep one side of the split line: the line itself is saved, so it can be moved or removed later. */
-  | { type: "keepPiece"; side: Side; stamp: Stamp }
+  /**
+   * Grade both pieces (step 14, plan §5): the line placed is saved as a new scenario (`id`), or as the adjusted one's new
+   * line, and both its pieces are to be graded; the panel shows Uses, where the scenario is. The caller has checked that
+   * the line cuts the parcel in two.
+   */
+  | { type: "placeScenario"; id: string; stamp: Stamp }
+  /** Try again: the pieces of a scenario graded again (those that didn't grade). */
+  | { type: "regradeScenario"; id: string; sides: PieceSide[] }
+  /** The grading hook has taken the scenario to grade. */
+  | { type: "scenarioGrading" }
+  /** A piece graded: its screen kept, for the scenario of the parcel open as `serial`. */
+  | { type: "pieceScreened"; id: string; side: PieceSide; screenId: string; serial: number; stamp: Stamp }
+  | { type: "scenarioName"; id: string; name: string; serial: number; stamp: Stamp }
+  | { type: "scenarioRemove"; id: string; serial: number; stamp: Stamp }
+  /**
+   * Add this piece to the list: the new parcel (made by pieceAsParcel) is kept and opened; the parcel it came from stays
+   * as it is. Graded as it opens when the piece had no screen.
+   */
+  | { type: "addPiece"; parcel: WorkingParcel; stamp: Stamp }
   /** Starts combining, with the open parcel's pieces (if any). */
   | { type: "startCombine"; asNew?: string }
   | { type: "gradedOnOpen" }
@@ -257,13 +293,17 @@ const switched = (
 });
 
 /** Tools in progress end when the parcel changes underneath them. */
-const NO_TOOL: Pick<ExploreState, "mode" | "draft" | "split" | "combine" | "editing" | "markKind"> = {
+const NO_TOOL: Pick<
+  ExploreState,
+  "mode" | "draft" | "split" | "combine" | "editing" | "markKind" | "scenarioLine"
+> = {
   mode: null,
   draft: [],
   split: null,
   combine: null,
   editing: null,
   markKind: null,
+  scenarioLine: null,
 };
 
 const LINE_KINDS: readonly MarkupKind[] = ["track", "easement", "drive"];
@@ -414,29 +454,77 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
         store: save(next, a.stamp),
       };
     }
-    case "startSplit":
-      // An existing split is edited where it is.
+    case "startSplit": {
+      // Step 14: the split tool tries a scenario; Adjust the line starts from that scenario's line. A parcel saved with a
+      // split before step 14 keeps it (read as before), and a new line cuts the whole parts, as a split always did.
+      const moving = a.scenario ? open?.scenarios.find((sc) => sc.id === a.scenario) : undefined;
       return {
         ...s,
-        split: open?.split ? { a: open.split.a, b: open.split.b } : null,
+        split: moving ? { a: moving.a, b: moving.b } : null,
+        scenarioLine: moving?.id ?? null,
         combine: null,
         mode: "split",
       };
+    }
     case "splitTap":
       if (!s.split) return { ...s, split: { a: a.ll, b: null } };
-      // The tool stays on: the next tap, on a piece, keeps it (keepPiece).
       if (!s.split.b) return { ...s, split: { a: s.split.a, b: a.ll } };
+      // The line is placed: its ends are dragged to move it, and Grade both pieces takes it.
       return s;
     case "splitMove":
       return { ...s, split: { a: a.a, b: a.b } };
     case "splitCancel":
-      return { ...s, split: null, mode: null };
-    case "keepPiece":
+      return { ...s, split: null, mode: null, scenarioLine: null };
+    case "placeScenario": {
       if (!open || !s.split?.b) return s;
+      const { a: from, b: to } = s.split;
+      const moved = s.scenarioLine && open.scenarios.some((sc) => sc.id === s.scenarioLine);
+      const id = moved ? s.scenarioLine! : a.id;
+      const next = moved
+        ? relined(open, id, from, to, a.stamp.now)
+        : withScenario(open, {
+            id,
+            name: nextScenarioName(open.scenarios),
+            a: from,
+            b: to,
+            screens: { left: null, right: null },
+            at: a.stamp.now,
+          });
       return {
         ...s,
         ...NO_TOOL,
-        store: save({ ...open, split: { a: s.split.a, b: s.split.b, keep: a.side } }, a.stamp),
+        info: false,
+        uses: true,
+        layer: null,
+        gradeScenario: { id, sides: ["left", "right"], serial: s.serial },
+        store: save(next, a.stamp),
+      };
+    }
+    case "regradeScenario":
+      if (!open?.scenarios.some((sc) => sc.id === a.id) || !a.sides.length) return s;
+      return { ...s, gradeScenario: { id: a.id, sides: a.sides, serial: s.serial } };
+    case "scenarioGrading":
+      return s.gradeScenario ? { ...s, gradeScenario: null } : s;
+    case "pieceScreened":
+    case "scenarioName":
+    case "scenarioRemove": {
+      // As notes: a change that lands after another parcel opened is dropped; one that changes nothing saves nothing.
+      if (!open || a.serial !== s.serial) return s;
+      const next =
+        a.type === "pieceScreened"
+          ? withPieceScreen(open, a.id, a.side, a.screenId)
+          : a.type === "scenarioName"
+            ? renamed(open, a.id, a.name)
+            : withoutScenario(open, a.id);
+      return next === open ? s : { ...s, store: save(next, a.stamp) };
+    }
+    case "addPiece":
+      return {
+        ...s,
+        ...NO_TOOL,
+        ...switched(s),
+        gradeOnOpen: a.parcel.screenIds.length ? null : s.serial + 1,
+        store: save(a.parcel, a.stamp),
       };
     case "startCombine":
       return {

@@ -521,4 +521,39 @@ describe("step 14's parcel fields (plan §3.2)", () => {
     expect(bad({ hoa: "maybe" })).toBeNull();
     expect(bad({ markup: [{ ...easement, easementType: "pipeline" }] })).toBeNull();
   });
+
+  it("split scenarios (§5.2): a parcel kept before them has none; they round-trip, and one builds the parcel", () => {
+    const s = commitOpen(EMPTY_STORE, { ...plain, notes: "kept before step 14" }, T0, keys());
+    const raw = JSON.parse(writeParcelStore(s)) as {
+      open: Record<string, unknown>;
+      built: Record<string, unknown>[];
+    };
+    for (const p of [raw.open, ...raw.built]) delete p.scenarios;
+    const back = readParcelStore(JSON.stringify(raw))!;
+    expect(back.v).toBe(2);
+    for (const p of [back.open!, ...back.built]) expect(p.scenarios).toEqual([]);
+
+    const scenario = {
+      id: "sc1",
+      name: "Split 1",
+      a: [36.627, -81.354] as [number, number],
+      b: [36.631, -81.354] as [number, number],
+      screens: { left: "scr-left", right: null },
+      at: T0,
+    };
+    expect(isBuilt({ ...plain, scenarios: [scenario] })).toBe(true);
+    const kept = commitOpen(EMPTY_STORE, { ...plain, scenarios: [scenario] }, T0, keys());
+    expect(readParcelStore(writeParcelStore(kept))!.open!.scenarios).toEqual([scenario]);
+    expect(
+      readParcelStore(
+        writeParcelStore({
+          ...kept,
+          open: {
+            ...kept.open!,
+            scenarios: [{ ...scenario, screens: { left: 1 } }],
+          } as unknown as WorkingParcel,
+        }),
+      ),
+    ).toBeNull();
+  });
 });

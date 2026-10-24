@@ -53,7 +53,9 @@ import { combineParcels, type CombineResult } from "@/lib/geo/combine";
 import { parcelFromLine, pickParcelAt, type ParcelLine, type ParcelRecord } from "@/lib/geo/parcels";
 import { fieldsFor, fullRecord } from "@/lib/geo/parcelTiles";
 import { deriveParcel, ownLand, splitPreview, type DerivedParcel } from "@/lib/geo/recipe";
-import { pieceAt, type Side, type SplitPieces } from "@/lib/geo/split";
+import type { Side, SplitPieces } from "@/lib/geo/split";
+import { pieceAsParcel, pieceOf, type PieceSide } from "@/lib/split/scenario";
+import { SPLIT_WORDS } from "@/lib/split/words";
 import type { LatLon } from "@/lib/geo/types";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import type { MarkKind, SepticClass } from "@/lib/report/marks";
@@ -225,11 +227,23 @@ export interface ExploreController {
   dismissSearchedListing(): void;
   undoLineDelete(): void;
   dismissLineUndo(): void;
-  startSplit(): void;
-  /** A tap while splitting: the line's two ends, then the piece to keep. */
+  /** The split tool (step 14: "Keep this, sell that"); with a scenario's id, its line moved (Adjust the line). */
+  startSplit(scenario?: string): void;
+  /** A tap while splitting: the line's two ends. */
   splitTap(ll: LatLon): void;
   moveSplit(a: LatLon, b: LatLon | null): void;
-  choosePiece(side: Side): void;
+  /** Grade both pieces: the placed line kept as a scenario (or as the adjusted one's), both pieces to be graded. */
+  gradePieces(): void;
+  /** Try again: these pieces of the scenario graded again. */
+  regradePieces(id: string, sides: PieceSide[]): void;
+  /** The grading hook took the scenario to grade (state.gradeScenario). */
+  scenarioGrading(): void;
+  /** A piece graded, its screen kept (`screenId`), for the parcel open as `serial`. */
+  pieceScreened(id: string, side: PieceSide, screenId: string, serial: number): void;
+  renameScenario(id: string, name: string, serial: number): void;
+  removeScenario(id: string, serial: number): void;
+  /** Add this piece to the list: a new parcel from the piece, on the list, opened (its screen, when it has one). */
+  addPiece(id: string, side: PieceSide): void;
   /** Combine mode; with a name (step 12), the combination is a new parcel by that name, graded once made. */
   startCombine(asNew?: string): void;
   /** Step 12: the new combination's grade has started. */
@@ -849,20 +863,47 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     dismissLineUndo() {
       setLineUndo(null);
     },
-    startSplit() {
-      dispatch({ type: "startSplit" });
+    startSplit(scenario) {
+      dispatch({ type: "startSplit", ...(scenario ? { scenario } : {}) });
       hint("");
+      setToast(null); // a map tool starting replaces the Back toast
     },
     splitTap(ll) {
-      if (!latest.current.split?.b) return dispatch({ type: "splitTap", ll });
-      const side = pieces && pieceAt(pieces, ll);
-      if (side) dispatch({ type: "keepPiece", side, stamp: stamp() });
+      dispatch({ type: "splitTap", ll });
     },
     moveSplit(a, b) {
       dispatch({ type: "splitMove", a, b });
     },
-    choosePiece(side) {
-      dispatch({ type: "keepPiece", side, stamp: stamp() });
+    gradePieces() {
+      // Only a line that cuts the parcel in two (the toolbar's button is off otherwise).
+      if (!pieces?.left || !pieces.right) return;
+      dispatch({ type: "placeScenario", id: crypto.randomUUID(), stamp: stamp() });
+      hint("");
+    },
+    regradePieces(id, sides) {
+      dispatch({ type: "regradeScenario", id, sides });
+    },
+    scenarioGrading() {
+      dispatch({ type: "scenarioGrading" });
+    },
+    pieceScreened(id, side, screenId, serial) {
+      dispatch({ type: "pieceScreened", id, side, screenId, serial, stamp: stamp() });
+    },
+    renameScenario(id, name, serial) {
+      dispatch({ type: "scenarioName", id, name, serial, stamp: stamp() });
+    },
+    removeScenario(id, serial) {
+      dispatch({ type: "scenarioRemove", id, serial, stamp: stamp() });
+    },
+    addPiece(id, side) {
+      const open = latest.current.store.open;
+      const sc = open?.scenarios.find((x) => x.id === id);
+      const piece = open && sc ? pieceOf(open, sc, side, LIMITS) : null;
+      if (!open || !sc || !piece || refuseBusy()) return;
+      const name = SPLIT_WORDS.listName(parcelName(open).name, piece.word);
+      leaving();
+      const st = stamp();
+      dispatch({ type: "addPiece", parcel: pieceAsParcel(piece, sc.screens[side], name, st.now), stamp: st });
       hint("");
     },
     startCombine(asNew) {

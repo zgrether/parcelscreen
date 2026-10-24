@@ -79,8 +79,9 @@ test("Uses on Mud Creek: from Grade's shortcut, seven answers, What decides it, 
   await expect(divide.locator(".use-reason")).toHaveText(
     "Up to 11 lots: limited by 1,116 ft of road frontage at 100 ft per lot",
   );
-  await divide.getByRole("button").click();
-  await expect(divide.getByRole("button")).toHaveAttribute("aria-expanded", "true");
+  // The row itself (its Try a split is the other button, split-scenario.spec.ts).
+  await divide.locator("button.use-row").click();
+  await expect(divide.locator("button.use-row")).toHaveAttribute("aria-expanded", "true");
   await expect(divide.getByRole("heading", { name: "What decides it" })).toBeVisible();
   await expect(divide.locator(".use-fact").first()).toContainText("Grayson");
   await expect(divide.locator(".use-source").first()).toBeVisible();
