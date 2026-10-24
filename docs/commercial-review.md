@@ -63,7 +63,8 @@ metadata only, no bulk queries. "Not verified" means the page wasn't opened past
   `reviseyear`, as each county submits them, but **no sale price**. Its terms ask for bulk data from the by-county
   download, not the map service.
 - **Tennessee (the Comptroller's public-use boundaries):** no value fields. Its description says it is "intended for use
-  by state agencies with approved access", which is **to confirm against the app's own use of it** (step 2, §9.46). The
+  by state agencies with approved access", which is **to confirm against the app's own use of it** (step 2, §9.46; the
+  question to send is below). The
   Comptroller's per-county shapefiles carry assessment data and "can be used in a commercial application", with no
   recurring or automated downloads.
 - **Tennessee (TPAD):** the strongest single source. It has the market appraisal, the greenbelt value, and sales with
@@ -115,3 +116,28 @@ consideration oath), but the registers of deeds aren't machine-friendly.
 - **North Carolina:** OneMap's land value with its revaluation year, beside the county's ratio.
 - **Virginia:** the county assessment beside Virginia Tax's Class 5 ratio.
 - **Per-acre comparables for Virginia and North Carolina** need the counties' sales searches or a licensed vendor.
+
+### Tennessee's parcel service: the question to send (Zach, #314)
+
+**Who to ask:** the Comptroller of the Treasury's Division of Property Assessments, Geographic Services. That's the
+Office of Local Government's property assessment and GIS work. It runs the Tennessee Base Mapping Program and the
+statewide parcel data.
+- **Email:** GIS.Data@cot.tn.gov. The parcel data page gives it "for questions concerning the parcel data".
+- **Main line:** 615-741-2775.
+- **Address:** Comptroller of the Treasury, State Capitol, Nashville, TN 37243-9034.
+
+Sources: the [parcel data page](https://comptroller.tn.gov/office-functions/pa/gisredistricting/redistricting-and-land-use-maps/parcel-data.html)
+and [Geographic Services](https://comptroller.tn.gov/office-functions/pa/gisredistricting.html), both read 2026-10-24. No
+named staff contact is listed.
+
+**The question, for Zach to email:**
+
+> Subject: Personal use of the Tennessee Property Boundaries public-use parcel service
+>
+> Hello. I've built a small personal web app that helps my household evaluate rural land we're considering buying in
+> Carter and Johnson counties. When we look at a parcel, the app asks your public ArcGIS service
+> (Tennessee_Property_Boundaries_Public_Use, FeatureServer layer 0) for that one parcel's boundary and identifiers, and it
+> shows the TPAD link for the county record. It makes a few requests per parcel viewed, never bulk downloads, and it
+> doesn't store or redistribute the data beyond our own saved parcels. The service's description says it's "intended for
+> use by state agencies with approved access". Is personal, non-commercial use like this permitted? If not, is there a
+> way to request access, or would you prefer we use the monthly county shapefile downloads instead? Thank you.

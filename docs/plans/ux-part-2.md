@@ -123,11 +123,16 @@ as listed here. Each PR's description lists every changed string, before → aft
 | "What money can't add" | "Really want" | Compare |
 | "Still unknown", "More to check…" | "Questions for the agent" | the card's block, One page, Full, the panel |
 | "Dark skies" | "Night sky" | the card's sky block, Help, the areas' words |
-| "Report card", "Full report" | "Report" (the export: "Make a report"); the card stays "the card" | the panel menu, the report page, the list |
+| "Report card" (the export) | "Report" (⋯ → "Make a report") | the panel menu, the report page, the list |
+| "Full report" (the panel's expandable section) | "All details" | the panel |
 | "Warning" (Compare, the card's panel) | "Check first" | Compare, the card |
 
 Each rename replaces a word in place, so none of them is additive. They're listed here for Zach's approval, as #300 did
 for its Help correction. The goldens are regenerated in the PR that changes them, with each leaf diff named.
+
+**Zach's decision (#314, 2026-10-24):** all approved, with one change. "Report card / Full report → Report" became two
+renames: the export is "Report" (⋯ → Make a report), and the panel's expandable section is "All details". Both are
+declared above.
 
 ## 5. Facts and opinions (J-5)
 
@@ -146,6 +151,10 @@ cost and the print read it. If it isn't, it stays the person's own override, as 
 | Acres, frontage | a survey | a new "Survey" mark with its acres and frontage |
 
 The three new marks are optional fields with defaults on the parcel (no format change), in PR 3.
+
+**Zach's decision (#314):** approved as listed, with the three new marks. Acres and frontage, once entered as a fact
+(the Survey mark), are what Divide, $/ac and the header use, for every member. They come before the listing's acres
+and the county map's, and each view names its source ("30.0 ac, surveyed").
 
 **Opinions stay overrides:** every Really want and Nice to have row, how much a factor weighs, the homesite chosen, and
 the night sky's and the view's readings.
@@ -208,10 +217,16 @@ may split (2a / 2b, 7a / 7b).
 
 ## 10. Market value (Z-5)
 
-The research is in `docs/commercial-review.md`, under "Market value references". Zach decides later whether the app
-shows one. Nothing in this mission uses it.
+The research is in `docs/commercial-review.md`, under "Market value references". **Parked** (Zach, #314): it stays there,
+and nothing in this mission uses it.
 
 ## 11. Decision
 
-Zach approved the direction and its six calls (2026-10-24). This plan is PR 0, merged into `step/ux2` on green; the
-mission proceeds on §9's recommendations unless Zach says otherwise on this PR.
+Zach approved the direction and its six calls (2026-10-24). This plan was PR 0 (#314), merged into `step/ux2` on green.
+On #314 Zach:
+- approved the renames (§4, with the Report / All details split);
+- approved the facts (§5, with the surveyed acres and frontage for every member);
+- said to proceed on §9's seven recommendations;
+- parked market value (§10).
+
+PR 1 starts after #313 is on main.
