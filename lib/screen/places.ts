@@ -109,8 +109,11 @@ export class OverpassMirrors {
     if (!this.order) this.order = [...deps.endpoints.overpass];
     const main = deps.endpoints.overpass[0];
     const errs: string[] = [];
-    for (let i = 0; i < this.order.length; i++) {
-      const u = this.order[i]!,
+    // A snapshot: queries run at once (step 14: the roads and the power lines), and one that answers reorders
+    // this.order while another is still walking it.
+    const order = [...this.order];
+    for (let i = 0; i < order.length; i++) {
+      const u = order[i]!,
         host = u.split("/")[2];
       try {
         const opts = {
@@ -132,7 +135,7 @@ export class OverpassMirrors {
           continue;
         }
         const j = (await r.json()) as { elements?: OsmElement[] };
-        if (i > 0) this.order.unshift(...this.order.splice(i, 1));
+        if (this.order[0] !== u) this.order = [u, ...this.order.filter((x) => x !== u)];
         return j.elements || [];
       } catch (e) {
         if (e instanceof CancelledError) throw e;

@@ -1842,6 +1842,30 @@
     "distFt": 49097.43827779469
    }
   ],
+  "power": {
+   "source": "osm",
+   "date": null,
+   "lines": [],
+   "nearestFt": null,
+   "nearestKV": null,
+   "crosses": false,
+   "insideFt": 0
+  },
+  "frontage": {
+   "publicFt": 1116,
+   "roads": [
+    {
+     "name": "Mud Creek Ln",
+     "ft": 919,
+     "public": true
+    },
+    {
+     "name": "Mud Creek Rd",
+     "ft": 197,
+     "public": true
+    }
+   ]
+  },
   "near": {
    "hospitals": [
     {
@@ -7802,7 +7826,7 @@
    "mi": 21.8
   },
   "schemaVersion": 9,
-  "engine": 29,
+  "engine": 30,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -9650,6 +9674,30 @@
     "distFt": 49097.43827779469
    }
   ],
+  "power": {
+   "source": "osm",
+   "date": null,
+   "lines": [],
+   "nearestFt": null,
+   "nearestKV": null,
+   "crosses": false,
+   "insideFt": 0
+  },
+  "frontage": {
+   "publicFt": 1116,
+   "roads": [
+    {
+     "name": "Mud Creek Ln",
+     "ft": 919,
+     "public": true
+    },
+    {
+     "name": "Mud Creek Rd",
+     "ft": 197,
+     "public": true
+    }
+   ]
+  },
   "near": {
    "hospitals": [
     {
@@ -15610,7 +15658,7 @@
    "mi": 21.8
   },
   "schemaVersion": 9,
-  "engine": 29,
+  "engine": 30,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

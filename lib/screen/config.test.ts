@@ -59,7 +59,7 @@ describe("config", () => {
           "woodedPct": 100,
         },
         "endpoints": {
-          "_v": 13,
+          "_v": 14,
           "dem": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
           "lpAtlasBinary": "https://djlorenz.github.io/astronomy/binary_tiles",
           "lpAtlasTiles": "https://djlorenz.github.io/astronomy/image_tiles",
@@ -80,6 +80,7 @@ describe("config", () => {
             "https://services1.arcgis.com/YuVBSS7Y1of2Qud1/arcgis/rest/services/Tennessee_Property_Boundaries_Public_Use/FeatureServer/0",
           ],
           "photon": "https://photon.komoot.io/api/",
+          "power": "https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Electric_Power_Transmission_Lines/FeatureServer/0",
           "sda": "https://SDMDataAccess.sc.egov.usda.gov/Tabular/post.rest",
           "stateParks": [
             "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Landmarks/FeatureServer/1",
@@ -1011,6 +1012,20 @@ describe("config", () => {
         "foundationType": {
           "shallowRockCm": 50,
         },
+        "frontage": {
+          "publicMtfcc": [
+            "S1100",
+            "S1200",
+            "S1400",
+          ],
+          "publicOsm": [
+            "primary",
+            "secondary",
+            "tertiary",
+            "unclassified",
+            "residential",
+          ],
+        },
         "grocery": {
           "closerMinMin": 10,
         },
@@ -1057,6 +1072,13 @@ describe("config", () => {
           "nearestOpenKm": 16,
           "openSimplifyDeg": 0.0002,
           "searchM": 1600,
+        },
+        "power": {
+          "insideStepM": 5,
+          "keepKm": 1,
+          "searchKm": 3,
+          "simplifyDeg": 0.0001,
+          "timeoutMs": 30000,
         },
         "privacy": {
           "eyeM": 1.7,

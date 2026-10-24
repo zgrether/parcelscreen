@@ -1210,6 +1210,35 @@
     "distFt": 49684.723308822904
    }
   ],
+  "power": {
+   "source": "hifld",
+   "date": "2014-09-02",
+   "lines": [],
+   "nearestFt": 5113,
+   "nearestKV": 161,
+   "crosses": false,
+   "insideFt": 0
+  },
+  "frontage": {
+   "publicFt": 0,
+   "roads": [
+    {
+     "name": "unmapped track",
+     "ft": 2297,
+     "public": false
+    },
+    {
+     "name": "unmapped service",
+     "ft": 492,
+     "public": false
+    },
+    {
+     "name": "unnamed road",
+     "ft": 33,
+     "public": false
+    }
+   ]
+  },
   "near": {
    "hospitals": [
     {
@@ -5143,7 +5172,7 @@
    "mi": 17.1
   },
   "schemaVersion": 9,
-  "engine": 29,
+  "engine": 30,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -6359,6 +6388,35 @@
     "distFt": 49684.723308822904
    }
   ],
+  "power": {
+   "source": "hifld",
+   "date": "2014-09-02",
+   "lines": [],
+   "nearestFt": 5113,
+   "nearestKV": 161,
+   "crosses": false,
+   "insideFt": 0
+  },
+  "frontage": {
+   "publicFt": 0,
+   "roads": [
+    {
+     "name": "unmapped track",
+     "ft": 2297,
+     "public": false
+    },
+    {
+     "name": "unmapped service",
+     "ft": 492,
+     "public": false
+    },
+    {
+     "name": "unnamed road",
+     "ft": 33,
+     "public": false
+    }
+   ]
+  },
   "near": {
    "hospitals": [
     {
@@ -9985,7 +10043,7 @@
    "mi": 17.1
   },
   "schemaVersion": 9,
-  "engine": 29,
+  "engine": 30,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

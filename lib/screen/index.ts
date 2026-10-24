@@ -43,6 +43,8 @@ import { LONG_TRAIL_DRIVES, longTrailDrive } from "./longTrail";
 import { dishSpot } from "./dish";
 import { OverpassMirrors, type OverpassFallback } from "./places";
 import type { OsmWay } from "./osmRoads";
+import { measureFrontage } from "./frontage";
+import type { OsmPowerSource } from "./power";
 import { drawnGrid, insideWithLines, measureLines } from "./drawn";
 import type { RoadFeature } from "./roads";
 import { storedHouse, storedSite } from "./derive";
@@ -118,6 +120,8 @@ export interface ScreenDeps {
   buildings?: BuildingSource;
   /** The browser's OSM roads query (VR3a, through /api/places/overpass); Node calls the mirrors directly. */
   osmRoads?: (centre: LatLon, signal?: AbortSignal) => Promise<OsmWay[]>;
+  /** Step 14: OSM's power lines, when not straight to the mirrors (the worker: the app's route). */
+  osmPower?: OsmPowerSource;
   /** The browser's trailhead parking query (follow-up 54, the same route); Node calls the mirrors directly. */
   parking?: ParkingSource;
 }
@@ -433,11 +437,16 @@ export async function screen(
         ...(deps.overpass ? { overpass: deps.overpass } : {}),
         ...(deps.hospitals ? { hospitals: deps.hospitals } : {}),
         ...(deps.osmRoads ? { osmRoads: deps.osmRoads } : {}),
+        ...(deps.osmPower ? { osmPower: deps.osmPower } : {}),
+        parcel: s.ownLand ?? parcel,
       },
       new OverpassMirrors(),
     );
     R.noResponse.push(...n.unanswered);
     if (n.osmRoads) s.osmRoads = n.osmRoads;
+    // Step 14 (plan §2.1, §2.3): the power lines, and the road frontage from the roads just found.
+    if (n.power) R.power = n.power;
+    R.frontage = measureFrontage(n.roads, n.osmRoads ?? [], s.ownLand ?? parcel);
     if (n.near) R.near = n.near;
     if (n.nearNote) R.nearNote = n.nearNote;
     s.roads = n.roads;

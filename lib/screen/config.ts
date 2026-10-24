@@ -13,7 +13,7 @@ import type { Curve } from "./util";
 
 /** Service endpoints. `_v` bumps when a default moves, so stale stored copies are replaced. */
 export const DEFAULT_ENDPOINTS: Endpoints = {
-  _v: 13,
+  _v: 14,
   dem: "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
   terrarium: "https://s3.amazonaws.com/elevation-tiles-prod/terrarium",
   sda: "https://SDMDataAccess.sc.egov.usda.gov/Tabular/post.rest",
@@ -51,6 +51,9 @@ export const DEFAULT_ENDPOINTS: Endpoints = {
     // service it replaces is the back end of the Comptroller's own viewer (docs/plans/phase-0.md §9.46).
     "https://services1.arcgis.com/YuVBSS7Y1of2Qud1/arcgis/rest/services/Tennessee_Property_Boundaries_Public_Use/FeatureServer/0",
   ],
+  // Step 14 (_v 14): HIFLD Open's electric power transmission lines (official; data as of its SOURCEDATE).
+  power:
+    "https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Electric_Power_Transmission_Lines/FeatureServer/0",
 };
 
 export const DEFAULT_USER_CONFIG: UserConfig = {
@@ -327,6 +330,22 @@ export const SCREEN_CONSTANTS = deepFreeze({
     // before the boundary, isn't the parcel's own drive: Legal road access asks for a recorded right (owner, #126).
     privateOutsideMinM: 15,
     maxWalkM: 5000, // how far along the OSM network to look for a TIGER road
+  },
+  // Step 14 (plan §2.1): power lines near the parcel. HIFLD's transmission lines within searchKm; those within
+  // keepKm kept, simplified, for the map and the house-site distance; OSM's power=line when HIFLD has none or fails.
+  power: {
+    searchKm: 3,
+    keepKm: 1,
+    simplifyDeg: 0.0001, // about 10 m: ArcGIS's maxAllowableOffset
+    insideStepM: 5, // the walk along a line that measures its length inside the parcel
+    timeoutMs: 30_000,
+  },
+  // Step 14 (plan §2.3): road frontage, the road length within the entrance search's reach of the boundary.
+  // Public: TIGER's primary, secondary and local roads (MTFCC S1100, S1200, S1400); OSM's ways only when they're one
+  // of these classes and not private.
+  frontage: {
+    publicMtfcc: ["S1100", "S1200", "S1400"] as const,
+    publicOsm: ["primary", "secondary", "tertiary", "unclassified", "residential"] as const,
   },
   roads: {
     layers: [8, 6, 2] as const, // L843: local, secondary, primary

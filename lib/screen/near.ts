@@ -13,6 +13,15 @@ import { mergeTrailheads, officialTrailheads } from "./trailheads";
 import { CancelledError, type HttpClient } from "../http";
 import { fetchOsmRoads, type OsmWay } from "./osmRoads";
 import { fetchRoads, roadToSite, type RoadFeature } from "./roads";
+import {
+  findPower,
+  hifldLines,
+  measurePower,
+  osmPowerFromMirrors,
+  type OsmPowerSource,
+  type PowerMeasure,
+} from "./power";
+import type { Feature, MultiPolygon, Polygon } from "geojson";
 import type { Dem, Endpoints, ScreenResult, RawFlag } from "./types";
 import type { LatLon } from "./util";
 
@@ -25,6 +34,10 @@ export interface NearDeps {
   hospitals?: HospitalSource;
   /** The OSM roads query, when not straight to the mirrors (the worker: the app's route). */
   osmRoads?: (centre: LatLon, signal?: AbortSignal) => Promise<OsmWay[]>;
+  /** Step 14: the parcel, for the power lines near it; without it, none are looked for. */
+  parcel?: Feature<Polygon | MultiPolygon>;
+  /** Step 14: OSM's power lines, when not straight to the mirrors (the worker: the app's route, kind=power). */
+  osmPower?: OsmPowerSource;
 }
 
 export interface NearOutcome extends Pick<ScreenResult, "near" | "nearNote" | "road" | "roadNote"> {
@@ -39,6 +52,8 @@ export interface NearOutcome extends Pick<ScreenResult, "near" | "nearNote" | "r
   osmRoads?: OsmWay[];
   /** Sources that didn't answer without failing the step (v4): an official trailhead list, the OSM roads. */
   unanswered: string[];
+  /** Step 14: the power lines near the parcel; absent when no parcel was given, or neither source answered. */
+  power?: PowerMeasure;
   /**
    * Set when both place sources failed: the orchestrator marks the step failed with this message and its
    * "test the query" link, and keeps everything else here.
@@ -56,13 +71,27 @@ export async function nearStep(
   mirrors: OverpassMirrors = new OverpassMirrors(),
 ): Promise<NearOutcome> {
   const unanswered: string[] = [];
-  const [places, roads, official, osm] = await Promise.allSettled([
+  const parcel = deps.parcel;
+  const [places, roads, official, osm, power] = await Promise.allSettled([
     findPlaces(centre, deps, mirrors),
     fetchRoads(centre, deps),
     officialTrailheads(centre, deps, unanswered), // follow-up 24: USFS and the state parks; never fails but for a cancel
     // VR3a: OSM's tracks and service roads, possible frontage where TIGER shows none.
     deps.osmRoads ? deps.osmRoads(centre, deps.signal) : fetchOsmRoads(centre, deps, mirrors),
+    // Step 14: HIFLD's power lines, else OSM's.
+    parcel
+      ? findPower(
+          parcel,
+          centre,
+          () => hifldLines(deps.endpoints.power, parcel, deps),
+          deps.osmPower ?? osmPowerFromMirrors(deps, mirrors),
+          deps.signal,
+        ).then((f) => measurePower(f, parcel))
+      : Promise.resolve(undefined),
   ]);
+  if (power.status === "rejected" && power.reason instanceof CancelledError) throw power.reason;
+  if (power.status === "rejected") unanswered.push("Power lines");
+  const powerOut = power.status === "fulfilled" && power.value ? { power: power.value } : {};
   if (roads.status === "rejected") throw roads.reason; // only cancellation reaches here
   if (osm.status === "rejected" && osm.reason instanceof CancelledError) throw osm.reason;
   if (osm.status === "rejected") unanswered.push("OpenStreetMap roads");
@@ -82,9 +111,17 @@ export async function nearStep(
           hospitalPool: places.value.hospitalPool,
           flags: [],
           ...osmRoads,
+          ...powerOut,
           unanswered,
         }
-      : { roads: roads.value, flags: [], ...osmRoads, unanswered, placesError: places.reason as PlacesError };
+      : {
+          roads: roads.value,
+          flags: [],
+          ...osmRoads,
+          ...powerOut,
+          unanswered,
+          placesError: places.reason as PlacesError,
+        };
   if (!dWide) return out;
   return { ...out, ...roadToSite(roads.value, siteLL ?? centre, dWide, roadMaxGradePct) };
 }

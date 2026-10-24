@@ -72,6 +72,7 @@ export const EndpointsSchema = z.strictObject({
   lpAtlasTiles: z.string(),
   osrm: z.string(),
   parcels: z.array(z.string()),
+  power: z.string(),
 });
 export type Endpoints = z.infer<typeof EndpointsSchema>;
 
@@ -836,6 +837,34 @@ export const ScreenResultSchema = z.strictObject({
   dish: z.strictObject({ ll: LatLonSchema, clearShare: num }).nullable().optional(),
   /** Step 11 (plan §2.3; §9.66): whether the parcel is outside the footprints' region. Absent before it. */
   privacy: z.strictObject({ outside: z.boolean() }).optional(),
+  /**
+   * Step 14 (plan §2.1; §9.70): the power lines near the parcel, HIFLD's or OSM's, with those within power.keepKm kept
+   * ([lon, lat], simplified) for the map and the house-site distance. Absent before it, or when neither source answered.
+   */
+  power: z
+    .strictObject({
+      source: z.enum(["hifld", "osm"]),
+      date: z.string().nullable(),
+      lines: z.array(
+        z.strictObject({
+          kV: num.nullable(),
+          owner: z.string().nullable(),
+          coords: z.array(z.tuple([num, num])),
+        }),
+      ),
+      nearestFt: num.nullable(),
+      nearestKV: num.nullable(),
+      crosses: z.boolean(),
+      insideFt: num,
+    })
+    .optional(),
+  /** Step 14 (plan §2.3; §9.70): road frontage by road, and the public part's feet. Absent before it. */
+  frontage: z
+    .strictObject({
+      publicFt: num,
+      roads: z.array(z.strictObject({ name: z.string(), ft: num, public: z.boolean() })),
+    })
+    .optional(),
   excluded: z.array(z.strictObject({ acres: num, ll: LatLonSchema, why: z.string() })).optional(),
   sites: z.array(SiteSchema).optional(),
   house: HouseSchema.nullable().optional(),
