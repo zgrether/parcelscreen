@@ -19,6 +19,7 @@ export const TOOL: Record<MarkChoice, MarkTool> = {
   drive: "line",
   easement: "line",
   spring: "point",
+  stream: "point",
   well: "point",
   septic: "septic",
   power: "point",
@@ -36,6 +37,7 @@ export const CHOICE_LABEL: Record<MarkChoice, string> = {
   drive: "Existing drive",
   easement: "Easement",
   spring: "Spring",
+  stream: "Stream",
   well: "Well",
   septic: "Septic permit",
   power: "Power",
@@ -50,7 +52,7 @@ export const CHOICE_LABEL: Record<MarkChoice, string> = {
 export const CHOICE_GROUPS: readonly { title: string; choices: readonly MarkChoice[] }[] = [
   { title: "Build", choices: ["house"] },
   { title: "Ways in", choices: ["track", "drive", "easement"] },
-  { title: "Water & utilities", choices: ["spring", "well", "septic", "power"] },
+  { title: "Water & utilities", choices: ["spring", "stream", "well", "septic", "power"] },
   { title: "On the land", choices: ["building", "campsite", "clearing", "gate", "note"] },
 ];
 

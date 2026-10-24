@@ -19,6 +19,8 @@ const GLYPH: Record<MarkChoice, readonly Stroke[]> = {
   drive: [{ d: "M8 20 10.5 4M16 20 13.5 4" }, { d: "M12 18.5v-2M12 13v-2M12 7.5v-2" }],
   easement: [{ d: "M4.5 5v14M19.5 5v14" }, { d: "M8 12h8M13 9l3 3-3 3" }],
   spring: [{ d: "M12 4c3.2 4.4 5 7.2 5 9.8a5 5 0 0 1-10 0C7 11.2 8.8 8.4 12 4z", fill: true }],
+  // Step 14: two ripples, the water running.
+  stream: [{ d: "M4 9c2.7-2 5.3 2 8 0s5.3-2 8 0M4 15c2.7-2 5.3 2 8 0s5.3-2 8 0" }],
   well: [{ d: "M5 9.5h14l-1.4 9.5H6.4zM12 9.5V4.5M9 4.5h6" }],
   septic: [{ d: "M4 10h16v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM8 10V6.5h3.5V10M14 14.5h3" }],
   power: [{ d: "M13.2 3 6.5 13h4.8L10.5 21l7-10.5h-4.8z", fill: true }],

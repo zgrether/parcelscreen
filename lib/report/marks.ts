@@ -13,14 +13,19 @@ import type { Adjustment } from "./adjust";
 import type { CostLine } from "./cost";
 import { lineNamesOf, type LineNames } from "./lines";
 
-/** What a point marks (owner, WF4: a spring and a well apart, since they cost differently). */
-export type PointKind = "spring" | "well" | "septic" | "building" | "power" | "campsite" | "gate" | "note";
+/**
+ * What a point marks (owner, WF4: a spring and a well apart, since they cost differently). A stream (step 14, plan §3.2)
+ * is water for Garden, orchard, animals only: it reaches neither the card nor the cost.
+ */
+export type PointKind =
+  "spring" | "stream" | "well" | "septic" | "building" | "power" | "campsite" | "gate" | "note";
 /** What an area marks: a septic permit's field, or ground that's already cleared. */
 export type AreaKind = "septic" | "clearing";
 export type MarkKind = PointKind | AreaKind;
 
 export const POINT_KINDS: readonly PointKind[] = [
   "spring",
+  "stream",
   "well",
   "septic",
   "building",
