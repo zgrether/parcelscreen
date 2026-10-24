@@ -2,15 +2,17 @@
 /**
  * The listing's facts (WF1, docs/plans/parcel-workflow.md §2), at the top of the Info panel's Notes tab and of a
  * parcel's detail on the list (owner, after #133): the household's name for the parcel, the listing's link, the asking
- * price, the acres the listing claims and the agent. Each saves when its box loses focus or on Enter. The link is never
- * fetched; the agent is a third party's contact and stays with the parcel.
+ * price, the acres the listing claims, the agent, and (step 14) the deed's restrictions and the HOA. Each saves when
+ * its box loses focus or on Enter (the HOA on a tap). The link is never fetched; the agent is a third party's contact and
+ * stays with the parcel.
  */
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { perAcre } from "@/lib/report/perAcre";
 import { askingLine, parsePrice } from "@/lib/client/askingPrice";
 import { safeListingHref } from "@/lib/client/listingUrl";
-import type { ListingField, WorkingParcel } from "@/lib/client/parcelStore";
+import { HOA_VALUES, type ListingField, type WorkingParcel } from "@/lib/client/parcelStore";
 import { listingAcresNote, listingFolds, listingSummary } from "@/lib/report/listing";
+import { HOA_WORD, LIMIT_WORDS } from "@/lib/uses/words";
 
 export interface ListingSaves {
   listing(patch: Partial<Pick<WorkingParcel, ListingField>>): void;
@@ -92,6 +94,28 @@ export function ListingFacts({
         placeholder="Name, phone, email"
         save={(agent) => save.listing({ agent: agent.trim() })}
       />
+      {/* Step 14 (plan §3.2): What limits you lists both; neither changes the grade. */}
+      <TextField
+        label={LIMIT_WORDS.deed}
+        value={open.deedRestrictions}
+        placeholder="What the deed restricts, if anything"
+        save={(deedRestrictions) => save.listing({ deedRestrictions: deedRestrictions.trim() })}
+      />
+      <div className="ip-field" role="group" aria-label={LIMIT_WORDS.hoa}>
+        <span>{LIMIT_WORDS.hoa}</span>
+        <div className="ip-line-row">
+          {HOA_VALUES.map((h) => (
+            <button
+              key={h}
+              className="chip"
+              aria-pressed={open.hoa === h}
+              onClick={() => open.hoa !== h && save.listing({ hoa: h })}
+            >
+              {HOA_WORD[h]}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

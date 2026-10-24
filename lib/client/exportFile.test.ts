@@ -196,6 +196,8 @@ describe("version 2 (owner, after #131): every field written; a version 1 file c
       listingUrl: "",
       listingAcres: null,
       agent: "",
+      deedRestrictions: "",
+      hoa: "unknown",
       status: "inProgress",
       archived: null,
       milestones: { walked: null, offered: null },

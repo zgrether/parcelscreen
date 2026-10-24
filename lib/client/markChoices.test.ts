@@ -6,7 +6,7 @@ describe("the Mark picker's choices (owner, after #136)", () => {
     expect(CHOICE_GROUPS.map((g) => [g.title, g.choices.map((c) => CHOICE_LABEL[c])])).toEqual([
       ["Build", ["House site"]],
       ["Ways in", ["Track", "Existing drive", "Easement"]],
-      ["Water & utilities", ["Spring", "Well", "Septic permit", "Power"]],
+      ["Water & utilities", ["Spring", "Stream", "Well", "Septic permit", "Power"]],
       ["On the land", ["Building", "Campsite", "Clearing", "Gate", "Note"]],
     ]);
     const all = CHOICE_GROUPS.flatMap((g) => g.choices);
@@ -21,7 +21,16 @@ describe("the Mark picker's choices (owner, after #136)", () => {
       Object.keys(TOOL)
         .filter((c) => TOOL[c as keyof typeof TOOL] === tool)
         .sort();
-    expect(by("point")).toEqual(["building", "campsite", "gate", "note", "power", "spring", "well"]);
+    expect(by("point")).toEqual([
+      "building",
+      "campsite",
+      "gate",
+      "note",
+      "power",
+      "spring",
+      "stream",
+      "well",
+    ]);
     expect(by("house")).toEqual(["house"]);
     expect(by("line")).toEqual(["drive", "easement", "track"]);
     expect(by("area")).toEqual(["clearing"]);
