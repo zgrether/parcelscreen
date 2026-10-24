@@ -54,6 +54,10 @@ export const DEFAULT_ENDPOINTS: Endpoints = {
   // Step 14 (_v 14): HIFLD Open's electric power transmission lines (official; data as of its SOURCEDATE).
   power:
     "https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Electric_Power_Transmission_Lines/FeatureServer/0",
+  // Step 14: NLCD 2021 land cover (MRLC's WCS), NHD's flowlines (the National Map), and the Census Bureau's counties.
+  nlcd: "https://www.mrlc.gov/geoserver/mrlc_download/wcs",
+  nhd: "https://hydro.nationalmap.gov/arcgis/rest/services/nhd/MapServer/6",
+  counties: "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/1",
 };
 
 export const DEFAULT_USER_CONFIG: UserConfig = {
@@ -339,6 +343,38 @@ export const SCREEN_CONSTANTS = deepFreeze({
     simplifyDeg: 0.0001, // about 10 m: ArcGIS's maxAllowableOffset
     insideStepM: 5, // the walk along a line that measures its length inside the parcel
     timeoutMs: 30_000,
+  },
+  // Step 14 (plan §2.4): land cover from NLCD 2021. Open gentle ground within nearRoadFt of a road is "near the
+  // access" (Camp now); the road distance is read every roadStride cells, each standing for its block.
+  cover: {
+    nearRoadFt: 300,
+    roadStride: 3,
+    timeoutMs: 60_000,
+  },
+  // Step 14 (plan §2.5): NHD's flowlines within bufferFt of the parcel. FCODE 46006 is perennial, 46003 intermittent;
+  // NHD answers slowly (33 s for Mud Creek's box when checked), so it starts with the run.
+  streams: {
+    bufferFt: 300,
+    perennial: [46006] as const,
+    intermittent: [46003] as const,
+    stepM: 5,
+    timeoutMs: 60_000,
+  },
+  // Step 14 (plan §3, §9): the land uses' thresholds. None is graded; each decides a Yes / Maybe / No.
+  uses: {
+    trailSpacingFt: 100, // the trail estimate: one path every 100 ft across the gentle ground
+    trailMaxGradePct: 15, // "gentle ground"
+    trailMinPatchAc: 0.25,
+    trailYesMi: 0.5,
+    trailMaybeMi: 0.2,
+    pastureAc: 2, // open gentle ground for animals
+    smallStockAc: 0.5,
+    huntMinAc: 10,
+    huntForestPct: 50,
+    campNearAccessFt: 300,
+    campMinOpenAc: 0.25,
+    rideNearMi: 3,
+    rideFarMi: 10,
   },
   // Step 14 (plan §2.3): road frontage, the road length within the entrance search's reach of the boundary.
   // Public: TIGER's primary, secondary and local roads (MTFCC S1100, S1200, S1400); OSM's ways only when they're one

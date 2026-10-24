@@ -4050,6 +4050,31 @@
     }
    ]
   },
+  "cover": {
+   "forestPct": 93,
+   "openPct": 3,
+   "openGentleAc": 0.46,
+   "openNearRoadAc": 0.4,
+   "year": 2021
+  },
+  "streams": {
+   "perennialFt": 0,
+   "intermittentFt": 7087,
+   "names": [
+    "Deepwater Creek"
+   ],
+   "nearestFt": 565
+  },
+  "county": {
+   "fips": "51063",
+   "name": "Floyd",
+   "state": "VA",
+   "zoning": null
+  },
+  "trails": {
+   "gentleAc": 16.34,
+   "miles": 1.35
+  },
   "near": {
    "hospitals": [
     {
@@ -6624,7 +6649,7 @@
    "mi": 16.8
   },
   "schemaVersion": 9,
-  "engine": 30,
+  "engine": 31,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -10680,6 +10705,31 @@
     }
    ]
   },
+  "cover": {
+   "forestPct": 93,
+   "openPct": 3,
+   "openGentleAc": 0.46,
+   "openNearRoadAc": 0.4,
+   "year": 2021
+  },
+  "streams": {
+   "perennialFt": 0,
+   "intermittentFt": 7087,
+   "names": [
+    "Deepwater Creek"
+   ],
+   "nearestFt": 565
+  },
+  "county": {
+   "fips": "51063",
+   "name": "Floyd",
+   "state": "VA",
+   "zoning": null
+  },
+  "trails": {
+   "gentleAc": 16.34,
+   "miles": 1.35
+  },
   "near": {
    "hospitals": [
     {
@@ -13274,7 +13324,7 @@
    "mi": 16.8
   },
   "schemaVersion": 9,
-  "engine": 30,
+  "engine": 31,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

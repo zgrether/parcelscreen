@@ -2103,6 +2103,29 @@
     }
    ]
   },
+  "cover": {
+   "forestPct": 36,
+   "openPct": 59,
+   "openGentleAc": 12.37,
+   "openNearRoadAc": 12,
+   "year": 2021
+  },
+  "streams": {
+   "perennialFt": 0,
+   "intermittentFt": 1198,
+   "names": [],
+   "nearestFt": 687
+  },
+  "county": {
+   "fips": "51063",
+   "name": "Floyd",
+   "state": "VA",
+   "zoning": null
+  },
+  "trails": {
+   "gentleAc": 17.57,
+   "miles": 1.45
+  },
   "near": {
    "hospitals": [
     {
@@ -3628,7 +3651,7 @@
    "mi": 24.1
   },
   "schemaVersion": 9,
-  "engine": 30,
+  "engine": 31,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -5736,6 +5759,29 @@
      "public": false
     }
    ]
+  },
+  "cover": {
+   "forestPct": 36,
+   "openPct": 59,
+   "openGentleAc": 12.37,
+   "openNearRoadAc": 12,
+   "year": 2021
+  },
+  "streams": {
+   "perennialFt": 0,
+   "intermittentFt": 1198,
+   "names": [],
+   "nearestFt": 687
+  },
+  "county": {
+   "fips": "51063",
+   "name": "Floyd",
+   "state": "VA",
+   "zoning": null
+  },
+  "trails": {
+   "gentleAc": 17.57,
+   "miles": 1.45
   },
   "near": {
    "hospitals": [
@@ -8738,7 +8784,7 @@
    "mi": 24.1
   },
   "schemaVersion": 9,
-  "engine": 30,
+  "engine": 31,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -10917,6 +10963,29 @@
      "public": false
     }
    ]
+  },
+  "cover": {
+   "forestPct": 36,
+   "openPct": 59,
+   "openGentleAc": 12.37,
+   "openNearRoadAc": 12,
+   "year": 2021
+  },
+  "streams": {
+   "perennialFt": 0,
+   "intermittentFt": 1198,
+   "names": [],
+   "nearestFt": 687
+  },
+  "county": {
+   "fips": "51063",
+   "name": "Floyd",
+   "state": "VA",
+   "zoning": null
+  },
+  "trails": {
+   "gentleAc": 17.57,
+   "miles": 1.45
   },
   "near": {
    "hospitals": [
@@ -13990,7 +14059,7 @@
    "mi": 24.1
   },
   "schemaVersion": 9,
-  "engine": 30,
+  "engine": 31,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

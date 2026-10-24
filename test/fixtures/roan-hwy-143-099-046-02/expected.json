@@ -1239,6 +1239,31 @@
     }
    ]
   },
+  "cover": {
+   "forestPct": 67,
+   "openPct": 33,
+   "openGentleAc": 0.5,
+   "openNearRoadAc": 0.5,
+   "year": 2021
+  },
+  "streams": {
+   "perennialFt": 0,
+   "intermittentFt": 0,
+   "names": [
+    "Doe River"
+   ],
+   "nearestFt": 553
+  },
+  "county": {
+   "fips": "47019",
+   "name": "Carter",
+   "state": "TN",
+   "zoning": null
+  },
+  "trails": {
+   "gentleAc": 0.46,
+   "miles": 0.04
+  },
   "near": {
    "hospitals": [
     {
@@ -5172,7 +5197,7 @@
    "mi": 17.1
   },
   "schemaVersion": 9,
-  "engine": 30,
+  "engine": 31,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -6416,6 +6441,31 @@
      "public": false
     }
    ]
+  },
+  "cover": {
+   "forestPct": 67,
+   "openPct": 33,
+   "openGentleAc": 0.5,
+   "openNearRoadAc": 0.5,
+   "year": 2021
+  },
+  "streams": {
+   "perennialFt": 0,
+   "intermittentFt": 0,
+   "names": [
+    "Doe River"
+   ],
+   "nearestFt": 553
+  },
+  "county": {
+   "fips": "47019",
+   "name": "Carter",
+   "state": "TN",
+   "zoning": null
+  },
+  "trails": {
+   "gentleAc": 0.46,
+   "miles": 0.04
   },
   "near": {
    "hospitals": [
@@ -10043,7 +10093,7 @@
    "mi": 17.1
   },
   "schemaVersion": 9,
-  "engine": 30,
+  "engine": 31,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

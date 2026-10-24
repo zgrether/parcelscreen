@@ -1502,6 +1502,139 @@
       ],
       "additionalProperties": false
     },
+    "cover": {
+      "type": "object",
+      "properties": {
+        "forestPct": {
+          "type": "number"
+        },
+        "openPct": {
+          "type": "number"
+        },
+        "openGentleAc": {
+          "type": "number"
+        },
+        "openNearRoadAc": {
+          "type": "number"
+        },
+        "year": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "forestPct",
+        "openPct",
+        "openGentleAc",
+        "openNearRoadAc",
+        "year"
+      ],
+      "additionalProperties": false
+    },
+    "streams": {
+      "type": "object",
+      "properties": {
+        "perennialFt": {
+          "type": "number"
+        },
+        "intermittentFt": {
+          "type": "number"
+        },
+        "names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "nearestFt": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "perennialFt",
+        "intermittentFt",
+        "names",
+        "nearestFt"
+      ],
+      "additionalProperties": false
+    },
+    "trails": {
+      "type": "object",
+      "properties": {
+        "gentleAc": {
+          "type": "number"
+        },
+        "miles": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "gentleAc",
+        "miles"
+      ],
+      "additionalProperties": false
+    },
+    "county": {
+      "type": "object",
+      "properties": {
+        "fips": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "zoning": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "districts": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "code": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "code",
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "districts"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "fips",
+        "name",
+        "state",
+        "zoning"
+      ],
+      "additionalProperties": false
+    },
     "frontage": {
       "type": "object",
       "properties": {
