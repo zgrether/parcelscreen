@@ -304,6 +304,21 @@ bug (§7).
 | 24 | Compare: no header on the ticks, the button far away; 1½ columns on a phone | P-5, P-6 | 1 | 2 | **2** |
 | 25 | Parcels hidden by a filter the person never set ("1 hidden by filters") | P-5 | 2 | 1 | **2** |
 
+**Zach's friction list** (2026-10-24, §8). These are scored on the same scale. Frequency 3 means Zach meets it every
+session.
+
+| # | Finding | Goes to | S | F | Score |
+| --- | --- | --- | --- | --- | --- |
+| Z-2 | Opening a saved parcel takes three taps (Your list, the parcel, Open on the map) | P-5, Zach's call (§6.13) | 3 | 3 | **9** |
+| Z-1 | No double-tap zoom on phones | P-10 (§6.13) | 2 | 3 | **6** |
+| Z-3 | The list's detail panel wastes space (Open on the map at the top, a large Archive block, Remove at the foot) | Z-2 (the panel goes) | 2 | 3 | **6** |
+| Z-4 | No price block: asking price, $/ac, the costs, the optional items, and what the land can cost within the budget | P-11 (§6.13) | 2 | 3 | **6** |
+| Z-7 | The phone's list card is a mass of text | P-5, Zach's design (§6.13) | 2 | 3 | **6** |
+| Z-8 | Recent's rows are heavy (buttons on every row) and it keeps 20 for 30 days | P-5, Zach's design (§6.13) | 2 | 3 | **6** |
+| Z-9 | Grading shows no progress; the sheet's header is cluttered; B-7 confirmed on Zach's phone | P-2, Zach's call (§6.13); B-7 | 2 | 3 | **6** |
+| Z-6 | The ✓ / ! marks and the letter badges don't share a column; ✎ pushes the verdict word | P-0 (§6.13) | 1 | 3 | **3** |
+| Z-5 | No market reference for a land price (investigate only) | Part 2's plan: research into `docs/commercial-review.md` | — | — | — |
+
 ### 5.1 The evidence
 
 **1. A closed parcel loses its grade.**
@@ -670,19 +685,40 @@ means it remains a polish item, untouched by this proposal.
 
 ### 6.12 Part 2, roughly
 
-For sizing only; the mission's plan sets the PRs.
+For sizing only; the mission's plan sets the PRs. Its PR 0 (the plan) also carries the market-value research in
+`docs/commercial-review.md` (Z-5), and new 375 px mock-ups for Z-2, Z-4, Z-6, Z-7 and Z-8.
 
 | PR | What | From |
 | --- | --- | --- |
 | 1 | The names (§4.1) on screen; the report-text renames listed for approval (rule 7) | P-0 |
-| 2 | Recent keeps every graded parcel; × closes and clears the map, never Recent; Esc closes the topmost; Not for us and Ruled out | P-4, P-5 |
-| 3 | The parcel header and its actions; takes near the top; the map key line; grading progress on a phone; Adjust in every copy | P-2 |
+| 2 | Recent keeps every graded parcel; × closes and clears the map, never Recent; Esc closes the topmost; Not for us and Ruled out; one parcel panel everywhere (Z-2), the list's detail panel gone | P-4, P-5 |
+| 3 | The parcel header and its actions; takes near the top; the map key line; the grading progress bar and a cleaner sheet header (Z-9); Adjust in every copy | P-2 |
 | 4 | Search: parcel numbers everywhere with the county named, tax-map numbers, places in the region, a pin at coordinates, the map follows | P-1 |
 | 5 | Household: the menu item, invite a person, link a device, the name at first run | P-8 |
 | 6 | Drawing: move to the parcel, Finish in reach, "Use it as the driveway?" at Finish | P-9 |
-| 7 | Your list's three views and the compare bar; Compare's words and the phone layout | P-5, P-6 |
-| 8 | What matters: plain sky words, the slim Try it | P-7 |
+| 7 | Your list's three views and the compare bar; the three-line phone card (Z-7); Recent's one-line rows, 50 for 60 days (Z-8); Compare's words and the phone layout; one column for marks and letters (Z-6) | P-5, P-6, P-0 |
+| 8 | What matters: plain sky words, the slim Try it; double-tap zoom on phones (Z-1) | P-7, P-10 |
+| 8b | The price block in Grade's Cost section: price, $/ac, camp and build, live toggles, the walk-away price (Z-4) | P-11 |
 | 9 | Screenshots, the fresh-eyes review, the hand-back | |
+
+### 6.13 What Zach's friction list changes (2026-10-24; his call wins)
+
+- **P-2 (the parcel panel).** On a phone, grading shows a slim progress bar under the header ("Finding hospitals… 6
+  of 11"), with the step list one tap away. The sheet doesn't rise to show the steps. The sheet's header is made
+  cleaner.
+- **P-5 (Your list).**
+  - One parcel panel everywhere: a tap on a parcel in Your list, Recent, Compare or search opens it on the map, framed,
+    with the standard panel. The list's own detail panel goes.
+  - The phone's card is three lines: name, verdict and letter; price · $/ac · build cost; and the person's 3–4 top
+    factors as chips, with failing Musts first. The legend sits behind a "?".
+  - Recent is one compact line per row (name, letter, acres, $/ac, date), with ★ and ✕. It keeps 50 for 60 days.
+- **P-0 (names, and now alignment).** Marks and letters share one fixed-width column in every row view, and ✎ never
+  moves the verdict word.
+- **P-10 (new: map gestures).** Double-tap zooms on a phone whenever no drawing tool is open (Z-1).
+- **P-11 (new: the price block).** It goes in Grade's Cost section: the asking price, $/ac, Ready to camp and Ready to
+  build, the optional items as live toggles, and the walk-away price for the land within the budget (Z-4).
+- **Research.** Market references for land in the covered counties go into `docs/commercial-review.md`, for Zach to
+  decide on later (Z-5).
 
 ## 7. Bugs found (fix whatever the proposal decides)
 
@@ -694,7 +730,7 @@ For sizing only; the mission's plan sets the PRs.
 | B-4 | **Esc closes the open parcel when a menu is open,** losing an unsaved grade | `shot-desktop-t02-status-failed` |
 | B-5 | **Opening a saved parcel from search, Your list or Compare doesn't move the map to it;** closing a parcel zooms the map out | `shot-desktop-t10-open-mud`, both |
 | B-6 | **After "Use as my driveway", Best homesite still quotes the app's own drive** (2,880 ft at 16%) | `shot-desktop-t10-grade-after`, both |
-| B-7 | **Phone overlaps:** the draw toolbar cuts off Finish at 375 px; the toolbar sits over the map buttons with the sheet up; "Stand here" is cut off at the right edge | `shot-phone-t10-draw-line`, `shot-phone-t01-sheet-up` |
+| B-7 | **Phone overlaps:** the draw toolbar cuts off Finish at 375 px; the toolbar sits over the map buttons with the sheet up; "Stand here" is cut off at the right edge; confirmed on Zach's phone (2026-10-24; his screenshot goes in the bug-fix PR once he posts it) | `shot-phone-t10-draw-line`, `shot-phone-t01-sheet-up` |
 | (fixed) | Area popups over drawing and parcel taps; the popup's star; its 10 px close; its foot under the hint | #304, 6a2fba0 |
 
 One more report, not reproduced: "Where to look" in the menu needing two clicks. One click opens it from Your list
@@ -702,5 +738,18 @@ and from the map.
 
 ## 8. Zach's friction list
 
-Not received yet. When it arrives, each item goes into §5's table with its score, and this section says which
-proposal item covers it, or that none does.
+Received 2026-10-24. Each item is in §5's table (Z-1 to Z-9) with its score. Where it changes the proposal, Zach's
+call wins; §6.13 says what changes. Part 2's plan takes all of it, with new mock-ups at 375 px for Z-2, Z-4, Z-6, Z-7
+and Z-8.
+
+| # | Zach's item | Covered by |
+| --- | --- | --- |
+| Z-1 | Double-tap to zoom on phones | **New, P-10.** Today `ParcelTools` turns MapLibre's double-click zoom off, so a double-click can finish a drawn boundary; that also turns off double-tap zoom on a phone. A desktop's double-click still zooms, through the tilt-and-rotate handler (mouse only). Part 2 turns double-tap zoom on for touch whenever no drawing tool is open. Drawing already finishes by tapping the first corner or Finish, so nothing moves to another gesture; a double-tap only finishes a boundary while drawing one |
+| Z-2 | Open a saved parcel in one tap | **Changes P-5.** One parcel panel everywhere: a tap on a parcel in Your list, Recent, Compare or search opens it on the map, with the map moved to it (B-5's fix) and the standard panel. The list's separate detail panel is deleted |
+| Z-3 | The detail panel's space | Solved by Z-2. The status actions live in the header's actions and ⋯ (P-2, P-4) |
+| Z-4 | A price block | **New, P-11.** It goes in Grade's Cost section (recommended over Uses: it sits beside Within budget, which it reads, and Uses stays about what the land can do and pay). It holds the asking price, $/ac on both acreages, Ready to camp and Ready to build in one block. The optional items are toggles that update the totals live: paving the steep stretches, an alternative or conventional septic, upgrading an existing drive, and others the plan finds. The walk-away price for the land is the ready-to-build budget minus the build costs without the land, shown as a range ("Pay at most $105–170k for the land to stay within your $300k budget") that moves with the toggles. With no budget, it isn't shown. Part 2's plan says whether the toggles change Within budget's grade or only the block's figures (recommendation: the block only; the grade reads the default) |
+| Z-5 | Market value | **Investigate only.** Part 2's plan reports the sources that could give a defensible market reference in the covered counties (county assessed values and their reassessment years, recorded sales), with their terms, in `docs/commercial-review.md`. Zach decides later |
+| Z-6 | Alignment | **Joins P-0.** The ✓ / ! marks and the letter badges share one fixed-width column, and ✎ sits beside the letter without moving the verdict word, in every view with rows: the card, the grid, the phone strip, Compare |
+| Z-7 | The phone's list card | **Changes P-5.** Three lines: the name, then the verdict and letter; price · $/ac · build cost; and the 3–4 factors that matter most to this person as compact chips, with failing Musts first. The legend goes behind a "?". The desktop keeps the full strip |
+| Z-8 | Recent | **Changes P-5.** One compact line per row: name, letter, acres, $/ac, date. A tap opens it (Z-2), ★ adds it to the list and ✕ removes it, with no Open on the map or Add to list buttons. It keeps 50 for 60 days (today 20 and 30, `RECENT_MAX` in `lib/client/favorites.ts`) |
+| Z-9 | Grading progress, the sheet's header | **Changes P-2.** A slim progress bar under the header, with the current step in small text ("Finding hospitals… 6 of 11") and the step list one tap away. This replaces "the sheet rises to show the step list", by Zach's call. The sheet's header gets cleaner. B-7 (the toolbar over the map's buttons with the sheet up, the "Zoom in" hint) is confirmed on Zach's phone: it's fixed in the bug-fix PR |
