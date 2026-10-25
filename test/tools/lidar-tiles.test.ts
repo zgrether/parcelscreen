@@ -57,14 +57,31 @@ const USGS_SHADED = "https://basemap.nationalmap.gov/arcgis/rest/services/USGSSh
 const ESRI_HILLSHADE =
   "https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer";
 
+/**
+ * USGS's exportImage answers come through a CDN that keeps what any earlier request asked for (the second run's
+ * repeated tiles came back in 7 ms). A parameter of this run's own makes every tile a first view, as a parcel nobody
+ * has looked at gets; ArcGIS ignores parameters it doesn't know. Timed both ways.
+ */
+const RUN = `ps_run=${Date.now().toString(36)}`;
+
 const SOURCES: readonly Source[] = [
-  ...LIDAR_STYLES.map((s): Source => ({
-    id: `3dep-${s.id}`,
-    label: `USGS 3DEP exportImage, ${s.label}`,
-    url: (z, x, y) => lidarTiles(s.id).replace("{bbox-epsg-3857}", tileBox(x, y, z)),
-    size: 256,
-    maxzoom: 18,
-  })),
+  ...LIDAR_STYLES.flatMap((s): Source[] => [
+    {
+      id: `3dep-${s.id}-first`,
+      label: `USGS 3DEP exportImage, ${s.label}, first view`,
+      url: (z, x, y) => `${lidarTiles(s.id).replace("{bbox-epsg-3857}", tileBox(x, y, z))}&${RUN}`,
+      size: 256,
+      maxzoom: 18,
+    },
+    {
+      // The plain URLs, which this tool's earlier runs have asked for: the CDN's copy.
+      id: `3dep-${s.id}-seen`,
+      label: `USGS 3DEP exportImage, ${s.label}, seen before`,
+      url: (z, x, y) => lidarTiles(s.id).replace("{bbox-epsg-3857}", tileBox(x, y, z)),
+      size: 256,
+      maxzoom: 18,
+    },
+  ]),
   {
     id: "usgs-shaded",
     label: "USGS Shaded Relief (cached)",
