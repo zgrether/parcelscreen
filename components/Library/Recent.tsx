@@ -1,10 +1,10 @@
 "use client";
 /**
  * Recent (8c; step 8's History, docs/plans/step-8-favorites.md §3): the parcels this person graded that aren't on the
- * list, newest first, the 20 newest within 30 days (favorites.ts recentOf), theirs alone. Each row: the name, its acres
- * and when it was graded, their grade, Add to list, Open on the map, and ✕ (gone for good, with Undo for a few
- * seconds; after that its screens leave this device). Clear removes them all at once. A table on a desktop, cards on a
- * phone (CSS).
+ * list, newest first, the 50 newest within 60 days of their last grade or opening (favorites.ts recentOf), theirs alone.
+ * Each row is one line (Z-8, UX part 2 PR 7b): the name (a tap opens it on the map), their letter, its acres, $/ac over
+ * the date, ★ (add to the list) and ✕ (gone for good, with Undo for a few seconds; after that its screens leave this
+ * device). Clear removes them all at once.
  */
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,10 +19,11 @@ import { RECENT_EMPTY, type LibraryRow } from "@/lib/client/library";
 import { openOnMap } from "@/lib/client/openOnMap";
 import type { WorkingParcel } from "@/lib/client/parcelStore";
 import type { KeptScreen } from "@/lib/client/useKeptScreens";
-import { VERDICT_WORD } from "@/lib/report/card";
 
 const when = (iso: string) => new Date(iso).toLocaleDateString([], { month: "short", day: "numeric" });
 
+/** What Recent keeps (Z-8, UX part 2 PR 7b). */
+export const RECENT_LEAD = "Every parcel you've graded or opened, for 60 days (the last 50).";
 export const CLEAR_QUESTION = "Clear your Recent list? Parcels on your list stay.";
 
 /** What a ✕ took, for its Undo: the parcels and their log entries. */
@@ -77,6 +78,7 @@ export function Recent({
         </p>
       ) : (
         <>
+          <p className="tiny muted">{RECENT_LEAD}</p>
           <ul className="hist-list">
             {parcels.map((p) => (
               <RecentRow
@@ -144,31 +146,20 @@ function RecentRow({
   const prefill = () =>
     starName(p, { acres: r?.acres ?? null, road: result?.driveFrom?.road ?? null, county: countyOf(p) });
   return (
-    <li className="hist-row">
-      <div className="hist-body">
-        <button
-          type="button"
-          className="hist-name link-btn"
-          title={name}
-          onClick={() => {
-            openOnMap(p, back());
-            router.push("/explore");
-          }}
-        >
-          {name}
-        </button>
-        <span className="tiny muted" title={r?.perAcre?.both ?? undefined}>
-          {[
-            r?.acres != null ? `${r.acres.toFixed(1)} ac` : null,
-            // Step 10b: the price per acre, "≠" when the listing's and the boundary's acres differ.
-            r?.perAcre ? `${r.perAcre.text}${r.perAcre.differs ? " ≠" : ""}` : null,
-            graded ? `Graded ${when(graded)}` : `Changed ${when(p.updatedAt)}`,
-          ]
-            .filter(Boolean)
-            .join(" · ")}
-        </span>
-      </div>
-      <span className="hist-grade" title={mine ? "Your grade" : undefined}>
+    // Z-8 (UX part 2 PR 7b): one line, the name wrapping to two at most; a tap on it opens the parcel (Z-2).
+    <li className="hist-row recent-line">
+      <button
+        type="button"
+        className="hist-name link-btn"
+        title={name}
+        onClick={() => {
+          openOnMap(p, back());
+          router.push("/explore");
+        }}
+      >
+        {name}
+      </button>
+      <span className="recent-grade" title={mine ? "Your grade" : undefined}>
         {mine ? (
           <>
             <span className={`card-grade small g-${mine.grade ?? "none"}`}>{mine.grade ?? "–"}</span>
@@ -177,30 +168,27 @@ function RecentRow({
                 ✎
               </span>
             )}
-            {/* Step 10b: the verdict word beside the letter, as Favorites shows it. */}
-            <span className={`card-word small v-${mine.verdict.toLowerCase()}`}>
-              {VERDICT_WORD[mine.verdict]}
-            </span>
           </>
         ) : (
           <span className="tiny muted">–</span>
         )}
       </span>
-      <span className="hist-actions">
-        {/* Only parcels off the list are in Recent: adding one moves it to Favorites. */}
-        <Star
-          words
-          on={false}
-          name={name}
-          prefill={prefill}
-          star={(n) => starParcel(p.key!, n)}
-          unstar={() => undefined}
-          adder={null}
-        />
-        <Link className="btn secondary small hist-open" href="/explore" onClick={() => openOnMap(p, back())}>
-          Open on the map
-        </Link>
+      <span className="recent-acres">{r?.acres != null ? `${r.acres.toFixed(1)} ac` : "–"}</span>
+      <span className="recent-when tiny muted" title={r?.perAcre?.both ?? undefined}>
+        {/* Step 10b: the price per acre, "≠" when the listing's and the boundary's acres differ; then the date. */}
+        <span>{r?.perAcre ? `${r.perAcre.text}${r.perAcre.differs ? " ≠" : ""}` : "–"}</span>
+        <span>{graded ? when(graded) : when(p.updatedAt)}</span>
       </span>
+      {/* Only parcels off the list are in Recent: the star adds one, which moves it to the Shortlist. */}
+      <Star
+        on={false}
+        name={name}
+        prefill={prefill}
+        star={(n) => starParcel(p.key!, n)}
+        unstar={() => undefined}
+        adder={null}
+        className="recent-star"
+      />
       <button
         className="hist-x"
         aria-label={`Remove from Recent: ${name}`}

@@ -202,11 +202,11 @@ export async function openFromList(page: Page, name: string): Promise<void> {
   await expect(page.locator(".sh-name").first()).toContainText(name);
 }
 
-/** Opens a parcel on the map from Recent (step 8; 8c), by (part of) its name: its row's Open on the map. */
+/** Opens a parcel on the map from Recent (step 8; 8c), by (part of) its name: a tap on its name (Z-8, UX part 2 PR 7b). */
 export async function openFromRecent(page: Page, name: string): Promise<void> {
   await page.getByRole("link", { name: /^Your list/ }).click();
   await page.getByRole("tab", { name: "Recent" }).click();
-  await page.locator(".hist-row", { hasText: name }).getByRole("link", { name: "Open on the map" }).click();
+  await page.locator(".hist-row", { hasText: name }).locator(".hist-name").click();
   await expect(page).toHaveURL(/\/explore$/);
   await expect(page.locator(".sh-name").first()).toContainText(name);
 }

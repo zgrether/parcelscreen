@@ -72,7 +72,7 @@ for (const phone of [false, true]) {
       // The panel's star on Mud Creek: its name sheet, then filled.
       await page
         .locator(".hist-row", { hasText: "6273" })
-        .getByRole("link", { name: "Open on the map" })
+        .locator(".hist-name") // Z-8: a tap on the name opens it
         .click();
       await expect(page).toHaveURL(/\/explore$/);
       // The tilt tip (desktop) would cover the map in every shot (fresh-eyes review).

@@ -49,7 +49,8 @@ test("Recent is yours, Favorites the household's: add, remove, ✕ with Undo, Cl
   await yourList(zach, "Recent");
   await expect(recentRows(zach)).toHaveCount(2);
   await expect(recentRows(zach).first()).toContainText("52-47A");
-  await expect(recentRows(zach).first()).toContainText(/Graded [A-Z][a-z]{2} \d{1,2}/);
+  // Z-8: the date it was graded (or opened), under its $/ac.
+  await expect(recentRows(zach).first().locator(".recent-when")).toContainText(/[A-Z][a-z]{2} \d{1,2}/);
   await expect(recentRows(zach).first().locator(".card-grade")).toHaveText(/^[A-F]$/);
   await tab(zach, "Shortlist").click();
   await expect(zach.locator("main")).toContainText(FAVORITES_EMPTY);
