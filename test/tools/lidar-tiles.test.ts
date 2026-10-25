@@ -1,129 +1,73 @@
 /**
- * Lidar terrain's tiles, timed live (roadmap step 14c plan §3): one phone screen of tiles (375 × 812, with the tile
- * row past each edge MapLibre asks for) at zooms 13–17, over the four fixture parcels. Timed: USGS 3DEP's
- * exportImage in both styles (what the layer draws), and the pre-rendered candidates the plan compares when those are
- * slow (USGS's cached shaded relief, Esri's World Hillshade, Mapterhorn's lidar elevation tiles). For each source and
- * zoom:
- * - the median and slowest tile, timed from when the request left (not while it waited its turn in the queue);
- * - the median wall time for the whole screen;
- * - how many answers weren't an image (an ArcGIS error, a 502, a missing tile) and what a screen weighs.
- * Then each cached service's own description (its deepest level, its copyright line), and the deepest zoom Mapterhorn
- * has tiles at over each parcel (its 1 m lidar is z17 and deeper; its 10 m base stops at z12).
+ * The shaded-relief candidates, judged live (roadmap step 14c plan §3; owner, 10/25): first-view speed, terms and
+ * coverage, for the PR. The detail is the comparison shots' (screenshots/lidar-compare.spec.ts).
+ * - Speed: one phone screen of tiles (375 × 812 plus a tile past each edge) at view zooms 15 and 17, at each spot the
+ *   candidate covers. Rendered-on-request services get a parameter of this run's own, so every tile is a first view
+ *   (USGS's CDN keeps what earlier requests asked for). Each tile is timed from when it was sent, not while it queued.
+ *   Slope (USGS 3DEP, staying as built) is timed the same way.
+ * - Terms: each service's own description (copyright line, whether tiles may be exported for offline use) and, for
+ *   Esri's, its ArcGIS item's licence text.
+ * - Coverage: points across VA, NC and TN: whether 3DEP's index holds 1 m lidar there, and what each candidate answers.
+ * - The states' servers searched for a lidar relief service (VGIN, NC OneMap, TNMap).
  * A measurement kept for re-use, not a check: tests never reach the network.
  *
  *   pnpm lidar:tiles        writes test-results/lidar-tiles.md, and prints it
- *
- * Six requests at a time per host, as a browser's map asks for a screen's tiles, through lib/http.ts's client.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
-import { centroid } from "@turf/turf";
 import { describe, it } from "vitest";
 import { createHttpClient } from "@/lib/http";
-import { LIDAR_STYLES, lidarTiles } from "@/components/Map/lidarStyle";
-import { PROTOTYPE_FIXTURE_SLUGS, loadFixture, type FixtureSlug } from "../support/fixtures";
+import { lidarTiles } from "@/components/Map/lidarStyle";
+import {
+  BASE_CANDIDATES,
+  COVERAGE_POINTS,
+  DEP_INDEX,
+  SPOTS,
+  findStateServices,
+  stateCandidate,
+  tileBox,
+  tileOf,
+  type Candidate,
+} from "./reliefCandidates";
 
 const live = () =>
   (globalThis as unknown as Record<symbol, typeof fetch>)[Symbol.for("parcelscreen.liveFetch")]!;
 
-const ZOOMS = [13, 14, 15, 16, 17] as const;
+const VIEW_ZOOMS = [15, 17] as const;
 const SCREEN = { w: 375, h: 812 } as const;
-const ORIGIN = 20037508.342789244;
-const MAGIC = {
-  png: [0x89, 0x50, 0x4e, 0x47],
-  jpeg: [0xff, 0xd8, 0xff],
-  webp: [0x52, 0x49, 0x46, 0x46], // RIFF
-};
-
-/** A tile source: its URL for a tile, its pixel size, and the deepest zoom it's asked for (MapLibre overzooms past it). */
-interface Source {
-  id: string;
-  label: string;
-  url: (z: number, x: number, y: number) => string;
-  size: 256 | 512;
-  maxzoom: number;
-  /** An ArcGIS cached service's description, for its levels and copyright. */
-  about?: string;
-}
-
-/** A tile's box in Web Mercator metres, as MapLibre writes {bbox-epsg-3857}. */
-function tileBox(x: number, y: number, z: number): string {
-  const size = (2 * ORIGIN) / 2 ** z;
-  const minX = -ORIGIN + x * size,
-    maxY = ORIGIN - y * size;
-  return [minX, maxY - size, minX + size, maxY].join(",");
-}
-
-const USGS_SHADED = "https://basemap.nationalmap.gov/arcgis/rest/services/USGSShadedReliefOnly/MapServer";
-const ESRI_HILLSHADE =
-  "https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer";
-
-/**
- * USGS's exportImage answers come through a CDN that keeps what any earlier request asked for (the second run's
- * repeated tiles came back in 7 ms). A parameter of this run's own makes every tile a first view, as a parcel nobody
- * has looked at gets; ArcGIS ignores parameters it doesn't know. Timed both ways.
- */
+const MAGIC = [
+  [0x89, 0x50, 0x4e, 0x47], // PNG
+  [0xff, 0xd8, 0xff], // JPEG
+  [0x52, 0x49, 0x46, 0x46], // WebP (RIFF)
+  [0x49, 0x49, 0x2a, 0x00], // TIFF, little-endian
+  [0x4d, 0x4d, 0x00, 0x2a], // TIFF, big-endian
+];
+const isImage = (b: Uint8Array) => MAGIC.some((m) => m.every((v, i) => b[i] === v));
 const RUN = `ps_run=${Date.now().toString(36)}`;
 
-const SOURCES: readonly Source[] = [
-  ...LIDAR_STYLES.flatMap((s): Source[] => [
-    {
-      id: `3dep-${s.id}-first`,
-      label: `USGS 3DEP exportImage, ${s.label}, first view`,
-      url: (z, x, y) => `${lidarTiles(s.id).replace("{bbox-epsg-3857}", tileBox(x, y, z))}&${RUN}`,
-      size: 256,
-      maxzoom: 18,
-    },
-    {
-      // The plain URLs, which this tool's earlier runs have asked for: the CDN's copy.
-      id: `3dep-${s.id}-seen`,
-      label: `USGS 3DEP exportImage, ${s.label}, seen before`,
-      url: (z, x, y) => lidarTiles(s.id).replace("{bbox-epsg-3857}", tileBox(x, y, z)),
-      size: 256,
-      maxzoom: 18,
-    },
-  ]),
-  {
-    id: "usgs-shaded",
-    label: "USGS Shaded Relief (cached)",
-    url: (z, x, y) => `${USGS_SHADED}/tile/${z}/${y}/${x}`,
-    size: 256,
-    maxzoom: 16,
-    about: USGS_SHADED,
-  },
-  {
-    id: "esri-hillshade",
-    label: "Esri World Hillshade (cached)",
-    url: (z, x, y) => `${ESRI_HILLSHADE}/tile/${z}/${y}/${x}`,
-    size: 256,
-    maxzoom: 16,
-    about: ESRI_HILLSHADE,
-  },
-  {
-    id: "mapterhorn",
-    label: "Mapterhorn elevation (terrarium, shaded by MapLibre)",
-    url: (z, x, y) => `https://tiles.mapterhorn.com/${z}/${x}/${y}.webp`,
-    size: 512,
-    maxzoom: 18,
-  },
-];
+const SLOPE: Candidate = {
+  id: "3dep-slope",
+  label: "USGS 3DEP exportImage, Slope (as built, staying)",
+  kind: "raster",
+  url: (z, x, y) => lidarTiles("slope").replace("{bbox-epsg-3857}", tileBox(x, y, z)),
+  size: 256,
+  maxzoom: 18,
+  dynamic: true,
+  covers: "all",
+  source: "3DEP best available",
+};
 
-/**
- * The tiles a 375 × 812 screen centred on a point needs at a view zoom, one row and column past each edge. MapLibre
- * asks a 256 px raster source for the tiles one zoom deeper than the view, and a 512 px one for the view's own, each
- * capped at the source's maxzoom (then overzoomed).
- */
+/** The tiles a phone screen centred on a point needs: 256 px sources one zoom deeper than the view, capped. */
 function screenTiles(
-  lon: number,
   lat: number,
+  lon: number,
   viewZ: number,
-  src: Source,
+  c: Candidate,
 ): { z: number; xy: [number, number][] } {
-  const z = Math.min(src.size === 256 ? viewZ + 1 : viewZ, src.maxzoom);
+  const z = Math.min(c.size === 256 ? viewZ + 1 : viewZ, c.maxzoom);
   const n = 2 ** z;
   const x = ((lon + 180) / 360) * n;
   const r = (lat * Math.PI) / 180;
   const y = ((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2) * n;
-  // A tile of zoom z drawn at the view zoom: 512 CSS px at the view's own zoom, halved for each zoom deeper.
   const tilePx = 512 / 2 ** (z - viewZ);
   const half = { x: SCREEN.w / 2 / tilePx, y: SCREEN.h / 2 / tilePx };
   const xy: [number, number][] = [];
@@ -132,24 +76,14 @@ function screenTiles(
   return { z, xy };
 }
 
-interface Timed {
-  ms: number;
-  bytes: number;
-  image: boolean;
-  status: number;
-  error?: string;
-}
-
 const median = (xs: number[]) => {
   const s = [...xs].sort((a, b) => a - b);
   return s.length ? s[Math.floor(s.length / 2)]! : NaN;
 };
+const kb = (n: number) => `${Math.round(n / 1024)} KB`;
 
-const isImage = (b: Uint8Array) => Object.values(MAGIC).some((m) => m.every((v, i) => b[i] === v));
-
-describe.runIf(import.meta.env.MODE === "lidar-tiles")("lidar terrain's tiles, live", () => {
-  it("times a phone screen of tiles at zooms 13–17 from each source, over the fixture parcels", async () => {
-    // Each request's own time, from when the client sent it (after its turn in the host queue) to its last byte.
+describe.runIf(import.meta.env.MODE === "lidar-tiles")("the shaded-relief candidates, live", () => {
+  it("times first views, reads the terms and checks coverage", async () => {
     const served = new Map<string, number>();
     const timedFetch: typeof fetch = async (input, init) => {
       const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
@@ -162,141 +96,206 @@ describe.runIf(import.meta.env.MODE === "lidar-tiles")("lidar terrain's tiles, l
     const http = createHttpClient({
       env: "node",
       fetchImpl: timedFetch,
-      userAgent: "ParcelScreen/1.0 (lidar tile timing; zgrether/parcelscreen)",
+      userAgent: "ParcelScreen/1.0 (shaded relief comparison; zgrether/parcelscreen)",
       defaultPolicy: { maxConcurrent: 6, minIntervalMs: 0 },
       maxRetries: 0,
     });
-    const slugs: FixtureSlug[] = [...PROTOTYPE_FIXTURE_SLUGS, "roan-hwy-143-099-046-02"];
-    const centres = slugs.map(
-      (slug) => centroid(loadFixture(slug).input.polygon).geometry.coordinates as [number, number],
+    const get = (url: string) => http.fetch(url, { timeoutMs: 60_000, retries: 0 });
+    const out: string[] = ["# Shaded relief: the candidates, live", "", new Date().toISOString(), ""];
+
+    // ---------- the states' servers ----------
+    const log: string[] = [];
+    const found = await findStateServices((u, i) => live()(u, i), log);
+    out.push("## The states' servers, searched for lidar relief", "", ...log.map((l) => `- ${l}`), "");
+    if (found.length) {
+      out.push(
+        "| Service | Type | Cached | Spatial ref | Deepest level | Pixel size | Raster functions | Export tiles | Copyright |",
+        "|---|---|---|---|---|---|---|---|---|",
+      );
+      for (const s of found)
+        out.push(
+          `| ${s.url} | ${s.type} | ${s.cached} | ${s.wkid ?? ""} | ${s.maxLevel ?? ""} | ${s.pixelSize ?? ""} | ${s.functions.join(", ")} | ${s.exportTiles ?? ""} | ${s.copyright.slice(0, 120)} |`,
+        );
+      out.push("");
+    }
+    const states = found.map(stateCandidate).filter((c): c is Candidate => c !== null);
+    const candidates = [...BASE_CANDIDATES, ...states, SLOPE];
+    out.push(`State candidates drawn on the map: ${states.map((c) => c.label).join("; ") || "none"}.`, "");
+
+    // ---------- speed: first views ----------
+    out.push(
+      "## First-view speed (a phone screen; each tile timed from when it was sent)",
+      "",
+      "| Candidate | Spot | View zoom | Tile zoom | Tiles | Median tile | Slowest | Over 1.5 s | Whole screen | Not an image | One screen |",
+      "|---|---|---|---|---|---|---|---|---|---|---|",
     );
-    const rows: string[] = [
-      "| Source | View zoom | Tile zoom | Tiles | Median tile | Slowest | Over 1.5 s | Whole screen | Not an image | One screen |",
-      "|---|---|---|---|---|---|---|---|---|---|",
-    ];
     const problems: string[] = [];
-    for (const src of SOURCES) {
-      const timedZooms = new Set<number>();
-      for (const viewZ of ZOOMS) {
-        // Past its maxzoom a source's tiles are the same as the zoom before's: nothing new to time.
-        const capped = screenTiles(centres[0]![0], centres[0]![1], viewZ, src).z;
-        if (timedZooms.has(capped)) continue;
-        timedZooms.add(capped);
-        const timed: Timed[] = [];
-        const screens: number[] = [];
-        const walls: number[] = [];
-        let tileZ: number = viewZ;
-        for (const [i, [lon, lat]] of centres.entries()) {
-          const { z, xy } = screenTiles(lon, lat, viewZ, src);
-          tileZ = z;
+    for (const c of candidates) {
+      for (const spot of SPOTS) {
+        if (c.covers !== "all" && c.covers !== spot.state) continue;
+        for (const viewZ of VIEW_ZOOMS) {
+          const { z, xy } = screenTiles(spot.ll[0], spot.ll[1], viewZ, c);
           const w0 = performance.now();
           const got = await Promise.all(
-            xy.map(async ([x, y]): Promise<Timed> => {
-              const url = src.url(z, x, y);
+            xy.map(async ([x, y]) => {
+              const url = c.url(z, x, y) + (c.dynamic ? `&${RUN}` : "");
               try {
-                const r = await http.fetch(url, { timeoutMs: 60_000, retries: 0 });
+                const r = await get(url);
                 const body = new Uint8Array(await r.arrayBuffer());
                 const image = r.ok && isImage(body);
-                return {
-                  ms: served.get(url) ?? NaN,
-                  bytes: body.length,
-                  image,
-                  status: r.status,
-                  ...(image ? {} : { error: `${r.status} ${new TextDecoder().decode(body.slice(0, 120))}` }),
-                };
+                if (!image)
+                  problems.push(
+                    `${c.id} z${z} ${spot.id}: ${r.status} ${new TextDecoder().decode(body.slice(0, 100)).replace(/\s+/g, " ")}`,
+                  );
+                return { ms: served.get(url) ?? NaN, bytes: body.length, image };
               } catch (e) {
-                return { ms: served.get(url) ?? NaN, bytes: 0, image: false, status: 0, error: String(e) };
+                problems.push(`${c.id} z${z} ${spot.id}: ${String(e)}`);
+                return { ms: served.get(url) ?? NaN, bytes: 0, image: false };
               }
             }),
           );
-          walls.push(performance.now() - w0);
-          timed.push(...got);
-          screens.push(got.reduce((t, g) => t + g.bytes, 0));
-          for (const g of got)
-            if (g.error) problems.push(`${src.id} z${z} ${slugs[i]}: ${g.error.replace(/\s+/g, " ")}`);
+          const wall = performance.now() - w0;
+          const ms = got.map((g) => g.ms).filter(Number.isFinite);
+          out.push(
+            `| ${c.label} | ${spot.label} | ${viewZ} | ${z} | ${got.length} | ${Math.round(median(ms))} ms | ${Math.round(Math.max(...ms))} ms | ${ms.filter((m) => m > 1500).length} | ${(wall / 1000).toFixed(1)} s | ${got.filter((g) => !g.image).length} | ${kb(got.reduce((t, g) => t + g.bytes, 0))} |`,
+          );
         }
-        const ms = timed.map((t) => t.ms).filter(Number.isFinite);
-        rows.push(
-          `| ${src.label} | ${viewZ} | ${tileZ} | ${timed.length} | ${Math.round(median(ms))} ms | ${Math.round(
-            Math.max(...ms),
-          )} ms | ${ms.filter((m) => m > 1500).length} | ${(median(walls) / 1000).toFixed(1)} s | ${
-            timed.filter((t) => !t.image).length
-          } | ${Math.round(median(screens) / 1024)} KB |`,
-        );
       }
     }
+    out.push("");
 
-    // The cached services' own descriptions: their deepest level and copyright line.
-    const about: string[] = [];
-    for (const src of SOURCES.filter((s) => s.about)) {
+    // ---------- terms ----------
+    out.push("## Terms, as each service states them", "");
+    for (const c of candidates.filter((x) => x.about && x.id !== "3dep-slope")) {
       try {
-        const r = await http.fetch(`${src.about}?f=json`, { timeoutMs: 30_000 });
-        const j = (await r.json()) as {
-          copyrightText?: string;
-          singleFusedMapCache?: boolean;
-          tileInfo?: { lods?: { level: number; resolution: number }[] };
-          maxLOD?: number;
-          description?: string;
-        };
-        const lods = j.tileInfo?.lods ?? [];
-        about.push(
-          `- **${src.label}:** cached ${j.singleFusedMapCache ?? "?"}; levels ${lods[0]?.level ?? "?"}–${
-            lods.at(-1)?.level ?? "?"
-          }${j.maxLOD !== undefined ? ` (maxLOD ${j.maxLOD})` : ""}; copyright "${j.copyrightText ?? ""}"; ${(
-            j.description ?? ""
+        const j = (await (await get(`${c.about}?f=json`)).json()) as Record<string, unknown>;
+        out.push(
+          `- **${c.label}** (${c.about}): copyright "${String(j.copyrightText ?? "")
+            .replace(/\s+/g, " ")
+            .slice(
+              0,
+              300,
+            )}"; exportTilesAllowed ${String(j.exportTilesAllowed ?? "not stated")}; maxExportTilesCount ${String(j.maxExportTilesCount ?? "not stated")}; license "${String(
+            j.license ?? j.licenseInfo ?? "",
           )
             .replace(/<[^>]+>/g, " ")
-            .replace(/\s+/g, " ")
-            .slice(0, 400)}`,
+            .slice(0, 200)}"`,
         );
       } catch (e) {
-        about.push(`- **${src.label}:** no description (${String(e)})`);
+        out.push(`- **${c.label}**: no description (${String(e)})`);
       }
     }
+    try {
+      const q = new URLSearchParams({ q: 'title:"World Hillshade" AND owner:esri', f: "json", num: "5" });
+      const j = (await (await get(`https://www.arcgis.com/sharing/rest/search?${q}`)).json()) as {
+        results?: {
+          id: string;
+          title: string;
+          owner: string;
+          licenseInfo?: string;
+          accessInformation?: string;
+        }[];
+      };
+      for (const it of j.results ?? [])
+        out.push(
+          `- **ArcGIS item ${it.id}, "${it.title}" (${it.owner})**: licence "${(it.licenseInfo ?? "")
+            .replace(/<[^>]+>/g, " ")
+            .replace(/\s+/g, " ")
+            .slice(0, 900)}"; credits "${(it.accessInformation ?? "").slice(0, 200)}"`,
+        );
+    } catch (e) {
+      out.push(`- Esri's item search didn't answer (${String(e)})`);
+    }
+    try {
+      const r = await get("https://tiles.mapterhorn.com/tilejson.json");
+      out.push(
+        `- **Mapterhorn tilejson** (${r.status}): ${(await r.text()).replace(/\s+/g, " ").slice(0, 600)}`,
+      );
+    } catch (e) {
+      out.push(`- Mapterhorn's tilejson didn't answer (${String(e)})`);
+    }
+    out.push("");
 
-    // Mapterhorn keeps deep zooms only where its source is fine: the deepest tile over a parcel says its resolution.
-    const deepest: string[] = [];
-    const terra = SOURCES.find((s) => s.id === "mapterhorn")!;
-    for (const [i, [lon, lat]] of centres.entries()) {
-      const found: string[] = [];
-      for (let z = 12; z <= 18; z++) {
-        const n = 2 ** z;
-        const x = Math.floor(((lon + 180) / 360) * n);
-        const r = (lat * Math.PI) / 180;
-        const y = Math.floor(((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2) * n);
-        try {
-          const res = await http.fetch(terra.url(z, x, y), { timeoutMs: 30_000, retries: 0 });
-          const ok = res.ok && isImage(new Uint8Array(await res.arrayBuffer()));
-          found.push(`z${z} ${ok ? "yes" : res.status}`);
-        } catch (e) {
-          found.push(`z${z} ${String(e).slice(0, 40)}`);
+    // ---------- coverage ----------
+    out.push("## Coverage across VA, NC and TN", "");
+    let oneMeter: { id: number; name: string }[] = [];
+    try {
+      const j = (await (await get(`${DEP_INDEX}?f=json`)).json()) as {
+        layers?: { id: number; name: string }[];
+      };
+      oneMeter = (j.layers ?? []).filter((l) => /1\s*m(eter)?\b|one meter/i.test(l.name));
+      out.push(
+        `3DEP index layers saying 1 m: ${oneMeter.map((l) => `${l.id} ${l.name}`).join("; ") || "none found"}.`,
+        "",
+      );
+    } catch (e) {
+      out.push(`3DEP's index didn't answer (${String(e)}).`, "");
+    }
+    out.push(
+      `| Point | 3DEP 1 m | ${candidates
+        .filter((c) => c.id !== "3dep-slope")
+        .map((c) => c.label)
+        .join(" | ")} |`,
+      `|---|---|${candidates
+        .filter((c) => c.id !== "3dep-slope")
+        .map(() => "---")
+        .join("|")}|`,
+    );
+    for (const p of COVERAGE_POINTS) {
+      let dep = "?";
+      try {
+        const counts = await Promise.all(
+          oneMeter.map(async (l) => {
+            const q = new URLSearchParams({
+              geometry: `${p.ll[1]},${p.ll[0]}`,
+              geometryType: "esriGeometryPoint",
+              inSR: "4326",
+              spatialRel: "esriSpatialRelIntersects",
+              returnCountOnly: "true",
+              f: "json",
+            });
+            const j = (await (await get(`${DEP_INDEX}/${l.id}/query?${q}`)).json()) as { count?: number };
+            return j.count ?? 0;
+          }),
+        );
+        dep = counts.some((n) => n > 0) ? "yes" : "no";
+      } catch {
+        dep = "?";
+      }
+      const cells: string[] = [];
+      for (const c of candidates.filter((x) => x.id !== "3dep-slope")) {
+        if (c.covers !== "all" && c.covers !== p.state) {
+          cells.push("outside");
+          continue;
         }
+        // The deepest zoom with a real answer, from its maxzoom down; the bytes say whether it's blank.
+        let cell = "none";
+        for (let z = c.maxzoom; z >= Math.max(12, c.maxzoom - 4); z--) {
+          const [x, y] = tileOf(p.ll[0], p.ll[1], z);
+          try {
+            const r = await get(c.url(z, x, y) + (c.dynamic ? `&${RUN}` : ""));
+            const b = new Uint8Array(await r.arrayBuffer());
+            if (r.ok && isImage(b)) {
+              cell = `z${z}, ${kb(b.length)}`;
+              break;
+            }
+          } catch {
+            // try a zoom out
+          }
+        }
+        cells.push(cell);
       }
-      deepest.push(`- ${slugs[i]}: ${found.join(", ")}`);
+      out.push(`| ${p.label}, ${p.state} | ${dep} | ${cells.join(" | ")} |`);
     }
+    out.push("");
 
-    const report = [
-      "# Lidar terrain tiles, timed",
-      "",
-      `${new Date().toISOString()}; six requests at a time per host, no retries; a screen is 375 × 812 CSS px plus a tile past each edge.`,
-      "A tile's time runs from when it was sent (not while it queued); the whole screen is the wall time for all of its tiles.",
-      "",
-      ...rows,
-      "",
-      "## The cached services",
-      "",
-      ...about,
-      "",
-      "## Mapterhorn's tiles over each parcel (at 36°N a 512 px pixel is 2.4 m at z15, 1.2 m at z16, 0.6 m at z17)",
-      "",
-      ...deepest,
-      "",
+    out.push(
       problems.length
-        ? `## Problems (first 30 of ${problems.length})\n\n${problems.slice(0, 30).join("\n")}`
+        ? `## Problems (first 40 of ${problems.length})\n\n${problems.slice(0, 40).join("\n")}`
         : "No problems.",
-    ].join("\n");
+    );
     mkdirSync("test-results", { recursive: true });
-    writeFileSync("test-results/lidar-tiles.md", report);
-    console.log(report);
+    writeFileSync("test-results/lidar-tiles.md", out.join("\n"));
+    console.log(out.join("\n"));
   }, 2_400_000);
 });

@@ -1,7 +1,8 @@
 name: Lidar terrain tiles
 
-# Roadmap step 14c (docs/plans/step-14c-lidar-terrain.md §3): times USGS 3DEP's lidar tiles at zooms 13–17 in both
-# styles, and takes the layer's screenshots with the live tiles, on a PR that changes the layer or these tools, or by
+# Roadmap step 14c (docs/plans/step-14c-lidar-terrain.md §3): judges the shaded-relief candidates (first-view speed,
+# terms, coverage; test/tools/lidar-tiles.test.ts) and takes the layer's screenshots and the candidates' zoom-17
+# side-by-sides with the live tiles (screenshots/lidar*.spec.ts), on a PR that changes the layer or these tools, or by
 # hand. The cloud sessions that build the app can't reach USGS; CI's runners can. The timings go in the job summary;
 # the screenshots go to the pr-assets branch (pr-assets/14c-lidar/) for the PR's description. Nothing here gates a merge.
 on:
@@ -10,6 +11,8 @@ on:
       - components/Map/lidarStyle.ts
       - test/tools/lidar-tiles.test.ts
       - screenshots/lidar.spec.ts
+      - screenshots/lidar-compare.spec.ts
+      - test/tools/reliefCandidates.ts
       - .github/workflows/lidar-tiles.yml
   workflow_dispatch: {}
 
@@ -34,7 +37,7 @@ jobs:
 
   screenshots:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 60
     # A fork's PR gets a read-only token: nothing to push to.
     if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
     steps:
@@ -47,7 +50,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm build
-      - run: pnpm exec playwright test -c playwright.screenshots.config.ts screenshots/lidar.spec.ts
+      # Whatever was taken goes to pr-assets even if a shot failed (a candidate's service down).
+      - run: pnpm exec playwright test -c playwright.screenshots.config.ts screenshots/lidar.spec.ts screenshots/lidar-compare.spec.ts
+        continue-on-error: true
         env:
           E2E_SKIP_BUILD: "1"
       - name: To pr-assets/14c-lidar
@@ -57,7 +62,7 @@ jobs:
           git fetch origin pr-assets
           git worktree add ../assets origin/pr-assets
           mkdir -p ../assets/14c-lidar
-          cp test-results/screenshots/*-lidar-*.png ../assets/14c-lidar/
+          cp test-results/screenshots/*-lidar-*.png ../assets/14c-lidar/ || true
           cd ../assets
           git add 14c-lidar
           git commit -m "Step 14c screenshots (${GITHUB_SHA::7})" || exit 0
