@@ -26,11 +26,17 @@ PAD-US, Census TIGER and its Geocoder, NOAA, NLCD from MRLC, CMS Hospital Genera
 records through BTS NTAD) are public domain, and Microsoft's building footprints are CDLA Permissive 2.0. None of
 them limits commercial use.
 
-**Lidar terrain** (Map layers, roadmap step 14c): USGS 3DEP's elevation image service
-(`elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer`), drawn by USGS's own `exportImage` as
-shaded relief or slope, one map tile at a time. Public domain, with no limit on commercial use, display or caching;
-credited on the map and in Map layers as "Terrain: USGS 3D Elevation Program (lidar)". The service is a shared public
-endpoint with no stated rate limit, so the layer asks only for the tiles in view, from zoom 13 up.
+**Lidar terrain** (Map layers, roadmap step 14c):
+- **Shaded relief:** Mapterhorn's elevation tiles (`tiles.mapterhorn.com`, Terrarium-encoded WebP), shaded in the
+  browser by MapLibre. Over VA, NC and TN their source is USGS 3DEP's 1 m lidar where it exists, else its 10 m DEM
+  (Mapterhorn's source catalog: "Public Domain (U.S. Government Work)"). Mapterhorn publishes the tiles for open use,
+  with no key or account, asks for the credit "© Mapterhorn" (shown in the map's ⓘ while Shaded relief is on, linked
+  to mapterhorn.com/attribution), and states no rate limit; its tiles may be cached, so step 14e's offline cache may
+  keep them. Shown from zoom 13 up, the tiles in view only.
+- **Slope:** USGS 3DEP's elevation image service (`elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer`),
+  drawn by USGS's own `exportImage`, one map tile at a time. Public domain, with no limit on commercial use, display or
+  caching; credited as "Terrain: USGS 3D Elevation Program (lidar)". A shared public endpoint with no stated rate limit,
+  so the layer asks only for the tiles in view, from zoom 13 up.
 
 ## The area catalog's monthly profile (step 13)
 

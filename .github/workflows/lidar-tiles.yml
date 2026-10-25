@@ -1,18 +1,13 @@
-name: Lidar terrain tiles
+name: Lidar terrain screenshot
 
-# Roadmap step 14c (docs/plans/step-14c-lidar-terrain.md §3): judges the shaded-relief candidates (first-view speed,
-# terms, coverage; test/tools/lidar-tiles.test.ts) and takes the layer's screenshots and the candidates' zoom-17
-# side-by-sides with the live tiles (screenshots/lidar*.spec.ts), on a PR that changes the layer or these tools, or by
-# hand. The cloud sessions that build the app can't reach USGS; CI's runners can. The timings go in the job summary;
-# the screenshots go to the pr-assets branch (pr-assets/14c-lidar/) for the PR's description. Nothing here gates a merge.
+# Roadmap step 14c: one screenshot of Lidar terrain over Mud Creek's red-gate line at zoom 17, with the live tiles
+# (screenshots/lidar.spec.ts), for the PR's description. The cloud sessions that build the app can't reach the tile
+# hosts; CI's runners can. The shot goes to the pr-assets branch (pr-assets/14c-lidar/). Nothing here gates a merge.
 on:
   pull_request:
     paths:
       - components/Map/lidarStyle.ts
-      - test/tools/lidar-tiles.test.ts
       - screenshots/lidar.spec.ts
-      - screenshots/lidar-compare.spec.ts
-      - test/tools/reliefCandidates.ts
       - .github/workflows/lidar-tiles.yml
   workflow_dispatch: {}
 
@@ -20,24 +15,9 @@ permissions:
   contents: write
 
 jobs:
-  timing:
+  screenshot:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
-    steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm lidar:tiles
-      - if: always()
-        run: cat test-results/lidar-tiles.md >> "$GITHUB_STEP_SUMMARY" || true
-
-  screenshots:
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 20
     # A fork's PR gets a read-only token: nothing to push to.
     if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
     steps:
@@ -50,9 +30,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm build
-      # Whatever was taken goes to pr-assets even if a shot failed (a candidate's service down).
-      - run: pnpm exec playwright test -c playwright.screenshots.config.ts screenshots/lidar.spec.ts screenshots/lidar-compare.spec.ts
-        continue-on-error: true
+      - run: pnpm exec playwright test -c playwright.screenshots.config.ts screenshots/lidar.spec.ts
         env:
           E2E_SKIP_BUILD: "1"
       - name: To pr-assets/14c-lidar
@@ -62,8 +40,8 @@ jobs:
           git fetch origin pr-assets
           git worktree add ../assets origin/pr-assets
           mkdir -p ../assets/14c-lidar
-          cp test-results/screenshots/*-lidar-*.png ../assets/14c-lidar/ || true
+          cp test-results/screenshots/*-lidar-*.png ../assets/14c-lidar/
           cd ../assets
           git add 14c-lidar
-          git commit -m "Step 14c screenshots (${GITHUB_SHA::7})" || exit 0
+          git commit -m "Step 14c screenshot (${GITHUB_SHA::7})" || exit 0
           git push origin HEAD:pr-assets

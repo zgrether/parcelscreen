@@ -14,6 +14,7 @@ import {
   LIDAR_MIN_ZOOM,
   LIDAR_SOURCE,
   LIDAR_STYLES,
+  lidarOpacityPaint,
 } from "./lidarStyle";
 import { useMapLayerPrefs } from "./useMapLayerPrefs";
 import { ZOOM_HINT } from "./useParcelLines";
@@ -29,7 +30,9 @@ export function LidarLayer({ hint }: { hint: Hint }) {
     for (const { id } of LIDAR_STYLES) {
       const shown = lidar.on && lidar.style === id;
       map.setLayoutProperty(LIDAR_LAYER[id], "visibility", shown ? "visible" : "none");
-      if (shown) map.setPaintProperty(LIDAR_LAYER[id], "raster-opacity", lidar.opacity);
+      if (shown)
+        for (const [prop, value] of Object.entries(lidarOpacityPaint(id, lidar.opacity)))
+          map.setPaintProperty(LIDAR_LAYER[id], prop as Parameters<typeof map.setPaintProperty>[1], value);
     }
   }, [map, lidar]);
 
@@ -50,7 +53,8 @@ export function LidarLayer({ hint }: { hint: Hint }) {
     };
   }, [map, lidar.on, hint]);
 
-  // Tile failures from the lidar sources: one hint per visit, not one per tile (TerrainLayers does the same).
+  // Tile failures from the lidar sources: one hint per visit, not one per tile (TerrainLayers does the same). A 404 isn't
+  // one: Mapterhorn has no deep tile where there's no lidar, and the layer shows what there is.
   const told = useRef(false);
   useEffect(() => {
     if (!map) return;
@@ -58,6 +62,7 @@ export function LidarLayer({ hint }: { hint: Hint }) {
     const onError = (e: MlErrorEvent) => {
       const sourceId = (e as MlErrorEvent & { sourceId?: string }).sourceId;
       if (told.current || !sourceId || !sources.has(sourceId)) return;
+      if ((e.error as Error & { status?: number }).status === 404) return;
       told.current = true;
       hint(LIDAR_FAILED);
       setTimeout(() => hint((h) => (h === LIDAR_FAILED ? "" : h)), 4000);

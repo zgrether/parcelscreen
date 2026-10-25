@@ -29,7 +29,6 @@
     "check:fixtures": "vitest run test/tools/fixture-size.test.ts",
     "turf-versions": "vitest run test/tools/turf-versions.test.ts --mode turf-versions",
     "geotiff-versions": "vitest run test/tools/geotiff-versions.test.ts --mode geotiff-versions",
-    "lidar:tiles": "vitest run test/tools/lidar-tiles.test.ts --mode lidar-tiles",
     "record:fixtures": "node scripts/record-fixtures.mts",
     "data:buildings": "node scripts/data-buildings.mts",
     "data:climate": "node scripts/data-climate.mts",

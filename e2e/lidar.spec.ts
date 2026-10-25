@@ -1,9 +1,8 @@
 /**
- * Roadmap step 14c: Map layers › Lidar terrain. Off at first; on, it asks USGS's exportImage for the view's tiles at
- * zoom 13 and up with the chosen style's rule (Shaded relief, then Slope), at the opacity set; below 13 it asks for none
- * and the hint says to zoom in; off, it asks for no more; a reload keeps the choice. The service is answered with a
- * small PNG of our own: this session's network doesn't reach USGS (its real tiles are measured by
- * scripts/lidar-tiles.mts).
+ * Roadmap step 14c: Map layers › Lidar terrain. Off at first; on, it asks for the view's tiles at zoom 13 and up:
+ * Shaded relief Mapterhorn's elevation tiles, then Slope USGS's exportImage with its rule, at the opacity set; below 13
+ * it asks for none and the hint says to zoom in; off, it asks for no more; a reload keeps the choice. Both hosts are
+ * answered with a flat grey PNG of our own: this session's network reaches neither.
  */
 import { deflateSync } from "node:zlib";
 import { expect, test, type Page, type Route } from "@playwright/test";
@@ -13,10 +12,11 @@ import { replayHar } from "./replay";
 const SLUG = "grayson-mud-creek-6273";
 const SERVICE =
   /elevation\.nationalmap\.gov\/arcgis\/rest\/services\/3DEPElevation\/ImageServer\/exportImage/;
+const MAPTERHORN = /tiles\.mapterhorn\.com\/(\d+)\/\d+\/\d+\.webp/;
 const WORLD_M = 40075016.686;
 
-/** A 256 × 256 grey PNG, built here (no image library): the tile every request gets. */
-function greyPng(): Buffer {
+/** A square grey PNG, built here (no image library): the tile every request gets (as Terrarium, a flat 128 m). */
+function greyPng(px: number): Buffer {
   const crcTable = Array.from({ length: 256 }, (_, n) => {
     let c = n;
     for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
@@ -36,12 +36,12 @@ function greyPng(): Buffer {
     return Buffer.concat([len, t, sum]);
   };
   const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(256, 0);
-  ihdr.writeUInt32BE(256, 4);
+  ihdr.writeUInt32BE(px, 0);
+  ihdr.writeUInt32BE(px, 4);
   ihdr[8] = 8; // bit depth
   ihdr[9] = 0; // greyscale
-  const rows = Buffer.alloc(257 * 256, 0x80);
-  for (let y = 0; y < 256; y++) rows[y * 257] = 0; // filter: none
+  const rows = Buffer.alloc((px + 1) * px, 0x80);
+  for (let y = 0; y < px; y++) rows[y * (px + 1)] = 0; // filter: none
   return Buffer.concat([
     Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
     chunk("IHDR", ihdr),
@@ -52,22 +52,29 @@ function greyPng(): Buffer {
 
 interface Asked {
   zoom: number;
+  /** "relief" for Mapterhorn's tiles, else the exportImage rule's first raster function. */
   rule: string;
 }
 
-/** Answers the service and keeps each request's zoom (from its box's width) and rendering rule. */
+/** Answers both hosts and keeps each request's zoom and what it was for. */
 async function lidarService(page: Page): Promise<Asked[]> {
   const asked: Asked[] = [];
-  const png = greyPng();
+  const answer = (route: Route, png: Buffer) =>
+    route.fulfill({ body: png, contentType: "image/png", headers: { "access-control-allow-origin": "*" } });
+  const small = greyPng(256),
+    large = greyPng(512);
   await page.context().route(SERVICE, (route: Route) => {
     const q = new URL(route.request().url()).searchParams;
     const [minX, , maxX] = q.get("bbox")!.split(",").map(Number);
-    asked.push({ zoom: Math.round(Math.log2(WORLD_M / (maxX! - minX!))), rule: q.get("renderingRule")! });
-    return route.fulfill({
-      body: png,
-      contentType: "image/png",
-      headers: { "access-control-allow-origin": "*" },
+    asked.push({
+      zoom: Math.round(Math.log2(WORLD_M / (maxX! - minX!))),
+      rule: (JSON.parse(q.get("renderingRule")!) as { rasterFunction: string }).rasterFunction,
     });
+    return answer(route, small);
+  });
+  await page.context().route(MAPTERHORN, (route: Route) => {
+    asked.push({ zoom: Number(MAPTERHORN.exec(route.request().url())![1]), rule: "relief" });
+    return answer(route, large);
   });
   return asked;
 }
@@ -87,10 +94,12 @@ const paint = (page: Page, layer: string) =>
         };
       }
     ).__psMap;
-    return {
-      visibility: m.getLayoutProperty(id, "visibility"),
-      opacity: m.getPaintProperty(id, "raster-opacity"),
-    };
+    // Shaded relief's opacity is its shadow colour's alpha (lidarOpacityPaint).
+    const opacity =
+      id === "lidar-relief"
+        ? Number(/,([\d.]+)\)$/.exec(String(m.getPaintProperty(id, "hillshade-shadow-color")))![1])
+        : m.getPaintProperty(id, "raster-opacity");
+    return { visibility: m.getLayoutProperty(id, "visibility"), opacity };
   }, layer);
 
 test("Lidar terrain: off at first; Shaded relief, then Slope, from zoom 13; the opacity; the hint below 13; kept after a reload", async ({
@@ -110,18 +119,21 @@ test("Lidar terrain: off at first; Shaded relief, then Slope, from zoom 13; the 
   const panel = page.getByRole("region", { name: "Map layers" });
   await panel.getByRole("button", { name: "Lidar terrain" }).click();
   await expect(panel.getByRole("button", { name: "Lidar terrain" })).toHaveAttribute("aria-pressed", "true");
-  await expect(panel).toContainText("1 m lidar where available. Terrain: USGS 3D Elevation Program (lidar)");
+  await expect(panel).toContainText(
+    "1 m lidar where available. Elevation: © Mapterhorn, from USGS 3DEP lidar",
+  );
   await expect.poll(() => asked.length).toBeGreaterThan(0);
-  // openExplorer's view is zoom 15: the relief rule, a 256 px tile one level deeper (MapLibre's tiles are 512 px).
-  expect(new Set(asked.map((a) => a.zoom))).toEqual(new Set([16]));
-  expect(asked.every((a) => JSON.parse(a.rule).rasterFunction === "Hillshade Multidirectional")).toBe(true);
+  // openExplorer's view is zoom 15: Mapterhorn's 512 px tiles at the view's own zoom.
+  expect(new Set(asked.map((a) => a.zoom))).toEqual(new Set([15]));
+  expect(asked.every((a) => a.rule === "relief")).toBe(true);
   expect(await paint(page, "lidar-relief")).toEqual({ visibility: "visible", opacity: 0.6 });
 
   // Slope: the classed rule; Shaded relief's layer hidden.
   asked.length = 0;
   await panel.getByRole("radio", { name: "Slope" }).click();
   await expect.poll(() => asked.length).toBeGreaterThan(0);
-  expect(asked.every((a) => JSON.parse(a.rule).rasterFunction === "Colormap")).toBe(true);
+  expect(asked.every((a) => a.rule === "Colormap")).toBe(true);
+  await expect(panel).toContainText("1 m lidar where available. Terrain: USGS 3D Elevation Program (lidar)");
   expect((await paint(page, "lidar-relief")).visibility).toBe("none");
   await expect(panel.getByRole("list", { name: "Slope, as grade" }).locator("li")).toHaveText([
     "up to 15%",

@@ -375,6 +375,7 @@ Branches are named `phase-0/NN-slug`. Each PR lists its deviations from the prot
 **Paused 10/16** (owner; `docs/design/workflow-review.md`, Roadmap: the workflow moves grades by whole letters, these polish numbers by a point or two): WF6b (`wf6-reroute.md` §4–§5; the engine half merged in #140, the app side waits), follow-up 57, follow-up 46, the cost-label PR, VR8 calibration (`value-ranking.md` §12, `parcel-workflow.md` §7; its weight calibration is replaced by the interview and the rubric editor, its band cutoffs get a lighter sanity check after roadmap step 10) and Batch B (`batch-a.md` §7). Their branches and plans stay as they are.
 
 ---
+| 62 | **Follow-up: the 3D terrain from Mapterhorn** (owner, 2026-10-25; #338) **Not scheduled.** | The 3D terrain, the 10 m hillshade and the contours read AWS Terrain Tiles (Terrarium, 256 px, to zoom 15: about 10 m in the mountains). Mapterhorn's tiles, which step 14c's Shaded relief already draws, are the same encoding at 512 px to zoom 16 from USGS 3DEP's 1 m lidar where it exists, so the 3D terrain, its hillshade and the contours could read them instead and show 1 m ground. Its own decision: the 3D drape, the contours' density and the terrain's tile load all change. | If built: the 3D view over Mud Creek's red-gate line shows the roadbed; the contours at zoom 16 follow it; a tilt loads in about the time it does today. |
 
 ## 7. Acceptance checks
 

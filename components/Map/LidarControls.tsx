@@ -72,7 +72,7 @@ export function LidarControls() {
               ))}
             </ul>
           )}
-          <p className="tiny muted lidar-info">{LIDAR_INFO}</p>
+          <p className="tiny muted lidar-info">{LIDAR_INFO[lidar.style]}</p>
         </div>
       )}
     </>

@@ -111,3 +111,17 @@ The image service is a shared public endpoint with no stated rate limit, so the 
 
 `docs/plans/phase-0.md` §6 notes that this layer makes follow-up 57 (snap drawn lines to lidar roadbeds) practical:
 a drawn line can be checked against the roadbed by eye, and the snap's result drawn over it.
+
+## 9. Decision (owner, 2026-10-25)
+
+The tiles were slow (USGS's exportImage: 3–9 s a tile on a first view, 22–37 s for a phone screen), so §3's
+comparison ran (#338's description has the evidence). **Shaded relief uses Mapterhorn's elevation tiles, drawn as
+hillshade by MapLibre** (a `raster-dem` source, Terrarium, 512 px to zoom 16, with a `hillshade` layer,
+`multidirectional`): USGS 3DEP's 1 m lidar where it exists, about 1–3 s a screen, no key, cacheable. Credited
+"© Mapterhorn" in the map's ⓘ and in Map layers. A hillshade layer has no opacity, so the slider sets its shadow and
+highlight colours' alpha.
+- **Slope stays on USGS's exportImage.** MapLibre draws hillshade from elevation tiles but not slope, so Slope from
+  Mapterhorn would need a tile renderer of the app's own.
+- **No self-hosting.** The 3D terrain's switch to the same tiles is follow-up 62 (`docs/plans/phase-0.md` §6).
+- §6's screenshots shrink to one: Mud Creek's red-gate line at zoom 17 in Shaded relief.
+
