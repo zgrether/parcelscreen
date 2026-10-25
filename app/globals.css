@@ -8060,6 +8060,11 @@ button.use-row[aria-expanded="true"] .use-name::after {
 .lidar-info {
   margin: 0;
 }
+/* On Map layers' dark panel: its own secondary ink, as Area outlines' legend has (the paper's muted grey was 2:1). */
+.terrain-controls.info .lidar-info,
+.terrain-controls.info .lidar-bands {
+  color: var(--ip-ink-2);
+}
 @media (max-width: 860px) {
   .lidar-opacity input {
     min-height: 44px;

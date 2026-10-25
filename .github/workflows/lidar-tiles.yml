@@ -47,7 +47,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm build
-      - run: pnpm exec playwright test -c playwright.screenshots.config.ts lidar
+      - run: pnpm exec playwright test -c playwright.screenshots.config.ts screenshots/lidar.spec.ts
         env:
           E2E_SKIP_BUILD: "1"
       - name: To pr-assets/14c-lidar
