@@ -16,6 +16,7 @@ import {
   postedResult,
   screenIt,
   listRow,
+  gradingNow,
 } from "./flow";
 import { replayHar } from "./replay";
 
@@ -49,13 +50,13 @@ test("switching keeps screened parcels live: back to one with no re-run and no n
     .first()
     .click();
   // While it runs, no switching (and no cancel).
-  await expect(page.locator(".grade-btn", { hasText: /^Grading…$/ }).first()).toBeVisible();
+  await expect(gradingNow(page).first()).toBeVisible();
   await page.getByRole("link", { name: "Your list", exact: true }).click();
   await listRow(page, "52-47A").click();
   await expect(page).toHaveURL(/\/explore$/);
   await expect(page.locator(".map-hint")).toHaveText(BUSY_TEXT);
   await expect(page.locator(".sh-name").first()).toContainText("35-3");
-  await expect(page.locator(".grade-btn", { hasText: /^Grading…$/ })).toHaveCount(0, { timeout: 200_000 });
+  await expect(gradingNow(page)).toHaveCount(0, { timeout: 200_000 });
   expect(net.misses, "data requests the HAR doesn't have").toEqual([]);
 
   // Back to Ferney: its session is still kept, so it's live again with no request at all.

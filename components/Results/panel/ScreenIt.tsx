@@ -113,7 +113,7 @@ export interface Tried {
 export function useScreenIt(
   ctl: ExploreController,
   config: UserConfig,
-  onFinished: () => void,
+  onFinished: (tall?: boolean) => void,
   hint: SetHint,
 ) {
   const screen = useScreen();
@@ -587,6 +587,8 @@ export function useScreenIt(
     copySummary,
     run: () => run(),
     cancel: screen.cancel,
+    /** The sheet raised to its top, on Grade (Z-9: the progress bar's Steps ▸). */
+    raiseSheet: () => latest.current.onFinished(true),
     steps: screen.state.steps,
     showSteps: live?.serial === serial && status !== "idle" && !screen.state.restored,
     error,

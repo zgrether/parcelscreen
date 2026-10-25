@@ -9,7 +9,15 @@
  * cleaning up after MapView removed the map) now happens only when the page goes.
  */
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
-import { expectAllDone, importParcel, keptScreenCount, openExplorer, screenIt, visit } from "./flow";
+import {
+  expectAllDone,
+  importParcel,
+  keptScreenCount,
+  openExplorer,
+  screenIt,
+  visit,
+  gradingNow,
+} from "./flow";
 import { replayHar, type ReplayLog } from "./replay";
 
 const FERNEY = "ferney-creek-52-47A" as const;
@@ -96,7 +104,7 @@ async function backOnTheMap(
   expect(after.lon).toBeCloseTo(before.lon, 6);
   expect(after.z).toBeCloseTo(before.z, 3);
   expect(await live(page), "the overlays still live").toBe(true);
-  await expect(page.locator(".grade-btn", { hasText: /^Grading…$/ })).toHaveCount(0);
+  await expect(gradingNow(page)).toHaveCount(0);
   expect(await keptScreenCount(page), "no new screen run").toBe(screens);
   // Drawing again: it resumed.
   await expect.poll(() => page.evaluate(() => (window as DebugWindow).__renders ?? 0)).toBeGreaterThan(0);

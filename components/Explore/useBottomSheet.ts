@@ -147,9 +147,15 @@ export function useBottomSheet(
   const shown = aside ? Math.min(height, PEEK) : height;
   const mapMode = dragMapMode ?? (shown != null && shown < MAP_MODE_BELOW);
   /** The header's Map / Panel button. */
-  /** After a run, a sheet at its peek (or folded to map mode) rises to its middle snap, once (proto L1566). */
-  const raise = () => {
-    if (isSheet() && (settled === "peek" || mapMode)) snapTo(snaps(root.current, peek)[1]!);
+  /**
+   * After a run, a sheet at its peek (or folded to map mode) rises to its middle snap, once (proto L1566). `tall`: to
+   * its top snap from wherever it rests (the progress bar's Steps ▸, Z-9: the step list under the header's rows).
+   */
+  const raise = (tall = false) => {
+    if (!isSheet()) return;
+    const [, middle, top] = snaps(root.current, peek);
+    if (tall) snapTo(top!);
+    else if (settled === "peek" || mapMode) snapTo(middle!);
   };
 
   return {

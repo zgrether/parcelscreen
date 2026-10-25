@@ -215,11 +215,15 @@ export async function openFromRecent(page: Page, name: string): Promise<void> {
  * Grade it (step 4c: the toolbar's button on a desktop, the sheet's on a phone; for a kept run with nothing changed, the
  * overlays note's "Grade again"), wait for the run to finish, and return each step's final status.
  */
+/** A run going: the toolbar's "Grading…", or on a phone the sheet's progress bar in its place (UX part 2 PR 3b, Z-9). */
+export const gradingNow = (page: Page) =>
+  page.locator(".grade-btn", { hasText: /^Grading…$/ }).or(page.locator(".grade-progress"));
+
 export async function screenIt(page: Page): Promise<Record<string, string>> {
   if (await page.locator(".menu-panel").count()) await page.keyboard.press("Escape");
   // Wait for this run to start, then to finish.
   await page.locator(".grade-btn:enabled, .grade-again-link:enabled").first().click();
-  const grading = page.locator(".grade-btn", { hasText: /^Grading…$/ });
+  const grading = gradingNow(page);
   await expect(grading.first()).toBeVisible();
   await expect(grading).toHaveCount(0, { timeout: 200_000 });
   return page.evaluate(() => {

@@ -112,14 +112,14 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   // On phones the sheet steps aside to its peek while a map tool has the screen (13e-6).
   const { mode, split, info, uses, store } = explore.state;
   // The screen's "after a run, rise" calls the sheet's, which is made below (the sheet's peek depends on the screen).
-  const raiseSheet = useRef<() => void>(() => {});
+  const raiseSheet = useRef<(tall?: boolean) => void>(() => {});
   // After a run the sheet rises, and the panel shows Grade (step 8b).
   const exploreNow = useRef(explore);
   useEffect(() => {
     exploreNow.current = explore;
   });
-  const raise = useCallback(() => {
-    raiseSheet.current();
+  const raise = useCallback((tall?: boolean) => {
+    raiseSheet.current(tall);
     exploreNow.current.setInfo(false);
   }, []);
   const screen = useScreenIt(explore, config, raise, setHint);

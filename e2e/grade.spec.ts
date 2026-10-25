@@ -83,7 +83,17 @@ test.describe("on a phone", () => {
     expect((await name.boundingBox())!.height).toBeGreaterThan(30);
     await expect(page.locator(".sh-acres").first()).toBeInViewport();
 
-    await screenIt(page);
+    // While it runs (UX part 2 PR 3b, Z-9): the button's place holds a slim progress bar with the step and its count,
+    // in the peek; the sheet stays down. Steps ▸ raises it to the step list.
+    await button.click();
+    const progress = sheet.locator(".grade-progress-text");
+    await expect(progress).toHaveText(/… \d+ of 11$/);
+    const p = (await progress.boundingBox())!;
+    expect(p.y + p.height).toBeLessThanOrEqual(s.y + s.height);
+    expect(Math.round((await sheet.boundingBox())!.height)).toBe(148);
+    await sheet.locator(".grade-progress-line").tap();
+    await expect(sheet.locator(".steps")).toBeInViewport();
+    await expect(sheet.locator(".grade-progress")).toHaveCount(0, { timeout: 200_000 });
     await expect(sheet.locator(".grade-btn")).toHaveText("Try again: 3 sources didn't load");
     await expect(page.locator(".steps-folded")).toHaveText(/^Graded in \d+ sSteps ▸$/);
     expect(errors).toEqual([]);
