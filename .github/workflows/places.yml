@@ -109,10 +109,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git pull --rebase origin "${{ github.head_ref }}"
           node -e "require('fs').writeFileSync('.github/places-done.json', JSON.stringify({ request: process.env.REQUEST, ran: new Date().toISOString() }, null, 2) + '\n')"
           git add test/fixtures .github/places-done.json
           git commit -m "Re-recorded the fixtures ($REQUEST)" || exit 0
+          # Committed first: a rebase needs a clean tree, and the branch may have moved while the job ran.
+          git pull --rebase origin "${{ github.head_ref }}"
           git push origin "HEAD:${{ github.head_ref }}"
           gh workflow run ci.yml --ref "${{ github.head_ref }}"
 
