@@ -138,10 +138,11 @@ describe.each(FIXTURE_SLUGS.filter((s) => !isPrototypeSlug(s)))("port-only fixtu
       ["PAD-US", /Fee_Managers_PADUS\/FeatureServer\/0\/query/],
       ["TIGERweb roads", /Transportation\/MapServer\/[862]\/query/],
       ["OSRM", /router\.project-osrm\.org/],
-      ["TREC trails", /Tennessee_Statewide_Trails_Lines_Public\/FeatureServer\/0\/query/],
       ["Lorenz atlas tiles", /binary_tiles\/\d+\/binary_tile_/],
     ];
     for (const [name, re] of services) expect(count(re), name).toBeGreaterThanOrEqual(1);
+    // The places (TREC's trails among them) are baked since step 14d: the fixture's frozen copy, not its recording.
+    expect(existsSync(resolve(dir, "places", "index.json")), "the frozen places").toBe(true);
   });
 
   it("has expected.json for its scenarios, and its v8 oracles", () => {

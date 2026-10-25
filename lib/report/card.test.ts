@@ -81,7 +81,7 @@ describe("the report card on the fixtures (engine 13)", () => {
     expect(zach.incomplete).toEqual([]);
     // Step 11: Town and hospital's line, split in two.
     expect(rowOf(r, "hospital").detail).toBe("a 44-minute drive to an ER"); // §9.69: 47 at the OSM snapshot's position
-    expect(rowOf(r, "town").detail).toBe("a 15-minute drive to a grocery"); // from the entrance
+    expect(rowOf(r, "town").detail).toBe("a 16-minute drive to a grocery"); // from the entrance (16 since step 14d)
     expect(reportCard(r, JULIE).points).toBeCloseTo(2.85, 9); // §9.69: 2.75 with the Hospital row a D
     expect(rowOf(r, "garden").detail).toBe("a 2.48 ac garden on prime farmland");
     expect(rowOf(r, "room").detail).toBe(
