@@ -148,6 +148,10 @@ export interface ExploreController {
   dismiss(): void;
   /** Opens a county parcel found by search, from its full record (the outline's fields name it). */
   openOutline(outline: { source: string; props: Record<string, unknown> }): Promise<void>;
+  /** Opens the county parcel at a point (UX part 2 PR 4: coordinates typed in search), or says there's none. */
+  openAt(ll: LatLon): Promise<void>;
+  /** The state parcel services, for search across the region (UX part 2 PR 4). */
+  parcelServices: readonly string[];
   openSaved(key: string): void;
   removeSaved(key: string): void;
   /** Adds imported parcels to History (16b). */
@@ -651,6 +655,26 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       leaving();
       dispatch({ type: "close" });
       hint("");
+    },
+    parcelServices,
+    async openAt(ll) {
+      if (refuseBusy()) return;
+      lookup.current?.abort();
+      const ctl = new AbortController();
+      lookup.current = ctl;
+      hint("Looking up parcel…");
+      try {
+        const { parcel: picked } = await pickParcelAt(browserHttp, parcelServices, ll, ctl.signal);
+        // Where a parcel can be several features (Tennessee, step 2), the record is all of them, conflicts checked.
+        const record = picked && fieldsFor(picked.source).groupById ? await full(picked) : picked;
+        if (!record) return flash(hint, NO_PARCEL_HERE, 4000);
+        if (refuseBusy()) return;
+        leaving();
+        dispatch({ type: "select", record, stamp: stamp(), keepPanel: docked });
+        hint("");
+      } catch (e) {
+        if (!(e instanceof CancelledError)) throw e;
+      }
     },
     async openOutline(outline) {
       if (refuseBusy()) return;

@@ -1,10 +1,11 @@
 /**
- * The two network sources of map search: parcel numbers within the counties in view (each state service),
- * and places from Photon. External JSON is parsed with Zod (CLAUDE.md); requests go through lib/http.
+ * The two network sources of map search: parcel numbers within the region (each state service; UX part 2 PR 4, it
+ * was the counties in view), and places from Photon, within the region too. External JSON is parsed with Zod (CLAUDE.md); requests go through lib/http.
  */
 import { z } from "zod";
 import { CancelledError, type HttpClient } from "../http";
-import { whereFor } from "../geo/parcelFields";
+import { stateOf, whereFor } from "../geo/parcelFields";
+import { envelopeParams, type Bbox } from "./region";
 import { taxCardId } from "../geo/parcels";
 import { fieldsFor } from "../geo/parcelTiles";
 import type { LatLon } from "../geo/types";
@@ -57,20 +58,40 @@ function middle(coords: unknown): LatLon | null {
 }
 
 /**
- * Parcel numbers starting with the query (separators ignored) in the given counties: one query per county
- * per service, run in parallel. Tennessee's are asked by control map, group and parcel (taxCardQuery) and named in
+ * Where parcel numbers are asked: per county per service (the counties a map draws), or (UX part 2 PR 4) per service
+ * within a box, one ask each, which is what the map's search does now.
+ */
+export type ParcelScope =
+  ReadonlyMap<string, ReadonlySet<string>> | { readonly sources: readonly string[]; readonly bbox: Bbox };
+
+/** "Grayson Co., VA" (the audit's P-1): the county's name as the service gives it, and the state. */
+export function countyLabel(source: string, name: string): string {
+  const state = stateOf(source);
+  if (!name || /^\d+$/.test(name)) return name;
+  const base = name
+    .replace(/\s+county$/i, "")
+    .toLowerCase()
+    .replace(/(^|[\s-])\p{L}/gu, (c) => c.toUpperCase());
+  return `${base} Co.${state ? `, ${state}` : ""}`;
+}
+
+/**
+ * Parcel numbers starting with the query (separators ignored) in the given scope: one query per county per service,
+ * or one per service within the region's box, run in parallel. Tennessee's are asked by control map, group and parcel (taxCardQuery) and named in
  * the tax card's form; a parcel drawn as several features is listed once. A county that fails is skipped. Sorted by
  * number, at most MAX_PARCEL_HITS.
  */
 export async function searchParcelNumbers(
   http: HttpClient,
-  counties: ReadonlyMap<string, ReadonlySet<string>>,
+  scope: ParcelScope,
   query: string,
   signal?: AbortSignal,
 ): Promise<ParcelHit[]> {
   const pattern = idPattern(query);
   if (!pattern) return [];
   const taxCard = taxCardQuery(query);
+  const box = scope instanceof Map ? null : (scope as { bbox: Bbox }).bbox;
+  const within = box ? envelopeParams(box) : {};
   const ask = async (source: string, q: URLSearchParams) => {
     const r = await http.fetch(`${source}/query`, {
       method: "POST",
@@ -90,13 +111,14 @@ export async function searchParcelNumbers(
   };
 
   // Tennessee's where clause is exact: one ask, outlines and all.
-  const byTaxCard = async (source: string, code: string): Promise<ParcelHit[]> => {
+  const byTaxCard = async (source: string, code: string | null): Promise<ParcelHit[]> => {
     const f = fieldsFor(source);
     const features = await ask(
       source,
       new URLSearchParams({
         where: whereFor(source, taxCardWhere(f.county, code, taxCard!)),
         outFields: [f.oid, f.id, f.county, "CMAP", "GP", "PARCEL"].join(","),
+        ...within,
         ...outline,
         orderByFields: f.id,
         resultRecordCount: "25",
@@ -107,7 +129,9 @@ export async function searchParcelNumbers(
       const props = ft.properties ?? {};
       const id = taxCardId(props) ?? "";
       const centre = middle(ft.geometry?.coordinates);
-      return id && centre ? [{ source, props, id, county: String(props[f.county] ?? code), centre }] : [];
+      return id && centre
+        ? [{ source, props, id, county: countyLabel(source, String(props[f.county] ?? code ?? "")), centre }]
+        : [];
     });
   };
 
@@ -115,7 +139,7 @@ export async function searchParcelNumbers(
   // of it). The UX audit's B-3: 25 outlines held only those, the filter dropped them all, and "35-3" wasn't found with
   // Floyd in view. So first the numbers alone, as many as the service gives; the true matches kept; then their
   // outlines, by object id.
-  const byPrefix = async (source: string, code: string): Promise<ParcelHit[]> => {
+  const byPrefix = async (source: string, code: string | null): Promise<ParcelHit[]> => {
     const f = fieldsFor(source);
     const fields = [
       f.oid,
@@ -129,6 +153,7 @@ export async function searchParcelNumbers(
       new URLSearchParams({
         where: whereFor(source, parcelNumberWhere(f, code, pattern)),
         outFields: fields.join(","),
+        ...within,
         returnGeometry: "false",
         orderByFields: f.id,
         resultRecordCount: String(f.maxRecords),
@@ -163,13 +188,20 @@ export async function searchParcelNumbers(
     );
     return found.flatMap(({ props, id }) => {
       const centre = centres.get(Number(props[f.oid]));
-      const county = String((f.countyName && props[f.countyName]) || props[f.county] || code);
+      const county = countyLabel(
+        source,
+        String((f.countyName && props[f.countyName]) || props[f.county] || code || ""),
+      );
       return centre ? [{ source, props, id, county, centre }] : [];
     });
   };
 
-  const jobs = [...counties].flatMap(([source, codes]) =>
-    [...codes].map(async (code): Promise<ParcelHit[]> => {
+  const asks: [string, string | null][] =
+    scope instanceof Map
+      ? [...scope].flatMap(([source, codes]) => [...codes].map((code): [string, string] => [source, code]))
+      : (scope as { sources: readonly string[] }).sources.map((source): [string, null] => [source, null]);
+  const jobs = asks.map(([source, code]) =>
+    (async (): Promise<ParcelHit[]> => {
       const byMap = fieldsFor(source).search === "mapGroupParcel";
       if (byMap && !taxCard) return [];
       try {
@@ -178,7 +210,7 @@ export async function searchParcelNumbers(
         if (e instanceof CancelledError) throw e;
         return [];
       }
-    }),
+    })(),
   );
   // A parcel drawn as several features (Tennessee, step 2) is one hit: the first by object id.
   const seen = new Set<string>();
@@ -227,8 +259,11 @@ export async function searchPlaces(
   query: string,
   near: LatLon,
   signal?: AbortSignal,
+  /** Places within this box only (UX part 2 PR 4: the region, so "Floyd" doesn't find Poland). */
+  bbox?: Bbox,
 ): Promise<PlaceHit[]> {
-  const u = `${photonUrl}?q=${encodeURIComponent(query)}&lat=${near[0]}&lon=${near[1]}&limit=5&lang=en`;
+  const within = bbox ? `&bbox=${bbox.join(",")}` : "";
+  const u = `${photonUrl}?q=${encodeURIComponent(query)}&lat=${near[0]}&lon=${near[1]}&limit=5&lang=en${within}`;
   const r = await http.fetch(u, signal ? { signal } : {});
   if (!r.ok) throw new Error(`Photon ${r.status}`);
   const page = PhotonResponse.safeParse(await r.json());

@@ -42,15 +42,18 @@ export const matchesId = (stored: string, query: string): boolean =>
 
 const sqlString = (s: string) => `'${s.replace(/'/g, "''")}'`;
 
-/** The where clause for one county of one service: its parcel number, and its second number where it has one. */
+/**
+ * The where clause for one county of one service, or (null) the whole region, which the request's envelope bounds (UX
+ * part 2 PR 4): its parcel number, and its second number where it has one.
+ */
 export function parcelNumberWhere(
   fields: { id: string; county: string; altId?: string },
-  countyCode: string,
+  countyCode: string | null,
   pattern: string,
 ): string {
   const like = (field: string) => `UPPER(${field}) LIKE ${sqlString(pattern)}`;
   const ids = fields.altId ? `(${like(fields.id)} OR ${like(fields.altId)})` : like(fields.id);
-  return `${fields.county}=${sqlString(countyCode)} AND ${ids}`;
+  return countyCode === null ? ids : `${fields.county}=${sqlString(countyCode)} AND ${ids}`;
 }
 
 /** Saved parcels whose name contains the query, or whose name starts with it as a parcel number. */
@@ -95,10 +98,10 @@ export function taxCardQuery(text: string): TaxCardQuery | null {
   };
 }
 
-/** The where clause for one county of Tennessee's service: its map, and the group and parcel when typed. */
-export function taxCardWhere(countyField: string, county: string, q: TaxCardQuery): string {
+/** The where clause for one county of Tennessee's service (or the region's, null): its map, and the group and parcel. */
+export function taxCardWhere(countyField: string, county: string | null, q: TaxCardQuery): string {
   return [
-    `${countyField}=${sqlString(county)}`,
+    ...(county === null ? [] : [`${countyField}=${sqlString(county)}`]),
     `CMAP=${sqlString(q.map)}`,
     ...(q.group ? [`GP=${sqlString(q.group)}`] : []),
     ...(q.parcel ? [`PARCEL LIKE ${sqlString(`${q.parcel}%`)}`] : []),
