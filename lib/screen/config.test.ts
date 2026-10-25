@@ -59,7 +59,7 @@ describe("config", () => {
           "woodedPct": 100,
         },
         "endpoints": {
-          "_v": 15,
+          "_v": 16,
           "counties": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/1",
           "dem": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
           "lpAtlasBinary": "https://djlorenz.github.io/astronomy/binary_tiles",
@@ -84,6 +84,7 @@ describe("config", () => {
             "https://services1.arcgis.com/YuVBSS7Y1of2Qud1/arcgis/rest/services/Tennessee_Property_Boundaries_Public_Use/FeatureServer/0",
           ],
           "photon": "https://photon.komoot.io/api/",
+          "places": "https://parcelscreen.vercel.app/places/v1",
           "power": "https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Electric_Power_Transmission_Lines/FeatureServer/0",
           "sda": "https://SDMDataAccess.sc.egov.usda.gov/Tabular/post.rest",
           "stateParks": [

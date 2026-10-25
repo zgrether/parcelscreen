@@ -2,7 +2,11 @@ name: Places
 
 # Roadmap step 14d (docs/plans/step-14d-places.md §7): the network work this repo's cloud sessions can't do, run on
 # GitHub's runners for a PR that asks for it in .github/places-run.json. Jobs:
-# - bake: `pnpm data:places`, the baked places under public/places/v1/.
+# - bake: `pnpm data:places`, the baked places under public/places/v1/;
+# - record: `pnpm record:port` for each fixture (Mud Creek append-only, its guard's rule), the fixtures' recordings
+#   of what a grade asks live (their places come from their frozen copies, test/fixtures/<slug>/places/), and
+#   `pnpm areas:record`, the recorded area profile's (its places from test/fixtures/areas/<id>/places/);
+# - timing: `pnpm grade:timing` on main, then on the PR's branch, into the job summary (nothing pushed).
 # Each finished request is recorded in .github/places-done.json and pushed with the job's output to the PR's branch,
 # so a later push to the PR doesn't run it again. A push made with GITHUB_TOKEN starts no workflow, so the job then
 # dispatches ci.yml on the branch (as areas-refresh.yml does); its checks land on the commit, so the PR shows them.
@@ -27,6 +31,8 @@ jobs:
     outputs:
       request: ${{ steps.read.outputs.request }}
       bake: ${{ steps.read.outputs.bake }}
+      record: ${{ steps.read.outputs.record }}
+      timing: ${{ steps.read.outputs.timing }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -36,12 +42,14 @@ jobs:
           request=$(node -p "require('./.github/places-run.json').request")
           done=$(node -p "try { require('./.github/places-done.json').request } catch { '' }")
           echo "request=$request" >> "$GITHUB_OUTPUT"
-          if [ "$request" = "$done" ]; then
-            echo "Request $request already ran."
-            echo "bake=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "bake=$(node -p "require('./.github/places-run.json').jobs.includes('bake')")" >> "$GITHUB_OUTPUT"
-          fi
+          for job in bake record timing; do
+            if [ "$request" = "$done" ]; then
+              echo "$job=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "$job=$(node -p "require('./.github/places-run.json').jobs.includes('$job')")" >> "$GITHUB_OUTPUT"
+            fi
+          done
+          [ "$request" = "$done" ] && echo "Request $request already ran." || true
 
   bake:
     needs: ask
@@ -71,3 +79,68 @@ jobs:
           git commit -m "Places bake ($REQUEST)" -m "$(node -p "const i = require('./public/places/v1/index.json'); i.sources.map(s => s.id + ': ' + s.count + ' (fetched ' + s.fetched + ')').join('\n')")"
           git push origin "HEAD:${{ github.head_ref }}"
           gh workflow run ci.yml --ref "${{ github.head_ref }}"
+
+  record:
+    needs: ask
+    if: needs.ask.outputs.record == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Re-record the fixtures (Mud Creek append-only) and the recorded area profile
+        run: |
+          for slug in ferney-creek-52-47A macks-mountain-35-3 roan-hwy-143-099-046-02; do
+            pnpm record:port -t "$slug"
+          done
+          PORT_APPEND=grayson-mud-creek-6273 pnpm record:port
+          pnpm areas:record
+      - name: Push the recordings to the PR's branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUEST: ${{ needs.ask.outputs.request }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin "${{ github.head_ref }}"
+          node -e "require('fs').writeFileSync('.github/places-done.json', JSON.stringify({ request: process.env.REQUEST, ran: new Date().toISOString() }, null, 2) + '\n')"
+          git add test/fixtures .github/places-done.json
+          git commit -m "Re-recorded the fixtures ($REQUEST)" || exit 0
+          git push origin "HEAD:${{ github.head_ref }}"
+          gh workflow run ci.yml --ref "${{ github.head_ref }}"
+
+  timing:
+    needs: ask
+    if: needs.ask.outputs.timing == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Before, on main (Photon, Overpass and the official services)
+        run: |
+          git fetch origin main
+          git worktree add ../main origin/main
+          cp test/tools/grade-timing.test.ts ../main/test/tools/
+          cd ../main
+          pnpm install --frozen-lockfile
+          TIMING_LABEL="main: live places" pnpm exec vitest run test/tools/grade-timing.test.ts --mode grade-timing || true
+          cat test-results/grade-timing.md >> "$GITHUB_STEP_SUMMARY" || true
+      - name: After, on this branch (the baked places)
+        run: |
+          TIMING_LABEL="this branch: baked places" pnpm grade:timing || true
+          cat test-results/grade-timing.md >> "$GITHUB_STEP_SUMMARY" || true

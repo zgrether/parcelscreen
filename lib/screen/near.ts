@@ -7,8 +7,9 @@
  * in site scoring, and every driveway entrance. Now the roads, the road grade and its flag come through
  * regardless; only the places half is lost. The step still reports failure, via `placesError`.
  */
-import { findPlaces, trailheadsNear, OverpassMirrors, PlacesError, type OverpassFallback } from "./places";
+import { findPlaces, trailheadsNear, OverpassMirrors, PlacesError } from "./places";
 import type { HospitalCandidate, HospitalSource } from "./hospitals";
+import type { PlacesSource } from "./placeData";
 import { mergeTrailheads, officialTrailheads } from "./trailheads";
 import { CancelledError, type HttpClient } from "../http";
 import { fetchOsmRoads, type OsmWay } from "./osmRoads";
@@ -30,8 +31,9 @@ export interface NearDeps {
   endpoints: Endpoints;
   signal?: AbortSignal;
   sleep?: (ms: number) => Promise<void>;
-  overpass?: OverpassFallback;
   hospitals?: HospitalSource;
+  /** Step 14d: the baked places (groceries, trailheads); defaults to `endpoints.places`. */
+  places?: PlacesSource;
   /** The OSM roads query, when not straight to the mirrors (the worker: the app's route). */
   osmRoads?: (centre: LatLon, signal?: AbortSignal) => Promise<OsmWay[]>;
   /** Step 14: the parcel, for the power lines near it; without it, none are looked for. */
@@ -50,13 +52,13 @@ export interface NearOutcome extends Pick<ScreenResult, "near" | "nearNote" | "r
   flags: RawFlag[];
   /** Session-only: OpenStreetMap's tracks and service roads (VR3a); absent when Overpass didn't answer. */
   osmRoads?: OsmWay[];
-  /** Sources that didn't answer without failing the step (v4): an official trailhead list, the OSM roads. */
+  /** Sources that didn't answer without failing the step (v4): the OSM roads, the power lines. */
   unanswered: string[];
   /** Step 14: the power lines near the parcel; absent when no parcel was given, or neither source answered. */
   power?: PowerMeasure;
   /**
-   * Set when both place sources failed: the orchestrator marks the step failed with this message and its
-   * "test the query" link, and keeps everything else here.
+   * Set when the baked places couldn't be read: the orchestrator marks the step failed with this message, and keeps
+   * everything else here.
    */
   placesError?: PlacesError;
 }
@@ -73,9 +75,9 @@ export async function nearStep(
   const unanswered: string[] = [];
   const parcel = deps.parcel;
   const [places, roads, official, osm, power] = await Promise.allSettled([
-    findPlaces(centre, deps, mirrors),
+    findPlaces(centre, deps),
     fetchRoads(centre, deps),
-    officialTrailheads(centre, deps, unanswered), // follow-up 24: USFS and the state parks; never fails but for a cancel
+    officialTrailheads(centre, deps), // follow-up 24: USFS and the state parks, baked since step 14d
     // VR3a: OSM's tracks and service roads, possible frontage where TIGER shows none.
     deps.osmRoads ? deps.osmRoads(centre, deps.signal) : fetchOsmRoads(centre, deps, mirrors),
     // Step 14: HIFLD's power lines, else OSM's.
@@ -96,16 +98,22 @@ export async function nearStep(
   if (osm.status === "rejected" && osm.reason instanceof CancelledError) throw osm.reason;
   if (osm.status === "rejected") unanswered.push("OpenStreetMap roads");
   const osmRoads = osm.status === "fulfilled" ? { osmRoads: osm.value } : {};
-  if (official.status === "rejected") throw official.reason; // cancellation
+  if (official.status === "rejected" && official.reason instanceof CancelledError) throw official.reason;
   if (places.status === "rejected" && !(places.reason instanceof PlacesError)) throw places.reason; // cancellation
+  // The official cells failing is the places half failing, as OSM's cells failing is.
+  const placesError =
+    places.status === "rejected"
+      ? (places.reason as PlacesError)
+      : official.status === "rejected"
+        ? new PlacesError(`Places: ${(official.reason as Error).message}`)
+        : null;
   const out: NearOutcome =
-    places.status === "fulfilled"
+    places.status === "fulfilled" && official.status === "fulfilled"
       ? {
           near: {
             ...places.value.near,
             ...trailheadsNear(mergeTrailheads([...official.value, ...places.value.osmTrailheads]), centre),
           },
-          ...(places.value.nearNote ? { nearNote: places.value.nearNote } : {}),
           roads: roads.value,
           otherGrocers: places.value.otherGrocers,
           hospitalPool: places.value.hospitalPool,
@@ -120,7 +128,7 @@ export async function nearStep(
           ...osmRoads,
           ...powerOut,
           unanswered,
-          placesError: places.reason as PlacesError,
+          placesError: placesError!,
         };
   if (!dWide) return out;
   return { ...out, ...roadToSite(roads.value, siteLL ?? centre, dWide, roadMaxGradePct) };
