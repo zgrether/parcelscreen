@@ -70,7 +70,8 @@ export function pricedCamp(trackFt: number, easement = false): CostToEnjoy {
     total: { low: 10_000, high: 10_000 },
     land: null,
   };
-  return { kind: "priced", camp, build: camp, site: "site #1" };
+  const choices = { septic: null, septicPermit: false, existing: null, steepFt: 0, abovePct: 12 };
+  return { kind: "priced", camp, build: camp, site: "site #1", choices };
 }
 
 export const point = (kind: Extract<Mark, { shape: "point" }>["kind"], ll: [number, number]): Mark => ({

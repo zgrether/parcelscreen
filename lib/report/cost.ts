@@ -50,6 +50,22 @@ export interface CostInput {
   paving?: Paving;
   /** Power service confirmed at the address (J-5, UX part 2 PR 3c): the run from the road isn't an assumption. */
   powerConfirmed?: boolean;
+  /** The septic system priced instead of the site's class: the price block's toggle (UX part 2 PR 8b, Z-4). */
+  septic?: SepticClass;
+  /** The existing drive priced as a new gravel driveway instead of upgraded: the price block's other toggle. */
+  existingAsNew?: boolean;
+}
+
+/** What the price block's toggles read (Z-4): the choices behind the two costs, as priced. */
+export interface CostChoices {
+  /** The septic class priced, and whether a permit's mark gave it; null: the class isn't known (a range of both). */
+  septic: SepticClass | null;
+  septicPermit: boolean;
+  /** The existing drive the route starts from, when it does. */
+  existing: { lengthFt: number; condition: LineCondition } | null;
+  /** The route's and the drive's stretches over the paving threshold, ft, and that threshold, %. */
+  steepFt: number;
+  abovePct: number;
 }
 
 /** One rate's share of an item: a quantity (a range for the well's depth) × the rate. */
@@ -84,7 +100,7 @@ export interface CostEstimate {
 }
 
 export type CostToEnjoy =
-  | { kind: "priced"; camp: CostEstimate; build: CostEstimate; site: string }
+  | { kind: "priced"; camp: CostEstimate; build: CostEstimate; site: string; choices: CostChoices }
   /** No route the card can score: the costs need a way in. */
   | { kind: "noWay" };
 
@@ -346,6 +362,7 @@ export function costToEnjoy(input: CostInput): CostToEnjoy | null {
   // driveway by its condition (paved, nothing), and its steep stretches paved at Settings' threshold when its profile
   // was kept; a screen saved before it says to grade again. The route itself starts at the drive's end.
   const x = rt.existing;
+  let driveSteep = 0;
   if (x) {
     const drawnLine = r.lines?.[x.line];
     const condition = conditionOf(input.lines, drawnLine?.id);
@@ -354,8 +371,11 @@ export function costToEnjoy(input: CostInput): CostToEnjoy | null {
       pioneer: "driveway.upgrade.pioneer",
       improved: "driveway.upgrade.improved",
     };
-    const rate = upgradeRate[condition];
-    const steep = condition === "paved" ? 0 : driveSteepFt(x.profile, paving.abovePct);
+    // Priced as new instead (the price block's toggle): a gravel driveway the drive's length, whatever its condition.
+    const rate = input.existingAsNew ? "driveway.new" : upgradeRate[condition];
+    const steep =
+      condition === "paved" && !input.existingAsNew ? 0 : driveSteepFt(x.profile, paving.abovePct);
+    driveSteep = steep ?? 0;
     build.push(
       item(
         COST_ITEMS.existingDrive(x.lengthFt, condition),
@@ -424,7 +444,8 @@ export function costToEnjoy(input: CostInput): CostToEnjoy | null {
   const fromPermit = permit && permit.ft <= A.nearMarkFt ? (permit.mark.septicClass ?? null) : null;
   const soil = soilUnder(r, site.ll);
   const fromSoil = soil ? septicClass(soil) : null;
-  const cls: SepticClass | null = fromPermit ?? (fromSoil ? (fromSoil.toLowerCase() as SepticClass) : null);
+  const cls: SepticClass | null =
+    input.septic ?? fromPermit ?? (fromSoil ? (fromSoil.toLowerCase() as SepticClass) : null);
   const septicParts = cls
     ? [part(rates, `septic.${cls}`, 1, "each")]
     : // No class known: anywhere from the cheapest conventional system to the dearest alternative one.
@@ -469,7 +490,20 @@ export function costToEnjoy(input: CostInput): CostToEnjoy | null {
   );
   build.push(item(COST_ITEMS.pad(padOf(slopeDeg)), [part(rates, `pad.${padOf(slopeDeg)}`, 1, "site")]));
 
-  return { kind: "priced", camp: estimate(camp, land), build: estimate(build, land), site: site.label };
+  const choices: CostChoices = {
+    septic: cls,
+    septicPermit: fromPermit !== null && !input.septic,
+    existing: x ? { lengthFt: x.lengthFt, condition: conditionOf(input.lines, r.lines?.[x.line]?.id) } : null,
+    steepFt: steepFt + driveSteep,
+    abovePct: paving.abovePct,
+  };
+  return {
+    kind: "priced",
+    camp: estimate(camp, land),
+    build: estimate(build, land),
+    site: site.label,
+    choices,
+  };
 }
 
 /** The pad by the site's slope; a slope not measured (a marked house off the DEM's cells) reads as sloped. */

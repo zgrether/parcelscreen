@@ -56,6 +56,7 @@ import type { LatLon } from "@/lib/geo/types";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import type { Facts, MarkKind, SepticClass } from "@/lib/report/marks";
 import { TOOL, withRecent, type MarkChoice } from "@/lib/client/markChoices";
+import { DOUBLE_TAP_MS } from "@/components/Map/doubleTap";
 import {
   BUSY_TEXT,
   decideTap,
@@ -141,6 +142,12 @@ export interface ExploreController {
    * Selecting first fetches the outline's full record (the drawn outlines are simplified).
    */
   tap(hit: TapHit): Promise<void>;
+  /**
+   * A double-tap's zoom has started (Zach, after #333): the first tap acted at once, and is taken back. A lookup it
+   * started is dropped, and a parcel it opened is closed, unless that parcel was already open. Its Back toast stays.
+   * Whether it closed one.
+   */
+  undoTap(): boolean;
   close(): void;
   /**
    * × (J-2, Zach, UX part 2; it was 8c's "not for me"): closes the parcel and clears it from the map, never touching
@@ -353,6 +360,16 @@ const stamp = (): Stamp => ({
 });
 const derive = (p: WorkingParcel) => deriveParcel(recipeOf(p), LIMITS);
 
+/** When the last tap on the map came, and the parcel it opened (null when it opened none). */
+interface LastTap {
+  at: number;
+  opened: WorkingParcel | null;
+}
+
+/** The same parcel, though its object was replaced since (a note saved, its screens loaded): its key, or its pieces. */
+const sameParcel = (a: WorkingParcel | null, b: WorkingParcel | null): boolean =>
+  !!a && !!b && ((a.key !== null && a.key === b.key) || a.pieces === b.pieces);
+
 export function useExploreController(parcelServices: readonly string[], hint: SetHint): ExploreController {
   // The open parcel and History from before a refresh. The explorer renders client-side only.
   const [restored] = useState<ExploreState>(() => {
@@ -387,6 +404,9 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     );
   };
   const [toast, setToast] = useState<SwitchToast | null>(null);
+  // Each tap's number, so a double-tap can drop the lookup a first tap is waiting on, and what the last tap opened.
+  const tapSerial = useRef(0);
+  const lastTap = useRef<LastTap | null>(null);
   const [lineUndo, setLineUndo] = useState<LineUndo | null>(null);
   const [scenarioUndo, setScenarioUndo] = useState<ScenarioUndo | null>(null);
   const [ruleOutUndo, setRuleOutUndo] = useState<{ serial: number; at: number } | null>(null);
@@ -642,17 +662,26 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     setMap,
     setMode,
     async tap(hit) {
+      const serial = ++tapSerial.current;
+      lastTap.current = { at: performance.now(), opened: null };
       const o = decideTap(latest.current, hit, busy.current);
       if (o.kind === "clearLayer") return dispatch({ type: "layer", id: null });
       if (o.kind === "busy") return void refuseBusy();
+      const opened = () => {
+        if (lastTap.current) lastTap.current.opened = latest.current.store.open;
+      };
       if (o.kind === "select") {
         const record = await full(o.record);
+        // A double-tap came while the record loaded: it zooms instead.
+        if (serial !== tapSerial.current) return;
         if (!record || refuseBusy()) return;
         leaving();
         dispatch({ type: "select", record, stamp: stamp(), keepPanel: docked });
+        opened();
       } else if (o.kind === "openSaved") {
         leaving();
         dispatch({ type: "openSaved", key: o.key, keepPanel: docked });
+        opened();
       }
       if (o.kind !== "none") hint("");
       // An empty map because the parcel service isn't answering: say so, not nothing (owner, after 16b).
@@ -660,6 +689,17 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       // No record under an empty spot where outlines are drawn (owner, 2026-10-11).
       else if (hit.linesShown && !hit.insideOpen && !hit.outline && !hit.savedKey)
         flash(hint, NO_PARCEL_HERE, 4000);
+    },
+    undoTap() {
+      const last = lastTap.current;
+      lastTap.current = null;
+      // Only a tap that was the double-tap's first: an older one (a line was tapped first, say) stays as it is.
+      if (!last || performance.now() - last.at > DOUBLE_TAP_MS) return false;
+      tapSerial.current++;
+      // Only the parcel this tap opened, still open: not a parcel that was open already, or one opened since.
+      if (!sameParcel(last.opened, latest.current.store.open)) return false;
+      dispatch({ type: "close" });
+      return true;
     },
     close() {
       if (refuseBusy()) return;

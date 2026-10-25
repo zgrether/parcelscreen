@@ -43,7 +43,8 @@ import type { ExploreController, SetHint } from "@/components/Explore/useExplore
 import { lineLayer } from "@/components/Explore/layers";
 import { evaluationPoint } from "../blocks/types";
 import { useRubricView } from "@/lib/client/useRubricView";
-import { reportCard } from "@/lib/report/card";
+import { costInputOf, reportCard } from "@/lib/report/card";
+import { perAcre } from "@/lib/report/perAcre";
 import { answerReason, verdictParts } from "@/lib/report/answer";
 import { lineNamesOf, type LineNames } from "@/lib/report/lines";
 import { isFactRow, type FactProps, type FactRow } from "@/components/Results/card/FactSection";
@@ -571,6 +572,25 @@ export function useScreenIt(
       facts,
     ],
   );
+  // UX part 2 PR 8b (Z-4): what the price block re-prices with its toggles, at the card's site, from the card's inputs.
+  const costInput = useMemo(
+    () =>
+      display && card && open
+        ? costInputOf(
+            display,
+            card.at,
+            drawnOf(
+              markup ?? [],
+              drivewayLine,
+              { askingPrice, ...costs },
+              adjustFor(open.key, household),
+              open.facts,
+            ),
+          )
+        : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the card's own inputs: it changes when they do
+    [display, card],
+  );
   // A site tapped in the panel (step 7 plan §1.3): evaluated with the live session, as its pin is; without one, the
   // pins' own words say why not.
   const pickSite = (ll: LatLon, label: string) => {
@@ -588,6 +608,8 @@ export function useScreenIt(
     card,
     /** What you can do here (step 14), at the card's site; null before a grade and while one runs. */
     uses,
+    /** What the price block re-prices (UX part 2 PR 8b); null before the cost can be priced. */
+    costInput,
     pickSite,
     /** The grade button's state (lib/client/gradeButton.ts): null when there's no reason to run again. */
     grade,
@@ -943,6 +965,18 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             setRubric={s.setRubric}
             onOpen={openPanel}
             stale={banner}
+            price={
+              s.costInput && {
+                input: s.costInput,
+                perAcre: perAcre(
+                  s.costInput.askingPrice,
+                  s.ctl.state.store.open?.listingAcres ?? null,
+                  s.ctl.derived?.ok ? s.ctl.derived.acres : null,
+                  undefined,
+                  s.ctl.state.store.open?.facts?.survey?.acres ?? null,
+                ),
+              }
+            }
             shortcut={
               s.uses && (
                 <button type="button" className="uses-shortcut" onClick={() => s.ctl.setUses(true)}>

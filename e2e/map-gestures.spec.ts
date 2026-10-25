@@ -29,6 +29,29 @@ const settle = (page: Page) =>
     return !!m && !m.isMoving();
   });
 
+/** Ferney's centre, in page pixels. */
+async function ferneyCentre(page: Page): Promise<{ x: number; y: number }> {
+  const [lon, lat] = centroid(loadFixture(SLUG).input.polygon).geometry.coordinates as [number, number];
+  const box = (await page.locator(".maplibregl-canvas").boundingBox())!;
+  const p = await page.evaluate(
+    ([x, y]) =>
+      (
+        window as unknown as { __psMap: { project(ll: [number, number]): { x: number; y: number } } }
+      ).__psMap.project([x, y]),
+    [lon, lat] as const,
+  );
+  return { x: box.x + p.x, y: box.y + p.y };
+}
+
+/** Two taps on Ferney's centre, then the map settled. */
+async function doubleTapAt(page: Page): Promise<void> {
+  const p = await ferneyCentre(page);
+  await page.touchscreen.tap(p.x, p.y);
+  await page.touchscreen.tap(p.x, p.y);
+  await page.waitForTimeout(600);
+  await settle(page);
+}
+
 /** The map canvas's centre, in page pixels. */
 async function centre(page: Page): Promise<{ x: number; y: number }> {
   const box = (await page.locator(".maplibregl-canvas").boundingBox())!;
@@ -212,26 +235,8 @@ test.describe("phone", () => {
     await openExplorer(page, SLUG);
     await importParcel(page, SLUG);
     await settle(page);
-    // Inside the open parcel, where a tap does nothing else (no other parcel opens and frames itself).
-    const inside = async () => {
-      const [lon, lat] = centroid(loadFixture(SLUG).input.polygon).geometry.coordinates as [number, number];
-      const box = (await page.locator(".maplibregl-canvas").boundingBox())!;
-      const p = await page.evaluate(
-        ([x, y]) =>
-          (
-            window as unknown as { __psMap: { project(ll: [number, number]): { x: number; y: number } } }
-          ).__psMap.project([x, y]),
-        [lon, lat] as const,
-      );
-      return { x: box.x + p.x, y: box.y + p.y };
-    };
-    const doubleTap = async () => {
-      const p = await inside();
-      await page.touchscreen.tap(p.x, p.y);
-      await page.touchscreen.tap(p.x, p.y);
-      await page.waitForTimeout(600);
-      await settle(page);
-    };
+    // Inside the open parcel, where a tap does nothing else.
+    const doubleTap = () => doubleTapAt(page);
 
     const before = await camera(page);
     await doubleTap();
@@ -252,5 +257,44 @@ test.describe("phone", () => {
     await doubleTap();
     expect((await camera(page)).zoom).toBeCloseTo(drawing.zoom, 2);
     await expect(page.locator(".toolbar")).toHaveAttribute("data-mode", "track");
+  });
+  test("a single tap on a parcel opens it at once; a double-tap on one zooms in and leaves it closed (Zach, after #333)", async ({
+    page,
+    context,
+  }) => {
+    await replayHar(context, SLUG);
+    await openExplorer(page, SLUG);
+    await importParcel(page, SLUG);
+    const close = page.getByRole("button", { name: "Close this parcel" });
+    // Closed, Ferney stays on Your list: its outline on the map opens it with a tap.
+    await close.first().click();
+    await expect(close).toHaveCount(0);
+    await settle(page);
+
+    // One tap: open at once (a touch tap isn't held back for a second one).
+    let p = await ferneyCentre(page);
+    await page.touchscreen.tap(p.x, p.y);
+    await expect(close.first()).toBeVisible({ timeout: 1000 });
+    await close.first().click();
+    await expect(close).toHaveCount(0);
+    await page.waitForTimeout(600);
+    await settle(page);
+
+    // Two: the first tap's open is taken back, and the map zooms in a level instead.
+    const before = await camera(page);
+    await doubleTapAt(page);
+    expect((await camera(page)).zoom).toBeCloseTo(before.zoom + 1, 1);
+    await expect(close).toHaveCount(0);
+
+    // A parcel that was open before stays open: a double-tap inside it only zooms.
+    p = await ferneyCentre(page);
+    await page.touchscreen.tap(p.x, p.y);
+    await expect(close.first()).toBeVisible();
+    await page.waitForTimeout(600);
+    await settle(page);
+    const open = await camera(page);
+    await doubleTapAt(page);
+    expect((await camera(page)).zoom).toBeCloseTo(open.zoom + 1, 1);
+    await expect(close.first()).toBeVisible();
   });
 });
