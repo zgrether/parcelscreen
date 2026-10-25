@@ -74,6 +74,7 @@ export function RubricPreview({
         parcel.drivewayLine,
         { askingPrice: parcel.askingPrice, ...costs },
         adjustFor(parcel.key, household),
+        parcel.facts,
       )
     : undefined;
   const name = options.find((o) => o.key === key)?.name ?? SAMPLE_NAME;

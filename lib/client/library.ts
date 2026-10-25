@@ -173,6 +173,7 @@ export function libraryRow(
         p.drivewayLine,
         { askingPrice: p.askingPrice, ...costs },
         p.key ? adjustMap(ctx.household, p.key, ctx.me) : undefined,
+        p.facts,
       ),
     );
     // The viewer's (the profile's own rubric comes first): the cost at their best site.
@@ -219,7 +220,7 @@ export function libraryRow(
       grades.map((g) => g.graded?.grade ?? null),
     ),
     costBuild,
-    perAcre: perAcre(p.askingPrice, p.listingAcres, acres),
+    perAcre: perAcre(p.askingPrice, p.listingAcres, acres, undefined, p.facts?.survey?.acres ?? null),
     factors,
   };
 }

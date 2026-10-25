@@ -50,6 +50,11 @@ function Body({ ctl, root }: { ctl: ExploreController; root: LayerNode }) {
     notes: (text: string) => ctl.saveNotes(text, serial),
     askingPrice: (price: number | null) => ctl.saveAskingPrice(price, serial),
     listing: (patch: Parameters<ExploreController["saveListing"]>[0]) => ctl.saveListing(patch, serial),
+    // J-5: a survey's figures are the parcel's facts, for every member.
+    survey: (survey: { acres: number | null; frontageFt: number | null } | null) => {
+      const { survey: _was, ...rest } = open.facts ?? {};
+      ctl.saveFacts(survey ? { ...rest, survey: { ...survey, at: new Date().toISOString() } } : rest, serial);
+    },
   };
   return (
     <div className="parcel-details">

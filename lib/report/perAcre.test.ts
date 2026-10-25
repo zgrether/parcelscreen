@@ -25,3 +25,14 @@ describe("price per acre (step 10b plan §3)", () => {
     expect(perAcre(200_000, null, 40)?.differs).toBe(false);
   });
 });
+
+describe("a survey's acres (J-5, UX part 2 PR 3c2)", () => {
+  it("come before the listing's, named surveyed in both readings", () => {
+    expect(perAcre(185_000, 52, 43.9, undefined, 45)).toMatchObject({ value: 4_110, on: "surveyed" });
+    expect(perAcre(296_400, 52, 38.8, undefined, 45.6)).toMatchObject({
+      differs: true,
+      both: "$6,500/ac on 45.6 surveyed ac; $7,640/ac on 38.8 boundary ac",
+    });
+    expect(perAcre(185_000, 52, 43.9, undefined, null)?.on).toBe("listed");
+  });
+});

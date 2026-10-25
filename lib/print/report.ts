@@ -212,7 +212,12 @@ export function reportContent(i: ReportInput): ReportContent {
       i.askingPrice !== null && i.askingPriceAt
         ? capitalize(askingLine(i.askingPrice, i.askingPriceAt))
         : null,
-    perAcre: perAcreLine(i.askingPrice, i.listingAcres ?? null, i.acres),
+    perAcre: perAcreLine(
+      i.askingPrice,
+      i.listingAcres ?? null,
+      i.acres,
+      i.drawn?.facts?.survey?.acres ?? null,
+    ),
     graded: gradedOn(i.result.runAt),
     stale: i.stale,
     grades,
@@ -232,7 +237,7 @@ export function reportContent(i: ReportInput): ReportContent {
     }).suggestions.map((x) => `${x.text}${x.cost ? ` · ${x.cost}` : ""}`),
     questions: agentQuestions(mine).map((q) => q.question),
     cost: costPrintLines(mine),
-    divide: divideReportLine(i.result, i.parcel?.listingAcres ?? null),
+    divide: divideReportLine(i.result, i.parcel?.listingAcres ?? null, i.drawn?.facts?.survey ?? null),
     uses: landUses(
       usesInputOf(
         i.result,
@@ -252,8 +257,13 @@ function costPrintLines(card: Card): string[] {
 }
 
 /** "$6,310/ac", or both readings when the two acreages differ (step 10b). */
-function perAcreLine(price: number | null, listed: number | null, boundary: number | null): string | null {
-  const pa = perAcre(price, listed, boundary);
+function perAcreLine(
+  price: number | null,
+  listed: number | null,
+  boundary: number | null,
+  surveyed: number | null = null,
+): string | null {
+  const pa = perAcre(price, listed, boundary, undefined, surveyed);
   if (!pa) return null;
   // Both readings say it all when they differ; the first figure isn't repeated before them.
   return pa.both ?? pa.text;

@@ -144,7 +144,9 @@ export function compareTable(parcels: readonly CompareParcel[], rubric: NamedRub
     ),
   };
   // Step 10b: price per acre, the listing's acres when given; cheaper the better.
-  const rates = parcels.map((p) => perAcre(p.askingPrice, p.listingAcres ?? null, p.acres));
+  const rates = parcels.map((p) =>
+    perAcre(p.askingPrice, p.listingAcres ?? null, p.acres, undefined, p.drawn?.facts?.survey?.acres ?? null),
+  );
   const perAcreRow: CompareRow = {
     key: "perAcre",
     label: "$/ac",

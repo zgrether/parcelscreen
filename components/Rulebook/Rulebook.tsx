@@ -68,6 +68,7 @@ export function Rulebook() {
             parcel.drivewayLine,
             { askingPrice: parcel.askingPrice, ...costs },
             adjustFor(parcel.key),
+            parcel.facts,
           ),
       )
     : null;
