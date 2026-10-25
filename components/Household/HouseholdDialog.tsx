@@ -18,6 +18,7 @@ import { RUBRICS_CHANGED } from "@/lib/client/profileEvents";
 import { members, type Member } from "@/lib/client/household";
 import { currentProfileId, renameProfile } from "@/lib/client/profiles";
 import { SyncSection } from "@/components/Sync/SyncSection";
+import { InviteSection } from "./InviteSection";
 
 export const HOUSEHOLD_WORDS = {
   title: "Household",
@@ -27,8 +28,7 @@ export const HOUSEHOLD_WORDS = {
   save: "Save",
   cancel: "Cancel",
   close: "Close",
-  alone:
-    "It's just you so far. Someone who joins on their own device, with your code and I'm new here, shows here, and you can ask for their take on a parcel.",
+  alone: "It's just you so far. Invite someone, and you can ask for their take on a parcel.",
   devices: "Your devices",
 };
 
@@ -75,6 +75,7 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
             ))}
           </ul>
           {list.length < 2 && <p className="tiny muted">{HOUSEHOLD_WORDS.alone}</p>}
+          <InviteSection />
           <h3>{HOUSEHOLD_WORDS.devices}</h3>
           <SyncSection />
         </div>

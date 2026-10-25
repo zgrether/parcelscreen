@@ -71,7 +71,12 @@ export function ProfileGate({ children }: { children: ReactNode }) {
     };
   }, []);
   const away =
-    ready && pathname !== "/interview" && pathname !== "/link" && pathname !== "/who" && owesInterview();
+    ready &&
+    pathname !== "/interview" &&
+    pathname !== "/link" &&
+    pathname !== "/join" &&
+    pathname !== "/who" &&
+    owesInterview();
   useEffect(() => {
     if (away) router.replace("/interview");
   }, [away, router]);

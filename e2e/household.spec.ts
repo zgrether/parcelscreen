@@ -283,3 +283,53 @@ test("polling (step 6b): a take saved on one device appears on the other within 
   // Held: the row above grows a pixel with the take's chip, and the browser's scroll anchoring keeps the view still.
   expect(Math.abs((await listScroll(zach)) - scrolled)).toBeLessThanOrEqual(2);
 });
+
+test("Invite someone: a one-use link; she joins as a new member with her name, and the link is spent (P-8)", async ({
+  browser,
+}) => {
+  const zach = await (await browser.newContext()).newPage();
+  await openExplorer(zach, FERNEY);
+  await importParcels(zach, [FERNEY]);
+  // Not synced yet: making the link starts sync first.
+  const drawer = await openMenu(zach);
+  await drawer.getByRole("button", { name: "Household" }).click();
+  const household = zach.getByRole("dialog", { name: "Household" });
+  const invite = household.getByRole("region", { name: "Invite someone" });
+  await invite.getByRole("button", { name: "Make an invite link" }).click();
+  const link = await invite.getByLabel("Invite link").inputValue({ timeout: 30_000 });
+  expect(link).toMatch(/\/join#[0-9A-Z]{26}$/);
+  await household.getByRole("button", { name: "Close" }).click();
+
+  const julie = await (await browser.newContext()).newPage();
+  await openExplorer(julie, FERNEY);
+  await julie.goto(link);
+  await expect(julie).toHaveURL(/\/join$/); // the token is gone from the address bar
+  await julie.getByRole("button", { name: /^Join$/ }).click();
+  // Straight to her name: no Who's this?
+  await julie.waitForURL("**/interview");
+  await julie.getByPlaceholder("Your name or a nickname").fill("Julie");
+  await julie.getByRole("button", { name: "Continue" }).click();
+  await julie.getByRole("button", { name: "Not now" }).click();
+  await booted(julie);
+  await expect((await openMenu(julie)).locator(".profile-btn-name")).toHaveText("Julie");
+
+  // Zach's household has her, once his device has fetched (the dialog closed each try, so the tabs can switch).
+  await afterTabSwitch(zach, async () => {
+    await (await openMenu(zach)).getByRole("button", { name: "Household" }).click();
+    try {
+      await expect(household.getByRole("list", { name: "Members" })).toContainText("Julie", {
+        timeout: 1000,
+      });
+    } finally {
+      await household.getByRole("button", { name: "Close" }).click();
+    }
+  });
+
+  // The link is spent: a second opening joins nothing.
+  const other = await (await browser.newContext()).newPage();
+  await openExplorer(other, FERNEY);
+  await other.goto(link);
+  await expect(other.locator("main")).toContainText(
+    "This invite has been used, or it's more than 7 days old.",
+  );
+});
