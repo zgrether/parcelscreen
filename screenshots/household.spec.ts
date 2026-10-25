@@ -85,7 +85,8 @@ for (const phone of [false, true]) {
     /** A row opens the parcel on the map, with the one panel (Z-2); on a phone, the sheet raised. */
     const open = async (page: Page, name: string) => {
       const row = listRow(page, name);
-      if (phone) await row.locator(".lib-card-facts").tap();
+      // The phone card's money line since UX part 2 PR 7c2: a tap on the card opens the parcel (Z-2).
+      if (phone) await row.locator(".lib-card-money").tap();
       else await row.locator(".lib-open").click();
       await expect(page.locator(".sh-name").first()).toContainText(name);
       await page.getByRole("tab", { name: "Grade" }).click();
