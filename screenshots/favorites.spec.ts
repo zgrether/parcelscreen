@@ -78,16 +78,16 @@ for (const phone of [false, true]) {
       // The tilt tip (desktop) would cover the map in every shot (fresh-eyes review).
       const tip = page.locator(".tilt-hint").getByRole("button", { name: "Dismiss" });
       if (await tip.isVisible()) await tip.click();
-      const star = page.locator(".sh-actions").getByRole("button", { name: "Add to list" });
+      const star = page.locator(".sh-acts").getByRole("button", { name: "Add to list" });
       await star.click();
       await expect(page.getByRole("dialog", { name: "Add to list" })).toBeVisible();
       await shot(page, "5-name-sheet");
       await page.getByRole("dialog", { name: "Add to list" }).getByRole("button", { name: "Add" }).click();
-      await expect(page.locator(".sh-actions").getByRole("button", { name: "On your list" })).toBeVisible();
+      await expect(page.locator(".sh-acts").getByRole("button", { name: "On your list" })).toBeVisible();
       await shot(page, "6-panel-starred");
 
       // Unstarring asks once.
-      await page.locator(".sh-actions").getByRole("button", { name: "On your list" }).click();
+      await page.locator(".sh-acts").getByRole("button", { name: "On your list" }).click();
       await expect(page.getByRole("alertdialog")).toBeVisible();
       await shot(page, "7-unstar");
       await page.getByRole("alertdialog").getByRole("button", { name: "Keep" }).click();

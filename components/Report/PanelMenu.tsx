@@ -1,15 +1,37 @@
 "use client";
 /**
- * The parcel panel header's ⋯ (step 9 plan §5): Report card, which opens the parcel's print page. Enabled once the
- * parcel is graded and on the list; before that it says "Grade it first". A small menu, as a row's ⋯ on Your list.
+ * The parcel's ⋯ (step 9 plan §5; UX part 2 PR 3, the audit's P-2), at the end of the header's actions:
+ *   - Make a report, which opens the parcel's print page. Enabled once the parcel is graded and on the list; before
+ *     that it says "Grade it first".
+ *   - Copy summary, once it's graded (it was a button at the panel's foot).
+ *   - Remove from Your list, on a kept parcel, asking first as the star does.
+ * A small menu, as a row's ⋯ on Your list.
  */
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { unstarQuestion } from "@/components/Favorites/Star";
+import { ResetConfirm } from "@/components/Rubric/ResetConfirm";
 import { REPORT_WORDS, reportHref } from "@/lib/print/report";
 
-export function PanelMenu({ parcelKey, graded }: { parcelKey: string | null; graded: boolean }) {
+export const MENU_WORDS = { copy: "Copy summary", remove: "Remove from Your list", keep: "Keep" };
+
+export function PanelMenu({
+  parcelKey,
+  graded,
+  copySummary,
+  remove,
+}: {
+  parcelKey: string | null;
+  graded: boolean;
+  /** Null until there's a grade to copy. */
+  copySummary: (() => void) | null;
+  /** Null for a parcel not on the list; `adder` names whose Recent it goes back to. */
+  remove: { adder: string | null; run(): void } | null;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const box = useRef<HTMLSpanElement>(null);
   useEffect(() => {
     if (!open) return;
@@ -36,7 +58,7 @@ export function PanelMenu({ parcelKey, graded }: { parcelKey: string | null; gra
     >
       <button
         type="button"
-        className="sh-more-btn"
+        className="sh-more-btn sh-act"
         aria-label="More for this parcel"
         title={REPORT_WORDS.make}
         aria-haspopup="menu"
@@ -60,8 +82,47 @@ export function PanelMenu({ parcelKey, graded }: { parcelKey: string | null; gra
             {REPORT_WORDS.make}
           </button>
           {!ready && <span className="tiny muted sh-more-why">{REPORT_WORDS.gradeFirst}</span>}
+          {copySummary && (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                copySummary();
+              }}
+            >
+              {MENU_WORDS.copy}
+            </button>
+          )}
+          {remove && (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                setConfirming(true);
+              }}
+            >
+              {MENU_WORDS.remove}
+            </button>
+          )}
         </span>
       )}
+      {confirming &&
+        remove &&
+        createPortal(
+          <ResetConfirm
+            question={unstarQuestion(remove.adder)}
+            action={MENU_WORDS.remove}
+            keep={MENU_WORDS.keep}
+            reset={() => {
+              remove.run();
+              setConfirming(false);
+            }}
+            cancel={() => setConfirming(false)}
+          />,
+          document.body,
+        )}
     </span>
   );
 }

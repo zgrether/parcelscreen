@@ -140,9 +140,11 @@ test("everyone's grade; How Julie would rate it; Ask Julie → Waiting for you �
   await expect(section.locator(".others-reason")).not.toBeEmpty();
 
   // Zach asks; Julie's badge and Waiting for you; she answers Maybe with a comment.
-  await section.getByRole("button", { name: "Ask Julie" }).click();
-  await section.getByRole("textbox").fill("The spring by the road?");
-  await section.getByRole("button", { name: "Ask", exact: true }).click();
+  // UX part 2 PR 3 (P-2): Ask is the header's, in the row of actions; the form opens in the row's place.
+  await zach.locator(".sh-acts").getByRole("button", { name: "Ask Julie" }).click();
+  const ask = zach.getByRole("form", { name: "Ask for a take" });
+  await ask.getByRole("textbox").fill("The spring by the road?");
+  await ask.getByRole("button", { name: "Ask", exact: true }).click();
   await expect(section).toContainText("Julie's Waiting for you");
   // Closed, so the tab switches below (by way of the map) don't have it in front of him when her take arrives.
   await zach.getByRole("button", { name: "Close this parcel" }).first().click();
@@ -182,6 +184,11 @@ test("everyone's grade; How Julie would rate it; Ask Julie → Waiting for you �
   await expect(zach.getByRole("region", { name: "How Julie would rate it" })).toContainText(
     "Steep drive, lovely spring.",
   );
+  // UX part 2 PR 3 (P-2): her take under the header's actions, with the dot it had as it opened.
+  const takes = zach.getByRole("list", { name: "Takes" });
+  await expect(takes).toContainText("Julie · Maybe");
+  await expect(takes).toContainText("“Steep drive, lovely spring.”");
+  await expect(takes.getByRole("img", { name: "New take from Julie" })).toBeVisible();
   // Opening it saw it: no dot, no count.
   await expect(zach.locator(".app-badge")).toHaveCount(0);
   await expect(listRow(zach, "52-47A").locator(".new-dot")).toHaveCount(0);

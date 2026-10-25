@@ -1777,13 +1777,14 @@ html:has(.explore) body {
 }
 .sh-sub {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 2px 8px;
   font-size: 15px;
 }
+/* The acres and where it is (P-2): one line, wrapping at a dot when it must. */
 .sh-acres {
-  flex: none;
-  white-space: nowrap;
+  min-width: 0;
   color: var(--color-ink-2);
   font-weight: 500;
 }
@@ -1809,6 +1810,16 @@ html:has(.explore) body {
   height: 20px;
   font-size: 13px;
 }
+/* J-4: the joining word after the verdict and letter. */
+.sh-join,
+.card-join {
+  font: 500 14px/1.2 var(--font-sans);
+  color: var(--color-ink-2);
+}
+.sh-join::before,
+.card-join::before {
+  content: ", ";
+}
 .sh-actions {
   display: flex;
   flex: none;
@@ -1817,6 +1828,76 @@ html:has(.explore) body {
 .sh-empty {
   color: var(--color-ink-2);
   font-size: 14px;
+}
+/* The parcel's actions (UX part 2 PR 3, P-2): one row under the header, each 44 px to tap; Not for us and Ask open in
+   the row's place; the household's takes under it. */
+.sh-acts-wrap {
+  display: grid;
+  gap: 8px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--color-rule);
+}
+.sh-acts {
+  display: flex;
+  gap: 6px;
+}
+.sh-acts > .sh-act {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 44px;
+  justify-content: center;
+  padding: 0 6px;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font: 600 14px/1.1 var(--font-sans);
+  text-align: center;
+  cursor: pointer;
+}
+.sh-acts > .sh-act:hover {
+  background: var(--color-paper-2);
+}
+/* On your list keeps the row's outline: in the row, it's one of four buttons, not a quiet label (8c's .list-btn.on). */
+.sh-acts > .list-btn.on.sh-act {
+  border-color: var(--color-rule);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-weight: 600;
+}
+.sh-acts > .sh-more {
+  flex: 0 0 52px;
+}
+.sh-acts > .sh-more > .sh-more-btn {
+  width: 100%;
+  height: 44px;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+}
+.sh-form {
+  padding: 12px;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+  background: var(--color-paper);
+}
+.ip-archive-title {
+  margin: 0;
+  font: 600 16px/1.2 var(--font-sans);
+}
+.sh-takes {
+  margin: 0;
+  padding: 8px 12px;
+  list-style: none;
+  border-left: 3px solid var(--color-warn);
+  border-radius: 4px;
+  background: var(--color-paper-2);
+  font-size: 14px;
+}
+.sh-take + .sh-take {
+  margin-top: 4px;
+}
+.sh-take-comment {
+  margin-left: 6px;
 }
 
 /* ---------- The app's frame (step 4b): the places' bar, the page, and the map kept behind the tabs ---------- */
@@ -3305,12 +3386,6 @@ html:has(.app-nav) .explore {
 .card-how {
   align-self: center;
   white-space: nowrap;
-}
-/* What holds a Contender's grade at Maybe (polish #5), under the reason. */
-.card-held {
-  margin: -4px 0 10px;
-  color: var(--color-ink-2);
-  font-size: 14px;
 }
 /* The drawn lines changed since the screen (owner, #116): prominent, in the card's header; the results stay. */
 .card-stale {

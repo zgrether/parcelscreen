@@ -13,6 +13,7 @@ import {
   matchesSaved,
   parcelNumbers,
   pastRecent,
+  placeLine,
   RECENT_DAYS,
   RECENT_MAX,
   recentOf,
@@ -190,5 +191,20 @@ describe("Search and the name", () => {
     ).toMatch(/Mud Creek/i);
     expect(starName(A, facts)).toBe("24.6 ac on Rte 600, Grayson");
     expect(starName(A, { ...facts, road: null })).toBe("24.6 ac in Grayson");
+  });
+
+  it("the header's place line (P-2): the county and state, then the tax map number where the layer has one", () => {
+    const rec = county("52-47A");
+    const tm = { ...rec, props: { PARCELID: "52-47A", PTM_ID: "63-A-62", LOCALITY: "Grayson County" } };
+    expect(placeLine({ pieces: [tm] })).toBe("Grayson Co., VA · tax map 63-A-62");
+    // No tax map number: the record's own id.
+    const own = { ...rec, props: { PARCELID: "52-47A", LOCALITY: "Grayson County" } };
+    expect(placeLine({ pieces: [own] })).toBe("Grayson Co., VA · tax map 52-47A");
+    // Imported from a file: the source is "saved", and its fields say whose record it is.
+    expect(
+      placeLine({ pieces: [{ ...tm, source: "saved", props: { ...tm.props, OBJECTID: 1, FIPS: "51077" } }] }),
+    ).toBe("Grayson Co., VA · tax map 63-A-62");
+    // A drawn parcel has no county record.
+    expect(placeLine({ pieces: [] })).toBeNull();
   });
 });
