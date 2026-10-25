@@ -70,7 +70,7 @@ const LIMIT_HINT =
 export const SKY_WORDS = {
   howDark: "How dark it has to be at the house site",
   measured: (mag: string, forB: boolean) =>
-    `Measured as sky brightness overhead: ${mag} mag/arcsec²${forB ? " for a B" : ""}.`,
+    `Measured as sky brightness overhead: ${mag} mag/arcsec²${forB ? " for a B" : ""}. Lower zones are darker.`,
   whatThatMeans: "What that means",
 } as const;
 

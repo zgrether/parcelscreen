@@ -131,5 +131,5 @@ test("the price block: the asking price, both costs without the land, live switc
   const unpaved = await build.textContent();
   await septic.check();
   await expect(build).not.toHaveText(unpaved!);
-  await expect(block).toContainText("The toggles change these figures only");
+  await expect(block).toContainText("The switches change only this block.");
 });
