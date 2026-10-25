@@ -189,15 +189,14 @@ export const ageKept = (page: Page, how: "v2" | "earlier rules"): Promise<void> 
   );
 
 /**
- * Opens a saved parcel on the map from Your list, by (part of) the name its row shows: the Your list tab, its row, then
- * "Open on the map" in its detail (History went in step 4b). The map stays mounted behind the tab, so the parcels
+ * Opens a saved parcel on the map from Your list, by (part of) the name its row shows: the Your list tab, then its row
+ * (Z-2, UX part 2: a tap opens it on the map, the one panel). The map stays mounted behind the tab, so the parcels
  * screened this session keep their sessions.
  */
 export async function openFromList(page: Page, name: string): Promise<void> {
   await page.getByRole("link", { name: "Your list", exact: true }).click();
   await page.getByRole("tab", { name: "Shortlist" }).click();
   await listRow(page, name).click();
-  await page.getByRole("link", { name: "Open on the map" }).click();
   await expect(page).toHaveURL(/\/explore$/);
   // An imported prototype parcel is named after its saved name (owner, #130), which holds the parcel ID.
   await expect(page.locator(".sh-name").first()).toContainText(name);

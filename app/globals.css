@@ -417,6 +417,32 @@ html:has(.explore) body {
 .tb-acres[aria-expanded="true"] {
   background: rgba(241, 243, 238, 0.1);
 }
+/* "‹ Your list" (Z-2, UX part 2): back to where the open parcel was tapped, at the map's top left. */
+.back-chip {
+  position: absolute;
+  z-index: 15;
+  left: calc(var(--float-l, 0px) + 12px);
+  top: 12px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--tb-ink);
+  background: var(--tb-bg);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  /* Under the phone's Search button, which holds the top left. */
+  .back-chip {
+    top: 64px;
+  }
+  .explore.sheet-tall .back-chip {
+    visibility: hidden;
+  }
+}
 /* After leaving a parcel with a screen (17e): "{parcel} kept in History — Back", where the hint sits. */
 .switch-toast {
   position: absolute;

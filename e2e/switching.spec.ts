@@ -52,7 +52,6 @@ test("switching keeps screened parcels live: back to one with no re-run and no n
   await expect(page.locator(".grade-btn", { hasText: /^Grading…$/ }).first()).toBeVisible();
   await page.getByRole("link", { name: "Your list", exact: true }).click();
   await listRow(page, "52-47A").click();
-  await page.getByRole("link", { name: "Open on the map" }).click();
   await expect(page).toHaveURL(/\/explore$/);
   await expect(page.locator(".map-hint")).toHaveText(BUSY_TEXT);
   await expect(page.locator(".sh-name").first()).toContainText("35-3");
