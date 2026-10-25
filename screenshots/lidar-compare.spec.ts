@@ -233,4 +233,42 @@ test.describe("compare", () => {
       expect(cells.length).toBeGreaterThan(0);
     }
   });
+
+  /**
+   * Could Mapterhorn's tiles be the 3D terrain's too (owner, 10/25; a decision of its own)? The terrain preview's
+   * Terrarium requests (AWS, 256 px, to zoom 15) answered from Mapterhorn's tiles of the same tile, in 3D over the red
+   * gate, beside today's: the drape, the 10 m hillshade and the contours all read the one source.
+   */
+  for (const src of ["aws", "mapterhorn"] as const) {
+    test(`3D terrain over the red gate from ${src === "aws" ? "AWS Terrain Tiles (today)" : "Mapterhorn"}`, async ({
+      page,
+      context,
+    }) => {
+      test.setTimeout(300_000);
+      await replayHar(context, GRAYSON);
+      await live(context);
+      await context.route(/elevation-tiles-prod\/terrarium\/\d+\/\d+\/\d+\.png/, async (r) => {
+        if (src === "aws") return r.continue();
+        const [, z, x, y] = /terrarium\/(\d+)\/(\d+)\/(\d+)\.png/.exec(r.request().url())!;
+        const res = await r.fetch({ url: `https://tiles.mapterhorn.com/${z}/${x}/${y}.webp` });
+        await r.fulfill({ response: res });
+      });
+      await openExplorer(page, GRAYSON);
+      await importParcel(page, GRAYSON);
+      await withRedGate(page);
+      await page
+        .getByRole("button", { name: "Close the map panel" })
+        .click()
+        .catch(() => undefined);
+      await page.evaluate(([lat, lon]) => {
+        const m = (window as unknown as { __psMap: { jumpTo(o: object): void } }).__psMap;
+        m.jumpTo({ center: [lon, lat], zoom: 16, pitch: 0, bearing: 0 });
+      }, SPOTS[0].ll);
+      await page.getByRole("button", { name: "Tilt the map to 3D" }).click();
+      await page.waitForTimeout(2000);
+      await tilesIn(page);
+      await page.waitForTimeout(1500);
+      await page.screenshot({ path: `${OUT}/terrain3d-lidar-${src}.png` });
+    });
+  }
 });
