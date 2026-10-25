@@ -3,10 +3,12 @@
  * drag, or a middle-button drag, tilts and rotates; a double-click alone zooms in toward the point. The 3D button
  * eases to 60° and back to flat and north up; the one-time desktop hint goes on first use and stays gone. Tilted,
  * the points' flag layers replace their circles and the DOM pins get the tilted class. On a phone the hint isn't
- * shown and the touch gestures are MapLibre's own.
+ * shown and the touch gestures are MapLibre's own, with a double-tap zooming in while no tool is open (UX part 2, Z-1).
  */
+import { centroid } from "@turf/turf";
 import { expect, test, type Page } from "@playwright/test";
-import { openExplorer, reload } from "./flow";
+import { loadFixture } from "../test/support/fixtures";
+import { importParcel, openExplorer, reload } from "./flow";
 import { replayHar } from "./replay";
 
 const SLUG = "ferney-creek-52-47A";
@@ -201,5 +203,54 @@ test.describe("phone", () => {
     expect(r.touch).toBe(true);
     expect(r.at).toHaveLength(1);
     expect(r.at[0]).toBeLessThan(150);
+  });
+  test("a double-tap zooms in one level while no tool is open; with a tool open it doesn't (Z-1)", async ({
+    page,
+    context,
+  }) => {
+    await replayHar(context, SLUG);
+    await openExplorer(page, SLUG);
+    await importParcel(page, SLUG);
+    await settle(page);
+    // Inside the open parcel, where a tap does nothing else (no other parcel opens and frames itself).
+    const inside = async () => {
+      const [lon, lat] = centroid(loadFixture(SLUG).input.polygon).geometry.coordinates as [number, number];
+      const box = (await page.locator(".maplibregl-canvas").boundingBox())!;
+      const p = await page.evaluate(
+        ([x, y]) =>
+          (
+            window as unknown as { __psMap: { project(ll: [number, number]): { x: number; y: number } } }
+          ).__psMap.project([x, y]),
+        [lon, lat] as const,
+      );
+      return { x: box.x + p.x, y: box.y + p.y };
+    };
+    const doubleTap = async () => {
+      const p = await inside();
+      await page.touchscreen.tap(p.x, p.y);
+      await page.touchscreen.tap(p.x, p.y);
+      await page.waitForTimeout(600);
+      await settle(page);
+    };
+
+    const before = await camera(page);
+    await doubleTap();
+    expect((await camera(page)).zoom).toBeCloseTo(before.zoom + 1, 1);
+
+    // + Mark → Track: the taps are the line's corners, and the map stays where it is.
+    await page.locator(".toolbar").getByRole("button", { name: "+ Mark", exact: true }).click();
+    await page
+      .getByRole("dialog", { name: "Mark on the parcel" })
+      .getByRole("group", { name: "Ways in" })
+      .getByRole("button", { name: "Track" })
+      .click();
+    await expect(page.locator(".toolbar")).toHaveAttribute("data-mode", "track");
+    // Starting a line may bring the parcel into view first (P-9): read the camera once that's done.
+    await page.waitForTimeout(600);
+    await settle(page);
+    const drawing = await camera(page);
+    await doubleTap();
+    expect((await camera(page)).zoom).toBeCloseTo(drawing.zoom, 2);
+    await expect(page.locator(".toolbar")).toHaveAttribute("data-mode", "track");
   });
 });

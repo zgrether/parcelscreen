@@ -66,6 +66,14 @@ export type Mode =
 /** The modes that place corners on the map. */
 export const DRAWING: readonly Mode[] = ["draw", "track", "easement", "drive", "area"];
 
+/**
+ * Whether a tool is using the map's taps: a mode, or a split line still being placed or moved. The mouse's tilt and
+ * rotate, and a phone's double-tap zoom (UX part 2, Z-1), stand aside while one is.
+ */
+export function toolOpen(s: Pick<ExploreState, "mode" | "split">): boolean {
+  return !!s.mode || !!s.split;
+}
+
 /** The modes that draw a line: one per line kind (an existing drive since the Mark picker, owner after #136). */
 export const LINE_MODES: readonly Mode[] = ["track", "easement", "drive"];
 

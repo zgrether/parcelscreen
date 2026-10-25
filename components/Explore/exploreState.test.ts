@@ -10,6 +10,7 @@ import {
   exploreReducer,
   INITIAL,
   panelView,
+  toolOpen,
   type ExploreAction,
   type ExploreState,
   type Stamp,
@@ -520,6 +521,25 @@ describe("tap rules (decideTap)", () => {
       kind: "openSaved",
       key: builtKey,
     });
+  });
+});
+
+describe("the tool gate (toolOpen): the mouse's tilt and a phone's double-tap zoom stand aside (Z-1)", () => {
+  it("is open for every mode and for a split line still being placed; closed with neither", () => {
+    expect(toolOpen(INITIAL)).toBe(false);
+    for (const mode of [
+      "draw",
+      "house",
+      "split",
+      "combine",
+      "track",
+      "easement",
+      "drive",
+      "point",
+      "area",
+    ] as const)
+      expect(toolOpen({ mode, split: null })).toBe(true);
+    expect(toolOpen({ mode: null, split: { a: [36.3, -81.6], b: null } })).toBe(true);
   });
 });
 
