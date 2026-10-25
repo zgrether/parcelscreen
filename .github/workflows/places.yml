@@ -1,0 +1,73 @@
+name: Places
+
+# Roadmap step 14d (docs/plans/step-14d-places.md §7): the network work this repo's cloud sessions can't do, run on
+# GitHub's runners for a PR that asks for it in .github/places-run.json. Jobs:
+# - bake: `pnpm data:places`, the baked places under public/places/v1/.
+# Each finished request is recorded in .github/places-done.json and pushed with the job's output to the PR's branch,
+# so a later push to the PR doesn't run it again. A push made with GITHUB_TOKEN starts no workflow, so the job then
+# dispatches ci.yml on the branch (as areas-refresh.yml does); its checks land on the commit, so the PR shows them.
+on:
+  pull_request:
+    paths:
+      - .github/places-run.json
+
+concurrency:
+  group: places-${{ github.head_ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  ask:
+    # A fork's PR gets a read-only token: nothing to push to.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    outputs:
+      request: ${{ steps.read.outputs.request }}
+      bake: ${{ steps.read.outputs.bake }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+      - id: read
+        run: |
+          request=$(node -p "require('./.github/places-run.json').request")
+          done=$(node -p "try { require('./.github/places-done.json').request } catch { '' }")
+          echo "request=$request" >> "$GITHUB_OUTPUT"
+          if [ "$request" = "$done" ]; then
+            echo "Request $request already ran."
+            echo "bake=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "bake=$(node -p "require('./.github/places-run.json').jobs.includes('bake')")" >> "$GITHUB_OUTPUT"
+          fi
+
+  bake:
+    needs: ask
+    if: needs.ask.outputs.bake == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm data:places
+      - name: Push the bake to the PR's branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUEST: ${{ needs.ask.outputs.request }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          node -e "require('fs').writeFileSync('.github/places-done.json', JSON.stringify({ request: process.env.REQUEST, ran: new Date().toISOString() }, null, 2) + '\n')"
+          git add public/places .github/places-done.json
+          git commit -m "Places bake ($REQUEST)" -m "$(node -p "const i = require('./public/places/v1/index.json'); i.sources.map(s => s.id + ': ' + s.count + ' (fetched ' + s.fetched + ')').join('\n')")"
+          git push origin "HEAD:${{ github.head_ref }}"
+          gh workflow run ci.yml --ref "${{ github.head_ref }}"

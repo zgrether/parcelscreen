@@ -34,6 +34,7 @@
     "data:climate": "node scripts/data-climate.mts",
     "data:er": "node scripts/data-er.mts",
     "data:airports": "node scripts/data-airports.mts",
+    "data:places": "vitest run test/tools/places-bake.test.ts --mode places-bake",
     "areas:outlines": "node scripts/areas-outlines.mts",
     "areas:profile": "vitest run test/tools/area-profile.test.ts --mode areas",
     "areas:record": "vitest run test/tools/area-profile.test.ts --mode areas-record",
