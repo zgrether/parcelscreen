@@ -1,7 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { createHttpClient } from "../http";
 import { PlaceCellSchema, PlacesIndexSchema, type Place } from "../screen/placeData";
-import { areaCells, bakePlaces, inArea, osmCellQuery, osmPlaces } from "./bake";
+import type { Polygon } from "geojson";
+import {
+  areaCells,
+  bakePlaces,
+  classifyLaunches,
+  inArea,
+  osmCellQuery,
+  osmLaunches,
+  osmPlaces,
+  type RawLaunch,
+} from "./bake";
 
 const MUD_CREEK: [number, number] = [36.598, -81.303];
 
@@ -78,6 +88,8 @@ function fakeFetch(opts: { usfsFails?: boolean } = {}): typeof fetch {
       if (opts.usfsFails && url.includes("apps.fs.usda.gov")) return json({}, 500);
       return json({ objectIdField: "OBJECTID" });
     }
+    if (url.includes("apps.fs.usda.gov") && String(init?.body).includes("BOAT"))
+      return opts.usfsFails ? json({}, 500) : json({ features: [] });
     if (url.includes("apps.fs.usda.gov"))
       return opts.usfsFails
         ? json({}, 500)
@@ -181,5 +193,121 @@ describe("bakePlaces", () => {
         today: "2026-10-25",
       }),
     ).rejects.toThrow(/usfs didn't answer/);
+  });
+});
+
+describe("paddle launches (step 14d plan §2.4)", () => {
+  it("asks a cell for slipways, canoe and whitewater put-ins, access points, and the canoe routes they're on", () => {
+    const q = osmCellQuery("36_-82");
+    for (const tag of [
+      'nwr["leisure"="slipway"]',
+      '"canoe"~"^(put_in|egress|put_in;egress)$"',
+      '"whitewater"~',
+      '"waterway"="access_point"',
+    ])
+      expect(q).toContain(tag);
+    expect(q).toContain('rel(bn.l)["route"="canoe"];out body;');
+  });
+
+  it("keeps launches, not canoe=no slipways or private ones; a canoe route names its trail; whitewater is marked", () => {
+    const got = osmLaunches([
+      { type: "node", id: 1, lat: 36.6, lon: -81.3, tags: { leisure: "slipway", name: "Rat Branch" } },
+      { type: "node", id: 2, lat: 36.6, lon: -81.31, tags: { leisure: "slipway", canoe: "no" } },
+      { type: "node", id: 3, lat: 36.6, lon: -81.32, tags: { canoe: "put_in", access: "private" } },
+      { type: "node", id: 4, lat: 36.6, lon: -81.33, tags: { whitewater: "put_in;egress" } },
+      { type: "node", id: 5, lat: 36.6, lon: -81.34, tags: { waterway: "access_point" } },
+      { type: "node", id: 6, lat: 36.6, lon: -81.35, tags: { shop: "supermarket" } },
+      {
+        type: "relation",
+        id: 9,
+        tags: { type: "route", route: "canoe", name: "New River Blueway" },
+        members: [{ type: "node", ref: 5, role: "" }],
+      },
+    ]);
+    expect(got).toEqual([
+      { id: "osm:node/1", ll: [36.6, -81.3], src: "osm", name: "Rat Branch" },
+      { id: "osm:node/4", ll: [36.6, -81.33], src: "osm", whitewater: true },
+      { id: "osm:node/5", ll: [36.6, -81.34], src: "osm", trail: "New River Blueway" },
+    ]);
+    // A canoe route isn't a place, and a slipway isn't a grocer or a trailhead.
+    expect(osmPlaces([{ type: "relation", id: 9, tags: { route: "canoe", name: "X" } }])).toEqual([]);
+  });
+
+  /** A square lake `sideM` metres a side, its west shore `fromM` metres east of the launch at L. */
+  const L: [number, number] = [36.3, -81.9];
+  const lake = (fromM: number, sideM: number, props: Record<string, unknown>) => {
+    const dLon = (m: number) => m / (111_320 * Math.cos((L[0] * Math.PI) / 180));
+    const dLat = (m: number) => m / 111_320;
+    const x0 = L[1] + dLon(fromM),
+      x1 = x0 + dLon(sideM),
+      y0 = L[0] - dLat(sideM / 2),
+      y1 = L[0] + dLat(sideM / 2);
+    const geometry: Polygon = {
+      type: "Polygon",
+      coordinates: [
+        [
+          [x0, y0],
+          [x1, y0],
+          [x1, y1],
+          [x0, y1],
+          [x0, y0],
+        ],
+      ],
+    };
+    return { type: "Feature" as const, properties: props, geometry };
+  };
+  const river = (name: string, offsetM: number) => ({
+    type: "Feature" as const,
+    properties: { GNIS_NAME: name },
+    geometry: {
+      type: "LineString" as const,
+      coordinates: [
+        [L[1] - 0.01, L[0] + offsetM / 111_320],
+        [L[1] + 0.01, L[0] + offsetM / 111_320],
+      ],
+    },
+  });
+  const launch = (extra: Partial<RawLaunch> = {}): RawLaunch => ({
+    id: "osm:node/1",
+    ll: L,
+    src: "osm",
+    ...extra,
+  });
+  const RESERVOIR = { GNIS_NAME: "Watauga Lake", FTYPE: 436, AREASQKM: 0.162 }; // 40 ac
+
+  it("on a 40 ac reservoir's shore: flatwater, named for it, with its acres", () => {
+    const [l] = classifyLaunches([launch({ name: "Rat Branch" })], [lake(0, 640, RESERVOIR)], []);
+    expect(l).toMatchObject({ water: "flat", waterName: "Watauga Lake", waterAc: 40, name: "Rat Branch" });
+  });
+
+  it("50 m from the lake is on it; 70 m isn't (paddling.flatwaterWithinM, 60 m)", () => {
+    expect(classifyLaunches([launch()], [lake(50, 640, RESERVOIR)], [])[0]!.water).toBe("flat");
+    expect(classifyLaunches([launch()], [lake(70, 640, RESERVOIR)], [])[0]!.water).toBe("river");
+  });
+
+  it("a 3 ac pond isn't flatwater to paddle (paddling.flatwaterMinAc, 5 ac); a swamp never is", () => {
+    const pond = lake(0, 110, { GNIS_NAME: "Mill Pond", FTYPE: 390, AREASQKM: 0.012 });
+    expect(classifyLaunches([launch()], [pond], [])[0]!.water).toBe("river");
+    const swamp = lake(0, 640, { GNIS_NAME: "Big Swamp", FTYPE: 466, AREASQKM: 0.162 });
+    expect(classifyLaunches([launch()], [swamp], [])[0]!.water).toBe("river");
+  });
+
+  it("a whitewater put-in on a lake is a river launch; its river is the nearest named flowline within 100 m", () => {
+    const [l] = classifyLaunches(
+      [launch({ whitewater: true })],
+      [lake(0, 640, RESERVOIR)],
+      [river("Watauga River", 40), river("Elk Creek", 90)],
+    );
+    expect(l).toMatchObject({ water: "river", waterName: "Watauga River", name: "Watauga River access" });
+    expect(classifyLaunches([launch()], [], [river("Far Creek", 150)])[0]).toMatchObject({
+      water: "river",
+      name: "Boat launch",
+    });
+  });
+
+  it("unnamed water: an unnamed lake still makes it flatwater; the launch keeps a plain name", () => {
+    const [l] = classifyLaunches([launch()], [lake(0, 640, { FTYPE: 390, AREASQKM: 0.162 })], []);
+    expect(l).toMatchObject({ water: "flat", name: "Boat launch" });
+    expect(l!.waterName).toBeUndefined();
   });
 });

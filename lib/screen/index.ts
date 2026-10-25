@@ -40,6 +40,7 @@ import type { HospitalCandidate, HospitalSource } from "./hospitals";
 import { loadClimate, withClimate, type ClimateSource } from "./climate";
 import { loadBuildings, withPrivacy, type BuildingSource } from "./privacy";
 import { LONG_TRAIL_DRIVES, longTrailDrive } from "./longTrail";
+import { PADDLE_DRIVES, paddlingNear } from "./paddling";
 import { dishSpot } from "./dish";
 import { OverpassMirrors, placesOf } from "./places";
 import type { PlacesSource } from "./placeData";
@@ -688,8 +689,11 @@ export async function reroute(
     if (before.near) R.near = before.near;
     // Step 11: and the long-trail drive, timed from the same start.
     if (before.longTrail !== undefined) R.longTrail = before.longTrail;
+    // Step 14d: and the paddling drive, the same way.
+    if (before.paddling !== undefined) R.paddling = before.paddling;
     for (const n of before.noResponse)
-      if (n === TRAILHEAD_PARKING || n === TRAILHEAD_DRIVES || n === LONG_TRAIL_DRIVES) R.noResponse.push(n);
+      if (n === TRAILHEAD_PARKING || n === TRAILHEAD_DRIVES || n === LONG_TRAIL_DRIVES || n === PADDLE_DRIVES)
+        R.noResponse.push(n);
   } else {
     onProgress?.({ step: "drive", status: "run" });
     try {
@@ -915,6 +919,17 @@ async function driveStep(
     delete R.longTrail;
     R.noResponse.push(LONG_TRAIL_DRIVES);
   } else R.longTrail = lt;
+  // Step 14d (plan §4.1): the nearest flatwater launch, in a request of its own; unknown when it can't be read.
+  const pd = await paddlingNear(
+    start.ll,
+    R.ponds,
+    placesOf({ ...io, ...(s.deps.places ? { places: s.deps.places } : {}) }),
+    io,
+  );
+  if (pd === undefined) {
+    delete R.paddling;
+    R.noResponse.push(PADDLE_DRIVES);
+  } else R.paddling = pd;
 }
 
 /**

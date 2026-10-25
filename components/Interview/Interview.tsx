@@ -47,7 +47,8 @@ export function isAnswered(step: Step, a: InterviewAnswers): boolean {
   switch (step.kind) {
     case "choice": {
       const q = QUESTIONS[step.index]!;
-      if (q.second) return a[q.key] !== undefined && a[q.second.key] !== undefined;
+      if (q.second)
+        return a[q.key] !== undefined && (a[q.key] === q.skipSecondIf || a[q.second.key] !== undefined);
       return a[q.key] !== undefined;
     }
     case "land":
@@ -73,29 +74,35 @@ export function Interview() {
   return ask ? <AskOne ask={ask} /> : <FullInterview />;
 }
 
-/** The new question a link asks for, when it's one: a factor's (NEW_QUESTION) that this screen can ask alone. */
-function askedFor(search: string): "climate" | null {
-  return new URLSearchParams(search).get("ask") === "climate" ? "climate" : null;
+/** The new questions this screen can ask alone: step 11's Climate and step 14d's Paddling (NEW_QUESTION). */
+type Asked = "climate" | "paddle";
+
+/** The new question a link asks for, when it's one this screen can ask alone. */
+function askedFor(search: string): Asked | null {
+  const ask = new URLSearchParams(search).get("ask");
+  return ask === "climate" || ask === "paddle" ? ask : null;
 }
 
-function AskOne({ ask }: { ask: "climate" }) {
+function AskOne({ ask }: { ask: Asked }) {
   const router = useRouter();
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => heading.current?.focus(), []);
   const [doc] = useState<InterviewDoc>(() => getPref("ps.interview") ?? freshDoc("notNow"));
   const answers = useRef(doc.answers);
   // The interview's own answer() as this screen needs it: the answers saved as they're picked, the doc otherwise kept.
-  const iv = {
-    doc,
-    answer(patch: Partial<InterviewAnswers>) {
-      answers.current = { ...answers.current, ...patch };
-      setPref("ps.interview", { ...(getPref("ps.interview") ?? doc), answers: answers.current });
-    },
-  } as unknown as Interview;
   const done = () => {
     placeFromAnswers(NEW_FACTORS.filter((f) => NEW_QUESTION[f] === ask));
     router.push("/priorities");
   };
+  // A two-row screen's Continue asks for the next screen (answer({}, true)): here, that's done.
+  const iv = {
+    doc,
+    answer(patch: Partial<InterviewAnswers>, next?: boolean) {
+      answers.current = { ...answers.current, ...patch };
+      setPref("ps.interview", { ...(getPref("ps.interview") ?? doc), answers: answers.current });
+      if (next) done();
+    },
+  } as unknown as Interview;
   const question = QUESTIONS.find((q) => q.key === ask)!;
   return (
     <main className="iv">
@@ -106,15 +113,26 @@ function AskOne({ ask }: { ask: "climate" }) {
         <p className="iv-progress">A new question</p>
       </header>
       <section className="iv-screen">
-        <ClimateScreen
-          iv={iv}
-          question={question}
-          heading={heading}
-          n={question.n}
-          revisit={false}
-          bindNext={() => undefined}
-          onDone={done}
-        />
+        {ask === "climate" ? (
+          <ClimateScreen
+            iv={iv}
+            question={question}
+            heading={heading}
+            n={question.n}
+            revisit={false}
+            bindNext={() => undefined}
+            onDone={done}
+          />
+        ) : (
+          <PairScreen
+            iv={iv}
+            question={question}
+            heading={heading}
+            n={question.n}
+            revisit={false}
+            bindNext={() => undefined}
+          />
+        )}
       </section>
     </main>
   );

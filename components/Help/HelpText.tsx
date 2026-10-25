@@ -205,6 +205,16 @@ export function HelpText() {
         since Starlink looks north from here. The distance is from your best homesite. Trees aren&apos;t in
         the elevation, so a spot in the woods needs clearing.
       </p>
+
+      <h3 id="h-paddle">Paddling</h3>
+      <p>
+        The drive from where the driveway meets the road to the nearest launch on a lake or reservoir of at
+        least 5 ac. Launches are OpenStreetMap&apos;s slipways, put-ins and access points and the Forest
+        Service&apos;s boating sites; a launch within 60 m of a lake or reservoir in USGS&apos;s National
+        Hydrography Dataset counts as flatwater. River put-ins nearby are listed and never graded: check the
+        river&apos;s class before paddling. OpenStreetMap misses some launches, and the state wildlife
+        agencies&apos; boat ramps aren&apos;t included yet.
+      </p>
     </>
   );
 }

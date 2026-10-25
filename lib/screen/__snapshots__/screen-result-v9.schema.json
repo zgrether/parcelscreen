@@ -1367,6 +1367,103 @@
         }
       ]
     },
+    "paddling": {
+      "type": "object",
+      "properties": {
+        "flat": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "water": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "min": {
+                  "type": "number"
+                },
+                "mi": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "name",
+                "water",
+                "min",
+                "mi"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rivers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "river": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "km": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "name",
+              "river",
+              "km"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "pond": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "acres": {
+                  "type": "number"
+                },
+                "name": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "acres",
+                "name"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "flat",
+        "rivers",
+        "pond"
+      ],
+      "additionalProperties": false
+    },
     "dish": {
       "anyOf": [
         {

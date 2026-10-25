@@ -33,6 +33,8 @@ export const ROW_KEYS = [
   "airport",
   "longTrail",
   "internet",
+  // Step 14d (docs/plans/step-14d-places.md §4.2): after step 11's, for the same reason.
+  "paddling",
   "budget",
 ] as const;
 export type RowKey = (typeof ROW_KEYS)[number];
@@ -80,6 +82,8 @@ export interface Bands {
   longTrailMin: number[];
   /** Step 11: Internet's dish spot, the clear share of its view cone, in %, at least. */
   dishClearPct: number[];
+  /** Step 14d: Paddling's drive to the nearest flatwater launch, in minutes, at most. */
+  paddleMin: number[];
 }
 
 /**

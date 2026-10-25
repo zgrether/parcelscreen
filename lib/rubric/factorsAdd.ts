@@ -1,5 +1,5 @@
 /**
- * Step 11's new factors, added once to priorities saved before them (docs/plans/step-11-new-data.md §1, §5): each to
+ * Step 11's new factors (and step 14d's Paddling), added once to priorities saved before them (docs/plans/step-11-new-data.md §1, §5): each to
  * Don't care, unless an answer the person already gave clearly places it. Nothing else in the rubric moves, except
  * Hospital's split from Town (§2.1), which takes Town's place because Town graded the ER until then. Pure;
  * lib/client/factorsAdd.ts applies it at boot and keeps the notice's state.
@@ -19,6 +19,8 @@ export const NEW_FACTORS = [
   "airport",
   "longTrail",
   "internet",
+  // Step 14d (docs/plans/step-14d-places.md §4.3).
+  "paddling",
 ] as const satisfies readonly RowKey[];
 export type NewFactor = (typeof NEW_FACTORS)[number];
 
@@ -33,7 +35,11 @@ export const places = (r: Rubric, f: RowKey): boolean =>
  * The interview question each factor's limits come from, where it's new in step 11 (plan §1): the notice links to it
  * ("Answer the new questions"). The factors placed from questions the interview already asked aren't listed.
  */
-export const NEW_QUESTION: Partial<Record<NewFactor, keyof InterviewAnswers>> = { climate: "climate" };
+export const NEW_QUESTION: Partial<Record<NewFactor, keyof InterviewAnswers>> = {
+  climate: "climate",
+  // Step 14d: a question of its own, new to every profile.
+  paddling: "paddle",
+};
 
 /**
  * The rubric with the factor added, or null when it already has it. Hospital follows Town's card; the others are
@@ -56,7 +62,23 @@ export function withFactor(r: Rubric, f: NewFactor, answers: InterviewAnswers = 
       return withLongTrail(r, answers);
     case "internet":
       return withInternet(r, answers);
+    case "paddling":
+      return withPaddling(r, answers);
   }
+}
+
+/**
+ * Paddling (step 14d plan §4.3): its question places it, "Some weekends" at the bottom of Nice to have and "A big part
+ * of our fun" at the bottom of Really want, at the answer's longest drive; "Rarely", or no answer yet (a profile from
+ * before it), Don't care until the person answers it. On explicit weights it stays Don't care.
+ */
+function withPaddling(r: Rubric, a: InterviewAnswers): Rubric {
+  const I = SCREEN_CONSTANTS.card.interview;
+  const points = a.paddle ? I.choices.paddle[a.paddle].points.paddling : 0;
+  if (r.weights.mode !== "rankSum" || points < 1) return { ...r, wonts: [...r.wonts, "paddling"] };
+  const edge = a.paddleDrive ? I.choices.paddleDrive[a.paddleDrive].edges.paddleMin : undefined;
+  const out = edge === undefined ? r : setBandEdge({ ...r, bands: { ...r.bands } }, "paddleMin", edge);
+  return points >= I.should.minPoints ? lastShould(out, "paddling") : lastCould(out, "paddling");
 }
 
 /**

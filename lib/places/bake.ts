@@ -8,6 +8,8 @@
  * A source that doesn't answer keeps the previous bake's places, dated as fetched then; with no previous bake, the bake
  * fails. Run by `pnpm data:places` (test/tools/places-bake.test.ts) from the places workflow and the monthly refresh.
  */
+import { point, pointToLineDistance, pointToPolygonDistance } from "@turf/turf";
+import type { LineString, MultiLineString, MultiPolygon, Polygon } from "geojson";
 import type { HttpClient } from "../http";
 import { DEFAULT_ENDPOINTS, SCREEN_CONSTANTS } from "../screen/config";
 import {
@@ -15,6 +17,7 @@ import {
   PLACE_FOLDERS,
   PLACES_VERSION,
   cellOf,
+  type BakedLaunch,
   type BakedParking,
   type BakedTrailhead,
   type Grocer,
@@ -115,6 +118,8 @@ interface OsmElement {
   lon?: number;
   center?: { lat: number; lon: number };
   tags?: Record<string, string>;
+  /** A relation's members (`out body`). */
+  members?: { type: string; ref: number; role?: string }[];
 }
 
 /** One Overpass query, each mirror in turn (POST, as the area profiler sends it). */
@@ -139,12 +144,18 @@ async function overpass(ql: string, deps: BakeDeps): Promise<OsmElement[]> {
 const at = (e: OsmElement): LatLon | null =>
   e.center ? [e.center.lat, e.center.lon] : e.lat != null && e.lon != null ? [e.lat, e.lon] : null;
 
-/** The supermarkets and trailheads in one cell, as the near step read them from Photon (places.ts). */
+/**
+ * One cell's supermarkets and trailheads (as the near step read them from Photon, places.ts), and its paddle launches
+ * (step 14d plan §2.4) with the canoe routes they're on (`out body`: a route's members, not its geometry).
+ */
 export function osmCellQuery(cell: string): string {
   const [w, s, e, n] = cellBox(cell);
   return (
     `[out:json][timeout:180][bbox:${s},${w},${n},${e}];` +
-    `(nwr["shop"="supermarket"];nwr["highway"="trailhead"];nwr["information"="trailhead"];);out center tags;`
+    `(nwr["shop"="supermarket"];nwr["highway"="trailhead"];nwr["information"="trailhead"];)->.p;` +
+    `(nwr["leisure"="slipway"];nwr["canoe"~"^(put_in|egress|put_in;egress)$"];` +
+    `nwr["whitewater"~"^(put_in|egress|put_in;egress)$"];nwr["waterway"="access_point"];)->.l;` +
+    `(.p;.l;);out center tags;rel(bn.l)["route"="canoe"];out body;`
   );
 }
 
@@ -152,6 +163,7 @@ export function osmCellQuery(cell: string): string {
 export function osmPlaces(elements: readonly OsmElement[]): (Grocer | BakedTrailhead)[] {
   const out: (Grocer | BakedTrailhead)[] = [];
   for (const e of elements) {
+    if (e.type === "relation") continue; // the canoe routes (osmLaunches)
     const ll = at(e);
     if (!ll || !inArea(ll)) continue;
     const id = `osm:${e.type}/${e.id}`;
@@ -168,6 +180,183 @@ export function osmPlaces(elements: readonly OsmElement[]): (Grocer | BakedTrail
       });
     } else if (t.highway === "trailhead" || t.information === "trailhead")
       out.push({ kind: "trailhead", id, name: t.name || "Trailhead", ll: round6(ll), src: "osm" });
+  }
+  return out;
+}
+
+/** A launch before its water is known (classifyLaunches). */
+export interface RawLaunch {
+  id: string;
+  ll: LatLon;
+  src: "osm" | "usfs";
+  name?: string;
+  /** Tagged whitewater=*: a river launch whatever water it's near. */
+  whitewater?: true;
+  trail?: string;
+}
+
+const PUT_IN = /^(put_in|egress|put_in;egress)$/;
+
+/**
+ * A cell's paddle launches from Overpass's answer (step 14d plan §2.4): slipways, canoe and whitewater put-ins and
+ * egresses, and waterway access points; not a slipway tagged canoe=no, nor anything private. A launch on a canoe route
+ * takes the route's name as its paddle trail.
+ */
+export function osmLaunches(elements: readonly OsmElement[]): RawLaunch[] {
+  const trailOf = new Map<string, string>();
+  for (const r of elements)
+    if (r.type === "relation" && r.tags?.route === "canoe" && r.tags.name)
+      for (const m of r.members ?? []) if (m.type === "node") trailOf.set(`node/${m.ref}`, r.tags.name);
+  const out: RawLaunch[] = [];
+  for (const e of elements) {
+    if (e.type === "relation" && e.tags?.route === "canoe") continue;
+    const t = e.tags ?? {};
+    const launch =
+      t.leisure === "slipway" ||
+      PUT_IN.test(t.canoe ?? "") ||
+      PUT_IN.test(t.whitewater ?? "") ||
+      t.waterway === "access_point";
+    if (!launch || t.canoe === "no" || t.access === "private" || t.access === "no") continue;
+    const ll = at(e);
+    if (!ll || !inArea(ll)) continue;
+    const trail = trailOf.get(`${e.type}/${e.id}`);
+    out.push({
+      id: `osm:${e.type}/${e.id}`,
+      ll: round6(ll),
+      src: "osm",
+      ...(t.name ? { name: t.name } : {}),
+      ...(PUT_IN.test(t.whitewater ?? "") ? { whitewater: true as const } : {}),
+      ...(trail ? { trail } : {}),
+    });
+  }
+  return out;
+}
+
+// ---------- NHD: flatwater or river ----------
+
+interface NhdFeature {
+  type: "Feature";
+  properties: Record<string, unknown> | null;
+  geometry: Polygon | MultiPolygon | LineString | MultiLineString | null;
+}
+
+/** NHD features within `distanceM` of any of the points: one query, GeoJSON out. */
+async function nhdNear(
+  url: string,
+  points: readonly LatLon[],
+  distanceM: number,
+  outFields: string,
+  deps: BakeDeps,
+): Promise<NhdFeature[]> {
+  const q = new URLSearchParams({
+    geometry: JSON.stringify({
+      points: points.map(([lat, lon]) => [lon, lat]),
+      spatialReference: { wkid: 4326 },
+    }),
+    geometryType: "esriGeometryMultipoint",
+    inSR: "4326",
+    spatialRel: "esriSpatialRelIntersects",
+    distance: String(distanceM),
+    units: "esriSRUnit_Meter",
+    outFields,
+    returnGeometry: "true",
+    outSR: "4326",
+    maxAllowableOffset: "0.0001",
+    geometryPrecision: "6",
+    f: "geojson",
+  });
+  const r = await deps.http.fetch(`${url}/query`, { method: "POST", body: q, timeoutMs: 180_000 });
+  if (!r.ok) throw new Error(`${new URL(url).host} ${r.status}`);
+  const j = (await r.json()) as { features?: NhdFeature[]; error?: { message?: string } };
+  if (j.error) throw new Error(`${new URL(url).host}: ${j.error.message ?? "error"}`);
+  return j.features ?? [];
+}
+
+const ACRES_PER_KM2 = 247.105;
+const str = (v: unknown): string | undefined => (typeof v === "string" && v.trim() ? v.trim() : undefined);
+
+/**
+ * Each launch on its water (step 14d plan §2.4): flatwater when within paddling.flatwaterWithinM of an NHD lake, pond
+ * or reservoir (FTYPE 390, 436) of at least paddling.flatwaterMinAc, the nearest such; else a river, named by the
+ * nearest named flowline within paddling.riverWithinM. Whitewater put-ins are rivers whatever they're near. Named
+ * "<water> access" when unnamed, else "Boat launch". Pure: the NHD features are given.
+ */
+export function classifyLaunches(
+  launches: readonly RawLaunch[],
+  waterbodies: readonly NhdFeature[],
+  flowlines: readonly NhdFeature[],
+): BakedLaunch[] {
+  const P = SCREEN_CONSTANTS.paddling;
+  const lakes = waterbodies.flatMap((f) => {
+    const p = f.properties ?? {};
+    const ftype = Number(p.FTYPE ?? p.ftype);
+    const ac = Number(p.AREASQKM ?? p.areasqkm) * ACRES_PER_KM2;
+    if (!f.geometry || (f.geometry.type !== "Polygon" && f.geometry.type !== "MultiPolygon")) return [];
+    if (!(SCREEN_CONSTANTS.streams.ponds as readonly number[]).includes(ftype) || !(ac >= P.flatwaterMinAc))
+      return [];
+    return [{ geo: f.geometry, name: str(p.GNIS_NAME ?? p.gnis_name), ac }];
+  });
+  const rivers = flowlines.flatMap((f) => {
+    const name = str(f.properties?.GNIS_NAME ?? f.properties?.gnis_name);
+    if (!name || !f.geometry || (f.geometry.type !== "LineString" && f.geometry.type !== "MultiLineString"))
+      return [];
+    return [{ geo: f.geometry, name }];
+  });
+  return launches.map((l) => {
+    const pt = point([l.ll[1], l.ll[0]]);
+    let lake: (typeof lakes)[number] | undefined;
+    let lakeM = Infinity;
+    if (!l.whitewater)
+      for (const k of lakes) {
+        const m = Math.max(0, pointToPolygonDistance(pt, k.geo, { units: "meters" }));
+        if (m <= P.flatwaterWithinM && m < lakeM) [lake, lakeM] = [k, m];
+      }
+    let river: string | undefined;
+    if (!lake) {
+      let best = Infinity;
+      for (const r of rivers) {
+        const m = pointToLineDistance(pt, r.geo.type === "LineString" ? r.geo : lineOfMulti(r.geo), {
+          units: "meters",
+        });
+        if (m <= P.riverWithinM && m < best) [river, best] = [r.name, m];
+      }
+    }
+    const waterName = lake ? lake.name : river;
+    const name = l.name ?? (waterName ? `${waterName} access` : "Boat launch");
+    return {
+      kind: "launch" as const,
+      id: l.id,
+      name,
+      ll: l.ll,
+      src: l.src,
+      water: lake ? ("flat" as const) : ("river" as const),
+      ...(waterName ? { waterName } : {}),
+      ...(lake ? { waterAc: Math.round(lake.ac) } : {}),
+      ...(l.trail ? { trail: l.trail } : {}),
+    };
+  });
+}
+
+/** A multi-line's parts as one line, for the distance to it (its nearest part is all that matters). */
+function lineOfMulti(g: MultiLineString): LineString {
+  return { type: "LineString", coordinates: g.coordinates.flat() };
+}
+
+/** Every launch classified, a cell's launches per pair of NHD queries. */
+async function classifyAll(raw: readonly RawLaunch[], deps: BakeDeps): Promise<BakedLaunch[]> {
+  const P = SCREEN_CONSTANTS.paddling;
+  const byCell = new Map<string, RawLaunch[]>();
+  for (const l of raw) byCell.set(cellOf(l.ll), [...(byCell.get(cellOf(l.ll)) ?? []), l]);
+  const out: BakedLaunch[] = [];
+  let n = 0;
+  for (const [cell, launches] of byCell) {
+    const pts = launches.map((l) => l.ll);
+    const [bodies, lines] = await Promise.all([
+      nhdNear(DEFAULT_ENDPOINTS.nhdWaterbody, pts, P.flatwaterWithinM, "GNIS_NAME,FTYPE,AREASQKM", deps),
+      nhdNear(DEFAULT_ENDPOINTS.nhd, pts, P.riverWithinM, "GNIS_NAME", deps),
+    ]);
+    out.push(...classifyLaunches(launches, bodies, lines));
+    deps.log?.(`launches: cell ${cell} (${++n} of ${byCell.size}), ${launches.length} classified`);
   }
   return out;
 }
@@ -386,29 +575,49 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
     );
   };
 
+  // Launches found this bake, classified once every source has answered (classifyAll).
+  const raw: RawLaunch[] = [];
+
   // OSM, a cell at a time; one cell failing fails the source (a partial OSM would read as places closing).
   try {
     const osm: Place[] = [];
+    const launches: RawLaunch[] = [];
     for (const [i, cell] of cells.entries()) {
-      osm.push(...osmPlaces(await overpass(osmCellQuery(cell), deps)));
-      log(`osm: cell ${cell} (${i + 1} of ${cells.length}), ${osm.length} places so far`);
+      const elements = await overpass(osmCellQuery(cell), deps);
+      osm.push(...osmPlaces(elements));
+      launches.push(...osmLaunches(elements));
+      log(
+        `osm: cell ${cell} (${i + 1} of ${cells.length}), ${osm.length} places and ${launches.length} launches so far`,
+      );
     }
     got.set("osm", osm);
+    raw.push(...launches);
   } catch (e) {
     keep("osm", e);
   }
 
+  // USFS: its trailheads, and its boating sites as launches (the subtype's value as the layer has it: BOATING SITE).
   try {
-    got.set(
-      "usfs",
-      await pointLayer(
+    const [trailheads, boating] = await Promise.all([
+      pointLayer("usfs", DEFAULT_ENDPOINTS.usfsRecSites, "site_name", "site_subtype='TRAILHEAD'", BOX, deps),
+      pointLayer(
         "usfs",
         DEFAULT_ENDPOINTS.usfsRecSites,
         "site_name",
-        "site_subtype='TRAILHEAD'",
+        "site_subtype LIKE '%BOAT%'",
         BOX,
         deps,
       ),
+    ]);
+    got.set("usfs", trailheads);
+    // Their own ids: a boating site and a trailhead never share a place's id, whatever the layer's.
+    raw.push(
+      ...boating.map((b): RawLaunch => ({
+        id: b.id.replace(/^usfs:/, "usfs:boat:"),
+        ll: b.ll,
+        src: "usfs",
+        name: b.name,
+      })),
     );
   } catch (e) {
     keep("usfs", e);
@@ -442,7 +651,21 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
     parking = deps.previous.places.filter((p): p is BakedParking => p.kind === "parking");
   }
 
-  const all: Place[] = [...[...got.values()].flat(), ...parking];
+  // Each launch on its water (NHD); NHD not answering keeps the previous bake's launches of the sources that answered.
+  let launches: BakedLaunch[];
+  try {
+    launches = await classifyAll(raw, deps);
+  } catch (e) {
+    if (!deps.previous) throw e;
+    failed.push("launch classification (NHD)");
+    log(`launches: ${String(e)}; keeping the previous bake's`);
+    const fresh = new Set(raw.map((l) => l.src));
+    launches = deps.previous.places.filter(
+      (p): p is BakedLaunch => p.kind === "launch" && fresh.has(p.src as RawLaunch["src"]),
+    );
+  }
+
+  const all: Place[] = [...[...got.values()].flat(), ...parking, ...launches];
   const byFile = new Map<string, Place[]>();
   for (const p of all) {
     const key = `${FOLDER_OF[p.src]}/${cellOf(p.ll)}`;

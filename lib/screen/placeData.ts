@@ -1,6 +1,6 @@
 /**
  * The baked places (roadmap step 14d, docs/plans/step-14d-places.md §2): groceries, trailheads and their parking, and
- * (from PR 3) paddle launches, for VA, NC and TN plus 60 km, in 1° cells under `public/places/v1/`. Two folders, one per
+ * paddle launches, for VA, NC and TN plus 60 km, in 1° cells under `public/places/v1/`. Two folders, one per
  * licence: `osm/` (OpenStreetMap, ODbL) and `official/` (USFS and the states). No published file mixes them; the near
  * step merges them per grade (§2.3). Pure data and arithmetic: the worker fetches the cells, Node reads them.
  */
@@ -80,11 +80,34 @@ const ParkingSchema = z.strictObject({
   hiking: z.literal(true).optional(),
 });
 
-export const PlaceSchema = z.discriminatedUnion("kind", [GrocerSchema, TrailheadSchema, ParkingSchema]);
+/**
+ * A paddle launch (step 14d plan §2.4): OSM's slipways, put-ins and access points, and USFS's boating sites, each
+ * classified at bake time from NHD: flatwater when within paddling.flatwaterWithinM of a lake, pond or reservoir of at
+ * least paddling.flatwaterMinAc, else river (and always river when tagged whitewater).
+ */
+const LaunchSchema = z.strictObject({
+  kind: z.literal("launch"),
+  ...Base,
+  water: z.enum(["flat", "river"]),
+  /** The lake's or the river's NHD name, when it has one. */
+  waterName: z.string().min(1).optional(),
+  /** The lake's acres (flatwater only). */
+  waterAc: z.number().nonnegative().optional(),
+  /** A named paddle trail it's on (an OSM canoe route). */
+  trail: z.string().min(1).optional(),
+});
+
+export const PlaceSchema = z.discriminatedUnion("kind", [
+  GrocerSchema,
+  TrailheadSchema,
+  ParkingSchema,
+  LaunchSchema,
+]);
 export type Place = z.infer<typeof PlaceSchema>;
 export type Grocer = z.infer<typeof GrocerSchema>;
 export type BakedTrailhead = z.infer<typeof TrailheadSchema>;
 export type BakedParking = z.infer<typeof ParkingSchema>;
+export type BakedLaunch = z.infer<typeof LaunchSchema>;
 
 export const PlaceCellSchema = z.strictObject({
   version: z.literal(PLACES_VERSION),

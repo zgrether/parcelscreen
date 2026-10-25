@@ -29,6 +29,8 @@ export interface Question {
    */
   ask?: string;
   second?: { key: keyof InterviewAnswers; ask: string; choices: Choice[] };
+  /** The first row's choice that makes the second moot (step 14d: "Rarely" paddling needs no longest drive). */
+  skipSecondIf?: string;
 }
 
 export const QUESTIONS: readonly Question[] = [
@@ -115,6 +117,29 @@ export const QUESTIONS: readonly Question[] = [
       },
       { id: "none", label: "Not trail people", why: "You said you're not trail people" },
     ],
+  },
+  // Step 14d (docs/plans/step-14d-places.md §4.3): question 4's second screen, as question 14 has two.
+  {
+    key: "paddle",
+    n: 4,
+    scene: "A warm Saturday with nothing planned. A lake and a paddle board, or a kayak?",
+    ask: "How often would you paddle?",
+    choices: [
+      { id: "rarely", label: "Rarely", why: "You'd rarely paddle" },
+      { id: "some", label: "Some weekends", why: "You'd paddle some weekends" },
+      { id: "big", label: "It's a big part of our fun", why: "Paddling is a big part of your fun" },
+    ],
+    second: {
+      key: "paddleDrive",
+      ask: "The longest you'd drive to a launch?",
+      choices: [
+        { id: "m15", label: "15 min", why: "You'd drive up to 15 minutes to a launch" },
+        { id: "m30", label: "30 min", why: "You'd drive up to 30 minutes to a launch" },
+        { id: "m45", label: "45 min", why: "You'd drive up to 45 minutes to a launch" },
+        { id: "m60", label: "An hour", why: "You'd drive up to an hour to a launch" },
+      ],
+    },
+    skipSecondIf: "rarely",
   },
   {
     key: "groceries",

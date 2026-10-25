@@ -1274,4 +1274,18 @@ until step 5 (Q14).
       - the takes' wording ("Julie says Maybe", shared with the print);
       - the polish items listed in the hand-back.
 
+73. **Step 14d: places as data, and paddling** (owner, 2026-10-25; the plan `docs/plans/step-14d-places.md`, #339; built
+    in #340 onwards).
+    - **Baked places** (#340, #341): groceries, trailheads, their parking and the official trailhead lists (USFS, the
+      three states' parks, TREC) are baked monthly into 1° cells under `public/places/v1/` (OSM in `osm/` under the
+      ODbL, the rest in `official/`), and a grade reads them: no Photon, Overpass-places, USFS, state-park or TREC call
+      during a grade. Overpass keeps the roads and power lines. The fixtures read a frozen copy of their cells
+      (`pnpm places:freeze`). ENGINE_VERSION 32 → 33; `ENGINE_CURRENT_FROM` stays 29, so an older grade keeps its places
+      until graded again. The declared numbers change: Ferney's grocery 15 → 16 min, Roan's trailheads 124 → 125.
+    - **Paddling** (PR 3): an optional `paddling` on the result (the drive to the nearest flatwater launch, the nearest
+      river put-ins, a pond of 1 ac or more on the parcel), with SCREEN_SCHEMA_VERSION staying 9: §9.65's exception, as
+      §9.66, §9.70 and §9.71 extended it. ENGINE_VERSION 33 → 34; `ENGINE_CURRENT_FROM` stays 29, and an older grade
+      reads Paddling as not measured. A new factor at weight 0 until placed, with an interview question sharing number 4
+      with Trails (as 14a and 14b share 14).
+
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

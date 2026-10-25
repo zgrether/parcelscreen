@@ -9,6 +9,7 @@ import { climateHeading } from "@/lib/report/climate";
 import { privacyHeading } from "@/lib/report/privacy";
 import { viewHeading } from "@/lib/report/view";
 import { longTrailHeading } from "@/lib/report/longTrail";
+import { paddlingHeading } from "@/lib/report/paddling";
 import { internetHeading } from "@/lib/report/internet";
 import { drivewayHeading } from "@/lib/report/driveway";
 import { gardenHeading } from "@/lib/report/garden";
@@ -26,6 +27,7 @@ import { Climate } from "./blocks/Climate";
 import { Privacy } from "./blocks/Privacy";
 import { LongView } from "./blocks/LongView";
 import { LongTrails } from "./blocks/LongTrails";
+import { Paddling } from "./blocks/Paddling";
 import { Internet } from "./blocks/Internet";
 import { DarkSkies } from "./blocks/DarkSkies";
 import { DecemberSun } from "./blocks/DecemberSun";
@@ -67,5 +69,7 @@ export const REPORT: readonly ReportSection[] = [
   { Block: LongView, heading: () => viewHeading },
   { Block: LongTrails, heading: () => longTrailHeading },
   { Block: Internet, heading: () => internetHeading },
+  // Step 14d: after step 11's.
+  { Block: Paddling, heading: () => paddlingHeading },
   { Block: StillUnknown, heading: () => unknownHeading },
 ];
