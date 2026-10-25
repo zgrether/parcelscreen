@@ -38,7 +38,7 @@ for (const phone of [false, true]) {
       await page.getByRole("tab", { name: "Recent" }).click();
       await page
         .locator(".hist-row", { hasText: name })
-        .getByRole("link", { name: "Open on the map" })
+        .locator(".hist-name") // Z-8: a tap on the name opens it
         .click();
       await expect(page).toHaveURL(/\/explore$/);
       await expect(page.locator(".sh-name").first()).toContainText(name);
