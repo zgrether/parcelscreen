@@ -4603,6 +4603,58 @@ button.cmp-cell:hover {
     min-width: 130px;
   }
 }
+/* P-6 (UX part 2 PR 7c2): on a phone, three parcels fit across: a narrow fixed first column, the names on two lines,
+   each cell's mark over its words, which wrap. Nothing scrolls sideways. */
+@media (max-width: 700px) {
+  .compare-table {
+    table-layout: fixed;
+    width: 100%;
+    font-size: 12.5px;
+  }
+  .compare-table .cmp-first {
+    width: 84px;
+    min-width: 0;
+    max-width: none;
+  }
+  .compare-table thead th {
+    min-width: 0;
+    padding: 6px;
+  }
+  .compare-table thead th:not(.cmp-first) {
+    width: auto;
+  }
+  .cmp-label,
+  .cmp-headline th {
+    padding: 6px !important;
+    overflow-wrap: anywhere;
+  }
+  .cmp-toggle {
+    padding: 6px;
+  }
+  .cmp-cell {
+    flex-wrap: wrap;
+    gap: 2px 3px;
+    padding: 6px;
+    overflow-wrap: anywhere;
+  }
+  .cmp-key {
+    flex-basis: 100%;
+  }
+  .cmp-name {
+    max-width: none;
+    font-size: 14px;
+  }
+  .cmp-name .long-name-text {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .cmp-actions {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+}
 
 /* The household's list (WF2b): a table on desktop, cards on a phone; a parcel's detail slides in at the side. */
 .lib-controls {
@@ -4827,33 +4879,93 @@ button.cmp-cell:hover {
   text-decoration: underline dotted;
   cursor: help;
 }
-/* Step 10b: a phone card's factors on one line, cut off with an ellipsis; the whole of it is in its label. */
-.lib-strip {
-  margin-top: 4px;
-  overflow: hidden;
+/* Z-7 (UX part 2 PR 7c2): the phone card's top factors as chips, the mark or letter first; a failing Must in red. */
+.lib-fchips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 2px;
+}
+.lib-fchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px 1px 3px;
+  border: 1px solid var(--color-rule);
+  border-radius: 12px;
+  background: #fff;
+  font-size: 12.5px;
   white-space: nowrap;
-  text-overflow: ellipsis;
+}
+.lib-fchip.m-fail {
+  border-color: var(--color-steep);
+  color: var(--color-steep);
+}
+.lib-fchip.m-warn {
+  border-color: var(--color-warn);
+}
+.lib-fchip .card-grade.tiny {
+  min-width: 18px;
+  height: 18px;
+  font-size: 12px;
+  border-radius: 9px;
+}
+.lib-card-money {
+  font-variant-numeric: tabular-nums;
+}
+/* The Compare tick on the card's right, with its word under it, 44 px. */
+.lib-card-cmp {
+  grid-column: -2 / -1;
+  grid-row: 1;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 52px;
+  min-height: 44px;
   color: var(--color-ink-2);
-  font-size: 13px;
+  font-size: 11px;
+  cursor: pointer;
 }
-.lib-strip-mark {
-  font-weight: 700;
+.lib-card-cmp input {
+  width: 22px;
+  height: 22px;
+  margin: 0;
 }
-.lib-strip-mark.m-pass {
-  color: var(--color-ok);
+/* "?" beside the heading: a phone's legend; a desktop has it under the grid. */
+.lib-legend-btn {
+  display: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -8px 0 -8px 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink-2);
+  font: 600 15px var(--font-sans);
+  vertical-align: middle;
+  cursor: pointer;
 }
-.lib-strip-mark.m-warn {
-  color: var(--color-warn);
+.lib-legend-top {
+  display: none;
+  margin: 0 0 8px;
 }
-.lib-strip-mark.m-fail {
-  color: var(--color-steep);
-}
-.lib-strip-grade {
-  color: var(--color-ink);
-}
-.lib-strip-grade.g-D,
-.lib-strip-grade.g-F {
-  color: var(--color-steep);
+@media (max-width: 700px) {
+  .lib-legend-btn {
+    display: inline-grid;
+  }
+  .lib-legend-btn[aria-expanded="true"] {
+    color: var(--color-ink);
+  }
+  .lib-legend-top {
+    display: block;
+  }
+  .lib-legend-foot {
+    display: none;
+  }
 }
 .lib-columns {
   position: relative;
@@ -4967,7 +5079,8 @@ button.cmp-cell:hover {
 }
 .lib-card {
   display: grid;
-  gap: 3px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 3px 6px;
   padding: 10px 12px;
   border: 1px solid var(--color-rule);
   border-radius: 8px;
@@ -5059,7 +5172,7 @@ button.cmp-cell:hover {
   cursor: grabbing;
 }
 .lib-card-ordered {
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: start;
   column-gap: 6px;
   padding-left: 4px;
@@ -5069,6 +5182,7 @@ button.cmp-cell:hover {
   gap: 3px;
   min-width: 0;
 }
+.lib-card-head,
 .lib-card-ordered .lib-card-head {
   grid-template-columns: auto minmax(0, 1fr) auto auto;
 }
@@ -7443,11 +7557,6 @@ button.use-row[aria-expanded="true"] .use-name::after {
   .lib-card .lib-handle {
     min-height: 44px;
     min-width: 44px;
-  }
-  .lib-card-head input[type="checkbox"] {
-    width: 24px;
-    height: 24px;
-    margin: 10px;
   }
 }
 /* A phone with Search's results open: the toolbar's hint, the switch toast and the map's hint step aside, so nothing

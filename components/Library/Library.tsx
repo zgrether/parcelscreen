@@ -75,7 +75,7 @@ import { VERDICT_WORD, type Verdict } from "@/lib/report/card";
 import type { NamedRubric } from "@/lib/rubric/types";
 import { LibraryControls } from "./LibraryControls";
 import { bestIn, cellOf, gridColumns, type GridColumn } from "@/lib/client/gridColumns";
-import type { FactorCell } from "@/lib/report/factorCells";
+import { cardChips, type FactorCell } from "@/lib/report/factorCells";
 import { GATE_MARK } from "@/lib/report/cardLines";
 import { addedByLine } from "@/components/Household/AddedBy";
 import { RescreenAll } from "./RescreenAll";
@@ -154,6 +154,9 @@ export function Library() {
   const hidden = hiddenBy(rows, view.filters);
   // Step 10b: the grid's columns, from the favorites, without the ones the person hid (Columns ▾).
   const columns = gridColumns(rows, view.columns.hidden, hasStatus);
+  // The marks' legend (Z-7): under the grid on a desktop; behind "?" on a phone.
+  const marked = tab === "favorites" && columns.all.some((c) => c.kind === "factor");
+  const [legendOpen, setLegendOpen] = useState(false);
   const shown = sortRows(
     rows.filter((r) => passes(r, view.filters)),
     view.sort,
@@ -262,8 +265,24 @@ export function Library() {
     <>
       <main className="compare library">
         <header className="compare-head">
-          <h1>Your list</h1>
+          <h1>
+            Your list
+            {/* Z-7 (UX part 2 PR 7c2): on a phone, what the marks mean is behind "?"; a desktop has it under the list. */}
+            {marked && (
+              <button
+                type="button"
+                className="lib-legend-btn"
+                aria-expanded={legendOpen}
+                aria-label={CARD_WORDS.legend}
+                title={CARD_WORDS.legend}
+                onClick={() => setLegendOpen((o) => !o)}
+              >
+                ?
+              </button>
+            )}
+          </h1>
         </header>
+        {marked && legendOpen && <p className="tiny muted lib-legend lib-legend-top">{LEGEND}</p>}
         {/* Step 8 (plan §5): the Shortlist first; the choice is remembered with the view. UX part 2 PR 7a (P-5): Ruled
             out is its own view, and each says how many it holds. */}
         <div className="list-switch" role="tablist" aria-label="Shortlist, Recent or Ruled out">
@@ -344,9 +363,7 @@ export function Library() {
                   <LibraryCards {...rowsProps} />
                 </SortableRows>
                 {/* The fresh-eyes review (step 10b): what the marks mean, said once under the list. */}
-                {columns.all.some((c) => c.kind === "factor") && (
-                  <p className="tiny muted lib-legend">{LEGEND}</p>
-                )}
+                {marked && <p className="tiny muted lib-legend lib-legend-foot">{LEGEND}</p>}
               </>
             )}
             <p className="sr-only" role="status">
@@ -507,6 +524,16 @@ function Grades({ r }: { r: LibraryRow }) {
     <span className="lib-grades">
       {others.length > 0 && <span className="tiny muted lib-you">You</span>}
       <Grade g={mine?.graded ?? null} unscreened={r.unscreened} />
+      <OtherGrades r={r} />
+    </span>
+  );
+}
+
+/** Each other member's grade, take and note (the grid's Grades cell after the person's own; the phone card's line). */
+function OtherGrades({ r }: { r: LibraryRow }) {
+  const others = r.grades.slice(1);
+  return (
+    <>
       {others.map((g) => (
         <span key={g.id} className="lib-other-grade" title={`${g.name}'s grade`}>
           <span className="tiny muted">· {g.name}</span>
@@ -536,7 +563,7 @@ function Grades({ r }: { r: LibraryRow }) {
           )}
         </span>
       ))}
-    </span>
+    </>
   );
 }
 
@@ -817,38 +844,43 @@ function LibraryCards({ rows, rubrics, ...rest }: RowsProps) {
   );
 }
 
+/** The phone card's words (Z-7, UX part 2 PR 7c2). */
+export const CARD_WORDS = {
+  compare: "Compare",
+  noPrice: "no price",
+  noBuild: "build not priced",
+  legend: "What the marks mean",
+};
+
+/** The phone card's money line (Z-7): price · $/ac · build cost. */
+const moneyLine = (r: LibraryRow): string =>
+  [
+    r.price !== null ? shortPrice(r.price) : CARD_WORDS.noPrice,
+    // Step 10b: the price per acre, marked ≠ when the listing's and the boundary's acres differ.
+    r.perAcre ? `${r.perAcre.text}${r.perAcre.differs ? " ≠" : ""}` : null,
+    r.costBuild ? `build ${costCell(r)}` : CARD_WORDS.noBuild,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
 /**
- * A phone card's factors (step 10b plan §2): one line in the rubric's order, the Musts first as their marks alone
- * ("✓✓✓!"; a limit that's ranked too keeps its name and letter, "Elev ✓A"), then the letters with short names ("Sun
- * A · Sky B"), cut off with an ellipsis. The whole of it, each with its full name, is in its label.
+ * The phone card's chips (Z-7): the person's top four factors (factorCells.ts cardChips), each its mark or letter and
+ * its short name; a failing Must in red. The whole of it, each with its full name, is in its label.
  */
-function FactorStrip({ r }: { r: LibraryRow }) {
-  if (!r.factors.length) return null;
-  const label = r.factors.map((c) => `${c.title} ${c.text}`).join("; ");
-  // The fresh-eyes review: a pass is a bare ✓; a Must that isn't a pass keeps its name ("Septic !").
-  const marksOnly = r.factors.filter(
-    (c) => c.kind === "must" && c.grade === undefined && c.status === "pass",
-  );
-  const named = r.factors.filter((c) => !marksOnly.includes(c));
-  const mark = (c: FactorCell) =>
-    c.status && <span className={`lib-strip-mark m-${c.status}`}>{GATE_MARK[c.status]}</span>;
+function CardChips({ r }: { r: LibraryRow }) {
+  const chips = cardChips(r.factors);
+  if (!chips.length) return null;
+  const label = chips.map((c) => `${c.title} ${c.text}`).join("; ");
   return (
-    <div className="tiny lib-strip" aria-label={label} title={label}>
-      {marksOnly.length > 0 && (
-        <span className="lib-strip-item" aria-hidden="true">
-          {marksOnly.map((c) => (
-            <Fragment key={c.key}>{mark(c)}</Fragment>
-          ))}
-        </span>
-      )}
-      {named.map((c, i) => (
-        <span key={c.key} className="lib-strip-item" aria-hidden="true">
-          {(i > 0 || marksOnly.length > 0) && <span className="muted"> · </span>}
-          {c.short} {c.kind === "must" && mark(c)}
-          {c.grade !== undefined && (
-            <b className={`lib-strip-grade g-${c.grade ?? "none"}`}>{c.grade ?? "–"}</b>
+    <div className="lib-fchips" aria-label={label} title={label}>
+      {chips.map((c) => (
+        <span key={c.key} className={`lib-fchip${c.status ? ` m-${c.status}` : ""}`} aria-hidden="true">
+          {c.kind === "must" && c.status && c.grade === undefined ? (
+            <span className={`lib-mark m-${c.status}`}>{GATE_MARK[c.status]}</span>
+          ) : (
+            <span className={`card-grade tiny g-${c.grade ?? "none"}`}>{c.grade ?? "–"}</span>
           )}
-          {c.setAside && <span className="muted">–</span>}
+          {c.short}
           {c.adjusted && <span className="adjusted-mark">✎</span>}
         </span>
       ))}
@@ -870,6 +902,8 @@ function Card({ r, index, count, ticked, toggle, open, ordering, mover, star, un
         <div className="lib-card-head">
           {star(r)}
           <LongName name={r.name} className="lib-open" />
+          {/* Z-7 (UX part 2 PR 7c2): the first line is the name, the verdict and the letter. */}
+          <Grade g={r.grades[0]?.graded ?? null} unscreened={r.unscreened} />
           <RowMenu
             name={r.name}
             index={index}
@@ -878,39 +912,29 @@ function Card({ r, index, count, ticked, toggle, open, ordering, mover, star, un
             remove={() => unstar(r)}
             report={graded(r) ? () => report(r.key) : undefined}
           />
-          <input
-            {...ownClick}
-            type="checkbox"
-            aria-label={`Compare ${r.name}`}
-            checked={ticked.has(r.key)}
-            disabled={!ticked.has(r.key) && ticked.size >= COMPARE_MAX}
-            title={!ticked.has(r.key) && ticked.size >= COMPARE_MAX ? COMPARE_FULL : COMPARE_HOW}
-            onChange={() => toggle(r.key)}
-          />
         </div>
+        {r.grades.length > 1 && (
+          <div className="lib-chips lib-card-others">
+            <OtherGrades r={r} />
+          </div>
+        )}
         {r.ask && <AskNote ask={r.ask} />}
         {/* Polish: an active favorite with no milestone has nothing to say here; no lone "–". */}
         {(STATUS_WORD[r.status] || milestonesLine(r)) && <div className="tiny">{statusCell(r)}</div>}
-        <div className="tiny muted lib-card-facts">
-          {[
-            r.acres !== null ? `${r.acres.toFixed(1)} ac` : null,
-            r.price !== null ? shortPrice(r.price) : null,
-            // Step 10b: the price per acre, after the price.
-            r.perAcre ? `${r.perAcre.text}${r.perAcre.differs ? " ≠" : ""}` : null,
-            r.costBuild ? `build ${costCell(r)}` : null,
-          ]
-            .filter(Boolean)
-            .map((t) => `${t} · `)
-            .join("")}
-          <State r={r} />
-        </div>
-        <div className="lib-chips">
-          <span className="lib-chip">
-            <Grades r={r} />
-          </span>
-        </div>
-        <FactorStrip r={r} />
+        <div className="tiny lib-card-money">{moneyLine(r)}</div>
+        <CardChips r={r} />
       </div>
+      <label className="lib-card-cmp" {...ownClick}>
+        <input
+          type="checkbox"
+          aria-label={`Compare ${r.name}`}
+          checked={ticked.has(r.key)}
+          disabled={!ticked.has(r.key) && ticked.size >= COMPARE_MAX}
+          title={!ticked.has(r.key) && ticked.size >= COMPARE_MAX ? COMPARE_FULL : COMPARE_HOW}
+          onChange={() => toggle(r.key)}
+        />
+        <span aria-hidden="true">{CARD_WORDS.compare}</span>
+      </label>
     </li>
   );
 }

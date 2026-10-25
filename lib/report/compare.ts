@@ -15,7 +15,7 @@ import type { ScreenResult } from "../screen/types";
 import { reportCard, VERDICT_WORD, type Card, type GateStatus, type Letter, type NamedRubric } from "./card";
 import type { Drawn } from "./marks";
 import type { PanelKey } from "./cardPanels";
-import { EDITOR_TITLES } from "../rubric/words";
+import { EDITOR_TITLES, TIER_NAMES, tierOf } from "../rubric/words";
 import { BUDGET_SITS, budgetStatusOf, COST_WORDS } from "./cost";
 import { estimateRange } from "./costLines";
 import { perAcre } from "./perAcre";
@@ -59,7 +59,7 @@ export interface CompareRow {
 }
 
 export interface CompareGroup {
-  key: "costs" | "budget" | "dealbreakers" | "cantAdd";
+  key: "costs" | "budget" | "dealbreakers" | "cantAdd" | "niceToHave";
   label: string;
   rows: CompareRow[];
 }
@@ -240,6 +240,8 @@ export function compareTable(parcels: readonly CompareParcel[], rubric: NamedRub
       (order.indexOf(a) + 1 || ROW_KEYS.indexOf(a) + 100) -
       (order.indexOf(b) + 1 || ROW_KEYS.indexOf(b) + 100),
   );
+  // Every column is graded with the one rubric: each row in its tier.
+  const tierOfRow = (r: CompareRow) => tierOf(rubric.rubric, r.key as RowKey);
   const rowLines: CompareRow[] = rowKeys
     .filter((k) => k !== "budget")
     .map((k) => {
@@ -273,28 +275,38 @@ export function compareTable(parcels: readonly CompareParcel[], rubric: NamedRub
   return {
     cards,
     head,
-    groups: [
-      {
-        key: "costs",
-        label: "Costs",
-        rows: [asking, perAcreRow, costRow("camp"), costRow("build")],
-      },
-      {
-        key: "budget",
-        label: "Budget",
-        rows: budgetRows.length
-          ? budgetRows
-          : [
-              {
-                key: "budget-none",
-                label: "No budget given",
-                cells: parcels.map((p, i) => (cards[i] ? { text: "–", mark: null, panel: null } : blank(p))),
-              },
-            ],
-      },
-      { key: "dealbreakers", label: "Must have", rows: gateRows },
-      { key: "cantAdd", label: "Really want", rows: rowLines },
-    ],
+    groups: (
+      [
+        {
+          key: "costs",
+          label: "Costs",
+          rows: [asking, perAcreRow, costRow("camp"), costRow("build")],
+        },
+        {
+          key: "budget",
+          label: "Budget",
+          rows: budgetRows.length
+            ? budgetRows
+            : [
+                {
+                  key: "budget-none",
+                  label: "No budget given",
+                  cells: parcels.map((p, i) =>
+                    cards[i] ? { text: "–", mark: null, panel: null } : blank(p),
+                  ),
+                },
+              ],
+        },
+        { key: "dealbreakers", label: TIER_NAMES.must, rows: gateRows },
+        // P-6 (UX part 2 PR 7c2): the card's own tiers, Really want then Nice to have; an empty tier has no section.
+        { key: "cantAdd", label: TIER_NAMES.should, rows: rowLines.filter((r) => tierOfRow(r) !== "could") },
+        {
+          key: "niceToHave",
+          label: TIER_NAMES.could,
+          rows: rowLines.filter((r) => tierOfRow(r) === "could"),
+        },
+      ] satisfies CompareGroup[]
+    ).filter((g) => g.rows.length > 0),
   };
 }
 
