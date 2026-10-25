@@ -205,14 +205,11 @@ test.describe("on a phone", () => {
       clientY: 50,
     });
     await expect(page.getByRole("tooltip")).toHaveText(MACKS_NAME);
-    // The state's county on a long press too.
-    await page
-      .locator(".lib-card", { hasText: "parcel 35-3" })
-      .locator(".lib-state")
-      .dispatchEvent("pointerdown", { pointerType: "touch", isPrimary: true, clientX: 60, clientY: 60 });
-    await expect(page.getByRole("tooltip")).toHaveText("Floyd County");
+    // A tap elsewhere closes it.
+    await page.getByRole("heading", { name: "Your list" }).tap({ position: { x: 4, y: 4 } });
+    await expect(page.getByRole("tooltip")).toHaveCount(0);
     // A tap anywhere on the card opens it on the map, with the one panel (Z-2).
-    await page.locator(".lib-card", { hasText: "parcel 35-3" }).locator(".lib-card-facts").tap();
+    await page.locator(".lib-card", { hasText: "parcel 35-3" }).locator(".lib-card-money").tap();
     await expect(page).toHaveURL(/\/explore$/);
     await expect(page.locator(".sh-name").first()).toContainText("35-3");
   });

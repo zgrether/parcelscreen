@@ -203,3 +203,26 @@ describe("the columns the table starts with (owner, #117 review)", () => {
     expect(dates(rest)).toEqual(sortedDesc(dates(rest)));
   });
 });
+
+describe("Compare's sections are the card's tiers (P-6, UX part 2 PR 7c2)", () => {
+  it("rows ranked Nice to have get their own section after Really want; no empty section", () => {
+    const could = new Set(["hospital", "garden"]);
+    const person = {
+      ...ZACH,
+      rubric: {
+        ...ZACH.rubric,
+        ranked: ZACH.rubric.ranked.map((c) => (could.has(c.factor) ? { ...c, tier: "could" as const } : c)),
+      },
+    };
+    const t = compareTable([parcel("ferney-creek-52-47A"), parcel("macks-mountain-35-3")], person);
+    expect(t.groups.map((g) => g.label)).toEqual([
+      "Costs",
+      "Budget",
+      "Must have",
+      "Really want",
+      "Nice to have",
+    ]);
+    expect(t.groups[4]!.rows.map((r) => r.key).sort()).toEqual(["garden", "hospital"]);
+    expect(t.groups[3]!.rows.some((r) => could.has(r.key))).toBe(false);
+  });
+});

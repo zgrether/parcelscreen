@@ -40,11 +40,12 @@ import type { PanelKey } from "@/lib/report/cardPanels";
 import { compareTable, type Cell, type CompareParcel } from "@/lib/report/compare";
 import { ADJUSTED_TITLE } from "@/lib/report/adjustWords";
 
-const STATUS: Record<NonNullable<Cell["status"]>, { mark: string; word: string }> = {
-  pass: { mark: "✓", word: "Pass" },
-  warn: { mark: "!", word: "Check first" },
-  fail: { mark: "✗", word: "Fail" },
-  unknown: { mark: "?", word: "Unknown" },
+/** A Must's cell (P-6, UX part 2 PR 7c2): the card's own words, "✓ pass", "! check first". */
+export const STATUS: Record<NonNullable<Cell["status"]>, { mark: string; word: string }> = {
+  pass: { mark: "✓", word: "pass" },
+  warn: { mark: "!", word: "check first" },
+  fail: { mark: "✗", word: "fail" },
+  unknown: { mark: "?", word: "not known" },
 };
 
 export function Compare() {
@@ -246,8 +247,8 @@ export function Compare() {
               </table>
             </div>
             <p className="tiny muted cmp-legend">
-              ✓ pass · ! warning · ✗ fail · ? unknown &nbsp; ↑ best in its row · ↓ worst in its row. Costs and
-              the budget say &ldquo;not yet&rdquo; until the app prices them.
+              ✓ pass · ! check first · ✗ fail · ? not known &nbsp; ↑ best in its row · ↓ worst in its row.
+              Costs and the budget say &ldquo;not yet&rdquo; until the app prices them.
             </p>
             {addable.length > 0 && (
               <label className="cmp-add">

@@ -66,7 +66,10 @@ test("a header sorts and turns around; Columns ▾ hides a factor and remembers 
 test.describe("on a phone", () => {
   test.use({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true });
 
-  test("each card has its factor strip; the Sort menu sorts by a factor", async ({ page, context }) => {
+  test("each card has three lines and its top factors as chips; the legend behind ?; the Sort menu sorts by a factor", async ({
+    page,
+    context,
+  }) => {
     test.setTimeout(180_000);
     await replayHar(context, "ferney-creek-52-47A");
     await openExplorer(page, "ferney-creek-52-47A");
@@ -77,10 +80,16 @@ test.describe("on a phone", () => {
     await page.getByRole("tab", { name: "Shortlist" }).click();
     const cards = page.locator(".lib-cards .lib-card");
     await expect(cards).toHaveCount(3);
-    // The Musts first, as their marks alone; then the letters with short names, in the rubric's order.
-    const strip = cards.filter({ hasText: "Mud Creek" }).locator(".lib-strip");
-    await expect(strip).toHaveText(/^✓✓✓ · Septic ! · Elev A · Sun A · Room B · Sky A/);
-    await expect(strip).toHaveAttribute("aria-label", /^Floodplain ✓; Legal road access ✓;/);
+    // Z-7 (UX part 2 PR 7c2): three lines; the top four factors as chips, a Must that isn't a pass first.
+    const mud = cards.filter({ hasText: "Mud Creek" });
+    const chips = mud.locator(".lib-fchip");
+    await expect(chips).toHaveText(["!Septic", "AElev", "ASun", "BRoom"]);
+    await expect(mud.locator(".lib-fchips")).toHaveAttribute("aria-label", /^Septic !; /);
+    await expect(mud.locator(".lib-card-money")).toHaveText(/ · build \$\d/);
+    // What the marks mean is behind "?".
+    await expect(page.locator(".lib-legend-foot")).toBeHidden();
+    await page.getByRole("button", { name: "What the marks mean" }).click();
+    await expect(page.locator(".lib-legend-top")).toContainText("✓ pass · ! check first");
     // No grid controls on a phone.
     await expect(page.getByRole("button", { name: "Columns ▾" })).toBeHidden();
     // Sort by a factor, best first: Mud Creek's A sky leads.
