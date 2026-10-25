@@ -46,6 +46,36 @@ test("Julie joins: Who's this? → I'm new here → her name; one list, and who 
   // The current profile stays per device: Julie's reload opens as her.
   await reload(julie);
   await expect((await openMenu(julie)).locator(".profile-btn-name")).toHaveText("Julie");
+
+  // UX part 2 PR 5 (P-8): Household, its own item in the menu, lists the members; Rename names Zach's profile.
+  await julie.getByRole("dialog", { name: "Menu" }).getByRole("button", { name: "Household" }).click();
+  const household = julie.getByRole("dialog", { name: "Household" });
+  const members = household.getByRole("list", { name: "Members" });
+  await expect(members).toContainText("Julie (you)");
+  await members
+    .getByRole("listitem")
+    .filter({ hasText: "Profile 1" })
+    .getByRole("button", { name: "Rename" })
+    .click();
+  await household.getByLabel("New name for Profile 1").fill("Zach");
+  await household.getByRole("button", { name: "Save" }).click();
+  await expect(members).toContainText("Zach");
+  await household.getByRole("button", { name: "Close" }).click();
+  await julie.getByRole("link", { name: YOUR_LIST }).click();
+  await listRow(julie, "52-47A").locator(".lib-open").click();
+  await julie.getByRole("tab", { name: "Details" }).click();
+  await expect(julie.locator(".parcel-details")).toContainText("Added by Zach");
+});
+
+test("alone, a kept parcel's Ask someone opens Household (P-8)", async ({ page }) => {
+  await openExplorer(page, FERNEY);
+  await importParcels(page, [FERNEY]);
+  await page.getByRole("link", { name: YOUR_LIST }).click();
+  await listRow(page, "52-47A").locator(".lib-open").click();
+  await page.locator(".sh-acts").getByRole("button", { name: "Ask someone" }).click();
+  const household = page.getByRole("dialog", { name: "Household" });
+  await expect(household).toBeVisible();
+  await expect(household).toContainText("It's just you so far.");
 });
 
 test("the clean break: a profile's own list from before step 6 goes, and the menu says so once", async ({

@@ -148,7 +148,7 @@ function FullInterview() {
     return () => window.removeEventListener("keydown", onKey);
   }, [iv]);
 
-  if (iv.doc.state === "new") return <NameScreen begin={iv.begin} notNow={notNow} />;
+  if (iv.doc.state === "new") return <NameScreen begin={iv.begin} />;
 
   if (step.kind === "result")
     return (
@@ -255,9 +255,9 @@ function StepView({
 
 /**
  * A new profile's first screen: its name, then question 1. Polish #30: the name is asked for, so no profile is left as
- * "Profile 1" by a Continue; Not now still puts the whole interview off.
+ * "Profile 1" by a Continue. UX part 2 PR 5 (P-8): it has no Not now, so nobody is; the questions after it keep theirs.
  */
-function NameScreen({ begin, notNow }: { begin(): void; notNow(): void }) {
+function NameScreen({ begin }: { begin(): void }) {
   const [name, setName] = useState("");
   const [synced] = useState(() => readSyncState() !== null);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -297,11 +297,8 @@ function NameScreen({ begin, notNow }: { begin(): void; notNow(): void }) {
       </form>
       {/* A device not synced yet may belong to someone who already uses Parcel Screen: join, don't start anew. */}
       {!synced && <JoinFirst />}
-      <nav className="iv-nav" aria-label="Interview">
-        <button type="button" className="btn secondary" onClick={notNow}>
-          {NOT_NOW}
-        </button>
-      </nav>
+      {/* P-8 (UX part 2 PR 5): the first run asks one thing, a name, so nobody is "Profile 1": no Not now here; the
+          questions after it keep theirs. */}
     </main>
   );
 }

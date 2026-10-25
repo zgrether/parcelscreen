@@ -7,7 +7,7 @@
  *     it works like a password.
  *   - Joined: "This device is synced.", the indicator's state, Show code, and Stop syncing this device.
  */
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useId, useRef, useState, useSyncExternalStore } from "react";
 import { groupCode, normalizeCode } from "@/lib/sync/code";
 import { initSync, subscribeSync, syncView } from "@/lib/sync/engine";
 import { leaveSync, startSyncing, type Progress } from "@/lib/sync/space";
@@ -46,6 +46,8 @@ type View =
 /** The row in Settings' Your data. */
 export function SyncSection() {
   const dialog = useRef<HTMLDialogElement>(null);
+  // Settings › Your data and Household (UX part 2 PR 5) each hold one: their titles' ids are their own.
+  const titleId = useId();
   const [view, setView] = useState<View>({ kind: "home" });
   const joined = readSyncState() !== null;
   const open = () => {
@@ -64,12 +66,12 @@ export function SyncSection() {
       <dialog
         ref={dialog}
         className="help-dialog sync-dialog"
-        aria-labelledby="sync-title"
+        aria-labelledby={titleId}
         onClick={(e) => e.target === e.currentTarget && view.kind !== "starting" && close()}
         onCancel={(e) => view.kind === "starting" && e.preventDefault()}
       >
         <header className="help-head">
-          <h2 id="sync-title">{SYNC_TITLE}</h2>
+          <h2 id={titleId}>{SYNC_TITLE}</h2>
           {view.kind !== "starting" && (
             <button className="btn secondary small" onClick={close}>
               Close
