@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createHttpClient } from "../http";
-import { PlaceCellSchema, PlacesIndexSchema, type Place } from "../screen/placeData";
+import { PlaceCellSchema, PlacesIndexSchema, type Place, type PlacesIndex } from "../screen/placeData";
 import type { Polygon } from "geojson";
 import {
   areaCells,
@@ -56,7 +56,9 @@ describe("OSM's places", () => {
 });
 
 /** A fake of every source the bake asks: Overpass answers per query, ArcGIS layers by host. */
-function fakeFetch(opts: { usfsFails?: boolean } = {}): typeof fetch {
+function fakeFetch(
+  opts: { usfsFails?: boolean; launch?: boolean; nhd?: () => "ok" | "down" } = {},
+): typeof fetch {
   return async (input, init) => {
     const url = String(input);
     const json = (body: unknown, status = 200) =>
@@ -79,10 +81,17 @@ function fakeFetch(opts: { usfsFails?: boolean } = {}): typeof fetch {
         return json({
           elements: [
             { type: "node", id: 1, lat: 36.6, lon: -81.3, tags: { shop: "supermarket", name: "Food Lion" } },
+            ...(opts.launch
+              ? [{ type: "node", id: 5, lat: 36.55, lon: -81.4, tags: { leisure: "slipway", name: "Fries" } }]
+              : []),
           ],
         });
       return json({ elements: [] });
     }
+    if (url.includes("hydro.nationalmap.gov"))
+      return (opts.nhd?.() ?? "ok") === "down"
+        ? json({}, 504)
+        : json({ type: "FeatureCollection", features: [] });
     const layer = url.split("?")[0]!;
     if (layer.endsWith("/0") || layer.endsWith("/1")) {
       if (opts.usfsFails && url.includes("apps.fs.usda.gov")) return json({}, 500);
@@ -193,6 +202,42 @@ describe("bakePlaces", () => {
         today: "2026-10-25",
       }),
     ).rejects.toThrow(/usfs didn't answer/);
+  });
+});
+
+describe("bakePlaces' launches and NHD (10/25: a 504 lost every launch)", () => {
+  const bake = (nhd: () => "ok" | "down", previous?: { index: PlacesIndex; places: Place[] }) =>
+    bakePlaces({
+      http: http(fakeFetch({ launch: true, nhd })),
+      overpass: ["https://o.test/api/interpreter"],
+      today: "2026-10-25",
+      sleep: async () => {},
+      ...(previous ? { previous } : {}),
+    });
+  const launchIn = (cells: { places: Place[] }[]) =>
+    cells.flatMap((c) => c.places).find((p) => p.id === "osm:node/5");
+
+  it("asks NHD again after a 504, and classifies the launch", async () => {
+    let calls = 0;
+    const { cells } = await bake(() => (++calls <= 2 ? "down" : "ok"));
+    expect(launchIn(cells)).toMatchObject({ kind: "launch", name: "Fries", water: "river" });
+    expect(calls).toBeGreaterThan(2);
+  });
+
+  it("a batch NHD never answers keeps the previous bake's launches; the rest of the bake goes on", async () => {
+    const first = await bake(() => "ok");
+    const again = await bake(() => "down", {
+      index: first.index,
+      places: first.cells.flatMap((c) => c.places),
+    });
+    expect(launchIn(again.cells)).toEqual(launchIn(first.cells));
+    expect(again.cells.flatMap((c) => c.places).some((p) => p.id === "osm:node/1")).toBe(true);
+  });
+
+  it("with no previous bake, a batch NHD never answers is left out until the next bake", async () => {
+    const { cells } = await bake(() => "down");
+    expect(launchIn(cells)).toBeUndefined();
+    expect(cells.flatMap((c) => c.places).some((p) => p.id === "osm:node/1")).toBe(true);
   });
 });
 

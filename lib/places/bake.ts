@@ -48,6 +48,8 @@ export interface BakeDeps {
   /** The previous bake, for a source that doesn't answer. */
   previous?: { index: PlacesIndex; places: Place[] };
   log?: (line: string) => void;
+  /** Waits between retries (tests pass a no-op). */
+  sleep?: (ms: number) => Promise<void>;
 }
 
 export interface Bake {
@@ -342,23 +344,71 @@ function lineOfMulti(g: MultiLineString): LineString {
   return { type: "LineString", coordinates: g.coordinates.flat() };
 }
 
-/** Every launch classified, a cell's launches per pair of NHD queries. */
-async function classifyAll(raw: readonly RawLaunch[], deps: BakeDeps): Promise<BakedLaunch[]> {
+/** Launches per pair of NHD queries: a whole cell's buffers at once timed NHD out (a 504, 10/25). */
+const NHD_BATCH = 25;
+/** The waits before each retry of an NHD query that failed (a 5xx or a timeout). */
+const NHD_RETRY_MS = [15_000, 45_000, 90_000];
+
+/** `nhdNear`, retried on a failure after each of NHD_RETRY_MS. */
+async function nhdNearRetried(...args: Parameters<typeof nhdNear>): Promise<NhdFeature[]> {
+  const deps = args[4];
+  const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await nhdNear(...args);
+    } catch (e) {
+      if (attempt >= NHD_RETRY_MS.length) throw e;
+      deps.log?.(`launches: ${String(e)}; again in ${NHD_RETRY_MS[attempt]! / 1000} s`);
+      await sleep(NHD_RETRY_MS[attempt]!);
+    }
+  }
+}
+
+/**
+ * Every launch classified, NHD_BATCH launches per pair of NHD queries. A batch NHD won't answer keeps the previous
+ * bake's launches of the same ids, and is otherwise left out until the next bake; the cells it was in are returned.
+ */
+async function classifyAll(
+  raw: readonly RawLaunch[],
+  deps: BakeDeps,
+): Promise<{ launches: BakedLaunch[]; unanswered: string[] }> {
   const P = SCREEN_CONSTANTS.paddling;
   const byCell = new Map<string, RawLaunch[]>();
   for (const l of raw) byCell.set(cellOf(l.ll), [...(byCell.get(cellOf(l.ll)) ?? []), l]);
-  const out: BakedLaunch[] = [];
+  const before = new Map(
+    (deps.previous?.places ?? []).flatMap((p) => (p.kind === "launch" ? [[p.id, p] as const] : [])),
+  );
+  const launches: BakedLaunch[] = [];
+  const unanswered = new Set<string>();
   let n = 0;
-  for (const [cell, launches] of byCell) {
-    const pts = launches.map((l) => l.ll);
-    const [bodies, lines] = await Promise.all([
-      nhdNear(DEFAULT_ENDPOINTS.nhdWaterbody, pts, P.flatwaterWithinM, "GNIS_NAME,FTYPE,AREASQKM", deps),
-      nhdNear(DEFAULT_ENDPOINTS.nhd, pts, P.riverWithinM, "GNIS_NAME", deps),
-    ]);
-    out.push(...classifyLaunches(launches, bodies, lines));
-    deps.log?.(`launches: cell ${cell} (${++n} of ${byCell.size}), ${launches.length} classified`);
+  for (const [cell, inCell] of byCell) {
+    for (let i = 0; i < inCell.length; i += NHD_BATCH) {
+      const batch = inCell.slice(i, i + NHD_BATCH);
+      const pts = batch.map((l) => l.ll);
+      try {
+        const [bodies, lines] = await Promise.all([
+          nhdNearRetried(
+            DEFAULT_ENDPOINTS.nhdWaterbody,
+            pts,
+            P.flatwaterWithinM,
+            "GNIS_NAME,FTYPE,AREASQKM",
+            deps,
+          ),
+          nhdNearRetried(DEFAULT_ENDPOINTS.nhd, pts, P.riverWithinM, "GNIS_NAME", deps),
+        ]);
+        launches.push(...classifyLaunches(batch, bodies, lines));
+      } catch (e) {
+        unanswered.add(cell);
+        const kept = batch.flatMap((l) => (before.has(l.id) ? [before.get(l.id)!] : []));
+        launches.push(...kept);
+        deps.log?.(
+          `launches: cell ${cell}: ${String(e)}; ${kept.length} of ${batch.length} kept from the previous bake`,
+        );
+      }
+    }
+    deps.log?.(`launches: cell ${cell} (${++n} of ${byCell.size}), ${inCell.length} classified`);
   }
-  return out;
+  return { launches, unanswered: [...unanswered] };
 }
 
 /** The lots within drive.parkingWithinM of any of the trailheads, deduplicated, each with what parkingFor reads. */
@@ -651,19 +701,11 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
     parking = deps.previous.places.filter((p): p is BakedParking => p.kind === "parking");
   }
 
-  // Each launch on its water (NHD); NHD not answering keeps the previous bake's launches of the sources that answered.
-  let launches: BakedLaunch[];
-  try {
-    launches = await classifyAll(raw, deps);
-  } catch (e) {
-    if (!deps.previous) throw e;
-    failed.push("launch classification (NHD)");
-    log(`launches: ${String(e)}; keeping the previous bake's`);
-    const fresh = new Set(raw.map((l) => l.src));
-    launches = deps.previous.places.filter(
-      (p): p is BakedLaunch => p.kind === "launch" && fresh.has(p.src as RawLaunch["src"]),
-    );
-  }
+  // Each launch on its water (NHD), a batch at a time; a batch NHD won't answer keeps the previous bake's.
+  const classified = await classifyAll(raw, deps);
+  const launches = classified.launches;
+  if (classified.unanswered.length)
+    failed.push(`launch classification (NHD) in ${classified.unanswered.length} cells`);
 
   const all: Place[] = [...[...got.values()].flat(), ...parking, ...launches];
   const byFile = new Map<string, Place[]>();
