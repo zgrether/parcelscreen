@@ -4001,6 +4001,58 @@ html:has(.app-nav) .explore {
 .grade-action.sheet .btn.secondary {
   min-height: 44px;
 }
+/* Z-9 (UX part 2 PR 3b): the run's progress in the button's place, a slim bar under the step's words. */
+.grade-progress-line {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 4px 8px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: 500 14px/1.2 var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+}
+.grade-progress-text {
+  display: flex;
+  gap: 6px;
+  min-width: 0;
+  white-space: nowrap;
+}
+.grade-progress-step {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.grade-progress-count {
+  flex: none;
+  color: var(--color-ink-2);
+}
+.grade-progress .steps-more {
+  color: var(--color-water);
+  font-size: 13px;
+}
+.grade-progress-bar {
+  grid-column: 1 / -1;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--color-rule);
+}
+.grade-progress-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--tb-amber);
+  transition: width 0.3s ease;
+}
+.grade-action.sheet.grade-progress {
+  gap: 10px;
+  align-items: center;
+}
 /* A panel's banded scale (value-ranking.md §6.2 (b)): this parcel's band lit, its value under it. */
 .scale {
   display: grid;
