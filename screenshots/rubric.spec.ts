@@ -95,12 +95,14 @@ for (const phone of [false, true]) {
       await handle.focus();
       await page.keyboard.press("Space");
       await expect(handle).toHaveAttribute("aria-pressed", "true");
-      // Each move announced before the next key: the page scrolls with the card, and a key pressed mid-scroll was lost.
+      // Each move announced, and the page's scroll with the card settled, before the next key: a key pressed
+      // mid-scroll was lost on a phone.
       for (const place of [3, 2]) {
         await page.keyboard.press("ArrowUp");
         await expect(page.getByRole("status").filter({ hasText: "Night sky is over" })).toContainText(
           `Really want, place ${place}.`,
         );
+        await page.waitForTimeout(400);
       }
       await page.keyboard.press("Space");
       const notice = page.locator(".rubric-notice");
