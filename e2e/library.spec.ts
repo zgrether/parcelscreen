@@ -52,7 +52,7 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   await expect(page.locator(".lib-table thead")).not.toContainText("Status");
   // The grade from the kept screen, in the profile's own rubric (step 1): a fresh profile holds no other, so there is
   // no Household column and no second grade.
-  await expect(macks.locator(".lib-c-grade")).toHaveText(/^[A-F](Contender|Maybe|Not for us)$/);
+  await expect(macks.locator(".lib-c-grade")).toHaveText(/^(Contender|Maybe|Not for us)[A-F]$/); // J-4: the verdict first
   // Step 10: Cost to build ("$55–195k + land" without a price) is a column once a row has one; step 10b: then a
   // column per factor, the kept dealbreakers first.
   await expect(page.locator(".lib-table thead th")).toContainText([
@@ -77,29 +77,29 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   await page.locator(".back-chip").click();
   await expect(page).toHaveURL(/\/library$/);
 
-  // Hidden by the default view; the Status filter shows it, and the choice outlasts a reload.
+  // UX part 2 PR 7a (P-5): it leaves the Shortlist for Ruled out, which says when and why; Move back returns it.
   await expect(rows).toHaveCount(1);
-  // The list ends saying so (owner, #132): only the status filter hides it, so "Show" brings the archived back.
-  const hiddenLine = page.locator(".lib-hidden");
-  await expect(hiddenLine).toHaveText("1 ruled-out parcel hidden · Show");
-  await hiddenLine.getByRole("button", { name: "Show" }).click();
-  await expect(rows).toHaveCount(2);
-  await expect(hiddenLine).toHaveCount(0);
-  await expect(
-    page.getByRole("button", { name: "Filters · 1 on" }), // the Status filter now includes Archived
-  ).toBeVisible();
-  await expect(rows.filter({ hasText: "parcel 35-3" })).toHaveClass(/lib-archived/);
+  const views = page.getByRole("tablist", { name: "Shortlist, Recent or Ruled out" });
+  await expect(views.getByRole("tab", { name: /^Shortlist/ })).toHaveText("Shortlist 1");
+  await views.getByRole("tab", { name: /^Ruled out/ }).click();
+  const ruled = page.getByRole("list", { name: "Ruled out" });
+  await expect(ruled).toContainText("parcel 35-3");
+  await expect(ruled).toContainText(/Ruled out [A-Z][a-z]{2} \d{1,2}: Price/);
   await reload(page);
-  await expect(page.getByRole("button", { name: "Filters · 1 on" })).toBeVisible();
-  await expect(rows).toHaveCount(2);
+  await expect(ruled).toContainText("parcel 35-3"); // the view outlasts a reload
   expect(
     await page.evaluate(
       () => (JSON.parse(window.__psKv!.getItem("ps.parcels")!) as { built: { status: string }[] }).built,
     ),
   ).toEqual(expect.arrayContaining([expect.objectContaining({ status: "archived" })]));
+  await ruled.getByRole("button", { name: "Move back" }).click();
+  await expect(views.getByRole("tab", { name: /^Ruled out/ })).toHaveText("Ruled out 0");
+  await views.getByRole("tab", { name: /^Shortlist/ }).click();
+  await expect(rows).toHaveCount(2);
+  const hiddenLine = page.locator(".lib-hidden");
 
-  // Hidden by another filter: "2 hidden by filters · Show all", which shows everything.
-  await page.getByRole("button", { name: "Filters · 1 on" }).click();
+  // Hidden by a filter: "2 hidden by filters · Show all", which shows everything.
+  await page.getByRole("button", { name: /^Filters/ }).click();
   await page.getByRole("group", { name: "Milestones" }).getByRole("button", { name: "Walked" }).click();
   await expect(rows).toHaveCount(0);
   await expect(hiddenLine).toHaveText("2 hidden by filters · Show all");
@@ -153,6 +153,13 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   await status.getByRole("button", { name: "Not for us…" }).click();
   await status.getByRole("button", { name: "Rule it out" }).click();
   await expect(status).toContainText("Ruled out");
+  // Macks, moved back above, ruled out again: then every parcel is.
+  await page.locator(".back-chip").click();
+  await macks.click();
+  await page.getByRole("tab", { name: "Details" }).click();
+  await status.getByRole("button", { name: "Not for us…" }).click();
+  await status.getByRole("button", { name: "Rule it out" }).click();
+  await expect(status).toContainText("Ruled out");
   await visit(page, "/");
   await expect(page).toHaveURL(/\/explore$/);
   expect(errors).toEqual([]);
@@ -177,13 +184,17 @@ test.describe("on a phone", () => {
       };
       const m = s.built.find((b) => b.name.includes("35-3"))!;
       m.status = "archived";
-      m.archived = { reason: "Sold", at: "2026-10-14T12:00:00.000Z", from: "inProgress" };
+      // Ruled out from the Shortlist: Move back returns it there.
+      m.archived = { reason: "Sold", at: "2026-10-14T12:00:00.000Z", from: "saved" };
       await window.__psKv!.setItem("ps.parcels", JSON.stringify(s));
     });
     await visit(page, "/library");
     await expect(page.locator(".lib-cards .lib-card")).toHaveCount(1);
-    await expect(page.locator(".lib-hidden")).toHaveText("1 ruled-out parcel hidden · Show");
-    await page.locator(".lib-hidden").getByRole("button", { name: "Show" }).tap();
+    // UX part 2 PR 7a: in Ruled out, with why; Move back returns it to the cards.
+    await page.getByRole("tab", { name: /^Ruled out/ }).tap();
+    await expect(page.getByRole("list", { name: "Ruled out" })).toContainText("Ruled out Oct 14: Sold");
+    await page.getByRole("list", { name: "Ruled out" }).getByRole("button", { name: "Move back" }).tap();
+    await page.getByRole("tab", { name: /^Shortlist/ }).tap();
     await expect(page.locator(".lib-cards .lib-card")).toHaveCount(2);
     await expect(page.locator(".lib-table")).toBeHidden();
     const name = page.locator(".lib-card", { hasText: "parcel 35-3" }).locator(".lib-open");

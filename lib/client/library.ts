@@ -407,7 +407,8 @@ export function sortRows(rows: readonly LibraryRow[], s: LibrarySort): LibraryRo
 // ---------- the remembered view (ps.library) ----------
 
 /** Step 8 (plan §5): Your list's two views, Favorites first. */
-export type ListTab = "favorites" | "history";
+/** UX part 2 PR 7a (P-5): Shortlist, Recent and Ruled out. */
+export type ListTab = "favorites" | "history" | "ruledOut";
 
 export interface LibraryView {
   filters: LibraryFilters;
@@ -426,7 +427,7 @@ export const DEFAULT_VIEW: LibraryView = {
 
 const Choice = z.enum(["Contender", "Maybe", "Pass", "unscreened"]);
 const ViewSchema = z.object({
-  tab: z.enum(["favorites", "history"]).default("favorites"),
+  tab: z.enum(["favorites", "history", "ruledOut"]).default("favorites"),
   filters: z.object({
     status: z.array(z.enum(["inProgress", "saved", "archived"])),
     household: z.array(Choice),

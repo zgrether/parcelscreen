@@ -123,6 +123,11 @@ export interface ExploreState {
    * pieces, one after Try again). The grading hook takes it (scenarioGrading) and runs them one after the other.
    */
   gradeScenario: { id: string; sides: PieceSide[]; serial: number } | null;
+  /**
+   * UX part 2 PR 6 (P-9): a track or drive just finished, by id: the map asks "Use it as the driveway?" about it, once.
+   * Absent or null: nothing to ask.
+   */
+  justDrawn?: string | null;
 }
 
 export const INITIAL: ExploreState = {
@@ -246,6 +251,7 @@ export type ExploreAction =
   | { type: "milestone"; which: Milestone; date: string | null; serial: number; stamp: Stamp }
   /** Follow-up 34: start a drawn line, finish it (at least two points) into the open parcel, edit or delete one. */
   | { type: "startLine"; kind: LineKind }
+  | { type: "justDrawnDone" }
   | { type: "finishLine"; id: string; stamp: Stamp }
   | { type: "markupNote"; id: string; note: string; serial: number; stamp: Stamp }
   /** Owner, #127: a line's name; a blank one is ignored. */
@@ -761,8 +767,16 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
         note: "",
         at: a.stamp.now,
       };
-      return { ...s, ...NO_TOOL, store: save({ ...open, markup: [...open.markup, line] }, a.stamp) };
+      return {
+        ...s,
+        ...NO_TOOL,
+        // An easement isn't a way in to drive: only a track or a drive is offered as the driveway.
+        justDrawn: s.mode === "easement" ? null : a.id,
+        store: save({ ...open, markup: [...open.markup, line] }, a.stamp),
+      };
     }
+    case "justDrawnDone":
+      return s.justDrawn ? { ...s, justDrawn: null } : s;
     case "editLine": {
       const m = open?.markup.find((x) => x.id === a.id);
       if (!m) return s;

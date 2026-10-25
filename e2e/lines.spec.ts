@@ -179,3 +179,61 @@ test.describe("on a phone", () => {
     expect(errors).toEqual([]);
   });
 });
+
+test("at Finish a track asks Use it as the driveway?, with its figures against the limit (P-9)", async ({
+  page,
+  context,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await replayHar(context, [FERNEY]);
+  await openExplorer(page, FERNEY);
+  await importParcel(page, FERNEY);
+  expectAllDone(await screenIt(page));
+  await drawTrack(page);
+  const prompt = page.getByRole("dialog", { name: "Use it as the driveway?" });
+  await expect(prompt).toContainText("Track 1 ·");
+  // Tried at once from the session: its length, average and steepest grade, against the limit. (Use it is step 12's,
+  // which your-route.spec follows; this track has no route from its end, which the next test reads.)
+  await expect(prompt.locator(".finish-head")).toHaveText(
+    /^Track 1 · [\d,]+ ft · avg \d+% · steepest \d+% over 30 m; (within|steeper than) your \d+% limit$/,
+    { timeout: 30_000 },
+  );
+  expect(errors).toEqual([]);
+});
+
+test("a track with no way from its end to the house site stays a line, and says so (P-9)", async ({
+  page,
+  context,
+}) => {
+  await replayHar(context, [FERNEY]);
+  await openExplorer(page, FERNEY);
+  await importParcel(page, FERNEY);
+  expectAllDone(await screenIt(page));
+  await drawTrack(page);
+  const prompt = page.getByRole("dialog", { name: "Use it as the driveway?" });
+  await expect(prompt).toContainText(
+    "The app found no way from its end to the house site, so it stays a line.",
+    {
+      timeout: 30_000,
+    },
+  );
+  await expect(prompt.getByRole("button", { name: "Use it as the driveway" })).toHaveCount(0);
+});
+
+test("Just keep the line: the line stays, the app's pick stays the driveway (P-9)", async ({
+  page,
+  context,
+}) => {
+  await replayHar(context, [FERNEY]);
+  await openExplorer(page, FERNEY);
+  await importParcel(page, FERNEY);
+  expectAllDone(await screenIt(page));
+  await drawTrack(page);
+  const prompt = page.getByRole("dialog", { name: "Use it as the driveway?" });
+  await prompt.getByRole("button", { name: "Just keep the line" }).click();
+  await expect(prompt).toHaveCount(0);
+  const open = () => page.evaluate(() => JSON.parse(window.__psKv!.getItem("ps.parcels")!).open);
+  expect((await open()).drivewayLine).toBeNull();
+  expect((await open()).markup).toHaveLength(1);
+});

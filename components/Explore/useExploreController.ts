@@ -6,6 +6,7 @@
  * and converted.
  */
 import type { Feature, Polygon } from "geojson";
+import { bbox, featureCollection } from "@turf/turf";
 import type { Map as MlMap } from "maplibre-gl";
 import {
   createContext,
@@ -165,6 +166,8 @@ export interface ExploreController {
   finishDraw(): void;
   /** Follow-up 34: draw a track or an easement with the open parcel; Finish (Enter, double-click) keeps it. */
   startLine(kind: LineKind): void;
+  /** UX part 2 PR 6: the Finish prompt answered (or gone): it isn't asked again for that line. */
+  justDrawnDone(): void;
   finishLine(): void;
   saveMarkupNote(id: string, note: string, serial: number): void;
   /** Owner, #127: a line's name (a blank one is ignored). */
@@ -368,6 +371,21 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     setState(latest.current);
   }, []);
   const [map, setMap] = useState<MlMap | null>(null);
+  // UX part 2 PR 6 (P-9): starting a line brings the open parcel into view, when any of it is off the screen.
+  const fitOpen = () => {
+    const open = latest.current.store.open;
+    if (!map || !open?.pieces.length) return;
+    const [w, s, e, n] = bbox(featureCollection(open.pieces.map((p) => p.geo)));
+    const view = map.getBounds();
+    if (view.contains([w, s]) && view.contains([e, n])) return;
+    map.fitBounds(
+      [
+        [w, s],
+        [e, n],
+      ],
+      { padding: 60, duration: 450 },
+    );
+  };
   const [toast, setToast] = useState<SwitchToast | null>(null);
   const [lineUndo, setLineUndo] = useState<LineUndo | null>(null);
   const [scenarioUndo, setScenarioUndo] = useState<ScenarioUndo | null>(null);
@@ -728,7 +746,11 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     startLine(kind) {
       dispatch({ type: "startLine", kind });
+      fitOpen();
       hint("");
+    },
+    justDrawnDone() {
+      dispatch({ type: "justDrawnDone" });
     },
     finishLine() {
       if (latest.current.draft.length < 2) return hint("Need at least two points");
@@ -821,6 +843,8 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
         case "line":
           dispatch({ type: "startLine", kind: c as LineKind });
           if (at) dispatch({ type: "draftAdd", ll: at });
+          // Picked from the map at a spot: the map is there already. Otherwise the parcel comes into view (P-9).
+          else fitOpen();
           return;
         case "point":
           dispatch({ type: "startMark", kind: c as MarkKind, shape: "point" });
