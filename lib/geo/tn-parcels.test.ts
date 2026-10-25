@@ -106,7 +106,7 @@ describe("conflictTouches", () => {
 describe("parcel-number search (§1.2): the tax card's form", () => {
   it("finds map 066's parcels starting 037 from '66 37', named as the tax card reads", () => {
     expect(got.search.map((h) => h.id)).toEqual(["066 037.00", "066 037.01", "066 037.02"]);
-    expect(got.search[0]!.county).toBe("Carter");
+    expect(got.search[0]!.county).toBe("Carter Co., TN"); // named with its state (UX part 2 PR 4)
     expect(got.search[0]!.props.GISLINK).toBe(CONFLICT_GISLINK);
   });
 
