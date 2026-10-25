@@ -53,16 +53,16 @@ async function startSyncing(page: Page): Promise<string> {
 const goList = (page: Page) => page.getByRole("link", { name: "Your list" }).click();
 const goMap = (page: Page) => page.getByRole("link", { name: "Map" }).click();
 
-/** Renames a parcel from its detail on Your list. */
+/** Renames a parcel from Your list: its row opens it on the map (Z-2), Details renames it, "‹ Your list" comes back. */
 async function rename(page: Page, from: string, to: string): Promise<void> {
   // Already there when offline: a tab switch then fetches the page, and the fetch fails.
   if (!page.url().endsWith("/library")) await goList(page);
   await listRow(page, from).locator(".lib-open").click();
-  const detail = page.getByRole("dialog");
-  const name = (await unfoldListing(detail)).getByLabel("Name");
+  await page.getByRole("tab", { name: "Details" }).click();
+  const name = (await unfoldListing(page.locator(".parcel-details"))).getByLabel("Name");
   await name.fill(to);
   await name.press("Enter");
-  await detail.getByRole("button", { name: "Close" }).click();
+  await page.locator(".back-chip").click();
 }
 
 /** Switches tabs until the list shows `text`: each switch fetches the space's changes. */

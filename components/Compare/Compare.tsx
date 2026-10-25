@@ -166,7 +166,13 @@ export function Compare() {
                         <LongName name={p.name} className="cmp-name" />
                         <div className="tiny muted">{p.acres !== null ? `${p.acres.toFixed(2)} ac` : ""}</div>
                         <div className="cmp-actions">
-                          <Link className="link-btn" href="/explore" onClick={() => openOnMap(columns[i]!)}>
+                          <Link
+                            className="link-btn"
+                            href="/explore"
+                            onClick={() =>
+                              openOnMap(columns[i]!, { label: "Compare", href: "/compare", scroll: 0 })
+                            }
+                          >
                             Open
                           </Link>
                           <button

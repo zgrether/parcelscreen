@@ -4,8 +4,9 @@
  * this person's own (Recent.tsx; step 8's History, 8c). Favorites is the household's list (WF2b, docs/plans/parcel-workflow.md §5): every
  * starred parcel with its star, name, acres, price, state, archive and milestones, the household verdict and each
  * rubric's grade (step 1). Filters and sorts are views, remembered per profile (ps.library); they never change a parcel.
- * A tap on a name opens its detail: the report card, the status controls, Open on the map, Remove. Ticked rows open in
- * Compare. On a phone the table becomes cards.
+ * A tap on a row opens the parcel on the map, with the one parcel panel (Z-2, UX part 2: the list's own detail went),
+ * and "‹ Your list" there comes back to this view and scroll. Ticked rows open in Compare. On a phone the table becomes
+ * cards.
  *
  * My order (WF3) is the default sort: rows move by their handle or their menu's Move up and Move down, and a move
  * writes that one parcel's rank. Under another sort the handles hide, and the list says how to get them back.
@@ -56,14 +57,14 @@ import {
   editBuilt,
   EMPTY_STORE,
   rankBuilt,
-  removeBuilt,
   type ParcelStore,
   type WorkingParcel,
 } from "@/lib/client/parcelStore";
 import { getPref, onParcelsWritten, setPref } from "@/lib/client/prefs";
+import { openOnMap, takeBackScroll } from "@/lib/client/openOnMap";
 import { switchLabel } from "@/lib/client/rubrics";
 import { useRubricView } from "@/lib/client/useRubricView";
-import { dropParcel, useHousehold, useSeenTakes } from "@/lib/client/householdDoc";
+import { useHousehold, useSeenTakes } from "@/lib/client/householdDoc";
 import { ADJUSTED_TITLE } from "@/lib/report/adjustWords";
 import { memberName } from "@/lib/client/household";
 import { currentProfileId } from "@/lib/client/profiles";
@@ -78,7 +79,6 @@ import { GATE_MARK } from "@/lib/report/cardLines";
 import { addedByLine } from "@/components/Household/AddedBy";
 import { RescreenAll } from "./RescreenAll";
 import { DragHandle, RowMenu, SortableRows, useSortableRow, type Mover } from "./MyOrder";
-import { ParcelDetail } from "./ParcelDetail";
 import { Recent } from "./Recent";
 import { Star, unstarQuestion } from "@/components/Favorites/Star";
 import { ResetConfirm } from "@/components/Rubric/ResetConfirm";
@@ -118,7 +118,6 @@ export function Library() {
     setViewState(v);
     setPref("ps.library", v);
   };
-  const [opened, setOpened] = useState<string | null>(null);
   const [ticked, setTicked] = useState<ReadonlySet<string>>(new Set());
 
   const built = store.built;
@@ -195,18 +194,23 @@ export function Library() {
     },
   };
 
-  const remove = (key: string) => {
-    dropParcel(key); // its asks and takes go with it (step 6)
-    keep(removeBuilt(latest.current, key));
-    setOpened(null);
+  /** A row's tap (Z-2): the parcel on the map, the one panel, and the way back here. */
+  const open = (key: string) => {
+    const p = latest.current.built.find((b) => b.key === key);
+    if (!p) return;
+    openOnMap(p, { label: "Your list", href: "/library", scroll: window.scrollY });
+    router.push("/explore");
   };
+  // Back from the map (the chip): where the list was scrolled.
+  useEffect(() => {
+    const y = takeBackScroll("/library");
+    if (y !== null) requestAnimationFrame(() => window.scrollTo(0, y));
+  }, []);
   const compare = () => {
     setPref("ps.compare", [...ticked]);
     router.push("/compare");
   };
   const toggle = (key: string) => setTicked(toggleTick(ticked, key));
-  // Unstarred while open, it leaves Favorites, and its detail closes.
-  const detail = opened ? favorites.find((p) => p.key === opened) : undefined;
   // The parcels whose grades are gone (approval A): "Re-screen all saved parcels" screens them one after another.
   const needing = rows
     .filter((r) => r.unscreened === "rescreen")
@@ -234,7 +238,7 @@ export function Library() {
     rubrics,
     ticked,
     toggle,
-    open: setOpened,
+    open,
     ordering,
     mover,
     star,
@@ -253,8 +257,7 @@ export function Library() {
 
   return (
     <>
-      {/* A desktop keeps the table beside an open detail (polish #15): .lib-has-detail leaves room for it. */}
-      <main className={detail ? "compare library lib-has-detail" : "compare library"}>
+      <main className="compare library">
         <header className="compare-head">
           <h1>Your list</h1>
           {/* Compare takes 2 or 3 (step 4b): with one ticked the button waits for another. */}
@@ -371,16 +374,6 @@ export function Library() {
               setUnstarring(null);
             }}
             cancel={() => setUnstarring(null)}
-          />
-        )}
-        {detail && (
-          <ParcelDetail
-            key={detail.key}
-            parcel={detail}
-            kept={screens.get(detail.key!)}
-            change={(edit) => change(detail.key!, edit)}
-            remove={() => remove(detail.key!)}
-            onClose={() => setOpened(null)}
           />
         )}
       </main>

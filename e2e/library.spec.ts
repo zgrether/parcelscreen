@@ -63,16 +63,19 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   ]);
   await expect(page.locator(".lib-table thead")).not.toContainText("Household");
 
-  // A click anywhere on the row opens its detail (owner, after #133): the full name, the card; archived as sold.
+  // A click anywhere on the row opens it on the map, with the one panel (Z-2, UX part 2); ruled out from its Details.
   await macks.locator(".lib-c-acres").click();
-  const detail = page.getByRole("dialog", { name: MACKS_NAME });
-  await expect(detail.getByRole("heading", { name: MACKS_NAME })).toBeVisible();
-  await expect(detail.locator(".card")).toBeVisible();
-  await detail.getByRole("button", { name: "Not for us…" }).click();
-  await detail.getByRole("button", { name: "Price" }).click();
-  await detail.getByRole("button", { name: "Rule it out" }).click();
-  await expect(detail).toContainText(/Ruled out [A-Z][a-z]{2} \d{1,2}: Price/);
-  await detail.getByRole("button", { name: "Close" }).click();
+  await expect(page).toHaveURL(/\/explore$/);
+  await expect(page.locator(".sh-name").first()).toContainText("35-3");
+  await page.getByRole("tab", { name: "Details" }).click();
+  const status = page.getByRole("group", { name: "Status" });
+  await status.getByRole("button", { name: "Not for us…" }).click();
+  await status.getByRole("button", { name: "Price" }).click();
+  await status.getByRole("button", { name: "Rule it out" }).click();
+  await expect(status).toContainText(/Ruled out [A-Z][a-z]{2} \d{1,2}: Price/);
+  // "‹ Your list": back to the list.
+  await page.locator(".back-chip").click();
+  await expect(page).toHaveURL(/\/library$/);
 
   // Hidden by the default view; the Status filter shows it, and the choice outlasts a reload.
   await expect(rows).toHaveCount(1);
@@ -111,27 +114,27 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   await expect(page.locator(".compare-table thead .cmp-name")).toHaveCount(2);
   await expect(page.locator(".compare-table thead .cmp-name").first()).toHaveAttribute("title", /parcel /);
 
-  // The keyboard: a row takes focus, and Enter opens it.
+  // The keyboard: a row takes focus, and Enter opens it on the map.
   await visit(page, "/library");
   await rows.filter({ hasText: "parcel 52-47A" }).focus();
   await page.keyboard.press("Enter");
-  const ferneyDetail = page.getByRole("dialog");
-  await expect(ferneyDetail.getByRole("heading", { name: /parcel 52-47A/ })).toBeVisible();
+  await expect(page).toHaveURL(/\/explore$/);
+  await expect(page.locator(".sh-name").first()).toContainText("52-47A");
 
-  // Its listing's facts and notes, editable here as in the map's Notes tab (owner, after #133).
-  const listing = await unfoldListing(ferneyDetail);
+  // Its listing's facts and notes, in the one panel's Details (Z-2: the list's own detail went).
+  await page.getByRole("tab", { name: "Details" }).click();
+  const details = page.locator(".parcel-details");
+  const listing = await unfoldListing(details);
   await listing.getByLabel("Asking price").fill("185k");
   await listing.getByLabel("Asking price").press("Enter");
   await expect(listing).toContainText(/asking \$185,000 as of /);
-  await ferneyDetail.getByLabel(/^Notes for /).fill("Gate code from the agent.");
-  await ferneyDetail.getByLabel(/^Notes for /).blur();
-  // Unnamed: the row reads "{parcel ID} · {County} Co.", and the detail offers "Add a name".
+  await details.getByLabel(/^Notes for /).fill("Gate code from the agent.");
+  await details.getByLabel(/^Notes for /).blur();
+  // Unnamed: the row reads "{parcel ID} · {County} Co.".
   await listing.getByLabel("Name").fill("");
   await listing.getByLabel("Name").press("Enter");
-  await expect(ferneyDetail.getByRole("heading", { name: "52-47A" })).toBeVisible();
-  await ferneyDetail.getByRole("button", { name: "Add a name" }).click();
-  await expect(listing.getByLabel("Name")).toBeFocused();
-  await ferneyDetail.getByRole("button", { name: "Close" }).click();
+  await page.locator(".back-chip").click();
+  await expect(page).toHaveURL(/\/library$/);
   const ferneyRow = rows.filter({ hasText: "52-47A · Floyd Co." });
   await expect(ferneyRow.locator(".lib-open")).toHaveText("52-47A · Floyd Co.");
   await expect(ferneyRow.locator(".lib-c-price")).toHaveText("$185k");
@@ -143,19 +146,13 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
     ),
   ).toMatchObject({ name: "", notes: "Gate code from the agent." });
 
-  // Open on the map, from a parcel's detail.
+  // Every parcel ruled out: the app opens on the map (owner, #132), to find new ones.
   await ferneyRow.click();
-  await page.getByRole("link", { name: "Open on the map" }).click();
   await expect(page).toHaveURL(/\/explore$/);
-  await expect(page.locator(".sh-name").first()).toContainText("52-47A");
-
-  // Every parcel archived: the app opens on the map (owner, #132), to find new ones.
-  await visit(page, "/library");
-  await rows.filter({ hasText: "52-47A" }).click();
-  const ferney = page.getByRole("dialog", { name: /52-47A/ });
-  await ferney.getByRole("button", { name: "Not for us…" }).click();
-  await ferney.getByRole("button", { name: "Rule it out" }).click();
-  await expect(ferney).toContainText("Ruled out");
+  await page.getByRole("tab", { name: "Details" }).click();
+  await status.getByRole("button", { name: "Not for us…" }).click();
+  await status.getByRole("button", { name: "Rule it out" }).click();
+  await expect(status).toContainText("Ruled out");
   await visit(page, "/");
   await expect(page).toHaveURL(/\/explore$/);
   expect(errors).toEqual([]);
@@ -203,8 +200,9 @@ test.describe("on a phone", () => {
       .locator(".lib-state")
       .dispatchEvent("pointerdown", { pointerType: "touch", isPrimary: true, clientX: 60, clientY: 60 });
     await expect(page.getByRole("tooltip")).toHaveText("Floyd County");
-    // A tap anywhere on the card opens it.
+    // A tap anywhere on the card opens it on the map, with the one panel (Z-2).
     await page.locator(".lib-card", { hasText: "parcel 35-3" }).locator(".lib-card-facts").tap();
-    await expect(page.getByRole("dialog", { name: MACKS_NAME })).toBeVisible();
+    await expect(page).toHaveURL(/\/explore$/);
+    await expect(page.locator(".sh-name").first()).toContainText("35-3");
   });
 });

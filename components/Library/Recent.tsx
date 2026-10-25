@@ -7,6 +7,7 @@
  * phone (CSS).
  */
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ADJUSTED_TITLE } from "@/lib/report/adjustWords";
 import { useEffect, useState } from "react";
 import { Star } from "@/components/Favorites/Star";
@@ -135,6 +136,9 @@ function RecentRow({
   remove(): void;
 }) {
   const name = r?.name ?? p.name;
+  const router = useRouter();
+  // Z-2: on the map, the one panel, and "‹ Your list" back to Recent.
+  const back = () => ({ label: "Your list", href: "/library", scroll: window.scrollY });
   const mine = r?.grades[0]?.graded ?? null;
   const result = kept?.state === "ok" ? kept.result : null;
   const prefill = () =>
@@ -142,9 +146,17 @@ function RecentRow({
   return (
     <li className="hist-row">
       <div className="hist-body">
-        <span className="hist-name" title={name}>
+        <button
+          type="button"
+          className="hist-name link-btn"
+          title={name}
+          onClick={() => {
+            openOnMap(p, back());
+            router.push("/explore");
+          }}
+        >
           {name}
-        </span>
+        </button>
         <span className="tiny muted" title={r?.perAcre?.both ?? undefined}>
           {[
             r?.acres != null ? `${r.acres.toFixed(1)} ac` : null,
@@ -185,7 +197,7 @@ function RecentRow({
           unstar={() => undefined}
           adder={null}
         />
-        <Link className="btn secondary small hist-open" href="/explore" onClick={() => openOnMap(p)}>
+        <Link className="btn secondary small hist-open" href="/explore" onClick={() => openOnMap(p, back())}>
           Open on the map
         </Link>
       </span>
