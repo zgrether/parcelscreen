@@ -11,6 +11,7 @@ import { SITE_ROWS } from "@/lib/report/sites";
 import type { Card, GateStatus } from "@/lib/report/card";
 import { appValue } from "@/lib/report/cardLines";
 import { GATE_KEYS, MINE, ROW_KEYS, type Factor, type Letter } from "@/lib/rubric/types";
+import { FactSection, type FactProps } from "./FactSection";
 
 const LETTERS: readonly Letter[] = ["A", "B", "C", "D", "F"];
 
@@ -35,6 +36,8 @@ export interface AdjustProps {
   initial?: { choice: "pass" | "setAside"; reason: string } | null;
   /** A site row's: the site the card is graded at, where the override applies (owner, 2026-10-22). */
   site?: number | "house" | null;
+  /** J-5 (UX part 2 PR 3c): on a row a document settles, "Is this a fact about the parcel?" first. */
+  fact?: FactProps | null;
 }
 
 export function AdjustSection({
@@ -48,6 +51,7 @@ export function AdjustSection({
   undo,
   initial,
   site,
+  fact = null,
 }: AdjustProps) {
   const [choice, setChoice] = useState<Choice | null>(() =>
     !initial || existing
@@ -73,6 +77,7 @@ export function AdjustSection({
       <h3 id={`${reasonId}-h`}>{W.title}</h3>
       {site != null && <p className="tiny muted adjust-site">{APPLIES_AT(site)}</p>}
       {/* The fresh-eyes review: the choices' words alone didn't say how they differ. */}
+      {fact && !existing && !removed && !choice && <FactSection {...fact} />}
       {!existing && !removed && !choice && <p className="tiny muted adjust-what">{W.what}</p>}
       {removed ? (
         <p className="adjust-removed" role="status">
@@ -205,6 +210,8 @@ export function adjustPropsFor(
   initial: AdjustProps["initial"] = null,
   /** The site the shown card is graded at (adjust.ts gradedSite). */
   site: number | "house" | null = null,
+  /** J-5: the fact question's props, on a row a document settles (the map's panel only). */
+  fact: FactProps | null = null,
 ): AdjustProps | null {
   if (!parcel || !me || appCard.rubric.id !== MINE) return null;
   if (!(GATE_KEYS as readonly string[]).includes(panel) && !(ROW_KEYS as readonly string[]).includes(panel))
@@ -236,5 +243,6 @@ export function adjustPropsFor(
     undo: (a) => writes.restore(a),
     initial,
     ...((SITE_ROWS as readonly string[]).includes(factor) && site !== null ? { site } : {}),
+    ...(fact ? { fact } : {}),
   };
 }

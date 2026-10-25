@@ -50,3 +50,94 @@ The OSRM count is the one to watch: it's light, but it's regular, scheduled use 
 ## Hosting
 
 Vercel's Hobby plan prohibits commercial use (PLAN.md, free tiers): move the project to a Pro team first.
+
+## Market value references (UX audit Z-5; investigate only, 2026-10-24)
+
+Zach asked which public sources could give a defensible market reference for a parcel in the ten covered counties
+(`docs/plans/ux-part-2.md` §10). Nothing uses them yet; he decides later. Read 2026-10-24: web pages and service
+metadata only, no bulk queries. "Not verified" means the page wasn't opened past a disclaimer or didn't answer.
+
+**The parcel layers the app already reads:**
+- **Virginia (VGIN):** no value or sale fields; "for cartographic use and spatial analysis only".
+- **North Carolina (NC OneMap):** `landval`, `improvval`, `parval`, `presentval` (present-use value), `saledate` and
+  `reviseyear`, as each county submits them, but **no sale price**. Its terms ask for bulk data from the by-county
+  download, not the map service.
+- **Tennessee (the Comptroller's public-use boundaries):** no value fields. Its description says it is "intended for use
+  by state agencies with approved access", which is **to confirm against the app's own use of it** (step 2, §9.46; the
+  question to send is below). The
+  Comptroller's per-county shapefiles carry assessment data and "can be used in a commercial application", with no
+  recurring or automated downloads.
+- **Tennessee (TPAD):** the strongest single source. It has the market appraisal, the greenbelt value, and sales with
+  price, deed book and page, and a qualification code: "A" or "Q" marks a sale fit for analysing values, the arm's-length
+  filter comparables need. It has a sale-date range search and per-search export. No terms of use on automated access
+  were found.
+
+**How assessments relate to market:**
+- **Virginia** assesses at 100% of fair market value, on cycles of up to 6 years. Virginia Tax's 2025 sales-ratio study
+  shows how far behind they run, county by county; it gives locality medians only, no individual sales:
+
+  | County | All classes (median ratio, sales) | Agricultural and undeveloped land, 20–100 ac (median ratio, sales) |
+  |---|---|---|
+  | Floyd | 85.7% (201) | 94.9% (26) |
+  | Carroll | 82.3% (564) | 78.1% (42) |
+  | Grayson | 63.3% (269) | 78.1% (33) |
+  | Patrick | 57.7% (106) | 57.4% (15) |
+
+- **North Carolina** revalues at 100% as of the revaluation date, at least every 8 years. NCDOR's 2024 study (2023
+  sales), as median ratio and COD: Ashe 83.3% / 30.2, Mitchell 74.9% / 29.0, Alleghany 71.4% / 47.2, Avery 66.3% / 48.3.
+- **Tennessee** appraises at market value and assesses farm and residential property at 25% of it.
+- **Use-value programs pull farm and forest land far below market:** Virginia's land-use taxation, North Carolina's
+  present-use value, Tennessee's greenbelt. A use-value figure is never a market reference.
+
+| County | Online search | Land value shown | Sales shown | Last reassessment | Terms |
+| --- | --- | --- | --- | --- | --- |
+| Floyd VA | floyd.cama.concisesystems.com (Concise) | not verified | not verified | 2025 | click-through disclaimer; nothing on scraping |
+| Grayson VA | gis.vgsi.com/graysoncountyva (Vision) | yes | yes: price, book/page, date | 2022 (next 2028) | "informational use only" |
+| Carroll VA | InteractiveGIS map; 2025 reassessment books (PDF) | in the books | not found | 2025 | "mapping purposes only" |
+| Patrick VA | patcova.interactivegis.com | not verified | not verified | 2021 (next 2027) | not found |
+| Ashe NC | ashecountytax.com | OneMap's `landval` | sale date (OneMap) | 2023 (next 2027) | reCAPTCHA on the search |
+| Alleghany NC | bttaxpayerportal.com/ITSPublicAL (a Sales Search tab); webgis.net | OneMap's `landval` | yes (Sales Search) | 2021 (next 2027) | "created for internal use", no warranty |
+| Avery NC | webtax.averycountync.gov/itsnet (didn't answer) | OneMap's `landval` | sale date (OneMap) | 2022 (next 2027) | not found |
+| Mitchell NC | nc-mitchell.publicaccessnow.com (Aumentum) | OneMap's `landval` | sale date (OneMap) | 2022 (next 2027) | not found |
+| Carter TN | TPAD | yes (market, greenbelt) | yes, with qualification codes | 2026 (next 2030) | no TPAD terms found |
+| Johnson TN | TPAD | yes | yes | 2026 (next 2030) | no TPAD terms found |
+
+Deeds record the price in all three states (Virginia's recordation tax, North Carolina's excise stamps, Tennessee's
+consideration oath), but the registers of deeds aren't machine-friendly.
+
+**Commercial sources** (named only; their terms weren't checked):
+- Land.com and LandWatch have sold data, but their terms likely forbid automated reuse.
+- Acres.com sells comparables by subscription.
+- An MLS is members only, under IDX/VOW rules.
+- Regrid, ATTOM, CoreLogic, LandRecords.us and ReportAll USA carry assessed values and last sales, all under license.
+
+**In short, what's defensible today:**
+- **Tennessee:** TPAD's qualified sales.
+- **North Carolina:** OneMap's land value with its revaluation year, beside the county's ratio.
+- **Virginia:** the county assessment beside Virginia Tax's Class 5 ratio.
+- **Per-acre comparables for Virginia and North Carolina** need the counties' sales searches or a licensed vendor.
+
+### Tennessee's parcel service: the question to send (Zach, #314)
+
+**Who to ask:** the Comptroller of the Treasury's Division of Property Assessments, Geographic Services. That's the
+Office of Local Government's property assessment and GIS work. It runs the Tennessee Base Mapping Program and the
+statewide parcel data.
+- **Email:** GIS.Data@cot.tn.gov. The parcel data page gives it "for questions concerning the parcel data".
+- **Main line:** 615-741-2775.
+- **Address:** Comptroller of the Treasury, State Capitol, Nashville, TN 37243-9034.
+
+Sources: the [parcel data page](https://comptroller.tn.gov/office-functions/pa/gisredistricting/redistricting-and-land-use-maps/parcel-data.html)
+and [Geographic Services](https://comptroller.tn.gov/office-functions/pa/gisredistricting.html), both read 2026-10-24. No
+named staff contact is listed.
+
+**The question, for Zach to email:**
+
+> Subject: Personal use of the Tennessee Property Boundaries public-use parcel service
+>
+> Hello. I've built a small personal web app that helps my household evaluate rural land we're considering buying in
+> Carter and Johnson counties. When we look at a parcel, the app asks your public ArcGIS service
+> (Tennessee_Property_Boundaries_Public_Use, FeatureServer layer 0) for that one parcel's boundary and identifiers, and it
+> shows the TPAD link for the county record. It makes a few requests per parcel viewed, never bulk downloads, and it
+> doesn't store or redistribute the data beyond our own saved parcels. The service's description says it's "intended for
+> use by state agencies with approved access". Is personal, non-commercial use like this permitted? If not, is there a
+> way to request access, or would you prefer we use the monthly county shapefile downloads instead? Thank you.

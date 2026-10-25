@@ -137,7 +137,7 @@ export function SettingsProvider({
           <YourData key={opened} config={config} save={imported} />
 
           <h3>Thresholds</h3>
-          <p className="tiny muted">These encode judgment, not fact. Change them and re-run.</p>
+          <p className="tiny muted">These encode judgment, not fact. Change them and grade again.</p>
           <div className="settings-grid">{THRESHOLD_FIELDS.map(numberInput)}</div>
 
           <Costs

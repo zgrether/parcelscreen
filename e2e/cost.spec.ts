@@ -4,6 +4,7 @@
  */
 import { expect, test, type Page } from "@playwright/test";
 import { loadFixture } from "../test/support/fixtures";
+import { defaultRubric } from "../lib/rubric/default";
 import { importParcels, openExplorer, openFromList, openMenu, seedScreens, settled, visit } from "./flow";
 import { replayHar } from "./replay";
 
@@ -80,4 +81,55 @@ test("the two lines, plus the land without a price, and a Settings rate flowing 
   await visit(page, "/library");
   await openFromList(page, NAME);
   await expect(camp).toHaveAccessibleName(/^Ready to camp: \$\d+–\d+k plus the land$/);
+});
+
+test("the price block: the asking price, both costs without the land, live switches and the walk-away price (Z-4)", async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(180_000);
+  await replayHar(context, "ferney-creek-52-47A");
+  await openExplorer(page, "ferney-creek-52-47A");
+  await importParcels(page, [MUD]);
+  await seedScreens(page, [MUD]);
+  await settled(page);
+  await setPrice(page, 185_000);
+  // A Ready to build budget of $600k, on the starting list.
+  await page.evaluate((rubrics) => window.__psKv!.setItem("ps.rubrics", JSON.stringify(rubrics)), {
+    mine: { ...defaultRubric(), budgets: { camp: null, build: 600_000 } },
+    others: [],
+  });
+  await visit(page, "/library");
+  await openFromList(page, NAME);
+
+  const block = page.getByRole("region", { name: "Price and cost" });
+  await expect(block).toContainText("Asking$185,000 ·");
+  const build = block.locator('[data-price="build"]');
+  await expect(build).toHaveText(/^\$\d+–\d+k plus the land$/);
+  const walk = block.locator(".price-walkaway");
+  await expect(walk).toContainText("Walk-away price for the land");
+  await expect(walk).toContainText(/Pay at most \$\d+–\d+k/);
+  await expect(walk).toContainText("to stay within your $600k budget.");
+  await expect(walk).toContainText("The asking price is under it by");
+  const lines = page.getByRole("group", { name: "Cost to enjoy" });
+  const cardBuild = await lines.getByRole("button", { name: /^Ready to build/ }).getAttribute("aria-label");
+
+  // Paving off: Ready to build drops, and the walk-away price rises with it; the card's own line stays as priced.
+  const before = { build: await build.textContent(), walk: await walk.textContent() };
+  const paving = block.getByRole("switch", { name: /Pave the steep stretches/ });
+  await expect(paving).toBeChecked();
+  await paving.uncheck();
+  await expect(build).not.toHaveText(before.build!);
+  await expect(walk).not.toHaveText(before.walk!);
+  await expect(lines.getByRole("button", { name: /^Ready to build/ })).toHaveAttribute(
+    "aria-label",
+    cardBuild!,
+  );
+  // An alternative septic system: Ready to build goes up again.
+  const septic = block.getByRole("switch", { name: /An alternative septic system/ });
+  await expect(septic).not.toBeChecked();
+  const unpaved = await build.textContent();
+  await septic.check();
+  await expect(build).not.toHaveText(unpaved!);
+  await expect(block).toContainText("The switches change only this block.");
 });

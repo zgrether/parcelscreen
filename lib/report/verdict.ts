@@ -36,7 +36,7 @@ export function verdictView(r: PartialScreenResult): VerdictView {
   const partial = isPartial(r);
   return {
     tone: verdict,
-    lead: partial ? "Screening…" : LEADS[verdict] + (r.cancelled ? " (run cancelled)" : ""),
+    lead: partial ? "Grading…" : LEADS[verdict] + (r.cancelled ? " (run cancelled)" : ""),
     flags,
     incomplete: r.failed.length
       ? `Incomplete: ${r.failed.map(stepLabel).join(", ").toLowerCase()} didn't run, so this verdict is missing that evidence.`

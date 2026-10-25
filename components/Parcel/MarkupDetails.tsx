@@ -68,7 +68,7 @@ export function LineDetails({ ctl, m }: { ctl: ExploreController; m: LineMarkup 
       <LineName name={m.name} save={(name) => ctl.renameMarkup(m.id, name, serial)} />
       <p className="ip-note">
         {measured ? lineSummary(measured) : `${Math.round(ft).toLocaleString()} ft`}
-        {!measured && result && " (run again to grade it)"}
+        {!measured && result && " (grade again to see it graded)"}
       </p>
       {routed && (
         <div className="ip-line-row">

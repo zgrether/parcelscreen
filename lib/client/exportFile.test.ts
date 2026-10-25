@@ -487,7 +487,7 @@ describe("the summary", () => {
     expect(importSummary({ ...p, profileName: "Zach" }, "none")[1]).toBe("Exported from the profile Zach.");
     expect(T0 < NOW).toBe(true);
     expect(importSummary({ ...p, olderResults: 2 }, "none")[2]).toBe(
-      "2 saved results were from an older version and skipped; those parcels re-screen when opened.",
+      "2 saved results were from an older version and skipped; those parcels grade again when opened.",
     );
   });
 });
@@ -499,7 +499,7 @@ describe("schema v3 (B2a): older results and the asking price", () => {
     expect(p.added.map((x) => x.screenIds)).toEqual([["s1"], []]);
     expect([p.screens, p.olderResults]).toEqual([[], 1]);
     expect(importSummary(p, "none")).toContain(
-      "1 saved result was from an older version and skipped; those parcels re-screen when opened.",
+      "1 saved result was from an older version and skipped; those parcels grade again when opened.",
     );
     // A current result that's malformed still fails the whole import.
     expect(

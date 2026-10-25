@@ -1,7 +1,7 @@
 /**
  * Your list's polish (owner, 2026-10-20), desktop (1280 × 800) then phone (375 × 812): Ferney and Macks starred, with no
- * price or status yet (#12: those columns hide); a row's ⋯ menu (#16: Remove from favorites); a row's detail beside the
- * table (#15). The takes' comments and New takes (#13, #14) are household.spec.ts's "8-list-with-take". Run by
+ * price or status yet (#12: those columns hide); a row's ⋯ menu (#16: Remove from favorites); a row opened, on the map
+ * with "‹ Your list" since UX part 2 PR 2b (Z-2: the detail beside the table, #15, is gone). The takes' comments and New takes (#13, #14) are household.spec.ts's "8-list-with-take". Run by
  * `pnpm screenshots`.
  */
 import { expect, test, type Page } from "@playwright/test";
@@ -22,7 +22,7 @@ for (const phone of [false, true]) {
     );
     const shot = (page: Page, name: string) => page.screenshot({ path: `${OUT}/${device}-list-${name}.png` });
 
-    test("Your list: the columns, the ⋯ menu, the detail beside the table", async ({ page, context }) => {
+    test("Your list: the columns, the ⋯ menu, a row opened on the map", async ({ page, context }) => {
       test.setTimeout(180_000);
       await replayHar(context, [FERNEY, MACKS]);
       await openExplorer(page, FERNEY);
@@ -42,9 +42,9 @@ for (const phone of [false, true]) {
       await page.keyboard.press("Escape");
 
       await rows.first().locator(".lib-open").click();
-      await expect(page.getByRole("dialog")).toBeVisible();
-      await page.waitForTimeout(400);
-      await shot(page, "3-detail");
+      await expect(page.getByRole("button", { name: /Your list/ }).first()).toBeVisible();
+      await page.waitForTimeout(800);
+      await shot(page, "3-opened");
     });
   });
 }

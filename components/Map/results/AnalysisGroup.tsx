@@ -33,7 +33,7 @@ export function AnalysisGroup() {
             ))}
           </div>
         ) : (
-          <span className="ag-note">run again to show</span>
+          <span className="ag-note">grade again to show</span>
         )}
       </div>
       <Eye label="Pins" on={shown.pins} flip={() => setOverlay("pins", !shown.pins)} />
@@ -41,7 +41,7 @@ export function AnalysisGroup() {
         label="Horizon fan"
         on={shown.fan}
         flip={() => setOverlay("fan", !shown.fan)}
-        note={s.view ? null : "run again to show"}
+        note={s.view ? null : "grade again to show"}
       />
       <Eye label="Soil units" on={shown.soils} flip={() => setOverlay("soils", !shown.soils)} />
       <Eye

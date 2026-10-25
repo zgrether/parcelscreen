@@ -53,16 +53,16 @@ async function startSyncing(page: Page): Promise<string> {
 const goList = (page: Page) => page.getByRole("link", { name: "Your list" }).click();
 const goMap = (page: Page) => page.getByRole("link", { name: "Map" }).click();
 
-/** Renames a parcel from its detail on Your list. */
+/** Renames a parcel from Your list: its row opens it on the map (Z-2), Details renames it, "‹ Your list" comes back. */
 async function rename(page: Page, from: string, to: string): Promise<void> {
   // Already there when offline: a tab switch then fetches the page, and the fetch fails.
   if (!page.url().endsWith("/library")) await goList(page);
   await listRow(page, from).locator(".lib-open").click();
-  const detail = page.getByRole("dialog");
-  const name = (await unfoldListing(detail)).getByLabel("Name");
+  await page.getByRole("tab", { name: "Details" }).click();
+  const name = (await unfoldListing(page.locator(".parcel-details"))).getByLabel("Name");
   await name.fill(to);
   await name.press("Enter");
-  await detail.getByRole("button", { name: "Close" }).click();
+  await page.locator(".back-chip").click();
 }
 
 /** Switches tabs until the list shows `text`: each switch fetches the space's changes. */
@@ -192,6 +192,51 @@ test("offline: Not saved, then Try again; a change a closed page didn't save is 
 /** The current profile's own priorities on this page, as stored. */
 const myRubric = (page: Page) =>
   page.evaluate(() => (JSON.parse(window.__psKv!.getItem("ps.rubrics")!) as { mine: unknown }).mine);
+
+test("a fetch answered while a save is out doesn't undo that save (#319's CI race)", async ({ browser }) => {
+  const a = await (await browser.newContext()).newPage();
+  await openExplorer(a, FERNEY);
+  await importParcels(a, [FERNEY]);
+  const code = await startSyncing(a);
+  const b = await (await browser.newContext()).newPage();
+  await openExplorer(b, FERNEY);
+  await b.goto(`/link#${groupCode(code)}`);
+  await b.getByRole("button", { name: /^Join$/ }).click();
+  await b.getByRole("button", { name: "Profile 1" }).click();
+  await expect(b).toHaveURL(/\/library$/);
+  await expect(b.locator(".sync-ind.bar")).toHaveText("Synced");
+
+  // A renames it, and the save lands ("Synced" shows before a save goes, so the save itself is awaited).
+  const savedA = a.waitForResponse((r) => r.url().endsWith("/api/sync/save"));
+  await rename(a, "52-47A", "Ferney A");
+  await savedA;
+
+  // B renames it too, and B's save is held on its way out. Meanwhile B switches tabs, which fetches: the answer has
+  // A's "Ferney A" in it, older than B's save.
+  let out = () => {};
+  const saving = new Promise<void>((r) => (out = r));
+  let land = () => {};
+  const landing = new Promise<void>((r) => (land = r));
+  await b.route(
+    (u) => u.pathname === "/api/sync/save",
+    async (route) => {
+      out();
+      await landing;
+      await route.continue();
+    },
+    { times: 1 },
+  );
+  const fetched = b.waitForResponse((r) => r.url().includes("/api/sync/changes"));
+  await rename(b, "52-47A", "Ferney B");
+  await saving;
+  await goMap(b);
+  await goList(b);
+  await fetched;
+  await b.waitForTimeout(500);
+  await expect(listRow(b, "Ferney B")).toBeVisible({ timeout: 1 });
+  await expect(b.locator(".lib-row:visible", { hasText: "Ferney A" })).toHaveCount(0);
+  land();
+});
 
 test("a new factor added on one device reaches the other: one profile grades the same everywhere (B-1)", async ({
   browser,

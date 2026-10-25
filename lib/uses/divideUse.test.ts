@@ -191,3 +191,44 @@ describe("Divide on the listing's acres (owner, #311: the same rule as $/ac)", (
     expect(listed(0)).toEqual(at(MUD));
   });
 });
+
+describe("a survey's acres and frontage (J-5, UX part 2 PR 3c2)", () => {
+  const surveyed = (acres: number | null, frontageFt: number | null, listingAcres: number | null = null) =>
+    divideUse(
+      synthetic(
+        MUD,
+        {},
+        { listing: { deedRestrictions: "", hoa: "unknown", listingAcres, survey: { acres, frontageFt } } },
+      ),
+    );
+
+  it("its acres come before the listing's, named surveyed in the reason and in What decides it", () => {
+    const a = surveyed(24.7, null, 29);
+    expect(a.reason).toContain("limited by 24.7 ac at 10 ac a lot");
+    expect(a.reason).toContain("on 24.7 surveyed ac (the county map shows 30.15)");
+    expect(a.decides.find((f) => f.label === "Acres")).toEqual({
+      label: "Acres",
+      value: "24.7 ac from the survey (used); the county map shows 30.15 ac",
+      source: "your survey (marked)",
+    });
+    // The county map's boundary isn't said to disagree with a listing it didn't use.
+    expect(a.decides.some((f) => f.value.startsWith("The county map's boundary"))).toBe(false);
+  });
+
+  it("its frontage comes before the one measured along the county map's boundary", () => {
+    const a = surveyed(null, 300);
+    expect(a.reason).toContain("limited by 300 ft of road frontage at 100 ft per lot");
+    expect(a.decides.find((f) => f.label === "Public road frontage")).toEqual({
+      label: "Public road frontage",
+      value: "300 ft, from the survey",
+      source: "your survey (marked)",
+    });
+    expect(divideReportLine(MUD, null, { acres: null, frontageFt: 300 })).toContain(
+      "300 ft of road frontage",
+    );
+  });
+
+  it("blank figures: as before", () => {
+    expect(surveyed(null, null)).toEqual(at(MUD));
+  });
+});

@@ -46,9 +46,9 @@ for (const phone of [false, true]) {
       await shot(page, "2-filters");
       await page.getByRole("button", { name: /^Filters/ }).click();
 
-      // The card (Details aside): its answer and reason.
+      // The card, on the map's one panel (Z-2, UX part 2: the list's own detail went): its answer and reason.
       await page.locator(".lib-row:visible").first().click();
-      await expect(page.getByRole("dialog")).toBeVisible();
+      await expect(page.locator(".sh-name").first()).toBeVisible();
       await shot(page, "3-detail-card");
 
       // Help: the grade rules and the breakdown's lines.

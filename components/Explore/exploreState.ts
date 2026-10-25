@@ -50,6 +50,7 @@ import {
   AREA_KINDS,
   POINT_KINDS,
   type AreaKind,
+  type Facts,
   type MarkKind,
   type PointKind,
   type SepticClass,
@@ -64,6 +65,14 @@ export type Mode =
 
 /** The modes that place corners on the map. */
 export const DRAWING: readonly Mode[] = ["draw", "track", "easement", "drive", "area"];
+
+/**
+ * Whether a tool is using the map's taps: a mode, or a split line still being placed or moved. The mouse's tilt and
+ * rotate, and a phone's double-tap zoom (UX part 2, Z-1), stand aside while one is.
+ */
+export function toolOpen(s: Pick<ExploreState, "mode" | "split">): boolean {
+  return !!s.mode || !!s.split;
+}
 
 /** The modes that draw a line: one per line kind (an existing drive since the Mark picker, owner after #136). */
 export const LINE_MODES: readonly Mode[] = ["track", "easement", "drive"];
@@ -122,6 +131,11 @@ export interface ExploreState {
    * pieces, one after Try again). The grading hook takes it (scenarioGrading) and runs them one after the other.
    */
   gradeScenario: { id: string; sides: PieceSide[]; serial: number } | null;
+  /**
+   * UX part 2 PR 6 (P-9): a track or drive just finished, by id: the map asks "Use it as the driveway?" about it, once.
+   * Absent or null: nothing to ask.
+   */
+  justDrawn?: string | null;
 }
 
 export const INITIAL: ExploreState = {
@@ -231,6 +245,8 @@ export type ExploreAction =
   | { type: "askingPrice"; price: number | null; serial: number; stamp: Stamp }
   /** WF1: the listing's facts (name, link, acres, agent), for the parcel open when they were typed. */
   | { type: "listing"; patch: Partial<Pick<WorkingParcel, ListingField>>; serial: number; stamp: Stamp }
+  /** J-5 (UX part 2 PR 3c): the parcel's facts, whole (a flood letter, service confirmed), for the parcel open. */
+  | { type: "facts"; facts: Facts; serial: number; stamp: Stamp }
   /**
    * Step 8: starred with its name (a favorite; it builds a plain parcel) or unstarred (back to History). WF2: archiving
    * it with a reason (blank is refused); restoring it to the favorites; a milestone's date ("2026-10-20"), or null to
@@ -243,6 +259,7 @@ export type ExploreAction =
   | { type: "milestone"; which: Milestone; date: string | null; serial: number; stamp: Stamp }
   /** Follow-up 34: start a drawn line, finish it (at least two points) into the open parcel, edit or delete one. */
   | { type: "startLine"; kind: LineKind }
+  | { type: "justDrawnDone" }
   | { type: "finishLine"; id: string; stamp: Stamp }
   | { type: "markupNote"; id: string; note: string; serial: number; stamp: Stamp }
   /** Owner, #127: a line's name; a blank one is ignored. */
@@ -601,6 +618,13 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       // A screen is one of the built rules: the parcel is saved to History with it.
       if (!open || a.serial !== s.serial || open.screenIds.includes(a.id)) return s;
       return { ...s, store: save({ ...open, screenIds: [...open.screenIds, a.id] }, a.stamp) };
+    case "facts": {
+      if (!open || a.serial !== s.serial) return s;
+      const facts = a.facts.floodLetter || a.facts.service || a.facts.survey ? a.facts : undefined;
+      if (JSON.stringify(facts) === JSON.stringify(open.facts)) return s;
+      const { facts: _was, ...rest } = open;
+      return { ...s, store: save(facts ? { ...rest, facts } : rest, a.stamp) };
+    }
     case "notes":
     case "askingPrice":
     case "listing": {
@@ -751,8 +775,16 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
         note: "",
         at: a.stamp.now,
       };
-      return { ...s, ...NO_TOOL, store: save({ ...open, markup: [...open.markup, line] }, a.stamp) };
+      return {
+        ...s,
+        ...NO_TOOL,
+        // An easement isn't a way in to drive: only a track or a drive is offered as the driveway.
+        justDrawn: s.mode === "easement" ? null : a.id,
+        store: save({ ...open, markup: [...open.markup, line] }, a.stamp),
+      };
     }
+    case "justDrawnDone":
+      return s.justDrawn ? { ...s, justDrawn: null } : s;
     case "editLine": {
       const m = open?.markup.find((x) => x.id === a.id);
       if (!m) return s;
@@ -875,7 +907,7 @@ export interface TapHit {
 export const NO_PARCEL_HERE = "No parcel record here. Draw a custom parcel?";
 
 /** While a screen runs, switching parcels waits (owner, 17e). */
-export const BUSY_TEXT = "Screening — finish or Cancel first.";
+export const BUSY_TEXT = "Grading — finish or Cancel first.";
 
 export type TapOutcome =
   | { kind: "clearLayer" }

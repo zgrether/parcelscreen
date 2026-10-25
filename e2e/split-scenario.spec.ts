@@ -18,6 +18,7 @@ import {
   settled,
   unfoldListing,
   visit,
+  gradingNow,
 } from "./flow";
 import { GRAYSON } from "./redGate";
 import { replayHar, type ReplayLog } from "./replay";
@@ -190,10 +191,10 @@ test("Add a piece to the list: a new parcel of that piece, on the list, with the
   const name = `${loadFixture(GRAYSON).input.name}, East piece`;
   await expect(page.locator(".sh-name").first()).toHaveText(name);
   await expect(page.locator(".sh-card .card-grade")).toBeVisible(); // its screen came with it: no run
-  await expect(page.locator(".grade-btn", { hasText: /^Grading…$/ })).toHaveCount(0);
+  await expect(gradingNow(page)).toHaveCount(0);
   await settled(page);
   await visit(page, "/library");
-  await page.getByRole("tab", { name: "Favorites" }).click();
+  await page.getByRole("tab", { name: "Shortlist" }).click();
   await expect(listRow(page, name)).toBeVisible();
 });
 
@@ -277,10 +278,10 @@ test("a split scenario: Grade both pieces, Cancel, Rename, Adjust the line, Add 
   const made = await stored();
   expect(made.scenarios).toEqual([]);
   // The piece had no grade (it was cancelled), so the new parcel grades as it opens, as combine's "as new" does.
-  await expect(page.locator(".grade-btn", { hasText: /^Grading…$/ }).first()).toBeVisible();
+  await expect(gradingNow(page).first()).toBeVisible();
   await settled(page);
   await visit(page, "/library");
-  await page.getByRole("tab", { name: "Favorites" }).click();
+  await page.getByRole("tab", { name: "Shortlist" }).click();
   await expect(listRow(page, name)).toBeVisible();
   expect(errors).toEqual([]);
 });

@@ -37,8 +37,11 @@ function snapshot(): Member[] {
 }
 const none: Member[] = [];
 
+/** The household's other members, kept current as profiles and their priorities change. */
+export const useOtherMembers = (): Member[] => useSyncExternalStore(subscribe, snapshot, () => none);
+
 export function Others({ result, drawn, parcel }: { result: Result; drawn?: Drawn; parcel: string | null }) {
-  const members = useSyncExternalStore(subscribe, snapshot, () => none);
+  const members = useOtherMembers();
   if (!members.length) return null;
   return (
     <>

@@ -43,9 +43,11 @@ import type { ExploreController, SetHint } from "@/components/Explore/useExplore
 import { lineLayer } from "@/components/Explore/layers";
 import { evaluationPoint } from "../blocks/types";
 import { useRubricView } from "@/lib/client/useRubricView";
-import { reportCard, VERDICT_WORD } from "@/lib/report/card";
-import { answerReason } from "@/lib/report/answer";
+import { costInputOf, reportCard } from "@/lib/report/card";
+import { perAcre } from "@/lib/report/perAcre";
+import { answerReason, verdictParts } from "@/lib/report/answer";
 import { lineNamesOf, type LineNames } from "@/lib/report/lines";
+import { isFactRow, type FactProps, type FactRow } from "@/components/Results/card/FactSection";
 import { drawnOf, type Drawn } from "@/lib/report/marks";
 import { currentCostSettings, useCostSettings } from "@/lib/client/costRates";
 import { listingAcresNote } from "@/lib/report/listing";
@@ -78,14 +80,11 @@ import { adjustPropsFor } from "@/components/Results/card/AdjustSection";
 import { gradedSite } from "@/lib/report/adjust";
 import { RaiseSection } from "@/components/Results/card/RaiseSection";
 import { getPref } from "@/lib/client/prefs";
-import { MINE } from "@/lib/rubric/types";
+import { MINE, type Factor } from "@/lib/rubric/types";
 import { NEIGHBOUR_WORDS, raiseSuggestions, triedWords, type RaiseAction } from "@/lib/report/raise";
 import type { TryProps } from "@/components/Results/card/TryIt";
 import { OFFLINE_SCREEN_TEXT } from "@/lib/client/pwa";
-import { Star } from "@/components/Favorites/Star";
-import { PanelMenu } from "@/components/Report/PanelMenu";
-import { countyOf, isFavorite, starName } from "@/lib/client/favorites";
-import { memberName } from "@/lib/client/household";
+import { placeLine } from "@/lib/client/favorites";
 import { currentProfileId } from "@/lib/client/profiles";
 import { isPreview, openSample, sampleOf } from "@/lib/client/samples";
 import { SAMPLE_WORDS } from "@/lib/areas/words";
@@ -116,7 +115,7 @@ export interface Tried {
 export function useScreenIt(
   ctl: ExploreController,
   config: UserConfig,
-  onFinished: () => void,
+  onFinished: (tall?: boolean) => void,
   hint: SetHint,
 ) {
   const screen = useScreen();
@@ -337,8 +336,8 @@ export function useScreenIt(
     indexed.current = null;
     awaitingRestore.current = false;
   }, [st.generation]);
-  // A parcel removed from Recent: its session goes too, but a dismissed one's only once its Undo has gone (8c).
-  const builtKeys = [...ctl.state.store.built.map((b) => b.key), ctl.dismissed?.parcel.key].join("|");
+  // A parcel removed from Recent: its session goes too.
+  const builtKeys = ctl.state.store.built.map((b) => b.key).join("|");
   useEffect(() => {
     const keys = new Set(builtKeys.split("|"));
     for (const k of sessions.current.parcels())
@@ -520,29 +519,42 @@ export function useScreenIt(
             display,
             rubric,
             open
-              ? drawnOf(markup ?? [], drivewayLine, { askingPrice, ...costs }, adjustFor(open.key, household))
+              ? drawnOf(
+                  markup ?? [],
+                  drivewayLine,
+                  { askingPrice, ...costs },
+                  adjustFor(open.key, household),
+                  open.facts,
+                )
               : undefined,
           )
         : null,
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- the open parcel's markup, line, price and adjustments are what matter
-    [display, rubric, markup, drivewayLine, askingPrice, costs, household],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the open parcel's markup, line, price, adjustments and facts are what matter
+    [display, rubric, markup, drivewayLine, askingPrice, costs, household, open?.facts],
   );
   // Step 14: what the land can do, at the card's site, once the run is done (Uses and Grade's shortcut line read it).
   const deedRestrictions = open?.deedRestrictions ?? "";
   const hoa = open?.hoa ?? "unknown";
   const listingAcres = open?.listingAcres ?? null;
   const fromOriginal = open?.fromOriginal;
+  const facts = open?.facts;
   const uses = useMemo(
     () =>
       display && card && !runningHere
         ? landUses(
-            usesInputOf(display, card, drawnOf(markup ?? [], drivewayLine, { askingPrice, ...costs }), {
-              markup: markup ?? [],
-              deedRestrictions,
-              hoa,
-              listingAcres,
-              ...(fromOriginal ? { fromOriginal } : {}),
-            }),
+            usesInputOf(
+              display,
+              card,
+              drawnOf(markup ?? [], drivewayLine, { askingPrice, ...costs }, undefined, facts),
+              {
+                markup: markup ?? [],
+                deedRestrictions,
+                hoa,
+                listingAcres,
+                ...(fromOriginal ? { fromOriginal } : {}),
+                ...(facts ? { facts } : {}),
+              },
+            ),
           )
         : null,
     [
@@ -557,7 +569,27 @@ export function useScreenIt(
       hoa,
       listingAcres,
       fromOriginal,
+      facts,
     ],
+  );
+  // UX part 2 PR 8b (Z-4): what the price block re-prices with its toggles, at the card's site, from the card's inputs.
+  const costInput = useMemo(
+    () =>
+      display && card && open
+        ? costInputOf(
+            display,
+            card.at,
+            drawnOf(
+              markup ?? [],
+              drivewayLine,
+              { askingPrice, ...costs },
+              adjustFor(open.key, household),
+              open.facts,
+            ),
+          )
+        : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the card's own inputs: it changes when they do
+    [display, card],
   );
   // A site tapped in the panel (step 7 plan §1.3): evaluated with the live session, as its pin is; without one, the
   // pins' own words say why not.
@@ -576,6 +608,8 @@ export function useScreenIt(
     card,
     /** What you can do here (step 14), at the card's site; null before a grade and while one runs. */
     uses,
+    /** What the price block re-prices (UX part 2 PR 8b); null before the cost can be priced. */
+    costInput,
     pickSite,
     /** The grade button's state (lib/client/gradeButton.ts): null when there's no reason to run again. */
     grade,
@@ -590,6 +624,8 @@ export function useScreenIt(
     copySummary,
     run: () => run(),
     cancel: screen.cancel,
+    /** The sheet raised to its top, on Grade (Z-9: the progress bar's Steps ▸). */
+    raiseSheet: () => latest.current.onFinished(true),
     steps: screen.state.steps,
     showSteps: live?.serial === serial && status !== "idle" && !screen.state.restored,
     error,
@@ -643,6 +679,24 @@ const namesOf = (s: ScreenIt): LineNames | undefined => {
   return open ? lineNamesOf(open.markup) : undefined;
 };
 
+/**
+ * J-5 (UX part 2 PR 3c): "Is this a fact about the parcel?" on a row a document settles, for the open parcel. A fact
+ * that's a place (the septic permit, an easement) starts the map's tool, the panel closed.
+ */
+const factPropsFor = (panel: string, s: ScreenIt): FactProps | null => {
+  const open = s.ctl.state.store.open;
+  if (!open || !isFactRow(panel as Factor)) return null;
+  return {
+    row: panel as FactRow,
+    facts: open.facts,
+    saveFacts: (f) => s.ctl.saveFacts(f, s.ctl.state.serial),
+    draw: (c) => {
+      s.closePanel();
+      s.ctl.pickMark(c);
+    },
+  };
+};
+
 /** What the open parcel holds for its card: those names, and its markers (WF4). */
 const drawnFor = (s: ScreenIt): Drawn | undefined => {
   const open = s.ctl.state.store.open;
@@ -652,6 +706,7 @@ const drawnFor = (s: ScreenIt): Drawn | undefined => {
         open.drivewayLine,
         { askingPrice: open.askingPrice, ...currentCostSettings() },
         adjustFor(open.key),
+        open.facts,
       )
     : undefined;
 };
@@ -682,11 +737,13 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
   const d = s.ctl.derived;
   if (!s.ctl.state.store.open)
     // The phone's sheet (hidden until a parcel is open); the desktop's docked panel shows only Search then (step 4c).
-    return <span className="sh-empty">Tap a parcel to screen it</span>;
+    return <span className="sh-empty">Tap a parcel to grade it</span>;
   const name = s.ctl.layers?.name ?? "Parcel";
   // The card's grade and verdict for the kept run (owner, #110), in whoever's grade is on.
   const card =
     !s.runningHere && !s.stale && s.shown ? reportCard(s.shown.result, s.rubric, drawnFor(s)) : null;
+  const place = placeLine(s.ctl.state.store.open);
+  const answer = card ? verdictParts(card) : null;
   return (
     <>
       <span className="sh-parcel">
@@ -696,23 +753,31 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
         <span className="sh-sub">
           {/* Step 13: one of the catalog's sample parcels, until it's on the list. */}
           {isPreview(s.ctl.state.store.open) && <SampleTag open={s.ctl.state.store.open} />}
-          {d?.ok && <span className="sh-acres">{fmt(d.acres, 2)} ac</span>}
-          {card && (
-            <span className={`sh-card v-${card.verdict.toLowerCase()}`} title={card.reason}>
-              <span className={`card-grade small g-${card.grade ?? "none"}`}>{card.grade ?? "–"}</span>
-              <span className="sh-word">{VERDICT_WORD[card.verdict]}</span>
+          {/* P-2: the acres, then the county and the tax map number, the listing's way of naming it. */}
+          {(d?.ok || place) && (
+            <span className="sh-acres">
+              {[acresWords(s.ctl.state.store.open, d?.ok ? d.acres : null), place]
+                .filter(Boolean)
+                .join(" · ")}
             </span>
           )}
         </span>
+        {/* J-4: the verdict first, the letter beside it, and a joining word when they part. */}
+        {card && answer && (
+          <span className={`sh-sub sh-card v-${card.verdict.toLowerCase()}`} title={card.reason}>
+            <span className="sh-word">{answer.verdict}</span>
+            <span className="card-letter">
+              <span className={`card-grade small g-${card.grade ?? "none"}`}>{answer.grade}</span>
+              {answer.join && <span className="sh-join">{answer.join}</span>}
+            </span>
+          </span>
+        )}
         {/* Step 7 (plan §1.1): the answer's reason, in the phone's peek (on two lines at most; CSS hides it elsewhere). */}
         {card && s.shown && <span className="sh-reason">{answerReason(card, s.shown.result)}</span>}
       </span>
+      {/* ★, Not for us, Ask and ⋯ are a row of their own under the header (HeaderActions, UX part 2 PR 3). */}
       <span className="sh-actions">
-        <PanelStar s={s} />
-        {/* Step 9: the report card, once the parcel is graded and on the list. */}
-        <PanelMenu parcelKey={s.ctl.state.store.open?.key ?? null} graded={!!s.shown && !s.runningHere} />
-        {/* Deselect the parcel (17e); Esc does the same on desktop. 8c: on a parcel not on the list it means "not for
-            me": it goes from Recent and the map, with an Undo. */}
+        {/* Close the parcel (17e; J-2: it never takes a parcel out of Recent); Esc does the same on desktop. */}
         <button
           className="sh-x"
           aria-label="Close this parcel"
@@ -727,41 +792,16 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
   );
 }
 
-/** The ×'s tooltip: on a parcel of mine that isn't on the list, what × does to it (8c). */
-const closeTitle = (open: WorkingParcel | null, desk: boolean): string => {
-  const esc = desk ? " (Esc)" : "";
-  const mine =
-    !!open?.key && !isFavorite(open) && (open.addedBy === null || open.addedBy === currentProfileId());
-  return mine ? `Not for me: close it and clear it from Recent${esc}` : `Close this parcel${esc}`;
+/** The header's acres (J-5, UX part 2 PR 3c2): a survey's, named so, before the boundary's. */
+const acresWords = (open: WorkingParcel | null, boundary: number | null): string | null => {
+  const surveyed = open?.facts?.survey?.acres ?? null;
+  if (surveyed !== null) return `${fmt(surveyed, 1)} ac, surveyed`;
+  return boundary !== null ? `${fmt(boundary, 2)} ac` : null;
 };
 
-/**
- * The open parcel's list button (step 8's star, in words since 8c: "Add to list", "★ On your list"), beside the grade:
- * adding names it (prefilled from its own name, its listing's address, or its acres, road and county) and builds a
- * plain parcel; removing asks first.
- */
-function PanelStar({ s }: { s: ScreenIt }) {
-  const open = s.ctl.state.store.open!;
-  const serial = s.ctl.state.serial;
-  const d = s.ctl.derived;
-  const prefill = () =>
-    starName(open, {
-      acres: d?.ok ? d.acres : null,
-      road: s.shown?.result.driveFrom?.road ?? null,
-      county: countyOf(open),
-    });
-  return (
-    <Star
-      className="sh-star"
-      words
-      on={isFavorite(open)}
-      prefill={prefill}
-      star={(name) => s.ctl.star(name, serial)}
-      unstar={() => s.ctl.unstar(serial)}
-      adder={open.addedBy && open.addedBy !== currentProfileId() ? memberName(open.addedBy) : null}
-    />
-  );
-}
+/** The ×'s tooltip (J-2: × only closes, as Esc does on a desktop). */
+const closeTitle = (_open: WorkingParcel | null, desk: boolean): string =>
+  `Close this parcel${desk ? " (Esc)" : ""}`;
 
 /**
  * With nothing to show (the parcel's last result gone, v3's clean break), the re-screen's state goes in the header,
@@ -771,7 +811,7 @@ function RescreenLine({ s }: { s: ScreenIt }) {
   if (s.rescreenOffline)
     return <span className="sh-verdict sh-rescreen muted rescreen-note">{RESCREEN_OFFLINE}.</span>;
   if (s.rescreenFailed)
-    return <span className="sh-verdict sh-rescreen fatal">The screen stopped: {s.error}</span>;
+    return <span className="sh-verdict sh-rescreen fatal">The grade stopped: {s.error}</span>;
   return null;
 }
 
@@ -809,8 +849,11 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
     open: false,
     scrollTo: null,
   });
-  // Step 6b: a kept parcel open here with its card, so its takes are seen.
-  useSeeTakes(display ? (s.ctl.state.store.open?.key ?? null) : null);
+  // Step 6b: a kept parcel open here with its card, so its takes are seen; only while the map is on show (UX part 2:
+  // a list tap opens the parcel here, and it stays open behind Your list, where a take that arrives isn't seen yet).
+  const [onMap, setOnMap] = useState(mapShowing);
+  useEffect(() => onMapShowing(setOnMap), []);
+  useSeeTakes(display && onMap ? (s.ctl.state.store.open?.key ?? null) : null);
   // Step 12: ways to raise this grade, for the person's own card once the run is done: from the card shown, as its grade is.
   const raise = useMemo(
     () =>
@@ -872,7 +915,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
         <section className="block">
           {s.rescreenOffline && s.display && <p className="report-note rescreen-note">{RESCREEN_OFFLINE}.</p>}
           {s.showSteps && <StepList steps={s.steps} running={s.runningHere} line={s.logLine} />}
-          {s.error && <p className="tiny text-steep">The screen stopped: {s.error}</p>}
+          {s.error && <p className="tiny text-steep">The grade stopped: {s.error}</p>}
           {notes && !below && (
             <Notices
               bannered={!!banner}
@@ -922,6 +965,18 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             setRubric={s.setRubric}
             onOpen={openPanel}
             stale={banner}
+            price={
+              s.costInput && {
+                input: s.costInput,
+                perAcre: perAcre(
+                  s.costInput.askingPrice,
+                  s.ctl.state.store.open?.listingAcres ?? null,
+                  s.ctl.derived?.ok ? s.ctl.derived.acres : null,
+                  undefined,
+                  s.ctl.state.store.open?.facts?.survey?.acres ?? null,
+                ),
+              }
+            }
             shortcut={
               s.uses && (
                 <button type="button" className="uses-shortcut" onClick={() => s.ctl.setUses(true)}>
@@ -986,13 +1041,6 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
       {footer && (
         <section className="block report-footer">
           {notes && (
-            <div className="report-actions">
-              <button className="btn secondary small" onClick={s.copySummary}>
-                Copy summary
-              </button>
-            </div>
-          )}
-          {notes && (
             <Notices
               bannered={!!banner}
               houseChanged={!!s.fresh?.house}
@@ -1024,6 +1072,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             { save: adjustParcel, remove: removeAdjust, restore: restoreAdjust },
             s.adjustIntent?.factor === panel ? s.adjustIntent : null,
             s.card ? gradedSite(s.card, !!display.house && !("outside" in display.house)) : null,
+            factPropsFor(panel, s),
           )}
           point={point}
           running={running}

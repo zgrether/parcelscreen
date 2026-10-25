@@ -69,7 +69,7 @@ export function HelpText() {
         heating and solar production, and a ridge cannot be moved.
       </p>
 
-      <h3 id="h-sky">Dark skies</h3>
+      <h3 id="h-sky">Night sky</h3>
       <p>
         <b>Mag/arcsec²</b> is sky brightness straight overhead from the Light Pollution Atlas: 22.0 is
         pristine, 21.5+ shows real Milky Way structure, under 20.5 is a smudge. The <b>Milky Way core</b>{" "}
@@ -144,7 +144,7 @@ export function HelpText() {
         +20 at 20% and over); the site shows both.
       </p>
 
-      <h3 id="h-unknown">Still unknown</h3>
+      <h3 id="h-unknown">Questions for the agent</h3>
       <p>
         Things no dataset holds: legal access, deed restrictions, mineral rights, utility cost, well yields,
         zoning for an RV during the build, insurance. Every one of these has killed a deal. The checklist is

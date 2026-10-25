@@ -32,6 +32,9 @@ function prototypeHelp(): string {
  * rule 7): the ERs come from CMS's list with the hand-checked overrides, not OpenStreetMap.
  */
 const APPROVED: [string, string][] = [
+  // Zach, #314 (UX part 2's names, docs/plans/ux-part-2.md §4): one name for each.
+  ["Dark skies", "Night sky"],
+  ["Still unknown", "Questions for the agent"],
   [
     "Hospitals, groceries and trailheads come from OpenStreetMap and undercount national-forest trailheads.",
     "Groceries and trailheads come from OpenStreetMap, which undercounts national-forest trailheads. Hospitals with an emergency department come from CMS's list of hospitals, with a hand-checked list of recent openings and closings.",

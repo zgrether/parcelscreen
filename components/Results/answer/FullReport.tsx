@@ -44,9 +44,9 @@ export function FullReport({
       body.current?.querySelector(`[data-key="${scrollTo}"]`)?.scrollIntoView({ block: "start" });
   }, [open, scrollTo]);
   return (
-    <section className="full-report" aria-label="Full report">
+    <section className="full-report" aria-label="All details">
       <button className="full-report-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
-        Full report <span aria-hidden="true">{open ? "▾" : "▸"}</span>
+        All details <span aria-hidden="true">{open ? "▾" : "▸"}</span>
       </button>
       {open && (
         <div ref={body} className="full-report-body">

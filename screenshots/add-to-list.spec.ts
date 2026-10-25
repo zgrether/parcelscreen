@@ -38,7 +38,7 @@ for (const phone of [false, true]) {
       await page.getByRole("tab", { name: "Recent" }).click();
       await page
         .locator(".hist-row", { hasText: name })
-        .getByRole("link", { name: "Open on the map" })
+        .locator(".hist-name") // Z-8: a tap on the name opens it
         .click();
       await expect(page).toHaveURL(/\/explore$/);
       await expect(page.locator(".sh-name").first()).toContainText(name);
@@ -64,27 +64,22 @@ for (const phone of [false, true]) {
       // The tilt tip (desktop) would cover the map in every shot (fresh-eyes review, step 8).
       const tip = page.locator(".tilt-hint").getByRole("button", { name: "Dismiss" });
       if (await tip.isVisible()) await tip.click();
-      const actions = page.locator(".sh-actions");
+      const actions = page.locator(".sh-acts");
       await expect(actions.getByRole("button", { name: "Add to list" })).toBeVisible();
       await shot(page, "2-header-add");
 
       // Added: ★ On your list.
       await actions.getByRole("button", { name: "Add to list" }).click();
-      await page
-        .getByRole("dialog", { name: "Add to favorites" })
-        .getByRole("button", { name: "Add" })
-        .click();
+      await page.getByRole("dialog", { name: "Add to list" }).getByRole("button", { name: "Add" }).click();
       await expect(actions.getByRole("button", { name: "On your list" })).toBeVisible();
       await shot(page, "3-header-on-list");
 
-      // Macks, off the list: × clears it, with Closed. Undo.
+      // Macks, off the list: × closes it and clears it from the map; it stays in Recent (J-2, UX part 2).
       await openFromRecent(page, "35-3");
       await page.waitForTimeout(3000); // the map's flight to Macks, from Grayson County
       await page.getByRole("button", { name: "Close this parcel" }).first().click();
-      await expect(page.locator(".dismiss-toast")).toBeVisible();
-      await shot(page, "4-closed-undo");
-      await page.locator(".dismiss-toast").getByRole("button", { name: "Undo" }).click();
-      await expect(page.locator(".sh-name").first()).toContainText("35-3");
+      await expect(page.locator(".sh-name")).toHaveCount(0);
+      await shot(page, "4-closed");
     });
   });
 }

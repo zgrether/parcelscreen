@@ -87,3 +87,20 @@ export function factorCells(card: Card): FactorCell[] {
   }));
   return [...musts, ...grades, ...aside];
 }
+
+/** A Must's outcomes in the order the phone card's chips put them: the failing ones first. */
+const CHIP_ORDER: Record<GateStatus, number> = { fail: 0, warn: 1, unknown: 2, pass: 3 };
+
+/**
+ * The phone card's chips (Z-7, UX part 2 PR 7c2, plan §9 Q7): the person's top four factors by their own order. A Must
+ * that isn't a pass comes first, failing ones first; then the letters in the rubric's order (a limit that's ranked too
+ * among them). A Must that passes and has no letter is left out, as is what's set aside: the strip on a desktop has them.
+ */
+export function cardChips(cells: FactorCell[], n = 4): FactorCell[] {
+  const shown = cells.filter((c) => !c.setAside);
+  const musts = shown
+    .filter((c) => c.kind === "must" && c.status && c.status !== "pass")
+    .sort((a, b) => CHIP_ORDER[a.status!] - CHIP_ORDER[b.status!]);
+  const letters = shown.filter((c) => c.grade !== undefined && !musts.includes(c));
+  return [...musts, ...letters].slice(0, n);
+}

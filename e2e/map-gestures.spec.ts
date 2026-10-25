@@ -3,10 +3,12 @@
  * drag, or a middle-button drag, tilts and rotates; a double-click alone zooms in toward the point. The 3D button
  * eases to 60° and back to flat and north up; the one-time desktop hint goes on first use and stays gone. Tilted,
  * the points' flag layers replace their circles and the DOM pins get the tilted class. On a phone the hint isn't
- * shown and the touch gestures are MapLibre's own.
+ * shown and the touch gestures are MapLibre's own, with a double-tap zooming in while no tool is open (UX part 2, Z-1).
  */
+import { centroid } from "@turf/turf";
 import { expect, test, type Page } from "@playwright/test";
-import { openExplorer, reload } from "./flow";
+import { loadFixture } from "../test/support/fixtures";
+import { importParcel, openExplorer, reload } from "./flow";
 import { replayHar } from "./replay";
 
 const SLUG = "ferney-creek-52-47A";
@@ -26,6 +28,29 @@ const settle = (page: Page) =>
     const m = (window as unknown as { __psMap?: { isMoving(): boolean; isStyleLoaded(): boolean } }).__psMap;
     return !!m && !m.isMoving();
   });
+
+/** Ferney's centre, in page pixels. */
+async function ferneyCentre(page: Page): Promise<{ x: number; y: number }> {
+  const [lon, lat] = centroid(loadFixture(SLUG).input.polygon).geometry.coordinates as [number, number];
+  const box = (await page.locator(".maplibregl-canvas").boundingBox())!;
+  const p = await page.evaluate(
+    ([x, y]) =>
+      (
+        window as unknown as { __psMap: { project(ll: [number, number]): { x: number; y: number } } }
+      ).__psMap.project([x, y]),
+    [lon, lat] as const,
+  );
+  return { x: box.x + p.x, y: box.y + p.y };
+}
+
+/** Two taps on Ferney's centre, then the map settled. */
+async function doubleTapAt(page: Page): Promise<void> {
+  const p = await ferneyCentre(page);
+  await page.touchscreen.tap(p.x, p.y);
+  await page.touchscreen.tap(p.x, p.y);
+  await page.waitForTimeout(600);
+  await settle(page);
+}
 
 /** The map canvas's centre, in page pixels. */
 async function centre(page: Page): Promise<{ x: number; y: number }> {
@@ -201,5 +226,75 @@ test.describe("phone", () => {
     expect(r.touch).toBe(true);
     expect(r.at).toHaveLength(1);
     expect(r.at[0]).toBeLessThan(150);
+  });
+  test("a double-tap zooms in one level while no tool is open; with a tool open it doesn't (Z-1)", async ({
+    page,
+    context,
+  }) => {
+    await replayHar(context, SLUG);
+    await openExplorer(page, SLUG);
+    await importParcel(page, SLUG);
+    await settle(page);
+    // Inside the open parcel, where a tap does nothing else.
+    const doubleTap = () => doubleTapAt(page);
+
+    const before = await camera(page);
+    await doubleTap();
+    expect((await camera(page)).zoom).toBeCloseTo(before.zoom + 1, 1);
+
+    // + Mark → Track: the taps are the line's corners, and the map stays where it is.
+    await page.locator(".toolbar").getByRole("button", { name: "+ Mark", exact: true }).click();
+    await page
+      .getByRole("dialog", { name: "Mark on the parcel" })
+      .getByRole("group", { name: "Ways in" })
+      .getByRole("button", { name: "Track" })
+      .click();
+    await expect(page.locator(".toolbar")).toHaveAttribute("data-mode", "track");
+    // Starting a line may bring the parcel into view first (P-9): read the camera once that's done.
+    await page.waitForTimeout(600);
+    await settle(page);
+    const drawing = await camera(page);
+    await doubleTap();
+    expect((await camera(page)).zoom).toBeCloseTo(drawing.zoom, 2);
+    await expect(page.locator(".toolbar")).toHaveAttribute("data-mode", "track");
+  });
+  test("a single tap on a parcel opens it at once; a double-tap on one zooms in and leaves it closed (Zach, after #333)", async ({
+    page,
+    context,
+  }) => {
+    await replayHar(context, SLUG);
+    await openExplorer(page, SLUG);
+    await importParcel(page, SLUG);
+    const close = page.getByRole("button", { name: "Close this parcel" });
+    // Closed, Ferney stays on Your list: its outline on the map opens it with a tap.
+    await close.first().click();
+    await expect(close).toHaveCount(0);
+    await settle(page);
+
+    // One tap: open at once (a touch tap isn't held back for a second one).
+    let p = await ferneyCentre(page);
+    await page.touchscreen.tap(p.x, p.y);
+    await expect(close.first()).toBeVisible({ timeout: 1000 });
+    await close.first().click();
+    await expect(close).toHaveCount(0);
+    await page.waitForTimeout(600);
+    await settle(page);
+
+    // Two: the first tap's open is taken back, and the map zooms in a level instead.
+    const before = await camera(page);
+    await doubleTapAt(page);
+    expect((await camera(page)).zoom).toBeCloseTo(before.zoom + 1, 1);
+    await expect(close).toHaveCount(0);
+
+    // A parcel that was open before stays open: a double-tap inside it only zooms.
+    p = await ferneyCentre(page);
+    await page.touchscreen.tap(p.x, p.y);
+    await expect(close.first()).toBeVisible();
+    await page.waitForTimeout(600);
+    await settle(page);
+    const open = await camera(page);
+    await doubleTapAt(page);
+    expect((await camera(page)).zoom).toBeCloseTo(open.zoom + 1, 1);
+    await expect(close.first()).toBeVisible();
   });
 });

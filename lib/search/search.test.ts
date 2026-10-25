@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { HttpClient } from "../http";
 import { coordinatesIn, idPattern, matchesId, matchesName, normalizeId, parcelNumberWhere } from "./query";
-import { searchParcelNumbers, searchPlaces } from "./sources";
+import { countyLabel, searchParcelNumbers, searchPlaces } from "./sources";
+import { REGION } from "./region";
 
 const VA =
   "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Parcels/FeatureServer/0";
@@ -142,7 +143,7 @@ describe("searchParcelNumbers", () => {
       "(PARCEL_TYPE NOT IN (4,5)) AND (COUNTY_NAME='Johnson' AND CMAP='052' AND PARCEL LIKE '047%')",
     );
     expect(hits.map((h) => h.id)).toEqual(["52-47A"]);
-    expect(hits[0]!.county).toBe("Floyd County");
+    expect(hits[0]!.county).toBe("Floyd Co., VA"); // the county named, with its state (UX part 2 PR 4)
     expect(hits[0]!.centre[0]).toBeCloseTo(36.881, 6);
     expect(hits[0]!.props.OBJECTID).toBe(1);
   });
@@ -160,6 +161,31 @@ describe("searchParcelNumbers", () => {
     const hits = await searchParcelNumbers(http, new Map([[VA, new Set(["51077"])]]), "63-A-62");
     expect(hits.map((h) => h.id)).toEqual(["63-A-62 (6273)"]);
     expect(hits[0]!.props.PARCELID).toBe("6273");
+  });
+
+  it("asks each service once within the region's box, with no county, the county named in each hit (UX part 2 PR 4)", async () => {
+    const { http, asked } = stub(virginia([{ oid: 9, id: "6273", ptm: "63-A-62" }]));
+    const hits = await searchParcelNumbers(http, { sources: [VA, TN], bbox: REGION.bbox }, "63-A-62");
+    const va = asked.filter((a) => a.url.startsWith(VA));
+    expect(va[0]!.body!.get("where")).toBe(
+      "(UPPER(PARCELID) LIKE '6%3%A%6%2%' OR UPPER(PTM_ID) LIKE '6%3%A%6%2%')",
+    );
+    expect(va[0]!.body!.get("geometry")).toBe(REGION.bbox.join(","));
+    expect(va[0]!.body!.get("geometryType")).toBe("esriGeometryEnvelope");
+    expect(va[0]!.body!.get("inSR")).toBe("4326");
+    // It reads as a Tennessee tax card too (map 063, group A, parcel 062): asked within the box, with no county.
+    const tn = asked.find((a) => a.url.startsWith(TN))!;
+    expect(tn.body!.get("where")).toBe(
+      "(PARCEL_TYPE NOT IN (4,5)) AND (CMAP='063' AND GP='A' AND PARCEL LIKE '062%')",
+    );
+    expect(tn.body!.get("geometry")).toBe(REGION.bbox.join(","));
+    expect(hits.map((h) => [h.id, h.county])).toEqual([["63-A-62 (6273)", "Floyd Co., VA"]]);
+  });
+
+  it("names a county as the listings do: Grayson Co., VA; a bare code stays as it is", () => {
+    expect(countyLabel(VA, "Grayson County")).toBe("Grayson Co., VA");
+    expect(countyLabel(TN, "CARTER")).toBe("Carter Co., TN");
+    expect(countyLabel(VA, "51077")).toBe("51077");
   });
 
   it("skips a county whose service fails, and asks nothing for short queries", async () => {
@@ -201,5 +227,22 @@ describe("searchPlaces", () => {
 
   it("rejects an unexpected response", async () => {
     await expect(searchPlaces(stub(() => ({ nope: 1 })).http, "https://p/", "x", [0, 0])).rejects.toThrow();
+  });
+});
+
+describe("searchPlaces within the region (UX part 2 PR 4)", () => {
+  it("asks Photon for places within the box only", async () => {
+    const { http, asked } = stub(() => ({ features: [] }));
+    await searchPlaces(
+      http,
+      "https://photon.komoot.io/api/",
+      "floyd",
+      [36.88, -80.45],
+      undefined,
+      REGION.bbox,
+    );
+    expect(asked[0]!.url).toBe(
+      `https://photon.komoot.io/api/?q=floyd&lat=36.88&lon=-80.45&limit=5&lang=en&bbox=${REGION.bbox.join(",")}`,
+    );
   });
 });

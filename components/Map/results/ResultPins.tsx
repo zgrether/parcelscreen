@@ -26,7 +26,7 @@ const CLASS: Record<PinSpec["kind"], string> = {
 export function ResultPins() {
   const map = useMap();
   const s = useScreenItContext();
-  const { pins: shown } = useOverlayPrefs();
+  const { pins: shown, allPins } = useOverlayPrefs();
   const latest = useRef<ScreenIt | null>(s);
   useEffect(() => {
     latest.current = s;
@@ -61,7 +61,9 @@ export function ResultPins() {
 
   useEffect(() => {
     if (!map || !display) return;
-    const markers = pinSpecs(display, ranks).map((pin) => {
+    // UX part 2 PR 3b2: the best homesite only, until the full key's Every pin asks for the rest.
+    const pins = pinSpecs(display, ranks).filter((pin) => allPins || pin.top);
+    const markers = pins.map((pin) => {
       const el = document.createElement("div");
       el.className = `sitepin${CLASS[pin.kind]}${pin.top ? " top" : ""}${pin.alt ? " alt" : ""}`;
       el.textContent = pin.text;
@@ -95,7 +97,7 @@ export function ResultPins() {
       hideTip(map);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- ranks changes with rankKey
-  }, [map, display, live, rankKey]);
+  }, [map, display, live, rankKey, allPins]);
 
   return null;
 }

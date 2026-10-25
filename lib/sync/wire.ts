@@ -8,6 +8,13 @@ import { z } from "zod";
 /** The request header that carries the code. Never a URL: it would reach the logs. */
 export const CODE_HEADER = "x-sync-code";
 
+/** An invite's key (its token's SHA-256, hex) and the code sealed with the token (lib/sync/invite.ts). */
+export const InviteCreate = z.object({
+  token: z.string().regex(/^[0-9a-f]{64}$/),
+  sealed: z.string().min(1).max(200),
+});
+export const InviteRedeem = z.object({ token: z.string().regex(/^[0-9a-f]{64}$/) });
+
 /** Vercel refuses a request body over 4.5 MB; a batch stays under this, and the device splits its uploads to fit. */
 export const MAX_BATCH_BYTES = 4_000_000;
 

@@ -76,7 +76,7 @@ step. Mission mode changes rules 1 and 3 above as written here; everything else 
   what's confusing?" Fix what it finds where the fix is in scope, and list every finding in the hand-back.
 - **Clean breaks, no migrations** (owner, 2026-10-17). Zach will redo every parcel from scratch.
   - A schema, storage or export-format change drops the old data and shows one plain line in its place:
-    "Saved with an older version; screen it again." The frozen-schema hard rule below follows it.
+    "Saved with an older version; grade it again." (worded "screen it again" until UX part 2, Zach on #316) The frozen-schema hard rule below follows it.
   - Don't write converters, migration code, re-screen-all machinery or legacy fallbacks.
   - Recorded fixtures and oracles stay: they are regression tests for the engine's numbers, not data to
     preserve.

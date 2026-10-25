@@ -29,6 +29,7 @@ import { mapShowing } from "@/lib/client/mapShowing";
 import { ScreenItContext } from "@/components/Results/ScreenItContext";
 import { debugFromUrl } from "@/lib/client/debugHandle";
 import { DockTab, ScreenBody, ScreenHeader, useScreenIt } from "@/components/Results/panel/ScreenIt";
+import { HeaderActions } from "@/components/Results/panel/HeaderActions";
 import { GradeNote } from "@/components/Results/panel/GradeNote";
 import { GradeAction } from "@/components/Results/panel/GradeAction";
 import { PEEK, PEEK_ANSWER, PEEK_WITH_ACTION, SHEET_QUERY, useBottomSheet } from "./useBottomSheet";
@@ -111,14 +112,14 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   // On phones the sheet steps aside to its peek while a map tool has the screen (13e-6).
   const { mode, split, info, uses, store } = explore.state;
   // The screen's "after a run, rise" calls the sheet's, which is made below (the sheet's peek depends on the screen).
-  const raiseSheet = useRef<() => void>(() => {});
+  const raiseSheet = useRef<(tall?: boolean) => void>(() => {});
   // After a run the sheet rises, and the panel shows Grade (step 8b).
   const exploreNow = useRef(explore);
   useEffect(() => {
     exploreNow.current = explore;
   });
-  const raise = useCallback(() => {
-    raiseSheet.current();
+  const raise = useCallback((tall?: boolean) => {
+    raiseSheet.current(tall);
     exploreNow.current.setInfo(false);
   }, []);
   const screen = useScreenIt(explore, config, raise, setHint);
@@ -183,7 +184,7 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
       if (!s.store.open || s.mode || s.split || s.layer || s.mapPanel) return;
       if ((e.target as HTMLElement | null)?.closest("input,select,textarea,[contenteditable]")) return;
       if (document.querySelector(".menu-panel, .ground-layer, dialog[open], .rubric-sheet-scrim")) return;
-      x.dismiss(); // as the × (8c)
+      x.dismiss(); // as the × (J-2: it closes)
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -299,6 +300,8 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
                   </header>
                   {/* The phone's grade button, under the header (owner, 4c Q1); the desktop's is the toolbar's. */}
                   {!docked && <GradeAction where="sheet" />}
+                  {/* UX part 2 PR 3 (P-2): ★, Not for us, Ask and ⋯, then the household's takes. */}
+                  {store.open && <HeaderActions s={screen} />}
                   {/* Step 8b: what an edit changed on the card, for a few seconds; then Grade | Uses | Details. */}
                   {store.open && <GradeNote s={screen} />}
                   {store.open && <ParcelSwitch ctl={explore} />}

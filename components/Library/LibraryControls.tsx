@@ -18,19 +18,16 @@ import {
   type VerdictChoice,
 } from "@/lib/client/library";
 import { parsePrice } from "@/lib/client/askingPrice";
-import { MILESTONE_WORD, MILESTONES, STATUS_WORD } from "@/lib/client/parcelStatus";
-import type { ParcelStatus } from "@/lib/client/parcelStore";
+import { MILESTONE_WORD, MILESTONES } from "@/lib/client/parcelStatus";
 import { switchLabel } from "@/lib/client/rubrics";
 import type { NamedRubric } from "@/lib/rubric/types";
 import type { GridColumn } from "@/lib/client/gridColumns";
 
-// Step 8 (plan §4): Favorites are active by default; the one status chip shows the archived ones too.
-const STATUSES: ParcelStatus[] = ["archived"];
 const CHOICE_WORD: Record<VerdictChoice, string> = {
   Contender: "Contender",
   Maybe: "Maybe",
   Pass: "Not for us",
-  unscreened: "Not screened",
+  unscreened: "Not graded",
 };
 const SORTS: { key: SortKey; label: string }[] = [
   { key: "order", label: "My order" },
@@ -251,13 +248,6 @@ export function LibraryControls({
       </div>
       {open && (
         <div className="lib-filters">
-          {chips(
-            "Status",
-            STATUSES,
-            f.status,
-            (s) => STATUS_WORD[s],
-            (status) => setF({ status }),
-          )}
           {/* With one rubric the household verdict is its own: one "Verdict" filter, no column per rubric. */}
           {chips(
             several ? "Household" : "Verdict",

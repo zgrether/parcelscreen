@@ -18,7 +18,7 @@ export const PRE_PROFILE_KEYS: readonly string[] = [
 export const MOVED_PREFIX = "ps.legacy.";
 
 /** The menu's line on the boot that dropped pre-profile data (step 2 plan §8 Q6). */
-export const OLD_DATA_DROPPED = "Saved with an older version; screen it again.";
+export const OLD_DATA_DROPPED = "Saved with an older version; grade it again.";
 
 /** The device's localStorage, or a stand-in in tests. */
 export interface DeviceStore {

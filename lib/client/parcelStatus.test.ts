@@ -2,13 +2,17 @@ import { describe, expect, it } from "vitest";
 import { dayWord, localDay, milestonesLine, statusLine } from "./parcelStatus";
 
 describe("a parcel's standing in words (WF2)", () => {
-  it("the status, and an archive's date and reason", () => {
+  it("the status, and a ruling out's date and reason (UX part 2, P-4: Archive became Rule out)", () => {
     // Step 8: no word for a favorite or a History parcel.
     expect(statusLine({ status: "inProgress", archived: null })).toBe("");
     expect(statusLine({ status: "saved", archived: null })).toBe("");
     const at = new Date(2026, 9, 14, 15, 30).toISOString();
-    expect(statusLine({ status: "archived", archived: { reason: "Sold", at, from: "saved" } })).toBe(
-      "Archived Oct 14: Sold",
+    expect(statusLine({ status: "archived", archived: { reason: "Septic", at, from: "saved" } })).toBe(
+      "Ruled out Oct 14: Septic",
+    );
+    // The reason is optional.
+    expect(statusLine({ status: "archived", archived: { reason: "", at, from: "inProgress" } })).toBe(
+      "Ruled out Oct 14",
     );
   });
 

@@ -14,9 +14,11 @@ import type { LatLon } from "@/lib/geo/types";
 import type { DrawnInput } from "@/lib/screen/types";
 import {
   AREA_KINDS,
+  FLOOD_LETTERS,
   POINT_KINDS,
   SEPTIC_CLASSES,
   type AreaMark,
+  type Facts,
   type MarkKind,
   type PointMark,
   type SepticClass,
@@ -230,6 +232,11 @@ export interface WorkingParcel {
    * parcel's own history is unchanged. An optional field with an empty default, so `v` stays 2.
    */
   scenarios: Scenario[];
+  /**
+   * Facts about the parcel a document settles (J-5, UX part 2 PR 3c; docs/plans/ux-part-2.md §5), marked once for the
+   * household: every member's grade, the cost and the print read them. Absent: none. An optional field, so `v` stays 2.
+   */
+  facts?: Facts;
   updatedAt: string;
 }
 
@@ -282,13 +289,12 @@ export type Milestone = "walked" | "offered";
 export type Milestones = Record<Milestone, string | null>;
 
 /** The quick picks for an archive's reason (owner, #128); "Rejected: " opens the box for the rest. */
-export const ARCHIVE_PICKS = ["Not for us", "Sold", "Rejected: "] as const;
+/** Not for us's reasons (UX part 2, §9 Q5): each optional, as is the note after it. */
+export const RULE_OUT_REASONS = ["Too steep", "Road access", "Septic", "Price", "Too far", "Other"] as const;
 
-/** A reason that says something: not blank, and not "Rejected:" alone. */
-export const reasonGiven = (reason: string): boolean => {
-  const r = reason.trim();
-  return r !== "" && r.replace(/:$/, "").toLowerCase() !== "rejected";
-};
+/** The reason kept: the chip picked, then the note ("Septic: perc failed"); either alone; or "" for none. */
+export const ruleOutReason = (chip: string | null, note: string): string =>
+  [chip, note.trim()].filter(Boolean).join(": ");
 
 /** A parcel's standing before any is set (WF2). */
 export const NO_STATUS: Pick<WorkingParcel, "status" | "archived" | "milestones"> = {
@@ -606,6 +612,20 @@ const WorkingSchema = z.object({
   addedBy: z.string().nullable().default(null),
   // Added with step 14: a parcel kept before has no split tried on it.
   scenarios: z.array(ScenarioSchema).default([]),
+  // Added with UX part 2 (J-5): a parcel kept before has no facts marked.
+  facts: z
+    .object({
+      floodLetter: z.object({ kind: z.enum(FLOOD_LETTERS), at: z.string() }).optional(),
+      service: z.object({ power: z.boolean(), internet: z.boolean(), at: z.string() }).optional(),
+      survey: z
+        .object({
+          acres: z.number().positive().nullable(),
+          frontageFt: z.number().nonnegative().nullable(),
+          at: z.string(),
+        })
+        .optional(),
+    })
+    .optional(),
   updatedAt: z.string(),
 });
 export const ParcelStoreSchema = z.object({

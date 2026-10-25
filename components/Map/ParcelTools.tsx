@@ -22,7 +22,7 @@ import { piecesOf } from "@/lib/split/scenario";
 import type { LatLon } from "@/lib/geo/types";
 import { parcelFromLine } from "@/lib/geo/parcels";
 import { LINES_MIN_ZOOM } from "@/lib/geo/parcelTiles";
-import { DRAWING, panelView } from "@/components/Explore/exploreState";
+import { DRAWING, panelView, toolOpen } from "@/components/Explore/exploreState";
 import { layerLine, lineLayer } from "@/components/Explore/layers";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { KIND_NAME, type PointMarkup } from "@/lib/client/parcelStore";
@@ -33,6 +33,7 @@ const PIN_PX = 28;
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
 import { TIP_LAYERS, tipAt } from "./results/tooltip";
 import { installTiltRotate } from "./tiltRotate";
+import { isDoubleTap, type Tap } from "./doubleTap";
 import { useMap } from "./MapView";
 import {
   combineData,
@@ -105,6 +106,8 @@ export function ParcelTools() {
 const LONG_PRESS_MS = 500;
 /** How far a finger may move during it, px, before it's a pan instead. */
 const PRESS_SLOP_PX = 10;
+/** A click this soon after a touchend is that touch's tap, ms (a touch's click comes at once; the mouse's waits 400). */
+const TOUCH_CLICK_MS = 300;
 
 /** How near a tap must be to a drawn line to select it in Layers, in pixels. */
 const LINE_TAP_PX = 8;
@@ -132,11 +135,31 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
     if (!map) return;
     // As in the prototype: a double-click finishes a drawn boundary instead of zooming.
     map.doubleClickZoom.disable();
+    // Z-1 (UX part 2, P-10; Zach, after #333): with no tool open, a phone's double-tap zooms in a level, taking back
+    // what its first tap did (that acted at once: a touch tap isn't held back as the mouse's click is). With a tool
+    // open, the second tap is a corner, as before.
+    let touchEndAt = -Infinity;
+    let lastTap: Tap | null = null;
     const onClick = (e: MapMouseEvent) => {
       // The tap that ended a long press opened the picker: it isn't a tap on the map too.
       if (pressed) return void (pressed = false);
       const c = ref.current;
       const { mode, draft } = c.current();
+      const now = performance.now();
+      if (now - touchEndAt < TOUCH_CLICK_MS && !toolOpen(c.current())) {
+        const tap = { t: now, x: e.point.x, y: e.point.y };
+        if (isDoubleTap(lastTap, tap)) {
+          lastTap = null;
+          const zoom = () => map.easeTo({ zoom: map.getZoom() + 1, around: e.lngLat, duration: 300 });
+          if (!c.undoTap()) return zoom();
+          // The parcel the first tap opened is closing: its sheet's padding settles first (MapView moves the camera
+          // for it once the close renders), or it would cut the zoom short.
+          return void requestAnimationFrame(() =>
+            requestAnimationFrame(() => (map.isMoving() ? map.once("moveend", zoom) : zoom())),
+          );
+        }
+        lastTap = tap;
+      } else lastTap = null;
       // Combining: each tap adds or removes the parcel under it (step 13b).
       if (mode === "combine") return void c.combineAt(toLL(e), outlineAt(map, e.point));
       // No tool waiting: select, swap or unselect (13e rules, exploreState.decideTap). A tap on a result
@@ -235,7 +258,11 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
     };
     map.on("touchstart", onTouchStart);
     map.on("touchmove", onTouchMove);
-    map.on("touchend", endPress);
+    const onTouchEnd = () => {
+      endPress();
+      touchEndAt = performance.now();
+    };
+    map.on("touchend", onTouchEnd);
     map.on("touchcancel", endPress);
     map.on("contextmenu", onContextMenu);
     map.on("click", onClick);
@@ -243,15 +270,12 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
     document.addEventListener("keydown", onKey);
     // Double-click and drag, or middle-drag, tilts and rotates; a double-click alone zooms in (Google Earth's
     // way, owner 2026-10-10). Not while a tool is open: Draw finishes a boundary with a double-click.
-    const uninstall = installTiltRotate(map, () => {
-      const { mode, split } = ref.current.current();
-      return !!mode || !!split;
-    });
+    const uninstall = installTiltRotate(map, () => toolOpen(ref.current.current()));
     return () => {
       endPress();
       map.off("touchstart", onTouchStart);
       map.off("touchmove", onTouchMove);
-      map.off("touchend", endPress);
+      map.off("touchend", onTouchEnd);
       map.off("touchcancel", endPress);
       map.off("contextmenu", onContextMenu);
       map.off("click", onClick);
@@ -318,6 +342,10 @@ function useOverlays(map: MlMap | null, ctl: ExploreController, splits: readonly
   // hidden layer). A parcel restored after a refresh keeps the saved map view instead.
   const boundary = useMemo(() => (parcel ? JSON.stringify(parcel.geo.geometry) : null), [parcel]);
   const restored = useRef(boundary);
+  const live = useRef(ctl);
+  useEffect(() => {
+    live.current = ctl;
+  });
 
   useEffect(() => {
     if (!map) return;
@@ -344,6 +372,8 @@ function useOverlays(map: MlMap | null, ctl: ExploreController, splits: readonly
     const skip = boundary !== null && boundary === restored.current;
     restored.current = null;
     if (!boundary || skip) return;
+    // Closed again before this ran: a double-tap took its tap back, and its zoom has the map (Zach, after #333).
+    if (!live.current.current().store.open) return;
     // Leaflet's bounds.pad(0.4): 40% of the parcel's size added on every side.
     const [w, s, e, n] = bbox(JSON.parse(boundary));
     const dx = (e - w) * 0.4,
@@ -362,7 +392,7 @@ function useOverlays(map: MlMap | null, ctl: ExploreController, splits: readonly
   useEffect(() => {
     map?.getSource<GeoJSONSource>(SOURCE.saved)?.setData({
       type: "FeatureCollection",
-      features: saved.map((b) => ({ ...b.geo, properties: { key: b.key } })),
+      features: saved.map((b) => ({ ...b.geo, properties: { key: b.key, ruledOut: b.ruledOut } })),
     });
   }, [map, saved]);
 

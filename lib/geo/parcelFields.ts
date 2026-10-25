@@ -123,6 +123,16 @@ const serviceOf = (serviceUrl: string): ParcelService | undefined =>
 export const fieldsFor = (serviceUrl: string): ServiceFields =>
   serviceOf(serviceUrl)?.fields ?? DEFAULT_FIELDS;
 
+/**
+ * A county record's service: by its URL, or for a record kept without one (a parcel imported from a file has the source
+ * "saved"), the service whose record fields it carries. Undefined for a drawn boundary.
+ */
+export const serviceOfRecord = (r: {
+  source: string;
+  props: Record<string, unknown>;
+}): { state: StateCode; fields: ServiceFields } | undefined =>
+  serviceOf(r.source) ?? SERVICES.find((s) => s.fields.record?.every((k) => k in r.props));
+
 /** The state a county record comes from, by its parcel service; null for anything else (drawn, an edited URL). */
 export const stateOf = (serviceUrl: string): StateCode | null => serviceOf(serviceUrl)?.state ?? null;
 

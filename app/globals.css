@@ -93,6 +93,22 @@ html:has(.explore) body {
   font-weight: 600;
   cursor: pointer;
 }
+/* UX part 2 PR 4: the pin typed coordinates leave, a drop shape pointing at the spot. */
+.coord-pin {
+  width: 22px;
+  height: 26px;
+}
+.coord-pin-head {
+  display: block;
+  width: 22px;
+  height: 22px;
+  border: 2px solid #fff;
+  border-radius: 50% 50% 50% 0;
+  background: var(--color-steep);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  transform: rotate(-45deg);
+  translate: 0 -4px;
+}
 .map-hint {
   bottom: calc(76px + env(safe-area-inset-bottom, 0px));
   left: calc(var(--float-l, 0px) + 12px);
@@ -417,7 +433,121 @@ html:has(.explore) body {
 .tb-acres[aria-expanded="true"] {
   background: rgba(241, 243, 238, 0.1);
 }
+/* "‹ Your list" (Z-2, UX part 2): back to where the open parcel was tapped, at the map's top left. */
+.back-chip {
+  position: absolute;
+  z-index: 15;
+  left: calc(var(--float-l, 0px) + 12px);
+  top: 12px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--tb-ink);
+  background: var(--tb-bg);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  /* Under the phone's Search button, which holds the top left. */
+  .back-chip {
+    top: 64px;
+  }
+  .explore.sheet-tall .back-chip {
+    visibility: hidden;
+  }
+}
 /* After leaving a parcel with a screen (17e): "{parcel} kept in History — Back", where the hint sits. */
+/* The map's key line (UX part 2 PR 3b2): what a graded parcel draws, over the toolbar; a toast takes its place. */
+.map-key-line {
+  position: absolute;
+  z-index: 14;
+  left: calc(var(--float-l, 0px) + 12px);
+  right: calc(var(--col-r, 0px) + 12px);
+  bottom: calc(var(--sheet-h, 0px) + 74px);
+  margin-inline: auto;
+  width: fit-content;
+  max-width: calc(100% - 24px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(231, 234, 227, 0.94);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  color: var(--color-ink);
+  font-size: 13px;
+}
+/* UX part 2 PR 6 (P-9): a track or drive just drawn asks "Use it as the driveway?", where the key line sits. */
+.finish-prompt {
+  position: absolute;
+  z-index: 16;
+  left: calc(var(--float-l, 0px) + 12px);
+  right: calc(var(--col-r, 0px) + 12px);
+  bottom: calc(var(--sheet-h, 0px) + 74px);
+  margin-inline: auto;
+  width: min(420px, calc(100% - 24px));
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--color-paper);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  color: var(--color-ink);
+  font-size: 14px;
+}
+.finish-prompt p {
+  margin: 0;
+}
+.finish-ask {
+  font-weight: 600;
+}
+.finish-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.finish-buttons .btn {
+  min-height: 44px;
+}
+.explore:has(.finish-prompt) .map-key-line,
+.explore:has(.switch-toast) .map-key-line,
+.explore.sheet-tall .map-key-line {
+  display: none;
+}
+.mkl-entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.mkl-entry .sitepin.mk-pin {
+  position: static;
+  transform: none;
+}
+.mkl-line {
+  display: inline-block;
+  width: 22px;
+  height: 4px;
+  border-radius: 2px;
+}
+.mkl-line.route {
+  background: #e0c43c;
+  box-shadow: 0 0 0 1px #0b1410;
+}
+.mkl-line.fan {
+  background: #e0553f;
+}
+.mkl-all {
+  min-height: 32px;
+  white-space: nowrap;
+}
+.mk-all-pins {
+  margin: 6px 0 4px;
+}
 .switch-toast {
   position: absolute;
   z-index: 15;
@@ -1751,13 +1881,14 @@ html:has(.explore) body {
 }
 .sh-sub {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 2px 8px;
   font-size: 15px;
 }
+/* The acres and where it is (P-2): one line, wrapping at a dot when it must. */
 .sh-acres {
-  flex: none;
-  white-space: nowrap;
+  min-width: 0;
   color: var(--color-ink-2);
   font-weight: 500;
 }
@@ -1783,6 +1914,16 @@ html:has(.explore) body {
   height: 20px;
   font-size: 13px;
 }
+/* J-4: the joining word after the verdict and letter. */
+.sh-join,
+.card-join {
+  font: 500 14px/1.2 var(--font-sans);
+  color: var(--color-ink-2);
+}
+.sh-join::before,
+.card-join::before {
+  content: ", ";
+}
 .sh-actions {
   display: flex;
   flex: none;
@@ -1791,6 +1932,76 @@ html:has(.explore) body {
 .sh-empty {
   color: var(--color-ink-2);
   font-size: 14px;
+}
+/* The parcel's actions (UX part 2 PR 3, P-2): one row under the header, each 44 px to tap; Not for us and Ask open in
+   the row's place; the household's takes under it. */
+.sh-acts-wrap {
+  display: grid;
+  gap: 8px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--color-rule);
+}
+.sh-acts {
+  display: flex;
+  gap: 6px;
+}
+.sh-acts > .sh-act {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 44px;
+  justify-content: center;
+  padding: 0 6px;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font: 600 14px/1.1 var(--font-sans);
+  text-align: center;
+  cursor: pointer;
+}
+.sh-acts > .sh-act:hover {
+  background: var(--color-paper-2);
+}
+/* On your list keeps the row's outline: in the row, it's one of four buttons, not a quiet label (8c's .list-btn.on). */
+.sh-acts > .list-btn.on.sh-act {
+  border-color: var(--color-rule);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-weight: 600;
+}
+.sh-acts > .sh-more {
+  flex: 0 0 52px;
+}
+.sh-acts > .sh-more > .sh-more-btn {
+  width: 100%;
+  height: 44px;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+}
+.sh-form {
+  padding: 12px;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+  background: var(--color-paper);
+}
+.ip-archive-title {
+  margin: 0;
+  font: 600 16px/1.2 var(--font-sans);
+}
+.sh-takes {
+  margin: 0;
+  padding: 8px 12px;
+  list-style: none;
+  border-left: 3px solid var(--color-warn);
+  border-radius: 4px;
+  background: var(--color-paper-2);
+  font-size: 14px;
+}
+.sh-take + .sh-take {
+  margin-top: 4px;
+}
+.sh-take-comment {
+  margin-left: 6px;
 }
 
 /* ---------- The app's frame (step 4b): the places' bar, the page, and the map kept behind the tabs ---------- */
@@ -3280,12 +3491,6 @@ html:has(.app-nav) .explore {
   align-self: center;
   white-space: nowrap;
 }
-/* What holds a Contender's grade at Maybe (polish #5), under the reason. */
-.card-held {
-  margin: -4px 0 10px;
-  color: var(--color-ink-2);
-  font-size: 14px;
-}
 /* The drawn lines changed since the screen (owner, #116): prominent, in the card's header; the results stay. */
 .card-stale {
   display: flex;
@@ -3465,11 +3670,132 @@ html:has(.app-nav) .explore {
   border: 1px solid var(--color-rule);
 }
 /* Cost to enjoy (step 10): label, range, then the budget's mark and words; they wrap under each other on a phone. */
+/* Z-6 (UX part 2 PR 7c1): the mark or letter in one fixed cell first (a must's mark and its letter, an adjusted letter
+   with the app's struck beside it), then the name over its detail: the words never move. The cost lines keep theirs. */
+.card-row:not(.cost-row) {
+  grid-template-columns: 52px minmax(0, 1fr);
+  grid-template-areas:
+    "mark label"
+    "mark detail";
+  align-items: center;
+  row-gap: 2px;
+  column-gap: 8px;
+}
+.card-row:not(.cost-row) > .row-label {
+  grid-area: label;
+}
+.card-row:not(.cost-row) > .row-detail {
+  grid-area: detail;
+}
+.card-row:not(.cost-row) > .card-grade,
+.card-row:not(.cost-row) > .adjusted-grade,
+.card-row:not(.cost-row) > .must-mark {
+  grid-area: mark;
+  justify-self: start;
+}
 .cost-row.card-row {
   grid-template-columns: minmax(0, 9.5em) auto minmax(0, 1fr);
 }
 .card-cost .cost-note {
   margin: 0 0 2px;
+}
+/* The price block (UX part 2 PR 8b, Z-4): the asking price, the two costs without the land, the optional items as
+   switches (each row 44 px), and the walk-away price for the land. */
+.price-block {
+  margin: 10px 0 4px;
+}
+.price-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+  background: var(--color-paper);
+}
+.price-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 10px;
+  align-items: baseline;
+}
+.price-row strong {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.price-sub {
+  grid-column: 1 / -1;
+}
+.price-toggles {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-rule);
+}
+.price-toggles li {
+  border-bottom: 1px solid var(--color-rule);
+}
+.price-toggle {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 4px 0;
+  cursor: pointer;
+}
+.price-toggle input {
+  appearance: none;
+  position: relative;
+  width: 40px;
+  height: 24px;
+  margin: 0;
+  border-radius: 12px;
+  background: var(--color-rule);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.price-toggle input::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s;
+}
+.price-toggle input:checked {
+  background: var(--color-ok);
+}
+.price-toggle input:checked::after {
+  transform: translateX(16px);
+}
+.price-toggle input:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+.price-toggle-words {
+  display: flex;
+  flex-direction: column;
+}
+.price-change {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.price-walkaway {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-left: 4px solid var(--color-ok);
+  border-radius: 4px;
+  background: var(--color-paper-2);
+}
+.price-walkaway strong {
+  font: 600 18px/1.2 var(--font-cond);
 }
 .cost-row .cost-range {
   font-weight: 600;
@@ -3900,6 +4226,58 @@ html:has(.app-nav) .explore {
 .grade-action.sheet .btn.secondary {
   min-height: 44px;
 }
+/* Z-9 (UX part 2 PR 3b): the run's progress in the button's place, a slim bar under the step's words. */
+.grade-progress-line {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 4px 8px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: 500 14px/1.2 var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+}
+.grade-progress-text {
+  display: flex;
+  gap: 6px;
+  min-width: 0;
+  white-space: nowrap;
+}
+.grade-progress-step {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.grade-progress-count {
+  flex: none;
+  color: var(--color-ink-2);
+}
+.grade-progress .steps-more {
+  color: var(--color-water);
+  font-size: 13px;
+}
+.grade-progress-bar {
+  grid-column: 1 / -1;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--color-rule);
+}
+.grade-progress-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--tb-amber);
+  transition: width 0.3s ease;
+}
+.grade-action.sheet.grade-progress {
+  gap: 10px;
+  align-items: center;
+}
 /* A panel's banded scale (value-ranking.md §6.2 (b)): this parcel's band lit, its value under it. */
 .scale {
   display: grid;
@@ -4245,6 +4623,17 @@ button.cmp-cell {
 button.cmp-cell:hover {
   background: var(--color-paper-2);
 }
+/* Z-6 (UX part 2 PR 7c1): a cell's mark, letter and ✎ in one fixed width, so the words start in one place. A row of
+   words alone has none. */
+.cmp-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex: 0 0 60px;
+}
+.cmp-key:empty {
+  display: none;
+}
 .cmp-mark {
   font-weight: 700;
 }
@@ -4310,6 +4699,58 @@ button.cmp-cell:hover {
   }
   .compare-table thead th {
     min-width: 130px;
+  }
+}
+/* P-6 (UX part 2 PR 7c2): on a phone, three parcels fit across: a narrow fixed first column, the names on two lines,
+   each cell's mark over its words, which wrap. Nothing scrolls sideways. */
+@media (max-width: 700px) {
+  .compare-table {
+    table-layout: fixed;
+    width: 100%;
+    font-size: 12.5px;
+  }
+  .compare-table .cmp-first {
+    width: 84px;
+    min-width: 0;
+    max-width: none;
+  }
+  .compare-table thead th {
+    min-width: 0;
+    padding: 6px;
+  }
+  .compare-table thead th:not(.cmp-first) {
+    width: auto;
+  }
+  .cmp-label,
+  .cmp-headline th {
+    padding: 6px !important;
+    overflow-wrap: anywhere;
+  }
+  .cmp-toggle {
+    padding: 6px;
+  }
+  .cmp-cell {
+    flex-wrap: wrap;
+    gap: 2px 3px;
+    padding: 6px;
+    overflow-wrap: anywhere;
+  }
+  .cmp-key {
+    flex-basis: 100%;
+  }
+  .cmp-name {
+    max-width: none;
+    font-size: 14px;
+  }
+  .cmp-name .long-name-text {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .cmp-actions {
+    flex-wrap: wrap;
+    gap: 4px 8px;
   }
 }
 
@@ -4483,10 +4924,24 @@ button.cmp-cell:hover {
 .lib-grid .lib-c-factor {
   text-align: center;
 }
+/* Z-6 (UX part 2 PR 7c1): the mark and letter in one fixed cell, ✎ and ● in their own, so nothing moves the rest. */
 .lib-factor {
+  display: inline-grid;
+  grid-template-columns: 46px 12px 10px;
+  align-items: center;
+  justify-items: start;
+}
+.lib-factor > .lib-key {
+  grid-column: 1;
   display: inline-flex;
   align-items: center;
   gap: 3px;
+}
+.lib-factor > .adjusted-mark {
+  grid-column: 2;
+}
+.lib-factor > .lib-best {
+  grid-column: 3;
 }
 .lib-mark {
   display: inline-grid;
@@ -4522,33 +4977,93 @@ button.cmp-cell:hover {
   text-decoration: underline dotted;
   cursor: help;
 }
-/* Step 10b: a phone card's factors on one line, cut off with an ellipsis; the whole of it is in its label. */
-.lib-strip {
-  margin-top: 4px;
-  overflow: hidden;
+/* Z-7 (UX part 2 PR 7c2): the phone card's top factors as chips, the mark or letter first; a failing Must in red. */
+.lib-fchips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 2px;
+}
+.lib-fchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px 1px 3px;
+  border: 1px solid var(--color-rule);
+  border-radius: 12px;
+  background: #fff;
+  font-size: 12.5px;
   white-space: nowrap;
-  text-overflow: ellipsis;
+}
+.lib-fchip.m-fail {
+  border-color: var(--color-steep);
+  color: var(--color-steep);
+}
+.lib-fchip.m-warn {
+  border-color: var(--color-warn);
+}
+.lib-fchip .card-grade.tiny {
+  min-width: 18px;
+  height: 18px;
+  font-size: 12px;
+  border-radius: 9px;
+}
+.lib-card-money {
+  font-variant-numeric: tabular-nums;
+}
+/* The Compare tick on the card's right, with its word under it, 44 px. */
+.lib-card-cmp {
+  grid-column: -2 / -1;
+  grid-row: 1;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 52px;
+  min-height: 44px;
   color: var(--color-ink-2);
-  font-size: 13px;
+  font-size: 11px;
+  cursor: pointer;
 }
-.lib-strip-mark {
-  font-weight: 700;
+.lib-card-cmp input {
+  width: 22px;
+  height: 22px;
+  margin: 0;
 }
-.lib-strip-mark.m-pass {
-  color: var(--color-ok);
+/* "?" beside the heading: a phone's legend; a desktop has it under the grid. */
+.lib-legend-btn {
+  display: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -8px 0 -8px 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink-2);
+  font: 600 15px var(--font-sans);
+  vertical-align: middle;
+  cursor: pointer;
 }
-.lib-strip-mark.m-warn {
-  color: var(--color-warn);
+.lib-legend-top {
+  display: none;
+  margin: 0 0 8px;
 }
-.lib-strip-mark.m-fail {
-  color: var(--color-steep);
-}
-.lib-strip-grade {
-  color: var(--color-ink);
-}
-.lib-strip-grade.g-D,
-.lib-strip-grade.g-F {
-  color: var(--color-steep);
+@media (max-width: 700px) {
+  .lib-legend-btn {
+    display: inline-grid;
+  }
+  .lib-legend-btn[aria-expanded="true"] {
+    color: var(--color-ink);
+  }
+  .lib-legend-top {
+    display: block;
+  }
+  .lib-legend-foot {
+    display: none;
+  }
 }
 .lib-columns {
   position: relative;
@@ -4662,7 +5177,8 @@ button.cmp-cell:hover {
 }
 .lib-card {
   display: grid;
-  gap: 3px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 3px 6px;
   padding: 10px 12px;
   border: 1px solid var(--color-rule);
   border-radius: 8px;
@@ -4754,7 +5270,7 @@ button.cmp-cell:hover {
   cursor: grabbing;
 }
 .lib-card-ordered {
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: start;
   column-gap: 6px;
   padding-left: 4px;
@@ -4764,8 +5280,20 @@ button.cmp-cell:hover {
   gap: 3px;
   min-width: 0;
 }
+.lib-card-head,
 .lib-card-ordered .lib-card-head {
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+/* ⋯ under the Compare tick, on the card's right. */
+.lib-card > .lib-card-body,
+.lib-card > .lib-handle {
+  grid-row: 1 / span 2;
+}
+.lib-card-more {
+  grid-column: -2 / -1;
+  grid-row: 2;
+  justify-self: center;
+  align-self: start;
 }
 .lib-detail {
   /* The report card's light style for the Info panel's shared controls (owner, #133). */
@@ -5152,6 +5680,12 @@ button.cmp-cell:hover {
   max-width: 1200px;
 }
 /* The intro (owner, 10/18): what the list is, the four columns in a line each, how to use it. */
+/* What the page is, and whose priorities (UX part 2, P-7), with Try it right under it. */
+.rubric-lead {
+  max-width: 760px;
+  margin: 4px 0 8px;
+  font-size: 14px;
+}
 .rubric-intro {
   max-width: 760px;
   margin: 4px 0 10px;
@@ -5194,8 +5728,8 @@ button.cmp-cell:hover {
   gap: 8px;
   margin-left: auto;
 }
-/* "Try it" (plan §4; a slim strip under the intro since the owner's UX round, 10/18): the parcel, its grade before → now,
-   and up to two plain reasons. The columns take the full width below it. */
+/* "Try it" (plan §4; a slim strip under the intro since the owner's UX round, 10/18, and on a phone too since UX part 2,
+   P-7): the parcel, its grade before → now, and up to two plain reasons. The columns take the full width below it. */
 .rubric-strip {
   margin: 0 0 10px;
   padding: 8px 12px;
@@ -5214,9 +5748,6 @@ button.cmp-cell:hover {
 .rubric-strip-line select {
   max-width: 100%;
   min-height: 32px;
-}
-.rubric-strip-colon {
-  margin-left: -4px;
 }
 .rubric-strip-grade {
   font-size: 15px;
@@ -5424,6 +5955,44 @@ button.cmp-cell:hover {
   width: 100%;
   min-height: 32px;
 }
+.sky-slider label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sky-slider strong {
+  font-size: 15px;
+}
+.sky-slider a {
+  color: inherit;
+  text-decoration: underline;
+}
+/* The night sky's A–D scale in what you'd see (UX part 2, P-7): the card's letter colours, white text at 4.5:1. */
+.sky-scale {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  margin: 2px 0;
+  padding: 0;
+  list-style: none;
+}
+.sky-scale li {
+  padding: 4px 6px;
+  border-radius: 4px;
+  color: #fff;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.sky-scale .g-A,
+.sky-scale .g-B {
+  background: var(--color-ok);
+}
+.sky-scale .g-C {
+  background: var(--color-warn);
+}
+.sky-scale .g-D {
+  background: var(--color-steep);
+}
 .rubric-moveto {
   display: flex;
   flex-wrap: wrap;
@@ -5458,24 +6027,11 @@ button.cmp-cell:hover {
   display: flex;
   gap: 10px;
 }
-/* A phone (plan §6.2): the tiers stacked, each header sticky while its cards scroll by; "Try it" a bar along the bottom
-   with the same words; every target at least 44 px. */
+/* A phone (plan §6.2): the tiers stacked, each header sticky while its cards scroll by; "Try it" the same slim line as on
+   a desktop, under the intro, over no card (UX part 2, P-7); every target at least 44 px. */
 @media (max-width: 860px) {
-  .rubric-editor {
-    padding-bottom: 150px;
-  }
   .rubric-strip {
-    position: fixed;
-    left: 0;
-    right: 0;
-    /* On the tab bar, as the map's sheet is (step 4b). */
-    bottom: var(--tabs-h);
-    z-index: 40;
-    margin: 0;
-    border-radius: 12px 12px 0 0;
-    border-bottom: 0;
-    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.18);
-    padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
+    padding: 4px 10px;
   }
   .rubric-strip-line select {
     min-height: 44px;
@@ -5501,10 +6057,11 @@ button.cmp-cell:hover {
     /* An edge, so a card scrolling under the stuck header reads as passing beneath it, not cut. */
     box-shadow: 0 1px 0 var(--color-rule);
   }
-  /* Try it on a phone: the parcel picker takes the first line, the grade the second. */
+  /* Try it on a phone, one line: the parcel picker takes what the grade leaves; a long change ("C · Maybe → B ·
+     Contender") goes under it rather than off the side. */
   .rubric-strip-line label {
     display: flex;
-    flex: 1 1 100%;
+    flex: 1 1 150px;
     align-items: center;
     gap: 6px;
     min-width: 0;
@@ -5513,8 +6070,8 @@ button.cmp-cell:hover {
     flex: 1;
     min-width: 0;
   }
-  .rubric-strip-colon {
-    display: none;
+  .rubric-strip-grade {
+    flex: none;
   }
   .rubric-sheet-head .btn,
   .rubric-notice .btn,
@@ -5732,14 +6289,9 @@ button.cmp-cell:hover {
   min-height: 44px;
   min-width: 88px;
 }
-/* On the result Try it stays in the page, phone too: as the bottom bar it covered the result's buttons (the
-   fresh-eyes review). */
+/* On the result Try it stays in the page, as it does on What matters since UX part 2 (P-7). */
 .iv-result .rubric-strip {
-  position: static;
   margin: 4px 0 14px;
-  border-radius: 6px;
-  border-bottom: 1px solid var(--color-rule);
-  box-shadow: none;
 }
 .iv-money {
   display: flex;
@@ -6493,6 +7045,9 @@ button.sync-ind.bad {
   .list-switch-seg {
     flex: 1;
     min-width: 0;
+    /* "Ruled out 0" on one line in a third of 375 px (the fresh-eyes review). */
+    padding: 0 6px;
+    white-space: nowrap;
   }
   /* A phone: the row becomes a card; Add to list and Open on the map go under the name, the grade beside it. */
   .hist-row {
@@ -7139,11 +7694,6 @@ button.use-row[aria-expanded="true"] .use-name::after {
     min-height: 44px;
     min-width: 44px;
   }
-  .lib-card-head input[type="checkbox"] {
-    width: 24px;
-    height: 24px;
-    margin: 10px;
-  }
 }
 /* A phone with Search's results open: the toolbar's hint, the switch toast and the map's hint step aside, so nothing
    stacks under the results. */
@@ -7652,6 +8202,26 @@ button.use-row[aria-expanded="true"] .use-name::after {
 .card-panel .adjust h3 {
   margin: 0 0 8px;
 }
+/* J-5 (UX part 2 PR 3c): "Is this a fact about the parcel?" at the top of Adjust; a fact on file shows instead. */
+.fact {
+  display: grid;
+  gap: 8px;
+  margin: 6px 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+  background: var(--color-paper-2);
+}
+.fact p {
+  margin: 0;
+}
+.fact-on {
+  border-left: 3px solid var(--color-ok);
+}
+.fact-form {
+  display: grid;
+  gap: 8px;
+}
 .adjust-choices,
 .adjust-actions {
   display: flex;
@@ -8018,4 +8588,120 @@ button.use-row[aria-expanded="true"] .use-name::after {
 }
 .ac-pct {
   font: 700 22px/1 var(--font-cond);
+}
+
+/* Household (UX part 2 PR 5, P-8): its members, each with Rename; then your devices. */
+.household-members {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0;
+  padding: 0;
+  list-style: none;
+}
+.household-member {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 44px;
+  padding: 4px 10px;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+}
+.household-rename {
+  display: flex;
+  flex: 1;
+  gap: 6px;
+}
+.household-rename input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Z-8 (UX part 2 PR 7b): Recent, one line a row: the name (two lines at most), the letter, the acres, $/ac over the
+   date, then ★ and ✕ at 44 px. It replaces the phone's card layout for Recent (the grid areas above). */
+.hist-row.recent-line {
+  grid-template-areas: none;
+  grid-template-columns: minmax(0, 1fr) 36px 64px 88px 44px 44px;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+}
+.recent-line > * {
+  grid-area: auto;
+}
+.recent-line .hist-name {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  white-space: normal;
+  text-align: left;
+}
+.recent-grade {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.recent-when {
+  display: grid;
+  line-height: 1.25;
+}
+.recent-line .recent-star,
+.recent-line .hist-x {
+  width: 44px;
+  height: 44px;
+  margin: 0;
+}
+@media (max-width: 700px) {
+  .hist-row.recent-line {
+    grid-template-columns: minmax(0, 1fr) 28px 54px 70px 44px 44px;
+    gap: 4px;
+  }
+}
+/* UX part 2 PR 7a (P-5): each view's count; the compare bar at the foot of the screen; Ruled out's rows. */
+.list-switch-n {
+  margin-left: 4px;
+  color: var(--color-ink-2);
+  font-weight: 500;
+}
+.list-switch-seg[aria-selected="true"] .list-switch-n {
+  color: inherit;
+}
+.compare-bar {
+  position: fixed;
+  z-index: 30;
+  left: 50%;
+  bottom: calc(var(--tabs-h, 0px) + 16px);
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 8px 8px 16px;
+  border-radius: 10px;
+  background: #1c2620;
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+.compare-bar .btn {
+  min-height: 44px;
+  background: #fff;
+  color: #1c2620;
+}
+.compare-bar .btn:disabled {
+  opacity: 0.6;
+}
+.ruled-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ruled-main {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+.ruled-back {
+  min-height: 44px;
 }

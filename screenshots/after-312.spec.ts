@@ -89,10 +89,13 @@ for (const phone of [false, true]) {
       await liveImagery(page);
       await openExplorer(page, MUD);
       await gradedHere(page, MUD);
-      await expect(page.locator(".sh-acres").first()).toHaveText("30.15 ac");
+      // The place line follows the acres since UX part 2 PR 3a.
+      await expect(page.locator(".sh-acres").first()).toHaveText(/^30\.15 ac · /);
 
       // Uses: Garden's water named, Hunt from the boundary.
-      await page.getByRole("tab", { name: "Uses" }).click();
+      // On a phone the sheet raised first: at its peek, the header and its actions row (UX part 2 PR 3a) fill it.
+      await tall(page, phone);
+      await tap(page.getByRole("tab", { name: "Uses" }));
       await expect(page.locator(".uses .use").first()).toBeVisible();
       await page.waitForTimeout(500);
       await page.screenshot({ path: `${OUT}/${device}-312-uses.png` });
@@ -103,7 +106,8 @@ for (const phone of [false, true]) {
       await page.screenshot({ path: `${OUT}/${device}-312-divide.png` });
 
       // Details: the county record's acres, both parts.
-      await page.getByRole("tab", { name: "Details" }).click();
+      await tall(page, phone);
+      await tap(page.getByRole("tab", { name: "Details" }));
       await page.waitForTimeout(400);
       await page.screenshot({ path: `${OUT}/${device}-312-details.png` });
 
@@ -123,7 +127,8 @@ for (const phone of [false, true]) {
         deedRestrictions: "No mobile homes",
         hoa: "no",
       });
-      await page.getByRole("tab", { name: "Uses" }).click();
+      await tall(page, phone);
+      await tap(page.getByRole("tab", { name: "Uses" }));
       await tall(page, phone);
       const scenario = page.getByRole("article", { name: "Split 1" });
       const pieces = scenario.locator(".scn-piece");
@@ -158,7 +163,8 @@ for (const phone of [false, true]) {
           .getByRole("button", { name: "Add this piece to the list" }),
       );
       await settled(page);
-      await page.getByRole("tab", { name: "Details" }).click();
+      await tall(page, phone);
+      await tap(page.getByRole("tab", { name: "Details" }));
       const summary = page.locator(".ip-listing-summary");
       if ((await summary.count()) && (await summary.getAttribute("aria-expanded")) === "false")
         await summary.click();

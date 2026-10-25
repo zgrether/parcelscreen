@@ -336,7 +336,7 @@ export function driveFromSentence(f: DriveFrom): string {
       ? ` OSRM's nearest road is ${fmt(Math.round((f.snapM * M2FT) / 10) * 10)} ft from there.`
       : "";
   const track = f.trackMi ? ` The route out starts with ${fmt(f.trackMi, 1)} mi on unnamed tracks.` : "";
-  const kept = f.kept ? " Drive times are from the last full screen; run again to update." : "";
+  const kept = f.kept ? " Drive times are from the last full screen; grade again to update." : "";
   return where + snap + track + kept;
 }
 

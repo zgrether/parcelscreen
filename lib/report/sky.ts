@@ -8,7 +8,7 @@ import type { EvaluationPoint } from "./point";
 
 export function skyHeading(r: PartialScreenResult, p: EvaluationPoint | null): Heading {
   return {
-    title: "Dark skies",
+    title: "Night sky",
     ...(r.sky ? { sub: `score ${skyScoreOf(r.sky)}/100 at ${p?.label ?? "the largest house site"}` } : {}),
     slug: "dark-skies",
     help: "h-sky",

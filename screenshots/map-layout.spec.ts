@@ -53,9 +53,11 @@ for (const phone of [false, true]) {
       await page.waitForTimeout(2000);
       await shot(page, "2-opened");
 
-      const grade = page.locator(".grade-btn");
+      // On a phone the sheet's own button, which turns into the progress bar while the grade runs (UX part 2 PR 3b).
+      const grade = page.locator(phone ? ".explore-panel .grade-btn" : ".grade-btn");
       await grade.click();
-      await expect(grade).toHaveText("Grading…");
+      if (phone) await expect(page.locator(".grade-progress-text")).toBeVisible();
+      else await expect(grade).toHaveText("Grading…");
       await page.waitForTimeout(1200);
       await shot(page, "3-grading");
       await expect(grade).toHaveText("Try again: 3 sources didn't load", { timeout: 200_000 });
