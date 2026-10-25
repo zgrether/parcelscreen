@@ -38,7 +38,7 @@ export default function LinkPage() {
       </header>
       {!code ? (
         <p className="sync-line">
-          This link has no code in it. On your other device, open Settings → Your data → Sync across devices →
+          This link has no code in it. On your other device, open ☰ → Household → Link a device of yours →
           Show code, and scan it again.
         </p>
       ) : already ? (

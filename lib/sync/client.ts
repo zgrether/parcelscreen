@@ -69,6 +69,31 @@ export async function saveBatch(code: string, batch: SaveBatch): Promise<void> {
   if (!r.ok) throw await failed(r);
 }
 
+/** Keeps an invite (UX part 2 PR 5b): its key and the sealed code, under the space's code. */
+export async function createInvite(code: string, token: string, sealed: string): Promise<void> {
+  const r = await call("/api/sync/invite", code, FETCH_MS, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ token, sealed }),
+  });
+  if (r.status !== 201) throw await failed(r);
+}
+
+/** Uses an invite: its sealed code, or null when it's been used, is too old, or never was. */
+export async function redeemInvite(token: string): Promise<string | null> {
+  const r = await fetch("/api/sync/invite/redeem", {
+    method: "POST",
+    cache: "no-store",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ token }),
+    signal: AbortSignal.timeout(FETCH_MS),
+  });
+  if (r.status === 410) return null;
+  if (!r.ok) throw await failed(r);
+  const body = (await r.json()) as { sealed?: unknown };
+  return typeof body.sealed === "string" ? body.sealed : null;
+}
+
 export async function fetchScreen(code: string, id: string): Promise<StoredScreen | null> {
   const r = await call(`/api/sync/screen?id=${encodeURIComponent(id)}`, code, FETCH_MS);
   if (r.status === 404) return null;

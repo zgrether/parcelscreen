@@ -9,11 +9,14 @@
  *   POST /api/sync/save             a batch of whole records (lib/sync/wire.ts SaveBatch)
  *   GET  /api/sync/screen?id=       one kept screen
  *   GET  /api/health                one tiny read, for the keep-alive; no code
+ *   POST /api/sync/invite           keeps a one-use invite to the space (UX part 2 PR 5b)
+ *   POST /api/sync/invite/redeem    uses an invite, once: its sealed code (no code header: the invite is the key)
  */
 import { z } from "zod";
 import { normalizeCode, spaceKeyOf } from "../sync/code";
 import type { SyncStore } from "../sync/store";
-import { CODE_HEADER, MAX_BATCH_BYTES, SaveBatch } from "../sync/wire";
+import { CODE_HEADER, InviteCreate, InviteRedeem, MAX_BATCH_BYTES, SaveBatch } from "../sync/wire";
+import { INVITE_DAYS } from "../sync/invite";
 import { SCREEN_SCHEMA_VERSION } from "../screen/types";
 import { SyncConfigError } from "./syncConfig";
 
@@ -65,6 +68,35 @@ export async function handleSave(req: Request, store: SyncStore): Promise<Respon
   if (!batch.success) return json({ error: "not a save batch" }, 400);
   await store.save(key, batch.data);
   return nothing(204);
+}
+
+/** A small JSON body, parsed with its schema; null when it isn't one. */
+async function small<T>(req: Request, schema: z.ZodType<T>): Promise<T | null> {
+  const text = await req.text();
+  if (text.length > 1000) return null;
+  try {
+    const r = schema.safeParse(JSON.parse(text));
+    return r.success ? r.data : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function handleCreateInvite(req: Request, store: SyncStore): Promise<Response> {
+  const key = await existing(req, store);
+  if (!key) return nothing(404);
+  const body = await small(req, InviteCreate);
+  if (!body) return json({ error: "not an invite" }, 400);
+  await store.createInvite(key, body.token, body.sealed);
+  return nothing(201);
+}
+
+export async function handleRedeemInvite(req: Request, store: SyncStore): Promise<Response> {
+  const body = await small(req, InviteRedeem);
+  if (!body) return json({ error: "not an invite" }, 400);
+  const sealed = await store.redeemInvite(body.token, INVITE_DAYS * 86_400_000);
+  // Used, too old, or never made: the same answer, so a link says nothing about why.
+  return sealed ? json({ sealed }) : nothing(410);
 }
 
 export async function handleScreen(req: Request, store: SyncStore): Promise<Response> {
