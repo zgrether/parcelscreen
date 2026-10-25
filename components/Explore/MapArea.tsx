@@ -23,6 +23,7 @@ import { LineUndoToast } from "@/components/Map/LineUndoToast";
 import { ScenarioUndoToast } from "@/components/Split/ScenarioUndoToast";
 import { RuleOutToast } from "./RuleOutToast";
 import { BackChip } from "./BackChip";
+import { MapKeyLine } from "@/components/Map/MapKeyLine";
 import { AttachListingChip } from "@/components/Map/AttachListingChip";
 import { MapPanel } from "@/components/Map/MapPanel";
 import { useExplore, type SetHint } from "./useExploreController";
@@ -77,6 +78,7 @@ export function MapArea({
       <ScenarioUndoToast />
       <RuleOutToast />
       <BackChip />
+      <MapKeyLine />
       <AttachListingChip />
       <Toolbar />
       <MarkPicker />

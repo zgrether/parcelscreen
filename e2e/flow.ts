@@ -215,6 +215,12 @@ export async function openFromRecent(page: Page, name: string): Promise<void> {
  * Grade it (step 4c: the toolbar's button on a desktop, the sheet's on a phone; for a kept run with nothing changed, the
  * overlays note's "Grade again"), wait for the run to finish, and return each step's final status.
  */
+/**
+ * Every pin on, as openExplorer's `preProfile` (UX part 2 PR 3b2: by default the map pins the best homesite only, until
+ * the full key's Every pin asks for the rest). For a test that taps another site's pin.
+ */
+export const EVERY_PIN: Record<string, string> = { "ps.overlays": JSON.stringify({ allPins: true }) };
+
 /** A run going: the toolbar's "Grading…", or on a phone the sheet's progress bar in its place (UX part 2 PR 3b, Z-9). */
 export const gradingNow = (page: Page) =>
   page.locator(".grade-btn", { hasText: /^Grading…$/ }).or(page.locator(".grade-progress"));

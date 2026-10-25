@@ -65,8 +65,12 @@ export function ResultLayers() {
     map?.getSource<GeoJSONSource>(SOURCE.driveway)?.setData(drive ? drive.lines : EMPTY);
   }, [map, drive]);
 
-  // The entrance pins: yellow E1…, their text on hover or tap; and a refused switchback's red flag (B2b).
-  const entrances = drive?.entrances ?? null;
+  // The entrance pins: yellow E1…, their text on hover or tap, with Every pin on (UX part 2 PR 3b2); and a refused
+  // switchback's red flag (B2b), always.
+  const entrances = useMemo(
+    () => drive?.entrances.filter((e) => on.allPins || e.warn) ?? null,
+    [drive, on.allPins],
+  );
   useEffect(() => {
     if (!map || !entrances?.length) return;
     const markers = entrances.map((e) => {

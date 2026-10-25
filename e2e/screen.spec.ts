@@ -9,6 +9,7 @@ import type { ScreenResult } from "@/lib/screen/types";
 import { loadFixture } from "../test/support/fixtures";
 import {
   againstExpected,
+  EVERY_PIN,
   EXPECTED_MSG,
   expectAllDone,
   importParcel,
@@ -149,7 +150,7 @@ test("Macks Mountain 35-3: the plain run and the re-evaluation at site #2 match 
   context,
 }) => {
   net = await replayHar(context, MACKS);
-  await openExplorer(page, MACKS);
+  await openExplorer(page, MACKS, EVERY_PIN); // it taps a site's pin
   await importParcel(page, MACKS);
   const steps = await screenIt(page);
   await expectCleanRun(page, steps);
@@ -181,7 +182,7 @@ test("Ferney Creek 52-47A: a pin away from the run's point is an unsaved re-eval
   context,
 }) => {
   net = await replayHar(context, FERNEY);
-  await openExplorer(page, FERNEY);
+  await openExplorer(page, FERNEY, EVERY_PIN); // it taps other sites' pins
   await importParcel(page, FERNEY);
   const steps = await screenIt(page);
   await expectCleanRun(page, steps);
