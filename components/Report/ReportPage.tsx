@@ -177,6 +177,7 @@ function Report({
         parcel.drivewayLine,
         { askingPrice: parcel.askingPrice, ...costs },
         adjustFor(parcel.key, household),
+        parcel.facts,
       ),
       rubrics,
       viewer: viewedRubric(rubrics),

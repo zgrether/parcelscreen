@@ -53,7 +53,7 @@ import { pieceAsParcel, pieceOf, type PieceSide } from "@/lib/split/scenario";
 import { SPLIT_WORDS } from "@/lib/split/words";
 import type { LatLon } from "@/lib/geo/types";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
-import type { MarkKind, SepticClass } from "@/lib/report/marks";
+import type { Facts, MarkKind, SepticClass } from "@/lib/report/marks";
 import { TOOL, withRecent, type MarkChoice } from "@/lib/client/markChoices";
 import {
   BUSY_TEXT,
@@ -268,6 +268,8 @@ export interface ExploreController {
   saveAskingPrice(price: number | null, serial: number): void;
   /** WF1: the listing's facts, for the parcel open as `serial`. */
   saveListing(patch: Partial<Pick<WorkingParcel, ListingField>>, serial: number): void;
+  /** J-5: the open parcel's facts, whole; an empty object clears them. */
+  saveFacts(facts: Facts, serial: number): void;
   /**
    * Step 8: starred with its name, or unstarred (its asks and takes go). WF2: archiving with a reason, restoring, and a
    * milestone's date (null clears it).
@@ -974,6 +976,9 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     saveListing(patch, serial) {
       dispatch({ type: "listing", patch, serial, stamp: stamp() });
+    },
+    saveFacts(facts, serial) {
+      dispatch({ type: "facts", facts, serial, stamp: stamp() });
     },
     star(name, serial) {
       dispatch({ type: "star", name, serial, stamp: stamp() });

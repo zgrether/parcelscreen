@@ -915,7 +915,12 @@ function internet(r: Result, K: CardConfig, at: number, known?: Facts): Row {
   // J-5: internet service confirmed at the address settles it (an A), whatever the dish spot, with the reminder appended.
   if (!known?.service?.internet) return byDish;
   const { missing: _missing, ...rest } = byDish;
-  return { ...rest, grade: "A", detail: `${byDish.detail}; ${INTERNET_CONFIRMED}`, short: "service confirmed" };
+  return {
+    ...rest,
+    grade: "A",
+    detail: `${byDish.detail}; ${INTERNET_CONFIRMED}`,
+    short: "service confirmed",
+  };
 }
 
 function internetByDish(r: Result, K: CardConfig, at: number): Row {

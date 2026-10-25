@@ -74,6 +74,7 @@ export function Compare() {
         b.drivewayLine,
         { askingPrice: b.askingPrice, ...costs },
         adjustFor(b.key, household),
+        b.facts,
       ),
     };
   });

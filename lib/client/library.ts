@@ -173,6 +173,7 @@ export function libraryRow(
         p.drivewayLine,
         { askingPrice: p.askingPrice, ...costs },
         p.key ? adjustMap(ctx.household, p.key, ctx.me) : undefined,
+        p.facts,
       ),
     );
     // The viewer's (the profile's own rubric comes first): the cost at their best site.
