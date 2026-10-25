@@ -460,6 +460,61 @@ html:has(.explore) body {
   }
 }
 /* After leaving a parcel with a screen (17e): "{parcel} kept in History — Back", where the hint sits. */
+/* The map's key line (UX part 2 PR 3b2): what a graded parcel draws, over the toolbar; a toast takes its place. */
+.map-key-line {
+  position: absolute;
+  z-index: 14;
+  left: calc(var(--float-l, 0px) + 12px);
+  right: calc(var(--col-r, 0px) + 12px);
+  bottom: calc(var(--sheet-h, 0px) + 74px);
+  margin-inline: auto;
+  width: fit-content;
+  max-width: calc(100% - 24px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(231, 234, 227, 0.94);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  color: var(--color-ink);
+  font-size: 13px;
+}
+.explore:has(.switch-toast) .map-key-line,
+.explore.sheet-tall .map-key-line {
+  display: none;
+}
+.mkl-entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.mkl-entry .sitepin.mk-pin {
+  position: static;
+  transform: none;
+}
+.mkl-line {
+  display: inline-block;
+  width: 22px;
+  height: 4px;
+  border-radius: 2px;
+}
+.mkl-line.route {
+  background: #e0c43c;
+  box-shadow: 0 0 0 1px #0b1410;
+}
+.mkl-line.fan {
+  background: #e0553f;
+}
+.mkl-all {
+  min-height: 32px;
+  white-space: nowrap;
+}
+.mk-all-pins {
+  margin: 6px 0 4px;
+}
 .switch-toast {
   position: absolute;
   z-index: 15;

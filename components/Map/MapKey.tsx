@@ -1,9 +1,13 @@
 "use client";
 /**
  * "What's on the map" (polish #18, owner 2026-10-20): the pins' codes and the lines a grade draws, each beside a small
- * copy of how it looks, in Map layers. Folded to its heading; the pins' own tooltips say the rest.
+ * copy of how it looks, in Map layers. Folded to its heading; the pins' own tooltips say the rest. UX part 2 PR 3b2:
+ * the map's key line opens it ("All map marks"), and its Every pin turns on the pins beyond the best homesite.
  */
+import { useEffect, useRef } from "react";
 import { POWER_MAP } from "@/lib/uses/words";
+import { KEY_WORDS } from "@/lib/render/keyLine";
+import { setOverlay, useOverlayPrefs } from "./results/useOverlayPrefs";
 import { POWER_CASING, POWER_COLOR } from "./results/PowerLayer";
 
 /** A pin as the map draws it (the .sitepin classes). */
@@ -61,10 +65,38 @@ const ROWS: { key: string; swatch: React.ReactNode; text: string }[] = [
   { key: "power", swatch: <Line color={POWER_COLOR} under={POWER_CASING} />, text: POWER_MAP.key },
 ];
 
+/** Asked by the key line: the next MapKey to mount opens, and comes into view. */
+let openNext = false;
+export const requestKeyOpen = (): void => {
+  openNext = true;
+};
+
 export function MapKey() {
+  const on = useOverlayPrefs();
+  const box = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    if (!openNext || !box.current) return;
+    openNext = false;
+    box.current.open = true;
+    box.current.scrollIntoView({ block: "start" });
+  }, []);
   return (
-    <details className="mp-key">
+    <details className="mp-key" ref={box}>
       <summary className="tc-label">What&apos;s on the map</summary>
+      <div className="ag-row mk-all-pins">
+        <span>
+          {KEY_WORDS.allPins}
+          <span className="tiny muted"> — the other sites, shelves, gardens and road entrances</span>
+        </span>
+        <button
+          className="ag-eye"
+          aria-pressed={on.allPins}
+          aria-label={`${on.allPins ? "Hide" : "Show"} every pin`}
+          onClick={() => setOverlay("allPins", !on.allPins)}
+        >
+          {on.allPins ? "Shown" : "Hidden"}
+        </button>
+      </div>
       <ul className="mk-rows">
         {ROWS.map((r) => (
           <li key={r.key}>
