@@ -20,7 +20,9 @@ import { useHistoryLog } from "@/lib/client/favoritesStore";
 import { currentProfileId } from "@/lib/client/profiles";
 import { flash, useExplore, type SetHint } from "@/components/Explore/useExploreController";
 import { PRECISION_ZOOM, readListingUrl, type ListingRead } from "@/lib/client/listingUrl";
-import { countiesShown, parcelServiceDown } from "./useParcelLines";
+import { parcelServiceDown } from "./useParcelLines";
+import { REGION, unionBbox, type Bbox } from "@/lib/search/region";
+import { Marker, type Map as MapLibre } from "maplibre-gl";
 import { AreaBox } from "@/components/Areas/AreaBox";
 
 /** Network searches wait this long after the last keystroke. */
@@ -36,6 +38,25 @@ interface Option {
   label: string;
   detail?: string;
   pick(): void;
+}
+
+/** Where search looks: the region, and the map's view with it (UX part 2 PR 4). */
+function searchBox(map: MapLibre | null): Bbox {
+  const b = map?.getBounds();
+  return unionBbox(REGION.bbox, b ? [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()] : null);
+}
+
+/** The pin coordinates leave (UX part 2 PR 4): one at a time, until the next. */
+let coordPin: Marker | null = null;
+function dropPin(map: MapLibre, ll: readonly [number, number]): void {
+  coordPin?.remove();
+  const el = document.createElement("div");
+  el.className = "coord-pin";
+  el.setAttribute("role", "img");
+  el.setAttribute("aria-label", `Pin at ${ll[0]}, ${ll[1]}`);
+  // The drop is drawn by a child: the marker's own transform places it.
+  el.appendChild(document.createElement("span")).className = "coord-pin-head";
+  coordPin = new Marker({ element: el, anchor: "bottom" }).setLngLat([ll[1], ll[0]]).addTo(map);
 }
 
 export function Search({
@@ -86,7 +107,6 @@ function SearchBox({
   const [active, setActive] = useState(0);
   const [parcels, setParcels] = useState<Remote<ParcelHit>>({ state: "idle" });
   const [places, setPlaces] = useState<Remote<PlaceHit>>({ state: "idle" });
-  const [noCounties, setNoCounties] = useState(false);
   /** No counties to search because the view's parcel service isn't answering (owner, after 16b). */
   const [serviceDown, setServiceDown] = useState<string | null>(null);
 
@@ -119,19 +139,19 @@ function SearchBox({
       if (isLink) {
         setParcels({ state: "idle" });
         setPlaces({ state: "idle" });
-        setNoCounties(false);
         return;
       }
       const abort = new AbortController();
       searching.current = abort;
-      const counties = map ? countiesShown(map) : new Map();
+      // UX part 2 PR 4 (the audit's P-1): every covered county in the region, and the map's view with it, not only the
+      // counties drawn on the map.
+      const box = searchBox(map);
       // Parcel numbers have digits: "Floyd" is a place, not a parcel number.
       const wantsParcels = idPattern(q) !== null && /\d/.test(q);
-      setNoCounties(wantsParcels && counties.size === 0);
       setServiceDown(map ? parcelServiceDown(map) : null);
-      if (wantsParcels && counties.size) {
+      if (wantsParcels) {
         setParcels({ state: "loading" });
-        searchParcelNumbers(browserHttp, counties, q, abort.signal).then(
+        searchParcelNumbers(browserHttp, { sources: ctl.parcelServices, bbox: box }, q, abort.signal).then(
           (hits) => setParcels({ state: "done", hits }),
           (e) => !(e instanceof CancelledError) && setParcels({ state: "failed" }),
         );
@@ -140,14 +160,14 @@ function SearchBox({
       if (q.length >= MIN_PLACE_CHARS && map && !coordinatesIn(q)) {
         const c = map.getCenter();
         setPlaces({ state: "loading" });
-        searchPlaces(browserHttp, photonUrl, q, [c.lat, c.lng], abort.signal).then(
+        searchPlaces(browserHttp, photonUrl, q, [c.lat, c.lng], abort.signal, box).then(
           (hits) => setPlaces({ state: "done", hits }),
           (e) => !(e instanceof CancelledError) && setPlaces({ state: "failed" }),
         );
       } else setPlaces({ state: "idle" });
     }, DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [text, ctl.map, photonUrl]);
+  }, [text, ctl.map, ctl.parcelServices, photonUrl]);
   useEffect(() => () => searching.current?.abort(), []);
 
   // Step 8 (plan §5): the household's Favorites and this person's History, each with its parcel numbers; never another
@@ -195,13 +215,18 @@ function SearchBox({
         {
           key: "coords",
           label: `Go to ${coords[0]}, ${coords[1]}`,
-          pick: done(() => ctl.map?.jumpTo({ center: [coords[1], coords[0]], zoom: 16 })),
+          // UX part 2 PR 4: a pin where the coordinates are, and the parcel under it opened.
+          pick: done(() => {
+            if (ctl.map) dropPin(ctl.map, coords);
+            ctl.map?.jumpTo({ center: [coords[1], coords[0]], zoom: 16 });
+            void ctl.openAt(coords);
+          }),
         },
       ],
     });
   // Your saved parcels, by name or parcel number, above the place results (step 8, plan §5): up to five of each.
   for (const [title, list] of [
-    ["Favorites", saved.favorites],
+    ["Shortlist", saved.favorites],
     ["Recent", saved.history],
   ] as const) {
     const hits = q ? list.filter((s) => matchesSaved(s.name, s.numbers, q)).slice(0, 5) : [];
@@ -222,13 +247,7 @@ function SearchBox({
   }
   // Until the debounce clears them, results from before a link was pasted aren't shown with it.
   const searched = listing.kind === "notUrl";
-  if (searched && noCounties)
-    groups.push({
-      title: "Parcel numbers",
-      options: [],
-      note: serviceDown ?? "Zoom in on the county to search its parcel numbers.",
-    });
-  else if (searched && parcels.state !== "idle")
+  if (searched && parcels.state !== "idle")
     groups.push({
       title: "Parcel numbers",
       options:
@@ -248,7 +267,7 @@ function SearchBox({
         : parcels.state === "failed"
           ? { note: "Parcel search is unavailable right now." }
           : parcels.hits.length === 0
-            ? { note: `No parcel numbers start with “${q}” in the counties in view.` }
+            ? { note: serviceDown ?? `No parcel numbers start with “${q}” in ${REGION.name}.` }
             : {}),
     });
   if (searched && places.state !== "idle")

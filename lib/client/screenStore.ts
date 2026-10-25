@@ -57,11 +57,11 @@ export const fromEarlierRules = (
  * What a result re-screened on open says (owner, #101, 2026-10-11: an approved replacement of "Screened with earlier
  * rules — run again for current results", phase-0.md §9.27).
  */
-export const RESCREENED = "Re-screened with the current rules";
+export const RESCREENED = "Graded again with the current rules";
 /** A History entry whose last screen is gone or from earlier rules (it replaces the "earlier rules" note there). */
-export const RESCREENS_ON_OPEN = "Re-screens with the current rules when opened";
+export const RESCREENS_ON_OPEN = "Grades again with the current rules when opened";
 /** A parcel whose re-screen waits for the network (owner, #101). */
-export const RESCREEN_OFFLINE = "Will re-screen when you're back online";
+export const RESCREEN_OFFLINE = "Will grade again when you're back online";
 
 /** The record stamped as the household's (step 6: screens belong to the shared list, not a profile). */
 const stamped = (r: ScreenRecord): ScreenRecord => ({ ...r, profile: SPACE_ID });

@@ -10,7 +10,7 @@ import { isAdjusted } from "@/lib/report/adjust";
 import { ADJUSTED_TITLE } from "@/lib/report/adjustWords";
 import { COST_WORDS } from "@/lib/report/cost";
 import { fmt } from "@/lib/format";
-import { VERDICT_WORD, listOf } from "@/lib/report/card";
+import { verdictParts } from "@/lib/report/answer";
 import { fitSteps, nextFit, REPORT_WORDS as W, takeWords, type ReportContent } from "@/lib/print/report";
 
 /** The map's height on One page, in CSS px: 3.3 in, or 2.4 in at the fit's third step. */
@@ -60,23 +60,21 @@ export function OnePage({
       )}
 
       <section className="rp-grades" aria-label="Grades">
-        {c.grades.map((g) => (
-          <p key={g.who} className={steps.has("oneLineAnswers") ? "rp-grade rp-clip" : "rp-grade"}>
-            <span className="rp-letter">{g.card.grade ?? "–"}</span>
-            {isAdjusted(g.card) && (
-              <span className="adjusted-mark" title={ADJUSTED_TITLE} aria-label={ADJUSTED_TITLE}>
-                ✎
-              </span>
-            )}{" "}
-            <b>{VERDICT_WORD[g.card.verdict]}</b> · {g.who}: {g.reason}
-            {g.card.heldBy && (
-              <>
-                {" "}
-                Held at {VERDICT_WORD.Maybe} by: {listOf(g.card.heldBy)}.
-              </>
-            )}
-          </p>
-        ))}
+        {c.grades.map((g) => {
+          // J-4 (Zach, UX part 2): the verdict first, then the letter, and a joining word when they part.
+          const v = verdictParts(g.card);
+          return (
+            <p key={g.who} className={steps.has("oneLineAnswers") ? "rp-grade rp-clip" : "rp-grade"}>
+              <b>{v.verdict}</b> <span className="rp-letter">{v.grade}</span>
+              {isAdjusted(g.card) && (
+                <span className="adjusted-mark" title={ADJUSTED_TITLE} aria-label={ADJUSTED_TITLE}>
+                  ✎
+                </span>
+              )}
+              {v.join && `, ${v.join}`} · {g.who}: {g.reason}
+            </p>
+          );
+        })}
       </section>
 
       {/* Step 10: the viewer's cost to enjoy, after the grades. */}

@@ -29,7 +29,9 @@ const slopePct = (r: PartialScreenResult): number | null =>
 /** The acres Divide counts on, and the two readings when the listing gives its own. */
 export interface DivideAcres {
   acres: number;
-  on: "listed" | "boundary";
+  /** A survey's (J-5) before the listing's, before the county map's. */
+  on: "surveyed" | "listed" | "boundary";
+  /** The survey's or the listing's, whichever is used. */
   listed: number | null;
   boundary: number;
   /** They differ by more than $/ac's cutoff: the reason says so. */
@@ -44,11 +46,13 @@ export function divideAcres(
   boundary: number,
   listedAcres: number | null | undefined,
   pct: number = SCREEN_CONSTANTS.card.perAcreDiffPct,
+  surveyedAcres: number | null = null,
 ): DivideAcres {
-  const listed = listedAcres != null && listedAcres > 0 ? listedAcres : null;
+  const surveyed = surveyedAcres != null && surveyedAcres > 0 ? surveyedAcres : null;
+  const listed = surveyed ?? (listedAcres != null && listedAcres > 0 ? listedAcres : null);
   return {
     acres: listed ?? boundary,
-    on: listed !== null ? "listed" : "boundary",
+    on: surveyed !== null ? "surveyed" : listed !== null ? "listed" : "boundary",
     listed,
     boundary,
     differs: listed !== null && Math.abs(listed - boundary) > (boundary * pct) / 100,
@@ -57,19 +61,32 @@ export function divideAcres(
 
 /** The acres as the words say them: the listing's as typed ("24.7"), the boundary's to two places ("30.15"). */
 const acresText = (a: DivideAcres): string =>
-  (a.on === "listed" ? DIVIDE.listedAcres(a.acres) : DIVIDE.exactAcres(a.acres)).replace(/ ac$/, "");
+  (a.on !== "boundary" ? DIVIDE.listedAcres(a.acres) : DIVIDE.exactAcres(a.acres)).replace(/ ac$/, "");
 const boundaryText = (a: DivideAcres): string => DIVIDE.exactAcres(a.boundary).replace(/ ac$/, "");
 
 /** "…; on 24.7 listed ac (the county map shows 30.15)", when the two differ. */
 const withAcres = (reason: string, a: DivideAcres): string =>
-  a.differs ? DIVIDE.withNote(reason, DIVIDE.onListed(acresText(a), boundaryText(a))) : reason;
+  a.differs
+    ? DIVIDE.withNote(
+        reason,
+        (a.on === "surveyed" ? DIVIDE.onSurveyed : DIVIDE.onListed)(acresText(a), boundaryText(a)),
+      )
+    : reason;
+
+/** A survey's figures, as the uses take them. */
+type SurveyFigures = { acres: number | null; frontageFt: number | null } | null;
 
 /** The count's inputs from the result: its acres (the listing's, when typed), frontage, slope, county and district. */
-export function divideOf(r: PartialScreenResult, listedAcres: number | null = null): DivideResult | null {
+export function divideOf(
+  r: PartialScreenResult,
+  listedAcres: number | null = null,
+  survey: SurveyFigures = null,
+): DivideResult | null {
   if (!r.county) return null;
   return divide({
-    acres: divideAcres(r.acres, listedAcres).acres,
-    publicFrontageFt: r.frontage?.publicFt ?? null,
+    acres: divideAcres(r.acres, listedAcres, undefined, survey?.acres ?? null).acres,
+    // J-5: a survey's frontage before the one measured along the county map's boundary.
+    publicFrontageFt: survey?.frontageFt ?? r.frontage?.publicFt ?? null,
     slopePct: slopePct(r),
     county: countyByFips(r.county.fips),
     district: r.county.zoning?.districts[0]?.code ?? null,
@@ -122,13 +139,19 @@ function arithmetic(a: DivideAcres, d: DivideResult, free: NoReviewCount | null)
   const acres = acresText(a);
   const c = d.county;
   return [
-    a.listed !== null
+    a.on === "surveyed"
       ? {
           label: DIVIDE.acresLabel,
-          value: DIVIDE.acresBoth(DIVIDE.listedAcres(a.listed).replace(/ ac$/, ""), boundaryText(a)),
-          source: SOURCE.listing,
+          value: DIVIDE.acresSurveyed(DIVIDE.listedAcres(a.listed!).replace(/ ac$/, ""), boundaryText(a)),
+          source: SOURCE.survey,
         }
-      : { label: DIVIDE.acresLabel, value: DIVIDE.exactAcres(a.boundary), source: SOURCE.parcel },
+      : a.listed !== null
+        ? {
+            label: DIVIDE.acresLabel,
+            value: DIVIDE.acresBoth(DIVIDE.listedAcres(a.listed).replace(/ ac$/, ""), boundaryText(a)),
+            source: SOURCE.listing,
+          }
+        : { label: DIVIDE.acresLabel, value: DIVIDE.exactAcres(a.boundary), source: SOURCE.parcel },
     ...(free
       ? [
           mathFact(
@@ -158,6 +181,7 @@ function countyFacts(
   c: CountyRules,
   d: DivideResult,
   free: NoReviewCount | null,
+  surveyedFt: number | null = null,
 ): Fact[] {
   const districts = r.county?.zoning?.districts ?? [];
   const zoning: Fact = !c.zoning.value
@@ -178,15 +202,17 @@ function countyFacts(
     ...(math.length ? math : [{ label: DIVIDE.acresLabel, value: DIVIDE.acres(a.acres) }]),
     ruleFact(DIVIDE.minLotLabel, c.minLotAc),
     ruleFact(DIVIDE.frontageRuleLabel, c.frontageFt),
-    r.frontage
-      ? {
-          label: DIVIDE.frontageLabel,
-          value: DIVIDE.frontageMeasured(r.frontage.publicFt),
-          source: SOURCE.tiger,
-        }
-      : { label: DIVIDE.frontageLabel, value: MISSING.frontage },
-    // Owner, #311: the boundary the frontage is measured along is known to be off.
-    ...(a.differs
+    surveyedFt !== null
+      ? { label: DIVIDE.frontageLabel, value: DIVIDE.frontageSurveyed(surveyedFt), source: SOURCE.survey }
+      : r.frontage
+        ? {
+            label: DIVIDE.frontageLabel,
+            value: DIVIDE.frontageMeasured(r.frontage.publicFt),
+            source: SOURCE.tiger,
+          }
+        : { label: DIVIDE.frontageLabel, value: MISSING.frontage },
+    // Owner, #311: the boundary the frontage is measured along is known to be off (the listing's acres say so).
+    ...(a.differs && a.on === "listed" && surveyedFt === null
       ? [
           {
             label: DIVIDE.noteLabel,
@@ -237,23 +263,33 @@ function twoWays(
  * subdivision plat (…)", or "Can't divide: limited by …". Only where the county is covered and its minimum lot size is
  * known; null otherwise.
  */
-export function divideReportLine(r: PartialScreenResult, listedAcres: number | null = null): string | null {
-  const a = divideAcres(r.acres, listedAcres);
-  const d = divideOf(r, listedAcres);
+export function divideReportLine(
+  r: PartialScreenResult,
+  listedAcres: number | null = null,
+  survey: SurveyFigures = null,
+): string | null {
+  const a = divideAcres(r.acres, listedAcres, undefined, survey?.acres ?? null);
+  const d = divideOf(r, listedAcres, survey);
   if (!d || d.kind !== "lots") return null;
   const both = twoWays(d, noReviewCount(a.acres, noReviewRoute(d.county)), a);
   return both ? REPORT_DIVIDE.can(withAcres(both, a)) : REPORT_DIVIDE.cant(withAcres(divideLimit(d), a));
 }
 
 export function divideUse({ result: r, listing }: UsesInput): UseAnswer {
-  const a = divideAcres(r.acres, listing.listingAcres);
-  const d = divideOf(r, a.listed);
-  const answer = divideAnswer(r, a, d);
+  const survey = listing.survey ?? null;
+  const a = divideAcres(r.acres, listing.listingAcres, undefined, survey?.acres ?? null);
+  const d = divideOf(r, listing.listingAcres ?? null, survey);
+  const answer = divideAnswer(r, a, d, survey?.frontageFt ?? null);
   // Where the acres were counted, the reason says which acres when the two readings differ.
   return d?.kind === "lots" ? { ...answer, reason: withAcres(answer.reason, a) } : answer;
 }
 
-function divideAnswer(r: PartialScreenResult, a: DivideAcres, d: DivideResult | null): UseAnswer {
+function divideAnswer(
+  r: PartialScreenResult,
+  a: DivideAcres,
+  d: DivideResult | null,
+  surveyedFt: number | null = null,
+): UseAnswer {
   if (!d) return { answer: "maybe", reason: MISSING.county, decides: [] };
   if (d.kind === "notCovered")
     return {
@@ -262,7 +298,7 @@ function divideAnswer(r: PartialScreenResult, a: DivideAcres, d: DivideResult | 
       decides: [{ label: DIVIDE.countyLabel, value: `${r.county!.name}, ${r.county!.state}` }],
     };
   const free = noReviewCount(a.acres, noReviewRoute(d.county));
-  const decides = countyFacts(r, a, d.county, d, free);
+  const decides = countyFacts(r, a, d.county, d, free, surveyedFt);
   const headline = divideHeadline(d);
   if (d.kind === "unknown") return { answer: "maybe", reason: headline, decides };
   const both = twoWays(d, free, a);

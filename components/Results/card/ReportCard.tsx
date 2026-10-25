@@ -9,8 +9,8 @@
 import Link from "next/link";
 import { GRADES_ID, GRADES_TITLE } from "@/lib/client/help";
 import type { ReactNode } from "react";
-import { answerReason, incompleteLine } from "@/lib/report/answer";
-import { listOf, lowerFirst, VERDICT_WORD, type Card, type Row } from "@/lib/report/card";
+import { answerReason, incompleteLine, verdictParts } from "@/lib/report/answer";
+import { lowerFirst, VERDICT_WORD, type Card, type Row } from "@/lib/report/card";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import {
   GATE_MARK as MARK,
@@ -27,12 +27,21 @@ import type { PartialScreenResult } from "@/lib/screen/types";
 import { RubricSwitch } from "./RubricSwitch";
 import { costSummary } from "@/lib/report/costLines";
 import { COST_WORDS } from "@/lib/report/cost";
+import { PriceBlock, type PriceContext } from "./PriceBlock";
 
 /**
  * Cost to enjoy (step 10 plan §4): the two lines after the answer, each with its budget's mark and words; a tap opens the
  * breakdown. Nothing until the driveway is routed.
  */
-function CostSection({ card, onOpen }: { card: Card; onOpen(key: PanelKey): void }) {
+function CostSection({
+  card,
+  onOpen,
+  price,
+}: {
+  card: Card;
+  onOpen(key: PanelKey): void;
+  price: PriceContext | null;
+}) {
   const s = costSummary(card.cost, card.rubric.rubric.budgets);
   if (!s) return null;
   return (
@@ -69,6 +78,8 @@ function CostSection({ card, onOpen }: { card: Card; onOpen(key: PanelKey): void
           ))
         )}
       </ul>
+      {/* UX part 2 PR 8b (Z-4): after the two lines, so the card's own text is unchanged (rule 7). */}
+      {price && <PriceBlock {...price} budgets={card.rubric.rubric.budgets} />}
     </div>
   );
 }
@@ -149,6 +160,7 @@ export function ReportCard({
   stale = null,
   note = null,
   shortcut = null,
+  price = null,
 }: {
   card: Card;
   /** The result the card grades: the answer's reason reads a drive time from it. */
@@ -170,6 +182,8 @@ export function ReportCard({
   note?: string | null;
   /** The answer's last line once the run is done (step 14: "What you can do here: …", to Uses). */
   shortcut?: ReactNode;
+  /** The price block's inputs (UX part 2 PR 8b, Z-4): the map's panel has them; elsewhere there's no block. */
+  price?: PriceContext | null;
 }) {
   const pending = (missing: string | undefined) => running && !!missing;
   const reason = running ? "" : answerReason(card, result);
@@ -220,11 +234,17 @@ export function ReportCard({
         <div className="card-head">
           <button className="card-verdict" onClick={() => onOpen("verdict")}>
             {/* Held until the run ends (polish #9): a grade from half the data would only change. */}
-            <span className={`card-grade g-${running ? "none" : (card.grade ?? "none")}`}>
-              {running ? "…" : (card.grade ?? "–")}
-            </span>
+            {/* J-4 (Zach, UX part 2): the verdict first, the letter beside it, a joining word when they part. */}
             <span className={`card-word v-${running ? "running" : card.verdict.toLowerCase()}`}>
               {running ? "Grading…" : VERDICT_WORD[card.verdict]}
+            </span>
+            <span className="card-letter">
+              <span className={`card-grade g-${running ? "none" : (card.grade ?? "none")}`}>
+                {running ? "…" : (card.grade ?? "–")}
+              </span>
+              {!running && verdictParts(card).join && (
+                <span className="card-join">{verdictParts(card).join}</span>
+              )}
             </span>
           </button>
           {/* Polish #31: Help's grade rules, beside the grade. */}
@@ -239,11 +259,6 @@ export function ReportCard({
           />
         </div>
         {reason && <p className="card-reason">{reason}</p>}
-        {!running && card.heldBy && (
-          <p className="card-held">
-            Held at {VERDICT_WORD.Maybe} by: {listOf(card.heldBy)}.
-          </p>
-        )}
         {stale && !running && (
           <div className="card-stale" role="status">
             <span>{stale.text}</span>
@@ -265,7 +280,7 @@ export function ReportCard({
         {!running && card.routeNote && <p className="card-note tiny">{card.routeNote}</p>}
         {!running && shortcut}
       </div>
-      {!running && <CostSection card={card} onOpen={onOpen} />}
+      {!running && <CostSection card={card} onOpen={onOpen} price={price} />}
       {between}
       {(musts.length > 0 || asideIn("must").length > 0) && (
         <div className="card-group" role="group" aria-label={TIER_NAMES.must}>

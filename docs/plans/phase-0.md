@@ -1211,4 +1211,67 @@ until step 5 (Q14).
       31 → 32; `ENGINE_CURRENT_FROM` stays 29, so a grade from before keeps its old frontage until graded again, and reads
       Hunt's houses and the ponds as not measured.
 
+72. **UX part 2: the redesign** (owner, 2026-10-24, the UX audit's §6 as decided, "A on all six" and the friction list
+    Z-1 to Z-9; the plan `docs/plans/ux-part-2.md`, #314, with Zach's decisions on it, #315; built in #316–#335).
+    - **The names** (§4.1, #316): one word for each thing, on screen and in report text. The report-text renames are
+      the ones approved on #314 and #316: Must have, Really want, Questions for the agent ("More questions for the
+      agent" for the panel's own list), Night sky, Report ("⋯ → Make a report") and All details, Check first, Grading…,
+      Driveway on your land, grade again, and "Saved with an older version; grade it again."
+    - **The verdict first** (J-4, #319): "Contender · B", "Maybe · A, held by: septic", "Not for us · B, but misses a
+      must", on the card, One page, Full and the list.
+    - **Recent and closing** (#317): Recent keeps 50 graded parcels for 60 days from the later of the last grade and the
+      last opening (`ps.history` gains an optional `opened`). × only closes, and never touches Recent. **Not for us**
+      on any parcel moves it to **Ruled out**, with optional reasons (Too steep, Road access, Septic, Price, Too far,
+      Other) and a note, Undo, and Move back. Full's status line reads "Ruled out Oct 14: Septic".
+    - **One parcel panel everywhere** (Z-2, #318): a tap in Your list, Recent or Compare opens the parcel on the map,
+      with "‹ Your list" back to the view and scroll it came from. The list's own detail panel is deleted.
+    - **The parcel header** (P-2, #319, #321, #322):
+      - a place line;
+      - ★, Not for us, Ask and ⋯ in one row of 44 px targets;
+      - the takes under them;
+      - on a phone, a progress bar while a grade runs ("Finding hospitals… 8 of 11");
+      - the map's key line, with one pin by default and the rest behind "Every pin".
+    - **Facts about the parcel** (J-5, #324):
+      - Flood letter, Service confirmed and Survey marks, set for the whole household (an optional `facts`, no format
+        change);
+      - a survey's acres come before the listing's and the county map's, named as surveyed.
+    - **Search** (P-1, #323): parcel numbers in every covered county, the region's places, and a pin at coordinates
+      that opens the parcel.
+    - **Household** (P-8, #325, #327):
+      - its own menu item, with Rename and Your devices;
+      - a name at first run;
+      - Invite someone, a one-use link valid for 7 days (`sync_invites`, migration 0004, additive, RLS on, no policies);
+      - Link a device of yours.
+    - **Drawing** (P-9, #328): a line brings the parcel into view, and at Finish a track asks "Use it as the
+      driveway?".
+    - **Your list** (P-5, P-6, Z-6 to Z-8, #329–#332):
+      - Shortlist · Recent · Ruled out, and the compare bar;
+      - Recent at one line a row;
+      - one fixed cell for marks and letters;
+      - the phone card's three lines, with its legend behind "?";
+      - Compare's sections and words, and three parcels across on a phone.
+    - **What matters** (P-7, #334): the night sky in what you'd see, with the zone from the engine's own table (21.2
+      mag/arcsec² is zone 4a or darker). Each slider says its value is for a B. Try it is a slim line under the intro on
+      a phone too, and the intro says whose priorities these are.
+    - **Double-tap on a phone** (Z-1, #333; Zach's rule, #335): with no tool open, the first tap acts at once. A second
+      within 500 ms and 30 px takes it back (a lookup dropped, a parcel it opened closed unless it was open before) and
+      zooms in a level. With a tool open, the second tap is a corner.
+    - **The price block** (Z-4, #335), in Grade's Cost section after its two lines:
+      - the asking price and $/ac;
+      - both costs without the land;
+      - the cost's optional items as switches (paving, an alternative septic system, the existing drive);
+      - the walk-away price for the land within the Ready to build budget.
+
+      The switches change the block only; Within budget grades the costs as priced (plan §9, Q2). `costToEnjoy` gains
+      two optional inputs, `septic` and `existingAsNew`, and with neither its output is unchanged.
+    - **No numbers change:** no grade, verdict, flag, threshold, ENGINE_VERSION or `expected.json` moves (J-4 changes
+      only how the verdict and the letter are written).
+      SCREEN_SCHEMA_VERSION stays 9. The client limits `RECENT_MAX` and `RECENT_DAYS` are 50 and 60.
+    - **Parked:**
+      - market value (Z-5, `docs/commercial-review.md`);
+      - the Tennessee parcel service's terms (the question for Zach to send, #315);
+      - changing the search region (J-6);
+      - the takes' wording ("Julie says Maybe", shared with the print);
+      - the polish items listed in the hand-back.
+
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

@@ -309,13 +309,13 @@ describe("the gates", () => {
     expect(c.incomplete).toEqual(["the FEMA flood map", "the sky atlas"]);
     expect(c.verdict).toBe("Maybe");
     expect(c.reason).toBe(
-      "Maybe. Weakest part: trails and public land (D, a trailhead 47 min (11.5 mi) by road, 6.4 mi straight (Buffalo Mountain Trailhead)) (incomplete: the FEMA flood map and the sky atlas didn't load, run again).",
+      "Maybe. Weakest part: trails and public land (D, a trailhead 47 min (11.5 mi) by road, 6.4 mi straight (Buffalo Mountain Trailhead)) (incomplete: the FEMA flood map and the sky atlas didn't load, grade again).",
     );
     // A Pass stays a Pass.
     r.sites![0]!.flood = true;
     r.flood = { zones: ["AE"], sfha: true, sfhaAcres: 3, mapped: true };
     expect(atSite1(r, ZACH).reason).toBe(
-      "Not for us: the build site is in a FEMA flood zone (incomplete: the sky atlas didn't load, run again).",
+      "Not for us: the build site is in a FEMA flood zone (incomplete: the sky atlas didn't load, grade again).",
     );
   });
 
@@ -603,7 +603,7 @@ describe("the rows", () => {
     });
     const card = reportCard(r, ZACH);
     expect(card).toMatchObject({ grade: "B", verdict: "Maybe", incomplete: ["VA state parks (VGIN)"] });
-    expect(card.reason).toContain("(incomplete: VA state parks (VGIN) didn't load, run again).");
+    expect(card.reason).toContain("(incomplete: VA state parks (VGIN) didn't load, grade again).");
 
     // Two lists: both named.
     r.noResponse = ["USFS recreation sites", "state parks (services6.arcgis.com)"];

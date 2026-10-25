@@ -600,7 +600,7 @@ export function importSummary(plan: ImportPlan, outcome: SettingsOutcome): strin
     );
   if (plan.olderResults)
     lines.push(
-      `${plan.olderResults} saved result${plan.olderResults === 1 ? " was" : "s were"} from an older version and skipped; those parcels re-screen when opened.`,
+      `${plan.olderResults} saved result${plan.olderResults === 1 ? " was" : "s were"} from an older version and skipped; those parcels grade again when opened.`,
     );
   if (plan.skipped.length) lines.push(`Skipped, already on your list: ${plan.skipped.join(", ")}.`);
   if (plan.sameParcel.length)

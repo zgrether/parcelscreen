@@ -17,6 +17,8 @@ import { HOA_WORD, LIMIT_WORDS, SOURCE } from "@/lib/uses/words";
 export interface ListingSaves {
   listing(patch: Partial<Pick<WorkingParcel, ListingField>>): void;
   askingPrice(price: number | null): void;
+  /** J-5 (UX part 2 PR 3c2): a survey's figures, or null to clear them. Absent: no Survey fields. */
+  survey?(s: { acres: number | null; frontageFt: number | null } | null): void;
 }
 
 export function ListingFacts({
@@ -88,6 +90,7 @@ export function ListingFacts({
         save={(listingAcres) => save.listing({ listingAcres })}
         note={acresNote}
       />
+      {save.survey && <SurveyFields survey={open.facts?.survey ?? null} save={save.survey} />}
       <TextField
         label="Agent"
         value={open.agent}
@@ -180,6 +183,92 @@ function TextBox({
 }
 
 /** The listing's acres: a positive number, or blank for none; anything else is put back. */
+/**
+ * A survey's acres and road frontage (J-5, UX part 2 PR 3c2): facts for every member. Divide, $/ac and the header use
+ * them before the listing's acres and the county map's. Either may be blank; both blank clears the survey.
+ */
+function SurveyFields({
+  survey,
+  save,
+}: {
+  survey: { acres: number | null; frontageFt: number | null } | null;
+  save(s: { acres: number | null; frontageFt: number | null } | null): void;
+}) {
+  const acres = survey?.acres ?? null;
+  const frontageFt = survey?.frontageFt ?? null;
+  const keep = (next: { acres: number | null; frontageFt: number | null }) =>
+    save(next.acres === null && next.frontageFt === null ? null : next);
+  return (
+    <div className="ip-survey" role="group" aria-label="Survey">
+      <NumberBox
+        key={`a${acres}`}
+        label="Surveyed acres"
+        placeholder="from the survey"
+        unit={/\s*ac(res)?$/i}
+        value={acres}
+        positive
+        save={(v) => keep({ acres: v, frontageFt })}
+      />
+      <NumberBox
+        key={`f${frontageFt}`}
+        label="Surveyed road frontage (ft)"
+        placeholder="from the survey"
+        unit={/\s*(ft|feet)$/i}
+        value={frontageFt}
+        save={(v) => keep({ acres, frontageFt: v })}
+      />
+      <span className="tiny muted">
+        A fact for everyone: Divide, $/ac and the header use these before the listing&apos;s and the county
+        map&apos;s.
+      </span>
+    </div>
+  );
+}
+
+/** A number box that saves on blur or Enter; a blank saves null, anything unreadable goes back to what was saved. */
+function NumberBox({
+  label,
+  placeholder,
+  unit,
+  value,
+  positive = false,
+  save,
+}: {
+  label: string;
+  placeholder: string;
+  unit: RegExp;
+  value: number | null;
+  positive?: boolean;
+  save(v: number | null): void;
+}) {
+  const [text, setText] = useState(value !== null ? String(value) : "");
+  const keep = () => {
+    const t = text.trim().replace(/,/g, "").replace(unit, "");
+    const v = t === "" ? null : Number(t);
+    if (v === null || (Number.isFinite(v) && (positive ? v > 0 : v >= 0))) {
+      if (v !== value) save(v);
+    } else setText(value !== null ? String(value) : "");
+  };
+  return (
+    <div className="ip-field">
+      <label>
+        {label}
+        <input
+          inputMode="decimal"
+          aria-label={label}
+          placeholder={placeholder}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onBlur={keep}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") keep();
+          }}
+        />
+      </label>
+    </div>
+  );
+}
+
 function AcresField({
   value,
   save,

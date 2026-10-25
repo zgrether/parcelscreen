@@ -28,7 +28,6 @@ test("Your data: Import file adds the parcels at once; Export file saves them; t
   for (const name of ["52-47A", "35-3"]) await expect(listRow(page, name)).toBeVisible();
   // And the map has them: one opens there from the list.
   await listRow(page, "35-3").click();
-  await page.getByRole("link", { name: "Open on the map" }).click();
   await expect(page.locator(".sh-name").first()).toContainText("35-3");
 
   // Export: a file with both parcels.

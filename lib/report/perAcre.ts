@@ -10,8 +10,8 @@ export interface PerAcre {
   value: number;
   /** "$6,310/ac" */
   text: string;
-  /** Which acres it's over. */
-  on: "listed" | "boundary";
+  /** Which acres it's over: a survey's (J-5) before the listing's, before the boundary's. */
+  on: "surveyed" | "listed" | "boundary";
   /** The two acreages differ by more than the cutoff: the figure is marked, with both readings in `both`. */
   differs: boolean;
   /** "$6,500/ac on 45.6 listed ac; $7,640/ac on 38.8 boundary ac", when they differ. */
@@ -29,21 +29,25 @@ export function perAcre(
   listedAcres: number | null,
   boundaryAcres: number | null,
   pct: number = SCREEN_CONSTANTS.card.perAcreDiffPct,
+  /** A survey's acres (J-5, UX part 2 PR 3c2): used before the listing's. */
+  surveyedAcres: number | null = null,
 ): PerAcre | null {
   if (price === null) return null;
-  const listed = listedAcres !== null && listedAcres > 0 ? listedAcres : null;
+  const surveyed = surveyedAcres !== null && surveyedAcres > 0 ? surveyedAcres : null;
+  const listed = surveyed ?? (listedAcres !== null && listedAcres > 0 ? listedAcres : null);
   const boundary = boundaryAcres !== null && boundaryAcres > 0 ? boundaryAcres : null;
   const over = listed ?? boundary;
   if (over === null) return null;
   const differs =
     listed !== null && boundary !== null && Math.abs(listed - boundary) > (boundary * pct) / 100;
+  const word = surveyed !== null ? "surveyed" : "listed";
   return {
     value: round10(price / over),
     text: perAcreText(price / over),
-    on: listed !== null ? "listed" : "boundary",
+    on: surveyed !== null ? "surveyed" : listed !== null ? "listed" : "boundary",
     differs,
     both: differs
-      ? `${perAcreText(price / listed!)} on ${acres(listed!)} listed ac; ${perAcreText(price / boundary!)} on ${acres(boundary!)} boundary ac`
+      ? `${perAcreText(price / listed!)} on ${acres(listed!)} ${word} ac; ${perAcreText(price / boundary!)} on ${acres(boundary!)} boundary ac`
       : null,
   };
 }

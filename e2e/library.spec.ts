@@ -52,7 +52,7 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   await expect(page.locator(".lib-table thead")).not.toContainText("Status");
   // The grade from the kept screen, in the profile's own rubric (step 1): a fresh profile holds no other, so there is
   // no Household column and no second grade.
-  await expect(macks.locator(".lib-c-grade")).toHaveText(/^[A-F](Contender|Maybe|Not for us)$/);
+  await expect(macks.locator(".lib-c-grade")).toHaveText(/^(Contender|Maybe|Not for us)[A-F]$/); // J-4: the verdict first
   // Step 10: Cost to build ("$55–195k + land" without a price) is a column once a row has one; step 10b: then a
   // column per factor, the kept dealbreakers first.
   await expect(page.locator(".lib-table thead th")).toContainText([
@@ -63,40 +63,43 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   ]);
   await expect(page.locator(".lib-table thead")).not.toContainText("Household");
 
-  // A click anywhere on the row opens its detail (owner, after #133): the full name, the card; archived as sold.
+  // A click anywhere on the row opens it on the map, with the one panel (Z-2, UX part 2); ruled out from its Details.
   await macks.locator(".lib-c-acres").click();
-  const detail = page.getByRole("dialog", { name: MACKS_NAME });
-  await expect(detail.getByRole("heading", { name: MACKS_NAME })).toBeVisible();
-  await expect(detail.locator(".card")).toBeVisible();
-  await detail.getByRole("button", { name: "Archive…" }).click();
-  await detail.getByRole("button", { name: "Sold" }).click();
-  await detail.getByRole("button", { name: "Archive", exact: true }).click();
-  await expect(detail).toContainText(/Archived [A-Z][a-z]{2} \d{1,2}: Sold/);
-  await detail.getByRole("button", { name: "Close" }).click();
+  await expect(page).toHaveURL(/\/explore$/);
+  await expect(page.locator(".sh-name").first()).toContainText("35-3");
+  await page.getByRole("tab", { name: "Details" }).click();
+  const status = page.getByRole("group", { name: "Status" });
+  await status.getByRole("button", { name: "Not for us…" }).click();
+  await status.getByRole("button", { name: "Price" }).click();
+  await status.getByRole("button", { name: "Rule it out" }).click();
+  await expect(status).toContainText(/Ruled out [A-Z][a-z]{2} \d{1,2}: Price/);
+  // "‹ Your list": back to the list.
+  await page.locator(".back-chip").click();
+  await expect(page).toHaveURL(/\/library$/);
 
-  // Hidden by the default view; the Status filter shows it, and the choice outlasts a reload.
+  // UX part 2 PR 7a (P-5): it leaves the Shortlist for Ruled out, which says when and why; Move back returns it.
   await expect(rows).toHaveCount(1);
-  // The list ends saying so (owner, #132): only the status filter hides it, so "Show" brings the archived back.
-  const hiddenLine = page.locator(".lib-hidden");
-  await expect(hiddenLine).toHaveText("1 archived parcel hidden · Show");
-  await hiddenLine.getByRole("button", { name: "Show" }).click();
-  await expect(rows).toHaveCount(2);
-  await expect(hiddenLine).toHaveCount(0);
-  await expect(
-    page.getByRole("button", { name: "Filters · 1 on" }), // the Status filter now includes Archived
-  ).toBeVisible();
-  await expect(rows.filter({ hasText: "parcel 35-3" })).toHaveClass(/lib-archived/);
+  const views = page.getByRole("tablist", { name: "Shortlist, Recent or Ruled out" });
+  await expect(views.getByRole("tab", { name: /^Shortlist/ })).toHaveText("Shortlist 1");
+  await views.getByRole("tab", { name: /^Ruled out/ }).click();
+  const ruled = page.getByRole("list", { name: "Ruled out" });
+  await expect(ruled).toContainText("parcel 35-3");
+  await expect(ruled).toContainText(/Ruled out [A-Z][a-z]{2} \d{1,2}: Price/);
   await reload(page);
-  await expect(page.getByRole("button", { name: "Filters · 1 on" })).toBeVisible();
-  await expect(rows).toHaveCount(2);
+  await expect(ruled).toContainText("parcel 35-3"); // the view outlasts a reload
   expect(
     await page.evaluate(
       () => (JSON.parse(window.__psKv!.getItem("ps.parcels")!) as { built: { status: string }[] }).built,
     ),
   ).toEqual(expect.arrayContaining([expect.objectContaining({ status: "archived" })]));
+  await ruled.getByRole("button", { name: "Move back" }).click();
+  await expect(views.getByRole("tab", { name: /^Ruled out/ })).toHaveText("Ruled out 0");
+  await views.getByRole("tab", { name: /^Shortlist/ }).click();
+  await expect(rows).toHaveCount(2);
+  const hiddenLine = page.locator(".lib-hidden");
 
-  // Hidden by another filter: "2 hidden by filters · Show all", which shows everything.
-  await page.getByRole("button", { name: "Filters · 1 on" }).click();
+  // Hidden by a filter: "2 hidden by filters · Show all", which shows everything.
+  await page.getByRole("button", { name: /^Filters/ }).click();
   await page.getByRole("group", { name: "Milestones" }).getByRole("button", { name: "Walked" }).click();
   await expect(rows).toHaveCount(0);
   await expect(hiddenLine).toHaveText("2 hidden by filters · Show all");
@@ -111,27 +114,27 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
   await expect(page.locator(".compare-table thead .cmp-name")).toHaveCount(2);
   await expect(page.locator(".compare-table thead .cmp-name").first()).toHaveAttribute("title", /parcel /);
 
-  // The keyboard: a row takes focus, and Enter opens it.
+  // The keyboard: a row takes focus, and Enter opens it on the map.
   await visit(page, "/library");
   await rows.filter({ hasText: "parcel 52-47A" }).focus();
   await page.keyboard.press("Enter");
-  const ferneyDetail = page.getByRole("dialog");
-  await expect(ferneyDetail.getByRole("heading", { name: /parcel 52-47A/ })).toBeVisible();
+  await expect(page).toHaveURL(/\/explore$/);
+  await expect(page.locator(".sh-name").first()).toContainText("52-47A");
 
-  // Its listing's facts and notes, editable here as in the map's Notes tab (owner, after #133).
-  const listing = await unfoldListing(ferneyDetail);
+  // Its listing's facts and notes, in the one panel's Details (Z-2: the list's own detail went).
+  await page.getByRole("tab", { name: "Details" }).click();
+  const details = page.locator(".parcel-details");
+  const listing = await unfoldListing(details);
   await listing.getByLabel("Asking price").fill("185k");
   await listing.getByLabel("Asking price").press("Enter");
   await expect(listing).toContainText(/asking \$185,000 as of /);
-  await ferneyDetail.getByLabel(/^Notes for /).fill("Gate code from the agent.");
-  await ferneyDetail.getByLabel(/^Notes for /).blur();
-  // Unnamed: the row reads "{parcel ID} · {County} Co.", and the detail offers "Add a name".
+  await details.getByLabel(/^Notes for /).fill("Gate code from the agent.");
+  await details.getByLabel(/^Notes for /).blur();
+  // Unnamed: the row reads "{parcel ID} · {County} Co.".
   await listing.getByLabel("Name").fill("");
   await listing.getByLabel("Name").press("Enter");
-  await expect(ferneyDetail.getByRole("heading", { name: "52-47A" })).toBeVisible();
-  await ferneyDetail.getByRole("button", { name: "Add a name" }).click();
-  await expect(listing.getByLabel("Name")).toBeFocused();
-  await ferneyDetail.getByRole("button", { name: "Close" }).click();
+  await page.locator(".back-chip").click();
+  await expect(page).toHaveURL(/\/library$/);
   const ferneyRow = rows.filter({ hasText: "52-47A · Floyd Co." });
   await expect(ferneyRow.locator(".lib-open")).toHaveText("52-47A · Floyd Co.");
   await expect(ferneyRow.locator(".lib-c-price")).toHaveText("$185k");
@@ -143,20 +146,20 @@ test("the list: opens there, rows and verdicts, archive and the filter, Compare,
     ),
   ).toMatchObject({ name: "", notes: "Gate code from the agent." });
 
-  // Open on the map, from a parcel's detail.
+  // Every parcel ruled out: the app opens on the map (owner, #132), to find new ones.
   await ferneyRow.click();
-  await page.getByRole("link", { name: "Open on the map" }).click();
   await expect(page).toHaveURL(/\/explore$/);
-  await expect(page.locator(".sh-name").first()).toContainText("52-47A");
-
-  // Every parcel archived: the app opens on the map (owner, #132), to find new ones.
-  await visit(page, "/library");
-  await rows.filter({ hasText: "52-47A" }).click();
-  const ferney = page.getByRole("dialog", { name: /52-47A/ });
-  await ferney.getByRole("button", { name: "Archive…" }).click();
-  await ferney.getByRole("button", { name: "Not for us" }).click();
-  await ferney.getByRole("button", { name: "Archive", exact: true }).click();
-  await expect(ferney).toContainText("Archived");
+  await page.getByRole("tab", { name: "Details" }).click();
+  await status.getByRole("button", { name: "Not for us…" }).click();
+  await status.getByRole("button", { name: "Rule it out" }).click();
+  await expect(status).toContainText("Ruled out");
+  // Macks, moved back above, ruled out again: then every parcel is.
+  await page.locator(".back-chip").click();
+  await macks.click();
+  await page.getByRole("tab", { name: "Details" }).click();
+  await status.getByRole("button", { name: "Not for us…" }).click();
+  await status.getByRole("button", { name: "Rule it out" }).click();
+  await expect(status).toContainText("Ruled out");
   await visit(page, "/");
   await expect(page).toHaveURL(/\/explore$/);
   expect(errors).toEqual([]);
@@ -181,13 +184,17 @@ test.describe("on a phone", () => {
       };
       const m = s.built.find((b) => b.name.includes("35-3"))!;
       m.status = "archived";
-      m.archived = { reason: "Sold", at: "2026-10-14T12:00:00.000Z", from: "inProgress" };
+      // Ruled out from the Shortlist: Move back returns it there.
+      m.archived = { reason: "Sold", at: "2026-10-14T12:00:00.000Z", from: "saved" };
       await window.__psKv!.setItem("ps.parcels", JSON.stringify(s));
     });
     await visit(page, "/library");
     await expect(page.locator(".lib-cards .lib-card")).toHaveCount(1);
-    await expect(page.locator(".lib-hidden")).toHaveText("1 archived parcel hidden · Show");
-    await page.locator(".lib-hidden").getByRole("button", { name: "Show" }).tap();
+    // UX part 2 PR 7a: in Ruled out, with why; Move back returns it to the cards.
+    await page.getByRole("tab", { name: /^Ruled out/ }).tap();
+    await expect(page.getByRole("list", { name: "Ruled out" })).toContainText("Ruled out Oct 14: Sold");
+    await page.getByRole("list", { name: "Ruled out" }).getByRole("button", { name: "Move back" }).tap();
+    await page.getByRole("tab", { name: /^Shortlist/ }).tap();
     await expect(page.locator(".lib-cards .lib-card")).toHaveCount(2);
     await expect(page.locator(".lib-table")).toBeHidden();
     const name = page.locator(".lib-card", { hasText: "parcel 35-3" }).locator(".lib-open");
@@ -198,14 +205,12 @@ test.describe("on a phone", () => {
       clientY: 50,
     });
     await expect(page.getByRole("tooltip")).toHaveText(MACKS_NAME);
-    // The state's county on a long press too.
-    await page
-      .locator(".lib-card", { hasText: "parcel 35-3" })
-      .locator(".lib-state")
-      .dispatchEvent("pointerdown", { pointerType: "touch", isPrimary: true, clientX: 60, clientY: 60 });
-    await expect(page.getByRole("tooltip")).toHaveText("Floyd County");
-    // A tap anywhere on the card opens it.
-    await page.locator(".lib-card", { hasText: "parcel 35-3" }).locator(".lib-card-facts").tap();
-    await expect(page.getByRole("dialog", { name: MACKS_NAME })).toBeVisible();
+    // A tap elsewhere closes it.
+    await page.getByRole("heading", { name: "Your list" }).tap({ position: { x: 4, y: 4 } });
+    await expect(page.getByRole("tooltip")).toHaveCount(0);
+    // A tap anywhere on the card opens it on the map, with the one panel (Z-2).
+    await page.locator(".lib-card", { hasText: "parcel 35-3" }).locator(".lib-card-money").tap();
+    await expect(page).toHaveURL(/\/explore$/);
+    await expect(page.locator(".sh-name").first()).toContainText("35-3");
   });
 });

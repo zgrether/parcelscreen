@@ -29,12 +29,24 @@ export interface MapView {
 /** The result overlays a user can hide (step 15). */
 export interface OverlayPrefs {
   pins: boolean;
+  /**
+   * Every pin, not just the best homesite: the other sites, shelves, gardens and road entrances (UX part 2 PR 3b2, the
+   * audit's P-2: the pins outside the map's key line stay off until asked for).
+   */
+  allPins: boolean;
   fan: boolean;
   soils: boolean;
   trailheads: boolean;
   driveway: boolean;
 }
-const ALL_OVERLAYS: OverlayPrefs = { pins: true, fan: true, soils: true, trailheads: true, driveway: true };
+const ALL_OVERLAYS: OverlayPrefs = {
+  pins: true,
+  allPins: false,
+  fan: true,
+  soils: true,
+  trailheads: true,
+  driveway: true,
+};
 
 export interface TerrainPref {
   on: boolean;
@@ -198,7 +210,7 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
     write: (v) => JSON.stringify(v),
   },
   "ps.overlays": {
-    // Unknown or missing keys read as shown, so an overlay added later starts visible.
+    // Unknown or missing keys read as their defaults: an overlay added later starts visible, and Every pin off.
     read: (r) => ({ ...ALL_OVERLAYS, ...(JSON.parse(r) as Partial<OverlayPrefs>) }),
     write: (v) => JSON.stringify(v),
   },

@@ -6,6 +6,7 @@
  * and converted.
  */
 import type { Feature, Polygon } from "geojson";
+import { bbox, featureCollection } from "@turf/turf";
 import type { Map as MlMap } from "maplibre-gl";
 import {
   createContext,
@@ -38,14 +39,8 @@ import { getPref, onParcelsWritten, parcelsWritten, setPref } from "@/lib/client
 import { registerLiveParcels } from "@/lib/client/liveParcels";
 import { currentProfileId } from "@/lib/client/profiles";
 import { dropParcel } from "@/lib/client/householdDoc";
-import {
-  dropScreensOf,
-  forgetGraded,
-  logGraded,
-  relogGraded,
-  useHistoryLog,
-} from "@/lib/client/favoritesStore";
-import { isFavorite, visibleTo } from "@/lib/client/favorites";
+import { logGraded, logOpened } from "@/lib/client/favoritesStore";
+import { isFavorite } from "@/lib/client/favorites";
 import { ATTACH_MS, attachPatch, type SearchedListing } from "@/lib/client/attachListing";
 import { CancelledError } from "@/lib/http";
 import { unreachableMessage } from "@/lib/client/pwa";
@@ -59,8 +54,9 @@ import { pieceAsParcel, pieceOf, type PieceSide } from "@/lib/split/scenario";
 import { SPLIT_WORDS } from "@/lib/split/words";
 import type { LatLon } from "@/lib/geo/types";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
-import type { MarkKind, SepticClass } from "@/lib/report/marks";
+import type { Facts, MarkKind, SepticClass } from "@/lib/report/marks";
 import { TOOL, withRecent, type MarkChoice } from "@/lib/client/markChoices";
+import { DOUBLE_TAP_MS } from "@/components/Map/doubleTap";
 import {
   BUSY_TEXT,
   decideTap,
@@ -92,6 +88,8 @@ export interface SavedShape {
   key: string;
   geo: Feature<Polygon>;
   acres: number;
+  /** Ruled out (Not for us): drawn greyed (P-4). */
+  ruledOut: boolean;
 }
 
 /** What the start-up sweep cleared (v3's clean break, B2a): the map says so once (ClearedNote). */
@@ -144,20 +142,24 @@ export interface ExploreController {
    * Selecting first fetches the outline's full record (the drawn outlines are simplified).
    */
   tap(hit: TapHit): Promise<void>;
+  /**
+   * A double-tap's zoom has started (Zach, after #333): the first tap acted at once, and is taken back. A lookup it
+   * started is dropped, and a parcel it opened is closed, unless that parcel was already open. Its Back toast stays.
+   * Whether it closed one.
+   */
+  undoTap(): boolean;
   close(): void;
   /**
-   * × (8c): on a parcel that's on the list, or one never built, it closes (as close); on one of mine that isn't on the
-   * list it's "not for me": closed and gone from Recent and the map, with `dismissed` offering it back for a few seconds.
+   * × (J-2, Zach, UX part 2; it was 8c's "not for me"): closes the parcel and clears it from the map, never touching
+   * Recent: a graded parcel stays there for its 60 days. Ruling one out is Not for us.
    */
   dismiss(): void;
-  /** The parcel × dismissed, until its Undo goes (8c). */
-  dismissed: Dismissed | null;
-  /** Undo: the dismissed parcel back as it was, open, with no re-grade. */
-  undoDismiss(): void;
-  /** The Undo's time is up: the dismissed parcel's screens go from this device. */
-  endDismiss(): void;
   /** Opens a county parcel found by search, from its full record (the outline's fields name it). */
   openOutline(outline: { source: string; props: Record<string, unknown> }): Promise<void>;
+  /** Opens the county parcel at a point (UX part 2 PR 4: coordinates typed in search), or says there's none. */
+  openAt(ll: LatLon): Promise<void>;
+  /** The state parcel services, for search across the region (UX part 2 PR 4). */
+  parcelServices: readonly string[];
   openSaved(key: string): void;
   removeSaved(key: string): void;
   /** Adds imported parcels to History (16b). */
@@ -171,6 +173,8 @@ export interface ExploreController {
   finishDraw(): void;
   /** Follow-up 34: draw a track or an easement with the open parcel; Finish (Enter, double-click) keeps it. */
   startLine(kind: LineKind): void;
+  /** UX part 2 PR 6: the Finish prompt answered (or gone): it isn't asked again for that line. */
+  justDrawnDone(): void;
   finishLine(): void;
   saveMarkupNote(id: string, note: string, serial: number): void;
   /** Owner, #127: a line's name (a blank one is ignored). */
@@ -218,6 +222,10 @@ export interface ExploreController {
   lineUndo: LineUndo | null;
   /** The split just removed, for its Undo toast (owner, after #312); null when there's none or it timed out. */
   scenarioUndo: ScenarioUndo | null;
+  /** The parcel just ruled out, for its Undo toast (P-4); null when there's none or it timed out. */
+  ruleOutUndo: { serial: number; at: number } | null;
+  undoRuleOut(): void;
+  dismissRuleOutUndo(): void;
   undoScenarioRemove(): void;
   dismissScenarioUndo(): void;
   /**
@@ -274,6 +282,8 @@ export interface ExploreController {
   saveAskingPrice(price: number | null, serial: number): void;
   /** WF1: the listing's facts, for the parcel open as `serial`. */
   saveListing(patch: Partial<Pick<WorkingParcel, ListingField>>, serial: number): void;
+  /** J-5: the open parcel's facts, whole; an empty object clears them. */
+  saveFacts(facts: Facts, serial: number): void;
   /**
    * Step 8: starred with its name, or unstarred (its asks and takes go). WF2: archiving with a reason, restoring, and a
    * milestone's date (null clears it).
@@ -293,13 +303,6 @@ export interface SwitchToast {
   name: string;
   /** On the list (a favorite), or in Recent (8c). */
   listed: boolean;
-  at: number;
-}
-
-/** A parcel × dismissed (8c): what it was, and its History log entry, for the Undo. */
-export interface Dismissed {
-  parcel: WorkingParcel;
-  graded: string | null;
   at: number;
 }
 
@@ -357,6 +360,16 @@ const stamp = (): Stamp => ({
 });
 const derive = (p: WorkingParcel) => deriveParcel(recipeOf(p), LIMITS);
 
+/** When the last tap on the map came, and the parcel it opened (null when it opened none). */
+interface LastTap {
+  at: number;
+  opened: WorkingParcel | null;
+}
+
+/** The same parcel, though its object was replaced since (a note saved, its screens loaded): its key, or its pieces. */
+const sameParcel = (a: WorkingParcel | null, b: WorkingParcel | null): boolean =>
+  !!a && !!b && ((a.key !== null && a.key === b.key) || a.pieces === b.pieces);
+
 export function useExploreController(parcelServices: readonly string[], hint: SetHint): ExploreController {
   // The open parcel and History from before a refresh. The explorer renders client-side only.
   const [restored] = useState<ExploreState>(() => {
@@ -375,15 +388,28 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     setState(latest.current);
   }, []);
   const [map, setMap] = useState<MlMap | null>(null);
+  // UX part 2 PR 6 (P-9): starting a line brings the open parcel into view, when any of it is off the screen.
+  const fitOpen = () => {
+    const open = latest.current.store.open;
+    if (!map || !open?.pieces.length) return;
+    const [w, s, e, n] = bbox(featureCollection(open.pieces.map((p) => p.geo)));
+    const view = map.getBounds();
+    if (view.contains([w, s]) && view.contains([e, n])) return;
+    map.fitBounds(
+      [
+        [w, s],
+        [e, n],
+      ],
+      { padding: 60, duration: 450 },
+    );
+  };
   const [toast, setToast] = useState<SwitchToast | null>(null);
+  // Each tap's number, so a double-tap can drop the lookup a first tap is waiting on, and what the last tap opened.
+  const tapSerial = useRef(0);
+  const lastTap = useRef<LastTap | null>(null);
   const [lineUndo, setLineUndo] = useState<LineUndo | null>(null);
   const [scenarioUndo, setScenarioUndo] = useState<ScenarioUndo | null>(null);
-  const [dismissed, setDismissedState] = useState<Dismissed | null>(null);
-  const dismissedNow = useRef<Dismissed | null>(null);
-  const setDismissed = (d: Dismissed | null) => {
-    dismissedNow.current = d;
-    setDismissedState(d);
-  };
+  const [ruleOutUndo, setRuleOutUndo] = useState<{ serial: number; at: number } | null>(null);
   const [picker, setPicker] = useState<MarkPickerState | null>(null);
   const [recentMarks, setRecentMarks] = useState<MarkChoice[]>(() => getPref("ps.recentMarks"));
   const [searchedListing, setSearchedListing] = useState<SearchedListing | null>(null);
@@ -492,20 +518,25 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
 
   const open = store.open;
   const derived = useMemo(() => (open ? derive(open) : null), [open]);
+  // A saved parcel opened: Recent counts its 60 days from the later of this and its last grade (§9 Q4).
+  useEffect(() => {
+    if (openKey) logOpened(openKey);
+  }, [openKey]);
   const parcel = derived?.ok ? derived.record : null;
 
-  // The saved outlines on the map: Favorites and this person's History only (step 8, plan §5).
-  const historyLog = useHistoryLog();
-  const me = currentProfileId();
+  // The saved outlines on the map: Your list only, its ruled-out parcels greyed (J-2, P-4, UX part 2). Recent isn't
+  // drawn, so a parcel closed with × is cleared from the map; it's still in Recent.
   const saved = useMemo(
     () =>
       store.built
-        .filter((b) => b.key !== open?.key && (me === null || visibleTo(b, me, historyLog)))
+        .filter((b) => b.key !== open?.key && isFavorite(b))
         .flatMap((b) => {
           const d = derive(b);
-          return d.ok ? [{ key: b.key!, geo: d.record.geo, acres: d.acres }] : [];
+          return d.ok
+            ? [{ key: b.key!, geo: d.record.geo, acres: d.acres, ruledOut: b.status === "archived" }]
+            : [];
         }),
-    [store.built, open?.key, me, historyLog],
+    [store.built, open?.key],
   );
 
   // The split tool cuts the whole combined boundary, before any split. The boundary and the parts' own land
@@ -631,17 +662,26 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     setMap,
     setMode,
     async tap(hit) {
+      const serial = ++tapSerial.current;
+      lastTap.current = { at: performance.now(), opened: null };
       const o = decideTap(latest.current, hit, busy.current);
       if (o.kind === "clearLayer") return dispatch({ type: "layer", id: null });
       if (o.kind === "busy") return void refuseBusy();
+      const opened = () => {
+        if (lastTap.current) lastTap.current.opened = latest.current.store.open;
+      };
       if (o.kind === "select") {
         const record = await full(o.record);
+        // A double-tap came while the record loaded: it zooms instead.
+        if (serial !== tapSerial.current) return;
         if (!record || refuseBusy()) return;
         leaving();
         dispatch({ type: "select", record, stamp: stamp(), keepPanel: docked });
+        opened();
       } else if (o.kind === "openSaved") {
         leaving();
         dispatch({ type: "openSaved", key: o.key, keepPanel: docked });
+        opened();
       }
       if (o.kind !== "none") hint("");
       // An empty map because the parcel service isn't answering: say so, not nothing (owner, after 16b).
@@ -649,6 +689,17 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       // No record under an empty spot where outlines are drawn (owner, 2026-10-11).
       else if (hit.linesShown && !hit.insideOpen && !hit.outline && !hit.savedKey)
         flash(hint, NO_PARCEL_HERE, 4000);
+    },
+    undoTap() {
+      const last = lastTap.current;
+      lastTap.current = null;
+      // Only a tap that was the double-tap's first: an older one (a line was tapped first, say) stays as it is.
+      if (!last || performance.now() - last.at > DOUBLE_TAP_MS) return false;
+      tapSerial.current++;
+      // Only the parcel this tap opened, still open: not a parcel that was open already, or one opened since.
+      if (!sameParcel(last.opened, latest.current.store.open)) return false;
+      dispatch({ type: "close" });
+      return true;
     },
     close() {
       if (refuseBusy()) return;
@@ -658,42 +709,32 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       hint("");
     },
     dismiss() {
+      // J-2: × only closes, as Close does; the parcel stays in Recent.
       if (refuseBusy()) return;
       lookup.current?.abort();
-      const o = latest.current.store.open;
-      const me = currentProfileId();
-      // Never built (a plain tap), on the list, or someone else's: it only closes.
-      if (!o?.key || isFavorite(o) || (o.addedBy !== null && o.addedBy !== me)) {
-        leaving();
-        dispatch({ type: "close" });
-      } else {
-        const before = dismissedNow.current;
-        if (before) dropScreensOf([before.parcel]); // a newer dismiss ends the last one's Undo
-        setToast(null);
-        dropParcel(o.key); // its asks and takes, as a ✕ in Recent drops them
-        const graded = forgetGraded(o.key);
-        dispatch({ type: "removeSaved", key: o.key });
-        setDismissed({ parcel: o, graded, at: Date.now() });
-      }
-      hint("");
-    },
-    dismissed,
-    undoDismiss() {
-      const d = dismissedNow.current;
-      if (!d || refuseBusy()) return;
-      setDismissed(null);
-      const key = d.parcel.key!;
       leaving();
-      if (!latest.current.store.built.some((b) => b.key === key))
-        dispatch({ type: "imported", added: [d.parcel] });
-      relogGraded(key, d.graded);
-      dispatch({ type: "openSaved", key, keepPanel: docked });
+      dispatch({ type: "close" });
       hint("");
     },
-    endDismiss() {
-      const d = dismissedNow.current;
-      setDismissed(null);
-      if (d) dropScreensOf([d.parcel]);
+    parcelServices,
+    async openAt(ll) {
+      if (refuseBusy()) return;
+      lookup.current?.abort();
+      const ctl = new AbortController();
+      lookup.current = ctl;
+      hint("Looking up parcel…");
+      try {
+        const { parcel: picked } = await pickParcelAt(browserHttp, parcelServices, ll, ctl.signal);
+        // Where a parcel can be several features (Tennessee, step 2), the record is all of them, conflicts checked.
+        const record = picked && fieldsFor(picked.source).groupById ? await full(picked) : picked;
+        if (!record) return flash(hint, NO_PARCEL_HERE, 4000);
+        if (refuseBusy()) return;
+        leaving();
+        dispatch({ type: "select", record, stamp: stamp(), keepPanel: docked });
+        hint("");
+      } catch (e) {
+        if (!(e instanceof CancelledError)) throw e;
+      }
     },
     async openOutline(outline) {
       if (refuseBusy()) return;
@@ -745,7 +786,11 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     startLine(kind) {
       dispatch({ type: "startLine", kind });
+      fitOpen();
       hint("");
+    },
+    justDrawnDone() {
+      dispatch({ type: "justDrawnDone" });
     },
     finishLine() {
       if (latest.current.draft.length < 2) return hint("Need at least two points");
@@ -838,6 +883,8 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
         case "line":
           dispatch({ type: "startLine", kind: c as LineKind });
           if (at) dispatch({ type: "draftAdd", ll: at });
+          // Picked from the map at a spot: the map is there already. Otherwise the parcel comes into view (P-9).
+          else fitOpen();
           return;
         case "point":
           dispatch({ type: "startMark", kind: c as MarkKind, shape: "point" });
@@ -1018,6 +1065,9 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     saveListing(patch, serial) {
       dispatch({ type: "listing", patch, serial, stamp: stamp() });
     },
+    saveFacts(facts, serial) {
+      dispatch({ type: "facts", facts, serial, stamp: stamp() });
+    },
     star(name, serial) {
       dispatch({ type: "star", name, serial, stamp: stamp() });
     },
@@ -1028,6 +1078,16 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     archive(reason, serial) {
       dispatch({ type: "archive", reason, serial, stamp: stamp() });
+      setRuleOutUndo({ serial, at: Date.now() });
+    },
+    ruleOutUndo,
+    undoRuleOut() {
+      if (!ruleOutUndo) return;
+      dispatch({ type: "restore", serial: ruleOutUndo.serial, stamp: stamp() });
+      setRuleOutUndo(null);
+    },
+    dismissRuleOutUndo() {
+      setRuleOutUndo(null);
     },
     restore(serial) {
       dispatch({ type: "restore", serial, stamp: stamp() });

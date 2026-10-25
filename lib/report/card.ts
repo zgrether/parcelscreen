@@ -42,7 +42,17 @@ import {
   type LineNames,
 } from "./lines";
 import { rankSites, type RankedSite } from "./sites";
-import { nearestFt, PERMIT_ON_FILE, permitFar, SPRING_MARKED, type Drawn, type Mark } from "./marks";
+import {
+  floodLetterOnFile,
+  INTERNET_CONFIRMED,
+  nearestFt,
+  PERMIT_ON_FILE,
+  permitFar,
+  SPRING_MARKED,
+  type Drawn,
+  type Facts,
+  type Mark,
+} from "./marks";
 import {
   BUDGET_SITS,
   budgetStatusOf,
@@ -50,6 +60,7 @@ import {
   costRange,
   costToEnjoy,
   type BudgetStatus,
+  type CostInput,
   type CostToEnjoy,
 } from "./cost";
 import { shortPrice } from "../client/askingPrice";
@@ -177,8 +188,8 @@ export interface Card extends CardFacts {
   /** What didn't load, in the card's order: the reason line says so, and asks for a re-run. */
   incomplete: string[];
   /**
-   * What holds a grade good enough for a Contender at Maybe, by name (polish #5, owner 2026-10-20): the line under the
-   * reason, "Held at Maybe by: Legal road access." Absent when nothing does.
+   * What holds a grade good enough for a Contender at Maybe, by name (polish #5, owner 2026-10-20): the answer's
+   * joining words since J-4 (UX part 2), "Maybe · A, held by: legal road access". Absent when nothing does.
    */
   heldBy?: string[];
   /** Within budget, when this rubric holds it as a Must (step 10): its status and reason, for the Must rows. */
@@ -268,7 +279,16 @@ const gate =
  * The owner's rule (#109 review): a fail when the build site is in a flood zone; a warn when one touches the build
  * site's ground or the scored driveway (schema v4); a flood zone elsewhere on the parcel is a pass, with a note.
  */
-function floodplain(r: Result, site: BuildSite | null | undefined, driven: Driven): Gate {
+function floodplain(r: Result, site: BuildSite | null | undefined, driven: Driven, known?: Facts): Gate {
+  const byMap = floodplainByMap(r, site, driven);
+  // J-5 (UX part 2 PR 3c): a flood letter marked for the parcel passes it, whatever the map says, with a reminder
+  // appended (rule 7), as a septic permit does for Septic.
+  const letter = known?.floodLetter;
+  if (!letter) return byMap;
+  return { ...byMap, status: "pass", reason: [byMap.reason, floodLetterOnFile(letter.kind)].join("; ") };
+}
+
+function floodplainByMap(r: Result, site: BuildSite | null | undefined, driven: Driven): Gate {
   const g = gate("floodplain", FACTOR_LABELS.floodplain);
   if (!r.flood) return g("unknown", "The FEMA flood map didn't load", "the FEMA flood map");
   if (!r.flood.mapped) return g("unknown", "FEMA has no flood mapping here");
@@ -891,7 +911,20 @@ function longTrail(r: Result, K: CardConfig): Row {
  * Satellite internet (step 11, plan §2.7; renamed from Internet, owner, #272): the parcel's best spot for a satellite dish, graded on how clear its view is, with its
  * distance from the site the card reads.
  */
-function internet(r: Result, K: CardConfig, at: number): Row {
+function internet(r: Result, K: CardConfig, at: number, known?: Facts): Row {
+  const byDish = internetByDish(r, K, at);
+  // J-5: internet service confirmed at the address settles it (an A), whatever the dish spot, with the reminder appended.
+  if (!known?.service?.internet) return byDish;
+  const { missing: _missing, ...rest } = byDish;
+  return {
+    ...rest,
+    grade: "A",
+    detail: `${byDish.detail}; ${INTERNET_CONFIRMED}`,
+    short: "service confirmed",
+  };
+}
+
+function internetByDish(r: Result, K: CardConfig, at: number): Row {
   const g = row("internet", FACTOR_LABELS.internet);
   if (r.dish === undefined) return { ...g(null, NOT_MEASURED), short: "not measured" };
   if (r.dish === null) return { ...g(null, "no spot on the parcel could be read"), short: "not read" };
@@ -1079,21 +1112,11 @@ export function cardFacts(
   const chosen = driven.yours ? chosenDrive(r, drawn?.driveway) : null;
   const drivewayRow = chosen ? drivewayGraded(chosen, K) : siteDrivewayRow;
   // The cost to enjoy at this site (step 10), when the parcel's lines, price and rates came with it.
-  const cost = drawn?.cost
-    ? costToEnjoy({
-        result: r,
-        siteAt: at,
-        lines: drawn.cost.lines,
-        marks,
-        driveway: drawn.driveway ?? null,
-        askingPrice: drawn.cost.askingPrice,
-        rates: drawn.cost.rates,
-        ...(drawn.cost.paving ? { paving: drawn.cost.paving } : {}),
-      })
-    : undefined;
+  const input = costInputOf(r, at, drawn);
+  const cost = input ? costToEnjoy(input) : undefined;
   const facts = {
     gates: [
-      floodplain(r, site, driven),
+      floodplain(r, site, driven, drawn?.facts),
       access(r, driven, names, records),
       easement(r, driven, names, records),
       septic(r, site, marks, K),
@@ -1109,7 +1132,7 @@ export function cardFacts(
       hospital(r, K),
       airport(r, K),
       longTrail(r, K),
-      internet(r, K, at),
+      internet(r, K, at, drawn?.facts),
       garden(r, K, marks),
       climateRow!,
       privacyRow!,
@@ -1123,6 +1146,25 @@ export function cardFacts(
       : {}),
   };
   return withYourRoute(facts, r, driven, drawn);
+}
+
+/**
+ * What the cost to enjoy is priced from at the site `at` (step 10): null when the parcel's lines, price and rates didn't
+ * come with the result. The card prices it; the price block re-prices it with its toggles (UX part 2 PR 8b, Z-4).
+ */
+export function costInputOf(r: Result, at: number, drawn?: Drawn): CostInput | null {
+  if (!drawn?.cost) return null;
+  return {
+    result: r,
+    siteAt: at,
+    lines: drawn.cost.lines,
+    marks: drawn.marks ?? [],
+    driveway: drawn.driveway ?? null,
+    askingPrice: drawn.cost.askingPrice,
+    rates: drawn.cost.rates,
+    ...(drawn.cost.paving ? { paving: drawn.cost.paving } : {}),
+    ...(drawn.facts?.service?.power ? { powerConfirmed: true } : {}),
+  };
 }
 
 /**
@@ -1287,7 +1329,7 @@ export function cardFor(facts: CardFacts, nr: NamedRubric): Card {
         : lead.kind === "weakest"
           ? `${VERDICT_WORD[verdict]}. Weakest part: ${lead.text}`
           : `${VERDICT_WORD[verdict]}. ${lead.text}`;
-  const more = incomplete.length ? ` (incomplete: ${listOf(incomplete)} didn't load, run again)` : "";
+  const more = incomplete.length ? ` (incomplete: ${listOf(incomplete)} didn't load, grade again)` : "";
   // A Contender's grade held at Maybe (polish #5): the warnings past the allowance, a Must that couldn't be checked, a
   // "Check first" item, and what didn't load, as MAYBE_CAPS and the verdict above count them.
   const heldBy =

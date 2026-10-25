@@ -173,6 +173,7 @@ export function libraryRow(
         p.drivewayLine,
         { askingPrice: p.askingPrice, ...costs },
         p.key ? adjustMap(ctx.household, p.key, ctx.me) : undefined,
+        p.facts,
       ),
     );
     // The viewer's (the profile's own rubric comes first): the cost at their best site.
@@ -219,7 +220,7 @@ export function libraryRow(
       grades.map((g) => g.graded?.grade ?? null),
     ),
     costBuild,
-    perAcre: perAcre(p.askingPrice, p.listingAcres, acres),
+    perAcre: perAcre(p.askingPrice, p.listingAcres, acres, undefined, p.facts?.survey?.acres ?? null),
     factors,
   };
 }
@@ -406,7 +407,8 @@ export function sortRows(rows: readonly LibraryRow[], s: LibrarySort): LibraryRo
 // ---------- the remembered view (ps.library) ----------
 
 /** Step 8 (plan §5): Your list's two views, Favorites first. */
-export type ListTab = "favorites" | "history";
+/** UX part 2 PR 7a (P-5): Shortlist, Recent and Ruled out. */
+export type ListTab = "favorites" | "history" | "ruledOut";
 
 export interface LibraryView {
   filters: LibraryFilters;
@@ -425,7 +427,7 @@ export const DEFAULT_VIEW: LibraryView = {
 
 const Choice = z.enum(["Contender", "Maybe", "Pass", "unscreened"]);
 const ViewSchema = z.object({
-  tab: z.enum(["favorites", "history"]).default("favorites"),
+  tab: z.enum(["favorites", "history", "ruledOut"]).default("favorites"),
   filters: z.object({
     status: z.array(z.enum(["inProgress", "saved", "archived"])),
     household: z.array(Choice),
@@ -484,9 +486,9 @@ export function hiddenBy(rows: readonly LibraryRow[], f: LibraryFilters): Hidden
   };
 }
 
-/** The list's last line: "3 hidden by filters", or "2 archived parcels hidden". */
+/** The list's last line: "3 hidden by filters", or "2 ruled-out parcels hidden" (P-4: Archive became Rule out). */
 export const hiddenWords = (h: Hidden): string =>
-  h.onlyArchived ? `${h.n} archived parcel${h.n === 1 ? "" : "s"} hidden` : `${h.n} hidden by filters`;
+  h.onlyArchived ? `${h.n} ruled-out parcel${h.n === 1 ? "" : "s"} hidden` : `${h.n} hidden by filters`;
 
 /** What its button shows: the archived parcels (the status filter only), or everything. */
 export const showHidden = (h: Hidden, f: LibraryFilters): LibraryFilters =>
@@ -499,7 +501,8 @@ export const COMPARE_MIN = 2;
 export const COMPARE_MAX = 3;
 
 /** Favorites with none added (step 8, plan §4; 8c): where they come from. */
-export const FAVORITES_EMPTY = "No favorites yet. Use Add to list on a parcel, on the map or in Recent.";
+export const FAVORITES_EMPTY =
+  "Nothing on your shortlist yet. Use Add to list on a parcel, on the map or in Recent.";
 /** Recent with nothing in it (8c; step 8's History). */
 export const RECENT_EMPTY =
   "Nothing here yet. The parcels you grade show up here for 30 days; add one to your list to keep it.";

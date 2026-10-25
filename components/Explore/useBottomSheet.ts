@@ -31,8 +31,11 @@ const space = (root: HTMLElement | null) => root?.clientHeight || window.innerHe
 /** The peek: the header alone, or the header with the grade button under it (step 4c). */
 export const PEEK = 92;
 export const PEEK_WITH_ACTION = 148;
-/** Step 7: the answer's reason, two lines at most, under the header's grade while a graded parcel is open. */
-export const PEEK_ANSWER = 38;
+/**
+ * Step 7: the answer's reason, two lines at most, under the header's grade while a graded parcel is open. UX part 2
+ * (J-4): the verdict and letter have a line of their own above it, 22 px more.
+ */
+export const PEEK_ANSWER = 60;
 const snaps = (root: HTMLElement | null, peek: number) => [
   peek,
   Math.round(space(root) * 0.46),
@@ -144,9 +147,15 @@ export function useBottomSheet(
   const shown = aside ? Math.min(height, PEEK) : height;
   const mapMode = dragMapMode ?? (shown != null && shown < MAP_MODE_BELOW);
   /** The header's Map / Panel button. */
-  /** After a run, a sheet at its peek (or folded to map mode) rises to its middle snap, once (proto L1566). */
-  const raise = () => {
-    if (isSheet() && (settled === "peek" || mapMode)) snapTo(snaps(root.current, peek)[1]!);
+  /**
+   * After a run, a sheet at its peek (or folded to map mode) rises to its middle snap, once (proto L1566). `tall`: to
+   * its top snap from wherever it rests (the progress bar's Steps ▸, Z-9: the step list under the header's rows).
+   */
+  const raise = (tall = false) => {
+    if (!isSheet()) return;
+    const [, middle, top] = snaps(root.current, peek);
+    if (tall) snapTo(top!);
+    else if (settled === "peek" || mapMode) snapTo(middle!);
   };
 
   return {

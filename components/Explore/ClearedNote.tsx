@@ -14,9 +14,9 @@ export function ClearedNote() {
     <div className="switch-toast cleared-note" role="status">
       <span>
         Saved results from an older version of Parcel Screen were cleared. Your parcels, notes and houses are
-        kept; each re-screens when you open it.
+        kept; each grades again when you open it.
         {c.dropped.length > 0 &&
-          ` Dropped (couldn't be re-screened): ${c.dropped.length} parcel${c.dropped.length === 1 ? "" : "s"} (${c.dropped.join(", ")}).`}
+          ` Dropped (couldn't be graded again): ${c.dropped.length} parcel${c.dropped.length === 1 ? "" : "s"} (${c.dropped.join(", ")}).`}
       </span>
       <button onClick={ctl.dismissCleared}>OK</button>
     </div>

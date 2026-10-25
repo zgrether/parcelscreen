@@ -1,7 +1,7 @@
 /**
  * Step 10's screenshots (plan §12, PR 4), desktop (1280 × 800) then phone (375 × 812): Mud Creek at its $185k listing
  * price, graded by a list with budgets ($250k to camp, $300k to build; Within budget last in Really want):
- * - the Grade section's Cost to enjoy, and its breakdown (camp, then build);
+ * - the Grade section's Cost to enjoy, its price block (UX part 2 PR 8b), and its breakdown (camp, then build);
  * - Favorites with the Cost to build column (the card's facts line on a phone);
  * - Settings → Costs; What matters with the Within budget card; One page with both lines.
  * Run by `pnpm screenshots`.
@@ -104,7 +104,7 @@ for (const phone of [false, true]) {
       await visit(page, "/library");
 
       // Favorites: the Cost to build column (desktop), the facts line (phone).
-      await page.getByRole("tab", { name: "Favorites" }).click();
+      await page.getByRole("tab", { name: "Shortlist" }).click();
       await expect(
         page
           .getByText(/\$330–595k/)
@@ -124,6 +124,16 @@ for (const phone of [false, true]) {
       await section.scrollIntoViewIfNeeded();
       await page.waitForTimeout(400);
       await page.screenshot({ path: `${OUT}/${device}-cost-lines.png` });
+
+      // UX part 2 PR 8b (Z-4): the price block after the two lines, at its defaults, then with paving off.
+      const block = page.getByRole("region", { name: "Price and cost" });
+      await block.evaluate((el) => el.scrollIntoView({ block: "start" }));
+      await page.waitForTimeout(300);
+      await page.screenshot({ path: `${OUT}/${device}-cost-price.png` });
+      await block.getByRole("switch", { name: /Pave the steep stretches/ }).uncheck();
+      await page.waitForTimeout(200);
+      await page.screenshot({ path: `${OUT}/${device}-cost-price-unpaved.png` });
+      await block.getByRole("switch", { name: /Pave the steep stretches/ }).check();
 
       // The breakdown: camp, then build further down.
       await section.getByRole("button", { name: /^Ready to camp/ }).click();

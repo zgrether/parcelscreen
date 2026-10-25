@@ -14,6 +14,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ProfilePicker } from "@/components/Profile/ProfilePicker";
 import { useSettings } from "@/components/Settings/SettingsDialog";
+import { HOUSEHOLD_WORDS, useHouseholdDialog } from "@/components/Household/HouseholdDialog";
 import { SHEET_QUERY } from "@/components/Explore/useBottomSheet";
 import { useKeepInView } from "@/lib/client/keepInView";
 import { OLD_DATA_DROPPED } from "@/lib/client/oldData";
@@ -34,6 +35,7 @@ export function Menu() {
   const button = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const settings = useSettings();
+  const household = useHouseholdDialog();
   const unsaved = useUnsaved();
   useKeepInView(panel, open, button);
 
@@ -130,6 +132,17 @@ export function Menu() {
                 <Link href="/help" onClick={() => close(false)}>
                   Help
                 </Link>
+              </li>
+              {/* UX part 2 PR 5 (P-8): Household, its own item, above Settings. */}
+              <li>
+                <button
+                  onClick={() => {
+                    close(false);
+                    household.open();
+                  }}
+                >
+                  {HOUSEHOLD_WORDS.title}
+                </button>
               </li>
               <li>
                 <button

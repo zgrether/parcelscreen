@@ -14,6 +14,7 @@ import { useCallback, useEffect, useLayoutEffect, useState, type ReactNode } fro
 import { ExploreClient } from "@/components/Explore/ExploreClient";
 import { HelpProvider } from "@/components/Help/HelpDialog";
 import { SettingsProvider } from "@/components/Settings/SettingsDialog";
+import { HouseholdProvider } from "@/components/Household/HouseholdDialog";
 import { setMapShowing } from "@/lib/client/mapShowing";
 import { syncOnNavigate } from "@/lib/sync/engine";
 import { placeOf, showsNav } from "@/lib/client/places";
@@ -42,18 +43,20 @@ export function AppFrame({ children }: { children: ReactNode }) {
   return (
     <SettingsProvider config={config} onSave={saveConfig}>
       <HelpProvider>
-        <div className="app-frame">
-          {showsNav(pathname) && <Places pathname={pathname} />}
-          <div className="app-main">
-            {mapMounted && (
-              <div className="app-map" hidden={!onMap}>
-                <ExploreClient />
-              </div>
-            )}
-            {children}
+        <HouseholdProvider>
+          <div className="app-frame">
+            {showsNav(pathname) && <Places pathname={pathname} />}
+            <div className="app-main">
+              {mapMounted && (
+                <div className="app-map" hidden={!onMap}>
+                  <ExploreClient />
+                </div>
+              )}
+              {children}
+            </div>
+            <SyncToast />
           </div>
-          <SyncToast />
-        </div>
+        </HouseholdProvider>
       </HelpProvider>
     </SettingsProvider>
   );

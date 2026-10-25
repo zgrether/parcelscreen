@@ -22,6 +22,13 @@ export interface SyncStore {
   screen(space: string, id: string): Promise<StoredScreen | null>;
   /** One tiny read, for the keep-alive. Throws if the store can't be reached. */
   health(): Promise<void>;
+  /** An invite to the space (UX part 2 PR 5b): kept by its token's hash, with the code sealed by the token. */
+  createInvite(space: string, token: string, sealed: string): Promise<void>;
+  /**
+   * Uses an invite, once: the sealed code, or null when no invite has this token, it was used, or it's older than
+   * `maxAgeMs`. The use and the check are one step, so two opens of the same link can't both have it.
+   */
+  redeemInvite(token: string, maxAgeMs: number): Promise<string | null>;
 }
 
 interface MemorySpace {
@@ -35,6 +42,7 @@ interface MemorySpace {
 /** The store in memory, for tests. `now` is its clock; each read of it must be later than the last. */
 export class MemorySyncStore implements SyncStore {
   private readonly spaces = new Map<string, MemorySpace>();
+  private readonly invites = new Map<string, { space: string; sealed: string; at: number; used: boolean }>();
   private last = 0;
 
   constructor(private readonly clock: () => number = Date.now) {}
@@ -128,4 +136,16 @@ export class MemorySyncStore implements SyncStore {
   }
 
   async health(): Promise<void> {}
+
+  async createInvite(space: string, token: string, sealed: string): Promise<void> {
+    if (!this.spaces.has(space)) throw new Error("no such space");
+    this.invites.set(token, { space, sealed, at: this.clock(), used: false });
+  }
+
+  async redeemInvite(token: string, maxAgeMs: number): Promise<string | null> {
+    const i = this.invites.get(token);
+    if (!i || i.used || this.clock() - i.at > maxAgeMs || !this.spaces.has(i.space)) return null;
+    i.used = true;
+    return i.sealed;
+  }
 }

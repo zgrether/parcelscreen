@@ -295,3 +295,32 @@ audit's part 2 (docs/design/ux-audit.md), noted where so.
   seeded shots; Best homesite's site #3 vs "the map's … are for site #1"; the map's pins and lines with no key on screen;
   the phone sheet's clipped header; the truncated parcel name; the unlabelled bin; the small ⓘ; the two rows of tabs on a
   phone.
+
+## UX part 2: the redesign (hand-back)
+
+From the fresh-eyes review of the hand-back's 35 screenshots: the findings not fixed in the mission, and not from the
+shots' seeding or by Zach's decisions (the hand-back lists those).
+
+- **"All in, the land included" above "$3–9k plus the land"** when no asking price is entered (the card's Cost to enjoy,
+  step 10). Fix: say "plus the land" in the note too when there's no price (report text: rule 7, additive).
+- **The areas' trade-off line** "No weak spots for you: every factor here is a B or better" beside "What holds it back:
+  Night sky, B". Fix: one of them, or "holds it back" only below a B.
+- **The grid's merged Must row:** a ✗ beside an A (the limit fails while the row's letter is an A) reads as a
+  contradiction. Fix: the mark alone in that cell, the letter in the panel.
+- **Compare's ↓ ↑ and ≠** have no key. Fix: a one-line key under the table, as the grid has.
+- **The map's marks** (the horizon fan, the routes' dashes, the water pin, Stand here) have no key on screen beyond the
+  key line's words. Fix: the key line names each as it shows.
+- **The desktop grid** is cut off on the right with no scroll cue; the "best in its column" dots sit between columns.
+- **The legend's words:** "✎ adjusted for this parcel · – set aside", "≠ … (hover…)": no hover on a phone.
+- **Duplicates:** Not for us in Details › Status and the actions row; "Grade again" in the banner and the toolbar; + Mark
+  in the panel and the toolbar.
+- **Search's list** covers the area card under it on a desktop.
+- **The phone sheet:** a cut-off action row, the surface legend under "‹ Your list", the Finish prompt over the parcel,
+  Map layers cut at "On the map".
+- **Small targets on a desktop:** the ⓘ, Steps ▸, Compare's Open links and checkboxes, ⠿ and ⋯.
+- **"Tap a parcel to select it"** on a desktop; the tilt hint covering the map buttons.
+- **Jargon:** Pioneer, right-of-way width, plat book, "Terrain preview (about 10 m…)", "Typical values: the middle of 200
+  sampled spots", "2.1× footprint", Room, "after this screen", "over 30 m".
+- **Low contrast:** the disabled Undo, the grey "or" in the hint bar, placeholders; the house map's red/green legend.
+- **Unlabelled controls:** the toolbar's "Boundary ▾" and "13.29 ac ▾"; the icon-only map buttons.
+- **"The condition doesn't change the cost yet."** beside a condition picker; "Why: On the starting list."

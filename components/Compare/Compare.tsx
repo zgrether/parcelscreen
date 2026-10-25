@@ -22,18 +22,30 @@ import { getPref, setPref } from "@/lib/client/prefs";
 import { favoritesOf } from "@/lib/client/favorites";
 import { useKeptScreens } from "@/lib/client/useKeptScreens";
 import { loadUserConfig } from "@/lib/client/userConfig";
-import { adjustFor, useHousehold } from "@/lib/client/householdDoc";
+import {
+  adjustFor,
+  adjustParcel,
+  householdDoc,
+  removeAdjust,
+  restoreAdjust,
+  useHousehold,
+} from "@/lib/client/householdDoc";
+import { currentProfileId } from "@/lib/client/profiles";
+import { gradedSite } from "@/lib/report/adjust";
+import { reportCard } from "@/lib/report/card";
+import { adjustPropsFor } from "@/components/Results/card/AdjustSection";
 import { useRubricView } from "@/lib/client/useRubricView";
 import { RubricSwitch } from "@/components/Results/card/RubricSwitch";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import { compareTable, type Cell, type CompareParcel } from "@/lib/report/compare";
 import { ADJUSTED_TITLE } from "@/lib/report/adjustWords";
 
-const STATUS: Record<NonNullable<Cell["status"]>, { mark: string; word: string }> = {
-  pass: { mark: "✓", word: "Pass" },
-  warn: { mark: "!", word: "Warning" },
-  fail: { mark: "✗", word: "Fail" },
-  unknown: { mark: "?", word: "Unknown" },
+/** A Must's cell (P-6, UX part 2 PR 7c2): the card's own words, "✓ pass", "! check first". */
+export const STATUS: Record<NonNullable<Cell["status"]>, { mark: string; word: string }> = {
+  pass: { mark: "✓", word: "pass" },
+  warn: { mark: "!", word: "check first" },
+  fail: { mark: "✗", word: "fail" },
+  unknown: { mark: "?", word: "not known" },
 };
 
 export function Compare() {
@@ -74,6 +86,7 @@ export function Compare() {
         b.drivewayLine,
         { askingPrice: b.askingPrice, ...costs },
         adjustFor(b.key, household),
+        b.facts,
       ),
     };
   });
@@ -91,20 +104,23 @@ export function Compare() {
     const status = c.status ? STATUS[c.status] : null;
     const body = (
       <>
-        {status && (
-          <span className={`gate-mark ${c.status}`} aria-hidden="true">
-            {status.mark}
-          </span>
-        )}
-        {c.grade !== undefined && (
-          <span className={`card-grade small g-${c.grade ?? "none"}`}>{c.grade ?? "–"}</span>
-        )}
+        {/* Z-6 (UX part 2 PR 7c1): the mark or letter, then ✎, in one fixed cell before the words. */}
+        <span className="cmp-key">
+          {status && (
+            <span className={`gate-mark ${c.status}`} aria-hidden="true">
+              {status.mark}
+            </span>
+          )}
+          {c.grade !== undefined && (
+            <span className={`card-grade small g-${c.grade ?? "none"}`}>{c.grade ?? "–"}</span>
+          )}
+          {c.adjusted && (
+            <span className="adjusted-mark" title={ADJUSTED_TITLE} aria-label={ADJUSTED_TITLE}>
+              ✎
+            </span>
+          )}
+        </span>
         <span className="cmp-text">{status ? status.word : c.text}</span>
-        {c.adjusted && (
-          <span className="adjusted-mark" title={ADJUSTED_TITLE} aria-label={ADJUSTED_TITLE}>
-            ✎
-          </span>
-        )}
         {c.mark && (
           <span
             className={`cmp-mark ${c.mark}`}
@@ -166,7 +182,13 @@ export function Compare() {
                         <LongName name={p.name} className="cmp-name" />
                         <div className="tiny muted">{p.acres !== null ? `${p.acres.toFixed(2)} ac` : ""}</div>
                         <div className="cmp-actions">
-                          <Link className="link-btn" href="/explore" onClick={() => openOnMap(columns[i]!)}>
+                          <Link
+                            className="link-btn"
+                            href="/explore"
+                            onClick={() =>
+                              openOnMap(columns[i]!, { label: "Compare", href: "/compare", scroll: 0 })
+                            }
+                          >
                             Open
                           </Link>
                           <button
@@ -225,8 +247,8 @@ export function Compare() {
               </table>
             </div>
             <p className="tiny muted cmp-legend">
-              ✓ pass · ! warning · ✗ fail · ? unknown &nbsp; ↑ best in its row · ↓ worst in its row. Costs and
-              the budget say &ldquo;not yet&rdquo; until the app prices them.
+              ✓ pass · ! check first · ✗ fail · ? not known &nbsp; ↑ best in its row · ↓ worst in its row.
+              Costs and the budget say &ldquo;not yet&rdquo; until the app prices them.
             </p>
             {addable.length > 0 && (
               <label className="cmp-add">
@@ -260,6 +282,22 @@ export function Compare() {
               vetoPct={config.roadVetoGradePct}
               about={opened.name}
               lineNames={opened.drawn?.names}
+              // UX part 2 PR 3d (P-2): every copy of a row's panel has Adjust, as the map's does.
+              adjust={adjustPropsFor(
+                panel.key,
+                opened.key,
+                currentProfileId(),
+                // What the app says without the person's adjustments.
+                reportCard(
+                  opened.result,
+                  rubric,
+                  opened.drawn ? { ...opened.drawn, adjust: undefined } : undefined,
+                ),
+                (key) => householdDoc().adjusts.find((a) => a.key === key) ?? null,
+                { save: adjustParcel, remove: removeAdjust, restore: restoreAdjust },
+                null,
+                gradedSite(openedCard, !!opened.result.house && !("outside" in opened.result.house)),
+              )}
               onClose={() => setPanel(null)}
             />
           </div>

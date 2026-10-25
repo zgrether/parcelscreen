@@ -54,9 +54,9 @@ describe("the comparison table (VR6)", () => {
       ],
       // The viewer's budgets: the starting list has none.
       ["Budget", ["No budget given"]],
-      ["Dealbreakers", ["Floodplain", "Legal road access", "Driveway on your land", "Septic"]],
+      ["Must have", ["Floodplain", "Legal road access", "Driveway on your land", "Septic"]],
       [
-        "What money can't add",
+        "Really want",
         [
           "Elevation at the build site",
           "Best homesite",
@@ -165,7 +165,7 @@ describe("the comparison table (VR6)", () => {
       t.head,
       ...t.groups.flatMap((g) => g.rows).filter((r) => r.key !== "stage0" && r.key !== "perAcre"),
     ]) {
-      expect(r.cells[1]).toEqual({ text: "re-screens when opened", mark: null, panel: null });
+      expect(r.cells[1]).toEqual({ text: "grades again when opened", mark: null, panel: null });
       expect(r.cells[0]!.mark).toBeNull(); // nothing to be better than
     }
     const never = compareTable([{ ...parcel("macks-mountain-35-3"), state: "none", result: null }], ZACH);
@@ -201,5 +201,28 @@ describe("the columns the table starts with (owner, #117 review)", () => {
     expect(dates(contenders)).toEqual(sortedDesc(dates(contenders)));
     const rest = got.slice(contenders.length);
     expect(dates(rest)).toEqual(sortedDesc(dates(rest)));
+  });
+});
+
+describe("Compare's sections are the card's tiers (P-6, UX part 2 PR 7c2)", () => {
+  it("rows ranked Nice to have get their own section after Really want; no empty section", () => {
+    const could = new Set(["hospital", "garden"]);
+    const person = {
+      ...ZACH,
+      rubric: {
+        ...ZACH.rubric,
+        ranked: ZACH.rubric.ranked.map((c) => (could.has(c.factor) ? { ...c, tier: "could" as const } : c)),
+      },
+    };
+    const t = compareTable([parcel("ferney-creek-52-47A"), parcel("macks-mountain-35-3")], person);
+    expect(t.groups.map((g) => g.label)).toEqual([
+      "Costs",
+      "Budget",
+      "Must have",
+      "Really want",
+      "Nice to have",
+    ]);
+    expect(t.groups[4]!.rows.map((r) => r.key).sort()).toEqual(["garden", "hospital"]);
+    expect(t.groups[3]!.rows.some((r) => could.has(r.key))).toBe(false);
   });
 });

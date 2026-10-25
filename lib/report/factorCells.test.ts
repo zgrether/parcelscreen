@@ -5,7 +5,7 @@ import { ZACH } from "@/test/support/rubrics";
 import type { NamedRubric, Rubric } from "../rubric/types";
 import { reportCard } from "./card";
 import { mustLines, rankedRows, shownRankedRows } from "./cardLines";
-import { factorCells } from "./factorCells";
+import { cardChips, factorCells } from "./factorCells";
 
 const MUD = expectedOf("grayson-mud-creek-6273", "run");
 /** Zach's real shape (step 10b plan §4): a walk-away limit on Elevation, which stays ranked too. */
@@ -63,5 +63,23 @@ describe("one row per factor (the duplicate rows, step 10b plan §4)", () => {
   it("a failed limit reads its value first, then the limit", () => {
     const line = mustLines(reportCard(MUD, withLimit(4_000))).find((m) => m.key === "elevation")!;
     expect(line).toMatchObject({ status: "fail", grade: "A", detail: "3,543 ft, at least 4,000 ft" });
+  });
+});
+
+describe("the phone card's chips (Z-7, UX part 2 PR 7c2)", () => {
+  it("four: a Must that isn't a pass first, then the letters in order; passing Musts without a letter left out", () => {
+    const chips = cardChips(factorCells(reportCard(MUD, ZACH)));
+    expect(chips.map((c) => [c.short, c.text])).toEqual([
+      ["Septic", "!"],
+      ["Elev", "A"],
+      ["Sun", "A"],
+      ["Room", "B"],
+    ]);
+  });
+
+  it("failing Musts before check first; a limit that's ranked too keeps its place among the letters", () => {
+    const cells = factorCells(reportCard(MUD, withLimit(1_800)));
+    const failing = cells.map((c) => (c.key === "access" ? { ...c, status: "fail" as const } : c));
+    expect(cardChips(failing).map((c) => c.short)).toEqual(["Access", "Septic", "Elev", "Sun"]);
   });
 });

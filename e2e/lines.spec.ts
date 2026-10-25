@@ -135,7 +135,7 @@ test("a drawn line: the banner, its layer and details (name, kind, condition, wi
   await expect(yours.locator("li")).toHaveCount(1);
   await expect(yours.locator("li b")).toHaveText("Gravel lane");
   await expect(yours.locator("li")).toContainText(/Existing drive, paved, [\d,]+ ft/);
-  await expect(yours).toContainText("Drawn after this screen: run again to see what the app makes of it.");
+  await expect(yours).toContainText("Drawn after this grade: grade again to see what the app makes of it.");
   // Edit opens the line's row in Details.
   await yours.getByRole("button", { name: "Edit" }).click();
   await expect(row("Gravel lane")).toHaveAttribute("aria-expanded", "true");
@@ -178,4 +178,62 @@ test.describe("on a phone", () => {
     await expect(row("Logging road")).toHaveCount(1);
     expect(errors).toEqual([]);
   });
+});
+
+test("at Finish a track asks Use it as the driveway?, with its figures against the limit (P-9)", async ({
+  page,
+  context,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await replayHar(context, [FERNEY]);
+  await openExplorer(page, FERNEY);
+  await importParcel(page, FERNEY);
+  expectAllDone(await screenIt(page));
+  await drawTrack(page);
+  const prompt = page.getByRole("dialog", { name: "Use it as the driveway?" });
+  await expect(prompt).toContainText("Track 1 ·");
+  // Tried at once from the session: its length, average and steepest grade, against the limit. (Use it is step 12's,
+  // which your-route.spec follows; this track has no route from its end, which the next test reads.)
+  await expect(prompt.locator(".finish-head")).toHaveText(
+    /^Track 1 · [\d,]+ ft · avg \d+% · steepest \d+% over 30 m; (within|steeper than) your \d+% limit$/,
+    { timeout: 30_000 },
+  );
+  expect(errors).toEqual([]);
+});
+
+test("a track with no way from its end to the house site stays a line, and says so (P-9)", async ({
+  page,
+  context,
+}) => {
+  await replayHar(context, [FERNEY]);
+  await openExplorer(page, FERNEY);
+  await importParcel(page, FERNEY);
+  expectAllDone(await screenIt(page));
+  await drawTrack(page);
+  const prompt = page.getByRole("dialog", { name: "Use it as the driveway?" });
+  await expect(prompt).toContainText(
+    "The app found no way from its end to the house site, so it stays a line.",
+    {
+      timeout: 30_000,
+    },
+  );
+  await expect(prompt.getByRole("button", { name: "Use it as the driveway" })).toHaveCount(0);
+});
+
+test("Just keep the line: the line stays, the app's pick stays the driveway (P-9)", async ({
+  page,
+  context,
+}) => {
+  await replayHar(context, [FERNEY]);
+  await openExplorer(page, FERNEY);
+  await importParcel(page, FERNEY);
+  expectAllDone(await screenIt(page));
+  await drawTrack(page);
+  const prompt = page.getByRole("dialog", { name: "Use it as the driveway?" });
+  await prompt.getByRole("button", { name: "Just keep the line" }).click();
+  await expect(prompt).toHaveCount(0);
+  const open = () => page.evaluate(() => JSON.parse(window.__psKv!.getItem("ps.parcels")!).open);
+  expect((await open()).drivewayLine).toBeNull();
+  expect((await open()).markup).toHaveLength(1);
 });

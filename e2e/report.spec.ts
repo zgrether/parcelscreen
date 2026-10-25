@@ -163,7 +163,7 @@ test("Report card from the panel header's ⋯ and from a Favorites row's ⋯, in
   await openFromList(page, name);
   await expect(page.locator(".report .card").first()).toBeVisible();
   await page.getByRole("button", { name: "More for this parcel" }).first().click();
-  await page.getByRole("menuitem", { name: "Report card" }).click();
+  await page.getByRole("menuitem", { name: "Make a report" }).click();
   await expect(page).toHaveURL(/\/parcel\/[^/]+\/report/);
   await expect(page.locator(".rp-sheet h1")).toHaveText(name);
   await page.getByRole("button", { name: "← Back" }).click();
@@ -179,6 +179,6 @@ test("Report card from the panel header's ⋯ and from a Favorites row's ⋯, in
     .getByRole("button", { name: /^More for / })
     .click();
   await expect(page.getByRole("menuitem", { name: "Move up" })).toHaveCount(0);
-  await page.getByRole("menuitem", { name: "Report card" }).click();
+  await page.getByRole("menuitem", { name: "Make a report" }).click();
   await expect(page.locator(".rp-sheet h1")).toContainText("35-3");
 });

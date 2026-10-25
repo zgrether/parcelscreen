@@ -4,13 +4,15 @@
  * this person's own (Recent.tsx; step 8's History, 8c). Favorites is the household's list (WF2b, docs/plans/parcel-workflow.md §5): every
  * starred parcel with its star, name, acres, price, state, archive and milestones, the household verdict and each
  * rubric's grade (step 1). Filters and sorts are views, remembered per profile (ps.library); they never change a parcel.
- * A tap on a name opens its detail: the report card, the status controls, Open on the map, Remove. Ticked rows open in
- * Compare. On a phone the table becomes cards.
+ * A tap on a row opens the parcel on the map, with the one parcel panel (Z-2, UX part 2: the list's own detail went),
+ * and "‹ Your list" there comes back to this view and scroll. Ticked rows open in Compare. On a phone the table becomes
+ * cards.
  *
  * My order (WF3) is the default sort: rows move by their handle or their menu's Move up and Move down, and a move
  * writes that one parcel's rank. Under another sort the handles hide, and the list says how to get them back.
  */
 import Link from "next/link";
+import { RuledOut } from "./RuledOut";
 import { useCostSettings } from "@/lib/client/costRates";
 import { reportHref } from "@/lib/print/report";
 import { GRADES_ID, GRADES_TITLE } from "@/lib/client/help";
@@ -56,14 +58,14 @@ import {
   editBuilt,
   EMPTY_STORE,
   rankBuilt,
-  removeBuilt,
   type ParcelStore,
   type WorkingParcel,
 } from "@/lib/client/parcelStore";
 import { getPref, onParcelsWritten, setPref } from "@/lib/client/prefs";
+import { openOnMap, takeBackScroll } from "@/lib/client/openOnMap";
 import { switchLabel } from "@/lib/client/rubrics";
 import { useRubricView } from "@/lib/client/useRubricView";
-import { dropParcel, useHousehold, useSeenTakes } from "@/lib/client/householdDoc";
+import { useHousehold, useSeenTakes } from "@/lib/client/householdDoc";
 import { ADJUSTED_TITLE } from "@/lib/report/adjustWords";
 import { memberName } from "@/lib/client/household";
 import { currentProfileId } from "@/lib/client/profiles";
@@ -73,12 +75,11 @@ import { VERDICT_WORD, type Verdict } from "@/lib/report/card";
 import type { NamedRubric } from "@/lib/rubric/types";
 import { LibraryControls } from "./LibraryControls";
 import { bestIn, cellOf, gridColumns, type GridColumn } from "@/lib/client/gridColumns";
-import type { FactorCell } from "@/lib/report/factorCells";
+import { cardChips, type FactorCell } from "@/lib/report/factorCells";
 import { GATE_MARK } from "@/lib/report/cardLines";
 import { addedByLine } from "@/components/Household/AddedBy";
 import { RescreenAll } from "./RescreenAll";
 import { DragHandle, RowMenu, SortableRows, useSortableRow, type Mover } from "./MyOrder";
-import { ParcelDetail } from "./ParcelDetail";
 import { Recent } from "./Recent";
 import { Star, unstarQuestion } from "@/components/Favorites/Star";
 import { ResetConfirm } from "@/components/Rubric/ResetConfirm";
@@ -118,7 +119,6 @@ export function Library() {
     setViewState(v);
     setPref("ps.library", v);
   };
-  const [opened, setOpened] = useState<string | null>(null);
   const [ticked, setTicked] = useState<ReadonlySet<string>>(new Set());
 
   const built = store.built;
@@ -147,11 +147,16 @@ export function Library() {
       ),
     [visible, screens, rubrics, household, me, seen, costs],
   );
-  const rows = favorites.map((p) => rowOf.get(p.key!)!);
+  // UX part 2 PR 7a (P-5): the ruled-out parcels have their own view; the Shortlist is the rest.
+  const ruledOut = useMemo(() => favorites.filter((p) => p.status === "archived"), [favorites]);
+  const rows = favorites.filter((p) => p.status !== "archived").map((p) => rowOf.get(p.key!)!);
   const tab = view.tab;
   const hidden = hiddenBy(rows, view.filters);
   // Step 10b: the grid's columns, from the favorites, without the ones the person hid (Columns ▾).
   const columns = gridColumns(rows, view.columns.hidden, hasStatus);
+  // The marks' legend (Z-7): under the grid on a desktop; behind "?" on a phone.
+  const marked = tab === "favorites" && columns.all.some((c) => c.kind === "factor");
+  const [legendOpen, setLegendOpen] = useState(false);
   const shown = sortRows(
     rows.filter((r) => passes(r, view.filters)),
     view.sort,
@@ -195,18 +200,23 @@ export function Library() {
     },
   };
 
-  const remove = (key: string) => {
-    dropParcel(key); // its asks and takes go with it (step 6)
-    keep(removeBuilt(latest.current, key));
-    setOpened(null);
+  /** A row's tap (Z-2): the parcel on the map, the one panel, and the way back here. */
+  const open = (key: string) => {
+    const p = latest.current.built.find((b) => b.key === key);
+    if (!p) return;
+    openOnMap(p, { label: "Your list", href: "/library", scroll: window.scrollY });
+    router.push("/explore");
   };
+  // Back from the map (the chip): where the list was scrolled.
+  useEffect(() => {
+    const y = takeBackScroll("/library");
+    if (y !== null) requestAnimationFrame(() => window.scrollTo(0, y));
+  }, []);
   const compare = () => {
     setPref("ps.compare", [...ticked]);
     router.push("/compare");
   };
   const toggle = (key: string) => setTicked(toggleTick(ticked, key));
-  // Unstarred while open, it leaves Favorites, and its detail closes.
-  const detail = opened ? favorites.find((p) => p.key === opened) : undefined;
   // The parcels whose grades are gone (approval A): "Re-screen all saved parcels" screens them one after another.
   const needing = rows
     .filter((r) => r.unscreened === "rescreen")
@@ -234,7 +244,7 @@ export function Library() {
     rubrics,
     ticked,
     toggle,
-    open: setOpened,
+    open,
     ordering,
     mover,
     star,
@@ -253,25 +263,36 @@ export function Library() {
 
   return (
     <>
-      {/* A desktop keeps the table beside an open detail (polish #15): .lib-has-detail leaves room for it. */}
-      <main className={detail ? "compare library lib-has-detail" : "compare library"}>
+      <main className="compare library">
         <header className="compare-head">
-          <h1>Your list</h1>
-          {/* Compare takes 2 or 3 (step 4b): with one ticked the button waits for another. */}
-          {tab === "favorites" && ticked.size > 0 && (
-            <button
-              className="btn small"
-              disabled={ticked.size < COMPARE_MIN}
-              title={ticked.size < COMPARE_MIN ? COMPARE_HOW : undefined}
-              onClick={compare}
-            >
-              Compare {ticked.size}
-            </button>
-          )}
+          <h1>
+            Your list
+            {/* Z-7 (UX part 2 PR 7c2): on a phone, what the marks mean is behind "?"; a desktop has it under the list. */}
+            {marked && (
+              <button
+                type="button"
+                className="lib-legend-btn"
+                aria-expanded={legendOpen}
+                aria-label={CARD_WORDS.legend}
+                title={CARD_WORDS.legend}
+                onClick={() => setLegendOpen((o) => !o)}
+              >
+                ?
+              </button>
+            )}
+          </h1>
         </header>
-        {/* Step 8 (plan §5): Favorites first; the choice is remembered with the view. */}
-        <div className="list-switch" role="tablist" aria-label="Favorites or Recent">
-          {(["favorites", "history"] as const).map((t) => (
+        {marked && legendOpen && <p className="tiny muted lib-legend lib-legend-top">{LEGEND}</p>}
+        {/* Step 8 (plan §5): the Shortlist first; the choice is remembered with the view. UX part 2 PR 7a (P-5): Ruled
+            out is its own view, and each says how many it holds. */}
+        <div className="list-switch" role="tablist" aria-label="Shortlist, Recent or Ruled out">
+          {(
+            [
+              ["favorites", LIST_VIEW_WORDS.favorites, rows.length],
+              ["history", LIST_VIEW_WORDS.history, mine.length],
+              ["ruledOut", LIST_VIEW_WORDS.ruledOut, ruledOut.length],
+            ] as const
+          ).map(([t, word, n]) => (
             <button
               key={t}
               role="tab"
@@ -279,14 +300,22 @@ export function Library() {
               aria-selected={tab === t}
               onClick={() => setView({ ...view, tab: t })}
             >
-              {t === "favorites" ? "Favorites" : "Recent"}
+              {word} <span className="list-switch-n">{n}</span>
             </button>
           ))}
         </div>
 
         {tab === "history" ? (
           <Recent parcels={mine} rows={rowOf} screens={screens} log={log} />
-        ) : favorites.length === 0 ? (
+        ) : tab === "ruledOut" ? (
+          <RuledOut
+            parcels={ruledOut}
+            rows={rowOf}
+            open={open}
+            change={change}
+            grade={(r) => <Grade g={r.grades[0]?.graded ?? null} unscreened={r.unscreened} />}
+          />
+        ) : rows.length === 0 ? (
           <p className="muted">
             {FAVORITES_EMPTY} <Link href="/explore">Go to the map</Link>
           </p>
@@ -334,9 +363,7 @@ export function Library() {
                   <LibraryCards {...rowsProps} />
                 </SortableRows>
                 {/* The fresh-eyes review (step 10b): what the marks mean, said once under the list. */}
-                {columns.all.some((c) => c.kind === "factor") && (
-                  <p className="tiny muted lib-legend">{LEGEND}</p>
-                )}
+                {marked && <p className="tiny muted lib-legend lib-legend-foot">{LEGEND}</p>}
               </>
             )}
             <p className="sr-only" role="status">
@@ -357,6 +384,22 @@ export function Library() {
           </>
         )}
 
+        {/* UX part 2 PR 7a (P-5): the compare bar, at the foot of the screen, once a parcel is ticked; Compare takes 2 or
+            3 (step 4b), so with one ticked it waits for another. */}
+        {tab === "favorites" && ticked.size > 0 && (
+          <div className="compare-bar" role="region" aria-label="Compare">
+            <span>{LIST_VIEW_WORDS.ticked(ticked.size)}</span>
+            <button
+              className="btn"
+              disabled={ticked.size < COMPARE_MIN}
+              title={ticked.size < COMPARE_MIN ? COMPARE_HOW : undefined}
+              onClick={compare}
+            >
+              Compare {ticked.size} →
+            </button>
+          </div>
+        )}
+
         {unstarring && (
           <ResetConfirm
             question={unstarQuestion(
@@ -364,23 +407,13 @@ export function Library() {
                 ? memberName(adderOf.get(unstarring.key)!)
                 : null,
             )}
-            action="Remove from favorites"
+            action="Remove from Your list"
             keep="Keep"
             reset={() => {
               unstarParcel(unstarring.key);
               setUnstarring(null);
             }}
             cancel={() => setUnstarring(null)}
-          />
-        )}
-        {detail && (
-          <ParcelDetail
-            key={detail.key}
-            parcel={detail}
-            kept={screens.get(detail.key!)}
-            change={(edit) => change(detail.key!, edit)}
-            remove={() => remove(detail.key!)}
-            onClose={() => setOpened(null)}
           />
         )}
       </main>
@@ -449,24 +482,33 @@ const statusCell = (r: LibraryRow) => {
 function VerdictWord({ v, unscreened }: { v: Verdict | null; unscreened: LibraryRow["unscreened"] }) {
   if (v) return <span className={`card-word small v-${v.toLowerCase()}`}>{VERDICT_WORD[v]}</span>;
   // Screened under earlier rules, or its result is gone (a clean break): the Library's own words (approval A).
-  return <span className="tiny muted">{unscreened === "rescreen" ? "Needs a re-screen" : "–"}</span>;
+  return <span className="tiny muted">{unscreened === "rescreen" ? "Needs grading again" : "–"}</span>;
 }
 
 /** Why the same letter can read Contender on one row and Maybe on another (polish, step 8's review). */
+/** The list's views and the compare bar (UX part 2 PR 7a, P-5). */
+export const LIST_VIEW_WORDS = {
+  favorites: "Shortlist",
+  history: "Recent",
+  ruledOut: "Ruled out",
+  ticked: (n: number) => `${n} ticked`,
+};
+
 export const VERDICT_TIP =
   "The verdict also weighs your Must haves and limits, so the same letter can read differently.";
 
 function Grade({ g, unscreened }: { g: Graded | null; unscreened: LibraryRow["unscreened"] }) {
   if (!g) return <VerdictWord v={null} unscreened={unscreened} />;
   return (
+    // J-4 (UX part 2 PR 7a): the verdict first, then the letter, as the card and the header have it.
     <span className="lib-grade" title={VERDICT_TIP}>
+      <VerdictWord v={g.verdict} unscreened={null} />
       <span className={`card-grade small g-${g.grade ?? "none"}`}>{g.grade ?? "–"}</span>
       {g.adjusted && (
         <span className="adjusted-mark" title={ADJUSTED_TITLE} aria-label={ADJUSTED_TITLE}>
           ✎
         </span>
       )}
-      <VerdictWord v={g.verdict} unscreened={null} />
     </span>
   );
 }
@@ -482,6 +524,16 @@ function Grades({ r }: { r: LibraryRow }) {
     <span className="lib-grades">
       {others.length > 0 && <span className="tiny muted lib-you">You</span>}
       <Grade g={mine?.graded ?? null} unscreened={r.unscreened} />
+      <OtherGrades r={r} />
+    </span>
+  );
+}
+
+/** Each other member's grade, take and note (the grid's Grades cell after the person's own; the phone card's line). */
+function OtherGrades({ r }: { r: LibraryRow }) {
+  const others = r.grades.slice(1);
+  return (
+    <>
       {others.map((g) => (
         <span key={g.id} className="lib-other-grade" title={`${g.name}'s grade`}>
           <span className="tiny muted">· {g.name}</span>
@@ -511,7 +563,7 @@ function Grades({ r }: { r: LibraryRow }) {
           )}
         </span>
       ))}
-    </span>
+    </>
   );
 }
 
@@ -580,7 +632,7 @@ function LibraryTable({ rows, rubrics, sort, setSort, columns, ...rest }: RowsPr
               <span className="sr-only">{rest.ordering ? "My order" : "More"}</span>
             </th>
             <th scope="col" className="lib-stick lib-stick-2">
-              <span className="sr-only">Compare</span>
+              Compare
             </th>
             {head("Name", "name", undefined, "lib-stick lib-stick-3")}
             {head(
@@ -621,18 +673,21 @@ function FactorCellView({ c, best }: { c: FactorCell | undefined; best: boolean 
   if (!c) return <span className="muted">–</span>;
   const label = `${c.title}: ${c.detail}${best ? `; ${BEST_WORDS}` : ""}`;
   return (
+    // Z-6 (UX part 2 PR 7c1): the mark and letter in one fixed cell, then ✎, then ●, each in its own column.
     <span className="lib-factor" title={label} aria-label={label}>
-      {c.kind === "must" && c.status && (
-        <span className={`lib-mark m-${c.status}`} aria-hidden="true">
-          {GATE_MARK[c.status]}
-        </span>
-      )}
-      {c.grade !== undefined && (
-        <span className={`card-grade small g-${c.grade ?? "none"}`} aria-hidden="true">
-          {c.grade ?? "–"}
-        </span>
-      )}
-      {c.setAside && <span className="muted">–</span>}
+      <span className="lib-key">
+        {c.kind === "must" && c.status && (
+          <span className={`lib-mark m-${c.status}`} aria-hidden="true">
+            {GATE_MARK[c.status]}
+          </span>
+        )}
+        {c.grade !== undefined && (
+          <span className={`card-grade small g-${c.grade ?? "none"}`} aria-hidden="true">
+            {c.grade ?? "–"}
+          </span>
+        )}
+        {c.setAside && <span className="muted">–</span>}
+      </span>
       {c.adjusted && (
         <span className="adjusted-mark" aria-hidden="true">
           ✎
@@ -789,38 +844,43 @@ function LibraryCards({ rows, rubrics, ...rest }: RowsProps) {
   );
 }
 
+/** The phone card's words (Z-7, UX part 2 PR 7c2). */
+export const CARD_WORDS = {
+  compare: "Compare",
+  noPrice: "no price",
+  noBuild: "build not priced",
+  legend: "What the marks mean",
+};
+
+/** The phone card's money line (Z-7): price · $/ac · build cost. */
+const moneyLine = (r: LibraryRow): string =>
+  [
+    r.price !== null ? shortPrice(r.price) : CARD_WORDS.noPrice,
+    // Step 10b: the price per acre, marked ≠ when the listing's and the boundary's acres differ.
+    r.perAcre ? `${r.perAcre.text}${r.perAcre.differs ? " ≠" : ""}` : null,
+    r.costBuild ? `build ${costCell(r)}` : CARD_WORDS.noBuild,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
 /**
- * A phone card's factors (step 10b plan §2): one line in the rubric's order, the Musts first as their marks alone
- * ("✓✓✓!"; a limit that's ranked too keeps its name and letter, "Elev ✓A"), then the letters with short names ("Sun
- * A · Sky B"), cut off with an ellipsis. The whole of it, each with its full name, is in its label.
+ * The phone card's chips (Z-7): the person's top four factors (factorCells.ts cardChips), each its mark or letter and
+ * its short name; a failing Must in red. The whole of it, each with its full name, is in its label.
  */
-function FactorStrip({ r }: { r: LibraryRow }) {
-  if (!r.factors.length) return null;
-  const label = r.factors.map((c) => `${c.title} ${c.text}`).join("; ");
-  // The fresh-eyes review: a pass is a bare ✓; a Must that isn't a pass keeps its name ("Septic !").
-  const marksOnly = r.factors.filter(
-    (c) => c.kind === "must" && c.grade === undefined && c.status === "pass",
-  );
-  const named = r.factors.filter((c) => !marksOnly.includes(c));
-  const mark = (c: FactorCell) =>
-    c.status && <span className={`lib-strip-mark m-${c.status}`}>{GATE_MARK[c.status]}</span>;
+function CardChips({ r }: { r: LibraryRow }) {
+  const chips = cardChips(r.factors);
+  if (!chips.length) return null;
+  const label = chips.map((c) => `${c.title} ${c.text}`).join("; ");
   return (
-    <div className="tiny lib-strip" aria-label={label} title={label}>
-      {marksOnly.length > 0 && (
-        <span className="lib-strip-item" aria-hidden="true">
-          {marksOnly.map((c) => (
-            <Fragment key={c.key}>{mark(c)}</Fragment>
-          ))}
-        </span>
-      )}
-      {named.map((c, i) => (
-        <span key={c.key} className="lib-strip-item" aria-hidden="true">
-          {(i > 0 || marksOnly.length > 0) && <span className="muted"> · </span>}
-          {c.short} {c.kind === "must" && mark(c)}
-          {c.grade !== undefined && (
-            <b className={`lib-strip-grade g-${c.grade ?? "none"}`}>{c.grade ?? "–"}</b>
+    <div className="lib-fchips" aria-label={label} title={label}>
+      {chips.map((c) => (
+        <span key={c.key} className={`lib-fchip${c.status ? ` m-${c.status}` : ""}`} aria-hidden="true">
+          {c.kind === "must" && c.status && c.grade === undefined ? (
+            <span className={`lib-mark m-${c.status}`}>{GATE_MARK[c.status]}</span>
+          ) : (
+            <span className={`card-grade tiny g-${c.grade ?? "none"}`}>{c.grade ?? "–"}</span>
           )}
-          {c.setAside && <span className="muted">–</span>}
+          {c.short}
           {c.adjusted && <span className="adjusted-mark">✎</span>}
         </span>
       ))}
@@ -828,7 +888,7 @@ function FactorStrip({ r }: { r: LibraryRow }) {
   );
 }
 
-function Card({ r, index, count, ticked, toggle, open, ordering, mover, star, unstar, report }: RowProps) {
+function Card({ r, index, count, ticked, toggle, open, ordering, mover, unstar, report }: RowProps) {
   const { nodeProps, dragging, handleProps } = useSortableRow(r.key, ordering);
   return (
     <li
@@ -839,49 +899,43 @@ function Card({ r, index, count, ticked, toggle, open, ordering, mover, star, un
     >
       {ordering && <DragHandle name={r.name} handle={handleProps} />}
       <div className="lib-card-body">
+        {/* Z-7 (UX part 2 PR 7c2): the first line is the name, the verdict and the letter. Every card here is on the
+            list, so it has no star: ⋯ has Remove from Your list. */}
         <div className="lib-card-head">
-          {star(r)}
           <LongName name={r.name} className="lib-open" />
-          <RowMenu
-            name={r.name}
-            index={index}
-            count={count}
-            move={ordering ? (to) => mover.move(r.key, to) : undefined}
-            remove={() => unstar(r)}
-            report={graded(r) ? () => report(r.key) : undefined}
-          />
-          <input
-            {...ownClick}
-            type="checkbox"
-            aria-label={`Compare ${r.name}`}
-            checked={ticked.has(r.key)}
-            disabled={!ticked.has(r.key) && ticked.size >= COMPARE_MAX}
-            title={!ticked.has(r.key) && ticked.size >= COMPARE_MAX ? COMPARE_FULL : COMPARE_HOW}
-            onChange={() => toggle(r.key)}
-          />
+          <Grade g={r.grades[0]?.graded ?? null} unscreened={r.unscreened} />
         </div>
+        {r.grades.length > 1 && (
+          <div className="lib-chips lib-card-others">
+            <OtherGrades r={r} />
+          </div>
+        )}
         {r.ask && <AskNote ask={r.ask} />}
         {/* Polish: an active favorite with no milestone has nothing to say here; no lone "–". */}
         {(STATUS_WORD[r.status] || milestonesLine(r)) && <div className="tiny">{statusCell(r)}</div>}
-        <div className="tiny muted lib-card-facts">
-          {[
-            r.acres !== null ? `${r.acres.toFixed(1)} ac` : null,
-            r.price !== null ? shortPrice(r.price) : null,
-            // Step 10b: the price per acre, after the price.
-            r.perAcre ? `${r.perAcre.text}${r.perAcre.differs ? " ≠" : ""}` : null,
-            r.costBuild ? `build ${costCell(r)}` : null,
-          ]
-            .filter(Boolean)
-            .map((t) => `${t} · `)
-            .join("")}
-          <State r={r} />
-        </div>
-        <div className="lib-chips">
-          <span className="lib-chip">
-            <Grades r={r} />
-          </span>
-        </div>
-        <FactorStrip r={r} />
+        <div className="tiny lib-card-money">{moneyLine(r)}</div>
+        <CardChips r={r} />
+      </div>
+      <label className="lib-card-cmp" {...ownClick}>
+        <input
+          type="checkbox"
+          aria-label={`Compare ${r.name}`}
+          checked={ticked.has(r.key)}
+          disabled={!ticked.has(r.key) && ticked.size >= COMPARE_MAX}
+          title={!ticked.has(r.key) && ticked.size >= COMPARE_MAX ? COMPARE_FULL : COMPARE_HOW}
+          onChange={() => toggle(r.key)}
+        />
+        <span aria-hidden="true">{CARD_WORDS.compare}</span>
+      </label>
+      <div className="lib-card-more">
+        <RowMenu
+          name={r.name}
+          index={index}
+          count={count}
+          move={ordering ? (to) => mover.move(r.key, to) : undefined}
+          remove={() => unstar(r)}
+          report={graded(r) ? () => report(r.key) : undefined}
+        />
       </div>
     </li>
   );

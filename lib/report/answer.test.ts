@@ -6,7 +6,7 @@ import { defaultRubric } from "../rubric/default";
 import { rubricFromAnswers } from "../rubric/interview/generate";
 import type { NamedRubric, Rubric } from "../rubric/types";
 import { reportCard } from "./card";
-import { answerLine, biggestMiss, checks, incompleteLine, strengths } from "./answer";
+import { answerLine, biggestMiss, checks, incompleteLine, strengths, verdictLine } from "./answer";
 import { AGENT_QUESTIONS, agentQuestions, copyAllText } from "./agent";
 
 const FERNEY = expectedOf("ferney-creek-52-47A", "run");
@@ -19,13 +19,45 @@ const ANSWERED = named(
     .rubric,
 );
 
+describe("the verdict line (J-4, Zach, UX part 2): the verdict first, a joining word when they part", () => {
+  const card = (over: Record<string, unknown>) =>
+    ({
+      verdict: "Contender",
+      grade: "B",
+      lead: { kind: "strength", text: "" },
+      ...over,
+    }) as unknown as Parameters<typeof verdictLine>[0];
+  it("agreeing: the verdict and the letter", () => {
+    expect(verdictLine(card({}))).toBe("Contender · B");
+    expect(verdictLine(card({ verdict: "Pass", grade: "D", lead: { kind: "weakest", text: "" } }))).toBe(
+      "Not for us · D",
+    );
+  });
+  it("a Must fails: Not for us, but the letter says how good the rest is", () => {
+    expect(verdictLine(card({ verdict: "Pass", grade: "B", lead: { kind: "fail", text: "" } }))).toBe(
+      "Not for us · B, but misses a must",
+    );
+    expect(verdictLine(card({ verdict: "Pass", grade: "A", lead: { kind: "limit", text: "" } }))).toBe(
+      "Not for us · A, but misses a must",
+    );
+  });
+  it("a Contender's grade held at Maybe: by what, in lower case", () => {
+    expect(verdictLine(card({ verdict: "Maybe", grade: "A", heldBy: ["Septic"] }))).toBe(
+      "Maybe · A, held by: septic",
+    );
+    expect(verdictLine(card({ verdict: "Maybe", grade: "B", heldBy: ["Legal road access", "Septic"] }))).toBe(
+      "Maybe · B, held by: legal road access and septic",
+    );
+  });
+});
+
 describe("the answer line", () => {
   it("names up to two strengths, the heaviest rows at A or B, and the row that costs the grade most", () => {
     const card = reportCard(FERNEY, ZACH);
     expect(strengths(card).map((x) => x.key)).toEqual(["elevation", "homesite"]);
     expect(biggestMiss(card)!.key).toBe("trails");
     expect(answerLine(card, FERNEY)).toBe(
-      "B, Contender. Strong elevation and winter sun; the nearest trailhead is 47 minutes away, past your 20-minute limit; check first: legal road access.",
+      "Contender · B. Strong elevation and winter sun; the nearest trailhead is 47 minutes away, past your 20-minute limit; check first: legal road access.",
     );
   });
 
@@ -47,7 +79,7 @@ describe("the answer line", () => {
     expect([card.grade, card.verdict]).toEqual(["B", "Maybe"]);
     expect(checks(card)).toEqual(["legal road access", "septic"]);
     expect(answerLine(card, MACKS)).toBe(
-      "B, Maybe. Strong elevation and winter sun; check first: legal road access and septic.",
+      "Maybe · B. Strong elevation and winter sun; check first: legal road access and septic.",
     );
   });
 
@@ -63,7 +95,7 @@ describe("the answer line", () => {
   it("each row's miss in plain words", () => {
     const card = reportCard(MUD, ZACH);
     expect(answerLine(card, MUD)).toBe(
-      "B, Contender. Strong elevation and winter sun; 0.1 ac of garden ground, under your 0.25 ac; check first: septic.",
+      "Contender · B. Strong elevation and winter sun; 0.1 ac of garden ground, under your 0.25 ac; check first: septic.",
     );
     const r = structuredClone(MUD);
     const h = r.drives!.find((d) => d.er === "yes")!;
@@ -73,13 +105,13 @@ describe("the answer line", () => {
       weights: { mode: "explicit", of: { ...zeroWeights(), hospital: 100 } },
     });
     expect(answerLine(reportCard(r, er), r)).toBe(
-      "C, Maybe. 38 minutes to an ER is past your 30-minute limit; check first: septic.",
+      "Maybe · C. 38 minutes to an ER is past your 30-minute limit; check first: septic.",
     );
   });
 
   it("with no strength and no miss, the grade and verdict alone", () => {
     const card = { ...reportCard(MUD, ZACH), rows: [], gates: [] };
-    expect(answerLine(card, MUD)).toBe("B, Contender.");
+    expect(answerLine(card, MUD)).toBe("Contender · B.");
   });
 
   it("says what didn't load, apart from the reason", () => {

@@ -3,7 +3,8 @@
  * middle-button drag, tilts (drag up and down) and rotates (drag left and right) around the point pressed. A
  * double-click without a drag zooms in toward the point, which is what Google Earth does (checked there: one
  * level closer, tilt unchanged). MapLibre's own right-drag and Ctrl+drag stay as further ways to tilt and rotate,
- * and its double-click zoom stays off (ParcelTools turns it off: Draw finishes a boundary with a double-click).
+ * and its double-click zoom stays off (ParcelTools turns it off: Draw finishes a boundary with a double-click). A
+ * phone's double-tap is ParcelTools' own (doubleTap.ts, UX part 2 Z-1).
  *
  * Mouse only: touch keeps MapLibre's two-finger tilt and rotate. Stands aside while a tool is open (`toolOpen`).
  *

@@ -38,12 +38,44 @@ test("Julie joins: Who's this? → I'm new here → her name; one list, and who 
   await julie.getByRole("link", { name: YOUR_LIST }).click();
   await expect(listRow(julie, "52-47A")).toBeVisible();
   await expect(listRow(julie, "35-3")).toBeVisible();
+  // A row opens the parcel on the map (Z-2); Details says who added it.
   await listRow(julie, "52-47A").locator(".lib-open").click();
-  await expect(julie.getByRole("dialog").getByText("Added by Profile 1")).toBeVisible();
+  await julie.getByRole("tab", { name: "Details" }).click();
+  await expect(julie.locator(".parcel-details")).toContainText("Added by Profile 1");
 
   // The current profile stays per device: Julie's reload opens as her.
   await reload(julie);
   await expect((await openMenu(julie)).locator(".profile-btn-name")).toHaveText("Julie");
+
+  // UX part 2 PR 5 (P-8): Household, its own item in the menu, lists the members; Rename names Zach's profile.
+  await julie.getByRole("dialog", { name: "Menu" }).getByRole("button", { name: "Household" }).click();
+  const household = julie.getByRole("dialog", { name: "Household" });
+  const members = household.getByRole("list", { name: "Members" });
+  await expect(members).toContainText("Julie (you)");
+  await members
+    .getByRole("listitem")
+    .filter({ hasText: "Profile 1" })
+    .getByRole("button", { name: "Rename" })
+    .click();
+  await household.getByLabel("New name for Profile 1").fill("Zach");
+  await household.getByRole("button", { name: "Save" }).click();
+  await expect(members).toContainText("Zach");
+  await household.getByRole("button", { name: "Close" }).click();
+  await julie.getByRole("link", { name: YOUR_LIST }).click();
+  await listRow(julie, "52-47A").locator(".lib-open").click();
+  await julie.getByRole("tab", { name: "Details" }).click();
+  await expect(julie.locator(".parcel-details")).toContainText("Added by Zach");
+});
+
+test("alone, a kept parcel's Ask someone opens Household (P-8)", async ({ page }) => {
+  await openExplorer(page, FERNEY);
+  await importParcels(page, [FERNEY]);
+  await page.getByRole("link", { name: YOUR_LIST }).click();
+  await listRow(page, "52-47A").locator(".lib-open").click();
+  await page.locator(".sh-acts").getByRole("button", { name: "Ask someone" }).click();
+  const household = page.getByRole("dialog", { name: "Household" });
+  await expect(household).toBeVisible();
+  await expect(household).toContainText("It's just you so far.");
 });
 
 test("the clean break: a profile's own list from before step 6 goes, and the menu says so once", async ({
@@ -95,6 +127,9 @@ test("everyone's grade; How Julie would rate it; Ask Julie → Waiting for you �
   await openExplorer(zach, FERNEY);
   await importParcels(zach, [FERNEY, MACKS]);
   await seedScreens(zach, [FERNEY, MACKS]);
+  // The seeded grades are written to the store directly: a reload has the map read them, as the list does on opening.
+  await settled(zach);
+  await reload(zach);
   await setPriorities(zach, ZACH.rubric);
   const code = await startSyncing(zach);
 
@@ -112,13 +147,15 @@ test("everyone's grade; How Julie would rate it; Ask Julie → Waiting for you �
 
   // Zach sees her, without priorities.
   await afterTabSwitch(zach, async () => {
+    // The row opens the map (Z-2); the other members' grades are in its Grade.
     await listRow(zach, "52-47A").locator(".lib-open").click();
+    await zach.getByRole("tab", { name: "Grade" }).click();
     await expect(zach.getByText("Julie hasn't said what matters to them yet.")).toBeVisible({
-      timeout: 1000,
+      timeout: 8000, // the row opens the map (Z-2), which restores the parcel's screen first
     });
   });
   await expect(zach.getByRole("button", { name: "Answer as Julie here" })).toBeVisible();
-  await zach.getByRole("dialog").getByRole("button", { name: "Close" }).click();
+  await zach.locator(".back-chip").click();
 
   // Julie sets hers: Zach's list shows her grade beside his.
   await setPriorities(julie, JULIE.rubric);
@@ -133,11 +170,15 @@ test("everyone's grade; How Julie would rate it; Ask Julie → Waiting for you �
   await expect(section.locator(".others-reason")).not.toBeEmpty();
 
   // Zach asks; Julie's badge and Waiting for you; she answers Maybe with a comment.
-  await section.getByRole("button", { name: "Ask Julie" }).click();
-  await section.getByRole("textbox").fill("The spring by the road?");
-  await section.getByRole("button", { name: "Ask", exact: true }).click();
+  // UX part 2 PR 3 (P-2): Ask is the header's, in the row of actions; the form opens in the row's place.
+  await zach.locator(".sh-acts").getByRole("button", { name: "Ask Julie" }).click();
+  const ask = zach.getByRole("form", { name: "Ask for a take" });
+  await ask.getByRole("textbox").fill("The spring by the road?");
+  await ask.getByRole("button", { name: "Ask", exact: true }).click();
   await expect(section).toContainText("Julie's Waiting for you");
-  await zach.getByRole("dialog").getByRole("button", { name: "Close" }).click();
+  // Closed, so the tab switches below (by way of the map) don't have it in front of him when her take arrives.
+  await zach.getByRole("button", { name: "Close this parcel" }).first().click();
+  await zach.getByRole("link", { name: YOUR_LIST }).click();
 
   await afterTabSwitch(julie, async () => {
     await expect(julie.locator(".app-badge")).toHaveText("1", { timeout: 1000 });
@@ -173,6 +214,11 @@ test("everyone's grade; How Julie would rate it; Ask Julie → Waiting for you �
   await expect(zach.getByRole("region", { name: "How Julie would rate it" })).toContainText(
     "Steep drive, lovely spring.",
   );
+  // UX part 2 PR 3 (P-2): her take under the header's actions, with the dot it had as it opened.
+  const takes = zach.getByRole("list", { name: "Takes" });
+  await expect(takes).toContainText("Julie · Maybe");
+  await expect(takes).toContainText("“Steep drive, lovely spring.”");
+  await expect(takes.getByRole("img", { name: "New take from Julie" })).toBeVisible();
   // Opening it saw it: no dot, no count.
   await expect(zach.locator(".app-badge")).toHaveCount(0);
   await expect(listRow(zach, "52-47A").locator(".new-dot")).toHaveCount(0);
@@ -236,4 +282,54 @@ test("polling (step 6b): a take saved on one device appears on the other within 
   });
   // Held: the row above grows a pixel with the take's chip, and the browser's scroll anchoring keeps the view still.
   expect(Math.abs((await listScroll(zach)) - scrolled)).toBeLessThanOrEqual(2);
+});
+
+test("Invite someone: a one-use link; she joins as a new member with her name, and the link is spent (P-8)", async ({
+  browser,
+}) => {
+  const zach = await (await browser.newContext()).newPage();
+  await openExplorer(zach, FERNEY);
+  await importParcels(zach, [FERNEY]);
+  // Not synced yet: making the link starts sync first.
+  const drawer = await openMenu(zach);
+  await drawer.getByRole("button", { name: "Household" }).click();
+  const household = zach.getByRole("dialog", { name: "Household" });
+  const invite = household.getByRole("region", { name: "Invite someone" });
+  await invite.getByRole("button", { name: "Make an invite link" }).click();
+  const link = await invite.getByLabel("Invite link").inputValue({ timeout: 30_000 });
+  expect(link).toMatch(/\/join#[0-9A-Z]{26}$/);
+  await household.getByRole("button", { name: "Close" }).click();
+
+  const julie = await (await browser.newContext()).newPage();
+  await openExplorer(julie, FERNEY);
+  await julie.goto(link);
+  await expect(julie).toHaveURL(/\/join$/); // the token is gone from the address bar
+  await julie.getByRole("button", { name: /^Join$/ }).click();
+  // Straight to her name: no Who's this?
+  await julie.waitForURL("**/interview");
+  await julie.getByPlaceholder("Your name or a nickname").fill("Julie");
+  await julie.getByRole("button", { name: "Continue" }).click();
+  await julie.getByRole("button", { name: "Not now" }).click();
+  await booted(julie);
+  await expect((await openMenu(julie)).locator(".profile-btn-name")).toHaveText("Julie");
+
+  // Zach's household has her, once his device has fetched (the dialog closed each try, so the tabs can switch).
+  await afterTabSwitch(zach, async () => {
+    await (await openMenu(zach)).getByRole("button", { name: "Household" }).click();
+    try {
+      await expect(household.getByRole("list", { name: "Members" })).toContainText("Julie", {
+        timeout: 1000,
+      });
+    } finally {
+      await household.getByRole("button", { name: "Close" }).click();
+    }
+  });
+
+  // The link is spent: a second opening joins nothing.
+  const other = await (await browser.newContext()).newPage();
+  await openExplorer(other, FERNEY);
+  await other.goto(link);
+  await expect(other.locator("main")).toContainText(
+    "This invite has been used, or it's more than 7 days old.",
+  );
 });

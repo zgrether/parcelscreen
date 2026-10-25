@@ -10,6 +10,7 @@ import {
   exploreReducer,
   INITIAL,
   panelView,
+  toolOpen,
   type ExploreAction,
   type ExploreState,
   type Stamp,
@@ -372,29 +373,42 @@ describe("notes (13e-5)", () => {
     expect(justAName.store.built).toHaveLength(1);
   });
 
-  it("the status (WF2, step 8): starred; archived with a reason (blank or 'Rejected:' alone refused); restored to the favorites; unstarred", () => {
+  it("the status (WF2, step 8; P-4): starred; ruled out, a reason optional; moved back where it was; unstarred", () => {
     const s = run([selectA()]);
     const go = (st: ExploreState, a: ExploreAction) => exploreReducer(st, a);
     const saved = go(s, { type: "star", name: " The bench ", serial: s.serial, stamp: at() });
     expect(saved.store.open).toMatchObject({ status: "saved", archived: null, name: "The bench" });
     expect(saved.store.built).toHaveLength(1); // starring builds the parcel
-    for (const reason of ["", "   ", "Rejected: ", "rejected"])
-      expect(go(saved, { type: "archive", reason, serial: s.serial, stamp: at() }), reason).toBe(saved);
+    // No reason is fine (§9 Q5).
+    expect(
+      go(saved, { type: "archive", reason: "  ", serial: s.serial, stamp: at() }).store.open,
+    ).toMatchObject({
+      status: "archived",
+      archived: { reason: "", from: "saved" },
+    });
     const archived = go(saved, {
       type: "archive",
-      reason: "  Rejected: no winter sun ",
+      reason: "  Septic: perc failed ",
       serial: s.serial,
       stamp: at(),
     });
     expect(archived.store.open).toMatchObject({
       status: "archived",
-      archived: { reason: "Rejected: no winter sun", from: "saved" },
+      archived: { reason: "Septic: perc failed", from: "saved" },
     });
     expect(archived.store.open!.archived!.at).toMatch(/^2026-/);
     // Archived: archiving again does nothing.
     expect(go(archived, { type: "archive", reason: "Sold", serial: s.serial, stamp: at() })).toBe(archived);
     const restored = go(archived, { type: "restore", serial: s.serial, stamp: at() });
     expect(restored.store.open).toMatchObject({ status: "saved", archived: null });
+    // A parcel only in Recent can be ruled out too (P-4): it builds, joins the list as Ruled out, and moves back to Recent.
+    const recent = go(s, { type: "archive", reason: "Too far", serial: s.serial, stamp: at() });
+    expect(recent.store.open).toMatchObject({ status: "archived", archived: { from: "inProgress" } });
+    expect(recent.store.built).toHaveLength(1);
+    expect(go(recent, { type: "restore", serial: s.serial, stamp: at() }).store.open).toMatchObject({
+      status: "inProgress",
+      archived: null,
+    });
     // Unstarred, archived or not: back to History, still built.
     const unstarred = go(archived, { type: "unstar", serial: s.serial, stamp: at() });
     expect(unstarred.store.open).toMatchObject({ status: "inProgress", archived: null });
@@ -510,6 +524,25 @@ describe("tap rules (decideTap)", () => {
   });
 });
 
+describe("the tool gate (toolOpen): the mouse's tilt and a phone's double-tap zoom stand aside (Z-1)", () => {
+  it("is open for every mode and for a split line still being placed; closed with neither", () => {
+    expect(toolOpen(INITIAL)).toBe(false);
+    for (const mode of [
+      "draw",
+      "house",
+      "split",
+      "combine",
+      "track",
+      "easement",
+      "drive",
+      "point",
+      "area",
+    ] as const)
+      expect(toolOpen({ mode, split: null })).toBe(true);
+    expect(toolOpen({ mode: null, split: { a: [36.3, -81.6], b: null } })).toBe(true);
+  });
+});
+
 describe("panels (17e; step 8b): Map layers beside the parcel panel's Details", () => {
   it("Map layers opens and closes on its own; Details and its open row stay", () => {
     const s = run([selectA(), { type: "info", open: true }, { type: "layer", id: "house" }]);
@@ -614,6 +647,26 @@ describe("drawn lines (follow-up 34)", () => {
     ]);
     expect(s.store.open!.key).not.toBeNull();
     expect(s.store.built).toHaveLength(1);
+  });
+
+  it("a track just finished is held for the driveway question (P-9), an easement isn't; answered, it goes", () => {
+    const track = run([
+      selectA(),
+      ...draw("track", [
+        [36.629, -81.354],
+        [36.6295, -81.3535],
+      ]),
+    ]);
+    expect(track.justDrawn).toBe("line-track");
+    expect(exploreReducer(track, { type: "justDrawnDone" }).justDrawn).toBeNull();
+    const easement = run([
+      selectA(),
+      ...draw("easement", [
+        [36.628, -81.356],
+        [36.6285, -81.3555],
+      ]),
+    ]);
+    expect(easement.justDrawn).toBeNull();
   });
 
   it("a note, a width and a removal; an edit after another parcel opened is dropped", () => {

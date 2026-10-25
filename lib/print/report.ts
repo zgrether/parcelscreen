@@ -25,17 +25,19 @@ import { usesInputOf, type UsesParcel } from "../uses/input";
 
 /** The new strings (plan §8). */
 export const REPORT_WORDS = {
-  title: "Report card",
+  title: "Report",
+  /** The ⋯ menus' item that opens it (Zach, #314). */
+  make: "Make a report",
   onePage: "One page",
   full: "Full",
   print: "Print or save as PDF",
   back: "← Back",
   gradeFirst: "Grade it first",
-  loading: "Loading the report card…",
+  loading: "Loading the report…",
   notHere: "This parcel isn't on this device.",
   notGraded: "This parcel hasn't been graded yet.",
   staleBoundary:
-    "Graded on an earlier boundary: the parcel's lines changed after this grade. Grade it again for a current report card.",
+    "Graded on an earlier boundary: the parcel's lines changed after this grade. Grade it again for a current report.",
   phoneHint: "This is the page as it prints. Pinch to zoom.",
   takes: "Takes",
   questions: "Questions for the agent",
@@ -210,7 +212,12 @@ export function reportContent(i: ReportInput): ReportContent {
       i.askingPrice !== null && i.askingPriceAt
         ? capitalize(askingLine(i.askingPrice, i.askingPriceAt))
         : null,
-    perAcre: perAcreLine(i.askingPrice, i.listingAcres ?? null, i.acres),
+    perAcre: perAcreLine(
+      i.askingPrice,
+      i.listingAcres ?? null,
+      i.acres,
+      i.drawn?.facts?.survey?.acres ?? null,
+    ),
     graded: gradedOn(i.result.runAt),
     stale: i.stale,
     grades,
@@ -230,7 +237,7 @@ export function reportContent(i: ReportInput): ReportContent {
     }).suggestions.map((x) => `${x.text}${x.cost ? ` · ${x.cost}` : ""}`),
     questions: agentQuestions(mine).map((q) => q.question),
     cost: costPrintLines(mine),
-    divide: divideReportLine(i.result, i.parcel?.listingAcres ?? null),
+    divide: divideReportLine(i.result, i.parcel?.listingAcres ?? null, i.drawn?.facts?.survey ?? null),
     uses: landUses(
       usesInputOf(
         i.result,
@@ -250,8 +257,13 @@ function costPrintLines(card: Card): string[] {
 }
 
 /** "$6,310/ac", or both readings when the two acreages differ (step 10b). */
-function perAcreLine(price: number | null, listed: number | null, boundary: number | null): string | null {
-  const pa = perAcre(price, listed, boundary);
+function perAcreLine(
+  price: number | null,
+  listed: number | null,
+  boundary: number | null,
+  surveyed: number | null = null,
+): string | null {
+  const pa = perAcre(price, listed, boundary, undefined, surveyed);
   if (!pa) return null;
   // Both readings say it all when they differ; the first figure isn't repeated before them.
   return pa.both ?? pa.text;

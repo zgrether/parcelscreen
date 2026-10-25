@@ -13,7 +13,7 @@ import type { Answer, UseLine, UsesInput } from "./types";
 
 /** What the uses read from the parcel itself (parcelStore's WorkingParcel). */
 export type UsesParcel = Pick<WorkingParcel, "markup" | "deedRestrictions" | "hoa"> &
-  Partial<Pick<WorkingParcel, "listingAcres" | "fromOriginal">>;
+  Partial<Pick<WorkingParcel, "listingAcres" | "fromOriginal" | "facts">>;
 
 const isLine = (m: Markup): m is LineMarkup => m.shape === "line";
 
@@ -40,6 +40,7 @@ export function usesInputOf(
       deedRestrictions: parcel.deedRestrictions,
       hoa: parcel.hoa,
       listingAcres: parcel.listingAcres ?? null,
+      survey: parcel.facts?.survey ?? null,
       ...(parcel.fromOriginal?.length ? { fromOriginal: parcel.fromOriginal } : {}),
     },
   };

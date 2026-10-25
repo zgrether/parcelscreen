@@ -47,7 +47,7 @@ describe("where the drive times start", () => {
 
   it("after a moved pin or house, the drives are the last full screen's (owner, #123)", () => {
     expect(driveFromSentence(from({ kept: true }))).toBe(
-      "Drive times start at the driveway's entrance on Mud Creek Ln. Drive times are from the last full screen; run again to update.",
+      "Drive times start at the driveway's entrance on Mud Creek Ln. Drive times are from the last full screen; grade again to update.",
     );
   });
 

@@ -174,6 +174,8 @@ export const COMBINE_COLOR = "#f0a030";
 export const PARCEL_FILL_OPACITY = 0.16;
 /** The selected parcel, and saved parcels (thinner, unfilled). */
 export const SELECTED_COLOR = "#f0a030";
+/** A ruled-out parcel's outline (P-4): greyed, so the list's live ones stand out. */
+const RULED_OUT_COLOR = "#9aa29c";
 
 /** Who the parcel lines come from (step 2 plan §6.6): each state's service, by its publisher's name. */
 export const PARCEL_LINES_ATTRIBUTION =
@@ -296,7 +298,7 @@ export function buildStyle(opts: {
     },
   );
   // Saved (built) parcels that aren't open: a thin amber outline, no fill (13e). The nearly transparent fill
-  // only catches taps; each feature carries its History key.
+  // only catches taps; each feature carries its key. Your list's only (UX part 2): a ruled-out one is grey (P-4).
   sources[SOURCE.saved] = { type: "geojson", data: EMPTY_FC };
   layers.push(
     {
@@ -309,7 +311,10 @@ export function buildStyle(opts: {
       id: LAYER.savedLine,
       type: "line",
       source: SOURCE.saved,
-      paint: { "line-color": SELECTED_COLOR, "line-width": 1.5 },
+      paint: {
+        "line-color": ["case", ["boolean", ["get", "ruledOut"], false], RULED_OUT_COLOR, SELECTED_COLOR],
+        "line-width": 1.5,
+      },
     },
   );
   // The selected parcel, the strongest thing on the map (13e): bold amber over a dark halo, soft amber fill.

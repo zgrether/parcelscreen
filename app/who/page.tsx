@@ -6,6 +6,7 @@
  * name first.
  */
 import { useEffect, useState } from "react";
+import { JOIN_AS_NEW } from "@/lib/sync/words";
 import { addProfile, listProfiles, switchProfile } from "@/lib/client/profiles";
 import type { Profile } from "@/lib/client/profileStore";
 
@@ -34,6 +35,19 @@ export default function WhoPage() {
     const p = await addProfile(NEW_NAME);
     await switchProfile(p.id, "/interview");
   };
+  // Joined from an invite (UX part 2 PR 5b): a new member, straight to their name.
+  useEffect(() => {
+    let invited = false;
+    try {
+      invited = sessionStorage.getItem(JOIN_AS_NEW) === "1";
+      sessionStorage.removeItem(JOIN_AS_NEW);
+      sessionStorage.removeItem("ps.inviteCode");
+    } catch {
+      /* no session storage: Who's this? as usual */
+    }
+    // The same as I'm new here, without the button: nothing else on the page is waiting for it.
+    if (invited) void addProfile(NEW_NAME).then((p) => switchProfile(p.id, "/interview"));
+  }, []);
 
   return (
     <main className="compare who-page">

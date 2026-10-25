@@ -74,7 +74,7 @@ for (const v of VIEWS) {
       await settled(page);
       await seed(page);
       await visit(page, "/library");
-      await page.getByRole("tab", { name: "Favorites" }).click();
+      await page.getByRole("tab", { name: "Shortlist" }).click();
       await expect(
         page
           .getByText(/\$5,780\/ac/)
@@ -121,7 +121,7 @@ for (const v of VIEWS) {
 
         // Compare: $/ac after the asking price.
         await visit(page, "/library");
-        await page.getByRole("tab", { name: "Favorites" }).click();
+        await page.getByRole("tab", { name: "Shortlist" }).click();
         for (const n of [mud, ferney])
           await page.getByLabel(`Compare ${n}`).filter({ visible: true }).check();
         await page.getByRole("button", { name: "Compare 2" }).click();
@@ -147,13 +147,15 @@ for (const v of VIEWS) {
 
         // Recent: Ferney off the list, with its $/ac and the verdict word beside the letter.
         await visit(page, "/library");
-        await page.getByRole("tab", { name: "Favorites" }).click();
+        await page.getByRole("tab", { name: "Shortlist" }).click();
+        // Z-7: a phone card has no star; ⋯ has Remove from Your list, as the grid's row does.
         await page
-          .getByRole("button", { name: `In favorites: ${ferney}` })
+          .getByRole("button", { name: `More for ${ferney}` })
           .filter({ visible: true })
           .first()
           .click();
-        await page.getByRole("alertdialog").getByRole("button", { name: "Remove from favorites" }).click();
+        await page.getByRole("menuitem", { name: "Remove from Your list" }).click();
+        await page.getByRole("alertdialog").getByRole("button", { name: "Remove from Your list" }).click();
         await page.getByRole("tab", { name: "Recent" }).click();
         await page.waitForTimeout(400);
         await page.screenshot({ path: `${OUT}/${v.device}-recent.png` });

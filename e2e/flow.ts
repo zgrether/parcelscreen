@@ -96,9 +96,9 @@ export async function addFromRecent(page: Page, name: string): Promise<void> {
   await page.getByRole("tab", { name: "Recent" }).click();
   const add = page.locator(".hist-row", { hasText: name }).getByRole("button", { name: /^Add to list/ });
   await add.click();
-  await page.getByRole("dialog", { name: "Add to favorites" }).getByRole("button", { name: "Add" }).click();
+  await page.getByRole("dialog", { name: "Add to list" }).getByRole("button", { name: "Add" }).click();
   await expect(add).toHaveCount(0);
-  await page.getByRole("tab", { name: "Favorites" }).click();
+  await page.getByRole("tab", { name: "Shortlist" }).click();
 }
 
 /** The menu (step 4b): the places' bar's ☰ (More on a phone), opened if it isn't; its panel. */
@@ -189,25 +189,24 @@ export const ageKept = (page: Page, how: "v2" | "earlier rules"): Promise<void> 
   );
 
 /**
- * Opens a saved parcel on the map from Your list, by (part of) the name its row shows: the Your list tab, its row, then
- * "Open on the map" in its detail (History went in step 4b). The map stays mounted behind the tab, so the parcels
+ * Opens a saved parcel on the map from Your list, by (part of) the name its row shows: the Your list tab, then its row
+ * (Z-2, UX part 2: a tap opens it on the map, the one panel). The map stays mounted behind the tab, so the parcels
  * screened this session keep their sessions.
  */
 export async function openFromList(page: Page, name: string): Promise<void> {
   await page.getByRole("link", { name: "Your list", exact: true }).click();
-  await page.getByRole("tab", { name: "Favorites" }).click();
+  await page.getByRole("tab", { name: "Shortlist" }).click();
   await listRow(page, name).click();
-  await page.getByRole("link", { name: "Open on the map" }).click();
   await expect(page).toHaveURL(/\/explore$/);
   // An imported prototype parcel is named after its saved name (owner, #130), which holds the parcel ID.
   await expect(page.locator(".sh-name").first()).toContainText(name);
 }
 
-/** Opens a parcel on the map from Recent (step 8; 8c), by (part of) its name: its row's Open on the map. */
+/** Opens a parcel on the map from Recent (step 8; 8c), by (part of) its name: a tap on its name (Z-8, UX part 2 PR 7b). */
 export async function openFromRecent(page: Page, name: string): Promise<void> {
   await page.getByRole("link", { name: /^Your list/ }).click();
   await page.getByRole("tab", { name: "Recent" }).click();
-  await page.locator(".hist-row", { hasText: name }).getByRole("link", { name: "Open on the map" }).click();
+  await page.locator(".hist-row", { hasText: name }).locator(".hist-name").click();
   await expect(page).toHaveURL(/\/explore$/);
   await expect(page.locator(".sh-name").first()).toContainText(name);
 }
@@ -216,11 +215,21 @@ export async function openFromRecent(page: Page, name: string): Promise<void> {
  * Grade it (step 4c: the toolbar's button on a desktop, the sheet's on a phone; for a kept run with nothing changed, the
  * overlays note's "Grade again"), wait for the run to finish, and return each step's final status.
  */
+/**
+ * Every pin on, as openExplorer's `preProfile` (UX part 2 PR 3b2: by default the map pins the best homesite only, until
+ * the full key's Every pin asks for the rest). For a test that taps another site's pin.
+ */
+export const EVERY_PIN: Record<string, string> = { "ps.overlays": JSON.stringify({ allPins: true }) };
+
+/** A run going: the toolbar's "Grading…", or on a phone the sheet's progress bar in its place (UX part 2 PR 3b, Z-9). */
+export const gradingNow = (page: Page) =>
+  page.locator(".grade-btn", { hasText: /^Grading…$/ }).or(page.locator(".grade-progress"));
+
 export async function screenIt(page: Page): Promise<Record<string, string>> {
   if (await page.locator(".menu-panel").count()) await page.keyboard.press("Escape");
   // Wait for this run to start, then to finish.
   await page.locator(".grade-btn:enabled, .grade-again-link:enabled").first().click();
-  const grading = page.locator(".grade-btn", { hasText: /^Grading…$/ });
+  const grading = gradingNow(page);
   await expect(grading.first()).toBeVisible();
   await expect(grading).toHaveCount(0, { timeout: 200_000 });
   return page.evaluate(() => {

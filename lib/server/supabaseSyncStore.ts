@@ -254,4 +254,21 @@ export class SupabaseSyncStore implements SyncStore {
   async health(): Promise<void> {
     check(await this.db.from("sync_spaces").select("space").limit(1));
   }
+
+  async createInvite(space: string, token: string, sealed: string): Promise<void> {
+    check(await this.db.from("sync_invites").insert({ token, space, sealed }));
+  }
+
+  async redeemInvite(token: string, maxAgeMs: number): Promise<string | null> {
+    // One update: only an unused, recent invite is marked, and only the request that marks it gets the sealed code.
+    const r = await this.db
+      .from("sync_invites")
+      .update({ used_at: new Date().toISOString() })
+      .eq("token", token)
+      .is("used_at", null)
+      .gt("created_at", new Date(Date.now() - maxAgeMs).toISOString())
+      .select("sealed")
+      .maybeSingle();
+    return check(r)?.sealed ?? null;
+  }
 }

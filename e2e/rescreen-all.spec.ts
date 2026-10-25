@@ -1,5 +1,5 @@
 /**
- * "Re-screen all saved parcels" with a lost worker (#154 test plan B5: the first run hung once): the run in flight is
+ * "Grade all saved parcels again" with a lost worker (#154 test plan B5: the first run hung once): the run in flight is
  * retried once on a fresh worker and the job finishes, with no error. A production build, the fixtures' HARs
  * replayed.
  */
@@ -25,12 +25,12 @@ test("a worker that dies mid-run: the parcel is run again on a fresh worker and 
   await ageKept(page, "v2");
   await visit(page, "/library");
   const line = page.locator(".lib-rescreen");
-  await expect(line).toContainText("2 parcels need a re-screen");
+  await expect(line).toContainText("2 parcels need grading again");
   // The worker is made and pinged as soon as the line shows: the first run never races a cold start.
   await expect.poll(() => !!screenWorker(page)).toBe(true);
 
-  await line.getByRole("button", { name: "Re-screen all saved parcels" }).click();
-  await expect(line).toContainText(/Re-screening 1 of 2: /);
+  await line.getByRole("button", { name: "Grade all saved parcels again" }).click();
+  await expect(line).toContainText(/Grading 1 of 2 again: /);
   // The worker crashes mid-run (as a phone kills one in the background): the page notices at once.
   const w = screenWorker(page);
   expect(w, "the screen worker").toBeDefined();
@@ -41,8 +41,8 @@ test("a worker that dies mid-run: the parcel is run again on a fresh worker and 
   );
 
   // The parcel is run again on a fresh worker; both finish, each kept as a new screen.
-  await expect(line).toContainText("Re-screened 2 parcels.", { timeout: 200_000 });
-  await expect(line).not.toContainText("couldn't be re-screened");
+  await expect(line).toContainText("Graded 2 parcels again.", { timeout: 200_000 });
+  await expect(line).not.toContainText("couldn't be graded again");
   expect(await keptScreenCount(page)).toBe(4);
   expect(errors).toEqual([]);
 });
