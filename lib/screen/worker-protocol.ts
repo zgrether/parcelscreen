@@ -23,7 +23,7 @@ import { evaluateAt, reroute, screen, setHouse, type ScreenOutput, type ScreenSe
 import type { OsmWay } from "./osmRoads";
 import type { OsmPowerSource } from "./power";
 import type { ParkingSource } from "./trailheadParking";
-import type { OverpassFallback } from "./places";
+import type { PlacesSource } from "./placeData";
 import type { Surfaces } from "./sites";
 import { AtlasCache } from "./sky";
 import type { SoilUnit } from "./soils";
@@ -139,11 +139,11 @@ export interface WorkerCoreOptions {
   /** Defaults to a browser-mode client (no custom headers). */
   http?: HttpClient;
   sleep?: (ms: number) => Promise<void>;
-  /** The browser entry passes the server route (see places.ts); tests leave it unset. */
-  overpass?: OverpassFallback;
-  /** The OSM roads query (VR3a), likewise through the server route in the browser. */
+  /** The baked places (step 14d): the browser entry reads its own origin's; tests leave it unset (endpoints.places). */
+  places?: PlacesSource;
+  /** The OSM roads query (VR3a), through the server route in the browser (see places.ts). */
   osmRoads?: (centre: LatLon, signal?: AbortSignal) => Promise<OsmWay[]>;
-  /** The trailheads' parking query (follow-up 54), likewise. */
+  /** The trailheads' parking (follow-up 54); defaults to the baked lots. */
   parking?: ParkingSource;
   /** OSM's power lines (step 14), likewise. */
   osmPower?: OsmPowerSource;
@@ -222,7 +222,7 @@ export class ScreenWorkerCore {
         demCache: this.demCache,
         atlas: this.atlas,
         ...(this.opts.sleep ? { sleep: this.opts.sleep } : {}),
-        ...(this.opts.overpass ? { overpass: this.opts.overpass } : {}),
+        ...(this.opts.places ? { places: this.opts.places } : {}),
         ...(this.opts.osmRoads ? { osmRoads: this.opts.osmRoads } : {}),
         ...(this.opts.parking ? { parking: this.opts.parking } : {}),
         ...(this.opts.osmPower ? { osmPower: this.opts.osmPower } : {}),

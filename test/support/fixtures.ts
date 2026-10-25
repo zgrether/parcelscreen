@@ -12,7 +12,7 @@
 import type { Feature, Polygon } from "geojson";
 import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { createReplayFetch, loadHar, type Har, type ReplayFetch } from "./replayFetch";
+import { createReplayFetch, loadHar, type Har, type ReplayFetch, type StaticFiles } from "./replayFetch";
 
 /** The fixtures recorded from the prototype: goldens, the prototype's HAR, `diff:prototype`. */
 export const PROTOTYPE_FIXTURE_SLUGS = [
@@ -101,6 +101,16 @@ function readJson<T>(path: string): T {
 
 const EMPTY: Har = { log: { entries: [] } };
 
+/**
+ * Where a grade reads the baked places in Node (`DEFAULT_ENDPOINTS.places`; a unit test holds the two equal). The
+ * replay answers it from the fixture's frozen copy, `<fixture>/places/`, so a monthly re-bake moves no fixture number
+ * (step 14d plan §1). Written out here: Playwright loads this file too, without the app's path aliases.
+ */
+export const PLACES_PREFIX = "https://parcelscreen.vercel.app/places/v1";
+const placesOf = (dir: string): StaticFiles => ({ prefix: PLACES_PREFIX, dir: join(dir, "places") });
+/** A fixture's frozen places, as its replay serves them (record:port answers them the same way). */
+export const fixturePlaces = (slug: FixtureSlug): StaticFiles => placesOf(join(FIXTURES_DIR, slug));
+
 export function loadFixture(slug: PrototypeSlug): PrototypeFixture;
 export function loadFixture(slug: FixtureSlug): Fixture;
 export function loadFixture(slug: FixtureSlug): Fixture | PrototypeFixture {
@@ -112,7 +122,7 @@ export function loadFixture(slug: FixtureSlug): Fixture | PrototypeFixture {
       slug,
       input: readJson<FixtureInput>(join(dir, "input.json")),
       replayHar: port,
-      replayFetch: () => createReplayFetch(port),
+      replayFetch: () => createReplayFetch(port, placesOf(dir)),
     };
   }
   const har = loadHar(join(dir, "network.har"));
@@ -123,6 +133,6 @@ export function loadFixture(slug: FixtureSlug): Fixture | PrototypeFixture {
     goldens: readJson<FixtureGoldens>(join(dir, "golden.json")),
     har,
     replayHar,
-    replayFetch: () => createReplayFetch(replayHar),
+    replayFetch: () => createReplayFetch(replayHar, placesOf(dir)),
   };
 }

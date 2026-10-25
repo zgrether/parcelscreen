@@ -17,6 +17,7 @@ import { horizonProfile } from "../screen/sun";
 import { viewOf } from "../screen/view";
 import { LONG_TRAILS } from "../screen/data/longTrails";
 import { officialTrailheads } from "../screen/trailheads";
+import type { PlacesSource } from "../screen/placeData";
 import type { Endpoints } from "../screen/types";
 import { openPct } from "../report/view";
 import type { LatLon } from "../geo/types";
@@ -58,6 +59,8 @@ export interface ProfileDeps {
   today: string;
   /** The drive tables; OSRM's by default. */
   matrix?: Matrix;
+  /** The baked places' official trailheads; read over HTTP from endpoints.places by default. */
+  places?: PlacesSource;
 }
 
 /** Smaller runs for the tests: fewer points, a coarser DEM and land cover. */
@@ -154,7 +157,13 @@ export async function profileArea(
   // each cell of the area's box, as a screen searches around its parcel.
   const official = pts.length
     ? await Promise.all(
-        gridCentres(box).map((c) => officialTrailheads(c, { http: deps.http, endpoints: deps.endpoints })),
+        gridCentres(box).map((c) =>
+          officialTrailheads(c, {
+            http: deps.http,
+            endpoints: deps.endpoints,
+            ...(deps.places ? { places: deps.places } : {}),
+          }),
+        ),
       )
     : [];
   const trailheads = distinct([...places.trailheads, ...official.flat().map((t) => t.ll)]);

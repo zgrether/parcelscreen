@@ -12,14 +12,15 @@ import { driveTimes, drive, trailCandidates } from "./drive";
 import { floodStep } from "./flood";
 import { nearStep } from "./near";
 import { padusStep } from "./padus";
-import { findPlaces, OverpassMirrors, overpassViaRoute, PlacesError } from "./places";
+import { OverpassMirrors, placesOf, PlacesError, type PlacesDeps } from "./places";
+import type { PlacesSource } from "./placeData";
 import { nearestRoad, roadToSite, type RoadFeature } from "./roads";
 import { siteFlags } from "./sites";
 import { AtlasCache, computeSky, skyFlags } from "./sky";
 import { soilFlags } from "./soils";
 import { chooseFocus, computeSun, sunFlags } from "./sun";
 import { terrainFlags } from "./terrain";
-import { parkingFor, parkingFromMirrors } from "./trailheadParking";
+import { parkingFor, parkingFromPlaces } from "./trailheadParking";
 import type { Dem } from "./types";
 import { M2FT, type LatLon } from "./util";
 
@@ -50,7 +51,7 @@ describe.each(PROTOTYPE_FIXTURE_SLUGS)("near, roads and drive times on %s vs the
     // As the engine does (follow-up 54): from where the driveway meets the road, the nearest trailheads with them.
     const from = golden.driveFrom!.ll;
     const candidates = trailCandidates(n.near!.trailheads, from);
-    const lots = await parkingFromMirrors(t.deps)(candidates.map((c) => c.ll));
+    const lots = await parkingFromPlaces(placesOf(t.deps))(candidates.map((c) => c.ll));
     const d = await driveTimes(
       from,
       n.near,
@@ -118,18 +119,18 @@ describe("nearestRoad vs the prototype's function (exact)", () => {
 });
 
 describe("places and roads run at the same time", () => {
-  it("starts all three TIGER layers together, while Photon is still in flight", async () => {
+  it("starts all three TIGER layers together, while the places are still being read", async () => {
     const t = await throughSoils("ferney-creek-52-47A");
     const inFlight: Record<string, number> = {},
       peak: Record<string, number> = {};
-    let tigerWhilePhoton = false;
+    let tigerWhilePlaces = false;
     const kind = (u: string) =>
-      u.includes("tigerweb") ? "tiger" : u.includes("photon") ? "photon" : "other";
+      u.includes("tigerweb") ? "tiger" : u.includes("/places/") ? "places" : "other";
     const slow: typeof fetch = async (input, init) => {
       const k = kind(String(input));
       inFlight[k] = (inFlight[k] ?? 0) + 1;
       peak[k] = Math.max(peak[k] ?? 0, inFlight[k]!);
-      if (k === "tiger" && (inFlight.photon ?? 0) > 0) tigerWhilePhoton = true;
+      if (k === "tiger" && (inFlight.places ?? 0) > 0) tigerWhilePlaces = true;
       await new Promise((r) => setTimeout(r, 5));
       try {
         return await t.fetch(input as string, init);
@@ -140,59 +141,53 @@ describe("places and roads run at the same time", () => {
     const http = createHttpClient({ env: "node", fetchImpl: slow, clock: instantClock() });
     await nearStep(t.centre, null, t.dWide, CFG.roadMaxGradePct, { ...t.deps, http });
     expect(peak.tiger).toBe(3);
-    expect(tigerWhilePhoton).toBe(true);
+    expect(tigerWhilePlaces).toBe(true);
   });
 });
 
-// Photon and Overpass both answered in neither fixture's way except Photon-first, so the fallbacks are synthetic.
-describe("places fallbacks (synthetic)", () => {
-  const centre: LatLon = [36.9, -80.5];
-  // Since §9.69 hospitals never come from Photon or Overpass: a supermarket stands for what they answer.
-  const grocer = { type: "node", lat: 36.95, lon: -80.45, tags: { shop: "supermarket", name: "Food Lion" } };
+// The Overpass mirrors serve the OSM roads and power lines (step 14d: no longer places); the fallbacks are synthetic.
+describe("the Overpass mirrors (synthetic)", () => {
   const route = (handler: (u: string) => Response | Promise<Response>): HttpClient => ({
     fetch: async (u) => handler(u),
   });
+  const deps = (http: HttpClient, sleep?: (ms: number) => Promise<void>): PlacesDeps => ({
+    http,
+    endpoints: DEFAULT_ENDPOINTS,
+    ...(sleep ? { sleep } : {}),
+  });
+  const elements = () => new Response(JSON.stringify({ elements: [] }));
 
-  it("falls back to Overpass, notes it, and moves the mirror that answered to the front", async () => {
+  it("moves the mirror that answered to the front", async () => {
     const asked: string[] = [];
     const http = route((u) => {
       asked.push(u.split("/")[2]!);
-      if (u.includes("photon")) return new Response("down", { status: 503 });
       if (u.includes("overpass-api.de")) return new Response("busy", { status: 504 });
-      return new Response(JSON.stringify({ elements: [grocer] }));
+      return elements();
     });
     const mirrors = new OverpassMirrors();
-    const r = await findPlaces(centre, { http, endpoints: DEFAULT_ENDPOINTS }, mirrors);
-    expect(r.nearNote).toBe("Places came from Overpass (Photon was unavailable).");
-    expect(r.near.grocers[0]!.name).toBe("Food Lion");
-    // After Photon, the main server (504: not a wait status) → openstreetmap.fr (answers, moves to front).
-    expect(asked.filter((h) => !h.includes("photon"))).toEqual([
-      "overpass-api.de",
-      "overpass.openstreetmap.fr",
-      "overpass.openstreetmap.fr",
-    ]);
+    await mirrors.query("[out:json];", deps(http));
+    await mirrors.query("[out:json];", deps(http));
+    // The main server (504: not a wait status) → openstreetmap.fr (answers, moves to front) → openstreetmap.fr.
+    expect(asked).toEqual(["overpass-api.de", "overpass.openstreetmap.fr", "overpass.openstreetmap.fr"]);
   });
 
   // Step 13c: only the main (first) mirror is waited on, once.
   describe("the main mirror's Retry-After", () => {
-    /** Photon empty (so Overpass runs); each Overpass request answered by `overpass(host, n)`. */
+    /** Each Overpass request answered by `overpass(host, n)`. */
     async function run(overpass: (host: string, n: number) => Response) {
       const asked: string[] = [],
         waits: number[] = [];
       const http = route((u) => {
-        if (u.includes("photon")) return new Response(JSON.stringify({ features: [] }));
         const host = u.split("/")[2]!;
         asked.push(host);
         return overpass(host, asked.length);
       });
-      const r = await findPlaces(
-        centre,
-        { http, endpoints: DEFAULT_ENDPOINTS, sleep: async (ms) => void waits.push(ms) },
-        new OverpassMirrors(),
+      await new OverpassMirrors().query(
+        "[out:json];",
+        deps(http, async (ms) => void waits.push(ms)),
       );
-      return { asked, waits, r };
+      return { asked, waits };
     }
-    const elements = () => new Response(JSON.stringify({ elements: [] }));
 
     it("waits the Retry-After from the main server, then retries it once", async () => {
       const { asked, waits } = await run((_, n) =>
@@ -218,7 +213,7 @@ describe("places fallbacks (synthetic)", () => {
     });
 
     it("retries the main server only once, and never waits on the other mirrors", async () => {
-      const { asked, waits, r } = await run((h) =>
+      const { asked, waits } = await run((h) =>
         h === "overpass.kumi.systems"
           ? elements()
           : new Response("", { status: 429, headers: { "Retry-After": "2" } }),
@@ -230,78 +225,59 @@ describe("places fallbacks (synthetic)", () => {
         "overpass.openstreetmap.fr",
         "overpass.kumi.systems",
       ]);
-      expect(r.nearNote).toBeDefined();
     });
   });
 
   it("asks the HTTP client not to retry Overpass requests itself", async () => {
     const retries: (number | undefined)[] = [];
     const http: HttpClient = {
-      fetch: async (u, opts) => {
-        if (u.includes("photon")) return new Response(JSON.stringify({ features: [] }));
+      fetch: async (_u, opts) => {
         retries.push(opts?.retries);
-        return new Response(JSON.stringify({ elements: [] }));
+        return elements();
       },
     };
-    await findPlaces(centre, { http, endpoints: DEFAULT_ENDPOINTS }, new OverpassMirrors());
-    expect(retries).toEqual([0, 0]); // groceries and trailheads; hospitals aren't OSM's (§9.69)
+    await new OverpassMirrors().query("[out:json];", deps(http));
+    expect(retries).toEqual([0]);
   });
 
-  it("when both fail: one error naming both, and no 'test the query' link (A2c: no clean OSM equivalent)", async () => {
+  it("when every mirror fails: one error naming each", async () => {
+    const http = route(() => new Response("down", { status: 502 }));
+    await expect(new OverpassMirrors().query("[out:json];", deps(http))).rejects.toThrow(
+      "Overpass unreachable (overpass-api.de 502; overpass.openstreetmap.fr 502; overpass.kumi.systems 502)",
+    );
+  });
+});
+
+describe("the baked places failing (step 14d)", () => {
+  const centre: LatLon = [36.9, -80.5];
+  const route = (handler: (u: string) => Response | Promise<Response>): HttpClient => ({
+    fetch: async (u) => handler(u),
+  });
+  const down: PlacesSource = async (folder) => Promise.reject(new Error(`places ${folder}/36_-81: 503`));
+
+  it("is one PlacesError, with no 'test the query' link (A2c)", async () => {
     const http = route((u) =>
       u.includes("tigerweb")
         ? new Response(JSON.stringify({ features: [] }))
-        : new Response("down", { status: 502 }),
+        : new Response("", { status: 503 }),
     );
-    const out = await nearStep(centre, null, null, 10, { http, endpoints: DEFAULT_ENDPOINTS });
+    const out = await nearStep(centre, null, null, 10, { http, endpoints: DEFAULT_ENDPOINTS, places: down });
     expect(out.placesError).toBeInstanceOf(PlacesError);
-    expect(out.placesError!.message).toBe(
-      "Photon: Photon 502; Overpass: Overpass unreachable (overpass-api.de 502; overpass.openstreetmap.fr 502; overpass.kumi.systems 502)",
-    );
+    expect(out.placesError!.message).toBe("Places: places osm/36_-81: 503");
     expect(Object.keys(out.placesError!)).not.toContain("link");
     expect(out.near).toBeUndefined();
   });
 
-  // Step 13: in the browser the Overpass fallback goes through the server route instead of the mirrors.
-  it("uses the injected Overpass fallback instead of the mirrors, with the same note and error text", async () => {
-    const asked: string[] = [];
-    const http = route((u) => {
-      asked.push(u);
-      return new Response("down", { status: 503 });
-    });
-    const calls: LatLon[] = [];
-    const ok = await findPlaces(
-      centre,
-      {
-        http,
-        endpoints: DEFAULT_ENDPOINTS,
-        overpass: async (c) => (calls.push(c), [grocer]),
-      },
-      new OverpassMirrors(),
+  it("the official cells alone failing fails the places half too", async () => {
+    const http = route((u) =>
+      u.includes("tigerweb")
+        ? new Response(JSON.stringify({ features: [] }))
+        : new Response("", { status: 503 }),
     );
-    expect(calls).toEqual([centre]);
-    expect(asked.every((u) => u.includes("photon"))).toBe(true);
-    expect(ok.nearNote).toBe("Places came from Overpass (Photon was unavailable).");
-    expect(ok.near.grocers[0]!.name).toBe("Food Lion");
-
-    const failed = await nearStep(centre, null, null, 10, {
-      http: route((u) =>
-        u.includes("tigerweb")
-          ? new Response(JSON.stringify({ features: [] }))
-          : new Response("", { status: 502 }),
-      ),
-      endpoints: DEFAULT_ENDPOINTS,
-      overpass: overpassViaRoute(
-        "https://parcelscreen.test/api/places/overpass",
-        route((u) => {
-          expect(u).toBe("https://parcelscreen.test/api/places/overpass?lat=36.9&lon=-80.5");
-          return Response.json({ error: "Overpass unreachable (overpass-api.de 406)" }, { status: 502 });
-        }),
-      ),
-    });
-    expect(failed.placesError!.message).toBe(
-      "Photon: Photon 502; Overpass: Overpass unreachable (overpass-api.de 406)",
-    );
+    const places: PlacesSource = async (folder, cells, signal) =>
+      folder === "official" ? down(folder, cells, signal) : [];
+    const out = await nearStep(centre, null, null, 10, { http, endpoints: DEFAULT_ENDPOINTS, places });
+    expect(out.placesError!.message).toBe("Places: places official/36_-81: 503");
   });
 
   // Deviation from the prototype (step 9 review): a places outage no longer takes the roads down with it.
@@ -341,6 +317,7 @@ describe("places fallbacks (synthetic)", () => {
       http,
       endpoints: DEFAULT_ENDPOINTS,
       sleep: async () => {},
+      places: down,
     });
     expect(out.placesError).toBeInstanceOf(PlacesError); // the step still fails…
     expect(out.near).toBeUndefined();

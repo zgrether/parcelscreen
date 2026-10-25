@@ -24,7 +24,15 @@ import {
   type AreaFile,
   type AreaIndex,
 } from "@/lib/areas/types";
-import { AREA_HAR, MUD_HAR, profileDeps, recordingFetch, RECORDED } from "../support/areaProfile";
+import {
+  AREA_HAR,
+  AREA_PLACES,
+  MUD_HAR,
+  profileDeps,
+  recordingFetch,
+  RECORDED,
+} from "../support/areaProfile";
+import { placesFromDir } from "@/lib/places/disk";
 import { loadHar, type HarEntry } from "../support/replayFetch";
 import { scrubHar } from "../support/scrubHar";
 import { ersToConfirm } from "@/lib/areas/data";
@@ -124,7 +132,7 @@ describe.runIf(import.meta.env.MODE === "areas-record")("record Grayson Highland
     async () => {
       const added: HarEntry[] = [];
       const fetchImpl = recordingFetch(loadHar(MUD_HAR), live(), added);
-      const deps = await profileDeps(fetchImpl, realClock, RECORDED.today);
+      const deps = await profileDeps(fetchImpl, realClock, RECORDED.today, placesFromDir(AREA_PLACES));
       const def = AREAS.find((a) => a.id === RECORDED.id)!;
       const { file } = await profileArea(def, await outlineOf(def.id), deps, RECORDED.scale);
       AreaFileSchema.parse(file);

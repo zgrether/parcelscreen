@@ -12,6 +12,8 @@ import { loadClimate } from "@/lib/screen/climate";
 import { AtlasCache } from "@/lib/screen/sky";
 import { SERVER_USER_AGENT } from "@/lib/server/http";
 import { loadAirports, loadErOverrides, loadErList } from "@/lib/areas/data";
+import { BAKE_DIR, placesFromDir } from "@/lib/places/disk";
+import type { PlacesSource } from "@/lib/screen/placeData";
 import type { ProfileDeps, ProfileScale } from "@/lib/areas/profile";
 import { createReplayFetch, ReplayMissError, type Har, type HarEntry } from "./replayFetch";
 
@@ -24,11 +26,14 @@ export const RECORDED = {
 export const AREA_HAR = resolve(process.cwd(), "test", "fixtures", "areas", RECORDED.id, "network.har");
 /** Mud Creek's recording, replayed first: the requests the two share (the sky atlas's tile) aren't recorded twice. */
 export const MUD_HAR = join(process.cwd(), "test", "fixtures", "grayson-mud-creek-6273", "network-port.har");
+/** The recorded run's frozen copy of the baked places (`pnpm places:freeze`), so a re-bake moves nothing in it. */
+export const AREA_PLACES = resolve(process.cwd(), "test", "fixtures", "areas", RECORDED.id, "places");
 
 export async function profileDeps(
   fetchImpl: typeof fetch,
   clock: Clock,
   today: string,
+  places: PlacesSource = placesFromDir(BAKE_DIR),
 ): Promise<ProfileDeps> {
   return {
     http: createHttpClient({ env: "node", fetchImpl, clock, userAgent: SERVER_USER_AGENT }),
@@ -40,6 +45,7 @@ export async function profileDeps(
     erOverrides: await loadErOverrides(),
     airports: await loadAirports(),
     today,
+    places,
   };
 }
 

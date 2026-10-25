@@ -8,7 +8,8 @@
  * If the same request was recorded more than once (e.g. a 3DEP retry after a 5xx), responses are replayed
  * in recorded order and the last one repeats.
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
 export interface HarHeader {
   name: string;
@@ -115,7 +116,16 @@ function bodyText(body: BodyInit | null | undefined): string | null {
   throw new Error(`replayFetch: unsupported request body type ${Object.prototype.toString.call(body)}`);
 }
 
-export function createReplayFetch(har: Har): ReplayFetch {
+/**
+ * Files served as a static host would: a request under `prefix` answered from `dir` (step 14d: a fixture's frozen copy
+ * of the baked places), 404 when the file isn't there.
+ */
+export interface StaticFiles {
+  prefix: string;
+  dir: string;
+}
+
+export function createReplayFetch(har: Har, files?: StaticFiles): ReplayFetch {
   const queues = new Map<string, HarEntry[]>();
   for (const e of har.log.entries) {
     if (e.response.status === 0) continue; // aborted/blocked during recording; never a real answer
@@ -146,6 +156,12 @@ export function createReplayFetch(har: Har): ReplayFetch {
     if (init?.body instanceof URLSearchParams) contentType ??= "application/x-www-form-urlencoded";
     const key = requestKey(method, url, body, contentType);
     requests.push(key);
+    if (files && url.startsWith(files.prefix + "/")) {
+      const path = join(files.dir, ...url.slice(files.prefix.length + 1).split("/"));
+      return existsSync(path)
+        ? new Response(readFileSync(path), { status: 200, headers: { "content-type": "application/json" } })
+        : new Response("not found", { status: 404 });
+    }
     const q = queues.get(key);
     if (!q) throw new ReplayMissError(key);
     const n = served.get(key) ?? 0;

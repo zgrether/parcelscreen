@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CancelledError, type HttpClient } from "../http";
 import { DEFAULT_ENDPOINTS } from "./config";
+import { cellsWithin, type Place, type PlaceSource, type PlacesSource } from "./placeData";
 import {
   mergeTrailheads,
   normalizeTrailheadName,
@@ -12,6 +13,12 @@ import {
 } from "./trailheads";
 
 const ELK: [number, number] = [36.6389, -81.5838];
+/** A client that must not be asked: the places come from the source given. */
+const noHttp: HttpClient = {
+  fetch: async () => {
+    throw new Error("no request expected");
+  },
+};
 /** A point `m` metres east of ELK (1° of longitude here is about 89.4 km). */
 const east = (m: number): [number, number] => [ELK[0], ELK[1] + m / 89_400];
 const p = (name: string, ll: [number, number], source: TrailheadPoint["source"]): TrailheadPoint => ({
@@ -122,93 +129,81 @@ describe("Tennessee's TREC trails (step 2, owner 2026-10-17): merged by distance
   });
 });
 
-describe("the official sources", () => {
-  /** Answers each layer's query with a point named for its host, and keeps what was asked. */
-  const layers = (fail: string | null = null) => {
-    const asked: { host: string; body: URLSearchParams }[] = [];
-    const http: HttpClient = {
-      fetch: async (url, o = {}) => {
-        const host = new URL(url).host;
-        const body = new URLSearchParams(String(o.body));
-        asked.push({ host, body });
-        if (fail && host.includes(fail)) return new Response("down", { status: 503 });
-        const field = body.get("outFields")!;
-        // TREC's trails (step 2): no geometry, the trailheads' coordinates as fields.
-        if (field.includes("Trail_Name"))
-          return new Response(
-            JSON.stringify({
-              features: [
-                {
-                  attributes: {
-                    Trail_Name: "TREC TRAIL",
-                    PrimaryTrailhead_Latitude: ELK[0] + 0.02,
-                    PrimaryTrailhead_Longitude: ELK[1],
-                    SecondaryTrailhead_Latitude: 0,
-                    SecondaryTrailhead_Longitude: 0,
-                  },
-                },
-              ],
-            }),
-          );
-        return new Response(
-          JSON.stringify({
-            features: [{ attributes: { [field]: host.toUpperCase() }, geometry: { x: ELK[1], y: ELK[0] } }],
-          }),
-        );
-      },
+describe("the official sources, baked (step 14d)", () => {
+  const place = (id: string, src: PlaceSource, ll: [number, number], trec?: true): Place => ({
+    kind: "trailhead",
+    id,
+    name: id,
+    ll,
+    src,
+    ...(trec ? { trec } : {}),
+  });
+  /** The official cells around Elk Garden, and which cells were asked for. */
+  const baked = () => {
+    const asked: { folder: string; cells: readonly string[] }[] = [];
+    const places: PlacesSource = async (folder, cells) => {
+      asked.push({ folder, cells });
+      return [
+        place("usfs:1", "usfs", ELK),
+        place("va-parks:2", "va-parks", east(500)),
+        place("nc-parks:3", "nc-parks", east(35_000)),
+        place("tn-parks:4", "tn-parks", east(37_000)), // past 36 km
+        place("tn-trec:5:p", "tn-trec", east(900), true),
+        { kind: "grocer", id: "osm:node/9", name: "Food Lion", ll: ELK, src: "osm", big: true },
+      ];
     };
-    return { http, asked };
+    return { places, asked };
   };
 
-  it("asks USFS for its trailheads and each state for its parks, within 36 km (22 mi, the Trails row's last cutoff), for the name field only", async () => {
-    const q = layers();
-    const pts = await officialTrailheads(ELK, { http: q.http, endpoints: DEFAULT_ENDPOINTS });
+  it("reads the official cells within 36 km (22 mi, the Trails row's last cutoff), each source as its rank", async () => {
+    const b = baked();
+    const pts = await officialTrailheads(ELK, {
+      http: noHttp,
+      endpoints: DEFAULT_ENDPOINTS,
+      places: b.places,
+    });
+    expect(b.asked).toEqual([{ folder: "official", cells: cellsWithin(ELK, 36) }]);
+    expect(pts.map((x) => [x.name, x.source, x.trec ?? false])).toEqual([
+      ["usfs:1", "usfs", false],
+      ["va-parks:2", "state", false],
+      ["nc-parks:3", "state", false],
+      ["tn-trec:5:p", "state", true],
+    ]);
+  });
+
+  it("without a source given, reads endpoints.places through the client", async () => {
+    const seen: string[] = [];
+    const http: HttpClient = {
+      fetch: async (url) => {
+        seen.push(url);
+        return new Response("", { status: 404 });
+      },
+    };
+    expect(await officialTrailheads(ELK, { http, endpoints: DEFAULT_ENDPOINTS })).toEqual([]);
+    expect(seen[0]).toBe(`${DEFAULT_ENDPOINTS.places}/official/${cellsWithin(ELK, 36)[0]}.json`);
+  });
+
+  it("the cells failing rejects (the near step loses its places half); a cancel still cancels", async () => {
+    const down: PlacesSource = async () => Promise.reject(new Error("places official/36_-82: 503"));
+    await expect(
+      officialTrailheads(ELK, { http: noHttp, endpoints: DEFAULT_ENDPOINTS, places: down }),
+    ).rejects.toThrow(/503/);
+    const cancel: PlacesSource = async () => Promise.reject(new CancelledError());
+    await expect(
+      officialTrailheads(ELK, { http: noHttp, endpoints: DEFAULT_ENDPOINTS, places: cancel }),
+    ).rejects.toBeInstanceOf(CancelledError);
+  });
+
+  it("an older grade's unanswered list still reads in the report's words (follow-up 53)", () => {
     expect(
-      q.asked.map((a) => [a.host, a.body.get("outFields"), a.body.get("where"), a.body.get("distance")]),
-    ).toEqual([
-      ["apps.fs.usda.gov", "site_name", "site_subtype='TRAILHEAD'", "36000"],
-      ["vginmaps.vdem.virginia.gov", "LandmkName", "PlaceType='State Park Points'", "36000"],
-      ["services6.arcgis.com", "FullName", "1=1", "36000"],
-      ["services5.arcgis.com", "PARK_NAME", "1=1", "36000"], // never the layer's staff contact fields
-      // TREC (step 2): an envelope, the names and trailhead coordinates only, never the lines.
       [
-        "services1.arcgis.com",
-        "OBJECTID,Trail_Name,PrimaryTrailhead_Latitude,PrimaryTrailhead_Longitude,SecondaryTrailhead_Latitude,SecondaryTrailhead_Longitude",
-        null,
-        null,
-      ],
-    ]);
-    const trec = q.asked.at(-1)!.body;
-    expect([trec.get("geometryType"), trec.get("returnGeometry")]).toEqual(["esriGeometryEnvelope", "false"]);
-    expect(pts.map((x) => x.source)).toEqual(["usfs", "state", "state", "state", "state"]);
-    // The secondary trailhead at 0,0 is dropped; the primary is a TREC point named for its trail.
-    expect(pts.filter((x) => x.trec).map((x) => x.name)).toEqual(["Trec Trail"]);
-    expect(pts[0]!.name).toBe("Apps.Fs.Usda.Gov"); // shouted names read in title case
-  });
-
-  it("a source that fails is left out, and named as unanswered (v4); the others stand", async () => {
-    const unanswered: string[] = [];
-    const pts = await officialTrailheads(
-      ELK,
-      { http: layers("fs.usda").http, endpoints: DEFAULT_ENDPOINTS },
-      unanswered,
-    );
-    expect(pts.map((x) => x.source)).toEqual(["state", "state", "state", "state"]);
-    expect(unanswered).toEqual(["USFS recreation sites"]);
-    const none: string[] = [];
-    await officialTrailheads(ELK, { http: layers("arcgis.com").http, endpoints: DEFAULT_ENDPOINTS }, none);
-    expect(none).toEqual([
-      "state parks (services6.arcgis.com)",
-      "state parks (services5.arcgis.com)",
-      "state trails (Tennessee_Statewide_Trails_Lines_Public)",
-    ]);
-  });
-
-  it("each unanswered list has the report's name for it (follow-up 53); anything else isn't a trailhead list", async () => {
-    const unanswered: string[] = [];
-    const fails: HttpClient = { fetch: async () => new Response("down", { status: 503 }) };
-    await officialTrailheads(ELK, { http: fails, endpoints: DEFAULT_ENDPOINTS }, unanswered);
-    expect(unanswered.map(trailheadSourceLabel)).toEqual([
+        "USFS recreation sites",
+        "state parks (vginmaps.vdem.virginia.gov)",
+        "state parks (services6.arcgis.com)",
+        "state parks (services5.arcgis.com)",
+        "state trails (Tennessee_Statewide_Trails_Lines_Public)",
+      ].map(trailheadSourceLabel),
+    ).toEqual([
       "USFS recreation sites",
       "VA state parks (VGIN)",
       "NC state parks (DPR)",
@@ -218,42 +213,5 @@ describe("the official sources", () => {
     expect(trailheadSourceLabel("state parks (parks.example.gov)")).toBe("state parks (parks.example.gov)");
     expect(trailheadSourceLabel("OpenStreetMap roads")).toBeNull();
     expect(trailheadSourceLabel("PAD-US (open land beyond a mile)")).toBeNull();
-  });
-
-  it("asks a state's parks only when the state is within reach (#122 review): out of reach, its failure can't flag", async () => {
-    // Floyd County, VA (Ferney Creek): no NC or TN land within 36 km.
-    const FLOYD: [number, number] = [36.8874, -80.4546];
-    const q = layers("services5"); // TN would fail, if it were asked
-    const unanswered: string[] = [];
-    await officialTrailheads(FLOYD, { http: q.http, endpoints: DEFAULT_ENDPOINTS }, unanswered);
-    expect(q.asked.map((a) => a.host)).toEqual(["apps.fs.usda.gov", "vginmaps.vdem.virginia.gov"]);
-    expect(unanswered).toEqual([]);
-
-    // Raleigh, NC: only NC's, and USFS's, which is asked everywhere.
-    const r = layers();
-    await officialTrailheads([35.78, -78.64], { http: r.http, endpoints: DEFAULT_ENDPOINTS });
-    expect(r.asked.map((a) => a.host)).toEqual(["apps.fs.usda.gov", "services6.arcgis.com"]);
-  });
-
-  it("near a state line asks every state in reach: Grayson's Mud Creek, VA, NC and TN; a failure there is named", async () => {
-    const MUD_CREEK: [number, number] = [36.5854, -81.562];
-    const q = layers("services5");
-    const unanswered: string[] = [];
-    await officialTrailheads(MUD_CREEK, { http: q.http, endpoints: DEFAULT_ENDPOINTS }, unanswered);
-    expect(q.asked.map((a) => a.host)).toEqual([
-      "apps.fs.usda.gov",
-      "vginmaps.vdem.virginia.gov",
-      "services6.arcgis.com",
-      "services5.arcgis.com",
-      "services1.arcgis.com",
-    ]);
-    expect(unanswered).toEqual(["state parks (services5.arcgis.com)"]);
-  });
-
-  it("a cancel still cancels", async () => {
-    const http: HttpClient = { fetch: async () => Promise.reject(new CancelledError()) };
-    await expect(officialTrailheads(ELK, { http, endpoints: DEFAULT_ENDPOINTS })).rejects.toBeInstanceOf(
-      CancelledError,
-    );
   });
 });

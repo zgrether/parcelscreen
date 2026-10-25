@@ -77,6 +77,7 @@ export const EndpointsSchema = z.strictObject({
   nhd: z.string(),
   nhdWaterbody: z.string(),
   counties: z.string(),
+  places: z.string(),
 });
 export type Endpoints = z.infer<typeof EndpointsSchema>;
 

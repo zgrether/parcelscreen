@@ -13,7 +13,7 @@ import type { Curve } from "./util";
 
 /** Service endpoints. `_v` bumps when a default moves, so stale stored copies are replaced. */
 export const DEFAULT_ENDPOINTS: Endpoints = {
-  _v: 15,
+  _v: 16,
   dem: "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
   terrarium: "https://s3.amazonaws.com/elevation-tiles-prod/terrarium",
   sda: "https://SDMDataAccess.sc.egov.usda.gov/Tabular/post.rest",
@@ -60,6 +60,10 @@ export const DEFAULT_ENDPOINTS: Endpoints = {
   // Owner, after #312 (_v 15): NHD's waterbodies, so a pond on the parcel counts as water.
   nhdWaterbody: "https://hydro.nationalmap.gov/arcgis/rest/services/nhd/MapServer/12",
   counties: "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/1",
+  // Step 14d (_v 16): the baked places a grade reads instead of Photon, Overpass and the official trailhead services
+  // (lib/screen/placeData.ts). The worker reads its own origin's copy; this is where Node reads them. The official
+  // services above stay: the bake reads them (lib/places/bake.ts).
+  places: "https://parcelscreen.vercel.app/places/v1",
 };
 
 export const DEFAULT_USER_CONFIG: UserConfig = {

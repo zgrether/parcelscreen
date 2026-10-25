@@ -47,14 +47,19 @@ export const { dynamic, dynamicParams, revalidate, generateStaticParams, GET } =
   // Left out: notes in public/ (fonts/README.md) aren't app assets; and Turbopack's Web Worker entry, which
   // reads its bootstrap config from its own URL's #params= hash. A worker started from a cached response gets
   // the cache's URL, without the hash, and fails ("Missing worker bootstrap config"), so the screen's worker
-  // must load that one file from the network. The chunks it then imports are precached as usual.
+  // must load that one file from the network. The chunks it then imports are precached as usual. And the baked places
+  // (public/places/, step 14d): about 2 MB of 1° cells the screen's worker reads for one parcel's few, over the network
+  // like the rest of a grade; keeping them offline is step 14e's (a saved parcel's cells).
   manifestTransforms: [
     async (entries) => {
       const snapshot = entries.filter((e) => isHospitalSnapshot(e.url));
       return {
         manifest: entries.filter(
           (e) =>
-            !e.url.endsWith(".md") && !/\/turbopack-worker-[^/]*\.js$/.test(e.url) && !snapshot.includes(e),
+            !e.url.endsWith(".md") &&
+            !/\/turbopack-worker-[^/]*\.js$/.test(e.url) &&
+            !/^(?:\/|public\/)?places\//.test(e.url) &&
+            !snapshot.includes(e),
         ),
         // Said at build time if the filter ever stops finding it (a new chunk layout), rather than silently
         // precaching it again.

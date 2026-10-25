@@ -1,4 +1,9 @@
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { DEFAULT_ENDPOINTS } from "@/lib/screen/config";
+import { PLACES_PREFIX } from "./fixtures";
 import {
   createReplayFetch,
   normalizeNumbers,
@@ -137,5 +142,20 @@ describe("replayFetch", () => {
     await expect(fetch("https://example.test/anything")).rejects.toThrow(
       /Network access in tests is not allowed/,
     );
+  });
+
+  it("answers a static prefix from its folder, 404 when the file isn't there (step 14d's frozen places)", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "replay-"));
+    mkdirSync(join(dir, "osm"));
+    writeFileSync(join(dir, "osm", "36_-82.json"), '{"cell":"36_-82"}');
+    const f = createReplayFetch({ log: { entries: [] } }, { prefix: "https://app.test/places/v1", dir });
+    const hit = await f("https://app.test/places/v1/osm/36_-82.json");
+    expect([hit.status, await hit.json()]).toEqual([200, { cell: "36_-82" }]);
+    expect((await f("https://app.test/places/v1/osm/37_-82.json")).status).toBe(404);
+    await expect(f("https://app.test/other")).rejects.toBeInstanceOf(ReplayMissError);
+  });
+
+  it("the fixtures' places prefix is where a grade reads them in Node", () => {
+    expect(PLACES_PREFIX).toBe(DEFAULT_ENDPOINTS.places);
   });
 });

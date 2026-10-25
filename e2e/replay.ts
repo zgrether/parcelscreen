@@ -5,20 +5,24 @@
  * routeFromHAR matches them in recorded order, and the port doesn't send ArcGIS and SDA parameters in the
  * prototype's order.
  *
- * - localhost passes through (the app, its chunks, its own routes), except the app's Overpass route for OSM roads
- *   (VR3a) and trailhead parking (follow-up 54), which would ask Overpass from the server: it's answered from the
- *   HAR's recorded Overpass query, as the route would;
+ * - localhost passes through (the app, its chunks, its own routes), except:
+ *   - the app's Overpass route for OSM roads (VR3a), which would ask Overpass from the server: it's answered from the
+ *     HAR's recorded Overpass query, as the route would;
+ *   - the baked places (step 14d), answered from the fixtures' frozen copies (`<fixture>/places/`), as the Node replay
+ *     answers them, so the e2e grades what expected.json holds whatever the deployed bake;
  * - a request found in the HAR is answered from it, repeats in recorded order (the last one repeats);
  * - a request to a host the HAR has data from, but not found in it, is a miss: aborted and listed, and the
  *   test fails on it, as ReplayMissError does in Node;
  * - anything else (basemap, ortho and terrain tiles) is aborted and listed, not failed; a parcel-line tile is
  *   answered empty instead (an abort reads as the county service being down) and listed the same way.
  */
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { test, type BrowserContext, type Route } from "@playwright/test";
 import { requestKey, type HarEntry } from "../test/support/replayFetch";
 import { DEFAULT_ENDPOINTS } from "../lib/screen/config";
 import { osmRoadsQuery } from "../lib/screen/osmRoads";
-import { parkingQuery } from "../lib/screen/trailheadParking";
+import { PLACES_PATH } from "../lib/screen/placeData";
 import { loadFixture, type FixtureSlug } from "../test/support/fixtures";
 
 /**
@@ -77,9 +81,9 @@ export async function replayHar(
   delayFirst?: { match: RegExp; ms: number },
 ): Promise<ReplayLog> {
   let delayed = false;
-  const entries = (typeof slugs === "string" ? [slugs] : slugs).flatMap(
-    (x) => loadFixture(x).replayHar.log.entries,
-  );
+  const list = typeof slugs === "string" ? [slugs] : slugs;
+  const entries = list.flatMap((x) => loadFixture(x).replayHar.log.entries);
+  const placesDirs = list.map((x) => join(process.cwd(), "test", "fixtures", x, "places"));
   const queues = new Map<string, HarEntry[]>();
   const dataHosts = new Set<string>();
   for (const e of entries) {
@@ -96,18 +100,23 @@ export async function replayHar(
     const req = route.request();
     const url = new URL(req.url());
     if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
-      // The OSM roads (VR3a) and the trailheads' parking (follow-up 54): the server would ask Overpass live. Answer
-      // as the route does, from the recording of the same query on a mirror; a query the HAR doesn't have is a miss.
+      if (url.pathname.startsWith(PLACES_PATH + "/")) {
+        const rel = url.pathname.slice(PLACES_PATH.length + 1).split("/");
+        const file = placesDirs.map((d) => join(d, ...rel)).find((f) => existsSync(f));
+        log.served.push(url.pathname);
+        return file
+          ? route.fulfill({
+              status: 200,
+              headers: { "content-type": "application/json" },
+              body: readFileSync(file),
+            })
+          : route.fulfill({ status: 404, body: "not found" });
+      }
+      // The OSM roads (VR3a): the server would ask Overpass live. Answer as the route does, from the recording of the
+      // same query on a mirror; a query the HAR doesn't have is a miss.
       const kind = url.searchParams.get("kind");
-      if (url.pathname === "/api/places/overpass" && (kind === "roads" || kind === "parking")) {
-        const ql =
-          kind === "roads"
-            ? osmRoadsQuery([Number(url.searchParams.get("lat")), Number(url.searchParams.get("lon"))])
-            : parkingQuery(
-                (url.searchParams.get("pts") ?? "")
-                  .split(";")
-                  .map((pt) => pt.split(",").map(Number) as [number, number]),
-              );
+      if (url.pathname === "/api/places/overpass" && kind === "roads") {
+        const ql = osmRoadsQuery([Number(url.searchParams.get("lat")), Number(url.searchParams.get("lon"))]);
         const asked = DEFAULT_ENDPOINTS.overpass.map((m) =>
           requestKey("GET", `${m}?data=${encodeURIComponent(ql)}`, null, undefined),
         );
