@@ -1,8 +1,8 @@
 /**
  * Step 3's screenshots (plan §11, and the owner's UX round of 10/18), desktop then phone: "What matters to you" at rest
  * (Nice to have and Don't care empty), a drag in progress, a card's sheet with its slider, the weights notice expanded,
- * "Try it" after a move, a row on Must have with its "limit" badge and its limit card, Reset's confirm, and the profile
- * menu inside the window. Run by `pnpm screenshots`; Try it grades the Mud Creek sample, so no parcel is replayed and
+ * "Try it" after a move, a row on Must have with its "limit" badge and its limit card, Reset's confirm, the profile
+ * menu inside the window, and the night sky's sheet (UX part 2, P-7). Run by `pnpm screenshots`; Try it grades the Mud Creek sample, so no parcel is replayed and
  * no owner shows.
  */
 import { expect, test, type Locator, type Page } from "@playwright/test";
@@ -95,11 +95,13 @@ for (const phone of [false, true]) {
       await handle.focus();
       await page.keyboard.press("Space");
       await expect(handle).toHaveAttribute("aria-pressed", "true");
-      for (let i = 0; i < 2; i++) {
-        await page.waitForTimeout(50);
+      // Each move announced before the next key: the page scrolls with the card, and a key pressed mid-scroll was lost.
+      for (const place of [3, 2]) {
         await page.keyboard.press("ArrowUp");
+        await expect(page.getByRole("status").filter({ hasText: "Night sky is over" })).toContainText(
+          `Really want, place ${place}.`,
+        );
       }
-      await page.waitForTimeout(50);
       await page.keyboard.press("Space");
       const notice = page.locator(".rubric-notice");
       await notice.getByRole("button", { name: "See what changed" }).click();
@@ -108,9 +110,17 @@ for (const phone of [false, true]) {
       await shot(page, "5-notice");
       await notice.getByRole("button", { name: "Dismiss" }).click();
       const preview = page.getByRole("region", { name: "Try it" });
-      if (!phone) await scrollTo(page, preview);
+      // Try it is under the intro on a phone too since UX part 2 (P-7).
+      await scrollTo(page, preview);
       await expect(preview.locator(".rubric-reasons li")).toHaveCount(2);
       await shot(page, "6-preview");
+    });
+
+    test("the night sky's sheet, in what you'd see (UX part 2, P-7)", async ({ page }) => {
+      await openRubric(page);
+      await card(page, "Night sky").locator(".rubric-card-body").click();
+      await expect(sheet(page).locator(".sky-scale li")).toHaveCount(4);
+      await shot(page, "11-sky");
     });
 
     test("a row on Must have: its limit badge and its limit card", async ({ page }) => {

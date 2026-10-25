@@ -3,7 +3,8 @@
  * A card's sheet (step 3, docs/plans/step-3-rubric-editor.md §2): what the factor asks and how it's scored (the
  * rulebook's words for it), why the card is where it is, its threshold as a slider (a row's B/C edge, the band moving
  * with it; a minimum's value), and "Move to…" for anyone who can't drag. A dialog: Escape or Close shuts it, and the
- * focus goes back to the card.
+ * focus goes back to the card. The night sky reads in what you'd see, with its A–D scale, and mag/arcsec² under it
+ * (UX part 2, P-7).
  */
 import Link from "next/link";
 import { useEffect, useRef } from "react";
@@ -29,6 +30,8 @@ import {
   MINIMUM_BAND,
   minimumLine,
   ROW_BANDS,
+  skySight,
+  skyWords,
   tierOf,
   limitWhy,
   whyLine,
@@ -36,6 +39,7 @@ import {
   type LimitKey,
   type Tier,
 } from "@/lib/rubric/words";
+import type { Bands } from "@/lib/rubric/types";
 import { cardName, TIER_NAMES, TIERS } from "./RubricColumns";
 
 /** Each band's slider label, where the unit needs a word. */
@@ -58,6 +62,17 @@ const BAND_LABELS: Record<LimitKey, string> = {
   dishClearPct: "Dish spot clear, at least",
   sunH: "December sun at the best site",
 };
+
+const LIMIT_HINT =
+  "A parcel on the wrong side of it is Not for us; one with no number for it is at most a Maybe.";
+
+/** The night sky's sheet (UX part 2, P-7). */
+export const SKY_WORDS = {
+  howDark: "How dark it has to be at the house site",
+  measured: (mag: string, forB: boolean) =>
+    `Measured as sky brightness overhead: ${mag} mag/arcsec²${forB ? " for a B" : ""}.`,
+  whatThatMeans: "What that means",
+} as const;
 
 export function CardSheet({
   card,
@@ -90,6 +105,7 @@ export function CardSheet({
   const list = columns[here];
   const at = list.findIndex((c) => c.kind === card.kind && c.factor === f);
   const ranked = here === "should" || here === "could";
+  const minimum = rubric.musts.find((m) => m.factor === f && m.threshold !== undefined);
   const canGo = (tier: Tier): boolean => {
     if (tier === here) return false;
     if (card.kind === "minimum") return tier === "wont";
@@ -117,11 +133,12 @@ export function CardSheet({
             Close
           </button>
         </header>
-        <p className="rubric-sheet-words">
-          {card.kind === "minimum"
-            ? minimumLine(rubric.musts.find((m) => m.factor === f && m.threshold !== undefined)!)
-            : cardLine(rubric, f)}
-        </p>
+        {/* The sky's words are its slider's own, under it (P-7). */}
+        {f !== "sky" && (
+          <p className="rubric-sheet-words">
+            {card.kind === "minimum" ? minimumLine(minimum!) : cardLine(rubric, f)}
+          </p>
+        )}
         <p className="tiny muted">
           {TIER_NAMES[here]}
           {ranked && `, #${rubric.ranked.findIndex((c) => c.factor === f) + 1} in the list`} · Why:{" "}
@@ -130,25 +147,46 @@ export function CardSheet({
 
         {card.kind === "factor" && !isGate(f) && ROW_BANDS[f].length > 0 && (
           <div className="rubric-sliders">
-            {ROW_BANDS[f].map((band) => (
-              <BandSlider
-                key={band}
-                label={BAND_LABELS[band]}
-                band={band}
-                value={bcEdge(rubric.bands, band)}
-                hint={`How this item is graded: ${bandLine(rubric.bands, band)}`}
-                onChange={(v) => apply(setBandEdge(rubric, band, v))}
-              />
-            ))}
+            {ROW_BANDS[f].map((band) =>
+              band === "skyMag" ? (
+                <SkySlider
+                  key={band}
+                  label={SKY_WORDS.howDark}
+                  value={bcEdge(rubric.bands, band)}
+                  bands={rubric.bands}
+                  onChange={(v) => apply(setBandEdge(rubric, band, v))}
+                />
+              ) : (
+                <BandSlider
+                  key={band}
+                  label={BAND_LABELS[band]}
+                  band={band}
+                  value={bcEdge(rubric.bands, band)}
+                  hint={`How this item is graded: ${bandLine(rubric.bands, band)}`}
+                  forB
+                  onChange={(v) => apply(setBandEdge(rubric, band, v))}
+                />
+              ),
+            )}
           </div>
         )}
-        {card.kind === "minimum" && MINIMUM_BAND[f as keyof typeof MINIMUM_BAND] && (
+        {card.kind === "minimum" && f === "sky" && (
+          <div className="rubric-sliders">
+            <SkySlider
+              label={`Your limit: ${SKY_WORDS.howDark.toLowerCase()}`}
+              value={minimum!.threshold!}
+              onChange={(v) => apply(setMinimum(rubric, "sky", v))}
+            />
+            <span className="tiny muted">{LIMIT_HINT}</span>
+          </div>
+        )}
+        {card.kind === "minimum" && f !== "sky" && MINIMUM_BAND[f as keyof typeof MINIMUM_BAND] && (
           <div className="rubric-sliders">
             <BandSlider
               label={`Your limit: ${BAND_LABELS[MINIMUM_BAND[f as keyof typeof MINIMUM_BAND]!].toLowerCase()}`}
               band={MINIMUM_BAND[f as keyof typeof MINIMUM_BAND]!}
-              value={rubric.musts.find((m) => m.factor === f && m.threshold !== undefined)!.threshold!}
-              hint="A parcel on the wrong side of it is Not for us; one with no number for it is at most a Maybe."
+              value={minimum!.threshold!}
+              hint={LIMIT_HINT}
               onChange={(v) => apply(setMinimum(rubric, f as keyof typeof MINIMUM_BAND, v))}
             />
           </div>
@@ -223,12 +261,15 @@ function BandSlider({
   band,
   value,
   hint,
+  forB = false,
   onChange,
 }: {
   label: string;
   band: LimitKey;
   value: number;
   hint: string;
+  /** A row's slider sets its B/C edge: says so, beside a scale that starts at A (polish #41). */
+  forB?: boolean;
   onChange(v: number): void;
 }) {
   const r = SCREEN_CONSTANTS.card.editor[band];
@@ -236,6 +277,7 @@ function BandSlider({
     <label className="rubric-slider">
       <span>
         {label}: <strong>{bandValue(band, value)}</strong>
+        {forB && " for a B"}
       </span>
       <input
         type="range"
@@ -247,5 +289,54 @@ function BandSlider({
       />
       <span className="tiny muted">{hint}</span>
     </label>
+  );
+}
+
+/**
+ * The night sky's slider: what you'd see at the limit, the A–D scale in the same words when it's a row's (its bands
+ * move with the slider), and mag/arcsec² under it, with Help's Night sky behind "What that means".
+ */
+function SkySlider({
+  label,
+  value,
+  bands,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  /** A row's bands, for its scale; a minimum has none. */
+  bands?: Bands;
+  onChange(v: number): void;
+}) {
+  const r = SCREEN_CONSTANTS.card.editor.skyMag;
+  return (
+    <div className="rubric-slider sky-slider">
+      <label>
+        <span>{label}:</span>
+        <input
+          type="range"
+          min={r.min}
+          max={r.max}
+          step={r.step}
+          value={value}
+          aria-valuetext={skyWords(value)}
+          onChange={(e) => onChange(Number(e.target.value))}
+        />
+      </label>
+      <strong>{skyWords(value)}</strong>
+      {bands && (
+        <ol className="sky-scale" aria-label="How this item is graded">
+          {bands.skyMag.map((m, i) => (
+            <li key={i} className={`g-${"ABCD"[i]}`}>
+              {"ABCD"[i]} · {skySight(m)}
+            </li>
+          ))}
+        </ol>
+      )}
+      <span className="tiny muted">
+        {SKY_WORDS.measured(bandValue("skyMag", value), !!bands)}{" "}
+        <Link href="/help#h-sky">{SKY_WORDS.whatThatMeans}</Link>
+      </span>
+    </div>
   );
 }

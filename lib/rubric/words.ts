@@ -5,6 +5,7 @@
  */
 import { shortPrice } from "../client/askingPrice";
 import { SCREEN_CONSTANTS } from "../screen/config";
+import { lpZone } from "../screen/sky";
 import { fmt } from "../format";
 import { VIEW_OPEN_MI } from "../report/view";
 import { defaultRubric } from "./default";
@@ -209,6 +210,38 @@ export function bandLine(bands: Bands, key: BandKey): string {
   const edges = bands[key];
   const plus = BAND_RUNS[key] === "atLeast" ? "+" : "";
   return edges.map((e, i) => `${"ABCD"[i]} ${bandValue(key, e)}${i === 0 ? plus : ""}`).join(" · ");
+}
+
+/** The atlas's ratio for a sky brightness: lpMag (lib/screen/sky.ts) inverted. */
+const skyRatio = (mag: number): number => 100 ** ((22 - mag) / 5) - 1;
+
+/**
+ * What you'd see of the Milky Way under a sky this dark (UX part 2, P-7): the scale is the starting bands' A, B and C
+ * edges, so the starting list reads A bright, B clearly visible, C faint, D washed out. Words for What matters only;
+ * the card and the report keep their own (rule 7).
+ */
+export function skySight(mag: number): "bright Milky Way" | "clearly visible" | "faint" | "washed out" {
+  const [a, b, c] = SCREEN_CONSTANTS.card.rows.skyMag;
+  return mag >= a! ? "bright Milky Way" : mag >= b! ? "clearly visible" : mag >= c! ? "faint" : "washed out";
+}
+
+/** "The Milky Way clearly visible (zone 4a or darker)": a sky limit in what you'd see, and the darkest zone it allows. */
+export function skyWords(mag: number): string {
+  const sight = skySight(mag);
+  const lead = sight === "bright Milky Way" ? "A bright Milky Way" : `The Milky Way ${sight}`;
+  return `${lead} (zone ${lpZone(skyRatio(mag))[0]} or darker)`;
+}
+
+/**
+ * Whose priorities What matters shows, in a household (UX part 2, P-7): "These are Sam's; Alex has their own." Null
+ * when no one else is in it. "Priorities", not "list": Your list is the household's shared parcels (§4.1).
+ */
+export function whoseLine(me: string | null, others: readonly string[]): string | null {
+  if (!others.length) return null;
+  const names =
+    others.length === 1 ? others[0]! : `${others.slice(0, -1).join(", ")} and ${others[others.length - 1]!}`;
+  const has = others.length === 1 ? "has" : "have";
+  return me ? `These are ${me}'s; ${names} ${has} their own.` : `${names} ${has} their own priorities.`;
 }
 
 /** "ready to camp under $250k, ready to build under $300k": the budgets given, in the What matters card's words. */

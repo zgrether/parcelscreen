@@ -5582,6 +5582,12 @@ button.cmp-cell:hover {
   max-width: 1200px;
 }
 /* The intro (owner, 10/18): what the list is, the four columns in a line each, how to use it. */
+/* What the page is, and whose priorities (UX part 2, P-7), with Try it right under it. */
+.rubric-lead {
+  max-width: 760px;
+  margin: 4px 0 8px;
+  font-size: 14px;
+}
 .rubric-intro {
   max-width: 760px;
   margin: 4px 0 10px;
@@ -5624,8 +5630,8 @@ button.cmp-cell:hover {
   gap: 8px;
   margin-left: auto;
 }
-/* "Try it" (plan §4; a slim strip under the intro since the owner's UX round, 10/18): the parcel, its grade before → now,
-   and up to two plain reasons. The columns take the full width below it. */
+/* "Try it" (plan §4; a slim strip under the intro since the owner's UX round, 10/18, and on a phone too since UX part 2,
+   P-7): the parcel, its grade before → now, and up to two plain reasons. The columns take the full width below it. */
 .rubric-strip {
   margin: 0 0 10px;
   padding: 8px 12px;
@@ -5854,6 +5860,44 @@ button.cmp-cell:hover {
   width: 100%;
   min-height: 32px;
 }
+.sky-slider label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sky-slider strong {
+  font-size: 15px;
+}
+.sky-slider a {
+  color: inherit;
+  text-decoration: underline;
+}
+/* The night sky's A–D scale in what you'd see (UX part 2, P-7): the card's letter colours, white text at 4.5:1. */
+.sky-scale {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  margin: 2px 0;
+  padding: 0;
+  list-style: none;
+}
+.sky-scale li {
+  padding: 4px 6px;
+  border-radius: 4px;
+  color: #fff;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.sky-scale .g-A,
+.sky-scale .g-B {
+  background: var(--color-ok);
+}
+.sky-scale .g-C {
+  background: var(--color-warn);
+}
+.sky-scale .g-D {
+  background: var(--color-steep);
+}
 .rubric-moveto {
   display: flex;
   flex-wrap: wrap;
@@ -5888,24 +5932,11 @@ button.cmp-cell:hover {
   display: flex;
   gap: 10px;
 }
-/* A phone (plan §6.2): the tiers stacked, each header sticky while its cards scroll by; "Try it" a bar along the bottom
-   with the same words; every target at least 44 px. */
+/* A phone (plan §6.2): the tiers stacked, each header sticky while its cards scroll by; "Try it" the same slim line as on
+   a desktop, under the intro, over no card (UX part 2, P-7); every target at least 44 px. */
 @media (max-width: 860px) {
-  .rubric-editor {
-    padding-bottom: 150px;
-  }
   .rubric-strip {
-    position: fixed;
-    left: 0;
-    right: 0;
-    /* On the tab bar, as the map's sheet is (step 4b). */
-    bottom: var(--tabs-h);
-    z-index: 40;
-    margin: 0;
-    border-radius: 12px 12px 0 0;
-    border-bottom: 0;
-    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.18);
-    padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
+    padding: 4px 10px;
   }
   .rubric-strip-line select {
     min-height: 44px;
@@ -5931,10 +5962,11 @@ button.cmp-cell:hover {
     /* An edge, so a card scrolling under the stuck header reads as passing beneath it, not cut. */
     box-shadow: 0 1px 0 var(--color-rule);
   }
-  /* Try it on a phone: the parcel picker takes the first line, the grade the second. */
+  /* Try it on a phone, one line: the parcel picker takes what the grade leaves; a long change ("C · Maybe → B ·
+     Contender") goes under it rather than off the side. */
   .rubric-strip-line label {
     display: flex;
-    flex: 1 1 100%;
+    flex: 1 1 150px;
     align-items: center;
     gap: 6px;
     min-width: 0;
@@ -5942,6 +5974,9 @@ button.cmp-cell:hover {
   .rubric-strip-line label select {
     flex: 1;
     min-width: 0;
+  }
+  .rubric-strip-grade {
+    flex: none;
   }
   .rubric-strip-colon {
     display: none;
@@ -6162,14 +6197,9 @@ button.cmp-cell:hover {
   min-height: 44px;
   min-width: 88px;
 }
-/* On the result Try it stays in the page, phone too: as the bottom bar it covered the result's buttons (the
-   fresh-eyes review). */
+/* On the result Try it stays in the page, as it does on What matters since UX part 2 (P-7). */
 .iv-result .rubric-strip {
-  position: static;
   margin: 4px 0 14px;
-  border-radius: 6px;
-  border-bottom: 1px solid var(--color-rule);
-  box-shadow: none;
 }
 .iv-money {
   display: flex;
