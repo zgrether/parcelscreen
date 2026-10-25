@@ -101,6 +101,8 @@ jobs:
             pnpm record:port -t "$slug"
           done
           PORT_APPEND=grayson-mud-creek-6273 pnpm record:port
+          # Roan's re-record drops the map search's region-wide ask, which this tool appends (UX part 2 PR 4).
+          node test/tools/record-region-search.mts
           pnpm areas:record
       - name: Push the recordings to the PR's branch
         env:
