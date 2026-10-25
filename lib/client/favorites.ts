@@ -12,7 +12,7 @@
  */
 import { z } from "zod";
 import { isCountyRecord } from "@/lib/geo/recipe";
-import { fieldsFor } from "@/lib/geo/parcelFields";
+import { fieldsFor, serviceOfRecord } from "@/lib/geo/parcelFields";
 import { parcelFacts } from "@/lib/geo/parcels";
 import { matchesId, matchesName, MIN_ID_CHARS, normalizeId } from "@/lib/search/query";
 import { countyShort } from "./library";
@@ -185,6 +185,24 @@ export function sortedIntoHistory(s: ParcelStore, me: string): ParcelStore | nul
 export function countyOf(p: Pick<WorkingParcel, "pieces">): string | null {
   const c = p.pieces.map((x) => parcelFacts(x.geo, x.props).county).find((x) => !!x);
   return c ? countyShort(c).replace(/ Co\.$/, "") : null;
+}
+
+/**
+ * The header's place line (P-2, UX part 2): "Grayson Co., VA · tax map 63-A-62", the tax map number the listings use
+ * where the county has one (Virginia's PTM_ID), else the record's own. An imported parcel's record is known by its
+ * fields. Null for a drawn parcel.
+ */
+export function placeLine(p: Pick<WorkingParcel, "pieces">): string | null {
+  const rec = p.pieces.find((r) => serviceOfRecord(r));
+  if (!rec) return null;
+  const service = serviceOfRecord(rec)!;
+  const county = countyOf(p);
+  const state = service.state;
+  const alt = service.fields.altId;
+  const altValue = alt ? String(rec.props[alt] ?? "").trim() : "";
+  const id = altValue || parcelFacts(rec.geo, rec.props).parcelId;
+  const where = county ? `${county} Co.${state ? `, ${state}` : ""}` : null;
+  return [where, id ? `tax map ${id}` : null].filter(Boolean).join(" · ") || null;
 }
 
 /** What the name sheet starts with (§11 Q15): the parcel's own name, the listing link's address, or a description. */

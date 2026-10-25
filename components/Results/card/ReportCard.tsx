@@ -9,8 +9,8 @@
 import Link from "next/link";
 import { GRADES_ID, GRADES_TITLE } from "@/lib/client/help";
 import type { ReactNode } from "react";
-import { answerReason, incompleteLine } from "@/lib/report/answer";
-import { listOf, lowerFirst, VERDICT_WORD, type Card, type Row } from "@/lib/report/card";
+import { answerReason, incompleteLine, verdictParts } from "@/lib/report/answer";
+import { lowerFirst, VERDICT_WORD, type Card, type Row } from "@/lib/report/card";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import {
   GATE_MARK as MARK,
@@ -220,11 +220,17 @@ export function ReportCard({
         <div className="card-head">
           <button className="card-verdict" onClick={() => onOpen("verdict")}>
             {/* Held until the run ends (polish #9): a grade from half the data would only change. */}
-            <span className={`card-grade g-${running ? "none" : (card.grade ?? "none")}`}>
-              {running ? "…" : (card.grade ?? "–")}
-            </span>
+            {/* J-4 (Zach, UX part 2): the verdict first, the letter beside it, a joining word when they part. */}
             <span className={`card-word v-${running ? "running" : card.verdict.toLowerCase()}`}>
               {running ? "Grading…" : VERDICT_WORD[card.verdict]}
+            </span>
+            <span className="card-letter">
+              <span className={`card-grade g-${running ? "none" : (card.grade ?? "none")}`}>
+                {running ? "…" : (card.grade ?? "–")}
+              </span>
+              {!running && verdictParts(card).join && (
+                <span className="card-join">{verdictParts(card).join}</span>
+              )}
             </span>
           </button>
           {/* Polish #31: Help's grade rules, beside the grade. */}
@@ -239,11 +245,6 @@ export function ReportCard({
           />
         </div>
         {reason && <p className="card-reason">{reason}</p>}
-        {!running && card.heldBy && (
-          <p className="card-held">
-            Held at {VERDICT_WORD.Maybe} by: {listOf(card.heldBy)}.
-          </p>
-        )}
         {stale && !running && (
           <div className="card-stale" role="status">
             <span>{stale.text}</span>

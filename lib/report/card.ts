@@ -177,8 +177,8 @@ export interface Card extends CardFacts {
   /** What didn't load, in the card's order: the reason line says so, and asks for a re-run. */
   incomplete: string[];
   /**
-   * What holds a grade good enough for a Contender at Maybe, by name (polish #5, owner 2026-10-20): the line under the
-   * reason, "Held at Maybe by: Legal road access." Absent when nothing does.
+   * What holds a grade good enough for a Contender at Maybe, by name (polish #5, owner 2026-10-20): the answer's
+   * joining words since J-4 (UX part 2), "Maybe · A, held by: legal road access". Absent when nothing does.
    */
   heldBy?: string[];
   /** Within budget, when this rubric holds it as a Must (step 10): its status and reason, for the Must rows. */

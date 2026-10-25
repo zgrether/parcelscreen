@@ -1777,8 +1777,9 @@ html:has(.explore) body {
 }
 .sh-sub {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 2px 8px;
   font-size: 15px;
 }
 .sh-acres {
@@ -1808,6 +1809,32 @@ html:has(.explore) body {
   min-width: 20px;
   height: 20px;
   font-size: 13px;
+}
+/* P-2: the county and tax map after the acres; J-4: the joining word after the verdict and letter. */
+/* Whole or on a line of its own: it wraps below the acres rather than shrink beside them. */
+.sh-place {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-ink-2);
+  font-size: 14px;
+}
+/* The letter and its joining words stay together, the comma right after the letter. */
+.card-letter {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.sh-join,
+.card-join {
+  font: 500 14px/1.2 var(--font-sans);
+  color: var(--color-ink-2);
+}
+.sh-join::before,
+.card-join::before {
+  content: ", ";
 }
 .sh-actions {
   display: flex;
@@ -3305,12 +3332,6 @@ html:has(.app-nav) .explore {
 .card-how {
   align-self: center;
   white-space: nowrap;
-}
-/* What holds a Contender's grade at Maybe (polish #5), under the reason. */
-.card-held {
-  margin: -4px 0 10px;
-  color: var(--color-ink-2);
-  font-size: 14px;
 }
 /* The drawn lines changed since the screen (owner, #116): prominent, in the card's header; the results stay. */
 .card-stale {

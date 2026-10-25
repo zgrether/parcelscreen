@@ -43,8 +43,8 @@ import type { ExploreController, SetHint } from "@/components/Explore/useExplore
 import { lineLayer } from "@/components/Explore/layers";
 import { evaluationPoint } from "../blocks/types";
 import { useRubricView } from "@/lib/client/useRubricView";
-import { reportCard, VERDICT_WORD } from "@/lib/report/card";
-import { answerReason } from "@/lib/report/answer";
+import { reportCard } from "@/lib/report/card";
+import { answerReason, verdictParts } from "@/lib/report/answer";
 import { lineNamesOf, type LineNames } from "@/lib/report/lines";
 import { drawnOf, type Drawn } from "@/lib/report/marks";
 import { currentCostSettings, useCostSettings } from "@/lib/client/costRates";
@@ -84,7 +84,7 @@ import type { TryProps } from "@/components/Results/card/TryIt";
 import { OFFLINE_SCREEN_TEXT } from "@/lib/client/pwa";
 import { Star } from "@/components/Favorites/Star";
 import { PanelMenu } from "@/components/Report/PanelMenu";
-import { countyOf, isFavorite, starName } from "@/lib/client/favorites";
+import { countyOf, isFavorite, placeLine, starName } from "@/lib/client/favorites";
 import { memberName } from "@/lib/client/household";
 import { currentProfileId } from "@/lib/client/profiles";
 import { isPreview, openSample, sampleOf } from "@/lib/client/samples";
@@ -687,6 +687,8 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
   // The card's grade and verdict for the kept run (owner, #110), in whoever's grade is on.
   const card =
     !s.runningHere && !s.stale && s.shown ? reportCard(s.shown.result, s.rubric, drawnFor(s)) : null;
+  const place = placeLine(s.ctl.state.store.open);
+  const answer = card ? verdictParts(card) : null;
   return (
     <>
       <span className="sh-parcel">
@@ -697,13 +699,19 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
           {/* Step 13: one of the catalog's sample parcels, until it's on the list. */}
           {isPreview(s.ctl.state.store.open) && <SampleTag open={s.ctl.state.store.open} />}
           {d?.ok && <span className="sh-acres">{fmt(d.acres, 2)} ac</span>}
-          {card && (
-            <span className={`sh-card v-${card.verdict.toLowerCase()}`} title={card.reason}>
-              <span className={`card-grade small g-${card.grade ?? "none"}`}>{card.grade ?? "–"}</span>
-              <span className="sh-word">{VERDICT_WORD[card.verdict]}</span>
-            </span>
-          )}
+          {/* P-2: the county and the tax map number, the listing's way of naming it. */}
+          {place && <span className="sh-place">{place}</span>}
         </span>
+        {/* J-4: the verdict first, the letter beside it, and a joining word when they part. */}
+        {card && answer && (
+          <span className={`sh-sub sh-card v-${card.verdict.toLowerCase()}`} title={card.reason}>
+            <span className="sh-word">{answer.verdict}</span>
+            <span className="card-letter">
+              <span className={`card-grade small g-${card.grade ?? "none"}`}>{answer.grade}</span>
+              {answer.join && <span className="sh-join">{answer.join}</span>}
+            </span>
+          </span>
+        )}
         {/* Step 7 (plan §1.1): the answer's reason, in the phone's peek (on two lines at most; CSS hides it elsewhere). */}
         {card && s.shown && <span className="sh-reason">{answerReason(card, s.shown.result)}</span>}
       </span>
@@ -711,8 +719,7 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
         <PanelStar s={s} />
         {/* Step 9: the report card, once the parcel is graded and on the list. */}
         <PanelMenu parcelKey={s.ctl.state.store.open?.key ?? null} graded={!!s.shown && !s.runningHere} />
-        {/* Deselect the parcel (17e); Esc does the same on desktop. 8c: on a parcel not on the list it means "not for
-            me": it goes from Recent and the map, with an Undo. */}
+        {/* Close the parcel (17e; J-2: it never takes a parcel out of Recent); Esc does the same on desktop. */}
         <button
           className="sh-x"
           aria-label="Close this parcel"
@@ -727,13 +734,9 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
   );
 }
 
-/** The ×'s tooltip: on a parcel of mine that isn't on the list, what × does to it (8c). */
-const closeTitle = (open: WorkingParcel | null, desk: boolean): string => {
-  const esc = desk ? " (Esc)" : "";
-  const mine =
-    !!open?.key && !isFavorite(open) && (open.addedBy === null || open.addedBy === currentProfileId());
-  return mine ? `Not for me: close it and clear it from Recent${esc}` : `Close this parcel${esc}`;
-};
+/** The ×'s tooltip (J-2: × only closes, as Esc does on a desktop). */
+const closeTitle = (_open: WorkingParcel | null, desk: boolean): string =>
+  `Close this parcel${desk ? " (Esc)" : ""}`;
 
 /**
  * The open parcel's list button (step 8's star, in words since 8c: "Add to list", "★ On your list"), beside the grade:

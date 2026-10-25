@@ -1,7 +1,7 @@
 /**
  * The answer (step 7 plan §1.1): the grade and verdict with one line of reason built from the person's rubric. Up to
  * two strengths (the rows they weigh most that grade A or B) and the biggest miss (the row that costs the grade most),
- * each against their own B/C edge: "B, Contender. Strong winter sun and trails; 38 minutes to an ER is past your 30-minute limit."
+ * each against their own B/C edge: "Contender · B. Strong winter sun and trails; 38 minutes to an ER is past your 30-minute limit."
  * A Must comes first: a failed one, a limit not met, or something to check. Pure, from a card and its result.
  *
  * The card's own reason line ("Contender. Weakest part: …") is unchanged; it's in the Grade and verdict panel.
@@ -12,7 +12,7 @@ import type { PartialScreenResult } from "../screen/types";
 import { weightsOf } from "../rubric/weights";
 import type { RowKey } from "../rubric/types";
 import { EDITOR_TITLES } from "../rubric/words";
-import { VERDICT_WORD, type Card, type Row } from "./card";
+import { listOf, lowerFirst, VERDICT_WORD, type Card, type Row } from "./card";
 import { letterText, shownLetter } from "./adjust";
 
 /** Each row as a strength, after "Strong". */
@@ -220,10 +220,44 @@ export function asideMustsLine(card: Card): string | null {
   return overWords ? `${aside}, ${overWords}.` : `${aside}.`;
 }
 
-/** The answer, whole: "B, Contender. Strong winter sun and trails; 38 minutes to an ER is past your 30-minute limit." */
+/**
+ * J-4 (Zach, UX part 2): the verdict leads and the letter follows, with a joining word when they part. A Must that
+ * fails makes it Not for us whatever the rest is worth ("but misses a must"); a Contender's grade held at Maybe says by
+ * what ("held by: septic"). The verdict is the decision; the letter is how good the rest is.
+ */
+export interface VerdictParts {
+  verdict: string;
+  grade: string;
+  join: string | null;
+}
+
+export function verdictParts(card: Pick<Card, "verdict" | "grade" | "lead" | "heldBy">): VerdictParts {
+  const misses =
+    card.verdict === "Pass" &&
+    card.grade !== null &&
+    (card.lead?.kind === "fail" || card.lead?.kind === "limit");
+  const held = card.verdict === "Maybe" && card.heldBy?.length ? card.heldBy : null;
+  return {
+    verdict: VERDICT_WORD[card.verdict],
+    grade: card.grade ?? "–",
+    join: misses ? "but misses a must" : held ? `held by: ${listOf(held.map(lowerFirst))}` : null,
+  };
+}
+
+/** "Not for us · B, but misses a must", "Maybe · A, held by: septic", "Contender · B". */
+export const verdictLine = (card: Pick<Card, "verdict" | "grade" | "lead" | "heldBy">): string => {
+  const p = verdictParts(card);
+  return `${p.verdict} · ${p.grade}${p.join ? `, ${p.join}` : ""}`;
+};
+
+/**
+ * The answer, whole: "Contender · B. Strong winter sun and trails; 38 minutes to an ER is past your 30-minute limit."
+ * The verdict first (J-4); the reason says what a joining word would, so there's none here.
+ */
 export function answerLine(card: Card, r: PartialScreenResult): string {
   const reason = answerReason(card, r);
-  return `${card.grade ?? "–"}, ${VERDICT_WORD[card.verdict]}.${reason ? ` ${reason}` : ""}`;
+  const p = verdictParts(card);
+  return `${p.verdict} · ${p.grade}.${reason ? ` ${reason}` : ""}`;
 }
 
 /** What didn't load, for the line under the answer: "Incomplete: the FEMA flood map didn't load." */
