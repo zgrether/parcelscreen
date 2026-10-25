@@ -88,8 +88,19 @@ export function ParcelStanding({ parcel: open, act }: { parcel: WorkingParcel; a
   );
 }
 
-/** Why it's not for us (§9 Q5): a reason and a note, both optional; Rule it out keeps whichever were given. */
-function ArchiveReason({ archive, cancel }: { archive(reason: string): void; cancel(): void }) {
+/**
+ * Why it's not for us (§9 Q5): a reason and a note, both optional; Rule it out keeps whichever were given. The header's
+ * Not for us (PR 3) shows it with its question as a title.
+ */
+export function ArchiveReason({
+  archive,
+  cancel,
+  title,
+}: {
+  archive(reason: string): void;
+  cancel(): void;
+  title?: string;
+}) {
   const [chip, setChip] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const box = useRef<HTMLInputElement>(null);
@@ -104,6 +115,7 @@ function ArchiveReason({ archive, cancel }: { archive(reason: string): void; can
         cancel();
       }}
     >
+      {title && <h3 className="ip-archive-title">{title}</h3>}
       <p className="tiny muted">
         It moves to Ruled out on Your list, with your reason, and the map shows it greyed. Move back undoes
         it.

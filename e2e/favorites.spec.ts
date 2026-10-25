@@ -122,10 +122,10 @@ test("Recent is yours, Favorites the household's: add, remove, ✕ with Undo, Cl
 
   // The panel's Add to list: Ferney, still open on the map, starts from its own name.
   await zach.getByRole("link", { name: "Map", exact: true }).click();
-  await zach.locator(".sh-actions").getByRole("button", { name: "Add to list" }).click();
+  await zach.locator(".sh-acts").getByRole("button", { name: "Add to list" }).click();
   await expect(nameSheet(zach).getByLabel("Name")).toHaveValue(/52-47A/);
   await nameSheet(zach).getByRole("button", { name: "Add" }).click();
-  await expect(zach.locator(".sh-actions").getByRole("button", { name: "On your list" })).toBeVisible();
+  await expect(zach.locator(".sh-acts").getByRole("button", { name: "On your list" })).toBeVisible();
 
   // Ferney left Recent as it was added. Clear Recent: Macks goes; Ferney stays in Favorites.
   await yourList(zach, "Recent");

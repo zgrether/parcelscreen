@@ -74,7 +74,10 @@ test("after the interview: Areas that fit you, five cards, and Show me a parcel 
   await expect(header.locator(".sh-name")).toHaveText(`Sample parcel 1 · ${first}`);
 
   // Add to list: an ordinary parcel of the person's, the tag gone and the tools back.
-  await header.getByRole("button", { name: /^Add to list/ }).click();
+  await page
+    .locator(".sh-acts")
+    .getByRole("button", { name: /^Add to list/ })
+    .click();
   await page.getByRole("dialog", { name: "Add to list" }).getByRole("button", { name: "Add" }).click();
   await expect(header.locator(".sh-sample")).toHaveCount(0);
   await expect(page.locator(".toolbar")).not.toContainText(SAMPLE_WORDS.readOnly);

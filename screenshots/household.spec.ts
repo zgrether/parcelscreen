@@ -14,7 +14,9 @@ import {
   openExplorer,
   openMenu,
   openYourData,
+  reload,
   seedScreens,
+  settled,
 } from "../e2e/flow";
 
 /** The Your list tab, whose name gains the badge's label ("Your list 1 new take") when something waits (step 6b). */
@@ -23,6 +25,16 @@ const FERNEY = "ferney-creek-52-47A" as const;
 const MACKS = "macks-mountain-35-3" as const;
 const MUD = "grayson-mud-creek-6273" as const;
 const OUT = "test-results/screenshots";
+
+/** The phone's sheet, raised until it holds most of the screen. */
+async function raiseSheet(page: Page): Promise<void> {
+  const sheet = page.locator(".explore-panel");
+  for (let i = 0; i < 4; i++) {
+    if ((await sheet.boundingBox())!.height > 500) return;
+    await page.locator(".sheet-handle").tap();
+    await page.waitForTimeout(500);
+  }
+}
 
 const setPriorities = (page: Page, rubric: unknown) =>
   page.evaluate((r) => window.__psKv!.setItem("ps.rubrics", JSON.stringify({ mine: r, others: [] })), rubric);
@@ -54,9 +66,6 @@ async function rename(page: Page, from: string, to: string): Promise<void> {
 
 async function afterTabSwitch(page: Page, check: () => Promise<void>): Promise<void> {
   await expect(async () => {
-    // On a phone the parcel's sheet covers the tabs: close it before the next try.
-    const close = page.getByRole("dialog").getByRole("button", { name: "Close" });
-    if (await close.isVisible()) await close.click();
     await page.getByRole("link", { name: "Map", exact: true }).click();
     await page.getByRole("link", { name: YOUR_LIST }).click();
     await check();
@@ -73,14 +82,19 @@ for (const phone of [false, true]) {
       ).newPage();
     const shot = (page: Page, name: string) =>
       page.screenshot({ path: `${OUT}/${device}-household-${name}.png` });
+    /** A row opens the parcel on the map, with the one panel (Z-2); on a phone, the sheet raised. */
     const open = async (page: Page, name: string) => {
       const row = listRow(page, name);
       if (phone) await row.locator(".lib-card-facts").tap();
       else await row.locator(".lib-open").click();
-      await expect(page.getByRole("dialog")).toBeVisible();
+      await expect(page.locator(".sh-name").first()).toContainText(name);
+      await page.getByRole("tab", { name: "Grade" }).click();
+      if (phone) await raiseSheet(page);
     };
+    /** Closes the parcel, so the list's tab switches don't have it in front of anyone. */
+    const close = (page: Page) => page.getByRole("button", { name: "Close this parcel" }).first().click();
     const scrollTo = (page: Page, region: string) =>
-      page.getByRole("region", { name: region }).scrollIntoViewIfNeeded();
+      page.getByRole("region", { name: region }).evaluate((el) => el.scrollIntoView({ block: "start" }));
 
     test("the household: who's this, everyone's grade, How Sam would rate it, ask and answer", async ({
       browser,
@@ -90,6 +104,9 @@ for (const phone of [false, true]) {
       await openExplorer(zach, FERNEY);
       await importParcels(zach, [FERNEY, MACKS, MUD]);
       await seedScreens(zach, [FERNEY, MACKS, MUD]);
+      // The seeded grades are written to the store directly: a reload has the map read them.
+      await settled(zach);
+      await reload(zach);
       await setPriorities(zach, ZACH.rubric);
       await rename(zach, "Profile 1", "Alex");
       const code = await startSyncing(zach);
@@ -116,7 +133,7 @@ for (const phone of [false, true]) {
       });
       await scrollTo(zach, "How Sam would rate it");
       await shot(zach, "2-no-priorities");
-      await zach.getByRole("dialog").getByRole("button", { name: "Close" }).click();
+      await close(zach);
 
       // Sam sets hers: two grades on Zach's list, and her section.
       await setPriorities(julie, JULIE.rubric);
@@ -130,15 +147,16 @@ for (const phone of [false, true]) {
       await scrollTo(zach, "How Sam would rate it");
       await shot(zach, "4-julie-section");
 
-      // Ask.
+      // Ask: the header's (UX part 2 PR 3), its form in the actions' place.
       const section = zach.getByRole("region", { name: "How Sam would rate it" });
-      await section.getByRole("button", { name: "Ask Sam" }).click();
-      await section.getByRole("textbox").fill("The spring by the road: worth a walk?");
-      await scrollTo(zach, "How Sam would rate it");
+      await zach.locator(".sh-acts").getByRole("button", { name: "Ask Sam" }).click();
+      const ask = zach.getByRole("form", { name: "Ask for a take" });
+      await ask.getByRole("textbox").fill("The spring by the road: worth a walk?");
+      await ask.evaluate((el) => el.scrollIntoView({ block: "center" }));
       await shot(zach, "5-ask");
-      await section.getByRole("button", { name: "Ask", exact: true }).click();
+      await ask.getByRole("button", { name: "Ask", exact: true }).click();
       await expect(section).toContainText("Sam's Waiting for you");
-      await zach.getByRole("dialog").getByRole("button", { name: "Close" }).click();
+      await close(zach);
 
       // Sam: the badge and Waiting for you; answering.
       await afterTabSwitch(julie, async () => {
@@ -156,6 +174,7 @@ for (const phone of [false, true]) {
       await shot(julie, "7-answering");
       await yours.getByRole("button", { name: "Save my take" }).click();
       await expect(yours).toContainText("Let's walk it in May.");
+      await close(julie);
 
       // Zach: her take beside her grade, new (step 6b: the dot and the badge).
       await afterTabSwitch(zach, async () => {
@@ -166,6 +185,12 @@ for (const phone of [false, true]) {
       await expect(listRow(zach, "52-47A").locator(".new-dot")).toBeVisible();
       await expect(zach.locator(".app-badge")).toHaveText("1");
       await shot(zach, "8-list-with-take");
+
+      // Opened, her take is under the header's actions, with the dot it had as it opened (P-2).
+      await open(zach, "52-47A");
+      await expect(zach.getByRole("list", { name: "Takes" })).toContainText("Sam · Maybe");
+      await zach.locator(".sh-acts-wrap").evaluate((el) => el.scrollIntoView({ block: "start" }));
+      await shot(zach, "9-take-under-actions");
     });
   });
 }

@@ -28,7 +28,7 @@ test("the parcel's standing: a favorite archived with a reason, restored; milest
 
   // Starred on import (the helper): a favorite; no In progress or Saved any more (step 8).
   await expect(standing.getByRole("button", { name: "In progress" })).toHaveCount(0);
-  await expect(page.locator(".sh-actions").getByRole("button", { name: "On your list" })).toHaveAttribute(
+  await expect(page.locator(".sh-acts").getByRole("button", { name: "On your list" })).toHaveAttribute(
     "aria-pressed",
     "true",
   );

@@ -87,11 +87,15 @@ test("Not for us: any parcel, a reason optional; Undo; Move back; Ruled out is g
   await page.locator(".line-undo", { hasText: "Ruled out —" }).getByRole("button", { name: "Undo" }).click();
   await expect.poll(async () => (await stored(page)).some((b) => b.status === "archived")).toBe(false);
 
-  // No reason at all is fine; Move back puts it where it was.
-  await status.getByRole("button", { name: "Not for us…" }).click();
-  await status.getByRole("button", { name: "Rule it out" }).click();
+  // The header's Not for us (UX part 2 PR 3, P-2): the same question in the actions' place. No reason at all is fine;
+  // the header's Move back puts it where it was.
+  const acts = page.getByRole("group", { name: "This parcel" });
+  await acts.getByRole("button", { name: "Not for us", exact: true }).click();
+  const form = page.locator(".sh-form");
+  await expect(form.getByRole("heading", { name: "Not for us?" })).toBeVisible();
+  await form.getByRole("button", { name: "Rule it out" }).click();
   await expect(status.locator(".ip-note")).toHaveText(/^Ruled out \w+ \d+$/);
-  await status.getByRole("button", { name: "Move back" }).click();
+  await acts.getByRole("button", { name: "Move back" }).click();
   await expect.poll(async () => (await stored(page)).every((b) => b.status === "inProgress")).toBe(true);
 
   // Ruled out and closed: on the map, greyed.

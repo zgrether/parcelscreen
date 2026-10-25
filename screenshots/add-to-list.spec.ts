@@ -64,7 +64,7 @@ for (const phone of [false, true]) {
       // The tilt tip (desktop) would cover the map in every shot (fresh-eyes review, step 8).
       const tip = page.locator(".tilt-hint").getByRole("button", { name: "Dismiss" });
       if (await tip.isVisible()) await tip.click();
-      const actions = page.locator(".sh-actions");
+      const actions = page.locator(".sh-acts");
       await expect(actions.getByRole("button", { name: "Add to list" })).toBeVisible();
       await shot(page, "2-header-add");
 

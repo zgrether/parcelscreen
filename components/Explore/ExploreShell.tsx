@@ -29,6 +29,7 @@ import { mapShowing } from "@/lib/client/mapShowing";
 import { ScreenItContext } from "@/components/Results/ScreenItContext";
 import { debugFromUrl } from "@/lib/client/debugHandle";
 import { DockTab, ScreenBody, ScreenHeader, useScreenIt } from "@/components/Results/panel/ScreenIt";
+import { HeaderActions } from "@/components/Results/panel/HeaderActions";
 import { GradeNote } from "@/components/Results/panel/GradeNote";
 import { GradeAction } from "@/components/Results/panel/GradeAction";
 import { PEEK, PEEK_ANSWER, PEEK_WITH_ACTION, SHEET_QUERY, useBottomSheet } from "./useBottomSheet";
@@ -299,6 +300,8 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
                   </header>
                   {/* The phone's grade button, under the header (owner, 4c Q1); the desktop's is the toolbar's. */}
                   {!docked && <GradeAction where="sheet" />}
+                  {/* UX part 2 PR 3 (P-2): ★, Not for us, Ask and ⋯, then the household's takes. */}
+                  {store.open && <HeaderActions s={screen} />}
                   {/* Step 8b: what an edit changed on the card, for a few seconds; then Grade | Uses | Details. */}
                   {store.open && <GradeNote s={screen} />}
                   {store.open && <ParcelSwitch ctl={explore} />}
