@@ -106,7 +106,8 @@ for (const phone of [false, true]) {
       await page.screenshot({ path: `${OUT}/${device}-312-divide.png` });
 
       // Details: the county record's acres, both parts.
-      await page.getByRole("tab", { name: "Details" }).click();
+      await tall(page, phone);
+      await tap(page.getByRole("tab", { name: "Details" }));
       await page.waitForTimeout(400);
       await page.screenshot({ path: `${OUT}/${device}-312-details.png` });
 
@@ -126,7 +127,8 @@ for (const phone of [false, true]) {
         deedRestrictions: "No mobile homes",
         hoa: "no",
       });
-      await page.getByRole("tab", { name: "Uses" }).click();
+      await tall(page, phone);
+      await tap(page.getByRole("tab", { name: "Uses" }));
       await tall(page, phone);
       const scenario = page.getByRole("article", { name: "Split 1" });
       const pieces = scenario.locator(".scn-piece");
@@ -161,7 +163,8 @@ for (const phone of [false, true]) {
           .getByRole("button", { name: "Add this piece to the list" }),
       );
       await settled(page);
-      await page.getByRole("tab", { name: "Details" }).click();
+      await tall(page, phone);
+      await tap(page.getByRole("tab", { name: "Details" }));
       const summary = page.locator(".ip-listing-summary");
       if ((await summary.count()) && (await summary.getAttribute("aria-expanded")) === "false")
         await summary.click();
