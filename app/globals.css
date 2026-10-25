@@ -5749,9 +5749,6 @@ button.cmp-cell:hover {
   max-width: 100%;
   min-height: 32px;
 }
-.rubric-strip-colon {
-  margin-left: -4px;
-}
 .rubric-strip-grade {
   font-size: 15px;
 }
@@ -6075,9 +6072,6 @@ button.cmp-cell:hover {
   }
   .rubric-strip-grade {
     flex: none;
-  }
-  .rubric-strip-colon {
-    display: none;
   }
   .rubric-sheet-head .btn,
   .rubric-notice .btn,
@@ -7051,6 +7045,9 @@ button.sync-ind.bad {
   .list-switch-seg {
     flex: 1;
     min-width: 0;
+    /* "Ruled out 0" on one line in a third of 375 px (the fresh-eyes review). */
+    padding: 0 6px;
+    white-space: nowrap;
   }
   /* A phone: the row becomes a card; Add to list and Open on the map go under the name, the grade beside it. */
   .hist-row {

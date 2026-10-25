@@ -100,8 +100,7 @@ export function RubricPreview({
               </option>
             ))}
           </select>
-        </label>
-        <span className="rubric-strip-colon">:</span>{" "}
+        </label>{" "}
         {p ? (
           <span className="rubric-strip-grade">
             {hover && held?.ok && <span className="muted">If you drop it here: </span>}

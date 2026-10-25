@@ -58,7 +58,8 @@ export const PRICE_WORDS = {
   asking: "Asking",
   plusLand: "plus the land",
   walkAway: "Walk-away price for the land",
-  togglesNote: "The toggles change these figures only; Within budget grades the costs as they are above.",
+  togglesNote:
+    "The switches change only this block. Your Within budget grade uses the costs as priced above.",
   noAsking: "No asking price entered.",
 } as const;
 
