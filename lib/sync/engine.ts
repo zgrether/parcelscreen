@@ -56,6 +56,12 @@ import {
   type StoredProfile,
 } from "./wire";
 
+/** No save sent while an answer was out: a discard's apply. */
+const NOTHING_SENT = {
+  profiles: new Set<string>(),
+  parcels: new Set<string>(),
+  household: new Set<string>(),
+};
 /** How long after the last edit a save goes. */
 const SAVE_AFTER_MS = 1000;
 /** A fetch asks from this far before the last cursor, so a save that committed late isn't missed. */
@@ -106,6 +112,19 @@ class Engine implements SyncHooks {
   private readonly poller = new Poller(() => void this.fetch());
   /** A fetch found the changes held (a drag, a focused field): fetch again once released. */
   private deferred = false;
+  /** What a save is sending now, until it settles. */
+  private readonly sending = {
+    profiles: new Set<string>(),
+    parcels: new Set<string>(),
+    household: new Set<string>(),
+  };
+  /**
+   * While a fetch is out: what a save had out as it began, or sent since. Its answer may predate that save, so its
+   * copies of those are older than this device's and aren't applied; the next answer has the save in it. (A pull that
+   * went out 15 ms before a save undid it on the device that made it: UX part 2, #319's CI.)
+   */
+  private sentDuringFetch: { profiles: Set<string>; parcels: Set<string>; household: Set<string> } | null =
+    null;
   private unhold: (() => void) | null = null;
 
   constructor(private state: SyncState) {}
@@ -380,6 +399,15 @@ class Engine implements SyncHooks {
     for (const [key] of parcelKeys) this.dirtyParcels.delete(key);
     for (const id of screenIds) this.dirtyScreens.delete(id);
     for (const id of householdIds) this.dirtyHousehold.delete(id);
+    // Out now: a fetch out meanwhile (or starting before this settles) doesn't apply its older copies of these.
+    const out = {
+      profiles: sentProfiles.keys(),
+      parcels: sentParcels.keys(),
+      household: sentHousehold.keys(),
+    };
+    for (const id of out.profiles) this.markSent("profiles", id);
+    for (const key of out.parcels) this.markSent("parcels", key);
+    for (const id of out.household) this.markSent("household", id);
     try {
       await sendAll(this.state.code, profiles, parcels, screens, undefined, household);
       for (const [id, v] of sentHousehold) {
@@ -401,7 +429,16 @@ class Engine implements SyncHooks {
       for (const id of householdIds) this.dirtyHousehold.add(id);
       this.persist();
       setView({ status: "failed", atOpen: false });
+    } finally {
+      for (const id of sentProfiles.keys()) this.sending.profiles.delete(id);
+      for (const key of sentParcels.keys()) this.sending.parcels.delete(key);
+      for (const id of sentHousehold.keys()) this.sending.household.delete(id);
     }
+  }
+
+  private markSent(kind: "profiles" | "parcels" | "household", id: string): void {
+    this.sending[kind].add(id);
+    this.sentDuringFetch?.[kind].add(id);
   }
 
   /** Discard (the next-open line): this device's unsaved changes give way to the space's copy. */
@@ -439,12 +476,15 @@ class Engine implements SyncHooks {
         const x = householdRecord(null, id);
         return { key: x.key, kind: x.kind, record: null, deleted: true, updatedAt: "" };
       });
-    await this.apply({
-      ...changes,
-      profiles: [...changes.profiles, ...goneProfiles],
-      parcels: [...changes.parcels, ...missing],
-      household: [...changes.household, ...goneHousehold],
-    });
+    await this.apply(
+      {
+        ...changes,
+        profiles: [...changes.profiles, ...goneProfiles],
+        parcels: [...changes.parcels, ...missing],
+        household: [...changes.household, ...goneHousehold],
+      },
+      NOTHING_SENT,
+    ); // a discard takes the space's copy of everything it names
     setView({ status: "synced", atOpen: false });
   }
 
@@ -468,30 +508,45 @@ class Engine implements SyncHooks {
     const since = this.state.cursor
       ? new Date(Date.parse(this.state.cursor) - OVERLAP_MS).toISOString()
       : null;
-    let changes;
+    this.sentDuringFetch = {
+      profiles: new Set(this.sending.profiles),
+      parcels: new Set(this.sending.parcels),
+      household: new Set(this.sending.household),
+    };
     try {
-      changes = await fetchChanges(this.state.code, since);
-    } catch {
-      return false; // offline or slow: the cached copy stands, and saving says so if it fails
-    }
-    if (!changes) return false;
-    // A drag or a field took hold while the fetch was out: apply nothing yet, and fetch again on release.
-    if (syncHeld()) {
-      this.deferred = true;
+      let changes;
+      try {
+        changes = await fetchChanges(this.state.code, since);
+      } catch {
+        return false; // offline or slow: the cached copy stands, and saving says so if it fails
+      }
+      if (!changes) return false;
+      // A drag or a field took hold while the fetch was out: apply nothing yet, and fetch again on release.
+      if (syncHeld()) {
+        this.deferred = true;
+        return true;
+      }
+      await this.apply(changes, this.sentDuringFetch);
+      this.state = { ...this.state, cursor: changes.cursor ?? this.state.cursor };
+      writeSyncState(this.state);
       return true;
+    } finally {
+      this.sentDuringFetch = null;
     }
-    await this.apply(changes);
-    this.state = { ...this.state, cursor: changes.cursor ?? this.state.cursor };
-    writeSyncState(this.state);
-    return true;
   }
 
-  /** Merges the space's changes into this device's copy, except what's changed here and not saved. */
-  private async apply(changes: {
-    profiles: StoredProfile[];
-    parcels: { key: string; profile: string; record: Record<string, unknown> | null; deleted: boolean }[];
-    household: StoredHousehold[];
-  }): Promise<void> {
+  /**
+   * Merges the space's changes into this device's copy, except what's changed here and not saved, and what a save sent
+   * while this answer was on its way (`sent`).
+   */
+  private async apply(
+    changes: {
+      profiles: StoredProfile[];
+      parcels: { key: string; profile: string; record: Record<string, unknown> | null; deleted: boolean }[];
+      household: StoredHousehold[];
+    },
+    sent: { profiles: ReadonlySet<string>; parcels: ReadonlySet<string>; household: ReadonlySet<string> },
+  ): Promise<void> {
     const storage = profileStorage();
     if (!storage) return;
     const current = currentProfileId();
@@ -501,7 +556,7 @@ class Engine implements SyncHooks {
     try {
       const local = new Map((await this.profiles()).map((p) => [p.id, p]));
       for (const p of changes.profiles) {
-        if (this.dirtyProfiles.has(p.id)) continue;
+        if (this.dirtyProfiles.has(p.id) || sent.profiles.has(p.id)) continue;
         if (p.deleted || !p.record) {
           if (local.has(p.id)) {
             await storage.deleteProfile(p.id);
@@ -545,7 +600,7 @@ class Engine implements SyncHooks {
       for (const [profile, xs] of byProfile) {
         // Only the household's list (step 6); a space's rows from before step 6, kept per profile, are left alone.
         if (profile !== SPACE_ID) continue;
-        const keep = new Set([...this.dirtyParcels.keys()]);
+        const keep = new Set([...this.dirtyParcels.keys(), ...sent.parcels]);
         const raw = await this.doc(profile, PARCELS_DOC);
         const fresh = xs.filter(
           (x) =>
@@ -573,6 +628,7 @@ class Engine implements SyncHooks {
         const id = householdId(x.kind, x.key);
         return (
           !this.dirtyHousehold.has(id) &&
+          !sent.household.has(id) &&
           (this.householdBase.get(id) ?? null) !== (x.record && !x.deleted ? canonical(x.record) : null)
         );
       });
@@ -580,7 +636,7 @@ class Engine implements SyncHooks {
         const merged = mergeHousehold(
           await this.doc(SPACE_ID, HOUSEHOLD_DOC),
           freshHousehold,
-          this.dirtyHousehold,
+          new Set([...this.dirtyHousehold, ...sent.household]),
         );
         for (const x of freshHousehold) {
           const id = householdId(x.kind, x.key);
