@@ -77,7 +77,8 @@ test("an existing profile: offered, never sent; the why lines, Reset to my answe
   await page.getByRole("radio", { name: "Cool and snowy" }).click();
   await page.getByRole("button", { name: "Continue" }).click(); // step 11: its follow-ups, preset
   await expect(progress(page)).toHaveText("2 of 14");
-  for (let n = 3; n <= 6; n++) {
+  // Paddling shares question 4 with Trails (step 14d), as 14a and 14b share 14.
+  for (const n of [3, 4, 4, 5, 6]) {
     await page.getByRole("button", { name: "Skip" }).click();
     await expect(progress(page)).toHaveText(`${n} of 14`);
   }
