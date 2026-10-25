@@ -22,7 +22,7 @@ import { piecesOf } from "@/lib/split/scenario";
 import type { LatLon } from "@/lib/geo/types";
 import { parcelFromLine } from "@/lib/geo/parcels";
 import { LINES_MIN_ZOOM } from "@/lib/geo/parcelTiles";
-import { DRAWING, panelView } from "@/components/Explore/exploreState";
+import { DRAWING, panelView, toolOpen } from "@/components/Explore/exploreState";
 import { layerLine, lineLayer } from "@/components/Explore/layers";
 import { useExplore, type ExploreController } from "@/components/Explore/useExploreController";
 import { KIND_NAME, type PointMarkup } from "@/lib/client/parcelStore";
@@ -243,10 +243,7 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
     document.addEventListener("keydown", onKey);
     // Double-click and drag, or middle-drag, tilts and rotates; a double-click alone zooms in (Google Earth's
     // way, owner 2026-10-10). Not while a tool is open: Draw finishes a boundary with a double-click.
-    const uninstall = installTiltRotate(map, () => {
-      const { mode, split } = ref.current.current();
-      return !!mode || !!split;
-    });
+    const uninstall = installTiltRotate(map, () => toolOpen(ref.current.current()));
     return () => {
       endPress();
       map.off("touchstart", onTouchStart);
@@ -260,6 +257,17 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
       uninstall();
     };
   }, [map]);
+
+  // Z-1 (UX part 2, P-10): a double-tap zooms in on a phone whenever no tool is open. Only the touch half of MapLibre's
+  // double-click zoom is turned on: the mouse's double-click stays tiltRotate's, and with a tool open a second tap is
+  // a corner, as before.
+  const tool = toolOpen(ctl.state);
+  useEffect(() => {
+    if (!map) return;
+    const tapZoom = map.doubleClickZoom._tapZoom;
+    if (tool) tapZoom.disable();
+    else tapZoom.enable();
+  }, [map, tool]);
 
   const mode = ctl.state.mode;
   // Once the cut is placed, its ends are dragged to move it (step 14: no piece is picked on the map).
