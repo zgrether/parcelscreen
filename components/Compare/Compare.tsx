@@ -103,20 +103,23 @@ export function Compare() {
     const status = c.status ? STATUS[c.status] : null;
     const body = (
       <>
-        {status && (
-          <span className={`gate-mark ${c.status}`} aria-hidden="true">
-            {status.mark}
-          </span>
-        )}
-        {c.grade !== undefined && (
-          <span className={`card-grade small g-${c.grade ?? "none"}`}>{c.grade ?? "–"}</span>
-        )}
+        {/* Z-6 (UX part 2 PR 7c1): the mark or letter, then ✎, in one fixed cell before the words. */}
+        <span className="cmp-key">
+          {status && (
+            <span className={`gate-mark ${c.status}`} aria-hidden="true">
+              {status.mark}
+            </span>
+          )}
+          {c.grade !== undefined && (
+            <span className={`card-grade small g-${c.grade ?? "none"}`}>{c.grade ?? "–"}</span>
+          )}
+          {c.adjusted && (
+            <span className="adjusted-mark" title={ADJUSTED_TITLE} aria-label={ADJUSTED_TITLE}>
+              ✎
+            </span>
+          )}
+        </span>
         <span className="cmp-text">{status ? status.word : c.text}</span>
-        {c.adjusted && (
-          <span className="adjusted-mark" title={ADJUSTED_TITLE} aria-label={ADJUSTED_TITLE}>
-            ✎
-          </span>
-        )}
         {c.mark && (
           <span
             className={`cmp-mark ${c.mark}`}

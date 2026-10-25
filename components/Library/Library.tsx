@@ -646,18 +646,21 @@ function FactorCellView({ c, best }: { c: FactorCell | undefined; best: boolean 
   if (!c) return <span className="muted">–</span>;
   const label = `${c.title}: ${c.detail}${best ? `; ${BEST_WORDS}` : ""}`;
   return (
+    // Z-6 (UX part 2 PR 7c1): the mark and letter in one fixed cell, then ✎, then ●, each in its own column.
     <span className="lib-factor" title={label} aria-label={label}>
-      {c.kind === "must" && c.status && (
-        <span className={`lib-mark m-${c.status}`} aria-hidden="true">
-          {GATE_MARK[c.status]}
-        </span>
-      )}
-      {c.grade !== undefined && (
-        <span className={`card-grade small g-${c.grade ?? "none"}`} aria-hidden="true">
-          {c.grade ?? "–"}
-        </span>
-      )}
-      {c.setAside && <span className="muted">–</span>}
+      <span className="lib-key">
+        {c.kind === "must" && c.status && (
+          <span className={`lib-mark m-${c.status}`} aria-hidden="true">
+            {GATE_MARK[c.status]}
+          </span>
+        )}
+        {c.grade !== undefined && (
+          <span className={`card-grade small g-${c.grade ?? "none"}`} aria-hidden="true">
+            {c.grade ?? "–"}
+          </span>
+        )}
+        {c.setAside && <span className="muted">–</span>}
+      </span>
       {c.adjusted && (
         <span className="adjusted-mark" aria-hidden="true">
           ✎

@@ -3670,6 +3670,29 @@ html:has(.app-nav) .explore {
   border: 1px solid var(--color-rule);
 }
 /* Cost to enjoy (step 10): label, range, then the budget's mark and words; they wrap under each other on a phone. */
+/* Z-6 (UX part 2 PR 7c1): the mark or letter in one fixed cell first (a must's mark and its letter, an adjusted letter
+   with the app's struck beside it), then the name over its detail: the words never move. The cost lines keep theirs. */
+.card-row:not(.cost-row) {
+  grid-template-columns: 64px minmax(0, 1fr);
+  grid-template-areas:
+    "mark label"
+    "mark detail";
+  align-items: center;
+  row-gap: 2px;
+  column-gap: 8px;
+}
+.card-row:not(.cost-row) > .row-label {
+  grid-area: label;
+}
+.card-row:not(.cost-row) > .row-detail {
+  grid-area: detail;
+}
+.card-row:not(.cost-row) > .card-grade,
+.card-row:not(.cost-row) > .adjusted-grade,
+.card-row:not(.cost-row) > .must-mark {
+  grid-area: mark;
+  justify-self: start;
+}
 .cost-row.card-row {
   grid-template-columns: minmax(0, 9.5em) auto minmax(0, 1fr);
 }
@@ -4502,6 +4525,17 @@ button.cmp-cell {
 button.cmp-cell:hover {
   background: var(--color-paper-2);
 }
+/* Z-6 (UX part 2 PR 7c1): a cell's mark, letter and ✎ in one fixed width, so the words start in one place. A row of
+   words alone has none. */
+.cmp-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex: 0 0 60px;
+}
+.cmp-key:empty {
+  display: none;
+}
 .cmp-mark {
   font-weight: 700;
 }
@@ -4740,10 +4774,24 @@ button.cmp-cell:hover {
 .lib-grid .lib-c-factor {
   text-align: center;
 }
+/* Z-6 (UX part 2 PR 7c1): the mark and letter in one fixed cell, ✎ and ● in their own, so nothing moves the rest. */
 .lib-factor {
+  display: inline-grid;
+  grid-template-columns: 46px 12px 10px;
+  align-items: center;
+  justify-items: start;
+}
+.lib-factor > .lib-key {
+  grid-column: 1;
   display: inline-flex;
   align-items: center;
   gap: 3px;
+}
+.lib-factor > .adjusted-mark {
+  grid-column: 2;
+}
+.lib-factor > .lib-best {
+  grid-column: 3;
 }
 .lib-mark {
   display: inline-grid;
