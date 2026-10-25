@@ -41,6 +41,17 @@ describe("prefs", () => {
   });
 });
 
+describe("lidar terrain's pref (step 14c)", () => {
+  it("starts off, Shaded relief, at 60%; keeps what's set; clamps an opacity out of range", () => {
+    const s = memory();
+    expect(getPref("ps.lidar", s)).toEqual({ on: false, style: "relief", opacity: 0.6 });
+    setPref("ps.lidar", { on: true, style: "slope", opacity: 0.8 }, s);
+    expect(getPref("ps.lidar", s)).toEqual({ on: true, style: "slope", opacity: 0.8 });
+    s.data.set("ps.lidar", JSON.stringify({ on: true, style: "other", opacity: 5 }));
+    expect(getPref("ps.lidar", s)).toEqual({ on: true, style: "relief", opacity: 1 });
+  });
+});
+
 describe("user config", () => {
   it("merges stored settings over the defaults and round-trips", () => {
     const s = memory();

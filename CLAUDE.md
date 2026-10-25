@@ -95,6 +95,16 @@ step. Mission mode changes rules 1 and 3 above as written here; everything else 
   `ci.yml` and `expected-guard.yml` run on every pull request whatever its base branch, so it does, and
   `deployed-check.yml` runs on every Vercel deployment.)
 
+## Proportionate verification (standing rule; owner, 2026-10-25)
+
+This is a personal tool for one household. Verification should be proportionate:
+- Decide on the evidence in hand. Run extra measurements, comparisons or recordings only when the result could change
+  the decision or a grade.
+- Prefer one confirming screenshot over a matrix of them.
+- If unsure, ask Zach rather than spending CI hours.
+- The safety rules are unchanged: no secrets on the client, additive migrations, and declared grade and report-text
+  changes.
+
 ## Hard rules
 
 - `lib/screen/**` has **no DOM dependencies**: no `window`, `document`, `canvas`, Leaflet,
