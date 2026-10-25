@@ -888,7 +888,7 @@ function CardChips({ r }: { r: LibraryRow }) {
   );
 }
 
-function Card({ r, index, count, ticked, toggle, open, ordering, mover, star, unstar, report }: RowProps) {
+function Card({ r, index, count, ticked, toggle, open, ordering, mover, unstar, report }: RowProps) {
   const { nodeProps, dragging, handleProps } = useSortableRow(r.key, ordering);
   return (
     <li
@@ -899,19 +899,11 @@ function Card({ r, index, count, ticked, toggle, open, ordering, mover, star, un
     >
       {ordering && <DragHandle name={r.name} handle={handleProps} />}
       <div className="lib-card-body">
+        {/* Z-7 (UX part 2 PR 7c2): the first line is the name, the verdict and the letter. Every card here is on the
+            list, so it has no star: ⋯ has Remove from Your list. */}
         <div className="lib-card-head">
-          {star(r)}
           <LongName name={r.name} className="lib-open" />
-          {/* Z-7 (UX part 2 PR 7c2): the first line is the name, the verdict and the letter. */}
           <Grade g={r.grades[0]?.graded ?? null} unscreened={r.unscreened} />
-          <RowMenu
-            name={r.name}
-            index={index}
-            count={count}
-            move={ordering ? (to) => mover.move(r.key, to) : undefined}
-            remove={() => unstar(r)}
-            report={graded(r) ? () => report(r.key) : undefined}
-          />
         </div>
         {r.grades.length > 1 && (
           <div className="lib-chips lib-card-others">
@@ -935,6 +927,16 @@ function Card({ r, index, count, ticked, toggle, open, ordering, mover, star, un
         />
         <span aria-hidden="true">{CARD_WORDS.compare}</span>
       </label>
+      <div className="lib-card-more">
+        <RowMenu
+          name={r.name}
+          index={index}
+          count={count}
+          move={ordering ? (to) => mover.move(r.key, to) : undefined}
+          remove={() => unstar(r)}
+          report={graded(r) ? () => report(r.key) : undefined}
+        />
+      </div>
     </li>
   );
 }

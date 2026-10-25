@@ -5184,7 +5184,18 @@ button.cmp-cell:hover {
 }
 .lib-card-head,
 .lib-card-ordered .lib-card-head {
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+/* ⋯ under the Compare tick, on the card's right. */
+.lib-card > .lib-card-body,
+.lib-card > .lib-handle {
+  grid-row: 1 / span 2;
+}
+.lib-card-more {
+  grid-column: -2 / -1;
+  grid-row: 2;
+  justify-self: center;
+  align-self: start;
 }
 .lib-detail {
   /* The report card's light style for the Info panel's shared controls (owner, #133). */

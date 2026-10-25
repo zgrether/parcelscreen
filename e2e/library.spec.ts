@@ -205,6 +205,9 @@ test.describe("on a phone", () => {
       clientY: 50,
     });
     await expect(page.getByRole("tooltip")).toHaveText(MACKS_NAME);
+    // A tap elsewhere closes it.
+    await page.getByRole("heading", { name: "Your list" }).tap({ position: { x: 4, y: 4 } });
+    await expect(page.getByRole("tooltip")).toHaveCount(0);
     // A tap anywhere on the card opens it on the map, with the one panel (Z-2).
     await page.locator(".lib-card", { hasText: "parcel 35-3" }).locator(".lib-card-money").tap();
     await expect(page).toHaveURL(/\/explore$/);

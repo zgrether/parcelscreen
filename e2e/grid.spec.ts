@@ -66,7 +66,7 @@ test("a header sorts and turns around; Columns ▾ hides a factor and remembers 
 test.describe("on a phone", () => {
   test.use({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true });
 
-  test("each card has its factor strip; the Sort menu sorts by a factor", async ({ page, context }) => {
+  test("each card has three lines and its top factors as chips; the legend behind ?; the Sort menu sorts by a factor", async ({ page, context }) => {
     test.setTimeout(180_000);
     await replayHar(context, "ferney-creek-52-47A");
     await openExplorer(page, "ferney-creek-52-47A");

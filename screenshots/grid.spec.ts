@@ -148,11 +148,13 @@ for (const v of VIEWS) {
         // Recent: Ferney off the list, with its $/ac and the verdict word beside the letter.
         await visit(page, "/library");
         await page.getByRole("tab", { name: "Shortlist" }).click();
+        // Z-7: a phone card has no star; ⋯ has Remove from Your list, as the grid's row does.
         await page
-          .getByRole("button", { name: `On your list: ${ferney}` })
+          .getByRole("button", { name: `More for ${ferney}` })
           .filter({ visible: true })
           .first()
           .click();
+        await page.getByRole("menuitem", { name: "Remove from Your list" }).click();
         await page.getByRole("alertdialog").getByRole("button", { name: "Remove from Your list" }).click();
         await page.getByRole("tab", { name: "Recent" }).click();
         await page.waitForTimeout(400);
