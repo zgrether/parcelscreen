@@ -3,7 +3,7 @@
  * The open parcel's actions (UX part 2 PR 3; the audit's P-2): one row under the header, each 44 px to tap.
  *   - ★ Add to list / On your list.
  *   - Not for us (P-4), or Move back once it's ruled out.
- *   - Ask Julie (Ask someone with more than one other member), where there's a household and the parcel is kept.
+ *   - Ask Julie (Ask someone with more than one other member, or with none yet: it opens Household), on a kept parcel.
  *   - ⋯: Make a report, Copy summary, Remove from Your list.
  * Not for us and Ask open in the row's place, as the mock-up has them. The other members' takes follow the row, with a
  * dot on one that was new when the parcel opened (opening it sees it, step 6b).
@@ -13,6 +13,7 @@ import { Star } from "@/components/Favorites/Star";
 import { ArchiveReason } from "@/components/Map/ParcelStanding";
 import { useOtherMembers } from "@/components/Household/Others";
 import { AskForm } from "@/components/Household/Takes";
+import { useHouseholdDialog } from "@/components/Household/HouseholdDialog";
 import { PanelMenu } from "@/components/Report/PanelMenu";
 import { countyOf, isFavorite, starName } from "@/lib/client/favorites";
 import { memberName, type Member } from "@/lib/client/household";
@@ -35,6 +36,7 @@ export function HeaderActions({ s }: { s: ScreenIt }) {
   const open = s.ctl.state.store.open;
   const serial = s.ctl.state.serial;
   const members = useOtherMembers();
+  const household = useHouseholdDialog();
   const [form, setForm] = useState<"rule" | "ask" | null>(null);
   // Another parcel opened: the form it had open goes.
   const key = open?.key ?? null;
@@ -79,10 +81,17 @@ export function HeaderActions({ s }: { s: ScreenIt }) {
               {ACTION_WORDS.ruleOut}
             </button>
           )}
-          {askable && (
+          {askable ? (
             <button className="sh-act" onClick={() => setForm("ask")}>
               {members.length === 1 ? ACTION_WORDS.ask(members[0]!.name) : ACTION_WORDS.askSomeone}
             </button>
+          ) : (
+            // P-8 (UX part 2 PR 5): with no one else in the household yet, Ask someone opens Household.
+            key !== null && (
+              <button className="sh-act" onClick={household.open}>
+                {ACTION_WORDS.askSomeone}
+              </button>
+            )
           )}
           <PanelMenu
             parcelKey={key}

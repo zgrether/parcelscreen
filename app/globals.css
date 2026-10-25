@@ -8227,3 +8227,31 @@ button.use-row[aria-expanded="true"] .use-name::after {
 .ac-pct {
   font: 700 22px/1 var(--font-cond);
 }
+
+/* Household (UX part 2 PR 5, P-8): its members, each with Rename; then your devices. */
+.household-members {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0;
+  padding: 0;
+  list-style: none;
+}
+.household-member {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 44px;
+  padding: 4px 10px;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+}
+.household-rename {
+  display: flex;
+  flex: 1;
+  gap: 6px;
+}
+.household-rename input {
+  flex: 1;
+  min-width: 0;
+}
