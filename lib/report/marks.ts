@@ -40,6 +40,22 @@ export const AREA_KINDS: readonly AreaKind[] = ["septic", "clearing"];
 export type SepticClass = "conventional" | "modified" | "alternative";
 export const SEPTIC_CLASSES: readonly SepticClass[] = ["conventional", "modified", "alternative"];
 
+/** A flood letter's kind: an elevation certificate, or FEMA's Letter of Map Amendment. */
+export type FloodLetter = "elevation" | "loma";
+export const FLOOD_LETTERS: readonly FloodLetter[] = ["elevation", "loma"];
+
+/**
+ * J-5's marks that aren't places (the septic permit and a recorded easement are drawn on the map, and stay so):
+ *   - a flood letter, which passes the Floodplain Must;
+ *   - service confirmed at the address (a provider's letter, or a service already there): internet settles Satellite
+ *     internet, and power the cost's run to the site.
+ * Each with when it was marked.
+ */
+export interface Facts {
+  floodLetter?: { kind: FloodLetter; at: string };
+  service?: { power: boolean; internet: boolean; at: string };
+}
+
 /** A point marker: one place, [lat, lon]. */
 export interface PointMark {
   id: string;
@@ -78,7 +94,16 @@ export interface Drawn {
    * own, a member's profile id for theirs. A card reads only its own rubric's.
    */
   adjust?: ReadonlyMap<string, readonly Adjustment[]>;
+  /** The parcel's facts (J-5): a flood letter, service confirmed. */
+  facts?: Facts;
 }
+
+/** Appended to the Floodplain Must's reason when a flood letter is marked (J-5, UX part 2 PR 3c; rule 7). */
+export const floodLetterOnFile = (kind: FloodLetter): string =>
+  `${kind === "loma" ? "a Letter of Map Amendment (LOMA)" : "an elevation certificate"} is on file (your mark): get a copy`;
+
+/** Appended to Satellite internet when internet service is confirmed at the address (J-5; rule 7). */
+export const INTERNET_CONFIRMED = "internet service is confirmed at the address (your mark)";
 
 /**
  * The card's view of a parcel (parcelStore's lines and markers, and its driveway choice): every name, the markers, the
@@ -91,8 +116,11 @@ export const drawnOf = (
   cost?: { askingPrice: number | null; rates: Rates; paving?: Paving },
   /** Each person's adjustments on this parcel, by rubric id (step 12): given, each card applies its own. */
   adjust?: ReadonlyMap<string, readonly Adjustment[]>,
+  /** The parcel's facts (J-5): what a document settles, for every member. */
+  facts?: Facts,
 ): Drawn => ({
   ...(adjust?.size ? { adjust } : {}),
+  ...(facts && (facts.floodLetter || facts.service) ? { facts } : {}),
   names: lineNamesOf(markup),
   marks: markup.filter((m): m is typeof m & Mark => m.shape !== "line"),
   driveway,

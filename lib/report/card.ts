@@ -42,7 +42,17 @@ import {
   type LineNames,
 } from "./lines";
 import { rankSites, type RankedSite } from "./sites";
-import { nearestFt, PERMIT_ON_FILE, permitFar, SPRING_MARKED, type Drawn, type Mark } from "./marks";
+import {
+  floodLetterOnFile,
+  INTERNET_CONFIRMED,
+  nearestFt,
+  PERMIT_ON_FILE,
+  permitFar,
+  SPRING_MARKED,
+  type Drawn,
+  type Facts,
+  type Mark,
+} from "./marks";
 import {
   BUDGET_SITS,
   budgetStatusOf,
@@ -268,7 +278,16 @@ const gate =
  * The owner's rule (#109 review): a fail when the build site is in a flood zone; a warn when one touches the build
  * site's ground or the scored driveway (schema v4); a flood zone elsewhere on the parcel is a pass, with a note.
  */
-function floodplain(r: Result, site: BuildSite | null | undefined, driven: Driven): Gate {
+function floodplain(r: Result, site: BuildSite | null | undefined, driven: Driven, known?: Facts): Gate {
+  const byMap = floodplainByMap(r, site, driven);
+  // J-5 (UX part 2 PR 3c): a flood letter marked for the parcel passes it, whatever the map says, with a reminder
+  // appended (rule 7), as a septic permit does for Septic.
+  const letter = known?.floodLetter;
+  if (!letter) return byMap;
+  return { ...byMap, status: "pass", reason: [byMap.reason, floodLetterOnFile(letter.kind)].join("; ") };
+}
+
+function floodplainByMap(r: Result, site: BuildSite | null | undefined, driven: Driven): Gate {
   const g = gate("floodplain", FACTOR_LABELS.floodplain);
   if (!r.flood) return g("unknown", "The FEMA flood map didn't load", "the FEMA flood map");
   if (!r.flood.mapped) return g("unknown", "FEMA has no flood mapping here");
@@ -891,7 +910,15 @@ function longTrail(r: Result, K: CardConfig): Row {
  * Satellite internet (step 11, plan §2.7; renamed from Internet, owner, #272): the parcel's best spot for a satellite dish, graded on how clear its view is, with its
  * distance from the site the card reads.
  */
-function internet(r: Result, K: CardConfig, at: number): Row {
+function internet(r: Result, K: CardConfig, at: number, known?: Facts): Row {
+  const byDish = internetByDish(r, K, at);
+  // J-5: internet service confirmed at the address settles it (an A), whatever the dish spot, with the reminder appended.
+  if (!known?.service?.internet) return byDish;
+  const { missing: _missing, ...rest } = byDish;
+  return { ...rest, grade: "A", detail: `${byDish.detail}; ${INTERNET_CONFIRMED}`, short: "service confirmed" };
+}
+
+function internetByDish(r: Result, K: CardConfig, at: number): Row {
   const g = row("internet", FACTOR_LABELS.internet);
   if (r.dish === undefined) return { ...g(null, NOT_MEASURED), short: "not measured" };
   if (r.dish === null) return { ...g(null, "no spot on the parcel could be read"), short: "not read" };
@@ -1089,11 +1116,12 @@ export function cardFacts(
         askingPrice: drawn.cost.askingPrice,
         rates: drawn.cost.rates,
         ...(drawn.cost.paving ? { paving: drawn.cost.paving } : {}),
+        ...(drawn.facts?.service?.power ? { powerConfirmed: true } : {}),
       })
     : undefined;
   const facts = {
     gates: [
-      floodplain(r, site, driven),
+      floodplain(r, site, driven, drawn?.facts),
       access(r, driven, names, records),
       easement(r, driven, names, records),
       septic(r, site, marks, K),
@@ -1109,7 +1137,7 @@ export function cardFacts(
       hospital(r, K),
       airport(r, K),
       longTrail(r, K),
-      internet(r, K, at),
+      internet(r, K, at, drawn?.facts),
       garden(r, K, marks),
       climateRow!,
       privacyRow!,
