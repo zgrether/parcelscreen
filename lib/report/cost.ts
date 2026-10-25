@@ -48,6 +48,8 @@ export interface CostInput {
   rates: Rates;
   /** Whether steep stretches are paved, and above what grade (Settings → Costs); paved above 12% when absent. */
   paving?: Paving;
+  /** Power service confirmed at the address (J-5, UX part 2 PR 3c): the run from the road isn't an assumption. */
+  powerConfirmed?: boolean;
 }
 
 /** One rate's share of an item: a quantity (a range for the well's depth) × the rate. */
@@ -128,6 +130,8 @@ export const COST_ITEMS = {
 
 export const COST_NOTES = {
   powerAlongRoad: "assumes power along the road",
+  // J-5 (UX part 2 PR 3c): in the assumption's place when the household marked power service confirmed.
+  powerConfirmed: "power service is confirmed at the address (your mark)",
   spring: "priced as a pump and line (no published spring figure)",
   offRoute: `off the route: the straight distance × ${A.trackTurns} for a track's turns (ours)`,
   beyondTrack: "past the camp's track: new ground",
@@ -447,8 +451,8 @@ export function costToEnjoy(input: CostInput): CostToEnjoy | null {
     item(
       COST_ITEMS.power(powerFt, !!pole),
       [part(rates, "power.perFt", powerFt, "ft")],
-      pole ? [] : [COST_NOTES.powerAlongRoad],
-      pole ? null : LOWER_IT.power,
+      pole ? [] : [input.powerConfirmed ? COST_NOTES.powerConfirmed : COST_NOTES.powerAlongRoad],
+      pole || input.powerConfirmed ? null : LOWER_IT.power,
     ),
   );
   build.push(item(COST_ITEMS.hookup, [part(rates, "power.hookup", 1, "each")]));

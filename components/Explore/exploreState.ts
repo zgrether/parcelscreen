@@ -50,6 +50,7 @@ import {
   AREA_KINDS,
   POINT_KINDS,
   type AreaKind,
+  type Facts,
   type MarkKind,
   type PointKind,
   type SepticClass,
@@ -231,6 +232,8 @@ export type ExploreAction =
   | { type: "askingPrice"; price: number | null; serial: number; stamp: Stamp }
   /** WF1: the listing's facts (name, link, acres, agent), for the parcel open when they were typed. */
   | { type: "listing"; patch: Partial<Pick<WorkingParcel, ListingField>>; serial: number; stamp: Stamp }
+  /** J-5 (UX part 2 PR 3c): the parcel's facts, whole (a flood letter, service confirmed), for the parcel open. */
+  | { type: "facts"; facts: Facts; serial: number; stamp: Stamp }
   /**
    * Step 8: starred with its name (a favorite; it builds a plain parcel) or unstarred (back to History). WF2: archiving
    * it with a reason (blank is refused); restoring it to the favorites; a milestone's date ("2026-10-20"), or null to
@@ -601,6 +604,13 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       // A screen is one of the built rules: the parcel is saved to History with it.
       if (!open || a.serial !== s.serial || open.screenIds.includes(a.id)) return s;
       return { ...s, store: save({ ...open, screenIds: [...open.screenIds, a.id] }, a.stamp) };
+    case "facts": {
+      if (!open || a.serial !== s.serial) return s;
+      const facts = a.facts.floodLetter || a.facts.service || a.facts.survey ? a.facts : undefined;
+      if (JSON.stringify(facts) === JSON.stringify(open.facts)) return s;
+      const { facts: _was, ...rest } = open;
+      return { ...s, store: save(facts ? { ...rest, facts } : rest, a.stamp) };
+    }
     case "notes":
     case "askingPrice":
     case "listing": {

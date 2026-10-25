@@ -46,6 +46,7 @@ import { useRubricView } from "@/lib/client/useRubricView";
 import { reportCard } from "@/lib/report/card";
 import { answerReason, verdictParts } from "@/lib/report/answer";
 import { lineNamesOf, type LineNames } from "@/lib/report/lines";
+import { isFactRow, type FactProps, type FactRow } from "@/components/Results/card/FactSection";
 import { drawnOf, type Drawn } from "@/lib/report/marks";
 import { currentCostSettings, useCostSettings } from "@/lib/client/costRates";
 import { listingAcresNote } from "@/lib/report/listing";
@@ -78,7 +79,7 @@ import { adjustPropsFor } from "@/components/Results/card/AdjustSection";
 import { gradedSite } from "@/lib/report/adjust";
 import { RaiseSection } from "@/components/Results/card/RaiseSection";
 import { getPref } from "@/lib/client/prefs";
-import { MINE } from "@/lib/rubric/types";
+import { MINE, type Factor } from "@/lib/rubric/types";
 import { NEIGHBOUR_WORDS, raiseSuggestions, triedWords, type RaiseAction } from "@/lib/report/raise";
 import type { TryProps } from "@/components/Results/card/TryIt";
 import { OFFLINE_SCREEN_TEXT } from "@/lib/client/pwa";
@@ -517,29 +518,42 @@ export function useScreenIt(
             display,
             rubric,
             open
-              ? drawnOf(markup ?? [], drivewayLine, { askingPrice, ...costs }, adjustFor(open.key, household))
+              ? drawnOf(
+                  markup ?? [],
+                  drivewayLine,
+                  { askingPrice, ...costs },
+                  adjustFor(open.key, household),
+                  open.facts,
+                )
               : undefined,
           )
         : null,
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- the open parcel's markup, line, price and adjustments are what matter
-    [display, rubric, markup, drivewayLine, askingPrice, costs, household],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the open parcel's markup, line, price, adjustments and facts are what matter
+    [display, rubric, markup, drivewayLine, askingPrice, costs, household, open?.facts],
   );
   // Step 14: what the land can do, at the card's site, once the run is done (Uses and Grade's shortcut line read it).
   const deedRestrictions = open?.deedRestrictions ?? "";
   const hoa = open?.hoa ?? "unknown";
   const listingAcres = open?.listingAcres ?? null;
   const fromOriginal = open?.fromOriginal;
+  const facts = open?.facts;
   const uses = useMemo(
     () =>
       display && card && !runningHere
         ? landUses(
-            usesInputOf(display, card, drawnOf(markup ?? [], drivewayLine, { askingPrice, ...costs }), {
-              markup: markup ?? [],
-              deedRestrictions,
-              hoa,
-              listingAcres,
-              ...(fromOriginal ? { fromOriginal } : {}),
-            }),
+            usesInputOf(
+              display,
+              card,
+              drawnOf(markup ?? [], drivewayLine, { askingPrice, ...costs }, undefined, facts),
+              {
+                markup: markup ?? [],
+                deedRestrictions,
+                hoa,
+                listingAcres,
+                ...(fromOriginal ? { fromOriginal } : {}),
+                ...(facts ? { facts } : {}),
+              },
+            ),
           )
         : null,
     [
@@ -554,6 +568,7 @@ export function useScreenIt(
       hoa,
       listingAcres,
       fromOriginal,
+      facts,
     ],
   );
   // A site tapped in the panel (step 7 plan §1.3): evaluated with the live session, as its pin is; without one, the
@@ -642,6 +657,24 @@ const namesOf = (s: ScreenIt): LineNames | undefined => {
   return open ? lineNamesOf(open.markup) : undefined;
 };
 
+/**
+ * J-5 (UX part 2 PR 3c): "Is this a fact about the parcel?" on a row a document settles, for the open parcel. A fact
+ * that's a place (the septic permit, an easement) starts the map's tool, the panel closed.
+ */
+const factPropsFor = (panel: string, s: ScreenIt): FactProps | null => {
+  const open = s.ctl.state.store.open;
+  if (!open || !isFactRow(panel as Factor)) return null;
+  return {
+    row: panel as FactRow,
+    facts: open.facts,
+    saveFacts: (f) => s.ctl.saveFacts(f, s.ctl.state.serial),
+    draw: (c) => {
+      s.closePanel();
+      s.ctl.pickMark(c);
+    },
+  };
+};
+
 /** What the open parcel holds for its card: those names, and its markers (WF4). */
 const drawnFor = (s: ScreenIt): Drawn | undefined => {
   const open = s.ctl.state.store.open;
@@ -651,6 +684,7 @@ const drawnFor = (s: ScreenIt): Drawn | undefined => {
         open.drivewayLine,
         { askingPrice: open.askingPrice, ...currentCostSettings() },
         adjustFor(open.key),
+        open.facts,
       )
     : undefined;
 };
@@ -700,7 +734,9 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
           {/* P-2: the acres, then the county and the tax map number, the listing's way of naming it. */}
           {(d?.ok || place) && (
             <span className="sh-acres">
-              {[d?.ok ? `${fmt(d.acres, 2)} ac` : null, place].filter(Boolean).join(" · ")}
+              {[acresWords(s.ctl.state.store.open, d?.ok ? d.acres : null), place]
+                .filter(Boolean)
+                .join(" · ")}
             </span>
           )}
         </span>
@@ -733,6 +769,13 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
     </>
   );
 }
+
+/** The header's acres (J-5, UX part 2 PR 3c2): a survey's, named so, before the boundary's. */
+const acresWords = (open: WorkingParcel | null, boundary: number | null): string | null => {
+  const surveyed = open?.facts?.survey?.acres ?? null;
+  if (surveyed !== null) return `${fmt(surveyed, 1)} ac, surveyed`;
+  return boundary !== null ? `${fmt(boundary, 2)} ac` : null;
+};
 
 /** The ×'s tooltip (J-2: × only closes, as Esc does on a desktop). */
 const closeTitle = (_open: WorkingParcel | null, desk: boolean): string =>
@@ -995,6 +1038,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             { save: adjustParcel, remove: removeAdjust, restore: restoreAdjust },
             s.adjustIntent?.factor === panel ? s.adjustIntent : null,
             s.card ? gradedSite(s.card, !!display.house && !("outside" in display.house)) : null,
+            factPropsFor(panel, s),
           )}
           point={point}
           running={running}

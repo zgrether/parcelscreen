@@ -73,6 +73,8 @@ export const SOURCE = {
   marks: "your marks",
   lines: "your lines",
   listing: "your listing notes",
+  /** J-5: a survey's figures, marked as a fact. */
+  survey: "your survey (marked)",
   /** Owner, after #312: copied to a piece added from a split. */
   original: "from the original parcel",
   cost: "Cost to enjoy (published ranges)",
@@ -314,6 +316,12 @@ export const DIVIDE = {
    * listing's: "on 24.7 listed ac (the county map shows 30.15)".
    */
   onListed: (listed: string, boundary: string) => `on ${listed} listed ac (the county map shows ${boundary})`,
+  /** J-5 (UX part 2 PR 3c2): a survey's acres, used before the listing's. */
+  onSurveyed: (surveyed: string, boundary: string) =>
+    `on ${surveyed} surveyed ac (the county map shows ${boundary})`,
+  acresSurveyed: (surveyed: string, boundary: string) =>
+    `${surveyed} ac from the survey (used); the county map shows ${boundary} ac`,
+  frontageSurveyed: (feet: number) => `${ft(feet)} ft, from the survey`,
   /** What decides it's Acres when the listing gives them: both, and which the count used. */
   acresBoth: (listed: string, boundary: string) =>
     `${listed} ac from the listing (used); the county map shows ${boundary} ac`,

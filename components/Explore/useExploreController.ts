@@ -53,7 +53,7 @@ import { pieceAsParcel, pieceOf, type PieceSide } from "@/lib/split/scenario";
 import { SPLIT_WORDS } from "@/lib/split/words";
 import type { LatLon } from "@/lib/geo/types";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
-import type { MarkKind, SepticClass } from "@/lib/report/marks";
+import type { Facts, MarkKind, SepticClass } from "@/lib/report/marks";
 import { TOOL, withRecent, type MarkChoice } from "@/lib/client/markChoices";
 import {
   BUSY_TEXT,
@@ -148,6 +148,10 @@ export interface ExploreController {
   dismiss(): void;
   /** Opens a county parcel found by search, from its full record (the outline's fields name it). */
   openOutline(outline: { source: string; props: Record<string, unknown> }): Promise<void>;
+  /** Opens the county parcel at a point (UX part 2 PR 4: coordinates typed in search), or says there's none. */
+  openAt(ll: LatLon): Promise<void>;
+  /** The state parcel services, for search across the region (UX part 2 PR 4). */
+  parcelServices: readonly string[];
   openSaved(key: string): void;
   removeSaved(key: string): void;
   /** Adds imported parcels to History (16b). */
@@ -268,6 +272,8 @@ export interface ExploreController {
   saveAskingPrice(price: number | null, serial: number): void;
   /** WF1: the listing's facts, for the parcel open as `serial`. */
   saveListing(patch: Partial<Pick<WorkingParcel, ListingField>>, serial: number): void;
+  /** J-5: the open parcel's facts, whole; an empty object clears them. */
+  saveFacts(facts: Facts, serial: number): void;
   /**
    * Step 8: starred with its name, or unstarred (its asks and takes go). WF2: archiving with a reason, restoring, and a
    * milestone's date (null clears it).
@@ -652,6 +658,26 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       dispatch({ type: "close" });
       hint("");
     },
+    parcelServices,
+    async openAt(ll) {
+      if (refuseBusy()) return;
+      lookup.current?.abort();
+      const ctl = new AbortController();
+      lookup.current = ctl;
+      hint("Looking up parcel…");
+      try {
+        const { parcel: picked } = await pickParcelAt(browserHttp, parcelServices, ll, ctl.signal);
+        // Where a parcel can be several features (Tennessee, step 2), the record is all of them, conflicts checked.
+        const record = picked && fieldsFor(picked.source).groupById ? await full(picked) : picked;
+        if (!record) return flash(hint, NO_PARCEL_HERE, 4000);
+        if (refuseBusy()) return;
+        leaving();
+        dispatch({ type: "select", record, stamp: stamp(), keepPanel: docked });
+        hint("");
+      } catch (e) {
+        if (!(e instanceof CancelledError)) throw e;
+      }
+    },
     async openOutline(outline) {
       if (refuseBusy()) return;
       const record = await full(outline);
@@ -974,6 +1000,9 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     saveListing(patch, serial) {
       dispatch({ type: "listing", patch, serial, stamp: stamp() });
+    },
+    saveFacts(facts, serial) {
+      dispatch({ type: "facts", facts, serial, stamp: stamp() });
     },
     star(name, serial) {
       dispatch({ type: "star", name, serial, stamp: stamp() });

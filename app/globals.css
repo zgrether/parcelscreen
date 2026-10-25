@@ -93,6 +93,22 @@ html:has(.explore) body {
   font-weight: 600;
   cursor: pointer;
 }
+/* UX part 2 PR 4: the pin typed coordinates leave, a drop shape pointing at the spot. */
+.coord-pin {
+  width: 22px;
+  height: 26px;
+}
+.coord-pin-head {
+  display: block;
+  width: 22px;
+  height: 22px;
+  border: 2px solid #fff;
+  border-radius: 50% 50% 50% 0;
+  background: var(--color-steep);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  transform: rotate(-45deg);
+  translate: 0 -4px;
+}
 .map-hint {
   bottom: calc(76px + env(safe-area-inset-bottom, 0px));
   left: calc(var(--float-l, 0px) + 12px);
@@ -7859,6 +7875,26 @@ button.use-row[aria-expanded="true"] .use-name::after {
 }
 .card-panel .adjust h3 {
   margin: 0 0 8px;
+}
+/* J-5 (UX part 2 PR 3c): "Is this a fact about the parcel?" at the top of Adjust; a fact on file shows instead. */
+.fact {
+  display: grid;
+  gap: 8px;
+  margin: 6px 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+  background: var(--color-paper-2);
+}
+.fact p {
+  margin: 0;
+}
+.fact-on {
+  border-left: 3px solid var(--color-ok);
+}
+.fact-form {
+  display: grid;
+  gap: 8px;
 }
 .adjust-choices,
 .adjust-actions {

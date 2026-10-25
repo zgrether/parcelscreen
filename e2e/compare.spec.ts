@@ -59,6 +59,16 @@ test("compare: two screened parcels as columns, best and worst marked, a cell op
     "Night sky · Macks Mountain, Floyd County VA, parcel 35-3",
   );
   await expect(panel.locator(".panel-question")).toHaveText("How dark is it overhead?");
+  // UX part 2 PR 3d (P-2): Adjust here too, as on the map's panel; the override shows on the column, marked.
+  const adjust = panel.locator(".adjust");
+  await adjust
+    .getByRole("button", { name: /^Override the grade: [A-F]$/ })
+    .first()
+    .click();
+  await adjust.getByLabel("Why? (required)").fill("Darker than the atlas says");
+  await adjust.getByRole("button", { name: "Save" }).click();
+  await expect(adjust.locator(".adjust-now")).toContainText("Darker than the atlas says");
+  await expect(page.getByRole("button", { name: /parcel 35-3, Night sky: / })).toContainText("✎");
   await panel.getByRole("button", { name: "Close" }).click();
   await expect(panel).toHaveCount(0);
 
