@@ -3673,7 +3673,7 @@ html:has(.app-nav) .explore {
 /* Z-6 (UX part 2 PR 7c1): the mark or letter in one fixed cell first (a must's mark and its letter, an adjusted letter
    with the app's struck beside it), then the name over its detail: the words never move. The cost lines keep theirs. */
 .card-row:not(.cost-row) {
-  grid-template-columns: 64px minmax(0, 1fr);
+  grid-template-columns: 52px minmax(0, 1fr);
   grid-template-areas:
     "mark label"
     "mark detail";
