@@ -141,6 +141,36 @@ test("a slider moves the band and the words; Reset puts today's card back", asyn
   expect(errors).toEqual([]);
 });
 
+test("the night sky reads in what you'd see: its scale, mag/arcsec² under it; a row's slider says it's for a B (P-7)", async ({
+  page,
+}) => {
+  await openRubric(page);
+  await card(page, "Night sky").locator(".rubric-card-body").click();
+  const sky = sheet(page);
+  await expect(sky).toContainText("How dark it has to be at the house site");
+  await expect(sky.locator(".sky-slider strong")).toHaveText(
+    "The Milky Way clearly visible (zone 4a or darker)",
+  );
+  await expect(sky.getByRole("list", { name: "How this item is graded" }).locator("li")).toHaveText([
+    "A · bright Milky Way",
+    "B · clearly visible",
+    "C · faint",
+    "D · washed out",
+  ]);
+  await expect(sky).toContainText("Measured as sky brightness overhead: 21.2 mag/arcsec² for a B.");
+  await expect(sky.getByRole("link", { name: "What that means" })).toHaveAttribute("href", "/help#h-sky");
+  // Darker: the words, the scale and the figure move together.
+  await sky.getByRole("slider").fill("21.5");
+  await expect(sky.locator(".sky-slider strong")).toHaveText("A bright Milky Way (zone 3b or darker)");
+  await expect(sky.locator(".sky-scale li").nth(1)).toHaveText("B · bright Milky Way");
+  await expect(sky).toContainText("21.5 mag/arcsec² for a B.");
+  await page.keyboard.press("Escape");
+  // Every other row's slider says the same (polish #41: "85% clear" beside "A from 95%").
+  await card(page, "Elevation at the build site").locator(".rubric-card-body").click();
+  await expect(sheet(page).locator(".rubric-slider")).toContainText("Build site elevation: 2,500 ft for a B");
+  expect(errors).toEqual([]);
+});
+
 test("a change re-grades the Library at once, and nothing asks for a re-screen", async ({
   page,
   context,
@@ -237,7 +267,7 @@ test("the keyboard: Space picks a card up, the arrows move it, Space puts it dow
 test.describe("on a phone", () => {
   test.use({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true });
 
-  test("stacked tiers; tap a card, Move to…; 44 px targets; nothing scrolls sideways; Try it along the bottom", async ({
+  test("stacked tiers; tap a card, Move to…; 44 px targets; nothing scrolls sideways; Try it a slim line at the top", async ({
     page,
   }) => {
     await openRubric(page);
@@ -266,13 +296,13 @@ test.describe("on a phone", () => {
       "Bike to a long trail",
       "Satellite internet",
     ]);
-    // Try it is a bar along the bottom, with the same words as on a desktop.
+    // Try it is a slim line under the intro, as on a desktop (P-7): above the columns, over no card.
     const bar = page.getByRole("region", { name: "Try it" });
     await expect(bar).toBeVisible();
     const box = (await bar.boundingBox())!;
-    // Along the bottom, on the tab bar (step 4b), as the map's sheet is.
-    const tabs = (await page.locator(".app-nav").boundingBox())!;
-    expect(box.y + box.height).toBeCloseTo(tabs.y, 0);
+    const first = (await column(page, "Must have").boundingBox())!;
+    expect(box.y + box.height).toBeLessThan(first.y);
+    expect(box.height).toBeLessThanOrEqual(80);
     await expect(bar.locator("select")).toBeVisible();
     expect((await bar.locator("select").boundingBox())!.height).toBeGreaterThanOrEqual(44);
     await expect(bar).toContainText("Septic no longer checked");
@@ -282,7 +312,7 @@ test.describe("on a phone", () => {
   test("a swipe over the cards scrolls the page and never drags a card", async ({ page }) => {
     await openRubric(page);
     const before = await names(page.locator(".rubric-columns")).allTextContents();
-    // A card well above the preview bar along the bottom.
+    // A card in the middle of the screen.
     const box = (await card(page, "Driveway on your land").locator(".rubric-card-body").boundingBox())!;
     const x = box.x + box.width / 2,
       y = box.y + box.height / 2;

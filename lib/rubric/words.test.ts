@@ -2,7 +2,17 @@
 import { describe, expect, it } from "vitest";
 import { defaultRubric } from "./default";
 import { moveCard, setBandEdge } from "./edit";
-import { bandLine, cardLine, limitWhy, minimumLine, plainLine, whyLine } from "./words";
+import {
+  bandLine,
+  cardLine,
+  limitWhy,
+  minimumLine,
+  plainLine,
+  skySight,
+  skyWords,
+  whoseLine,
+  whyLine,
+} from "./words";
 import { rubricFromAnswers } from "./interview/generate";
 import { GATE_KEYS, ROW_KEYS } from "./types";
 
@@ -122,5 +132,44 @@ describe("the cards' words", () => {
     expect(up.ok && whyLine(up.rubric, "homesite", ctx)).toBe(
       "You'd rather have sun at breakfast than a long view",
     );
+  });
+});
+
+describe("the night sky in what you'd see (UX part 2, P-7)", () => {
+  it("reads the starting bands as A bright, B clearly visible, C faint, D washed out", () => {
+    const [a, b, c, d] = defaultRubric().bands.skyMag;
+    expect([a, b, c, d].map((m) => skySight(m!))).toEqual([
+      "bright Milky Way",
+      "clearly visible",
+      "faint",
+      "washed out",
+    ]);
+    expect(skySight(19.5)).toBe("washed out");
+  });
+
+  it("names the brightest zone a limit allows, from the engine's own zone table", () => {
+    // 21.2 is a ratio of 1.09, zone 4a (3b ends at 1.0, about 21.25); 21.5 is 0.58, zone 3b.
+    expect(skyWords(21.2)).toBe("The Milky Way clearly visible (zone 4a or darker)");
+    expect(skyWords(21.5)).toBe("A bright Milky Way (zone 3b or darker)");
+    expect(skyWords(20.5)).toBe("The Milky Way washed out (zone 4b or darker)");
+  });
+
+  it("follows the slider: a band moved up reads darker", () => {
+    const r = setBandEdge(defaultRubric(), "skyMag", 21.5);
+    expect(r.bands.skyMag.map((m) => skySight(m))).toEqual([
+      "bright Milky Way",
+      "bright Milky Way",
+      "clearly visible",
+      "washed out", // D's edge is 20.8 now, under C's starting 20.9
+    ]);
+  });
+});
+
+describe("whose priorities What matters shows (UX part 2, P-7)", () => {
+  it("names the others in a household, and says nothing when it's just you", () => {
+    expect(whoseLine("Sam", [])).toBeNull();
+    expect(whoseLine("Sam", ["Alex"])).toBe("These are Sam's; Alex has their own.");
+    expect(whoseLine("Sam", ["Alex", "Jo", "Kim"])).toBe("These are Sam's; Alex, Jo and Kim have their own.");
+    expect(whoseLine(null, ["Alex"])).toBe("Alex has their own priorities.");
   });
 });

@@ -3,7 +3,8 @@
  * "What matters to you" (step 3, docs/plans/step-3-rubric-editor.md; renamed by the owner, 10/18: "My priorities" in
  * the menu, `/priorities`; "rubric" stays the code's name): the profile's own rubric in four columns, edited by
  * dragging or by each card's sheet, saved at once (every page re-grades; nothing asks for a re-screen), with Undo for
- * the last ten changes and Reset behind a confirm. Other rubrics the profile holds are read-only until step 5.
+ * the last ten changes and Reset behind a confirm. Other rubrics the profile holds are read-only until step 5. "Try it"
+ * is a slim line under the intro, which says whose priorities these are in a household (UX part 2, P-7).
  */
 import Link from "next/link";
 import { GRADES_ID, GRADES_TITLE } from "@/lib/client/help";
@@ -23,7 +24,10 @@ import type { EditorCard } from "@/lib/rubric/edit";
 import { MINE, type Factor, type RowKey, type Rubric } from "@/lib/rubric/types";
 import { acceptNudge, markNudge, pendingNudge } from "@/lib/client/nudge";
 import { moveDown, movedWords, nudgeWords } from "@/lib/rubric/nudge";
-import type { Tier } from "@/lib/rubric/words";
+import { whoseLine, type Tier } from "@/lib/rubric/words";
+import { memberName } from "@/lib/client/household";
+import { currentProfileId } from "@/lib/client/profiles";
+import { useOtherMembers } from "@/components/Household/Others";
 import { CardSheet } from "./CardSheet";
 import { RESET_QUESTION, RESET_TO_ANSWERS_QUESTION, ResetConfirm } from "./ResetConfirm";
 import { getPref, setPref } from "@/lib/client/prefs";
@@ -43,7 +47,7 @@ export const RESET_NOTES = {
 export const PAGE_TITLE = "What matters to you";
 
 /** The intro (owner, 10/18): what the list is, each column in a line, and how to use it. */
-export const INTRO = "Every parcel you screen is graded against this list.";
+export const INTRO = "Every parcel you grade is graded against these priorities.";
 export const TIER_LINES = [
   [TIER_NAMES.must, "a parcel that misses one is out."],
   [TIER_NAMES.should, "counts most toward the grade; the higher in the list, the more it counts."],
@@ -51,7 +55,7 @@ export const TIER_LINES = [
   [TIER_NAMES.wont, "ignored."],
 ] as const;
 export const HOW_TO =
-  "Drag items between columns, or select one to move it or change its limit. Changes save automatically and apply to every parcel you've screened.";
+  "Drag items between columns, or select one to move it or change its limit. Changes save automatically and apply to every parcel you've graded.";
 
 /** The sheet a ?limit=<factor> link asks for: the factor's limit when it has one, else its card. */
 function sheetFromUrl(r: Rubric): EditorCard | null {
@@ -94,6 +98,11 @@ export function RubricEditor() {
         }
       : null;
   const others = profileRubrics().filter((r) => r.id !== MINE);
+  const household = useOtherMembers();
+  const whose = whoseLine(
+    memberName(currentProfileId()),
+    household.map((m) => m.name),
+  );
   const close = useCallback(() => setSheet(null), []);
   // Step 7 (owner, #216): the one-time note on the Driveway row added to these priorities, with its Undo.
   const [driveNote, setDriveNote] = useState(() => pendingDrivewayNote());
@@ -149,8 +158,13 @@ export function RubricEditor() {
           </Link>
         </header>
 
+        <p className="rubric-lead">
+          {INTRO}
+          {whose && <> {whose}</>}
+        </p>
+        <RubricPreview rubric={my.rubric} baseline={baseline} hover={hover} onParcel={setParcel} />
+
         <section className="rubric-intro" aria-label="How this page works">
-          <p>{INTRO}</p>
           <ul>
             {TIER_LINES.map(([name, line]) => (
               <li key={name}>
@@ -160,8 +174,6 @@ export function RubricEditor() {
           </ul>
           <p className="muted">{HOW_TO}</p>
         </section>
-
-        <RubricPreview rubric={my.rubric} baseline={baseline} hover={hover} onParcel={setParcel} />
 
         <div className="rubric-bar">
           <p className="rubric-status" role="status" aria-live="polite">

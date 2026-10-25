@@ -5,8 +5,8 @@
  * up to two plain reasons ("Night sky now counts more"). No points or decimals. "Before" is the list as the page
  * opened with it. While a card is held over a column, "now" is what that drop would make it, so the strip follows the
  * drag. The parcel: the open one when it's screened, else the latest screened saved parcel, else the sample (Mud Creek,
- * loaded only then). Pure arithmetic over stored screens: nothing is fetched and nothing re-screens. On a phone the
- * strip is a bar along the bottom, with the same words.
+ * loaded only then). Pure arithmetic over stored screens: nothing is fetched and nothing re-screens. On a phone it's
+ * the same slim line, under the intro (UX part 2, P-7: as a bar along the bottom it covered the cards).
  */
 import { useEffect, useMemo, useState } from "react";
 import { useCostSettings } from "@/lib/client/costRates";

@@ -62,6 +62,30 @@ async function switchTo(page: Page, name: string): Promise<void> {
   await menu(page); // the reload closed the menu: the checks that follow read the picker in it
 }
 
+test("What matters says whose priorities they are once someone else is in the household (P-7)", async ({
+  page,
+  context,
+}) => {
+  await replayHar(context, FERNEY);
+  await openExplorer(page, FERNEY);
+  await page.getByRole("link", { name: "What matters", exact: true }).click();
+  await expect(page.locator(".rubric-lead")).toHaveText(
+    "Every parcel you grade is graded against these priorities.",
+  );
+  const list = await openPicker(page);
+  await list.getByRole("button", { name: "Add a profile" }).click();
+  await page.waitForURL("**/interview");
+  await page.getByPlaceholder("Your name or a nickname").fill("Visitor");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Not now" }).click();
+  await page.waitForURL("**/explore");
+  await booted(page);
+  await page.getByRole("link", { name: "What matters", exact: true }).click();
+  await expect(page.locator(".rubric-lead")).toHaveText(
+    "Every parcel you grade is graded against these priorities. These are Visitor's; Profile 1 has their own.",
+  );
+});
+
 test("the first visit's Profile 1; add Visitor and switch; one list for both (step 6); rename; delete keeps the list", async ({
   page,
   context,
@@ -236,7 +260,7 @@ for (const size of [
       });
       for (const path of ["/priorities", "/library", "/rulebook", "/explore"]) {
         await page.goto(path);
-        // What matters' Try it bar is up first: on a phone it sits along the bottom, where More's sheet opens.
+        // What matters' Try it is up first (it was a bar along the bottom on a phone, where More's sheet opens).
         if (path === "/priorities") await expect(page.getByRole("region", { name: "Try it" })).toBeVisible();
         const panel = await openMenu(page);
         // The menu has placed itself (useKeepInView runs after layout), and nothing clips it: each of its corners (12 px
