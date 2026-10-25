@@ -138,7 +138,7 @@ describe.runIf(import.meta.env.MODE === "lidar-tiles")("lidar terrain's tiles, l
       const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
       const t0 = performance.now();
       const r = await live()(input, init);
-      const body = await r.arrayBuffer();
+      const body = r.status === 304 ? null : await r.arrayBuffer();
       served.set(url, performance.now() - t0);
       return new Response(body, { status: r.status, statusText: r.statusText, headers: r.headers });
     };
@@ -159,7 +159,12 @@ describe.runIf(import.meta.env.MODE === "lidar-tiles")("lidar terrain's tiles, l
     ];
     const problems: string[] = [];
     for (const src of SOURCES) {
+      const timedZooms = new Set<number>();
       for (const viewZ of ZOOMS) {
+        // Past its maxzoom a source's tiles are the same as the zoom before's: nothing new to time.
+        const capped = screenTiles(centres[0]![0], centres[0]![1], viewZ, src).z;
+        if (timedZooms.has(capped)) continue;
+        timedZooms.add(capped);
         const timed: Timed[] = [];
         const screens: number[] = [];
         const walls: number[] = [];
