@@ -27,12 +27,21 @@ import type { PartialScreenResult } from "@/lib/screen/types";
 import { RubricSwitch } from "./RubricSwitch";
 import { costSummary } from "@/lib/report/costLines";
 import { COST_WORDS } from "@/lib/report/cost";
+import { PriceBlock, type PriceContext } from "./PriceBlock";
 
 /**
  * Cost to enjoy (step 10 plan §4): the two lines after the answer, each with its budget's mark and words; a tap opens the
  * breakdown. Nothing until the driveway is routed.
  */
-function CostSection({ card, onOpen }: { card: Card; onOpen(key: PanelKey): void }) {
+function CostSection({
+  card,
+  onOpen,
+  price,
+}: {
+  card: Card;
+  onOpen(key: PanelKey): void;
+  price: PriceContext | null;
+}) {
   const s = costSummary(card.cost, card.rubric.rubric.budgets);
   if (!s) return null;
   return (
@@ -69,6 +78,8 @@ function CostSection({ card, onOpen }: { card: Card; onOpen(key: PanelKey): void
           ))
         )}
       </ul>
+      {/* UX part 2 PR 8b (Z-4): after the two lines, so the card's own text is unchanged (rule 7). */}
+      {price && <PriceBlock {...price} budgets={card.rubric.rubric.budgets} />}
     </div>
   );
 }
@@ -149,6 +160,7 @@ export function ReportCard({
   stale = null,
   note = null,
   shortcut = null,
+  price = null,
 }: {
   card: Card;
   /** The result the card grades: the answer's reason reads a drive time from it. */
@@ -170,6 +182,8 @@ export function ReportCard({
   note?: string | null;
   /** The answer's last line once the run is done (step 14: "What you can do here: …", to Uses). */
   shortcut?: ReactNode;
+  /** The price block's inputs (UX part 2 PR 8b, Z-4): the map's panel has them; elsewhere there's no block. */
+  price?: PriceContext | null;
 }) {
   const pending = (missing: string | undefined) => running && !!missing;
   const reason = running ? "" : answerReason(card, result);
@@ -266,7 +280,7 @@ export function ReportCard({
         {!running && card.routeNote && <p className="card-note tiny">{card.routeNote}</p>}
         {!running && shortcut}
       </div>
-      {!running && <CostSection card={card} onOpen={onOpen} />}
+      {!running && <CostSection card={card} onOpen={onOpen} price={price} />}
       {between}
       {(musts.length > 0 || asideIn("must").length > 0) && (
         <div className="card-group" role="group" aria-label={TIER_NAMES.must}>

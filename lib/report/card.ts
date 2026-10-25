@@ -60,6 +60,7 @@ import {
   costRange,
   costToEnjoy,
   type BudgetStatus,
+  type CostInput,
   type CostToEnjoy,
 } from "./cost";
 import { shortPrice } from "../client/askingPrice";
@@ -1111,19 +1112,8 @@ export function cardFacts(
   const chosen = driven.yours ? chosenDrive(r, drawn?.driveway) : null;
   const drivewayRow = chosen ? drivewayGraded(chosen, K) : siteDrivewayRow;
   // The cost to enjoy at this site (step 10), when the parcel's lines, price and rates came with it.
-  const cost = drawn?.cost
-    ? costToEnjoy({
-        result: r,
-        siteAt: at,
-        lines: drawn.cost.lines,
-        marks,
-        driveway: drawn.driveway ?? null,
-        askingPrice: drawn.cost.askingPrice,
-        rates: drawn.cost.rates,
-        ...(drawn.cost.paving ? { paving: drawn.cost.paving } : {}),
-        ...(drawn.facts?.service?.power ? { powerConfirmed: true } : {}),
-      })
-    : undefined;
+  const input = costInputOf(r, at, drawn);
+  const cost = input ? costToEnjoy(input) : undefined;
   const facts = {
     gates: [
       floodplain(r, site, driven, drawn?.facts),
@@ -1156,6 +1146,25 @@ export function cardFacts(
       : {}),
   };
   return withYourRoute(facts, r, driven, drawn);
+}
+
+/**
+ * What the cost to enjoy is priced from at the site `at` (step 10): null when the parcel's lines, price and rates didn't
+ * come with the result. The card prices it; the price block re-prices it with its toggles (UX part 2 PR 8b, Z-4).
+ */
+export function costInputOf(r: Result, at: number, drawn?: Drawn): CostInput | null {
+  if (!drawn?.cost) return null;
+  return {
+    result: r,
+    siteAt: at,
+    lines: drawn.cost.lines,
+    marks: drawn.marks ?? [],
+    driveway: drawn.driveway ?? null,
+    askingPrice: drawn.cost.askingPrice,
+    rates: drawn.cost.rates,
+    ...(drawn.cost.paving ? { paving: drawn.cost.paving } : {}),
+    ...(drawn.facts?.service?.power ? { powerConfirmed: true } : {}),
+  };
 }
 
 /**
