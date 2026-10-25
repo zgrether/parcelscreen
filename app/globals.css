@@ -481,6 +481,39 @@ html:has(.explore) body {
   color: var(--color-ink);
   font-size: 13px;
 }
+/* UX part 2 PR 6 (P-9): a track or drive just drawn asks "Use it as the driveway?", where the key line sits. */
+.finish-prompt {
+  position: absolute;
+  z-index: 16;
+  left: calc(var(--float-l, 0px) + 12px);
+  right: calc(var(--col-r, 0px) + 12px);
+  bottom: calc(var(--sheet-h, 0px) + 74px);
+  margin-inline: auto;
+  width: min(420px, calc(100% - 24px));
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--color-paper);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  color: var(--color-ink);
+  font-size: 14px;
+}
+.finish-prompt p {
+  margin: 0;
+}
+.finish-ask {
+  font-weight: 600;
+}
+.finish-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.finish-buttons .btn {
+  min-height: 44px;
+}
+.explore:has(.finish-prompt) .map-key-line,
 .explore:has(.switch-toast) .map-key-line,
 .explore.sheet-tall .map-key-line {
   display: none;

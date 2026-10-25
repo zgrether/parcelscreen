@@ -629,6 +629,26 @@ describe("drawn lines (follow-up 34)", () => {
     expect(s.store.built).toHaveLength(1);
   });
 
+  it("a track just finished is held for the driveway question (P-9), an easement isn't; answered, it goes", () => {
+    const track = run([
+      selectA(),
+      ...draw("track", [
+        [36.629, -81.354],
+        [36.6295, -81.3535],
+      ]),
+    ]);
+    expect(track.justDrawn).toBe("line-track");
+    expect(exploreReducer(track, { type: "justDrawnDone" }).justDrawn).toBeNull();
+    const easement = run([
+      selectA(),
+      ...draw("easement", [
+        [36.628, -81.356],
+        [36.6285, -81.3555],
+      ]),
+    ]);
+    expect(easement.justDrawn).toBeNull();
+  });
+
   it("a note, a width and a removal; an edit after another parcel opened is dropped", () => {
     const s = run([
       selectA(),
