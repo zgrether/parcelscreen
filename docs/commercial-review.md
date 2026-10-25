@@ -26,6 +26,12 @@ PAD-US, Census TIGER and its Geocoder, NOAA, NLCD from MRLC, CMS Hospital Genera
 records through BTS NTAD) are public domain, and Microsoft's building footprints are CDLA Permissive 2.0. None of
 them limits commercial use.
 
+**Lidar terrain** (Map layers, roadmap step 14c): USGS 3DEP's elevation image service
+(`elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer`), drawn by USGS's own `exportImage` as
+shaded relief or slope, one map tile at a time. Public domain, with no limit on commercial use, display or caching;
+credited on the map and in Map layers as "Terrain: USGS 3D Elevation Program (lidar)". The service is a shared public
+endpoint with no stated rate limit, so the layer asks only for the tiles in view, from zoom 13 up.
+
 ## The area catalog's monthly profile (step 13)
 
 The catalog re-profiles its 30 areas once a month (`.github/workflows/areas-refresh.yml`,

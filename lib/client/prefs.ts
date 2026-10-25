@@ -99,6 +99,15 @@ export interface Prefs {
   "ps.areaStars": string[];
   /** Step 14: Map layers' Power lines, per device (off). */
   "ps.power": boolean;
+  /** Step 14c: Map layers' Lidar terrain, per device: off, Shaded relief, at 60%. */
+  "ps.lidar": LidarPref;
+}
+
+/** Step 14c: the lidar terrain layer's toggle, style and opacity (0.2–1). */
+export interface LidarPref {
+  on: boolean;
+  style: "relief" | "slope";
+  opacity: number;
 }
 
 const DEFAULTS: Prefs = {
@@ -131,6 +140,7 @@ const DEFAULTS: Prefs = {
   "ps.areas": false,
   "ps.areaStars": [],
   "ps.power": false,
+  "ps.lidar": { on: false, style: "relief", opacity: 0.6 },
 };
 
 /** How each key is stored: the prototype kept flags as "1"/"0" and the rest as plain strings or JSON. */
@@ -179,6 +189,7 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
   "ps.history": { read: (r) => readHistoryLog(r) ?? EMPTY_LOG, write: (v) => JSON.stringify(v) },
   "ps.areas": { read: (r) => r === "1", write: (v) => (v ? "1" : "0") },
   "ps.power": { read: (r) => r === "1", write: (v) => (v ? "1" : "0") },
+  "ps.lidar": { read: readLidar, write: (v) => JSON.stringify(v) },
   "ps.areaStars": {
     read: (r) => {
       const v = JSON.parse(r) as unknown;
@@ -197,6 +208,16 @@ function readTerrain(raw: string): TerrainPref {
   const v = JSON.parse(raw) as Partial<TerrainPref>;
   const ex = v.exaggeration;
   return { on: v.on === true, exaggeration: ex === 1 || ex === 2 ? ex : 1.5 };
+}
+
+function readLidar(raw: string): LidarPref {
+  const v = JSON.parse(raw) as Partial<LidarPref>;
+  const o = typeof v.opacity === "number" && Number.isFinite(v.opacity) ? v.opacity : 0.6;
+  return {
+    on: v.on === true,
+    style: v.style === "slope" ? "slope" : "relief",
+    opacity: Math.min(1, Math.max(0.2, o)),
+  };
 }
 
 export interface KeyValueStore {

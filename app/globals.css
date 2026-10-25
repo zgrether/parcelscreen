@@ -8019,3 +8019,49 @@ button.use-row[aria-expanded="true"] .use-name::after {
 .ac-pct {
   font: 700 22px/1 var(--font-cond);
 }
+
+/* Map layers › Lidar terrain (roadmap step 14c): the style, the opacity, the slope bands and the source line under the
+   toggle, indented like a toggle's own settings. */
+.lidar-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 2px 0 6px 12px;
+}
+.lidar-opacity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+.lidar-opacity input {
+  width: 100%;
+  min-height: 32px;
+}
+.lidar-bands {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+}
+.lidar-bands li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.lidar-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+.lidar-info {
+  margin: 0;
+}
+@media (max-width: 860px) {
+  .lidar-opacity input {
+    min-height: 44px;
+  }
+}

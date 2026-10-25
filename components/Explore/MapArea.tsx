@@ -5,6 +5,7 @@ import { Hint, MapTools } from "@/components/Map/MapTools";
 import { ParcelTools } from "@/components/Map/ParcelTools";
 import { Search } from "@/components/Map/Search";
 import { TerrainLayers } from "@/components/Map/TerrainLayers";
+import { LidarLayer } from "@/components/Map/LidarLayer";
 import { FanLayer } from "@/components/Map/results/FanLayer";
 import { ResultLayers } from "@/components/Map/results/ResultLayers";
 import { PowerLayer } from "@/components/Map/results/PowerLayer";
@@ -56,6 +57,7 @@ export function MapArea({
       onMap={setMap}
     >
       <TerrainLayers hint={setHint} />
+      <LidarLayer hint={setHint} />
       <SurfaceLayer />
       <ResultLayers />
       <PowerLayer />
