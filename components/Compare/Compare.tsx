@@ -22,7 +22,18 @@ import { getPref, setPref } from "@/lib/client/prefs";
 import { favoritesOf } from "@/lib/client/favorites";
 import { useKeptScreens } from "@/lib/client/useKeptScreens";
 import { loadUserConfig } from "@/lib/client/userConfig";
-import { adjustFor, useHousehold } from "@/lib/client/householdDoc";
+import {
+  adjustFor,
+  adjustParcel,
+  householdDoc,
+  removeAdjust,
+  restoreAdjust,
+  useHousehold,
+} from "@/lib/client/householdDoc";
+import { currentProfileId } from "@/lib/client/profiles";
+import { gradedSite } from "@/lib/report/adjust";
+import { reportCard } from "@/lib/report/card";
+import { adjustPropsFor } from "@/components/Results/card/AdjustSection";
 import { useRubricView } from "@/lib/client/useRubricView";
 import { RubricSwitch } from "@/components/Results/card/RubricSwitch";
 import type { PanelKey } from "@/lib/report/cardPanels";
@@ -267,6 +278,22 @@ export function Compare() {
               vetoPct={config.roadVetoGradePct}
               about={opened.name}
               lineNames={opened.drawn?.names}
+              // UX part 2 PR 3d (P-2): every copy of a row's panel has Adjust, as the map's does.
+              adjust={adjustPropsFor(
+                panel.key,
+                opened.key,
+                currentProfileId(),
+                // What the app says without the person's adjustments.
+                reportCard(
+                  opened.result,
+                  rubric,
+                  opened.drawn ? { ...opened.drawn, adjust: undefined } : undefined,
+                ),
+                (key) => householdDoc().adjusts.find((a) => a.key === key) ?? null,
+                { save: adjustParcel, remove: removeAdjust, restore: restoreAdjust },
+                null,
+                gradedSite(openedCard, !!opened.result.house && !("outside" in opened.result.house)),
+              )}
               onClose={() => setPanel(null)}
             />
           </div>
