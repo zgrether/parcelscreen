@@ -34,49 +34,10 @@ jobs:
       - run: pnpm lidar:tiles
       - if: always()
         run: cat test-results/lidar-tiles.md >> "$GITHUB_STEP_SUMMARY" || true
-      # Mapterhorn self-hosted (owner, 10/25): what an extract of our region weighs, from its own archives, without
-      # downloading them (pmtiles --dry-run reads only the directories).
-      - name: Mapterhorn extract sizes
-        if: always()
-        run: |
-          url=$(curl -sSL https://api.github.com/repos/protomaps/go-pmtiles/releases/latest | grep -o 'https://[^"]*Linux_x86_64.tar.gz' | head -1)
-          curl -sSL "$url" | tar xz pmtiles
-          curl -sSL https://download.mapterhorn.com/download_urls.json -o urls.json
-          {
-            echo "## Mapterhorn extracts, sized with pmtiles --dry-run"
-            echo
-            for box in "-90.4,33.8,-75.2,39.5 VA+NC+TN" "-83.8,34.9,-78.6,38.6 the-area-catalog's-mountains"; do
-              set -- $box
-              echo "### $2 ($1)"
-              echo '```'
-              ./pmtiles extract --dry-run --bbox="$1" https://download.mapterhorn.com/planet.pmtiles /tmp/planet.pmtiles 2>&1 | tail -4
-              node -e '
-                const [w,s,e,n] = process.argv[1].split(",").map(Number);
-                const all = require("./urls.json");
-                const list = Array.isArray(all) ? all : (all.items ?? all.files ?? Object.values(all));
-                for (const f of list) {
-                  const name = typeof f === "string" ? f : (f.url ?? f.name ?? "");
-                  const m = /(\d+)-(\d+)-(\d+)\.pmtiles/.exec(name);
-                  if (!m) continue;
-                  const [z, x, y] = m.slice(1).map(Number), k = 2 ** z;
-                  const lon0 = (x / k) * 360 - 180, lon1 = ((x + 1) / k) * 360 - 180;
-                  const lat = (t) => (Math.atan(Math.sinh(Math.PI * (1 - (2 * t) / k))) * 180) / Math.PI;
-                  if (lon1 > w && lon0 < e && lat(y) > s && lat(y + 1) < n) console.log(typeof f === "string" ? f : (f.url ?? f.name));
-                }' "$1" | sort -u > hits.txt
-              echo "z13+ archives intersecting: $(wc -l < hits.txt)"
-              while read -r u; do
-                case "$u" in http*) ;; *) u="https://download.mapterhorn.com/$u";; esac
-                echo "$(basename "$u"): $(./pmtiles extract --dry-run --bbox="$1" "$u" /tmp/x.pmtiles 2>&1 | tail -2 | tr '\n' ' ')"
-              done < hits.txt
-              echo '```'
-            done
-            echo
-            echo "download_urls.json starts: $(head -c 600 urls.json)"
-          } >> "$GITHUB_STEP_SUMMARY" 2>&1 || true
 
   screenshots:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     # A fork's PR gets a read-only token: nothing to push to.
     if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
     steps:

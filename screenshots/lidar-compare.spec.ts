@@ -73,6 +73,12 @@ const tilesIn = (page: Page) =>
     )
     .catch(() => undefined);
 
+/** The map panel closed if it's open (it isn't after an import; a click on a missing button would wait forever). */
+async function closePanel(page: Page): Promise<void> {
+  const close = page.getByRole("button", { name: "Close the map panel" });
+  if (await close.isVisible()) await close.click();
+}
+
 /** Draws one candidate alone: every other raster and hillshade layer hidden, a plain background under it. */
 async function show(page: Page, c: Candidate | null): Promise<void> {
   const spec = c && {
@@ -142,7 +148,7 @@ test.describe("compare", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
   test("each candidate at view zoom 17, at each spot, side by side", async ({ page, context }) => {
-    test.setTimeout(1_800_000);
+    test.setTimeout(2_700_000);
     const found = await findStateServices((u, i) => fetch(u, i));
     const candidates = [
       ...BASE_CANDIDATES,
@@ -153,10 +159,7 @@ test.describe("compare", () => {
     await openExplorer(page, GRAYSON);
     await importParcel(page, GRAYSON);
     await withRedGate(page);
-    await page
-      .getByRole("button", { name: "Close the map panel" })
-      .click()
-      .catch(() => undefined);
+    await closePanel(page);
 
     for (const spot of SPOTS) {
       const cells: { label: string; source: string; png: string }[] = [];
@@ -256,10 +259,7 @@ test.describe("compare", () => {
       await openExplorer(page, GRAYSON);
       await importParcel(page, GRAYSON);
       await withRedGate(page);
-      await page
-        .getByRole("button", { name: "Close the map panel" })
-        .click()
-        .catch(() => undefined);
+      await closePanel(page);
       await page.evaluate(([lat, lon]) => {
         const m = (window as unknown as { __psMap: { jumpTo(o: object): void } }).__psMap;
         m.jumpTo({ center: [lon, lat], zoom: 16, pitch: 0, bearing: 0 });
