@@ -1,6 +1,6 @@
 /**
- * A parcel's standing (WF2a, docs/plans/parcel-workflow.md §4; step 8): a favorite's Archive, which asks why ("Rejected:
- * …" takes the rest in the box) and keeps everything; Restore, back to the favorites; the Walked and Offered milestones
+ * A parcel's standing (WF2a, docs/plans/parcel-workflow.md §4; step 8; UX part 2's P-4): Not for us, which asks why (a
+ * reason and a note, both optional) and keeps everything; Move back, onto the list; the Walked and Offered milestones
  * with their dates; and all of it on Your list and kept across a reload.
  */
 import { expect, test, type Page } from "@playwright/test";
@@ -33,24 +33,21 @@ test("the parcel's standing: a favorite archived with a reason, restored; milest
     "true",
   );
 
-  // Archive asks why: nothing to archive with a blank reason or "Rejected:" alone.
-  await standing.getByRole("button", { name: "Archive…" }).click();
-  const archive = standing.getByRole("button", { name: "Archive", exact: true });
-  await expect(archive).toBeDisabled();
-  await standing.getByRole("button", { name: "Rejected: …" }).click();
-  await expect(archive).toBeDisabled();
-  await expect(standing.getByLabel("Why it's archived")).toBeFocused();
+  // Not for us (UX part 2, P-4: Archive became Rule out) asks why, both optional: Other puts the cursor in the note.
+  await standing.getByRole("button", { name: "Not for us…" }).click();
+  await standing.getByRole("button", { name: "Other" }).click();
+  await expect(standing.getByLabel("A note for later (optional)")).toBeFocused();
   await page.keyboard.type("no winter sun");
-  await archive.click();
-  await expect(standing).toContainText(/Archived [A-Z][a-z]{2} \d{1,2}: Rejected: no winter sun/);
+  await standing.getByRole("button", { name: "Rule it out" }).click();
+  await expect(standing).toContainText(/Ruled out [A-Z][a-z]{2} \d{1,2}: Other: no winter sun/);
   expect(await stored(page)).toMatchObject({
     status: "archived",
-    archived: { reason: "Rejected: no winter sun", from: "saved" },
+    archived: { reason: "Other: no winter sun", from: "saved" },
   });
 
-  // Restore: back to the favorites.
-  await standing.getByRole("button", { name: "Restore" }).click();
-  await expect(standing.getByRole("button", { name: "Archive…" })).toBeVisible();
+  // Move back: back on the list.
+  await standing.getByRole("button", { name: "Move back" }).click();
+  await expect(standing.getByRole("button", { name: "Not for us…" })).toBeVisible();
   expect(await stored(page)).toMatchObject({ status: "saved", archived: null });
 
   // Milestones: Walked today, then a chosen date; Offered set and cleared.

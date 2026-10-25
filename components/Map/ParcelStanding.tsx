@@ -1,12 +1,17 @@
 "use client";
 /**
- * The parcel's standing (WF2, docs/plans/parcel-workflow.md §4), under its name in the Info panel: for a favorite,
- * Archive, which asks why (the quick picks "Not for us", "Sold", "Rejected: …", or the household's words); Restore;
- * and the Walked and Offered milestones, each with its date. Archiving keeps everything; Remove is the only delete.
- * Step 8: the star (the panel's header, the list's rows) makes a favorite; In progress and Saved are gone.
+ * The parcel's standing (WF2, docs/plans/parcel-workflow.md §4), in Details' Status: Not for us (P-4, UX part 2: Archive
+ * became Rule out), on any parcel, asking why with optional reasons and a note; Move back; and the Walked and Offered
+ * milestones, each with its date. Ruling out keeps everything; Remove is the only delete. The header gets Not for us
+ * too (PR 3).
  */
 import { useRef, useState } from "react";
-import { ARCHIVE_PICKS, reasonGiven, type Milestone, type WorkingParcel } from "@/lib/client/parcelStore";
+import {
+  RULE_OUT_REASONS,
+  ruleOutReason,
+  type Milestone,
+  type WorkingParcel,
+} from "@/lib/client/parcelStore";
 import { localDay, MILESTONE_WORD, MILESTONES, statusLine } from "@/lib/client/parcelStatus";
 
 /** What the controls change: the explorer's open parcel, or a parcel on the list (WF2b). */
@@ -24,7 +29,7 @@ export function ParcelStanding({ parcel: open, act }: { parcel: WorkingParcel; a
         <div className="ip-chips">
           <span className="ip-note">{statusLine(open)}</span>
           <button className="ip-btn sec" onClick={act.restore}>
-            Restore
+            Move back
           </button>
         </div>
       ) : asking ? (
@@ -36,14 +41,12 @@ export function ParcelStanding({ parcel: open, act }: { parcel: WorkingParcel; a
           cancel={() => setAsking(false)}
         />
       ) : (
-        // Archived is a favorite's state (step 8, plan §2): a parcel only in someone's History has no Archive.
-        open.status === "saved" && (
-          <div className="ip-chips">
-            <button className="ip-btn sec" onClick={() => setAsking(true)}>
-              Archive…
-            </button>
-          </div>
-        )
+        // Any parcel can be ruled out (P-4): one only in Recent joins Your list as Ruled out.
+        <div className="ip-chips">
+          <button className="ip-btn sec" onClick={() => setAsking(true)}>
+            Not for us…
+          </button>
+        </div>
       )}
       <div className="ip-chips" role="group" aria-label="Milestones">
         {MILESTONES.map((m) => {
@@ -85,11 +88,12 @@ export function ParcelStanding({ parcel: open, act }: { parcel: WorkingParcel; a
   );
 }
 
-/** Why it's archived: a quick pick fills the box ("Rejected: " leaves it open for the rest); blank can't archive. */
+/** Why it's not for us (§9 Q5): a reason and a note, both optional; Rule it out keeps whichever were given. */
 function ArchiveReason({ archive, cancel }: { archive(reason: string): void; cancel(): void }) {
-  const [reason, setReason] = useState("");
+  const [chip, setChip] = useState<string | null>(null);
+  const [note, setNote] = useState("");
   const box = useRef<HTMLInputElement>(null);
-  const ok = reasonGiven(reason);
+  const done = () => archive(ruleOutReason(chip, note));
   return (
     <div
       className="ip-archive"
@@ -100,35 +104,38 @@ function ArchiveReason({ archive, cancel }: { archive(reason: string): void; can
         cancel();
       }}
     >
-      <div className="ip-chips" role="group" aria-label="Why">
-        {ARCHIVE_PICKS.map((p) => (
+      <p className="tiny muted">
+        It moves to Ruled out on Your list, with your reason, and the map shows it greyed. Move back undoes
+        it.
+      </p>
+      <div className="ip-chips" role="group" aria-label="Why (optional)">
+        {RULE_OUT_REASONS.map((r) => (
           <button
-            key={p}
+            key={r}
             className="chip"
-            aria-pressed={reason === p}
+            aria-pressed={chip === r}
             onClick={() => {
-              setReason(p);
-              // "Rejected: " is only the start: the box takes the rest.
-              if (p === "Rejected: ") box.current?.focus();
+              setChip(chip === r ? null : r);
+              if (r === "Other") box.current?.focus();
             }}
           >
-            {p === "Rejected: " ? "Rejected: …" : p}
+            {r}
           </button>
         ))}
       </div>
       <input
         ref={box}
-        aria-label="Why it's archived"
-        placeholder="Why: sold, not for us, rejected because…"
-        value={reason}
-        onChange={(e) => setReason(e.target.value)}
+        aria-label="A note for later (optional)"
+        placeholder="A note for later (optional)"
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
         onKeyDown={(e) => {
-          if (e.key === "Enter" && ok) archive(reason);
+          if (e.key === "Enter") done();
         }}
       />
       <div className="ip-chips">
-        <button className="ip-btn danger" disabled={!ok} onClick={() => archive(reason)}>
-          Archive
+        <button className="ip-btn danger" onClick={done}>
+          Rule it out
         </button>
         <button className="ip-btn sec" onClick={cancel}>
           Cancel

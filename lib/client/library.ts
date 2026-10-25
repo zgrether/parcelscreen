@@ -484,9 +484,9 @@ export function hiddenBy(rows: readonly LibraryRow[], f: LibraryFilters): Hidden
   };
 }
 
-/** The list's last line: "3 hidden by filters", or "2 archived parcels hidden". */
+/** The list's last line: "3 hidden by filters", or "2 ruled-out parcels hidden" (P-4: Archive became Rule out). */
 export const hiddenWords = (h: Hidden): string =>
-  h.onlyArchived ? `${h.n} archived parcel${h.n === 1 ? "" : "s"} hidden` : `${h.n} hidden by filters`;
+  h.onlyArchived ? `${h.n} ruled-out parcel${h.n === 1 ? "" : "s"} hidden` : `${h.n} hidden by filters`;
 
 /** What its button shows: the archived parcels (the status filter only), or everything. */
 export const showHidden = (h: Hidden, f: LibraryFilters): LibraryFilters =>

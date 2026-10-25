@@ -282,13 +282,12 @@ export type Milestone = "walked" | "offered";
 export type Milestones = Record<Milestone, string | null>;
 
 /** The quick picks for an archive's reason (owner, #128); "Rejected: " opens the box for the rest. */
-export const ARCHIVE_PICKS = ["Not for us", "Sold", "Rejected: "] as const;
+/** Not for us's reasons (UX part 2, §9 Q5): each optional, as is the note after it. */
+export const RULE_OUT_REASONS = ["Too steep", "Road access", "Septic", "Price", "Too far", "Other"] as const;
 
-/** A reason that says something: not blank, and not "Rejected:" alone. */
-export const reasonGiven = (reason: string): boolean => {
-  const r = reason.trim();
-  return r !== "" && r.replace(/:$/, "").toLowerCase() !== "rejected";
-};
+/** The reason kept: the chip picked, then the note ("Septic: perc failed"); either alone; or "" for none. */
+export const ruleOutReason = (chip: string | null, note: string): string =>
+  [chip, note.trim()].filter(Boolean).join(": ");
 
 /** A parcel's standing before any is set (WF2). */
 export const NO_STATUS: Pick<WorkingParcel, "status" | "archived" | "milestones"> = {

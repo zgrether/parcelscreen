@@ -7,7 +7,8 @@
  * were (no converter): `saved` reads as a favorite, `inProgress` as "in History only".
  *
  * A person's History log (`ps.history`, a profile document that syncs with the profile) says when they last graded each
- * parcel: History's order, and which favorites they graded. Pure: callers pass the store, the person and the clock.
+ * parcel (History's order, and which favorites they graded) and, since UX part 2, when they last opened it: Recent keeps
+ * a parcel for 60 days from the later of the two (docs/plans/ux-part-2.md §9 Q4). Pure: callers pass the store, the person and the clock.
  */
 import { z } from "zod";
 import { isCountyRecord } from "@/lib/geo/recipe";
@@ -18,14 +19,19 @@ import { countyShort } from "./library";
 import { readListingUrl } from "./listingUrl";
 import { editBuilt, removeBuilt, type ParcelStore, type WorkingParcel } from "./parcelStore";
 
-/** When the person last graded each parcel, by key (ISO). */
+/** When the person last graded each parcel, and last opened it (UX part 2; absent in a log kept before), by key (ISO). */
 export interface HistoryLog {
   v: 1;
   graded: Record<string, string>;
+  opened?: Record<string, string>;
 }
 export const EMPTY_LOG: HistoryLog = { v: 1, graded: {} };
 
-const LogSchema = z.object({ v: z.literal(1), graded: z.record(z.string(), z.string()) });
+const LogSchema = z.object({
+  v: z.literal(1),
+  graded: z.record(z.string(), z.string()),
+  opened: z.record(z.string(), z.string()).optional(),
+});
 export function readHistoryLog(raw: string): HistoryLog | null {
   const r = LogSchema.safeParse(JSON.parse(raw));
   return r.success ? r.data : null;
@@ -41,9 +47,16 @@ export const favoritesOf = (built: readonly WorkingParcel[]): WorkingParcel[] =>
 export const inHistoryOf = (p: WorkingParcel, me: string, log: HistoryLog): boolean =>
   isFavorite(p) ? p.key !== null && p.key in log.graded : p.addedBy === me;
 
-/** When the parcel was last graded by this person, else when it last changed: History's order. */
-export const historyAt = (p: WorkingParcel, log: HistoryLog): string =>
-  (p.key !== null && log.graded[p.key]) || p.updatedAt;
+/**
+ * When the parcel was last graded or opened by this person, whichever is later, else when it last changed: History's
+ * order, and what Recent's days count from (UX part 2, §9 Q4).
+ */
+export function historyAt(p: WorkingParcel, log: HistoryLog): string {
+  if (p.key === null) return p.updatedAt;
+  const g = log.graded[p.key],
+    o = log.opened?.[p.key];
+  return (g && o ? (g > o ? g : o) : (g ?? o)) || p.updatedAt;
+}
 
 /** This person's History, newest first. */
 export function historyOf(built: readonly WorkingParcel[], me: string, log: HistoryLog): WorkingParcel[] {
@@ -52,15 +65,15 @@ export function historyOf(built: readonly WorkingParcel[], me: string, log: Hist
     .sort((a, b) => historyAt(b, log).localeCompare(historyAt(a, log)));
 }
 
-/** Recent keeps this many parcels (8c, owner 2026-10-21)… */
-export const RECENT_MAX = 20;
-/** …for this long after they were last graded or changed. */
-export const RECENT_DAYS = 30;
+/** Recent keeps this many parcels (Zach's Z-8, UX part 2; 20 since 8c)… */
+export const RECENT_MAX = 50;
+/** …for this long after they were last graded or opened (Z-8; 30 since 8c). */
+export const RECENT_DAYS = 60;
 const DAY_MS = 86_400_000;
 
 /**
- * Recent (8c): this person's graded parcels that aren't on the list, newest first, the 20 newest within 30 days. A
- * dismissed parcel (×) is gone from the store, so it's in no view.
+ * Recent (8c; Z-8): this person's graded parcels that aren't on the list, newest first, the 50 newest within 60 days.
+ * Closing one (×) never takes it out (J-2); its ✕ in Recent does.
  */
 export function recentOf(
   built: readonly WorkingParcel[],
@@ -75,7 +88,7 @@ export function recentOf(
 }
 
 /**
- * What falls out of Recent (8c): this person's unstarred parcels beyond the 20 newest or older than 30 days, for
+ * What falls out of Recent (8c): this person's unstarred parcels beyond the 50 newest or older than 60 days, for
  * clearHistory to drop. The open parcel stays, whatever its age.
  */
 export const pastRecent = (
@@ -101,11 +114,21 @@ export const withGraded = (log: HistoryLog, key: string, at: string): HistoryLog
   graded: { ...log.graded, [key]: at },
 });
 
+/** The log after an opening: this parcel opened now. */
+export const withOpened = (log: HistoryLog, key: string, at: string): HistoryLog => ({
+  ...log,
+  opened: { ...log.opened, [key]: at },
+});
+
 /** The log without these parcels (cleared from History). */
 export function withoutKeys(log: HistoryLog, keys: readonly string[]): HistoryLog {
   const graded = { ...log.graded };
-  for (const k of keys) delete graded[k];
-  return { ...log, graded };
+  const opened = { ...log.opened };
+  for (const k of keys) {
+    delete graded[k];
+    delete opened[k];
+  }
+  return { ...log, graded, ...(log.opened ? { opened } : {}) };
 }
 
 /** Starred (plan §2): a favorite, with the name given. Its adder stays (the person starring: only their History shows it). */
