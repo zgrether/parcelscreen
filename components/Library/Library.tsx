@@ -12,6 +12,7 @@
  * writes that one parcel's rank. Under another sort the handles hide, and the list says how to get them back.
  */
 import Link from "next/link";
+import { RuledOut } from "./RuledOut";
 import { useCostSettings } from "@/lib/client/costRates";
 import { reportHref } from "@/lib/print/report";
 import { GRADES_ID, GRADES_TITLE } from "@/lib/client/help";
@@ -146,7 +147,9 @@ export function Library() {
       ),
     [visible, screens, rubrics, household, me, seen, costs],
   );
-  const rows = favorites.map((p) => rowOf.get(p.key!)!);
+  // UX part 2 PR 7a (P-5): the ruled-out parcels have their own view; the Shortlist is the rest.
+  const ruledOut = useMemo(() => favorites.filter((p) => p.status === "archived"), [favorites]);
+  const rows = favorites.filter((p) => p.status !== "archived").map((p) => rowOf.get(p.key!)!);
   const tab = view.tab;
   const hidden = hiddenBy(rows, view.filters);
   // Step 10b: the grid's columns, from the favorites, without the ones the person hid (Columns ▾).
@@ -260,21 +263,17 @@ export function Library() {
       <main className="compare library">
         <header className="compare-head">
           <h1>Your list</h1>
-          {/* Compare takes 2 or 3 (step 4b): with one ticked the button waits for another. */}
-          {tab === "favorites" && ticked.size > 0 && (
-            <button
-              className="btn small"
-              disabled={ticked.size < COMPARE_MIN}
-              title={ticked.size < COMPARE_MIN ? COMPARE_HOW : undefined}
-              onClick={compare}
-            >
-              Compare {ticked.size}
-            </button>
-          )}
         </header>
-        {/* Step 8 (plan §5): Favorites first; the choice is remembered with the view. */}
-        <div className="list-switch" role="tablist" aria-label="Shortlist or Recent">
-          {(["favorites", "history"] as const).map((t) => (
+        {/* Step 8 (plan §5): the Shortlist first; the choice is remembered with the view. UX part 2 PR 7a (P-5): Ruled
+            out is its own view, and each says how many it holds. */}
+        <div className="list-switch" role="tablist" aria-label="Shortlist, Recent or Ruled out">
+          {(
+            [
+              ["favorites", LIST_VIEW_WORDS.favorites, rows.length],
+              ["history", LIST_VIEW_WORDS.history, mine.length],
+              ["ruledOut", LIST_VIEW_WORDS.ruledOut, ruledOut.length],
+            ] as const
+          ).map(([t, word, n]) => (
             <button
               key={t}
               role="tab"
@@ -282,14 +281,22 @@ export function Library() {
               aria-selected={tab === t}
               onClick={() => setView({ ...view, tab: t })}
             >
-              {t === "favorites" ? "Shortlist" : "Recent"}
+              {word} <span className="list-switch-n">{n}</span>
             </button>
           ))}
         </div>
 
         {tab === "history" ? (
           <Recent parcels={mine} rows={rowOf} screens={screens} log={log} />
-        ) : favorites.length === 0 ? (
+        ) : tab === "ruledOut" ? (
+          <RuledOut
+            parcels={ruledOut}
+            rows={rowOf}
+            open={open}
+            change={change}
+            grade={(r) => <Grade g={r.grades[0]?.graded ?? null} unscreened={r.unscreened} />}
+          />
+        ) : rows.length === 0 ? (
           <p className="muted">
             {FAVORITES_EMPTY} <Link href="/explore">Go to the map</Link>
           </p>
@@ -358,6 +365,22 @@ export function Library() {
               </p>
             )}
           </>
+        )}
+
+        {/* UX part 2 PR 7a (P-5): the compare bar, at the foot of the screen, once a parcel is ticked; Compare takes 2 or
+            3 (step 4b), so with one ticked it waits for another. */}
+        {tab === "favorites" && ticked.size > 0 && (
+          <div className="compare-bar" role="region" aria-label="Compare">
+            <span>{LIST_VIEW_WORDS.ticked(ticked.size)}</span>
+            <button
+              className="btn"
+              disabled={ticked.size < COMPARE_MIN}
+              title={ticked.size < COMPARE_MIN ? COMPARE_HOW : undefined}
+              onClick={compare}
+            >
+              Compare {ticked.size} →
+            </button>
+          </div>
         )}
 
         {unstarring && (
@@ -446,20 +469,29 @@ function VerdictWord({ v, unscreened }: { v: Verdict | null; unscreened: Library
 }
 
 /** Why the same letter can read Contender on one row and Maybe on another (polish, step 8's review). */
+/** The list's views and the compare bar (UX part 2 PR 7a, P-5). */
+export const LIST_VIEW_WORDS = {
+  favorites: "Shortlist",
+  history: "Recent",
+  ruledOut: "Ruled out",
+  ticked: (n: number) => `${n} ticked`,
+};
+
 export const VERDICT_TIP =
   "The verdict also weighs your Must haves and limits, so the same letter can read differently.";
 
 function Grade({ g, unscreened }: { g: Graded | null; unscreened: LibraryRow["unscreened"] }) {
   if (!g) return <VerdictWord v={null} unscreened={unscreened} />;
   return (
+    // J-4 (UX part 2 PR 7a): the verdict first, then the letter, as the card and the header have it.
     <span className="lib-grade" title={VERDICT_TIP}>
+      <VerdictWord v={g.verdict} unscreened={null} />
       <span className={`card-grade small g-${g.grade ?? "none"}`}>{g.grade ?? "–"}</span>
       {g.adjusted && (
         <span className="adjusted-mark" title={ADJUSTED_TITLE} aria-label={ADJUSTED_TITLE}>
           ✎
         </span>
       )}
-      <VerdictWord v={g.verdict} unscreened={null} />
     </span>
   );
 }
@@ -573,7 +605,7 @@ function LibraryTable({ rows, rubrics, sort, setSort, columns, ...rest }: RowsPr
               <span className="sr-only">{rest.ordering ? "My order" : "More"}</span>
             </th>
             <th scope="col" className="lib-stick lib-stick-2">
-              <span className="sr-only">Compare</span>
+              Compare
             </th>
             {head("Name", "name", undefined, "lib-stick lib-stick-3")}
             {head(

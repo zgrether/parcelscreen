@@ -8324,3 +8324,49 @@ button.use-row[aria-expanded="true"] .use-name::after {
   flex: 1;
   min-width: 0;
 }
+
+/* UX part 2 PR 7a (P-5): each view's count; the compare bar at the foot of the screen; Ruled out's rows. */
+.list-switch-n {
+  margin-left: 4px;
+  color: var(--color-ink-2);
+  font-weight: 500;
+}
+.list-switch-seg[aria-selected="true"] .list-switch-n {
+  color: inherit;
+}
+.compare-bar {
+  position: fixed;
+  z-index: 30;
+  left: 50%;
+  bottom: calc(var(--tabs-h, 0px) + 16px);
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 8px 8px 16px;
+  border-radius: 10px;
+  background: #1c2620;
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+.compare-bar .btn {
+  min-height: 44px;
+  background: #fff;
+  color: #1c2620;
+}
+.compare-bar .btn:disabled {
+  opacity: 0.6;
+}
+.ruled-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ruled-main {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+.ruled-back {
+  min-height: 44px;
+}
