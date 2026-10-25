@@ -809,8 +809,11 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
     open: false,
     scrollTo: null,
   });
-  // Step 6b: a kept parcel open here with its card, so its takes are seen.
-  useSeeTakes(display ? (s.ctl.state.store.open?.key ?? null) : null);
+  // Step 6b: a kept parcel open here with its card, so its takes are seen; only while the map is on show (UX part 2:
+  // a list tap opens the parcel here, and it stays open behind Your list, where a take that arrives isn't seen yet).
+  const [onMap, setOnMap] = useState(mapShowing);
+  useEffect(() => onMapShowing(setOnMap), []);
+  useSeeTakes(display && onMap ? (s.ctl.state.store.open?.key ?? null) : null);
   // Step 12: ways to raise this grade, for the person's own card once the run is done: from the card shown, as its grade is.
   const raise = useMemo(
     () =>

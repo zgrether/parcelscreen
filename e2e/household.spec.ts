@@ -38,8 +38,10 @@ test("Julie joins: Who's this? â†’ I'm new here â†’ her name; one list, and who 
   await julie.getByRole("link", { name: YOUR_LIST }).click();
   await expect(listRow(julie, "52-47A")).toBeVisible();
   await expect(listRow(julie, "35-3")).toBeVisible();
+  // A row opens the parcel on the map (Z-2); Details says who added it.
   await listRow(julie, "52-47A").locator(".lib-open").click();
-  await expect(julie.getByRole("dialog").getByText("Added by Profile 1")).toBeVisible();
+  await julie.getByRole("tab", { name: "Details" }).click();
+  await expect(julie.locator(".parcel-details")).toContainText("Added by Profile 1");
 
   // The current profile stays per device: Julie's reload opens as her.
   await reload(julie);
@@ -95,6 +97,9 @@ test("everyone's grade; How Julie would rate it; Ask Julie â†’ Waiting for you â
   await openExplorer(zach, FERNEY);
   await importParcels(zach, [FERNEY, MACKS]);
   await seedScreens(zach, [FERNEY, MACKS]);
+  // The seeded grades are written to the store directly: a reload has the map read them, as the list does on opening.
+  await settled(zach);
+  await reload(zach);
   await setPriorities(zach, ZACH.rubric);
   const code = await startSyncing(zach);
 
@@ -112,13 +117,15 @@ test("everyone's grade; How Julie would rate it; Ask Julie â†’ Waiting for you â
 
   // Zach sees her, without priorities.
   await afterTabSwitch(zach, async () => {
+    // The row opens the map (Z-2); the other members' grades are in its Grade.
     await listRow(zach, "52-47A").locator(".lib-open").click();
+    await zach.getByRole("tab", { name: "Grade" }).click();
     await expect(zach.getByText("Julie hasn't said what matters to them yet.")).toBeVisible({
-      timeout: 1000,
+      timeout: 8000, // the row opens the map (Z-2), which restores the parcel's screen first
     });
   });
   await expect(zach.getByRole("button", { name: "Answer as Julie here" })).toBeVisible();
-  await zach.getByRole("dialog").getByRole("button", { name: "Close" }).click();
+  await zach.locator(".back-chip").click();
 
   // Julie sets hers: Zach's list shows her grade beside his.
   await setPriorities(julie, JULIE.rubric);
@@ -137,7 +144,9 @@ test("everyone's grade; How Julie would rate it; Ask Julie â†’ Waiting for you â
   await section.getByRole("textbox").fill("The spring by the road?");
   await section.getByRole("button", { name: "Ask", exact: true }).click();
   await expect(section).toContainText("Julie's Waiting for you");
-  await zach.getByRole("dialog").getByRole("button", { name: "Close" }).click();
+  // Closed, so the tab switches below (by way of the map) don't have it in front of him when her take arrives.
+  await zach.getByRole("button", { name: "Close this parcel" }).first().click();
+  await zach.getByRole("link", { name: YOUR_LIST }).click();
 
   await afterTabSwitch(julie, async () => {
     await expect(julie.locator(".app-badge")).toHaveText("1", { timeout: 1000 });

@@ -49,9 +49,18 @@ export function logGraded(key: string, now = new Date().toISOString()): void {
   pruneRecent(now);
 }
 
-/** A built parcel opened (UX part 2, §9 Q4): Recent counts its days from the later of this and its last grade. */
+/** Opened or graded within this long already: an opening isn't logged again (a synced write for each open is noise). */
+const OPENED_EVERY_MS = 86_400_000;
+
+/**
+ * A built parcel opened (UX part 2, §9 Q4): Recent counts its days from the later of this and its last grade. Logged at
+ * most once a day a parcel: Recent's 60 days don't need the hour, and each write syncs the profile.
+ */
 export function logOpened(key: string, now = new Date().toISOString()): void {
-  saveLog(withOpened(getPref("ps.history"), key, now));
+  const log = getPref("ps.history");
+  const last = [log.graded[key], log.opened?.[key]].filter(Boolean).sort().at(-1);
+  if (last && Date.parse(now) - Date.parse(last) < OPENED_EVERY_MS) return;
+  saveLog(withOpened(log, key, now));
 }
 
 /**
