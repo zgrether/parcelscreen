@@ -8325,6 +8325,48 @@ button.use-row[aria-expanded="true"] .use-name::after {
   min-width: 0;
 }
 
+/* Z-8 (UX part 2 PR 7b): Recent, one line a row: the name (two lines at most), the letter, the acres, $/ac over the
+   date, then ★ and ✕ at 44 px. It replaces the phone's card layout for Recent (the grid areas above). */
+.hist-row.recent-line {
+  grid-template-areas: none;
+  grid-template-columns: minmax(0, 1fr) 36px 64px 88px 44px 44px;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+}
+.recent-line > * {
+  grid-area: auto;
+}
+.recent-line .hist-name {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  white-space: normal;
+  text-align: left;
+}
+.recent-grade {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.recent-when {
+  display: grid;
+  line-height: 1.25;
+}
+.recent-line .recent-star,
+.recent-line .hist-x {
+  width: 44px;
+  height: 44px;
+  margin: 0;
+}
+@media (max-width: 700px) {
+  .hist-row.recent-line {
+    grid-template-columns: minmax(0, 1fr) 28px 54px 70px 44px 44px;
+    gap: 4px;
+  }
+}
 /* UX part 2 PR 7a (P-5): each view's count; the compare bar at the foot of the screen; Ruled out's rows. */
 .list-switch-n {
   margin-left: 4px;
