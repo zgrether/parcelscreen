@@ -42,6 +42,8 @@ export interface UseListing {
   hoa: Hoa;
   /** The acres the listing claims, as typed: Divide counts on them, as $/ac does (owner, #311). Absent: none typed. */
   listingAcres?: number | null;
+  /** A survey's acres and frontage (J-5, UX part 2 PR 3c2): before the listing's acres and the measured frontage. */
+  survey?: { acres: number | null; frontageFt: number | null } | null;
   /** Which came from the parcel a piece was split from (owner, after #312). Absent: none. */
   fromOriginal?: readonly FromOriginal[];
 }

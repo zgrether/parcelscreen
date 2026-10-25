@@ -536,6 +536,7 @@ export function useScreenIt(
   const hoa = open?.hoa ?? "unknown";
   const listingAcres = open?.listingAcres ?? null;
   const fromOriginal = open?.fromOriginal;
+  const facts = open?.facts;
   const uses = useMemo(
     () =>
       display && card && !runningHere
@@ -543,13 +544,14 @@ export function useScreenIt(
             usesInputOf(
               display,
               card,
-              drawnOf(markup ?? [], drivewayLine, { askingPrice, ...costs }, undefined, open?.facts),
+              drawnOf(markup ?? [], drivewayLine, { askingPrice, ...costs }, undefined, facts),
               {
                 markup: markup ?? [],
                 deedRestrictions,
                 hoa,
                 listingAcres,
                 ...(fromOriginal ? { fromOriginal } : {}),
+                ...(facts ? { facts } : {}),
               },
             ),
           )
@@ -566,7 +568,7 @@ export function useScreenIt(
       hoa,
       listingAcres,
       fromOriginal,
-      open?.facts,
+      facts,
     ],
   );
   // A site tapped in the panel (step 7 plan §1.3): evaluated with the live session, as its pin is; without one, the
@@ -732,7 +734,9 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
           {/* P-2: the acres, then the county and the tax map number, the listing's way of naming it. */}
           {(d?.ok || place) && (
             <span className="sh-acres">
-              {[d?.ok ? `${fmt(d.acres, 2)} ac` : null, place].filter(Boolean).join(" · ")}
+              {[acresWords(s.ctl.state.store.open, d?.ok ? d.acres : null), place]
+                .filter(Boolean)
+                .join(" · ")}
             </span>
           )}
         </span>
@@ -765,6 +769,13 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
     </>
   );
 }
+
+/** The header's acres (J-5, UX part 2 PR 3c2): a survey's, named so, before the boundary's. */
+const acresWords = (open: WorkingParcel | null, boundary: number | null): string | null => {
+  const surveyed = open?.facts?.survey?.acres ?? null;
+  if (surveyed !== null) return `${fmt(surveyed, 1)} ac, surveyed`;
+  return boundary !== null ? `${fmt(boundary, 2)} ac` : null;
+};
 
 /** The ×'s tooltip (J-2: × only closes, as Esc does on a desktop). */
 const closeTitle = (_open: WorkingParcel | null, desk: boolean): string =>

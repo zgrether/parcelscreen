@@ -220,7 +220,7 @@ export function libraryRow(
       grades.map((g) => g.graded?.grade ?? null),
     ),
     costBuild,
-    perAcre: perAcre(p.askingPrice, p.listingAcres, acres),
+    perAcre: perAcre(p.askingPrice, p.listingAcres, acres, undefined, p.facts?.survey?.acres ?? null),
     factors,
   };
 }

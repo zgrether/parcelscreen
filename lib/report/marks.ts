@@ -54,6 +54,18 @@ export const FLOOD_LETTERS: readonly FloodLetter[] = ["elevation", "loma"];
 export interface Facts {
   floodLetter?: { kind: FloodLetter; at: string };
   service?: { power: boolean; internet: boolean; at: string };
+  /**
+   * A survey's acres and public-road frontage (UX part 2 PR 3c2): Divide, $/ac and the header use them before the
+   * listing's acres and the county map's, for every member, and name them "surveyed".
+   */
+  survey?: Survey;
+}
+
+/** A survey's figures, either may be blank. */
+export interface Survey {
+  acres: number | null;
+  frontageFt: number | null;
+  at: string;
 }
 
 /** A point marker: one place, [lat, lon]. */
@@ -120,7 +132,7 @@ export const drawnOf = (
   facts?: Facts,
 ): Drawn => ({
   ...(adjust?.size ? { adjust } : {}),
-  ...(facts && (facts.floodLetter || facts.service) ? { facts } : {}),
+  ...(facts && (facts.floodLetter || facts.service || facts.survey) ? { facts } : {}),
   names: lineNamesOf(markup),
   marks: markup.filter((m): m is typeof m & Mark => m.shape !== "line"),
   driveway,

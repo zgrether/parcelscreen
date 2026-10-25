@@ -606,7 +606,7 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       return { ...s, store: save({ ...open, screenIds: [...open.screenIds, a.id] }, a.stamp) };
     case "facts": {
       if (!open || a.serial !== s.serial) return s;
-      const facts = a.facts.floodLetter || a.facts.service ? a.facts : undefined;
+      const facts = a.facts.floodLetter || a.facts.service || a.facts.survey ? a.facts : undefined;
       if (JSON.stringify(facts) === JSON.stringify(open.facts)) return s;
       const { facts: _was, ...rest } = open;
       return { ...s, store: save(facts ? { ...rest, facts } : rest, a.stamp) };

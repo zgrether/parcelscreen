@@ -48,3 +48,24 @@ test("a flood letter marked as a fact: on file for everyone, in the Floodplain r
   await expect.poll(stored).toBe(null);
   expect(errors).toEqual([]);
 });
+
+test("a survey's acres, entered in Details: the header says them, surveyed; cleared, the boundary's again", async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(240_000);
+  await replayHar(context, [FERNEY]);
+  await openExplorer(page, FERNEY);
+  await importParcel(page, FERNEY);
+  await page.getByRole("tab", { name: "Details" }).click();
+  const survey = page.getByRole("group", { name: "Survey" });
+  const listing = page.locator(".ip-listing");
+  if ((await listing.getAttribute("data-folded")) !== null)
+    await listing.locator(".ip-listing-summary").click();
+  await survey.getByLabel("Surveyed acres").fill("44.2 ac");
+  await survey.getByLabel("Surveyed acres").press("Enter");
+  await expect(page.locator(".sh-acres").first()).toHaveText(/^44\.2 ac, surveyed · /);
+  await survey.getByLabel("Surveyed acres").fill("");
+  await survey.getByLabel("Surveyed acres").press("Enter");
+  await expect(page.locator(".sh-acres").first()).toHaveText(/^43\.88 ac · /);
+});

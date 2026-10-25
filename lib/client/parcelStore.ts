@@ -617,6 +617,13 @@ const WorkingSchema = z.object({
     .object({
       floodLetter: z.object({ kind: z.enum(FLOOD_LETTERS), at: z.string() }).optional(),
       service: z.object({ power: z.boolean(), internet: z.boolean(), at: z.string() }).optional(),
+      survey: z
+        .object({
+          acres: z.number().positive().nullable(),
+          frontageFt: z.number().nonnegative().nullable(),
+          at: z.string(),
+        })
+        .optional(),
     })
     .optional(),
   updatedAt: z.string(),
