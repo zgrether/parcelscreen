@@ -50,10 +50,16 @@ export function parseParking(json: unknown): ParkingLot[] {
 
 const TAGGED = /\b(trailhead|hiking)\b/i;
 
+/** A tag other than the name says trailhead or hiking (the baked lots keep just this, lib/screen/placeData.ts). */
+export function hikingTagged(tags: Record<string, string>): boolean {
+  const { name: _name, ...rest } = tags;
+  return Object.entries(rest).some(([k, v]) => TAGGED.test(k) || TAGGED.test(v));
+}
+
 /** The lot is tagged for this trailhead: by name (both normalised; one holding the other), or a trailhead/hiking tag. */
 function taggedFor(name: string, lot: ParkingLot): boolean {
-  const { name: lotName, ...rest } = lot.tags;
-  if (Object.entries(rest).some(([k, v]) => TAGGED.test(k) || TAGGED.test(v))) return true;
+  const lotName = lot.tags.name;
+  if (hikingTagged(lot.tags)) return true;
   if (!lotName) return false;
   const a = normalizeTrailheadName(name),
     b = normalizeTrailheadName(lotName);

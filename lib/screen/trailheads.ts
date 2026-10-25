@@ -41,7 +41,7 @@ export interface TrailheadPoint {
  * where the layer holds more than parks, the filter; what `unanswered` stores when it doesn't answer, and what the
  * report calls it then (follow-up 53).
  */
-interface StateSource {
+export interface StateSource {
   prefix: string;
   state: StateCode;
   kind: "parks" | "trails";
@@ -52,7 +52,7 @@ interface StateSource {
   label: string;
 }
 
-const STATE_SOURCES: readonly StateSource[] = [
+export const STATE_SOURCES: readonly StateSource[] = [
   {
     prefix: "https://vginmaps.vdem.virginia.gov/",
     state: "VA",
