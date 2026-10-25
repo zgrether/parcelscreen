@@ -64,17 +64,6 @@ async function tap(target: Locator): Promise<void> {
   await target.click();
 }
 
-/** The phone's sheet, raised until it holds most of the screen (as cost.spec.ts does): at its peek, the header and its
- * actions row fill it, and Grade | Uses | Details sits under the tab bar (UX part 2 PR 3a). */
-async function raiseSheet(page: Page): Promise<void> {
-  const sheet = page.locator(".explore-panel");
-  for (let i = 0; i < 4; i++) {
-    if ((await sheet.boundingBox())!.height > 500) return;
-    await page.locator(".sheet-handle").tap();
-    await page.waitForTimeout(500);
-  }
-}
-
 async function openUse(page: Page, name: string): Promise<void> {
   const row = page.locator(".uses .use").filter({ hasText: name });
   await row.locator("button.use-row").click();
@@ -104,8 +93,9 @@ for (const phone of [false, true]) {
       await expect(page.locator(".sh-acres").first()).toHaveText(/^30\.15 ac · /);
 
       // Uses: Garden's water named, Hunt from the boundary.
-      if (phone) await raiseSheet(page);
-      await page.getByRole("tab", { name: "Uses" }).click();
+      // On a phone the sheet raised first: at its peek, the header and its actions row (UX part 2 PR 3a) fill it.
+      await tall(page, phone);
+      await tap(page.getByRole("tab", { name: "Uses" }));
       await expect(page.locator(".uses .use").first()).toBeVisible();
       await page.waitForTimeout(500);
       await page.screenshot({ path: `${OUT}/${device}-312-uses.png` });
