@@ -4,11 +4,14 @@
  */
 export const OFFLINE_WORDS = {
   heading: "Offline",
-  device: (used: string, quota: string) => `This device: ${used} of about ${quota}`,
+  device: (used: string, quota: string) =>
+    `This device: ${used} of about ${quota}, for the app, your parcels and their maps`,
   kept: "Kept until you delete it",
-  mayClear: "The browser may clear this when space runs low.",
+  mayClear: "The browser may clear this when space runs low. Keep offline data asks it not to.",
   keep: "Keep offline data",
   mapCache: (used: string, cap: string) => `Map cache: ${used} of ${cap}`,
+  mapCacheLine:
+    "The maps you've looked at, kept so they open faster and offline; past the limit, the oldest go. Saved parcels aren't counted here, and Clear map cache leaves them.",
   keepUpTo: "Keep up to",
   clear: "Clear map cache",
   iphone:
@@ -20,13 +23,16 @@ export const OFFLINE_WORDS = {
   update: "Update offline copy",
   saving: (pct: number) => `Saving offline… ${pct}%`,
   question: "Save offline?",
+  savingTitle: "Saving offline",
   working: "Working out the size…",
   about: (mb: number) => `About ${mb} MB`,
   includes:
-    "The map ¼ mile around the parcel, in every layer that allows it, with its grade, lines, marks and nearby places.",
-  noEsri: "Esri's maps aren't included: their terms don't allow it.",
+    "The parcel's grade, your lines and marks, the places nearby, and the map for a quarter mile around it in every basemap and layer whose provider allows it.",
+  noEsri:
+    "Not included: the two Esri basemaps, Aerial (Esri) and Streets (Esri). Their terms don't allow it.",
+  where: "Open it from Your list, even with no connection. Settings › Offline lists it.",
   saved: (size: string) => `Saved offline (${size})`,
-  failed: (n: number) => `${n} map tiles didn't download.`,
+  failed: (n: number) => (n === 1 ? "1 map tile didn't download." : `${n} map tiles didn't download.`),
   tryAgain: "Try again",
   cancel: "Cancel",
   done: "Done",

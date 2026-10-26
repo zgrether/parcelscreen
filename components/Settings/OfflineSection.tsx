@@ -66,6 +66,7 @@ export function OfflineSection() {
           <p className="tiny offline-cache-line">
             {W.mapCache(formatBytes(s.automatic), formatBytes(s.cap))}
           </p>
+          <p className="tiny muted">{W.mapCacheLine}</p>
           <div className="your-data-row offline-cap-row">
             <label className="tiny" htmlFor="offline-cap">
               {W.keepUpTo}

@@ -50,6 +50,12 @@ export const { dynamic, dynamicParams, revalidate, generateStaticParams, GET } =
   // must load that one file from the network. The chunks it then imports are precached as usual. And the baked places
   // (public/places/, step 14d): about 2 MB of 1° cells the screen's worker reads for one parcel's few, over the network
   // like the rest of a grade; keeping them offline is step 14e's (a saved parcel's cells).
+  // Serwist's default patterns plus woff2 (step 14e): the app's fonts are Next's own files under static/media, and
+  // without them a launch with no connection fell back to the system's fonts.
+  globPatterns: [
+    ".next/static/**/*.{js,css,html,ico,apng,png,avif,jpg,jpeg,jfif,pjpeg,pjp,gif,svg,webp,json,webmanifest,woff2}",
+    "public/**/*",
+  ],
   manifestTransforms: [
     async (entries) => {
       const snapshot = entries.filter((e) => isHospitalSnapshot(e.url));
