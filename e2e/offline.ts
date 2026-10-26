@@ -15,19 +15,22 @@ const EXPORT = /elevation\.nationalmap\.gov\/arcgis\/rest\/services\/3DEPElevati
 export interface Tiles {
   /** Answered by us, before the cut. */
   served: number;
+  /** Each tile answered, once. */
+  urls: Set<string>;
   /** Asked for after the cut: none of them reached a tile host. */
   cutOff: number;
   cut: boolean;
 }
 
 export async function answerTiles(context: BrowserContext, body: Buffer): Promise<Tiles> {
-  const t: Tiles = { served: 0, cutOff: 0, cut: false };
+  const t: Tiles = { served: 0, urls: new Set(), cutOff: 0, cut: false };
   const answer = (route: Route) => {
     if (t.cut) {
       t.cutOff++;
       return route.abort("internetdisconnected");
     }
     t.served++;
+    t.urls.add(route.request().url());
     return route.fulfill({ body, contentType: "image/png", headers: { "access-control-allow-origin": "*" } });
   };
   await context.route(TILES, answer);
@@ -39,6 +42,7 @@ export async function answerTiles(context: BrowserContext, body: Buffer): Promis
 
 export interface Stored {
   key: string;
+  layer: string;
   bytes: number;
   pins: string[];
 }
@@ -80,3 +84,23 @@ export async function controlled(page: Page): Promise<void> {
   await reload(page);
   await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
 }
+
+/** The layers `answerTiles` answers. */
+const ANSWERED = new Set([
+  "usgs-imagery",
+  "usgs-topo",
+  "state-tn",
+  "state-nc",
+  "state-va",
+  "light-pollution",
+  "slope",
+]);
+
+/**
+ * Every tile answered so far is stored. The service worker stores a tile after answering it, in the background, so the
+ * map can be done before the cache is (a busy CI runner cut the network with most of the view unstored).
+ */
+export const allStored = (page: Page, tiles: Tiles) =>
+  expect
+    .poll(async () => (await stored(page)).filter((s) => ANSWERED.has(s.layer)).length, { timeout: 30_000 })
+    .toBeGreaterThanOrEqual(tiles.urls.size);

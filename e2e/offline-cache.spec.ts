@@ -6,7 +6,7 @@
  */
 import { expect, test, type Page } from "@playwright/test";
 import { openExplorer, openYourData, reload } from "./flow";
-import { answerTiles, controlled, stored, tilesLoaded } from "./offline";
+import { allStored, answerTiles, controlled, stored, tilesLoaded } from "./offline";
 import { greyPng, noisePng } from "./png";
 import { replayHar } from "./replay";
 
@@ -28,6 +28,7 @@ test("a viewed area's map comes from the cache with the network cut", async ({ p
   await controlled(page);
   await tilesLoaded(page);
   await expect.poll(async () => (await stored(page)).length).toBeGreaterThan(4);
+  await allStored(page, tiles);
   const kept = (await stored(page)).map((s) => s.key);
 
   tiles.cut = true;
