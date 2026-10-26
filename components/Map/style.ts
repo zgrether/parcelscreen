@@ -8,6 +8,7 @@
  * drew the parent tile, unscaled, past each service's native zoom (plan B2). Here it is stacked sources (USGS, then
  * TN, NC and VA since step 2) with `bounds` and `maxzoom`, so MapLibre overzooms each one correctly.
  */
+import { lidarLayers, lidarSources } from "./lidarStyle";
 import type {
   ExpressionSpecification,
   FilterSpecification,
@@ -206,6 +207,9 @@ export function buildStyle(opts: {
     Object.assign(sources, terrainSources(opts.terrain));
     layers.push(hillshadeLayer());
   }
+  // Step 14c: lidar terrain over the basemap and the 10 m hillshade, under the light pollution and everything drawn.
+  Object.assign(sources, lidarSources());
+  layers.push(...lidarLayers());
   sources[LAYER.lightPollution] = {
     type: "raster",
     tiles: [lightPollutionTiles(opts.lpAtlasTiles, opts.lpYear)],

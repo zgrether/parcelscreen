@@ -14,6 +14,8 @@ import { RoadsToggle } from "./RoadsToggle";
 import { MapKey } from "./MapKey";
 import { BASEMAPS } from "./style";
 import { TerrainControls } from "./TerrainControls";
+import { LidarControls } from "./LidarControls";
+import { PlacesControls } from "./PlacesControls";
 import { setMapLayerPrefs, useMapLayerPrefs } from "./useMapLayerPrefs";
 import { AREA_WORDS } from "@/lib/areas/words";
 import { POWER_MAP } from "@/lib/uses/words";
@@ -87,6 +89,10 @@ function Panel({ onClose }: { onClose: () => void }) {
           {p.areas && <p className="tiny muted areas-legend">{AREA_WORDS.legend}</p>}
           {/* Step 14: the power lines near the graded parcel, from its result. */}
           {toggle(POWER_MAP.toggle, p.power, () => setMapLayerPrefs({ power: !p.power }))}
+          {/* Step 14c: USGS 3DEP lidar, as shaded relief or slope. */}
+          <LidarControls />
+          {/* Step 14d: the baked places and the lists a grade times, by kind. */}
+          <PlacesControls />
         </div>
         <AnalysisGroup />
         <MapKey />
