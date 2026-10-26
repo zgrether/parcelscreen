@@ -32,6 +32,7 @@ import { markIconSvg } from "./markIcons";
 const PIN_PX = 28;
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
 import { TIP_LAYERS, tipAt } from "./results/tooltip";
+import { placeAt } from "./PlacesLayer";
 import { installTiltRotate } from "./tiltRotate";
 import { isDoubleTap, type Tap } from "./doubleTap";
 import { useMap } from "./MapView";
@@ -168,7 +169,7 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
         // A drawn line opens its row in Details (owner, #127; step 8b); its tooltip shows on hover.
         const drawn = markupAt(map, e.point);
         if (drawn) return c.selectLayer(lineLayer(drawn));
-        if (tipAt(map, e.point)) return;
+        if (tipAt(map, e.point) || placeAt(map, e.point)) return;
         const geo = c.parcel?.geo;
         const line = outlineAt(map, e.point);
         return c.tap({

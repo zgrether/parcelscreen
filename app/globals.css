@@ -8641,6 +8641,25 @@ button.use-row[aria-expanded="true"] .use-name::after {
   }
 }
 
+/* Map layers › Places (step 14d): the kinds under the toggle, indented as Lidar terrain's settings; a place's card, the
+   result tips' popup with its name first. */
+.places-controls {
+  gap: 3px;
+}
+.place-tip .maplibregl-popup-content {
+  white-space: normal;
+}
+.place-card strong {
+  display: block;
+  font-weight: 600;
+}
+@media (max-width: 860px) {
+  /* A phone: the card fits the width with 16 px gutters (plan §8). */
+  .place-tip {
+    max-width: calc(100vw - 32px) !important;
+  }
+}
+
 /* Household (UX part 2 PR 5, P-8): its members, each with Rename; then your devices. */
 .household-members {
   display: grid;

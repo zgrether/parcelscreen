@@ -15,6 +15,7 @@ import { EMPTY_LOG, readHistoryLog, type HistoryLog } from "./favorites";
 import { activeKv, isProfileKey, isSharedKey, sharedKv } from "./profileKv";
 import { readParcelStore, withNamesFromNotes, writeParcelStore, type ParcelStore } from "./parcelStore";
 import { presetOf, type Preset } from "../print/report";
+import { PLACE_KINDS, type PlaceKind } from "../places/layer";
 
 export interface MapView {
   lat: number;
@@ -113,7 +114,17 @@ export interface Prefs {
   "ps.power": boolean;
   /** Step 14c: Map layers' Lidar terrain, per device: off, Shaded relief, at 60%. */
   "ps.lidar": LidarPref;
+  /** Step 14d: Map layers' Places and its six kinds, per device: off, every kind on. */
+  "ps.places": PlacesPref;
 }
+
+/** Step 14d: the Places layer's toggle and which kinds it shows. */
+export interface PlacesPref {
+  on: boolean;
+  kinds: Record<PlaceKind, boolean>;
+}
+
+const ALL_PLACE_KINDS = Object.fromEntries(PLACE_KINDS.map((k) => [k, true])) as Record<PlaceKind, boolean>;
 
 /** Step 14c: the lidar terrain layer's toggle, style and opacity (0.2–1). */
 export interface LidarPref {
@@ -153,6 +164,7 @@ const DEFAULTS: Prefs = {
   "ps.areaStars": [],
   "ps.power": false,
   "ps.lidar": { on: false, style: "relief", opacity: 0.6 },
+  "ps.places": { on: false, kinds: ALL_PLACE_KINDS },
 };
 
 /** How each key is stored: the prototype kept flags as "1"/"0" and the rest as plain strings or JSON. */
@@ -202,6 +214,7 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
   "ps.areas": { read: (r) => r === "1", write: (v) => (v ? "1" : "0") },
   "ps.power": { read: (r) => r === "1", write: (v) => (v ? "1" : "0") },
   "ps.lidar": { read: readLidar, write: (v) => JSON.stringify(v) },
+  "ps.places": { read: readPlaces, write: (v) => JSON.stringify(v) },
   "ps.areaStars": {
     read: (r) => {
       const v = JSON.parse(r) as unknown;
@@ -230,6 +243,13 @@ function readLidar(raw: string): LidarPref {
     style: v.style === "slope" ? "slope" : "relief",
     opacity: Math.min(1, Math.max(0.2, o)),
   };
+}
+
+function readPlaces(raw: string): PlacesPref {
+  const v = JSON.parse(raw) as Partial<PlacesPref>;
+  const kinds = { ...ALL_PLACE_KINDS };
+  for (const k of PLACE_KINDS) if (v.kinds?.[k] === false) kinds[k] = false;
+  return { on: v.on === true, kinds };
 }
 
 export interface KeyValueStore {
