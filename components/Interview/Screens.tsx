@@ -270,6 +270,8 @@ export function PairScreen({ iv, question, heading, n, revisit }: ScreenProps & 
     setOther(id);
     iv.answer({ [second.key]: id } as Partial<InterviewAnswers>, false);
   };
+  // Step 14d: a first answer that makes the second row moot ("Rarely" paddling) hides it.
+  const needsOther = first === undefined || first !== question.skipSecondIf;
   return (
     <>
       <Scene heading={heading} n={n} text={question.scene} />
@@ -280,11 +282,13 @@ export function PairScreen({ iv, question, heading, n, revisit }: ScreenProps & 
         pick={pickFirst}
         label={question.ask ?? question.scene}
       />
-      <div className="iv-follow">
-        <p className="iv-follow-q">{second.ask}</p>
-        <Choices choices={second.choices} value={other} pick={pickOther} label={second.ask} />
-      </div>
-      {!revisit && first && other && (
+      {needsOther && (
+        <div className="iv-follow">
+          <p className="iv-follow-q">{second.ask}</p>
+          <Choices choices={second.choices} value={other} pick={pickOther} label={second.ask} />
+        </div>
+      )}
+      {!revisit && first && (other || !needsOther) && (
         <button type="button" className="btn iv-continue" onClick={() => iv.answer({}, true)}>
           Continue
         </button>

@@ -5197,8 +5197,34 @@
    "min": 26,
    "mi": 17.1
   },
+  "paddling": {
+   "flat": {
+    "name": "Rat Branch Boat Ramp",
+    "water": "Watauga Lake",
+    "min": 28,
+    "mi": 17.7
+   },
+   "rivers": [
+    {
+     "name": "Watauga River access",
+     "river": "Watauga River",
+     "km": 21.8
+    },
+    {
+     "name": "Watauga River access",
+     "river": "Watauga River",
+     "km": 23
+    },
+    {
+     "name": "Watauga River access",
+     "river": "Watauga River",
+     "km": 26.2
+    }
+   ],
+   "pond": null
+  },
   "schemaVersion": 9,
-  "engine": 33,
+  "engine": 34,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -10094,8 +10120,34 @@
    "min": 26,
    "mi": 17.1
   },
+  "paddling": {
+   "flat": {
+    "name": "Rat Branch Boat Ramp",
+    "water": "Watauga Lake",
+    "min": 28,
+    "mi": 17.7
+   },
+   "rivers": [
+    {
+     "name": "Watauga River access",
+     "river": "Watauga River",
+     "km": 21.8
+    },
+    {
+     "name": "Watauga River access",
+     "river": "Watauga River",
+     "km": 23
+    },
+    {
+     "name": "Watauga River access",
+     "river": "Watauga River",
+     "km": 26.2
+    }
+   ],
+   "pond": null
+  },
   "schemaVersion": 9,
-  "engine": 33,
+  "engine": 34,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

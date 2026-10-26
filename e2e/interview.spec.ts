@@ -78,7 +78,12 @@ test("a full run as Person A, with Back and Skip: the result, and the priorities
   await choice(page, "Sun").first().click();
   await expect(progress(page)).toHaveText("3 of 14");
   await pick(page, "Sun", 4);
-  await pick(page, "Walk out the door", 5);
+  // Paddling (step 14d) shares question 4: "Rarely" hides its second row, and Continue goes on.
+  await pick(page, "Walk out the door", 4);
+  await choice(page, "Rarely").first().click();
+  await expect(page.getByText("The longest you'd drive to a launch?")).toHaveCount(0);
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(progress(page)).toHaveText("5 of 14");
   await pick(page, "Small and close", 6);
   await pick(page, "30 min", 7);
   // Question 7: two rows; Continue once both are answered (owner, 10/18).
@@ -181,7 +186,8 @@ test("a changed list: the result asks, and Keep my changes keeps it", async ({ p
   await settled(page);
   await page.goto("/interview");
   await pickYear(page, "Cool and snowy");
-  for (let n = 3; n <= 14; n++) {
+  // Paddling shares question 4 with Trails (step 14d), as 14a and 14b share 14.
+  for (const n of [3, 4, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]) {
     await page.getByRole("button", { name: "Skip" }).click();
     await expect(progress(page)).toHaveText(`${n} of 14`);
   }

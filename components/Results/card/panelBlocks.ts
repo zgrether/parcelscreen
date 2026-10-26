@@ -19,6 +19,7 @@ import { PublicLand } from "../blocks/PublicLand";
 import { Soils } from "../blocks/Soils";
 import { StillUnknown } from "../blocks/StillUnknown";
 import { Terrain } from "../blocks/Terrain";
+import { Paddling } from "../blocks/Paddling";
 import { Verdict } from "../blocks/Verdict";
 import { WhereToBuild } from "../blocks/WhereToBuild";
 import { WhereToGarden } from "../blocks/WhereToGarden";
@@ -48,6 +49,7 @@ const BLOCKS: Record<PanelKey, Block[]> = {
   airport: [GettingThere],
   longTrail: [LongTrails],
   internet: [Internet],
+  paddling: [Paddling],
   // Step 10: the breakdown is the panels' own (CardPanel's CostBreakdown). Still unknown stays where it was.
   budget: [],
   cost: [StillUnknown],

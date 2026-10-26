@@ -70,6 +70,7 @@ test("the columns, a card's Move to…, and Undo", async ({ page }) => {
     "Airport",
     "Bike to a long trail",
     "Satellite internet",
+    "Paddling",
   ]);
   await page.getByRole("button", { name: "Close" }).click();
   await page.getByRole("button", { name: "Undo" }).click();
@@ -295,6 +296,7 @@ test.describe("on a phone", () => {
       "Airport",
       "Bike to a long trail",
       "Satellite internet",
+      "Paddling",
     ]);
     // Try it is a slim line under the intro, as on a desktop (P-7): above the columns, over no card.
     const bar = page.getByRole("region", { name: "Try it" });

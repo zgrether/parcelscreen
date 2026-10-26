@@ -32,6 +32,7 @@ export const FACTOR_LABELS: Record<Factor, string> = {
   longView: "Long view",
   airport: "Airport",
   longTrail: "Bike to a long trail",
+  paddling: "Paddling",
   internet: "Satellite internet",
   budget: "Within budget",
 };
@@ -68,6 +69,7 @@ export const SHORT_TITLES: Record<Factor, string> = {
   longView: "View",
   airport: "Air",
   longTrail: "Bike",
+  paddling: "Paddle",
   internet: "Satellite",
   budget: "Budget",
 };
@@ -89,6 +91,7 @@ export type BandKey =
   | "viewOpenPct"
   | "airportMin"
   | "longTrailMin"
+  | "paddleMin"
   | "dishClearPct";
 
 /**
@@ -113,6 +116,7 @@ export const ROW_BANDS: Record<RowKey, readonly BandKey[]> = {
   longView: ["viewOpenPct"],
   airport: ["airportMin"],
   longTrail: ["longTrailMin"],
+  paddling: ["paddleMin"],
   internet: ["dishClearPct"],
   // Step 10: graded against the budgets, which the questions set; no slider.
   budget: [],
@@ -140,6 +144,7 @@ export const MINIMUM_BAND: Record<RowKey, LimitKey | null> = {
   // Step 11: the drive to an airport, as Hospital's to an ER.
   airport: "airportMin",
   longTrail: "longTrailMin",
+  paddling: "paddleMin",
   internet: "dishClearPct",
   // Step 10: a Must on it has no number of its own: it's the budgets.
   budget: null,
@@ -162,6 +167,7 @@ export const BAND_RUNS: Record<BandKey, "atLeast" | "atMost"> = {
   viewOpenPct: "atLeast",
   airportMin: "atMost",
   longTrailMin: "atMost",
+  paddleMin: "atMost",
   dishClearPct: "atLeast",
 };
 
@@ -184,6 +190,7 @@ export function bandValue(key: LimitKey, v: number): string {
     case "groceryMin":
     case "airportMin":
     case "longTrailMin":
+    case "paddleMin":
       return `${fmt(v)} min`;
     case "gardenAc":
       return `${fmt(v, 2).replace(/\.?0+$/, "")} ac`;
@@ -328,6 +335,8 @@ export function cardLine(r: Rubric, factor: Factor): string {
       return `A long rail-trail within ${bandValue("longTrailMin", bcEdge(b, "longTrailMin"))}`;
     case "internet":
       return "A clear spot for a satellite dish";
+    case "paddling":
+      return `A lake or reservoir launch within ${bandValue("paddleMin", bcEdge(b, "paddleMin"))}`;
     case "budget":
       return capital(budgetWords(r.budgets));
   }
@@ -341,6 +350,7 @@ export function minimumWords(row: RowKey, v: number): string {
   if (row === "hospital") return `ER within ${value}`;
   if (row === "airport") return `an airport within ${value}`;
   if (row === "longTrail") return `a long trail within ${value}`;
+  if (row === "paddling") return `a lake launch within ${value}`;
   if (row === "internet") return `a dish spot with at least ${value} open sky`;
   if (row === "town") return `groceries within ${value}`;
   if (row === "trails") return `a trailhead within ${value}`;
@@ -413,6 +423,8 @@ export function plainLine(r: Rubric, factor: Factor): string {
       return `An airport within ${bandValue("airportMin", bcEdge(b, "airportMin"))}`;
     case "longTrail":
       return `A long rail-trail within a ${fmt(bcEdge(b, "longTrailMin"))}-minute drive`;
+    case "paddling":
+      return `A lake or reservoir launch within a ${fmt(bcEdge(b, "paddleMin"))}-minute drive`;
     case "internet":
       return `A dish spot with at least ${bandValue("dishClearPct", bcEdge(b, "dishClearPct"))} open sky`;
     case "garden": {

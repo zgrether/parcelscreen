@@ -31,6 +31,7 @@ export const STRENGTH: Record<RowKey, string> = {
   airport: "airport access",
   longTrail: "a long trail nearby",
   internet: "a clear sky for a dish",
+  paddling: "a lake to paddle nearby",
   garden: "garden ground",
   budget: "budget fit",
 };
@@ -104,6 +105,10 @@ export function missLine(row: Row, card: Card, r: PartialScreenResult): string {
     case "longTrail":
       if (v !== undefined && v > edge(b.longTrailMin))
         return `${fmt(v)} minutes to a long trail is past your ${fmt(edge(b.longTrailMin))}-minute limit`;
+      break;
+    case "paddling":
+      if (v !== undefined && v > edge(b.paddleMin))
+        return `${fmt(v)} minutes to a lake launch is past your ${fmt(edge(b.paddleMin))}-minute limit`;
       break;
     case "internet":
       if (v !== undefined && v < edge(b.dishClearPct))

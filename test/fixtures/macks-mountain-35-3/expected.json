@@ -6654,8 +6654,34 @@
    "min": 90,
    "mi": 16.8
   },
+  "paddling": {
+   "flat": {
+    "name": "Claytor Lake access",
+    "water": "Claytor Lake",
+    "min": 82,
+    "mi": 11.3
+   },
+   "rivers": [
+    {
+     "name": "New River access",
+     "river": "New River",
+     "km": 9.2
+    },
+    {
+     "name": "New River access",
+     "river": "New River",
+     "km": 15.8
+    },
+    {
+     "name": "New River access",
+     "river": "New River",
+     "km": 17
+    }
+   ],
+   "pond": null
+  },
   "schemaVersion": 9,
-  "engine": 33,
+  "engine": 34,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -13335,8 +13361,34 @@
    "min": 90,
    "mi": 16.8
   },
+  "paddling": {
+   "flat": {
+    "name": "Claytor Lake access",
+    "water": "Claytor Lake",
+    "min": 82,
+    "mi": 11.3
+   },
+   "rivers": [
+    {
+     "name": "New River access",
+     "river": "New River",
+     "km": 9.2
+    },
+    {
+     "name": "New River access",
+     "river": "New River",
+     "km": 15.8
+    },
+    {
+     "name": "New River access",
+     "river": "New River",
+     "km": 17
+    }
+   ],
+   "pond": null
+  },
   "schemaVersion": 9,
-  "engine": 33,
+  "engine": 34,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

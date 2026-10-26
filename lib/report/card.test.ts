@@ -72,6 +72,7 @@ describe("the report card on the fixtures (engine 13)", () => {
       airport: "C", // step 11: 88 min to Roanoke (ROA)
       longTrail: "D", // step 11: 49 min to the Huckleberry Trail
       internet: "A", // step 11: a dish spot 100% clear
+      paddling: "D", // step 14d: 53 min to Claytor Lake
     });
     const zach = reportCard(r, ZACH);
     expect(zach.points).toBeCloseTo(3.25, 9); // §9.69: 3.2 with the Hospital row a D
@@ -117,6 +118,7 @@ describe("the report card on the fixtures (engine 13)", () => {
       airport: "F",
       longTrail: "F",
       internet: "A",
+      paddling: "F", // step 14d: 82 min to Claytor Lake, past the last cutoff
     });
     // The nearer grocery is the closer one, 76 min, but over every cutoff.
     // "an" (owner, #124: an approved correction), and the track note appended, as on Trails.
@@ -249,6 +251,7 @@ describe("the report card on the fixtures (engine 13)", () => {
       airport: "D",
       longTrail: "D",
       internet: "A",
+      paddling: "D", // step 14d: 60 min to South Holston Lake, on D's edge
     });
     expect(rowOf(r, "driveway").detail).toBe("2,888 ft, 18% at its steepest");
     const zach = reportCard(r, ZACH);

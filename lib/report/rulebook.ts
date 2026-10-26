@@ -98,6 +98,8 @@ const ROWS: RowKey[] = [
   "airport",
   "longTrail",
   "internet",
+  // Step 14d's.
+  "paddling",
 ];
 
 /** The scales each panel shows (as the report's panels do), by panel. */

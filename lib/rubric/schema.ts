@@ -33,6 +33,7 @@ const BandsSchema = z.strictObject({
   viewOpenPct: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.viewOpenPct]),
   airportMin: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.airportMin]),
   longTrailMin: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.longTrailMin]),
+  paddleMin: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.paddleMin]),
   dishClearPct: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.dishClearPct]),
 });
 

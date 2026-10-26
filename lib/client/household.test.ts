@@ -65,6 +65,7 @@ describe("the members", () => {
       "airport",
       "longTrail",
       "internet",
+      "paddling", // step 14d
     ]);
   });
 });

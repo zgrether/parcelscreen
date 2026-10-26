@@ -13,6 +13,7 @@ import { CLIMATE_SOURCES } from "./climate";
 import { IN_WINTER, PRIVACY_SOURCES } from "./privacy";
 import { VIEW_CAVEAT, VIEW_OPEN_MI } from "./view";
 import { LONG_TRAIL_SOURCES } from "./longTrail";
+import { PADDLE_SOURCES, RIVER_CAUTION } from "./paddling";
 import { DISH_CAVEAT } from "./internet";
 import { climateWords, privacyWords } from "../rubric/words";
 import { MAYBE_CAPS, footprintFt2, type CardConfig, type GateKey, type RowKey } from "./card";
@@ -41,6 +42,7 @@ const PANELS: Record<PanelKey, true> = {
   airport: true,
   longTrail: true,
   internet: true,
+  paddling: true,
   budget: true,
   cost: true,
 };
@@ -248,6 +250,12 @@ export function panelText(
         title: "Bike to a long trail",
         question: "How far to a long rail-trail we could ride?",
         howScored: `The drive from where the driveway meets the road to the nearest access point of a long rail-trail or greenway: A within ${R.longTrailMin[0]} min, B within ${R.longTrailMin[1]}, C within ${R.longTrailMin[2]}, D within ${R.longTrailMin[3]}; ${weightOf(rubrics, "longTrail")}. ${LONG_TRAIL_SOURCES}`,
+      };
+    case "paddling":
+      return {
+        title: "Paddling",
+        question: "How far to a lake we could paddle?",
+        howScored: `The drive from where the driveway meets the road to the nearest launch on a lake or reservoir of at least ${SCREEN_CONSTANTS.paddling.flatwaterMinAc} ac: A within ${R.paddleMin[0]} min, B within ${R.paddleMin[1]}, C within ${R.paddleMin[2]}, D within ${R.paddleMin[3]}. River put-ins nearby are listed and not graded: ${RIVER_CAUTION}. ${weightOf(rubrics, "paddling")}. ${PADDLE_SOURCES}`,
       };
     case "internet": {
       const D = SCREEN_CONSTANTS.dish;

@@ -142,6 +142,7 @@ function zeroWeights() {
     airport: 0,
     longTrail: 0,
     internet: 0,
+    paddling: 0,
     budget: 0,
   };
 }

@@ -65,6 +65,8 @@ export const TIE_ORDER: readonly RowKey[] = [
   "airport",
   "longTrail",
   "internet",
+  // Step 14d: Paddling, after them for the same reason.
+  "paddling",
 ];
 
 export interface Generated {
@@ -172,6 +174,9 @@ export function rubricFromAnswers(a: InterviewAnswers, C = SCREEN_CONSTANTS.card
   }
   answer("sunView", a.sunView);
   answer("trails", a.trails);
+  // Step 14d: how often you'd paddle places Paddling; the longest drive sets its edge, unless you'd rarely paddle.
+  answer("paddle", a.paddle);
+  if (a.paddle && a.paddle !== "rarely") answer("paddleDrive", a.paddleDrive);
   answer("groceries", a.groceries);
   answer("er", a.er);
   // Step 11: question 7's rows set Airport and Internet.
