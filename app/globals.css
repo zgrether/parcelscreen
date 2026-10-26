@@ -3296,6 +3296,27 @@ html:has(.app-nav) .explore {
   white-space: nowrap;
 }
 
+/* Step 14e: the Esri line under the offline strip, and Map layers' "not kept offline". */
+.pwa-offline-esri {
+  display: block;
+  font-weight: 400;
+}
+.mp-not-kept {
+  margin-left: 6px;
+}
+/* Settings › Offline: the cap and Clear wrap under each other on a phone. */
+.offline-cap-row {
+  flex-wrap: wrap;
+}
+.offline-cap-row select {
+  min-height: 44px;
+}
+@media (max-width: 480px) {
+  .offline-cap-row select {
+    flex: 1 1 100%;
+  }
+}
+
 /* ---------- The installable app (step 17c) ---------- */
 /* Offline: a strip under the top controls; the map and History still work. */
 .pwa-offline {

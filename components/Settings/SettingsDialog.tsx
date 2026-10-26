@@ -35,6 +35,7 @@ import { DEFAULT_COST_SETTINGS } from "@/lib/config/costs";
 import { currentCostSettings, saveCostSettings } from "@/lib/client/costRates";
 import { fromCostForm, sameSettings, toCostForm, type CostForm } from "@/lib/client/costsForm";
 import { Costs } from "./Costs";
+import { OfflineSection } from "./OfflineSection";
 import { YourData } from "./YourData";
 
 interface SettingsApi {
@@ -135,6 +136,8 @@ export function SettingsProvider({
         </header>
         <div className="help-body settings-body">
           <YourData key={opened} config={config} save={imported} />
+          {/* Step 14e: what this device keeps for using the app offline. */}
+          <OfflineSection key={`offline-${opened}`} />
 
           <h3>Thresholds</h3>
           <p className="tiny muted">These encode judgment, not fact. Change them and grade again.</p>
