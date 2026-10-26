@@ -36,6 +36,15 @@ offer of the database. Under the Horizontal Map Layers guideline, OSM and non-OS
 database is shared alike, so `official/` never takes an OSM point: the near step merges the two per grade, and a grade
 is a Produced Work (attribution only, as before). Commercial use is allowed either way.
 
+**Recreation.gov's launches (#350).** Twelve boating sites the other sources missed, in `official/` (source `ridb`,
+`lib/places/ridb.ts`): the Corps of Engineers' parks on Philpott Lake and W. Kerr Scott Reservoir, and the Forest
+Service's Jacobs Creek and Little Oak on South Holston Lake's Tennessee side, read once from Recreation.gov's public
+bulk export (RIDB, `ridb.recreation.gov/downloads/RIDBFullExport_V1_JSON.zip`, no key; 2026-10-26). The records are the
+Corps' and the Forest Service's own, so US government works in the public domain, with no limit on commercial use;
+credited "Recreation.gov". TVA's own ramp list (its `TVA_Recreation_Data` feature service, "made publicly available
+data by TVA Natural Resources") wasn't used: RIDB covered South Holston's Tennessee side, and TVA lists none of its
+sites in RIDB.
+
 **Lidar terrain** (Map layers, roadmap step 14c):
 - **Shaded relief:** Mapterhorn's elevation tiles (`tiles.mapterhorn.com`, Terrarium-encoded WebP), shaded in the
   browser by MapLibre. Over VA, NC and TN their source is USGS 3DEP's 1 m lidar where it exists, else its 10 m DEM

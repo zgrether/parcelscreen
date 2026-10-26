@@ -20,7 +20,7 @@ export type PlaceFolder = (typeof PLACE_FOLDERS)[number];
  * Each source, as a place records it. The trailhead sources map onto the near step's three ranks (usfs, state, osm;
  * trailheads.ts) by `TRAILHEAD_RANK_SOURCE`.
  */
-export const PLACE_SOURCES = ["osm", "usfs", "va-parks", "nc-parks", "tn-parks", "tn-trec"] as const;
+export const PLACE_SOURCES = ["osm", "usfs", "va-parks", "nc-parks", "tn-parks", "tn-trec", "ridb"] as const;
 export type PlaceSource = (typeof PLACE_SOURCES)[number];
 
 export const FOLDER_OF: Record<PlaceSource, PlaceFolder> = {
@@ -30,6 +30,7 @@ export const FOLDER_OF: Record<PlaceSource, PlaceFolder> = {
   "nc-parks": "official",
   "tn-parks": "official",
   "tn-trec": "official",
+  ridb: "official",
 };
 
 export const TRAILHEAD_RANK_SOURCE: Record<PlaceSource, "usfs" | "state" | "osm"> = {
@@ -39,6 +40,8 @@ export const TRAILHEAD_RANK_SOURCE: Record<PlaceSource, "usfs" | "state" | "osm"
   "nc-parks": "state",
   "tn-parks": "state",
   "tn-trec": "state",
+  // Launches only (lib/places/ridb.ts); a federal list, ranked with the Forest Service's were it ever a trailhead.
+  ridb: "usfs",
 };
 
 const DateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
@@ -83,7 +86,9 @@ const ParkingSchema = z.strictObject({
 /**
  * A paddle launch (step 14d plan §2.4): OSM's slipways, put-ins and access points, and USFS's boating sites, each
  * classified at bake time from NHD: flatwater when within paddling.flatwaterWithinM of a lake, pond or reservoir of at
- * least paddling.flatwaterMinAc, else river (and always river when tagged whitewater).
+ * least paddling.flatwaterMinAc, or when its name or a known dam pool says so (lib/places/flatwater.ts), else river
+ * (and always river when tagged whitewater); and Recreation.gov's Corps and Forest Service sites (lib/places/ridb.ts),
+ * flatwater on their lakes.
  */
 const LaunchSchema = z.strictObject({
   kind: z.literal("launch"),

@@ -30,6 +30,8 @@ import { kmToState, outlineOf, type StateCode } from "../screen/states";
 import { hikingTagged, parkingQuery } from "../screen/trailheadParking";
 import { STATE_SOURCES, readableName } from "../screen/trailheads";
 import type { LatLon } from "../screen/util";
+import { flatwaterByName } from "./flatwater";
+import { RIDB_EXPORT, RIDB_LAUNCHES } from "./ridb";
 
 /** The baked area: within this of VA, NC or TN (the brief: "plus 60 km"). */
 export const MARGIN_KM = 60;
@@ -284,7 +286,8 @@ const str = (v: unknown): string | undefined => (typeof v === "string" && v.trim
 /**
  * Each launch on its water (step 14d plan §2.4): flatwater when within paddling.flatwaterWithinM of an NHD lake, pond
  * or reservoir (FTYPE 390, 436) of at least paddling.flatwaterMinAc, the nearest such; else a river, named by the
- * nearest named flowline within paddling.riverWithinM. Whitewater put-ins are rivers whatever they're near. Named
+ * nearest named flowline within paddling.riverWithinM; still flatwater when its name or a known pool says so
+ * (flatwaterByName, #350). Whitewater put-ins are rivers whatever they're near. Named
  * "<water> access" when unnamed, else "Boat launch". Pure: the NHD features are given.
  */
 export function classifyLaunches(
@@ -317,8 +320,10 @@ export function classifyLaunches(
         const m = Math.max(0, pointToPolygonDistance(pt, k.geo, { units: "meters" }));
         if (m <= P.flatwaterWithinM && m < lakeM) [lake, lakeM] = [k, m];
       }
+    // NHD's lakes stop short of some dam pools; the launch's own name or a known pool still says flatwater (#350).
+    const still = lake ? null : flatwaterByName(l);
     let river: string | undefined;
-    if (!lake) {
+    if (!lake && !still) {
       let best = Infinity;
       for (const r of rivers) {
         const m = pointToLineDistance(pt, r.geo.type === "LineString" ? r.geo : lineOfMulti(r.geo), {
@@ -327,7 +332,7 @@ export function classifyLaunches(
         if (m <= P.riverWithinM && m < best) [river, best] = [r.name, m];
       }
     }
-    const waterName = lake ? lake.name : river;
+    const waterName = lake ? lake.name : still ? still.waterName : river;
     const name = l.name ?? (waterName ? `${waterName} access` : "Boat launch");
     return {
       kind: "launch" as const,
@@ -335,7 +340,7 @@ export function classifyLaunches(
       name,
       ll: l.ll,
       src: l.src,
-      water: lake ? ("flat" as const) : ("river" as const),
+      water: lake || still ? ("flat" as const) : ("river" as const),
       ...(waterName ? { waterName } : {}),
       ...(lake ? { waterAc: Math.round(lake.ac) } : {}),
       ...(l.trail ? { trail: l.trail } : {}),
@@ -579,6 +584,8 @@ interface SourceDef {
   licence: string;
   attribution: string;
   url: string;
+  /** A fixed list's date (RIDB_LAUNCHES): the bake doesn't fetch it. */
+  fetched?: string;
 }
 
 const STATE_SRC: Record<string, PlaceSource> = {
@@ -603,6 +610,14 @@ export const SOURCE_DEFS: readonly SourceDef[] = [
     licence: "Public domain (US government work)",
     attribution: "USDA Forest Service",
     url: DEFAULT_ENDPOINTS.usfsRecSites,
+  },
+  {
+    id: "ridb",
+    name: "Recreation.gov (RIDB): the Corps' and the Forest Service's boating sites missing from the others",
+    licence: "Public domain (US government work: the Corps' and the Forest Service's records)",
+    attribution: "Recreation.gov",
+    url: RIDB_EXPORT,
+    fetched: "2026-10-26",
   },
   ...STATE_SOURCES.map((s): SourceDef => ({
     id: STATE_SRC[`${s.state}:${s.kind}`]!,
@@ -728,7 +743,7 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
   if (classified.unanswered.length)
     failed.push(`launch classification (NHD) in ${classified.unanswered.length} cells`);
 
-  const all: Place[] = [...[...got.values()].flat(), ...parking, ...launches];
+  const all: Place[] = [...[...got.values()].flat(), ...parking, ...launches, ...RIDB_LAUNCHES];
   const byFile = new Map<string, Place[]>();
   for (const p of all) {
     const key = `${FOLDER_OF[p.src]}/${cellOf(p.ll)}`;
@@ -758,7 +773,7 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
     sources: SOURCE_DEFS.map((d) => ({
       ...d,
       folder: FOLDER_OF[d.id],
-      fetched: fetchedOf(d.id),
+      fetched: d.fetched ?? fetchedOf(d.id),
       count: cellFiles.reduce(
         (t, c) => t + c.places.filter((p) => p.src === d.id && p.kind !== "parking").length,
         0,
