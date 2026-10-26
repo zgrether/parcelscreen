@@ -194,10 +194,7 @@ jobs:
           # The current version's folder, and the older versions' area files gone (their samples, a version of their
           # own, stay).
           v=$(node -p "require('fs').readFileSync('lib/areas/types.ts','utf8').match(/AREA_FILE_VERSION = (\\d+)/)[1]")
-          for d in public/areas/v*/; do
-            # :(glob) so the * stops at the folder: a bare pathspec's * also matched v1/samples/ (#350).
-            [ "$d" = "public/areas/v$v/" ] || git rm -q --ignore-unmatch ":(glob)$d*.json"
-          done
+          scripts/areas-clean-old.sh "$v"
           git add public/areas test/fixtures/areas .github/places-done.json
           git commit -m "Area files profiled again ($REQUEST)" || exit 0
           git pull --rebase origin "${{ github.head_ref }}"

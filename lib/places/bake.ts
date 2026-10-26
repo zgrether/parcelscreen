@@ -287,7 +287,7 @@ const str = (v: unknown): string | undefined => (typeof v === "string" && v.trim
  * Each launch on its water (step 14d plan §2.4): flatwater when within paddling.flatwaterWithinM of an NHD lake, pond
  * or reservoir (FTYPE 390, 436) of at least paddling.flatwaterMinAc, the nearest such; else a river, named by the
  * nearest named flowline within paddling.riverWithinM; still flatwater when its name or a known pool says so
- * (flatwaterByName, #350). Whitewater put-ins are rivers whatever they're near. Named
+ * (flatwaterByName, #350), unless it's below a dam (tailwaterOf). Whitewater put-ins are rivers whatever they're near. Named
  * "<water> access" when unnamed, else "Boat launch". Pure: the NHD features are given.
  */
 export function classifyLaunches(
