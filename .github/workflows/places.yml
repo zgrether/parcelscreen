@@ -195,7 +195,8 @@ jobs:
           # own, stay).
           v=$(node -p "require('fs').readFileSync('lib/areas/types.ts','utf8').match(/AREA_FILE_VERSION = (\\d+)/)[1]")
           for d in public/areas/v*/; do
-            [ "$d" = "public/areas/v$v/" ] || git rm -q --ignore-unmatch "$d"*.json
+            # :(glob) so the * stops at the folder: a bare pathspec's * also matched v1/samples/ (#350).
+            [ "$d" = "public/areas/v$v/" ] || git rm -q --ignore-unmatch ":(glob)$d*.json"
           done
           git add public/areas test/fixtures/areas .github/places-done.json
           git commit -m "Area files profiled again ($REQUEST)" || exit 0
