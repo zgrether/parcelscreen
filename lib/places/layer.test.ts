@@ -80,11 +80,11 @@ describe("the baked places as features", () => {
 });
 
 describe("the tap card", () => {
-  it("name, type, source, checked; a river launch adds its warning", () => {
+  it("name, type, where it's from, checked; a river launch adds its warning", () => {
     expect(cardLines(props({}), null)).toEqual([
       "Elk Garden",
       "Trailhead",
-      "US Forest Service",
+      "From US Forest Service",
       "Checked 2026-10-25",
     ]);
     expect(
@@ -95,7 +95,7 @@ describe("the tap card", () => {
     ).toEqual([
       "Guy Ford access",
       "Paddle launch: river, Watauga River",
-      "US Forest Service",
+      "From US Forest Service",
       "Checked 2026-10-25",
       "Check the river's class before paddling",
     ]);
@@ -113,7 +113,7 @@ describe("the tap card", () => {
     expect(cardLines(p, 28)).toEqual([
       "Rat Branch Boat Ramp",
       "Paddle launch: flatwater, Watauga Lake",
-      "OpenStreetMap",
+      "From OpenStreetMap",
       "Checked 2026-10-25",
       "28 min from this parcel",
     ]);

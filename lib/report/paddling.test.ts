@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { expectedOf } from "@/test/support/expected";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { PADDLE_DRIVES, pondToPaddle } from "../screen/paddling";
+import { flatLine, riversLine } from "./paddling";
 import type { ScreenResult } from "../screen/types";
 import { defaultRubric } from "../rubric/default";
 import { bcEdge } from "../rubric/words";
@@ -44,6 +45,10 @@ describe("the Paddling row", () => {
   it("its line names the water and the launch; its short form, the water and minutes", () => {
     const row = rowOf(withPaddling({ flat: flat(18), rivers: [], pond: null }));
     expect(row.detail).toBe("18 min to Watauga Lake, Rat Branch");
+    // An unnamed launch is "<water> access": the water once.
+    expect(
+      flatLine({ name: "South Holston Lake access", water: "South Holston Lake", min: 60, mi: 31 }),
+    ).toBe("60 min to South Holston Lake access");
     expect(row.short).toBe("Watauga Lake 18 min");
     expect(row.measure).toEqual({ value: 18, unit: "min" });
   });
@@ -55,9 +60,21 @@ describe("the Paddling row", () => {
     const more = rowOf(withPaddling({ flat: flat(40), rivers, pond }));
     expect(more.grade).toBe(bare.grade);
     expect(more.panelNote).toBe(
-      "Watauga River: Guy Ford access, 6.0 mi — check the river's class before paddling. And a pond on the land you could paddle (1.2 ac).",
+      "river put-ins, not graded: Watauga River: Guy Ford access, 6.0 mi straight — check the river's class before paddling. And a pond on the land you could paddle (1.2 ac)",
     );
     expect(bare.panelNote).toBeUndefined();
+  });
+
+  it("a river's put-ins together, each name once, the caution once", () => {
+    const rivers = [
+      { name: "South Fork New River access", river: "South Fork New River", km: 24.5 },
+      { name: "South Fork New River access", river: "South Fork New River", km: 24.5 },
+      { name: "Mouth of Wilson access", river: "New River", km: 26 },
+      { name: "Elk Creek access", river: "South Fork New River", km: 24.7 },
+    ];
+    expect(riversLine(rivers)).toBe(
+      "South Fork New River: South Fork New River access, 15.2 mi straight; Elk Creek access, 15.3 mi straight; New River: Mouth of Wilson access, 16.2 mi straight — check the river's class before paddling",
+    );
   });
 
   it("no lake launch within reach is an F that says so; not measured and not loaded are ungraded", () => {

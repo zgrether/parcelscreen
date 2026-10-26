@@ -6,7 +6,7 @@ import {
   PADDLE_REACH,
   PADDLE_SOURCES,
   pondLine,
-  riverLine,
+  riversLine,
 } from "@/lib/report/paddling";
 import { fmt } from "@/lib/format";
 import type { BlockProps } from "./types";
@@ -33,13 +33,7 @@ export function Paddling({ result }: BlockProps) {
           </tr>
         </tbody>
       </table>
-      {p.rivers.length > 0 && (
-        <ul className="tiny">
-          {p.rivers.map((r) => (
-            <li key={`${r.name}-${r.km}`}>{riverLine(r)}</li>
-          ))}
-        </ul>
-      )}
+      {p.rivers.length > 0 && <p className="tiny">{riversLine(p.rivers)}</p>}
       {p.pond && <p className="tiny">{pondLine(p.pond)}</p>}
       <p className="tiny muted">{PADDLE_REACH}</p>
       <p className="tiny muted">Sources: {PADDLE_SOURCES}</p>
