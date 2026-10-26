@@ -138,6 +138,11 @@ export const PlacesIndexSchema = z.strictObject({
       count: z.number().int().nonnegative(),
     }),
   ),
+  /**
+   * OSM's towns and cities over the area, for the monthly refresh's summary ("+3 trailheads near Damascus") only;
+   * absent before the first bake that asked for them.
+   */
+  towns: z.array(z.strictObject({ name: z.string(), ll: LatLonSchema })).optional(),
   /** The cells each folder has, with their place counts; a cell not listed has no places. */
   cells: z.strictObject({
     osm: z.record(z.string(), z.number().int().nonnegative()),

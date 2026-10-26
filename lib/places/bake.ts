@@ -50,11 +50,15 @@ export interface BakeDeps {
   log?: (line: string) => void;
   /** Waits between retries (tests pass a no-op). */
   sleep?: (ms: number) => Promise<void>;
+  /** The clock for the classification's time budget, in ms (Date.now; tests pass their own). */
+  now?: () => number;
 }
 
 export interface Bake {
   index: PlacesIndex;
   cells: PlaceCell[];
+  /** What kept the previous bake's places this time, as the refresh summary says it: "usfs", "osm towns", … */
+  kept: string[];
 }
 
 const round6 = ([lat, lon]: LatLon): LatLon => [+lat.toFixed(6), +lon.toFixed(6)];
@@ -348,6 +352,11 @@ function lineOfMulti(g: MultiLineString): LineString {
 const NHD_BATCH = 25;
 /** The waits before each retry of an NHD query that failed (a 5xx or a timeout). */
 const NHD_RETRY_MS = [15_000, 45_000, 90_000];
+/**
+ * The classification's whole time: past it, every batch left keeps the previous bake's launches. The second bake took
+ * 5 h 46 min of a runner's 6 h, nearly all of it NHD's 504s retried (10/26); the monthly refresh also profiles the areas.
+ */
+const NHD_BUDGET_MS = 90 * 60_000;
 
 /** `nhdNear`, retried on a failure after each of NHD_RETRY_MS. */
 async function nhdNearRetried(...args: Parameters<typeof nhdNear>): Promise<NhdFeature[]> {
@@ -380,12 +389,15 @@ async function classifyAll(
   );
   const launches: BakedLaunch[] = [];
   const unanswered = new Set<string>();
+  const now = deps.now ?? Date.now;
+  const deadline = now() + NHD_BUDGET_MS;
   let n = 0;
   for (const [cell, inCell] of byCell) {
     for (let i = 0; i < inCell.length; i += NHD_BATCH) {
       const batch = inCell.slice(i, i + NHD_BATCH);
       const pts = batch.map((l) => l.ll);
       try {
+        if (now() > deadline) throw new Error(`out of time (${NHD_BUDGET_MS / 60_000} min)`);
         const [bodies, lines] = await Promise.all([
           nhdNearRetried(
             DEFAULT_ENDPOINTS.nhdWaterbody,
@@ -628,6 +640,15 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
   // Launches found this bake, classified once every source has answered (classifyAll).
   const raw: RawLaunch[] = [];
 
+  // The towns, for the refresh summary only: kept from the previous bake when Overpass won't say.
+  let towns = deps.previous?.index.towns;
+  try {
+    towns = townsOf(await overpass(TOWNS_QUERY, deps));
+  } catch (e) {
+    failed.push("osm towns");
+    log(`towns: ${String(e)}; keeping the previous bake's`);
+  }
+
   // OSM, a cell at a time; one cell failing fails the source (a partial OSM would read as places closing).
   try {
     const osm: Place[] = [];
@@ -733,6 +754,7 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
     baked: deps.today,
     bounds: boundsOf(cells),
     marginKm: MARGIN_KM,
+    ...(towns?.length ? { towns } : {}),
     sources: SOURCE_DEFS.map((d) => ({
       ...d,
       folder: FOLDER_OF[d.id],
@@ -750,7 +772,20 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
     ) as PlacesIndex["cells"],
   };
   if (failed.length) log(`kept the previous bake's: ${failed.join(", ")}`);
-  return { index, cells: cellFiles };
+  return { index, cells: cellFiles, kept: failed };
+}
+
+/** OSM's named towns and cities over the baked box. */
+export const TOWNS_QUERY = `[out:json][timeout:180][bbox:${BOX[1]},${BOX[0]},${BOX[3]},${BOX[2]}];node[place~"^(town|city)$"][name];out;`;
+
+export function townsOf(elements: readonly OsmElement[]): NonNullable<PlacesIndex["towns"]> {
+  return elements
+    .flatMap((e) => {
+      const ll = at(e);
+      const name = e.tags?.name;
+      return ll && name && inArea(ll) ? [{ name, ll: round6(ll) }] : [];
+    })
+    .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : a.ll[0] - b.ll[0]));
 }
 
 function boundsOf(cells: readonly string[]): [number, number, number, number] {

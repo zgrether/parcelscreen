@@ -1293,5 +1293,10 @@ until step 5 (Q14).
       shape, so `AREA_FILE_VERSION` 1 → 2 and `/areas/v2`, a clean break: v1's area files are deleted. The sample
       parcels are screens, not profiles, so they keep a version of their own (`SAMPLE_FILE_VERSION` 1) and their
       folder, `/areas/v1/samples/`.
+    - **The monthly refresh** (PR 6): `areas-refresh.yml` bakes the places before it profiles the areas, and its PR,
+      "Area catalog and places refresh", says what the bake added, dropped or moved, by kind and nearest town
+      (`lib/places/summary.ts`; the towns are OSM's, baked into `index.json` as an optional `towns`), and which sources
+      kept last month's. NHD's launch classification stops at 90 minutes, its batches left keeping the previous bake's
+      launches: the second bake took 5 h 46 min of a runner's 6 h, nearly all of it NHD's 504s retried.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.
