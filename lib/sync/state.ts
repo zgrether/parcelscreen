@@ -22,6 +22,8 @@ export interface SyncState {
   code: string;
   cursor: string | null;
   unsaved: Unsaved;
+  /** Step 14e: parcels whose notes or lines were changed offline, by key, with the space's copy they started from. */
+  held: Record<string, string>;
 }
 
 const Schema = z.object({
@@ -35,6 +37,7 @@ const Schema = z.object({
       household: z.array(z.string()).default([]),
     })
     .default(NO_UNSAVED),
+  held: z.record(z.string(), z.string()).default({}),
 });
 
 function ls(): Storage | null {

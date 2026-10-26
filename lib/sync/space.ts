@@ -94,7 +94,7 @@ export async function startSyncing(progress: (p: Progress) => void): Promise<str
     }));
   progress({ stage: "screens", done: 0, total: screens.length });
   await sendAll(code, [], [], screens, (done, total) => progress({ stage: "screens", done, total }));
-  writeSyncState({ code, cursor: null, unsaved: NO_UNSAVED });
+  writeSyncState({ code, cursor: null, unsaved: NO_UNSAVED, held: {} });
   return code;
 }
 
@@ -144,7 +144,7 @@ export async function joinSpace(code: string, space: Changes): Promise<void> {
   });
   // They come as the other device keeps them, already named: the once-only naming from notes has nothing to do here.
   await storage.putDoc({ profile: SPACE_ID, key: "ps.namesFromNotes", value: "1" });
-  writeSyncState({ code, cursor: space.cursor, unsaved: NO_UNSAVED });
+  writeSyncState({ code, cursor: space.cursor, unsaved: NO_UNSAVED, held: {} });
   try {
     if (newest) localStorage.setItem(CURRENT_PROFILE_KEY, newest.id);
   } catch {
