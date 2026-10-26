@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 import { defaultRubric } from "../rubric/default";
 import { MINE, type NamedRubric, type Rubric } from "../rubric/types";
 import { areaCard } from "./score";
-import { AreaFileSchema, type AreaFile } from "./types";
+import { AREA_FILE_VERSION, AreaFileSchema, type AreaFile } from "./types";
 import {
   MUSTS_PARCEL_SCALE,
   mustShareLine,
@@ -20,7 +20,9 @@ import {
 
 const file = (id: string): AreaFile =>
   AreaFileSchema.parse(
-    JSON.parse(readFileSync(join(process.cwd(), "public", "areas", "v1", `${id}.json`), "utf8")),
+    JSON.parse(
+      readFileSync(join(process.cwd(), "public", "areas", `v${AREA_FILE_VERSION}`, `${id}.json`), "utf8"),
+    ),
   );
 const nr = (rubric: Rubric = defaultRubric()): NamedRubric => ({ id: MINE, name: "Mine", rubric });
 
