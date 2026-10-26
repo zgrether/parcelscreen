@@ -23,6 +23,17 @@ export type Paddling = NonNullable<ScreenResult["paddling"]>;
 const kmFrom = (from: LatLon, ll: LatLon): number =>
   distance([from[1], from[0]], [ll[1], ll[0]], { units: "kilometers" });
 
+/**
+ * The launches, nearest first, less any within paddling.sameWithinM of a nearer one: one put-in mapped twice (a fifth
+ * of the bake's launches have another that close) would list the same river access twice.
+ */
+export function distinctLaunches<T extends { l: BakedLaunch; km: number }>(nearestFirst: readonly T[]): T[] {
+  const kept: T[] = [];
+  for (const x of nearestFirst)
+    if (!kept.some((k) => kmFrom(k.l.ll, x.l.ll) * 1000 <= K.sameWithinM)) kept.push(x);
+  return kept;
+}
+
 /** The launches within paddling.maxKm, both folders (OSM's and USFS's), nearest first in a straight line. */
 async function launchesNear(from: LatLon, places: PlacesSource, signal?: AbortSignal) {
   const cells = cellsWithin(from, K.maxKm);
@@ -30,11 +41,13 @@ async function launchesNear(from: LatLon, places: PlacesSource, signal?: AbortSi
     places("osm", cells, signal),
     places("official", cells, signal),
   ]);
-  return [...osm, ...official]
-    .filter((p): p is BakedLaunch => p.kind === "launch")
-    .map((l) => ({ l, km: kmFrom(from, l.ll) }))
-    .filter((x) => x.km <= K.maxKm)
-    .sort((a, b) => a.km - b.km);
+  return distinctLaunches(
+    [...osm, ...official]
+      .filter((p): p is BakedLaunch => p.kind === "launch")
+      .map((l) => ({ l, km: kmFrom(from, l.ll) }))
+      .filter((x) => x.km <= K.maxKm)
+      .sort((a, b) => a.km - b.km),
+  );
 }
 
 /** A pond of at least paddling.pondMinAc reaching inside the parcel: its acres in all, and its name if it has one. */

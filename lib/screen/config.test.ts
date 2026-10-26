@@ -1143,6 +1143,7 @@ describe("config", () => {
           "riverKm": 40,
           "riverWithinM": 100,
           "rivers": 3,
+          "sameWithinM": 150,
         },
         "padus": {
           "adjoinsBufferKm": 0.02,

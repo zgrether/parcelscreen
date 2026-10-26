@@ -379,6 +379,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
     points: 6, // at most this many, nearest first
     riverKm: 40, // river put-ins listed in the detail: within this
     rivers: 3, // at most this many
+    sameWithinM: 150, // two launches this close are one put-in (OSM often maps a ramp and its access point both)
     pondMinAc: 1, // a pond on the parcel this big is one you could paddle
   },
   // Step 14 (plan §3, §9): the land uses' thresholds. None is graded; each decides a Yes / Maybe / No.

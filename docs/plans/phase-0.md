@@ -1286,6 +1286,7 @@ until step 5 (Q14).
       river put-ins, a pond of 1 ac or more on the parcel), with SCREEN_SCHEMA_VERSION staying 9: §9.65's exception, as
       §9.66, §9.70 and §9.71 extended it. ENGINE_VERSION 33 → 34; `ENGINE_CURRENT_FROM` stays 29, and an older grade
       reads Paddling as not measured. A new factor at weight 0 until placed, with an interview question sharing number 4
-      with Trails (as 14a and 14b share 14).
+      with Trails (as 14a and 14b share 14). Two launches within 150 m are one put-in (`paddling.sameWithinM`): a fifth
+      of the first bake's 3,443 launches had another that close (OSM's ramp and its access point both).
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.
