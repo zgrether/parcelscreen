@@ -19,7 +19,7 @@ export interface AreaKeep {
 }
 
 export interface AreaDef {
-  /** Also the area file's name: public/areas/v1/<id>.json. */
+  /** Also the area file's name: public/areas/v2/<id>.json. */
   id: string;
   name: string;
   /** Two short lines about the place: its landmarks and character, never a number. */

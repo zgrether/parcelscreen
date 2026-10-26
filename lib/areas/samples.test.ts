@@ -9,9 +9,9 @@ import { describe, expect, it } from "vitest";
 import { ENGINE_CURRENT_FROM } from "@/lib/screen/engine";
 import { SCREEN_SCHEMA_VERSION } from "../screen/types";
 import { AREAS } from "./catalog";
-import { AREA_FILE_VERSION, SampleFileSchema } from "./types";
+import { SAMPLE_FILE_VERSION, SampleFileSchema } from "./types";
 
-const dir = join(process.cwd(), "public", "areas", `v${AREA_FILE_VERSION}`, "samples");
+const dir = join(process.cwd(), "public", "areas", `v${SAMPLE_FILE_VERSION}`, "samples");
 const files = readdirSync(dir).filter((f) => f.endsWith(".json"));
 /** Keys a parcel service's owner or address fields go by, in any case. */
 const OWNER =

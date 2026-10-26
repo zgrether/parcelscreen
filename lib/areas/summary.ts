@@ -18,6 +18,7 @@ export const SUMMARY_THRESHOLDS: Record<Measure, number> = {
   trailheadMin: 1,
   openLandFt: 528,
   longTrailMin: 1,
+  paddleMin: 1,
 };
 
 /** Each measure as the summary names it, and how it shows a value. */
@@ -33,6 +34,7 @@ const SAYS: Record<Measure, { name: string; show: (v: number) => string }> = {
   trailheadMin: { name: "Trailhead", show: (v) => `${v} min` },
   openLandFt: { name: "Public land", show: (v) => `${(v / 5280).toFixed(1)} mi` },
   longTrailMin: { name: "Long trail", show: (v) => `${v} min` },
+  paddleMin: { name: "Lake launch", show: (v) => `${v} min` },
 };
 
 /** The sources whose line carries the run's own date: a new month alone isn't a change. */
@@ -92,8 +94,9 @@ export function refreshSummary(
     }
     const mine: string[] = [];
     for (const m of Object.keys(SUMMARY_THRESHOLDS) as Measure[]) {
-      const a = old.medians[m];
-      const b = f.medians[m];
+      // A measure newer than last month's file reads as not measured then.
+      const a = old.medians[m] ?? null;
+      const b = f.medians[m] ?? null;
       if (a === null && b === null) continue;
       if (a === null || b === null || Math.abs(b - a) >= SUMMARY_THRESHOLDS[m]) mine.push(moved(m, a, b));
     }

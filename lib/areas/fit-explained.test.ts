@@ -9,10 +9,10 @@ import { describe, expect, it } from "vitest";
 import { defaultRubric } from "../rubric/default";
 import { MINE, type NamedRubric, type Rubric } from "../rubric/types";
 import { areaCard, rankAreas, rankOf, regionWideLimit } from "./score";
-import { AreaFileSchema, type AreaFile } from "./types";
+import { AREA_FILE_VERSION, AreaFileSchema, type AreaFile } from "./types";
 import { holdsBack, notSuggestedReason, rankLine, regionLine } from "./words";
 
-const DIR = join(process.cwd(), "public", "areas", "v1");
+const DIR = join(process.cwd(), "public", "areas", `v${AREA_FILE_VERSION}`);
 const files: AreaFile[] = readdirSync(DIR)
   .filter((f) => f.endsWith(".json") && f !== "index.json")
   .map((f) => AreaFileSchema.parse(JSON.parse(readFileSync(join(DIR, f), "utf8"))));

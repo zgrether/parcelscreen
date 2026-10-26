@@ -37,13 +37,21 @@ describe("each point's drives", () => {
     airports: [[36.5, -81]],
     trailheads: [[36.01, -81]],
     trailPoints: [[36.3, -81]],
+    launches: [[36.25, -81]],
   };
   // Minutes: 100 per degree of latitude apart.
   const matrix: Matrix = async (s, d) => s.map((a) => d.map((b) => Math.round(Math.abs(b[0] - a[0]) * 100)));
 
   it("the quickest of each kind, from the table", async () => {
     const [p] = await pointDrives([[36, -81]], dest, matrix);
-    expect(p).toEqual({ erMin: 10, groceryMin: 5, airportMin: 50, trailheadMin: 1, longTrailMin: 30 });
+    expect(p).toEqual({
+      erMin: 10,
+      groceryMin: 5,
+      airportMin: 50,
+      trailheadMin: 1,
+      longTrailMin: 30,
+      paddleMin: 25,
+    });
   });
 
   it("a table that fails leaves its points' drives unknown", async () => {
@@ -54,6 +62,7 @@ describe("each point's drives", () => {
       airportMin: null,
       trailheadMin: null,
       longTrailMin: null,
+      paddleMin: null,
     });
   });
 

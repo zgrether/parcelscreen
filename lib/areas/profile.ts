@@ -2,7 +2,8 @@
  * Profiling an area (step 13, docs/plans/step-13-area-catalog.md §3): about 200 points on its rural land, and at
  * each the same measures a screen makes, by the same code (lib/screen): elevation and Long view on the 30 m DEM, the
  * sky's zenith brightness from the atlas, climate normals at the point's height, drives to the nearest ER, grocery,
- * commercial airport, trailhead and long-trail access point, and the distance to open public land. Then each
+ * commercial airport, trailhead, long-trail access point and flatwater paddle launch, and the distance to open public
+ * land. Then each
  * measure's median. Every request goes through the deps' HttpClient; nothing here touches the DOM.
  */
 import { bbox } from "@turf/turf";
@@ -17,7 +18,8 @@ import { horizonProfile } from "../screen/sun";
 import { viewOf } from "../screen/view";
 import { LONG_TRAILS } from "../screen/data/longTrails";
 import { officialTrailheads } from "../screen/trailheads";
-import type { PlacesSource } from "../screen/placeData";
+import { placesFromHttp, type BakedLaunch, type PlacesSource } from "../screen/placeData";
+import { distinctLaunches } from "../screen/paddling";
 import type { Endpoints } from "../screen/types";
 import { openPct } from "../report/view";
 import type { LatLon } from "../geo/types";
@@ -59,7 +61,7 @@ export interface ProfileDeps {
   today: string;
   /** The drive tables; OSRM's by default. */
   matrix?: Matrix;
-  /** The baked places' official trailheads; read over HTTP from endpoints.places by default. */
+  /** The baked places (the official trailheads, the paddle launches); read over HTTP from endpoints.places by default. */
   places?: PlacesSource;
 }
 
@@ -93,12 +95,34 @@ const ROUND: Record<Measure, number> = {
   trailheadMin: 0,
   openLandFt: -1,
   longTrailMin: 0,
+  paddleMin: 0,
 };
 const round = (m: Measure, x: number | null): number | null => {
   if (x === null || !Number.isFinite(x)) return null;
   const f = 10 ** ROUND[m];
   return Math.round(x * f) / f;
 };
+
+/** The 1° cells a box touches (lib/screen/placeData.ts cellOf's names). */
+function cellsOfBox([w, s, e, n]: Box): string[] {
+  const out: string[] = [];
+  for (let a = Math.floor(s); a <= Math.floor(n); a++)
+    for (let o = Math.floor(w); o <= Math.floor(e); o++) out.push(`${a}_${o}`);
+  return out;
+}
+
+/**
+ * The flatwater launches a point in the box might drive to: within paddling.maxKm of it, as a screen looks, each put-in
+ * once (paddling.sameWithinM).
+ */
+async function flatLaunches(box: Box, places: PlacesSource): Promise<LatLon[]> {
+  const cells = cellsOfBox(widen(box, SCREEN_CONSTANTS.paddling.maxKm));
+  const all = [...(await places("osm", cells)), ...(await places("official", cells))];
+  const flat = all
+    .filter((p): p is BakedLaunch => p.kind === "launch" && p.water === "flat")
+    .sort((a, b) => a.ll[0] - b.ll[0] || a.ll[1] - b.ll[1]);
+  return distinctLaunches(flat.map((l) => ({ l, km: 0 }))).map((x) => x.l.ll);
+}
 
 export async function profileArea(
   def: AreaDef,
@@ -167,6 +191,9 @@ export async function profileArea(
       )
     : [];
   const trailheads = distinct([...places.trailheads, ...official.flat().map((t) => t.ll)]);
+  const launches = pts.length
+    ? await flatLaunches(box, deps.places ?? placesFromHttp(deps.http, deps.endpoints.places))
+    : [];
   const drives = await pointDrives(
     pts,
     {
@@ -176,6 +203,7 @@ export async function profileArea(
       airports: deps.airports.airports.map((a) => a.ll),
       trailheads,
       trailPoints: LONG_TRAILS.flatMap((t) => t.points.map((p): LatLon => [p.lat, p.lon])),
+      launches,
     },
     deps.matrix ?? osrmMatrix({ http: deps.http, endpoints: deps.endpoints }),
   );
@@ -185,6 +213,7 @@ export async function profileArea(
     cols.airportMin.push(d.airportMin);
     cols.trailheadMin.push(d.trailheadMin);
     cols.longTrailMin.push(d.longTrailMin);
+    cols.paddleMin.push(d.paddleMin);
   }
 
   const medians = Object.fromEntries(MEASURES.map((m) => [m, round(m, median(cols[m]))])) as Record<
@@ -208,6 +237,7 @@ export async function profileArea(
       er: `CMS Hospital General Information, ${deps.ers.released}${deps.erOverrides.length ? `; ${deps.erOverrides.length} checked by hand` : ""}`,
       airports: `FAA via BTS NTAD, ${deps.airports.effective}`,
       places: `OpenStreetMap via Overpass, ${deps.today}`,
+      launches: "Paddle launches: OpenStreetMap and USFS, classified with NHD (the baked places)",
       drives: `OSRM, ${deps.today}`,
     },
     candidates: sample.candidates,

@@ -1,10 +1,10 @@
 {
- "version": 1,
+ "version": 2,
  "areas": [
   {
    "id": "grayson-highlands",
    "name": "Grayson Highlands (Volney, Troutdale)",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -81.58,
     36.5723,
@@ -15,7 +15,7 @@
   {
    "id": "whitetop-konnarock",
    "name": "Whitetop and Konnarock",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -81.6775,
     36.5853,
@@ -26,7 +26,7 @@
   {
    "id": "independence-fries",
    "name": "Independence and Fries",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -81.2998,
     36.5591,
@@ -37,7 +37,7 @@
   {
    "id": "floyd",
    "name": "Floyd",
-   "profiledAt": "2026-10-23",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -80.634,
     36.7087,
@@ -48,7 +48,7 @@
   {
    "id": "hillsville-fancy-gap",
    "name": "Hillsville and Fancy Gap",
-   "profiledAt": "2026-10-23",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -81.0424,
     36.5579,
@@ -59,7 +59,7 @@
   {
    "id": "meadows-of-dan",
    "name": "Meadows of Dan",
-   "profiledAt": "2026-10-23",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -80.4643,
     36.69,
@@ -70,7 +70,7 @@
   {
    "id": "sugar-grove-marion",
    "name": "Sugar Grove and Marion",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -81.58,
     36.647,
@@ -81,7 +81,7 @@
   {
    "id": "damascus",
    "name": "Damascus",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -81.9442,
     36.6116,
@@ -92,7 +92,7 @@
   {
    "id": "burkes-garden",
    "name": "Burkes Garden",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -81.3967,
     37.0537,
@@ -103,7 +103,7 @@
   {
    "id": "highland",
    "name": "Highland County (Monterey)",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -79.8101,
     38.1804,
@@ -114,7 +114,7 @@
   {
    "id": "bath",
    "name": "Bath County",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -80.0561,
     37.8445,
@@ -125,7 +125,7 @@
   {
    "id": "nelson-highlands",
    "name": "Nelson highlands (Montebello)",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -79.1721,
     37.7024,
@@ -136,7 +136,7 @@
   {
    "id": "blacksburg-outskirts",
    "name": "Blacksburg outskirts",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -80.6158,
     37.0731,
@@ -147,7 +147,7 @@
   {
    "id": "sparta",
    "name": "Sparta",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -81.3533,
     36.3661,
@@ -158,7 +158,7 @@
   {
    "id": "ashe",
    "name": "Ashe County (West Jefferson, Lansing)",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -81.7419,
     36.2403,
@@ -169,7 +169,7 @@
   {
    "id": "boone-blowing-rock",
    "name": "Boone and Blowing Rock",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -81.9181,
     36.1115,
@@ -180,7 +180,7 @@
   {
    "id": "banner-elk-beech",
    "name": "Banner Elk and Beech Mountain",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -82.0195,
     36.046,
@@ -191,7 +191,7 @@
   {
    "id": "spruce-pine",
    "name": "Spruce Pine and Little Switzerland",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -82.1977,
     35.8227,
@@ -202,7 +202,7 @@
   {
    "id": "burnsville-celo",
    "name": "Burnsville and Celo",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -82.5054,
     35.6989,
@@ -213,7 +213,7 @@
   {
    "id": "madison",
    "name": "Madison County (Mars Hill, Hot Springs)",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -82.9629,
     35.6781,
@@ -224,7 +224,7 @@
   {
    "id": "north-buncombe",
    "name": "North Buncombe (Weaverville, Barnardsville)",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -82.6095,
     35.6453,
@@ -235,7 +235,7 @@
   {
    "id": "haywood-highlands",
    "name": "Haywood highlands (Waynesville)",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -83.1863,
     35.2917,
@@ -246,7 +246,7 @@
   {
    "id": "brevard-pisgah",
    "name": "Brevard and Pisgah",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -83.0569,
     35.0274,
@@ -257,7 +257,7 @@
   {
    "id": "highlands-cashiers",
    "name": "Highlands and Cashiers",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -83.2892,
     34.9966,
@@ -268,7 +268,7 @@
   {
    "id": "franklin-otto",
    "name": "Franklin and Otto",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -83.6518,
     34.9933,
@@ -279,7 +279,7 @@
   {
    "id": "roan-mountain",
    "name": "Roan Mountain",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -82.2848,
     36.1032,
@@ -290,7 +290,7 @@
   {
    "id": "shady-valley-mountain-city",
    "name": "Shady Valley and Mountain City",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -81.9939,
     36.3302,
@@ -301,7 +301,7 @@
   {
    "id": "butler-watauga-lake",
    "name": "Butler and Watauga Lake",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -82.2417,
     36.2112,
@@ -312,7 +312,7 @@
   {
    "id": "unicoi-erwin",
    "name": "Unicoi and Erwin",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -82.6152,
     35.9539,
@@ -323,7 +323,7 @@
   {
    "id": "cosby",
    "name": "Cosby",
-   "profiledAt": "2026-10-22",
+   "profiledAt": "2026-10-26",
    "bbox": [
     -83.3168,
     35.713,

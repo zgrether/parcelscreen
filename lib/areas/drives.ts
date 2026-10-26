@@ -1,6 +1,7 @@
 /**
  * An area's drive times (step 13, docs/plans/step-13-area-catalog.md §3.2): each point's drives to its nearest ERs,
- * groceries, commercial airports, trailheads and long-trail access points, by straight line first, then timed in OSRM
+ * groceries, commercial airports, trailheads, long-trail access points and flatwater paddle launches (step 14d plan
+ * §4.4), by straight line first, then timed in OSRM
  * tables of many points to many destinations, at most areas.tableMaxCoords coordinates each: a few requests an area.
  * The grocery drive is the Town row's: the nearest chain's, or a non-chain's when it's closerMinMin nearer.
  */
@@ -20,6 +21,8 @@ export interface Destinations {
   airports: readonly LatLon[];
   trailheads: readonly LatLon[];
   trailPoints: readonly LatLon[];
+  /** Flatwater paddle launches (a lake or reservoir, from the baked places). */
+  launches: readonly LatLon[];
 }
 
 export interface PointDrives {
@@ -28,6 +31,7 @@ export interface PointDrives {
   airportMin: number | null;
   trailheadMin: number | null;
   longTrailMin: number | null;
+  paddleMin: number | null;
 }
 
 /** Minutes from each source to each destination; null where OSRM can't route it. Null when the table fails. */
@@ -49,7 +53,7 @@ export function nearest(from: LatLon, list: readonly LatLon[], k: number): LatLo
     .map((x) => x.ll);
 }
 
-type Kind = "er" | "chain" | "other" | "airport" | "trailhead" | "trail";
+type Kind = "er" | "chain" | "other" | "airport" | "trailhead" | "trail" | "launch";
 const keyOf = (ll: LatLon) => `${ll[0]},${ll[1]}`;
 
 /** What a point wants timed, by kind. */
@@ -64,6 +68,7 @@ function wants(p: LatLon, d: Destinations): Record<Kind, LatLon[]> {
     airport: nearest(p, d.airports, n.airport),
     trailhead: nearest(p, d.trailheads, n.trailhead),
     trail: nearest(p, d.trailPoints, n.longTrail),
+    launch: nearest(p, d.launches, n.launch),
   };
 }
 
@@ -118,6 +123,7 @@ export async function pointDrives(
     airportMin: null,
     trailheadMin: null,
     longTrailMin: null,
+    paddleMin: null,
   }));
   for (const batch of batches(points, sets)) {
     const destKeys = [...new Set(batch.flatMap((i) => [...sets[i]!]))];
@@ -136,6 +142,7 @@ export async function pointDrives(
         airportMin: t("airport"),
         trailheadMin: t("trailhead"),
         longTrailMin: t("trail"),
+        paddleMin: t("launch"),
       };
     });
   }

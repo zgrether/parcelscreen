@@ -40,11 +40,17 @@ import { SERVER_USER_AGENT } from "@/lib/server/http";
 import { AREAS } from "@/lib/areas/catalog";
 import { outlineOf } from "@/lib/areas/outlines";
 import { fetchPublicLand, widen, type Box } from "@/lib/areas/sources";
-import { AREA_FILE_VERSION, AreaFileSchema, SampleFileSchema, type SampleFile } from "@/lib/areas/types";
+import {
+  AREA_FILE_VERSION,
+  AreaFileSchema,
+  SAMPLE_FILE_VERSION,
+  SampleFileSchema,
+  type SampleFile,
+} from "@/lib/areas/types";
 
 const ROOT = process.cwd();
 const AREAS_DIR = join(ROOT, "public", "areas", `v${AREA_FILE_VERSION}`);
-const OUT = join(AREAS_DIR, "samples");
+const OUT = join(ROOT, "public", "areas", `v${SAMPLE_FILE_VERSION}`, "samples");
 const CACHE = join(ROOT, "tmp", "ms-buildings");
 const PER_AREA = 2;
 const ACRES: [number, number] = [10, 30];
@@ -192,7 +198,7 @@ describe.runIf(import.meta.env.MODE === "areas-samples")("the sample parcels, li
           }
           const n1 = kept.length + 1;
           const sample: SampleFile = {
-            version: AREA_FILE_VERSION,
+            version: SAMPLE_FILE_VERSION,
             area: def.id,
             n: n1,
             name: `Sample parcel ${n1} · ${def.name}`,
