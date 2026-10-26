@@ -27,6 +27,7 @@ function area(id: string, cols: Partial<Record<Measure, (number | null)[]>>, n =
     trailheadMin: 15,
     openLandFt: 5000,
     longTrailMin: 40,
+    paddleMin: 35,
   };
   const points = Object.fromEntries(
     MEASURES.map((m) => [m, cols[m] ?? Array.from({ length: n }, () => base[m])]),
@@ -65,6 +66,7 @@ describe("a row's letter, the card's own", () => {
       groceryMin: m("town"),
       airportMin: m("airport"),
       longTrailMin: m("longTrail"),
+      paddleMin: m("paddling"),
     };
     for (const [f, k] of [
       ["elevation", "elevation"],
@@ -73,6 +75,7 @@ describe("a row's letter, the card's own", () => {
       ["town", "town"],
       ["airport", "airport"],
       ["longTrail", "longTrail"],
+      ["paddling", "paddling"],
     ] as const)
       if (card.rows.some((x) => x.key === k && x.measure))
         expect(areaLetter(f, values, defaultRubric()), f).toBe(card.rows.find((x) => x.key === k)!.grade);
@@ -84,6 +87,13 @@ describe("a row's letter, the card's own", () => {
     expect(areaLetter("trails", { openLandFt: 500, trailheadMin: 90 }, R)).toBe("B");
     expect(areaLetter("trails", { openLandFt: 50_000, trailheadMin: 90 }, R)).toBe("F");
     expect(areaLetter("trails", { openLandFt: null, trailheadMin: null }, R)).toBeNull();
+  });
+
+  it("Paddling (step 14d): the drive to a lake launch on paddleMin's bands, unmeasured when no table answered", () => {
+    const R = defaultRubric();
+    const at = (paddleMin: number | null) => areaLetter("paddling", { paddleMin }, R);
+    expect([15, 30, 31, 60, 61].map(at)).toEqual(["A", "B", "C", "D", "F"]);
+    expect(at(null)).toBeNull();
   });
 });
 

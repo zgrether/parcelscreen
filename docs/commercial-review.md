@@ -19,12 +19,31 @@ known of them, to be read again before any commercial launch.
 | Light-pollution atlas (David Lorenz), `djlorenz.github.io` | Night sky: sky brightness and the light domes | Published for the public on a personal site; commercial use isn't addressed. To confirm with the author. | Brightness computed from the VIIRS night-lights data (Earth Observation Group, CC BY 4.0) |
 | Tennessee Property Boundaries (Public Use), the Comptroller | Tennessee parcel lines | "This service is not intended for commercial use" (checked 2026-10-17, REQUIREMENTS §1, phase-0.md §9.46) | The Comptroller's downloadable parcel data, per their commercial-use note |
 | TDOT orthophoto through TNMap | The state aerial in Tennessee | No licence stated; used with its attribution by the owner's choice (phase-0.md §9.47) | USGS imagery, or ask TDOT |
+| Virginia VGIN landmarks (state park points), NC DPR state parks, TN TDEC state parks and TDEC's TREC trails | Trailheads: baked into `public/places/v1/official/` since step 14d (they were asked live per grade before) | Published by each state for public use; the terms of redistributing them in a static file aren't recorded. To confirm with each state (step 14d plan §2.3, Q2); one that forbids it goes back to a live call | Their own downloads, under whatever terms each states |
+| VA DWR, NC WRC and TWRA public boating access sites | Not used (step 14d plan §2.3, Q3): would be paddle launches | VA DWR: "available by permission", with a citation; NC WRC: "no licence provided, request permission"; TWRA: a custom licence, redistribution not stated. Ask each agency's GIS contact (VA DWR GIS, NC WRC GIS, TWRA GIS) before baking any | OpenStreetMap's launches and USFS boating sites (what step 14d ships) |
 
 OpenStreetMap data (roads, the vector tiles from OpenFreeMap, trail access points) is ODbL: commercial use is allowed
 with attribution, and a derived database is shared alike. The federal sources (USGS 3DEP and imagery, NRCS, FEMA,
 PAD-US, Census TIGER and its Geocoder, NOAA, NLCD from MRLC, CMS Hospital General Information, the FAA's airport
-records through BTS NTAD) are public domain, and Microsoft's building footprints are CDLA Permissive 2.0. None of
-them limits commercial use.
+records through BTS NTAD, the USFS INFRA recreation sites) are public domain, and Microsoft's building footprints are
+CDLA Permissive 2.0. None of them limits commercial use.
+
+**The baked places (step 14d).** `public/places/v1/osm/` is a Derivative Database of OpenStreetMap (the OSMF's
+Produced Work guideline: a result "intended for the extraction of the original data" is a database; three states'
+supermarkets, trailheads and parking are "substantial"). So those files are published under the ODbL 1.0, credited
+"© OpenStreetMap contributors" in `index.json` and wherever they're shown, and serving them publicly is ODbL 4.6's
+offer of the database. Under the Horizontal Map Layers guideline, OSM and non-OSM data of the same kind mixed in one
+database is shared alike, so `official/` never takes an OSM point: the near step merges the two per grade, and a grade
+is a Produced Work (attribution only, as before). Commercial use is allowed either way.
+
+**Recreation.gov's launches (#350).** Twelve boating sites the other sources missed, in `official/` (source `ridb`,
+`lib/places/ridb.ts`): the Corps of Engineers' parks on Philpott Lake and W. Kerr Scott Reservoir, and the Forest
+Service's Jacobs Creek and Little Oak on South Holston Lake's Tennessee side, read once from Recreation.gov's public
+bulk export (RIDB, `ridb.recreation.gov/downloads/RIDBFullExport_V1_JSON.zip`, no key; 2026-10-26). The records are the
+Corps' and the Forest Service's own, so US government works in the public domain, with no limit on commercial use;
+credited "Recreation.gov". TVA's own ramp list (its `TVA_Recreation_Data` feature service, "made publicly available
+data by TVA Natural Resources") wasn't used: RIDB covered South Holston's Tennessee side, and TVA lists none of its
+sites in RIDB.
 
 **Lidar terrain** (Map layers, roadmap step 14c):
 - **Shaded relief:** Mapterhorn's elevation tiles (`tiles.mapterhorn.com`, Terrarium-encoded WebP), shaded in the

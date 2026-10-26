@@ -1,7 +1,8 @@
-name: Area catalog refresh
+name: Area catalog and places refresh
 
 # Step 13 (docs/plans/step-13-area-catalog.md §3.6): re-profiles the thirty areas once a month and opens a PR titled
-# "Area catalog refresh" with a plain summary of what moved. Zach merges it; nothing merges itself. A PR opened with
+# "Area catalog and places refresh" with a plain summary of what moved. Step 14d (docs/plans/step-14d-places.md §7):
+# the places are baked first (the profile reads them), and the summary says what the bake added, dropped or moved. Zach merges it; nothing merges itself. A PR opened with
 # GITHUB_TOKEN starts no other workflow, so the job dispatches ci.yml on the branch; its checks land on the commit,
 # so the PR shows them. The ER list is the parcel screen's too (phase-0.md §9.69): when its hospitals change, the PR
 # opens even if no area moved, and says that parcel numbers may move (re-record and declare them before merging).
@@ -22,8 +23,9 @@ permissions:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    # About 40 minutes, most of it OSRM's one request a second.
-    timeout-minutes: 180
+    # The bake (one to three hours: NHD's launch classification stops at 90 minutes) and the profile (about 40
+    # minutes, most of it OSRM's one request a second), inside a runner's six hours.
+    timeout-minutes: 330
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -35,7 +37,10 @@ jobs:
       # data.cms.gov answers a browser, not a script (scripts/data-er.mts).
       - run: pnpm exec playwright install --with-deps chromium
       - name: Keep last month's files to compare
-        run: mkdir -p tmp && cp -r public/areas/v1 tmp/areas-before
+        run: mkdir -p tmp && cp -r public/areas/v2 tmp/areas-before && cp -r public/places/v1 tmp/places-before
+      - name: The places
+        # A source that doesn't answer keeps last month's (lib/places/bake.ts); a bake that fails whole leaves them all.
+        run: pnpm data:places || { echo "::warning::The places bake failed; last month's places stand."; git checkout -- public/places; }
       - name: The ER list
         run: pnpm data:er || echo "::warning::CMS or the Census Geocoder didn't answer; last month's ER list stands."
       - name: The airport list
@@ -44,7 +49,10 @@ jobs:
         run: pnpm areas:profile
       - id: summary
         name: What moved
-        run: node scripts/areas-summary.mts tmp/areas-before public/areas/v1 tmp/areas-summary.md tmp/ers-to-confirm.json tmp/er-overrides-can-remove.json >> "$GITHUB_OUTPUT"
+        run: node scripts/areas-summary.mts tmp/areas-before public/areas/v2 tmp/areas-summary.md tmp/ers-to-confirm.json tmp/er-overrides-can-remove.json >> "$GITHUB_OUTPUT"
+      - id: places
+        name: What the bake moved
+        run: node scripts/places-summary.mts tmp/places-before public/places/v1 tmp/places-summary.md tmp/places-kept.json >> "$GITHUB_OUTPUT"
       - id: ers
         name: Did the parcel screen's ER list change
         run: |
@@ -62,7 +70,7 @@ jobs:
             } >> tmp/areas-summary.md
           fi
       - name: Open the PR
-        if: steps.summary.outputs.changed == 'true' || steps.ers.outputs.changed == 'true'
+        if: steps.summary.outputs.changed == 'true' || steps.ers.outputs.changed == 'true' || steps.places.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -70,8 +78,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -c "$branch"
-          git add public/areas lib/areas/data lib/screen/data/er.json
-          git commit -m "Area catalog refresh" -m "$(cat tmp/areas-summary.md)"
+          { echo; cat tmp/places-summary.md; } >> tmp/areas-summary.md
+          git add public/areas public/places lib/areas/data lib/screen/data/er.json
+          git commit -m "Area catalog and places refresh" -m "$(cat tmp/areas-summary.md)"
           git push origin "$branch"
-          gh pr create --base main --head "$branch" --title "Area catalog refresh" --body-file tmp/areas-summary.md
+          gh pr create --base main --head "$branch" --title "Area catalog and places refresh" --body-file tmp/areas-summary.md
           gh workflow run ci.yml --ref "$branch"

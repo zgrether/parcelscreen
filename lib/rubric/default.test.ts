@@ -160,6 +160,7 @@ describe("the default rubric reproduces today's cards (cards-v7.json; a port-onl
         "airport",
         "longTrail",
         "internet",
+        "paddling",
       ]);
       expect(r.bands).toEqual(SCREEN_CONSTANTS.card.rows);
       expect(r.points).toEqual(SCREEN_CONSTANTS.card.points);

@@ -4,6 +4,8 @@
  */
 import { expect, type Locator, type Page } from "@playwright/test";
 import { ENGINE_VERSION } from "@/lib/screen/engine";
+import { runKeys } from "@/lib/client/screenKeys";
+import { DEFAULT_USER_CONFIG } from "@/lib/screen/config";
 import type { PartialScreenResult, ScreenResult } from "@/lib/screen/types";
 import { differences } from "../test/support/compare";
 import { loadFixture, type FixtureSlug } from "../test/support/fixtures";
@@ -318,13 +320,28 @@ export async function unfoldListing(scope: Page | Locator): Promise<Locator> {
   return listing;
 }
 
-export async function seedScreens(page: Page, slugs: readonly FixtureSlug[]): Promise<void> {
-  const seeds = slugs.map((slug) => ({
-    name: loadFixture(slug).input.name,
-    result: expectedOf(slug, "run"),
-  }));
+export async function seedScreens(
+  page: Page,
+  slugs: readonly FixtureSlug[],
+  /** The boundary's own key, so the screen is current rather than stale (the Places layer's card reads its drives). */
+  opts: { current?: boolean } = {},
+): Promise<void> {
+  const seeds = slugs.map((slug) => {
+    const { input } = loadFixture(slug);
+    return {
+      name: input.name,
+      result: expectedOf(slug, "run"),
+      boundary: opts.current ? runKeys(input.polygon.geometry, null, DEFAULT_USER_CONFIG).boundary : "e2e",
+    };
+  });
   await page.evaluate(
-    async ({ seeds, engine }: { seeds: { name: string; result: ScreenResult }[]; engine: number }) => {
+    async ({
+      seeds,
+      engine,
+    }: {
+      seeds: { name: string; result: ScreenResult; boundary: string }[];
+      engine: number;
+    }) => {
       // The current profile's documents (step 1, PR 4): the debug handle writes through to IndexedDB.
       const kv = window.__psKv!;
       const store = JSON.parse(kv.getItem("ps.parcels")!) as {
@@ -343,7 +360,7 @@ export async function seedScreens(page: Page, slugs: readonly FixtureSlug[]): Pr
         const id = `e2e-${s.name}`;
         tx.objectStore("screens").put({
           id,
-          keys: { boundary: "e2e", house: "", settings: "e2e", lines: "" },
+          keys: { boundary: s.boundary, house: "", settings: "e2e", lines: "" },
           result: s.result,
           engine,
           // The household's list (step 6): its screens are the space's.

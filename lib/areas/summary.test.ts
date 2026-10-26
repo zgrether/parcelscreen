@@ -6,11 +6,13 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { CAN_REMOVE_HEADING, refreshSummary, TO_CONFIRM_HEADING } from "./summary";
-import { AreaFileSchema, type AreaFile } from "./types";
+import { AREA_FILE_VERSION, AreaFileSchema, type AreaFile } from "./types";
 
 const file = (id: string): AreaFile =>
   AreaFileSchema.parse(
-    JSON.parse(readFileSync(join(process.cwd(), "public", "areas", "v1", `${id}.json`), "utf8")),
+    JSON.parse(
+      readFileSync(join(process.cwd(), "public", "areas", `v${AREA_FILE_VERSION}`, `${id}.json`), "utf8"),
+    ),
   );
 const withMedians = (f: AreaFile, m: Partial<AreaFile["medians"]>): AreaFile => ({
   ...f,

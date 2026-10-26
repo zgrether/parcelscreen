@@ -77,6 +77,7 @@ export const EndpointsSchema = z.strictObject({
   nhd: z.string(),
   nhdWaterbody: z.string(),
   counties: z.string(),
+  places: z.string(),
 });
 export type Endpoints = z.infer<typeof EndpointsSchema>;
 
@@ -833,6 +834,18 @@ export const ScreenResultSchema = z.strictObject({
   longTrail: z
     .strictObject({ trail: z.string(), point: z.string(), min: num, mi: num })
     .nullable()
+    .optional(),
+  /**
+   * Step 14d (plan §4.1; §9.73): the drive to the nearest flatwater launch (a lake or reservoir), from where the drives
+   * start, null when none is within reach or routable; the river put-ins near (listed, never graded); a pond on the
+   * parcel big enough to paddle. Absent before it, or when the launches or OSRM didn't answer.
+   */
+  paddling: z
+    .strictObject({
+      flat: z.strictObject({ name: z.string(), water: z.string().nullable(), min: num, mi: num }).nullable(),
+      rivers: z.array(z.strictObject({ name: z.string(), river: z.string().nullable(), km: num })),
+      pond: z.strictObject({ acres: num, name: z.string().nullable() }).nullable(),
+    })
     .optional(),
   /**
    * Step 11 (plan §2.7; §9.66): the parcel's best open-sky spot for a satellite dish, and how clear its view cone is

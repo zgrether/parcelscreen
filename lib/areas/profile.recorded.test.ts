@@ -5,7 +5,8 @@
  */
 import { describe, expect, it } from "vitest";
 import { instantClock } from "@/test/support/pipeline";
-import { AREA_HAR, MUD_HAR, profileDeps, RECORDED } from "@/test/support/areaProfile";
+import { AREA_HAR, AREA_PLACES, MUD_HAR, profileDeps, RECORDED } from "@/test/support/areaProfile";
+import { placesFromDir } from "@/lib/places/disk";
 import { createReplayFetch, loadHar } from "@/test/support/replayFetch";
 import { AREAS } from "./catalog";
 import { outlineOf } from "./outlines";
@@ -14,7 +15,12 @@ import { AreaFileSchema } from "./types";
 
 async function run() {
   const har = { log: { entries: [...loadHar(MUD_HAR).log.entries, ...loadHar(AREA_HAR).log.entries] } };
-  const deps = await profileDeps(createReplayFetch(har), instantClock(), RECORDED.today);
+  const deps = await profileDeps(
+    createReplayFetch(har),
+    instantClock(),
+    RECORDED.today,
+    placesFromDir(AREA_PLACES),
+  );
   const def = AREAS.find((a) => a.id === RECORDED.id)!;
   return profileArea(def, await outlineOf(def.id), deps, RECORDED.scale);
 }

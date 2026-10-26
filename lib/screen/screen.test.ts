@@ -131,14 +131,14 @@ describe("road-distance rounding vs cost index, tier and overall score", () => {
 });
 
 describe("places outage (plan §9.11): roads, road grade and the driveway still come through", () => {
-  it("Ferney Creek with Photon and every Overpass mirror down", async () => {
+  it("Ferney Creek with the baked places and every Overpass mirror down", async () => {
     // The anchors' drives start at the entrance (follow-up 54), which no recording has without the places: OSRM's
     // table answers every destination with an hour.
     const down =
       (f: typeof fetch): typeof fetch =>
       async (input, init) => {
         const url = String(input);
-        if (/photon\.komoot\.io|overpass/.test(url)) return new Response("down", { status: 503 });
+        if (/\/places\/v1\/|overpass/.test(url)) return new Response("down", { status: 503 });
         if (url.includes("/table/v1/")) {
           const n = url.split("?")[0]!.split(";").length - 1;
           return new Response(
@@ -160,7 +160,7 @@ describe("places outage (plan §9.11): roads, road grade and the driveway still 
     const normal = (await run("ferney-creek-52-47A")).result;
     expect(out.result.failed).toEqual(["near"]);
     const nearFail = events.find((e) => e.step === "near" && e.status === "fail")!;
-    expect(nearFail.message).toMatch(/^Photon: Photon 503; Overpass: Overpass unreachable/);
+    expect(nearFail.message).toMatch(/^Places: places (osm|official)\/[\d_-]+: 503/);
     expect(nearFail.link).toBeUndefined(); // A2c: the hospital search it tested no longer runs
     expect(out.result.near).toBeUndefined();
     // …but the roads and everything downstream of them survive:

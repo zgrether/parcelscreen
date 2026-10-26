@@ -13,7 +13,7 @@ import { SCREEN_CONSTANTS, STEPS } from "./config";
 import { DemCache, fetchDEM, fineResM, parcelBboxes, rcToLL } from "./dem";
 import { driveStart, driveTimes, trailCandidates } from "./drive";
 import { TRAILHEAD_DRIVES, TRAILHEAD_PARKING } from "./driveList";
-import { parkingFor, parkingFromMirrors, type ParkingLot, type ParkingSource } from "./trailheadParking";
+import { parkingFor, parkingFromPlaces, type ParkingLot, type ParkingSource } from "./trailheadParking";
 import { ENGINE_VERSION } from "./engine";
 import {
   bedrockDepth,
@@ -40,8 +40,10 @@ import type { HospitalCandidate, HospitalSource } from "./hospitals";
 import { loadClimate, withClimate, type ClimateSource } from "./climate";
 import { loadBuildings, withPrivacy, type BuildingSource } from "./privacy";
 import { LONG_TRAIL_DRIVES, longTrailDrive } from "./longTrail";
+import { PADDLE_DRIVES, paddlingNear } from "./paddling";
 import { dishSpot } from "./dish";
-import { OverpassMirrors, type OverpassFallback } from "./places";
+import { OverpassMirrors, placesOf } from "./places";
+import type { PlacesSource } from "./placeData";
 import type { OsmWay } from "./osmRoads";
 import { measureFrontage } from "./frontage";
 import { fetchLandCover, measureCover, type Box } from "./landcover";
@@ -114,8 +116,8 @@ export interface ScreenDeps {
   /** Waits inside connectors (3DEP retries, the Overpass 429 pause); injectable for tests. */
   sleep?: (ms: number) => Promise<void>;
   now?: () => Date;
-  /** The browser's Overpass fallback (through /api/places/overpass); Node calls the mirrors directly. */
-  overpass?: OverpassFallback;
+  /** Step 14d: the baked places (lib/screen/placeData.ts). The worker reads its own origin's; else `endpoints.places`. */
+  places?: PlacesSource;
   /** The ERs (§9.69); injectable so tests can make it fail. Defaults to CMS's list with the hand-checked overrides. */
   hospitals?: HospitalSource;
   /** The climate snapshot (step 11); injectable as the hospitals' is. Defaults to the committed one. */
@@ -126,7 +128,7 @@ export interface ScreenDeps {
   osmRoads?: (centre: LatLon, signal?: AbortSignal) => Promise<OsmWay[]>;
   /** Step 14: OSM's power lines, when not straight to the mirrors (the worker: the app's route). */
   osmPower?: OsmPowerSource;
-  /** The browser's trailhead parking query (follow-up 54, the same route); Node calls the mirrors directly. */
+  /** The trailheads' parking (follow-up 54); defaults to the baked lots (step 14d). */
   parking?: ParkingSource;
 }
 
@@ -187,7 +189,14 @@ export interface ScreenSession {
   flowAcc?: Float32Array;
   bedrockCm?: Float32Array;
   wetSoil?: Uint8Array;
-  deps: { http: HttpClient; demCache: DemCache; atlas: AtlasCache; sleep?: (ms: number) => Promise<void> };
+  deps: {
+    http: HttpClient;
+    demCache: DemCache;
+    atlas: AtlasCache;
+    sleep?: (ms: number) => Promise<void>;
+    /** The baked places (step 14d), kept so a re-evaluation's drive reads the same parking. */
+    places?: PlacesSource;
+  };
 }
 
 export interface ScreenOutput {
@@ -265,6 +274,7 @@ export async function screen(
       demCache: deps.demCache ?? new DemCache(),
       atlas: deps.atlas ?? new AtlasCache(),
       ...(deps.sleep ? { sleep: deps.sleep } : {}),
+      ...(deps.places ? { places: deps.places } : {}),
     },
   };
   const signal = deps.signal;
@@ -457,7 +467,7 @@ export async function screen(
       {
         ...io,
         ...(s.deps.sleep ? { sleep: s.deps.sleep } : {}),
-        ...(deps.overpass ? { overpass: deps.overpass } : {}),
+        ...(deps.places ? { places: deps.places } : {}),
         ...(deps.hospitals ? { hospitals: deps.hospitals } : {}),
         ...(deps.osmRoads ? { osmRoads: deps.osmRoads } : {}),
         ...(deps.osmPower ? { osmPower: deps.osmPower } : {}),
@@ -498,7 +508,6 @@ export async function screen(
     if (s.dFine && s.slope && s.inside)
       R.trails = trailNetwork(s.dFine, s.slope, s.inside, (s.flowAcc ??= flowAccum(s.dFine)), sfhaGrid(s));
     if (n.near) R.near = n.near;
-    if (n.nearNote) R.nearNote = n.nearNote;
     s.roads = n.roads;
     if (n.otherGrocers) s.otherGrocers = n.otherGrocers;
     if (n.hospitalPool) s.hospitalPool = n.hospitalPool;
@@ -680,8 +689,11 @@ export async function reroute(
     if (before.near) R.near = before.near;
     // Step 11: and the long-trail drive, timed from the same start.
     if (before.longTrail !== undefined) R.longTrail = before.longTrail;
+    // Step 14d: and the paddling drive, the same way.
+    if (before.paddling !== undefined) R.paddling = before.paddling;
     for (const n of before.noResponse)
-      if (n === TRAILHEAD_PARKING || n === TRAILHEAD_DRIVES || n === LONG_TRAIL_DRIVES) R.noResponse.push(n);
+      if (n === TRAILHEAD_PARKING || n === TRAILHEAD_DRIVES || n === LONG_TRAIL_DRIVES || n === PADDLE_DRIVES)
+        R.noResponse.push(n);
   } else {
     onProgress?.({ step: "drive", status: "run" });
     try {
@@ -867,7 +879,7 @@ async function driveStep(
   if (candidates.length)
     try {
       lots = await (
-        parking ?? parkingFromMirrors({ ...io, ...(s.deps.sleep ? { sleep: s.deps.sleep } : {}) })
+        parking ?? parkingFromPlaces(placesOf({ ...io, ...(s.deps.places ? { places: s.deps.places } : {}) }))
       )(
         candidates.map((c) => c.ll),
         signal,
@@ -907,6 +919,17 @@ async function driveStep(
     delete R.longTrail;
     R.noResponse.push(LONG_TRAIL_DRIVES);
   } else R.longTrail = lt;
+  // Step 14d (plan §4.1): the nearest flatwater launch, in a request of its own; unknown when it can't be read.
+  const pd = await paddlingNear(
+    start.ll,
+    R.ponds,
+    placesOf({ ...io, ...(s.deps.places ? { places: s.deps.places } : {}) }),
+    io,
+  );
+  if (pd === undefined) {
+    delete R.paddling;
+    R.noResponse.push(PADDLE_DRIVES);
+  } else R.paddling = pd;
 }
 
 /**

@@ -1,11 +1,11 @@
 "use client";
 /**
- * The basemap and the map's layer toggles (dim, parcel lines, roads & labels, light pollution, lidar terrain), shared by the
+ * The basemap and the map's layer toggles (dim, parcel lines, roads & labels, light pollution, lidar terrain, places), shared by the
  * map panel (17e; Map layers since step 8b) and the map itself, like useTerrainPrefs. UI prefs per device, never part of
  * UserConfig or a run's settings. The light-pollution overlay starts off each visit, as before.
  */
 import { useSyncExternalStore } from "react";
-import { getPref, setPref, type LidarPref } from "@/lib/client/prefs";
+import { getPref, setPref, type LidarPref, type PlacesPref } from "@/lib/client/prefs";
 import { ROAD_BASEMAPS } from "./roadsStyle";
 import { isBasemapId, type BasemapId } from "./style";
 
@@ -25,6 +25,8 @@ export interface MapLayerPrefs {
   power: boolean;
   /** Step 14c: lidar terrain, its style and opacity (off, Shaded relief, 60%). */
   lidar: LidarPref;
+  /** Step 14d: the baked places and the lists, by kind (off; every kind on once it's on). */
+  places: PlacesPref;
 }
 
 /** Topo and Streets already draw roads and names: the overlay is for the aerials (owner, 17d §7). */
@@ -44,6 +46,7 @@ function read(): MapLayerPrefs {
     areas: getPref("ps.areas"),
     power: getPref("ps.power"),
     lidar: getPref("ps.lidar"),
+    places: getPref("ps.places"),
   };
 }
 
@@ -61,6 +64,7 @@ export function setMapLayerPrefs(patch: Partial<MapLayerPrefs>): void {
   if (patch.areas !== undefined) setPref("ps.areas", patch.areas);
   if (patch.power !== undefined) setPref("ps.power", patch.power);
   if (patch.lidar !== undefined) setPref("ps.lidar", patch.lidar);
+  if (patch.places !== undefined) setPref("ps.places", patch.places);
   listeners.forEach((l) => l());
 }
 

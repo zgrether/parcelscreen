@@ -69,6 +69,8 @@ import type { PavingContext } from "./ground";
 import { NOT_MEASURED, OUTSIDE_AREA, stationLine, stationName } from "./climate";
 import { IN_WINTER } from "./privacy";
 import { LONG_TRAIL_DRIVES } from "../screen/longTrail";
+import { PADDLE_DRIVES } from "../screen/paddling";
+import { flatLine, NO_FLATWATER, pondLine, RIVERS_NOT_GRADED, riversLine } from "./paddling";
 import { openPct, viewLine, viewShort } from "./view";
 import { atLeast, atMost, gradedRows, parcelGrade, verdictLines } from "../rubric/grade";
 import { EDITOR_TITLES, FACTOR_LABELS } from "../rubric/words";
@@ -908,6 +910,30 @@ function longTrail(r: Result, K: CardConfig): Row {
 }
 
 /**
+ * Paddling (step 14d, docs/plans/step-14d-places.md §4.2): the drive to the nearest lake or reservoir launch, graded on
+ * paddleMin. River put-ins and a pond on the land go in the row's panel, never in the grade.
+ */
+function paddling(r: Result, K: CardConfig): Row {
+  const g = row("paddling", FACTOR_LABELS.paddling);
+  if (!drivesLoaded(r) || r.noResponse.includes(PADDLE_DRIVES)) return notLoaded(g, "the drive times");
+  if (r.paddling === undefined) return { ...g(null, NOT_MEASURED), short: "not measured" };
+  const p = r.paddling;
+  // The panel ends the sentence itself (CardPanel: "<detail>; <note>.").
+  const extra = [
+    ...(p.rivers.length ? [`${RIVERS_NOT_GRADED} ${riversLine(p.rivers)}`] : []),
+    ...(p.pond ? [pondLine(p.pond)] : []),
+  ];
+  const panel = extra.length ? { panelNote: extra.join(". ") } : {};
+  if (!p.flat) return { ...g("F", NO_FLATWATER), short: "none near", ...panel };
+  return {
+    ...g(atMost(p.flat.min, K.rows.paddleMin), flatLine(p.flat)),
+    short: `${p.flat.water ?? p.flat.name} ${fmt(p.flat.min)} min`,
+    measure: { value: p.flat.min, unit: "min" },
+    ...panel,
+  };
+}
+
+/**
  * Satellite internet (step 11, plan §2.7; renamed from Internet, owner, #272): the parcel's best spot for a satellite dish, graded on how clear its view is, with its
  * distance from the site the card reads.
  */
@@ -1137,6 +1163,8 @@ export function cardFacts(
       climateRow!,
       privacyRow!,
       longViewRow!,
+      // Step 14d: after step 11's rows.
+      paddling(r, K),
       ...[budgetRow(cost, budgets, K)].filter((x): x is Row => x !== null),
     ],
     at,

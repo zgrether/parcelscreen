@@ -20,3 +20,6 @@ export function kmToState(state: StateCode, [lat, lon]: LatLon): number {
 /** The state comes within `km` of the point (or the point is in it). */
 export const stateWithinKm = (state: StateCode, ll: LatLon, km: number): boolean =>
   kmToState(state, ll) <= km;
+
+/** A state's simplified outline (lon, lat), for the places bake's cell list. */
+export const outlineOf = (state: StateCode): Polygon => OUTLINES[state];

@@ -1,0 +1,1 @@
+{"version":1,"folder":"osm","cell":"38_-82","baked":"2026-10-25","places":[{"kind":"launch","id":"osm:node/9442838693","name":"Walhonde Water Trail Access Ramp","ll":[38.059421,-81.824928],"src":"osm","water":"river","waterName":"Little Coal River"},{"kind":"grocer","id":"osm:way/343467470","name":"Boone County Foodland","ll":[38.0566,-81.824439],"src":"osm","big":false}]}

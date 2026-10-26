@@ -20,7 +20,7 @@ import { DEFAULT_ENDPOINTS } from "@/lib/screen/config";
 import { fetchTile, tilesFor } from "@/lib/geo/parcelTiles";
 import { searchParcelNumbers } from "@/lib/search/sources";
 import { SERVER_USER_AGENT } from "@/lib/server/http";
-import { FIXTURE_SLUGS, loadFixture, ROAN_SEARCH } from "../support/fixtures";
+import { FIXTURE_SLUGS, fixturePlaces, loadFixture, ROAN_SEARCH } from "../support/fixtures";
 import {
   createReplayFetch,
   loadHar,
@@ -112,8 +112,12 @@ describe.runIf(import.meta.env.MODE === "record-port")("record the port's own re
       const kept: HarEntry[] = existsSync(path) ? loadHar(path).log.entries : [];
       const added: HarEntry[] = [];
       const answers: { requests: readonly string[] }[] = [];
+      // The baked places come from the fixture's frozen copy, never live (step 14d plan §1).
       const replay = () =>
-        createReplayFetch({ log: { entries: [...loadFixture(slug).replayHar.log.entries, ...added] } });
+        createReplayFetch(
+          { log: { entries: [...loadFixture(slug).replayHar.log.entries, ...added] } },
+          fixturePlaces(slug),
+        );
 
       const asked = new Set<string>();
       const recording = (): typeof fetch => {

@@ -16,6 +16,8 @@ export const TRAILS = ["door", "bike", "drive", "none"] as const;
 export const GROCERIES = ["close", "far", "either"] as const;
 export const ER = ["15", "30", "45", "60"] as const;
 export const FLY = ["rarely", "few", "monthly"] as const;
+export const PADDLE = ["rarely", "some", "big"] as const;
+export const PADDLE_DRIVE = ["m15", "m30", "m45", "m60"] as const;
 export const CALLS = ["yes", "no"] as const;
 export const NEIGHBORS = ["wave", "lights", "never"] as const;
 export const GARDEN = ["none", "herbs", "kitchen", "most"] as const;
@@ -47,6 +49,9 @@ export interface InterviewAnswers {
   glow?: (typeof GLOW)[number];
   sunView?: (typeof SUN_VIEW)[number];
   trails?: (typeof TRAILS)[number];
+  /** Step 14d: question 4's second screen, how often the person would paddle, and the longest drive to a launch. */
+  paddle?: (typeof PADDLE)[number];
+  paddleDrive?: (typeof PADDLE_DRIVE)[number];
   groceries?: (typeof GROCERIES)[number];
   /** The longest drive to the ER the person is comfortable with, minutes ("60": an hour or more). */
   er?: (typeof ER)[number];
@@ -77,6 +82,8 @@ export const InterviewAnswersSchema: z.ZodType<InterviewAnswers> = z.strictObjec
   glow: z.enum(GLOW).optional(),
   sunView: z.enum(SUN_VIEW).optional(),
   trails: z.enum(TRAILS).optional(),
+  paddle: z.enum(PADDLE).optional(),
+  paddleDrive: z.enum(PADDLE_DRIVE).optional(),
   groceries: z.enum(GROCERIES).optional(),
   er: z.enum(ER).optional(),
   fly: z.enum(FLY).optional(),

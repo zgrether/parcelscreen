@@ -324,3 +324,26 @@ shots' seeding or by Zach's decisions (the hand-back lists those).
 - **Low contrast:** the disabled Undo, the grey "or" in the hint bar, placeholders; the house map's red/green legend.
 - **Unlabelled controls:** the toolbar's "Boundary ▾" and "13.29 ac ▾"; the icon-only map buttons.
 - **"The condition doesn't change the cost yet."** beside a condition picker; "Why: On the starting list."
+
+## Step 14d: places as data, the Places layer and paddling (hand-back)
+
+The fresh-eyes review's findings on screens this step didn't change, or that need a decision. The hand-back lists the
+ones fixed in PR 7.
+
+- **The cluster discs** don't say what they group (their ring is the kind's colour). Fix: the kind's icon in the disc
+  beside the count.
+- **Points under the map's controls:** icons and clusters sit under the sidebar edge, the map buttons, the tilt hint
+  and the toolbar. Fix: pad the Places sources' viewport by the controls' insets, or raise the controls' backdrop.
+- **A river launch's card has no drive time** while a lake launch's does (by design: rivers are listed, never timed).
+  Fix: the card says "Not timed: rivers are listed, not graded".
+- **"Check the river's class"** is jargon to a newcomer. Fix: "check the river's class (how hard its rapids are)"
+  (report text: rule 7, additive).
+- **The paddling interview's longest drive** stops at "An hour"; there's no "longer" (a product decision).
+- **The legend's ghost box** behind "The app's driveway", and the parcel-lines hint under the legend on a phone.
+- **The grade header** on a desktop: "Maybe", the B badge and ", held by: …" wrap apart; "held by" is unclear; amber
+  "Maybe" beside a green B.
+- **The panel's Override row:** the current letter's button looks disabled; "Set aside for this parcel" and "weight 5."
+  read as fragments; FROM THE REPORT's two scores.
+- **Small targets:** the section "?" and the panel's inline links on a phone.
+- **The interview:** Skip beside a pick reads as dropping it; the 1–4 circles look like ranks; "← Map" doesn't say it
+  keeps the answers.

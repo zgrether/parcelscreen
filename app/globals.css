@@ -8641,6 +8641,39 @@ button.use-row[aria-expanded="true"] .use-name::after {
   }
 }
 
+/* Map layers › Places (step 14d): the kinds under the toggle, indented as Lidar terrain's settings; a place's card, the
+   result tips' popup with its name first. */
+.places-controls {
+  gap: 3px;
+}
+/* Each kind's map icon beside its toggle, in a row with its tick and name: the map's key. */
+.places-controls .tc-toggle {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+.place-key {
+  flex: none;
+}
+.places-key-note {
+  margin: 2px 0 4px;
+  line-height: 1.35;
+}
+.place-tip .maplibregl-popup-content {
+  white-space: normal;
+}
+.place-card strong {
+  display: block;
+  font-weight: 600;
+}
+@media (max-width: 860px) {
+  /* A phone: the card fits the width with 16 px gutters (plan §8). */
+  .place-tip {
+    max-width: calc(100vw - 32px) !important;
+  }
+}
+
 /* Household (UX part 2 PR 5, P-8): its members, each with Rename; then your devices. */
 .household-members {
   display: grid;

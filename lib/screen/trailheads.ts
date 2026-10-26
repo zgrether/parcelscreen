@@ -1,6 +1,7 @@
 /**
  * Trailheads from the Forest Service and the state parks, merged with OpenStreetMap's (follow-up 24, Batch A
- * A2b; docs/plans/batch-a.md §3, owner 2026-10-08).
+ * A2b; docs/plans/batch-a.md §3, owner 2026-10-08). Since step 14d all of them come from the baked places
+ * (lib/screen/placeData.ts); STATE_SOURCES below is what the bake asks (lib/places/bake.ts).
  *
  * - USFS: its INFRA recreation sites of subtype TRAILHEAD (Elk Garden A.T., …).
  * - State parks: each state's park points (VA VGIN landmarks, NC DPR, TN TDEC), listed as the park.
@@ -16,10 +17,11 @@
  * other trailhead joins that trailhead, whatever the names, which keeps its own.
  */
 import { distance } from "@turf/turf";
-import { CancelledError, type HttpClient } from "../http";
+import type { HttpClient } from "../http";
 import { SCREEN_CONSTANTS } from "./config";
 import type { Endpoints } from "./types";
-import { stateWithinKm, type StateCode } from "./states";
+import { cellsWithin, placesFromHttp, TRAILHEAD_RANK_SOURCE, type PlacesSource } from "./placeData";
+import type { StateCode } from "./states";
 import type { LatLon } from "./util";
 
 const K = SCREEN_CONSTANTS.near;
@@ -41,7 +43,7 @@ export interface TrailheadPoint {
  * where the layer holds more than parks, the filter; what `unanswered` stores when it doesn't answer, and what the
  * report calls it then (follow-up 53).
  */
-interface StateSource {
+export interface StateSource {
   prefix: string;
   state: StateCode;
   kind: "parks" | "trails";
@@ -52,7 +54,7 @@ interface StateSource {
   label: string;
 }
 
-const STATE_SOURCES: readonly StateSource[] = [
+export const STATE_SOURCES: readonly StateSource[] = [
   {
     prefix: "https://vginmaps.vdem.virginia.gov/",
     state: "VA",
@@ -100,9 +102,6 @@ export function servesLine(t: { name: string; serves?: readonly string[] | undef
   if (!trails.length || (trails.length === 1 && trails[0] === t.name)) return null;
   return `serves: ${trails.join(", ")}`;
 }
-
-const stateSource = (url: string): StateSource | undefined =>
-  STATE_SOURCES.find((x) => url.startsWith(x.prefix));
 
 const USFS = "USFS recreation sites";
 const STATE_PREFIX = "state parks (";
@@ -194,166 +193,28 @@ function trecClusters(points: readonly TrailheadPoint[]): { ll: LatLon; serves: 
   return [...lots.values()].map((ps) => ({ ll: ps[0]!.ll, serves: uniqueSorted(ps.map((p) => p.name)) }));
 }
 
-interface ArcPoint {
-  attributes: Record<string, unknown>;
-  geometry?: { x: number; y: number };
-}
-
-/** Points of one ArcGIS layer within `km` of the centre. */
-async function pointsNear(
-  url: string,
-  centre: LatLon,
-  km: number,
-  fields: { name: string; where?: string },
-  deps: { http: HttpClient; signal?: AbortSignal },
-): Promise<{ name: string; ll: LatLon }[]> {
-  const q = new URLSearchParams({
-    geometry: `${centre[1]},${centre[0]}`,
-    geometryType: "esriGeometryPoint",
-    inSR: "4326",
-    spatialRel: "esriSpatialRelIntersects",
-    distance: String(km * 1000),
-    units: "esriSRUnit_Meter",
-    where: fields.where ?? "1=1",
-    outFields: fields.name,
-    returnGeometry: "true",
-    outSR: "4326",
-    f: "json",
-  });
-  const r = await deps.http.fetch(`${url}/query`, {
-    method: "POST",
-    body: q,
-    timeoutMs: K.officialTimeoutMs,
-    ...(deps.signal ? { signal: deps.signal } : {}),
-  });
-  if (!r.ok) throw new Error(`${new URL(url).host} ${r.status}`);
-  const j = (await r.json()) as { features?: ArcPoint[]; error?: { message?: string } };
-  if (j.error) throw new Error(`${new URL(url).host}: ${j.error.message ?? "error"}`);
-  return (j.features ?? [])
-    .filter((f) => f.geometry && typeof f.attributes[fields.name] === "string")
-    .map((f) => ({
-      name: readableName(String(f.attributes[fields.name])),
-      ll: [f.geometry!.y, f.geometry!.x] as LatLon,
-    }));
-}
-
-interface TrecPage {
-  features?: { attributes: Record<string, unknown> }[];
-  exceededTransferLimit?: boolean;
-  error?: { message?: string };
-}
-
-const TREC_FIELDS = [
-  "OBJECTID",
-  "Trail_Name",
-  "PrimaryTrailhead_Latitude",
-  "PrimaryTrailhead_Longitude",
-  "SecondaryTrailhead_Latitude",
-  "SecondaryTrailhead_Longitude",
-].join(",");
-
 /**
- * Tennessee's TREC trails (step 2, owner 2026-10-17): the trails in an envelope of `km` around the centre, asked for
- * their names and trailhead coordinates only (never their lines), paged; each trail's primary and secondary trailheads
- * within `km` of the centre, 0,0 dropped. A trail's line may pass near while its trailheads are far: only the
- * trailheads count.
- */
-async function trecTrailheadsNear(
-  url: string,
-  centre: LatLon,
-  km: number,
-  deps: { http: HttpClient; signal?: AbortSignal },
-): Promise<TrailheadPoint[]> {
-  const dLat = km / 111.32,
-    dLon = km / (111.32 * Math.cos((centre[0] * Math.PI) / 180));
-  const envelope = JSON.stringify({
-    xmin: centre[1] - dLon,
-    ymin: centre[0] - dLat,
-    xmax: centre[1] + dLon,
-    ymax: centre[0] + dLat,
-    spatialReference: { wkid: 4326 },
-  });
-  const out: TrailheadPoint[] = [];
-  for (let page = 0; page < K.trecMaxPages; page++) {
-    const q = new URLSearchParams({
-      geometry: envelope,
-      geometryType: "esriGeometryEnvelope",
-      inSR: "4326",
-      spatialRel: "esriSpatialRelIntersects",
-      outFields: TREC_FIELDS,
-      returnGeometry: "false",
-      orderByFields: "OBJECTID",
-      resultOffset: String(page * K.trecPageSize),
-      resultRecordCount: String(K.trecPageSize),
-      f: "json",
-    });
-    const r = await deps.http.fetch(`${url}/query`, {
-      method: "POST",
-      body: q,
-      timeoutMs: K.officialTimeoutMs,
-      ...(deps.signal ? { signal: deps.signal } : {}),
-    });
-    if (!r.ok) throw new Error(`${new URL(url).host} ${r.status}`);
-    const j = (await r.json()) as TrecPage;
-    if (j.error) throw new Error(`${new URL(url).host}: ${j.error.message ?? "error"}`);
-    for (const { attributes: a } of j.features ?? []) {
-      const name = typeof a.Trail_Name === "string" ? readableName(a.Trail_Name) : "";
-      if (!name) continue;
-      const heads: [unknown, unknown][] = [
-        [a.PrimaryTrailhead_Latitude, a.PrimaryTrailhead_Longitude],
-        [a.SecondaryTrailhead_Latitude, a.SecondaryTrailhead_Longitude],
-      ];
-      for (const [lat, lon] of heads) {
-        if (lat == null || lon == null) continue;
-        const ll: LatLon = [Number(lat), Number(lon)];
-        if (!Number.isFinite(ll[0]) || !Number.isFinite(ll[1]) || (ll[0] === 0 && ll[1] === 0)) continue;
-        if (metres(centre, ll) > km * 1000) continue;
-        out.push({ name, ll, source: "state", trec: true });
-      }
-    }
-    if (!j.exceededTransferLimit) break;
-  }
-  return out;
-}
-
-/**
- * The official trailheads within near.trailheadKm: USFS's, and the parks of each state that comes that close (follow-up
- * 53, #122 review: a state out of reach isn't asked, so it can't go unanswered). A source that fails is left out
- * (OpenStreetMap still answers, and the count says what was found), and named in `unanswered` (v4; phase-0.md §9.20
- * (c)); a cancel still cancels.
+ * The official trailheads within near.trailheadKm: USFS's, the three states' parks and TDEC's TREC trailheads, from the
+ * baked cells (step 14d plan §3; lib/screen/placeData.ts). They were asked live per grade before, each failure named in
+ * `unanswered` (follow-up 53); the bake now keeps a source that doesn't answer at its last good copy, so a grade has
+ * nothing to name. The cells failing to load rejects: the near step loses its places half, as when OSM's fail.
  */
 export async function officialTrailheads(
   centre: LatLon,
-  deps: { http: HttpClient; endpoints: Endpoints; signal?: AbortSignal },
-  unanswered: string[] = [],
+  deps: { http: HttpClient; endpoints: Endpoints; signal?: AbortSignal; places?: PlacesSource },
 ): Promise<TrailheadPoint[]> {
-  const names = [USFS];
-  const asked: Promise<TrailheadPoint[]>[] = [
-    pointsNear(
-      deps.endpoints.usfsRecSites,
-      centre,
-      K.trailheadKm,
-      { name: "site_name", where: "site_subtype='TRAILHEAD'" },
-      deps,
-    ).then((ps) => ps.map((p) => ({ ...p, source: "usfs" as const }))),
-    ...deps.endpoints.stateParks.flatMap((url) => {
-      const src = stateSource(url);
-      // An unknown layer, or a state out of reach: not asked, so never unanswered.
-      if (!src || !stateWithinKm(src.state, centre, K.trailheadKm + K.stateOutlineMarginKm)) return [];
-      names.push(src.token);
-      if (src.kind === "trails") return [trecTrailheadsNear(url, centre, K.trailheadKm, deps)];
-      return [
-        pointsNear(url, centre, K.trailheadKm, src, deps).then((ps) =>
-          ps.map((p) => ({ ...p, source: "state" as const })),
-        ),
-      ];
-    }),
-  ];
-  const settled = await Promise.allSettled(asked);
-  const cancelled = settled.find((s) => s.status === "rejected" && s.reason instanceof CancelledError);
-  if (cancelled) throw (cancelled as PromiseRejectedResult).reason;
-  settled.forEach((s, i) => {
-    if (s.status === "rejected") unanswered.push(names[i]!);
-  });
-  return settled.flatMap((s) => (s.status === "fulfilled" ? s.value : []));
+  const read = deps.places ?? placesFromHttp(deps.http, deps.endpoints.places);
+  const places = await read("official", cellsWithin(centre, K.trailheadKm), deps.signal);
+  return places.flatMap((p): TrailheadPoint[] =>
+    p.kind === "trailhead" && metres(centre, p.ll) <= K.trailheadKm * 1000
+      ? [
+          {
+            name: p.name,
+            ll: p.ll,
+            source: TRAILHEAD_RANK_SOURCE[p.src],
+            ...(p.trec ? { trec: true as const } : {}),
+          },
+        ]
+      : [],
+  );
 }

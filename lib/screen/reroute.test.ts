@@ -41,7 +41,7 @@ function counted(slug: PrototypeSlug, extra: Partial<ScreenDeps> = {}) {
   return { deps, hosts: () => hosts, reset: () => void (hosts = []) };
 }
 const OSRM = new URL(DEFAULT_ENDPOINTS.osrm).host;
-const OVERPASS = new Set(DEFAULT_ENDPOINTS.overpass.map((u) => new URL(u).host));
+const PLACES = new URL(DEFAULT_ENDPOINTS.places).host;
 const failingParking = async (): Promise<never> => {
   throw new Error("Overpass didn't answer");
 };
@@ -126,9 +126,9 @@ describe("with a choice (§6.7)", () => {
     c.reset();
     const chosen = await reroute(none, L1, "red-gate");
     // The start moved: the drive step ran, on the recorded traffic for the red gate's start (pnpm record:port), and
-    // asked only OSRM (the table, the route out) and Overpass (the parking).
+    // asked only OSRM (the table, the route out) and the baked places (the parking, since step 14d).
     expect(c.hosts()).toContain(OSRM);
-    expect(c.hosts().every((h) => h === OSRM || OVERPASS.has(h))).toBe(true);
+    expect(c.hosts().every((h) => h === OSRM || h === PLACES)).toBe(true);
     expect(chosen.result.failed).not.toContain("drive");
     expect(chosen.result.noResponse).not.toContain(TRAILHEAD_PARKING);
     expect(chosen.result.drives?.length ?? 0).toBeGreaterThan(0);

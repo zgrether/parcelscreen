@@ -1,6 +1,7 @@
 /** A trailhead's parking (follow-up 54, by follow-up 39's rule): within 300 m and tagged for it, else the point. */
 import { describe, expect, it } from "vitest";
-import { parkingFor, parkingQuery, parseParking, type ParkingLot } from "./trailheadParking";
+import { cellsWithin, type PlacesSource } from "./placeData";
+import { parkingFor, parkingFromPlaces, parkingQuery, type ParkingLot } from "./trailheadParking";
 import type { LatLon } from "./util";
 
 const TH = { name: "Buffalo Mountain Trailhead", ll: [36.7941894, -80.4665278] as LatLon };
@@ -14,20 +15,32 @@ describe("the parking query", () => {
       '[out:json][timeout:25];(nwr["amenity"="parking"](around:300,36.794189,-80.466528);nwr["amenity"="parking"](around:300,36.600000,-81.500000););out center tags;',
     );
   });
+});
 
-  it("reads nodes and ways' centres; anything without a position is dropped", () => {
-    expect(
-      parseParking({
-        elements: [
-          { type: "node", lat: 1, lon: 2, tags: { amenity: "parking" } },
-          { type: "way", center: { lat: 3, lon: 4 }, tags: { amenity: "parking", name: "Lot" } },
-          { type: "relation", tags: { amenity: "parking" } },
-        ],
-      }),
-    ).toEqual([
-      { ll: [1, 2], tags: { amenity: "parking" } },
-      { ll: [3, 4], tags: { amenity: "parking", name: "Lot" } },
+describe("the baked lots (step 14d)", () => {
+  it("are read from the OSM cells within a kilometre of each point, with what parkingFor reads", async () => {
+    const asked: string[][] = [];
+    const places: PlacesSource = async (_folder, cells) => {
+      asked.push([...cells]);
+      return [
+        {
+          kind: "parking",
+          id: "osm:way/1",
+          ll: north(12),
+          src: "osm",
+          name: "Buffalo Mountain Trailhead Parking",
+        },
+        { kind: "parking", id: "osm:node/2", ll: north(100), src: "osm", hiking: true },
+        { kind: "grocer", id: "osm:node/3", name: "Food Lion", ll: north(5), src: "osm", big: true },
+      ];
+    };
+    const lots = await parkingFromPlaces(places)([TH.ll]);
+    expect(asked).toEqual([cellsWithin(TH.ll, 1)]);
+    expect(lots).toEqual([
+      { ll: north(12), tags: { name: "Buffalo Mountain Trailhead Parking" } },
+      { ll: north(100), tags: { hiking: "yes" } },
     ]);
+    expect(parkingFor(TH, lots)).toEqual(north(12));
   });
 });
 

@@ -59,7 +59,7 @@ describe("config", () => {
           "woodedPct": 100,
         },
         "endpoints": {
-          "_v": 15,
+          "_v": 16,
           "counties": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/1",
           "dem": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
           "lpAtlasBinary": "https://djlorenz.github.io/astronomy/binary_tiles",
@@ -84,6 +84,7 @@ describe("config", () => {
             "https://services1.arcgis.com/YuVBSS7Y1of2Qud1/arcgis/rest/services/Tennessee_Property_Boundaries_Public_Use/FeatureServer/0",
           ],
           "photon": "https://photon.komoot.io/api/",
+          "places": "https://parcelscreen.vercel.app/places/v1",
           "power": "https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Electric_Power_Transmission_Lines/FeatureServer/0",
           "sda": "https://SDMDataAccess.sc.egov.usda.gov/Tabular/post.rest",
           "stateParks": [
@@ -132,6 +133,7 @@ describe("config", () => {
             "er": 3,
             "groceryAny": 3,
             "groceryChain": 3,
+            "launch": 3,
             "longTrail": 4,
             "trailhead": 3,
           },
@@ -273,6 +275,11 @@ describe("config", () => {
               "step": 1,
             },
             "longTrailMin": {
+              "max": 90,
+              "min": 5,
+              "step": 5,
+            },
+            "paddleMin": {
               "max": 90,
               "min": 5,
               "step": 5,
@@ -532,6 +539,45 @@ describe("config", () => {
                   },
                 },
               },
+              "paddle": {
+                "big": {
+                  "points": {
+                    "paddling": 3,
+                  },
+                },
+                "rarely": {
+                  "points": {
+                    "paddling": 0,
+                  },
+                },
+                "some": {
+                  "points": {
+                    "paddling": 1,
+                  },
+                },
+              },
+              "paddleDrive": {
+                "m15": {
+                  "edges": {
+                    "paddleMin": 15,
+                  },
+                },
+                "m30": {
+                  "edges": {
+                    "paddleMin": 30,
+                  },
+                },
+                "m45": {
+                  "edges": {
+                    "paddleMin": 45,
+                  },
+                },
+                "m60": {
+                  "edges": {
+                    "paddleMin": 60,
+                  },
+                },
+              },
               "sky": {
                 "camera": {
                   "points": {
@@ -669,6 +715,7 @@ describe("config", () => {
               "internet": 1,
               "longTrail": 0,
               "longView": 0,
+              "paddling": 0,
               "privacy": 0,
               "room": 2,
               "sky": 1,
@@ -762,6 +809,12 @@ describe("config", () => {
               50,
             ],
             "openLandWithinFt": 5280,
+            "paddleMin": [
+              15,
+              30,
+              45,
+              60,
+            ],
             "privacyFt": [
               1320,
               660,
@@ -828,6 +881,7 @@ describe("config", () => {
               "internet": 0,
               "longTrail": 0,
               "longView": 0,
+              "paddling": 0,
               "privacy": 0,
               "room": 15,
               "sky": 10,
@@ -1080,6 +1134,17 @@ describe("config", () => {
           "maxWalkM": 5000,
           "onRoadM": 15,
           "privateOutsideMinM": 15,
+        },
+        "paddling": {
+          "flatwaterMinAc": 5,
+          "flatwaterWithinM": 60,
+          "maxKm": 100,
+          "points": 6,
+          "pondMinAc": 1,
+          "riverKm": 40,
+          "riverWithinM": 100,
+          "rivers": 3,
+          "sameWithinM": 150,
         },
         "padus": {
           "adjoinsBufferKm": 0.02,

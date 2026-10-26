@@ -132,6 +132,7 @@ describe("§3: every choice", () => {
       longTrail: 0,
       // Video calls from home: Internet in Really want (3 points).
       internet: 3,
+      paddling: 0,
       budget: 0,
     });
     expect(later({ fly: "rarely", calls: "no", creek: "either", hoa: "light" })).toEqual([
@@ -258,6 +259,7 @@ describe("§3: question 14", () => {
       "longView",
       "airport",
       "longTrail",
+      "paddling",
     ]);
     expect(g.why.cards.privacy).toEqual(["You said a neighbor's house in view doesn't matter"]);
     expect(bcEdge(g.rubric.bands, "erMin")).toBe(30);
@@ -347,10 +349,11 @@ describe("§4: the two people", () => {
       longView: 0,
       airport: 0,
       longTrail: 0,
+      paddling: 0,
       budget: 0,
     });
     // "Sun" at breakfast: Long view is Don't care.
-    expect(g.rubric.wonts).toEqual(["longView", "airport", "longTrail"]);
+    expect(g.rubric.wonts).toEqual(["longView", "airport", "longTrail", "paddling"]);
     // Never know they're there: the nearest house 1,320 ft away, none in sight.
     expect([g.rubric.bands.privacyFt, g.rubric.bands.privacySight]).toEqual([
       [1980, 1320, 990, 825],
@@ -397,7 +400,7 @@ describe("§4: the two people", () => {
       { factor: "driveway", tier: "could" },
     ]);
     // Step 11: "Wave from the porch" leaves Privacy at 0 points.
-    expect(g.rubric.wonts).toEqual(["elevation", "sky", "privacy", "airport", "longTrail"]);
+    expect(g.rubric.wonts).toEqual(["elevation", "sky", "privacy", "airport", "longTrail", "paddling"]);
     expect(rounded(weightsOf(g.rubric))).toEqual({
       hospital: 19,
       longView: 17.1,
@@ -414,6 +417,7 @@ describe("§4: the two people", () => {
       privacy: 0,
       airport: 0,
       longTrail: 0,
+      paddling: 0,
       budget: 0,
     });
     expect(g.rubric.bands.drivewayPct).toEqual([10, 15, 20, 25]);
@@ -476,7 +480,15 @@ describe("§2: the rules", () => {
       "homesite",
     ]);
     // Step 11: "Either" climate gives Climate 0 points.
-    expect(few.rubric.wonts).toEqual(["climate", "trails", "privacy", "longView", "airport", "longTrail"]);
+    expect(few.rubric.wonts).toEqual([
+      "climate",
+      "trails",
+      "privacy",
+      "longView",
+      "airport",
+      "longTrail",
+      "paddling",
+    ]);
     expect(few.rubric.ranked.at(-1)).toEqual({ factor: "driveway", tier: "could" });
   });
 
