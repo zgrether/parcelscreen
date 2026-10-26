@@ -1,0 +1,1 @@
+{"version":1,"folder":"official","cell":"35_-81","baked":"2026-10-25","places":[{"kind":"launch","id":"usfs:boat:3888218","name":"Deep Water  Boat Launch","ll":[35.400565,-80.08703],"src":"usfs","water":"river"},{"kind":"launch","id":"usfs:boat:3893061","name":"Cove Boat Launch","ll":[35.439005,-80.074831],"src":"usfs","water":"flat","waterName":"Badin Lake","waterAc":5566}]}
