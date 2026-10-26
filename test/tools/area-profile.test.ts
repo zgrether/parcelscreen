@@ -1,7 +1,7 @@
 /**
  * The area profiler, live (step 13, docs/plans/step-13-area-catalog.md §3):
  *
- *   pnpm areas:profile          every area, written to public/areas/v1/<id>.json, then index.json
+ *   pnpm areas:profile          every area, written to public/areas/v2/<id>.json, then index.json
  *   AREAS=floyd,cosby pnpm areas:profile    just those (index.json keeps the others' entries)
  *   pnpm areas:record           Grayson Highlands, small, recorded to test/fixtures/areas/grayson-highlands/network.har
  *                               for the CI test (lib/areas/profile.recorded.test.ts)

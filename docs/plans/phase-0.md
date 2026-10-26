@@ -1288,5 +1288,10 @@ until step 5 (Q14).
       reads Paddling as not measured. A new factor at weight 0 until placed, with an interview question sharing number 4
       with Trails (as 14a and 14b share 14). Two launches within 150 m are one put-in (`paddling.sameWithinM`): a fifth
       of the first bake's 3,443 launches had another that close (OSM's ramp and its access point both).
+    - **The area catalog** (PR 4): each sample point's drive to the nearest of its 3 nearest flatwater launches,
+      `paddleMin`, in the same OSRM tables, and Paddling graded at area scale on the same bands. The area files change
+      shape, so `AREA_FILE_VERSION` 1 → 2 and `/areas/v2`, a clean break: v1's area files are deleted. The sample
+      parcels are screens, not profiles, so they keep a version of their own (`SAMPLE_FILE_VERSION` 1) and their
+      folder, `/areas/v1/samples/`.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

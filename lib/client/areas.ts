@@ -1,7 +1,7 @@
 "use client";
 /**
  * The area catalog in the app (step 13, docs/plans/step-13-area-catalog.md §3.3, §5a): the profiles, fetched from
- * public/areas/v1 the first time something shows them and kept for the session; the areas a profile starred; and
+ * public/areas/v2 the first time something shows them and kept for the session; the areas a profile starred; and
  * bringing an area into view, through the map when it's mounted (it stays mounted behind the tabs) or as the view the
  * map opens on.
  */

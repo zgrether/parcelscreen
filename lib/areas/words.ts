@@ -39,6 +39,8 @@ function good(f: AreaFactor, m: M): string | null {
       return m.airportMin === null ? null : `an airport ${fmt(m.airportMin)} min away`;
     case "longTrail":
       return m.longTrailMin === null ? null : `a long trail ${fmt(m.longTrailMin)} min away`;
+    case "paddling":
+      return m.paddleMin === null ? null : `a lake launch ${fmt(m.paddleMin)} min away`;
   }
 }
 
@@ -63,6 +65,8 @@ function cost(f: AreaFactor, m: M): string | null {
       return m.airportMin === null ? null : `${fmt(m.airportMin)} minutes to an airport`;
     case "longTrail":
       return m.longTrailMin === null ? null : `${fmt(m.longTrailMin)} minutes to a long trail`;
+    case "paddling":
+      return m.paddleMin === null ? null : `${fmt(m.paddleMin)} minutes to a lake launch`;
   }
 }
 
@@ -121,6 +125,8 @@ function limitWords(l: AreaCard["limits"][number]): string {
       return `within ${t} minutes of a trailhead`;
     case "longTrail":
       return `within ${t} minutes of a long trail`;
+    case "paddling":
+      return `within ${t} minutes of a lake launch`;
     default:
       return "";
   }
@@ -201,6 +207,8 @@ export function limitName(l: AreaCard["limits"][number]): string {
       return `${t}-minute trailhead limit`;
     case "longTrail":
       return `${t}-minute long-trail limit`;
+    case "paddling":
+      return `${t}-minute lake-launch limit`;
     default:
       return "limit";
   }

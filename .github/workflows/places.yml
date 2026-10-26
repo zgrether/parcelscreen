@@ -6,7 +6,10 @@ name: Places
 # - record: `pnpm record:port` for each fixture (Mud Creek append-only, its guard's rule), the fixtures' recordings
 #   of what a grade asks live (their places come from their frozen copies, test/fixtures/<slug>/places/), and
 #   `pnpm areas:record`, the recorded area profile's (its places from test/fixtures/areas/<id>/places/);
-# - timing: `pnpm grade:timing` on main, then on the PR's branch, into the job summary (nothing pushed).
+# - timing: `pnpm grade:timing` on main, then on the PR's branch, into the job summary (nothing pushed);
+# - areas: `pnpm areas:record`, the recorded area profile only, and `pnpm areas:profile`, every area file
+#   (public/areas/v<n>/, the previous version's area files removed: a format change is a clean break). No fixture
+#   recording moves.
 # Each finished request is recorded in .github/places-done.json and pushed with the job's output to the PR's branch,
 # so a later push to the PR doesn't run it again. A push made with GITHUB_TOKEN starts no workflow, so the job then
 # dispatches ci.yml on the branch (as areas-refresh.yml does); its checks land on the commit, so the PR shows them.
@@ -33,6 +36,7 @@ jobs:
       bake: ${{ steps.read.outputs.bake }}
       record: ${{ steps.read.outputs.record }}
       timing: ${{ steps.read.outputs.timing }}
+      areas: ${{ steps.read.outputs.areas }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -42,7 +46,7 @@ jobs:
           request=$(node -p "require('./.github/places-run.json').request")
           done=$(node -p "try { require('./.github/places-done.json').request } catch { '' }")
           echo "request=$request" >> "$GITHUB_OUTPUT"
-          for job in bake record timing; do
+          for job in bake record timing areas; do
             if [ "$request" = "$done" ]; then
               echo "$job=false" >> "$GITHUB_OUTPUT"
             else
@@ -149,3 +153,43 @@ jobs:
         run: |
           TIMING_LABEL="this branch: baked places" pnpm grade:timing || true
           cat test-results/grade-timing.md >> "$GITHUB_STEP_SUMMARY" || true
+
+  areas:
+    needs: ask
+    if: needs.ask.outputs.areas == 'true'
+    runs-on: ubuntu-latest
+    # About 40 minutes, most of it OSRM's one request a second (as areas-refresh.yml).
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: The recorded area profile, then every area
+        run: |
+          pnpm areas:record
+          pnpm areas:profile
+      - name: Push the area files to the PR's branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUEST: ${{ needs.ask.outputs.request }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          node -e "require('fs').writeFileSync('.github/places-done.json', JSON.stringify({ request: process.env.REQUEST, ran: new Date().toISOString() }, null, 2) + '\n')"
+          # The current version's folder, and the older versions' area files gone (their samples, a version of their
+          # own, stay).
+          v=$(node -p "require('fs').readFileSync('lib/areas/types.ts','utf8').match(/AREA_FILE_VERSION = (\\d+)/)[1]")
+          for d in public/areas/v*/; do
+            [ "$d" = "public/areas/v$v/" ] || git rm -q --ignore-unmatch "$d"*.json
+          done
+          git add public/areas test/fixtures/areas .github/places-done.json
+          git commit -m "Area files profiled again ($REQUEST)" || exit 0
+          git pull --rebase origin "${{ github.head_ref }}"
+          git push origin "HEAD:${{ github.head_ref }}"
+          gh workflow run ci.yml --ref "${{ github.head_ref }}"

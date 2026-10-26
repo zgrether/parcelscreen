@@ -1,5 +1,5 @@
 /**
- * The committed profiles (step 13 plan §3.3, §10): one file per area in public/areas/v1/, each passing its schema,
+ * The committed profiles (step 13 plan §3.3, §10): one file per area in public/areas/v2/, each passing its schema,
  * with its catalog name and description, and an index listing all thirty in the catalog's order.
  */
 import { readFileSync } from "node:fs";

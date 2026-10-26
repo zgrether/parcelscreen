@@ -1,13 +1,14 @@
 /**
- * An area's profile file (step 13, docs/plans/step-13-area-catalog.md §3.3): public/areas/v1/<id>.json, written by
+ * An area's profile file (step 13, docs/plans/step-13-area-catalog.md §3.3): public/areas/v2/<id>.json, written by
  * `pnpm areas:profile` and loaded on demand. The per-point values are columns; a measure that failed at a point is
- * null there. A format change starts v2 and drops v1 (clean break, §1).
+ * null there. A format change starts the next version and drops the last (clean break, §1): v2 added paddleMin (step
+ * 14d plan §4.4).
  */
 import { z } from "zod";
 import { LatLonSchema, ScreenResultSchema } from "../screen/types";
 
-/** The file format's version; it's also the folder: public/areas/v1/. */
-export const AREA_FILE_VERSION = 1;
+/** The file format's version; it's also the folder: public/areas/v2/. */
+export const AREA_FILE_VERSION = 2;
 export const AREAS_PATH = `/areas/v${AREA_FILE_VERSION}`;
 
 /** What's measured at each point (§3.2), in the units the card's rows read. */
@@ -23,6 +24,7 @@ export const MEASURES = [
   "trailheadMin",
   "openLandFt",
   "longTrailMin",
+  "paddleMin",
 ] as const;
 export type Measure = (typeof MEASURES)[number];
 
@@ -78,12 +80,19 @@ export const AreaIndexSchema = z.strictObject({
 export type AreaIndex = z.infer<typeof AreaIndexSchema>;
 
 /**
+ * A sample parcel's file's version (step 13 plan §5): samples are screens, not profiles, so they keep their own
+ * version and folder, public/areas/v1/samples/, when the area files' format moves on.
+ */
+export const SAMPLE_FILE_VERSION = 1;
+const SAMPLES_PATH = `/areas/v${SAMPLE_FILE_VERSION}/samples`;
+
+/**
  * A sample parcel (step 13 plan §5): public/areas/v1/samples/<area>-<n>.json, written by `pnpm areas:samples`. Its
  * boundary, its acres and its screen, and nothing else: no owner, address or parcel number (phase-0.md §9.23). The
  * name is the app's.
  */
 export const SampleFileSchema = z.strictObject({
-  version: z.literal(AREA_FILE_VERSION),
+  version: z.literal(SAMPLE_FILE_VERSION),
   area: z.string(),
   n: z.number().int().positive(),
   name: z.string(),
@@ -94,4 +103,4 @@ export const SampleFileSchema = z.strictObject({
 export type SampleFile = z.infer<typeof SampleFileSchema>;
 
 /** Where a sample's file is. */
-export const samplePath = (area: string, n: number): string => `${AREAS_PATH}/samples/${area}-${n}.json`;
+export const samplePath = (area: string, n: number): string => `${SAMPLES_PATH}/${area}-${n}.json`;

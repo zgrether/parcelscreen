@@ -320,6 +320,8 @@ points per grade, as now. So no published file mixes OSM data with another sourc
   - "No lake or reservoir launch within 100 km";
   - "<river>: <launch>, <km> km — check the river's class before paddling";
   - "And a pond on the land you could paddle (<acres> ac)".
+- **Area catalog** (PR 4, added): "a lake launch <n> min away", "<n> minutes to a lake launch", "within <n> minutes
+  of a lake launch", "<n>-minute lake-launch limit", and the refresh summary's "Lake launch".
 - **Interview:**
   - the scene and the two rows' questions;
   - the seven choice labels and their "why" lines: "You'd rarely paddle", "You'd paddle some weekends", "Paddling is a

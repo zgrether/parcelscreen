@@ -133,6 +133,7 @@ describe("config", () => {
             "er": 3,
             "groceryAny": 3,
             "groceryChain": 3,
+            "launch": 3,
             "longTrail": 4,
             "trailhead": 3,
           },
