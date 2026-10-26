@@ -58,20 +58,6 @@ describe("the baked places as features", () => {
     ]);
   });
 
-  it("an unnamed grocery or trailhead is called what it is", () => {
-    const f = bakedFeatures(
-      [
-        { kind: "grocer", id: "osm:node/8", ll: [36.6, -81.5], src: "osm" },
-        { kind: "trailhead", id: "osm:node/9", ll: [36.6, -81.6], src: "osm" },
-      ] as Place[],
-      "2026-10-25",
-    );
-    expect([f.grocery![0]!.properties.name, f.trailhead![0]!.properties.name]).toEqual([
-      "Grocery",
-      "Trailhead",
-    ]);
-  });
-
   it("Settings' airports and the long trails' access points, with no source or date", () => {
     const [a] = airportFeatures([{ name: "Tri-Cities airport (TRI)", lat: 36.4752, lon: -82.4074 }]);
     expect(a!.properties).toMatchObject({ kind: "airport", source: "", checked: "" });

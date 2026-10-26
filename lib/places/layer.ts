@@ -83,29 +83,12 @@ export function bakedFeatures(
   const out: Partial<Record<PlaceKind, PlaceFeature[]>> = {};
   const add = (k: PlaceKind, f: PlaceFeature) => (out[k] ??= []).push(f);
   for (const p of places) {
-    const base = { id: p.id, source: SOURCE_NAME[p.src], checked: baked };
-    // An unnamed place is called what it is.
-    if (p.kind === "grocer")
-      add(
-        "grocery",
-        feature(p.ll, { ...base, name: p.name ?? TYPE.grocery, kind: "grocery", water: "", of: "" }),
-      );
+    const base = { id: p.id, name: p.name ?? "Paddle launch", source: SOURCE_NAME[p.src], checked: baked };
+    if (p.kind === "grocer") add("grocery", feature(p.ll, { ...base, kind: "grocery", water: "", of: "" }));
     else if (p.kind === "trailhead")
-      add(
-        "trailhead",
-        feature(p.ll, { ...base, name: p.name ?? TYPE.trailhead, kind: "trailhead", water: "", of: "" }),
-      );
+      add("trailhead", feature(p.ll, { ...base, kind: "trailhead", water: "", of: "" }));
     else if (p.kind === "launch")
-      add(
-        "launch",
-        feature(p.ll, {
-          ...base,
-          name: p.name ?? "Paddle launch",
-          kind: "launch",
-          water: p.water,
-          of: p.waterName ?? "",
-        }),
-      );
+      add("launch", feature(p.ll, { ...base, kind: "launch", water: p.water, of: p.waterName ?? "" }));
   }
   return out;
 }
@@ -156,6 +139,7 @@ const metres = (a: LatLon, b: LatLon) =>
 /** A baked trailhead and the result's are one when this close (the result may have merged a TREC one into it). */
 const SAME_TRAILHEAD_M = 50;
 
+/** The minutes the open parcel's grade already timed to this place, if it did; nothing is fetched. */
 /** What the tap card reads of the open parcel's result. */
 export type TimedResult = Pick<ScreenResult, "drives" | "closerGrocery" | "near" | "longTrail" | "paddling">;
 
