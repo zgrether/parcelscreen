@@ -111,6 +111,8 @@ whichever you're using. Switching basemaps offline then still works, and the siz
 - **Cache keys for `bbox` tiles:**
   - VGIN's ortho and USGS Slope are keyed by their tile (z/x/y), worked out from the `bbox` in the URL, not by the
     URL itself. So a download that formats the numbers differently from MapLibre still hits.
+  - Parcel-line tiles are POST queries (`fetchTile`), which the Cache API can't store as requests. They're keyed by
+    the service URL and the form body, as one GET-shaped key.
   - Other tiles are keyed by URL.
 
 ### 3.2 Strategy
