@@ -12,6 +12,10 @@
  * - **Failing:** a save that fails (offline, the server's error, over 10 s) turns the indicator to Not saved and offers
  *   Try again. Nothing retries by itself. What's unsaved is written to `ps.sync`, so the next open says so once, with
  *   Try again and Discard.
+ * - **Held** (step 14e, docs/plans/step-14e-offline.md §6): a save that fails while offline, when all it had were
+ *   parcels' notes and lines and marks (lib/sync/held.ts), is held instead: "Saved on this device — syncs when you're
+ *   back online". Back online (or at the next open), it fetches and then saves by itself; a parcel the space changed
+ *   meanwhile is merged three ways against the copy the change started from, kept in `ps.sync` with it.
  * - **Screens** are sent once, when kept, and fetched when a parcel needs one this device hasn't got.
  */
 import { activeKv, currentProfile, currentProfileId, profileStorage } from "@/lib/client/profiles";
@@ -45,6 +49,7 @@ import {
   SYNCED_DOCS,
   type ProfileRecord,
 } from "./records";
+import { heldProfileKey, mergeHeld, onlyNotesAndLines, onlyRecent } from "./held";
 import { hasUnsaved, readSyncState, writeSyncState, type SyncState, type Unsaved } from "./state";
 import {
   MAX_BATCH_BYTES,
@@ -69,7 +74,7 @@ const OVERLAP_MS = 10_000;
 /** A baseline entry that matches nothing the space holds: Discard's way to take the space's copy whatever it is. */
 const DISCARDED = "(discarded)";
 
-export type SyncStatus = "off" | "synced" | "failed";
+export type SyncStatus = "off" | "synced" | "failed" | "held";
 export interface SyncView {
   status: SyncStatus;
   /** The failure was found when the app opened: changes from a page closed before they were saved. */
@@ -183,18 +188,31 @@ class Engine implements SyncHooks {
       this.dirtyHousehold.add(id);
     }
     for (const id of u.profiles) {
-      this.profileBase.delete(id);
+      const held = this.state.held[heldProfileKey(id)];
+      if (held) this.profileBase.set(id, held);
+      else this.profileBase.delete(id);
       this.dirtyProfiles.add(id);
     }
     for (const { key, profile } of u.parcels) {
-      this.parcelBase.delete(key);
+      // A held parcel keeps the copy its change started from, for the merge on return (step 14e).
+      const held = this.state.held[key];
+      if (held) this.parcelBase.set(key, held);
+      else this.parcelBase.delete(key);
       this.dirtyParcels.set(key, profile);
     }
     for (const id of u.screens) this.dirtyScreens.add(id);
+    const allHeld =
+      hasUnsaved(u) &&
+      u.profiles.every((id) => this.state.held[heldProfileKey(id)] !== undefined) &&
+      !u.household.length &&
+      !u.screens.length &&
+      u.parcels.every((p) => this.state.held[p.key] !== undefined);
     setView(
-      hasUnsaved(u)
-        ? { status: "failed", atOpen: true, names: await this.unsavedNames(u) }
-        : { status: "synced", atOpen: false },
+      allHeld
+        ? { status: "held", atOpen: false }
+        : hasUnsaved(u)
+          ? { status: "failed", atOpen: true, names: await this.unsavedNames(u) }
+          : { status: "synced", atOpen: false },
     );
     registerSyncHooks(this);
     addEventListener("visibilitychange", this.onVisibility);
@@ -205,6 +223,7 @@ class Engine implements SyncHooks {
     this.unhold = onSyncReleased(this.onRelease);
     this.poller.start();
     await this.fetch();
+    if (view.status === "held" && navigator.onLine) await this.save();
   }
 
   stop(): void {
@@ -227,7 +246,11 @@ class Engine implements SyncHooks {
     } else void this.fetch();
   };
   private readonly onFocus = () => void this.fetch();
-  private readonly onNetwork = () => this.poller.changed();
+  private readonly onNetwork = () => {
+    this.poller.changed();
+    // Back online with notes or lines held (step 14e): the space's changes first, then the held ones, merged.
+    if (navigator.onLine && view.status === "held") void this.fetch().then(() => this.save());
+  };
   /** A blur or a drop: changes held back meanwhile are fetched now (after the focus has settled on its next element). */
   private readonly onRelease = () =>
     setTimeout(() => {
@@ -419,16 +442,41 @@ class Engine implements SyncHooks {
         if (v === null) this.parcelBase.delete(key);
         else this.parcelBase.set(key, v);
       }
+      const held = { ...this.state.held };
+      for (const key of sentParcels.keys()) delete held[key];
+      for (const id of sentProfiles.keys()) delete held[heldProfileKey(id)];
+      this.state = { ...this.state, held };
       this.persist();
       setView({ status: hasUnsaved(this.state.unsaved) ? view.status : "synced", atOpen: false });
-    } catch {
+    } catch (e) {
       for (const id of profileIds) this.dirtyProfiles.add(id);
       for (const [key, profile] of parcelKeys)
         if (!this.dirtyParcels.has(key)) this.dirtyParcels.set(key, profile);
       for (const id of screenIds) this.dirtyScreens.add(id);
       for (const id of householdIds) this.dirtyHousehold.add(id);
+      // Step 14e: offline, with nothing but parcels' notes and lines to send (and the Recent that opening them wrote),
+      // the change is held, not failed.
+      const offline = navigator.onLine === false || e instanceof TypeError;
+      const profileBaseOf = (id: string) => this.state.held[heldProfileKey(id)] ?? this.profileBase.get(id);
+      const holdable =
+        offline &&
+        [...sentProfiles].every(([id, value]) => onlyRecent(profileBaseOf(id), value)) &&
+        !household.length &&
+        !screens.length &&
+        parcels.length + sentProfiles.size > 0 &&
+        parcels.every(
+          (p) =>
+            p.profile === SPACE_ID &&
+            onlyNotesAndLines(this.state.held[p.key] ?? this.parcelBase.get(p.key), p.record),
+        );
+      if (holdable) {
+        const held = { ...this.state.held };
+        for (const p of parcels) held[p.key] ??= this.parcelBase.get(p.key)!;
+        for (const id of sentProfiles.keys()) held[heldProfileKey(id)] ??= this.profileBase.get(id)!;
+        this.state = { ...this.state, held };
+      }
       this.persist();
-      setView({ status: "failed", atOpen: false });
+      setView({ status: holdable ? "held" : "failed", atOpen: false });
     } finally {
       for (const id of sentProfiles.keys()) this.sending.profiles.delete(id);
       for (const key of sentParcels.keys()) this.sending.parcels.delete(key);
@@ -450,6 +498,7 @@ class Engine implements SyncHooks {
     this.dirtyParcels.clear();
     this.dirtyScreens.clear();
     this.dirtyHousehold.clear();
+    this.state = { ...this.state, held: {} };
     this.persist();
     const changes = await fetchChanges(this.state.code, null).catch(() => null);
     if (!changes) {
@@ -607,11 +656,31 @@ class Engine implements SyncHooks {
             !keep.has(x.key) &&
             (this.parcelBase.get(x.key) ?? null) !== (x.record ? canonical(x.record) : null),
         );
-        if (!fresh.length) continue;
+        // Step 14e: a held parcel the space changed since: our notes and lines laid over its copy, which becomes the
+        // new starting point; the held change stays unsaved, and the save that follows sends the merge.
+        const relaid: { key: string; profile: string; record: Record<string, unknown>; deleted: false }[] =
+          [];
+        for (const x of xs) {
+          const base = this.state.held[x.key];
+          if (!base || !x.record || sent.parcels.has(x.key) || canonical(x.record) === base) continue;
+          const mine = parcelOf(raw, x.key);
+          if (!mine) continue;
+          relaid.push({
+            key: x.key,
+            profile,
+            record: mergeHeld(JSON.parse(base), mine, x.record),
+            deleted: false,
+          });
+          this.state = { ...this.state, held: { ...this.state.held, [x.key]: canonical(x.record) } };
+          this.parcelBase.set(x.key, canonical(x.record));
+        }
+        if (relaid.length) this.persist();
+        if (!fresh.length && !relaid.length) continue;
+        const relaidKeys = new Set(relaid.map((x) => x.key));
         const merged = mergeParcels(
           raw,
-          fresh.map((x) => ({ ...x, updatedAt: "" })),
-          keep,
+          [...fresh, ...relaid].map((x) => ({ ...x, updatedAt: "" })),
+          new Set([...keep].filter((k) => !relaidKeys.has(k))),
         );
         for (const x of fresh) {
           this.owner.set(x.key, profile);

@@ -6557,6 +6557,12 @@ button.cmp-cell:hover {
 .sync-ind.menu {
   display: none;
 }
+/* Step 14e: notes or lines held offline, a longer line that may wrap. */
+.sync-ind.held {
+  max-width: 260px;
+  white-space: normal;
+  line-height: 1.25;
+}
 button.sync-ind.bad {
   min-height: 32px;
   padding: 0 10px;
