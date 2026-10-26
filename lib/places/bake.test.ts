@@ -61,6 +61,7 @@ function fakeFetch(
 ): typeof fetch {
   return async (input, init) => {
     const url = String(input);
+    const host = new URL(url).host;
     const json = (body: unknown, status = 200) =>
       new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
     if (url.includes("interpreter")) {
@@ -103,18 +104,18 @@ function fakeFetch(
         });
       return json({ elements: [] });
     }
-    if (url.includes("hydro.nationalmap.gov"))
+    if (host === "hydro.nationalmap.gov")
       return (opts.nhd?.() ?? "ok") === "down"
         ? json({}, 504)
         : json({ type: "FeatureCollection", features: [] });
     const layer = url.split("?")[0]!;
     if (layer.endsWith("/0") || layer.endsWith("/1")) {
-      if (opts.usfsFails && url.includes("apps.fs.usda.gov")) return json({}, 500);
+      if (opts.usfsFails && host === "apps.fs.usda.gov") return json({}, 500);
       return json({ objectIdField: "OBJECTID" });
     }
-    if (url.includes("apps.fs.usda.gov") && String(init?.body).includes("BOAT"))
+    if (host === "apps.fs.usda.gov" && String(init?.body).includes("BOAT"))
       return opts.usfsFails ? json({}, 500) : json({ features: [] });
-    if (url.includes("apps.fs.usda.gov"))
+    if (host === "apps.fs.usda.gov")
       return opts.usfsFails
         ? json({}, 500)
         : json({
