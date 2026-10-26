@@ -1,7 +1,8 @@
 /**
  * The places bake, live (roadmap step 14d, docs/plans/step-14d-places.md §7):
  *
- *   pnpm data:places        every cell, written to public/places/v1/{osm,official}/<cell>.json, then index.json
+ *   pnpm data:places        every cell, written to public/places/v1/{osm,official}/<cell>.json, then index.json, and
+ *                           what kept the previous bake's places to tmp/places-kept.json
  *
  * Real time, so the per-host throttle really waits: about 90 Overpass queries at one a second plus their answers, the
  * parking batches, and each official layer paged. Never in CI's test job; the places workflow and the monthly refresh
@@ -50,7 +51,7 @@ describe.runIf(import.meta.env.MODE === "places-bake")("bake the places, live", 
         userAgent: "parcelscreen-data/1 (places bake; https://github.com/zgrether/parcelscreen)",
       });
       const prev = previous();
-      const { index, cells } = await bakePlaces({
+      const { index, cells, kept } = await bakePlaces({
         http,
         today: today(),
         ...(prev ? { previous: prev } : {}),
@@ -64,6 +65,9 @@ describe.runIf(import.meta.env.MODE === "places-bake")("bake the places, live", 
       }
       for (const c of cells) writeFileSync(join(OUT, c.folder, `${c.cell}.json`), JSON.stringify(c) + "\n");
       writeFileSync(join(OUT, "index.json"), JSON.stringify(index, null, 2) + "\n");
+      // What kept last month's places, for the refresh's summary (scripts/places-summary.mts).
+      mkdirSync(join(process.cwd(), "tmp"), { recursive: true });
+      writeFileSync(join(process.cwd(), "tmp", "places-kept.json"), JSON.stringify(kept) + "\n");
       const bytes = cells.reduce((t, c) => t + JSON.stringify(c).length, 0);
       console.log(
         [

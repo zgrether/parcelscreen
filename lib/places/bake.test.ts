@@ -57,7 +57,7 @@ describe("OSM's places", () => {
 
 /** A fake of every source the bake asks: Overpass answers per query, ArcGIS layers by host. */
 function fakeFetch(
-  opts: { usfsFails?: boolean; launch?: boolean; nhd?: () => "ok" | "down" } = {},
+  opts: { usfsFails?: boolean; launch?: boolean; nhd?: () => "ok" | "down"; towns?: boolean } = {},
 ): typeof fetch {
   return async (input, init) => {
     const url = String(input);
@@ -65,6 +65,21 @@ function fakeFetch(
       new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
     if (url.includes("interpreter")) {
       const ql = new URLSearchParams(String(init?.body)).get("data")!;
+      if (ql.includes("place~"))
+        return json({
+          elements: opts.towns
+            ? [
+                {
+                  type: "node",
+                  id: 70,
+                  lat: 36.6357,
+                  lon: -81.7873,
+                  tags: { place: "town", name: "Damascus" },
+                },
+                { type: "node", id: 71, lat: 10, lon: 10, tags: { place: "city", name: "Elsewhere" } },
+              ]
+            : [],
+        });
       if (ql.includes('"amenity"="parking"'))
         return json({
           elements: [
@@ -194,6 +209,15 @@ describe("bakePlaces", () => {
     expect(again.index.sources.find((s) => s.id === "osm")!.fetched).toBe("2026-10-25");
   });
 
+  it("the towns over the area, for the refresh summary; outside it, none", async () => {
+    const { index } = await bakePlaces({
+      http: http(fakeFetch({ towns: true })),
+      overpass: ["https://o.test/api/interpreter"],
+      today: "2026-10-25",
+    });
+    expect(index.towns).toEqual([{ name: "Damascus", ll: [36.6357, -81.7873] }]);
+  });
+
   it("fails when a source doesn't answer and there's no previous bake", async () => {
     await expect(
       bakePlaces({
@@ -232,6 +256,20 @@ describe("bakePlaces' launches and NHD (10/25: a 504 lost every launch)", () => 
     });
     expect(launchIn(again.cells)).toEqual(launchIn(first.cells));
     expect(again.cells.flatMap((c) => c.places).some((p) => p.id === "osm:node/1")).toBe(true);
+  });
+
+  it("past the classification's 90 minutes, a batch keeps the previous bake's launches, and says so", async () => {
+    let t = 0;
+    const { cells, kept } = await bakePlaces({
+      http: http(fakeFetch({ launch: true })),
+      overpass: ["https://o.test/api/interpreter"],
+      today: "2026-10-25",
+      sleep: async () => {},
+      // 100 minutes a look at the clock: the first batch is already past the deadline.
+      now: () => (t += 100 * 60_000),
+    });
+    expect(launchIn(cells)).toBeUndefined();
+    expect(kept).toContain("launch classification (NHD) in 1 cells");
   });
 
   it("with no previous bake, a batch NHD never answers is left out until the next bake", async () => {
