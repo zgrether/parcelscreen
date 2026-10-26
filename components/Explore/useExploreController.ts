@@ -145,9 +145,9 @@ export interface ExploreController {
   /**
    * A double-tap's zoom has started (Zach, after #333): the first tap acted at once, and is taken back. A lookup it
    * started is dropped, and a parcel it opened is closed, unless that parcel was already open. Its Back toast stays.
-   * Whether it closed one.
+   * Whether it closed one. `at`: when the second tap happened (its event's time; now if not given).
    */
-  undoTap(): boolean;
+  undoTap(at?: number): boolean;
   close(): void;
   /**
    * × (J-2, Zach, UX part 2; it was 8c's "not for me"): closes the parcel and clears it from the map, never touching
@@ -663,7 +663,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     setMode,
     async tap(hit) {
       const serial = ++tapSerial.current;
-      lastTap.current = { at: performance.now(), opened: null };
+      lastTap.current = { at: hit.at ?? performance.now(), opened: null };
       const o = decideTap(latest.current, hit, busy.current);
       if (o.kind === "clearLayer") return dispatch({ type: "layer", id: null });
       if (o.kind === "busy") return void refuseBusy();
@@ -690,11 +690,11 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       else if (hit.linesShown && !hit.insideOpen && !hit.outline && !hit.savedKey)
         flash(hint, NO_PARCEL_HERE, 4000);
     },
-    undoTap() {
+    undoTap(at = performance.now()) {
       const last = lastTap.current;
       lastTap.current = null;
       // Only a tap that was the double-tap's first: an older one (a line was tapped first, say) stays as it is.
-      if (!last || performance.now() - last.at > DOUBLE_TAP_MS) return false;
+      if (!last || at - last.at > DOUBLE_TAP_MS) return false;
       tapSerial.current++;
       // Only the parcel this tap opened, still open: not a parcel that was open already, or one opened since.
       if (!sameParcel(last.opened, latest.current.store.open)) return false;

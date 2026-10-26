@@ -20,3 +20,11 @@ export function isDoubleTap(last: Tap | null, now: Tap): boolean {
     !!last && now.t - last.t <= DOUBLE_TAP_MS && Math.hypot(now.x - last.x, now.y - last.y) <= DOUBLE_TAP_PX
   );
 }
+
+/**
+ * When an input event happened, on performance.now()'s clock: the event's own time, not the time it's handled. A page
+ * busy opening a parcel handles a double-tap's second tap half a second late, which read as two single taps.
+ */
+export function eventTime(e?: Event): number {
+  return e && e.timeStamp > 0 ? e.timeStamp : performance.now();
+}
