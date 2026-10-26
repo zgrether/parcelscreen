@@ -1305,5 +1305,12 @@ until step 5 (Q14).
       (`lib/places/summary.ts`; the towns are OSM's, baked into `index.json` as an optional `towns`), and which sources
       kept last month's. NHD's launch classification stops at 90 minutes, its batches left keeping the previous bake's
       launches: the second bake took 5 h 46 min of a runner's 6 h, nearly all of it NHD's 504s retried.
+    - **Flatwater beyond NHD's lakes** (owner, #350, 2026-10-26): NHD draws some dam pools as river (the New River's
+      Byllesby and Buck pools, Fontana's upper arms), so a launch on them read as a river put-in. A launch the lakes
+      don't claim is flatwater when its own name says Lake, Reservoir or Pool, or it's on a known pool
+      (`lib/places/flatwater.ts`), never when tagged whitewater or named as a put-in or tailwater; 10 baked launches
+      changed. Recreation.gov's Corps and Forest Service boating sites on Philpott, W. Kerr Scott and South Holston's
+      Tennessee side, missing from OSM and USFS INFRA, are a fixed list in `official/` (`ridb`, 12). No fixture's number
+      moved; eight areas' Paddling medians fell 1–10 min (Independence and Fries 64 → 54).
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.
