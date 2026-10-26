@@ -17,7 +17,8 @@ export const showUpdateToast = (s: UpdateState): boolean => s.waiting && !s.runn
 
 export const UPDATE_TEXT = "Updated — reload";
 export const OFFLINE_TEXT = "You're offline — saved parcels still open from Your list";
-export const OFFLINE_SCREEN_TEXT = "You're offline — screening needs the network.";
+// Step 14e (plan §5): "grading", since UX part 2 renamed the screen.
+export const OFFLINE_SCREEN_TEXT = "You're offline — grading needs a connection.";
 
 /**
  * A parcel service that didn't answer while the browser is offline isn't down: say the offline words

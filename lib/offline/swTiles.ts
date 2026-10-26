@@ -45,7 +45,7 @@ export function storable(layer: OfflineLayer, res: Response, body: Blob): boolea
 }
 
 /** An ArcGIS error answered with a 200: `{"error": …}`. */
-async function isErrorJson(body: Blob): Promise<boolean> {
+export async function isErrorJson(body: Blob): Promise<boolean> {
   if (body.size > 4096) return false;
   return /^\s*\{\s*"error"\s*:/.test(await body.text());
 }

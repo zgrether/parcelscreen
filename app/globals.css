@@ -3317,6 +3317,42 @@ html:has(.app-nav) .explore {
   }
 }
 
+/* Settings › Offline's saved parcels: the name, its size and date, then Delete. */
+.offline-saved {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+}
+.offline-saved li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  border-top: 1px solid var(--color-rule);
+}
+.offline-saved-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.offline-saved .btn {
+  flex: none;
+  min-height: 44px;
+}
+/* Save offline's sheet: the size first, large. */
+.offline-sheet h3 {
+  margin: 0 0 6px;
+}
+.offline-size {
+  font-size: 17px;
+  font-weight: 600;
+}
+.offline-progress {
+  margin: 0 0 14px;
+}
+
 /* ---------- The installable app (step 17c) ---------- */
 /* Offline: a strip under the top controls; the map and History still work. */
 .pwa-offline {

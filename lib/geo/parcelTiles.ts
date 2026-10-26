@@ -99,6 +99,38 @@ interface Page {
 }
 
 /** One service's outlines in one tile. A failed request yields what was fetched so far, marked failed. */
+/**
+ * One page of a tile's outlines, as the form body of a POST to `<service>/query`. Save offline (step 14e) sends the
+ * same bodies, so the service worker's cache keys match the map's.
+ */
+export function tileQuery(serviceUrl: string, tile: Tile, detail: Detail, page: number): URLSearchParams {
+  const f = fieldsFor(serviceUrl);
+  const b = tile.bounds;
+  return new URLSearchParams({
+    geometry: JSON.stringify({
+      xmin: b.west,
+      ymin: b.south,
+      xmax: b.east,
+      ymax: b.north,
+      spatialReference: { wkid: 4326 },
+    }),
+    geometryType: "esriGeometryEnvelope",
+    inSR: "4326",
+    spatialRel: "esriSpatialRelIntersects",
+    ...whereParam(serviceUrl),
+    outFields: [f.oid, f.id, f.county].join(","),
+    returnGeometry: "true",
+    outSR: "4326",
+    maxAllowableOffset: String(OFFSET_DEG[detail]),
+    geometryPrecision: "5",
+    // Paging needs a stable order (ArcGIS orders by object id when asked).
+    orderByFields: f.oid,
+    resultOffset: String(page * f.maxRecords),
+    resultRecordCount: String(f.maxRecords),
+    f: "geojson",
+  });
+}
+
 export async function fetchTile(
   http: HttpClient,
   serviceUrl: string,
@@ -106,34 +138,10 @@ export async function fetchTile(
   detail: Detail,
   signal?: AbortSignal,
 ): Promise<TileResult> {
-  const f = fieldsFor(serviceUrl);
-  const b = tile.bounds;
   const lines: ParcelLine[] = [];
   try {
     for (let page = 0; page < MAX_PAGES; page++) {
-      const q = new URLSearchParams({
-        geometry: JSON.stringify({
-          xmin: b.west,
-          ymin: b.south,
-          xmax: b.east,
-          ymax: b.north,
-          spatialReference: { wkid: 4326 },
-        }),
-        geometryType: "esriGeometryEnvelope",
-        inSR: "4326",
-        spatialRel: "esriSpatialRelIntersects",
-        ...whereParam(serviceUrl),
-        outFields: [f.oid, f.id, f.county].join(","),
-        returnGeometry: "true",
-        outSR: "4326",
-        maxAllowableOffset: String(OFFSET_DEG[detail]),
-        geometryPrecision: "5",
-        // Paging needs a stable order (ArcGIS orders by object id when asked).
-        orderByFields: f.oid,
-        resultOffset: String(page * f.maxRecords),
-        resultRecordCount: String(f.maxRecords),
-        f: "geojson",
-      });
+      const q = tileQuery(serviceUrl, tile, detail, page);
       const r = await http.fetch(`${serviceUrl}/query`, {
         method: "POST",
         body: q,
