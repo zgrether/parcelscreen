@@ -1,6 +1,7 @@
 /**
  * The baked launches brought up to #350's flatwater rule without a re-bake (owner, 10/26): each launch the bake called
- * river is flatwater when its name or a known dam pool says so (lib/places/flatwater.ts), and Recreation.gov's
+ * river is flatwater when its name or a known dam pool says so (lib/places/flatwater.ts), one flatwater only by its
+ * name but below a dam is a river launch again, and Recreation.gov's
  * Corps and Forest Service sites (lib/places/ridb.ts) join the official cells. The next bake applies the same rule to
  * the sources' own names and tags; this pass has only the baked names, so a name the bake made up from the water
  * ("<river> access", "Boat launch") counts only through the known pools, and a whitewater tag isn't seen.
@@ -13,7 +14,7 @@ import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { SOURCE_DEFS } from "@/lib/places/bake";
-import { KNOWN_POOLS, flatwaterByName } from "@/lib/places/flatwater";
+import { KNOWN_POOLS, flatwaterByName, tailwaterOf } from "@/lib/places/flatwater";
 import { RIDB_LAUNCHES } from "@/lib/places/ridb";
 import {
   FOLDER_OF,
@@ -43,7 +44,14 @@ describe.runIf(import.meta.env.MODE === "places-reclassify")("the baked launches
       c.places = c.places
         .filter((p) => p.src !== "ridb")
         .map((p): Place => {
-          if (p.kind !== "launch" || p.water !== "river") return p;
+          if (p.kind !== "launch") return p;
+          // Flatwater only by its name (no NHD lake, so no acres) but below a dam: a river launch (#348, 10/26).
+          if (p.water === "flat" && p.waterAc === undefined && tailwaterOf(p)) {
+            changed.push(`${p.id} | ${p.name} | now river (below a dam)`);
+            const { waterName: _lake, ...rest } = p;
+            return { ...rest, water: "river" };
+          }
+          if (p.water !== "river") return p;
           const madeUp = p.name === "Boat launch" || (!!p.waterName && p.name === `${p.waterName} access`);
           const still = flatwaterByName({ id: p.id, ...(madeUp ? {} : { name: p.name }) });
           if (!still) return p;

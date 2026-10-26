@@ -430,6 +430,26 @@ describe("paddle launches (step 14d plan §2.4)", () => {
     ).toBe("river");
   });
 
+  it("below a dam is a river launch (#348): by its name, or a known tailwater, as Philpott Park on the Smith River", () => {
+    const rivers = [river("Smith River", 20)];
+    for (const name of ["Philpott Lake Tailrace ramp", "Below Dam Lake access", "Lake Tail Water launch"])
+      expect(classifyLaunches([launch({ name })], [], rivers)[0]).toMatchObject({ water: "river" });
+    expect(RIDB_LAUNCHES.find((l) => l.name === "Philpott Park")).toMatchObject({
+      water: "river",
+      waterName: "Smith River",
+    });
+    expect(RIDB_LAUNCHES.filter((l) => l.water === "flat")).toHaveLength(RIDB_LAUNCHES.length - 1);
+  });
+
+  it("but a lake NHD measures under it wins: below one dam is often the next one's pool", () => {
+    const [l] = classifyLaunches(
+      [launch({ name: "Nickajack, Below Dam (TN River)" })],
+      [lake(0, 640, { GNIS_NAME: "Guntersville Lake", FTYPE: 436, AREASQKM: 0.162 })],
+      [],
+    );
+    expect(l).toMatchObject({ water: "flat", waterName: "Guntersville Lake" });
+  });
+
   it("unnamed water: an unnamed lake still makes it flatwater; the launch keeps a plain name", () => {
     const [l] = classifyLaunches([launch()], [lake(0, 640, { FTYPE: 390, AREASQKM: 0.162 })], []);
     expect(l).toMatchObject({ water: "flat", name: "Boat launch" });

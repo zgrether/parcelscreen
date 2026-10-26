@@ -1312,5 +1312,9 @@ until step 5 (Q14).
       changed. Recreation.gov's Corps and Forest Service boating sites on Philpott, W. Kerr Scott and South Holston's
       Tennessee side, missing from OSM and USFS INFRA, are a fixed list in `official/` (`ridb`, 12). No fixture's number
       moved; eight areas' Paddling medians fell 1–10 min (Independence and Fries 64 → 54).
+      Below a dam, on the tailwater side, is a river launch (owner, #348, 10/26): by its name ("tailwater",
+      "tailrace", "below dam") or a known tailwater, as Philpott Park on the Smith River is, unless a lake NHD measures
+      is under it (below one dam is often the next one's pool). A list, as the pools are: by position alone, Fontana's
+      Panel Branch and Lewellyn Branch, a kilometre below Fontana Dam on Cheoah Lake, would read as river.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.
