@@ -86,8 +86,10 @@ for (const phone of [false, true]) {
 
       // The sheet: its size first.
       await page.getByRole("button", { name: "More for this parcel" }).click();
+      await expect(page.getByRole("menuitem", { name: "Save offline" })).toBeVisible();
+      await page.screenshot({ path: `${OUT}/${device}-save-offline-menu.png` });
       await page.getByRole("menuitem", { name: "Save offline" }).click();
-      const sheet = page.getByRole("dialog", { name: "Save offline?" });
+      const sheet = page.getByRole("dialog", { name: /^Sav(e|ing|ed) offline/ });
       await expect(sheet.getByText(/^About \d+ MB$/)).toBeVisible();
       await page.screenshot({ path: `${OUT}/${device}-save-offline-size.png` });
 

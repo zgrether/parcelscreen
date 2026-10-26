@@ -111,6 +111,7 @@ export function SaveOfflineSheet() {
               : W.unavailable}
         </p>
         {o?.kind === "saved" && o.saved.failed > 0 && <p className="tiny">{W.failed(o.saved.failed)}</p>}
+        {o?.kind === "saved" && <p className="tiny">{W.where}</p>}
         <div className="rubric-confirm-actions">
           {o?.kind === "saved" && o.saved.failed > 0 && (
             <button type="button" className="btn" onClick={() => askSave(s.target, false)}>
@@ -133,7 +134,7 @@ export function SaveOfflineSheet() {
         aria-labelledby={id}
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 id={id}>{W.question}</h3>
+        <h3 id={id}>{s.phase === "ask" ? W.question : s.phase === "saving" ? W.savingTitle : W.save}</h3>
         {body}
       </div>
     </div>,

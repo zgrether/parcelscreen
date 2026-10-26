@@ -347,3 +347,21 @@ ones fixed in PR 7.
 - **Small targets:** the section "?" and the panel's inline links on a phone.
 - **The interview:** Skip beside a pick reads as dropping it; the 1–4 circles look like ranks; "← Map" doesn't say it
   keeps the answers.
+
+## Step 14e: offline and map caching (hand-back)
+
+The fresh-eyes review's findings on screens this step didn't change, or that need a decision. The hand-back lists the
+ones fixed in PR 5.
+
+- **The offline strip** ("You're offline — saved parcels still open from Your list") doesn't say whether the open
+  parcel is saved, reads as an error in red, and covers "‹ Your list" on a phone. Fix: a calmer colour, below the
+  back chip, and "This parcel is saved offline" when it is.
+- **Grade again while offline** stays the panel's most prominent control; a tap says it needs a connection. Fix: the
+  button quiet (not amber) while offline.
+- **Delete in Settings › Offline** has no confirm (Save offline again restores it), and a saved parcel's row doesn't
+  open it. Fix: the name opens it on the map.
+- **Map layers:** "state ortho" is jargon; three aerial choices with no hint of their difference; the panel's cut-off
+  end has no scroll cue; radio rows and toggle rows share the selected fill.
+- **The legend vs the pin:** "Best homesite" in the legend, "Stand here" on the pin; "The app's driveway".
+- **Small targets:** the map's ⓘ, Map layers' ×, the parcel sheet's ×, and the tilt tip's ×.
+- **The tilt tip** stays up beside a dialog on a desktop.

@@ -33,9 +33,9 @@ test("Save offline, then the parcel opens with no connection, with its map and g
 
   await page.getByRole("button", { name: "More for this parcel" }).click();
   await page.getByRole("menuitem", { name: "Save offline" }).click();
-  const sheet = page.getByRole("dialog", { name: "Save offline?" });
+  const sheet = page.getByRole("dialog", { name: /^Sav(e|ing|ed) offline/ });
   await expect(sheet.getByText(/^About \d+ MB$/)).toBeVisible();
-  await expect(sheet).toContainText("Esri's maps aren't included");
+  await expect(sheet).toContainText("Not included: the two Esri basemaps");
   await sheet.getByRole("button", { name: "Save offline" }).click();
   await expect(sheet.getByRole("status")).toHaveText(/^Saved offline \(\d+ [KM]B\)$/, { timeout: 120_000 });
   await sheet.getByRole("button", { name: "Done" }).click();
