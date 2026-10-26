@@ -3,7 +3,8 @@ name: Places
 # Roadmap step 14d (docs/plans/step-14d-places.md §7): the network work this repo's cloud sessions can't do, run on
 # GitHub's runners for a PR that asks for it in .github/places-run.json. Jobs:
 # - bake: `pnpm data:places`, the baked places under public/places/v1/;
-# - record: `pnpm record:port` for each fixture (Mud Creek append-only, its guard's rule), the fixtures' recordings
+# - record: `pnpm record:port` for each fixture (Mud Creek append-only, its guard's rule; or only the request's
+#   `append` fixtures, append-only), the fixtures' recordings
 #   of what a grade asks live (their places come from their frozen copies, test/fixtures/<slug>/places/), and
 #   `pnpm areas:record`, the recorded area profile's (its places from test/fixtures/areas/<id>/places/);
 # - timing: `pnpm grade:timing` on main, then on the PR's branch, into the job summary (nothing pushed);
@@ -103,6 +104,13 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Re-record the fixtures (Mud Creek append-only) and the recorded area profile
         run: |
+          # A request may name fixtures to append to only ("append": [slugs]): their missing requests recorded, every
+          # entry already there kept, nothing else re-recorded (#350: Ferney's new launch drives).
+          append=$(node -p "(require('./.github/places-run.json').append ?? []).join(' ')")
+          if [ -n "$append" ]; then
+            for slug in $append; do PORT_APPEND="$slug" pnpm record:port; done
+            exit 0
+          fi
           for slug in ferney-creek-52-47A macks-mountain-35-3 roan-hwy-143-099-046-02; do
             pnpm record:port -t "$slug"
           done
@@ -155,8 +163,9 @@ jobs:
           cat test-results/grade-timing.md >> "$GITHUB_STEP_SUMMARY" || true
 
   areas:
-    needs: ask
-    if: needs.ask.outputs.areas == 'true'
+    # After record when a request asks for both, so the two pushes don't race on places-done.json.
+    needs: [ask, record]
+    if: ${{ !cancelled() && needs.ask.outputs.areas == 'true' && needs.record.result != 'failure' }}
     runs-on: ubuntu-latest
     # About 40 minutes, most of it OSRM's one request a second (as areas-refresh.yml).
     timeout-minutes: 180
@@ -186,7 +195,8 @@ jobs:
           # own, stay).
           v=$(node -p "require('fs').readFileSync('lib/areas/types.ts','utf8').match(/AREA_FILE_VERSION = (\\d+)/)[1]")
           for d in public/areas/v*/; do
-            [ "$d" = "public/areas/v$v/" ] || git rm -q --ignore-unmatch "$d"*.json
+            # :(glob) so the * stops at the folder: a bare pathspec's * also matched v1/samples/ (#350).
+            [ "$d" = "public/areas/v$v/" ] || git rm -q --ignore-unmatch ":(glob)$d*.json"
           done
           git add public/areas test/fixtures/areas .github/places-done.json
           git commit -m "Area files profiled again ($REQUEST)" || exit 0

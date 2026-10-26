@@ -12,6 +12,7 @@ import {
   osmPlaces,
   type RawLaunch,
 } from "./bake";
+import { RIDB_LAUNCHES } from "./ridb";
 
 const MUD_CREEK: [number, number] = [36.598, -81.303];
 
@@ -169,11 +170,11 @@ describe("bakePlaces", () => {
       hiking: true,
     });
     const official = cells.find((c) => c.folder === "official" && c.cell === "36_-82")!;
-    expect(official.places).toEqual([
+    expect(official.places.filter((p) => p.src !== "ridb")).toEqual([
       { kind: "trailhead", id: "usfs:7", name: "Elk Garden A.T.", ll: [36.65, -81.5], src: "usfs" },
     ]);
     const trec = cells.find((c) => c.folder === "official" && c.cell === "36_-83")!;
-    expect(trec.places).toEqual([
+    expect(trec.places.filter((p) => p.src !== "ridb")).toEqual([
       {
         kind: "trailhead",
         id: "tn-trec:3:p",
@@ -190,6 +191,13 @@ describe("bakePlaces", () => {
       folder: "official",
     });
     expect(index.sources.find((s) => s.id === "osm")).toMatchObject({ count: 1, licence: "ODbL 1.0" });
+    // Recreation.gov's fixed list (#350): every bake carries it as is, dated when it was read.
+    expect(cells.flatMap((c) => c.places).filter((p) => p.src === "ridb")).toHaveLength(RIDB_LAUNCHES.length);
+    expect(index.sources.find((s) => s.id === "ridb")).toMatchObject({
+      count: RIDB_LAUNCHES.length,
+      fetched: "2026-10-26",
+      folder: "official",
+    });
   });
 
   it("keeps the previous bake's places for a source that doesn't answer, dated then", async () => {
@@ -387,6 +395,39 @@ describe("paddle launches (step 14d plan §2.4)", () => {
       water: "river",
       name: "Boat launch",
     });
+  });
+
+  it("a dam pool NHD draws as river (#350): flatwater when the name says Lake, Reservoir or Pool, or it's a known pool", () => {
+    const rivers = [river("Little Tennessee River", 20)];
+    expect(classifyLaunches([launch({ name: "Panel Branch Lake Access" })], [], rivers)[0]).toEqual({
+      kind: "launch",
+      id: "osm:node/1",
+      name: "Panel Branch Lake Access",
+      ll: L,
+      src: "osm",
+      water: "flat",
+    });
+    expect(classifyLaunches([launch({ name: "Saxapahaw Pool ramp" })], [], rivers)[0]!.water).toBe("flat");
+    const [pool] = classifyLaunches([launch({ id: "osm:node/11766071164" })], [], [river("New River", 20)]);
+    expect(pool).toMatchObject({
+      water: "flat",
+      waterName: "Byllesby Reservoir",
+      name: "Byllesby Reservoir access",
+    });
+  });
+
+  it("but not a creek or a road named for a lake, a put-in or a tailwater by name, nor a whitewater put-in", () => {
+    const rivers = [river("Lake Creek", 20)];
+    for (const name of [
+      "Lake Creek Access",
+      "Lake Road canoe launch",
+      "Fontana Lake Tailwater",
+      "Lake Lure put-in",
+    ])
+      expect(classifyLaunches([launch({ name })], [], rivers)[0]!.water).toBe("river");
+    expect(
+      classifyLaunches([launch({ name: "Watauga Lake ramp", whitewater: true })], [], rivers)[0]!.water,
+    ).toBe("river");
   });
 
   it("unnamed water: an unnamed lake still makes it flatwater; the launch keeps a plain name", () => {
