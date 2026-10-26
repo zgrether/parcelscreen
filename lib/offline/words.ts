@@ -26,7 +26,7 @@ export const OFFLINE_WORDS = {
     "The map ¼ mile around the parcel, in every layer that allows it, with its grade, lines, marks and nearby places.",
   noEsri: "Esri's maps aren't included: their terms don't allow it.",
   saved: (size: string) => `Saved offline (${size})`,
-  failed: (n: number) => `${n} map tiles didn't download.`,
+  failed: (n: number) => (n === 1 ? "1 map tile didn't download." : `${n} map tiles didn't download.`),
   tryAgain: "Try again",
   cancel: "Cancel",
   done: "Done",
