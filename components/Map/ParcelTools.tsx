@@ -34,7 +34,7 @@ import { useScreenItContext } from "@/components/Results/ScreenItContext";
 import { TIP_LAYERS, tipAt } from "./results/tooltip";
 import { placeAt } from "./PlacesLayer";
 import { installTiltRotate } from "./tiltRotate";
-import { isDoubleTap, type Tap } from "./doubleTap";
+import { eventTime, isDoubleTap, type Tap } from "./doubleTap";
 import { useMap } from "./MapView";
 import {
   combineData,
@@ -146,13 +146,13 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
       if (pressed) return void (pressed = false);
       const c = ref.current;
       const { mode, draft } = c.current();
-      const now = performance.now();
+      const now = eventTime(e.originalEvent);
       if (now - touchEndAt < TOUCH_CLICK_MS && !toolOpen(c.current())) {
         const tap = { t: now, x: e.point.x, y: e.point.y };
         if (isDoubleTap(lastTap, tap)) {
           lastTap = null;
           const zoom = () => map.easeTo({ zoom: map.getZoom() + 1, around: e.lngLat, duration: 300 });
-          if (!c.undoTap()) return zoom();
+          if (!c.undoTap(now)) return zoom();
           // The parcel the first tap opened is closing: its sheet's padding settles first (MapView moves the camera
           // for it once the close renders), or it would cut the zoom short.
           return void requestAnimationFrame(() =>
@@ -178,6 +178,7 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
           savedKey: savedAt(map, e.point),
           serviceDown: parcelServiceDown(map),
           linesShown: map.getZoom() >= LINES_MIN_ZOOM,
+          at: now,
         });
       }
       if (mode === "house") c.setHouse(toLL(e));
@@ -259,9 +260,9 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
     };
     map.on("touchstart", onTouchStart);
     map.on("touchmove", onTouchMove);
-    const onTouchEnd = () => {
+    const onTouchEnd = (e: MapTouchEvent) => {
       endPress();
-      touchEndAt = performance.now();
+      touchEndAt = eventTime(e.originalEvent);
     };
     map.on("touchend", onTouchEnd);
     map.on("touchcancel", endPress);

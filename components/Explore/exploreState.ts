@@ -901,6 +901,8 @@ export interface TapHit {
   serviceDown?: string | null;
   /** Parcel outlines are drawn at this zoom, so an empty spot has no record (not just none drawn yet). */
   linesShown?: boolean;
+  /** When the tap happened, on performance.now()'s clock (its event's time, doubleTap.ts eventTime). */
+  at?: number;
 }
 
 /** An empty tap where outlines are drawn (owner, 2026-10-11). */
