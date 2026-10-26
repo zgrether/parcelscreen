@@ -70,7 +70,7 @@ import { NOT_MEASURED, OUTSIDE_AREA, stationLine, stationName } from "./climate"
 import { IN_WINTER } from "./privacy";
 import { LONG_TRAIL_DRIVES } from "../screen/longTrail";
 import { PADDLE_DRIVES } from "../screen/paddling";
-import { flatLine, NO_FLATWATER, pondLine, riverLine } from "./paddling";
+import { flatLine, NO_FLATWATER, pondLine, RIVERS_NOT_GRADED, riversLine } from "./paddling";
 import { openPct, viewLine, viewShort } from "./view";
 import { atLeast, atMost, gradedRows, parcelGrade, verdictLines } from "../rubric/grade";
 import { EDITOR_TITLES, FACTOR_LABELS } from "../rubric/words";
@@ -918,8 +918,12 @@ function paddling(r: Result, K: CardConfig): Row {
   if (!drivesLoaded(r) || r.noResponse.includes(PADDLE_DRIVES)) return notLoaded(g, "the drive times");
   if (r.paddling === undefined) return { ...g(null, NOT_MEASURED), short: "not measured" };
   const p = r.paddling;
-  const extra = [...p.rivers.map(riverLine), ...(p.pond ? [pondLine(p.pond)] : [])];
-  const panel = extra.length ? { panelNote: extra.join(". ") + "." } : {};
+  // The panel ends the sentence itself (CardPanel: "<detail>; <note>.").
+  const extra = [
+    ...(p.rivers.length ? [`${RIVERS_NOT_GRADED} ${riversLine(p.rivers)}`] : []),
+    ...(p.pond ? [pondLine(p.pond)] : []),
+  ];
+  const panel = extra.length ? { panelNote: extra.join(". ") } : {};
   if (!p.flat) return { ...g("F", NO_FLATWATER), short: "none near", ...panel };
   return {
     ...g(atMost(p.flat.min, K.rows.paddleMin), flatLine(p.flat)),

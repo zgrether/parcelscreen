@@ -1294,6 +1294,12 @@ until step 5 (Q14).
       shape, so `AREA_FILE_VERSION` 1 → 2 and `/areas/v2`, a clean break: v1's area files are deleted. The sample
       parcels are screens, not profiles, so they keep a version of their own (`SAMPLE_FILE_VERSION` 1) and their
       folder, `/areas/v1/samples/`.
+    - **The Places layer** (PR 5): Map layers › Places, off by default under Lidar terrain, six kinds clustered below
+      zoom 12, from the baked cells in view (zoom 8 and up) and the app's lists; a tap's card names its source and bake
+      date, and the open parcel's timed minutes when its grade has them. Nothing is fetched for a tap.
+    - **River put-ins in the Paddling panel and section** (PR 7): a river's put-ins together, each name once, the
+      caution once. OSM often has a river's "<river> access" a few hundred metres apart under one name, and Mud
+      Creek's panel listed the same one three times.
     - **The monthly refresh** (PR 6): `areas-refresh.yml` bakes the places before it profiles the areas, and its PR,
       "Area catalog and places refresh", says what the bake added, dropped or moved, by kind and nearest town
       (`lib/places/summary.ts`; the towns are OSM's, baked into `index.json` as an optional `towns`), and which sources

@@ -29,6 +29,8 @@ export const PLACES_WORDS = {
   failed: "Some places didn't load",
   attribution: "Places: © OpenStreetMap contributors, USFS, CMS, the states' parks",
   river: "Check the river's class before paddling",
+  /** Under the toggles: the launches' two colours. */
+  launchKey: "Paddle launches: blue on a lake or reservoir, green on a river.",
   checked: (date: string) => `Checked ${date}`,
   minutes: (n: number) => `${n} min from this parcel`,
 } as const;
@@ -185,7 +187,7 @@ export function cardLines(p: PlaceProps, minutes: number | null, firstFlat = fal
   return [
     p.name,
     type,
-    ...(p.source ? [p.source] : []),
+    ...(p.source ? [`From ${p.source}`] : []),
     ...(p.checked ? [PLACES_WORDS.checked(p.checked)] : []),
     ...(minutes !== null ? [PLACES_WORDS.minutes(minutes)] : []),
     ...(p.kind === "launch" && p.water === "river" ? [PLACES_WORDS.river] : []),

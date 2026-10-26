@@ -15,19 +15,55 @@ export const PADDLE_SOURCES =
 
 /** River put-ins are listed with this, never graded (owner's brief, 10/25). */
 export const RIVER_CAUTION = "check the river's class before paddling";
+/** The panel's lead-in to them, after the graded line. */
+export const RIVERS_NOT_GRADED = "river put-ins, not graded:";
 
 const KM_PER_MI = 1.609344;
 
-/** "18 min to Watauga Lake, Rat Branch"; the water left out when NHD has no name for it. */
+/**
+ * "18 min to Watauga Lake, Rat Branch"; the water left out when NHD has no name for it, or when the launch's name
+ * already says it (an unnamed launch is "<water> access": "60 min to South Holston Lake access").
+ */
 export function flatLine(f: NonNullable<Paddling["flat"]>): string {
-  return `${fmt(f.min)} min to ${f.water ? `${f.water}, ${f.name}` : f.name}`;
+  const named = !f.water || f.name.includes(f.water);
+  return `${fmt(f.min)} min to ${named ? f.name : `${f.water}, ${f.name}`}`;
 }
 
 export const NO_FLATWATER = `No lake or reservoir launch within ${fmt(SCREEN_CONSTANTS.paddling.maxKm)} km`;
 
-/** "Watauga River: Guy Ford access, 6.0 mi — check the river's class before paddling". */
-export function riverLine(r: Paddling["rivers"][number]): string {
-  return `${r.river ? `${r.river}: ` : ""}${r.name}, ${fmt(r.km / KM_PER_MI, 1)} mi — ${RIVER_CAUTION}`;
+type PutIn = Paddling["rivers"][number];
+
+/**
+ * The put-ins, nearest first, each name on its river once (the nearest kept): OSM often has a river's "<river> access"
+ * a few hundred metres apart, as distinct launches with one name.
+ */
+export function distinctPutIns(rivers: readonly PutIn[]): PutIn[] {
+  const seen = new Set<string>();
+  return [...rivers]
+    .sort((a, b) => a.km - b.km)
+    .filter((r) => {
+      const key = `${r.river ?? ""}|${r.name}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
+/**
+ * "Watauga River: Guy Ford access, 6.0 mi straight — check the river's class before paddling"; a river's put-ins
+ * together, rivers in the order of their nearest, the caution once: "New River: Fries access, 5.7 mi straight;
+ * Byllesby access, 9.1 mi straight; Little River: Riner access, 12.0 mi straight — check the river's class before
+ * paddling". Straight-line, as a put-in isn't timed.
+ */
+export function riversLine(rivers: readonly PutIn[]): string {
+  const byRiver = new Map<string, PutIn[]>();
+  for (const r of distinctPutIns(rivers))
+    byRiver.set(r.river ?? "", [...(byRiver.get(r.river ?? "") ?? []), r]);
+  const groups = [...byRiver.entries()].map(
+    ([river, rs]) =>
+      `${river ? `${river}: ` : ""}${rs.map((r) => `${r.name}, ${fmt(r.km / KM_PER_MI, 1)} mi straight`).join("; ")}`,
+  );
+  return `${groups.join("; ")} — ${RIVER_CAUTION}`;
 }
 
 /** "And a pond on the land you could paddle (1.4 ac)". */

@@ -35,6 +35,16 @@ const GLYPH: Record<PlaceIcon, string> = {
   launchRiver: PADDLE,
 };
 
+/** An icon as the Map layers panel shows it beside its toggle (PlacesControls): the map's disc, in SVG. */
+export function PlaceIconSvg({ icon }: { icon: PlaceIcon }) {
+  return (
+    <svg className="place-key" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+      <circle cx="12" cy="12" r="12" fill={PLACE_COLOR[icon]} />
+      <path d={GLYPH[icon]} fill="#ffffff" fillRule="evenodd" transform="translate(4.5 4.5) scale(0.625)" />
+    </svg>
+  );
+}
+
 const SIZE = 48; // canvas pixels; shown at 24 px (pixelRatio 2)
 
 export const iconId = (icon: PlaceIcon): string => `place-${icon}`;
