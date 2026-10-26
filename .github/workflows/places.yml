@@ -9,7 +9,9 @@ name: Places
 # - timing: `pnpm grade:timing` on main, then on the PR's branch, into the job summary (nothing pushed);
 # - areas: `pnpm areas:record`, the recorded area profile only, and `pnpm areas:profile`, every area file
 #   (public/areas/v<n>/, the previous version's area files removed: a format change is a clean break). No fixture
-#   recording moves.
+#   recording moves;
+# - probe: a read-only look at NHD, Recreation.gov's export and ArcGIS Online for #348's flatwater spot-check
+#   (test/tools/flatwater-probe.test.ts), printed to the log; nothing pushed.
 # Each finished request is recorded in .github/places-done.json and pushed with the job's output to the PR's branch,
 # so a later push to the PR doesn't run it again. A push made with GITHUB_TOKEN starts no workflow, so the job then
 # dispatches ci.yml on the branch (as areas-refresh.yml does); its checks land on the commit, so the PR shows them.
@@ -37,6 +39,7 @@ jobs:
       record: ${{ steps.read.outputs.record }}
       timing: ${{ steps.read.outputs.timing }}
       areas: ${{ steps.read.outputs.areas }}
+      probe: ${{ steps.read.outputs.probe }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -46,7 +49,7 @@ jobs:
           request=$(node -p "require('./.github/places-run.json').request")
           done=$(node -p "try { require('./.github/places-done.json').request } catch { '' }")
           echo "request=$request" >> "$GITHUB_OUTPUT"
-          for job in bake record timing areas; do
+          for job in bake record timing areas probe; do
             if [ "$request" = "$done" ]; then
               echo "$job=false" >> "$GITHUB_OUTPUT"
             else
@@ -193,3 +196,26 @@ jobs:
           git pull --rebase origin "${{ github.head_ref }}"
           git push origin "HEAD:${{ github.head_ref }}"
           gh workflow run ci.yml --ref "${{ github.head_ref }}"
+
+  probe:
+    needs: ask
+    if: needs.ask.outputs.probe == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Recreation.gov's public export (RIDB)
+        run: |
+          mkdir -p tmp/ridb
+          curl -fsSL -A "parcelscreen-data/1 (flatwater probe; https://github.com/zgrether/parcelscreen)" \
+            -o tmp/ridb.zip https://ridb.recreation.gov/downloads/RIDBFullExport_V1_JSON.zip \
+            && unzip -q -o tmp/ridb.zip -d tmp/ridb && ls -la tmp/ridb || echo "RIDB download failed"
+      - run: pnpm exec vitest run test/tools/flatwater-probe.test.ts --mode flatwater-probe
