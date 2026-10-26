@@ -7863,8 +7863,34 @@
    "min": 38,
    "mi": 21.8
   },
+  "paddling": {
+   "flat": {
+    "name": "South Holston Lake access",
+    "water": "South Holston Lake",
+    "min": 60,
+    "mi": 31
+   },
+   "rivers": [
+    {
+     "name": "South Fork New River access",
+     "river": "South Fork New River",
+     "km": 24.5
+    },
+    {
+     "name": "South Fork New River access",
+     "river": "South Fork New River",
+     "km": 24.5
+    },
+    {
+     "name": "South Fork New River access",
+     "river": "South Fork New River",
+     "km": 24.7
+    }
+   ],
+   "pond": null
+  },
   "schemaVersion": 9,
-  "engine": 33,
+  "engine": 34,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -15733,8 +15759,34 @@
    "min": 38,
    "mi": 21.8
   },
+  "paddling": {
+   "flat": {
+    "name": "South Holston Lake access",
+    "water": "South Holston Lake",
+    "min": 60,
+    "mi": 31
+   },
+   "rivers": [
+    {
+     "name": "South Fork New River access",
+     "river": "South Fork New River",
+     "km": 24.5
+    },
+    {
+     "name": "South Fork New River access",
+     "river": "South Fork New River",
+     "km": 24.5
+    },
+    {
+     "name": "South Fork New River access",
+     "river": "South Fork New River",
+     "km": 24.7
+    }
+   ],
+   "pond": null
+  },
   "schemaVersion": 9,
-  "engine": 33,
+  "engine": 34,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
