@@ -7,6 +7,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
+import { AREA_FILE_VERSION } from "@/lib/areas/types";
 import { AREA_WORDS as W, MUSTS_PARCEL_SCALE, SAMPLE_WORDS } from "@/lib/areas/words";
 import { openExplorer, reload, visit } from "./flow";
 import { GRAYSON } from "./redGate";
@@ -51,7 +52,7 @@ test("after the interview: Areas that fit you, five cards, and Show me a parcel 
   await expect(page.locator(".toolbar")).toContainText(SAMPLE_WORDS.readOnly);
   // The map is on it: its centre inside the area's box.
   const index = JSON.parse(
-    readFileSync(join(process.cwd(), "public", "areas", "v1", "index.json"), "utf8"),
+    readFileSync(join(process.cwd(), "public", "areas", `v${AREA_FILE_VERSION}`, "index.json"), "utf8"),
   ) as {
     areas: { name: string; bbox: [number, number, number, number] }[];
   };
@@ -124,7 +125,7 @@ test("from the map: Show me a parcel here opens the sample, and the map goes the
   await box.getByRole("button", { name: W.showParcel }).first().click();
   await expect(page.locator(".explore-header .sh-name")).toHaveText(`Sample parcel 1 · ${first}`);
   const index = JSON.parse(
-    readFileSync(join(process.cwd(), "public", "areas", "v1", "index.json"), "utf8"),
+    readFileSync(join(process.cwd(), "public", "areas", `v${AREA_FILE_VERSION}`, "index.json"), "utf8"),
   ) as {
     areas: { name: string; bbox: [number, number, number, number] }[];
   };
