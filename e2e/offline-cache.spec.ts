@@ -4,81 +4,15 @@
  * the least recently used tiles go and a pinned one stays. The basemap's hosts (USGS and the state aerials) are answered
  * here with PNGs of our own, which the service worker's requests reach too (Chromium routes them through the context).
  */
-import { expect, test, type BrowserContext, type Page, type Route } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { openExplorer, openYourData, reload } from "./flow";
+import { answerTiles, controlled, stored, tilesLoaded } from "./offline";
 import { greyPng, noisePng } from "./png";
 import { replayHar } from "./replay";
 
 const SLUG = "grayson-mud-creek-6273";
-const BASEMAP =
-  /basemap\.nationalmap\.gov\/arcgis\/rest\/services\/USGS\w+\/MapServer\/tile\/|vginmaps\.vdem\.virginia\.gov\/arcgis\/rest\/services\/VBMP_Imagery\/|services\.nconemap\.gov\/.*\/Orthoimagery_Latest_cached\/|tnmap\.tn\.gov\/arcgis\/rest\/services\/BASEMAPS\//;
 
 test.use({ serviceWorkers: "allow" });
-
-interface Tiles {
-  /** Answered by us, before the cut. */
-  served: number;
-  /** Asked for after the cut: none of them reached a tile host. */
-  cutOff: number;
-  cut: boolean;
-}
-
-async function answerTiles(context: BrowserContext, body: Buffer): Promise<Tiles> {
-  const t: Tiles = { served: 0, cutOff: 0, cut: false };
-  await context.route(BASEMAP, (route: Route) => {
-    if (t.cut) {
-      t.cutOff++;
-      return route.abort("internetdisconnected");
-    }
-    t.served++;
-    return route.fulfill({ body, contentType: "image/png", headers: { "access-control-allow-origin": "*" } });
-  });
-  return t;
-}
-
-interface Stored {
-  key: string;
-  bytes: number;
-  pins: string[];
-}
-
-/** What the offline store knows about each kept tile. */
-const stored = (page: Page): Promise<Stored[]> =>
-  page.evaluate(
-    () =>
-      new Promise<Stored[]>((resolve) => {
-        const req = indexedDB.open("parcelscreen-offline");
-        req.onsuccess = () => {
-          const d = req.result;
-          if (!d.objectStoreNames.contains("tiles")) return resolve([]);
-          const all = d.transaction("tiles").objectStore("tiles").getAll();
-          all.onsuccess = () => resolve(all.result as Stored[]);
-        };
-        req.onerror = () => resolve([]);
-      }),
-  );
-
-const tilesLoaded = (page: Page) =>
-  expect
-    .poll(() =>
-      page.evaluate(() =>
-        (window as unknown as { __psMap?: { areTilesLoaded(): boolean } }).__psMap?.areTilesLoaded(),
-      ),
-    )
-    .toBe(true);
-
-/** The service worker installed and in control of this page (a reload after the first visit). */
-async function controlled(page: Page): Promise<void> {
-  await expect
-    .poll(() =>
-      page.evaluate(
-        async () => (await navigator.serviceWorker.getRegistration("/"))?.active?.state ?? "none",
-      ),
-    )
-    .toBe("activated");
-  await reload(page);
-  await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
-}
 
 const jump = (page: Page, center: [number, number], zoom: number) =>
   page.evaluate(
@@ -132,7 +66,7 @@ test("past the cap, the oldest tiles go and a pinned one stays", async ({ page, 
   );
 
   await openYourData(page);
-  await expect(page.getByText(/^Map cache: \d+ MB of 1 GB$/)).toBeVisible();
+  await expect(page.getByText(/^Map cache: \d+ [KM]B of 1 GB$/)).toBeVisible();
   await page.getByLabel("Keep up to").selectOption({ label: "5 MB" });
   await page.keyboard.press("Escape");
 

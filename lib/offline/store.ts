@@ -168,3 +168,78 @@ export async function cacheTotals(): Promise<{ automatic: number; pinned: number
   const automatic = automaticBytes(all);
   return { automatic, pinned: all.reduce((n, m) => n + m.bytes, 0) - automatic };
 }
+
+/** A parcel saved offline on this device (Settings › Offline lists them). */
+export interface SavedParcel {
+  parcel: string;
+  name: string;
+  /** The bytes of the tiles it pins (shared tiles count for each parcel holding them). */
+  bytes: number;
+  tiles: number;
+  savedAt: string;
+  /** False when some requests failed: Try again downloads the rest. */
+  complete: boolean;
+  failed: number;
+}
+
+export async function putSaved(s: SavedParcel): Promise<void> {
+  const d = await openOfflineDb();
+  if (!d) return;
+  const tx = d.transaction(SAVED, "readwrite");
+  tx.objectStore(SAVED).put(s);
+  await done(tx);
+}
+
+export async function listSaved(): Promise<SavedParcel[]> {
+  const d = await openOfflineDb();
+  if (!d) return [];
+  const all = (await result(d.transaction(SAVED).objectStore(SAVED).getAll())) as SavedParcel[];
+  return all.sort((a, b) => (a.savedAt < b.savedAt ? 1 : -1));
+}
+
+/** Adds a parcel's pin to a tile already kept; false when it isn't kept (or is too old to keep as it is). */
+export async function pinTile(key: string, parcel: string, freshAfter: number): Promise<boolean> {
+  const d = await openOfflineDb();
+  if (!d) return false;
+  // The body first: a transaction can't wait on the Cache API without closing.
+  if (!(await (await caches.open(TILE_CACHE)).match(key))) return false;
+  const tx = d.transaction(TILES, "readwrite");
+  const store = tx.objectStore(TILES);
+  const m = (await result(store.get(key))) as TileMeta | undefined;
+  const ok = !!m && m.storedAt >= freshAfter;
+  if (ok && !m.pins.includes(parcel)) store.put({ ...m, pins: [...m.pins, parcel] });
+  await done(tx);
+  return ok;
+}
+
+/** The pinned tiles' total for one parcel. */
+export async function pinnedBy(parcel: string): Promise<{ bytes: number; tiles: number }> {
+  const mine = (await allTileMeta()).filter((m) => m.pins.includes(parcel));
+  return { bytes: mine.reduce((n, m) => n + m.bytes, 0), tiles: mine.length };
+}
+
+/** Delete in Settings › Offline: the parcel's pins go, and a tile no parcel holds joins the automatic cache. */
+export async function deleteSaved(parcel: string): Promise<void> {
+  const d = await openOfflineDb();
+  if (!d) return;
+  const tx = d.transaction([TILES, SAVED], "readwrite");
+  const tiles = tx.objectStore(TILES);
+  const all = (await result(tiles.getAll())) as TileMeta[];
+  for (const m of all)
+    if (m.pins.includes(parcel))
+      tiles.put({ ...m, pins: m.pins.filter((p) => p !== parcel), usedAt: Date.now() });
+  tx.objectStore(SAVED).delete(parcel);
+  await done(tx);
+}
+
+/** This device's average bytes a tile, by layer, from what it keeps (Save offline's estimate). */
+export async function averagesByLayer(): Promise<Record<string, number>> {
+  const sum = new Map<string, { n: number; bytes: number }>();
+  for (const m of await allTileMeta()) {
+    const s = sum.get(m.layer) ?? { n: 0, bytes: 0 };
+    s.n++;
+    s.bytes += m.bytes;
+    sum.set(m.layer, s);
+  }
+  return Object.fromEntries([...sum].map(([layer, s]) => [layer, s.bytes / s.n]));
+}

@@ -15,6 +15,7 @@
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
 import { Serwist } from "serwist";
 import { handleMapTile, isMapTile } from "@/lib/offline/swTiles";
+import { runSave, type SaveRequest } from "@/lib/offline/swSave";
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -52,9 +53,13 @@ const serwist = new Serwist({
   },
 });
 
-// The toast's "reload": take over now instead of at the next launch.
 self.addEventListener("message", (event) => {
-  if ((event.data as { type?: string } | null)?.type === "SKIP_WAITING") void self.skipWaiting();
+  const type = (event.data as { type?: string } | null)?.type;
+  // The toast's "reload": take over now instead of at the next launch.
+  if (type === "SKIP_WAITING") void self.skipWaiting();
+  // Step 14e: Save offline's downloads, with progress back on the channel's port.
+  if (type === "SAVE_OFFLINE" && event.ports[0])
+    event.waitUntil(runSave(event.data as SaveRequest, event.ports[0]));
 });
 
 serwist.addEventListeners();
