@@ -20,6 +20,9 @@ export const PAY_WORDS = {
   notAdvice: "For how it could pay, talk to a tax advisor, a land trust or a forester before acting.",
   notCovered: "Not covered here yet",
   toConfirm: "to confirm",
+  /** Said once, under the heading (the fresh-eyes review): what "(to confirm)" on a figure means. */
+  toConfirmNote:
+    "Figures marked (to confirm) were read from a summary of their official source, not the page itself.",
   sliderHint: "Drag to try an appraised value: the app can't know it",
 } as const;
 
@@ -80,7 +83,7 @@ export const PAY_ASK: Record<PayKey, { who: string; question: string }> = {
 
 /** The figures' own words (§8 Numbers). */
 export const NUMBER = {
-  appraisal: "Needs an appraisal",
+  appraisal: "The easement's value needs an appraisal; a credit or deduction is a share of it",
   cruise: "Needs a timber cruise: ask a consulting forester for a cruise",
   programQuotes: "The program quotes the payment",
   rough: "a rough range, not a quote",
@@ -145,8 +148,7 @@ export const REASON = {
   // Hunting lease
   leaseEligible: (acres: number) => `${ac(acres)} ac you can hunt: big enough to lease`,
   leaseSmallish: (acres: number, min: number) => `${ac(acres)} ac: under ${min} ac is small for a lease`,
-  leaseHunt: (reason: string) =>
-    `Hunting is a maybe here: ${reason.charAt(0).toLowerCase()}${reason.slice(1)}`,
+  leaseHunt: (reason: string) => `Hunt: ${reason.charAt(0).toLowerCase()}${reason.slice(1)}`,
   leaseNo: "Too small to lease",
   // Selective timber
   timberEligible: (forestAc: number) => `${ac(forestAc)} ac of forest, enough for a logger to bid`,
@@ -161,7 +163,7 @@ export const REASON = {
 
 /** The signals' labels (What decides it). */
 export const SIGNAL = {
-  lots: "Lots you could give up",
+  lots: "Building lots an easement would retire",
   publicLand: "Public land or the Parkway",
   publicNear: (name: string, mi: string) => `${name}, ${mi}`,
   adjoins: "next door",
@@ -177,6 +179,8 @@ export const SIGNAL = {
   forestValue: (pct: number, acres: number) => `${fmt(pct)}% (${ac(acres)} ac)`,
   acres: "Acres",
   small: "Small easements",
+  smallElsewhere:
+    "Under 50 acres, a land trust looks for more than forest (ours, after the Virginia Outdoors Foundation's guideline)",
   county: "County",
   program: (name: string) => name,
   minimum: (min: number) => `${min} ac minimum`,
@@ -202,7 +206,7 @@ export const BREAK_EVEN = {
   heading: "Break-even",
   soldPick: "The piece you'd sell",
   price: "Purchase price ($)",
-  share: "Its share of the land (%)",
+  share: "The sold piece's share of the land's value (%)",
   years: "Years held",
   rate: "Interest while you hold it (% a year)",
   survey: "Survey ($)",
@@ -213,11 +217,14 @@ export const BREAK_EVEN = {
   assumed: "assumed",
   typePrice: "Type the purchase price",
   sell: (word: string, perAc: number, total: number) =>
-    `Sell the ${word.toLowerCase()} piece at ${money(perAc)}/ac or more (${money(total)}) to break even`,
+    `Sell the ${word.toLowerCase()} piece at ${money(perAc)}/ac or more (${money(total)} in all) to break even`,
   keep: (word: string, total: number, perAc: number) =>
-    `Your ${word.toLowerCase()} piece effectively costs ${money(total)} (${money(perAc)}/ac)`,
+    `Then your ${word.toLowerCase()} piece has cost you ${money(total)} (${money(perAc)}/ac)`,
   atSale: (perAc: number) => `if the other sells at ${money(perAc)}/ac`,
   atBreakEven: "if the other sells at the break-even",
+  /** Why the kept piece can cost more than the price: the interest and the split's costs are in it. */
+  keepWhy: "with the interest while you hold it and the split's costs in it",
+  fromInputs: "from your inputs",
   notCounted:
     "Not counted: the agent's commission, closing costs, property tax while held and capital-gains tax",
   pieceRow: "Break-even, if this piece sells",

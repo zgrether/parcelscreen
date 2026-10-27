@@ -157,7 +157,7 @@ test("How it could pay on Mud Creek: seven options, a detail in place, Virginia'
   const easement = pay.locator(".use").filter({ hasText: "Conservation easement" });
   await easement.locator("button.use-row").click();
   await expect(easement.getByRole("heading", { name: "The number" })).toBeVisible();
-  await expect(easement.locator(".pay-lines")).toContainText("Needs an appraisal");
+  await expect(easement.locator(".pay-lines")).toContainText("The easement's value needs an appraisal");
   await expect(easement.getByRole("heading", { name: "What it costs you" })).toBeVisible();
   await expect(easement).toContainText("Permanent: a lower resale value and limited building rights");
   await expect(easement.getByRole("heading", { name: "Ask a land trust" })).toBeVisible();

@@ -20,6 +20,7 @@ export function HowItCouldPay({ options }: { options: readonly PayOption[] | nul
   return (
     <>
       <h3 className="uses-head">{PAY_WORDS.section}</h3>
+      <p className="tiny muted pay-note">{PAY_WORDS.toConfirmNote}</p>
       {options ? (
         <ul className="uses-list pay-list">
           {options.map((o) => (

@@ -9245,3 +9245,6 @@ button.use-row[aria-expanded="true"] .use-name::after {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+.pay-note {
+  margin: 0 0 4px;
+}

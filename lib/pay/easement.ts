@@ -63,7 +63,7 @@ export function easement({ uses, land, listing }: PayInput): PayOption {
   const big = r.acres >= T.easementSmallAc.value;
 
   const signals: Fact[] = [
-    { label: SIGNAL.acres, value: `${fmt(r.acres, 1)} ac` },
+    { label: SIGNAL.acres, value: `${fmt(r.acres, 2)} ac` },
     {
       label: SIGNAL.lots,
       value: `${ANSWER_WORD[divide.answer]}: ${divide.reason}`,
@@ -88,7 +88,10 @@ export function easement({ uses, land, listing }: PayInput): PayOption {
           ? SIGNAL.forestValue(r.cover.forestPct, forestAc)
           : MISSING.cover("forest share"),
     },
-    factOf(SIGNAL.small, T.easementSmallAc),
+    // VOF's guideline is Virginia's own; elsewhere the threshold is ours, after it (the fresh-eyes review).
+    where?.state === "VA" || !where
+      ? factOf(SIGNAL.small, T.easementSmallAc)
+      : { label: SIGNAL.small, value: SIGNAL.smallElsewhere },
   ];
 
   // The conservation values a land trust looks for; forest alone counts only on 50 ac or more (§0b).

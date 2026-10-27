@@ -136,7 +136,7 @@ export const STATE_EASEMENT: Readonly<Record<StateCode, StateEasement>> = {
       ),
       transfer: excerpt(
         "Transferable",
-        "Unused credit can be sold; the buyer has the same yearly limit, and Tax charges a fee of 5% of the credit transferred (Form LPC-2)",
+        "Unused credit can be sold; the buyer has the same yearly limit, and Virginia Tax charges a fee of 5% of the credit transferred (Form LPC-2)",
         VA_TRANSFER,
         "agency",
         "2025 forms",

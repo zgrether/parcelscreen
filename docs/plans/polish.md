@@ -80,3 +80,26 @@ for you to decide.
 - **Your list on a phone:** the "?" beside the title doesn't say it opens the key.
 - **The phone's tall sheet:** the map's floating buttons sit over the Stand here pin in the strip of map left.
 - **"Ask someone"** in the header could say whom ("Ask the household").
+
+## Step 15's fresh-eyes review (hand-back)
+
+The review of the step's screenshots (How it could pay, the credit slider, a split's break-even, Roan). The fixes are
+in the hand-back's PR 6; these are what it left, outside the step or for you to decide.
+
+- **No summary over How it could pay** ("2 ways this could pay"), and "Uses" doesn't say money. A tally line like
+  Grade's shortcut could lead it; it would be new UI.
+- **"Not eligible" where a county has no program** (Grayson's use-value) can read as a judgment of the land. The
+  reason says why; "None in this county" as a fourth chip word would be a product call.
+- **Carbon at 29 ac is Maybe, at 8.9 ac Not eligible**: within 20% of the minimum is Maybe by design (ours).
+- **Why houses near matter to hunting** isn't said in Hunt's reason (step 14's words).
+- **Split and resell's reason is Divide's long sentence**, and its 30.15 ac is the county map's acres against the
+  header's 29.31 (step 14, #311: Divide counts the map's or the listing's acres). The east piece failing frontage
+  beside "up to 8 lots by frontage" is the piece's own frontage, not the whole parcel's.
+- **The piece cards** (step 14): "Your grade", "not priced: the way in isn't routed yet", "Add this piece to the
+  list", a D piece passing the county's rules while a B fails them, and the cards' buttons at different heights.
+- **Every source line says "(to confirm)"**: one note under the heading now says what it means; the lines stay until
+  the official pages are read (the network policy denied them).
+- **The slider has no min and max labels.**
+- **The header** ("held by", "Maybe" and "B" splitting on a phone, the tax map shown twice), "Terrain tiles didn't
+  load", the map labels under the phone's buttons, the legend's "Second choice", the toolbar's bare trash icon, "Ask
+  someone", and the Maybe chip's contrast: all outside the step.
