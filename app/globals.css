@@ -226,6 +226,7 @@ html:has(.explore) body {
   /* Polish 2 (W9): a disabled secondary button keeps its outline and readable words, not an empty pale box. */
   .btn.secondary:disabled {
     opacity: 1;
+    border-style: dashed;
     color: color-mix(in srgb, var(--color-ink-2) 75%, transparent);
     border-color: var(--color-rule);
     background: transparent;
@@ -3190,6 +3191,14 @@ html:has(.app-nav) .explore {
   align-items: center;
   color: var(--ip-ink-2);
 }
+/* Polish 2 (fresh-eyes): a flex summary loses its marker, so the fold read as an empty heading. */
+.mp-key summary::before {
+  content: "▸";
+  margin-right: 6px;
+}
+.mp-key[open] summary::before {
+  content: "▾";
+}
 .mk-rows {
   display: grid;
   gap: 6px;
@@ -3414,6 +3423,11 @@ html:has(.app-nav) .explore {
   color: var(--ip-ink-2);
 }
 /* Settings › Offline: the cap and Clear wrap under each other on a phone. */
+/* Polish 2 (fresh-eyes): the map cache's line sat under Keep offline data as if it were its caption. */
+.offline-settings h4,
+.offline-cache-line {
+  margin-top: 14px;
+}
 .offline-cap-row {
   flex-wrap: wrap;
 }
@@ -5115,10 +5129,13 @@ button.cmp-cell:hover {
 .lib-grid .lib-name {
   max-width: 16em;
 }
+/* Polish 2 (fresh-eyes): up to two lines, so parcels on the same creek read apart, as a phone's cards do. */
 .lib-grid .lib-name .lib-open {
   overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  white-space: normal;
 }
 .lib-grid .lib-row:hover td,
 .lib-grid .lib-row:focus-visible td {

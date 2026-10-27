@@ -74,6 +74,12 @@ const ROWS: { key: string; swatch: React.ReactNode; text: string; wide?: boolean
   },
   // Step 14: added last, so the rows above keep their order.
   { key: "power", swatch: <Line color={POWER_COLOR} under={POWER_CASING} />, text: POWER_MAP.key },
+  // Polish 2 (fresh-eyes): the soil units' dashed outlines, each its own colour, were the one line with no row.
+  {
+    key: "soils",
+    swatch: <Line color="#8a5ea8" dash="4 3" />,
+    text: "Soil units: each map unit's outline, dashed in a colour of its own. Its tip names the soil.",
+  },
 ];
 
 /** Asked by the key line: the next MapKey to mount opens, and comes into view. */

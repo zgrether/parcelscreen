@@ -47,12 +47,13 @@ export const EDITOR_TITLES: Record<Factor, string> = {
 };
 
 /**
- * What matters' own card titles (polish 2, W7): two cards read "Driveway" there, so this one says it's the drive's own
- * length and grade, from the road to the site. The card's lines keep EDITOR_TITLES (rule 7).
+ * What matters' own card titles (polish 2, W7): two cards read "Driveway" there, so this one says what it grades,
+ * the drive's steepness ("Driveway from the road" until the pass's fresh-eyes review). The card's lines keep
+ * EDITOR_TITLES (rule 7).
  */
 export const PRIORITY_TITLES: Record<Factor, string> = {
   ...EDITOR_TITLES,
-  driveway: "Driveway from the road",
+  driveway: "Driveway steepness",
 };
 
 /**

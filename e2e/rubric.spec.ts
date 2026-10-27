@@ -62,7 +62,7 @@ test("the columns, a card's Move to…, and Undo", async ({ page }) => {
   await sheet(page).getByRole("button", { name: "Don't care" }).click();
   await expect(names(column(page, "Don't care"))).toHaveText([
     "Septic",
-    "Driveway from the road",
+    "Driveway steepness",
     "Town and groceries",
     "Climate",
     "Privacy",
@@ -288,7 +288,7 @@ test.describe("on a phone", () => {
     await page.keyboard.press("Escape");
     await expect(names(column(page, "Don't care"))).toHaveText([
       "Septic",
-      "Driveway from the road",
+      "Driveway steepness",
       "Town and groceries",
       "Climate",
       "Privacy",

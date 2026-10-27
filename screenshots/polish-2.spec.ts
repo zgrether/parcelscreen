@@ -104,7 +104,12 @@ for (const v of VIEWS) {
       }
       await page.getByRole("tab", { name: "Grade", exact: true }).first().click();
 
-      // Map layers.
+      // Map layers: on a phone, with the sheet lowered to its peek first (its tall state hides the map's buttons).
+      if (v.phone)
+        for (let i = 0; i < 4 && (await page.locator(".explore-panel").boundingBox())!.height > 260; i++) {
+          await page.locator(".sheet-handle").tap();
+          await page.waitForTimeout(500);
+        }
       const layers = page.getByRole("button", { name: /Map layers/ });
       if (await layers.count()) {
         await layers.first().click();

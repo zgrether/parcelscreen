@@ -317,7 +317,10 @@ export function Library() {
           />
         ) : rows.length === 0 ? (
           <p className="muted">
-            {FAVORITES_EMPTY} <Link href="/explore">Go to the map</Link>
+            {FAVORITES_EMPTY}{" "}
+            <Link className="link-btn" href="/explore">
+              Go to the map
+            </Link>
           </p>
         ) : (
           <>
