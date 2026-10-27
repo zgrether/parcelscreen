@@ -258,6 +258,22 @@ export interface Scenario {
   b: LatLon;
   screens: PieceScreens;
   at: string;
+  /** Step 15 (plan §4): the break-even's inputs as typed; each absent one is its default. Absent: all defaults. */
+  breakEven?: BreakEvenInputs;
+}
+/** A split's break-even inputs as typed (step 15 §4): each optional, so the default stands until it's typed. */
+export interface BreakEvenInputs {
+  price?: number;
+  /** The sold piece's share of the land, percent. */
+  sharePct?: number;
+  years?: number;
+  ratePct?: number;
+  survey?: number;
+  legal?: number;
+  road?: number;
+  soldSide?: "left" | "right";
+  /** "If it sold for", $/ac. */
+  soldAtPerAc?: number;
 }
 export interface PieceScreens {
   left: string | null;
@@ -532,6 +548,20 @@ const ScenarioSchema = z.object({
   b: LatLonSchema,
   screens: z.object({ left: z.string().nullable(), right: z.string().nullable() }),
   at: z.string(),
+  // Added with step 15: a scenario kept before has its defaults.
+  breakEven: z
+    .object({
+      price: z.number().nonnegative().optional(),
+      sharePct: z.number().min(0).max(100).optional(),
+      years: z.number().min(0).optional(),
+      ratePct: z.number().min(0).optional(),
+      survey: z.number().nonnegative().optional(),
+      legal: z.number().nonnegative().optional(),
+      road: z.number().nonnegative().optional(),
+      soldSide: z.enum(["left", "right"]).optional(),
+      soldAtPerAc: z.number().nonnegative().optional(),
+    })
+    .optional(),
 });
 const LineSchema = z
   .object({

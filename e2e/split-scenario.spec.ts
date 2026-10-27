@@ -164,6 +164,29 @@ test("Split Mud Creek: grade both pieces, both shown side by side, each with a c
   await pieces.nth(0).locator(".scn-uses summary").click();
   await expect(pieces.nth(0).locator(".scn-uses .use-name")).toHaveCount(7);
 
+  // Step 15 (plan §4): the break-even, under the pieces. Mud Creek has no asking price, so it asks for one; the smaller
+  // west piece is the one sold.
+  const be = scenario.getByRole("region", { name: "Break-even" });
+  await expect(be.locator(".be-figures")).toHaveText("Type the purchase price");
+  await expect(be.getByRole("button", { name: "West" })).toHaveAttribute("aria-pressed", "true");
+  const price = be.getByRole("textbox", { name: /^Purchase price/ });
+  await price.fill("250000");
+  await price.press("Enter");
+  const sell = be.locator(".be-sell");
+  await expect(sell).toHaveText(/^Sell the west piece at \$[\d,]+\/ac or more \(\$[\d,]+\) to break even$/);
+  await expect(be.locator(".be-keep")).toContainText("Your east piece effectively costs $");
+  // Each piece's own row, and Split and resell's line in How it could pay.
+  await expect(pieces.nth(1).locator(".scn-row[data-row=breakEven] .scn-value")).toHaveText(
+    /^\s*\$[\d,]+\/ac$/,
+  );
+  await expect(page.locator(".pay-list .use").filter({ hasText: "Split and resell" })).toBeVisible();
+  // Interest changes it.
+  const before = await sell.textContent();
+  const rate = be.getByRole("textbox", { name: /^Interest while you hold it/ });
+  await rate.fill("0");
+  await rate.press("Enter");
+  await expect(sell).not.toHaveText(before!);
+
   // Kept: the scenario and its screens are on the parcel, not in its own screens.
   const stored = await page.evaluate(
     () =>

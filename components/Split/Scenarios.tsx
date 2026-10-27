@@ -25,6 +25,8 @@ import { SPLIT_WORDS } from "@/lib/split/words";
 import { landUses } from "@/lib/uses";
 import { usesInputOf } from "@/lib/uses/input";
 import { USE_WORDS } from "@/lib/uses/words";
+import { resolveBreakEven } from "@/lib/split/breakEvenOf";
+import { BreakEven } from "./BreakEven";
 import { useScenarioGradingContext, type ScenarioGrading } from "./useScenarioGrading";
 
 /** "Grading piece 1 of 2…": the left piece is the first. */
@@ -114,6 +116,30 @@ function ScenarioView({
     setRenaming(false);
     ctl.renameScenario(sc.id, name, serial);
   };
+  // Step 15 (plan §4): the break-even, and each piece's own if it were the one sold.
+  const { rates } = useCostSettings();
+  const askingPrice = open.askingPrice;
+  const be = useMemo(() => {
+    if (!pieces) return null;
+    const both = [pieces[0]!, pieces[1]!] as const;
+    const resolved = resolveBreakEven(sc.breakEven, both, askingPrice, rates);
+    const perSide = Object.fromEntries(
+      both.map((p) => {
+        const asSold = resolveBreakEven(
+          {
+            ...sc.breakEven,
+            soldSide: p.side,
+            ...(p.side === resolved.sold.side ? {} : { sharePct: undefined }),
+          },
+          both,
+          askingPrice,
+          rates,
+        );
+        return [p.side, asSold.figures?.breakEvenPerAc ?? null];
+      }),
+    ) as Record<PieceSide, number | null>;
+    return { resolved, perSide };
+  }, [pieces, sc.breakEven, askingPrice, rates]);
   return (
     <article ref={box} className="scn" aria-label={sc.name}>
       <div className="scn-head">
@@ -176,11 +202,16 @@ function ScenarioView({
                     : null
                 }
                 cancel={grading.cancel}
+                breakEvenPerAc={be?.perSide[piece.side] ?? null}
               />
             );
           })}
         </div>
-      ) : (
+      ) : null}
+      {pieces && be && (
+        <BreakEven r={be.resolved} pieces={pieces} save={(patch) => ctl.setBreakEven(sc.id, patch, serial)} />
+      )}
+      {!pieces && (
         <p className="muted scn-note">
           The cut no longer crosses the boundary (a part it went through was taken out), so it&apos;s left
           off.
@@ -200,6 +231,7 @@ function PieceView({
   parentCounty,
   grading,
   cancel,
+  breakEvenPerAc,
 }: {
   s: ScreenIt;
   sc: Scenario;
@@ -212,6 +244,8 @@ function PieceView({
   /** Being graded now, waiting its turn, or neither. */
   grading: "now" | "next" | null;
   cancel(): void;
+  /** Step 15: the break-even if this piece is the one sold, $/ac; null without a price. */
+  breakEvenPerAc: number | null;
 }) {
   const ctl = s.ctl;
   const costs = useCostSettings();
@@ -227,8 +261,8 @@ function PieceView({
     const card = reportCard(shown, mine, drawn);
     const check = pieceCountyCheck(shown, parentCounty);
     const uses = landUses(usesInputOf(shown, card, drawn, { markup: g.markup, deedRestrictions, hoa }));
-    return { rows: pieceRows(card, check, switchLabel(mine)), uses };
-  }, [shown, g, costs, mine, parentCounty, deedRestrictions, hoa]);
+    return { rows: pieceRows(card, check, switchLabel(mine), breakEvenPerAc), uses };
+  }, [shown, g, costs, mine, parentCounty, deedRestrictions, hoa, breakEvenPerAc]);
 
   const title = SPLIT_WORDS.piece(piece.word, piece.acres);
   return (

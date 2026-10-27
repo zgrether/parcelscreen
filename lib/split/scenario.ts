@@ -15,6 +15,7 @@ import { starred } from "../client/favorites";
 import {
   FROM_ORIGINAL,
   plainParcel,
+  type BreakEvenInputs,
   type Markup,
   type Scenario,
   type WorkingParcel,
@@ -163,6 +164,25 @@ export const relined = (p: WorkingParcel, id: string, a: LatLon, b: LatLon, now:
 /** A blank name is ignored. */
 export const renamed = (p: WorkingParcel, id: string, name: string): WorkingParcel =>
   edit(p, id, (sc) => (name.trim() && name.trim() !== sc.name ? { ...sc, name: name.trim() } : sc));
+
+/**
+ * Step 15 (plan §4): a break-even input typed, or cleared (undefined: back to its default). One that changes nothing
+ * saves nothing.
+ */
+export type BreakEvenPatch = { [K in keyof BreakEvenInputs]?: BreakEvenInputs[K] | undefined };
+export const withBreakEven = (p: WorkingParcel, id: string, patch: BreakEvenPatch): WorkingParcel =>
+  edit(p, id, (sc) => {
+    const was = sc.breakEven ?? {};
+    const next: BreakEvenInputs = { ...was };
+    for (const [k, v] of Object.entries(patch) as [keyof BreakEvenInputs, never][]) {
+      if (v === undefined) delete next[k];
+      else next[k] = v;
+    }
+    const same = JSON.stringify(next) === JSON.stringify(was);
+    if (same) return sc;
+    const { breakEven: _old, ...rest } = sc;
+    return Object.keys(next).length ? { ...rest, breakEven: next } : rest;
+  });
 
 export const withoutScenario = (p: WorkingParcel, id: string): WorkingParcel =>
   p.scenarios.some((sc) => sc.id === id) ? { ...p, scenarios: p.scenarios.filter((sc) => sc.id !== id) } : p;

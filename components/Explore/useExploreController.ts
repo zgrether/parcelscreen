@@ -50,7 +50,7 @@ import { parcelFromLine, pickParcelAt, type ParcelLine, type ParcelRecord } from
 import { fieldsFor, fullRecord } from "@/lib/geo/parcelTiles";
 import { deriveParcel, ownLand, splitPreview, type DerivedParcel } from "@/lib/geo/recipe";
 import type { Side, SplitPieces } from "@/lib/geo/split";
-import { pieceAsParcel, pieceOf, type PieceSide } from "@/lib/split/scenario";
+import { pieceAsParcel, pieceOf, type BreakEvenPatch, type PieceSide } from "@/lib/split/scenario";
 import { SPLIT_WORDS } from "@/lib/split/words";
 import type { LatLon } from "@/lib/geo/types";
 import { SCREEN_CONSTANTS } from "@/lib/screen/config";
@@ -254,6 +254,8 @@ export interface ExploreController {
   /** A piece graded, its screen kept (`screenId`), for the parcel open as `serial`. */
   pieceScreened(id: string, side: PieceSide, screenId: string, serial: number): void;
   renameScenario(id: string, name: string, serial: number): void;
+  /** Step 15: a break-even input typed, or cleared back to its default (undefined). */
+  setBreakEven(id: string, patch: BreakEvenPatch, serial: number): void;
   removeScenario(id: string, serial: number): void;
   /** Add this piece to the list: a new parcel from the piece, on the list, opened (its screen, when it has one). */
   addPiece(id: string, side: PieceSide): void;
@@ -961,6 +963,9 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     renameScenario(id, name, serial) {
       dispatch({ type: "scenarioName", id, name, serial, stamp: stamp() });
+    },
+    setBreakEven(id, patch, serial) {
+      dispatch({ type: "scenarioBreakEven", id, patch, serial, stamp: stamp() });
     },
     removeScenario(id, serial) {
       const open = latest.current.store.open;

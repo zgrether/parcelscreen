@@ -37,6 +37,8 @@ import {
   nextScenarioName,
   relined,
   renamed,
+  withBreakEven,
+  type BreakEvenPatch,
   withoutScenario,
   withPieceScreen,
   withScenario,
@@ -210,6 +212,8 @@ export type ExploreAction =
   /** A piece graded: its screen kept, for the scenario of the parcel open as `serial`. */
   | { type: "pieceScreened"; id: string; side: PieceSide; screenId: string; serial: number; stamp: Stamp }
   | { type: "scenarioName"; id: string; name: string; serial: number; stamp: Stamp }
+  /** Step 15: a split's break-even input typed or cleared. */
+  | { type: "scenarioBreakEven"; id: string; patch: BreakEvenPatch; serial: number; stamp: Stamp }
   | { type: "scenarioRemove"; id: string; serial: number; stamp: Stamp }
   /** Undo of Remove this split (owner, after #312): the scenario back where it was. */
   | { type: "scenarioRestore"; scenario: Scenario; index: number; serial: number; stamp: Stamp }
@@ -527,6 +531,7 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       return s.gradeScenario ? { ...s, gradeScenario: null } : s;
     case "pieceScreened":
     case "scenarioName":
+    case "scenarioBreakEven":
     case "scenarioRemove": {
       // As notes: a change that lands after another parcel opened is dropped; one that changes nothing saves nothing.
       if (!open || a.serial !== s.serial) return s;
@@ -535,7 +540,9 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
           ? withPieceScreen(open, a.id, a.side, a.screenId)
           : a.type === "scenarioName"
             ? renamed(open, a.id, a.name)
-            : withoutScenario(open, a.id);
+            : a.type === "scenarioBreakEven"
+              ? withBreakEven(open, a.id, a.patch)
+              : withoutScenario(open, a.id);
       return next === open ? s : { ...s, store: save(next, a.stamp) };
     }
     case "addPiece":
