@@ -47,7 +47,7 @@ describe("the Privacy row", () => {
   it("says the nearest, the houses near, and those in sight, in winter", () => {
     const row = rowOf(withSites(1100, 1, 2));
     expect(row.detail).toBe(
-      "the nearest house 1,100 ft away; 2 within a quarter mile; 1 in sight within a mile (in winter, with leaves down)",
+      "the nearest house 1,100 ft away; 2 within a quarter mile (shown, not graded); 1 in sight within a mile (in winter, with leaves down)",
     );
     expect(row.short).toBe("nearest 1,100 ft, 1 in sight");
     expect(row.measure).toEqual({ value: 1, unit: "houses" });

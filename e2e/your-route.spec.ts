@@ -38,7 +38,7 @@ test("Mud Creek: the red-gate route beside the app's pick; chosen as the drivewa
   const choice = page.locator(".route-choice");
   await expect(choice.locator(".route-choice-col")).toHaveCount(2);
   await expect(choice.locator(".route-choice-col").nth(0)).toContainText("The app's pick");
-  await expect(choice.locator(".route-choice-col").nth(0)).toContainText("Scored on the card");
+  await expect(choice.locator(".route-choice-col").nth(0)).toContainText("The grade uses this one");
   await expect(choice.locator(".route-choice-col").nth(1)).toContainText("Red gate");
   await expect(choice.locator(".route-choice-col").nth(1)).toContainText("over 25%");
 

@@ -20,7 +20,8 @@ export const STILL_UNKNOWN = [
   "Severed mineral or timber rights — check the deed chain, not the listing",
   "Utility extension quote from the power co-op, by parcel ID",
   "Neighboring well depths and yields (county health department)",
-  "Septic: get a soil scientist's opinion on the bench, not the pin",
+  // Polish 2 (Z7, owner): "the bench" in plain words, after it.
+  "Septic: get a soil scientist's opinion on the bench (the flat ground the site sits on), not the pin",
   "Whether RV or shop-house occupancy during the build is lawful (zoning office)",
   "Homeowner's insurance quote for the address before you fall in love",
   "Cell service and the Starlink sky view from the bench",

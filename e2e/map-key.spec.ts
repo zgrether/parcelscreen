@@ -34,12 +34,14 @@ test("the key line names what's drawn; All map marks opens the key; Every pin br
   await line.getByRole("button", { name: "All map marks" }).click();
   const key = page.locator(".mp-key");
   await expect(key).toHaveAttribute("open", "");
-  await key.getByRole("button", { name: "Show every pin" }).click();
+  const everyPin = key.getByRole("button", { name: "Every pin" });
+  await everyPin.click();
+  await expect(everyPin).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator(".sitepin:not(.top):not(.mk-pin)").first()).toBeVisible();
   await expect(line).toContainText("Every pin");
 
   // Off again: the best homesite alone.
-  await key.getByRole("button", { name: "Hide every pin" }).click();
+  await everyPin.click();
   await expect(page.locator(".sitepin:not(.top):not(.steep):not(.mk-pin)")).toHaveCount(0);
   expect(errors).toEqual([]);
 });

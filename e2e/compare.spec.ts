@@ -29,7 +29,7 @@ test("compare: two screened parcels as columns, best and worst marked, a cell op
   // Nothing ticked (an old link): how to get here, and the way back.
   await page.goto("/compare");
   await expect(page.locator("main")).toContainText("Tick 2 or 3 parcels on Your list to compare them.");
-  await page.locator("main").getByRole("link", { name: "Your list", exact: true }).click();
+  await page.locator("main").getByRole("link", { name: "Open Your list", exact: true }).click();
   await expect(page).toHaveURL(/\/library$/);
 
   // One tick: Compare waits for a second.

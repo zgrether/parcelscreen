@@ -30,7 +30,7 @@ describe("the uses on the fixtures", () => {
         ],
         "uses": {
           "build": "maybe: No soil on the parcel rates better than very limited for a septic field",
-          "camp": "maybe: Reachable only after a pioneer track (2,888 ft to cut)",
+          "camp": "maybe: Reachable only after a pioneer track, a rough track cut for a 4×4 (2,888 ft to cut)",
           "divide": "yes: Up to 3 lots without subdivision review (a farm division approved by staff; limited by 30.15 ac at 10 ac a lot) · up to 8 with an approved subdivision plat (limited by 885 ft of road frontage at 100 ft per lot; more lots need a road built to the county's standard)",
           "garden": "yes: A 0.10 ac garden out of the frost pocket, with water (from the well; no stream or spring mapped)",
           "hunt": "maybe: 8 houses within a quarter mile of the boundary",
@@ -58,7 +58,7 @@ describe("the uses on the fixtures", () => {
           "garden": "yes: A 0.34 ac garden out of the frost pocket, with water (from the well; no stream or spring mapped)",
           "hunt": "maybe: 5 houses within a quarter mile of the boundary",
           "ride": "maybe: Gentle ground for your own loop (about 1.4 mi of trail); neighbours' land is private unless they agree",
-          "trails": "yes: About 1.4 mi of trail on 16 ac of gentle ground, at a path every 100 ft",
+          "trails": "yes: About 1.4 mi of trail on 16 ac of gentle ground, at a walking path every 100 ft",
         },
       }
     `);
@@ -80,7 +80,7 @@ describe("the uses on the fixtures", () => {
           "garden": "yes: A 3.1 ac garden out of the frost pocket, with water (a pond on the parcel); 12 ac of open gentle ground for animals",
           "hunt": "maybe: 36% forest, under 50%",
           "ride": "maybe: Gentle ground for your own loop (about 1.5 mi of trail); neighbours' land is private unless they agree",
-          "trails": "yes: About 1.5 mi of trail on 18 ac of gentle ground, at a path every 100 ft",
+          "trails": "yes: About 1.5 mi of trail on 18 ac of gentle ground, at a walking path every 100 ft",
         },
       }
     `);

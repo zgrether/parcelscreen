@@ -166,7 +166,10 @@ export function Compare() {
 
         {columns.length === 0 ? (
           <p className="muted">
-            {COMPARE_HOW} <Link href="/library">Your list</Link>
+            {COMPARE_HOW}{" "}
+            <Link className="link-btn" href="/library">
+              Open Your list
+            </Link>
           </p>
         ) : (
           <>
@@ -180,7 +183,8 @@ export function Compare() {
                     {parcels.map((p, i) => (
                       <th key={p.key} scope="col">
                         <LongName name={p.name} className="cmp-name" />
-                        <div className="tiny muted">{p.acres !== null ? `${p.acres.toFixed(2)} ac` : ""}</div>
+                        {/* Polish 2 (L4): one decimal, as Your list and Recent read. */}
+                        <div className="tiny muted">{p.acres !== null ? `${p.acres.toFixed(1)} ac` : ""}</div>
                         <div className="cmp-actions">
                           <Link
                             className="link-btn"
@@ -247,8 +251,9 @@ export function Compare() {
               </table>
             </div>
             <p className="tiny muted cmp-legend">
-              ✓ pass · ! check first · ✗ fail · ? not known &nbsp; ↑ best in its row · ↓ worst in its row.
-              Costs and the budget say &ldquo;not yet&rdquo; until the app prices them.
+              ✓ pass · ! check first · ✗ fail · ? not known &nbsp; ↑ best in its row · ↓ worst in its row · ≠
+              the listing&apos;s acres differ from the boundary&apos;s. Costs and the budget say &ldquo;not
+              yet&rdquo; until the app prices them.
             </p>
             {addable.length > 0 && (
               <label className="cmp-add">

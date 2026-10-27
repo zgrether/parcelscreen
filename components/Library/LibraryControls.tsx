@@ -8,6 +8,7 @@
  */
 import { Fragment, useState } from "react";
 import {
+  ALL_FILTERS,
   DEFAULT_VIEW,
   gradeSortKey,
   VERDICT_CHOICES,
@@ -132,6 +133,21 @@ function changedFilters(f: LibraryFilters): number {
   ].filter(Boolean).length;
 }
 
+/** Every parcel shows: the fold's choices are all ticked (Show all), whatever the defaults are. */
+function showingAll(f: LibraryFilters): boolean {
+  const a = ALL_FILTERS;
+  const same = (x: unknown[], y: unknown[]) => x.length === y.length && x.every((v) => y.includes(v));
+  return (
+    same(f.status, a.status) &&
+    same(f.household, a.household) &&
+    Object.values(f.grades).every((g) => same(g, [...VERDICT_CHOICES])) &&
+    f.milestones.length === 0 &&
+    f.priceMin === null &&
+    f.priceMax === null &&
+    f.state === null
+  );
+}
+
 export function LibraryControls({
   view,
   setView,
@@ -183,8 +199,9 @@ export function LibraryControls({
           aria-expanded={open}
           onClick={() => setOpen((o) => !o)}
         >
-          {/* Polish: "· 1 on" counts filters, where Waiting for you (1) counts parcels. */}
-          Filters{n ? ` · ${n} on` : ""}
+          {/* Polish: "· 1 on" counts filters, where Waiting for you (1) counts parcels. Polish 2 (L3): Show all lights every
+              choice, which isn't "on" in the sense the count means, so it says so. */}
+          Filters{showingAll(f) ? " · showing all" : n ? ` · ${n} on` : ""}
         </button>
         {/* Step 6: the household's quick filters, beside Filters; polish #14: New takes, what the tab's badge counts. */}
         {(several || waiting > 0 || fresh > 0) && (

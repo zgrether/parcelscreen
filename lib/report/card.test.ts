@@ -88,7 +88,9 @@ describe("the report card on the fixtures (engine 13)", () => {
     expect(rowOf(r, "room").detail).toBe(
       "4.3 ac of gentle ground near the house site, 9.4× the build footprint",
     );
-    expect(rowOf(r, "sky").detail).toBe("rural sky (zone 3b)");
+    expect(rowOf(r, "sky").detail).toBe(
+      "rural sky (zone 3b; the atlas's light-pollution zones run 0, darkest, to 7)",
+    );
     expect(rowOf(r, "trails").detail).toBe(
       "a trailhead 47 min (11.5 mi) by road, 6.4 mi straight (Buffalo Mountain Trailhead)",
     );
@@ -262,7 +264,9 @@ describe("the report card on the fixtures (engine 13)", () => {
     expect(rowOf(r, "room").detail).toBe(
       "1.0 ac of gentle ground near the house site, 2.1× the build footprint",
     );
-    expect(rowOf(r, "sky").detail).toBe("rural dark sky (zone 3a)");
+    expect(rowOf(r, "sky").detail).toBe(
+      "rural dark sky (zone 3a; the atlas's light-pollution zones run 0, darkest, to 7)",
+    );
   });
 });
 

@@ -124,6 +124,13 @@ const GRADE_DETAILS = new RegExp(
 /** #99 decisions (owner, 2026-10-11; added): each route card's relief-culvert row, which the prototype doesn't have. */
 const RELIEF_ROW = /Reliefculverts\d+\(oneevery150–400ft,bygrade\)/g;
 
+/**
+ * Polish 2's declared additions (Z4, Z7; docs/plans/polish-2.md §3, owner-approved, additive): the compact sites' count,
+ * the grid's acres, the route's start, the bench and the river's class, each removed before comparing.
+ */
+const POLISH_2 =
+  /·\d+compactsites?rankedtoo|\(bytheelevationgrid\)|TherecommendedroutestartsfromE\d+,thebetterwaytothesite\.|\(theflatgroundthesitesitson\)|\(howharditsrapidsare\)|Buildcosttiersrunfrom\$,theleasttobuild,to\$\$\$\$,themost\./g;
+
 const render = (Block: ComponentType<BlockProps>, result: PartialScreenResult) =>
   renderToStaticMarkup(<Block result={result} point={evaluationPoint(result)} variant="panel" />);
 
@@ -148,7 +155,8 @@ function expectParity(R: PrototypeResult, ours: PartialScreenResult, partial: bo
     const text = (APPROVED[slug] ?? [])
       .reduce((t, a) => t.replace(visibleText(a), ""), visibleText(html))
       .replace(GRADE_DETAILS, "")
-      .replace(RELIEF_ROW, "");
+      .replace(RELIEF_ROW, "")
+      .replace(POLISH_2, "");
     const theirs = visibleText(APPROVED_PROTO[slug]?.(section.body) ?? section.body);
     expect(text, slug).toBe(theirs);
     const h = heading(ours, evaluationPoint(ours));

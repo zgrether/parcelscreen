@@ -317,8 +317,15 @@ function entrancesLine(
     const l = e.source === "drawn" && e.line != null ? r.lines?.[e.line] : undefined;
     return l ? [`E${i + 1} is the end of ${lineLabel(l, names)} (${lineSummary(l)}).`] : [];
   });
+  // Polish 2 (Z7, owner): E1 is the best entrance on its own; when the recommended route starts elsewhere, it says so.
+  const start = d.routes[0]?.entranceIndex;
+  const why =
+    frontage.length && start !== undefined && start > 0
+      ? `The recommended route starts from E${start + 1}, the better way to the site.`
+      : null;
   const parts = [
     frontage.length ? `Entrance candidates on the frontage (E1 best): ${frontage.join("; ")}.` : null,
+    why,
     ...drawn,
   ].filter((x): x is string => !!x);
   return parts.length ? parts.join(" ") : null;

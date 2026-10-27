@@ -139,10 +139,18 @@ export function PlacesLayer({ hint, anchors }: { hint: Hint; anchors: UserConfig
         source: sourceId(k),
         minzoom: PLACES_MIN_ZOOM,
         filter: ["has", "point_count"],
+        // Polish 2 (M9): the kind's icon over the count, so a disc says what it groups, not only how many.
         layout: {
+          "icon-image": iconId(k === "launch" ? "launchFlat" : k),
+          "icon-size": 0.67,
+          "icon-anchor": "bottom",
+          "icon-offset": [0, 3],
+          "icon-allow-overlap": true,
           "text-field": ["get", "point_count_abbreviated"],
           "text-font": [LABEL_FONT],
-          "text-size": 13,
+          "text-size": 12,
+          "text-anchor": "top",
+          "text-offset": [0, 0.1],
           "text-allow-overlap": true,
         },
         paint: { "text-color": "#1b1f1c" },
@@ -284,7 +292,12 @@ export function PlacesLayer({ hint, anchors }: { hint: Hint; anchors: UserConfig
       const p = f.properties as PlaceProps;
       const firstFlat = p.kind === "launch" && p.water === "flat" && !flatExplained;
       if (firstFlat) flatExplained = true;
-      const lines = cardLines(p, timedMinutes(resultRef.current, p, [at[1], at[0]]), firstFlat);
+      const lines = cardLines(
+        p,
+        timedMinutes(resultRef.current, p, [at[1], at[0]]),
+        firstFlat,
+        !!resultRef.current,
+      );
       const el = document.createElement("div");
       el.className = "place-card";
       lines.forEach((line, i) => {

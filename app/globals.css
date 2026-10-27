@@ -159,6 +159,9 @@ html:has(.explore) body {
     touch-action: none;
     cursor: ns-resize;
     padding-top: 6px;
+    /* Polish 2 (fresh-eyes): at the peek, a two-line name and the answer's reason make the header taller than the
+       peek; shrunk, its text ran under the actions row. It keeps its height, and the row waits below the fold. */
+    flex: none;
   }
   /* A parcel with nothing run yet (17e): the header only, no divider, the Screen button centred in it. */
   .explore-panel.bare .explore-header {
@@ -219,6 +222,18 @@ html:has(.explore) body {
   .btn:disabled {
     opacity: 0.45;
     cursor: default;
+  }
+  /* Polish 2 (W9): a disabled secondary button keeps its outline and readable words, not an empty pale box. */
+  .btn.secondary:disabled {
+    opacity: 1;
+    border-style: dashed;
+    color: color-mix(in srgb, var(--color-ink-2) 75%, transparent);
+    border-color: var(--color-rule);
+    background: transparent;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: color-mix(in srgb, var(--color-ink-2) 85%, transparent);
   }
   .btn:focus-visible,
   .field:focus-visible {
@@ -515,6 +530,8 @@ html:has(.explore) body {
 }
 .explore:has(.finish-prompt) .map-key-line,
 .explore:has(.switch-toast) .map-key-line,
+/* Polish 2 (M10): the map's hint (zoom in, Draw over a county with no lines) sits where the key line does. */
+.explore:has(.map-hint) .map-key-line,
 .explore.sheet-tall .map-key-line {
   display: none;
 }
@@ -540,6 +557,32 @@ html:has(.explore) body {
 }
 .mkl-line.fan {
   background: #e0553f;
+}
+/* Polish 2 (M2): the driveway's other lines, dashed as the map draws them, and Stand here's pill, smaller. */
+.mkl-line.second {
+  height: 2px;
+  background: repeating-linear-gradient(90deg, #6f7a72 0 6px, transparent 6px 10px);
+}
+.mkl-line.over {
+  background: repeating-linear-gradient(90deg, #f0a030 0 6px, #e0553f 6px 9px);
+}
+.mkl-line.direct {
+  height: 3px;
+  background: repeating-linear-gradient(90deg, #b04a4a 0 3px, transparent 3px 7px);
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  .mkl-minor {
+    display: none;
+  }
+}
+/* A copy of the Stand here pin (its own class, so the map's .stand-here stays the one pin). */
+.mkl-stand {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgb(28, 38, 32);
+  color: #eef1ea;
+  font: 600 11.5px/1.2 var(--font-sans);
+  white-space: nowrap;
 }
 .mkl-all {
   min-height: 32px;
@@ -597,7 +640,8 @@ html:has(.explore) body {
 /* WF5: "Your route and the app's pick" side by side (stacked on a phone); the one the card scores outlined. */
 .route-choice-cols {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  /* Polish 2 (P8): wide enough that "Steepest, raw ground" keeps to a line or two. */
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 8px;
 }
 .route-choice-col {
@@ -650,6 +694,19 @@ html:has(.explore) body {
 .explore-map .maplibregl-ctrl-top-right {
   top: 1px;
   right: 1px;
+}
+/* Polish 2 (M8): on a touch screen the ⓘ and the panels' × take a 44 px tap; the ⓘ's reach is wider than it looks. */
+@media (hover: none) {
+  .explore-map .maplibregl-ctrl-attrib-button::after {
+    content: "";
+    position: absolute;
+    inset: -10px;
+  }
+  .ip-x,
+  .sh-x {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }
 @media (max-width: 860px) and (orientation: portrait) {
   .toolbar {
@@ -831,6 +888,9 @@ html:has(.explore) body {
   background: rgba(238, 241, 234, 0.16);
 }
 .ip-x {
+  /* Polish 2 (M8): a 32 px target on a desktop, 44 px on a phone (below). */
+  min-width: 32px;
+  min-height: 32px;
   border: 0;
   background: none;
   color: var(--ip-ink-2);
@@ -1621,13 +1681,23 @@ html:has(.explore) body {
 }
 .tilt-hint button {
   position: absolute;
-  right: 4px;
+  right: 2px;
   top: 2px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 0;
+  border-radius: 4px;
   background: none;
   color: inherit;
   font-size: 16px;
   cursor: pointer;
+}
+/* Polish 2 (M6): the hint steps aside while a dialog, Map layers or the ground view is open beside it. */
+body:has(dialog[open], .map-panel, .ground-layer) .tilt-hint {
+  display: none;
 }
 .map-ctl-btn:hover {
   background: rgba(28, 38, 32, 1);
@@ -1923,6 +1993,16 @@ html:has(.explore) body {
 .sh-join::before,
 .card-join::before {
   content: ", ";
+}
+/* Polish 2 (P1): on the card, "held by: …" takes its own line under "Maybe B", so the three never wrap apart. */
+.card-verdict .card-letter {
+  display: contents;
+}
+.card-verdict .card-join {
+  flex-basis: 100%;
+}
+.card-verdict .card-join::before {
+  content: none;
 }
 .sh-actions {
   display: flex;
@@ -2499,6 +2579,17 @@ html:has(.app-nav) .explore {
 }
 .help-link:hover {
   text-decoration: underline;
+}
+/* Polish 2 (P5): on a touch screen the section's "?" and the panel's inline links take a 44 px tap. */
+@media (hover: none) {
+  .help-link {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .panel-scored a {
+    display: inline-block;
+    padding: 12px 0;
+  }
 }
 /* margin: auto centres a modal dialog; Tailwind's base styles zero it. */
 .help-dialog {
@@ -3100,6 +3191,14 @@ html:has(.app-nav) .explore {
   align-items: center;
   color: var(--ip-ink-2);
 }
+/* Polish 2 (fresh-eyes): a flex summary loses its marker, so the fold read as an empty heading. */
+.mp-key summary::before {
+  content: "▸";
+  margin-right: 6px;
+}
+.mp-key[open] summary::before {
+  content: "▾";
+}
 .mk-rows {
   display: grid;
   gap: 6px;
@@ -3117,6 +3216,14 @@ html:has(.app-nav) .explore {
 .mk-swatch {
   display: flex;
   justify-content: center;
+}
+/* A swatch wider than the column (Stand here's pill): on the row's own line, its words after it. */
+.mk-rows li.mk-wide {
+  display: block;
+}
+.mk-rows li.mk-wide .mk-swatch {
+  display: inline-flex;
+  margin-right: 8px;
 }
 .sitepin.mk-pin {
   width: 24px;
@@ -3197,24 +3304,33 @@ html:has(.app-nav) .explore {
 .ag-row + .ag-row {
   margin-top: 4px;
 }
-.ag-eye-row {
+/* Polish 2 (M1): the overlays are toggles as On the map's are (the ✓ when on), each with its note beside it. */
+.ag-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 6px;
+}
+.ag-toggle-row,
+.mk-all-pins {
   display: flex;
   align-items: center;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 4px 8px;
 }
-.ag-eye {
-  min-width: 64px;
+.analysis-group .tc-toggle,
+.mp-key .tc-toggle {
   border: 1px solid var(--ip-rule);
-  border-radius: 4px;
-  padding: 2px 8px;
   background: transparent;
-  color: var(--ip-ink-2);
-  font-size: 12px;
-  cursor: pointer;
-}
-.ag-eye[aria-pressed="true"] {
-  background: var(--ip-sel);
   color: var(--ip-ink);
+}
+.analysis-group .tc-toggle[aria-pressed="true"],
+.mp-key .tc-toggle[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--ip-sel);
+}
+.mk-all-pins .tiny {
+  color: var(--ip-ink-2);
 }
 
 /* ---------- 15c: the driveway's entrance pins (proto L1404's inline style) ---------- */
@@ -3307,6 +3423,11 @@ html:has(.app-nav) .explore {
   color: var(--ip-ink-2);
 }
 /* Settings › Offline: the cap and Clear wrap under each other on a phone. */
+/* Polish 2 (fresh-eyes): the map cache's line sat under Keep offline data as if it were its caption. */
+.offline-settings h4,
+.offline-cache-line {
+  margin-top: 14px;
+}
 .offline-cap-row {
   flex-wrap: wrap;
 }
@@ -3342,6 +3463,10 @@ html:has(.app-nav) .explore {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
+button.offline-saved-name {
+  min-height: 44px;
+  text-align: left;
+}
 .offline-saved .btn {
   flex: none;
   min-height: 44px;
@@ -3369,12 +3494,23 @@ html:has(.app-nav) .explore {
   max-width: calc(100vw - 24px);
   padding: 6px 12px;
   border-radius: 8px;
-  background: #a63a2c;
-  color: #fff;
+  /* Polish 2 (M14): the map's own dark ink, not an error's red; being offline is a state, not a fault. */
+  background: rgba(28, 38, 32, 0.94);
+  color: #eef1ea;
   font: 600 13px/1.3 var(--font-sans);
   text-align: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
   pointer-events: none;
+}
+.pwa-offline-line {
+  display: block;
+  font-weight: 400;
+}
+/* A phone: under "‹ Your list" (top 64 px, 44 px tall), not over it. */
+@media (max-width: 860px) and (orientation: portrait) {
+  .pwa-offline {
+    top: calc(max(var(--top-h), env(safe-area-inset-top, 0px)) + 116px);
+  }
 }
 /* A new version is waiting: a small toast, bottom right; on phones, top centre (where the offline banner
    would be: an update needs the network), clear of the toolbar and the sheet at any height. */
@@ -3438,9 +3574,17 @@ html:has(.app-nav) .explore {
   text-align: left;
   cursor: pointer;
 }
+/* Polish 2 (M15): a chosen basemap shows by its dot and a firmer border, not the fill On the map's toggles use. */
 .mp-radio[aria-checked="true"] {
-  border-color: transparent;
-  background: var(--ip-sel);
+  border-color: var(--ip-ink-2);
+}
+.mp-radio-text {
+  min-width: 0;
+}
+.mp-hint {
+  display: block;
+  color: var(--ip-ink-2);
+  font-size: 12px;
 }
 .mp-dot {
   flex: none;
@@ -3467,8 +3611,10 @@ html:has(.app-nav) .explore {
 }
 .card-verdict {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  gap: 4px 10px;
+  text-align: left;
   background: none;
   border: 0;
   padding: 0;
@@ -4288,6 +4434,16 @@ html:has(.app-nav) .explore {
 .grade-action.sheet .btn.secondary {
   min-height: 44px;
 }
+.tb-btn.grade-btn.offline {
+  background: transparent;
+  color: var(--tb-ink);
+  box-shadow: inset 0 0 0 1px var(--tb-ink-2);
+}
+.grade-action.sheet .grade-btn.offline {
+  background: transparent;
+  color: var(--color-ink);
+  border-color: var(--color-rule);
+}
 /* Z-9 (UX part 2 PR 3b): the run's progress in the button's place, a slim bar under the step's words. */
 .grade-progress-line {
   flex: 1;
@@ -4522,6 +4678,12 @@ html:has(.app-nav) .explore {
 .ip-line-note::placeholder {
   color: var(--ip-ink-2);
 }
+textarea.ip-line-note {
+  width: 100%;
+  min-height: 3.2em;
+  field-sizing: content;
+  resize: vertical;
+}
 /* The line tool's Track | Easement switch. */
 .tb-seg {
   display: inline-flex;
@@ -4646,9 +4808,22 @@ html:has(.app-nav) .explore {
 }
 .cmp-actions {
   display: flex;
+  align-items: center;
   gap: 10px;
   margin-top: 2px;
   font-size: 13px;
+}
+/* Polish 2 (L4): Open is a 32 px target on a desktop, not a bare word; the list's Compare ticks a 20 px box. */
+.cmp-actions .link-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 4px;
+}
+.lib-grid .lib-stick-2 input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
 }
 .cmp-group th {
   background: var(--color-paper-2);
@@ -4888,6 +5063,20 @@ button.cmp-cell:hover {
  * ⋯, the tick, the name) stay put; separate borders, as Compare's, so the sticky cells keep theirs. Opaque cells:
  * the columns scroll under them.
  */
+/* Polish 2 (L5): the grid's right edge fades while there's more to scroll to. */
+.lib-grid-wrap {
+  position: relative;
+}
+.lib-grid-wrap[data-more]::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 28px;
+  background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.12));
+  pointer-events: none;
+}
 .lib-grid {
   /* At least 320 px: a short window scrolls the page around it instead of leaving a sliver. */
   max-height: max(320px, calc(100dvh - 230px));
@@ -4940,10 +5129,13 @@ button.cmp-cell:hover {
 .lib-grid .lib-name {
   max-width: 16em;
 }
+/* Polish 2 (fresh-eyes): up to two lines, so parcels on the same creek read apart, as a phone's cards do. */
 .lib-grid .lib-name .lib-open {
   overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  white-space: normal;
 }
 .lib-grid .lib-row:hover td,
 .lib-grid .lib-row:focus-visible td {
@@ -4989,7 +5181,7 @@ button.cmp-cell:hover {
 /* Z-6 (UX part 2 PR 7c1): the mark and letter in one fixed cell, ✎ and ● in their own, so nothing moves the rest. */
 .lib-factor {
   display: inline-grid;
-  grid-template-columns: 46px 12px 10px;
+  grid-template-columns: 56px 12px;
   align-items: center;
   justify-items: start;
 }
@@ -5002,9 +5194,7 @@ button.cmp-cell:hover {
 .lib-factor > .adjusted-mark {
   grid-column: 2;
 }
-.lib-factor > .lib-best {
-  grid-column: 3;
-}
+
 .lib-mark {
   display: inline-grid;
   place-items: center;
@@ -6236,15 +6426,26 @@ button.cmp-cell:hover {
   box-shadow: inset 0 0 0 2px var(--color-ok);
   font-weight: 600;
 }
+/* Polish 2 (W1): the number key that picks a choice, drawn as a key (not a rank's circle), and only with a keyboard. */
 .iv-key {
   flex: none;
   width: 24px;
   height: 24px;
   border: 1px solid var(--color-rule);
-  border-radius: 50%;
+  border-bottom-width: 2px;
+  border-radius: 4px;
   font-size: 12px;
   line-height: 22px;
   text-align: center;
+  color: var(--color-ink-2);
+}
+@media (hover: none) {
+  .iv-key {
+    display: none;
+  }
+}
+.iv-kept {
+  font-weight: 400;
   color: var(--color-ink-2);
 }
 .iv-follow {
@@ -6332,6 +6533,12 @@ button.cmp-cell:hover {
   margin-top: 6px;
   padding: 10px 22px;
   font-size: 16px;
+}
+/* Polish 2 (W3): a question asked on its own has no nav row; its Continue stays in view at the foot. */
+.iv-ask .iv-continue {
+  position: sticky;
+  bottom: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
 }
 /* The first run's "I already use Parcel Screen on another device", and its code form. */
 .iv > .join-first {
@@ -7169,6 +7376,10 @@ button.sync-ind.bad {
 
 /* ---------- Step 8b: the parcel panel's Grade | Details (docs/plans/step-8b-parcel-panel.md §9) ---------- */
 /* The switch: step 8's segmented control, under the header, full width; each segment at least 44 px. */
+/* Polish 2 (P4): a rule under the tabs, so the rows scrolling below read as the tab's, not under it. */
+.parcel-switch + .explore-scroll {
+  border-top: 1px solid var(--color-rule);
+}
 .parcel-switch {
   display: flex;
   margin: 0 16px 10px;
@@ -7272,13 +7483,14 @@ button.use-row[aria-expanded="true"] .use-name::after {
   font-weight: 700;
   text-align: center;
 }
+/* Polish 2 (P10): firmer tints and darker words, so Yes and Maybe don't read as pale. */
 .use-chip.pass {
-  background: color-mix(in srgb, var(--color-ok) 14%, #fff);
-  color: var(--color-ok);
+  background: color-mix(in srgb, var(--color-ok) 24%, #fff);
+  color: color-mix(in srgb, var(--color-ok) 80%, #000);
 }
 .use-chip.warn {
-  background: color-mix(in srgb, var(--color-warn) 14%, #fff);
-  color: var(--color-warn);
+  background: color-mix(in srgb, var(--color-warn) 26%, #fff);
+  color: color-mix(in srgb, var(--color-warn) 70%, #000);
 }
 .use-chip.fail {
   background: color-mix(in srgb, var(--color-steep) 12%, #fff);
@@ -7489,9 +7701,14 @@ button.use-row[aria-expanded="true"] .use-name::after {
 .scn-note {
   margin: 0;
 }
+/* Polish 2 (P10): a phone keeps the two pieces side by side, compact, so they compare at a glance. */
 @media (max-width: 860px) and (orientation: portrait) {
   .scn-pieces {
-    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .scn-piece {
+    padding: 6px 7px 8px;
+    font-size: 13px;
   }
 }
 /* Details: the Info panel's controls in the panel's light style (as the list's detail, #133); Remove stays red. */
@@ -7793,17 +8010,15 @@ button.use-row[aria-expanded="true"] .use-name::after {
     4px 0 16px rgba(0, 0, 0, 0.18),
     0 0 0 2px var(--color-rule) inset;
 }
-/* Map layers: a toggle that's on says so with a ✓, not only its fill; on a phone the list fades at its foot to show it
-   scrolls. */
+/* Map layers: a toggle that's on says so with a ✓, not only its fill; the list fades at its foot to show it scrolls
+   (a phone's since #240; a desktop's too since polish 2, M15). */
 .map-panel .tc-toggle[aria-pressed="true"]::before {
   content: "✓ " / "";
   font-weight: 700;
 }
-@media (max-width: 860px) {
-  .map-panel .mp-body {
-    mask-image: linear-gradient(to bottom, #000 calc(100% - 24px), transparent);
-    padding-bottom: 24px;
-  }
+.map-panel .mp-body {
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 24px), transparent);
+  padding-bottom: 24px;
 }
 /* Details: Recorded in takes its own line, so its example isn't cut off. */
 .parcel-details label.ip-line-row:has(> input[aria-label="Recorded in"]) {
@@ -8009,6 +8224,7 @@ button.use-row[aria-expanded="true"] .use-name::after {
   .app-frame > :not(.app-main),
   .app-map,
   .rp-bar,
+  .rp-size,
   .pwa-offline,
   .pwa-update {
     display: none !important;
@@ -8123,6 +8339,29 @@ button.use-row[aria-expanded="true"] .use-name::after {
 .rp-facts-list dd {
   margin: 0;
   overflow-wrap: anywhere;
+}
+/* Polish 2 (Z7): a line saying whose order a list is in. */
+.rp-note {
+  margin: 0 0 4px;
+  font-size: 12px;
+  color: #333;
+}
+/* Polish 2 (R3): the phone's Full size: the sheet at 100%, its own sideways scroll. */
+.rp-size {
+  min-height: 44px;
+  margin: 0 0 8px;
+}
+.rp-full {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.rp-key {
+  white-space: nowrap;
+}
+.rp-key-swatch {
+  display: inline-block;
+  margin-right: 3px;
+  vertical-align: -1px;
 }
 .rp-notes {
   white-space: pre-wrap;
@@ -8243,10 +8482,18 @@ button.use-row[aria-expanded="true"] .use-name::after {
   align-items: center;
   gap: 3px;
 }
+/* Polish 2 (P7): the old letter smaller and grey, with a firm strike, so it reads as "was", not a second grade. */
 .card-row s.was,
 .must-row s.was {
-  opacity: 0.55;
+  opacity: 0.7;
   text-decoration-thickness: 2px;
+  text-decoration-color: var(--color-ink);
+}
+.card-row s.card-grade.was {
+  min-width: 20px;
+  height: 20px;
+  font-size: 12px;
+  background: var(--color-ink-2);
 }
 .card-row .adjusted-why {
   color: var(--color-ink-2);
@@ -8380,14 +8627,15 @@ button.use-row[aria-expanded="true"] .use-name::after {
   margin: 0 0 6px;
 }
 /* The app's own letter among the override chips: shown, outlined, not a button. */
+/* Polish 2 (P6): at full ink, so it doesn't read as a disabled button; the dashed ring says it's the app's. */
 .adjust-letters .adjust-app {
   display: inline-grid;
   place-items: center;
   min-width: 44px;
   min-height: 44px;
-  opacity: 0.45;
-  outline: 2px dashed var(--color-ink-2);
-  outline-offset: -4px;
+  outline: 2px dashed #fff;
+  outline-offset: -5px;
+  cursor: default;
 }
 .adjust-what {
   margin: -4px 0 8px;
@@ -8405,6 +8653,11 @@ button.use-row[aria-expanded="true"] .use-name::after {
 .area-box-title {
   margin: 0 0 8px;
   font: 600 18px/1.2 var(--font-cond);
+}
+.area-sub {
+  margin: -4px 0 8px;
+  color: var(--color-ink-2);
+  font-size: 14px;
 }
 .area-box .card-person {
   margin-bottom: 8px;
@@ -8442,12 +8695,14 @@ button.use-row[aria-expanded="true"] .use-name::after {
   line-height: 1.25;
 }
 .ac-star {
+  display: grid;
+  place-items: center;
   min-width: 44px;
   min-height: 44px;
   border: 0;
   background: none;
-  color: var(--color-warn);
-  font-size: 22px;
+  /* The outline's own blue (polish 2, M12): a pin for the map, not Your list's amber star. */
+  color: #2f6f8f;
   cursor: pointer;
 }
 .ac-share {
@@ -8512,6 +8767,10 @@ button.use-row[aria-expanded="true"] .use-name::after {
 }
 .dock-areas .area-box {
   margin-top: 4px;
+}
+/* Polish 2 (M4): the search's results float over the area card; the card steps aside while they show. */
+.dock-search:has(.search-results) + .dock-areas {
+  visibility: hidden;
 }
 .search-areas {
   max-height: min(60vh, 520px);

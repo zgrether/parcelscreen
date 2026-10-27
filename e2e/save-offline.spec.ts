@@ -66,7 +66,11 @@ test("Save offline, then the parcel opens with no connection, with its map and g
   // Delete in Settings frees its pins.
   await context.setOffline(false);
   await openYourData(fresh);
-  await fresh.locator(".offline-saved li", { hasText: NAME }).getByRole("button", { name: "Delete" }).click();
+  const row = fresh.locator(".offline-saved li", { hasText: NAME });
+  // Polish 2 (L9): Delete offers Undo for a few seconds, then the copy goes.
+  await row.getByRole("button", { name: "Delete" }).click();
+  await row.getByRole("button", { name: "Undo" }).click();
+  await row.getByRole("button", { name: "Delete" }).click();
   await expect(fresh.getByText("No parcels saved offline.", { exact: false })).toBeVisible();
   await expect.poll(async () => (await stored(fresh)).filter((s) => s.pins.length).length).toBe(0);
 });

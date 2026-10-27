@@ -113,7 +113,7 @@ export function LineDetails({ ctl, m }: { ctl: ExploreController; m: LineMarkup 
         ))}
       </div>
       {/* Stored now; the parcel-workflow plan prices it (owner, A). */}
-      <p className="ip-note">The condition doesn&apos;t change the cost yet.</p>
+      <p className="ip-note">Kept with the line; costs don&apos;t read the condition yet.</p>
       <Width
         key={`${m.id} ${m.widthFt}`}
         widthFt={m.widthFt}
@@ -149,15 +149,20 @@ export function LineDetails({ ctl, m }: { ctl: ExploreController; m: LineMarkup 
           </div>
         </>
       )}
-      <input
+      {/* Polish 2 (P9): a box that grows with the note; Enter still saves it, Shift+Enter starts a new line. */}
+      <textarea
         className="ip-line-note"
+        rows={2}
         aria-label={`Note for ${m.name}`}
         placeholder="Where it comes from: the deed, a plat, a survey, a visit…"
         value={note}
         onChange={(e) => setNote(e.target.value)}
         onBlur={saveNote}
         onKeyDown={(e) => {
-          if (e.key === "Enter") saveNote();
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            saveNote();
+          }
         }}
       />
     </>
@@ -224,18 +229,23 @@ export function MarkDetails({ ctl, m }: { ctl: ExploreController; m: PointMarkup
             ))}
           </div>
           {/* Stored now; VR4 prices it (owner, WF4). */}
-          <p className="ip-note">The class doesn&apos;t change the cost yet.</p>
+          <p className="ip-note">Kept with the line; costs don&apos;t read the class yet.</p>
         </>
       )}
-      <input
+      {/* Polish 2 (P9): a box that grows with the note; Enter still saves it, Shift+Enter starts a new line. */}
+      <textarea
         className="ip-line-note"
+        rows={2}
         aria-label={`Note for ${m.name}`}
         placeholder="What it is, and how you know: a visit, the listing, the seller…"
         value={note}
         onChange={(e) => setNote(e.target.value)}
         onBlur={saveNote}
         onKeyDown={(e) => {
-          if (e.key === "Enter") saveNote();
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            saveNote();
+          }
         }}
       />
     </>

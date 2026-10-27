@@ -151,6 +151,23 @@ export function biggestMiss(card: Card): Row | null {
   );
 }
 
+/**
+ * Polish 2 (Z1, owner): a row past its edge says the edge is a ranked one, not a Must, which a "limit" in the reason
+ * otherwise reads as. Appended to the miss, after its own words.
+ */
+const RANKED = " (it lowers the grade; it isn't a must)";
+const ranked = (miss: string): string => (/ your /.test(miss) ? `${miss}${RANKED}` : miss);
+
+/**
+ * The edge a D or F row is past, in the person's terms, for the card's row (Z1): "past your 30-minute limit", "below
+ * your 3,000 ft". Null for a row with no number to say it with, or one at C or better.
+ */
+export function rowEdge(row: Row, card: Card, r: PartialScreenResult): string | null {
+  if (row.grade !== "D" && row.grade !== "F") return null;
+  const m = / ((?:is )?(?:past|below|under|brighter than) your .+)$/.exec(missLine(row, card, r));
+  return m ? m[1]!.replace(/^is /, "") : null;
+}
+
 /** "a", "a and b". */
 const and = (xs: string[]): string => xs.join(" and ");
 const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
@@ -192,7 +209,7 @@ export function answerReason(card: Card, r: PartialScreenResult): string {
         : held && checkFirst
           ? checkFirst
           : m
-            ? missLine(m, card, r)
+            ? ranked(missLine(m, card, r))
             : checkFirst;
   const failed = lead.kind === "fail" || lead.kind === "limit";
   const also = !failed && checkFirst && miss !== checkFirst ? checkFirst : null;
@@ -236,21 +253,28 @@ export interface VerdictParts {
   join: string | null;
 }
 
-export function verdictParts(card: Pick<Card, "verdict" | "grade" | "lead" | "heldBy">): VerdictParts {
+/** What the verdict reads; a whole card also says how many of its letters and Musts the person overrode (Z2). */
+type VerdictOf = Pick<Card, "verdict" | "grade" | "lead" | "heldBy"> & Partial<Pick<Card, "gates" | "rows">>;
+
+export function verdictParts(card: VerdictOf): VerdictParts {
   const misses =
     card.verdict === "Pass" &&
     card.grade !== null &&
     (card.lead?.kind === "fail" || card.lead?.kind === "limit");
   const held = card.verdict === "Maybe" && card.heldBy?.length ? card.heldBy : null;
+  const join = misses ? "but misses a must" : held ? `held by: ${listOf(held.map(lowerFirst))}` : null;
+  // Polish 2 (Z2, owner, #128): an override is said beside the verdict it may have moved, after any other joining words.
+  const n = [...(card.gates ?? []), ...(card.rows ?? [])].filter((x) => !!x.adjusted).length;
+  const overrides = n ? `with ${n} ${n === 1 ? "override" : "overrides"}` : null;
   return {
     verdict: VERDICT_WORD[card.verdict],
     grade: card.grade ?? "–",
-    join: misses ? "but misses a must" : held ? `held by: ${listOf(held.map(lowerFirst))}` : null,
+    join: [join, overrides].filter((x) => !!x).join(", ") || null,
   };
 }
 
-/** "Not for us · B, but misses a must", "Maybe · A, held by: septic", "Contender · B". */
-export const verdictLine = (card: Pick<Card, "verdict" | "grade" | "lead" | "heldBy">): string => {
+/** "Not for us · B, but misses a must", "Maybe · A, held by: septic", "Contender · B, with 1 override". */
+export const verdictLine = (card: VerdictOf): string => {
   const p = verdictParts(card);
   return `${p.verdict} · ${p.grade}${p.join ? `, ${p.join}` : ""}`;
 };

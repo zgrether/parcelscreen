@@ -61,11 +61,23 @@ export interface PanelText {
 const KM_PER_MI = 1.609344;
 /** Whole miles: the Trails cutoffs are round miles (owner, #118 review). */
 const mi = (km: number) => fmt(km / KM_PER_MI);
-/** "weight 25" for one rubric; "weight 25 (Mine) / 10 (Julie)" for several: each rubric's weight on the row, by name. */
-const weightOf = (rubrics: readonly NamedRubric[], row: RowKey): string =>
-  rubrics.length === 1
-    ? `weight ${weightsOf(rubrics[0]!.rubric)[row]}`
-    : "weight " + rubrics.map((nr) => `${weightsOf(nr.rubric)[row]} (${nr.name})`).join(" / ");
+/**
+ * "weight 25 (12% of your grade)" for one rubric; "weight 25 (Mine) / 10 (Julie)" for several: each rubric's weight on
+ * the row, by name. Polish 2 (Z5, owner): one rubric's line adds the row's share, after the weight, since a bare weight
+ * says nothing of how much a low letter costs.
+ */
+const weightOf = (rubrics: readonly NamedRubric[], row: RowKey): string => {
+  if (rubrics.length !== 1)
+    return "weight " + rubrics.map((nr) => `${weightsOf(nr.rubric)[row]} (${nr.name})`).join(" / ");
+  const w = weightsOf(rubrics[0]!.rubric);
+  const total = Object.values(w).reduce((a, b) => a + b, 0);
+  return total > 0 ? `weight ${w[row]} (${shareOf(w[row], total)} of your grade)` : `weight ${w[row]}`;
+};
+/** A row's share of the grade, whole percent; "under 1%" rather than a misleading 0%. */
+const shareOf = (w: number, total: number): string => {
+  const pct = (100 * w) / total;
+  return w > 0 && pct < 0.5 ? "under 1%" : `${Math.round(pct)}%`;
+};
 
 /** "A at 3,000 ft and up, B from 2,500, C from 2,000, D from 1,500" */
 const ladder = (edges: readonly string[], first: string, then: string): string =>

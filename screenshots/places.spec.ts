@@ -147,7 +147,7 @@ for (const phone of [false, true]) {
       await visit(page, "/interview");
       for (let q = 1; q < 4; q++) {
         await expect(page.locator(".iv-progress")).toHaveText(`${q} of 14`);
-        await page.getByRole("button", { name: /^(Skip|Next)$/ }).click();
+        await page.getByRole("button", { name: /^(Skip this question|Next)$/ }).click();
       }
       await expect(page.locator(".iv-progress")).toHaveText("4 of 14");
       await page.getByRole("radio", { name: "Walk out the door" }).first().click();

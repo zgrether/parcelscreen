@@ -105,7 +105,7 @@ function AskOne({ ask }: { ask: Asked }) {
   } as unknown as Interview;
   const question = QUESTIONS.find((q) => q.key === ask)!;
   return (
-    <main className="iv">
+    <main className="iv iv-ask">
       <header className="iv-head">
         <Link className="link-btn" href="/priorities">
           ← What matters
@@ -178,8 +178,9 @@ function FullInterview() {
   return (
     <main className="iv">
       <header className="iv-head">
+        {/* Polish 2 (W1): leaving keeps what's answered so far, and says so. */}
         <Link className="link-btn" href="/explore">
-          ← Map
+          ← Map <span className="iv-kept">(answers kept)</span>
         </Link>
         <p className="iv-progress" aria-hidden="true">
           {n} of {QUESTION_COUNT}
@@ -263,7 +264,8 @@ function StepView({
             title="Skip leaves this one out"
             onClick={() => iv.skip(keysOf(step))}
           >
-            Skip
+            {/* Polish 2 (W1): "Skip" beside a pick read as dropping the pick. */}
+            Skip this question
           </button>
         )}
       </nav>

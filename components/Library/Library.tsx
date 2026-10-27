@@ -317,7 +317,10 @@ export function Library() {
           />
         ) : rows.length === 0 ? (
           <p className="muted">
-            {FAVORITES_EMPTY} <Link href="/explore">Go to the map</Link>
+            {FAVORITES_EMPTY}{" "}
+            <Link className="link-btn" href="/explore">
+              Go to the map
+            </Link>
           </p>
         ) : (
           <>
@@ -497,11 +500,18 @@ export const LIST_VIEW_WORDS = {
 export const VERDICT_TIP =
   "The verdict also weighs your Must haves and limits, so the same letter can read differently.";
 
+/**
+ * Polish 2 (Z8, owner): the letter is a weighted average, so a parcel with an F can still read B; the tooltip says so
+ * and names the row that costs it most, from the card's own rows.
+ */
+const gradeTip = (g: Graded): string =>
+  `${VERDICT_TIP} The letter is a weighted average of every row${g.weakest ? `; its weakest: ${g.weakest}` : ""}.`;
+
 function Grade({ g, unscreened }: { g: Graded | null; unscreened: LibraryRow["unscreened"] }) {
   if (!g) return <VerdictWord v={null} unscreened={unscreened} />;
   return (
     // J-4 (UX part 2 PR 7a): the verdict first, then the letter, as the card and the header have it.
-    <span className="lib-grade" title={VERDICT_TIP}>
+    <span className="lib-grade" title={gradeTip(g)}>
       <VerdictWord v={g.verdict} unscreened={null} />
       <span className={`card-grade small g-${g.grade ?? "none"}`}>{g.grade ?? "–"}</span>
       {g.adjusted && (
@@ -552,7 +562,7 @@ function OtherGrades({ r }: { r: LibraryRow }) {
             </span>
           )}
           {r.takes[g.id] && (
-            <span className={`take-chip tiny a-${r.takes[g.id]}`}>
+            <span className={`take-chip tiny a-${r.takes[g.id]}`} title={`${g.name}'s take`}>
               {g.name} says {ANSWER_WORD[r.takes[g.id]!]}
             </span>
           )}
@@ -588,7 +598,7 @@ const hasStatus = (r: LibraryRow) => !!STATUS_WORD[r.status] || !!milestonesLine
 const BEST_WORDS = "best in this column";
 /** What the grid's and the strip's marks mean (the fresh-eyes review), under the list; step 12 appends ✎. */
 const LEGEND =
-  "✓ pass · ! check first · ✗ fail · ? not known · A–F the grade · ● best in its column · ≠ the listing's acres differ from the boundary's (hover or open the parcel for both) · ✎ adjusted for this parcel · – set aside for this parcel";
+  "✓ pass · ! check first · ✗ fail · ? not known · A–F the grade · ● best in its column · ≠ the listing's acres differ from the boundary's (open the parcel for both) · ✎ adjusted for this parcel · – set aside for this parcel";
 
 /**
  * Desktop: the comparison grid (step 10b plan §1): in My order, the handle and the menu first; the name, its grade,
@@ -604,6 +614,22 @@ function LibraryTable({ rows, rubrics, sort, setSort, columns, ...rest }: RowsPr
       .map((c) => [c.id, bestIn(rows, c.id)]),
   );
   const gradeKey = gradeSortKey(rubrics[0]!.id);
+  // Polish 2 (L5): a fade at the right edge while the grid has more to its right (the sticky cells hide a shadow).
+  const scroller = useRef<HTMLDivElement>(null);
+  const [more, setMore] = useState(false);
+  useEffect(() => {
+    const el = scroller.current;
+    if (!el) return;
+    const check = () => setMore(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+    check();
+    el.addEventListener("scroll", check, { passive: true });
+    const seen = new ResizeObserver(check);
+    seen.observe(el);
+    return () => {
+      el.removeEventListener("scroll", check);
+      seen.disconnect();
+    };
+  }, []);
   /** A header that sorts by its column; a second click turns it around (My order has no header). */
   const head = (label: ReactNode, key: SortKey, title?: string, className?: string) => {
     const on = sort.key === key;
@@ -624,46 +650,48 @@ function LibraryTable({ rows, rubrics, sort, setSort, columns, ...rest }: RowsPr
     );
   };
   return (
-    <div className="lib-scroll lib-grid">
-      <table className="lib-table">
-        <thead>
-          <tr>
-            <th scope="col" className="lib-stick lib-stick-1">
-              <span className="sr-only">{rest.ordering ? "My order" : "More"}</span>
-            </th>
-            <th scope="col" className="lib-stick lib-stick-2">
-              Compare
-            </th>
-            {head("Name", "name", undefined, "lib-stick lib-stick-3")}
-            {head(
-              rubrics.length > 1 ? "Grades" : switchLabel(rubrics[0]!),
-              gradeKey,
-              "Your grade and verdict",
-            )}
-            {shown.map((c) => (
-              <Fragment key={c.id}>
-                {head(c.header, c.sort, c.title, c.kind === "factor" ? "lib-factor-h" : undefined)}
-              </Fragment>
+    <div className="lib-grid-wrap" data-more={more || undefined}>
+      <div className="lib-scroll lib-grid" ref={scroller}>
+        <table className="lib-table">
+          <thead>
+            <tr>
+              <th scope="col" className="lib-stick lib-stick-1">
+                <span className="sr-only">{rest.ordering ? "My order" : "More"}</span>
+              </th>
+              <th scope="col" className="lib-stick lib-stick-2">
+                Compare
+              </th>
+              {head("Name", "name", undefined, "lib-stick lib-stick-3")}
+              {head(
+                rubrics.length > 1 ? "Grades" : switchLabel(rubrics[0]!),
+                gradeKey,
+                "Your grade and verdict",
+              )}
+              {shown.map((c) => (
+                <Fragment key={c.id}>
+                  {head(c.header, c.sort, c.title, c.kind === "factor" ? "lib-factor-h" : undefined)}
+                </Fragment>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <TableRow
+                key={r.key}
+                r={r}
+                index={i}
+                count={rows.length}
+                rubrics={rubrics}
+                sort={sort}
+                setSort={setSort}
+                columns={columns}
+                best={best}
+                {...rest}
+              />
             ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <TableRow
-              key={r.key}
-              r={r}
-              index={i}
-              count={rows.length}
-              rubrics={rubrics}
-              sort={sort}
-              setSort={setSort}
-              columns={columns}
-              best={best}
-              {...rest}
-            />
-          ))}
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -681,21 +709,23 @@ function FactorCellView({ c, best }: { c: FactorCell | undefined; best: boolean 
             {GATE_MARK[c.status]}
           </span>
         )}
-        {c.grade !== undefined && (
+        {/* Polish 2 (L6): a Must that fails or isn't known shows its mark alone; its letter is in the panel. */}
+        {c.grade !== undefined && !(c.kind === "must" && (c.status === "fail" || c.status === "unknown")) && (
           <span className={`card-grade small g-${c.grade ?? "none"}`} aria-hidden="true">
             {c.grade ?? "–"}
           </span>
         )}
         {c.setAside && <span className="muted">–</span>}
+        {/* Polish 2 (L5): ● beside the letter it marks, inside the cell's fixed column, not between columns. */}
+        {best && (
+          <span className="lib-best" aria-hidden="true">
+            ●
+          </span>
+        )}
       </span>
       {c.adjusted && (
         <span className="adjusted-mark" aria-hidden="true">
           ✎
-        </span>
-      )}
-      {best && (
-        <span className="lib-best" aria-hidden="true">
-          ●
         </span>
       )}
     </span>

@@ -1,6 +1,6 @@
 /**
  * The area catalog's suggestion box (step 13, docs/plans/step-13-area-catalog.md §6, §10): after the interview,
- * "Areas that fit you", five cards; "Show me a parcel here" opens the area's sample on the map there, read-only until
+ * "Where to look" ("Areas that fit your answers" under it), five cards; "Show me a parcel here" opens the area's sample on the map there, read-only until
  * Add to list; on the map with nothing open, "Where to look"; a starred area's outline stays on the map, and the star
  * outlasts a reload; Map layers' Area outlines shows every area.
  */
@@ -24,7 +24,7 @@ const drawn = (page: Page) =>
     return { areas: f.length, starred: f.filter((x) => x.properties.starred).length };
   });
 
-test("after the interview: Areas that fit you, five cards, and Show me a parcel here", async ({
+test("after the interview: Where to look, five cards, and Show me a parcel here", async ({
   page,
   context,
 }) => {
@@ -34,8 +34,9 @@ test("after the interview: Areas that fit you, five cards, and Show me a parcel 
   await visit(page, "/interview");
   // Every screen skipped: the starting list's priorities.
   for (let i = 0; i < 16 && !(await page.getByText("What matters to you").first().isVisible()); i++)
-    await page.getByRole("button", { name: /^(Next|Skip|See my priorities)$/ }).click();
-  const box = page.getByRole("region", { name: W.afterInterview });
+    await page.getByRole("button", { name: /^(Next|Skip this question|See my priorities)$/ }).click();
+  const box = page.getByRole("region", { name: W.onTheMap });
+  await expect(box.getByText(W.afterInterview)).toBeVisible();
   await expect(box.locator(".area-card")).toHaveCount(5);
   // The starting list's must-haves are all parcel-scale: said once, under the title.
   await expect(box.locator(".area-note")).toHaveText([W.ranked, MUSTS_PARCEL_SCALE]);
