@@ -19,9 +19,10 @@ async function onUses(page: Page, slug: FixtureSlug, phone: boolean): Promise<vo
   await openFromList(page, loadFixture(slug).input.name);
   const tilt = page.locator(".tilt-hint button");
   if (await tilt.count()) await tilt.first().click();
+  // A phone's peek leaves the tabs below the fold: the sheet goes up first.
+  await tall(page, phone);
   await page.getByRole("tab", { name: "Uses" }).click();
   await expect(page.locator(".pay-list .use").first()).toBeVisible();
-  await tall(page, phone);
 }
 async function tall(page: Page, phone: boolean): Promise<void> {
   if (!phone) return;
@@ -91,6 +92,7 @@ for (const phone of [false, true]) {
         await kv.setItem("ps.parcels", JSON.stringify(store));
       }, line);
       await reload(page);
+      await tall(page, phone);
       await page.getByRole("tab", { name: "Uses" }).click();
       const scenario = page.getByRole("article", { name: "Split 1" });
       const pieces = scenario.locator(".scn-piece");
