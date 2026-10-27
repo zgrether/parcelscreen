@@ -34,7 +34,7 @@ test("after the interview: Where to look, five cards, and Show me a parcel here"
   await visit(page, "/interview");
   // Every screen skipped: the starting list's priorities.
   for (let i = 0; i < 16 && !(await page.getByText("What matters to you").first().isVisible()); i++)
-    await page.getByRole("button", { name: /^(Next|Skip|See my priorities)$/ }).click();
+    await page.getByRole("button", { name: /^(Next|Skip this question|See my priorities)$/ }).click();
   const box = page.getByRole("region", { name: W.onTheMap });
   await expect(box.getByText(W.afterInterview)).toBeVisible();
   await expect(box.locator(".area-card")).toHaveCount(5);
