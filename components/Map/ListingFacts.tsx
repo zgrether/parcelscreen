@@ -12,6 +12,7 @@ import { askingLine, parsePrice } from "@/lib/client/askingPrice";
 import { safeListingHref } from "@/lib/client/listingUrl";
 import { HOA_VALUES, type ListingField, type WorkingParcel } from "@/lib/client/parcelStore";
 import { listingAcresNote, listingFolds, listingSummary } from "@/lib/report/listing";
+import { LISTING_PAY } from "@/lib/pay/words";
 import { HOA_WORD, LIMIT_WORDS, SOURCE } from "@/lib/uses/words";
 
 export interface ListingSaves {
@@ -121,6 +122,68 @@ export function ListingFacts({
         </div>
         {open.fromOriginal?.includes("hoa") && <FromOriginalNote />}
       </div>
+      {/* Step 15 (plan §5): How it could pay reads both; neither changes the grade. */}
+      <ValueAndWhen
+        group={LISTING_PAY.assessedGroup}
+        label={LISTING_PAY.assessed}
+        whenLabel={LISTING_PAY.taxYear}
+        whenPlaceholder="2026"
+        value={open.assessed?.value ?? null}
+        when={open.assessed?.year != null ? String(open.assessed.year) : ""}
+        save={(value, when) => {
+          const year = /^\d{4}$/.test(when.trim()) ? Number(when.trim()) : null;
+          save.listing({ assessed: value === null ? null : { value, year } });
+        }}
+      />
+      <ValueAndWhen
+        group={LISTING_PAY.cruiseGroup}
+        label={LISTING_PAY.cruise}
+        whenLabel={LISTING_PAY.cruiseDate}
+        whenPlaceholder="When it was cruised"
+        value={open.timberCruise?.value ?? null}
+        when={open.timberCruise?.date ?? ""}
+        save={(value, when) =>
+          save.listing({ timberCruise: value === null ? null : { value, date: when.trim() } })
+        }
+      />
+    </div>
+  );
+}
+
+/** A dollar figure and when it's from, saved together (step 15 §5): a blank figure clears both. */
+function ValueAndWhen({
+  group,
+  label,
+  whenLabel,
+  whenPlaceholder,
+  value,
+  when,
+  save,
+}: {
+  group: string;
+  label: string;
+  whenLabel: string;
+  whenPlaceholder: string;
+  value: number | null;
+  when: string;
+  save(value: number | null, when: string): void;
+}) {
+  return (
+    <div className="ip-survey" role="group" aria-label={group}>
+      <NumberBox
+        key={`v${value}`}
+        label={label}
+        placeholder="$"
+        unit={/^\$|\s*dollars?$/i}
+        value={value}
+        save={(v) => save(v, when)}
+      />
+      <TextField
+        label={whenLabel}
+        value={when}
+        placeholder={whenPlaceholder}
+        save={(w) => value !== null && save(value, w)}
+      />
     </div>
   );
 }

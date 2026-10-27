@@ -10,6 +10,8 @@ import type { ScreenIt } from "@/components/Results/panel/ScreenIt";
 import { Scenarios } from "@/components/Split/Scenarios";
 import { USE_ORDER } from "@/lib/uses";
 import { DIVIDE, USE_NAME, USE_WORDS } from "@/lib/uses/words";
+import { PAY_WORDS } from "@/lib/pay/words";
+import { HowItCouldPay } from "./HowItCouldPay";
 import { Facts, UseRow } from "./UseRow";
 
 export function Uses({ s }: { s: ScreenIt }) {
@@ -78,10 +80,13 @@ export function Uses({ s }: { s: ScreenIt }) {
           <Facts facts={v.limits} />
         </>
       )}
+      {/* Step 15: How it could pay, Uses' second panel, directly under What limits you (plan §6, §12 Q2). */}
+      <HowItCouldPay options={s.pay} />
       <Scenarios s={s} />
-      {/* Step 15's "How it could pay" goes here: the second panel of Uses, under What limits you and above the one
-          not-advice line, which covers both (ux-audit P-3, J-1). */}
-      <p className="uses-advice tiny muted">{USE_WORDS.notAdvice}</p>
+      {/* One not-advice line for both panels (§12 Q1): Panel 1's sentence, then Panel 2's. */}
+      <p className="uses-advice tiny muted">
+        {USE_WORDS.notAdvice} {PAY_WORDS.notAdvice}
+      </p>
     </section>
   );
 }

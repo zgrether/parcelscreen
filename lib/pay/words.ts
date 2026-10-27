@@ -20,6 +20,7 @@ export const PAY_WORDS = {
   notAdvice: "For how it could pay, talk to a tax advisor, a land trust or a forester before acting.",
   notCovered: "Not covered here yet",
   toConfirm: "to confirm",
+  sliderHint: "Drag to try an appraised value: the app can't know it",
 } as const;
 
 export const ELIGIBILITY_WORD: Record<Eligibility, string> = {
@@ -184,4 +185,14 @@ export const SIGNAL = {
   divide: "Divide",
   cruise: "Timber cruise",
   none: "none",
+} as const;
+
+/** Listing's two new fields (§5, §8 Listing). */
+export const LISTING_PAY = {
+  assessedGroup: "Assessed value",
+  assessed: "Assessed value ($)",
+  taxYear: "Tax year",
+  cruiseGroup: "Timber cruise",
+  cruise: "Timber cruise value ($)",
+  cruiseDate: "Cruise date",
 } as const;

@@ -191,6 +191,12 @@ export interface WorkingParcel {
   deedRestrictions: string;
   hoa: Hoa;
   /**
+   * Step 15 (plan §5.1–§5.2): the county's assessed value as typed, with its tax year, and a timber cruise's value and
+   * date. How it could pay reads them; neither reaches the engine or the card. Defaults of null, so `v` stays 2.
+   */
+  assessed: Assessed | null;
+  timberCruise: TimberCruise | null;
+  /**
    * Owner, after #312: which of the two a piece added from a split brought from its parcel ("from the original parcel");
    * an edit of one makes it the person's own. Absent: none.
    */
@@ -311,8 +317,23 @@ export const NO_LISTING: Pick<WorkingParcel, ListingField> = {
   agent: "",
   deedRestrictions: "",
   hoa: "unknown",
+  assessed: null,
+  timberCruise: null,
 };
-export type ListingField = "name" | "listingUrl" | "listingAcres" | "agent" | "deedRestrictions" | "hoa";
+export type ListingField =
+  "name" | "listingUrl" | "listingAcres" | "agent" | "deedRestrictions" | "hoa" | "assessed" | "timberCruise";
+
+/** The county's assessed value, as typed from its record, and the tax year it's for (step 15 §5.2). */
+export interface Assessed {
+  value: number;
+  year: number | null;
+}
+/** A timber cruise's value and its date, as typed (step 15 §5.1). */
+export interface TimberCruise {
+  value: number;
+  /** As typed: "2026-09", "Sept 2026". */
+  date: string;
+}
 
 /** Whether the parcel has an HOA, as the household knows it (step 14, plan §3.2). */
 export type Hoa = "yes" | "no" | "unknown";
@@ -401,6 +422,8 @@ export function isBuilt(p: WorkingParcel | null): boolean {
     p.agent.trim() !== "" ||
     p.deedRestrictions.trim() !== "" ||
     p.hoa !== "unknown" ||
+    p.assessed !== null ||
+    p.timberCruise !== null ||
     p.status !== "inProgress" ||
     p.milestones.walked !== null ||
     p.milestones.offered !== null ||
@@ -576,6 +599,12 @@ const WorkingSchema = z.object({
   // Added with step 14: a parcel kept before has no restrictions typed, and an HOA not known.
   deedRestrictions: z.string().default(""),
   hoa: z.enum(HOA_VALUES).default("unknown"),
+  // Added with step 15: a parcel kept before has neither typed.
+  assessed: z
+    .object({ value: z.number().nonnegative(), year: z.number().int().nullable() })
+    .nullable()
+    .default(null),
+  timberCruise: z.object({ value: z.number().nonnegative(), date: z.string() }).nullable().default(null),
   // Added after #312: a parcel kept before brought nothing from another.
   fromOriginal: z.array(z.enum(FROM_ORIGINAL)).optional(),
   // Added with WF2: a parcel kept before is in progress, with no milestones.
