@@ -14,7 +14,8 @@ export const PADDLE_SOURCES =
   "Launches: OpenStreetMap contributors (slipways, put-ins and access points) and the US Forest Service; lakes and rivers from USGS's National Hydrography Dataset.";
 
 /** River put-ins are listed with this, never graded (owner's brief, 10/25). */
-export const RIVER_CAUTION = "check the river's class before paddling";
+// Polish 2 (Z4, owner): what a river's class is, in passing.
+export const RIVER_CAUTION = "check the river's class (how hard its rapids are) before paddling";
 /** The panel's lead-in to them, after the graded line. */
 export const RIVERS_NOT_GRADED = "river put-ins, not graded:";
 

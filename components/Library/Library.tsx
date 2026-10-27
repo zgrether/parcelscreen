@@ -500,11 +500,18 @@ export const LIST_VIEW_WORDS = {
 export const VERDICT_TIP =
   "The verdict also weighs your Must haves and limits, so the same letter can read differently.";
 
+/**
+ * Polish 2 (Z8, owner): the letter is a weighted average, so a parcel with an F can still read B; the tooltip says so
+ * and names the row that costs it most, from the card's own rows.
+ */
+const gradeTip = (g: Graded): string =>
+  `${VERDICT_TIP} The letter is a weighted average of every row${g.weakest ? `; its weakest: ${g.weakest}` : ""}.`;
+
 function Grade({ g, unscreened }: { g: Graded | null; unscreened: LibraryRow["unscreened"] }) {
   if (!g) return <VerdictWord v={null} unscreened={unscreened} />;
   return (
     // J-4 (UX part 2 PR 7a): the verdict first, then the letter, as the card and the header have it.
-    <span className="lib-grade" title={VERDICT_TIP}>
+    <span className="lib-grade" title={gradeTip(g)}>
       <VerdictWord v={g.verdict} unscreened={null} />
       <span className={`card-grade small g-${g.grade ?? "none"}`}>{g.grade ?? "–"}</span>
       {g.adjusted && (

@@ -49,6 +49,8 @@ export interface BuildView {
 }
 
 const cell = (v: number | null | undefined) => (v == null ? "—" : String(v));
+const rockCell = (v: number | null | undefined) =>
+  v == null ? "—" : Number.isInteger(v) ? String(v) : fmt(v, 1);
 
 function compareRows(r: PartialScreenResult): CompareRow[] {
   const rows: (Partial<ScoredSite> & { name: string })[] = (derivedSites(r) ?? []).map((s) => ({
@@ -69,7 +71,8 @@ function compareRows(r: PartialScreenResult): CompareRow[] {
       { strong: x.costTier || "—", text: ` ${cell(x.costIdx)}` },
       { text: x.c ? cell(x.c.septic) : "—" },
       { text: x.c ? cell(x.c.foundation) : "—" },
-      { text: x.c ? cell(x.c.rock) : "—" },
+      // Polish 2 (R1): a compact site's rock points are scaled, so they can read 1.9500000000000002 unrounded.
+      { text: x.c ? rockCell(x.c.rock) : "—" },
       { text: x.c ? fmt(x.c.pad) : "—" },
       { text: `${x.driveFt != null ? `${fmt(x.driveFt)} ft` : "—"}${x.c ? ` (${fmt(x.c.driveway)})` : ""}` },
       { text: cell(x.score) },
@@ -110,7 +113,9 @@ export function buildView(r: PartialScreenResult): BuildView | null {
     })),
     compare: compareRows(r),
     compareNote:
-      "Quality is the spot itself — sun 40, aspect/frost/slope/sky 15 each — and can't be bought. Cost is what it takes to build there, as points toward 100: septic class, foundation rating, rock, pad cutting, driveway length and grade. A great spot with a long driveway is an A site at $$$, not a D.",
+      "Quality is the spot itself — sun 40, aspect/frost/slope/sky 15 each — and can't be bought. Cost is what it takes to build there, as points toward 100: septic class, foundation rating, rock, pad cutting, driveway length and grade. A great spot with a long driveway is an A site at $$$, not a D." +
+      // Polish 2 (Z7, owner): the tiers' scale, after the prototype's note.
+      " Build cost tiers run from $, the least to build, to $$$$, the most.",
     shelves: r.shelves?.length
       ? {
           items: r.shelves.map((sh, i) => ({

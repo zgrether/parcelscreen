@@ -60,7 +60,7 @@ describe("the Paddling row", () => {
     const more = rowOf(withPaddling({ flat: flat(40), rivers, pond }));
     expect(more.grade).toBe(bare.grade);
     expect(more.panelNote).toBe(
-      "river put-ins, not graded: Watauga River: Guy Ford access, 6.0 mi straight — check the river's class before paddling. And a pond on the land you could paddle (1.2 ac)",
+      "river put-ins, not graded: Watauga River: Guy Ford access, 6.0 mi straight — check the river's class (how hard its rapids are) before paddling. And a pond on the land you could paddle (1.2 ac)",
     );
     expect(bare.panelNote).toBeUndefined();
   });
@@ -73,7 +73,7 @@ describe("the Paddling row", () => {
       { name: "Elk Creek access", river: "South Fork New River", km: 24.7 },
     ];
     expect(riversLine(rivers)).toBe(
-      "South Fork New River: South Fork New River access, 15.2 mi straight; Elk Creek access, 15.3 mi straight; New River: Mouth of Wilson access, 16.2 mi straight — check the river's class before paddling",
+      "South Fork New River: South Fork New River access, 15.2 mi straight; Elk Creek access, 15.3 mi straight; New River: Mouth of Wilson access, 16.2 mi straight — check the river's class (how hard its rapids are) before paddling",
     );
   });
 

@@ -34,7 +34,7 @@ describe("Camp now", () => {
       "a campsite mark past new ground: maybe, the track to cut",
       [r({ cover: cover(0, 0) }), { cost: pricedCamp(1234) }, { marks: [point("campsite", site1)] }],
       "maybe",
-      "Reachable only after a pioneer track (1,234 ft to cut)",
+      "Reachable only after a pioneer track, a rough track cut for a 4×4 (1,234 ft to cut)",
     ],
     [
       "open ground only far from a road: maybe",
@@ -52,7 +52,7 @@ describe("Camp now", () => {
       "no open or marked spot, a site that fits: maybe, camp at the site",
       [r({ cover: cover(0, 0) }), { cost: pricedCamp(600) }],
       "maybe",
-      "Reachable only after a pioneer track (600 ft to cut)",
+      "Reachable only after a pioneer track, a rough track cut for a 4×4 (600 ft to cut)",
     ],
     [
       "no practical way in: no",

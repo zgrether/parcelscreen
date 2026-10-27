@@ -16,7 +16,7 @@ import { KIND_NAME, type WorkingParcel } from "@/lib/client/parcelStore";
 import { milestonesLine, statusLine } from "@/lib/client/parcelStatus";
 import { askingLine } from "@/lib/client/askingPrice";
 import { safeListingHref } from "@/lib/client/listingUrl";
-import { choicesBeside } from "@/lib/report/sites";
+import { choicesBeside, metresBetween } from "@/lib/report/sites";
 import { mustLines, mustText } from "@/lib/report/cardLines";
 import { listingAcresNote } from "@/lib/report/listing";
 import { areaPolygon } from "@/lib/report/marks";
@@ -58,6 +58,8 @@ import { ANSWER_WORD, USE_NAME, USE_WORDS } from "@/lib/uses/words";
 export const FULL_WORDS = {
   priorities: "The priorities it was graded against",
   sites: "Best site and alternatives",
+  /** Polish 2 (Z7, owner): this list is in the person's order; Where to build's cards under it rank by the app's. */
+  yourOrder: "In your order; Where to build, below, ranks them by the app's numbers.",
   access: "Access and driveway",
   cost: "Cost to enjoy",
   sun: "Winter sun and the horizon",
@@ -118,8 +120,9 @@ const fmtDate = (iso: string): string => {
 
 const asOf = (iso: string): string => {
   const d = new Date(iso);
+  // Polish 2 (Z7, owner): a run with no date said "as of the screen", which reads as a date it doesn't give.
   return Number.isNaN(d.getTime())
-    ? "as of the screen"
+    ? "date not recorded"
     : `as of ${d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
 };
 
@@ -173,7 +176,12 @@ export function Full({
   useEffect(() => {
     box.current?.querySelectorAll("details").forEach((d) => (d.open = true));
   });
-  const point = evaluationPoint(result);
+  const at = evaluationPoint(result);
+  // Polish 2 (Z7, owner): the sun and sky are read where the grade ran; when that's a ranked site, its number is said
+  // after the engine's label ("the largest house site (site #1)"), as the card's rows name sites.
+  const ranAt = at ? card.sites.find((s) => metresBetween(s.ll, at.ll) <= 1) : undefined;
+  const point =
+    at && ranAt && !/site #\d/.test(at.label) ? { ...at, label: `${at.label} (site #${ranAt.rank})` } : at;
   const props: BlockProps = {
     result,
     point,
@@ -257,6 +265,7 @@ export function Full({
       </Section>
 
       <Section title={FULL_WORDS.sites}>
+        {best && <p className="rp-note">{FULL_WORDS.yourOrder}</p>}
         {best && (
           <ol className="rp-sites">
             {[best, ...others].map((s, i) => (
