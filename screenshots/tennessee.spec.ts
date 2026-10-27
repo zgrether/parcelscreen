@@ -109,7 +109,7 @@ for (const phone of [false, true]) {
         .getByRole("button", { name: /map|layers/i })
         .first()
         .click();
-      await expect(page.getByText("Aerial (state ortho: VA, NC, TN)").first()).toBeVisible();
+      await expect(page.getByText("Aerial (state: VA, NC, TN)").first()).toBeVisible();
       await shot(page, "7-basemap-menu");
     });
 

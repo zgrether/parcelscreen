@@ -25,4 +25,11 @@ describe("keyEntries", () => {
   it("every pin on says so", () => {
     expect(keyEntries({ ...none, bestPin: true, allPins: true })).toEqual(["best", "allPins"]);
   });
+
+  it("names the driveway's other lines and Stand here as they show (polish 2, M2)", () => {
+    expect(
+      keyEntries({ ...none, bestPin: true, standHere: true, route: true, second: true, direct: true }),
+    ).toEqual(["best", "standHere", "driveway", "second", "direct"]);
+    expect(keyEntries({ ...none, over: true })).toEqual(["over"]);
+  });
 });

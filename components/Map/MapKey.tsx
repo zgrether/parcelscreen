@@ -25,7 +25,7 @@ const Line = ({ color, dash, under }: { color: string; dash?: string; under?: st
   </svg>
 );
 
-const ROWS: { key: string; swatch: React.ReactNode; text: string }[] = [
+const ROWS: { key: string; swatch: React.ReactNode; text: string; wide?: boolean }[] = [
   {
     key: "best",
     swatch: <Pin cls=" top" text="1" />,
@@ -35,6 +35,17 @@ const ROWS: { key: string; swatch: React.ReactNode; text: string }[] = [
     key: "site",
     swatch: <Pin cls="" text="2" />,
     text: "Another house site. Tap a pin to see the sun and sky there.",
+  },
+  {
+    // Polish 2 (M2): the pin beside the best site, which opens the ground view.
+    key: "stand",
+    swatch: (
+      <span className="stand-here mkl-stand" aria-hidden="true">
+        Stand here
+      </span>
+    ),
+    text: "Opens the skyline and the sun as you'd see them from the site it sits beside.",
+    wide: true,
   },
   {
     key: "shelf",
@@ -59,7 +70,7 @@ const ROWS: { key: string; swatch: React.ReactNode; text: string }[] = [
   {
     key: "fan",
     swatch: <Line color="#e0553f" />,
-    text: "The horizon fan: a ray toward each ridge, red where it blocks the winter sun.",
+    text: "Skyline rays: a ray toward each ridge, red where it blocks the winter sun.",
   },
   // Step 14: added last, so the rows above keep their order.
   { key: "power", swatch: <Line color={POWER_COLOR} under={POWER_CASING} />, text: POWER_MAP.key },
@@ -83,23 +94,19 @@ export function MapKey() {
   return (
     <details className="mp-key" ref={box}>
       <summary className="tc-label">What&apos;s on the map</summary>
-      <div className="ag-row mk-all-pins">
-        <span>
-          {KEY_WORDS.allPins}
-          <span className="tiny muted"> — the other sites, shelves, gardens and road entrances</span>
-        </span>
+      <div className="mk-all-pins">
         <button
-          className="ag-eye"
+          className="tc-toggle"
           aria-pressed={on.allPins}
-          aria-label={`${on.allPins ? "Hide" : "Show"} every pin`}
           onClick={() => setOverlay("allPins", !on.allPins)}
         >
-          {on.allPins ? "Shown" : "Hidden"}
+          {KEY_WORDS.allPins}
         </button>
+        <span className="tiny muted">The other sites, shelves, gardens and road entrances</span>
       </div>
       <ul className="mk-rows">
         {ROWS.map((r) => (
-          <li key={r.key}>
+          <li key={r.key} className={r.wide ? "mk-wide" : undefined}>
             <span className="mk-swatch">{r.swatch}</span>
             <span>{r.text}</span>
           </li>

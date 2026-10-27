@@ -74,11 +74,14 @@ function Panel({ onClose }: { onClose: () => void }) {
               onClick={() => setMapLayerPrefs({ base: b.id })}
             >
               <span className="mp-dot" aria-hidden="true" />
-              {b.label}
-              {/* Step 14e: Esri's terms don't allow keeping its tiles. */}
-              {BASEMAPS_NOT_KEPT.has(b.id) && (
-                <span className="tiny muted mp-not-kept">{OFFLINE_WORDS.notKept}</span>
-              )}
+              <span className="mp-radio-text">
+                {b.label}
+                {/* Step 14e: Esri's terms don't allow keeping its tiles. */}
+                {BASEMAPS_NOT_KEPT.has(b.id) && (
+                  <span className="tiny muted mp-not-kept">{OFFLINE_WORDS.notKept}</span>
+                )}
+                {b.hint && <span className="mp-hint">{b.hint}</span>}
+              </span>
             </button>
           ))}
         </div>

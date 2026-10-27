@@ -7,8 +7,9 @@
 import { EXAGGERATIONS } from "./terrainStyle";
 import { setTerrainPrefs, useTerrainPrefs } from "./useTerrainPrefs";
 
-// Polish: plainer words; still the data-source caveat (the preview is coarser than what grades the parcel).
-export const TERRAIN_GROUP_LABEL = "Terrain preview (about 10 m; grades use 3 m lidar)";
+// Polish: plainer words; still the data-source caveat (the preview is coarser than what grades the parcel). Polish 2
+// (M16): "about 10 m" read as a distance.
+export const TERRAIN_GROUP_LABEL = "Terrain preview (rougher than the 3 m lidar the grade uses)";
 
 export function TerrainControls({ variant }: { variant: "info" | "menu" }) {
   const t = useTerrainPrefs();
