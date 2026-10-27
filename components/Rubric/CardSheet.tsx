@@ -25,7 +25,7 @@ import {
   bandValue,
   bcEdge,
   cardLine,
-  EDITOR_TITLES,
+  PRIORITY_TITLES,
   isGate,
   MINIMUM_BAND,
   minimumLine,
@@ -130,7 +130,7 @@ export function CardSheet({
         onClick={(e) => e.stopPropagation()}
       >
         <header className="rubric-sheet-head">
-          <h2>{card.kind === "minimum" ? `${EDITOR_TITLES[f]}: limit` : EDITOR_TITLES[f]}</h2>
+          <h2>{card.kind === "minimum" ? `${PRIORITY_TITLES[f]}: limit` : PRIORITY_TITLES[f]}</h2>
           <button type="button" className="btn secondary small" onClick={close}>
             Close
           </button>
@@ -241,7 +241,7 @@ export function CardSheet({
               onClick={() => {
                 apply(
                   removeMinimum(rubric, f as keyof typeof MINIMUM_BAND),
-                  `${EDITOR_TITLES[f]}: limit removed.`,
+                  `${PRIORITY_TITLES[f]}: limit removed.`,
                 );
                 close();
               }}

@@ -44,7 +44,14 @@ export const FACTOR_LABELS: Record<Factor, string> = {
 export const EDITOR_TITLES: Record<Factor, string> = {
   ...FACTOR_LABELS,
   easement: "Driveway on your land",
-  // Polish 2 (W7): two cards read "Driveway"; this one is the drive's own length and grade, from the road to the site.
+};
+
+/**
+ * What matters' own card titles (polish 2, W7): two cards read "Driveway" there, so this one says it's the drive's own
+ * length and grade, from the road to the site. The card's lines keep EDITOR_TITLES (rule 7).
+ */
+export const PRIORITY_TITLES: Record<Factor, string> = {
+  ...EDITOR_TITLES,
   driveway: "Driveway from the road",
 };
 

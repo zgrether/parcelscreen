@@ -32,7 +32,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useState } from "react";
 import { columnsOf, hasMinimum, type Columns, type EditorCard } from "@/lib/rubric/edit";
 import type { Factor, MustCard, RowKey, Rubric } from "@/lib/rubric/types";
-import { EDITOR_TITLES, isGate, minimumWords, plainLine, TIER_NAMES, type Tier } from "@/lib/rubric/words";
+import { PRIORITY_TITLES, isGate, minimumWords, plainLine, TIER_NAMES, type Tier } from "@/lib/rubric/words";
 
 export { TIER_NAMES };
 
@@ -69,7 +69,7 @@ export const cardFromId = (id: string): EditorCard => {
 
 /** The card's name for a screen reader and its title. */
 export const cardName = (c: EditorCard): string =>
-  c.kind === "minimum" ? `${EDITOR_TITLES[c.factor]} limit` : EDITOR_TITLES[c.factor];
+  c.kind === "minimum" ? `${PRIORITY_TITLES[c.factor]} limit` : PRIORITY_TITLES[c.factor];
 
 /** Where a card or a column is: its tier, and its place in the tier's list (the end, for the column itself). */
 function placeOf(columns: Columns, id: string): { tier: Tier; index: number } | null {
@@ -269,7 +269,7 @@ export function CardBody({
         aria-label={`${cardName(card)}: ${words}`}
       >
         <span className="rubric-card-name">
-          {EDITOR_TITLES[card.factor]}
+          {PRIORITY_TITLES[card.factor]}
           {card.kind === "factor" && !isGate(card.factor) && hasMinimum(rubric, card.factor) && (
             <span className="rubric-min-badge" title="It also has a limit in Must have">
               also a limit
