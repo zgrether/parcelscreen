@@ -47,6 +47,15 @@ export const EDITOR_TITLES: Record<Factor, string> = {
 };
 
 /**
+ * What matters' own card titles (polish 2, W7): two cards read "Driveway" there, so this one says it's the drive's own
+ * length and grade, from the road to the site. The card's lines keep EDITOR_TITLES (rule 7).
+ */
+export const PRIORITY_TITLES: Record<Factor, string> = {
+  ...EDITOR_TITLES,
+  driveway: "Driveway from the road",
+};
+
+/**
  * Each factor in a word or two (step 10b plan §8): the Favorites grid's headers and the phone card's strip, with
  * EDITOR_TITLES as the full name beside them. Best homesite is "Sun", as the owner's brief has it.
  */

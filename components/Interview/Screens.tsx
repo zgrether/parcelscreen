@@ -229,6 +229,8 @@ export function ClimateScreen({
       <Choices choices={question.choices} value={value} pick={pick} label={question.scene} />
       {follow && (
         <div className="iv-follow">
+          {/* Polish 2 (W4): said before the rows it's about, not after them. */}
+          <p className="iv-hint">Set from your answer above: change either if it&apos;s off.</p>
           <p className="iv-follow-q">{WINTER_QUESTION.ask}</p>
           <Choices
             choices={WINTER_QUESTION.choices}
@@ -243,7 +245,6 @@ export function ClimateScreen({
             pick={pickSummer}
             label={SUMMER_QUESTION.ask}
           />
-          <p className="iv-hint">Set from your answer above: change either if it&apos;s off.</p>
           {(!revisit || onDone) && (
             <button type="button" className="btn iv-continue" onClick={done}>
               Continue

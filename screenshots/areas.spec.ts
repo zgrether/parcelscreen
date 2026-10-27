@@ -49,7 +49,7 @@ for (const phone of [false, true]) {
       // After the interview.
       await visit(page, "/interview");
       for (let i = 0; i < 16 && !(await page.getByText("What matters to you").first().isVisible()); i++)
-        await page.getByRole("button", { name: /^(Next|Skip|See my priorities)$/ }).click();
+        await page.getByRole("button", { name: /^(Next|Skip this question|See my priorities)$/ }).click();
       const after = page.getByRole("region", { name: W.afterInterview });
       await expect(after.locator(".area-card")).toHaveCount(5);
       await after.evaluate((el) => el.scrollIntoView({ block: "start" }));

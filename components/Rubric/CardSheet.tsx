@@ -25,7 +25,7 @@ import {
   bandValue,
   bcEdge,
   cardLine,
-  EDITOR_TITLES,
+  PRIORITY_TITLES,
   isGate,
   MINIMUM_BAND,
   minimumLine,
@@ -35,6 +35,7 @@ import {
   tierOf,
   limitWhy,
   whyLine,
+  WHY_STARTING,
   type WhyContext,
   type LimitKey,
   type Tier,
@@ -129,7 +130,7 @@ export function CardSheet({
         onClick={(e) => e.stopPropagation()}
       >
         <header className="rubric-sheet-head">
-          <h2>{card.kind === "minimum" ? `${EDITOR_TITLES[f]}: limit` : EDITOR_TITLES[f]}</h2>
+          <h2>{card.kind === "minimum" ? `${PRIORITY_TITLES[f]}: limit` : PRIORITY_TITLES[f]}</h2>
           <button type="button" className="btn secondary small" onClick={close}>
             Close
           </button>
@@ -143,7 +144,9 @@ export function CardSheet({
         <p className="tiny muted">
           {TIER_NAMES[here]}
           {ranked && `, #${rubric.ranked.findIndex((c) => c.factor === f) + 1} in the list`} · Why:{" "}
-          {card.kind === "minimum" ? limitWhy(rubric, f as RowKey, why) : whyLine(rubric, f, why)}
+          {startingWords(
+            card.kind === "minimum" ? limitWhy(rubric, f as RowKey, why) : whyLine(rubric, f, why),
+          )}
         </p>
 
         {card.kind === "factor" && !isGate(f) && ROW_BANDS[f].length > 0 && (
@@ -238,7 +241,7 @@ export function CardSheet({
               onClick={() => {
                 apply(
                   removeMinimum(rubric, f as keyof typeof MINIMUM_BAND),
-                  `${EDITOR_TITLES[f]}: limit removed.`,
+                  `${PRIORITY_TITLES[f]}: limit removed.`,
                 );
                 close();
               }}
@@ -341,3 +344,7 @@ function SkySlider({
     </div>
   );
 }
+
+/** Polish 2 (W5): "On the starting list." explained nothing to a first-time reader (the household panel's fix, #240). */
+const startingWords = (why: string): string =>
+  why === WHY_STARTING ? "it's where the starting list puts it." : why;

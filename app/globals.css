@@ -220,6 +220,17 @@ html:has(.explore) body {
     opacity: 0.45;
     cursor: default;
   }
+  /* Polish 2 (W9): a disabled secondary button keeps its outline and readable words, not an empty pale box. */
+  .btn.secondary:disabled {
+    opacity: 1;
+    color: color-mix(in srgb, var(--color-ink-2) 75%, transparent);
+    border-color: var(--color-rule);
+    background: transparent;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: color-mix(in srgb, var(--color-ink-2) 85%, transparent);
+  }
   .btn:focus-visible,
   .field:focus-visible {
     outline: 2px solid var(--color-water);
@@ -3435,6 +3446,10 @@ html:has(.app-nav) .explore {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
+button.offline-saved-name {
+  min-height: 44px;
+  text-align: left;
+}
 .offline-saved .btn {
   flex: none;
   min-height: 44px;
@@ -4776,9 +4791,22 @@ textarea.ip-line-note {
 }
 .cmp-actions {
   display: flex;
+  align-items: center;
   gap: 10px;
   margin-top: 2px;
   font-size: 13px;
+}
+/* Polish 2 (L4): Open is a 32 px target on a desktop, not a bare word; the list's Compare ticks a 20 px box. */
+.cmp-actions .link-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 4px;
+}
+.lib-grid .lib-stick-2 input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
 }
 .cmp-group th {
   background: var(--color-paper-2);
@@ -5018,6 +5046,20 @@ button.cmp-cell:hover {
  * ⋯, the tick, the name) stay put; separate borders, as Compare's, so the sticky cells keep theirs. Opaque cells:
  * the columns scroll under them.
  */
+/* Polish 2 (L5): the grid's right edge fades while there's more to scroll to. */
+.lib-grid-wrap {
+  position: relative;
+}
+.lib-grid-wrap[data-more]::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 28px;
+  background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.12));
+  pointer-events: none;
+}
 .lib-grid {
   /* At least 320 px: a short window scrolls the page around it instead of leaving a sliver. */
   max-height: max(320px, calc(100dvh - 230px));
@@ -5119,7 +5161,7 @@ button.cmp-cell:hover {
 /* Z-6 (UX part 2 PR 7c1): the mark and letter in one fixed cell, ✎ and ● in their own, so nothing moves the rest. */
 .lib-factor {
   display: inline-grid;
-  grid-template-columns: 46px 12px 10px;
+  grid-template-columns: 56px 12px;
   align-items: center;
   justify-items: start;
 }
@@ -5132,9 +5174,7 @@ button.cmp-cell:hover {
 .lib-factor > .adjusted-mark {
   grid-column: 2;
 }
-.lib-factor > .lib-best {
-  grid-column: 3;
-}
+
 .lib-mark {
   display: inline-grid;
   place-items: center;
@@ -6366,15 +6406,26 @@ button.cmp-cell:hover {
   box-shadow: inset 0 0 0 2px var(--color-ok);
   font-weight: 600;
 }
+/* Polish 2 (W1): the number key that picks a choice, drawn as a key (not a rank's circle), and only with a keyboard. */
 .iv-key {
   flex: none;
   width: 24px;
   height: 24px;
   border: 1px solid var(--color-rule);
-  border-radius: 50%;
+  border-bottom-width: 2px;
+  border-radius: 4px;
   font-size: 12px;
   line-height: 22px;
   text-align: center;
+  color: var(--color-ink-2);
+}
+@media (hover: none) {
+  .iv-key {
+    display: none;
+  }
+}
+.iv-kept {
+  font-weight: 400;
   color: var(--color-ink-2);
 }
 .iv-follow {
@@ -6462,6 +6513,12 @@ button.cmp-cell:hover {
   margin-top: 6px;
   padding: 10px 22px;
   font-size: 16px;
+}
+/* Polish 2 (W3): a question asked on its own has no nav row; its Continue stays in view at the foot. */
+.iv-ask .iv-continue {
+  position: sticky;
+  bottom: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
 }
 /* The first run's "I already use Parcel Screen on another device", and its code form. */
 .iv > .join-first {
