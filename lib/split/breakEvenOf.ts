@@ -6,9 +6,9 @@
  */
 import type { Rates } from "../config/costs";
 import { BREAK_EVEN_DEFAULTS } from "../config/programs";
-import type { BreakEvenInputs } from "../client/parcelStore";
+import type { BreakEvenInputs, WorkingParcel } from "../client/parcelStore";
 import { breakEven, type BreakEvenFigures } from "../pay/breakEven";
-import type { PieceSide } from "./scenario";
+import { piecesOf, type PieceSide } from "./scenario";
 
 export interface BreakEvenPiece {
   side: PieceSide;
@@ -80,4 +80,21 @@ export function resolveBreakEven(
       })
     : null;
   return { sold, kept, price, sharePct, years, ratePct, survey, legal, road, soldAtPerAc, figures };
+}
+
+/**
+ * Each scenario's break-even as How it could pay's Split and resell says it (§2.6): its name, the sold piece and its
+ * $/ac (null without a price). A scenario whose line no longer cuts the parcel is left out.
+ */
+export function scenarioBreakEvens(
+  p: WorkingParcel,
+  askingPrice: number | null,
+  rates: Rates,
+): { name: string; soldWord: string; perAc: number | null }[] {
+  return p.scenarios.flatMap((sc) => {
+    const ps = piecesOf(p, sc);
+    if (!ps) return [];
+    const r = resolveBreakEven(sc.breakEven, ps, askingPrice, rates);
+    return [{ name: sc.name, soldWord: r.sold.word, perAc: r.figures?.breakEvenPerAc ?? null }];
+  });
 }

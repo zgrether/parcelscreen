@@ -111,6 +111,8 @@ test("Full: the summary, then the brief's sections in order, the closing line; C
       "Ways to raise this grade",
       // Step 14: what the land can do, after Ways to raise.
       "What you can do here",
+      // Step 15: how it could pay, after it.
+      "How it could pay",
       "Winter sun and the horizon",
       "Night sky",
       "Soils, septic and flood",

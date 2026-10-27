@@ -128,3 +128,36 @@ describe("One page's fit (plan §2)", () => {
     expect(presetOf(null)).toBeNull();
   });
 });
+
+describe("How it could pay in the report (step 15 plan §6)", () => {
+  it("Full has the seven options; One page names the eligible ones, after the Divide line", () => {
+    const c = reportContent(input());
+    expect(c.pay.map((o) => o.key)).toEqual([
+      "easement",
+      "useValue",
+      "carbon",
+      "lease",
+      "timber",
+      "split",
+      "camp",
+    ]);
+    expect(c.payLine).toBe(
+      "Could pay: conservation easement, selective timber, split and resell (eligible; see the full report)",
+    );
+  });
+
+  it("the typed cruise and a split's break-even reach their options", () => {
+    const c = reportContent(
+      input({
+        pay: {
+          assessed: null,
+          timberCruise: { value: 42_000, date: "2026-09" },
+          scenarios: [{ name: "Split 1", soldWord: "North", perAc: 6_000 }],
+        },
+      }),
+    );
+    const of = (k: string) => c.pay.find((o) => o.key === k)!.number.map((l) => l.text);
+    expect(of("timber")).toEqual(["A cruise valued the timber at $42,000 (2026-09)"]);
+    expect(of("split")).toEqual(["Split 1: sell the north piece at $6,000/ac or more to break even"]);
+  });
+});

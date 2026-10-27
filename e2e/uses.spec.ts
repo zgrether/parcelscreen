@@ -210,7 +210,10 @@ test("an easement's purpose, picked in Details, is kept and listed under What li
   await expect.poll(async () => (await storedLine(page))?.easementType).toBeNull();
 });
 
-test("One page has the Divide line; Full has What you can do here", async ({ page, context }) => {
+test("One page has the Divide and Could pay lines; Full has What you can do here and How it could pay", async ({
+  page,
+  context,
+}) => {
   test.setTimeout(120_000);
   await replayHar(context, GRAYSON);
   await openExplorer(page, GRAYSON);
@@ -230,7 +233,24 @@ test("One page has the Divide line; Full has What you can do here", async ({ pag
     "Can divide: up to 3 lots without subdivision review (a farm division approved by staff; limited by 30.15 ac at 10 ac a lot) · up to 8 with an approved subdivision plat (limited by 885 ft of road frontage at 100 ft per lot; more lots need a road built to the county's standard)",
   );
 
+  // Step 15: the Could pay line, after the Divide line, naming the options that are Eligible.
+  await expect(page.locator(".rp-one .rp-pay")).toHaveText(
+    "Could pay: selective timber, split and resell (eligible; see the full report)",
+  );
+
   await page.getByRole("tab", { name: "Full" }).click();
+  // Step 15: How it could pay, its seven options, each with what it costs and whom to ask, and its not-advice line.
+  const pay = page
+    .locator(".rp-full-section")
+    .filter({ has: page.getByRole("heading", { name: "How it could pay", level: 2 }) });
+  await expect(pay.locator(".rp-uses > li")).toHaveCount(7);
+  await expect(pay.locator(".rp-uses > li").first()).toContainText("Conservation easement: Maybe.");
+  await expect(pay.locator(".rp-uses > li").first()).toContainText(
+    "Land Preservation Tax Credit: 40% of the easement's appraised value",
+  );
+  await expect(pay).toContainText(
+    "For how it could pay, talk to a tax advisor, a land trust or a forester before acting.",
+  );
   const section = page
     .locator(".rp-full-section")
     .filter({ has: page.getByRole("heading", { name: "What you can do here", level: 2 }) });
