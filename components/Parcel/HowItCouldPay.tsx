@@ -6,6 +6,7 @@
  * slider, at $0 until it's moved. Outside the grade: it reads the options and changes nothing on the card.
  */
 import { useId, useState } from "react";
+import type { StateCode } from "@/lib/config/counties";
 import { STATE_EASEMENT } from "@/lib/config/programs";
 import { PAY_ORDER, type Eligibility, type PayLine, type PayOption } from "@/lib/pay";
 import { creditFor } from "@/lib/pay/credit";
@@ -72,7 +73,7 @@ function PayRow({ o }: { o: PayOption }) {
           {(o.number.length > 0 || o.slider) && (
             <>
               <h4 className="uses-sub">{PAY_WORDS.number}</h4>
-              {o.slider && <CreditSlider max={o.slider.max} step={o.slider.step} />}
+              {o.slider && <CreditSlider state={o.slider.state} max={o.slider.max} step={o.slider.step} />}
               <ul className="pay-lines">
                 {o.number.map((l, i) => (
                   <Line key={i} l={l} />
@@ -132,11 +133,11 @@ function SourceLink({ href }: { href: string }) {
 }
 
 /**
- * Virginia's Land Preservation Tax Credit as a slider (§2.1): "If the easement's appraised value were $X → a state
- * credit of $Y". It starts at $0, so no figure shows before it's moved.
+ * A state's easement credit as a slider (§2.1; Virginia's and North Carolina's): "If the easement's appraised value were
+ * $X → a state credit of $Y", with the cap where there is one. It starts at $0, so no figure shows before it's moved.
  */
-function CreditSlider({ max, step }: { max: number; step: number }) {
-  const credit = STATE_EASEMENT.VA.credit!;
+function CreditSlider({ state, max, step }: { state: StateCode; max: number; step: number }) {
+  const credit = STATE_EASEMENT[state].credit!;
   const [value, setValue] = useState(0);
   const id = useId();
   return (

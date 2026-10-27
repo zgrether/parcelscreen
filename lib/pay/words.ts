@@ -94,14 +94,14 @@ export const NUMBER = {
   cruiseValued: (value: number, date: string) => `A cruise valued the timber at ${money(value)} (${date})`,
   sliderLabel: "If the easement's appraised value were",
   credit: (credit: number) => `a state credit of ${money(credit)}`,
+  theCap: "(the cap)",
   /** The credit's formula, as the export says it (no slider there). */
   formula: (name: string, pct: number) => `${name}: ${pct}% of the easement's appraised value`,
   capped: (cap: number) => `, at most ${money(cap)}`,
   yearly: (limit: number, years: number) =>
     `At ${money(limit)} a year, you'd use it over ${years} ${years === 1 ? "year" : "years"}`,
-  sellRest: "the rest can be sold",
   carry: (years: number) => `unused credit carries forward ${years} years`,
-  donatedBy: (date: string) => `for donations made by ${date}`,
+  donatedBy: (date: string) => `for donations made through ${date.slice(0, 4)}`,
   federal: (agi: number, farmer: number, carry: number) =>
     `Federal: a donated easement is deductible up to ${agi}% of your income a year (${farmer}% for a qualified farmer), carried forward ${carry} years`,
   todayTax: (tax: number, on: string) => `Today's tax: about ${money(tax)} a year (${on})`,

@@ -96,11 +96,16 @@ describe("the credit formula (plan §2.1)", () => {
   it("the slider starts at $0 and runs to the asking price, or $1M without one, in $5,000 steps", () => {
     expect(sliderMax(null)).toBe(1_000_000);
     expect(sliderMax(247_500)).toBe(250_000);
+    // Owner, #376: Virginia's result says how the credit is used, after the spread.
     expect(sliderLine(100_000, VA, creditFor(100_000, VA))).toBe(
-      "If the easement's appraised value were $100,000 → a state credit of $40,000. At $20,000 a year, you'd use it over 2 years",
+      "If the easement's appraised value were $100,000 → A state credit of $40,000. At $20,000 a year, you'd use it over 2 years. You can use $20,000 a year against your own Virginia tax (10 years to use it), or sell the credit; buyers usually pay less than face value",
     );
-    expect(sliderLine(1_000_000, VA, creditFor(1_000_000, VA))).toMatch(
-      /over 20 years; the rest can be sold$/,
+    // North Carolina's shows its cap, and "(the cap)" once the value reaches it.
+    expect(sliderLine(400_000, NC, creditFor(400_000, NC))).toBe(
+      "If the easement's appraised value were $400,000 → A state credit of $100,000. At most $250,000 for an individual, $500,000 for a business",
+    );
+    expect(sliderLine(2_000_000, NC, creditFor(2_000_000, NC))).toMatch(
+      /^.* → A state credit of \$250,000 \(the cap\)\. /,
     );
   });
 });
@@ -176,7 +181,7 @@ describe("the use-value comparison (plan §2.2)", () => {
       reason: "Grayson has no land use program",
     });
     expect(landUseTax(input(r({ county: county("51063", "Floyd", "VA") }))).reason).toBe(
-      "Floyd's land use program takes farm and horticultural land only, not forest",
+      "Floyd's land use program takes agriculture and horticulture only, not forest",
     );
     expect(landUseTax(input(r({ acres: 20, cover: cover(50) })))).toMatchObject({
       eligibility: "no",
@@ -270,13 +275,14 @@ describe("each option's answer (plan §2)", () => {
     );
   });
 
-  it("North Carolina shows its credit; Tennessee says No state credit; no slider outside Virginia", () => {
+  it("North Carolina shows its credit through 2031, with a slider (owner, #376); Tennessee says No state credit", () => {
     const nc = easement(input(r({ county: ASHE, protected: [PARKWAY] })));
-    expect(nc.slider).toBeUndefined();
+    expect(nc.slider).toEqual({ state: "NC", max: 1_000_000, step: 5_000 });
     expect(nc.number.map((l) => l.text)).toContain(
-      "Conservation Tax Credit: 25% of the easement's appraised value, at most $250,000, for donations made by 2026-12-31",
+      "Conservation Tax Credit: 25% of the easement's appraised value, at most $250,000, for donations made through 2031",
     );
     const tn = easement(input(r({ county: CARTER, protected: [PARKWAY] })));
+    expect(tn.slider).toBeUndefined();
     expect(tn.number.map((l) => l.text)).toEqual(
       expect.arrayContaining([
         "No state credit",

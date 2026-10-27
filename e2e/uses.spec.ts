@@ -169,7 +169,7 @@ test("How it could pay on Mud Creek: seven options, a detail in place, Virginia'
     "If the easement's appraised value were $100,000",
   );
   await expect(easement.locator(".pay-credit")).toHaveText(
-    "→ A state credit of $40,000. At $20,000 a year, you'd use it over 2 years",
+    "→ A state credit of $40,000. At $20,000 a year, you'd use it over 2 years. You can use $20,000 a year against your own Virginia tax (10 years to use it), or sell the credit; buyers usually pay less than face value",
   );
   expect(errors).toEqual([]);
 });

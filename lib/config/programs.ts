@@ -64,11 +64,30 @@ const ours = <T>(value: T, says: string, source: string): Sourced<T> => ({
   confidence: "ours",
 });
 
+/**
+ * A fact the owner confirmed from its source (owner, 2026-10-27, on #376): "from the agency" or "from the county", with
+ * the date checked today's.
+ */
+export const confirmed = <T>(
+  value: T,
+  says: string,
+  source: string,
+  kind: "agency" | "county",
+  asOf: string,
+): Sourced<T> => ({
+  value,
+  says,
+  source,
+  kind,
+  asOf,
+  checked: PAY_CHECKED,
+  confidence: kind === "agency" ? "from the agency" : "from the county",
+});
+
 // ---------- Conservation easements ----------
 
 const VA_512 = "https://law.lis.virginia.gov/vacode/title58.1/chapter3/section58.1-512/";
 const VA_TAX_LPC = "https://www.tax.virginia.gov/land-preservation-tax-credit";
-const VA_BUDGET = "https://budget.lis.virginia.gov/item/2026/2/HB30/Chapter/3/3-5.19/";
 const VA_TRANSFER = "https://www.tax.virginia.gov/transferring-land-preservation-tax-credit";
 const NC_15311 =
   "https://www.ncleg.gov/EnactedLegislation/Statutes/HTML/BySection/Chapter_105/GS_105-153.11.html";
@@ -94,6 +113,8 @@ export interface EasementCredit {
   transfer: Sourced<string | null>;
   /** The last day a donation earns it, ISO; null for no end date. */
   donatedBy: Sourced<string | null>;
+  /** How the credit is used, as the slider's result says it after the figure; null when there's nothing to add. */
+  use: Sourced<string> | null;
   /** Further rules, in words: the statewide cap, certification, deadlines. */
   notes: Sourced<string>[];
 }
@@ -112,43 +133,52 @@ export const STATE_EASEMENT: Readonly<Record<StateCode, StateEasement>> = {
     state: "VA",
     credit: {
       name: "Land Preservation Tax Credit",
-      ratePct: excerpt(
+      // Owner-confirmed from Virginia Tax (#376, 10/27): the rate, the yearly use, the carry-forward, the transfer, the cap.
+      ratePct: confirmed(
         40,
-        "40% of the fair market value of the donated easement, for donations from 2007 on (Va. Code §58.1-512)",
-        VA_512,
-        "statute",
+        "40% of the fair market value of the donated land or easement",
+        VA_TAX_LPC,
+        "agency",
         "current",
       ),
       maxCredit: excerpt(null, "No cap on one donation's credit found", VA_512, "statute", "current"),
-      yearlyUse: excerpt(
+      yearlyUse: confirmed(
         20000,
-        "A taxpayer can use at most $20,000 a year, carryovers included (the Appropriation Act, from tax year 2024)",
-        VA_BUDGET,
-        "statute",
-        "2026 Appropriation Act, item 3-5.19",
-      ),
-      carryYears: excerpt(
-        10,
-        "Unused credit carries forward 10 years (§58.1-512 C.1)",
-        VA_512,
-        "statute",
+        "A taxpayer can use at most $20,000 a year",
+        VA_TAX_LPC,
+        "agency",
         "current",
       ),
-      transfer: excerpt(
+      carryYears: confirmed(10, "Unused credit carries forward 10 years", VA_TAX_LPC, "agency", "current"),
+      transfer: confirmed(
         "Transferable",
-        "Unused credit can be sold; the buyer has the same yearly limit, and Virginia Tax charges a fee of 5% of the credit transferred (Form LPC-2)",
-        VA_TRANSFER,
+        "Unused credit can be sold (transferred)",
+        VA_TAX_LPC,
         "agency",
-        "2025 forms",
+        "current",
       ),
       donatedBy: excerpt(null, "No end date", VA_512, "statute", "current"),
+      use: confirmed(
+        "you can use $20,000 a year against your own Virginia tax (10 years to use it), or sell the credit; buyers usually pay less than face value",
+        "How the credit is used: $20,000 a year against your own Virginia tax for 10 years, or sold, usually for less than face value",
+        VA_TAX_LPC,
+        "agency",
+        "current",
+      ),
       notes: [
-        excerpt(
-          "$75 million a year statewide",
-          "Virginia issues at most $75 million in credits a calendar year",
+        confirmed(
+          "$75 million a year statewide, first come, first served",
+          "Virginia issues at most $75 million in credits a year, first come, first served",
           VA_TAX_LPC,
           "agency",
           "current",
+        ),
+        excerpt(
+          "A 5% fee on a transfer",
+          "Virginia Tax charges a fee of 5% of the credit transferred (Form LPC-2)",
+          VA_TRANSFER,
+          "agency",
+          "2025 forms",
         ),
         excerpt(
           "DCR reviews credits of $1 million or more",
@@ -173,30 +203,32 @@ export const STATE_EASEMENT: Readonly<Record<StateCode, StateEasement>> = {
     state: "NC",
     credit: {
       name: "Conservation Tax Credit",
-      ratePct: excerpt(
+      // Owner-confirmed (#376, 10/27) from NCDOR's "NC Conservation Tax Credit" page and WHQR/WFAE (June 2026).
+      ratePct: confirmed(
         25,
-        "25% of the fair market value of donated land or a perpetual conservation easement (G.S. 105-153.11)",
-        NC_15311,
-        "statute",
-        "2025",
+        "25% of the fair market value of donated land or a conservation easement",
+        NC_DOR_CREDIT,
+        "agency",
+        "June 2026",
       ),
-      maxCredit: excerpt(
+      maxCredit: confirmed(
         250000,
-        "At most $250,000 for an individual ($500,000 for a pass-through entity or corporation)",
-        NC_15311,
-        "statute",
-        "2025",
+        "At most $250,000 for an individual, $500,000 for a business",
+        NC_DOR_CREDIT,
+        "agency",
+        "June 2026",
       ),
       yearlyUse: excerpt(null, "No yearly use limit found", NC_DOR_CREDIT, "agency", "2025"),
       carryYears: excerpt(5, "Unused credit carries forward 5 years", NC_15311, "statute", "2025"),
       transfer: excerpt(null, "Not transferable (none found)", NC_DOR_CREDIT, "agency", "2025"),
-      donatedBy: excerpt(
-        "2026-12-31",
-        "Only for donations made in 2025 and 2026: it ends for donations from January 1, 2027",
-        NC_15311,
-        "statute",
-        "2025",
+      donatedBy: confirmed(
+        "2031-12-31",
+        "Reinstated in 2024 for donations from 2025, and extended through 2031 by the 2026 farm bill (WHQR/WFAE, June 2026)",
+        NC_DOR_CREDIT,
+        "agency",
+        "June 2026",
       ),
+      use: null,
       notes: [
         excerpt(
           "$5 million a year statewide, pro-rated",

@@ -4,6 +4,7 @@
  * one reason, the signals that decided it, its number (a range, a formula, or what it would take to get one), what it
  * costs you in use, and the one question for the professional. Pure: display time only, outside the grade (§1).
  */
+import type { StateCode } from "../config/counties";
 import type { PayConfidence } from "../config/programs";
 import type { LandUses } from "../uses";
 import type { Fact, UsesInput } from "../uses/types";
@@ -29,9 +30,9 @@ export interface PayLine {
   confidence?: PayConfidence;
 }
 
-/** Virginia's credit slider (§2.1): the formula's inputs; the panel computes the credit as the slider moves. */
+/** A state credit's slider (§2.1; VA and NC): the formula's inputs; the panel computes the credit as it moves. */
 export interface CreditSlider {
-  state: "VA";
+  state: StateCode;
   /** The slider's top, $: the asking price, or $1,000,000 without one. */
   max: number;
   step: number;

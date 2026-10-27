@@ -58,9 +58,35 @@ describe("how it could pay's config (step 15, plan §3)", () => {
     for (const f of ALL.filter((x) => x.kind === "ours")) expect(f.says).toMatch(/\((ours|assumed)[;)]/);
   });
 
-  it("nothing read only in an excerpt or from a third party claims more than to confirm (plan §1)", () => {
-    // PR 1's session couldn't open the official hosts: every sourced figure is to confirm until a page is read.
-    for (const f of ALL.filter((x) => x.kind !== "ours")) expect(f.confidence, f.says).toBe("to confirm");
+  it("only the figures the owner confirmed (#376, 10/27) claim more than to confirm (plan §1)", () => {
+    // PR 1's session couldn't open the official hosts: every other sourced figure is to confirm until a page is read.
+    const confirmed = ALL.filter((f) => f.kind !== "ours" && f.confidence !== "to confirm");
+    expect(confirmed.map((f) => f.says).sort()).toEqual(
+      [
+        // Virginia Tax: the Land Preservation Tax Credit.
+        "40% of the fair market value of the donated land or easement",
+        "A taxpayer can use at most $20,000 a year",
+        "Unused credit carries forward 10 years",
+        "Unused credit can be sold (transferred)",
+        "How the credit is used: $20,000 a year against your own Virginia tax for 10 years, or sold, usually for less than face value",
+        "Virginia issues at most $75 million in credits a year, first come, first served",
+        // NCDOR and WHQR/WFAE: North Carolina's Conservation Tax Credit.
+        "25% of the fair market value of donated land or a conservation easement",
+        "At most $250,000 for an individual, $500,000 for a business",
+        "Reinstated in 2024 for donations from 2025, and extended through 2031 by the 2026 farm bill (WHQR/WFAE, June 2026)",
+        // Virginia Tech's use-value site, and Carroll's Commissioner of the Revenue.
+        "Floyd's land use program takes agriculture and horticulture only, not forest",
+        "Grayson has no land use program",
+        "Patrick has no land use program",
+        "Carroll's land use program takes agriculture and horticulture (5 ac) and forest (20 ac)",
+      ].sort(),
+    );
+    for (const f of confirmed) {
+      expect(f.checked, f.says).toBe("2026-10-27");
+      expect(f.confidence, f.says).toBe(f.kind === "county" ? "from the county" : "from the agency");
+    }
+    for (const f of ALL.filter((x) => x.kind !== "ours" && !confirmed.includes(x)))
+      expect(f.confidence, f.says).toBe("to confirm");
   });
 
   it("a number no source gives is null, never guessed", () => {
