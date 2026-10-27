@@ -48,7 +48,7 @@ export function terrainView(r: PartialScreenResult): TerrainView | null {
       value: `${benches.length} (${fmt(
         benches.reduce((a, x) => a + x.acres, 0),
         2,
-      )} ac) · shelves ${r.shelves?.length ?? 0} · garden patches ${r.gardens?.length ?? 0}`,
+      )} ac) · shelves ${r.shelves?.length ?? 0} · garden patches ${r.gardens?.length ?? 0}${compactLine(r)}`,
     },
   ];
   if (b)
@@ -67,10 +67,19 @@ export function terrainView(r: PartialScreenResult): TerrainView | null {
     rows,
     diag: [
       said(
-        `Of ${fmt(d.totalAc, 1)} ac: ${fmt(d.houseAc, 1)} ac score ≥${houseMin} for a house, ${fmt(d.shelfAc, 1)} ac more ≥${shelfMin} (shelf grade), ${fmt(d.gardenAc, 1)} ac ≥${gardenMin} for a garden.`,
+        `Of ${fmt(d.totalAc, 1)} ac (by the elevation grid): ${fmt(d.houseAc, 1)} ac score ≥${houseMin} for a house, ${fmt(d.shelfAc, 1)} ac more ≥${shelfMin} (shelf grade), ${fmt(d.gardenAc, 1)} ac ≥${gardenMin} for a garden.`,
       ),
       onMap(" Cycle the overlay button on the map to see each surface."),
       said(` DEM: ${r.demSource ?? ""} at ${fmt(r.demResM ?? NaN, 1)} m.`),
     ],
   };
+}
+
+/**
+ * Polish 2 (Z7, owner): the shelves promoted to compact house sites are ranked with the benches, so the count says so,
+ * after the prototype's: " · 2 compact sites ranked too".
+ */
+function compactLine(r: PartialScreenResult): string {
+  const n = r.sites?.filter((s) => s.compact).length ?? 0;
+  return n ? ` · ${n} compact ${n === 1 ? "site" : "sites"} ranked too` : "";
 }

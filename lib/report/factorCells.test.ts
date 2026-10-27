@@ -48,7 +48,11 @@ describe("one row per factor (the duplicate rows, step 10b plan §4)", () => {
   it("a limit that's ranked too is one Must line with its letter, and its tier skips it", () => {
     const card = reportCard(MUD, withLimit(1_800));
     const line = mustLines(card).find((m) => m.key === "elevation")!;
-    expect(line).toMatchObject({ status: "pass", grade: "A", detail: "3,543 ft, at least 1,800 ft" });
+    expect(line).toMatchObject({
+      status: "pass",
+      grade: "A",
+      detail: "3,543 ft, at least 1,800 ft (your limit)",
+    });
     expect(shownRankedRows(card).should.some((r) => r.key === "elevation")).toBe(false);
     // It still counts where the rubric ranks it: the grade is the card's as before.
     expect(rankedRows(card).should.some((r) => r.key === "elevation")).toBe(true);
@@ -62,7 +66,11 @@ describe("one row per factor (the duplicate rows, step 10b plan §4)", () => {
 
   it("a failed limit reads its value first, then the limit", () => {
     const line = mustLines(reportCard(MUD, withLimit(4_000))).find((m) => m.key === "elevation")!;
-    expect(line).toMatchObject({ status: "fail", grade: "A", detail: "3,543 ft, at least 4,000 ft" });
+    expect(line).toMatchObject({
+      status: "fail",
+      grade: "A",
+      detail: "3,543 ft, at least 4,000 ft (your limit)",
+    });
   });
 });
 

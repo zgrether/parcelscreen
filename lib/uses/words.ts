@@ -119,7 +119,9 @@ export const CAMP = {
   yesOpen: (n: number, nearFt: number) =>
     `${ac(n)} ac of open gentle ground within ${ft(nearFt)} ft of a road`,
   withCost: (what: string, range: string) => `${what}; ready to camp ${range}`,
-  track: (n: number) => `Reachable only after a pioneer track (${ft(n)} ft to cut)`,
+  // Polish 2 (Z6, owner): "pioneer track" said in plain words, after it.
+  track: (n: number) =>
+    `Reachable only after a pioneer track, a rough track cut for a 4×4 (${ft(n)} ft to cut)`,
   far: (nearFt: number) => `Open ground only, farther than ${ft(nearFt)} ft from a road`,
   easement: "The way in needs an easement first",
   siteOnly: (site: string) => `No open or marked spot yet: you'd camp at ${site} once it's cleared`,
@@ -153,7 +155,8 @@ export const BUILD = {
 export const TRAILS = {
   /** "About 1.4 mi of trail on 8 ac of gentle ground, at a path every 100 ft" (§2.2). */
   estimate: (miles: number, gentleAc: number, spacingFt: number) =>
-    `About ${mi(miles)} mi of trail on ${ac(gentleAc)} ac of gentle ground, at a path every ${ft(spacingFt)} ft`,
+    // Polish 2 (Z6, owner): "walking" says what kind of path.
+    `About ${mi(miles)} mi of trail on ${ac(gentleAc)} ac of gentle ground, at a walking path every ${ft(spacingFt)} ft`,
   steep: (gradePct: number) => `Mostly steeper than ${fmt(gradePct)}%`,
   gentleLabel: (gradePct: number) => `Gentle ground (${fmt(gradePct)}% or less)`,
   milesLabel: "Trail it could hold",

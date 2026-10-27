@@ -43,6 +43,20 @@ export const MAP_WORDS = {
   line: { drive: "solid: a drive", track: "dashed: a track", easement: "dotted: an easement" },
 } as const;
 
+/** The key's copy of a site pin: filled for the best, white for the others, a dot inside for the house. */
+const KeyDot = ({ fill, ring = false }: { fill: string; ring?: boolean }) => (
+  <svg className="rp-key-swatch" width="11" height="11" viewBox="0 0 11 11" aria-hidden="true">
+    <circle cx="5.5" cy="5.5" r="4.5" fill={fill} stroke="#111" strokeWidth="1.3" />
+    {ring && <circle cx="5.5" cy="5.5" r="1.6" fill="#111" />}
+  </svg>
+);
+/** The key's copy of a line, with its dash. */
+const KeyLine = ({ dash }: { dash: string | undefined }) => (
+  <svg className="rp-key-swatch" width="18" height="11" viewBox="0 0 18 11" aria-hidden="true">
+    <line x1="1" y1="5.5" x2="17" y2="5.5" stroke="#111" strokeWidth="2" strokeDasharray={dash} />
+  </svg>
+);
+
 /** Each line kind's dash (none for a drive). */
 const DASH: Record<LineKind, string | undefined> = { drive: undefined, track: "7 4", easement: "1.5 3.5" };
 
@@ -222,15 +236,25 @@ export function PrintMap({
         {failed && <p className="rp-map-note">{MAP_WORDS.failed}</p>}
       </div>
       <figcaption className="rp-map-credit">
+        {/* Polish 2 (R2): each key word after a small copy of its mark, so "Filled" shows what's filled. */}
         {[
-          ...(sites.some((s) => s.best) ? [MAP_WORDS.best] : []),
-          ...(sites.some((s) => !s.best) ? [MAP_WORDS.others] : []),
-          ...(house ? [MAP_WORDS.house] : []),
+          ...(sites.some((s) => s.best)
+            ? [{ k: "best", swatch: <KeyDot fill="#111" />, text: MAP_WORDS.best }]
+            : []),
+          ...(sites.some((s) => !s.best)
+            ? [{ k: "others", swatch: <KeyDot fill="#fff" />, text: MAP_WORDS.others }]
+            : []),
+          ...(house ? [{ k: "house", swatch: <KeyDot fill="#fff" ring />, text: MAP_WORDS.house }] : []),
           ...(["drive", "track", "easement"] as const)
             .filter((k) => lines.some((l) => l.kind === k))
-            .map((k) => MAP_WORDS.line[k]),
-          IMAGERY.usgs.credit,
-        ].join(" · ")}
+            .map((k) => ({ k, swatch: <KeyLine dash={DASH[k]} />, text: MAP_WORDS.line[k] })),
+        ].map((e) => (
+          <span key={e.k} className="rp-key">
+            {e.swatch}
+            {e.text} ·{" "}
+          </span>
+        ))}
+        {IMAGERY.usgs.credit}
         {usedEsri ? ` · ${IMAGERY.esri.credit}` : ""}
       </figcaption>
     </figure>

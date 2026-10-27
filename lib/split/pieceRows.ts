@@ -7,7 +7,7 @@ import { VERDICT_WORD, type Card } from "../report/card";
 import { COST_WORDS } from "../report/cost";
 import { costSummary } from "../report/costLines";
 import type { Letter } from "../rubric/types";
-import { DIVIDE, MISSING } from "../uses/words";
+import { DIVIDE } from "../uses/words";
 import type { CountyCheck } from "./countyCheck";
 
 export interface PieceRow {
@@ -27,6 +27,9 @@ const VERDICT_TONE: Record<Card["verdict"], PieceRow["tone"]> = {
   Pass: "fail",
 };
 
+/** A split piece's cost when its way in isn't routed (Z6). */
+export const PIECE_NOT_PRICED = "not priced: the way in isn't routed yet";
+
 export function pieceRows(card: Card, check: CountyCheck, gradeLabel: string): PieceRow[] {
   const grade: PieceRow = {
     key: "grade",
@@ -36,8 +39,15 @@ export function pieceRows(card: Card, check: CountyCheck, gradeLabel: string): P
     grade: card.grade,
   };
   const s = costSummary(card.cost);
+  // Polish 2 (Z6, owner): a piece with no route has the same two rows as its neighbour, each not priced, so the pieces
+  // compare row for row.
   const cost: PieceRow[] = !s
-    ? [{ key: "cost", label: COST_WORDS.section, value: MISSING.notPriced, tone: null }]
+    ? (["camp", "build"] as const).map((which) => ({
+        key: which,
+        label: COST_WORDS[which],
+        value: PIECE_NOT_PRICED,
+        tone: null,
+      }))
     : s.kind === "noWay"
       ? [{ key: "cost", label: COST_WORDS.section, value: s.text, tone: null }]
       : s.lines.map((l) => ({ key: l.which, label: l.label, value: l.range, tone: null }));

@@ -11,7 +11,7 @@ describe("Trails and walking woods", () => {
   it("from 0.5 mi: yes, the estimate said with its spacing", () => {
     expect(at(1.4)).toMatchObject({
       answer: "yes",
-      reason: "About 1.4 mi of trail on 8.0 ac of gentle ground, at a path every 100 ft",
+      reason: "About 1.4 mi of trail on 8.0 ac of gentle ground, at a walking path every 100 ft",
     });
     expect(at(0.5).answer).toBe("yes");
   });
@@ -19,7 +19,7 @@ describe("Trails and walking woods", () => {
   it("0.2 to 0.5 mi: maybe", () => {
     expect(at(0.3, 2)).toMatchObject({
       answer: "maybe",
-      reason: "About 0.3 mi of trail on 2.0 ac of gentle ground, at a path every 100 ft",
+      reason: "About 0.3 mi of trail on 2.0 ac of gentle ground, at a walking path every 100 ft",
     });
     expect(at(0.2).answer).toBe("maybe");
   });

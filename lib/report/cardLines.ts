@@ -74,9 +74,10 @@ export function mustLines(card: Card): MustLine[] {
         key: must.factor,
         label: EDITOR_TITLES[must.factor],
         status: row?.mustStatus ?? LIMIT_STATUS[thresholdStatus(must, row?.measure)],
+        // Polish 2 (Z1): "(your limit)" after the limit, so "3,543 ft, at least 1,800 ft" isn't read as two readings.
         detail: ranked
-          ? `${measured ? `${measured}, ` : ""}${limit}`
-          : `${limit}${measured ? ` · ${measured}` : ""}`,
+          ? `${measured ? `${measured}, ` : ""}${limit} (your limit)`
+          : `${limit} (your limit)${measured ? ` · ${measured}` : ""}`,
         ...(row?.missing ? { missing: row.missing } : {}),
         ...(ranked ? { grade: row.grade } : {}),
         ...(row?.adjusted ? { adjusted: row.adjusted } : {}),

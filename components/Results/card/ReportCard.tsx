@@ -9,7 +9,7 @@
 import Link from "next/link";
 import { GRADES_ID, GRADES_TITLE } from "@/lib/client/help";
 import type { ReactNode } from "react";
-import { answerReason, incompleteLine, verdictParts } from "@/lib/report/answer";
+import { answerReason, incompleteLine, rowEdge, verdictParts } from "@/lib/report/answer";
 import { lowerFirst, VERDICT_WORD, type Card, type Row } from "@/lib/report/card";
 import type { PanelKey } from "@/lib/report/cardPanels";
 import {
@@ -47,7 +47,12 @@ function CostSection({
   return (
     <div className="card-group card-cost" role="group" aria-label={COST_WORDS.section}>
       <h3 className="card-sub">{COST_WORDS.section}</h3>
-      <p className="tiny muted cost-note">{COST_WORDS.howRead}</p>
+      <p className="tiny muted cost-note">
+        {COST_WORDS.howRead}
+        {s.kind !== "noWay" &&
+          s.lines.some((l) => l.range.includes(COST_WORDS.plusLand)) &&
+          ` ${COST_WORDS.noPrice}`}
+      </p>
       <ul className="card-rows">
         {s.kind === "noWay" ? (
           <li>
@@ -211,6 +216,8 @@ export function ReportCard({
         )}
         <span className="row-detail">
           {pending(r.missing) ? "…" : r.detail}
+          {/* Polish 2 (Z1): a D or F says the edge it's past, as the reason does for the one that costs most. */}
+          {!pending(r.missing) && !r.adjusted && rowEdge(r, card, result) && `; ${rowEdge(r, card, result)}`}
           {r.adjusted && <AdjustedNote a={r.adjusted} />}
         </span>
       </button>

@@ -37,7 +37,7 @@ test("Macks: the septic suggestion, counted as passed, makes it a Contender", as
   await expect(page.locator(".card .card-word")).toHaveText("Maybe");
   const raise = page.getByRole("region", { name: "Ways to raise this grade" });
   await expect(raise).toContainText(
-    "Plan on an alternative septic system: Septic would pass · Maybe → Contender",
+    "Plan on an alternative septic system: Septic would pass · verdict Maybe →\u00a0Contender",
   );
   await expect(raise).toContainText("septic $15–55k in Ready to build (Alternative)");
   await expect(raise.locator(".raise-item")).toHaveCount(2);

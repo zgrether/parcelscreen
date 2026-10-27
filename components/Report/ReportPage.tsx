@@ -262,23 +262,38 @@ function SheetScale({ children }: { children: ReactNode }) {
       ro.disconnect();
     };
   }, []);
-  const scaled = scale < 1;
+  // Polish 2 (R3): on a phone the fitted sheet is small; Full size shows it at 100%, scrolled sideways.
+  const [full, setFull] = useState(false);
+  const scaled = scale < 1 && !full;
   return (
-    <div
-      className="rp-wrap"
-      style={
-        scaled ? { width: SHEET_PX * scale, height: height !== null ? height * scale : undefined } : undefined
-      }
-    >
-      <div
-        ref={inner}
-        className="rp-scaled"
-        style={
-          scaled ? { transform: `scale(${scale})`, transformOrigin: "top left", width: SHEET_PX } : undefined
-        }
-      >
-        {children}
+    <>
+      {scale < 1 && (
+        <button type="button" className="btn small secondary rp-size" onClick={() => setFull(!full)}>
+          {full ? "Fit to screen" : "Full size"}
+        </button>
+      )}
+      <div className={full ? "rp-full" : undefined}>
+        <div
+          className="rp-wrap"
+          style={
+            scaled
+              ? { width: SHEET_PX * scale, height: height !== null ? height * scale : undefined }
+              : undefined
+          }
+        >
+          <div
+            ref={inner}
+            className="rp-scaled"
+            style={
+              scaled
+                ? { transform: `scale(${scale})`, transformOrigin: "top left", width: SHEET_PX }
+                : undefined
+            }
+          >
+            {children}
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

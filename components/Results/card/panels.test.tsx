@@ -71,7 +71,9 @@ describe("the report card's panels (VR5)", () => {
     );
     const t = panelText("sky");
     expect(html).toContain(t.question);
-    expect(html).toContain("rural dark sky (zone 3a).");
+    expect(html).toContain(
+      "rural dark sky (zone 3a; the atlas&#x27;s light-pollution zones run 0, darkest, to 7).",
+    );
     expect(html).toContain(t.howScored);
     expect(html).toContain(FROM_THE_REPORT_NOTE.replace("'overall'", "&#x27;overall&#x27;"));
   });
@@ -188,7 +190,7 @@ describe("the report card's panels (VR5)", () => {
   it("the How it's scored lines come from the config", () => {
     // The two weight sets the app shipped with, both named; one rubric alone names nobody (step 1).
     const how = (k: PanelKey) => panelText(k, undefined, undefined, { rubrics: PERSONS }).howScored;
-    expect(panelText("elevation").howScored).toMatch(/ft; weight 25.$/);
+    expect(panelText("elevation").howScored).toMatch(/ft; weight 25 \(\d+% of your grade\)\.$/);
     expect(how("elevation")).toBe(
       "A at 3,000 ft and up, B from 2,500 ft, C from 2,000 ft, D from 1,500 ft; weight 25 (Zach) / 10 (Julie).",
     );
