@@ -1,7 +1,8 @@
 /**
- * Step 14e (plan step-14e-offline.md §10): the service worker keeps the map's tiles as they're viewed. With the network
- * to the tile hosts cut, a reload of a viewed area is answered from the cache; past the cap set in Settings › Offline,
- * the least recently used tiles go and a pinned one stays. The basemap's hosts (USGS and the state aerials) are answered
+ * Step 14e (plan step-14e-offline.md §10): the service worker keeps the map's tiles as they're viewed, the terrain's
+ * elevation tiles among them (owner, #358). With the network to the tile hosts cut, a reload of a viewed area is
+ * answered from the cache; past the cap set in Settings › Offline, the least recently used tiles go and a pinned one
+ * stays. The basemap's hosts (USGS and the state aerials) are answered
  * here with PNGs of our own, which the service worker's requests reach too (Chromium routes them through the context).
  */
 import { expect, test, type Page } from "@playwright/test";
@@ -30,6 +31,8 @@ test("a viewed area's map comes from the cache with the network cut", async ({ p
   await expect.poll(async () => (await stored(page)).length).toBeGreaterThan(4);
   await allStored(page, tiles);
   const kept = (await stored(page)).map((s) => s.key);
+  // The terrain's tiles too (owner, #358): the hillshade's and contours' Terrarium tiles, fetched by their worker.
+  expect((await stored(page)).some((s) => s.layer === "terrarium")).toBe(true);
 
   tiles.cut = true;
   await reload(page);

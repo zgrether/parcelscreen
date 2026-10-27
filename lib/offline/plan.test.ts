@@ -23,10 +23,20 @@ describe("what Save offline downloads", () => {
     const plan = planSave(input());
     const layers = new Set(plan.items.map((i) => i.layer));
     expect([...layers].sort()).toEqual(
-      ["light-pollution", "parcel-lines", "places", "slope", "state-va", "usgs-imagery", "usgs-topo"].sort(),
+      [
+        "light-pollution",
+        "parcel-lines",
+        "places",
+        "relief",
+        "slope",
+        "state-va",
+        "terrarium",
+        "usgs-imagery",
+        "usgs-topo",
+      ].sort(),
     );
-    // The elevation tiles wait for §12 Q1; Esri is never saved.
-    expect(layers.has("relief") || layers.has("terrarium") || layers.has("esri")).toBe(false);
+    // Esri is never saved.
+    expect(layers.has("esri")).toBe(false);
     const va = plan.items.filter((i) => i.layer === "state-va");
     // Zooms 12–18 over about 1.7 km: a few hundred tiles, not thousands.
     expect(va.length).toBeGreaterThan(50);
@@ -56,6 +66,15 @@ describe("what Save offline downloads", () => {
         "/places/v1/official/36_-81.json",
       ].sort(),
     );
+  });
+
+  it("counts the terrain tiles in the estimate (owner, #358): Terrarium at 12–15, Mapterhorn's relief at 13–16", () => {
+    const plan = planSave(input());
+    const terrain = plan.items.filter((i) => i.layer === "terrarium" || i.layer === "relief");
+    expect(terrain.length).toBeGreaterThan(10);
+    const terrainBytes = terrain.reduce((n, i) => n + i.bytes, 0);
+    const without = planSave(input({ layers: OFFLINE_LAYERS.filter((l) => isKept(l) && !l.elevation) }));
+    expect(plan.bytes - without.bytes).toBe(terrainBytes);
   });
 
   it("estimates from this device's averages where it has them", () => {

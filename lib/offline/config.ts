@@ -19,7 +19,8 @@ export const REFRESH_AFTER_DAYS = 7;
 export const TOUCH_EVERY_MS = 5_000;
 
 /**
- * The elevation tiles (Mapterhorn, AWS Terrarium) are kept only once Zach says yes to §12 Q1: CLAUDE.md's "DEM rasters
- * are never persisted" read as the app's own storage, not the device's map cache. Until then they pass through.
+ * The elevation tiles (Mapterhorn, AWS Terrarium) are kept like any map tile (owner, #358, §12 Q1): CLAUDE.md's "DEM
+ * rasters are never persisted" is about the app's own storage (saved screens, the database, exports), not the capped
+ * map tile cache.
  */
-export const ELEVATION_TILES_CACHED = false;
+export const ELEVATION_TILES_CACHED = true;

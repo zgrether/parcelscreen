@@ -5,10 +5,13 @@
  */
 import { expect, type BrowserContext, type Page, type Route } from "@playwright/test";
 import { reload } from "./flow";
+import { greyPng } from "./png";
 
 /** The basemaps' hosts (USGS and the state aerials) and the atlas's image tiles. */
 const TILES =
   /basemap\.nationalmap\.gov\/arcgis\/rest\/services\/USGS\w+\/MapServer\/tile\/|vginmaps\.vdem\.virginia\.gov\/arcgis\/rest\/services\/VBMP_Imagery\/|services\.nconemap\.gov\/.*\/Orthoimagery_Latest_cached\/|tnmap\.tn\.gov\/arcgis\/rest\/services\/BASEMAPS\/|djlorenz\.github\.io\/astronomy\/image_tiles\//;
+/** The elevation tiles (Terrarium, Mapterhorn): always flat grey ground, since contours drawn on noise take minutes. */
+const TERRAIN = /s3\.amazonaws\.com\/elevation-tiles-prod\/terrarium\/|tiles\.mapterhorn\.com\//;
 /** USGS 3DEP's export: answered here only for Slope's tiles (its rule); the grade's DEM stays with the replay. */
 const EXPORT = /elevation\.nationalmap\.gov\/arcgis\/rest\/services\/3DEPElevation\/ImageServer\/exportImage/;
 
@@ -24,16 +27,22 @@ export interface Tiles {
 
 export async function answerTiles(context: BrowserContext, body: Buffer): Promise<Tiles> {
   const t: Tiles = { served: 0, urls: new Set(), cutOff: 0, cut: false };
-  const answer = (route: Route) => {
+  const flat = greyPng(256);
+  const answer = (route: Route, png = body) => {
     if (t.cut) {
       t.cutOff++;
       return route.abort("internetdisconnected");
     }
     t.served++;
     t.urls.add(route.request().url());
-    return route.fulfill({ body, contentType: "image/png", headers: { "access-control-allow-origin": "*" } });
+    return route.fulfill({
+      body: png,
+      contentType: "image/png",
+      headers: { "access-control-allow-origin": "*" },
+    });
   };
-  await context.route(TILES, answer);
+  await context.route(TILES, (route: Route) => answer(route));
+  await context.route(TERRAIN, (route: Route) => answer(route, flat));
   await context.route(EXPORT, (route: Route) =>
     new URL(route.request().url()).searchParams.has("renderingRule") ? answer(route) : route.fallback(),
   );
@@ -94,6 +103,8 @@ const ANSWERED = new Set([
   "state-va",
   "light-pollution",
   "slope",
+  "terrarium",
+  "relief",
 ]);
 
 /**
