@@ -505,7 +505,8 @@ export const FAVORITES_EMPTY =
   "Nothing on your shortlist yet. Use Add to list on a parcel, on the map or in Recent.";
 /** Recent with nothing in it (8c; step 8's History). */
 export const RECENT_EMPTY =
-  "Nothing here yet. The parcels you grade show up here for 30 days; add one to your list to keep it.";
+  // Polish 2: RECENT_DAYS (favorites.ts, which imports this file) went to 60 in UX part 2; the words said 30.
+  "Nothing here yet. The parcels you grade show up here for 60 days; add one to your list to keep it.";
 /** How Compare is reached (step 4b): the ticks on Your list, 2 or 3. */
 export const COMPARE_HOW = "Tick 2 or 3 parcels on Your list to compare them.";
 /** A fourth tick isn't offered. */

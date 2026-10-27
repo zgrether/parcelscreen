@@ -44,6 +44,8 @@ export const FACTOR_LABELS: Record<Factor, string> = {
 export const EDITOR_TITLES: Record<Factor, string> = {
   ...FACTOR_LABELS,
   easement: "Driveway on your land",
+  // Polish 2 (W7): two cards read "Driveway"; this one is the drive's own length and grade, from the road to the site.
+  driveway: "Driveway from the road",
 };
 
 /**

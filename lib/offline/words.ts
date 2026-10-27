@@ -42,6 +42,10 @@ export const OFFLINE_WORDS = {
   savedHeading: "Saved offline",
   incomplete: "Incomplete",
   delete: "Delete",
+  // Polish 2 (L9): Delete waits a few seconds with Undo; a saved parcel's name opens it on the map.
+  deleted: "Deleted",
+  undo: "Undo",
+  openTitle: "Open it on the map",
   none: "No parcels saved offline. Use Save offline in a parcel's ⋯ menu.",
 } as const;
 

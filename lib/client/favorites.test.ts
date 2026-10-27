@@ -27,6 +27,7 @@ import {
   type HistoryLog,
 } from "./favorites";
 import { plainParcel, type ParcelStore, type WorkingParcel } from "./parcelStore";
+import { RECENT_EMPTY } from "./library";
 
 const county = (id: string): ParcelRecord => ({
   geo: polygon([
@@ -62,6 +63,12 @@ const J = parcel("j", { addedBy: "julie" });
 const S = store(A, B, F, OLD, J);
 const ZACH_LOG: HistoryLog = withGraded(EMPTY_LOG, "a", "2026-10-20T11:00:00.000Z");
 const JULIE_LOG: HistoryLog = withGraded(EMPTY_LOG, "f", "2026-10-20T13:00:00.000Z");
+
+describe("Recent's empty words", () => {
+  it("say how long Recent keeps a parcel (polish 2: they said 30 days after it went to 60)", () => {
+    expect(RECENT_EMPTY).toContain(`${RECENT_DAYS} days`);
+  });
+});
 
 describe("the views", () => {
   it("Favorites: the starred and the archived, the household's", () => {

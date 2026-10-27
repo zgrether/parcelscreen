@@ -56,13 +56,13 @@ test("the columns, a card's Move to…, and Undo", async ({ page }) => {
   ]);
   await expect(column(page, "Don't care")).toHaveText(/Driveway/);
   await card(page, "Septic").locator(".rubric-card-body").click();
-  await expect(sheet(page)).toContainText("On the starting list.");
+  await expect(sheet(page)).toContainText("it's where the starting list puts it.");
   // A dealbreaker can't rank.
   await expect(sheet(page).getByRole("button", { name: "Really want" })).toBeDisabled();
   await sheet(page).getByRole("button", { name: "Don't care" }).click();
   await expect(names(column(page, "Don't care"))).toHaveText([
     "Septic",
-    "Driveway",
+    "Driveway from the road",
     "Town and groceries",
     "Climate",
     "Privacy",
@@ -110,7 +110,7 @@ test("the first reorder by dragging: applied at once, the notice's table, the pa
   const notice = page.locator(".rubric-notice");
   await expect(notice).toContainText("Weights follow your order now.");
   await notice.getByRole("button", { name: "See what changed" }).click();
-  await expect(notice.locator("tr", { hasText: "Night sky" })).toContainText(/10(\.0)?%\s*21\.4%/);
+  await expect(notice.locator("tr", { hasText: "Night sky" })).toContainText(/10%\s*21%/);
   // The page's Undo (polish #25: the notice has none of its own).
   await expect(notice.getByRole("button", { name: "Undo" })).toHaveCount(0);
   await page.getByRole("button", { name: "Undo", exact: true }).first().click();
@@ -288,7 +288,7 @@ test.describe("on a phone", () => {
     await page.keyboard.press("Escape");
     await expect(names(column(page, "Don't care"))).toHaveText([
       "Septic",
-      "Driveway",
+      "Driveway from the road",
       "Town and groceries",
       "Climate",
       "Privacy",

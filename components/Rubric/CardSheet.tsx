@@ -35,6 +35,7 @@ import {
   tierOf,
   limitWhy,
   whyLine,
+  WHY_STARTING,
   type WhyContext,
   type LimitKey,
   type Tier,
@@ -143,7 +144,9 @@ export function CardSheet({
         <p className="tiny muted">
           {TIER_NAMES[here]}
           {ranked && `, #${rubric.ranked.findIndex((c) => c.factor === f) + 1} in the list`} · Why:{" "}
-          {card.kind === "minimum" ? limitWhy(rubric, f as RowKey, why) : whyLine(rubric, f, why)}
+          {startingWords(
+            card.kind === "minimum" ? limitWhy(rubric, f as RowKey, why) : whyLine(rubric, f, why),
+          )}
         </p>
 
         {card.kind === "factor" && !isGate(f) && ROW_BANDS[f].length > 0 && (
@@ -341,3 +344,7 @@ function SkySlider({
     </div>
   );
 }
+
+/** Polish 2 (W5): "On the starting list." explained nothing to a first-time reader (the household panel's fix, #240). */
+const startingWords = (why: string): string =>
+  why === WHY_STARTING ? "it's where the starting list puts it." : why;
