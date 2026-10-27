@@ -7,7 +7,7 @@ import { expectedOf } from "@/test/support/expected";
 import { ZACH } from "@/test/support/rubrics";
 import type { PartialScreenResult } from "../screen/types";
 import { pieceCountyCheck } from "./countyCheck";
-import { pieceRows } from "./pieceRows";
+import { PIECE_NOT_PRICED, pieceRows } from "./pieceRows";
 
 const MUD = expectedOf("grayson-mud-creek-6273", "run");
 const GRAYSON = MUD.county!;
@@ -73,14 +73,15 @@ describe("a piece's rows", () => {
     expect(rows[3]).toMatchObject({ label: "County", tone: "pass" });
   });
 
-  it("not priced yet: one cost row says so", () => {
+  it("not priced yet: Ready to camp and Ready to build each say so, as a priced piece's rows do (polish 2, Z6)", () => {
     const card = reportCard(MUD, ZACH); // no drawn costs: the cost isn't priced
     const rows = pieceRows(
       card,
       { pass: false, text: "Under the county's 0.69 ac minimum lot" },
       "Your grade",
     );
-    expect(rows.map((x) => x.key)).toEqual(["grade", "cost", "county"]);
-    expect(rows[2]).toMatchObject({ tone: "fail" });
+    expect(rows.map((x) => x.key)).toEqual(["grade", "camp", "build", "county"]);
+    expect(rows[1]).toMatchObject({ label: "Ready to camp", value: PIECE_NOT_PRICED });
+    expect(rows[3]).toMatchObject({ tone: "fail" });
   });
 });

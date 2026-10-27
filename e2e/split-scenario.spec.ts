@@ -142,9 +142,12 @@ test("Split Mud Creek: grade both pieces, both shown side by side, each with a c
     /^East piece, [\d.]+ ac$/,
     /^West piece, [\d.]+ ac$/,
   ]);
-  // The east piece (26.7 ac) is priced; the west one (2.6 ac, D, Not for us) has no routed driveway, so its cost says so.
+  // The east piece (26.7 ac) is priced; the west one (2.6 ac, D, Not for us) has no routed driveway, so its costs say so.
   await expect(pieces.nth(0).locator(".scn-row[data-row=camp] .scn-value")).toContainText("plus the land");
-  await expect(pieces.nth(1)).toContainText("The way in isn't priced yet");
+  // Polish 2 (Z6): the same two rows as the priced piece, each saying it isn't priced.
+  await expect(pieces.nth(1).locator(".scn-row[data-row=camp] .scn-value")).toHaveText(
+    "not priced: the way in isn't routed yet",
+  );
   for (const piece of await pieces.all()) {
     await expect(piece.locator(".scn-row").first().locator(".card-grade")).toBeVisible();
     await expect(piece.locator(".scn-row[data-row=county] .scn-value")).toHaveText(

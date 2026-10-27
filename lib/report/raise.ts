@@ -64,7 +64,7 @@ const gain = (a: Card, b: Card): number =>
   (letterRank(b.grade) - letterRank(a.grade)) * 10 +
   ((b.points ?? 0) - (a.points ?? 0));
 
-/** "Elevation B → A" for the rows that moved (at most two, the biggest first), then "parcel C → B", "Maybe → Contender". */
+/** "Elevation B → A" for the rows that moved (at most two, the biggest first), then "grade C → B", "verdict Maybe → Contender". */
 export function effectWords(a: Card, b: Card): string {
   const moved: { words: string; by: number }[] = [];
   for (const row of b.rows) {
@@ -85,8 +85,11 @@ export function effectWords(a: Card, b: Card): string {
     .sort((x, y) => y.by - x.by)
     .slice(0, 2)
     .map((x) => x.words);
-  const parcel = a.grade !== b.grade ? [`parcel ${a.grade ?? "–"} → ${b.grade ?? "–"}`] : [];
-  const verdict = a.verdict !== b.verdict ? [`${VERDICT_WORD[a.verdict]} → ${VERDICT_WORD[b.verdict]}`] : [];
+  // Polish 2 (Z3, owner): "parcel B → A" read as a parcel named B; "grade" and "verdict" say which, and a no-break space
+  // keeps each arrow with the letter after it.
+  const parcel = a.grade !== b.grade ? [`grade ${a.grade ?? "–"} →\u00a0${b.grade ?? "–"}`] : [];
+  const verdict =
+    a.verdict !== b.verdict ? [`verdict ${VERDICT_WORD[a.verdict]} →\u00a0${VERDICT_WORD[b.verdict]}`] : [];
   return [...rows, ...parcel, ...verdict].join(" · ");
 }
 

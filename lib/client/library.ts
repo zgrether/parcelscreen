@@ -5,6 +5,7 @@
  */
 import { DEFAULT_COST_SETTINGS, type CostSettings, type Range } from "../config/costs";
 import { isAdjusted } from "@/lib/report/adjust";
+import { biggestMiss } from "@/lib/report/answer";
 import { factorCells, type FactorCell } from "../report/factorCells";
 import { perAcre, type PerAcre } from "../report/perAcre";
 import {
@@ -49,6 +50,8 @@ export interface Graded {
   verdict: Verdict;
   /** Step 12: the person adjusted this parcel's card (✎ beside the grade). */
   adjusted?: true;
+  /** Polish 2 (Z8): the row at C or worse that costs the letter most, "Driveway F", for the grade's tooltip. */
+  weakest?: string;
 }
 
 /** A parcel with no current screen: never screened, or screened under earlier rules (it re-screens when opened). */
@@ -182,7 +185,13 @@ export function libraryRow(
         costBuild = { total: c.cost.build.total, plusLand: c.cost.build.land === null };
       factors = factorCells(c);
     }
-    return { grade: c.grade, verdict: c.verdict, ...(isAdjusted(c) ? { adjusted: true as const } : {}) };
+    const weak = biggestMiss(c);
+    return {
+      grade: c.grade,
+      verdict: c.verdict,
+      ...(isAdjusted(c) ? { adjusted: true as const } : {}),
+      ...(weak?.grade ? { weakest: `${weak.label} ${weak.grade}` } : {}),
+    };
   };
   const grades = rubrics.map((nr) => ({ id: nr.id, name: nr.name, graded: graded(nr) }));
   const verdicts = grades.map((g) => g.graded?.verdict).filter((v): v is Verdict => !!v);

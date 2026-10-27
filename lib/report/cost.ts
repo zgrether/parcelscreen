@@ -117,6 +117,8 @@ export const COST_WORDS = {
   notAQuote: "Published ranges, not a quote.",
   // The fresh-eyes review: say the land is in it, and that a line opens its breakdown.
   howRead: "All in, the land included; to build is everything but the house. Tap a line for its breakdown.",
+  // Polish 2 (Z4, owner): after howRead when there's no asking price, so "the land included" isn't read as priced.
+  noPrice: "No asking price yet, so the land isn't in these.",
   driveNote:
     "The Driveway section's estimate prices earthwork and stone at Settings' driveway rates; these costs use published per-foot ranges.",
 } as const;

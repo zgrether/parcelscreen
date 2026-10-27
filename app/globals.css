@@ -8147,6 +8147,7 @@ button.use-row[aria-expanded="true"] .use-name::after {
   .app-frame > :not(.app-main),
   .app-map,
   .rp-bar,
+  .rp-size,
   .pwa-offline,
   .pwa-update {
     display: none !important;
@@ -8261,6 +8262,29 @@ button.use-row[aria-expanded="true"] .use-name::after {
 .rp-facts-list dd {
   margin: 0;
   overflow-wrap: anywhere;
+}
+/* Polish 2 (Z7): a line saying whose order a list is in. */
+.rp-note {
+  margin: 0 0 4px;
+  font-size: 12px;
+  color: #333;
+}
+/* Polish 2 (R3): the phone's Full size: the sheet at 100%, its own sideways scroll. */
+.rp-size {
+  min-height: 44px;
+  margin: 0 0 8px;
+}
+.rp-full {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.rp-key {
+  white-space: nowrap;
+}
+.rp-key-swatch {
+  display: inline-block;
+  margin-right: 3px;
+  vertical-align: -1px;
 }
 .rp-notes {
   white-space: pre-wrap;

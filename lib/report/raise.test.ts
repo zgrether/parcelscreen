@@ -42,12 +42,12 @@ describe("the suggestions", () => {
     const { suggestions, neighbour } = raiseSuggestions(MACKS, base, drawn);
     expect(suggestions.map((s) => s.kind)).toEqual(["septic", "setAside"]);
     expect(suggestions[0]).toMatchObject({
-      text: "Plan on an alternative septic system: Septic would pass · Maybe → Contender",
+      text: "Plan on an alternative septic system: Septic would pass · verdict Maybe →\u00a0Contender",
       cost: "septic $15–55k in Ready to build (Alternative)",
       action: { kind: "adjust", factor: "septic", choice: "pass" },
     });
     expect(suggestions[1]).toMatchObject({
-      text: "Set aside Trails and public land for this parcel: parcel B → A",
+      text: "Set aside Trails and public land for this parcel: grade B →\u00a0A",
       action: { kind: "adjust", factor: "trails", choice: "setAside" },
     });
     for (const s of suggestions) expect(raises(base, s.card)).toBe(true);
@@ -65,7 +65,7 @@ describe("the suggestions", () => {
     expect(worse.grade).toBe("C");
     const home = raiseSuggestions(MACKS, worse, drawn).suggestions[0]!;
     expect(home.kind).toBe("homesite");
-    expect(home.text).toMatch(/^Build at site #3: .*parcel C → B/);
+    expect(home.text).toMatch(/^Build at site #3: .*grade C →\u00a0B/);
     expect(home.action).toMatchObject({ kind: "house", site: 2 });
     // At the best site already: none.
     expect(raiseSuggestions(MACKS, card(MACKS), drawn).suggestions.some((s) => s.kind === "homesite")).toBe(
@@ -121,13 +121,15 @@ describe("your line as access (plan §2.2)", () => {
     };
   }
 
-  it("a recorded easement that avoids the neighbour's land: Driveway on your land would pass · Maybe → Contender; Try it", () => {
+  it("a recorded easement that avoids the neighbour's land: Driveway on your land would pass · verdict Maybe →\u00a0Contender; Try it", () => {
     const { r, drawn } = roanWithOldRoad();
     const base = reportCard(r, nr, drawn);
     expect(base.verdict).toBe("Maybe");
     const { suggestions } = raiseSuggestions(r, base, drawn);
     const access = suggestions.find((s) => s.kind === "access")!;
-    expect(access.text).toBe("Use Old road for access: Driveway on your land would pass · Maybe → Contender");
+    expect(access.text).toBe(
+      "Use Old road for access: Driveway on your land would pass · verdict Maybe →\u00a0Contender",
+    );
     expect(access.action).toEqual({ kind: "tryLine", line: "old-road" });
     // In order: after the homesite (none here), before the septic system.
     expect(suggestions.map((s) => s.kind)).toEqual(["access", "septic"]);
@@ -148,11 +150,11 @@ describe("your line as access (plan §2.2)", () => {
     for (const d of tried.drives ?? []) d.min += 4;
     const yours = reportCard(tried, nr, { ...drawn, driveway: "old-road" });
     expect(triedWords(base, yours)).toMatch(
-      /^Driveway on your land would pass · Maybe → Contender · .* \d+ → \d+ min/,
+      /^Driveway on your land would pass · verdict Maybe →\u00a0Contender · .* \d+ → \d+ min/,
     );
     // Back the other way: worse, and the Must's own words say why.
     expect(triedWords(yours, base)).toMatch(
-      /Contender → Maybe.*\. Why: The driveway needs an easement across neighbouring land$/,
+      /Contender →\u00a0Maybe.*\. Why: The driveway needs an easement across neighbouring land$/,
     );
   });
 });
