@@ -9116,3 +9116,67 @@ button.use-row[aria-expanded="true"] .use-name::after {
 .ruled-back {
   min-height: 44px;
 }
+
+/* ---------- Step 15: How it could pay, Uses' second panel (docs/plans/step-15-how-it-could-pay.md §6, §7) ---------- */
+/* "Not eligible" is the longest chip: a wider fixed column, so the names still line up. */
+.pay-row {
+  grid-template-columns: 1fr 104px;
+}
+.pay-row .use-chip {
+  min-width: 96px;
+}
+.pay-detail .uses-sub {
+  margin-top: 10px;
+}
+.pay-detail .uses-sub:first-child {
+  margin-top: 0;
+}
+.pay-lines {
+  margin: 0;
+  padding: 0 0 0 18px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.pay-lines li + li {
+  margin-top: 4px;
+}
+.pay-firm {
+  color: var(--color-ink-2);
+  font-style: italic;
+}
+.pay-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.pay-link {
+  margin: 8px 0 0;
+  font-size: 14px;
+}
+.pay-link a {
+  display: inline-block;
+  min-height: 44px;
+  line-height: 44px;
+}
+/* Virginia's credit slider: its value above it in large type, the credit under it, a 44 px thumb on a phone. */
+.pay-slider {
+  margin: 4px 0 10px;
+}
+.pay-slider-label {
+  display: block;
+  font-size: 14px;
+}
+.pay-slider-label strong {
+  font-size: 20px;
+}
+.pay-slider input[type="range"] {
+  width: 100%;
+  height: 44px;
+  accent-color: var(--color-water);
+}
+.pay-credit {
+  margin: 2px 0 0;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.35;
+}

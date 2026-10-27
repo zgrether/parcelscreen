@@ -198,6 +198,9 @@ describe("version 2 (owner, after #131): every field written; a version 1 file c
       agent: "",
       deedRestrictions: "",
       hoa: "unknown",
+      // Step 15 (plan §5): the assessment and a timber cruise, neither typed.
+      assessed: null,
+      timberCruise: null,
       status: "inProgress",
       archived: null,
       milestones: { walked: null, offered: null },
