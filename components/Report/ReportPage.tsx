@@ -4,6 +4,7 @@
  * the parcel's saved screen alone. Its own top bar (Back, One page | Full, Print or save as PDF) doesn't print; the
  * sheet under it is laid out at Letter size on screen too, so what you see is what prints.
  */
+import { scenarioBreakEvens } from "@/lib/split/breakEvenOf";
 import { useParams, useRouter } from "next/navigation";
 import { useCostSettings } from "@/lib/client/costRates";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -190,6 +191,12 @@ function Report({
       stale,
       refusesAltSeptic: !!getPref("ps.interview")?.answers.walkAway?.chips?.includes("altSeptic"),
       parcel,
+      // Step 15: How it could pay's own inputs.
+      pay: {
+        assessed: parcel.assessed,
+        timberCruise: parcel.timberCruise,
+        scenarios: scenarioBreakEvens(parcel, parcel.askingPrice, costs.rates),
+      },
     });
   }, [parcel, record, household, derived, costs]);
   // The map's content (plan §4): the boundary's rings, the viewer's best site and their alternatives, the lines, a house.
@@ -233,6 +240,7 @@ function Report({
             adjustments={content.adjustments}
             raise={content.raise}
             uses={content.uses}
+            pay={content.pay}
           />
         )}
       </article>

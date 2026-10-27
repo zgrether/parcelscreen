@@ -51,6 +51,8 @@ import { ordinal } from "@/components/Results/answer/BestHomesite";
 import { siteMeasures } from "@/lib/report/siteMeasures";
 import { lineNamesOf } from "@/lib/report/lines";
 import { CostBreakdown } from "@/components/Results/card/CostBreakdown";
+import type { PayOption } from "@/lib/pay";
+import { ELIGIBILITY_WORD, PAY_WORDS } from "@/lib/pay/words";
 import type { Fact, LandUses } from "@/lib/uses";
 import { ANSWER_WORD, USE_NAME, USE_WORDS } from "@/lib/uses/words";
 
@@ -158,6 +160,7 @@ export function Full({
   adjustments = [],
   raise = [],
   uses = null,
+  pay = [],
 }: {
   result: ScreenResult;
   /** The viewer's card. */
@@ -170,6 +173,8 @@ export function Full({
   raise?: readonly string[];
   /** What you can do here (step 14), at the viewer's card's site. */
   uses?: LandUses | null;
+  /** How it could pay (step 15). */
+  pay?: readonly PayOption[];
 }) {
   // A block's folds (the driveway's grade detail) print open: paper has no ▸ to press (fresh-eyes review).
   const box = useRef<HTMLDivElement>(null);
@@ -326,6 +331,40 @@ export function Full({
           <h3>{USE_NAME.limits}</h3>
           <PrintFacts facts={uses.limits} />
           <p>{USE_WORDS.notAdvice}</p>
+        </Section>
+      )}
+      {/* Step 15 (plan §6): each option's answer, number, cost and question; Virginia's credit as its formula (paper
+          has no slider); the not-advice line. */}
+      {pay.length > 0 && (
+        <Section title={PAY_WORDS.section}>
+          <ul className="rp-uses">
+            {pay.map((o) => (
+              <li key={o.key}>
+                <b>
+                  {o.name}: {ELIGIBILITY_WORD[o.eligibility]}.
+                </b>{" "}
+                {o.reason}.
+                {o.number.length > 0 && (
+                  <ul>
+                    {o.number.map((l, n) => (
+                      <li key={n}>
+                        {l.text}
+                        {l.firmness && ` (${l.firmness})`}
+                        {l.confidence === "to confirm" && ` [${PAY_WORDS.toConfirm}]`}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <div>
+                  {PAY_WORDS.costs}: {o.cost}.
+                </div>
+                <div>
+                  {PAY_WORDS.ask} {o.ask.who}: {o.ask.question}
+                </div>
+              </li>
+            ))}
+          </ul>
+          <p>{PAY_WORDS.notAdvice}</p>
         </Section>
       )}
 

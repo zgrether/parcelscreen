@@ -223,3 +223,14 @@ export const BREAK_EVEN = {
   pieceRow: "Break-even, if this piece sells",
   pieceRowValue: (perAc: number) => `${money(perAc)}/ac`,
 } as const;
+
+/**
+ * One page's line (§6, §8 Report), only when an option is Eligible: "Could pay: use-value tax, forest carbon (eligible;
+ * see the full report)".
+ */
+export function payReportLine(options: readonly { name: string; eligibility: Eligibility }[]): string | null {
+  const names = options
+    .filter((o) => o.eligibility === "eligible")
+    .map((o) => o.name.charAt(0).toLowerCase() + o.name.slice(1));
+  return names.length ? `Could pay: ${names.join(", ")} (eligible; see the full report)` : null;
+}

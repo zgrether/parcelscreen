@@ -89,8 +89,7 @@ import { currentProfileId } from "@/lib/client/profiles";
 import { isPreview, openSample, sampleOf } from "@/lib/client/samples";
 import { SAMPLE_WORDS } from "@/lib/areas/words";
 import { howItCouldPay } from "@/lib/pay";
-import { resolveBreakEven } from "@/lib/split/breakEvenOf";
-import { piecesOf } from "@/lib/split/scenario";
+import { scenarioBreakEvens } from "@/lib/split/breakEvenOf";
 import { landUses } from "@/lib/uses";
 import { tallyOf, usesInputOf } from "@/lib/uses/input";
 import { USE_WORDS } from "@/lib/uses/words";
@@ -578,17 +577,11 @@ export function useScreenIt(
   const assessed = open?.assessed ?? null;
   const timberCruise = open?.timberCruise ?? null;
   // Each split's break-even, for Split and resell's row (plan §2.6): the sold piece and its $/ac.
-  const scenarioList = open?.scenarios;
-  const scenarios = useMemo(() => {
-    if (!open || !scenarioList?.length) return [];
-    return scenarioList.flatMap((sc) => {
-      const ps = piecesOf(open, sc);
-      if (!ps) return [];
-      const r = resolveBreakEven(sc.breakEven, ps, askingPrice, costs.rates);
-      return [{ name: sc.name, soldWord: r.sold.word, perAc: r.figures?.breakEvenPerAc ?? null }];
-    });
+  const scenarios = useMemo(
+    () => (open ? scenarioBreakEvens(open, askingPrice, costs.rates) : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the scenarios, the parts they cut, the price and the rates
-  }, [scenarioList, open?.pieces, askingPrice, costs.rates]);
+    [open?.scenarios, open?.pieces, askingPrice, costs.rates],
+  );
   const pay = useMemo(
     () =>
       usesIn && uses

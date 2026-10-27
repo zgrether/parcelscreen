@@ -8134,8 +8134,9 @@ button.use-row[aria-expanded="true"] .use-name::after {
   margin: 0 0 2px;
   font-variant-numeric: tabular-nums;
 }
-/* Step 14: One page's Divide line, after the Raise line. */
-.rp-divide {
+/* Step 14: One page's Divide line, after the Raise line; step 15's Could pay line after it. */
+.rp-divide,
+.rp-pay {
   margin: 2px 0;
 }
 .rp-grades {
