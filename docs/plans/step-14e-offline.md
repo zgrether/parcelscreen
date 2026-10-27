@@ -336,7 +336,9 @@ PNGs, and the size defaults are estimates the device refines (§4.2).
 
 ## 12. Questions, each with the recommendation (the mission proceeds on these; each flagged in the hand-back)
 
-1. **Elevation tiles and the hard rule "DEM rasters are never persisted".** The brief asks for the 3D terrain,
+1. **Elevation tiles and the hard rule "DEM rasters are never persisted".** *Answered yes (owner, #358, 10/27), with
+   the rule worded as "DEM rasters are never persisted in the app's own storage (saved screens, the database,
+   exports); map tiles, including elevation tiles, may be kept in the capped map tile cache when their terms allow".* The brief asks for the 3D terrain,
    contours, hillshade and lidar relief offline. Their tiles (Terrarium, Mapterhorn) are elevation rasters.
    - **Recommended:** read the rule as being about the app's own storage of a grade's elevation (Supabase, Storage, a
      screen result), not the device's map cache, which holds what the browser's HTTP cache would hold anyway.

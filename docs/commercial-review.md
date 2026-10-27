@@ -68,8 +68,10 @@ is the one list):
 - **Never kept:** Esri's World Imagery and World Street Map. Esri's terms bar storing or harvesting its basemap tiles
   except through its Content Packages, used with Esri's own software (#338's research). Map layers marks them "not kept
   offline".
-- **Waiting for the owner:** Mapterhorn's and AWS Terrarium's elevation tiles (step 14e plan Q1). Their terms allow
-  caching; CLAUDE.md's "DEM rasters are never persisted" is the question.
+- **Kept and saved since the owner's answer (#358, step 14e plan Q1):** Mapterhorn's and AWS Terrarium's elevation
+  tiles (Shaded relief, the 3D terrain, hillshade and contours). Their terms allow caching, and CLAUDE.md's rule now
+  reads that DEM rasters are never persisted in the app's own storage, while map tiles, elevation tiles included, may
+  be kept in the capped map tile cache when their terms allow.
 
 ## The area catalog's monthly profile (step 13)
 

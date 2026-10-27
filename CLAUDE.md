@@ -128,7 +128,9 @@ This is a personal tool for one household. Verification should be proportionate:
 - External fetches go through `lib/http.ts`: one throttled client with a per-host queue,
   identifying User-Agent, conditional requests, and 429 backoff. Connectors declare a minimum
   cadence and the scheduler cannot run them faster.
-- DEM rasters are never persisted. The light-pollution atlas tiles may be cached in Storage.
+- DEM rasters are never persisted in the app's own storage (saved screens, the database, exports); map tiles, including
+  elevation tiles, may be kept in the capped map tile cache when their terms allow (owner, #358, 10/27). The
+  light-pollution atlas tiles may be cached in Storage.
 - Keep the prototype's data-source caveats in the UI (bare-earth DEM, soil map-unit scale,
   zenith-only atlas, OSM undercounting trailheads). They are part of the product's honesty.
 

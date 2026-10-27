@@ -42,11 +42,11 @@ describe("which map requests the offline cache keeps", () => {
     expect(layerOf("http://localhost:3100/explore", true)).toBeNull();
   });
 
-  it("keeps nothing of Esri's, and the elevation tiles only once allowed", () => {
+  it("keeps nothing of Esri's, and keeps the elevation tiles (owner, #358)", () => {
     const by = Object.fromEntries(OFFLINE_LAYERS.map((l) => [l.id, l]));
     expect(isKept(by.esri!)).toBe(false);
-    expect(isKept(by.relief!)).toBe(false);
-    expect(isKept(by.terrarium!)).toBe(false);
+    expect(isKept(by.relief!)).toBe(true);
+    expect(isKept(by.terrarium!)).toBe(true);
     expect(isKept(by["usgs-imagery"]!)).toBe(true);
     expect(isKept(by.slope!)).toBe(true);
     expect(BASEMAPS.filter((b) => BASEMAPS_NOT_KEPT.has(b.id)).map((b) => b.label)).toEqual([
