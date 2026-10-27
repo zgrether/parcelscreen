@@ -140,7 +140,11 @@ export function BestHomesite({
       </p>
       {elsewhere && (
         <p className="best-site-showing" role="status">
-          <span>The map&apos;s sun, sky and driveway are for {ranLabel}, where the screen ran.</span>
+          {/* Polish 2 (P12): which site each is, where the grade's site and the best one differ. */}
+          <span>
+            The map&apos;s sun, sky and driveway are for {ranLabel}, where the grade ran; the best homesite is{" "}
+            {bestLabel}.
+          </span>
           <button className="btn small secondary" onClick={() => onPick(best!)}>
             Evaluate {bestLabel}
           </button>

@@ -137,7 +137,7 @@ function SetAsideRow({ x, onOpen }: { x: SetAside; onOpen(key: PanelKey): void }
  * The banner when the drawn lines changed since the screen: the results stay, no re-run. The owner's wording (A,
  * 2026-10-13; an approved replacement of #116's "Your drawn lines changed since this screen. Run again.").
  */
-export const LINES_CHANGED = "You drew or changed a line after this screen.";
+export const LINES_CHANGED = "You drew or changed a line after this grade.";
 /** The banner when the boundary changed since the screen (the panel's old red note, less its "Grade again."). */
 export const EARLIER_BOUNDARY = "These results are for an earlier boundary.";
 /** The banner when the house moved and no live session can re-assess it (the panel's old note, shortened). */

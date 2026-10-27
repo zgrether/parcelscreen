@@ -28,7 +28,9 @@ export const PLACES_WORDS = {
   zoomIn: "Zoom in to see places",
   failed: "Some places didn't load",
   attribution: "Places: © OpenStreetMap contributors, USFS, CMS, the states' parks",
-  river: "Check the river's class before paddling",
+  // Polish 2 (P11): the class in plain words; a river launch beside a graded parcel says why it has no drive.
+  river: "Check the river's class (how hard its rapids are) before paddling",
+  notTimed: "Not timed: rivers are listed, not graded",
   /** Under the toggles: the launches' two colours. */
   launchKey: "Paddle launches: blue on a lake or reservoir, green on a river.",
   checked: (date: string) => `Checked ${date}`,
@@ -177,8 +179,15 @@ export function timedMinutes(r: TimedResult | null, p: PlaceProps, ll: LatLon): 
 /**
  * The tap card's lines: the name, its type, its source, when it was checked, the drive from the open parcel when the
  * grade timed it, and a river's warning. `firstFlat`: the first flatwater card of a visit says what flatwater is.
+ * `graded`: a parcel's grade is open, so a river launch's missing drive is said to be by design.
  */
-export function cardLines(p: PlaceProps, minutes: number | null, firstFlat = false): string[] {
+export function cardLines(
+  p: PlaceProps,
+  minutes: number | null,
+  firstFlat = false,
+  graded = false,
+): string[] {
+  const river = p.kind === "launch" && p.water === "river";
   const type =
     p.kind === "launch"
       ? `Paddle launch: ${p.water === "flat" ? (firstFlat ? "flatwater (a lake or reservoir)" : "flatwater") : "river"}${p.of ? `, ${p.of}` : ""}`
@@ -190,8 +199,8 @@ export function cardLines(p: PlaceProps, minutes: number | null, firstFlat = fal
     type,
     ...(p.source ? [`From ${p.source}`] : []),
     ...(p.checked ? [PLACES_WORDS.checked(p.checked)] : []),
-    ...(minutes !== null ? [PLACES_WORDS.minutes(minutes)] : []),
-    ...(p.kind === "launch" && p.water === "river" ? [PLACES_WORDS.river] : []),
+    ...(minutes !== null ? [PLACES_WORDS.minutes(minutes)] : river && graded ? [PLACES_WORDS.notTimed] : []),
+    ...(river ? [PLACES_WORDS.river] : []),
   ];
 }
 

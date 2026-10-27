@@ -97,8 +97,12 @@ describe("the tap card", () => {
       "Paddle launch: river, Watauga River",
       "From US Forest Service",
       "Checked 2026-10-25",
-      "Check the river's class before paddling",
+      "Check the river's class (how hard its rapids are) before paddling",
     ]);
+    // Beside a graded parcel, its missing drive is by design (polish 2, P11).
+    expect(
+      cardLines(props({ kind: "launch", name: "Guy Ford access", water: "river" }), null, false, true),
+    ).toContain("Not timed: rivers are listed, not graded");
   });
 
   it("flatwater says what it is the first time; the drive from the parcel when the grade timed it", () => {
