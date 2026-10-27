@@ -68,10 +68,11 @@ The figures are in `lib/config/programs.ts`, `lib/config/countyPay.ts` and Setti
     (statute, agency, program, county), so confirming it is a one-word change once someone opens the page.
 - **Virginia's credit:** 40% of the appraised value. You can use at most $20,000 a year (the Appropriation Act, from
   2024); unused credit carries forward 10 years. It can be sold, with a 5% fee, and Virginia issues at most $75M a year.
-- **North Carolina has a credit again,** for donations in 2025 and 2026 only: 25% of the appraised value, up to
-  $250,000, carried forward 5 years. It ends for donations from 2027-01-01.
+- **North Carolina has a credit again:** 25% of the appraised value, up to $250,000 for an individual ($500,000 for a
+  business), carried forward 5 years. Reinstated in 2024 for donations from 2025, and extended through 2031 by the 2026
+  farm bill (Zach confirmed, #376, 10/27).
   - Land under an easement also keeps present-use value without the production test.
-  - So NC shows its credit, not "No state credit". Its formula is text, since the brief gives the slider to Virginia.
+  - So NC shows its credit, not "No state credit", with a slider like Virginia's that shows the cap (#376, 10/27).
 - **Tennessee has no state credit.** Land under a perpetual easement can be Greenbelt open space (3 ac or more).
 - **Federal:** 50% of AGI (100% for qualified farmers), carried forward 15 years.
 - **Easement size (changes §2.1):**

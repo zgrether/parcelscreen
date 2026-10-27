@@ -4,7 +4,7 @@
  * tax rate and its campground rule. Researched 2026-10-27; every figure read from a search excerpt of the page named,
  * so "to confirm" (programs.ts says why). A number not found is null, never guessed.
  */
-import { excerpt, type Sourced } from "./programs";
+import { confirmed, excerpt, type Sourced } from "./programs";
 
 export interface CountyPay {
   fips: string;
@@ -44,12 +44,13 @@ export const COUNTY_PAY: readonly CountyPay[] = [
   // ---------- Virginia ----------
   {
     fips: "51063",
-    forestUseValue: excerpt(
+    // Owner-confirmed (#376, 10/27) from Virginia Tech's use-value site, as are Grayson's and Patrick's.
+    forestUseValue: confirmed(
       false,
-      "Floyd's land use program takes farm and horticultural land only, not forest",
+      "Floyd's land use program takes agriculture and horticulture only, not forest",
       "https://luva.aaec.vt.edu/locality/floyd/",
       "agency",
-      "TY2026",
+      "current",
     ),
     forestPerAc: noCountyValues("https://luva.aaec.vt.edu/locality/floyd/"),
     taxPer100: excerpt(0.44, "$0.44 per $100", "https://www.floydcova.gov/commissioner", "county", "2025"),
@@ -57,7 +58,7 @@ export const COUNTY_PAY: readonly CountyPay[] = [
   },
   {
     fips: "51077",
-    forestUseValue: excerpt(false, "Grayson has no land use program", LUVA, "agency", "TY2026"),
+    forestUseValue: confirmed(false, "Grayson has no land use program", LUVA, "agency", "current"),
     forestPerAc: noCountyValues(LUVA),
     taxPer100: excerpt(
       0.58,
@@ -76,9 +77,10 @@ export const COUNTY_PAY: readonly CountyPay[] = [
   },
   {
     fips: "51035",
-    forestUseValue: excerpt(
+    // Owner-confirmed (#376, 10/27) from Carroll's Commissioner of the Revenue.
+    forestUseValue: confirmed(
       true,
-      "Carroll's land use program takes farm, horticultural and forest land",
+      "Carroll's land use program takes agriculture and horticulture (5 ac) and forest (20 ac)",
       "https://carrollcountyva.gov/government/commissioner_of_the_revenue/special_assessment_land_program.php",
       "county",
       "current",
@@ -101,7 +103,7 @@ export const COUNTY_PAY: readonly CountyPay[] = [
   },
   {
     fips: "51141",
-    forestUseValue: excerpt(false, "Patrick has no land use program", LUVA, "agency", "TY2026"),
+    forestUseValue: confirmed(false, "Patrick has no land use program", LUVA, "agency", "current"),
     forestPerAc: noCountyValues(LUVA),
     taxPer100: excerpt(
       0.73,

@@ -35,6 +35,7 @@ export function creditLines(c: EasementCredit): PayLine[] {
   ];
   if (c.yearlyUse.value !== null) lines.push({ text: c.yearlyUse.says, ...src(c.yearlyUse) });
   if (c.transfer.value) lines.push({ text: c.transfer.says, ...src(c.transfer) });
+  if (c.use) lines.push({ text: c.use.says, ...src(c.use) });
   for (const n of c.notes) lines.push({ text: n.says, ...src(n) });
   return lines;
 }
@@ -153,37 +154,37 @@ export function easement({ uses, land, listing }: PayInput): PayOption {
     reason,
     signals,
     number,
-    // Virginia's credit as a slider (§2.1): it starts at $0, so no figure shows before you move it.
-    ...(where?.state === "VA"
-      ? { slider: { state: "VA" as const, max: sliderMax(listing.askingPrice), step: SLIDER_STEP } }
+    // A state's credit as a slider (§2.1; North Carolina's too, owner #376): it starts at $0, so no figure shows before
+    // you move it.
+    ...(where?.state && state?.credit
+      ? { slider: { state: where.state, max: sliderMax(listing.askingPrice), step: SLIDER_STEP } }
       : {}),
     cost: PAY_COST.easement,
     ask: PAY_ASK.easement,
   };
 }
 
-/** The credit under the slider, its value being said above it: "A state credit of $40,000. At $20,000 a year, …". */
+/**
+ * The credit under the slider, its value being said above it: "A state credit of $80,000. At $20,000 a year, you'd use it
+ * over 4 years. You can use $20,000 a year against your own Virginia tax…"; with a cap, the cap, and "(the cap)" when
+ * the value reaches it (owner, #376).
+ */
 export function sliderCredit(
   c: EasementCredit,
   credit: { credit: number; years: number | null; beyondCarry: number },
 ): string {
-  const spread =
-    credit.years !== null && c.yearlyUse.value !== null && credit.years > 1
-      ? `. ${NUMBER.yearly(c.yearlyUse.value, credit.years)}${credit.beyondCarry > 0 && c.transfer.value ? `; ${NUMBER.sellRest}` : ""}`
-      : "";
-  const line = `${NUMBER.credit(credit.credit)}${spread}`;
-  return line.charAt(0).toUpperCase() + line.slice(1);
+  const capped = c.maxCredit.value !== null && credit.credit >= c.maxCredit.value;
+  const parts = [`${NUMBER.credit(credit.credit)}${capped ? ` ${NUMBER.theCap}` : ""}`];
+  if (credit.years !== null && c.yearlyUse.value !== null && credit.years > 1)
+    parts.push(NUMBER.yearly(c.yearlyUse.value, credit.years));
+  if (c.maxCredit.value !== null) parts.push(c.maxCredit.says);
+  if (c.use) parts.push(c.use.value);
+  return parts.map((x) => x.charAt(0).toUpperCase() + x.slice(1)).join(". ");
 }
 
-/** The slider's own line as it moves: "a state credit of $40,000", with the yearly limit's spread. */
-export function sliderLine(
+/** The slider's whole line, as a test or an export reads it: its value, then the credit. */
+export const sliderLine = (
   value: number,
   c: EasementCredit,
   credit: { credit: number; years: number | null; beyondCarry: number },
-): string {
-  const spread =
-    credit.years !== null && c.yearlyUse.value !== null && credit.years > 1
-      ? `. ${NUMBER.yearly(c.yearlyUse.value, credit.years)}${credit.beyondCarry > 0 && c.transfer.value ? `; ${NUMBER.sellRest}` : ""}`
-      : "";
-  return `${NUMBER.sliderLabel} ${money(value)} → ${NUMBER.credit(credit.credit)}${spread}`;
-}
+): string => `${NUMBER.sliderLabel} ${money(value)} → ${sliderCredit(c, credit)}`;

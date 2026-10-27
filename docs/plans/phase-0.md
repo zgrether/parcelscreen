@@ -1345,8 +1345,8 @@ until step 5 (Q14).
       cruise, the program's quote), what it costs you in use, and the one question for the professional. Not eligible
       shows no number. Pure and display time only (`lib/pay/*`, #371); nothing in it reads the card's grading.
     - **Virginia's Land Preservation Tax Credit** as a formula and a slider, at $0 until moved: 40% of the appraised
-      value, used at $20,000 a year, carried forward 10 years, sellable. North Carolina's revived credit (donations in
-      2025 and 2026: 25%, up to $250,000) as text; Tennessee "No state credit"; the federal deduction in one line.
+      value, used at $20,000 a year, carried forward 10 years, sellable. North Carolina's revived credit (25%, up to
+      $250,000, for donations through 2031) with the same slider, showing the cap (#376, 10/27); Tennessee "No state credit"; the federal deduction in one line.
     - **Config with dates** (#370): `lib/config/programs.ts` (the state and federal programs, carbon programs, the
       hunting-lease range, the working thresholds) and `lib/config/countyPay.ts` (per county: whether its use-value
       program takes forest, its forest values, its tax rate, its campground rule). The session's network policy denied
