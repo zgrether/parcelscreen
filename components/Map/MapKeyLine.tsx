@@ -36,6 +36,9 @@ const SWATCH: Record<KeyEntry, React.ReactNode> = {
   ),
 };
 
+/** The driveway's lesser lines: named on a desktop; a phone's line keeps to the main marks (All map marks has these). */
+const MINOR: ReadonlySet<KeyEntry> = new Set(["second", "direct"]);
+
 export function MapKeyLine() {
   const s = useScreenItContext();
   const ctl = useExplore();
@@ -63,7 +66,7 @@ export function MapKeyLine() {
   return (
     <div className="map-key-line" role="note" aria-label="What the map shows">
       {entries.map((e) => (
-        <span key={e} className="mkl-entry">
+        <span key={e} className={MINOR.has(e) ? "mkl-entry mkl-minor" : "mkl-entry"}>
           {SWATCH[e]}
           {KEY_WORDS[e]}
         </span>
