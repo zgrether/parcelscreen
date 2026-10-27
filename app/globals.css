@@ -159,6 +159,9 @@ html:has(.explore) body {
     touch-action: none;
     cursor: ns-resize;
     padding-top: 6px;
+    /* Polish 2 (fresh-eyes): at the peek, a two-line name and the answer's reason make the header taller than the
+       peek; shrunk, its text ran under the actions row. It keeps its height, and the row waits below the fold. */
+    flex: none;
   }
   /* A parcel with nothing run yet (17e): the header only, no divider, the Screen button centred in it. */
   .explore-panel.bare .explore-header {

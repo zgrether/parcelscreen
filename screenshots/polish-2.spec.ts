@@ -4,7 +4,15 @@
  * ("before" on main, "after" on the branch). Run by `pnpm screenshots polish-2`.
  */
 import { expect, test, type Page } from "@playwright/test";
-import { importParcels, openExplorer, openFromList, seedScreens, settled, visit } from "../e2e/flow";
+import {
+  importParcels,
+  openExplorer,
+  openFromList,
+  openYourData,
+  seedScreens,
+  settled,
+  visit,
+} from "../e2e/flow";
 import { replayHar } from "../e2e/replay";
 import type { FixtureSlug } from "../test/support/fixtures";
 
@@ -51,7 +59,7 @@ for (const v of VIEWS) {
       await context.route(/basemap\.nationalmap\.gov|arcgisonline\.com/, (r) => r.continue());
       await openExplorer(page, SLUGS[0]);
       await importParcels(page, SLUGS);
-      await seedScreens(page, SLUGS, { current: true });
+      await seedScreens(page, SLUGS, { current: true, settings: true });
       await settled(page);
 
       // Your list and Recent.
@@ -102,6 +110,9 @@ for (const v of VIEWS) {
         await layers.first().click();
         await page.waitForTimeout(600);
         await shot(page, "map-2-layers");
+        await page.locator(".map-panel .mp-body").evaluate((el) => el.scrollTo({ top: el.scrollHeight }));
+        await page.waitForTimeout(300);
+        await shot(page, "map-3-layers-results");
         await page.keyboard.press("Escape");
       }
 
@@ -115,6 +126,29 @@ for (const v of VIEWS) {
       await visit(page, "/interview");
       await page.waitForTimeout(1000);
       await shot(page, "interview-1");
+
+      // Settings › Offline, and One page's export (its key; a phone's Full size).
+      await visit(page, "/library");
+      await openYourData(page);
+      await page.locator(".offline-settings").evaluate((el) => el.scrollIntoView({ block: "start" }));
+      await page.waitForTimeout(300);
+      await shot(page, "settings-offline");
+      await page.keyboard.press("Escape");
+      const key = await page.evaluate(
+        () =>
+          (
+            JSON.parse(window.__psKv!.getItem("ps.parcels")!) as { built: { name: string; key: string }[] }
+          ).built.find((b) => b.name.startsWith("Ferney"))!.key,
+      );
+      await visit(page, `/parcel/${key}/report?preset=one`);
+      await page.waitForTimeout(2500);
+      await shot(page, "report-one-page");
+      const full = page.getByRole("button", { name: "Full size" });
+      if (await full.count()) {
+        await full.click();
+        await page.waitForTimeout(500);
+        await shot(page, "report-one-page-full");
+      }
       await settled(page);
     });
   });
