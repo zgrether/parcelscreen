@@ -40,7 +40,7 @@ const ROWS: { key: string; swatch: React.ReactNode; text: string; wide?: boolean
     // Polish 2 (M2): the pin beside the best site, which opens the ground view.
     key: "stand",
     swatch: (
-      <span className="stand-here mkl-stand" aria-hidden="true">
+      <span className="mkl-stand" aria-hidden="true">
         Stand here
       </span>
     ),

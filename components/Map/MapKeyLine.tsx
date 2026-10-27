@@ -19,7 +19,7 @@ const SWATCH: Record<KeyEntry, React.ReactNode> = {
     </span>
   ),
   standHere: (
-    <span className="stand-here mkl-stand" aria-hidden="true">
+    <span className="mkl-stand" aria-hidden="true">
       Stand here
     </span>
   ),
