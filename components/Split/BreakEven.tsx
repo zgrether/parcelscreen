@@ -9,7 +9,6 @@ import type { BreakEvenInputs } from "@/lib/client/parcelStore";
 import type { ResolvedBreakEven } from "@/lib/split/breakEvenOf";
 import type { BreakEvenPatch, PieceSide } from "@/lib/split/scenario";
 import { BREAK_EVEN } from "@/lib/pay/words";
-import { fmt } from "@/lib/format";
 
 export function BreakEven({
   r,
@@ -30,7 +29,7 @@ export function BreakEven({
     <Field
       key={`${key}:${v?.value ?? ""}:${v?.assumed ?? ""}`}
       label={label}
-      value={v ? fmt(v.value, d).replace(/,/g, "") : ""}
+      value={v ? plain(v.value, d) : ""}
       assumed={!!v?.assumed}
       placeholder={key === "price" ? BREAK_EVEN.typePrice : ""}
       save={(n) => save({ [key]: n })}
@@ -58,8 +57,8 @@ export function BreakEven({
           <p className="be-sell">{BREAK_EVEN.sell(r.sold.word, f.breakEvenPerAc, f.breakEven)}</p>
           <p className="be-keep">
             {BREAK_EVEN.keep(r.kept.word, f.keep, f.keepPerAc)},{" "}
-            {r.soldAtPerAc !== null ? BREAK_EVEN.atSale(r.soldAtPerAc) : BREAK_EVEN.atBreakEven}
-            <span className="pay-firm"> · your inputs</span>
+            {r.soldAtPerAc !== null ? BREAK_EVEN.atSale(r.soldAtPerAc) : BREAK_EVEN.atBreakEven},{" "}
+            {BREAK_EVEN.keepWhy} <span className="pay-firm">({BREAK_EVEN.fromInputs})</span>
           </p>
         </div>
       ) : (
@@ -87,6 +86,10 @@ export function BreakEven({
   );
 }
 
+/** A number as shown in its box: thousands separated, no padding zeros ("250,000", "2", "8.9", not "2.0", "7.00"). */
+const plain = (n: number, d: number): string =>
+  (Math.round(n * 10 ** d) / 10 ** d).toLocaleString("en-US", { maximumFractionDigits: d });
+
 /** A number saved on blur or Enter; blank goes back to the default (undefined), anything unreadable to what it was. */
 function Field({
   label,
@@ -113,7 +116,7 @@ function Field({
     const n = Number(t);
     if (!Number.isFinite(n) || n < 0) return setText(value);
     // Unchanged (a default left as it was) saves nothing.
-    if (t !== value) save(n);
+    if (t !== value.replace(/[$,%]/g, "")) save(n);
   };
   return (
     <label className="be-field">

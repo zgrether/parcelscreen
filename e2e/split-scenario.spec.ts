@@ -173,8 +173,10 @@ test("Split Mud Creek: grade both pieces, both shown side by side, each with a c
   await price.fill("250000");
   await price.press("Enter");
   const sell = be.locator(".be-sell");
-  await expect(sell).toHaveText(/^Sell the west piece at \$[\d,]+\/ac or more \(\$[\d,]+\) to break even$/);
-  await expect(be.locator(".be-keep")).toContainText("Your east piece effectively costs $");
+  await expect(sell).toHaveText(
+    /^Sell the west piece at \$[\d,]+\/ac or more \(\$[\d,]+ in all\) to break even$/,
+  );
+  await expect(be.locator(".be-keep")).toContainText("Then your east piece has cost you $");
   // Each piece's own row, and Split and resell's line in How it could pay.
   await expect(pieces.nth(1).locator(".scn-row[data-row=breakEven] .scn-value")).toHaveText(
     /^\s*\$[\d,]+\/ac$/,

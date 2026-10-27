@@ -240,7 +240,9 @@ describe("each option's answer (plan §2)", () => {
       reason: "Lots to give up, and a year-round stream, mostly forest",
     });
     expect(o.slider).toEqual({ state: "VA", max: 400_000, step: 5_000 });
-    expect(o.number[0]!.text).toBe("Needs an appraisal");
+    expect(o.number[0]!.text).toBe(
+      "The easement's value needs an appraisal; a credit or deduction is a share of it",
+    );
 
     const parkway = easement(input(r({ acres: 30, protected: [PARKWAY] })));
     expect(parkway).toMatchObject({
@@ -307,7 +309,7 @@ describe("each option's answer (plan §2)", () => {
     expect(lease(input(r({ acres: 30 }))).eligibility).toBe("maybe");
     expect(
       lease(input(r({}), { hunt: ["maybe", "3 houses within a quarter mile of the boundary"] })).reason,
-    ).toBe("Hunting is a maybe here: 3 houses within a quarter mile of the boundary");
+    ).toBe("Hunt: 3 houses within a quarter mile of the boundary");
     expect(lease(input(r({ acres: 6 }), { hunt: ["maybe", "Under 10 ac"] }))).toMatchObject({
       eligibility: "no",
       number: [],

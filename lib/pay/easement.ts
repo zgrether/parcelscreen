@@ -63,7 +63,7 @@ export function easement({ uses, land, listing }: PayInput): PayOption {
   const big = r.acres >= T.easementSmallAc.value;
 
   const signals: Fact[] = [
-    { label: SIGNAL.acres, value: `${fmt(r.acres, 1)} ac` },
+    { label: SIGNAL.acres, value: `${fmt(r.acres, 2)} ac` },
     {
       label: SIGNAL.lots,
       value: `${ANSWER_WORD[divide.answer]}: ${divide.reason}`,
@@ -88,7 +88,10 @@ export function easement({ uses, land, listing }: PayInput): PayOption {
           ? SIGNAL.forestValue(r.cover.forestPct, forestAc)
           : MISSING.cover("forest share"),
     },
-    factOf(SIGNAL.small, T.easementSmallAc),
+    // VOF's guideline is Virginia's own; elsewhere the threshold is ours, after it (the fresh-eyes review).
+    where?.state === "VA" || !where
+      ? factOf(SIGNAL.small, T.easementSmallAc)
+      : { label: SIGNAL.small, value: SIGNAL.smallElsewhere },
   ];
 
   // The conservation values a land trust looks for; forest alone counts only on 50 ac or more (§0b).
@@ -157,6 +160,19 @@ export function easement({ uses, land, listing }: PayInput): PayOption {
     cost: PAY_COST.easement,
     ask: PAY_ASK.easement,
   };
+}
+
+/** The credit under the slider, its value being said above it: "A state credit of $40,000. At $20,000 a year, …". */
+export function sliderCredit(
+  c: EasementCredit,
+  credit: { credit: number; years: number | null; beyondCarry: number },
+): string {
+  const spread =
+    credit.years !== null && c.yearlyUse.value !== null && credit.years > 1
+      ? `. ${NUMBER.yearly(c.yearlyUse.value, credit.years)}${credit.beyondCarry > 0 && c.transfer.value ? `; ${NUMBER.sellRest}` : ""}`
+      : "";
+  const line = `${NUMBER.credit(credit.credit)}${spread}`;
+  return line.charAt(0).toUpperCase() + line.slice(1);
 }
 
 /** The slider's own line as it moves: "a state credit of $40,000", with the yearly limit's spread. */

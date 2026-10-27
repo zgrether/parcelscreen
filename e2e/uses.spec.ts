@@ -157,7 +157,7 @@ test("How it could pay on Mud Creek: seven options, a detail in place, Virginia'
   const easement = pay.locator(".use").filter({ hasText: "Conservation easement" });
   await easement.locator("button.use-row").click();
   await expect(easement.getByRole("heading", { name: "The number" })).toBeVisible();
-  await expect(easement.locator(".pay-lines")).toContainText("Needs an appraisal");
+  await expect(easement.locator(".pay-lines")).toContainText("The easement's value needs an appraisal");
   await expect(easement.getByRole("heading", { name: "What it costs you" })).toBeVisible();
   await expect(easement).toContainText("Permanent: a lower resale value and limited building rights");
   await expect(easement.getByRole("heading", { name: "Ask a land trust" })).toBeVisible();
@@ -165,8 +165,11 @@ test("How it could pay on Mud Creek: seven options, a detail in place, Virginia'
     "Drag to try an appraised value: the app can't know it",
   );
   await easement.getByRole("slider").fill("100000");
+  await expect(easement.locator(".pay-slider-label")).toHaveText(
+    "If the easement's appraised value were $100,000",
+  );
   await expect(easement.locator(".pay-credit")).toHaveText(
-    "If the easement's appraised value were $100,000 → a state credit of $40,000. At $20,000 a year, you'd use it over 2 years",
+    "→ A state credit of $40,000. At $20,000 a year, you'd use it over 2 years",
   );
   expect(errors).toEqual([]);
 });
