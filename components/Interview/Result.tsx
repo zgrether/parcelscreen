@@ -12,7 +12,7 @@ import { PAGE_TITLE } from "@/components/Rubric/RubricEditor";
 import type { Interview } from "@/lib/client/useInterview";
 import { columnsOf } from "@/lib/rubric/edit";
 import { rubricFromAnswers } from "@/lib/rubric/interview/generate";
-import { EDITOR_TITLES, minimumLine, plainLine, TIER_NAMES } from "@/lib/rubric/words";
+import { PRIORITY_TITLES, minimumLine, plainLine, TIER_NAMES } from "@/lib/rubric/words";
 import { AreaBox } from "@/components/Areas/AreaBox";
 
 export const MUST_NOTE = "That will rule out most land.";
@@ -111,7 +111,7 @@ export function InterviewResult({ iv }: { iv: Interview }) {
                 <ol>
                   {ranked(tier).map((c) => (
                     <li key={c.factor}>
-                      <strong>{EDITOR_TITLES[c.factor]}:</strong> {plainLine(r, c.factor)}
+                      <strong>{PRIORITY_TITLES[c.factor]}:</strong> {plainLine(r, c.factor)}
                     </li>
                   ))}
                 </ol>
@@ -120,7 +120,7 @@ export function InterviewResult({ iv }: { iv: Interview }) {
         )}
         {cols.wont.length > 0 && (
           <p>
-            <strong>{TIER_NAMES.wont}:</strong> {cols.wont.map((c) => EDITOR_TITLES[c.factor]).join(", ")}
+            <strong>{TIER_NAMES.wont}:</strong> {cols.wont.map((c) => PRIORITY_TITLES[c.factor]).join(", ")}
           </p>
         )}
       </section>

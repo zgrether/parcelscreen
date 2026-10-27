@@ -177,7 +177,8 @@ function RecentRow({
       <span className="recent-when tiny muted" title={r?.perAcre?.both ?? undefined}>
         {/* Step 10b: the price per acre, "≠" when the listing's and the boundary's acres differ; then the date. */}
         <span>{r?.perAcre ? `${r.perAcre.text}${r.perAcre.differs ? " ≠" : ""}` : "–"}</span>
-        <span>{graded ? when(graded) : when(p.updatedAt)}</span>
+        {/* Polish 2 (L2): the date says what it's the date of. */}
+        <span>{graded ? `Graded ${when(graded)}` : `Updated ${when(p.updatedAt)}`}</span>
       </span>
       {/* Only parcels off the list are in Recent: the star adds one, which moves it to the Shortlist. */}
       <Star

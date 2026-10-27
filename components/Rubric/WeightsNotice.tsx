@@ -56,8 +56,8 @@ export function WeightsNotice({
                 .map((r) => (
                   <tr key={r.key}>
                     <th scope="row">{r.label}</th>
-                    <td className="num">{fmt(r.before, 1)}%</td>
-                    <td className="num">{fmt(r.after, 1)}%</td>
+                    <td className="num">{fmt(r.before, 0)}%</td>
+                    <td className="num">{fmt(r.after, 0)}%</td>
                   </tr>
                 ))}
             </tbody>
