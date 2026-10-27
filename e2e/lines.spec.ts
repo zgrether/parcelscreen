@@ -59,7 +59,7 @@ test("a drawn line: the banner, its layer and details (name, kind, condition, wi
 
   // The results stay, under the owner's banner, with "Grade again", as the toolbar's (owner, #240).
   const banner = page.locator(".card-stale");
-  await expect(banner).toContainText("You drew or changed a line after this screen.");
+  await expect(banner).toContainText("You drew or changed a line after this grade.");
   await expect(banner.getByRole("button", { name: "Grade again", exact: true })).toBeVisible();
 
   // A tap on the line opens its row in Details' Lines & marks (owner, #127; step 8b): "Track 1", with its condition and

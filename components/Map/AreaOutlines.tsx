@@ -10,7 +10,7 @@ import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
 import { Marker, Popup, type GeoJSONSource, type MapLayerMouseEvent } from "maplibre-gl";
 import { bbox, centerOfMass } from "@turf/turf";
-import { AreaCardView } from "@/components/Areas/AreaBox";
+import { AreaCardView, TOP } from "@/components/Areas/AreaBox";
 import type { AreaFile } from "@/lib/areas/types";
 import { areaCard, rankAreas, rankOf, type AreaCard } from "@/lib/areas/score";
 import { AREA_WORDS as W } from "@/lib/areas/words";
@@ -99,6 +99,17 @@ export function AreaOutlines() {
   );
   const cards = useMemo(() => new Map(ranked.map((c) => [c.id, c])), [ranked]);
   const ranks = useMemo(() => rankOf(ranked), [ranked]);
+  // Polish 2 (M11): the suggestion box's five keep their names at every zoom; the others go to a letter far out.
+  const top = useMemo(
+    () =>
+      new Set(
+        ranked
+          .filter((c) => c.suggestable)
+          .slice(0, TOP)
+          .map((c) => c.id),
+      ),
+    [ranked],
+  );
 
   // Where focusArea fits the map, while it's mounted.
   useEffect(() => {
@@ -189,14 +200,14 @@ export function AreaOutlines() {
       el.append(fit, name);
       el.setAttribute("aria-label", `${f.name}, ${W.fit(card?.fit ?? "–")}`);
       const [lon, lat] = centerOfMass(f.outline).geometry.coordinates as [number, number];
-      return { el, marker: new Marker({ element: el }).setLngLat([lon, lat]).addTo(map) };
+      return { id: f.id, el, marker: new Marker({ element: el }).setLngLat([lon, lat]).addTo(map) };
     });
     const place = () => {
-      const named = map.getZoom() >= NAME_MIN_ZOOM;
+      const near = map.getZoom() >= NAME_MIN_ZOOM;
       const placed: DOMRect[] = [];
-      for (const { el } of labels) {
+      for (const { id, el } of labels) {
         el.classList.remove("al-hidden");
-        el.classList.toggle("al-letter", !named);
+        el.classList.toggle("al-letter", !near && !top.has(id));
         let box = el.getBoundingClientRect();
         if (!el.classList.contains("al-letter") && placed.some((p) => overlaps(p, box))) {
           el.classList.add("al-letter");
@@ -212,7 +223,7 @@ export function AreaOutlines() {
       labels.forEach((l) => l.marker.remove());
       if (!mapGone(map)) map.off("moveend", place);
     };
-  }, [map, shown, stars, cards, ranks]);
+  }, [map, shown, stars, cards, ranks, top]);
 
   // A tap on an outline: its card, as the suggestion box shows it.
   const popRoot = useRef<Root | null>(null);

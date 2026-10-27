@@ -18,6 +18,8 @@ export const OFFLINE_WORDS = {
     "On an iPhone, add Parcel Screen to your Home Screen (Share › Add to Home Screen), or Safari may clear offline data after a week without use.",
   notKept: "not kept offline",
   esriOffline: "Esri's maps aren't kept offline: pick USGS or State aerial in Map layers.",
+  /** Under the offline strip while a parcel saved on this device is open (polish 2, M14). */
+  thisSaved: "This parcel is saved on this device.",
   // Save offline (⋯ and its sheet).
   save: "Save offline",
   update: "Update offline copy",

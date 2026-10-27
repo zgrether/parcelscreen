@@ -210,10 +210,14 @@ export function starName(
   p: WorkingParcel,
   facts: { acres: number | null; road: string | null; county: string | null },
 ): string {
+  const ac = facts.acres === null ? null : `${facts.acres.toFixed(1)} ac`;
+  // Polish 2 (A2): a catalog sample's name ("Sample parcel 1 · Ashe County (…)") stays its preview's; on the list it's
+  // the land and its area.
+  const sample = /^Sample parcel \d+ · (.+)$/.exec(p.name.trim());
+  if (sample) return ac ? `${ac} in ${sample[1]}` : sample[1]!;
   if (p.name.trim()) return p.name.trim();
   const listing = readListingUrl(p.listingUrl);
   if (listing.kind === "address") return listing.query;
-  const ac = facts.acres === null ? null : `${facts.acres.toFixed(1)} ac`;
   if (ac && facts.road && facts.county) return `${ac} on ${facts.road}, ${facts.county}`;
   if (ac && facts.county) return `${ac} in ${facts.county}`;
   return ac ?? "";

@@ -32,6 +32,8 @@ import { MapPanel } from "@/components/Map/MapPanel";
 import { useExplore, type SetHint } from "./useExploreController";
 import { OWN_RECORDS_HINT } from "@/lib/geo/ownRecords";
 import { AreaOutlines } from "@/components/Map/AreaOutlines";
+import { useMapLayerPrefs } from "@/components/Map/useMapLayerPrefs";
+import { ZOOM_HINT } from "@/components/Map/useParcelLines";
 
 /** The map with its tools and hint. Loaded client-side only (MapLibre needs the browser). */
 export function MapArea({
@@ -50,6 +52,9 @@ export function MapArea({
   const { setMap, panelInset, map, state, startDraw, docked } = useExplore();
   // Draw, Combine and Split flatten the camera while they're open (13g).
   const { mode, split } = state;
+  // Polish 2 (M11): with the areas' outlines on, "Zoom in to see parcel lines" would read as being about them.
+  const areas = useMapLayerPrefs().areas;
+  const shownHint = areas && hint === ZOOM_HINT ? "" : hint;
   useFlatForTools(map, DRAWING.includes(mode) || mode === "split" || mode === "combine" || split !== null);
   return (
     <MapView
@@ -76,7 +81,10 @@ export function MapArea({
       <AreaOutlines />
       {/* On a desktop Search is the docked panel's first row (step 4c). */}
       {!docked && <Search photonUrl={config.endpoints.photon} hint={setHint} />}
-      <Hint text={hint} action={hint === OWN_RECORDS_HINT ? { label: "Draw", onClick: startDraw } : null} />
+      <Hint
+        text={shownHint}
+        action={shownHint === OWN_RECORDS_HINT ? { label: "Draw", onClick: startDraw } : null}
+      />
       <SwitchToast />
       <ClearedNote />
       <LineUndoToast />

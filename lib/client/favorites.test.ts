@@ -198,6 +198,10 @@ describe("Search and the name", () => {
     ).toMatch(/Mud Creek/i);
     expect(starName(A, facts)).toBe("24.6 ac on Rte 600, Grayson");
     expect(starName(A, { ...facts, road: null })).toBe("24.6 ac in Grayson");
+    // A catalog sample (polish 2, A2): the land and its area, not "Sample parcel 1".
+    expect(starName({ ...A, name: "Sample parcel 1 · Ashe County (West Jefferson)" }, facts)).toBe(
+      "24.6 ac in Ashe County (West Jefferson)",
+    );
   });
 
   it("the header's place line (P-2): the county and state, then the tax map number where the layer has one", () => {

@@ -88,7 +88,9 @@ export function whyLine(card: AreaCard, area: AreaFile): string | null {
 }
 
 /** The trade-off line when no counted factor costs points. */
-export const NOTHING_BELOW_B = "No weak spots for you: every factor here is a B or better.";
+// Polish 2 (A1): what holds an area back lists its two weakest even at B (owner, 10/23), so this no longer says "no weak
+// spots" beside them.
+export const NOTHING_BELOW_B = "Nothing here grades below a B for you.";
 
 /**
  * The trade-off (§4.3): the factor that costs the most points below a B (its weight times the points it misses):
@@ -224,16 +226,18 @@ export const notSuggestedReason = (card: AreaCard): string =>
 
 /** The box's and the card's labels (§8). */
 export const AREA_WORDS = {
-  afterInterview: "Areas that fit you",
+  /** After the interview, under the box's one name (polish 2, M13; the box's own title until then). */
+  afterInterview: "Areas that fit your answers",
   onTheMap: "Where to look",
   showMore: "Show more",
   showFewer: "Show fewer",
   fit: (g: string) => `Fit ${g}`,
   showParcel: "Show me a parcel here",
   tradeOff: "Trade-off:",
-  star: "Star this area",
-  starred: "Starred",
-  typical: (n: number) => `Typical values: the middle of ${n} sampled spots on rural land here.`,
+  // Polish 2 (M12, M16): a pin, so it isn't read as Your list's star; the typical values in plainer words.
+  star: "Pin this area's outline on the map",
+  starred: "Pinned on the map",
+  typical: (n: number) => `Typical: the middle value of ${n} spots sampled on rural land here.`,
   ranked: "Ranked by how well typical land here fits your priorities.",
   moreHeading: (n: number) => `${n} more ${n === 1 ? "area" : "areas"}, ranked`,
   parcelScale:

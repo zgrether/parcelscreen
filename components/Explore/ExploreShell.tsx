@@ -14,6 +14,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -111,6 +112,13 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   const explore = useExploreController(config.endpoints.parcels, setHint);
   // On phones the sheet steps aside to its peek while a map tool has the screen (13e-6).
   const { mode, split, info, uses, store } = explore.state;
+  // Polish 2 (P4): a parcel, and each of its tabs, opens at its top, not where the last one was scrolled. A layout
+  // effect, so a tab's own scroll on mounting (Details at Boundary, a selected line's row) still wins.
+  const scroller = useRef<HTMLDivElement>(null);
+  const openKey = store.open?.key ?? null;
+  useLayoutEffect(() => {
+    scroller.current?.scrollTo?.({ top: 0 });
+  }, [openKey, info, uses]);
   // The screen's "after a run, rise" calls the sheet's, which is made below (the sheet's peek depends on the screen).
   const raiseSheet = useRef<(tall?: boolean) => void>(() => {});
   // After a run the sheet rises, and the panel shows Grade (step 8b).
@@ -305,7 +313,7 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
                   {/* Step 8b: what an edit changed on the card, for a few seconds; then Grade | Uses | Details. */}
                   {store.open && <GradeNote s={screen} />}
                   {store.open && <ParcelSwitch ctl={explore} />}
-                  <div className="explore-scroll">
+                  <div className="explore-scroll" ref={scroller}>
                     {info && store.open ? (
                       <Details ctl={explore} />
                     ) : uses && store.open ? (
@@ -338,7 +346,7 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
             </aside>
             {collapsed && <DockTab s={screen} reopen={() => setCollapsed(false)} />}
           </div>
-          <PwaShell running={screen.running} />
+          <PwaShell running={screen.running} open={screen.ctl.state.store.open?.key ?? null} />
         </GroundProvider>
       </ScreenItContext.Provider>
     </ExploreContext.Provider>

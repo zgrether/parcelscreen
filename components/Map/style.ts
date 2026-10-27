@@ -22,12 +22,15 @@ import { contourLayers, GLYPHS, hillshadeLayer, terrainSources, type TerrainTile
 
 export type BasemapId = "state" | "imagery" | "esri" | "topo" | "streets";
 
-/** The basemap menu, labels verbatim from the prototype. */
-export const BASEMAPS: { id: BasemapId; label: string }[] = [
+/**
+ * The basemap menu, labels from the prototype; polish 2 (M15) drops "ortho" and gives the three aerials a hint of how
+ * they differ.
+ */
+export const BASEMAPS: { id: BasemapId; label: string; hint?: string }[] = [
   // Step 2: Tennessee joins; the resolutions differ by county and year, so the label stops quoting them.
-  { id: "state", label: "Aerial (state ortho: VA, NC, TN)" },
-  { id: "imagery", label: "Aerial (USGS)" },
-  { id: "esri", label: "Aerial (Esri)" },
+  { id: "state", label: "Aerial (state: VA, NC, TN)", hint: "The states' own photos, the sharpest" },
+  { id: "imagery", label: "Aerial (USGS)", hint: "Nationwide, a little softer" },
+  { id: "esri", label: "Aerial (Esri)", hint: "Worldwide" },
   { id: "topo", label: "Topo (USGS)" },
   { id: "streets", label: "Streets (Esri)" },
 ];

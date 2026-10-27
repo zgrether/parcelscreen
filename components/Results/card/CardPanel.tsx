@@ -418,7 +418,7 @@ function YourRouteChoice({
             <b>{c.title}</b>
             <Facts rows={c.rows} />
             {c.scored ? (
-              <span className="tiny muted">Scored on the card</span>
+              <span className="tiny muted">The grade uses this one</span>
             ) : c.line && tryIt && online ? (
               // Step 12's parked question 2 (owner, 10/22): one way to choose a line, Try it; a tried result shows Use it
               // and Discard in its place.
