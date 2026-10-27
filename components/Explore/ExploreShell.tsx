@@ -338,7 +338,7 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
             </aside>
             {collapsed && <DockTab s={screen} reopen={() => setCollapsed(false)} />}
           </div>
-          <PwaShell running={screen.running} />
+          <PwaShell running={screen.running} open={screen.ctl.state.store.open?.key ?? null} />
         </GroundProvider>
       </ScreenItContext.Provider>
     </ExploreContext.Provider>

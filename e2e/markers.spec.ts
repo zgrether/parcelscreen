@@ -70,7 +70,9 @@ test("the Mark picker: a septic permit (a point, then a field), its gate, a drag
   const bestSite = expectedOf(MACKS, "run").sites![best.at]!;
   const site = bestSite.ll;
   await mark(page, "Water & utilities", "Septic permit");
-  await expect(page.locator(".tb-status")).toHaveText("Tap the permit's spot, or its field's corners");
+  await expect(page.locator(".tb-status")).toHaveText(
+    /^(Tap|Click) the permit's spot, or its field's corners$/,
+  );
   const p = await onMap(page, site);
   await page.mouse.click(p.x, p.y);
   await page.getByRole("button", { name: "Done", exact: true }).click();

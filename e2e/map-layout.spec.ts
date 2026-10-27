@@ -113,7 +113,7 @@ for (const size of [
       const hint = page.locator(".map-hint");
       await expect(hint).toHaveText("Zoom in to see parcel lines");
       const toolbar = page.locator(".toolbar");
-      await expect(toolbar).toContainText("Tap a parcel to select it");
+      await expect(toolbar).toContainText(/(Tap|Click) a parcel to select it/);
       const h = await box(hint);
       const t = await box(toolbar);
       expect(h.y + h.height, "the hint above the toolbar").toBeLessThanOrEqual(t.y);

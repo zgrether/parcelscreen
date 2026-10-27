@@ -13,6 +13,7 @@
 import { area, length, lineString, polygon } from "@turf/turf";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useKeepInView } from "@/lib/client/keepInView";
+import { useTapWord, type TapWord } from "@/lib/client/pointer";
 import { isBuilt } from "@/lib/client/parcelStore";
 import { CHOICE_LABEL, type MarkChoice } from "@/lib/client/markChoices";
 import { MarkIcon } from "./markIcons";
@@ -89,7 +90,8 @@ function Bar({ ctl }: { ctl: ExploreController }) {
   const { mode, store } = ctl.state;
   const open = store.open;
   const [confirming, setConfirming] = useState(false);
-  const body = barBody(ctl, confirming, setConfirming);
+  const tap = useTapWord();
+  const body = barBody(ctl, confirming, setConfirming, tap);
   return (
     <div
       className="toolbar"
@@ -106,6 +108,8 @@ function barBody(
   ctl: ExploreController,
   confirming: boolean,
   setConfirming: (b: boolean) => void,
+  /** "Tap" or "Click", the device's word (polish 2, M5). */
+  tap: TapWord,
 ): ReactNode {
   const { mode, store, draft, split, combine } = ctl.state;
   const open = store.open;
@@ -130,11 +134,11 @@ function barBody(
           {n === 0 ? (
             open ? (
               <>
-                Tap each corner of the shape to add
+                {tap} each corner of the shape to add
                 <span className="sub long"> · corners snap to the parcel</span>
               </>
             ) : (
-              "Tap each corner of the custom parcel"
+              `${tap} each corner of the custom parcel`
             )
           ) : (
             <>
@@ -172,9 +176,9 @@ function barBody(
         <Status>
           {n === 0 ? (
             mode === "easement" ? (
-              "Tap along the easement or right-of-way"
+              `${tap} along the easement or right-of-way`
             ) : (
-              "Tap along the drive or trail"
+              `${tap} along the drive or trail`
             )
           ) : (
             <>
@@ -220,20 +224,20 @@ function barBody(
         <Status>
           {mode === "point" ? (
             ctl.state.editing ? (
-              "Tap where it goes"
+              `${tap} where it goes`
             ) : (
-              "Tap where it is"
+              `${tap} where it is`
             )
           ) : n === 0 ? (
             septic ? (
-              "Tap the permit's spot, or its field's corners"
+              `${tap} the permit's spot, or its field's corners`
             ) : (
-              "Tap its corners"
+              `${tap} its corners`
             )
           ) : septic && n === 1 ? (
             <>
               <b>Its spot</b>
-              <span className="sub long"> · or tap on to outline its field</span>
+              <span className="sub long"> · or {tap.toLowerCase()} on to outline its field</span>
             </>
           ) : (
             <>
@@ -262,7 +266,7 @@ function barBody(
   if (mode === "house")
     return (
       <>
-        <Status>Tap where the house stands</Status>
+        <Status>{tap} where the house stands</Status>
         {cancel}
       </>
     );
@@ -271,7 +275,7 @@ function barBody(
     if (!split || !split.b)
       return (
         <>
-          <Status>{split ? "Tap the other end of the cut" : SPLIT_WORDS.draw}</Status>
+          <Status>{split ? `${tap} the other end of the cut` : SPLIT_WORDS.draw}</Status>
           {cancel}
         </>
       );
@@ -299,12 +303,22 @@ function barBody(
       r = ctl.combined;
     const status =
       n === 0 ? (
-        <Status>Tap parcels to add them; tap one again to take it out</Status>
-      ) : r && !r.ok ? (
+        <Status>
+          {tap} parcels to add them; {tap.toLowerCase()} one again to take it out
+        </Status>
+      ) : n === 1 ? (
+        // Polish 2 (P13): Grade the combination waits for a second parcel, and says so.
+        <Status>
+          <b>1 parcel</b>
+          <span className="sub"> · {tap.toLowerCase()} one more to grade them together</span>
+        </Status>
+      ) : r && !r.ok && r.reason === "too far apart" ? (
         <Status bad>
           {Math.round(r.gapM)} m apart, more than the {SCREEN_CONSTANTS.combine.maxGapM} m a road would
           explain
         </Status>
+      ) : r && !r.ok ? (
+        <Status bad>They don&apos;t join into one boundary</Status>
       ) : (
         <Status>
           <b>
@@ -334,7 +348,7 @@ function barBody(
   if (!open)
     return (
       <>
-        <Status>Tap a parcel to select it</Status>
+        <Status>{tap} a parcel to select it</Status>
         <span className="tb-lbl">or</span>
         <Btn onClick={ctl.startDraw}>Draw a custom parcel</Btn>
       </>
@@ -445,7 +459,14 @@ function BoundaryMenu({ ctl }: { ctl: ExploreController }) {
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setAt(null);
       }}
     >
-      <button ref={button} className="tb-btn tool" aria-haspopup="menu" aria-expanded={open} onClick={toggle}>
+      <button
+        ref={button}
+        className="tb-btn tool"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        title="Change the boundary: add parcels, draw one, or split it"
+        onClick={toggle}
+      >
         Boundary ▾
       </button>
       {open && (

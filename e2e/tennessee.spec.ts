@@ -128,7 +128,7 @@ for (const phone of [false, true]) {
       // Nothing scrolls sideways.
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
       await draw.click();
-      await expect(page.getByText(/Tap each corner/)).toBeVisible();
+      await expect(page.getByText(/(Tap|Click) each corner/)).toBeVisible();
       expect(errors).toEqual([]);
     });
   });

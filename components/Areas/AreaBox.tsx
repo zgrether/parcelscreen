@@ -3,7 +3,7 @@
  * The suggestion box (step 13, docs/plans/step-13-area-catalog.md §4.4, §6): the five areas that fit the person
  * best, each with its fit letter, the share of its land passing their must-haves, why it fits and its trade-off, and
  * "Show me a parcel here"; Show more ranks the rest. Each household member's own ranking is a tap away (the rubric
- * switch). After the interview it's "Areas that fit you"; on the map with nothing open, "Where to look".
+ * switch). "Where to look" wherever it shows (polish 2: "Areas that fit you" after the interview until then, now the line under it).
  */
 import { useMemo, useState } from "react";
 import Link from "next/link";
@@ -28,7 +28,7 @@ import { openSample } from "@/lib/client/samples";
 import { focusArea, useAreas, useAreaStars, type Box } from "@/lib/client/areas";
 import { useRubricView } from "@/lib/client/useRubricView";
 
-const TOP = 5;
+export const TOP = 5;
 
 export function AreaBox({
   where,
@@ -57,7 +57,8 @@ export function AreaBox({
   // Owner, 10/23: every area's place for this person, and a Must that rules out most of the region.
   const ranks = useMemo(() => rankOf(ranked), [ranked]);
   const regionWide = useMemo(() => regionWideLimit(ranked), [ranked]);
-  const title = where === "interview" ? W.afterInterview : W.onTheMap;
+  // Polish 2 (M13): one name for the box wherever it shows; after the interview a line says what it is.
+  const title = W.onTheMap;
 
   const [failed, setFailed] = useState<string | null>(null);
   // Show me a parcel here (§5): the area's first sample, on the map; the area itself when the sample won't load.
@@ -78,6 +79,7 @@ export function AreaBox({
   return (
     <section className={`area-box area-box-${where}`} aria-label={title}>
       <h2 className="area-box-title">{title}</h2>
+      {where === "interview" && <p className="area-sub">{W.afterInterview}</p>}
       <RubricSwitch
         rubrics={rubrics}
         current={rubric.id}
@@ -234,7 +236,23 @@ export function AreaCardView({
           title={starred ? W.starred : W.star}
           onClick={star}
         >
-          {starred ? "★" : "☆"}
+          {/* Polish 2 (M12): a pin, not a star; an area's keeps its outline on the map, a parcel's star is Your list. */}
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M12 2.5c-3.6 0-6.5 2.8-6.5 6.4 0 4.7 6.5 12.6 6.5 12.6s6.5-7.9 6.5-12.6c0-3.6-2.9-6.4-6.5-6.4z"
+              fill={starred ? "currentColor" : "none"}
+              stroke="currentColor"
+              strokeWidth="1.8"
+            />
+            <circle
+              cx="12"
+              cy="9"
+              r="2.4"
+              fill={starred ? "#fff" : "none"}
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
+          </svg>
         </button>
       </div>
       {/* Owner, #298 answers: the Must share is the card's headline number. */}

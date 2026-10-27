@@ -6,7 +6,7 @@
  *   with the ground viewer or Settings open. Tapping it activates the new version and reloads; otherwise the
  *   new version takes over at the next launch;
  * - shows the offline state while the browser is offline, and says so when the basemap is Esri's, whose tiles aren't
- *   kept (step 14e);
+ *   kept (step 14e), and when the open parcel is saved on this device (polish 2);
  * - asks for persistent storage once the app is installed (step 14e, plan §3.4).
  */
 import { useEffect, useRef, useState } from "react";
@@ -16,12 +16,15 @@ import { isInstalled, requestPersist } from "@/lib/client/storage";
 import { BASEMAPS_NOT_KEPT } from "@/components/Map/offlineLayers";
 import { useMapLayerPrefs } from "@/components/Map/useMapLayerPrefs";
 import { OFFLINE_WORDS } from "@/lib/offline/words";
+import { useSavedParcels } from "@/components/Offline/SaveOffline";
 
 /** The ground viewer or a modal dialog (Settings, help) over the map. */
 const overlayOpen = () => !!document.querySelector(".ground-layer, dialog[open]");
 
-export function PwaShell({ running }: { running: boolean }) {
+export function PwaShell({ running, open }: { running: boolean; open: string | null }) {
   const online = useOnline();
+  const saved = useSavedParcels();
+  const openSaved = open !== null && saved.some((p) => p.parcel === open);
   const { base } = useMapLayerPrefs();
   const reg = useRef<ServiceWorkerRegistration | null>(null);
   const [waiting, setWaiting] = useState(false);
@@ -75,6 +78,7 @@ export function PwaShell({ running }: { running: boolean }) {
       {!online && (
         <div className="pwa-offline" role="status">
           {OFFLINE_TEXT}
+          {openSaved && <span className="pwa-offline-line">{OFFLINE_WORDS.thisSaved}</span>}
           {BASEMAPS_NOT_KEPT.has(base) && (
             <span className="pwa-offline-esri">{OFFLINE_WORDS.esriOffline}</span>
           )}
