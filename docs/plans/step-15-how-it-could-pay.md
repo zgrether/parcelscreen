@@ -57,6 +57,54 @@ The owner pre-approved the brief (2026-10-27) and this plan's recommended answer
 - **Settings → Costs** (`lib/config/costs.ts`) has `easement.legal` (attorney, survey and recording for an access
   easement) but no division survey, deed or road.
 
+## 0b. What PR 1's research found (2026-10-27)
+
+The figures are in `lib/config/programs.ts`, `lib/config/countyPay.ts` and Settings → Costs' Splitting land group.
+
+- **Everything is "to confirm" for now.**
+  - The session's network policy denied every official host: law.lis.virginia.gov, tax.virginia.gov, ncleg.gov,
+    ncdor.gov, comptroller.tn.gov, the county sites and the programs' own sites.
+  - So each figure was read in a search excerpt of the page named, not on the page itself. Each fact keeps its kind
+    (statute, agency, program, county), so confirming it is a one-word change once someone opens the page.
+- **Virginia's credit:** 40% of the appraised value. You can use at most $20,000 a year (the Appropriation Act, from
+  2024); unused credit carries forward 10 years. It can be sold, with a 5% fee, and Virginia issues at most $75M a year.
+- **North Carolina has a credit again,** for donations in 2025 and 2026 only: 25% of the appraised value, up to
+  $250,000, carried forward 5 years. It ends for donations from 2027-01-01.
+  - Land under an easement also keeps present-use value without the production test.
+  - So NC shows its credit, not "No state credit". Its formula is text, since the brief gives the slider to Virginia.
+- **Tennessee has no state credit.** Land under a perpetual easement can be Greenbelt open space (3 ac or more).
+- **Federal:** 50% of AGI (100% for qualified farmers), carried forward 15 years.
+- **Easement size (changes §2.1):**
+  - No land trust publishes a minimum. The Blue Ridge Land Conservancy says there is none, and that a small parcel
+    needs more conservation value.
+  - VOF's guideline, quoted in the press, says easements under 50 ac must add to a designated conservation resource.
+  - So the 20 ac minimum is dropped. Under 50 ac, forest alone isn't enough: Eligible needs public land, the Parkway
+    or water.
+- **Use-value in the Virginia counties:**
+  - Floyd's program takes farm land only, not forest.
+  - Grayson and Patrick have none.
+  - Carroll takes forest, with hardwood at $230–405/ac by class.
+  - So Mud Creek (Grayson) is Not eligible for use-value, with the reason.
+- **Use-value in NC and TN:**
+  - NC: statewide, with the Mountains' forest values at $55–395/ac (2026 manual).
+  - TN: statewide, with use values unpublished, so no figure.
+  - Johnson County's tax rate wasn't found from an official source, so it's null.
+- **Forest carbon:** the Family Forest Carbon Program enrolls western VA, western NC and Tennessee: 30 ac of
+  naturally regenerating forest, on a 20-year contract. Nothing else open to small tracts was confirmed.
+- **Hunting lease:**
+  - $3–10/ac/yr, from Maryland Extension (2021), the nearest current figure. VA, NC and TN surveys are from 1985 and
+    1998.
+  - The lease minimum (50 ac) stays ours.
+- **Timber:**
+  - A logger typically needs 10–20 ac (USDA Forest Service), so 10 ac is now that source's figure, not ours.
+  - VDOF says get a cruise from a consulting forester.
+- **Split costs:** survey and plat $1,200–6,000, deed and recording $500–1,500, road $0 (typed when needed). All are
+  national figures, to confirm.
+- **Campgrounds:**
+  - Grayson needs a special use permit (§3-11), and Ashe a Planning Board permit for an RV park.
+  - None was found for the other eight counties.
+  - Virginia's health department permits 3 or more campsites (12VAC5-450).
+
 ## 1. The rules
 
 - **Never in the grade.**

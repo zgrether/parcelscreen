@@ -105,6 +105,18 @@ describe("the published cost rates (step 10 plan §1)", () => {
           "high": 20000,
           "low": 7000,
         },
+        "split.legal": {
+          "high": 1500,
+          "low": 500,
+        },
+        "split.road": {
+          "high": 0,
+          "low": 0,
+        },
+        "split.survey": {
+          "high": 6000,
+          "low": 1200,
+        },
         "track.pioneer": {
           "high": 18,
           "low": 5,
