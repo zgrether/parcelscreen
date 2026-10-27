@@ -74,7 +74,10 @@ export function Recent({
     <>
       {parcels.length === 0 ? (
         <p className="muted">
-          {RECENT_EMPTY} <Link href="/explore">Go to the map</Link>
+          {RECENT_EMPTY}{" "}
+          <Link className="link-btn" href="/explore">
+            Go to the map
+          </Link>
         </p>
       ) : (
         <>

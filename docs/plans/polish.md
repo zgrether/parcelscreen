@@ -1,367 +1,57 @@
 # Polish list
 
-The fresh-eyes reviews' findings left as they were: pre-existing, or outside the step that found them (owner,
-2026-10-20). One line each: the screen, the problem, and the fix in a few words. Every hand-back appends its own
-leftovers under its step; Zach schedules a polish PR every few steps, and a fixed line is struck through with the PR
-that fixed it.
+The fresh-eyes reviews' findings that are left as they were. Each is either pre-existing or outside the step that found it
+(owner, 2026-10-20). One line each gives the screen, the problem and the fix in a few words.
+- Every hand-back appends its own leftovers under its step.
+- Zach schedules a polish pass every few steps.
 
-## Step 3: What matters to you (#173)
+Polish pass 2 (#360–#365, plan `docs/plans/polish-2.md`) triaged the whole list. It fixed or decided every item it
+could, and the earlier lines and their fixes are in git and in that plan. What's below is only what was deferred, each
+with its reason.
 
-- **What matters, Try it:** the verdict "Pass" can read as "passes" or "skip it". Fix: a clearer word (report text: a
-  decision, rule 7).
-- ~~**What matters, the order notice:** "Your order now sets the weights" implies another mode, and it has a second Undo.
-  Fix: reword it; drop its Undo.~~ Done in #238. "Weights follow your order now"; the page's Undo is the one.
-- **What matters, phone:** the Try it bar takes about 100 px and covers cards (also #184, #191). Fix: a slimmer bar, or
-  room kept above it.
+## Deferred by polish pass 2
 
-## Step 4: the interview (#183, #184)
+### Map and toolbar
+- **Pins overlap at the default zoom** ("2" and a garden pin, "E3" under "1"). A zoom separates them; collision nudging
+  is real code for a rare case.
+- **Places points under the map's controls.** Padding the map would shift every fit and fly-to; a pan shows them.
+- **Icon-only map buttons.** Each has a title and an accessible name; captions would crowd the phone's row.
+- **The house map's red-to-green ramp** isn't colour-blind safe. A palette across every overlay is a design job of its own.
 
-- ~~**Interview, budgets:** the budget questions are hard to parse. Fix: reword them.~~ Done in #238. Drafted for Zach's approval in the hand-back: each says it's all in, the land too.
-- ~~**Interview 14b:** a "Drive to an ER" chip right after the ER question; "14 of 14, part 2" unexplained; the buttons
-  differ when reached by Back. Fix: hide or explain the chip; give part 2 its own heading.~~ Done in #238. Part 2 reads ": what doesn't matter" (#233); the ER chip hides once the ER question has an answer; 14b has one row however it's reached.
-- **Interview, moving on:** a tap, Continue, See my priorities, Next; whether Skip drops a pick is unclear. Fix: one
-  pattern, and "Skip leaves this one out". **Partly done in #233 and #238:** Skip's tooltip says it leaves the question out (#233); 14b ends with one row, See my priorities (#238). One pattern for moving on is left.
-- ~~**Interview 14b and the result:** "Shared driveway" shows as "Driveway on your land"; "Alternative septic only" is
-  jargon. Fix: matching words; a plain septic label.~~ Done in #238. "Only an alternative septic system" (#233); the chip uses the card's words, "Driveway on your land".
-- ~~**Interview result:** Elevation twice (a limit and its card) unexplained; "B · Contender" and "meets its new limit"
-  unexplained; the buttons don't say where they go. Fix: link the two cards; a one-line Try it explanation; name each
-  destination.~~ Done in #238. A line under each list says what it means, a limit says when it's also ranked, "passes its minimum", and the buttons say where they go.
-- ~~**What matters:** the "also a limit" badge wraps and says "tap" on a desktop; "Profile 1" and the two Resets unclear.
-  Fix: a badge that fits, device-fit words; clearer reset labels.~~ Done in #238. The badge and the hints (#233); the name is asked for at setup; a line says what each Reset puts back.
-- ~~**Replace prompt:** which list is shown is unclear. Fix: a heading such as "Your answers make this list".~~ Done in #233.
+### The parcel panel
+- **"Grade again" twice**, the banner's and the toolbar's (or the sheet's). The banner's action is yours (polish #1:
+  one banner, one action; #240: "as the toolbar's"). Drop it if you'd rather.
+- **Amber "Maybe" beside a green B.** Two colours for two meanings, the verdict and the letter, by design.
+- **Not for us** in Details › Status and the header; **+ Mark** in Details and the toolbar. Each is the reachable one
+  where it sits: a phone's tall sheet hides the toolbar, and Status lists the parcel's standing.
+- **FROM THE REPORT's score beside the letter**, and the Override row's **"Set aside for this parcel"**. The score is the
+  report's own, and the block says so; the button's words are the card's (rule 7).
+- **"held by"** in the verdict. The wrap that split it is fixed (#362); rewording it is report text you didn't ask for.
+- **Long view:** "the longest" beside "1% open past 3 mi", and its caveat shown twice in the panel. Both fixes would
+  remove report text, not add it.
+- **The cost breakdown's out-of-state sources** (NRCS Tennessee, NC culverts) under a Virginia parcel. The regional
+  ranges are deliberately the Blue Ridge's; `where` could be shown if it confuses in use.
+- **Camp's Yes "within 300 ft of a road"** beside a private road. It needs the road's ownership in Uses.
+- **Hunt's threshold.** "36% forest, under 50%" already says it. What changes "1 house within a quarter mile" is the
+  county's rule, which the panel lists.
+- **The routed driveway's "at ≤15%"** beside the measured 17.9% over 30 m. That line is the engine's (`lib/screen`,
+  `expected.json`); worth fixing only with the next engine change.
+- **"1.0 = half the sky's light is man-made"** in print. It's plain enough, and it's the prototype's parity text.
+- **The parcel next door's hint, "Tap the parcel next door…"**, on a desktop. One word of report text (`raise.ts`).
 
-## Step 4b: Navigation (#191)
+### Your list and Compare
+- **Short grid headers** ("Sun", "Own drive"). The plan's labels (step 10b §8), with the full name in each header's
+  title.
 
-- ~~**Help, phone:** what a grade means is only under More. Fix: a link from the report and Your list.~~ Done in #238. "How grades work" beside the card's grade and on Your list.
-- ~~**Settings:** "These don't wait for Save" reads oddly, and Your data is at the foot; Data endpoints is raw JSON. Fix:
-  reword; move Your data up; endpoints under Advanced or as a form.~~ Done in #238. The note and the endpoints (#233); Your data is first.
-- ~~**Map, phone:** "Stand here" against 3D, the legend under the 46% sheet, "No parcel record" over the slider. Fix:
-  re-lay the phone map's controls.~~ Done in #237. The buttons lie in a row along the top, the legend on the left under Search.
-- ~~**Compare, phone:** the table is cut off with no sideways-scroll cue. Fix: a cue, or a stacked layout.~~ Done in #233.
-- ~~**App-wide jargon:** "My grade/Mine", "pending", "Stage 1a", "CAN'T ADD", the S/E pins, "Profile 1" ("In progress"
-  went in step 8). Fix: a plain-language pass.~~ Done in #239. "Your grade" and "You"; "not yet" and "Not priced yet"; Compare's stages in plain words ("To camp now"…), "What money can't add", and the gates in the card's words; the pins in Map layers' key (#237); the profile's name asked for at setup (#238).
+### What matters and the interview
+- **One way to move on.** The screen's Continue and the nav row's Next both show on a revisited multi-row question. One
+  word for both would put two identical buttons on one screen.
+- **"85% clear" vs "A from 95%".** The sheet's slider says "…85% for a B" (#337). The card's plain line follows the
+  other rows.
+- **The climate follow-ups' orders** (Winters: Mild first; Summer: Keep it cool first). Both run from the gentlest
+  weather to the harshest. Q1's scene ("hot summer days") describes the place, and its choice names the preference.
+- **"Profile 1".** The name is asked for at setup; only skipping keeps it, and the picker renames it.
+- **The weights notice's "Nice to have 0"** didn't reproduce. The table is per item now, and the column's count is live.
 
-## Step 4c: Map layout (#196)
-
-- ~~**Map, grade button:** "Grade again: settings changed" doesn't say which. Fix: name the changed settings.~~ Done in #235. Named for a run graded from now on; one kept before says "settings changed".
-- ~~**Map panel, log:** "Graded in 47 s ▸" doesn't hint that ▸ holds the failures. Fix: a label on ▸.~~ Done in #232.
-- ~~**Map panel:** the slim tab reads as a label; the ‹ toggle is small. Fix: a button look and a 44 px target.~~ Done in #232.
-- ~~**Map:** S#, E#, G1, numbered pins, red lines and the fan unexplained (also #216). Fix: a legend or tooltips.~~ Done in #237. "What's on the map" in Map layers.
-- ~~**Report card:** a grade shows while the run is still going. Fix: hold the grade until the run ends.~~ Done in #235.
-- ~~**Map:** the tilt tip stays up; "Stand here" under the phone's column buttons (also #223). Fix: dismiss the tip after
-  a tilt; move Stand here.~~ Done in #237. The tip goes after a tilt or 8 s; the phone's row leaves Stand here clear.
-
-## Step 5: Sync across devices (#200)
-
-- ~~**Sync screen:** "Leave sync on this device" can read as "keep sync on". Fix: "Stop syncing this device" (the owner's
-  wording was kept).~~ Done in #238.
-- ~~**Sync join question:** "synced space" is a new term; joining doesn't show what's there. Fix: count the space's
-  parcels on the question.~~ Done in #238. "It holds N parcels." follows the question; "synced space" stays.
-- ~~**Top bar, desktop:** "Synced" is low contrast (about 6:1). Fix: darker ink.~~ Done in #232.
-
-## Step 6 and 6b: the household (#207, #209)
-
-- ~~**Who's this?:** the dark "I'm new here" pulls toward a duplicate profile. Fix: make it secondary.~~ Done in #231.
-- ~~**Your list row:** the first B in "B Contender · Sam B" has no owner; "says Maybe" doesn't say who. Fix: "You B",
-  "Sam says Maybe".~~ Done in #231.
-- ~~**Household panel:** "Why, for Sam: On the starting list." explains nothing; "Contender" twice; small low-contrast
-  text. Fix: "Sam hasn't answered the questions yet"; drop the repeat; larger, darker text.~~ Done in #231.
-- ~~**Your list:** "Filters (1)" counts filters, "Waiting for you (1)" parcels; Filters a rectangle, the quick filters
-  pills. Fix: distinct words; one style.~~ Done in #231.
-- ~~**Take panel:** nothing shows Save my take answered the ask. Fix: "Sent to Zach".~~ Done in #231.
-- ~~**Your list:** a take's comment isn't on the row. Fix: a comment snippet.~~ Done in #236. Its first ~40 characters, after the take.
-- ~~**Your list, desktop:** the detail panel covers Grades and Updated. Fix: shrink or push the table aside.~~ Done in #236. The panel is 380 px and the list sits beside it.
-- ~~**Your list, phone:** names cut off on Favorites cards (History wraps since step 8); the tick, handle, ⋯ and Remove
-  small and unlabelled. Fix: wrap to two lines; labels and 44 px targets.~~ Done in #231.
-- ~~**Phone sheet:** the bottom cut off with no scroll cue; the filter chips peek out behind it. Fix: a fade; hide the
-  chips under it.~~ Done in #231.
-- ~~**Your list row:** the new-take dot has no label and reads as a warning. Fix: another colour, or "new" text.~~ Done in #231.
-- ~~**Your list tab:** the badge's "1" matches nothing visible; what clears it is unclear. Fix: a "New takes" filter.~~ Done in #236. New takes (n) beside Waiting for you.
-- ~~**Your list row:** the ask's note doesn't say how to answer, and is cut to one line on a phone. Fix: "open it to
-  answer"; wrap or rely on the panel.~~ Done in #231.
-
-## Step 7: Screening results (#216)
-
-- ~~**Results answer:** "B Contender" vs "B Maybe" (also #223). Fix: say on the card what holds a B at Maybe.~~ Done in #235. "Held at Maybe by: …" under the reason.
-- ~~**Results answer:** "past your 20" is terse. Fix: "past your 20-minute limit" (report text: rule 7).~~ Done in #235.
-- ~~**Card, Must rows:** the same frontage is ✓ on Roan and ! on Ferney. Fix: show the private-road reason more plainly.~~ Done in #235. What made it a warning goes on its own line.
-- ~~**Best homesite:** other spots read #2, #4, #5, #3; each shows different numbers; it's a heading and a card row.
-  Fix: rank apart from the pin number; the same fields per spot; the section named "Where to build" (parked).~~ Done in #235. The section keeps its name; "Where to build" stays parked.
-- **Older screens:** pin codes, Stand here, the full report's acreages and jargon, Cost to enjoy, map tips and toasts,
-  the toolbar, nav labels. Fix: a later UX pass, item by item.
-
-## Step 8: Favorites (#223)
-
-- ~~**Your list, Favorites:** the same grade (B) reads Contender on one row and Maybe on another, unexplained. Fix: a
-  tooltip or a line saying the verdict also reads Musts and edges.~~ Done in #231.
-- ~~**Your list, Favorites:** the row's drag handle, "…" and Compare tick have no column header, and on a phone the "…"
-  and tick sit close. Fix: sr-and-visible headers or tooltips; 44 px apart on a phone.~~ Done in #231.
-- ~~**Your list, Favorites:** Price and Status columns of "–" in every row; on a phone a lone "–" under the name. Fix:
-  hide a column when no row has a value; drop the lone "–" on cards.~~ Done in #236. The desktop's empty columns hide too.
-- **Your list:** Favorites is a table, History a list, with different date words ("Updated" vs "Graded"). Fix: one row
-  style and date word, if it still reads oddly after a polish pass.
-- ~~**The name sheet and the tab:** "Add to Favorites" / "History" title case, "favorites" lower case elsewhere. Fix: one
-  capitalisation for the feature's names.~~ Done in #231.
-- ~~**Map, phone, Search open:** the switch toast "… kept on Your list —" and its "Back" button, the "saved" chip and
-  "Tap a parcel to select it" stack under the search results. Fix: finish the toast's sentence ("Back to the list"),
-  hide the tap hint while Search is open.~~ Done in #232.
-- ~~**Search:** acres to two decimals (43.88) where the list shows one (43.9). Fix: one precision, or say why it differs.~~ Done in #232.
-- ~~**Map, desktop:** the tilt tip ("Double-click and drag…") covers the map on first use. Fix: shorter, or out of the
-  map's centre.~~ Done in #237. It goes on its own after 8 s.
-- **Your list (the tab):** "Your list" opens on two lists. Fix: a subtitle, or a name that covers both, if it confuses
-  in use.
-- ~~**Your list, Favorites (phone):** a filled star on every row doesn't say what a tap does. Fix: done for the tooltip
-  (#222); consider "Remove from favorites" in the row's "…" menu too.~~ Done in #236. Remove from favorites is in the ⋯ menu, with the star's question.
-
-## Step 8b: the parcel panel (hand-back)
-
-- ~~**Grade, stale results:** a red "earlier boundary" bar, the yellow "You drew or changed a line" box and the orange
-  Grade again at once; the stale card is pale and hard to read. Fix: one banner with one action; keep stale text at
-  readable contrast.~~ Done in #235.
-- ~~**Grade, phone:** with those warnings the answer (B Contender) sits below the sheet's fold. Fix: the answer above the
-  warnings.~~ Done in #235.
-- ~~**Grade:** "Site #1 · its pin is ringed on the map" with no ringed pin in view; "Site" and "spots" both used. Fix:
-  fit the map to the site, or say where; one word.~~ Done in #235. "Site #1" flies the map to its pin.
-- ~~**Map layers:** on/off is a tan fill shared with the chosen basemap; "Terrain preview ≈10 m — screen uses 3 m lidar"
-  reads as jargon; on a phone the panel is clipped. Fix: switches or checkboxes; plainer words; a scrolling bottom sheet.~~ Done in #232.
-- ~~**Toolbar, desktop with Map layers open:** the bar narrows and the trash sits on the grade button; the trash and the
-  acres' ▾ don't say what they do. Fix: keep the bar's width or wrap it; labels or tooltips.~~ Done in #232.
-- ~~**Details › Notes:** an imported parcel's notes start "Name: …" (the import's), and Clear wipes them without asking.
-  Fix: no name in imported notes; confirm or undo Clear.~~ Done in #237. The saved name is the parcel's name; Clear has an Undo.
-- **Details › a line's row:** the condition and width read as unfinished ("doesn't change the cost yet", width of what);
-  the Recorded in and note boxes cut their text; the row's title updates only once the name is saved; × on the row and
-  Delete in it both delete. Fix: plain words for both; wider boxes or textareas; one delete control. **Partly done in #232 and #237:** "Right-of-way width" and Recorded in on its own line (#232); the live title and one delete control (#237). The cost wording stays until VR4 prices conditions (Zach, #23); the note box is left.
-- ~~**Details › Listing, phone:** folded to a summary on a phone, open on a desktop. Fix: one behaviour.~~ Done in #237. Open while empty, folded once it has a name or a price, on both.
-- ~~**Header and icons:** "PTM 63-A-62", the ⓘ and map buttons, and the star have no visible labels. Fix: tooltips or short
-  labels.~~ Checked: the star, the map button and MapLibre's ⓘ already have tooltips, and "PTM 63-A-62" is the county's own parcel number.
-
-## Polish pass 1 (hand-back)
-
-- **Grade:** a parcel past a limit in the reason ("past your 20-minute limit") still reads "B Contender"; the reason
-  doesn't say the limit is a ranked edge, not a Must. Fix: say "a C on that row" or similar, if it confuses in use.
-- **Your list, household:** "Sam B" beside "Sam says Maybe" reads as two judgments with no labels. Fix: "Sam's grade"
-  and "Sam's take" in the tooltip or a heading, if it confuses in use.
-- **Your list, Filters:** "Filters · 2 on" with Show all on lights every verdict chip, so "2 on" looks wrong. Fix: count
-  only filters narrower than the default, or say what's on.
-- **What matters, the notice's table:** "Nice to have 0" after an interview that put two items there; the percentages
-  are heavy. Fix: check the table's tiers against the list; plainer words.
-- **Map layers, Results on the map:** "Shown" buttons don't read as toggles, and "Horizon fan" and "Surface" are jargon
-  (the key in #237 explains the fan). Fix: the ✓ toggles On the map uses (#232); plainer labels.
-- **Map:** pins overlap at the default zoom ("2" and a garden pin, "E3" under "1"). Fix: collision offsets, if it
-  confuses in use.
-
-## Step 9: the report card export (hand-back)
-
-From the fresh-eyes review of the export. Each concerns the report's existing blocks or the engine's wording, which
-step 9 reuses unchanged (rule 7):
-- **Where to build vs the person's order:** Full's "Best site and alternatives" lists sites in the person's order
-  (2nd · Site #3), while the Where to build block calls Site #2 the "Runner-up" (the engine's order), and its
-  side-by-side table shows a 4th site with a higher overall score. Fix: one order, or say whose.
-- **Side by side's Rock column** shows "1.9500000000000002" for compact sites. Fix: round it.
-- **December sun and the best site:** the sun block reads "at the largest house site" (faces NNW, 5.3°) where the card's
-  row reads the best site (faces W, 7°). Fix: say which site each is about, or read the same one.
-- **Acres:** the header's 29.31 ac (own land) and Terrain's "Of 30.1 ac" (the outline). Fix: one figure, or name both.
-- **"House sites found 2"** with four ranked sites (two compact). Fix: count compact sites, or say so.
-- **Driveway:** "routed driveway: 2888 ft at ≤15%" beside "Grade over 30 m … 17.9% (limit 15%)"; "E1 best" but the
-  route starts "from E2". Fix: one grade figure; say why E2.
-- **Jargon in print:** "the bench, not the pin", "1.0 = half the sky's light is man-made", "as of the screen" when the run
-  has no date, the elevation profile without axes, every site "$$$$ to build". Fix: plain words; axes; the cost scale.
-- **"a 32-minute drive to an ER, 5 to a grocery":** the second number has no unit. Fix: "5 minutes".
-
-## Step 10: the cost to enjoy (hand-back)
-
-From the fresh-eyes review of step 10's screens, the findings not fixed in the step (each concerns an existing screen,
-the seeded screenshots, or a product question):
-- **Sources outside the parcel's state** (NRCS Tennessee, NC culverts) under a Virginia parcel: the regional ranges are
-  the Blue Ridge's. Fix: say "regional (Blue Ridge)" in the breakdown, or pick sources by state.
-- **Cost to build compares unlike things:** a priced parcel's range includes the land, an unpriced one's "+ land" doesn't.
-  Fix: a land-excluded figure as well, or sort unpriced parcels apart (they sort last today).
-- **A B Contender with Within budget F:** the row is last in Really want, so it weighs little under rank-sum. Fix: say the
-  row's weight on the card, or move it up in What matters.
-- **The phone grade heading under the tabs** when the panel is scrolled; **"Grade again" twice** (banner and toolbar);
-  **two Driveway items** in What matters; **"Profile 1"**; the One page map key's "Filled" with an unfilled pin; the
-  phone's tiny One page preview: existing screens.
-- **The Best homesite block repeats the letters the card shows below it** (Zach, 10/21, with 8c): propose numbers only
-  there, e.g. "8.2 h winter sun · W · 2,649 ft · 129 ft drive at 6%", and leave the letters to the card.
-
-## Step 10b: the comparison grid (hand-back)
-
-From the fresh-eyes review of step 10b's screens, the findings not fixed in the step (existing screens, the seeded
-shots, or a product question):
-- **Every fixture is a B** though Macks has two Fs: the parcel grade is a weighted average. Fix: show the weakest row
-  beside the grade, or explain it in the grade's title.
-- **Short headers vs full names** ("Sun" for Best homesite, "Own drive" for Driveway on your land): the plan's labels
-  (§8), the full name in each header's title. Fix if they stay confusing: longer headers at 1920.
-- **At 1280 the grid scrolls sideways with no visible cue** beyond the scrollbar. Fix: a fade on the right edge.
-- **The phone strip is cut off after five or six factors.** Its label holds them all. Fix: a second line, or the
-  Musts that pass dropped from it.
-- **The Compare page's words differ from the card's** ("Dealbreakers" vs "Must have", "What money can't add" vs "Really
-  want"; "Pass"/"Warning" vs ✓ !); **its arrows mean better/worse**, not higher/lower; **29.31 vs 29.3 ac**.
-- **"3,543 ft, at least 1,800 ft"** could read as two measurements. Fix: "at least 1,800 ft (your limit)".
-- **The panel's Grade tab opens mid-card** after a reload; **"zone 3a"** unexplained; **"Grade again" twice**;
-  **"Profile 1"**; One page's "Filled: the best site" key and its outlined grade box: existing screens.
-
-
-## Step 11: new data points (hand-back)
-
-From the fresh-eyes review of step 11's screens, the findings not fixed in the step (a product question, existing
-screens, or the seeded shots):
-- **Long view:** "the longest 3.1 mi" beside "1% open past 3 mi" reads as a contradiction (the open share counts
-  directions; the longest is one of them), and its caveat shows twice in the panel. Fix: "the longest" only when it's
-  past the cutoff, and the caveat once. (Its km and the "Internet" name were fixed on the hand-back, #272.)
-- **Climate's snow and frost are a station's,** miles away and hundreds of feet lower or higher, beside the site's own
-  temperatures. The panel names the station and its elevation. Fix: say "at the station, not the site" on the line.
-- **The climate follow-ups' choices run in opposite directions** (Winters: Mild first; Summer: Keep it cool first), and
-  Q1's "hot summer days" against "Warm and mild"; the follow-ups come pre-selected from Q1 without saying so.
-- **A D or F with no limit shown** (Hospital 47 min, Airport): the rows outside Must have don't say the B/C edge. Fix:
-  "past your 30" in the line, as the answer's reason does.
-- **Privacy's F is off the published scale** (A–D edges only) and D and F share one red: existing card style.
-- **Privacy's "1 within a quarter mile"** sits in the graded sentence but isn't graded; the panel grades the best
-  homesite only.
-- **The ask-one interview page** says "← What matters" and "A new question" where the full interview says "← Map" and
-  "1 of 14"; no Next is visible above the fold on a phone.
-- **"85% clear" in What matters vs "A from 95%"** on the scale: the limit is the B/C edge, as every row's is.
-- **"Weight 5", DOIs and station names** in "How it's scored"; "FROM THE REPORT … the card above grades quality only";
-  "B · Maybe" unexplained on Try it on; the phone's Try it on sheet covering the columns; the 3D tip over the map;
-  "Grade again: boundary changed" and "Terrain tiles didn't load" in the seeded shots: existing screens.
-
-## Step 12: ways to raise the grade, and per-parcel adjustments (hand-back)
-
-From the fresh-eyes review of step 12's screens, the findings not fixed in the step (the brief's own wording, existing
-screens, or the seeded shots):
-- **The suggestions' shorthand** ("Septic ! → ✓, Maybe → Contender", "parcel B → A", "Tried: Legal road access ✓ → !")
-  needs decoding, and "parcel B → A" can read as a parcel named B. The brief's own example wording; on a phone "B →" and
-  "A" can break across lines. Fix if it stays hard: words for the marks ("Septic: check first → pass") and "grade B → A".
-- **"Use as my driveway" beside Try it's "Use it"** in the Easement panel: two ways to commit, with the tried outcome
-  between them. Fix: one of them, or Try it's result replacing the column's own button while it's shown.
-- **The faded struck letter beside the new one** can read as two grades; the strike is light at small sizes.
-- **The answer line names a set-aside Must but not an override**, and a set-aside Must leaves "Contender" without a
-  caution. #128's "Contender, with 1 override" would say it.
-- **"Grade the combination" disabled with one parcel**, no reason given; "Tap" on a desktop; the disabled grey's
-  contrast.
-- **The Easement panel's columns** wrap "Steepest, raw ground" over three lines on a desktop; the map's E1–E4, S1–S6 and
-  1–4 pins have no key; "Veto within/over 25%" and "Scored on the card" are jargon.
-- **Existing screens:** "Grade again: boundary changed" and "Terrain tiles didn't load" in the seeded shots; the report
-  score (67/100) beside a letter in "From the report"; the phone's Try it on sheet over the columns; rows scrolling under
-  the Grade | Details tabs; the map's tilt tip; What matters' disabled Undo as an empty box.
-
-## Step 13: the area catalog (hand-back)
-
-From the fresh-eyes review of step 13's screens, the findings not fixed in the step (the fixed ones: the ranking line,
-the trade-off with no weak spot, "land at 3,701 ft", the typical-values footnote, the parcel-scale must-haves note,
-Show more's heading and chevrons, and "An example lot, not a listing"):
-
-- **Two names for one box:** "Areas that fit you" after the interview, "Where to look" on the map (the brief's). Fix:
-  one name, or a line that says they're the same list.
-- ~~**Every area a B under the starting list:** the letters don't separate the top areas. Fix: a finer fit (points) beside
-  the letter, or the deciding factor.~~ Done in #299 (B+, B, B−; the Must share as the headline).
-- **An area's star and a parcel's star** look alike but mean "pin its outline" and "on your list". Fix: a pin icon for
-  areas.
-- **Area outlines unnamed far out** (by design, to avoid a pile of names) and drawn like parcel lines, under "Zoom in to
-  see parcel lines". Fix: names at every zoom for the five suggested areas; hide that hint while outlines show.
-- **A sample added to the list keeps "Sample parcel 1 · …" as its name** (the sheet offers it, prefilled). Fix: suggest a
-  name from the area alone.
-- **Existing screens:** the phone's toolbar status over the map's buttons; the edit bar's unlabelled bin; the map pins
-  E1–E3, S5–S6 and 1–5 with no key; "Held at Maybe by"; "Terrain tiles didn't load" and the tilt tip in the shots.
-
-## Step 14: what the land can do (hand-back)
-
-From the fresh-eyes review of step 14's screens, the findings not fixed in the step. The step fixed three: Divide's
-exceptions read "Could allow more" beside a count they don't reach (now "Also allowed", in the county's words), Ride's
-"corridors" (now "neighbours' land"), and "Remove scenario" (now "Remove this split"). Many of the rest are the UX
-audit's part 2 (docs/design/ux-audit.md), noted where so.
-
-- ~~**Garden: "no water found"** on all three parcels, with a pond in plain sight on Ferney: NHD's flowlines are read, its
-  waterbodies aren't. Fix: read NHD waterbodies (a pond or lake inside, or within the buffer) as water.~~ Done after
-  #312 (§9.71): NHD's waterbodies are read, and water names its source instead of deciding the answer.
-- **Divide: "limited by 1,116 ft of road frontage"** beside the county's "40 ft right-of-way where there's none". Fix: say
-  that a right-of-way is the way around the frontage rule, in the reason.
-- ~~**Divide on Roan: "No. 1 lot: limited by 0 ft of road frontage"** next to a highway: its frontage is the easement's.
-  Fix: "Can't divide: no public road frontage (the way in is an easement)".~~ Done after #312 (§9.71): two other
-  parcels lie between Roan and the highway; it reads "None: no public road runs along the county map's boundary".
-- **Acres: Divide's "30 ac" vs the header's 29.31 ac** (the outline vs the parcel's own land) and the ordinance's "§" codes
-  and dates beside each fact. Fix: one acreage (polish 17); "checked 2026-10-23" for the date. The acreage is done after
-  #312 (§9.71: 30.15 ac everywhere; 29.31 was Details' first part, and the screenshots' import); the "§" codes stand.
-- **A split's pieces aren't comparable when one has no route:** the West piece's "Cost to enjoy: the way in isn't priced"
-  against the East's Ready to camp / Ready to build rows. Fix: the same two rows, each saying "not priced".
-- **Hunt and Camp say what, not what would change it:** "1 house within a quarter mile", "36% forest, under 50%"; Camp's Yes
-  "within 300 ft of a road" beside Build's private road. Fix: the threshold in the reason ("Yes from 50%"); Camp names the
-  road's access caveat.
-- **Jargon:** "pioneer track" (the cost's own word), "a path every 100 ft". Fix: "a rough track cut for a 4x4"; "one walking
-  path every 100 ft across the gentle ground".
-- **The phone:** the pieces stack, so they can't be compared at a glance; the ▸ that opens What decides it is small;
-  the Yes and Maybe chips are pale. Fix: a two-column compact piece row; the whole row as the target; darker chips.
-- **Existing screens (the UX audit's part 2):** "Grade again: boundary changed" and "Terrain tiles didn't load" in the
-  seeded shots; Best homesite's site #3 vs "the map's … are for site #1"; the map's pins and lines with no key on screen;
-  the phone sheet's clipped header; the truncated parcel name; the unlabelled bin; the small ⓘ; the two rows of tabs on a
-  phone.
-
-## UX part 2: the redesign (hand-back)
-
-From the fresh-eyes review of the hand-back's 35 screenshots: the findings not fixed in the mission, and not from the
-shots' seeding or by Zach's decisions (the hand-back lists those).
-
-- **"All in, the land included" above "$3–9k plus the land"** when no asking price is entered (the card's Cost to enjoy,
-  step 10). Fix: say "plus the land" in the note too when there's no price (report text: rule 7, additive).
-- **The areas' trade-off line** "No weak spots for you: every factor here is a B or better" beside "What holds it back:
-  Night sky, B". Fix: one of them, or "holds it back" only below a B.
-- **The grid's merged Must row:** a ✗ beside an A (the limit fails while the row's letter is an A) reads as a
-  contradiction. Fix: the mark alone in that cell, the letter in the panel.
-- **Compare's ↓ ↑ and ≠** have no key. Fix: a one-line key under the table, as the grid has.
-- **The map's marks** (the horizon fan, the routes' dashes, the water pin, Stand here) have no key on screen beyond the
-  key line's words. Fix: the key line names each as it shows.
-- **The desktop grid** is cut off on the right with no scroll cue; the "best in its column" dots sit between columns.
-- **The legend's words:** "✎ adjusted for this parcel · – set aside", "≠ … (hover…)": no hover on a phone.
-- **Duplicates:** Not for us in Details › Status and the actions row; "Grade again" in the banner and the toolbar; + Mark
-  in the panel and the toolbar.
-- **Search's list** covers the area card under it on a desktop.
-- **The phone sheet:** a cut-off action row, the surface legend under "‹ Your list", the Finish prompt over the parcel,
-  Map layers cut at "On the map".
-- **Small targets on a desktop:** the ⓘ, Steps ▸, Compare's Open links and checkboxes, ⠿ and ⋯.
-- **"Tap a parcel to select it"** on a desktop; the tilt hint covering the map buttons.
-- **Jargon:** Pioneer, right-of-way width, plat book, "Terrain preview (about 10 m…)", "Typical values: the middle of 200
-  sampled spots", "2.1× footprint", Room, "after this screen", "over 30 m".
-- **Low contrast:** the disabled Undo, the grey "or" in the hint bar, placeholders; the house map's red/green legend.
-- **Unlabelled controls:** the toolbar's "Boundary ▾" and "13.29 ac ▾"; the icon-only map buttons.
-- **"The condition doesn't change the cost yet."** beside a condition picker; "Why: On the starting list."
-
-## Step 14d: places as data, the Places layer and paddling (hand-back)
-
-The fresh-eyes review's findings on screens this step didn't change, or that need a decision. The hand-back lists the
-ones fixed in PR 7.
-
-- **The cluster discs** don't say what they group (their ring is the kind's colour). Fix: the kind's icon in the disc
-  beside the count.
-- **Points under the map's controls:** icons and clusters sit under the sidebar edge, the map buttons, the tilt hint
-  and the toolbar. Fix: pad the Places sources' viewport by the controls' insets, or raise the controls' backdrop.
-- **A river launch's card has no drive time** while a lake launch's does (by design: rivers are listed, never timed).
-  Fix: the card says "Not timed: rivers are listed, not graded".
-- **"Check the river's class"** is jargon to a newcomer. Fix: "check the river's class (how hard its rapids are)"
-  (report text: rule 7, additive).
-- **The paddling interview's longest drive** stops at "An hour"; there's no "longer" (a product decision).
-- **The legend's ghost box** behind "The app's driveway", and the parcel-lines hint under the legend on a phone.
-- **The grade header** on a desktop: "Maybe", the B badge and ", held by: …" wrap apart; "held by" is unclear; amber
-  "Maybe" beside a green B.
-- **The panel's Override row:** the current letter's button looks disabled; "Set aside for this parcel" and "weight 5."
-  read as fragments; FROM THE REPORT's two scores.
-- **Small targets:** the section "?" and the panel's inline links on a phone.
-- **The interview:** Skip beside a pick reads as dropping it; the 1–4 circles look like ranks; "← Map" doesn't say it
-  keeps the answers.
-
-## Step 14e: offline and map caching (hand-back)
-
-The fresh-eyes review's findings on screens this step didn't change, or that need a decision. The hand-back lists the
-ones fixed in PR 5.
-
-- **The offline strip** ("You're offline — saved parcels still open from Your list") doesn't say whether the open
-  parcel is saved, reads as an error in red, and covers "‹ Your list" on a phone. Fix: a calmer colour, below the
-  back chip, and "This parcel is saved offline" when it is.
-- **Grade again while offline** stays the panel's most prominent control; a tap says it needs a connection. Fix: the
-  button quiet (not amber) while offline.
-- **Delete in Settings › Offline** has no confirm (Save offline again restores it), and a saved parcel's row doesn't
-  open it. Fix: the name opens it on the map.
-- **Map layers:** "state ortho" is jargon; three aerial choices with no hint of their difference; the panel's cut-off
-  end has no scroll cue; radio rows and toggle rows share the selected fill.
-- **The legend vs the pin:** "Best homesite" in the legend, "Stand here" on the pin; "The app's driveway".
-- **Small targets:** the map's ⓘ, Map layers' ×, the parcel sheet's ×, and the tilt tip's ×.
-- **The tilt tip** stays up beside a dialog on a desktop.
+### The report export
+- **The elevation profile has no axes.** It's the prototype's drawing, kept by the parity test.

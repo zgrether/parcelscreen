@@ -155,7 +155,7 @@ export function biggestMiss(card: Card): Row | null {
  * Polish 2 (Z1, owner): a row past its edge says the edge is a ranked one, not a Must, which a "limit" in the reason
  * otherwise reads as. Appended to the miss, after its own words.
  */
-const RANKED = " (a ranked limit, not a must)";
+const RANKED = " (it lowers the grade; it isn't a must)";
 const ranked = (miss: string): string => (/ your /.test(miss) ? `${miss}${RANKED}` : miss);
 
 /**

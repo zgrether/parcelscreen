@@ -323,15 +323,20 @@ export async function unfoldListing(scope: Page | Locator): Promise<Locator> {
 export async function seedScreens(
   page: Page,
   slugs: readonly FixtureSlug[],
-  /** The boundary's own key, so the screen is current rather than stale (the Places layer's card reads its drives). */
-  opts: { current?: boolean } = {},
+  /**
+   * The boundary's own key, so the screen is current rather than stale (the Places layer's card reads its drives);
+   * `settings` too, so the grade button doesn't say "settings changed" (polish 2's screenshots).
+   */
+  opts: { current?: boolean; settings?: boolean } = {},
 ): Promise<void> {
   const seeds = slugs.map((slug) => {
     const { input } = loadFixture(slug);
+    const keys = runKeys(input.polygon.geometry, null, DEFAULT_USER_CONFIG);
     return {
       name: input.name,
       result: expectedOf(slug, "run"),
-      boundary: opts.current ? runKeys(input.polygon.geometry, null, DEFAULT_USER_CONFIG).boundary : "e2e",
+      boundary: opts.current ? keys.boundary : "e2e",
+      settings: opts.settings ? keys.settings : "e2e",
     };
   });
   await page.evaluate(
@@ -339,7 +344,7 @@ export async function seedScreens(
       seeds,
       engine,
     }: {
-      seeds: { name: string; result: ScreenResult; boundary: string }[];
+      seeds: { name: string; result: ScreenResult; boundary: string; settings: string }[];
       engine: number;
     }) => {
       // The current profile's documents (step 1, PR 4): the debug handle writes through to IndexedDB.
@@ -360,7 +365,7 @@ export async function seedScreens(
         const id = `e2e-${s.name}`;
         tx.objectStore("screens").put({
           id,
-          keys: { boundary: s.boundary, house: "", settings: "e2e", lines: "" },
+          keys: { boundary: s.boundary, house: "", settings: s.settings, lines: "" },
           result: s.result,
           engine,
           // The household's list (step 6): its screens are the space's.

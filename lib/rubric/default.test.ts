@@ -130,7 +130,7 @@ const renamed = (want: Recorded1): Recorded1 => {
  * today's card before comparing, so the guard still holds every other word. Nothing else may differ.
  */
 const POLISH_2_ADDED = [
-  " (a ranked limit, not a must)",
+  " (it lowers the grade; it isn't a must)",
   `; ${ZONE_SCALE}`,
   " (shown, not graded)",
   " (at the station, not the site)",

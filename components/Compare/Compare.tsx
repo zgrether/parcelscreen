@@ -166,7 +166,10 @@ export function Compare() {
 
         {columns.length === 0 ? (
           <p className="muted">
-            {COMPARE_HOW} <Link href="/library">Your list</Link>
+            {COMPARE_HOW}{" "}
+            <Link className="link-btn" href="/library">
+              Open Your list
+            </Link>
           </p>
         ) : (
           <>
