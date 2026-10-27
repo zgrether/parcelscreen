@@ -262,14 +262,14 @@ function SheetScale({ children }: { children: ReactNode }) {
       ro.disconnect();
     };
   }, []);
-  // Polish 2 (R3): on a phone the fitted sheet is small; Full size shows it at 100%, scrolled sideways.
+  // Polish 2 (R3): on a phone the fitted sheet is small; Zoom to 100% shows it at full size, scrolled sideways.
   const [full, setFull] = useState(false);
   const scaled = scale < 1 && !full;
   return (
     <>
       {scale < 1 && (
         <button type="button" className="btn small secondary rp-size" onClick={() => setFull(!full)}>
-          {full ? "Fit to screen" : "Full size"}
+          {full ? "Fit to screen" : "Zoom to 100%"}
         </button>
       )}
       <div className={full ? "rp-full" : undefined}>

@@ -148,7 +148,7 @@ for (const v of VIEWS) {
       await visit(page, `/parcel/${key}/report?preset=one`);
       await page.waitForTimeout(2500);
       await shot(page, "report-one-page");
-      const full = page.getByRole("button", { name: "Full size" });
+      const full = page.getByRole("button", { name: "Zoom to 100%" });
       if (await full.count()) {
         await full.click();
         await page.waitForTimeout(500);

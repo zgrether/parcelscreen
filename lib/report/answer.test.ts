@@ -57,14 +57,14 @@ describe("the answer line", () => {
     expect(strengths(card).map((x) => x.key)).toEqual(["elevation", "homesite"]);
     expect(biggestMiss(card)!.key).toBe("trails");
     expect(answerLine(card, FERNEY)).toBe(
-      "Contender · B. Strong elevation and winter sun; the nearest trailhead is 47 minutes away, past your 20-minute limit (a ranked limit, not a must); check first: legal road access.",
+      "Contender · B. Strong elevation and winter sun; the nearest trailhead is 47 minutes away, past your 20-minute limit (it lowers the grade; it isn't a must); check first: legal road access.",
     );
   });
 
   it("measures the miss against the person's own edge", () => {
     const card = reportCard(FERNEY, ANSWERED);
     expect(answerLine(card, FERNEY)).toMatch(
-      /; the nearest trailhead is 47 minutes away, past your 15-minute limit \(a ranked limit, not a must\); /,
+      /; the nearest trailhead is 47 minutes away, past your 15-minute limit \(it lowers the grade; it isn't a must\); /,
     );
   });
 
@@ -95,7 +95,7 @@ describe("the answer line", () => {
   it("each row's miss in plain words", () => {
     const card = reportCard(MUD, ZACH);
     expect(answerLine(card, MUD)).toBe(
-      "Contender · B. Strong elevation and winter sun; 0.1 ac of garden ground, under your 0.25 ac (a ranked limit, not a must); check first: septic.",
+      "Contender · B. Strong elevation and winter sun; 0.1 ac of garden ground, under your 0.25 ac (it lowers the grade; it isn't a must); check first: septic.",
     );
     const r = structuredClone(MUD);
     const h = r.drives!.find((d) => d.er === "yes")!;
@@ -105,7 +105,7 @@ describe("the answer line", () => {
       weights: { mode: "explicit", of: { ...zeroWeights(), hospital: 100 } },
     });
     expect(answerLine(reportCard(r, er), r)).toBe(
-      "Maybe · C. 38 minutes to an ER is past your 30-minute limit (a ranked limit, not a must); check first: septic.",
+      "Maybe · C. 38 minutes to an ER is past your 30-minute limit (it lowers the grade; it isn't a must); check first: septic.",
     );
   });
 
