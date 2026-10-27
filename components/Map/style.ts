@@ -34,20 +34,21 @@ export const BASEMAPS: { id: BasemapId; label: string }[] = [
 
 export const isBasemapId = (v: string): v is BasemapId => BASEMAPS.some((b) => b.id === v);
 
-const USGS_IMAGERY =
+export const USGS_IMAGERY =
   "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}";
-const USGS_TOPO = "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}";
-const ESRI_IMAGERY =
+export const USGS_TOPO =
+  "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}";
+export const ESRI_IMAGERY =
   "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
-const ESRI_STREETS =
+export const ESRI_STREETS =
   "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}";
 /** Virginia's statewide orthophoto, an export-by-bbox service. The prototype's host (gismaps.vdem…) no longer
  * resolves; the same service is on vginmaps.vdem…, which also serves the parcels. PNG with transparency, so
  * NC shows through where a border tile has no VA imagery (the prototype asked for JPEG, one service per tile). */
-const VA_ORTHO =
+export const VA_ORTHO =
   "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VBMP_Imagery/MostRecentImagery_WGS/MapServer/export" +
   "?bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=256,256&format=png32&transparent=true&f=image";
-const NC_ORTHO =
+export const NC_ORTHO =
   "https://services.nconemap.gov/secure/rest/services/Imagery/Orthoimagery_Latest_cached/ImageServer/tile/{z}/{y}/{x}";
 /**
  * Tennessee's statewide leaf-off orthophoto (TDOT Aerial Surveys; 6 in since 2022, 1 ft before), TNMap's public
@@ -55,8 +56,15 @@ const NC_ORTHO =
  * is a 404, so USGS shows through; edge tiles are PNG with transparency. Its flights reach past the state line (a
  * tile on the TN/NC line at Roan is a full JPEG), so it sits under NC and VA.
  */
-const TN_ORTHO =
+export const TN_ORTHO =
   "https://tnmap.tn.gov/arcgis/rest/services/BASEMAPS/IMAGERY_WEB_MERCATOR/MapServer/tile/{z}/{y}/{x}";
+
+/** Each state ortho's bounds (west, south, east, north), explained where the sources are listed. Save offline reads them too. */
+export const STATE_ORTHO_BOUNDS: Record<"tn" | "nc" | "va", [number, number, number, number]> = {
+  tn: [-90.4, 34.9, -81.6, 36.75],
+  nc: [-84.4, 33.7, -75.3, 36.65],
+  va: [-83.75, 36.5, -75.1, 39.5],
+};
 
 const raster = (
   tiles: string,
@@ -83,9 +91,9 @@ const BASEMAP_SOURCES: Record<BasemapId, [string, RasterSourceSpecification][]> 
     // 36.54°, south of the VA–NC line near Grayson (~36.59°), and that strip of NC got the USGS fallback; they
     // also cut NC's imagery offshore at 33.8° and VA's at −75.2°. VA is drawn over NC where both have imagery, and
     // both over TN (TIGER −90.31…−81.65, 34.98…36.68), whose flights cross its lines.
-    ["base-state-tn", raster(TN_ORTHO, 19, "TDOT Aerial Surveys", { bounds: [-90.4, 34.9, -81.6, 36.75] })],
-    ["base-state-nc", raster(NC_ORTHO, 20, "NC OneMap", { bounds: [-84.4, 33.7, -75.3, 36.65] })],
-    ["base-state-va", raster(VA_ORTHO, 19, "VGIN VBMP", { bounds: [-83.75, 36.5, -75.1, 39.5] })],
+    ["base-state-tn", raster(TN_ORTHO, 19, "TDOT Aerial Surveys", { bounds: STATE_ORTHO_BOUNDS.tn })],
+    ["base-state-nc", raster(NC_ORTHO, 20, "NC OneMap", { bounds: STATE_ORTHO_BOUNDS.nc })],
+    ["base-state-va", raster(VA_ORTHO, 19, "VGIN VBMP", { bounds: STATE_ORTHO_BOUNDS.va })],
   ],
   imagery: [["base-imagery", raster(USGS_IMAGERY, 16, "USGS")]],
   esri: [["base-esri", raster(ESRI_IMAGERY, 19, "Esri, Maxar, Earthstar Geographics")]],

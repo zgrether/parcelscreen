@@ -4,7 +4,7 @@
  *   - ★ Add to list / On your list.
  *   - Not for us (P-4), or Move back once it's ruled out.
  *   - Ask Julie (Ask someone with more than one other member, or with none yet: it opens Household), on a kept parcel.
- *   - ⋯: Make a report, Copy summary, Remove from Your list.
+ *   - ⋯: Make a report, Copy summary, Save offline, Remove from Your list.
  * Not for us and Ask open in the row's place, as the mock-up has them. The other members' takes follow the row, with a
  * dot on one that was new when the parcel opened (opening it sees it, step 6b).
  */
@@ -16,6 +16,9 @@ import { AskForm } from "@/components/Household/Takes";
 import { useHouseholdDialog } from "@/components/Household/HouseholdDialog";
 import { PanelMenu } from "@/components/Report/PanelMenu";
 import { countyOf, isFavorite, starName } from "@/lib/client/favorites";
+import { parcelName } from "@/lib/client/historyRows";
+import type { SaveTarget } from "@/lib/client/saveOffline";
+import { ownLand } from "@/lib/geo/recipe";
 import { memberName, type Member } from "@/lib/client/household";
 import { useHousehold, useNewTakes } from "@/lib/client/householdDoc";
 import { statusLine } from "@/lib/client/parcelStatus";
@@ -51,6 +54,21 @@ export function HeaderActions({ s }: { s: ScreenIt }) {
   const askable = key !== null && members.length > 0;
   const graded = !!s.shown && !s.runningHere;
   const adder = open.addedBy && open.addedBy !== currentProfileId() ? memberName(open.addedBy) : null;
+  // Built when the ⋯ menu opens, not on every render: the boundary is a union of the pieces.
+  const saveTarget = (): SaveTarget | null => {
+    const land = key ? ownLand(open.pieces) : null;
+    if (!key || !land) return null;
+    return {
+      key,
+      name: parcelName(open).name,
+      geo: land,
+      pieces: open.pieces,
+      screenIds: [
+        ...open.screenIds.slice(-1),
+        ...open.scenarios.flatMap((x) => [x.screens.left, x.screens.right]).filter((id) => id !== null),
+      ],
+    };
+  };
 
   return (
     <div className="sh-acts-wrap">
@@ -98,6 +116,7 @@ export function HeaderActions({ s }: { s: ScreenIt }) {
             graded={graded}
             copySummary={graded ? s.copySummary : null}
             remove={isFavorite(open) ? { adder, run: () => s.ctl.unstar(serial) } : null}
+            saveTarget={saveTarget}
           />
         </div>
       )}

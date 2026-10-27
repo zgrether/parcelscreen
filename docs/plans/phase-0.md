@@ -1317,4 +1317,23 @@ until step 5 (Q14).
       is under it (below one dam is often the next one's pool). A list, as the pools are: by position alone, Fontana's
       Panel Branch and Lewellyn Branch, a kilometre below Fontana Dam on Cheoah Lake, would read as river.
 
+74. **Step 14e: offline and map caching** (owner, 2026-10-25; the plan `docs/plans/step-14e-offline.md`, #353; built in
+    #354 onwards).
+    - **The map's tiles are kept as they're viewed** (#354): the service worker answers them cache first, refreshes one
+      over 7 days old in the background, and drops the least recently used unpinned tiles past a cap (1 GB, set in
+      Settings › Offline, with Clear map cache). Which layers it keeps is one table by each provider's terms
+      (`components/Map/offlineLayers.ts`): Esri's basemaps never; the elevation tiles (Mapterhorn, Terrarium) since the
+      owner's answer to the plan's Q1 (#358, 10/27): CLAUDE.md's rule reads "DEM rasters are never persisted in the
+      app's own storage (saved screens, the database, exports); map tiles, including elevation tiles, may be kept in the
+      capped map tile cache when their terms allow". A grade's own requests never match. Device only: never synced or exported.
+    - **Save offline** (#355): the parcel plus a quarter mile, at each layer's zooms, the parcel lines and the nearby
+      places cells, downloaded by the service worker (the tile cache's one writer) and pinned, never evicted, with the
+      parcel's screens made sure of on the device. A saved parcel opens with no connection, from Your list; Grade says
+      "You're offline — grading needs a connection." The app's fonts are precached too (Serwist's default patterns left
+      out woff2).
+    - **Notes and lines made offline** (#356): step 5's "no offline queue" holds for everything but a parcel's notes
+      and its lines and marks (and the Recent that opening it writes): a save of only those that fails offline is
+      held, "Saved on this device — syncs when you're back online", and goes by itself on return, merged three ways
+      when the space changed meanwhile (lines and marks by id, both notes kept).
+
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

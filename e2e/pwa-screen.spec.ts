@@ -14,6 +14,7 @@ import {
   screenIt,
 } from "./flow";
 import { replayHar } from "./replay";
+import { offlineLayerFor } from "@/components/Map/offlineLayers";
 
 const FERNEY = "ferney-creek-52-47A";
 
@@ -49,7 +50,13 @@ test("Ferney Creek 52-47A with the service worker in control: the screen runs an
   context.on("response", (r) => {
     if (/\/turbopack-worker-[^/]*\.js/.test(r.url()))
       workerEntry = { url: r.url(), fromSW: r.fromServiceWorker() };
-    else if (!r.url().startsWith("http://localhost") && r.fromServiceWorker()) fromSW.push(r.url());
+    // Step 14e: the map's tiles go through the service worker now (its tile cache); a grade's data never does.
+    else if (
+      !r.url().startsWith("http://localhost") &&
+      r.fromServiceWorker() &&
+      !offlineLayerFor(new URL(r.url()), false)
+    )
+      fromSW.push(r.url());
   });
 
   await importParcel(page, FERNEY);

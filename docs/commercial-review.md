@@ -57,6 +57,22 @@ sites in RIDB.
   caching; credited as "Terrain: USGS 3D Elevation Program (lidar)". A shared public endpoint with no stated rate limit,
   so the layer asks only for the tiles in view, from zoom 13 up.
 
+**Offline (roadmap step 14e).** The service worker keeps the map tiles a person views, and Save offline downloads a
+quarter mile around one parcel; both on the person's own device, never redistributed (`components/Map/offlineLayers.ts`
+is the one list):
+- **Kept and saved:** USGS imagery and topo, USGS 3DEP Slope, the Lorenz atlas's image tiles (CLAUDE.md already allows
+  caching them), OpenFreeMap's tiles (served with a ten-year max-age), the baked places, the state aerials (TNMap,
+  NC OneMap, VGIN) and the three parcel-line services. No term forbids a viewer's cache. NC OneMap asks that *bulk* data
+  come from the county downloads, VGIN's imagery is "for cartographic use", and the Comptroller's limits are on its
+  shapefiles' recurring downloads: a quarter mile around one parcel, for display, is none of those (step 14e plan Q2).
+- **Never kept:** Esri's World Imagery and World Street Map. Esri's terms bar storing or harvesting its basemap tiles
+  except through its Content Packages, used with Esri's own software (#338's research). Map layers marks them "not kept
+  offline".
+- **Kept and saved since the owner's answer (#358, step 14e plan Q1):** Mapterhorn's and AWS Terrarium's elevation
+  tiles (Shaded relief, the 3D terrain, hillshade and contours). Their terms allow caching, and CLAUDE.md's rule now
+  reads that DEM rasters are never persisted in the app's own storage, while map tiles, elevation tiles included, may
+  be kept in the capped map tile cache when their terms allow.
+
 ## The area catalog's monthly profile (step 13)
 
 The catalog re-profiles its 30 areas once a month (`.github/workflows/areas-refresh.yml`,

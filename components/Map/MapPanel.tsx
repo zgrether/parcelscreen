@@ -13,6 +13,8 @@ import { AnalysisGroup } from "./results/AnalysisGroup";
 import { RoadsToggle } from "./RoadsToggle";
 import { MapKey } from "./MapKey";
 import { BASEMAPS } from "./style";
+import { BASEMAPS_NOT_KEPT } from "./offlineLayers";
+import { OFFLINE_WORDS } from "@/lib/offline/words";
 import { TerrainControls } from "./TerrainControls";
 import { LidarControls } from "./LidarControls";
 import { PlacesControls } from "./PlacesControls";
@@ -73,6 +75,10 @@ function Panel({ onClose }: { onClose: () => void }) {
             >
               <span className="mp-dot" aria-hidden="true" />
               {b.label}
+              {/* Step 14e: Esri's terms don't allow keeping its tiles. */}
+              {BASEMAPS_NOT_KEPT.has(b.id) && (
+                <span className="tiny muted mp-not-kept">{OFFLINE_WORDS.notKept}</span>
+              )}
             </button>
           ))}
         </div>

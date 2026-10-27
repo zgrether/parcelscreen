@@ -4,9 +4,9 @@
  * it asks for none and the hint says to zoom in; off, it asks for no more; a reload keeps the choice. Both hosts are
  * answered with a flat grey PNG of our own: this session's network reaches neither.
  */
-import { deflateSync } from "node:zlib";
 import { expect, test, type Page, type Route } from "@playwright/test";
 import { openExplorer, reload } from "./flow";
+import { greyPng } from "./png";
 import { replayHar } from "./replay";
 
 const SLUG = "grayson-mud-creek-6273";
@@ -14,41 +14,6 @@ const SERVICE =
   /elevation\.nationalmap\.gov\/arcgis\/rest\/services\/3DEPElevation\/ImageServer\/exportImage/;
 const MAPTERHORN = /tiles\.mapterhorn\.com\/(\d+)\/\d+\/\d+\.webp/;
 const WORLD_M = 40075016.686;
-
-/** A square grey PNG, built here (no image library): the tile every request gets (as Terrarium, a flat 128 m). */
-function greyPng(px: number): Buffer {
-  const crcTable = Array.from({ length: 256 }, (_, n) => {
-    let c = n;
-    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-    return c >>> 0;
-  });
-  const crc = (b: Buffer) => {
-    let c = 0xffffffff;
-    for (const x of b) c = crcTable[(c ^ x) & 0xff]! ^ (c >>> 8);
-    return (c ^ 0xffffffff) >>> 0;
-  };
-  const chunk = (type: string, data: Buffer) => {
-    const t = Buffer.concat([Buffer.from(type, "ascii"), data]);
-    const len = Buffer.alloc(4);
-    len.writeUInt32BE(data.length);
-    const sum = Buffer.alloc(4);
-    sum.writeUInt32BE(crc(t));
-    return Buffer.concat([len, t, sum]);
-  };
-  const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(px, 0);
-  ihdr.writeUInt32BE(px, 4);
-  ihdr[8] = 8; // bit depth
-  ihdr[9] = 0; // greyscale
-  const rows = Buffer.alloc((px + 1) * px, 0x80);
-  for (let y = 0; y < px; y++) rows[y * (px + 1)] = 0; // filter: none
-  return Buffer.concat([
-    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
-    chunk("IHDR", ihdr),
-    chunk("IDAT", deflateSync(rows)),
-    chunk("IEND", Buffer.alloc(0)),
-  ]);
-}
 
 interface Asked {
   zoom: number;

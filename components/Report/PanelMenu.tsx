@@ -5,6 +5,7 @@
  *     that it says "Grade it first".
  *   - Copy summary, once it's graded (it was a button at the panel's foot).
  *   - Remove from Your list, on a kept parcel, asking first as the star does.
+ *   - Save offline (step 14e): the parcel and the map around it kept on this device; Update offline copy once saved.
  * A small menu, as a row's ⋯ on Your list.
  */
 import { useRouter } from "next/navigation";
@@ -12,6 +13,8 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { unstarQuestion } from "@/components/Favorites/Star";
 import { ResetConfirm } from "@/components/Rubric/ResetConfirm";
+import { SaveOfflineItem, SaveOfflineSheet } from "@/components/Offline/SaveOffline";
+import type { SaveTarget } from "@/lib/client/saveOffline";
 import { REPORT_WORDS, reportHref } from "@/lib/print/report";
 
 export const MENU_WORDS = { copy: "Copy summary", remove: "Remove from Your list", keep: "Keep" };
@@ -21,6 +24,7 @@ export function PanelMenu({
   graded,
   copySummary,
   remove,
+  saveTarget,
 }: {
   parcelKey: string | null;
   graded: boolean;
@@ -28,6 +32,8 @@ export function PanelMenu({
   copySummary: (() => void) | null;
   /** Null for a parcel not on the list; `adder` names whose Recent it goes back to. */
   remove: { adder: string | null; run(): void } | null;
+  /** Save offline's parcel, built when the menu opens; null for one with no boundary yet. */
+  saveTarget: () => SaveTarget | null;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -42,6 +48,7 @@ export function PanelMenu({
     return () => document.removeEventListener("pointerdown", away);
   }, [open]);
   const ready = graded && parcelKey !== null;
+  const target = open ? saveTarget() : null;
   return (
     <span
       ref={box}
@@ -94,6 +101,7 @@ export function PanelMenu({
               {MENU_WORDS.copy}
             </button>
           )}
+          {target && <SaveOfflineItem target={target} close={() => setOpen(false)} />}
           {remove && (
             <button
               type="button"
@@ -108,6 +116,7 @@ export function PanelMenu({
           )}
         </span>
       )}
+      <SaveOfflineSheet />
       {confirming &&
         remove &&
         createPortal(

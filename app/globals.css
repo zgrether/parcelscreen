@@ -3296,6 +3296,68 @@ html:has(.app-nav) .explore {
   white-space: nowrap;
 }
 
+/* Step 14e: the Esri line under the offline strip, and Map layers' "not kept offline". */
+.pwa-offline-esri {
+  display: block;
+  font-weight: 400;
+}
+.mp-not-kept {
+  margin-left: 6px;
+  /* The panel's own second ink (the fresh-eyes review: the page's muted grey was too faint on the dark panel). */
+  color: var(--ip-ink-2);
+}
+/* Settings › Offline: the cap and Clear wrap under each other on a phone. */
+.offline-cap-row {
+  flex-wrap: wrap;
+}
+.offline-cap-row select {
+  width: auto;
+  min-height: 44px;
+}
+@media (max-width: 480px) {
+  .offline-cap-row select {
+    flex: 1 1 100%;
+  }
+}
+
+/* Settings › Offline's saved parcels: the name, its size and date, then Delete. */
+.offline-saved {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+}
+.offline-saved li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  border-top: 1px solid var(--color-rule);
+}
+/* Up to two lines, so parcels on the same creek still read apart on a phone. */
+.offline-saved-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.offline-saved .btn {
+  flex: none;
+  min-height: 44px;
+}
+/* Save offline's sheet: the size first, large. */
+.offline-sheet h3 {
+  margin: 0 0 6px;
+}
+.offline-size {
+  font-size: 17px;
+  font-weight: 600;
+}
+.offline-progress {
+  margin: 0 0 14px;
+}
+
 /* ---------- The installable app (step 17c) ---------- */
 /* Offline: a strip under the top controls; the map and History still work. */
 .pwa-offline {
@@ -6499,6 +6561,12 @@ button.cmp-cell:hover {
 }
 .sync-ind.menu {
   display: none;
+}
+/* Step 14e: notes or lines held offline, a longer line that may wrap. */
+.sync-ind.held {
+  max-width: 260px;
+  white-space: normal;
+  line-height: 1.25;
 }
 button.sync-ind.bad {
   min-height: 32px;
