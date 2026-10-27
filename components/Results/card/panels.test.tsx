@@ -71,10 +71,8 @@ describe("the report card's panels (VR5)", () => {
     );
     const t = panelText("sky");
     expect(html).toContain(t.question);
-    expect(html).toContain(
-      "rural dark sky (zone 3a; the atlas&#x27;s light-pollution zones run 0, darkest, to 7).",
-    );
-    expect(html).toContain(t.howScored);
+    expect(html).toContain("rural dark sky (zone 3a).");
+    expect(html).toContain(t.howScored.replaceAll("'", "&#x27;"));
     expect(html).toContain(FROM_THE_REPORT_NOTE.replace("'overall'", "&#x27;overall&#x27;"));
   });
 

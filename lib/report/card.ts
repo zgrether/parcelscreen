@@ -546,14 +546,13 @@ function sky(r: Result, K: CardConfig, at: number): Row {
   const mag = own?.mag ?? r.sky.mag;
   const [zone, zoneWord] = own ? zoneOfMag(own.mag) : [r.sky.zone, r.sky.zoneWord];
   return {
-    // Polish 2 (Z4, owner): what the zone's number means, after it.
-    ...g(atLeast(mag, K.rows.skyMag), `${zoneWord} sky (zone ${zone}; ${ZONE_SCALE})`),
+    ...g(atLeast(mag, K.rows.skyMag), `${zoneWord} sky (zone ${zone})`),
     short: `zone ${zone}`,
     measure: { value: mag, unit: "mag" },
   };
 }
 
-/** The light-pollution atlas's zones in a few words (polish 2, Z4): lpZone's run from 0 to 7. */
+/** The light-pollution atlas's zones in a few words (polish 2, Z4): lpZone's run from 0 to 7. Sky's panel says it. */
 export const ZONE_SCALE = "the atlas's light-pollution zones run 0, darkest, to 7";
 
 /** The zone and its word for a zenith brightness in mag/arcsec²: lpMag inverted, then lpZone (sky.ts). */
@@ -798,8 +797,7 @@ function climate(r: Result, K: CardConfig, at: number): Row {
     ...g(
       grade,
       `January lows ${fmt(c.janLowF)} °F, July highs ${fmt(c.julHighF)} °F at ${where} (${fmt(spot!.elevFt ?? 0)} ft)` +
-        // Polish 2 (Z4, owner): the snow and frost are a station's, miles off and at its own height.
-        (st ? `; ${stationLine(st)} at ${stationName(st, c.stationMi)} (at the station, not the site)` : ""),
+        (st ? `; ${stationLine(st)} at ${stationName(st, c.stationMi)}` : ""),
     ),
     short: `Jan ${fmt(c.janLowF)}°, Jul ${fmt(c.julHighF)}°F`,
   };
@@ -863,8 +861,7 @@ function longView(r: Result, K: CardConfig, at: number): Row {
 export function privacyLine(p: { near: number; inSight: number; nearestFt: number | null }): string {
   if (p.nearestFt === null) return "no house within a mile";
   return (
-    // Polish 2 (Z4, owner): the quarter-mile count is in the sentence but not in the letter; it says so.
-    `the nearest house ${fmt(p.nearestFt)} ft away; ${fmt(p.near)} within a quarter mile (shown, not graded); ` +
+    `the nearest house ${fmt(p.nearestFt)} ft away; ${fmt(p.near)} within a quarter mile; ` +
     `${p.inSight === 0 ? "none" : fmt(p.inSight)} in sight within a mile (${IN_WINTER})`
   );
 }

@@ -16,7 +16,7 @@ import { LONG_TRAIL_SOURCES } from "./longTrail";
 import { PADDLE_SOURCES, RIVER_CAUTION } from "./paddling";
 import { DISH_CAVEAT } from "./internet";
 import { climateWords, privacyWords } from "../rubric/words";
-import { MAYBE_CAPS, footprintFt2, type CardConfig, type GateKey, type RowKey } from "./card";
+import { MAYBE_CAPS, ZONE_SCALE, footprintFt2, type CardConfig, type GateKey, type RowKey } from "./card";
 
 export type PanelKey = "verdict" | GateKey | RowKey | "cost";
 
@@ -113,7 +113,9 @@ export function panelText(
           `Contender at ${verdictLines(V).contender} and up with at most ${V.verdict.contenderMaxWarns} warning; ` +
           `Not for us with any failed dealbreaker or a grade under ${verdictLines(V).pass}; Maybe otherwise. ` +
           // Appended (#118 review; rule 7): the caps cardFor applies, from the same list.
-          `A parcel is at most a Maybe when ${MAYBE_CAPS.incomplete} or when ${MAYBE_CAPS.checkFirst}.`,
+          `A parcel is at most a Maybe when ${MAYBE_CAPS.incomplete} or when ${MAYBE_CAPS.checkFirst}. ` +
+          // Moved from the reason's line (Z1, owner 10/27): the line keeps the fact and the limit.
+          `A limit the reason names, such as "past your 20-minute limit", lowers the grade; it isn't a must (a missed must reads "fails your must").`,
       };
     case "floodplain":
       return {
@@ -165,11 +167,14 @@ export function panelText(
       return {
         title: "Night sky",
         question: "How dark is it overhead?",
-        howScored: `${ladder(
-          R.skyMag.map((v) => `${fmt(v, 1)}`),
-          "at",
-          "from",
-        )} mag/arcsec² at the zenith (higher is darker); ${weightOf(rubrics, "sky")}.`,
+        howScored:
+          `${ladder(
+            R.skyMag.map((v) => `${fmt(v, 1)}`),
+            "at",
+            "from",
+          )} mag/arcsec² at the zenith (higher is darker); ${weightOf(rubrics, "sky")}. ` +
+          // Moved from the row's line (Z4, owner 10/27).
+          `The zone beside the reading: ${ZONE_SCALE}.`,
       };
     case "room":
       return {
@@ -229,6 +234,8 @@ export function panelText(
         question: "How cold are the winters, and how hot the summers, where we'd build?",
         howScored:
           `At your best homesite, the worse of two 30-year normals: January's mean low (A from ${jan[0]}, B from ${jan[1]}, C from ${jan[2]}, D from ${jan[3]}) and July's mean high (A up to ${jul[0]}, B up to ${jul[1]}, C up to ${jul[2]}, D up to ${jul[3]}); your limits: ${climateWords(R)}. Snowfall and frost-free days are shown, not graded; ${weightOf(rubrics, "climate")}. ` +
+          // Moved from the row's line (Z4, owner 10/27): the snow and frost are a station's, miles off.
+          `The snowfall and frost-free days are the named station's, read at the station, not the site. ` +
           `Sources: ${CLIMATE_SOURCES}`,
       };
     }

@@ -129,7 +129,7 @@ const RELIEF_ROW = /Reliefculverts\d+\(oneevery150–400ft,bygrade\)/g;
  * the grid's acres, the route's start, the bench and the river's class, each removed before comparing.
  */
 const POLISH_2 =
-  /·\d+compactsites?rankedtoo|\(bytheelevationgrid\)|TherecommendedroutestartsfromE\d+,thebetterwaytothesite\.|\(theflatgroundthesitesitson\)|\(howharditsrapidsare\)|Buildcosttiersrunfrom\$,theleasttobuild,to\$\$\$\$,themost\./g;
+  /·\d+compactsites?rankedtoo|Theacresabovearecountedonthiselevationgrid\.|TherecommendedroutestartsfromE\d+,thebetterwaytothesite\.|\(theflatgroundthesitesitson\)|\(howharditsrapidsare\)|Buildcosttiersrunfrom\$,theleasttobuild,to\$\$\$\$,themost\./g;
 
 const render = (Block: ComponentType<BlockProps>, result: PartialScreenResult) =>
   renderToStaticMarkup(<Block result={result} point={evaluationPoint(result)} variant="panel" />);
