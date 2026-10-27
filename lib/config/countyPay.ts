@@ -184,4 +184,3 @@ export const COUNTY_PAY: readonly CountyPay[] = [
 
 export const countyPayOf = (fips: string): CountyPay | null =>
   COUNTY_PAY.find((c) => c.fips === fips) ?? null;
-
