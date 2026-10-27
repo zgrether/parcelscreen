@@ -55,3 +55,28 @@ with its reason.
 
 ### The report export
 - **The elevation profile has no axes.** It's the prototype's drawing, kept by the parity test.
+
+## Polish pass 2's fresh-eyes review (hand-back)
+
+The review of the pass's after shots. The fixes are listed in #365; these are the findings it left, outside the pass or
+for you to decide.
+
+- **Best homesite and One page:** "1st · Site #1, 2nd · Site #2, 3rd · Site #4". The numbers are the map's pins in the
+  app's rank, and the order is yours, so a gap reads as a missing site. Fix: say so in the list, or number by your order
+  (it touches the pins' ids).
+- **One page:** "Ways to raise this grade: Set aside Trails…: grade B → A" can read as gaming the score; "Can divide:
+  up to 21 lots" sits without a heading; "43.88 ac · Graded" says no date. Report text and layout.
+- **Grade › Cost to enjoy and Price and cost** repeat Ready to camp and Ready to build, and the note's "to build is
+  everything but the house" sits beside "Ready to build". Report text (Z-4's design).
+- **Best homesite's "as good", "8 points behind", "9.4× footprint"** use scales the panel doesn't define. Report text.
+- **The interview's back link** says "← Map (answers kept)" even when it was opened from What matters; Q1's choice words
+  ("Cool and snowy") differ from its scene ("frigid winter nights").
+- **Settings' scoring thresholds** ("min cell score (0–100)", "shelf acres to rank as a cut-pad house site") are the
+  advanced settings' own words. Fix: plain labels, or under an Advanced fold.
+- **Details:** its headings are capitals where Grade's aren't, and the Listing box shows the parcel's name with Edit ▾,
+  not what a listing is.
+- **What matters on a phone:** the Try it on select is cut ("Ferney Creek, Floyd Co…"); Undo, Reset and the questions
+  link share one row.
+- **Your list on a phone:** the "?" beside the title doesn't say it opens the key.
+- **The phone's tall sheet:** the map's floating buttons sit over the Stand here pin in the strip of map left.
+- **"Ask someone"** in the header could say whom ("Ask the household").
