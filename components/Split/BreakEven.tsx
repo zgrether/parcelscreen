@@ -9,7 +9,6 @@ import type { BreakEvenInputs } from "@/lib/client/parcelStore";
 import type { ResolvedBreakEven } from "@/lib/split/breakEvenOf";
 import type { BreakEvenPatch, PieceSide } from "@/lib/split/scenario";
 import { BREAK_EVEN } from "@/lib/pay/words";
-import { fmt } from "@/lib/format";
 
 export function BreakEven({
   r,
@@ -30,7 +29,7 @@ export function BreakEven({
     <Field
       key={`${key}:${v?.value ?? ""}:${v?.assumed ?? ""}`}
       label={label}
-      value={v ? fmt(v.value, d).replace(/,/g, "") : ""}
+      value={v ? plain(v.value, d) : ""}
       assumed={!!v?.assumed}
       placeholder={key === "price" ? BREAK_EVEN.typePrice : ""}
       save={(n) => save({ [key]: n })}
@@ -86,6 +85,9 @@ export function BreakEven({
     </section>
   );
 }
+
+/** A number as typed: no thousands commas, and no padding zeros ("2", "7", "8.9", not "2.0", "7.00"). */
+const plain = (n: number, d: number): string => String(Math.round(n * 10 ** d) / 10 ** d);
 
 /** A number saved on blur or Enter; blank goes back to the default (undefined), anything unreadable to what it was. */
 function Field({

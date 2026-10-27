@@ -159,6 +159,19 @@ export function easement({ uses, land, listing }: PayInput): PayOption {
   };
 }
 
+/** The credit under the slider, its value being said above it: "A state credit of $40,000. At $20,000 a year, …". */
+export function sliderCredit(
+  c: EasementCredit,
+  credit: { credit: number; years: number | null; beyondCarry: number },
+): string {
+  const spread =
+    credit.years !== null && c.yearlyUse.value !== null && credit.years > 1
+      ? `. ${NUMBER.yearly(c.yearlyUse.value, credit.years)}${credit.beyondCarry > 0 && c.transfer.value ? `; ${NUMBER.sellRest}` : ""}`
+      : "";
+  const line = `${NUMBER.credit(credit.credit)}${spread}`;
+  return line.charAt(0).toUpperCase() + line.slice(1);
+}
+
 /** The slider's own line as it moves: "a state credit of $40,000", with the yearly limit's spread. */
 export function sliderLine(
   value: number,

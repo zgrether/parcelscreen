@@ -9,7 +9,7 @@ import { useId, useState } from "react";
 import { STATE_EASEMENT } from "@/lib/config/programs";
 import { PAY_ORDER, type Eligibility, type PayLine, type PayOption } from "@/lib/pay";
 import { creditFor } from "@/lib/pay/credit";
-import { sliderLine } from "@/lib/pay/easement";
+import { sliderCredit } from "@/lib/pay/easement";
 import { ELIGIBILITY_WORD, money, NUMBER, PAY_NAME, PAY_WORDS } from "@/lib/pay/words";
 import { Facts } from "./UseRow";
 
@@ -154,7 +154,7 @@ function CreditSlider({ max, step }: { max: number; step: number }) {
         aria-valuetext={money(value)}
       />
       <p className="pay-credit" aria-live="polite">
-        {value > 0 ? sliderLine(value, credit, creditFor(value, credit)) : PAY_WORDS.sliderHint}
+        {value > 0 ? `→ ${sliderCredit(credit, creditFor(value, credit))}` : PAY_WORDS.sliderHint}
       </p>
     </div>
   );

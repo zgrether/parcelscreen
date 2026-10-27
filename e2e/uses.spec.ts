@@ -165,8 +165,11 @@ test("How it could pay on Mud Creek: seven options, a detail in place, Virginia'
     "Drag to try an appraised value: the app can't know it",
   );
   await easement.getByRole("slider").fill("100000");
+  await expect(easement.locator(".pay-slider-label")).toHaveText(
+    "If the easement's appraised value were $100,000",
+  );
   await expect(easement.locator(".pay-credit")).toHaveText(
-    "If the easement's appraised value were $100,000 → a state credit of $40,000. At $20,000 a year, you'd use it over 2 years",
+    "→ A state credit of $40,000. At $20,000 a year, you'd use it over 2 years",
   );
   expect(errors).toEqual([]);
 });

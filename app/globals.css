@@ -9201,6 +9201,18 @@ button.use-row[aria-expanded="true"] .use-name::after {
 }
 .be-pick .chip {
   min-height: 44px;
+  padding: 3px 14px;
+  border: 1px solid var(--color-rule);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-ink);
+  font-size: 14px;
+  cursor: pointer;
+}
+.be-pick .chip[aria-pressed="true"] {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-paper);
 }
 .be-figures p {
   margin: 0 0 4px;

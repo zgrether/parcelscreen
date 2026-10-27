@@ -540,8 +540,8 @@ workflow's PR. Two prefs: `ps.areas` (per device) and `ps.areaStars` (per profil
   - one not-advice line.
 
   It's computed at display time (`lib/uses/*`) from the result, the card's facts, the parcel's marks, lines and
-  listing, and ten counties' rules (`lib/config/counties.ts`, dated and sourced). Step 15's How it could pay goes in the
-  same segment (UX audit J-1).
+  listing, and ten counties' rules (`lib/config/counties.ts`, dated and sourced). Step 15's How it could pay is in the
+  same segment (UX audit J-1; §3p).
 - **The parcel gains** (each with a default; older parcels read as before):
   - `deedRestrictions` (text) and `hoa` (`"yes" | "no" | "unknown"`) in its listing;
   - a line's optional `easementType` (`"row" | "utility" | "scenic" | "other"`);
@@ -551,6 +551,21 @@ workflow's PR. Two prefs: `ps.areas` (per device) and `ps.areaStars` (per profil
 
   A split saved before (`split` with `keep`) is still read and shown.
 - **The details** are in phase-0.md §9.70.
+
+### 3p. How it could pay (roadmap step 15)
+
+- **Uses' second panel,** under What limits you, outside the grade: seven options (conservation easement, use-value
+  tax, forest carbon, hunting lease, selective timber, split and resell, camp sites), each Eligible, Maybe or Not
+  eligible with one reason, and a detail: what decides it, the number with its source, date and confidence word, what
+  it costs you, and the question to ask. Virginia's easement has the credit slider. Computed at display time
+  (`lib/pay/*`) from Panel 1's input and answers, the listing and dated config (`lib/config/programs.ts`,
+  `lib/config/countyPay.ts`).
+- **The parcel gains** (each with a default; older parcels read as before):
+  - `assessed: { value, year } | null` and `timberCruise: { value, date } | null` in its listing;
+  - a scenario's optional `breakEven`: the break-even's inputs as typed (price, the sold piece's share, years,
+    interest, survey, legal, road, the sold side, "if it sold for").
+- **The export:** Full's How it could pay section; One page's Could pay line when an option is Eligible.
+- **The details** are in phase-0.md §9.75.
 
 ## 4. The parcel page (the export)
 
