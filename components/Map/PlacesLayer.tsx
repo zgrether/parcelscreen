@@ -284,7 +284,12 @@ export function PlacesLayer({ hint, anchors }: { hint: Hint; anchors: UserConfig
       const p = f.properties as PlaceProps;
       const firstFlat = p.kind === "launch" && p.water === "flat" && !flatExplained;
       if (firstFlat) flatExplained = true;
-      const lines = cardLines(p, timedMinutes(resultRef.current, p, [at[1], at[0]]), firstFlat);
+      const lines = cardLines(
+        p,
+        timedMinutes(resultRef.current, p, [at[1], at[0]]),
+        firstFlat,
+        !!resultRef.current,
+      );
       const el = document.createElement("div");
       el.className = "place-card";
       lines.forEach((line, i) => {

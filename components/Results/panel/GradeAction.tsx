@@ -12,9 +12,11 @@ import { gradeLabel } from "@/lib/client/gradeButton";
 import { gradeProgress } from "@/lib/client/gradeProgress";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
 import { isPreview } from "@/lib/client/samples";
+import { useOnline } from "@/lib/client/useOnline";
 
 export function GradeAction({ where }: { where: "toolbar" | "sheet" }) {
   const s = useScreenItContext();
+  const online = useOnline();
   // Step 13: a sample parcel comes graded, and isn't graded again until it's on the person's list.
   if (!s?.grade || !s.ctl.state.store.open || isPreview(s.ctl.state.store.open)) return null;
   const label = gradeLabel(s.grade);
@@ -50,7 +52,8 @@ export function GradeAction({ where }: { where: "toolbar" | "sheet" }) {
       </span>
     );
   }
-  const cls = where === "toolbar" ? "tb-btn grade-btn" : "btn grade-btn sheet-grade";
+  // Polish 2 (P3): offline it's quiet, not the panel's loudest control; a tap still says grading needs a connection.
+  const cls = `${where === "toolbar" ? "tb-btn grade-btn" : "btn grade-btn sheet-grade"}${online ? "" : " offline"}`;
   return (
     <span className={where === "toolbar" ? "grade-action" : "grade-action sheet"}>
       <button

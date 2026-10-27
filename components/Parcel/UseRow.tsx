@@ -80,7 +80,8 @@ export function Facts({ facts }: { facts: readonly Fact[] }) {
               <span className="use-source tiny muted">
                 {f.source && <Source text={f.source} />}
                 {f.source && f.date && ", "}
-                {f.date}
+                {/* Polish 2 (P10): a rule's check date says what it is; a land-cover year stands alone. */}
+                {/^\d{4}-\d{2}-\d{2}$/.test(f.date ?? "") ? `checked ${f.date}` : f.date}
               </span>
             )}
           </dd>

@@ -597,7 +597,8 @@ html:has(.explore) body {
 /* WF5: "Your route and the app's pick" side by side (stacked on a phone); the one the card scores outlined. */
 .route-choice-cols {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  /* Polish 2 (P8): wide enough that "Steepest, raw ground" keeps to a line or two. */
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 8px;
 }
 .route-choice-col {
@@ -1924,6 +1925,16 @@ html:has(.explore) body {
 .card-join::before {
   content: ", ";
 }
+/* Polish 2 (P1): on the card, "held by: …" takes its own line under "Maybe B", so the three never wrap apart. */
+.card-verdict .card-letter {
+  display: contents;
+}
+.card-verdict .card-join {
+  flex-basis: 100%;
+}
+.card-verdict .card-join::before {
+  content: none;
+}
 .sh-actions {
   display: flex;
   flex: none;
@@ -2499,6 +2510,17 @@ html:has(.app-nav) .explore {
 }
 .help-link:hover {
   text-decoration: underline;
+}
+/* Polish 2 (P5): on a touch screen the section's "?" and the panel's inline links take a 44 px tap. */
+@media (hover: none) {
+  .help-link {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .panel-scored a {
+    display: inline-block;
+    padding: 12px 0;
+  }
 }
 /* margin: auto centres a modal dialog; Tailwind's base styles zero it. */
 .help-dialog {
@@ -3467,8 +3489,10 @@ html:has(.app-nav) .explore {
 }
 .card-verdict {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  gap: 4px 10px;
+  text-align: left;
   background: none;
   border: 0;
   padding: 0;
@@ -4288,6 +4312,16 @@ html:has(.app-nav) .explore {
 .grade-action.sheet .btn.secondary {
   min-height: 44px;
 }
+.tb-btn.grade-btn.offline {
+  background: transparent;
+  color: var(--tb-ink);
+  box-shadow: inset 0 0 0 1px var(--tb-ink-2);
+}
+.grade-action.sheet .grade-btn.offline {
+  background: transparent;
+  color: var(--color-ink);
+  border-color: var(--color-rule);
+}
 /* Z-9 (UX part 2 PR 3b): the run's progress in the button's place, a slim bar under the step's words. */
 .grade-progress-line {
   flex: 1;
@@ -4521,6 +4555,12 @@ html:has(.app-nav) .explore {
 }
 .ip-line-note::placeholder {
   color: var(--ip-ink-2);
+}
+textarea.ip-line-note {
+  width: 100%;
+  min-height: 3.2em;
+  field-sizing: content;
+  resize: vertical;
 }
 /* The line tool's Track | Easement switch. */
 .tb-seg {
@@ -7169,6 +7209,10 @@ button.sync-ind.bad {
 
 /* ---------- Step 8b: the parcel panel's Grade | Details (docs/plans/step-8b-parcel-panel.md §9) ---------- */
 /* The switch: step 8's segmented control, under the header, full width; each segment at least 44 px. */
+/* Polish 2 (P4): a rule under the tabs, so the rows scrolling below read as the tab's, not under it. */
+.parcel-switch + .explore-scroll {
+  border-top: 1px solid var(--color-rule);
+}
 .parcel-switch {
   display: flex;
   margin: 0 16px 10px;
@@ -7272,13 +7316,14 @@ button.use-row[aria-expanded="true"] .use-name::after {
   font-weight: 700;
   text-align: center;
 }
+/* Polish 2 (P10): firmer tints and darker words, so Yes and Maybe don't read as pale. */
 .use-chip.pass {
-  background: color-mix(in srgb, var(--color-ok) 14%, #fff);
-  color: var(--color-ok);
+  background: color-mix(in srgb, var(--color-ok) 24%, #fff);
+  color: color-mix(in srgb, var(--color-ok) 80%, #000);
 }
 .use-chip.warn {
-  background: color-mix(in srgb, var(--color-warn) 14%, #fff);
-  color: var(--color-warn);
+  background: color-mix(in srgb, var(--color-warn) 26%, #fff);
+  color: color-mix(in srgb, var(--color-warn) 70%, #000);
 }
 .use-chip.fail {
   background: color-mix(in srgb, var(--color-steep) 12%, #fff);
@@ -7489,9 +7534,14 @@ button.use-row[aria-expanded="true"] .use-name::after {
 .scn-note {
   margin: 0;
 }
+/* Polish 2 (P10): a phone keeps the two pieces side by side, compact, so they compare at a glance. */
 @media (max-width: 860px) and (orientation: portrait) {
   .scn-pieces {
-    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .scn-piece {
+    padding: 6px 7px 8px;
+    font-size: 13px;
   }
 }
 /* Details: the Info panel's controls in the panel's light style (as the list's detail, #133); Remove stays red. */
@@ -8243,10 +8293,18 @@ button.use-row[aria-expanded="true"] .use-name::after {
   align-items: center;
   gap: 3px;
 }
+/* Polish 2 (P7): the old letter smaller and grey, with a firm strike, so it reads as "was", not a second grade. */
 .card-row s.was,
 .must-row s.was {
-  opacity: 0.55;
+  opacity: 0.7;
   text-decoration-thickness: 2px;
+  text-decoration-color: var(--color-ink);
+}
+.card-row s.card-grade.was {
+  min-width: 20px;
+  height: 20px;
+  font-size: 12px;
+  background: var(--color-ink-2);
 }
 .card-row .adjusted-why {
   color: var(--color-ink-2);
@@ -8380,14 +8438,15 @@ button.use-row[aria-expanded="true"] .use-name::after {
   margin: 0 0 6px;
 }
 /* The app's own letter among the override chips: shown, outlined, not a button. */
+/* Polish 2 (P6): at full ink, so it doesn't read as a disabled button; the dashed ring says it's the app's. */
 .adjust-letters .adjust-app {
   display: inline-grid;
   place-items: center;
   min-width: 44px;
   min-height: 44px;
-  opacity: 0.45;
-  outline: 2px dashed var(--color-ink-2);
-  outline-offset: -4px;
+  outline: 2px dashed #fff;
+  outline-offset: -5px;
+  cursor: default;
 }
 .adjust-what {
   margin: -4px 0 8px;
