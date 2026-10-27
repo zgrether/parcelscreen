@@ -152,13 +152,6 @@ export function biggestMiss(card: Card): Row | null {
 }
 
 /**
- * Polish 2 (Z1, owner): a row past its edge says the edge is a ranked one, not a Must, which a "limit" in the reason
- * otherwise reads as. Appended to the miss, after its own words.
- */
-const RANKED = " (it lowers the grade; it isn't a must)";
-const ranked = (miss: string): string => (/ your /.test(miss) ? `${miss}${RANKED}` : miss);
-
-/**
  * The edge a D or F row is past, in the person's terms, for the card's row (Z1): "past your 30-minute limit", "below
  * your 3,000 ft". Null for a row with no number to say it with, or one at C or better.
  */
@@ -209,7 +202,7 @@ export function answerReason(card: Card, r: PartialScreenResult): string {
         : held && checkFirst
           ? checkFirst
           : m
-            ? ranked(missLine(m, card, r))
+            ? missLine(m, card, r)
             : checkFirst;
   const failed = lead.kind === "fail" || lead.kind === "limit";
   const also = !failed && checkFirst && miss !== checkFirst ? checkFirst : null;
