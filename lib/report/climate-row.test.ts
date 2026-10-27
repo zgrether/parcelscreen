@@ -37,7 +37,7 @@ describe("the Climate row", () => {
     const row = cardFacts(MUD).rows.find((x) => x.key === "climate")!;
     expect(row.detail).toMatch(/^January lows [\d.]+ °F, July highs [\d.]+ °F at site #1 \(3,543 ft\); /);
     expect(row.detail).toMatch(
-      /in of snow a year, \d+ frost-free days \(\w{3} \d+ to \w{3} \d+\) at .+ mi away\) \(at the station, not the site\)$/,
+      /in of snow a year, \d+ frost-free days \(\w{3} \d+ to \w{3} \d+\) at .+ mi away\)$/,
     );
     expect(row.short).toMatch(/^Jan [\d.]+°, Jul [\d.]+°F$/);
   });

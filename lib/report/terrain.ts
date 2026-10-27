@@ -67,10 +67,12 @@ export function terrainView(r: PartialScreenResult): TerrainView | null {
     rows,
     diag: [
       said(
-        `Of ${fmt(d.totalAc, 1)} ac (by the elevation grid): ${fmt(d.houseAc, 1)} ac score ≥${houseMin} for a house, ${fmt(d.shelfAc, 1)} ac more ≥${shelfMin} (shelf grade), ${fmt(d.gardenAc, 1)} ac ≥${gardenMin} for a garden.`,
+        `Of ${fmt(d.totalAc, 1)} ac: ${fmt(d.houseAc, 1)} ac score ≥${houseMin} for a house, ${fmt(d.shelfAc, 1)} ac more ≥${shelfMin} (shelf grade), ${fmt(d.gardenAc, 1)} ac ≥${gardenMin} for a garden.`,
       ),
       onMap(" Cycle the overlay button on the map to see each surface."),
       said(` DEM: ${r.demSource ?? ""} at ${fmt(r.demResM ?? NaN, 1)} m.`),
+      // Polish 2 (Z7), moved after the DEM line (owner 10/27): the acres above are the grid's, not the deed's.
+      said(" The acres above are counted on this elevation grid."),
     ],
   };
 }

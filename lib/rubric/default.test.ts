@@ -14,7 +14,7 @@ import { expectedOf } from "@/test/support/expected";
 import { FIXTURE_SLUGS, isPrototypeSlug, type FixtureSlug } from "@/test/support/fixtures";
 import { SCENARIOS } from "@/test/support/scenarios";
 import { SCREEN_CONSTANTS } from "../screen/config";
-import { cardFor, cardFacts, reportCard, ZONE_SCALE, type Card } from "../report/card";
+import { cardFor, cardFacts, reportCard, type Card } from "../report/card";
 import { PERSONS, ZACH } from "@/test/support/rubrics";
 import { defaultNamedRubric, rubricFromWeights } from "./default";
 import { MINE } from "./types";
@@ -126,21 +126,6 @@ const renamed = (want: Recorded1): Recorded1 => {
 };
 
 /**
- * Polish pass 2's declared additions (docs/plans/polish-2.md §3, Z1 and Z4; owner-approved, additive): removed from
- * today's card before comparing, so the guard still holds every other word. Nothing else may differ.
- */
-const POLISH_2_ADDED = [
-  " (it lowers the grade; it isn't a must)",
-  `; ${ZONE_SCALE}`,
-  " (shown, not graded)",
-  " (at the station, not the site)",
-];
-const withoutPolish2 = <T>(card: T): T =>
-  JSON.parse(
-    POLISH_2_ADDED.reduce((t, a) => t.replaceAll(JSON.stringify(a).slice(1, -1), ""), JSON.stringify(card)),
-  ) as T;
-
-/**
  * Step 7's guard (plan §2): graded at site #1, with the Driveway row as Don't care (it is, on both shipped weight
  * sets), every card is today's, byte for byte. So a grade or verdict that changes can only come from the best site or
  * the Driveway row, the two sources the step declared.
@@ -152,9 +137,7 @@ describe("the default rubric reproduces today's cards (cards-v7.json; a port-onl
         it(`${slug} ${scenario}, ${nr.id}`, () => {
           const want = renamed(ers(slug, split(recorded(slug)[scenario]![nr.id]!)));
           const { person: _p, ...wantRest } = want;
-          const got = withoutPolish2(
-            comparable(reportCard(expectedOf(slug, scenario), nr, undefined, undefined, { at: 0 })),
-          );
+          const got = comparable(reportCard(expectedOf(slug, scenario), nr, undefined, undefined, { at: 0 }));
           expect(differences(got, wantRest)).toEqual([]);
           expect(got.points).toBe(wantRest.points);
         });
