@@ -1,12 +1,13 @@
 /**
  * A piece's figures in the scenario view (step 14, plan §5.1, §5.3), one row each, in order: its grade under the
  * person's rubric, its cost to camp and to build (no land price: "plus the land"), and its county check. A figure for
- * every piece is one more row here (step 15's break-even will be). Pure: the view draws the rows as they come.
+ * every piece is one more row here: step 15's break-even is the last. Pure: the view draws the rows as they come.
  */
 import { VERDICT_WORD, type Card } from "../report/card";
 import { COST_WORDS } from "../report/cost";
 import { costSummary } from "../report/costLines";
 import type { Letter } from "../rubric/types";
+import { BREAK_EVEN } from "../pay/words";
 import { DIVIDE } from "../uses/words";
 import type { CountyCheck } from "./countyCheck";
 
@@ -30,7 +31,13 @@ const VERDICT_TONE: Record<Card["verdict"], PieceRow["tone"]> = {
 /** A split piece's cost when its way in isn't routed (Z6). */
 export const PIECE_NOT_PRICED = "not priced: the way in isn't routed yet";
 
-export function pieceRows(card: Card, check: CountyCheck, gradeLabel: string): PieceRow[] {
+/** `breakEvenPerAc`: step 15's break-even if this piece is the one sold (§4, §6); null without a price. */
+export function pieceRows(
+  card: Card,
+  check: CountyCheck,
+  gradeLabel: string,
+  breakEvenPerAc: number | null = null,
+): PieceRow[] {
   const grade: PieceRow = {
     key: "grade",
     label: gradeLabel,
@@ -57,5 +64,16 @@ export function pieceRows(card: Card, check: CountyCheck, gradeLabel: string): P
     value: check.text,
     tone: check.pass === null ? null : check.pass ? "pass" : "fail",
   };
-  return [grade, ...cost, county];
+  const be: PieceRow[] =
+    breakEvenPerAc !== null && Number.isFinite(breakEvenPerAc)
+      ? [
+          {
+            key: "breakEven",
+            label: BREAK_EVEN.pieceRow,
+            value: BREAK_EVEN.pieceRowValue(breakEvenPerAc),
+            tone: null,
+          },
+        ]
+      : [];
+  return [grade, ...cost, county, ...be];
 }

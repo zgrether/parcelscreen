@@ -196,3 +196,30 @@ export const LISTING_PAY = {
   cruise: "Timber cruise value ($)",
   cruiseDate: "Cruise date",
 } as const;
+
+/** Split and resell's break-even in the scenario view (§4, §8 Break-even). */
+export const BREAK_EVEN = {
+  heading: "Break-even",
+  soldPick: "The piece you'd sell",
+  price: "Purchase price ($)",
+  share: "Its share of the land (%)",
+  years: "Years held",
+  rate: "Interest while you hold it (% a year)",
+  survey: "Survey ($)",
+  legal: "Legal ($)",
+  road: "Road ($)",
+  soldAt: "If it sold for ($/ac)",
+  soldAtPlaceholder: "the break-even",
+  assumed: "assumed",
+  typePrice: "Type the purchase price",
+  sell: (word: string, perAc: number, total: number) =>
+    `Sell the ${word.toLowerCase()} piece at ${money(perAc)}/ac or more (${money(total)}) to break even`,
+  keep: (word: string, total: number, perAc: number) =>
+    `Your ${word.toLowerCase()} piece effectively costs ${money(total)} (${money(perAc)}/ac)`,
+  atSale: (perAc: number) => `if the other sells at ${money(perAc)}/ac`,
+  atBreakEven: "if the other sells at the break-even",
+  notCounted:
+    "Not counted: the agent's commission, closing costs, property tax while held and capital-gains tax",
+  pieceRow: "Break-even, if this piece sells",
+  pieceRowValue: (perAc: number) => `${money(perAc)}/ac`,
+} as const;

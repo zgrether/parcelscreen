@@ -89,6 +89,8 @@ import { currentProfileId } from "@/lib/client/profiles";
 import { isPreview, openSample, sampleOf } from "@/lib/client/samples";
 import { SAMPLE_WORDS } from "@/lib/areas/words";
 import { howItCouldPay } from "@/lib/pay";
+import { resolveBreakEven } from "@/lib/split/breakEvenOf";
+import { piecesOf } from "@/lib/split/scenario";
 import { landUses } from "@/lib/uses";
 import { tallyOf, usesInputOf } from "@/lib/uses/input";
 import { USE_WORDS } from "@/lib/uses/words";
@@ -575,6 +577,18 @@ export function useScreenIt(
   // Step 15: how it could pay, from Panel 1's input and answers and the listing's price, assessment and cruise.
   const assessed = open?.assessed ?? null;
   const timberCruise = open?.timberCruise ?? null;
+  // Each split's break-even, for Split and resell's row (plan §2.6): the sold piece and its $/ac.
+  const scenarioList = open?.scenarios;
+  const scenarios = useMemo(() => {
+    if (!open || !scenarioList?.length) return [];
+    return scenarioList.flatMap((sc) => {
+      const ps = piecesOf(open, sc);
+      if (!ps) return [];
+      const r = resolveBreakEven(sc.breakEven, ps, askingPrice, costs.rates);
+      return [{ name: sc.name, soldWord: r.sold.word, perAc: r.figures?.breakEvenPerAc ?? null }];
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the scenarios, the parts they cut, the price and the rates
+  }, [scenarioList, open?.pieces, askingPrice, costs.rates]);
   const pay = useMemo(
     () =>
       usesIn && uses
@@ -582,10 +596,10 @@ export function useScreenIt(
             uses: usesIn,
             land: uses,
             listing: { askingPrice, assessed, timberCruise },
-            scenarios: [],
+            scenarios,
           })
         : null,
-    [usesIn, uses, askingPrice, assessed, timberCruise],
+    [usesIn, uses, askingPrice, assessed, timberCruise, scenarios],
   );
   // UX part 2 PR 8b (Z-4): what the price block re-prices with its toggles, at the card's site, from the card's inputs.
   const costInput = useMemo(

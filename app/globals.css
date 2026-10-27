@@ -9180,3 +9180,55 @@ button.use-row[aria-expanded="true"] .use-name::after {
   font-size: 15px;
   line-height: 1.35;
 }
+/* A split's break-even (step 15 §4, §6): under the two pieces; its inputs stack one per row on a phone. */
+.be {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--color-rule);
+  border-radius: 8px;
+}
+.be-head {
+  margin: 0 0 6px;
+  font: 600 14px/1.2 var(--font-sans);
+}
+.be-pick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+}
+.be-pick .chip {
+  min-height: 44px;
+}
+.be-figures p {
+  margin: 0 0 4px;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.be-sell {
+  font-weight: 600;
+}
+.be-inputs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+  margin: 8px 0 0;
+}
+.be-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13.5px;
+}
+.be-field .field {
+  min-height: 44px;
+}
+.be-note {
+  margin: 8px 0 0;
+}
+@media (max-width: 480px) {
+  .be-inputs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
