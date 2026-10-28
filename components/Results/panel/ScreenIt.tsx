@@ -88,6 +88,8 @@ import { placeLine } from "@/lib/client/favorites";
 import { currentProfileId } from "@/lib/client/profiles";
 import { isPreview, openSample, sampleOf } from "@/lib/client/samples";
 import { SAMPLE_WORDS } from "@/lib/areas/words";
+import { howItCouldPay } from "@/lib/pay";
+import { scenarioBreakEvens } from "@/lib/split/breakEvenOf";
 import { landUses } from "@/lib/uses";
 import { tallyOf, usesInputOf } from "@/lib/uses/input";
 import { USE_WORDS } from "@/lib/uses/words";
@@ -538,23 +540,21 @@ export function useScreenIt(
   const listingAcres = open?.listingAcres ?? null;
   const fromOriginal = open?.fromOriginal;
   const facts = open?.facts;
-  const uses = useMemo(
+  const usesIn = useMemo(
     () =>
       display && card && !runningHere
-        ? landUses(
-            usesInputOf(
-              display,
-              card,
-              drawnOf(markup ?? [], drivewayLine, { askingPrice, ...costs }, undefined, facts),
-              {
-                markup: markup ?? [],
-                deedRestrictions,
-                hoa,
-                listingAcres,
-                ...(fromOriginal ? { fromOriginal } : {}),
-                ...(facts ? { facts } : {}),
-              },
-            ),
+        ? usesInputOf(
+            display,
+            card,
+            drawnOf(markup ?? [], drivewayLine, { askingPrice, ...costs }, undefined, facts),
+            {
+              markup: markup ?? [],
+              deedRestrictions,
+              hoa,
+              listingAcres,
+              ...(fromOriginal ? { fromOriginal } : {}),
+              ...(facts ? { facts } : {}),
+            },
           )
         : null,
     [
@@ -571,6 +571,28 @@ export function useScreenIt(
       fromOriginal,
       facts,
     ],
+  );
+  const uses = useMemo(() => (usesIn ? landUses(usesIn) : null), [usesIn]);
+  // Step 15: how it could pay, from Panel 1's input and answers and the listing's price, assessment and cruise.
+  const assessed = open?.assessed ?? null;
+  const timberCruise = open?.timberCruise ?? null;
+  // Each split's break-even, for Split and resell's row (plan §2.6): the sold piece and its $/ac.
+  const scenarios = useMemo(
+    () => (open ? scenarioBreakEvens(open, askingPrice, costs.rates) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the scenarios, the parts they cut, the price and the rates
+    [open?.scenarios, open?.pieces, askingPrice, costs.rates],
+  );
+  const pay = useMemo(
+    () =>
+      usesIn && uses
+        ? howItCouldPay({
+            uses: usesIn,
+            land: uses,
+            listing: { askingPrice, assessed, timberCruise },
+            scenarios,
+          })
+        : null,
+    [usesIn, uses, askingPrice, assessed, timberCruise, scenarios],
   );
   // UX part 2 PR 8b (Z-4): what the price block re-prices with its toggles, at the card's site, from the card's inputs.
   const costInput = useMemo(
@@ -608,6 +630,7 @@ export function useScreenIt(
     card,
     /** What you can do here (step 14), at the card's site; null before a grade and while one runs. */
     uses,
+    pay,
     /** What the price block re-prices (UX part 2 PR 8b); null before the cost can be priced. */
     costInput,
     pickSite,

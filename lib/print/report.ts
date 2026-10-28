@@ -19,6 +19,8 @@ import { raiseSuggestions } from "../report/raise";
 import { EDITOR_TITLES, tierOf } from "../rubric/words";
 import type { ScreenResult } from "../screen/types";
 import { letterText, shownLetter } from "../report/adjust";
+import { howItCouldPay, type PayInput, type PayListing, type PayOption } from "../pay";
+import { payReportLine } from "../pay/words";
 import { landUses, type LandUses } from "../uses";
 import { divideReportLine } from "../uses/divideUse";
 import { usesInputOf, type UsesParcel } from "../uses/input";
@@ -123,6 +125,10 @@ export interface ReportContent {
   divide: string | null;
   /** Step 14: What you can do here, at the viewer's card's site, for Full. */
   uses: LandUses;
+  /** Step 15 (plan §6): How it could pay, for Full. */
+  pay: PayOption[];
+  /** Step 15: One page's line when an option is Eligible; null otherwise. */
+  payLine: string | null;
 }
 
 export interface ReportInput {
@@ -147,6 +153,8 @@ export interface ReportInput {
   refusesAltSeptic?: boolean;
   /** Step 14: the parcel's lines, deed restrictions and HOA, for What you can do here. Absent: none, not known. */
   parcel?: UsesParcel;
+  /** Step 15: what How it could pay reads beside Panel 1's input: the typed assessment and cruise, each split's break-even. */
+  pay?: Pick<PayListing, "assessed" | "timberCruise"> & { scenarios: PayInput["scenarios"] };
 }
 
 /** The tier names, as the card says them. */
@@ -205,6 +213,24 @@ export function reportContent(i: ReportInput): ReportContent {
   const takes = i.household.takes
     .filter((t) => t.parcel === i.parcelKey)
     .map((t): PrintTake => ({ who: i.nameOf(t.by), answer: t.answer, comment: t.comment }));
+  // Step 14 and 15: What you can do here, and How it could pay from the same input and Panel 1's answers.
+  const usesIn = usesInputOf(
+    i.result,
+    mine,
+    i.drawn ?? { names: new Map(), marks: [] },
+    i.parcel ?? { markup: [], deedRestrictions: "", hoa: "unknown" },
+  );
+  const uses = landUses(usesIn);
+  const pay = howItCouldPay({
+    uses: usesIn,
+    land: uses,
+    listing: {
+      askingPrice: i.askingPrice,
+      assessed: i.pay?.assessed ?? null,
+      timberCruise: i.pay?.timberCruise ?? null,
+    },
+    scenarios: i.pay?.scenarios ?? [],
+  });
   return {
     name: i.name,
     acres: i.acres,
@@ -238,14 +264,9 @@ export function reportContent(i: ReportInput): ReportContent {
     questions: agentQuestions(mine).map((q) => q.question),
     cost: costPrintLines(mine),
     divide: divideReportLine(i.result, i.parcel?.listingAcres ?? null, i.drawn?.facts?.survey ?? null),
-    uses: landUses(
-      usesInputOf(
-        i.result,
-        mine,
-        i.drawn ?? { names: new Map(), marks: [] },
-        i.parcel ?? { markup: [], deedRestrictions: "", hoa: "unknown" },
-      ),
-    ),
+    uses,
+    pay,
+    payLine: payReportLine(pay),
   };
 }
 

@@ -95,6 +95,8 @@ export function OnePage({
 
       {/* Step 14 (plan §7): one line on dividing it, after the Raise line, where the county is covered. */}
       {c.divide && <p className="rp-divide">{c.divide}</p>}
+      {/* Step 15 (plan §6): one line when an option is Eligible, after the Divide line. */}
+      {c.payLine && <p className="rp-pay">{c.payLine}</p>}
 
       <section className="rp-card" aria-label="Report card">
         {c.tiers.map((t) => (

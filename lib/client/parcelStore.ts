@@ -191,6 +191,12 @@ export interface WorkingParcel {
   deedRestrictions: string;
   hoa: Hoa;
   /**
+   * Step 15 (plan §5.1–§5.2): the county's assessed value as typed, with its tax year, and a timber cruise's value and
+   * date. How it could pay reads them; neither reaches the engine or the card. Defaults of null, so `v` stays 2.
+   */
+  assessed: Assessed | null;
+  timberCruise: TimberCruise | null;
+  /**
    * Owner, after #312: which of the two a piece added from a split brought from its parcel ("from the original parcel");
    * an edit of one makes it the person's own. Absent: none.
    */
@@ -252,6 +258,22 @@ export interface Scenario {
   b: LatLon;
   screens: PieceScreens;
   at: string;
+  /** Step 15 (plan §4): the break-even's inputs as typed; each absent one is its default. Absent: all defaults. */
+  breakEven?: BreakEvenInputs;
+}
+/** A split's break-even inputs as typed (step 15 §4): each optional, so the default stands until it's typed. */
+export interface BreakEvenInputs {
+  price?: number;
+  /** The sold piece's share of the land, percent. */
+  sharePct?: number;
+  years?: number;
+  ratePct?: number;
+  survey?: number;
+  legal?: number;
+  road?: number;
+  soldSide?: "left" | "right";
+  /** "If it sold for", $/ac. */
+  soldAtPerAc?: number;
 }
 export interface PieceScreens {
   left: string | null;
@@ -311,8 +333,23 @@ export const NO_LISTING: Pick<WorkingParcel, ListingField> = {
   agent: "",
   deedRestrictions: "",
   hoa: "unknown",
+  assessed: null,
+  timberCruise: null,
 };
-export type ListingField = "name" | "listingUrl" | "listingAcres" | "agent" | "deedRestrictions" | "hoa";
+export type ListingField =
+  "name" | "listingUrl" | "listingAcres" | "agent" | "deedRestrictions" | "hoa" | "assessed" | "timberCruise";
+
+/** The county's assessed value, as typed from its record, and the tax year it's for (step 15 §5.2). */
+export interface Assessed {
+  value: number;
+  year: number | null;
+}
+/** A timber cruise's value and its date, as typed (step 15 §5.1). */
+export interface TimberCruise {
+  value: number;
+  /** As typed: "2026-09", "Sept 2026". */
+  date: string;
+}
 
 /** Whether the parcel has an HOA, as the household knows it (step 14, plan §3.2). */
 export type Hoa = "yes" | "no" | "unknown";
@@ -401,6 +438,8 @@ export function isBuilt(p: WorkingParcel | null): boolean {
     p.agent.trim() !== "" ||
     p.deedRestrictions.trim() !== "" ||
     p.hoa !== "unknown" ||
+    p.assessed !== null ||
+    p.timberCruise !== null ||
     p.status !== "inProgress" ||
     p.milestones.walked !== null ||
     p.milestones.offered !== null ||
@@ -509,6 +548,20 @@ const ScenarioSchema = z.object({
   b: LatLonSchema,
   screens: z.object({ left: z.string().nullable(), right: z.string().nullable() }),
   at: z.string(),
+  // Added with step 15: a scenario kept before has its defaults.
+  breakEven: z
+    .object({
+      price: z.number().nonnegative().optional(),
+      sharePct: z.number().min(0).max(100).optional(),
+      years: z.number().min(0).optional(),
+      ratePct: z.number().min(0).optional(),
+      survey: z.number().nonnegative().optional(),
+      legal: z.number().nonnegative().optional(),
+      road: z.number().nonnegative().optional(),
+      soldSide: z.enum(["left", "right"]).optional(),
+      soldAtPerAc: z.number().nonnegative().optional(),
+    })
+    .optional(),
 });
 const LineSchema = z
   .object({
@@ -576,6 +629,12 @@ const WorkingSchema = z.object({
   // Added with step 14: a parcel kept before has no restrictions typed, and an HOA not known.
   deedRestrictions: z.string().default(""),
   hoa: z.enum(HOA_VALUES).default("unknown"),
+  // Added with step 15: a parcel kept before has neither typed.
+  assessed: z
+    .object({ value: z.number().nonnegative(), year: z.number().int().nullable() })
+    .nullable()
+    .default(null),
+  timberCruise: z.object({ value: z.number().nonnegative(), date: z.string() }).nullable().default(null),
   // Added after #312: a parcel kept before brought nothing from another.
   fromOriginal: z.array(z.enum(FROM_ORIGINAL)).optional(),
   // Added with WF2: a parcel kept before is in progress, with no milestones.

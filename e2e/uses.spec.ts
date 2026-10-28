@@ -71,8 +71,14 @@ test("Uses on Mud Creek: from Grade's shortcut, seven answers, What decides it, 
   await expect(page.getByRole("tab", { name: "Uses" })).toHaveAttribute("aria-selected", "true");
 
   const uses = page.getByRole("region", { name: "Uses" });
-  await expect(uses.locator(".uses-head")).toHaveText(["What you can do here", "What limits you"]);
-  await expect(uses.locator(".use-name")).toHaveText([
+  // Step 15: How it could pay is the second panel, under What limits you; Panel 1's rows are the first list.
+  await expect(uses.locator(".uses-head")).toHaveText([
+    "What you can do here",
+    "What limits you",
+    "How it could pay",
+  ]);
+  const panel1 = uses.locator(".uses-list").first();
+  await expect(panel1.locator(".use-name")).toHaveText([
     "Camp now",
     "Build",
     "Trails and walking woods",
@@ -81,13 +87,14 @@ test("Uses on Mud Creek: from Grade's shortcut, seven answers, What decides it, 
     "Ride, ski, snowshoe from home",
     "Divide",
   ]);
-  for (const chip of await uses.locator(".use-chip").all()) await expect(chip).toHaveText(/^(Yes|Maybe|No)$/);
+  for (const chip of await panel1.locator(".use-chip").all())
+    await expect(chip).toHaveText(/^(Yes|Maybe|No)$/);
   await expect(uses.locator(".uses-advice")).toHaveText(
-    "Not advice: check with the county, a surveyor or a land-use attorney before acting.",
+    "Not advice: check with the county, a surveyor or a land-use attorney before acting. For how it could pay, talk to a tax advisor, a land trust or a forester before acting.",
   );
 
   // Divide: Yes, its limit named; a tap opens What decides it in place, with the county's rules and their sources.
-  const divide = uses.locator(".use").filter({ hasText: "Divide" });
+  const divide = panel1.locator(".use").filter({ hasText: "Divide" });
   await expect(divide.locator(".use-chip")).toHaveText("Yes");
   // Owner, #311: two numbers, each with what binds it.
   await expect(divide.locator(".use-reason")).toHaveText(
@@ -114,6 +121,55 @@ test("Uses on Mud Creek: from Grade's shortcut, seven answers, What decides it, 
   await divide.locator("button.use-row").click();
   await expect(divide.locator(".use-fact").filter({ hasText: "from the listing (used)" })).toContainText(
     "24.7 ac from the listing (used); the county map shows 30.15 ac",
+  );
+  expect(errors).toEqual([]);
+});
+
+test("How it could pay on Mud Creek: seven options, a detail in place, Virginia's credit slider", async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(180_000);
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await replayHar(context, GRAYSON);
+  await openGraded(page, GRAYSON);
+  await page.getByRole("tab", { name: "Uses" }).click();
+
+  const pay = page.locator(".pay-list");
+  await expect(pay.locator(".use-name")).toHaveText([
+    "Conservation easement",
+    "Use-value tax",
+    "Forest carbon",
+    "Hunting lease",
+    "Selective timber",
+    "Split and resell",
+    "Camp sites",
+  ]);
+  for (const chip of await pay.locator(".use-chip").all())
+    await expect(chip).toHaveText(/^(Eligible|Maybe|Not eligible)$/);
+  // Grayson has no land use program (step 15 PR 1, §0b).
+  const useValue = pay.locator(".use").filter({ hasText: "Use-value tax" });
+  await expect(useValue.locator(".use-chip")).toHaveText("Not eligible");
+  await expect(useValue.locator(".use-reason")).toHaveText("Grayson has no land use program");
+
+  // The easement's detail opens in place: the number, what it costs, whom to ask; the slider shows no figure until moved.
+  const easement = pay.locator(".use").filter({ hasText: "Conservation easement" });
+  await easement.locator("button.use-row").click();
+  await expect(easement.getByRole("heading", { name: "The number" })).toBeVisible();
+  await expect(easement.locator(".pay-lines")).toContainText("The easement's value needs an appraisal");
+  await expect(easement.getByRole("heading", { name: "What it costs you" })).toBeVisible();
+  await expect(easement).toContainText("Permanent: a lower resale value and limited building rights");
+  await expect(easement.getByRole("heading", { name: "Ask a land trust" })).toBeVisible();
+  await expect(easement.locator(".pay-credit")).toHaveText(
+    "Drag to try an appraised value: the app can't know it",
+  );
+  await easement.getByRole("slider").fill("100000");
+  await expect(easement.locator(".pay-slider-label")).toHaveText(
+    "If the easement's appraised value were $100,000",
+  );
+  await expect(easement.locator(".pay-credit")).toHaveText(
+    "→ A state credit of $40,000. At $20,000 a year, you'd use it over 2 years. You can use $20,000 a year against your own Virginia tax (10 years to use it), or sell the credit; buyers usually pay less than face value",
   );
   expect(errors).toEqual([]);
 });
@@ -157,7 +213,10 @@ test("an easement's purpose, picked in Details, is kept and listed under What li
   await expect.poll(async () => (await storedLine(page))?.easementType).toBeNull();
 });
 
-test("One page has the Divide line; Full has What you can do here", async ({ page, context }) => {
+test("One page has the Divide and Could pay lines; Full has What you can do here and How it could pay", async ({
+  page,
+  context,
+}) => {
   test.setTimeout(120_000);
   await replayHar(context, GRAYSON);
   await openExplorer(page, GRAYSON);
@@ -177,7 +236,24 @@ test("One page has the Divide line; Full has What you can do here", async ({ pag
     "Can divide: up to 3 lots without subdivision review (a farm division approved by staff; limited by 30.15 ac at 10 ac a lot) · up to 8 with an approved subdivision plat (limited by 885 ft of road frontage at 100 ft per lot; more lots need a road built to the county's standard)",
   );
 
+  // Step 15: the Could pay line, after the Divide line, naming the options that are Eligible.
+  await expect(page.locator(".rp-one .rp-pay")).toHaveText(
+    "Could pay: selective timber, split and resell (eligible; see the full report)",
+  );
+
   await page.getByRole("tab", { name: "Full" }).click();
+  // Step 15: How it could pay, its seven options, each with what it costs and whom to ask, and its not-advice line.
+  const pay = page
+    .locator(".rp-full-section")
+    .filter({ has: page.getByRole("heading", { name: "How it could pay", level: 2 }) });
+  await expect(pay.locator(".rp-uses > li")).toHaveCount(7);
+  await expect(pay.locator(".rp-uses > li").first()).toContainText("Conservation easement: Maybe.");
+  await expect(pay.locator(".rp-uses > li").first()).toContainText(
+    "Land Preservation Tax Credit: 40% of the easement's appraised value",
+  );
+  await expect(pay).toContainText(
+    "For how it could pay, talk to a tax advisor, a land trust or a forester before acting.",
+  );
   const section = page
     .locator(".rp-full-section")
     .filter({ has: page.getByRole("heading", { name: "What you can do here", level: 2 }) });

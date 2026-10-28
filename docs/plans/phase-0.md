@@ -1336,4 +1336,32 @@ until step 5 (Q14).
       held, "Saved on this device — syncs when you're back online", and goes by itself on return, merged three ways
       when the space changed meanwhile (lines and marks by id, both notes kept).
 
+75. **Step 15: how it could pay** (owner, 2026-10-27; the plan `docs/plans/step-15-how-it-could-pay.md`, #369; built in
+    #370 onwards).
+    - **Panel 2 in Uses** (#372), under What limits you, outside the grade: seven options (conservation easement,
+      use-value tax, forest carbon, hunting lease, selective timber, split and resell, camp sites), each Eligible,
+      Maybe or Not eligible with its reason, and a detail in place with what decides it, the number (a range or a
+      formula with its source, as-of date and a confidence word, or what it would take to get one: an appraisal, a
+      cruise, the program's quote), what it costs you in use, and the one question for the professional. Not eligible
+      shows no number. Pure and display time only (`lib/pay/*`, #371); nothing in it reads the card's grading.
+    - **Virginia's Land Preservation Tax Credit** as a formula and a slider, at $0 until moved: 40% of the appraised
+      value, used at $20,000 a year, carried forward 10 years, sellable. North Carolina's revived credit (25%, up to
+      $250,000, for donations through 2031) with the same slider, showing the cap (#376, 10/27); Tennessee "No state credit"; the federal deduction in one line.
+    - **Config with dates** (#370): `lib/config/programs.ts` (the state and federal programs, carbon programs, the
+      hunting-lease range, the working thresholds) and `lib/config/countyPay.ts` (per county: whether its use-value
+      program takes forest, its forest values, its tax rate, its campground rule). The session's network policy denied
+      every official host, so each figure was read from a search excerpt of the page named and is "to confirm" until
+      the page is opened; each keeps its source's kind for that. The plan's 20 ac easement minimum was dropped (no land
+      trust publishes one; under 50 ac forest alone isn't enough, after VOF's guideline as quoted).
+    - **The break-even** (#373): on a split scenario, the sold piece's break-even (its share of the price carried at
+      interest, plus survey, legal and road) and the kept piece's effective price, every input at its default
+      ("assumed") until typed and kept on the scenario (an optional `breakEven`). Settings → Costs gains Splitting land
+      (survey and plat, deed and recording, road), a declared new default under rule 4.
+    - **Listing** gains Assessed value (with its tax year) and Timber cruise value (with its date), optional and null by
+      default, so the store stays v2 and older parcels read as before.
+    - **The export** (#374): Full's "How it could pay" after "What you can do here" (Virginia's credit as its formula);
+      One page's "Could pay: …" line when an option is Eligible. The segment's not-advice line gains a second sentence,
+      "For how it could pay, talk to a tax advisor, a land trust or a forester before acting."
+    - No grade, points, verdict, engine, schema or `expected.json` change.
+
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

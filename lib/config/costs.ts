@@ -33,9 +33,12 @@ export type CostKey =
   | "pad.flat"
   | "pad.sloped"
   | "pad.steep"
-  | "easement.legal";
+  | "easement.legal"
+  | "split.survey"
+  | "split.legal"
+  | "split.road";
 
-export type CostGroup = "driveway" | "water" | "power" | "site" | "legal";
+export type CostGroup = "driveway" | "water" | "power" | "site" | "legal" | "split";
 
 export const COST_GROUPS: readonly { id: CostGroup; label: string }[] = [
   { id: "driveway", label: "Driveway and track" },
@@ -43,6 +46,8 @@ export const COST_GROUPS: readonly { id: CostGroup; label: string }[] = [
   { id: "power", label: "Power" },
   { id: "site", label: "Clearing and pad" },
   { id: "legal", label: "Legal" },
+  // Step 15 (plan §3): a split's costs, for the break-even on a piece sold.
+  { id: "split", label: "Splitting land" },
 ];
 
 export interface CostSource {
@@ -359,6 +364,70 @@ export const COST_RATES: readonly CostRate[] = [
       },
     ],
     note: "Attorney $2k–5k, survey and plat $1.2k–5.5k, recording under $200. Not any payment to the neighbour.",
+  },
+  // Step 15 (plan §3, §4): researched 2026-10-27 from search excerpts, not opened (the network denied the hosts), so
+  // each is to confirm; no regional surveyor or attorney publishes a fee page.
+  {
+    key: "split.survey",
+    label: "Division survey and plat",
+    unit: "$",
+    low: 1200,
+    high: 6000,
+    group: "split",
+    sources: [
+      {
+        name: "Fixr, Land Survey Cost (to confirm)",
+        url: "https://www.fixr.com/costs/land-survey",
+        date: "undated",
+        where: "national",
+      },
+      {
+        name: "LegalClarity, How Much Does a Driveway Easement Cost (survey and plat)",
+        url: "https://legalclarity.org/how-much-does-a-driveway-easement-cost/",
+        date: "Apr 2026",
+        where: "national",
+      },
+    ],
+    note: "A boundary survey of the new line and the plat the county reviews. Fixr gives about $6k for 40 ac with new markers; small lots run under $1k. The county's own plat fee is extra.",
+  },
+  {
+    key: "split.legal",
+    label: "Deed, attorney and recording",
+    unit: "$",
+    low: 500,
+    high: 1500,
+    group: "split",
+    sources: [
+      {
+        name: "ContractsCounsel, Property Deed Pricing (to confirm)",
+        url: "https://www.contractscounsel.com/m/property-deed-pricing",
+        date: "undated",
+        where: "national, by state",
+      },
+      {
+        name: "Virginia Code §17.1-275 (recording fees)",
+        url: "https://law.lis.virginia.gov/vacode/title17.1/chapter2/section17.1-275/",
+        date: "current",
+        where: "statutory (VA)",
+      },
+      {
+        name: "NC General Statutes §161-10 (recording fees)",
+        url: "https://www.ncleg.gov/EnactedLegislation/Statutes/HTML/BySection/Chapter_161/GS_161-10.html",
+        date: "current",
+        where: "statutory (NC)",
+      },
+    ],
+    note: "An attorney's deed for the piece sold ($380–920 by state, from bids) and recording (VA $23 for 10 pages; NC $26 for 15). Not the transfer taxes, which the sale's closing settles.",
+  },
+  {
+    key: "split.road",
+    label: "Road to the sold piece",
+    unit: "$",
+    low: 0,
+    high: 0,
+    group: "split",
+    sources: [GL("Driveway Grading & Gravel in WNC", "driveway-grading-and-gravel")],
+    note: "None for a piece on a public road (ours). When it needs a road, type it: a gravel road runs $24–84 a foot (the new-driveway rate above).",
   },
 ];
 
