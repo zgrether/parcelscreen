@@ -1,0 +1,108 @@
+/**
+ * Step 16's screenshots (plan §10), desktop (1280 × 800) then phone (375 × 812), with the live services: Mud Creek with
+ * Public land on (the Jefferson National Forest to its west) and Motor-vehicle routes over Mount Rogers, the forest's
+ * card, and Pond Mountain Game Land (Ashe, NC) with its card open. PAD-US, the MVUM and the basemaps are fetched live, so
+ * this runs where they can be reached (`.github/workflows/public-lands.yml`); the parcel's grade is its recording's.
+ */
+import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import { loadFixture } from "../test/support/fixtures";
+import { importParcels, openExplorer, openFromList, seedScreens, settled, visit } from "../e2e/flow";
+import { jump, tapAt } from "../e2e/publicLand";
+import { replayHar } from "../e2e/replay";
+
+const OUT = "test-results/screenshots/step-16";
+const MUD = "grayson-mud-creek-6273";
+/** Between Mud Creek and Whitetop: the forest and the NRA's roads in one view. */
+const MUD_VIEW: [number, number] = [36.61, -81.6];
+/** In the Jefferson National Forest, north-west of Mud Creek. */
+const FOREST: [number, number] = [36.6, -81.6];
+/** The point the probe asked: Pond Mountain Game Land's record is under it. */
+const POND: [number, number] = [36.56, -81.69];
+
+async function live(context: BrowserContext): Promise<void> {
+  await context.route(
+    /basemap\.nationalmap\.gov|vginmaps\.vdem\.virginia\.gov|services\.nconemap\.gov\/.*Orthoimagery|tiles\.mapterhorn\.com|elevation-tiles-prod|Manager_Name_PADUS\/FeatureServer|apps\.fs\.usda\.gov\/arcx\/rest\/services\/EDW\/EDW_MVUM_01/,
+    (r) => r.continue(),
+  );
+}
+
+/** Until the map has drawn every tile in view and the layers' own tiles have landed (or 45 s). */
+async function drawn(page: Page): Promise<void> {
+  await page
+    .waitForFunction(
+      () => {
+        const m = (window as unknown as { __psMap?: { areTilesLoaded(): boolean; isMoving(): boolean } })
+          .__psMap;
+        return !!m && !m.isMoving() && m.areTilesLoaded();
+      },
+      undefined,
+      { timeout: 45_000 },
+    )
+    .catch(() => undefined);
+  // The layers redraw 250 ms after their last tile.
+  await page.waitForTimeout(2500);
+}
+
+async function layersOn(page: Page): Promise<void> {
+  await page.getByRole("button", { name: "Map layers" }).click();
+  const panel = page.getByRole("region", { name: "Map layers" });
+  for (const name of ["Public land", "Motor-vehicle routes"]) {
+    const b = panel.getByRole("button", { name, exact: true });
+    if ((await b.getAttribute("aria-pressed")) !== "true") await b.click();
+  }
+}
+
+for (const phone of [false, true]) {
+  const device = phone ? "phone" : "desktop";
+  test.describe(device, () => {
+    test.use(
+      phone
+        ? { viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true }
+        : { viewport: { width: 1280, height: 800 } },
+    );
+    const shot = (page: Page, name: string) => page.screenshot({ path: `${OUT}/${device}-${name}.png` });
+
+    test("Public land and Motor-vehicle routes: Mud Creek, the forest's card, Pond Mountain Game Land", async ({
+      page,
+      context,
+    }) => {
+      test.setTimeout(600_000);
+      await replayHar(context, MUD);
+      await live(context);
+      await openExplorer(page, MUD);
+      await importParcels(page, [MUD]);
+      await seedScreens(page, [MUD], { current: true });
+      await settled(page);
+      await visit(page, "/library");
+      await openFromList(page, loadFixture(MUD).input.name);
+      const tilt = page.locator(".tilt-hint button");
+      if (await tilt.count()) await tilt.first().click();
+
+      // Map layers, with both layers on and their keys.
+      await layersOn(page);
+      await page.waitForTimeout(400);
+      await shot(page, "layers-key");
+      await page.getByRole("button", { name: "Close the map panel" }).click();
+
+      // Mud Creek, the forest beside it and the NRA's routes.
+      await jump(page, 12.5, MUD_VIEW);
+      await drawn(page);
+      await shot(page, "mud-creek");
+
+      // The forest's card.
+      await jump(page, 14, FOREST);
+      await drawn(page);
+      await tapAt(page, FOREST);
+      await expect(page.locator(".public-land-card")).toBeVisible();
+      await shot(page, "forest-card");
+
+      // Pond Mountain Game Land, NC, with its card.
+      await page.getByRole("button", { name: "Close this parcel" }).click();
+      await jump(page, 13, POND);
+      await drawn(page);
+      await tapAt(page, POND);
+      await expect(page.locator(".public-land-card")).toBeVisible();
+      await shot(page, "pond-mountain");
+    });
+  });
+}
