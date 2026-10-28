@@ -1,7 +1,8 @@
 /**
  * Roadmap step 16: Map layers › Motor-vehicle routes (docs/plans/step-16-public-lands.md §10). Off at first; on, its key
  * and the MVUM's caution; the routes beside Mud Creek, the seasonal road dashed; a tap on the road opens its card and
- * leaves Mud Creek open; below zoom 11 the hint says to zoom in. The MVUM is answered from e2e/publicLand.ts's routes.
+ * leaves Mud Creek open, with a link to its forest's MVUM page, as the key's links then have; below zoom 11 the hint says
+ * to zoom in. The MVUM is answered from e2e/publicLand.ts's routes.
  */
 import { expect, test } from "@playwright/test";
 import { loadFixture } from "../test/support/fixtures";
@@ -10,6 +11,7 @@ import { answerRoutes, FOREST_AT, jump, rendered, ROAD_AT, tapAt } from "./publi
 import { replayHar } from "./replay";
 
 const MUD = "grayson-mud-creek-6273";
+const GWJ_MVUM = "https://www.fs.usda.gov/r08/gwj/maps-guides/motor-vehicle-use-map";
 
 test("Motor-vehicle routes: off at first; its key; the seasonal road dashed; the road's card; the zoom hint", async ({
   page,
@@ -50,6 +52,8 @@ test("Motor-vehicle routes: off at first; its key; the seasonal road dashed; the
     "On national forests, motor vehicles may use only designated routes. Check the current Motor Vehicle Use Map before driving.",
   );
   await expect(panel).toContainText("Dispersed-camping corridors aren't in the Forest Service's data");
+  const keyLinks = panel.getByRole("link", { name: "Check the current Motor Vehicle Use Map" });
+  await expect(keyLinks).toHaveCount(2);
   await page.getByRole("button", { name: "Close the map panel" }).click();
 
   // Zoom 14: the motorcycle trail solid, the seasonal road dashed.
@@ -67,7 +71,16 @@ test("Motor-vehicle routes: off at first; its key; the seasonal road dashed; the
   await expect(card).toContainText("Seasonal: open Sep 12 – Jan 18");
   await expect(card).toContainText("Mount Rogers National Recreation Area");
   await expect(card).toContainText("Forest Service MVUM data, read 2026-10-28");
+  await expect(card.getByRole("link", { name: "Check the current Motor Vehicle Use Map" })).toHaveAttribute(
+    "href",
+    GWJ_MVUM,
+  );
   await expect(page.getByRole("complementary")).toContainText(name);
+
+  // The key's links now go to the forest in view.
+  await page.getByRole("button", { name: "Map layers" }).click();
+  await expect(keyLinks.last()).toHaveAttribute("href", GWJ_MVUM);
+  await page.getByRole("button", { name: "Close the map panel" }).click();
 
   // Below zoom 11: the hint (the terrain's own hint may come first, and goes after a few seconds).
   await jump(page, 10, FOREST_AT);

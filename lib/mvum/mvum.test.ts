@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { tileOfBbox, tileUrl } from "../offline/tiles";
 import { datesInWords, isSeasonal, routeClass, routeLines, MVUM_WORDS as W } from "./card";
+import { MVUM_FALLBACK_URL, MVUM_PAGES, mvumPage } from "./forests";
 import { mvumTemplate, parseRoutes, type RouteProps } from "./source";
 
 /** Routes as the MVUM returned them near Mount Rogers and Pond Mountain (the step 16 probe). */
@@ -63,7 +64,7 @@ describe("the route card (plan §4)", () => {
       "Open to passenger vehicles, high-clearance vehicles",
       "Seasonal: open Sep 12 – Jan 18",
       "Cherokee National Forest, Watauga Ranger District",
-      "Forest Service MVUM data, read 2026-10-28. Check the forest's current MVUM.",
+      "Forest Service MVUM data, read 2026-10-28.",
     ]);
     expect(routeLines("trails", IRON_MOUNTAIN, "2026-10-28").slice(0, 4)).toEqual([
       "Iron Mountain (FS 301)",
@@ -97,5 +98,23 @@ describe("the route card (plan §4)", () => {
     };
     expect(parseRoutes({ type: "FeatureCollection", features: [line] })?.[0]?.properties.symbol).toBe("4");
     expect(parseRoutes({ error: { code: 500 } })).toBeNull();
+  });
+
+  it("links each route to its forest's own MVUM page, and any other forest to the Forest Service's", () => {
+    expect(mvumPage(IRON_MOUNTAIN.forestname)).toBe(
+      "https://www.fs.usda.gov/r08/gwj/maps-guides/motor-vehicle-use-map",
+    );
+    expect(mvumPage(BALD_KNOB.forestname)).toBe("https://www.fs.usda.gov/r08/cherokee/maps-guides");
+    expect(mvumPage("National Forests in North Carolina")).toBe(
+      "https://www.fs.usda.gov/r08/northcarolina/maps-guides",
+    );
+    expect(mvumPage("Pisgah National Forest")).toBe(mvumPage("National Forests in North Carolina"));
+    expect(mvumPage("White Mountain National Forest")).toBe(MVUM_FALLBACK_URL);
+    expect(mvumPage(null)).toBe(MVUM_FALLBACK_URL);
+    // No forest matches another's pattern.
+    for (const p of MVUM_PAGES)
+      expect(
+        MVUM_PAGES.filter((q) => q.match.test(`${p.forest} National Forest`)).map((q) => q.forest),
+      ).toEqual([p.forest]);
   });
 });

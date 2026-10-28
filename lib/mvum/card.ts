@@ -1,7 +1,8 @@
 /**
  * Map layers › Motor-vehicle routes' classes, words and tap card (roadmap step 16, docs/plans/step-16-public-lands.md
  * §3.2, §4, §8). A route's class is what its MVUM symbol allows; seasonal routes are dashed. The MVUM carries no
- * publication date, so the card says when the data was read, and never that it's the map's date (plan §9 Q2). Pure.
+ * publication date, so the card says when the data was read, and never that it's the map's date (plan §9 Q2); the card
+ * and the key link to the forest's own MVUM page instead (`forests.ts`; owner on #382). Pure.
  */
 import { VEHICLES, type RouteLayer, type RouteProps, type VehicleField } from "./source";
 
@@ -27,7 +28,11 @@ export const MVUM_WORDS = {
     special: "Special designation (see the MVUM)",
   } satisfies Record<RouteClass, string>,
   seasonal: "Seasonal",
-  info: "On national forests, motor vehicles may use only designated routes. Check the current Motor Vehicle Use Map before driving.",
+  /** The key's caution reads info, then the link (check), then "before driving." */
+  info: "On national forests, motor vehicles may use only designated routes.",
+  check: "Check the current Motor Vehicle Use Map",
+  beforeDriving: "before driving.",
+  /** Followed by the same link. */
   dispersed: "Dispersed-camping corridors aren't in the Forest Service's data; the paper MVUM marks them.",
   zoomIn: "Zoom in to see motor-vehicle routes",
   failed: "Some routes didn't load",
@@ -35,7 +40,7 @@ export const MVUM_WORDS = {
   allYear: "Open all year",
   season: (dates: string) => `Seasonal: open ${dates}`,
   allowed: (vehicles: string) => `Open to ${vehicles}`,
-  read: (date: string) => `Forest Service MVUM data, read ${date}. Check the forest's current MVUM.`,
+  read: (date: string) => `Forest Service MVUM data, read ${date}.`,
 } as const;
 
 /** Each vehicle class as the card lists it. */

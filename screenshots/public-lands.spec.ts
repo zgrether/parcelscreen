@@ -1,14 +1,16 @@
 /**
  * Step 16's screenshots (plan §10), desktop (1280 × 800) then phone (375 × 812), with the live services: Mud Creek with
  * Public land on (the Jefferson National Forest to its west) and Motor-vehicle routes over Mount Rogers, the forest's
- * card, and Pond Mountain Game Land (Ashe, NC) with its card open. PAD-US, the MVUM and the basemaps are fetched live, so
- * this runs where they can be reached (`.github/workflows/public-lands.yml`); the parcel's grade is its recording's.
+ * card, and Pond Mountain Game Land (Ashe, NC) with its card open; and a check that each forest's MVUM page answers.
+ * PAD-US, the MVUM, the basemaps and the Forest Service's pages are fetched live, so this runs where they can be reached
+ * (`.github/workflows/public-lands.yml`); the parcel's grade is its recording's.
  */
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 import { loadFixture } from "../test/support/fixtures";
 import { importParcels, openExplorer, openFromList, seedScreens, settled, visit } from "../e2e/flow";
 import { jump } from "../e2e/publicLand";
 import { replayHar } from "../e2e/replay";
+import { MVUM_FALLBACK_URL, MVUM_PAGES } from "../lib/mvum/forests";
 
 const OUT = "test-results/screenshots/step-16";
 const MUD = "grayson-mud-creek-6273";
@@ -168,3 +170,13 @@ for (const phone of [false, true]) {
     });
   });
 }
+
+// The route card's and the key's links (owner on #382): each forest's MVUM page answers, read live from CI's runner.
+test("each forest's MVUM page answers", async ({ page }) => {
+  test.setTimeout(180_000);
+  for (const url of [...MVUM_PAGES.map((p) => p.url), MVUM_FALLBACK_URL]) {
+    const r = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    console.log(`${r?.status()} ${url}: ${await page.title()}`);
+    expect(r?.status(), url).toBeLessThan(400);
+  }
+});

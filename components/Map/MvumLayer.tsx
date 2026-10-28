@@ -5,7 +5,7 @@
  * seasonal. Asked by zoom-11 tiles, once a session each, kept once by layer and object id. A tap within 10 px of a route
  * opens its card (name and number, what's allowed, its season, its forest, when the data was read); nothing is fetched.
  */
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import {
   Popup,
   type GeoJSONSource,
@@ -25,6 +25,7 @@ import {
   routeLines,
   MVUM_WORDS as W,
 } from "@/lib/mvum/card";
+import { mvumPage } from "@/lib/mvum/forests";
 import {
   MVUM_MIN_ZOOM,
   MVUM_TILE_ZOOM,
@@ -143,6 +144,35 @@ export function routeAt(map: MlMap, point: { x: number; y: number }) {
   return typeof key === "string" ? (routes.get(key) ?? null) : null;
 }
 
+/** The forest with the most routes drawn in view (the key's MVUM link goes to its page), or null. */
+let forestInView: string | null = null;
+const forestListeners = new Set<() => void>();
+function setForestInView(map: MlMap) {
+  const layers = [MVUM_LAYERS.line, MVUM_LAYERS.seasonal].filter((id) => map.getLayer(id));
+  const count = new Map<string, number>();
+  if (map.getZoom() >= MVUM_MIN_ZOOM)
+    for (const f of layers.length ? map.queryRenderedFeatures({ layers }) : []) {
+      const name = String(f.properties?.forestname ?? "").trim();
+      if (name) count.set(name, (count.get(name) ?? 0) + 1);
+    }
+  const top = [...count.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+  if (top === forestInView) return;
+  forestInView = top;
+  forestListeners.forEach((l) => l());
+}
+/** The MVUM page of the forest in view, else the Forest Service's. */
+export function useMvumPageInView(): string {
+  const forest = useSyncExternalStore(
+    (l) => {
+      forestListeners.add(l);
+      return () => forestListeners.delete(l);
+    },
+    () => forestInView,
+    () => null,
+  );
+  return mvumPage(forest);
+}
+
 /** The day a response says it was served, as YYYY-MM-DD (today when it doesn't say). */
 const servedOn = (r: Response): string => {
   const d = new Date(r.headers.get("date") ?? Date.now());
@@ -173,7 +203,9 @@ export function MvumLayer({ hint }: { hint: Hint }) {
       if (timer !== null) return;
       timer = window.setTimeout(() => {
         timer = null;
-        if (live && !mapGone(map)) map.getSource<GeoJSONSource>(SOURCE)?.setData(collection());
+        if (!live || mapGone(map)) return;
+        map.getSource<GeoJSONSource>(SOURCE)?.setData(collection());
+        map.once("idle", () => !mapGone(map) && setForestInView(map));
       }, REDRAW_MS);
     };
     const failed = () => {
@@ -210,13 +242,16 @@ export function MvumLayer({ hint }: { hint: Hint }) {
             });
         }
     };
+    const inView = () => setForestInView(map);
     map.getSource<GeoJSONSource>(SOURCE)?.setData(collection());
     load();
     map.on("moveend", load);
+    map.on("moveend", inView);
     return () => {
       live = false;
       if (timer !== null) window.clearTimeout(timer);
       map.off("moveend", load);
+      map.off("moveend", inView);
     };
   }, [map, on, hint]);
 
@@ -253,6 +288,13 @@ export function MvumLayer({ hint }: { hint: Hint }) {
         if (i === all.length - 1) row.className = "tiny route-read";
         el.appendChild(row);
       });
+      const link = document.createElement("a");
+      link.className = "tiny route-link";
+      link.href = mvumPage(r.feature.properties.forestname);
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = W.check;
+      el.appendChild(link);
       pop?.remove();
       pop = new Popup({ closeButton: false, className: "result-tip place-tip", offset: 8, maxWidth: "280px" })
         .setLngLat(e.lngLat)

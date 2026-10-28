@@ -271,7 +271,8 @@ Seasonal routes (`seasonal` = seasonal) are dashed (2, 1.5).
 - **The data-source caveats stay in the UI** (CLAUDE.md):
   - the public land card's last line;
   - the routes' info line;
-  - "Dispersed-camping corridors aren't in the Forest Service's data; the paper MVUM marks them."
+  - "Dispersed-camping corridors aren't in the Forest Service's data; the paper MVUM marks them." followed by the same
+    link (Q2).
 - **States:**
   - **empty:** no hint (an empty map is the answer);
   - **loading:** tiles draw as they arrive, and nothing blocks;
@@ -325,8 +326,9 @@ Seasonal routes (`seasonal` = seasonal) are dashed (2, 1.5).
 - **Info lines:**
   - "Who manages the land and whether it's open, from USGS PAD-US 4.1: the same data the grade's public land uses.
     Access can lag; check with the manager.";
-  - the routes' line in §1.2;
-  - "Dispersed-camping corridors aren't in the Forest Service's data; the paper MVUM marks them."
+  - the routes' line in §1.2, its "Check the current Motor Vehicle Use Map" a link to the forest's MVUM page (Q2);
+  - "Dispersed-camping corridors aren't in the Forest Service's data; the paper MVUM marks them." followed by the same
+    link (Q2).
 - **The cards:** the lines in §4, including "Adjoins this parcel", "Manager not recorded", "Held by <holder>",
   "Private land under a conservation easement; no public access unless stated", "Open all year", "Seasonal: open
   <dates>", "and <n> more", and over a card of several records "<n> records overlap here, each with its own access:"
@@ -341,13 +343,20 @@ Seasonal routes (`seasonal` = seasonal) are dashed (2, 1.5).
    - **Recommended:** the route card's last line reads "Forest Service MVUM data, read <date it was fetched>. Check
      the forest's current MVUM." It says what the date is, never that it's the map's.
    - The alternative is a per-forest table of MVUM publication dates in config, kept by hand: a follow-up if wanted.
+   - **Decided (Zach on #382):** no hand-kept table of dates. The card keeps "Forest Service MVUM data, read <date>."
+     and links "Check the current Motor Vehicle Use Map" to its forest's official MVUM page (`lib/mvum/forests.ts`: the
+     George Washington and Jefferson, the North Carolina forests, the Cherokee, and the other forests within the area
+     catalog's reach; any other forest, or none in view, to the Forest Service's MVUM page). The key's caution and
+     its dispersed-camping line link to the page of the forest with the most routes in view.
 3. **Dispersed camping.** The brief asks to mark corridors where MVUM shows them; the published data shows none.
    - **Recommended:** none drawn, and the legend's note says so. If Zach knows of a source, it's a follow-up.
 4. **Spearhead Trails.**
    - **Recommended:** not available (§0, §7). Zach could ask the Southwest Regional Recreation Authority for its
      trail data and terms.
+   - **Decided (Zach on #382):** skipped; phase-0.md §6 lists it (follow-up 63) as available on request.
 5. **The weight at zoom 9** (3–5 MB a view before compression, §2).
    - **Recommended:** ship it, and measure on the preview. If a phone struggles, start the layer at zoom 10, or bake.
+   - **Decided (Zach on #382):** the zoom-9 start stays.
 
 ## 10. Test plan outline
 
