@@ -2,9 +2,11 @@
 /**
  * Map layers › Motor-vehicle routes (roadmap step 16, docs/plans/step-16-public-lands.md §6): the toggle, then (while
  * it's on) a line swatch for each class and a dashed one for seasonal, the MVUM's own caution, and the note on
- * dispersed camping. Remembered per device (ps.mvum).
+ * dispersed camping, both linking to the MVUM page of the forest in view (else the Forest Service's). Remembered per
+ * device (ps.mvum).
  */
 import { ROUTE_CASING, ROUTE_CLASSES, ROUTE_COLOR, MVUM_WORDS as W } from "@/lib/mvum/card";
+import { useMvumPageInView } from "./MvumLayer";
 import { setMapLayerPrefs, useMapLayerPrefs } from "./useMapLayerPrefs";
 
 /** A route as the map draws it: the class's colour over the dark casing, dashed when seasonal. */
@@ -17,6 +19,12 @@ const Line = ({ color, dash }: { color: string; dash?: string }) => (
 
 export function MvumControls() {
   const { mvum } = useMapLayerPrefs();
+  const page = useMvumPageInView();
+  const check = (
+    <a className="mvum-link" href={page} target="_blank" rel="noopener noreferrer">
+      {W.check}
+    </a>
+  );
   return (
     <>
       <button className="tc-toggle" aria-pressed={mvum} onClick={() => setMapLayerPrefs({ mvum: !mvum })}>
@@ -36,8 +44,12 @@ export function MvumControls() {
               {W.seasonal}
             </li>
           </ul>
-          <p className="tiny muted lidar-info">{W.info}</p>
-          <p className="tiny muted lidar-info">{W.dispersed}</p>
+          <p className="tiny muted lidar-info">
+            {W.info} {check} {W.beforeDriving}
+          </p>
+          <p className="tiny muted lidar-info">
+            {W.dispersed} {check}.
+          </p>
         </div>
       )}
     </>

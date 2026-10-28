@@ -376,6 +376,7 @@ Branches are named `phase-0/NN-slug`. Each PR lists its deviations from the prot
 
 ---
 | 62 | **Follow-up: the 3D terrain from Mapterhorn** (owner, 2026-10-25; #338) **Not scheduled.** | The 3D terrain, the 10 m hillshade and the contours read AWS Terrain Tiles (Terrarium, 256 px, to zoom 15: about 10 m in the mountains). Mapterhorn's tiles, which step 14c's Shaded relief already draws, are the same encoding at 512 px to zoom 16 from USGS 3DEP's 1 m lidar where it exists, so the 3D terrain, its hillshade and the contours could read them instead and show 1 m ground. Its own decision: the 3D drape, the contours' density and the terrain's tile load all change. | If built: the 3D view over Mud Creek's red-gate line shows the roadbed; the contours at zoom 16 follow it; a tilt loads in about the time it does today. |
+| 63 | **Follow-up: Spearhead Trails** (owner, #382, 2026-10-28) **Not scheduled; available on request.** | Map layers › Motor-vehicle routes draws the Forest Service's MVUM only. Spearhead Trails (SW Virginia's off-road trail system, run by the Southwest Regional Recreation Authority) publishes no trail data of its own: only third-party copies with no licence exist, and the authority publishes PDF maps (step 16 plan §0, §9 Q4). If the authority shares its trails and terms on request, they'd be a second source in the same layer, styled by what each trail allows. | If built: the trails drawn where the authority's data puts them, with its terms in `docs/commercial-review.md`. |
 
 ## 7. Acceptance checks
 
@@ -1377,8 +1378,10 @@ until step 5 (Q14).
     - **Motor-vehicle routes** (#380): the Forest Service's MVUM roads and trails (`EDW_MVUM_01`), system routes only,
       from zoom 11: a line by what's allowed (all vehicles, highway-legal only, ATVs and side-by-sides, motorcycles,
       special designation), dashed where seasonal; a tap opens its card. The MVUM carries no publication date, so the
-      card says the day the data was read (Q2); no dispersed-camping corridors exist in the published data (Q3), and
-      Spearhead Trails publishes none under usable terms (Q4).
+      card says the day the data was read (Q2) and links "Check the current Motor Vehicle Use Map" to its forest's
+      official MVUM page (Zach on #382; `lib/mvum/forests.ts`), as the key does for the forest in view; no
+      dispersed-camping corridors exist in the published data (Q3), and Spearhead Trails publishes none under usable
+      terms (Q4: skipped, follow-up 63 in §6).
     - **Offline:** both layers' tiles are GETs by a `{bbox-epsg-3857}` box, so the offline cache and Save offline key
       them by tile; `tileCacheKey` finds the box in whichever parameter holds it.
     - **The probe:** the cloud session couldn't reach the hosts, so a probe on CI's runners recorded the services (plan
