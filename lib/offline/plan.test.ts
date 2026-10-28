@@ -27,6 +27,8 @@ describe("what Save offline downloads", () => {
         "light-pollution",
         "parcel-lines",
         "places",
+        "public-land-coarse",
+        "public-land-fine",
         "relief",
         "slope",
         "state-va",
@@ -42,6 +44,18 @@ describe("what Save offline downloads", () => {
     expect(va.length).toBeGreaterThan(50);
     expect(va.length).toBeLessThan(400);
     expect(plan.items.filter((i) => i.layer === "light-pollution")).toHaveLength(1);
+  });
+
+  it("takes public land's zoom-9 tile and zoom-11 tiles for the box (step 16, plan §5)", () => {
+    const items = planSave(input()).items;
+    const coarse = items.filter((i) => i.layer === "public-land-coarse");
+    const fine = items.filter((i) => i.layer === "public-land-fine");
+    expect(coarse).toHaveLength(1);
+    expect(fine.length).toBeGreaterThanOrEqual(1);
+    expect(fine.length).toBeLessThanOrEqual(4);
+    expect(coarse[0]!.kind === "get" && new URL(coarse[0]!.url).searchParams.get("maxAllowableOffset")).toBe(
+      "0.00275",
+    );
   });
 
   it("asks every parcel-line service for the box's zoom-14 tiles at both details", () => {

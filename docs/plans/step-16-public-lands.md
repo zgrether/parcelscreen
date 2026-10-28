@@ -120,8 +120,8 @@ screenshot does) and the plan rests on what it recorded over four rounds (each r
 - **Offline:** both layers work with the offline tile cache and Save offline (§5).
 - **Terms** go in `docs/commercial-review.md` (§7).
 - **Remembered per device** (`ps.publicLand`, `ps.mvum`), like Power lines; never part of UserConfig or a run's settings.
-- **Stacking:** above the basemap, lidar terrain and light pollution, below parcel lines, the scrim, the app's own lines
-  and the places. Routes draw above public land.
+- **Stacking:** above the basemap, lidar terrain, light pollution and Dim map's scrim (so the colours stay clear on a
+  dimmed map); below the county's parcel lines, the app's own lines and the places. Routes draw above public land.
 - **Attribution** while on: "Public land: USGS PAD-US 4.1" and "Routes: U.S. Forest Service MVUM".
 
 ## 2. How the layers get their data (the recommendation)

@@ -26,6 +26,21 @@ describe("which map requests the offline cache keeps", () => {
     ).toBe("parcel-lines");
   });
 
+  it("keys public land's queries by their tile, each level its own (step 16)", () => {
+    for (const id of ["public-land-coarse", "public-land-fine"] as const) {
+      const l = OFFLINE_LAYERS.find((x) => x.id === id)!;
+      const url = new URL(tileUrl(l.template!, { z: l.save!.minZoom, x: 140, y: 200 }));
+      expect(layerOf(url.href), id).toBe(id);
+      expect(tileCacheKey(l, url)).toBe(url.href);
+    }
+    // The grade's own PAD-US query (Fee_Managers_PADUS, a POST) is never a map tile.
+    expect(
+      layerOf(
+        "https://services.arcgis.com/v01gqwM5QqNysAAi/ArcGIS/rest/services/Fee_Managers_PADUS/FeatureServer/0/query",
+      ),
+    ).toBeNull();
+  });
+
   it("never matches a grade's own requests", () => {
     // The DEM: 3DEP's export on the UTM grid, a float TIFF with no slope rule.
     expect(
