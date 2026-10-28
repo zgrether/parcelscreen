@@ -36,6 +36,7 @@ import {
   type UnitFeature,
 } from "@/lib/publicLand/source";
 import { useExplore } from "@/components/Explore/useExploreController";
+import { fitPopup } from "./fitPopup";
 import { mapGone, useMap } from "./MapView";
 import { MVUM_LAYERS, routeAt } from "./MvumLayer";
 import { placeAt } from "./PlacesLayer";
@@ -275,6 +276,7 @@ export function PublicLandLayer({ hint }: { hint: Hint }) {
         .setLngLat(e.lngLat)
         .setDOMContent(cardElement(hit.features, parcelRef.current))
         .addTo(map);
+      fitPopup(map, pop);
     };
     map.on("click", onClick);
     return () => {
@@ -316,6 +318,14 @@ function cardElement(
   const card = publicLandCard(features, parcel);
   const el = document.createElement("div");
   el.className = "place-card public-land-card";
+  // Overlapping records can disagree on access: say so before the first.
+  const count = card.units.length + card.more;
+  if (count > 1) {
+    const lead = document.createElement("div");
+    lead.className = "tiny pl-overlap";
+    lead.textContent = W.overlap(count);
+    el.appendChild(lead);
+  }
   for (const u of card.units) {
     const block = document.createElement("div");
     block.className = "pl-unit";

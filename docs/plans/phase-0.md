@@ -1363,5 +1363,26 @@ until step 5 (Q14).
       One page's "Could pay: …" line when an option is Eligible. The segment's not-advice line gains a second sentence,
       "For how it could pay, talk to a tax advisor, a land trust or a forester before acting."
     - No grade, points, verdict, engine, schema or `expected.json` change.
+76. **Step 16: public land and motor-vehicle routes** (owner, 2026-10-28; the plan `docs/plans/step-16-public-lands.md`,
+    #378; built in #379 onwards). Two Map layers, off by default, outside the grade.
+    - **Public land** (#379): PAD-US 4.1's fee land and easements (`Manager_Name_PADUS`, USGS's own service, the grade's
+      database and version), coloured by manager (national forest; national park and the Parkway; state parks and
+      forests; state game lands and WMAs; other), solid where open, hatched where restricted or not recorded, outlined
+      where closed; easements a dashed magenta line. The manager comes from the agency, then the designation, then the
+      name (Pond Mountain Game Land's manager is "UNK"). From zoom 9: zoom-9 tiles simplified to about 250 m, then
+      zoom-11 tiles at about 5 m from zoom 11; the service never clips, so whole units are kept once by OBJECTID. A tap
+      on fee land opens its card (name, manager, access, designation, source date, "Adjoins this parcel" within the
+      engine's 20 m) instead of selecting the county tract under it (plan §9 Q1); an easement's card only where the tap
+      selects nothing.
+    - **Motor-vehicle routes** (#380): the Forest Service's MVUM roads and trails (`EDW_MVUM_01`), system routes only,
+      from zoom 11: a line by what's allowed (all vehicles, highway-legal only, ATVs and side-by-sides, motorcycles,
+      special designation), dashed where seasonal; a tap opens its card. The MVUM carries no publication date, so the
+      card says the day the data was read (Q2); no dispersed-camping corridors exist in the published data (Q3), and
+      Spearhead Trails publishes none under usable terms (Q4).
+    - **Offline:** both layers' tiles are GETs by a `{bbox-epsg-3857}` box, so the offline cache and Save offline key
+      them by tile; `tileCacheKey` finds the box in whichever parameter holds it.
+    - **The probe:** the cloud session couldn't reach the hosts, so a probe on CI's runners recorded the services (plan
+      §0); the same workflow then took the hand-back's live screenshots.
+    - No grade, points, verdict, engine, schema or `expected.json` change.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.
