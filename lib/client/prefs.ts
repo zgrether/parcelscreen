@@ -116,6 +116,10 @@ export interface Prefs {
   "ps.lidar": LidarPref;
   /** Step 14d: Map layers' Places and its six kinds, per device: off, every kind on. */
   "ps.places": PlacesPref;
+  /** Step 16: Map layers' Public land, per device (off). */
+  "ps.publicLand": boolean;
+  /** Step 16: Map layers' Motor-vehicle routes, per device (off). */
+  "ps.mvum": boolean;
 }
 
 /** Step 14d: the Places layer's toggle and which kinds it shows. */
@@ -165,6 +169,8 @@ const DEFAULTS: Prefs = {
   "ps.power": false,
   "ps.lidar": { on: false, style: "relief", opacity: 0.6 },
   "ps.places": { on: false, kinds: ALL_PLACE_KINDS },
+  "ps.publicLand": false,
+  "ps.mvum": false,
 };
 
 /** How each key is stored: the prototype kept flags as "1"/"0" and the rest as plain strings or JSON. */
@@ -215,6 +221,8 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
   "ps.power": { read: (r) => r === "1", write: (v) => (v ? "1" : "0") },
   "ps.lidar": { read: readLidar, write: (v) => JSON.stringify(v) },
   "ps.places": { read: readPlaces, write: (v) => JSON.stringify(v) },
+  "ps.publicLand": { read: (r) => r === "1", write: (v) => (v ? "1" : "0") },
+  "ps.mvum": { read: (r) => r === "1", write: (v) => (v ? "1" : "0") },
   "ps.areaStars": {
     read: (r) => {
       const v = JSON.parse(r) as unknown;

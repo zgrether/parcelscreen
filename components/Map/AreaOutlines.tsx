@@ -18,6 +18,7 @@ import { LINES_MIN_ZOOM } from "@/lib/geo/parcelTiles";
 import type { Letter } from "@/lib/rubric/types";
 import { focusArea, registerAreaFocus, useAreas, useAreaStars, type Box } from "@/lib/client/areas";
 import { useRubricView } from "@/lib/client/useRubricView";
+import { fitPopup } from "./fitPopup";
 import { mapGone, useMap } from "./MapView";
 import { LAYER } from "./style";
 import { useMapLayerPrefs } from "./useMapLayerPrefs";
@@ -275,33 +276,7 @@ export function AreaOutlines() {
         ),
       );
       pop.addTo(map);
-      // MapLibre places the popup on its next frame: measured after that.
-      requestAnimationFrame(() => requestAnimationFrame(() => fitPopup(pop)));
-    };
-    const fitPopup = (pop: Popup) => {
-      if (!pop.isOpen() || mapGone(map)) return;
-      const box = pop.getElement()?.getBoundingClientRect();
-      const frame = map.getContainer().getBoundingClientRect();
-      if (box) {
-        // Clear of the search and map buttons over the top edge, and of the hint, the toolbar and (on a phone) the tab
-        // bar over the bottom one.
-        const pad = 8,
-          top = 64,
-          bottom = 150;
-        const dy =
-          box.top < frame.top + top
-            ? box.top - frame.top - top
-            : box.bottom > frame.bottom - bottom
-              ? Math.min(box.bottom - frame.bottom + bottom, box.top - frame.top - top)
-              : 0;
-        const dx =
-          box.left < frame.left + pad
-            ? box.left - frame.left - pad
-            : box.right > frame.right - pad
-              ? box.right - frame.right + pad
-              : 0;
-        if (dx || dy) map.panBy([dx, dy], { duration: 250 });
-      }
+      fitPopup(map, pop);
     };
     const pointer = () => {
       if (!tapsAreTheMaps()) map.getCanvas().style.cursor = "pointer";

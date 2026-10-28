@@ -7,6 +7,8 @@ import { Search } from "@/components/Map/Search";
 import { TerrainLayers } from "@/components/Map/TerrainLayers";
 import { LidarLayer } from "@/components/Map/LidarLayer";
 import { PlacesLayer } from "@/components/Map/PlacesLayer";
+import { PublicLandLayer } from "@/components/Map/PublicLandLayer";
+import { MvumLayer } from "@/components/Map/MvumLayer";
 import { FanLayer } from "@/components/Map/results/FanLayer";
 import { ResultLayers } from "@/components/Map/results/ResultLayers";
 import { PowerLayer } from "@/components/Map/results/PowerLayer";
@@ -67,6 +69,8 @@ export function MapArea({
     >
       <TerrainLayers hint={setHint} />
       <LidarLayer hint={setHint} />
+      <PublicLandLayer hint={setHint} />
+      <MvumLayer hint={setHint} />
       <PlacesLayer hint={setHint} anchors={config.anchors} />
       <SurfaceLayer />
       <ResultLayers />

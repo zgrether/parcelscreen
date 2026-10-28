@@ -1,0 +1,64 @@
+name: Public land and routes screenshots
+
+# Roadmap step 16 (docs/plans/step-16-public-lands.md §10): the hand-back's screenshots of Map layers › Public land and
+# Motor-vehicle routes with the live services (screenshots/public-lands.spec.ts), at 1280 and 375. The cloud sessions
+# that build the app can't reach PAD-US's or the Forest Service's hosts; CI's runners can. (The plan's probe ran here
+# first; its findings are the plan's §0.) The shots go to the pr-assets branch (pr-assets/step-16/). Nothing here gates
+# a merge.
+on:
+  pull_request:
+    paths:
+      - screenshots/public-lands.spec.ts
+      - components/Map/PublicLand*.tsx
+      - components/Map/Mvum*.tsx
+      - .github/workflows/public-lands.yml
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # A fork's PR gets a read-only token: nothing to push to.
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm build
+      - run: pnpm exec playwright test -c playwright.screenshots.config.ts screenshots/public-lands.spec.ts
+        env:
+          E2E_SKIP_BUILD: "1"
+      - name: To pr-assets/step-16
+        if: always()
+        run: |
+          ls test-results/screenshots/step-16 || exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin pr-assets
+          git worktree add ../assets origin/pr-assets
+          rm -rf ../assets/step-16/probe
+          mkdir -p ../assets/step-16
+          cp test-results/screenshots/step-16/*.png ../assets/step-16/
+          cd ../assets
+          git add -A step-16
+          git commit -m "Step 16 screenshots (${GITHUB_SHA::7})" || exit 0
+          # Other workflows push here too: take theirs and try again.
+          for i in 1 2 3; do
+            git push origin HEAD:pr-assets && exit 0
+            git pull --rebase origin pr-assets
+          done
+          exit 1
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: public-lands-test-results
+          path: test-results/
+          retention-days: 7

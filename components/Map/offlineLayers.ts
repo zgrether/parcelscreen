@@ -9,6 +9,8 @@
  */
 import { DEFAULT_USER_CONFIG } from "@/lib/screen/config";
 import { ELEVATION_TILES_CACHED } from "@/lib/offline/config";
+import { LEVELS, publicLandTemplate, type DetailLevel } from "@/lib/publicLand/source";
+import { MVUM_TILE_ZOOM, mvumTemplate } from "@/lib/mvum/source";
 import { tileOfBbox, tileUrl, type LonLatBox } from "@/lib/offline/tiles";
 import { RELIEF_MAX_ZOOM, RELIEF_TILES, LIDAR_MAX_ZOOM, LIDAR_MIN_ZOOM, slopeTiles } from "./lidarStyle";
 import { ROADS_TILEJSON } from "./roadsStyle";
@@ -37,7 +39,11 @@ export type OfflineLayerId =
   | "roads"
   | "light-pollution"
   | "parcel-lines"
-  | "places";
+  | "places"
+  | "public-land-coarse"
+  | "public-land-fine"
+  | "mvum-roads"
+  | "mvum-trails";
 
 /** What a stored answer must be: an ArcGIS error comes back as JSON with a 200, and is never kept as a tile. */
 export type Expect = "image" | "json" | "any";
@@ -114,6 +120,24 @@ const xyz = (
   return layer({ id, template, save, typicalBytes, match: atPath(host, prefix(template)), ...extra });
 };
 
+/** A layer whose query asks one `{bbox-epsg-3857}` box, matched by host, path and `maxAllowableOffset`. */
+function boxQuery(id: OfflineLayerId, template: string, zoom: number, typicalBytes: number): OfflineLayer {
+  const t = new URL(template.replace("{bbox-epsg-3857}", "0"));
+  const offset = t.searchParams.get("maxAllowableOffset");
+  return layer({
+    id,
+    template,
+    expect: "json",
+    save: { minZoom: zoom, maxZoom: zoom },
+    typicalBytes,
+    match: (u) =>
+      u.host === t.host && u.pathname === t.pathname && u.searchParams.get("maxAllowableOffset") === offset,
+  });
+}
+
+const publicLand = (level: DetailLevel, typicalBytes: number): OfflineLayer =>
+  boxQuery(`public-land-${level}`, publicLandTemplate(level), LEVELS[level].tileZoom, typicalBytes);
+
 export const OFFLINE_LAYERS: readonly OfflineLayer[] = [
   xyz("usgs-imagery", USGS_IMAGERY, { minZoom: 12, maxZoom: 16 }, 25 * KB),
   xyz("usgs-topo", USGS_TOPO, { minZoom: 12, maxZoom: 16 }, 20 * KB),
@@ -172,6 +196,12 @@ export const OFFLINE_LAYERS: readonly OfflineLayer[] = [
     typicalBytes: 150 * KB,
     match: (u) => PARCEL_QUERIES.some((q) => u.host === q.host && u.pathname === q.pathname),
   }),
+  // Step 16: public land, PAD-US's tiles at both levels, told apart by their simplification (plan §5).
+  publicLand("coarse", 600 * KB),
+  publicLand("fine", 600 * KB),
+  // Step 16: the MVUM's roads and trails, a few KB a tile.
+  boxQuery("mvum-roads", mvumTemplate("roads"), MVUM_TILE_ZOOM, 2 * KB),
+  boxQuery("mvum-trails", mvumTemplate("trails"), MVUM_TILE_ZOOM, 2 * KB),
   layer({
     id: "places",
     expect: "json",
@@ -184,6 +214,13 @@ export const OFFLINE_LAYERS: readonly OfflineLayer[] = [
 
 /** The basemaps whose tiles are never kept (Esri's); Map layers marks them "not kept offline". */
 export const BASEMAPS_NOT_KEPT: ReadonlySet<string> = new Set(["esri", "streets"]);
+
+/** The query parameter a box template puts the tile's box in: Slope's `bbox`, a feature query's `geometry`. */
+function boxParam(template: string): string {
+  const q = new URL(template.replace("{bbox-epsg-3857}", "BOX")).searchParams;
+  for (const [k, v] of q) if (v === "BOX") return k;
+  return "bbox";
+}
 
 /** The layer a request belongs to, or null when it isn't a map tile at all. */
 export function offlineLayerFor(url: URL, sameOrigin: boolean): OfflineLayer | null {
@@ -202,7 +239,7 @@ export const isKept = (l: OfflineLayer): boolean => l.kept && (!l.elevation || E
  */
 export function tileCacheKey(l: OfflineLayer, url: URL, body?: string): string | null {
   if (l.template?.includes("{bbox-epsg-3857}")) {
-    const bbox = url.searchParams.get("bbox");
+    const bbox = url.searchParams.get(boxParam(l.template));
     const t = bbox ? tileOfBbox(bbox) : null;
     return t ? tileUrl(l.template, t) : null;
   }

@@ -73,6 +73,21 @@ is the one list):
   reads that DEM rasters are never persisted in the app's own storage, while map tiles, elevation tiles included, may
   be kept in the capped map tile cache when their terms allow.
 
+**Public land and motor-vehicle routes** (Map layers, step 16):
+- **Public land:** USGS PAD-US 4.1, the Manager Name layer (`services.arcgis.com/v01gqwM5QqNysAAi/.../Manager_Name_PADUS`,
+  USGS GAP's own ArcGIS Online organisation), the database the grade already reads. A U.S. Government work in the public
+  domain: the item's licence is USGS's no-warranty statement with the PAD-US Data Overview's terms (cite the data
+  release, doi:10.5066/P96WBCHS). No limit on commercial use, display or caching; credited "USGS PAD-US 4.1" while on.
+- **Motor-vehicle routes:** the U.S. Forest Service's Motor Vehicle Use Map roads and trails, from its Enterprise Data
+  Warehouse (`apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_01`). A U.S. Government work in the public domain; the
+  item's licence is the Forest Service's no-warranty statement ("not legal documents"). No limit on commercial use or
+  caching; credited "U.S. Forest Service MVUM" while on.
+- Both are shared public endpoints with no stated rate limit: the layers ask only for the tiles in view, once a
+  session, through `lib/http.ts`, and the offline cache keeps them (checked 2026-10-28, the step 16 probe).
+- **Spearhead Trails** (SW Virginia's off-road trail system): not used. The Southwest Regional Recreation Authority
+  publishes no trail data of its own (PDF maps and an app); the only copies online are third parties' (a Virginia Tech
+  account's and The Nature Conservancy's edit), each with no licence.
+
 ## The area catalog's monthly profile (step 13)
 
 The catalog re-profiles its 30 areas once a month (`.github/workflows/areas-refresh.yml`,

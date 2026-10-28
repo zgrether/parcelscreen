@@ -33,6 +33,8 @@ const PIN_PX = 28;
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
 import { TIP_LAYERS, tipAt } from "./results/tooltip";
 import { placeAt } from "./PlacesLayer";
+import { publicLandAt } from "./PublicLandLayer";
+import { routeAt } from "./MvumLayer";
 import { installTiltRotate } from "./tiltRotate";
 import { eventTime, isDoubleTap, type Tap } from "./doubleTap";
 import { useMap } from "./MapView";
@@ -170,6 +172,8 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
         const drawn = markupAt(map, e.point);
         if (drawn) return c.selectLayer(lineLayer(drawn));
         if (tipAt(map, e.point) || placeAt(map, e.point)) return;
+        // Step 16: a route or fee public land under the tap opens its card, not the county tract beneath it.
+        if (routeAt(map, e.point) || publicLandAt(map, e.point)?.fee) return;
         const geo = c.parcel?.geo;
         const line = outlineAt(map, e.point);
         return c.tap({
