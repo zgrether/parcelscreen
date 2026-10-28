@@ -318,6 +318,14 @@ function cardElement(
   const card = publicLandCard(features, parcel);
   const el = document.createElement("div");
   el.className = "place-card public-land-card";
+  // Overlapping records can disagree on access: say so before the first.
+  const count = card.units.length + card.more;
+  if (count > 1) {
+    const lead = document.createElement("div");
+    lead.className = "tiny pl-overlap";
+    lead.textContent = W.overlap(count);
+    el.appendChild(lead);
+  }
   for (const u of card.units) {
     const block = document.createElement("div");
     block.className = "pl-unit";

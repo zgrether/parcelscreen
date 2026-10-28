@@ -8968,6 +8968,13 @@ button.use-row[aria-expanded="true"] .use-name::after {
   background: #f4f1ea;
   border-radius: 3px;
 }
+.pl-key-head {
+  margin: 6px 0 0;
+}
+.public-land-card .pl-overlap {
+  margin-bottom: 4px;
+  color: rgba(255, 255, 255, 0.78);
+}
 .public-land-card .pl-unit + .pl-unit {
   margin-top: 6px;
   padding-top: 6px;

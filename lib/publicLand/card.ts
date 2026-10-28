@@ -20,6 +20,7 @@ export const PUBLIC_LAND_WORDS = {
     other: "Other public or conserved land",
     easement: "Conservation easement (private land)",
   } satisfies Record<Category, string>,
+  accessHeading: "Public access",
   access: { solid: "Open", hatched: "Restricted or not recorded", outline: "Closed" },
   info: "Who manages the land and whether it's open, from USGS PAD-US 4.1: the same data the grade's public land uses. Access can lag; check with the manager.",
   zoomIn: "Zoom in to see public land",
@@ -31,6 +32,7 @@ export const PUBLIC_LAND_WORDS = {
   heldBy: (holder: string) => `Held by ${holder}`,
   sourceDate: (date: string) => `PAD-US source date: ${date}`,
   more: (n: number) => `and ${n} more`,
+  overlap: (n: number) => `${n} records overlap here, each with its own access:`,
   caveat: "USGS PAD-US 4.1. Boundaries and access can lag; check with the manager.",
 } as const;
 

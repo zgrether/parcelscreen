@@ -61,6 +61,7 @@ export function PublicLandControls() {
               </li>
             ))}
           </ul>
+          <p className="tiny muted lidar-info pl-key-head">{W.accessHeading}</p>
           <ul className="lidar-bands pl-key" aria-label="Public access">
             {(["solid", "hatched", "outline"] as const).map((s) => (
               <li key={s}>

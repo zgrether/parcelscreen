@@ -52,6 +52,7 @@ test("Public land: off at first; its key; the forest's card adjoins Mud Creek an
     "Restricted or not recorded",
     "Closed",
   ]);
+  await expect(panel.locator(".pl-key-head")).toHaveText("Public access");
   await expect(panel).toContainText("from USGS PAD-US 4.1");
   await page.getByRole("button", { name: "Close the map panel" }).click();
 

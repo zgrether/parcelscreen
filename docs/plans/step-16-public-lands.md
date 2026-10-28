@@ -318,7 +318,8 @@ Seasonal routes (`seasonal` = seasonal) are dashed (2, 1.5).
 - **Map layers:**
   - "Public land", "Motor-vehicle routes";
   - the legend's labels in §3;
-  - "Open", "Restricted or not recorded", "Closed", "Seasonal";
+  - "Public access" over "Open", "Restricted or not recorded", "Closed" (the heading added after the fresh-eyes
+    review); "Seasonal";
   - the hints: "Zoom in to see public land", "Zoom in to see motor-vehicle routes", "Some public land didn't load",
     "Some routes didn't load".
 - **Info lines:**
@@ -328,7 +329,8 @@ Seasonal routes (`seasonal` = seasonal) are dashed (2, 1.5).
   - "Dispersed-camping corridors aren't in the Forest Service's data; the paper MVUM marks them."
 - **The cards:** the lines in §4, including "Adjoins this parcel", "Manager not recorded", "Held by <holder>",
   "Private land under a conservation easement; no public access unless stated", "Open all year", "Seasonal: open
-  <dates>", "and <n> more".
+  <dates>", "and <n> more", and over a card of several records "<n> records overlap here, each with its own access:"
+  (added after the fresh-eyes review).
 
 ## 9. Questions, each with the recommendation (the mission proceeds on these; each flagged in the hand-back)
 
