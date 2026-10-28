@@ -37,6 +37,7 @@ import {
 } from "@/lib/publicLand/source";
 import { useExplore } from "@/components/Explore/useExploreController";
 import { mapGone, useMap } from "./MapView";
+import { MVUM_LAYERS, routeAt } from "./MvumLayer";
 import { placeAt } from "./PlacesLayer";
 import { tipAt } from "./results/tooltip";
 import { LAYER } from "./style";
@@ -97,8 +98,12 @@ const colorBy = (): unknown => [
 function addLayers(map: MlMap) {
   for (const c of CATEGORIES)
     if (!map.hasImage(hatchId(c))) map.addImage(hatchId(c), hatch(CATEGORY_COLOR[c]));
-  // Under the county's parcel lines and everything the app draws over the parcel.
-  const before = map.getLayer(LAYER.parcelLinesFill) ? LAYER.parcelLinesFill : undefined;
+  // Under the routes (whichever was turned on first), the county's parcel lines and everything the app draws.
+  const before = map.getLayer(MVUM_LAYERS.casing)
+    ? MVUM_LAYERS.casing
+    : map.getLayer(LAYER.parcelLinesFill)
+      ? LAYER.parcelLinesFill
+      : undefined;
   for (const l of LEVEL_IDS) {
     map.addSource(sourceId(l), { type: "geojson", data: collection(l), attribution: W.attribution });
     const ids = layerIds(l);
@@ -261,7 +266,7 @@ export function PublicLandLayer({ hint }: { hint: Hint }) {
     let pop: Popup | null = null;
     const onClick = (e: MapMouseEvent) => {
       if (document.documentElement.classList.contains("map-tool")) return;
-      if (placeAt(map, e.point) || tipAt(map, e.point)) return;
+      if (placeAt(map, e.point) || tipAt(map, e.point) || routeAt(map, e.point)) return;
       const hit = publicLandAt(map, e.point);
       if (!hit) return;
       if (!hit.fee && !tapSelectsNothing(map, e.point)) return;

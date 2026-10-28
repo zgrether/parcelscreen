@@ -19,6 +19,7 @@ import { TerrainControls } from "./TerrainControls";
 import { LidarControls } from "./LidarControls";
 import { PlacesControls } from "./PlacesControls";
 import { PublicLandControls } from "./PublicLandControls";
+import { MvumControls } from "./MvumControls";
 import { setMapLayerPrefs, useMapLayerPrefs } from "./useMapLayerPrefs";
 import { AREA_WORDS } from "@/lib/areas/words";
 import { POWER_MAP } from "@/lib/uses/words";
@@ -105,6 +106,8 @@ function Panel({ onClose }: { onClose: () => void }) {
           <PlacesControls />
           {/* Step 16: PAD-US's public land, by manager and access. */}
           <PublicLandControls />
+          {/* Step 16: the Forest Service's motor-vehicle routes. */}
+          <MvumControls />
         </div>
         <AnalysisGroup />
         <MapKey />

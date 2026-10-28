@@ -4,43 +4,13 @@
  * a game land with no recorded manager reads as one; remembered after a reload; below zoom 9 the hint says to zoom in.
  * PAD-US is answered from e2e/publicLand.ts's synthetic units.
  */
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { loadFixture } from "../test/support/fixtures";
 import { importParcels, openExplorer, openFromList, reload, seedScreens, settled, visit } from "./flow";
-import { answerPublicLand, FOREST_AT, GAME_LAND_AT } from "./publicLand";
+import { answerPublicLand, FOREST_AT, GAME_LAND_AT, jump, rendered, tapAt } from "./publicLand";
 import { replayHar } from "./replay";
 
 const MUD = "grayson-mud-creek-6273";
-
-type DebugMap = {
-  jumpTo(o: object): void;
-  isMoving(): boolean;
-  getLayer(id: string): unknown;
-  queryRenderedFeatures(o: { layers: string[] }): unknown[];
-  project(ll: [number, number]): { x: number; y: number };
-  getContainer(): HTMLElement;
-};
-
-const jump = (page: Page, zoom: number, at: [number, number]) =>
-  page.evaluate(
-    ([z, lat, lon]) =>
-      (window as unknown as { __psMap: DebugMap }).__psMap.jumpTo({ zoom: z, center: [lon, lat] }),
-    [zoom, at[0], at[1]] as const,
-  );
-const rendered = (page: Page, layer: string) =>
-  page.evaluate((id) => {
-    const m = (window as unknown as { __psMap: DebugMap }).__psMap;
-    return m.getLayer(id) ? m.queryRenderedFeatures({ layers: [id] }).length : -1;
-  }, layer);
-const tapAt = async (page: Page, at: [number, number]) => {
-  const p = await page.evaluate(([lat, lon]) => {
-    const m = (window as unknown as { __psMap: DebugMap }).__psMap;
-    const q = m.project([lon, lat]);
-    const box = m.getContainer().getBoundingClientRect();
-    return { x: box.left + q.x, y: box.top + q.y };
-  }, at);
-  await page.mouse.click(p.x, p.y);
-};
 
 test("Public land: off at first; its key; the forest's card adjoins Mud Creek and leaves it open; a game land by its name; kept after a reload", async ({
   page,
@@ -92,7 +62,6 @@ test("Public land: off at first; its key; the forest's card adjoins Mud Creek an
   expect(padus.asked).toBeGreaterThan(0);
 
   // A tap on the forest: its card, adjoining Mud Creek, which stays open.
-  await page.waitForFunction(() => !(window as unknown as { __psMap: DebugMap }).__psMap.isMoving());
   await tapAt(page, FOREST_AT);
   const card = page.locator(".public-land-card");
   await expect(card).toBeVisible();

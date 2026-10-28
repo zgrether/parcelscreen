@@ -26,8 +26,8 @@ describe("which map requests the offline cache keeps", () => {
     ).toBe("parcel-lines");
   });
 
-  it("keys public land's queries by their tile, each level its own (step 16)", () => {
-    for (const id of ["public-land-coarse", "public-land-fine"] as const) {
+  it("keys public land's and the routes' queries by their tile, each its own (step 16)", () => {
+    for (const id of ["public-land-coarse", "public-land-fine", "mvum-roads", "mvum-trails"] as const) {
       const l = OFFLINE_LAYERS.find((x) => x.id === id)!;
       const url = new URL(tileUrl(l.template!, { z: l.save!.minZoom, x: 140, y: 200 }));
       expect(layerOf(url.href), id).toBe(id);
