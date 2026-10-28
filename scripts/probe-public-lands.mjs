@@ -26,7 +26,7 @@ const summary = [];
 async function get(name, url, { json = true, keep = 200_000 } = {}) {
   const started = Date.now();
   try {
-    const r = await fetch(url, { headers: { "User-Agent": UA } });
+    const r = await fetch(url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(25_000) });
     const text = await r.text();
     const ms = Date.now() - started;
     const headers = Object.fromEntries(
@@ -40,6 +40,8 @@ async function get(name, url, { json = true, keep = 200_000 } = {}) {
   } catch (e) {
     summary.push({ name, url, error: String(e), ms: Date.now() - started });
     return null;
+  } finally {
+    writeFileSync(join(OUT, "summary.json"), JSON.stringify(summary, null, 2));
   }
 }
 

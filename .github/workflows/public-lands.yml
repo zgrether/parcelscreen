@@ -25,6 +25,8 @@ jobs:
         with:
           node-version-file: .nvmrc
       - run: node scripts/probe-public-lands.mjs out/probe
+        continue-on-error: true
+        timeout-minutes: 6
       - name: To pr-assets/step-16/probe
         run: |
           git config user.name "github-actions[bot]"
