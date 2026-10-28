@@ -10,6 +10,7 @@
 import { DEFAULT_USER_CONFIG } from "@/lib/screen/config";
 import { ELEVATION_TILES_CACHED } from "@/lib/offline/config";
 import { LEVELS, publicLandTemplate, type DetailLevel } from "@/lib/publicLand/source";
+import { MVUM_TILE_ZOOM, mvumTemplate } from "@/lib/mvum/source";
 import { tileOfBbox, tileUrl, type LonLatBox } from "@/lib/offline/tiles";
 import { RELIEF_MAX_ZOOM, RELIEF_TILES, LIDAR_MAX_ZOOM, LIDAR_MIN_ZOOM, slopeTiles } from "./lidarStyle";
 import { ROADS_TILEJSON } from "./roadsStyle";
@@ -40,7 +41,9 @@ export type OfflineLayerId =
   | "parcel-lines"
   | "places"
   | "public-land-coarse"
-  | "public-land-fine";
+  | "public-land-fine"
+  | "mvum-roads"
+  | "mvum-trails";
 
 /** What a stored answer must be: an ArcGIS error comes back as JSON with a 200, and is never kept as a tile. */
 export type Expect = "image" | "json" | "any";
@@ -196,6 +199,9 @@ export const OFFLINE_LAYERS: readonly OfflineLayer[] = [
   // Step 16: public land, PAD-US's tiles at both levels, told apart by their simplification (plan §5).
   publicLand("coarse", 600 * KB),
   publicLand("fine", 600 * KB),
+  // Step 16: the MVUM's roads and trails, a few KB a tile.
+  boxQuery("mvum-roads", mvumTemplate("roads"), MVUM_TILE_ZOOM, 2 * KB),
+  boxQuery("mvum-trails", mvumTemplate("trails"), MVUM_TILE_ZOOM, 2 * KB),
   layer({
     id: "places",
     expect: "json",

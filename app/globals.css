@@ -8977,6 +8977,7 @@ button.use-row[aria-expanded="true"] .use-name::after {
   font-weight: 600;
 }
 /* On the tip's dark ground: a lighter ink than the paper's muted grey, so the caveat stays readable. */
+.route-card .route-read,
 .public-land-card .pl-caveat,
 .public-land-card .muted {
   margin-top: 6px;

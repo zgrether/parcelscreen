@@ -16,6 +16,8 @@ const TERRAIN = /s3\.amazonaws\.com\/elevation-tiles-prod\/terrarium\/|tiles\.ma
 const EXPORT = /elevation\.nationalmap\.gov\/arcgis\/rest\/services\/3DEPElevation\/ImageServer\/exportImage/;
 /** Step 16: Public land's tile queries (PAD-US's Manager Name layer; the grade asks another), answered with this. */
 const PUBLIC_LAND = /Manager_Name_PADUS\/FeatureServer\/0\/query/;
+/** Step 16: the MVUM's road (1) and trail (2) tile queries. */
+const ROUTES = /EDW_MVUM_01\/MapServer\/([12])\/query/;
 
 export interface Tiles {
   /** Answered by us, before the cut. */
@@ -24,19 +26,23 @@ export interface Tiles {
   urls: Set<string>;
   /** Asked for after the cut: none of them reached a tile host. */
   cutOff: number;
+  /** Which, by URL. */
+  cutUrls: string[];
   cut: boolean;
 }
 
 export async function answerTiles(
   context: BrowserContext,
   body: Buffer,
-  publicLand: unknown = { type: "FeatureCollection", features: [] },
+  data: { publicLand?: unknown; roads?: unknown; trails?: unknown } = {},
 ): Promise<Tiles> {
-  const t: Tiles = { served: 0, urls: new Set(), cutOff: 0, cut: false };
+  const empty = { type: "FeatureCollection", features: [] };
+  const t: Tiles = { served: 0, urls: new Set(), cutOff: 0, cutUrls: [], cut: false };
   const flat = greyPng(256);
   const answer = (route: Route, png: Buffer | string = body, contentType = "image/png") => {
     if (t.cut) {
       t.cutOff++;
+      t.cutUrls.push(route.request().url());
       return route.abort("internetdisconnected");
     }
     t.served++;
@@ -50,8 +56,12 @@ export async function answerTiles(
   await context.route(TILES, (route: Route) => answer(route));
   await context.route(TERRAIN, (route: Route) => answer(route, flat));
   await context.route(PUBLIC_LAND, (route: Route) =>
-    answer(route, JSON.stringify(publicLand), "application/geo+json"),
+    answer(route, JSON.stringify(data.publicLand ?? empty), "application/geo+json"),
   );
+  await context.route(ROUTES, (route: Route) => {
+    const layer = ROUTES.exec(route.request().url())?.[1] === "1" ? data.roads : data.trails;
+    return answer(route, JSON.stringify(layer ?? empty), "application/geo+json");
+  });
   await context.route(EXPORT, (route: Route) =>
     new URL(route.request().url()).searchParams.has("renderingRule") ? answer(route) : route.fallback(),
   );

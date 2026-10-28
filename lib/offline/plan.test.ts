@@ -25,6 +25,8 @@ describe("what Save offline downloads", () => {
     expect([...layers].sort()).toEqual(
       [
         "light-pollution",
+        "mvum-roads",
+        "mvum-trails",
         "parcel-lines",
         "places",
         "public-land-coarse",
