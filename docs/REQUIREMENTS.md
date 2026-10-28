@@ -567,6 +567,16 @@ workflow's PR. Two prefs: `ps.areas` (per device) and `ps.areaStars` (per profil
 - **The export:** Full's How it could pay section; One page's Could pay line when an option is Eligible.
 - **The details** are in phase-0.md §9.75.
 
+### 3q. Public land and motor-vehicle routes (step 16)
+
+- **Map layers › Public land:** PAD-US 4.1's fee land and easements, coloured by manager and styled by public access,
+  from zoom 9; a tap shows each unit's name, manager, access, designation, source date and whether it adjoins the open
+  parcel. Display only: the grade's public land is unchanged.
+- **Map layers › Motor-vehicle routes:** the Forest Service's MVUM roads and trails from zoom 11, coloured by what's
+  allowed and dashed where seasonal; a tap shows the route's name, number, vehicles, season and forest.
+- **Both** are kept by the offline cache and Save offline. Remembered per device (`ps.publicLand`, `ps.mvum`).
+- **The details** are in phase-0.md §9.76.
+
 ## 4. The parcel page (the export)
 
 Blocks, in order; each is computed, placeholder, or user-authored:
