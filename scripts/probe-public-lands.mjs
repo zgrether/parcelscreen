@@ -73,70 +73,55 @@ function tile(z, lon, lat) {
   };
 }
 
-// Round 3: USGS's PAD-US vector tile services (found by round 2's search): their descriptions, styles and a few tiles,
-// saved raw for decoding where the plan is written.
-const VTS = "https://tiles.arcgis.com/tiles/v01gqwM5QqNysAAi/arcgis/rest/services";
-const MUD = [-81.56, 36.58];
+// Round 4: does the feature service clip a tile's geometry when asked as the ArcGIS map viewers ask (quantization in
+// view mode, resultType tile)? The same z12 and z13 tiles over Pond Mountain, each way.
 const POND = [-81.69, 36.56];
-for (const svc of ["PADUS_Management_Areas_Manager_Type", "PADUS_Management_Areas_Designation_Type"]) {
-  const base = `${VTS}/${svc}/VectorTileServer`;
-  const meta = await get(`vts-${svc}`, `${base}?f=json`);
-  await get(`vts-${svc}-style`, `${base}/resources/styles/root.json?f=json`);
-  if (meta?.serviceItemId)
-    await get(
-      `vts-${svc}-item`,
-      `https://www.arcgis.com/sharing/rest/content/items/${meta.serviceItemId}?f=json`,
-    );
-  const template = meta?.tiles?.[0] ?? "tile/{z}/{y}/{x}.pbf";
-  for (const [place, [lon, lat]] of [
-    ["mud", MUD],
-    ["pond", POND],
-  ])
-    for (const z of [9, 12, 14]) {
-      const t = tile(z, lon, lat);
-      const url = `${base}/${template.replace("{z}", z).replace("{y}", t.y).replace("{x}", t.x)}`;
-      const started = Date.now();
-      try {
-        const r = await fetch(url, {
-          headers: { "User-Agent": UA, Origin: ORIGIN },
-          signal: AbortSignal.timeout(25_000),
-        });
-        const buf = Buffer.from(await r.arrayBuffer());
-        writeFileSync(join(OUT, `vts-${svc}-${place}-z${z}.pbf`), buf);
-        summary.push({
-          name: `vts-${svc}-${place}-z${z}`,
-          status: r.status,
-          ms: Date.now() - started,
-          bytes: buf.length,
-          headers: Object.fromEntries(
-            ["content-type", "cache-control", "access-control-allow-origin", "content-encoding"]
-              .map((h) => [h, r.headers.get(h)])
-              .filter(([, v]) => v !== null),
-          ),
-          url,
-        });
-      } catch (e) {
-        summary.push({ name: `vts-${svc}-${place}-z${z}`, url, error: String(e) });
-      }
-      writeFileSync(join(OUT, "summary.json"), JSON.stringify(summary, null, 2));
-    }
-}
-// The tap's own query: one point, attributes only.
+const MUD = [-81.62, 36.6];
+const FIELDS =
+  "OBJECTID,FeatClass,Category,Mang_Type,Mang_Name,Loc_Mang,Des_Tp,Loc_Ds,Unit_Nm,Pub_Access,Src_Date,GIS_Acres,EsmtHldr";
 for (const [place, [lon, lat]] of [
-  ["mud", MUD],
   ["pond", POND],
+  ["mud", MUD],
 ])
-  await get(
-    `tap-padus-${place}`,
-    `${PADUS}/query?${q({
-      geometry: `${lon},${lat}`,
-      geometryType: "esriGeometryPoint",
-      inSR: "4326",
-      spatialRel: "esriSpatialRelIntersects",
+  for (const z of [10, 12, 13]) {
+    const t = tile(z, lon, lat);
+    const [w, s, e, n] = t.envelope.split(",").map(Number);
+    const mercX = (lon) => (lon * 20037508.34) / 180;
+    const mercY = (lat) => (Math.log(Math.tan(((90 + lat) * Math.PI) / 360)) * 20037508.34) / Math.PI;
+    const ext = {
+      xmin: mercX(w),
+      ymin: mercY(s),
+      xmax: mercX(e),
+      ymax: mercY(n),
+      spatialReference: { wkid: 102100 },
+    };
+    const res = (ext.xmax - ext.xmin) / 512;
+    const base = {
       where: "FeatClass IN ('Fee','Easement')",
-      outFields:
-        "OBJECTID,FeatClass,Category,Mang_Type,Mang_Name,Loc_Mang,Des_Tp,Loc_Ds,Unit_Nm,Pub_Access,Src_Date,GIS_Acres,EsmtHldr",
-      returnGeometry: "false",
-    })}`,
-  );
+      geometry: JSON.stringify(ext),
+      geometryType: "esriGeometryEnvelope",
+      inSR: "102100",
+      spatialRel: "esriSpatialRelIntersects",
+      outFields: FIELDS,
+      outSR: "102100",
+      resultType: "tile",
+      quantizationParameters: JSON.stringify({
+        mode: "view",
+        originPosition: "upperLeft",
+        tolerance: res,
+        extent: ext,
+      }),
+    };
+    for (const f of ["geojson", "json"])
+      await get(`clip-${place}-z${z}-${f}`, `${PADUS}/query?${q({ ...base, f })}`, { keep: 30_000 });
+    await get(
+      `noclip-${place}-z${z}-geojson`,
+      `${PADUS}/query?${q({ ...base, f: "geojson", resultType: "standard", quantizationParameters: undefined, maxAllowableOffset: String(res) })}`.replace(
+        /&quantizationParameters=undefined/,
+        "",
+      ),
+      { keep: 30_000 },
+    );
+  }
+
 console.log(JSON.stringify(summary, null, 2));
