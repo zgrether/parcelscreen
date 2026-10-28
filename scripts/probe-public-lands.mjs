@@ -17,9 +17,6 @@ const ORIGIN = "https://parcelscreen.vercel.app";
 
 const PADUS_ORG = "https://services.arcgis.com/v01gqwM5QqNysAAi/ArcGIS/rest/services";
 const PADUS = `${PADUS_ORG}/Manager_Name_PADUS/FeatureServer/0`;
-const EDW = "https://apps.fs.usda.gov/arcx/rest/services/EDW";
-const MVUM = `${EDW}/EDW_MVUM_01/MapServer`;
-const ITEM = "https://www.arcgis.com/sharing/rest/content/items";
 
 const summary = [];
 
@@ -76,85 +73,70 @@ function tile(z, lon, lat) {
   };
 }
 
-// 1. The items' terms (licenceInfo, accessInformation), from each service's item.
-for (const [name, url] of [
-  ["padus-manager-name", `${PADUS_ORG}/Manager_Name_PADUS/FeatureServer?f=json`],
-  ["padus-fee", `${PADUS_ORG}/Fee_Managers_PADUS/FeatureServer?f=json`],
-  ["mvum", `${MVUM}?f=json`],
-]) {
-  const svc = await get(`svc-${name}`, url, { save: false });
-  const id = svc?.serviceItemId;
-  if (id) await get(`item-${name}`, `${ITEM}/${id}?f=json`);
-}
-// MVUM's AGOL items (USFSEnterpriseContent), found by the first probe.
-await get(
-  "item-search-mvum",
-  `https://www.arcgis.com/sharing/rest/search?${q({ q: 'owner:USFSEnterpriseContent "Motor Vehicle Use Map"', num: "20" })}`,
-);
-// PAD-US's items in the USGS org: is there a vector tile service?
-await get(
-  "item-search-padus-vts",
-  `https://www.arcgis.com/sharing/rest/search?${q({ q: 'PAD-US type:"Vector Tile Service"', num: "50" })}`,
-);
-
-// 2. The Forest Service's EDW services: anything with dispersed camping or MVUM in it.
-const edw = await get("edw-services", `${EDW}?f=json`);
-for (const s of (edw?.services ?? []).filter((s) => /MVUM|Camp|Dispers|Corridor/i.test(s.name)))
-  await get(
-    `edw-${s.name.replace(/\W/g, "_")}`,
-    `https://apps.fs.usda.gov/arcx/rest/services/${s.name}/${s.type}?f=json`,
-  );
-
-// 3. One tile's query at each zoom the layer would ask: bytes, time, features.
-const WHERE = "FeatClass IN ('Fee','Easement')";
-const PADUS_FIELDS =
-  "OBJECTID,FeatClass,Category,Mang_Type,Mang_Name,Loc_Mang,Des_Tp,Loc_Ds,Unit_Nm,Pub_Access,Src_Date,GIS_Acres,EsmtHldr";
+// Round 3: USGS's PAD-US vector tile services (found by round 2's search): their descriptions, styles and a few tiles,
+// saved raw for decoding where the plan is written.
+const VTS = "https://tiles.arcgis.com/tiles/v01gqwM5QqNysAAi/arcgis/rest/services";
 const MUD = [-81.56, 36.58];
 const POND = [-81.69, 36.56];
+for (const svc of ["PADUS_Management_Areas_Manager_Type", "PADUS_Management_Areas_Designation_Type"]) {
+  const base = `${VTS}/${svc}/VectorTileServer`;
+  const meta = await get(`vts-${svc}`, `${base}?f=json`);
+  await get(`vts-${svc}-style`, `${base}/resources/styles/root.json?f=json`);
+  if (meta?.serviceItemId)
+    await get(
+      `vts-${svc}-item`,
+      `https://www.arcgis.com/sharing/rest/content/items/${meta.serviceItemId}?f=json`,
+    );
+  const template = meta?.tiles?.[0] ?? "tile/{z}/{y}/{x}.pbf";
+  for (const [place, [lon, lat]] of [
+    ["mud", MUD],
+    ["pond", POND],
+  ])
+    for (const z of [9, 12, 14]) {
+      const t = tile(z, lon, lat);
+      const url = `${base}/${template.replace("{z}", z).replace("{y}", t.y).replace("{x}", t.x)}`;
+      const started = Date.now();
+      try {
+        const r = await fetch(url, {
+          headers: { "User-Agent": UA, Origin: ORIGIN },
+          signal: AbortSignal.timeout(25_000),
+        });
+        const buf = Buffer.from(await r.arrayBuffer());
+        writeFileSync(join(OUT, `vts-${svc}-${place}-z${z}.pbf`), buf);
+        summary.push({
+          name: `vts-${svc}-${place}-z${z}`,
+          status: r.status,
+          ms: Date.now() - started,
+          bytes: buf.length,
+          headers: Object.fromEntries(
+            ["content-type", "cache-control", "access-control-allow-origin", "content-encoding"]
+              .map((h) => [h, r.headers.get(h)])
+              .filter(([, v]) => v !== null),
+          ),
+          url,
+        });
+      } catch (e) {
+        summary.push({ name: `vts-${svc}-${place}-z${z}`, url, error: String(e) });
+      }
+      writeFileSync(join(OUT, "summary.json"), JSON.stringify(summary, null, 2));
+    }
+}
+// The tap's own query: one point, attributes only.
 for (const [place, [lon, lat]] of [
   ["mud", MUD],
   ["pond", POND],
-]) {
-  for (const z of [9, 11, 13]) {
-    const t = tile(z, lon, lat);
-    await get(
-      `tile-padus-${place}-z${z}`,
-      `${PADUS}/query?${q({
-        f: "geojson",
-        where: WHERE,
-        geometry: t.envelope,
-        geometryType: "esriGeometryEnvelope",
-        inSR: "4326",
-        spatialRel: "esriSpatialRelIntersects",
-        outFields: PADUS_FIELDS,
-        outSR: "4326",
-        maxAllowableOffset: String(t.px),
-        geometryPrecision: z >= 13 ? "6" : z >= 11 ? "5" : "4",
-      })}`,
-      { keep: 20_000 },
-    );
-  }
-  for (const z of [11, 13]) {
-    const t = tile(z, lon, lat);
-    for (const layer of [1, 2])
-      await get(
-        `tile-mvum${layer}-${place}-z${z}`,
-        `${MVUM}/${layer}/query?${q({
-          f: "geojson",
-          where: "1=1",
-          geometry: t.envelope,
-          geometryType: "esriGeometryEnvelope",
-          inSR: "4326",
-          spatialRel: "esriSpatialRelIntersects",
-          outFields:
-            "objectid,id,name,symbol,mvum_symbol_name,seasonal,passengervehicle_datesopen,highclearancevehicle_datesopen,atv_datesopen,motorcycle_datesopen,other_ohv_lt50_datesopen,fourwd_gt50_datesopen,forestname,districtname",
-          outSR: "4326",
-          maxAllowableOffset: String(t.px),
-          geometryPrecision: "5",
-        })}`,
-        { keep: 20_000 },
-      );
-  }
-}
-
+])
+  await get(
+    `tap-padus-${place}`,
+    `${PADUS}/query?${q({
+      geometry: `${lon},${lat}`,
+      geometryType: "esriGeometryPoint",
+      inSR: "4326",
+      spatialRel: "esriSpatialRelIntersects",
+      where: "FeatClass IN ('Fee','Easement')",
+      outFields:
+        "OBJECTID,FeatClass,Category,Mang_Type,Mang_Name,Loc_Mang,Des_Tp,Loc_Ds,Unit_Nm,Pub_Access,Src_Date,GIS_Acres,EsmtHldr",
+      returnGeometry: "false",
+    })}`,
+  );
 console.log(JSON.stringify(summary, null, 2));
