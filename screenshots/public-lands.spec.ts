@@ -65,28 +65,45 @@ async function landPoint(
     const box = m.getContainer().getBoundingClientRect();
     const land = ["public-land-fine-solid", "public-land-fine-hatched"].filter((id) => m.getLayer(id));
     const routes = ["mvum-line", "mvum-seasonal"].filter((id) => m.getLayer(id));
-    for (let y = box.height * 0.2; y < box.height * 0.6; y += 24)
-      for (let x = box.width * 0.35; x < box.width * 0.9; x += 24) {
-        const hit = m
-          .queryRenderedFeatures([x, y], { layers: land })
-          .some((f) =>
-            want.name
-              ? String(f.properties.Unit_Nm ?? "").includes(want.name)
-              : f.properties._cat === want.cat,
-          );
-        const near = routes.length
-          ? m.queryRenderedFeatures(
-              [
-                [x - 16, y - 16],
-                [x + 16, y + 16],
-              ],
-              { layers: routes },
-            ).length
-          : 0;
-        if (hit && !near) return { x: box.left + x, y: box.top + y };
-      }
+    // Nearest the middle of the open map first (right of the docked panel, above a phone's sheet), so the card shows whole.
+    const points: [number, number][] = [];
+    for (let y = box.height * 0.15; y < box.height * 0.65; y += 20)
+      for (let x = box.width * 0.35; x < box.width * 0.9; x += 20) points.push([x, y]);
+    const mid: [number, number] = [box.width * 0.62, box.height * 0.45];
+    points.sort(
+      (a, b) => Math.hypot(a[0] - mid[0], a[1] - mid[1]) - Math.hypot(b[0] - mid[0], b[1] - mid[1]),
+    );
+    for (const [x, y] of points) {
+      const hit = m
+        .queryRenderedFeatures([x, y], { layers: land })
+        .some((f) =>
+          want.name ? String(f.properties.Unit_Nm ?? "").includes(want.name) : f.properties._cat === want.cat,
+        );
+      const near = routes.length
+        ? m.queryRenderedFeatures(
+            [
+              [x - 16, y - 16],
+              [x + 16, y + 16],
+            ],
+            { layers: routes },
+          ).length
+        : 0;
+      if (hit && !near) return { x: box.left + x, y: box.top + y };
+    }
     return null;
   }, test);
+}
+
+/** Taps the land and waits for its card, in view (any earlier card closed first, so it can't stand in for this one). */
+async function openCard(page: Page, want: { cat?: string; name?: string }, name: string): Promise<void> {
+  await page.evaluate(() => document.querySelectorAll(".maplibregl-popup").forEach((p) => p.remove()));
+  const at = await landPoint(page, want);
+  expect(at, `a point over ${name}`).not.toBeNull();
+  console.log(`${name}: tapping at ${at!.x},${at!.y}`);
+  await page.mouse.click(at!.x, at!.y);
+  const card = page.locator(".public-land-card");
+  await expect(card).toBeInViewport();
+  console.log(`${name}'s card: ${(await card.innerText()).replace(/\s+/g, " ")}`);
 }
 
 async function layersOn(page: Page): Promise<void> {
@@ -138,20 +155,14 @@ for (const phone of [false, true]) {
       // The forest's card.
       await jump(page, 14, FOREST);
       await drawn(page);
-      const forest = await landPoint(page, { cat: "forest" });
-      expect(forest, "a point over the national forest").not.toBeNull();
-      await page.mouse.click(forest!.x, forest!.y);
-      await expect(page.locator(".public-land-card")).toBeVisible();
+      await openCard(page, { cat: "forest" }, "the national forest");
       await shot(page, "forest-card");
 
       // Pond Mountain Game Land, NC, with its card.
       await page.getByRole("button", { name: "Close this parcel" }).click();
       await jump(page, 13, POND);
       await drawn(page);
-      const pond = await landPoint(page, { name: "Pond Mountain" });
-      expect(pond, "a point over Pond Mountain Game Land").not.toBeNull();
-      await page.mouse.click(pond!.x, pond!.y);
-      await expect(page.locator(".public-land-card")).toBeVisible();
+      await openCard(page, { name: "Pond Mountain" }, "Pond Mountain Game Land");
       await shot(page, "pond-mountain");
     });
   });
