@@ -12,10 +12,10 @@ import { replayHar } from "../e2e/replay";
 
 const OUT = "test-results/screenshots/step-16";
 const MUD = "grayson-mud-creek-6273";
-/** Between Mud Creek and Whitetop: the forest and the NRA's roads in one view. */
-const MUD_VIEW: [number, number] = [36.61, -81.6];
-/** In the Jefferson National Forest, north-west of Mud Creek. */
-const FOREST: [number, number] = [36.6, -81.6];
+/** Mud Creek and the forest to its north-west, with White Top Road, in one view (zoom 12, wide enough for a phone). */
+const MUD_VIEW: [number, number] = [36.603, -81.576];
+/** In the Jefferson National Forest, north-west of Mud Creek (the first run's tap at 36.60 fell just south of it). */
+const FOREST: [number, number] = [36.6185, -81.5897];
 /** The point the probe asked: Pond Mountain Game Land's record is under it. */
 const POND: [number, number] = [36.56, -81.69];
 
@@ -85,7 +85,7 @@ for (const phone of [false, true]) {
       await page.getByRole("button", { name: "Close the map panel" }).click();
 
       // Mud Creek, the forest beside it and the NRA's routes.
-      await jump(page, 12.5, MUD_VIEW);
+      await jump(page, 12, MUD_VIEW);
       await drawn(page);
       await shot(page, "mud-creek");
 
