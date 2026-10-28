@@ -1,6 +1,6 @@
 "use client";
 /**
- * The basemap and the map's layer toggles (dim, parcel lines, roads & labels, light pollution, lidar terrain, places), shared by the
+ * The basemap and the map's layer toggles (dim, parcel lines, roads & labels, light pollution, lidar terrain, places, public land), shared by the
  * map panel (17e; Map layers since step 8b) and the map itself, like useTerrainPrefs. UI prefs per device, never part of
  * UserConfig or a run's settings. The light-pollution overlay starts off each visit, as before.
  */
@@ -27,6 +27,8 @@ export interface MapLayerPrefs {
   lidar: LidarPref;
   /** Step 14d: the baked places and the lists, by kind (off; every kind on once it's on). */
   places: PlacesPref;
+  /** Step 16: public land, PAD-US by manager and access (off). */
+  publicLand: boolean;
 }
 
 /** Topo and Streets already draw roads and names: the overlay is for the aerials (owner, 17d §7). */
@@ -47,6 +49,7 @@ function read(): MapLayerPrefs {
     power: getPref("ps.power"),
     lidar: getPref("ps.lidar"),
     places: getPref("ps.places"),
+    publicLand: getPref("ps.publicLand"),
   };
 }
 
@@ -65,6 +68,7 @@ export function setMapLayerPrefs(patch: Partial<MapLayerPrefs>): void {
   if (patch.power !== undefined) setPref("ps.power", patch.power);
   if (patch.lidar !== undefined) setPref("ps.lidar", patch.lidar);
   if (patch.places !== undefined) setPref("ps.places", patch.places);
+  if (patch.publicLand !== undefined) setPref("ps.publicLand", patch.publicLand);
   listeners.forEach((l) => l());
 }
 

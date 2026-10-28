@@ -8958,6 +8958,30 @@ button.use-row[aria-expanded="true"] .use-name::after {
 .lidar-info {
   margin: 0;
 }
+/* Step 16: Public land's key, one per row; each swatch on a light card, as the land reads on the map. */
+.pl-key {
+  flex-direction: column;
+  gap: 4px;
+}
+.pl-swatch {
+  flex: none;
+  background: #f4f1ea;
+  border-radius: 3px;
+}
+.public-land-card .pl-unit + .pl-unit {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+.public-land-card .pl-adjoins {
+  font-weight: 600;
+}
+/* On the tip's dark ground: a lighter ink than the paper's muted grey, so the caveat stays readable. */
+.public-land-card .pl-caveat,
+.public-land-card .muted {
+  margin-top: 6px;
+  color: rgba(255, 255, 255, 0.78);
+}
 /* On Map layers' dark panel: its own secondary ink, as Area outlines' legend has (the paper's muted grey was 2:1). */
 .terrain-controls.info .lidar-info,
 .terrain-controls.info .lidar-bands {

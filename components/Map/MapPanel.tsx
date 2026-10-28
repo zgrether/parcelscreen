@@ -18,6 +18,7 @@ import { OFFLINE_WORDS } from "@/lib/offline/words";
 import { TerrainControls } from "./TerrainControls";
 import { LidarControls } from "./LidarControls";
 import { PlacesControls } from "./PlacesControls";
+import { PublicLandControls } from "./PublicLandControls";
 import { setMapLayerPrefs, useMapLayerPrefs } from "./useMapLayerPrefs";
 import { AREA_WORDS } from "@/lib/areas/words";
 import { POWER_MAP } from "@/lib/uses/words";
@@ -102,6 +103,8 @@ function Panel({ onClose }: { onClose: () => void }) {
           <LidarControls />
           {/* Step 14d: the baked places and the lists a grade times, by kind. */}
           <PlacesControls />
+          {/* Step 16: PAD-US's public land, by manager and access. */}
+          <PublicLandControls />
         </div>
         <AnalysisGroup />
         <MapKey />

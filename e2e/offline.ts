@@ -14,6 +14,8 @@ const TILES =
 const TERRAIN = /s3\.amazonaws\.com\/elevation-tiles-prod\/terrarium\/|tiles\.mapterhorn\.com\//;
 /** USGS 3DEP's export: answered here only for Slope's tiles (its rule); the grade's DEM stays with the replay. */
 const EXPORT = /elevation\.nationalmap\.gov\/arcgis\/rest\/services\/3DEPElevation\/ImageServer\/exportImage/;
+/** Step 16: Public land's tile queries (PAD-US's Manager Name layer; the grade asks another), answered with this. */
+const PUBLIC_LAND = /Manager_Name_PADUS\/FeatureServer\/0\/query/;
 
 export interface Tiles {
   /** Answered by us, before the cut. */
@@ -25,10 +27,14 @@ export interface Tiles {
   cut: boolean;
 }
 
-export async function answerTiles(context: BrowserContext, body: Buffer): Promise<Tiles> {
+export async function answerTiles(
+  context: BrowserContext,
+  body: Buffer,
+  publicLand: unknown = { type: "FeatureCollection", features: [] },
+): Promise<Tiles> {
   const t: Tiles = { served: 0, urls: new Set(), cutOff: 0, cut: false };
   const flat = greyPng(256);
-  const answer = (route: Route, png = body) => {
+  const answer = (route: Route, png: Buffer | string = body, contentType = "image/png") => {
     if (t.cut) {
       t.cutOff++;
       return route.abort("internetdisconnected");
@@ -37,12 +43,15 @@ export async function answerTiles(context: BrowserContext, body: Buffer): Promis
     t.urls.add(route.request().url());
     return route.fulfill({
       body: png,
-      contentType: "image/png",
+      contentType,
       headers: { "access-control-allow-origin": "*" },
     });
   };
   await context.route(TILES, (route: Route) => answer(route));
   await context.route(TERRAIN, (route: Route) => answer(route, flat));
+  await context.route(PUBLIC_LAND, (route: Route) =>
+    answer(route, JSON.stringify(publicLand), "application/geo+json"),
+  );
   await context.route(EXPORT, (route: Route) =>
     new URL(route.request().url()).searchParams.has("renderingRule") ? answer(route) : route.fallback(),
   );
