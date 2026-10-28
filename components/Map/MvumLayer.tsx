@@ -34,6 +34,7 @@ import {
   type RouteFeature,
   type RouteLayer,
 } from "@/lib/mvum/source";
+import { fitPopup } from "./fitPopup";
 import { mapGone, useMap } from "./MapView";
 import { placeAt } from "./PlacesLayer";
 import { tipAt } from "./results/tooltip";
@@ -257,6 +258,7 @@ export function MvumLayer({ hint }: { hint: Hint }) {
         .setLngLat(e.lngLat)
         .setDOMContent(el)
         .addTo(map);
+      fitPopup(map, pop);
     };
     map.on("click", onClick);
     return () => {

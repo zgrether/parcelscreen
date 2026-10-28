@@ -36,6 +36,7 @@ import {
   type UnitFeature,
 } from "@/lib/publicLand/source";
 import { useExplore } from "@/components/Explore/useExploreController";
+import { fitPopup } from "./fitPopup";
 import { mapGone, useMap } from "./MapView";
 import { MVUM_LAYERS, routeAt } from "./MvumLayer";
 import { placeAt } from "./PlacesLayer";
@@ -275,6 +276,7 @@ export function PublicLandLayer({ hint }: { hint: Hint }) {
         .setLngLat(e.lngLat)
         .setDOMContent(cardElement(hit.features, parcelRef.current))
         .addTo(map);
+      fitPopup(map, pop);
     };
     map.on("click", onClick);
     return () => {

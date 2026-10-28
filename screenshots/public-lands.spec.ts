@@ -102,7 +102,8 @@ async function openCard(page: Page, want: { cat?: string; name?: string }, name:
   console.log(`${name}: tapping at ${at!.x},${at!.y}`);
   await page.mouse.click(at!.x, at!.y);
   const card = page.locator(".public-land-card");
-  await expect(card).toBeInViewport();
+  // Whole, after the map pans it clear of the edges.
+  await expect(card).toBeInViewport({ ratio: 1 });
   console.log(`${name}'s card: ${(await card.innerText()).replace(/\s+/g, " ")}`);
 }
 
