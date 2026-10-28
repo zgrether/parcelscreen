@@ -50,7 +50,12 @@ jobs:
           cd ../assets
           git add -A step-16
           git commit -m "Step 16 screenshots (${GITHUB_SHA::7})" || exit 0
-          git push origin HEAD:pr-assets
+          # Other workflows push here too: take theirs and try again.
+          for i in 1 2 3; do
+            git push origin HEAD:pr-assets && exit 0
+            git pull --rebase origin pr-assets
+          done
+          exit 1
       - uses: actions/upload-artifact@v7
         if: failure()
         with:

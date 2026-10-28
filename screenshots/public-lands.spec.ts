@@ -7,15 +7,15 @@
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 import { loadFixture } from "../test/support/fixtures";
 import { importParcels, openExplorer, openFromList, seedScreens, settled, visit } from "../e2e/flow";
-import { jump, tapAt } from "../e2e/publicLand";
+import { jump } from "../e2e/publicLand";
 import { replayHar } from "../e2e/replay";
 
 const OUT = "test-results/screenshots/step-16";
 const MUD = "grayson-mud-creek-6273";
 /** Mud Creek and the forest to its north-west, with White Top Road, in one view (zoom 12, wide enough for a phone). */
 const MUD_VIEW: [number, number] = [36.603, -81.576];
-/** In the Jefferson National Forest, north-west of Mud Creek (the first run's tap at 36.60 fell just south of it). */
-const FOREST: [number, number] = [36.6185, -81.5897];
+/** Inside the Jefferson National Forest, east of White Top Road (read off the first run's Mud Creek shot). */
+const FOREST: [number, number] = [36.6316, -81.5794];
 /** The point the probe asked: Pond Mountain Game Land's record is under it. */
 const POND: [number, number] = [36.56, -81.69];
 
@@ -41,6 +41,52 @@ async function drawn(page: Page): Promise<void> {
     .catch(() => undefined);
   // The layers redraw 250 ms after their last tile.
   await page.waitForTimeout(2500);
+}
+
+/**
+ * A point in view over drawn land of one kind (by name, or the forest), clear of the routes: the screenshot's tap, found
+ * on the live map rather than from coordinates read off an earlier run.
+ */
+async function landPoint(
+  page: Page,
+  test: { cat?: string; name?: string },
+): Promise<{ x: number; y: number } | null> {
+  return page.evaluate((want) => {
+    type F = { properties: Record<string, unknown> };
+    const m = (
+      window as unknown as {
+        __psMap: {
+          getContainer(): HTMLElement;
+          queryRenderedFeatures(p: unknown, o: { layers: string[] }): F[];
+          getLayer(id: string): unknown;
+        };
+      }
+    ).__psMap;
+    const box = m.getContainer().getBoundingClientRect();
+    const land = ["public-land-fine-solid", "public-land-fine-hatched"].filter((id) => m.getLayer(id));
+    const routes = ["mvum-line", "mvum-seasonal"].filter((id) => m.getLayer(id));
+    for (let y = box.height * 0.2; y < box.height * 0.6; y += 24)
+      for (let x = box.width * 0.35; x < box.width * 0.9; x += 24) {
+        const hit = m
+          .queryRenderedFeatures([x, y], { layers: land })
+          .some((f) =>
+            want.name
+              ? String(f.properties.Unit_Nm ?? "").includes(want.name)
+              : f.properties._cat === want.cat,
+          );
+        const near = routes.length
+          ? m.queryRenderedFeatures(
+              [
+                [x - 16, y - 16],
+                [x + 16, y + 16],
+              ],
+              { layers: routes },
+            ).length
+          : 0;
+        if (hit && !near) return { x: box.left + x, y: box.top + y };
+      }
+    return null;
+  }, test);
 }
 
 async function layersOn(page: Page): Promise<void> {
@@ -92,7 +138,9 @@ for (const phone of [false, true]) {
       // The forest's card.
       await jump(page, 14, FOREST);
       await drawn(page);
-      await tapAt(page, FOREST);
+      const forest = await landPoint(page, { cat: "forest" });
+      expect(forest, "a point over the national forest").not.toBeNull();
+      await page.mouse.click(forest!.x, forest!.y);
       await expect(page.locator(".public-land-card")).toBeVisible();
       await shot(page, "forest-card");
 
@@ -100,7 +148,9 @@ for (const phone of [false, true]) {
       await page.getByRole("button", { name: "Close this parcel" }).click();
       await jump(page, 13, POND);
       await drawn(page);
-      await tapAt(page, POND);
+      const pond = await landPoint(page, { name: "Pond Mountain" });
+      expect(pond, "a point over Pond Mountain Game Land").not.toBeNull();
+      await page.mouse.click(pond!.x, pond!.y);
       await expect(page.locator(".public-land-card")).toBeVisible();
       await shot(page, "pond-mountain");
     });
