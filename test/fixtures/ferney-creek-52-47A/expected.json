@@ -3682,8 +3682,73 @@
    ],
    "pond": null
   },
+  "climbing": {
+   "rope": {
+    "id": "pilot-mountain",
+    "name": "Pilot Mountain State Park",
+    "types": [
+     "trad",
+     "top-rope"
+    ],
+    "min": 75,
+    "mi": 56.5
+   },
+   "boulder": {
+    "id": "moores-wall",
+    "name": "Moore's Wall (Hanging Rock SP)",
+    "min": 92,
+    "mi": 57.2
+   },
+   "ropeWithin": 0,
+   "timed": [
+    {
+     "id": "moores-wall",
+     "min": 92
+    },
+    {
+     "id": "sauratown",
+     "min": 97
+    },
+    {
+     "id": "pilot-mountain",
+     "min": 75
+    },
+    {
+     "id": "dragons-tooth",
+     "min": 88
+    },
+    {
+     "id": "stone-mountain-nc",
+     "min": 105
+    },
+    {
+     "id": "grayson-highlands",
+     "min": 120
+    },
+    {
+     "id": "rocky-face",
+     "min": 141
+    },
+    {
+     "id": "nrg-kaymoor",
+     "min": 173
+    },
+    {
+     "id": "nrg-endless-wall",
+     "min": 174
+    },
+    {
+     "id": "nrg-bridge-buttress",
+     "min": 181
+    },
+    {
+     "id": "hidden-valley-va",
+     "min": 165
+    }
+   ]
+  },
   "schemaVersion": 9,
-  "engine": 34,
+  "engine": 35,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -8847,8 +8912,73 @@
    ],
    "pond": null
   },
+  "climbing": {
+   "rope": {
+    "id": "pilot-mountain",
+    "name": "Pilot Mountain State Park",
+    "types": [
+     "trad",
+     "top-rope"
+    ],
+    "min": 75,
+    "mi": 56.5
+   },
+   "boulder": {
+    "id": "moores-wall",
+    "name": "Moore's Wall (Hanging Rock SP)",
+    "min": 92,
+    "mi": 57.2
+   },
+   "ropeWithin": 0,
+   "timed": [
+    {
+     "id": "moores-wall",
+     "min": 92
+    },
+    {
+     "id": "sauratown",
+     "min": 97
+    },
+    {
+     "id": "pilot-mountain",
+     "min": 75
+    },
+    {
+     "id": "dragons-tooth",
+     "min": 88
+    },
+    {
+     "id": "stone-mountain-nc",
+     "min": 105
+    },
+    {
+     "id": "grayson-highlands",
+     "min": 120
+    },
+    {
+     "id": "rocky-face",
+     "min": 141
+    },
+    {
+     "id": "nrg-kaymoor",
+     "min": 173
+    },
+    {
+     "id": "nrg-endless-wall",
+     "min": 174
+    },
+    {
+     "id": "nrg-bridge-buttress",
+     "min": 181
+    },
+    {
+     "id": "hidden-valley-va",
+     "min": 165
+    }
+   ]
+  },
   "schemaVersion": 9,
-  "engine": 34,
+  "engine": 35,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false,
@@ -14154,8 +14284,73 @@
    ],
    "pond": null
   },
+  "climbing": {
+   "rope": {
+    "id": "pilot-mountain",
+    "name": "Pilot Mountain State Park",
+    "types": [
+     "trad",
+     "top-rope"
+    ],
+    "min": 75,
+    "mi": 56.5
+   },
+   "boulder": {
+    "id": "moores-wall",
+    "name": "Moore's Wall (Hanging Rock SP)",
+    "min": 92,
+    "mi": 57.2
+   },
+   "ropeWithin": 0,
+   "timed": [
+    {
+     "id": "moores-wall",
+     "min": 92
+    },
+    {
+     "id": "sauratown",
+     "min": 97
+    },
+    {
+     "id": "pilot-mountain",
+     "min": 75
+    },
+    {
+     "id": "dragons-tooth",
+     "min": 88
+    },
+    {
+     "id": "stone-mountain-nc",
+     "min": 105
+    },
+    {
+     "id": "grayson-highlands",
+     "min": 120
+    },
+    {
+     "id": "rocky-face",
+     "min": 141
+    },
+    {
+     "id": "nrg-kaymoor",
+     "min": 173
+    },
+    {
+     "id": "nrg-endless-wall",
+     "min": 174
+    },
+    {
+     "id": "nrg-bridge-buttress",
+     "min": 181
+    },
+    {
+     "id": "hidden-valley-va",
+     "min": 165
+    }
+   ]
+  },
   "schemaVersion": 9,
-  "engine": 34,
+  "engine": 35,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

@@ -5223,8 +5223,80 @@
    ],
    "pond": null
   },
+  "climbing": {
+   "rope": {
+    "id": "linville-gorge-shortoff",
+    "name": "Linville Gorge: Shortoff Mountain",
+    "types": [
+     "trad"
+    ],
+    "min": 95,
+    "mi": 51.4
+   },
+   "boulder": {
+    "id": "grayson-highlands",
+    "name": "Grayson Highlands State Park",
+    "min": 130,
+    "mi": 83.4
+   },
+   "ropeWithin": 0,
+   "timed": [
+    {
+     "id": "linville-gorge-table-rock",
+     "min": 154
+    },
+    {
+     "id": "linville-gorge-shortoff",
+     "min": 95
+    },
+    {
+     "id": "grayson-highlands",
+     "min": 130
+    },
+    {
+     "id": "hidden-valley-va",
+     "min": 116
+    },
+    {
+     "id": "rumbling-bald",
+     "min": 132
+    },
+    {
+     "id": "rocky-face",
+     "min": 138
+    },
+    {
+     "id": "stone-mountain-nc",
+     "min": 147
+    },
+    {
+     "id": "jump-off-rock",
+     "min": 146
+    },
+    {
+     "id": "looking-glass-rock",
+     "min": 209
+    },
+    {
+     "id": "cedar-rock-pisgah",
+     "min": 211
+    },
+    {
+     "id": "breaks-interstate-park",
+     "min": 190
+    },
+    {
+     "id": "crowders-mountain",
+     "min": 161
+    },
+    {
+     "id": "table-rock-sc",
+     "min": 189
+    }
+   ]
+  },
   "schemaVersion": 9,
-  "engine": 34,
+  "engine": 35,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -10146,8 +10218,80 @@
    ],
    "pond": null
   },
+  "climbing": {
+   "rope": {
+    "id": "linville-gorge-shortoff",
+    "name": "Linville Gorge: Shortoff Mountain",
+    "types": [
+     "trad"
+    ],
+    "min": 95,
+    "mi": 51.4
+   },
+   "boulder": {
+    "id": "grayson-highlands",
+    "name": "Grayson Highlands State Park",
+    "min": 130,
+    "mi": 83.4
+   },
+   "ropeWithin": 0,
+   "timed": [
+    {
+     "id": "linville-gorge-table-rock",
+     "min": 154
+    },
+    {
+     "id": "linville-gorge-shortoff",
+     "min": 95
+    },
+    {
+     "id": "grayson-highlands",
+     "min": 130
+    },
+    {
+     "id": "hidden-valley-va",
+     "min": 116
+    },
+    {
+     "id": "rumbling-bald",
+     "min": 132
+    },
+    {
+     "id": "rocky-face",
+     "min": 138
+    },
+    {
+     "id": "stone-mountain-nc",
+     "min": 147
+    },
+    {
+     "id": "jump-off-rock",
+     "min": 146
+    },
+    {
+     "id": "looking-glass-rock",
+     "min": 209
+    },
+    {
+     "id": "cedar-rock-pisgah",
+     "min": 211
+    },
+    {
+     "id": "breaks-interstate-park",
+     "min": 190
+    },
+    {
+     "id": "crowders-mountain",
+     "min": 161
+    },
+    {
+     "id": "table-rock-sc",
+     "min": 189
+    }
+   ]
+  },
   "schemaVersion": 9,
-  "engine": 34,
+  "engine": 35,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
