@@ -45,25 +45,18 @@ export function MapTools({ parcelServices, hint }: { parcelServices: readonly st
   return null;
 }
 
-/** The map's hint line; `action` puts a button beside it (Draw, over a Tennessee county with no lines: step 2). */
-export function Hint({
-  text,
-  action,
-}: {
-  text: string;
-  action?: { label: string; onClick: () => void } | null;
-}) {
+/**
+ * The map's hint line. `ownRecords` marks the hint over a Tennessee county with no parcel source: it takes the width
+ * the map leaves it, and the parcel toolbar below drops "Tap a parcel to select it" while it shows, leaving its one
+ * "Draw a custom parcel" button (the Tennessee counties mission's fresh-eyes review).
+ */
+export function Hint({ text, ownRecords = false }: { text: string; ownRecords?: boolean }) {
   if (!text) return null;
   return (
     <div
-      className={`map-hint absolute left-2.5 z-10 ${action ? "map-hint--action" : "max-w-[70%]"} rounded bg-[rgba(28,38,32,.86)] px-2.5 py-1.5 text-[13px] text-white`}
+      className={`map-hint absolute left-2.5 z-10 ${ownRecords ? "map-hint--own" : "max-w-[70%]"} rounded bg-[rgba(28,38,32,.86)] px-2.5 py-1.5 text-[13px] text-white`}
     >
       {text}
-      {action && (
-        <button type="button" className="map-hint-action" onClick={action.onClick}>
-          {action.label}
-        </button>
-      )}
     </div>
   );
 }

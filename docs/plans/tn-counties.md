@@ -63,6 +63,22 @@ each PR into the step branch when CI is green; the hand-back to main is Zach's.
   - **Three Gorges Farms** is a 2026 subdivision (plat book 135, pages 54–58) of about 5-acre tracts on Three Gorges
     Road, Big Soddy Drive and Deep Down Road, just east of Worley Road. The test lot is tract 1: 048 045.24, 2385
     Three Gorges Rd, 5.09 ac. (Nominatim found no "Worley Road, Soddy-Daisy"; the county's own records did.)
+- **Round 4: the other seven** (web search, 2026-10-30; nothing here was queried). None is trivially similar to
+  Hamilton's: each would mean its own fields, its own terms read and its own recording, and some are closed or
+  restricted. So all seven are **not covered**. Over each, the map names the county and offers Draw.
+
+  | County | What there is | Why not covered |
+  |---|---|---|
+  | Chester | No county GIS service found; the state's Property Viewer and commercial vendors only | No public source |
+  | Davidson (Nashville) | Metro's [Parcel Viewer](https://maps.nashville.gov/ParcelViewer/); its REST service wasn't found | Not found; its own fields and terms to read |
+  | Hickman | A CAMA vendor's portal, `hickman.capturecama.com` (from a directory; not verified) | No ArcGIS service; a vendor's terms |
+  | Montgomery (Clarksville) | Austin Peay's GIS Center: [MontViewer](https://apnsgis4.apsu.edu/arcgis/rest/services/CMCGIS/MontViewer/MapServer), last updated 2022-10-18 | A university's service, three years old |
+  | Rutherford | The county's [ParcelOwners service](https://maps.rutherfordcountytn.gov/ags03/rest/services/Assessor/ParcelOwners/MapServer), which offers a token login, and its [GIS hub](https://rutherfordcountygis-rcgis.hub.arcgis.com) | May need a token; terms to read |
+  | Shelby (Memphis) | ReGIS's [CERT_Parcel](https://gis.shelbycountytn.gov/arcgis/rest/services/Parcel/CERT_Parcel/MapServer), "for the sole use of ReGIS, its participants, and their authorized agents"; Memphis's [TaxParcel_Basemap](https://maps.memphistn.gov/mapping/rest/services/Basemaps/TaxParcel_Basemap/MapServer/0) | The county's terms restrict it; the city's is a basemap with its own terms |
+  | Williamson | The county's HTML5 viewer at `williamson-tn.org` (from a directory; not verified) | No service found |
+
+  Davidson, Montgomery, Rutherford and Memphis's layer might be added the way Hamilton's was, each a PR the size of this
+  mission's PR 1. All four are far from the household's region, so they're left until they're asked for.
 
 ## 1. The work, by PR
 
@@ -70,8 +86,7 @@ each PR into the step branch when CI is green; the hand-back to main is Zach's.
 |---|---|---|
 | 0 | This plan, and the probe | The probe's findings go into §0 |
 | 1 | Hamilton | The county's service in `parcelFields.ts`, asked only for tiles over Hamilton; tap, search and the record fields; a Three Gorges lot near Worley Road selects and grades (a recording); the hint names the county and suggests Draw a custom parcel where there's no source; `commercial-review.md` |
-| 2 | Knox: stopped (§0) | Not covered: KGIS needs a login, and its terms forbid reuse without written authorization |
-| 3 | The others; hand-back | The other seven listed as not covered, with their links; screenshots at 1280 and 375; the fresh-eyes review; the hand-back to main |
+| 2–3 | Knox and the others; hand-back | Knox stopped (§0: KGIS needs a login, and its terms forbid reuse without written authorization); the other seven listed as not covered, with their links (§0, round 4); screenshots at 1280 and 375; the fresh-eyes review; the hand-back to main. Knox's stop is a few lines of docs, so it rides with the others (CLAUDE.md: fold trivial follow-ups) |
 
 ## 2. Stop conditions
 

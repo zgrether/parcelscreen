@@ -132,7 +132,7 @@ describe("the own-records counties with no source", () => {
 
   it("are named in the hint, which suggests Draw a custom parcel", () => {
     const h = ownRecordsHint("Knox");
-    expect(h).toBe("No parcel lines in Knox County: it keeps its own records. Draw a custom parcel?");
+    expect(h).toBe("No parcel lines in Knox County: it keeps its own records. Draw a custom parcel instead.");
     expect(isOwnRecordsHint(h)).toBe(true);
     expect(isOwnRecordsHint("Dense area — zoom in to see all parcel lines")).toBe(false);
   });
