@@ -1,0 +1,59 @@
+name: Climbing screenshots
+
+# Roadmap step 17 (docs/plans/step-17-climbing.md §10): the hand-back's screenshots of the Climbing row, its question
+# and Map layers › Places › Climbing (screenshots/climbing.spec.ts), at 1280 and 375, with the live basemap that the
+# cloud sessions can't reach. The shots go to the pr-assets branch (pr-assets/step-17/). Nothing here gates a merge.
+on:
+  pull_request:
+    paths:
+      - screenshots/climbing.spec.ts
+      - .github/workflows/climbing-shots.yml
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # A fork's PR gets a read-only token: nothing to push to.
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm build
+      - run: pnpm exec playwright test -c playwright.screenshots.config.ts screenshots/climbing.spec.ts
+        env:
+          E2E_SKIP_BUILD: "1"
+      - name: To pr-assets/step-17
+        if: always()
+        run: |
+          ls test-results/screenshots/step-17 || exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin pr-assets
+          git worktree add ../assets origin/pr-assets
+          mkdir -p ../assets/step-17
+          cp test-results/screenshots/step-17/*.png ../assets/step-17/
+          cd ../assets
+          git add -A step-17
+          git commit -m "Step 17 screenshots (${GITHUB_SHA::7})" || exit 0
+          # Other workflows push here too: take theirs and try again.
+          for i in 1 2 3; do
+            git push origin HEAD:pr-assets && exit 0
+            git pull --rebase origin pr-assets
+          done
+          exit 1
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: climbing-shots-test-results
+          path: test-results/
+          retention-days: 7
