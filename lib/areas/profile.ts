@@ -18,7 +18,13 @@ import { horizonProfile } from "../screen/sun";
 import { viewOf } from "../screen/view";
 import { LONG_TRAILS } from "../screen/data/longTrails";
 import { officialTrailheads } from "../screen/trailheads";
-import { placesFromHttp, type BakedLaunch, type PlacesSource } from "../screen/placeData";
+import {
+  isRopeArea,
+  placesFromHttp,
+  type BakedCrag,
+  type BakedLaunch,
+  type PlacesSource,
+} from "../screen/placeData";
 import { distinctLaunches } from "../screen/paddling";
 import type { Endpoints } from "../screen/types";
 import { openPct } from "../report/view";
@@ -96,6 +102,7 @@ const ROUND: Record<Measure, number> = {
   openLandFt: -1,
   longTrailMin: 0,
   paddleMin: 0,
+  climbMin: 0,
 };
 const round = (m: Measure, x: number | null): number | null => {
   if (x === null || !Number.isFinite(x)) return null;
@@ -122,6 +129,15 @@ async function flatLaunches(box: Box, places: PlacesSource): Promise<LatLon[]> {
     .filter((p): p is BakedLaunch => p.kind === "launch" && p.water === "flat")
     .sort((a, b) => a.ll[0] - b.ll[0] || a.ll[1] - b.ll[1]);
   return distinctLaunches(flat.map((l) => ({ l, km: 0 }))).map((x) => x.l.ll);
+}
+
+/** The rope climbing areas (sport or trad) a point in the box might drive to: within climbing.maxKm of it. */
+async function ropeAreas(box: Box, places: PlacesSource): Promise<LatLon[]> {
+  const cells = cellsOfBox(widen(box, SCREEN_CONSTANTS.climbing.maxKm));
+  return (await places("curated", cells))
+    .filter((p): p is BakedCrag => p.kind === "crag" && isRopeArea(p.types))
+    .sort((a, b) => a.ll[0] - b.ll[0] || a.ll[1] - b.ll[1])
+    .map((c) => c.ll);
 }
 
 export async function profileArea(
@@ -191,9 +207,9 @@ export async function profileArea(
       )
     : [];
   const trailheads = distinct([...places.trailheads, ...official.flat().map((t) => t.ll)]);
-  const launches = pts.length
-    ? await flatLaunches(box, deps.places ?? placesFromHttp(deps.http, deps.endpoints.places))
-    : [];
+  const placesSource = deps.places ?? placesFromHttp(deps.http, deps.endpoints.places);
+  const launches = pts.length ? await flatLaunches(box, placesSource) : [];
+  const rope = pts.length ? await ropeAreas(box, placesSource) : [];
   const drives = await pointDrives(
     pts,
     {
@@ -204,6 +220,7 @@ export async function profileArea(
       trailheads,
       trailPoints: LONG_TRAILS.flatMap((t) => t.points.map((p): LatLon => [p.lat, p.lon])),
       launches,
+      ropeAreas: rope,
     },
     deps.matrix ?? osrmMatrix({ http: deps.http, endpoints: deps.endpoints }),
   );
@@ -214,6 +231,7 @@ export async function profileArea(
     cols.trailheadMin.push(d.trailheadMin);
     cols.longTrailMin.push(d.longTrailMin);
     cols.paddleMin.push(d.paddleMin);
+    cols.climbMin.push(d.climbMin);
   }
 
   const medians = Object.fromEntries(MEASURES.map((m) => [m, round(m, median(cols[m]))])) as Record<
@@ -238,6 +256,7 @@ export async function profileArea(
       airports: `FAA via BTS NTAD, ${deps.airports.effective}`,
       places: `OpenStreetMap via Overpass, ${deps.today}`,
       launches: "Paddle launches: OpenStreetMap and USFS, classified with NHD (the baked places)",
+      crags: "Climbing areas: Parcel Screen's own list (the baked places' curated folder)",
       drives: `OSRM, ${deps.today}`,
     },
     candidates: sample.candidates,

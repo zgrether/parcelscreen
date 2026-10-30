@@ -135,6 +135,7 @@ describe("config", () => {
             "groceryChain": 3,
             "launch": 3,
             "longTrail": 4,
+            "rope": 3,
             "trailhead": 3,
           },
           "padusMarginKm": 16,
