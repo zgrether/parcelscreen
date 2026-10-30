@@ -118,7 +118,7 @@ test("Hamilton County: the county's own lines draw; a tap on a Three Gorges lot 
   await openAt(page, { ...lot, z: 16 });
   await expect.poll(() => linesDrawn(page), { timeout: 30_000 }).toBeGreaterThan(0);
   // Not the no-lines hint: Hamilton has a source now.
-  await expect(page.locator(".map-hint")).not.toContainText("keeps its own records");
+  await expect(page.getByText("keeps its own records")).toHaveCount(0);
   await tapAt(page, lot);
   const info = page.getByRole("button", { name: /acres: parcel details$/ });
   await expect(info).toBeVisible({ timeout: 15_000 });
