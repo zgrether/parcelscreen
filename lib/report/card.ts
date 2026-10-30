@@ -69,7 +69,9 @@ import type { PavingContext } from "./ground";
 import { NOT_MEASURED, OUTSIDE_AREA, stationLine, stationName } from "./climate";
 import { IN_WINTER } from "./privacy";
 import { LONG_TRAIL_DRIVES } from "../screen/longTrail";
+import { CLIMB_DRIVES } from "../screen/climbing";
 import { PADDLE_DRIVES } from "../screen/paddling";
+import { climbingNote, NO_ROPE, ropeLine } from "./climbing";
 import { flatLine, NO_FLATWATER, pondLine, RIVERS_NOT_GRADED, riversLine } from "./paddling";
 import { openPct, viewLine, viewShort } from "./view";
 import { atLeast, atMost, gradedRows, parcelGrade, verdictLines } from "../rubric/grade";
@@ -937,6 +939,27 @@ function paddling(r: Result, K: CardConfig): Row {
 }
 
 /**
+ * Climbing (step 17, docs/plans/step-17-climbing.md §4): the drive to the nearest rope area (sport or trad), graded on
+ * climbMin. The nearest bouldering area, the rope areas within the hour and the access note go in the row's panel,
+ * never in the grade.
+ */
+function climbing(r: Result, K: CardConfig): Row {
+  const g = row("climbing", FACTOR_LABELS.climbing);
+  if (!drivesLoaded(r) || r.noResponse.includes(CLIMB_DRIVES)) return notLoaded(g, "the drive times");
+  if (r.climbing === undefined) return { ...g(null, NOT_MEASURED), short: "not measured" };
+  const c = r.climbing;
+  // The panel ends the sentence itself (CardPanel: "<detail>; <note>.").
+  const panel = { panelNote: climbingNote(c) };
+  if (!c.rope) return { ...g("F", NO_ROPE), short: "none near", ...panel };
+  return {
+    ...g(atMost(c.rope.min, K.rows.climbMin), ropeLine(c.rope)),
+    short: `${c.rope.name} ${fmt(c.rope.min)} min`,
+    measure: { value: c.rope.min, unit: "min" },
+    ...panel,
+  };
+}
+
+/**
  * Satellite internet (step 11, plan §2.7; renamed from Internet, owner, #272): the parcel's best spot for a satellite dish, graded on how clear its view is, with its
  * distance from the site the card reads.
  */
@@ -1168,6 +1191,8 @@ export function cardFacts(
       longViewRow!,
       // Step 14d: after step 11's rows.
       paddling(r, K),
+      // Step 17: after Paddling.
+      climbing(r, K),
       ...[budgetRow(cost, budgets, K)].filter((x): x is Row => x !== null),
     ],
     at,

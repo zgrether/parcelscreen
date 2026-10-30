@@ -67,6 +67,7 @@ describe("rank-sum weights", () => {
       longTrail: 0,
       internet: 0,
       paddling: 0,
+      climbing: 0,
       budget: 0,
     });
     expect(weightsOf(explicit)).toEqual(explicit.weights.mode === "explicit" ? explicit.weights.of : null);

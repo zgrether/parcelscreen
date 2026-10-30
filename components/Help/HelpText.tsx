@@ -215,6 +215,16 @@ export function HelpText() {
         river&apos;s class before paddling. OpenStreetMap misses some launches, and the state wildlife
         agencies&apos; boat ramps aren&apos;t included yet.
       </p>
+
+      <h3 id="h-climb">Climbing</h3>
+      <p>
+        The drive from where the driveway meets the road to the nearest sport or trad area; top-rope alone
+        doesn&apos;t count as a rope area. The nearest bouldering and the rope areas within an hour are
+        listed, not graded. The areas are Parcel Screen&apos;s own list of about fifty climbers&apos; lots in
+        Virginia, North Carolina, Tennessee and around them, each with a one-line access note read from the
+        land manager&apos;s or the climbing coalition&apos;s page and the date it was checked. Access changes:
+        permits, raptor closures and hunts come and go, so check the area&apos;s page before you drive.
+      </p>
     </>
   );
 }

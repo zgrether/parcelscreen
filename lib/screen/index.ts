@@ -40,6 +40,7 @@ import type { HospitalCandidate, HospitalSource } from "./hospitals";
 import { loadClimate, withClimate, type ClimateSource } from "./climate";
 import { loadBuildings, withPrivacy, type BuildingSource } from "./privacy";
 import { LONG_TRAIL_DRIVES, longTrailDrive } from "./longTrail";
+import { CLIMB_DRIVES, climbingNear } from "./climbing";
 import { PADDLE_DRIVES, paddlingNear } from "./paddling";
 import { dishSpot } from "./dish";
 import { OverpassMirrors, placesOf } from "./places";
@@ -691,8 +692,16 @@ export async function reroute(
     if (before.longTrail !== undefined) R.longTrail = before.longTrail;
     // Step 14d: and the paddling drive, the same way.
     if (before.paddling !== undefined) R.paddling = before.paddling;
+    // Step 17: and the climbing drives.
+    if (before.climbing !== undefined) R.climbing = before.climbing;
     for (const n of before.noResponse)
-      if (n === TRAILHEAD_PARKING || n === TRAILHEAD_DRIVES || n === LONG_TRAIL_DRIVES || n === PADDLE_DRIVES)
+      if (
+        n === TRAILHEAD_PARKING ||
+        n === TRAILHEAD_DRIVES ||
+        n === LONG_TRAIL_DRIVES ||
+        n === PADDLE_DRIVES ||
+        n === CLIMB_DRIVES
+      )
         R.noResponse.push(n);
   } else {
     onProgress?.({ step: "drive", status: "run" });
@@ -930,6 +939,16 @@ async function driveStep(
     delete R.paddling;
     R.noResponse.push(PADDLE_DRIVES);
   } else R.paddling = pd;
+  // Step 17 (plan §3): the nearest rope and bouldering areas, in a request of their own; unknown when unread.
+  const cl = await climbingNear(
+    start.ll,
+    placesOf({ ...io, ...(s.deps.places ? { places: s.deps.places } : {}) }),
+    io,
+  );
+  if (cl === undefined) {
+    delete R.climbing;
+    R.noResponse.push(CLIMB_DRIVES);
+  } else R.climbing = cl;
 }
 
 /**

@@ -35,6 +35,8 @@ export const BAND_DIRECTION: Record<RowKey, "atLeast" | "atMost" | null> = {
   internet: "atLeast",
   // Step 14d: the drive to a lake launch, at most.
   paddling: "atMost",
+  // Step 17: the drive to a rope area, at most.
+  climbing: "atMost",
   // Step 10: no threshold; a Must on it reads the budgets (lib/report/card.ts).
   budget: null,
 };
@@ -57,6 +59,7 @@ export const MEASURE_UNIT: Record<RowKey, string | null> = {
   longTrail: "min",
   internet: "%",
   paddling: "min",
+  climbing: "min",
   budget: null,
 };
 

@@ -35,6 +35,8 @@ export const ROW_KEYS = [
   "internet",
   // Step 14d (docs/plans/step-14d-places.md §4.2): after step 11's, for the same reason.
   "paddling",
+  // Step 17 (docs/plans/step-17-climbing.md §4): after Paddling, the same way.
+  "climbing",
   "budget",
 ] as const;
 export type RowKey = (typeof ROW_KEYS)[number];
@@ -84,6 +86,8 @@ export interface Bands {
   dishClearPct: number[];
   /** Step 14d: Paddling's drive to the nearest flatwater launch, in minutes, at most. */
   paddleMin: number[];
+  /** Step 17: Climbing's drive to the nearest rope area (sport or trad), in minutes, at most. */
+  climbMin: number[];
 }
 
 /**

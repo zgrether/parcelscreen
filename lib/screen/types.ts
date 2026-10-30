@@ -848,6 +848,22 @@ export const ScreenResultSchema = z.strictObject({
     })
     .optional(),
   /**
+   * Step 17 (docs/plans/step-17-climbing.md §3; §9.77): the drive to the nearest rope area (sport or trad) and the
+   * nearest bouldering area, from where the drives start, each null when none is within reach or routable; the rope
+   * areas within climbing.countWithinMin; and every climbing area the table timed, for the Places layer's card. Absent
+   * before it, or when the climbing areas or OSRM didn't answer.
+   */
+  climbing: z
+    .strictObject({
+      rope: z
+        .strictObject({ id: z.string(), name: z.string(), types: z.array(z.string()), min: num, mi: num })
+        .nullable(),
+      boulder: z.strictObject({ id: z.string(), name: z.string(), min: num, mi: num }).nullable(),
+      ropeWithin: num,
+      timed: z.array(z.strictObject({ id: z.string(), min: num })),
+    })
+    .optional(),
+  /**
    * Step 11 (plan §2.7; §9.66): the parcel's best open-sky spot for a satellite dish, and how clear its view cone is
    * (0–1); null when no spot could be read. Absent before it.
    */

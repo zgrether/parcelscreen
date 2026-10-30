@@ -34,6 +34,7 @@ const BandsSchema = z.strictObject({
   airportMin: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.airportMin]),
   longTrailMin: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.longTrailMin]),
   paddleMin: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.paddleMin]),
+  climbMin: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.climbMin]),
   dishClearPct: z.array(num).default(() => [...SCREEN_CONSTANTS.card.rows.dishClearPct]),
 });
 
